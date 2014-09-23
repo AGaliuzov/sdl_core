@@ -354,6 +354,12 @@ uint32_t ConnectionHandlerImpl::OnSessionEndedCallback(
     const protocol_handler::ServiceType &service_type) {
   LOG4CXX_TRACE(logger_, "ConnectionHandlerImpl::OnSessionEndedCallback()");
 
+  const uint32_t session_key = KeyFromPair(connection_handle, session_id);
+  // Check hashID
+  if(session_key != hashCode) {
+    return 0;
+  }
+
   sync_primitives::AutoLock lock(connection_list_lock_);
   ConnectionList::iterator it = connection_list_.find(connection_handle);
   if (connection_list_.end() == it) {
@@ -378,7 +384,6 @@ uint32_t ConnectionHandlerImpl::OnSessionEndedCallback(
     }
   }
 
-  const uint32_t session_key = KeyFromPair(connection_handle, session_id);
   if (connection_handler_observer_) {
     connection_handler_observer_->OnServiceEndedCallback(session_key,
                                                          service_type);

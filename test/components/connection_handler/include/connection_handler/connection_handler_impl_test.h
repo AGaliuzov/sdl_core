@@ -103,6 +103,32 @@ class ConnectionHandlerTest: public ::testing::Test {
     profile::Profile::instance()->config_file_name(config_file);
   }
   //Check Service Wrapper
+  void CheckServiceExists(const int connectionId, const int session_id,
+                          const ::protocol_handler::ServiceType serviceId,
+                          const bool exists) {
+    //check all tree to find Service and check own protected value
+    const ConnectionList& connection_list = connection_handler_->getConnectionList();
+    ASSERT_FALSE(connection_list.empty());
+    ConnectionList::const_iterator conn_it = connection_list.find(connectionId);
+    ASSERT_NE(conn_it, connection_list.end());
+    const Connection& connection = *connection_list.begin()->second;
+
+    const SessionMap& session_map = connection.session_map();
+    ASSERT_FALSE(session_map.empty());
+    SessionMap::const_iterator sess_it = session_map.find(session_id);
+    ASSERT_NE(sess_it, session_map.end());
+    const Session& session = sess_it->second;
+    const ServiceList& service_list = session.service_list;
+    ASSERT_FALSE(service_list.empty());
+    ServiceList::const_iterator serv_it =
+        std::find(service_list.begin(), service_list.end(), serviceId);
+    if(exists) {
+      ASSERT_NE(serv_it, service_list.end());
+    } else  {
+      ASSERT_EQ(serv_it, service_list.end());
+    }
+  }
+  //Check Service Wrapper
   void CheckService(const int connectionId, const int session_id,
                     const ::protocol_handler::ServiceType serviceId,
                     const ::security_manager::SSLContext* ssl_context,
@@ -196,11 +222,11 @@ TEST_F(ConnectionHandlerTest, SessionStarted_Audio) {
   EXPECT_EQ(connection_list.begin()->first, static_cast<int>(uid));
 
   //start new session with Audio service
-  const uint32_t session_id_on_start_secure =
+  const uint32_t start_audio =
       connection_handler_->OnSessionStartedCallback(uid, session_id,
                                                     kAudio,
                                                     PROTECTION_OFF);
-  EXPECT_EQ(session_id_on_start_secure, session_id);
+  EXPECT_EQ(start_audio, session_id);
   ConnectionList& connection_list_new = connection_handler_->getConnectionList();
   EXPECT_EQ(connection_list.size(), 1u);
   EXPECT_EQ(connection_list_new.begin()->first, static_cast<int>(uid));
@@ -210,38 +236,31 @@ TEST_F(ConnectionHandlerTest, SessionEnded_Audio) {
   //Add virtual device and connection
   AddTestDeviceConnection();
 
-  //start new session with RPC service
-  const uint32_t session_id =
-      connection_handler_->OnSessionStartedCallback(uid, 0,
-                                                    kRpc,
-                                                    PROTECTION_OFF);
-  EXPECT_NE(session_id, 0u);
-  const ConnectionList& connection_list = connection_handler_->getConnectionList();
-  EXPECT_FALSE(connection_list.empty());
-  EXPECT_EQ(connection_list.begin()->first, static_cast<int>(uid));
+  AddTestSession();
 
-  //start new session with RPC service
-  const uint32_t session_id_on_start_secure =
-      connection_handler_->OnSessionStartedCallback(uid, session_id,
+  //start audio service
+  const uint32_t start_audio =
+      connection_handler_->OnSessionStartedCallback(uid, start_session_id,
                                                     kAudio,
                                                     PROTECTION_OFF);
-  EXPECT_EQ(session_id_on_start_secure, session_id);
-  ConnectionList& connection_list_start_secure = connection_handler_->getConnectionList();
-  EXPECT_FALSE(connection_list_start_secure.empty());
-  EXPECT_EQ(connection_list_start_secure.begin()->first, static_cast<int>(uid));
+  EXPECT_EQ(start_audio, start_session_id);
 
-  //start new session with RPC service
-  const uint32_t session_key_on_end_secure =
-      connection_handler_->OnSessionEndedCallback(uid, session_id, 0,
+  const uint32_t hash = connection_key;
+  const uint32_t wrong_hash = hash ^ 0xFFFF;
+
+  // start new session with RPC service
+  const uint32_t end_audio_wrong_hash =
+      connection_handler_->OnSessionEndedCallback(uid, start_session_id, wrong_hash,
                                                   kAudio);
-  transport_manager::ConnectionUID connection_id_on_end_secure;
-  uint8_t session_id_on_end_secure = 0;
-  connection_handler_->PairFromKey(session_key_on_end_secure,
-                                   &connection_id_on_end_secure, &session_id_on_end_secure);
-  EXPECT_EQ(session_id_on_end_secure, session_id);
-  ConnectionList& connection_list_on_end_secure = connection_handler_->getConnectionList();
-  EXPECT_FALSE(connection_list_on_end_secure.empty());
-  EXPECT_EQ(connection_list_on_end_secure.begin()->first, static_cast<int>(uid));
+  EXPECT_EQ(end_audio_wrong_hash, 0u);
+  CheckServiceExists(uid, start_session_id, kAudio, true);
+
+  // start new session with RPC service
+  const uint32_t end_audio =
+      connection_handler_->OnSessionEndedCallback(uid, start_session_id, hash,
+                                                  kAudio);
+  EXPECT_EQ(end_audio, connection_key);
+  CheckServiceExists(uid, start_session_id, kAudio, false);
 }
 
 TEST_F(ConnectionHandlerTest, SessionStarted_StartSession_SecureSpecific_Unprotect) {

@@ -916,27 +916,15 @@ RESULT_CODE ProtocolHandlerImpl::HandleControlMessageEndSession(
 
   uint8_t current_session_id = packet.session_id();
 
-  uint32_t hash_code = 0;
-  if (1 != packet.protocol_version()) {
-    hash_code = packet.message_id();
-  }
+  const uint32_t hash_code =
+      packet.protocol_version() > 1 ? packet.message_id() : 0;
 
   const ServiceType service_type = ServiceTypeFromByte(packet.service_type());
-  bool success = true;
-  const uint32_t session_hash_code = session_observer_->OnSessionEndedCallback(
+  const uint32_t session_key = session_observer_->OnSessionEndedCallback(
       connection_id, current_session_id, hash_code, service_type);
 
-  if (0 != session_hash_code) {
-    if (1 != packet.protocol_version()) {
-      if (packet.message_id() != session_hash_code) {
-        success = false;
-      }
-    }
-  } else {
-    success = false;
-  }
   // TODO(EZamakhov): add clean up output queue (for removed service)
-  if (success) {
+  if (session_key) {
     SendEndSessionAck(
         connection_id, current_session_id, packet.protocol_version(),
         session_observer_->KeyFromPair(connection_id, current_session_id),

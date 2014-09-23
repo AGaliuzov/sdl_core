@@ -315,36 +315,16 @@ TEST_F(ProtocolHandlerImplTest, EndSession_SessionObserverReject) {
 /*
  * ProtocolHandler shall send NAck on wrong hash code
  */
-TEST_F(ProtocolHandlerImplTest, EndSession_WrongHash) {
-  AddSession();
-  const ServiceType service = kRpc;
-
-  // expect ConnectionHandler check
-  EXPECT_CALL(session_observer_mock,
-              OnSessionEndedCallback(connection_id, session_id, message_id, service)).
-      //return sessions start success
-      WillOnce(Return(connection_key ^ 0xFF));
-
-  // expect send Ack
-  EXPECT_CALL(transport_manager_mock,
-              SendMessageToDevice(ControlMessage(FRAME_DATA_END_SERVICE_NACK, PROTECTION_OFF))).
-      WillOnce(Return(E_SUCCESS));
-
-  SendControlMessage(PROTECTION_OFF, service, session_id, FRAME_DATA_END_SERVICE);
-}
-/*
- * ProtocolHandler shall send NAck on wrong hash code
- */
 TEST_F(ProtocolHandlerImplTest, EndSession_Success) {
   AddSession();
   const ServiceType service = kRpc;
 
-  //Send with correct hash code
-  const uint32_t hash = connection_key;
+  // hash shall be get from packet header message_id
+  const uint32_t hash_id = message_id;
 
   // expect ConnectionHandler check
   EXPECT_CALL(session_observer_mock,
-              OnSessionEndedCallback(connection_id, session_id, hash, service)).
+              OnSessionEndedCallback(connection_id, session_id, hash_id, service)).
       //return sessions start success
       WillOnce(Return(connection_key));
 
@@ -353,8 +333,7 @@ TEST_F(ProtocolHandlerImplTest, EndSession_Success) {
               SendMessageToDevice(ControlMessage(FRAME_DATA_END_SERVICE_ACK, PROTECTION_OFF))).
       WillOnce(Return(E_SUCCESS));
 
-  SendTMMessage(connection_id, PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
-                service, FRAME_DATA_END_SERVICE, session_id, 0, hash);
+  SendControlMessage(PROTECTION_OFF, service, session_id, FRAME_DATA_END_SERVICE);
 }
 
 #ifdef ENABLE_SECURITY
