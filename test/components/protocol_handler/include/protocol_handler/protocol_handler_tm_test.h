@@ -37,6 +37,7 @@
 #include <string>
 
 #include "utils/shared_ptr.h"
+#include "utils/byte_order.h"
 
 #include "protocol_handler/protocol_handler_impl.h"
 #include "protocol/common.h"
@@ -151,9 +152,10 @@ class ProtocolHandlerImplTest : public ::testing::Test {
     tm_listener->OnTMMessageReceived(packet.serializePacket());
   }
   void SendControlMessage(bool protection, uint8_t service_type,
-                          uint8_t sessionId, uint32_t frame_data) {
+                          uint8_t sessionId, uint32_t frame_data,
+                          uint32_t data_size = 0, const uint8_t *data = 0) {
     SendTMMessage(connection_id, PROTOCOL_VERSION_3, protection, FRAME_TYPE_CONTROL,
-                  service_type, frame_data, sessionId, 0, message_id);
+                  service_type, frame_data, sessionId, data_size, message_id, data);
   }
 
   ::utils::SharedPtr<ProtocolHandlerImpl> protocol_handler_impl;
@@ -299,9 +301,11 @@ TEST_F(ProtocolHandlerImplTest, EndSession_SessionObserverReject) {
   AddSession();
   const ServiceType service = kRpc;
 
+  const uint32_t hash_id = 0xFAFAFA;
+
   // expect ConnectionHandler check
   EXPECT_CALL(session_observer_mock,
-              OnSessionEndedCallback(connection_id, session_id, message_id, service)).
+              OnSessionEndedCallback(connection_id, session_id, hash_id, service)).
       //return sessions start success
       WillOnce(Return(SESSION_START_REJECT));
 
@@ -310,7 +314,9 @@ TEST_F(ProtocolHandlerImplTest, EndSession_SessionObserverReject) {
               SendMessageToDevice(ControlMessage(FRAME_DATA_END_SERVICE_NACK, PROTECTION_OFF))).
       WillOnce(Return(E_SUCCESS));
 
-  SendControlMessage(PROTECTION_OFF, service, session_id, FRAME_DATA_END_SERVICE);
+  const uint32_t hash_id_le = BE_TO_LE32(hash_id);
+  SendControlMessage(PROTECTION_OFF, service, session_id, FRAME_DATA_END_SERVICE,
+                     sizeof(hash_id_le), reinterpret_cast<const uint8_t*>(&hash_id_le));
 }
 /*
  * ProtocolHandler shall send NAck on wrong hash code
@@ -319,8 +325,7 @@ TEST_F(ProtocolHandlerImplTest, EndSession_Success) {
   AddSession();
   const ServiceType service = kRpc;
 
-  // hash shall be get from packet header message_id
-  const uint32_t hash_id = message_id;
+  const uint32_t hash_id = 0xFAFAFA;
 
   // expect ConnectionHandler check
   EXPECT_CALL(session_observer_mock,
@@ -333,7 +338,9 @@ TEST_F(ProtocolHandlerImplTest, EndSession_Success) {
               SendMessageToDevice(ControlMessage(FRAME_DATA_END_SERVICE_ACK, PROTECTION_OFF))).
       WillOnce(Return(E_SUCCESS));
 
-  SendControlMessage(PROTECTION_OFF, service, session_id, FRAME_DATA_END_SERVICE);
+  const uint32_t hash_id_le = BE_TO_LE32(hash_id);
+  SendControlMessage(PROTECTION_OFF, service, session_id, FRAME_DATA_END_SERVICE,
+                     sizeof(hash_id_le), reinterpret_cast<const uint8_t*>(&hash_id_le));
 }
 
 #ifdef ENABLE_SECURITY

@@ -36,6 +36,7 @@
 
 #include "connection_handler/connection_handler_impl.h"
 #include "config_profile/profile.h"
+#include "utils/byte_order.h"
 
 #ifdef ENABLE_SECURITY
 #include "security_manager/ssl_context.h"
@@ -206,20 +207,26 @@ void ProtocolHandlerImpl::set_session_observer(SessionObserver *observer) {
     LOG4CXX_WARN(logger_, "Invalid (NULL) pointer to ISessionObserver.");
     // Do not return from here!
   }
-
-
   session_observer_ = observer;
+}
+
+void set_hash_id(int32_t hash_id, protocol_handler::ProtocolPacket& packet) {
+  if(packet.protocol_version() < 2) {
+    LOG4CXX_DEBUG(logger_, "Packet need no hash data (protocol version less 2)");
+    return;
+  }
+  const uint32_t hash_id_be = LE_TO_BE32(hash_id);
+  packet.set_data(reinterpret_cast<const uint8_t*>(&hash_id_be), sizeof(hash_id_be));
 }
 
 void ProtocolHandlerImpl::SendStartSessionAck(ConnectionID connection_id,
                                               uint8_t session_id,
-                                              uint8_t protocol_version,
-                                              uint32_t hash_code,
+                                              uint8_t ,
+                                              uint32_t ,
                                               uint8_t service_type,
                                               bool protection) {
   LOG4CXX_TRACE_ENTER(logger_);
 
-  // FIXME(EZamakhov): Heart beat is not all 3 version
   uint8_t protocolVersion;
 
   if (0 == profile::Profile::instance()->heart_beat_timeout()) {
@@ -232,8 +239,13 @@ void ProtocolHandlerImpl::SendStartSessionAck(ConnectionID connection_id,
 
   ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
     protocolVersion, protection, FRAME_TYPE_CONTROL,
-    service_type, FRAME_DATA_START_SERVICE_ACK, session_id,
-    0, hash_code));
+    service_type, FRAME_DATA_START_SERVICE_ACK, session_id, 0u, 0u));
+
+  const uint32_t connection_key =
+      session_observer_->KeyFromPair(connection_id, session_id);
+  LOG4CXX_DEBUG(logger_, "Set hash_id 0x " << std::hex << connection_key <<
+                " to packet 0x" << ptr);
+  set_hash_id(connection_key, *ptr);
 
   raw_ford_messages_to_mobile_.PostMessage(
       impl::RawFordMessageToMobile(ptr, false));
@@ -909,19 +921,30 @@ RESULT_CODE ProtocolHandlerImpl::HandleControlMessage(
   return RESULT_OK;
 }
 
+uint32_t get_hash_id(const ProtocolPacket &packet) {
+  if(packet.protocol_version() < 2) {
+    LOG4CXX_DEBUG(logger_, "Packet without hash data (protocol version less 2)");
+    return 0;
+  }
+  if(packet.data_size() < 4) {
+    LOG4CXX_WARN(logger_, "Packet without hash data (dta size less 2)");
+    return 0;
+  }
+  uint32_t hash_le = *(reinterpret_cast<uint32_t*>(packet.data()));
+  return LE_TO_BE32(hash_le);
+}
+
 RESULT_CODE ProtocolHandlerImpl::HandleControlMessageEndSession(
     ConnectionID connection_id, const ProtocolPacket &packet) {
   LOG4CXX_INFO(logger_,
                "ProtocolHandlerImpl::HandleControlMessageEndSession()");
 
-  uint8_t current_session_id = packet.session_id();
-
-  const uint32_t hash_code =
-      packet.protocol_version() > 1 ? packet.message_id() : 0;
-
+  const uint8_t current_session_id = packet.session_id();
+  const uint32_t hash_id = get_hash_id(packet);
   const ServiceType service_type = ServiceTypeFromByte(packet.service_type());
+
   const uint32_t session_key = session_observer_->OnSessionEndedCallback(
-      connection_id, current_session_id, hash_code, service_type);
+      connection_id, current_session_id, hash_id, service_type);
 
   // TODO(EZamakhov): add clean up output queue (for removed service)
   if (session_key) {
@@ -954,7 +977,7 @@ class StartSessionHandler : public security_manager::SecurityManagerListener {
       ConnectionID connection_id,
       int32_t session_id,
       uint8_t protocol_version,
-      uint32_t hash_code,
+      uint32_t hash_id,
       ServiceType service_type)
     : connection_key_(connection_key),
       protocol_handler_(protocol_handler),
@@ -962,7 +985,7 @@ class StartSessionHandler : public security_manager::SecurityManagerListener {
       connection_id_(connection_id),
       session_id_(session_id),
       protocol_version_(protocol_version),
-      hash_code_(hash_code),
+      hash_id_(hash_id),
       service_type_(service_type) {
   }
   bool OnHandshakeDone(const uint32_t connection_key, const bool success) OVERRIDE {
@@ -990,7 +1013,7 @@ class StartSessionHandler : public security_manager::SecurityManagerListener {
         session_observer_->SetProtectionFlag(connection_key_, service_type_);
       }
       protocol_handler_->SendStartSessionAck(connection_id_, session_id_,
-                                             protocol_version_, hash_code_, service_type_, success);
+                                             protocol_version_, hash_id_, service_type_, success);
     }
     delete this;
     return true;
@@ -1003,7 +1026,7 @@ class StartSessionHandler : public security_manager::SecurityManagerListener {
   const ConnectionID connection_id_;
   const int32_t session_id_;
   const uint8_t protocol_version_;
-  const uint32_t hash_code_;
+  const uint32_t hash_id_;
   const ServiceType service_type_;
 };
 }  // namespace

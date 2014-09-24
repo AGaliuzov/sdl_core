@@ -368,7 +368,7 @@ uint32_t ConnectionHandlerImpl::OnSessionEndedCallback(
     LOG4CXX_INFO(logger_, "Session "  << static_cast<uint32_t>(session_id)
                  << " to be removed");
     if(session_key != hashCode) {
-      LOG4CXX_WARN(logger_, "Wrong hashId for session close!");
+      LOG4CXX_WARN(logger_, "Wrong hash_id for session close!");
       return 0;
     }
     if (!connection->RemoveSession(session_id)) {
