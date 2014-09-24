@@ -74,28 +74,37 @@ class HeartBeatMonitor: public threads::ThreadDelegate {
    */
   virtual bool exitThreadMain();
 
+  void set_heartbeat_timeout_seconds(int32_t timeout);
+
  private:
+  struct SessionState;
+  typedef std::map<uint8_t, SessionState> SessionMap;
+
   // \brief Heartbeat timeout, should be read from profile
-  const int32_t heartbeat_timeout_seconds_;
+  int32_t heartbeat_timeout_seconds_;
   // \brief Connection that must be closed when timeout elapsed
   Connection *connection_;
 
-  static const int32_t kdefault_cycle_timeout = 100000;
+  static const int32_t kDefaultCycleTimeout = 100000;
 
   struct SessionState {
-    TimevalStruct heartbeat_expiration_;
-    bool is_heartbeat_sent_;
+    TimevalStruct heartbeat_expiration;
+    bool is_heartbeat_sent;
   };
 
   // \brief monitored sessions collection
-  std::map<uint8_t, SessionState> sessions_;
+
+  SessionMap sessions_;
 
   sync_primitives::Lock sessions_list_lock_; // recurcive
-  sync_primitives::Lock main_thread_lock;
+  sync_primitives::Lock main_thread_lock_;
+  mutable sync_primitives::Lock heartbeat_timeout_seconds_lock_;
 
+  volatile bool run_;
 
-  volatile bool stop_flag_;
-  volatile bool is_active;
+  void Process();
+  void RefreshExpiration(TimevalStruct* expiration) const;
+  inline bool IsTimeoutElapsed(const TimevalStruct& expiration) const;
 
   DISALLOW_COPY_AND_ASSIGN(HeartBeatMonitor);
 };

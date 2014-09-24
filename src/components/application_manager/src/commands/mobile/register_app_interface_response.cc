@@ -35,6 +35,7 @@
 #include "interfaces/MOBILE_API.h"
 #include "application_manager/policies/policy_handler.h"
 #include "application_manager/application_manager_impl.h"
+#include "connection_handler/connection_handler.h"
 
 namespace application_manager {
 
@@ -65,8 +66,15 @@ void RegisterAppInterfaceResponse::Run() {
       application_manager::ApplicationManagerImpl::instance()->
       application(connection_key);
   if (app.valid()) {
-    policy::PolicyHandler::instance()->
-        AddApplication(app->mobile_app_id()->asString());
+    policy::PolicyHandler *policy_handler = policy::PolicyHandler::instance();
+    policy_handler->AddApplication(app->mobile_app_id()->asString());
+    const int32_t timeout = policy_handler->policy_manager()->HeartBeatTimeout(
+        app->mobile_app_id()->asString());
+
+    if (timeout > 0) {
+      application_manager::ApplicationManagerImpl::instance()->
+          connection_handler()->SetHeartBeatTimeout(connection_key, timeout);
+    }
   }
 }
 

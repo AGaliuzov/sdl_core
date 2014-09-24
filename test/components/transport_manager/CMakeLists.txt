@@ -47,6 +47,13 @@ set (TESTUSBSOURCES
    ./src/test_usb.cc
 )
 
+if(ENABLE_LOG)
+  list(APPEND LIBRARIES log4cxx -L${LOG4CXX_LIBS_DIRECTORY})
+  list(APPEND LIBRARIES apr-1 -L${APR_LIBS_DIRECTORY})
+  list(APPEND LIBRARIES aprutil-1 -L${APR_UTIL_LIBS_DIRECTORY})
+  list(APPEND LIBRARIES expat -L${EXPAT_LIBS_DIRECTORY})
+endif()
+
 create_test("test_TransportManagerTest" "${SOURCES}" "${LIBRARIES}")
 create_test("test_TcpTransportAdapter" "src/test_tcp_transport_adapter.cc" "${LIBRARIES}")
 #create_test("test_usb" "${TESTUSBSOURCES}" "${LIBRARIES}")

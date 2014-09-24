@@ -106,6 +106,13 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 endif()
 
+if(ENABLE_LOG)
+  list(APPEND LIBRARIES log4cxx -L${LOG4CXX_LIBS_DIRECTORY})
+  list(APPEND LIBRARIES apr-1 -L${APR_LIBS_DIRECTORY})
+  list(APPEND LIBRARIES aprutil-1 -L${APR_UTIL_LIBS_DIRECTORY})
+  list(APPEND LIBRARIES expat -L${EXPAT_LIBS_DIRECTORY})
+endif()
+
 add_executable("test_suit" "./test_suit.cc")
 file(COPY ${CMAKE_SOURCE_DIR}/mycert.pem ${CMAKE_SOURCE_DIR}/mykey.pem DESTINATION ${CMAKE_BINARY_DIR}/test/)
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/log4cxx.properties DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
