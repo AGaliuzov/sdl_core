@@ -215,6 +215,7 @@ void set_hash_id(int32_t hash_id, protocol_handler::ProtocolPacket& packet) {
     LOG4CXX_DEBUG(logger_, "Packet need no hash data (protocol version less 2)");
     return;
   }
+  DCHECK(sizeof(hash_id) == 4);
   const uint32_t hash_id_be = LE_TO_BE32(hash_id);
   packet.set_data(reinterpret_cast<const uint8_t*>(&hash_id_be), sizeof(hash_id_be));
 }
@@ -1278,7 +1279,7 @@ void ProtocolHandlerImpl::SendFramesNumber(uint32_t connection_key,
   LOG4CXX_INFO(logger_,
                "SendFramesNumber MobileNaviAck for session " << connection_key);
 
-  transport_manager::ConnectionUID   connection_id = 0;
+  transport_manager::ConnectionUID connection_id = 0;
   uint8_t session_id = 0;
   session_observer_->PairFromKey(connection_key, &connection_id, &session_id);
   ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
@@ -1286,6 +1287,9 @@ void ProtocolHandlerImpl::SendFramesNumber(uint32_t connection_key,
       SERVICE_TYPE_NAVI, FRAME_DATA_SERVICE_DATA_ACK,
       session_id, 0, number_of_frames));
 
+  DCHECK(sizeof(number_of_frames) == 4);
+  ptr->set_data(reinterpret_cast<const uint8_t*>(&number_of_frames),
+                sizeof(number_of_frames));
   raw_ford_messages_to_mobile_.PostMessage(
         impl::RawFordMessageToMobile(ptr, false));
 }

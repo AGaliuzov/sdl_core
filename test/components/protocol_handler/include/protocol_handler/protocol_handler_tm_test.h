@@ -70,6 +70,9 @@ using ::testing::Ge;
 using ::testing::Le;
 using ::testing::_;
 using ::testing::Invoke;
+using ::testing::DoAll;
+using ::testing::SetArgPointee;
+using ::testing::ElementsAreArray;
 
 class ProtocolHandlerImplTest : public ::testing::Test {
  protected:
@@ -87,6 +90,11 @@ class ProtocolHandlerImplTest : public ::testing::Test {
                 KeyFromPair(connection_id, session_id)).
         //return some connection_key
         WillRepeatedly(Return(connection_key));
+    EXPECT_CALL(session_observer_mock,
+                PairFromKey(_, _, _)).
+        //return some connection_key
+        WillRepeatedly(DoAll(SetArgPointee<1>(connection_id),
+                             SetArgPointee<2>(session_id)));
     EXPECT_CALL(session_observer_mock,
                 IsHeartBeatSupported(connection_id, _)).
         //return false to avoid call KeepConnectionAlive
@@ -125,7 +133,8 @@ class ProtocolHandlerImplTest : public ::testing::Test {
 
     // expect send Ack with PROTECTION_OFF (on no Security Manager)
     EXPECT_CALL(transport_manager_mock,
-                SendMessageToDevice(ControlMessage(FRAME_DATA_START_SERVICE_ACK, PROTECTION_OFF))).
+                SendMessageToDevice(ControlMessage(FRAME_DATA_START_SERVICE_ACK, PROTECTION_OFF,
+                                                   connection_id, _ ))).
         WillOnce(Return(E_SUCCESS));
 
     SendControlMessage(PROTECTION_ON, start_service, NEW_SESSION_ID, FRAME_DATA_START_SERVICE);
@@ -225,7 +234,8 @@ TEST_F(ProtocolHandlerImplTest, StartSession_Unprotected_SessionObserverReject) 
 
   // expect send NAck
   EXPECT_CALL(transport_manager_mock,
-              SendMessageToDevice(ControlMessage(FRAME_DATA_START_SERVICE_NACK, PROTECTION_OFF))).
+              SendMessageToDevice(ControlMessage(FRAME_DATA_START_SERVICE_NACK, PROTECTION_OFF,
+                                                 connection_id, _))).
       Times(call_times).
       WillRepeatedly(Return(E_SUCCESS));
 
@@ -258,7 +268,8 @@ TEST_F(ProtocolHandlerImplTest, StartSession_Protected_SessionObserverReject) {
 
   // expect send NAck with encryption OFF
   EXPECT_CALL(transport_manager_mock,
-              SendMessageToDevice(ControlMessage(FRAME_DATA_START_SERVICE_NACK, PROTECTION_OFF))).
+              SendMessageToDevice(ControlMessage(FRAME_DATA_START_SERVICE_NACK, PROTECTION_OFF,
+                                                 connection_id, _))).
       Times(call_times).
       WillRepeatedly(Return(E_SUCCESS));
 
@@ -281,7 +292,8 @@ TEST_F(ProtocolHandlerImplTest, StartSession_Unprotected_SessionObserverAccept) 
 
   // expect send Ack
   EXPECT_CALL(transport_manager_mock,
-              SendMessageToDevice(ControlMessage(FRAME_DATA_START_SERVICE_ACK, PROTECTION_OFF))).
+              SendMessageToDevice(ControlMessage(FRAME_DATA_START_SERVICE_ACK, PROTECTION_OFF,
+                                                 connection_id, _))).
       WillOnce(Return(E_SUCCESS));
 
   SendControlMessage(PROTECTION_OFF, start_service, NEW_SESSION_ID, FRAME_DATA_START_SERVICE);
@@ -311,7 +323,8 @@ TEST_F(ProtocolHandlerImplTest, EndSession_SessionObserverReject) {
 
   // expect send Ack
   EXPECT_CALL(transport_manager_mock,
-              SendMessageToDevice(ControlMessage(FRAME_DATA_END_SERVICE_NACK, PROTECTION_OFF))).
+              SendMessageToDevice(ControlMessage(FRAME_DATA_END_SERVICE_NACK, PROTECTION_OFF,
+                                                 connection_id, _))).
       WillOnce(Return(E_SUCCESS));
 
   const uint32_t hash_id_le = BE_TO_LE32(hash_id);
@@ -335,7 +348,8 @@ TEST_F(ProtocolHandlerImplTest, EndSession_Success) {
 
   // expect send Ack
   EXPECT_CALL(transport_manager_mock,
-              SendMessageToDevice(ControlMessage(FRAME_DATA_END_SERVICE_ACK, PROTECTION_OFF))).
+              SendMessageToDevice(ControlMessage(FRAME_DATA_END_SERVICE_ACK, PROTECTION_OFF,
+                                                 connection_id, _))).
       WillOnce(Return(E_SUCCESS));
 
   const uint32_t hash_id_le = BE_TO_LE32(hash_id);
@@ -361,7 +375,8 @@ TEST_F(ProtocolHandlerImplTest, SecurityEnable_StartSessionProtocoloV1) {
 
   // expect send Ack with PROTECTION_OFF (on no Security Manager)
   EXPECT_CALL(transport_manager_mock,
-              SendMessageToDevice(ControlMessage(FRAME_DATA_START_SERVICE_ACK, PROTECTION_OFF))).
+              SendMessageToDevice(ControlMessage(FRAME_DATA_START_SERVICE_ACK, PROTECTION_OFF,
+                                                 connection_id, _))).
       WillOnce(Return(E_SUCCESS));
 
   SendTMMessage(connection_id, PROTOCOL_VERSION_1, PROTECTION_ON, FRAME_TYPE_CONTROL,
@@ -383,7 +398,8 @@ TEST_F(ProtocolHandlerImplTest, SecurityEnable_StartSessionUnprotected) {
 
   // expect send Ack with PROTECTION_OFF (on no Security Manager)
   EXPECT_CALL(transport_manager_mock,
-              SendMessageToDevice(ControlMessage(FRAME_DATA_START_SERVICE_ACK, PROTECTION_OFF))).
+              SendMessageToDevice(ControlMessage(FRAME_DATA_START_SERVICE_ACK, PROTECTION_OFF,
+                                                 connection_id, _))).
       WillOnce(Return(E_SUCCESS));
 
   SendControlMessage(PROTECTION_OFF, start_service, NEW_SESSION_ID, FRAME_DATA_START_SERVICE);
@@ -409,7 +425,8 @@ TEST_F(ProtocolHandlerImplTest, SecurityEnable_StartSessionProtected_Fail) {
 
   // expect send Ack with PROTECTION_OFF (on fail SLL creation)
   EXPECT_CALL(transport_manager_mock,
-              SendMessageToDevice(ControlMessage(FRAME_DATA_START_SERVICE_ACK, PROTECTION_OFF))).
+              SendMessageToDevice(ControlMessage(FRAME_DATA_START_SERVICE_ACK, PROTECTION_OFF,
+                                                 connection_id, _))).
       WillOnce(Return(E_SUCCESS));
 
   SendControlMessage(PROTECTION_ON, start_service, NEW_SESSION_ID, FRAME_DATA_START_SERVICE);
@@ -445,7 +462,8 @@ TEST_F(ProtocolHandlerImplTest,SecurityEnable_StartSessionProtected_SSLInitializ
 
   // expect send Ack with PROTECTION_ON (on SSL is initilized)
   EXPECT_CALL(transport_manager_mock,
-              SendMessageToDevice(ControlMessage(FRAME_DATA_START_SERVICE_ACK, PROTECTION_ON))).
+              SendMessageToDevice(ControlMessage(FRAME_DATA_START_SERVICE_ACK, PROTECTION_ON,
+                                                 connection_id, _))).
       WillOnce(Return(E_SUCCESS));
 
   SendControlMessage(PROTECTION_ON, start_service, NEW_SESSION_ID, FRAME_DATA_START_SERVICE);
@@ -495,7 +513,8 @@ TEST_F(ProtocolHandlerImplTest, SecurityEnable_StartSessionProtected_HandshakeFa
 
   // expect send Ack with PROTECTION_OFF (on fail handshake)
   EXPECT_CALL(transport_manager_mock,
-              SendMessageToDevice(ControlMessage(FRAME_DATA_START_SERVICE_ACK, PROTECTION_OFF))).
+              SendMessageToDevice(ControlMessage(FRAME_DATA_START_SERVICE_ACK, PROTECTION_OFF,
+                                                 connection_id, _))).
       WillOnce(Return(E_SUCCESS));
 
   SendControlMessage(PROTECTION_ON, start_service, NEW_SESSION_ID, FRAME_DATA_START_SERVICE);
@@ -549,7 +568,8 @@ TEST_F(ProtocolHandlerImplTest, SecurityEnable_StartSessionProtected_HandshakeSu
 
   // expect send Ack with PROTECTION_OFF (on fail handshake)
   EXPECT_CALL(transport_manager_mock,
-              SendMessageToDevice(ControlMessage(FRAME_DATA_START_SERVICE_ACK, PROTECTION_ON))).
+              SendMessageToDevice(ControlMessage(FRAME_DATA_START_SERVICE_ACK, PROTECTION_ON,
+                                                 connection_id, _))).
       WillOnce(Return(E_SUCCESS));
 
   SendControlMessage(PROTECTION_ON, start_service, NEW_SESSION_ID, FRAME_DATA_START_SERVICE);
@@ -604,7 +624,8 @@ TEST_F(ProtocolHandlerImplTest,
 
   // expect send Ack with PROTECTION_OFF (on fail handshake)
   EXPECT_CALL(transport_manager_mock,
-              SendMessageToDevice(ControlMessage(FRAME_DATA_START_SERVICE_ACK, PROTECTION_ON))).
+              SendMessageToDevice(ControlMessage(FRAME_DATA_START_SERVICE_ACK, PROTECTION_ON,
+                                                 connection_id, _))).
       WillOnce(Return(E_SUCCESS));
 
   SendControlMessage(PROTECTION_ON, start_service, NEW_SESSION_ID, FRAME_DATA_START_SERVICE);
@@ -663,12 +684,34 @@ TEST_F(ProtocolHandlerImplTest,
 
   // expect send Ack with PROTECTION_OFF (on fail handshake)
   EXPECT_CALL(transport_manager_mock,
-              SendMessageToDevice(ControlMessage(FRAME_DATA_START_SERVICE_ACK, PROTECTION_ON))).
+              SendMessageToDevice(ControlMessage(FRAME_DATA_START_SERVICE_ACK, PROTECTION_ON,
+                                                 connection_id, _))).
       WillOnce(Return(E_SUCCESS));
 
   SendControlMessage(PROTECTION_ON, start_service, NEW_SESSION_ID, FRAME_DATA_START_SERVICE);
 }
 #endif  // ENABLE_SECURITY
+
+/*
+ * Flow control - do nothing for unknown connection
+ */
+TEST_F(ProtocolHandlerImplTest, FlowControl) {
+  AddConnection();
+  const int call_count = 5;
+  for (int32_t frame_number = 0; frame_number < call_count; frame_number+=0xF0F0) {
+    const int32_t frame_number_be = LE_TO_BE32(frame_number);
+    const uint8_t* data = reinterpret_cast<const uint8_t*>(&frame_number_be);
+
+    std::vector<uint8_t> data_vector;
+    data_vector.assign(data, data + sizeof(frame_number_be));
+    EXPECT_CALL(transport_manager_mock,
+                SendMessageToDevice(ControlMessage(FRAME_DATA_SERVICE_DATA_ACK, PROTECTION_OFF,
+                                                   connection_id, ElementsAreArray(data_vector) ))).
+        WillOnce(Return(E_SUCCESS));
+
+    protocol_handler_impl->SendFramesNumber(connection_id, frame_number);
+  }
+}
 }  // namespace test
 }  // namespace components
 }  // namespace protocol_handler_test

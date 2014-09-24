@@ -34,18 +34,21 @@
 
 #include <gmock/gmock.h>
 #include <string>
+#include "protocol/raw_message.h"
+#include "protocol_handler/protocol_packet.h"
 
 namespace test {
 namespace components {
 namespace protocol_handler_test {
-
+using ::testing::Matcher;
 /*
  * Matcher for checking RawMessage with ControlMessage
  * Check error id
  */
-MATCHER_P2(ControlMessage, ExpectedFrameData, ExpectedEncryption,
-           std::string(ExpectedEncryption ? "Protected" : "Unprotected")
-           + " control message ") {
+MATCHER_P4(ControlMessage, ExpectedFrameData, ExpectedEncryption,
+           ConnectionKey, VectorMatcher,
+           (std::string(ExpectedEncryption ? "Protected" : "Unprotected")
+           + " control message ")) {
   // Nack shall be always with flag protected off
   DCHECK(ExpectedFrameData  != 0x03 /*FRAME_DATA_START_SERVICE_NACK*/ ||
          !ExpectedEncryption);
@@ -64,6 +67,24 @@ MATCHER_P2(ControlMessage, ExpectedFrameData, ExpectedEncryption,
   if (ExpectedEncryption != packet.protection_flag()) {
     *result_listener << "Control message is " <<
                      (ExpectedEncryption ? "" : "not ") << "protected";
+    return false;
+  }
+  if (ConnectionKey != message->connection_key()) {
+    *result_listener << "Message for connection_id " << message->connection_key() <<
+                        ", expected for connection_id " << ConnectionKey;
+    return false;
+  }
+  std::vector<uint8_t> data_vector;
+  if(packet.data() && packet.data_size()) {
+    data_vector.assign(packet.data(), packet.data() + packet.data_size());
+  }
+  Matcher<std::vector<uint8_t> > m = VectorMatcher;
+  if(!m.Matches/*AndExplain*/(data_vector/*, result_listener*/)) {
+    *result_listener << "Message with " << data_vector.size()
+                     << " byte data : ";
+    for (size_t i = 0u; i < data_vector.size(); ++i) {
+      *result_listener  << std::hex << static_cast<int>(data_vector[i]);
+    }
     return false;
   }
   return true;
