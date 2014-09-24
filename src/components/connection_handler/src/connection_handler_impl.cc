@@ -354,11 +354,6 @@ uint32_t ConnectionHandlerImpl::OnSessionEndedCallback(
     const protocol_handler::ServiceType &service_type) {
   LOG4CXX_TRACE(logger_, "ConnectionHandlerImpl::OnSessionEndedCallback()");
 
-  const uint32_t session_key = KeyFromPair(connection_handle, session_id);
-  // Check hashID
-  if(session_key != hashCode) {
-    return 0;
-  }
 
   sync_primitives::AutoLock lock(connection_list_lock_);
   ConnectionList::iterator it = connection_list_.find(connection_handle);
@@ -367,10 +362,15 @@ uint32_t ConnectionHandlerImpl::OnSessionEndedCallback(
     return 0;
   }
   Connection *connection = it->second;
+  const uint32_t session_key = KeyFromPair(connection_handle, session_id);
 
   if (protocol_handler::kRpc == service_type) {
     LOG4CXX_INFO(logger_, "Session "  << static_cast<uint32_t>(session_id)
                  << " to be removed");
+    if(session_key != hashCode) {
+      LOG4CXX_WARN(logger_, "Wrong hashId for session close!");
+      return 0;
+    }
     if (!connection->RemoveSession(session_id)) {
       LOG4CXX_WARN(logger_, "Not possible to remove session!");
       return 0;
