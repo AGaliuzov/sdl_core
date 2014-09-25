@@ -60,7 +60,9 @@ MATCHER_P4(ControlMessage, ExpectedFrameData, ExpectedEncryption,
     return false;
   }
   if (ExpectedFrameData != packet.frame_data()) {
-    *result_listener << "Control message is not with data 0x"
+    *result_listener << "Control message with data 0x"
+                     << std::hex << static_cast<int>(packet.frame_data())
+                     << ", not 0x"
                      << std::hex << static_cast<int>(ExpectedFrameData);
     return false;
   }

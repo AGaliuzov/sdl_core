@@ -223,7 +223,7 @@ void set_hash_id(int32_t hash_id, protocol_handler::ProtocolPacket& packet) {
 void ProtocolHandlerImpl::SendStartSessionAck(ConnectionID connection_id,
                                               uint8_t session_id,
                                               uint8_t ,
-                                              uint32_t ,
+                                              uint32_t hash_id,
                                               uint8_t service_type,
                                               bool protection) {
   LOG4CXX_TRACE_ENTER(logger_);
@@ -242,12 +242,12 @@ void ProtocolHandlerImpl::SendStartSessionAck(ConnectionID connection_id,
     protocolVersion, protection, FRAME_TYPE_CONTROL,
     service_type, FRAME_DATA_START_SERVICE_ACK, session_id, 0u, 0u));
 
-  // TODO(EZamakhov): fix sending hash for services
-  const uint32_t connection_key =
-      session_observer_->KeyFromPair(connection_id, session_id);
-  LOG4CXX_DEBUG(logger_, "Set hash_id 0x" << std::hex << connection_key <<
-                " to packet 0x" << ptr.get());
-  set_hash_id(connection_key, *ptr);
+  if(HASH_ID_NOT_SUPPORTED != hash_id &&
+     HASH_ID_WRONG != hash_id) {
+    LOG4CXX_DEBUG(logger_, "Set hash_id 0x" << std::hex << hash_id <<
+                  " to packet 0x" << ptr.get());
+    set_hash_id(hash_id, *ptr);
+  }
 
   raw_ford_messages_to_mobile_.PostMessage(
       impl::RawFordMessageToMobile(ptr, false));
@@ -932,8 +932,8 @@ uint32_t get_hash_id(const ProtocolPacket &packet) {
     LOG4CXX_WARN(logger_, "Packet without hash data (data size less 4)");
     return HASH_ID_WRONG;
   }
-  uint32_t hash_le = *(reinterpret_cast<uint32_t*>(packet.data()));
-  return BE_TO_LE32(hash_le);
+  const uint32_t hash_be = *(reinterpret_cast<uint32_t*>(packet.data()));
+  return BE_TO_LE32(hash_be);
 }
 
 RESULT_CODE ProtocolHandlerImpl::HandleControlMessageEndSession(
@@ -1051,8 +1051,9 @@ RESULT_CODE ProtocolHandlerImpl::HandleControlMessageStartSession(
 #endif  // ENABLE_SECURITY
 
   DCHECK(session_observer_);
+  uint32_t hash_id;
   const uint32_t session_id = session_observer_->OnSessionStartedCallback(
-        connection_id, packet.session_id(), service_type, protection);
+        connection_id, packet.session_id(), service_type, protection, &hash_id);
 
   if (0 == session_id) {
     LOG4CXX_WARN_EXT(logger_, "Refused to create service " <<
@@ -1076,7 +1077,7 @@ RESULT_CODE ProtocolHandlerImpl::HandleControlMessageStartSession(
           connection_key, security_manager::SecurityManager::ERROR_INTERNAL, error);
       // Start service without protection
       SendStartSessionAck(connection_id, session_id, packet.protocol_version(),
-                          connection_key, packet.service_type(), PROTECTION_OFF);
+                          hash_id, packet.service_type(), PROTECTION_OFF);
       return RESULT_OK;
     }
     if (ssl_context->IsInitCompleted()) {
@@ -1084,13 +1085,13 @@ RESULT_CODE ProtocolHandlerImpl::HandleControlMessageStartSession(
       session_observer_->SetProtectionFlag(connection_key, service_type);
       // Start service as protected with current SSLContext
       SendStartSessionAck(connection_id, session_id, packet.protocol_version(),
-                          connection_key, packet.service_type(), PROTECTION_ON);
+                          hash_id, packet.service_type(), PROTECTION_ON);
     } else {
       security_manager_->AddListener(
             new StartSessionHandler(
               connection_key, this, session_observer_,
               connection_id, session_id, packet.protocol_version(),
-              connection_key, service_type));
+              hash_id, service_type));
       if (!ssl_context->IsHandshakePending()) {
         // Start handshake process
         security_manager_->StartHandshake(connection_key);
@@ -1103,7 +1104,7 @@ RESULT_CODE ProtocolHandlerImpl::HandleControlMessageStartSession(
 #endif  // ENABLE_SECURITY
   // Start service without protection
   SendStartSessionAck(connection_id, session_id, packet.protocol_version(),
-                      connection_key, packet.service_type(), PROTECTION_OFF);
+                      hash_id, packet.service_type(), PROTECTION_OFF);
   return RESULT_OK;
   }
 

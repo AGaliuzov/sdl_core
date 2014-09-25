@@ -295,9 +295,12 @@ bool AllowProtection(const protocol_handler::ServiceType &service_type,
 uint32_t ConnectionHandlerImpl::OnSessionStartedCallback(
     const transport_manager::ConnectionUID &connection_handle,
     const uint8_t session_id, const protocol_handler::ServiceType &service_type,
-    const bool is_protected) {
-  LOG4CXX_TRACE(logger_, "ConnectionHandlerImpl::OnSessionStartedCallback()");
+    const bool is_protected, uint32_t* hash_id) {
+  LOG4CXX_TRACE_ENTER(logger_);
 
+  if(hash_id) {
+    *hash_id = protocol_handler::HASH_ID_WRONG;
+  }
 #ifdef ENABLE_SECURITY
   if(!AllowProtection(service_type, is_protected)) {
     return 0;
@@ -308,6 +311,7 @@ uint32_t ConnectionHandlerImpl::OnSessionStartedCallback(
   ConnectionList::iterator it = connection_list_.find(connection_handle);
   if (connection_list_.end() == it) {
     LOG4CXX_ERROR(logger_, "Unknown connection!");
+    LOG4CXX_TRACE_EXIT(logger_);
     return 0;
   }
   uint32_t new_session_id = 0;
@@ -317,7 +321,11 @@ uint32_t ConnectionHandlerImpl::OnSessionStartedCallback(
     new_session_id = connection->AddNewSession();
     if (0 == new_session_id) {
       LOG4CXX_ERROR(logger_, "Not possible to start new session!");
+      LOG4CXX_TRACE_EXIT(logger_);
       return 0;
+    }
+    if(hash_id) {
+      *hash_id = KeyFromPair(connection_handle, new_session_id);
     }
   } else {  // Could be create new service or protected exists one
     if (!connection->AddNewService(session_id, service_type, is_protected)) {
@@ -327,9 +335,13 @@ uint32_t ConnectionHandlerImpl::OnSessionStartedCallback(
 #endif  // ENABLE_SECURITY
                     << " service " << static_cast<int>(service_type)
                     << " for session " << static_cast<int>(session_id));
+      LOG4CXX_TRACE_EXIT(logger_);
       return 0;
     }
     new_session_id = session_id;
+    if(hash_id) {
+      *hash_id = protocol_handler::HASH_ID_NOT_SUPPORTED;
+    }
   }
 
   if (connection_handler_observer_) {
@@ -342,9 +354,11 @@ uint32_t ConnectionHandlerImpl::OnSessionStartedCallback(
       } else {
         connection->RemoveService(session_id, service_type);
       }
+      LOG4CXX_TRACE_EXIT(logger_);
       return 0;
     }
   }
+  LOG4CXX_TRACE_EXIT(logger_);
   return new_session_id;
 }
 
