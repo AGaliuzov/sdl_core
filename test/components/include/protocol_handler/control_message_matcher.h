@@ -81,7 +81,7 @@ MATCHER_P4(ControlMessage, ExpectedFrameData, ExpectedEncryption,
   Matcher<std::vector<uint8_t> > m = VectorMatcher;
   if(!m.Matches/*AndExplain*/(data_vector/*, result_listener*/)) {
     *result_listener << "Message with " << data_vector.size()
-                     << " byte data : ";
+                     << " byte data : 0x";
     for (size_t i = 0u; i < data_vector.size(); ++i) {
       *result_listener  << std::hex << static_cast<int>(data_vector[i]);
     }

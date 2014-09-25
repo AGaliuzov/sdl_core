@@ -242,10 +242,11 @@ void ProtocolHandlerImpl::SendStartSessionAck(ConnectionID connection_id,
     protocolVersion, protection, FRAME_TYPE_CONTROL,
     service_type, FRAME_DATA_START_SERVICE_ACK, session_id, 0u, 0u));
 
+  // TODO(EZamakhov): fix sending hash for services
   const uint32_t connection_key =
       session_observer_->KeyFromPair(connection_id, session_id);
-  LOG4CXX_DEBUG(logger_, "Set hash_id 0x " << std::hex << connection_key <<
-                " to packet 0x" << ptr);
+  LOG4CXX_DEBUG(logger_, "Set hash_id 0x" << std::hex << connection_key <<
+                " to packet 0x" << ptr.get());
   set_hash_id(connection_key, *ptr);
 
   raw_ford_messages_to_mobile_.PostMessage(
@@ -925,14 +926,14 @@ RESULT_CODE ProtocolHandlerImpl::HandleControlMessage(
 uint32_t get_hash_id(const ProtocolPacket &packet) {
   if(packet.protocol_version() < 2) {
     LOG4CXX_DEBUG(logger_, "Packet without hash data (protocol version less 2)");
-    return 0;
+    return HASH_ID_NOT_SUPPORTED;
   }
   if(packet.data_size() < 4) {
-    LOG4CXX_WARN(logger_, "Packet without hash data (dta size less 2)");
-    return 0;
+    LOG4CXX_WARN(logger_, "Packet without hash data (data size less 4)");
+    return HASH_ID_WRONG;
   }
   uint32_t hash_le = *(reinterpret_cast<uint32_t*>(packet.data()));
-  return LE_TO_BE32(hash_le);
+  return BE_TO_LE32(hash_le);
 }
 
 RESULT_CODE ProtocolHandlerImpl::HandleControlMessageEndSession(
@@ -1279,6 +1280,7 @@ void ProtocolHandlerImpl::SendFramesNumber(uint32_t connection_key,
   LOG4CXX_INFO(logger_,
                "SendFramesNumber MobileNaviAck for session " << connection_key);
 
+  // TODO(EZamakhov): add protocol version check - to avoid send for PROTOCOL_VERSION_1
   transport_manager::ConnectionUID connection_id = 0;
   uint8_t session_id = 0;
   session_observer_->PairFromKey(connection_key, &connection_id, &session_id);
@@ -1288,6 +1290,7 @@ void ProtocolHandlerImpl::SendFramesNumber(uint32_t connection_key,
       session_id, 0, number_of_frames));
 
   DCHECK(sizeof(number_of_frames) == 4);
+  number_of_frames = LE_TO_BE32(number_of_frames);
   ptr->set_data(reinterpret_cast<const uint8_t*>(&number_of_frames),
                 sizeof(number_of_frames));
   raw_ford_messages_to_mobile_.PostMessage(

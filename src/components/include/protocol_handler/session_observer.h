@@ -45,6 +45,15 @@
  */
 namespace protocol_handler {
 /**
+ * \brief HASH_ID constants.
+ * Hint: Shall not intersect with connection identifiers for correct handling this constants
+ * (Session identifier shall be greater than zero)
+ */
+enum {
+  HASH_ID_NOT_SUPPORTED = 0,
+  HASH_ID_WRONG = 0xFFFF0000
+};
+/**
  * \class SessionObserver
  * \brief Interface for making a bridge between ProtocolHandler and
  * ConnectionHandler components.

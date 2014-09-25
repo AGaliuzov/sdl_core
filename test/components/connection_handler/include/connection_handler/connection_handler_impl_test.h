@@ -299,7 +299,29 @@ TEST_F(ConnectionHandlerTest, SessionStop_CheckHash) {
     AddTestSession();
 
     const uint32_t hash = connection_key;
-    const uint32_t wrong_hash = hash ^ 0xFFFF;
+    const uint32_t wrong_hash = hash + 1;
+
+    const uint32_t end_audio_wrong_hash =
+        connection_handler_->OnSessionEndedCallback(uid, start_session_id, wrong_hash,
+                                                    kRpc);
+    EXPECT_EQ(end_audio_wrong_hash, 0u);
+    CheckSessionExists(uid, start_session_id);
+
+    const uint32_t end_audio =
+        connection_handler_->OnSessionEndedCallback(uid, start_session_id, hash,
+                                                    kRpc);
+    EXPECT_EQ(end_audio, connection_key);
+    CheckSessionExists(uid, 0);
+  }
+}
+
+TEST_F(ConnectionHandlerTest, SessionStop_CheckSpecificHash) {
+  AddTestDeviceConnection();
+  for (uint32_t session = 0; session < 0xFF; ++session) {
+    AddTestSession();
+
+    const uint32_t wrong_hash = protocol_handler::HASH_ID_WRONG;
+    const uint32_t hash = protocol_handler::HASH_ID_NOT_SUPPORTED;
 
     const uint32_t end_audio_wrong_hash =
         connection_handler_->OnSessionEndedCallback(uid, start_session_id, wrong_hash,

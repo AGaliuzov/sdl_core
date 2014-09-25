@@ -354,7 +354,6 @@ uint32_t ConnectionHandlerImpl::OnSessionEndedCallback(
     const protocol_handler::ServiceType &service_type) {
   LOG4CXX_TRACE(logger_, "ConnectionHandlerImpl::OnSessionEndedCallback()");
 
-
   sync_primitives::AutoLock lock(connection_list_lock_);
   ConnectionList::iterator it = connection_list_.find(connection_handle);
   if (connection_list_.end() == it) {
@@ -367,12 +366,16 @@ uint32_t ConnectionHandlerImpl::OnSessionEndedCallback(
   if (protocol_handler::kRpc == service_type) {
     LOG4CXX_INFO(logger_, "Session "  << static_cast<uint32_t>(session_id)
                  << " to be removed");
-    if(session_key != hashCode) {
-      LOG4CXX_WARN(logger_, "Wrong hash_id for session close!");
-      return 0;
+    // old version of protocol don't support hash
+    if(protocol_handler::HASH_ID_NOT_SUPPORTED != hashCode) {
+      if(protocol_handler::HASH_ID_WRONG == hashCode ||
+         session_key != hashCode ) {
+        LOG4CXX_WARN(logger_, "Wrong hash_id for session " << session_id);
+        return 0;
+      }
     }
     if (!connection->RemoveSession(session_id)) {
-      LOG4CXX_WARN(logger_, "Not possible to remove session!");
+      LOG4CXX_WARN(logger_, "Not possible to remove session " << session_id);
       return 0;
     }
   } else {
@@ -398,6 +401,10 @@ uint32_t ConnectionHandlerImpl::KeyFromPair(
                 << static_cast<uint32_t>(connection_handle)
                 << " Session:" << static_cast<uint32_t>(session_id)
                 << " is: " << static_cast<uint32_t>(key));
+  if(protocol_handler::HASH_ID_WRONG == key) {
+    LOG4CXX_ERROR(logger_, "Connection key is equal WRONG_HASH_ID " <<
+                  "(session id shall be greater 0)");
+  }
   return key;
 }
 
