@@ -203,6 +203,38 @@ class ApplicationManagerImpl : public ApplicationManager,
     std::vector<ApplicationSharedPtr> applications_with_navi();
 
     /**
+     * @brief Return media application with LIMITED HMI Level if exist.
+     *
+     * @return Shared pointer to application
+     */
+    ApplicationSharedPtr get_limited_media_application() const;
+
+    /**
+     * @brief Return navigation application with LIMITED HMI Level if exist.
+     *
+     * @return Shared pointer to application
+     */
+    ApplicationSharedPtr get_limited_navi_application() const;
+
+    /**
+     * @brief Return voice communication application with LIMITED HMI Level if exist.
+     *
+     * @return Shared pointer to application
+     */
+    ApplicationSharedPtr get_limited_voice_application() const;
+
+    /**
+     * @brief Check's if there are audio(media, voice communication or navi) applications
+     *        exist in HMI_FULL or HMI_LIMITED level with same audible HMI type.
+     *        Used for resumption.
+     *
+     * @param app Pointer to application to compare with
+     *
+     * @return true if exist otherwise false
+     */
+    bool DoesAudioAppWithSameHMITypeExistInFullOrLimited(ApplicationSharedPtr app) const;
+
+    /**
      * @brief Notifies all components interested in Vehicle Data update
      * i.e. new value of odometer etc and returns list of applications
      * subscribed for event.
@@ -281,14 +313,6 @@ class ApplicationManagerImpl : public ApplicationManager,
     bool RemoveAppDataFromHMI(ApplicationSharedPtr app);
     bool LoadAppDataToHMI(ApplicationSharedPtr app);
     bool ActivateApplication(ApplicationSharedPtr app);
-    /**
-     * @brief Put application in Limited HMI Level if possible,
-     *        otherwise put applicatuion other HMI level.
-     *        do not send any notifications to mobile
-     * @param app, application, that need to be puted in Limeted
-     * @return seted HMI Level
-     */
-    mobile_api::HMILevel::eType PutApplicationInLimited(ApplicationSharedPtr app);
 
     /**
      * @brief Put application in FULL HMI Level if possible,

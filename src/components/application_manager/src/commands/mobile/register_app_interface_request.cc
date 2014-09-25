@@ -164,8 +164,13 @@ void RegisterAppInterfaceRequest::Run() {
   ApplicationSharedPtr application =
     ApplicationManagerImpl::instance()->application(connection_key());
 
-  if (application) {
+  if (application.valid()) {
     SendResponse(false, mobile_apis::Result::APPLICATION_REGISTERED_ALREADY);
+    return;
+  }
+
+  if (IsApplicationWithSameAppIdRegistered()) {
+    SendResponse(false, mobile_apis::Result::DISALLOWED);
     return;
   }
 
@@ -187,11 +192,6 @@ void RegisterAppInterfaceRequest::Run() {
       ++count_of_rejections_duplicate_name;
     }
     SendResponse(false, coincidence_result);
-    return;
-  }
-
-  if (IsApplicationWithSameAppIdRegistered()) {
-    SendResponse(false, mobile_apis::Result::DISALLOWED);
     return;
   }
 
@@ -252,16 +252,26 @@ void RegisterAppInterfaceRequest::Run() {
     if (msg_params.keyExists(strings::app_hmi_type)) {
       app->set_app_types(msg_params[strings::app_hmi_type]);
 
-      // check if app is NAVI
-      const int32_t is_navi_type = mobile_apis::AppHMIType::NAVIGATION;
+      // check app type
       const smart_objects::SmartObject& app_type =
         msg_params.getElement(strings::app_hmi_type);
 
       for (size_t i = 0; i < app_type.length(); ++i) {
-        if (is_navi_type == app_type.getElement(i).asInt()) {
+        if (mobile_apis::AppHMIType::NAVIGATION ==
+            app_type.getElement(i).asUInt()) {
           app->set_allowed_support_navigation(true);
         }
+        if (mobile_apis::AppHMIType::COMMUNICATION ==
+            app_type.getElement(i).asUInt()) {
+          app->set_voice_communication_supported(true);
+        }
       }
+    }
+
+    if (msg_params[strings::app_name].asString() == "Com" ||
+        msg_params[strings::app_name].asString() == "Com1" ||
+        msg_params[strings::app_name].asString() == "Com2") {
+      app->set_voice_communication_supported(true);
     }
 
     const connection_handler::DeviceHandle handle = app->device();
