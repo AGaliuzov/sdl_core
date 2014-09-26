@@ -247,7 +247,8 @@ void ProtocolHandlerImpl::SendStartSessionAck(ConnectionID connection_id,
 
   ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
     protocolVersion, protection, FRAME_TYPE_CONTROL,
-    service_type, FRAME_DATA_START_SERVICE_ACK, session_id, 0u, 0u));
+    service_type, FRAME_DATA_START_SERVICE_ACK, session_id,
+    0u, message_counters_[session_id]++));
 
   set_hash_id(hash_id, *ptr);
 
@@ -271,7 +272,7 @@ void ProtocolHandlerImpl::SendStartSessionNAck(ConnectionID connection_id,
   ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
       protocol_version, PROTECTION_OFF, FRAME_TYPE_CONTROL,
       service_type, FRAME_DATA_START_SERVICE_NACK,
-      session_id, 0, 0));
+      session_id, 0u, message_counters_[session_id]++));
 
   raw_ford_messages_to_mobile_.PostMessage(
       impl::RawFordMessageToMobile(ptr, false));
@@ -292,7 +293,7 @@ void ProtocolHandlerImpl::SendEndSessionNAck(ConnectionID connection_id,
   ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
       protocol_version, PROTECTION_OFF, FRAME_TYPE_CONTROL,
       service_type, FRAME_DATA_END_SERVICE_NACK,
-      session_id, 0, 0));
+      session_id, 0u, message_counters_[session_id]++));
 
   raw_ford_messages_to_mobile_.PostMessage(
       impl::RawFordMessageToMobile(ptr, false));
@@ -306,14 +307,13 @@ void ProtocolHandlerImpl::SendEndSessionNAck(ConnectionID connection_id,
 void ProtocolHandlerImpl::SendEndSessionAck(ConnectionID connection_id,
                                             uint8_t session_id,
                                             uint8_t protocol_version,
-                                            uint32_t hash_code,
                                             uint8_t service_type) {
   LOG4CXX_TRACE_ENTER(logger_);
 
   ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
       protocol_version, PROTECTION_OFF, FRAME_TYPE_CONTROL,
-      service_type, FRAME_DATA_END_SERVICE_ACK, session_id, 0,
-      hash_code));
+      service_type, FRAME_DATA_END_SERVICE_ACK, session_id,
+      0u, message_counters_[session_id]++));
 
   raw_ford_messages_to_mobile_.PostMessage(
       impl::RawFordMessageToMobile(ptr, false));
@@ -332,7 +332,7 @@ void ProtocolHandlerImpl::SendEndSession(int32_t connection_id,
   ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
       PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
       SERVICE_TYPE_RPC, FRAME_DATA_END_SERVICE, session_id, 0,
-      session_observer_->KeyFromPair(connection_id, session_id)));
+      message_counters_[session_id]++));
 
   raw_ford_messages_to_mobile_.PostMessage(
       impl::RawFordMessageToMobile(ptr, false));
@@ -351,7 +351,7 @@ RESULT_CODE ProtocolHandlerImpl::SendHeartBeatAck(ConnectionID connection_id,
   ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
       PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
       SERVICE_TYPE_CONTROL, FRAME_DATA_HEART_BEAT_ACK, session_id,
-      0, message_id));
+      0u, message_id));
 
   raw_ford_messages_to_mobile_.PostMessage(
       impl::RawFordMessageToMobile(ptr, false));
@@ -367,7 +367,7 @@ void ProtocolHandlerImpl::SendHeartBeat(int32_t connection_id,
   ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
       PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
       SERVICE_TYPE_CONTROL, FRAME_DATA_HEART_BEAT, session_id,
-      0, 0));
+      0u, message_counters_[session_id]++));
 
   raw_ford_messages_to_mobile_.PostMessage(
       impl::RawFordMessageToMobile(ptr, false));
@@ -691,7 +691,8 @@ RESULT_CODE ProtocolHandlerImpl::SendMultiFrameMessage(
   out_data[6] = frames_count >> 8;
   out_data[7] = frames_count;
 
-  const uint8_t message_id = ++message_counters_[session_id];
+  // TODO(EZamakhov): investigate message_id for CONSECUTIVE frames
+  const uint8_t message_id = message_counters_[session_id]++;
   const ProtocolFramePtr firstPacket(
         new protocol_handler::ProtocolPacket(
           connection_id, protocol_version, PROTECTION_OFF, FRAME_TYPE_FIRST,
@@ -952,10 +953,8 @@ RESULT_CODE ProtocolHandlerImpl::HandleControlMessageEndSession(
 
   // TODO(EZamakhov): add clean up output queue (for removed service)
   if (session_key != 0) {
-    SendEndSessionAck(
-        connection_id, current_session_id, packet.protocol_version(),
-        session_observer_->KeyFromPair(connection_id, current_session_id),
-        service_type);
+    SendEndSessionAck( connection_id, current_session_id,
+                       packet.protocol_version(), service_type);
     message_counters_.erase(current_session_id);
   } else {
     LOG4CXX_INFO_EXT(
@@ -1117,8 +1116,9 @@ RESULT_CODE ProtocolHandlerImpl::HandleControlMessageHeartBeat(
       "Sending heart beat acknowledgment for connection " << connection_id);
   if (session_observer_->IsHeartBeatSupported(
       connection_id, packet.session_id())) {
+    // TODO(EZamakhov): investigate message_id for HeartBeatAck
     return SendHeartBeatAck(connection_id, packet.session_id(),
-                              packet.message_id());
+                            packet.message_id());
   }
   LOG4CXX_WARN(logger_, "HeartBeat is not supported");
   return RESULT_HEARTBEAT_IS_NOT_SUPPORTED;
@@ -1290,8 +1290,9 @@ void ProtocolHandlerImpl::SendFramesNumber(uint32_t connection_key,
   ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
       PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
       SERVICE_TYPE_NAVI, FRAME_DATA_SERVICE_DATA_ACK,
-      session_id, 0, number_of_frames));
+      session_id, 0, message_counters_[session_id]++));
 
+  // Flow control data shall be 4 bytes according Ford Protocol
   DCHECK(sizeof(number_of_frames) == 4);
   number_of_frames = LE_TO_BE32(number_of_frames);
   ptr->set_data(reinterpret_cast<const uint8_t*>(&number_of_frames),
