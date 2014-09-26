@@ -80,8 +80,8 @@ class ConnectionHandlerTest: public ::testing::Test {
         connection_handler_->OnSessionStartedCallback(uid, 0,
                                                       kRpc,
                                                       PROTECTION_OFF, &out_hash_id);
-    EXPECT_NE(start_session_id, 0u);
-    EXPECT_EQ(out_hash_id, SessionHash(uid, start_session_id));
+    EXPECT_NE(0u, start_session_id);
+    EXPECT_EQ(SessionHash(uid, start_session_id), out_hash_id);
     connection_key = connection_handler_->KeyFromPair(uid,
                                                       start_session_id);
     CheckSessionExists(uid, start_session_id);
@@ -190,7 +190,7 @@ class ConnectionHandlerTest: public ::testing::Test {
     ASSERT_NE(serv_it, service_list.end());
 
     const Service& service = *serv_it;
-    EXPECT_EQ(service.is_protected_, PROTECTION_OFF);
+    EXPECT_EQ(PROTECTION_OFF, service.is_protected_);
     //
     if(is_protected) {
       // Emulate success protection - check enable service flag
@@ -216,8 +216,8 @@ TEST_F(ConnectionHandlerTest, StartSession_NoConnection) {
                                                     kRpc,
                                                     PROTECTION_ON, &out_hash_id);
   //Unknown connection error is '0'
-  EXPECT_EQ(result_fail, 0u);
-  EXPECT_EQ(out_hash_id, protocol_handler::HASH_ID_WRONG);
+  EXPECT_EQ(0u, result_fail);
+  EXPECT_EQ(protocol_handler::HASH_ID_WRONG, out_hash_id);
   ASSERT_TRUE(connection_handler_->getConnectionList().empty());
 }
 TEST_F(ConnectionHandlerTest, StartSession) {
@@ -237,18 +237,18 @@ TEST_F(ConnectionHandlerTest, StartService_withServices) {
       connection_handler_->OnSessionStartedCallback(uid, start_session_id,
                                                     kAudio,
                                                     PROTECTION_OFF, &out_hash_id);
-  EXPECT_EQ(start_audio, start_session_id);
+  EXPECT_EQ(start_session_id, start_audio);
   CheckServiceExists(uid, start_session_id, kAudio, true);
-  EXPECT_EQ(out_hash_id, protocol_handler::HASH_ID_NOT_SUPPORTED);
+  EXPECT_EQ(protocol_handler::HASH_ID_NOT_SUPPORTED, out_hash_id);
 
   //start Audio service
   const uint32_t start_video =
       connection_handler_->OnSessionStartedCallback(uid, start_session_id,
                                                     kMobileNav,
                                                     PROTECTION_OFF, &out_hash_id);
-  EXPECT_EQ(start_video, start_session_id);
+  EXPECT_EQ(start_session_id, start_video);
   CheckServiceExists(uid, start_session_id, kMobileNav, true);
-  EXPECT_EQ(out_hash_id, protocol_handler::HASH_ID_NOT_SUPPORTED);
+  EXPECT_EQ(protocol_handler::HASH_ID_NOT_SUPPORTED, out_hash_id);
 }
 
 TEST_F(ConnectionHandlerTest, ServiceStop_UnExistSession) {
@@ -257,7 +257,7 @@ TEST_F(ConnectionHandlerTest, ServiceStop_UnExistSession) {
   const uint32_t end_session_result =
       connection_handler_->OnSessionEndedCallback(uid, 0u, 0u,
                                                   kAudio);
-  EXPECT_EQ(end_session_result, 0u);
+  EXPECT_EQ(0u, end_session_result);
   CheckSessionExists(uid, 0);
 }
 
@@ -267,7 +267,7 @@ TEST_F(ConnectionHandlerTest, ServiceStop_UnExistService) {
   const uint32_t end_session_result =
       connection_handler_->OnSessionEndedCallback(uid, start_session_id, 0u,
                                                   kAudio);
-  EXPECT_EQ(end_session_result, 0u);
+  EXPECT_EQ(0u, end_session_result);
   CheckServiceExists(uid, start_session_id, kAudio, false);
 }
 
@@ -281,13 +281,13 @@ TEST_F(ConnectionHandlerTest, ServiceStop) {
         connection_handler_->OnSessionStartedCallback(uid, start_session_id,
                                                       kAudio,
                                                       PROTECTION_OFF, &out_hash_id);
-    EXPECT_EQ(start_audio, start_session_id);
-    EXPECT_EQ(out_hash_id, protocol_handler::HASH_ID_NOT_SUPPORTED);
+    EXPECT_EQ(start_session_id, start_audio);
+    EXPECT_EQ(protocol_handler::HASH_ID_NOT_SUPPORTED, out_hash_id);
 
     const uint32_t end_session_result =
         connection_handler_->OnSessionEndedCallback(uid, start_session_id, some_hash_id,
                                                     kAudio);
-    EXPECT_EQ(end_session_result, connection_key);
+    EXPECT_EQ(connection_key, end_session_result);
     CheckServiceExists(uid, start_session_id, kAudio, false);
   }
 }
@@ -303,13 +303,13 @@ TEST_F(ConnectionHandlerTest, SessionStop_CheckHash) {
     const uint32_t end_audio_wrong_hash =
         connection_handler_->OnSessionEndedCallback(uid, start_session_id, wrong_hash,
                                                     kRpc);
-    EXPECT_EQ(end_audio_wrong_hash, 0u);
+    EXPECT_EQ(0u, end_audio_wrong_hash);
     CheckSessionExists(uid, start_session_id);
 
     const uint32_t end_audio =
         connection_handler_->OnSessionEndedCallback(uid, start_session_id, hash,
                                                     kRpc);
-    EXPECT_EQ(end_audio, connection_key);
+    EXPECT_EQ(connection_key, end_audio);
     CheckSessionExists(uid, 0);
   }
 }
@@ -325,13 +325,13 @@ TEST_F(ConnectionHandlerTest, SessionStop_CheckSpecificHash) {
     const uint32_t end_audio_wrong_hash =
         connection_handler_->OnSessionEndedCallback(uid, start_session_id, wrong_hash,
                                                     kRpc);
-    EXPECT_EQ(end_audio_wrong_hash, 0u);
+    EXPECT_EQ(0u, end_audio_wrong_hash);
     CheckSessionExists(uid, start_session_id);
 
     const uint32_t end_audio =
         connection_handler_->OnSessionEndedCallback(uid, start_session_id, hash,
                                                     kRpc);
-    EXPECT_EQ(end_audio, connection_key);
+    EXPECT_EQ(connection_key, end_audio);
     CheckSessionExists(uid, 0);
   }
 }
@@ -347,8 +347,8 @@ TEST_F(ConnectionHandlerTest, SessionStarted_StartSession_SecureSpecific_Unprote
       connection_handler_->OnSessionStartedCallback(uid, 0,
                                                     kRpc,
                                                     PROTECTION_OFF, &out_hash_id);
-  EXPECT_EQ(session_id_fail, 0u);
-  EXPECT_EQ(out_hash_id, protocol_handler::HASH_ID_WRONG);
+  EXPECT_EQ(0u, session_id_fail);
+  EXPECT_EQ(protocol_handler::HASH_ID_WRONG, out_hash_id);
 
   //Allow start kRPC without encryption
   SetSpecificServices("0x00, Non", "");
@@ -357,9 +357,9 @@ TEST_F(ConnectionHandlerTest, SessionStarted_StartSession_SecureSpecific_Unprote
       connection_handler_->OnSessionStartedCallback(uid, 0,
                                                     kRpc,
                                                     PROTECTION_OFF, &out_hash_id);
-  EXPECT_NE(session_id, 0u);
+  EXPECT_NE(0u, session_id);
   CheckService(uid, session_id, kRpc, NULL, PROTECTION_OFF);
-  EXPECT_EQ(out_hash_id, SessionHash(uid, session_id));
+  EXPECT_EQ(SessionHash(uid, session_id), out_hash_id);
 }
 TEST_F(ConnectionHandlerTest, SessionStarted_StartSession_SecureSpecific_Protect) {
   //Add virtual device and connection
@@ -372,7 +372,7 @@ TEST_F(ConnectionHandlerTest, SessionStarted_StartSession_SecureSpecific_Protect
       connection_handler_->OnSessionStartedCallback(uid, 0,
                                                     kRpc,
                                                     PROTECTION_ON, NULL);
-  EXPECT_EQ(session_id_fail, 0u);
+  EXPECT_EQ(0u, session_id_fail);
 
   //Allow start kRPC with encryption
   SetSpecificServices("", "0x00, 0x05, Non");
@@ -381,8 +381,8 @@ TEST_F(ConnectionHandlerTest, SessionStarted_StartSession_SecureSpecific_Protect
       connection_handler_->OnSessionStartedCallback(uid, 0,
                                                     kRpc,
                                                     PROTECTION_ON, &out_hash_id);
-  EXPECT_NE(session_id, 0u);
-  EXPECT_EQ(out_hash_id, SessionHash(uid, session_id));
+  EXPECT_NE(0u, session_id);
+  EXPECT_EQ(SessionHash(uid, session_id), out_hash_id);
 
   //Protection steal FALSE because of APPlink Protocol implementation
   CheckService(uid, session_id, kRpc, NULL, PROTECTION_OFF);
@@ -401,7 +401,7 @@ TEST_F(ConnectionHandlerTest, SessionStarted_StartService_SecureSpecific_Unprote
       connection_handler_->OnSessionStartedCallback(uid, start_session_id,
                                                     kAudio,
                                                     PROTECTION_OFF, NULL);
-  EXPECT_EQ(session_id2, 0u);
+  EXPECT_EQ(0u, session_id2);
 
   //Allow start kAudio without encryption
   SetSpecificServices("0x06, 0x0B, 0x08, Non", "");
@@ -410,8 +410,8 @@ TEST_F(ConnectionHandlerTest, SessionStarted_StartService_SecureSpecific_Unprote
                                                     kAudio,
                                                     PROTECTION_OFF, &out_hash_id);
   // returned orriginal session id
-  EXPECT_EQ(session_id3, start_session_id);
-  EXPECT_EQ(out_hash_id, protocol_handler::HASH_ID_NOT_SUPPORTED);
+  EXPECT_EQ(start_session_id, session_id3);
+  EXPECT_EQ(protocol_handler::HASH_ID_NOT_SUPPORTED, out_hash_id);
   CheckService(uid, session_id3, kRpc, NULL, PROTECTION_OFF);
 }
 TEST_F(ConnectionHandlerTest, SessionStarted_StartService_SecureSpecific_Protect) {
@@ -427,7 +427,7 @@ TEST_F(ConnectionHandlerTest, SessionStarted_StartService_SecureSpecific_Protect
       connection_handler_->OnSessionStartedCallback(uid, start_session_id,
                                                     kAudio,
                                                     PROTECTION_ON, NULL);
-  EXPECT_EQ(session_id_reject, 0u);
+  EXPECT_EQ(0u, session_id_reject);
 
   //Allow start kAudio without encryption
   SetSpecificServices("", "Non");
@@ -436,8 +436,8 @@ TEST_F(ConnectionHandlerTest, SessionStarted_StartService_SecureSpecific_Protect
                                                      kAudio,
                                                      PROTECTION_ON, &out_hash_id);
   // returned orriginal session id
-  EXPECT_EQ(session_id3, start_session_id);
-  EXPECT_EQ(out_hash_id, protocol_handler::HASH_ID_NOT_SUPPORTED);
+  EXPECT_EQ(start_session_id, session_id3);
+  EXPECT_EQ(protocol_handler::HASH_ID_NOT_SUPPORTED, out_hash_id);
   CheckService(uid, session_id3, kAudio, NULL, PROTECTION_ON);
 }
 TEST_F(ConnectionHandlerTest, SessionStarted_DealyProtect) {
@@ -449,9 +449,9 @@ TEST_F(ConnectionHandlerTest, SessionStarted_DealyProtect) {
       connection_handler_->OnSessionStartedCallback(uid, start_session_id,
                                                     kRpc,
                                                     PROTECTION_ON, &out_hash_id);
-  EXPECT_EQ(session_id_new, start_session_id);
+  EXPECT_EQ(start_session_id, session_id_new);
   // Post protection nedd no hash
-  EXPECT_EQ(out_hash_id, protocol_handler::HASH_ID_NOT_SUPPORTED);
+  EXPECT_EQ(protocol_handler::HASH_ID_NOT_SUPPORTED, out_hash_id);
   CheckService(uid, start_session_id, kRpc, NULL, PROTECTION_ON);
 
   // Start Audio session without protection
@@ -459,8 +459,8 @@ TEST_F(ConnectionHandlerTest, SessionStarted_DealyProtect) {
       connection_handler_->OnSessionStartedCallback(uid, start_session_id,
                                                     kAudio,
                                                     PROTECTION_OFF, &out_hash_id);
-  EXPECT_EQ(session_id2, start_session_id);
-  EXPECT_EQ(out_hash_id, protocol_handler::HASH_ID_NOT_SUPPORTED);
+  EXPECT_EQ(start_session_id, session_id2);
+  EXPECT_EQ(protocol_handler::HASH_ID_NOT_SUPPORTED, out_hash_id);
   CheckService(uid, start_session_id, kAudio, NULL, PROTECTION_OFF);
 
   // Start Audio protection
@@ -468,8 +468,8 @@ TEST_F(ConnectionHandlerTest, SessionStarted_DealyProtect) {
       connection_handler_->OnSessionStartedCallback(uid, start_session_id,
                                                     kAudio,
                                                     PROTECTION_ON, &out_hash_id);
-  EXPECT_EQ(session_id3, start_session_id);
-  EXPECT_EQ(out_hash_id, protocol_handler::HASH_ID_NOT_SUPPORTED);
+  EXPECT_EQ(start_session_id, session_id3);
+  EXPECT_EQ(protocol_handler::HASH_ID_NOT_SUPPORTED, out_hash_id);
   CheckService(uid, start_session_id, kAudio, NULL, PROTECTION_ON);
 }
 TEST_F(ConnectionHandlerTest, SessionStarted_DealyProtectBulk) {
@@ -480,100 +480,100 @@ TEST_F(ConnectionHandlerTest, SessionStarted_DealyProtectBulk) {
       connection_handler_->OnSessionStartedCallback(uid, start_session_id,
                                                     kBulk,
                                                     PROTECTION_ON, NULL);
-  EXPECT_EQ(session_id_new, start_session_id);
+  EXPECT_EQ(start_session_id, session_id_new);
   CheckService(uid, start_session_id, kRpc, NULL, PROTECTION_ON);
 }
 TEST_F(ConnectionHandlerTest, SetSSLContext_Null) {
   //No SSLContext on start up
-  EXPECT_EQ (connection_handler_->GetSSLContext(
+  EXPECT_EQ(connection_handler_->GetSSLContext(
                connection_key, kControl),
              reinterpret_cast<security_manager::SSLContext *>(NULL));
-  EXPECT_EQ (::security_manager::SecurityManager::ERROR_INTERNAL,
+  EXPECT_EQ(::security_manager::SecurityManager::ERROR_INTERNAL,
              connection_handler_->SetSSLContext(connection_key, NULL));
   //No SSLContext after error
-  EXPECT_EQ (connection_handler_->GetSSLContext(
+  EXPECT_EQ(connection_handler_->GetSSLContext(
                connection_key, kControl),
              reinterpret_cast<security_manager::SSLContext *>(NULL));
 
   AddTestDeviceConnection();
-  EXPECT_EQ (::security_manager::SecurityManager::ERROR_INTERNAL,
+  EXPECT_EQ(::security_manager::SecurityManager::ERROR_INTERNAL,
              connection_handler_->SetSSLContext(connection_key, NULL));
   //No SSLContext after error
-  EXPECT_EQ (connection_handler_->GetSSLContext(
+  EXPECT_EQ(connection_handler_->GetSSLContext(
                connection_key, kControl),
              reinterpret_cast<security_manager::SSLContext *>(NULL));
 
   AddTestSession();
-  EXPECT_EQ (::security_manager::SecurityManager::ERROR_SUCCESS,
+  EXPECT_EQ(::security_manager::SecurityManager::ERROR_SUCCESS,
              connection_handler_->SetSSLContext(connection_key, NULL));
   //NULL SSLContext after success
-  EXPECT_EQ (connection_handler_->GetSSLContext(
+  EXPECT_EQ(connection_handler_->GetSSLContext(
                connection_key, kControl),
              reinterpret_cast<security_manager::SSLContext *>(NULL));
 }
 TEST_F(ConnectionHandlerTest, SetSSLContext) {
   //No SSLContext on start up
-  EXPECT_EQ (connection_handler_->GetSSLContext(
+  EXPECT_EQ(connection_handler_->GetSSLContext(
                connection_key, kControl),
              reinterpret_cast<security_manager::SSLContext *>(NULL));
 
   testing::StrictMock<security_manager_test::SSLContextMock> mock_ssl_context;
   //Error on no connection
-  EXPECT_EQ (connection_handler_->SetSSLContext(connection_key, &mock_ssl_context),
+  EXPECT_EQ(connection_handler_->SetSSLContext(connection_key, &mock_ssl_context),
              ::security_manager::SecurityManager::ERROR_INTERNAL);
   //No SSLContext after error
-  EXPECT_EQ (connection_handler_->GetSSLContext(
+  EXPECT_EQ(connection_handler_->GetSSLContext(
                connection_key, kControl),
              reinterpret_cast<security_manager::SSLContext *>(NULL));
 
   AddTestDeviceConnection();
   //Error on no session
-  EXPECT_EQ (connection_handler_->SetSSLContext(connection_key, &mock_ssl_context),
+  EXPECT_EQ(connection_handler_->SetSSLContext(connection_key, &mock_ssl_context),
              ::security_manager::SecurityManager::ERROR_INTERNAL);
   //No SSLContext after error
-  EXPECT_EQ (connection_handler_->GetSSLContext(
+  EXPECT_EQ(connection_handler_->GetSSLContext(
                connection_key, kControl),
              reinterpret_cast<security_manager::SSLContext *>(NULL));
   AddTestSession();
   //success
-  EXPECT_EQ (connection_handler_->SetSSLContext(connection_key, &mock_ssl_context),
+  EXPECT_EQ(connection_handler_->SetSSLContext(connection_key, &mock_ssl_context),
              ::security_manager::SecurityManager::ERROR_SUCCESS);
   //SSLContext set on Success
-  EXPECT_EQ (connection_handler_->GetSSLContext(
+  EXPECT_EQ(connection_handler_->GetSSLContext(
                connection_key, kControl),
              &mock_ssl_context);
   //Null SSLContext for unprotected services
-  EXPECT_EQ (connection_handler_->GetSSLContext(
+  EXPECT_EQ(connection_handler_->GetSSLContext(
                connection_key, kRpc),
              reinterpret_cast<security_manager::SSLContext *>(NULL));
-  EXPECT_EQ (connection_handler_->GetSSLContext(
+  EXPECT_EQ(connection_handler_->GetSSLContext(
                connection_key, kBulk),
              reinterpret_cast<security_manager::SSLContext *>(NULL));
-  EXPECT_EQ (connection_handler_->GetSSLContext(
+  EXPECT_EQ(connection_handler_->GetSSLContext(
                connection_key, kAudio),
              reinterpret_cast<security_manager::SSLContext *>(NULL));
-  EXPECT_EQ (connection_handler_->GetSSLContext(
+  EXPECT_EQ(connection_handler_->GetSSLContext(
                connection_key, kMobileNav),
              reinterpret_cast<security_manager::SSLContext *>(NULL));
 }
 TEST_F(ConnectionHandlerTest, GetSSLContext_ByProtectedService) {
   //No SSLContext on start up
-  EXPECT_EQ (connection_handler_->GetSSLContext(
+  EXPECT_EQ(connection_handler_->GetSSLContext(
                connection_key, kControl),
              reinterpret_cast<security_manager::SSLContext *>(NULL));
 
   testing::StrictMock<security_manager_test::SSLContextMock> mock_ssl_context;
   AddTestDeviceConnection();
   AddTestSession();
-  EXPECT_EQ (connection_handler_->SetSSLContext(connection_key, &mock_ssl_context),
+  EXPECT_EQ(connection_handler_->SetSSLContext(connection_key, &mock_ssl_context),
              ::security_manager::SecurityManager::ERROR_SUCCESS);
   //kControl service mean - return for all connection
-  EXPECT_EQ (connection_handler_->GetSSLContext(
+  EXPECT_EQ(connection_handler_->GetSSLContext(
                connection_key, kControl),
              &mock_ssl_context);
 
   //kAudio is not exists yet
-  EXPECT_EQ (connection_handler_->GetSSLContext(
+  EXPECT_EQ(connection_handler_->GetSSLContext(
                connection_key, kAudio),
              reinterpret_cast<security_manager::SSLContext *>(NULL));
   //Open kAudio service
@@ -585,7 +585,7 @@ TEST_F(ConnectionHandlerTest, GetSSLContext_ByProtectedService) {
   CheckService(uid, session_id, kAudio, &mock_ssl_context, PROTECTION_ON);
 
   //kAudio is not exists yet
-  EXPECT_EQ (connection_handler_->GetSSLContext(
+  EXPECT_EQ(connection_handler_->GetSSLContext(
                connection_key, kAudio),
              &mock_ssl_context);
 }
@@ -593,14 +593,14 @@ TEST_F(ConnectionHandlerTest, GetSSLContext_ByDealyProtecteRPC) {
   testing::StrictMock<security_manager_test::SSLContextMock> mock_ssl_context;
   AddTestDeviceConnection();
   AddTestSession();
-  EXPECT_EQ (connection_handler_->SetSSLContext(connection_key, &mock_ssl_context),
+  EXPECT_EQ(connection_handler_->SetSSLContext(connection_key, &mock_ssl_context),
              ::security_manager::SecurityManager::ERROR_SUCCESS);
-  EXPECT_EQ (connection_handler_->GetSSLContext(
+  EXPECT_EQ(connection_handler_->GetSSLContext(
                connection_key, kControl),
              &mock_ssl_context);
 
   //kRpc is not protected
-  EXPECT_EQ (connection_handler_->GetSSLContext(
+  EXPECT_EQ(connection_handler_->GetSSLContext(
                connection_key, kRpc),
              reinterpret_cast<security_manager::SSLContext *>(NULL));
 
@@ -609,15 +609,15 @@ TEST_F(ConnectionHandlerTest, GetSSLContext_ByDealyProtecteRPC) {
       connection_handler_->OnSessionStartedCallback(uid, start_session_id,
                                                     kRpc,
                                                     PROTECTION_ON, NULL);
-  EXPECT_EQ(session_id, start_session_id);
+  EXPECT_EQ(start_session_id, session_id);
   CheckService(uid, session_id, kRpc, &mock_ssl_context, PROTECTION_ON);
 
   //kRpc is protecte
-  EXPECT_EQ (connection_handler_->GetSSLContext(
+  EXPECT_EQ(connection_handler_->GetSSLContext(
                connection_key, kRpc),
              &mock_ssl_context);
   //kBulk is protecte
-  EXPECT_EQ (connection_handler_->GetSSLContext(
+  EXPECT_EQ(connection_handler_->GetSSLContext(
                connection_key, kBulk),
              &mock_ssl_context);
 }
@@ -625,14 +625,14 @@ TEST_F(ConnectionHandlerTest, GetSSLContext_ByDealyProtecteBulk) {
   testing::StrictMock<security_manager_test::SSLContextMock> mock_ssl_context;
   AddTestDeviceConnection();
   AddTestSession();
-  EXPECT_EQ (connection_handler_->SetSSLContext(connection_key, &mock_ssl_context),
+  EXPECT_EQ(connection_handler_->SetSSLContext(connection_key, &mock_ssl_context),
              ::security_manager::SecurityManager::ERROR_SUCCESS);
-  EXPECT_EQ (connection_handler_->GetSSLContext(
+  EXPECT_EQ(connection_handler_->GetSSLContext(
                connection_key, kControl),
              &mock_ssl_context);
 
   //kRpc is not protected
-  EXPECT_EQ (connection_handler_->GetSSLContext(
+  EXPECT_EQ(connection_handler_->GetSSLContext(
                connection_key, kRpc),
              reinterpret_cast<security_manager::SSLContext *>(NULL));
 
@@ -641,15 +641,15 @@ TEST_F(ConnectionHandlerTest, GetSSLContext_ByDealyProtecteBulk) {
       connection_handler_->OnSessionStartedCallback(uid, start_session_id,
                                                     kBulk,
                                                     PROTECTION_ON, NULL);
-  EXPECT_EQ(session_id, start_session_id);
+  EXPECT_EQ(start_session_id, session_id);
   CheckService(uid, session_id, kRpc, &mock_ssl_context, PROTECTION_ON);
 
   //kRpc is protected
-  EXPECT_EQ (connection_handler_->GetSSLContext(
+  EXPECT_EQ(connection_handler_->GetSSLContext(
                connection_key, kRpc),
              &mock_ssl_context);
   //kBulk is protected
-  EXPECT_EQ (connection_handler_->GetSSLContext(
+  EXPECT_EQ(connection_handler_->GetSSLContext(
                connection_key, kBulk),
              &mock_ssl_context);
 }

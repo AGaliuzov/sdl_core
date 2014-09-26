@@ -40,7 +40,6 @@
 namespace test {
 namespace components {
 namespace protocol_handler_test {
-using ::testing::Matcher;
 /*
  * Matcher for checking RawMessage with ControlMessage
  * Check error id
@@ -77,11 +76,11 @@ MATCHER_P4(ControlMessage, ExpectedFrameData, ExpectedEncryption,
     return false;
   }
   std::vector<uint8_t> data_vector;
-  if(packet.data() && packet.data_size()) {
+  if (packet.data() && packet.data_size()) {
     data_vector.assign(packet.data(), packet.data() + packet.data_size());
   }
-  Matcher<std::vector<uint8_t> > m = VectorMatcher;
-  if(!m.Matches/*AndExplain*/(data_vector/*, result_listener*/)) {
+  ::testing::Matcher<std::vector<uint8_t> > m = VectorMatcher;
+  if (!m.Matches(data_vector)) {
     *result_listener << "Message with " << data_vector.size()
                      << " byte data : 0x";
     for (size_t i = 0u; i < data_vector.size(); ++i) {

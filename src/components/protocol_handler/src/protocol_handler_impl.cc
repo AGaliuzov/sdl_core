@@ -210,11 +210,18 @@ void ProtocolHandlerImpl::set_session_observer(SessionObserver *observer) {
   session_observer_ = observer;
 }
 
-void set_hash_id(int32_t hash_id, protocol_handler::ProtocolPacket& packet) {
-  if(packet.protocol_version() < 2) {
-    LOG4CXX_DEBUG(logger_, "Packet need no hash data (protocol version less 2)");
+void set_hash_id(uint32_t hash_id, protocol_handler::ProtocolPacket& packet) {
+  if (HASH_ID_NOT_SUPPORTED == hash_id ||
+      HASH_ID_WRONG == hash_id) {
     return;
   }
+  if (packet.protocol_version() < PROTOCOL_VERSION_2) {
+    LOG4CXX_DEBUG(logger_, "Packet needs no hash data (protocol version less 2)");
+    return;
+  }
+  LOG4CXX_DEBUG(logger_, "Set hash_id 0x" << std::hex << hash_id <<
+                " to the packet 0x" << &packet);
+  // Hash id shall be 4 bytes according Ford Protocol v8
   DCHECK(sizeof(hash_id) == 4);
   const uint32_t hash_id_be = LE_TO_BE32(hash_id);
   packet.set_data(reinterpret_cast<const uint8_t*>(&hash_id_be), sizeof(hash_id_be));
@@ -242,12 +249,7 @@ void ProtocolHandlerImpl::SendStartSessionAck(ConnectionID connection_id,
     protocolVersion, protection, FRAME_TYPE_CONTROL,
     service_type, FRAME_DATA_START_SERVICE_ACK, session_id, 0u, 0u));
 
-  if(HASH_ID_NOT_SUPPORTED != hash_id &&
-     HASH_ID_WRONG != hash_id) {
-    LOG4CXX_DEBUG(logger_, "Set hash_id 0x" << std::hex << hash_id <<
-                  " to packet 0x" << ptr.get());
-    set_hash_id(hash_id, *ptr);
-  }
+  set_hash_id(hash_id, *ptr);
 
   raw_ford_messages_to_mobile_.PostMessage(
       impl::RawFordMessageToMobile(ptr, false));
@@ -924,11 +926,11 @@ RESULT_CODE ProtocolHandlerImpl::HandleControlMessage(
 }
 
 uint32_t get_hash_id(const ProtocolPacket &packet) {
-  if(packet.protocol_version() < 2) {
+  if (packet.protocol_version() < PROTOCOL_VERSION_2) {
     LOG4CXX_DEBUG(logger_, "Packet without hash data (protocol version less 2)");
     return HASH_ID_NOT_SUPPORTED;
   }
-  if(packet.data_size() < 4) {
+  if (packet.data_size() < 4) {
     LOG4CXX_WARN(logger_, "Packet without hash data (data size less 4)");
     return HASH_ID_WRONG;
   }
@@ -949,7 +951,7 @@ RESULT_CODE ProtocolHandlerImpl::HandleControlMessageEndSession(
       connection_id, current_session_id, hash_id, service_type);
 
   // TODO(EZamakhov): add clean up output queue (for removed service)
-  if (session_key) {
+  if (session_key != 0) {
     SendEndSessionAck(
         connection_id, current_session_id, packet.protocol_version(),
         session_observer_->KeyFromPair(connection_id, current_session_id),
@@ -997,9 +999,9 @@ class StartSessionHandler : public security_manager::SecurityManagerListener {
     // check current service protection
     const bool was_service_protection_enabled =
         session_observer_->GetSSLContext(connection_key_, service_type_) != NULL;
-    if(was_service_protection_enabled) {
+    if (was_service_protection_enabled) {
       // On Success handshake
-      if(success) {
+      if (success) {
 //        const std::string error_text("Connection is already protected");
 //        LOG4CXX_WARN(logger_, error_text << ", key " << connection_key);
 //        security_manager_->SendInternalError(
@@ -1011,7 +1013,7 @@ class StartSessionHandler : public security_manager::SecurityManagerListener {
         NOTREACHED();
       }
     } else {
-      if(success) {
+      if (success) {
         session_observer_->SetProtectionFlag(connection_key_, service_type_);
       }
       protocol_handler_->SendStartSessionAck(connection_id_, session_id_,

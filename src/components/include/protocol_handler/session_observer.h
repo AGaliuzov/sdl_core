@@ -46,8 +46,8 @@
 namespace protocol_handler {
 /**
  * \brief HASH_ID constants.
- * Hint: Shall not intersect with connection identifiers for correct handling this constants
- * (Session identifier shall be greater than zero)
+ * Hint: Shall not intersect with connection identifiers for correct handling
+ * these constants (Session identifier shall be greater than zero)
  */
 enum {
   HASH_ID_NOT_SUPPORTED = 0,
