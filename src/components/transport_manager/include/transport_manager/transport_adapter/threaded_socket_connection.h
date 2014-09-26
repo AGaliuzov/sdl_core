@@ -40,6 +40,8 @@
 
 #include "transport_manager/transport_adapter/connection.h"
 #include "protocol/common.h"
+#include "utils/threads/thread_delegate.h"
+#include "utils/threads/thread.h"
 
 using ::transport_manager::transport_adapter::Connection;
 
@@ -51,7 +53,8 @@ class TransportAdapterController;
 /**
  * @brief Class responsible for communication over sockets.
  */
-class ThreadedSocketConnection : public Connection {
+class ThreadedSocketConnection : public Connection,
+                                 public threads::ThreadDelegate {
  public:
 
   /**
@@ -129,15 +132,14 @@ class ThreadedSocketConnection : public Connection {
 
   int read_fd_;
   int write_fd_;
-  void Thread();
+  void threadMain();
+  bool exitThreadMain();
   void Transmit();
   void Finalize();
   TransportAdapter::Error Notify() const;
   bool Receive();
   bool Send();
   void Abort();
-
-  friend void* StartThreadedSocketConnection(void*);
 
   TransportAdapterController* controller_;
   /**
@@ -147,14 +149,12 @@ class ThreadedSocketConnection : public Connection {
   FrameQueue frames_to_send_;
   mutable pthread_mutex_t frames_to_send_mutex_;
 
-  // TODO(Eamakhov): change to threads::Thread usage
-  pthread_t thread_;
-
   int socket_;
   bool terminate_flag_;
   bool unexpected_disconnect_;
   const DeviceUID device_uid_;
   const ApplicationHandle app_handle_;
+  threads::Thread* thread_;
 };
 }  // namespace transport_adapter
 }  // namespace transport_manager

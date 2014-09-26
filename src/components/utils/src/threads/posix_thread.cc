@@ -53,9 +53,6 @@ static void* threadFunc(void* closure) {
   return NULL;
 }
 
-static pthread_t main_thread_id;
-static bool main_thread_id_set = false;
-
 #ifndef __QNXNTO__
   const int EOK = 0;
 #endif
@@ -100,36 +97,6 @@ void Thread::SetNameForId(const Id& thread_id, const std::string& name) {
   }
 }
 
-//static
-void Thread::SetMainThread() {
-  main_thread_id = pthread_self();
-  main_thread_id_set = true;
-}
-
-//static
-bool Thread::InterruptMainThread() {
-  if (!main_thread_id_set) {
-    LOG4CXX_WARN(logger_, "Cannot interrupt main thread: not specified");
-    return false;
-  }
-  pthread_kill(main_thread_id, SIGINT);
-  return true;
-}
-
-//static
-void Thread::MaskSignals() {
-  sigset_t sigset;
-  sigfillset(&sigset);
-  pthread_sigmask(SIG_SETMASK, &sigset, 0);
-}
-
-//static
-void Thread::UnmaskSignals() {
-  sigset_t sigset;
-  sigemptyset(&sigset);
-  pthread_sigmask(SIG_SETMASK, &sigset, 0);
-}
-
 Thread::Thread(const char* name, ThreadDelegate* delegate)
   : name_(name ? name : "undefined"),
     delegate_(delegate),
@@ -140,8 +107,8 @@ Thread::Thread(const char* name, ThreadDelegate* delegate)
 
 Thread::~Thread() {
   ThreadManager::instance()->Unregister(thread_handle_);
-  delete delegate_;
-  LOG4CXX_INFO(logger_,"Deleted thread: " << name_);
+  stop();
+  LOG4CXX_INFO(logger_, "Deleted thread: " << name_);
 }
 
 bool Thread::start() {
@@ -171,6 +138,7 @@ bool Thread::startWithOptions(const ThreadOptions& options) {
     if (pthread_result != EOK) {
       LOG4CXX_WARN(logger_,"Couldn't set detach state attribute.. Error code = "
                    << pthread_result << "(\"" << strerror(pthread_result) << "\")");
+      thread_options_.is_joinable(false);
     }
   }
 
@@ -199,9 +167,9 @@ bool Thread::startWithOptions(const ThreadOptions& options) {
 
 void Thread::stop() {
   LOG4CXX_TRACE_ENTER(logger_);
+  if (!isThreadRunning_) {
   LOG4CXX_DEBUG(logger_, "Canceling thread (#" << thread_handle_
                 << " \"" << name_ << "\") from #" << pthread_self());
-  if (!is_running()) {
     LOG4CXX_WARN(logger_, "Thread (#" << thread_handle_
                   << " \"" << name_ << "\") is not running");
     return;
@@ -209,45 +177,30 @@ void Thread::stop() {
 
   // TODO (EZamakhov): why exitThreadMain return bool and stop does not?
   if (delegate_ && !delegate_->exitThreadMain()) {
-      if (thread_handle_ == pthread_self()) {
-        LOG4CXX_ERROR(logger_,
-                     "Couldn't cancel the same thread (#" << thread_handle_
-                     << "\"" << name_ << "\")");
-      } else {
-        const int pthread_result = pthread_cancel(thread_handle_);
-        if (pthread_result != EOK) {
-          LOG4CXX_WARN(logger_,
-                       "Couldn't cancel thread (#" << thread_handle_ << " \"" << name_ <<
-                       "\") from thread #" << pthread_self() << ". Error code = "
-                       << pthread_result << " (\"" << strerror(pthread_result) << "\")");
-        }
+    if (thread_handle_ == pthread_self()) {
+      LOG4CXX_ERROR(logger_,
+                    "Couldn't cancel the same thread (#" << thread_handle_
+                    << "\"" << name_ << "\")");
+    } else {
+      const int pthread_result = pthread_cancel(thread_handle_);
+      if (pthread_result != EOK) {
+        LOG4CXX_WARN(logger_,
+                     "Couldn't cancel thread (#" << thread_handle_ << " \"" << name_ <<
+                     "\") from thread #" << pthread_self() << ". Error code = "
+                     << pthread_result << " (\"" << strerror(pthread_result) << "\")");
+      }
     }
   }
 
   // Wait for the thread to exit.  It should already have terminated but make
   // sure this assumption is valid.
-  join();
-  LOG4CXX_TRACE_EXIT(logger_);
-}
-
-void Thread::join() {
-  LOG4CXX_TRACE_ENTER(logger_);
-  LOG4CXX_DEBUG(logger_, "Join thread (#" << thread_handle_
-                << " \"" << name_ << "\") from #" << pthread_self());
-  if (thread_handle_ == pthread_self()) {
-    LOG4CXX_ERROR(logger_,
-                 "Couldn't join with the same thread (#" << thread_handle_
-                 << " \"" << name_ << "\")");
-  } else {
-    const int pthread_result = pthread_join(thread_handle_, NULL);
-    if (pthread_result != EOK) {
-      LOG4CXX_WARN(logger_,
-                   "Couldn't join thread (#" << thread_handle_ << " \"" << name_ <<
-                   "\") from thread #" << pthread_self() << ". Error code = "
-                   << pthread_result << "(\"" << strerror(pthread_result) << "\")");
-    }
+  MessageQueue<pthread_t>& threads = ::threads::impl::ThreadManager::instance()->threads_to_terminate;
+  if (!threads.IsShuttingDown()) {
+    threads.push(thread_handle_);
   }
   isThreadRunning_ = false;
+  LOG4CXX_DEBUG(logger_, "Join thread (#" << thread_handle_
+                << " \"" << name_ << "\") from #" << pthread_self());
   LOG4CXX_TRACE_EXIT(logger_);
 }
 

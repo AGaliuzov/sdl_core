@@ -293,8 +293,8 @@ void BluetoothPASADeviceScanner::Terminate() {
       device_scan_requested_ = false;
       device_scan_requested_cv_.NotifyOne();
     }
-    bt_PASA_msg_thread_->join();
-    bt_device_scanner_thread_->join();
+    bt_PASA_msg_thread_->stop();
+    bt_device_scanner_thread_->stop();
     LOG4CXX_INFO(logger_, "PASA Bluetooth device scanner threads finished.");
   }
   LOG4CXX_TRACE_EXIT(logger_);

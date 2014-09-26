@@ -266,9 +266,6 @@ int main(int argc, char** argv) {
   INIT_LOGGER(profile::Profile::instance()->log4cxx_config_file());
   configureLogging();
 
-  threads::Thread::MaskSignals();
-  threads::Thread::SetMainThread();
-
   LOG4CXX_INFO(logger_, "Snapshot: {TAG}");
   LOG4CXX_INFO(logger_, "Git commit: {GIT_COMMIT}");
   LOG4CXX_INFO(logger_, "Application main()");
@@ -277,9 +274,7 @@ int main(int argc, char** argv) {
       new threads::Thread("ApplinkNotify", new ApplinkNotificationThreadDelegate());
   applink_notification_thread->start();
 
-  utils::SubscribeToTerminateSignal(main_namespace::dummy_signal_handler);
-  threads::Thread::UnmaskSignals();
-  pause();
+  main_namespace::LifeCycle::instance()->Run();
 
   LOG4CXX_INFO(logger_, "Stopping application due to signal caught");
   stopSmartDeviceLink();

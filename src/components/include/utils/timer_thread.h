@@ -322,10 +322,7 @@ void TimerThread<T>::TimerLooperDelegate::threadMain() {
 
 template <class T>
 bool TimerThread<T>::TimerDelegate::exitThreadMain() {
-  {
-    sync_primitives::AutoLock auto_lock(state_lock_);
-    stop_flag_ = true;
-  }
+  stop_flag_ = true;
   termination_condition_.NotifyOne();
   return true;
 }

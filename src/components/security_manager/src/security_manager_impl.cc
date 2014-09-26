@@ -297,7 +297,7 @@ bool SecurityManagerImpl::ProccessHandshakeData(const SecurityMessage &inMessage
 }
 
 bool SecurityManagerImpl::ProccessInternalError(const SecurityMessage &inMessage) {
-  LOG4CXX_INFO(logger_, "Recieved InternalError with Json message"
+  LOG4CXX_INFO(logger_, "Received InternalError with Json message"
                 << inMessage->get_json_message());
   Json::Value root;
   Json::Reader reader;
@@ -305,7 +305,7 @@ bool SecurityManagerImpl::ProccessInternalError(const SecurityMessage &inMessage
       reader.parse(inMessage->get_json_message(), root);
   if (!parsingSuccessful)
     return false;
-  LOG4CXX_DEBUG(logger_, "Recieved InternalError id " << root[kErrId].asString()
+  LOG4CXX_DEBUG(logger_, "Received InternalError id " << root[kErrId].asString()
                 << ", text: " << root[kErrText].asString());
   return true;
 }

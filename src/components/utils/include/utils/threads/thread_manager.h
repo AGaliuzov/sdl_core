@@ -34,14 +34,19 @@
 #define SRC_COMPONENTS_UTILS_INCLUDE_UTILS_THREADS_THREAD_MANAGER_H_
 
 #include "utils/threads/thread.h"
-#include "utils/lock.h"
+
+#include <pthread.h>
 
 #include <map>
 #include <string>
 #include <set>
+#include <list>
 
 #include "utils/macro.h"
 #include "utils/singleton.h"
+#include "utils/lock.h"
+#include "utils/conditional_variable.h"
+#include "utils/message_queue.h"
 
 namespace threads {
 namespace impl {
@@ -88,6 +93,7 @@ class ThreadManager : public utils::Singleton<ThreadManager> {
   // Make sure to call it after thread is finished
   // Because thread id's can be recycled
   void Unregister(PlatformThreadHandle id);
+  MessageQueue<pthread_t> threads_to_terminate;
  private:
   ThreadManager();
   ~ThreadManager();

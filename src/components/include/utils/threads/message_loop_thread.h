@@ -64,7 +64,7 @@ class MessageLoopThread {
      * Method called by MessageLoopThread to process single message
      * from it's queue. After calling this method message is discarded.
      */
-    virtual void Handle(const Message message) = 0;
+    virtual void Handle(const Message message) = 0; // TODO(dchmerev): Use reference?
 
     virtual ~Handler() {}
   };
@@ -109,9 +109,9 @@ class MessageLoopThread {
 ///////// Implementation
 
 template<class Q>
-MessageLoopThread<Q>::MessageLoopThread(const std::string& name,
-                                              Handler* handler,
-                                              const ThreadOptions& thread_opts)
+MessageLoopThread<Q>::MessageLoopThread(const std::string&   name,
+                                        Handler*             handler,
+                                        const ThreadOptions& thread_opts)
     : thread_(name.c_str(), new LoopThreadDelegate(&message_queue_, handler)) {
   bool started = thread_.startWithOptions(thread_opts);
   if (!started) {
@@ -122,7 +122,6 @@ MessageLoopThread<Q>::MessageLoopThread(const std::string& name,
 
 template<class Q>
 MessageLoopThread<Q>::~MessageLoopThread() {
-  // this will join us with the thread while it drains message queue
   thread_.stop();
 }
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
@@ -31,9 +31,15 @@
  */
 
 #include "utils/threads/thread_manager.h"
+#include "utils/threads/thread_delegate.h"
+#include "utils/lock.h"
+#include "utils/conditional_variable.h"
 #include "utils/logger.h"
 
+#include <pthread.h>
+
 #include <sstream>
+#include <list>
 
 #if defined(OS_LINUX)
 #include <sys/syscall.h>

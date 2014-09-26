@@ -104,27 +104,6 @@ class Thread {
   static void SetNameForId(const Id& thread_id, const std::string& name);
 
   /**
-   * @brief Set current thread as main
-   */
-  static void SetMainThread();
-
-  /**
-   * @brief Send SIGINT to main thread
-   * @return \a true on success and \a false otherwise
-   */
-  static bool InterruptMainThread();
-
-  /**
-   * @brief Mask all POSIX signals for current thread
-   */
-  static void MaskSignals();
-
-  /**
-   * @brief Unmask all POSIX signals for current thread
-   */
-  static void UnmaskSignals();
-
-  /**
    * Ctor.
    * @param name - display string to identify the thread.
    * @param delegate - thread procedure delegate. Look for
@@ -162,13 +141,6 @@ class Thread {
    * already stopped.
    */
   void stop();
-
-  /**
-   * Joins with a thread created via the Create function.
-   * This function blocks the caller until the designated thread exits.
-   * This will invalidate |thread_handle|.
-   */
-  void join();
 
   /**
    * Get thread name.

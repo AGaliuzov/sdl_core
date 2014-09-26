@@ -43,6 +43,8 @@
 #include "security_manager/crypto_manager_impl.h"
 #endif  // ENABLE_SECURITY
 
+#include "utils/threads/thread_manager.h"
+
 using threads::Thread;
 
 namespace main_namespace {
@@ -90,7 +92,7 @@ LifeCycle::LifeCycle()
   , mb_pasa_adapter_thread_(NULL)
 #endif  // PASA_HMI
 #endif  // CUSTOMER_PASA
-  , components_started(false)
+  , components_started_(false)
 { }
 
 bool LifeCycle::StartComponents() {
@@ -153,7 +155,7 @@ bool LifeCycle::StartComponents() {
   if (protocol_name == "TLSv1.0") {
     protocol = security_manager::TLSv1;
   } else if (protocol_name == "TLSv1.1") {
-      protocol = security_manager::TLSv1_1;
+    protocol = security_manager::TLSv1_1;
   } else if (protocol_name == "TLSv1.2") {
     protocol = security_manager::TLSv1_2;
   } else if (protocol_name == "SSLv3") {
@@ -216,7 +218,7 @@ bool LifeCycle::StartComponents() {
   app_manager_->set_protocol_handler(protocol_handler_);
   app_manager_->set_connection_handler(connection_handler_);
   app_manager_->set_hmi_message_handler(hmi_handler_);
-  components_started = true;
+  components_started_ = true;
   return true;
 }
 
@@ -366,12 +368,33 @@ bool LifeCycle::InitMessageSystem() {
     hmi_message_adapter_);
   return true;
 }
-#endif  // MQUEUE_HMIADAPTER
 
+#endif  // MQUEUE_HMIADAPTER
 #endif  // CUSTOMER_PASA
 
+namespace {
+  void sig_handler(int sig) {
+    MessageQueue<pthread_t>& threads = ::threads::impl::ThreadManager::instance()->threads_to_terminate;
+    threads.Shutdown();
+  }
+}
+
+void LifeCycle::Run() {
+  // First, register signal handler
+  ::utils::SubscribeToTerminateSignal(&sig_handler);
+  // Then run main loop until signal caught
+  MessageQueue<pthread_t>& threads = ::threads::impl::ThreadManager::instance()->threads_to_terminate;
+  while(!threads.IsShuttingDown()) {
+    while (!threads.empty()) {
+      pthread_t thread = threads.pop();
+      pthread_join(thread, NULL);
+    }
+    threads.wait();
+  }
+}
+
 void LifeCycle::StopComponents() {
-  if (components_started == false) {
+  if (!components_started_) {
     LOG4CXX_ERROR(logger_, "Components wasn't started");
     return;
   }
@@ -487,7 +510,7 @@ void LifeCycle::StopComponents() {
     time_tester_ = NULL;
   }
 #endif  // TIME_TESTER
-  components_started =false;
+  components_started_ = false;
 }
 
 }  //  namespace main_namespace

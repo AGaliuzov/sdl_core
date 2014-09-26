@@ -71,7 +71,7 @@ BluetoothPASAConnection::~BluetoothPASAConnection() {
     terminate_flag_ = true;
     Notify();
     errno = 0;
-    thread_->join();
+    thread_->stop();
     delete thread_;
     if (-1 != read_fd_)
       close(read_fd_);

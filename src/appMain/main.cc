@@ -138,8 +138,6 @@ bool InitHmi() {
  * \return EXIT_SUCCESS or EXIT_FAILURE
  */
 int32_t main(int32_t argc, char** argv) {
-  threads::Thread::MaskSignals();
-  threads::Thread::SetMainThread();
 
   // --------------------------------------------------------------------------
   // Logger initialization
@@ -215,10 +213,7 @@ int32_t main(int32_t argc, char** argv) {
   }
   // --------------------------------------------------------------------------
 
-  utils::SubscribeToTerminateSignal(main_namespace::dummy_signal_handler);
-  threads::Thread::UnmaskSignals();
-
-  pause();
+  main_namespace::LifeCycle::instance()->Run();
   LOG4CXX_INFO(logger_, "Stopping application due to signal caught");
 
   main_namespace::LifeCycle::instance()->StopComponents();
