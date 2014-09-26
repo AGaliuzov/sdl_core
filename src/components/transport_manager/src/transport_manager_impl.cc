@@ -524,18 +524,10 @@ void TransportManagerImpl::UpdateDeviceList(TransportAdapter* ta) {
 
 void TransportManagerImpl::PostMessage(const RawMessagePtr message) {
   LOG4CXX_TRACE(logger_, "enter. RawMessageSptr: " << message);
-#ifdef USE_RWLOCK
-  message_queue_rwlock_.AcquireForWriting();
-#else
   pthread_mutex_lock(&message_queue_mutex_);
-#endif
   message_queue_.push_back(message);
   pthread_cond_signal(&message_queue_cond_);
-#ifdef USE_RWLOCK
-  message_queue_rwlock_.Release();
-#else
   pthread_mutex_unlock(&message_queue_mutex_);
-#endif
   LOG4CXX_TRACE(logger_, "exit");
 }
 
@@ -544,34 +536,18 @@ void TransportManagerImpl::RemoveMessage(const RawMessagePtr message) {
   //       make to work otherwise.
   //       2013-08-21 dchmerev@luxoft.com
   LOG4CXX_TRACE(logger_, "enter RawMessageSptr: " << message);
-#ifdef USE_RWLOCK
-  message_queue_rwlock_.AcquireForWriting();
-#else
   pthread_mutex_lock(&message_queue_mutex_);
-#endif
   std::remove(message_queue_.begin(), message_queue_.end(), message);
-#ifdef USE_RWLOCK
-  message_queue_rwlock_.Release();
-#else
   pthread_mutex_unlock(&message_queue_mutex_);
-#endif
   LOG4CXX_TRACE(logger_, "exit");
 }
 
 void TransportManagerImpl::PostEvent(const TransportAdapterEvent& event) {
   LOG4CXX_TRACE(logger_, "enter. TransportAdapterEvent: " << &event);
-#ifdef USE_RWLOCK
-  event_queue_rwlock_.AcquireForWriting();
-#else
   pthread_mutex_lock(&event_queue_mutex_);
-#endif
   event_queue_.push_back(event);
   pthread_cond_signal(&device_listener_thread_wakeup_);
-#ifdef USE_RWLOCK
-  event_queue_rwlock_.Release();
-#else
   pthread_mutex_unlock(&event_queue_mutex_);
-#endif
   LOG4CXX_TRACE(logger_, "exit");
 }
 
@@ -608,13 +584,12 @@ TransportManagerImpl::ConnectionInternal* TransportManagerImpl::GetConnection(
   for (std::vector<ConnectionInternal>::iterator it = connections_.begin();
        it != connections_.end(); ++it) {
     if (it->id == id) {
-      LOG4CXX_TRACE(logger_, "exit with ConnectionInternal. It's adress: " << &*it);
+      LOG4CXX_TRACE(logger_, "exit with ConnectionInternal. It's address: " << &*it);
       return &*it;
     }
   }
   LOG4CXX_TRACE(logger_, "exit with NULL");
   return NULL;
-
 }
 
 TransportManagerImpl::ConnectionInternal* TransportManagerImpl::GetConnection(
@@ -624,7 +599,7 @@ TransportManagerImpl::ConnectionInternal* TransportManagerImpl::GetConnection(
   for (std::vector<ConnectionInternal>::iterator it = connections_.begin();
        it != connections_.end(); ++it) {
     if (it->device == device && it->application == application) {
-      LOG4CXX_TRACE(logger_, "exit with ConnectionInternal. It's adress: " << &*it);
+      LOG4CXX_TRACE(logger_, "exit with ConnectionInternal. It's address: " << &*it);
       return &*it;
     }
   }
@@ -655,24 +630,15 @@ void TransportManagerImpl::OnDeviceListUpdated(TransportAdapter* ta) {
 
 void TransportManagerImpl::EventListenerThread() {
   LOG4CXX_TRACE(logger_, "enter");
-#ifndef USE_RWLOCK
   pthread_mutex_lock(&event_queue_mutex_);
-#endif
   LOG4CXX_INFO(logger_, "Event listener thread started");
   while (true) {
     while (event_queue_.size() > 0) {
-#ifdef USE_RWLOCK
-      event_queue_rwlock_.AcquireForReading();
-#endif
       LOG4CXX_INFO(logger_, "Event listener queue pushed to process events");
       EventQueue::iterator current_it = event_queue_.begin();
       const TransportAdapterEvent event = *(current_it);
       event_queue_.erase(current_it);
-#ifdef USE_RWLOCK
-      event_queue_rwlock_.Release();
-#else
       pthread_mutex_unlock(&event_queue_mutex_);
-#endif
       ConnectionInternal* connection = GetConnection(event.device_uid, event.application_id);
 
       switch (event.event_type) {
@@ -841,9 +807,7 @@ void TransportManagerImpl::EventListenerThread() {
           break;
         }
       }  // switch
-#ifndef USE_RWLOCK
       pthread_mutex_lock(&event_queue_mutex_);
-#endif
     }  // while (event_queue_.size() > 0)
 
     if (all_thread_active_) {
@@ -876,34 +840,22 @@ void* TransportManagerImpl::MessageQueueStartThread(void* data) {
 
 void TransportManagerImpl::MessageQueueThread() {
   LOG4CXX_TRACE(logger_, "enter");
-#ifndef USE_RWLOCK
   pthread_mutex_lock(&message_queue_mutex_);
-#endif
 
   while (all_thread_active_) {
     // TODO(YK): add priority processing
 
     while (message_queue_.size() > 0) {
-#ifdef USE_RWLOCK
-      message_queue_rwlock_.AcquireForReading();
-#endif
       MessageQueue::iterator it = message_queue_.begin();
       while (it != message_queue_.end() && it->valid() && (*it)->IsWaiting()) {
         ++it;
       }
       if (it == message_queue_.end()) {
-#ifdef USE_RWLOCK
-        message_queue_rwlock_.Release();
-#endif
         LOG4CXX_TRACE(logger_, "break. Condition: it == message_queue_.end()");
         break;
       }
       RawMessagePtr active_msg = *it;
-#ifdef USE_RWLOCK
-      message_queue_rwlock_.Release();
-#else
       pthread_mutex_unlock(&message_queue_mutex_);
-#endif
       if (active_msg.valid() && !active_msg->IsWaiting()) {
         ConnectionInternal* connection =
           GetConnection(active_msg->connection_key());
@@ -945,9 +897,7 @@ void TransportManagerImpl::MessageQueueThread() {
           }
         }
       }
-#ifndef USE_RWLOCK
       pthread_mutex_lock(&message_queue_mutex_);
-#endif
     }
     pthread_cond_wait(&message_queue_cond_, &message_queue_mutex_);
   }  //  while(true)

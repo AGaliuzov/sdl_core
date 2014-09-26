@@ -43,7 +43,6 @@ option(BUILD_USB_SUPPORT "libusb support" ON)
 option(BUILD_AOA_SUPPORT "libaoa support" OFF)
 option(BUILD_MME_SUPPORT "Apple devices support" OFF)
 option(BUILD_AVAHI_SUPPORT "libavahi support" ON)
-option(BUILD_RWLOCK_SUPPORT "rwlocks support" OFF)
 option(BUILD_BACKTRACE_SUPPORT "backtrace support" ON)
 option(BUILD_TESTS "Possibility to build and run tests" OFF)
 option(TIME_TESTER "Enable profiling time test util" ON)
@@ -205,10 +204,6 @@ if (BUILD_AVAHI_SUPPORT)
 # --- Check libavahi-common, libavahi-client availability
   find_package(Libavahi)
   message(STATUS "Avahi support is enabled")
-endif()
-
-if (BUILD_RWLOCK_SUPPORT)
-  add_definitions(-DRWLOCK_SUPPORT)
 endif()
 
 if (BUILD_BACKTRACE_SUPPORT)
