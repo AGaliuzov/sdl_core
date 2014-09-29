@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2013, Ford Motor Company
+/*
+ * Copyright (c) 2013-2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -101,7 +101,7 @@ class HeartBeatMonitorTest : public testing::Test {
 };
 
 ACTION_P2(RemoveSession, conn, session_id){
-conn->RemoveSession(session_id);
+  conn->RemoveSession(session_id);
 }
 
 TEST_F(HeartBeatMonitorTest, TimerNotStarted) {

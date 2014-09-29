@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013-2014, Ford Motor Company
  * All rights reserved.
  *
@@ -50,7 +50,7 @@ HeartBeatMonitor::HeartBeatMonitor(int32_t heartbeat_timeout_seconds,
       run_(true) {
 }
 
-bool HeartBeatMonitor::IsTimeoutElapsed(const TimevalStruct& expiration) const {
+bool HeartBeatMonitor::HasTimeoutElapsed(const TimevalStruct& expiration) const {
   TimevalStruct now = date_time::DateTime::getCurrentTime();
   return date_time::DateTime::Greater(now, expiration);
 }
@@ -61,11 +61,11 @@ void HeartBeatMonitor::Process() {
   SessionMap::iterator it = sessions_.begin();
   while (it != sessions_.end()) {
     SessionState &state = it->second;
-    if (IsTimeoutElapsed(state.heartbeat_expiration)) {
+    if (HasTimeoutElapsed(state.heartbeat_expiration)) {
       const uint8_t session_id = it->first;
       if (state.is_heartbeat_sent) {
         LOG4CXX_DEBUG(logger_,
-                      "Session with id " << session_id <<" timed out, closing");
+                      "Session with id " << session_id << " timed out, closing");
         connection_->CloseSession(session_id);
         it = sessions_.begin();
         continue;
@@ -83,10 +83,12 @@ void HeartBeatMonitor::Process() {
 }
 
 void HeartBeatMonitor::RefreshExpiration(TimevalStruct* expiration) const {
-  LOG4CXX_TRACE(logger_, "Refresh expiration");
+  LOG4CXX_TRACE_ENTER(logger_);
   sync_primitives::AutoLock locker(heartbeat_timeout_seconds_lock_);
+  DCHECK(expiration);
   *expiration = date_time::DateTime::getCurrentTime();
   expiration->tv_sec += heartbeat_timeout_seconds_;
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void HeartBeatMonitor::threadMain() {
@@ -124,7 +126,7 @@ void HeartBeatMonitor::RemoveSession(uint8_t session_id) {
 
   if (sessions_.end() != sessions_.find(session_id)) {
     LOG4CXX_INFO(logger_,
-                 "Remove session with id" << static_cast<int32_t>(session_id));
+                 "Remove session with id " << static_cast<int32_t>(session_id));
     sessions_.erase(session_id);
   }
 }
@@ -135,7 +137,7 @@ void HeartBeatMonitor::KeepAlive(uint8_t session_id) {
   if (sessions_.end() != sessions_.find(session_id)) {
     LOG4CXX_INFO(
         logger_,
-        "Resetting heart beat timer for session with id" << static_cast<int32_t>(session_id));
+        "Resetting heart beat timer for session with id " << static_cast<int32_t>(session_id));
 
     RefreshExpiration(&sessions_[session_id].heartbeat_expiration);
     sessions_[session_id].is_heartbeat_sent = false;

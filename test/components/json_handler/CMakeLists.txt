@@ -30,13 +30,6 @@ set(LIBRARIES
     SmartObjects
 )
 
-if(ENABLE_LOG)
-  list(APPEND LIBRARIES log4cxx -L${LOG4CXX_LIBS_DIRECTORY})
-  list(APPEND LIBRARIES apr-1 -L${APR_LIBS_DIRECTORY})
-  list(APPEND LIBRARIES aprutil-1 -L${APR_UTIL_LIBS_DIRECTORY})
-  list(APPEND LIBRARIES expat -L${EXPAT_LIBS_DIRECTORY})
-endif()
-
 create_test("test_JSONHandler_JSONRPCFullScenario" "./src/test_json_rpc_full_scenario.cpp" "${LIBRARIES}")
 create_test("test_JSONHandler_FormatterJsonSDLRPCv2Test" "./src/formatter_test_helper.cc;./src/meta_formatter_test_helper.cc;./src/FormatterJsonSDLRPCv2Test.cpp" "${LIBRARIES}")
 create_test("test_JSONHandler_FormatterJsonSDLRPCv1Test" "./src/formatter_test_helper.cc;./src/FormatterJsonSDLRPCv1Test.cpp" "${LIBRARIES}")

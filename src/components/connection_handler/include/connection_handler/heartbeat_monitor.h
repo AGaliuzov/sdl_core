@@ -104,7 +104,7 @@ class HeartBeatMonitor: public threads::ThreadDelegate {
 
   void Process();
   void RefreshExpiration(TimevalStruct* expiration) const;
-  inline bool IsTimeoutElapsed(const TimevalStruct& expiration) const;
+  inline bool HasTimeoutElapsed(const TimevalStruct& expiration) const;
 
   DISALLOW_COPY_AND_ASSIGN(HeartBeatMonitor);
 };

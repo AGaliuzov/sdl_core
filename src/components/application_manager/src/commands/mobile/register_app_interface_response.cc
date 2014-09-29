@@ -67,13 +67,17 @@ void RegisterAppInterfaceResponse::Run() {
       application(connection_key);
   if (app.valid()) {
     policy::PolicyHandler *policy_handler = policy::PolicyHandler::instance();
-    policy_handler->AddApplication(app->mobile_app_id()->asString());
-    const int32_t timeout = policy_handler->policy_manager()->HeartBeatTimeout(
-        app->mobile_app_id()->asString());
-
-    if (timeout > 0) {
-      application_manager::ApplicationManagerImpl::instance()->
-          connection_handler()->SetHeartBeatTimeout(connection_key, timeout);
+    std::string mobile_app_id = app->mobile_app_id()->asString();
+    policy_handler->AddApplication(mobile_app_id);
+    policy::PolicyManager* policy_manager = policy_handler->policy_manager();
+    if (policy_manager) {
+      const int32_t timeout = policy_manager->HeartBeatTimeout(mobile_app_id);
+      if (timeout > 0) {
+        application_manager::ApplicationManagerImpl::instance()->
+            connection_handler()->SetHeartBeatTimeout(connection_key, timeout);
+      }
+    } else {
+      LOG4CXX_WARN(logger_, "Policy library is not loaded.");
     }
   }
 }

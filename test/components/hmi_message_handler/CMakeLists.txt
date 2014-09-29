@@ -25,13 +25,6 @@ set (LIBRARIES
     ProtocolLibrary
 )
 
-if(ENABLE_LOG)
-  list(APPEND LIBRARIES log4cxx -L${LOG4CXX_LIBS_DIRECTORY})
-  list(APPEND LIBRARIES apr-1 -L${APR_LIBS_DIRECTORY})
-  list(APPEND LIBRARIES aprutil-1 -L${APR_UTIL_LIBS_DIRECTORY})
-  list(APPEND LIBRARIES expat -L${EXPAT_LIBS_DIRECTORY})
-endif()
-
 set (SOURCES
    #./src/mock_subscriber.cc
    #./src/test_dbus_message_adapter.cc
