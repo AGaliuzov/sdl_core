@@ -584,8 +584,8 @@ mobile_api::HMILevel::eType ApplicationManagerImpl::PutApplicationInFull(
     result = mobile_apis::HMILevel::HMI_BACKGROUND;
   }
 
-  app->set_hmi_level(result);
   if (result == mobile_api::HMILevel::HMI_FULL) {
+    app->set_hmi_level(result);
     MessageHelper::SendActivateAppToHMI(app->app_id());
   }
   return result;

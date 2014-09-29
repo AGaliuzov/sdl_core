@@ -197,6 +197,12 @@ bool ResumeCtrl::SetupHMILevel(ApplicationSharedPtr application,
 
   if (mobile_apis::HMILevel::HMI_FULL == hmi_level) {
     hmi_level = app_mngr_->PutApplicationInFull(application);
+
+    if ((mobile_apis::HMILevel::HMI_FULL == hmi_level ||
+        mobile_apis::HMILevel::HMI_LIMITED == hmi_level) &&
+        (mobile_apis::AudioStreamingState::AUDIBLE == audio_streaming_state)) {
+      application->set_audio_streaming_state(audio_streaming_state);
+    }
   } else if (mobile_apis::HMILevel::HMI_LIMITED == hmi_level) {
     if ((false == application->IsAudioApplication()) ||
         app_mngr_->DoesAudioAppWithSameHMITypeExistInFullOrLimited(application)) {
