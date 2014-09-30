@@ -35,7 +35,6 @@
 
 #include "utils/macro.h"
 #include "protocol/common.h"
-#include "protocol/common.h"
 
 /**
  *\namespace protocol_handlerHandler
@@ -48,7 +47,7 @@ namespace protocol_handler {
  * handling multiple frames of the message.
  */
 class ProtocolPacket {
- private:
+ public:
   /**
    * \struct ProtocolData
    * \brief Used for storing message and its size.
@@ -104,9 +103,12 @@ class ProtocolPacket {
     uint8_t sessionId;
     uint32_t dataSize;
     uint32_t messageId;
+
+    RESULT_CODE deserialize(const uint8_t *message,
+                            const size_t messageSize);
+    RESULT_CODE validate() const;
   };
 
- public:
   /**
    * \brief Default constructor
    */
@@ -115,14 +117,9 @@ class ProtocolPacket {
   /**
    * \brief Constructor
    *
-   * \param connectionKey Identifier of connection within wich message
-   * is transferred
    * \param connection_id - Connection Identifier
-   * \param data Message string
-   * \param dataSize Message size
    */
-  ProtocolPacket(uint8_t connection_id, uint8_t *data,
-                 uint32_t dataSize);
+  ProtocolPacket(uint8_t connection_id);
 
   /**
    * \brief Constructor
@@ -137,14 +134,12 @@ class ProtocolPacket {
    * \param dataSize Size of message string
    * \param messageID ID of message or hash code - only for second protocol
    * \param data Message string if provided
-   * \param packet_id - ID for multiframe messages
    */
   ProtocolPacket(uint8_t connection_id,
                  uint8_t version, bool protection, uint8_t frameType,
                  uint8_t serviceType, uint8_t frameData,
                  uint8_t sessionId, uint32_t dataSize,
-                 uint32_t messageID, const uint8_t *data = 0,
-                 uint32_t packet_id = 0);
+                 uint32_t messageID, const uint8_t *data = 0);
   /**
    * \brief Destructor
    */
@@ -171,13 +166,9 @@ class ProtocolPacket {
    */
   size_t packet_size() const;
 
-  /**
-   * \brief Getter of message ID
-   * \return uint32_t message ID
-   */
-  uint32_t packet_id() const;
-
   /*End of Serialization*/
+
+  bool operator==(const protocol_handler::ProtocolPacket& other) const;
 
   /*Deserialization*/
 
@@ -189,7 +180,7 @@ class ProtocolPacket {
    * \return \saRESULT_CODE Status of serialization
    */
   RESULT_CODE deserializePacket(const uint8_t *message,
-                                uint32_t messageSize);
+                                const size_t messageSize);
 
   /**
    * \brief Getter of protocol version.
@@ -285,16 +276,6 @@ class ProtocolPacket {
   uint32_t payload_size_;
 
   /**
-   *\brief Offset for multiframe messages
-   */
-  uint32_t data_offset_;
-
-  /**
-   *\brief ID for multiframe messages
-   */
-  uint32_t packet_id_;
-
-  /**
     * \brief Connection Identifier
     * Obtained from connection_handler
     */
@@ -303,4 +284,8 @@ class ProtocolPacket {
   DISALLOW_COPY_AND_ASSIGN(ProtocolPacket);
 };
 }  // namespace protocol_handler
+/**
+ * @brief Type definition for variable that hold shared pointer to protocolol packet
+ */
+typedef utils::SharedPtr<protocol_handler::ProtocolPacket> ProtocolFramePtr;
 #endif  // SRC_COMPONENTS_PROTOCOL_HANDLER_INCLUDE_PROTOCOL_HANDLER_PROTOCOL_PACKET_H_

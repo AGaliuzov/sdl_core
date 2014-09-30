@@ -140,13 +140,12 @@ class ProtocolHandlerImplTest : public ::testing::Test {
                      uint8_t version, bool protection, uint8_t frameType,
                      uint8_t serviceType, uint8_t frameData,
                      uint8_t sessionId, uint32_t dataSize,
-                     uint32_t messageID, const uint8_t *data = 0,
-                     uint32_t packet_id = 0) {
+                     uint32_t messageID, const uint8_t *data = 0) {
     // Create packet
     const ProtocolPacket packet(
           connection_id, version, protection, frameType,
           serviceType, frameData, sessionId, dataSize,
-          messageID, data, packet_id);
+          messageID, data);
     // Emulate resive packet from transoprt manager
     tm_listener->OnTMMessageReceived(packet.serializePacket());
   }

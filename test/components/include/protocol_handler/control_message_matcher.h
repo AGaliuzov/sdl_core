@@ -52,8 +52,13 @@ MATCHER_P4(ControlMessage, ExpectedFrameData, ExpectedEncryption,
   DCHECK(ExpectedFrameData  != 0x03 /*FRAME_DATA_START_SERVICE_NACK*/ ||
          !ExpectedEncryption);
   const RawMessagePtr message = arg;
-  const ::protocol_handler::ProtocolPacket packet(
-        message->connection_key(), message->data(), message->data_size());
+  ::protocol_handler::ProtocolPacket packet(message->connection_key());
+  const protocol_handler::RESULT_CODE result =
+      packet.deserializePacket(message->data(), message->data_size());
+  if(result != protocol_handler::RESULT_OK) {
+    *result_listener <<  "Error while message deserialization.";
+    return false;
+  }
   if (::protocol_handler::FRAME_TYPE_CONTROL != packet.frame_type()) {
     *result_listener << "Is not control message";
     return false;
