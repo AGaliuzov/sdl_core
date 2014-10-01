@@ -125,7 +125,7 @@ SQLPTRepresentation* SQLPTRepresentationTest::reps = 0;
 
 TEST_F(SQLPTRepresentationTest, CheckPermissionsAllowed) {
   const char* query = "INSERT OR REPLACE INTO `application` (`id`, `memory_kb`,"
-                      " `watchdog_timer_ms`) VALUES ('12345', 5, 10); "
+                      " `heart_beat_timeout_ms`) VALUES ('12345', 5, 10); "
                       "INSERT OR REPLACE INTO functional_group (`id`, `name`)"
                       "  VALUES (1, 'Base-4'); "
                       "INSERT OR REPLACE INTO `app_group` (`application_id`,"
@@ -146,7 +146,7 @@ TEST_F(SQLPTRepresentationTest, CheckPermissionsAllowed) {
 
 TEST_F(SQLPTRepresentationTest, CheckPermissionsAllowedWithoutParameters) {
   const char* query = "INSERT OR REPLACE INTO `application` (`id`, `memory_kb`,"
-                      " `watchdog_timer_ms`) VALUES ('12345', 5, 10); "
+                      " `heart_beat_timeout_ms`) VALUES ('12345', 5, 10); "
                       "INSERT OR REPLACE INTO functional_group (`id`, `name`)"
                       "  VALUES (1, 'Base-4'); "
                       "INSERT OR REPLACE INTO `app_group` (`application_id`,"
@@ -159,7 +159,7 @@ TEST_F(SQLPTRepresentationTest, CheckPermissionsAllowedWithoutParameters) {
   CheckPermissionResult ret;
   reps->CheckPermissions("12345", "LIMITED", "Update", ret);
   EXPECT_TRUE(ret.hmi_level_permitted == ::policy::kRpcAllowed);
-  EXPECT_TRUE(!ret.list_of_allowed_params.empty());
+  EXPECT_TRUE(ret.list_of_allowed_params.empty());
 }
 
 TEST_F(SQLPTRepresentationTest, CheckPermissionsDisallowed) {
@@ -169,7 +169,7 @@ TEST_F(SQLPTRepresentationTest, CheckPermissionsDisallowed) {
   CheckPermissionResult ret;
   reps->CheckPermissions("12345", "FULL", "Update", ret);
   EXPECT_EQ(::policy::kRpcDisallowed, ret.hmi_level_permitted);
-  EXPECT_TRUE(!ret.list_of_allowed_params.empty());
+  EXPECT_TRUE(ret.list_of_allowed_params.empty());
 }
 
 TEST_F(SQLPTRepresentationTest, IsPTPReloaded) {
@@ -186,9 +186,9 @@ TEST_F(SQLPTRepresentationTest, GetUpdateUrls) {
 
   const char* query_insert =
     "INSERT INTO `endpoint` (`application_id`, `url`, `service`) "
-    "  VALUES ('12345', 'http://ford.com/cloud/1', '0x07');"
+    "  VALUES ('12345', 'http://ford.com/cloud/1', 7);"
     "INSERT INTO `endpoint` (`application_id`, `url`, `service`) "
-    "  VALUES ('12345', 'http://ford.com/cloud/2', '0x07');";
+    "  VALUES ('12345', 'http://ford.com/cloud/2', 7);";
 
   ASSERT_TRUE(dbms->Exec(query_insert));
   ret = reps->GetUpdateUrls(7);
@@ -337,14 +337,12 @@ TEST_F(SQLPTRepresentationTest, TimeoutResponse) {
 
 #ifndef EXTENDED_POLICY
 TEST_F(SQLPTRepresentationTest, SaveGenerateSnapshot) {
-  Json::Value expect(Json::objectValue);
-  expect["policy_table"] = Json::Value(Json::objectValue);
+  Json::Value table(Json::objectValue);
+  table["policy_table"] = Json::Value(Json::objectValue);
 
-  Json::Value& policy_table = expect["policy_table"];
+  Json::Value& policy_table = table["policy_table"];
   policy_table["module_meta"] = Json::Value(Json::objectValue);
   policy_table["module_config"] = Json::Value(Json::objectValue);
-  policy_table["usage_and_error_counts"] = Json::Value(Json::objectValue);
-  policy_table["device_data"] = Json::Value(Json::objectValue);
   policy_table["functional_groupings"] = Json::Value(Json::objectValue);
   policy_table["consumer_friendly_messages"] = Json::Value(Json::objectValue);
   policy_table["app_policies"] = Json::Value(Json::objectValue);
@@ -380,14 +378,7 @@ TEST_F(SQLPTRepresentationTest, SaveGenerateSnapshot) {
         6);
   module_config["vehicle_make"] = Json::Value("MakeT");
   module_config["vehicle_model"] = Json::Value("ModelT");
-  module_config["vehicle_year"] = Json::Value(2014);
-
-  Json::Value& usage_and_error_counts = policy_table["usage_and_error_counts"];
-  usage_and_error_counts["app_level"] = Json::Value(Json::objectValue);
-  usage_and_error_counts["app_level"]["12345"] = Json::Value(Json::objectValue);
-
-  Json::Value& device_data = policy_table["device_data"];
-  device_data["user_consent_records"] = Json::Value(Json::objectValue);
+  module_config["vehicle_year"] = Json::Value("2014");
 
   Json::Value& functional_groupings = policy_table["functional_groupings"];
   functional_groupings["default"] = Json::Value(Json::objectValue);
@@ -402,6 +393,29 @@ TEST_F(SQLPTRepresentationTest, SaveGenerateSnapshot) {
   Json::Value& consumer_friendly_messages =
     policy_table["consumer_friendly_messages"];
   consumer_friendly_messages["version"] = Json::Value("1.2");
+
+  Json::Value& app_policies = policy_table["app_policies"];
+  app_policies["default"] = Json::Value(Json::objectValue);
+  app_policies["default"]["priority"] = Json::Value("EMERGENCY");
+  app_policies["default"]["memory_kb"] = Json::Value(50);
+  app_policies["default"]["heart_beat_timeout_ms"] = Json::Value(100);
+  app_policies["default"]["groups"] = Json::Value(Json::arrayValue);
+  app_policies["default"]["groups"][0] = Json::Value("default");
+
+  policy_table::Table update(&table);
+  update.SetPolicyTableType(rpc::policy_table_interface_base::PT_UPDATE);
+
+  ASSERT_TRUE(IsValid(update));
+  ASSERT_TRUE(reps->Save(update));
+  utils::SharedPtr<policy_table::Table> snapshot = reps->GenerateSnapshot();
+  snapshot->SetPolicyTableType(rpc::policy_table_interface_base::PT_SNAPSHOT);
+
+  Json::Value& device_data = policy_table["device_data"];
+  device_data["user_consent_records"] = Json::Value(Json::objectValue);
+
+  Json::Value& usage_and_error_counts = policy_table["usage_and_error_counts"];
+  usage_and_error_counts["app_level"] = Json::Value(Json::objectValue);
+  usage_and_error_counts["app_level"]["12345"] = Json::Value(Json::objectValue);
 
   Json::Value& app12345counters = usage_and_error_counts["app_level"]["12345"];
   app12345counters["app_registration_language_gui"] = "";
@@ -419,21 +433,10 @@ TEST_F(SQLPTRepresentationTest, SaveGenerateSnapshot) {
   app12345counters["minutes_in_hmi_limited"] = 0;
   app12345counters["minutes_in_hmi_none"] = 0;
 
-  Json::Value& app_policies = policy_table["app_policies"];
-  app_policies["default"] = Json::Value(Json::objectValue);
-  app_policies["default"]["priority"] = Json::Value("EMERGENCY");
-  app_policies["default"]["memory_kb"] = Json::Value(50);
-  app_policies["default"]["watchdog_timer_ms"] = Json::Value(100);
-  app_policies["default"]["groups"] = Json::Value(Json::arrayValue);
-  app_policies["default"]["groups"][0] = Json::Value("default");
+  policy_table::Table expected(&table);
 
-  policy_table::Table table(&expect);
-
-  ASSERT_TRUE(IsValid(table));
-  ASSERT_TRUE(reps->Save(table));
-  utils::SharedPtr<policy_table::Table> snapshot = reps->GenerateSnapshot();
   EXPECT_TRUE(IsValid(*snapshot));
-  EXPECT_EQ(table.ToJsonValue().toStyledString(),
+  EXPECT_EQ(expected.ToJsonValue().toStyledString(),
             snapshot->ToJsonValue().toStyledString());
 }
 #endif  // EXTENDED_POLICY

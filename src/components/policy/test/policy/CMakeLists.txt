@@ -75,13 +75,13 @@ else ()
   create_test("test_generated_code_with_sqlite" "${GENERATED_CODE_WITH_SQLITE_SOURCES}" "${LIBRARIES}")
 
   if (EXTENDED_POLICY_FLAG)
-  include_directories(${CMAKE_SOURCE_DIR}/src/components/policy/src/policy/policy_table/table_struct_ext)
+    include_directories(${CMAKE_SOURCE_DIR}/src/components/policy/src/policy/policy_table/table_struct_ext)
     set(SQL_PT_EXT_REPRESENTATION_SOURCES
       ./src/test_sql_pt_ext_representation.cc
     )
     create_test("test_SQLPTExtRepresentation" "${SQL_PT_EXT_REPRESENTATION_SOURCES}" "${LIBRARIES}")
   else ()
-  include_directories(${CMAKE_SOURCE_DIR}/src/components/policy/src/policy/policy_table/table_struct)
+    include_directories(${CMAKE_SOURCE_DIR}/src/components/policy/src/policy/policy_table/table_struct)
     # TODO(KKolodiy): test crashes in QNX and failed for extended policy
     create_test("test_stress_PolicyManagerImpl" "${STRESS_POLICY_MANAGER_IMPL_SOURCES}" "${LIBRARIES}")
   endif ()
