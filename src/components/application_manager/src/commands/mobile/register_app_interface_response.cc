@@ -69,6 +69,15 @@ void RegisterAppInterfaceResponse::Run() {
     policy::PolicyHandler *policy_handler = policy::PolicyHandler::instance();
     std::string mobile_app_id = app->mobile_app_id()->asString();
     policy_handler->AddApplication(mobile_app_id);
+    SetHeartBeatTimeout(connection_key, mobile_app_id);
+  }
+}
+
+void RegisterAppInterfaceResponse::SetHeartBeatTimeout(
+    uint32_t connection_key, const std::string& mobile_app_id) {
+  LOG4CXX_TRACE_ENTER(logger_);
+  policy::PolicyHandler *policy_handler = policy::PolicyHandler::instance();
+  if (policy_handler->PolicyEnabled()) {
     policy::PolicyManager* policy_manager = policy_handler->policy_manager();
     if (policy_manager) {
       const int32_t timeout = policy_manager->HeartBeatTimeout(mobile_app_id);
@@ -79,7 +88,10 @@ void RegisterAppInterfaceResponse::Run() {
     } else {
       LOG4CXX_WARN(logger_, "Policy library is not loaded.");
     }
+  } else {
+    LOG4CXX_INFO(logger_, "Policy is turn off");
   }
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 }  // namespace commands
