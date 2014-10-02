@@ -46,7 +46,7 @@ endif()
 add_library("Utils" ${SOURCES})
 
 if(ENABLE_LOG)
-  ADD_DEPENDENCIES(Utils 3rd_party_logger install-3rd_party_logger)
+  ADD_DEPENDENCIES(Utils install-3rd_party_logger)
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
