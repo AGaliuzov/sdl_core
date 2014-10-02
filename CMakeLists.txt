@@ -40,7 +40,6 @@ option(EXTENDED_MEDIA_MODE "Turn on and off extended Madia Manager features rela
 option(BUILD_SHARED_LIBS "Build all libraries as shared (if ON) or static (if OFF)" OFF)
 option(BUILD_BT_SUPPORT "Bluetooth support" ON)
 option(BUILD_USB_SUPPORT "libusb support" ON)
-option(BUILD_AOA_SUPPORT "libaoa support" OFF)
 option(BUILD_MME_SUPPORT "Apple devices support" OFF)
 option(BUILD_AVAHI_SUPPORT "libavahi support" ON)
 option(BUILD_RWLOCK_SUPPORT "rwlocks support" OFF)
@@ -82,12 +81,14 @@ else ()
     set(ARCH_TYPE_OPTION	"x86")
 endif()
 
+set(objcopy "objcopy")
 if (OS_TYPE_OPTION)
   if (${OS_TYPE_OPTION} STREQUAL "QNX")
     message(STATUS "Jenkins integration: set build process for QNX")
     #do not use include after project() command.
     #Such usecase results in infinite cycle of reinitialization of compiler and other variables
     INCLUDE("./qnx_6.5.0_linux_x86.cmake")
+    set(objcopy "nto${ARCH_TYPE_OPTION}-objcopy")
     #tests are not supported yet for QNX build
     set (BUILD_TESTS OFF)
   endif()
@@ -174,37 +175,22 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "QNX")
   SET(EXTENDED_MEDIA_MODE OFF)
 endif()
 
-if (BUILD_AOA_SUPPORT)
-if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
-  add_definitions(-DAOA_SUPPORT)
-  set(BUILD_USB_SUPPORT OFF)
-  message(STATUS "AOA support is enabled")
-else ()
-  message(FATAL_ERROR "Library libAOA is supported on QNX only")
-endif()
-endif(BUILD_AOA_SUPPORT)
-
 if (BUILD_USB_SUPPORT)
   add_definitions(-DUSB_SUPPORT)
-  message(STATUS "USB support is enabled")
 endif()
-
 
 if (BUILD_BT_SUPPORT)
   add_definitions(-DBLUETOOTH_SUPPORT)
-  message(STATUS "Bluetooth support is enabled")
 endif()
 
 if (BUILD_MME_SUPPORT)
   add_definitions(-DMME_SUPPORT)
-  message(STATUS "MME support is enabled")
 endif(BUILD_MME_SUPPORT)
 
 if (BUILD_AVAHI_SUPPORT)
   add_definitions(-DAVAHI_SUPPORT)
 # --- Check libavahi-common, libavahi-client availability
   find_package(Libavahi)
-  message(STATUS "Avahi support is enabled")
 endif()
 
 if (BUILD_RWLOCK_SUPPORT)
@@ -217,6 +203,7 @@ endif()
 
 if(ENABLE_LOG)
   add_definitions(-DENABLE_LOG)
+  set(install-3rd_party_logger "install-3rd_party_logger")
 endif()
 
 if (TIME_TESTER)
@@ -248,9 +235,10 @@ endif()
 
 find_package(PythonInterp)
 if(NOT PYTHONINTERP_FOUND)
-    message(ERROR "Python interpreter is not found")
-    message(ERROR "To install it type in the command line:")
-    message(ERROR "sudo apt-get install python")
+    message(STATUS "Python interpreter is not found")
+    message(STATUS "To install it type in the command line:")
+    message(STATUS "sudo apt-get install python")
+    message(FATAL_ERROR "Exiting!")
 endif(NOT PYTHONINTERP_FOUND)
 
 if (HMI STREQUAL "qt")
@@ -350,6 +338,7 @@ if (HMIADAPTER STREQUAL "dbus")
     set(HMI_DBUS_API ON)
     add_definitions(-DDBUS_HMIADAPTER)
     add_definitions(-DHMI_DBUS_API)
+    set(install-3rd_party_dbus "install-3rd_party_dbus")
 endif()
 if (HMIADAPTER STREQUAL "messagebroker")
     set(HMI_JSON_API ON)
@@ -369,16 +358,73 @@ include_directories(
 )
 
 # --- 3rd party libs
+INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/src/3rd_party/set_3rd_party_paths.cmake)
+
 set(3RD_PARTY_SOURCE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd_party)
 set(3RD_PARTY_BINARY_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/3rd_party)
+
+set (install-3rd_party_logger_var "")
+set (install-3rd_party_dbusr_var "")
+set (is_logger_actual 1)
+set (is_dbus_actual 1)
+if(ENABLE_LOG)
+  #build logger
+  execute_process(
+      COMMAND /bin/bash -c "grep .commit_hash ${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib/liblog4cxx.so 1>/dev/null 2>&1; if [ $? == 0 ]; then VAR1=\$(readelf -p .commit_hash ${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib/liblog4cxx.so 2>/dev/null); VAR1=\$(echo $VAR1 | awk '{print \$NF}'); VAR2=\$(git log --pretty=\"format:%H\" -1 ${3RD_PARTY_SOURCE_DIRECTORY}/apache-log4cxx-0.10.0); if [[ \$VAR1 == \$VAR2 ]]; then exit 0; else exit 1; fi; else exit 1; fi"
+      RESULT_VARIABLE is_logger_actual
+  )
+  if(is_logger_actual EQUAL 0)
+    message(STATUS "Logger is actual.")
+  else()
+    message(STATUS "Need to rebuild logger.")
+
+    add_custom_target(3rd_party_logger
+      make
+      WORKING_DIRECTORY ${3RD_PARTY_BINARY_DIRECTORY}
+    )
+    #install logger
+    #install either to default place with sudo or none default plase without sudo. 
+    #to install with sudo to none default place use manual installation
+    add_custom_target(install-3rd_party_logger
+      COMMAND /bin/bash -c \"if [ ! ${is_logger_actual} == 0 ]\; then USE_DEFAULT_3RD_PARTY_PATH=${USE_DEFAULT_3RD_PARTY_PATH}\; if [[ \\$$USE_DEFAULT_3RD_PARTY_PATH == "true" ]]\; then sudo make install\; else make install\; fi\; fi\"
+      DEPENDS 3rd_party_logger
+      WORKING_DIRECTORY ${3RD_PARTY_BINARY_DIRECTORY}
+    )
+    set (install-3rd_party_logger_var "install-3rd_party_logger")
+  endif()
+endif()
+  
+if (HMIADAPTER STREQUAL "dbus")
+#build d-bus
+  execute_process(
+      COMMAND /bin/bash -c "grep .commit_hash ${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib/libdbus-1.so 1>/dev/null 2>&1; if [ $? == 0 ]; then VAR1=\$(readelf -p .commit_hash ${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib/libdbus-1.so 2>/dev/null); VAR1=\$(echo $VAR1 | awk '{print \$NF}'); VAR2=\$(git log --pretty=\"format:%H\" -1 ${3RD_PARTY_SOURCE_DIRECTORY}/dbus-1.7.8); if [[ \$VAR1 == \$VAR2 ]]; then exit 0; else exit 1; fi; else exit 1; fi"
+      RESULT_VARIABLE is_dbus_actual
+  )
+  if(is_dbus_actual EQUAL 0)
+    message(STATUS "D-Bus is actual.")
+  else()
+    message(STATUS "Need to rebuild D-Bus.")
+
+    add_custom_target(3rd_party_dbus
+      make
+      WORKING_DIRECTORY ${3RD_PARTY_BINARY_DIRECTORY}
+    )
+    #install d-bus
+    #install either to default place with sudo or none default plase without sudo. 
+    #to install with sudo to none default place use manual installation
+    add_custom_target(install-3rd_party_dbus
+      COMMAND /bin/bash -c \"if [ ! ${is_dbus_actual} == 0 ]\; then USE_DEFAULT_3RD_PARTY_PATH=${USE_DEFAULT_3RD_PARTY_PATH}\; if [[ \\$$USE_DEFAULT_3RD_PARTY_PATH == "true" ]]\; then sudo make install\; else make install\; fi\; fi\"
+      DEPENDS 3rd_party_dbus
+      WORKING_DIRECTORY ${3RD_PARTY_BINARY_DIRECTORY}
+    )
+    set (install-3rd_party_dbus_var "install-3rd_party_dbus")
+  endif()
+endif()
+
 add_subdirectory(${3RD_PARTY_SOURCE_DIRECTORY} ${3RD_PARTY_BINARY_DIRECTORY} EXCLUDE_FROM_ALL)
-add_custom_target(3rd_party
-  make
-  WORKING_DIRECTORY ${3RD_PARTY_BINARY_DIRECTORY}
-)
 add_custom_target(install-3rd_party
-  make install
-  DEPENDS 3rd_party
+  DEPENDS ${install-3rd_party_logger_var}
+  DEPENDS ${install-3rd_party_dbus_var} 
   WORKING_DIRECTORY ${3RD_PARTY_BINARY_DIRECTORY}
 )
 
@@ -398,6 +444,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "QNX")
 set(RTLIB )
 endif()
 
+
 # --- 3rd party libs (static)
 add_subdirectory(./src/3rd_party-static)
 
@@ -409,6 +456,7 @@ add_subdirectory(./src/components)
 
 # --- Main application
 add_subdirectory(./src/appMain)
+
 
 # Building tests
 if(BUILD_TESTS)
