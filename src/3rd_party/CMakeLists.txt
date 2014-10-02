@@ -41,6 +41,7 @@ if(ENABLE_LOG AND NOT (${is_logger_actual} EQUAL 0))
   # --- libapr-1
   add_subdirectory(apr-cmake)
   set(APR_LIBS_DIRECTORY ${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib PARENT_SCOPE)
+  set(APR_INCLUDE_DIRECTORY ${3RD_PARTY_INSTALL_PREFIX}/include PARENT_SCOPE)
 
   # --- apr-util
   add_subdirectory(apr-util-cmake)
