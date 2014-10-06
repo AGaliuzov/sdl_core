@@ -37,9 +37,9 @@
 #include "utils/shared_ptr.h"
 #include "utils/lock.h"
 #include "policy/policy_manager.h"
-#include "policy/cache_manager.h"
 #include "policy/policy_table.h"
-#include "policy/update_status_manager.h"
+#include "policy/cache_manager_interface.h"
+#include "policy/update_status_manager_interface.h"
 #include "./functions.h"
 #include "usage_statistics/statistics_manager.h"
 
@@ -52,7 +52,6 @@ class PolicyManagerImpl : public PolicyManager {
   public:
     PolicyManagerImpl();
     virtual ~PolicyManagerImpl();
-    void ResetDefaultPT(const PolicyTable& policy_table);
     virtual void set_listener(PolicyListener* listener);
     PolicyListener* listener() const {
       return listener_;
@@ -168,6 +167,9 @@ class PolicyManagerImpl : public PolicyManager {
                                           const std::string& group_name);
 
     virtual bool IsPredataPolicy(const std::string& policy_app_id);
+    void set_cache_manager(CacheManagerInterface* cache_manager);
+    void set_update_status_manager(
+        UpdateStatusManagerInterface* update_manager);
 
   protected:
     virtual utils::SharedPtr<policy_table::Table> Parse(
@@ -245,14 +247,8 @@ class PolicyManagerImpl : public PolicyManager {
 
     PolicyListener* listener_;
 
-    UpdateStatusManager update_status_manager_;
-    CacheManager cache;
-    bool exchange_in_progress_;
-    bool update_required_;
-    bool exchange_pending_;
-    sync_primitives::Lock exchange_in_progress_lock_;
-    sync_primitives::Lock update_required_lock_;
-    sync_primitives::Lock exchange_pending_lock_;
+    UpdateStatusManagerInterfaceSPtr update_status_manager_;
+    CacheManagerInterfaceSPtr cache_;
     sync_primitives::Lock update_request_list_lock_;
     sync_primitives::Lock apps_registration_lock_;
     std::map<std::string, AppPermissions> app_permissions_diff_;

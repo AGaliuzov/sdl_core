@@ -2,7 +2,6 @@
 #ifndef POLICY_TABLE_INTERFACE_BASE_POLICY_TABLE_INTERFACE_BASE_TYPES_H_
 #define POLICY_TABLE_INTERFACE_BASE_POLICY_TABLE_INTERFACE_BASE_TYPES_H_
 #include "./enums.h"
-#include "./types.h"
 #include "rpc_base/rpc_message.h"
 namespace Json {
 class Value;

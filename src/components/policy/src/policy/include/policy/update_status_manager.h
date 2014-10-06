@@ -1,6 +1,7 @@
 #ifndef SRC_COMPONENTS_POLICY_INCLUDE_POLICY_UPDATE_STATUS_MANAGER_H
 #define SRC_COMPONENTS_POLICY_INCLUDE_POLICY_UPDATE_STATUS_MANAGER_H
 
+#include "policy/update_status_manager_interface.h"
 #include "policy/policy_types.h"
 #include "utils/lock.h"
 #include "utils/timer_thread.h"
@@ -9,8 +10,8 @@ namespace policy {
 
 class PolicyListener;
 
-class UpdateStatusManager {
-public:
+class UpdateStatusManager : public UpdateStatusManagerInterface {
+ public:
   /**
    * @brief Constructor
    */

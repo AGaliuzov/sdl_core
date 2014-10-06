@@ -1,4 +1,5 @@
-/* Copyright (c) 2014, Ford Motor Company
+/*
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,47 +29,37 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#ifndef MOCK_UPDATE_STATUS_MANAGER_H_
+#define MOCK_UPDATE_STATUS_MANAGER_H_
 
-#ifndef TEST_COMPONENTS_POLICY_INCLUDE_MOCK_POLICY_LISTENER_H_
-#define TEST_COMPONENTS_POLICY_INCLUDE_MOCK_POLICY_LISTENER_H_
-
-#include "gmock/gmock.h"
-#include "policy/policy_listener.h"
-#include "rpc_base/rpc_base.h"
-#include "./types.h"
-
-namespace policy_table = ::rpc::policy_table_interface_base;
+#include "policy/update_status_manager_interface.h"
 
 namespace policy {
 
-class MockPolicyListener : public PolicyListener {
-  public:
-    MOCK_METHOD0(OnPTExchangeNeeded,
-                 void());
-    MOCK_METHOD3(OnPermissionsUpdated,
-                 void(const std::string& policy_app_id,
-                      const Permissions& permissions,
-                      const policy::HMILevel& default_hmi));
-    MOCK_METHOD1(OnPendingPermissionChange,
-                 void(const std::string& policy_app_id));
-    MOCK_METHOD1(OnAppRevoked,
-                 void(const std::string& policy_app_id));
-    MOCK_METHOD1(OnUpdateStatusChanged,
-                 void(policy::PolicyTableStatus status));
-    MOCK_METHOD1(OnCurrentDeviceIdUpdateRequired,
-                 std::string(const std::string& policy_app_id));
-    MOCK_METHOD0(OnSystemInfoUpdateRequired,
-                 void());
-    MOCK_METHOD1(GetAppName,
-                 std::string(const std::string& policy_app_id));
-    MOCK_METHOD0(OnUserRequestedUpdateCheckRequired,
-                 void());
-    MOCK_METHOD2(OnDeviceConsentChanged,
-                 void(const std::string& device_id,
-                      bool is_allowed));
-
+class MockUpdateStatusManagerInterface : public UpdateStatusManagerInterface {
+ public:
+  MOCK_METHOD1(set_listener,
+      void(PolicyListener* listener));
+  MOCK_METHOD1(OnUpdateSentOut,
+      void(uint32_t update_timeout));
+  MOCK_METHOD0(OnUpdateTimeoutOccurs,
+      void());
+  MOCK_METHOD0(OnValidUpdateReceived,
+      void());
+  MOCK_METHOD0(OnWrongUpdateReceived,
+      void());
+  MOCK_METHOD1(OnResetDefaultPT,
+      void(bool is_update_required));
+  MOCK_METHOD0(OnResetRetrySequence,
+      void());
+  MOCK_METHOD0(OnNewApplicationAdded,
+      void());
+  MOCK_METHOD1(OnPolicyInit,
+      void(bool is_update_required));
+  MOCK_METHOD0(GetUpdateStatus,
+      PolicyTableStatus());
 };
 
 }  // namespace policy
 
-#endif  // TEST_COMPONENTS_POLICY_INCLUDE_MOCK_POLICY_LISTENER_H_
+#endif  // MOCK_UPDATE_STATUS_MANAGER_H_

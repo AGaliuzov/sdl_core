@@ -47,14 +47,15 @@
 #  include "policy/sql_pt_representation.h"
 #endif  // EXTENDED_POLICY
 
-
+namespace policy_table = rpc::policy_table_interface_base;
 
 namespace policy {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "CacheManager")
 
 CacheManager::CacheManager()
-  : backup_(
+  : CacheManagerInterface(),
+    backup_(
       #ifdef EXTENDED_POLICY
                      new SQLPTExtRepresentation()
       #else  // EXTENDED_POLICY
