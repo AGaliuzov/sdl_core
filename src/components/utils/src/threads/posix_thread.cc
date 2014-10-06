@@ -172,6 +172,7 @@ void Thread::stop() {
                 << " \"" << name_ << "\") from #" << pthread_self());
     LOG4CXX_WARN(logger_, "Thread (#" << thread_handle_
                   << " \"" << name_ << "\") is not running");
+    LOG4CXX_TRACE_EXIT(logger_);
     return;
   }
 
