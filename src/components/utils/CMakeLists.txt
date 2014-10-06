@@ -47,6 +47,7 @@ add_library("Utils" ${SOURCES})
 
 if(ENABLE_LOG)
   ADD_DEPENDENCIES(Utils install-3rd_party_logger)
+  target_link_libraries("Utils" log4cxx -L${LOG4CXX_LIBS_DIRECTORY})
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")

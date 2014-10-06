@@ -24,5 +24,5 @@ set(SOURCES
   src/protocol_handler_tm_test.cc
 )
 
-add_library(test_ProtocolHandlerTest ${SOURCES})
 create_test(test_ProtocolHandler "${SOURCES}" "${LIBRARIES}")
+add_library(test_ProtocolHandlerTest ${SOURCES})
