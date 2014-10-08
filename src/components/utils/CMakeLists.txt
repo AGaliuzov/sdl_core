@@ -60,9 +60,9 @@ if(BUILD_TESTS)
     ../../3rd_party-static/gmock-1.7.0/gtest/include)
   
   set(testSources
-    ./src/main.cc
-    ./src/file_system_test.cc
-    ./src/date_time_test.cc)
+    ./test/main.cc
+    ./test/file_system_test.cc
+    ./test/date_time_test.cc)
 
   set(testLibraries
     gmock

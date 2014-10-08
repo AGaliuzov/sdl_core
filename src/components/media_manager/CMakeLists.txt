@@ -85,8 +85,8 @@ if(BUILD_TESTS)
     ../../3rd_party-static/gmock-1.7.0/gtest/include)
   
   set(testSources
-    ./src/main.cc
-    ./src/media_adapter_impl_test.cc)
+    ./test/main.cc
+    ./test/media_adapter_impl_test.cc)
 
   set(testLibraries
     gmock

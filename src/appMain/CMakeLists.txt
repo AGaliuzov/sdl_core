@@ -167,9 +167,9 @@ if(BUILD_TESTS)
   
   set(testSources
     ./main_test.cc
-    ../components/utils/src/file_system_test.cc
-    ../components/utils/src/date_time_test.cc
-    ../components/media_manager/src/media_adapter_impl_test.cc)
+    ../components/utils/test/file_system_test.cc
+    ../components/utils/test/date_time_test.cc
+    ../components/media_manager/test/media_adapter_impl_test.cc)
     
   set(testLibraries
     gmock
