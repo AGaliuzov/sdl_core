@@ -1,37 +1,38 @@
 /* Copyright (c) 2013, Ford Motor Company
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-*
-* Redistributions of source code must retain the above copyright notice, this
-* list of conditions and the following disclaimer.
-*
-* Redistributions in binary form must reproduce the above copyright notice,
-* this list of conditions and the following
-* disclaimer in the documentation and/or other materials provided with the
-* distribution.
-*
-* Neither the name of the Ford Motor Company nor the names of its contributors
-* may be used to endorse or promote products derived from this software
-* without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*/
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following
+ * disclaimer in the documentation and/or other materials provided with the
+ * distribution.
+ *
+ * Neither the name of the Ford Motor Company nor the names of its contributors
+ * may be used to endorse or promote products derived from this software
+ * without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
 
-#ifndef GENERATED_CODE_WITH_SQLITE_TEST_H_
-#define GENERATED_CODE_WITH_SQLITE_TEST_H_
+#ifndef SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_GENERATED_CODE_WITH_SQLITE_TEST_H_
+#define SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_GENERATED_CODE_WITH_SQLITE_TEST_H_
 
+#include <string>
 #include "./types.h"
 #include "rpc_base/rpc_base.h"
 #include "sqlite_wrapper/sql_query.h"
@@ -43,8 +44,7 @@ namespace dbms = policy::dbms;
 namespace rpc {
 namespace policy_table_interface_base {
 
-bool FindSection(dbms::SQLDatabase* db,
-                 policy_table::ServiceEndpoints& ep) {
+bool FindSection(dbms::SQLDatabase* db, policy_table::ServiceEndpoints& ep) {
   /*
    * Following table structure is assumed:
    *
@@ -86,8 +86,7 @@ bool FindSection(dbms::SQLDatabase* db,
   return true;
 }
 
-bool FindSection(dbms::SQLDatabase* db,
-                 policy_table::ModuleConfig& mc) {
+bool FindSection(dbms::SQLDatabase* db, policy_table::ModuleConfig& mc) {
   policy_table::ModuleConfig new_mc;
   FindSection(db, new_mc.endpoints);
   mc = new_mc;
@@ -102,7 +101,7 @@ bool RemoveSection(dbms::SQLDatabase* db,
   //      bool is_nicknames_removed = sqlquery.Exec("delete from Nicknames");
   bool is_groups_removed = sqlquery.Exec("delete from Groups");
 
-  return is_policies_removed /*&& is_nicknames_removed*/ && is_groups_removed;
+  return is_policies_removed /*&& is_nicknames_removed*/&& is_groups_removed;
 }
 
 bool RemoveSection(dbms::SQLDatabase* db,
@@ -155,12 +154,11 @@ bool UpdateSection(dbms::SQLDatabase* db,
 
   // TODO: use define for int from stdint.h
   for (int index = 1; it_ep != it_ep_end; ++it_ep, ++index) {
-
     policy_table::URLList::const_iterator it_urllist = (*it_ep).second.begin();
-    policy_table::URLList::const_iterator it_urllist_end = (*it_ep).second.end();
+    policy_table::URLList::const_iterator it_urllist_end =
+        (*it_ep).second.end();
 
     for (; it_urllist != it_urllist_end; ++it_urllist) {
-
       policy_table::URL::const_iterator it_url = (*it_urllist).second.begin();
       policy_table::URL::const_iterator it_url_end = (*it_urllist).second.end();
 
@@ -228,10 +226,10 @@ bool UpdateSection(dbms::SQLDatabase* db,
   }
 
   std::string query = "insert into FunctionalGroups values("
-                      "?,"
-                      "(select index from Groups where group_name=?),"
-                      "(select index from Rpcs where rpc=?),"
-                      "(select index from HmiLevels where hmi_levels=?)";
+      "?,"
+      "(select index from Groups where group_name=?),"
+      "(select index from Rpcs where rpc=?),"
+      "(select index from HmiLevels where hmi_levels=?)";
 
   dbms::SQLQuery sqlquery(db);
   sqlquery.Prepare(query);
@@ -240,20 +238,19 @@ bool UpdateSection(dbms::SQLDatabase* db,
   policy_table::FunctionalGroupings::const_iterator it_fg_end = fg.end();
 
   for (int index = 1; it_fg != it_fg_end; ++it_fg, ++index) {
-
     policy_table::Rpcs rpcs = (*it_fg).second;
     policy_table::Rpc::const_iterator it_rpcs = rpcs.rpcs.begin();
     policy_table::Rpc::const_iterator it_rpcs_end = rpcs.rpcs.end();
 
     for (; it_rpcs != it_rpcs_end; ++it_rpcs) {
-
       policy_table::RpcParameters rpc_params = (*it_rpcs).second;
 
-      policy_table::HmiLevels::const_iterator it_hmi_levels = rpc_params.hmi_levels.begin();
-      policy_table::HmiLevels::const_iterator it_hmi_levels_end = rpc_params.hmi_levels.end();
+      policy_table::HmiLevels::const_iterator it_hmi_levels = rpc_params
+          .hmi_levels.begin();
+      policy_table::HmiLevels::const_iterator it_hmi_levels_end = rpc_params
+          .hmi_levels.end();
 
       for (; it_hmi_levels != it_hmi_levels_end; ++it_hmi_levels) {
-
         // Index binding
         sqlquery.Bind(0, index);
 
@@ -277,8 +274,7 @@ bool UpdateSection(dbms::SQLDatabase* db,
   return true;
 }
 
-bool UpdateSection(dbms::SQLDatabase* db,
-                   const policy_table::Table& pt) {
+bool UpdateSection(dbms::SQLDatabase* db, const policy_table::Table& pt) {
   UpdateSection(db, pt.policy_table.module_config);
   UpdateSection(db, pt.policy_table.functional_groupings);
   return true;
@@ -307,9 +303,9 @@ bool UpdateSection(dbms::SQLDatabase* db,
   }
 
   std::string groups_query = "insert into Groups values ("
-                             "?,"
-                             "?,"
-                             "?)";
+      "?,"
+      "?,"
+      "?)";
   dbms::SQLQuery groups_sqlquery(db);
   groups_sqlquery.Prepare(groups_query);
 
@@ -374,10 +370,13 @@ bool UpdateSection(dbms::SQLDatabase* db,
       //            }
       //          }
 
-      policy_table::Strings::const_iterator it_groups = app_params.groups.begin();
-      policy_table::Strings::const_iterator it_groups_end = app_params.groups.end();
+      policy_table::Strings::const_iterator it_groups =
+          app_params.groups.begin();
+      policy_table::Strings::const_iterator it_groups_end = app_params.groups
+          .end();
 
-      for (int group_index = 0; it_groups != it_groups_end; ++it_groups, ++group_index) {
+      for (int group_index = 0; it_groups != it_groups_end;
+          ++it_groups, ++group_index) {
         groups_sqlquery.Bind(0, group_index);
         groups_sqlquery.Bind(1, app_policy_name);
         groups_sqlquery.Bind(2, (*it_groups));
@@ -393,7 +392,8 @@ bool UpdateSection(dbms::SQLDatabase* db,
 
   return true;
 }
-}
-}
 
-#endif /* GENERATED_CODE_WITH_SQLITE_TEST_H_ */
+}  // namespace policy_table_interface_base
+}  // namespace rpc
+
+#endif  // SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_GENERATED_CODE_WITH_SQLITE_TEST_H_

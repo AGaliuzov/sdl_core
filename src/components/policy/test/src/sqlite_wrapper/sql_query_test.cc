@@ -29,9 +29,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <gtest/gtest.h>
 #include <sqlite3.h>
 #include <string>
+
+#include "gtest/gtest.h"
+
 #include "sqlite_wrapper/sql_error.h"
 #include "sqlite_wrapper/sql_database.h"
 #include "sqlite_wrapper/sql_query.h"
@@ -65,34 +67,35 @@ class SQLQueryTest : public ::testing::Test {
   void SetUp() {
     sqlite3_exec(conn, "DELETE FROM testTable", NULL, NULL, NULL);
   }
+
+  ::testing::AssertionResult IsError(SQLError error) {
+    if (error.number() != ::policy::dbms::OK) {
+      return ::testing::AssertionSuccess() << error.text();
+    } else {
+      return ::testing::AssertionFailure() << error.text();
+    }
+  }
+
+  ::testing::AssertionResult IsDone(SQLError error) {
+    if (error.number() == ::policy::dbms::DONE) {
+      return ::testing::AssertionSuccess() << error.text();
+    } else {
+      return ::testing::AssertionFailure() << error.text();
+    }
+  }
+
+  ::testing::AssertionResult IsRow(SQLError error) {
+    if (error.number() == ::policy::dbms::ROW) {
+      return ::testing::AssertionSuccess() << error.text();
+    } else {
+      return ::testing::AssertionFailure() << error.text();
+    }
+  }
 };
 
 sqlite3* SQLQueryTest::conn = 0;
 const std::string SQLQueryTest::kDatabaseName = "test-query";
 
-::testing::AssertionResult IsError(SQLError error) {
-  if (error.number() != ::policy::dbms::OK) {
-    return ::testing::AssertionSuccess() << error.text();
-  } else {
-    return ::testing::AssertionFailure() << error.text();
-  }
-}
-
-::testing::AssertionResult IsDone(SQLError error) {
-  if (error.number() == ::policy::dbms::DONE) {
-    return ::testing::AssertionSuccess() << error.text();
-  } else {
-    return ::testing::AssertionFailure() << error.text();
-  }
-}
-
-::testing::AssertionResult IsRow(SQLError error) {
-  if (error.number() == ::policy::dbms::ROW) {
-    return ::testing::AssertionSuccess() << error.text();
-  } else {
-    return ::testing::AssertionFailure() << error.text();
-  }
-}
 
 TEST_F(SQLQueryTest, Query) {
   const char* insert = "INSERT INTO testTable "
@@ -292,8 +295,3 @@ TEST_F(SQLQueryTest, DoublePrepare) {
 }  // namespace policy
 }  // namespace components
 }  // namespace test
-
-int main(int argc, char** argv) {
-  testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

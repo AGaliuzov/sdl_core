@@ -1203,6 +1203,5 @@ void PolicyManagerImpl::set_update_status_manager(
     UpdateStatusManagerInterface* update_manager) {
   update_status_manager_ = update_manager;
 }
-
 }  //  namespace policy
 

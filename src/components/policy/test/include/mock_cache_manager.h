@@ -29,8 +29,14 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef MOCK_CACHE_MANAGER_H_
-#define MOCK_CACHE_MANAGER_H_
+#ifndef SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_MOCK_CACHE_MANAGER_H_
+#define SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_MOCK_CACHE_MANAGER_H_
+
+
+#include <string>
+#include <vector>
+
+#include "gmock/gmock.h"
 
 #include "policy/cache_manager_interface.h"
 
@@ -146,6 +152,8 @@ class MockCacheManagerInterface : public CacheManagerInterface {
       void(const std::string &app_id, FunctionalGroupIDs& preconsented_groups));
   MOCK_METHOD4(GetConsentedGroups,
       void(const std::string &device_id, const std::string &app_id, FunctionalGroupIDs& allowed_groups, FunctionalGroupIDs& disallowed_groups));
+  MOCK_METHOD3(GetUnconsentedGroups,
+      void(const std::string& device_id, const std::string& policy_app_id, FunctionalGroupIDs& unconsented_groups));
   MOCK_METHOD2(RemoveAppConsentForGroup,
       void(const std::string& app_id, const std::string& group_name));
   MOCK_METHOD1(SetPredataPolicy,
@@ -170,4 +178,4 @@ class MockCacheManagerInterface : public CacheManagerInterface {
 
 }  // namespace policy
 
-#endif  // MOCK_CACHE_MANAGER_H_
+#endif  // SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_MOCK_CACHE_MANAGER_H_

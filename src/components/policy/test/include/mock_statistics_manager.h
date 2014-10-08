@@ -1,5 +1,4 @@
-/*
- * Copyright (c) 2014, Ford Motor Company
+/* Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,37 +28,31 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef MOCK_UPDATE_STATUS_MANAGER_H_
-#define MOCK_UPDATE_STATUS_MANAGER_H_
+#ifndef SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_MOCK_STATISTICS_MANAGER_H_
+#define SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_MOCK_STATISTICS_MANAGER_H_
 
-#include "policy/update_status_manager_interface.h"
+#include <string>
 
-namespace policy {
+#include "gmock/gmock.h"
 
-class MockUpdateStatusManagerInterface : public UpdateStatusManagerInterface {
+#include "usage_statistics/statistics_manager.h"
+
+namespace usage_statistics {
+namespace test {
+
+class MockStatisticsManager: public StatisticsManager {
  public:
-  MOCK_METHOD1(set_listener,
-      void(PolicyListener* listener));
-  MOCK_METHOD1(OnUpdateSentOut,
-      void(uint32_t update_timeout));
-  MOCK_METHOD0(OnUpdateTimeoutOccurs,
-      void());
-  MOCK_METHOD0(OnValidUpdateReceived,
-      void());
-  MOCK_METHOD0(OnWrongUpdateReceived,
-      void());
-  MOCK_METHOD1(OnResetDefaultPT,
-      void(bool is_update_required));
-  MOCK_METHOD0(OnResetRetrySequence,
-      void());
-  MOCK_METHOD0(OnNewApplicationAdded,
-      void());
-  MOCK_METHOD1(OnPolicyInit,
-      void(bool is_update_required));
-  MOCK_METHOD0(GetUpdateStatus,
-      PolicyTableStatus());
+  MOCK_METHOD1(Increment, void(GlobalCounterId type));
+  MOCK_METHOD2(Increment, void(const std::string& app_id, AppCounterId type));
+  MOCK_METHOD3(Set, void(const std::string& app_id,
+                         AppInfoId type,
+                         const std::string& value));
+  MOCK_METHOD3(Add, void(const std::string& app_id,
+                         AppStopwatchId type,
+                         int32_t timespan_seconds));
 };
 
-}  // namespace policy
+}  // namespace test
+}  // namespace usage_statistics
 
-#endif  // MOCK_UPDATE_STATUS_MANAGER_H_
+#endif  // SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_MOCK_STATISTICS_MANAGER_H_

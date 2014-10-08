@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, Ford Motor Company
+/* Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,32 +29,49 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <fstream>
+#ifndef SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_MOCK_POLICY_LISTENER_H_
+#define SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_MOCK_POLICY_LISTENER_H_
 
-#include <gtest/gtest.h>
-#include "json/reader.h"
-#include "json/value.h"
-#include "./enums.h"
+
+#include <string>
+
+#include "gmock/gmock.h"
+
+#include "policy/policy_listener.h"
+#include "rpc_base/rpc_base.h"
 #include "./types.h"
-#include "rpc_base/gtest_support.h"
 
-using namespace rpc::policy_table_interface_base;
+namespace policy_table = ::rpc::policy_table_interface_base;
 
-namespace test {
-namespace components {
 namespace policy {
 
-TEST(PolicyGeneratedCodeTest, TestValidPTUpdateJsonIsValid) {
-  std::ifstream json_file("valid_sdl_pt_update.json");
-  ASSERT_TRUE(json_file.is_open());
-  Json::Value valid_table;
-  Json::Reader reader;
-  ASSERT_TRUE(reader.parse(json_file, valid_table));
-  Table table(&valid_table);
-  ASSERT_RPCTYPE_VALID(table);
-}
-
+class MockPolicyListener : public PolicyListener {
+ public:
+  MOCK_METHOD0(OnPTExchangeNeeded,
+               void());
+  MOCK_METHOD3(OnPermissionsUpdated,
+               void(const std::string& policy_app_id,
+                    const Permissions& permissions,
+                    const policy::HMILevel& default_hmi));
+  MOCK_METHOD1(OnPendingPermissionChange,
+               void(const std::string& policy_app_id));
+  MOCK_METHOD1(OnAppRevoked,
+               void(const std::string& policy_app_id));
+  MOCK_METHOD1(OnUpdateStatusChanged,
+               void(policy::PolicyTableStatus status));
+  MOCK_METHOD1(OnCurrentDeviceIdUpdateRequired,
+               std::string(const std::string& policy_app_id));
+  MOCK_METHOD0(OnSystemInfoUpdateRequired,
+               void());
+  MOCK_METHOD1(GetAppName,
+               std::string(const std::string& policy_app_id));
+  MOCK_METHOD0(OnUserRequestedUpdateCheckRequired,
+               void());
+  MOCK_METHOD2(OnDeviceConsentChanged,
+               void(const std::string& device_id,
+                    bool is_allowed));
+};
 
 }  // namespace policy
-}  // namespace components
-}  // namespace test
+
+#endif  // SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_MOCK_POLICY_LISTENER_H_

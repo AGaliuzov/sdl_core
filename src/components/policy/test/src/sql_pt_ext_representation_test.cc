@@ -29,10 +29,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <gtest/gtest.h>
 #include <sqlite3.h>
 #include <vector>
 #include <algorithm>
+
+#include "gtest/gtest.h"
+
 #include "json/value.h"
 #include "policy/sql_pt_ext_representation.h"
 #include "policy/policy_types.h"
@@ -333,8 +335,3 @@ TEST_F(SQLPTExtRepresentationTest, UnpairedDevicesList) {
 }  // namespace policy
 }  // namespace components
 }  // namespace test
-
-int main(int argc, char** argv) {
-  testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

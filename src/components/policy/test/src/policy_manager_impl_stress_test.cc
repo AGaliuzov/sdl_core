@@ -29,12 +29,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
 #include <string>
 #include <set>
 #include <sstream>
 #include <fstream>
+
+#include "gtest/gtest.h"
+#include "gmock/gmock.h"
+
 #include "policy/policy_manager_impl.h"
 #include "mock_policy_listener.h"
 
@@ -218,7 +220,7 @@ void PolicyManagerImplTest::CreateTable(std::ofstream& ofs) {
   ofs << "}";
 }
 
-TEST_F(PolicyManagerImplTest, StressTestOneCheck) {
+TEST_F(PolicyManagerImplTest, DISABLED_StressTestOneCheck) {
   MockPolicyListener mock_listener;
 
   EXPECT_CALL(mock_listener, OnCurrentDeviceIdUpdateRequired("2")).Times(1);
@@ -229,7 +231,7 @@ TEST_F(PolicyManagerImplTest, StressTestOneCheck) {
   EXPECT_EQ(::policy::kRpcAllowed, output.hmi_level_permitted);
 }
 
-TEST_F(PolicyManagerImplTest, StressTestNoPermission) {
+TEST_F(PolicyManagerImplTest, DISABLED_StressTestNoPermission) {
   MockPolicyListener mock_listener;
 
   EXPECT_CALL(mock_listener, OnCurrentDeviceIdUpdateRequired("150")).Times(1);
@@ -240,7 +242,7 @@ TEST_F(PolicyManagerImplTest, StressTestNoPermission) {
   EXPECT_EQ(::policy::kRpcDisallowed, output.hmi_level_permitted);
 }
 
-TEST_F(PolicyManagerImplTest, StressTestFewChecks) {
+TEST_F(PolicyManagerImplTest, DISABLED_StressTestFewChecks) {
   MockPolicyListener mock_listener;
 
   EXPECT_CALL(mock_listener, OnCurrentDeviceIdUpdateRequired(_)).Times(100);
@@ -267,8 +269,3 @@ TEST_F(PolicyManagerImplTest, StressTestFewChecks) {
 }  // namespace policy
 }  // namespace components
 }  // namespace test
-
-int main(int argc, char** argv) {
-  testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

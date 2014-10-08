@@ -29,9 +29,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
 #include <vector>
+
+#include "gtest/gtest.h"
+#include "gmock/gmock.h"
+
 #include "mock_policy_listener.h"
 #include "mock_pt_representation.h"
 #include "mock_pt_ext_representation.h"
@@ -383,8 +385,3 @@ TEST_F(PolicyManagerImplTest, MarkUnpairedDevice) {
 }  // namespace policy
 }  // namespace components
 }  // namespace test
-
-int main(int argc, char** argv) {
-testing::InitGoogleTest(&argc, argv);
-return RUN_ALL_TESTS();
-}

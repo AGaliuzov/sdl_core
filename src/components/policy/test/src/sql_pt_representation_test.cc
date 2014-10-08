@@ -29,13 +29,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <gtest/gtest.h>
 #ifdef __QNX__
 #  include <qdb/qdb.h>
 #else  // __QNX__
 #  include <sqlite3.h>
 #endif  // __QNX__
+
 #include <vector>
+
+#include "gtest/gtest.h"
+
 #include "json/value.h"
 #include "policy/sql_pt_representation.h"
 #include "policy/policy_types.h"
@@ -444,8 +447,3 @@ TEST_F(SQLPTRepresentationTest, SaveGenerateSnapshot) {
 }  // namespace policy
 }  // namespace components
 }  // namespace test
-
-int main(int argc, char** argv) {
-  testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

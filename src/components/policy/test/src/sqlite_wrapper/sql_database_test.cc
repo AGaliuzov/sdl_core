@@ -29,7 +29,8 @@
 * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
+
 #include "sqlite_wrapper/sql_error.h"
 #include "sqlite_wrapper/sql_database.h"
 
@@ -144,8 +145,3 @@ TEST(SQLDatabaseTest, BadTransaction) {
 }  // namespace policy
 }  // namespace components
 }  // namespace test
-
-int main(int argc, char** argv) {
-  testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

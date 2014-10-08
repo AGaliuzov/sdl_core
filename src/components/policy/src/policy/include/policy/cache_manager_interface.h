@@ -465,6 +465,17 @@ class CacheManagerInterface {
                                   FunctionalGroupIDs& allowed_groups,
                                   FunctionalGroupIDs& disallowed_groups) = 0;
 
+  /**
+   * @brief GetUnconsentedGroups allows to obtain list of allowed and disallowed
+   * groups for specific application on certain device.
+   * @param device_id certain device
+   * @param policy_app_id application id.
+   * @param unconsented_groups list of unconsented groups.
+   */
+  virtual void GetUnconsentedGroups(const std::string& device_id,
+                                    const std::string& policy_app_id,
+                                    FunctionalGroupIDs& unconsented_groups) = 0;
+
   virtual void RemoveAppConsentForGroup(const std::string& app_id,
                                         const std::string& group_name) = 0;
 
