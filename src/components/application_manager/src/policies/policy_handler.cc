@@ -1432,6 +1432,7 @@ bool PolicyHandler::CheckStealFocus(int system_action,
 }
 
 uint16_t PolicyHandler::HeartBeatTimeout(const std::string& app_id) const {
+  POLICY_LIB_CHECK(0);
   return policy_manager_->HeartBeatTimeout(app_id);
 }
 
