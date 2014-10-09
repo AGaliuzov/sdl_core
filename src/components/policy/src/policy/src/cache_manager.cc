@@ -236,6 +236,47 @@ void CacheManager::GetConsentedGroups(const std::string &device_id,
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
+void CacheManager::GetUnconsentedGroups(const std::string& device_id,
+                                        const std::string& policy_app_id,
+                                        FunctionalGroupIDs& unconsented_groups) {
+  LOG4CXX_TRACE_ENTER(logger_);
+#ifdef EXTENDED_POLICY
+  if (AppExists(policy_app_id)) {
+    policy_table::Strings::iterator iter_groups =
+        pt_->policy_table.app_policies[policy_app_id].groups.begin();
+    policy_table::Strings::iterator iter_groups_end =
+        pt_->policy_table.app_policies[policy_app_id].groups.end();
+
+    for (;iter_groups != iter_groups_end; ++iter_groups) {
+      policy_table::FunctionalGroupings::const_iterator func_groups =
+          pt_->policy_table.functional_groupings.find(*iter_groups);
+      // Try to find app-specific group in common groups list;
+      if (pt_->policy_table.functional_groupings.end() != func_groups) {
+        // Check if groups has user consents field.
+        if (func_groups->second.user_consent_prompt.is_initialized()) {
+          // Try to find certain group among already consented groups.
+          policy_table::DeviceData::const_iterator device_iter =
+              pt_->policy_table.device_data->find(device_id);
+          if (pt_->policy_table.device_data->end() != device_iter) {
+            policy_table::UserConsentRecords::const_iterator ucr_iter =
+              device_iter->second.user_consent_records->find(policy_app_id);
+            if (device_iter->second.user_consent_records->end() != ucr_iter) {
+              if ((*ucr_iter).second.consent_groups->end() ==
+                   (*ucr_iter).second.consent_groups->find(*iter_groups)) {
+                  unconsented_groups.push_back(GenerateHash(*iter_groups));
+              }
+            } else {
+              unconsented_groups.push_back(GenerateHash(*iter_groups));
+            }
+          }
+        }
+      }
+    }
+  }
+#endif // EXTENDED_POLICY
+  LOG4CXX_TRACE_EXIT(logger_);
+}
+
 void CacheManager::RemoveAppConsentForGroup(const std::string& app_id,
                                             const std::string& group_name) {
 #ifdef EXTENDED_POLICY
@@ -256,7 +297,7 @@ void CacheManager::RemoveAppConsentForGroup(const std::string& app_id,
 
 bool CacheManager::ApplyUpdate(const policy_table::Table& update_pt) {
   LOG4CXX_TRACE_ENTER(logger_);
-#ifdef EXTENDED_POLICY
+
   pt_->policy_table.functional_groupings =
       update_pt.policy_table.functional_groupings;
 
@@ -267,7 +308,7 @@ bool CacheManager::ApplyUpdate(const policy_table::Table& update_pt) {
     pt_->policy_table.consumer_friendly_messages =
         update_pt.policy_table.consumer_friendly_messages;
   }
-#endif // EXTENDED_POLICY
+
   LOG4CXX_TRACE_EXIT(logger_);
   return true;
 }
@@ -329,6 +370,8 @@ bool CacheManager::GetPermissionsForApp(const std::string &device_id,
 
   GetConsentedGroups(device_id, app_id,
                      group_types[kTypeAllowed], group_types[kTypeDisallowed]);
+
+  GetUnconsentedGroups(device_id, app_id, group_types[kTypeUnconsented]);
 
   GetAllAppGroups(kDeviceId, group_types[kTypeDevice]);
 #endif // EXTENDED_POLICY
@@ -791,11 +834,14 @@ bool CacheManager::GetPriority(const std::string &policy_app_id,
 }
 
 void CacheManager::CheckSnapshotInitialization() {
-  *(pt_->policy_table.module_config.preloaded_pt) = false;
+  *(snapshot_->policy_table.module_config.preloaded_pt) = false;
 #ifdef EXTENDED_POLICY
 
+  snapshot_->policy_table.consumer_friendly_messages->messages =
+      rpc::Optional<policy_table::Messages>();
+
   rpc::Optional<policy_table::ModuleMeta>& module_meta =
-      pt_->policy_table.module_meta;
+      snapshot_->policy_table.module_meta;
   if (!module_meta->pt_exchanged_at_odometer_x->is_initialized()) {
     *(module_meta->pt_exchanged_at_odometer_x) = 0;
   }
@@ -805,7 +851,7 @@ void CacheManager::CheckSnapshotInitialization() {
   }
 
   rpc::Optional<policy_table::UsageAndErrorCounts>& usage_and_error_counts =
-      pt_->policy_table.usage_and_error_counts;
+      snapshot_->policy_table.usage_and_error_counts;
   if (!usage_and_error_counts->count_of_iap_buffer_full->is_initialized()) {
     *(usage_and_error_counts->count_of_iap_buffer_full) = 0;
   }
@@ -886,8 +932,9 @@ void CacheManager::CheckSnapshotInitialization() {
 
 utils::SharedPtr<policy_table::Table>
 CacheManager::GenerateSnapshot() {
+  snapshot_ = utils::SharedPtr<policy_table::Table>(new policy_table::Table(pt_->policy_table));
   CheckSnapshotInitialization();
-  return pt_;
+  return snapshot_;
 }
 
 bool CacheManager::GetInitialAppData(const std::string& app_id,

@@ -30,23 +30,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_UTILS_INCLUDE_UTILS_LOGGER_STATUS_H_
-#define SRC_COMPONENTS_UTILS_INCLUDE_UTILS_LOGGER_STATUS_H_
+#ifndef SRC_COMPONENTS_UTILS_INCLUDE_UTILS_APPENDERS_LOADER_H_
+#define SRC_COMPONENTS_UTILS_INCLUDE_UTILS_APPENDERS_LOADER_H_
 
-namespace logger {
+namespace utils {
 
-typedef enum {
-  LoggerThreadNotCreated,
-  CreatingLoggerThread,
-  LoggerThreadCreated,
-  DeletingLoggerThread
-} LoggerStatus;
+class AppendersLoader {
+ public:
+  AppendersLoader();
+  ~AppendersLoader();
+  bool Loaded() const;
+ private:
+  void* handle_;
+};
 
-// this variable is only changed when creating and deleting logger thread
-// its reads and writes are believed to be atomic
-// thus it shall be considered thread safe
-extern LoggerStatus logger_status;
+extern AppendersLoader appenders_loader;
 
-}  // namespace logger
+}  // namespace utils
 
-#endif  // SRC_COMPONENTS_UTILS_INCLUDE_UTILS_LOGGER_STATUS_H_
+#endif  // SRC_COMPONENTS_UTILS_INCLUDE_UTILS_APPENDERS_LOADER_H_

@@ -169,6 +169,8 @@ class PolicyManagerImpl : public PolicyManager {
     
     virtual uint16_t HeartBeatTimeout(const std::string& app_id) const;
 
+    virtual bool IsPredataPolicy(const std::string& policy_app_id);
+
   protected:
     virtual utils::SharedPtr<policy_table::Table> Parse(
         const BinaryMessage& pt_content);

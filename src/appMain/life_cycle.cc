@@ -208,14 +208,16 @@ bool LifeCycle::StartComponents() {
 #endif  // TIME_TESTER
   // It's important to initialise TM after setting up listener chain
   // [TM -> CH -> AM], otherwise some events from TM could arrive at nowhere
+  app_manager_->set_protocol_handler(protocol_handler_);
+  app_manager_->set_connection_handler(connection_handler_);
+  app_manager_->set_hmi_message_handler(hmi_handler_);
+
   transport_manager_->Init();
 #ifndef CUSTOMER_PASA
   // start transport manager
   transport_manager_->Visibility(true);
 #endif
-  app_manager_->set_protocol_handler(protocol_handler_);
-  app_manager_->set_connection_handler(connection_handler_);
-  app_manager_->set_hmi_message_handler(hmi_handler_);
+
   components_started = true;
   return true;
 }
@@ -371,7 +373,9 @@ bool LifeCycle::InitMessageSystem() {
 #endif  // CUSTOMER_PASA
 
 void LifeCycle::StopComponents() {
+  LOG4CXX_TRACE(logger_, "enter");
   if (components_started == false) {
+    LOG4CXX_TRACE(logger_, "exit");
     LOG4CXX_ERROR(logger_, "Components wasn't started");
     return;
   }
@@ -488,6 +492,7 @@ void LifeCycle::StopComponents() {
   }
 #endif  // TIME_TESTER
   components_started =false;
+  LOG4CXX_TRACE(logger_, "exit");
 }
 
 }  //  namespace main_namespace

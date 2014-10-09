@@ -397,6 +397,13 @@ class PolicyManager : public usage_statistics::StatisticsManager {
     virtual void SetVINValue(const std::string& value) = 0;
 
     /**
+     * @brief Checks, if application has policy assigned w/o data consent
+     * @param policy_app_id Unique application id
+     * @return true, if policy assigned w/o data consent, otherwise -false
+     */
+    virtual bool IsPredataPolicy(const std::string& policy_app_id) = 0;
+
+    /**
      * Returns heart beat timeout
      * @param app_id application id
      * @return if timeout was set then value in seconds greater zero

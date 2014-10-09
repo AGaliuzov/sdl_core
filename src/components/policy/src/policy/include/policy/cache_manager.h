@@ -472,6 +472,17 @@ public:
                           FunctionalGroupIDs& allowed_groups,
                           FunctionalGroupIDs& disallowed_groups);
 
+  /**
+   * @brief GetUnconsentedGroups allows to obtain list of allowed and disallowed
+   * groups for specific application on certain device.
+   * @param device_id certain device
+   * @param policy_app_id application id.
+   * @param unconsented_groups list of unconsented groups.
+   */
+  void GetUnconsentedGroups(const std::string& device_id,
+                            const std::string& policy_app_id,
+                            FunctionalGroupIDs& unconsented_groups);
+
   void RemoveAppConsentForGroup(const std::string& app_id,
                                 const std::string& group_name);
 
@@ -575,6 +586,7 @@ private:
 
 private:
   utils::SharedPtr<policy_table::Table> pt_;
+  utils::SharedPtr<policy_table::Table> snapshot_;
   utils::SharedPtr<PTRepresentation> backup_;
   utils::SharedPtr<PTExtRepresentation> ex_backup_;
   bool update_required;

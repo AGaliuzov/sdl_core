@@ -67,6 +67,8 @@ namespace policy {
   }\
 }
 
+CREATE_LOGGERPTR_GLOBAL(logger_, "PolicyHandler")
+
 typedef std::set<application_manager::ApplicationSharedPtr> ApplicationList;
 
 struct DeactivateApplication {
@@ -95,34 +97,40 @@ struct SDLAlowedNotification {
 
   void operator()(const application_manager::ApplicationSharedPtr& app) {
     if (device_id_ == app->device()) {
-      app->set_hmi_level(mobile_apis::HMILevel::HMI_NONE);
-      application_manager::MessageHelper::SendActivateAppToHMI(
-        app->app_id(), hmi_apis::Common_HMILevel::NONE);
+
 
         std::string hmi_level;
         hmi_apis::Common_HMILevel::eType default_hmi;
+        mobile_apis::HMILevel::eType default_mobile_hmi;
         policy_manager_->GetDefaultHmi(app->mobile_app_id()->asString(), &hmi_level);
         if ("BACKGROUND" == hmi_level) {
           default_hmi = hmi_apis::Common_HMILevel::BACKGROUND;
+          default_mobile_hmi = mobile_apis::HMILevel::HMI_BACKGROUND;
         } else if ("FULL" == hmi_level) {
           default_hmi = hmi_apis::Common_HMILevel::FULL;
+          default_mobile_hmi = mobile_apis::HMILevel::HMI_FULL;
         } else if ("LIMITED" == hmi_level) {
           default_hmi = hmi_apis::Common_HMILevel::LIMITED;
+          default_mobile_hmi = mobile_apis::HMILevel::HMI_LIMITED;
         } else if ("NONE" == hmi_level) {
           default_hmi = hmi_apis::Common_HMILevel::NONE;
+          default_mobile_hmi = mobile_apis::HMILevel::HMI_NONE;
         } else {
           return ;
         }
+        if (app->hmi_level() == default_mobile_hmi) {
+          LOG4CXX_INFO(logger_, "Application already in default hmi state.");
+        } else {
+          app->set_hmi_level(default_mobile_hmi);
+          application_manager::MessageHelper::SendHMIStatusNotification(*app);
+        }
         application_manager::MessageHelper::SendActivateAppToHMI(app->app_id(), default_hmi);
-        application_manager::MessageHelper::SendHMIStatusNotification(*app);
       }
     }
   private:
     connection_handler::DeviceHandle device_id_;
     PolicyManager* policy_manager_;
 };
-
-CREATE_LOGGERPTR_GLOBAL(logger_, "PolicyHandler")
 
 struct LinkAppToDevice {
   explicit LinkAppToDevice(
@@ -211,11 +219,9 @@ PolicyHandler::PolicyHandler()
 }
 
 PolicyHandler::~PolicyHandler() {
-  exchange_handler_->Stop();
-  UnloadPolicyLibrary();
 }
 
-PolicyManager* PolicyHandler::LoadPolicyLibrary() {
+bool PolicyHandler::LoadPolicyLibrary() {
   if (!PolicyEnabled()) {
     LOG4CXX_WARN(logger_, "System is configured to work without policy "
                  "functionality.");
@@ -226,14 +232,15 @@ PolicyManager* PolicyHandler::LoadPolicyLibrary() {
 
   char* error_string = dlerror();
   if (error_string == NULL) {
-    policy_manager_ = CreateManager();
-    policy_manager_->set_listener(this);
-    event_observer_= new PolicyEventObserver(policy_manager_);
+    if (CreateManager()) {
+      policy_manager_->set_listener(this);
+      event_observer_= new PolicyEventObserver(policy_manager_);
+    }
   } else {
     LOG4CXX_ERROR(logger_, error_string);
   }
 
-  return policy_manager_;
+  return NULL != policy_manager_;
 }
 
 bool PolicyHandler::PolicyEnabled() {
@@ -397,6 +404,7 @@ const std::string PolicyHandler::ConvertUpdateStatus(PolicyTableStatus status) {
 
 void PolicyHandler::OnDeviceConsentChanged(const std::string& device_id,
                                            bool is_allowed) {
+  POLICY_LIB_CHECK_VOID();
   connection_handler::DeviceHandle device_handle;
   application_manager::ApplicationManagerImpl::instance()->connection_handler()
       ->GetDeviceID(device_id, &device_handle);
@@ -412,12 +420,21 @@ void PolicyHandler::OnDeviceConsentChanged(const std::string& device_id,
   for (; it_app_list != it_app_list_end; ++it_app_list) {
     if (device_handle == (*it_app_list).get()->device()) {
 
-      policy_manager_->ReactOnUserDevConsentForApp(
-        it_app_list->get()->mobile_app_id()->asString(),
-        is_allowed);
+      const std::string policy_app_id =
+          (*it_app_list)->mobile_app_id()->asString();
 
-      policy_manager_->SendNotificationOnPermissionsUpdated(
-        (*it_app_list).get()->mobile_app_id()->asString());
+      // If app has predata policy, which is assigned without device consent or
+      // with negative data consent, there no necessity to change smth and send
+      // notification for such app in case of device consent is not allowed
+      if (policy_manager_->IsPredataPolicy(policy_app_id) &&
+          !is_allowed) {
+        continue;
+      }
+
+      policy_manager_->ReactOnUserDevConsentForApp(policy_app_id,
+                                                   is_allowed);
+
+      policy_manager_->SendNotificationOnPermissionsUpdated(policy_app_id);
     }
   }
 }
@@ -643,8 +660,8 @@ void PolicyHandler::OnVIIsReady() {
 
 void PolicyHandler::OnVehicleDataUpdated(
     const smart_objects::SmartObject& message) {
-#ifdef EXTENDED_POLICY
   POLICY_LIB_CHECK_VOID();
+#ifdef EXTENDED_POLICY
   if (message[application_manager::strings::msg_params].
       keyExists(application_manager::strings::vin)) {
     policy_manager_->SetVINValue(
@@ -829,6 +846,7 @@ bool PolicyHandler::UnloadPolicyLibrary() {
     ret = (dlclose(dl_handle_) == 0);
     dl_handle_ = 0;
   }
+  exchange_handler_->Stop();
   return ret;
 }
 
@@ -919,7 +937,7 @@ void PolicyHandler::OnAllowSDLFunctionalityNotification(bool is_allowed,
       ApplicationList app_list = accessor.applications();
 
       std::for_each(app_list.begin(), app_list.end(),
-                    SDLAlowedNotification(device_id, policy_manager()));
+                    SDLAlowedNotification(device_id, policy_manager_));
     }
 #endif
   }
@@ -962,6 +980,8 @@ void PolicyHandler::OnAllowSDLFunctionalityNotification(bool is_allowed,
         // TODO(PV): requires additonal checking
         //app_manager->PutApplicationInFull(app);
         app_manager->ActivateApplication(app);
+        // Put application in full
+        application_manager::MessageHelper::SendActivateAppToHMI(app->app_id());
       }
     // Skip device selection, since user already consented device usage
     StartPTExchange(true);
@@ -1039,6 +1059,11 @@ void PolicyHandler::OnActivateApp(uint32_t connection_key,
     if (!permissions.isSDLAllowed) {
       pending_device_handles_.push_back(permissions.deviceInfo.device_handle);
     }
+
+    if (permissions.appPermissionsConsentNeeded) {
+      application_manager::MessageHelper::SendOnAppPermissionsChangedNotification(
+            app->app_id(), permissions);
+    }
 #else
     permissions.isSDLAllowed = true;
 #endif
@@ -1072,28 +1097,29 @@ void PolicyHandler::PTExchangeAtRegistration(const std::string& app_id) {
   LOG4CXX_INFO(logger_, "PTExchangeAtIgnition");
   POLICY_LIB_CHECK_VOID();
 
-  if (policy_manager()->IsAppInUpdateList(app_id)) {
-    StartPTExchange();
-  } else if (false == on_ignition_check_done_) { // TODO(AG): add cond. var to handle this case.
-    TimevalStruct current_time = date_time::DateTime::getCurrentTime();
-    const int kSecondsInDay = 60 * 60 * 24;
-    int days = current_time.tv_sec / kSecondsInDay;
-
-    LOG4CXX_INFO(
-      logger_,
-      "\nIgnition cycles exceeded: " << std::boolalpha <<
-      policy_manager_->ExceededIgnitionCycles()
-      << "\nDays exceeded: " << std::boolalpha
-      << policy_manager_->ExceededDays(days)
-      << "\nStatusUpdateRequired: " << std::boolalpha
-      << (policy_manager_->GetPolicyTableStatus() == StatusUpdateRequired));
-    if (policy_manager_->ExceededIgnitionCycles()
-        || policy_manager_->ExceededDays(days)
-        || policy_manager_->GetPolicyTableStatus() == StatusUpdateRequired) {
+  if (policy_manager_) {
+    if (policy_manager_->IsAppInUpdateList(app_id)) {
       StartPTExchange();
+    } else if (false == on_ignition_check_done_) { // TODO(AG): add cond. var to handle this case.
+      TimevalStruct current_time = date_time::DateTime::getCurrentTime();
+      const int kSecondsInDay = 60 * 60 * 24;
+      int days = current_time.tv_sec / kSecondsInDay;
+
+      LOG4CXX_INFO(
+        logger_,
+        "\nIgnition cycles exceeded: " << std::boolalpha <<
+        policy_manager_->ExceededIgnitionCycles()
+        << "\nDays exceeded: " << std::boolalpha
+        << policy_manager_->ExceededDays(days)
+        << "\nStatusUpdateRequired: " << std::boolalpha
+        << (policy_manager_->GetPolicyTableStatus() == StatusUpdateRequired));
+      if (policy_manager_->ExceededIgnitionCycles()
+          || policy_manager_->ExceededDays(days)
+          || policy_manager_->GetPolicyTableStatus() == StatusUpdateRequired) {
+        StartPTExchange();
+      }
     }
   }
-
   on_ignition_check_done_ = true;
 }
 
@@ -1184,6 +1210,113 @@ void PolicyHandler::OnPermissionsUpdated(const std::string& policy_app_id,
                    "HMI level won't be changed.");
       break;
   }
+}
+
+bool PolicyHandler::GetPriority(const std::string& policy_app_id,
+                                std::string* priority) {
+  if (policy_manager_) {
+    return policy_manager_->GetPriority(policy_app_id, priority);
+  } else {
+    return false;
+  }
+}
+
+void PolicyHandler::CheckPermissions(const PTString& app_id,
+                                     const PTString& hmi_level,
+                                     const PTString& rpc,
+                                     CheckPermissionResult& result) {
+  if (policy_manager_) {
+    policy_manager_->CheckPermissions(app_id, hmi_level, rpc, result);
+  }
+}
+
+uint32_t PolicyHandler::GetNotificationsNumber(const std::string& priority) {
+  if (policy_manager_) {
+    return policy_manager_->GetNotificationsNumber(priority);
+  } else {
+    return 0;
+  }
+}
+
+DeviceConsent PolicyHandler::GetUserConsentForDevice(
+    const std::string& device_id) {
+  if (policy_manager_) {
+    return policy_manager_->GetUserConsentForDevice(device_id);
+  } else {
+    return PolicyEnabled() ? kDeviceHasNoConsent : kDeviceAllowed;
+  }
+}
+
+bool PolicyHandler::GetDefaultHmi(const std::string& policy_app_id,
+                                  std::string* default_hmi) {
+  bool result = false;
+  if (policy_manager_) {
+    result = policy_manager_->GetDefaultHmi(policy_app_id, default_hmi);
+  }
+  return result;
+}
+
+bool PolicyHandler::GetInitialAppData(const std::string& application_id,
+                                      StringArray* nicknames,
+                                      StringArray* app_hmi_types) {
+  bool result = false;
+  if (policy_manager_) {
+    result = policy_manager_->GetInitialAppData(application_id, nicknames, app_hmi_types);
+  }
+  return result;
+}
+
+EndpointUrls PolicyHandler::GetUpdateUrls(int service_type) {
+  if (policy_manager_) {
+    return policy_manager_->GetUpdateUrls(service_type);
+  }
+  return EndpointUrls();
+}
+
+void PolicyHandler::ResetRetrySequence() {
+  if (policy_manager_) {
+    policy_manager_->ResetRetrySequence();
+  }
+}
+
+int PolicyHandler::NextRetryTimeout() {
+  if (policy_manager_) {
+    return policy_manager_->NextRetryTimeout();
+  }
+  return 0;
+}
+
+int PolicyHandler::TimeoutExchange() {
+  if (policy_manager_) {
+    return policy_manager_->TimeoutExchange();
+  }
+  return 0;
+}
+
+void PolicyHandler::OnExceededTimeout() {
+  if (policy_manager_) {
+    policy_manager_->OnExceededTimeout();
+  }
+}
+
+BinaryMessageSptr PolicyHandler::RequestPTUpdate() {
+  if (policy_manager_) {
+    return policy_manager_->RequestPTUpdate();
+  } else {
+    return BinaryMessageSptr();
+  }
+}
+
+const std::vector<int> PolicyHandler::RetrySequenceDelaysSeconds() {
+  if (policy_manager_) {
+    return policy_manager_->RetrySequenceDelaysSeconds();
+  }
+  return std::vector<int>();
+}
+
+usage_statistics::StatisticsManager * const &
+PolicyHandler::GetStatisticManager() {
+  return (usage_statistics::StatisticsManager *&)policy_manager_;
 }
 
 void PolicyHandler::AddStatisticsInfo(int type) {
@@ -1280,6 +1413,22 @@ void PolicyHandler::OnUpdateRequestSentToMobile() {
   LOG4CXX_INFO(logger_, "OnUpdateRequestSentToMobile");
   POLICY_LIB_CHECK_VOID();
   policy_manager_->OnUpdateStarted();
+}
+
+bool PolicyHandler::CheckKeepContext(int system_action,
+                                     const std::string& policy_app_id) {
+  const bool keep_context = system_action
+      == mobile_apis::SystemAction::KEEP_CONTEXT;
+  const bool allowed = policy_manager_->CanAppKeepContext(policy_app_id);
+  return !(keep_context && !allowed);
+}
+
+bool PolicyHandler::CheckStealFocus(int system_action,
+                                    const std::string& policy_app_id) {
+  const bool steal_focus = system_action
+      == mobile_apis::SystemAction::STEAL_FOCUS;
+  const bool allowed = policy_manager_->CanAppStealFocus(policy_app_id);
+  return !(steal_focus && !allowed);
 }
 
 }  //  namespace policy
