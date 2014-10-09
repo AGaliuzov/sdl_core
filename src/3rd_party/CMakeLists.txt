@@ -56,9 +56,15 @@ if(ENABLE_LOG AND NOT (${is_logger_actual} EQUAL 0))
 endif()
 
 # --- D-Bus
-if(HMI_DBUS_API AND NOT (${is_dbus_actual} EQUAL 0))
-  add_subdirectory(dbus-cmake)
-  set(DBUS_BUILD_DIRECTORY ${DBUS_BUILD_DIRECTORY} PARENT_SCOPE)
+if(HMI_DBUS_API)
+  set(DBUS_INCLUDE_DIR ${3RD_PARTY_INSTALL_PREFIX}/include)
+  set(DBUS_INCLUDE_DIR_ARCH ${3RD_PARTY_INSTALL_PREFIX_ARCH}/include)
+  set(DBUS_INCLUDE_DIRS ${DBUS_INCLUDE_DIR} ${DBUS_INCLUDE_DIR_ARCH})
   set(DBUS_INCLUDE_DIRS ${DBUS_INCLUDE_DIRS} PARENT_SCOPE)
   set(DBUS_LIBS_DIRECTORY ${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib PARENT_SCOPE)
 endif()
+
+if(HMI_DBUS_API AND NOT (${is_dbus_actual} EQUAL 0))
+  add_subdirectory(dbus-cmake)
+endif()
+
