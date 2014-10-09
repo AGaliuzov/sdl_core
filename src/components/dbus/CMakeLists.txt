@@ -40,6 +40,6 @@ add_custom_command(
 )
 
 add_library("DBus" ${SOURCES})
-ADD_DEPENDENCIES("DBus" install-3rd_party_dbus)
+ADD_DEPENDENCIES("DBus" Utils install-3rd_party_dbus)
 
 target_link_libraries("DBus" "${LIBRARIES}")
