@@ -202,11 +202,11 @@ class TimerThread {
         DISALLOW_COPY_AND_ASSIGN(TimerLooperDelegate);
     };
     void (T::*callback_)();
-    T*                                                callee_;
-    TimerDelegate*                                     delegate_;
-    //threads::Thread*                                   thread_;
-    mutable bool                                       is_running_;
-    mutable bool                                       is_looper_;
+    T*                  callee_;
+    TimerDelegate*       delegate_;
+    //threads::Thread*     thread_;
+    mutable bool         is_running_;
+    bool                is_looper_;
 
 
     DISALLOW_COPY_AND_ASSIGN(TimerThread);
@@ -243,6 +243,7 @@ TimerThread<T>::~TimerThread() {
 
 template <class T>
 void TimerThread<T>::start(uint32_t timeout_seconds) {
+  LOG4CXX_TRACE(logger_, "Starting timer " << this);
   if (is_running_) {
     stop();
   }
@@ -256,6 +257,7 @@ void TimerThread<T>::start(uint32_t timeout_seconds) {
 
 template <class T>
 void TimerThread<T>::stop() {
+  LOG4CXX_TRACE(logger_, "Stoping timer " << this);
   if (delegate_ && thread_) {
     thread_->stop();
     is_running_ = false;
