@@ -28,40 +28,20 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-include_directories(
-  ${GMOCK_INCLUDE_DIRECTORY}
-  ./include/
-  ../../../src/thirdPartyLibs/gmock-1.7.0/include
-  ../../../src/thirdPartyLibs/gmock-1.7.0/gtest/include
-  ${SecurityManagerIncludeDir}
-  ${CMAKE_SOURCE_DIR}/src/components/protocol_handler/include
-  ${LOG4CXX_INCLUDE_DIRECTORY}
+SET(target "appenders")
+
+SET(SOURCES
+  safe_file_appender.cc
 )
 
-set(SOURCES
-  ./src/crypto_manager_impl_test.cc
-  ./src/security_manager_test.cc
-  ./src/security_query_test.cc
-  ./src/security_query_matcher.cc
+add_library(${target} MODULE ${SOURCES})
+
+target_link_libraries(${target} log4cxx -L${LOG4CXX_LIBS_DIRECTORY})
+
+install(TARGETS ${target}
+  DESTINATION bin
+  PERMISSIONS
+    OWNER_READ OWNER_WRITE OWNER_EXECUTE
+    GROUP_READ GROUP_EXECUTE
+    WORLD_READ WORLD_EXECUTE
 )
-
-set(LIBRARIES
-  gtest
-  gtest_main
-  gmock
-  gmock_main
-  ${SecurityManagerLibrary}
-  crypto
-  ssl
-  ProtocolHandler
-  connectionHandler
-  Utils
-  ${RTLIB}
-  ProtocolLibrary
-)
-
-add_library(test_SecurityManager ${SOURCES})
-target_link_libraries(test_SecurityManager ${LIBRARIES} )
-create_test(test_SecurityManagerTest "${SOURCES}" "${LIBRARIES}")
-
-# vim: set ts=2 sw=2 et:

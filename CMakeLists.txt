@@ -457,6 +457,11 @@ add_subdirectory(./src/components)
 # --- Main application
 add_subdirectory(./src/appMain)
 
+<<<<<<< HEAD
+=======
+# --- Plugins
+add_subdirectory(./src/plugins)
+>>>>>>> develop
 
 # Building tests
 if(BUILD_TESTS)

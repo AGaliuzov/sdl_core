@@ -1,4 +1,4 @@
-﻿/**
+/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -30,41 +30,17 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_USAGE_STATISTICS_H_
-#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_USAGE_STATISTICS_H_
+#include "safe_file_appender.h"
 
-#include <string>
-#include "usage_statistics/counter.h"
-#include "interfaces/MOBILE_API.h"
+using namespace log4cxx;
+using namespace log4cxx::helpers;
 
-namespace application_manager {
+IMPLEMENT_LOG4CXX_OBJECT(SafeFileAppender)
 
-class UsageStatistics {
- public:
-  UsageStatistics(const std::string& app_id,
-                  usage_statistics::StatisticsManager* const& statistics_manager);
-  void RecordHmiStateChanged(mobile_apis::HMILevel::eType new_hmi_level);
-  void RecordAppRegistrationGuiLanguage(
-      mobile_apis::Language::eType gui_language);
-  void RecordAppRegistrationVuiLanguage(
-      mobile_apis::Language::eType vui_language);
-  void RecordRpcSentInHMINone();
-  void RecordPolicyRejectedRpcCall();
-  void RecordAppUserSelection();
-  void RecordRunAttemptsWhileRevoked();
-  void RecordRemovalsForBadBehavior();
-
- private:
-  usage_statistics::AppStopwatch time_in_hmi_state_;
-  usage_statistics::AppInfo app_registration_language_gui_;
-  usage_statistics::AppInfo app_registration_language_vui_;
-  usage_statistics::AppCounter count_of_rejected_rpc_calls_;
-  usage_statistics::AppCounter count_of_rpcs_sent_in_hmi_none_;
-  usage_statistics::AppCounter count_of_user_selections_;
-  usage_statistics::AppCounter count_of_run_attempts_while_revoked_;
-  usage_statistics::AppCounter count_of_removals_for_bad_behavior_;
-};
-
-}  // namespace application_manager
-
-#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_USAGE_STATISTICS_H_
+void SafeFileAppender::subAppend(const spi::LoggingEventPtr& event, log4cxx::helpers::Pool& p) {
+  try {
+    WriterAppender::subAppend(event, p);
+  }
+  catch (...) {
+  }
+}

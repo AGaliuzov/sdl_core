@@ -1,4 +1,4 @@
-﻿/**
+/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -30,41 +30,26 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_USAGE_STATISTICS_H_
-#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_USAGE_STATISTICS_H_
+#include <dlfcn.h>
 
-#include <string>
-#include "usage_statistics/counter.h"
-#include "interfaces/MOBILE_API.h"
+#include "utils/appenders_loader.h"
 
-namespace application_manager {
+namespace utils {
 
-class UsageStatistics {
- public:
-  UsageStatistics(const std::string& app_id,
-                  usage_statistics::StatisticsManager* const& statistics_manager);
-  void RecordHmiStateChanged(mobile_apis::HMILevel::eType new_hmi_level);
-  void RecordAppRegistrationGuiLanguage(
-      mobile_apis::Language::eType gui_language);
-  void RecordAppRegistrationVuiLanguage(
-      mobile_apis::Language::eType vui_language);
-  void RecordRpcSentInHMINone();
-  void RecordPolicyRejectedRpcCall();
-  void RecordAppUserSelection();
-  void RecordRunAttemptsWhileRevoked();
-  void RecordRemovalsForBadBehavior();
+AppendersLoader appenders_loader;
 
- private:
-  usage_statistics::AppStopwatch time_in_hmi_state_;
-  usage_statistics::AppInfo app_registration_language_gui_;
-  usage_statistics::AppInfo app_registration_language_vui_;
-  usage_statistics::AppCounter count_of_rejected_rpc_calls_;
-  usage_statistics::AppCounter count_of_rpcs_sent_in_hmi_none_;
-  usage_statistics::AppCounter count_of_user_selections_;
-  usage_statistics::AppCounter count_of_run_attempts_while_revoked_;
-  usage_statistics::AppCounter count_of_removals_for_bad_behavior_;
-};
+AppendersLoader::AppendersLoader() {
+  handle_ = dlopen("libappenders.so", RTLD_LAZY | RTLD_NODELETE);
+}
 
-}  // namespace application_manager
+AppendersLoader::~AppendersLoader() {
+  if (handle_ != 0) {
+    dlclose(handle_);
+  }
+}
 
-#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_USAGE_STATISTICS_H_
+bool AppendersLoader::Loaded() const {
+  return handle_ != 0;
+}
+
+}  // namespace utils

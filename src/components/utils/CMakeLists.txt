@@ -21,6 +21,7 @@ set (SOURCES
     ./src/signals_linux.cc
     ./src/system.cc
     ./src/resource_usage.cc
+    ./src/appenders_loader.cc
 )
 
 if(ENABLE_LOG)

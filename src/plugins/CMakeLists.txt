@@ -28,40 +28,4 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-include_directories(
-  ${GMOCK_INCLUDE_DIRECTORY}
-  ./include/
-  ../../../src/thirdPartyLibs/gmock-1.7.0/include
-  ../../../src/thirdPartyLibs/gmock-1.7.0/gtest/include
-  ${SecurityManagerIncludeDir}
-  ${CMAKE_SOURCE_DIR}/src/components/protocol_handler/include
-  ${LOG4CXX_INCLUDE_DIRECTORY}
-)
-
-set(SOURCES
-  ./src/crypto_manager_impl_test.cc
-  ./src/security_manager_test.cc
-  ./src/security_query_test.cc
-  ./src/security_query_matcher.cc
-)
-
-set(LIBRARIES
-  gtest
-  gtest_main
-  gmock
-  gmock_main
-  ${SecurityManagerLibrary}
-  crypto
-  ssl
-  ProtocolHandler
-  connectionHandler
-  Utils
-  ${RTLIB}
-  ProtocolLibrary
-)
-
-add_library(test_SecurityManager ${SOURCES})
-target_link_libraries(test_SecurityManager ${LIBRARIES} )
-create_test(test_SecurityManagerTest "${SOURCES}" "${LIBRARIES}")
-
-# vim: set ts=2 sw=2 et:
+add_subdirectory(appenders)

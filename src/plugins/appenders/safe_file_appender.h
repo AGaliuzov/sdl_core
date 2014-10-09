@@ -1,4 +1,4 @@
-﻿/**
+/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -30,41 +30,20 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_USAGE_STATISTICS_H_
-#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_USAGE_STATISTICS_H_
+#ifndef SRC_PLUGINS_APPENDERS_SAFE_FILE_APPENDER_H_
+#define SRC_PLUGINS_APPENDERS_SAFE_FILE_APPENDER_H_
 
-#include <string>
-#include "usage_statistics/counter.h"
-#include "interfaces/MOBILE_API.h"
+#include <log4cxx/fileappender.h>
 
-namespace application_manager {
+namespace log4cxx {
 
-class UsageStatistics {
+class SafeFileAppender : public FileAppender {
  public:
-  UsageStatistics(const std::string& app_id,
-                  usage_statistics::StatisticsManager* const& statistics_manager);
-  void RecordHmiStateChanged(mobile_apis::HMILevel::eType new_hmi_level);
-  void RecordAppRegistrationGuiLanguage(
-      mobile_apis::Language::eType gui_language);
-  void RecordAppRegistrationVuiLanguage(
-      mobile_apis::Language::eType vui_language);
-  void RecordRpcSentInHMINone();
-  void RecordPolicyRejectedRpcCall();
-  void RecordAppUserSelection();
-  void RecordRunAttemptsWhileRevoked();
-  void RecordRemovalsForBadBehavior();
-
- private:
-  usage_statistics::AppStopwatch time_in_hmi_state_;
-  usage_statistics::AppInfo app_registration_language_gui_;
-  usage_statistics::AppInfo app_registration_language_vui_;
-  usage_statistics::AppCounter count_of_rejected_rpc_calls_;
-  usage_statistics::AppCounter count_of_rpcs_sent_in_hmi_none_;
-  usage_statistics::AppCounter count_of_user_selections_;
-  usage_statistics::AppCounter count_of_run_attempts_while_revoked_;
-  usage_statistics::AppCounter count_of_removals_for_bad_behavior_;
+  DECLARE_LOG4CXX_OBJECT(SafeFileAppender)
+ protected:
+  virtual void subAppend(const spi::LoggingEventPtr& event, log4cxx::helpers::Pool& p);
 };
 
-}  // namespace application_manager
+}  // namespace log4cxx
 
-#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_USAGE_STATISTICS_H_
+#endif  // SRC_PLUGINS_APPENDERS_SAFE_FILE_APPENDER_H_
