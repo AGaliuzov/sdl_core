@@ -219,6 +219,7 @@ PolicyHandler::PolicyHandler()
 }
 
 PolicyHandler::~PolicyHandler() {
+
 }
 
 bool PolicyHandler::LoadPolicyLibrary() {
@@ -839,6 +840,7 @@ bool PolicyHandler::ReceiveMessageFromSDK(const std::string& file,
 }
 
 bool PolicyHandler::UnloadPolicyLibrary() {
+  LOG4CXX_TRACE(logger_, "enter. policy_manager_ = " << policy_manager_);
   bool ret = true;
   delete policy_manager_;
   policy_manager_ = 0;
@@ -847,6 +849,7 @@ bool PolicyHandler::UnloadPolicyLibrary() {
     dl_handle_ = 0;
   }
   exchange_handler_->Stop();
+  LOG4CXX_TRACE(logger_, "exit");
   return ret;
 }
 
