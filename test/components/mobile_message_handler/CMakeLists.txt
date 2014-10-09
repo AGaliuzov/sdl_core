@@ -3,6 +3,7 @@ include_directories (
   ../../../src/components/application_manager/include
   ../../../src/components/mobile_message_handler/include/
   ../../../test/components/mobile_message_handler/include
+  ${LOG4CXX_INCLUDE_DIRECTORY}
 )
 
 set(LIBRARIES

@@ -8,6 +8,7 @@ include_directories (
   ${GSTREAMER_gst_INCLUDE_DIR}
   ${GLIB_glib_2_INCLUDE_DIR}
   ${CMAKE_BINARY_DIR}/src/components/
+  ${LOG4CXX_INCLUDE_DIRECTORY}
 )
 
 if (EXTENDED_MEDIA_MODE)

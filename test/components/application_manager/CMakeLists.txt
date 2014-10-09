@@ -12,6 +12,7 @@ include_directories (
   ../../../src/components/utils/include/
   ${JSONCPP_INCLUDE_DIRECTORY}
   ${CMAKE_BINARY_DIR}/src/components/
+  ${LOG4CXX_INCLUDE_DIRECTORY}
 )
 
 set(LIBRARIES
