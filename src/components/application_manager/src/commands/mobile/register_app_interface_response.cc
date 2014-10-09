@@ -78,15 +78,10 @@ void RegisterAppInterfaceResponse::SetHeartBeatTimeout(
   LOG4CXX_TRACE_ENTER(logger_);
   policy::PolicyHandler *policy_handler = policy::PolicyHandler::instance();
   if (policy_handler->PolicyEnabled()) {
-    policy::PolicyManager* policy_manager = policy_handler->policy_manager();
-    if (policy_manager) {
-      const int32_t timeout = policy_manager->HeartBeatTimeout(mobile_app_id);
-      if (timeout > 0) {
-        application_manager::ApplicationManagerImpl::instance()->
-            connection_handler()->SetHeartBeatTimeout(connection_key, timeout);
-      }
-    } else {
-      LOG4CXX_WARN(logger_, "Policy library is not loaded.");
+    const int32_t timeout = policy_handler->HeartBeatTimeout(mobile_app_id);
+    if (timeout > 0) {
+      application_manager::ApplicationManagerImpl::instance()->
+          connection_handler()->SetHeartBeatTimeout(connection_key, timeout);
     }
   } else {
     LOG4CXX_INFO(logger_, "Policy is turn off");

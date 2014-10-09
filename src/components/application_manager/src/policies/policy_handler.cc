@@ -1431,5 +1431,9 @@ bool PolicyHandler::CheckStealFocus(int system_action,
   return !(steal_focus && !allowed);
 }
 
+uint16_t PolicyHandler::HeartBeatTimeout(const std::string& app_id) const {
+  return policy_manager_->HeartBeatTimeout(app_id);
+}
+
 }  //  namespace policy
 
