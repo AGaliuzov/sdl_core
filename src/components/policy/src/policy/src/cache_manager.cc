@@ -75,6 +75,17 @@ bool CacheManager::CanAppKeepContext(const std::string &app_id) {
   return result;
 }
 
+uint16_t CacheManager::HeartBeatTimeout(const std::string &app_id) const {
+  uint16_t result = 0;
+  if (AppExists(app_id)) {
+    if (pt_->policy_table.app_policies[app_id].heart_beat_timeout_ms
+        .is_initialized()) {
+      result = *(pt_->policy_table.app_policies[app_id].heart_beat_timeout_ms);
+    }
+  }
+  return result;
+}
+
 bool CacheManager::CanAppStealFocus(const std::string &app_id) {
   bool result = true;
 #ifdef EXTENDED_POLICY

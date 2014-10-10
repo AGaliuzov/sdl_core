@@ -182,7 +182,7 @@ QtObject {
                 currentApplication.turnListSoftButtons = application.turnListSoftButtons
                 currentApplication.mediaClock.updateMode = application.mediaClock.updateMode
                 currentApplication.mediaClock.runningMode = application.mediaClock.runningMode
-                if (application.startTimeForProgress !== undefined) {
+                if (application.mediaClock.startTimeForProgress !== undefined) {
                     currentApplication.mediaClock.startTimeForProgress = application.mediaClock.startTimeForProgress
                 }
                 currentApplication.languageTTSVR = application.languageTTSVR

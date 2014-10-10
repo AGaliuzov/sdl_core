@@ -166,6 +166,8 @@ class PolicyManagerImpl : public PolicyManager {
 
     virtual void RemoveAppConsentForGroup(const std::string& app_id,
                                           const std::string& group_name);
+    
+    virtual uint16_t HeartBeatTimeout(const std::string& app_id) const;
 
     virtual bool IsPredataPolicy(const std::string& policy_app_id);
 
