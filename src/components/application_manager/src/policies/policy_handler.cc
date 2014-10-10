@@ -723,40 +723,48 @@ void PolicyHandler::OnPendingPermissionChange(
                                  device_params.device_mac_address,
                                  policy_app_id);
 
-  switch (app->hmi_level()) {
+  mobile_apis::HMILevel::eType app_hmi_level = app->hmi_level();
+
+  switch (app_hmi_level) {
   case mobile_apis::HMILevel::HMI_FULL:
   case mobile_apis::HMILevel::HMI_LIMITED: {
     if (permissions.appPermissionsConsentNeeded) {
       application_manager::MessageHelper::
           SendOnAppPermissionsChangedNotification(app->app_id(), permissions);
+
       policy_manager_->RemovePendingPermissionChanges(policy_app_id);
-      break;
     }
+    break;
   }
   case mobile_apis::HMILevel::HMI_BACKGROUND: {
-    if (permissions.isAppPermissionsRevoked
-        || permissions.appUnauthorized) {
+    if (permissions.isAppPermissionsRevoked) {
       application_manager::MessageHelper::
           SendOnAppPermissionsChangedNotification(app->app_id(), permissions);
 
-      if (permissions.appUnauthorized) {
-        application_manager::MessageHelper::
-            SendOnAppInterfaceUnregisteredNotificationToMobile(
-              app->app_id(),
-              mobile_apis::AppInterfaceUnregisteredReason::APP_UNAUTHORIZED);
-
-        application_manager::ApplicationManagerImpl::instance()->
-            UnregisterRevokedApplication(app->app_id(),
-                                         mobile_apis::Result::INVALID_ENUM);
-      }
-      policy_manager_->RemovePendingPermissionChanges(policy_app_id);
-      break;
+      policy_manager_->RemovePendingPermissionChanges(policy_app_id);      
     }
     break;
   }
-  case mobile_apis::HMILevel::HMI_NONE:
   default:
     break;
+  }
+
+  if (permissions.appUnauthorized) {
+    if (mobile_apis::HMILevel::HMI_FULL == app_hmi_level ||
+        mobile_apis::HMILevel::HMI_LIMITED == app_hmi_level) {
+      application_manager::MessageHelper::
+          SendOnAppPermissionsChangedNotification(app->app_id(), permissions);
+    }
+    application_manager::MessageHelper::
+        SendOnAppInterfaceUnregisteredNotificationToMobile(
+          app->app_id(),
+          mobile_apis::AppInterfaceUnregisteredReason::APP_UNAUTHORIZED);
+
+    application_manager::ApplicationManagerImpl::instance()->
+        UnregisterRevokedApplication(app->app_id(),
+                                     mobile_apis::Result::INVALID_ENUM);
+
+    policy_manager_->RemovePendingPermissionChanges(policy_app_id);
   }
 }
 
