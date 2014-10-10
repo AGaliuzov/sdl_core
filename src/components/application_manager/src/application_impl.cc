@@ -77,7 +77,7 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "ApplicationManager")
 ApplicationImpl::ApplicationImpl(uint32_t application_id,
     const std::string& mobile_app_id,
     const std::string& app_name,
-    usage_statistics::StatisticsManager* const & statistics_manager)
+    utils::SharedPtr<usage_statistics::StatisticsManager> statistics_manager)
     : grammar_id_(0),
       app_id_(application_id),
       active_message_(NULL),

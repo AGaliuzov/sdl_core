@@ -1007,40 +1007,45 @@ void PolicyManagerImpl::PTUpdatedAt(int kilometers, int days_after_epoch) {
   cache.ResetIgnitionCycles();
 }
 
-void PolicyManagerImpl::Increment(usage_statistics::GlobalCounterId type) {
+void PolicyManagerImpl::Increment(usage_statistics::GlobalCounterId type) const {
   LOG4CXX_INFO(logger_, "Increment without app id" );
-  sync_primitives::AutoLock locker(statistics_lock_);
+  sync_primitives::AutoLock locker(
+        const_cast<PolicyManagerImpl*>(this)->statistics_lock_);
 #ifdef EXTENDED_POLICY
-  cache.Increment(type);
+  const_cast<PolicyManagerImpl*>(this)->cache.Increment(type);
 #endif
 }
 
 void PolicyManagerImpl::Increment(const std::string& app_id,
-                                  usage_statistics::AppCounterId type) {
+                                  usage_statistics::AppCounterId type) const {
   LOG4CXX_INFO(logger_, "Increment " << app_id);
-  sync_primitives::AutoLock locker(statistics_lock_);
+  sync_primitives::AutoLock locker(
+        const_cast<PolicyManagerImpl*>(this)->statistics_lock_);
 #ifdef EXTENDED_POLICY
-  cache.Increment(app_id, type);
+  const_cast<PolicyManagerImpl*>(this)->cache.Increment(app_id, type);
 #endif
 }
 
 void PolicyManagerImpl::Set(const std::string& app_id,
                             usage_statistics::AppInfoId type,
-                            const std::string& value) {
+                            const std::string& value) const {
   LOG4CXX_INFO(logger_, "Set " << app_id);
-  sync_primitives::AutoLock locker(statistics_lock_);
+  sync_primitives::AutoLock locker(
+        const_cast<PolicyManagerImpl*>(this)->statistics_lock_);
 #ifdef EXTENDED_POLICY
-  cache.Set(app_id, type, value);
+  const_cast<PolicyManagerImpl*>(this)->cache.Set(app_id, type, value);
 #endif
 }
 
 void PolicyManagerImpl::Add(const std::string& app_id,
                             usage_statistics::AppStopwatchId type,
-                            int32_t timespan_seconds) {
+                            int32_t timespan_seconds) const {
   LOG4CXX_INFO(logger_, "Add " << app_id);
-  sync_primitives::AutoLock locker(statistics_lock_);
+  sync_primitives::AutoLock locker(
+        const_cast<PolicyManagerImpl*>(this)->statistics_lock_);
 #ifdef EXTENDED_POLICY
-  cache.Add(app_id, type, timespan_seconds);
+  const_cast<PolicyManagerImpl*>(this)->cache.Add(
+        app_id, type, timespan_seconds);
 #endif
 }
 

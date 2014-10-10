@@ -38,7 +38,7 @@
 
 namespace usage_statistics {
 
-GlobalCounter::GlobalCounter(StatisticsManager* const & statistics_manager,
+GlobalCounter::GlobalCounter(utils::SharedPtr<usage_statistics::StatisticsManager> statistics_manager,
                              GlobalCounterId counter_type)
     : counter_type_(counter_type),
       statistics_manager_(statistics_manager) {
@@ -50,7 +50,7 @@ void GlobalCounter::operator++() const {
   }
 }
 
-AppCounter::AppCounter(StatisticsManager* const & statistics_manager,
+AppCounter::AppCounter(utils::SharedPtr<usage_statistics::StatisticsManager> statistics_manager,
                        const std::string& app_id,
                        AppCounterId counter_type)
     : app_id_(app_id),
@@ -60,11 +60,11 @@ AppCounter::AppCounter(StatisticsManager* const & statistics_manager,
 
 void AppCounter::operator++() const {
   if (statistics_manager_) {
-    statistics_manager_->Increment(app_id_, counter_type_);
+    //statistics_manager_->Increment(app_id_, counter_type_);
   }
 }
 
-AppInfo::AppInfo(StatisticsManager* const & statistics_manager,
+AppInfo::AppInfo(utils::SharedPtr<usage_statistics::StatisticsManager> statistics_manager,
                  const std::string& app_id,
                  AppInfoId info_type)
     : app_id_(app_id),
@@ -78,7 +78,7 @@ void AppInfo::Update(const std::string& new_info) const {
   }
 }
 
-AppStopwatch::AppStopwatch(StatisticsManager* const & statistics_manager,
+AppStopwatch::AppStopwatch(utils::SharedPtr<usage_statistics::StatisticsManager> statistics_manager,
                            const std::string& app_id)
     : app_id_(app_id),
       stopwatch_type_(SECONDS_HMI_NONE),

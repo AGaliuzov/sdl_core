@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
@@ -164,6 +164,7 @@ class SharedPtr {
     operator bool() const;
     void reset();
     void reset(ObjectType* other);
+    void release();
     ObjectType* get() const;
 
     /**
@@ -325,6 +326,17 @@ template<typename ObjectType> void
 utils::SharedPtr<ObjectType>::reset(ObjectType* other) {
   DCHECK(other != NULL);
   reset_impl(other);
+}
+
+template<typename ObjectType> void
+utils::SharedPtr<ObjectType>                                                                                                                                                                                                                                        ::release() {
+  if (NULL != mObject) {
+    delete mObject;
+    mObject = 0;
+
+    delete mReferenceCounter;
+    mReferenceCounter = 0;
+  }
 }
 
 template<typename ObjectType> void
