@@ -73,7 +73,7 @@ install(FILES qmldir DESTINATION ${install_destination})
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
   add_custom_target(qmltypes_${target} ALL 
-    COMMAND  LD_LIBRARY_PATH=$THIRD_PARTY_INSTALL_PREFIX_ARCH/lib ${qmlplugindump_binary} -nonrelocatable com.ford.sdl.hmi.log4cxx 1.0 ${model_dir} > ${CMAKE_CURRENT_BINARY_DIR}/plugins.qmltypes 2>/dev/null
+    COMMAND  LD_LIBRARY_PATH=${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib ${qmlplugindump_binary} -nonrelocatable com.ford.sdl.hmi.log4cxx 1.0 ${model_dir} > ${CMAKE_CURRENT_BINARY_DIR}/plugins.qmltypes 2>/dev/null
     DEPENDS copy_library_${target}
   )
   add_custom_target(copy_qmltypes_${target} ALL
