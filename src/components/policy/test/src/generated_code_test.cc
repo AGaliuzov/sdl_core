@@ -45,6 +45,17 @@ namespace test {
 namespace components {
 namespace policy {
 
+TEST(PolicyGeneratedCodeTest, TestValidPTPreloadJsonIsValid) {
+  std::ifstream json_file("sdl_preloaded_pt.json");
+  ASSERT_TRUE(json_file.is_open());
+  Json::Value valid_table;
+  Json::Reader reader;
+  ASSERT_TRUE(reader.parse(json_file, valid_table));
+  Table table(&valid_table);
+  table.SetPolicyTableType(rpc::policy_table_interface_base::PT_PRELOADED);
+  ASSERT_RPCTYPE_VALID(table);
+}
+
 TEST(PolicyGeneratedCodeTest, TestValidPTUpdateJsonIsValid) {
   std::ifstream json_file("valid_sdl_pt_update.json");
   ASSERT_TRUE(json_file.is_open());
@@ -52,9 +63,9 @@ TEST(PolicyGeneratedCodeTest, TestValidPTUpdateJsonIsValid) {
   Json::Reader reader;
   ASSERT_TRUE(reader.parse(json_file, valid_table));
   Table table(&valid_table);
+  table.SetPolicyTableType(rpc::policy_table_interface_base::PT_UPDATE);
   ASSERT_RPCTYPE_VALID(table);
 }
-
 
 }  // namespace policy
 }  // namespace components

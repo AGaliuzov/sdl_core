@@ -525,6 +525,11 @@ bool SQLPTExtRepresentation::GatherConsumerFriendlyMessages(
     LOG4CXX_ERROR(logger_, "NULL pointer has been passed to fill");
     return false;
   }
+
+  if (!SQLPTRepresentation::GatherConsumerFriendlyMessages(messages)) {
+    return false;
+  }
+
   dbms::SQLQuery query(db());
   bool result = query.Prepare(sql_pt_ext::kCollectFriendlyMsg);
 
@@ -553,7 +558,6 @@ bool SQLPTExtRepresentation::GatherConsumerFriendlyMessages(
   }
   return result;
 }
-
 
 bool SQLPTExtRepresentation::SetMetaInfo(const std::string& ccpu_version,
     const std::string& wers_country_code,
@@ -702,8 +706,8 @@ bool SQLPTExtRepresentation::SaveSpecificAppPolicy(
     4, std::string(policy_table::EnumToJsonString(app.second.priority)));
   app_query.Bind(
     5, app.second.is_null());
-  app_query.Bind(6, app.second.memory_kb->operator IntType());
-  app_query.Bind(7, app.second.heart_beat_timeout_ms);
+  app_query.Bind(6, *app.second.memory_kb);
+  app_query.Bind(7, *app.second.heart_beat_timeout_ms);
   app.second.certificate.is_initialized() ?
   app_query.Bind(8, *app.second.certificate) : app_query.Bind(8, std::string());
 
@@ -854,7 +858,7 @@ void SQLPTExtRepresentation::GatherDeviceData(
     LOG4CXX_WARN(logger_, "Incorrect select statement for device data.");
     return;
   }
-
+  data->mark_initialized();
   while (query.Next()) {
     policy_table::DeviceParams* specific_device = &(*data)[query.GetString(0)];
     *specific_device->hardware = query.GetString(1);

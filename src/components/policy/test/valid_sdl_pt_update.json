@@ -1295,67 +1295,6 @@
          },
          "version" : "001.001.015"
       },
-      "device_data" : {
-         "H32L41K32JH4L1K234H3K4HUU40DAS7F970UEI17A73J" : {
-            "carrier" : null,
-            "firmware_rev" : null,
-            "hardware" : "Motorola Atrix 4G",
-            "max_number_rfcom_ports" : 15,
-            "os" : "Android",
-            "os_version" : "2.3.4",
-            "user_consent_records" : {
-               "device" : {
-                  "consent_groups" : {
-                     "DataConsent-1" : true
-                  },
-                  "input" : "VUI",
-                  "time_stamp" : "4/25/2012 11:56:00 AM"
-               }
-            }
-         },
-         "HUU40DAS7F970UEI17A73JH32L41K32JH4L1K234H3K4" : {
-            "carrier" : "Verizon",
-            "firmware_rev" : null,
-            "hardware" : "HTC Incredible",
-            "max_number_rfcom_ports" : 20,
-            "os" : "Android",
-            "os_version" : "2.3.3",
-            "user_consent_records" : {
-               "device" : {
-                  "consent_groups" : {
-                     "DataConsent-1" : true
-                  },
-                  "input" : "GUI",
-                  "time_stamp" : "4/11/2012 6:57:00 AM"
-               }
-            }
-         },
-         "UEI17A73JH32L41K32JH4L1K234H3K4HUU40DAS7F970" : {
-            "carrier" : "AT&T",
-            "firmware_rev" : null,
-            "hardware" : "iPhone 4S",
-            "max_number_rfcom_ports" : 25,
-            "os" : "iOS",
-            "os_version" : "5",
-            "user_consent_records" : {
-               "584421907" : {
-                  "consent_groups" : {
-                     "DrivingData-1" : false,
-                     "Location-1" : true
-                  },
-                  "input" : "VUI",
-                  "time_stamp" : "3/26/2012 10:41:00 AM "
-               },
-               "device" : {
-                  "consent_groups" : {
-                     "DataConsent-1" : true
-                  },
-                  "input" : "VUI",
-                  "time_stamp" : "4/24/2012 12:30:00 PM"
-               }
-            }
-         }
-      },
       "functional_groupings" : {
          "Base-4" : {
             "rpcs" : {
@@ -1778,40 +1717,7 @@
          "timeout_after_x_seconds" : 60,
          "vehicle_make" : "Stark Industries",
          "vehicle_model" : "E-Tron",
-         "vehicle_year" : 1992
-      },
-      "module_meta" : {
-         "ccpu_version" : "4.1.2.B_EB355B",
-         "ignition_cycles_since_last_exchange" : 50,
-         "language" : "en-us",
-         "pt_exchanged_at_odometer_x" : 1903,
-         "pt_exchanged_x_days_after_epoch" : 46684,
-         "vin" : "1FAPP6242VH100001",
-         "wers_country_code" : "WAEGB"
-      },
-      "usage_and_error_counts" : {
-         "app_level" : {
-            "584421907" : {
-               "app_registration_language_gui" : "en-us",
-               "app_registration_language_vui" : "en-us",
-               "count_of_rejected_rpc_calls" : 9,
-               "count_of_rejections_duplicate_name" : 2,
-               "count_of_rejections_nickname_mismatch" : 1,
-               "count_of_rejections_sync_out_of_memory" : 0,
-               "count_of_removals_for_bad_behavior" : 6,
-               "count_of_rfcom_limit_reached" : 1,
-               "count_of_rpcs_sent_in_hmi_none" : 7,
-               "count_of_run_attempts_while_revoked" : 0,
-               "count_of_user_selections" : 7,
-               "minutes_in_hmi_background" : 123,
-               "minutes_in_hmi_full" : 123,
-               "minutes_in_hmi_limited" : 456,
-               "minutes_in_hmi_none" : 456
-            }
-         },
-         "count_of_iap_buffer_full" : 1,
-         "count_of_sync_reboots" : 123,
-         "count_sync_out_of_memory" : 3
+         "vehicle_year" : "1992"
       }
    }
 }

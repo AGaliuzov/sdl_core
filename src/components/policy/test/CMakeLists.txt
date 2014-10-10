@@ -74,4 +74,5 @@ endif()
 create_test("test_PolicyManager" "${SOURCES}" "${LIBRARIES}")
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/valid_sdl_pt_update.json DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/sdl_preloaded_pt.json DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/log4cxx.properties DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

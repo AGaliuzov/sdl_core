@@ -46,7 +46,7 @@ namespace policy {
 }
 
 TEST(SharedLibraryTest, Full) {
-  const std::string kLib = "../../src/components/policy/src/policy/libPolicy.so";
+  const std::string kLib = "../src/policy/libPolicy.so";
   void* handle = dlopen(kLib.c_str(), RTLD_LAZY);
   EXPECT_FALSE(IsError(dlerror()));
   ASSERT_TRUE(handle);

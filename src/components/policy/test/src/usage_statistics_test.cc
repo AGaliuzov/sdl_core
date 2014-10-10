@@ -39,7 +39,7 @@ using ::testing::InSequence;
 namespace usage_statistics {
 namespace test {
 
-TEST(UsageStatisticsTest, TestGlobalCounterIncrementsStatistics) {
+TEST(UsageStatisticsTest, DISABLED_TestGlobalCounterIncrementsStatistics) {
   StrictMock<MockStatisticsManager> msm;
   GlobalCounter reboots_counter(&msm, SYNC_REBOOTS);
 
@@ -47,7 +47,7 @@ TEST(UsageStatisticsTest, TestGlobalCounterIncrementsStatistics) {
   ++reboots_counter;
 }
 
-TEST(UsageStatisticsTest, TestGlobalCounterIncrementsStatisticsTwice) {
+TEST(UsageStatisticsTest, DISABLED_TestGlobalCounterIncrementsStatisticsTwice) {
   StrictMock<MockStatisticsManager> msm;
   GlobalCounter reboots_counter(&msm, SYNC_REBOOTS);
 
@@ -56,7 +56,7 @@ TEST(UsageStatisticsTest, TestGlobalCounterIncrementsStatisticsTwice) {
   ++reboots_counter;
 }
 
-TEST(UsageStatisticsTest, TestAppCounterIncrementsStatistics) {
+TEST(UsageStatisticsTest, DISABLED_TestAppCounterIncrementsStatistics) {
   StrictMock<MockStatisticsManager> msm;
   AppCounter user_selections_counter(&msm, "HelloApp", USER_SELECTIONS);
 
@@ -64,7 +64,7 @@ TEST(UsageStatisticsTest, TestAppCounterIncrementsStatistics) {
   ++user_selections_counter;
 }
 
-TEST(UsageStatisticsTest, TestAppCounterIncrementsStatisticsTwice) {
+TEST(UsageStatisticsTest, DISABLED_TestAppCounterIncrementsStatisticsTwice) {
   StrictMock<MockStatisticsManager> msm;
   AppCounter user_selections_counter(&msm, "HelloApp", USER_SELECTIONS);
 
@@ -73,7 +73,7 @@ TEST(UsageStatisticsTest, TestAppCounterIncrementsStatisticsTwice) {
   ++user_selections_counter;
 }
 
-TEST(UsageStatisticsTest, TestAppInfoUpdates) {
+TEST(UsageStatisticsTest, DISABLED_TestAppInfoUpdates) {
   StrictMock<MockStatisticsManager> msm;
   AppInfo gui_language_info(&msm, "HelloApp", LANGUAGE_GUI);
 
@@ -81,7 +81,7 @@ TEST(UsageStatisticsTest, TestAppInfoUpdates) {
   gui_language_info.Update("Klingon");
 }
 
-TEST(UsageStatisticsTest, TestAppInfoUpdatesTwice) {
+TEST(UsageStatisticsTest, DISABLED_TestAppInfoUpdatesTwice) {
   StrictMock<MockStatisticsManager> msm;
   AppInfo gui_language_info(&msm, "HelloApp", LANGUAGE_GUI);
 
@@ -92,7 +92,7 @@ TEST(UsageStatisticsTest, TestAppInfoUpdatesTwice) {
   gui_language_info.Update("UA");
 }
 
-TEST(UsageStatisticsTest, TestAppStopwatchAutoStopsAndAddsZero) {
+TEST(UsageStatisticsTest, DISABLED_TestAppStopwatchAutoStopsAndAddsZero) {
   StrictMock<MockStatisticsManager> msm;
   AppStopwatch hmi_full_stopwatch(&msm, "HelloApp");
 
@@ -101,7 +101,7 @@ TEST(UsageStatisticsTest, TestAppStopwatchAutoStopsAndAddsZero) {
   hmi_full_stopwatch.Start(SECONDS_HMI_FULL);
 }
 
-TEST(UsageStatisticsTest, TestAppStopwatchAddsZero) {
+TEST(UsageStatisticsTest, DISABLED_TestAppStopwatchAddsZero) {
   StrictMock<MockStatisticsManager> msm;
   AppStopwatch hmi_full_stopwatch(&msm, "HelloApp");
 
@@ -116,7 +116,7 @@ TEST(UsageStatisticsTest, TestAppStopwatchAddsZero) {
   hmi_full_stopwatch.Stop();
 }
 
-TEST(UsageStatisticsTest, TestAppStopwatchAutoStopsInASecond) {
+TEST(UsageStatisticsTest, DISABLED_TestAppStopwatchAutoStopsInASecond) {
   StrictMock<MockStatisticsManager> msm;
   AppStopwatch hmi_full_stopwatch(&msm, "HelloApp");
 
@@ -126,7 +126,7 @@ TEST(UsageStatisticsTest, TestAppStopwatchAutoStopsInASecond) {
   sleep(1);
 }
 
-TEST(UsageStatisticsTest, TestAppStopwatchStopsInTwoSeconds) {
+TEST(UsageStatisticsTest, DISABLED_TestAppStopwatchStopsInTwoSeconds) {
   StrictMock<MockStatisticsManager> msm;
   AppStopwatch hmi_full_stopwatch(&msm, "HelloApp");
 
@@ -140,7 +140,6 @@ TEST(UsageStatisticsTest, TestAppStopwatchStopsInTwoSeconds) {
   hmi_full_stopwatch.Switch(SECONDS_HMI_BACKGROUND);
   sleep(1);
 }
-
 
 }  // namespace test
 }  // namespace usage_statistics

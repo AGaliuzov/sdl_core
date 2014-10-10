@@ -74,19 +74,40 @@ class PolicyManagerImplTest : public ::testing::Test {
   PolicyManagerImpl* manager;
   MockCacheManagerInterface* cache_manager;
   MockUpdateStatusManagerInterface* update_manager;
+  MockPolicyListener* listener;
 
   void SetUp() {
     manager = new PolicyManagerImpl();
-    cache_manager = new NiceMock<MockCacheManagerInterface>();
-    update_manager = new MockUpdateStatusManagerInterface();
+
+    cache_manager = new MockCacheManagerInterface();
     manager->set_cache_manager(cache_manager);
+
+    update_manager = new MockUpdateStatusManagerInterface();
     manager->set_update_status_manager(update_manager);
+
+    listener = new MockPolicyListener();
+    EXPECT_CALL(*update_manager, set_listener(listener)).Times(1);
+    manager->set_listener(listener);
   }
 
   void TearDown() {
-    delete update_manager;
-    delete cache_manager;
+    EXPECT_CALL(*update_manager, GetUpdateStatus()).Times(1)
+        .WillOnce(Return(::policy::StatusUpToDate));
+    EXPECT_CALL(*cache_manager, Backup()).Times(1);
+    EXPECT_CALL(*cache_manager, SaveUpdateRequired(_)).Times(1);
+    delete manager;
+    delete listener;
   }
+
+  ::testing::AssertionResult IsValid(const policy_table::Table& table) {
+    if (table.is_valid()) {
+      return ::testing::AssertionSuccess();
+    } else {
+      ::rpc::ValidationReport report(" - table");
+      table.ReportErrors(&report);
+      return ::testing::AssertionFailure() << ::rpc::PrettyFormat(report);
+    }
+ }
 };
 
 TEST_F(PolicyManagerImplTest, ExceededIgnitionCycles) {
@@ -188,6 +209,8 @@ TEST_F(PolicyManagerImplTest, AddAppStopwatch) {
 TEST_F(PolicyManagerImplTest, ResetPT) {
   EXPECT_CALL(*cache_manager, ResetPT("filename")).WillOnce(Return(true))
       .WillOnce(Return(false));
+  EXPECT_CALL(*cache_manager, TimeoutResponse()).Times(1);
+  EXPECT_CALL(*cache_manager, SecondsBetweenRetries(_)).Times(1);
 
   EXPECT_TRUE(manager->ResetPT("filename"));
   EXPECT_FALSE(manager->ResetPT("filename"));
@@ -195,19 +218,48 @@ TEST_F(PolicyManagerImplTest, ResetPT) {
 
 #ifdef EXTENDED_POLICY
 TEST_F(PolicyManagerImplTest, CheckPermissions) {
-  NiceMock<MockPolicyListener> mock_listener;
-  manager->set_listener(&mock_listener);
+  policy_table::RpcParameters rpc_parameters;
+  rpc_parameters.hmi_levels.push_back(policy_table::HL_FULL);
+  rpc_parameters.parameters->push_back(policy_table::P_SPEED);
+  rpc_parameters.parameters->push_back(policy_table::P_GPS);
+  rpc_parameters.parameters->push_back(policy_table::P_ODOMETER);
 
-  EXPECT_CALL(mock_listener, OnCurrentDeviceIdUpdateRequired("12345678"))
+  policy_table::Rpc rpc;
+  rpc["Alert"] = rpc_parameters;
+
+  policy_table::Rpcs rpcs;
+  rpcs.rpcs = rpc;
+
+  policy_table::FunctionalGroupings groups;
+  groups["AlertGroup"] = rpcs;
+
+  ::policy::FunctionalIdType group_types;
+  group_types[::policy::kTypeAllowed].push_back(1);
+
+  ::policy::FunctionalGroupNames group_names;
+  group_names[1] = std::make_pair<std::string, std::string>("", "AlertGroup");
+
+  EXPECT_CALL(*listener, OnCurrentDeviceIdUpdateRequired("12345678"))
       .Times(1);
+  EXPECT_CALL(*cache_manager, GetFunctionalGroupings(_)).Times(1)
+      .WillOnce(DoAll(SetArgReferee<0>(groups), Return(true)));
+  EXPECT_CALL(*cache_manager, IsDefaultPolicy("12345678")).Times(1)
+      .WillOnce(Return(false));
+  EXPECT_CALL(*cache_manager, IsPredataPolicy("12345678")).Times(1)
+      .WillOnce(Return(false));
+  EXPECT_CALL(*cache_manager, GetPermissionsForApp(_, "12345678", _)).Times(1)
+      .WillOnce(DoAll(SetArgReferee<2>(group_types),Return(true)));
+  EXPECT_CALL(*cache_manager, GetFunctionalGroupNames(_)).Times(1)
+      .WillOnce(DoAll(SetArgReferee<0>(group_names), Return(true)));
 
   ::policy::CheckPermissionResult output;
   manager->CheckPermissions("12345678", "FULL", "Alert", output);
   EXPECT_EQ(::policy::kRpcAllowed, output.hmi_level_permitted);
   ASSERT_TRUE(!output.list_of_allowed_params.empty());
-  ASSERT_EQ(2u, output.list_of_allowed_params.size());
-  EXPECT_EQ("speed", output.list_of_allowed_params[0]);
-  EXPECT_EQ("gps", output.list_of_allowed_params[1]);
+  ASSERT_EQ(3u, output.list_of_allowed_params.size());
+  EXPECT_EQ("gps", output.list_of_allowed_params[0]);
+  EXPECT_EQ("odometer", output.list_of_allowed_params[1]);
+  EXPECT_EQ("speed", output.list_of_allowed_params[2]);
 }
 #else  // EXTENDED_POLICY
 TEST_F(PolicyManagerImplTest, CheckPermissions) {
@@ -216,10 +268,12 @@ TEST_F(PolicyManagerImplTest, CheckPermissions) {
   expected.list_of_allowed_params.push_back("speed");
   expected.list_of_allowed_params.push_back("gps");
 
-  EXPECT_CALL(*cache_manager, GetFunctionalGroupings(_)).Times(1);
+  EXPECT_CALL(*cache_manager, CheckPermissions("12345678", "FULL", "Alert", _))
+      .Times(1).WillOnce(SetArgReferee<3>(expected));
 
   ::policy::CheckPermissionResult output;
   manager->CheckPermissions("12345678", "FULL", "Alert", output);
+
   EXPECT_EQ(::policy::kRpcAllowed, output.hmi_level_permitted);
   ASSERT_TRUE(!output.list_of_allowed_params.empty());
   ASSERT_EQ(2u, output.list_of_allowed_params.size());
@@ -228,31 +282,15 @@ TEST_F(PolicyManagerImplTest, CheckPermissions) {
 }
 #endif  // EXTENDED_POLICY
 
-TEST_F(PolicyManagerImplTest, DISABLED_LoadPT) {
-  // TODO(KKolodiy): PolicyManagerImpl is hard for testing
-  MockPolicyListener mock_listener;
-
+TEST_F(PolicyManagerImplTest, LoadPT) {
   Json::Value table(Json::objectValue);
   table["policy_table"] = Json::Value(Json::objectValue);
 
   Json::Value& policy_table = table["policy_table"];
-  policy_table["module_meta"] = Json::Value(Json::objectValue);
   policy_table["module_config"] = Json::Value(Json::objectValue);
-  policy_table["usage_and_error_counts"] = Json::Value(Json::objectValue);
-  policy_table["device_data"] = Json::Value(Json::objectValue);
   policy_table["functional_groupings"] = Json::Value(Json::objectValue);
   policy_table["consumer_friendly_messages"] = Json::Value(Json::objectValue);
   policy_table["app_policies"] = Json::Value(Json::objectValue);
-  policy_table["app_policies"]["1234"] = Json::Value(Json::objectValue);
-
-  Json::Value& module_meta = policy_table["module_meta"];
-  module_meta["ccpu_version"] = Json::Value("ccpu version");
-  module_meta["language"] = Json::Value("ru");
-  module_meta["wers_country_code"] = Json::Value("ru");
-  module_meta["pt_exchanged_at_odometer_x"] = Json::Value(0);
-  module_meta["pt_exchanged_x_days_after_epoch"] = Json::Value(0);
-  module_meta["ignition_cycles_since_last_exchange"] = Json::Value(0);
-  module_meta["vin"] = Json::Value("vin");
 
   Json::Value& module_config = policy_table["module_config"];
   module_config["preloaded_pt"] = Json::Value(true);
@@ -285,21 +323,7 @@ TEST_F(PolicyManagerImplTest, DISABLED_LoadPT) {
       6);
   module_config["vehicle_make"] = Json::Value("MakeT");
   module_config["vehicle_model"] = Json::Value("ModelT");
-  module_config["vehicle_year"] = Json::Value(2014);
-
-  Json::Value& usage_and_error_counts = policy_table["usage_and_error_counts"];
-  usage_and_error_counts["count_of_iap_buffer_full"] = Json::Value(0);
-  usage_and_error_counts["count_sync_out_of_memory"] = Json::Value(0);
-  usage_and_error_counts["count_of_sync_reboots"] = Json::Value(0);
-
-  Json::Value& device_data = policy_table["device_data"];
-  device_data["DEVICEHASH"] = Json::Value(Json::objectValue);
-  device_data["DEVICEHASH"]["hardware"] = Json::Value("hardware");
-  device_data["DEVICEHASH"]["firmware_rev"] = Json::Value("firmware_rev");
-  device_data["DEVICEHASH"]["os"] = Json::Value("os");
-  device_data["DEVICEHASH"]["os_version"] = Json::Value("os_version");
-  device_data["DEVICEHASH"]["carrier"] = Json::Value("carrier");
-  device_data["DEVICEHASH"]["max_number_rfcom_ports"] = Json::Value(10);
+  module_config["vehicle_year"] = Json::Value("2014");
 
   Json::Value& functional_groupings = policy_table["functional_groupings"];
   functional_groupings["default"] = Json::Value(Json::objectValue);
@@ -318,7 +342,7 @@ TEST_F(PolicyManagerImplTest, DISABLED_LoadPT) {
   Json::Value& app_policies = policy_table["app_policies"];
   app_policies["default"] = Json::Value(Json::objectValue);
   app_policies["default"]["memory_kb"] = Json::Value(50);
-  app_policies["default"]["watchdog_timer_ms"] = Json::Value(100);
+  app_policies["default"]["heart_beat_timeout_ms"] = Json::Value(100);
   app_policies["default"]["groups"] = Json::Value(Json::arrayValue);
   app_policies["default"]["groups"][0] = Json::Value("default");
   app_policies["default"]["priority"] = Json::Value("EMERGENCY");
@@ -326,16 +350,34 @@ TEST_F(PolicyManagerImplTest, DISABLED_LoadPT) {
   app_policies["default"]["keep_context"] = Json::Value(true);
   app_policies["default"]["steal_focus"] = Json::Value(true);
   app_policies["default"]["certificate"] = Json::Value("sign");
+  app_policies["1234"] = Json::Value(Json::objectValue);
+  app_policies["1234"]["memory_kb"] = Json::Value(50);
+  app_policies["1234"]["heart_beat_timeout_ms"] = Json::Value(100);
+  app_policies["1234"]["groups"] = Json::Value(Json::arrayValue);
+  app_policies["1234"]["groups"][0] = Json::Value("default");
+  app_policies["1234"]["priority"] = Json::Value("EMERGENCY");
+  app_policies["1234"]["default_hmi"] = Json::Value("FULL");
+  app_policies["1234"]["keep_context"] = Json::Value(true);
+  app_policies["1234"]["steal_focus"] = Json::Value(true);
+  app_policies["1234"]["certificate"] = Json::Value("sign");
+
+  policy_table::Table update(&table);
+  update.SetPolicyTableType(rpc::policy_table_interface_base::PT_UPDATE);
+  ASSERT_TRUE(IsValid(update));
 
   std::string json = table.toStyledString();
   ::policy::BinaryMessage msg(json.begin(), json.end());
 
-  EXPECT_CALL(*cache_manager, Save(_)).Times(1).WillOnce(Return(true));
-  EXPECT_CALL(mock_listener,
-                                         OnUpdateStatusChanged(_))
-.Times(1);
+  utils::SharedPtr<policy_table::Table> snapshot =
+      new policy_table::Table(update.policy_table);
 
-  manager->set_listener(&mock_listener);
+  EXPECT_CALL(*update_manager, OnValidUpdateReceived()).Times(1);
+  EXPECT_CALL(*cache_manager, GenerateSnapshot()).Times(1).WillOnce(Return(snapshot));
+  EXPECT_CALL(*cache_manager, ApplyUpdate(_)).Times(1).WillOnce(Return(true));
+  EXPECT_CALL(*listener, GetAppName("1234")).Times(1).WillOnce(Return(""));
+  EXPECT_CALL(*cache_manager, TimeoutResponse()).Times(1);
+  EXPECT_CALL(*cache_manager, SecondsBetweenRetries(_)).Times(1);
+  EXPECT_CALL(*listener, OnUserRequestedUpdateCheckRequired()).Times(1);
 
   EXPECT_TRUE(manager->LoadPT("file_pt_update.json", msg));
 }
@@ -348,6 +390,9 @@ TEST_F(PolicyManagerImplTest, RequestPTUpdate) {
       json.end());
 
   EXPECT_CALL(*cache_manager, GenerateSnapshot()).WillOnce(Return(p_table));
+#ifdef EXTENDED_POLICY
+  EXPECT_CALL(*cache_manager, UnpairedDevicesList(_)).Times(1);
+#endif  // EXTENDED_POLICY
 
   ::policy::BinaryMessageSptr output = manager->RequestPTUpdate();
   EXPECT_EQ(*expect, *output);
@@ -377,7 +422,7 @@ TEST_F(PolicyManagerImplTest, GetPolicyTableStatus) {
 #ifdef EXTENDED_POLICY
 TEST_F(PolicyManagerImplTest, MarkUnpairedDevice) {
   EXPECT_CALL(*cache_manager, SetUnpairedDevice("12345")).WillOnce(Return(true));
-
+  EXPECT_CALL(*cache_manager, GetDeviceGroupsFromPolicies(_, _)).Times(1);
   manager->MarkUnpairedDevice("12345");
 }
 #endif  // EXTENDED_POLICY

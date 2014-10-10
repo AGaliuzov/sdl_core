@@ -1,5 +1,4 @@
 // This file is generated, do not edit
-#include "./functions.h"
 #include "./types.h"
 
 namespace rpc {
@@ -74,11 +73,13 @@ bool DeviceParams::Validate() const {
 bool PolicyTable::Validate() const {
   for (ApplicationPolicies::const_iterator it = app_policies.begin();
        app_policies.end() != it; ++it) {
+    // TODO(AOleynik): checks below are disabled until clarification with
+    // customer, see APPLINK-8149
     if (kDeviceApp == it->first) {
-      if (it->second.AppHMIType.is_initialized()
+      if (/*it->second.AppHMIType.is_initialized()
           || it->second.memory_kb.is_initialized()
           || it->second.heart_beat_timeout_ms.is_initialized()
-          || it->second.nicknames.is_initialized()) {
+          ||*/ it->second.nicknames.is_initialized()) {
         initialization_state__ = kUninitialized;
         return false;
       }

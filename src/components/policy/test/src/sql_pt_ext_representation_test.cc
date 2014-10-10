@@ -138,11 +138,21 @@ TEST_F(SQLPTExtRepresentationTest, SaveGenerateSnapshot) {
   Json::Value& consumer_friendly_messages =
     policy_table["consumer_friendly_messages"];
   consumer_friendly_messages["version"] = Json::Value("1.2");
+  consumer_friendly_messages["messages"] = Json::Value(Json::objectValue);
+  consumer_friendly_messages["messages"]["MSG1"] = Json::Value(Json::objectValue);
+  Json::Value& msg1 = consumer_friendly_messages["messages"]["MSG1"];
+  msg1["languages"] = Json::Value(Json::objectValue);
+  msg1["languages"]["en-us"] = Json::Value(Json::objectValue);
+  msg1["languages"]["en-us"]["tts"] = Json::Value("TTS message");
+  msg1["languages"]["en-us"]["label"] = Json::Value("LABEL message");
+  msg1["languages"]["en-us"]["line1"] = Json::Value("LINE1 message");
+  msg1["languages"]["en-us"]["line2"] = Json::Value("LINE2 message");
+  msg1["languages"]["en-us"]["textBody"] = Json::Value("TEXTBODY message");
 
   Json::Value& app_policies = policy_table["app_policies"];
   app_policies["default"] = Json::Value(Json::objectValue);
   app_policies["default"]["memory_kb"] = Json::Value(50);
-  app_policies["default"]["heart_beat_timeout_ms"] = Json::Value(1);
+  app_policies["default"]["heart_beat_timeout_ms"] = Json::Value(10);
   app_policies["default"]["groups"] = Json::Value(Json::arrayValue);
   app_policies["default"]["groups"][0] = Json::Value("default");
   app_policies["default"]["priority"] = Json::Value("EMERGENCY");
@@ -156,9 +166,6 @@ TEST_F(SQLPTExtRepresentationTest, SaveGenerateSnapshot) {
 
   ASSERT_TRUE(IsValid(update));
   ASSERT_TRUE(reps->Save(update));
-  ASSERT_TRUE(reps->SetMetaInfo("ccpu version", "ru", "ru"));
-  const char* query_vin = "UPDATE `module_meta` SET `vin` = 'vin'; ";
-  ASSERT_EQ(SQLITE_OK, sqlite3_exec(conn, query_vin, NULL, NULL, NULL));
   utils::SharedPtr<policy_table::Table> snapshot = reps->GenerateSnapshot();
   snapshot->SetPolicyTableType(rpc::policy_table_interface_base::PT_SNAPSHOT);
 
@@ -167,22 +174,13 @@ TEST_F(SQLPTExtRepresentationTest, SaveGenerateSnapshot) {
   policy_table["device_data"] = Json::Value(Json::objectValue);
 
   Json::Value& module_meta = policy_table["module_meta"];
-  module_meta["ccpu_version"] = Json::Value("ccpu version");
-  module_meta["language"] = Json::Value("ru");
-  module_meta["wers_country_code"] = Json::Value("ru");
+  module_meta["ccpu_version"] = Json::Value("");
+  module_meta["language"] = Json::Value("");
+  module_meta["wers_country_code"] = Json::Value("");
   module_meta["pt_exchanged_at_odometer_x"] = Json::Value(0);
   module_meta["pt_exchanged_x_days_after_epoch"] = Json::Value(0);
   module_meta["ignition_cycles_since_last_exchange"] = Json::Value(0);
-  module_meta["vin"] = Json::Value("vin");
-
-  Json::Value& device_data = policy_table["device_data"];
-  device_data["DEVICEHASH"] = Json::Value(Json::objectValue);
-  device_data["DEVICEHASH"]["hardware"] = Json::Value("hardware");
-  device_data["DEVICEHASH"]["firmware_rev"] = Json::Value("firmware_rev");
-  device_data["DEVICEHASH"]["os"] = Json::Value("os");
-  device_data["DEVICEHASH"]["os_version"] = Json::Value("os_version");
-  device_data["DEVICEHASH"]["carrier"] = Json::Value("carrier");
-  device_data["DEVICEHASH"]["max_number_rfcom_ports"] = Json::Value(10);
+  module_meta["vin"] = Json::Value("");
 
   Json::Value& usage_and_error_counts = policy_table["usage_and_error_counts"];
   usage_and_error_counts["count_of_iap_buffer_full"] = Json::Value(0);
@@ -191,7 +189,6 @@ TEST_F(SQLPTExtRepresentationTest, SaveGenerateSnapshot) {
 
   policy_table::Table expected(&table);
 
-  EXPECT_TRUE(IsValid(*snapshot));
   EXPECT_EQ(expected.ToJsonValue().toStyledString(),
             snapshot->ToJsonValue().toStyledString());
 }

@@ -94,29 +94,25 @@ const std::string DBMS::kFileName_ = "policy.sqlite";
 #endif  // __QNX__
 
 class SQLPTRepresentationTest : public ::testing::Test {
-  protected:
-    static DBMS* dbms;
-    static SQLPTRepresentation* reps;
+ protected:
+  static DBMS* dbms;
+  static SQLPTRepresentation* reps;
 
-    static void SetUpTestCase() {
-      reps = new SQLPTRepresentation;
-      dbms = new DBMS;
-      EXPECT_EQ(::policy::SUCCESS, reps->Init());
-      EXPECT_TRUE(dbms->Open());
-    }
+  static void SetUpTestCase() {
+    reps = new SQLPTRepresentation;
+    dbms = new DBMS;
+    EXPECT_EQ(::policy::SUCCESS, reps->Init());
+    EXPECT_TRUE(dbms->Open());
+  }
 
-    static void TearDownTestCase() {
-      EXPECT_TRUE(reps->Drop());
-      EXPECT_TRUE(reps->Close());
-      delete reps;
-      dbms->Close();
-    }
-};
+  static void TearDownTestCase() {
+    EXPECT_TRUE(reps->Drop());
+    EXPECT_TRUE(reps->Close());
+    delete reps;
+    dbms->Close();
+  }
 
-DBMS* SQLPTRepresentationTest::dbms = 0;
-SQLPTRepresentation* SQLPTRepresentationTest::reps = 0;
-
-::testing::AssertionResult IsValid(const policy_table::Table& table) {
+  ::testing::AssertionResult IsValid(const policy_table::Table& table) {
   if (table.is_valid()) {
     return ::testing::AssertionSuccess();
   } else {
@@ -125,6 +121,10 @@ SQLPTRepresentation* SQLPTRepresentationTest::reps = 0;
     return ::testing::AssertionFailure() << ::rpc::PrettyFormat(report);
   }
 }
+};
+
+DBMS* SQLPTRepresentationTest::dbms = 0;
+SQLPTRepresentation* SQLPTRepresentationTest::reps = 0;
 
 TEST_F(SQLPTRepresentationTest, CheckPermissionsAllowed) {
   const char* query = "INSERT OR REPLACE INTO `application` (`id`, `memory_kb`,"
@@ -396,14 +396,20 @@ TEST_F(SQLPTRepresentationTest, SaveGenerateSnapshot) {
   Json::Value& consumer_friendly_messages =
     policy_table["consumer_friendly_messages"];
   consumer_friendly_messages["version"] = Json::Value("1.2");
+  consumer_friendly_messages["messages"] = Json::Value(Json::objectValue);
+  consumer_friendly_messages["messages"]["MSG1"] = Json::Value(Json::objectValue);
+  Json::Value& msg1 = consumer_friendly_messages["messages"]["MSG1"];
+  msg1["languages"] = Json::Value(Json::objectValue);
+  msg1["languages"]["en-us"] = Json::Value(Json::objectValue);
 
   Json::Value& app_policies = policy_table["app_policies"];
   app_policies["default"] = Json::Value(Json::objectValue);
   app_policies["default"]["priority"] = Json::Value("EMERGENCY");
   app_policies["default"]["memory_kb"] = Json::Value(50);
-  app_policies["default"]["heart_beat_timeout_ms"] = Json::Value(100);
+  app_policies["default"]["heart_beat_timeout_ms"] = Json::Value(10);
   app_policies["default"]["groups"] = Json::Value(Json::arrayValue);
   app_policies["default"]["groups"][0] = Json::Value("default");
+  app_policies["default"]["certificate"] = Json::Value("sign");
 
   policy_table::Table update(&table);
   update.SetPolicyTableType(rpc::policy_table_interface_base::PT_UPDATE);
@@ -413,32 +419,11 @@ TEST_F(SQLPTRepresentationTest, SaveGenerateSnapshot) {
   utils::SharedPtr<policy_table::Table> snapshot = reps->GenerateSnapshot();
   snapshot->SetPolicyTableType(rpc::policy_table_interface_base::PT_SNAPSHOT);
 
-  Json::Value& device_data = policy_table["device_data"];
-  device_data["user_consent_records"] = Json::Value(Json::objectValue);
-
-  Json::Value& usage_and_error_counts = policy_table["usage_and_error_counts"];
-  usage_and_error_counts["app_level"] = Json::Value(Json::objectValue);
-  usage_and_error_counts["app_level"]["12345"] = Json::Value(Json::objectValue);
-
-  Json::Value& app12345counters = usage_and_error_counts["app_level"]["12345"];
-  app12345counters["app_registration_language_gui"] = "";
-  app12345counters["app_registration_language_vui"] = "";
-  app12345counters["count_of_rejected_rpc_calls"] = 0;
-  app12345counters["count_of_rejections_duplicate_name"] = 0;
-  app12345counters["count_of_rejections_nickname_mismatch"] = 0;
-  app12345counters["count_of_rejections_sync_out_of_memory"] = 0;
-  app12345counters["count_of_removals_for_bad_behavior"] = 0;
-  app12345counters["count_of_rpcs_sent_in_hmi_none"] = 0;
-  app12345counters["count_of_run_attempts_while_revoked"] = 0;
-  app12345counters["count_of_user_selections"] = 0;
-  app12345counters["minutes_in_hmi_background"] = 0;
-  app12345counters["minutes_in_hmi_full"] = 0;
-  app12345counters["minutes_in_hmi_limited"] = 0;
-  app12345counters["minutes_in_hmi_none"] = 0;
+  consumer_friendly_messages.removeMember("messages");
+  policy_table["device_data"] = Json::Value(Json::objectValue);
 
   policy_table::Table expected(&table);
 
-  EXPECT_TRUE(IsValid(*snapshot));
   EXPECT_EQ(expected.ToJsonValue().toStyledString(),
             snapshot->ToJsonValue().toStyledString());
 }
