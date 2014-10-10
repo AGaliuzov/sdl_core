@@ -34,11 +34,7 @@
 #include <stdint.h>
 #include "utils/date_time.h"
 
-
 namespace date_time {
-
-int32_t const DateTime::MILLISECONDS_IN_SECOND;
-int32_t const DateTime::MICROSECONDS_IN_MILLISECONDS;
 
 TimevalStruct DateTime::getCurrentTime() {
   TimevalStruct currentTime;
@@ -69,31 +65,38 @@ int64_t DateTime::calculateTimeSpan(const TimevalStruct& sinceTime) {
 
 int64_t DateTime::calculateTimeDiff(const TimevalStruct &time1,
                                     const TimevalStruct &time2){
-  TimevalStruct timeDifference;
-  timeDifference.tv_sec = time1.tv_sec - time2.tv_sec;
-  timeDifference.tv_usec = time1.tv_usec - time2.tv_usec;
-
-  if ( timeDifference.tv_usec < 0 ) {
-    timeDifference.tv_sec--;
-    timeDifference.tv_usec += MILLISECONDS_IN_SECOND
-                            * MICROSECONDS_IN_MILLISECONDS;
+  TimevalStruct ret;
+  if (Greater(time1, time2)) {
+    ret = Sub(time1, time2);
+  } else {
+    ret = Sub(time2, time1);
   }
-  return getmSecs(timeDifference);
+  return getmSecs(ret);
+}
+
+TimevalStruct DateTime::Sub(const TimevalStruct& time1,
+                            const TimevalStruct& time2) {
+  TimevalStruct ret;
+  timersub(&time1, &time2, &ret);
+  return ret;
+}
+
+bool DateTime::Greater(const TimevalStruct& time1, const TimevalStruct& time2) {
+  return timercmp(&time1, &time2, >);
+}
+
+bool DateTime::Less(const TimevalStruct& time1, const TimevalStruct& time2) {
+  return timercmp(&time1, &time2, <);
+}
+
+bool DateTime::Equal(const TimevalStruct& time1, const TimevalStruct& time2) {
+  return !timercmp(&time1, &time2, !=);
 }
 
 TimeCompare date_time::DateTime::compareTime(const TimevalStruct &time1, const TimevalStruct &time2) {
-  if (getSecs(time1) == getSecs(time2)) {
-      if (getmSecs(time1) == getmSecs(time2)) {
-          if (getuSecs(time1) == getuSecs(time2)) {
-            return EQUAL;
-          }
-          return getuSecs(time1) < getuSecs(time2) ? LESS : GREATER;
-      }
-      return getmSecs(time1) < getmSecs(time2) ? LESS : GREATER;
-  }
-  return getSecs(time1) < getSecs(time2) ? LESS : GREATER;
+  if (Greater(time1, time2)) return GREATER;
+  if (Less(time1, time2)) return LESS;
+  return EQUAL;
 }
-
-
 
 }  // namespace date_time

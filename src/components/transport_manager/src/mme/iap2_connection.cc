@@ -54,7 +54,9 @@ IAP2Connection::IAP2Connection(const DeviceUID& device_uid,
 }
 
 IAP2Connection::~IAP2Connection() {
-  receiver_thread_->stop();
+  if (receiver_thread_) {
+    receiver_thread_->stop();
+  }
 }
 
 bool IAP2Connection::Init() {
@@ -95,7 +97,9 @@ TransportAdapter::Error IAP2Connection::SendData(RawMessagePtr message) {
 
 TransportAdapter::Error IAP2Connection::Disconnect() {
   controller_->ConnectionFinished(device_uid_, app_handle_);
-  receiver_thread_->stop();
+  if (receiver_thread_) {
+    receiver_thread_->stop();
+  }
   TransportAdapter::Error error = Close() ? TransportAdapter::OK : TransportAdapter::FAIL;
   controller_->DisconnectDone(device_uid_, app_handle_);
   return error;

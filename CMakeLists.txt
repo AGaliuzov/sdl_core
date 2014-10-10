@@ -63,7 +63,7 @@ set(ARCH_TYPE_OPTION	"$ENV{ARCH_TYPE}")
 
 add_custom_target(pasa-tarball
   COMMAND ${CMAKE_SOURCE_DIR}/tools/Utils/export-customer-specific.sh ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} pasa
-  COMMAND tar -czv -C /tmp/PASA -f ${CMAKE_BINARY_DIR}/pasa.tar.gz . > /dev/null
+  COMMAND tar -cz -C /tmp/PASA -f ${CMAKE_BINARY_DIR}/pasa.tar.gz . 
   DEPENDS HMI_API MOBILE_API v4_protocol_v1_2_no_extra
 )
 
@@ -315,6 +315,7 @@ endmacro(GenerateInterface)
 macro(create_test NAME SOURCES LIBS)
     add_executable("${NAME}" ${SOURCES})
     target_link_libraries("${NAME}" ${LIBS})
+    target_link_libraries("${NAME}" Utils)
     if(CMAKE_SYSTEM_NAME STREQUAL "QNX")
         add_test(${NAME} ${CMAKE_SOURCE_DIR}/qnx/remote_run_test.sh ${NAME})
     else()
@@ -409,6 +410,9 @@ add_subdirectory(./src/components)
 
 # --- Main application
 add_subdirectory(./src/appMain)
+
+# --- Plugins
+add_subdirectory(./src/plugins)
 
 # Building tests
 if(BUILD_TESTS)
