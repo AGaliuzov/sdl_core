@@ -131,7 +131,7 @@ class RequestController {
     * @return Result code
     *
     */
-    TResult addHMIRequest(const RequestPtr& request);
+    TResult addHMIRequest(const RequestPtr request);
 
     /**
     * @ Add notification to collection

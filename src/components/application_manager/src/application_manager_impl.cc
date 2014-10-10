@@ -1055,7 +1055,7 @@ void ApplicationManagerImpl::StartDevicesDiscovery() {
 }
 
 void ApplicationManagerImpl::SendMessageToMobile(
-  const utils::SharedPtr<smart_objects::SmartObject>& message,
+  const utils::SharedPtr<smart_objects::SmartObject> message,
   bool final_message) {
   LOG4CXX_INFO(logger_, "ApplicationManagerImpl::SendMessageToMobile");
 
@@ -1134,7 +1134,7 @@ void ApplicationManagerImpl::SendMessageToMobile(
 }
 
 bool ApplicationManagerImpl::ManageMobileCommand(
-  const utils::SharedPtr<smart_objects::SmartObject>& message) {
+  const utils::SharedPtr<smart_objects::SmartObject> message) {
   LOG4CXX_INFO(logger_, "ApplicationManagerImpl::ManageMobileCommand");
 
   if (!message) {
@@ -1291,7 +1291,7 @@ bool ApplicationManagerImpl::ManageMobileCommand(
 }
 
 void ApplicationManagerImpl::SendMessageToHMI(
-  const utils::SharedPtr<smart_objects::SmartObject>& message) {
+  const utils::SharedPtr<smart_objects::SmartObject> message) {
   LOG4CXX_INFO(logger_, "ApplicationManagerImpl::SendMessageToHMI");
 
   if (!message) {
@@ -1333,7 +1333,7 @@ void ApplicationManagerImpl::SendMessageToHMI(
 }
 
 bool ApplicationManagerImpl::ManageHMICommand(
-  const utils::SharedPtr<smart_objects::SmartObject>& message) {
+  const utils::SharedPtr<smart_objects::SmartObject> message) {
   LOG4CXX_INFO(logger_, "ApplicationManagerImpl::ManageHMICommand");
 
   if (!message) {
@@ -1683,7 +1683,7 @@ utils::SharedPtr<Message> ApplicationManagerImpl::ConvertRawMsgToMessage(
 }
 
 void ApplicationManagerImpl::ProcessMessageFromMobile(
-  const utils::SharedPtr<Message>& message) {
+  const utils::SharedPtr<Message> message) {
   LOG4CXX_INFO(logger_, "ApplicationManagerImpl::ProcessMessageFromMobile()");
 #ifdef TIME_TESTER
   AMMetricObserver::MessageMetricSharedPtr metric(new AMMetricObserver::MessageMetric());
@@ -1717,7 +1717,7 @@ void ApplicationManagerImpl::ProcessMessageFromMobile(
 }
 
 void ApplicationManagerImpl::ProcessMessageFromHMI(
-  const utils::SharedPtr<Message>& message) {
+  const utils::SharedPtr<Message> message) {
   LOG4CXX_INFO(logger_, "ApplicationManagerImpl::ProcessMessageFromHMI()");
   utils::SharedPtr<smart_objects::SmartObject> smart_object(
     new smart_objects::SmartObject);

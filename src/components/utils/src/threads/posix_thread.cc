@@ -168,7 +168,7 @@ bool Thread::startWithOptions(const ThreadOptions& options) {
 void Thread::stop() {
   LOG4CXX_TRACE_ENTER(logger_);
   if (!isThreadRunning_) {
-  LOG4CXX_DEBUG(logger_, "Canceling thread (#" << thread_handle_
+    LOG4CXX_DEBUG(logger_, "Canceling thread (#" << thread_handle_
                 << " \"" << name_ << "\") from #" << pthread_self());
     LOG4CXX_WARN(logger_, "Thread (#" << thread_handle_
                   << " \"" << name_ << "\") is not running");

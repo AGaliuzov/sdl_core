@@ -179,9 +179,8 @@ template<typename T, class Q> T MessageQueue<T, Q>::pop() {
 }
 
 template<typename T, class Q> void MessageQueue<T, Q>::Shutdown() {
-  {
-    shutting_down_ = true;
-  }
+  sync_primitives::AutoLock auto_lock(queue_lock_);
+  shutting_down_ = true;
   queue_new_items_.Broadcast();
 }
 

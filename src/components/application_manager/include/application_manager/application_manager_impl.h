@@ -403,14 +403,14 @@ class ApplicationManagerImpl : public ApplicationManager,
     // if |final_message| parameter is set connection to mobile will be closed
     // after processing this message
     void SendMessageToMobile(
-      const utils::SharedPtr<smart_objects::SmartObject>& message,
+      const utils::SharedPtr<smart_objects::SmartObject> message,
       bool final_message = false);
     bool ManageMobileCommand(
-      const utils::SharedPtr<smart_objects::SmartObject>& message);
+      const utils::SharedPtr<smart_objects::SmartObject> message);
     void SendMessageToHMI(
-      const utils::SharedPtr<smart_objects::SmartObject>& message);
+      const utils::SharedPtr<smart_objects::SmartObject> message);
     bool ManageHMICommand(
-      const utils::SharedPtr<smart_objects::SmartObject>& message);
+      const utils::SharedPtr<smart_objects::SmartObject> message);
 
     /////////////////////////////////////////////////////////
     /*
@@ -684,8 +684,8 @@ class ApplicationManagerImpl : public ApplicationManager,
     utils::SharedPtr<Message> ConvertRawMsgToMessage(
       const RawMessagePtr message);
 
-    void ProcessMessageFromMobile(const utils::SharedPtr<Message>& message);
-    void ProcessMessageFromHMI(const utils::SharedPtr<Message>& message);
+    void ProcessMessageFromMobile(const utils::SharedPtr<Message> message);
+    void ProcessMessageFromHMI(const utils::SharedPtr<Message> message);
 
     // threads::MessageLoopThread<*>::Handler implementations
     /*
@@ -789,8 +789,7 @@ class ApplicationManagerImpl : public ApplicationManager,
      public:
       ApplicationListUpdateTimer(ApplicationManagerImpl* callee) :
           timer::TimerThread<ApplicationManagerImpl>("AM ListUpdater",
-              callee, &ApplicationManagerImpl::OnApplicationListUpdateTimer
-          ) {
+              callee, &ApplicationManagerImpl::OnApplicationListUpdateTimer) {
       }
     };
     typedef utils::SharedPtr<ApplicationListUpdateTimer> ApplicationListUpdateTimerSptr;

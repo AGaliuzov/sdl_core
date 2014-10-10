@@ -48,7 +48,8 @@
 
 namespace timer {
 // TODO(AKutsan): Remove this logger after bugfix
-CREATE_LOGGERPTR_GLOBAL(logger_, "Timer")
+CREATE_LOGGERPTR_GLOBAL(logger_, "Utils")
+
 class TimerDelegate;
 
 /*
@@ -79,7 +80,7 @@ class TimerThread {
      * @param name - display string to identify the thread.
      * @param callee A class that use timer
      * @param f    CallBackFunction which will be called on timeout
-     *  Atantion! "f()" will be called not in main thread but in timer thread
+     *  Attention! "f()" will be called not in main thread but in timer thread
      *  Never use stop() and start() methods inside f
      * @param is_looper    Define this timer as looer,
      *  if true, TimerThread will call "f()" function every time out
@@ -143,7 +144,7 @@ class TimerThread {
          *
          * @param timer_thread The Timer_thread pointer
          */
-        TimerDelegate(const TimerThread* timer_thread);
+        TimerDelegate(TimerThread* timer_thread);
 
         /**
          * @brief Destructor
@@ -167,7 +168,7 @@ class TimerThread {
         virtual void setTimeOut(const uint32_t timeout_seconds);
 
       protected:
-        const TimerThread*                               timer_thread_;
+        TimerThread*                                     timer_thread_;
         uint32_t                                         timeout_seconds_;
         sync_primitives::Lock                            state_lock_;
         sync_primitives::ConditionalVariable             termination_condition_;
@@ -192,7 +193,7 @@ class TimerThread {
          * @param timer_thread The Timer_thread pointer
          * @param timeout      Timeout to be set
          */
-        TimerLooperDelegate(const TimerThread* timer_thread);
+        TimerLooperDelegate(TimerThread* timer_thread);
 
         /**
          * @brief Thread main function.
@@ -203,9 +204,11 @@ class TimerThread {
     };
     void (T::*callback_)();
     T*                                                callee_;
-    TimerDelegate*                                     delegate_;
+    TimerDelegate*    delegate_;
     //threads::Thread*                                   thread_;
-    mutable bool                                       is_running_;
+    std::string       name_;
+    bool              is_looper_;
+    mutable bool      is_running_;
 
     DISALLOW_COPY_AND_ASSIGN(TimerThread);
 };
@@ -216,6 +219,8 @@ TimerThread<T>::TimerThread(const char* name, T* callee, void (T::*f)(), bool is
     callback_(f),
     callee_(callee),
     delegate_(NULL),
+    name_(name),
+    is_looper_(is_looper),
     is_running_(false) {
   if (is_looper) {
     delegate_ = new TimerLooperDelegate(this);
@@ -227,20 +232,19 @@ TimerThread<T>::TimerThread(const char* name, T* callee, void (T::*f)(), bool is
 
 template <class T>
 TimerThread<T>::~TimerThread() {
+  LOG4CXX_INFO(logger_, "TimerThread is to destroy " << name_);
   if (is_running_) {
     stop();
   }
   callback_ = NULL;
   callee_ = NULL;
-  delete thread_;
-  // delegate_ will be deleted by thread_
-  thread_ = NULL;
-  delegate_ = NULL;
 }
 
 template <class T>
 void TimerThread<T>::start(uint32_t timeout_seconds) {
+  LOG4CXX_INFO(logger_, "TimerThread start " << name_);
   if (is_running_) {
+    LOG4CXX_INFO(logger_, "TimerThread start needs stop " << name_);
     stop();
   }
 
@@ -253,9 +257,13 @@ void TimerThread<T>::start(uint32_t timeout_seconds) {
 
 template <class T>
 void TimerThread<T>::stop() {
+  LOG4CXX_INFO(logger_, "TimerThread stop " << name_);
   if (delegate_ && thread_) {
+    LOG4CXX_INFO(logger_, "TimerThread thread_ stop " << name_);
     thread_->stop();
     is_running_ = false;
+  } else {
+    LOG4CXX_INFO(logger_, "TimerThread thread_ not stop " << name_);
   }
 }
 
@@ -273,12 +281,16 @@ template <class T>
 void TimerThread<T>::onTimeOut() const {
   if (callee_ && callback_) {
     (callee_->*callback_)();
-    is_running_ = false;
+    /*
+    if (!is_looper_) {
+      stop();
+    }
+    */
   }
 }
 
 template <class T>
-TimerThread<T>::TimerDelegate::TimerDelegate(const TimerThread* timer_thread)
+TimerThread<T>::TimerDelegate::TimerDelegate(TimerThread* timer_thread)
   : timer_thread_(timer_thread),
     timeout_seconds_(0),
     state_lock_(true),
@@ -287,7 +299,7 @@ TimerThread<T>::TimerDelegate::TimerDelegate(const TimerThread* timer_thread)
 }
 
 template <class T>
-TimerThread<T>::TimerLooperDelegate::TimerLooperDelegate(const TimerThread* timer_thread)
+TimerThread<T>::TimerLooperDelegate::TimerLooperDelegate(TimerThread* timer_thread)
   : TimerDelegate(timer_thread) {
 }
 
@@ -315,8 +327,8 @@ void TimerThread<T>::TimerDelegate::threadMain() {
   }
   if (!stop_flag_) {
     timer_thread_->onTimeOut();
+    timer_thread_->stop();
   }
-  stop_flag_ = false;
 }
 
 template <class T>
@@ -348,12 +360,12 @@ void TimerThread<T>::TimerLooperDelegate::threadMain() {
       LOG4CXX_DEBUG(logger_, "Timeout reset force: " << TimerDelegate::timeout_seconds_);
     }
   }
-  TimerDelegate::stop_flag_ = false;
 }
 
 
 template <class T>
 bool TimerThread<T>::TimerDelegate::exitThreadMain() {
+  sync_primitives::AutoLock auto_lock(state_lock_);
   stop_flag_ = true;
   termination_condition_.NotifyOne();
   return true;

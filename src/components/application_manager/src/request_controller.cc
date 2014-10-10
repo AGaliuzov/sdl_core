@@ -159,7 +159,7 @@ RequestController::TResult RequestController::addMobileRequest(
 }
 
 RequestController::TResult RequestController::addHMIRequest(
-    const RequestPtr& request) {
+    const RequestPtr request) {
   LOG4CXX_TRACE_ENTER(logger_);
   DCHECK(request.valid());
   commands::RequestToHMI* raw_ptr = static_cast<commands::RequestToHMI*>(request.get());

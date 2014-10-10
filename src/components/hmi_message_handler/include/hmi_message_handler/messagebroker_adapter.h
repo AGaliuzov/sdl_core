@@ -55,7 +55,7 @@ class MessageBrokerAdapter : public HMIMessageAdapter,
 		  	  	  	  	  	    const std::string& mqrecv);
 #endif  // PASA_HMI
 #endif  // CUSTOMER_PASA
-    ~MessageBrokerAdapter();
+  ~MessageBrokerAdapter();
   void SendMessageToHMI(MessageSharedPointer message);
 
   /*Methods from CMessageBrokerController*/

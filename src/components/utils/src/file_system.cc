@@ -213,16 +213,11 @@ void file_system::Close(std::ofstream* file_stream) {
 }
 
 std::string file_system::CurrentWorkingDirectory() {
-  size_t filename_max_lenght = 1024;
-  char currentAppPath[filename_max_lenght];
-  memset(currentAppPath, 0, filename_max_lenght);
-  if (0 == getcwd(currentAppPath, filename_max_lenght)) {
+  const size_t filename_max_length = 1024;
+  char path[filename_max_length];
+  if (0 == getcwd(currentAppPath, filename_max_length)) {
     LOG4CXX_WARN(logger_, "Could not get CWD");
   }
-
-  char path[filename_max_lenght];
-  memset(path, 0, filename_max_lenght);
-  snprintf(path, filename_max_lenght - 1, "%s", currentAppPath);
   return std::string(path);
 }
 
@@ -396,7 +391,7 @@ const std::string file_system::ConvertPathForURL(const std::string& path) {
     for (; it_sym != it_sym_end; ++it_sym) {
 
       if (*it_path == *it_sym) {
-        size_t size = 100;
+        const size_t size = 100;
         char percent_value[size];
         snprintf(percent_value, size, "%%%x", *it_path);
         converted_path += percent_value;
