@@ -4,7 +4,6 @@ include_directories (
   ${CMAKE_SOURCE_DIR}/src/components/rpc_base/include
   ${GMOCK_INCLUDE_DIRECTORY}
   ${JSONCPP_INCLUDE_DIRECTORY}
-  ${LOG4CXX_INCLUDE_DIRECTORY}
 )
 
 set (LIBRARIES

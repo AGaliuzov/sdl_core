@@ -36,7 +36,6 @@ include_directories(
   ../../../src/thirdPartyLibs/gmock-1.7.0/gtest/include
   ${SecurityManagerIncludeDir}
   ${CMAKE_SOURCE_DIR}/src/components/protocol_handler/include
-  ${LOG4CXX_INCLUDE_DIRECTORY}
 )
 
 set(SOURCES
