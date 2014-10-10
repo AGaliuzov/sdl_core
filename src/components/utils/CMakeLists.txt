@@ -47,7 +47,10 @@ endif()
 add_library("Utils" ${SOURCES})
 
 if(ENABLE_LOG)
-  target_link_libraries("Utils" log4cxx -L${LOG4CXX_LIBS_DIRECTORY} apr-1 -L${APR_LIBS_DIRECTORY})
+  list(APPEND LIBRARIES log4cxx -L${LOG4CXX_LIBS_DIRECTORY})
+  list(APPEND LIBRARIES apr-1 -L${APR_LIBS_DIRECTORY})
+  list(APPEND LIBRARIES aprutil-1 -L${APR_UTIL_LIBS_DIRECTORY})
+  target_link_libraries("Utils" ${LIBRARIES})
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")

@@ -1198,5 +1198,9 @@ bool PolicyManagerImpl::InitPT(const std::string& file_name) {
   return ret;
 }
 
+uint16_t PolicyManagerImpl::HeartBeatTimeout(const std::string& app_id) const {
+  return cache.HeartBeatTimeout(app_id);
+}
+
 }  //  namespace policy
 

@@ -169,7 +169,7 @@ private:
  * ProtocolHandler shall skip empty message
  */
 TEST_F(ProtocolHandlerImplTest, RecieveEmptyRawMessage) {
-  tm_listener->OnTMMessageReceived(RawMessagePtr());
+  tm_listener->OnTMMessageReceived(::protocol_handler::RawMessagePtr());
 }
 /*
  * ProtocolHandler shall skip message on no connection
