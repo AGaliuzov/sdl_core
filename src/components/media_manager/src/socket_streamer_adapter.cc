@@ -59,7 +59,6 @@ SocketStreamerAdapter::SocketStreamerAdapter()
 SocketStreamerAdapter::~SocketStreamerAdapter() {
   thread_->stop();
   streamer_ = NULL;
-  delete thread_;
 }
 
 void SocketStreamerAdapter::StartActivity(int32_t application_key) {

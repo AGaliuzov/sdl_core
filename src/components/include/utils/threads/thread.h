@@ -89,6 +89,7 @@ class Thread {
    public:
     explicit Id(const impl::PlatformThreadHandle& id): id_(id) {}
     bool operator==(const Id& that) const;
+    impl::PlatformThreadHandle Handle() const { return id_; }
    private:
     impl::PlatformThreadHandle id_;
     friend class Thread;
@@ -111,11 +112,6 @@ class Thread {
    * NOTE: delegate will be deleted by destructor.
    */
   Thread(const char* name, ThreadDelegate* delegate);
-
-  /**
-   * Dtor.
-   */
-  virtual ~Thread();
 
   /**
    * Starts the thread.
@@ -213,6 +209,7 @@ class Thread {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Thread);
+  virtual ~Thread();
 };
 
 inline bool operator!= (const Thread::Id& left, const Thread::Id& right) {

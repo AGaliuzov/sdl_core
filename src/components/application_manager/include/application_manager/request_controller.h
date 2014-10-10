@@ -232,12 +232,7 @@ class RequestController {
         volatile bool                                    stop_flag_;
     };
 
-    /**
-    * @brief Typedef for thread shared pointer
-    */
-    typedef utils::SharedPtr<Thread> ThreadSharedPtr;
-
-    std::vector<ThreadSharedPtr> pool_;
+    std::vector<Thread*> pool_;
     volatile TPoolState pool_state_;
     uint32_t pool_size_;
     sync_primitives::ConditionalVariable cond_var_;

@@ -52,7 +52,6 @@ VideoStreamToFileAdapter::~VideoStreamToFileAdapter() {
   }
 
   thread_->stop();
-  delete thread_;
 }
 
 void VideoStreamToFileAdapter::Init() {

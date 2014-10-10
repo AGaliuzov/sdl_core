@@ -58,7 +58,6 @@ PipeStreamerAdapter::~PipeStreamerAdapter() {
   }
 
   thread_->stop();
-  delete thread_;
 }
 
 void PipeStreamerAdapter::SendData(

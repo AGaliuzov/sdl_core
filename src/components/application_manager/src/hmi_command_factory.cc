@@ -274,8 +274,8 @@ CommandSharedPtr HMICommandFactory::CreateCommand(
       new application_manager::commands::CommandImpl(message));
 
   bool is_response = false;
-  if ((*message)[strings::params][strings::message_type]
-      == static_cast<int>(application_manager::MessageType::kResponse)) {
+  int msg_type = (*message)[strings::params][strings::message_type].asInt();
+  if (msg_type == static_cast<int>(application_manager::MessageType::kResponse)) {
     is_response = true;
     LOG4CXX_INFO(logger_, "HMICommandFactory::CreateCommand response");
   } else if ((*message)[strings::params][strings::message_type]

@@ -78,14 +78,7 @@ Thread::Id Thread::CurrentId() {
 }
 
 //static
-std::string Thread::NameFromId(const Id& thread_id) {
-  return ThreadManager::instance()->GetName(thread_id.id_);
-}
-
-//static
 void Thread::SetNameForId(const Id& thread_id, const std::string& name) {
-  ThreadManager::instance()->RegisterName(thread_id.id_, name);
-
   const std::string striped_name =
       name.length() > THREAD_NAME_SIZE ? std::string(name.begin(), name.begin() + THREAD_NAME_SIZE) : name;
 
@@ -106,7 +99,6 @@ Thread::Thread(const char* name, ThreadDelegate* delegate)
 }
 
 Thread::~Thread() {
-  ThreadManager::instance()->Unregister(thread_handle_);
   stop();
   LOG4CXX_INFO(logger_, "Deleted thread: " << name_);
 }
@@ -195,9 +187,9 @@ void Thread::stop() {
 
   // Wait for the thread to exit.  It should already have terminated but make
   // sure this assumption is valid.
-  MessageQueue<pthread_t>& threads = ::threads::impl::ThreadManager::instance()->threads_to_terminate;
+  MessageQueue<Thread*>& threads = ::threads::ThreadManager::instance()->threads_to_terminate;
   if (!threads.IsShuttingDown()) {
-    threads.push(thread_handle_);
+    threads.push(this);
   }
   isThreadRunning_ = false;
   LOG4CXX_DEBUG(logger_, "Join thread (#" << thread_handle_
@@ -206,7 +198,11 @@ void Thread::stop() {
 }
 
 std::ostream& operator<<(std::ostream& os, const Thread::Id& thread_id) {
-  return os<<Thread::NameFromId(thread_id);
+  char name[32];
+  if(pthread_getname_np(thread_id.Handle(), name, 32) == 0) {
+    os << name;
+  }
+  return os;
 }
 
 }  // namespace threads

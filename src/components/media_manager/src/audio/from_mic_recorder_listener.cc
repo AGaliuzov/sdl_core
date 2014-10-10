@@ -48,7 +48,6 @@ FromMicRecorderListener::FromMicRecorderListener(
 FromMicRecorderListener::~FromMicRecorderListener() {
   if (reader_) {
     reader_->stop();
-    delete reader_;
     reader_ = NULL;
   }
 }
@@ -90,7 +89,6 @@ void FromMicRecorderListener::OnActivityEnded(int32_t application_key) {
   }
   if (reader_) {
     reader_->stop();
-    delete reader_;
     reader_ = NULL;
   }
   current_application_ = 0;

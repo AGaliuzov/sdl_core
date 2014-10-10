@@ -447,7 +447,6 @@ void BluetoothDeviceScanner::Terminate() {
     thread_->stop();
     LOG4CXX_INFO(logger_, "PASA Bluetooth device scanner thread joined");
   }
-  delete thread_;
   LOG4CXX_TRACE(logger_, "exit");
 }
 

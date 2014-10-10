@@ -376,7 +376,7 @@ bool LifeCycle::InitMessageSystem() {
 
 namespace {
   void sig_handler(int sig) {
-    MessageQueue<pthread_t>& threads = ::threads::impl::ThreadManager::instance()->threads_to_terminate;
+    MessageQueue<Thread*>& threads = ::threads::ThreadManager::instance()->threads_to_terminate;
     threads.Shutdown();
   }
 }
@@ -385,11 +385,11 @@ void LifeCycle::Run() {
   // First, register signal handler
   ::utils::SubscribeToTerminateSignal(&sig_handler);
   // Then run main loop until signal caught
-  MessageQueue<pthread_t>& threads = ::threads::impl::ThreadManager::instance()->threads_to_terminate;
+  MessageQueue<Thread*>& threads = ::threads::ThreadManager::instance()->threads_to_terminate;
   while(!threads.IsShuttingDown()) {
     while (!threads.empty()) {
-      pthread_t thread = threads.pop();
-      pthread_join(thread, NULL);
+      Thread* thread = threads.pop();
+      pthread_join(thread->thread_handle(), NULL);
     }
     threads.wait();
   }

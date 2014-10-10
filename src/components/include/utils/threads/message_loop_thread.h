@@ -39,7 +39,7 @@
 #include "utils/logger.h"
 #include "utils/macro.h"
 #include "utils/message_queue.h"
-#include "utils/threads/thread.h"
+#include "utils/threads/thread_manager.h"
 #include "utils/lock.h"
 
 namespace threads {
@@ -103,7 +103,7 @@ class MessageLoopThread {
   };
  private:
   MessageQueue<Message, Queue> message_queue_;
-  threads::Thread thread_;
+  threads::Thread* thread_;
 };
 
 ///////// Implementation
@@ -112,8 +112,8 @@ template<class Q>
 MessageLoopThread<Q>::MessageLoopThread(const std::string&   name,
                                         Handler*             handler,
                                         const ThreadOptions& thread_opts)
-    : thread_(name.c_str(), new LoopThreadDelegate(&message_queue_, handler)) {
-  bool started = thread_.startWithOptions(thread_opts);
+    : thread_(threads::ThreadManager::CreateThread(name.c_str(), new LoopThreadDelegate(&message_queue_, handler))) {
+  bool started = thread_->startWithOptions(thread_opts);
   if (!started) {
     CREATE_LOGGERPTR_LOCAL(logger_, "Utils")
     LOG4CXX_ERROR(logger_, "Failed to start thread " << name);
@@ -122,7 +122,7 @@ MessageLoopThread<Q>::MessageLoopThread(const std::string&   name,
 
 template<class Q>
 MessageLoopThread<Q>::~MessageLoopThread() {
-  thread_.stop();
+  thread_->stop();
 }
 
 template <class Q>

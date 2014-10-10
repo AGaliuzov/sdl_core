@@ -77,7 +77,7 @@ void RequestController::InitializeThreadpool()
     char name [50];
     snprintf(name, sizeof(name)/sizeof(name[0]),
              "AM Pool %d", i);
-    pool_.push_back(ThreadSharedPtr(new Thread(name, new Worker(this))));
+    pool_.push_back(new Thread(name, new Worker(this)));
     pool_[i]->start();
     LOG4CXX_INFO(logger_, "Request thread initialized: " << name);
   }
