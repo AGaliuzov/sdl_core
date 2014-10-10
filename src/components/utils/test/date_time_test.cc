@@ -116,8 +116,8 @@ TEST(DateTimeTest, CalculateTimeDiff) {
   diff2.tv_sec  = time1.tv_sec  - time2.tv_sec;
   diff2.tv_usec = time1.tv_usec - time2.tv_usec;
 
-  const int64_t mSecDiff2 = static_cast<int64_t>(diff2.tv_sec) * 1000
-      + diff2.tv_usec / 1000;
+  const int64_t mSecDiff2 = -(static_cast<int64_t>(diff2.tv_sec) * 1000
+      + diff2.tv_usec / 1000);
 
   ASSERT_EQ(mSecDiff2,
             date_time::DateTime::calculateTimeDiff(time1, time2));

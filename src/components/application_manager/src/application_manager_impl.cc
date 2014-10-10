@@ -131,11 +131,11 @@ bool ApplicationManagerImpl::Stop() {
                   "An error occurred during unregistering applications.");
   }
 
-#ifndef CUSTOMER_PASA
+
   // for PASA customer policy backup should happen OnExitAllApp(SUSPEND)
   LOG4CXX_INFO(logger_, "Unloading policy library.");
   policy::PolicyHandler::instance()->UnloadPolicyLibrary();
-#endif
+
   return true;
 }
 
@@ -1487,9 +1487,7 @@ bool ApplicationManagerImpl::ConvertMessageToSO(
         return false;
       }
       if (output.validate() != smart_objects::Errors::OK) {
-        LOG4CXX_WARN(
-          logger_,
-          "Incorrect parameter from HMI");
+        LOG4CXX_WARN(logger_, "Incorrect parameter from HMI");
         output.erase(strings::msg_params);
         output[strings::params][hmi_response::code] =
           hmi_apis::Common_Result::INVALID_DATA;

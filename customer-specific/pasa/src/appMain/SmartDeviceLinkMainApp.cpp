@@ -13,6 +13,7 @@
 #include "utils/file_system.h"
 #include "utils/log_message_loop_thread.h"
 #include "config_profile/profile.h"
+#include "utils/appenders_loader.h"
 
 #include "hmi_message_handler/hmi_message_handler_impl.h"
 #include "hmi_message_handler/messagebroker_adapter.h"
@@ -274,11 +275,15 @@ int main(int argc, char** argv) {
   LOG4CXX_INFO(logger_, "Git commit: {GIT_COMMIT}");
   LOG4CXX_INFO(logger_, "Application main()");
 
+  if (!utils::appenders_loader.Loaded()) {
+    LOG4CXX_ERROR(logger_, "Appenders plugin not loaded, file logging disabled");
+  }
+
   utils::SharedPtr<threads::Thread> applink_notification_thread =
       new threads::Thread("ApplinkNotify", new ApplinkNotificationThreadDelegate());
   applink_notification_thread->start();
 
-  utils::SubscribeToTerminateSignal(main_namespace::legacy_signal_handler);
+  utils::SubscribeToTerminateSignal(main_namespace::dummy_signal_handler);
   threads::Thread::UnmaskSignals();
   pause();
 

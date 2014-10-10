@@ -219,6 +219,7 @@ PolicyHandler::PolicyHandler()
 }
 
 PolicyHandler::~PolicyHandler() {
+
 }
 
 bool PolicyHandler::LoadPolicyLibrary() {
@@ -404,6 +405,7 @@ const std::string PolicyHandler::ConvertUpdateStatus(PolicyTableStatus status) {
 
 void PolicyHandler::OnDeviceConsentChanged(const std::string& device_id,
                                            bool is_allowed) {
+  POLICY_LIB_CHECK_VOID();
   connection_handler::DeviceHandle device_handle;
   application_manager::ApplicationManagerImpl::instance()->connection_handler()
       ->GetDeviceID(device_id, &device_handle);
@@ -420,7 +422,7 @@ void PolicyHandler::OnDeviceConsentChanged(const std::string& device_id,
     if (device_handle == (*it_app_list).get()->device()) {
 
       const std::string policy_app_id =
-              (*it_app_list).get()->mobile_app_id()->asString();
+          (*it_app_list)->mobile_app_id()->asString();
 
       // If app has predata policy, which is assigned without device consent or
       // with negative data consent, there no necessity to change smth and send
@@ -838,6 +840,7 @@ bool PolicyHandler::ReceiveMessageFromSDK(const std::string& file,
 }
 
 bool PolicyHandler::UnloadPolicyLibrary() {
+  LOG4CXX_TRACE(logger_, "enter. policy_manager_ = " << policy_manager_);
   bool ret = true;
   delete policy_manager_;
   policy_manager_ = 0;
@@ -846,6 +849,7 @@ bool PolicyHandler::UnloadPolicyLibrary() {
     dl_handle_ = 0;
   }
   exchange_handler_->Stop();
+  LOG4CXX_TRACE(logger_, "exit");
   return ret;
 }
 
@@ -1428,6 +1432,11 @@ bool PolicyHandler::CheckStealFocus(int system_action,
       == mobile_apis::SystemAction::STEAL_FOCUS;
   const bool allowed = policy_manager_->CanAppStealFocus(policy_app_id);
   return !(steal_focus && !allowed);
+}
+
+uint16_t PolicyHandler::HeartBeatTimeout(const std::string& app_id) const {
+  POLICY_LIB_CHECK(0);
+  return policy_manager_->HeartBeatTimeout(app_id);
 }
 
 }  //  namespace policy

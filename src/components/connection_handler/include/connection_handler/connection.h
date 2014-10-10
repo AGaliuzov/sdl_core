@@ -241,14 +241,20 @@ class Connection {
    */
   void SendHeartBeat(uint8_t session_id);
 
-  /*
+  /**
+   * Sets heart beat timeout
+   * @param timeout in seconds
+   */
+  void SetHeartBeatTimeout(int32_t timeout);
+
+  /**
    * \brief changes protocol version in session
    * \param  session_id session id
    * \param  protocol_version protocol version registered application
    */
   void UpdateProtocolVersionSession(uint8_t session_id, uint8_t protocol_version);
 
-  /*
+  /**
    * \brief checks if session supports heartbeat
    * \param  session_id session id
    * \return TRUE on success, otherwise FALSE

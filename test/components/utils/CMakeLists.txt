@@ -1,4 +1,5 @@
 include_directories (
+  ${LOG4CXX_INCLUDE_DIRECTORY}
   ${GMOCK_INCLUDE_DIRECTORY}
   ../../../src/components/utils/include
   ../../../test/components/utils/include
@@ -14,6 +15,8 @@ set(LIBRARIES
 )
 
 set(SOURCES
+  ./src/file_system_tests.cc
+  ./src/data_time_tests.cc
   ./src/prioritized_queue_tests.cc
 )
 

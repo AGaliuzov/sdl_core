@@ -59,16 +59,15 @@ QtObject {
     }
 
     onStartTimeChanged: {
-        if (startTime === -1) {
-            progress = 0
-        } else {
-            if (updateMode === Internal.MediaClockUpdateMode.MCU_COUNTUP) {
-                progress = (endTime !== -1) ? (startTime / endTime) : (startTime / upperTimeLimit)
-            } else {
-                progress = (endTime !== -1) ? ( (startTime - endTime) / (startTimeForProgress - endTime) )
-                                            : (startTime / startTimeForProgress)
-            }
-        }
+        onProgress()
+    }
+
+    onEndTimeChanged: {
+        onProgress()
+    }
+
+    onStartTimeForProgressChanged: {
+        onProgress()
     }
 
     function onTimer () {
@@ -108,5 +107,18 @@ QtObject {
                                                    startTimeForProgress: startTimeForProgress
                                                    }
                                  })
+    }
+
+    function onProgress () {
+        if (startTime === -1) {
+            progress = 0
+        } else {
+            if (updateMode === Internal.MediaClockUpdateMode.MCU_COUNTUP) {
+                progress = (endTime !== -1) ? (startTime / endTime) : (startTime / upperTimeLimit)
+            } else {
+                progress = (endTime !== -1) ? ( (startTime - endTime) / (startTimeForProgress - endTime) )
+                                            : (startTime / startTimeForProgress)
+            }
+        }
     }
 }

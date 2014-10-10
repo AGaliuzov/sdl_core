@@ -46,8 +46,6 @@ set(LIBRARIES
 endif()
 
 include_directories (
-  /home/vagrant/Work/GIT/applink/src/3rd_party-static/gmock-1.7.0/include
-  /home/vagrant/Work/GIT/applink/src/3rd_party-static/gmock-1.7.0/gtest/include
   ./include
   ./include/audio/
   ./include/video/

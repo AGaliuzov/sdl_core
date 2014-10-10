@@ -68,7 +68,7 @@ TEST(SmartObjectsDraftTest, primitive_types) {
   ASSERT_EQ(std::string("Test"), obj.asString());
   ASSERT_EQ(SmartType::SmartType_String, obj.getType());
 
-  obj = 6.0d;
+  obj = 6.0;
   ASSERT_DOUBLE_EQ(6.0, obj.asDouble());
   ASSERT_EQ(SmartType::SmartType_Double, obj.getType());
 }
@@ -264,7 +264,7 @@ TEST(SmartObjectsDraftTest, compare_integer_type) {
 
 TEST(SmartObjectsDraftTest, compare_double_type) {
   SmartObject value       = SmartObject(6.0);
-  SmartObject same_value  = SmartObject(6.0d);
+  SmartObject same_value  = SmartObject(6.0);
 
   ASSERT_EQ(value, same_value);
   ASSERT_EQ(same_value, value);

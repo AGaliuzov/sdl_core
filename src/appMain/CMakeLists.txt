@@ -111,13 +111,11 @@ include_directories (
   ../components/transport_manager/include
   ${SecurityManagerIncludeDir}
   ../components/config_profile/include
-  ../components/utils/
   ../components/utils/include/
   ../components/connection_handler/include/
   ../components/hmi_message_handler/include
   ../components/request_watchdog/include
   ../components/smart_objects/include/
-  ../components/media_manager/
   ../components/media_manager/include/
   ${CMAKE_SOURCE_DIR}/src/components/time_tester/include
   ${CMAKE_SOURCE_DIR}/src/components/policy/src/policy/include/
