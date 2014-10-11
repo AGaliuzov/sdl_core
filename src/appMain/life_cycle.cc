@@ -397,6 +397,7 @@ void LifeCycle::Run() {
 
 void LifeCycle::StopComponents() {
   if (!components_started_) {
+    LOG4CXX_TRACE(logger_, "exit");
     LOG4CXX_ERROR(logger_, "Components wasn't started");
     return;
   }
@@ -513,6 +514,7 @@ void LifeCycle::StopComponents() {
   }
 #endif  // TIME_TESTER
   components_started_ = false;
+  LOG4CXX_TRACE(logger_, "exit");
 }
 
 }  //  namespace main_namespace

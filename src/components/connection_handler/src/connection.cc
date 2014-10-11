@@ -354,4 +354,8 @@ void Connection::KeepAlive(uint8_t session_id) {
   heartbeat_monitor_->KeepAlive(session_id);
 }
 
+void Connection::SetHeartBeatTimeout(int32_t timeout) {
+  heartbeat_monitor_->set_heartbeat_timeout_seconds(timeout);
+}
+
 }  // namespace connection_handler

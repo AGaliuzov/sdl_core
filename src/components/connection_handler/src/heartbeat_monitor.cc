@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2013, Ford Motor Company
+/*
+ * Copyright (c) 2013-2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,9 +30,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include "connection_handler/heartbeat_monitor.h"
+
 #include <unistd.h>
-#include "connection_handler/connection.h"
+
 #include "utils/logger.h"
+#include "connection_handler/connection.h"
 
 namespace connection_handler {
 
@@ -45,73 +47,86 @@ HeartBeatMonitor::HeartBeatMonitor(int32_t heartbeat_timeout_seconds,
     : heartbeat_timeout_seconds_(heartbeat_timeout_seconds),
       connection_(connection),
       sessions_list_lock_(true),
-      stop_flag_(false),
-      is_active(false) {
+      run_(true) {
+}
+
+bool HeartBeatMonitor::HasTimeoutElapsed(const TimevalStruct& expiration) const {
+  TimevalStruct now = date_time::DateTime::getCurrentTime();
+  return date_time::DateTime::Greater(now, expiration);
+}
+
+void HeartBeatMonitor::Process() {
+  AutoLock auto_lock(sessions_list_lock_);
+
+  SessionMap::iterator it = sessions_.begin();
+  while (it != sessions_.end()) {
+    SessionState &state = it->second;
+    if (HasTimeoutElapsed(state.heartbeat_expiration)) {
+      const uint8_t session_id = it->first;
+      if (state.is_heartbeat_sent) {
+        LOG4CXX_DEBUG(logger_,
+                      "Session with id " << session_id << " timed out, closing");
+        connection_->CloseSession(session_id);
+        it = sessions_.begin();
+        continue;
+      } else {
+        LOG4CXX_DEBUG(logger_,
+                      "Send heart beat into session with id " << session_id);
+        RefreshExpiration(&state.heartbeat_expiration);
+        connection_->SendHeartBeat(it->first);
+        state.is_heartbeat_sent = true;
+      }
+    }
+
+    ++it;
+  }
+}
+
+void HeartBeatMonitor::RefreshExpiration(TimevalStruct* expiration) const {
+  LOG4CXX_TRACE_ENTER(logger_);
+  sync_primitives::AutoLock locker(heartbeat_timeout_seconds_lock_);
+  DCHECK(expiration);
+  *expiration = date_time::DateTime::getCurrentTime();
+  expiration->tv_sec += heartbeat_timeout_seconds_;
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void HeartBeatMonitor::threadMain() {
-  std::map<uint8_t, SessionState>::iterator it;
-  AutoLock main_lock(main_thread_lock);
-  is_active = true;
-  while (!stop_flag_) {
-    usleep(kdefault_cycle_timeout);
-
-    AutoLock auto_lock(sessions_list_lock_);
-
-    it = sessions_.begin();
-    while (it != sessions_.end()) {
-      SessionState &state = it->second;
-      if (state.heartbeat_expiration_.tv_sec < date_time::DateTime::getCurrentTime().tv_sec) {
-        if (state.is_heartbeat_sent_) {
-          const uint8_t session_id = it->first;
-          LOG4CXX_WARN(logger_, "Session with id " << session_id <<" timed out, closing");
-          connection_->CloseSession(session_id);
-          it = sessions_.begin();
-        } else {
-          state.heartbeat_expiration_ =
-              date_time::DateTime::getCurrentTime();
-          state.heartbeat_expiration_.tv_sec +=
-              heartbeat_timeout_seconds_;
-
-          connection_->SendHeartBeat(it->first);
-
-          state.is_heartbeat_sent_ = true;
-          ++it;
-        }
-      } else {
-        ++it;
-      }
-    }
+  AutoLock main_lock(main_thread_lock_);
+  LOG4CXX_DEBUG(
+      logger_,
+      "Start heart beat monitor. Timeout is " << heartbeat_timeout_seconds_);
+  while (run_) {
+    usleep(kDefaultCycleTimeout);
+    Process();
   }
-
-  is_active = false;
 }
 
 void HeartBeatMonitor::AddSession(uint8_t session_id) {
-  LOG4CXX_INFO(logger_, "Add session with id " <<
-               session_id);
+  LOG4CXX_INFO(logger_, "Add session with id " << session_id);
   AutoLock auto_lock(sessions_list_lock_);
   if (sessions_.end() != sessions_.find(session_id)) {
-    LOG4CXX_WARN(logger_, "Session with id " << static_cast<int32_t>(session_id)
-                 << "already exists");
+    LOG4CXX_WARN(
+        logger_,
+        "Session with id " << static_cast<int32_t>(session_id) << "already exists");
     return;
   }
   SessionState session_state;
-  session_state.heartbeat_expiration_ = date_time::DateTime::getCurrentTime();
-  session_state.heartbeat_expiration_.tv_sec +=  heartbeat_timeout_seconds_;
-  session_state.is_heartbeat_sent_ = false;
+  RefreshExpiration(&session_state.heartbeat_expiration);
+  session_state.is_heartbeat_sent = false;
   sessions_[session_id] = session_state;
 
-  LOG4CXX_INFO(logger_, "Start heartbeat for session: " <<
-               static_cast<int32_t>(session_id));
+  LOG4CXX_INFO(
+      logger_,
+      "Start heartbeat for session " << static_cast<int32_t>(session_id));
 }
 
 void HeartBeatMonitor::RemoveSession(uint8_t session_id) {
   AutoLock auto_lock(sessions_list_lock_);
 
   if (sessions_.end() != sessions_.find(session_id)) {
-    LOG4CXX_INFO(logger_, "Remove session with id" <<
-                 static_cast<int32_t>(session_id));
+    LOG4CXX_INFO(logger_,
+                 "Remove session with id " << static_cast<int32_t>(session_id));
     sessions_.erase(session_id);
   }
 }
@@ -120,23 +135,35 @@ void HeartBeatMonitor::KeepAlive(uint8_t session_id) {
   AutoLock auto_lock(sessions_list_lock_);
 
   if (sessions_.end() != sessions_.find(session_id)) {
-    LOG4CXX_INFO(logger_, "Resetting heart beat timer for session with id"
-                 << static_cast<int32_t>(session_id));
+    LOG4CXX_INFO(
+        logger_,
+        "Resetting heart beat timer for session with id " << static_cast<int32_t>(session_id));
 
-    sessions_[session_id].heartbeat_expiration_ =
-        date_time::DateTime::getCurrentTime();
-    sessions_[session_id].heartbeat_expiration_.tv_sec +=
-        heartbeat_timeout_seconds_;
-    sessions_[session_id].is_heartbeat_sent_ = false;
+    RefreshExpiration(&sessions_[session_id].heartbeat_expiration);
+    sessions_[session_id].is_heartbeat_sent = false;
   }
 }
 
 bool HeartBeatMonitor::exitThreadMain() {
   LOG4CXX_TRACE_ENTER(logger_);
-  stop_flag_ = true;
-  AutoLock main_lock(main_thread_lock);
+  run_ = false;
+  AutoLock main_lock(main_thread_lock_);
   LOG4CXX_TRACE_EXIT(logger_);
   return true;
 }
 
-} // namespace connection_handler
+void HeartBeatMonitor::set_heartbeat_timeout_seconds(int32_t timeout) {
+  LOG4CXX_DEBUG(logger_, "Set new heart beat timeout " << timeout);
+  {
+    AutoLock locker(heartbeat_timeout_seconds_lock_);
+    heartbeat_timeout_seconds_ = timeout;
+  }
+
+  AutoLock session_locker(sessions_list_lock_);
+  for (SessionMap::iterator i = sessions_.begin(); i != sessions_.end(); ++i) {
+    SessionState& session_state = i->second;
+    RefreshExpiration(&session_state.heartbeat_expiration);
+  }
+}
+
+}  // namespace connection_handler
