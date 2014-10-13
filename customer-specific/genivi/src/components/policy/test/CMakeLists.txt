@@ -10,6 +10,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/components/policy/src/policy/qdb_wrapper/include
   ${CMAKE_SOURCE_DIR}/src/components/policy/src/policy/usage_statistics/include
   ${CMAKE_SOURCE_DIR}/src/components/utils/include/
+  ${CMAKE_SOURCE_DIR}/src/components/policy/src/policy/policy_table/table_struct
 )
 
 set(testLibraries
@@ -33,20 +34,8 @@ set(testSources
   generated_code_with_sqlite_test.cc
   policy_manager_impl_test.cc
   policy_manager_impl_stress_test.cc
+  sql_pt_representation_test.cc
 )
-
-if (EXTENDED_POLICY_FLAG)
-  add_definitions(-DEXTENDED_POLICY)
-  include_directories(${CMAKE_SOURCE_DIR}/src/components/policy/src/policy/policy_table/table_struct_ext)
-  list (APPEND testSources
-    sql_pt_ext_representation_test.cc
-)
-else ()
-  include_directories(${CMAKE_SOURCE_DIR}/src/components/policy/src/policy/policy_table/table_struct)
-  list (APPEND testSources
-    sql_pt_representation_test.cc
-  )
-endif ()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
   list(REMOVE_ITEM LIBRARIES dl)

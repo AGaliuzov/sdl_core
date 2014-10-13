@@ -10,8 +10,6 @@ include_directories(
 # --- components tests
 add_subdirectory(./components)
 add_subdirectory(./thirdPartyLibs)
-add_subdirectory(${CMAKE_SOURCE_DIR}/src/components/policy/test
-    ${CMAKE_BINARY_DIR}/src/components/policy/test)
 add_subdirectory(./tools)
 
 set (INCLUDE_DIR
