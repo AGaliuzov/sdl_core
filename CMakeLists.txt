@@ -387,7 +387,7 @@ set (is_dbus_actual 1)
 if(ENABLE_LOG)
   #build logger
   execute_process(
-      COMMAND /bin/bash -c "grep .commit_hash ${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib/liblog4cxx.so 1>/dev/null 2>&1; if [ $? == 0 ]; then VAR1=\$(readelf -p .commit_hash ${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib/liblog4cxx.so 2>/dev/null); VAR1=\$(echo $VAR1 | awk '{print \$NF}'); VAR2=\$(git log --pretty=\"format:%H\" -1 ${3RD_PARTY_SOURCE_DIRECTORY}/apache-log4cxx-0.10.0); if [[ \$VAR1 == \$VAR2 ]]; then exit 0; else exit 1; fi; else exit 1; fi"
+      COMMAND /bin/bash -c "cd ${CMAKE_CURRENT_SOURCE_DIR} && grep .commit_hash ${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib/liblog4cxx.so 1>/dev/null 2>&1; if [ $? == 0 ]; then VAR1=\$(readelf -p .commit_hash ${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib/liblog4cxx.so 2>/dev/null); VAR1=\$(echo $VAR1 | awk '{print \$NF}'); VAR2=\$(git log --pretty=\"format:%H\" -1 ${3RD_PARTY_SOURCE_DIRECTORY}/apache-log4cxx-0.10.0); if [[ \$VAR1 == \$VAR2 ]]; then exit 0; else exit 1; fi; else exit 1; fi"
       RESULT_VARIABLE is_logger_actual
   )
   if(is_logger_actual EQUAL 0)

@@ -51,6 +51,7 @@ if(ENABLE_LOG)
   list(APPEND LIBRARIES apr-1 -L${APR_LIBS_DIRECTORY})
   list(APPEND LIBRARIES aprutil-1 -L${APR_UTIL_LIBS_DIRECTORY})
   target_link_libraries("Utils" ${LIBRARIES})
+  ADD_DEPENDENCIES(Utils install-3rd_party_logger)
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
