@@ -11,3 +11,4 @@ set(SOURCES
 )
 
 add_library(ProtocolLibrary ${SOURCES})
+target_link_libraries(ProtocolLibrary Utils)

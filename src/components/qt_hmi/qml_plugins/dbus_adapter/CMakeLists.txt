@@ -103,6 +103,7 @@ set(SOURCES
   moc_hmi_requests.cpp
 )
 include_directories(
+  ${LOG4CXX_INCLUDE_DIRECTORY}
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_BINARY_DIR}/src/components
