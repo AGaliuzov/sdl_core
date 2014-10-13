@@ -35,6 +35,7 @@
 #include "interfaces/MOBILE_API.h"
 #include "application_manager/policies/policy_handler.h"
 #include "application_manager/application_manager_impl.h"
+#include "connection_handler/connection_handler.h"
 
 namespace application_manager {
 
@@ -65,9 +66,27 @@ void RegisterAppInterfaceResponse::Run() {
       application_manager::ApplicationManagerImpl::instance()->
       application(connection_key);
   if (app.valid()) {
-    policy::PolicyHandler::instance()->
-        AddApplication(app->mobile_app_id()->asString());
+    policy::PolicyHandler *policy_handler = policy::PolicyHandler::instance();
+    std::string mobile_app_id = app->mobile_app_id()->asString();
+    policy_handler->AddApplication(mobile_app_id);
+    SetHeartBeatTimeout(connection_key, mobile_app_id);
   }
+}
+
+void RegisterAppInterfaceResponse::SetHeartBeatTimeout(
+    uint32_t connection_key, const std::string& mobile_app_id) {
+  LOG4CXX_TRACE_ENTER(logger_);
+  policy::PolicyHandler *policy_handler = policy::PolicyHandler::instance();
+  if (policy_handler->PolicyEnabled()) {
+    const int32_t timeout = policy_handler->HeartBeatTimeout(mobile_app_id);
+    if (timeout > 0) {
+      application_manager::ApplicationManagerImpl::instance()->
+          connection_handler()->SetHeartBeatTimeout(connection_key, timeout);
+    }
+  } else {
+    LOG4CXX_INFO(logger_, "Policy is turn off");
+  }
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 }  // namespace commands

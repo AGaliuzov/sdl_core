@@ -542,6 +542,14 @@ class CacheManager : public CacheManagerInterface {
   void Backup();
 
   /**
+   * Returns heart beat timeout
+   * @param app_id application id
+   * @return if timeout was set then value in seconds greater zero
+   * otherwise heart beat for specific application isn't set
+   */
+  uint16_t HeartBeatTimeout(const std::string& app_id) const;
+
+  /**
    * @brief Allows to generate hash from the specified string.
    * The djb2 algorithm uses for hash generation.
    * @param str_to_hash - the string from which hash should be generated.

@@ -1194,6 +1194,10 @@ bool PolicyManagerImpl::InitPT(const std::string& file_name) {
   return ret;
 }
 
+uint16_t PolicyManagerImpl::HeartBeatTimeout(const std::string& app_id) const {
+  return cache_->HeartBeatTimeout(app_id);
+}
+
 void PolicyManagerImpl::set_cache_manager(
     CacheManagerInterface* cache_manager) {
   cache_ = cache_manager;

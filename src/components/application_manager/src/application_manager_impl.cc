@@ -131,11 +131,11 @@ bool ApplicationManagerImpl::Stop() {
                   "An error occurred during unregistering applications.");
   }
 
-#ifndef CUSTOMER_PASA
+
   // for PASA customer policy backup should happen OnExitAllApp(SUSPEND)
   LOG4CXX_INFO(logger_, "Unloading policy library.");
   policy::PolicyHandler::instance()->UnloadPolicyLibrary();
-#endif
+
   return true;
 }
 

@@ -219,6 +219,7 @@ PolicyHandler::PolicyHandler()
 }
 
 PolicyHandler::~PolicyHandler() {
+
 }
 
 bool PolicyHandler::LoadPolicyLibrary() {
@@ -839,6 +840,7 @@ bool PolicyHandler::ReceiveMessageFromSDK(const std::string& file,
 }
 
 bool PolicyHandler::UnloadPolicyLibrary() {
+  LOG4CXX_TRACE(logger_, "enter. policy_manager_ = " << policy_manager_);
   bool ret = true;
   delete policy_manager_;
   policy_manager_ = 0;
@@ -847,6 +849,7 @@ bool PolicyHandler::UnloadPolicyLibrary() {
     dl_handle_ = 0;
   }
   exchange_handler_->Stop();
+  LOG4CXX_TRACE(logger_, "exit");
   return ret;
 }
 
@@ -1429,6 +1432,11 @@ bool PolicyHandler::CheckStealFocus(int system_action,
       == mobile_apis::SystemAction::STEAL_FOCUS;
   const bool allowed = policy_manager_->CanAppStealFocus(policy_app_id);
   return !(steal_focus && !allowed);
+}
+
+uint16_t PolicyHandler::HeartBeatTimeout(const std::string& app_id) const {
+  POLICY_LIB_CHECK(0);
+  return policy_manager_->HeartBeatTimeout(app_id);
 }
 
 }  //  namespace policy
