@@ -365,7 +365,7 @@ set(3RD_PARTY_SOURCE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd_party)
 set(3RD_PARTY_BINARY_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/3rd_party)
 
 set (install-3rd_party_logger_var "")
-set (install-3rd_party_dbusr_var "")
+set (install-3rd_party_dbus_var "")
 set (is_logger_actual 1)
 set (is_dbus_actual 1)
 if(ENABLE_LOG)
@@ -384,8 +384,8 @@ if(ENABLE_LOG)
       WORKING_DIRECTORY ${3RD_PARTY_BINARY_DIRECTORY}
     )
     #install logger
-    #install either to default place with sudo or none default plase without sudo. 
-    #to install with sudo to none default place use manual installation
+    #install either to default place with sudo or none-default plase without sudo. 
+    #to install with sudo to none-default place use manual installation
     add_custom_target(install-3rd_party_logger
       COMMAND /bin/bash -c \"if [ ! ${is_logger_actual} == 0 ]\; then USE_DEFAULT_3RD_PARTY_PATH=${USE_DEFAULT_3RD_PARTY_PATH}\; if [[ \\$$USE_DEFAULT_3RD_PARTY_PATH == "true" ]]\; then sudo make install\; else make install\; fi\; fi\"
       DEPENDS 3rd_party_logger
