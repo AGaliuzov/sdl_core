@@ -1227,6 +1227,7 @@ bool PolicyHandler::GetPriority(const std::string& policy_app_id,
 void PolicyHandler::CheckPermissions(const PTString& app_id,
                                      const PTString& hmi_level,
                                      const PTString& rpc,
+                                     const RPCParams& rpc_params,
                                      CheckPermissionResult& result) {
   if (policy_manager_) {
     policy_manager_->CheckPermissions(app_id, hmi_level, rpc, result);

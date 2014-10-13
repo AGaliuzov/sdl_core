@@ -105,6 +105,7 @@ class PolicyManager : public usage_statistics::StatisticsManager {
     virtual void CheckPermissions(const PTString& app_id,
         const PTString& hmi_level,
         const PTString& rpc,
+        const RPCParams& rpc_params,
         CheckPermissionResult& result) = 0;
 
     /**

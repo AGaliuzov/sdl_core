@@ -85,6 +85,7 @@ typedef utils::SharedPtr<BinaryMessage> BinaryMessageSptr;
 typedef std::string HMILevel;
 typedef std::string Parameter;
 typedef std::string RpcName;
+typedef std::vector<std::string> RPCParams;
 
 typedef std::map<std::string, std::set<policy::HMILevel> > HMIPermissions;
 typedef std::map<std::string, std::set<policy::Parameter> > ParameterPermissions;

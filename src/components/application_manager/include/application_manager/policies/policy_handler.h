@@ -78,6 +78,7 @@ class PolicyHandler :
   void CheckPermissions(const PTString& app_id,
                    const PTString& hmi_level,
                    const PTString& rpc,
+                   const RPCParams& rpc_params,
                    CheckPermissionResult& result);
 
   uint32_t GetNotificationsNumber(const std::string& priority);

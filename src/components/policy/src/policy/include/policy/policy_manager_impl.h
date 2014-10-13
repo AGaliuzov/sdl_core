@@ -66,6 +66,7 @@ class PolicyManagerImpl : public PolicyManager {
     virtual void CheckPermissions(const PTString& app_id,
         const PTString& hmi_level,
         const PTString& rpc,
+        const RPCParams& rpc_params,
         CheckPermissionResult& result);
     virtual bool ResetUserConsent();
     virtual bool ExceededIgnitionCycles();
