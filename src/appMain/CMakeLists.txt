@@ -167,16 +167,39 @@ if(BUILD_TESTS)
     ./main_test.cc
     ../components/utils/test/file_system_test.cc
     ../components/utils/test/date_time_test.cc
-    ../components/media_manager/test/media_adapter_impl_test.cc)
+    ../components/media_manager/test/media_adapter_impl_test.cc
+    ../components/application_manager/test/command_impl_test.cc
+)
     
   set(testLibraries
     gmock
     gtest
     ConfigProfile
+    SmartObjects
     log4cxx -L${LOG4CXX_LIBS_DIRECTORY}
     apr-1 -L${APR_LIBS_DIRECTORY}
     aprutil-1 -L${APR_UTIL_LIBS_DIRECTORY}
-    expat -L${EXPAT_LIBS_DIRECTORY})
+    expat -L${EXPAT_LIBS_DIRECTORY}
+    gmock
+    gtest
+    gmock
+    gmock_main
+    ApplicationManager
+    HMI_API
+    MOBILE_API
+    v4_protocol_v1_2_no_extra
+    SmartObjects
+    formatters
+    ProtocolLibrary
+    ProtocolHandler
+    connectionHandler
+    HMIMessageHandler
+    Utils
+    jsoncpp
+    ConfigProfile
+    MediaManager
+    Resumption
+)
 
   add_executable(${PROJECT}_test ${testSources})
   target_link_libraries(${PROJECT}_test ${testLibraries})

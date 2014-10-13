@@ -421,7 +421,7 @@ if(BUILD_TESTS)
     # Framework GoogleTest is also integrated together gmock
     # and must not be added separately
     add_subdirectory(./src/3rd_party-static/gmock-1.7.0)
-    add_subdirectory(./test)
+    #add_subdirectory(./test)
 endif()
 
 # Building documentation

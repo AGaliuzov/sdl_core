@@ -58,6 +58,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 #======================= Unit-Test section ======================= 
+
 if(BUILD_TESTS)
   include_directories (
     ../../3rd_party-static/gmock-1.7.0/include
@@ -77,3 +78,6 @@ if(BUILD_TESTS)
   target_link_libraries(utils_test ${testLibraries})
 endif()
 #=================================================================
+
+
+

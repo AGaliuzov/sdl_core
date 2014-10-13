@@ -421,3 +421,49 @@ target_link_libraries("ApplicationManager" ${LIBRARIES})
 if(ENABLE_LOG)
   target_link_libraries("ApplicationManager" log4cxx -L${LOG4CXX_LIBS_DIRECTORY})
 endif()
+
+#======================= Unit-Test section =======================
+if(BUILD_TESTS)
+  include_directories (
+    ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
+    ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
+    ${CMAKE_SOURCE_DIR}/src/components/application_manager/include
+)
+
+  set(testSources
+    ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/src/gmock_main.cc
+    ./test/command_impl_test.cc
+    )
+
+  set(testLibraries
+    gmock
+    gtest
+    gmock
+    gmock_main
+    log4cxx -L${LOG4CXX_LIBS_DIRECTORY}
+    apr-1 -L${APR_LIBS_DIRECTORY}
+    aprutil-1 -L${APR_UTIL_LIBS_DIRECTORY}
+    expat -L${EXPAT_LIBS_DIRECTORY}
+    ApplicationManager
+    HMI_API
+    MOBILE_API
+    v4_protocol_v1_2_no_extra
+    SmartObjects
+    formatters
+    ProtocolLibrary
+    ProtocolHandler
+    connectionHandler
+    HMIMessageHandler
+    Utils
+    jsoncpp
+    ConfigProfile
+    MediaManager
+    Resumption
+    )
+
+  add_executable(application_manager_test ${testSources})
+  target_link_libraries(application_manager_test ${testLibraries})
+endif()
+#=================================================================
+
+
