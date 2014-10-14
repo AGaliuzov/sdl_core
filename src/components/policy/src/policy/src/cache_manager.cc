@@ -301,7 +301,15 @@ bool CacheManager::ApplyUpdate(const policy_table::Table& update_pt) {
   pt_->policy_table.functional_groupings =
       update_pt.policy_table.functional_groupings;
 
-  pt_->policy_table.app_policies = update_pt.policy_table.app_policies;
+  policy_table::ApplicationPolicies::const_iterator iter =
+      update_pt.policy_table.app_policies.begin();
+  policy_table::ApplicationPolicies::const_iterator iter_end =
+      update_pt.policy_table.app_policies.end();
+
+  for (;iter != iter_end; ++iter) {
+    pt_->policy_table.app_policies[iter->first] = iter->second;
+  }
+
   pt_->policy_table.module_config = update_pt.policy_table.module_config;
 
   if (update_pt.policy_table.consumer_friendly_messages.is_initialized()) {
