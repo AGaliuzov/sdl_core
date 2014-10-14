@@ -57,27 +57,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_link_libraries("Utils" pthread ${RTLIB})
 endif()
 
-#======================= Unit-Test section ======================= 
-
 if(BUILD_TESTS)
-  include_directories (
-    ../../3rd_party-static/gmock-1.7.0/include
-    ../../3rd_party-static/gmock-1.7.0/gtest/include)
-  
-  set(testSources
-    ./test/main.cc
-    ./test/file_system_test.cc
-    ./test/date_time_test.cc)
-
-  set(testLibraries
-    gmock
-    gtest
-    Utils)
-    
-  add_executable(utils_test ${testSources})
-  target_link_libraries(utils_test ${testLibraries})
+  add_subdirectory(test)
 endif()
-#=================================================================
 
 
 

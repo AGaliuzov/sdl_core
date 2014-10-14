@@ -1,0 +1,1 @@
+../../../../../src/commands/hmi/on_app_activated_notification.cc

@@ -76,21 +76,6 @@ set (SOURCES
 add_library("MediaManager" ${SOURCES} ${default_sources})
 target_link_libraries("MediaManager" ${LIBRARIES})
 
-#======================= Unit-Test section ======================= 
 if(BUILD_TESTS)
-  include_directories (
-    ../../3rd_party-static/gmock-1.7.0/include
-    ../../3rd_party-static/gmock-1.7.0/gtest/include)
-  
-  set(testSources
-    ./test/main.cc
-    ./test/media_adapter_impl_test.cc)
-
-  set(testLibraries
-    gmock
-    gtest)
-  
-  add_executable(media_manager_test ${testSources})
-  target_link_libraries(media_manager_test ${testLibraries})
+  add_subdirectory(test)
 endif()
-#=================================================================

@@ -104,22 +104,22 @@ endif()
 
 include_directories (
   ./
-  ../components/protocol_handler/include/
+  ${CMAKE_SOURCE_DIR}/src/components/protocol_handler/include/
   ${JSONCPP_INCLUDE_DIRECTORY}
-  ../components/application_manager/include
-  ../components/formatters/include
-  ../components/transport_manager/include
+  ${CMAKE_SOURCE_DIR}/src/components/application_manager/include
+  ${CMAKE_SOURCE_DIR}/src/components/formatters/include
+  ${CMAKE_SOURCE_DIR}/src/components/transport_manager/include
   ${SecurityManagerIncludeDir}
-  ../components/config_profile/include
-  ../components/utils/include/
-  ../components/connection_handler/include/
-  ../components/hmi_message_handler/include
-  ../components/request_watchdog/include
-  ../components/smart_objects/include/
-  ../components/media_manager/include/
+  ${CMAKE_SOURCE_DIR}/src/components/config_profile/include
+  ${CMAKE_SOURCE_DIR}/src/components/utils/include/
+  ${CMAKE_SOURCE_DIR}/src/components/connection_handler/include/
+  ${CMAKE_SOURCE_DIR}/src/components/hmi_message_handler/include
+  ${CMAKE_SOURCE_DIR}/src/components/request_watchdog/include
+  ${CMAKE_SOURCE_DIR}/src/components/smart_objects/include/
+  ${CMAKE_SOURCE_DIR}/src/components/media_manager/include/
   ${CMAKE_SOURCE_DIR}/src/components/time_tester/include
   ${CMAKE_SOURCE_DIR}/src/components/policy/src/policy/include/
-  ../components/resumption/include/
+  ${CMAKE_SOURCE_DIR}/src/components/resumption/include/
   ${MESSAGE_BROKER_INCLUDE_DIRECTORY}
   ${ENCRYPTION_INCLUDE_DIRECTORY}
   ${CMAKE_SOURCE_DIR}/src/components/
@@ -159,46 +159,43 @@ target_link_libraries(${PROJECT} ${LIBRARIES})
 
 #======================= Unit-Test section =======================
 if(BUILD_TESTS)
+  set (AM_TEST_DIR ${CMAKE_SOURCE_DIR}/src/components/application_manager/test)
+  set (AM_MOCK_DIR ${CMAKE_SOURCE_DIR}/src/components/application_manager/test/mock)
 
-get_property(the_include_dirs DIRECTORY "" PROPERTY INCLUDE_DIRECTORIES)
-message("\nMain OLD = " ${the_include_dirs})
-     set(class_to_mock ${CMAKE_SOURCE_DIR}/src/components/application_manager/include)
-     list(FIND the_include_dirs ${class_to_mock} find_idx)
-     if(find_idx GREATER -1)
-       message("\nMain REPLACED " ${class_to_mock})
-       LIST_REPLACE(the_include_dirs ${find_idx} ${CMAKE_SOURCE_DIR}/src/components/application_manager/test/include)
-     endif()
-message("\nMain NEW = " ${the_include_dirs})
-set_property(DIRECTORY "" PROPERTY INCLUDE_DIRECTORIES ${the_include_dirs})
+  get_property(the_include_dirs DIRECTORY "" PROPERTY INCLUDE_DIRECTORIES)
+       #replace include for mocking singltone
+       set(class_to_mock ${CMAKE_SOURCE_DIR}/src/components/application_manager/include)
+       list(FIND the_include_dirs ${class_to_mock} find_idx)
+       if(find_idx GREATER -1)
+         LIST_REPLACE(the_include_dirs ${find_idx} ${AM_MOCK_DIR}/include)
+       endif()
+  set_property(DIRECTORY "" PROPERTY INCLUDE_DIRECTORIES ${the_include_dirs})
+
 
   include_directories (
-  ../3rd_party-static/gmock-1.7.0/include
-  ../3rd_party-static/gmock-1.7.0/gtest/include
-  ${CMAKE_SOURCE_DIR}/src/components/application_manager/test/include
-  ${CMAKE_SOURCE_DIR}/src/components/policy/src/policy/usage_statistics/include
-  ../components/protocol_handler/include/
+  ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
+  ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
+  ${CMAKE_SOURCE_DIR}/src/components/protocol_handler/include/
   ${JSONCPP_INCLUDE_DIRECTORY}
-  ../components/application_manager/include
-  ../components/formatters/include
-  ../components/transport_manager/include
+  ${CMAKE_SOURCE_DIR}/src/components/formatters/include
+  ${CMAKE_SOURCE_DIR}/src/components/transport_manager/include
   ${SecurityManagerIncludeDir}
-  ../components/config_profile/include
-  ../components/utils/include/
-  ../components/connection_handler/include/
-  ../components/hmi_message_handler/include
-  ../components/request_watchdog/include
-  ../components/smart_objects/include/
-  ../components/media_manager/include/
+  ${CMAKE_SOURCE_DIR}/src/components/config_profile/include
+  ${CMAKE_SOURCE_DIR}/src/components/utils/include/
+  ${CMAKE_SOURCE_DIR}/src/components/connection_handler/include/
+  ${CMAKE_SOURCE_DIR}/src/components/hmi_message_handler/include
+  ${CMAKE_SOURCE_DIR}/src/components/request_watchdog/include
+  ${CMAKE_SOURCE_DIR}/src/components/smart_objects/include/
+  ${CMAKE_SOURCE_DIR}/src/components/media_manager/include/
   ${CMAKE_SOURCE_DIR}/src/components/time_tester/include
   ${CMAKE_SOURCE_DIR}/src/components/policy/src/policy/include/
-  ../components/resumption/include/
+  ${CMAKE_SOURCE_DIR}/src/components/resumption/include/
   ${MESSAGE_BROKER_INCLUDE_DIRECTORY}
   ${ENCRYPTION_INCLUDE_DIRECTORY}
   ${CMAKE_SOURCE_DIR}/src/components/
   ${CMAKE_BINARY_DIR}/src/components/
   ${CMAKE_SOURCE_DIR}/src/components/dbus/include/
   ${CMAKE_BINARY_DIR}/src/components/policy/src/policy
-  ${CMAKE_BINARY_DIR}/src/components/policy/usage/policy
   ${CMAKE_SOURCE_DIR}
   ${default_media_inc}
   ${LOG4CXX_INCLUDE_DIRECTORY}
@@ -206,14 +203,13 @@ set_property(DIRECTORY "" PROPERTY INCLUDE_DIRECTORIES ${the_include_dirs})
 
   set(testSources
     ./main_test.cc
-    ../components/utils/test/file_system_test.cc
-    ../components/utils/test/date_time_test.cc
-    ../components/media_manager/test/media_adapter_impl_test.cc
-    ../components/application_manager/test/src/commands/mobile/command_impl_test.cc
-    ../components/application_manager/test/src/application_manager_impl.cc
-)
+    ${CMAKE_SOURCE_DIR}/src/components/application_manager/test/command_impl_test.cc
+    ${CMAKE_SOURCE_DIR}/src/components/utils/test/date_time_test.cc
+    ${CMAKE_SOURCE_DIR}/src/components/utils/test/file_system_test.cc
+    ${CMAKE_SOURCE_DIR}/src/components/media_manager/test/media_adapter_impl_test.cc
+  )
 
-  set(testLibraries
+  set(test_exec_libraries
     gmock
     gtest
     ConfigProfile
@@ -226,7 +222,7 @@ set_property(DIRECTORY "" PROPERTY INCLUDE_DIRECTORIES ${the_include_dirs})
     gtest
     gmock
     gmock_main
-    ApplicationManager
+    ApplicationManagerTest #Mocked
     HMI_API
     MOBILE_API
     v4_protocol_v1_2_no_extra
@@ -241,12 +237,24 @@ set_property(DIRECTORY "" PROPERTY INCLUDE_DIRECTORIES ${the_include_dirs})
     ConfigProfile
     MediaManager
     Resumption
-)
+  )
+
+  IF(${CMAKE_SYSTEM_NAME} MATCHES "QNX")
+    list(REMOVE_ITEM test_exec_libraries dl)
+  endif()
 
   add_executable(${PROJECT}_test ${testSources})
-  target_link_libraries(${PROJECT}_test ${testLibraries})
+  target_link_libraries(${PROJECT}_test ${test_exec_libraries} ${testLibraries})
+
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/log4cxx.properties DESTINATION ${CMAKE_BINARY_DIR}/test/)
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/smartDeviceLink.ini DESTINATION ${CMAKE_BINARY_DIR}/test/)
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/hmi_capabilities.json DESTINATION ${CMAKE_BINARY_DIR}/test/)
+
 endif()
+
+
 #=================================================================
+
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/log4cxx.properties DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/audio.8bit.wav DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
@@ -259,11 +267,6 @@ if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
 endif ()
 
 
-if (BUILD_TESTS)
-  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/log4cxx.properties DESTINATION ${CMAKE_BINARY_DIR}/test/)
-  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/smartDeviceLink.ini DESTINATION ${CMAKE_BINARY_DIR}/test/)
-  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/hmi_capabilities.json DESTINATION ${CMAKE_BINARY_DIR}/test/)
-endif()
 
 if (${QT_HMI})
   set(main_qml "hmi/MainWindow.qml")
