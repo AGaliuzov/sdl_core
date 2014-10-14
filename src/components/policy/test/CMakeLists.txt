@@ -1,4 +1,4 @@
-find_package(Sqlite3 REQUIRED)
+
 
 include_directories(
   include
@@ -22,7 +22,6 @@ set(testLibraries
   dl
   UsageStatistics
   dbms
-  sqlite3
 )
 
 set(testSources
@@ -30,9 +29,7 @@ set(testSources
   usage_statistics_test.cc
   shared_library_test.cc
   generated_code_test.cc
-  generated_code_with_sqlite_test.cc
   policy_manager_impl_test.cc
-  policy_manager_impl_stress_test.cc
 )
 
 if (EXTENDED_POLICY_FLAG)
@@ -49,7 +46,7 @@ else ()
 endif ()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
-  list(REMOVE_ITEM LIBRARIES dl)
+  list(REMOVE_ITEM testLibraries dl)
   # --- Tests for QDB Wrapper
   include_directories(
     ${CMAKE_SOURCE_DIR}/src/components/policy/src/policy/qdb_wrapper/include
@@ -60,15 +57,20 @@ if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
   )
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/qdbserver.sh DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test-qdb.ini DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/policy.sql DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 else ()
   # --- Tests for SQLite Wrapper
+  find_package(Sqlite3 REQUIRED)
   include_directories(
     ${CMAKE_SOURCE_DIR}/src/components/policy/src/policy/sqlite_wrapper/include
   )
   list (APPEND testSources
     sqlite_wrapper/sql_database_test.cc
     sqlite_wrapper/sql_query_test.cc
+    generated_code_with_sqlite_test.cc
+    policy_manager_impl_stress_test.cc
   )
+  list (APPEND testLibraries sqlite3)
 endif()
 
 add_executable(policy_test ${testSources})

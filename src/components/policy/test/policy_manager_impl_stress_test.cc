@@ -89,7 +89,9 @@ void PolicyManagerImplStressTest::TearDownTestCase() {
   delete manager;
   delete mock_listener;
   remove(kNameFile.c_str());
+#ifndef __QNX__
   remove("policy.sqlite");
+#endif  // __QNX__
 }
 
 void PolicyManagerImplStressTest::CreateGroups(std::ofstream& ofs) {
