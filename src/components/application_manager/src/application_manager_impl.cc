@@ -296,13 +296,13 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
   const std::string& app_name =
     message[strings::msg_params][strings::app_name].asString();
 
-  usage_statistics::StatisticsManager* const& sm =
-      policy::PolicyHandler::instance()->GetStatisticManager();
   ApplicationSharedPtr application(
-    new ApplicationImpl(app_id, mobile_app_id, app_name,sm));
+    new ApplicationImpl(app_id,
+                        mobile_app_id, app_name,
+                        policy::PolicyHandler::instance()->GetStatisticManager()));
   if (!application) {
     usage_statistics::AppCounter count_of_rejections_sync_out_of_memory(
-      sm, mobile_app_id,
+      policy::PolicyHandler::instance()->GetStatisticManager(), mobile_app_id,
       usage_statistics::REJECTIONS_SYNC_OUT_OF_MEMORY);
     ++count_of_rejections_sync_out_of_memory;
 
@@ -1110,9 +1110,21 @@ void ApplicationManagerImpl::SendMessageToMobile(
     mobile_apis::FunctionID::eType function_id =
         static_cast<mobile_apis::FunctionID::eType>(
         (*message)[strings::params][strings::function_id].asUInt());
+    RPCParams params;
+
+    const smart_objects::SmartObject& s_map = (*message)[strings::msg_params];
+    if (smart_objects::SmartType_Map == s_map.getType()) {
+      params.resize(s_map.length() - 1);
+      smart_objects::SmartMap::iterator iter = s_map.map_begin();
+      smart_objects::SmartMap::iterator iter_end = s_map.map_end();
+
+      for (; iter != iter_end; ++iter) {
+        params.push_back(iter->first);
+      }
+    }
     const mobile_apis::Result::eType check_result =
         CheckPolicyPermissions( app->mobile_app_id()->asString(),
-                                app->hmi_level(), function_id);
+                                app->hmi_level(), function_id, params);
     if (mobile_apis::Result::SUCCESS != check_result) {
       const std::string string_functionID =
           MessageHelper::StringifiedFunctionID(function_id);
@@ -2071,6 +2083,7 @@ mobile_apis::Result::eType ApplicationManagerImpl::CheckPolicyPermissions(
     const std::string& policy_app_id,
     mobile_apis::HMILevel::eType hmi_level,
     mobile_apis::FunctionID::eType function_id,
+    const RPCParams& rpc_params,
     CommandParametersPermissions* params_permissions) {
   LOG4CXX_INFO(logger_, "CheckPolicyPermissions");
   // TODO(AOleynik): Remove check of policy_enable, when this flag will be
@@ -2093,6 +2106,7 @@ mobile_apis::Result::eType ApplicationManagerImpl::CheckPolicyPermissions(
           policy_app_id,
           stringified_hmi_level,
           stringified_functionID,
+          rpc_params,
           result);
 
   if (NULL != params_permissions) {

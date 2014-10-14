@@ -313,6 +313,7 @@ BinaryMessageSptr PolicyManagerImpl::RequestPTUpdate() {
 void PolicyManagerImpl::CheckPermissions(const PTString& app_id,
                                          const PTString& hmi_level,
                                           const PTString& rpc,
+                                          const RPCParams& rpc_params,
                                           CheckPermissionResult& result) {
   LOG4CXX_INFO(
     logger_,
@@ -349,7 +350,8 @@ void PolicyManagerImpl::CheckPermissions(const PTString& app_id,
                                    GroupConsent::kGroupUndefined);
   std::for_each(app_groups.begin(), app_groups.end(), processor);
 
-  if (rpc_permissions.end() == rpc_permissions.find(rpc)) {
+  const bool known_rpc = rpc_permissions.end() == rpc_permissions.find(rpc);
+  if (!known_rpc) {
     // RPC not found in list == disallowed by backend
     result.hmi_level_permitted = kRpcDisallowed;
   }
@@ -383,6 +385,27 @@ void PolicyManagerImpl::CheckPermissions(const PTString& app_id,
   std::copy(rpc_permissions[rpc].parameter_permissions[kUndefinedKey].begin(),
             rpc_permissions[rpc].parameter_permissions[kUndefinedKey].end(),
             std::back_inserter(result.list_of_undefined_params));
+
+  // In case when RPCParams is not empty we have to check
+  // If all rpc parameters are in the allowed list,
+  // in this case we don't mind about HMILevel permissions
+  // since those peremessions were changed via one of functional groups.
+  if (!rpc_params.empty() && known_rpc) {
+    RPCParams::const_iterator iter = rpc_params.begin();
+    RPCParams::const_iterator iter_end = rpc_params.end();
+    bool found = true;
+    for (;iter != iter_end && found; ++iter) {
+      found = result.list_of_allowed_params.end() !=
+          std::find(result.list_of_allowed_params.begin(),
+                    result.list_of_allowed_params.end(),
+                    *iter);
+    }
+    // All paramters are in the allowed group.
+    // So rpc is allowed as well.
+    if (found) {
+      result.hmi_level_permitted = kRpcAllowed;
+    }
+  }
 #else
   cache_->CheckPermissions(app_id, hmi_level, rpc, result);
 #endif
@@ -1012,7 +1035,7 @@ void PolicyManagerImpl::Increment(usage_statistics::GlobalCounterId type) {
 }
 
 void PolicyManagerImpl::Increment(const std::string& app_id,
-                                  usage_statistics::AppCounterId type) {
+                                  usage_statistics::AppCounterId type){
   LOG4CXX_INFO(logger_, "Increment " << app_id);
   sync_primitives::AutoLock locker(statistics_lock_);
 #ifdef EXTENDED_POLICY

@@ -44,12 +44,13 @@ namespace components  {
 namespace utils  {
   TEST(DateTimeTest, GetCurrentTime) {
     const TimevalStruct time1 = date_time::DateTime::getCurrentTime();
-    ASSERT_NE(0u, time1.tv_sec);
-    ASSERT_GE(time1.tv_usec, 0);
+    TimevalStruct zero = {0, 0};
+    ASSERT_NE(zero.tv_sec, time1.tv_sec);
+    ASSERT_GE(time1.tv_usec, zero.tv_usec);
 
     const TimevalStruct time2 = date_time::DateTime::getCurrentTime();
-    ASSERT_NE(0u, time2.tv_sec);
-    ASSERT_GE(time2.tv_usec, 0);
+    ASSERT_NE(zero.tv_sec, time2.tv_sec);
+    ASSERT_GE(time2.tv_usec, zero.tv_usec);
     ASSERT_GE(time2.tv_sec,  time1.tv_sec);
   }
 

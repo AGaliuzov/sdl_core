@@ -1,5 +1,5 @@
-﻿/**
- * Copyright (c) 2014, Ford Motor Company
+/**
+ * Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,42 +30,47 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_USAGE_STATISTICS_H_
-#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_USAGE_STATISTICS_H_
+#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_ON_TTS_RESET_TIMEOUT_NOTIFICATION_H_
+#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_ON_TTS_RESET_TIMEOUT_NOTIFICATION_H_
 
-#include <string>
-#include "usage_statistics/counter.h"
-#include "interfaces/MOBILE_API.h"
+#include "application_manager/commands/hmi/notification_from_hmi.h"
 
 namespace application_manager {
 
-class UsageStatistics {
+namespace commands {
+
+namespace hmi {
+
+/**
+ * @brief OnTTSResetTimeoutNotification command class
+ **/
+class OnTTSResetTimeoutNotification : public NotificationFromHMI {
  public:
-  UsageStatistics(const std::string& app_id,
-                  utils::SharedPtr<usage_statistics::StatisticsManager>
-                  statistics_manager);
-  void RecordHmiStateChanged(mobile_apis::HMILevel::eType new_hmi_level);
-  void RecordAppRegistrationGuiLanguage(
-      mobile_apis::Language::eType gui_language);
-  void RecordAppRegistrationVuiLanguage(
-      mobile_apis::Language::eType vui_language);
-  void RecordRpcSentInHMINone();
-  void RecordPolicyRejectedRpcCall();
-  void RecordAppUserSelection();
-  void RecordRunAttemptsWhileRevoked();
-  void RecordRemovalsForBadBehavior();
+  /**
+   * @brief OnTTSResetTimeoutNotification class constructor
+   *
+   * @param message Incoming SmartObject message
+   **/
+  explicit OnTTSResetTimeoutNotification(const MessageSharedPtr& message);
+
+  /**
+   * @brief OnTTSResetTimeoutNotification class destructor
+   **/
+  virtual ~OnTTSResetTimeoutNotification();
+
+  /**
+   * @brief Execute command
+   **/
+  virtual void Run();
 
  private:
-  usage_statistics::AppStopwatch time_in_hmi_state_;
-  usage_statistics::AppInfo app_registration_language_gui_;
-  usage_statistics::AppInfo app_registration_language_vui_;
-  usage_statistics::AppCounter count_of_rejected_rpc_calls_;
-  usage_statistics::AppCounter count_of_rpcs_sent_in_hmi_none_;
-  usage_statistics::AppCounter count_of_user_selections_;
-  usage_statistics::AppCounter count_of_run_attempts_while_revoked_;
-  usage_statistics::AppCounter count_of_removals_for_bad_behavior_;
+  DISALLOW_COPY_AND_ASSIGN(OnTTSResetTimeoutNotification);
 };
+
+}  // namespace hmi
+
+}  // namespace commands
 
 }  // namespace application_manager
 
-#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_USAGE_STATISTICS_H_
+#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_ON_TTS_RESET_TIMEOUT_NOTIFICATION_H_

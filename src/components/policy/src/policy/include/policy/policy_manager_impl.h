@@ -65,6 +65,7 @@ class PolicyManagerImpl : public PolicyManager {
     virtual void CheckPermissions(const PTString& app_id,
         const PTString& hmi_level,
         const PTString& rpc,
+        const RPCParams& rpc_params,
         CheckPermissionResult& result);
     virtual bool ResetUserConsent();
     virtual bool ExceededIgnitionCycles();
@@ -139,7 +140,7 @@ class PolicyManagerImpl : public PolicyManager {
                      const std::string& value);
     virtual void Add(const std::string& app_id,
                      usage_statistics::AppStopwatchId type,
-                     int32_t timespan_seconds);    
+                     int32_t timespan_seconds);
     // Interface StatisticsManager (end)
 
     AppPermissions GetAppPermissionsChanges(const std::string& device_id,
