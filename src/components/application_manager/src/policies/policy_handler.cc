@@ -1238,7 +1238,7 @@ void PolicyHandler::CheckPermissions(const PTString& app_id,
                                      const RPCParams& rpc_params,
                                      CheckPermissionResult& result) {
   if (policy_manager_) {
-    policy_manager_->CheckPermissions(app_id, hmi_level, rpc, result);
+    policy_manager_->CheckPermissions(app_id, hmi_level, rpc,rpc_params, result);
   }
 }
 
