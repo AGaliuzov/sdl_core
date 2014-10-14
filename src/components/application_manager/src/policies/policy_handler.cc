@@ -1234,7 +1234,7 @@ void PolicyHandler::CheckPermissions(const PTString& app_id,
                                      const RPCParams& rpc_params,
                                      CheckPermissionResult& result) {
   POLICY_LIB_CHECK_VOID();
-  policy_manager_->CheckPermissions(app_id, hmi_level, rpc, result);
+  policy_manager_->CheckPermissions(app_id, hmi_level, rpc, rpc_params, result);
 }
 
 uint32_t PolicyHandler::GetNotificationsNumber(const std::string& priority) {
