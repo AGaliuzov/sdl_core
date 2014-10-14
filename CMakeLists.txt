@@ -323,6 +323,14 @@ macro(create_test NAME SOURCES LIBS)
     endif()
 endmacro(create_test)
 
+# --replace in list macro
+macro(LIST_REPLACE LIST INDEX NEWVALUE)
+    list(INSERT ${LIST} ${INDEX} ${NEWVALUE})
+    MATH(EXPR __INDEX "${INDEX} + 1")
+    list (REMOVE_AT ${LIST} ${__INDEX})
+endmacro(LIST_REPLACE)
+
+
 # Building application
 
 # --- Type HMI

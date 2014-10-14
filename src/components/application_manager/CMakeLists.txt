@@ -4,7 +4,7 @@ endif()
 
 
 include_directories (
-  ./include/
+  include/
   ../utils/include/
   ../formatters/include/
   ../protocol_handler/include/
@@ -424,15 +424,51 @@ endif()
 
 #======================= Unit-Test section =======================
 if(BUILD_TESTS)
+
+get_property(the_include_dirs DIRECTORY "" PROPERTY INCLUDE_DIRECTORIES)
+message("\nOLD = " ${the_include_dirs})
+     set(class_to_mock ${CMAKE_SOURCE_DIR}/src/components/application_manager/include)
+     list(FIND the_include_dirs ${class_to_mock} find_idx)
+     if(find_idx GREATER -1)
+       message("\nREPLACED " ${class_to_mock})
+       LIST_REPLACE(the_include_dirs ${find_idx} ${CMAKE_SOURCE_DIR}/src/components/application_manager/test/include)
+     endif()
+message("\nNEW = " ${the_include_dirs})
+set_property(DIRECTORY "" PROPERTY INCLUDE_DIRECTORIES ${the_include_dirs})
+
   include_directories (
-    ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
-    ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
-    ${CMAKE_SOURCE_DIR}/src/components/application_manager/include
+  ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
+  ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
+  ${CMAKE_SOURCE_DIR}/src/components/protocol_handler/include/
+  ${JSONCPP_INCLUDE_DIRECTORY}
+  ${CMAKE_SOURCE_DIR}/src/components/formatters/include
+  ${CMAKE_SOURCE_DIR}/src/components/transport_manager/include
+  ${SecurityManagerIncludeDir}
+  ${CMAKE_SOURCE_DIR}/src/components/config_profile/include
+  ${CMAKE_SOURCE_DIR}/src/components/utils/include/
+  ${CMAKE_SOURCE_DIR}/src/components/connection_handler/include/
+  ${CMAKE_SOURCE_DIR}/src/components/hmi_message_handler/include
+  ${CMAKE_SOURCE_DIR}/src/components/request_watchdog/include
+  ${CMAKE_SOURCE_DIR}/src/components/smart_objects/include/
+  ${CMAKE_SOURCE_DIR}/src/components/media_manager/include/
+  ${CMAKE_SOURCE_DIR}/src/components/time_tester/include
+  ${CMAKE_SOURCE_DIR}/src/components/policy/src/policy/include/
+  ${CMAKE_SOURCE_DIR}/src/components/resumption/include/
+  ${MESSAGE_BROKER_INCLUDE_DIRECTORY}
+  ${ENCRYPTION_INCLUDE_DIRECTORY}
+  ${CMAKE_SOURCE_DIR}/src/components/
+  ${CMAKE_BINARY_DIR}/src/components/
+  ${CMAKE_SOURCE_DIR}/src/components/dbus/include/
+  ${CMAKE_BINARY_DIR}/src/components/policy/src/policy
+  ${CMAKE_SOURCE_DIR}
+  ${default_media_inc}
+  ${LOG4CXX_INCLUDE_DIRECTORY}
 )
 
   set(testSources
     ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/src/gmock_main.cc
-    ./test/command_impl_test.cc
+    ${CMAKE_SOURCE_DIR}/src/components/application_manager/test/src/application_manager_impl.cc
+    ${CMAKE_SOURCE_DIR}/src/components/application_manager/test/src/commands/mobile/command_impl_test.cc
     )
 
   set(testLibraries
