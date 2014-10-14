@@ -64,7 +64,7 @@ BluetoothPASAConnection::BluetoothPASAConnection(
       app_handle_(app_handle),
       sppDeviceFd(-1) {
   const std::string thread_name = std::string("BT Con") + device_handle();
-  thread_ = new threads::Thread(thread_name.c_str(), new BluetoothPASAConnectionDelegate(this));
+  thread_ = threads::CreateThread(thread_name.c_str(), new BluetoothPASAConnectionDelegate(this));
 }
 BluetoothPASAConnection::~BluetoothPASAConnection() {
     LOG4CXX_TRACE_ENTER(logger_);
@@ -72,7 +72,6 @@ BluetoothPASAConnection::~BluetoothPASAConnection() {
     Notify();
     errno = 0;
     thread_->stop();
-    delete thread_;
     if (-1 != read_fd_)
       close(read_fd_);
     if (-1 != write_fd_)
@@ -289,7 +288,7 @@ void BluetoothPASAConnection::Transmit() {
     }
   }
   // receive data
-  if (0 != poll_fds[0].revents & (POLLIN | POLLPRI)) {
+  if (poll_fds[0].revents & (POLLIN | POLLPRI)) {
     if (!Receive()) {
       LOG4CXX_ERROR(logger_, "Receive() failed  (#" << pthread_self() << ")");
       Abort();

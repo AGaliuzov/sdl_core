@@ -84,7 +84,7 @@ Connection::Connection(ConnectionHandle connection_handle,
   DCHECK(connection_handler_);
 
   heartbeat_monitor_ = new HeartBeatMonitor(heartbeat_timeout, this);
-  heart_beat_monitor_thread_ = threads::ThreadManager::CreateThread("HeartBeatMonitor",
+  heart_beat_monitor_thread_ = threads::CreateThread("HeartBeatMonitor",
                                                    heartbeat_monitor_);
   heart_beat_monitor_thread_->start();
 }

@@ -36,20 +36,21 @@
 #include <stddef.h>
 #include <signal.h>
 
+#include "utils/atomic.h"
 #include "utils/threads/thread.h"
 #include "utils/threads/thread_manager.h"
 #include "utils/logger.h"
 #include "pthread.h"
 
-using namespace std;
-using namespace threads::impl;
-
 namespace {
 
-static void* threadFunc(void* closure) {
-  threads::ThreadDelegate* delegate =
-    static_cast<threads::ThreadDelegate*>(closure);
+static void* threadFunc(void* arg) {
+  threads::Thread* thread = static_cast<threads::Thread*>(arg);
+  threads::ThreadDelegate* delegate = thread->delegate();
   delegate->threadMain();
+  if (thread->is_running()) {
+    thread->stop();
+  }
   return NULL;
 }
 
@@ -95,11 +96,15 @@ Thread::Thread(const char* name, ThreadDelegate* delegate)
     delegate_(delegate),
     thread_handle_(0),
     thread_options_(),
-    isThreadRunning_(false) {
+    isThreadRunning_(0) {
+}
+
+ThreadDelegate* Thread::delegate() const {
+  return delegate_;
 }
 
 Thread::~Thread() {
-  stop();
+  //delete delegate_;
   LOG4CXX_INFO(logger_, "Deleted thread: " << name_);
 }
 
@@ -144,7 +149,7 @@ bool Thread::startWithOptions(const ThreadOptions& options) {
     }
   }
 
-  pthread_result = pthread_create(&thread_handle_, &attributes, threadFunc, delegate_);
+  pthread_result = pthread_create(&thread_handle_, &attributes, threadFunc, this);
   isThreadRunning_ = (pthread_result == EOK);
   if (!isThreadRunning_) {
     LOG4CXX_WARN(logger_, "Couldn't create thread. Error code = "
@@ -159,16 +164,12 @@ bool Thread::startWithOptions(const ThreadOptions& options) {
 
 void Thread::stop() {
   LOG4CXX_TRACE_ENTER(logger_);
-  if (!isThreadRunning_) {
-    LOG4CXX_DEBUG(logger_, "Canceling thread (#" << thread_handle_
-                << " \"" << name_ << "\") from #" << pthread_self());
-    LOG4CXX_WARN(logger_, "Thread (#" << thread_handle_
-                  << " \"" << name_ << "\") is not running");
-    LOG4CXX_TRACE_EXIT(logger_);
+
+  if (!atomic_post_clr(&isThreadRunning_))
+  {
     return;
   }
 
-  // TODO (EZamakhov): why exitThreadMain return bool and stop does not?
   if (delegate_ && !delegate_->exitThreadMain()) {
     if (thread_handle_ == pthread_self()) {
       LOG4CXX_ERROR(logger_,
@@ -183,15 +184,14 @@ void Thread::stop() {
                      << pthread_result << " (\"" << strerror(pthread_result) << "\")");
       }
     }
+  } else {
+    // Wait for the thread to exit.  It should already have terminated but make
+    // sure this assumption is valid.
+    MessageQueue<Thread*>& threads = ::threads::ThreadManager::instance()->threads_to_terminate;
+    if (!threads.IsShuttingDown()) {
+      threads.push(this);
+    }
   }
-
-  // Wait for the thread to exit.  It should already have terminated but make
-  // sure this assumption is valid.
-  MessageQueue<Thread*>& threads = ::threads::ThreadManager::instance()->threads_to_terminate;
-  if (!threads.IsShuttingDown()) {
-    threads.push(this);
-  }
-  isThreadRunning_ = false;
   LOG4CXX_DEBUG(logger_, "Join thread (#" << thread_handle_
                 << " \"" << name_ << "\") from #" << pthread_self());
   LOG4CXX_TRACE_EXIT(logger_);
@@ -204,5 +204,14 @@ std::ostream& operator<<(std::ostream& os, const Thread::Id& thread_id) {
   }
   return os;
 }
+
+Thread* CreateThread(const char* name, ThreadDelegate* delegate) {
+  return new Thread(name, delegate);
+}
+
+void DeleteThread(Thread* thread) {
+  delete thread;
+}
+
 
 }  // namespace threads

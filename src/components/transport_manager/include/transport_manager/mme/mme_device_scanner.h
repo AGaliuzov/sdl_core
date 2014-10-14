@@ -90,7 +90,7 @@ private:
   mqd_t event_mqd_;
   mqd_t ack_mqd_;
   qdb_hdl_t* qdb_hdl_;
-  utils::SharedPtr<threads::Thread> notify_thread_;
+  threads::Thread* notify_thread_;
   DeviceContainer devices_;
   sync_primitives::Lock devices_lock_;
 

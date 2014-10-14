@@ -99,7 +99,7 @@ MqueueAdapter::MqueueAdapter(HMIMessageHandler* hmi_message_handler)
   ReceiverThreadDelegate* receiver_thread_delegate =
       new ReceiverThreadDelegate(hmi_to_sdl_mqueue_, hmi_message_handler);
   receiver_thread_ =
-      new threads::Thread("MqueueAdapter", receiver_thread_delegate);
+      threads::CreateThread("MqueueAdapter", receiver_thread_delegate);
   receiver_thread_->start();
 }
 

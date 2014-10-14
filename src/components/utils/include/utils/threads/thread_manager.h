@@ -51,6 +51,7 @@
 #include "utils/threads/thread_delegate.h"
 
 namespace threads {
+  class Thread;
 
 /*
  * This class is here currently to remember names associated to threads.
@@ -63,7 +64,7 @@ namespace threads {
 class ThreadManager : public utils::Singleton<ThreadManager> {
  public:
   ThreadManager() {}
-  static Thread* CreateThread(const char* name, ThreadDelegate* delegate);
+  void f();
   MessageQueue<Thread*> threads_to_terminate;
  private:
   DISALLOW_COPY_AND_ASSIGN(ThreadManager);

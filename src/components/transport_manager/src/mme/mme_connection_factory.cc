@@ -66,9 +66,8 @@ TransportAdapter::Error MmeConnectionFactory::CreateConnection(
     case MmeDevice::IAP: {
       utils::SharedPtr<IAPDevice> iap_device = MmeDevicePtr::static_pointer_cast<IAPDevice>(mme_device);
       IAPConnection* iap_connection = new IAPConnection(device_uid, app_handle, controller_, iap_device.get());
-      ConnectionSptr connection(iap_connection);
 
-      controller_->ConnectionCreated(connection, device_uid, app_handle);
+      controller_->ConnectionCreated(iap_connection, device_uid, app_handle);
 
       iap_connection->Init();
       LOG4CXX_INFO(logger_, "iAP connection initialised");
@@ -77,9 +76,8 @@ TransportAdapter::Error MmeConnectionFactory::CreateConnection(
     case MmeDevice::IAP2: {
       utils::SharedPtr<IAP2Device> iap2_device = MmeDevicePtr::static_pointer_cast<IAP2Device>(mme_device);
       IAP2Connection* iap2_connection = new IAP2Connection(device_uid, app_handle, controller_, iap2_device.get());
-      ConnectionSptr connection(iap2_connection);
 
-      controller_->ConnectionCreated(connection, device_uid, app_handle);
+      controller_->ConnectionCreated(iap2_connection, device_uid, app_handle);
 
       if (iap2_connection->Init()) {
         LOG4CXX_INFO(logger_, "iAP2 connection initialised");

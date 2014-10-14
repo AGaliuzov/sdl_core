@@ -72,8 +72,7 @@ TransportAdapter::Error AOAConnectionFactory::CreateConnection(
   AOAConnection* aoa_connection = new AOAConnection(device_uid, app_handle,
                                                 controller_,
                                                 aoa_device->handle());
-  ConnectionSptr connection(aoa_connection);
-  controller_->ConnectionCreated(connection, device_uid, app_handle);
+  controller_->ConnectionCreated(aoa_connection, device_uid, app_handle);
   LOG4CXX_INFO(logger_, "AOA: connection created");
 
   if (aoa_connection->Init()) {

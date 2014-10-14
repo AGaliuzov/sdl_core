@@ -69,7 +69,7 @@ TcpClientListener::TcpClientListener(TransportAdapterController* controller,
   : port_(port),
     enable_keepalive_(enable_keepalive),
     controller_(controller),
-    thread_(new threads::Thread("TcpClientListener", this)),
+    thread_(threads::CreateThread("TcpClientListener", this)),
     socket_(-1),
     thread_stop_requested_(false) { }
 
@@ -111,7 +111,7 @@ void SetKeepaliveOptions(const int fd) {
   // TODO (KKolodiy): Out of order!
   const int kMidLength = 4;
   int mib[kMidLength];
-  timeval tval;
+  struct timeval tval = { 0 };
 
   mib[0] = CTL_NET;
   mib[1] = AF_INET;
@@ -131,7 +131,6 @@ void SetKeepaliveOptions(const int fd) {
   mib[3] = TCPCTL_KEEPINTVL;
   sysctl(mib, kMidLength, NULL, NULL, &keepintvl, sizeof(keepintvl));
 
-  memset(&tval, sizeof(tval), 0);
   tval.tv_sec = keepidle;
   setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &yes, sizeof(yes));
   setsockopt(fd, IPPROTO_TCP, TCP_KEEPALIVE, &tval, sizeof(tval));
@@ -204,8 +203,7 @@ TransportAdapter::Error TcpClientListener::StartListening() {
     return TransportAdapter::FAIL;
   }
 
-  sockaddr_in server_address;
-  memset(&server_address, 0, sizeof(server_address));
+  sockaddr_in server_address = { 0 };
   server_address.sin_family = AF_INET;
   server_address.sin_port = htons(port_);
   server_address.sin_addr.s_addr = INADDR_ANY;
@@ -253,8 +251,7 @@ TransportAdapter::Error TcpClientListener::StopListening() {
   thread_stop_requested_ = true;
   // We need to connect to the listening socket to unblock accept() call
   int byesocket = socket(AF_INET, SOCK_STREAM, 0);
-  sockaddr_in server_address;
-  memset(&server_address, 0, sizeof(server_address));
+  sockaddr_in server_address = { 0 };
   server_address.sin_family = AF_INET;
   server_address.sin_port = htons(port_);
   server_address.sin_addr.s_addr = INADDR_ANY;

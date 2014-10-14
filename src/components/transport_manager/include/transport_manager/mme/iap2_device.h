@@ -72,7 +72,7 @@ class IAP2Device : public MmeDevice {
   typedef std::map<std::string, int> ProtocolInUseNamePool;
   typedef std::pair<std::string, iap2ea_hdl_t*> AppRecord;
   typedef std::map<ApplicationHandle, AppRecord> AppContainer;
-  typedef std::map<std::string, utils::SharedPtr<threads::Thread> > ThreadContainer;
+  typedef std::map<std::string, threads::Thread*> ThreadContainer;
 
   class ProtocolConnectionTimer;
   typedef utils::SharedPtr<ProtocolConnectionTimer> ProtocolConnectionTimerSPtr;

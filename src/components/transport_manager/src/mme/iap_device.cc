@@ -78,7 +78,7 @@ bool IAPDevice::Init() {
   ipod_hdl_ = ipod_connect(mount_point().c_str(), 0);
   if (ipod_hdl_ != 0) {
     LOG4CXX_DEBUG(logger_, "iAP: connected to " << mount_point());
-    receiver_thread_ = new threads::Thread("iAP event",
+    receiver_thread_ = threads::CreateThread("iAP event",
       new IAPEventThreadDelegate(ipod_hdl_, this));
     receiver_thread_->start();
 

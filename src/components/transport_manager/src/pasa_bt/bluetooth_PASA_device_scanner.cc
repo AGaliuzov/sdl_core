@@ -77,8 +77,8 @@ BluetoothPASADeviceScanner::BluetoothPASADeviceScanner(
     auto_repeat_pause_sec_(auto_repeat_pause_sec) ,
     mPASAFWSendHandle(OpenMsgQ(PREFIX_STR_FROMSDLCOREBTADAPTER_QUEUE, true, true)),
     mq_ToSDL(NULL){
-  bt_device_scanner_thread_ = new threads::Thread("BT PASA Scanner", new  DeviceScannerDelegate(this));
-  bt_PASA_msg_thread_ = new threads::Thread("BT PASA Framwork Messages", new  PASAMessageDelegate(this));
+  bt_device_scanner_thread_ = threads::CreateThread("BT PASA Scanner", new  DeviceScannerDelegate(this));
+  bt_PASA_msg_thread_ = threads::CreateThread("BT PASA Framwork Messages", new  PASAMessageDelegate(this));
 }
 
 

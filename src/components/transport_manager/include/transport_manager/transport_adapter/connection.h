@@ -71,11 +71,6 @@ class Connection {
   virtual TransportAdapter::Error Disconnect() = 0;
 };
 
-/**
- * @typedef Type definition of smart pointer to the Connection class.
- */
-typedef utils::SharedPtr<Connection> ConnectionSptr;
-
 }  // namespace transport_adapter
 }  // namespace transport_manager
 #endif // SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_TRANSPORT_ADAPTER_CONNECTION_H_

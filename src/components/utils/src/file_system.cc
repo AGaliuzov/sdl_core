@@ -48,8 +48,7 @@
 CREATE_LOGGERPTR_GLOBAL(logger_, "Utils")
 
 uint64_t file_system::GetAvailableDiskSpace(const std::string& path) {
-  struct statvfs fsInfo;
-  memset(reinterpret_cast<void*>(&fsInfo), 0, sizeof(fsInfo));
+  struct statvfs fsInfo = { 0 };
   if (statvfs(path.c_str(), &fsInfo) == 0) {
     return fsInfo.f_bsize * fsInfo.f_bfree;
   } else {
@@ -59,8 +58,7 @@ uint64_t file_system::GetAvailableDiskSpace(const std::string& path) {
 
 int64_t file_system::FileSize(const std::string &path) {
   if (file_system::FileExists(path)) {
-    struct stat file_info;
-    memset(reinterpret_cast<void*>(&file_info), 0, sizeof(file_info));
+    struct stat file_info = { 0 };
     stat(path.c_str(), &file_info);
     return file_info.st_size;
   }
@@ -82,7 +80,7 @@ size_t file_system::DirectorySize(const std::string& path) {
   struct dirent* dir_element = new(direntbuffer) dirent;
 #endif
   struct dirent* result = NULL;
-  struct stat file_info;
+  struct stat file_info = { 0 };
   directory = opendir(path.c_str());
   if (NULL != directory) {
     return_code = readdir_r(directory, dir_element, &result);
@@ -96,7 +94,6 @@ size_t file_system::DirectorySize(const std::string& path) {
       if (file_system::IsDirectory(full_element_path)) {
         size += DirectorySize(full_element_path);
       } else {
-        memset(reinterpret_cast<void*>(&file_info), 0, sizeof(file_info));
         stat(full_element_path.c_str(), &file_info);
         size += file_info.st_size;
       }
@@ -134,8 +131,7 @@ bool file_system::CreateDirectoryRecursively(const std::string& path) {
 }
 
 bool file_system::IsDirectory(const std::string& name) {
-  struct stat status;
-  memset(&status, 0, sizeof(status));
+  struct stat status = { 0 };
 
   if (-1 == stat(name.c_str(), &status)) {
     return false;
@@ -145,8 +141,7 @@ bool file_system::IsDirectory(const std::string& name) {
 }
 
 bool file_system::DirectoryExists(const std::string& name) {
-  struct stat status;
-  memset(&status, 0, sizeof(status));
+  struct stat status = { 0 };
 
   if (-1 == stat(name.c_str(), &status) || !S_ISDIR(status.st_mode)) {
     return false;
@@ -156,8 +151,7 @@ bool file_system::DirectoryExists(const std::string& name) {
 }
 
 bool file_system::FileExists(const std::string& name) {
-  struct stat status;
-  memset(&status, 0, sizeof(status));
+  struct stat status = { 0 };
 
   if (-1 == stat(name.c_str(), &status)) {
     return false;

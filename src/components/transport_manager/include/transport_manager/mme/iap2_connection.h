@@ -76,7 +76,7 @@ class IAP2Connection : public Connection {
   uint8_t buffer_[kBufferSize];
   bool unexpected_disconnect_;
 
-  utils::SharedPtr<threads::Thread> receiver_thread_;
+  threads::Thread* receiver_thread_;
   threads::ThreadDelegate* receiver_thread_delegate_;
 
   class ReceiverThreadDelegate : public threads::PulseThreadDelegate {

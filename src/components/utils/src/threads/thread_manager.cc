@@ -51,8 +51,4 @@ namespace threads {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "Utils")
 
-Thread* ThreadManager::CreateThread(const char* name, ThreadDelegate* delegate) {
-  return new Thread(name, delegate);
-}
-
 } // namespace threads

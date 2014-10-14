@@ -116,7 +116,7 @@ TransportAdapter::Error MmeDeviceScanner::Init() {
     error = TransportAdapter::FAIL;
   }
   if ((event_mqd_ != -1) && (ack_mqd_ != -1)) {
-    notify_thread_ = new threads::Thread("MME MQ notifier", new NotifyThreadDelegate(event_mqd_, ack_mqd_, this));
+    notify_thread_ = threads::CreateThread("MME MQ notifier", new NotifyThreadDelegate(event_mqd_, ack_mqd_, this));
     notify_thread_->start();
   }
 #endif

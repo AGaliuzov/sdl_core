@@ -207,10 +207,8 @@ class TimerThread {
     TimerDelegate*       delegate_;
     //threads::Thread*     thread_;
     std::string       name_;
-    bool              is_looper_;
     mutable bool      is_running_;
-    bool                is_looper_;
-
+    bool              is_looper_;
 
     DISALLOW_COPY_AND_ASSIGN(TimerThread);
 };
@@ -223,20 +221,12 @@ TimerThread<T>::TimerThread(const char* name, T* callee, void (T::*f)(), bool is
     delegate_(NULL),
     is_running_(false),
     is_looper_(is_looper) {
-  if (is_looper) {
-    delegate_ = new TimerLooperDelegate(this);
-  } else {
-    delegate_ = new TimerDelegate(this);
-  }
-  thread_ = new threads::Thread("TimerThread", delegate_);
 }
 
 template <class T>
 TimerThread<T>::~TimerThread() {
   LOG4CXX_INFO(logger_, "TimerThread is to destroy " << name_);
-  if (is_running_) {
-    stop();
-  }
+  stop();
   callback_ = NULL;
   callee_ = NULL;
 }
@@ -249,7 +239,12 @@ void TimerThread<T>::start(uint32_t timeout_seconds) {
     stop();
   }
 
+  delegate_ = is_looper_ ?
+      new TimerLooperDelegate(this) :
+      new TimerDelegate(this);
   delegate_->setTimeOut(timeout_seconds);
+
+  thread_ = threads::CreateThread("TimerThread", delegate_);
   if (delegate_ && thread_) {
     is_running_ = true;
     thread_->start();
@@ -259,7 +254,7 @@ void TimerThread<T>::start(uint32_t timeout_seconds) {
 template <class T>
 void TimerThread<T>::stop() {
   LOG4CXX_TRACE(logger_, "Stoping timer " << this);
-  if (delegate_ && thread_) {
+  if (is_running_ && delegate_ && thread_) {
     LOG4CXX_INFO(logger_, "TimerThread thread_ stop " << name_);
     thread_->stop();
     is_running_ = false;
@@ -287,7 +282,6 @@ void TimerThread<T>::onTimeOut() const {
       stop();
     }
     */
-    }
   }
 }
 
@@ -356,8 +350,6 @@ bool TimerThread<T>::TimerDelegate::exitThreadMain() {
   sync_primitives::AutoLock auto_lock(state_lock_);
   stop_flag_ = true;
   termination_condition_.NotifyOne();
-  // FIXME(AKutsan)
-  {sync_primitives::AutoLock wait_for_thread_main(state_lock_);}
   return true;
 }
 

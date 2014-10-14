@@ -390,6 +390,7 @@ void LifeCycle::Run() {
     while (!threads.empty()) {
       Thread* thread = threads.pop();
       pthread_join(thread->thread_handle(), NULL);
+      DeleteThread(thread);
     }
     threads.wait();
   }

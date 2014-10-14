@@ -234,11 +234,6 @@ int TransportManagerImpl::Stop() {
 
   pthread_cond_signal(&device_listener_thread_wakeup_);
 
-  /*
-  pthread_join(message_queue_thread_, 0);
-  pthread_join(event_queue_thread_, 0);
-  */
-
   LOG4CXX_TRACE(logger_, "exit with E_SUCCESS");
   return E_SUCCESS;
 }

@@ -58,11 +58,10 @@ int SendMsgQ(const mqd_t q_fd,
              const uint8_t msgType,
              const uint32_t length,
              const void *const data) {
-  uint8_t sendBuf[MSGQ_MESSAGE_SIZE];
+  uint8_t sendBuf[MSGQ_MESSAGE_SIZE] = { };
   if(!data || length <= 0 || (length-1) > MSGQ_MESSAGE_SIZE) {
     return -1;
   }
-  memset(sendBuf, MSGQ_MESSAGE_SIZE, sizeof(*sendBuf));
   sendBuf[0] = msgType;
   // copy the msg to send buffer
   memcpy(sendBuf + 1, data, length);

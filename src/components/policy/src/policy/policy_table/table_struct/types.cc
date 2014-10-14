@@ -709,7 +709,7 @@ Json::Value ModuleMeta::ToJsonValue() const {
   Json::Value result__(Json::objectValue);
   return result__;
 }
-bool ModuleMeta::is_valid() const {  
+bool ModuleMeta::is_valid() const {
   if (struct_empty()) {
     return initialization_state__ == kInitialized && Validate();
   }

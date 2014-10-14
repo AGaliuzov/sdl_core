@@ -96,7 +96,7 @@ TransportAdapter::Error ThreadedSocketConnection::Start() {
   }
 
   const std::string thread_name = std::string("Socket ") + device_handle();
-  thread_ = new threads::Thread(thread_name.c_str(), this);
+  thread_ = threads::CreateThread(thread_name.c_str(), this);
 
   if (!thread_->start()) {
     LOG4CXX_WARN(logger_, "thread creation failed (#" << pthread_self() << ")");

@@ -55,15 +55,15 @@ IAP2Device::IAP2Device(const std::string& mount_point,
 
 IAP2Device::~IAP2Device() {
   for (ThreadContainer::const_iterator i = hub_connection_threads_.begin(); i != hub_connection_threads_.end(); ++i) {
-    utils::SharedPtr<threads::Thread> thread = i->second;
+    threads::Thread* thread = i->second;
     thread->stop();
   }
   for (ThreadContainer::const_iterator i = legacy_connection_threads_.begin(); i != legacy_connection_threads_.end(); ++i) {
-    utils::SharedPtr<threads::Thread> thread = i->second;
+    threads::Thread* thread = i->second;
     thread->stop();
   }
   for (ThreadContainer::const_iterator i = pool_connection_threads_.begin(); i != pool_connection_threads_.end(); ++i) {
-    utils::SharedPtr<threads::Thread> thread = i->second;
+    threads::Thread* thread = i->second;
     thread->stop();
   }
 }
@@ -73,7 +73,7 @@ bool IAP2Device::Init() {
   for (ProtocolConfig::ProtocolNameContainer::const_iterator i = legacy_protocol_names.begin(); i != legacy_protocol_names.end(); ++i) {
     std::string protocol_name = i->second;
     ::std::string thread_name = "iAP2 notifier " + protocol_name ;
-    utils::SharedPtr<threads::Thread> thread = new threads::Thread(thread_name.c_str(),
+    threads::Thread* thread = threads::CreateThread(thread_name.c_str(),
       new IAP2ConnectThreadDelegate(this, protocol_name));
     LOG4CXX_INFO(logger_, "iAP2: starting connection thread for legacy protocol " << protocol_name);
     thread->start();
@@ -86,7 +86,7 @@ bool IAP2Device::Init() {
   for (ProtocolConfig::ProtocolNameContainer::const_iterator i = hub_protocol_names.begin(); i != hub_protocol_names.end(); ++i) {
     std::string protocol_name = i->second;
     ::std::string thread_name = "iAP2 hub " + protocol_name;
-    utils::SharedPtr<threads::Thread> thread = new threads::Thread(thread_name.c_str(),
+    threads::Thread* thread = threads::CreateThread(thread_name.c_str(),
       new IAP2HubConnectThreadDelegate(this, protocol_name));
     LOG4CXX_INFO(logger_, "iAP2: starting connection thread for hub protocol " << protocol_name);
     thread->start();
@@ -175,7 +175,7 @@ void IAP2Device::OnDisconnect(ApplicationHandle app_id) {
     removed = true;
     ThreadContainer::const_iterator j = legacy_connection_threads_.find(protocol_name);
     if (j != legacy_connection_threads_.end()) {
-      utils::SharedPtr<threads::Thread> thread = j->second;
+      threads::Thread* thread = j->second;
       LOG4CXX_INFO(logger_, "iAP2: restarting connection thread for legacy protocol " << protocol_name);
       thread->start();
     }
@@ -256,7 +256,7 @@ bool IAP2Device::FreeProtocol(const std::string& name) {
 
 void IAP2Device::StartThread(const std::string& protocol_name) {
   std::string thread_name = "iAP2 dev " + protocol_name;
-  utils::SharedPtr<threads::Thread> thread = new threads::Thread(thread_name.c_str(),
+  threads::Thread* thread = threads::CreateThread(thread_name.c_str(),
     new IAP2ConnectThreadDelegate(this, protocol_name));
   LOG4CXX_DEBUG(logger_, "iAP2: starting connection thread for protocol " << protocol_name);
   thread->start();
@@ -272,7 +272,7 @@ void IAP2Device::StopThread(const std::string& protocol_name) {
   sync_primitives::AutoLock auto_lock(pool_connection_threads_lock_);
   ThreadContainer::iterator j = pool_connection_threads_.find(protocol_name);
   if (j != pool_connection_threads_.end()) {
-    utils::SharedPtr<threads::Thread> thread = j->second;
+    threads::Thread* thread = j->second;
     thread->stop();
     pool_connection_threads_.erase(j);
   }

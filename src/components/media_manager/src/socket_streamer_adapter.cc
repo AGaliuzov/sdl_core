@@ -113,7 +113,7 @@ void SocketStreamerAdapter::Init() {
   if (!thread_) {
     LOG4CXX_INFO(logger, "Create and start sending thread");
     streamer_ = new Streamer(this);
-    thread_ = new threads::Thread("SocketStreamer", streamer_);
+    thread_ = threads::CreateThread("SocketStreamer", streamer_);
     const size_t kStackSize = 16384;
     thread_->startWithOptions(threads::ThreadOptions(kStackSize));
   } else {
@@ -231,8 +231,7 @@ void SocketStreamerAdapter::Streamer::start() {
     return;
   }
 
-  struct sockaddr_in serv_addr_;
-  memset(&serv_addr_, 0, sizeof(serv_addr_));
+  struct sockaddr_in serv_addr_ = { 0 };
   serv_addr_.sin_addr.s_addr = inet_addr(server_->ip_.c_str());
   serv_addr_.sin_family = AF_INET;
   serv_addr_.sin_port = htons(server_->port_);

@@ -208,8 +208,8 @@ TransportAdapter::Error TransportAdapterImpl::Disconnect(
     LOG4CXX_TRACE(logger_, "exit with BAD_STATE");
     return BAD_STATE;
   }
-  ConnectionSptr connection = FindEstablishedConnection(device_id, app_handle);
-  if (connection.valid()) {
+  Connection* connection = FindEstablishedConnection(device_id, app_handle);
+  if (connection) {
     TransportAdapter::Error err = connection->Disconnect();
     LOG4CXX_TRACE(logger_, "exit with error: " << err);
     return err;
@@ -256,8 +256,8 @@ TransportAdapter::Error TransportAdapterImpl::SendData(
     return BAD_STATE;
   }
 
-  ConnectionSptr connection = FindEstablishedConnection(device_id, app_handle);
-  if (connection.get() != 0) {
+  Connection* connection = FindEstablishedConnection(device_id, app_handle);
+  if (connection) {
     TransportAdapter::Error err = connection->SendData(data);
     LOG4CXX_TRACE(logger_, "exit with error: " << err);
     return err;
@@ -459,7 +459,7 @@ bool TransportAdapterImpl::IsClientOriginatedConnectSupported() const {
 }
 
 void TransportAdapterImpl::ConnectionCreated(
-  ConnectionSptr connection, const DeviceUID& device_id,
+  Connection* connection, const DeviceUID& device_id,
   const ApplicationHandle& app_handle) {
   LOG4CXX_TRACE(logger_, "enter connection:" << connection << ", device_id: " << &device_id
                 << ", app_handle: " << &app_handle);
@@ -763,11 +763,11 @@ bool TransportAdapterImpl::ToBeAutoConnected(DeviceSptr device) const {
   return false;
 }
 
-ConnectionSptr TransportAdapterImpl::FindEstablishedConnection(
+Connection* TransportAdapterImpl::FindEstablishedConnection(
   const DeviceUID& device_id, const ApplicationHandle& app_handle) const {
   LOG4CXX_TRACE(logger_, "enter. device_id: " << &device_id << ", app_handle: " <<
                 &app_handle);
-  ConnectionSptr connection;
+  Connection* connection = NULL;
   pthread_mutex_lock(&connections_mutex_);
   ConnectionMap::const_iterator it =
     connections_.find(std::make_pair(device_id, app_handle));
@@ -778,7 +778,7 @@ ConnectionSptr TransportAdapterImpl::FindEstablishedConnection(
     }
   }
   pthread_mutex_unlock(&connections_mutex_);
-  LOG4CXX_TRACE(logger_, "exit with ConnectionSptr: " << connection);
+  LOG4CXX_TRACE(logger_, "exit with Connection: " << connection);
   return connection;
 }
 
@@ -842,7 +842,7 @@ void TransportAdapterImpl::RemoveDevice(const DeviceUID& device_handle) {
 #ifdef CUSTOMER_PASA
 TransportAdapter::Error TransportAdapterImpl::AbortConnection(
   const DeviceUID& device_handle, const ApplicationHandle& app_handle) {
-  ConnectionSptr connection = FindEstablishedConnection(device_handle, app_handle);
+  Connection* connection = FindEstablishedConnection(device_handle, app_handle);
   if (connection) {
     TransportAdapter::Error err = connection->Disconnect();
     LOG4CXX_TRACE(logger_, "exit. Error " << err);

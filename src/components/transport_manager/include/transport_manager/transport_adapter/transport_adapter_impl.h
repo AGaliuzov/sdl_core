@@ -264,7 +264,7 @@ class TransportAdapterImpl : public TransportAdapter,
    * @param device_handle Device unique identifier.
    * @param app_handle Handle of application.
    */
-  virtual void ConnectionCreated(ConnectionSptr connection,
+  virtual void ConnectionCreated(Connection* connection,
                                  const DeviceUID& device_handle,
                                  const ApplicationHandle& app_handle);
 
@@ -435,9 +435,9 @@ class TransportAdapterImpl : public TransportAdapter,
    * @param device_handle Device unique identifier.
    * @param app_handle Handle of application.
    *
-   * @return ConnectionSptr smart pointer to the connection.
+   * @return pointer to the connection.
    */
-  ConnectionSptr FindEstablishedConnection(const DeviceUID& device_handle,
+  Connection* FindEstablishedConnection(const DeviceUID& device_handle,
                                            const ApplicationHandle& app_handle) const;
 
  private:
@@ -468,7 +468,7 @@ class TransportAdapterImpl : public TransportAdapter,
    * @brief Structure that holds information about connection.
    */
   struct ConnectionInfo {
-    ConnectionSptr connection;
+    Connection* connection;
     DeviceUID device_id;
     ApplicationHandle app_handle;
     enum {

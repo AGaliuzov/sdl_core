@@ -276,8 +276,8 @@ int main(int argc, char** argv) {
     LOG4CXX_ERROR(logger_, "Appenders plugin not loaded, file logging disabled");
   }
 
-  utils::SharedPtr<threads::Thread> applink_notification_thread =
-      new threads::Thread("ApplinkNotify", new ApplinkNotificationThreadDelegate());
+  threads::Thread* applink_notification_thread =
+      threads::CreateThread("ApplinkNotify", new ApplinkNotificationThreadDelegate());
   applink_notification_thread->start();
 
   main_namespace::LifeCycle::instance()->Run();

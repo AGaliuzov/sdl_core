@@ -112,7 +112,7 @@ template<class Q>
 MessageLoopThread<Q>::MessageLoopThread(const std::string&   name,
                                         Handler*             handler,
                                         const ThreadOptions& thread_opts)
-    : thread_(threads::ThreadManager::CreateThread(name.c_str(), new LoopThreadDelegate(&message_queue_, handler))) {
+    : thread_(threads::CreateThread(name.c_str(), new LoopThreadDelegate(&message_queue_, handler))) {
   bool started = thread_->startWithOptions(thread_opts);
   if (!started) {
     CREATE_LOGGERPTR_LOCAL(logger_, "Utils")

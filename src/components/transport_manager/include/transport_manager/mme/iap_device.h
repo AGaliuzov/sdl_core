@@ -118,7 +118,7 @@ class IAPDevice : public MmeDevice {
 
   TransportAdapterController* controller_;
   ipod_hdl_t* ipod_hdl_;
-  utils::SharedPtr<threads::Thread> receiver_thread_;
+  threads::Thread* receiver_thread_;
   ApplicationHandle last_app_id_;
 
   AppContainer apps_;

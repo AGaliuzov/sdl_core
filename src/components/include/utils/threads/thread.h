@@ -75,7 +75,13 @@ typedef pthread_t PlatformThreadHandle;
  * thread.join();
  * printf("ok!\n");
  */
+class Thread;
+Thread* CreateThread(const char* name, ThreadDelegate* delegate);
+void DeleteThread(Thread*);
+
 class Thread {
+  friend Thread* CreateThread(const char*, ThreadDelegate*);
+  friend void DeleteThread(Thread*);
  public:
   /**
    * Class that represents unique in-process thread identifier
@@ -105,19 +111,12 @@ class Thread {
   static void SetNameForId(const Id& thread_id, const std::string& name);
 
   /**
-   * Ctor.
-   * @param name - display string to identify the thread.
-   * @param delegate - thread procedure delegate. Look for
-   * 'threads/thread_delegate.h' for details.
-   * NOTE: delegate will be deleted by destructor.
-   */
-  Thread(const char* name, ThreadDelegate* delegate);
-
-  /**
    * Starts the thread.
    * @return true if the thread was successfully started.
    */
   bool start();
+
+  ThreadDelegate* delegate() const;
 
   /**
    * Starts the thread. Behaves exactly like Start in addition to
@@ -205,9 +204,20 @@ class Thread {
   ThreadDelegate* delegate_;
   impl::PlatformThreadHandle thread_handle_;
   ThreadOptions thread_options_;
-  bool isThreadRunning_;
+  volatile unsigned int isThreadRunning_;
 
  private:
+  /**
+   * Ctor.
+   * @param name - display string to identify the thread.
+   * @param delegate - thread procedure delegate. Look for
+   * 'threads/thread_delegate.h' for details.
+   * NOTE: delegate will be deleted by destructor.
+   *       This constructor made private to prevent
+   *       Thread object to be created on stack
+   */
+  Thread(const char* name, ThreadDelegate* delegate);
+
   DISALLOW_COPY_AND_ASSIGN(Thread);
   virtual ~Thread();
 };
