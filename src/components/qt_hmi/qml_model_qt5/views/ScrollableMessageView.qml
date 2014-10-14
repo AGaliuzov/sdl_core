@@ -49,6 +49,9 @@ GeneralView {
         DBus.sendReply(dataContainer.scrollableMessageModel.async, { __retCode: dataContainer.scrollableMessageModel.result })
     }
     Component.onCompleted: {
+        if (dataContainer.scrollableMessageModel.softButtons.count > 0) {
+            systemContext = Common.SystemContext.SYSCTXT_HMI_OBSCURED
+        }
         dataContainer.scrollableMessageModel.result = Common.Result.ABORTED
         dataContainer.scrollableMessageModel.running = true
         timer.start()
