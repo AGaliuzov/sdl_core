@@ -39,76 +39,76 @@ using ::testing::InSequence;
 namespace usage_statistics {
 namespace test {
 
-TEST(UsageStatisticsTest, DISABLED_TestGlobalCounterIncrementsStatistics) {
-  StrictMock<MockStatisticsManager> msm;
-  GlobalCounter reboots_counter(&msm, SYNC_REBOOTS);
+TEST(UsageStatisticsTest, TestGlobalCounterIncrementsStatistics) {
+  MockStatisticsManager* msm = new StrictMock<MockStatisticsManager>();
+  GlobalCounter reboots_counter(msm, SYNC_REBOOTS);
 
-  EXPECT_CALL(msm, Increment(SYNC_REBOOTS)).Times(1);
+  EXPECT_CALL(*msm, Increment(SYNC_REBOOTS)).Times(1);
   ++reboots_counter;
 }
 
-TEST(UsageStatisticsTest, DISABLED_TestGlobalCounterIncrementsStatisticsTwice) {
-  StrictMock<MockStatisticsManager> msm;
-  GlobalCounter reboots_counter(&msm, SYNC_REBOOTS);
+TEST(UsageStatisticsTest, TestGlobalCounterIncrementsStatisticsTwice) {
+  MockStatisticsManager* msm = new StrictMock<MockStatisticsManager>();
+  GlobalCounter reboots_counter(msm, SYNC_REBOOTS);
 
-  EXPECT_CALL(msm, Increment(SYNC_REBOOTS)).Times(2);
+  EXPECT_CALL(*msm, Increment(SYNC_REBOOTS)).Times(2);
   ++reboots_counter;
   ++reboots_counter;
 }
 
-TEST(UsageStatisticsTest, DISABLED_TestAppCounterIncrementsStatistics) {
-  StrictMock<MockStatisticsManager> msm;
-  AppCounter user_selections_counter(&msm, "HelloApp", USER_SELECTIONS);
+TEST(UsageStatisticsTest, TestAppCounterIncrementsStatistics) {
+  MockStatisticsManager* msm = new StrictMock<MockStatisticsManager>();
+  AppCounter user_selections_counter(msm, "HelloApp", USER_SELECTIONS);
 
-  EXPECT_CALL(msm, Increment("HelloApp", USER_SELECTIONS)).Times(1);
+  EXPECT_CALL(*msm, Increment("HelloApp", USER_SELECTIONS)).Times(1);
   ++user_selections_counter;
 }
 
-TEST(UsageStatisticsTest, DISABLED_TestAppCounterIncrementsStatisticsTwice) {
-  StrictMock<MockStatisticsManager> msm;
-  AppCounter user_selections_counter(&msm, "HelloApp", USER_SELECTIONS);
+TEST(UsageStatisticsTest, TestAppCounterIncrementsStatisticsTwice) {
+  MockStatisticsManager* msm = new StrictMock<MockStatisticsManager>();
+  AppCounter user_selections_counter(msm, "HelloApp", USER_SELECTIONS);
 
-  EXPECT_CALL(msm, Increment("HelloApp", USER_SELECTIONS)).Times(2);
+  EXPECT_CALL(*msm, Increment("HelloApp", USER_SELECTIONS)).Times(2);
   ++user_selections_counter;
   ++user_selections_counter;
 }
 
-TEST(UsageStatisticsTest, DISABLED_TestAppInfoUpdates) {
-  StrictMock<MockStatisticsManager> msm;
-  AppInfo gui_language_info(&msm, "HelloApp", LANGUAGE_GUI);
+TEST(UsageStatisticsTest, TestAppInfoUpdates) {
+  MockStatisticsManager* msm = new StrictMock<MockStatisticsManager>();
+  AppInfo gui_language_info(msm, "HelloApp", LANGUAGE_GUI);
 
-  EXPECT_CALL(msm, Set("HelloApp", LANGUAGE_GUI, "Klingon")).Times(1);
+  EXPECT_CALL(*msm, Set("HelloApp", LANGUAGE_GUI, "Klingon")).Times(1);
   gui_language_info.Update("Klingon");
 }
 
-TEST(UsageStatisticsTest, DISABLED_TestAppInfoUpdatesTwice) {
-  StrictMock<MockStatisticsManager> msm;
-  AppInfo gui_language_info(&msm, "HelloApp", LANGUAGE_GUI);
+TEST(UsageStatisticsTest, TestAppInfoUpdatesTwice) {
+  MockStatisticsManager* msm = new StrictMock<MockStatisticsManager>();
+  AppInfo gui_language_info(msm, "HelloApp", LANGUAGE_GUI);
 
   InSequence s;
-  EXPECT_CALL(msm, Set("HelloApp", LANGUAGE_GUI, "Klingon")).Times(1);
-  EXPECT_CALL(msm, Set("HelloApp", LANGUAGE_GUI, "UA")).Times(1);
+  EXPECT_CALL(*msm, Set("HelloApp", LANGUAGE_GUI, "Klingon")).Times(1);
+  EXPECT_CALL(*msm, Set("HelloApp", LANGUAGE_GUI, "UA")).Times(1);
   gui_language_info.Update("Klingon");
   gui_language_info.Update("UA");
 }
 
-TEST(UsageStatisticsTest, DISABLED_TestAppStopwatchAutoStopsAndAddsZero) {
-  StrictMock<MockStatisticsManager> msm;
-  AppStopwatch hmi_full_stopwatch(&msm, "HelloApp");
+TEST(UsageStatisticsTest, TestAppStopwatchAutoStopsAndAddsZero) {
+  MockStatisticsManager* msm = new StrictMock<MockStatisticsManager>();
+  AppStopwatch hmi_full_stopwatch(msm, "HelloApp");
 
-  EXPECT_CALL(msm, Add("HelloApp", SECONDS_HMI_FULL, 0)).Times(1);
+  EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_FULL, 0)).Times(1);
 
   hmi_full_stopwatch.Start(SECONDS_HMI_FULL);
 }
 
-TEST(UsageStatisticsTest, DISABLED_TestAppStopwatchAddsZero) {
-  StrictMock<MockStatisticsManager> msm;
-  AppStopwatch hmi_full_stopwatch(&msm, "HelloApp");
+TEST(UsageStatisticsTest, TestAppStopwatchAddsZero) {
+  MockStatisticsManager* msm = new StrictMock<MockStatisticsManager>();
+  AppStopwatch hmi_full_stopwatch(msm, "HelloApp");
 
   InSequence s;
-  EXPECT_CALL(msm, Add("HelloApp", SECONDS_HMI_FULL, 0)).Times(1);
-  EXPECT_CALL(msm, Add("HelloApp", SECONDS_HMI_BACKGROUND, 0)).Times(1);
-  EXPECT_CALL(msm, Add("HelloApp", SECONDS_HMI_FULL, 0)).Times(1);
+  EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_FULL, 0)).Times(1);
+  EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_BACKGROUND, 0)).Times(1);
+  EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_FULL, 0)).Times(1);
 
   hmi_full_stopwatch.Start(SECONDS_HMI_FULL);
   hmi_full_stopwatch.Switch(SECONDS_HMI_BACKGROUND);
@@ -116,23 +116,23 @@ TEST(UsageStatisticsTest, DISABLED_TestAppStopwatchAddsZero) {
   hmi_full_stopwatch.Stop();
 }
 
-TEST(UsageStatisticsTest, DISABLED_TestAppStopwatchAutoStopsInASecond) {
-  StrictMock<MockStatisticsManager> msm;
-  AppStopwatch hmi_full_stopwatch(&msm, "HelloApp");
+TEST(UsageStatisticsTest, TestAppStopwatchAutoStopsInASecond) {
+  MockStatisticsManager* msm = new StrictMock<MockStatisticsManager>();
+  AppStopwatch hmi_full_stopwatch(msm, "HelloApp");
 
-  EXPECT_CALL(msm, Add("HelloApp", SECONDS_HMI_FULL, 1)).Times(1);
+  EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_FULL, 1)).Times(1);
 
   hmi_full_stopwatch.Start(SECONDS_HMI_FULL);
   sleep(1);
 }
 
-TEST(UsageStatisticsTest, DISABLED_TestAppStopwatchStopsInTwoSeconds) {
-  StrictMock<MockStatisticsManager> msm;
-  AppStopwatch hmi_full_stopwatch(&msm, "HelloApp");
+TEST(UsageStatisticsTest, TestAppStopwatchStopsInTwoSeconds) {
+  MockStatisticsManager* msm = new StrictMock<MockStatisticsManager>();
+  AppStopwatch hmi_full_stopwatch(msm, "HelloApp");
 
-  EXPECT_CALL(msm, Add("HelloApp", SECONDS_HMI_NONE, 0)).Times(1);
-  EXPECT_CALL(msm, Add("HelloApp", SECONDS_HMI_FULL, 1)).Times(1);
-  EXPECT_CALL(msm, Add("HelloApp", SECONDS_HMI_BACKGROUND, 1)).Times(1);
+  EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_NONE, 0)).Times(1);
+  EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_FULL, 1)).Times(1);
+  EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_BACKGROUND, 1)).Times(1);
 
   hmi_full_stopwatch.Start(SECONDS_HMI_NONE);
   hmi_full_stopwatch.Switch(SECONDS_HMI_FULL);

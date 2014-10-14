@@ -252,8 +252,9 @@ TEST_F(PolicyManagerImplTest, CheckPermissions) {
   EXPECT_CALL(*cache_manager, GetFunctionalGroupNames(_)).Times(1)
       .WillOnce(DoAll(SetArgReferee<0>(group_names), Return(true)));
 
+  ::policy::RPCParams input_params;
   ::policy::CheckPermissionResult output;
-  manager->CheckPermissions("12345678", "FULL", "Alert", output);
+  manager->CheckPermissions("12345678", "FULL", "Alert", input_params, output);
   EXPECT_EQ(::policy::kRpcAllowed, output.hmi_level_permitted);
   ASSERT_TRUE(!output.list_of_allowed_params.empty());
   ASSERT_EQ(3u, output.list_of_allowed_params.size());
@@ -271,8 +272,9 @@ TEST_F(PolicyManagerImplTest, CheckPermissions) {
   EXPECT_CALL(*cache_manager, CheckPermissions("12345678", "FULL", "Alert", _))
       .Times(1).WillOnce(SetArgReferee<3>(expected));
 
+  ::policy::RPCParams input_params;
   ::policy::CheckPermissionResult output;
-  manager->CheckPermissions("12345678", "FULL", "Alert", output);
+  manager->CheckPermissions("12345678", "FULL", "Alert", input_params, output);
 
   EXPECT_EQ(::policy::kRpcAllowed, output.hmi_level_permitted);
   ASSERT_TRUE(!output.list_of_allowed_params.empty());

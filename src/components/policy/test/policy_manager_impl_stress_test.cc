@@ -52,10 +52,10 @@ namespace policy {
 class PolicyManagerImplStressTest : public ::testing::Test {
  protected:
   static const std::string kNameFile;
-  static const int kNumberGroups = 100;
-  static const int kNumberFuncs = 200;
-  static const int kNumberApps = 100;
-  static const int kNumberAppGroups = 50;
+  static const int kNumberGroups = 10;
+  static const int kNumberFuncs = 100;
+  static const int kNumberApps = 5;
+  static const int kNumberAppGroups = 5;
   static PolicyManagerImpl* manager;
   static MockPolicyListener* mock_listener;
 
@@ -232,8 +232,9 @@ TEST_F(PolicyManagerImplStressTest, OneCheck) {
 #ifdef EXTENDED_POLICY
   EXPECT_CALL(*mock_listener, OnCurrentDeviceIdUpdateRequired(_)).Times(1);
 #endif  // EXTENDED_POLICY
+  ::policy::RPCParams input_params;
   ::policy::CheckPermissionResult output;
-  manager->CheckPermissions("2", "FULL", "Func-1", output);
+  manager->CheckPermissions("2", "FULL", "Func-1",input_params, output);
   EXPECT_EQ(::policy::kRpcAllowed, output.hmi_level_permitted);
 }
 
@@ -241,8 +242,9 @@ TEST_F(PolicyManagerImplStressTest, NoApp) {
 #ifdef EXTENDED_POLICY
   EXPECT_CALL(*mock_listener, OnCurrentDeviceIdUpdateRequired(_)).Times(1);
 #endif  // EXTENDED_POLICY
+  ::policy::RPCParams input_params;
   ::policy::CheckPermissionResult output;
-  manager->CheckPermissions("150", "FULL", "Func-100", output);
+  manager->CheckPermissions("150", "FULL", "Func-88",input_params, output);
   EXPECT_EQ(::policy::kRpcDisallowed, output.hmi_level_permitted);
 }
 
@@ -250,8 +252,9 @@ TEST_F(PolicyManagerImplStressTest, NoFunc) {
 #ifdef EXTENDED_POLICY
   EXPECT_CALL(*mock_listener, OnCurrentDeviceIdUpdateRequired(_)).Times(1);
 #endif  // EXTENDED_POLICY
+  ::policy::RPCParams input_params;
   ::policy::CheckPermissionResult output;
-  manager->CheckPermissions("50", "FULL", "Func-400", output);
+  manager->CheckPermissions("2", "FULL", "Func-400",input_params, output);
   EXPECT_EQ(::policy::kRpcDisallowed, output.hmi_level_permitted);
 }
 
@@ -259,8 +262,9 @@ TEST_F(PolicyManagerImplStressTest, NoHmi) {
 #ifdef EXTENDED_POLICY
   EXPECT_CALL(*mock_listener, OnCurrentDeviceIdUpdateRequired(_)).Times    (1);
 #endif  // EXTENDED_POLICY
+  ::policy::RPCParams input_params;
   ::policy::CheckPermissionResult output;
-  manager->CheckPermissions("50", "NONE", "Func-100", output);
+  manager->CheckPermissions("2", "NONE", "Func-88",input_params, output);
   EXPECT_EQ(::policy::kRpcDisallowed, output.hmi_level_permitted);
 }
 
@@ -280,8 +284,10 @@ TEST_F(PolicyManagerImplStressTest, FewChecks) {
     ss << func << std::endl;
     ss >> func_number;
 
+    ::policy::RPCParams input_params;
     ::policy::CheckPermissionResult output;
-    manager->CheckPermissions(app_number, "FULL", "Func-" + func_number, output);
+    manager->CheckPermissions(app_number, "FULL", "Func-" + func_number,
+                              input_params, output);
     EXPECT_EQ(::policy::kRpcAllowed, output.hmi_level_permitted);
   }
 }
