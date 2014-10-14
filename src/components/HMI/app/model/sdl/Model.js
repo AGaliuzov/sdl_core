@@ -371,8 +371,6 @@ SDL.SDLModel = Em.Object.create({
         "USER_DISALLOWED"           : 23
     },
 
-
-
     /**
      * Info navigationApp data for ShowConstantTBT request
      *
@@ -1310,14 +1308,14 @@ SDL.SDLModel = Em.Object.create({
      * @param {Object}
      * @param {Number}
      */
-    onPrompt: function (ttsChunks) {
+    onPrompt: function (ttsChunks, appID) {
 
         var message = '';
         if (ttsChunks) {
             for (var i = 0; i < ttsChunks.length; i++) {
                 message += ttsChunks[i].text + '\n';
             }
-            SDL.TTSPopUp.ActivateTTS(message);
+            SDL.TTSPopUp.ActivateTTS(message, appID);
         }
     },
 
@@ -1399,17 +1397,6 @@ SDL.SDLModel = Em.Object.create({
             }
         }
     },
-//
-//    /**
-//     * SDL VR DeleteCommand response handler delete command from voice
-//     * recognition window
-//     *
-//     * @param {Number}
-//     */
-//    deleteCommandVR: function (commandID) {
-//
-//        SDL.VRPopUp.DeleteCommand(commandID);
-//    },
 
     onDeactivateApp: function (target, appID) {
 

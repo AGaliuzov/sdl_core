@@ -210,7 +210,7 @@ FFW.VehicleInfo = FFW.RPCObserver.create( {
 
                 Em.Logger.log("FFW." + request.method + "Response");
 
-                // send repsonse
+                    // send response
                 var JSONMessage = {
                     "jsonrpc": "2.0",
                     "id": request.id,

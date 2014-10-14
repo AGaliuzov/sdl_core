@@ -155,7 +155,7 @@ FFW.TTS = FFW.RPCObserver.create( {
                 FFW.TTS.sendError(SDL.SDLModel.resultCode["REJECTED"], request.id, "TTS.Speak", "TTS in progress. Rejected.");
             } else {
                 this.requestId = request.id;
-                SDL.SDLModel.onPrompt(request.params.ttsChunks);
+                SDL.SDLModel.onPrompt(request.params.ttsChunks, request.params.appID);
             }
 
             break;
@@ -373,6 +373,25 @@ FFW.TTS = FFW.RPCObserver.create( {
         var JSONMessage = {
             "jsonrpc": "2.0",
             "method": "TTS.Started"
+        };
+        this.client.send(JSONMessage);
+    },
+
+    /**
+     * Sent OnResetTimeout notification to SDLCore to inform when
+     * HMI pronounces text longer than 10 seconds
+     */
+    OnResetTimeout: function(appID, methodName) {
+
+        Em.Logger.log("FFW.TTS.OnResetTimeout");
+
+        var JSONMessage = {
+            "jsonrpc": "2.0",
+            "method": "TTS.OnResetTimeout",
+            "params": {
+                "appID": appID,
+                "methodName": methodName
+            }
         };
         this.client.send(JSONMessage);
     },

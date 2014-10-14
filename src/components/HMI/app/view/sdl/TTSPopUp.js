@@ -42,7 +42,10 @@ SDL.TTSPopUp = Em.ContainerView.create( {
     ],
 
     childViews: [
-        'popUp', 'message'
+        'popUp',
+        'message',
+        'okButton',
+        'timerText'
     ],
 
     requestId: null,
@@ -52,6 +55,10 @@ SDL.TTSPopUp = Em.ContainerView.create( {
     active: false,
 
     timer: null,
+
+    appID: null,
+
+    timerSeconds: 10,
 
     popUp: Ember.TextArea.extend( {
 
@@ -69,26 +76,57 @@ SDL.TTSPopUp = Em.ContainerView.create( {
         classNames: 'message'
     }),
 
-    ActivateTTS: function(msg) {
+    okButton: SDL.Button.extend( {
+        classNames: 'button okButton',
+        text: 'Reset Timeout',
+        action: 'resetTimeout',
+        target: 'parentView',
+        buttonAction: true,
+        onDown: false,
+        disabledBinding: 'parentView.buttons'
+    }),
+
+    timerText: SDL.Label.extend({
+
+        elementId: 'timerText',
+
+        classNames: 'timerText',
+
+        contentBinding: 'parentView.timerSeconds'
+    }),
+
+    resetTimeout: function () {
+        this.set('timerSeconds', 10);
+        FFW.TTS.OnResetTimeout(this.appID, "TTS.Speak");
+        this.appID = null;
+    },
+
+    ActivateTTS: function(msg, appID) {
 
         var self = this;
 
-        //this.requestId = id;
-
+        this.set('appID', appID);
         this.set('content', msg);
         this.set('active', true);
 
-        clearTimeout(this.timer);
-        this.timer = setTimeout(function() {
+        clearInterval(this.timer);
+        this.timer = setInterval(function() {
 
-            self.DeactivateTTS();
-        }, 5000); // timeout for TTS popUp in milliseconds
+            self.set('timerSeconds', self.timerSeconds - 1);
+        }, 1000); // timeout for TTS popUp in milliseconds
         FFW.TTS.Started();
     },
 
+    timerHandler: function () {
+        if (this.timerSeconds === 0) {
+            this.DeactivateTTS();
+        }
+    }.observes('this.timerSeconds'),
+
     DeactivateTTS: function() {
-        clearTimeout(this.timer);
+        clearInterval(this.timer);
         this.set('active', false);
+        this.set('timerSeconds', 10);
         SDL.SDLController.TTSResponseHandler();
         FFW.TTS.Stopped();
     },
@@ -99,7 +137,5 @@ SDL.TTSPopUp = Em.ContainerView.create( {
     didInsertElement: function() {
 
         this._super();
-
-        //FFW.TTS.set('isReady', true);
     }
 });
