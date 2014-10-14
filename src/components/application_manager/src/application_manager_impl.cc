@@ -296,13 +296,13 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
   const std::string& app_name =
     message[strings::msg_params][strings::app_name].asString();
 
-  usage_statistics::StatisticsManager* const& sm =
-      policy::PolicyHandler::instance()->GetStatisticManager();
   ApplicationSharedPtr application(
-    new ApplicationImpl(app_id, mobile_app_id, app_name,sm));
+    new ApplicationImpl(app_id,
+                        mobile_app_id, app_name,
+                        policy::PolicyHandler::instance()->GetStatisticManager()));
   if (!application) {
     usage_statistics::AppCounter count_of_rejections_sync_out_of_memory(
-      sm, mobile_app_id,
+      policy::PolicyHandler::instance()->GetStatisticManager(), mobile_app_id,
       usage_statistics::REJECTIONS_SYNC_OUT_OF_MEMORY);
     ++count_of_rejections_sync_out_of_memory;
 
