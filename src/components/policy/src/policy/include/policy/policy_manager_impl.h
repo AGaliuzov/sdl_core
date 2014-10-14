@@ -133,14 +133,14 @@ class PolicyManagerImpl : public PolicyManager {
     virtual void SetVINValue(const std::string& value);
 
     // Interface StatisticsManager (begin)
-    virtual void Increment(usage_statistics::GlobalCounterId type) const;
+    virtual void Increment(usage_statistics::GlobalCounterId type);
     virtual void Increment(const std::string& app_id,
-                           usage_statistics::AppCounterId type) const;
+                           usage_statistics::AppCounterId type);
     virtual void Set(const std::string& app_id, usage_statistics::AppInfoId type,
-                     const std::string& value) const;
+                     const std::string& value);
     virtual void Add(const std::string& app_id,
                      usage_statistics::AppStopwatchId type,
-                     int32_t timespan_seconds) const;
+                     int32_t timespan_seconds);
     // Interface StatisticsManager (end)
 
     AppPermissions GetAppPermissionsChanges(const std::string& device_id,

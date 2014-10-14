@@ -328,15 +328,14 @@ utils::SharedPtr<ObjectType>::reset(ObjectType* other) {
   reset_impl(other);
 }
 
-template<typename ObjectType> void
-utils::SharedPtr<ObjectType>                                                                                                                                                                                                                                        ::release() {
-  if (NULL != mObject) {
-    delete mObject;
-    mObject = 0;
+template<typename ObjectType>
+void SharedPtr<ObjectType>::release() {
 
-    delete mReferenceCounter;
-    mReferenceCounter = 0;
-  }
+  delete mObject;
+  mObject = 0;
+
+  delete mReferenceCounter;
+  mReferenceCounter = 0;
 }
 
 template<typename ObjectType> void
@@ -350,12 +349,7 @@ template<typename ObjectType>
 inline void SharedPtr<ObjectType>::dropReference() {
   if (0 != mReferenceCounter) {
     if (1 == atomic_post_dec(mReferenceCounter)) {
-
-      delete mObject;
-      mObject = 0;
-
-      delete mReferenceCounter;
-      mReferenceCounter = 0;
+      release();
     }
   }
 }

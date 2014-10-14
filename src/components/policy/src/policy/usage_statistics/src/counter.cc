@@ -60,7 +60,7 @@ AppCounter::AppCounter(utils::SharedPtr<usage_statistics::StatisticsManager> sta
 
 void AppCounter::operator++() const {
   if (statistics_manager_) {
-    //statistics_manager_->Increment(app_id_, counter_type_);
+    statistics_manager_->Increment(app_id_, counter_type_);
   }
 }
 

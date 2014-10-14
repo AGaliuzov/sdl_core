@@ -96,7 +96,7 @@ struct SDLAlowedNotification {
       policy_manager_(policy_manager){}
 
   void operator()(const application_manager::ApplicationSharedPtr& app) {
-    if (!policy_manager_.valid()) {
+    if (!policy_manager_) {
       return;
     }
     if (device_id_ == app->device()) {
@@ -850,7 +850,7 @@ bool PolicyHandler::ReceiveMessageFromSDK(const std::string& file,
 bool PolicyHandler::UnloadPolicyLibrary() {
   LOG4CXX_TRACE(logger_, "enter. policy_manager_ = " << policy_manager_);
   bool ret = true;
-  if (policy_manager_.valid()) {
+  if (policy_manager_) {
     policy_manager_.release();
   }
   if (dl_handle_) {

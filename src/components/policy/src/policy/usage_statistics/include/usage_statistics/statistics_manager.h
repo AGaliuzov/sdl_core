@@ -70,13 +70,13 @@ enum AppCounterId {
 class StatisticsManager {
  public:
   virtual ~StatisticsManager() {}
-  virtual void Increment(GlobalCounterId type) const = 0;
-  virtual void Increment(const std::string& app_id, AppCounterId type) const = 0;
+  virtual void Increment(GlobalCounterId type) = 0;
+  virtual void Increment(const std::string& app_id, AppCounterId type) = 0;
   virtual void Set(const std::string& app_id, AppInfoId type,
-                   const std::string& value) const = 0;
+                   const std::string& value) = 0;
   virtual void Add(const std::string& app_id,
                    AppStopwatchId type,
-                   int32_t timespan_seconds) const = 0;
+                   int32_t timespan_seconds) = 0;
 
   static std::string EnumToStdString(GlobalCounterId global_counter_id) {
     std::string counter;
