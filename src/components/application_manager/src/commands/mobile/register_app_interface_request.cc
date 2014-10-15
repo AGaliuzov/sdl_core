@@ -268,12 +268,6 @@ void RegisterAppInterfaceRequest::Run() {
       }
     }
 
-    if (msg_params[strings::app_name].asString() == "Com" ||
-        msg_params[strings::app_name].asString() == "Com1" ||
-        msg_params[strings::app_name].asString() == "Com2") {
-      app->set_voice_communication_supported(true);
-    }
-
     const connection_handler::DeviceHandle handle = app->device();
     // Add device to policy table and set device info, if any
     std::string device_mac_address =

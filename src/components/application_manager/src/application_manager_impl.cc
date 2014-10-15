@@ -514,13 +514,10 @@ bool ApplicationManagerImpl::ActivateApplication(ApplicationSharedPtr app) {
     }
   }
 
-  app->MakeFullscreen();
-
   if (current_active_app.valid()) {
     if (is_new_app_media && current_active_app->is_media_application()) {
       current_active_app->MakeNotAudible();
-    } else if (!(current_active_app->IsAudioApplication()) ||
-               DoesAudioAppWithSameHMITypeExistInFullOrLimited(app)) {
+    } else if (!(current_active_app->IsAudioApplication())) {
       current_active_app->set_hmi_level(mobile_api::HMILevel::HMI_BACKGROUND);
     } else {
       current_active_app->set_hmi_level(mobile_api::HMILevel::HMI_LIMITED);
@@ -528,6 +525,8 @@ bool ApplicationManagerImpl::ActivateApplication(ApplicationSharedPtr app) {
 
     MessageHelper::SendHMIStatusNotification(*current_active_app);
   }
+
+  app->MakeFullscreen();
 
   if (is_new_app_media) {
     ApplicationSharedPtr limited_app = get_limited_media_application();
