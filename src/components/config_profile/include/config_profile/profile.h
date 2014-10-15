@@ -467,6 +467,8 @@ class Profile : public utils::Singleton<Profile> {
 
     const  std::pair<uint32_t, int32_t>& get_vehicle_data_frequency() const;
 
+    const  std::pair<uint32_t, int32_t>& start_stream_retry_amount() const;
+
     /**
      * @brief Returns max allowed threads number for handling mobile requests
      */
@@ -655,13 +657,19 @@ class Profile : public utils::Singleton<Profile> {
      * first value is count of request
      * second is time scale
      */
-    std::pair<uint32_t, int32_t>   read_did_frequency_;
+    std::pair<uint32_t, int32_t>    read_did_frequency_;
 
     /*
      * first value is count of request
      * second is time scale
      */
-    std::pair<uint32_t, int32_t>   get_vehicle_data_frequency_;
+    std::pair<uint32_t, int32_t>    get_vehicle_data_frequency_;
+
+    /**
+     * first value is count of retries for start stream
+     * second for timer
+     */
+    std::pair<uint32_t, int32_t>    start_stream_retry_amount_;
 
     std::string                     iap_legacy_protocol_mask_;
     std::string                     iap_hub_protocol_mask_;

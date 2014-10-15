@@ -393,10 +393,20 @@ class Application : public virtual InitialApplicationData,
     virtual bool MakeFullscreen() = 0;
     virtual bool IsAudible() const = 0;
     virtual void MakeNotAudible() = 0;
+
     virtual bool allowed_support_navigation() const = 0;
     virtual void set_allowed_support_navigation(bool allow) = 0;
-    virtual bool hmi_supports_navi_streaming() const = 0;
-    virtual void set_hmi_supports_navi_streaming(const bool& supports) = 0;
+    virtual bool hmi_supports_navi_video_streaming() const = 0;
+    virtual void set_hmi_supports_navi_video_streaming(bool supports) = 0;
+    virtual bool hmi_supports_navi_audio_streaming() const = 0;
+    virtual void set_hmi_supports_navi_audio_streaming(bool supports) = 0;
+    virtual bool video_stream_retry_active() = 0;
+    virtual void set_video_stream_retry_active(bool active) = 0;
+    virtual bool audio_stream_retry_active() = 0;
+    virtual void set_audio_stream_retry_active(bool active) = 0;
+    virtual void OnVideoStreamRetry() = 0;
+    virtual void OnAudioStreamRetry() = 0;
+
     virtual bool app_allowed() const = 0;
     virtual bool has_been_activated() const = 0;
 

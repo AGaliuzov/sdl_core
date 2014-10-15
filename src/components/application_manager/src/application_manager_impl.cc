@@ -811,8 +811,8 @@ void ApplicationManagerImpl::RemoveDevice(
   LOG4CXX_INFO(logger_, "device_handle " << device_handle);
 }
 
-bool ApplicationManagerImpl::IsAudioStreamingAllowed(uint32_t connection_key) const {
-  ApplicationSharedPtr app = application(connection_key);
+bool ApplicationManagerImpl::IsAudioStreamingAllowed(uint32_t application_key) const {
+  ApplicationSharedPtr app = application(application_key);
 
   if (!app) {
     LOG4CXX_WARN(logger_, "An application is not registered.");
@@ -829,8 +829,8 @@ bool ApplicationManagerImpl::IsAudioStreamingAllowed(uint32_t connection_key) co
   return false;
 }
 
-bool ApplicationManagerImpl::IsVideoStreamingAllowed(uint32_t connection_key) const {
-  ApplicationSharedPtr app = application(connection_key);
+bool ApplicationManagerImpl::IsVideoStreamingAllowed(uint32_t application_key) const {
+  ApplicationSharedPtr app = application(application_key);
 
   if (!app) {
     LOG4CXX_WARN(logger_, "An application is not registered.");
@@ -840,7 +840,7 @@ bool ApplicationManagerImpl::IsVideoStreamingAllowed(uint32_t connection_key) co
   const mobile_api::HMILevel::eType& hmi_level = app->hmi_level();
 
   if (mobile_api::HMILevel::HMI_FULL == hmi_level &&
-      app->hmi_supports_navi_streaming()) {
+      app->hmi_supports_navi_video_streaming()) {
     return true;
   }
 
