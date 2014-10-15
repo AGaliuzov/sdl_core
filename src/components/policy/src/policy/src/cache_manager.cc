@@ -1374,7 +1374,6 @@ bool CacheManager::IsApplicationRepresented(const std::string& app_id) const {
 
 bool CacheManager::Init(const std::string& file_name) {
   LOG4CXX_INFO(logger_, "CacheManager::Init");
-  CACHE_MANAGER_CHECK(false);
   InitResult init_result = backup_->Init();
 #ifdef EXTENDED_POLICY
   ex_backup_ = utils::SharedPtr<PTRepresentation>::
@@ -1426,7 +1425,6 @@ void CacheManager::FillDeviceSpecificData() {
 }
 
 bool CacheManager::LoadFromBackup() {
-  CACHE_MANAGER_CHECK(false);
   pt_ = backup_->GenerateSnapshot();
   update_required = backup_->UpdateRequired();
 
@@ -1439,7 +1437,6 @@ bool CacheManager::LoadFromBackup() {
 bool CacheManager::LoadFromFile(const std::string& file_name) {
 
   LOG4CXX_INFO(logger_, "CacheManager::LoadFromFile");
-  CACHE_MANAGER_CHECK(false);
   BinaryMessage json_string;
   bool final_result = false;
   final_result = file_system::ReadBinaryFile(file_name, json_string);
