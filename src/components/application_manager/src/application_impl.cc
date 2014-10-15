@@ -295,7 +295,7 @@ void ApplicationImpl::set_hmi_supports_navi_video_streaming(bool supports) {
     video_stream_retry_timer_ =
         utils::SharedPtr<timer::TimerThread<ApplicationImpl>>(
             new timer::TimerThread<ApplicationImpl>(
-                "VideoStreamRetry", this, &ApplicationImpl::OnVideoStreamRetryTimer, true));
+                "VideoStreamRetry", this, &ApplicationImpl::OnVideoStreamRetry, true));
     // start separate pthread for timer without delays
     video_stream_retry_timer_->start(0);
   }
@@ -326,7 +326,7 @@ bool ApplicationImpl::hmi_supports_navi_audio_streaming() const {
   return hmi_supports_navi_audio_streaming_;
 }
 
-bool ApplicationImpl::video_stream_retry_active() {
+bool ApplicationImpl::video_stream_retry_active() const {
   return is_video_stream_retry_active_;
 }
 
@@ -334,7 +334,7 @@ void ApplicationImpl::set_video_stream_retry_active(bool active) {
   is_video_stream_retry_active_ = active;
 }
 
-bool ApplicationImpl::audio_stream_retry_active() {
+bool ApplicationImpl::audio_stream_retry_active() const {
   return is_audio_stream_retry_active_;
 }
 
@@ -342,7 +342,7 @@ void ApplicationImpl::set_audio_stream_retry_active(bool active) {
   is_audio_stream_retry_active_ = active;
 }
 
-void ApplicationImpl::OnVideoStreamRetryTimer() {
+void ApplicationImpl::OnVideoStreamRetry() {
   if (video_stream_retry_number_) {
     LOG4CXX_INFO(logger_, "Send video stream retry "
                  << video_stream_retry_number_);
@@ -356,12 +356,12 @@ void ApplicationImpl::OnVideoStreamRetryTimer() {
     video_stream_retry_timer_->updateTimeOut(time_out);
   } else {
     LOG4CXX_INFO(logger_, "Stop video streaming retry");
-    video_stream_retry_timer_.reset();
+    video_stream_retry_timer_.release();
     set_video_stream_retry_active(false);
   }
 }
 
-void ApplicationImpl::OnAudioStreamRetryTimer() {
+void ApplicationImpl::OnAudioStreamRetry() {
   if (audio_stream_retry_number_) {
     LOG4CXX_INFO(logger_, "Send audio streaming retry "
                  << audio_stream_retry_number_);
@@ -375,7 +375,7 @@ void ApplicationImpl::OnAudioStreamRetryTimer() {
     audio_stream_retry_timer_->updateTimeOut(time_out);
   } else {
     LOG4CXX_INFO(logger_, "Stop audio streaming retry");
-    audio_stream_retry_timer_.reset();
+    audio_stream_retry_timer_.release();
     set_audio_stream_retry_active(false);
   }
 }

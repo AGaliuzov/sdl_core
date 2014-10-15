@@ -81,12 +81,6 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   void set_hmi_supports_navi_video_streaming(bool supports);
   bool hmi_supports_navi_audio_streaming() const;
   void set_hmi_supports_navi_audio_streaming(bool supports);
-  bool video_stream_retry_active();
-  void set_video_stream_retry_active(bool active);
-  bool audio_stream_retry_active();
-  void set_audio_stream_retry_active(bool active);
-  void OnVideoStreamRetry();
-  void OnAudioStreamRetry();
 
   inline bool app_allowed() const;
   bool has_been_activated() const;
@@ -185,6 +179,14 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   void LoadPersistentFiles();
 
  private:
+
+  // interfaces for NAVI retry sequence
+  bool video_stream_retry_active() const;
+  void set_video_stream_retry_active(bool active);
+  bool audio_stream_retry_active() const;
+  void set_audio_stream_retry_active(bool active);
+  void OnVideoStreamRetry();
+  void OnAudioStreamRetry();
 
   uint32_t                                 hash_val_;
   uint32_t                                 grammar_id_;
