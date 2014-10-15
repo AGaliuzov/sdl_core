@@ -1114,7 +1114,6 @@ void ApplicationManagerImpl::SendMessageToMobile(
 
     const smart_objects::SmartObject& s_map = (*message)[strings::msg_params];
     if (smart_objects::SmartType_Map == s_map.getType()) {
-      params.resize(s_map.length() - 1);
       smart_objects::SmartMap::iterator iter = s_map.map_begin();
       smart_objects::SmartMap::iterator iter_end = s_map.map_end();
 
