@@ -113,7 +113,7 @@ SDL.TTSPopUp = Em.ContainerView.create( {
         this.timer = setInterval(function() {
 
             self.set('timerSeconds', self.timerSeconds - 1);
-        }, 1000); // timeout for TTS popUp in milliseconds
+        }, 1000); // timeout for TTS popUp timer interval in milliseconds
         FFW.TTS.Started();
     },
 
