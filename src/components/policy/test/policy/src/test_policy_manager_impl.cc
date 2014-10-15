@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, Ford Motor Company
+﻿/* Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -240,7 +240,9 @@ TEST_F(PolicyManagerImplTest, CheckPermissions) {
   manager->ResetDefaultPT(::policy::PolicyTable(&mock_pt));
   manager->set_listener(&mock_listener);
   ::policy::CheckPermissionResult out_result;
-  manager->CheckPermissions("12345678", "FULL", "Alert", out_result);
+  // emty params list, since Alert doesn't have any params.
+  ::policy::RPCParams rpc_params;
+  manager->CheckPermissions("12345678", "FULL", "Alert", rpc_params, out_result);
   EXPECT_EQ(::policy::kRpcAllowed, out_result.hmi_level_permitted);
   ASSERT_TRUE(!out_result.list_of_allowed_params.empty());
   ASSERT_EQ(2u, out_result.list_of_allowed_params.size());
