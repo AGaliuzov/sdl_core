@@ -94,7 +94,7 @@ using namespace log4cxx::helpers;
  *   Return the file name of the caller.
  *   @returns file name, may be null.
  */
- const char * LocationInfo::getFileName() const
+ const std::string& LocationInfo::getFileName() const
 {
   return fileName;
 }
@@ -111,7 +111,7 @@ using namespace log4cxx::helpers;
 /** Returns the method name of the caller. */
  const std::string LocationInfo::getMethodName() const
 {
-    std::string tmp(methodName);
+    std::string tmp = methodName;
     size_t colonPos = tmp.find("::");
     if (colonPos != std::string::npos) {
       tmp.erase(0, colonPos + 2);
@@ -130,7 +130,7 @@ using namespace log4cxx::helpers;
 
 
 const std::string LocationInfo::getClassName() const {
-        std::string tmp(methodName);
+        std::string tmp = methodName;
         size_t colonPos = tmp.find("::");
         if (colonPos != std::string::npos) {
            tmp.erase(colonPos);
@@ -166,7 +166,7 @@ void LocationInfo::write(ObjectOutputStream& os, Pool& p) const {
         //
         //   construct Java-like fullInfo (replace "::" with ".")
         //
-        std::string fullInfo(methodName);
+        std::string fullInfo = methodName;
         size_t openParen = fullInfo.find('(');
         if (openParen != std::string::npos) {
             size_t space = fullInfo.find(' ');
