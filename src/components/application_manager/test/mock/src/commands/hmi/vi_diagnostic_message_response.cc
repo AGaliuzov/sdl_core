@@ -1,0 +1,1 @@
+../../../../../src/commands/hmi/vi_diagnostic_message_response.cc

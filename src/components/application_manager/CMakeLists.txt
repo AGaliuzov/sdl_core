@@ -4,7 +4,7 @@ endif()
 
 
 include_directories (
-  ./include/
+  include/
   ../utils/include/
   ../formatters/include/
   ../protocol_handler/include/
@@ -421,4 +421,8 @@ target_link_libraries("ApplicationManager" ${LIBRARIES})
 
 if(ENABLE_LOG)
   target_link_libraries("ApplicationManager" log4cxx -L${LOG4CXX_LIBS_DIRECTORY})
+endif()
+
+if(BUILD_TESTS)
+  add_subdirectory(test)
 endif()

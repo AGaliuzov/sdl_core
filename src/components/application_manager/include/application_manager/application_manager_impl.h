@@ -170,8 +170,8 @@ class ApplicationManagerImpl : public ApplicationManager,
   public hmi_message_handler::HMIMessageObserver,
   public protocol_handler::ProtocolObserver,
   public connection_handler::ConnectionHandlerObserver,
-    public impl::FromMobileQueue::Handler, public impl::ToMobileQueue::Handler,
-    public impl::FromHmiQueue::Handler, public impl::ToHmiQueue::Handler,
+  public impl::FromMobileQueue::Handler, public impl::ToMobileQueue::Handler,
+  public impl::FromHmiQueue::Handler, public impl::ToHmiQueue::Handler,
   public utils::Singleton<ApplicationManagerImpl> {
 
     friend class ResumeCtrl;

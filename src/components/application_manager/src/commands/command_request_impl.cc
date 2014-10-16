@@ -108,7 +108,7 @@ void CommandRequestImpl::onTimeOut() {
 
   smart_objects::SmartObject* response =
     MessageHelper::CreateNegativeResponse(connection_key(), function_id(),
-    correlation_id(), mobile_api::Result::TIMED_OUT);
+    correlation_id(), mobile_api::Result::GENERIC_ERROR);
 
   ApplicationManagerImpl::instance()->ManageMobileCommand(response);
 }
