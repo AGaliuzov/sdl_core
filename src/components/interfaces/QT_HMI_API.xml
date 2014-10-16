@@ -1944,6 +1944,8 @@
         <description>Specifies reason for exiting all apllications.</description>
       </param>
     </function>
+    <function name="OnAwakeSDL" messagetype="notification">
+    </function>
     <function name="MixingAudioSupported" messagetype="request" provider="hmi">
       <description>Request from SDL to HMI to find out if the last one supports mixing audio (i.e. recording TTS command and playing audio).</description>
     </function>
