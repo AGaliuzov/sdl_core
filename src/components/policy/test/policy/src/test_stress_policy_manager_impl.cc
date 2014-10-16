@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, Ford Motor Company
+﻿/* Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -225,7 +225,10 @@ TEST_F(PolicyManagerImplTest, StressTestOneCheck) {
 
   manager->set_listener(&mock_listener);
   ::policy::CheckPermissionResult output;
-  manager->CheckPermissions("2", "FULL", "Func-1", output);
+    // Empty params means that policy should consider only HMILevel for current
+    // RPC.
+  ::policy::RPCParams rpc_params;
+  manager->CheckPermissions("2", "FULL", "Func-1", rpc_params, output);
   EXPECT_EQ(::policy::kRpcAllowed, output.hmi_level_permitted);
 }
 
@@ -236,7 +239,10 @@ TEST_F(PolicyManagerImplTest, StressTestNoPermission) {
 
   manager->set_listener(&mock_listener);
   ::policy::CheckPermissionResult output;
-  manager->CheckPermissions("150", "FULL", "Func-400", output);
+  // Empty params means that policy should consider only HMILevel for current
+  // RPC.
+::policy::RPCParams rpc_params;
+  manager->CheckPermissions("150", "FULL", "Func-400", rpc_params, output);
   EXPECT_EQ(::policy::kRpcDisallowed, output.hmi_level_permitted);
 }
 
@@ -259,7 +265,14 @@ TEST_F(PolicyManagerImplTest, StressTestFewChecks) {
     ss >> func_number;
 
     ::policy::CheckPermissionResult output;
-    manager->CheckPermissions(app_number, "FULL", "Func-" + func_number, output);
+    // Empty params means that policy should consider only HMILevel for current
+    // RPC.
+  ::policy::RPCParams rpc_params;
+    manager->CheckPermissions(app_number,
+                              "FULL",
+                              "Func-" + func_number,
+                              rpc_params,
+                              output);
     EXPECT_EQ(::policy::kRpcAllowed, output.hmi_level_permitted);
   }
 }

@@ -122,6 +122,14 @@ class ConnectionHandler {
                             uint8_t session_id) = 0;
 
   /**
+   * Sets heart beat timeout for specified session
+   * @param connection_key pair of connection and session id
+   * @param timeout in seconds
+   */
+  virtual void SetHeartBeatTimeout(uint32_t connection_key,
+                                   int32_t timeout) = 0;
+
+  /**
    * \brief binds protocol version with session
    *
    * \param connection_key pair of connection and session id

@@ -362,6 +362,7 @@ set (HMI_COMMANDS_SOURCES
 ./src/commands/hmi/get_urls.cc
 ./src/commands/hmi/get_urls_response.cc
 ./src/commands/hmi/on_device_state_changed_notification.cc
+./src/commands/hmi/on_tts_reset_timeout_notification.cc
 )
 
 set (HMI_COMMANDS_SOURCES_JSON

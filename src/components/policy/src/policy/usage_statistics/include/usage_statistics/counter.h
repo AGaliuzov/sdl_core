@@ -35,46 +35,46 @@
 
 #include <ctime>
 #include "usage_statistics/statistics_manager.h"
-
+#include "utils/shared_ptr.h"
 namespace usage_statistics {
 
 class GlobalCounter {
  public:
-  GlobalCounter(StatisticsManager* const & statistics_manager,
+  GlobalCounter(utils::SharedPtr<usage_statistics::StatisticsManager> statistics_manager,
                 GlobalCounterId counter_type);
   void operator++() const;
  private:
   GlobalCounterId counter_type_;
-  StatisticsManager* const & statistics_manager_;
+  utils::SharedPtr<usage_statistics::StatisticsManager> statistics_manager_;
 };
 
 class AppCounter {
  public:
-  AppCounter(StatisticsManager* const & statistics_manager,
+  AppCounter(utils::SharedPtr<usage_statistics::StatisticsManager> statistics_manager,
              const std::string& app_id,
              AppCounterId counter_type);
   void operator++() const;
  private:
   std::string app_id_;
   AppCounterId counter_type_;
-  StatisticsManager* const & statistics_manager_;
+  utils::SharedPtr<usage_statistics::StatisticsManager> statistics_manager_;
 };
 
 class AppInfo {
  public:
-  AppInfo(StatisticsManager* const & statistics_manager,
+  AppInfo(utils::SharedPtr<usage_statistics::StatisticsManager> statistics_manager,
           const std::string& app_id,
           AppInfoId info_type);
   void Update(const std::string& new_info) const;
  private:
   std::string app_id_;
   AppInfoId info_type_;
-  StatisticsManager* const & statistics_manager_;
+  utils::SharedPtr<usage_statistics::StatisticsManager> statistics_manager_;
 };
 
 class AppStopwatch {
  public:
-  AppStopwatch(StatisticsManager* const & statistics_manager,
+  AppStopwatch(utils::SharedPtr<usage_statistics::StatisticsManager> statistics_manager,
                const std::string& app_id);
   ~AppStopwatch();
   void Start(AppStopwatchId stopwatch_type);
@@ -84,7 +84,7 @@ class AppStopwatch {
   // Fields
   std::string app_id_;
   AppStopwatchId stopwatch_type_;
-  StatisticsManager* const & statistics_manager_;
+  utils::SharedPtr<usage_statistics::StatisticsManager> statistics_manager_;
   time_t start_time_;
 };
 

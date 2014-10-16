@@ -164,6 +164,7 @@ typedef threads::MessageLoopThread<utils::PrioritizedQueue<MessageToMobile> > To
 typedef threads::MessageLoopThread<utils::PrioritizedQueue<MessageFromHmi> > FromHmiQueue;
 typedef threads::MessageLoopThread<utils::PrioritizedQueue<MessageToHmi> > ToHmiQueue;
 }
+typedef std::vector<std::string> RPCParams;
 
 class ApplicationManagerImpl : public ApplicationManager,
   public hmi_message_handler::HMIMessageObserver,
@@ -623,6 +624,7 @@ class ApplicationManagerImpl : public ApplicationManager,
         const std::string& policy_app_id,
         mobile_apis::HMILevel::eType hmi_level,
         mobile_apis::FunctionID::eType function_id,
+        const RPCParams& rpc_params,
         CommandParametersPermissions* params_permissions = NULL);
 
     // typedef for Applications list

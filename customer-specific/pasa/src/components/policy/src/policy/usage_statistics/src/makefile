@@ -32,6 +32,7 @@ INCLUDES = \
 	$(CFG_INCS) \
 	$(CC_IFLAG)./ \
 	$(CC_IFLAG)../include \
+	$(CC_IFLAG)../../../../../include \
 	$(DEPENDS_INCLUDES)
 
 
@@ -106,7 +107,7 @@ ALL_OBJECTS = \
 #  So this is not a huge deal when building on a component level.
 HEADERS = \
 	$(wildcard *.h*) \
-	$(wildcard ../include/usage_statistics/*.h*) \
+	$(wildcard ../../../../../include/utils/*.h*) \
 
 	
 LIBRARIES = \

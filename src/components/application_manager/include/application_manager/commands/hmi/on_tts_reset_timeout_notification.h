@@ -29,45 +29,48 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include "application_manager/commands/hmi/navi_start_stream_response.h"
-#include "application_manager/application_manager_impl.h"
-#include "application_manager/application_impl.h"
+
+#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_ON_TTS_RESET_TIMEOUT_NOTIFICATION_H_
+#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_ON_TTS_RESET_TIMEOUT_NOTIFICATION_H_
+
+#include "application_manager/commands/hmi/notification_from_hmi.h"
 
 namespace application_manager {
 
 namespace commands {
 
-NaviStartStreamResponse::NaviStartStreamResponse(const MessageSharedPtr& message)
-    : ResponseFromHMI(message) {
-}
+namespace hmi {
 
-NaviStartStreamResponse::~NaviStartStreamResponse() {
-}
+/**
+ * @brief OnTTSResetTimeoutNotification command class
+ **/
+class OnTTSResetTimeoutNotification : public NotificationFromHMI {
+ public:
+  /**
+   * @brief OnTTSResetTimeoutNotification class constructor
+   *
+   * @param message Incoming SmartObject message
+   **/
+  explicit OnTTSResetTimeoutNotification(const MessageSharedPtr& message);
 
-void NaviStartStreamResponse::Run() {
-  LOG4CXX_INFO(logger_, "NaviStartStreamResponse::Run");
+  /**
+   * @brief OnTTSResetTimeoutNotification class destructor
+   **/
+  virtual ~OnTTSResetTimeoutNotification();
 
-  ApplicationSharedPtr app =
-      ApplicationManagerImpl::instance()->active_application();
+  /**
+   * @brief Execute command
+   **/
+  virtual void Run();
 
-  if (!app) {
-    LOG4CXX_ERROR_EXT(logger_, "NaviStartStreamResponse no active app!");
-    return;
-  }
+ private:
+  DISALLOW_COPY_AND_ASSIGN(OnTTSResetTimeoutNotification);
+};
 
-  const hmi_apis::Common_Result::eType code =
-      static_cast<hmi_apis::Common_Result::eType>(
-          (*message_)[strings::params][hmi_response::code].asInt());
-
-  if (hmi_apis::Common_Result::SUCCESS == code) {
-    LOG4CXX_INFO(logger_, "NaviStartStreamResponse SUCCESS");
-    app->set_hmi_supports_navi_video_streaming(true);
-  } else {
-    LOG4CXX_INFO(logger_, "NaviStartStreamResponse NOT SUCCESS");
-    app->set_hmi_supports_navi_video_streaming(false);
-  }
-}
+}  // namespace hmi
 
 }  // namespace commands
 
 }  // namespace application_manager
+
+#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_ON_TTS_RESET_TIMEOUT_NOTIFICATION_H_

@@ -48,6 +48,7 @@ PerformAudioPassThruRequest::PerformAudioPassThruRequest(
     : CommandRequestImpl(message),
       is_active_tts_speak_(false),
       result_tts_speak_(mobile_apis::Result::SUCCESS) {
+  subscribe_on_event(hmi_apis::FunctionID::TTS_OnResetTimeout);
 }
 
 PerformAudioPassThruRequest::~PerformAudioPassThruRequest() {
@@ -66,7 +67,7 @@ void PerformAudioPassThruRequest::onTimeOut() {
 }
 
 bool PerformAudioPassThruRequest::Init() {
-  default_timeout_ += (*message_)[str::msg_params][str::max_duration].asInt();
+  default_timeout_ += (((*message_)[str::msg_params][str::max_duration].asInt())/1000);
   return true;
 }
 
@@ -157,6 +158,13 @@ void PerformAudioPassThruRequest::on_event(const event_engine::Event& event) {
           updateRequestTimeout(connection_key(),
                                correlation_id(),
                                default_timeout());
+      break;
+    }
+    case hmi_apis::FunctionID::TTS_OnResetTimeout: {
+      LOG4CXX_INFO(logger_, "Received TTS_OnResetTimeout event");
+
+      ApplicationManagerImpl::instance()->updateRequestTimeout(
+          connection_key(), correlation_id(), default_timeout());
       break;
     }
     default: {

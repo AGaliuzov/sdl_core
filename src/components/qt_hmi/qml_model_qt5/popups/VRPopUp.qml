@@ -74,7 +74,7 @@ PopUp {
             text: command
             onClicked: {
                 sdlVR.onCommand(cmdID, appID === 0 ? undefined : appID);
-                if(dataContainer.activeVR) {
+                if (dataContainer.activeVR) {
                     vrPopUp.complete();
                     vrHelpPopup.hide()
                 }

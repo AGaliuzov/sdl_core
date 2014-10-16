@@ -28,40 +28,27 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-include_directories(
-  ${LOG4CXX_INCLUDE_DIRECTORY}
-  ${GMOCK_INCLUDE_DIRECTORY}
-  ./include/
-  ../../../src/thirdPartyLibs/gmock-1.7.0/include
-  ../../../src/thirdPartyLibs/gmock-1.7.0/gtest/include
-  ${SecurityManagerIncludeDir}
-  ${CMAKE_SOURCE_DIR}/src/components/protocol_handler/include
-)
+set(3RD_PARTY_INSTALL_PREFIX "$ENV{THIRD_PARTY_INSTALL_PREFIX}")
+set(USE_DEFAULT_3RD_PARTY_PATH "true")
+if(3RD_PARTY_INSTALL_PREFIX)
+  set(USE_DEFAULT_3RD_PARTY_PATH "false")
+  set(3RD_PARTY_INSTALL_PREFIX_ARCH "$ENV{THIRD_PARTY_INSTALL_PREFIX_ARCH}")
+  if(3RD_PARTY_INSTALL_PREFIX_ARCH)
+  else()
+    set(3RD_PARTY_INSTALL_PREFIX_ARCH ${3RD_PARTY_INSTALL_PREFIX})
+  endif()
+else()
+  if(CMAKE_SYSTEM_NAME STREQUAL "QNX")
+    set(3RD_PARTY_INSTALL_PREFIX "$ENV{QNX_TARGET}/usr")  
+    if(CMAKE_SYSTEM_PROCESSOR STREQUAL "armv7")
+      set(QNX_ARCH "armle-v7")
+    else() 
+      set(QNX_ARCH ${CMAKE_SYSTEM_PROCESSOR})
+    endif()
+    set(3RD_PARTY_INSTALL_PREFIX_ARCH "$ENV{QNX_TARGET}/${QNX_ARCH}/usr")
+  else()
+    set(3RD_PARTY_INSTALL_PREFIX "/usr/local")
+    set(3RD_PARTY_INSTALL_PREFIX_ARCH ${3RD_PARTY_INSTALL_PREFIX})
+  endif()
+endif()
 
-set(SOURCES
-  ./src/crypto_manager_impl_test.cc
-  ./src/security_manager_test.cc
-  ./src/security_query_test.cc
-  ./src/security_query_matcher.cc
-)
-
-set(LIBRARIES
-  gtest
-  gtest_main
-  gmock
-  gmock_main
-  ${SecurityManagerLibrary}
-  crypto
-  ssl
-  ProtocolHandler
-  connectionHandler
-  Utils
-  ${RTLIB}
-  ProtocolLibrary
-)
-
-add_library(test_SecurityManager ${SOURCES})
-target_link_libraries(test_SecurityManager ${LIBRARIES} )
-create_test(test_SecurityManagerTest "${SOURCES}" "${LIBRARIES}")
-
-# vim: set ts=2 sw=2 et:

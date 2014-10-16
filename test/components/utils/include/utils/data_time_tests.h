@@ -44,33 +44,32 @@ namespace components  {
 namespace utils  {
   TEST(DateTimeTest, GetCurrentTime) {
     const TimevalStruct time1 = date_time::DateTime::getCurrentTime();
-    ASSERT_NE(0, time1.tv_sec);
-    ASSERT_GE(time1.tv_usec, 0);
+    TimevalStruct zero = {0, 0};
+    ASSERT_NE(zero.tv_sec, time1.tv_sec);
+    ASSERT_GE(time1.tv_usec, zero.tv_usec);
 
     const TimevalStruct time2 = date_time::DateTime::getCurrentTime();
-    ASSERT_NE(0, time2.tv_sec);
-    ASSERT_GE(time2.tv_usec, 0);
+    ASSERT_NE(zero.tv_sec, time2.tv_sec);
+    ASSERT_GE(time2.tv_usec, zero.tv_usec);
     ASSERT_GE(time2.tv_sec,  time1.tv_sec);
   }
 
   TEST(DateTimeTest, GetmSecs) {
     TimevalStruct time;
-    time.tv_sec  = 1;
+    time.tv_sec  = 2;
     time.tv_usec = 2 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
 
-    ASSERT_EQ(time.tv_sec  * date_time::DateTime::MILLISECONDS_IN_SECOND +
-              time.tv_usec / date_time::DateTime::MICROSECONDS_IN_MILLISECONDS,
-              date_time::DateTime::getmSecs(time));
+    ASSERT_EQ(2002, date_time::DateTime::getmSecs(time));
   }
+
   TEST(DateTimeTest, GetuSecs) {
     TimevalStruct time;
-    time.tv_sec  = 3;
-    time.tv_usec = 4;
+    time.tv_sec  = 2;
+    time.tv_usec = 2 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
 
-    ASSERT_EQ(time.tv_sec  * date_time::DateTime::MILLISECONDS_IN_SECOND *
-              date_time::DateTime::MICROSECONDS_IN_MILLISECONDS + time.tv_usec,
-              date_time::DateTime::getuSecs(time));
+    ASSERT_EQ(2002000, date_time::DateTime::getuSecs(time));
   }
+
   TEST(DateTimeTest, GetuSecsmSecs) {
     TimevalStruct time;
     time.tv_sec  = 5;
@@ -83,7 +82,7 @@ namespace utils  {
   TEST(DateTimeTest, CalculateTimeSpan) {
     const TimevalStruct time = date_time::DateTime::getCurrentTime();
 
-    const uint32_t sleep_time_mSec = 10;
+    const int64_t sleep_time_mSec = 10;
     usleep(sleep_time_mSec * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS);
 
     ASSERT_GE(date_time::DateTime::calculateTimeSpan(time),
@@ -99,28 +98,139 @@ namespace utils  {
     time2.tv_sec  = 3;
     time2.tv_usec = 4 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
 
-    //time2 to time1
-    TimevalStruct diff1;
-    diff1.tv_sec  = time2.tv_sec  - time1.tv_sec;
-    diff1.tv_usec = time2.tv_usec - time1.tv_usec;
-
-    const int64_t mSecDiff = static_cast<int64_t>(diff1.tv_sec) * 1000
-        + diff1.tv_usec / 1000;
-
-    ASSERT_EQ(mSecDiff,
+    ASSERT_EQ(2002,
               date_time::DateTime::calculateTimeDiff(time2, time1));
 
-    //time1 to time2
-    TimevalStruct diff2;
-    diff2.tv_sec  = time1.tv_sec  - time2.tv_sec;
-    diff2.tv_usec = time1.tv_usec - time2.tv_usec;
-
-    const int64_t mSecDiff2 = static_cast<int64_t>(diff2.tv_sec) * 1000
-        + diff2.tv_usec / 1000;
-
-    ASSERT_EQ(mSecDiff2,
+    ASSERT_EQ(2002,
               date_time::DateTime::calculateTimeDiff(time1, time2));
   }
+
+  TEST(DateTimeTest, Sub) {
+    TimevalStruct time1;
+    time1.tv_sec = 1;
+    time1.tv_usec = 2 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
+
+    TimevalStruct time2;
+    time2.tv_sec = 3;
+    time2.tv_usec = 4 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
+ 
+    TimevalStruct time_exp_1;
+    time_exp_1.tv_sec = 2;
+    time_exp_1.tv_usec = 2 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
+    
+    TimevalStruct time_exp_2;
+    time_exp_2.tv_sec = -3;
+    time_exp_2.tv_usec = (date_time::DateTime::MILLISECONDS_IN_SECOND - 2) * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
+
+    TimevalStruct time_ret_1 = date_time::DateTime::Sub(time2, time1);
+    TimevalStruct time_ret_2 = date_time::DateTime::Sub(time1, time2);
+
+    ASSERT_EQ(time_exp_1.tv_sec, time_ret_1.tv_sec);
+    ASSERT_EQ(time_exp_1.tv_usec, time_ret_1.tv_usec);
+    ASSERT_EQ(time_exp_2.tv_sec, time_ret_2.tv_sec);
+    ASSERT_EQ(time_exp_2.tv_usec, time_ret_2.tv_usec);
+  }
+
+  TEST(DateTimeTest, Equal) {
+    TimevalStruct time1;
+    time1.tv_sec = 1;
+    time1.tv_usec = 2 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
+
+    TimevalStruct time2;
+    time2.tv_sec = 1;
+    time2.tv_usec = 2 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
+
+    TimevalStruct time3;
+    time3.tv_sec = 1;
+    time3.tv_usec = 3 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
+
+    TimevalStruct time4;
+    time4.tv_sec = 2;
+    time4.tv_usec = 2 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
+
+    TimevalStruct time5;
+    time5.tv_sec = 2;
+    time5.tv_usec = 3 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
+
+    ASSERT_TRUE(date_time::DateTime::Equal(time1, time2));
+    ASSERT_FALSE(date_time::DateTime::Equal(time1, time3));
+    ASSERT_FALSE(date_time::DateTime::Equal(time1, time4));
+    ASSERT_FALSE(date_time::DateTime::Equal(time1, time5));
+  }
+
+  TEST(DateTimeTest, Greater) {
+    TimevalStruct time1;
+    time1.tv_sec = 1;
+    time1.tv_usec = 2 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
+
+    TimevalStruct time2;
+    time2.tv_sec = 1;
+    time2.tv_usec = 3 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
+
+    TimevalStruct time3;
+    time3.tv_sec = 2;
+    time3.tv_usec = 2 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
+
+    TimevalStruct time4;
+    time4.tv_sec = 2;
+    time4.tv_usec = 3 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
+
+    ASSERT_TRUE(date_time::DateTime::Greater(time2, time1));
+    ASSERT_TRUE(date_time::DateTime::Greater(time3, time1));
+    ASSERT_TRUE(date_time::DateTime::Greater(time4, time1));
+    ASSERT_FALSE(date_time::DateTime::Greater(time1, time2));
+    ASSERT_FALSE(date_time::DateTime::Greater(time1, time3));
+    ASSERT_FALSE(date_time::DateTime::Greater(time1, time4));
+  }
+
+  TEST(DateTimeTest, Less) {
+    TimevalStruct time1;
+    time1.tv_sec = 1;
+    time1.tv_usec = 2 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
+
+    TimevalStruct time2;
+    time2.tv_sec = 1;
+    time2.tv_usec = 3 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
+
+    TimevalStruct time3;
+    time3.tv_sec = 2;
+    time3.tv_usec = 2 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
+
+    TimevalStruct time4;
+    time4.tv_sec = 2;
+    time4.tv_usec = 3 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
+
+    ASSERT_TRUE(date_time::DateTime::Less(time1, time2));
+    ASSERT_TRUE(date_time::DateTime::Less(time1, time3));
+    ASSERT_TRUE(date_time::DateTime::Less(time1, time4));
+    ASSERT_FALSE(date_time::DateTime::Less(time2, time1));
+    ASSERT_FALSE(date_time::DateTime::Less(time3, time1));
+    ASSERT_FALSE(date_time::DateTime::Less(time4, time1));
+  }
+
+  TEST(DateTimeTest, CompareTime) {
+    TimevalStruct time1;
+    time1.tv_sec = 1;
+    time1.tv_usec = 2 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
+
+    TimevalStruct time2;
+    time2.tv_sec = 0;
+    time2.tv_usec = 1 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
+
+    TimevalStruct time3;
+    time3.tv_sec = 2;
+    time3.tv_usec = 3 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
+
+    TimevalStruct time4;
+    time4.tv_sec = 1;
+    time4.tv_usec = 2 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
+
+    ASSERT_EQ(date_time::GREATER, date_time::DateTime::compareTime(time1, time2));
+    ASSERT_EQ(date_time::LESS, date_time::DateTime::compareTime(time1, time3));
+    ASSERT_EQ(date_time::EQUAL, date_time::DateTime::compareTime(time1, time4));
+  }
+
+
 }  // namespace utils
 }  // namespace components
 }  // namespace test
