@@ -936,7 +936,9 @@ uint32_t get_hash_id(const ProtocolPacket &packet) {
     return HASH_ID_WRONG;
   }
   const uint32_t hash_be = *(reinterpret_cast<uint32_t*>(packet.data()));
-  return BE_TO_LE32(hash_be);
+  const uint32_t hash_le = BE_TO_LE32(hash_be);
+  // null hash is wrong hash value
+  return hash_le == HASH_ID_NOT_SUPPORTED ? HASH_ID_WRONG : hash_le;
 }
 
 RESULT_CODE ProtocolHandlerImpl::HandleControlMessageEndSession(
