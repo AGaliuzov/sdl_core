@@ -29,10 +29,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <gtest/gtest.h>
 #include <sqlite3.h>
 #include <vector>
 #include <algorithm>
+
+#include "gtest/gtest.h"
+
 #include "json/value.h"
 #include "policy/sql_pt_ext_representation.h"
 #include "policy/policy_types.h"
@@ -81,26 +83,14 @@ const std::string SQLPTExtRepresentationTest::kFileName = "policy.sqlite";
 }
 
 TEST_F(SQLPTExtRepresentationTest, SaveGenerateSnapshot) {
-  Json::Value expect(Json::objectValue);
-  expect["policy_table"] = Json::Value(Json::objectValue);
+  Json::Value table(Json::objectValue);
+  table["policy_table"] = Json::Value(Json::objectValue);
 
-  Json::Value& policy_table = expect["policy_table"];
-  policy_table["module_meta"] = Json::Value(Json::objectValue);
+  Json::Value& policy_table = table["policy_table"];
   policy_table["module_config"] = Json::Value(Json::objectValue);
-  policy_table["usage_and_error_counts"] = Json::Value(Json::objectValue);
-  policy_table["device_data"] = Json::Value(Json::objectValue);
   policy_table["functional_groupings"] = Json::Value(Json::objectValue);
   policy_table["consumer_friendly_messages"] = Json::Value(Json::objectValue);
   policy_table["app_policies"] = Json::Value(Json::objectValue);
-
-  Json::Value& module_meta = policy_table["module_meta"];
-  module_meta["ccpu_version"] = Json::Value("ccpu version");
-  module_meta["language"] = Json::Value("ru");
-  module_meta["wers_country_code"] = Json::Value("ru");
-  module_meta["pt_exchanged_at_odometer_x"] = Json::Value(0);
-  module_meta["pt_exchanged_x_days_after_epoch"] = Json::Value(0);
-  module_meta["ignition_cycles_since_last_exchange"] = Json::Value(0);
-  module_meta["vin"] = Json::Value("vin");
 
   Json::Value& module_config = policy_table["module_config"];
   module_config["preloaded_pt"] = Json::Value(true);
@@ -133,21 +123,7 @@ TEST_F(SQLPTExtRepresentationTest, SaveGenerateSnapshot) {
         6);
   module_config["vehicle_make"] = Json::Value("MakeT");
   module_config["vehicle_model"] = Json::Value("ModelT");
-  module_config["vehicle_year"] = Json::Value(2014);
-
-  Json::Value& usage_and_error_counts = policy_table["usage_and_error_counts"];
-  usage_and_error_counts["count_of_iap_buffer_full"] = Json::Value(0);
-  usage_and_error_counts["count_sync_out_of_memory"] = Json::Value(0);
-  usage_and_error_counts["count_of_sync_reboots"] = Json::Value(0);
-
-  Json::Value& device_data = policy_table["device_data"];
-  device_data["DEVICEHASH"] = Json::Value(Json::objectValue);
-  device_data["DEVICEHASH"]["hardware"] = Json::Value("hardware");
-  device_data["DEVICEHASH"]["firmware_rev"] = Json::Value("firmware_rev");
-  device_data["DEVICEHASH"]["os"] = Json::Value("os");
-  device_data["DEVICEHASH"]["os_version"] = Json::Value("os_version");
-  device_data["DEVICEHASH"]["carrier"] = Json::Value("carrier");
-  device_data["DEVICEHASH"]["max_number_rfcom_ports"] = Json::Value(10);
+  module_config["vehicle_year"] = Json::Value("2014");
 
   Json::Value& functional_groupings = policy_table["functional_groupings"];
   functional_groupings["default"] = Json::Value(Json::objectValue);
@@ -162,11 +138,21 @@ TEST_F(SQLPTExtRepresentationTest, SaveGenerateSnapshot) {
   Json::Value& consumer_friendly_messages =
     policy_table["consumer_friendly_messages"];
   consumer_friendly_messages["version"] = Json::Value("1.2");
+  consumer_friendly_messages["messages"] = Json::Value(Json::objectValue);
+  consumer_friendly_messages["messages"]["MSG1"] = Json::Value(Json::objectValue);
+  Json::Value& msg1 = consumer_friendly_messages["messages"]["MSG1"];
+  msg1["languages"] = Json::Value(Json::objectValue);
+  msg1["languages"]["en-us"] = Json::Value(Json::objectValue);
+  msg1["languages"]["en-us"]["tts"] = Json::Value("TTS message");
+  msg1["languages"]["en-us"]["label"] = Json::Value("LABEL message");
+  msg1["languages"]["en-us"]["line1"] = Json::Value("LINE1 message");
+  msg1["languages"]["en-us"]["line2"] = Json::Value("LINE2 message");
+  msg1["languages"]["en-us"]["textBody"] = Json::Value("TEXTBODY message");
 
   Json::Value& app_policies = policy_table["app_policies"];
   app_policies["default"] = Json::Value(Json::objectValue);
   app_policies["default"]["memory_kb"] = Json::Value(50);
-  app_policies["default"]["watchdog_timer_ms"] = Json::Value(100);
+  app_policies["default"]["heart_beat_timeout_ms"] = Json::Value(10);
   app_policies["default"]["groups"] = Json::Value(Json::arrayValue);
   app_policies["default"]["groups"][0] = Json::Value("default");
   app_policies["default"]["priority"] = Json::Value("EMERGENCY");
@@ -175,16 +161,35 @@ TEST_F(SQLPTExtRepresentationTest, SaveGenerateSnapshot) {
   app_policies["default"]["steal_focus"] = Json::Value(true);
   app_policies["default"]["certificate"] = Json::Value("sign");
 
-  policy_table::Table table(&expect);
+  policy_table::Table update(&table);
+  update.SetPolicyTableType(rpc::policy_table_interface_base::PT_UPDATE);
 
-  ASSERT_TRUE(IsValid(table));
-  ASSERT_TRUE(reps->Save(table));
-  ASSERT_TRUE(reps->SetMetaInfo("ccpu version", "ru", "ru"));
-  const char* query_vin = "UPDATE `module_meta` SET `vin` = 'vin'; ";
-  ASSERT_EQ(SQLITE_OK, sqlite3_exec(conn, query_vin, NULL, NULL, NULL));
+  ASSERT_TRUE(IsValid(update));
+  ASSERT_TRUE(reps->Save(update));
   utils::SharedPtr<policy_table::Table> snapshot = reps->GenerateSnapshot();
-  EXPECT_TRUE(IsValid(*snapshot));
-  EXPECT_EQ(table.ToJsonValue().toStyledString(),
+  snapshot->SetPolicyTableType(rpc::policy_table_interface_base::PT_SNAPSHOT);
+
+  policy_table["module_meta"] = Json::Value(Json::objectValue);
+  policy_table["usage_and_error_counts"] = Json::Value(Json::objectValue);
+  policy_table["device_data"] = Json::Value(Json::objectValue);
+
+  Json::Value& module_meta = policy_table["module_meta"];
+  module_meta["ccpu_version"] = Json::Value("");
+  module_meta["language"] = Json::Value("");
+  module_meta["wers_country_code"] = Json::Value("");
+  module_meta["pt_exchanged_at_odometer_x"] = Json::Value(0);
+  module_meta["pt_exchanged_x_days_after_epoch"] = Json::Value(0);
+  module_meta["ignition_cycles_since_last_exchange"] = Json::Value(0);
+  module_meta["vin"] = Json::Value("");
+
+  Json::Value& usage_and_error_counts = policy_table["usage_and_error_counts"];
+  usage_and_error_counts["count_of_iap_buffer_full"] = Json::Value(0);
+  usage_and_error_counts["count_sync_out_of_memory"] = Json::Value(0);
+  usage_and_error_counts["count_of_sync_reboots"] = Json::Value(0);
+
+  policy_table::Table expected(&table);
+
+  EXPECT_EQ(expected.ToJsonValue().toStyledString(),
             snapshot->ToJsonValue().toStyledString());
 }
 
@@ -192,7 +197,7 @@ TEST_F(SQLPTExtRepresentationTest, CanAppKeepContext) {
   const char* query_delete = "DELETE FROM `application`; ";
   ASSERT_EQ(SQLITE_OK, sqlite3_exec(conn, query_delete, NULL, NULL, NULL));
   const char* query_insert = "INSERT INTO `application` (`id`, `memory_kb`,"
-                             " `watchdog_timer_ms`, `keep_context`) VALUES ('12345', 5, 10, 1)";
+                             " `heart_beat_timeout_ms`, `keep_context`) VALUES ('12345', 5, 10, 1)";
   ASSERT_EQ(SQLITE_OK, sqlite3_exec(conn, query_insert, NULL, NULL, NULL));
   EXPECT_FALSE(reps->CanAppKeepContext("0"));
   EXPECT_TRUE(reps->CanAppKeepContext("12345"));
@@ -202,7 +207,7 @@ TEST_F(SQLPTExtRepresentationTest, CanAppStealFocus) {
   const char* query_delete = "DELETE FROM `application`; ";
   ASSERT_EQ(SQLITE_OK, sqlite3_exec(conn, query_delete, NULL, NULL, NULL));
   const char* query_insert = "INSERT INTO `application` (`id`, `memory_kb`,"
-                             " `watchdog_timer_ms`, `steal_focus`) VALUES ('12345', 5, 10, 1)";
+                             " `heart_beat_timeout_ms`, `steal_focus`) VALUES ('12345', 5, 10, 1)";
   ASSERT_EQ(SQLITE_OK, sqlite3_exec(conn, query_insert, NULL, NULL, NULL));
   EXPECT_TRUE(reps->CanAppStealFocus("12345"));
   EXPECT_FALSE(reps->CanAppStealFocus("0"));
@@ -327,8 +332,3 @@ TEST_F(SQLPTExtRepresentationTest, UnpairedDevicesList) {
 }  // namespace policy
 }  // namespace components
 }  // namespace test
-
-int main(int argc, char** argv) {
-  testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

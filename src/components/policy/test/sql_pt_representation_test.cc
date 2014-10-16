@@ -29,13 +29,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <gtest/gtest.h>
 #ifdef __QNX__
 #  include <qdb/qdb.h>
 #else  // __QNX__
 #  include <sqlite3.h>
 #endif  // __QNX__
+
 #include <vector>
+
+#include "gtest/gtest.h"
+
 #include "json/value.h"
 #include "policy/sql_pt_representation.h"
 #include "policy/policy_types.h"
@@ -91,29 +94,25 @@ const std::string DBMS::kFileName_ = "policy.sqlite";
 #endif  // __QNX__
 
 class SQLPTRepresentationTest : public ::testing::Test {
-  protected:
-    static DBMS* dbms;
-    static SQLPTRepresentation* reps;
+ protected:
+  static DBMS* dbms;
+  static SQLPTRepresentation* reps;
 
-    static void SetUpTestCase() {
-      reps = new SQLPTRepresentation;
-      dbms = new DBMS;
-      EXPECT_EQ(::policy::SUCCESS, reps->Init());
-      EXPECT_TRUE(dbms->Open());
-    }
+  static void SetUpTestCase() {
+    reps = new SQLPTRepresentation;
+    dbms = new DBMS;
+    EXPECT_EQ(::policy::SUCCESS, reps->Init());
+    EXPECT_TRUE(dbms->Open());
+  }
 
-    static void TearDownTestCase() {
-      EXPECT_TRUE(reps->Drop());
-      EXPECT_TRUE(reps->Close());
-      delete reps;
-      dbms->Close();
-    }
-};
+  static void TearDownTestCase() {
+    EXPECT_TRUE(reps->Drop());
+    EXPECT_TRUE(reps->Close());
+    delete reps;
+    dbms->Close();
+  }
 
-DBMS* SQLPTRepresentationTest::dbms = 0;
-SQLPTRepresentation* SQLPTRepresentationTest::reps = 0;
-
-::testing::AssertionResult IsValid(const policy_table::Table& table) {
+  ::testing::AssertionResult IsValid(const policy_table::Table& table) {
   if (table.is_valid()) {
     return ::testing::AssertionSuccess();
   } else {
@@ -122,10 +121,14 @@ SQLPTRepresentation* SQLPTRepresentationTest::reps = 0;
     return ::testing::AssertionFailure() << ::rpc::PrettyFormat(report);
   }
 }
+};
+
+DBMS* SQLPTRepresentationTest::dbms = 0;
+SQLPTRepresentation* SQLPTRepresentationTest::reps = 0;
 
 TEST_F(SQLPTRepresentationTest, CheckPermissionsAllowed) {
   const char* query = "INSERT OR REPLACE INTO `application` (`id`, `memory_kb`,"
-                      " `watchdog_timer_ms`) VALUES ('12345', 5, 10); "
+                      " `heart_beat_timeout_ms`) VALUES ('12345', 5, 10); "
                       "INSERT OR REPLACE INTO functional_group (`id`, `name`)"
                       "  VALUES (1, 'Base-4'); "
                       "INSERT OR REPLACE INTO `app_group` (`application_id`,"
@@ -146,7 +149,7 @@ TEST_F(SQLPTRepresentationTest, CheckPermissionsAllowed) {
 
 TEST_F(SQLPTRepresentationTest, CheckPermissionsAllowedWithoutParameters) {
   const char* query = "INSERT OR REPLACE INTO `application` (`id`, `memory_kb`,"
-                      " `watchdog_timer_ms`) VALUES ('12345', 5, 10); "
+                      " `heart_beat_timeout_ms`) VALUES ('12345', 5, 10); "
                       "INSERT OR REPLACE INTO functional_group (`id`, `name`)"
                       "  VALUES (1, 'Base-4'); "
                       "INSERT OR REPLACE INTO `app_group` (`application_id`,"
@@ -159,7 +162,7 @@ TEST_F(SQLPTRepresentationTest, CheckPermissionsAllowedWithoutParameters) {
   CheckPermissionResult ret;
   reps->CheckPermissions("12345", "LIMITED", "Update", ret);
   EXPECT_TRUE(ret.hmi_level_permitted == ::policy::kRpcAllowed);
-  EXPECT_TRUE(!ret.list_of_allowed_params.empty());
+  EXPECT_TRUE(ret.list_of_allowed_params.empty());
 }
 
 TEST_F(SQLPTRepresentationTest, CheckPermissionsDisallowed) {
@@ -169,7 +172,7 @@ TEST_F(SQLPTRepresentationTest, CheckPermissionsDisallowed) {
   CheckPermissionResult ret;
   reps->CheckPermissions("12345", "FULL", "Update", ret);
   EXPECT_EQ(::policy::kRpcDisallowed, ret.hmi_level_permitted);
-  EXPECT_TRUE(!ret.list_of_allowed_params.empty());
+  EXPECT_TRUE(ret.list_of_allowed_params.empty());
 }
 
 TEST_F(SQLPTRepresentationTest, IsPTPReloaded) {
@@ -186,9 +189,9 @@ TEST_F(SQLPTRepresentationTest, GetUpdateUrls) {
 
   const char* query_insert =
     "INSERT INTO `endpoint` (`application_id`, `url`, `service`) "
-    "  VALUES ('12345', 'http://ford.com/cloud/1', '0x07');"
+    "  VALUES ('12345', 'http://ford.com/cloud/1', 7);"
     "INSERT INTO `endpoint` (`application_id`, `url`, `service`) "
-    "  VALUES ('12345', 'http://ford.com/cloud/2', '0x07');";
+    "  VALUES ('12345', 'http://ford.com/cloud/2', 7);";
 
   ASSERT_TRUE(dbms->Exec(query_insert));
   ret = reps->GetUpdateUrls(7);
@@ -337,14 +340,12 @@ TEST_F(SQLPTRepresentationTest, TimeoutResponse) {
 
 #ifndef EXTENDED_POLICY
 TEST_F(SQLPTRepresentationTest, SaveGenerateSnapshot) {
-  Json::Value expect(Json::objectValue);
-  expect["policy_table"] = Json::Value(Json::objectValue);
+  Json::Value table(Json::objectValue);
+  table["policy_table"] = Json::Value(Json::objectValue);
 
-  Json::Value& policy_table = expect["policy_table"];
+  Json::Value& policy_table = table["policy_table"];
   policy_table["module_meta"] = Json::Value(Json::objectValue);
   policy_table["module_config"] = Json::Value(Json::objectValue);
-  policy_table["usage_and_error_counts"] = Json::Value(Json::objectValue);
-  policy_table["device_data"] = Json::Value(Json::objectValue);
   policy_table["functional_groupings"] = Json::Value(Json::objectValue);
   policy_table["consumer_friendly_messages"] = Json::Value(Json::objectValue);
   policy_table["app_policies"] = Json::Value(Json::objectValue);
@@ -380,14 +381,7 @@ TEST_F(SQLPTRepresentationTest, SaveGenerateSnapshot) {
         6);
   module_config["vehicle_make"] = Json::Value("MakeT");
   module_config["vehicle_model"] = Json::Value("ModelT");
-  module_config["vehicle_year"] = Json::Value(2014);
-
-  Json::Value& usage_and_error_counts = policy_table["usage_and_error_counts"];
-  usage_and_error_counts["app_level"] = Json::Value(Json::objectValue);
-  usage_and_error_counts["app_level"]["12345"] = Json::Value(Json::objectValue);
-
-  Json::Value& device_data = policy_table["device_data"];
-  device_data["user_consent_records"] = Json::Value(Json::objectValue);
+  module_config["vehicle_year"] = Json::Value("2014");
 
   Json::Value& functional_groupings = policy_table["functional_groupings"];
   functional_groupings["default"] = Json::Value(Json::objectValue);
@@ -402,38 +396,35 @@ TEST_F(SQLPTRepresentationTest, SaveGenerateSnapshot) {
   Json::Value& consumer_friendly_messages =
     policy_table["consumer_friendly_messages"];
   consumer_friendly_messages["version"] = Json::Value("1.2");
-
-  Json::Value& app12345counters = usage_and_error_counts["app_level"]["12345"];
-  app12345counters["app_registration_language_gui"] = "";
-  app12345counters["app_registration_language_vui"] = "";
-  app12345counters["count_of_rejected_rpc_calls"] = 0;
-  app12345counters["count_of_rejections_duplicate_name"] = 0;
-  app12345counters["count_of_rejections_nickname_mismatch"] = 0;
-  app12345counters["count_of_rejections_sync_out_of_memory"] = 0;
-  app12345counters["count_of_removals_for_bad_behavior"] = 0;
-  app12345counters["count_of_rpcs_sent_in_hmi_none"] = 0;
-  app12345counters["count_of_run_attempts_while_revoked"] = 0;
-  app12345counters["count_of_user_selections"] = 0;
-  app12345counters["minutes_in_hmi_background"] = 0;
-  app12345counters["minutes_in_hmi_full"] = 0;
-  app12345counters["minutes_in_hmi_limited"] = 0;
-  app12345counters["minutes_in_hmi_none"] = 0;
+  consumer_friendly_messages["messages"] = Json::Value(Json::objectValue);
+  consumer_friendly_messages["messages"]["MSG1"] = Json::Value(Json::objectValue);
+  Json::Value& msg1 = consumer_friendly_messages["messages"]["MSG1"];
+  msg1["languages"] = Json::Value(Json::objectValue);
+  msg1["languages"]["en-us"] = Json::Value(Json::objectValue);
 
   Json::Value& app_policies = policy_table["app_policies"];
   app_policies["default"] = Json::Value(Json::objectValue);
   app_policies["default"]["priority"] = Json::Value("EMERGENCY");
   app_policies["default"]["memory_kb"] = Json::Value(50);
-  app_policies["default"]["watchdog_timer_ms"] = Json::Value(100);
+  app_policies["default"]["heart_beat_timeout_ms"] = Json::Value(10);
   app_policies["default"]["groups"] = Json::Value(Json::arrayValue);
   app_policies["default"]["groups"][0] = Json::Value("default");
+  app_policies["default"]["certificate"] = Json::Value("sign");
 
-  policy_table::Table table(&expect);
+  policy_table::Table update(&table);
+  update.SetPolicyTableType(rpc::policy_table_interface_base::PT_UPDATE);
 
-  ASSERT_TRUE(IsValid(table));
-  ASSERT_TRUE(reps->Save(table));
+  ASSERT_TRUE(IsValid(update));
+  ASSERT_TRUE(reps->Save(update));
   utils::SharedPtr<policy_table::Table> snapshot = reps->GenerateSnapshot();
-  EXPECT_TRUE(IsValid(*snapshot));
-  EXPECT_EQ(table.ToJsonValue().toStyledString(),
+  snapshot->SetPolicyTableType(rpc::policy_table_interface_base::PT_SNAPSHOT);
+
+  consumer_friendly_messages.removeMember("messages");
+  policy_table["device_data"] = Json::Value(Json::objectValue);
+
+  policy_table::Table expected(&table);
+
+  EXPECT_EQ(expected.ToJsonValue().toStyledString(),
             snapshot->ToJsonValue().toStyledString());
 }
 #endif  // EXTENDED_POLICY
@@ -441,8 +432,3 @@ TEST_F(SQLPTRepresentationTest, SaveGenerateSnapshot) {
 }  // namespace policy
 }  // namespace components
 }  // namespace test
-
-int main(int argc, char** argv) {
-  testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

@@ -29,9 +29,11 @@
 * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <gtest/gtest.h>
 #include <sqlite3.h>
-#include "include/generated_code_with_sqlite_test.h"
+
+#include "gtest/gtest.h"
+
+#include "generated_code_with_sqlite_test.h"
 
 namespace rpc {
 
@@ -40,10 +42,10 @@ class GeneratedCodeTest : public ::testing::Test {
   static void SetUpTestCase() {
     sqlite3* conn;
     sqlite3_open((kDatabaseName + ".sqlite").c_str(), &conn);
-    sqlite3_exec(conn, kEndpointsCreation.c_str(),NULL, NULL, NULL);
-    sqlite3_exec(conn, kEndpointsContent.c_str(),NULL, NULL, NULL);
-    sqlite3_exec(conn, kAppPoliciesCreation.c_str(),NULL, NULL, NULL);
-    sqlite3_exec(conn, kGroupsCreation.c_str(),NULL, NULL, NULL);
+    sqlite3_exec(conn, kEndpointsCreation.c_str(), NULL, NULL, NULL);
+    sqlite3_exec(conn, kEndpointsContent.c_str(), NULL, NULL, NULL);
+    sqlite3_exec(conn, kAppPoliciesCreation.c_str(), NULL, NULL, NULL);
+    sqlite3_exec(conn, kGroupsCreation.c_str(), NULL, NULL, NULL);
     sqlite3_close(conn);
   }
 
@@ -166,6 +168,6 @@ TEST_F(GeneratedCodeTest, UpdateSectionAppPolicies) {
   // Index for binding starts from 1, index for results starts from 0
   EXPECT_EQ(application_id, sqlquery.GetString(0));
   EXPECT_TRUE(sqlquery.Reset());
-
 }
-} // end namespace
+
+}  // namespace rpc

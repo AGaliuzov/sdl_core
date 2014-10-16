@@ -29,9 +29,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <gtest/gtest.h>
 #include <qdb/qdb.h>
 #include <string>
+
+#include "gtest/gtest.h""
+
 #include "qdb_wrapper/sql_error.h"
 #include "qdb_wrapper/sql_database.h"
 #include "qdb_wrapper/sql_query.h"
@@ -277,8 +279,3 @@ TEST_F(SQLQueryTest, DoublePrepare) {
 }  // namespace policy
 }  // namespace components
 }  // namespace test
-
-int main(int argc, char** argv) {
-  testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

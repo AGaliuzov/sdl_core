@@ -1,4 +1,4 @@
-﻿/* Copyright (c) 2013, Ford Motor Company
+/* Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,12 @@
 #include <set>
 #include <sstream>
 #include <fstream>
-#include "policy/policy_manager_impl.h"
+
+#include "gtest/gtest.h"
+#include "gmock/gmock.h"
+
 #include "mock_policy_listener.h"
+#include "policy/policy_manager_impl.h"
 
 using ::testing::_;
 using ::policy::PolicyManagerImpl;
@@ -47,31 +51,18 @@ namespace test {
 namespace components {
 namespace policy {
 
-class PolicyManagerImplTest : public ::testing::Test {
+class PolicyManagerImplStressTest : public ::testing::Test {
  protected:
   static const std::string kNameFile;
-  static const int kNumberGroups = 100;
-  static const int kNumberFuncs = 200;
-  static const int kNumberApps = 100;
-  static const int kNumberAppGroups = 50;
+  static const int kNumberGroups = 10;
+  static const int kNumberFuncs = 100;
+  static const int kNumberApps = 5;
+  static const int kNumberAppGroups = 5;
   static PolicyManagerImpl* manager;
+  static MockPolicyListener* mock_listener;
 
-  static void SetUpTestCase() {
-    std::ofstream ofs;
-    ofs.open(kNameFile.c_str(), std::ofstream::out);
-    CreateTable(ofs);
-    ofs.close();
-
-    manager = new PolicyManagerImpl();
-    ASSERT_TRUE(manager->InitPT(kNameFile));
-  }
-
-  static void TearDownTestCase() {
-    delete manager;
-    remove(kNameFile.c_str());
-    remove("policy.sqlite");
-  }
-
+  static void SetUpTestCase();
+  static void TearDownTestCase();
   static void CreateTable(std::ofstream& ofs);
   static void CreateGroups(std::ofstream& ofs);
   static void CreateFuncs(std::ofstream& ofs);
@@ -79,10 +70,31 @@ class PolicyManagerImplTest : public ::testing::Test {
   static void CreateAppGroups(std::ofstream& ofs);
 };
 
-const std::string PolicyManagerImplTest::kNameFile = "pt.json";
-PolicyManagerImpl* PolicyManagerImplTest::manager = 0;
+const std::string PolicyManagerImplStressTest::kNameFile = "pt.json";
+PolicyManagerImpl* PolicyManagerImplStressTest::manager = 0;
+MockPolicyListener* PolicyManagerImplStressTest::mock_listener = 0;
 
-void PolicyManagerImplTest::CreateGroups(std::ofstream& ofs) {
+void PolicyManagerImplStressTest::SetUpTestCase() {
+  std::ofstream ofs;
+  ofs.open(kNameFile.c_str(), std::ofstream::out);
+  CreateTable(ofs);
+  ofs.close();
+
+  manager = new PolicyManagerImpl();
+  mock_listener = new MockPolicyListener();
+  manager->set_listener(mock_listener);
+
+  ASSERT_TRUE(manager->InitPT(kNameFile));
+}
+
+void PolicyManagerImplStressTest::TearDownTestCase() {
+  delete manager;
+  delete mock_listener;
+  remove(kNameFile.c_str());
+  remove("policy.sqlite");
+}
+
+void PolicyManagerImplStressTest::CreateGroups(std::ofstream& ofs) {
   std::stringstream ss;
   std::string number;
   for (int i = 0; i < kNumberGroups - 1; ++i) {
@@ -90,16 +102,16 @@ void PolicyManagerImplTest::CreateGroups(std::ofstream& ofs) {
     ss >> number;
     ofs << "\"Group-" << number << "\":{ \"rpcs\":{";
     CreateFuncs(ofs);
-    ofs << "} },";
+    ofs << "} },\n";
   }
   ss << kNumberGroups - 1 << std::endl;
   ss >> number;
   ofs << "\"Group-" << number << "\":{ \"rpcs\":{";
   CreateFuncs(ofs);
-  ofs << "} }";
+  ofs << "} }\n";
 }
 
-void PolicyManagerImplTest::CreateFuncs(std::ofstream& ofs) {
+void PolicyManagerImplStressTest::CreateFuncs(std::ofstream& ofs) {
   std::string func = "{"
       "\"hmi_levels\":["
       "\"BACKGROUND\","
@@ -126,7 +138,7 @@ void PolicyManagerImplTest::CreateFuncs(std::ofstream& ofs) {
       "\"rpm\","
       "\"steeringwheelangle\""
       "]"
-      "}";
+      "}\n";
 
   std::stringstream ss;
   std::string number;
@@ -140,12 +152,12 @@ void PolicyManagerImplTest::CreateFuncs(std::ofstream& ofs) {
   ofs << "\"Func-" << number << "\":" + func;
 }
 
-void PolicyManagerImplTest::CreateApps(std::ofstream& ofs) {
+void PolicyManagerImplStressTest::CreateApps(std::ofstream& ofs) {
   ofs << "\"default\":{"
       "\"groups\":["
       "\"Group-1\""
       "]"
-      "},";
+      "},\n";
 
   std::stringstream ss;
   std::string number;
@@ -154,16 +166,16 @@ void PolicyManagerImplTest::CreateApps(std::ofstream& ofs) {
     ss >> number;
     ofs << "\"" << number << "\": { \"groups\": ";
     CreateAppGroups(ofs);
-    ofs << "},";
+    ofs << "},\n";
   }
   ss << kNumberApps - 1 << std::endl;
   ss >> number;
   ofs << "\"" << number << "\": { \"groups\": ";
   CreateAppGroups(ofs);
-  ofs << "}";
+  ofs << "}\n";
 }
 
-void PolicyManagerImplTest::CreateAppGroups(std::ofstream& ofs) {
+void PolicyManagerImplStressTest::CreateAppGroups(std::ofstream& ofs) {
   ofs << "[";
 
   std::stringstream ss;
@@ -183,10 +195,10 @@ void PolicyManagerImplTest::CreateAppGroups(std::ofstream& ofs) {
     ss >> number;
     ofs << ",\"Group-" << number << "\"";
   }
-  ofs << "]";
+  ofs << "]\n";
 }
 
-void PolicyManagerImplTest::CreateTable(std::ofstream& ofs) {
+void PolicyManagerImplStressTest::CreateTable(std::ofstream& ofs) {
   ofs << "{"
       "\"policy_table\":{"
       "\"module_config\":{"
@@ -206,7 +218,7 @@ void PolicyManagerImplTest::CreateTable(std::ofstream& ofs) {
       "},"
       "\"consumer_friendly_messages\":{"
       "\"version\":\"001.001.001\","
-      "\"messages\":{} },"
+      "\"messages\":{} },\n"
       "\"functional_groupings\":{";
 
   CreateGroups(ofs);
@@ -215,43 +227,53 @@ void PolicyManagerImplTest::CreateTable(std::ofstream& ofs) {
 
   CreateApps(ofs);
 
-  ofs << "}";
+  ofs << "} } }";
 }
 
-TEST_F(PolicyManagerImplTest, StressTestOneCheck) {
-  MockPolicyListener mock_listener;
-
-  EXPECT_CALL(mock_listener, OnCurrentDeviceIdUpdateRequired("2")).Times(1);
-
-  manager->set_listener(&mock_listener);
+TEST_F(PolicyManagerImplStressTest, OneCheck) {
+#ifdef EXTENDED_POLICY
+  EXPECT_CALL(*mock_listener, OnCurrentDeviceIdUpdateRequired(_)).Times(1);
+#endif  // EXTENDED_POLICY
+  ::policy::RPCParams input_params;
   ::policy::CheckPermissionResult output;
-    // Empty params means that policy should consider only HMILevel for current
-    // RPC.
-  ::policy::RPCParams rpc_params;
-  manager->CheckPermissions("2", "FULL", "Func-1", rpc_params, output);
+  manager->CheckPermissions("2", "FULL", "Func-1",input_params, output);
   EXPECT_EQ(::policy::kRpcAllowed, output.hmi_level_permitted);
 }
 
-TEST_F(PolicyManagerImplTest, StressTestNoPermission) {
-  MockPolicyListener mock_listener;
-
-  EXPECT_CALL(mock_listener, OnCurrentDeviceIdUpdateRequired("150")).Times(1);
-
-  manager->set_listener(&mock_listener);
+TEST_F(PolicyManagerImplStressTest, NoApp) {
+#ifdef EXTENDED_POLICY
+  EXPECT_CALL(*mock_listener, OnCurrentDeviceIdUpdateRequired(_)).Times(1);
+#endif  // EXTENDED_POLICY
+  ::policy::RPCParams input_params;
   ::policy::CheckPermissionResult output;
-  // Empty params means that policy should consider only HMILevel for current
-  // RPC.
-::policy::RPCParams rpc_params;
-  manager->CheckPermissions("150", "FULL", "Func-400", rpc_params, output);
+  manager->CheckPermissions("150", "FULL", "Func-88",input_params, output);
   EXPECT_EQ(::policy::kRpcDisallowed, output.hmi_level_permitted);
 }
 
-TEST_F(PolicyManagerImplTest, StressTestFewChecks) {
-  MockPolicyListener mock_listener;
+TEST_F(PolicyManagerImplStressTest, NoFunc) {
+#ifdef EXTENDED_POLICY
+  EXPECT_CALL(*mock_listener, OnCurrentDeviceIdUpdateRequired(_)).Times(1);
+#endif  // EXTENDED_POLICY
+  ::policy::RPCParams input_params;
+  ::policy::CheckPermissionResult output;
+  manager->CheckPermissions("2", "FULL", "Func-400",input_params, output);
+  EXPECT_EQ(::policy::kRpcDisallowed, output.hmi_level_permitted);
+}
 
-  EXPECT_CALL(mock_listener, OnCurrentDeviceIdUpdateRequired(_)).Times(100);
-  manager->set_listener(&mock_listener);
+TEST_F(PolicyManagerImplStressTest, NoHmi) {
+#ifdef EXTENDED_POLICY
+  EXPECT_CALL(*mock_listener, OnCurrentDeviceIdUpdateRequired(_)).Times    (1);
+#endif  // EXTENDED_POLICY
+  ::policy::RPCParams input_params;
+  ::policy::CheckPermissionResult output;
+  manager->CheckPermissions("2", "NONE", "Func-88",input_params, output);
+  EXPECT_EQ(::policy::kRpcDisallowed, output.hmi_level_permitted);
+}
 
+TEST_F(PolicyManagerImplStressTest, FewChecks) {
+#ifdef EXTENDED_POLICY
+  EXPECT_CALL(*mock_listener, OnCurrentDeviceIdUpdateRequired(_)).Times(100);
+#endif  // EXTENDED_POLICY
   const int kNumberOfCheckings = 100;
   std::stringstream ss;
   int app, func;
@@ -264,15 +286,10 @@ TEST_F(PolicyManagerImplTest, StressTestFewChecks) {
     ss << func << std::endl;
     ss >> func_number;
 
+    ::policy::RPCParams input_params;
     ::policy::CheckPermissionResult output;
-    // Empty params means that policy should consider only HMILevel for current
-    // RPC.
-  ::policy::RPCParams rpc_params;
-    manager->CheckPermissions(app_number,
-                              "FULL",
-                              "Func-" + func_number,
-                              rpc_params,
-                              output);
+    manager->CheckPermissions(app_number, "FULL", "Func-" + func_number,
+                              input_params, output);
     EXPECT_EQ(::policy::kRpcAllowed, output.hmi_level_permitted);
   }
 }
@@ -280,8 +297,3 @@ TEST_F(PolicyManagerImplTest, StressTestFewChecks) {
 }  // namespace policy
 }  // namespace components
 }  // namespace test
-
-int main(int argc, char** argv) {
-  testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
