@@ -214,10 +214,6 @@ include_directories (
     gtest
     ConfigProfile
     SmartObjects
-    log4cxx -L${LOG4CXX_LIBS_DIRECTORY}
-    apr-1 -L${APR_LIBS_DIRECTORY}
-    aprutil-1 -L${APR_UTIL_LIBS_DIRECTORY}
-    expat -L${EXPAT_LIBS_DIRECTORY}
     gmock
     gtest
     gmock
@@ -239,12 +235,20 @@ include_directories (
     Resumption
   )
 
+if(ENABLE_LOG)
+  list(APPEND test_exec_libraries log4cxx -L${LOG4CXX_LIBS_DIRECTORY})
+  list(APPEND test_exec_libraries apr-1 -L${APR_LIBS_DIRECTORY})
+  list(APPEND test_exec_libraries aprutil-1 -L${APR_UTIL_LIBS_DIRECTORY})
+  list(APPEND test_exec_libraries expat -L${EXPAT_LIBS_DIRECTORY})
+endif()
+
+
   IF(${CMAKE_SYSTEM_NAME} MATCHES "QNX")
     list(REMOVE_ITEM test_exec_libraries dl)
   endif()
 
   add_executable(${PROJECT}_test ${testSources})
-  target_link_libraries(${PROJECT}_test ${test_exec_libraries} ${testLibraries})
+  target_link_libraries(${PROJECT}_test ${test_exec_libraries})
 
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/log4cxx.properties DESTINATION ${CMAKE_BINARY_DIR}/test/)
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/smartDeviceLink.ini DESTINATION ${CMAKE_BINARY_DIR}/test/)
