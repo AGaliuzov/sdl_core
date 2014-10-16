@@ -36,7 +36,6 @@
 #include "config_profile/profile.h"
 #include "utils/logger.h"
 
-#include "utils/prioritized_queue_tests.h"
 #include "protocol_handler/protocol_handler_tm_test.h"
 #include "application_manager/formatters_commands.h"
 
