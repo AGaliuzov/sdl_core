@@ -241,7 +241,7 @@ class SQLQuery {
    */
   Error error_;
 
-  int SetBinds();
+  uint8_t SetBinds();
   bool Result();
 };
 

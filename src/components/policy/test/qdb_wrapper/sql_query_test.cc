@@ -32,7 +32,7 @@
 #include <qdb/qdb.h>
 #include <string>
 
-#include "gtest/gtest.h""
+#include "gtest/gtest.h"
 
 #include "qdb_wrapper/sql_error.h"
 #include "qdb_wrapper/sql_database.h"
@@ -68,29 +68,26 @@ class SQLQueryTest : public ::testing::Test {
   void SetUp() {
     qdb_statement(conn, "DELETE FROM testTable");
   }
+
+  ::testing::AssertionResult IsError(SQLError error) {
+    if (error.number() != ::policy::dbms::OK) {
+      return ::testing::AssertionSuccess() << error.text();
+    } else {
+      return ::testing::AssertionFailure() << error.text();
+    }
+  }
 };
 
 qdb_hdl_t* SQLQueryTest::conn = 0;
 const std::string SQLQueryTest::kDatabaseName = "test-query";
 
-::testing::AssertionResult IsError(SQLError error) {
-  if (error.number() != ::policy::dbms::OK) {
-    return ::testing::AssertionSuccess() << error.text();
-  } else {
-    return ::testing::AssertionFailure() << error.text();
-  }
-}
-
 TEST_F(SQLQueryTest, Query) {
-  const char* insert = "INSERT INTO testTable "
-      "(integerValue, doubleValue, stringValue) "
-      "VALUES (1, 2.3, 'four');";
-  ASSERT_NE(-1, qdb_statement(conn, insert));
-
   const std::string kSelect("SELECT * FROM testTable WHERE integerValue = ?");
-  SQLDatabase db(kDatabaseName);
-  ASSERT_TRUE(db.Open());
-  SQLQuery query(&db);
+
+  SQLDatabase* db = new SQLDatabase(kDatabaseName);
+  ASSERT_TRUE(db->Open());
+
+  SQLQuery query(db);
   query.Prepare(kSelect);
   EXPECT_STREQ(kSelect.c_str(), query.query().c_str());
 }
@@ -98,79 +95,102 @@ TEST_F(SQLQueryTest, Query) {
 TEST_F(SQLQueryTest, ExecString) {
   const std::string kInsert("INSERT INTO testTable"
                             " (integerValue, doubleValue, stringValue)"
-                            " VALUES(2, 3.4, 'five-пять')");
-  SQLDatabase db(kDatabaseName);
-  ASSERT_TRUE(db.Open());
-  SQLQuery query(&db);
+                            " VALUES(1, 1.1, 'one-один')");
+
+  SQLDatabase* db = new SQLDatabase(kDatabaseName);
+  ASSERT_TRUE(db->Open());
+
+  SQLQuery query(db);
   EXPECT_TRUE(query.Exec(kInsert));
   EXPECT_FALSE(IsError(query.LastError()));
 }
 
-TEST_F(SQLQueryTest, Bind) {
-  const std::string kInsert1("INSERT INTO testTable (integerValue) VALUES (?)");
-  const std::string kInsert2("INSERT INTO testTable (doubleValue) VALUES (?)");
-  const std::string kInsert3("INSERT INTO testTable (stringValue) VALUES (?)");
-  const std::string kInsert4("INSERT INTO testTable (integerValue, doubleValue,"
+TEST_F(SQLQueryTest, BindInteger) {
+  const std::string kInsert("INSERT INTO testTable (integerValue) VALUES (?)");
+  const int kIntegerValue = 2;
+
+  SQLDatabase* db = new SQLDatabase(kDatabaseName);
+  ASSERT_TRUE(db->Open());
+
+  SQLQuery query(db);
+  EXPECT_TRUE(query.Prepare(kInsert));
+  EXPECT_FALSE(IsError(query.LastError()));
+  query.Bind(0, kIntegerValue);
+  EXPECT_FALSE(IsError(query.LastError()));
+  EXPECT_TRUE(query.Exec());
+  EXPECT_FALSE(IsError(query.LastError()));
+}
+
+TEST_F(SQLQueryTest, BindDouble) {
+  const std::string kInsert("INSERT INTO testTable (doubleValue) VALUES (?)");
+  const double kDoubleValue = 3.3;
+
+  SQLDatabase* db = new SQLDatabase(kDatabaseName);
+  ASSERT_TRUE(db->Open());
+  SQLQuery query(db);
+  EXPECT_TRUE(query.Prepare(kInsert));
+  EXPECT_FALSE(IsError(query.LastError()));
+  query.Bind(0, kDoubleValue);
+  EXPECT_FALSE(IsError(query.LastError()));
+  EXPECT_TRUE(query.Exec());
+  EXPECT_FALSE(IsError(query.LastError()));
+}
+
+TEST_F(SQLQueryTest, BindString) {
+  const std::string kInsert("INSERT INTO testTable (stringValue) VALUES (?)");
+  const std::string kStringValue = "four-четыре";
+
+  SQLDatabase* db = new SQLDatabase(kDatabaseName);
+  ASSERT_TRUE(db->Open());
+
+  SQLQuery query(db);
+  EXPECT_TRUE(query.Prepare(kInsert));
+  EXPECT_FALSE(IsError(query.LastError()));
+  query.Bind(0, kStringValue);
+  EXPECT_FALSE(IsError(query.LastError()));
+  EXPECT_TRUE(query.Exec());
+  EXPECT_FALSE(IsError(query.LastError()));
+}
+
+TEST_F(SQLQueryTest, BindAllTypes) {
+  const std::string kInsert("INSERT INTO testTable (integerValue, doubleValue,"
                              " stringValue) VALUES (?, ?, ?)");
-  const int kIntegerValue = 1;
-  const double kDoubleValue = 2.3;
-  const std::string kStringValue = "four";
+  const int kIntegerValue = 5;
+  const double kDoubleValue = 5.5;
+  const std::string kStringValue = "five-пять";
 
-  SQLDatabase db(kDatabaseName);
-  ASSERT_TRUE(db.Open());
+  SQLDatabase* db = new SQLDatabase(kDatabaseName);
+  ASSERT_TRUE(db->Open());
 
-  SQLQuery query1(&db);
-  EXPECT_TRUE(query1.Prepare(kInsert1));
-  EXPECT_FALSE(IsError(query1.LastError()));
-  query1.Bind(0, kIntegerValue);
-  EXPECT_FALSE(IsError(query1.LastError()));
-  EXPECT_TRUE(query1.Exec());
-  EXPECT_FALSE(IsError(query1.LastError()));
-
-  SQLQuery query2(&db);
-  EXPECT_TRUE(query2.Prepare(kInsert2));
-  EXPECT_FALSE(IsError(query2.LastError()));
-  query2.Bind(0, kDoubleValue);
-  EXPECT_FALSE(IsError(query2.LastError()));
-  EXPECT_TRUE(query2.Exec());
-  EXPECT_FALSE(IsError(query2.LastError()));
-
-  SQLQuery query3(&db);
-  EXPECT_TRUE(query3.Prepare(kInsert3));
-  EXPECT_FALSE(IsError(query3.LastError()));
-  query3.Bind(0, kStringValue);
-  EXPECT_FALSE(IsError(query3.LastError()));
-  EXPECT_TRUE(query3.Exec());
-  EXPECT_FALSE(IsError(query3.LastError()));
-
-  SQLQuery query4(&db);
-  EXPECT_TRUE(query4.Prepare(kInsert4));
-  EXPECT_FALSE(IsError(query4.LastError()));
-  query4.Bind(0, kIntegerValue);
-  query4.Bind(1, kDoubleValue);
-  query4.Bind(2, kStringValue);
-  EXPECT_FALSE(IsError(query4.LastError()));
-  // TODO(KKolodiy): EXPECT -> ASSERT because test crashes in IsError
-  ASSERT_TRUE(query4.Exec());
-  EXPECT_FALSE(IsError(query4.LastError()));
+  SQLQuery query(db);
+  EXPECT_TRUE(query.Prepare(kInsert));
+  EXPECT_FALSE(IsError(query.LastError()));
+  query.Bind(0, kIntegerValue);
+  EXPECT_FALSE(IsError(query.LastError()));
+  query.Bind(1, kDoubleValue);
+  EXPECT_FALSE(IsError(query.LastError()));
+  query.Bind(2, kStringValue);
+  EXPECT_FALSE(IsError(query.LastError()));
+  EXPECT_TRUE(query.Exec());
+  EXPECT_FALSE(IsError(query.LastError()));
 }
 
 TEST_F(SQLQueryTest, Value) {
   const char* insert = "INSERT INTO testTable "
       "(integerValue, doubleValue, stringValue) "
-      "VALUES (1, 2.3, 'four');";
+      "VALUES (6, 6.6, 'six-шесть');";
   ASSERT_NE(-1, qdb_statement(conn, insert));
 
   const std::string kSelect("SELECT integerValue, doubleValue, stringValue"
-                            " FROM testTable");
-  const int kIntegerValue = 1;
-  const double kDoubleValue = 2.3;
-  const std::string kStringValue = "four";
+                            " FROM testTable WHERE integerValue = 6");
+  const int kIntegerValue = 6;
+  const double kDoubleValue = 6.6;
+  const std::string kStringValue = "six-шесть";
 
-  SQLDatabase db(kDatabaseName);
-  ASSERT_TRUE(db.Open());
+  SQLDatabase* db = new SQLDatabase(kDatabaseName);
+  ASSERT_TRUE(db->Open());
 
-  SQLQuery query(&db);
+  SQLQuery query(db);
   EXPECT_TRUE(query.Prepare(kSelect));
   EXPECT_FALSE(IsError(query.LastError()));
   EXPECT_TRUE(query.Exec());
@@ -185,10 +205,10 @@ TEST_F(SQLQueryTest, Value) {
 TEST_F(SQLQueryTest, EmptySelect) {
   const std::string kSelect("SELECT integerValue, doubleValue, stringValue"
                             " FROM testTable WHERE 0");
-  SQLDatabase db(kDatabaseName);
-  ASSERT_TRUE(db.Open());
+  SQLDatabase* db = new SQLDatabase(kDatabaseName);
+  ASSERT_TRUE(db->Open());
 
-  SQLQuery query(&db);
+  SQLQuery query(db);
   EXPECT_TRUE(query.Prepare(kSelect));
   EXPECT_FALSE(IsError(query.LastError()));
   EXPECT_TRUE(query.Exec());
@@ -198,22 +218,22 @@ TEST_F(SQLQueryTest, EmptySelect) {
 TEST_F(SQLQueryTest, NextAndBind) {
   const char* insert = "INSERT INTO testTable "
       "(integerValue, doubleValue, stringValue) "
-      "VALUES (1, 2.3, 'four');";
+      "VALUES (7, 7.7, 'seven-семь');";
   ASSERT_NE(-1, qdb_statement(conn, insert));
 
   const std::string kSelect("SELECT integerValue, doubleValue, stringValue"
-                            " FROM testTable WHERE stringValue = ?");
-  const int kIntegerValue = 1;
-  const double kDoubleValue = 2.3;
-  const std::string kStringValue = "four";
+                            " FROM testTable WHERE integerValue = ?");
+  const int kIntegerValue = 7;
+  const double kDoubleValue = 7.7;
+  const std::string kStringValue = "seven-семь";
 
-  SQLDatabase db(kDatabaseName);
-  ASSERT_TRUE(db.Open());
+  SQLDatabase* db = new SQLDatabase(kDatabaseName);
+  ASSERT_TRUE(db->Open());
 
-  SQLQuery query(&db);
+  SQLQuery query(db);
   ASSERT_TRUE(query.Prepare(kSelect));
   EXPECT_FALSE(IsError(query.LastError()));
-  query.Bind(0, kStringValue);
+  query.Bind(0, kIntegerValue);
   EXPECT_FALSE(IsError(query.LastError()));
   EXPECT_TRUE(query.Exec());
   ASSERT_FALSE(IsError(query.LastError()));
@@ -234,10 +254,10 @@ TEST_F(SQLQueryTest, LastInsertId) {
   const std::string kValue("Test last id of insert row");
   const std::string kInsert("INSERT INTO idTable (value) VALUES(?)");
 
-  SQLDatabase db(kDatabaseName);
-  ASSERT_TRUE(db.Open());
+  SQLDatabase* db = new SQLDatabase(kDatabaseName);
+  ASSERT_TRUE(db->Open());
 
-  SQLQuery query(&db);
+  SQLQuery query(db);
   ASSERT_TRUE(query.Prepare(kInsert));
   EXPECT_FALSE(IsError(query.LastError()));
   query.Bind(0, kValue);
@@ -252,10 +272,10 @@ TEST_F(SQLQueryTest, LastInsertId) {
 TEST_F(SQLQueryTest, BindNull) {
   const std::string kInsert("INSERT INTO testTable (`integerValue`)"
                             " VALUES (?)");
-  SQLDatabase db(kDatabaseName);
-  ASSERT_TRUE(db.Open());
+  SQLDatabase* db = new SQLDatabase(kDatabaseName);
+  ASSERT_TRUE(db->Open());
 
-  SQLQuery query(&db);
+  SQLQuery query(db);
   ASSERT_TRUE(query.Prepare(kInsert));
   EXPECT_FALSE(IsError(query.LastError()));
   query.Bind(0);
@@ -265,10 +285,10 @@ TEST_F(SQLQueryTest, BindNull) {
 }
 
 TEST_F(SQLQueryTest, DoublePrepare) {
-  SQLDatabase db(kDatabaseName);
-  ASSERT_TRUE(db.Open());
+  SQLDatabase* db = new SQLDatabase(kDatabaseName);
+  ASSERT_TRUE(db->Open());
 
-  SQLQuery query(&db);
+  SQLQuery query(db);
   EXPECT_TRUE(query.Prepare("SELECT * FROM testTable"));
   EXPECT_FALSE(IsError(query.LastError()));
   EXPECT_TRUE(query.Prepare("SELECT * FROM testTable"));

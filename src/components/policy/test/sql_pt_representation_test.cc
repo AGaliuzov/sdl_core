@@ -29,16 +29,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef __QNX__
-#  include <qdb/qdb.h>
-#else  // __QNX__
-#  include <sqlite3.h>
-#endif  // __QNX__
-
 #include <vector>
 
 #include "gtest/gtest.h"
 
+#include "driver_dbms.h"
 #include "json/value.h"
 #include "policy/sql_pt_representation.h"
 #include "policy/policy_types.h"
@@ -53,54 +48,15 @@ namespace test {
 namespace components {
 namespace policy {
 
-#ifdef __QNX__
-class DBMS {
-  public:
-    bool Open() {
-      conn_ = qdb_connect(kDatabaseName_.c_str(), 0);
-      return conn_ != NULL;
-    }
-    void Close() {
-      qdb_disconnect(conn_);
-    }
-    bool Exec(const char* query) {
-      return -1 != qdb_statement(conn_, query);
-    }
-  private:
-    static qdb_hdl_t* conn_;
-    static const std::string kDatabaseName_;
-};
-qdb_hdl_t* DBMS::conn_ = 0;
-const std::string DBMS::kDatabaseName_ = "policy";
-#else  // __QNX__
-class DBMS {
-  public:
-    bool Open() {
-      return SQLITE_OK == sqlite3_open(kFileName_.c_str(), &conn_);
-    }
-    void Close() {
-      sqlite3_close(conn_);
-      remove(kFileName_.c_str());
-    }
-    bool Exec(const char* query) {
-      return SQLITE_OK == sqlite3_exec(conn_, query, NULL, NULL, NULL);
-    }
-  private:
-    static sqlite3* conn_;
-    static const std::string kFileName_;
-};
-sqlite3* DBMS::conn_ = 0;
-const std::string DBMS::kFileName_ = "policy.sqlite";
-#endif  // __QNX__
-
 class SQLPTRepresentationTest : public ::testing::Test {
  protected:
   static DBMS* dbms;
   static SQLPTRepresentation* reps;
+  static const std::string kDatabaseName;
 
   static void SetUpTestCase() {
     reps = new SQLPTRepresentation;
-    dbms = new DBMS;
+    dbms = new DBMS(kDatabaseName);
     EXPECT_EQ(::policy::SUCCESS, reps->Init());
     EXPECT_TRUE(dbms->Open());
   }
@@ -125,6 +81,11 @@ class SQLPTRepresentationTest : public ::testing::Test {
 
 DBMS* SQLPTRepresentationTest::dbms = 0;
 SQLPTRepresentation* SQLPTRepresentationTest::reps = 0;
+#ifdef __QNX__
+const std::string SQLPTRepresentationTest::kDatabaseName = "policy";
+#else  // __QNX__
+const std::string SQLPTRepresentationTest::kDatabaseName = "policy.sqlite";
+#endif  // __QNX__
 
 TEST_F(SQLPTRepresentationTest, CheckPermissionsAllowed) {
   const char* query = "INSERT OR REPLACE INTO `application` (`id`, `memory_kb`,"
