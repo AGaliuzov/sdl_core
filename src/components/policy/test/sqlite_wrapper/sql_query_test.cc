@@ -98,14 +98,11 @@ const std::string SQLQueryTest::kDatabaseName = "test-query";
 
 
 TEST_F(SQLQueryTest, Query) {
-  const char* insert = "INSERT INTO testTable "
-      "(integerValue, doubleValue, stringValue) "
-      "VALUES (1, 2.3, 'four');";
-  ASSERT_EQ(SQLITE_OK, sqlite3_exec(conn, insert, NULL, NULL, NULL));
-
   const std::string kSelect("SELECT * FROM testTable WHERE integerValue = ?");
+
   SQLDatabase db(kDatabaseName);
   ASSERT_TRUE(db.Open());
+
   SQLQuery query(&db);
   query.Prepare(kSelect);
   EXPECT_STREQ(kSelect.c_str(), query.query().c_str());
