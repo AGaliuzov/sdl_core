@@ -59,6 +59,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 if(BUILD_TESTS)
-  #add_subdirectory(test)
+  add_subdirectory(test)
 endif()
 
