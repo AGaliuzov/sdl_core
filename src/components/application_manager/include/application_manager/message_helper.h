@@ -278,11 +278,10 @@ class MessageHelper {
     /*
      * @brief Sends notification to HMI to start video streaming
      *
-     * @param url             URL for video streamng
      * @param connection_key  Application connection key
      *
      */
-    static void SendNaviStartStream(const std::string& url, int32_t connection_key);
+    static void SendNaviStartStream(int32_t connection_key);
 
     /*
      * @brief Sends notification to HMI to stop video streaming
@@ -351,11 +350,10 @@ class MessageHelper {
     /*
      * @brief Sends notification to HMI to start audio streaming
      *
-     * @param url             URL for video streamng
      * @param connection_key  Application connection key
      *
      */
-    static void SendAudioStartStream(const std::string& url, int32_t connection_key);
+    static void SendAudioStartStream(int32_t connection_key);
 
     /*
      * @brief Sends notification to HMI to stop audio streaming
