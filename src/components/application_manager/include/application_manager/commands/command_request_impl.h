@@ -1,5 +1,5 @@
-/*
- Copyright (c) 2013, Ford Motor Company
+﻿/**
+ Copyright (c) 2014, Ford Motor Company
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -80,23 +80,10 @@ class CommandRequestImpl : public CommandImpl,
    */
   virtual void on_event(const event_engine::Event& event);
 
-  /**
-   * @brief Retrieves request default timeout.
-   * If request has a custom timeout, request_timeout_ should be reassign to it
-   *
-   * @return Request default timeout
-   */
-  inline unsigned int default_timeout() const;
-
   /*
    * @brief Retrieves request ID
    */
   inline int32_t function_id() const;
-
-  /*
-   * @brief Retrieves correlation ID
-   */
-  inline uint32_t correlation_id() const;
 
   /*
    * @brief Retrieves connection key
@@ -184,7 +171,6 @@ protected:
   bool HasDisallowedParams() const;
 
  protected:
-  uint32_t                      default_timeout_;
   RequestState                  current_state_;
   sync_primitives::Lock         state_lock_;
   CommandParametersPermissions  parameters_permissions_;
@@ -208,16 +194,8 @@ protected:
   void AddDisallowedParametersToInfo(smart_objects::SmartObject& response) const;
 };
 
-uint32_t CommandRequestImpl::default_timeout() const {
-  return default_timeout_;
-}
-
 int32_t CommandRequestImpl::function_id() const {
   return (*message_)[strings::params][strings::function_id].asInt();
-}
-
-uint32_t CommandRequestImpl::correlation_id() const {
-  return (*message_)[strings::params][strings::correlation_id].asUInt();
 }
 
 uint32_t CommandRequestImpl::connection_key() const {

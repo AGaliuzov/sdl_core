@@ -42,6 +42,7 @@ namespace commands {
 
 SpeakRequest::SpeakRequest(const MessageSharedPtr& message)
   : CommandRequestImpl(message) {
+  subscribe_on_event(hmi_apis::FunctionID::TTS_OnResetTimeout);
 }
 
 SpeakRequest::~SpeakRequest() {
@@ -81,6 +82,13 @@ void SpeakRequest::on_event(const event_engine::Event& event) {
       LOG4CXX_INFO(logger_, "Received TTS_Speak event");
 
       ProcessTTSSpeakResponse(event.smart_object());
+      break;
+    }
+    case hmi_apis::FunctionID::TTS_OnResetTimeout: {
+      LOG4CXX_INFO(logger_, "Received TTS_OnResetTimeout event");
+
+      ApplicationManagerImpl::instance()->updateRequestTimeout(
+          connection_key(), correlation_id(), default_timeout());
       break;
     }
     default: {

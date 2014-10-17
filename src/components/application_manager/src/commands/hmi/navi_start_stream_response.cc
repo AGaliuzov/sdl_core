@@ -61,10 +61,10 @@ void NaviStartStreamResponse::Run() {
 
   if (hmi_apis::Common_Result::SUCCESS == code) {
     LOG4CXX_INFO(logger_, "NaviStartStreamResponse SUCCESS");
-    app->set_hmi_supports_navi_streaming(true);
+    app->set_hmi_supports_navi_video_streaming(true);
   } else {
     LOG4CXX_INFO(logger_, "NaviStartStreamResponse NOT SUCCESS");
-    app->set_hmi_supports_navi_streaming(false);
+    app->set_hmi_supports_navi_video_streaming(false);
   }
 }
 

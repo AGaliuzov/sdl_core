@@ -80,6 +80,7 @@ const char* kAppStorageFolderKey = "AppStorageFolder";
 const char* kAppResourseFolderKey = "AppResourceFolder";
 const char* kAppConfigFolderKey = "AppConfigFolder";
 const char* kLaunchHMIKey = "LaunchHMI";
+const char* kStartStreamRetry = "StartStreamRetry";
 const char* kEnableRedecodingKey = "EnableRedecoding";
 const char* kVideoStreamConsumerKey = "VideoStreamConsumer";
 const char* kAudioStreamConsumerKey = "AudioStreamConsumer";
@@ -204,6 +205,7 @@ const uint32_t kDefaultTransportManagerDisconnectTimeout = 0;
 const uint32_t kDefaultApplicationListUpdateTimeout = 1;
 const std::pair<uint32_t, uint32_t> kReadDIDFrequency = {5 , 1};
 const std::pair<uint32_t, uint32_t> kGetVehicleDataFrequency = {5 , 1};
+const std::pair<uint32_t, uint32_t> kStartStreamRetryAmount = {3 , 1};
 const uint32_t kDefaultMaxThreadPoolSize = 2;
 const int kDefaultIAP2HubConnectAttempts = 0;
 const int kDefaultIAPHubConnectionWaitTimeout = 10;
@@ -552,6 +554,10 @@ const std::pair<uint32_t, int32_t>& Profile::get_vehicle_data_frequency() const 
   return get_vehicle_data_frequency_;
 }
 
+const  std::pair<uint32_t, int32_t>& Profile::start_stream_retry_amount() const {
+  return start_stream_retry_amount_;
+}
+
 uint32_t Profile::thread_pool_size() const  {
   return max_thread_pool_size_;
 }
@@ -668,11 +674,11 @@ ReadStringValue(&app_info_storage_, kDefaultAppInfoFileName,
 
   LOG_UPDATED_VALUE(server_port_, kServerPortKey, kHmiSection);
 
-    // Video streaming port
-    ReadUIntValue(&video_streaming_port_, kDefaultVideoStreamingPort,
-                  kHmiSection, kVideoStreamingPortKey);
+  // Video streaming port
+  ReadUIntValue(&video_streaming_port_, kDefaultVideoStreamingPort,
+                kHmiSection, kVideoStreamingPortKey);
 
-    LOG_UPDATED_VALUE(video_streaming_port_, kVideoStreamingPortKey,
+  LOG_UPDATED_VALUE(video_streaming_port_, kVideoStreamingPortKey,
                       kHmiSection);
   // Audio streaming port
   ReadUIntValue(&audio_streaming_port_, kDefaultAudioStreamingPort,
@@ -697,6 +703,10 @@ ReadStringValue(&app_info_storage_, kDefaultAppInfoFileName,
     }
 
     LOG_UPDATED_VALUE(min_tread_stack_size_, kThreadStackSizeKey, kMainSection);
+
+    // Start stream retry frequency
+    ReadUintIntPairValue(&start_stream_retry_amount_, kStartStreamRetryAmount,
+                         kMediaManagerSection, kStartStreamRetry);
 
     // Redecoding parameter
     std::string redecoding_value;

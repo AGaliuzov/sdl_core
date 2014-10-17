@@ -101,6 +101,7 @@ void DBusMessageAdapter::SubscribeTo() {
   DBusMessageController::SubscribeTo("UI", "OnKeyboardInput");
   DBusMessageController::SubscribeTo("UI", "OnTouchEvent");
   DBusMessageController::SubscribeTo("UI", "OnResetTimeout");
+  DBusMessageController::SubscribeTo("TTS", "OnResetTimeout");
   DBusMessageController::SubscribeTo("VR", "Started");
   DBusMessageController::SubscribeTo("VR", "Stopped");
   DBusMessageController::SubscribeTo("VR", "OnCommand");

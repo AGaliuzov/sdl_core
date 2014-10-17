@@ -1574,8 +1574,7 @@ smart_objects::SmartObject* MessageHelper::CreateNegativeResponse(
   return response;
 }
 
-void MessageHelper::SendNaviStartStream(const std::string& url,
-                                        int32_t connection_key) {
+void MessageHelper::SendNaviStartStream(int32_t connection_key) {
   LOG4CXX_INFO(logger_, "MessageHelper::SendNaviStartStream");
   smart_objects::SmartObject* start_stream = new smart_objects::SmartObject(
     smart_objects::SmartType_Map);
@@ -1602,6 +1601,20 @@ void MessageHelper::SendNaviStartStream(const std::string& url,
   connection_handler::ConnectionHandlerImpl::instance()->GetDataOnSessionKey(
     connection_key, &app_id);
 
+  char url[100] = {'\0'};
+  if ("socket" == profile::Profile::instance()->video_server_type()) {
+    snprintf(url, sizeof(url) / sizeof(url[0]), "http://%s:%d",
+             profile::Profile::instance()->server_address().c_str(),
+             profile::Profile::instance()->video_streaming_port());
+  } else if ("pipe" == profile::Profile::instance()->video_server_type()) {
+    snprintf(url, sizeof(url) / sizeof(url[0]), "%s",
+             profile::Profile::instance()->named_video_pipe_path().c_str());
+  } else {
+    int snprintf_result;
+    snprintf_result = snprintf(url, sizeof(url) / sizeof(url[0]), "%s",
+        profile::Profile::instance()->video_stream_file().c_str());
+    DCHECK(snprintf_result);
+  }
   msg_params[strings::app_id] = app_id;
   msg_params[strings::url] = url;
 
@@ -1643,8 +1656,7 @@ void MessageHelper::SendNaviStopStream(int32_t connection_key) {
   ApplicationManagerImpl::instance()->ManageHMICommand(stop_stream);
 }
 
-void MessageHelper::SendAudioStartStream(const std::string& url,
-    int32_t connection_key) {
+void MessageHelper::SendAudioStartStream(int32_t connection_key) {
 
   smart_objects::SmartObject* start_stream = new smart_objects::SmartObject(
     smart_objects::SmartType_Map);
@@ -1670,6 +1682,21 @@ void MessageHelper::SendAudioStartStream(const std::string& url,
   uint32_t app_id = 0;
   connection_handler::ConnectionHandlerImpl::instance()->GetDataOnSessionKey(
     connection_key, &app_id);
+
+  char url[100] = {'\0'};
+  if ("socket" == profile::Profile::instance()->audio_server_type()) {
+    snprintf(url, sizeof(url) / sizeof(url[0]), "http://%s:%d",
+           profile::Profile::instance()->server_address().c_str(),
+           profile::Profile::instance()->audio_streaming_port());
+  } else if ("pipe" == profile::Profile::instance()->audio_server_type()) {
+    snprintf(url, sizeof(url) / sizeof(url[0]), "%s",
+             profile::Profile::instance()->named_audio_pipe_path().c_str());
+  } else {
+    int snprintf_result;
+    snprintf_result = snprintf(url, sizeof(url) / sizeof(url[0]), "%s",
+         profile::Profile::instance()->audio_stream_file().c_str());
+    DCHECK(snprintf_result);
+  }
 
   msg_params[strings::app_id] = app_id;
   msg_params[strings::url] = url;

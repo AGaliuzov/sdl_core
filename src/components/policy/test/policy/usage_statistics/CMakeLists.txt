@@ -1,6 +1,6 @@
 include_directories(
-  ${LOG4CXX_INCLUDE_DIRECTORY}
   include
+  ${LOG4CXX_INCLUDE_DIRECTORY}
   ${CMAKE_SOURCE_DIR}/src/components/policy/usage_statistics/include
   ${GMOCK_INCLUDE_DIRECTORY}
 )
