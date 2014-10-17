@@ -60,6 +60,8 @@ set(MEDIA_MODE_OPTION 	"$ENV{MEDIA_MODE}")
 set(HMI_ADAPTER_OPTION 	"$ENV{HMI_ADAPTER}")
 set(ENABLE_LOG_OPTION 	"$ENV{ENABLE_LOG}")
 set(ARCH_TYPE_OPTION	"$ENV{ARCH_TYPE}")
+set(POLICY_OPTION 	"$ENV{POLICY_TYPE}")
+set(SECURITY_OPTION 	"$ENV{SECURITY_MODE}")
 
 add_custom_target(pasa-tarball
   COMMAND ${CMAKE_SOURCE_DIR}/tools/Utils/export-customer-specific.sh ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} pasa
@@ -141,12 +143,20 @@ if (HMI_ADAPTER_OPTION)
   endif()
 endif()
 
-if (ENABLE_LOG_OPTION)
-  if (${ENABLE_LOG_OPTION} STREQUAL "LOG_OFF")
-    message(STATUS "Jenkins integration: Log is turned off")
-    set (ENABLE_LOG OFF)
+if (POLICY_OPTION)
+  if (${POLICY_OPTION} STREQUAL "EXTENDED_POLICY")
+    message(STATUS "Jenkins integration: Extended policy is used")
+    set (EXTENDED_POLICY_FLAG ON)
   endif()
 endif()
+
+if (SECURITY_OPTION)
+  if (${SECURITY_OPTION} STREQUAL "SEC_OFF")
+    message(STATUS "Jenkins integration: Security is turned OFF")
+    set (ENABLE_SECURITY OFF)
+  endif()
+endif()
+
 
 #Jenkins integration section end
 
