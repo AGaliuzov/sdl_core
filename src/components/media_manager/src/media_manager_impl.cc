@@ -224,25 +224,7 @@ void MediaManagerImpl::StartVideoStreaming(int32_t application_key) {
     if (!video_stream_active_) {
       video_stream_active_ = true;
       video_streamer_->StartActivity(application_key);
-
-      char url[100] = {'\0'};
-
-
-      if ("socket" == profile::Profile::instance()->video_server_type()) {
-        snprintf(url, sizeof(url) / sizeof(url[0]), "http://%s:%d",
-                 profile::Profile::instance()->server_address().c_str(),
-                 profile::Profile::instance()->video_streaming_port());
-      } else if ("pipe" == profile::Profile::instance()->video_server_type()) {
-        snprintf(url, sizeof(url) / sizeof(url[0]), "%s",
-                 profile::Profile::instance()->named_video_pipe_path().c_str());
-      } else {
-        int snprintf_result;
-        snprintf_result = snprintf(url, sizeof(url) / sizeof(url[0]), "%s",
-            profile::Profile::instance()->video_stream_file().c_str());
-        DCHECK(snprintf_result);
-      }
-      application_manager::MessageHelper::SendNaviStartStream(url,
-                                                              application_key);
+      application_manager::MessageHelper::SendNaviStartStream(application_key);
     }
   }
 }
@@ -263,25 +245,7 @@ void MediaManagerImpl::StartAudioStreaming(int32_t application_key) {
     if (!audio_stream_active_) {
       audio_stream_active_ = true;
       audio_streamer_->StartActivity(application_key);
-
-      char url[100] = {'\0'};
-
-      if ("socket" == profile::Profile::instance()->audio_server_type()) {
-        snprintf(url, sizeof(url) / sizeof(url[0]), "http://%s:%d",
-               profile::Profile::instance()->server_address().c_str(),
-               profile::Profile::instance()->audio_streaming_port());
-      } else if ("pipe" == profile::Profile::instance()->audio_server_type()) {
-        snprintf(url, sizeof(url) / sizeof(url[0]), "%s",
-                 profile::Profile::instance()->named_audio_pipe_path().c_str());
-      } else {
-        int snprintf_result;
-        snprintf_result = snprintf(url, sizeof(url) / sizeof(url[0]), "%s",
-             profile::Profile::instance()->audio_stream_file().c_str());
-        DCHECK(snprintf_result);
-      }
-
-      application_manager::MessageHelper::SendAudioStartStream(url,
-                                                               application_key);
+      application_manager::MessageHelper::SendAudioStartStream(application_key);
     }
   }
 }
@@ -294,7 +258,6 @@ void MediaManagerImpl::StopAudioStreaming(int32_t application_key) {
     audio_streamer_->StopActivity(application_key);
   }
 }
-
 
 void MediaManagerImpl::OnMessageReceived(
   const RawMessagePtr message) {

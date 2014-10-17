@@ -40,10 +40,12 @@
 #include "policy/pt_ext_representation.h"
 #include "utils/lock.h"
 #include "usage_statistics/statistics_manager.h"
+#include "policy/cache_manager_interface.h"
 
 namespace policy {
-class CacheManager {
-public:
+
+class CacheManager : public CacheManagerInterface {
+ public:
   CacheManager();
 
   /**
@@ -185,13 +187,6 @@ public:
    * @return true if successfully
    */
   bool ApplyUpdate(const policy_table::Table& update_pt);
-
-  /**
-   * Saves policy table in storage
-   * @param table policy table
-   * @return true if successfully
-   */
-  bool Save(const policy_table::Table& table);
 
   /**
    * Gets flag updateRequired

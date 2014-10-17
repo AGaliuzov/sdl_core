@@ -164,13 +164,14 @@ typedef threads::MessageLoopThread<utils::PrioritizedQueue<MessageToMobile> > To
 typedef threads::MessageLoopThread<utils::PrioritizedQueue<MessageFromHmi> > FromHmiQueue;
 typedef threads::MessageLoopThread<utils::PrioritizedQueue<MessageToHmi> > ToHmiQueue;
 }
+typedef std::vector<std::string> RPCParams;
 
 class ApplicationManagerImpl : public ApplicationManager,
   public hmi_message_handler::HMIMessageObserver,
   public protocol_handler::ProtocolObserver,
   public connection_handler::ConnectionHandlerObserver,
-    public impl::FromMobileQueue::Handler, public impl::ToMobileQueue::Handler,
-    public impl::FromHmiQueue::Handler, public impl::ToHmiQueue::Handler,
+  public impl::FromMobileQueue::Handler, public impl::ToMobileQueue::Handler,
+  public impl::FromHmiQueue::Handler, public impl::ToHmiQueue::Handler,
   public utils::Singleton<ApplicationManagerImpl> {
 
     friend class ResumeCtrl;
@@ -623,6 +624,7 @@ class ApplicationManagerImpl : public ApplicationManager,
         const std::string& policy_app_id,
         mobile_apis::HMILevel::eType hmi_level,
         mobile_apis::FunctionID::eType function_id,
+        const RPCParams& rpc_params,
         CommandParametersPermissions* params_permissions = NULL);
 
     // typedef for Applications list

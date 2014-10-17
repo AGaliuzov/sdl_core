@@ -1,4 +1,4 @@
-/*
+﻿/**
 * \file request_info.h
 * \brief request information structure source file.
 *
@@ -43,9 +43,7 @@ HMIRequestInfo::HMIRequestInfo(
     const uint64_t timeout_sec):
   RequestInfo(timeout_sec),
   request_(request) {
-    commands::RequestToHMI* request_to_hmi =
-            static_cast<commands::RequestToHMI*>(request_.get());
-    correlation_id_ = request_to_hmi->correlation_id();
+    correlation_id_ = request_->correlation_id();
 }
 
 HMIRequestInfo::HMIRequestInfo(
@@ -54,9 +52,7 @@ HMIRequestInfo::HMIRequestInfo(
     const uint64_t timeout_sec):
   RequestInfo(start_time, timeout_sec),
   request_(request) {
-    commands::RequestToHMI* request_to_hmi =
-            static_cast<commands::RequestToHMI*>(request_.get());
-    correlation_id_ = request_to_hmi->correlation_id();
+    correlation_id_ = request_->correlation_id();
 }
 
 MobileRequestInfo::MobileRequestInfo(

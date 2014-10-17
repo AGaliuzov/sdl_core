@@ -73,6 +73,12 @@ add_custom_target(ford-tarball
   DEPENDS HMI_API MOBILE_API v4_protocol_v1_2_no_extra
 )
 
+add_custom_target(genivi-tarball
+  COMMAND ${CMAKE_SOURCE_DIR}/tools/Utils/export-customer-specific.sh ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} genivi
+  COMMAND tar -czv -C /tmp/GENIVI -f ${CMAKE_BINARY_DIR}/genivi.tar.gz .
+  DEPENDS HMI_API MOBILE_API v4_protocol_v1_2_no_extra
+)
+
 if (ARCH_TYPE_OPTION)
   if (NOT (${ARCH_TYPE_OPTION} STREQUAL "x86") AND NOT (${ARCH_TYPE_OPTION} STREQUAL "armv7"))
     message(AUTHOR_WARNING "HW architecture is not defined, using x86. Allowed values are x86/armv7 (case sensitive)")
@@ -327,6 +333,14 @@ macro(create_test NAME SOURCES LIBS)
     endif()
 endmacro(create_test)
 
+# --replace in list macro
+macro(LIST_REPLACE LIST INDEX NEWVALUE)
+    list(INSERT ${LIST} ${INDEX} ${NEWVALUE})
+    MATH(EXPR __INDEX "${INDEX} + 1")
+    list (REMOVE_AT ${LIST} ${__INDEX})
+endmacro(LIST_REPLACE)
+
+
 # Building application
 
 # --- Type HMI
@@ -445,10 +459,6 @@ add_custom_target(install-3rd_party
   WORKING_DIRECTORY ${3RD_PARTY_BINARY_DIRECTORY}
 )
 
-if(BUILD_TESTS)
-  add_definitions(-DBUILD_TESTS)
-endif()
-
 if(ENABLE_SECURITY)
   add_definitions(-DENABLE_SECURITY)
   set(SecurityManagerLibrary SecurityManager)
@@ -461,6 +471,14 @@ if(CMAKE_SYSTEM_NAME STREQUAL "QNX")
 set(RTLIB )
 endif()
 
+# Building tests
+if(BUILD_TESTS)
+  enable_testing()
+  add_definitions(-DBUILD_TESTS)
+  # Framework GoogleTest is also integrated together gmock
+  # and must not be added separately
+  add_subdirectory(./src/3rd_party-static/gmock-1.7.0)
+endif()
 
 # --- 3rd party libs (static)
 add_subdirectory(./src/3rd_party-static)
@@ -477,13 +495,11 @@ add_subdirectory(./src/appMain)
 # --- Plugins
 add_subdirectory(./src/plugins)
 
+
 # Building tests
 if(BUILD_TESTS)
-    enable_testing()
+    # Directory test is deprecated. Use src/components/<name>/test
     include(Dart)
-    # Framework GoogleTest is also integrated together gmock
-    # and must not be added separately
-    add_subdirectory(./src/3rd_party-static/gmock-1.7.0)
     add_subdirectory(./test)
 endif()
 

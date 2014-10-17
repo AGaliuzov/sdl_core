@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdlib>
 #ifdef EXTENDED_POLICY
 #include "policy_table/table_struct_ext/types.h"
 #else

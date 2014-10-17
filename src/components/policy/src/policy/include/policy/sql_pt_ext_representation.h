@@ -82,9 +82,6 @@ class SQLPTExtRepresentation : public SQLPTRepresentation,
     std::vector<UserFriendlyMessage> GetUserFriendlyMsg(
       const std::vector<std::string>& msg_codes, const std::string& language);
 
-    virtual bool  GatherConsumerFriendlyMessages(
-        policy_table::ConsumerFriendlyMessages* messages) const;
-
     bool IncreaseStatisticsData(StatisticsType type) {
       return true;
     }
@@ -131,6 +128,7 @@ class SQLPTExtRepresentation : public SQLPTRepresentation,
         const std::string& functional_group_name) const;
 
     virtual bool SetVINValue(const std::string& value);
+
   private:
     void GatherModuleMeta(policy_table::ModuleMeta* meta) const;
     void GatherPreconsentedGroup(const std::string& app_id,
@@ -143,6 +141,8 @@ class SQLPTExtRepresentation : public SQLPTRepresentation,
                             policy_table::UserConsentRecords* records) const;
     bool GatherApplicationPolicies(policy_table::ApplicationPolicies* apps) const;
     bool SaveDeviceData(const policy_table::DeviceData& devices);
+    bool GatherConsumerFriendlyMessages(
+        policy_table::ConsumerFriendlyMessages* messages) const;
     bool SaveConsentGroup(const std::string& device_id,
                           const policy_table::UserConsentRecords& records);
     bool SaveApplicationPolicies(const policy_table::ApplicationPolicies& apps);

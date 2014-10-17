@@ -1,0 +1,1 @@
+../../../../../src/commands/mobile/reset_global_properties_request.cc

@@ -1,0 +1,1 @@
+../../../../../src/commands/hmi/vr_change_registration_request.cc
