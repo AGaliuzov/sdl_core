@@ -17,6 +17,7 @@ set (LIBRARIES
     formatters
     jsoncpp
 )
+
 set (SOURCES
   ./test_BoolSchemaItemTest.cpp
   ./test_NumberSchemaItemTest.cpp

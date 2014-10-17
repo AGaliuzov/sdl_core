@@ -55,7 +55,6 @@ include_directories (
   ../application_manager/include/
   ../smart_objects/include/
   ../hmi_message_handler/include/
-  ../request_watchdog/include/
   ../formatters/include
   ../config_profile/include/
   ${JSONCPP_INCLUDE_DIRECTORY}
@@ -76,3 +75,7 @@ set (SOURCES
 
 add_library("MediaManager" ${SOURCES} ${default_sources})
 target_link_libraries("MediaManager" ${LIBRARIES})
+
+if(BUILD_TESTS)
+  #add_subdirectory(test)
+endif()

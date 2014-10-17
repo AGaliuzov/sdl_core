@@ -105,6 +105,7 @@ class PolicyManager : public usage_statistics::StatisticsManager {
     virtual void CheckPermissions(const PTString& app_id,
         const PTString& hmi_level,
         const PTString& rpc,
+        const RPCParams& rpc_params,
         CheckPermissionResult& result) = 0;
 
     /**
@@ -395,6 +396,21 @@ class PolicyManager : public usage_statistics::StatisticsManager {
      * @param new value for the parameter.
      */
     virtual void SetVINValue(const std::string& value) = 0;
+
+    /**
+     * @brief Checks, if application has policy assigned w/o data consent
+     * @param policy_app_id Unique application id
+     * @return true, if policy assigned w/o data consent, otherwise -false
+     */
+    virtual bool IsPredataPolicy(const std::string& policy_app_id) = 0;
+
+    /**
+     * Returns heart beat timeout
+     * @param app_id application id
+     * @return if timeout was set then value in seconds greater zero
+     * otherwise heart beat for specific application isn't set
+     */
+    virtual uint16_t HeartBeatTimeout(const std::string& app_id) const = 0;
 };
 
 }  // namespace policy

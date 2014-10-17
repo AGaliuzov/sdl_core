@@ -237,7 +237,7 @@ class MessageHelper {
     * @brief Send SDL_ActivateApp response to HMI
     * @param permissions response parameters
     */
-    static void SendActivateAppResponse(policy::AppPermissions& permissions,
+    static void SendSDLActivateAppResponse(policy::AppPermissions& permissions,
                                         uint32_t correlation_id);
 
     /**
@@ -278,11 +278,10 @@ class MessageHelper {
     /*
      * @brief Sends notification to HMI to start video streaming
      *
-     * @param url             URL for video streamng
      * @param connection_key  Application connection key
      *
      */
-    static void SendNaviStartStream(const std::string& url, int32_t connection_key);
+    static void SendNaviStartStream(int32_t connection_key);
 
     /*
      * @brief Sends notification to HMI to stop video streaming
@@ -351,11 +350,10 @@ class MessageHelper {
     /*
      * @brief Sends notification to HMI to start audio streaming
      *
-     * @param url             URL for video streamng
      * @param connection_key  Application connection key
      *
      */
-    static void SendAudioStartStream(const std::string& url, int32_t connection_key);
+    static void SendAudioStartStream(int32_t connection_key);
 
     /*
      * @brief Sends notification to HMI to stop audio streaming
@@ -456,6 +454,20 @@ class MessageHelper {
      * @return Limit for number of command per minute
      */
     static uint32_t GetAppCommandLimit(const std::string& policy_app_id);
+
+    /**
+     * @brief Creates TTS.SetGlobalProperties request and sends
+     * to HMI for VCA module.
+     * @param app contains application which sends TTS GlobalProperties to HMI
+     * after timeout or first time when application register with level NONE or
+     * BACKGROUND
+     * @param default_help_prompt
+     * if default_help_prompt=TRUE->TTSGlobalProperties request will be created with
+     * default helpPrompt array, otherwise TTSGlobalProperties request will be created
+     * with empty helpPrompt array.
+     */
+    static void SendTTSGlobalProperties(
+        ApplicationSharedPtr app, bool default_help_prompt);
 
     private:
     /**

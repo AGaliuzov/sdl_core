@@ -24,11 +24,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * @name SDL.ClimateView
- * @desc Climate module visual representation
- * @category View
- * @filesource app/view/climate/ClimateView.js
- * @version 1.0
+ * @name SDL.TopControls
+ *
+ * @desc Component for Home top controls
+ *
+ * @category	view
+ * @filesource	app/view/home/topControls.js
+ * @version		1.0
  */
 
 SDL.TopControls = Em.ContainerView.extend( {

@@ -148,11 +148,27 @@ div {
 
 #TTSPopUp .message {
     top: 10px;
-    left: 10px;
+    right: 10px;
     width: 278px;
     height: 81px;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+#TTSPopUp .timerText {
+    color: #FFD93F;
+    margin-top: 3px;
+    right: 5px;
+    font-size: 30px;
+}
+
+#TTSPopUp .okButton {
+    right: 52px;
+    width: 113px;
+    height: 19px;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid white;
 }
 
 #TTSPopUp.active {
@@ -679,21 +695,9 @@ margin-top: 90px;
     cursor: pointer;
     top: 60px;
     left: 347px;
-
-]
-border:
-
-1
-px solid #393939
-
-;
--webkit-border-radius:
-
-3
-px
-
-;
-    }
+    border: 1px solid #393939;
+    -webkit-border-radius: 3px;
+}
 
 #frw .ico {
     top: 13px;
@@ -900,6 +904,7 @@ px
 /* Disabled list items */
 .disabled {
     color: #999;
+    cursor: default!important;
 }
 
 .disabled .ico, .disabled .right_ico {

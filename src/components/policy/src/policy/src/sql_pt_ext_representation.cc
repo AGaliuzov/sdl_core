@@ -37,6 +37,7 @@
 #include "policy/sql_pt_queries.h"
 #include "policy/sql_pt_ext_queries.h"
 #include "policy/policy_helper.h"
+#include "policy/cache_manager.h"
 
 namespace policy {
 
@@ -524,6 +525,11 @@ bool SQLPTExtRepresentation::GatherConsumerFriendlyMessages(
     LOG4CXX_ERROR(logger_, "NULL pointer has been passed to fill");
     return false;
   }
+
+  if (!SQLPTRepresentation::GatherConsumerFriendlyMessages(messages)) {
+    return false;
+  }
+
   dbms::SQLQuery query(db());
   bool result = query.Prepare(sql_pt_ext::kCollectFriendlyMsg);
 
@@ -552,7 +558,6 @@ bool SQLPTExtRepresentation::GatherConsumerFriendlyMessages(
   }
   return result;
 }
-
 
 bool SQLPTExtRepresentation::SetMetaInfo(const std::string& ccpu_version,
     const std::string& wers_country_code,
@@ -671,7 +676,6 @@ bool SQLPTExtRepresentation::SaveApplicationPolicies(
 
 bool SQLPTExtRepresentation::SaveSpecificAppPolicy(
     const policy_table::ApplicationPolicies::value_type& app) {
-  LOG4CXX_INFO(logger_, "Saving data for application: " << app.first);
   if (app.second.is_string()) {
     if (kDefaultId.compare(app.second.get_string()) == 0) {
       if (!SetDefaultPolicy(app.first)) {
@@ -702,8 +706,8 @@ bool SQLPTExtRepresentation::SaveSpecificAppPolicy(
     4, std::string(policy_table::EnumToJsonString(app.second.priority)));
   app_query.Bind(
     5, app.second.is_null());
-  app_query.Bind(6, app.second.memory_kb->operator IntType());
-  app_query.Bind(7, app.second.heart_beat_timeout_ms);
+  app_query.Bind(6, *app.second.memory_kb);
+  app_query.Bind(7, *app.second.heart_beat_timeout_ms);
   app.second.certificate.is_initialized() ?
   app_query.Bind(8, *app.second.certificate) : app_query.Bind(8, std::string());
 
@@ -854,7 +858,7 @@ void SQLPTExtRepresentation::GatherDeviceData(
     LOG4CXX_WARN(logger_, "Incorrect select statement for device data.");
     return;
   }
-
+  data->mark_initialized();
   while (query.Next()) {
     policy_table::DeviceParams* specific_device = &(*data)[query.GetString(0)];
     *specific_device->hardware = query.GetString(1);
@@ -926,7 +930,6 @@ void SQLPTExtRepresentation::GatherConsentGroup(
 
 bool SQLPTExtRepresentation::SaveDeviceData(
   const policy_table::DeviceData& devices) {
-  LOG4CXX_INFO(logger_, "SaveDeviceData");
   dbms::SQLQuery query(db());
   if (!query.Prepare(sql_pt_ext::kInsertDeviceData)) {
     LOG4CXX_WARN(logger_, "Incorrect insert statement for device data.");
@@ -981,7 +984,6 @@ bool SQLPTExtRepresentation::SaveConsentGroup(
           return false;
         }
         query.Bind(0, device_id);
-        // TODO(AGaliuzov): Need GroupID instead of name
         query.Bind(1, it_groups->first);
         query.Bind(2, it_groups->second);
         query.Bind(
@@ -1344,7 +1346,6 @@ bool SQLPTExtRepresentation::SaveMessageString(
 
 bool SQLPTExtRepresentation::SaveUsageAndErrorCounts(
     const policy_table::UsageAndErrorCounts& counts) {
-  LOG4CXX_INFO(logger_, "SaveUsageAndErrorCounts");
   dbms::SQLQuery query(db());
   if (!query.Exec(sql_pt::kDeleteAppLevel)) {
     LOG4CXX_WARN(logger_, "Incorrect delete from app level.");

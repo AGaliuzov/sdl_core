@@ -40,10 +40,12 @@
 #include "policy/pt_ext_representation.h"
 #include "utils/lock.h"
 #include "usage_statistics/statistics_manager.h"
+#include "policy/cache_manager_interface.h"
 
 namespace policy {
-class CacheManager {
-public:
+
+class CacheManager : public CacheManagerInterface {
+ public:
   CacheManager();
 
   /**
@@ -185,13 +187,6 @@ public:
    * @return true if successfully
    */
   bool ApplyUpdate(const policy_table::Table& update_pt);
-
-  /**
-   * Saves policy table in storage
-   * @param table policy table
-   * @return true if successfully
-   */
-  bool Save(const policy_table::Table& table);
 
   /**
    * Gets flag updateRequired
@@ -473,6 +468,20 @@ public:
                           FunctionalGroupIDs& disallowed_groups);
 
   /**
+   * @brief GetUnconsentedGroups allows to obtain list of allowed and disallowed
+   * groups for specific application on certain device.
+   * @param device_id certain device
+   * @param policy_app_id application id.
+   * @param unconsented_groups list of unconsented groups.
+   */
+  void GetUnconsentedGroups(const std::string& device_id,
+                            const std::string& policy_app_id,
+                            FunctionalGroupIDs& unconsented_groups);
+
+  void RemoveAppConsentForGroup(const std::string& app_id,
+                                const std::string& group_name);
+
+  /**
    * @brief Set app policy to pre_DataConsented policy
    * @param app_id Policy ID of application to be changed
    * @return true, if succeeded, otherwise - false
@@ -532,6 +541,22 @@ public:
    */
   void Backup();
 
+  /**
+   * Returns heart beat timeout
+   * @param app_id application id
+   * @return if timeout was set then value in seconds greater zero
+   * otherwise heart beat for specific application isn't set
+   */
+  uint16_t HeartBeatTimeout(const std::string& app_id) const;
+
+  /**
+   * @brief Allows to generate hash from the specified string.
+   * The djb2 algorithm uses for hash generation.
+   * @param str_to_hash - the string from which hash should be generated.
+   * @return integer hash for the specified string.
+   */
+  static int32_t GenerateHash(const std::string& str_to_hash);
+
 private:
   std::string currentDateTime();
   struct AppHMITypeToString {
@@ -545,7 +570,6 @@ private:
   void FillDeviceSpecificData();
   void FillAppSpecificData();
   bool AppExists(const std::string& app_id) const;
-  int32_t GenerateHash(const std::string& str_to_hash);
   void CopyInternalParams(const std::string &from, const std::string& to);
   long ConvertSecondsToMinute(int seconds);
 
@@ -557,6 +581,7 @@ private:
 
 private:
   utils::SharedPtr<policy_table::Table> pt_;
+  utils::SharedPtr<policy_table::Table> snapshot_;
   utils::SharedPtr<PTRepresentation> backup_;
   utils::SharedPtr<PTExtRepresentation> ex_backup_;
   bool update_required;

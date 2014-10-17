@@ -1,4 +1,4 @@
-/*
+﻿/*
  Copyright (c) 2013, Ford Motor Company
  All rights reserved.
 
@@ -86,7 +86,7 @@ CommonAppPriorityMap app_priority_values = {
   {"EMERGENCY", hmi_apis::Common_AppPriority::EMERGENCY},
   {"NAVIGATION", hmi_apis::Common_AppPriority::NAVIGATION},
   {"NONE", hmi_apis::Common_AppPriority::NONE},
-  {"VOICECOMM", hmi_apis::Common_AppPriority::VOICE_COMMUNICATION},
+  {"VOICECOM", hmi_apis::Common_AppPriority::VOICE_COMMUNICATION},
   {"INVALID_ENUM", hmi_apis::Common_AppPriority::INVALID_ENUM}
 };
 
@@ -251,15 +251,10 @@ std::string MessageHelper::CommonLanguageToString(
 }
 
 uint32_t MessageHelper::GetAppCommandLimit(const std::string& policy_app_id) {
-  policy::PolicyManager* policy_manager =
-      policy::PolicyHandler::instance()->policy_manager();
-  if(!policy_manager) {
-    LOG4CXX_WARN(logger_, "The shared library of policy is not loaded");
-    return 0;
-  }
+
   std::string priority;
-  policy_manager->GetPriority(policy_app_id, &priority);
-  return policy_manager-> GetNotificationsNumber(priority);
+  policy::PolicyHandler::instance()->GetPriority(policy_app_id, &priority);
+  return policy::PolicyHandler::instance()->GetNotificationsNumber(priority);
 }
 
 void MessageHelper::SendHMIStatusNotification(
@@ -353,17 +348,13 @@ void MessageHelper::SendOnAppRegisteredNotificationToHMI(
         .tts_name());
   }
   std::string priority;
-  // TODO(KKolodiy): need remove method policy_manager
-  policy::PolicyManager* policy_manager =
-    policy::PolicyHandler::instance()->policy_manager();
-  if (!policy_manager) {
-    LOG4CXX_WARN(logger_, "The shared library of policy is not loaded");
-  } else {
-    policy_manager->GetPriority(application_impl.mobile_app_id()->asString(), &priority);
-    if (!priority.empty()) {
-      message[strings::msg_params][strings::priority] = GetPriorityCode(priority);
-    }
+
+  policy::PolicyHandler::instance()->GetPriority(
+        application_impl.mobile_app_id()->asString(), &priority);
+  if (!priority.empty()) {
+    message[strings::msg_params][strings::priority] = GetPriorityCode(priority);
   }
+
   DCHECK(ApplicationManagerImpl::instance()->ManageHMICommand(notification));
 }
 
@@ -384,6 +375,8 @@ smart_objects::SmartObject* MessageHelper::GetHashUpdateNotification(
   (*message)[strings::params][strings::function_id] =
     mobile_apis::FunctionID::OnHashChangeID;
   (*message)[strings::params][strings::connection_key] = app_id;
+  (*message)[strings::params][strings::message_type] =
+          static_cast<int32_t>(kNotification);;
 
   return message;
 }
@@ -572,11 +565,7 @@ smart_objects::SmartObject* MessageHelper::CreateDeviceListSO(
   (*device_list_so)[strings::device_list] = smart_objects::SmartObject(
         smart_objects::SmartType_Array);
   smart_objects::SmartObject& list_so = (*device_list_so)[strings::device_list];
-  policy::PolicyManager* policy_manager =
-      policy::PolicyHandler::instance()->policy_manager();
-  if(!policy_manager) {
-    LOG4CXX_WARN(logger_, "The shared library of policy is not loaded");
-  }
+
   int32_t index = 0;
   for (connection_handler::DeviceMap::const_iterator it = devices.begin();
        devices.end() != it; ++it) {
@@ -585,16 +574,12 @@ smart_objects::SmartObject* MessageHelper::CreateDeviceListSO(
     list_so[index][strings::name] = d.user_friendly_name();
     list_so[index][strings::id] = it->second.device_handle();
 
-    if(policy_manager) {
-      const policy::DeviceConsent device_consent =
-          policy_manager->GetUserConsentForDevice(it->second.mac_address());
-      list_so[index][strings::isSDLAllowed] =
-          policy::DeviceConsent::kDeviceAllowed == device_consent;
-    } else {
-      list_so[index][strings::isSDLAllowed] = true;
-    }
-    ++index;
+    const policy::DeviceConsent device_consent =
+        policy::PolicyHandler::instance()->GetUserConsentForDevice(it->second.mac_address());
+    list_so[index][strings::isSDLAllowed] =
+        policy::DeviceConsent::kDeviceAllowed == device_consent;
   }
+  ++index;
   return device_list_so;
 }
 
@@ -827,6 +812,51 @@ MessageHelper::SmartObjectList MessageHelper::CreateGlobalPropertiesRequestsToHM
   return requests;
 }
 
+void MessageHelper::SendTTSGlobalProperties(
+    ApplicationSharedPtr app, bool default_help_prompt) {
+  if (!app.valid()) {
+    return;
+  }
+  utils::SharedPtr<smart_objects::SmartObject> tts_global_properties(
+      new smart_objects::SmartObject);
+  if (tts_global_properties) {
+    smart_objects::SmartObject& so_to_send = *tts_global_properties;
+    so_to_send[strings::params][strings::function_id] =
+        static_cast<int>(hmi_apis::FunctionID::TTS_SetGlobalProperties);
+    so_to_send[strings::params][strings::message_type] =
+        static_cast<int>(hmi_apis::messageType::request);
+    so_to_send[strings::params][strings::protocol_version] =
+        commands::CommandImpl::protocol_version_;
+    so_to_send[strings::params][strings::protocol_type] =
+        commands::CommandImpl::hmi_protocol_type_;
+    so_to_send[strings::params][strings::correlation_id] =
+        ApplicationManagerImpl::instance()->GetNextHMICorrelationID();
+    smart_objects::SmartObject msg_params = smart_objects::SmartObject(
+        smart_objects::SmartType_Map);
+    msg_params[strings::help_prompt] = smart_objects::SmartObject(
+        smart_objects::SmartType_Array);
+    if (default_help_prompt) {
+      const CommandsMap& commands = app->commands_map();
+      CommandsMap::const_iterator it = commands.begin();
+      uint32_t index = 0;
+      for (; commands.end() != it; ++it) {
+        smart_objects::SmartObject item(smart_objects::SmartType_Map);
+        if ((*it->second).keyExists(strings::menu_params)){
+          item[strings::text] = (*it->second)[strings::menu_params][strings::menu_name].asString();
+          item[strings::type] = mobile_apis::SpeechCapabilities::SC_TEXT;
+        } else {
+          continue;
+        }
+        msg_params[strings::help_prompt][index++] = item;
+      }
+    }
+    app->set_help_prompt(msg_params[strings::help_prompt]);
+    msg_params[strings::app_id] = app->app_id();
+    so_to_send[strings::msg_params] = msg_params;
+    ApplicationManagerImpl::instance()->ManageHMICommand(tts_global_properties);
+  }
+}
+
 smart_objects::SmartObject* MessageHelper::CreateAppVrHelp(
   ApplicationConstSharedPtr app) {
   smart_objects::SmartObject* result = new smart_objects::SmartObject(
@@ -835,39 +865,31 @@ smart_objects::SmartObject* MessageHelper::CreateAppVrHelp(
     return NULL;
   }
   smart_objects::SmartObject& vr_help = *result;
-  if (app->vr_help_title()) {
-    vr_help[strings::vr_help_title] = (*app->vr_help_title());
-  } else {
-    vr_help[strings::vr_help_title] = app->name();
-  }
+  vr_help[strings::vr_help_title] = app->name();
 
-  if (app->vr_help()) {
-    vr_help[strings::vr_help] = (*app->vr_help());
-  } else {
-    ApplicationManagerImpl::ApplicationListAccessor accessor;
-    const std::set<ApplicationSharedPtr> apps = accessor.applications();
+  ApplicationManagerImpl::ApplicationListAccessor accessor;
+  const std::set<ApplicationSharedPtr> apps = accessor.applications();
 
-    int32_t index = 0;
-    std::set<ApplicationSharedPtr>::const_iterator it_app = apps.begin();
-    for (; apps.end() != it_app; ++it_app) {
-      if ((*it_app)->vr_synonyms()) {
-        smart_objects::SmartObject item(smart_objects::SmartType_Map);
-        item[strings::text] = (*((*it_app)->vr_synonyms())).getElement(0);
-        item[strings::position] = index + 1;
-        vr_help[strings::vr_help][index++] = item;
-      }
-    }
-
-    // copy all app VR commands
-    const CommandsMap& commands = app->commands_map();
-    CommandsMap::const_iterator it = commands.begin();
-
-    for (; commands.end() != it; ++it) {
+  int32_t index = 0;
+  std::set<ApplicationSharedPtr>::const_iterator it_app = apps.begin();
+  for (; apps.end() != it_app; ++it_app) {
+    if ((*it_app)->vr_synonyms()) {
       smart_objects::SmartObject item(smart_objects::SmartType_Map);
-      item[strings::text] = (*it->second)[strings::vr_commands][0].asString();
+      item[strings::text] = (*((*it_app)->vr_synonyms())).getElement(0);
       item[strings::position] = index + 1;
       vr_help[strings::vr_help][index++] = item;
     }
+  }
+
+  // copy all app VR commands
+  const CommandsMap& commands = app->commands_map();
+  CommandsMap::const_iterator it = commands.begin();
+
+  for (; commands.end() != it; ++it) {
+    smart_objects::SmartObject item(smart_objects::SmartType_Map);
+    item[strings::text] = (*it->second)[strings::vr_commands][0].asString();
+    item[strings::position] = index + 1;
+    vr_help[strings::vr_help][index++] = item;
   }
   return result;
 }
@@ -1238,20 +1260,25 @@ void MessageHelper::SendActivateAppToHMI(uint32_t const app_id,
 
   std::string priority;
   // TODO(KKolodiy): need remove method policy_manager
-  policy::PolicyManager* policy_manager =
-    policy::PolicyHandler::instance()->policy_manager();
-  if (!policy_manager) {
-    LOG4CXX_WARN(logger_, "The shared library of policy is not loaded");
-  } else {
-    policy_manager->GetPriority(app->mobile_app_id()->asString(), &priority);
-  }
-  if (!priority.empty()) {
+
+  policy::PolicyHandler::instance()->GetPriority(
+        app->mobile_app_id()->asString(), &priority);
+  // According SDLAQ-CRS-2794
+  // SDL have to send ActivateApp without "proirity" parameter to HMI.
+  // in case of unconsented device
+  std::string mac_adress;
+  connection_handler::DeviceHandle device_handle = app->device();
+  connection_handler::ConnectionHandlerImpl::instance()->
+      GetDataOnDeviceID(device_handle, NULL, NULL, &mac_adress, NULL);
+
+  policy::DeviceConsent consent =
+      policy::PolicyHandler::instance()->GetUserConsentForDevice(mac_adress);
+  if (!priority.empty() && (policy::DeviceConsent::kDeviceAllowed == consent)) {
     (*message)[strings::msg_params]["priority"] = GetPriorityCode(priority);
   }
 
-  if (hmi_apis::Common_HMILevel::FULL != level &&
-      hmi_apis::Common_HMILevel::INVALID_ENUM != level) {
-    (*message)[strings::msg_params]["level"] = level;
+  if (hmi_apis::Common_HMILevel::INVALID_ENUM != level) {
+    (*message)[strings::msg_params][strings::activate_app_hmi_level] = level;
   }
 
   ApplicationManagerImpl::instance()->ManageHMICommand(message);
@@ -1312,7 +1339,7 @@ void MessageHelper::GetDeviceInfoForApp(uint32_t connection_key,
   GetDeviceInfoForHandle(device_info->device_handle, device_info);
 }
 
-void MessageHelper::SendActivateAppResponse(policy::AppPermissions& permissions,
+void MessageHelper::SendSDLActivateAppResponse(policy::AppPermissions& permissions,
     uint32_t correlation_id) {
   smart_objects::SmartObject* message = new smart_objects::SmartObject(
     smart_objects::SmartType_Map);
@@ -1547,8 +1574,7 @@ smart_objects::SmartObject* MessageHelper::CreateNegativeResponse(
   return response;
 }
 
-void MessageHelper::SendNaviStartStream(const std::string& url,
-                                        int32_t connection_key) {
+void MessageHelper::SendNaviStartStream(int32_t connection_key) {
   LOG4CXX_INFO(logger_, "MessageHelper::SendNaviStartStream");
   smart_objects::SmartObject* start_stream = new smart_objects::SmartObject(
     smart_objects::SmartType_Map);
@@ -1575,6 +1601,20 @@ void MessageHelper::SendNaviStartStream(const std::string& url,
   connection_handler::ConnectionHandlerImpl::instance()->GetDataOnSessionKey(
     connection_key, &app_id);
 
+  char url[100] = {'\0'};
+  if ("socket" == profile::Profile::instance()->video_server_type()) {
+    snprintf(url, sizeof(url) / sizeof(url[0]), "http://%s:%d",
+             profile::Profile::instance()->server_address().c_str(),
+             profile::Profile::instance()->video_streaming_port());
+  } else if ("pipe" == profile::Profile::instance()->video_server_type()) {
+    snprintf(url, sizeof(url) / sizeof(url[0]), "%s",
+             profile::Profile::instance()->named_video_pipe_path().c_str());
+  } else {
+    int snprintf_result;
+    snprintf_result = snprintf(url, sizeof(url) / sizeof(url[0]), "%s",
+        profile::Profile::instance()->video_stream_file().c_str());
+    DCHECK(snprintf_result);
+  }
   msg_params[strings::app_id] = app_id;
   msg_params[strings::url] = url;
 
@@ -1616,8 +1656,7 @@ void MessageHelper::SendNaviStopStream(int32_t connection_key) {
   ApplicationManagerImpl::instance()->ManageHMICommand(stop_stream);
 }
 
-void MessageHelper::SendAudioStartStream(const std::string& url,
-    int32_t connection_key) {
+void MessageHelper::SendAudioStartStream(int32_t connection_key) {
 
   smart_objects::SmartObject* start_stream = new smart_objects::SmartObject(
     smart_objects::SmartType_Map);
@@ -1643,6 +1682,21 @@ void MessageHelper::SendAudioStartStream(const std::string& url,
   uint32_t app_id = 0;
   connection_handler::ConnectionHandlerImpl::instance()->GetDataOnSessionKey(
     connection_key, &app_id);
+
+  char url[100] = {'\0'};
+  if ("socket" == profile::Profile::instance()->audio_server_type()) {
+    snprintf(url, sizeof(url) / sizeof(url[0]), "http://%s:%d",
+           profile::Profile::instance()->server_address().c_str(),
+           profile::Profile::instance()->audio_streaming_port());
+  } else if ("pipe" == profile::Profile::instance()->audio_server_type()) {
+    snprintf(url, sizeof(url) / sizeof(url[0]), "%s",
+             profile::Profile::instance()->named_audio_pipe_path().c_str());
+  } else {
+    int snprintf_result;
+    snprintf_result = snprintf(url, sizeof(url) / sizeof(url[0]), "%s",
+         profile::Profile::instance()->audio_stream_file().c_str());
+    DCHECK(snprintf_result);
+  }
 
   msg_params[strings::app_id] = app_id;
   msg_params[strings::url] = url;
@@ -2130,8 +2184,18 @@ mobile_apis::Result::eType MessageHelper::ProcessSoftButtons(
   smart_objects::SmartObject soft_buttons = smart_objects::SmartObject(
         smart_objects::SmartType_Array);
 
+  policy::PolicyHandler* policy_handler = policy::PolicyHandler::instance();
+  std::string app_mobile_id = app->mobile_app_id()->asString();
+
   uint32_t j = 0;
-  for (uint32_t i = 0; i < request_soft_buttons.length(); ++i) {
+  size_t size = request_soft_buttons.length();
+  for (uint32_t i = 0; i < size; ++i) {
+    int system_action = request_soft_buttons[i][strings::system_action].asInt();
+    if (!policy_handler->CheckKeepContext(system_action, app_mobile_id) ||
+        !policy_handler->CheckStealFocus(system_action, app_mobile_id)) {
+      return mobile_apis::Result::DISALLOWED;
+    }
+
     switch (request_soft_buttons[i][strings::type].asInt()) {
       case mobile_apis::SoftButtonType::SBT_IMAGE: {
         if (!image_supported) {

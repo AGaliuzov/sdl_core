@@ -1,5 +1,6 @@
 include_directories(
   ./include
+  ${APR_INCLUDE_DIRECTORY}
 )
 
 set(SOURCES
@@ -10,3 +11,4 @@ set(SOURCES
 )
 
 add_library(ProtocolLibrary ${SOURCES})
+target_link_libraries(ProtocolLibrary Utils)

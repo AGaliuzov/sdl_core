@@ -1,4 +1,4 @@
-/*
+﻿/*
  Copyright (c) 2013, Ford Motor Company
  All rights reserved.
 
@@ -88,6 +88,7 @@ class SQLPTRepresentation : public virtual PTRepresentation {
                            StringArray* app_hmi_types = NULL);
     bool GetFunctionalGroupings(policy_table::FunctionalGroupings& groups);
 
+  protected:
     virtual void GatherModuleMeta(policy_table::ModuleMeta* meta) const;
     virtual void GatherModuleConfig(policy_table::ModuleConfig* config) const;
     virtual bool GatherUsageAndErrorCounts(
@@ -137,6 +138,7 @@ class SQLPTRepresentation : public virtual PTRepresentation {
     bool SaveAppType(const std::string& app_id,
                      const policy_table::AppHMITypes& types);
 
+  public:
     bool UpdateRequired() const;
     void SaveUpdateRequired(bool value);
 
@@ -167,14 +169,6 @@ class SQLPTRepresentation : public virtual PTRepresentation {
       const policy_table::NumberOfNotificationsPerMinute& notifications);
     bool SaveMessageType(const std::string& type);
     bool SaveLanguage(const std::string& code);
-
-    /**
-     * @brief Allows to generate hash from the specified string.
-     * The djb2 algorithm uses for hash generation.
-     * @param str_to_hash - the string from which hash should be generated.
-     * @return integer hash for the specified string.
-     */
-    unsigned long GenerateHash(const std::string& str_to_hash);
 };
 }  //  namespace policy
 

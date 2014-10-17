@@ -187,7 +187,7 @@ bool Thread::startWithOptions(const ThreadOptions& options) {
   pthread_result = pthread_create(&thread_handle_, &attributes, threadFunc, delegate_);
   isThreadRunning_ = (pthread_result == EOK);
   if (!isThreadRunning_) {
-    LOG4CXX_WARN(logger_, "Couldn't cancel thread. Error code = "
+    LOG4CXX_WARN(logger_, "Couldn't create thread. Error code = "
                  << pthread_result << "(\"" << strerror(pthread_result) << "\")");
   } else {
     LOG4CXX_INFO(logger_,"Created thread: " << name_);
@@ -204,12 +204,13 @@ void Thread::stop() {
   if (!is_running()) {
     LOG4CXX_WARN(logger_, "Thread (#" << thread_handle_
                   << " \"" << name_ << "\") is not running");
+    LOG4CXX_TRACE_EXIT(logger_);
     return;
   }
 
   // TODO (EZamakhov): why exitThreadMain return bool and stop does not?
   if (delegate_ && !delegate_->exitThreadMain()) {
-      if (thread_handle_ == pthread_self()) {
+      if (pthread_self() == thread_handle_) {
         LOG4CXX_ERROR(logger_,
                      "Couldn't cancel the same thread (#" << thread_handle_
                      << "\"" << name_ << "\")");

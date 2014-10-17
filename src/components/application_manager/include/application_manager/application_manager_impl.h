@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -164,13 +164,14 @@ typedef threads::MessageLoopThread<utils::PrioritizedQueue<MessageToMobile> > To
 typedef threads::MessageLoopThread<utils::PrioritizedQueue<MessageFromHmi> > FromHmiQueue;
 typedef threads::MessageLoopThread<utils::PrioritizedQueue<MessageToHmi> > ToHmiQueue;
 }
+typedef std::vector<std::string> RPCParams;
 
 class ApplicationManagerImpl : public ApplicationManager,
   public hmi_message_handler::HMIMessageObserver,
   public protocol_handler::ProtocolObserver,
   public connection_handler::ConnectionHandlerObserver,
-    public impl::FromMobileQueue::Handler, public impl::ToMobileQueue::Handler,
-    public impl::FromHmiQueue::Handler, public impl::ToHmiQueue::Handler,
+  public impl::FromMobileQueue::Handler, public impl::ToMobileQueue::Handler,
+  public impl::FromHmiQueue::Handler, public impl::ToHmiQueue::Handler,
   public utils::Singleton<ApplicationManagerImpl> {
 
     friend class ResumeCtrl;
@@ -443,14 +444,14 @@ class ApplicationManagerImpl : public ApplicationManager,
      *
      * @param ptr Reference to shared pointer that point on hmi notification
      */
-    void addNotification(const CommandSharedPtr& ptr);
+    void addNotification(const CommandSharedPtr ptr);
 
     /**
      * @ Add notification to collection
      *
      * @param ptr Reference to shared pointer that point on hmi notification
      */
-    void removeNotification(const CommandSharedPtr& ptr);
+    void removeNotification(const commands::Command* notification);
 
     /**
      * @ Updates request timeout
@@ -578,6 +579,28 @@ class ApplicationManagerImpl : public ApplicationManager,
     bool IsHMICooperating() const;
 
     /**
+     * @brief Method used to send default app tts globalProperties
+     * in case they were not provided from mobile side after defined time
+     */
+    void OnTimerSendTTSGlobalProperties();
+
+    /**
+     * @brief method adds application
+     * to tts_global_properties_app_list_
+     * @param app_id contains application which will
+     * send TTS global properties after timeout
+     */
+    void AddAppToTTSGlobalPropertiesList(const uint32_t app_id);
+
+    /**
+     * @brief method removes application
+     * from tts_global_properties_app_list_
+     * @param app_id contains application which will
+     * send TTS global properties after timeout
+     */
+    void RemoveAppFromTTSGlobalPropertiesList(const uint32_t app_id);
+
+    /**
      * Function used only by HMI request/response/notification base classes
      * to change HMI app id to Mobile app id and vice versa.
      * Dot use it inside Core
@@ -601,6 +624,7 @@ class ApplicationManagerImpl : public ApplicationManager,
         const std::string& policy_app_id,
         mobile_apis::HMILevel::eType hmi_level,
         mobile_apis::FunctionID::eType function_id,
+        const RPCParams& rpc_params,
         CommandParametersPermissions* params_permissions = NULL);
 
     // typedef for Applications list
@@ -704,17 +728,19 @@ class ApplicationManagerImpl : public ApplicationManager,
     mutable sync_primitives::Lock applications_list_lock_;
 
     /**
-     * @brief Set of HMI notifications with timeout.
-     */
-    std::list<CommandSharedPtr> notification_list_;
-
-    /**
      * @brief Map of correlation id  and associated application id.
      */
     std::map<const int32_t, const uint32_t> appID_list_;
 
+    /**
+     * @brief Map contains applications which
+     * will send TTS global properties to HMI after timeout
+     */
+    std::map<uint32_t, TimevalStruct> tts_global_properties_app_list_;
+
     bool audio_pass_thru_active_;
     sync_primitives::Lock audio_pass_thru_lock_;
+    sync_primitives::Lock tts_global_properties_app_list_lock_;
     bool is_distracting_driver_;
     bool is_vr_session_strated_;
     bool hmi_cooperating_;
@@ -723,7 +749,6 @@ class ApplicationManagerImpl : public ApplicationManager,
 
     hmi_message_handler::HMIMessageHandler* hmi_handler_;
     connection_handler::ConnectionHandler*  connection_handler_;
-    policy::PolicyManager*                  policy_manager_;
     protocol_handler::ProtocolHandler*      protocol_handler_;
     request_controller::RequestController   request_ctrl_;
 
@@ -771,6 +796,8 @@ class ApplicationManagerImpl : public ApplicationManager,
     };
     typedef utils::SharedPtr<ApplicationListUpdateTimer> ApplicationListUpdateTimerSptr;
     ApplicationListUpdateTimerSptr application_list_update_timer_;
+
+    timer::TimerThread<ApplicationManagerImpl>  tts_global_properties_timer_;
 
     DISALLOW_COPY_AND_ASSIGN(ApplicationManagerImpl);
 

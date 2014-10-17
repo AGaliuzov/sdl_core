@@ -1,4 +1,4 @@
-/*
+﻿/*
  Copyright (c) 2013, Ford Motor Company
  All rights reserved.
 
@@ -108,7 +108,7 @@ void CommandRequestImpl::onTimeOut() {
 
   smart_objects::SmartObject* response =
     MessageHelper::CreateNegativeResponse(connection_key(), function_id(),
-    correlation_id(), mobile_api::Result::TIMED_OUT);
+    correlation_id(), mobile_api::Result::GENERIC_ERROR);
 
   ApplicationManagerImpl::instance()->ManageMobileCommand(response);
 }
@@ -207,6 +207,7 @@ void CommandRequestImpl::SendHMIRequest(
   const uint32_t hmi_correlation_id =
        ApplicationManagerImpl::instance()->GetNextHMICorrelationID();
   if (use_events) {
+    LOG4CXX_WARN(logger_, "subscribe_on_event " << function_id << " " << hmi_correlation_id);
     subscribe_on_event(function_id, hmi_correlation_id);
   }
 
@@ -378,6 +379,18 @@ bool CommandRequestImpl::CheckAllowedParameters() {
   for (; it_app_list != it_app_list_end; ++it_app_list) {
     if (connection_key() == (*it_app_list).get()->app_id()) {
 
+      RPCParams params;
+
+      const smart_objects::SmartObject& s_map = (*message_)[strings::msg_params];
+      if (smart_objects::SmartType_Map == s_map.getType()) {
+        smart_objects::SmartMap::iterator iter = s_map.map_begin();
+        smart_objects::SmartMap::iterator iter_end = s_map.map_end();
+
+        for (; iter != iter_end; ++iter) {
+          params.push_back(iter->first);
+        }
+      }
+
       CommandParametersPermissions params_permissions;
       mobile_apis::Result::eType check_result =
           application_manager::ApplicationManagerImpl::instance()->
@@ -385,6 +398,7 @@ bool CommandRequestImpl::CheckAllowedParameters() {
             (*it_app_list).get()->mobile_app_id()->asString(),
             (*it_app_list).get()->hmi_level(),
             static_cast<mobile_api::FunctionID::eType>(function_id()),
+            params,
             &params_permissions);
 
       // Check, if RPC is allowed by policy

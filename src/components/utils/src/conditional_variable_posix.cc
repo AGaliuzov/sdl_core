@@ -115,15 +115,18 @@ ConditionalVariable::WaitStatus ConditionalVariable::WaitFor(
   switch(timedwait_status) {
     case 0: {
       wait_status = kNoTimeout;
-    } break;
+      break;
+    }
     case EINTR: {
       wait_status = kNoTimeout;
-    } break;
+      break;
+    }
     case ETIMEDOUT: {
       wait_status = kTimeout;
-    } break;
+      break;
+    }
     default: {
-      LOG4CXX_ERROR(logger_, "Failed to timewait for conditional variable");
+      LOG4CXX_ERROR(logger_, "Failed to timewait for conditional variable timedwait_status: " << timedwait_status);
     }
   }
 

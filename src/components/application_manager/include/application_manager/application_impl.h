@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
@@ -42,6 +42,7 @@
 #include "application_manager/application_data_impl.h"
 #include "application_manager/usage_statistics.h"
 #include "connection_handler/device.h"
+#include "utils/timer_thread.h"
 #include "utils/lock.h"
 
 namespace usage_statistics {
@@ -57,7 +58,7 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   ApplicationImpl(uint32_t application_id,
                   const std::string& mobile_app_id,
                   const std::string& app_name,
-                  usage_statistics::StatisticsManager* statistics_manager);
+                  utils::SharedPtr<usage_statistics::StatisticsManager> statistics_manager);
 
   ~ApplicationImpl();
 
@@ -72,10 +73,15 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   bool MakeFullscreen();
   bool IsAudible() const;
   void MakeNotAudible();
+
+  // navi
   bool allowed_support_navigation() const;
   void set_allowed_support_navigation(bool allow);
-  bool hmi_supports_navi_streaming() const ;
-  void set_hmi_supports_navi_streaming(const bool& supports);
+  bool hmi_supports_navi_video_streaming() const;
+  void set_hmi_supports_navi_video_streaming(bool supports);
+  bool hmi_supports_navi_audio_streaming() const;
+  void set_hmi_supports_navi_audio_streaming(bool supports);
+
   inline bool app_allowed() const;
   bool has_been_activated() const;
 
@@ -97,6 +103,10 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   connection_handler::DeviceHandle device() const;
   void set_tts_speak_state(bool state_tts_speak);
   bool tts_speak_state();
+  void set_tts_properties_in_none(bool active);
+  bool tts_properties_in_none();
+  void set_tts_properties_in_full(bool active);
+  bool tts_properties_in_full();
   void set_version(const Version& ver);
   void set_name(const std::string& name);
   void set_is_media_application(bool is_media);
@@ -170,6 +180,14 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
 
  private:
 
+  // interfaces for NAVI retry sequence
+  bool video_stream_retry_active() const;
+  void set_video_stream_retry_active(bool active);
+  bool audio_stream_retry_active() const;
+  void set_audio_stream_retry_active(bool active);
+  void OnVideoStreamRetry();
+  void OnAudioStreamRetry();
+
   uint32_t                                 hash_val_;
   uint32_t                                 grammar_id_;
 
@@ -180,12 +198,14 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   uint32_t                                 app_id_;
   smart_objects::SmartObject*              active_message_;
   bool                                     is_media_;
-  bool                                     hmi_supports_navi_streaming_;
   bool                                     allowed_support_navigation_;
+  bool                                     hmi_supports_navi_video_streaming_;
+  bool                                     hmi_supports_navi_audio_streaming_;
   bool                                     is_app_allowed_;
   bool                                     has_been_activated_;
   bool                                     tts_speak_state_;
-
+  bool                                     tts_properties_in_none_;
+  bool                                     tts_properties_in_full_;
   mobile_api::HMILevel::eType              hmi_level_;
   uint32_t                                 put_file_in_none_count_;
   uint32_t                                 delete_file_in_none_count_;
@@ -200,6 +220,15 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   std::set<uint32_t>                       subscribed_vehicle_info_;
   UsageStatistics                          usage_report_;
   ProtocolVersion                          protocol_version_;
+
+  // NAVI retry stream
+  volatile bool                            is_video_stream_retry_active_;
+  volatile bool                            is_audio_stream_retry_active_;
+  uint32_t                                 video_stream_retry_number_;
+  uint32_t                                 audio_stream_retry_number_;
+  utils::SharedPtr<timer::TimerThread<ApplicationImpl>> video_stream_retry_timer_;
+  utils::SharedPtr<timer::TimerThread<ApplicationImpl>> audio_stream_retry_timer_;
+
 
   /**
    * @brief Defines number per time in seconds limits

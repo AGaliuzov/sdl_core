@@ -45,7 +45,6 @@ library:
 	$(MAKE) -C components/media_manager/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/smart_objects/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/config_profile/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/request_watchdog/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/hmi_message_handler/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/formatters/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/connection_handler/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
@@ -57,6 +56,7 @@ library:
 	$(MAKE) -C components/policy/src/policy/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/application_manager/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/resumption/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
+	$(MAKE) -C plugins/appenders OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	@echo "***************************************************************************"
 	@echo "Make $@ $(COMPONENT_NAME) finished."
 	@echo "***************************************************************************"
@@ -87,8 +87,7 @@ clean lint metrics:
 	$(MAKE) -C components/interfaces OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/utils/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/smart_objects/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/config_profile/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/request_watchdog/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
+	$(MAKE) -C components/config_profile/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@	
 	$(MAKE) -C components/hmi_message_handler/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/formatters/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/connection_handler/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@

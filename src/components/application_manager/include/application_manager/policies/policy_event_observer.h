@@ -1,4 +1,4 @@
-/*
+﻿/*
  Copyright (c) 2013, Ford Motor Company
  All rights reserved.
 
@@ -34,6 +34,7 @@
 #define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_POLICY_EVENT_OBSERVER_H_
 
 #include "application_manager/event_engine/event_observer.h"
+#include "utils/shared_ptr.h"
 
 namespace policy {
 namespace smart_objects = NsSmartDeviceLink::NsSmartObjects;
@@ -43,13 +44,13 @@ class PolicyManager;
 class PolicyEventObserver :
     public application_manager::event_engine::EventObserver {
  public:
-  PolicyEventObserver(PolicyManager* policy_manager);
+  PolicyEventObserver(utils::SharedPtr<PolicyManager> policy_manager);
   void on_event(const application_manager::event_engine::Event& event);
   void subscribe_on_event(
       const application_manager::event_engine::Event::EventID& event_id,
       int32_t hmi_correlation_id = 0);
  private:
-  PolicyManager* policy_manager_;
+  utils::SharedPtr<PolicyManager> policy_manager_;
   void ProcessOdometerEvent(const smart_objects::SmartObject& message);
 };
 

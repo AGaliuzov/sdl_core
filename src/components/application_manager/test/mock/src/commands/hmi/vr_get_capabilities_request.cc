@@ -1,0 +1,1 @@
+../../../../../src/commands/hmi/vr_get_capabilities_request.cc

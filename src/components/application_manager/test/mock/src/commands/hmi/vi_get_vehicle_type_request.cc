@@ -1,0 +1,1 @@
+../../../../../src/commands/hmi/vi_get_vehicle_type_request.cc

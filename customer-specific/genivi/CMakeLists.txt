@@ -381,10 +381,6 @@ add_custom_target(install-3rd_party
   WORKING_DIRECTORY ${3RD_PARTY_BINARY_DIRECTORY}
 )
 
-if(BUILD_TESTS)
-  add_definitions(-DBUILD_TESTS)
-endif()
-
 if(ENABLE_SECURITY)
   add_definitions(-DENABLE_SECURITY)
   set(SecurityManagerLibrary SecurityManager)
@@ -397,8 +393,20 @@ if(CMAKE_SYSTEM_NAME STREQUAL "QNX")
 set(RTLIB )
 endif()
 
+# Building tests
+if(BUILD_TESTS)
+  enable_testing()
+  add_definitions(-DBUILD_TESTS)
+  # Framework GoogleTest is also integrated together gmock
+  # and must not be added separately
+  add_subdirectory(./src/3rd_party-static/gmock-1.7.0)
+endif()
+
 # --- 3rd party libs (static)
 add_subdirectory(./src/3rd_party-static)
+
+# --- Tools
+add_subdirectory(./tools)
 
 # --- Components
 add_subdirectory(./src/components)
@@ -406,13 +414,9 @@ add_subdirectory(./src/components)
 # --- Main application
 add_subdirectory(./src/appMain)
 
-# Building tests
 if(BUILD_TESTS)
-    enable_testing()
+    # Directory test is deprecated. Use src/components/<name>/test
     include(Dart)
-    # Framework GoogleTest is also integrated together gmock
-    # and must not be added separately
-    add_subdirectory(./src/3rd_party-static/gmock-1.7.0)
     add_subdirectory(./test)
 endif()
 

@@ -2,7 +2,6 @@
 #ifndef POLICY_TABLE_INTERFACE_BASE_POLICY_TABLE_INTERFACE_BASE_TYPES_H_
 #define POLICY_TABLE_INTERFACE_BASE_POLICY_TABLE_INTERFACE_BASE_TYPES_H_
 #include "./enums.h"
-#include "./types.h"
 #include "rpc_base/rpc_message.h"
 namespace Json {
 class Value;
@@ -131,7 +130,7 @@ struct ModuleConfig : CompositeType {
     Optional< Map< String<1, 100>, 1, 255 > > device_certificates;
     Optional< Boolean > preloaded_pt;
     Integer<uint8_t, 0, 255> exchange_after_x_ignition_cycles;
-    Integer<int64_t, 0, 4294967296> exchange_after_x_kilometers;
+    Integer<int64_t, 0, 4294967296ll> exchange_after_x_kilometers;
     Integer<uint8_t, 0, 255> exchange_after_x_days;
     Integer<uint16_t, 0, 65535> timeout_after_x_seconds;
     SecondsBetweenRetries seconds_between_retries;

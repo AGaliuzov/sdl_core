@@ -168,11 +168,7 @@ FFW.VR = FFW.RPCObserver.create( {
             }
             case "VR.DeleteCommand": {
 
-                SDL.SDLModel.deleteCommandVR(request.params);
-
-                this.sendVRResult(SDL.SDLModel.resultCode["SUCCESS"],
-                    request.id,
-                    request.method);
+                SDL.SDLModel.deleteCommandVR(request);
 
                 break;
             }

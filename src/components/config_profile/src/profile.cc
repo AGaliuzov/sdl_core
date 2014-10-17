@@ -80,6 +80,7 @@ const char* kAppStorageFolderKey = "AppStorageFolder";
 const char* kAppResourseFolderKey = "AppResourceFolder";
 const char* kAppConfigFolderKey = "AppConfigFolder";
 const char* kLaunchHMIKey = "LaunchHMI";
+const char* kStartStreamRetry = "StartStreamRetry";
 const char* kEnableRedecodingKey = "EnableRedecoding";
 const char* kVideoStreamConsumerKey = "VideoStreamConsumer";
 const char* kAudioStreamConsumerKey = "AudioStreamConsumer";
@@ -149,6 +150,7 @@ const char* kIAP2SystemConfigKey = "IAP2SystemConfig";
 const char* kIAP2HubConnectAttemptskey = "IAP2HubConnectAttempts";
 const char* kIAPHubConnectionWaitTimeoutKey = "ConnectionWaitTimeout";
 const char* kDefaultHubProtocolIndexKey = "DefaultHubProtocolIndex";
+const char* kTTSGlobalPropertiesTimeoutKey = "TTSGlobalPropertiesTimeout";
 
 const char* kDefaultPoliciesSnapshotFileName = "sdl_snapshot.json";
 const char* kDefaultHmiCapabilitiesFileName = "hmi_capabilities.json";
@@ -191,7 +193,7 @@ const uint32_t kDefaultMaxCmdId = 2000000000;
 const uint32_t kDefaultPutFileRequestInNone = 5;
 const uint32_t kDefaultDeleteFileRequestInNone = 5;
 const uint32_t kDefaultListFilesRequestInNone = 5;
-const uint32_t kDefaultTimeout = 10000;
+const uint32_t kDefaultTimeout = 10;
 const uint32_t kDefaultAppResumingTimeout = 5;
 const uint32_t kDefaultDirQuota = 104857600;
 const uint32_t kDefaultAppTimeScaleMaxRequests = 100;
@@ -203,9 +205,11 @@ const uint32_t kDefaultTransportManagerDisconnectTimeout = 0;
 const uint32_t kDefaultApplicationListUpdateTimeout = 1;
 const std::pair<uint32_t, uint32_t> kReadDIDFrequency = {5 , 1};
 const std::pair<uint32_t, uint32_t> kGetVehicleDataFrequency = {5 , 1};
+const std::pair<uint32_t, uint32_t> kStartStreamRetryAmount = {3 , 1};
 const uint32_t kDefaultMaxThreadPoolSize = 2;
 const int kDefaultIAP2HubConnectAttempts = 0;
 const int kDefaultIAPHubConnectionWaitTimeout = 10;
+const uint16_t kDefaultTTSGlobalPropertiesTimeout = 20;
 
 }  // namespace
 
@@ -277,15 +281,15 @@ Profile::Profile()
     iap_system_config_(kDefaultIAPSystemConfig),
     iap2_system_config_(kDefaultIAP2SystemConfig),
     iap2_hub_connect_attempts_(kDefaultIAP2HubConnectAttempts),
-    iap_hub_connection_wait_timeout_(kDefaultIAPHubConnectionWaitTimeout) {
+    iap_hub_connection_wait_timeout_(kDefaultIAPHubConnectionWaitTimeout),
+    tts_global_properties_timeout_(kDefaultTTSGlobalPropertiesTimeout) {
 }
 
 Profile::~Profile() {
 }
 
 void Profile::config_file_name(const std::string& fileName) {
-  if (false == fileName.empty()) {
-    LOG4CXX_INFO(logger_, "setConfigFileName " << fileName);
+  if (false == fileName.empty()) {    
     config_file_name_ = fileName;
     UpdateValues();
   }
@@ -550,6 +554,10 @@ const std::pair<uint32_t, int32_t>& Profile::get_vehicle_data_frequency() const 
   return get_vehicle_data_frequency_;
 }
 
+const  std::pair<uint32_t, int32_t>& Profile::start_stream_retry_amount() const {
+  return start_stream_retry_amount_;
+}
+
 uint32_t Profile::thread_pool_size() const  {
   return max_thread_pool_size_;
 }
@@ -584,6 +592,10 @@ int Profile::iap2_hub_connect_attempts() const {
 
 int Profile::iap_hub_connection_wait_timeout() const {
   return iap_hub_connection_wait_timeout_;
+}
+
+uint16_t Profile::tts_global_properties_timeout() const {
+  return tts_global_properties_timeout_;
 }
 
 void Profile::UpdateValues() {
@@ -662,11 +674,11 @@ ReadStringValue(&app_info_storage_, kDefaultAppInfoFileName,
 
   LOG_UPDATED_VALUE(server_port_, kServerPortKey, kHmiSection);
 
-    // Video streaming port
-    ReadUIntValue(&video_streaming_port_, kDefaultVideoStreamingPort,
-                  kHmiSection, kVideoStreamingPortKey);
+  // Video streaming port
+  ReadUIntValue(&video_streaming_port_, kDefaultVideoStreamingPort,
+                kHmiSection, kVideoStreamingPortKey);
 
-    LOG_UPDATED_VALUE(video_streaming_port_, kVideoStreamingPortKey,
+  LOG_UPDATED_VALUE(video_streaming_port_, kVideoStreamingPortKey,
                       kHmiSection);
   // Audio streaming port
   ReadUIntValue(&audio_streaming_port_, kDefaultAudioStreamingPort,
@@ -691,6 +703,10 @@ ReadStringValue(&app_info_storage_, kDefaultAppInfoFileName,
     }
 
     LOG_UPDATED_VALUE(min_tread_stack_size_, kThreadStackSizeKey, kMainSection);
+
+    // Start stream retry frequency
+    ReadUintIntPairValue(&start_stream_retry_amount_, kStartStreamRetryAmount,
+                         kMediaManagerSection, kStartStreamRetry);
 
     // Redecoding parameter
     std::string redecoding_value;
@@ -972,7 +988,16 @@ ReadStringValue(&app_info_storage_, kDefaultAppInfoFileName,
       vr_help_command_value.clear();
       LOG_UPDATED_VALUE(vr_help_command_value, kHelpCommandKey,
                         kVrCommandsSection);
-  }
+    }
+
+    //TTS GlobalProperties timeout
+    ReadUIntValue(&tts_global_properties_timeout_,
+                  kDefaultTTSGlobalPropertiesTimeout,
+                  kGlobalPropertiesSection,
+                  kTTSGlobalPropertiesTimeoutKey);
+
+    LOG_UPDATED_VALUE(tts_global_properties_timeout_, kTTSGlobalPropertiesTimeoutKey,
+                      kGlobalPropertiesSection);
 
     // Application time scale maximum requests
     ReadUIntValue(&app_time_scale_max_requests_,

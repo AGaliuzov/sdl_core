@@ -356,6 +356,12 @@ class Profile : public utils::Singleton<Profile> {
     uint16_t transport_manager_tcp_adapter_port() const;
 
     /**
+     * @brief Returns value of timeout after which sent
+     * tts global properties for VCA
+     */
+    uint16_t tts_global_properties_timeout() const;
+
+    /**
      * @brief Reads a string value from the profile
      *
      * @param value         Result value
@@ -460,6 +466,8 @@ class Profile : public utils::Singleton<Profile> {
     const std::pair<uint32_t, int32_t>& read_did_frequency() const;
 
     const  std::pair<uint32_t, int32_t>& get_vehicle_data_frequency() const;
+
+    const  std::pair<uint32_t, int32_t>& start_stream_retry_amount() const;
 
     /**
      * @brief Returns max allowed threads number for handling mobile requests
@@ -649,13 +657,19 @@ class Profile : public utils::Singleton<Profile> {
      * first value is count of request
      * second is time scale
      */
-    std::pair<uint32_t, int32_t>   read_did_frequency_;
+    std::pair<uint32_t, int32_t>    read_did_frequency_;
 
     /*
      * first value is count of request
      * second is time scale
      */
-    std::pair<uint32_t, int32_t>   get_vehicle_data_frequency_;
+    std::pair<uint32_t, int32_t>    get_vehicle_data_frequency_;
+
+    /**
+     * first value is count of retries for start stream
+     * second for timer
+     */
+    std::pair<uint32_t, int32_t>    start_stream_retry_amount_;
 
     std::string                     iap_legacy_protocol_mask_;
     std::string                     iap_hub_protocol_mask_;
@@ -664,6 +678,7 @@ class Profile : public utils::Singleton<Profile> {
     std::string                     iap2_system_config_;
     int                             iap2_hub_connect_attempts_;
     int                             iap_hub_connection_wait_timeout_;
+    uint16_t                        tts_global_properties_timeout_;
 
     FRIEND_BASE_SINGLETON_CLASS(Profile);
     DISALLOW_COPY_AND_ASSIGN(Profile);

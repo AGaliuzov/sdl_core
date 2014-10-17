@@ -36,16 +36,14 @@
 #include "config_profile/profile.h"
 #include "utils/logger.h"
 
-#include "utils/file_system_tests.h"
-#include "utils/data_time_tests.h"
-#include "utils/prioritized_queue_tests.h"
 #include "protocol_handler/protocol_handler_tm_test.h"
 #include "application_manager/formatters_commands.h"
+
+#include "connection_handler/heart_beat_monitor_test.h"
 
 // TODO(Ezamakhov): add skip tests
 #ifdef ENABLE_SECURITY
 #include "connection_handler/connection_test.h"
-//#include "connection_handler/heart_beat_monitor_test.h"
 #include "connection_handler/connection_handler_impl_test.h"
 #include "security_manager/crypto_manager_impl_test.h"
 #include "security_manager/security_manager_test.h"
@@ -71,7 +69,6 @@
 
 // #include "jsoncpp/json_reader_test.h"
 // #include "json_handler/smart_schema_draft_test.h"
-// #include "request_watchdog/request_watchdog_test.h"
 // #include "json_handler/formatters/formatter_test_helper.h"
 // #include "json_handler/formatters/formatter_json_alrpcv1_test.h"
 // #include "json_handler/formatters/formatter_json_alrpcv2_test.h"

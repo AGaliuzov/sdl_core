@@ -40,7 +40,7 @@
 #include "policy/sql_wrapper.h"
 #include "policy/sql_pt_queries.h"
 #include "policy/policy_helper.h"
-
+#include "policy/cache_manager.h"
 #ifndef __QNX__
 #  include "config_profile/profile.h"
 #endif  // __QNX__
@@ -484,6 +484,8 @@ bool SQLPTRepresentation::GatherUsageAndErrorCounts(
 void SQLPTRepresentation::GatherDeviceData(
   policy_table::DeviceData* data) const {
   LOG4CXX_INFO(logger_, "Gather device data.");
+  data->mark_initialized();
+
   dbms::SQLQuery query(db());
   if (query.Prepare(sql_pt::kSelectDeviceData)) {
     policy_table::DeviceParams device_data_empty;
@@ -637,7 +639,6 @@ bool SQLPTRepresentation::Save(const policy_table::Table& table) {
 
 bool SQLPTRepresentation::SaveFunctionalGroupings(
   const policy_table::FunctionalGroupings& groups) {
-  LOG4CXX_INFO(logger_, "SaveFunctionalGroupings");
   dbms::SQLQuery query_delete(db());
   if (!query_delete.Exec(sql_pt::kDeleteRpc)) {
     LOG4CXX_WARN(logger_, "Incorrect delete from rpc.");
@@ -662,7 +663,7 @@ bool SQLPTRepresentation::SaveFunctionalGroupings(
     // we drop records from the table and add them again.
     // That's why we use hash as a primary key insted of
     // simple auto incremental index.
-    const long int id = abs(GenerateHash(it->first));
+    const long int id = abs(CacheManager::GenerateHash(it->first));
     // SQLite's Bind doesn support 'long' type
     // So we need to explicitly cast it to int64_t
     // to avoid ambiguity.
@@ -731,7 +732,6 @@ bool SQLPTRepresentation::SaveRpcs(int64_t group_id,
 
 bool SQLPTRepresentation::SaveApplicationPolicies(
   const policy_table::ApplicationPolicies& apps) {
-  LOG4CXX_INFO(logger_, "SaveApplicationPolicies");
   dbms::SQLQuery query_delete(db());
   if (!query_delete.Exec(sql_pt::kDeleteAppGroup)) {
     LOG4CXX_WARN(logger_, "Incorrect delete from app_group.");
@@ -791,17 +791,16 @@ bool SQLPTRepresentation::SaveSpecificAppPolicy(
   app_query.Bind(0, app.first);
   app_query.Bind(1, std::string(policy_table::EnumToJsonString(app.second.priority)));
   app_query.Bind(2, app.second.is_null());
-  app_query.Bind(3, app.second.memory_kb);
-  app_query.Bind(4, app.second.heart_beat_timeout_ms);
+  app_query.Bind(3, *app.second.memory_kb);
+  app_query.Bind(4, *app.second.heart_beat_timeout_ms);
   app.second.certificate.is_initialized() ?
-  app_query.Bind(5, app.second.certificate) : app_query.Bind(5);
+  app_query.Bind(5, *app.second.certificate) : app_query.Bind(5);
 
   if (!app_query.Exec() || !app_query.Reset()) {
     LOG4CXX_WARN(logger_, "Incorrect insert into application.");
     return false;
   }
 
-  LOG4CXX_INFO(logger_, "Saving data for application: " << app.first);
   if (app.second.is_string()) {
     if (kDefaultId.compare(app.second.get_string()) == 0) {
       if (!SetDefaultPolicy(app.first)) {
@@ -895,14 +894,12 @@ bool SQLPTRepresentation::SaveAppType(const std::string& app_id,
 }
 
 bool SQLPTRepresentation::SaveModuleMeta(const policy_table::ModuleMeta& meta) {
-  LOG4CXX_INFO(logger_, "SaveModuleMeta");
   // Section Module Meta is empty for SDL specific
   return true;
 }
 
 bool SQLPTRepresentation::SaveModuleConfig(
   const policy_table::ModuleConfig& config) {
-  LOG4CXX_INFO(logger_, "SaveModuleConfig");
   dbms::SQLQuery query(db());
   if (!query.Prepare(sql_pt::kUpdateModuleConfig)) {
     LOG4CXX_WARN(logger_, "Incorrect update statement for module config");
@@ -984,7 +981,7 @@ bool SQLPTRepresentation::SaveServiceEndpoints(
 
 bool SQLPTRepresentation::SaveConsumerFriendlyMessages(
   const policy_table::ConsumerFriendlyMessages& messages) {
-  LOG4CXX_INFO(logger_, "SaveConsumerFriendlyMessages");
+  LOG4CXX_TRACE_ENTER(logger_);
 
   // According CRS-2419  If there is no “consumer_friendly_messages” key,
   // the current local consumer_friendly_messages section shall be maintained in
@@ -1024,6 +1021,8 @@ bool SQLPTRepresentation::SaveConsumerFriendlyMessages(
         }
       }
     }
+  } else {
+    LOG4CXX_INFO(logger_, "Messages list is empty");
   }
 
   return true;
@@ -1059,19 +1058,6 @@ bool SQLPTRepresentation::SaveLanguage(const std::string& code) {
   }
 
   return true;
-}
-
-unsigned long SQLPTRepresentation::GenerateHash(const std::string& str_to_hash) {
-
-  unsigned long hash = 5381U;
-  std::string::const_iterator it = str_to_hash.begin();
-  std::string::const_iterator it_end = str_to_hash.end();
-
-  for (;it != it_end; ++it) {
-       hash = ((hash << 5) + hash) + (*it);
-  }
-
-  return hash;
 }
 
 bool SQLPTRepresentation::SaveMessageString(
@@ -1130,7 +1116,6 @@ bool SQLPTRepresentation::SaveNumberOfNotificationsPerMinute(
 
 bool SQLPTRepresentation::SaveDeviceData(
   const policy_table::DeviceData& devices) {
-  LOG4CXX_INFO(logger_, "SaveDeviceData");
   dbms::SQLQuery query(db());
   if (!query.Prepare(sql_pt::kInsertDeviceData)) {
     LOG4CXX_WARN(logger_, "Incorrect insert statement for device data.");
@@ -1151,7 +1136,6 @@ bool SQLPTRepresentation::SaveDeviceData(
 
 bool SQLPTRepresentation::SaveUsageAndErrorCounts(
   const policy_table::UsageAndErrorCounts& counts) {
-  LOG4CXX_INFO(logger_, "SaveUsageAndErrorCounts");
   dbms::SQLQuery query(db());
   if (!query.Exec(sql_pt::kDeleteAppLevel)) {
     LOG4CXX_WARN(logger_, "Incorrect delete from app level.");

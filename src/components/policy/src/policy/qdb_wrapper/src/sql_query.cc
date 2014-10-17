@@ -59,8 +59,7 @@ class SetBindReal {
   }
   void operator()(const std::pair<int, double>& x) {
     // In QDB the number of position for binding starts since 1.
-    QDB_SETBIND(&(array_[x.first + 1]), x.first + 1, QDB_REAL,
-                (sizeof(x.second)), &(x.second));
+    QDB_SETARRAYBIND_REAL(array_, x.first + 1, x.second);
   }
  private:
   qdb_binding_t* array_;
@@ -119,8 +118,8 @@ bool SQLQuery::Prepare(const std::string& query) {
   return true;
 }
 
-int SQLQuery::SetBinds() {
-  int binding_count = int_binds_.size() + double_binds_.size()
+uint8_t SQLQuery::SetBinds() {
+  uint8_t binding_count = int_binds_.size() + double_binds_.size()
       + string_binds_.size() + null_binds_.size();
 
   bindings_ = new qdb_binding_t[binding_count];
@@ -157,7 +156,7 @@ bool SQLQuery::Exec() {
     return true;
 
   current_row_ = 0;
-  int binding_count = SetBinds();
+  uint8_t binding_count = SetBinds();
   if (qdb_stmt_exec(db_->conn(), statement_, bindings_, binding_count) == -1) {
     error_ = Error::ERROR;
     return false;

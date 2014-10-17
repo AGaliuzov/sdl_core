@@ -1,4 +1,4 @@
-/*
+﻿/*
  Copyright (c) 2013, Ford Motor Company
  All rights reserved.
 
@@ -40,12 +40,12 @@ namespace policy {
 namespace smart_objects = NsSmartDeviceLink::NsSmartObjects;
 using namespace application_manager;
 
-PolicyEventObserver::PolicyEventObserver(PolicyManager* policy_manager)
+PolicyEventObserver::PolicyEventObserver(utils::SharedPtr<PolicyManager> policy_manager)
     : policy_manager_(policy_manager) {
 }
 
 void PolicyEventObserver::on_event(const event_engine::Event& event) {
-  if (!policy_manager_) {
+  if (policy_manager_.valid()) {
     return;
   }
   const smart_objects::SmartObject& message = event.smart_object();

@@ -1,0 +1,1 @@
+../../../../../src/commands/hmi/on_vi_device_status_notification.cc

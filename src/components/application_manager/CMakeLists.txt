@@ -4,7 +4,7 @@ endif()
 
 
 include_directories (
-  ./include/
+  include/
   ../utils/include/
   ../formatters/include/
   ../protocol_handler/include/
@@ -20,6 +20,7 @@ include_directories (
   ${ENCRYPTION_INCLUDE_DIRECTORY}
   ${MESSAGE_BROKER_INCLUDE_DIRECTORY}
   ${CMAKE_BINARY_DIR}/src/components/
+  ${CMAKE_SOURCE_DIR}/src/components/include/
   ${CMAKE_SOURCE_DIR}/src/components/policy/src/policy/include/
   ${CMAKE_SOURCE_DIR}/src/components/policy/src/policy/usage_statistics/include/
   ${LOG4CXX_INCLUDE_DIRECTORY}
@@ -28,6 +29,7 @@ include_directories (
 set (SOURCES
 ./src/application_manager_impl.cc
 ./src/usage_statistics.cc
+./src/request_info.cc
 ./src/message.cc
 ./src/application_impl.cc
 ./src/mobile_command_factory.cc
@@ -360,6 +362,7 @@ set (HMI_COMMANDS_SOURCES
 ./src/commands/hmi/get_urls.cc
 ./src/commands/hmi/get_urls_response.cc
 ./src/commands/hmi/on_device_state_changed_notification.cc
+./src/commands/hmi/on_tts_reset_timeout_notification.cc
 )
 
 set (HMI_COMMANDS_SOURCES_JSON
@@ -418,4 +421,8 @@ target_link_libraries("ApplicationManager" ${LIBRARIES})
 
 if(ENABLE_LOG)
   target_link_libraries("ApplicationManager" log4cxx -L${LOG4CXX_LIBS_DIRECTORY})
+endif()
+
+if(BUILD_TESTS)
+#  add_subdirectory(test)
 endif()

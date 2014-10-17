@@ -757,6 +757,18 @@ void ConnectionHandlerImpl::StartSessionHeartBeat(uint32_t connection_key) {
   }
 }
 
+void ConnectionHandlerImpl::SetHeartBeatTimeout(uint32_t connection_key,
+                                                int32_t timeout) {
+  uint32_t connection_handle = 0;
+  uint8_t session_id = 0;
+  PairFromKey(connection_key, &connection_handle, &session_id);
+  sync_primitives::AutoLock lock(connection_list_lock_);
+  ConnectionList::iterator it = connection_list_.find(connection_handle);
+  if (connection_list_.end() != it) {
+    it->second->SetHeartBeatTimeout(timeout);
+  }
+}
+
 void ConnectionHandlerImpl::SendHeartBeat(ConnectionHandle connection_handle,
                                           uint8_t session_id) {
   transport_manager::ConnectionUID connection_uid =

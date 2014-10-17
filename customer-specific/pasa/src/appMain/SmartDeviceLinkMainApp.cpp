@@ -13,6 +13,7 @@
 #include "utils/file_system.h"
 #include "utils/log_message_loop_thread.h"
 #include "config_profile/profile.h"
+#include "utils/appenders_loader.h"
 
 #include "hmi_message_handler/hmi_message_handler_impl.h"
 #include "hmi_message_handler/messagebroker_adapter.h"
@@ -178,7 +179,6 @@ void startSmartDeviceLink()
 
   // --------------------------------------------------------------------------
   // Components initialization
-  profile::Profile::instance()->config_file_name(SDL_INIFILE_PATH);
 
   // TODO: Remove this code when PASA will support SDL_MSG_START_USB_LOGGING
   // Start section
@@ -194,6 +194,10 @@ void startSmartDeviceLink()
 
   if (!main_namespace::LifeCycle::instance()->StartComponents()) {
     LOG4CXX_INFO(logger_, "StartComponents failed.");
+#ifdef ENABLE_LOG
+    logger::LogMessageLoopThread::destroy();
+#endif
+    DEINIT_LOGGER();
     exit(EXIT_FAILURE);
   }
 
@@ -202,6 +206,10 @@ void startSmartDeviceLink()
 
   if (!main_namespace::LifeCycle::instance()->InitMessageSystem()) {
     LOG4CXX_INFO(logger_, "InitMessageBroker failed");
+#ifdef ENABLE_LOG
+    logger::LogMessageLoopThread::destroy();
+#endif
+    DEINIT_LOGGER();
     exit(EXIT_FAILURE);
   }
   LOG4CXX_INFO(logger_, "InitMessageBroker successful");
@@ -240,16 +248,32 @@ void ApplinkNotificationThreadDelegate::threadMain() {
   policy_init.Add(kPolicyInitializationScript);
   if (!policy_init.Execute(true)) {
     LOG4CXX_ERROR(logger_, "QDB initialization failed.");
+#ifdef ENABLE_LOG
+    logger::LogMessageLoopThread::destroy();
+#endif
+    DEINIT_LOGGER();
+    exit(EXIT_FAILURE);
   }
 #endif
 
   while (!g_bTerminate) {
     if ( (length = mq_receive(mq, buffer, sizeof(buffer), 0)) != -1) {
       switch (buffer[0]) {
-    case SDL_MSG_SDL_START:            startSmartDeviceLink();    break;
-    case SDL_MSG_START_USB_LOGGING:    startUSBLogging();         break;
-    case SDL_MSG_SDL_STOP:             stopSmartDeviceLink();     exit(0);
-    default: break;
+        case SDL_MSG_SDL_START:
+          startSmartDeviceLink();
+          break;
+        case SDL_MSG_START_USB_LOGGING:
+          startUSBLogging();
+          break;
+        case SDL_MSG_SDL_STOP:
+          stopSmartDeviceLink();
+#ifdef ENABLE_LOG
+          logger::LogMessageLoopThread::destroy();
+#endif
+          DEINIT_LOGGER();
+          exit(EXIT_SUCCESS);
+        default:
+          break;
       }
     }
   } //while-end
@@ -263,6 +287,7 @@ void ApplinkNotificationThreadDelegate::threadMain() {
  */
 int main(int argc, char** argv) {
 
+  profile::Profile::instance()->config_file_name(SDL_INIFILE_PATH);
   INIT_LOGGER(profile::Profile::instance()->log4cxx_config_file());
   configureLogging();
 
@@ -272,6 +297,10 @@ int main(int argc, char** argv) {
   LOG4CXX_INFO(logger_, "Snapshot: {TAG}");
   LOG4CXX_INFO(logger_, "Git commit: {GIT_COMMIT}");
   LOG4CXX_INFO(logger_, "Application main()");
+
+  if (!utils::appenders_loader.Loaded()) {
+    LOG4CXX_ERROR(logger_, "Appenders plugin not loaded, file logging disabled");
+  }
 
   utils::SharedPtr<threads::Thread> applink_notification_thread =
       new threads::Thread("ApplinkNotify", new ApplinkNotificationThreadDelegate());

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
@@ -74,20 +74,22 @@ namespace application_manager {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "ApplicationManager")
 
-ApplicationImpl::ApplicationImpl(
-    uint32_t application_id,
+ApplicationImpl::ApplicationImpl(uint32_t application_id,
     const std::string& mobile_app_id,
     const std::string& app_name,
-    usage_statistics::StatisticsManager* statistics_manager)
+    utils::SharedPtr<usage_statistics::StatisticsManager> statistics_manager)
     : grammar_id_(0),
       app_id_(application_id),
       active_message_(NULL),
       is_media_(false),
-      hmi_supports_navi_streaming_(false),
       allowed_support_navigation_(false),
+      hmi_supports_navi_video_streaming_(false),
+      hmi_supports_navi_audio_streaming_(false),
       is_app_allowed_(true),
       has_been_activated_(false),
       tts_speak_state_(false),
+      tts_properties_in_none_(false),
+      tts_properties_in_full_(false),
       hmi_level_(mobile_api::HMILevel::HMI_NONE),
       put_file_in_none_count_(0),
       delete_file_in_none_count_(0),
@@ -96,7 +98,11 @@ ApplicationImpl::ApplicationImpl(
       audio_streaming_state_(mobile_api::AudioStreamingState::NOT_AUDIBLE),
       device_(0),
       usage_report_(mobile_app_id, statistics_manager),
-      protocol_version_(ProtocolVersion::kV3) {
+      protocol_version_(ProtocolVersion::kV3),
+      is_video_stream_retry_active_(false),
+      is_audio_stream_retry_active_(false),
+      video_stream_retry_number_(0),
+      audio_stream_retry_number_(0) {
 
   cmd_number_to_time_limits_[mobile_apis::FunctionID::ReadDIDID] =
       {date_time::DateTime::getCurrentTime(), 0};
@@ -247,6 +253,24 @@ bool ApplicationImpl::tts_speak_state() {
   return tts_speak_state_;
 }
 
+void ApplicationImpl::set_tts_properties_in_none(
+    bool active) {
+  tts_properties_in_none_ = active;
+}
+
+bool ApplicationImpl::tts_properties_in_none() {
+  return tts_properties_in_none_;
+}
+
+void ApplicationImpl::set_tts_properties_in_full(
+    bool active) {
+  tts_properties_in_full_ = active;
+}
+
+bool ApplicationImpl::tts_properties_in_full() {
+  return tts_properties_in_full_;
+}
+
 void ApplicationImpl::set_hmi_level(
     const mobile_api::HMILevel::eType& hmi_level) {
   if (mobile_api::HMILevel::HMI_NONE != hmi_level_ &&
@@ -260,12 +284,100 @@ void ApplicationImpl::set_hmi_level(
   usage_report_.RecordHmiStateChanged(hmi_level);
 }
 
-void ApplicationImpl::set_hmi_supports_navi_streaming(const bool& supports) {
-  hmi_supports_navi_streaming_ = supports;
+void ApplicationImpl::set_hmi_supports_navi_video_streaming(bool supports) {
+  hmi_supports_navi_video_streaming_ = supports;
+
+  if ((!supports) && (!video_stream_retry_active())) {
+    std::pair<uint32_t, int32_t> stream_retry =
+        profile::Profile::instance()->start_stream_retry_amount();
+    set_video_stream_retry_active(true);
+    video_stream_retry_number_ = stream_retry.first;
+    video_stream_retry_timer_ =
+        utils::SharedPtr<timer::TimerThread<ApplicationImpl>>(
+            new timer::TimerThread<ApplicationImpl>(
+                "VideoStreamRetry", this, &ApplicationImpl::OnVideoStreamRetry, true));
+    // start separate pthread for timer without delays
+    video_stream_retry_timer_->start(0);
+  }
 }
 
-bool ApplicationImpl::hmi_supports_navi_streaming() const {
-  return hmi_supports_navi_streaming_;
+bool ApplicationImpl::hmi_supports_navi_video_streaming() const {
+  return hmi_supports_navi_video_streaming_;
+}
+
+void ApplicationImpl::set_hmi_supports_navi_audio_streaming(bool supports) {
+  hmi_supports_navi_audio_streaming_ = supports;
+
+  if ((!supports) && (!audio_stream_retry_active())) {
+    std::pair<uint32_t, int32_t> stream_retry =
+        profile::Profile::instance()->start_stream_retry_amount();
+    set_audio_stream_retry_active(true);
+    audio_stream_retry_number_ = stream_retry.first;
+    audio_stream_retry_timer_ =
+        utils::SharedPtr<timer::TimerThread<ApplicationImpl>>(
+            new timer::TimerThread<ApplicationImpl>(
+                "AudioStreamRetry", this, &ApplicationImpl::OnAudioStreamRetry, true));
+    // start separate pthread for timer without delays
+    audio_stream_retry_timer_->start(0);
+  }
+}
+
+bool ApplicationImpl::hmi_supports_navi_audio_streaming() const {
+  return hmi_supports_navi_audio_streaming_;
+}
+
+bool ApplicationImpl::video_stream_retry_active() const {
+  return is_video_stream_retry_active_;
+}
+
+void ApplicationImpl::set_video_stream_retry_active(bool active) {
+  is_video_stream_retry_active_ = active;
+}
+
+bool ApplicationImpl::audio_stream_retry_active() const {
+  return is_audio_stream_retry_active_;
+}
+
+void ApplicationImpl::set_audio_stream_retry_active(bool active) {
+  is_audio_stream_retry_active_ = active;
+}
+
+void ApplicationImpl::OnVideoStreamRetry() {
+  if (video_stream_retry_number_) {
+    LOG4CXX_INFO(logger_, "Send video stream retry "
+                 << video_stream_retry_number_);
+
+    application_manager::MessageHelper::SendNaviStartStream(app_id());
+    --video_stream_retry_number_;
+
+    std::pair<uint32_t, int32_t> stream_retry =
+        profile::Profile::instance()->start_stream_retry_amount();
+    int32_t time_out = stream_retry.second;
+    video_stream_retry_timer_->updateTimeOut(time_out);
+  } else {
+    LOG4CXX_INFO(logger_, "Stop video streaming retry");
+    video_stream_retry_timer_.release();
+    set_video_stream_retry_active(false);
+  }
+}
+
+void ApplicationImpl::OnAudioStreamRetry() {
+  if (audio_stream_retry_number_) {
+    LOG4CXX_INFO(logger_, "Send audio streaming retry "
+                 << audio_stream_retry_number_);
+
+    application_manager::MessageHelper::SendAudioStartStream(app_id());
+    --audio_stream_retry_number_;
+
+    std::pair<uint32_t, int32_t> stream_retry =
+        profile::Profile::instance()->start_stream_retry_amount();
+    int32_t time_out = stream_retry.second;
+    audio_stream_retry_timer_->updateTimeOut(time_out);
+  } else {
+    LOG4CXX_INFO(logger_, "Stop audio streaming retry");
+    audio_stream_retry_timer_.release();
+    set_audio_stream_retry_active(false);
+  }
 }
 
 void ApplicationImpl::increment_put_file_in_none_count() {
@@ -606,7 +718,6 @@ void ApplicationImpl::SubscribeToSoftButtons(int32_t cmd_id,
   }
 }
 
-
 bool ApplicationImpl::IsSubscribedToSoftButton(const uint32_t softbutton_id) {
   sync_primitives::AutoLock lock(cmd_softbuttonid_lock_);
   CommandSoftButtonID::iterator it = cmd_softbuttonid_.begin();
@@ -625,7 +736,5 @@ void ApplicationImpl::UnsubscribeFromSoftButtons(int32_t cmd_id) {
     cmd_softbuttonid_.erase(it);
   }
 }
-
-
 
 }  // namespace application_manager
