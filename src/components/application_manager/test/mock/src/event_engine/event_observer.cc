@@ -1,1 +1,0 @@
-../../../../src/event_engine/event_observer.cc

@@ -1,1 +1,0 @@
-../../../../../src/commands/hmi/on_device_state_changed_notification.cc

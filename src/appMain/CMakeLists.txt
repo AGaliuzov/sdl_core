@@ -176,30 +176,6 @@ if(BUILD_TESTS)
 include_directories (
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
-  ${CMAKE_SOURCE_DIR}/src/components/protocol_handler/include/
-  ${JSONCPP_INCLUDE_DIRECTORY}
-  ${CMAKE_SOURCE_DIR}/src/components/formatters/include
-  ${CMAKE_SOURCE_DIR}/src/components/transport_manager/include
-  ${SecurityManagerIncludeDir}
-  ${CMAKE_SOURCE_DIR}/src/components/config_profile/include
-  ${CMAKE_SOURCE_DIR}/src/components/utils/include/
-  ${CMAKE_SOURCE_DIR}/src/components/connection_handler/include/
-  ${CMAKE_SOURCE_DIR}/src/components/hmi_message_handler/include
-  ${CMAKE_SOURCE_DIR}/src/components/request_watchdog/include
-  ${CMAKE_SOURCE_DIR}/src/components/smart_objects/include/
-  ${CMAKE_SOURCE_DIR}/src/components/media_manager/include/
-  ${CMAKE_SOURCE_DIR}/src/components/time_tester/include
-  ${CMAKE_SOURCE_DIR}/src/components/policy/src/policy/include/
-  ${CMAKE_SOURCE_DIR}/src/components/resumption/include/
-  ${MESSAGE_BROKER_INCLUDE_DIRECTORY}
-  ${ENCRYPTION_INCLUDE_DIRECTORY}
-  ${CMAKE_SOURCE_DIR}/src/components/
-  ${CMAKE_BINARY_DIR}/src/components/
-  ${CMAKE_SOURCE_DIR}/src/components/dbus/include/
-  ${CMAKE_BINARY_DIR}/src/components/policy/src/policy
-  ${CMAKE_SOURCE_DIR}
-  ${default_media_inc}
-  ${LOG4CXX_INCLUDE_DIRECTORY}
 )
 
   set(testSources
@@ -207,6 +183,7 @@ include_directories (
     ${CMAKE_SOURCE_DIR}/src/components/utils/test/date_time_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/utils/test/file_system_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/media_manager/test/media_adapter_impl_test.cc
+    ${AM_TEST_DIR}/command_impl_test.cc
   )
 
   set(test_exec_libraries
@@ -218,7 +195,7 @@ include_directories (
     gtest
     gmock
     gmock_main
-    ApplicationManager
+    ApplicationManagerTest #Mocked Singlton
     HMI_API
     MOBILE_API
     v4_protocol_v1_2_no_extra

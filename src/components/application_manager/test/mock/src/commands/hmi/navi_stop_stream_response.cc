@@ -1,1 +1,0 @@
-../../../../../src/commands/hmi/navi_stop_stream_response.cc
