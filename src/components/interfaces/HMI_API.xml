@@ -2456,14 +2456,16 @@
   <function name="SetGlobalProperties" messagetype="response">
   </function>
   <function name="OnResetTimeout" messagetype="notification">
-  <description>Sender: HMI->SDL. HMI must send this notification every 10 sec. in case the 'methodName' 
-               results long processing on HMI</description>
-  <param name="appID" type="Integer" mandatory="true">
-    <description>Id of application that concerns the 'methodName'.</description>
-  </param>
-  <param name="methodName" type="String" mandatory="true">
-    <description>The name of the method, the renew of timeout is required for</description>
-  </param>
+    <description>
+      Sender: HMI->SDL. HMI must send this notification every 10 sec. in case the 'methodName'
+      results long processing on HMI
+    </description>
+    <param name="appID" type="Integer" mandatory="true">
+      <description>Id of application that concerns the 'methodName'.</description>
+    </param>
+    <param name="methodName" type="String" mandatory="true">
+      <description>The name of the method, the renew of timeout is required for</description>
+    </param>
   </function>
 </interface>
 

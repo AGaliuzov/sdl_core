@@ -1307,7 +1307,7 @@ void PolicyHandler::AddStatisticsInfo(int type) {
   switch (static_cast<hmi_apis::Common_StatisticsType::eType>(type)) {
     case hmi_apis::Common_StatisticsType::iAPP_BUFFER_FULL: {
       usage_statistics::GlobalCounter count_of_iap_buffer_full(
-        policy_manager_, usage_statistics::IAP_BUFFER_FULL);
+        GetStatisticManager(), usage_statistics::IAP_BUFFER_FULL);
       ++count_of_iap_buffer_full;
       break;
     }
@@ -1322,13 +1322,13 @@ void PolicyHandler::OnSystemError(int code) {
   switch (static_cast<hmi_apis::Common_SystemError::eType>(code)) {
     case hmi_apis::Common_SystemError::SYNC_REBOOTED: {
       usage_statistics::GlobalCounter count_of_sync_reboots(
-        policy_manager_, usage_statistics::SYNC_REBOOTS);
+        GetStatisticManager(), usage_statistics::SYNC_REBOOTS);
       ++count_of_sync_reboots;
       break;
     }
     case hmi_apis::Common_SystemError::SYNC_OUT_OF_MEMMORY: {
       usage_statistics::GlobalCounter count_sync_out_of_memory(
-        policy_manager_, usage_statistics::SYNC_OUT_OF_MEMORY);
+        GetStatisticManager(), usage_statistics::SYNC_OUT_OF_MEMORY);
       ++count_sync_out_of_memory;
       break;
     }

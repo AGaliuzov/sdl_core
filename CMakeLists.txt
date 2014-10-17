@@ -63,13 +63,19 @@ set(ARCH_TYPE_OPTION	"$ENV{ARCH_TYPE}")
 
 add_custom_target(pasa-tarball
   COMMAND ${CMAKE_SOURCE_DIR}/tools/Utils/export-customer-specific.sh ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} pasa
-  COMMAND tar -cz -C /tmp/PASA -f ${CMAKE_BINARY_DIR}/pasa.tar.gz . 
+  COMMAND tar -cz -C /tmp/PASA -f ${CMAKE_BINARY_DIR}/pasa.tar.gz .
   DEPENDS HMI_API MOBILE_API v4_protocol_v1_2_no_extra
 )
 
 add_custom_target(ford-tarball
   COMMAND ${CMAKE_SOURCE_DIR}/tools/Utils/export-customer-specific.sh ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} FORD
   COMMAND tar -czv -C /tmp/FORD -f ${CMAKE_BINARY_DIR}/ford.tar.gz .
+  DEPENDS HMI_API MOBILE_API v4_protocol_v1_2_no_extra
+)
+
+add_custom_target(genivi-tarball
+  COMMAND ${CMAKE_SOURCE_DIR}/tools/Utils/export-customer-specific.sh ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} genivi
+  COMMAND tar -czv -C /tmp/GENIVI -f ${CMAKE_BINARY_DIR}/genivi.tar.gz .
   DEPENDS HMI_API MOBILE_API v4_protocol_v1_2_no_extra
 )
 
@@ -327,6 +333,14 @@ macro(create_test NAME SOURCES LIBS)
     endif()
 endmacro(create_test)
 
+# --replace in list macro
+macro(LIST_REPLACE LIST INDEX NEWVALUE)
+    list(INSERT ${LIST} ${INDEX} ${NEWVALUE})
+    MATH(EXPR __INDEX "${INDEX} + 1")
+    list (REMOVE_AT ${LIST} ${__INDEX})
+endmacro(LIST_REPLACE)
+
+
 # Building application
 
 # --- Type HMI
@@ -400,7 +414,7 @@ if(ENABLE_LOG)
       WORKING_DIRECTORY ${3RD_PARTY_BINARY_DIRECTORY}
     )
     #install logger
-    #install either to default place with sudo or none-default plase without sudo. 
+    #install either to default place with sudo or none-default plase without sudo.
     #to install with sudo to none-default place use manual installation
     add_custom_target(install-3rd_party_logger
       COMMAND /bin/bash -c \"if [ ! ${is_logger_actual} == 0 ]\; then USE_DEFAULT_3RD_PARTY_PATH=${USE_DEFAULT_3RD_PARTY_PATH}\; if [[ \\$$USE_DEFAULT_3RD_PARTY_PATH == "true" ]]\; then sudo make install\; else make install\; fi\; fi\"
@@ -410,7 +424,7 @@ if(ENABLE_LOG)
     set (install-3rd_party_logger_var "install-3rd_party_logger")
   endif()
 endif()
-  
+
 if (HMIADAPTER STREQUAL "dbus")
 #build d-bus
   execute_process(
@@ -427,7 +441,7 @@ if (HMIADAPTER STREQUAL "dbus")
       WORKING_DIRECTORY ${3RD_PARTY_BINARY_DIRECTORY}
     )
     #install d-bus
-    #install either to default place with sudo or none default plase without sudo. 
+    #install either to default place with sudo or none default plase without sudo.
     #to install with sudo to none default place use manual installation
     add_custom_target(install-3rd_party_dbus
       COMMAND /bin/bash -c \"if [ ! ${is_dbus_actual} == 0 ]\; then USE_DEFAULT_3RD_PARTY_PATH=${USE_DEFAULT_3RD_PARTY_PATH}\; if [[ \\$$USE_DEFAULT_3RD_PARTY_PATH == "true" ]]\; then sudo make install\; else make install\; fi\; fi\"
@@ -441,13 +455,9 @@ endif()
 add_subdirectory(${3RD_PARTY_SOURCE_DIRECTORY} ${3RD_PARTY_BINARY_DIRECTORY} EXCLUDE_FROM_ALL)
 add_custom_target(install-3rd_party
   DEPENDS ${install-3rd_party_logger_var}
-  DEPENDS ${install-3rd_party_dbus_var} 
+  DEPENDS ${install-3rd_party_dbus_var}
   WORKING_DIRECTORY ${3RD_PARTY_BINARY_DIRECTORY}
 )
-
-if(BUILD_TESTS)
-  add_definitions(-DBUILD_TESTS)
-endif()
 
 if(ENABLE_SECURITY)
   add_definitions(-DENABLE_SECURITY)
@@ -461,6 +471,14 @@ if(CMAKE_SYSTEM_NAME STREQUAL "QNX")
 set(RTLIB )
 endif()
 
+# Building tests
+if(BUILD_TESTS)
+  enable_testing()
+  add_definitions(-DBUILD_TESTS)
+  # Framework GoogleTest is also integrated together gmock
+  # and must not be added separately
+  add_subdirectory(./src/3rd_party-static/gmock-1.7.0)
+endif()
 
 # --- 3rd party libs (static)
 add_subdirectory(./src/3rd_party-static)
@@ -477,14 +495,12 @@ add_subdirectory(./src/appMain)
 # --- Plugins
 add_subdirectory(./src/plugins)
 
+
 # Building tests
 if(BUILD_TESTS)
-    enable_testing()
+    # Directory test is deprecated. Use src/components/<name>/test
     include(Dart)
-    # Framework GoogleTest is also integrated together gmock
-    # and must not be added separately
-    add_subdirectory(./src/3rd_party-static/gmock-1.7.0)
-    add_subdirectory(./test)
+    #add_subdirectory(./test)
 endif()
 
 # Building documentation

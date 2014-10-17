@@ -65,13 +65,13 @@ void HeartBeatMonitor::Process() {
       const uint8_t session_id = it->first;
       if (state.is_heartbeat_sent) {
         LOG4CXX_DEBUG(logger_,
-                      "Session with id " << session_id << " timed out, closing");
+          "Session with id " << static_cast<int32_t>(session_id) << " timed out, closing");
         connection_->CloseSession(session_id);
         it = sessions_.begin();
         continue;
       } else {
         LOG4CXX_DEBUG(logger_,
-                      "Send heart beat into session with id " << session_id);
+          "Send heart beat into session with id " << static_cast<int32_t>(session_id));
         RefreshExpiration(&state.heartbeat_expiration);
         connection_->SendHeartBeat(it->first);
         state.is_heartbeat_sent = true;
@@ -103,12 +103,12 @@ void HeartBeatMonitor::threadMain() {
 }
 
 void HeartBeatMonitor::AddSession(uint8_t session_id) {
-  LOG4CXX_INFO(logger_, "Add session with id " << session_id);
+  LOG4CXX_DEBUG(logger_, "Add session with id " << static_cast<int32_t>(session_id));
   AutoLock auto_lock(sessions_list_lock_);
   if (sessions_.end() != sessions_.find(session_id)) {
     LOG4CXX_WARN(
         logger_,
-        "Session with id " << static_cast<int32_t>(session_id) << "already exists");
+        "Session with id " << static_cast<int32_t>(session_id) << " already exists");
     return;
   }
   SessionState session_state;

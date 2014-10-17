@@ -36,7 +36,6 @@
 #include "application_manager/application_manager_impl.h"
 #include "application_manager/message_helper.h"
 #include "smart_objects/smart_object.h"
-#include "config_profile/profile.h"
 
 namespace application_manager {
 
@@ -70,7 +69,6 @@ private:
 
 CommandRequestImpl::CommandRequestImpl(const MessageSharedPtr& message)
  : CommandImpl(message),
-   default_timeout_(profile::Profile::instance()->default_timeout()),
    current_state_(kAwaitingHMIResponse) {
 }
 
@@ -108,7 +106,7 @@ void CommandRequestImpl::onTimeOut() {
 
   smart_objects::SmartObject* response =
     MessageHelper::CreateNegativeResponse(connection_key(), function_id(),
-    correlation_id(), mobile_api::Result::TIMED_OUT);
+    correlation_id(), mobile_api::Result::GENERIC_ERROR);
 
   ApplicationManagerImpl::instance()->ManageMobileCommand(response);
 }

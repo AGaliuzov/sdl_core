@@ -242,22 +242,18 @@ class ProtocolHandlerImpl
 
   /**
    * \brief Sends acknowledgement of end session/service to mobile application
-   * with session number and hash code for second version of protocol.
-   * \param connection_id Identifier of connection within which session
-   * with session number and hash code for second version of protocol
+   * with session number for second version of protocol.
+   * \param connection_id Identifier of connection
    * \param connection_handle Identifier of connection within which session
    * was started
    * \param session_id ID of session to be sent to mobile application
    * \param protocol_version Version of protocol used for communication
-   * \param hash_code For second version of protocol: identifier of session
-   * to be sent to
    * mobile app for using when ending session.
    * \param service_type Type of session: RPC or BULK Data. RPC by default
    */
   void SendEndSessionAck(ConnectionID connection_id ,
                          uint8_t session_id,
                          uint8_t protocol_version,
-                         uint32_t hash_code,
                          uint8_t service_type);
 
   /**
