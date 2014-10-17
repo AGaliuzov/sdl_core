@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
@@ -63,9 +63,12 @@ namespace threads {
  */
 class ThreadManager : public utils::Singleton<ThreadManager> {
  public:
+  struct ThreadDesc {
+    pthread_t handle;
+    ThreadDelegate* delegate;
+  };
   ThreadManager() {}
-  void f();
-  MessageQueue<Thread*> threads_to_terminate;
+  MessageQueue<ThreadDesc> threads_to_terminate;
  private:
   DISALLOW_COPY_AND_ASSIGN(ThreadManager);
 

@@ -57,9 +57,8 @@ void PTExchangeHandlerImpl::Start() {
   sync_primitives::AutoLock locker(retry_sequence_lock_);
   LOG4CXX_INFO(logger_, "Exchan started");
 
-  if (retry_sequence_->is_running()) {
-    retry_sequence_->stop();
-  }
+  retry_sequence_->stop();
+  threads::DeleteThread(retry_sequence_);
 
   if (policy_handler_) {
     policy_handler_->ResetRetrySequence();

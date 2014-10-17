@@ -54,7 +54,6 @@ LIB_PATHS += \
 # This only defines the static libs
 STATIC_LIBS += \
 	policy_table_interface_base$(DEBUG_EXT) \
-	utils$(DEBUG_EXT) \
 	config_profile$(DEBUG_EXT) \
 	dbms$(DEBUG_EXT) \
 	jsoncpp$(DEBUG_EXT) 
@@ -110,24 +109,24 @@ OBJECTS = \
 	$(C_LANG_OBJECTS) \
 	$(CPP_LANG_OBJECTS) \
 	$(CC_LANG_OBJECTS)
- 
+
 ALL_OBJECTS = $(addprefix $(BLD_PATH),$(addsuffix .$(OBJ_EXT),$(notdir $(basename $(NON_LOCAL_SRCS) )) ) ) \
 				$(OBJECTS)
-               
+
 # All headers that are dependencies.  Wildcard is easy to pickup local headers.
 #  This is only to automate the rebuilding, all builds on the servers are cleans
 #  So this is not a huge deal when building on a component level.
-HHEADERS = \
-	$(wildcard *.h*) \
-               
+HEADERS = \
+	$(wildcard *.h*)
+
 LIBRARIES = \
-    $(COMPONENT_LIB) \
- 
-DYNAMIC_LIBS += 
- 
+    $(COMPONENT_LIB)
+
+DYNAMIC_LIBS += utils$(DEBUG_EXT)
+
 # Make targets
 #  Standard
-all: banner module_dirs subdirs local binary
+all: banner module_dirs subdirs local library binary
 
 base: banner module_dirs subdirs local
 
@@ -146,10 +145,13 @@ local: $(OBJECTS)
 # Defines specific for each deliverable
 
 # For a static library
+$(COMPONENT_LIB): $(OBJECTS)
 #	$(AR_CMD)
 $(COMPONENT_LIB): $(OBJECTS) subdirs
 	$(LD_CMD) $(LD_OFLAG) $(@) $(ALL_OBJECTS) \
-	-shared $(addprefix -L , $(LIB_PATHS)) \
+	-shared \
+	$(addprefix -L, $(LIB_PATHS)) \
+	$(addprefix -L, $(SLIB_PATH)) \
 	-Bstatic -Wl,"-start-group" $(addprefix -l , $(STATIC_LIBS)) -Wl,"-end-group" -Bdynamic $(addprefix -l , $(DYNAMIC_LIBS))
 
 # Standard set of derived targets
@@ -159,7 +161,7 @@ library: base \
 	@echo "***** `date` Done building library: $(COMPONENT_NAME) ******" 
  
 binary: base \
-                $(BINARIES)
+	$(BINARIES)
  
 # Subdirs should be to jump to subdirectories
 #  standard form is of

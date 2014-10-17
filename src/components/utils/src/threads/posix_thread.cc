@@ -42,17 +42,6 @@
 #include "utils/logger.h"
 #include "pthread.h"
 
-namespace {
-
-static void* threadFunc(void* arg) {
-  threads::Thread* thread = static_cast<threads::Thread*>(arg);
-  threads::ThreadDelegate* delegate = thread->delegate();
-  delegate->threadMain();
-  if (thread->is_running()) {
-    thread->stop();
-  }
-  return NULL;
-}
 
 #ifndef __QNXNTO__
   const int EOK = 0;
@@ -61,33 +50,60 @@ static void* threadFunc(void* arg) {
 #if defined(OS_POSIX)
   const size_t THREAD_NAME_SIZE = 15;
 #endif
-}
 
 namespace threads {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "Utils")
 
+namespace {
+
+static void* threadFunc(void* arg) {
+  LOG4CXX_INFO(logger_, "Thread #" << pthread_self() << " started successfully");
+  threads::Thread* thread = static_cast<threads::Thread*>(arg);
+  threads::ThreadDelegate* delegate = thread->delegate();
+  delegate->threadMain();
+  thread->set_running(false);
+  MessageQueue<ThreadManager::ThreadDesc>& threads = ::threads::ThreadManager::instance()->threads_to_terminate;
+  if (!threads.IsShuttingDown()) {
+    LOG4CXX_INFO(logger_, "Pushing thread #" << pthread_self() << " to join queue");
+    ThreadManager::ThreadDesc desc = { pthread_self(), delegate };
+    threads.push(desc);
+  }
+  LOG4CXX_INFO(logger_, "Thread #" << pthread_self() << " exited successfully");
+  return NULL;
+}
+
+}
+
 size_t Thread::kMinStackSize = PTHREAD_STACK_MIN; /* Ubuntu : 16384 ; QNX : 256; */
 
-bool Thread::Id::operator==(const Thread::Id& other) const {
-  return pthread_equal(id_, other.id_) != 0;
+/*
+void ThreadBase::set_name(const std::string name) {
+  std::string trimname = name.erase(15);
+  if(pthread_setname_np(thread_handle_, trimname.c_str()) != EOK) {
+    LOG4CXX_WARN(logger_, "Couldn't set pthread name \""
+                       << trimname
+                       << "\", error code "
+                       << pthread_result
+                       << " ("
+                       << strerror(pthread_result)
+                       << ")");
+  }
 }
+*/
 
-// static
-Thread::Id Thread::CurrentId() {
-  return Id(pthread_self());
-}
-
-//static
 void Thread::SetNameForId(const Id& thread_id, const std::string& name) {
-  const std::string striped_name =
-      name.length() > THREAD_NAME_SIZE ? std::string(name.begin(), name.begin() + THREAD_NAME_SIZE) : name;
-
-  const int pthread_result = pthread_setname_np(thread_id.id_, striped_name.c_str());
-  if (pthread_result != EOK) {
-    LOG4CXX_WARN(logger_,"Couldn't set pthread name \"" << striped_name
-                      << "\", error code " << pthread_result <<
-                     " (" << strerror(pthread_result) << ")");
+  std::string nm = name;
+  std::string& trimname = nm.size() > 15 ? nm.erase(15) : nm;
+  const int rc = pthread_setname_np(thread_id.id_, trimname.c_str());
+  if(rc == EOK) {
+    LOG4CXX_WARN(logger_, "Couldn't set pthread name \""
+                       << trimname
+                       << "\", error code "
+                       << rc
+                       << " ("
+                       << strerror(rc)
+                       << ")");
   }
 }
 
@@ -103,13 +119,12 @@ ThreadDelegate* Thread::delegate() const {
   return delegate_;
 }
 
-Thread::~Thread() {
-  //delete delegate_;
-  LOG4CXX_INFO(logger_, "Deleted thread: " << name_);
-}
-
 bool Thread::start() {
   return startWithOptions(thread_options_);
+}
+
+Thread::Id Thread::CurrentId() {
+  return Id(pthread_self());
 }
 
 bool Thread::startWithOptions(const ThreadOptions& options) {
@@ -171,11 +186,8 @@ void Thread::stop() {
   }
 
   if (delegate_ && !delegate_->exitThreadMain()) {
-    if (thread_handle_ == pthread_self()) {
-      LOG4CXX_ERROR(logger_,
-                    "Couldn't cancel the same thread (#" << thread_handle_
-                    << "\"" << name_ << "\")");
-    } else {
+    if (thread_handle_ != pthread_self()) {
+      LOG4CXX_WARN(logger_, "Cancelling thread #" << thread_handle_);
       const int pthread_result = pthread_cancel(thread_handle_);
       if (pthread_result != EOK) {
         LOG4CXX_WARN(logger_,
@@ -183,18 +195,18 @@ void Thread::stop() {
                      "\") from thread #" << pthread_self() << ". Error code = "
                      << pthread_result << " (\"" << strerror(pthread_result) << "\")");
       }
-    }
-  } else {
-    // Wait for the thread to exit.  It should already have terminated but make
-    // sure this assumption is valid.
-    MessageQueue<Thread*>& threads = ::threads::ThreadManager::instance()->threads_to_terminate;
-    if (!threads.IsShuttingDown()) {
-      threads.push(this);
+    } else {
+      LOG4CXX_ERROR(logger_,
+                    "Couldn't cancel the same thread (#" << thread_handle_
+                    << "\"" << name_ << "\")");
     }
   }
-  LOG4CXX_DEBUG(logger_, "Join thread (#" << thread_handle_
-                << " \"" << name_ << "\") from #" << pthread_self());
+
   LOG4CXX_TRACE_EXIT(logger_);
+}
+
+bool Thread::Id::operator==(const Thread::Id& other) const {
+  return pthread_equal(id_, other.id_) != 0;
 }
 
 std::ostream& operator<<(std::ostream& os, const Thread::Id& thread_id) {

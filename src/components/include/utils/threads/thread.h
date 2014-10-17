@@ -154,6 +154,10 @@ class Thread {
     return isThreadRunning_;
   }
 
+  void set_running(bool running) {
+    isThreadRunning_ = running;
+  }
+
   /**
    * Is thread joinable?
    * @return - Returns true if the thread is joinable.
@@ -219,7 +223,7 @@ class Thread {
   Thread(const char* name, ThreadDelegate* delegate);
 
   DISALLOW_COPY_AND_ASSIGN(Thread);
-  virtual ~Thread();
+  virtual ~Thread() { }
 };
 
 inline bool operator!= (const Thread::Id& left, const Thread::Id& right) {

@@ -93,6 +93,7 @@ void RequestController::DestroyThreadpool() {
   }
   for (uint32_t i = 0; i < pool_size_; i++) {
     pool_[i]->stop();
+    threads::DeleteThread(pool_[i]);
   }
   LOG4CXX_INFO(logger_, "Threads exited from the thread pool " << pool_size_);
 }
@@ -429,6 +430,7 @@ bool RequestController::Worker::exitThreadMain() {
   stop_flag_ = true;
   sync_primitives::AutoLock auto_lock(thread_lock_);
   // setup stop flag and whit while threadMain will be finished correctly
+  // FIXME (dchmerev@luxoft.com): There is no wating
   return true;
 }
 

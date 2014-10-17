@@ -67,7 +67,6 @@ STATIC_LIBS += \
 	MessageBroker$(DEBUG_EXT) \
 	MessageBrokerClient$(DEBUG_EXT) \
 	MessageBrokerServer$(DEBUG_EXT) \
-	utils$(DEBUG_EXT) \
 	smart_objects$(DEBUG_EXT) \
 	config_profile$(DEBUG_EXT) \
 	formatters$(DEBUG_EXT) \
@@ -90,6 +89,7 @@ DYNAMIC_LIBS += \
 	ipod \
 	iap2client \
 	qdb \
+	utils$(DEBUG_EXT) \
 	apr-1$(DEBUG_EXT) \
 	expat$(DEBUG_EXT) \
 	aprutil-1$(DEBUG_EXT) \
