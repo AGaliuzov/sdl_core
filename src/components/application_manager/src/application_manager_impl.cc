@@ -198,7 +198,7 @@ ApplicationSharedPtr
 ApplicationManagerImpl::get_limited_media_application() const {
   sync_primitives::AutoLock lock(applications_list_lock_);
 
-  for (std::set<ApplicationSharedPtr>::iterator it = application_list_.begin();
+  for (TAppListIt it = application_list_.begin();
        application_list_.end() != it; ++it) {
     if ((*it)->is_media_application() &&
         (mobile_api::HMILevel::HMI_LIMITED == (*it)->hmi_level())) {
@@ -213,7 +213,7 @@ ApplicationSharedPtr
 ApplicationManagerImpl::get_limited_navi_application() const {
   sync_primitives::AutoLock lock(applications_list_lock_);
 
-  for (std::set<ApplicationSharedPtr>::iterator it = application_list_.begin();
+  for (TAppListIt it = application_list_.begin();
        application_list_.end() != it; ++it) {
     if ((*it)->allowed_support_navigation() &&
         (mobile_api::HMILevel::HMI_LIMITED == (*it)->hmi_level())) {
@@ -228,7 +228,7 @@ ApplicationSharedPtr
 ApplicationManagerImpl::get_limited_voice_application() const {
   sync_primitives::AutoLock lock(applications_list_lock_);
 
-  for (std::set<ApplicationSharedPtr>::iterator it = application_list_.begin();
+  for (TAppListIt it = application_list_.begin();
        application_list_.end() != it; ++it) {
     if ((*it)->is_voice_communication_supported() &&
         (mobile_api::HMILevel::HMI_LIMITED == (*it)->hmi_level())) {
@@ -243,7 +243,7 @@ bool ApplicationManagerImpl::DoesAudioAppWithSameHMITypeExistInFullOrLimited(
     ApplicationSharedPtr app) const {
   bool voice_state = app->is_voice_communication_supported();
   bool media_state = app->is_media_application();
-  bool navi_state = app->hmi_supports_navi_streaming();
+  bool navi_state = app->hmi_supports_navi_video_streaming();
   ApplicationSharedPtr active_app = active_application();
   // Check app in FULL level
   if (active_app.valid()) {
@@ -261,7 +261,7 @@ bool ApplicationManagerImpl::DoesAudioAppWithSameHMITypeExistInFullOrLimited(
       return true;
     }
 
-    if (navi_state && active_app->hmi_supports_navi_streaming()) {
+    if (navi_state && active_app->hmi_supports_navi_video_streaming()) {
       return true;
     }
   }
@@ -583,7 +583,7 @@ mobile_api::HMILevel::eType ApplicationManagerImpl::PutApplicationInFull(
     result = mobile_apis::HMILevel::HMI_BACKGROUND;
   }
 
-  if (result == mobile_api::HMILevel::HMI_FULL) {
+  if (mobile_api::HMILevel::HMI_FULL == result) {
     app->set_hmi_level(result);
     MessageHelper::SendActivateAppToHMI(app->app_id());
   }

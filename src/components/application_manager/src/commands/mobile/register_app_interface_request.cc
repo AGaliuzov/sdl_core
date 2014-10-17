@@ -164,7 +164,7 @@ void RegisterAppInterfaceRequest::Run() {
   ApplicationSharedPtr application =
     ApplicationManagerImpl::instance()->application(connection_key());
 
-  if (application.valid()) {
+  if (application) {
     SendResponse(false, mobile_apis::Result::APPLICATION_REGISTERED_ALREADY);
     return;
   }
@@ -258,11 +258,13 @@ void RegisterAppInterfaceRequest::Run() {
 
       for (size_t i = 0; i < app_type.length(); ++i) {
         if (mobile_apis::AppHMIType::NAVIGATION ==
-            app_type.getElement(i).asUInt()) {
+            static_cast<mobile_apis::AppHMIType::eType>(
+                app_type.getElement(i).asUInt())) {
           app->set_allowed_support_navigation(true);
         }
         if (mobile_apis::AppHMIType::COMMUNICATION ==
-            app_type.getElement(i).asUInt()) {
+            static_cast<mobile_apis::AppHMIType::eType>(
+            app_type.getElement(i).asUInt())) {
           app->set_voice_communication_supported(true);
         }
       }

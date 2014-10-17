@@ -203,23 +203,26 @@ class ApplicationManagerImpl : public ApplicationManager,
     std::vector<ApplicationSharedPtr> applications_with_navi();
 
     /**
-     * @brief Return media application with LIMITED HMI Level if exist.
+     * @brief Returns media application with LIMITED HMI Level if exist.
      *
-     * @return Shared pointer to application
+     * @return Shared pointer to application if application does not
+     * exist returns empty shared pointer.
      */
     ApplicationSharedPtr get_limited_media_application() const;
 
     /**
-     * @brief Return navigation application with LIMITED HMI Level if exist.
+     * @brief Returns navigation application with LIMITED HMI Level if exist.
      *
-     * @return Shared pointer to application
+     * @return Shared pointer to application if application does not
+     * exist returns empty shared pointer
      */
     ApplicationSharedPtr get_limited_navi_application() const;
 
     /**
-     * @brief Return voice communication application with LIMITED HMI Level if exist.
+     * @brief Returns voice communication application with LIMITED HMI Level if exist.
      *
-     * @return Shared pointer to application
+     * @return Shared pointer to application if application does not
+     * exist returns empty shared pointer
      */
     ApplicationSharedPtr get_limited_voice_application() const;
 

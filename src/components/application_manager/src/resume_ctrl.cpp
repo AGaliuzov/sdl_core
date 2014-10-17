@@ -172,9 +172,6 @@ bool ResumeCtrl::SetupHMILevel(ApplicationSharedPtr application,
     return false;
   }
 
-  policy::PolicyManager* policy_manager =
-      policy::PolicyHandler::instance()->policy_manager();
-
   const std::string device_id =
       MessageHelper::GetDeviceMacAddressForHandle(application->device());
 
@@ -220,8 +217,8 @@ bool ResumeCtrl::SetupHMILevel(ApplicationSharedPtr application,
             .begin();
         uint32_t app_id = application->app_id();
         for (; app_list.end() != app_list_it; ++app_list_it) {
-          if (((*app_list_it)->audio_streaming_state()
-              == mobile_apis::AudioStreamingState::AUDIBLE)
+          if ((mobile_apis::AudioStreamingState::AUDIBLE ==
+              (*app_list_it)->audio_streaming_state())
               && ((*app_list_it))->app_id() != app_id) {
             application_exist_with_audible_state = true;
             break;
@@ -242,7 +239,6 @@ bool ResumeCtrl::SetupHMILevel(ApplicationSharedPtr application,
   }
 
   MessageHelper::SendHMIStatusNotification(*(application.get()));
-
 
   LOG4CXX_INFO(logger_, "Set up application "
                << application->mobile_app_id()->asString()
