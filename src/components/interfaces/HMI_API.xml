@@ -525,13 +525,13 @@
     <description>
       minutesFieldWidth = 3;minutesFieldMax = 199;secondsFieldWidth = 2;secondsFieldMax = 99;maxHours = 59;maxMinutes = 59;maxSeconds = 59;
     Is used for Type V head units.
-	</description>
+    </description>
   </element>
   <element name="CLOCK3">
     <description>
       minutesFieldWidth = 2;minutesFieldMax = 59;secondsFieldWidth = 2;secondsFieldMax = 59;maxHours = 9;maxMinutes = 59;maxSeconds = 59;
     Is used for GEN1.1 (i.e. MFD3/4/5) head units.
-	</description>
+    </description>
   </element>
   <element name="CLOCKTEXT1">
     <description>
@@ -541,7 +541,7 @@
       c    : character out of following character set: sp|0-9|[letters
       :|sp : colon or space
     Is used for Type II head unit
-	</description>
+    </description>
   </element>
   <element name="CLOCKTEXT2">
     <description>
@@ -551,7 +551,7 @@
       c    : character out of following character set: sp|0-9|[letters
       :|sp : colon or space
 	Is used for CID and NGN head unit
-	</description>
+    </description>
   </element>
   <element name="CLOCKTEXT3">
     <description>
@@ -843,10 +843,10 @@
     <description> The wipers are off.</description>
   </element>
   <element name="AUTO_OFF">
-     <description> The wipers are automatically off </description>
+    <description> The wipers are automatically off </description>
   </element>
   <element name="OFF_MOVING">
-	<description> Means that though set to off, somehow the wipers have been engaged (physically moved enough to engage a wiping motion).</description>
+    <description> Means that though set to off, somehow the wipers have been engaged (physically moved enough to engage a wiping motion).</description>
   </element>
   <element name="MAN_INT_OFF">
     <description> The wipers are manually off after having been working.</description>
@@ -864,10 +864,10 @@
     <description> The wipers are manually set for doing a flick.</description>
   </element>
   <element name="WASH">
-	<description> The wipers are set to use the water from vehicle washer bottle for cleaning the windscreen.</description>
+    <description> The wipers are set to use the water from vehicle washer bottle for cleaning the windscreen.</description>
   </element>
   <element name="AUTO_LOW">
-	<description> The wipers are automatically set to low speed.</description>
+    <description> The wipers are automatically set to low speed.</description>
   </element>
   <element name="AUTO_HIGH">
     <description> The wipers are automatically set to high speed.</description>
@@ -1335,13 +1335,13 @@
 <struct name="Choice">
   <description>A choice is an option given to the user which can be selected either by menu, or through voice recognition system.</description>
   <param name="choiceID" type="Integer" minvalue="0" maxvalue="65535" mandatory="true">
-	<description> The unique within the concerned application identifier for this choice </description>
+    <description> The unique within the concerned application identifier for this choice </description>
   </param>
   <param name="menuName" type="String" maxlength="500" mandatory="false">
     <description> The name of the choice </description>
   </param>
   <param name="image" type="Common.Image" mandatory="false">
-	<description> The image for representing the choice </description>
+    <description> The image for representing the choice </description>
   </param>
   <param name="secondaryText" maxlength="500" type="String" mandatory="false">
     <description>Optional secondary text to display; e.g. address of POI in a search result entry</description>
@@ -1477,7 +1477,7 @@
 
 <struct name="TextFieldStruct">
   <param name="fieldName" type="Common.TextFieldName" mandatory="true">
-	<description>The name of the field for displaying the text.</description>
+    <description>The name of the field for displaying the text.</description>
   </param>
   <param name="fieldText" type="String" maxlength="500" mandatory="true">
     <description>The  text itself.</description>
@@ -1853,32 +1853,32 @@
 </interface>
 
 <interface name="Buttons" version="1.0" date="2013-04-12">
-	<function name="GetCapabilities" messagetype="request">
-		<description>Method is invoked at system start-up. SDL requests the information about all supported hardware buttons and their capabilities</description>
+    <function name="GetCapabilities" messagetype="request">
+      <description>Method is invoked at system start-up. SDL requests the information about all supported hardware buttons and their capabilities</description>
     </function>
     <function name="GetCapabilities" messagetype="response">
-        <param name="capabilities" type="Common.ButtonCapabilities" array="true" minsize="1" maxsize="100" mandatory="true">
-        	<description>Response must provide the names of available buttons and their capabilities.See ButtonCapabilities</description>
-        </param>
-        <param name="presetBankCapabilities" type="Common.PresetBankCapabilities" mandatory="false">
-        	<description>Must be returned if the platform supports custom on-screen Presets</description>
-    	</param>
+      <param name="capabilities" type="Common.ButtonCapabilities" array="true" minsize="1" maxsize="100" mandatory="true">
+        <description>Response must provide the names of available buttons and their capabilities.See ButtonCapabilities</description>
+      </param>
+      <param name="presetBankCapabilities" type="Common.PresetBankCapabilities" mandatory="false">
+        <description>Must be returned if the platform supports custom on-screen Presets</description>
+      </param>
     </function>
     <function name="OnButtonEvent" messagetype="notification">
-    	<description>HU system must notify about every UP/DOWN event for buttons</description>
-    	<param name="name" type="Common.ButtonName" mandatory="true"/>
-    	<param name="mode" type="Common.ButtonEventMode" mandatory="true">
+      <description>HU system must notify about every UP/DOWN event for buttons</description>
+      <param name="name" type="Common.ButtonName" mandatory="true"/>
+      <param name="mode" type="Common.ButtonEventMode" mandatory="true">
             <description>Indicates whether this is an UP or DOWN event.</description>
-    	</param>
-    	<param name="customButtonID" type="Integer" mandatory="false" minvalue="0" maxvalue="65536">
-    		<description>Must be provided if ButtonName is CUSTOM_BUTTON, this references the integer ID passed by a custom button. (e.g. softButtonName)</description>
-    	</param>
-        <param name="appID" type="Integer" mandatory="false">
-            <description>
+      </param>
+      <param name="customButtonID" type="Integer" mandatory="false" minvalue="0" maxvalue="65536">
+        <description>Must be provided if ButtonName is CUSTOM_BUTTON, this references the integer ID passed by a custom button. (e.g. softButtonName)</description>
+      </param>
+      <param name="appID" type="Integer" mandatory="false">
+        <description>
                 In case the ButtonName is CUSTOM_BUTTON, HMI must include appID parameters to OnButtonPress notification sent to SDL.
                 Otherwise, if appID is not sent together with CUSTOM_BUTTON, this notification will be ignored by SDL.
-            </description>
-        </param>
+        </description>
+      </param>
     </function>
     <function name="OnButtonPress" messagetype="notification">
         <param name="name" type="Common.ButtonName" mandatory="true"/>
@@ -2454,6 +2454,18 @@
     </param>
   </function>
   <function name="SetGlobalProperties" messagetype="response">
+  </function>
+  <function name="OnResetTimeout" messagetype="notification">
+    <description>
+      Sender: HMI->SDL. HMI must send this notification every 10 sec. in case the 'methodName'
+      results long processing on HMI
+    </description>
+    <param name="appID" type="Integer" mandatory="true">
+      <description>Id of application that concerns the 'methodName'.</description>
+    </param>
+    <param name="methodName" type="String" mandatory="true">
+      <description>The name of the method, the renew of timeout is required for</description>
+    </param>
   </function>
 </interface>
 

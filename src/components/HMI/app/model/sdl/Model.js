@@ -371,8 +371,6 @@ SDL.SDLModel = Em.Object.create({
         "USER_DISALLOWED"           : 23
     },
 
-
-
     /**
      * Info navigationApp data for ShowConstantTBT request
      *
@@ -1310,14 +1308,14 @@ SDL.SDLModel = Em.Object.create({
      * @param {Object}
      * @param {Number}
      */
-    onPrompt: function (ttsChunks) {
+    onPrompt: function (ttsChunks, appID) {
 
         var message = '';
         if (ttsChunks) {
             for (var i = 0; i < ttsChunks.length; i++) {
                 message += ttsChunks[i].text + '\n';
             }
-            SDL.TTSPopUp.ActivateTTS(message);
+            SDL.TTSPopUp.ActivateTTS(message, appID);
         }
     },
 
@@ -1386,30 +1384,38 @@ SDL.SDLModel = Em.Object.create({
      *
      * @param {Number}
      */
-    deleteCommandVR: function (params) {
+    deleteCommandVR: function (request) {
 
-        SDL.VRPopUp.DeleteCommand(params.cmdID, params.appID);
+        var appModel = SDL.SDLController.getApplicationModel(request.params.appID);
 
-        var len = SDL.SDLController.getApplicationModel(params.appID).VRCommands.length;
-
-        for (var i = len - 1; i >= 0 ; i--) {
-            if (SDL.SDLController.getApplicationModel(params.appID).VRCommands[i].appID == params.appID &&
-                SDL.SDLController.getApplicationModel(params.appID).VRCommands[i].cmdID == params.cmdID) {
-                SDL.SDLController.getApplicationModel(params.appID).VRCommands.splice(i, 1);
+        if (appModel.currentSubMenuId != 'top') {
+            for (var i in appModel.commandsList) {
+                if (appModel.commandsList[i].filterProperty('commandID', request.params.cmdID).length) {
+                    if (i == appModel.currentSubMenuId) {
+                        
+                        FFW.VR.sendError(SDL.SDLModel.resultCode["IN_USE"], request.id, request.method, "SubMenu is currently opened on UI!");
+                        return;
+                    }
+                }
             }
         }
+
+        SDL.VRPopUp.DeleteCommand(request.params.cmdID, request.params.appID);
+        var len = appModel.VRCommands.length;
+
+        for (var i = len - 1; i >= 0 ; i--) {
+            if (appModel.VRCommands[i].appID == request.params.appID &&
+                appModel.VRCommands[i].cmdID == request.params.cmdID) {
+                appModel.VRCommands.splice(i, 1);
+            }
+        }
+
+        FFW.VR.sendVRResult(SDL.SDLModel.resultCode["SUCCESS"],
+            request.id,
+            request.method);
+
+
     },
-//
-//    /**
-//     * SDL VR DeleteCommand response handler delete command from voice
-//     * recognition window
-//     *
-//     * @param {Number}
-//     */
-//    deleteCommandVR: function (commandID) {
-//
-//        SDL.VRPopUp.DeleteCommand(commandID);
-//    },
 
     onDeactivateApp: function (target, appID) {
 

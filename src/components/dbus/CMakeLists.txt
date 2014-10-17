@@ -20,6 +20,7 @@ set (SOURCES
 
 set (LIBRARIES dbus-1 -L${DBUS_LIBS_DIRECTORY})
 
+
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/message_descriptions.cc
   COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/codegen/make_message_descriptions.py
@@ -39,4 +40,6 @@ add_custom_command(
 )
 
 add_library("DBus" ${SOURCES})
+ADD_DEPENDENCIES("DBus" Utils install-3rd_party_dbus)
+
 target_link_libraries("DBus" "${LIBRARIES}")

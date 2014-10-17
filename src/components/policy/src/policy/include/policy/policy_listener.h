@@ -37,28 +37,30 @@
 
 namespace policy {
 class PolicyListener {
-  public:
-    virtual void OnPTExchangeNeeded() = 0;
-    virtual void OnPermissionsUpdated(const std::string& policy_app_id,
-                                      const Permissions& permissions,
-                                      const policy::HMILevel& default_hmi) = 0;
-    virtual void OnPendingPermissionChange(const std::string& policy_app_id) = 0;
-    virtual void OnAppRevoked(const std::string& policy_app_id) = 0;
-    virtual void OnUpdateStatusChanged(policy::PolicyTableStatus status) = 0;
-    virtual std::string OnCurrentDeviceIdUpdateRequired(
+ public:
+  virtual ~PolicyListener() {
+  }
+  virtual void OnPTExchangeNeeded() = 0;
+  virtual void OnPermissionsUpdated(const std::string& policy_app_id,
+                                    const Permissions& permissions,
+                                    const policy::HMILevel& default_hmi) = 0;
+  virtual void OnPendingPermissionChange(const std::string& policy_app_id) = 0;
+  virtual void OnAppRevoked(const std::string& policy_app_id) = 0;
+  virtual void OnUpdateStatusChanged(policy::PolicyTableStatus status) = 0;
+  virtual std::string OnCurrentDeviceIdUpdateRequired(
       const std::string& policy_app_id) = 0;
-    virtual void OnSystemInfoUpdateRequired() = 0;
-    virtual std::string GetAppName(const std::string& policy_app_id) = 0;
-    virtual void OnUserRequestedUpdateCheckRequired() = 0;
+  virtual void OnSystemInfoUpdateRequired() = 0;
+  virtual std::string GetAppName(const std::string& policy_app_id) = 0;
+  virtual void OnUserRequestedUpdateCheckRequired() = 0;
 
-    /**
-     * @brief Make appropriate changes for related applications permissions and
-     * notify them, if it possible
-     * @param device_id Unique device id, which consent had been changed
-     * @param device_consent Device consent, which is done by user
-     */
-    virtual void OnDeviceConsentChanged(const std::string& device_id,
-                                        bool is_allowed) = 0;
+  /**
+   * @brief Make appropriate changes for related applications permissions and
+   * notify them, if it possible
+   * @param device_id Unique device id, which consent had been changed
+   * @param device_consent Device consent, which is done by user
+   */
+  virtual void OnDeviceConsentChanged(const std::string& device_id,
+                                      bool is_allowed) = 0;
 };
 }  //  namespace policy
 #endif  //  SRC_COMPONENTS_POLICY_INCLUDE_POLICY_LISTENER_H_

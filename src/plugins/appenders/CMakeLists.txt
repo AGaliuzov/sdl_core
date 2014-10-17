@@ -32,6 +32,7 @@ SET(target "appenders")
 
 SET(SOURCES
   safe_file_appender.cc
+  safe_rolling_file_appender.cc
 )
 
 include_directories(

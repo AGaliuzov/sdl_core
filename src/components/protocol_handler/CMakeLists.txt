@@ -14,6 +14,7 @@ set(SOURCES
 
 set(LIBRARIES
   ProtocolLibrary
+  Utils
 )
 
 add_library(ProtocolHandler ${SOURCES})

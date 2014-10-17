@@ -45,6 +45,7 @@ AlertManeuverRequest::AlertManeuverRequest(const MessageSharedPtr& message)
  : CommandRequestImpl(message),
    tts_speak_result_code_(mobile_apis::Result::INVALID_ENUM),
    navi_alert_maneuver_result_code_(mobile_apis::Result::INVALID_ENUM) {
+  subscribe_on_event(hmi_apis::FunctionID::TTS_OnResetTimeout);
 }
 
 AlertManeuverRequest::~AlertManeuverRequest() {
@@ -152,6 +153,13 @@ void AlertManeuverRequest::on_event(const event_engine::Event& event) {
           static_cast<mobile_apis::Result::eType>(
           message[strings::params][hmi_response::code].asInt());
 
+      break;
+    }
+    case hmi_apis::FunctionID::TTS_OnResetTimeout: {
+      LOG4CXX_INFO(logger_, "Received TTS_OnResetTimeout event");
+
+      ApplicationManagerImpl::instance()->updateRequestTimeout(
+          connection_key(), correlation_id(), default_timeout());
       break;
     }
     default: {

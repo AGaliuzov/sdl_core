@@ -82,7 +82,7 @@ class TimerThread {
      * @param f    CallBackFunction which will be called on timeout
      *  Attention! "f()" will be called not in main thread but in timer thread
      *  Never use stop() and start() methods inside f
-     * @param is_looper    Define this timer as looer,
+     * @param is_looper    Define this timer as looper,
      *  if true, TimerThread will call "f()" function every time out
      *  until stop()
      */
@@ -111,7 +111,7 @@ class TimerThread {
 
     /**
      * @brief Tell tmer status
-     * @return true if timer is currently running, therwise return false
+     * @return true if timer is currently running, otherwise return false
      */
     virtual bool isRunning();
 
@@ -119,7 +119,7 @@ class TimerThread {
      * @brief Stop timer update timeout and start timer again
      * Note that it cancel thread of timer, If you use it from callback,
      * it probably will stop execution of callback function
-     * @param timeout_seconds new timout value
+     * @param timeout_seconds new timeout value
      *
      */
     virtual void updateTimeOut(const uint32_t timeout_seconds);
@@ -181,7 +181,7 @@ class TimerThread {
 
     /**
      * @brief Delegate release looper timer.
-     * Will call delegate every timeot function while stop()
+     * Will call delegate every timeout function while stop()
      * won't be called
      */
     class TimerLooperDelegate : public TimerDelegate {
@@ -253,7 +253,7 @@ void TimerThread<T>::start(uint32_t timeout_seconds) {
 
 template <class T>
 void TimerThread<T>::stop() {
-  LOG4CXX_TRACE(logger_, "Stoping timer " << this);
+  LOG4CXX_TRACE(logger_, "Stopping timer " << this);
   if (is_running_ && delegate_ && thread_) {
     LOG4CXX_INFO(logger_, "TimerThread thread_ stop " << name_);
     thread_->stop();

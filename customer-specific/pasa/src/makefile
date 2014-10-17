@@ -56,6 +56,7 @@ library:
 	$(MAKE) -C components/policy/src/policy/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/application_manager/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/resumption/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
+	$(MAKE) -C plugins/appenders OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	@echo "***************************************************************************"
 	@echo "Make $@ $(COMPONENT_NAME) finished."
 	@echo "***************************************************************************"

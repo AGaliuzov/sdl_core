@@ -128,7 +128,10 @@ Item {
     function getOdometer(appID) {
         console.debug("enter")
         console.debug("exit")
-        return { odometer: dataContainer.vehicleInfoModel.odometer }
+        return {
+          odometer: dataContainer.vehicleInfoModel.odometer,
+          __retCode: Common.Result.DATA_NOT_AVAILABLE
+        }
     }
 
     function getBeltStatus(appID) {

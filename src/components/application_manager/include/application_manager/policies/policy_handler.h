@@ -58,9 +58,6 @@ class PolicyHandler :
  public:
   virtual ~PolicyHandler();
   bool LoadPolicyLibrary();
-  /*PolicyManager* policy_manager() const {
-    return policy_manager_;
-  }*/
   bool PolicyEnabled();
   bool InitPolicyTable();
   bool ResetPolicyTable();
@@ -78,6 +75,7 @@ class PolicyHandler :
   void CheckPermissions(const PTString& app_id,
                    const PTString& hmi_level,
                    const PTString& rpc,
+                   const RPCParams& rpc_params,
                    CheckPermissionResult& result);
 
   uint32_t GetNotificationsNumber(const std::string& priority);
@@ -95,7 +93,7 @@ class PolicyHandler :
   BinaryMessageSptr RequestPTUpdate();
   const std::vector<int> RetrySequenceDelaysSeconds();
 
-  usage_statistics::StatisticsManager* const & GetStatisticManager();
+  utils::SharedPtr<usage_statistics::StatisticsManager> GetStatisticManager();
 
   /**
    * Checks system action of application for permission of keep context
@@ -343,7 +341,7 @@ private:
   PolicyHandler();
   static PolicyHandler* instance_;
   static const std::string kLibrary;
-  PolicyManager* policy_manager_;
+  utils::SharedPtr<PolicyManager> policy_manager_;
   void* dl_handle_;
   AppIds last_used_app_ids_;
   utils::SharedPtr<PTExchangeHandler> exchange_handler_;
@@ -357,7 +355,7 @@ private:
    */
   DeviceHandles pending_device_handles_;
 
-  inline PolicyManager* CreateManager();
+  inline bool CreateManager();
 
   bool is_user_requested_policy_table_update_;
 
