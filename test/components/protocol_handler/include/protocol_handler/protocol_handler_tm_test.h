@@ -356,34 +356,31 @@ TEST_F(ProtocolHandlerImplTest, EndSession_ProtocoloVersion1) {
  */
 TEST_F(ProtocolHandlerImplTest, EndSession_ProtocolVersion2) {
   AddSession();
-  const int call_count = 1;
+  const int call_count = 0xFF;
+  // expect END_SERVICE_ACK (with no payload)
+  EXPECT_CALL(transport_manager_mock,
+              SendMessageToDevice(ControlMessage(FRAME_DATA_END_SERVICE_ACK, PROTECTION_OFF,
+                                                 connection_id, ElementsAreArray(empty_payload)))).
+      Times(call_count - 1).WillRepeatedly(Return(E_SUCCESS));
+
   for (int32_t call = 1; call < call_count; ++call) {
-    const int32_t some_hash_id = call_count * 0xF0F0F0F0;
+    const int32_t some_hash_id = call * 0x01010101;
+    // HASH_ID_NOT_SUPPORTED (null) value shall be interpret as wrong
     EXPECT_NE(some_hash_id,
               static_cast<int>(protocol_handler::HASH_ID_NOT_SUPPORTED));
     const uint32_t hash_id_be = LE_TO_BE32(some_hash_id);
 
-    const uint8_t* raw_data = reinterpret_cast<const uint8_t*>(&hash_id_be);
-    std::vector<uint8_t> some_hash_id_data;
-    some_hash_id_data.assign(raw_data, raw_data + sizeof(hash_id));
-
-    // expect ConnectionHandler check with null hash value
+    // expect ConnectionHandler check with the hash value
     EXPECT_CALL(session_observer_mock,
-                OnSessionEndedCallback(connection_id, session_id,
-                                       protocol_handler::HASH_ID_WRONG, kRpc)).
+                OnSessionEndedCallback(connection_id, session_id, some_hash_id, kRpc)).
         // return sessions start success
-        WillOnce(Return(session_id));
-
-    // expect send Ack with hash_id payload
-    EXPECT_CALL(transport_manager_mock,
-                SendMessageToDevice(ControlMessage(FRAME_DATA_END_SERVICE_ACK, PROTECTION_OFF,
-                                                   connection_id, ElementsAreArray(some_hash_id_data)))).
-        WillOnce(Return(E_SUCCESS));
+        WillOnce(Return(connection_key));
 
     // Emulate TM message with PROTOCOL_VERSION_1 and some payload
     SendTMMessage(connection_id, PROTOCOL_VERSION_2, PROTECTION_OFF, FRAME_TYPE_CONTROL,
                   kRpc, FRAME_DATA_END_SERVICE, session_id,
                   sizeof(hash_id_be), 0u, reinterpret_cast<const uint8_t*>(&hash_id_be));
+    usleep(500);
   }
 }
 
