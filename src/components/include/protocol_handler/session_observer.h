@@ -45,6 +45,15 @@
  */
 namespace protocol_handler {
 /**
+ * \brief HASH_ID constants.
+ * Hint: Shall not intersect with connection identifiers for correct handling
+ * these constants (Session identifier shall be greater than zero)
+ */
+enum {
+  HASH_ID_NOT_SUPPORTED = 0,
+  HASH_ID_WRONG = 0xFFFF0000
+};
+/**
  * \class SessionObserver
  * \brief Interface for making a bridge between ProtocolHandler and
  * ConnectionHandler components.
@@ -62,13 +71,14 @@ class SessionObserver {
    * \param service_type Type of service
    * \param protocol_version Version of protocol
    * \param is_protected would be service protected
+   * \param hash_id pointer for session hash identifier, uint32_t* hash_id
    * \return uint32_t Id (number) of new session if successful, otherwise 0.
    */
   virtual uint32_t OnSessionStartedCallback(
     const transport_manager::ConnectionUID &connection_handle,
     const uint8_t sessionId,
     const protocol_handler::ServiceType &service_type,
-    const bool is_protected) = 0;
+    const bool is_protected, uint32_t* hash_id) = 0;
   /**
    * \brief Callback function used by ProtocolHandler
    * when Mobile Application initiates session ending.
