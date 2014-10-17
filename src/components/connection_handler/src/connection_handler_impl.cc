@@ -295,11 +295,14 @@ bool AllowProtection(const protocol_handler::ServiceType &service_type,
 uint32_t ConnectionHandlerImpl::OnSessionStartedCallback(
     const transport_manager::ConnectionUID &connection_handle,
     const uint8_t session_id, const protocol_handler::ServiceType &service_type,
-    const bool is_protected) {
-  LOG4CXX_TRACE(logger_, "ConnectionHandlerImpl::OnSessionStartedCallback()");
+    const bool is_protected, uint32_t* hash_id) {
+  LOG4CXX_TRACE_ENTER(logger_);
 
+  if (hash_id) {
+    *hash_id = protocol_handler::HASH_ID_WRONG;
+  }
 #ifdef ENABLE_SECURITY
-  if(!AllowProtection(service_type, is_protected)) {
+  if (!AllowProtection(service_type, is_protected)) {
     return 0;
   }
 #endif  // ENABLE_SECURITY
@@ -308,6 +311,7 @@ uint32_t ConnectionHandlerImpl::OnSessionStartedCallback(
   ConnectionList::iterator it = connection_list_.find(connection_handle);
   if (connection_list_.end() == it) {
     LOG4CXX_ERROR(logger_, "Unknown connection!");
+    LOG4CXX_TRACE_EXIT(logger_);
     return 0;
   }
   uint32_t new_session_id = 0;
@@ -316,20 +320,28 @@ uint32_t ConnectionHandlerImpl::OnSessionStartedCallback(
   if ((0 == session_id) && (protocol_handler::kRpc == service_type)) {
     new_session_id = connection->AddNewSession();
     if (0 == new_session_id) {
-      LOG4CXX_ERROR(logger_, "Not possible to start new session!");
+      LOG4CXX_ERROR(logger_, "Couldn't start new session!");
+      LOG4CXX_TRACE_EXIT(logger_);
       return 0;
+    }
+    if (hash_id) {
+      *hash_id = KeyFromPair(connection_handle, new_session_id);
     }
   } else {  // Could be create new service or protected exists one
     if (!connection->AddNewService(session_id, service_type, is_protected)) {
-      LOG4CXX_ERROR(logger_, "Not possible to establish "
+      LOG4CXX_ERROR(logger_, "Couldn't establish "
 #ifdef ENABLE_SECURITY
                     << (is_protected ? "protected" : "non-protected")
 #endif  // ENABLE_SECURITY
                     << " service " << static_cast<int>(service_type)
                     << " for session " << static_cast<int>(session_id));
+      LOG4CXX_TRACE_EXIT(logger_);
       return 0;
     }
     new_session_id = session_id;
+    if (hash_id) {
+      *hash_id = protocol_handler::HASH_ID_NOT_SUPPORTED;
+    }
   }
 
   if (connection_handler_observer_) {
@@ -342,9 +354,11 @@ uint32_t ConnectionHandlerImpl::OnSessionStartedCallback(
       } else {
         connection->RemoveService(session_id, service_type);
       }
+      LOG4CXX_TRACE_EXIT(logger_);
       return 0;
     }
   }
+  LOG4CXX_TRACE_EXIT(logger_);
   return new_session_id;
 }
 
@@ -361,24 +375,35 @@ uint32_t ConnectionHandlerImpl::OnSessionEndedCallback(
     return 0;
   }
   Connection *connection = it->second;
+  const uint32_t session_key = KeyFromPair(connection_handle, session_id);
 
   if (protocol_handler::kRpc == service_type) {
     LOG4CXX_INFO(logger_, "Session "  << static_cast<uint32_t>(session_id)
                  << " to be removed");
+    // old version of protocol doesn't support hash
+    if (protocol_handler::HASH_ID_NOT_SUPPORTED != hashCode) {
+      if (protocol_handler::HASH_ID_WRONG == hashCode ||
+          session_key != hashCode) {
+        LOG4CXX_WARN(logger_, "Wrong hash_id for session "
+                     << static_cast<uint32_t>(session_id));
+        return 0;
+      }
+    }
     if (!connection->RemoveSession(session_id)) {
-      LOG4CXX_WARN(logger_, "Not possible to remove session!");
+      LOG4CXX_WARN(logger_, "Couldn't remove session "
+                   << static_cast<uint32_t>(session_id));
       return 0;
     }
   } else {
     LOG4CXX_INFO(logger_, "Service "  << static_cast<uint32_t>(service_type)
                  << " to be removed");
     if (!connection->RemoveService(session_id, service_type)) {
-      LOG4CXX_WARN(logger_, "Not possible to remove service!");
+      LOG4CXX_WARN(logger_, "Couldn't remove service "
+                   << static_cast<uint32_t>(service_type));
       return 0;
     }
   }
 
-  const uint32_t session_key = KeyFromPair(connection_handle, session_id);
   if (connection_handler_observer_) {
     connection_handler_observer_->OnServiceEndedCallback(session_key,
                                                          service_type);
@@ -393,6 +418,10 @@ uint32_t ConnectionHandlerImpl::KeyFromPair(
                 << static_cast<uint32_t>(connection_handle)
                 << " Session:" << static_cast<uint32_t>(session_id)
                 << " is: " << static_cast<uint32_t>(key));
+  if (protocol_handler::HASH_ID_WRONG == key) {
+    LOG4CXX_ERROR(logger_, "Connection key is WRONG_HASH_ID "
+                  "(session id shall be greater 0)");
+  }
   return key;
 }
 
