@@ -239,6 +239,8 @@ if(BUILD_TESTS)
     Resumption
   )
 
+  include(${CMAKE_SOURCE_DIR}/src/components/policy/test/include.cmake)
+
   IF(${CMAKE_SYSTEM_NAME} MATCHES "QNX")
     list(REMOVE_ITEM test_exec_libraries dl)
   endif()
