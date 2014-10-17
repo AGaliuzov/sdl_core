@@ -1,1 +1,0 @@
-../../../../../src/commands/mobile/set_global_properties_request.cc

@@ -1,1 +1,0 @@
-../../../../../src/commands/mobile/show_response.cc

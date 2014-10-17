@@ -1,1 +1,0 @@
-../../../../../src/commands/mobile/slider_request.cc

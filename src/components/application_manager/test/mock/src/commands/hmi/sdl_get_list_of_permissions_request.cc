@@ -1,1 +1,0 @@
-../../../../../src/commands/hmi/sdl_get_list_of_permissions_request.cc
