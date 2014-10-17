@@ -1,1 +1,0 @@
-../../../../../src/commands/hmi/button_get_capabilities_response.cc

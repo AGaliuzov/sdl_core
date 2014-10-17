@@ -1,1 +1,0 @@
-../../../../../src/commands/hmi/ui_set_icon_request.cc

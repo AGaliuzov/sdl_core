@@ -1,1 +1,0 @@
-../../../../../src/commands/hmi/on_device_chosen_notification.cc

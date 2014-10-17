@@ -1,1 +1,0 @@
-../../../../../src/commands/hmi/on_start_device_discovery.cc

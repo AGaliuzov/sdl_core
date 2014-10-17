@@ -1,1 +1,0 @@
-../../../../../src/commands/mobile/delete_sub_menu_request.cc

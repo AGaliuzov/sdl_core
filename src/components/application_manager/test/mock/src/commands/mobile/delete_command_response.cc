@@ -1,1 +1,0 @@
-../../../../../src/commands/mobile/delete_command_response.cc

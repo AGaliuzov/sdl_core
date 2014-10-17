@@ -173,33 +173,9 @@ if(BUILD_TESTS)
   set_property(DIRECTORY "" PROPERTY INCLUDE_DIRECTORIES ${the_include_dirs})
 
 
-  include_directories (
+include_directories (
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
-  ${CMAKE_SOURCE_DIR}/src/components/protocol_handler/include/
-  ${JSONCPP_INCLUDE_DIRECTORY}
-  ${CMAKE_SOURCE_DIR}/src/components/formatters/include
-  ${CMAKE_SOURCE_DIR}/src/components/transport_manager/include
-  ${SecurityManagerIncludeDir}
-  ${CMAKE_SOURCE_DIR}/src/components/config_profile/include
-  ${CMAKE_SOURCE_DIR}/src/components/utils/include/
-  ${CMAKE_SOURCE_DIR}/src/components/connection_handler/include/
-  ${CMAKE_SOURCE_DIR}/src/components/hmi_message_handler/include
-  ${CMAKE_SOURCE_DIR}/src/components/request_watchdog/include
-  ${CMAKE_SOURCE_DIR}/src/components/smart_objects/include/
-  ${CMAKE_SOURCE_DIR}/src/components/media_manager/include/
-  ${CMAKE_SOURCE_DIR}/src/components/time_tester/include
-  ${CMAKE_SOURCE_DIR}/src/components/policy/src/policy/include/
-  ${CMAKE_SOURCE_DIR}/src/components/resumption/include/
-  ${MESSAGE_BROKER_INCLUDE_DIRECTORY}
-  ${ENCRYPTION_INCLUDE_DIRECTORY}
-  ${CMAKE_SOURCE_DIR}/src/components/
-  ${CMAKE_BINARY_DIR}/src/components/
-  ${CMAKE_SOURCE_DIR}/src/components/dbus/include/
-  ${CMAKE_BINARY_DIR}/src/components/policy/src/policy
-  ${CMAKE_SOURCE_DIR}
-  ${default_media_inc}
-  ${LOG4CXX_INCLUDE_DIRECTORY}
 )
 
   set(testSources
@@ -207,6 +183,7 @@ if(BUILD_TESTS)
     ${CMAKE_SOURCE_DIR}/src/components/utils/test/date_time_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/utils/test/file_system_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/media_manager/test/media_adapter_impl_test.cc
+    ${AM_TEST_DIR}/command_impl_test.cc
   )
 
   set(test_exec_libraries
@@ -214,15 +191,11 @@ if(BUILD_TESTS)
     gtest
     ConfigProfile
     SmartObjects
-    log4cxx -L${LOG4CXX_LIBS_DIRECTORY}
-    apr-1 -L${APR_LIBS_DIRECTORY}
-    aprutil-1 -L${APR_UTIL_LIBS_DIRECTORY}
-    expat -L${EXPAT_LIBS_DIRECTORY}
     gmock
     gtest
     gmock
     gmock_main
-    ApplicationManager
+    ApplicationManagerTest #Mocked Singlton
     HMI_API
     MOBILE_API
     v4_protocol_v1_2_no_extra
@@ -239,19 +212,26 @@ if(BUILD_TESTS)
     Resumption
   )
 
+if(ENABLE_LOG)
+  list(APPEND test_exec_libraries log4cxx -L${LOG4CXX_LIBS_DIRECTORY})
+  list(APPEND test_exec_libraries apr-1 -L${APR_LIBS_DIRECTORY})
+  list(APPEND test_exec_libraries aprutil-1 -L${APR_UTIL_LIBS_DIRECTORY})
+  list(APPEND test_exec_libraries expat -L${EXPAT_LIBS_DIRECTORY})
+endif()
+
+
   IF(${CMAKE_SYSTEM_NAME} MATCHES "QNX")
     list(REMOVE_ITEM test_exec_libraries dl)
   endif()
 
   add_executable(${PROJECT}_test ${testSources})
-  target_link_libraries(${PROJECT}_test ${test_exec_libraries} ${testLibraries})
+  target_link_libraries(${PROJECT}_test ${test_exec_libraries})
 
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/log4cxx.properties DESTINATION ${CMAKE_BINARY_DIR}/test/)
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/smartDeviceLink.ini DESTINATION ${CMAKE_BINARY_DIR}/test/)
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/hmi_capabilities.json DESTINATION ${CMAKE_BINARY_DIR}/test/)
 
 endif()
-
 
 #=================================================================
 

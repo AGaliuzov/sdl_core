@@ -1,1 +1,0 @@
-../../../../../src/commands/mobile/send_location_response.cc
