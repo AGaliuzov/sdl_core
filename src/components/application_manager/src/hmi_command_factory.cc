@@ -259,6 +259,7 @@
 #include "application_manager/commands/hmi/navi_send_location_request.h"
 #include "application_manager/commands/hmi/navi_send_location_response.h"
 #include "application_manager/commands/hmi/on_tts_reset_timeout_notification.h"
+#include "application_manager/commands/hmi/on_phone_call_notification.h"
 
 namespace application_manager {
 
@@ -2033,6 +2034,10 @@ CommandSharedPtr HMICommandFactory::CreateCommand(
     }
     case hmi_apis::FunctionID::TTS_OnResetTimeout: {
       command.reset(new commands::hmi::OnTTSResetTimeoutNotification(message));
+      break;
+    }
+    case hmi_apis::FunctionID::BasicCommunication_OnPhoneCall: {
+      command.reset(new commands::hmi::OnPhoneCallNotification(message));
       break;
     }
   }

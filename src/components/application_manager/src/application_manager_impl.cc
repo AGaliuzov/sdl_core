@@ -2428,4 +2428,55 @@ void ApplicationManagerImpl::RemoveAppFromTTSGlobalPropertiesList(
   }
 }
 
+void ApplicationManagerImpl::CreatePhoneCallAppList() {
+  LOG4CXX_TRACE_ENTER(logger_);
+
+  ApplicationManagerImpl::ApplicationListAccessor accessor;
+  ApplicationManagerImpl::TAppList local_app_list = accessor.applications();
+
+  ApplicationManagerImpl::TAppListIt it = local_app_list.begin();
+  ApplicationManagerImpl::TAppListIt itEnd = local_app_list.end();
+
+  for (; it != itEnd; ++it) {
+    if (mobile_api::HMILevel::HMI_FULL == (*it)->hmi_level() ||
+        mobile_api::HMILevel::HMI_LIMITED == (*it)->hmi_level()) {
+
+      // back up app state
+      on_phone_call_app_list_.insert(std::pair<uint32_t, AppState>(
+          (*it)->app_id(), AppState((*it)->hmi_level(),
+                                    (*it)->audio_streaming_state(),
+                                    (*it)->system_context())));
+
+      // app state during phone call
+      (*it)->set_hmi_level(mobile_api::HMILevel::HMI_BACKGROUND);
+      (*it)->set_audio_streaming_state(mobile_api::AudioStreamingState::NOT_AUDIBLE);
+      (*it)->set_system_context(mobile_api::SystemContext::SYSCTXT_MAIN);
+      MessageHelper::SendHMIStatusNotification(*(*it));
+    }
+  }
+}
+
+void ApplicationManagerImpl::ResetPhoneCallAppList() {
+  LOG4CXX_TRACE_ENTER(logger_);
+
+  ApplicationManagerImpl::ApplicationListAccessor accessor;
+  ApplicationManagerImpl::TAppList local_app_list = accessor.applications();
+
+  std::map<uint32_t, AppState>::iterator it =
+      on_phone_call_app_list_.begin();
+  std::map<uint32_t, AppState>::iterator it_end =
+      on_phone_call_app_list_.end();
+  for (; it != it_end; ++it) {
+    ApplicationSharedPtr app = application(it->first);
+    if (app) {
+      app->set_hmi_level(it->second.hmi_level);
+      app->set_audio_streaming_state(it->second.audio_streaming_state);
+      app->set_system_context(it->second.system_context);
+      MessageHelper::SendHMIStatusNotification(*app);
+    }
+  }
+
+  on_phone_call_app_list_.clear();
+}
+
 }  // namespace application_manager
