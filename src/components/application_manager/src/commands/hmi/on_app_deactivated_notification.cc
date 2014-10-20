@@ -58,8 +58,10 @@ void OnAppDeactivatedNotification::Run() {
     return;
   }
 
-  if (!((hmi_apis::Common_DeactivateReason::AUDIO ==
-      (*message_)[strings::msg_params][hmi_request::reason].asInt()) &&
+  if (!(((hmi_apis::Common_DeactivateReason::AUDIO ==
+      (*message_)[strings::msg_params][hmi_request::reason].asInt()) ||
+      (hmi_apis::Common_DeactivateReason::PHONECALL ==
+            (*message_)[strings::msg_params][hmi_request::reason].asInt())) &&
       (app->hmi_level() == mobile_api::HMILevel::eType::HMI_LIMITED))) {
     app = ApplicationManagerImpl::instance()->active_application();
     if (!app.valid()) {

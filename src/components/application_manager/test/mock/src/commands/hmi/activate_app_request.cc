@@ -1,1 +1,0 @@
-../../../../../src/commands/hmi/activate_app_request.cc

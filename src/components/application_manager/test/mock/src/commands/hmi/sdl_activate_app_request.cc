@@ -1,1 +1,0 @@
-../../../../../src/commands/hmi/sdl_activate_app_request.cc

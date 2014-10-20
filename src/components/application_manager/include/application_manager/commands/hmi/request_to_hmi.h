@@ -1,5 +1,5 @@
-/*
- Copyright (c) 2013, Ford Motor Company
+﻿/**
+ Copyright (c) 2014, Ford Motor Company
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -50,32 +50,13 @@ class RequestToHMI : public CommandImpl {
   void SendRequest();
 
   /*
-   * @brief Retrieves correlation ID
-   */
-  inline int32_t correlation_id() const {
-    return (*message_)[strings::params][strings::correlation_id].asInt();
-  }
-
-  /*
    * @brief Retrieves application ID
    */
   inline uint32_t application_id() const {
     return (*message_)[strings::msg_params][strings::app_id].asUInt();
   }
 
-  /**
-   * @brief Retrieves request default timeout.
-   * If request has a custom timeout, request_timeout_ should be reassign to it
-   *
-   * @return Request default timeout
-   */
-  inline uint32_t default_timeout() const {
-    return default_timeout_;
-  }
-
  private:
-  uint32_t default_timeout_;
-
   DISALLOW_COPY_AND_ASSIGN(RequestToHMI);
 };
 

@@ -1,5 +1,5 @@
-/*
- Copyright (c) 2013, Ford Motor Company
+﻿/**
+ Copyright (c) 2014, Ford Motor Company
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -66,17 +66,9 @@ class ResponseFromHMI : public CommandImpl {
   void CreateHMIRequest(const hmi_apis::FunctionID::eType& function_id,
                           const NsSmart::SmartObject& msg_params) const;
 
-  /*
-   * @brief Retrieves correlation ID
-   */
-  inline int32_t correlation_id() const;
  private:
   DISALLOW_COPY_AND_ASSIGN(ResponseFromHMI);
 };
-
-int32_t ResponseFromHMI::correlation_id() const {
-  return (*message_)[strings::params][strings::correlation_id].asInt();
-}
 
 }  // namespace commands
 

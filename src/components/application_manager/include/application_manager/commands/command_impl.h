@@ -1,5 +1,5 @@
-/*
- Copyright (c) 2013, Ford Motor Company
+﻿/**
+ Copyright (c) 2014, Ford Motor Company
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -88,6 +88,19 @@ class CommandImpl : public Command {
    **/
   virtual void Run();
 
+  /**
+   * @brief Retrieves request default timeout.
+   * If request has a custom timeout, request_timeout_ should be reassign to it
+   *
+   * @return Request default timeout
+   */
+  virtual uint32_t default_timeout() const;
+
+  /*
+   * @brief Retrieves correlation ID
+   */
+  virtual uint32_t correlation_id() const;
+
   // members
   static const int32_t hmi_protocol_type_;
   static const int32_t mobile_protocol_type_;
@@ -95,6 +108,7 @@ class CommandImpl : public Command {
 
  protected:
   MessageSharedPtr message_;
+  uint32_t default_timeout_;
 
 #ifdef ENABLE_LOG
   static log4cxx::LoggerPtr logger_;

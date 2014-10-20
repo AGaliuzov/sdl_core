@@ -1,1 +1,0 @@
-../../../../../src/commands/hmi/vi_read_did_response.cc

@@ -36,7 +36,6 @@
 #include "application_manager/application_manager_impl.h"
 #include "application_manager/message_helper.h"
 #include "smart_objects/smart_object.h"
-#include "config_profile/profile.h"
 
 namespace application_manager {
 
@@ -70,7 +69,6 @@ private:
 
 CommandRequestImpl::CommandRequestImpl(const MessageSharedPtr& message)
  : CommandImpl(message),
-   default_timeout_(profile::Profile::instance()->default_timeout()),
    current_state_(kAwaitingHMIResponse) {
 }
 

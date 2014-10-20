@@ -1,1 +1,0 @@
-../../../../../src/commands/hmi/on_status_update_notification.cc

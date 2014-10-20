@@ -1,5 +1,5 @@
-/*
- Copyright (c) 2013, Ford Motor Company
+﻿/**
+ Copyright (c) 2014, Ford Motor Company
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -77,6 +77,19 @@ class Command {
    * \brief Command class destructor
    **/
   virtual ~Command() {}
+
+  /**
+   * @brief Retrieves request default timeout.
+   * If request has a custom timeout, request_timeout_ should be reassign to it
+   *
+   * @return Request default timeout
+   */
+  virtual uint32_t default_timeout() const = 0;
+
+  /*
+   * @brief Retrieves correlation ID
+   */
+  virtual uint32_t correlation_id() const = 0;
 };
 
 }  // namespace commands

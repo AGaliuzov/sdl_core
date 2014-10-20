@@ -1,5 +1,5 @@
-/*
- Copyright (c) 2013, Ford Motor Company
+﻿/**
+ Copyright (c) 2014, Ford Motor Company
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@
  */
 
 #include "application_manager/commands/command_impl.h"
+#include "config_profile/profile.h"
 
 namespace application_manager {
 namespace commands {
@@ -42,7 +43,8 @@ const int32_t CommandImpl::mobile_protocol_type_ = 0;
 const int32_t CommandImpl::protocol_version_ = 3;
 
 CommandImpl::CommandImpl(const MessageSharedPtr& message)
-    : message_(message) {
+    : message_(message),
+      default_timeout_(profile::Profile::instance()->default_timeout()) {
 }
 
 CommandImpl::~CommandImpl() {
@@ -63,6 +65,16 @@ bool CommandImpl::CleanUp() {
 
 void CommandImpl::Run() {
 }
+
+uint32_t CommandImpl::default_timeout() const {
+  return default_timeout_;
+}
+
+
+uint32_t CommandImpl::correlation_id() const {
+  return (*message_)[strings::params][strings::correlation_id].asUInt();
+}
+
 
 }  // namespace commands
 }  // namespace application_manager

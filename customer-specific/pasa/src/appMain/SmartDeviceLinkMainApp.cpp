@@ -194,6 +194,10 @@ void startSmartDeviceLink()
 
   if (!main_namespace::LifeCycle::instance()->StartComponents()) {
     LOG4CXX_INFO(logger_, "StartComponents failed.");
+#ifdef ENABLE_LOG
+    logger::LogMessageLoopThread::destroy();
+#endif
+    DEINIT_LOGGER();
     exit(EXIT_FAILURE);
   }
 
@@ -202,6 +206,10 @@ void startSmartDeviceLink()
 
   if (!main_namespace::LifeCycle::instance()->InitMessageSystem()) {
     LOG4CXX_INFO(logger_, "InitMessageBroker failed");
+#ifdef ENABLE_LOG
+    logger::LogMessageLoopThread::destroy();
+#endif
+    DEINIT_LOGGER();
     exit(EXIT_FAILURE);
   }
   LOG4CXX_INFO(logger_, "InitMessageBroker successful");
@@ -240,6 +248,10 @@ void ApplinkNotificationThreadDelegate::threadMain() {
   policy_init.Add(kPolicyInitializationScript);
   if (!policy_init.Execute(true)) {
     LOG4CXX_ERROR(logger_, "QDB initialization failed.");
+#ifdef ENABLE_LOG
+    logger::LogMessageLoopThread::destroy();
+#endif
+    DEINIT_LOGGER();
     exit(EXIT_FAILURE);
   }
 #endif
@@ -247,10 +259,21 @@ void ApplinkNotificationThreadDelegate::threadMain() {
   while (!g_bTerminate) {
     if ( (length = mq_receive(mq, buffer, sizeof(buffer), 0)) != -1) {
       switch (buffer[0]) {
-    case SDL_MSG_SDL_START:            startSmartDeviceLink();    break;
-    case SDL_MSG_START_USB_LOGGING:    startUSBLogging();         break;
-    case SDL_MSG_SDL_STOP:             stopSmartDeviceLink();     exit(0);
-    default: break;
+        case SDL_MSG_SDL_START:
+          startSmartDeviceLink();
+          break;
+        case SDL_MSG_START_USB_LOGGING:
+          startUSBLogging();
+          break;
+        case SDL_MSG_SDL_STOP:
+          stopSmartDeviceLink();
+#ifdef ENABLE_LOG
+          logger::LogMessageLoopThread::destroy();
+#endif
+          DEINIT_LOGGER();
+          exit(EXIT_SUCCESS);
+        default:
+          break;
       }
     }
   } //while-end

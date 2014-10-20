@@ -1,1 +1,0 @@
-../../../../../src/commands/hmi/ui_show_response.cc

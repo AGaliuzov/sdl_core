@@ -1,1 +1,0 @@
-../../../../../src/commands/mobile/system_response.cc

@@ -1,4 +1,4 @@
-/*
+﻿/**
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -162,13 +162,11 @@ RequestController::TResult RequestController::addHMIRequest(
     const RequestPtr& request) {
   LOG4CXX_TRACE_ENTER(logger_);
   DCHECK(request.valid());
-  commands::RequestToHMI* raw_ptr = static_cast<commands::RequestToHMI*>(request.get());
-  LOG4CXX_DEBUG(logger_, "addHMIRequest " << raw_ptr->correlation_id());
-  HMIRequestInfo* request_info = new HMIRequestInfo(request, raw_ptr->default_timeout());
-  RequestInfoPtr request_info_ptr(request_info );
+  LOG4CXX_DEBUG(logger_, "addHMIRequest " << request->correlation_id());
+  RequestInfoPtr request_info_ptr = new HMIRequestInfo(request, request->default_timeout());
 
-  //pending_request_list_.Acquire();
-  if (0 != raw_ptr->default_timeout()) {
+
+  if (0 != request->default_timeout()) {
     pending_request_set_lock_.Acquire();
     pending_request_set_.insert(request_info_ptr);
     LOG4CXX_INFO(logger_, "pending_request_set_ size is "

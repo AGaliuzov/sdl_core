@@ -58,7 +58,7 @@ void ShowRequest::Run() {
 
   if (!app) {
     LOG4CXX_ERROR_EXT(
-        logger_, "An application " << app->name() << " is not registered.");
+        logger_, "Application is not registered");
     SendResponse(false, mobile_apis::Result::APPLICATION_NOT_REGISTERED);
     return;
   }

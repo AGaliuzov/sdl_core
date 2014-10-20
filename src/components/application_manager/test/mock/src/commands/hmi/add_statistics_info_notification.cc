@@ -1,1 +1,0 @@
-../../../../../src/commands/hmi/add_statistics_info_notification.cc

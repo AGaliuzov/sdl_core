@@ -1,1 +1,0 @@
-../../../../../src/commands/hmi/vr_is_ready_request.cc

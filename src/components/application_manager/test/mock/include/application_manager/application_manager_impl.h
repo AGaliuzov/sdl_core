@@ -132,8 +132,9 @@ typedef threads::MessageLoopThread<utils::PrioritizedQueue<MessageFromMobile> > 
 typedef threads::MessageLoopThread<utils::PrioritizedQueue<MessageToMobile> > ToMobileQueue;
 typedef threads::MessageLoopThread<utils::PrioritizedQueue<MessageFromHmi> > FromHmiQueue;
 typedef threads::MessageLoopThread<utils::PrioritizedQueue<MessageToHmi> > ToHmiQueue;
-}
 
+}
+typedef std::vector<std::string> RPCParams;
 
 class ApplicationManagerImpl : public ApplicationManager,
   public hmi_message_handler::HMIMessageObserver,
@@ -203,9 +204,10 @@ class ApplicationManagerImpl : public ApplicationManager,
   MOCK_METHOD0(connection_handler, connection_handler::ConnectionHandler*());
   MOCK_METHOD0(protocol_handler, protocol_handler::ProtocolHandler*());
   MOCK_METHOD0(hmi_message_handler, hmi_message_handler::HMIMessageHandler*());
-  MOCK_METHOD4(CheckPolicyPermissions, mobile_apis::Result::eType(const std::string&,
+  MOCK_METHOD5(CheckPolicyPermissions, mobile_apis::Result::eType(const std::string&,
                                                            mobile_apis::HMILevel::eType,
                                                            mobile_apis::FunctionID::eType,
+                                                           const RPCParams&,
                                                            CommandParametersPermissions*));
   MOCK_METHOD3(updateRequestTimeout, void(uint32_t, uint32_t, uint32_t));
   MOCK_METHOD0(GenerateGrammarID, uint32_t());

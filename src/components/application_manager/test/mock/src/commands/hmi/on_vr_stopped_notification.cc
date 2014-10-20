@@ -1,1 +1,0 @@
-../../../../../src/commands/hmi/on_vr_stopped_notification.cc

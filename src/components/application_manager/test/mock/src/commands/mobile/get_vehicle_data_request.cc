@@ -1,1 +1,0 @@
-../../../../../src/commands/mobile/get_vehicle_data_request.cc

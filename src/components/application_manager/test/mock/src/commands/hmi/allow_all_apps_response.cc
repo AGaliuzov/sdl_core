@@ -1,1 +1,0 @@
-../../../../../src/commands/hmi/allow_all_apps_response.cc

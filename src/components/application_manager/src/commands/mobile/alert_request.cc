@@ -176,8 +176,7 @@ void AlertRequest::on_event(const event_engine::Event& event) {
   if (!HasHmiResponsesToWait()) {
     std::string response_info("");
     if ((mobile_apis::Result::UNSUPPORTED_RESOURCE == tts_speak_response_) &&
-        (!flag_other_component_sent_) && (mobile_apis::Result::SUCCESS ==
-            response_result_)) {
+        (!flag_other_component_sent_)) {
       response_success_ = false;
       response_result_ = mobile_apis::Result::WARNINGS;
       response_info = "Unsupported phoneme type sent in a prompt";
@@ -207,9 +206,15 @@ void AlertRequest::on_event(const event_engine::Event& event) {
       response_success_ = true;
     }
 
+    if (mobile_apis::Result::ABORTED == tts_speak_response_ &&
+        (!flag_other_component_sent_)) {
+      response_success_ = false;
+      response_result_ = tts_speak_response_;
+    }
+
     SendResponse(response_success_, response_result_,
                  response_info.empty() ? NULL : response_info.c_str(),
-                 &response_params_);
+                     &response_params_);
   }
 }
 

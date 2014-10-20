@@ -1,1 +1,0 @@
-../../../../../src/commands/hmi/on_file_removed_notification.cc
