@@ -485,7 +485,7 @@ class ApplicationManagerImpl : public ApplicationManager,
      *
      * @param connection_key Connection key of application
      * @param mobile_correlation_id Correlation ID of the mobile request
-     * @param new_timeout_value New timeout to be set
+     * @param new_timeout_value New timeout in milliseconds to be set
      */
     void updateRequestTimeout(uint32_t connection_key,
                               uint32_t mobile_correlation_id,
