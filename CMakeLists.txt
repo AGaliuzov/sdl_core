@@ -143,6 +143,13 @@ if (HMI_ADAPTER_OPTION)
   endif()
 endif()
 
+if (ENABLE_LOG_OPTION)
+  if (${ENABLE_LOG_OPTION} STREQUAL "LOG_OFF")
+    message(STATUS "Jenkins integration: Log is turned off")
+    set (ENABLE_LOG OFF)
+  endif()
+endif()
+
 if (POLICY_OPTION)
   if (${POLICY_OPTION} STREQUAL "EXTENDED_POLICY")
     message(STATUS "Jenkins integration: Extended policy is used")
