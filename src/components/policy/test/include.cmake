@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2014, Ford Motor Company
+# Copyright (c) 2014, Ford Motor Company
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,77 +28,68 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+set(POLICY_DIR ${CMAKE_SOURCE_DIR}/src/components/policy)
+
 include_directories(
-  include
-  ${GMOCK_INCLUDE_DIRECTORY}
   ${JSONCPP_INCLUDE_DIRECTORY}
-  ../src/policy/include/
-  ../src/policy/sqlite_wrapper/include
-  ../src/policy/qdb_wrapper/include
-  ../src/policy/usage_statistics/include
+  ${POLICY_DIR}/test/include
+  ${POLICY_DIR}/src/policy/include/
+  ${POLICY_DIR}/src/policy/sqlite_wrapper/include
+  ${POLICY_DIR}/src/policy/qdb_wrapper/include
+  ${POLICY_DIR}/src/policy/usage_statistics/include
   ${CMAKE_SOURCE_DIR}/src/components/rpc_base/include
   ${CMAKE_SOURCE_DIR}/src/components/utils/include/
 )
 
-set(testLibraries
-  gtest
-  gmock
-  Utils
+list(APPEND test_exec_libraries
   Policy
-  ${RTLIB}
-  dl
   UsageStatistics
   dbms
+  Utils
+  dl
+  ${RTLIB}
 )
 
-set(testSources
-  main.cc
-  usage_statistics_test.cc
-  shared_library_test.cc
-  generated_code_test.cc
-  policy_manager_impl_test.cc
+list(APPEND testSources
+  ${POLICY_DIR}/test/usage_statistics_test.cc
+  ${POLICY_DIR}/test/generated_code_test.cc
+  ${POLICY_DIR}/test/policy_manager_impl_test.cc
+  # TODO(KKolodiy): need to resolve issue about path to libPolicy.so
+  # ${POLICY_DIR}/test/shared_library_test.cc
 )
 
 if (EXTENDED_POLICY_FLAG)
   add_definitions(-DEXTENDED_POLICY)
-  include_directories(../src/policy/policy_table/table_struct_ext)
-  list (APPEND testSources
-    sql_pt_ext_representation_test.cc
-)
+  include_directories(${POLICY_DIR}/src/policy/policy_table/table_struct_ext)
+  list (APPEND testSources ${POLICY_DIR}/test/sql_pt_ext_representation_test.cc)
 else ()
-  include_directories(../src/policy/policy_table/table_struct)
-  list (APPEND testSources
-    sql_pt_representation_test.cc
-  )
+  include_directories(${POLICY_DIR}/src/policy/policy_table/table_struct)
+  list (APPEND testSources ${POLICY_DIR}/test/sql_pt_representation_test.cc)
 endif ()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
-  list(REMOVE_ITEM testLibraries dl)
+  list(REMOVE_ITEM test_exec_libraries dl)
   # --- Tests for QDB Wrapper
-  include_directories(../src/policy/qdb_wrapper/include)
+  include_directories(${POLICY_DIR}/src/policy/qdb_wrapper/include)
   list (APPEND testSources
-    qdb_wrapper/sql_database_test.cc
-    qdb_wrapper/sql_query_test.cc
+    ${POLICY_DIR}/test/qdb_wrapper/sql_database_test.cc
+    ${POLICY_DIR}/test/qdb_wrapper/sql_query_test.cc
   )
-  file(COPY qdbserver.sh DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-  file(COPY test-qdb.ini DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-  file(COPY policy.sql DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+  file(COPY ${POLICY_DIR}/test/qdbserver.sh DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+  file(COPY ${POLICY_DIR}/test/test-qdb.ini DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+  file(COPY ${POLICY_DIR}/test/policy.sql DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 else ()
   # --- Tests for SQLite Wrapper
   find_package(Sqlite3 REQUIRED)
-  include_directories(../src/policy/sqlite_wrapper/include)
+  include_directories(${POLICY_DIR}/src/policy/sqlite_wrapper/include)
   list (APPEND testSources
-    sqlite_wrapper/sql_database_test.cc
-    sqlite_wrapper/sql_query_test.cc
-    generated_code_with_sqlite_test.cc
-    policy_manager_impl_stress_test.cc
+    ${POLICY_DIR}/test/sqlite_wrapper/sql_database_test.cc
+    ${POLICY_DIR}/test/sqlite_wrapper/sql_query_test.cc
+    ${POLICY_DIR}/test/generated_code_with_sqlite_test.cc
+    ${POLICY_DIR}/test/policy_manager_impl_stress_test.cc
   )
-  list (APPEND testLibraries sqlite3)
+  list (APPEND test_exec_libraries sqlite3)
 endif()
 
-add_executable(policy_test ${testSources})
-target_link_libraries(policy_test ${testLibraries})
-
-file(COPY valid_sdl_pt_update.json DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-file(COPY sdl_preloaded_pt.json DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-file(COPY log4cxx.properties DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY ${POLICY_DIR}/test/valid_sdl_pt_update.json DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY ${POLICY_DIR}/test/sdl_preloaded_pt.json DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

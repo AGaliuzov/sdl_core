@@ -49,7 +49,7 @@ if (EXTENDED_POLICY_FLAG)
     ${COMPONENTS_DIR}/policy/src/policy/policy_table/table_struct_ext
   )
   list(APPEND AM_SOURCES
-    ${COMPONENTS_DIR}/src/policies/pt_exchange_handler_ext.cc
+    ${COMPONENTS_DIR}/application_manager/src/policies/pt_exchange_handler_ext.cc
   )
 else ()
   include_directories(
