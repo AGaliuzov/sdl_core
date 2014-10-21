@@ -699,7 +699,7 @@ std::string ApplicationManagerImpl::GetDeviceName(
 }
 
 void ApplicationManagerImpl::OnMessageReceived(
-  const RawMessagePtr message) {
+  const ::protocol_handler::RawMessagePtr message) {
   LOG4CXX_INFO(logger_, "ApplicationManagerImpl::OnMessageReceived");
 
   if (!message) {
@@ -717,7 +717,7 @@ void ApplicationManagerImpl::OnMessageReceived(
 }
 
 void ApplicationManagerImpl::OnMobileMessageSent(
-  const RawMessagePtr message) {
+  const ::protocol_handler::RawMessagePtr message) {
   LOG4CXX_INFO(logger_, "ApplicationManagerImpl::OnMobileMessageSent");
 }
 
@@ -1653,7 +1653,7 @@ bool ApplicationManagerImpl::ConvertSOtoMessage(
 }
 
 utils::SharedPtr<Message> ApplicationManagerImpl::ConvertRawMsgToMessage(
-  const RawMessagePtr message) {
+  const ::protocol_handler::RawMessagePtr message) {
   DCHECK(message);
   utils::SharedPtr<Message> outgoing_message;
 

@@ -164,7 +164,7 @@ class TransportAdapterController {
    */
   virtual void DataReceiveDone(const DeviceUID& device_handle,
                                const ApplicationHandle& app_handle,
-                               RawMessagePtr message) = 0;
+                               ::protocol_handler::RawMessagePtr message) = 0;
 
   /**
    * @brief Launch OnDataReceiveFailed event in the device adapter listener.
@@ -186,7 +186,7 @@ class TransportAdapterController {
    */
   virtual void DataSendDone(const DeviceUID& device_handle,
                             const ApplicationHandle& app_handle,
-                            RawMessagePtr message) = 0;
+                            ::protocol_handler::RawMessagePtr message) = 0;
 
   /**
    * @brief Launch OnDataSendFailed event in the device adapter listener.
@@ -198,7 +198,7 @@ class TransportAdapterController {
    */
   virtual void DataSendFailed(const DeviceUID& device_handle,
                               const ApplicationHandle& app_handle,
-                              RawMessagePtr message, const DataSendError&) = 0;
+                              ::protocol_handler::RawMessagePtr message, const DataSendError&) = 0;
 #ifdef CUSTOMER_PASA
   virtual TransportAdapter::Error DisconnectDevice(
       const DeviceUID& device_handle) = 0;

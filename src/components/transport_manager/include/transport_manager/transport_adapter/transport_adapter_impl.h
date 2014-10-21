@@ -165,7 +165,7 @@ class TransportAdapterImpl : public TransportAdapter,
    **/
   virtual TransportAdapter::Error SendData(const DeviceUID& device_handle,
                                            const ApplicationHandle& app_handle,
-                                           const RawMessagePtr data);
+                                           const ::protocol_handler::RawMessagePtr data);
 
   /**
    * @brief Start client listener.
@@ -337,7 +337,7 @@ class TransportAdapterImpl : public TransportAdapter,
    */
   virtual void DataReceiveDone(const DeviceUID& device_handle,
                                const ApplicationHandle& app_handle,
-                               RawMessagePtr message);
+                               ::protocol_handler::RawMessagePtr message);
 
   /**
    * @brief Launch OnDataReceiveFailed event in the device adapter listener.
@@ -359,7 +359,7 @@ class TransportAdapterImpl : public TransportAdapter,
    */
   virtual void DataSendDone(const DeviceUID& device_handle,
                             const ApplicationHandle& app_handle,
-                            RawMessagePtr message);
+                            ::protocol_handler::RawMessagePtr message);
 
   /**
    * @brief Launch OnDataSendFailed event in the device adapter listener.
@@ -371,7 +371,7 @@ class TransportAdapterImpl : public TransportAdapter,
    */
   virtual void DataSendFailed(const DeviceUID& device_handle,
                               const ApplicationHandle& app_handle,
-                              RawMessagePtr message,
+                              ::protocol_handler::RawMessagePtr message,
                               const DataSendError& error);
 
   /**

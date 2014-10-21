@@ -238,7 +238,7 @@ int TransportManagerImpl::Stop() {
   return E_SUCCESS;
 }
 
-int TransportManagerImpl::SendMessageToDevice(const RawMessagePtr message) {
+int TransportManagerImpl::SendMessageToDevice(const ::protocol_handler::RawMessagePtr message) {
   LOG4CXX_TRACE(logger_, "enter. RawMessageSptr: " << message);
   LOG4CXX_INFO(logger_, "Send message to device called with arguments "
                << message.get());
@@ -493,7 +493,7 @@ void TransportManagerImpl::UpdateDeviceList(TransportAdapter* ta) {
   LOG4CXX_TRACE(logger_, "exit");
 }
 
-void TransportManagerImpl::PostMessage(const RawMessagePtr message) {
+void TransportManagerImpl::PostMessage(const ::protocol_handler::RawMessagePtr message) {
   LOG4CXX_TRACE(logger_, "enter. RawMessageSptr: " << message);
   message_queue_.PostMessage(message);
   LOG4CXX_TRACE(logger_, "exit");
@@ -751,7 +751,7 @@ void TransportManagerImpl::SetTimeMetricObserver(TMMetricObserver* observer) {
 }
 #endif  // TIME_TESTER
 
-void TransportManagerImpl::Handle(RawMessagePtr msg) {
+void TransportManagerImpl::Handle(::protocol_handler::RawMessagePtr msg) {
   LOG4CXX_TRACE(logger_, "enter");
   ConnectionInternal* connection = GetConnection(msg->connection_key());
   if (connection == NULL) {

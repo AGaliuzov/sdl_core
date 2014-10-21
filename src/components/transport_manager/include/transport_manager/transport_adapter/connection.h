@@ -63,7 +63,7 @@ class Connection {
    *
    * @return Error Information about possible reason of sending data failure.
    */
-  virtual TransportAdapter::Error SendData(RawMessagePtr message) = 0;
+  virtual TransportAdapter::Error SendData(::protocol_handler::RawMessagePtr message) = 0;
 
   /**
    * @brief Disconnect the current connection.

@@ -248,7 +248,7 @@ TransportAdapter::Error TransportAdapterImpl::DisconnectDevice(
 
 TransportAdapter::Error TransportAdapterImpl::SendData(
   const DeviceUID& device_id, const ApplicationHandle& app_handle,
-  const RawMessagePtr data) {
+  const ::protocol_handler::RawMessagePtr data) {
   LOG4CXX_TRACE(logger_, "enter. device_id: " << &device_id << ", app_handle: " <<
                 &app_handle << ", data: " << data);
   if (!initialised_) {
@@ -546,7 +546,7 @@ void TransportAdapterImpl::DisconnectDone(
 
 void TransportAdapterImpl::DataReceiveDone(const DeviceUID& device_id,
     const ApplicationHandle& app_handle,
-    RawMessagePtr message) {
+    ::protocol_handler::RawMessagePtr message) {
   LOG4CXX_TRACE(logger_, "enter. device_id: " << &device_id << ", app_handle: " <<
                 &app_handle << ", message: " << message);
 
@@ -575,7 +575,7 @@ void TransportAdapterImpl::DataReceiveFailed(
 
 void TransportAdapterImpl::DataSendDone(const DeviceUID& device_id,
                                         const ApplicationHandle& app_handle,
-                                        RawMessagePtr message) {
+                                        ::protocol_handler::RawMessagePtr message) {
   LOG4CXX_TRACE(logger_, "enter");
   for (TransportAdapterListenerList::iterator it = listeners_.begin();
        it != listeners_.end(); ++it) {
@@ -586,7 +586,7 @@ void TransportAdapterImpl::DataSendDone(const DeviceUID& device_id,
 
 void TransportAdapterImpl::DataSendFailed(const DeviceUID& device_id,
     const ApplicationHandle& app_handle,
-    RawMessagePtr message,
+    ::protocol_handler::RawMessagePtr message,
     const DataSendError& error) {
   LOG4CXX_TRACE(logger_, "enter");
   for (TransportAdapterListenerList::iterator it = listeners_.begin();

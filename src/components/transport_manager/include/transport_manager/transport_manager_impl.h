@@ -59,7 +59,7 @@ namespace transport_manager {
  * @brief Implementation of transport manager.s
  */
 class TransportManagerImpl : public TransportManager,
-                             public threads::MessageLoopThread<std::queue<RawMessagePtr> >::Handler,
+                             public threads::MessageLoopThread<std::queue<protocol_handler::RawMessagePtr> >::Handler,
                              public threads::MessageLoopThread<std::queue<TransportAdapterEvent> >::Handler {
  public:
   struct Connection {
@@ -151,7 +151,7 @@ class TransportManagerImpl : public TransportManager,
    *
    * @return Code error.
    **/
-  virtual int SendMessageToDevice(const RawMessagePtr message);
+  virtual int SendMessageToDevice(const protocol_handler::RawMessagePtr message);
 
   /**
    * @brief Post event in the event queue.
@@ -238,9 +238,9 @@ class TransportManagerImpl : public TransportManager,
    *
    * @param message Smart pointer to the raw massage.
    **/
-  void PostMessage(const RawMessagePtr message);
+  void PostMessage(const ::protocol_handler::RawMessagePtr message);
 
-  void Handle(RawMessagePtr msg);
+  void Handle(::protocol_handler::RawMessagePtr msg);
   void Handle(TransportAdapterEvent msg);
 
   /**
@@ -326,7 +326,7 @@ class TransportManagerImpl : public TransportManager,
   /** For keep listeners which were add TMImpl */
   std::map<TransportAdapter*, TransportAdapterListenerImpl*>
       transport_adapter_listeners_;
-  threads::MessageLoopThread<std::queue<RawMessagePtr> > message_queue_;
+  threads::MessageLoopThread<std::queue<protocol_handler::RawMessagePtr> > message_queue_;
   threads::MessageLoopThread<std::queue<TransportAdapterEvent> > event_queue_;
 
   typedef std::vector<std::pair<const TransportAdapter*, DeviceInfo> >

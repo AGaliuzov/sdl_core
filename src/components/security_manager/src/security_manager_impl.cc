@@ -50,7 +50,7 @@ SecurityManagerImpl::SecurityManagerImpl()
 }
 
 void SecurityManagerImpl::OnMessageReceived(
-    const RawMessagePtr message) {
+    const ::protocol_handler::RawMessagePtr message) {
   if (message->service_type() != protocol_handler::kControl) {
     return;
   }
@@ -73,7 +73,7 @@ void SecurityManagerImpl::OnMessageReceived(
 }
 
 void SecurityManagerImpl::OnMobileMessageSent(
-    const RawMessagePtr ) {
+    const ::protocol_handler::RawMessagePtr ) {
 }
 
 void SecurityManagerImpl::set_session_observer(
@@ -350,7 +350,7 @@ void SecurityManagerImpl::SendQuery(const SecurityQuery& query,
                                 const uint32_t connection_key) {
   const std::vector<uint8_t> data_sending = query.DeserializeQuery();
 
-  const RawMessagePtr rawMessagePtr(
+  const ::protocol_handler::RawMessagePtr rawMessagePtr(
         new protocol_handler::RawMessage(connection_key,
                                          protocol_handler::PROTOCOL_VERSION_3,
                                          &data_sending[0], data_sending.size(),

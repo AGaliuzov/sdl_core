@@ -143,7 +143,7 @@ TransportAdapter::Error ThreadedSocketConnection::Notify() const {
 }
 
 TransportAdapter::Error ThreadedSocketConnection::SendData(
-  RawMessagePtr message) {
+  ::protocol_handler::RawMessagePtr message) {
   LOG4CXX_TRACE(logger_, "enter");
   pthread_mutex_lock(&frames_to_send_mutex_);
   frames_to_send_.push(message);
@@ -181,7 +181,7 @@ void ThreadedSocketConnection::threadMain() {
     Finalize();
     while (!frames_to_send_.empty()) {
       LOG4CXX_INFO(logger_, "removing message (#" << pthread_self() << ")");
-      RawMessagePtr message = frames_to_send_.front();
+      ::protocol_handler::RawMessagePtr message = frames_to_send_.front();
       frames_to_send_.pop();
       controller_->DataSendFailed(device_handle(), application_handle(),
                                   message, DataSendError());
@@ -293,7 +293,7 @@ bool ThreadedSocketConnection::Receive() {
       LOG4CXX_DEBUG(
         logger_,
         "Received " << bytes_read << " bytes for connection " << this);
-      RawMessagePtr frame(
+      ::protocol_handler::RawMessagePtr frame(
           new protocol_handler::RawMessage(0, 0, buffer, bytes_read));
       controller_->DataReceiveDone(device_handle(), application_handle(),
                                    frame);
@@ -325,7 +325,7 @@ bool ThreadedSocketConnection::Send() {
   size_t offset = 0;
   while (!frames_to_send.empty()) {
     LOG4CXX_INFO(logger_, "frames_to_send is not empty" << pthread_self() << ")");
-    RawMessagePtr frame = frames_to_send.front();
+    ::protocol_handler::RawMessagePtr frame = frames_to_send.front();
     const ssize_t bytes_sent = ::send(socket_, frame->data() + offset,
                                       frame->data_size() - offset, 0);
 

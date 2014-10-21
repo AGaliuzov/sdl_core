@@ -123,7 +123,7 @@ void SocketStreamerAdapter::Init() {
 
 void SocketStreamerAdapter::SendData(
   int32_t application_key,
-  const RawMessagePtr message) {
+  const ::protocol_handler::RawMessagePtr message) {
   LOG4CXX_INFO(logger, "SendData(application_key = " << application_key << ")");
 
 
@@ -169,24 +169,24 @@ void SocketStreamerAdapter::Streamer::threadMain() {
     is_first_loop_ = true;
     while (is_client_connected_) {
       while (!server_->messages_.empty()) {
-        RawMessagePtr msg = server_->messages_.pop();
+        ::protocol_handler::RawMessagePtr msg = server_->messages_.pop();
         if (!msg) {
           LOG4CXX_ERROR(logger, "Null pointer message");
           continue;
         }
 
         is_client_connected_ = send(msg);
-        static int32_t messsages_for_session = 0;
-        ++messsages_for_session;
+        static int32_t messages_for_session = 0;
+        ++messages_for_session;
 
         LOG4CXX_INFO(logger, "Handling map streaming message. This is "
-            << messsages_for_session << " the message for "
+            << messages_for_session << " the message for "
             << server_->current_application_);
         std::set<MediaListenerPtr>::iterator it = server_->media_listeners_
             .begin();
         for (; server_->media_listeners_.end() != it; ++it) {
           (*it)->OnDataReceived(server_->current_application_,
-                                messsages_for_session);
+                                messages_for_session);
         }
       }
 
@@ -288,7 +288,7 @@ bool SocketStreamerAdapter::Streamer::is_ready() const {
 }
 
 bool SocketStreamerAdapter::Streamer::send(
-  const RawMessagePtr msg) {
+  const ::protocol_handler::RawMessagePtr msg) {
   if (!is_ready()) {
     LOG4CXX_ERROR_EXT(logger, " Socket is not ready");
     return false;
