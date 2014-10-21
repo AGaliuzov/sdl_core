@@ -107,7 +107,7 @@ void SetKeepaliveOptions(const int fd) {
   setsockopt(fd, IPPROTO_TCP, TCP_KEEPINTVL, &keepintvl, sizeof(keepintvl));
   setsockopt(fd, IPPROTO_TCP, TCP_USER_TIMEOUT, &user_timeout,
              sizeof(user_timeout));
-#elif __QNX__  // __linux__
+#elif defined(__QNX__)  // __linux__
   // TODO (KKolodiy): Out of order!
   const int kMidLength = 4;
   int mib[kMidLength];
