@@ -62,7 +62,7 @@ if(BUILD_TESTS)
   add_subdirectory(test)
 endif()
 
-install(TARGETS ${target}
+install(TARGETS "Utils"
   DESTINATION bin
   PERMISSIONS
     OWNER_READ OWNER_WRITE

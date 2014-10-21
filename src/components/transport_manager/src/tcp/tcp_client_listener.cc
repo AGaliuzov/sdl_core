@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
@@ -111,7 +111,6 @@ void SetKeepaliveOptions(const int fd) {
   // TODO (KKolodiy): Out of order!
   const int kMidLength = 4;
   int mib[kMidLength];
-  struct timeval tval = { 0 };
 
   mib[0] = CTL_NET;
   mib[1] = AF_INET;
@@ -131,6 +130,7 @@ void SetKeepaliveOptions(const int fd) {
   mib[3] = TCPCTL_KEEPINTVL;
   sysctl(mib, kMidLength, NULL, NULL, &keepintvl, sizeof(keepintvl));
 
+  struct timeval tval = { 0 };
   tval.tv_sec = keepidle;
   setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &yes, sizeof(yes));
   setsockopt(fd, IPPROTO_TCP, TCP_KEEPALIVE, &tval, sizeof(tval));
