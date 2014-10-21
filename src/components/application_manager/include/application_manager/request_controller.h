@@ -182,7 +182,7 @@ class RequestController {
     *
     * @param app_id Connection key of application
     * @param mobile_correlation_id Correlation ID of the mobile request
-    * @param new_timeout_value New timeout to be set
+    * @param new_timeout_value New timeout to be set in milliseconds
     */
     void updateRequestTimeout(const uint32_t& app_id,
                               const uint32_t& mobile_correlation_id,
@@ -196,7 +196,9 @@ class RequestController {
      * @param app_time_scale - time scale (seconds)
      * @param max_request_per_time_scale - maximum count of request that should be allowed for app_time_scale secconds
      */
-    bool checkTimeScaleMaxRequest(const uint32_t& app_id, const uint32_t& app_time_scale, const uint32_t& max_request_per_time_scale);
+    bool checkTimeScaleMaxRequest(const uint32_t& app_id,
+                                  const uint32_t& app_time_scale,
+                                  const uint32_t& max_request_per_time_scale);
 
     /**
      * @brief Checs if this app as able to add new requests in current hmi_level, or limits was exceeded
@@ -205,7 +207,10 @@ class RequestController {
      * @param app_time_scale - time scale (seconds)
      * @param max_request_per_time_scale - maximum count of request that should be allowed for app_time_scale secconds
      */
-    bool checkHMILevelTimeScaleMaxRequest(const mobile_apis::HMILevel::eType& hmi_level, const uint32_t& app_id, const uint32_t& app_time_scale, const uint32_t& max_request_per_time_scale);
+    bool checkHMILevelTimeScaleMaxRequest(const mobile_apis::HMILevel::eType& hmi_level,
+                                          const uint32_t& app_id,
+                                          const uint32_t& app_time_scale,
+                                          const uint32_t& max_request_per_time_scale);
 
     void onTimer();
 

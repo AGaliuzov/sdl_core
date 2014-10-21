@@ -68,8 +68,6 @@ using ::testing::AllOf;
 using ::testing::Ge;
 using ::testing::Le;
 using ::testing::_;
-using ::testing::SafeMatcherCast;
-using ::testing::WithArg;
 using ::testing::Invoke;
 
 class ProtocolHandlerImplTest : public ::testing::Test {
@@ -107,6 +105,31 @@ class ProtocolHandlerImplTest : public ::testing::Test {
                      std::string("BTMAC")),
           connection_id);
   }
+  void AddSession() {
+    AddConnection();
+    const ServiceType start_service = kRpc;
+  #ifdef ENABLE_SECURITY
+    // For enabled protection callback shall use protection ON
+    const bool callback_protection_flag = PROTECTION_ON;
+  #else
+    // For disabled protection callback shall ignore protection income flad and use protection OFF
+    const bool callback_protection_flag  = PROTECTION_OFF;
+  #endif  // ENABLE_SECURITY
+    // expect ConnectionHandler check
+    EXPECT_CALL(session_observer_mock,
+                OnSessionStartedCallback(connection_id, NEW_SESSION_ID, start_service,
+                                         callback_protection_flag)).
+        //return sessions start success
+        WillOnce(Return(session_id));
+
+    // expect send Ack with PROTECTION_OFF (on no Security Manager)
+    EXPECT_CALL(transport_manager_mock,
+                SendMessageToDevice(ControlMessage(FRAME_DATA_START_SERVICE_ACK, PROTECTION_OFF))).
+        WillOnce(Return(E_SUCCESS));
+
+    SendControlMessage(PROTECTION_ON, start_service, NEW_SESSION_ID, FRAME_DATA_START_SERVICE);
+  }
+
 #ifdef ENABLE_SECURITY
   // Emulate security manager initilization establish
   void AddSecurityManager() {
@@ -172,7 +195,7 @@ TEST_F(ProtocolHandlerImplTest, RecieveEmptyRawMessage) {
   tm_listener->OnTMMessageReceived(::protocol_handler::RawMessagePtr());
 }
 /*
- * ProtocolHandler shall skip message on no connection
+ * ProtocolHandler shall disconnect on no connection
  */
 TEST_F(ProtocolHandlerImplTest, RecieveOnUnknownConenction) {
   // expect force dicsonnect on no connection for recieved data
@@ -267,28 +290,71 @@ TEST_F(ProtocolHandlerImplTest, StartSession_Unprotected_SessionObserverAccept) 
  * For ENABLE_SECURITY=OFF session_observer shall be called with protection flag OFF
  */
 TEST_F(ProtocolHandlerImplTest, StartSession_Protected_SessionObserverAccept) {
-  AddConnection();
-  const ServiceType start_service = kRpc;
-#ifdef ENABLE_SECURITY
-  // For enabled protection callback shall use protection ON
-  const bool callback_protection_flag = PROTECTION_ON;
-#else
-  // For disabled protection callback shall ignore protection income flad and use protection OFF
-  const bool callback_protection_flag  = PROTECTION_OFF;
-#endif  // ENABLE_SECURITY
+  AddSession();
+}
+/*
+ * ProtocolHandler shall send NAck on session_observer rejection
+ */
+TEST_F(ProtocolHandlerImplTest, EndSession_SessionObserverReject) {
+  AddSession();
+  const ServiceType service = kRpc;
+
   // expect ConnectionHandler check
   EXPECT_CALL(session_observer_mock,
-              OnSessionStartedCallback(connection_id, NEW_SESSION_ID, start_service,
-                                       callback_protection_flag)).
+              OnSessionEndedCallback(connection_id, session_id, message_id, service)).
       //return sessions start success
-      WillOnce(Return(session_id));
+      WillOnce(Return(SESSION_START_REJECT));
 
-  // expect send Ack with PROTECTION_OFF (on no Security Manager)
+  // expect send Ack
   EXPECT_CALL(transport_manager_mock,
-              SendMessageToDevice(ControlMessage(FRAME_DATA_START_SERVICE_ACK, PROTECTION_OFF))).
+              SendMessageToDevice(ControlMessage(FRAME_DATA_END_SERVICE_NACK, PROTECTION_OFF))).
       WillOnce(Return(E_SUCCESS));
 
-  SendControlMessage(PROTECTION_ON, start_service, NEW_SESSION_ID, FRAME_DATA_START_SERVICE);
+  SendControlMessage(PROTECTION_OFF, service, session_id, FRAME_DATA_END_SERVICE);
+}
+/*
+ * ProtocolHandler shall send NAck on wrong hash code
+ */
+TEST_F(ProtocolHandlerImplTest, EndSession_WrongHash) {
+  AddSession();
+  const ServiceType service = kRpc;
+
+  // expect ConnectionHandler check
+  EXPECT_CALL(session_observer_mock,
+              OnSessionEndedCallback(connection_id, session_id, message_id, service)).
+      //return sessions start success
+      WillOnce(Return(connection_key ^ 0xFF));
+
+  // expect send Ack
+  EXPECT_CALL(transport_manager_mock,
+              SendMessageToDevice(ControlMessage(FRAME_DATA_END_SERVICE_NACK, PROTECTION_OFF))).
+      WillOnce(Return(E_SUCCESS));
+
+  SendControlMessage(PROTECTION_OFF, service, session_id, FRAME_DATA_END_SERVICE);
+}
+/*
+ * ProtocolHandler shall send NAck on wrong hash code
+ */
+TEST_F(ProtocolHandlerImplTest, EndSession_Success) {
+  AddSession();
+  const ServiceType service = kRpc;
+
+  //Send with correct hash code
+  const uint32_t hash = connection_key;
+
+  // expect ConnectionHandler check
+  EXPECT_CALL(session_observer_mock,
+              OnSessionEndedCallback(connection_id, session_id, hash, service)).
+      //return sessions start success
+      WillOnce(Return(connection_key));
+
+  // expect send Ack
+  EXPECT_CALL(transport_manager_mock,
+              SendMessageToDevice(ControlMessage(FRAME_DATA_END_SERVICE_ACK, PROTECTION_OFF))).
+      WillOnce(Return(E_SUCCESS));
+
+  SendTMMessage(connection_id, PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
+                service, FRAME_DATA_END_SERVICE, session_id, 0, hash);
 }
 
 #ifdef ENABLE_SECURITY

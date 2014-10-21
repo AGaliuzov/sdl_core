@@ -91,8 +91,9 @@ namespace application_manager {
         return;
       }
       if (mobile_apis::HMILevel::HMI_FULL == requested_hmi_level) {
-        ApplicationManagerImpl::instance()->ActivateApplication(application);
-        MessageHelper::SendHMIStatusNotification(*(application.get()));
+        if (ApplicationManagerImpl::instance()->ActivateApplication(application)) {
+          MessageHelper::SendHMIStatusNotification(*(application.get()));
+        }
       }
     }
   }  // namespace commands

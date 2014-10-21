@@ -145,7 +145,7 @@ enum {
    */
   FRAME_DATA_END_SERVICE_ACK = 0x05,
   /**
-   *\briefEnd service not acknowledgement frame
+   *\brief End service not acknowledgement frame
    */
   FRAME_DATA_END_SERVICE_NACK = 0x06,
   /**

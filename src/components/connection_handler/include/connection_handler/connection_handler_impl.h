@@ -166,13 +166,13 @@ class ConnectionHandlerImpl : public ConnectionHandler,
    * \param session_id Identifier of the session to be started
    * \param service_type Type of service
    * \param is_protected would be service protected
+   * \param hash_id pointer for session hash identifier
    * \return uint32_t Id (number) of new session if successful, otherwise 0.
    */
-  virtual uint32_t OnSessionStartedCallback(
-    const transport_manager::ConnectionUID &connection_handle,
+  virtual uint32_t OnSessionStartedCallback(const transport_manager::ConnectionUID &connection_handle,
     const uint8_t session_id,
     const protocol_handler::ServiceType &service_type,
-    const bool is_protected);
+    const bool is_protected, uint32_t* hash_id);
 
   /**
    * \brief Callback function used by ProtocolHandler
@@ -269,7 +269,7 @@ class ConnectionHandlerImpl : public ConnectionHandler,
 #endif  // ENABLE_SECURITY
 
   /**
-    * \brief Get device handle by mac address
+   * \brief Get device handle by mac address
    * \param mac_address uniq address
    * \param device_handle
    * \return true on sucess otherwise false.

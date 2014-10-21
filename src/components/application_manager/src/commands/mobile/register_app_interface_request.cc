@@ -169,6 +169,11 @@ void RegisterAppInterfaceRequest::Run() {
     return;
   }
 
+  if (IsApplicationWithSameAppIdRegistered()) {
+    SendResponse(false, mobile_apis::Result::DISALLOWED);
+    return;
+  }
+
   mobile_apis::Result::eType policy_result = CheckWithPolicyData();
   if (mobile_apis::Result::SUCCESS != policy_result
       && mobile_apis::Result::WARNINGS != policy_result) {
@@ -187,11 +192,6 @@ void RegisterAppInterfaceRequest::Run() {
       ++count_of_rejections_duplicate_name;
     }
     SendResponse(false, coincidence_result);
-    return;
-  }
-
-  if (IsApplicationWithSameAppIdRegistered()) {
-    SendResponse(false, mobile_apis::Result::DISALLOWED);
     return;
   }
 
@@ -252,14 +252,20 @@ void RegisterAppInterfaceRequest::Run() {
     if (msg_params.keyExists(strings::app_hmi_type)) {
       app->set_app_types(msg_params[strings::app_hmi_type]);
 
-      // check if app is NAVI
-      const int32_t is_navi_type = mobile_apis::AppHMIType::NAVIGATION;
+      // check app type
       const smart_objects::SmartObject& app_type =
         msg_params.getElement(strings::app_hmi_type);
 
       for (size_t i = 0; i < app_type.length(); ++i) {
-        if (is_navi_type == app_type.getElement(i).asInt()) {
+        if (mobile_apis::AppHMIType::NAVIGATION ==
+            static_cast<mobile_apis::AppHMIType::eType>(
+                app_type.getElement(i).asUInt())) {
           app->set_allowed_support_navigation(true);
+        }
+        if (mobile_apis::AppHMIType::COMMUNICATION ==
+            static_cast<mobile_apis::AppHMIType::eType>(
+            app_type.getElement(i).asUInt())) {
+          app->set_voice_communication_supported(true);
         }
       }
     }
