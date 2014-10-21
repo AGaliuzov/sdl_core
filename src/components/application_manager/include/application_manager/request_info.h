@@ -186,19 +186,18 @@ namespace request_controller {
         app_id_(app_id) {}
 
     bool operator()(RequestInfoPtr setEntry) {
-      RequestInfo* request = setEntry.get();
 
-      if (NULL == request) {
+      if (!setEntry.valid()) {
         return false;
       }
 
-      if (request->app_id() != app_id_) {
+      if (setEntry->app_id() != app_id_) {
         return false;
       }
 
-      if (date_time::DateTime::getmSecs(request->start_time())
+      if (date_time::DateTime::getmSecs(setEntry->start_time())
           < date_time::DateTime::getmSecs(start_) ||
-          date_time::DateTime::getmSecs(request->start_time())
+          date_time::DateTime::getmSecs(setEntry->start_time())
           > date_time::DateTime::getmSecs(end_)) {
         return false;
       }
@@ -227,23 +226,21 @@ namespace request_controller {
         hmi_level_(hmi_level) {}
 
     bool operator()(RequestInfoPtr setEntry) {
-      RequestInfo* request = setEntry.get();
-
-      if (NULL == request) {
+      if (!setEntry.valid()) {
         return false;
       }
 
-      if (request->app_id() != app_id_) {
+      if (setEntry->app_id() != app_id_) {
         return false;
       }
 
-      if (request->hmi_level() != hmi_level_) {
+      if (setEntry->hmi_level() != hmi_level_) {
         return false;
       }
 
-      if (date_time::DateTime::getSecs(request->start_time())
+      if (date_time::DateTime::getSecs(setEntry->start_time())
           < date_time::DateTime::getSecs(start_) ||
-          date_time::DateTime::getSecs(request->start_time())
+          date_time::DateTime::getSecs(setEntry->start_time())
           > date_time::DateTime::getSecs(end_)) {
         return false;
       }
