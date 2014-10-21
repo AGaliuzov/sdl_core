@@ -47,7 +47,6 @@ class RequestToHMI : public CommandImpl {
   virtual bool Init();
   virtual bool CleanUp();
   virtual void Run();
-
   void SendRequest();
 
   /*

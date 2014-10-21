@@ -188,6 +188,10 @@ namespace request_controller {
     bool operator()(RequestInfoPtr setEntry) {
       RequestInfo* request = setEntry.get();
 
+      if (NULL == request) {
+        return false;
+      }
+
       if (request->app_id() != app_id_) {
         return false;
       }
@@ -224,6 +228,10 @@ namespace request_controller {
 
     bool operator()(RequestInfoPtr setEntry) {
       RequestInfo* request = setEntry.get();
+
+      if (NULL == request) {
+        return false;
+      }
 
       if (request->app_id() != app_id_) {
         return false;
