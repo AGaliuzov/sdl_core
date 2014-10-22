@@ -361,7 +361,7 @@ ObjectType* SharedPtr<ObjectType>::get() const {
 
 template<typename ObjectType>
 inline bool SharedPtr<ObjectType>::valid() const {
-  if (mReferenceCounter && (0 > *mReferenceCounter)) {
+  if (mReferenceCounter && (0 < *mReferenceCounter)) {
     return (mObject != NULL);
   }
   return false;
