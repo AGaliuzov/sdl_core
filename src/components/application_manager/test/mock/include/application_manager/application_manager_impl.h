@@ -156,8 +156,8 @@ class ApplicationManagerImpl : public ApplicationManager,
   MOCK_METHOD0(Stop, bool());
   MOCK_METHOD1(OnMessageReceived, void (utils::SharedPtr<application_manager::Message>));
   MOCK_METHOD1(OnErrorSending, void (utils::SharedPtr<application_manager::Message>));
-  MOCK_METHOD1(OnMessageReceived, void (const RawMessagePtr));
-  MOCK_METHOD1(OnMobileMessageSent, void (const RawMessagePtr));
+  MOCK_METHOD1(OnMessageReceived, void (const ::protocol_handler::RawMessagePtr));
+  MOCK_METHOD1(OnMobileMessageSent, void (const ::protocol_handler::RawMessagePtr));
   MOCK_METHOD1(OnDeviceListUpdated, void (const connection_handler::DeviceMap&));
   MOCK_METHOD0(OnFindNewApplicationsRequest, void ());
   MOCK_METHOD1(RemoveDevice, void (const connection_handler::DeviceHandle&));

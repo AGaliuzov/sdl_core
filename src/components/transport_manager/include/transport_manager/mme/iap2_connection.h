@@ -58,7 +58,7 @@ class IAP2Connection : public Connection {
   void Finalize();
 
  protected:
-  virtual TransportAdapter::Error SendData(RawMessagePtr message);
+  virtual TransportAdapter::Error SendData(::protocol_handler::RawMessagePtr message);
   virtual TransportAdapter::Error Disconnect();
 
  private:

@@ -58,7 +58,7 @@ void IAPConnection::Init() {
   controller_->ConnectDone(device_uid_, app_handle_);
 }
 
-TransportAdapter::Error IAPConnection::SendData(RawMessagePtr message) {
+TransportAdapter::Error IAPConnection::SendData(::protocol_handler::RawMessagePtr message) {
   int session_id;
 
   { // auto_lock scope
@@ -101,7 +101,7 @@ void IAPConnection::ReceiveData(int session_id) {
     if (size != -1) {
       LOG4CXX_DEBUG(logger_, "iAP: received " << size << " bytes on protocol " << protocol_name_);
       if (size != 0) {
-        RawMessagePtr message(new protocol_handler::RawMessage(0, 0, buffer_, size));
+        ::protocol_handler::RawMessagePtr message(new protocol_handler::RawMessage(0, 0, buffer_, size));
         controller_->DataReceiveDone(device_uid_, app_handle_, message);
       }
       ++iterations;
