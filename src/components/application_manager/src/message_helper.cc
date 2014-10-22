@@ -288,7 +288,7 @@ void MessageHelper::SendHMIStatusNotification(
 }
 
 void MessageHelper::SendOnAppRegisteredNotificationToHMI(
-  const Application& application_impl, bool resumption) {
+  const Application& application_impl, bool resumption, bool need_restore_vr) {
   smart_objects::SmartObject* notification = new smart_objects::SmartObject;
   if (!notification) {
     // TODO(VS): please add logger.
@@ -308,7 +308,7 @@ void MessageHelper::SendOnAppRegisteredNotificationToHMI(
       .ngn_media_screen_name();
 
   if (resumption) {
-    message[strings::msg_params][strings::resume_vr_grammars] = true;
+    message[strings::msg_params][strings::resume_vr_grammars] = need_restore_vr;
   }
 
   if (ngn_media_screen_name) {

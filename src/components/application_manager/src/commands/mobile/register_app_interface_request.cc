@@ -472,19 +472,20 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile(
   uint32_t hash_id = 0;
 
   const char* add_info = "";
-  bool resumption = (*message_)[strings::msg_params].keyExists(strings::hash_id);
+  const bool resumption = (*message_)[strings::msg_params].keyExists(strings::hash_id);
+  bool need_restore_vr = resumption;
   if (resumption) {
     hash_id = (*message_)[strings::msg_params][strings::hash_id].asUInt();
     if (!resumer.CheckApplicationHash(application, hash_id)) {
       LOG4CXX_WARN(logger_, "Hash does not matches");
       result = mobile_apis::Result::RESUME_FAILED;
       add_info = "Hash does not matches";
-      resumption = false;
+      need_restore_vr = false;
     } else if (!resumer.CheckPersistenceFilesForResumption(application)) {
       LOG4CXX_WARN(logger_, "Persistent data is missed");
       result = mobile_apis::Result::RESUME_FAILED;
       add_info = "Persistent data is missed";
-      resumption = false;
+      need_restore_vr = false;
     } else {
       add_info = " Resume Succeed";
     }
@@ -493,7 +494,8 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile(
   SendResponse(true, result, add_info, params);
 
   MessageHelper::SendOnAppRegisteredNotificationToHMI(*(application.get()),
-                                                      resumption);
+                                                      resumption,
+                                                      need_restore_vr);
 
   MessageHelper::SendChangeRegistrationRequestToHMI(application);
 
