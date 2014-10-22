@@ -99,11 +99,11 @@ class AOAWrapper {
   std::vector<AOAEndpoint> GetEndpoints() const;
   bool Subscribe(AOAConnectionObserver* observer);
   bool Unsubscribe();
-  bool SendMessage(RawMessagePtr message) const;
+  bool SendMessage(::protocol_handler::RawMessagePtr message) const;
   bool SendControlMessage(uint16_t request, uint16_t value, uint16_t index,
-                          RawMessagePtr message) const;
-  RawMessagePtr ReceiveMessage() const;
-  RawMessagePtr ReceiveControlMessage(uint16_t request, uint16_t value,
+                          ::protocol_handler::RawMessagePtr message) const;
+  ::protocol_handler::RawMessagePtr ReceiveMessage() const;
+  ::protocol_handler::RawMessagePtr ReceiveControlMessage(uint16_t request, uint16_t value,
                                       uint16_t index) const;
 
  private:
@@ -136,8 +136,8 @@ class AOADeviceLife {
 
 class AOAConnectionObserver {
  public:
-  virtual void OnMessageReceived(bool success, RawMessagePtr message) = 0;
-  virtual void OnMessageTransmitted(bool success, RawMessagePtr message) = 0;
+  virtual void OnMessageReceived(bool success, ::protocol_handler::RawMessagePtr message) = 0;
+  virtual void OnMessageTransmitted(bool success, ::protocol_handler::RawMessagePtr message) = 0;
   virtual void OnDisconnected() = 0;
   virtual ~AOAConnectionObserver() {
   }

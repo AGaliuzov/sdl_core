@@ -166,6 +166,9 @@ int TransportManagerImpl::Disconnect(const ConnectionUID& cid) {
     return E_INVALID_HANDLE;
   }
 
+  connection->transport_adapter->Disconnect(connection->device,
+      connection->application);
+  // TODO(dchmerev@luxoft.com): Return disconnect timeout
   /*
   int messages_count = 0;
   for (EventQueue::const_iterator it = event_queue_.begin();
@@ -388,31 +391,6 @@ int TransportManagerImpl::SearchDevices() {
 int TransportManagerImpl::Init() {
   LOG4CXX_TRACE(logger_, "enter");
   all_thread_active_ = true;
-/*
-  Thread* message_queue_thread = new Thread("MessageQueue", new MessageQueueDelegate());
-
-  int error_code = pthread_create(&message_queue_thread_, 0,
-                                  &MessageQueueStartThread, this);
-  if (0 != error_code) {
-    LOG4CXX_ERROR(logger_,
-                  "Message queue thread is not created exit with error code "
-                  << error_code);
-    LOG4CXX_TRACE(logger_, "exit with E_TM_IS_NOT_INITIALIZED. Condition: 0 != error_code");
-    return E_TM_IS_NOT_INITIALIZED;
-  }
-  pthread_setname_np(message_queue_thread_, "TM MessageQueue");
-
-  error_code = pthread_create(&event_queue_thread_, 0,
-                              &EventListenerStartThread, this);
-  if (0 != error_code) {
-    LOG4CXX_ERROR(logger_,
-                  "Event queue thread is not created exit with error code "
-                  << error_code);
-    LOG4CXX_TRACE(logger_, "exit with E_TM_IS_NOT_INITIALIZED. Condition: 0 != error_code");
-    return E_TM_IS_NOT_INITIALIZED;
-  }
-  pthread_setname_np(event_queue_thread_, "TM EventListener");
-*/
   is_initialized_ = true;
   LOG4CXX_TRACE(logger_, "exit with E_SUCCESS");
   return E_SUCCESS;
@@ -788,68 +766,6 @@ void TransportManagerImpl::Handle(::protocol_handler::RawMessagePtr msg) {
   }
   LOG4CXX_TRACE(logger_, "exit");
 }
-
-/*void TransportManagerImpl::MessageQueueThread() {
-  LOG4CXX_TRACE(logger_, "enter");
-
-  while (all_thread_active_) {
-    // TODO(YK): add priority processing
-
-    while (!message_queue_.empty()) {
-      RawMessagePtr msg = message_queue_.pop();
-      if (!msg.valid()) {
-        LOG4CXX_ERROR(logger_, "Invalid RawMessagePtr");
-        continue;
-      }
-      if (active_msg.valid() && !active_msg->IsWaiting()) {
-        ConnectionInternal* connection =
-          GetConnection(active_msg->connection_key());
-        if (connection == NULL) {
-          LOG4CXX_WARN(logger_, "Connection " << active_msg->connection_key() << " not found");
-          RaiseEvent(&TransportManagerListener::OnTMMessageSendFailed,
-                     DataSendTimeoutError(), *e);
-          continue;
-        }
-        TransportAdapter* transport_adapter = connection->transport_adapter;
-        LOG4CXX_DEBUG(logger_, "Got adapter "
-                      << transport_adapter << "["
-                      << transport_adapter->GetDeviceType() << "]"
-                      << " by session id "
-                      << active_msg->connection_key());
-
-        if (NULL == transport_adapter) {
-          std::string error_text =
-            "Transport adapter is not found - message removed";
-          LOG4CXX_ERROR(logger_, error_text);
-          RaiseEvent(&TransportManagerListener::OnTMMessageSendFailed,
-                     DataSendError(error_text), active_msg);
-          message_queue_.remove(active_msg);
-        } else {
-          if (TransportAdapter::OK ==
-              transport_adapter->SendData(
-                connection->device, connection->application, active_msg)) {
-            LOG4CXX_INFO(logger_, "Data sent to adapter");
-            active_msg->set_waiting(true);
-          } else {
-            LOG4CXX_ERROR(logger_, "Data sent error");
-            RaiseEvent(&TransportManagerListener::OnTMMessageSendFailed,
-                       DataSendError("Send failed - message removed"),
-                       active_msg);
-            message_queue_.remove(active_msg);
-          }
-        }
-      }
-      pthread_mutex_lock(&message_queue_mutex_);
-    }
-    pthread_cond_wait(&message_queue_cond_, &message_queue_mutex_);
-  }  //  while(true)
-
-  message_queue_.clear();
-
-  pthread_mutex_unlock(&message_queue_mutex_);
-  LOG4CXX_TRACE(logger_, "exit");
-}
-*/
 
 TransportManagerImpl::ConnectionInternal::ConnectionInternal(
   TransportManagerImpl* transport_manager, TransportAdapter* transport_adapter,
