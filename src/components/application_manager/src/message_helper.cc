@@ -307,6 +307,8 @@ void MessageHelper::SendOnAppRegisteredNotificationToHMI(
   const smart_objects::SmartObject* ngn_media_screen_name = application_impl
       .ngn_media_screen_name();
 
+  // Due to current requirements in case when we're in resumption mode
+  // we have to always send resumeVRGrammar field.
   if (resumption) {
     message[strings::msg_params][strings::resume_vr_grammars] = need_restore_vr;
   }
