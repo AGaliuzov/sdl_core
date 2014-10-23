@@ -409,6 +409,8 @@ TEST_F(IncomingDataHandlerTest, MalformedPacket_MessageID) {
   EXPECT_EQ(0u, actual_frames.size());
 }
 
+// TODO(EZamakhov): add correctness on handling 2+ connection data
+
 }  // namespace protocol_handler_test
 }  // namespace components
 }  // namespace test

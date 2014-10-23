@@ -388,7 +388,6 @@ void ProtocolHandlerImpl::OnTMMessageReceived(const RawMessagePtr tm_message) {
   RESULT_CODE result;
   std::list<ProtocolFramePtr> protocol_frames =
       incoming_data_handler_->ProcessData(*tm_message, &result);
-  // TODO(EZamakhov): check malformed messages
   if (result == RESULT_FAIL) {
     LOG4CXX_ERROR(logger_,
                   "Incoming data processing failed. Terminating connection.");

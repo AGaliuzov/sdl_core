@@ -76,11 +76,14 @@ std::list<ProtocolFramePtr> IncomingDataHandler::ProcessData(const RawMessage& t
     const RESULT_CODE frame_creation_result =
         CreateFrame(connection_data, out_frames, connection_id);
 
-    if(RESULT_OK != frame_creation_result &&
-       RESULT_DEFRERRED != frame_creation_result) {
+    if(RESULT_DEFRERRED == frame_creation_result) {
+      LOG4CXX_DEBUG(logger_, "Wait next portion of data");
+      break;
+    }
+    if(RESULT_OK != frame_creation_result) {
+      LOG4CXX_WARN(logger_, "Packet could not be parsed from data stream");
       // TODO(EZamakhov): add to malformed messages counter
       connection_data.clear();
-
       if(result) {
         *result = frame_creation_result;
       }

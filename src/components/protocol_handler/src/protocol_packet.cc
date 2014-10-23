@@ -263,10 +263,15 @@ RESULT_CODE ProtocolPacket::ProtocolHeader::validate() const {
      && dataSize <= 0u) {
     return RESULT_FAIL;
   }
-  // Message ID be equal or greater than 0x01 (not actual for 1 protocol version)
-  if(messageId <= 0u && PROTOCOL_VERSION_1 != version) {
+  // Message ID shall be greater than 0x00, but not implemented in SPT
+  // TODO(EZamakhov): return on fix on mobile side
+#ifdef BUILD_TESTS
+  // Message ID be equal or greater than 0x01 (not actual for 1 protocol version and Control frames)
+  if(FRAME_TYPE_CONTROL != frameType && PROTOCOL_VERSION_1 != version
+     && messageId <= 0u) {
     return RESULT_FAIL;
   }
+#endif
   return RESULT_OK;
 }
 

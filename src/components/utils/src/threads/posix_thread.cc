@@ -35,6 +35,7 @@
 #include <limits.h>
 #include <stddef.h>
 #include <signal.h>
+#include <unistd.h>
 
 #include "utils/atomic.h"
 #include "utils/threads/thread.h"
@@ -96,7 +97,7 @@ void Thread::SetNameForId(const Id& thread_id, const std::string& name) {
   std::string nm = name;
   std::string& trimname = nm.size() > 15 ? nm.erase(15) : nm;
   const int rc = pthread_setname_np(thread_id.id_, trimname.c_str());
-  if(rc == EOK) {
+  if(rc != EOK) {
     LOG4CXX_WARN(logger_, "Couldn't set pthread name \""
                        << trimname
                        << "\", error code "
@@ -179,6 +180,10 @@ bool Thread::startWithOptions(const ThreadOptions& options) {
 
 void Thread::stop() {
   LOG4CXX_TRACE_ENTER(logger_);
+#ifdef BUILD_TESTS
+  // Temporary fix for UnitTest until APPLINK-9987 will be resolved
+  usleep(100000);
+#endif
 
   if (!atomic_post_clr(&isThreadRunning_))
   {
