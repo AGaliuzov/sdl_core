@@ -175,6 +175,7 @@ void IAP2Device::OnDisconnect(ApplicationHandle app_id) {
     removed = true;
     ThreadContainer::iterator j = legacy_connection_threads_.find(protocol_name);
     if (j != legacy_connection_threads_.end()) {
+      threads::DeleteThread(j->second);
       ::std::string thread_name = "iAP2 notifier " + protocol_name ;
       threads::Thread* thread = threads::CreateThread(thread_name.c_str(),
         new IAP2ConnectThreadDelegate(this, protocol_name));
