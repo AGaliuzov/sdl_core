@@ -66,6 +66,7 @@
 
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "appMain")
+
 extern const char* gitVersion;
 namespace {
 
@@ -144,6 +145,11 @@ int32_t main(int32_t argc, char** argv) {
   // Logger initialization
   INIT_LOGGER("log4cxx.properties");
   LOG4CXX_INFO(logger_, gitVersion);
+#if defined(__QNXNTO__) and defined(GCOV_ENABLED)
+  LOG4CXX_ERROR(logger_,
+                "Attention! This application was built with unsupported "
+                "configuration (gcov + QNX). Use it at your own risk.");
+#endif
 
   threads::Thread::SetNameForId(threads::Thread::CurrentId(), "MainThread");
 

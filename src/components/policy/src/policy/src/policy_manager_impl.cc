@@ -91,16 +91,6 @@ namespace policy {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "PolicyManagerImpl")
 
-#if defined(__QNXNTO__) and defined(GCOV_ENABLED)
-bool CheckGcov() {
-  LOG4CXX_ERROR(log4cxx::Logger::getLogger("appMain"),
-                "Attention! This application was built with unsupported "
-                "configuration (gcov + QNX). Use it at your own risk.");
-  return true;
-}
-bool check_gcov = CheckGcov();
-#endif
-
 PolicyManagerImpl::PolicyManagerImpl()
   : PolicyManager(),
     listener_(NULL),
