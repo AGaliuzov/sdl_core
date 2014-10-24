@@ -73,6 +73,8 @@ PopUp {
             width: parent.width
             text: command
             onClicked: {
+                if ((cmdID === 0) && (appID === 1) && (interactionPopup.performInteractionIsActiveNow))
+                    ttsPopUp.activate(ttsPopUp.helpPromptstr)
                 sdlVR.onCommand(cmdID, appID === 0 ? undefined : appID);
                 if (dataContainer.activeVR) {
                     vrPopUp.complete();

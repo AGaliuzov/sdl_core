@@ -442,7 +442,13 @@ QtObject {
     property ListModel deviceList: ListModel { }
     property ListModel applicationList: ListModel { }
     property ListModel stashedApplicationsList: ListModel { }
-    property ListModel vrCommands: ListModel {}
+    property ListModel vrCommands: ListModel {
+        ListElement{
+            command: "Help"
+            cmdID: 0
+            appID: 1
+        }
+    }
 
     function reset () {
         console.log("dataContainer reset enter");

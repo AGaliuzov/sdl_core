@@ -42,6 +42,7 @@ PopUp {
     width: Constants.ttsPopUpWidth
     padding: Constants.ttsPopUpPadding
     property var async
+    property string helpPromptstr
 
     ScrollView {
         anchors.fill: parent
@@ -50,6 +51,7 @@ PopUp {
             anchors.fill: parent
             color: Constants.popUpBorderColor
             font.pixelSize: Constants.ttsFontSize
+            text:""
         }
     }
 
@@ -69,6 +71,8 @@ PopUp {
     ]
 
     function performInteraction(helpPrompt, initialPrompt, timeoutPrompt, timeout) {
+        console.debug("Activate TTS popup:", "message");
+        helpPromptstr = helpPrompt
         activate(initialPrompt);
         if (timeout * 2 - Constants.ttsSpeakTime > 0) {
             ttsPerformInteractionTimer.message = timeoutPrompt;
