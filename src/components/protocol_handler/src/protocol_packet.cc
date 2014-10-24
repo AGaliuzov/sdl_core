@@ -141,7 +141,7 @@ size_t ProtocolPacket::packet_size() const {
 }
 
 bool ProtocolPacket::operator==(const ProtocolPacket& other) const {
-  if(connection_id_ == other.connection_id_ &&
+  if (connection_id_ == other.connection_id_ &&
      packet_header_.version == other.packet_header_.version &&
      packet_header_.protection_flag == other.packet_header_.protection_flag &&
      packet_header_.frameType == other.packet_header_.frameType &&
@@ -152,7 +152,7 @@ bool ProtocolPacket::operator==(const ProtocolPacket& other) const {
      packet_header_.messageId ==  other.packet_header_.messageId &&
      packet_data_.totalDataBytes == other.packet_data_.totalDataBytes) {
     // Compare payload
-    if(other.packet_data_.totalDataBytes == 0 ||
+    if (other.packet_data_.totalDataBytes == 0 ||
        0 == memcmp(packet_data_.data, other.packet_data_.data,
                    sizeof(packet_data_.totalDataBytes)))
       return true;
@@ -162,7 +162,7 @@ bool ProtocolPacket::operator==(const ProtocolPacket& other) const {
 
 RESULT_CODE ProtocolPacket::ProtocolHeader::deserialize(
     const uint8_t* message, const size_t messageSize) {
-  if(messageSize < PROTOCOL_HEADER_V1_SIZE) {
+  if (messageSize < PROTOCOL_HEADER_V1_SIZE) {
     return RESULT_FAIL;
   }
   // first 4 bits
@@ -185,7 +185,7 @@ RESULT_CODE ProtocolPacket::ProtocolHeader::deserialize(
       break;
     case PROTOCOL_VERSION_2:
     case PROTOCOL_VERSION_3: {
-        if(messageSize < PROTOCOL_HEADER_V2_SIZE) {
+        if (messageSize < PROTOCOL_HEADER_V2_SIZE) {
           return RESULT_FAIL;
         }
         const uint32_t message_id_be =
@@ -211,7 +211,7 @@ RESULT_CODE ProtocolPacket::ProtocolHeader::validate() const {
       return RESULT_FAIL;
   }
   // ServiceType shall be equal 0x0 (Control), 0x07 (RPC), 0x0A (PCM), 0x0B (Video), 0x0F (Bulk)
-  if(ServiceTypeFromByte(serviceType) == kInvalidServiceType) {
+  if (ServiceTypeFromByte(serviceType) == kInvalidServiceType) {
     return RESULT_FAIL;
   }
   // Check frane info for each frame type
@@ -237,12 +237,12 @@ RESULT_CODE ProtocolPacket::ProtocolHeader::validate() const {
         break;
       }
     case FRAME_TYPE_SINGLE:
-      if(frameData != FRAME_DATA_SINGLE) {
+      if (frameData != FRAME_DATA_SINGLE) {
         return RESULT_FAIL;
       }
       break;
     case FRAME_TYPE_FIRST:
-      if(frameData != FRAME_DATA_FIRST) {
+      if (frameData != FRAME_DATA_FIRST) {
         return RESULT_FAIL;
       }
       break;
@@ -256,29 +256,27 @@ RESULT_CODE ProtocolPacket::ProtocolHeader::validate() const {
   // For Control frames Data Size value shall be less than MTU header
   // For Single and Consecutive Data Size value shall be greater than 0x00
   // and shall be less than N (this value will be defined in .ini file)
-  if(dataSize >= MAXIMUM_FRAME_DATA_SIZE) {
+  if (dataSize >= MAXIMUM_FRAME_DATA_SIZE) {
     return RESULT_FAIL;
   }
-  if((FRAME_TYPE_SINGLE == frameType || FRAME_TYPE_CONSECUTIVE == frameType)
+  if ((FRAME_TYPE_SINGLE == frameType || FRAME_TYPE_CONSECUTIVE == frameType)
      && dataSize <= 0u) {
     return RESULT_FAIL;
   }
-  // Message ID shall be greater than 0x00, but not implemented in SPT
-  // TODO(EZamakhov): return on fix on mobile side
-#ifdef BUILD_TESTS
   // Message ID be equal or greater than 0x01 (not actual for 1 protocol version and Control frames)
-  if(FRAME_TYPE_CONTROL != frameType && PROTOCOL_VERSION_1 != version
+  if (FRAME_TYPE_CONTROL != frameType && PROTOCOL_VERSION_1 != version
      && messageId <= 0u) {
-    return RESULT_FAIL;
+    // Message ID shall be greater than 0x00, but not implemented in SPT
+    // TODO(EZamakhov): return on fix on mobile side
+//    return RESULT_FAIL;
   }
-#endif
   return RESULT_OK;
 }
 
 RESULT_CODE ProtocolPacket::deserializePacket(
     const uint8_t *message, const size_t messageSize) {
   const RESULT_CODE result = packet_header_.deserialize(message, messageSize);
-  if(result != RESULT_OK) {
+  if (result != RESULT_OK) {
     return result;
   }
   const uint8_t offset =

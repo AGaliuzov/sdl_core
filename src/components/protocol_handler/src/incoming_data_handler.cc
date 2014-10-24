@@ -37,8 +37,8 @@ namespace protocol_handler {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "ProtocolHandler")
 
-IncomingDataHandler::IncomingDataHandler() :
-  connections_data_() {
+IncomingDataHandler::IncomingDataHandler()
+  : connections_data_() {
 }
 static const size_t MIN_HEADER_SIZE = PROTOCOL_HEADER_V1_SIZE;
 
@@ -48,9 +48,9 @@ std::list<ProtocolFramePtr> IncomingDataHandler::ProcessData(const RawMessage& t
   const transport_manager::ConnectionUID connection_id = tm_message.connection_key();
   const uint8_t* data = tm_message.data();
   const size_t tm_message_size = tm_message.data_size();
-  if(tm_message_size == 0 || data == NULL) {
+  if (tm_message_size == 0 || data == NULL) {
     LOG4CXX_WARN(logger_, "Wrong raw message " << tm_message_size << " bytes");
-    if(result) {
+    if (result) {
       *result = RESULT_FAIL;
     }
     LOG4CXX_TRACE_EXIT(logger_);
@@ -61,7 +61,7 @@ std::list<ProtocolFramePtr> IncomingDataHandler::ProcessData(const RawMessage& t
   ConnectionsDataMap::iterator it = connections_data_.find(connection_id);
   if (connections_data_.end() == it) {
     LOG4CXX_ERROR(logger_, "ProcessData requested for unknown connection");
-    if(result) {
+    if (result) {
       *result = RESULT_FAIL;
     }
     LOG4CXX_TRACE_EXIT(logger_);
@@ -76,15 +76,15 @@ std::list<ProtocolFramePtr> IncomingDataHandler::ProcessData(const RawMessage& t
     const RESULT_CODE frame_creation_result =
         CreateFrame(connection_data, out_frames, connection_id);
 
-    if(RESULT_DEFRERRED == frame_creation_result) {
+    if (RESULT_DEFRERRED == frame_creation_result) {
       LOG4CXX_DEBUG(logger_, "Wait next portion of data");
       break;
     }
-    if(RESULT_OK != frame_creation_result) {
+    if (RESULT_OK != frame_creation_result) {
       LOG4CXX_WARN(logger_, "Packet could not be parsed from data stream");
       // TODO(EZamakhov): add to malformed messages counter
       connection_data.clear();
-      if(result) {
+      if (result) {
         *result = frame_creation_result;
       }
       return out_frames;
@@ -95,7 +95,7 @@ std::list<ProtocolFramePtr> IncomingDataHandler::ProcessData(const RawMessage& t
   }
   LOG4CXX_TRACE_EXIT(logger_);
 
-  if(result) {
+  if (result) {
     *result = RESULT_OK;
   }
   return out_frames;
@@ -134,12 +134,12 @@ RESULT_CODE IncomingDataHandler::CreateFrame(std::vector<uint8_t>& incomming_dat
     const RESULT_CODE deserialize_header_result =
         validation_header.deserialize(incomming_data.data(),
                                       incomming_data.size());
-    if(deserialize_header_result != RESULT_OK) {
+    if (deserialize_header_result != RESULT_OK) {
       LOG4CXX_TRACE_EXIT(logger_);
       return deserialize_header_result;
     }
     const RESULT_CODE validate_result = validation_header.validate();
-    if(validate_result != RESULT_OK) {
+    if (validate_result != RESULT_OK) {
       LOG4CXX_TRACE_EXIT(logger_);
       return validate_result;
     }
@@ -150,8 +150,9 @@ RESULT_CODE IncomingDataHandler::CreateFrame(std::vector<uint8_t>& incomming_dat
       return RESULT_DEFRERRED;
     }
     ProtocolFramePtr frame(new protocol_handler::ProtocolPacket(connection_id));
-    const RESULT_CODE deserialize_result = frame->deserializePacket(&incomming_data[0], packet_size);
-    if(deserialize_result != RESULT_OK) {
+    const RESULT_CODE deserialize_result =
+        frame->deserializePacket(&incomming_data[0], packet_size);
+    if (deserialize_result != RESULT_OK) {
       LOG4CXX_TRACE_EXIT(logger_);
       return deserialize_result;
     }

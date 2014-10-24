@@ -119,7 +119,7 @@ class ProtocolPacket {
    *
    * \param connection_id - Connection Identifier
    */
-  ProtocolPacket(uint8_t connection_id);
+  explicit ProtocolPacket(uint8_t connection_id);
 
   /**
    * \brief Constructor

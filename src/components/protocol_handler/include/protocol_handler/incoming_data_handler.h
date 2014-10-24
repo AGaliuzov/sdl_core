@@ -34,9 +34,11 @@
 
 #include <list>
 #include <map>
+#include <vector>
 #include "utils/macro.h"
 #include "protocol_packet.h"
 #include "transport_manager/common.h"
+
 namespace protocol_handler {
 
 class IncomingDataHandler {
@@ -46,10 +48,8 @@ class IncomingDataHandler {
    * @brief Contecat TM messages to ford frames and validate ford header data
    * \param TM messages for converting to frames
    * \param result of convertion
-   *   - RESULT_IN_PROGRESS - waiting for more data
-   *   - RESULT_OK - one or more frames successfully created
    *   - RESULT_FAIL - packet serialization or validation error occurs
-   *
+   *   - RESULT_OK - no error ocures
    * \return list of complete, correct packets
    */
   std::list<ProtocolFramePtr> ProcessData(const RawMessage& tm_message, RESULT_CODE* result);
@@ -63,6 +63,7 @@ class IncomingDataHandler {
    */
   void RemoveConnection(
     const transport_manager::ConnectionUID connection_id);
+
  private:
   /**
    * @brief Returns size of frame to be formed from raw bytes.
@@ -70,6 +71,13 @@ class IncomingDataHandler {
   static uint32_t GetPacketSize(const ProtocolPacket::ProtocolHeader& header);
   /**
    * @brief Try to create frame from incomming data
+   * \param incommung_data raw stream
+   * \param out_frames list for read frames
+   *
+   * \return operation RESULT_CODE
+   *   - RESULT_DEFRERRED - waiting for more data
+   *   - RESULT_OK - one or more frames successfully created
+   *   - RESULT_FAIL - packet serialization or validation error occurs
    */
   RESULT_CODE CreateFrame(std::vector<uint8_t>& incomming_data,
                           std::list<ProtocolFramePtr>& out_frames,
@@ -81,4 +89,4 @@ class IncomingDataHandler {
   DISALLOW_COPY_AND_ASSIGN(IncomingDataHandler);
 };
 }  // namespace protocol_handler
-#endif // SRC_COMPONENTS_PROTOCOL_HANDLER_INCLUDE_PROTOCOL_HANDLER_INCOMING_DATA_HANDLER_H_
+#endif  // SRC_COMPONENTS_PROTOCOL_HANDLER_INCLUDE_PROTOCOL_HANDLER_INCOMING_DATA_HANDLER_H_

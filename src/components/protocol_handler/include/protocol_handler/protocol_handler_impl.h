@@ -36,6 +36,7 @@
 #include <map>
 #include <memory>
 #include <set>
+#include <list>
 #include "utils/prioritized_queue.h"
 #include "utils/message_queue.h"
 #include "utils/threads/message_loop_thread.h"
