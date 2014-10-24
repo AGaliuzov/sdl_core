@@ -340,7 +340,7 @@ void PolicyManagerImpl::CheckPermissions(const PTString& app_id,
                                    GroupConsent::kGroupUndefined);
   std::for_each(app_groups.begin(), app_groups.end(), processor);
 
-  const bool known_rpc = rpc_permissions.end() == rpc_permissions.find(rpc);
+  const bool known_rpc = rpc_permissions.end() != rpc_permissions.find(rpc);
   if (!known_rpc) {
     // RPC not found in list == disallowed by backend
     result.hmi_level_permitted = kRpcDisallowed;
