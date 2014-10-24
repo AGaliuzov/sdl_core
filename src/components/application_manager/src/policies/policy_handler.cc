@@ -50,6 +50,7 @@
 #include "application_manager/usage_statistics.h"
 #include "policy/policy_types.h"
 #include "interfaces/MOBILE_API.h"
+#include "utils/file_system.h"
 
 namespace policy {
 
@@ -271,7 +272,11 @@ bool PolicyHandler::InitPolicyTable() {
         hmi_apis::FunctionID::BasicCommunication_OnReady);
   std::string preloaded_file =
     profile::Profile::instance()->preloaded_pt_file();
-  return policy_manager_->InitPT(preloaded_file);
+  if (file_system::FileExists(preloaded_file)) {
+    return policy_manager_->InitPT(preloaded_file);
+  }
+  LOG4CXX_WARN(logger_, "The file which contains preloaded PT is not exist");
+  return false;
 }
 
 bool PolicyHandler::ResetPolicyTable() {
@@ -279,7 +284,11 @@ bool PolicyHandler::ResetPolicyTable() {
   POLICY_LIB_CHECK(false);
   std::string preloaded_file =
     profile::Profile::instance()->preloaded_pt_file();
-  return policy_manager_->ResetPT(preloaded_file);
+  if (file_system::FileExists(preloaded_file)) {
+    return policy_manager_->ResetPT(preloaded_file);
+  }
+  LOG4CXX_WARN(logger_, "The file which contains preloaded PT is not exist");
+  return false;
 }
 
 bool PolicyHandler::ClearUserConsent() {
