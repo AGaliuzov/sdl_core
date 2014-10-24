@@ -206,6 +206,7 @@ PolicyHandler* PolicyHandler::instance_ = NULL;
 const std::string PolicyHandler::kLibrary = "libPolicy.so";
 
 PolicyHandler::PolicyHandler()
+
   : dl_handle_(0),
 #ifdef EXTENDED_POLICY
     exchange_handler_(new PTExchangeHandlerExt(this)),
@@ -215,7 +216,8 @@ PolicyHandler::PolicyHandler()
     on_ignition_check_done_(false),
     last_activated_app_id_(0),
     registration_in_progress(false),
-    is_user_requested_policy_table_update_(false) {
+    is_user_requested_policy_table_update_(false),
+    statistic_manager_impl_(new StatisticManagerImpl()) {
 }
 
 PolicyHandler::~PolicyHandler() {
@@ -1293,8 +1295,7 @@ const std::vector<int> PolicyHandler::RetrySequenceDelaysSeconds() {
 
 utils::SharedPtr<usage_statistics::StatisticsManager>
 PolicyHandler::GetStatisticManager() {
-  return utils::SharedPtr<PolicyManager>::
-      static_pointer_cast<usage_statistics::StatisticsManager>(policy_manager_);
+  return statistic_manager_impl_;
 }
 
 void PolicyHandler::AddStatisticsInfo(int type) {
@@ -1414,6 +1415,30 @@ bool PolicyHandler::CheckStealFocus(int system_action,
 uint16_t PolicyHandler::HeartBeatTimeout(const std::string& app_id) const {
   POLICY_LIB_CHECK(0);
   return policy_manager_->HeartBeatTimeout(app_id);
+}
+
+void PolicyHandler::Increment(usage_statistics::GlobalCounterId type) {
+  POLICY_LIB_CHECK();
+  policy_manager_->Increment(type);
+}
+
+void PolicyHandler::Increment(const std::string& app_id, usage_statistics::AppCounterId type) {
+  POLICY_LIB_CHECK();
+  policy_manager_->Increment(app_id, type);
+}
+
+void PolicyHandler::Set(const std::string& app_id,
+                        usage_statistics::AppInfoId type,
+                        const std::string& value) {
+  POLICY_LIB_CHECK();
+  policy_manager_->Set(app_id, type, value);
+}
+
+void PolicyHandler::Add(const std::string& app_id,
+                        usage_statistics::AppStopwatchId type,
+                        int32_t timespan_seconds) {
+  POLICY_LIB_CHECK();
+  policy_manager_->Add(app_id, type, timespan_seconds);
 }
 
 }  //  namespace policy
