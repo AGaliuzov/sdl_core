@@ -52,9 +52,14 @@ namespace application_manager {
       uint32_t app_id = RequestToHMI::application_id();
       ApplicationManagerImpl::instance()->set_application_id(correlation_id(), app_id);
 #ifdef ENABLE_LOG
-      mobile_apis::HMILevel::eType requested_hmi_level = static_cast<mobile_apis::HMILevel::eType>(
-          (*message_)[strings::msg_params][strings::activate_app_hmi_level].asInt());
-      LOG4CXX_TRACE(logger_, "requested_hmi_level = " << requested_hmi_level);
+      if ((*message_)[strings::msg_params].keyExists(
+            strings::activate_app_hmi_level)) {
+        mobile_apis::HMILevel::eType requested_hmi_level =
+            static_cast<mobile_apis::HMILevel::eType>(
+                   (*message_)[strings::msg_params][strings::activate_app_hmi_level].asInt());
+        LOG4CXX_TRACE(logger_, "requested_hmi_level = "
+                        << requested_hmi_level);
+      }
 #endif
       SendRequest();
       subscribe_on_event(hmi_apis::FunctionID::BasicCommunication_ActivateApp,
