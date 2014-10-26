@@ -81,7 +81,7 @@ std::list<ProtocolFramePtr> IncomingDataHandler::ProcessData(const RawMessage& t
     const RESULT_CODE frame_creation_result =
         CreateFrame(connection_data, out_frames, connection_id);
 
-    if (RESULT_DEFRERRED == frame_creation_result) {
+    if (RESULT_DEFERRED == frame_creation_result) {
       LOG4CXX_DEBUG(logger_, "Wait next portion of data");
       break;
     }
@@ -92,17 +92,17 @@ std::list<ProtocolFramePtr> IncomingDataHandler::ProcessData(const RawMessage& t
       if (result) {
         *result = frame_creation_result;
       }
+      LOG4CXX_TRACE_EXIT(logger_);
       return out_frames;
     }
     LOG4CXX_DEBUG(logger_,
                   "Packet created and passed, new data size for connection "
                   << connection_id << " is " << connection_data.size());
   }
-  LOG4CXX_TRACE_EXIT(logger_);
-
   if (result) {
     *result = RESULT_OK;
   }
+  LOG4CXX_TRACE_EXIT(logger_);
   return out_frames;
 }
 
@@ -155,7 +155,7 @@ RESULT_CODE IncomingDataHandler::CreateFrame(std::vector<uint8_t>& incomming_dat
     if (incomming_data.size() < packet_size) {
       LOG4CXX_DEBUG(logger_, "Packet data is not available yet");
       LOG4CXX_TRACE_EXIT(logger_);
-      return RESULT_DEFRERRED;
+      return RESULT_DEFERRED;
     }
     ProtocolFramePtr frame(new protocol_handler::ProtocolPacket(connection_id));
     const RESULT_CODE deserialize_result =

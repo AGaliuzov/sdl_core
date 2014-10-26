@@ -77,7 +77,7 @@ class IncomingDataHandler {
    * \param out_frames list for read frames
    *
    * \return operation RESULT_CODE
-   *   - RESULT_DEFRERRED - waiting for more data
+   *   - RESULT_DEFERRED - waiting for more data
    *   - RESULT_OK - one or more frames successfully created
    *   - RESULT_FAIL - packet serialization or validation error occurs
    */
