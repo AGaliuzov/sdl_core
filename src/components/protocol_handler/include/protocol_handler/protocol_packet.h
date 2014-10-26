@@ -53,48 +53,24 @@ class ProtocolPacket {
    * \brief Used for storing message and its size.
    */
   struct ProtocolData {
-    ProtocolData()
-      : data(0), totalDataBytes(0x00) {
-    }
+    ProtocolData();
+    ~ProtocolData();
     uint8_t *data;
     uint32_t totalDataBytes;
   };
 
   /**
-   * \struct ProtocolHeader
+   * \class ProtocolHeader
    * \brief Used for storing protocol header of a message.
    */
-  struct ProtocolHeader {
-    /**
-     * \brief Constructor
-     */
-    ProtocolHeader()
-      : version(0x00),
-        protection_flag(PROTECTION_OFF),
-        frameType(0x00),
-        serviceType(0x00),
-        frameData(0x00),
-        sessionId(0x00),
-        dataSize(0x00),
-        messageId(0x00) {
-    }
-    /**
-     * \brief Constructor
-     */
+  class ProtocolHeader {
+   public:
+    ProtocolHeader();
     ProtocolHeader(uint8_t version, bool protection,
                    uint8_t frameType,
                    uint8_t serviceType,
                    uint8_t frameData, uint8_t sessionID,
-                   uint32_t dataSize, uint32_t messageID)
-      : version(version),
-        protection_flag(protection),
-        frameType(frameType),
-        serviceType(serviceType),
-        frameData(frameData),
-        sessionId(sessionID),
-        dataSize(dataSize),
-        messageId(messageID) {
-    }
+                   uint32_t dataSize, uint32_t messageID);
     uint8_t version;
     bool protection_flag;
     uint8_t frameType;
@@ -103,10 +79,26 @@ class ProtocolPacket {
     uint8_t sessionId;
     uint32_t dataSize;
     uint32_t messageId;
-
-    RESULT_CODE deserialize(const uint8_t *message,
-                            const size_t messageSize);
-    RESULT_CODE validate() const;
+    void deserialize(const uint8_t *message, const size_t messageSize);
+  };
+  /**
+   * \class ProtocolHeaderValidator
+   * \brief Used for ProtocolHeader validation
+   */
+  class ProtocolHeaderValidator {
+   public:
+    ProtocolHeaderValidator();
+    /**
+     * \brief Setter/getter maximum payload size of packets
+     */
+    void set_max_payload_size(const size_t max_payload_size);
+    size_t get_max_payload_size();
+    /**
+     * \brief Check ProtocolHeader according to protocol requiements
+     */
+    RESULT_CODE validate(const ProtocolHeader& header) const;
+   private:
+    size_t max_payload_size_;
   };
 
   /**
@@ -140,10 +132,6 @@ class ProtocolPacket {
                  uint8_t serviceType, uint8_t frameData,
                  uint8_t sessionId, uint32_t dataSize,
                  uint32_t messageID, const uint8_t *data = 0);
-  /**
-   * \brief Destructor
-   */
-  ~ProtocolPacket();
 
   /*Serialization*/
   /**
@@ -279,7 +267,7 @@ class ProtocolPacket {
     * \brief Connection Identifier
     * Obtained from connection_handler
     */
-  uint8_t connection_id_;
+  unsigned int connection_id_;
 
   DISALLOW_COPY_AND_ASSIGN(ProtocolPacket);
 };

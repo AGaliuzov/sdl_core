@@ -38,9 +38,14 @@ namespace protocol_handler {
 CREATE_LOGGERPTR_GLOBAL(logger_, "ProtocolHandler")
 
 IncomingDataHandler::IncomingDataHandler()
-  : connections_data_() {
+ : header_(), validator_(NULL) {}
+
+void IncomingDataHandler::set_validator(
+    const ProtocolPacket::ProtocolHeaderValidator* const validator) {
+  validator_ = validator;
 }
-static const size_t MIN_HEADER_SIZE = PROTOCOL_HEADER_V1_SIZE;
+
+static const size_t MIN_HEADER_SIZE = std::min(PROTOCOL_HEADER_V1_SIZE, PROTOCOL_HEADER_V2_SIZE);
 
 std::list<ProtocolFramePtr> IncomingDataHandler::ProcessData(const RawMessage& tm_message,
                                                              RESULT_CODE* result) {
@@ -60,7 +65,7 @@ std::list<ProtocolFramePtr> IncomingDataHandler::ProcessData(const RawMessage& t
                 << tm_message_size << " for connection " << connection_id);
   ConnectionsDataMap::iterator it = connections_data_.find(connection_id);
   if (connections_data_.end() == it) {
-    LOG4CXX_ERROR(logger_, "ProcessData requested for unknown connection");
+    LOG4CXX_WARN(logger_, "ProcessData requested for unknown connection");
     if (result) {
       *result = RESULT_FAIL;
     }
@@ -121,7 +126,8 @@ uint32_t IncomingDataHandler::GetPacketSize(
     case PROTOCOL_VERSION_3:
       return header.dataSize + PROTOCOL_HEADER_V2_SIZE;
     default:
-      LOG4CXX_ERROR(logger_, "Unknown version");
+      LOG4CXX_WARN(logger_, "Unknown version");
+      break;
   }
   return 0u;
 }
@@ -131,34 +137,38 @@ RESULT_CODE IncomingDataHandler::CreateFrame(std::vector<uint8_t>& incomming_dat
                                              const transport_manager::ConnectionUID connection_id) {
   LOG4CXX_TRACE_ENTER(logger_);
   if (incomming_data.size() >= MIN_HEADER_SIZE) {
-    const RESULT_CODE deserialize_header_result =
-        validation_header.deserialize(incomming_data.data(),
-                                      incomming_data.size());
-    if (deserialize_header_result != RESULT_OK) {
-      LOG4CXX_TRACE_EXIT(logger_);
-      return deserialize_header_result;
-    }
-    const RESULT_CODE validate_result = validation_header.validate();
+    header_.deserialize(incomming_data.data(), incomming_data.size());
+    const RESULT_CODE validate_result =
+        validator_ ? validator_->validate(header_) : RESULT_OK;
     if (validate_result != RESULT_OK) {
+      LOG4CXX_WARN(logger_, "Packet validatiaon failed with error " << validate_result);
       LOG4CXX_TRACE_EXIT(logger_);
       return validate_result;
     }
-    LOG4CXX_DEBUG(logger_, "Packet size " << validation_header.dataSize);
-    const uint32_t packet_size = GetPacketSize(validation_header);
+    LOG4CXX_DEBUG(logger_, "Packet size " << header_.dataSize);
+    const uint32_t packet_size = GetPacketSize(header_);
+    if (packet_size <= 0u) {
+      LOG4CXX_WARN(logger_, "Null packet size");
+      LOG4CXX_TRACE_EXIT(logger_);
+      return RESULT_FAIL;
+    }
     if (incomming_data.size() < packet_size) {
       LOG4CXX_DEBUG(logger_, "Packet data is not available yet");
+      LOG4CXX_TRACE_EXIT(logger_);
       return RESULT_DEFRERRED;
     }
     ProtocolFramePtr frame(new protocol_handler::ProtocolPacket(connection_id));
     const RESULT_CODE deserialize_result =
         frame->deserializePacket(&incomming_data[0], packet_size);
     if (deserialize_result != RESULT_OK) {
+      LOG4CXX_WARN(logger_, "Packet deserialization failed with error " << deserialize_result);
       LOG4CXX_TRACE_EXIT(logger_);
       return deserialize_result;
     }
     out_frames.push_back(frame);
     incomming_data.erase(incomming_data.begin(), incomming_data.begin() + packet_size);
   }
+  LOG4CXX_TRACE_EXIT(logger_);
   return RESULT_OK;
 }
 }  // namespace protocol_handler

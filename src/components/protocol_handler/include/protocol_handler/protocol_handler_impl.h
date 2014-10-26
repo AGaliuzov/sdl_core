@@ -496,7 +496,8 @@ class ProtocolHandlerImpl
    */
   std::list<uint32_t> ready_to_close_connections_;
 
-  std::auto_ptr<IncomingDataHandler> incoming_data_handler_;
+  ProtocolPacket::ProtocolHeaderValidator protocol_header_validator_;
+  IncomingDataHandler incoming_data_handler_;
 
 #ifdef ENABLE_SECURITY
   security_manager::SecurityManager *security_manager_;

@@ -34,15 +34,175 @@
 #include <memory.h>
 #include <new>
 #include <cstring>
+#include <limits>
+
 #include "protocol_handler/protocol_packet.h"
 #include "utils/macro.h"
 #include "utils/byte_order.h"
 
 namespace protocol_handler {
 
+ProtocolPacket::ProtocolData::ProtocolData()
+  : data(NULL), totalDataBytes(0u) { }
+
+ProtocolPacket::ProtocolData::~ProtocolData() {
+  delete[] data;
+}
+
+ProtocolPacket::ProtocolHeader::ProtocolHeader()
+  : version(0x00),
+    protection_flag(PROTECTION_OFF),
+    frameType(0x00),
+    serviceType(0x00),
+    frameData(0x00),
+    sessionId(0x00),
+    dataSize(0x00),
+    messageId(0x00) {
+}
+
+ProtocolPacket::ProtocolHeader::ProtocolHeader(
+    uint8_t version, bool protection, uint8_t frameType, uint8_t serviceType,
+    uint8_t frameData, uint8_t sessionID, uint32_t dataSize, uint32_t messageID)
+  : version(version),
+    protection_flag(protection),
+    frameType(frameType),
+    serviceType(serviceType),
+    frameData(frameData),
+    sessionId(sessionID),
+    dataSize(dataSize),
+    messageId(messageID) {
+}
+
+void ProtocolPacket::ProtocolHeader::deserialize(
+    const uint8_t* message, const size_t messageSize) {
+  if (messageSize < PROTOCOL_HEADER_V1_SIZE) {
+    return;
+  }
+  // first 4 bits
+  version = message[0] >> 4u;
+  // 5th bit
+  protection_flag = message[0] & 0x08u;
+  // 6-8 bits
+  frameType = message[0] & 0x07u;
+
+  serviceType = message[1];
+  frameData   = message[2];
+  sessionId   = message[3];
+
+  // FIXME(EZamakhov): usage for FirstFrame message
+  const uint32_t data_size_be = *(reinterpret_cast<const uint32_t*>(message + 4));
+  dataSize = BE_TO_LE32(data_size_be);
+  switch (version) {
+    case PROTOCOL_VERSION_2:
+    case PROTOCOL_VERSION_3: {
+        if (messageSize < PROTOCOL_HEADER_V2_SIZE) {
+          return;
+        }
+        const uint32_t message_id_be =
+            *(reinterpret_cast<const  uint32_t*>(message + 8));
+        messageId = BE_TO_LE32(message_id_be);
+      }
+      break;
+    default:
+      messageId = 0;
+      break;
+  }
+}
+
+ProtocolPacket::ProtocolHeaderValidator::ProtocolHeaderValidator()
+  : max_payload_size_(std::numeric_limits<size_t>::max()){ }
+
+void ProtocolPacket::ProtocolHeaderValidator::set_max_payload_size(
+    const size_t max_payload_size) {
+  max_payload_size_ = max_payload_size;
+}
+
+size_t ProtocolPacket::ProtocolHeaderValidator::get_max_payload_size() {
+  return max_payload_size_;
+}
+
+RESULT_CODE ProtocolPacket::ProtocolHeaderValidator::validate(const ProtocolHeader& header) const {
+  // Protocol version shall be from 1 to 3
+  switch (header.version) {
+    case PROTOCOL_VERSION_1:
+    case PROTOCOL_VERSION_2:
+    case PROTOCOL_VERSION_3:
+      break;
+    default:
+      return RESULT_FAIL;
+  }
+  // ServiceType shall be equal 0x0 (Control), 0x07 (RPC), 0x0A (PCM), 0x0B (Video), 0x0F (Bulk)
+  if (ServiceTypeFromByte(header.serviceType) == kInvalidServiceType) {
+    return RESULT_FAIL;
+  }
+  // Check frane info for each frame type
+  // Frame type shall be 0x00 (Control), 0x01 (Single), 0x02 (First), 0x03 (Consecutive)
+  // For Control frames Frame info value shall be from 0x00 to 0x06 or 0xFE(Data Ack), 0xFF(HB Ack)
+  // For Single and First frames Frame info value shall be equal 0x00
+  switch (header.frameType) {
+    case FRAME_TYPE_CONTROL : {
+        switch (header.frameData) {
+          case FRAME_DATA_HEART_BEAT:
+          case FRAME_DATA_START_SERVICE:
+          case FRAME_DATA_START_SERVICE_ACK:
+          case FRAME_DATA_START_SERVICE_NACK:
+          case FRAME_DATA_END_SERVICE:
+          case FRAME_DATA_END_SERVICE_ACK:
+          case FRAME_DATA_END_SERVICE_NACK:
+          case FRAME_DATA_SERVICE_DATA_ACK:
+          case FRAME_DATA_HEART_BEAT_ACK:
+            break;
+          default:
+            return RESULT_FAIL;
+        }
+        break;
+      }
+    case FRAME_TYPE_SINGLE:
+      if (header.frameData != FRAME_DATA_SINGLE) {
+        return RESULT_FAIL;
+      }
+      break;
+    case FRAME_TYPE_FIRST:
+      if (header.frameData != FRAME_DATA_FIRST) {
+        return RESULT_FAIL;
+      }
+      break;
+    case FRAME_TYPE_CONSECUTIVE:
+      // Could have any FrameInfo value
+      break;
+    default:
+      // All other Frame type is invalid
+      return RESULT_FAIL;
+  }
+  // For Control frames Data Size value shall be less than MTU header
+  // For Single and Consecutive Data Size value shall be greater than 0x00
+  // and shall be less than N (this value will be defined in .ini file)
+  if (header.dataSize > max_payload_size_) {
+    return RESULT_FAIL;
+  }
+  switch (header.frameType) {
+    case FRAME_TYPE_SINGLE:
+    case FRAME_TYPE_CONSECUTIVE:
+      if (header.dataSize <= 0u) {
+        return RESULT_FAIL;
+      }
+      break;
+    default:
+      break;
+  }
+  // Message ID be equal or greater than 0x01 (not actual for 1 protocol version and Control frames)
+  if (FRAME_TYPE_CONTROL != header.frameType && PROTOCOL_VERSION_1 != header.version
+     && header.messageId <= 0u) {
+    // Message ID shall be greater than 0x00, but not implemented in SPT
+    // TODO(EZamakhov): return on fix on mobile side - APPLINK-9990
+//    return RESULT_FAIL;
+  }
+  return RESULT_OK;
+}
+
+
 ProtocolPacket::ProtocolPacket()
-    : payload_size_(0),
-      connection_id_(0)  {
+  : payload_size_(0), connection_id_(0)  {
 }
 
 ProtocolPacket::ProtocolPacket(uint8_t connection_id,
@@ -54,18 +214,17 @@ ProtocolPacket::ProtocolPacket(uint8_t connection_id,
                                const uint8_t *data)
   : packet_header_(version, protection, frameType, serviceType,
                    frameData, sessionID, dataSize, messageID),
+    packet_data_(),
     payload_size_(0),
     connection_id_(connection_id) {
   set_data(data, dataSize);
 }
 
 ProtocolPacket::ProtocolPacket(uint8_t connection_id)
-  : payload_size_(0),
+  : packet_header_(),
+    packet_data_(),
+    payload_size_(0),
     connection_id_(connection_id) {
-}
-
-ProtocolPacket::~ProtocolPacket() {
-  delete[] packet_data_.data;
 }
 
 // Serialization
@@ -124,7 +283,7 @@ RawMessagePtr ProtocolPacket::serializePacket() const {
 RESULT_CODE ProtocolPacket::appendData(uint8_t *chunkData,
                                        uint32_t chunkDataSize) {
   if (payload_size_ + chunkDataSize <= packet_data_.totalDataBytes) {
-    if (chunkData) {
+    if (chunkData && chunkDataSize > 0) {
       if (packet_data_.data) {
         memcpy(packet_data_.data + payload_size_, chunkData, chunkDataSize);
         payload_size_ += chunkDataSize;
@@ -142,143 +301,31 @@ size_t ProtocolPacket::packet_size() const {
 
 bool ProtocolPacket::operator==(const ProtocolPacket& other) const {
   if (connection_id_ == other.connection_id_ &&
-     packet_header_.version == other.packet_header_.version &&
-     packet_header_.protection_flag == other.packet_header_.protection_flag &&
-     packet_header_.frameType == other.packet_header_.frameType &&
-     packet_header_.serviceType == other.packet_header_.serviceType &&
-     packet_header_.frameData == other.packet_header_.frameData &&
-     packet_header_.sessionId == other.packet_header_.sessionId &&
-     packet_header_.dataSize == other.packet_header_.dataSize &&
-     packet_header_.messageId ==  other.packet_header_.messageId &&
-     packet_data_.totalDataBytes == other.packet_data_.totalDataBytes) {
-    // Compare payload
-    if (other.packet_data_.totalDataBytes == 0 ||
-       0 == memcmp(packet_data_.data, other.packet_data_.data,
-                   sizeof(packet_data_.totalDataBytes)))
+      packet_header_.version == other.packet_header_.version &&
+      packet_header_.protection_flag == other.packet_header_.protection_flag &&
+      packet_header_.frameType == other.packet_header_.frameType &&
+      packet_header_.serviceType == other.packet_header_.serviceType &&
+      packet_header_.frameData == other.packet_header_.frameData &&
+      packet_header_.sessionId == other.packet_header_.sessionId &&
+      packet_header_.dataSize == other.packet_header_.dataSize &&
+      packet_header_.messageId ==  other.packet_header_.messageId &&
+      packet_data_.totalDataBytes == other.packet_data_.totalDataBytes) {
+    if (other.packet_data_.totalDataBytes == 0) {
       return true;
+    }
+    // Compare payload data
+    if (packet_data_.data && other.packet_data_.data &&
+        0 == memcmp(packet_data_.data, other.packet_data_.data,
+                    packet_data_.totalDataBytes)) {
+      return true;
+    }
   }
   return false;
 }
 
-RESULT_CODE ProtocolPacket::ProtocolHeader::deserialize(
-    const uint8_t* message, const size_t messageSize) {
-  if (messageSize < PROTOCOL_HEADER_V1_SIZE) {
-    return RESULT_FAIL;
-  }
-  // first 4 bits
-  version = message[0] >> 4u;
-  // 5th bit
-  protection_flag = message[0] & 0x08u;
-  // 6-8 bits
-  frameType = message[0] & 0x07u;
-
-  serviceType = message[1];
-  frameData   = message[2];
-  sessionId   = message[3];
-
-  // FIXME(EZamakhov): usage for FirstFrame message
-  const uint32_t data_size_be = *(reinterpret_cast<const uint32_t*>(message + 4));
-  dataSize = BE_TO_LE32(data_size_be);
-  switch (version) {
-    case PROTOCOL_VERSION_1:
-      messageId = 0;
-      break;
-    case PROTOCOL_VERSION_2:
-    case PROTOCOL_VERSION_3: {
-        if (messageSize < PROTOCOL_HEADER_V2_SIZE) {
-          return RESULT_FAIL;
-        }
-        const uint32_t message_id_be =
-            *(reinterpret_cast<const  uint32_t*>(message + 8));
-        messageId = BE_TO_LE32(message_id_be);
-      }
-      break;
-    default:
-      return RESULT_FAIL;
-      break;
-  }
-  return validate();
-}
-
-RESULT_CODE ProtocolPacket::ProtocolHeader::validate() const {
-  // Protocol version shall be from 1 to 3
-  switch (version) {
-    case PROTOCOL_VERSION_1:
-    case PROTOCOL_VERSION_2:
-    case PROTOCOL_VERSION_3:
-      break;
-    default:
-      return RESULT_FAIL;
-  }
-  // ServiceType shall be equal 0x0 (Control), 0x07 (RPC), 0x0A (PCM), 0x0B (Video), 0x0F (Bulk)
-  if (ServiceTypeFromByte(serviceType) == kInvalidServiceType) {
-    return RESULT_FAIL;
-  }
-  // Check frane info for each frame type
-  // Frame type shall be 0x00 (Control), 0x01 (Single), 0x02 (First), 0x03 (Consecutive)
-  // For Control frames Frame info value shall be from 0x00 to 0x06 or 0xFE(Data Ack), 0xFF(HB Ack)
-  // For Single and First frames Frame info value shall be equal 0x00
-  switch (frameType) {
-    case FRAME_TYPE_CONTROL : {
-        switch (frameData) {
-          case FRAME_DATA_HEART_BEAT:
-          case FRAME_DATA_START_SERVICE:
-          case FRAME_DATA_START_SERVICE_ACK:
-          case FRAME_DATA_START_SERVICE_NACK:
-          case FRAME_DATA_END_SERVICE:
-          case FRAME_DATA_END_SERVICE_ACK:
-          case FRAME_DATA_END_SERVICE_NACK:
-          case FRAME_DATA_SERVICE_DATA_ACK:
-          case FRAME_DATA_HEART_BEAT_ACK:
-            break;
-          default:
-            return RESULT_FAIL;
-        }
-        break;
-      }
-    case FRAME_TYPE_SINGLE:
-      if (frameData != FRAME_DATA_SINGLE) {
-        return RESULT_FAIL;
-      }
-      break;
-    case FRAME_TYPE_FIRST:
-      if (frameData != FRAME_DATA_FIRST) {
-        return RESULT_FAIL;
-      }
-      break;
-    case FRAME_TYPE_CONSECUTIVE:
-      // Could have any FrameInfo value
-      break;
-    default:
-      // All other Frame type is invalid
-      return RESULT_FAIL;
-  }
-  // For Control frames Data Size value shall be less than MTU header
-  // For Single and Consecutive Data Size value shall be greater than 0x00
-  // and shall be less than N (this value will be defined in .ini file)
-  if (dataSize >= MAXIMUM_FRAME_DATA_SIZE) {
-    return RESULT_FAIL;
-  }
-  if ((FRAME_TYPE_SINGLE == frameType || FRAME_TYPE_CONSECUTIVE == frameType)
-     && dataSize <= 0u) {
-    return RESULT_FAIL;
-  }
-  // Message ID be equal or greater than 0x01 (not actual for 1 protocol version and Control frames)
-  if (FRAME_TYPE_CONTROL != frameType && PROTOCOL_VERSION_1 != version
-     && messageId <= 0u) {
-    // Message ID shall be greater than 0x00, but not implemented in SPT
-    // TODO(EZamakhov): return on fix on mobile side
-//    return RESULT_FAIL;
-  }
-  return RESULT_OK;
-}
-
 RESULT_CODE ProtocolPacket::deserializePacket(
     const uint8_t *message, const size_t messageSize) {
-  const RESULT_CODE result = packet_header_.deserialize(message, messageSize);
-  if (result != RESULT_OK) {
-    return result;
-  }
+  packet_header_.deserialize(message, messageSize);
   const uint8_t offset =
       packet_header_.version == PROTOCOL_VERSION_1 ? PROTOCOL_HEADER_V1_SIZE
                                                    : PROTOCOL_HEADER_V2_SIZE;
@@ -291,15 +338,14 @@ RESULT_CODE ProtocolPacket::deserializePacket(
     dataPayloadSize = messageSize - offset;
   }
 
-  uint8_t *data = 0;
+  uint8_t *data = NULL;
   if (dataPayloadSize) {
     data = new (std::nothrow) uint8_t[dataPayloadSize];
-    if (data) {
-      memcpy(data, message + offset, dataPayloadSize);
-      payload_size_ = dataPayloadSize;
-    } else {
+    if (!data) {
       return RESULT_FAIL;
     }
+    memcpy(data, message + offset, dataPayloadSize);
+    payload_size_ = dataPayloadSize;
   }
 
   if (packet_header_.frameType == FRAME_TYPE_FIRST) {
@@ -314,9 +360,7 @@ RESULT_CODE ProtocolPacket::deserializePacket(
       return RESULT_FAIL;
     }
   } else {
-    if (packet_data_.data) {
-      delete[] packet_data_.data;
-    }
+    delete[] packet_data_.data;
     packet_data_.data = data;
   }
 
@@ -367,8 +411,7 @@ void ProtocolPacket::set_total_data_bytes(size_t dataBytes) {
   if (dataBytes) {
     delete[] packet_data_.data;
     packet_data_.data = new (std::nothrow) uint8_t[dataBytes];
-    packet_data_.totalDataBytes =
-        packet_data_.data ? dataBytes : 0;
+    packet_data_.totalDataBytes = packet_data_.data ? dataBytes : 0;
   }
 }
 

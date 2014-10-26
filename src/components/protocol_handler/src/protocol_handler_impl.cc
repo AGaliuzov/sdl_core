@@ -62,7 +62,6 @@ ProtocolHandlerImpl::ProtocolHandlerImpl(
       session_observer_(0),
       transport_manager_(transport_manager_param),
       kPeriodForNaviAck(5),
-      incoming_data_handler_(new IncomingDataHandler),
 #ifdef ENABLE_SECURITY
       security_manager_(NULL),
 #endif  // ENABLE_SECURITY
@@ -76,6 +75,8 @@ ProtocolHandlerImpl::ProtocolHandlerImpl(
 
 {
   LOG4CXX_TRACE_ENTER(logger_);
+  protocol_header_validator_.set_max_payload_size(profile::Profile::instance()->maximum_payload_size());
+  incoming_data_handler_.set_validator(&protocol_header_validator_);
 
   LOG4CXX_TRACE_EXIT(logger_);
 }
@@ -386,8 +387,8 @@ void ProtocolHandlerImpl::OnTMMessageReceived(const RawMessagePtr tm_message) {
   }
 
   RESULT_CODE result;
-  std::list<ProtocolFramePtr> protocol_frames =
-      incoming_data_handler_->ProcessData(*tm_message, &result);
+  const std::list<ProtocolFramePtr> protocol_frames =
+      incoming_data_handler_.ProcessData(*tm_message, &result);
   if (result == RESULT_FAIL) {
     LOG4CXX_ERROR(logger_,
                   "Incoming data processing failed. Terminating connection.");
@@ -492,12 +493,12 @@ void ProtocolHandlerImpl::OnTMMessageSendFailed(
 void ProtocolHandlerImpl::OnConnectionEstablished(
     const transport_manager::DeviceInfo &device_info,
     const transport_manager::ConnectionUID &connection_id) {
-  incoming_data_handler_->AddConnection(connection_id);
+  incoming_data_handler_.AddConnection(connection_id);
 }
 
 void ProtocolHandlerImpl::OnConnectionClosed(
     const transport_manager::ConnectionUID &connection_id) {
-  incoming_data_handler_->RemoveConnection(connection_id);
+  incoming_data_handler_.RemoveConnection(connection_id);
 }
 
 RESULT_CODE ProtocolHandlerImpl::SendFrame(const ProtocolFramePtr packet) {

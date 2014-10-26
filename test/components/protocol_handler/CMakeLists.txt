@@ -24,6 +24,7 @@ set(LIBRARIES
 set(SOURCES
   src/protocol_handler_tm_test.cc
   src/incoming_data_handler_test.cc
+  src/protocol_header_validator_test.cc
 )
 
 create_test(test_ProtocolHandler "${SOURCES}" "${LIBRARIES}")

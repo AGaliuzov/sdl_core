@@ -35,6 +35,7 @@
 #include <vector>
 #include <list>
 
+#include "utils/macro.h"
 #include "protocol_handler/incoming_data_handler.h"
 
 namespace test {
@@ -45,6 +46,7 @@ using namespace protocol_handler;
 class IncomingDataHandlerTest : public ::testing::Test {
  protected:
   void SetUp() OVERRIDE {
+    data_handler.set_validator(&header_validator);
     uid1 = 0x1234560;
     data_handler.AddConnection(uid1);
     uid2 = 0x1234561;
@@ -63,6 +65,7 @@ class IncomingDataHandlerTest : public ::testing::Test {
   }
   void TearDown() OVERRIDE {
     delete[] some_data;
+    delete[] some_data2;
   }
   void ProcessData(transport_manager::ConnectionUID uid, const uint8_t *const data,
                    const uint32_t data_size ) {
@@ -82,6 +85,7 @@ class IncomingDataHandlerTest : public ::testing::Test {
     tm_data.clear();
   }
 
+  protocol_handler::ProtocolPacket::ProtocolHeaderValidator header_validator;
   protocol_handler::IncomingDataHandler data_handler;
   transport_manager::ConnectionUID uid1, uid2, uid_unknown;
   typedef std::list<ProtocolFramePtr> FrameList;
@@ -192,13 +196,16 @@ TEST_F(IncomingDataHandlerTest, MixedPayloadData_TwoConnections) {
   }
   ProcessData(uid1, &tm_data[0], tm_data.size());
   EXPECT_EQ(RESULT_OK, result_code);
-  EXPECT_EQ(mobile_packets.size(), actual_frames.size());
-  FrameList::iterator it2 = mobile_packets.begin();
-  for (FrameList::iterator it = actual_frames.begin(); it != actual_frames.end();
+  EXPECT_EQ(actual_frames.size(), mobile_packets.size());
+  FrameList::const_iterator it2 = mobile_packets.begin();
+  for (FrameList::const_iterator it = actual_frames.begin(); it != actual_frames.end();
        ++it, ++it2) {
+    // TODO(EZamakhov): investigate valgrind warning (unitialized value)
     EXPECT_EQ(**it, **it2);
   }
 }
+
+// TODO(EZamakhov): add validator abstraction and replace next test with check only return frames
 
 // Protocol version shall be from 1 to 3
 TEST_F(IncomingDataHandlerTest, MalformedPacket_Version) {
@@ -342,71 +349,6 @@ TEST_F(IncomingDataHandlerTest, MalformedPacket_FirstFrame) {
     // All malformed messages shall be ignored
     EXPECT_EQ(0u, actual_frames.size());
   }
-}
-
-// For Control frames Data Size value shall be less than MTU header
-TEST_F(IncomingDataHandlerTest, MalformedPacket_ControlFrame_PayloadSize) {
-  ProtocolPacket control_packet(
-        uid1, PROTOCOL_VERSION_3, PROTECTION_ON, FRAME_TYPE_CONTROL,
-        kControl, FRAME_DATA_HEART_BEAT, some_session_id, 0u,
-        some_message_id, NULL);
-  control_packet.set_data(&payload_bigger_mtu[0], payload_bigger_mtu.size());
-  ProcessPacket(control_packet);
-  EXPECT_EQ(RESULT_FAIL, result_code);
-  // All malformed messages shall be ignored
-  EXPECT_EQ(0u, actual_frames.size());
-}
-
-// For Single and Consecutive Data Size value shall be greater than 0x00
-// and shall be less than N (this value will be defined in .ini file)
-TEST_F(IncomingDataHandlerTest, MalformedPacket_SingleFrame_PayloadSize) {
-  ProtocolPacket single_packet(
-        uid1, PROTOCOL_VERSION_3, PROTECTION_ON, FRAME_TYPE_SINGLE,
-        kControl, FRAME_DATA_SINGLE, some_session_id, 0u,
-        some_message_id, NULL);
-  ProcessPacket(single_packet);
-  EXPECT_EQ(RESULT_FAIL, result_code);
-  // All malformed messages shall be ignored
-  EXPECT_EQ(0u, actual_frames.size());
-
-  single_packet.set_data(&payload_bigger_mtu[0], payload_bigger_mtu.size());
-  ProcessPacket(single_packet);
-  EXPECT_EQ(RESULT_FAIL, result_code);
-  // All malformed messages shall be ignored
-  EXPECT_EQ(0u, actual_frames.size());
-}
-
-
-// For Single and Consecutive Data Size value shall be greater than 0x00
-// and shall be less than N (this value will be defined in .ini file)
-TEST_F(IncomingDataHandlerTest, MalformedPacket_ConsecutiveFrame_PayloadSize) {
-  ProtocolPacket consecutive_packet(
-        uid1, PROTOCOL_VERSION_3, PROTECTION_ON, FRAME_TYPE_CONSECUTIVE,
-        kControl, FRAME_DATA_LAST_CONSECUTIVE, some_session_id, 0u,
-        some_message_id, NULL);
-  ProcessPacket(consecutive_packet);
-  EXPECT_EQ(RESULT_FAIL, result_code);
-  // All malformed messages shall be ignored
-  EXPECT_EQ(0u, actual_frames.size());
-
-  consecutive_packet.set_data(&payload_bigger_mtu[0], payload_bigger_mtu.size());
-  ProcessPacket(consecutive_packet);
-  EXPECT_EQ(RESULT_FAIL, result_code);
-  // All malformed messages shall be ignored
-  EXPECT_EQ(0u, actual_frames.size());
-}
-
-// Message ID be equal or greater than 0x01
-TEST_F(IncomingDataHandlerTest, MalformedPacket_MessageID) {
-  const uint32_t malformed_message_id = 0x0u;
-  ProtocolPacket packet(
-        uid1, PROTOCOL_VERSION_3, PROTECTION_ON, FRAME_TYPE_CONSECUTIVE,
-        kControl, FRAME_DATA_LAST_CONSECUTIVE, some_session_id, 0u,
-        malformed_message_id, NULL);
-  ProcessPacket(packet);
-  EXPECT_EQ(RESULT_FAIL, result_code);
-  // All malformed messages shall be ignored
-  EXPECT_EQ(0u, actual_frames.size());
 }
 
 // TODO(EZamakhov): add correctness on handling 2+ connection data

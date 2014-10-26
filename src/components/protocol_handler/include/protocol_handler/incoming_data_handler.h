@@ -44,6 +44,8 @@ namespace protocol_handler {
 class IncomingDataHandler {
  public:
   IncomingDataHandler();
+
+  void set_validator(const ProtocolPacket::ProtocolHeaderValidator* const validator);
   /**
    * @brief Contecat TM messages to ford frames and validate ford header data
    * \param TM messages for converting to frames
@@ -85,7 +87,8 @@ class IncomingDataHandler {
 
   typedef std::map<transport_manager::ConnectionUID, std::vector<uint8_t> > ConnectionsDataMap;
   ConnectionsDataMap connections_data_;
-  ProtocolPacket::ProtocolHeader validation_header;
+  ProtocolPacket::ProtocolHeader header_;
+  const  ProtocolPacket::ProtocolHeaderValidator * validator_;
   DISALLOW_COPY_AND_ASSIGN(IncomingDataHandler);
 };
 }  // namespace protocol_handler
