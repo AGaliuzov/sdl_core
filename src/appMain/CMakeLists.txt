@@ -110,7 +110,7 @@ include_directories (
   ${CMAKE_SOURCE_DIR}/src/components/formatters/include
   ${CMAKE_SOURCE_DIR}/src/components/transport_manager/include
   ${SecurityManagerIncludeDir}
-
+  ${CMAKE_SOURCE_DIR}/src/components/security_manager/include
   ${CMAKE_SOURCE_DIR}/src/components/config_profile/include
   ${CMAKE_SOURCE_DIR}/src/components/utils/include/
   ${CMAKE_SOURCE_DIR}/src/components/connection_handler/include/
@@ -176,6 +176,7 @@ if(BUILD_TESTS)
 include_directories (
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
+  ${CMAKE_SOURCE_DIR}/src/components/security_manager/test/include
 )
 
   set(testSources
@@ -184,6 +185,9 @@ include_directories (
     ${CMAKE_SOURCE_DIR}/src/components/utils/test/file_system_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/utils/test/messagemeter_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/media_manager/test/media_adapter_impl_test.cc
+    ${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/connection_handler_impl_test.cc
+    ${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/connection_test.cc
+    ${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/heart_beat_monitor_test.cc
     ${AM_TEST_DIR}/command_impl_test.cc
   )
 

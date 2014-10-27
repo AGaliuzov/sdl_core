@@ -37,8 +37,8 @@
 #include "protocol/common.h"
 #include "config_profile/profile.h"
 // TODO(EZamakhov): move security test
-#include "security_manager/security_manager_mock.h"
-#include "security_manager/ssl_context_mock.h"
+#include "security_manager_mock.h"
+#include "ssl_context_mock.h"
 
 namespace test {
 namespace components {
