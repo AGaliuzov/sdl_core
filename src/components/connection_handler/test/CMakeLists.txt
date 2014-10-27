@@ -1,12 +1,15 @@
+set(COMPONENTS_DIR ${CMAKE_SOURCE_DIR}/src/components)
+
 include_directories (
   ${LOG4CXX_INCLUDE_DIRECTORY}
   ${GMOCK_INCLUDE_DIRECTORY}
   ./include
-  ${CMAKE_SOURCE_DIR}/src/components/connection_handler/include
-  ${CMAKE_SOURCE_DIR}/src/components/protocol_handler/include
-  ../../../src/components/utils/include
-  ../../../src/components/config_profile/include
-  ../security_manager/include
+  ${COMPONENTS_DIR}/connection_handler/include
+  ${COMPONENTS_DIR}/protocol_handler/include
+  ${COMPONENTS_DIR}/utils/include
+  ${COMPONENTS_DIR}/config_profile/include
+  ${COMPONENTS_DIR}/security_manager/test/include
+  ${COMPONENTS_DIR}/security_manager/include
 )
 
 set (LIBRARIES
@@ -24,7 +27,8 @@ set (LIBRARIES
 set (SOURCES
   connection_handler_impl_test.cc
   connection_test.cc
-  ./src/heart_beat_monitor_test.cc
+  heart_beat_monitor_test.cc
+  main.cc
 )
 
 create_test("test_ConnectionHandler" "${SOURCES}" "${LIBRARIES}")
