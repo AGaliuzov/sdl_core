@@ -38,7 +38,7 @@ namespace protocol_handler {
 CREATE_LOGGERPTR_GLOBAL(logger_, "ProtocolHandler")
 
 IncomingDataHandler::IncomingDataHandler()
- : header_(), validator_(NULL) {}
+  : header_(), validator_(NULL) {}
 
 void IncomingDataHandler::set_validator(
     const ProtocolPacket::ProtocolHeaderValidator* const validator) {

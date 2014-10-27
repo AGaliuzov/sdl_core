@@ -114,7 +114,7 @@ Errors::eType TNumberSchemaItem<NumberType>::validate(const SmartObject& Object)
   if (!isNumberType(Object.getType())) {
     return Errors::INVALID_VALUE;
   }
-  NumberType value;
+  NumberType value(0);
   if (typeid(int32_t) == typeid(value)) {
     value = Object.asInt();
   } else if (typeid(uint32_t) == typeid(value)) {
