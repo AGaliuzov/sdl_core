@@ -57,10 +57,10 @@ class ProtocolHeaderValidatorTest : public ::testing::Test {
 // Protocol version shall be from 1 to 3
 TEST_F(ProtocolHeaderValidatorTest, MaxPayloadSizeSetGet) {
   EXPECT_EQ(std::numeric_limits<size_t>::max(),
-            header_validator.get_max_payload_size());
+            header_validator.max_payload_size());
   for (size_t value = 0; value < MAXIMUM_FRAME_DATA_SIZE * 2; ++value) {
     header_validator.set_max_payload_size(value);
-    EXPECT_EQ(value, header_validator.get_max_payload_size());
+    EXPECT_EQ(value, header_validator.max_payload_size());
   }
 }
 

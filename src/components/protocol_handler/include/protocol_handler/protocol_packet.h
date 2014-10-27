@@ -35,12 +35,15 @@
 
 #include "utils/macro.h"
 #include "protocol/common.h"
+#include "transport_manager/common.h"
 
 /**
  *\namespace protocol_handlerHandler
  *\brief Namespace for SmartDeviceLink ProtocolHandler related functionality.
  */
 namespace protocol_handler {
+
+typedef transport_manager::ConnectionUID ConnectionID;
 /**
  * \class ProtocolPacket
  * \brief Class for forming/parsing protocol headers of the message and
@@ -92,7 +95,7 @@ class ProtocolPacket {
      * \brief Setter/getter maximum payload size of packets
      */
     void set_max_payload_size(const size_t max_payload_size);
-    size_t get_max_payload_size();
+    size_t max_payload_size();
     /**
      * \brief Check ProtocolHeader according to protocol requiements
      */
@@ -111,7 +114,7 @@ class ProtocolPacket {
    *
    * \param connection_id - Connection Identifier
    */
-  explicit ProtocolPacket(uint8_t connection_id);
+  explicit ProtocolPacket(ConnectionID connection_id);
 
   /**
    * \brief Constructor
@@ -127,7 +130,7 @@ class ProtocolPacket {
    * \param messageID ID of message or hash code - only for second protocol
    * \param data Message string if provided
    */
-  ProtocolPacket(uint8_t connection_id,
+  ProtocolPacket(ConnectionID connection_id,
                  uint8_t version, bool protection, uint8_t frameType,
                  uint8_t serviceType, uint8_t frameData,
                  uint8_t sessionId, uint32_t dataSize,
@@ -267,7 +270,7 @@ class ProtocolPacket {
     * \brief Connection Identifier
     * Obtained from connection_handler
     */
-  unsigned int connection_id_;
+  ConnectionID connection_id_;
 
   DISALLOW_COPY_AND_ASSIGN(ProtocolPacket);
 };

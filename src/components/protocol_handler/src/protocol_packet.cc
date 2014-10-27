@@ -117,7 +117,7 @@ void ProtocolPacket::ProtocolHeaderValidator::set_max_payload_size(
   max_payload_size_ = max_payload_size;
 }
 
-size_t ProtocolPacket::ProtocolHeaderValidator::get_max_payload_size() {
+size_t ProtocolPacket::ProtocolHeaderValidator::max_payload_size() {
   return max_payload_size_;
 }
 
@@ -135,7 +135,7 @@ RESULT_CODE ProtocolPacket::ProtocolHeaderValidator::validate(const ProtocolHead
   if (ServiceTypeFromByte(header.serviceType) == kInvalidServiceType) {
     return RESULT_FAIL;
   }
-  // Check frane info for each frame type
+  // Check frame info for each frame type
   // Frame type shall be 0x00 (Control), 0x01 (Single), 0x02 (First), 0x03 (Consecutive)
   // For Control frames Frame info value shall be from 0x00 to 0x06 or 0xFE(Data Ack), 0xFF(HB Ack)
   // For Single and First frames Frame info value shall be equal 0x00
@@ -183,7 +183,7 @@ RESULT_CODE ProtocolPacket::ProtocolHeaderValidator::validate(const ProtocolHead
   switch (header.frameType) {
     case FRAME_TYPE_SINGLE:
     case FRAME_TYPE_CONSECUTIVE:
-      if (header.dataSize <= 0u) {
+      if (header.dataSize <= 0) {
         return RESULT_FAIL;
       }
       break;
@@ -192,10 +192,10 @@ RESULT_CODE ProtocolPacket::ProtocolHeaderValidator::validate(const ProtocolHead
   }
   // Message ID be equal or greater than 0x01 (not actual for 1 protocol version and Control frames)
   if (FRAME_TYPE_CONTROL != header.frameType && PROTOCOL_VERSION_1 != header.version
-     && header.messageId <= 0u) {
+     && header.messageId <= 0) {
     // Message ID shall be greater than 0x00, but not implemented in SPT
     // TODO(EZamakhov): return on fix on mobile side - APPLINK-9990
-//    return RESULT_FAIL;
+    return RESULT_FAIL;
   }
   return RESULT_OK;
 }
@@ -205,7 +205,7 @@ ProtocolPacket::ProtocolPacket()
   : payload_size_(0), connection_id_(0)  {
 }
 
-ProtocolPacket::ProtocolPacket(uint8_t connection_id,
+ProtocolPacket::ProtocolPacket(ConnectionID connection_id,
                                uint8_t version, bool protection,
                                uint8_t frameType,
                                uint8_t serviceType,
@@ -220,7 +220,7 @@ ProtocolPacket::ProtocolPacket(uint8_t connection_id,
   set_data(data, dataSize);
 }
 
-ProtocolPacket::ProtocolPacket(uint8_t connection_id)
+ProtocolPacket::ProtocolPacket(ConnectionID connection_id)
   : packet_header_(),
     packet_data_(),
     payload_size_(0),

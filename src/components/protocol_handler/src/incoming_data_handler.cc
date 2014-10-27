@@ -132,41 +132,41 @@ uint32_t IncomingDataHandler::GetPacketSize(
   return 0u;
 }
 
-RESULT_CODE IncomingDataHandler::CreateFrame(std::vector<uint8_t>& incomming_data,
+RESULT_CODE IncomingDataHandler::CreateFrame(std::vector<uint8_t>& incoming_data,
                                              std::list<ProtocolFramePtr>& out_frames,
                                              const transport_manager::ConnectionUID connection_id) {
   LOG4CXX_TRACE_ENTER(logger_);
-  if (incomming_data.size() >= MIN_HEADER_SIZE) {
-    header_.deserialize(incomming_data.data(), incomming_data.size());
+  if (incoming_data.size() >= MIN_HEADER_SIZE) {
+    header_.deserialize(incoming_data.data(), incoming_data.size());
     const RESULT_CODE validate_result =
         validator_ ? validator_->validate(header_) : RESULT_OK;
     if (validate_result != RESULT_OK) {
-      LOG4CXX_WARN(logger_, "Packet validatiaon failed with error " << validate_result);
+      LOG4CXX_WARN(logger_, "Packet validation failed with error " << validate_result);
       LOG4CXX_TRACE_EXIT(logger_);
       return validate_result;
     }
     LOG4CXX_DEBUG(logger_, "Packet size " << header_.dataSize);
     const uint32_t packet_size = GetPacketSize(header_);
-    if (packet_size <= 0u) {
+    if (packet_size <= 0) {
       LOG4CXX_WARN(logger_, "Null packet size");
       LOG4CXX_TRACE_EXIT(logger_);
       return RESULT_FAIL;
     }
-    if (incomming_data.size() < packet_size) {
+    if (incoming_data.size() < packet_size) {
       LOG4CXX_DEBUG(logger_, "Packet data is not available yet");
       LOG4CXX_TRACE_EXIT(logger_);
       return RESULT_DEFERRED;
     }
     ProtocolFramePtr frame(new protocol_handler::ProtocolPacket(connection_id));
     const RESULT_CODE deserialize_result =
-        frame->deserializePacket(&incomming_data[0], packet_size);
+        frame->deserializePacket(&incoming_data[0], packet_size);
     if (deserialize_result != RESULT_OK) {
       LOG4CXX_WARN(logger_, "Packet deserialization failed with error " << deserialize_result);
       LOG4CXX_TRACE_EXIT(logger_);
       return deserialize_result;
     }
     out_frames.push_back(frame);
-    incomming_data.erase(incomming_data.begin(), incomming_data.begin() + packet_size);
+    incoming_data.erase(incoming_data.begin(), incoming_data.begin() + packet_size);
   }
   LOG4CXX_TRACE_EXIT(logger_);
   return RESULT_OK;

@@ -41,10 +41,18 @@
 
 namespace protocol_handler {
 
+/**
+ * \class IncomingDataHandler
+ * \brief Class for contecat TM messages to ford frames and validate ford header data
+ * IncomingDataHandler methods are reentrant and not thread-safe
+ */
 class IncomingDataHandler {
  public:
   IncomingDataHandler();
-
+  /**
+   * @brief Setting additional validator for checking malformed packets
+   * \param validator pointer
+   */
   void set_validator(const ProtocolPacket::ProtocolHeaderValidator* const validator);
   /**
    * @brief Contecat TM messages to ford frames and validate ford header data
@@ -72,7 +80,7 @@ class IncomingDataHandler {
    */
   static uint32_t GetPacketSize(const ProtocolPacket::ProtocolHeader& header);
   /**
-   * @brief Try to create frame from incomming data
+   * @brief Try to create frame from incoming data
    * \param incommung_data raw stream
    * \param out_frames list for read frames
    *
@@ -81,7 +89,7 @@ class IncomingDataHandler {
    *   - RESULT_OK - one or more frames successfully created
    *   - RESULT_FAIL - packet serialization or validation error occurs
    */
-  RESULT_CODE CreateFrame(std::vector<uint8_t>& incomming_data,
+  RESULT_CODE CreateFrame(std::vector<uint8_t>& incoming_data,
                           std::list<ProtocolFramePtr>& out_frames,
                           const transport_manager::ConnectionUID connection_id);
 
