@@ -1376,6 +1376,7 @@ bool CacheManager::IsApplicationRepresented(const std::string& app_id) const {
 
 bool CacheManager::Init(const std::string& file_name) {
   LOG4CXX_INFO(logger_, "CacheManager::Init");
+
   InitResult init_result = backup_->Init();
 #ifdef EXTENDED_POLICY
   ex_backup_ = utils::SharedPtr<PTRepresentation>::
