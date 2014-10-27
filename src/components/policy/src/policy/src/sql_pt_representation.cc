@@ -78,7 +78,6 @@ SQLPTRepresentation::SQLPTRepresentation()
 }
 
 SQLPTRepresentation::~SQLPTRepresentation() {
-  db_->Backup();
   db_->Close();
   delete db_;
 }
@@ -378,6 +377,10 @@ bool SQLPTRepresentation::Drop() {
     return false;
   }
   return true;
+}
+
+void SQLPTRepresentation::WrteDB() {
+  db_->Backup();
 }
 
 bool SQLPTRepresentation::Clear() {

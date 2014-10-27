@@ -411,6 +411,11 @@ class PolicyManager : public usage_statistics::StatisticsManager {
      * otherwise heart beat for specific application isn't set
      */
     virtual uint16_t HeartBeatTimeout(const std::string& app_id) const = 0;
+
+    /**
+     * @brief SaveUpdateStatusRequired alows to save update status.
+     */
+    virtual void SaveUpdateStatusRequired(bool is_update_needed) = 0;
 };
 
 }  // namespace policy

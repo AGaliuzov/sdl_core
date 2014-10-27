@@ -80,6 +80,23 @@ CacheManager::CacheManager()
     ),
     update_required(false) {
 
+  LOG4CXX_TRACE_ENTER(logger_);
+  backuper = new BackgroundBackuper(this);
+  backup_thread_ = threads::CreateThread("Backup thread", backuper, false);
+
+  if (backup_thread_) {
+    backup_thread_->start();
+  } else {
+    LOG4CXX_ERROR(logger_, "The background thread delegate has not been created");
+  }
+  LOG4CXX_TRACE_EXIT(logger_);
+}
+
+CacheManager::~CacheManager() {
+  if (backup_thread_) {
+    backup_thread_->stop();
+    threads::DeleteThread(backup_thread_);
+  }
 }
 
 bool CacheManager::CanAppKeepContext(const std::string &app_id) {
@@ -348,7 +365,6 @@ bool CacheManager::ApplyUpdate(const policy_table::Table& update_pt) {
     pt_->policy_table.consumer_friendly_messages =
         update_pt.policy_table.consumer_friendly_messages;
   }
-
   LOG4CXX_TRACE_EXIT(logger_);
   return true;
 }
@@ -356,11 +372,11 @@ bool CacheManager::ApplyUpdate(const policy_table::Table& update_pt) {
 void CacheManager::Backup() {
   CACHE_MANAGER_CHECK_VOID();
   sync_primitives::AutoLock auto_lock(cache_lock_);
+  LOG4CXX_TRACE_ENTER(logger_);
   if (backup_.valid()) {
     if (pt_.valid()) {
       backup_->Save(*pt_);
       backup_->SaveUpdateRequired(update_required);
-
 
       policy_table::ApplicationPolicies::const_iterator app_policy_iter =
           pt_->policy_table.app_policies.begin();
@@ -386,7 +402,9 @@ void CacheManager::Backup() {
       }
 #endif // EXTENDED_POLICY
     }
+    backup_->WrteDB();
   }
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 std::string CacheManager::currentDateTime() {
@@ -460,6 +478,7 @@ bool CacheManager::SetDeviceData(const std::string &device_id,
   *params.connection_type = connection_type;
 
 #endif // EXTENDED_POLICY
+  DoBackup();
   LOG4CXX_TRACE_EXIT(logger_);
   return true;
 }
@@ -496,6 +515,7 @@ bool CacheManager::SetUserPermissionsForDevice(
     *ucr_iter->second.time_stamp = currentDateTime();
   }
 #endif // EXTENDED_POLICY
+  DoBackup();
   LOG4CXX_TRACE_EXIT(logger_);
   return true;
 }
@@ -538,6 +558,7 @@ bool CacheManager::ReactOnUserDevConsentForApp(const std::string &app_id,
     }
   }
 #endif // EXTENDED_POLICY
+  DoBackup();
   LOG4CXX_TRACE_EXIT(logger_);
   return result;
 }
@@ -583,6 +604,7 @@ bool CacheManager::SetUserPermissionsForApp(
     }
   }
 #endif // EXTENDED_POLICY
+  DoBackup();
   LOG4CXX_TRACE_EXIT(logger_);
   return true;
 }
@@ -592,7 +614,6 @@ bool CacheManager::UpdateRequired() const {
 }
 
 void CacheManager::SaveUpdateRequired(bool status) {
-
   update_required = status;
 }
 
@@ -985,6 +1006,14 @@ void CacheManager::CheckSnapshotInitialization() {
 #endif
 }
 
+void CacheManager::DoBackup() {
+  if (backuper) {
+    backuper->DoBackup();
+  }else {
+    LOG4CXX_ERROR(logger_, "Backuper thread not exists any more");
+  }
+}
+
 utils::SharedPtr<policy_table::Table>
 CacheManager::GenerateSnapshot() {
   CACHE_MANAGER_CHECK(snapshot_);
@@ -1285,6 +1314,7 @@ bool CacheManager::SetDefaultPolicy(const std::string &app_id) {
 
     pt_->policy_table.app_policies[app_id].set_to_string(kDefaultId);
   }
+  DoBackup();
   return true;
 }
 
@@ -1327,6 +1357,7 @@ bool CacheManager::SetPredataPolicy(const std::string &app_id) {
     SetIsPredata(app_id, true);
     SetIsDefault(app_id, false);
   }
+  DoBackup();
   return true;
 }
 
@@ -1486,6 +1517,7 @@ bool CacheManager::ResetPT(const std::string& file_name) {
 #ifdef EXTENDED_POLICY
   result = LoadFromFile(file_name);
 #endif // EXTENDE_POLICY
+  DoBackup();
   return result;
 }
 
@@ -1510,6 +1542,42 @@ int32_t CacheManager::GenerateHash(const std::string& str_to_hash) {
   // This is needed to avoid overflow for signed int.
   const int32_t result = hash & 0x7FFFFFFF;
   return result;
+}
+
+CacheManager::BackgroundBackuper::BackgroundBackuper(CacheManager* cache_manager)
+  : cache_manager_(cache_manager),
+    stop_falg(false){
+  LOG4CXX_TRACE_ENTER(logger_);
+}
+
+CacheManager::BackgroundBackuper::~BackgroundBackuper() {
+  LOG4CXX_TRACE_ENTER(logger_);
+}
+
+void CacheManager::BackgroundBackuper::threadMain() {
+  while(!stop_falg) {
+    sync_primitives::AutoLock auto_lock(need_backup_lock_);
+    if (cache_manager_) {
+      LOG4CXX_INFO(logger_, "DoBackup");
+      cache_manager_->Backup();
+    }
+    LOG4CXX_INFO(logger_, "Wait for a next backup");
+    backup_notifier_.Wait(auto_lock);
+  }
+}
+
+bool CacheManager::BackgroundBackuper::exitThreadMain() {
+  {
+    sync_primitives::AutoLock auto_lock(need_backup_lock_);
+    cache_manager_ = NULL;
+    stop_falg = true;
+  }
+  return true;
+}
+
+void CacheManager::BackgroundBackuper::DoBackup() {
+  sync_primitives::AutoLock auto_lock(need_backup_lock_);
+  backup_notifier_.NotifyOne();
 }
 
 }

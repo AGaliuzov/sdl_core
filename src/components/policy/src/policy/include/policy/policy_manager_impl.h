@@ -51,7 +51,6 @@ struct CheckAppPolicy;
 class PolicyManagerImpl : public PolicyManager {
   public:
     PolicyManagerImpl();
-    virtual ~PolicyManagerImpl();
     virtual void set_listener(PolicyListener* listener);
     PolicyListener* listener() const {
       return listener_;
@@ -168,6 +167,8 @@ class PolicyManagerImpl : public PolicyManager {
                                           const std::string& group_name);
 
     virtual uint16_t HeartBeatTimeout(const std::string& app_id) const;
+
+    virtual void SaveUpdateStatusRequired(bool is_update_needed);
 
     virtual bool IsPredataPolicy(const std::string& policy_app_id);
     void set_cache_manager(CacheManagerInterface* cache_manager);

@@ -105,15 +105,6 @@ void PolicyManagerImpl::set_listener(PolicyListener* listener) {
   update_status_manager_->set_listener(listener);
 }
 
-PolicyManagerImpl::~PolicyManagerImpl() {
-  LOG4CXX_INFO(logger_, "Destroying policy manager.");
-    const bool update_required =
-        policy::StatusUpToDate != update_status_manager_->GetUpdateStatus()
-        ? true : false;
-    cache_->SaveUpdateRequired(update_required);
-    cache_->Backup();
-}
-
 utils::SharedPtr<policy_table::Table> PolicyManagerImpl::Parse(
   const BinaryMessage& pt_content) {
   std::string json(pt_content.begin(), pt_content.end());
@@ -1209,6 +1200,10 @@ bool PolicyManagerImpl::InitPT(const std::string& file_name) {
 
 uint16_t PolicyManagerImpl::HeartBeatTimeout(const std::string& app_id) const {
   return cache_->HeartBeatTimeout(app_id);
+}
+
+void PolicyManagerImpl::SaveUpdateStatusRequired(bool is_update_needed) {
+  cache_->SaveUpdateRequired(is_update_needed);
 }
 
 void PolicyManagerImpl::set_cache_manager(
