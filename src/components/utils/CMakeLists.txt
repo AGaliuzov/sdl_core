@@ -1,46 +1,49 @@
 set(UtilsIncludeDir ${CMAKE_SOURCE_DIR}/src/components/utils/include)
+set(UtilsSrcDir ${CMAKE_SOURCE_DIR}/src/components/utils/src)
+set(ComponentsDir ${CMAKE_SOURCE_DIR}/src/components)
+
 
 include_directories (
-  ./include
-  ../config_profile/include
-  ../media_manager/include/
-  ../protocol_handler/include/
+  ${UtilsIncludeDir}
+  ${ComponentsDir}/config_profile/include
+  ${ComponentsDir}/media_manager/include/
+  ${ComponentsDir}/protocol_handler/include/
   ${LOG4CXX_INCLUDE_DIRECTORY}
 )
 
 set (SOURCES
-    ./src/bitstream.cc
-    ./src/conditional_variable_posix.cc
-    ./src/file_system.cc
-    ./src/threads/posix_thread.cc
-    ./src/threads/thread_manager.cc
-    ./src/threads/thread_validator.cc
-    ./src/lock_posix.cc
-    ./src/rwlock_posix.cc
-    ./src/date_time.cc
-    ./src/signals_linux.cc
-    ./src/system.cc
-    ./src/resource_usage.cc
-    ./src/appenders_loader.cc
+    ${UtilsSrcDir}/bitstream.cc
+    ${UtilsSrcDir}/conditional_variable_posix.cc
+    ${UtilsSrcDir}/file_system.cc
+    ${UtilsSrcDir}/threads/posix_thread.cc
+    ${UtilsSrcDir}/threads/thread_manager.cc
+    ${UtilsSrcDir}/threads/thread_validator.cc
+    ${UtilsSrcDir}/lock_posix.cc
+    ${UtilsSrcDir}/rwlock_posix.cc
+    ${UtilsSrcDir}/date_time.cc
+    ${UtilsSrcDir}/signals_linux.cc
+    ${UtilsSrcDir}/system.cc
+    ${UtilsSrcDir}/resource_usage.cc
+    ${UtilsSrcDir}/appenders_loader.cc
 )
 
 if(ENABLE_LOG)
   list(APPEND SOURCES
-    ./src/push_log.cc
-    ./src/log_message_loop_thread.cc
-    ./src/logger_status.cc
+    ${UtilsSrcDir}/push_log.cc
+    ${UtilsSrcDir}/log_message_loop_thread.cc
+    ${UtilsSrcDir}/logger_status.cc
   )
 endif()
 
 if (BUILD_BACKTRACE_SUPPORT)
     list(APPEND SOURCES
-    ./src/back_trace.cc
+    ${UtilsSrcDir}/back_trace.cc
     )
 endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
     list(APPEND SOURCES
-    ./src/threads/pulse_thread_delegate.cc
+    ${UtilsSrcDir}l/threads/pulse_thread_delegate.cc
     )
 endif()
 
