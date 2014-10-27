@@ -43,12 +43,12 @@ option(BUILD_USB_SUPPORT "libusb support" ON)
 option(BUILD_AOA_SUPPORT "libaoa support" OFF)
 option(BUILD_MME_SUPPORT "Apple devices support" OFF)
 option(BUILD_AVAHI_SUPPORT "libavahi support" ON)
+option(BUILD_RWLOCK_SUPPORT "rwlocks support" OFF)
 option(BUILD_BACKTRACE_SUPPORT "backtrace support" ON)
 option(BUILD_TESTS "Possibility to build and run tests" OFF)
 option(TIME_TESTER "Enable profiling time test util" ON)
 option(ENABLE_LOG "Logging feature" ON)
 option(ENABLE_GCOV "gcov code coverage feature" OFF)
-option(ENABLE_SANITIZE "Sanitize tool" OFF)
 option(ENABLE_SECURITY "Security Ford protocol protection" ON)
 option(EXTENDED_POLICY_FLAG "Build with specific features and extended functionality" OFF)
 
@@ -177,10 +177,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 # flag is handled by CMake
 set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR})
 set(ARCHIVE_OUTPUT_DIRECTORY ./bin)
-set(CMAKE_CXX_FLAGS "-fPIC -g3 -ggdb3 -std=gnu++0x -Wall -Werror -Wuninitialized -Wvla")
-if(ENABLE_SANITIZE)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
-endif()
+set(CMAKE_CXX_FLAGS "-fPIC -g3 -ggdb3 -std=gnu++0x -Wall -Werror -Wuninitialized")
 if (ENABLE_GCOV)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
   add_definitions(-DGCOV_ENABLED)
@@ -233,6 +230,10 @@ if (BUILD_AVAHI_SUPPORT)
 # --- Check libavahi-common, libavahi-client availability
   find_package(Libavahi)
   message(STATUS "Avahi support is enabled")
+endif()
+
+if (BUILD_RWLOCK_SUPPORT)
+  add_definitions(-DRWLOCK_SUPPORT)
 endif()
 
 if (BUILD_BACKTRACE_SUPPORT)
@@ -416,11 +417,10 @@ set (is_logger_actual 1)
 set (is_dbus_actual 1)
 set (is_git_folder 1)
 execute_process(
-    COMMAND /bin/bash -c "cd ${CMAKE_CURRENT_SOURCE_DIR} && git log .; if [ $? == 0 ]; then exit 0; else exit 1; fi"
+    COMMAND /bin/bash -c "cd ${CMAKE_CURRENT_SOURCE_DIR} && git log . 1>/dev/null 2>&1; if [ $? == 0 ]; then exit 0; else exit 1; fi"
     RESULT_VARIABLE is_git_folder
 )
 
-message(STATUS "-->${is_git_folder}<--")
 if(ENABLE_LOG)
   #build logger
   if(is_git_folder EQUAL 0)
