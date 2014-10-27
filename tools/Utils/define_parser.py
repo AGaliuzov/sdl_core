@@ -14,6 +14,7 @@ Usage:
     -d <ARG> --define <ARG>\t: define variable
     -u <ARG> --undef <ARG>\t: Undefine variable
     -i <ARG> --input <ARG>\t: setup path to input file. MANDATORY!
+    -t <ARG> --type <ARG>\t: Define type of rules to apply (available rulese are "cpp(default)|cmake")
 
 Example:
     python3 define_parser.py -d CUSTOMER_FORD -d CUSTOMR_VAZ -u CUSTOMER_PASA -i ./test.txt
@@ -28,6 +29,12 @@ undefined = []
 #Input file name
 input_file_name = ""
 
+class Rules:
+    cpp     = "cpp"
+    cmake   = "cmake"
+
+#type of rules to apply 
+rules_type = Rules.cpp
 
 class Stack(list):
     #Simple stack realisation
@@ -72,30 +79,47 @@ class Logger:
 
 class TokenType:
     #enum
-    code_token = 1
-    ifdef_token = 2
-    if_token = 3
-    ifndef_token = 4
-    else_token = 5
-    endif_token = 6
-    comment_token = 7
-    Name = 8  #Stub
+    code_token       = 1
+    ifdef_token      = 2
+    if_token         = 3
+    ifndef_token     = 4
+    else_token       = 5
+    endif_token      = 6
+    comment_token    = 7
+    cmakeif_token    = 8
+    cmakeif2_token   = 9
+    cmakeelse_token  = 10
+    cmakeendif_token = 11
+    Name             = 12  #Stub
 
 
-token_specification = [
+cpp_token_specification = [
     #regexp to split code to tokens
-    (TokenType.comment_token, "(/\*.*?\*/)"),  #multiline comment block)
-    (TokenType.comment_token, "(//.*\n)"),  #oneline comment block
-    (TokenType.ifdef_token, "([ |\t]*#[ |\t]*ifdef[ |\t]*([A-Za-z_][A-Za-z0-9_]*)\n)"),  #ifdef token
-    (TokenType.Name, "[\a]"),  #stub to save order of groups and TokenType enum
-    (TokenType.ifndef_token, "([ |\t]*#[ |\t]*ifndef[ |\t]*([A-Za-z_][A-Za-z0-9_]*)\n)"),  #ifndef token
-    (TokenType.Name, "[\a]"),  #stub to save order of groups and TokenType enum
-    (TokenType.if_token, "([ |\t]*#[ |\t]*if[ |\t]*.*\n)"),  #if token
-    (TokenType.else_token, "([ |\t]*#[ |\t]*else[ |\t]*\n?)"),  #else token
-    (TokenType.endif_token, "([ |\t]*#[ |\t]*endif[ |\t]*/?/?.*\n?)"),  #endif token
-    (TokenType.code_token, "(.*)")  # any other code block
+    (TokenType.comment_token,   "(/\*.*?\*/)"),  #multiline comment block)
+    (TokenType.comment_token,   "(//.*\n)"),  #oneline comment block
+    (TokenType.ifdef_token,     "([ |\t]*#[ |\t]*ifdef[ |\t]*([A-Za-z_][A-Za-z0-9_]*)\n)"),  #ifdef token
+    (TokenType.Name,            "[\a]"),  #stub to save order of groups and TokenType enum
+    (TokenType.ifndef_token,    "([ |\t]*#[ |\t]*ifndef[ |\t]*([A-Za-z_][A-Za-z0-9_]*)\n)"),  #ifndef token
+    (TokenType.Name,            "[\a]"),  #stub to save order of groups and TokenType enum
+    (TokenType.if_token,        "([ |\t]*#[ |\t]*if[ |\t]*.*\n)"),  #if token
+    (TokenType.else_token,      "([ |\t]*#[ |\t]*else[ |\t]*\n?)"),  #else token
+    (TokenType.endif_token,     "([ |\t]*#[ |\t]*endif[ |\t]*/?/?.*\n?)"),  #endif token
+    (TokenType.code_token,      "(.*)")  # any other code block
 ]
 
+cmake_token_specification = [
+    #regexp to split code to tokens
+    (TokenType.comment_token,   "(#.*\n)"),  #oneline comment block
+    (TokenType.cmakeif_token,   "([ |\t]*if[ |\t]*\([ |\t]*([A-Za-z0-9_]*)[ |\t]*\)[ |\t]*\n)"), #cmake if
+    (TokenType.Name,            "[\a]"),  #stub to save order of groups and TokenType enum
+    (TokenType.cmakeif2_token,  "([ |\t]*if[ |\t]*\([ |\t]*([A-Za-z0-9_]*[ |\t]*[A-Za-z0-9_]*[ |\t]*.*[ |\t]*)[ |\t]*\)[ |\t]*\n)"), #cmake if
+    (TokenType.Name,            "[\a]"),  #stub to save order of groups and TokenType enum
+    (TokenType.cmakeelse_token, "([ |\t]*else[ |\t]*\([ |\t]*[A-Za-z0-9_]*[ |\t]*\)\n?)"),  #cmake else token
+    (TokenType.cmakeendif_token,"([ |\t]*endif[ |\t]*\([ |\t]*[A-Za-z0-9_]*[ |\t]*\)/?/?.*\n?)"), #cmake endif token
+    (TokenType.code_token,      "(.*)")  # any other code block
+]
+
+token_specification = cpp_token_specification
 
 def parce_type(group):
     #return type of token from group.
@@ -109,8 +133,8 @@ def parce_type(group):
                 txt = "\n"
             token_type = token_specification[i][0]
             name = None
-            if ((token_type == TokenType.ifdef_token) or
-                    (token_type == TokenType.ifndef_token)):
+            if (((token_type == TokenType.ifdef_token or token_type == TokenType.ifndef_token) and rules_type == Rules.cpp)
+                or (token_type == TokenType.cmakeif_token and rules_type == Rules.cmake)):
                 name = group[i + 1]
                 if (name not in defined) and (name not in undefined):
                     token_type = TokenType.if_token
@@ -184,22 +208,22 @@ def remove_undefined(tokens, logger=Logger("Log.txt")):
     state_stack = Stack()  # stack for defined and undefined blocks
     ifstack = Stack()  #stack for all if's and ifdef's blocks
     for x in tokens:
-        if x.type == TokenType.ifdef_token:
+        if x.type == TokenType.ifdef_token and rules_type == Rules.cpp:
             state = State(x.name, False)
             state_stack.push(state)
             ifstack.append(x.name)
             continue
 
-        elif x.type == TokenType.ifndef_token:
+        elif x.type == TokenType.ifndef_token and rules_type == Rules.cpp:
             state = State(x.name, True)
             state_stack.push(state)
             ifstack.append(x.name)
             continue
 
-        elif x.type == TokenType.if_token:
+        elif x.type == TokenType.if_token and rules_type == Rules.cpp:
             ifstack.append(None)
 
-        elif x.type == TokenType.endif_token:
+        elif x.type == TokenType.endif_token and rules_type == Rules.cpp:
             if ifstack.size() == 0:
                 logger.log("Warning! Bad document structure. Probably extra #endif")
             name = ifstack.pop()
@@ -211,13 +235,44 @@ def remove_undefined(tokens, logger=Logger("Log.txt")):
                                "Please contact to akutsan@luxoft.com. Attach input file, " +
                                "defined and undefined variables")
                 continue
-        elif x.type == TokenType.else_token:
+        elif x.type == TokenType.else_token and rules_type == Rules.cpp:
             if ifstack.size() == 0:
                 logger.log("Warning! Bad document structure. Probably #else without #if token")
             name = ifstack.head()
             if name is not None:
                 state = state_stack.head()
                 state.not_flag = not state.not_flag
+                continue
+
+        elif x.type == TokenType.cmakeif_token and rules_type == Rules.cmake:
+            #print("1", x.name)
+            state = State(x.name, False)
+            state_stack.push(state)
+            ifstack.append(x.name)
+            continue
+        elif x.type == TokenType.cmakeif2_token and rules_type == Rules.cmake:
+            ifstack.append(None)
+        elif x.type == TokenType.cmakeelse_token and rules_type == Rules.cmake:
+            if ifstack.size() == 0:
+                logger.log("Warning! Bad document structure. Probably else() without if() token")
+            name = ifstack.head()
+            #print("2", name)
+            if name is not None:
+                state = state_stack.head()                
+                state.not_flag = not state.not_flag
+                continue
+        elif x.type == TokenType.cmakeendif_token and rules_type == Rules.cmake:
+            if ifstack.size() == 0:
+                logger.log("Warning! Bad document structure. Probably endid() without if() token")
+            name = ifstack.pop()
+            #print("3", name)
+            if name is not None:
+                state = state_stack.pop()
+                if state.customer != name:
+                    #Warning! Some thing is going wrong
+                    logger.log("Warning! System Error!" +
+                               "Please contact to akutsan@luxoft.com. Attach input file, " +
+                               "defined and undefined variables")
                 continue
 
         state = state_stack.foot()
@@ -231,7 +286,7 @@ def remove_undefined(tokens, logger=Logger("Log.txt")):
             print(x.text, end="")
 
 
-options, remainder = getopt.getopt(sys.argv[1:], 'd:u:h:i:', ["define=", "undef=", "help", "input="])
+options, remainder = getopt.getopt(sys.argv[1:], 'd:u:h:i:t:', ["define=", "undef=", "help", "input=", "type="])
 
 if len(options) == 0:
     man()
@@ -247,6 +302,10 @@ for opt, arg in options:
         undefined.append(arg)
     elif opt in ("-i", "--input"):
         input_file_name = arg
+    elif opt in ("-t", "--type"):
+        rules_type = arg
+        if rules_type == Rules.cmake:
+            token_specification = cmake_token_specification
 
 if input_file_name == "":
     man()
