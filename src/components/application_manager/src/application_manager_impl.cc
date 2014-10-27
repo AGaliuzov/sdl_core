@@ -1178,7 +1178,6 @@ void ApplicationManagerImpl::SendMessageToMobile(
   if (msg_to_mobile[strings::params].keyExists(strings::correlation_id)) {
     request_ctrl_.terminateMobileRequest(
       msg_to_mobile[strings::params][strings::correlation_id].asInt());
-    resume_controller().ApplicationsDataUpdated();
   } else if (app) {
     mobile_apis::FunctionID::eType function_id =
         static_cast<mobile_apis::FunctionID::eType>(
