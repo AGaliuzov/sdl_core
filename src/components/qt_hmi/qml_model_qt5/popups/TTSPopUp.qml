@@ -65,7 +65,9 @@ PopUp {
         Timer {
             id: ttsPerformInteractionTimer
             interval: Constants.ttsSpeakTime
-            onTriggered: activate(message)
+            onTriggered:
+                if(interactionPopup.performInteractionIsActiveNow)
+                    activate(message)
             property var message: undefined
         }
     ]
