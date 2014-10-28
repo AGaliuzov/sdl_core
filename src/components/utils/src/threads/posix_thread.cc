@@ -228,8 +228,8 @@ std::ostream& operator<<(std::ostream& os, const Thread::Id& thread_id) {
 }
 
 
-Thread* CreateThread(const char* name, ThreadDelegate* delegate, bool manual_delete) {
-  return new Thread(name, delegate, manual_delete);
+Thread* CreateThread(const char* name, ThreadDelegate* delegate, bool deferred_join) {
+  return new Thread(name, delegate, deferred_join);
 }
 
 Thread* CreateThread(const char* name, ThreadDelegate* delegate) {

@@ -218,7 +218,9 @@ class Thread {
    * @param name - display string to identify the thread.
    * @param delegate - thread procedure delegate. Look for
    * 'threads/thread_delegate.h' for details.
-   * NOTE: delegate will be deleted by destructor.
+   * @param deferred_join - if true, thread will be joined in \
+   * LifeCycle thread , otherwise it will be joined in stop method
+   * NOTE: delegate will be deleted after thread will be joined
    *       This constructor made private to prevent
    *       Thread object to be created on stack
    */
