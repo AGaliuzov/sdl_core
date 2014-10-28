@@ -179,16 +179,7 @@ for entry in $include_src; do
     integrate_src $p $srcdir
   done
 done
-
-set -f
-for entry in $include_bin; do
-  set +f
-  for p in $bindir/$entry; do
-    integrate_bin $p $bindir
-  done
-done
-
 set +f
+
 cp -r $specificdir/* $export_dir/
 post_install
-

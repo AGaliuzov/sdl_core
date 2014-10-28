@@ -79,7 +79,7 @@ add_custom_target(ford-tarball
 
 add_custom_target(genivi-tarball
   COMMAND ${CMAKE_SOURCE_DIR}/tools/Utils/export-customer-specific.sh ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} genivi
-  COMMAND tar -czv -C /tmp/GENIVI -f ${CMAKE_BINARY_DIR}/genivi.tar.gz .
+  COMMAND tar -cz -C /tmp/GENIVI -f ${CMAKE_BINARY_DIR}/genivi.tar.gz .
 )
 
 if (ARCH_TYPE_OPTION)
