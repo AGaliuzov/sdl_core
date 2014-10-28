@@ -54,7 +54,7 @@ void UpdateDeviceListRequest::Run() {
   sync_primitives::AutoLock auto_lock(wait_hmi_lock);
 #ifndef CUSTOMER_PASA
   // Fix problem with SDL and HMI HTML. This problem is not actual for HMI PASA.
-  // Flag conditional compilation "CUSTOMER_PASA" is used in order to exclude
+  // Flag conditional compilation for specific customer is used in order to exclude
   // hit code to RTC
   if (true == profile::Profile::instance()->launch_hmi()) {
     if (!ApplicationManagerImpl::instance()->IsHMICooperating()) {

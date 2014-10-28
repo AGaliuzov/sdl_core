@@ -140,7 +140,7 @@ function integrate_src() {
   elif [ -f $1 ]; then
     if is_to_filter $relfn $2; then
       file_name=$(basename $1)
-      if [[ ${file_name} == "CMakeLists.txt" ]]; then
+      if [[ ${file_name} == "CMakeLists.txt" || ${file_name##*.} == "cmake" ]]; then
         $srcdir/$filter_command $1 -t cmake > $export_dir/$relfn
       else
         $srcdir/$filter_command $1  > $export_dir/$relfn
