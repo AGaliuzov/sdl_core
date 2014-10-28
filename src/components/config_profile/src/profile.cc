@@ -122,6 +122,7 @@ const char* kDeleteFileRequestKey = "DeleteFileRequest";
 const char* kListFilesRequestKey = "ListFilesRequest";
 const char* kDefaultTimeoutKey = "DefaultTimeout";
 const char* kAppResumingTimeoutKey = "ApplicationResumingTimeout";
+const char* kAppSavePersistentDataTimeoutKey = "AppSavePersistentDataTimeout";
 const char* kAppDirectoryQuotaKey = "AppDirectoryQuota";
 const char* kAppTimeScaleMaxRequestsKey = "AppTimeScaleMaxRequests";
 const char* kAppRequestsTimeScaleKey = "AppRequestsTimeScale";
@@ -194,7 +195,8 @@ const uint32_t kDefaultPutFileRequestInNone = 5;
 const uint32_t kDefaultDeleteFileRequestInNone = 5;
 const uint32_t kDefaultListFilesRequestInNone = 5;
 const uint32_t kDefaultTimeout = 10;
-const uint32_t kDefaultAppResumingTimeout = 5;
+const uint32_t kDefaultAppResumingTimeout = 3;
+const uint32_t kDefaultAppSavePersistentDataTimeout = 10;
 const uint32_t kDefaultDirQuota = 104857600;
 const uint32_t kDefaultAppTimeScaleMaxRequests = 100;
 const uint32_t kDefaultAppRequestsTimeScale = 10;
@@ -345,6 +347,10 @@ const uint32_t& Profile::default_timeout() const {
 
 const uint32_t& Profile::app_resuming_timeout() const {
   return app_resuming_timeout_;
+}
+
+const uint32_t& Profile::app_resumption_save_persistent_data_timeout() const {
+  return app_resumption_save_persistent_data_timeout_;
 }
 
 const std::string& Profile::vr_help_title() const {
@@ -898,6 +904,15 @@ ReadStringValue(&app_info_storage_, kDefaultAppInfoFileName,
     if (app_resuming_timeout_ <= 0) {
         app_resuming_timeout_ = kDefaultAppResumingTimeout;
   }
+    // Save resumption info to File System
+    LOG_UPDATED_VALUE(app_resuming_timeout_, kAppSavePersistentDataTimeoutKey,
+                      kMainSection);
+    ReadUIntValue(&app_resumption_save_persistent_data_timeout_,
+                  kDefaultAppSavePersistentDataTimeout,
+                  kMainSection, kAppSavePersistentDataTimeoutKey);
+    if (app_resuming_timeout_ <= 0) {
+        app_resuming_timeout_ = kDefaultAppSavePersistentDataTimeout;
+    }
 
     LOG_UPDATED_VALUE(app_resuming_timeout_, kAppResumingTimeoutKey,
                       kMainSection);

@@ -150,6 +150,7 @@ class Profile : public utils::Singleton<Profile> {
      * @brief Default timeout for waiting for resuming
      */
     const uint32_t& app_resuming_timeout() const;
+    const uint32_t& app_resumption_save_persistent_data_timeout() const;
 
     /**
      * @brief Returns desirable thread stack size
@@ -607,6 +608,7 @@ class Profile : public utils::Singleton<Profile> {
     uint32_t                        max_cmd_id_;
     uint32_t                        default_timeout_;
     uint32_t                        app_resuming_timeout_;
+    uint32_t                        app_resumption_save_persistent_data_timeout_;
     std::string                     vr_help_title_;
     uint32_t                        app_dir_quota_;
     std::string                     video_consumer_type_;
