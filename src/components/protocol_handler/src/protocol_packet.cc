@@ -110,14 +110,14 @@ void ProtocolPacket::ProtocolHeader::deserialize(
 }
 
 ProtocolPacket::ProtocolHeaderValidator::ProtocolHeaderValidator()
-  : max_payload_size_(std::numeric_limits<size_t>::max()){ }
+  : max_payload_size_(std::numeric_limits<size_t>::max()) {}
 
 void ProtocolPacket::ProtocolHeaderValidator::set_max_payload_size(
     const size_t max_payload_size) {
   max_payload_size_ = max_payload_size;
 }
 
-size_t ProtocolPacket::ProtocolHeaderValidator::max_payload_size() {
+size_t ProtocolPacket::ProtocolHeaderValidator::max_payload_size() const {
   return max_payload_size_;
 }
 
@@ -229,7 +229,7 @@ ProtocolPacket::ProtocolPacket(ConnectionID connection_id)
 
 // Serialization
 RawMessagePtr ProtocolPacket::serializePacket() const {
-  // TODO(EZamakhov):Move header serialization to ProtocolHeader
+  // TODO(EZamakhov): Move header serialization to ProtocolHeader
   // version is low byte
   const uint8_t version_byte = packet_header_.version << 4;
   // protection is first bit of second byte

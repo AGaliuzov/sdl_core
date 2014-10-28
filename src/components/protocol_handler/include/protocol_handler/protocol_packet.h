@@ -95,7 +95,7 @@ class ProtocolPacket {
      * \brief Setter/getter maximum payload size of packets
      */
     void set_max_payload_size(const size_t max_payload_size);
-    size_t max_payload_size();
+    size_t max_payload_size() const;
     /**
      * \brief Check ProtocolHeader according to protocol requiements
      */
