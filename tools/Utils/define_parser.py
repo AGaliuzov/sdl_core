@@ -98,12 +98,12 @@ cpp_token_specification = [
     #regexp to split code to tokens
     (TokenType.comment_token,   "(/\*.*?\*/)"),  #multiline comment block)
     (TokenType.comment_token,   "(//.*\n)"),  #oneline comment block
-    (TokenType.ifdef_token,     "([ |\t]*#[ |\t]*ifdef[ |\t]*([A-Za-z_][A-Za-z0-9_]*)\n)"),  #ifdef token
+    (TokenType.ifdef_token,     "([ |\t]*#[ |\t]*ifdef[ |\t]*([A-Za-z_][A-Za-z0-9_]*)[ |\t]*\n)"),  #ifdef token
     (TokenType.Name,            "[\a]"),  #stub to save order of groups and TokenType enum
-    (TokenType.ifndef_token,    "([ |\t]*#[ |\t]*ifndef[ |\t]*([A-Za-z_][A-Za-z0-9_]*)\n)"),  #ifndef token
+    (TokenType.ifndef_token,    "([ |\t]*#[ |\t]*ifndef[ |\t]*([A-Za-z_][A-Za-z0-9_]*)[ |\t]*\n)"),  #ifndef token
     (TokenType.Name,            "[\a]"),  #stub to save order of groups and TokenType enum
     (TokenType.if_token,        "([ |\t]*#[ |\t]*if[ |\t]*.*\n)"),  #if token
-    (TokenType.else_token,      "([ |\t]*#[ |\t]*else[ |\t]*\n?)"),  #else token
+    (TokenType.else_token,      "([ |\t]*#[ |\t]*else[ |\t]*.*\n?)"),  #else token
     (TokenType.endif_token,     "([ |\t]*#[ |\t]*endif[ |\t]*/?/?.*\n?)"),  #endif token
     (TokenType.code_token,      "(.*)")  # any other code block
 ]
@@ -111,13 +111,13 @@ cpp_token_specification = [
 cmake_token_specification = [
     #regexp to split code to tokens
     (TokenType.comment_token,   "(#.*\n)"),  #oneline comment block
-    (TokenType.cmakeif_token,   "([ |\t]*if[ |\t]*\([ |\t]*([A-Za-z0-9_]*)[ |\t]*\)[ |\t]*\n)"), #cmake if
+    (TokenType.cmakeif_token,   "([ |\t]*if[ |\t]*\([ |\t]*([A-Za-z0-9_]*)[ |\t]*\)[ |\t]*.*\n)"), #cmake if
     (TokenType.Name,            "[\a]"),  #stub to save order of groups and TokenType enum
-    (TokenType.cmakeifnot_token,"([ |\t]*if[ |\t]*\([ |\t]*NOT[ |\t]*([A-Za-z0-9_]*)[ |\t]*\)[ |\t]*\n)"), #cmake if NOT customer
+    (TokenType.cmakeifnot_token,"([ |\t]*if[ |\t]*\([ |\t]*NOT[ |\t]*([A-Za-z0-9_]*)[ |\t]*\)[ |\t]*.*\n)"), #cmake if NOT customer
     (TokenType.Name,            "[\a]"),  #stub to save order of groups and TokenType enum
-    (TokenType.cmakeif2_token,  "([ |\t]*if[ |\t]*\([ |\t]*([A-Za-z0-9_]*[ |\t]*[A-Za-z0-9_]*[ |\t]*.*[ |\t]*)[ |\t]*\)[ |\t]*\n)"), #cmake if
+    (TokenType.cmakeif2_token,  "([ |\t]*if[ |\t]*\([ |\t]*([A-Za-z0-9_]*[ |\t]*[A-Za-z0-9_]*[ |\t]*.*[ |\t]*)[ |\t]*\)[ |\t]*.*\n)"), #cmake if
     (TokenType.Name,            "[\a]"),  #stub to save order of groups and TokenType enum
-    (TokenType.cmakeelse_token, "([ |\t]*else[ |\t]*\([ |\t]*[A-Za-z0-9_]*[ |\t]*\)\n?)"),  #cmake else token
+    (TokenType.cmakeelse_token, "([ |\t]*else[ |\t]*\([ |\t]*[A-Za-z0-9_]*[ |\t]*\).*\n?)"),  #cmake else token
     (TokenType.cmakeendif_token,"([ |\t]*endif[ |\t]*\([ |\t]*[A-Za-z0-9_]*[ |\t]*\)/?/?.*\n?)"), #cmake endif token
     (TokenType.code_token,      "(.*)")  # any other code block
 ]
