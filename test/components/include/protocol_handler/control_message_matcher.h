@@ -34,6 +34,7 @@
 
 #include <gmock/gmock.h>
 #include <string>
+#include <vector>
 #include "protocol/raw_message.h"
 #include "protocol_handler/protocol_packet.h"
 
@@ -55,7 +56,7 @@ MATCHER_P4(ControlMessage, ExpectedFrameData, ExpectedEncryption,
   ::protocol_handler::ProtocolPacket packet(message->connection_key());
   const protocol_handler::RESULT_CODE result =
       packet.deserializePacket(message->data(), message->data_size());
-  if(result != protocol_handler::RESULT_OK) {
+  if (result != protocol_handler::RESULT_OK) {
     *result_listener <<  "Error while message deserialization.";
     return false;
   }
@@ -106,7 +107,7 @@ MATCHER_P2(ControlMessage, ExpectedFrameData, ExpectedEncryption,
   ::protocol_handler::ProtocolPacket packet(message->connection_key());
   const protocol_handler::RESULT_CODE result =
       packet.deserializePacket(message->data(), message->data_size());
-  if(result != protocol_handler::RESULT_OK) {
+  if (result != protocol_handler::RESULT_OK) {
     *result_listener <<  "Error while message deserialization.";
     return false;
   }

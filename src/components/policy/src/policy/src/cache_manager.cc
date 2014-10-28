@@ -39,6 +39,7 @@
 
 #include "utils/file_system.h"
 #include "json/reader.h"
+#include "json/features.h"
 #include "utils/logger.h"
 
 #ifdef EXTENDED_POLICY
@@ -1375,6 +1376,7 @@ bool CacheManager::IsApplicationRepresented(const std::string& app_id) const {
 
 bool CacheManager::Init(const std::string& file_name) {
   LOG4CXX_INFO(logger_, "CacheManager::Init");
+
   InitResult init_result = backup_->Init();
 #ifdef EXTENDED_POLICY
   ex_backup_ = utils::SharedPtr<PTRepresentation>::
@@ -1447,15 +1449,17 @@ bool CacheManager::LoadFromFile(const std::string& file_name) {
   }
 
   Json::Value value;
-  Json::Reader reader;
+  Json::Reader reader(Json::Features::strictMode());
   std::string json(json_string.begin(), json_string.end());
-  if (reader.parse(json.c_str(), value)) {
+  bool ok = reader.parse(json.c_str(), value);
+  if (ok) {
     pt_ = new policy_table::Table(&value);
+  } else {
+    LOG4CXX_WARN(logger_, reader.getFormattedErrorMessages());
   }
 
   if (!pt_) {
     LOG4CXX_WARN(logger_, "Failed to parse policy table");
-    //utils::SharedPtr<policy_table::Table> table = new policy_table::Table();
     return false;
   }
 

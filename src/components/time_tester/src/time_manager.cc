@@ -207,7 +207,7 @@ bool TimeManager::Streamer::IsReady() const {
   fd_set fds;
   FD_ZERO(&fds);
   FD_SET(new_socket_fd_, &fds);
-  TimevalStruct tv = {0,0};
+  TimevalStruct tv = {0, 0};
   tv.tv_sec = 5;                       // set a 5 second timeout
   tv.tv_usec = 0;
 
