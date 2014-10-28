@@ -67,7 +67,9 @@ static void* threadFunc(void* arg) {
   if (!threads.IsShuttingDown()) {
     LOG4CXX_INFO(logger_, "Pushing thread #" << pthread_self() << " to join queue");
     ThreadManager::ThreadDesc desc = { pthread_self(), delegate };
-    threads.push(desc);
+    if (thread->deferred_join_) {
+        threads.push(desc);
+    }
   }
   LOG4CXX_INFO(logger_, "Thread #" << pthread_self() << " exited successfully");
   return NULL;
@@ -107,8 +109,9 @@ void Thread::SetNameForId(const Id& thread_id, const std::string& name) {
   }
 }
 
-Thread::Thread(const char* name, ThreadDelegate* delegate)
-  : name_(name ? name : "undefined"),
+Thread::Thread(const char* name, ThreadDelegate* delegate, bool deferred_join)
+  : deferred_join_(deferred_join),
+    name_(name ? name : "undefined"),
     delegate_(delegate),
     thread_handle_(0),
     thread_options_(),
@@ -201,7 +204,14 @@ void Thread::stop() {
                     << "\"" << name_ << "\")");
     }
   }
-
+  if (false == deferred_join_) {
+    LOG4CXX_INFO(logger_, "Before join delegate of thread : #" << thread_handle_ << "named : " << name_);
+    pthread_join(thread_handle_, NULL);
+    LOG4CXX_INFO(logger_, "Before delete delegate of thread : #" << thread_handle_ << "named : " << name_);
+    delete delegate_;
+    LOG4CXX_INFO(logger_, "Deleted #" << thread_handle_ << "named : " << name_);
+    delegate_ = NULL;
+  }
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
@@ -217,8 +227,13 @@ std::ostream& operator<<(std::ostream& os, const Thread::Id& thread_id) {
   return os;
 }
 
+
+Thread* CreateThread(const char* name, ThreadDelegate* delegate, bool manual_delete) {
+  return new Thread(name, delegate, manual_delete);
+}
+
 Thread* CreateThread(const char* name, ThreadDelegate* delegate) {
-  return new Thread(name, delegate);
+  return CreateThread(name, delegate, true);
 }
 
 void DeleteThread(Thread* thread) {

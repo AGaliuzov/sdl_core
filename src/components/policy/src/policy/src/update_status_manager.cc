@@ -43,12 +43,18 @@ UpdateStatusManager::UpdateStatusManager() :
   exchange_in_progress_(false),
   update_required_(false),
   exchange_pending_(false),
-  last_update_status_(policy::StatusUnknown),
-  update_response_timer_(this) {
+  last_update_status_(policy::StatusUnknown) {
+  update_status_thread_delegate_ = new UpdateThreadDelegate(this);
+  thread_ = threads::CreateThread("UpdateStatusThread", update_status_thread_delegate_, false);
+  thread_->start();
 }
 
 UpdateStatusManager::~UpdateStatusManager() {
   LOG4CXX_DEBUG(logger_, "Destroy update Status manager");
+  thread_->stop();
+  update_status_thread_delegate_->update_status_manager_ = NULL;
+  threads::DeleteThread(thread_);
+  LOG4CXX_DEBUG(logger_, "update_response_timer_ deleted ");
 }
 
 void UpdateStatusManager::set_listener(PolicyListener* listener) {
@@ -57,7 +63,7 @@ void UpdateStatusManager::set_listener(PolicyListener* listener) {
 
 void UpdateStatusManager::OnUpdateSentOut(uint32_t update_timeout) {
   LOG4CXX_INFO(logger_, "OnUpdateSentOut");
-  update_response_timer_.start(update_timeout);
+  update_status_thread_delegate_->updateTimeOut(update_timeout * 1000);
   set_exchange_in_progress(true);
 }
 
@@ -65,18 +71,19 @@ void UpdateStatusManager::OnUpdateTimeoutOccurs() {
   LOG4CXX_INFO(logger_, "OnUpdateTimeoutOccurs");
   set_update_required(true);
   set_exchange_in_progress(false);
+  update_status_thread_delegate_->updateTimeOut(0);
 }
 
 void UpdateStatusManager::OnValidUpdateReceived() {
   LOG4CXX_INFO(logger_, "OnValidUpdateReceived");
-  update_response_timer_.stop();
+  update_status_thread_delegate_->updateTimeOut(0);
   set_update_required(false);
   set_exchange_in_progress(false);
 }
 
 void UpdateStatusManager::OnWrongUpdateReceived() {
   LOG4CXX_INFO(logger_, "OnWrongUpdateReceived");
-  update_response_timer_.stop();
+  update_status_thread_delegate_->updateTimeOut(0);
   set_update_required(true);
   set_exchange_in_progress(false);
 }
@@ -152,8 +159,52 @@ void UpdateStatusManager::set_update_required(bool value) {
   CheckUpdateStatus();
 }
 
-UpdateStatusManager::UpdateResponseTimer::~UpdateResponseTimer() {
-  LOG4CXX_DEBUG(logger_, "Destroy update Status manager timer");
+void UpdateStatusManager::UpdateThreadDelegate::threadMain() {
+  LOG4CXX_DEBUG(logger_, "UpdateStatusManager thread started (started normal)");
+  sync_primitives::AutoLock auto_lock(state_lock_);
+  while (false == stop_flag_) {
+    if (timeout_ > 0) {
+      LOG4CXX_DEBUG(logger_, "Timeout is greater then 0");
+      sync_primitives::ConditionalVariable::WaitStatus wait_status =
+              termination_condition_.WaitFor(auto_lock, timeout_);
+      if (sync_primitives::ConditionalVariable::kTimeout == wait_status ) {
+        if (update_status_manager_) {
+          update_status_manager_->OnUpdateTimeoutOccurs();
+        }
+      }
+    } else {
+      termination_condition_.Wait(auto_lock);
+    }
+  }
 }
+
+bool UpdateStatusManager::UpdateThreadDelegate::exitThreadMain() {
+  {
+    sync_primitives::AutoLock auto_lock(state_lock_);
+    stop_flag_ = true;
+  }
+  LOG4CXX_INFO(logger_, "before notify");
+  termination_condition_.NotifyOne();
+  return false;
+}
+
+void UpdateStatusManager::UpdateThreadDelegate::updateTimeOut(const uint32_t timeout_ms) {
+  sync_primitives::AutoLock auto_lock(state_lock_);
+  timeout_ = timeout_ms;
+  termination_condition_.NotifyOne();
+}
+
+UpdateStatusManager::UpdateThreadDelegate::UpdateThreadDelegate(UpdateStatusManager* update_status_manager):
+                      timeout_(0),
+                      stop_flag_(false),
+                      state_lock_(true),
+                      update_status_manager_(update_status_manager) {
+  LOG4CXX_INFO(logger_, "Create UpdateThreadDelegate");
+}
+
+UpdateStatusManager::UpdateThreadDelegate::~UpdateThreadDelegate() {
+  LOG4CXX_INFO(logger_, "Delete UpdateThreadDelegate");
+}
+
 
 } // namespace policy
