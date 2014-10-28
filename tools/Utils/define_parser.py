@@ -90,7 +90,8 @@ class TokenType:
     cmakeif2_token   = 9
     cmakeelse_token  = 10
     cmakeendif_token = 11
-    Name             = 12  #Stub
+    cmakeifnot_token = 12
+    Name             = 13  #Stub
 
 
 cpp_token_specification = [
@@ -111,6 +112,8 @@ cmake_token_specification = [
     #regexp to split code to tokens
     (TokenType.comment_token,   "(#.*\n)"),  #oneline comment block
     (TokenType.cmakeif_token,   "([ |\t]*if[ |\t]*\([ |\t]*([A-Za-z0-9_]*)[ |\t]*\)[ |\t]*\n)"), #cmake if
+    (TokenType.Name,            "[\a]"),  #stub to save order of groups and TokenType enum
+    (TokenType.cmakeifnot_token,"([ |\t]*if[ |\t]*\([ |\t]*NOT[ |\t]*([A-Za-z0-9_]*)[ |\t]*\)[ |\t]*\n)"), #cmake if NOT customer
     (TokenType.Name,            "[\a]"),  #stub to save order of groups and TokenType enum
     (TokenType.cmakeif2_token,  "([ |\t]*if[ |\t]*\([ |\t]*([A-Za-z0-9_]*[ |\t]*[A-Za-z0-9_]*[ |\t]*.*[ |\t]*)[ |\t]*\)[ |\t]*\n)"), #cmake if
     (TokenType.Name,            "[\a]"),  #stub to save order of groups and TokenType enum
@@ -134,7 +137,7 @@ def parce_type(group):
             token_type = token_specification[i][0]
             name = None
             if (((token_type == TokenType.ifdef_token or token_type == TokenType.ifndef_token) and rules_type == Rules.cpp)
-                or (token_type == TokenType.cmakeif_token and rules_type == Rules.cmake)):
+                or ((token_type == TokenType.cmakeif_token or token_type == TokenType.cmakeifnot_token) and rules_type == Rules.cmake)):
                 name = group[i + 1]
                 if (name not in defined) and (name not in undefined):
                     token_type = TokenType.if_token
@@ -245,8 +248,12 @@ def remove_undefined(tokens, logger=Logger("Log.txt")):
                 continue
 
         elif x.type == TokenType.cmakeif_token and rules_type == Rules.cmake:
-            #print("1", x.name)
             state = State(x.name, False)
+            state_stack.push(state)
+            ifstack.append(x.name)
+            continue
+        elif x.type == TokenType.cmakeifnot_token and rules_type == Rules.cmake:
+            state = State(x.name, True)
             state_stack.push(state)
             ifstack.append(x.name)
             continue
@@ -256,7 +263,6 @@ def remove_undefined(tokens, logger=Logger("Log.txt")):
             if ifstack.size() == 0:
                 logger.log("Warning! Bad document structure. Probably else() without if() token")
             name = ifstack.head()
-            #print("2", name)
             if name is not None:
                 state = state_stack.head()                
                 state.not_flag = not state.not_flag
@@ -265,7 +271,6 @@ def remove_undefined(tokens, logger=Logger("Log.txt")):
             if ifstack.size() == 0:
                 logger.log("Warning! Bad document structure. Probably endid() without if() token")
             name = ifstack.pop()
-            #print("3", name)
             if name is not None:
                 state = state_stack.pop()
                 if state.customer != name:
