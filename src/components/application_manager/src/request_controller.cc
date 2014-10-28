@@ -128,18 +128,23 @@ RequestController::TResult RequestController::addMobileRequest(
   const uint32_t& pending_requests_amount =
       profile::Profile::instance()->pending_requests_amount();
 
-  if (!checkHMILevelTimeScaleMaxRequest(mobile_apis::HMILevel::HMI_NONE,
-                                        request_impl->connection_key(),
-                                        app_hmi_level_none_time_scale,
-                                        app_hmi_level_none_max_request_per_time_scale)) {
-    LOG4CXX_ERROR(logger_, "Too many application requests in hmi level NONE");
-    result = RequestController::NONE_HMI_LEVEL_MANY_REQUESTS;
-  } else if (!checkTimeScaleMaxRequest(
-        request_impl->connection_key(),
-        app_time_scale, max_request_per_time_scale)) {
-    LOG4CXX_ERROR(logger_, "Too many application requests");
-    result = RequestController::TOO_MANY_REQUESTS;
-  } else if (pending_requests_amount == mobile_request_list_.size()) {
+  if (0 != app_hmi_level_none_max_request_per_time_scale) {
+      if (!checkHMILevelTimeScaleMaxRequest(mobile_apis::HMILevel::HMI_NONE,
+                                            request_impl->connection_key(),
+                                            app_hmi_level_none_time_scale,
+                                            app_hmi_level_none_max_request_per_time_scale)) {
+        LOG4CXX_ERROR(logger_, "Too many application requests in hmi level NONE");
+        result = RequestController::NONE_HMI_LEVEL_MANY_REQUESTS;
+      }
+  } else if (0 != max_request_per_time_scale) {
+      if (!checkTimeScaleMaxRequest(request_impl->connection_key(),
+                                    app_time_scale,
+                                    max_request_per_time_scale)) {
+        LOG4CXX_ERROR(logger_, "Too many application requests");
+        result = RequestController::TOO_MANY_REQUESTS;
+      }
+  } else if (0 != pending_requests_amount &&
+            pending_requests_amount == mobile_request_list_.size()) {
     LOG4CXX_ERROR(logger_, "Too many pending request");
     result = RequestController::TOO_MANY_PENDING_REQUESTS;
   }
