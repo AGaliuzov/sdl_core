@@ -80,5 +80,6 @@ class DateTime {
 };
 
 }  // namespace date_time
-
+bool operator<(const TimevalStruct& time1, const TimevalStruct& time2);
+bool operator==(const TimevalStruct& time1, const TimevalStruct& time2);
 #endif  // SRC_COMPONENTS_INCLUDE_UTILS_DATE_TIME_H_
