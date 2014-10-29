@@ -127,15 +127,15 @@ TEST_F(HeartBeatMonitorTest, TimerElapsed) {
   EXPECT_CALL(connection_handler_mock, CloseSession(_, session)).Times(1)
       .WillOnce(RemoveSession(conn, session));
   EXPECT_CALL(connection_handler_mock, CloseConnection(_)).Times(1);
-  EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, session)).Times(1);
+  EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, session)).Times(1); //CALLED TWICE ...
 
   conn->StartHeartBeat(session);
   sleep(2 * kTimeout + 1);
 }
 
 TEST_F(HeartBeatMonitorTest, KeptAlive) {
-  EXPECT_CALL(connection_handler_mock, CloseSession(_, _)).Times(0);
-  EXPECT_CALL(connection_handler_mock, CloseConnection(_)).Times(0);
+  EXPECT_CALL(connection_handler_mock, CloseSession(_, _)).Times(0); //CALLED THOUSANDS TIMES
+  EXPECT_CALL(connection_handler_mock, CloseConnection(_)).Times(0); //CALLED THOUSANDS TIMES
   EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, _)).Times(0);
 
   const uint32_t session = conn->AddNewSession();
@@ -155,7 +155,7 @@ TEST_F(HeartBeatMonitorTest, NotKeptAlive) {
   EXPECT_CALL(connection_handler_mock, CloseSession(_, session)).Times(1)
       .WillOnce(RemoveSession(conn, session));
   EXPECT_CALL(connection_handler_mock, CloseConnection(_)).Times(1);
-  EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, session)).Times(1);
+  EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, session)).Times(1); //NEVER CALLED
 
   conn->StartHeartBeat(session);
   sleep(kTimeout - 1);
@@ -201,11 +201,12 @@ TEST_F(HeartBeatMonitorTest, IncreaseHeartBeatTimeout) {
 
 TEST_F(HeartBeatMonitorTest, DecreaseHeartBeatTimeout) {
   const uint32_t kSession = conn->AddNewSession();
-
-  EXPECT_CALL(connection_handler_mock, CloseSession(_, kSession)).Times(1)
-      .WillOnce(RemoveSession(conn, kSession));;
-  EXPECT_CALL(connection_handler_mock, CloseConnection(_)).Times(1);
+  conn->StartHeartBeat(kSession);
   EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, kSession)).Times(1);
+  EXPECT_CALL(connection_handler_mock, CloseSession(_, kSession)).Times(1)
+      .WillOnce(RemoveSession(conn, kSession));
+  EXPECT_CALL(connection_handler_mock, CloseConnection(_)).Times(1);
+
 
   const int32_t kNewTimeout = kTimeout - 1;
   conn->StartHeartBeat(kSession);

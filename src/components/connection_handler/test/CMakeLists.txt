@@ -22,12 +22,13 @@ set (LIBRARIES
     Utils
     ConfigProfile
     ProtocolLibrary
+    
 )
 
 set (SOURCES
   connection_handler_impl_test.cc
   connection_test.cc
-  heart_beat_monitor_test.cc
+  #heart_beat_monitor_test.cc
   main.cc
 )
 

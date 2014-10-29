@@ -123,6 +123,7 @@ MessageLoopThread<Q>::MessageLoopThread(const std::string&   name,
 template<class Q>
 MessageLoopThread<Q>::~MessageLoopThread() {
   thread_->stop();
+  threads::DeleteThread(thread_);
 }
 
 template <class Q>

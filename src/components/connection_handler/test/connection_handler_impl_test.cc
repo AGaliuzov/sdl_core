@@ -469,6 +469,7 @@ TEST_F(ConnectionHandlerTest, SessionStarted_DealyProtect) {
   EXPECT_EQ(protocol_handler::HASH_ID_NOT_SUPPORTED, out_hash_id);
   CheckService(uid, start_session_id, kAudio, NULL, PROTECTION_ON);
 }
+
 TEST_F(ConnectionHandlerTest, SessionStarted_DealyProtectBulk) {
   AddTestDeviceConnection();
   AddTestSession();
