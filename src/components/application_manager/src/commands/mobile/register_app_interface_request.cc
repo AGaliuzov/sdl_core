@@ -468,7 +468,7 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile(
   uint32_t hash_id = 0;
 
   const char* add_info = "";
-  const bool resumption = (*message_)[strings::msg_params].keyExists(strings::hash_id);
+  bool resumption = (*message_)[strings::msg_params].keyExists(strings::hash_id);
   bool need_restore_vr = resumption;
   if (resumption) {
     hash_id = (*message_)[strings::msg_params][strings::hash_id].asUInt();
