@@ -5,6 +5,12 @@
 #include "policy/policy_types.h"
 #include "utils/lock.h"
 #include "utils/timer_thread.h"
+#include "utils/threads/thread.h"
+#include "utils/threads/thread_delegate.h"
+#include "utils/conditional_variable.h"
+#include "utils/lock.h"
+#include "utils/logger.h"
+#include "utils/macro.h"
 
 namespace policy {
 
@@ -114,21 +120,24 @@ private:
    */
   PolicyTableStatus last_update_status_;
 
+  class UpdateThreadDelegate: public threads::ThreadDelegate {
 
-  /**
-   * @brief The Policy update response timer class
-   */
-  class UpdateResponseTimer : public timer::TimerThread<UpdateStatusManager> {
-   public:
-    UpdateResponseTimer(UpdateStatusManager* callee) :
-        timer::TimerThread<UpdateStatusManager>(
-          "Policy UpdResponse",
-          callee,
-          &UpdateStatusManager::OnUpdateTimeoutOccurs) {
-    }
-    ~UpdateResponseTimer();
+  public:
+    UpdateThreadDelegate(UpdateStatusManager* update_status_manager);
+    ~UpdateThreadDelegate();
+    virtual void threadMain();
+    virtual bool exitThreadMain();
+    void updateTimeOut(const uint32_t timeout_ms);
+
+    volatile uint32_t                                timeout_;
+    volatile bool                                    stop_flag_;
+    sync_primitives::Lock                            state_lock_;
+    sync_primitives::ConditionalVariable             termination_condition_;
+    UpdateStatusManager*                             update_status_manager_;
   };
-  UpdateResponseTimer update_response_timer_;
+
+  UpdateThreadDelegate*                              update_status_thread_delegate_;
+  threads::Thread*                                   thread_;
 };
 
 }
