@@ -187,7 +187,7 @@ include_directories (
     ${CMAKE_SOURCE_DIR}/src/components/media_manager/test/media_adapter_impl_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/connection_handler_impl_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/connection_test.cc
-    ${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/heart_beat_monitor_test.cc
+    #${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/heart_beat_monitor_test.cc
     ${AM_TEST_DIR}/command_impl_test.cc
   )
 

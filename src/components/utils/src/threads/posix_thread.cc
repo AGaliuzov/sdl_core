@@ -31,7 +31,7 @@
  */
 
 #include <errno.h>
-
+#include <unistd.h>
 #include <limits.h>
 #include <stddef.h>
 #include <signal.h>
@@ -183,10 +183,11 @@ bool Thread::startWithOptions(const ThreadOptions& options) {
 
 void Thread::stop() {
   LOG4CXX_TRACE_ENTER(logger_);
+
 #ifdef BUILD_TESTS
   // Temporary fix for UnitTest until APPLINK-9987 is resolved
   usleep(100000);
-#endif
+endif
 
   if (!atomic_post_clr(&isThreadRunning_))
   {
