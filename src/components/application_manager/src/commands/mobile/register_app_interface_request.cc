@@ -489,7 +489,13 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile(
 
   SendResponse(true, result, add_info, params);
 
+  // in case application exist in resumption we need to send resumeVrgrammars
+  if (false == resumption) {
+    resumption = resumer.IsApplicationSaved(application->mobile_app_id());
+  }
+
   MessageHelper::SendOnAppRegisteredNotificationToHMI(*(application.get()),
+                                                      resumption,
                                                       need_restore_vr);
 
   MessageHelper::SendChangeRegistrationRequestToHMI(application);
