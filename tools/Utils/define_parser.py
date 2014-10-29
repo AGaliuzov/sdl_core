@@ -140,7 +140,10 @@ def parce_type(group):
                 or ((token_type == TokenType.cmakeif_token or token_type == TokenType.cmakeifnot_token) and rules_type == Rules.cmake)):
                 name = group[i + 1]
                 if (name not in defined) and (name not in undefined):
-                    token_type = TokenType.if_token
+                    if rules_type == Rules.cpp:
+                        token_type = TokenType.if_token
+                    else:
+                        token_type = TokenType.cmakeif2_token
                     name = None
             return txt, token_type, name
 
@@ -259,14 +262,6 @@ def remove_undefined(tokens, logger=Logger("Log.txt")):
             continue
         elif x.type == TokenType.cmakeif2_token and rules_type == Rules.cmake:
             ifstack.append(None)
-        elif x.type == TokenType.cmakeelse_token and rules_type == Rules.cmake:
-            if ifstack.size() == 0:
-                logger.log("Warning! Bad document structure. Probably else() without if() token")
-            name = ifstack.head()
-            if name is not None:
-                state = state_stack.head()                
-                state.not_flag = not state.not_flag
-                continue
         elif x.type == TokenType.cmakeendif_token and rules_type == Rules.cmake:
             if ifstack.size() == 0:
                 logger.log("Warning! Bad document structure. Probably endid() without if() token")
@@ -278,6 +273,14 @@ def remove_undefined(tokens, logger=Logger("Log.txt")):
                     logger.log("Warning! System Error!" +
                                "Please contact to akutsan@luxoft.com. Attach input file, " +
                                "defined and undefined variables")
+                continue
+        elif x.type == TokenType.cmakeelse_token and rules_type == Rules.cmake:
+            if ifstack.size() == 0:
+                logger.log("Warning! Bad document structure. Probably else() without if() token")
+            name = ifstack.head()
+            if name is not None:
+                state = state_stack.head()
+                state.not_flag = not state.not_flag
                 continue
 
         state = state_stack.foot()
