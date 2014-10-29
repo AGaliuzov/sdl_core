@@ -51,8 +51,7 @@ class IAPConnection;
 
 class IAPDevice : public MmeDevice {
  public:
-  IAPDevice(const std::string& mount_point,
-            const std::string& name,
+  IAPDevice(const std::string& mount_point, const std::string& name,
             const DeviceUID& unique_device_id,
             TransportAdapterController* controller);
 
@@ -81,12 +80,16 @@ class IAPDevice : public MmeDevice {
 
   static const int kProtocolNameSize = 256;
 
-  const AppRecord RegisterConnection(ApplicationHandle app_id, IAPConnection* connection);
+  const AppRecord RegisterConnection(ApplicationHandle app_id,
+                                     IAPConnection* connection);
   void UnregisterConnection(ApplicationHandle app_id);
   void OnSessionOpened(uint32_t protocol_id, int session_id);
-  void OnSessionOpened(uint32_t protocol_id, const char* protocol_name, int session_id);
-  void OnHubSessionOpened(uint32_t protocol_id, const char* protocol_name, int session_id);
-  void OnRegularSessionOpened(uint32_t protocol_id, const char* protocol_name, int session_id);
+  void OnSessionOpened(uint32_t protocol_id, const char* protocol_name,
+                       int session_id);
+  void OnHubSessionOpened(uint32_t protocol_id, const char* protocol_name,
+                          int session_id);
+  void OnRegularSessionOpened(uint32_t protocol_id, const char* protocol_name,
+                              int session_id);
   void OnSessionClosed(int session_id);
   void OnDataReady(int session_id);
 
