@@ -93,7 +93,6 @@ class MessageHelper {
      **/
     static void SendOnAppRegisteredNotificationToHMI(
         const Application& application_impl,
-        bool resumption = false,
         bool need_restore_vr = false);
 
     /**
