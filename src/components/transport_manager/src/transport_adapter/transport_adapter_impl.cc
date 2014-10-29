@@ -66,6 +66,10 @@ TransportAdapterImpl::TransportAdapterImpl(
 }
 
 TransportAdapterImpl::~TransportAdapterImpl() {
+  Terminate();
+}
+
+void TransportAdapterImpl::Terminate() {
   if (device_scanner_) {
     device_scanner_->Terminate();
     LOG4CXX_DEBUG(logger_, "device_scanner_ " << device_scanner_ << " terminated.");

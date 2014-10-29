@@ -64,77 +64,82 @@ char* SplitToAddr(char* dev_list_entry) {
 }  //  namespace
 
 BluetoothPASADeviceScanner::BluetoothPASADeviceScanner(
-  TransportAdapterController* controller, bool auto_repeat_search,
-  int auto_repeat_pause_sec)
-  : controller_(controller),
-    bt_device_scanner_thread_(NULL),
-    bt_PASA_msg_thread_(NULL),
-    thread_started_(false),
-    shutdown_requested_(false),
-    device_scan_requested_(false),
-    device_scan_requested_cv_(),
-    auto_repeat_search_(auto_repeat_search),
-    auto_repeat_pause_sec_(auto_repeat_pause_sec) ,
-    mPASAFWSendHandle(OpenMsgQ(PREFIX_STR_FROMSDLCOREBTADAPTER_QUEUE, true, true)),
-    mq_ToSDL(NULL){
-  bt_device_scanner_thread_ = threads::CreateThread("BT PASA Scanner", new  DeviceScannerDelegate(this));
-  bt_PASA_msg_thread_ = threads::CreateThread("BT PASA Framwork Messages", new  PASAMessageDelegate(this));
+    TransportAdapterController* controller, bool auto_repeat_search,
+    int auto_repeat_pause_sec)
+    : controller_(controller),
+      scanner_thread_(NULL),
+      msg_thread_(NULL),
+      thread_started_(false),
+      shutdown_requested_(false),
+      device_scan_requested_(false),
+      device_scan_requested_cv_(),
+      auto_repeat_search_(auto_repeat_search),
+      auto_repeat_pause_sec_(auto_repeat_pause_sec),
+      mq_from_sdl_(-1),
+      mq_to_sdl_(-1) {
 }
-
 
 BluetoothPASADeviceScanner::DeviceScannerDelegate::DeviceScannerDelegate(
     BluetoothPASADeviceScanner* scanner)
-  : scanner_(scanner) {
+    : scanner_(scanner) {
 }
 
 void BluetoothPASADeviceScanner::DeviceScannerDelegate::threadMain() {
   LOG4CXX_TRACE_ENTER(logger_);
-  scanner_->Thread();
+  scanner_->DeviceScannerLoop();
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
 BluetoothPASADeviceScanner::PASAMessageDelegate::PASAMessageDelegate(
     BluetoothPASADeviceScanner* scanner)
-  : scanner_(scanner) {
+    : scanner_(scanner) {
 }
 
 void BluetoothPASADeviceScanner::PASAMessageDelegate::threadMain() {
   LOG4CXX_TRACE_ENTER(logger_);
-  scanner_->mq_ToSDL = OpenMsgQ(PREFIX_STR_TOSDLCOREBTADAPTER_QUEUE, false, true);
+  scanner_->PASAMessageLoop();
+  LOG4CXX_TRACE_EXIT(logger_);
+}
+
+void BluetoothPASADeviceScanner::PASAMessageLoop() {
+  LOG4CXX_TRACE_ENTER(logger_);
+  mq_to_sdl_ = OpenMsgQ(PREFIX_STR_TOSDLCOREBTADAPTER_QUEUE, false, true);
 
   char buffer[MAX_QUEUE_MSG_SIZE];
-  while (!scanner_->shutdown_requested_) {
-    const ssize_t length = mq_receive(scanner_->mq_ToSDL, buffer, sizeof(buffer), 0);
+  while (!shutdown_requested_) {
+    const ssize_t length = mq_receive(mq_to_sdl_, buffer, sizeof(buffer), 0);
     if (length == -1) {
       continue;
     };
     switch (buffer[0]) {
       case SDL_MSG_BT_DEVICE_CONNECT: {
-          LOG4CXX_INFO(logger_, "Received PASA FW BT SPP Connect Message");
-          scanner_->connectBTDevice(&buffer[1]);
-        }
+        LOG4CXX_INFO(logger_, "Received PASA FW BT SPP Connect Message");
+        connectBTDevice(&buffer[1]);
+      }
         break;
       case SDL_MSG_BT_DEVICE_SPP_DISCONNECT: {
-          LOG4CXX_INFO(logger_, "Received PASA FW BT SPP Disconnect Message");
-          scanner_->disconnectBTDeviceSPP(&buffer[1]);
-        }
+        LOG4CXX_INFO(logger_, "Received PASA FW BT SPP Disconnect Message");
+        disconnectBTDeviceSPP(&buffer[1]);
+      }
         break;
       case SDL_MSG_BT_DEVICE_DISCONNECT: {
-          LOG4CXX_INFO(logger_, "Received PASA FW BT Disconnect Message");
-          scanner_->disconnectBTDevice(&buffer[1]);
-        }
+        LOG4CXX_INFO(logger_, "Received PASA FW BT Disconnect Message");
+        disconnectBTDevice(&buffer[1]);
+      }
         break;
       case SDL_MSG_BT_DEVICE_CONNECT_END: {
-          LOG4CXX_INFO(logger_, "Received PASA FW BT SPP END Message");
-          scanner_->UpdateTotalDeviceList();
-          scanner_->UpdateTotalApplicationList();
-        }
+        LOG4CXX_INFO(logger_, "Received PASA FW BT SPP END Message");
+        UpdateTotalDeviceList();
+        UpdateTotalApplicationList();
+      }
         break;
       default:
         LOG4CXX_WARN(logger_, "Received PASA FW BT Unknown Message");
         break;
     }
   }
+
+  CloseMsgQ(mq_to_sdl_);
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
@@ -165,24 +170,32 @@ void BluetoothPASADeviceScanner::connectBTDevice(void *data) {
   BluetoothPASADevice* device = NULL;
   sync_primitives::AutoLock lock(devices_lock_);
   for (DeviceVector::const_iterator i = found_devices_with_sdl_.begin();
-       i != found_devices_with_sdl_.end(); ++i) {
-    BluetoothPASADevice* existing_device = static_cast<BluetoothPASADevice*>(i->get());
-    if (0 == memcmp(existing_device->mac(), pDeviceInfo->mac, sizeof(pDeviceInfo->mac))) {
-      LOG4CXX_DEBUG(logger_, "Bluetooth device exists: " << pDeviceInfo->cDeviceName);
-      LOG4CXX_INFO(logger_, "Bluetooth channel " << pDeviceInfo->cSppQueName
-                   << " added to "<< pDeviceInfo->cDeviceName << " " << existing_device);
+      i != found_devices_with_sdl_.end(); ++i) {
+    BluetoothPASADevice* existing_device = static_cast<BluetoothPASADevice*>(i
+        ->get());
+    if (0
+        == memcmp(existing_device->mac(), pDeviceInfo->mac,
+                  sizeof(pDeviceInfo->mac))) {
+      LOG4CXX_DEBUG(logger_,
+                    "Bluetooth device exists: " << pDeviceInfo->cDeviceName);
+      LOG4CXX_INFO(
+          logger_,
+          "Bluetooth channel " << pDeviceInfo->cSppQueName << " added to "<< pDeviceInfo->cDeviceName << " " << existing_device);
       device = existing_device;
       break;
     }
   }
   if (!device) {
-    device = new BluetoothPASADevice(pDeviceInfo->cDeviceName, pDeviceInfo->mac);
-    LOG4CXX_INFO(logger_, "Bluetooth device created successfully: "<< pDeviceInfo->cDeviceName);
+    device = new BluetoothPASADevice(pDeviceInfo->cDeviceName,
+                                     pDeviceInfo->mac);
+    LOG4CXX_INFO(
+        logger_,
+        "Bluetooth device created successfully: "<< pDeviceInfo->cDeviceName);
     found_devices_with_sdl_.push_back(device);
   }
   const BluetoothPASADevice::SCOMMChannel tChannel(pDeviceInfo->cSppQueName);
   device->AddChannel(tChannel);
-  SendMsgQ(mPASAFWSendHandle, SDL_MSG_BT_DEVICE_CONNECT_ACK, 0, NULL);
+  SendMsgQ(mq_from_sdl_, SDL_MSG_BT_DEVICE_CONNECT_ACK, 0, NULL);
 }
 
 void BluetoothPASADeviceScanner::disconnectBTDevice(void *data) {
@@ -190,7 +203,7 @@ void BluetoothPASADeviceScanner::disconnectBTDevice(void *data) {
       static_cast<PBTDeviceDisconnectInfo>(data);
   const DeviceUID device_id = MacToString(pDeviceInfo->mac);
   controller_->DisconnectDevice(device_id);
-  SendMsgQ(mPASAFWSendHandle, SDL_MSG_BT_DEVICE_DISCONNECT_ACK, 0, NULL);
+  SendMsgQ(mq_from_sdl_, SDL_MSG_BT_DEVICE_DISCONNECT_ACK, 0, NULL);
 }
 
 void BluetoothPASADeviceScanner::disconnectBTDeviceSPP(void *data) {
@@ -198,21 +211,23 @@ void BluetoothPASADeviceScanner::disconnectBTDeviceSPP(void *data) {
       static_cast<PBTDeviceDisConnectSPPInfo>(data);
   sync_primitives::AutoLock lock(devices_lock_);
   for (DeviceVector::iterator i = found_devices_with_sdl_.begin();
-       i != found_devices_with_sdl_.end(); ++i) {
+      i != found_devices_with_sdl_.end(); ++i) {
     BluetoothPASADevice* device = static_cast<BluetoothPASADevice*>(i->get());
-    if (0 == memcmp(device->mac(), pDeviceInfo->mac, sizeof(pDeviceInfo->mac))) {
+    if (0
+        == memcmp(device->mac(), pDeviceInfo->mac, sizeof(pDeviceInfo->mac))) {
       BluetoothPASADevice::SCOMMChannel tChannel(pDeviceInfo->cSppQueName);
       ApplicationHandle disconnected_app;
       const bool found = device->RemoveChannel(tChannel, &disconnected_app);
       if (found) {
-        controller_->AbortConnection(device->unique_device_id(), disconnected_app);
+        controller_->AbortConnection(device->unique_device_id(),
+                                     disconnected_app);
       }
       break;
     }
   }
 }
 
-void BluetoothPASADeviceScanner::Thread() {
+void BluetoothPASADeviceScanner::DeviceScannerLoop() {
   LOG4CXX_TRACE_ENTER(logger_);
   LOG4CXX_DEBUG(logger_, "Bluetooth adapter main thread initialized");
   if (auto_repeat_search_) {
@@ -244,7 +259,8 @@ void BluetoothPASADeviceScanner::TimedWaitForDeviceScanRequest() {
     sync_primitives::AutoLock auto_lock(device_scan_requested_lock_);
     while (!(device_scan_requested_ || shutdown_requested_)) {
       const sync_primitives::ConditionalVariable::WaitStatus wait_status =
-          device_scan_requested_cv_.WaitFor(auto_lock, auto_repeat_pause_sec_ * 1000);
+          device_scan_requested_cv_.WaitFor(auto_lock,
+                                            auto_repeat_pause_sec_ * 1000);
       if (wait_status == sync_primitives::ConditionalVariable::kTimeout) {
         LOG4CXX_INFO(logger_, "Bluetooth scanner timeout, performing scan");
         device_scan_requested_ = true;
@@ -256,18 +272,24 @@ void BluetoothPASADeviceScanner::TimedWaitForDeviceScanRequest() {
 
 TransportAdapter::Error BluetoothPASADeviceScanner::Init() {
   LOG4CXX_TRACE_ENTER(logger_);
-
+  mq_from_sdl_ = OpenMsgQ(PREFIX_STR_FROMSDLCOREBTADAPTER_QUEUE, true, true);
   found_devices_with_sdl_.clear();
-  DCHECK(bt_PASA_msg_thread_);
-  if(!bt_PASA_msg_thread_->start()) {
-    LOG4CXX_ERROR( logger_, "PASA incoming messages thread start failed");
+
+  msg_thread_ = threads::CreateThread("BT PASA Framework Messages",
+                                      new PASAMessageDelegate(this));
+  DCHECK(msg_thread_);
+  if (!msg_thread_->start()) {
+    LOG4CXX_ERROR(logger_, "PASA incoming messages thread start failed");
     LOG4CXX_TRACE_EXIT(logger_);
     return TransportAdapter::FAIL;
   }
   LOG4CXX_DEBUG(logger_, "PASA incoming messages thread started");
- DCHECK(bt_PASA_msg_thread_);
-  if(!bt_device_scanner_thread_->start()) {
-    LOG4CXX_ERROR( logger_, "BT device scanner thread start failed");
+
+  scanner_thread_ = threads::CreateThread("BT PASA Scanner",
+                                          new DeviceScannerDelegate(this));
+  DCHECK(msg_thread_);
+  if (!scanner_thread_->start()) {
+    LOG4CXX_ERROR(logger_, "BT device scanner thread start failed");
     LOG4CXX_TRACE_EXIT(logger_);
     return TransportAdapter::FAIL;
   }
@@ -281,22 +303,30 @@ TransportAdapter::Error BluetoothPASADeviceScanner::Init() {
 void BluetoothPASADeviceScanner::Terminate() {
   LOG4CXX_TRACE_ENTER(logger_);
   shutdown_requested_ = true;
-  CloseMsgQ(mq_ToSDL);
-  //TODO(EZamakhov): check stability
-  CloseMsgQ(mPASAFWSendHandle);
+  thread_started_ = false;
 
-  DCHECK(bt_PASA_msg_thread_);
-  if (bt_device_scanner_thread_->is_running()) {
-    LOG4CXX_INFO(logger_, "Waiting for PASA bluetooth device scanner threads termination");
+  DCHECK(scanner_thread_);
+  if (scanner_thread_->is_running()) {
+    LOG4CXX_INFO(
+        logger_,
+        "Waiting for PASA bluetooth device scanner threads termination");
     {
       sync_primitives::AutoLock auto_lock(device_scan_requested_lock_);
       device_scan_requested_ = false;
       device_scan_requested_cv_.NotifyOne();
     }
-    bt_PASA_msg_thread_->stop();
-    bt_device_scanner_thread_->stop();
     LOG4CXX_INFO(logger_, "PASA Bluetooth device scanner threads finished.");
   }
+
+  DCHECK(msg_thread_);
+  msg_thread_->stop();
+  threads::DeleteThread(msg_thread_);
+
+  scanner_thread_->stop();
+  threads::DeleteThread(scanner_thread_);
+
+  CloseMsgQ(mq_from_sdl_);
+
   LOG4CXX_TRACE_EXIT(logger_);
 }
 

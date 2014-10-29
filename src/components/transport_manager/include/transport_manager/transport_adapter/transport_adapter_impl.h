@@ -98,6 +98,8 @@ class TransportAdapterImpl : public TransportAdapter,
    **/
   virtual TransportAdapter::Error Init();
 
+  virtual void Terminate();
+
   /**
    * @brief Add listener to the container(list) of device adapter listeners.
    *

@@ -60,10 +60,6 @@ class BluetoothPASADeviceScanner : public DeviceScanner {
    */
   BluetoothPASADeviceScanner(TransportAdapterController* controller,
                              bool auto_repeat_search, int repeat_search_pause_sec);
-  /**
-   * @brief Main thread
-   */
-  void Thread();
 
  protected:
   /**
@@ -147,10 +143,13 @@ class BluetoothPASADeviceScanner : public DeviceScanner {
    */
   void UpdateTotalApplicationList();
 
-  TransportAdapterController* controller_;
-  threads::Thread* bt_device_scanner_thread_;
+  void DeviceScannerLoop();
+  void PASAMessageLoop();
 
-  threads::Thread* bt_PASA_msg_thread_;
+  TransportAdapterController* controller_;
+  threads::Thread* scanner_thread_;
+
+  threads::Thread* msg_thread_;
   bool thread_started_;
   bool shutdown_requested_;
   bool device_scan_requested_;
@@ -163,8 +162,8 @@ class BluetoothPASADeviceScanner : public DeviceScanner {
   const bool auto_repeat_search_;
   const int auto_repeat_pause_sec_;
 
-  mqd_t mPASAFWSendHandle;
-  mqd_t mq_ToSDL;
+  mqd_t mq_from_sdl_;
+  mqd_t mq_to_sdl_;
 };
 }  // namespace transport_adapter
 }  // namespace transport_manager

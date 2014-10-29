@@ -122,6 +122,8 @@ class TransportAdapter {
    **/
   virtual Error Init() = 0;
 
+  virtual void Terminate() = 0;
+
   /**
    * @brief Add listener to the container(list) of device adapter listeners.
    *
