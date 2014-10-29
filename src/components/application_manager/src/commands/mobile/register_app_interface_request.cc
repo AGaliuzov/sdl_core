@@ -490,7 +490,6 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile(
   SendResponse(true, result, add_info, params);
 
   MessageHelper::SendOnAppRegisteredNotificationToHMI(*(application.get()),
-                                                      resumption,
                                                       need_restore_vr);
 
   MessageHelper::SendChangeRegistrationRequestToHMI(application);
