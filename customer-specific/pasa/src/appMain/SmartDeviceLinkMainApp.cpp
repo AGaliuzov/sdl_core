@@ -228,16 +228,21 @@ void stopSmartDeviceLink()
 
 class ApplinkNotificationThreadDelegate : public threads::ThreadDelegate {
  public:
+  ApplinkNotificationThreadDelegate(int fd)
+    : readfd(fd) { }
   virtual void threadMain();
+ private:
+  int readfd;
 };
 
 void ApplinkNotificationThreadDelegate::threadMain() {
-  struct mq_attr attributes;
+  /*struct mq_attr attributes;
   attributes.mq_maxmsg = MSGQ_MAX_MESSAGES;
   attributes.mq_msgsize = MAX_QUEUE_MSG_SIZE;
   attributes.mq_flags = 0;
 
   mqd_t mq = mq_open(PREFIX_STR_SDL_PROXY_QUEUE, O_RDONLY | O_CREAT, 0666, &attributes);
+  */
 
   char buffer[MAX_QUEUE_MSG_SIZE];
   ssize_t length=0;
@@ -257,7 +262,7 @@ void ApplinkNotificationThreadDelegate::threadMain() {
 #endif
 
   while (!g_bTerminate) {
-    if ( (length = mq_receive(mq, buffer, sizeof(buffer), 0)) != -1) {
+    if ( (length = read(readfd, buffer, sizeof(buffer))) != -1) {
       switch (buffer[0]) {
         case SDL_MSG_SDL_START:
           startSmartDeviceLink();
@@ -287,12 +292,66 @@ void ApplinkNotificationThreadDelegate::threadMain() {
  */
 int main(int argc, char** argv) {
 
+  int pipefd[2];
+  if (pipe(pipefd) != 0) {
+    fprintf(stderr, "Erorr creating pipe: %s", strerror(errno));
+    exit(1);
+  }
+
+  int pid  = getpid();
+  int cpid = fork();
+
+  if (cpid < 0) {
+    fprintf(stderr, "Erorr due fork() call: %s", strerror(errno));
+    exit(1);
+  }
+
+  if (cpid == 0) {
+    close(pipefd[0]);
+    struct mq_attr attributes;
+    attributes.mq_maxmsg = MSGQ_MAX_MESSAGES;
+    attributes.mq_msgsize = MAX_QUEUE_MSG_SIZE;
+    attributes.mq_flags = 0;
+
+    mqd_t mq = mq_open(PREFIX_STR_SDL_PROXY_QUEUE, O_RDONLY | O_CREAT, 0666, &attributes);
+
+    char buffer[MAX_QUEUE_MSG_SIZE];
+    ssize_t length=0;
+
+    while (!g_bTerminate) {
+      if ( (length = mq_receive(mq, buffer, sizeof(buffer), 0)) != -1) {
+        switch (buffer[0]) {
+          case SDL_MSG_LOW_VOLTAGE:
+            printf("Send SIGSTOP to %d\n", pid);
+            if(kill(pid, SIGSTOP) == -1) {
+              fprintf(stderr, "Error kill: %s\n", strerror(errno));
+            }
+            break;
+          case SDL_MSG_WAKE_UP:
+            printf("Send SIGCONT to %d\n", pid);
+            if(kill(pid, SIGCONT) == -1) {
+              fprintf(stderr, "Error kill: %s\n", strerror(errno));
+            }
+            break;
+          case SDL_MSG_SDL_STOP:
+            g_bTerminate = false;
+          default:
+            write(pipefd[1], buffer, length);
+            break;
+        }
+      }
+    } //while-end
+    close(pipefd[1]);
+    _exit(0);
+  } 
+  close(pipefd[1]);
+
   profile::Profile::instance()->config_file_name(SDL_INIFILE_PATH);
   INIT_LOGGER(profile::Profile::instance()->log4cxx_config_file());
   configureLogging();
 
-  LOG4CXX_INFO(logger_, "Snapshot: {TAG}");
-  LOG4CXX_INFO(logger_, "Git commit: {GIT_COMMIT}");
+  LOG4CXX_INFO(logger_, "Snapshot: SNAPSHOT_PASA29102014");
+  LOG4CXX_INFO(logger_, "Git commit: c7b16541bea938a07b1aefbdce41ef598e5c39a2");
   LOG4CXX_INFO(logger_, "Application main()");
 
   if (!utils::appenders_loader.Loaded()) {
@@ -300,13 +359,17 @@ int main(int argc, char** argv) {
   }
 
   threads::Thread* applink_notification_thread =
-      threads::CreateThread("ApplinkNotify", new ApplinkNotificationThreadDelegate());
+      threads::CreateThread("ApplinkNotify", new ApplinkNotificationThreadDelegate(pipefd[0]));
   applink_notification_thread->start();
 
   main_namespace::LifeCycle::instance()->Run();
 
   LOG4CXX_INFO(logger_, "Stopping application due to signal caught");
   stopSmartDeviceLink();
+
+  close(pipefd[0]);
+  int result;
+  waitpid(cpid, &result, 0);
 
   LOG4CXX_INFO(logger_, "Application successfully stopped");
 #ifdef ENABLE_LOG
