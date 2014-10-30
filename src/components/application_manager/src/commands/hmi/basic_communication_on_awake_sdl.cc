@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,52 +29,48 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#ifdef CUSTOMER_PASA
+#include "application_manager/commands/hmi/basic_communication_on_awake_sdl.h"
+#include "application_manager/application_manager_impl.h"
+#include "application_manager/message_helper.h"
 
-#include "resumption/last_state.h"
-#include "config_profile/profile.h"
-#include "utils/file_system.h"
-#include "utils/logger.h"
+namespace application_manager {
 
-namespace resumption {
+namespace commands {
 
-CREATE_LOGGERPTR_GLOBAL(logger_, "LastState");
-
-void LastState::SaveToFileSystem() {
-  LOG4CXX_INFO(logger_, "LastState::SaveToFileSystem");
-  const std::string file =
-      profile::Profile::instance()->app_info_storage();
-  const std::string& str = dictionary.toStyledString();
-  const std::vector<uint8_t> char_vector_pdata(
-    str.begin(), str.end());
-
-  DCHECK(file_system::CreateDirectoryRecursively(
-        profile::Profile::instance()->app_storage_folder()));
-
-  LOG4CXX_INFO(logger_, "LastState::SaveToFileSystem " << file);
-  DCHECK(file_system::Write(file, char_vector_pdata));
+OnAwakeSDLNotification::OnAwakeSDLNotification(
+    const MessageSharedPtr& message) : NotificationFromHMI(message) {
 }
 
-void LastState::LoadFromFileSystem() {
-  const std::string file =
-      profile::Profile::instance()->app_info_storage();
-  std::string buffer;
-  bool result = file_system::ReadFile(file, buffer);
-  Json::Reader m_reader;
-  if (result && m_reader.parse(buffer, dictionary)) {
-    LOG4CXX_INFO(logger_, "Valid last state was found.");
-    return;
+OnAwakeSDLNotification::~OnAwakeSDLNotification() {
+}
+
+void OnAwakeSDLNotification::Run() {
+  LOG4CXX_INFO(logger_, "OnAwakeSDLNotification::Run");
+
+  ApplicationManagerImpl* app_manager = ApplicationManagerImpl::instance();
+  if (app_manager->state_suspended()) {
+    (app_manager->resume_controller()).AWake();
   }
-  LOG4CXX_WARN(logger_, "No valid last state was found.");
+  app_manager->set_state_suspended(false);
+  ApplicationManagerImpl::ApplicationListAccessor accessor;
+  ApplicationManagerImpl::TAppList local_app_list = accessor.applications();
+  ApplicationManagerImpl::TAppListIt it = local_app_list.begin();
+  ApplicationManagerImpl::TAppListIt itEnd = local_app_list.end();
+  for (; it != itEnd; ++it) {
+    if ((*it).valid()) {
+      if ((*it)->flag_sending_hash_change_after_awake()) {
+        MessageHelper::SendHashUpdateNotification((*it)->app_id());
+        (*it)->set_flag_sending_hash_change_after_awake(false);
+      }
+    }
+  }
+  (app_manager->resume_controller()).StartSavePersistentDataTimer();
 }
 
-LastState::LastState() {
-  LoadFromFileSystem();
-}
+}  // namespace commands
 
-LastState::~LastState() {
-#ifndef CUSTOMER_PASA
-  SaveToFileSystem();
-#endif // !CUSTOMER_PASA
-}
+}  // namespace application_manager
+#endif // CUSTOMER_PASA
 
-}
+

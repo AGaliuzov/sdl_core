@@ -544,6 +544,37 @@ void ResumeCtrl::IgnitionOff() {
   SetSavedApplication(to_save);
 }
 
+#ifdef CUSTOMER_PASA
+void ResumeCtrl::AWake() {
+  LOG4CXX_INFO(logger_, "ResumeCtrl::AWake()");
+
+  Json::Value to_save;
+  for (Json::Value::iterator it = GetSavedApplications().begin();
+      it != GetSavedApplications().end(); ++it) {
+    uint32_t ign_off_count = (*it)[strings::ign_off_count].asUInt();
+    if (ign_off_count > 0) {
+      --ign_off_count;
+      (*it)[strings::ign_off_count] = ign_off_count;
+    }
+    to_save.append(*it);
+  }
+  SetSavedApplication(to_save);
+}
+
+void ResumeCtrl::StartSavePersistentDataTimer() {
+  if (!save_persistent_data_timer_.isRunning()) {
+    save_persistent_data_timer_.start(
+        profile::Profile::instance()->app_resumption_save_persistent_data_timeout());
+  }
+}
+
+void ResumeCtrl::StopSavePersistentDataTimer() {
+  if (save_persistent_data_timer_.isRunning()) {
+    save_persistent_data_timer_.stop();
+  }
+}
+#endif // CUSTOMER_PASA
+
 bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
                                  uint32_t hash) {
   LOG4CXX_INFO(logger_, "ResumeCtrl::StartResumption");

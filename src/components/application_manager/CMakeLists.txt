@@ -259,6 +259,7 @@ file (GLOB MOBILE_COMMANDS_SOURCES
   ${AM_SOURCE_DIR}/src/commands/hmi/on_device_state_changed_notification.cc
   ${AM_SOURCE_DIR}/src/commands/hmi/on_tts_reset_timeout_notification.cc
   ${AM_SOURCE_DIR}/src/commands/hmi/on_phone_call_notification.cc
+  ${AM_SOURCE_DIR}/src/commands/hmi/basic_communication_on_awake_sdl.cc
 )
 
 set (HMI_COMMANDS_SOURCES_JSON
