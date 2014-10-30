@@ -229,6 +229,10 @@ void MmeDeviceScanner::Terminate() {
   } else {
     LOG4CXX_WARN(logger_, "Could not disconnect from " << mme_db_name);
   }
+
+  DeviceContainer devices;
+  sync_primitives::AutoLock locker(devices_lock_);
+  devices_.swap(devices);
 }
 
 bool MmeDeviceScanner::IsInitialised() const {
