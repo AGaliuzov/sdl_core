@@ -294,7 +294,7 @@ class PTRepresentation {
                                            bool is_default,
                                            bool is_predata) = 0;
 
-    virtual void WrteDB() = 0;
+    virtual void WriteDb() = 0;
 };
 
 }  //  namespace policy

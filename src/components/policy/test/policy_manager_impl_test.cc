@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, Ford Motor Company
+﻿/* Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -91,10 +91,6 @@ class PolicyManagerImplTest : public ::testing::Test {
   }
 
   void TearDown() {
-    EXPECT_CALL(*update_manager, GetUpdateStatus()).Times(1)
-        .WillOnce(Return(::policy::StatusUpToDate));
-    EXPECT_CALL(*cache_manager, Backup()).Times(1);
-    EXPECT_CALL(*cache_manager, SaveUpdateRequired(_)).Times(1);
     delete manager;
     delete listener;
   }
@@ -179,7 +175,6 @@ TEST_F(PolicyManagerImplTest, GetUpdateUrl) {
 TEST_F(PolicyManagerImplTest, IncrementGlobalCounter) {
   EXPECT_CALL(*cache_manager, Increment(usage_statistics::SYNC_REBOOTS))
       .Times(1);
-
   manager->Increment(usage_statistics::SYNC_REBOOTS);
 }
 
@@ -187,21 +182,18 @@ TEST_F(PolicyManagerImplTest, IncrementAppCounter) {
   EXPECT_CALL(*cache_manager, Increment("12345",
                                         usage_statistics::USER_SELECTIONS))
       .Times(1);
-
   manager->Increment("12345", usage_statistics::USER_SELECTIONS);
 }
 
 TEST_F(PolicyManagerImplTest, SetAppInfo) {
   EXPECT_CALL(*cache_manager, Set("12345", usage_statistics::LANGUAGE_GUI,
                                   "de-de")).Times(1);
-
   manager->Set("12345", usage_statistics::LANGUAGE_GUI, "de-de");
 }
 
 TEST_F(PolicyManagerImplTest, AddAppStopwatch) {
   EXPECT_CALL(*cache_manager, Add("12345", usage_statistics::SECONDS_HMI_FULL,
                                   30)).Times(1);
-
   manager->Add("12345", usage_statistics::SECONDS_HMI_FULL, 30);
 }
 #endif  // EXTENDED_POLICY

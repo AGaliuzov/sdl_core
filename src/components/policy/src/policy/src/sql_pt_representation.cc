@@ -379,7 +379,7 @@ bool SQLPTRepresentation::Drop() {
   return true;
 }
 
-void SQLPTRepresentation::WrteDB() {
+void SQLPTRepresentation::WriteDb() {
   db_->Backup();
 }
 

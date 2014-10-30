@@ -583,7 +583,7 @@ private:
    */
   void CheckSnapshotInitialization();
 
-  void DoBackup();
+  void PersistData();
 
 private:
   utils::SharedPtr<policy_table::Table> pt_;
@@ -597,6 +597,7 @@ private:
   sync_primitives::Lock cache_lock_;
 
   class BackgroundBackuper: public threads::ThreadDelegate {
+      friend class CacheManager;
     public:
       BackgroundBackuper(CacheManager* cache_manager);
       ~BackgroundBackuper();
@@ -606,13 +607,13 @@ private:
     private:
       CacheManager* cache_manager_;
       sync_primitives::ConditionalVariable backup_notifier_;
-      bool stop_falg;
+      volatile bool stop_flag_;
 
       sync_primitives::Lock need_backup_lock_;
       DISALLOW_COPY_AND_ASSIGN(BackgroundBackuper);
   };
   threads::Thread* backup_thread_;
-  BackgroundBackuper* backuper;
+  BackgroundBackuper* backuper_;
 
 };
 } // policy
