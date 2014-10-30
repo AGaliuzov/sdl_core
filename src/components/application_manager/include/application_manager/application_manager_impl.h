@@ -667,6 +667,10 @@ class ApplicationManagerImpl : public ApplicationManager,
         mobile_apis::FunctionID::eType function_id,
         const RPCParams& rpc_params,
         CommandParametersPermissions* params_permissions = NULL);
+    /*
+     * @brief Function Should be called when Low Voltage is occured
+     */
+    void OnLowVoltage();
 
     // typedef for Applications list
     typedef const std::set<ApplicationSharedPtr> TAppList;
@@ -860,6 +864,7 @@ class ApplicationManagerImpl : public ApplicationManager,
 
     timer::TimerThread<ApplicationManagerImpl>  tts_global_properties_timer_;
 
+    bool is_low_voltage_;
     DISALLOW_COPY_AND_ASSIGN(ApplicationManagerImpl);
 
     FRIEND_BASE_SINGLETON_CLASS(ApplicationManagerImpl);

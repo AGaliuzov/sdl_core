@@ -177,6 +177,12 @@ class RequestController {
     */
     void terminateAllHMIRequests();
 
+
+    /**
+    * @brief Terminates all requests from Mobile
+    */
+    void terminateAllMobileRequests();
+
     /**
     * @brief Updates request timeout
     *
@@ -220,6 +226,12 @@ class RequestController {
     */
     void UpdateTimer();
 
+
+    /*
+     * @brief Function Should be called when Low Voltage is occured
+     */
+    void OnLowVoltage();
+
   private:
 
     // Data types
@@ -256,6 +268,7 @@ class RequestController {
     timer::TimerThread<RequestController>  timer_;
     static const uint32_t dafault_sleep_time_ = UINT_MAX;
 
+    bool is_low_voltage_;
     DISALLOW_COPY_AND_ASSIGN(RequestController);
 };
 

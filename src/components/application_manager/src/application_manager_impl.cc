@@ -96,7 +96,8 @@ ApplicationManagerImpl::ApplicationManagerImpl()
     tts_global_properties_timer_("TTSGLPRTimer",
                                       this,
                                       &ApplicationManagerImpl::OnTimerSendTTSGlobalProperties,
-                                      true) {
+                                      true),
+    is_low_voltage_(false) {
     std::srand(std::time(0));
 }
 
@@ -1974,6 +1975,7 @@ void ApplicationManagerImpl::SendOnSDLClose() {
   hmi_handler_->SendMessageToHMI(message_to_send);
 }
 
+
 void ApplicationManagerImpl::UnregisterAllApplications(bool generated_by_hmi) {
   LOG4CXX_INFO(logger_, "ApplicationManagerImpl::UnregisterAllApplications " <<
                unregister_reason_);
@@ -2219,6 +2221,11 @@ mobile_apis::Result::eType ApplicationManagerImpl::CheckPolicyPermissions(
   }
   LOG4CXX_INFO(logger_, "Request is allowed by policies. "+log_msg);
   return mobile_api::Result::SUCCESS;
+}
+
+
+void  ApplicationManagerImpl::OnLowVoltage() {
+  is_low_voltage_ = true;
 }
 
 void ApplicationManagerImpl::Mute(VRTTSSessionChanging changing_state) {

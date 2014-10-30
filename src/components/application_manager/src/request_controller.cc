@@ -298,6 +298,25 @@ void RequestController::terminateAllHMIRequests() {
   }
   LOG4CXX_TRACE_EXIT(logger_);
 }
+void RequestController::terminateAllMobileRequests() {
+  LOG4CXX_TRACE_ENTER(logger_);
+
+  AutoLock auto_lock(pending_request_set_lock_);
+  RequestInfoSet::iterator it = pending_request_set_.begin();
+  while (pending_request_set_.end() != it) {
+    RequestInfo* mobile_request_info = it->get();
+    if (NULL == mobile_request_info) {
+      ++it;
+      continue;
+    }
+    mobile_request_info->request()->CleanUp();
+    pending_request_set_.erase(it++);
+    LOG4CXX_INFO(logger_, "Mobile request terminated: "
+                 <<  mobile_request_info->requestId());
+  }
+  UpdateTimer();
+  LOG4CXX_TRACE_EXIT(logger_);
+}
 
 void RequestController::updateRequestTimeout(
     const uint32_t& app_id,
@@ -510,6 +529,25 @@ void RequestController::UpdateTimer() {
   }
   timer_.updateTimeOut(sleep_time);
   LOG4CXX_INFO(logger_, "Sleep for: " << sleep_time);
+  LOG4CXX_TRACE_EXIT(logger_);
+}
+
+void RequestController::OnLowVoltage() {
+  LOG4CXX_TRACE_ENTER(logger_);
+  is_low_voltage_ = true;
+  terminateAllHMIRequests();
+  terminateAllMobileRequests();
+  {
+    sync_primitives::AutoLock auto_lock (mobile_request_list_lock_);
+    pool_state_ = TPoolState::STOPPED;
+  for (uint32_t i = 0; i < pool_size_; i++) {
+    if (false == pool_[i]->cancel()) {
+      LOG4CXX_ERROR(logger_, "Unable to stop request thread");
+    }
+    threads::DeleteThread(pool_[i]);
+  }
+  }
+  LOG4CXX_INFO(logger_, "Threads exited from the thread pool " << pool_size_);
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
