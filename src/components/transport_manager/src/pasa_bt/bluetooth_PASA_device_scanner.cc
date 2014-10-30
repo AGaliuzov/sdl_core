@@ -173,14 +173,14 @@ void BluetoothPASADeviceScanner::connectBTDevice(void *data) {
       i != found_devices_with_sdl_.end(); ++i) {
     BluetoothPASADevice* existing_device = static_cast<BluetoothPASADevice*>(i
         ->get());
-    if (0
-        == memcmp(existing_device->mac(), pDeviceInfo->mac,
-                  sizeof(pDeviceInfo->mac))) {
+    int ret = memcmp(existing_device->mac(), pDeviceInfo->mac,
+                     sizeof(pDeviceInfo->mac));
+    if (0 == ret) {
       LOG4CXX_DEBUG(logger_,
                     "Bluetooth device exists: " << pDeviceInfo->cDeviceName);
       LOG4CXX_INFO(
           logger_,
-          "Bluetooth channel " << pDeviceInfo->cSppQueName << " added to "<< pDeviceInfo->cDeviceName << " " << existing_device);
+          "Bluetooth channel " << pDeviceInfo->cSppQueName << " added to " << pDeviceInfo->cDeviceName << " " << existing_device);
       device = existing_device;
       break;
     }
@@ -190,7 +190,7 @@ void BluetoothPASADeviceScanner::connectBTDevice(void *data) {
                                      pDeviceInfo->mac);
     LOG4CXX_INFO(
         logger_,
-        "Bluetooth device created successfully: "<< pDeviceInfo->cDeviceName);
+        "Bluetooth device created successfully: " << pDeviceInfo->cDeviceName);
     found_devices_with_sdl_.push_back(device);
   }
   const BluetoothPASADevice::SCOMMChannel tChannel(pDeviceInfo->cSppQueName);
@@ -213,8 +213,8 @@ void BluetoothPASADeviceScanner::disconnectBTDeviceSPP(void *data) {
   for (DeviceVector::iterator i = found_devices_with_sdl_.begin();
       i != found_devices_with_sdl_.end(); ++i) {
     BluetoothPASADevice* device = static_cast<BluetoothPASADevice*>(i->get());
-    if (0
-        == memcmp(device->mac(), pDeviceInfo->mac, sizeof(pDeviceInfo->mac))) {
+    int ret = memcmp(device->mac(), pDeviceInfo->mac, sizeof(pDeviceInfo->mac));
+    if (0 == ret) {
       BluetoothPASADevice::SCOMMChannel tChannel(pDeviceInfo->cSppQueName);
       ApplicationHandle disconnected_app;
       const bool found = device->RemoveChannel(tChannel, &disconnected_app);

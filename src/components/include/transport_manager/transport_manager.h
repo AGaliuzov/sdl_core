@@ -59,7 +59,7 @@ class TransportManager {
   virtual int Init() = 0;
 
   /**
-   * Reinitializes transport manager
+   * @brief Reinitializes transport manager
    * @return Error code
    */
   virtual int Reinit() = 0;

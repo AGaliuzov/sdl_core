@@ -122,6 +122,10 @@ class TransportAdapter {
    **/
   virtual Error Init() = 0;
 
+  /**
+   * @brief Stops device adapter
+   * Called from transport manager to stop device adapter
+   */
   virtual void Terminate() = 0;
 
   /**

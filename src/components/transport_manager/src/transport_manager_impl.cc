@@ -223,8 +223,8 @@ int TransportManagerImpl::AddEventListener(TransportManagerListener* listener) {
 
 void TransportManagerImpl::DisconnectAllDevices() {
   LOG4CXX_TRACE_ENTER(logger_);
-  DeviceInfoList::iterator i = device_list_.begin();
-  for ( ; i != device_list_.end(); ++i) {
+  for (DeviceInfoList::iterator i = device_list_.begin();
+      i != device_list_.end(); ++i) {
     DeviceInfo& device = i->second;
     DisconnectDevice(device.device_handle());
   }
@@ -233,8 +233,8 @@ void TransportManagerImpl::DisconnectAllDevices() {
 
 void TransportManagerImpl::TerminateAllAdapters() {
   LOG4CXX_TRACE_ENTER(logger_);
-  std::vector<TransportAdapter*>::iterator i = transport_adapters_.begin();
-  for ( ; i != transport_adapters_.end(); ++i) {
+  for (std::vector<TransportAdapter*>::iterator i = transport_adapters_.begin();
+      i != transport_adapters_.end(); ++i) {
     (*i)->Terminate();
   }
   LOG4CXX_TRACE_EXIT(logger_);
@@ -242,8 +242,8 @@ void TransportManagerImpl::TerminateAllAdapters() {
 
 int TransportManagerImpl::InitAllAdapters() {
   LOG4CXX_TRACE_ENTER(logger_);
-  std::vector<TransportAdapter*>::iterator i = transport_adapters_.begin();
-  for ( ; i != transport_adapters_.end(); ++i) {
+  for (std::vector<TransportAdapter*>::iterator i = transport_adapters_.begin();
+      i != transport_adapters_.end(); ++i) {
     if ((*i)->Init() != TransportAdapter::OK) {
       LOG4CXX_TRACE_EXIT(logger_);
       return E_ADAPTERS_FAIL;
@@ -425,9 +425,12 @@ int TransportManagerImpl::Init() {
 }
 
 int TransportManagerImpl::Reinit() {
+  Visibility(false);
   DisconnectAllDevices();
   TerminateAllAdapters();
-  return InitAllAdapters();
+  int ret = InitAllAdapters();
+  Visibility(true);
+  return ret;
 }
 
 int TransportManagerImpl::Visibility(const bool& on_off) const {
