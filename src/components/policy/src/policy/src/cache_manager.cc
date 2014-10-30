@@ -155,7 +155,11 @@ bool CacheManager::GetUserPermissionsForDevice(const std::string &device_id,
   LOG4CXX_TRACE_ENTER(logger_);
   CACHE_MANAGER_CHECK(false);
 #ifdef EXTENDED_POLICY
-  const policy_table::DeviceParams& params = (*pt_->policy_table.device_data)[device_id];
+  policy_table::DeviceData& device_data = *pt_->policy_table.device_data;
+  if (device_data.end() == device_data.find(device_id)) {
+    return true;
+  }
+  const policy_table::DeviceParams& params = device_data[device_id];
   const policy_table::UserConsentRecords& ucr = *(params.user_consent_records);
   policy_table::UserConsentRecords::const_iterator iter = ucr.begin();
   policy_table::UserConsentRecords::const_iterator iter_end = ucr.end();
