@@ -123,6 +123,7 @@ void setupFileLogger() {
 }
 
 void configureLogging() {
+  // TODO (dchmerev@luxoft.com): moderate requirements to value (it hasn't to be exactly "0K" to be zero)
   if (0 == strcmp("0K", profile::Profile::instance()->log_file_max_size().c_str())) {
     setupFileLogger();
   } else {
@@ -229,23 +230,16 @@ void stopSmartDeviceLink()
 class ApplinkNotificationThreadDelegate : public threads::ThreadDelegate {
  public:
   ApplinkNotificationThreadDelegate(int fd)
-    : readfd(fd) { }
+    : readfd_(fd) { }
   virtual void threadMain();
  private:
-  int readfd;
+  int readfd_;
 };
 
 void ApplinkNotificationThreadDelegate::threadMain() {
-  /*struct mq_attr attributes;
-  attributes.mq_maxmsg = MSGQ_MAX_MESSAGES;
-  attributes.mq_msgsize = MAX_QUEUE_MSG_SIZE;
-  attributes.mq_flags = 0;
-
-  mqd_t mq = mq_open(PREFIX_STR_SDL_PROXY_QUEUE, O_RDONLY | O_CREAT, 0666, &attributes);
-  */
 
   char buffer[MAX_QUEUE_MSG_SIZE];
-  ssize_t length=0;
+  ssize_t length = 0;
 
 #if defined __QNX__
   // Policy initialization
@@ -262,7 +256,7 @@ void ApplinkNotificationThreadDelegate::threadMain() {
 #endif
 
   while (!g_bTerminate) {
-    if ( (length = read(readfd, buffer, sizeof(buffer))) != -1) {
+    if ( (length = read(readfd_, buffer, sizeof(buffer))) != -1) {
       switch (buffer[0]) {
         case SDL_MSG_SDL_START:
           startSmartDeviceLink();
@@ -277,11 +271,44 @@ void ApplinkNotificationThreadDelegate::threadMain() {
 #endif
           DEINIT_LOGGER();
           exit(EXIT_SUCCESS);
+          break;
+        case SDL_MSG_LOW_VOLTAGE:
+          main_namespace::LifeCycle::instance()->LowVoltage();
+          break;
+        case SDL_MSG_WAKE_UP:
+          main_namespace::LifeCycle::instance()->WakeUp();
+          break;
         default:
           break;
       }
     }
   } //while-end
+}
+
+void dispatchCommands(mqd_t mqueue, int pipefd, int pid) {
+  char buffer[MAX_QUEUE_MSG_SIZE];
+  ssize_t length = 0;
+
+  while (!g_bTerminate) {
+    if ( (length = mq_receive(mqueue, buffer, sizeof(buffer), 0)) != -1) {
+      switch (buffer[0]) {
+        case SDL_MSG_LOW_VOLTAGE:
+          if(kill(pid, SIGSTOP) == -1) {
+            fprintf(stderr, "Error sending SIGSTOP signal: %s\n", strerror(errno));
+          }
+          break;
+        case SDL_MSG_WAKE_UP:
+          if(kill(pid, SIGCONT) == -1) {
+            fprintf(stderr, "Error sending SIGCONT signal: %s\n", strerror(errno));
+          }
+          break;
+        case SDL_MSG_SDL_STOP:
+          g_bTerminate = true;
+          break;
+      }
+      write(pipefd, buffer, length);
+    }
+  } // while(!g_bTerminate)
 }
 
 /**
@@ -294,55 +321,37 @@ int main(int argc, char** argv) {
 
   int pipefd[2];
   if (pipe(pipefd) != 0) {
-    fprintf(stderr, "Erorr creating pipe: %s", strerror(errno));
-    exit(1);
+    fprintf(stderr, "Error creating pipe: %s", strerror(errno));
+    exit(EXIT_FAILURE);
   }
 
-  int pid  = getpid();
   int cpid = fork();
 
   if (cpid < 0) {
-    fprintf(stderr, "Erorr due fork() call: %s", strerror(errno));
-    exit(1);
+    fprintf(stderr, "Error due fork() call: %s", strerror(errno));
+    exit(EXIT_FAILURE);
   }
 
-  if (cpid == 0) {
+  if (cpid > 0) {
+    // Parent process reads mqueue, translates all received messages to the pipe
+    // and reacts on some of them (e.g. SDL_MSG_LOW_VOLTAGE)
     close(pipefd[0]);
     struct mq_attr attributes;
     attributes.mq_maxmsg = MSGQ_MAX_MESSAGES;
     attributes.mq_msgsize = MAX_QUEUE_MSG_SIZE;
     attributes.mq_flags = 0;
 
-    mqd_t mq = mq_open(PREFIX_STR_SDL_PROXY_QUEUE, O_RDONLY | O_CREAT, 0666, &attributes);
+    mqd_t mq = mq_open(PREFIX_STR_SDL_PROXY_QUEUE,
+                       O_RDONLY | O_CREAT,
+                       S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH,
+                       &attributes);
 
-    char buffer[MAX_QUEUE_MSG_SIZE];
-    ssize_t length=0;
+    dispatchCommands(mq, pipefd[1], cpid);
 
-    while (!g_bTerminate) {
-      if ( (length = mq_receive(mq, buffer, sizeof(buffer), 0)) != -1) {
-        switch (buffer[0]) {
-          case SDL_MSG_LOW_VOLTAGE:
-            printf("Send SIGSTOP to %d\n", pid);
-            if(kill(pid, SIGSTOP) == -1) {
-              fprintf(stderr, "Error kill: %s\n", strerror(errno));
-            }
-            break;
-          case SDL_MSG_WAKE_UP:
-            printf("Send SIGCONT to %d\n", pid);
-            if(kill(pid, SIGCONT) == -1) {
-              fprintf(stderr, "Error kill: %s\n", strerror(errno));
-            }
-            break;
-          case SDL_MSG_SDL_STOP:
-            g_bTerminate = false;
-          default:
-            write(pipefd[1], buffer, length);
-            break;
-        }
-      }
-    } //while-end
     close(pipefd[1]);
-    _exit(0);
+    int result;
+    waitpid(cpid, &result, 0);
+    exit(EXIT_SUCCESS);
   } 
   close(pipefd[1]);
 
@@ -350,8 +359,8 @@ int main(int argc, char** argv) {
   INIT_LOGGER(profile::Profile::instance()->log4cxx_config_file());
   configureLogging();
 
-  LOG4CXX_INFO(logger_, "Snapshot: SNAPSHOT_PASA29102014");
-  LOG4CXX_INFO(logger_, "Git commit: c7b16541bea938a07b1aefbdce41ef598e5c39a2");
+  LOG4CXX_INFO(logger_, "Snapshot: {TAG}");
+  LOG4CXX_INFO(logger_, "Git commit: {GIT_COMMIT}");
   LOG4CXX_INFO(logger_, "Application main()");
 
   if (!utils::appenders_loader.Loaded()) {
@@ -368,8 +377,6 @@ int main(int argc, char** argv) {
   stopSmartDeviceLink();
 
   close(pipefd[0]);
-  int result;
-  waitpid(cpid, &result, 0);
 
   LOG4CXX_INFO(logger_, "Application successfully stopped");
 #ifdef ENABLE_LOG

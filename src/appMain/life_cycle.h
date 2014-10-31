@@ -86,6 +86,11 @@ class LifeCycle : public utils::Singleton<LifeCycle> {
     void Run();
     void StopComponents();
 
+#ifdef CUSTOMER_PASA
+    void LowVoltage();
+    void WakeUp();
+#endif
+
   private:
     LifeCycle();
     transport_manager::TransportManager* transport_manager_;
