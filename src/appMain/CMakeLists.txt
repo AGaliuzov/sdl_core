@@ -55,6 +55,7 @@ if (TIME_TESTER)
     set(TIME_TESTER_LIB
         TimeTester)
 endif()
+
 set(LIBRARIES
   ApplicationManager
   HMI_API
@@ -197,6 +198,7 @@ include_directories (
     ${CMAKE_SOURCE_DIR}/src/components/rpc_base/test/rpc_base_json_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/rpc_base/test/rpc_base_test.cc
     #${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/heart_beat_monitor_test.cc
+    ${CMAKE_SOURCE_DIR}/src/components/formatters/test/generic_json_formatter_test.cc
     ${AM_TEST_DIR}/command_impl_test.cc
   )
 

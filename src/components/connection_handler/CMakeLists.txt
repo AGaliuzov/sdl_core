@@ -1,8 +1,8 @@
-set(COMPONENTS_DIR ${CMAKE_SOURCE_DIR}/src/components)
+#set(COMPONENTS_DIR ${CMAKE_SOURCE_DIR}/src/components)
 set(CH_SRC_DIR ${COMPONENTS_DIR}/connection_handler/src)
 
 include_directories (
-  ./include/
+  include
   ${COMPONENTS_DIR}/protocol_handler/include/
   ${COMPONENTS_DIR}/config_profile/include/
   ${COMPONENTS_DIR}/utils/include/

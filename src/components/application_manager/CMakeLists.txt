@@ -1,8 +1,6 @@
-set (COMPONENTS_DIR ${CMAKE_SOURCE_DIR}/src/components)
 set (AM_SOURCE_DIR ${COMPONENTS_DIR}/application_manager)
 set (AM_TEST_DIR ${AM_SOURCE_DIR}/test)
 set (AM_MOCK_DIR ${AM_TEST_DIR}/mock)
-
 
 if (EXTENDED_POLICY_FLAG)
   add_definitions(-DEXTENDED_POLICY)
