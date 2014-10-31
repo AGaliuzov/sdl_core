@@ -94,8 +94,8 @@ TEST(MessageMeterTest, DefaultTimeRange) {
 TEST(MessageMeterTest, TimeRangeSetter) {
   ::utils::MessageMeter<int> meter;
   TimevalStruct time_range {0, 0};
-  for (size_t sec = 1; sec < 1000; ++sec) {
-    for (size_t msec = 0; msec < 999; ++msec) {
+  for (int sec = 1000; sec >= 0; --sec) {
+    for (int msec = 999; msec >= 0; --msec) {
       time_range.tv_sec = sec;
       time_range.tv_usec = msec * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
       // Setter TimevalStruct

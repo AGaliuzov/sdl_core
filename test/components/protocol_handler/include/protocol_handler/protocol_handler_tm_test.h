@@ -73,18 +73,23 @@ using ::testing::Invoke;
 
 class ProtocolHandlerImplTest : public ::testing::Test {
  protected:
-  void SetUp() OVERRIDE {
-    protocol_handler_impl.reset(new ProtocolHandlerImpl(&transport_manager_mock));
+  void IntitProtocolHandlerImpl(const size_t period_msec, const size_t max_messages) {
+    protocol_handler_impl.reset(new ProtocolHandlerImpl(&transport_manager_mock,
+                                                        period_msec, max_messages));
     protocol_handler_impl->set_session_observer(&session_observer_mock);
     tm_listener = protocol_handler_impl.get();
+  }
+  void SetUp() OVERRIDE {
+    IntitProtocolHandlerImpl(0u, 0u);
     connection_id = 0xAu;
     session_id = 0xFFu;
     connection_key = 0xFF00AAu;
     message_id = 0xABCDEFu;
+    some_date.resize(256, 0xAB);
 
     // expect ConnectionHandler support methods call (conversion, check heartbeat)
     EXPECT_CALL(session_observer_mock,
-                KeyFromPair(connection_id, session_id)).
+                KeyFromPair(connection_id, _)).
         //return some connection_key
         WillRepeatedly(Return(connection_key));
     EXPECT_CALL(session_observer_mock,
@@ -92,6 +97,7 @@ class ProtocolHandlerImplTest : public ::testing::Test {
         //return false to avoid call KeepConnectionAlive
         WillRepeatedly(Return(false));
   }
+
   void TearDown() OVERRIDE {
     // Wait call methods in thread
     usleep(100000);
@@ -166,6 +172,7 @@ class ProtocolHandlerImplTest : public ::testing::Test {
   // uniq id as connection_id and session_id in one
   uint32_t connection_key;
   uint32_t message_id;
+  std::vector<uint8_t> some_date;
   // Strict mocks (same as all methods EXPECT_CALL().Times(0))
   testing::StrictMock<transport_manager_test::TransportManagerMock> transport_manager_mock;
   testing::StrictMock<protocol_handler_test::SessionObserverMock>   session_observer_mock;
@@ -199,7 +206,7 @@ TEST_F(ProtocolHandlerImplTest, RecieveEmptyRawMessage) {
  * ProtocolHandler shall disconnect on no connection
  */
 TEST_F(ProtocolHandlerImplTest, RecieveOnUnknownConenction) {
-  // expect force dicsonnect on no connection for recieved data
+  // expect force dicsonnect on no connection for received data
   EXPECT_CALL(transport_manager_mock,
               DisconnectForce(connection_id)).
       WillOnce(Return(E_SUCCESS));
@@ -665,6 +672,85 @@ TEST_F(ProtocolHandlerImplTest,
       WillOnce(Return(E_SUCCESS));
 
   SendControlMessage(PROTECTION_ON, start_service, NEW_SESSION_ID, FRAME_DATA_START_SERVICE);
+}
+TEST_F(ProtocolHandlerImplTest,
+       FloodVerification) {
+  const size_t period_msec = 1000;
+  const size_t max_messages = 1000;
+  IntitProtocolHandlerImpl(period_msec, max_messages);
+  AddConnection();
+  AddSession();
+
+  // expect flood notification to CH
+  EXPECT_CALL(session_observer_mock,
+              OnApplicationFloodCallBack(connection_key)).
+      Times(1);
+
+  for (size_t i = 0; i < max_messages + 1; ++i) {
+    SendTMMessage(connection_id, PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_SINGLE,
+                  kControl, FRAME_DATA_SINGLE, session_id,
+                  some_date.size(), message_id, &some_date[0]);
+  }
+}
+TEST_F(ProtocolHandlerImplTest,
+       FloodVerification_ThresholdValue) {
+  const size_t period_msec = 1000;
+  const size_t max_messages = 1000;
+  IntitProtocolHandlerImpl(period_msec, max_messages);
+  AddConnection();
+  AddSession();
+
+  // expect NO flood notification to CH
+  for (size_t i = 0; i < max_messages - 1; ++i) {
+    SendTMMessage(connection_id, PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_SINGLE,
+                  kControl, FRAME_DATA_SINGLE, session_id,
+                  some_date.size(), message_id, &some_date[0]);
+  }
+}
+TEST_F(ProtocolHandlerImplTest,
+       FloodVerification_VideoFrameSkip) {
+  const size_t period_msec = 1000;
+  const size_t max_messages = 1000;
+  IntitProtocolHandlerImpl(period_msec, max_messages);
+  AddConnection();
+  AddSession();
+
+  // expect NO flood notification to CH on video data streaming
+  for (size_t i = 0; i < max_messages + 1; ++i) {
+    SendTMMessage(connection_id, PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_SINGLE,
+                  kMobileNav, FRAME_DATA_SINGLE, session_id,
+                  some_date.size(), message_id, &some_date[0]);
+  }
+}
+TEST_F(ProtocolHandlerImplTest,
+       FloodVerification_AudioFrameSkip) {
+  const size_t period_msec = 1000;
+  const size_t max_messages = 1000;
+  IntitProtocolHandlerImpl(period_msec, max_messages);
+  AddConnection();
+  AddSession();
+
+  // expect NO flood notification to CH on video data streaming
+  for (size_t i = 0; i < max_messages + 1; ++i) {
+    SendTMMessage(connection_id, PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_SINGLE,
+                  kAudio, FRAME_DATA_SINGLE, session_id,
+                  some_date.size(), message_id, &some_date[0]);
+  }
+}
+TEST_F(ProtocolHandlerImplTest,
+       FloodVerificationDisable) {
+  const size_t period_msec = 0;
+  const size_t max_messages = 0;
+  IntitProtocolHandlerImpl(period_msec, max_messages);
+  AddConnection();
+  AddSession();
+
+  // expect NO flood notification to session observer
+  for (size_t i = 0; i < max_messages + 1; ++i) {
+    SendTMMessage(connection_id, PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_SINGLE,
+                  kControl, FRAME_DATA_SINGLE, session_id,
+                  some_date.size(), message_id, &some_date[0]);
+  }
 }
 #endif  // ENABLE_SECURITY
 }  // namespace test

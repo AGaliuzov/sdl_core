@@ -75,7 +75,7 @@ CommandRequestImpl::CommandRequestImpl(const MessageSharedPtr& message)
 CommandRequestImpl::~CommandRequestImpl() {
 }
 
-bool CommandRequestImpl::Init() {  
+bool CommandRequestImpl::Init() {
   return true;
 }
 
@@ -205,7 +205,7 @@ void CommandRequestImpl::SendHMIRequest(
   const uint32_t hmi_correlation_id =
        ApplicationManagerImpl::instance()->GetNextHMICorrelationID();
   if (use_events) {
-    LOG4CXX_WARN(logger_, "subscribe_on_event " << function_id << " " << hmi_correlation_id);
+    LOG4CXX_DEBUG(logger_, "subscribe_on_event " << function_id << " " << hmi_correlation_id);
     subscribe_on_event(function_id, hmi_correlation_id);
   }
 

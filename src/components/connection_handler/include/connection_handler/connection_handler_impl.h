@@ -189,6 +189,13 @@ class ConnectionHandlerImpl : public ConnectionHandler,
     const protocol_handler::ServiceType &service_type);
 
   /**
+   * \brief Callback function used by ProtocolHandler
+   * when Mobile Application start message flood
+   * \param key Unique key used by other components as session identifier
+   */
+  void OnApplicationFloodCallBack(const uint32_t &key) OVERRIDE;
+
+  /**
    * \brief Creates unique identifier of session (can be used as hash)
    * from given connection identifier
    * within which session exists and session number.

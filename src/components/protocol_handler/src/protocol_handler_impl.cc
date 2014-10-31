@@ -57,11 +57,13 @@ std::string ConvertPacketDataToString(const uint8_t *data,
 const size_t kStackSize = 32768;
 
 ProtocolHandlerImpl::ProtocolHandlerImpl(
-    transport_manager::TransportManager *transport_manager_param)
+    transport_manager::TransportManager *transport_manager_param,
+    size_t message_frequency_time, size_t message_frequency_count)
     : protocol_observers_(),
       session_observer_(0),
       transport_manager_(transport_manager_param),
       kPeriodForNaviAck(5),
+      message_max_frequency_(0),
 #ifdef ENABLE_SECURITY
       security_manager_(NULL),
 #endif  // ENABLE_SECURITY
@@ -77,7 +79,20 @@ ProtocolHandlerImpl::ProtocolHandlerImpl(
   LOG4CXX_TRACE_ENTER(logger_);
   protocol_header_validator_.set_max_payload_size(profile::Profile::instance()->maximum_payload_size());
   incoming_data_handler_.set_validator(&protocol_header_validator_);
-
+  const size_t time_range_msecs = message_frequency_time;
+  message_meter_.set_time_range(time_range_msecs);
+  if(time_range_msecs > 0) {
+    message_max_frequency_ = message_frequency_count;
+    if(message_max_frequency_ > 0) {
+      LOG4CXX_DEBUG(logger_, "Frequency meter is enabled ( " << message_max_frequency_
+                    << " per " << time_range_msecs << " mSecond)");
+    } else {
+      LOG4CXX_WARN(logger_, "Invalid massage frequency value. MessageMeter will be disabled");
+      message_meter_.set_time_range(0u);
+    }
+  } else {
+    LOG4CXX_WARN(logger_, "Frequency meter is disabled");
+  }
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
@@ -499,6 +514,7 @@ void ProtocolHandlerImpl::OnConnectionEstablished(
 void ProtocolHandlerImpl::OnConnectionClosed(
     const transport_manager::ConnectionUID &connection_id) {
   incoming_data_handler_.RemoveConnection(connection_id);
+  message_meter_.ClearIdentifiers();
 }
 
 RESULT_CODE ProtocolHandlerImpl::SendFrame(const ProtocolFramePtr packet) {
@@ -1057,6 +1073,26 @@ void ProtocolHandlerImpl::Handle(
     LOG4CXX_WARN(logger_, "Session Observer is NULL");
     return;
   }
+
+  switch (message->service_type()) {
+    case kMobileNav:
+    case kAudio:
+      break;
+    default: {
+        const uint32_t connection_key = session_observer_->KeyFromPair(
+              message->connection_id(), message->session_id());
+        const size_t message_frequecy = message_meter_.TrackMessage(connection_key);
+        if(message_frequecy > message_max_frequency_) {
+          LOG4CXX_WARN(logger_, "Frequency of " << connection_key << " is marked as high.");
+          session_observer_->OnApplicationFloodCallBack(connection_key);
+          message_meter_.RemoveIdentifier(connection_key);
+          LOG4CXX_TRACE_EXIT(logger_);
+          return;
+        }
+      }
+      break;
+  }
+
   connection_handler::ConnectionHandlerImpl *connection_handler =
         connection_handler::ConnectionHandlerImpl::instance();
   LOG4CXX_DEBUG(logger_, "Message : " << message.get());
@@ -1067,6 +1103,7 @@ void ProtocolHandlerImpl::Handle(
     connection_handler->KeepConnectionAlive(c_id, m_id);
   }
 
+  // TODO(EZamakhov): remove dublication of IncomingDataHandler logic
   if (((0 != message->data()) && (0 != message->data_size())) ||
       FRAME_TYPE_CONTROL == message->frame_type() ||
       FRAME_TYPE_FIRST == message->frame_type()) {

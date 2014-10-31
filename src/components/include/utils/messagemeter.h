@@ -148,9 +148,7 @@ void MessageMeter<Id>::set_time_range(const size_t time_range_msecs) {
   // TODO(EZamakhov): move to date_time::DateTime
   const size_t secs =
       time_range_msecs / date_time::DateTime::MILLISECONDS_IN_SECOND;
-  if (secs > 0) {
-    time_range_.tv_sec = secs;
-  }
+  time_range_.tv_sec = secs;
   const size_t mSecs =
       time_range_msecs % date_time::DateTime::MILLISECONDS_IN_SECOND;
   time_range_.tv_usec =
