@@ -1,11 +1,11 @@
-set(ComponentsDir ${CMAKE_SOURCE_DIR}/src/components)
-set(CH_SRC_DIR ${ComponentsDir}/connection_handler/src)
+set(COMPONENTS_DIR ${CMAKE_SOURCE_DIR}/src/components)
+set(CH_SRC_DIR ${COMPONENTS_DIR}/connection_handler/src)
 
 include_directories (
   ./include/
-  ${ComponentsDir}/protocol_handler/include/
-  ${ComponentsDir}/config_profile/include/
-  ${ComponentsDir}/utils/include/
+  ${COMPONENTS_DIR}/protocol_handler/include/
+  ${COMPONENTS_DIR}/config_profile/include/
+  ${COMPONENTS_DIR}/utils/include/
   ${ENCRYPTION_INCLUDE_DIRECTORY}
   ${LOG4CXX_INCLUDE_DIRECTORY}
 )

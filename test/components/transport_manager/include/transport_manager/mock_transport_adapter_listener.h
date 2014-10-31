@@ -48,6 +48,7 @@ using ::protocol_handler::RawMessagePtr;
 namespace test {
 namespace components {
 namespace transport_manager {
+using namespace ::protocol_handler;
 
 class MockTransportAdapterListener : public TransportAdapterListener {
  public:

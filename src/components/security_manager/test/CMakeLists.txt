@@ -65,8 +65,8 @@ set(LIBRARIES
   ProtocolLibrary
 )
 
-add_library(test_SecurityManager ${SOURCES})
-target_link_libraries(test_SecurityManager ${LIBRARIES} )
-create_test(test_SecurityManagerTest "${SOURCES}" "${LIBRARIES}")
+add_library(test_security_manager ${SOURCES})
+target_link_libraries(test_security_manager ${LIBRARIES} )
+create_test(test_security_manager_test "${SOURCES}" "${LIBRARIES}")
 
 # vim: set ts=2 sw=2 et:

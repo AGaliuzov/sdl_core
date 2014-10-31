@@ -76,6 +76,7 @@ set(LIBRARIES
   ConfigProfile
   MediaManager
   Resumption
+  #DBus
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -130,6 +131,8 @@ include_directories (
   ${CMAKE_SOURCE_DIR}
   ${default_media_inc}
   ${LOG4CXX_INCLUDE_DIRECTORY}
+  ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8
+  ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8/dbus/
 )
 
 add_custom_target(gitversion
@@ -177,6 +180,9 @@ include_directories (
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
   ${CMAKE_SOURCE_DIR}/src/components/security_manager/test/include
+  ${CMAKE_SOURCE_DIR}/src/components/utils/include
+  ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8
+  ${CMAKE_SOURCE_DIR}/src/components/dbus/src
 )
 
   set(testSources
@@ -187,6 +193,9 @@ include_directories (
     ${CMAKE_SOURCE_DIR}/src/components/media_manager/test/media_adapter_impl_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/connection_handler_impl_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/connection_test.cc
+    #${CMAKE_SOURCE_DIR}/src/components/rpc_base/test/rpc_base_dbus_test.cc
+    ${CMAKE_SOURCE_DIR}/src/components/rpc_base/test/rpc_base_json_test.cc
+    ${CMAKE_SOURCE_DIR}/src/components/rpc_base/test/rpc_base_test.cc
     #${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/heart_beat_monitor_test.cc
     ${AM_TEST_DIR}/command_impl_test.cc
   )
@@ -194,12 +203,9 @@ include_directories (
   set(test_exec_libraries
     gmock
     gtest
+    gmock_main
     ConfigProfile
     SmartObjects
-    gmock
-    gtest
-    gmock
-    gmock_main
     ApplicationManagerTest #Mocked Singlton
     HMI_API
     MOBILE_API
@@ -215,6 +221,7 @@ include_directories (
     ConfigProfile
     MediaManager
     Resumption
+    #DBus
   )
 
 if(ENABLE_LOG)
