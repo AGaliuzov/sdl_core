@@ -325,6 +325,7 @@ int main(int argc, char** argv) {
     exit(EXIT_FAILURE);
   }
 
+  int pid  = getpid();
   int cpid = fork();
 
   if (cpid < 0) {
@@ -333,7 +334,7 @@ int main(int argc, char** argv) {
   }
 
   if (cpid > 0) {
-    // Parent process reads mqueue, translates all received messages to the pipe
+    // Child process reads mqueue, translates all received messages to the pipe
     // and reacts on some of them (e.g. SDL_MSG_LOW_VOLTAGE)
     close(pipefd[0]);
     struct mq_attr attributes;
@@ -346,10 +347,10 @@ int main(int argc, char** argv) {
                        S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH,
                        &attributes);
 
-    dispatchCommands(mq, pipefd[1], cpid);
+    dispatchCommands(mq, pipefd[1], pid);
 
     close(pipefd[1]);
-    int result;
+    exit(EXIT_SUCCESS);
     waitpid(cpid, &result, 0);
     exit(EXIT_SUCCESS);
   } 
