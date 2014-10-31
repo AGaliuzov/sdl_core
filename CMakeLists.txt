@@ -518,8 +518,8 @@ if(BUILD_TESTS)
     include(Dart)
     add_subdirectory(./test)
 endif()
-
-# Building documentation
+                                                                                                                                                                                       
+# Building documentation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
 
 # At first creating directory for generated documentation. Unfortunately doxygen
 # cannot generate it byself

@@ -1,9 +1,7 @@
-set(COMPONENTS_DIR ${CMAKE_SOURCE_DIR}/src/components)
-
 include_directories (
   ${LOG4CXX_INCLUDE_DIRECTORY}
   ${GMOCK_INCLUDE_DIRECTORY}
-  ./include
+  #./include
   ${COMPONENTS_DIR}/connection_handler/include
   ${COMPONENTS_DIR}/protocol_handler/include
   ${COMPONENTS_DIR}/utils/include
@@ -21,8 +19,7 @@ set (LIBRARIES
     connectionHandler
     Utils
     ConfigProfile
-    ProtocolLibrary
-    
+    ProtocolLibrary   
 )
 
 set (SOURCES
@@ -32,6 +29,6 @@ set (SOURCES
   main.cc
 )
 
-create_test("test_ConnectionHandler" "${SOURCES}" "${LIBRARIES}")
+create_test("test_connection_handler" "${SOURCES}" "${LIBRARIES}")
 
-add_library("test_ConnectionHandlerTest" ${SOURCES})
+add_library("test_connection_handler_test" ${SOURCES})

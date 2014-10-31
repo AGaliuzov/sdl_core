@@ -6,8 +6,8 @@ set(ComponentsDir ${CMAKE_SOURCE_DIR}/src/components)
 include_directories (
   ${UtilsIncludeDir}
   ${ComponentsDir}/config_profile/include
-  ${ComponentsDir}/media_manager/include/
-  ${ComponentsDir}/protocol_handler/include/
+  ${ComponentsDir}/media_manager/include
+  ${ComponentsDir}/protocol_handler/include
   ${LOG4CXX_INCLUDE_DIRECTORY}
 )
 
