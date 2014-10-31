@@ -594,7 +594,7 @@ bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
         RemoveApplicationFromSaved(application);
       } else {
         // please avoid AutoLock usage to avoid deadlock
-        queue_lock_.Lock();
+        queue_lock_.Acquire();
         SetupDefaultHMILevel(application);
         waiting_for_timer_.insert(std::make_pair(application->app_id(),
                                                  time_stamp));
@@ -633,7 +633,7 @@ bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
         RemoveApplicationFromSaved(application);
       } else {
         // please avoid AutoLock usage to avoid deadlock
-        queue_lock_.Lock();
+        queue_lock_.Acquire();
         SetupDefaultHMILevel(application);
         waiting_for_timer_.insert(std::make_pair(application->app_id(),
                                                  time_stamp));

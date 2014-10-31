@@ -2418,7 +2418,7 @@ void ApplicationManagerImpl::AddAppToTTSGlobalPropertiesList(
   TimevalStruct current_time = date_time::DateTime::getCurrentTime();
   current_time.tv_sec += timeout;
   // please avoid AutoLock usage to avoid deadlock
-  tts_global_properties_app_list_lock_.Lock();
+  tts_global_properties_app_list_lock_.Acquire();
   if (tts_global_properties_app_list_.end() ==
       tts_global_properties_app_list_.find(app_id)) {
     tts_global_properties_app_list_[app_id] = current_time;
@@ -2435,7 +2435,7 @@ void ApplicationManagerImpl::RemoveAppFromTTSGlobalPropertiesList(
     const uint32_t app_id) {
   LOG4CXX_INFO(logger_, "ApplicationManagerImpl::RemoveAppFromTTSGlobalPropertiesList");
   // please avoid AutoLock usage to avoid deadlock
-  tts_global_properties_app_list_lock_.Lock();
+  tts_global_properties_app_list_lock_.Acquire();
   std::map<uint32_t, TimevalStruct>::iterator it =
       tts_global_properties_app_list_.find(app_id);
   if (tts_global_properties_app_list_.end() != it) {
