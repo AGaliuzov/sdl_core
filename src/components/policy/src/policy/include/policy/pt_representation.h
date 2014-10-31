@@ -293,6 +293,8 @@ class PTRepresentation {
                                            bool is_revoked,
                                            bool is_default,
                                            bool is_predata) = 0;
+
+    virtual void WriteDb() = 0;
 };
 
 }  //  namespace policy
