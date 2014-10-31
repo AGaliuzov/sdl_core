@@ -208,7 +208,7 @@ void TcpClientListener::StopLoop() {
 
 TransportAdapter::Error TcpClientListener::StartListening() {
   LOG4CXX_TRACE(logger_, "enter");
-  if (thread_->is_running()) {
+  if (!thread_ || thread_->is_running()) {
     LOG4CXX_TRACE(
         logger_,
         "exit with TransportAdapter::BAD_STATE. Condition: thread_started_");
@@ -274,7 +274,7 @@ TcpClientListener::ListeningThreadDelegate::ListeningThreadDelegate(
 
 TransportAdapter::Error TcpClientListener::StopListening() {
   LOG4CXX_TRACE_ENTER(logger_);
-  if (!thread_->is_running()) {
+  if (!thread_ || !thread_->is_running()) {
     LOG4CXX_TRACE(logger_, "TcpClientListener is not running now");
     return TransportAdapter::BAD_STATE;
   }

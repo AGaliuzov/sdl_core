@@ -90,8 +90,8 @@ class MmeDeviceScanner : public DeviceScanner {
 
   class NotifyThreadDelegate : public threads::ThreadDelegate {
    public:
-    explicit NotifyThreadDelegate(mqd_t event_mqd, mqd_t ack_mqd,
-                                  MmeDeviceScanner* parent);
+    NotifyThreadDelegate(mqd_t event_mqd, mqd_t ack_mqd,
+                         MmeDeviceScanner* parent);
     virtual void threadMain();
 
    private:
