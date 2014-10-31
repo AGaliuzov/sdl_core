@@ -339,7 +339,7 @@ Item {
                     break
                 }
                 newStartTime = Internal.hmsTime(startTime.hours, startTime.minutes, startTime.seconds)
-                newEndTime = endTime ? Internal.hmsTime(endTime.hours, endTime.minutes, endTime.seconds) : -1
+                newEndTime = endTime ? Internal.hmsTime(endTime.hours, endTime.minutes, endTime.seconds) : dataContainer.currentApplication.mediaClock.upperTimeLimit
                 newUpdateMode = Internal.MediaClockUpdateMode.MCU_COUNTUP
                 newRunningMode = Internal.MediaClockRunningMode.MCR_RUNNING
                 newStartTimeForProgress = Internal.hmsTime(startTime.hours, startTime.minutes, startTime.seconds)
@@ -353,7 +353,7 @@ Item {
                     break
                 }
                 newStartTime = Internal.hmsTime(startTime.hours, startTime.minutes, startTime.seconds)
-                newEndTime = endTime ? Internal.hmsTime(endTime.hours, endTime.minutes, endTime.seconds) : -1
+                newEndTime = endTime ? Internal.hmsTime(endTime.hours, endTime.minutes, endTime.seconds) : 0
                 newUpdateMode = Internal.MediaClockUpdateMode.MCU_COUNTDOWN
                 newRunningMode = Internal.MediaClockRunningMode.MCR_RUNNING
                 newStartTimeForProgress = Internal.hmsTime(startTime.hours, startTime.minutes, startTime.seconds)
@@ -372,7 +372,7 @@ Item {
                 newEndTime = app.mediaClock.endTime
                 newRunningMode = Internal.MediaClockRunningMode.MCR_STOPPED
                 newUpdateMode = app.mediaClock.updateMode
-                newStartTimeForProgress = app.mediaClock.startTime
+                newStartTimeForProgress = app.mediaClock.startTimeForProgress
                 resultCode = Common.Result.SUCCESS
                 break
 
@@ -387,7 +387,7 @@ Item {
                 newStartTime = app.mediaClock.startTime
                 newEndTime = app.mediaClock.endTime
                 newRunningMode = Internal.MediaClockRunningMode.MCR_RUNNING
-                newStartTimeForProgress = app.mediaClock.startTime
+                newStartTimeForProgress = app.mediaClock.startTimeForProgress
                 newUpdateMode = app.mediaClock.updateMode
                 resultCode = Common.Result.SUCCESS
                 break
