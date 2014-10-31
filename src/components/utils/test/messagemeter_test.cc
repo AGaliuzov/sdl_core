@@ -94,13 +94,19 @@ TEST(MessageMeterTest, DefaultTimeRange) {
 TEST(MessageMeterTest, TimeRangeSetter) {
   ::utils::MessageMeter<int> meter;
   TimevalStruct time_range {0, 0};
-  for (int sec = 0; sec < 1000; ++sec) {
-    for (int usec = 0; usec < 999; ++usec) {
+  for (size_t sec = 1; sec < 1000; ++sec) {
+    for (size_t msec = 0; msec < 999; ++msec) {
       time_range.tv_sec = sec;
-      time_range.tv_usec = usec;
+      time_range.tv_usec = msec * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
+      // Setter TimevalStruct
       meter.set_time_range(time_range);
       EXPECT_EQ(time_range,
-                meter.time_range());
+                meter.time_range()) << sec << "." << msec << " sec";
+      // Setter mSecs
+      meter.set_time_range(sec * date_time::DateTime::MILLISECONDS_IN_SECOND +
+                           msec);
+      EXPECT_EQ(time_range,
+                meter.time_range()) << sec << "." << msec << " sec";
     }
   }
 }

@@ -114,13 +114,14 @@ size_t MessageMeter<Id>::Received(const Id& id,
 template <class Id>
 size_t MessageMeter<Id>::Frequency(const Id& id) {
   Timings& timings = timing_map_[id];
-  if(! timings.empty()) {
-    const TimevalStruct actual_begin_time =
-        date_time::DateTime::Sub(date_time::DateTime::getCurrentTime(),
-                                 time_range_);
-    timings.erase(timings.begin(),
-                  timings.upper_bound(actual_begin_time));
+  if (timings.empty()) {
+    return 0u;
   }
+  const TimevalStruct actual_begin_time =
+      date_time::DateTime::Sub(date_time::DateTime::getCurrentTime(),
+                               time_range_);
+  timings.erase(timings.begin(),
+                timings.upper_bound(actual_begin_time));
   return timings.size();
 }
 
@@ -131,11 +132,16 @@ void MessageMeter<Id>::RemoveIdentifier(const Id& id) {
 
 template <class Id>
 void MessageMeter<Id>::set_time_range(const size_t time_range_msecs) {
-  time_range_.tv_sec = 0;
-  time_range_.tv_usec = time_range_msecs;
-  while(time_range_.tv_usec >= date_time::DateTime::MICROSECONDS_IN_SECONDS) {
-    ++time_range_.tv_sec;
+  // TODO(EZamakhov): move to date_time::DateTime
+  const size_t secs =
+      time_range_msecs / date_time::DateTime::MILLISECONDS_IN_SECOND;
+  if (secs > 0) {
+    time_range_.tv_sec = secs;
   }
+  const size_t mSecs =
+      time_range_msecs % date_time::DateTime::MILLISECONDS_IN_SECOND;
+  time_range_.tv_usec =
+      mSecs * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
 }
 template <class Id>
 void MessageMeter<Id>::set_time_range(const TimevalStruct& time_range) {
