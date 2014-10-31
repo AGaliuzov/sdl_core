@@ -59,14 +59,15 @@ class BluetoothPASADeviceScanner : public DeviceScanner {
    * @param repeat_search_pause_sec - pause between device searches, 0 means continous search
    */
   BluetoothPASADeviceScanner(TransportAdapterController* controller,
-                             bool auto_repeat_search, int repeat_search_pause_sec);
+                             bool auto_repeat_search,
+                             int repeat_search_pause_sec);
 
  protected:
   /**
-    * @brief Start device scanner.
-    *
-    * @return Error information about reason of initialization failure.
-    */
+   * @brief Start device scanner.
+   *
+   * @return Error information about reason of initialization failure.
+   */
   virtual TransportAdapter::Error Init();
 
   /**
@@ -90,14 +91,14 @@ class BluetoothPASADeviceScanner : public DeviceScanner {
   virtual bool IsInitialised() const;
 
  private:
-  class DeviceScannerDelegate: public threads::ThreadDelegate {
+  class DeviceScannerDelegate : public threads::ThreadDelegate {
    public:
     explicit DeviceScannerDelegate(BluetoothPASADeviceScanner* scanner);
     void threadMain() OVERRIDE;
    private:
     BluetoothPASADeviceScanner* scanner_;
   };
-  class PASAMessageDelegate: public threads::ThreadDelegate {
+  class PASAMessageDelegate : public threads::ThreadDelegate {
    public:
     explicit PASAMessageDelegate(BluetoothPASADeviceScanner* scanner);
     void threadMain() OVERRIDE;
@@ -165,6 +166,8 @@ class BluetoothPASADeviceScanner : public DeviceScanner {
   mqd_t mq_from_sdl_;
   mqd_t mq_to_sdl_;
 };
+
 }  // namespace transport_adapter
 }  // namespace transport_manager
+
 #endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_PASA_BT_BLUETOOTH_PASA_DEVICE_SCANNER_H_

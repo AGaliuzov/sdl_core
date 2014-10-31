@@ -50,7 +50,7 @@ class TransportAdapterController;
  * @brief Listener of device adapter that use TCP transport.
  */
 class TcpClientListener : public ClientConnectionListener,
-                          public threads::ThreadDelegate {
+    public threads::ThreadDelegate {
  public:
   /**
    * @breaf Constructor.
@@ -107,6 +107,7 @@ class TcpClientListener : public ClientConnectionListener,
    * @brief Terminate TCP client listener thread.
    */
   virtual TransportAdapter::Error StopListening();
+
  private:
   const uint16_t port_;
   const bool enable_keepalive_;

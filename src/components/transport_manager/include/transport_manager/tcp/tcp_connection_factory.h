@@ -69,8 +69,8 @@ class TcpConnectionFactory : public ServerConnectionFactory {
    *
    * @return Error information about possible reason of failure.
    */
-  virtual TransportAdapter::Error CreateConnection(const DeviceUID& device_uid,
-                                                const ApplicationHandle& app_handle);
+  virtual TransportAdapter::Error CreateConnection(
+      const DeviceUID& device_uid, const ApplicationHandle& app_handle);
 
   /**
    * @brief

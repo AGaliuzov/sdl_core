@@ -174,7 +174,7 @@ void BluetoothPASADeviceScanner::connectBTDevice(void *data) {
     BluetoothPASADevice* existing_device = static_cast<BluetoothPASADevice*>(i
         ->get());
     const int ret = memcmp(existing_device->mac(), pDeviceInfo->mac,
-                     sizeof(pDeviceInfo->mac));
+                           sizeof(pDeviceInfo->mac));
     if (0 == ret) {
       LOG4CXX_DEBUG(logger_,
                     "Bluetooth device exists: " << pDeviceInfo->cDeviceName);
@@ -213,7 +213,8 @@ void BluetoothPASADeviceScanner::disconnectBTDeviceSPP(void *data) {
   for (DeviceVector::iterator i = found_devices_with_sdl_.begin();
       i != found_devices_with_sdl_.end(); ++i) {
     BluetoothPASADevice* device = static_cast<BluetoothPASADevice*>(i->get());
-    const int ret = memcmp(device->mac(), pDeviceInfo->mac, sizeof(pDeviceInfo->mac));
+    const int ret = memcmp(device->mac(), pDeviceInfo->mac,
+                           sizeof(pDeviceInfo->mac));
     if (0 == ret) {
       BluetoothPASADevice::SCOMMChannel tChannel(pDeviceInfo->cSppQueName);
       ApplicationHandle disconnected_app;
