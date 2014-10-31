@@ -62,7 +62,7 @@ class MmeDeviceScanner : public DeviceScanner {
   virtual void Terminate();
   virtual bool IsInitialised() const;
 
-private:
+ private:
   typedef uint64_t qdb_int;
   typedef qdb_int msid_t;
   typedef std::vector<msid_t> MsidContainer;
@@ -72,15 +72,9 @@ private:
   void OnDeviceLeft(const MmeDeviceInfo* mme_device_info);
   void NotifyDevicesUpdated();
   bool GetMmeList(MsidContainer& msids);
-  bool GetMmeInfo(
-    msid_t msid,
-    std::string& mount_point,
-    MmeDevice::Protocol& protocol,
-    std::string& unique_device_id,
-    std::string& vendor,
-    std::string& product,
-    bool& attached
-  );
+  bool GetMmeInfo(msid_t msid, std::string& mount_point,
+                  MmeDevice::Protocol& protocol, std::string& unique_device_id,
+                  std::string& vendor, std::string& product, bool& attached);
 
   static const char* event_mq_name;
   static const char* ack_mq_name;
@@ -96,7 +90,8 @@ private:
 
   class NotifyThreadDelegate : public threads::ThreadDelegate {
    public:
-    NotifyThreadDelegate(mqd_t event_mqd, mqd_t ack_mqd, MmeDeviceScanner* parent);
+    NotifyThreadDelegate(mqd_t event_mqd, mqd_t ack_mqd,
+                         MmeDeviceScanner* parent);
     virtual void threadMain();
 
    private:

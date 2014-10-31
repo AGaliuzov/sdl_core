@@ -99,6 +99,12 @@ class TransportAdapterImpl : public TransportAdapter,
   virtual TransportAdapter::Error Init();
 
   /**
+   * @brief Stops device adapter
+   * Called from transport manager to stop device adapter
+   */
+  virtual void Terminate();
+
+  /**
    * @brief Add listener to the container(list) of device adapter listeners.
    *
    * @param listener Pointer to the device adapter listener.

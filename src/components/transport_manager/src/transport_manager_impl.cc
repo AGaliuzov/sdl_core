@@ -70,18 +70,14 @@ TransportManagerImpl::Connection TransportManagerImpl::convert(
 }
 
 TransportManagerImpl::TransportManagerImpl()
-  : all_thread_active_(false),
-    device_listener_thread_wakeup_(),
-    is_initialized_(false),
+  : is_initialized_(false),
 #ifdef TIME_TESTER
     metric_observer_(NULL),
 #endif  // TIME_TESTER
     connection_id_counter_(0),
     message_queue_("TM MessageQueue", this),
     event_queue_("TM EventQueue", this) {
-  LOG4CXX_INFO(logger_, "==============================================");
-  pthread_cond_init(&device_listener_thread_wakeup_, NULL);
-  LOG4CXX_DEBUG(logger_, "TransportManager object created");
+  LOG4CXX_TRACE(logger_, "TransportManager has created");
 }
 
 TransportManagerImpl::~TransportManagerImpl() {
@@ -99,7 +95,6 @@ TransportManagerImpl::~TransportManagerImpl() {
     delete it->second;
   }
 
-  pthread_cond_destroy(&device_listener_thread_wakeup_);
   LOG4CXX_INFO(logger_, "TransportManager object destroyed");
 }
 
@@ -226,18 +221,52 @@ int TransportManagerImpl::AddEventListener(TransportManagerListener* listener) {
   return E_SUCCESS;
 }
 
+void TransportManagerImpl::DisconnectAllDevices() {
+  LOG4CXX_TRACE_ENTER(logger_);
+  for (DeviceInfoList::iterator i = device_list_.begin();
+      i != device_list_.end(); ++i) {
+    DeviceInfo& device = i->second;
+    DisconnectDevice(device.device_handle());
+  }
+  LOG4CXX_TRACE_EXIT(logger_);
+}
+
+void TransportManagerImpl::TerminateAllAdapters() {
+  LOG4CXX_TRACE_ENTER(logger_);
+  for (std::vector<TransportAdapter*>::iterator i = transport_adapters_.begin();
+      i != transport_adapters_.end(); ++i) {
+    (*i)->Terminate();
+  }
+  LOG4CXX_TRACE_EXIT(logger_);
+}
+
+int TransportManagerImpl::InitAllAdapters() {
+  LOG4CXX_TRACE_ENTER(logger_);
+  for (std::vector<TransportAdapter*>::iterator i = transport_adapters_.begin();
+      i != transport_adapters_.end(); ++i) {
+    if ((*i)->Init() != TransportAdapter::OK) {
+      LOG4CXX_TRACE_EXIT(logger_);
+      return E_ADAPTERS_FAIL;
+    }
+  }
+  LOG4CXX_TRACE_EXIT(logger_);
+  return E_SUCCESS;
+}
+
 int TransportManagerImpl::Stop() {
-  LOG4CXX_TRACE(logger_, "enter");
-  if (!all_thread_active_) {
-    LOG4CXX_TRACE(logger_,
-                  "exit with E_TM_IS_NOT_INITIALIZED. Condition: !all_thread_active_");
+  LOG4CXX_TRACE_ENTER(logger_);
+  if (!is_initialized_) {
+    LOG4CXX_WARN(logger_, "TransportManager is not initialized_");
+    LOG4CXX_TRACE_EXIT(logger_);
     return E_TM_IS_NOT_INITIALIZED;
   }
-  all_thread_active_ = false;
 
-  pthread_cond_signal(&device_listener_thread_wakeup_);
+  DisconnectAllDevices();
+  TerminateAllAdapters();
 
-  LOG4CXX_TRACE(logger_, "exit with E_SUCCESS");
+  is_initialized_ = false;
+
+  LOG4CXX_TRACE_EXIT(logger_);
   return E_SUCCESS;
 }
 
@@ -390,10 +419,18 @@ int TransportManagerImpl::SearchDevices() {
 
 int TransportManagerImpl::Init() {
   LOG4CXX_TRACE(logger_, "enter");
-  all_thread_active_ = true;
   is_initialized_ = true;
   LOG4CXX_TRACE(logger_, "exit with E_SUCCESS");
   return E_SUCCESS;
+}
+
+int TransportManagerImpl::Reinit() {
+  Visibility(false);
+  DisconnectAllDevices();
+  TerminateAllAdapters();
+  int ret = InitAllAdapters();
+  Visibility(true);
+  return ret;
 }
 
 int TransportManagerImpl::Visibility(const bool& on_off) const {
@@ -478,10 +515,10 @@ void TransportManagerImpl::PostMessage(const ::protocol_handler::RawMessagePtr m
 }
 
 void TransportManagerImpl::PostEvent(const TransportAdapterEvent& event) {
-  LOG4CXX_TRACE(logger_, "enter. TransportAdapterEvent: " << &event);
+  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_DEBUG(logger_, "TransportAdapterEvent: " << &event);
   event_queue_.PostMessage(event);
-  pthread_cond_signal(&device_listener_thread_wakeup_);
-  LOG4CXX_TRACE(logger_, "exit");
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void TransportManagerImpl::AddConnection(const ConnectionInternal& c) {

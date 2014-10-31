@@ -66,23 +66,34 @@ TransportAdapterImpl::TransportAdapterImpl(
 }
 
 TransportAdapterImpl::~TransportAdapterImpl() {
+  Terminate();
+
   if (device_scanner_) {
-    device_scanner_->Terminate();
-    LOG4CXX_DEBUG(logger_, "device_scanner_ " << device_scanner_ << " terminated.");
     delete device_scanner_;
     LOG4CXX_DEBUG(logger_, "device_scanner_ " << device_scanner_ << " deleted.");
   }
   if (server_connection_factory_) {
-    server_connection_factory_->Terminate();
-    LOG4CXX_DEBUG(logger_, "server_connection_factory " << server_connection_factory_ << " terminated.");
     delete server_connection_factory_;
     LOG4CXX_DEBUG(logger_, "server_connection_factory " << server_connection_factory_ << " deleted.");
   }
   if (client_connection_listener_) {
-    client_connection_listener_->Terminate();
-    LOG4CXX_DEBUG(logger_, "client_connection_listener_ " << client_connection_listener_ << " terminated.");
     delete client_connection_listener_;
     LOG4CXX_DEBUG(logger_, "client_connection_listener_ " << client_connection_listener_ << " deleted.");
+  }
+}
+
+void TransportAdapterImpl::Terminate() {
+  if (device_scanner_) {
+    device_scanner_->Terminate();
+    LOG4CXX_DEBUG(logger_, "device_scanner_ " << device_scanner_ << " terminated.");
+  }
+  if (server_connection_factory_) {
+    server_connection_factory_->Terminate();
+    LOG4CXX_DEBUG(logger_, "server_connection_factory " << server_connection_factory_ << " terminated.");
+  }
+  if (client_connection_listener_) {
+    client_connection_listener_->Terminate();
+    LOG4CXX_DEBUG(logger_, "client_connection_listener_ " << client_connection_listener_ << " terminated.");
   }
 
   pthread_mutex_lock(&connections_mutex_);

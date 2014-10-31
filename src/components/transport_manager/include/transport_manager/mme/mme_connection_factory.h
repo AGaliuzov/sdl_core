@@ -46,7 +46,7 @@ class MmeConnectionFactory : public ServerConnectionFactory {
  protected:
   virtual TransportAdapter::Error Init();
   virtual TransportAdapter::Error CreateConnection(
-    const DeviceUID& device_uid, const ApplicationHandle& app_handle);
+      const DeviceUID& device_uid, const ApplicationHandle& app_handle);
   virtual void Terminate();
   virtual bool IsInitialised() const;
 

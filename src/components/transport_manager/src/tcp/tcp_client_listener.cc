@@ -69,19 +69,19 @@ TcpClientListener::TcpClientListener(TransportAdapterController* controller,
   : port_(port),
     enable_keepalive_(enable_keepalive),
     controller_(controller),
-    thread_(threads::CreateThread("TcpClientListener", this)),
+    thread_(0),
     socket_(-1),
     thread_stop_requested_(false) { }
 
 TransportAdapter::Error TcpClientListener::Init() {
+  thread_stop_requested_ = false;
+  thread_ = threads::CreateThread("TcpClientListener", this);
   return TransportAdapter::OK;
 }
 
 void TcpClientListener::Terminate() {
   LOG4CXX_TRACE(logger_, "enter");
-  if (TransportAdapter::OK != StopListening()) {
-    LOG4CXX_ERROR(logger_, "Cannot stop listening TCP");
-  }
+  threads::DeleteThread(thread_);
   LOG4CXX_TRACE(logger_, "exit");
 }
 
@@ -236,18 +236,7 @@ TransportAdapter::Error TcpClientListener::StartListening() {
 }
 
 bool TcpClientListener::exitThreadMain() {
-  StopListening();
-  return true;
-}
-
-TransportAdapter::Error TcpClientListener::StopListening() {
-  LOG4CXX_TRACE(logger_, "enter");
-  if (!thread_->is_running()) {
-    LOG4CXX_TRACE(logger_,
-                  "exit with TransportAdapter::BAD_STATE. Condition !thread_started_");
-    return TransportAdapter::BAD_STATE;
-  }
-
+  LOG4CXX_TRACE_ENTER(logger_);
   thread_stop_requested_ = true;
   // We need to connect to the listening socket to unblock accept() call
   int byesocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -258,10 +247,21 @@ TransportAdapter::Error TcpClientListener::StopListening() {
   connect(byesocket, (sockaddr*)&server_address, sizeof(server_address));
   shutdown(byesocket, SHUT_RDWR);
   close(byesocket);
-  LOG4CXX_DEBUG(logger_, "Tcp client listener thread terminated");
+  LOG4CXX_TRACE_EXIT(logger_);
+  return true;
+}
+
+TransportAdapter::Error TcpClientListener::StopListening() {
+  LOG4CXX_TRACE_ENTER(logger_);
+  if (!thread_->is_running()) {
+    LOG4CXX_TRACE(logger_, "TcpClientListener is not running now");
+    return TransportAdapter::BAD_STATE;
+  }
+
+  thread_->stop();
   close(socket_);
   socket_ = -1;
-  LOG4CXX_TRACE(logger_, "exit with TransportAdapter::OK");
+  LOG4CXX_TRACE_EXIT(logger_);
   return TransportAdapter::OK;
 }
 
