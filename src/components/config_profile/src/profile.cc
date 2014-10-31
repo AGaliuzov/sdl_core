@@ -268,7 +268,7 @@ Profile::Profile()
     transport_manager_tcp_adapter_port_(kDefautTransportManagerTCPPort),
     tts_delimiter_(kDefaultTtsDelimiter),
 #ifdef CUSTOMER_PASA
-    hmi_heart_beat_timeout_(kDefaultHMIHeartBeatTimeout)
+    hmi_heart_beat_timeout_(kDefaultHMIHeartBeatTimeout),
     audio_mq_path_(kDefaultMQName),
     log4cxx_config_file_(kDefaultLog4cxxConfig),
     remote_logging_flag_file_(kDefaultRemoteLoggingFlagFile),
