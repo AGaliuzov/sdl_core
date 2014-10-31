@@ -209,7 +209,7 @@ class ResumeCtrl: public event_engine::EventObserver {
      * @brief Timer calback for  restoring HMI Level
      *
      */
-    void ApplicationResumptionTimer();
+    void ApplicationResumptiOnTimer();
 
 
     /**

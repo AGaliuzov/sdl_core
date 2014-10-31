@@ -2417,7 +2417,8 @@ void ApplicationManagerImpl::AddAppToTTSGlobalPropertiesList(
   uint16_t timeout = profile::Profile::instance()->tts_global_properties_timeout();
   TimevalStruct current_time = date_time::DateTime::getCurrentTime();
   current_time.tv_sec += timeout;
-  sync_primitives::AutoLock lock(tts_global_properties_app_list_lock_);
+  // please avoid AutoLock usage to avoid deadlock
+  tts_global_properties_app_list_lock_.Lock();
   if (tts_global_properties_app_list_.end() ==
       tts_global_properties_app_list_.find(app_id)) {
     tts_global_properties_app_list_[app_id] = current_time;
@@ -2425,6 +2426,7 @@ void ApplicationManagerImpl::AddAppToTTSGlobalPropertiesList(
   //if add first item need to start timer on one second
   if (1 == tts_global_properties_app_list_.size()) {
     LOG4CXX_INFO(logger_, "Start tts_global_properties_timer_");
+    tts_global_properties_app_list_lock_.Release();
     tts_global_properties_timer_.start(1);
   }
 }
@@ -2432,14 +2434,16 @@ void ApplicationManagerImpl::AddAppToTTSGlobalPropertiesList(
 void ApplicationManagerImpl::RemoveAppFromTTSGlobalPropertiesList(
     const uint32_t app_id) {
   LOG4CXX_INFO(logger_, "ApplicationManagerImpl::RemoveAppFromTTSGlobalPropertiesList");
-  sync_primitives::AutoLock lock(tts_global_properties_app_list_lock_);
+  // please avoid AutoLock usage to avoid deadlock
+  tts_global_properties_app_list_lock_.Lock();
   std::map<uint32_t, TimevalStruct>::iterator it =
       tts_global_properties_app_list_.find(app_id);
   if (tts_global_properties_app_list_.end() != it) {
     tts_global_properties_app_list_.erase(it);
     if (!(tts_global_properties_app_list_.size())) {
       LOG4CXX_INFO(logger_, "Stop tts_global_properties_timer_");
-      //if container is empty need to stop timer
+      // if container is empty need to stop timer
+      tts_global_properties_app_list_lock_.Release();
       tts_global_properties_timer_.stop();
     }
   }
