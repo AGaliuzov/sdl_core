@@ -1,49 +1,47 @@
-set(UtilsIncludeDir ${CMAKE_SOURCE_DIR}/src/components/utils/include)
-set(UtilsSrcDir ${CMAKE_SOURCE_DIR}/src/components/utils/src)
-set(ComponentsDir ${CMAKE_SOURCE_DIR}/src/components)
-
+set(UTILS_INCLUDE_DIR ${COMPONENTS_DIR}/utils/include)
+set(UTILS_SRC_DIR ${COMPONENTS_DIR}/utils/src)
 
 include_directories (
-  ${UtilsIncludeDir}
-  ${ComponentsDir}/config_profile/include
-  ${ComponentsDir}/media_manager/include
-  ${ComponentsDir}/protocol_handler/include
+  ${UTILS_INCLUDE_DIR}
+  ${COMPONENTS_DIR}/config_profile/include
+  ${COMPONENTS_DIR}/media_manager/include
+  ${COMPONENTS_DIR}/protocol_handler/include
   ${LOG4CXX_INCLUDE_DIRECTORY}
 )
 
 set (SOURCES
-    ${UtilsSrcDir}/bitstream.cc
-    ${UtilsSrcDir}/conditional_variable_posix.cc
-    ${UtilsSrcDir}/file_system.cc
-    ${UtilsSrcDir}/threads/posix_thread.cc
-    ${UtilsSrcDir}/threads/thread_manager.cc
-    ${UtilsSrcDir}/threads/thread_validator.cc
-    ${UtilsSrcDir}/lock_posix.cc
-    ${UtilsSrcDir}/rwlock_posix.cc
-    ${UtilsSrcDir}/date_time.cc
-    ${UtilsSrcDir}/signals_linux.cc
-    ${UtilsSrcDir}/system.cc
-    ${UtilsSrcDir}/resource_usage.cc
-    ${UtilsSrcDir}/appenders_loader.cc
+    ${UTILS_SRC_DIR}/bitstream.cc
+    ${UTILS_SRC_DIR}/conditional_variable_posix.cc
+    ${UTILS_SRC_DIR}/file_system.cc
+    ${UTILS_SRC_DIR}/threads/posix_thread.cc
+    ${UTILS_SRC_DIR}/threads/thread_manager.cc
+    ${UTILS_SRC_DIR}/threads/thread_validator.cc
+    ${UTILS_SRC_DIR}/lock_posix.cc
+    ${UTILS_SRC_DIR}/rwlock_posix.cc
+    ${UTILS_SRC_DIR}/date_time.cc
+    ${UTILS_SRC_DIR}/signals_linux.cc
+    ${UTILS_SRC_DIR}/system.cc
+    ${UTILS_SRC_DIR}/resource_usage.cc
+    ${UTILS_SRC_DIR}/appenders_loader.cc
 )
 
 if(ENABLE_LOG)
   list(APPEND SOURCES
-    ${UtilsSrcDir}/push_log.cc
-    ${UtilsSrcDir}/log_message_loop_thread.cc
-    ${UtilsSrcDir}/logger_status.cc
+    ${UTILS_SRC_DIR}/push_log.cc
+    ${UTILS_SRC_DIR}/log_message_loop_thread.cc
+    ${UTILS_SRC_DIR}/logger_status.cc
   )
 endif()
 
 if (BUILD_BACKTRACE_SUPPORT)
     list(APPEND SOURCES
-    ${UtilsSrcDir}/back_trace.cc
+    ${UTILS_SRC_DIR}/back_trace.cc
     )
 endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
     list(APPEND SOURCES
-    ${UtilsSrcDir}l/threads/pulse_thread_delegate.cc
+    ${UTILS_SRC_DIR}l/threads/pulse_thread_delegate.cc
     )
 endif()
 

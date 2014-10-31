@@ -1,21 +1,23 @@
+set(SMART_OBJECTS_SRC_DIR ${COMPONENTS_DIR}/smart_objects/src)
+
 include_directories (
-  ./include
-  ../utils/include/
+  include
+  ${COMPONENTS_DIR}/utils/include/
 )
 
 set (SOURCES
-    ./src/smart_object.cc
-    ./src/smart_schema.cc
-    ./src/schema_item.cc
-    ./src/always_false_schema_item.cc
-    ./src/always_true_schema_item.cc
-    ./src/default_shema_item.cc
-    ./src/bool_schema_item.cc
-    ./src/number_schema_item.cc
-    ./src/enum_schema_item.cc
-    ./src/string_schema_item.cc
-    ./src/object_schema_item.cc
-    ./src/array_schema_item.cc
+    ${SMART_OBJECTS_SRC_DIR}/smart_object.cc
+    ${SMART_OBJECTS_SRC_DIR}/smart_schema.cc
+    ${SMART_OBJECTS_SRC_DIR}/schema_item.cc
+    ${SMART_OBJECTS_SRC_DIR}/always_false_schema_item.cc
+    ${SMART_OBJECTS_SRC_DIR}/always_true_schema_item.cc
+    ${SMART_OBJECTS_SRC_DIR}/default_shema_item.cc
+    ${SMART_OBJECTS_SRC_DIR}/bool_schema_item.cc
+    ${SMART_OBJECTS_SRC_DIR}/number_schema_item.cc
+    ${SMART_OBJECTS_SRC_DIR}/enum_schema_item.cc
+    ${SMART_OBJECTS_SRC_DIR}/string_schema_item.cc
+    ${SMART_OBJECTS_SRC_DIR}/object_schema_item.cc
+    ${SMART_OBJECTS_SRC_DIR}/array_schema_item.cc
 )
 
 add_library("SmartObjects" ${SOURCES})

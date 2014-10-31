@@ -2,11 +2,10 @@ include_directories (
   ${DBUS_INCLUDE_DIRS}
   ${CMAKE_CURRENT_SOURCE_DIR}/include/
   ${CMAKE_SOURCE_DIR}/
-  ${CMAKE_SOURCE_DIR}/src/components/
-  ${CMAKE_BINARY_DIR}/src/components/
-  ${CMAKE_SOURCE_DIR}/src/components/formatters/include/
-  ${CMAKE_SOURCE_DIR}/src/components/smart_objects/include/
-  ${CMAKE_SOURCE_DIR}/src/components/utils/include/
+  ${COMPONENTS_DIR}
+  ${COMPONENTS_DIR}/formatters/include/
+  ${COMPONENTS_DIR}/smart_objects/include/
+  ${COMPONENTS_DIR}/utils/include/
 )
 
 set (SOURCES

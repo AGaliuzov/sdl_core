@@ -1,8 +1,8 @@
 include_directories (
   ${LOG4CXX_INCLUDE_DIRECTORY}
-  ${CMAKE_SOURCE_DIR}/src/components/dbus/include
-  ${CMAKE_SOURCE_DIR}/src/components/dbus/src
-  ${CMAKE_SOURCE_DIR}/src/components/rpc_base/include
+  ${COMPONENTS_DIR}/dbus/include
+  ${COMPONENTS_DIR}/dbus/src
+  ${COMPONENTS_DIR}/rpc_base/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8
   ${GMOCK_INCLUDE_DIRECTORY}
   ${JSONCPP_INCLUDE_DIRECTORY}

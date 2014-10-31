@@ -1,25 +1,31 @@
+set(FORMATTERS_SRC_DIR  ${COMPONENTS_DIR}/formatters/src)
+
 include_directories (
-  ./include/
-  ../protocol_handler/include/
-  ../utils/include/
+  include/
+  ${COMPONENTS_DIR}/protocol_handler/include/
+  ${COMPONENTS_DIR}/utils/include/
   ${JSONCPP_INCLUDE_DIRECTORY}
   ${MESSAGE_BROKER_INCLUDE_DIRECTORY}
-  ../../../src/components/smart_objects/include
+  ${COMPONENTS_DIR}/smart_objects/include
 )
 
 set (SOURCES
-    ./src/CSmartFactory.cpp
+    ${FORMATTERS_SRC_DIR}/CSmartFactory.cpp
 )
 
 set (FORMATTER_SOURCES
-    ./src/CFormatterJsonBase.cpp
-    ./src/CFormatterJsonSDLRPCv1.cpp
-    ./src/CFormatterJsonSDLRPCv2.cpp
-    ./src/formatter_json_rpc.cc
-    ./src/meta_formatter.cc
-    ./src/generic_json_formatter.cc
+   ${FORMATTERS_SRC_DIR}/CFormatterJsonBase.cpp
+   ${FORMATTERS_SRC_DIR}/CFormatterJsonSDLRPCv1.cpp
+   ${FORMATTERS_SRC_DIR}/CFormatterJsonSDLRPCv2.cpp
+   ${FORMATTERS_SRC_DIR}/formatter_json_rpc.cc
+   ${FORMATTERS_SRC_DIR}/meta_formatter.cc
+   ${FORMATTERS_SRC_DIR}/generic_json_formatter.cc
 )
 
 add_library("formatters" ${SOURCES}
         ${FORMATTER_SOURCES}
 )
+
+if(BUILD_TESTS)
+  add_subdirectory(test)
+endif()
