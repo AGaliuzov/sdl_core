@@ -273,6 +273,8 @@ void BluetoothPASADeviceScanner::TimedWaitForDeviceScanRequest() {
 
 TransportAdapter::Error BluetoothPASADeviceScanner::Init() {
   LOG4CXX_TRACE_ENTER(logger_);
+  shutdown_requested_ = false;
+
   mq_from_sdl_ = OpenMsgQ(PREFIX_STR_FROMSDLCOREBTADAPTER_QUEUE, true, true);
   found_devices_with_sdl_.clear();
 

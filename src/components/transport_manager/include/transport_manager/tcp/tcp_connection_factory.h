@@ -54,7 +54,6 @@ class TcpConnectionFactory : public ServerConnectionFactory {
    * @param controller Pointer to the device adapter controller.
    */
   TcpConnectionFactory(TransportAdapterController* controller);
- protected:
 
   /**
    * @brief Start TCP connection factory.

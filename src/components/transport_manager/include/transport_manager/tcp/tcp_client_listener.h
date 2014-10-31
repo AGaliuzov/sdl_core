@@ -69,7 +69,6 @@ class TcpClientListener : public ClientConnectionListener,
   void threadMain();
 
   bool exitThreadMain();
- protected:
 
   /**
    * @brief Destructor.

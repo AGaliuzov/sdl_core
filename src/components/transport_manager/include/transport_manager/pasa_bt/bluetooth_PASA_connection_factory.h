@@ -50,7 +50,6 @@ class BluetoothPASAConnectionFactory : public ServerConnectionFactory {
    */
   BluetoothPASAConnectionFactory(TransportAdapterController* controller);
 
- protected:
   /**
    * @brief BT initialization
    */

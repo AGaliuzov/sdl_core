@@ -74,6 +74,7 @@ TcpClientListener::TcpClientListener(TransportAdapterController* controller,
     thread_stop_requested_(false) { }
 
 TransportAdapter::Error TcpClientListener::Init() {
+  thread_stop_requested_ = false;
   thread_ = threads::CreateThread("TcpClientListener", this);
   return TransportAdapter::OK;
 }

@@ -62,7 +62,6 @@ class BluetoothPASADeviceScanner : public DeviceScanner {
                              bool auto_repeat_search,
                              int repeat_search_pause_sec);
 
- protected:
   /**
    * @brief Start device scanner.
    *

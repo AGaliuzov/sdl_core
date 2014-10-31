@@ -202,6 +202,8 @@ TransportAdapter::Error MmeDeviceScanner::Scan() {
 }
 
 void MmeDeviceScanner::Terminate() {
+  initialised_ = false;
+
   if (notify_thread_) {
     notify_thread_->stop();
   }
