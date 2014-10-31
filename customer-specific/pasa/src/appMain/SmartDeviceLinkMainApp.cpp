@@ -1,6 +1,7 @@
-#include <string.h>
+﻿#include <string.h>
 #include <log4cxx/rollingfileappender.h>
 #include <log4cxx/fileappender.h>
+#include <errno>
 
 #include "./life_cycle.h"
 #include "SmartDeviceLinkMainApp.h"
@@ -14,6 +15,8 @@
 #include "utils/log_message_loop_thread.h"
 #include "config_profile/profile.h"
 #include "utils/appenders_loader.h"
+#include "utils/threads/thread.h"
+#include "utils/timer_thread.h"
 
 #include "hmi_message_handler/hmi_message_handler_impl.h"
 #include "hmi_message_handler/messagebroker_adapter.h"
@@ -228,16 +231,33 @@ void stopSmartDeviceLink()
 
 class ApplinkNotificationThreadDelegate : public threads::ThreadDelegate {
  public:
+  ApplinkNotificationThreadDelegate();
   virtual void threadMain();
+ private:
+  void sendHeartBeat();
+  utils::SharedPtr<timer::TimerThread<ApplinkNotificationThreadDelegate> > heart_beat_sender_;
+  mqd_t mq_;
 };
 
-void ApplinkNotificationThreadDelegate::threadMain() {
+ApplinkNotificationThreadDelegate::ApplinkNotificationThreadDelegate()
+  : heart_beat_sender_(
+      new timer::TimerThread<ApplinkNotificationThreadDelegate>(
+        "AppLinkHearBeat",
+        this,
+        &ApplinkNotificationThreadDelegate::sendHeartBeat, true)) {
+
   struct mq_attr attributes;
   attributes.mq_maxmsg = MSGQ_MAX_MESSAGES;
   attributes.mq_msgsize = MAX_QUEUE_MSG_SIZE;
   attributes.mq_flags = 0;
 
-  mqd_t mq = mq_open(PREFIX_STR_SDL_PROXY_QUEUE, O_RDONLY | O_CREAT, 0666, &attributes);
+  mq_ = mq_open(PREFIX_STR_SDL_PROXY_QUEUE, O_RDONLY | O_CREAT, 0666, &attributes);
+  if (-1 == mq_) {
+    LOG4CXX_ERROR(logger_, "Unable to open mq: " << strerror(errno));
+  }
+}
+
+void ApplinkNotificationThreadDelegate::threadMain() {
 
   char buffer[MAX_QUEUE_MSG_SIZE];
   ssize_t length=0;
@@ -257,10 +277,11 @@ void ApplinkNotificationThreadDelegate::threadMain() {
 #endif
 
   while (!g_bTerminate) {
-    if ( (length = mq_receive(mq, buffer, sizeof(buffer), 0)) != -1) {
+    if ( (length = mq_receive(mq_, buffer, sizeof(buffer), 0)) != -1) {
       switch (buffer[0]) {
         case SDL_MSG_SDL_START:
           startSmartDeviceLink();
+          heart_beat_sender_->start(profile::Profile::instance()->hmi_heart_beat_timeout());
           break;
         case SDL_MSG_START_USB_LOGGING:
           startUSBLogging();
@@ -276,7 +297,17 @@ void ApplinkNotificationThreadDelegate::threadMain() {
           break;
       }
     }
-  } //while-end
+} //while-end
+}
+
+void ApplinkNotificationThreadDelegate::sendHeartBeat() {
+  if (-1 != mq_) {
+    char buf[MAX_QUEUE_MSG_SIZE];
+    buf[0] = HMI_MSG_HEARTBEAT_ACK;
+    if (-1 == mq_send(mq_, &buf[0], MAX_QUEUE_MSG_SIZE, 0)) {
+      LOG4CXX_ERROR(logger_, "Unable to send heart beat via mq: " << strerror(errno));
+    }
+  }
 }
 
 /**

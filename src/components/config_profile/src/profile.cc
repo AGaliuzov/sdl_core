@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -90,6 +90,7 @@ const char* kVideoStreamFileKey = "VideoStreamFile";
 const char* kAudioStreamFileKey = "AudioStreamFile";
 
 #ifdef CUSTOMER_PASA
+const char* kHeartBeatTimeoutKey = "HMIHeartBeatTimeout";
 const char* kLoggerSection = "LOGGING";
 const char* kAudioMQPath = "MQAudioPath";
 const char* kLoggerConfigFileKey = "LoggerConfigFile";
@@ -161,6 +162,7 @@ const char* kDefaultAppInfoFileName = "app_info.dat";
 const char* kDefaultSystemFilesPath = "/tmp/fs/mp/images/ivsu_cache";
 const char* kDefaultTtsDelimiter = ",";
 #ifdef CUSTOMER_PASA
+const uint32_t kDefaultHMIHeartBeatTimeout = 3; // timeout in seconds
 const char* kDefaultMQName = "/dev/mqueue/AppLinkAudioPass";
 const char* kDefaultLog4cxxConfig = "/fs/mp/etc/AppLink/log4cxx.properties";
 const char* kDefaultRemoteLoggingFlagFile = "log/capturelog.evt";
@@ -262,6 +264,7 @@ Profile::Profile()
     transport_manager_tcp_adapter_port_(kDefautTransportManagerTCPPort),
     tts_delimiter_(kDefaultTtsDelimiter),
 #ifdef CUSTOMER_PASA
+    hmi_heart_beat_timeout_(kDefaultHMIHeartBeatTimeout)
     audio_mq_path_(kDefaultMQName),
     log4cxx_config_file_(kDefaultLog4cxxConfig),
     remote_logging_flag_file_(kDefaultRemoteLoggingFlagFile),
@@ -423,6 +426,11 @@ const std::string& Profile::audio_stream_file() const {
 }
 
 #ifdef CUSTOMER_PASA
+
+const uint32_t& Profile::hmi_heart_beat_timeout() {
+  return hmi_heart_beat_timeout_;
+}
+
 const std::string &profile::Profile::audio_mq_path() const {
   LOG4CXX_INFO(logger_, "Default MQ name " << audio_mq_path_);
   return audio_mq_path_;
@@ -777,6 +785,12 @@ ReadStringValue(&app_info_storage_, kDefaultAppInfoFileName,
                       kMediaManagerSection);
 
 #ifdef CUSTOMER_PASA
+    // Heartbeat timeout
+    ReadUIntValue(&hmi_heart_beat_timeout_, kDefaultHeartBeatTimeout, kMainSection,
+                  kHMIHeartBeatTimeoutKey);
+
+    LOG_UPDATED_VALUE(hmi_heart_beat_timeout_, kHMIHeartBeatTimeoutKey, kMainSection);
+
     ReadStringValue(&audio_mq_path_, "", kMediaManagerSection,
                     kAudioMQPath);
 
