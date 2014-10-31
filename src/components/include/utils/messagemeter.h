@@ -43,7 +43,7 @@ namespace utils {
     @brief The MessageMeter class need to count message frequency
     Default time range value is 1 second
     IncomingDataHandler methods are reentrant and not thread-safe
-    Template parameter Id could be used for handling messages by session,
+    @tparam Id could be used for handling messages by session,
     connection or other identifier
  */
 template <class Id>
@@ -55,14 +55,14 @@ class MessageMeter {
      @param Id - unique identifier
      @return frequency
    */
-  size_t Recieved(const Id& id);
+  size_t Received(const Id& id);
   /**
      @brief Update frequency value for selected identifier
      @param Id - unique identifier
-     @param count - count of recieved messages
+     @param count - count of received messages
      @return frequency
    */
-  size_t Recieved(const Id& id, const size_t count);
+  size_t Received(const Id& id, const size_t count);
   /**
      @brief Frequency of messages for selected identifier
      @param Id - unique identifier
@@ -77,6 +77,7 @@ class MessageMeter {
    */
   void RemoveIdentifier(const Id& id);
 
+  void set_time_range(const size_t time_range_msecs);
   void set_time_range(const TimevalStruct& time_range);
   TimevalStruct time_range() const;
 
@@ -84,7 +85,7 @@ class MessageMeter {
   TimevalStruct time_range_;
   typedef std::multiset<TimevalStruct> Timings;
   typedef std::map<Id, Timings> TimingMap;
-  TimingMap timing_map;
+  TimingMap timing_map_;
 };
 
 template <class Id>
@@ -94,14 +95,14 @@ MessageMeter<Id>::MessageMeter()
 }
 
 template <class Id>
-size_t MessageMeter<Id>::Recieved(const Id& id) {
-  return Recieved(id, 1);
+size_t MessageMeter<Id>::Received(const Id& id) {
+  return Received(id, 1);
 }
 
 template <class Id>
-size_t MessageMeter<Id>::Recieved(const Id& id,
-                                         const size_t count) {
-  Timings& timings = timing_map[id];
+size_t MessageMeter<Id>::Received(const Id& id,
+                                  const size_t count) {
+  Timings& timings = timing_map_[id];
   const TimevalStruct current_time = date_time::DateTime::getCurrentTime();
   for (size_t i = 0; i < count; ++i) {
     // Adding to the end is amortized constant
@@ -112,20 +113,30 @@ size_t MessageMeter<Id>::Recieved(const Id& id,
 
 template <class Id>
 size_t MessageMeter<Id>::Frequency(const Id& id) {
-  Timings& timings = timing_map[id];
-  const TimevalStruct actual_begin_time =
-      date_time::DateTime::Sub(date_time::DateTime::getCurrentTime(),
-                               time_range_);
-  timings.erase(timings.begin(),
-                timings.upper_bound(actual_begin_time));
+  Timings& timings = timing_map_[id];
+  if(! timings.empty()) {
+    const TimevalStruct actual_begin_time =
+        date_time::DateTime::Sub(date_time::DateTime::getCurrentTime(),
+                                 time_range_);
+    timings.erase(timings.begin(),
+                  timings.upper_bound(actual_begin_time));
+  }
   return timings.size();
 }
 
 template <class Id>
 void MessageMeter<Id>::RemoveIdentifier(const Id& id) {
-  timing_map.erase(id);
+  timing_map_.erase(id);
 }
 
+template <class Id>
+void MessageMeter<Id>::set_time_range(const size_t time_range_msecs) {
+  time_range_.tv_sec = 0;
+  time_range_.tv_usec = time_range_msecs;
+  while(time_range_.tv_usec >= date_time::DateTime::MICROSECONDS_IN_SECONDS) {
+    ++time_range_.tv_sec;
+  }
+}
 template <class Id>
 void MessageMeter<Id>::set_time_range(const TimevalStruct& time_range) {
   time_range_ = time_range;

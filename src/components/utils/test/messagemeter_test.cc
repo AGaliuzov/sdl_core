@@ -108,19 +108,19 @@ TEST(MessageMeterTest, TimeRangeSetter) {
 TEST(MessageMeterTest, AddingWithNullTimeRange) {
   ::utils::MessageMeter<int> meter;
   const int id1 = 1;
-  const int id2 = 1;
+  const int id2 = 2;
   const TimevalStruct null_time_range {0, 0};
   meter.set_time_range(null_time_range);
   for (int i = 0; i < 10000; ++i) {
     // 1st Connection
     EXPECT_EQ(0u,
-              meter.Recieved(id1));
+              meter.Received(id1));
     EXPECT_EQ(0u,
               meter.Frequency(id1));
 
     // 2d Connection
     EXPECT_EQ(0u,
-              meter.Recieved(id2));
+              meter.Received(id2));
     EXPECT_EQ(0u,
               meter.Frequency(id2));
   }
@@ -134,7 +134,7 @@ TEST_P(MessageMeterTest, AddingOverPeriod) {
          < time_range_msecs) {
     ++messages;
     EXPECT_EQ(messages,
-              meter.Recieved(id1));
+              meter.Received(id1));
     EXPECT_EQ(messages,
               meter.Frequency(id1));
   }
@@ -149,19 +149,19 @@ TEST_P(MessageMeterTest, AddingOverPeriod_MultiIds) {
     ++messages;
     // 1st  Connection
     EXPECT_EQ(messages,
-              meter.Recieved(id1));
+              meter.Received(id1));
     EXPECT_EQ(messages,
               meter.Frequency(id1));
 
     // 2d Connection
     EXPECT_EQ(messages,
-              meter.Recieved(id2));
+              meter.Received(id2));
     EXPECT_EQ(messages,
               meter.Frequency(id2));
 
     // 3d Connection
     EXPECT_EQ(messages,
-              meter.Recieved(id3));
+              meter.Received(id3));
     EXPECT_EQ(messages,
               meter.Frequency(id3));
   }
@@ -171,11 +171,11 @@ TEST_P(MessageMeterTest, CountingOverPeriod) {
   const size_t one_message = 1;
   const TimevalStruct start_time = date_time::DateTime::getCurrentTime();
   EXPECT_EQ(one_message,
-            meter.Recieved(id1));
+            meter.Received(id1));
   EXPECT_EQ(one_message,
-            meter.Recieved(id2));
+            meter.Received(id2));
   EXPECT_EQ(one_message,
-            meter.Recieved(id3));
+            meter.Received(id3));
   const int sleep_usecs = 500;
   // Check messages count over period
   while (date_time::DateTime::calculateTimeSpan(start_time)
@@ -193,11 +193,11 @@ TEST_P(MessageMeterTest, CountingOverPeriod) {
 TEST_P(MessageMeterTest, CountingOutOfPeriod) {
   const size_t one_message = 1;
   EXPECT_EQ(one_message,
-            meter.Recieved(id1));
+            meter.Received(id1));
   EXPECT_EQ(one_message,
-            meter.Recieved(id2));
+            meter.Received(id2));
   EXPECT_EQ(one_message,
-            meter.Recieved(id3));
+            meter.Received(id3));
 
   // sleep more than time range
   usleep(time_range_msecs * usecs * 1.1);
