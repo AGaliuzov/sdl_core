@@ -55,14 +55,14 @@ class MessageMeter {
      @param Id - unique identifier
      @return frequency
    */
-  size_t Received(const Id& id);
+  size_t TrackMessage(const Id& id);
   /**
      @brief Update frequency value for selected identifier
      @param Id - unique identifier
      @param count - count of received messages
      @return frequency
    */
-  size_t Received(const Id& id, const size_t count);
+  size_t TrackMessages(const Id& id, const size_t count);
   /**
      @brief Frequency of messages for selected identifier
      @param Id - unique identifier
@@ -73,9 +73,13 @@ class MessageMeter {
   /**
      @brief Remove all data refer to selected identifier
      @param Id - unique identifier
-     @return frequency
    */
   void RemoveIdentifier(const Id& id);
+
+  /**
+     @brief Remove all frequency data
+   */
+  void ClearIdentifiers();
 
   void set_time_range(const size_t time_range_msecs);
   void set_time_range(const TimevalStruct& time_range);
@@ -95,12 +99,12 @@ MessageMeter<Id>::MessageMeter()
 }
 
 template <class Id>
-size_t MessageMeter<Id>::Received(const Id& id) {
-  return Received(id, 1);
+size_t MessageMeter<Id>::TrackMessage(const Id& id) {
+  return TrackMessages(id, 1);
 }
 
 template <class Id>
-size_t MessageMeter<Id>::Received(const Id& id,
+size_t MessageMeter<Id>::TrackMessages(const Id& id,
                                   const size_t count) {
   Timings& timings = timing_map_[id];
   const TimevalStruct current_time = date_time::DateTime::getCurrentTime();
@@ -113,7 +117,11 @@ size_t MessageMeter<Id>::Received(const Id& id,
 
 template <class Id>
 size_t MessageMeter<Id>::Frequency(const Id& id) {
-  Timings& timings = timing_map_[id];
+  typename TimingMap::iterator it = timing_map_.find(id);
+  if(it == timing_map_.end()) {
+    return 0u;
+  }
+  Timings& timings = it->second;
   if (timings.empty()) {
     return 0u;
   }
@@ -128,6 +136,11 @@ size_t MessageMeter<Id>::Frequency(const Id& id) {
 template <class Id>
 void MessageMeter<Id>::RemoveIdentifier(const Id& id) {
   timing_map_.erase(id);
+}
+
+template <class Id>
+void MessageMeter<Id>::ClearIdentifiers() {
+  timing_map_.clear();
 }
 
 template <class Id>

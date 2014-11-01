@@ -120,13 +120,13 @@ TEST(MessageMeterTest, AddingWithNullTimeRange) {
   for (int i = 0; i < 10000; ++i) {
     // 1st Connection
     EXPECT_EQ(0u,
-              meter.Received(id1));
+              meter.TrackMessage(id1));
     EXPECT_EQ(0u,
               meter.Frequency(id1));
 
     // 2d Connection
     EXPECT_EQ(0u,
-              meter.Received(id2));
+              meter.TrackMessage(id2));
     EXPECT_EQ(0u,
               meter.Frequency(id2));
   }
@@ -140,7 +140,7 @@ TEST_P(MessageMeterTest, AddingOverPeriod) {
          < time_range_msecs) {
     ++messages;
     EXPECT_EQ(messages,
-              meter.Received(id1));
+              meter.TrackMessage(id1));
     EXPECT_EQ(messages,
               meter.Frequency(id1));
   }
@@ -155,19 +155,19 @@ TEST_P(MessageMeterTest, AddingOverPeriod_MultiIds) {
     ++messages;
     // 1st  Connection
     EXPECT_EQ(messages,
-              meter.Received(id1));
+              meter.TrackMessage(id1));
     EXPECT_EQ(messages,
               meter.Frequency(id1));
 
     // 2d Connection
     EXPECT_EQ(messages,
-              meter.Received(id2));
+              meter.TrackMessage(id2));
     EXPECT_EQ(messages,
               meter.Frequency(id2));
 
     // 3d Connection
     EXPECT_EQ(messages,
-              meter.Received(id3));
+              meter.TrackMessage(id3));
     EXPECT_EQ(messages,
               meter.Frequency(id3));
   }
@@ -177,11 +177,11 @@ TEST_P(MessageMeterTest, CountingOverPeriod) {
   const size_t one_message = 1;
   const TimevalStruct start_time = date_time::DateTime::getCurrentTime();
   EXPECT_EQ(one_message,
-            meter.Received(id1));
+            meter.TrackMessage(id1));
   EXPECT_EQ(one_message,
-            meter.Received(id2));
+            meter.TrackMessage(id2));
   EXPECT_EQ(one_message,
-            meter.Received(id3));
+            meter.TrackMessage(id3));
   const int sleep_usecs = 500;
   // Check messages count over period
   while (date_time::DateTime::calculateTimeSpan(start_time)
@@ -199,16 +199,72 @@ TEST_P(MessageMeterTest, CountingOverPeriod) {
 TEST_P(MessageMeterTest, CountingOutOfPeriod) {
   const size_t one_message = 1;
   EXPECT_EQ(one_message,
-            meter.Received(id1));
+            meter.TrackMessage(id1));
   EXPECT_EQ(one_message,
-            meter.Received(id2));
+            meter.TrackMessage(id2));
   EXPECT_EQ(one_message,
-            meter.Received(id3));
+            meter.TrackMessage(id3));
 
   // sleep more than time range
   usleep(time_range_msecs * usecs * 1.1);
   EXPECT_EQ(0u,
             meter.Frequency(id1));
+  EXPECT_EQ(0u,
+            meter.Frequency(id2));
+  EXPECT_EQ(0u,
+            meter.Frequency(id3));
+}
+
+TEST_P(MessageMeterTest, ClearId) {
+  const size_t one_message = 1;
+  EXPECT_EQ(one_message,
+            meter.TrackMessage(id1));
+  EXPECT_EQ(one_message,
+            meter.TrackMessage(id2));
+  EXPECT_EQ(one_message,
+            meter.TrackMessage(id3));
+
+  meter.RemoveIdentifier(id1);
+
+  EXPECT_EQ(0u,
+            meter.Frequency(id1));
+  EXPECT_EQ(one_message,
+            meter.Frequency(id2));
+  EXPECT_EQ(one_message,
+            meter.Frequency(id3));
+
+  meter.RemoveIdentifier(id2);
+
+  EXPECT_EQ(0u,
+            meter.Frequency(id1));
+  EXPECT_EQ(0u,
+            meter.Frequency(id2));
+  EXPECT_EQ(one_message,
+            meter.Frequency(id3));
+
+  meter.RemoveIdentifier(id3);
+
+  EXPECT_EQ(0u,
+            meter.Frequency(id1));
+  EXPECT_EQ(0u,
+            meter.Frequency(id2));
+  EXPECT_EQ(0u,
+            meter.Frequency(id3));
+}
+
+TEST_P(MessageMeterTest, ClearIds) {
+  const size_t one_message = 1;
+  EXPECT_EQ(one_message,
+            meter.TrackMessage(id1));
+  EXPECT_EQ(one_message,
+            meter.TrackMessage(id2));
+  EXPECT_EQ(one_message,
+            meter.TrackMessage(id3));
+
+  meter.ClearIdentifiers();
+
+  EXPECT_EQ(0u,
+            meter.Frequency(id2));
   EXPECT_EQ(0u,
             meter.Frequency(id2));
   EXPECT_EQ(0u,
