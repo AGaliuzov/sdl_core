@@ -66,16 +66,18 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
 TcpClientListener::TcpClientListener(TransportAdapterController* controller,
                                      const uint16_t port,
                                      const bool enable_keepalive)
-  : port_(port),
-    enable_keepalive_(enable_keepalive),
-    controller_(controller),
-    thread_(0),
-    socket_(-1),
-    thread_stop_requested_(false) { }
+    : port_(port),
+      enable_keepalive_(enable_keepalive),
+      controller_(controller),
+      thread_(0),
+      socket_(-1),
+      thread_stop_requested_(false) {
+}
 
 TransportAdapter::Error TcpClientListener::Init() {
   thread_stop_requested_ = false;
-  thread_ = threads::CreateThread("TcpClientListener", this);
+  thread_ = threads::CreateThread("TcpClientListener",
+                                  new ListeningThreadDelegate(this));
   return TransportAdapter::OK;
 }
 
@@ -130,7 +132,7 @@ void SetKeepaliveOptions(const int fd) {
   mib[3] = TCPCTL_KEEPINTVL;
   sysctl(mib, kMidLength, NULL, NULL, &keepintvl, sizeof(keepintvl));
 
-  struct timeval tval = { 0 };
+  struct timeval tval = {0};
   tval.tv_sec = keepidle;
   setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &yes, sizeof(yes));
   setsockopt(fd, IPPROTO_TCP, TCP_KEEPALIVE, &tval, sizeof(tval));
@@ -138,12 +140,13 @@ void SetKeepaliveOptions(const int fd) {
   LOG4CXX_TRACE(logger_, "exit");
 }
 
-void TcpClientListener::threadMain() {
+void TcpClientListener::Loop() {
   LOG4CXX_TRACE(logger_, "enter");
   while (!thread_stop_requested_) {
     sockaddr_in client_address;
     socklen_t client_address_size = sizeof(client_address);
-    const int connection_fd = accept(socket_, (struct sockaddr*)&client_address,
+    const int connection_fd = accept(socket_,
+                                     (struct sockaddr*) &client_address,
                                      &client_address_size);
     if (thread_stop_requested_) {
       LOG4CXX_DEBUG(logger_, "thread_stop_requested_");
@@ -169,15 +172,16 @@ void TcpClientListener::threadMain() {
       SetKeepaliveOptions(connection_fd);
     }
 
-    TcpDevice* tcp_device = new TcpDevice(client_address.sin_addr.s_addr, device_name);
+    TcpDevice* tcp_device = new TcpDevice(client_address.sin_addr.s_addr,
+                                          device_name);
     DeviceSptr device = controller_->AddDevice(tcp_device);
     tcp_device = static_cast<TcpDevice*>(device.get());
     const ApplicationHandle app_handle = tcp_device->AddIncomingApplication(
-                                           connection_fd);
+        connection_fd);
 
     TcpSocketConnection* connection(
-      new TcpSocketConnection(device->unique_device_id(), app_handle,
-                              controller_));
+        new TcpSocketConnection(device->unique_device_id(), app_handle,
+                                controller_));
     connection->set_socket(connection_fd);
     const TransportAdapter::Error error = connection->Start();
     if (error != TransportAdapter::OK) {
@@ -187,11 +191,27 @@ void TcpClientListener::threadMain() {
   LOG4CXX_TRACE(logger_, "exit");
 }
 
+void TcpClientListener::StopLoop() {
+  LOG4CXX_TRACE_ENTER(logger_);
+  thread_stop_requested_ = true;
+  // We need to connect to the listening socket to unblock accept() call
+  int byesocket = socket(AF_INET, SOCK_STREAM, 0);
+  sockaddr_in server_address = { 0 };
+  server_address.sin_family = AF_INET;
+  server_address.sin_port = htons(port_);
+  server_address.sin_addr.s_addr = INADDR_ANY;
+  connect(byesocket, (sockaddr*) &server_address, sizeof(server_address));
+  shutdown(byesocket, SHUT_RDWR);
+  close(byesocket);
+  LOG4CXX_TRACE_EXIT(logger_);
+}
+
 TransportAdapter::Error TcpClientListener::StartListening() {
   LOG4CXX_TRACE(logger_, "enter");
-  if (thread_->is_running()) {
-    LOG4CXX_TRACE(logger_,
-                  "exit with TransportAdapter::BAD_STATE. Condition: thread_started_");
+  if (!thread_ || thread_->is_running()) {
+    LOG4CXX_TRACE(
+        logger_,
+        "exit with TransportAdapter::BAD_STATE. Condition: thread_started_");
     return TransportAdapter::BAD_STATE;
   }
 
@@ -199,7 +219,8 @@ TransportAdapter::Error TcpClientListener::StartListening() {
 
   if (-1 == socket_) {
     LOG4CXX_ERROR_WITH_ERRNO(logger_, "Failed to create socket");
-    LOG4CXX_TRACE(logger_, "exit with TransportAdapter::FAIL. Condition: -1 == socket_");
+    LOG4CXX_TRACE(logger_,
+                  "exit with TransportAdapter::FAIL. Condition: -1 == socket_");
     return TransportAdapter::FAIL;
   }
 
@@ -213,15 +234,17 @@ TransportAdapter::Error TcpClientListener::StartListening() {
 
   if (0 != bind(socket_, (sockaddr*) &server_address, sizeof(server_address))) {
     LOG4CXX_ERROR_WITH_ERRNO(logger_, "bind() failed");
-    LOG4CXX_TRACE(logger_,
-                  "exit with TransportAdapter::FAIL. Condition: 0 != bind(socket_, (sockaddr*) &server_address, sizeof(server_address))");
+    LOG4CXX_TRACE(
+        logger_,
+        "exit with TransportAdapter::FAIL. Condition: 0 != bind(socket_, (sockaddr*) &server_address, sizeof(server_address))");
     return TransportAdapter::FAIL;
   }
 
   if (0 != listen(socket_, 128)) {
     LOG4CXX_ERROR_WITH_ERRNO(logger_, "listen() failed");
-    LOG4CXX_TRACE(logger_,
-                  "exit with TransportAdapter::FAIL. Condition: 0 != listen(socket_, 128)");
+    LOG4CXX_TRACE(
+        logger_,
+        "exit with TransportAdapter::FAIL. Condition: 0 != listen(socket_, 128)");
     return TransportAdapter::FAIL;
   }
 
@@ -235,25 +258,23 @@ TransportAdapter::Error TcpClientListener::StartListening() {
   return TransportAdapter::OK;
 }
 
-bool TcpClientListener::exitThreadMain() {
-  LOG4CXX_TRACE_ENTER(logger_);
-  thread_stop_requested_ = true;
-  // We need to connect to the listening socket to unblock accept() call
-  int byesocket = socket(AF_INET, SOCK_STREAM, 0);
-  sockaddr_in server_address = { 0 };
-  server_address.sin_family = AF_INET;
-  server_address.sin_port = htons(port_);
-  server_address.sin_addr.s_addr = INADDR_ANY;
-  connect(byesocket, (sockaddr*)&server_address, sizeof(server_address));
-  shutdown(byesocket, SHUT_RDWR);
-  close(byesocket);
-  LOG4CXX_TRACE_EXIT(logger_);
+bool TcpClientListener::ListeningThreadDelegate::exitThreadMain() {
+  parent_->StopLoop();
   return true;
+}
+
+void TcpClientListener::ListeningThreadDelegate::threadMain() {
+  parent_->Loop();
+}
+
+TcpClientListener::ListeningThreadDelegate::ListeningThreadDelegate(
+    TcpClientListener* parent)
+    : parent_(parent) {
 }
 
 TransportAdapter::Error TcpClientListener::StopListening() {
   LOG4CXX_TRACE_ENTER(logger_);
-  if (!thread_->is_running()) {
+  if (!thread_ || !thread_->is_running()) {
     LOG4CXX_TRACE(logger_, "TcpClientListener is not running now");
     return TransportAdapter::BAD_STATE;
   }
