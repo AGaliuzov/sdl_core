@@ -240,10 +240,10 @@ TransportAdapter::Error TransportAdapterImpl::DisconnectDevice(
 
   Error error = OK;
   pthread_mutex_lock(&connections_mutex_);
-  for (ConnectionMap::iterator it = connections_.begin();
-       it != connections_.end(); ++it) {
-
+  ConnectionMap::iterator it = connections_.begin();
+  while (it != connections_.end()) {
     ConnectionInfo& info = it->second;
+    ++it;
     if (info.device_id == device_id &&
         info.state != ConnectionInfo::FINALISING) {
       if (OK != info.connection->Disconnect()) {
