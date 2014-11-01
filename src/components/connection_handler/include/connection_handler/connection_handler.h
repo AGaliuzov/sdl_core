@@ -84,6 +84,11 @@ class ConnectionHandler {
   virtual void CloseConnection(ConnectionHandle connection_handle) = 0;
 
   /**
+  * \brief Close all associated sessions and and all connections
+  */
+  virtual void CloseAllConnections() = 0;
+
+  /**
    * \brief Return count of session for specified connection
    * \param connection_key pair of connection handle and session id
    */

@@ -295,6 +295,11 @@ class ConnectionHandlerImpl : public ConnectionHandler,
   virtual void CloseConnection(ConnectionHandle connection_handle) OVERRIDE;
 
   /**
+  * \brief Close all associated sessions and and all connections
+  */
+  virtual void CloseAllConnections() OVERRIDE ;
+
+  /**
    * \brief Close session associated with the key
    * \param key Unique key used by other components as session identifier
    */

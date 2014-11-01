@@ -687,6 +687,23 @@ void ConnectionHandlerImpl::CloseConnection(
   transport_manager_->DisconnectForce(connection_uid);
 }
 
+void ConnectionHandlerImpl::CloseAllConnections() {
+    LOG4CXX_TRACE_ENTER(logger_);
+    if (!transport_manager_) {
+      LOG4CXX_ERROR(logger_, "Null pointer to TransportManager.");
+      return;
+    }
+    for (typename ConnectionList::iterator i = connection_list_.begin(),
+                                       end = connection_list_.end();
+                                       i != end; ++i) {
+        transport_manager::ConnectionUID connection_uid =
+                ConnectionUIDFromHandle(i->second->connection_handle());
+        transport_manager_->DisconnectForce(connection_uid);
+
+    }
+    LOG4CXX_TRACE_EXIT(logger_);
+}
+
 uint32_t ConnectionHandlerImpl::GetConnectionSessionsCount(
     uint32_t connection_key) {
   uint32_t connection_handle = 0;

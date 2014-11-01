@@ -672,6 +672,12 @@ class ApplicationManagerImpl : public ApplicationManager,
      */
     void OnLowVoltage();
 
+
+    /*
+     * @brief Function Should be called when WakeUp occures after Low Voltage
+     */
+    void OnWakeUp();
+
     // typedef for Applications list
     typedef const std::set<ApplicationSharedPtr> TAppList;
 

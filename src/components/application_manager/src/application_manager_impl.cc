@@ -2225,7 +2225,18 @@ mobile_apis::Result::eType ApplicationManagerImpl::CheckPolicyPermissions(
 
 
 void  ApplicationManagerImpl::OnLowVoltage() {
-  is_low_voltage_ = true;
+    LOG4CXX_TRACE_ENTER(logger_);
+    is_low_voltage_ = true;
+    request_ctrl_.OnLowVoltage();
+    LOG4CXX_TRACE_EXIT(logger_);
+}
+
+void ApplicationManagerImpl::OnWakeUp() {
+    LOG4CXX_TRACE_ENTER(logger_);
+    is_low_voltage_ = false;
+    request_ctrl_.OnWakeUp();
+    connection_handler_->CloseAllConnections();
+    LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void ApplicationManagerImpl::Mute(VRTTSSessionChanging changing_state) {

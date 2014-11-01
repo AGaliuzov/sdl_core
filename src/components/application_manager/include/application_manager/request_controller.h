@@ -194,6 +194,17 @@ class RequestController {
                               const uint32_t& mobile_correlation_id,
                               const uint32_t& new_timeout);
 
+    /*
+     * @brief Function Should be called when Low Voltage is occured
+     */
+    void OnLowVoltage();
+
+    /*
+     * @brief Function Should be called when Low Voltage is occured
+     */
+    void OnWakeUp();
+
+
   protected:
 
     /**
@@ -226,11 +237,6 @@ class RequestController {
     */
     void UpdateTimer();
 
-
-    /*
-     * @brief Function Should be called when Low Voltage is occured
-     */
-    void OnLowVoltage();
 
   private:
 
