@@ -494,6 +494,11 @@ class Profile : public utils::Singleton<Profile> {
      */
     int iap_hub_connection_wait_timeout() const;
 
+    /*
+     * ProtocolHandler section
+     */
+    size_t maximum_payload_size() const;
+
   private:
     /**
      * Default constructor

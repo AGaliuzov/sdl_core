@@ -1,8 +1,5 @@
 /*
- * \file raw_message_matcher.h
- * \brief matcher RawMessagePtr
- *
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,45 +29,4 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-#ifndef APPLINK_TEST_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_RAW_MESSAGE_MATCHER_H_
-#define APPLINK_TEST_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_RAW_MESSAGE_MATCHER_H_
-
-#include <gmock/gmock.h>
-
-#include "transport_manager/common.h"
-#include "protocol/common.h"
-
-using ::testing::Matcher;
-using ::testing::MatcherInterface;
-using ::testing::MatchResultListener;
-
-using RawMessagePtr = ::protocol_handler::RawMessagePtr;
-using RawMessage = ::protocol_handler::RawMessage;
-
-namespace test {
-namespace components {
-namespace transport_manager {
-
-class RawMessageMatcher : public MatcherInterface<RawMessagePtr> {
- public:
-  explicit RawMessageMatcher(RawMessagePtr ptr);
-
-  virtual bool MatchAndExplain(const RawMessagePtr ptr,
-                                   MatchResultListener* listener) const;
-  virtual void DescribeTo(::std::ostream* os) const;
-  virtual void DescribeNegationTo(::std::ostream* os) const;
-
- private:
-  const RawMessagePtr ptr_;
-};
-
-inline const Matcher<RawMessagePtr> RawMessageEq(RawMessagePtr msg) {
-  return MakeMatcher(new RawMessageMatcher(msg));
-}
-
-}  // namespace transport_manager
-}  // namespace components
-}  // namespace test
-
-#endif /* APPLINK_TEST_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_RAW_MESSAGE_MATCHER_H_ */
+#include "protocol_handler/protocol_header_validator_test.h"

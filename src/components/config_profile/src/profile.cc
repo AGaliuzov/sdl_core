@@ -69,6 +69,7 @@ const char* kTransportManagerSection = "TransportManager";
 const char* kApplicationManagerSection = "ApplicationManager";
 const char* kFilesystemRestrictionsSection = "FILESYSTEM RESTRICTIONS";
 const char* kIAPSection = "IAP";
+const char* kProtocolHandlerSection = "ProtocolHandler";
 
 const char* kHmiCapabilitiesKey = "HMICapabilities";
 const char* kPathToSnapshotKey = "PathToSnapshot";
@@ -152,6 +153,7 @@ const char* kIAP2HubConnectAttemptskey = "IAP2HubConnectAttempts";
 const char* kIAPHubConnectionWaitTimeoutKey = "ConnectionWaitTimeout";
 const char* kDefaultHubProtocolIndexKey = "DefaultHubProtocolIndex";
 const char* kTTSGlobalPropertiesTimeoutKey = "TTSGlobalPropertiesTimeout";
+const char* kMaximumPayloadSizeKey ="MaximumPayloadSize";
 
 const char* kDefaultPoliciesSnapshotFileName = "sdl_snapshot.json";
 const char* kDefaultHmiCapabilitiesFileName = "hmi_capabilities.json";
@@ -212,6 +214,8 @@ const uint32_t kDefaultMaxThreadPoolSize = 2;
 const int kDefaultIAP2HubConnectAttempts = 0;
 const int kDefaultIAPHubConnectionWaitTimeout = 10;
 const uint16_t kDefaultTTSGlobalPropertiesTimeout = 20;
+// TCP MTU - header size = 1500 - 12
+const size_t kDefaultMaximumPayloadSize = 1500 - 12;
 
 }  // namespace
 
@@ -291,7 +295,7 @@ Profile::~Profile() {
 }
 
 void Profile::config_file_name(const std::string& fileName) {
-  if (false == fileName.empty()) {    
+  if (false == fileName.empty()) {
     config_file_name_ = fileName;
     UpdateValues();
   }
@@ -569,7 +573,7 @@ uint32_t Profile::thread_pool_size() const  {
 }
 
 uint32_t Profile::default_hub_protocol_index() const{
-	return default_hub_protocol_index_;
+  return default_hub_protocol_index_;
 }
 
 const std::string& Profile::iap_legacy_protocol_mask() const {
@@ -598,6 +602,13 @@ int Profile::iap2_hub_connect_attempts() const {
 
 int Profile::iap_hub_connection_wait_timeout() const {
   return iap_hub_connection_wait_timeout_;
+}
+
+size_t Profile::maximum_payload_size() const {
+  size_t maximum_payload_size = 0;
+  ReadUIntValue(&maximum_payload_size, kDefaultMaximumPayloadSize,
+                kProtocolHandlerSection, kMaximumPayloadSizeKey);
+  return maximum_payload_size;
 }
 
 uint16_t Profile::tts_global_properties_timeout() const {

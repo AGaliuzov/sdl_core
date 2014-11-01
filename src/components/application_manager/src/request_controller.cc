@@ -49,12 +49,12 @@ RequestController::RequestController()
   : pool_state_(UNDEFINED),
     pool_size_(profile::Profile::instance()->thread_pool_size()),
     pending_request_set_lock_(true),
-    timer_("RequestCtrlTimer", this, &RequestController::onTimer, true)
-{
+    timer_("RequestCtrlTimer", this, &RequestController::onTimer, true) {
   LOG4CXX_INFO(logger_, "RequestController::RequestController()");
   InitializeThreadpool();
   timer_.start(dafault_sleep_time_);
-  LOG4CXX_DEBUG(logger_," Create timer thread ; timer thread = " << timer_.thread_->thread_handle());
+  LOG4CXX_DEBUG(logger_,
+                " Create timer thread ; timer thread = " << timer_.thread_->thread_handle());
 }
 
 RequestController::~RequestController() {
@@ -68,13 +68,12 @@ RequestController::~RequestController() {
   pending_request_set_.clear();
 }
 
-void RequestController::InitializeThreadpool()
-{
+void RequestController::InitializeThreadpool() {
   LOG4CXX_TRACE_ENTER(logger_);
   // TODO: Consider lazy loading threads instead of creating all at once
   pool_state_ = TPoolState::STARTED;
   for (uint32_t i = 0; i < pool_size_; i++) {
-    char name [50];
+    char name[50];
     snprintf(name, sizeof(name)/sizeof(name[0]),
              "AM Pool %d", i);
     pool_.push_back(threads::CreateThread(name, new Worker(this)));
@@ -86,10 +85,10 @@ void RequestController::InitializeThreadpool()
 void RequestController::DestroyThreadpool() {
   LOG4CXX_TRACE_ENTER(logger_);
   {
-    sync_primitives::AutoLock auto_lock (mobile_request_list_lock_);
+    sync_primitives::AutoLock auto_lock(mobile_request_list_lock_);
     pool_state_ = TPoolState::STOPPED;
     LOG4CXX_INFO(logger_, "Broadcasting STOP signal to all threads...");
-    cond_var_.Broadcast(); // notify all threads we are shutting down
+    cond_var_.Broadcast();  // notify all threads we are shutting down
   }
   for (uint32_t i = 0; i < pool_size_; i++) {
     pool_[i]->stop();
@@ -155,8 +154,7 @@ RequestController::TResult RequestController::addMobileRequest(
     LOG4CXX_INFO(logger_, "mobile_request_list_ size is "
                  << mobile_request_list_.size()
                  << " pending_request_set_ size is "
-                 << pending_request_set_.size()
-                 );
+                 << pending_request_set_.size());
   }
 
   // wake up one thread that is waiting for a task to be available
@@ -171,7 +169,8 @@ RequestController::TResult RequestController::addHMIRequest(
   DCHECK(request.valid());
   LOG4CXX_DEBUG(logger_, "addHMIRequest " << request->correlation_id());
 
-  uint32_t timeout_in_seconds = request->default_timeout()/date_time::DateTime::MILLISECONDS_IN_SECOND;
+  const uint32_t timeout_in_seconds =
+      request->default_timeout() / date_time::DateTime::MILLISECONDS_IN_SECOND;
   RequestInfoPtr request_info_ptr =
       new HMIRequestInfo(request,
                          timeout_in_seconds);
@@ -344,7 +343,7 @@ void RequestController::updateRequestTimeout(
   } else {
     LOG4CXX_ERROR(logger_, "Can't find request with "
                   << " app_id " << app_id
-                  << " mobile_correlation_id " << mobile_correlation_id );
+                  << " mobile_correlation_id " << mobile_correlation_id);
   }
 }
 
@@ -405,9 +404,10 @@ void RequestController::Worker::threadMain() {
     MobileRequestPtr request(request_controller_->mobile_request_list_.front());
 
     request_controller_->mobile_request_list_.pop_front();
-    bool init_res = request->Init(); // to setup specific default timeout
+    bool init_res = request->Init();  // to setup specific default timeout
 
-    uint32_t timeout_in_seconds = request->default_timeout()/date_time::DateTime::MILLISECONDS_IN_SECOND;
+    const uint32_t timeout_in_seconds =
+        request->default_timeout() / date_time::DateTime::MILLISECONDS_IN_SECOND;
     RequestInfoPtr request_info_ptr(new MobileRequestInfo(request,
                                                           timeout_in_seconds));
 
@@ -429,7 +429,6 @@ void RequestController::Worker::threadMain() {
       request->Run();
     }
   }
-
 }
 
 bool RequestController::Worker::exitThreadMain() {
@@ -448,19 +447,20 @@ bool RequestController::checkTimeScaleMaxRequest(
   {
     AutoLock auto_lock(pending_request_set_lock_);
     TimevalStruct end = date_time::DateTime::getCurrentTime();
-    TimevalStruct start;
+    TimevalStruct start = {0, 0};
     start.tv_sec = end.tv_sec - app_time_scale;
 
     TimeScale scale(start, end, app_id);
-    uint32_t count = 0;
-
-    count = count_if (pending_request_set_.begin(), pending_request_set_.end(), scale);
-    if (count == max_request_per_time_scale ) {
+    const uint32_t count = std::count_if(pending_request_set_.begin(),
+                                         pending_request_set_.end(), scale);
+    if (count == max_request_per_time_scale) {
       LOG4CXX_ERROR(logger_, "Requests count " << count <<
                     " exceed application limit " << max_request_per_time_scale);
+      LOG4CXX_TRACE_EXIT(logger_);
       return true;
     }
   }
+  LOG4CXX_TRACE_EXIT(logger_);
   return true;
 }
 
@@ -473,20 +473,21 @@ bool RequestController::checkHMILevelTimeScaleMaxRequest(
     {
       AutoLock auto_lock(pending_request_set_lock_);
       TimevalStruct end = date_time::DateTime::getCurrentTime();
-      TimevalStruct start;
+      TimevalStruct start = {0, 0};
       start.tv_sec = end.tv_sec - app_time_scale;
 
       HMILevelTimeScale scale(start, end, app_id, hmi_level);
-      uint32_t count = 0;
-
-      count = count_if (pending_request_set_.begin(), pending_request_set_.end(), scale);
-      if (count == max_request_per_time_scale ) {
+      const uint32_t count = std::count_if(pending_request_set_.begin(),
+                                           pending_request_set_.end(), scale);
+      if (count == max_request_per_time_scale) {
         LOG4CXX_ERROR(logger_, "Requests count " << count
                       << " exceed application limit " << max_request_per_time_scale
                       << " in hmi level " << hmi_level);
+        LOG4CXX_TRACE_EXIT(logger_);
         return false;
       }
     }
+  LOG4CXX_TRACE_EXIT(logger_);
   return true;
 }
 
