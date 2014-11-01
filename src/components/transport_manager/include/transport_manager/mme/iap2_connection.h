@@ -74,7 +74,6 @@ class IAP2Connection : public Connection {
   iap2ea_hdl_t* iap2ea_hdl_;
   std::string protocol_name_;  // for logging purposes only
   uint8_t buffer_[kBufferSize];
-  bool unexpected_disconnect_;
 
   threads::Thread* receiver_thread_;
   threads::ThreadDelegate* receiver_thread_delegate_;
