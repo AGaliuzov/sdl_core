@@ -398,10 +398,10 @@ void LifeCycle::Run() {
 
 #ifdef CUSTOMER_PASA
 void LifeCycle::LowVoltage() {
-  // transport_manager_->ReInit();
 }
 
 void LifeCycle::WakeUp() {
+  transport_manager_->Reinit();
 }
 #endif
 

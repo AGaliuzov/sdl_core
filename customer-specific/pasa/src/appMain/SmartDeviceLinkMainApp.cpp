@@ -333,7 +333,7 @@ int main(int argc, char** argv) {
     exit(EXIT_FAILURE);
   }
 
-  if (cpid > 0) {
+  if (cpid == 0) {
     // Child process reads mqueue, translates all received messages to the pipe
     // and reacts on some of them (e.g. SDL_MSG_LOW_VOLTAGE)
     close(pipefd[0]);
@@ -350,8 +350,6 @@ int main(int argc, char** argv) {
     dispatchCommands(mq, pipefd[1], pid);
 
     close(pipefd[1]);
-    exit(EXIT_SUCCESS);
-    waitpid(cpid, &result, 0);
     exit(EXIT_SUCCESS);
   } 
   close(pipefd[1]);
@@ -378,6 +376,8 @@ int main(int argc, char** argv) {
   stopSmartDeviceLink();
 
   close(pipefd[0]);
+  int result;
+  waitpid(cpid, &result, 0);
 
   LOG4CXX_INFO(logger_, "Application successfully stopped");
 #ifdef ENABLE_LOG
