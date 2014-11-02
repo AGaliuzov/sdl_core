@@ -425,11 +425,11 @@ int TransportManagerImpl::Init() {
 }
 
 int TransportManagerImpl::Reinit() {
-  Visibility(false);
+  LOG4CXX_TRACE_ENTER(logger_);
   DisconnectAllDevices();
   TerminateAllAdapters();
   int ret = InitAllAdapters();
-  Visibility(true);
+  LOG4CXX_TRACE_EXIT(logger_);
   return ret;
 }
 
