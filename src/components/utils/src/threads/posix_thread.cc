@@ -220,35 +220,6 @@ void Thread::stop() {
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
-bool Thread::cancel() {
-  LOG4CXX_TRACE_ENTER(logger_);
-
-  if (!atomic_post_clr(&isThreadRunning_)) {
-    LOG4CXX_ERROR(logger_, "Cannot cancel thread #"
-                  << thread_handle_ << " : " << name_
-                  << ". Thread is not runing");
-    return false;
-  }
-
-  LOG4CXX_WARN(logger_, "Cancelling thread #" << thread_handle_ << " : " << name_);
-  const int pthread_result = pthread_cancel(thread_handle_);
-  if (pthread_result != EOK) {
-    LOG4CXX_WARN(logger_,
-                 "Couldn't cancel thread (#" << thread_handle_ << " \"" << name_ <<
-                 "\") from thread #" << pthread_self() << ". Error code = "
-                 << pthread_result << " (\"" << strerror(pthread_result) << "\")");
-    return false;
-  } else {
-    LOG4CXX_WARN(logger_, "Canceled thread #" << thread_handle_ << " : " << name_);
-    if (delegate_) {
-      delete delegate_;
-      delegate_ = NULL;
-    }
-    return true;
-  }
-  LOG4CXX_TRACE_EXIT(logger_);
-}
-
 bool Thread::Id::operator==(const Thread::Id& other) const {
   return pthread_equal(id_, other.id_) != 0;
 }

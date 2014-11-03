@@ -204,7 +204,7 @@ class RequestController {
      */
     void OnWakeUp();
 
-
+    bool IsLowVoltage();
   protected:
 
     /**

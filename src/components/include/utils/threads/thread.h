@@ -139,11 +139,6 @@ class Thread {
   void stop();
 
   /**
-   * @brief cancel - inititate pthread_cancel
-   */
-  bool cancel();
-
-  /**
    * Get thread name.
    * @return thread name
    */

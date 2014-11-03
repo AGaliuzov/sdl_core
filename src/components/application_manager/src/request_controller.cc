@@ -375,26 +375,19 @@ void RequestController::updateRequestTimeout(
 void RequestController::OnLowVoltage() {
   LOG4CXX_TRACE_ENTER(logger_);
   is_low_voltage_ = true;
-  terminateAllHMIRequests();
-  terminateAllMobileRequests();
-  {
-    sync_primitives::AutoLock auto_lock (mobile_request_list_lock_);
-    pool_state_ = TPoolState::STOPPED;
-    for (uint32_t i = 0; i < pool_size_; i++) {
-      if (false == pool_[i]->cancel()) {
-        LOG4CXX_ERROR(logger_, "Unable to stop request thread");
-      }
-      threads::DeleteThread(pool_[i]);
-    }
-  }
-  LOG4CXX_TRACE(logger_, "Threads exited from the thread pool " << pool_size_);
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void RequestController::OnWakeUp() {
     LOG4CXX_TRACE_ENTER(logger_);
-    InitializeThreadpool();
+    terminateAllHMIRequests();
+    terminateAllMobileRequests();
+    LOG4CXX_ERROR(logger_, "Terminate OnWAkeUp remove old reuests done");
     LOG4CXX_TRACE_EXIT(logger_);
+}
+
+bool RequestController::IsLowVoltage() {
+  return is_low_voltage_;
 }
 
 void RequestController::onTimer() {
@@ -475,7 +468,8 @@ void RequestController::Worker::threadMain() {
     AutoUnlock unlock(auto_lock);
 
     // execute
-    if (request->CheckPermissions() && init_res) {
+    if ((false == request_controller_->IsLowVoltage()) &&
+        request->CheckPermissions() && init_res) {
       request->Run();
     }
   }

@@ -1220,10 +1220,13 @@ bool ApplicationManagerImpl::ManageMobileCommand(
 
   if (!message) {
     LOG4CXX_WARN(logger_, "RET Null-pointer message received.");
-    NOTREACHED()
     return false;
   }
 
+  if (IsLowVoltage()) {
+    LOG4CXX_WARN(logger_, "Low Voltage is active");
+    return false;
+  }
 #ifdef DEBUG
   MessageHelper::PrintSmartObject(*message);
 #endif
@@ -1415,10 +1418,13 @@ bool ApplicationManagerImpl::ManageHMICommand(
 
   if (!message) {
     LOG4CXX_WARN(logger_, "Null-pointer message received.");
-    NOTREACHED();
     return false;
   }
 
+  if (IsLowVoltage()) {
+    LOG4CXX_WARN(logger_, "Low Voltage is active");
+    return false;
+  }
 
   MessageHelper::PrintSmartObject(*message);
 
@@ -2228,14 +2234,13 @@ void  ApplicationManagerImpl::OnLowVoltage() {
 }
 
 bool ApplicationManagerImpl::IsLowVoltage() {
-  return true == is_low_voltage_;
+  return is_low_voltage_;
 }
 
 void ApplicationManagerImpl::OnWakeUp() {
     LOG4CXX_TRACE_ENTER(logger_);
     is_low_voltage_ = false;
     request_ctrl_.OnWakeUp();
-    connection_handler_->CloseAllConnections();
     LOG4CXX_TRACE_EXIT(logger_);
 }
 
