@@ -266,6 +266,8 @@ class ApplicationManagerImpl : public ApplicationManager,
   MOCK_CONST_METHOD1(DoesAudioAppWithSameHMITypeExistInFullOrLimited, bool(ApplicationSharedPtr));
   MOCK_CONST_METHOD0(active_application, ApplicationSharedPtr ());
   MOCK_METHOD0(OnApplicationListUpdateTimer, void());
+  MOCK_METHOD0(OnLowVoltage, void());
+  MOCK_METHOD0(OnWakeUp, void());
 
   typedef const std::set<ApplicationSharedPtr> TAppList;
   typedef std::set<ApplicationSharedPtr>::iterator TAppListIt;
