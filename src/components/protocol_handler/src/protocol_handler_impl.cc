@@ -81,9 +81,9 @@ ProtocolHandlerImpl::ProtocolHandlerImpl(
   incoming_data_handler_.set_validator(&protocol_header_validator_);
   const size_t time_range_msecs = message_frequency_time;
   message_meter_.set_time_range(time_range_msecs);
-  if(time_range_msecs > 0) {
+  if (time_range_msecs > 0) {
     message_max_frequency_ = message_frequency_count;
-    if(message_max_frequency_ > 0) {
+    if (message_max_frequency_ > 0) {
       LOG4CXX_DEBUG(logger_, "Frequency meter is enabled ( " << message_max_frequency_
                     << " per " << time_range_msecs << " mSecond)");
     } else {
@@ -472,7 +472,7 @@ void ProtocolHandlerImpl::OnTMMessageSend(const RawMessagePtr message) {
   ProtocolPacket sent_message(message->connection_key());
   const RESULT_CODE result = sent_message.deserializePacket(message->data(),
                                                             message->data_size());
-  if(result != RESULT_OK) {
+  if (result != RESULT_OK) {
     LOG4CXX_ERROR(logger_, "Error while message deserialization.");
     return;
   }
@@ -961,6 +961,7 @@ class StartSessionHandler : public security_manager::SecurityManagerListener {
     delete this;
     return true;
   }
+
  private:
   const uint32_t connection_key_;
   ProtocolHandlerImpl *protocol_handler_;
@@ -1065,12 +1066,27 @@ RESULT_CODE ProtocolHandlerImpl::HandleControlMessageHeartBeat(
   return RESULT_HEARTBEAT_IS_NOT_SUPPORTED;
 }
 
+bool ProtocolHandlerImpl::isAppFlooding(const uint32_t& connection_key) {
+  LOG4CXX_TRACE_ENTER(logger_);
+  const size_t message_frequecy = message_meter_.TrackMessage(connection_key);
+  if (message_frequecy > message_max_frequency_) {
+    LOG4CXX_WARN(logger_, "Frequency of " << connection_key << " is marked as high.");
+    session_observer_->OnApplicationFloodCallBack(connection_key);
+    message_meter_.RemoveIdentifier(connection_key);
+    LOG4CXX_TRACE_EXIT(logger_);
+    return true;
+  }
+  LOG4CXX_TRACE_EXIT(logger_);
+  return false;
+}
+
 void ProtocolHandlerImpl::Handle(
     const impl::RawFordMessageFromMobile message) {
   LOG4CXX_TRACE_ENTER(logger_);
 
   if (NULL == session_observer_) {
     LOG4CXX_WARN(logger_, "Session Observer is NULL");
+    LOG4CXX_TRACE_EXIT(logger_);
     return;
   }
 
@@ -1081,11 +1097,7 @@ void ProtocolHandlerImpl::Handle(
     default: {
         const uint32_t connection_key = session_observer_->KeyFromPair(
               message->connection_id(), message->session_id());
-        const size_t message_frequecy = message_meter_.TrackMessage(connection_key);
-        if(message_frequecy > message_max_frequency_) {
-          LOG4CXX_WARN(logger_, "Frequency of " << connection_key << " is marked as high.");
-          session_observer_->OnApplicationFloodCallBack(connection_key);
-          message_meter_.RemoveIdentifier(connection_key);
+        if (isAppFlooding(connection_key)) {
           LOG4CXX_TRACE_EXIT(logger_);
           return;
         }
@@ -1134,7 +1146,8 @@ void ProtocolHandlerImpl::Handle(const impl::RawFordMessageToMobile message) {
 }
 
 #ifdef ENABLE_SECURITY
-void ProtocolHandlerImpl::set_security_manager(security_manager::SecurityManager* security_manager) {
+void ProtocolHandlerImpl::set_security_manager(
+    security_manager::SecurityManager* security_manager) {
   if (!security_manager) {
     LOG4CXX_ERROR(logger_, "Invalid (NULL) pointer to SecurityManager.");
     return;

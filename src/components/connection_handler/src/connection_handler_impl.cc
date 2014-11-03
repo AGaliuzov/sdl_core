@@ -362,13 +362,13 @@ uint32_t ConnectionHandlerImpl::OnSessionStartedCallback(
   return new_session_id;
 }
 
-void ConnectionHandlerImpl::OnApplicationFloodCallBack(const uint32_t &key) {
+void ConnectionHandlerImpl::OnApplicationFloodCallBack(const uint32_t &connection_key) {
   LOG4CXX_TRACE_ENTER(logger_);
-  connection_handler_observer_->OnApplicationFloodCallBack(key);
+  connection_handler_observer_->OnApplicationFloodCallBack(connection_key);
   transport_manager::ConnectionUID connection_handle = 0;
   uint8_t session_id = 0;
-  PairFromKey(key, &connection_handle, &session_id);
-  LOG4CXX_TRACE(logger_, "Disconnect flooding application");
+  PairFromKey(connection_key, &connection_handle, &session_id);
+  LOG4CXX_INFO(logger_, "Disconnect flooding application");
   transport_manager::ConnectionUID connection_uid =
       ConnectionUIDFromHandle(connection_handle);
   transport_manager_->DisconnectForce(connection_uid);

@@ -461,7 +461,7 @@ class ApplicationManagerImpl : public ApplicationManager,
         const int32_t& session_key, const protocol_handler::ServiceType& type) OVERRIDE;
     void OnServiceEndedCallback(const int32_t& session_key,
                                 const protocol_handler::ServiceType& type) OVERRIDE;
-    void OnApplicationFloodCallBack(const uint32_t& key) OVERRIDE;
+    void OnApplicationFloodCallBack(const uint32_t& connection_key) OVERRIDE;
     /**
      * @ Add notification to collection
      *

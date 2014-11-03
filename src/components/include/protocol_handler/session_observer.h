@@ -98,9 +98,9 @@ class SessionObserver {
   /**
    * \brief Callback function used by ProtocolHandler
    * when Mobile Application start message flood
-   * \param key used by other components as application identifier
+   * \param connection_key used by other components as application identifier
    */
-  virtual void OnApplicationFloodCallBack(const uint32_t &key) = 0;
+  virtual void OnApplicationFloodCallBack(const uint32_t &connection_key) = 0;
   /**
    * \brief Creates unique identifier of session (can be used as hash)
    * from given connection identifier

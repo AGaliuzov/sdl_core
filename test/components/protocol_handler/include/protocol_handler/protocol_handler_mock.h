@@ -114,7 +114,7 @@ class SessionObserverMock: public protocol_handler::SessionObserver {
                  const uint32_t& hashCode,
                  const protocol_handler::ServiceType& service_type));
   MOCK_METHOD1(OnApplicationFloodCallBack,
-               void(const uint32_t &key));
+               void(const uint32_t&));
   MOCK_METHOD2(KeyFromPair,
                uint32_t(
                  transport_manager::ConnectionUID connection_handle,

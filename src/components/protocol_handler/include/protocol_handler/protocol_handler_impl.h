@@ -445,6 +445,9 @@ class ProtocolHandlerImpl
   RESULT_CODE EncryptFrame(ProtocolFramePtr packet);
   RESULT_CODE DecryptFrame(ProtocolFramePtr packet);
 #endif  // ENABLE_SECURITY
+
+  bool isAppFlooding(const uint32_t& connection_key);
+
  private:
   /**
    *\brief Pointer on instance of class implementing IProtocolObserver
