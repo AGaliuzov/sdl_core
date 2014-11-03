@@ -2227,6 +2227,10 @@ void  ApplicationManagerImpl::OnLowVoltage() {
     LOG4CXX_TRACE_EXIT(logger_);
 }
 
+bool ApplicationManagerImpl::IsLowVoltage() {
+  return true == is_low_voltage_;
+}
+
 void ApplicationManagerImpl::OnWakeUp() {
     LOG4CXX_TRACE_ENTER(logger_);
     is_low_voltage_ = false;

@@ -223,8 +223,7 @@ void Thread::stop() {
 bool Thread::cancel() {
   LOG4CXX_TRACE_ENTER(logger_);
 
-  if (!atomic_post_clr(&isThreadRunning_))
-  {
+  if (!atomic_post_clr(&isThreadRunning_)) {
     LOG4CXX_ERROR(logger_, "Cannot cancel thread #"
                   << thread_handle_ << " : " << name_
                   << ". Thread is not runing");

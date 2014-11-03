@@ -380,14 +380,14 @@ void RequestController::OnLowVoltage() {
   {
     sync_primitives::AutoLock auto_lock (mobile_request_list_lock_);
     pool_state_ = TPoolState::STOPPED;
-  for (uint32_t i = 0; i < pool_size_; i++) {
-    if (false == pool_[i]->cancel()) {
-      LOG4CXX_ERROR(logger_, "Unable to stop request thread");
+    for (uint32_t i = 0; i < pool_size_; i++) {
+      if (false == pool_[i]->cancel()) {
+        LOG4CXX_ERROR(logger_, "Unable to stop request thread");
+      }
+      threads::DeleteThread(pool_[i]);
     }
-    threads::DeleteThread(pool_[i]);
   }
-  }
-  LOG4CXX_INFO(logger_, "Threads exited from the thread pool " << pool_size_);
+  LOG4CXX_TRACE(logger_, "Threads exited from the thread pool " << pool_size_);
   LOG4CXX_TRACE_EXIT(logger_);
 }
 

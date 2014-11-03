@@ -672,6 +672,10 @@ class ApplicationManagerImpl : public ApplicationManager,
      */
     void OnLowVoltage();
 
+    /*
+     * @brief returns true if low voltage state is active
+     */
+    bool IsLowVoltage();
 
     /*
      * @brief Function Should be called when WakeUp occures after Low Voltage
