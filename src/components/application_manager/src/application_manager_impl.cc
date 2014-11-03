@@ -1287,13 +1287,11 @@ bool ApplicationManagerImpl::ManageMobileCommand(
   }
   if (message_type ==
       mobile_apis::messageType::notification) {
-    commands::CommandNotificationImpl* command_notify =
-        static_cast<commands::CommandNotificationImpl*>(command);
-    request_ctrl_.addNotification(command_notify);
-    if (command_notify->Init()) {
-      command_notify->Run();
-      if (command_notify->CleanUp()) {
-        request_ctrl_.removeNotification(command_notify);
+    request_ctrl_.addNotification(command);
+    if (command->Init()) {
+      command->Run();
+      if (command->CleanUp()) {
+        request_ctrl_.removeNotification(command);
       }
       // If CleanUp returned false notification should remove it self.
     }
@@ -1303,8 +1301,6 @@ bool ApplicationManagerImpl::ManageMobileCommand(
   if (message_type ==
       mobile_apis::messageType::request) {
 
-    commands::CommandRequestImpl* command_request =
-        static_cast<commands::CommandRequestImpl*>(command);
     // commands will be launched from requesr_ctrl
     mobile_apis::HMILevel::eType app_hmi_level = mobile_apis::HMILevel::INVALID_ENUM;
     if (app) {
@@ -1314,7 +1310,7 @@ bool ApplicationManagerImpl::ManageMobileCommand(
     // commands will be launched from request_ctrl
 
     request_controller::RequestController::TResult result =
-      request_ctrl_.addMobileRequest(command_request, app_hmi_level);
+      request_ctrl_.addMobileRequest(command, app_hmi_level);
 
     if (result == request_controller::RequestController::SUCCESS) {
       LOG4CXX_INFO(logger_, "Perform request");

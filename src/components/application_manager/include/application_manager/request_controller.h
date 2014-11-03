@@ -120,7 +120,7 @@ class RequestController {
     * @return Result code
     *
     */
-    TResult addMobileRequest(const MobileRequestPtr& request,
+    TResult addMobileRequest(const RequestPtr& request,
                              const mobile_apis::HMILevel::eType& hmi_level);
 
 
@@ -260,7 +260,7 @@ class RequestController {
     uint32_t pool_size_;
     sync_primitives::ConditionalVariable cond_var_;
 
-    std::list<MobileRequestPtr> mobile_request_list_;
+    std::list<RequestPtr> mobile_request_list_;
     sync_primitives::Lock mobile_request_list_lock_;
 
     RequestInfoSet pending_request_set_;

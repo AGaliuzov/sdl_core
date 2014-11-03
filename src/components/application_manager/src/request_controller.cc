@@ -98,7 +98,7 @@ void RequestController::DestroyThreadpool() {
 }
 
 RequestController::TResult RequestController::addMobileRequest(
-    const MobileRequestPtr& request,
+    const RequestPtr& request,
     const mobile_apis::HMILevel::eType& hmi_level) {
   LOG4CXX_TRACE_ENTER(logger_);
   if (!request.valid()) {
@@ -215,12 +215,14 @@ void RequestController::terminateMobileRequest(
   AutoLock auto_lock(pending_request_set_lock_);
   RequestInfoSet::iterator it = pending_request_set_.begin();
   for (; pending_request_set_.end() != it; ++it) {
-    RequestInfo* mobile_request_info = it->get();
-    if (NULL == mobile_request_info) {
+    RequestInfoPtr request_info = (*it);
+    if ((false == request_info.valid()) ||
+        RequestInfo::MobileRequest != request_info->requst_type()) {
+      ++it;
       continue;
     }
-    if (mobile_correlation_id == mobile_request_info->requestId()) {
-      mobile_request_info->request()->CleanUp();
+    if (mobile_correlation_id == request_info->requestId()) {
+      request_info->request()->CleanUp();
       pending_request_set_.erase(it);
       LOG4CXX_INFO(logger_, "Mobile request terminated: " << mobile_correlation_id <<
                    " pending_request_set_ size : " << pending_request_set_.size());
@@ -239,12 +241,14 @@ void RequestController::terminateHMIRequest(const uint32_t &correlation_id) {
   AutoLock auto_lock(pending_request_set_lock_);
   RequestInfoSet::iterator it = pending_request_set_.begin();
   for (; pending_request_set_.end() != it; ++it) {
-    RequestInfo* hmi_request_info = it->get();
-    if (NULL == hmi_request_info) {
+    RequestInfoPtr request_info = (*it);
+    if ((false == request_info.valid()) ||
+        RequestInfo::HMIRequest != request_info->requst_type()) {
+      ++it;
       continue;
     }
-    if (correlation_id == hmi_request_info->requestId()) {
-      hmi_request_info->request()->CleanUp();
+    if (correlation_id == request_info->requestId()) {
+      request_info->request()->CleanUp();
       pending_request_set_.erase(it);
       LOG4CXX_DEBUG(logger_, "HMI request terminated: " << correlation_id);
       UpdateTimer();
@@ -264,14 +268,15 @@ void RequestController::terminateAppRequests(
   AutoLock auto_lock(pending_request_set_lock_);
   RequestInfoSet::iterator it = pending_request_set_.begin();
   while (pending_request_set_.end() != it) {
-    RequestInfo* mobile_request_info = it->get();
-    if (NULL == mobile_request_info) {
+    RequestInfoPtr request_info = (*it);
+    if ((false == request_info.valid()) ||
+        RequestInfo::MobileRequest != request_info->requst_type()) {
       ++it;
       continue;
     }
 
-    if (mobile_request_info->app_id() == app_id) {
-      mobile_request_info->request()->CleanUp();
+    if (request_info->app_id() == app_id) {
+      request_info->request()->CleanUp();
       pending_request_set_.erase(it++);
       LOG4CXX_INFO(logger_, "terminated all app requests : " << app_id);
     } else {
@@ -287,12 +292,13 @@ void RequestController::terminateAllHMIRequests() {
   AutoLock auto_lock(pending_request_set_lock_);
   RequestInfoSet::iterator it = pending_request_set_.begin();
   while (pending_request_set_.end() != it) {
-    RequestInfo* hmi_request_info = it->get();
-    if (NULL == hmi_request_info) {
+    RequestInfoPtr request_info = (*it);
+    if ((false == request_info.valid()) ||
+        RequestInfo::HMIRequest != request_info->requst_type()) {
       ++it;
       continue;
     }
-    hmi_request_info->request()->CleanUp();
+    request_info->request()->CleanUp();
     pending_request_set_.erase(it++);
     LOG4CXX_INFO(logger_, "HMI request terminated: ");
   }
@@ -304,15 +310,16 @@ void RequestController::terminateAllMobileRequests() {
   AutoLock auto_lock(pending_request_set_lock_);
   RequestInfoSet::iterator it = pending_request_set_.begin();
   while (pending_request_set_.end() != it) {
-    RequestInfo* mobile_request_info = it->get();
-    if (NULL == mobile_request_info) {
+    RequestInfoPtr request_info = (*it);
+    if ((false == request_info.valid()) ||
+        RequestInfo::MobileRequest != request_info->requst_type()) {
       ++it;
       continue;
     }
-    mobile_request_info->request()->CleanUp();
-    pending_request_set_.erase(it++);
+    request_info->request()->CleanUp();
     LOG4CXX_INFO(logger_, "Mobile request terminated: "
-                 <<  mobile_request_info->requestId());
+                 <<  request_info->requestId());
+    pending_request_set_.erase(it++);
   }
   UpdateTimer();
   LOG4CXX_TRACE_EXIT(logger_);
@@ -335,12 +342,11 @@ void RequestController::updateRequestTimeout(
       LOG4CXX_ERROR(logger_, "Invalid request, can't update timeout");
       continue;
     }
-    mobile_request_info = request_info.get();
-    if (NULL == mobile_request_info) {
+    if (RequestInfo::MobileRequest != request_info->requst_type()) {
       continue;
     }
-    if (app_id == mobile_request_info->app_id() &&
-        mobile_correlation_id == mobile_request_info->requestId()) {
+    if (app_id == request_info->app_id() &&
+        mobile_correlation_id == request_info->requestId()) {
       break;
     }
   }
@@ -445,7 +451,7 @@ void RequestController::Worker::threadMain() {
       break;
     }
 
-    MobileRequestPtr request(request_controller_->mobile_request_list_.front());
+    RequestPtr request(request_controller_->mobile_request_list_.front());
 
     request_controller_->mobile_request_list_.pop_front();
     bool init_res = request->Init();  // to setup specific default timeout
