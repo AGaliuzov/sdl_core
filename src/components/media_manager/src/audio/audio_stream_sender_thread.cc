@@ -64,13 +64,28 @@ AudioStreamSenderThread::AudioStreamSenderThread(
     fileName_(fileName),
     shouldBeStoped_(false),
     shouldBeStoped_lock_(),
+#ifdef CUSTOMER_PASA
+    mq_apt_handle_(-1),
+    total_bytes_from_mq_(0),
+#endif //CUSTOMER PASA
     shouldBeStoped_cv_() {
   LOG4CXX_TRACE_ENTER(logger_);
 }
 
 AudioStreamSenderThread::~AudioStreamSenderThread() {
 #ifdef CUSTOMER_PASA
-  mq_unlink(fileName_.c_str());
+  if (-1 == mq_close(mq_apt_handle_)) {
+    LOG4CXX_ERROR(logger_, "MQ wasn't closed properly: "
+                << strerror(errno));
+  } else {
+        LOG4CXX_INFO(logger_, "MQ was closed properly.");
+  }
+  if (-1 == mq_unlink(fileName_.c_str())) {
+        LOG4CXX_ERROR(logger_, "MQ wan't unlink properly: "
+                        << strerror(errno));
+  } else {
+        LOG4CXX_INFO(logger_, "MQ was unlinked properly.");
+  }
 #endif
 }
 
@@ -135,10 +150,9 @@ void AudioStreamSenderThread::sendAudioChunkToMobile() {
 
 #ifdef CUSTOMER_PASA
 void AudioStreamSenderThread::mqSendAudioChunkToMobile() {
-  mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
-  const mqd_t handle = mq_open(fileName_.c_str(), O_RDWR, mode, 0);
+  mq_apt_handle_ = mq_open(fileName_.c_str(), O_CREAT | O_RDWR, 0666, 0);
 
-  if (-1 == handle) {
+  if (-1 == mq_apt_handle_) {
     LOG4CXX_ERROR(logger_, "Unable to open mqueue in order to obtain data: "
                   << strerror(errno));
     return;
@@ -147,7 +161,7 @@ void AudioStreamSenderThread::mqSendAudioChunkToMobile() {
   struct mq_attr attr;
   char* buffer;
 
-  if (-1 == mq_getattr(handle, &attr)) {
+  if (-1 == mq_getattr(mq_apt_handle_, &attr)) {
     LOG4CXX_ERROR(logger_, "Unable to read mq_attributes: "
                     << strerror(errno));
     return;
@@ -161,7 +175,9 @@ void AudioStreamSenderThread::mqSendAudioChunkToMobile() {
     return;
   }
 
-  const ssize_t dataSize = mq_receive(handle, buffer, attr.mq_msgsize, 0);
+  LOG4CXX_INFO(logger_, "Waiting for data to be available in MQ.");
+  const ssize_t dataSize = mq_receive(mq_apt_handle_, buffer,
+                                      attr.mq_msgsize, 0);
 
   if (-1 == dataSize) {
     LOG4CXX_ERROR(logger_, "Unable to recieve data from mqueue: "
@@ -177,6 +193,8 @@ void AudioStreamSenderThread::mqSendAudioChunkToMobile() {
   delete[] buffer;
 
   LOG4CXX_INFO(logger_, "data.size() =  " << data.size());
+
+  total_bytes_from_mq_ += data.size();
 
   application_manager::ApplicationManagerImpl::instance()->
   SendAudioPassThroughNotification(session_key_, data);
