@@ -49,15 +49,22 @@ IAPDevice::IAPDevice(const std::string& mount_point, const std::string& name,
       controller_(controller),
       ipod_hdl_(0),
       last_app_id_(0),
+      running_(false),
       app_table_lock_(true),
       connections_lock_(true),
       receiver_thread_(0) {
 }
 
-IAPDevice::~IAPDevice() {
-  if (receiver_thread_) {
+void IAPDevice::Stop() {
+  if (running_ && receiver_thread_) {
+    running_ = false;
     receiver_thread_->stop();
+    threads::DeleteThread(receiver_thread_);
   }
+}
+
+IAPDevice::~IAPDevice() {
+  Stop();
 
   LOG4CXX_TRACE(logger_, "iAP: disconnecting from " << mount_point());
   if (ipod_disconnect(ipod_hdl_) != -1) {
@@ -85,6 +92,7 @@ bool IAPDevice::Init() {
     receiver_thread_ = threads::CreateThread(
         "iAP event", new IAPEventThreadDelegate(ipod_hdl_, this));
     receiver_thread_->start();
+    running_ = true;
 
     return true;
   } else {

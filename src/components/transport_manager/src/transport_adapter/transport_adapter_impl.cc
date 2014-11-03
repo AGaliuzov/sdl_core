@@ -304,6 +304,11 @@ TransportAdapter::Error TransportAdapterImpl::StopClientListening() {
     return BAD_STATE;
   }
   TransportAdapter::Error err = client_connection_listener_->StopListening();
+  for(DeviceMap::iterator it = devices_.begin();
+      it != devices_.end();
+      ++it) {
+    it->second->Stop();
+  }
   LOG4CXX_TRACE(logger_, "exit with error: " << err);
   return err;
 }

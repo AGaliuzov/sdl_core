@@ -63,6 +63,8 @@ class IAP2Device : public MmeDevice {
     return IAP2;
   }
 
+  virtual void Stop();
+
  protected:
   virtual ApplicationList GetApplicationList() const;
 

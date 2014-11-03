@@ -31,15 +31,16 @@
  */
 
 #include "transport_manager/mme/mme_transport_adapter.h"
-#include "transport_manager/mme/mme_device_scanner.h"
 #include "transport_manager/mme/mme_connection_factory.h"
+#include "transport_manager/mme/mme_client_listener.h"
 
 namespace transport_manager {
 namespace transport_adapter {
 
 MmeTransportAdapter::MmeTransportAdapter()
-    : TransportAdapterImpl(new MmeDeviceScanner(this),
-                           new MmeConnectionFactory(this), 0),
+    : TransportAdapterImpl(NULL,
+                           new MmeConnectionFactory(this),
+                           new MmeClientListener(this)),
       initialised_(false) {
 }
 

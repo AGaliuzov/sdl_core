@@ -398,10 +398,12 @@ void LifeCycle::Run() {
 
 #ifdef CUSTOMER_PASA
 void LifeCycle::LowVoltage() {
+  transport_manager_->Visibility(false);
 }
 
 void LifeCycle::WakeUp() {
   transport_manager_->Reinit();
+  transport_manager_->Visibility(true);
 }
 #endif
 

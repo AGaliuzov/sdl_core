@@ -67,13 +67,14 @@ TransportAdapter::Error MmeDeviceScanner::Init() {
     LOG4CXX_DEBUG(logger_, "Connected to " << mme_db_name);
   } else {
     LOG4CXX_ERROR(logger_, "Could not connect to " << mme_db_name);
-    error = TransportAdapter::FAIL;
+    return TransportAdapter::FAIL;
   }
 
   const std::string& event_mq_name =
       profile::Profile::instance()->event_mq_name();
   const std::string& ack_mq_name = profile::Profile::instance()->ack_mq_name();
 #define CREATE_MME_MQ 0
+  LOG4CXX_TRACE(logger_, "Opening " << event_mq_name);
 #if CREATE_MME_MQ
   int flags = O_RDONLY | O_CREAT;
   mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
@@ -81,13 +82,9 @@ TransportAdapter::Error MmeDeviceScanner::Init() {
   attributes.mq_maxmsg = MSGQ_MAX_MESSAGES;
   attributes.mq_msgsize = MAX_QUEUE_MSG_SIZE;
   attributes.mq_flags = 0;
-#else
-  int flags = O_RDONLY;
-#endif
-  LOG4CXX_TRACE(logger_, "Opening " << event_mq_name);
-#if CREATE_MME_MQ
   event_mqd_ = mq_open(event_mq_name.c_str(), flags, mode, &attributes);
 #else
+  int flags = O_RDONLY;
   event_mqd_ = mq_open(event_mq_name.c_str(), flags);
 #endif
   if (event_mqd_ != -1) {
@@ -97,15 +94,13 @@ TransportAdapter::Error MmeDeviceScanner::Init() {
                   "Could not open " << event_mq_name << ", errno = " << errno);
     error = TransportAdapter::FAIL;
   }
-#if CREATE_MME_MQ
-  flags = O_WRONLY | O_CREAT;
-#else
-  flags = O_WRONLY;
-#endif
+
   LOG4CXX_TRACE(logger_, "Opening " << ack_mq_name);
 #if CREATE_MME_MQ
+  flags = O_WRONLY | O_CREAT;
   ack_mqd_ = mq_open(ack_mq_name.c_str(), flags, mode, &attributes);
 #else
+  flags = O_WRONLY;
   ack_mqd_ = mq_open(ack_mq_name.c_str(), flags);
 #endif
   if (ack_mqd_ != -1) {
@@ -115,6 +110,7 @@ TransportAdapter::Error MmeDeviceScanner::Init() {
                   "Could not open " << ack_mq_name << ", errno = " << errno);
     error = TransportAdapter::FAIL;
   }
+
   if ((event_mqd_ != -1) && (ack_mqd_ != -1)) {
     notify_thread_ = threads::CreateThread(
         "MME MQ notifier",

@@ -77,6 +77,7 @@ class IAP2Connection : public Connection {
 
   threads::Thread* receiver_thread_;
   threads::ThreadDelegate* receiver_thread_delegate_;
+  bool unexpected_disconnect_;
 
   class ReceiverThreadDelegate : public threads::PulseThreadDelegate {
    public:

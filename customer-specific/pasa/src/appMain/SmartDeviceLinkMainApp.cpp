@@ -1,3 +1,5 @@
+#include <fcntl.h>
+#include <semaphore.h>
 #include <string.h>
 #include <log4cxx/rollingfileappender.h>
 #include <log4cxx/fileappender.h>
@@ -255,6 +257,7 @@ void ApplinkNotificationThreadDelegate::threadMain() {
   }
 #endif
 
+  sem_t *sem;
   while (!g_bTerminate) {
     if ( (length = read(readfd_, buffer, sizeof(buffer))) != -1) {
       switch (buffer[0]) {
@@ -274,6 +277,13 @@ void ApplinkNotificationThreadDelegate::threadMain() {
           break;
         case SDL_MSG_LOW_VOLTAGE:
           main_namespace::LifeCycle::instance()->LowVoltage();
+          sem = sem_open("/SDLSleep", O_RDWR);
+          if (!sem) {
+            fprintf(stderr, "Error opening semaphore: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
+          }
+          sem_post(sem);
+          sem_close(sem);
           break;
         case SDL_MSG_WAKE_UP:
           main_namespace::LifeCycle::instance()->WakeUp();
@@ -288,11 +298,20 @@ void ApplinkNotificationThreadDelegate::threadMain() {
 void dispatchCommands(mqd_t mqueue, int pipefd, int pid) {
   char buffer[MAX_QUEUE_MSG_SIZE];
   ssize_t length = 0;
+  sem_t *sem;
 
   while (!g_bTerminate) {
     if ( (length = mq_receive(mqueue, buffer, sizeof(buffer), 0)) != -1) {
       switch (buffer[0]) {
         case SDL_MSG_LOW_VOLTAGE:
+          sem = sem_open("/SDLSleep", O_CREAT | O_RDONLY, 0666, 0);
+          write(pipefd, buffer, length);
+          if (!sem) {
+            fprintf(stderr, "Error opening semaphore: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
+          }
+          sem_wait(sem);
+          sem_close(sem);
           if(kill(pid, SIGSTOP) == -1) {
             fprintf(stderr, "Error sending SIGSTOP signal: %s\n", strerror(errno));
           }
@@ -301,12 +320,16 @@ void dispatchCommands(mqd_t mqueue, int pipefd, int pid) {
           if(kill(pid, SIGCONT) == -1) {
             fprintf(stderr, "Error sending SIGCONT signal: %s\n", strerror(errno));
           }
+          write(pipefd, buffer, length);
           break;
         case SDL_MSG_SDL_STOP:
           g_bTerminate = true;
+          write(pipefd, buffer, length);
+          break;
+        default:
+          write(pipefd, buffer, length);
           break;
       }
-      write(pipefd, buffer, length);
     }
   } // while(!g_bTerminate)
 }

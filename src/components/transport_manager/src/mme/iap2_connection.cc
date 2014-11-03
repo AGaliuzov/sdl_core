@@ -53,7 +53,8 @@ IAP2Connection::IAP2Connection(const DeviceUID& device_uid,
       parent_(parent),
       iap2ea_hdl_(0),
       receiver_thread_(0),
-      receiver_thread_delegate_(0) {
+      receiver_thread_delegate_(0),
+      unexpected_disconnect_(false) {
 }
 
 IAP2Connection::~IAP2Connection() {
@@ -80,7 +81,9 @@ bool IAP2Connection::Init() {
 }
 
 void IAP2Connection::Finalize() {
-  controller_->DisconnectDone(device_uid_, app_handle_);
+  if (!unexpected_disconnect_) {
+    controller_->DisconnectDone(device_uid_, app_handle_);
+  }
 }
 
 TransportAdapter::Error IAP2Connection::SendData(
@@ -134,6 +137,7 @@ void IAP2Connection::ReceiveData() {
 // anyway delegate can be stopped directly
         receiver_thread_delegate_->exitThreadMain();
         Close();
+        unexpected_disconnect_ = true;
         controller_->ConnectionAborted(device_uid_, app_handle_,
                                        CommunicationError());
         break;

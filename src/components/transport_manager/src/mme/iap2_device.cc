@@ -53,6 +53,10 @@ IAP2Device::IAP2Device(const std::string& mount_point, const std::string& name,
 }
 
 IAP2Device::~IAP2Device() {
+  Stop();
+}
+
+void IAP2Device::Stop() {
   for (ThreadContainer::const_iterator i = hub_connection_threads_.begin();
       i != hub_connection_threads_.end(); ++i) {
     threads::Thread* thread = i->second;
