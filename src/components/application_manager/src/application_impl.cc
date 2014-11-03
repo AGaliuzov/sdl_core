@@ -35,6 +35,7 @@
 #include <stdlib.h>
 #include "application_manager/application_impl.h"
 #include "application_manager/message_helper.h"
+#include "application_manager/application_manager_impl.h"
 #include "config_profile/profile.h"
 #include "interfaces/MOBILE_API.h"
 #include "utils/file_system.h"
@@ -100,6 +101,9 @@ ApplicationImpl::ApplicationImpl(uint32_t application_id,
       usage_report_(mobile_app_id, statistics_manager),
       protocol_version_(ProtocolVersion::kV3),
       is_voice_communication_application_(false),
+#ifdef CUSTOMER_PASA
+      flag_sending_hash_change_after_awake_(false),
+#endif //CUSTOMER_PASA
       is_video_stream_retry_active_(false),
       is_audio_stream_retry_active_(false),
       video_stream_retry_number_(0),
@@ -657,9 +661,28 @@ uint32_t ApplicationImpl::curHash() const {
 
 uint32_t ApplicationImpl::UpdateHash() {
   uint32_t new_hash= nextHash();
+#ifndef CUSTOMER_PASA
   MessageHelper::SendHashUpdateNotification(app_id());
+#endif //!CUSTOMER_PASA
+#ifdef CUSTOMER_PASA
+  ApplicationManagerImpl* app_manager = ApplicationManagerImpl::instance();
+  if (!app_manager->state_suspended()) {
+    MessageHelper::SendHashUpdateNotification(app_id());
+  } else {
+    flag_sending_hash_change_after_awake_ = true;
+  }
+#endif //CUSTOMER_PASA
   return new_hash;
 }
+#ifdef CUSTOMER_PASA
+bool ApplicationImpl::flag_sending_hash_change_after_awake() const {
+  return flag_sending_hash_change_after_awake_;
+}
+
+void ApplicationImpl::set_flag_sending_hash_change_after_awake(bool flag) {
+  flag_sending_hash_change_after_awake_ = flag;
+}
+#endif //CUSTOMER_PASA
 
 void ApplicationImpl::CleanupFiles() {
   std::string directory_name =

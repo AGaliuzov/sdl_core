@@ -544,6 +544,22 @@ void ResumeCtrl::IgnitionOff() {
   SetSavedApplication(to_save);
 }
 
+#ifdef CUSTOMER_PASA
+
+void ResumeCtrl::StartSavePersistentDataTimer() {
+  if (!save_persistent_data_timer_.isRunning()) {
+    save_persistent_data_timer_.start(
+        profile::Profile::instance()->app_resumption_save_persistent_data_timeout());
+  }
+}
+
+void ResumeCtrl::StopSavePersistentDataTimer() {
+  if (save_persistent_data_timer_.isRunning()) {
+    save_persistent_data_timer_.stop();
+  }
+}
+#endif // CUSTOMER_PASA
+
 bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
                                  uint32_t hash) {
   LOG4CXX_INFO(logger_, "ResumeCtrl::StartResumption");

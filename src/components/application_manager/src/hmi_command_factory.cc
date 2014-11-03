@@ -260,6 +260,9 @@
 #include "application_manager/commands/hmi/navi_send_location_response.h"
 #include "application_manager/commands/hmi/on_tts_reset_timeout_notification.h"
 #include "application_manager/commands/hmi/on_phone_call_notification.h"
+#ifdef CUSTOMER_PASA
+#include "application_manager/commands/hmi/basic_communication_on_awake_sdl.h"
+#endif // CUSTOMER_PASA
 
 namespace application_manager {
 
@@ -2040,6 +2043,12 @@ CommandSharedPtr HMICommandFactory::CreateCommand(
       command.reset(new commands::hmi::OnPhoneCallNotification(message));
       break;
     }
+#ifdef CUSTOMER_PASA
+    case hmi_apis::FunctionID::BasicCommunication_OnAwakeSDL: {
+      command.reset(new commands::OnAwakeSDLNotification(message));
+      break;
+    }
+#endif // CUSTOMER_PASA
   }
 
   return command;

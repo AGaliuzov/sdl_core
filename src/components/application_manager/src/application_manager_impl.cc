@@ -89,6 +89,9 @@ ApplicationManagerImpl::ApplicationManagerImpl()
     hmi_capabilities_(this),
     unregister_reason_(mobile_api::AppInterfaceUnregisteredReason::IGNITION_OFF),
     resume_ctrl_(this),
+#ifdef CUSTOMER_PASA
+    is_state_suspended_(false),
+#endif // CUSTOMER_PASA
 #ifdef TIME_TESTER
     metric_observer_(NULL),
 #endif  // TIME_TESTER
@@ -1912,16 +1915,15 @@ void ApplicationManagerImpl::HeadUnitReset(
   }
 }
 
+#ifdef CUSTOMER_PASA
 void ApplicationManagerImpl::HeadUnitSuspend() {
   LOG4CXX_INFO(logger_, "ApplicationManagerImpl::HeadUnitSuspend");
-#ifdef CUSTOMER_PASA
-  LOG4CXX_INFO(logger_, "Unloading policy library.");
-  policy::PolicyHandler::instance()->UnloadPolicyLibrary();
 
+  resume_controller().StopSavePersistentDataTimer();
   resume_controller().SaveAllApplications();
   resumption::LastState::instance()->SaveToFileSystem();
-#endif
 }
+#endif // CUSTOMER_PASA
 
 void ApplicationManagerImpl::SendOnSDLClose() {
   LOG4CXX_INFO(logger_, "ApplicationManagerImpl::SendOnSDLClose");
@@ -1991,22 +1993,30 @@ void ApplicationManagerImpl::UnregisterAllApplications(bool generated_by_hmi) {
   std::set<ApplicationSharedPtr>::iterator it = application_list_.begin();
   while (it != application_list_.end()) {
     ApplicationSharedPtr app_to_remove = *it;
+#ifndef CUSTOMER_PASA
     MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
-        app_to_remove->app_id(), unregister_reason_);
+            app_to_remove->app_id(), unregister_reason_);
     UnregisterApplication(app_to_remove->app_id(),
                           mobile_apis::Result::INVALID_ENUM, is_ignition_off,
                           is_unexpected_disconnect);
-
+#endif // !CUSTOMER_PASA
+#ifdef CUSTOMER_PASA
+    if (!is_ignition_off) {
+      MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
+          app_to_remove->app_id(), unregister_reason_);
+    }
+    UnregisterApplication(app_to_remove->app_id(),
+                          mobile_apis::Result::INVALID_ENUM, false,
+                          is_unexpected_disconnect);
+#endif // CUSTOMER_PASA
     connection_handler_->CloseSession(app_to_remove->app_id());
     it = application_list_.begin();
   }
 
   if (is_ignition_off) {
-   resume_controller().IgnitionOff();
-#ifdef CUSTOMER_PASA
-   resumption::LastState::instance()->SaveToFileSystem();
-#endif
+    resume_controller().IgnitionOff();
   }
+
   request_ctrl_.terminateAllHMIRequests();
 }
 
@@ -2049,10 +2059,17 @@ void ApplicationManagerImpl::UnregisterApplication(
     return;
   }
   application_list_.erase(app_to_remove);
-
+#ifndef CUSTOMER_PASA
   if (is_resuming) {
     resume_ctrl_.SaveApplication(app_to_remove);
   }
+#endif // !CUSTOMER_PASA
+#ifdef CUSTOMER_PASA
+  if (is_resuming && !is_state_suspended_) {
+      resume_ctrl_.SaveApplication(app_to_remove);
+    }
+#endif // CUSTOMER_PASA
+
 
   if (audio_pass_thru_active_) {
     // May be better to put this code in MessageHelper?
@@ -2478,5 +2495,9 @@ void ApplicationManagerImpl::ResetPhoneCallAppList() {
 
   on_phone_call_app_list_.clear();
 }
-
+#ifdef CUSTOMER_PASA
+void ApplicationManagerImpl::set_state_suspended(const bool flag_suspended) {
+  is_state_suspended_ = flag_suspended;
+}
+#endif // CUSTOMER_PASA
 }  // namespace application_manager

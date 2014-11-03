@@ -137,6 +137,20 @@ class ResumeCtrl: public event_engine::EventObserver {
      */
     void IgnitionOff();
 
+#ifdef CUSTOMER_PASA
+    /**
+     * @brief Method starts timer "RsmCtrlPercist" when SDL receives onAwakeSDL notification
+     */
+    void StartSavePersistentDataTimer();
+
+    /**
+     * @brief Method stops timer "RsmCtrlPercist" when SDL receives OnExitAllApplication notification
+     * with reason "SUSPEND"
+     */
+    void StopSavePersistentDataTimer();
+
+#endif //CUSTOMER_PASA
+
     /**
      * @brief Start timer for resumption applications
      *        Restore D1-D5 data

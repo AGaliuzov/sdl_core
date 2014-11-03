@@ -387,6 +387,21 @@ class Application : public virtual InitialApplicationData,
      * @return updated_hash
      */
     virtual uint32_t UpdateHash() = 0;
+#ifdef CUSTOMER_PASA
+    /**
+     * @brief Retrieves flag_sending_hash_change_after_awake_
+     * @return Returns TRUE if hashID was changed during suspended state
+     * otherwise returns FALSE.
+     */
+    virtual bool flag_sending_hash_change_after_awake() const = 0;
+
+    /**
+     * @brief Method is used when core receives OnAwakeSDL notification
+     * in order to change value of flag_sending_hash_change_after_awake_
+     * @param Contains FALSE
+     */
+    virtual void set_flag_sending_hash_change_after_awake(bool flag) = 0;
+#endif // CUSTOMER_PASA
 
     virtual void CloseActiveMessage() = 0;
     virtual bool IsFullscreen() const = 0;
