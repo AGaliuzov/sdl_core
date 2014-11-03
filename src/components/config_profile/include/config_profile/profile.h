@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -213,6 +213,13 @@ class Profile : public utils::Singleton<Profile> {
       */
     const std::string& audio_stream_file() const;
 #ifdef CUSTOMER_PASA
+    /**
+     * @brief Allows to obtain timeout value for HMI's heart beat.
+     *
+     * @return timeout value;
+     */
+    const uint32_t& hmi_heart_beat_timeout();
+
     /**
      * @brief Returns name for mqueue from which SDL
      * will be able to obtain data.
@@ -642,6 +649,7 @@ class Profile : public utils::Singleton<Profile> {
     uint16_t                        transport_manager_tcp_adapter_port_;
     std::string                     tts_delimiter_;
 #ifdef CUSTOMER_PASA
+    std::uint32_t                   hmi_heart_beat_timeout_;
     std::string                     audio_mq_path_;
     std::string                     log4cxx_config_file_;
     std::string                     remote_logging_flag_file_;
