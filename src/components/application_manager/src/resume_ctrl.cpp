@@ -24,7 +24,7 @@ namespace Formatters = NsSmartDeviceLink::NsJSONHandler::Formatters;
 ResumeCtrl::ResumeCtrl(ApplicationManagerImpl* app_mngr)
   : app_mngr_(app_mngr),
     restore_hmi_level_timer_("RsmCtrlRstore",
-                             this, &ResumeCtrl::ApplicationResumptionTimer),
+                             this, &ResumeCtrl::ApplicationResumptiOnTimer),
     save_persistent_data_timer_("RsmCtrlPercist",
                                 this, &ResumeCtrl::SaveDataOnTimer, true),
     is_data_saved(true) {
@@ -588,14 +588,17 @@ bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
       }
 
       application->UpdateHash();
-      if (!restore_hmi_level_timer_.isRunning() && accessor.applications().size() > 1) {
+      if (!restore_hmi_level_timer_.isRunning() &&
+          accessor.applications().size() > 1) {
         RestoreApplicationHMILevel(application);
         RemoveApplicationFromSaved(application);
       } else {
-        sync_primitives::AutoLock auto_lock(queue_lock_);
+        // please avoid AutoLock usage to avoid deadlock
+        queue_lock_.Acquire();
         SetupDefaultHMILevel(application);
         waiting_for_timer_.insert(std::make_pair(application->app_id(),
                                                  time_stamp));
+        queue_lock_.Release();
         restore_hmi_level_timer_.start(profile::Profile::instance()->app_resuming_timeout());
       }
       return true;
@@ -629,10 +632,12 @@ bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
         RestoreApplicationHMILevel(application);
         RemoveApplicationFromSaved(application);
       } else {
-        sync_primitives::AutoLock auto_lock(queue_lock_);
+        // please avoid AutoLock usage to avoid deadlock
+        queue_lock_.Acquire();
         SetupDefaultHMILevel(application);
         waiting_for_timer_.insert(std::make_pair(application->app_id(),
                                                  time_stamp));
+        queue_lock_.Release();
         // woun't start timer if it is active already
         restore_hmi_level_timer_.start(profile::Profile::instance()->app_resuming_timeout());
       }
@@ -722,7 +727,7 @@ bool ResumeCtrl::CheckApplicationHash(ApplicationSharedPtr application,
   return false;
 }
 
-void ResumeCtrl::ApplicationResumptionTimer() {
+void ResumeCtrl::ApplicationResumptiOnTimer() {
   LOG4CXX_INFO(logger_, "application, waiting for resumption HMI_Level count is :"
                          << waiting_for_timer_.size());
   sync_primitives::AutoLock auto_lock(queue_lock_);
@@ -770,10 +775,10 @@ void ResumeCtrl::SetSavedApplication(Json::Value& apps_json) {
 }
 
 void ResumeCtrl::ClearResumptionInfo() {
-	Json::Value empty_json;
+  Json::Value empty_json;
 
-	SetSavedApplication(empty_json);
-	resumption::LastState::instance()->SaveToFileSystem();
+  SetSavedApplication(empty_json);
+  resumption::LastState::instance()->SaveToFileSystem();
 }
 
 Json::Value ResumeCtrl::GetApplicationCommands(

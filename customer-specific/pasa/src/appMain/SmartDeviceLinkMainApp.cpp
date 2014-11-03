@@ -242,6 +242,7 @@ class ApplinkNotificationThreadDelegate : public threads::ThreadDelegate {
   mqd_t mq_to_sdl_;
   mqd_t mq_from_sdl_;
   struct mq_attr attributes_;
+  size_t heart_beat_timeout_;
 };
 
 ApplinkNotificationThreadDelegate::ApplinkNotificationThreadDelegate()
@@ -249,7 +250,8 @@ ApplinkNotificationThreadDelegate::ApplinkNotificationThreadDelegate()
       new timer::TimerThread<ApplinkNotificationThreadDelegate>(
         "AppLinkHearBeat",
         this,
-        &ApplinkNotificationThreadDelegate::sendHeartBeat, true)) {
+        &ApplinkNotificationThreadDelegate::sendHeartBeat, true),
+      heart_beat_timeout_(profile::Profile::instance()->hmi_heart_beat_timeout())) {
 
   attributes_.mq_maxmsg = MSGQ_MAX_MESSAGES;
   attributes_.mq_msgsize = MAX_QUEUE_MSG_SIZE;
@@ -288,7 +290,9 @@ void ApplinkNotificationThreadDelegate::threadMain() {
       switch (buffer[0]) {
         case SDL_MSG_SDL_START:
           startSmartDeviceLink();
-          heart_beat_sender_->start(profile::Profile::instance()->hmi_heart_beat_timeout());
+          if (0 > heart_beat_timeout_) {
+            heart_beat_sender_->start(heart_beat_timeout_);
+          }
           break;
         case SDL_MSG_START_USB_LOGGING:
           startUSBLogging();

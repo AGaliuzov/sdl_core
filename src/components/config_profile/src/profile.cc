@@ -91,7 +91,7 @@ const char* kVideoStreamFileKey = "VideoStreamFile";
 const char* kAudioStreamFileKey = "AudioStreamFile";
 
 #ifdef CUSTOMER_PASA
-const char* kHeartBeatTimeoutKey = "HMIHeartBeatTimeout";
+const char* kHMIHeartBeatTimeoutKey = "HMIHeartBeatTimeout";
 const char* kLoggerSection = "LOGGING";
 const char* kAudioMQPath = "MQAudioPath";
 const char* kLoggerConfigFileKey = "LoggerConfigFile";
