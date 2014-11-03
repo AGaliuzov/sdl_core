@@ -1923,7 +1923,7 @@
     </function>
     <function name="UpdateAppList" messagetype="request">
       <description>Issued by SDL to notify HMI about new applications registered.</description>
-      <param name="applications" type="Common.HMIApplication" mandatory="true" array="true" minsize="1" maxsize="100"/>
+      <param name="applications" type="Common.HMIApplication" mandatory="true" array="true" minsize="0" maxsize="100"/>
     </function>
     <function name="UpdateAppList" messagetype="response">
     </function>
@@ -2051,6 +2051,8 @@
       <param name="reason" type="Common.ApplicationsCloseReason" mandatory="true">
         <description>Specifies reason for exiting all apllications.</description>
       </param>
+    </function>
+    <function name="OnAwakeSDL" messagetype="notification">
     </function>
     <function name="MixingAudioSupported" messagetype="request">
       <description>Request from SDL to HMI to find out if the last one supports mixing audio (i.e. recording TTS command and playing audio).</description>

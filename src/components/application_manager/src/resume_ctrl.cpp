@@ -23,7 +23,12 @@ namespace Formatters = NsSmartDeviceLink::NsJSONHandler::Formatters;
 
 ResumeCtrl::ResumeCtrl(ApplicationManagerImpl* app_mngr)
   : app_mngr_(app_mngr),
-    timer_("ResumeCtrl", this, &ResumeCtrl::onTimer) {
+    restore_hmi_level_timer_("RsmCtrlRstore",
+                             this, &ResumeCtrl::ApplicationResumptionTimer),
+    save_persistent_data_timer_("RsmCtrlPercist",
+                                this, &ResumeCtrl::SaveDataOnTimer, true),
+    is_data_saved(true) {
+  save_persistent_data_timer_.start(profile::Profile::instance()->app_resumption_save_persistent_data_timeout());
 }
 
 void ResumeCtrl::SaveAllApplications() {
@@ -94,7 +99,7 @@ void ResumeCtrl::SaveApplication(ApplicationConstSharedPtr application) {
 }
 
 void ResumeCtrl::on_event(const event_engine::Event& event) {
-  LOG4CXX_INFO(logger_, "ResumeCtrl::on_event ");
+  LOG4CXX_TRACE(logger_, "response from HMI command");
 }
 
 bool ResumeCtrl::RestoreApplicationHMILevel(ApplicationSharedPtr application) {
@@ -539,6 +544,22 @@ void ResumeCtrl::IgnitionOff() {
   SetSavedApplication(to_save);
 }
 
+#ifdef CUSTOMER_PASA
+
+void ResumeCtrl::StartSavePersistentDataTimer() {
+  if (!save_persistent_data_timer_.isRunning()) {
+    save_persistent_data_timer_.start(
+        profile::Profile::instance()->app_resumption_save_persistent_data_timeout());
+  }
+}
+
+void ResumeCtrl::StopSavePersistentDataTimer() {
+  if (save_persistent_data_timer_.isRunning()) {
+    save_persistent_data_timer_.stop();
+  }
+}
+#endif // CUSTOMER_PASA
+
 bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
                                  uint32_t hash) {
   LOG4CXX_INFO(logger_, "ResumeCtrl::StartResumption");
@@ -567,7 +588,7 @@ bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
       }
 
       application->UpdateHash();
-      if (!timer_.isRunning() && accessor.applications().size() > 1) {
+      if (!restore_hmi_level_timer_.isRunning() && accessor.applications().size() > 1) {
         RestoreApplicationHMILevel(application);
         RemoveApplicationFromSaved(application);
       } else {
@@ -575,7 +596,7 @@ bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
         SetupDefaultHMILevel(application);
         waiting_for_timer_.insert(std::make_pair(application->app_id(),
                                                  time_stamp));
-        timer_.start(kTimeStep);
+        restore_hmi_level_timer_.start(profile::Profile::instance()->app_resuming_timeout());
       }
       return true;
     }
@@ -603,7 +624,7 @@ bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
     const std::string& saved_m_app_id = (*it)[strings::app_id].asString();
     if (saved_m_app_id == application->mobile_app_id()->asString()) {
       uint32_t time_stamp= (*it)[strings::time_stamp].asUInt();
-      if (!timer_.isRunning() && accessor.applications().size() > 1) {
+      if (!restore_hmi_level_timer_.isRunning() && accessor.applications().size() > 1) {
         // resume in case there is already registered app
         RestoreApplicationHMILevel(application);
         RemoveApplicationFromSaved(application);
@@ -613,7 +634,7 @@ bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
         waiting_for_timer_.insert(std::make_pair(application->app_id(),
                                                  time_stamp));
         // woun't start timer if it is active already
-        timer_.start(kTimeStep);
+        restore_hmi_level_timer_.start(profile::Profile::instance()->app_resuming_timeout());
       }
       return true;
     }
@@ -701,8 +722,8 @@ bool ResumeCtrl::CheckApplicationHash(ApplicationSharedPtr application,
   return false;
 }
 
-void ResumeCtrl::onTimer() {
-  LOG4CXX_INFO(logger_, "ResumeCtrl::onTimer() size is "
+void ResumeCtrl::ApplicationResumptionTimer() {
+  LOG4CXX_INFO(logger_, "application, waiting for resumption HMI_Level count is :"
                          << waiting_for_timer_.size());
   sync_primitives::AutoLock auto_lock(queue_lock_);
 
@@ -724,11 +745,19 @@ void ResumeCtrl::onTimer() {
   waiting_for_timer_.clear();
 }
 
+void ResumeCtrl::SaveDataOnTimer() {
+  LOG4CXX_INFO(logger_, " It is time to save our data !");
+  if (false == is_data_saved) {
+    SaveAllApplications();
+    is_data_saved = true;
+    resumption::LastState::instance()->SaveToFileSystem();
+  }
+}
+
 bool ResumeCtrl::IsDeviceMacAddressEqual(ApplicationSharedPtr application,
                                          const std::string& saved_device_mac) {
   const std::string device_mac =
       MessageHelper::GetDeviceMacAddressForHandle(application->device());
-
   return device_mac == saved_device_mac;
 }
 

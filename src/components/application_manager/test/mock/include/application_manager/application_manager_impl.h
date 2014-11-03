@@ -194,7 +194,11 @@ class ApplicationManagerImpl : public ApplicationManager,
   MOCK_METHOD1(application_by_policy_id, ApplicationSharedPtr (const std::string&));
   MOCK_METHOD1(RemoveAppDataFromHMI, bool(ApplicationSharedPtr));
   MOCK_METHOD1(HeadUnitReset, void(mobile_api::AppInterfaceUnregisteredReason::eType));
+#ifdef CUSTOMER_PASA
   MOCK_METHOD0(HeadUnitSuspend, void());
+  MOCK_CONST_METHOD0(state_suspended, bool());
+  MOCK_METHOD1(set_state_suspended, void(const bool));
+#endif // CUSTOMER_PASA
   MOCK_METHOD1(LoadAppDataToHMI, bool(ApplicationSharedPtr));
   MOCK_METHOD1(ActivateApplication, bool (ApplicationSharedPtr));
   MOCK_METHOD1(PutApplicationInFull, mobile_api::HMILevel::eType (ApplicationSharedPtr));
@@ -267,6 +271,8 @@ class ApplicationManagerImpl : public ApplicationManager,
   MOCK_CONST_METHOD1(DoesAudioAppWithSameHMITypeExistInFullOrLimited, bool(ApplicationSharedPtr));
   MOCK_CONST_METHOD0(active_application, ApplicationSharedPtr ());
   MOCK_METHOD0(OnApplicationListUpdateTimer, void());
+  MOCK_METHOD0(OnLowVoltage, void());
+  MOCK_METHOD0(OnWakeUp, void());
 
   typedef const std::set<ApplicationSharedPtr> TAppList;
   typedef std::set<ApplicationSharedPtr>::iterator TAppListIt;

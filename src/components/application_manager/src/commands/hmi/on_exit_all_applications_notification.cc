@@ -77,7 +77,10 @@ void OnExitAllApplicationsNotification::Run() {
       break;
     }
     case hmi_apis::Common_ApplicationsCloseReason::SUSPEND: {
+#ifdef CUSTOMER_PASA
+      app_manager->set_state_suspended(true);
       app_manager->HeadUnitSuspend();
+#endif // CUSTOMER_PASA
       SendOnSDLPersistenceComplete();
       return;
     }

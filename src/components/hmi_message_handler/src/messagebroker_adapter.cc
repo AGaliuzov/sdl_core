@@ -124,6 +124,9 @@ void MessageBrokerAdapter::SubscribeTo() {
   MessageBrokerController::subscribeTo("BasicCommunication.OnExitAllApplications");
   MessageBrokerController::subscribeTo("BasicCommunication.OnDeviceChosen");
   MessageBrokerController::subscribeTo("BasicCommunication.OnPhoneCall");
+#ifdef CUSTOMER_PASA
+  MessageBrokerController::subscribeTo("BasicCommunication.OnAwakeSDL");
+#endif // CUSTOMER_PASA
   MessageBrokerController::subscribeTo("UI.OnLanguageChange");
   MessageBrokerController::subscribeTo("VR.OnLanguageChange");
   MessageBrokerController::subscribeTo("TTS.OnLanguageChange");

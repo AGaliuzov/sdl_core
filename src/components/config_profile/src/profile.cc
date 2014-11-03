@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -91,6 +91,7 @@ const char* kVideoStreamFileKey = "VideoStreamFile";
 const char* kAudioStreamFileKey = "AudioStreamFile";
 
 #ifdef CUSTOMER_PASA
+const char* kHeartBeatTimeoutKey = "HMIHeartBeatTimeout";
 const char* kLoggerSection = "LOGGING";
 const char* kAudioMQPath = "MQAudioPath";
 const char* kLoggerConfigFileKey = "LoggerConfigFile";
@@ -123,6 +124,7 @@ const char* kDeleteFileRequestKey = "DeleteFileRequest";
 const char* kListFilesRequestKey = "ListFilesRequest";
 const char* kDefaultTimeoutKey = "DefaultTimeout";
 const char* kAppResumingTimeoutKey = "ApplicationResumingTimeout";
+const char* kAppSavePersistentDataTimeoutKey = "AppSavePersistentDataTimeout";
 const char* kAppDirectoryQuotaKey = "AppDirectoryQuota";
 const char* kAppTimeScaleMaxRequestsKey = "AppTimeScaleMaxRequests";
 const char* kAppRequestsTimeScaleKey = "AppRequestsTimeScale";
@@ -164,6 +166,7 @@ const char* kDefaultAppInfoFileName = "app_info.dat";
 const char* kDefaultSystemFilesPath = "/tmp/fs/mp/images/ivsu_cache";
 const char* kDefaultTtsDelimiter = ",";
 #ifdef CUSTOMER_PASA
+const uint32_t kDefaultHMIHeartBeatTimeout = 3; // timeout in seconds
 const char* kDefaultMQName = "/dev/mqueue/AppLinkAudioPass";
 const char* kDefaultLog4cxxConfig = "/fs/mp/etc/AppLink/log4cxx.properties";
 const char* kDefaultRemoteLoggingFlagFile = "log/capturelog.evt";
@@ -198,7 +201,8 @@ const uint32_t kDefaultPutFileRequestInNone = 5;
 const uint32_t kDefaultDeleteFileRequestInNone = 5;
 const uint32_t kDefaultListFilesRequestInNone = 5;
 const uint32_t kDefaultTimeout = 10;
-const uint32_t kDefaultAppResumingTimeout = 5;
+const uint32_t kDefaultAppResumingTimeout = 3;
+const uint32_t kDefaultAppSavePersistentDataTimeout = 10;
 const uint32_t kDefaultDirQuota = 104857600;
 const uint32_t kDefaultAppTimeScaleMaxRequests = 100;
 const uint32_t kDefaultAppRequestsTimeScale = 10;
@@ -268,6 +272,7 @@ Profile::Profile()
     transport_manager_tcp_adapter_port_(kDefautTransportManagerTCPPort),
     tts_delimiter_(kDefaultTtsDelimiter),
 #ifdef CUSTOMER_PASA
+    hmi_heart_beat_timeout_(kDefaultHMIHeartBeatTimeout)
     audio_mq_path_(kDefaultMQName),
     log4cxx_config_file_(kDefaultLog4cxxConfig),
     remote_logging_flag_file_(kDefaultRemoteLoggingFlagFile),
@@ -355,6 +360,10 @@ const uint32_t& Profile::app_resuming_timeout() const {
   return app_resuming_timeout_;
 }
 
+const uint32_t& Profile::app_resumption_save_persistent_data_timeout() const {
+  return app_resumption_save_persistent_data_timeout_;
+}
+
 const std::string& Profile::vr_help_title() const {
   return vr_help_title_;
 }
@@ -425,6 +434,11 @@ const std::string& Profile::audio_stream_file() const {
 }
 
 #ifdef CUSTOMER_PASA
+
+const uint32_t& Profile::hmi_heart_beat_timeout() {
+  return hmi_heart_beat_timeout_;
+}
+
 const std::string &profile::Profile::audio_mq_path() const {
   LOG4CXX_INFO(logger_, "Default MQ name " << audio_mq_path_);
   return audio_mq_path_;
@@ -800,6 +814,12 @@ ReadStringValue(&app_info_storage_, kDefaultAppInfoFileName,
                       kMediaManagerSection);
 
 #ifdef CUSTOMER_PASA
+    // Heartbeat timeout
+    ReadUIntValue(&hmi_heart_beat_timeout_, kDefaultHeartBeatTimeout, kMainSection,
+                  kHMIHeartBeatTimeoutKey);
+
+    LOG_UPDATED_VALUE(hmi_heart_beat_timeout_, kHMIHeartBeatTimeoutKey, kMainSection);
+
     ReadStringValue(&audio_mq_path_, "", kMediaManagerSection,
                     kAudioMQPath);
 
@@ -927,6 +947,15 @@ ReadStringValue(&app_info_storage_, kDefaultAppInfoFileName,
     if (app_resuming_timeout_ <= 0) {
         app_resuming_timeout_ = kDefaultAppResumingTimeout;
   }
+    // Save resumption info to File System
+    LOG_UPDATED_VALUE(app_resuming_timeout_, kAppSavePersistentDataTimeoutKey,
+                      kMainSection);
+    ReadUIntValue(&app_resumption_save_persistent_data_timeout_,
+                  kDefaultAppSavePersistentDataTimeout,
+                  kMainSection, kAppSavePersistentDataTimeoutKey);
+    if (app_resuming_timeout_ <= 0) {
+        app_resuming_timeout_ = kDefaultAppSavePersistentDataTimeout;
+    }
 
     LOG_UPDATED_VALUE(app_resuming_timeout_, kAppResumingTimeoutKey,
                       kMainSection);

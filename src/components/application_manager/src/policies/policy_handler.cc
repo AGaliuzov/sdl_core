@@ -616,6 +616,8 @@ void PolicyHandler::OnGetStatusUpdate(const uint32_t correlation_id) {
 
 void PolicyHandler::OnUpdateStatusChanged(PolicyTableStatus status) {
   LOG4CXX_INFO(logger_, "OnUpdateStatusChanged");
+  POLICY_LIB_CHECK_VOID();
+  policy_manager_->SaveUpdateStatusRequired(policy::StatusUpToDate != status);
   application_manager::MessageHelper::SendOnStatusUpdate(
     ConvertUpdateStatus(status));
 }

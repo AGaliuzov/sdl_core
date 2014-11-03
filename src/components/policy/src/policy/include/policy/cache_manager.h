@@ -38,15 +38,19 @@
 #include "utils/shared_ptr.h"
 #include "policy/pt_representation.h"
 #include "policy/pt_ext_representation.h"
-#include "utils/lock.h"
 #include "usage_statistics/statistics_manager.h"
 #include "policy/cache_manager_interface.h"
+
+#include "utils/lock.h"
+#include "utils/timer_thread.h"
+#include "utils/conditional_variable.h"
 
 namespace policy {
 
 class CacheManager : public CacheManagerInterface {
  public:
   CacheManager();
+  ~CacheManager();
 
   /**
    * @brief Check if specified RPC for specified application
@@ -579,6 +583,8 @@ private:
    */
   void CheckSnapshotInitialization();
 
+  void PersistData();
+
 private:
   utils::SharedPtr<policy_table::Table> pt_;
   utils::SharedPtr<policy_table::Table> snapshot_;
@@ -589,6 +595,26 @@ private:
   std::map<std::string, bool> is_unpaired_;
 
   sync_primitives::Lock cache_lock_;
+
+  class BackgroundBackuper: public threads::ThreadDelegate {
+      friend class CacheManager;
+    public:
+      BackgroundBackuper(CacheManager* cache_manager);
+      ~BackgroundBackuper();
+      virtual void threadMain();
+      virtual bool exitThreadMain();
+      void DoBackup();
+    private:
+      CacheManager* cache_manager_;
+      sync_primitives::ConditionalVariable backup_notifier_;
+      volatile bool stop_flag_;
+
+      sync_primitives::Lock need_backup_lock_;
+      DISALLOW_COPY_AND_ASSIGN(BackgroundBackuper);
+  };
+  threads::Thread* backup_thread_;
+  BackgroundBackuper* backuper_;
+
 };
 } // policy
 

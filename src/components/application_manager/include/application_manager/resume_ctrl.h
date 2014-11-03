@@ -137,6 +137,20 @@ class ResumeCtrl: public event_engine::EventObserver {
      */
     void IgnitionOff();
 
+#ifdef CUSTOMER_PASA
+    /**
+     * @brief Method starts timer "RsmCtrlPercist" when SDL receives onAwakeSDL notification
+     */
+    void StartSavePersistentDataTimer();
+
+    /**
+     * @brief Method stops timer "RsmCtrlPercist" when SDL receives OnExitAllApplication notification
+     * with reason "SUSPEND"
+     */
+    void StopSavePersistentDataTimer();
+
+#endif //CUSTOMER_PASA
+
     /**
      * @brief Start timer for resumption applications
      *        Restore D1-D5 data
@@ -192,12 +206,24 @@ class ResumeCtrl: public event_engine::EventObserver {
     uint32_t GetHMIApplicationID(const std::string& mobile_app_id);
 
     /**
-     * @brief Timer callback function
+     * @brief Timer calback for  restoring HMI Level
      *
      */
-    void onTimer();
+    void ApplicationResumptionTimer();
+
+
+    /**
+     * @brief SaveDataOnTimer :
+     *  Timer calback for persisting ResumptionData each N secconds
+     *  N gets from property
+     */
+    void SaveDataOnTimer();
 
     void ClearResumptionInfo();
+
+    void ApplicationsDataUpdated() {
+      is_data_saved = false;
+    }
 
   private:
 
@@ -261,11 +287,6 @@ class ResumeCtrl: public event_engine::EventObserver {
         bool use_events = false);
 
     /**
-     * @brief Time step to check resumption TIME_OUT
-     */
-    static const uint32_t kTimeStep = 3;
-
-    /**
      *  @brief times of IGN_OFF that zombie application have to be saved.
      */
     static const uint32_t kApplicationLifes = 3;
@@ -278,7 +299,10 @@ class ResumeCtrl: public event_engine::EventObserver {
     std::multiset<application_timestamp, TimeStampComparator> waiting_for_timer_;
     mutable sync_primitives::Lock   queue_lock_;
     ApplicationManagerImpl*         app_mngr_;
-    timer::TimerThread<ResumeCtrl>  timer_;
+    timer::TimerThread<ResumeCtrl>  restore_hmi_level_timer_;
+    timer::TimerThread<ResumeCtrl>  save_persistent_data_timer_;
+    bool is_data_saved;
+
 };
 
 }  // namespace application_manager

@@ -301,12 +301,13 @@ class ApplicationManagerImpl : public ApplicationManager,
      */
     void HeadUnitReset(
         mobile_api::AppInterfaceUnregisteredReason::eType reason);
-
+#ifdef CUSTOMER_PASA
     /*
      * @brief Called by HMI on SUSPEND.
      * SDL must save all persistence data(Resume, Policy)
      */
     void HeadUnitSuspend();
+#endif // CUSTOMER_PASA
 
     /*
      * @brief Closes all registered applications
@@ -391,6 +392,25 @@ class ApplicationManagerImpl : public ApplicationManager,
      */
     void set_all_apps_allowed(const bool& allowed);
 
+#ifdef CUSTOMER_PASA
+    /**
+     * @brief Retrieves value of is_state_suspended_
+     *
+     * @return Returns TRUE if SDL has received OnExitAllApplication notification with reason "SUSPEND"
+     * otherwise returns FALSE
+     */
+    inline bool state_suspended() const;
+
+    /**
+     * @brief Sets value of is_state_suspended_
+     *
+     * @param contains TRUE if method is called when SDL has received
+     * OnExitAllApplication notification with reason "SUSPEND"
+     * contains FALSE if method is called when SDL has received
+     * OnAwakeSDL notification.
+     */
+    void set_state_suspended(const bool flag_suspended);
+#endif // CUSTOMER_PASA
     /*
      * @brief Starts audio pass thru thread
      *
@@ -663,6 +683,20 @@ class ApplicationManagerImpl : public ApplicationManager,
         mobile_apis::FunctionID::eType function_id,
         const RPCParams& rpc_params,
         CommandParametersPermissions* params_permissions = NULL);
+    /*
+     * @brief Function Should be called when Low Voltage is occured
+     */
+    void OnLowVoltage();
+
+    /*
+     * @brief returns true if low voltage state is active
+     */
+    bool IsLowVoltage();
+
+    /*
+     * @brief Function Should be called when WakeUp occures after Low Voltage
+     */
+    void OnWakeUp();
 
     // typedef for Applications list
     typedef const std::set<ApplicationSharedPtr> TAppList;
@@ -839,6 +873,14 @@ class ApplicationManagerImpl : public ApplicationManager,
      * application in case INGITION_OFF or MASTER_RESSET
      */
     ResumeCtrl resume_ctrl_;
+#ifdef CUSTOMER_PASA
+    /**
+     * @brief Contains TRUE if SDL has received onExitAllApplication notification with
+     * reason "SUSPENDED" otherwise contains FALSE.
+     */
+    bool is_state_suspended_;
+#endif // CUSTOMER_PASA
+
 
 #ifdef TIME_TESTER
     AMMetricObserver* metric_observer_;
@@ -856,6 +898,7 @@ class ApplicationManagerImpl : public ApplicationManager,
 
     timer::TimerThread<ApplicationManagerImpl>  tts_global_properties_timer_;
 
+    bool is_low_voltage_;
     DISALLOW_COPY_AND_ASSIGN(ApplicationManagerImpl);
 
     FRIEND_BASE_SINGLETON_CLASS(ApplicationManagerImpl);
@@ -872,6 +915,12 @@ bool ApplicationManagerImpl::driver_distraction() const {
 inline bool ApplicationManagerImpl::all_apps_allowed() const {
   return is_all_apps_allowed_;
 }
+#ifdef CUSTOMER_PASA
+
+bool ApplicationManagerImpl::state_suspended() const {
+  return is_state_suspended_;
+}
+#endif // CUSTOMER_PASA
 }  // namespace application_manager
 
 #endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_H_

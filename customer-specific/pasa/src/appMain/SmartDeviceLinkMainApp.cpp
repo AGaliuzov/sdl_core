@@ -1,6 +1,7 @@
-#include <string.h>
+﻿#include <string.h>
 #include <log4cxx/rollingfileappender.h>
 #include <log4cxx/fileappender.h>
+#include <errno>
 
 #include "./life_cycle.h"
 #include "SmartDeviceLinkMainApp.h"
@@ -14,6 +15,8 @@
 #include "utils/log_message_loop_thread.h"
 #include "config_profile/profile.h"
 #include "utils/appenders_loader.h"
+#include "utils/threads/thread.h"
+#include "utils/timer_thread.h"
 
 #include "hmi_message_handler/hmi_message_handler_impl.h"
 #include "hmi_message_handler/messagebroker_adapter.h"
@@ -228,16 +231,40 @@ void stopSmartDeviceLink()
 
 class ApplinkNotificationThreadDelegate : public threads::ThreadDelegate {
  public:
+  ApplinkNotificationThreadDelegate();
+  ~ApplinkNotificationThreadDelegate();
   virtual void threadMain();
+ private:
+  void init_mq(const std::string& name, int flags, mqd_t& mq_desc);
+  void close_mq(mqd_t mq_to_close);
+  void sendHeartBeat();
+  utils::SharedPtr<timer::TimerThread<ApplinkNotificationThreadDelegate> > heart_beat_sender_;
+  mqd_t mq_to_sdl_;
+  mqd_t mq_from_sdl_;
+  struct mq_attr attributes_;
 };
 
-void ApplinkNotificationThreadDelegate::threadMain() {
-  struct mq_attr attributes;
-  attributes.mq_maxmsg = MSGQ_MAX_MESSAGES;
-  attributes.mq_msgsize = MAX_QUEUE_MSG_SIZE;
-  attributes.mq_flags = 0;
+ApplinkNotificationThreadDelegate::ApplinkNotificationThreadDelegate()
+  : heart_beat_sender_(
+      new timer::TimerThread<ApplinkNotificationThreadDelegate>(
+        "AppLinkHearBeat",
+        this,
+        &ApplinkNotificationThreadDelegate::sendHeartBeat, true)) {
 
-  mqd_t mq = mq_open(PREFIX_STR_SDL_PROXY_QUEUE, O_RDONLY | O_CREAT, 0666, &attributes);
+  attributes_.mq_maxmsg = MSGQ_MAX_MESSAGES;
+  attributes_.mq_msgsize = MAX_QUEUE_MSG_SIZE;
+  attributes_.mq_flags = 0;
+
+  init_mq(PREFIX_STR_SDL_PROXY_QUEUE, O_RDONLY | O_CREAT);
+  init_mq(PREFIX_STR_FROMSDLHEARTBEAT_QUEUE, O_RDWR | O_CREAT);
+}
+
+ApplinkNotificationThreadDelegate::~ApplinkNotificationThreadDelegate() {
+  close_mq(mq_to_sdl_);
+  close_mq(mq_from_sdl_);
+}
+
+void ApplinkNotificationThreadDelegate::threadMain() {
 
   char buffer[MAX_QUEUE_MSG_SIZE];
   ssize_t length=0;
@@ -257,10 +284,11 @@ void ApplinkNotificationThreadDelegate::threadMain() {
 #endif
 
   while (!g_bTerminate) {
-    if ( (length = mq_receive(mq, buffer, sizeof(buffer), 0)) != -1) {
+    if ( (length = mq_receive(mq_to_sdl_, buffer, sizeof(buffer), 0)) != -1) {
       switch (buffer[0]) {
         case SDL_MSG_SDL_START:
           startSmartDeviceLink();
+          heart_beat_sender_->start(profile::Profile::instance()->hmi_heart_beat_timeout());
           break;
         case SDL_MSG_START_USB_LOGGING:
           startUSBLogging();
@@ -277,6 +305,32 @@ void ApplinkNotificationThreadDelegate::threadMain() {
       }
     }
   } //while-end
+}
+
+void ApplinkNotificationThreadDelegate::init_mq(const std::string& name,
+                                                int flags,
+                                                mqd_t& mq_desc) {
+
+  mq_desc = mq_open(name.c_str(), flags, 0666, &attributes_);
+  if (-1 == mq_desc) {
+    LOG4CXX_ERROR(logger_, "Unable to open mq " << name.c_str() << " : " << strerror(errno));
+  }
+}
+
+void ApplinkNotificationThreadDelegate::close_mq(mqd_t mq_to_close) {
+  if (-1 == mq_close(mq_to_close)) {
+    LOG4CXX_ERROR(logger_, "Unable to close mq: " << strerror(errno));
+  }
+}
+
+void ApplinkNotificationThreadDelegate::sendHeartBeat() {
+  if (-1 != mq_from_sdl_) {
+    char buf[MAX_QUEUE_MSG_SIZE];
+    buf[0] = SDL_MSG_HEARTBEAT_ACK;
+    if (-1 == mq_send(mq_from_sdl_, &buf[0], MAX_QUEUE_MSG_SIZE, 0)) {
+      LOG4CXX_ERROR(logger_, "Unable to send heart beat via mq: " << strerror(errno));
+    }
+  }
 }
 
 /**
