@@ -99,7 +99,8 @@ ApplicationManagerImpl::ApplicationManagerImpl()
     tts_global_properties_timer_("TTSGLPRTimer",
                                       this,
                                       &ApplicationManagerImpl::OnTimerSendTTSGlobalProperties,
-                                      true) {
+                                      true),
+    is_low_voltage_(false) {
     std::srand(std::time(0));
 }
 
@@ -1222,10 +1223,13 @@ bool ApplicationManagerImpl::ManageMobileCommand(
 
   if (!message) {
     LOG4CXX_WARN(logger_, "RET Null-pointer message received.");
-    NOTREACHED()
     return false;
   }
 
+  if (IsLowVoltage()) {
+    LOG4CXX_WARN(logger_, "Low Voltage is active");
+    return false;
+  }
 #ifdef DEBUG
   MessageHelper::PrintSmartObject(*message);
 #endif
@@ -1289,13 +1293,11 @@ bool ApplicationManagerImpl::ManageMobileCommand(
   }
   if (message_type ==
       mobile_apis::messageType::notification) {
-    commands::CommandNotificationImpl* command_notify =
-        static_cast<commands::CommandNotificationImpl*>(command);
-    request_ctrl_.addNotification(command_notify);
-    if (command_notify->Init()) {
-      command_notify->Run();
-      if (command_notify->CleanUp()) {
-        request_ctrl_.removeNotification(command_notify);
+    request_ctrl_.addNotification(command);
+    if (command->Init()) {
+      command->Run();
+      if (command->CleanUp()) {
+        request_ctrl_.removeNotification(command);
       }
       // If CleanUp returned false notification should remove it self.
     }
@@ -1305,8 +1307,6 @@ bool ApplicationManagerImpl::ManageMobileCommand(
   if (message_type ==
       mobile_apis::messageType::request) {
 
-    commands::CommandRequestImpl* command_request =
-        static_cast<commands::CommandRequestImpl*>(command);
     // commands will be launched from requesr_ctrl
     mobile_apis::HMILevel::eType app_hmi_level = mobile_apis::HMILevel::INVALID_ENUM;
     if (app) {
@@ -1316,7 +1316,7 @@ bool ApplicationManagerImpl::ManageMobileCommand(
     // commands will be launched from request_ctrl
 
     request_controller::RequestController::TResult result =
-      request_ctrl_.addMobileRequest(command_request, app_hmi_level);
+      request_ctrl_.addMobileRequest(command, app_hmi_level);
 
     if (result == request_controller::RequestController::SUCCESS) {
       LOG4CXX_INFO(logger_, "Perform request");
@@ -1421,10 +1421,13 @@ bool ApplicationManagerImpl::ManageHMICommand(
 
   if (!message) {
     LOG4CXX_WARN(logger_, "Null-pointer message received.");
-    NOTREACHED();
     return false;
   }
 
+  if (IsLowVoltage()) {
+    LOG4CXX_WARN(logger_, "Low Voltage is active");
+    return false;
+  }
 
   MessageHelper::PrintSmartObject(*message);
 
@@ -1976,6 +1979,7 @@ void ApplicationManagerImpl::SendOnSDLClose() {
   hmi_handler_->SendMessageToHMI(message_to_send);
 }
 
+
 void ApplicationManagerImpl::UnregisterAllApplications(bool generated_by_hmi) {
   LOG4CXX_INFO(logger_, "ApplicationManagerImpl::UnregisterAllApplications " <<
                unregister_reason_);
@@ -2236,6 +2240,25 @@ mobile_apis::Result::eType ApplicationManagerImpl::CheckPolicyPermissions(
   }
   LOG4CXX_INFO(logger_, "Request is allowed by policies. "+log_msg);
   return mobile_api::Result::SUCCESS;
+}
+
+
+void  ApplicationManagerImpl::OnLowVoltage() {
+    LOG4CXX_TRACE_ENTER(logger_);
+    is_low_voltage_ = true;
+    request_ctrl_.OnLowVoltage();
+    LOG4CXX_TRACE_EXIT(logger_);
+}
+
+bool ApplicationManagerImpl::IsLowVoltage() {
+  return is_low_voltage_;
+}
+
+void ApplicationManagerImpl::OnWakeUp() {
+    LOG4CXX_TRACE_ENTER(logger_);
+    is_low_voltage_ = false;
+    request_ctrl_.OnWakeUp();
+    LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void ApplicationManagerImpl::Mute(VRTTSSessionChanging changing_state) {
