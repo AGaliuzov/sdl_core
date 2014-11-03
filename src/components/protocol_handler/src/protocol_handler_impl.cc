@@ -1069,6 +1069,7 @@ RESULT_CODE ProtocolHandlerImpl::HandleControlMessageHeartBeat(
 bool ProtocolHandlerImpl::isAppFlooding(const uint32_t& connection_key) {
   LOG4CXX_TRACE_ENTER(logger_);
   const size_t message_frequecy = message_meter_.TrackMessage(connection_key);
+  LOG4CXX_DEBUG(logger_, "Frequency of " << connection_key << " is " << message_frequecy);
   if (message_frequecy > message_max_frequency_) {
     LOG4CXX_WARN(logger_, "Frequency of " << connection_key << " is marked as high.");
     session_observer_->OnApplicationFloodCallBack(connection_key);
