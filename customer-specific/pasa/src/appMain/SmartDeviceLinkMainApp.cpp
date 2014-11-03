@@ -232,6 +232,7 @@ void stopSmartDeviceLink()
 class ApplinkNotificationThreadDelegate : public threads::ThreadDelegate {
  public:
   ApplinkNotificationThreadDelegate();
+  ~ApplinkNotificationThreadDelegate();
   virtual void threadMain();
  private:
   void sendHeartBeat();
@@ -251,9 +252,15 @@ ApplinkNotificationThreadDelegate::ApplinkNotificationThreadDelegate()
   attributes.mq_msgsize = MAX_QUEUE_MSG_SIZE;
   attributes.mq_flags = 0;
 
-  mq_ = mq_open(PREFIX_STR_SDL_PROXY_QUEUE, O_RDONLY | O_CREAT, 0666, &attributes);
+  mq_ = mq_open(PREFIX_STR_SDL_PROXY_QUEUE, O_RDWR | O_CREAT, 0666, &attributes);
   if (-1 == mq_) {
     LOG4CXX_ERROR(logger_, "Unable to open mq: " << strerror(errno));
+  }
+}
+
+ApplinkNotificationThreadDelegate::~ApplinkNotificationThreadDelegate() {
+  if (-1 == mq_close(mq_)) {
+    LOG4CXX_ERROR(logger_, "Unable to close mq: " << strerror(errno));
   }
 }
 
