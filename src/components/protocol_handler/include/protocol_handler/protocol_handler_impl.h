@@ -446,7 +446,7 @@ class ProtocolHandlerImpl
   RESULT_CODE DecryptFrame(ProtocolFramePtr packet);
 #endif  // ENABLE_SECURITY
 
-  bool isAppFlooding(const uint32_t& connection_key);
+  bool TrackMessage(const uint32_t& connection_key);
 
  private:
   /**

@@ -1066,11 +1066,11 @@ RESULT_CODE ProtocolHandlerImpl::HandleControlMessageHeartBeat(
   return RESULT_HEARTBEAT_IS_NOT_SUPPORTED;
 }
 
-bool ProtocolHandlerImpl::isAppFlooding(const uint32_t& connection_key) {
+bool ProtocolHandlerImpl::TrackMessage(const uint32_t& connection_key) {
   LOG4CXX_TRACE_ENTER(logger_);
-  const size_t message_frequecy = message_meter_.TrackMessage(connection_key);
-  LOG4CXX_DEBUG(logger_, "Frequency of " << connection_key << " is " << message_frequecy);
-  if (message_frequecy > message_max_frequency_) {
+  const size_t message_frequency = message_meter_.TrackMessage(connection_key);
+  LOG4CXX_DEBUG(logger_, "Frequency of " << connection_key << " is " << message_frequency);
+  if (message_frequency > message_max_frequency_) {
     LOG4CXX_WARN(logger_, "Frequency of " << connection_key << " is marked as high.");
     session_observer_->OnApplicationFloodCallBack(connection_key);
     message_meter_.RemoveIdentifier(connection_key);
@@ -1098,7 +1098,7 @@ void ProtocolHandlerImpl::Handle(
     default: {
         const uint32_t connection_key = session_observer_->KeyFromPair(
               message->connection_id(), message->session_id());
-        if (isAppFlooding(connection_key)) {
+        if (TrackMessage(connection_key)) {
           LOG4CXX_TRACE_EXIT(logger_);
           return;
         }
