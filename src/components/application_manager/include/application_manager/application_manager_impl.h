@@ -399,7 +399,6 @@ class ApplicationManagerImpl : public ApplicationManager,
      * @return Returns TRUE if SDL has received OnExitAllApplication notification with reason "SUSPEND"
      * otherwise returns FALSE
      */
-
     inline bool state_suspended() const;
 
     /**
@@ -906,7 +905,8 @@ inline bool ApplicationManagerImpl::all_apps_allowed() const {
   return is_all_apps_allowed_;
 }
 #ifdef CUSTOMER_PASA
-inline bool ApplicationManagerImpl::state_suspended() const {
+
+bool ApplicationManagerImpl::state_suspended() const {
   return is_state_suspended_;
 }
 #endif // CUSTOMER_PASA

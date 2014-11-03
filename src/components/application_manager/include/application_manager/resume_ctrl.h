@@ -139,12 +139,6 @@ class ResumeCtrl: public event_engine::EventObserver {
 
 #ifdef CUSTOMER_PASA
     /**
-     * @brief Decrements ignitionOFF counter for all registered applications
-     * when core receives ONAwakeSDL notification.
-     */
-    void AWake();
-
-    /**
      * @brief Method starts timer "RsmCtrlPercist" when SDL receives onAwakeSDL notification
      */
     void StartSavePersistentDataTimer();

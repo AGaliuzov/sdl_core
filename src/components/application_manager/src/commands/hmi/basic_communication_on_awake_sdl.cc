@@ -50,22 +50,21 @@ void OnAwakeSDLNotification::Run() {
 
   ApplicationManagerImpl* app_manager = ApplicationManagerImpl::instance();
   if (app_manager->state_suspended()) {
-    (app_manager->resume_controller()).AWake();
-  }
-  app_manager->set_state_suspended(false);
-  ApplicationManagerImpl::ApplicationListAccessor accessor;
-  ApplicationManagerImpl::TAppList local_app_list = accessor.applications();
-  ApplicationManagerImpl::TAppListIt it = local_app_list.begin();
-  ApplicationManagerImpl::TAppListIt itEnd = local_app_list.end();
-  for (; it != itEnd; ++it) {
-    if ((*it).valid()) {
-      if ((*it)->flag_sending_hash_change_after_awake()) {
-        MessageHelper::SendHashUpdateNotification((*it)->app_id());
-        (*it)->set_flag_sending_hash_change_after_awake(false);
+    app_manager->set_state_suspended(false);
+    ApplicationManagerImpl::ApplicationListAccessor accessor;
+    ApplicationManagerImpl::TAppList local_app_list = accessor.applications();
+    ApplicationManagerImpl::TAppListIt it = local_app_list.begin();
+    ApplicationManagerImpl::TAppListIt itEnd = local_app_list.end();
+    for (; it != itEnd; ++it) {
+      if ((*it).valid()) {
+        if ((*it)->flag_sending_hash_change_after_awake()) {
+          MessageHelper::SendHashUpdateNotification((*it)->app_id());
+          (*it)->set_flag_sending_hash_change_after_awake(false);
+        }
       }
     }
+    (app_manager->resume_controller()).StartSavePersistentDataTimer();
   }
-  (app_manager->resume_controller()).StartSavePersistentDataTimer();
 }
 
 }  // namespace commands

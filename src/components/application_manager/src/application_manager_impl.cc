@@ -1921,7 +1921,6 @@ void ApplicationManagerImpl::HeadUnitSuspend() {
 
   resume_controller().StopSavePersistentDataTimer();
   resume_controller().SaveAllApplications();
-  resume_controller().IgnitionOff();
   resumption::LastState::instance()->SaveToFileSystem();
 }
 #endif // CUSTOMER_PASA
@@ -2013,11 +2012,11 @@ void ApplicationManagerImpl::UnregisterAllApplications(bool generated_by_hmi) {
     connection_handler_->CloseSession(app_to_remove->app_id());
     it = application_list_.begin();
   }
-#ifndef CUSTOMER_PASA
+
   if (is_ignition_off) {
     resume_controller().IgnitionOff();
   }
-#endif // !CUSTOMER_PASA
+
   request_ctrl_.terminateAllHMIRequests();
 }
 
