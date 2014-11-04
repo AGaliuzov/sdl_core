@@ -199,10 +199,12 @@ void RequestController::addNotification(const RequestPtr ptr) {
 void RequestController::removeNotification(const commands::Command* notification) {
   LOG4CXX_TRACE_ENTER(logger_);
   std::list<RequestPtr>::iterator it = notification_list_.begin();
-  for (; notification_list_.end() != it; ++it) {
+  for (; notification_list_.end() != it; ) {
     if (it->get() == notification) {
-      notification_list_.erase(it);
+      notification_list_.erase(it++);
       break;
+    } else {
+      ++it;
     }
   }
   LOG4CXX_TRACE_EXIT(logger_);
@@ -214,11 +216,11 @@ void RequestController::terminateMobileRequest(
 
   AutoLock auto_lock(pending_request_set_lock_);
   RequestInfoSet::iterator it = pending_request_set_.begin();
-  for (; pending_request_set_.end() != it; ++it) {
+  for (; pending_request_set_.end() != it;) {
     RequestInfoPtr request_info = (*it);
+    ++it;
     if ((false == request_info.valid()) ||
         RequestInfo::MobileRequest != request_info->requst_type()) {
-      ++it;
       continue;
     }
     if (mobile_correlation_id == request_info->requestId()) {
@@ -240,11 +242,11 @@ void RequestController::terminateHMIRequest(const uint32_t &correlation_id) {
   LOG4CXX_TRACE_ENTER(logger_);
   AutoLock auto_lock(pending_request_set_lock_);
   RequestInfoSet::iterator it = pending_request_set_.begin();
-  for (; pending_request_set_.end() != it; ++it) {
+  for (; pending_request_set_.end() != it; ) {
     RequestInfoPtr request_info = (*it);
+    ++it;
     if ((false == request_info.valid()) ||
         RequestInfo::HMIRequest != request_info->requst_type()) {
-      ++it;
       continue;
     }
     if (correlation_id == request_info->requestId()) {
