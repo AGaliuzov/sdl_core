@@ -14,7 +14,6 @@ set (LIBRARIES
     gtest
     gtest_main
     jsoncpp
-    #DBus
 )
 
 set (SOURCES

@@ -1,4 +1,4 @@
-set(UtilsIncludeDir ${CMAKE_SOURCE_DIR}/src/components/utils/include)
+set(UtilsIncludeDir ${COMPONENTS_DIR/utils/include)
 
 include_directories (
   ${UtilsIncludeDir}

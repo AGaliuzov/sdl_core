@@ -77,7 +77,6 @@ set(LIBRARIES
   ConfigProfile
   MediaManager
   Resumption
-  #DBus
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -184,8 +183,10 @@ include_directories (
   ${CMAKE_SOURCE_DIR}/src/components/utils/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8
   ${CMAKE_SOURCE_DIR}/src/components/dbus/src
+  ${COMPONENTS_DIR}/config_profile/include
 )
 
+#TODO to ALL : Please FIX heart_beat_monitor_test.cc
   set(testSources
     ./main_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/utils/test/date_time_test.cc
@@ -197,7 +198,7 @@ include_directories (
     #${CMAKE_SOURCE_DIR}/src/components/rpc_base/test/rpc_base_dbus_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/rpc_base/test/rpc_base_json_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/rpc_base/test/rpc_base_test.cc
-    #${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/heart_beat_monitor_test.cc
+    ${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/heart_beat_monitor_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/formatters/test/generic_json_formatter_test.cc
     ${AM_TEST_DIR}/command_impl_test.cc
   )
@@ -206,6 +207,7 @@ include_directories (
     gmock
     gtest
     gmock_main
+    gtest_main
     ConfigProfile
     SmartObjects
     ApplicationManagerTest #Mocked Singlton
@@ -223,7 +225,6 @@ include_directories (
     ConfigProfile
     MediaManager
     Resumption
-    #DBus
   )
 
 if(ENABLE_LOG)

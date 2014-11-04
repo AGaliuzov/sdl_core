@@ -31,7 +31,6 @@
  */
 
 #include <errno.h>
-#include <unistd.h>
 #include <limits.h>
 #include <stddef.h>
 #include <signal.h>
@@ -43,6 +42,10 @@
 #include "utils/logger.h"
 #include "pthread.h"
 
+ #ifdef BUILD_TESTS
+  // Temporary fix for UnitTest until APPLINK-9987 is resolved
+ #include <unistd.h>
+ #endif
 
 #ifndef __QNXNTO__
   const int EOK = 0;
