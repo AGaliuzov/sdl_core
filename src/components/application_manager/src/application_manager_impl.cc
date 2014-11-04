@@ -1194,7 +1194,10 @@ void ApplicationManagerImpl::SendMessageToMobile(
       smart_objects::SmartMap::iterator iter_end = s_map.map_end();
 
       for (; iter != iter_end; ++iter) {
-        params.push_back(iter->first);
+        if (true == iter->second.asBool()) {
+          LOG4CXX_INFO(logger_, "Request's param: " << iter->first);
+          params.push_back(iter->first);
+        }
       }
     }
     const mobile_apis::Result::eType check_result =
