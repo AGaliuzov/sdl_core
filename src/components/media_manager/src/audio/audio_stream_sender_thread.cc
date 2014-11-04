@@ -73,6 +73,34 @@ AudioStreamSenderThread::AudioStreamSenderThread(
 }
 
 AudioStreamSenderThread::~AudioStreamSenderThread() {
+}
+
+void AudioStreamSenderThread::threadMain() {
+  LOG4CXX_TRACE_ENTER(logger_);
+
+  offset_ = 0;
+#ifdef CUSTOMER_PASA
+  mq_apt_handle_ = mq_open(fileName_.c_str(), O_CREAT | O_RDWR, 0666, 0);
+
+  if (-1 == mq_apt_handle_) {
+    LOG4CXX_ERROR(logger_, "Unable to open mqueue in order to obtain data: "
+                  << strerror(errno));
+    return;
+  }
+#endif
+
+  while (false == getShouldBeStopped()) {
+#ifndef CUSTOMER_PASA
+    AutoLock auto_lock(shouldBeStoped_lock_);
+    shouldBeStoped_cv_.WaitFor(auto_lock, kAudioPassThruTimeout * 1000);
+#endif
+#ifdef CUSTOMER_PASA
+    mqSendAudioChunkToMobile();
+#else
+    sendAudioChunkToMobile();
+#endif
+  }
+
 #ifdef CUSTOMER_PASA
   if (-1 == mq_close(mq_apt_handle_)) {
     LOG4CXX_ERROR(logger_, "MQ wasn't closed properly: "
@@ -87,24 +115,6 @@ AudioStreamSenderThread::~AudioStreamSenderThread() {
         LOG4CXX_INFO(logger_, "MQ was unlinked properly.");
   }
 #endif
-}
-
-void AudioStreamSenderThread::threadMain() {
-  LOG4CXX_TRACE_ENTER(logger_);
-
-  offset_ = 0;
-
-  while (false == getShouldBeStopped()) {
-#ifndef CUSTOMER_PASA
-    AutoLock auto_lock(shouldBeStoped_lock_);
-    shouldBeStoped_cv_.WaitFor(auto_lock, kAudioPassThruTimeout * 1000);
-#endif
-#ifdef CUSTOMER_PASA
-    mqSendAudioChunkToMobile();
-#else
-    sendAudioChunkToMobile();
-#endif
-  }
 
   LOG4CXX_TRACE_EXIT(logger_);
 }
@@ -150,14 +160,6 @@ void AudioStreamSenderThread::sendAudioChunkToMobile() {
 
 #ifdef CUSTOMER_PASA
 void AudioStreamSenderThread::mqSendAudioChunkToMobile() {
-  mq_apt_handle_ = mq_open(fileName_.c_str(), O_CREAT | O_RDWR, 0666, 0);
-
-  if (-1 == mq_apt_handle_) {
-    LOG4CXX_ERROR(logger_, "Unable to open mqueue in order to obtain data: "
-                  << strerror(errno));
-    return;
-  }
-
   struct mq_attr attr;
   char* buffer;
 
