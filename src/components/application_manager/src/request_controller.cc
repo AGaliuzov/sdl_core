@@ -334,7 +334,6 @@ void RequestController::updateRequestTimeout(
 
   AutoLock auto_lock(pending_request_set_lock_);
   RequestInfoSet::iterator it = pending_request_set_.begin();
-  RequestInfo* mobile_request_info = NULL;
   RequestInfoPtr request_info;
   for (; pending_request_set_.end() != it; ++it) {
     request_info = *it;
@@ -352,11 +351,10 @@ void RequestController::updateRequestTimeout(
   }
 
   if (it != pending_request_set_.end()) {
-    DCHECK(mobile_request_info);
     DCHECK(request_info.valid());
 
     uint32_t timeout_in_seconds = new_timeout/date_time::DateTime::MILLISECONDS_IN_SECOND;
-    mobile_request_info->updateTimeOut(timeout_in_seconds);
+    request_info->updateTimeOut(timeout_in_seconds);
     pending_request_set_.erase(it);
     pending_request_set_.insert(request_info);
     // erase and insert need to update ordering of set
