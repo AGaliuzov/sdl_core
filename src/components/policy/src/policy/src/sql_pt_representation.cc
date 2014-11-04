@@ -701,30 +701,32 @@ bool SQLPTRepresentation::SaveRpcs(int64_t group_id,
   for (it = rpcs.begin(); it != rpcs.end(); ++it) {
     const policy_table::HmiLevels& hmi_levels = it->second.hmi_levels;
     // TODO(IKozyrenko): Check logic if optional container is missing
-    const policy_table::Parameters& parameters = *it->second.parameters;
-    policy_table::HmiLevels::const_iterator hmi_it;
-    policy_table::Parameters::const_iterator ps_it;
-    for (hmi_it = hmi_levels.begin(); hmi_it != hmi_levels.end(); ++hmi_it) {
-      if (!parameters.empty()) {
-        for (ps_it = parameters.begin(); ps_it != parameters.end(); ++ps_it) {
-          query_parameter.Bind(0, it->first);
-          query_parameter.Bind(
-            1, std::string(policy_table::EnumToJsonString(*hmi_it)));
-          query_parameter.Bind(
-            2, std::string(policy_table::EnumToJsonString(*ps_it)));
-          query_parameter.Bind(3, group_id);
-          if (!query_parameter.Exec() || !query_parameter.Reset()) {
-            LOG4CXX_WARN(logger_, "Incorrect insert into rpc with parameter");
+    if (it->second.parameters.is_initialized()) {
+      const policy_table::Parameters& parameters = *it->second.parameters;
+      policy_table::HmiLevels::const_iterator hmi_it;
+      policy_table::Parameters::const_iterator ps_it;
+      for (hmi_it = hmi_levels.begin(); hmi_it != hmi_levels.end(); ++hmi_it) {
+        if (!parameters.empty()) {
+          for (ps_it = parameters.begin(); ps_it != parameters.end(); ++ps_it) {
+            query_parameter.Bind(0, it->first);
+            query_parameter.Bind(
+              1, std::string(policy_table::EnumToJsonString(*hmi_it)));
+            query_parameter.Bind(
+              2, std::string(policy_table::EnumToJsonString(*ps_it)));
+            query_parameter.Bind(3, group_id);
+            if (!query_parameter.Exec() || !query_parameter.Reset()) {
+              LOG4CXX_WARN(logger_, "Incorrect insert into rpc with parameter");
+              return false;
+            }
+          }
+        } else {
+          query.Bind(0, it->first);
+          query.Bind(1, std::string(policy_table::EnumToJsonString(*hmi_it)));
+          query.Bind(2, group_id);
+          if (!query.Exec() || !query.Reset()) {
+            LOG4CXX_WARN(logger_, "Incorrect insert into rpc");
             return false;
           }
-        }
-      } else {
-        query.Bind(0, it->first);
-        query.Bind(1, std::string(policy_table::EnumToJsonString(*hmi_it)));
-        query.Bind(2, group_id);
-        if (!query.Exec() || !query.Reset()) {
-          LOG4CXX_WARN(logger_, "Incorrect insert into rpc");
-          return false;
         }
       }
     }

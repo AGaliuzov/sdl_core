@@ -1558,7 +1558,8 @@ int32_t CacheManager::GenerateHash(const std::string& str_to_hash) {
 
 CacheManager::BackgroundBackuper::BackgroundBackuper(CacheManager* cache_manager)
   : cache_manager_(cache_manager),
-    stop_flag_(false){
+    stop_flag_(false),
+    new_data_available_(false) {
   LOG4CXX_TRACE_ENTER(logger_);
 }
 
@@ -1568,13 +1569,24 @@ CacheManager::BackgroundBackuper::~BackgroundBackuper() {
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
+void CacheManager::BackgroundBackuper::InternalBackup() {
+  LOG4CXX_TRACE_ENTER(logger_);
+  if (cache_manager_) {
+    LOG4CXX_INFO(logger_, "DoBackup");
+    new_data_available_ = false;
+    cache_manager_->PersistData();
+
+    if (new_data_available_ ) {
+      InternalBackup();
+    }
+  }
+  LOG4CXX_TRACE_EXIT(logger_);
+}
+
 void CacheManager::BackgroundBackuper::threadMain() {
   while(!stop_flag_) {
     sync_primitives::AutoLock auto_lock(need_backup_lock_);
-    if (cache_manager_) {
-      LOG4CXX_INFO(logger_, "DoBackup");
-      cache_manager_->PersistData();
-    }
+    InternalBackup();
     LOG4CXX_INFO(logger_, "Wait for a next backup");
     backup_notifier_.Wait(auto_lock);
   }
@@ -1591,7 +1603,7 @@ bool CacheManager::BackgroundBackuper::exitThreadMain() {
 }
 
 void CacheManager::BackgroundBackuper::DoBackup() {
-  sync_primitives::AutoLock auto_lock(need_backup_lock_);
+  new_data_available_ = true;
   backup_notifier_.NotifyOne();
 }
 

@@ -250,15 +250,15 @@ ApplinkNotificationThreadDelegate::ApplinkNotificationThreadDelegate()
       new timer::TimerThread<ApplinkNotificationThreadDelegate>(
         "AppLinkHearBeat",
         this,
-        &ApplinkNotificationThreadDelegate::sendHeartBeat, true),
-      heart_beat_timeout_(profile::Profile::instance()->hmi_heart_beat_timeout())) {
+        &ApplinkNotificationThreadDelegate::sendHeartBeat, true)),
+      heart_beat_timeout_(profile::Profile::instance()->hmi_heart_beat_timeout()) {
 
   attributes_.mq_maxmsg = MSGQ_MAX_MESSAGES;
   attributes_.mq_msgsize = MAX_QUEUE_MSG_SIZE;
   attributes_.mq_flags = 0;
 
-  init_mq(PREFIX_STR_SDL_PROXY_QUEUE, O_RDONLY | O_CREAT);
-  init_mq(PREFIX_STR_FROMSDLHEARTBEAT_QUEUE, O_RDWR | O_CREAT);
+  init_mq(PREFIX_STR_SDL_PROXY_QUEUE, O_RDONLY | O_CREAT, mq_to_sdl_);
+  init_mq(PREFIX_STR_FROMSDLHEARTBEAT_QUEUE, O_RDWR | O_CREAT, mq_from_sdl_);
 }
 
 ApplinkNotificationThreadDelegate::~ApplinkNotificationThreadDelegate() {
