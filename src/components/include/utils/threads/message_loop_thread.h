@@ -39,7 +39,7 @@
 #include "utils/logger.h"
 #include "utils/macro.h"
 #include "utils/message_queue.h"
-#include "../../utils/include/utils/threads/thread_manager.h"
+#include "utils/threads/thread_manager.h"
 #include "utils/lock.h"
 
 namespace threads {

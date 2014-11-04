@@ -1,4 +1,3 @@
-#set(COMPONENTS_DIR ${CMAKE_SOURCE_DIR}/src/components)
 set(CH_SRC_DIR ${COMPONENTS_DIR}/connection_handler/src)
 
 include_directories (

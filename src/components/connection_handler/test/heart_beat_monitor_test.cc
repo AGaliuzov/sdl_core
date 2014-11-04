@@ -33,10 +33,13 @@
 #include <string>
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include <stdio.h>
+
 
 #include "connection_handler/heartbeat_monitor.h"
 #include "connection_handler/connection.h"
 #include "connection_handler/connection_handler.h"
+#include "config_profile/profile.h"
 
 namespace test {
 namespace components {
@@ -80,14 +83,22 @@ class ConnectionHandlerMock : public connection_handler::ConnectionHandler {
 };
 
 class HeartBeatMonitorTest : public testing::Test {
- protected:
+
+public:
+ HeartBeatMonitorTest():
+	  conn(NULL) {
+	  profile::Profile::instance()->config_file_name("smartDeviceLink.ini");
+	  kTimeout = profile::Profile::instance()->heart_beat_timeout();
+ }
+
+protected:
   testing::NiceMock<ConnectionHandlerMock> connection_handler_mock;
   connection_handler::Connection* conn;
-  static const int32_t kTimeout = 2;
+  int32_t kTimeout;
   static const connection_handler::ConnectionHandle kConnectionHandle = 0xABCDEF;
 
   virtual void SetUp() {
-    conn = new connection_handler::Connection(kConnectionHandle, 0,
+	  conn = new connection_handler::Connection(kConnectionHandle, 0,
                                               &connection_handler_mock,
                                               kTimeout);
   }
@@ -95,6 +106,7 @@ class HeartBeatMonitorTest : public testing::Test {
   virtual void TearDown() {
     delete conn;
   }
+
 };
 
 ACTION_P2(RemoveSession, conn, session_id){
@@ -102,7 +114,8 @@ ACTION_P2(RemoveSession, conn, session_id){
 }
 
 TEST_F(HeartBeatMonitorTest, TimerNotStarted) {
-  // Whithout StartHeartBeat nothing to be call
+
+   // Whithout StartHeartBeat nothing to be call
   EXPECT_CALL(connection_handler_mock, CloseSession(_, _)).Times(0);
   EXPECT_CALL(connection_handler_mock, CloseConnection(_)).Times(0);
   EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, _)).Times(0);
@@ -112,9 +125,10 @@ TEST_F(HeartBeatMonitorTest, TimerNotStarted) {
 }
 
 TEST_F(HeartBeatMonitorTest, TimerNotElapsed) {
+  EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, _)).Times(0);
   EXPECT_CALL(connection_handler_mock, CloseSession(_, _)).Times(0);
   EXPECT_CALL(connection_handler_mock, CloseConnection(_)).Times(0);
-  EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, _)).Times(0);
+
 
   const uint32_t session = conn->AddNewSession();
   conn->StartHeartBeat(session);
@@ -127,15 +141,15 @@ TEST_F(HeartBeatMonitorTest, TimerElapsed) {
   EXPECT_CALL(connection_handler_mock, CloseSession(_, session)).Times(1)
       .WillOnce(RemoveSession(conn, session));
   EXPECT_CALL(connection_handler_mock, CloseConnection(_)).Times(1);
-  EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, session)).Times(1); //CALLED TWICE ...
+  EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, session)).Times(1);
 
   conn->StartHeartBeat(session);
   sleep(2 * kTimeout + 1);
 }
 
 TEST_F(HeartBeatMonitorTest, KeptAlive) {
-  EXPECT_CALL(connection_handler_mock, CloseSession(_, _)).Times(0); //CALLED THOUSANDS TIMES
-  EXPECT_CALL(connection_handler_mock, CloseConnection(_)).Times(0); //CALLED THOUSANDS TIMES
+  EXPECT_CALL(connection_handler_mock, CloseSession(_, _)).Times(0);
+  EXPECT_CALL(connection_handler_mock, CloseConnection(_)).Times(0);
   EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, _)).Times(0);
 
   const uint32_t session = conn->AddNewSession();
@@ -152,10 +166,11 @@ TEST_F(HeartBeatMonitorTest, KeptAlive) {
 TEST_F(HeartBeatMonitorTest, NotKeptAlive) {
   const uint32_t session = conn->AddNewSession();
 
+  EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, session)).Times(1);
   EXPECT_CALL(connection_handler_mock, CloseSession(_, session)).Times(1)
       .WillOnce(RemoveSession(conn, session));
   EXPECT_CALL(connection_handler_mock, CloseConnection(_)).Times(1);
-  EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, session)).Times(1); //NEVER CALLED
+
 
   conn->StartHeartBeat(session);
   sleep(kTimeout - 1);
@@ -203,9 +218,9 @@ TEST_F(HeartBeatMonitorTest, DecreaseHeartBeatTimeout) {
   const uint32_t kSession = conn->AddNewSession();
   conn->StartHeartBeat(kSession);
   EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, kSession)).Times(1);
-  EXPECT_CALL(connection_handler_mock, CloseSession(_, kSession)).Times(1)
+  EXPECT_CALL(connection_handler_mock, CloseSession(_, kSession)).Times(1) // FIXME(Konstantin Kolodiy) : NEVER CALLED
       .WillOnce(RemoveSession(conn, kSession));
-  EXPECT_CALL(connection_handler_mock, CloseConnection(_)).Times(1);
+  EXPECT_CALL(connection_handler_mock, CloseConnection(_)).Times(1); // FIXME(Konstantin Kolodiy) : NEVER CALLED
 
 
   const int32_t kNewTimeout = kTimeout - 1;
