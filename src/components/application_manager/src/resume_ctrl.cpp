@@ -124,7 +124,7 @@ bool ResumeCtrl::RestoreApplicationHMILevel(ApplicationSharedPtr application) {
         application->set_audio_streaming_state(audio_streaming_state);
       saved_hmi_level = static_cast<mobile_apis::HMILevel::eType>(
                             (*it)[strings::hmi_level].asInt());
-
+      LOG4CXX_TRACE(logger_, "Saved HMI Level is : " << saved_hmi_level);
       return SetupHMILevel(application, saved_hmi_level, audio_streaming_state);
       LOG4CXX_TRACE_EXIT(logger_);
     }
@@ -260,7 +260,10 @@ bool ResumeCtrl::SetupHMILevel(ApplicationSharedPtr application,
 }
 
 bool ResumeCtrl::RestoreApplicationData(ApplicationSharedPtr application) {
-  DCHECK(application.get());
+  if (false == application.valid()) {
+    LOG4CXX_ERROR(logger_, "Application pointer in invalid");
+    return false;
+  }
 
   LOG4CXX_TRACE(logger_, "ENTER app_id : " << application->app_id());
 
@@ -305,7 +308,6 @@ bool ResumeCtrl::RestoreApplicationData(ApplicationSharedPtr application) {
       file.file_name = file_data[strings::sync_file_name].asString();
       file.file_type = static_cast<mobile_apis::FileType::eType> (
                          file_data[strings::file_type].asInt());
-      LOG4CXX_INFO(logger_, "RestoreApplicationData file " << file.file_name);
       application->AddFile(file);
     }
   }
@@ -445,12 +447,7 @@ bool ResumeCtrl::RestoreApplicationData(ApplicationSharedPtr application) {
          json_it != subscribtions_ivi.end(); ++json_it) {
       VehicleDataType ivi;
       ivi = static_cast<VehicleDataType>((*json_it).asInt());
-      LOG4CXX_INFO(logger_, "VehicleDataType :" <<  ivi);
-#ifdef ENABLE_LOG
-      bool result =
-#endif
       application->SubscribeToIVI(ivi);
-      LOG4CXX_INFO(logger_, "result = :" <<  result);
     }
     requests = MessageHelper::GetIVISubscribtionRequests(application->app_id());
 
@@ -480,11 +477,11 @@ bool ResumeCtrl::IsHMIApplicationIdExist(uint32_t hmi_app_id) {
                                    app_mngr_->application_list_.end();
   for (;it != it_end; ++it) {
     if (hmi_app_id == (*it)->hmi_app_id()) {
-      LOG4CXX_TRACE_EXIT(logger_);
+      LOG4CXX_TRACE(logger_, "EXIT result = true");
       return true;
     }
   }
-  LOG4CXX_TRACE_EXIT(logger_);
+  LOG4CXX_TRACE(logger_, "EXIT result = false");
   return false;
 }
 
@@ -515,7 +512,10 @@ uint32_t ResumeCtrl::GetHMIApplicationID(const std::string& mobile_app_id) {
 }
 
 bool ResumeCtrl::RemoveApplicationFromSaved(ApplicationConstSharedPtr application) {
-  DCHECK(application.get());
+  if (false == application.valid()) {
+    LOG4CXX_ERROR(logger_, "Application pointer in invalid");
+    return false;
+  }
   LOG4CXX_TRACE(logger_, "ENTER app_id :"  << application->app_id());
 
   bool result = false;
@@ -584,13 +584,11 @@ void ResumeCtrl::StopSavePersistentDataTimer() {
 
 bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
                                  uint32_t hash) {
-  LOG4CXX_TRACE_ENTER(logger_);
   if (!application.valid()) {
     LOG4CXX_WARN(logger_, "Application not exist");
-    LOG4CXX_TRACE_EXIT(logger_);
     return false;
   }
-  LOG4CXX_INFO(logger_, " ENTER app_id = " << application->app_id()
+  LOG4CXX_TRACE(logger_, " ENTER app_id = " << application->app_id()
                         << " hmi_app_id = " << application->hmi_app_id()
                         << " mobile_id = "
                         << application->mobile_app_id()->asString());
@@ -623,20 +621,20 @@ bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
         queue_lock_.Release();
         restore_hmi_level_timer_.start(profile::Profile::instance()->app_resuming_timeout());
       }
-      LOG4CXX_TRACE_EXIT(logger_);
+      LOG4CXX_TRACE(logger_, "EXIT true");
       return true;
     }
   }
 
-  LOG4CXX_INFO(logger_, "ResumeCtrl::Application wasn't saved");
+  LOG4CXX_INFO(logger_, "Application wasn't saved");
   MessageHelper::SendHMIStatusNotification(*application);
-  LOG4CXX_TRACE_EXIT(logger_);
+  LOG4CXX_TRACE(logger_, "EXIT false");
   return false;
 }
 
 bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
   if (!application.valid()) {
-    LOG4CXX_WARN(logger_, "Application not exist");
+    LOG4CXX_WARN(logger_, "Application do not exists");
     return false;
   }
 
@@ -664,20 +662,23 @@ bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
         // woun't start timer if it is active already
         restore_hmi_level_timer_.start(profile::Profile::instance()->app_resuming_timeout());
       }
-      LOG4CXX_TRACE_EXIT(logger_);
+      LOG4CXX_TRACE(logger_, "EXIT true");
       return true;
     }
   }
 
   LOG4CXX_INFO(logger_, "ResumeCtrl::Application wasn't saved");
   MessageHelper::SendHMIStatusNotification(*application);
-  LOG4CXX_TRACE_EXIT(logger_);
+  LOG4CXX_TRACE(logger_, "EXIT false");
   return false;
 }
 
 bool ResumeCtrl::CheckPersistenceFilesForResumption(ApplicationSharedPtr application) {
-  LOG4CXX_TRACE_ENTER(logger_);
-  DCHECK(application.get());
+  if (!application.valid()) {
+    LOG4CXX_WARN(logger_, "Application do not exists");
+    return false;
+  }
+  LOG4CXX_TRACE(logger_, "ENTER app_id = " << application->app_id());
 
   Json::Value::iterator it = GetSavedApplications().begin();
   for (; it != GetSavedApplications().end(); ++it) {
@@ -690,7 +691,7 @@ bool ResumeCtrl::CheckPersistenceFilesForResumption(ApplicationSharedPtr applica
 
   if (it == GetSavedApplications().end()) {
     LOG4CXX_WARN(logger_, "Application not saved");
-    LOG4CXX_TRACE_EXIT(logger_);
+    LOG4CXX_TRACE(logger_, "EXIT false");
     return false;
   }
 
@@ -712,7 +713,7 @@ bool ResumeCtrl::CheckPersistenceFilesForResumption(ApplicationSharedPtr applica
         MessageHelper::VerifyImageFiles(message, application);
     if (verification_result == mobile_apis::Result::INVALID_DATA) {
       LOG4CXX_WARN(logger_, "app_commands missed icons");
-      LOG4CXX_TRACE_EXIT(logger_);
+      LOG4CXX_TRACE(logger_, "EXIT false");
       return false;
     }
   }
@@ -727,12 +728,12 @@ bool ResumeCtrl::CheckPersistenceFilesForResumption(ApplicationSharedPtr applica
     mobile_apis::Result::eType verification_result =
         MessageHelper::VerifyImageFiles(msg_param, application);
     if (verification_result == mobile_apis::Result::INVALID_DATA) {
-      LOG4CXX_WARN(logger_, "app_choise_sets missed icons");
-      LOG4CXX_TRACE_EXIT(logger_);
+      LOG4CXX_WARN(logger_, "App_choise_sets missed icons");
+      LOG4CXX_TRACE(logger_, "EXIT false");
       return false;
     }
   }
-  LOG4CXX_TRACE_EXIT(logger_);
+  LOG4CXX_TRACE(logger_, "EXIT true");
   return true;
 }
 
@@ -755,12 +756,12 @@ bool ResumeCtrl::CheckApplicationHash(ApplicationSharedPtr application,
       LOG4CXX_INFO(logger_, "received hash = " << hash);
       LOG4CXX_INFO(logger_, "saved hash = " << saved_hash);
       if (hash == saved_hash) {
-        LOG4CXX_TRACE_EXIT(logger_);
+        LOG4CXX_TRACE(logger_, "EXIT true");
         return true;
       }
     }
   }
-  LOG4CXX_TRACE_EXIT(logger_);
+  LOG4CXX_TRACE(logger_, "EXIT false");
   return false;
 }
 
