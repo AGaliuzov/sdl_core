@@ -2451,7 +2451,9 @@ void ApplicationManagerImpl::AddAppToTTSGlobalPropertiesList(
     LOG4CXX_INFO(logger_, "Start tts_global_properties_timer_");
     tts_global_properties_app_list_lock_.Release();
     tts_global_properties_timer_.start(1);
+    return;
   }
+  tts_global_properties_app_list_lock_.Release();
 }
 
 void ApplicationManagerImpl::RemoveAppFromTTSGlobalPropertiesList(
@@ -2468,8 +2470,10 @@ void ApplicationManagerImpl::RemoveAppFromTTSGlobalPropertiesList(
       // if container is empty need to stop timer
       tts_global_properties_app_list_lock_.Release();
       tts_global_properties_timer_.stop();
+      return;
     }
   }
+  tts_global_properties_app_list_lock_.Release();
 }
 
 void ApplicationManagerImpl::CreatePhoneCallAppList() {
