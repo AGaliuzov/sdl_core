@@ -73,14 +73,12 @@ enum {
 };
 
 /* The keys required by usblauncher to send to the device */
-static const char *kKeys[] = { "manufacturer", "model", "description",
-    "version", "uri", "serial",
+static const char *kKeys[] = { "manufacturer", "model", "version",
 
     NULL };
 
 /* The values used to switch the phone into AOA mode */
-static const char *kValues[] = { "QNX Multimedia", "QNX", "2.0",
-    "QNX AOA Demo Application", "http://www.qnx.com", "12345678",
+static const char *kValues[] = { "Ford", "HMI", "1.0",
 
     NULL };
 
@@ -104,8 +102,8 @@ PPSDeviceScanner::PPSDeviceScanner(TransportAdapterController* controller)
 }
 
 PPSDeviceScanner::~PPSDeviceScanner() {
-  Terminate();
   LOG4CXX_AUTO_TRACE(logger_);
+  Terminate();
   thread_->join();
   delete thread_->delegate();
   threads::DeleteThread(thread_);
@@ -196,10 +194,10 @@ void PPSDeviceScanner::Process(uint8_t* buf, size_t size) {
     AOAWrapper::AOAUsbInfo aoa_usb_info;
     FillUsbInfo(object_name, vals, &aoa_usb_info);
     if (IsAOAMode(aoa_usb_info)) {
+      AddDevice(aoa_usb_info);
       InitDevice(aoa_usb_info);
     } else {
       SwitchMode(object_name.c_str(), vals);
-      AddDevice(aoa_usb_info);
     }
   }
 }
