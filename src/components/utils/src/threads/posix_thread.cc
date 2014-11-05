@@ -190,7 +190,7 @@ void Thread::stop() {
 #ifdef BUILD_TESTS
   // Temporary fix for UnitTest until APPLINK-9987 is resolved
   usleep(100000);
-endif
+#endif
 
   if (!atomic_post_clr(&isThreadRunning_))
   {

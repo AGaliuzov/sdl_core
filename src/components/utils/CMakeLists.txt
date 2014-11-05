@@ -48,7 +48,10 @@ endif()
 
 add_library("Utils" SHARED ${SOURCES})
 
-list(APPEND LIBRARIES dl)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+ list(APPEND LIBRARIES dl) 
+endif()
+
 
 if(ENABLE_LOG)
   list(APPEND LIBRARIES log4cxx -L${LOG4CXX_LIBS_DIRECTORY})

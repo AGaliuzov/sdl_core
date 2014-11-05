@@ -30,7 +30,7 @@ add_subdirectory(./hmi_message_handler)
 #add_subdirectory(./media_manager)
 
 # -- rpc_base
-add_subdirectory(./rpc_base)
+#add_subdirectory(./rpc_base)
 
 # --- DBus
 if(${QT_HMI})

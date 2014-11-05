@@ -57,6 +57,7 @@ if (TIME_TESTER)
 endif()
 
 set(LIBRARIES
+  MediaManager
   ApplicationManager
   HMI_API
   MOBILE_API
@@ -75,7 +76,6 @@ set(LIBRARIES
   Utils
   jsoncpp
   ConfigProfile
-  MediaManager
   Resumption
 )
 
@@ -180,10 +180,19 @@ include_directories (
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
   ${CMAKE_SOURCE_DIR}/src/components/security_manager/test/include
+  ${CMAKE_SOURCE_DIR}/src/components/application_manager/include
+  ${CMAKE_SOURCE_DIR}/src/components/media_manager/include
   ${CMAKE_SOURCE_DIR}/src/components/utils/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8
   ${CMAKE_SOURCE_DIR}/src/components/dbus/src
   ${COMPONENTS_DIR}/config_profile/include
+  #${CMAKE_SOURCE_DIR}/test/components/include
+  ${GMOCK_INCLUDE_DIRECTORY}
+  ${JSONCPP_INCLUDE_DIRECTORY}
+  ${MESSAGE_BROKER_INCLUDE_DIRECTORY}
+  ${LOG4CXX_INCLUDE_DIRECTORY}
+  ${CMAKE_SOURCE_DIR}/src/components/utils/include
+  
 )
 
 #TODO to ALL : Please FIX heart_beat_monitor_test.cc
@@ -193,6 +202,7 @@ include_directories (
     ${CMAKE_SOURCE_DIR}/src/components/utils/test/file_system_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/utils/test/messagemeter_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/media_manager/test/media_adapter_impl_test.cc
+    ${CMAKE_SOURCE_DIR}/src/components/media_manager/test/media_manager_impl_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/connection_handler_impl_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/connection_test.cc
     #${CMAKE_SOURCE_DIR}/src/components/rpc_base/test/rpc_base_dbus_test.cc
@@ -222,9 +232,17 @@ include_directories (
     HMIMessageHandler
     Utils
     jsoncpp
-    ConfigProfile
     MediaManager
+    ApplicationManager
+    TransportManager
+    MessageBroker
+    MessageBrokerClient
+    MessageBrokerServer
+    encryption
+    ${RTLIB}
     Resumption
+    Policy
+    ${SecurityManagerLibrary}
   )
 
 if(ENABLE_LOG)

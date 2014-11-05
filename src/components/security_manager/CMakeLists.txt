@@ -19,5 +19,5 @@ add_library(SecurityManager ${SOURCES})
 target_link_libraries(SecurityManager crypto ssl ProtocolHandler jsoncpp ProtocolLibrary)
 
 if(BUILD_TESTS)
-  add_subdirectory(test)
+  #add_subdirectory(test)
 endif()

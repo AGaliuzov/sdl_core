@@ -19,6 +19,7 @@ include_directories (
   ${COMPONENTS_DIR}/request_watchdog/include/
   ${COMPONENTS_DIR}/resumption/include/
   ${COMPONENTS_DIR}/rpc_base/include/
+  ${COMPONENTS_DIR}/interfaces
   ${CMAKE_BINARY_DIR}/src/components/
   ${COMPONENTS_DIR}/include/
   ${COMPONENTS_DIR}/policy/src/policy/include/
@@ -301,9 +302,14 @@ if (${HMI_DBUS_API})
 endif (${HMI_DBUS_API})
 
 SET (LIBRARIES
-  UsageStatistics
-  dl
+  HMI_API
+  MOBILE_API
+  v4_protocol_v1_2_no_extra
   ProtocolLibrary
+  SmartObjects
+  UsageStatistics
+  dl 
+  formatters
 )
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "QNX")

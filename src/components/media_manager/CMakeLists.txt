@@ -22,6 +22,7 @@ set(default_sources
 )
 set(LIBRARIES
   ${GSTREAMER_gstreamer_LIBRARY}
+  ApplicationManager
   pulse-simple
   pulse
   gobject-2.0
@@ -46,17 +47,17 @@ set(LIBRARIES
 endif()
 
 include_directories (
-  ./include
-  ./include/audio/
-  ./include/video/
-  ../utils/include/
-  ../protocol_handler/include/
-  ../connection_handler/include/
-  ../application_manager/include/
-  ../smart_objects/include/
-  ../hmi_message_handler/include/
-  ../formatters/include
-  ../config_profile/include/
+  include
+  ${COMPONENTS_DIR}/media_manager/include/audio/
+  ${COMPONENTS_DIR}/media_manager/include/video/
+  ${COMPONENTS_DIR}/utils/include/
+  ${COMPONENTS_DIR}/protocol_handler/include/
+  ${COMPONENTS_DIR}/connection_handler/include/
+  ${COMPONENTS_DIR}/application_manager/include/
+  ${COMPONENTS_DIR}/smart_objects/include/
+  ${COMPONENTS_DIR}/hmi_message_handler/include/
+  ${COMPONENTS_DIR}/formatters/include
+  ${COMPONENTS_DIR}/config_profile/include/
   ${JSONCPP_INCLUDE_DIRECTORY}
   ${CMAKE_BINARY_DIR}/src/components/
   ${CMAKE_SOURCE_DIR}/src/components/policy/src/policy/include/
@@ -66,16 +67,16 @@ include_directories (
 )
 
 set (SOURCES
-    ./src/media_adapter_impl.cc
-    ./src/audio/from_mic_recorder_listener.cc
-    ./src/audio/audio_stream_sender_thread.cc
-    ./src/streamer_listener.cc
-    ./src/media_manager_impl.cc
+    ${COMPONENTS_DIR}/media_manager/src/media_adapter_impl.cc
+    ${COMPONENTS_DIR}/media_manager/src/audio/from_mic_recorder_listener.cc
+    ${COMPONENTS_DIR}/media_manager/src/audio/audio_stream_sender_thread.cc
+    ${COMPONENTS_DIR}/media_manager/src/streamer_listener.cc
+    ${COMPONENTS_DIR}/media_manager/src/media_manager_impl.cc
 )
 
 add_library("MediaManager" ${SOURCES} ${default_sources})
 target_link_libraries("MediaManager" ${LIBRARIES})
 
 if(BUILD_TESTS)
-  #add_subdirectory(test)
+  add_subdirectory(test)
 endif()
