@@ -590,7 +590,7 @@ void CacheManager::SaveUpdateRequired(bool status) {
   Backup();
 }
 
-bool CacheManager::IsApplicationRevoked(const std::string& app_id) {
+bool CacheManager::IsApplicationRevoked(const std::string& app_id) const {
   CACHE_MANAGER_CHECK(false);
   bool is_revoked = false;
   if (pt_->policy_table.app_policies.end() !=

@@ -92,7 +92,7 @@ class MockCacheManagerInterface : public CacheManagerInterface {
       void(bool status));
   MOCK_METHOD3(GetInitialAppData,
       bool(const std::string& app_id, StringArray& nicknames, StringArray& app_hmi_types));
-  MOCK_METHOD1(IsApplicationRevoked,
+  MOCK_CONST_METHOD1(IsApplicationRevoked,
       bool(const std::string& app_id));
   MOCK_METHOD1(GetFunctionalGroupings,
       bool(policy_table::FunctionalGroupings& groups));

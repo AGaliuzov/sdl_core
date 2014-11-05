@@ -249,6 +249,8 @@ class PolicyManagerImpl : public PolicyManager {
      */
     bool IsNewApplication(const std::string& application_id) const;
 
+    bool CheckAppStorageFolder() const;
+
     PolicyListener* listener_;
 
     UpdateStatusManagerInterfaceSPtr update_status_manager_;

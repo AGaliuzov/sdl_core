@@ -219,7 +219,7 @@ class CacheManagerInterface {
    * @param app_id application id
    * @return true if application is revoked
    */
-  virtual bool IsApplicationRevoked(const std::string& app_id) = 0;
+  virtual bool IsApplicationRevoked(const std::string& app_id) const = 0;
 
   /**
    * @brief Get functional groupings from DB
