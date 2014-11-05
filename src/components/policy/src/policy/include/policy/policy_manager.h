@@ -416,6 +416,13 @@ class PolicyManager : public usage_statistics::StatisticsManager {
      * @brief SaveUpdateStatusRequired alows to save update status.
      */
     virtual void SaveUpdateStatusRequired(bool is_update_needed) = 0;
+
+    /**
+     * @brief Allows to initiate backup creation process.
+     * This method is temporary solution an will be removed
+     * immediatelly after bug fixing in backup thread
+     */
+    virtual void DoBackup() = 0;
 };
 
 }  // namespace policy

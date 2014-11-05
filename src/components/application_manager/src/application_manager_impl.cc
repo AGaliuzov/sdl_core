@@ -1922,6 +1922,8 @@ void ApplicationManagerImpl::HeadUnitReset(
 void ApplicationManagerImpl::HeadUnitSuspend() {
   LOG4CXX_INFO(logger_, "ApplicationManagerImpl::HeadUnitSuspend");
 
+  policy::PolicyHandler::instance()->OnSuspend();
+
   resume_controller().StopSavePersistentDataTimer();
   resume_controller().SaveAllApplications();
   resumption::LastState::instance()->SaveToFileSystem();
