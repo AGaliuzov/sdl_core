@@ -126,3 +126,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
     target_link_libraries(${target} aoa)
   endif(BUILD_AOA_SUPPORT)
 endif()
+
+if(BUILD_TESTS)
+  add_subdirectory(test)
+endif()

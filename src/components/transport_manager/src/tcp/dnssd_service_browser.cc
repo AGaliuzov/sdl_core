@@ -33,16 +33,17 @@
 
 #include <algorithm>
 #include <map>
+#include "utils/logger.h"
 
 #include "transport_manager/transport_adapter/transport_adapter_impl.h"
 #include "transport_manager/tcp/tcp_device.h"
 #include "transport_manager/tcp/dnssd_service_browser.h"
-#include "utils/logger.h"
+
 
 namespace transport_manager {
 namespace transport_adapter {
 
-CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
+CREATE_LOGGERPTR_LOCAL(logger_, "TransportManager")
 
 bool operator==(const DnssdServiceRecord& a, const DnssdServiceRecord& b) {
   return a.name == b.name && a.type == b.type && a.interface == b.interface
