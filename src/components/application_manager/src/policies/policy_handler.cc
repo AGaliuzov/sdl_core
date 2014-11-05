@@ -362,7 +362,7 @@ uint32_t PolicyHandler::GetAppIdForSending() {
   return selected_app_id;
 }
 
-DeviceConsent PolicyHandler::GetDeviceForSending(DeviceParams& device_params) {
+DeviceConsent PolicyHandler::GetDeviceForSending() {
   POLICY_LIB_CHECK(kDeviceDisallowed);
   uint32_t app_id = 0;
   uint32_t app_id_previous = 0;
@@ -380,6 +380,7 @@ DeviceConsent PolicyHandler::GetDeviceForSending(DeviceParams& device_params) {
     }
 
     app_id_previous = app_id;
+    DeviceParams device_params;
     application_manager::MessageHelper::GetDeviceInfoForApp(app_id,
         &device_params);
 
@@ -391,10 +392,10 @@ DeviceConsent PolicyHandler::GetDeviceForSending(DeviceParams& device_params) {
       case kDeviceDisallowed:
         continue;
       case kDeviceHasNoConsent:
-        return consent;
+        continue;
       default:
         LOG4CXX_WARN(logger_, "Consent result is not impelemented.");
-        return consent;
+        return kDeviceDisallowed;
     }
   }
   return kDeviceDisallowed;
@@ -882,19 +883,13 @@ void PolicyHandler::StartPTExchange(bool skip_device_selection) {
   }
 
   if (!skip_device_selection) {
-    DeviceParams device_params;
-    DeviceConsent consent = GetDeviceForSending(device_params);
-    switch (consent) {
-      case kDeviceHasNoConsent:
-        // Send OnSDLConsentNeeded to HMI for user consent on device usage
-        pending_device_handles_.push_back(device_params.device_handle);
-        application_manager::MessageHelper::SendOnSDLConsentNeeded(
-          device_params);
-        return;
-      case kDeviceDisallowed:
-        return;
-      default:
+    switch (GetDeviceForSending()) {
+      case kDeviceAllowed:
         break;
+      default:
+      LOG4CXX_INFO(logger_, "There are no allowed devices found for sending"
+                            " policy update.");
+        return;
     }
   }
 
