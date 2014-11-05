@@ -46,8 +46,6 @@ namespace transport_adapter {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
 
-#define MAX_SPP_PACKET_SIZE    2047
-
 struct SPPframe {
   uint16_t length;
   uint8_t  data[MAX_SPP_PACKET_SIZE];
@@ -301,16 +299,14 @@ void BluetoothPASAConnection::Transmit() {
 
 bool BluetoothPASAConnection::Receive() {
   LOG4CXX_TRACE_ENTER(logger_);
-  uint8_t buffer[MAX_SPP_PACKET_SIZE];
-
   while (true) {
-    const ssize_t num_bytes = read(sppDeviceFd, (void*)buffer, MAX_SPP_PACKET_SIZE);
+    const ssize_t num_bytes = read(sppDeviceFd, (void*)data_receive_buffer_, MAX_SPP_PACKET_SIZE);
     const int errno_value = errno;
     LOG4CXX_DEBUG( logger_,
           "Received " << num_bytes << " bytes for connection " << this);
     if (num_bytes > 0) {
       ::protocol_handler::RawMessagePtr frame(
-            new protocol_handler::RawMessage(0, 0, buffer, num_bytes));
+            new protocol_handler::RawMessage(0, 0, data_receive_buffer_, num_bytes));
       controller_->DataReceiveDone(device_handle(), application_handle(), frame);
       // try to read more
       continue;

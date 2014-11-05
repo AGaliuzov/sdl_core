@@ -44,6 +44,8 @@
 #include "utils/lock.h"
 #include "utils/threads/thread.h"
 
+#define MAX_SPP_PACKET_SIZE 6144
+
 namespace transport_manager {
 namespace transport_adapter {
 
@@ -154,6 +156,7 @@ class BluetoothPASAConnection
   bool unexpected_disconnect_;
   const DeviceUID device_uid_;
   const ApplicationHandle app_handle_;
+  uint8_t data_receive_buffer_[MAX_SPP_PACKET_SIZE];
 
   std::string sPPQ;
   int sppDeviceFd;
