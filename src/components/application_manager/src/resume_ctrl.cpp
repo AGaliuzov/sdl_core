@@ -791,6 +791,10 @@ void ResumeCtrl::ApplicationResumptiOnTimer() {
 
 void ResumeCtrl::SaveDataOnTimer() {
   LOG4CXX_TRACE_ENTER(logger_);
+  if (waiting_for_timer_.size() > 0) {
+    LOG4CXX_INFO(logger_, "There are some applications, that are waiting for resumption HMILevel. Data should not be saved");
+    return;
+  }
   if (false == is_data_saved) {
     SaveAllApplications();
     is_data_saved = true;
