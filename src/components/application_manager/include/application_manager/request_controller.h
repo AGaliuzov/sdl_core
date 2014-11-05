@@ -214,7 +214,7 @@ class RequestController {
      * @param max_request_per_time_scale - maximum count of request that should be allowed for app_time_scale seconds
      * @return True if new request could be added, false otherwise
      */
-    bool checkTimeScaleMaxRequest(const uint32_t& app_id,
+    bool CheckTimeScaleMaxRequest(const uint32_t& app_id,
                                   const uint32_t& app_time_scale,
                                   const uint32_t& max_request_per_time_scale);
 
@@ -226,7 +226,7 @@ class RequestController {
      * @param max_request_per_time_scale - maximum count of request that should be allowed for app_time_scale seconds
      * @return True if new request could be added, false otherwise
      */
-    bool checkHMILevelTimeScaleMaxRequest(const mobile_apis::HMILevel::eType& hmi_level,
+    bool CheckHMILevelTimeScaleMaxRequest(const mobile_apis::HMILevel::eType& hmi_level,
                                           const uint32_t& app_id,
                                           const uint32_t& app_time_scale,
                                           const uint32_t& max_request_per_time_scale);
@@ -236,7 +236,7 @@ class RequestController {
      * @param pending_requests_amount - maximum count of request that should be allowed for all applications
      * @return True if new request could be added, false otherwise
      */
-    bool checkPendingRequestsAmount(const uint32_t& pending_requests_amount);
+    bool CheckPendingRequestsAmount(const uint32_t& pending_requests_amount);
 
     void onTimer();
 

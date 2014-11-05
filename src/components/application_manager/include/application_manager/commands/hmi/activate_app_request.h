@@ -52,7 +52,7 @@ class ActivateAppRequest : public RequestToHMI, event_engine::EventObserver {
     explicit ActivateAppRequest(const MessageSharedPtr& message);
 
     /**
-     * @brief Calback for response
+     * @brief Callbackfor response
      *
      * @param event - event response
      **/

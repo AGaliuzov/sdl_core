@@ -127,7 +127,7 @@ RequestController::TResult RequestController::addMobileRequest(
   const uint32_t& pending_requests_amount =
       profile::Profile::instance()->pending_requests_amount();
 
-  if (!checkHMILevelTimeScaleMaxRequest(mobile_apis::HMILevel::HMI_NONE,
+  if (!CheckHMILevelTimeScaleMaxRequest(mobile_apis::HMILevel::HMI_NONE,
                                         request->connection_key(),
                                         app_hmi_level_none_time_scale,
                                         app_hmi_level_none_max_request_per_time_scale)) {
@@ -135,14 +135,14 @@ RequestController::TResult RequestController::addMobileRequest(
     LOG4CXX_TRACE_EXIT(logger_);
     return RequestController::NONE_HMI_LEVEL_MANY_REQUESTS;
   }
-  if (!checkTimeScaleMaxRequest(request->connection_key(),
+  if (!CheckTimeScaleMaxRequest(request->connection_key(),
                                 app_time_scale,
                                 max_request_per_time_scale)) {
     LOG4CXX_ERROR(logger_, "Too many application requests");
     LOG4CXX_TRACE_EXIT(logger_);
     return RequestController::TOO_MANY_REQUESTS;
   }
-  if (!checkPendingRequestsAmount(pending_requests_amount)) {
+  if (!CheckPendingRequestsAmount(pending_requests_amount)) {
     LOG4CXX_ERROR(logger_, "Too many pending request");
     LOG4CXX_TRACE_EXIT(logger_);
     return RequestController::TOO_MANY_PENDING_REQUESTS;
@@ -479,7 +479,7 @@ bool RequestController::Worker::exitThreadMain() {
   return true;
 }
 
-bool RequestController::checkTimeScaleMaxRequest(
+bool RequestController::CheckTimeScaleMaxRequest(
     const uint32_t& app_id,
     const uint32_t& app_time_scale,
     const uint32_t& max_request_per_time_scale) {
@@ -497,7 +497,7 @@ bool RequestController::checkTimeScaleMaxRequest(
       LOG4CXX_ERROR(logger_, "Requests count " << count <<
                     " exceed application limit " << max_request_per_time_scale);
       LOG4CXX_TRACE_EXIT(logger_);
-      return true;
+      return false;
     }
     LOG4CXX_DEBUG(logger_, "Requests count " << count);
   } else {
@@ -507,7 +507,7 @@ bool RequestController::checkTimeScaleMaxRequest(
   return true;
 }
 
-bool RequestController::checkHMILevelTimeScaleMaxRequest(
+bool RequestController::CheckHMILevelTimeScaleMaxRequest(
     const mobile_apis::HMILevel::eType& hmi_level,
     const uint32_t& app_id,
     const uint32_t& app_time_scale,
@@ -537,15 +537,17 @@ bool RequestController::checkHMILevelTimeScaleMaxRequest(
   return true;
 }
 
-bool RequestController::checkPendingRequestsAmount(
+bool RequestController::CheckPendingRequestsAmount(
     const uint32_t& pending_requests_amount) {
   LOG4CXX_TRACE_ENTER(logger_);
   if (pending_requests_amount > 0) {
     AutoLock auto_lock(mobile_request_list_lock_);
-    const bool avalible_to_add =
+    const bool available_to_add =
         pending_requests_amount > mobile_request_list_.size();
     LOG4CXX_TRACE_EXIT(logger_);
-    return avalible_to_add;
+    return available_to_add;
+  } else {
+    LOG4CXX_DEBUG(logger_, "CheckPendingRequestsAmount disabled");
   }
   LOG4CXX_TRACE_EXIT(logger_);
   return true;

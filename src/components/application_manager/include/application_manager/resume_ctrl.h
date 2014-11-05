@@ -206,7 +206,7 @@ class ResumeCtrl: public event_engine::EventObserver {
     uint32_t GetHMIApplicationID(const std::string& mobile_app_id);
 
     /**
-     * @brief Timer calback for  restoring HMI Level
+     * @brief Timer callback for  restoring HMI Level
      *
      */
     void ApplicationResumptiOnTimer();
@@ -214,7 +214,7 @@ class ResumeCtrl: public event_engine::EventObserver {
 
     /**
      * @brief SaveDataOnTimer :
-     *  Timer calback for persisting ResumptionData each N seconds
+     *  Timer callback for persisting ResumptionData each N seconds
      *  N gets from property
      */
     void SaveDataOnTimer();
