@@ -1,4 +1,4 @@
-/**
+/*
  * \file threaded_socket_connection.h
  * \brief Header for classes responsible for communication over sockets.
  * Copyright (c) 2013, Ford Motor Company

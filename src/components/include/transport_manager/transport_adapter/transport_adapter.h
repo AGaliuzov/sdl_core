@@ -1,4 +1,4 @@
-/**
+/*
  * \file transport_adapter.h
  * \brief TransportAdapter class header file.
  *

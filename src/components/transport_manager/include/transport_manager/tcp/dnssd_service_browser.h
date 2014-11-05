@@ -1,4 +1,4 @@
-/**
+/*
  * \file dnssd_service_browser.h
  * \brief DnssdServiceBrowser class header file.
  *

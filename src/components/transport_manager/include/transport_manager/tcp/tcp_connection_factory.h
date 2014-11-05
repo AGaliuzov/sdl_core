@@ -1,4 +1,4 @@
-/**
+/*
  * \file tcp_connection_factory.h
  * \brief TcpConnectionFactory class header file.
  *

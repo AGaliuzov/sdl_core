@@ -1,4 +1,4 @@
-/**
+/*
  * \file usb_connection_factory.h
  * \brief UsbConnectionFactory class header file.
  *

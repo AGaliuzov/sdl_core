@@ -1,4 +1,4 @@
-/**
+/*
  * \file Device.cpp
  * \brief Device class implementation.
  *

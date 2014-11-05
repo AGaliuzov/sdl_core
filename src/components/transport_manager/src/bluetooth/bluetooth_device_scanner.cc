@@ -1,4 +1,4 @@
-/**
+/*
  * \file bluetooth_device_scanner.cc
  * \brief BluetoothDeviceScanner class header file.
  *

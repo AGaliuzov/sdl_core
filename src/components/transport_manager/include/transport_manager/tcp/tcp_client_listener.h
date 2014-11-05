@@ -1,4 +1,4 @@
-/**
+/*
  * \file tcp_client_listener.h
  * \brief TcpClientListener class header file.
  *
