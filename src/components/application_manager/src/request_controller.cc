@@ -484,7 +484,8 @@ bool RequestController::CheckTimeScaleMaxRequest(
     const uint32_t& app_time_scale,
     const uint32_t& max_request_per_time_scale) {
   LOG4CXX_TRACE_ENTER(logger_);
-  if (max_request_per_time_scale > 0) {
+  if (max_request_per_time_scale > 0
+      && app_time_scale > 0) {
     AutoLock auto_lock(pending_request_set_lock_);
     TimevalStruct end = date_time::DateTime::getCurrentTime();
     TimevalStruct start = {0, 0};
@@ -513,23 +514,24 @@ bool RequestController::CheckHMILevelTimeScaleMaxRequest(
     const uint32_t& app_time_scale,
     const uint32_t& max_request_per_time_scale) {
   LOG4CXX_TRACE_ENTER(logger_);
-  if (max_request_per_time_scale > 0) {
-      AutoLock auto_lock(pending_request_set_lock_);
-      TimevalStruct end = date_time::DateTime::getCurrentTime();
-      TimevalStruct start = {0, 0};
-      start.tv_sec = end.tv_sec - app_time_scale;
+  if (max_request_per_time_scale > 0 &&
+      app_time_scale > 0) {
+    AutoLock auto_lock(pending_request_set_lock_);
+    TimevalStruct end = date_time::DateTime::getCurrentTime();
+    TimevalStruct start = {0, 0};
+    start.tv_sec = end.tv_sec - app_time_scale;
 
-      HMILevelTimeScale scale(start, end, app_id, hmi_level);
-      const uint32_t count = std::count_if(pending_request_set_.begin(),
-                                           pending_request_set_.end(), scale);
-      if (count == max_request_per_time_scale) {
-        LOG4CXX_ERROR(logger_, "Requests count " << count
-                      << " exceed application limit " << max_request_per_time_scale
-                      << " in hmi level " << hmi_level);
-        LOG4CXX_TRACE_EXIT(logger_);
-        return false;
-      }
-      LOG4CXX_DEBUG(logger_, "Requests count " << count);
+    HMILevelTimeScale scale(start, end, app_id, hmi_level);
+    const uint32_t count = std::count_if(pending_request_set_.begin(),
+                                         pending_request_set_.end(), scale);
+    if (count == max_request_per_time_scale) {
+      LOG4CXX_ERROR(logger_, "Requests count " << count
+                    << " exceed application limit " << max_request_per_time_scale
+                    << " in hmi level " << hmi_level);
+      LOG4CXX_TRACE_EXIT(logger_);
+      return false;
+    }
+    LOG4CXX_DEBUG(logger_, "Requests count " << count);
   } else {
     LOG4CXX_DEBUG(logger_, "CheckHMILevelTimeScaleMaxRequest disabled");
   }
