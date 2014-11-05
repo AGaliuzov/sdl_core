@@ -364,28 +364,30 @@ uint32_t PolicyHandler::GetAppIdForSending() {
 
 DeviceConsent PolicyHandler::GetDeviceForSending() {
   POLICY_LIB_CHECK(kDeviceDisallowed);
-  uint32_t app_id = 0;
-  uint32_t app_id_previous = 0;
+  std::set<uint32_t> used_apps;
+  DeviceConsent consent = kDeviceDisallowed;
   while (true) {
-    app_id = GetAppIdForSending();
+    uint32_t app_id = GetAppIdForSending();
     if (!app_id) {
       LOG4CXX_WARN(logger_,
                    "There is no appropriate application for sending PTS.");
       return kDeviceDisallowed;
     }
 
-    // If only one application is available, return its device params
-    if (app_id == app_id_previous) {
-      return kDeviceDisallowed;
-    }
-
-    app_id_previous = app_id;
     DeviceParams device_params;
     application_manager::MessageHelper::GetDeviceInfoForApp(app_id,
         &device_params);
 
-    DeviceConsent consent = policy_manager_->GetUserConsentForDevice(
-                              device_params.device_mac_address);
+    consent = policy_manager_->GetUserConsentForDevice(
+          device_params.device_mac_address);
+
+    // If all apps had been tried, stop loop
+    if (used_apps.end() != used_apps.find(app_id)) {
+      return consent;
+    } else {
+      used_apps.insert(app_id);
+    }
+
     switch (consent) {
       case kDeviceAllowed:
         return consent;
