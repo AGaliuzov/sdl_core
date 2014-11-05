@@ -214,7 +214,7 @@ class ResumeCtrl: public event_engine::EventObserver {
 
     /**
      * @brief SaveDataOnTimer :
-     *  Timer calback for persisting ResumptionData each N secconds
+     *  Timer calback for persisting ResumptionData each N seconds
      *  N gets from property
      */
     void SaveDataOnTimer();

@@ -1318,7 +1318,7 @@ bool ApplicationManagerImpl::ManageMobileCommand(
 
     // commands will be launched from request_ctrl
 
-    request_controller::RequestController::TResult result =
+    const request_controller::RequestController::TResult result =
       request_ctrl_.addMobileRequest(command, app_hmi_level);
 
     if (result == request_controller::RequestController::SUCCESS) {
