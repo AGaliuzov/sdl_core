@@ -1452,10 +1452,5 @@ void PolicyHandler::Add(const std::string& app_id,
   policy_manager_->Add(app_id, type, timespan_seconds);
 }
 
-void PolicyHandler::OnSuspend() {
-  POLICY_LIB_CHECK_VOID();
-  policy_manager_->DoBackup();
-}
-
 }  //  namespace policy
 

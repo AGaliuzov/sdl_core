@@ -1216,9 +1216,5 @@ void PolicyManagerImpl::set_update_status_manager(
   update_status_manager_ = update_manager;
 }
 
-void PolicyManagerImpl::DoBackup() {
-  cache_->Backup();
-}
-
 }  //  namespace policy
 

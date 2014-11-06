@@ -175,8 +175,6 @@ class PolicyManagerImpl : public PolicyManager {
     void set_update_status_manager(
         UpdateStatusManagerInterface* update_manager);
 
-    virtual void DoBackup();
-
   protected:
     virtual utils::SharedPtr<policy_table::Table> Parse(
         const BinaryMessage& pt_content);

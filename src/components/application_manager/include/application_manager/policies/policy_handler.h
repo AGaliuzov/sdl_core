@@ -314,10 +314,6 @@ class PolicyHandler :
                    usage_statistics::AppStopwatchId type,
                    int32_t timespan_seconds);
 
-  /**
-   * @brief Allows to do things which are needed during suspend notification.
-   */
-  void OnSuspend();
 
 protected:
 
