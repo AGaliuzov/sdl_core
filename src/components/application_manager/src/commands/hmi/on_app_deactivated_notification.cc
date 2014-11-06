@@ -89,21 +89,13 @@ void OnAppDeactivatedNotification::Run() {
           app->set_audio_streaming_state(mobile_api::AudioStreamingState::NOT_AUDIBLE);
         }
       }
-      // switch HMI level for all applications in FULL or LIMITED
-      ApplicationManagerImpl::ApplicationListAccessor accessor;
-      ApplicationManagerImpl::TAppList applications =
-          accessor.applications();
-      ApplicationManagerImpl::TAppListIt it =
-          applications.begin();
-      for (; applications.end() != it; ++it) {
-          ApplicationSharedPtr app = *it;
-          if (app.valid()) {
-            if (mobile_apis::HMILevel::eType::HMI_FULL == app->hmi_level() ||
-                mobile_apis::HMILevel::eType::HMI_LIMITED == app->hmi_level()) {
-                app->set_hmi_level(mobile_api::HMILevel::HMI_BACKGROUND);
-                MessageHelper::SendHMIStatusNotification(*app);
-            }
-          }
+      // HMI must send this notification for each active app
+      if (app.valid()) {
+        if (mobile_apis::HMILevel::eType::HMI_FULL == app->hmi_level() ||
+            mobile_apis::HMILevel::eType::HMI_LIMITED == app->hmi_level()) {
+          app->set_hmi_level(mobile_api::HMILevel::HMI_BACKGROUND);
+          MessageHelper::SendHMIStatusNotification(*app);
+        }
       }
       break;
     }
