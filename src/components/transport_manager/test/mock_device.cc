@@ -32,7 +32,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "transport_manager/mock_device.h"
+#include "include/mock_device.h"
 
 namespace test {
 namespace components {

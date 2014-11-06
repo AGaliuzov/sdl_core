@@ -43,7 +43,8 @@
 namespace transport_manager {
 namespace transport_adapter {
 
-CREATE_LOGGERPTR_LOCAL(logger_, "TransportManager")
+CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
+//CREATE_LOGGERPTR_LOCAL(logger_, "TransportManager")
 
 bool operator==(const DnssdServiceRecord& a, const DnssdServiceRecord& b) {
   return a.name == b.name && a.type == b.type && a.interface == b.interface

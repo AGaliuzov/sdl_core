@@ -5,8 +5,7 @@
 #include <sys/types.h>
 #include <ifaddrs.h>
 
-//#include "transport_manager/src/transport_adapter/transport_adapter_controller.h"
-#include "transport_manager/transport_adapter/transport_adapter_impl.h"
+#include "../include/transport_manager/transport_adapter/transport_adapter_controller.h"
 #include "../include/transport_manager/tcp/dnssd_service_browser.h"
 #include "../include/transport_manager/tcp/tcp_device.h"
 
@@ -36,19 +35,19 @@ class MockTransportAdapterController : public TransportAdapterController {
   MOCK_METHOD2(DisconnectDone,
       void(const DeviceUID& device_handle, const ApplicationHandle& app_handle));
   MOCK_METHOD3(DataReceiveDone,
-      void(const DeviceUID& device_handle, const ApplicationHandle& app_handle, RawMessagePtr message));
+      void(const DeviceUID& device_handle, const ApplicationHandle& app_handle, const ::protocol_handler::RawMessagePtr message));
   MOCK_METHOD3(DataReceiveFailed,
       void(const DeviceUID& device_handle, const ApplicationHandle& app_handle, const DataReceiveError& error));
   MOCK_METHOD3(DataSendDone,
-      void(const DeviceUID& device_handle, const ApplicationHandle& app_handle, RawMessagePtr message));
+      void(const DeviceUID& device_handle, const ApplicationHandle& app_handle, const ::protocol_handler::RawMessagePtr message));
   MOCK_METHOD4(DataSendFailed,
-      void(const DeviceUID& device_handle, const ApplicationHandle& app_handle, RawMessagePtr message, const DataSendError& error));
+      void(const DeviceUID& device_handle, const ApplicationHandle& app_handle, const ::protocol_handler::RawMessagePtr message, const DataSendError& error));
 };
 
 in_addr_t GetIfaceAddress() {
   in_addr_t result = 0;
   ifaddrs* if_addrs = NULL;
-  void * tmpAddrPtr = NULL;
+//  void * tmpAddrPtr = NULL;
 
   getifaddrs(&if_addrs);
 

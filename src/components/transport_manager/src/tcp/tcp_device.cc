@@ -37,7 +37,9 @@
 namespace transport_manager {
 namespace transport_adapter {
 
-CREATE_LOGGERPTR_LOCAL(logger_, "TransportManager")
+//CREATE_LOGGERPTR_LOCAL(logger_, "TransportManager")
+CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
+
 
 TcpDevice::TcpDevice(const in_addr_t& in_addr, const std::string& name)
 #ifdef CUSTOMER_PASA
