@@ -206,7 +206,9 @@ void AlertRequest::on_event(const event_engine::Event& event) {
       response_success_ = true;
     }
 
-    if (mobile_apis::Result::ABORTED == tts_speak_response_ &&
+    if (
+        ((mobile_apis::Result::ABORTED == tts_speak_response_ )||
+        (mobile_apis::Result::REJECTED == tts_speak_response_)) &&
         (!flag_other_component_sent_)) {
       response_success_ = false;
       response_result_ = tts_speak_response_;
