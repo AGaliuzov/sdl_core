@@ -1065,6 +1065,7 @@ smart_objects::SmartObject* MessageHelper::CreateChangeRegistration(
 
 void MessageHelper::SendUIChangeRegistrationRequestToHMI(ApplicationConstSharedPtr app) {
   if (!app.valid()) {
+    LOG4CXX_ERROR(logger_, "Application is not valid");
     return;
   }
 

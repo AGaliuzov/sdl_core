@@ -2567,8 +2567,11 @@ bool ApplicationManagerImpl::CompareAppHMIType (const smart_objects::SmartObject
                                                 const smart_objects::SmartObject& from_application) {
   LOG4CXX_INFO(logger_, "ApplicationManagerImpl::CompareAppHMIType");
   bool equal = false;
-  for(uint32_t i = 0; i < from_application.length(); ++i) {
-    for(uint32_t k = 0; k < from_policy.length(); ++k) {
+  uint32_t lenght_policy_app_types = from_policy.length();
+  uint32_t lenght_application_app_types = from_application.length();
+
+  for(uint32_t i = 0; i < lenght_application_app_types; ++i) {
+    for(uint32_t k = 0; k < lenght_policy_app_types; ++k) {
       if (from_application[i] == from_policy[k]) {
         equal = true;
         break;
@@ -2590,7 +2593,7 @@ void ApplicationManagerImpl::OnUpdateHMIAppType(std::map<std::string, std::vecto
   std::vector<std::string> hmi_types_from_policy;
   smart_objects::SmartObject transform_app_hmi_types(smart_objects::SmartType_Array);
   const smart_objects::SmartObject *save_application_hmi_type = NULL;
-  bool flag_difirence_app_hmi_type = false;
+  bool flag_diffirence_app_hmi_type = false;
 
   for (TAppListIt it = application_list_.begin();
       it != application_list_.end(); ++it) {
@@ -2600,7 +2603,7 @@ void ApplicationManagerImpl::OnUpdateHMIAppType(std::map<std::string, std::vecto
 
     if (it_app_hmi_types_from_policy != app_hmi_types.end() &&
         ((it_app_hmi_types_from_policy->second).size())) {
-      flag_difirence_app_hmi_type = false;
+      flag_diffirence_app_hmi_type = false;
       hmi_types_from_policy = (it_app_hmi_types_from_policy->second);
 
       if(transform_app_hmi_types.length()) {
@@ -2616,13 +2619,13 @@ void ApplicationManagerImpl::OnUpdateHMIAppType(std::map<std::string, std::vecto
 
       if (save_application_hmi_type == NULL ||
           ((*save_application_hmi_type).length() != transform_app_hmi_types.length())) {
-        flag_difirence_app_hmi_type = true;
+        flag_diffirence_app_hmi_type = true;
       } else {
-        flag_difirence_app_hmi_type = !(CompareAppHMIType(transform_app_hmi_types,
+        flag_diffirence_app_hmi_type = !(CompareAppHMIType(transform_app_hmi_types,
                                                         *save_application_hmi_type));
       }
 
-      if (flag_difirence_app_hmi_type) {
+      if (flag_diffirence_app_hmi_type) {
         (*it)->set_app_types(transform_app_hmi_types);
         if ((*it)->hmi_level() == mobile_api::HMILevel::HMI_BACKGROUND) {
 
@@ -2636,8 +2639,6 @@ void ApplicationManagerImpl::OnUpdateHMIAppType(std::map<std::string, std::vecto
           MessageHelper::SendUIChangeRegistrationRequestToHMI(*it);
           (*it)->set_hmi_level(mobile_api::HMILevel::HMI_BACKGROUND);
           MessageHelper::SendHMIStatusNotification(*(*it));
-
-
         }
       }
     }
