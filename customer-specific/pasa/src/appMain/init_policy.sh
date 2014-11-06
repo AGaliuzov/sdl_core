@@ -12,6 +12,11 @@
 #cp -f /fs/mp/etc/AppLink/policy.sql /fs/mp/sql/policy.sql
 #
 #
+# Since there is no guaranteed init order for QDB, we have to wait for it
+if [ ! -d /dev/qdb ] ; then
+   waitfor /dev/qdb
+fi
+# DB config init for policy
 if [ -f "/fs/usb0/policy" ];
 then
    cat /fs/mp/sql/policy_usb.cfg > /pps/qnx/qdb/config/policy.db

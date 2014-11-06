@@ -34,6 +34,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include "utils/logger.h"
 #include "policy/sql_pt_representation.h"
@@ -306,8 +307,23 @@ InitResult SQLPTRepresentation::Init() {
   LOG4CXX_INFO(logger_, "SQLPTRepresentation::Init");
 
   if (!db_->Open()) {
-    LOG4CXX_ERROR(logger_, "Failed opening database");
-    return InitResult::FAIL;
+    LOG4CXX_ERROR(logger_, "Failed opening database.");
+    LOG4CXX_INFO(logger_, "Starting opening retries.");
+    const uint8_t attempts = 5;
+    bool is_opened = false;
+    const useconds_t sleep_interval_mcsec = 500000;
+    for (int i = 0; i < attempts; ++i) {
+      usleep(sleep_interval_mcsec);
+      LOG4CXX_INFO(logger_, "Attempt: " << i+1);
+      if (db_->Open()){
+        LOG4CXX_INFO(logger_, "Database opened.");
+        is_opened = true;
+        break;
+      }
+    }
+    if (!is_opened) {
+      return InitResult::FAIL;
+    }
   }
   dbms::SQLQuery check_pages(db());
   if (!check_pages.Prepare(sql_pt::kCheckPgNumber) || !check_pages.Next()) {
