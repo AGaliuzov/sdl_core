@@ -332,6 +332,7 @@ void PolicyManagerImpl::CheckPermissions(const PTString& app_id,
   std::for_each(app_groups.begin(), app_groups.end(), processor);
 
   const bool known_rpc = rpc_permissions.end() != rpc_permissions.find(rpc);
+  LOG4CXX_INFO(logger_, "Is known rpc" << known_rpc);
   if (!known_rpc) {
     // RPC not found in list == disallowed by backend
     result.hmi_level_permitted = kRpcDisallowed;
@@ -380,6 +381,7 @@ void PolicyManagerImpl::CheckPermissions(const PTString& app_id,
           std::find(result.list_of_allowed_params.begin(),
                     result.list_of_allowed_params.end(),
                     *iter);
+      LOG4CXX_INFO(logger_, "Rpc " << *iter << ":" << found);
     }
     // All paramters are in the allowed group.
     // So rpc is allowed as well.

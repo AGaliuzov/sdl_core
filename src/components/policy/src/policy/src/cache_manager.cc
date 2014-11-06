@@ -349,6 +349,7 @@ void CacheManager::RemoveAppConsentForGroup(const std::string& app_id,
 bool CacheManager::ApplyUpdate(const policy_table::Table& update_pt) {
   LOG4CXX_TRACE_ENTER(logger_);
   CACHE_MANAGER_CHECK(false);
+  sync_primitives::AutoLock auto_lock(cache_lock_);
   pt_->policy_table.functional_groupings =
       update_pt.policy_table.functional_groupings;
 
@@ -1558,7 +1559,8 @@ int32_t CacheManager::GenerateHash(const std::string& str_to_hash) {
 
 CacheManager::BackgroundBackuper::BackgroundBackuper(CacheManager* cache_manager)
   : cache_manager_(cache_manager),
-    stop_flag_(false){
+    stop_flag_(false),
+    new_data_available_(false) {
   LOG4CXX_TRACE_ENTER(logger_);
 }
 
@@ -1568,31 +1570,42 @@ CacheManager::BackgroundBackuper::~BackgroundBackuper() {
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
-void CacheManager::BackgroundBackuper::threadMain() {
-  while(!stop_flag_) {
-    sync_primitives::AutoLock auto_lock(need_backup_lock_);
-    if (cache_manager_) {
-      LOG4CXX_INFO(logger_, "DoBackup");
-      cache_manager_->PersistData();
+void CacheManager::BackgroundBackuper::InternalBackup() {
+  LOG4CXX_TRACE_ENTER(logger_);
+  if (cache_manager_) {
+    LOG4CXX_INFO(logger_, "DoBackup");
+    new_data_available_ = false;
+    cache_manager_->PersistData();
+
+    if (new_data_available_ ) {
+      InternalBackup();
     }
+  }
+  LOG4CXX_TRACE_EXIT(logger_);
+}
+
+void CacheManager::BackgroundBackuper::threadMain() {
+  sync_primitives::AutoLock auto_lock(need_backup_lock_);
+  while(!stop_flag_) {
+    InternalBackup();
     LOG4CXX_INFO(logger_, "Wait for a next backup");
     backup_notifier_.Wait(auto_lock);
   }
 }
 
 bool CacheManager::BackgroundBackuper::exitThreadMain() {
-  {
-    sync_primitives::AutoLock auto_lock(need_backup_lock_);
-    cache_manager_ = NULL;
-    stop_flag_ = true;
-    backup_notifier_.NotifyOne();
-  }
+  sync_primitives::AutoLock auto_lock(need_backup_lock_);
+  cache_manager_ = NULL;
+  stop_flag_ = true;
+  backup_notifier_.NotifyOne();
   return true;
 }
 
 void CacheManager::BackgroundBackuper::DoBackup() {
-  sync_primitives::AutoLock auto_lock(need_backup_lock_);
+  LOG4CXX_TRACE_ENTER(logger_);
+  new_data_available_ = true;
   backup_notifier_.NotifyOne();
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 }

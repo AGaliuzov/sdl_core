@@ -1,7 +1,7 @@
 ﻿#include <string.h>
 #include <log4cxx/rollingfileappender.h>
 #include <log4cxx/fileappender.h>
-#include <errno>
+#include <errno.h>
 
 #include "./life_cycle.h"
 #include "SmartDeviceLinkMainApp.h"
@@ -250,15 +250,15 @@ ApplinkNotificationThreadDelegate::ApplinkNotificationThreadDelegate()
       new timer::TimerThread<ApplinkNotificationThreadDelegate>(
         "AppLinkHearBeat",
         this,
-        &ApplinkNotificationThreadDelegate::sendHeartBeat, true),
-      heart_beat_timeout_(profile::Profile::instance()->hmi_heart_beat_timeout())) {
+        &ApplinkNotificationThreadDelegate::sendHeartBeat, true)),
+      heart_beat_timeout_(profile::Profile::instance()->hmi_heart_beat_timeout()) {
 
   attributes_.mq_maxmsg = MSGQ_MAX_MESSAGES;
   attributes_.mq_msgsize = MAX_QUEUE_MSG_SIZE;
   attributes_.mq_flags = 0;
 
-  init_mq(PREFIX_STR_SDL_PROXY_QUEUE, O_RDONLY | O_CREAT);
-  init_mq(PREFIX_STR_FROMSDLHEARTBEAT_QUEUE, O_RDWR | O_CREAT);
+  init_mq(PREFIX_STR_SDL_PROXY_QUEUE, O_RDONLY | O_CREAT, mq_to_sdl_);
+  init_mq(PREFIX_STR_FROMSDLHEARTBEAT_QUEUE, O_RDWR | O_CREAT, mq_from_sdl_);
 }
 
 ApplinkNotificationThreadDelegate::~ApplinkNotificationThreadDelegate() {
@@ -290,7 +290,7 @@ void ApplinkNotificationThreadDelegate::threadMain() {
       switch (buffer[0]) {
         case SDL_MSG_SDL_START:
           startSmartDeviceLink();
-          if (0 > heart_beat_timeout_) {
+          if (0 < heart_beat_timeout_) {
             heart_beat_sender_->start(heart_beat_timeout_);
           }
           break;
@@ -333,6 +333,8 @@ void ApplinkNotificationThreadDelegate::sendHeartBeat() {
     buf[0] = SDL_MSG_HEARTBEAT_ACK;
     if (-1 == mq_send(mq_from_sdl_, &buf[0], MAX_QUEUE_MSG_SIZE, 0)) {
       LOG4CXX_ERROR(logger_, "Unable to send heart beat via mq: " << strerror(errno));
+    } else {
+      LOG4CXX_ERROR(logger_, "heart beat to applink has been sent");
     }
   }
 }

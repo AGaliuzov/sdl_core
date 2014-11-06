@@ -121,6 +121,11 @@ void SetIconRequest::on_event(const event_engine::Event& event) {
         ApplicationSharedPtr app =
             ApplicationManagerImpl::instance()->application(connection_key());
 
+        if (!message_.valid() || !app.valid()) {
+           LOG4CXX_ERROR(logger_, "NULL pointer.");
+           return;
+        }
+
         const std::string path = (*message_)[strings::msg_params]
                                             [strings::sync_file_name]
                                             [strings::value].asString();

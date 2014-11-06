@@ -61,6 +61,7 @@
     <element name="WARNINGS" value="21"/>
     <element name="GENERIC_ERROR" value="22"/>
     <element name="USER_DISALLOWED" value="23"/>
+    <element name="TRUNCATED_DATA" value="24"/>
 </enum>
 
 <enum name="ButtonName">
