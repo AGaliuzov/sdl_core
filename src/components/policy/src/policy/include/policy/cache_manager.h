@@ -605,9 +605,11 @@ private:
       virtual bool exitThreadMain();
       void DoBackup();
     private:
+      void InternalBackup();
       CacheManager* cache_manager_;
       sync_primitives::ConditionalVariable backup_notifier_;
       volatile bool stop_flag_;
+      volatile bool new_data_available_;
 
       sync_primitives::Lock need_backup_lock_;
       DISALLOW_COPY_AND_ASSIGN(BackgroundBackuper);
