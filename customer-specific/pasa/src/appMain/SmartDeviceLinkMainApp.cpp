@@ -234,6 +234,7 @@ void stopSmartDeviceLink()
 class ApplinkNotificationThreadDelegate : public threads::ThreadDelegate {
  public:
   ApplinkNotificationThreadDelegate(int fd);
+  ~ApplinkNotificationThreadDelegate();
   virtual void threadMain();
  private:
   int readfd_;
@@ -241,7 +242,6 @@ class ApplinkNotificationThreadDelegate : public threads::ThreadDelegate {
   void close_mq(mqd_t mq_to_close);
   void sendHeartBeat();
   utils::SharedPtr<timer::TimerThread<ApplinkNotificationThreadDelegate> > heart_beat_sender_;
-  mqd_t mq_to_sdl_;
   mqd_t mq_from_sdl_;
   struct mq_attr attributes_;
   size_t heart_beat_timeout_;
@@ -260,12 +260,10 @@ ApplinkNotificationThreadDelegate::ApplinkNotificationThreadDelegate(int fd)
   attributes_.mq_msgsize = MAX_QUEUE_MSG_SIZE;
   attributes_.mq_flags = 0;
 
-  init_mq(PREFIX_STR_SDL_PROXY_QUEUE, O_RDONLY | O_CREAT, mq_to_sdl_);
   init_mq(PREFIX_STR_FROMSDLHEARTBEAT_QUEUE, O_RDWR | O_CREAT, mq_from_sdl_);
 }
 
 ApplinkNotificationThreadDelegate::~ApplinkNotificationThreadDelegate() {
-  close_mq(mq_to_sdl_);
   close_mq(mq_from_sdl_);
 }
 
