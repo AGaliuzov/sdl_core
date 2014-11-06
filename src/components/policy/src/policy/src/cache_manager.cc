@@ -1585,8 +1585,8 @@ void CacheManager::BackgroundBackuper::InternalBackup() {
 }
 
 void CacheManager::BackgroundBackuper::threadMain() {
+  sync_primitives::AutoLock auto_lock(need_backup_lock_);
   while(!stop_flag_) {
-    sync_primitives::AutoLock auto_lock(need_backup_lock_);
     InternalBackup();
     LOG4CXX_INFO(logger_, "Wait for a next backup");
     backup_notifier_.Wait(auto_lock);
