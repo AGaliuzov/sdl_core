@@ -272,6 +272,7 @@ class ApplicationManagerImpl : public ApplicationManager,
   MOCK_METHOD0(OnApplicationListUpdateTimer, void());
   MOCK_METHOD0(OnLowVoltage, void());
   MOCK_METHOD0(OnWakeUp, void());
+  MOCK_METHOD1(OnUpdateHMIAppType, void(std::map<std::string, std::vector<std::string> >));
 
   typedef const std::set<ApplicationSharedPtr> TAppList;
   typedef std::set<ApplicationSharedPtr>::iterator TAppListIt;

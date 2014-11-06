@@ -124,7 +124,8 @@ namespace commands {
 
 RegisterAppInterfaceRequest::RegisterAppInterfaceRequest(
   const MessageSharedPtr& message)
-  : CommandRequestImpl(message) {
+  : CommandRequestImpl(message),
+    result_checking_app_hmi_type_(mobile_apis::Result::INVALID_ENUM) {
 }
 
 RegisterAppInterfaceRequest::~RegisterAppInterfaceRequest() {
@@ -467,7 +468,7 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile(
   ResumeCtrl& resumer = ApplicationManagerImpl::instance()->resume_controller();
   uint32_t hash_id = 0;
 
-  const char* add_info = "";
+  std::string add_info("");
   bool resumption = (*message_)[strings::msg_params].keyExists(strings::hash_id);
   bool need_restore_vr = resumption;
   if (resumption) {
@@ -486,8 +487,12 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile(
       add_info = " Resume Succeed";
     }
   }
-
-  SendResponse(true, result, add_info, params);
+  if ((mobile_apis::Result::SUCCESS == result) &&
+      (mobile_apis::Result::INVALID_ENUM != result_checking_app_hmi_type_)) {
+    add_info += response_info_;
+    result = result_checking_app_hmi_type_;
+  }
+  SendResponse(true, result, add_info.c_str(), params);
 
   // in case application exist in resumption we need to send resumeVrgrammars
   if (false == resumption) {
@@ -611,7 +616,7 @@ mobile_apis::Result::eType RegisterAppInterfaceRequest::CheckWithPolicyData() {
       if (!log.empty()) {
         response_info_ = "Following AppHMITypes are not present in policy "
                          "table:" + log;
-        result = mobile_apis::Result::WARNINGS;
+        result_checking_app_hmi_type_ = mobile_apis::Result::WARNINGS;
       }
     }
     // Replace AppHMITypes in request with values allowed by policy table

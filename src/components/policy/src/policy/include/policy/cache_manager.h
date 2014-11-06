@@ -192,6 +192,8 @@ class CacheManager : public CacheManagerInterface {
    */
   bool ApplyUpdate(const policy_table::Table& update_pt);
 
+  virtual void GetHMIAppTypeAfterUpdate(std::map<std::string, StringArray>& app_hmi_types);
+
   /**
    * Gets flag updateRequired
    * @return true if update is required
@@ -544,6 +546,7 @@ class CacheManager : public CacheManagerInterface {
    * @brief Backup allows to save cache onto hard drive.
    */
   void Backup();
+
 
   /**
    * Returns heart beat timeout

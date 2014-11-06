@@ -102,6 +102,7 @@ ApplicationManagerImpl::ApplicationManagerImpl()
                                       true),
     is_low_voltage_(false) {
     std::srand(std::time(0));
+    policy::PolicyHandler::instance()->set_listener(this);
 }
 
 ApplicationManagerImpl::~ApplicationManagerImpl() {
@@ -2534,4 +2535,112 @@ void ApplicationManagerImpl::set_state_suspended(const bool flag_suspended) {
   is_state_suspended_ = flag_suspended;
 }
 #endif // CUSTOMER_PASA
+
+mobile_apis::AppHMIType::eType ApplicationManagerImpl::StringToAppHMIType(std::string str) {
+  LOG4CXX_INFO(logger_, "ApplicationManagerImpl::StringToAppHMIType");
+  if ("DEFAULT" == str) {
+    return mobile_apis::AppHMIType::DEFAULT;
+  } else if ("COMMUNICATION" == str) {
+    return mobile_apis::AppHMIType::COMMUNICATION;
+  } else if ("MEDIA" == str) {
+    return mobile_apis::AppHMIType::MEDIA;
+  } else if ("MESSAGING" == str) {
+    return mobile_apis::AppHMIType::MESSAGING;
+  } else if ("NAVIGATION" == str) {
+    return mobile_apis::AppHMIType::NAVIGATION;
+  } else if ("INFORMATION" == str) {
+    return mobile_apis::AppHMIType::INFORMATION;
+  } else if ("SOCIAL" == str) {
+    return mobile_apis::AppHMIType::SOCIAL;
+  } else if ("BACKGROUND_PROCESS" == str) {
+    return mobile_apis::AppHMIType::BACKGROUND_PROCESS;
+  } else if ("TESTING" == str) {
+    return mobile_apis::AppHMIType::TESTING;
+  } else if ("SYSTEM" == str) {
+    return mobile_apis::AppHMIType::SYSTEM;
+  } else {
+    return mobile_apis::AppHMIType::INVALID_ENUM;
+  }
+}
+
+bool ApplicationManagerImpl::CompareAppHMIType (const smart_objects::SmartObject& from_policy,
+                                                const smart_objects::SmartObject& from_application) {
+  LOG4CXX_INFO(logger_, "ApplicationManagerImpl::CompareAppHMIType");
+  bool equal = false;
+  for(uint32_t i = 0; i < from_application.length(); ++i) {
+    for(uint32_t k = 0; k < from_policy.length(); ++k) {
+      if (from_application[i] == from_policy[k]) {
+        equal = true;
+        break;
+      }
+    }
+    if(!equal) {
+      return false;
+    }
+    equal = false;
+  }
+  return true;
+}
+
+void ApplicationManagerImpl::OnUpdateHMIAppType(std::map<std::string, std::vector<std::string> > app_hmi_types) {
+  LOG4CXX_INFO(logger_, "ApplicationManagerImpl::OnUpdateHMIAppType");
+
+  sync_primitives::AutoLock lock(applications_list_lock_);
+  std::map<std::string, std::vector<std::string> >::iterator it_app_hmi_types_from_policy;
+  std::vector<std::string> hmi_types_from_policy;
+  smart_objects::SmartObject transform_app_hmi_types(smart_objects::SmartType_Array);
+  const smart_objects::SmartObject *save_application_hmi_type = NULL;
+  bool flag_difirence_app_hmi_type = false;
+
+  for (TAppListIt it = application_list_.begin();
+      it != application_list_.end(); ++it) {
+
+    it_app_hmi_types_from_policy =
+        app_hmi_types.find(((*it)->mobile_app_id())->asString());
+
+    if (it_app_hmi_types_from_policy != app_hmi_types.end() &&
+        ((it_app_hmi_types_from_policy->second).size())) {
+      flag_difirence_app_hmi_type = false;
+      hmi_types_from_policy = (it_app_hmi_types_from_policy->second);
+
+      if(transform_app_hmi_types.length()) {
+        transform_app_hmi_types =
+            smart_objects::SmartObject(smart_objects::SmartType_Array);
+      }
+
+      for(uint32_t i = 0; i < hmi_types_from_policy.size(); ++i) {
+        transform_app_hmi_types[i] = StringToAppHMIType(hmi_types_from_policy[i]);
+      }
+
+      save_application_hmi_type = (*it)->app_types();
+
+      if (save_application_hmi_type == NULL ||
+          ((*save_application_hmi_type).length() != transform_app_hmi_types.length())) {
+        flag_difirence_app_hmi_type = true;
+      } else {
+        flag_difirence_app_hmi_type = !(CompareAppHMIType(transform_app_hmi_types,
+                                                        *save_application_hmi_type));
+      }
+
+      if (flag_difirence_app_hmi_type) {
+        (*it)->set_app_types(transform_app_hmi_types);
+        if ((*it)->hmi_level() == mobile_api::HMILevel::HMI_BACKGROUND) {
+
+          MessageHelper::SendUIChangeRegistrationRequestToHMI(*it);
+        } else if (((*it)->hmi_level() == mobile_api::HMILevel::HMI_FULL) ||
+            ((*it)->hmi_level() == mobile_api::HMILevel::HMI_LIMITED)) {
+
+          MessageHelper::SendActivateAppToHMI((*it)->app_id(),
+                                              hmi_apis::Common_HMILevel::BACKGROUND,
+                                              false);
+          MessageHelper::SendUIChangeRegistrationRequestToHMI(*it);
+          (*it)->set_hmi_level(mobile_api::HMILevel::HMI_BACKGROUND);
+          MessageHelper::SendHMIStatusNotification(*(*it));
+
+
+        }
+      }
+    }
+  }
+}
 }  // namespace application_manager

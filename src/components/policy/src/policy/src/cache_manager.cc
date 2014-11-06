@@ -372,6 +372,28 @@ bool CacheManager::ApplyUpdate(const policy_table::Table& update_pt) {
   return true;
 }
 
+void CacheManager::GetHMIAppTypeAfterUpdate(std::map<std::string, StringArray>& app_hmi_types) {
+  LOG4CXX_TRACE_ENTER(logger_);
+  CACHE_MANAGER_CHECK_VOID();
+  policy_table::ApplicationPolicies::const_iterator policy_iter_begin =
+      pt_->policy_table.app_policies.begin();
+  policy_table::ApplicationPolicies::const_iterator policy_iter_end =
+      pt_->policy_table.app_policies.end();
+  std::vector<std::string> transform_app_hmi_types;
+  for(; policy_iter_begin != policy_iter_end; ++policy_iter_begin) {
+    const policy_table::ApplicationParams& app_params = (*policy_iter_begin).second;
+    if(app_params.AppHMIType.is_initialized()) {
+      if(!(transform_app_hmi_types.empty())) {
+        transform_app_hmi_types.clear();
+      }
+      std::transform(app_params.AppHMIType->begin(), app_params.AppHMIType->end(),
+                     std::back_inserter(transform_app_hmi_types), AppHMITypeToString());
+      app_hmi_types[(*policy_iter_begin).first] = transform_app_hmi_types;
+    }
+  }
+  LOG4CXX_TRACE_EXIT(logger_);
+}
+
 void CacheManager::Backup() {
   if (backuper_) {
     backuper_->DoBackup();
@@ -1044,7 +1066,7 @@ bool CacheManager::GetInitialAppData(const std::string& app_id,
               std::back_inserter(nicknames));
 
     std::transform(app_params.AppHMIType->begin(), app_params.AppHMIType->end(),
-                   std::back_inserter(nicknames), AppHMITypeToString());
+                   std::back_inserter(app_hmi_types), AppHMITypeToString());
   }
   LOG4CXX_TRACE_EXIT(logger_);
   return true;

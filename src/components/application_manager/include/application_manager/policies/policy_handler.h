@@ -43,6 +43,7 @@
 #include "utils/logger.h"
 #include "utils/singleton.h"
 #include "usage_statistics/statistics_manager.h"
+#include "policy_handler_observer.h"
 
 namespace Json {
 class Value;
@@ -92,6 +93,7 @@ class PolicyHandler :
   void OnExceededTimeout();
   BinaryMessageSptr RequestPTUpdate();
   const std::vector<int> RetrySequenceDelaysSeconds();
+  void set_listener(PolicyHandlerObserver* listener);
 
   utils::SharedPtr<usage_statistics::StatisticsManager> GetStatisticManager();
 
@@ -273,6 +275,8 @@ class PolicyHandler :
 
   virtual void OnUserRequestedUpdateCheckRequired();
 
+  virtual void OnUpdateHMIAppType(std::map<std::string, StringArray> app_hmi_types);
+
   virtual void OnDeviceConsentChanged(const std::string& device_id,
                                       bool is_allowed);
 
@@ -397,6 +401,7 @@ private:
   inline bool CreateManager();
 
   bool is_user_requested_policy_table_update_;
+  PolicyHandlerObserver* listener_;
 
   /**
    * @brief Application-to-device map is used for getting/setting user consents
