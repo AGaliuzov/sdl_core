@@ -2612,6 +2612,11 @@
       <param name="language" type="Common.Language" mandatory="true">
         <description>The language application wants to switch to.</description>
       </param>
+      <param name="appHMIType" type="Common.AppHMIType" minsize="1" maxsize="100" array="true" mandatory="false">
+        <description>
+          Sent when app's requested-during-registration AppHMIType is changed to different one due to Policies update. Contains the updated list of all allowed app's AppHMITypes.
+        </description>
+      </param>
       <param name="appID" type="Integer" mandatory="true">
         <description>ID of application that concerns this RPC.</description>
       </param>

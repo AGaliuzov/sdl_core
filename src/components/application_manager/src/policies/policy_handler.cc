@@ -218,7 +218,9 @@ PolicyHandler::PolicyHandler()
     last_activated_app_id_(0),
     registration_in_progress(false),
     is_user_requested_policy_table_update_(false),
-    statistic_manager_impl_(new StatisticManagerImpl()) {
+    listener_(NULL),
+    statistic_manager_impl_(new StatisticManagerImpl())
+    {
 }
 
 PolicyHandler::~PolicyHandler() {
@@ -1299,6 +1301,10 @@ BinaryMessageSptr PolicyHandler::RequestPTUpdate() {
   return policy_manager_->RequestPTUpdate();
 }
 
+void PolicyHandler::set_listener(PolicyHandlerObserver* listener) {
+  listener_ = listener;
+}
+
 const std::vector<int> PolicyHandler::RetrySequenceDelaysSeconds() {
   POLICY_LIB_CHECK(std::vector<int>());
   return policy_manager_->RetrySequenceDelaysSeconds();
@@ -1371,6 +1377,13 @@ void PolicyHandler::OnUserRequestedUpdateCheckRequired() {
   }
   LOG4CXX_WARN(logger_, "There is another pending update is present."
                "User-requested update is postponed.");
+}
+
+void PolicyHandler::OnUpdateHMIAppType(std::map<std::string, StringArray> app_hmi_types) {
+  LOG4CXX_INFO(logger_, "OnUpdateHMIAppType");
+  if (listener_) {
+    listener_->OnUpdateHMIAppType(app_hmi_types);
+  }
 }
 
 void PolicyHandler::RemoveDevice(const std::string& device_id) {

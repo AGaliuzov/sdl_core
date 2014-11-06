@@ -290,7 +290,7 @@ void ApplinkNotificationThreadDelegate::threadMain() {
       switch (buffer[0]) {
         case SDL_MSG_SDL_START:
           startSmartDeviceLink();
-          if (0 > heart_beat_timeout_) {
+          if (0 < heart_beat_timeout_) {
             heart_beat_sender_->start(heart_beat_timeout_);
           }
           break;
@@ -333,6 +333,8 @@ void ApplinkNotificationThreadDelegate::sendHeartBeat() {
     buf[0] = SDL_MSG_HEARTBEAT_ACK;
     if (-1 == mq_send(mq_from_sdl_, &buf[0], MAX_QUEUE_MSG_SIZE, 0)) {
       LOG4CXX_ERROR(logger_, "Unable to send heart beat via mq: " << strerror(errno));
+    } else {
+      LOG4CXX_ERROR(logger_, "heart beat to applink has been sent");
     }
   }
 }

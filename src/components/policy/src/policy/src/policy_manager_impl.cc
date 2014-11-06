@@ -170,6 +170,16 @@ bool PolicyManagerImpl::LoadPT(const std::string& file,
     LOG4CXX_WARN(logger_, "Unsuccessful save of updated policy table.");
     return false;
   }
+
+  std::map<std::string, StringArray> app_hmi_types;
+  cache_->GetHMIAppTypeAfterUpdate(app_hmi_types);
+  if (!app_hmi_types.empty()) {
+    LOG4CXX_INFO(logger_, "app_hmi_types is full calling OnUpdateHMIAppType");
+    listener_->OnUpdateHMIAppType(app_hmi_types);
+  }else{
+    LOG4CXX_INFO(logger_, "app_hmi_types empty" << pt_content.size());
+  }
+
   // Removing last app request from update requests
   RemoveAppFromUpdateList();
 

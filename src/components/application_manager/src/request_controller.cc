@@ -216,9 +216,8 @@ void RequestController::terminateMobileRequest(
 
   AutoLock auto_lock(pending_request_set_lock_);
   RequestInfoSet::iterator it = pending_request_set_.begin();
-  for (; pending_request_set_.end() != it;) {
+  for (; pending_request_set_.end() != it; ++it) {
     RequestInfoPtr request_info = (*it);
-    ++it;
     if ((false == request_info.valid()) ||
         RequestInfo::MobileRequest != request_info->requst_type()) {
       continue;
@@ -242,9 +241,8 @@ void RequestController::terminateHMIRequest(const uint32_t &correlation_id) {
   LOG4CXX_TRACE_ENTER(logger_);
   AutoLock auto_lock(pending_request_set_lock_);
   RequestInfoSet::iterator it = pending_request_set_.begin();
-  for (; pending_request_set_.end() != it; ) {
+  for (; pending_request_set_.end() != it; ++it) {
     RequestInfoPtr request_info = (*it);
-    ++it;
     if ((false == request_info.valid()) ||
         RequestInfo::HMIRequest != request_info->requst_type()) {
       continue;

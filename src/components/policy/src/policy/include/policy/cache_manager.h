@@ -193,6 +193,12 @@ class CacheManager : public CacheManagerInterface {
   bool ApplyUpdate(const policy_table::Table& update_pt);
 
   /**
+   * @brief Gets list of appHMIType associated with mobile appID
+   * @param container of appHMIType
+   */
+  virtual void GetHMIAppTypeAfterUpdate(std::map<std::string, StringArray>& app_hmi_types);
+
+  /**
    * Gets flag updateRequired
    * @return true if update is required
    */
@@ -545,6 +551,7 @@ class CacheManager : public CacheManagerInterface {
    */
   void Backup();
 
+
   /**
    * Returns heart beat timeout
    * @param app_id application id
@@ -605,9 +612,11 @@ private:
       virtual bool exitThreadMain();
       void DoBackup();
     private:
+      void InternalBackup();
       CacheManager* cache_manager_;
       sync_primitives::ConditionalVariable backup_notifier_;
       volatile bool stop_flag_;
+      volatile bool new_data_available_;
 
       sync_primitives::Lock need_backup_lock_;
       DISALLOW_COPY_AND_ASSIGN(BackgroundBackuper);
