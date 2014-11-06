@@ -121,10 +121,13 @@ class BluetoothPASADevice : public Device {
   ApplicationHandle last_app_handle_;
   UI_8 mac_[6];
 };
+
+typedef utils::SharedPtr<BluetoothPASADevice> BluetoothPASADevicePtr;
 /**
  * @brief Convert Mac to std::string
  */
 std::string MacToString(const UI_8 (&mac)[6]);
+
 }  // namespace transport_adapter
 }  // namespace transport_manager
 #endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_PASA_BT_BLUETOOTH_PASA_DEVICE_H_

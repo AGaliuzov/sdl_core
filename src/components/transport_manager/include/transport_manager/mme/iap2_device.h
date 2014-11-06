@@ -51,8 +51,7 @@ namespace transport_adapter {
 
 class IAP2Device : public MmeDevice {
  public:
-  IAP2Device(const std::string& mount_point,
-             const std::string& name,
+  IAP2Device(const std::string& mount_point, const std::string& name,
              const DeviceUID& unique_device_id,
              TransportAdapterController* controller);
 
@@ -63,6 +62,8 @@ class IAP2Device : public MmeDevice {
   virtual Protocol protocol() const {
     return IAP2;
   }
+
+  virtual void Stop();
 
  protected:
   virtual ApplicationList GetApplicationList() const;
@@ -142,7 +143,8 @@ class IAP2Device : public MmeDevice {
 
   class IAP2HubConnectThreadDelegate : public threads::ThreadDelegate {
    public:
-    IAP2HubConnectThreadDelegate(IAP2Device* parent, const std::string& protocol_name);
+    IAP2HubConnectThreadDelegate(IAP2Device* parent,
+                                 const std::string& protocol_name);
     void threadMain();
    private:
     IAP2Device* parent_;
@@ -150,12 +152,13 @@ class IAP2Device : public MmeDevice {
   };
 
   class IAP2ConnectThreadDelegate : public threads::ThreadDelegate {
-    public:
-      IAP2ConnectThreadDelegate(IAP2Device* parent, const std::string& protocol_name);
-      void threadMain();
-    private:
-      IAP2Device* parent_;
-      std::string protocol_name_;
+   public:
+    IAP2ConnectThreadDelegate(IAP2Device* parent,
+                              const std::string& protocol_name);
+    void threadMain();
+   private:
+    IAP2Device* parent_;
+    std::string protocol_name_;
   };
 
   class ProtocolConnectionTimer {

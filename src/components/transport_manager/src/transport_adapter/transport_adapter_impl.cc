@@ -66,23 +66,34 @@ TransportAdapterImpl::TransportAdapterImpl(
 }
 
 TransportAdapterImpl::~TransportAdapterImpl() {
+  Terminate();
+
   if (device_scanner_) {
-    device_scanner_->Terminate();
-    LOG4CXX_DEBUG(logger_, "device_scanner_ " << device_scanner_ << " terminated.");
     delete device_scanner_;
     LOG4CXX_DEBUG(logger_, "device_scanner_ " << device_scanner_ << " deleted.");
   }
   if (server_connection_factory_) {
-    server_connection_factory_->Terminate();
-    LOG4CXX_DEBUG(logger_, "server_connection_factory " << server_connection_factory_ << " terminated.");
     delete server_connection_factory_;
     LOG4CXX_DEBUG(logger_, "server_connection_factory " << server_connection_factory_ << " deleted.");
   }
   if (client_connection_listener_) {
-    client_connection_listener_->Terminate();
-    LOG4CXX_DEBUG(logger_, "client_connection_listener_ " << client_connection_listener_ << " terminated.");
     delete client_connection_listener_;
     LOG4CXX_DEBUG(logger_, "client_connection_listener_ " << client_connection_listener_ << " deleted.");
+  }
+}
+
+void TransportAdapterImpl::Terminate() {
+  if (device_scanner_) {
+    device_scanner_->Terminate();
+    LOG4CXX_DEBUG(logger_, "device_scanner_ " << device_scanner_ << " terminated.");
+  }
+  if (server_connection_factory_) {
+    server_connection_factory_->Terminate();
+    LOG4CXX_DEBUG(logger_, "server_connection_factory " << server_connection_factory_ << " terminated.");
+  }
+  if (client_connection_listener_) {
+    client_connection_listener_->Terminate();
+    LOG4CXX_DEBUG(logger_, "client_connection_listener_ " << client_connection_listener_ << " terminated.");
   }
 
   pthread_mutex_lock(&connections_mutex_);
@@ -229,10 +240,10 @@ TransportAdapter::Error TransportAdapterImpl::DisconnectDevice(
 
   Error error = OK;
   pthread_mutex_lock(&connections_mutex_);
-  for (ConnectionMap::iterator it = connections_.begin();
-       it != connections_.end(); ++it) {
-
+  ConnectionMap::iterator it = connections_.begin();
+  while (it != connections_.end()) {
     ConnectionInfo& info = it->second;
+    ++it;
     if (info.device_id == device_id &&
         info.state != ConnectionInfo::FINALISING) {
       if (OK != info.connection->Disconnect()) {
@@ -293,6 +304,11 @@ TransportAdapter::Error TransportAdapterImpl::StopClientListening() {
     return BAD_STATE;
   }
   TransportAdapter::Error err = client_connection_listener_->StopListening();
+  for(DeviceMap::iterator it = devices_.begin();
+      it != devices_.end();
+      ++it) {
+    it->second->Stop();
+  }
   LOG4CXX_TRACE(logger_, "exit with error: " << err);
   return err;
 }
@@ -453,9 +469,8 @@ bool TransportAdapterImpl::IsServerOriginatedConnectSupported() const {
 }
 
 bool TransportAdapterImpl::IsClientOriginatedConnectSupported() const {
-  LOG4CXX_TRACE(logger_, "enter");
+  LOG4CXX_TRACE(logger_, "IsClientOriginatedConnectSupported");
   return client_connection_listener_ != 0;
-  LOG4CXX_TRACE(logger_, "exit");
 }
 
 void TransportAdapterImpl::ConnectionCreated(

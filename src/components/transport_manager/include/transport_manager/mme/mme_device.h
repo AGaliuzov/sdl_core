@@ -40,10 +40,13 @@ namespace transport_adapter {
 
 class MmeDevice : public Device {
  public:
-  typedef enum {UnknownProtocol, IAP, IAP2} Protocol;
+  typedef enum {
+    UnknownProtocol,
+    IAP,
+    IAP2
+  } Protocol;
 
-  MmeDevice(const std::string& mount_point,
-            const std::string& name,
+  MmeDevice(const std::string& mount_point, const std::string& name,
             const DeviceUID& unique_device_id);
 
   const std::string& mount_point() const {

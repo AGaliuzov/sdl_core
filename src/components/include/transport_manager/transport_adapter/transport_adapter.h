@@ -123,6 +123,12 @@ class TransportAdapter {
   virtual Error Init() = 0;
 
   /**
+   * @brief Stops device adapter
+   * Called from transport manager to stop device adapter
+   */
+  virtual void Terminate() = 0;
+
+  /**
    * @brief Add listener to the container(list) of device adapter listeners.
    *
    * @param listener Pointer to the device adapter listener.

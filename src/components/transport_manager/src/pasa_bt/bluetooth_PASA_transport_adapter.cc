@@ -30,6 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "transport_manager/pasa_bt/bluetooth_PASA_transport_adapter.h"
+
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -38,8 +40,7 @@
 #include <iomanip>
 #include <set>
 
-#include "transport_manager/pasa_bt/bluetooth_PASA_transport_adapter.h"
-#include "transport_manager/pasa_bt/bluetooth_PASA_device_scanner.h"
+#include "transport_manager/pasa_bt/bluetooth_PASA_listener.h"
 #include "transport_manager/pasa_bt/bluetooth_PASA_connection_factory.h"
 #include "transport_manager/pasa_bt/bluetooth_PASA_device.h"
 #include "resumption/last_state.h"
@@ -51,16 +52,12 @@ namespace transport_adapter {
 CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
 
 BluetoothPASATransportAdapter::BluetoothPASATransportAdapter()
-    : TransportAdapterImpl(new BluetoothPASADeviceScanner(this, false, 0),
-                           new BluetoothPASAConnectionFactory(this), 0) {
+      : TransportAdapterImpl(0, new BluetoothPASAConnectionFactory(this),
+                             new BluetoothPASAListener(this)) {
 }
 
 DeviceType BluetoothPASATransportAdapter::GetDeviceType() const {
-  return "sdl-bluetooth";
-}
-
-bool BluetoothPASATransportAdapter::ToBeAutoConnected(DeviceSptr device) const {
-  return true;
+  return "pasa-bluetooth";
 }
 
 }  // namespace transport_adapter

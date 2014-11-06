@@ -49,14 +49,14 @@ class IAPDevice;
 class IAPConnection : public Connection {
  public:
   IAPConnection(const DeviceUID& device_uid,
-    const ApplicationHandle& app_handle,
-    TransportAdapterController* controller,
-    IAPDevice* parent);
+                const ApplicationHandle& app_handle,
+                TransportAdapterController* controller, IAPDevice* parent);
 
   void Init();
 
  protected:
-  virtual TransportAdapter::Error SendData(::protocol_handler::RawMessagePtr message);
+  virtual TransportAdapter::Error SendData(
+      ::protocol_handler::RawMessagePtr message);
   virtual TransportAdapter::Error Disconnect();
 
  private:
@@ -71,7 +71,7 @@ class IAPConnection : public Connection {
   TransportAdapterController* controller_;
   IAPDevice* parent_;
   ipod_hdl_t* ipod_hdl_;
-  std::string protocol_name_; // for logging purposes only
+  std::string protocol_name_;  // for logging purposes only
   uint8_t buffer_[kBufferSize];
 
   std::set<int> session_ids_;
