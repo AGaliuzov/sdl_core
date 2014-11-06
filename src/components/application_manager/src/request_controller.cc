@@ -108,10 +108,6 @@ RequestController::TResult RequestController::addMobileRequest(
     return INVALID_DATA;
   }
 
-  LOG4CXX_DEBUG(logger_, "addMobileRequest " << request->correlation_id()
-                << ", mobile_request_list_ size is " << mobile_request_list_.size()
-                << ", pending_request_set_ size is " << pending_request_set_.size());
-
   const uint32_t& app_hmi_level_none_time_scale =
       profile::Profile::instance()->app_hmi_level_none_time_scale();
 
@@ -148,7 +144,8 @@ RequestController::TResult RequestController::addMobileRequest(
     return RequestController::TOO_MANY_PENDING_REQUESTS;
   }
   {
-    AutoLock auto_lock(mobile_request_list_lock_);
+    AutoLock auto_lock_list(mobile_request_list_lock_);
+    AutoLock auto_lock_set(pending_request_set_lock_);
     mobile_request_list_.push_back(request);
     LOG4CXX_DEBUG(logger_,
                   "new mobile_request_list_ size is " << mobile_request_list_.size()
@@ -173,12 +170,11 @@ RequestController::TResult RequestController::addHMIRequest(
                          timeout_in_seconds);
 
   if (0 != timeout_in_seconds) {
-    pending_request_set_lock_.Acquire();
+    AutoLock auto_lock(pending_request_set_lock_);
     pending_request_set_.insert(request_info_ptr);
     LOG4CXX_INFO(logger_, "pending_request_set_ size is "
                  << pending_request_set_.size());
     UpdateTimer();
-    pending_request_set_lock_.Release();
   } else {
     LOG4CXX_INFO(logger_, "Default timeout was set to 0."
                  "RequestController will not track timeout of this request.");
@@ -494,9 +490,9 @@ bool RequestController::CheckTimeScaleMaxRequest(
     TimeScale scale(start, end, app_id);
     const uint32_t count = std::count_if(pending_request_set_.begin(),
                                          pending_request_set_.end(), scale);
-    if (count == max_request_per_time_scale) {
-      LOG4CXX_ERROR(logger_, "Requests count " << count <<
-                    " exceed application limit " << max_request_per_time_scale);
+    if (count >= max_request_per_time_scale) {
+      LOG4CXX_WARN(logger_, "Processing requests count " << count <<
+                   " exceed application limit " << max_request_per_time_scale);
       LOG4CXX_TRACE_EXIT(logger_);
       return false;
     }
@@ -524,10 +520,10 @@ bool RequestController::CheckHMILevelTimeScaleMaxRequest(
     HMILevelTimeScale scale(start, end, app_id, hmi_level);
     const uint32_t count = std::count_if(pending_request_set_.begin(),
                                          pending_request_set_.end(), scale);
-    if (count == max_request_per_time_scale) {
-      LOG4CXX_ERROR(logger_, "Requests count " << count
-                    << " exceed application limit " << max_request_per_time_scale
-                    << " in hmi level " << hmi_level);
+    if (count >= max_request_per_time_scale) {
+      LOG4CXX_WARN(logger_, "Processing requests count " << count
+                   << " exceed application limit " << max_request_per_time_scale
+                   << " in hmi level " << hmi_level);
       LOG4CXX_TRACE_EXIT(logger_);
       return false;
     }
@@ -544,13 +540,17 @@ bool RequestController::CheckPendingRequestsAmount(
   LOG4CXX_TRACE_ENTER(logger_);
   if (pending_requests_amount > 0) {
     AutoLock auto_lock(mobile_request_list_lock_);
+    const size_t pending_requests_size = mobile_request_list_.size();
     const bool available_to_add =
-        pending_requests_amount > mobile_request_list_.size();
+        pending_requests_amount > pending_requests_size;
+    if(!available_to_add) {
+      LOG4CXX_WARN(logger_, "Pending requests count " << pending_requests_size
+                   << " exceed application limit " << pending_requests_amount);
+    }
     LOG4CXX_TRACE_EXIT(logger_);
     return available_to_add;
-  } else {
-    LOG4CXX_DEBUG(logger_, "CheckPendingRequestsAmount disabled");
   }
+  LOG4CXX_DEBUG(logger_, "CheckPendingRequestsAmount disabled");
   LOG4CXX_TRACE_EXIT(logger_);
   return true;
 }
@@ -568,12 +568,14 @@ void RequestController::UpdateTimer() {
       // This request should not be observed for TIME_OUT
       continue;
     }
-    sleep_time = request->end_time().tv_sec -
-                           date_time::DateTime::getCurrentTime().tv_sec;
+    const TimevalStruct current_time =
+        date_time::DateTime::getCurrentTime();
+    DCHECK(request->end_time().tv_sec >= current_time.tv_sec)
+    sleep_time = request->end_time().tv_sec - current_time.tv_sec;
     break;
   }
   timer_.updateTimeOut(sleep_time);
-  LOG4CXX_INFO(logger_, "Sleep for: " << sleep_time);
+  LOG4CXX_DEBUG(logger_, "Sleep for: " << sleep_time);
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
