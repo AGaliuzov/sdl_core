@@ -414,6 +414,15 @@ SDL.SDLController = Em.Object
             FFW.BasicCommunication.ExitAllApplications(state);
         },
         /**
+         * OnAwakeSDL from HMI returns SDL to normal operation
+         * after OnExitAllApplications(SUSPEND)
+         *
+         */
+        onAwakeSDLNotificationSend: function() {
+            FFW.BasicCommunication.OnAwakeSDL();
+        },
+
+        /**
          * Method to sent notification with selected reason of OnSystemRequest
          *
          * @param {String}

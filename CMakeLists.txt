@@ -516,7 +516,7 @@ add_subdirectory(./src/plugins)
 if(BUILD_TESTS)
     # Directory test is deprecated. Use src/components/<name>/test
     include(Dart)
-    #add_subdirectory(./test)
+    add_subdirectory(./test)
 endif()
 
 # Building documentation

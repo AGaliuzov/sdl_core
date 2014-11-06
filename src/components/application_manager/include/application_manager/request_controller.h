@@ -120,7 +120,7 @@ class RequestController {
     * @return Result code
     *
     */
-    TResult addMobileRequest(const MobileRequestPtr& request,
+    TResult addMobileRequest(const RequestPtr& request,
                              const mobile_apis::HMILevel::eType& hmi_level);
 
 
@@ -177,6 +177,12 @@ class RequestController {
     */
     void terminateAllHMIRequests();
 
+
+    /**
+    * @brief Terminates all requests from Mobile
+    */
+    void terminateAllMobileRequests();
+
     /**
     * @brief Updates request timeout
     *
@@ -188,6 +194,17 @@ class RequestController {
                               const uint32_t& mobile_correlation_id,
                               const uint32_t& new_timeout);
 
+    /*
+     * @brief Function Should be called when Low Voltage is occured
+     */
+    void OnLowVoltage();
+
+    /*
+     * @brief Function Should be called when Low Voltage is occured
+     */
+    void OnWakeUp();
+
+    bool IsLowVoltage();
   protected:
 
     /**
@@ -220,6 +237,7 @@ class RequestController {
     */
     void UpdateTimer();
 
+
   private:
 
     // Data types
@@ -242,7 +260,7 @@ class RequestController {
     uint32_t pool_size_;
     sync_primitives::ConditionalVariable cond_var_;
 
-    std::list<MobileRequestPtr> mobile_request_list_;
+    std::list<RequestPtr> mobile_request_list_;
     sync_primitives::Lock mobile_request_list_lock_;
 
     RequestInfoSet pending_request_set_;
@@ -256,6 +274,7 @@ class RequestController {
     timer::TimerThread<RequestController>  timer_;
     static const uint32_t dafault_sleep_time_ = UINT_MAX;
 
+    bool is_low_voltage_;
     DISALLOW_COPY_AND_ASSIGN(RequestController);
 };
 

@@ -1,7 +1,4 @@
-/*
- * \file raw_message_matcher.h
- * \brief matcher RawMessagePtr
- *
+/**
  * Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
@@ -32,45 +29,46 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#ifdef CUSTOMER_PASA
+#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_BASIC_COMMUNICATION_ON_AWAKE_SDL_H_
+#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_BASIC_COMMUNICATION_ON_AWAKE_SDL_H_
 
-#ifndef APPLINK_TEST_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_RAW_MESSAGE_MATCHER_H_
-#define APPLINK_TEST_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_RAW_MESSAGE_MATCHER_H_
+#include "application_manager/commands/hmi/notification_from_hmi.h"
 
-#include <gmock/gmock.h>
+namespace application_manager {
 
-#include "transport_manager/common.h"
-#include "protocol/common.h"
+namespace commands {
 
-using ::testing::Matcher;
-using ::testing::MatcherInterface;
-using ::testing::MatchResultListener;
-
-using RawMessagePtr = ::protocol_handler::RawMessagePtr;
-using RawMessage = ::protocol_handler::RawMessage;
-
-namespace test {
-namespace components {
-namespace transport_manager {
-
-class RawMessageMatcher : public MatcherInterface<RawMessagePtr> {
+/**
+ * @brief OnAwakeSDLNotification command class
+ **/
+class OnAwakeSDLNotification : public NotificationFromHMI {
  public:
-  explicit RawMessageMatcher(RawMessagePtr ptr);
+  /**
+   * @brief OnAwakeSDLNotification class constructor
+   *
+   * @param message Incoming SmartObject message
+   **/
+  explicit OnAwakeSDLNotification(const MessageSharedPtr& message);
 
-  virtual bool MatchAndExplain(const RawMessagePtr ptr,
-                                   MatchResultListener* listener) const;
-  virtual void DescribeTo(::std::ostream* os) const;
-  virtual void DescribeNegationTo(::std::ostream* os) const;
+  /**
+   * @brief OnAwakeSDLNotification class destructor
+   **/
+  virtual ~OnAwakeSDLNotification();
+
+  /**
+   * @brief Execute command
+   **/
+  virtual void Run();
 
  private:
-  const RawMessagePtr ptr_;
+
+  DISALLOW_COPY_AND_ASSIGN(OnAwakeSDLNotification);
 };
 
-inline const Matcher<RawMessagePtr> RawMessageEq(RawMessagePtr msg) {
-  return MakeMatcher(new RawMessageMatcher(msg));
-}
+}  // namespace commands
 
-}  // namespace transport_manager
-}  // namespace components
-}  // namespace test
+}  // namespace application_manager
 
-#endif /* APPLINK_TEST_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_RAW_MESSAGE_MATCHER_H_ */
+#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_BASIC_COMMUNICATION_ON_AWAKE_SDL_H_
+#endif // CUSTOMER_PASA

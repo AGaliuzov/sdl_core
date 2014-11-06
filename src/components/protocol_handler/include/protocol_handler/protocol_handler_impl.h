@@ -36,6 +36,7 @@
 #include <map>
 #include <memory>
 #include <set>
+#include <list>
 #include "utils/prioritized_queue.h"
 #include "utils/message_queue.h"
 #include "utils/threads/message_loop_thread.h"
@@ -45,6 +46,7 @@
 #include "protocol_handler/protocol_packet.h"
 #include "protocol_handler/session_observer.h"
 #include "protocol_handler/protocol_observer.h"
+#include "protocol_handler/incoming_data_handler.h"
 #include "transport_manager/common.h"
 #include "transport_manager/transport_manager.h"
 #include "transport_manager/transport_manager_listener_empty.h"
@@ -68,11 +70,6 @@ class MessagesFromMobileAppHandler;
 class MessagesToMobileAppHandler;
 
 using transport_manager::TransportManagerListenerEmpty;
-
-/**
- * @brief Type definition for variable that hold shared pointer to raw message.
- */
-typedef utils::SharedPtr<protocol_handler::ProtocolPacket> ProtocolFramePtr;
 
 typedef std::multimap<int32_t, RawMessagePtr> MessagesOverNaviMap;
 typedef std::set<ProtocolObserver*> ProtocolObservers;
@@ -179,7 +176,7 @@ class ProtocolHandlerImpl
 
   /**
    * \brief Sends number of processed frames in case of binary nav streaming
-   * \param connection_key Id of connection over which message is to be sent
+   * \param connection_key Unique key used by other components as session identifier
    * \param number_of_frames Number of frames processed by
    * streaming server and displayed to user.
    */
@@ -251,7 +248,7 @@ class ProtocolHandlerImpl
    * mobile app for using when ending session.
    * \param service_type Type of session: RPC or BULK Data. RPC by default
    */
-  void SendEndSessionAck(ConnectionID connection_id ,
+  void SendEndSessionAck(ConnectionID connection_id,
                          uint8_t session_id,
                          uint8_t protocol_version,
                          uint8_t service_type);
@@ -264,7 +261,7 @@ class ProtocolHandlerImpl
    * \param protocol_version Version of protocol used for communication
    * \param service_type Type of session: RPC or BULK Data. RPC by default
    */
-  void SendEndSessionNAck(ConnectionID connection_id ,
+  void SendEndSessionNAck(ConnectionID connection_id,
                           uint32_t session_id,
                           uint8_t protocol_version,
                           uint8_t service_type);
@@ -336,11 +333,11 @@ class ProtocolHandlerImpl
    * \param is_final_message if is_final_message = true - it is last message
    * \return \saRESULT_CODE Status of operation
    */
-  RESULT_CODE SendSingleFrameMessage(ConnectionID connection_id,
+  RESULT_CODE SendSingleFrameMessage(const ConnectionID connection_id,
                                      const uint8_t session_id,
-                                     uint32_t protocol_version,
+                                     const uint32_t protocol_version,
                                      const uint8_t service_type,
-                                     size_t data_size,
+                                     const size_t data_size,
                                      const uint8_t *data,
                                      const bool is_final_message);
 
@@ -357,9 +354,9 @@ class ProtocolHandlerImpl
    * \param is_final_message if is_final_message = true - it is last message
    * \return \saRESULT_CODE Status of operation
    */
-  RESULT_CODE SendMultiFrameMessage(ConnectionID connection_id,
+  RESULT_CODE SendMultiFrameMessage(const ConnectionID connection_id,
                                     const uint8_t session_id,
-                                    uint32_t protocol_version,
+                                    const uint8_t protocol_version,
                                     const uint8_t service_type,
                                     const size_t data_size,
                                     const uint8_t *data,
@@ -381,7 +378,7 @@ class ProtocolHandlerImpl
    * \return \saRESULT_CODE Status of operation
    */
   RESULT_CODE HandleMessage(
-      ConnectionID connection_id ,
+      ConnectionID connection_id,
       const ProtocolFramePtr packet);
 
   /**
@@ -392,7 +389,7 @@ class ProtocolHandlerImpl
    * \return \saRESULT_CODE Status of operation
    */
   RESULT_CODE HandleSingleFrameMessage(
-      ConnectionID connection_id ,
+      ConnectionID connection_id,
       const ProtocolFramePtr packet);
   /**
    * \brief Handles message received in multiple frames. Collects all frames
@@ -403,7 +400,7 @@ class ProtocolHandlerImpl
    * \return \saRESULT_CODE Status of operation
    */
   RESULT_CODE HandleMultiFrameMessage(
-      ConnectionID connection_id ,
+      ConnectionID connection_id,
       const ProtocolFramePtr packet);
 
   /**
@@ -414,27 +411,20 @@ class ProtocolHandlerImpl
    * \return \saRESULT_CODE Status of operation
    */
   RESULT_CODE HandleControlMessage(
-      ConnectionID connection_id ,
+      ConnectionID connection_id,
       const ProtocolFramePtr packet);
 
   RESULT_CODE HandleControlMessageEndSession(
-      ConnectionID connection_id ,
+      ConnectionID connection_id,
       const ProtocolPacket &packet);
 
   RESULT_CODE HandleControlMessageStartSession(
-      ConnectionID connection_id ,
+      ConnectionID connection_id,
       const ProtocolPacket &packet);
 
   RESULT_CODE HandleControlMessageHeartBeat(
-      ConnectionID connection_id ,
+      ConnectionID connection_id,
       const ProtocolPacket &packet);
-
-  /**
-   * \brief Sends Mobile Navi Ack message
-   */
-  RESULT_CODE SendMobileNaviAck(
-      ConnectionID connection_id ,
-      int32_t connection_key);
 
   // threads::MessageLoopThread<*>::Handler implementations
   // CALLED ON raw_ford_messages_from_mobile_ thread!
@@ -487,8 +477,14 @@ class ProtocolHandlerImpl
 
   /**
    *\brief Counter of messages sent in each session.
+   * Used ad unique message identifier
    */
   std::map<uint8_t, uint32_t> message_counters_;
+
+  /**
+   *\brief Counter of messages sent in each session.
+   */
+  std::map<ConnectionID, uint32_t> malformed_message_counters_;
 
   /**
    *\brief map for session last message.
@@ -500,9 +496,8 @@ class ProtocolHandlerImpl
    */
   std::list<uint32_t> ready_to_close_connections_;
 
-
-  class IncomingDataHandler;
-  std::auto_ptr<IncomingDataHandler> incoming_data_handler_;
+  ProtocolPacket::ProtocolHeaderValidator protocol_header_validator_;
+  IncomingDataHandler incoming_data_handler_;
 
 #ifdef ENABLE_SECURITY
   security_manager::SecurityManager *security_manager_;
@@ -520,5 +515,4 @@ class ProtocolHandlerImpl
 #endif  // TIME_TESTER
 };
 }  // namespace protocol_handler
-
 #endif  // SRC_COMPONENTS_PROTOCOL_HANDLER_INCLUDE_PROTOCOL_HANDLER_PROTOCOL_HANDLER_IMPL_H_

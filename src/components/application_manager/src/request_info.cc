@@ -41,7 +41,7 @@ namespace request_controller {
 HMIRequestInfo::HMIRequestInfo(
     RequestPtr request,
     const uint64_t timeout_sec):
-  RequestInfo(timeout_sec),
+  RequestInfo(HMIRequest, timeout_sec),
   request_(request) {
     correlation_id_ = request_->correlation_id();
 }
@@ -50,7 +50,7 @@ HMIRequestInfo::HMIRequestInfo(
     RequestPtr request,
     const TimevalStruct &start_time,
     const uint64_t timeout_sec):
-  RequestInfo(start_time, timeout_sec),
+  RequestInfo(HMIRequest, start_time, timeout_sec),
   request_(request) {
     correlation_id_ = request_->correlation_id();
 }
@@ -58,7 +58,7 @@ HMIRequestInfo::HMIRequestInfo(
 MobileRequestInfo::MobileRequestInfo(
     RequestPtr request,
     const uint64_t timeout_sec):
-  RequestInfo(timeout_sec),
+  RequestInfo(MobileRequest, timeout_sec),
   request_(request) {
     mobile_correlation_id_ = request_.get()->correlation_id();
     app_id_ = request_.get()->connection_key();
@@ -68,7 +68,7 @@ MobileRequestInfo::MobileRequestInfo(
     RequestPtr request,
     const TimevalStruct &start_time,
     const uint64_t timeout_sec):
-  RequestInfo(start_time, timeout_sec),
+  RequestInfo(MobileRequest, start_time, timeout_sec),
   request_(request) {
     mobile_correlation_id_ = request_.get()->correlation_id();
     app_id_ = request_.get()->connection_key();

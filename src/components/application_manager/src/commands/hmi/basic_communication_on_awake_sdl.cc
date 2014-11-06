@@ -1,8 +1,5 @@
 /*
- * \file raw_message_matcher.h
- * \brief matcher RawMessagePtr
- *
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,45 +29,47 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#ifdef CUSTOMER_PASA
+#include "application_manager/commands/hmi/basic_communication_on_awake_sdl.h"
+#include "application_manager/application_manager_impl.h"
+#include "application_manager/message_helper.h"
 
-#ifndef APPLINK_TEST_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_RAW_MESSAGE_MATCHER_H_
-#define APPLINK_TEST_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_RAW_MESSAGE_MATCHER_H_
+namespace application_manager {
 
-#include <gmock/gmock.h>
+namespace commands {
 
-#include "transport_manager/common.h"
-#include "protocol/common.h"
-
-using ::testing::Matcher;
-using ::testing::MatcherInterface;
-using ::testing::MatchResultListener;
-
-using RawMessagePtr = ::protocol_handler::RawMessagePtr;
-using RawMessage = ::protocol_handler::RawMessage;
-
-namespace test {
-namespace components {
-namespace transport_manager {
-
-class RawMessageMatcher : public MatcherInterface<RawMessagePtr> {
- public:
-  explicit RawMessageMatcher(RawMessagePtr ptr);
-
-  virtual bool MatchAndExplain(const RawMessagePtr ptr,
-                                   MatchResultListener* listener) const;
-  virtual void DescribeTo(::std::ostream* os) const;
-  virtual void DescribeNegationTo(::std::ostream* os) const;
-
- private:
-  const RawMessagePtr ptr_;
-};
-
-inline const Matcher<RawMessagePtr> RawMessageEq(RawMessagePtr msg) {
-  return MakeMatcher(new RawMessageMatcher(msg));
+OnAwakeSDLNotification::OnAwakeSDLNotification(
+    const MessageSharedPtr& message) : NotificationFromHMI(message) {
 }
 
-}  // namespace transport_manager
-}  // namespace components
-}  // namespace test
+OnAwakeSDLNotification::~OnAwakeSDLNotification() {
+}
 
-#endif /* APPLINK_TEST_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_RAW_MESSAGE_MATCHER_H_ */
+void OnAwakeSDLNotification::Run() {
+  LOG4CXX_INFO(logger_, "OnAwakeSDLNotification::Run");
+
+  ApplicationManagerImpl* app_manager = ApplicationManagerImpl::instance();
+  if (app_manager->state_suspended()) {
+    app_manager->set_state_suspended(false);
+    ApplicationManagerImpl::ApplicationListAccessor accessor;
+    ApplicationManagerImpl::TAppList local_app_list = accessor.applications();
+    ApplicationManagerImpl::TAppListIt it = local_app_list.begin();
+    ApplicationManagerImpl::TAppListIt itEnd = local_app_list.end();
+    for (; it != itEnd; ++it) {
+      if ((*it).valid()) {
+        if ((*it)->flag_sending_hash_change_after_awake()) {
+          MessageHelper::SendHashUpdateNotification((*it)->app_id());
+          (*it)->set_flag_sending_hash_change_after_awake(false);
+        }
+      }
+    }
+    (app_manager->resume_controller()).StartSavePersistentDataTimer();
+  }
+}
+
+}  // namespace commands
+
+}  // namespace application_manager
+#endif // CUSTOMER_PASA
+
+

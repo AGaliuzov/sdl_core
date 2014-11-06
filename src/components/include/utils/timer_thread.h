@@ -207,8 +207,8 @@ class TimerThread {
     TimerDelegate*       delegate_;
     //threads::Thread*     thread_;
     std::string       name_;
-    mutable bool      is_running_;
-    bool              is_looper_;
+    volatile bool     is_running_;
+    volatile bool     is_looper_;
 
     DISALLOW_COPY_AND_ASSIGN(TimerThread);
 };
@@ -219,6 +219,7 @@ TimerThread<T>::TimerThread(const char* name, T* callee, void (T::*f)(), bool is
     callback_(f),
     callee_(callee),
     delegate_(NULL),
+    name_(name),
     is_running_(false),
     is_looper_(is_looper) {
 }
@@ -244,7 +245,7 @@ void TimerThread<T>::start(uint32_t timeout_seconds) {
       new TimerDelegate(this);
   delegate_->setTimeOut(timeout_seconds);
 
-  thread_ = threads::CreateThread("TimerThread", delegate_);
+  thread_ = threads::CreateThread(name_.c_str(), delegate_);
   if (delegate_ && thread_) {
     is_running_ = true;
     thread_->start();
@@ -257,9 +258,10 @@ void TimerThread<T>::stop() {
   if (is_running_ && delegate_ && thread_) {
     LOG4CXX_INFO(logger_, "TimerThread thread_ stop " << name_);
     thread_->stop();
+    threads::DeleteThread(thread_);
     is_running_ = false;
   } else {
-    LOG4CXX_INFO(logger_, "TimerThread thread_ not stop " << name_);
+    LOG4CXX_INFO(logger_, "TimerThread thread_ not stoped " << name_);
   }
 }
 
@@ -347,8 +349,10 @@ void TimerThread<T>::TimerLooperDelegate::threadMain() {
 
 template <class T>
 bool TimerThread<T>::TimerDelegate::exitThreadMain() {
+  {
   sync_primitives::AutoLock auto_lock(state_lock_);
   stop_flag_ = true;
+  }
   termination_condition_.NotifyOne();
   return true;
 }

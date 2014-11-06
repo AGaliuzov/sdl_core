@@ -52,19 +52,21 @@ namespace request_controller {
    *
    */
   typedef utils::SharedPtr<commands::Command> RequestPtr;
-  typedef utils::SharedPtr<commands::CommandRequestImpl> MobileRequestPtr;
 
   struct RequestInfo {
-    RequestInfo(const uint64_t timeout_sec)
+    enum RequestType {MobileRequest, HMIRequest};
+    RequestInfo(const RequestType requst_type, const uint64_t timeout_sec)
       : timeout_sec_(timeout_sec) {
         start_time_ = date_time::DateTime::getCurrentTime();
         updateEndTime();
+        requst_type_ = requst_type;
       }
 
-    RequestInfo(const TimevalStruct& start_time,const  uint64_t timeout_sec)
+    RequestInfo(const RequestType requst_type, const TimevalStruct& start_time,const  uint64_t timeout_sec)
       : start_time_(start_time),
         timeout_sec_(timeout_sec) {
         updateEndTime();
+        requst_type_ = requst_type;
     }
 
     virtual ~RequestInfo(){}
@@ -113,6 +115,9 @@ namespace request_controller {
     mobile_apis::HMILevel::eType hmi_level() {
       return hmi_level_;
     }
+    RequestType requst_type() const {
+       return requst_type_;
+     }
 
   protected:
     TimevalStruct                 start_time_;
@@ -120,6 +125,7 @@ namespace request_controller {
     TimevalStruct                 end_time_;
     uint32_t                      app_id_;
     mobile_apis::HMILevel::eType  hmi_level_;
+    RequestType                   requst_type_;
   };
 
   typedef utils::SharedPtr<RequestInfo> RequestInfoPtr;

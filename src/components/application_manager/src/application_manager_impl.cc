@@ -89,6 +89,9 @@ ApplicationManagerImpl::ApplicationManagerImpl()
     hmi_capabilities_(this),
     unregister_reason_(mobile_api::AppInterfaceUnregisteredReason::IGNITION_OFF),
     resume_ctrl_(this),
+#ifdef CUSTOMER_PASA
+    is_state_suspended_(false),
+#endif // CUSTOMER_PASA
 #ifdef TIME_TESTER
     metric_observer_(NULL),
 #endif  // TIME_TESTER
@@ -96,7 +99,8 @@ ApplicationManagerImpl::ApplicationManagerImpl()
     tts_global_properties_timer_("TTSGLPRTimer",
                                       this,
                                       &ApplicationManagerImpl::OnTimerSendTTSGlobalProperties,
-                                      true) {
+                                      true),
+    is_low_voltage_(false) {
     std::srand(std::time(0));
 }
 
@@ -342,6 +346,8 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
   const utils::SharedPtr<smart_objects::SmartObject>&
   request_for_registration) {
 
+  sync_primitives::AutoLock lock(applications_list_lock_);
+
   LOG4CXX_DEBUG(logger_, "Restarting application list update timer");
   uint32_t timeout = profile::Profile::instance()->application_list_update_timeout();
   application_list_update_timer_->start(timeout);
@@ -477,8 +483,6 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
       connection_handler_->StartSessionHeartBeat(connection_key);
     }
   }
-
-  sync_primitives::AutoLock lock(applications_list_lock_);
 
   application_list_.insert(application);
 
@@ -1190,7 +1194,10 @@ void ApplicationManagerImpl::SendMessageToMobile(
       smart_objects::SmartMap::iterator iter_end = s_map.map_end();
 
       for (; iter != iter_end; ++iter) {
-        params.push_back(iter->first);
+        if (true == iter->second.asBool()) {
+          LOG4CXX_INFO(logger_, "Request's param: " << iter->first);
+          params.push_back(iter->first);
+        }
       }
     }
     const mobile_apis::Result::eType check_result =
@@ -1219,10 +1226,13 @@ bool ApplicationManagerImpl::ManageMobileCommand(
 
   if (!message) {
     LOG4CXX_WARN(logger_, "RET Null-pointer message received.");
-    NOTREACHED()
     return false;
   }
 
+  if (IsLowVoltage()) {
+    LOG4CXX_WARN(logger_, "Low Voltage is active");
+    return false;
+  }
 #ifdef DEBUG
   MessageHelper::PrintSmartObject(*message);
 #endif
@@ -1286,13 +1296,11 @@ bool ApplicationManagerImpl::ManageMobileCommand(
   }
   if (message_type ==
       mobile_apis::messageType::notification) {
-    commands::CommandNotificationImpl* command_notify =
-        static_cast<commands::CommandNotificationImpl*>(command);
-    request_ctrl_.addNotification(command_notify);
-    if (command_notify->Init()) {
-      command_notify->Run();
-      if (command_notify->CleanUp()) {
-        request_ctrl_.removeNotification(command_notify);
+    request_ctrl_.addNotification(command);
+    if (command->Init()) {
+      command->Run();
+      if (command->CleanUp()) {
+        request_ctrl_.removeNotification(command);
       }
       // If CleanUp returned false notification should remove it self.
     }
@@ -1302,8 +1310,6 @@ bool ApplicationManagerImpl::ManageMobileCommand(
   if (message_type ==
       mobile_apis::messageType::request) {
 
-    commands::CommandRequestImpl* command_request =
-        static_cast<commands::CommandRequestImpl*>(command);
     // commands will be launched from requesr_ctrl
     mobile_apis::HMILevel::eType app_hmi_level = mobile_apis::HMILevel::INVALID_ENUM;
     if (app) {
@@ -1313,7 +1319,7 @@ bool ApplicationManagerImpl::ManageMobileCommand(
     // commands will be launched from request_ctrl
 
     request_controller::RequestController::TResult result =
-      request_ctrl_.addMobileRequest(command_request, app_hmi_level);
+      request_ctrl_.addMobileRequest(command, app_hmi_level);
 
     if (result == request_controller::RequestController::SUCCESS) {
       LOG4CXX_INFO(logger_, "Perform request");
@@ -1418,10 +1424,13 @@ bool ApplicationManagerImpl::ManageHMICommand(
 
   if (!message) {
     LOG4CXX_WARN(logger_, "Null-pointer message received.");
-    NOTREACHED();
     return false;
   }
 
+  if (IsLowVoltage()) {
+    LOG4CXX_WARN(logger_, "Low Voltage is active");
+    return false;
+  }
 
   MessageHelper::PrintSmartObject(*message);
 
@@ -1912,16 +1921,15 @@ void ApplicationManagerImpl::HeadUnitReset(
   }
 }
 
+#ifdef CUSTOMER_PASA
 void ApplicationManagerImpl::HeadUnitSuspend() {
   LOG4CXX_INFO(logger_, "ApplicationManagerImpl::HeadUnitSuspend");
-#ifdef CUSTOMER_PASA
-  LOG4CXX_INFO(logger_, "Unloading policy library.");
-  policy::PolicyHandler::instance()->UnloadPolicyLibrary();
 
+  resume_controller().StopSavePersistentDataTimer();
   resume_controller().SaveAllApplications();
   resumption::LastState::instance()->SaveToFileSystem();
-#endif
 }
+#endif // CUSTOMER_PASA
 
 void ApplicationManagerImpl::SendOnSDLClose() {
   LOG4CXX_INFO(logger_, "ApplicationManagerImpl::SendOnSDLClose");
@@ -1974,6 +1982,7 @@ void ApplicationManagerImpl::SendOnSDLClose() {
   hmi_handler_->SendMessageToHMI(message_to_send);
 }
 
+
 void ApplicationManagerImpl::UnregisterAllApplications(bool generated_by_hmi) {
   LOG4CXX_INFO(logger_, "ApplicationManagerImpl::UnregisterAllApplications " <<
                unregister_reason_);
@@ -1991,22 +2000,30 @@ void ApplicationManagerImpl::UnregisterAllApplications(bool generated_by_hmi) {
   std::set<ApplicationSharedPtr>::iterator it = application_list_.begin();
   while (it != application_list_.end()) {
     ApplicationSharedPtr app_to_remove = *it;
+#ifndef CUSTOMER_PASA
     MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
-        app_to_remove->app_id(), unregister_reason_);
+            app_to_remove->app_id(), unregister_reason_);
     UnregisterApplication(app_to_remove->app_id(),
                           mobile_apis::Result::INVALID_ENUM, is_ignition_off,
                           is_unexpected_disconnect);
-
+#endif // !CUSTOMER_PASA
+#ifdef CUSTOMER_PASA
+    if (!is_ignition_off) {
+      MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
+          app_to_remove->app_id(), unregister_reason_);
+    }
+    UnregisterApplication(app_to_remove->app_id(),
+                          mobile_apis::Result::INVALID_ENUM, false,
+                          is_unexpected_disconnect);
+#endif // CUSTOMER_PASA
     connection_handler_->CloseSession(app_to_remove->app_id());
     it = application_list_.begin();
   }
 
   if (is_ignition_off) {
-   resume_controller().IgnitionOff();
-#ifdef CUSTOMER_PASA
-   resumption::LastState::instance()->SaveToFileSystem();
-#endif
+    resume_controller().IgnitionOff();
   }
+
   request_ctrl_.terminateAllHMIRequests();
 }
 
@@ -2049,10 +2066,17 @@ void ApplicationManagerImpl::UnregisterApplication(
     return;
   }
   application_list_.erase(app_to_remove);
-
+#ifndef CUSTOMER_PASA
   if (is_resuming) {
     resume_ctrl_.SaveApplication(app_to_remove);
   }
+#endif // !CUSTOMER_PASA
+#ifdef CUSTOMER_PASA
+  if (is_resuming && !is_state_suspended_) {
+      resume_ctrl_.SaveApplication(app_to_remove);
+    }
+#endif // CUSTOMER_PASA
+
 
   if (audio_pass_thru_active_) {
     // May be better to put this code in MessageHelper?
@@ -2219,6 +2243,25 @@ mobile_apis::Result::eType ApplicationManagerImpl::CheckPolicyPermissions(
   }
   LOG4CXX_INFO(logger_, "Request is allowed by policies. "+log_msg);
   return mobile_api::Result::SUCCESS;
+}
+
+
+void  ApplicationManagerImpl::OnLowVoltage() {
+    LOG4CXX_TRACE_ENTER(logger_);
+    is_low_voltage_ = true;
+    request_ctrl_.OnLowVoltage();
+    LOG4CXX_TRACE_EXIT(logger_);
+}
+
+bool ApplicationManagerImpl::IsLowVoltage() {
+  return is_low_voltage_;
+}
+
+void ApplicationManagerImpl::OnWakeUp() {
+    LOG4CXX_TRACE_ENTER(logger_);
+    is_low_voltage_ = false;
+    request_ctrl_.OnWakeUp();
+    LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void ApplicationManagerImpl::Mute(VRTTSSessionChanging changing_state) {
@@ -2400,7 +2443,8 @@ void ApplicationManagerImpl::AddAppToTTSGlobalPropertiesList(
   uint16_t timeout = profile::Profile::instance()->tts_global_properties_timeout();
   TimevalStruct current_time = date_time::DateTime::getCurrentTime();
   current_time.tv_sec += timeout;
-  sync_primitives::AutoLock lock(tts_global_properties_app_list_lock_);
+  // please avoid AutoLock usage to avoid deadlock
+  tts_global_properties_app_list_lock_.Acquire();
   if (tts_global_properties_app_list_.end() ==
       tts_global_properties_app_list_.find(app_id)) {
     tts_global_properties_app_list_[app_id] = current_time;
@@ -2408,24 +2452,31 @@ void ApplicationManagerImpl::AddAppToTTSGlobalPropertiesList(
   //if add first item need to start timer on one second
   if (1 == tts_global_properties_app_list_.size()) {
     LOG4CXX_INFO(logger_, "Start tts_global_properties_timer_");
+    tts_global_properties_app_list_lock_.Release();
     tts_global_properties_timer_.start(1);
+    return;
   }
+  tts_global_properties_app_list_lock_.Release();
 }
 
 void ApplicationManagerImpl::RemoveAppFromTTSGlobalPropertiesList(
     const uint32_t app_id) {
   LOG4CXX_INFO(logger_, "ApplicationManagerImpl::RemoveAppFromTTSGlobalPropertiesList");
-  sync_primitives::AutoLock lock(tts_global_properties_app_list_lock_);
+  // please avoid AutoLock usage to avoid deadlock
+  tts_global_properties_app_list_lock_.Acquire();
   std::map<uint32_t, TimevalStruct>::iterator it =
       tts_global_properties_app_list_.find(app_id);
   if (tts_global_properties_app_list_.end() != it) {
     tts_global_properties_app_list_.erase(it);
     if (!(tts_global_properties_app_list_.size())) {
       LOG4CXX_INFO(logger_, "Stop tts_global_properties_timer_");
-      //if container is empty need to stop timer
+      // if container is empty need to stop timer
+      tts_global_properties_app_list_lock_.Release();
       tts_global_properties_timer_.stop();
+      return;
     }
   }
+  tts_global_properties_app_list_lock_.Release();
 }
 
 void ApplicationManagerImpl::CreatePhoneCallAppList() {
@@ -2478,5 +2529,9 @@ void ApplicationManagerImpl::ResetPhoneCallAppList() {
 
   on_phone_call_app_list_.clear();
 }
-
+#ifdef CUSTOMER_PASA
+void ApplicationManagerImpl::set_state_suspended(const bool flag_suspended) {
+  is_state_suspended_ = flag_suspended;
+}
+#endif // CUSTOMER_PASA
 }  // namespace application_manager

@@ -68,7 +68,7 @@ class TransportManagerMock: public TransportManager{
   MOCK_METHOD1(DisconnectForce,
                int(const ConnectionUID &));
   MOCK_METHOD1(SendMessageToDevice,
-               int(const RawMessageSptr));
+               int(const ::protocol_handler::RawMessagePtr));
   MOCK_METHOD1(ReceiveEventFromDevice,
                int(const TransportAdapterEvent&));
   MOCK_METHOD1(AddTransportAdapter,
@@ -158,34 +158,6 @@ class SecurityManagerMock: public security_manager::SecurityManager {
                     const uint32_t ));
 };
 #endif  // ENABLE_SECURITY
-
-/*
- * Matcher for checking RawMessage with InternalError Query
- * Check error id
- */
-MATCHER_P2(ControlMessage, ExpectedFrameData, ExpectedEncryption,
-           std::string(ExpectedEncryption ? "Protected" : "Unprotected") + " control message ") {
-  // Nack shall be always with flag protected off
-  DCHECK(ExpectedFrameData  != 0x03 /*FRAME_DATA_START_SERVICE_NACK*/ ||
-         !ExpectedEncryption);
-  const RawMessagePtr message = arg;
-  const ProtocolPacket packet(message->connection_key(), message->data(), message->data_size());
-  if (FRAME_TYPE_CONTROL != packet.frame_type()) {
-    *result_listener << "Is not control message";
-    return false;
-  }
-  if (ExpectedFrameData != packet.frame_data()) {
-    *result_listener << "Control message is not with data 0x"
-                     << std::hex << (int)ExpectedFrameData;
-    return false;
-  }
-  if (ExpectedEncryption != packet.protection_flag()) {
-    *result_listener << "Control message is " <<
-                        (ExpectedEncryption ? "" : "not ") << "protected";
-    return false;
-  }
-  return true;
-}
 }  // namespace test
 }  // namespace components
 }  // namespace protocol_handler_test

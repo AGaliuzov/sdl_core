@@ -77,10 +77,11 @@ typedef pthread_t PlatformThreadHandle;
  */
 class Thread;
 Thread* CreateThread(const char* name, ThreadDelegate* delegate);
+Thread* CreateThread(const char* name, ThreadDelegate* delegate, bool deferred_join);
 void DeleteThread(Thread*);
 
 class Thread {
-  friend Thread* CreateThread(const char*, ThreadDelegate*);
+  friend Thread* CreateThread(const char* name, ThreadDelegate* delegate, bool deferred_join);  
   friend void DeleteThread(Thread*);
  public:
   /**
@@ -202,6 +203,7 @@ class Thread {
    * Minimum size of thread stack for specific platform.
    */
   static size_t kMinStackSize;
+  bool deferred_join_;
 
  protected:
   const std::string name_;
@@ -216,11 +218,13 @@ class Thread {
    * @param name - display string to identify the thread.
    * @param delegate - thread procedure delegate. Look for
    * 'threads/thread_delegate.h' for details.
-   * NOTE: delegate will be deleted by destructor.
+   * @param deferred_join - if true, thread will be joined in \
+   * LifeCycle thread , otherwise it will be joined in stop method
+   * NOTE: delegate will be deleted after thread will be joined
    *       This constructor made private to prevent
    *       Thread object to be created on stack
    */
-  Thread(const char* name, ThreadDelegate* delegate);
+  Thread(const char* name, ThreadDelegate* delegate, bool deferred_join);
 
   DISALLOW_COPY_AND_ASSIGN(Thread);
   virtual ~Thread() { }
