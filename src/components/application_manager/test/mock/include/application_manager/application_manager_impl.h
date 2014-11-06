@@ -166,6 +166,7 @@ class ApplicationManagerImpl : public ApplicationManager,
                                             const protocol_handler::ServiceType&));
   MOCK_METHOD2(OnServiceEndedCallback, void (const int32_t&,
                                              const protocol_handler::ServiceType&));
+  MOCK_METHOD1(OnApplicationFloodCallBack, void(const uint32_t&));
   MOCK_METHOD1(Handle, void (const impl::MessageFromMobile));
   MOCK_METHOD1(Handle, void (const impl::MessageToMobile));
   MOCK_METHOD1(Handle, void (const impl::MessageFromHmi));

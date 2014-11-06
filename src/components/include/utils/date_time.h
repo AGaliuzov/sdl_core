@@ -50,6 +50,7 @@ class DateTime {
  public:
   static const int32_t MILLISECONDS_IN_SECOND = 1000;
   static const int32_t MICROSECONDS_IN_MILLISECONDS = 1000;
+  static const int32_t MICROSECONDS_IN_SECOND = 1000 * 1000;
 
   static TimevalStruct getCurrentTime();
 
@@ -80,5 +81,6 @@ class DateTime {
 };
 
 }  // namespace date_time
-
+bool operator<(const TimevalStruct& time1, const TimevalStruct& time2);
+bool operator==(const TimevalStruct& time1, const TimevalStruct& time2);
 #endif  // SRC_COMPONENTS_INCLUDE_UTILS_DATE_TIME_H_

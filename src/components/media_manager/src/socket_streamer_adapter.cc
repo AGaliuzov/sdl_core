@@ -253,7 +253,7 @@ void SocketStreamerAdapter::Streamer::start() {
 void SocketStreamerAdapter::Streamer::stop() {
   LOG4CXX_TRACE(logger,"enter " << this);
   if (0 == new_socket_fd_) {
-    LOG4CXX_ERROR(logger, "Client Socket does not exits: ");
+    LOG4CXX_ERROR(logger, "Client Socket does not exist: ");
   } else if (-1 == shutdown(new_socket_fd_, SHUT_RDWR)) {
     LOG4CXX_ERROR(logger, "Unable to shutdown socket " << strerror(errno));
   } else if (-1 == ::close(new_socket_fd_)) {

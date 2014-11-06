@@ -100,3 +100,11 @@ TimeCompare date_time::DateTime::compareTime(const TimevalStruct &time1, const T
 }
 
 }  // namespace date_time
+
+bool operator<(const TimevalStruct& time1, const TimevalStruct& time2) {
+  return date_time::DateTime::Less(time1, time2);
+}
+
+bool operator==(const TimevalStruct& time1, const TimevalStruct& time2) {
+  return date_time::DateTime::Equal(time1, time2);
+}
