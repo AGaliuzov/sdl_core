@@ -341,10 +341,9 @@ protected:
   /**
    * @brief Choose device according to app HMI status and user consent for
    * device
-   * @param device_info Struct with selected device parameters
    * @return consent status for selected device
    */
-  DeviceConsent GetDeviceForSending(DeviceParams& device_params);
+  DeviceConsent GetDeviceForSending();
 
   /**
    * @brief Convert internal policy update status to appropriate status for HMI
