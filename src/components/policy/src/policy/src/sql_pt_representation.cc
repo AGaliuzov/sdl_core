@@ -311,7 +311,7 @@ InitResult SQLPTRepresentation::Init() {
   }
 #ifndef __QNX__
   if (!db_->IsReadWrite()) {
-    LOG4CXX_ERROR(logger_, "Database is not read/write");
+    LOG4CXX_ERROR(logger_, "There are no read/write permissions for database");
     return InitResult::FAIL;
   }
 #endif  // __QNX__

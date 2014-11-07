@@ -1216,7 +1216,7 @@ bool PolicyManagerImpl::CheckAppStorageFolder() const {
 bool PolicyManagerImpl::InitPT(const std::string& file_name) {
   LOG4CXX_TRACE_ENTER(logger_);
   if (!CheckAppStorageFolder()) {
-    LOG4CXX_ERROR(logger_, "Error of AppStorageFolder");
+    LOG4CXX_ERROR(logger_, "Can not read/write into AppStorageFolder");
     return false;
   }
   const bool ret = cache_->Init(file_name);
