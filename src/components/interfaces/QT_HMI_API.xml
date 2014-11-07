@@ -56,6 +56,7 @@
       <element name="WARNINGS" value="21"/>
       <element name="GENERIC_ERROR" value="22"/>
       <element name="USER_DISALLOWED" value="23"/>
+      <element name="TRUNCATED_DATA" value="24"/>
     </enum>
     <enum name="ButtonName">
       <description>Defines the hard (physical) and soft (touchscreen) buttons available from SYNC</description>
@@ -1799,6 +1800,12 @@
     <function name="OnUpdateDeviceList" messagetype="notification" provider="hmi">
       <description>Notification from HMI to SDL sent when HMI requires update of device list (i.e. when user clicks 'Change Device' button)</description>
     </function>
+    <function name="OnPhoneCall" messagetype="notification">
+      <description>Sender: HMI->SDL. When: upon phone-call event started or ended</description>
+      <param name="isActive" type="Boolean" mandatory="true">
+        <description>Must be 'true' - when the phone call is started on HMI. Must be 'false' when the phone call is ended on HMI</description>
+      </param>
+    </function>
     <function name="OnResumeAudioSource" messagetype="notification" provider="sdl">
       <description>This method must be invoked by SDL to update audio state.</description>
       <param name="appID" type="Integer" mandatory="true">
@@ -1809,7 +1816,7 @@
     </function>
     <function name="UpdateAppList" messagetype="request" provider="hmi">
       <description>Issued by SDL to notify HMI about new applications registered.</description>
-      <param name="applications" type="Common.HMIApplication" mandatory="true" array="true" minsize="1" maxsize="100"/>
+      <param name="applications" type="Common.HMIApplication" mandatory="true" array="true" minsize="0" maxsize="100"/>
     </function>
     <function name="UpdateAppList" messagetype="response">
     </function>
@@ -1937,6 +1944,8 @@
       <param name="reason" type="Common.ApplicationsCloseReason" mandatory="true">
         <description>Specifies reason for exiting all apllications.</description>
       </param>
+    </function>
+    <function name="OnAwakeSDL" messagetype="notification">
     </function>
     <function name="MixingAudioSupported" messagetype="request" provider="hmi">
       <description>Request from SDL to HMI to find out if the last one supports mixing audio (i.e. recording TTS command and playing audio).</description>
@@ -2602,6 +2611,11 @@
       </param>
       <param name="language" type="Common.Language" mandatory="true">
         <description>The language application wants to switch to.</description>
+      </param>
+      <param name="appHMIType" type="Common.AppHMIType" minsize="1" maxsize="100" array="true" mandatory="false">
+        <description>
+          Sent when app's requested-during-registration AppHMIType is changed to different one due to Policies update. Contains the updated list of all allowed app's AppHMITypes.
+        </description>
       </param>
       <param name="appID" type="Integer" mandatory="true">
         <description>ID of application that concerns this RPC.</description>

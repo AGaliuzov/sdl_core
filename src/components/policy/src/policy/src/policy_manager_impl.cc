@@ -91,16 +91,6 @@ namespace policy {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "PolicyManagerImpl")
 
-#if defined(__QNXNTO__) and defined(GCOV_ENABLED)
-bool CheckGcov() {
-  LOG4CXX_ERROR(log4cxx::Logger::getLogger("appMain"),
-                "Attention! This application was built with unsupported "
-                "configuration (gcov + QNX). Use it at your own risk.");
-  return true;
-}
-bool check_gcov = CheckGcov();
-#endif
-
 PolicyManagerImpl::PolicyManagerImpl()
   : PolicyManager(),
     listener_(NULL),
@@ -113,15 +103,6 @@ PolicyManagerImpl::PolicyManagerImpl()
 void PolicyManagerImpl::set_listener(PolicyListener* listener) {
   listener_ = listener;
   update_status_manager_->set_listener(listener);
-}
-
-PolicyManagerImpl::~PolicyManagerImpl() {
-  LOG4CXX_INFO(logger_, "Destroying policy manager.");
-    const bool update_required =
-        policy::StatusUpToDate != update_status_manager_->GetUpdateStatus()
-        ? true : false;
-    cache_->SaveUpdateRequired(update_required);
-    cache_->Backup();
 }
 
 utils::SharedPtr<policy_table::Table> PolicyManagerImpl::Parse(
@@ -151,7 +132,7 @@ bool PolicyManagerImpl::LoadPT(const std::string& file,
 
 #ifdef EXTENDED_POLICY
   file_system::DeleteFile(file);
-#endif  
+#endif
 
   if (!pt_update->is_valid()) {
     rpc::ValidationReport report("policy_table");
@@ -189,6 +170,16 @@ bool PolicyManagerImpl::LoadPT(const std::string& file,
     LOG4CXX_WARN(logger_, "Unsuccessful save of updated policy table.");
     return false;
   }
+
+  std::map<std::string, StringArray> app_hmi_types;
+  cache_->GetHMIAppTypeAfterUpdate(app_hmi_types);
+  if (!app_hmi_types.empty()) {
+    LOG4CXX_INFO(logger_, "app_hmi_types is full calling OnUpdateHMIAppType");
+    listener_->OnUpdateHMIAppType(app_hmi_types);
+  }else{
+    LOG4CXX_INFO(logger_, "app_hmi_types empty" << pt_content.size());
+  }
+
   // Removing last app request from update requests
   RemoveAppFromUpdateList();
 
@@ -283,7 +274,7 @@ EndpointUrls PolicyManagerImpl::GetUpdateUrls(int service_type) {
 }
 
 BinaryMessageSptr PolicyManagerImpl::RequestPTUpdate() {
-  LOG4CXX_INFO(logger_, "Creating PT Snapshot");  
+  LOG4CXX_INFO(logger_, "Creating PT Snapshot");
   utils::SharedPtr<policy_table::Table> policy_table_snapshot =
       cache_->GenerateSnapshot();
   if (!policy_table_snapshot) {
@@ -350,7 +341,8 @@ void PolicyManagerImpl::CheckPermissions(const PTString& app_id,
                                    GroupConsent::kGroupUndefined);
   std::for_each(app_groups.begin(), app_groups.end(), processor);
 
-  const bool known_rpc = rpc_permissions.end() == rpc_permissions.find(rpc);
+  const bool known_rpc = rpc_permissions.end() != rpc_permissions.find(rpc);
+  LOG4CXX_INFO(logger_, "Is known rpc" << known_rpc);
   if (!known_rpc) {
     // RPC not found in list == disallowed by backend
     result.hmi_level_permitted = kRpcDisallowed;
@@ -399,6 +391,7 @@ void PolicyManagerImpl::CheckPermissions(const PTString& app_id,
           std::find(result.list_of_allowed_params.begin(),
                     result.list_of_allowed_params.end(),
                     *iter);
+      LOG4CXX_INFO(logger_, "Rpc " << *iter << ":" << found);
     }
     // All paramters are in the allowed group.
     // So rpc is allowed as well.
@@ -816,7 +809,7 @@ void PolicyManagerImpl::GetPermissionsForApp(
   const std::string& device_id, const std::string& policy_app_id,
   std::vector<FunctionalGroupPermission>& permissions) {
   LOG4CXX_INFO(logger_, "GetPermissionsForApp");
-  std::string app_id_to_check = policy_app_id;  
+  std::string app_id_to_check = policy_app_id;
 
   bool allowed_by_default = false;
   if (cache_->IsDefaultPolicy(policy_app_id)) {
@@ -1219,6 +1212,10 @@ bool PolicyManagerImpl::InitPT(const std::string& file_name) {
 
 uint16_t PolicyManagerImpl::HeartBeatTimeout(const std::string& app_id) const {
   return cache_->HeartBeatTimeout(app_id);
+}
+
+void PolicyManagerImpl::SaveUpdateStatusRequired(bool is_update_needed) {
+  cache_->SaveUpdateRequired(is_update_needed);
 }
 
 void PolicyManagerImpl::set_cache_manager(

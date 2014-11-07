@@ -41,7 +41,7 @@ namespace request_controller {
 HMIRequestInfo::HMIRequestInfo(
     RequestPtr request,
     const uint64_t timeout_sec):
-  RequestInfo(timeout_sec),
+  RequestInfo(HMIRequest, timeout_sec),
   request_(request) {
     correlation_id_ = request_->correlation_id();
 }
@@ -50,32 +50,28 @@ HMIRequestInfo::HMIRequestInfo(
     RequestPtr request,
     const TimevalStruct &start_time,
     const uint64_t timeout_sec):
-  RequestInfo(start_time, timeout_sec),
+  RequestInfo(HMIRequest, start_time, timeout_sec),
   request_(request) {
     correlation_id_ = request_->correlation_id();
 }
 
 MobileRequestInfo::MobileRequestInfo(
-    MobileRequestPtr request,
+    RequestPtr request,
     const uint64_t timeout_sec):
-  RequestInfo(timeout_sec),
+  RequestInfo(MobileRequest, timeout_sec),
   request_(request) {
-    commands::CommandRequestImpl* request_from_mobile =
-            static_cast<commands::CommandRequestImpl*>(request_.get());
-    mobile_correlation_id_ = request_from_mobile->correlation_id();
-    app_id_ = request_from_mobile->connection_key();
+    mobile_correlation_id_ = request_.get()->correlation_id();
+    app_id_ = request_.get()->connection_key();
 }
 
 MobileRequestInfo::MobileRequestInfo(
-    MobileRequestPtr request,
+    RequestPtr request,
     const TimevalStruct &start_time,
     const uint64_t timeout_sec):
-  RequestInfo(start_time, timeout_sec),
+  RequestInfo(MobileRequest, start_time, timeout_sec),
   request_(request) {
-    commands::CommandRequestImpl* request_to_hmi =
-            static_cast<commands::CommandRequestImpl*>(request_.get());
-    mobile_correlation_id_ = request_to_hmi->correlation_id();
-    app_id_ = request_to_hmi->connection_key();
+    mobile_correlation_id_ = request_.get()->correlation_id();
+    app_id_ = request_.get()->connection_key();
 }
 
 } // namespace request_controller

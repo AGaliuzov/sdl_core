@@ -31,13 +31,17 @@
  */
 
 #include "transport_manager/mme/mme_transport_adapter.h"
-#include "transport_manager/mme/mme_device_scanner.h"
 #include "transport_manager/mme/mme_connection_factory.h"
+#include "transport_manager/mme/mme_client_listener.h"
 
 namespace transport_manager {
 namespace transport_adapter {
 
-MmeTransportAdapter::MmeTransportAdapter() : TransportAdapterImpl(new MmeDeviceScanner(this), new MmeConnectionFactory(this), 0), initialised_(false) {
+MmeTransportAdapter::MmeTransportAdapter()
+    : TransportAdapterImpl(NULL,
+                           new MmeConnectionFactory(this),
+                           new MmeClientListener(this)),
+      initialised_(false) {
 }
 
 DeviceType MmeTransportAdapter::GetDeviceType() const {
@@ -59,7 +63,8 @@ TransportAdapter::Error MmeTransportAdapter::Init() {
   return error;
 }
 
-void MmeTransportAdapter::ApplicationListUpdated(const DeviceUID& device_handle) {
+void MmeTransportAdapter::ApplicationListUpdated(
+    const DeviceUID& device_handle) {
   ConnectDevice(device_handle);
 }
 

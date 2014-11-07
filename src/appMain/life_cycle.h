@@ -80,7 +80,16 @@ class LifeCycle : public utils::Singleton<LifeCycle> {
     * @return true if success otherwise false.
     */
     bool InitMessageSystem();
+    /**
+     * \brief Main loop
+     */
+    void Run();
     void StopComponents();
+
+#ifdef CUSTOMER_PASA
+    void LowVoltage();
+    void WakeUp();
+#endif
 
   private:
     LifeCycle();
@@ -119,7 +128,7 @@ class LifeCycle : public utils::Singleton<LifeCycle> {
 #endif  // PASA_HMI
 #endif  // CUSTOMER_PASA
 
-    bool components_started;
+    bool components_started_;
     FRIEND_BASE_SINGLETON_CLASS(LifeCycle);
     DISALLOW_COPY_AND_ASSIGN(LifeCycle);
 };

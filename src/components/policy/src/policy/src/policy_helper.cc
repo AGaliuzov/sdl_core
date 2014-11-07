@@ -321,7 +321,7 @@ bool CheckAppPolicy::operator()(const AppPoliciesValueType& app_policy) {
       current_policies[app_policy.first] = app_policy.second;
     }
     return true;
-  }  
+  }
 
   // TODO(PV): do we really need this check?
   if (IsNewAppication(app_id)) {
@@ -362,7 +362,7 @@ bool CheckAppPolicy::operator()(const AppPoliciesValueType& app_policy) {
 
   // Don't sent notification for predefined apps (e.g. default, device etc.)
   if (!IsPredefinedApp(app_policy)) {
-    SendNotification(app_policy);    
+    SendNotification(app_policy);
     SendOnPendingPermissions(app_policy, permissions_diff);
   }
   return true;

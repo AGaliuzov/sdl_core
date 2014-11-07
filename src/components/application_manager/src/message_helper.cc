@@ -288,7 +288,7 @@ void MessageHelper::SendHMIStatusNotification(
 }
 
 void MessageHelper::SendOnAppRegisteredNotificationToHMI(
-  const Application& application_impl, bool resumption) {
+  const Application& application_impl, bool resumption, bool need_restore_vr) {
   smart_objects::SmartObject* notification = new smart_objects::SmartObject;
   if (!notification) {
     // TODO(VS): please add logger.
@@ -307,8 +307,10 @@ void MessageHelper::SendOnAppRegisteredNotificationToHMI(
   const smart_objects::SmartObject* ngn_media_screen_name = application_impl
       .ngn_media_screen_name();
 
+  // Due to current requirements in case when we're in resumption mode
+  // we have to always send resumeVRGrammar field.
   if (resumption) {
-    message[strings::msg_params][strings::resume_vr_grammars] = true;
+    message[strings::msg_params][strings::resume_vr_grammars] = need_restore_vr;
   }
 
   if (ngn_media_screen_name) {
@@ -389,6 +391,8 @@ void MessageHelper::SendHashUpdateNotification(const uint32_t app_id) {
     PrintSmartObject(*so);
     if (!ApplicationManagerImpl::instance()->ManageMobileCommand(so)) {
       LOG4CXX_ERROR_EXT(logger_, "Failed to send HashUpdate notification.");
+    } else {
+      ApplicationManagerImpl::instance()->resume_controller().ApplicationsDataUpdated();
     }
   }
 }
@@ -1025,7 +1029,8 @@ MessageHelper::SmartObjectList MessageHelper::CreateAddCommandRequestToHMI(
 }
 
 smart_objects::SmartObject* MessageHelper::CreateChangeRegistration(
-  int32_t function_id, int32_t language, uint32_t app_id) {
+  int32_t function_id, int32_t language, uint32_t app_id,
+  const smart_objects::SmartObject* app_types) {
   smart_objects::SmartObject* command = new smart_objects::SmartObject(
     smart_objects::SmartType_Map);
   if (!command) {
@@ -1050,8 +1055,29 @@ smart_objects::SmartObject* MessageHelper::CreateChangeRegistration(
   msg_params[strings::language] = language;
   msg_params[strings::app_id] = app_id;
 
+  if (app_types != NULL) {
+    msg_params[strings::app_hmi_type] = *app_types;
+  }
+
   params[strings::msg_params] = msg_params;
   return command;
+}
+
+void MessageHelper::SendUIChangeRegistrationRequestToHMI(ApplicationConstSharedPtr app) {
+  if (!app.valid()) {
+    LOG4CXX_ERROR(logger_, "Application is not valid");
+    return;
+  }
+
+  if (NULL != app->app_types()) {
+    smart_objects::SmartObject* ui_command = CreateChangeRegistration(
+        hmi_apis::FunctionID::UI_ChangeRegistration, app->ui_language(),
+        app->app_id(), app->app_types());
+
+    if (ui_command) {
+      ApplicationManagerImpl::instance()->ManageHMICommand(ui_command);
+    }
+  }
 }
 
 void MessageHelper::SendChangeRegistrationRequestToHMI(ApplicationConstSharedPtr app) {
@@ -1239,7 +1265,8 @@ void MessageHelper::SendOnAppUnregNotificationToHMI(
 }
 
 void MessageHelper::SendActivateAppToHMI(uint32_t const app_id,
-    hmi_apis::Common_HMILevel::eType level) {
+    hmi_apis::Common_HMILevel::eType level,
+    bool send_policy_priority) {
   smart_objects::SmartObject* message = new smart_objects::SmartObject(
     smart_objects::SmartType_Map);
 
@@ -1258,26 +1285,30 @@ void MessageHelper::SendActivateAppToHMI(uint32_t const app_id,
     ApplicationManagerImpl::instance()->GetNextHMICorrelationID();
   (*message)[strings::msg_params][strings::app_id] = app_id;
 
-  std::string priority;
-  // TODO(KKolodiy): need remove method policy_manager
+  if (send_policy_priority) {
+    std::string priority;
+    // TODO(KKolodiy): need remove method policy_manager
 
-  policy::PolicyHandler::instance()->GetPriority(
+    policy::PolicyHandler::instance()->GetPriority(
         app->mobile_app_id()->asString(), &priority);
-  // According SDLAQ-CRS-2794
-  // SDL have to send ActivateApp without "proirity" parameter to HMI.
-  // in case of unconsented device
-  std::string mac_adress;
-  connection_handler::DeviceHandle device_handle = app->device();
-  connection_handler::ConnectionHandlerImpl::instance()->
-      GetDataOnDeviceID(device_handle, NULL, NULL, &mac_adress, NULL);
+    // According SDLAQ-CRS-2794
+    // SDL have to send ActivateApp without "proirity" parameter to HMI.
+    // in case of unconsented device
+    std::string mac_adress;
+    connection_handler::DeviceHandle device_handle = app->device();
+    connection_handler::ConnectionHandlerImpl::instance()->
+        GetDataOnDeviceID(device_handle, NULL, NULL, &mac_adress, NULL);
 
-  policy::DeviceConsent consent =
-      policy::PolicyHandler::instance()->GetUserConsentForDevice(mac_adress);
-  if (!priority.empty() && (policy::DeviceConsent::kDeviceAllowed == consent)) {
-    (*message)[strings::msg_params]["priority"] = GetPriorityCode(priority);
+    policy::DeviceConsent consent =
+        policy::PolicyHandler::instance()->GetUserConsentForDevice(mac_adress);
+    if (!priority.empty() && (policy::DeviceConsent::kDeviceAllowed == consent)) {
+      (*message)[strings::msg_params][strings::priority] = GetPriorityCode(priority);
+    }
   }
 
-  if (hmi_apis::Common_HMILevel::INVALID_ENUM != level) {
+  // We haven't send HMI level to HMI in case it FULL.
+  if (hmi_apis::Common_HMILevel::INVALID_ENUM != level &&
+      hmi_apis::Common_HMILevel::FULL != level) {
     (*message)[strings::msg_params][strings::activate_app_hmi_level] = level;
   }
 

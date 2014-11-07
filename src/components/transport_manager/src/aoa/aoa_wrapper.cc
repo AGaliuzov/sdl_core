@@ -58,9 +58,9 @@ static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
   }
 
   bool success = !error;
-  RawMessagePtr message;
+  ::protocol_handler::RawMessagePtr message;
   if (data) {
-    message = new RawMessage(0, 0, data, sz);
+    message = new ::protocol_handler::RawMessage(0, 0, data, sz);
   } else {
     LOG4CXX_ERROR(logger_, "AOA: data is null");
     success = false;
@@ -88,9 +88,9 @@ static void OnTransmittedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
   }
 
   bool success = !error;
-  RawMessagePtr message;
+  ::protocol_handler::RawMessagePtr message;
   if (data) {
-    message = new RawMessage(0, 0, data, sz);
+    message = new ::protocol_handler::RawMessage(0, 0, data, sz);
   } else {
     // TODO(KKolodiy): data is allways null now
     LOG4CXX_ERROR(logger_, "AOA: data is null");
@@ -331,7 +331,7 @@ std::vector<AOAEndpoint> AOAWrapper::GetEndpoints() const {
   return CreateEndpointsList(endpoints);
 }
 
-bool AOAWrapper::SendMessage(RawMessagePtr message) const {
+bool AOAWrapper::SendMessage(::protocol_handler::RawMessagePtr message) const {
   LOG4CXX_TRACE(logger_, "AOA: send to bulk endpoint");
   DCHECK(message);
 
@@ -354,7 +354,7 @@ bool AOAWrapper::SendMessage(RawMessagePtr message) const {
 
 bool AOAWrapper::SendControlMessage(uint16_t request, uint16_t value,
                                     uint16_t index,
-                                    RawMessagePtr message) const {
+                                    ::protocol_handler::RawMessagePtr message) const {
   LOG4CXX_TRACE(logger_, "AOA: send to control endpoint");
   DCHECK(message);
 
@@ -375,13 +375,13 @@ bool AOAWrapper::SendControlMessage(uint16_t request, uint16_t value,
   return true;
 }
 
-RawMessagePtr AOAWrapper::ReceiveMessage() const {
+::protocol_handler::RawMessagePtr AOAWrapper::ReceiveMessage() const {
   LOG4CXX_TRACE(logger_, "AOA: receive from endpoint");
 
   if (!IsHandleValid()) {
     connection_observer_->OnDisconnected();
     OnDied(hdl_);
-    return RawMessagePtr();
+    return ::protocol_handler::RawMessagePtr();
   }
 
   uint8_t *data;
@@ -390,12 +390,12 @@ RawMessagePtr AOAWrapper::ReceiveMessage() const {
   if (IsError(ret)) {
     PrintError(ret);
   } else if (data) {
-    return RawMessagePtr(new RawMessage(0, 0, data, size));
+    return ::protocol_handler::RawMessagePtr(new ::protocol_handler::RawMessage(0, 0, data, size));
   }
-  return RawMessagePtr();
+  return ::protocol_handler::RawMessagePtr();
 }
 
-RawMessagePtr AOAWrapper::ReceiveControlMessage(uint16_t request,
+::protocol_handler::RawMessagePtr AOAWrapper::ReceiveControlMessage(uint16_t request,
                                                 uint16_t value,
                                                 uint16_t index) const {
   LOG4CXX_TRACE(logger_, "AOA: receive from control endpoint");
@@ -403,7 +403,7 @@ RawMessagePtr AOAWrapper::ReceiveControlMessage(uint16_t request,
   if (!IsHandleValid()) {
     connection_observer_->OnDisconnected();
     OnDied(hdl_);
-    return RawMessagePtr();
+    return ::protocol_handler::RawMessagePtr();
   }
 
   uint8_t *data;
@@ -413,9 +413,9 @@ RawMessagePtr AOAWrapper::ReceiveControlMessage(uint16_t request,
   if (IsError(ret)) {
     PrintError(ret);
   } else if (data) {
-    return RawMessagePtr(new RawMessage(0, 0, data, size));
+    return ::protocol_handler::RawMessagePtr(new ::protocol_handler::RawMessage(0, 0, data, size));
   }
-  return RawMessagePtr();
+  return ::protocol_handler::RawMessagePtr();
 }
 
 bool AOAWrapper::IsError(int ret) {

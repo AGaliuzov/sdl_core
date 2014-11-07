@@ -52,8 +52,8 @@ class TransportAdapterController;
 /**
  * @brief Class responsible for communication over bluetooth sockets.
  */
-class BluetoothPASAConnection
-  : public ::transport_manager::transport_adapter::Connection {
+class BluetoothPASAConnection :
+    public ::transport_manager::transport_adapter::Connection {
  public:
   /**
    * @brief Constructor.
@@ -72,7 +72,7 @@ class BluetoothPASAConnection
    *
    * @return Error Information about possible reason of sending data failure.
    */
-  TransportAdapter::Error SendData(RawMessagePtr message);
+  TransportAdapter::Error SendData(::protocol_handler::RawMessagePtr message);
 
   /**
    * @brief Disconnect the current connection.
@@ -120,9 +120,10 @@ class BluetoothPASAConnection
   ApplicationHandle application_handle() const;
 
  private:
-  class BluetoothPASAConnectionDelegate: public threads::ThreadDelegate {
+  class BluetoothPASAConnectionDelegate : public threads::ThreadDelegate {
    public:
-    explicit BluetoothPASAConnectionDelegate(BluetoothPASAConnection* connection);
+    explicit BluetoothPASAConnectionDelegate(
+        BluetoothPASAConnection* connection);
     void threadMain() OVERRIDE;
    private:
     BluetoothPASAConnection* connection_;
@@ -144,7 +145,7 @@ class BluetoothPASAConnection
   /**
    * @brief Frames that must be sent to remote device.
    **/
-  typedef std::queue<RawMessagePtr> FrameQueue;
+  typedef std::queue<protocol_handler::RawMessagePtr> FrameQueue;
   FrameQueue frames_to_send_;
   mutable sync_primitives::Lock frames_to_send_lock_;
 

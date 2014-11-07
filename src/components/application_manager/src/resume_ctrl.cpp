@@ -23,11 +23,16 @@ namespace Formatters = NsSmartDeviceLink::NsJSONHandler::Formatters;
 
 ResumeCtrl::ResumeCtrl(ApplicationManagerImpl* app_mngr)
   : app_mngr_(app_mngr),
-    timer_("ResumeCtrl", this, &ResumeCtrl::onTimer) {
+    restore_hmi_level_timer_("RsmCtrlRstore",
+                             this, &ResumeCtrl::ApplicationResumptiOnTimer),
+    save_persistent_data_timer_("RsmCtrlPercist",
+                                this, &ResumeCtrl::SaveDataOnTimer, true),
+    is_data_saved(true) {
+  save_persistent_data_timer_.start(profile::Profile::instance()->app_resumption_save_persistent_data_timeout());
 }
 
 void ResumeCtrl::SaveAllApplications() {
-  LOG4CXX_INFO(logger_, "ResumeCtrl::SaveApplications()");
+  LOG4CXX_TRACE_ENTER(logger_);
   DCHECK(app_mngr_);
 
   std::set<ApplicationSharedPtr>::iterator it =
@@ -37,16 +42,16 @@ void ResumeCtrl::SaveAllApplications() {
   for (; it != it_end; ++it) {
     SaveApplication(*it);
   }
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void ResumeCtrl::SaveApplication(ApplicationConstSharedPtr application) {
-  LOG4CXX_INFO(logger_, "ResumeCtrl::SaveApplication");
-
   DCHECK(application.get());
 
   Json::Value* json_app = NULL;
-
   const std::string& m_app_id = application->mobile_app_id()->asString();
+  LOG4CXX_TRACE(logger_, "ENTER app_id : " << application->app_id()
+                << " mobile app_id : " << m_app_id);
   Json::Value::iterator it = GetSavedApplications().begin();
   for (; it != GetSavedApplications().end(); ++it) {
     if (m_app_id == (*it)[strings::app_id].asString()) {
@@ -91,10 +96,11 @@ void ResumeCtrl::SaveApplication(ApplicationConstSharedPtr application) {
   (*json_app)[strings::application_files] = GetApplicationFiles(application);
   (*json_app)[strings::time_stamp] = (uint32_t)time(NULL);
   (*json_app)[strings::audio_streaming_state] = application->audio_streaming_state();
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void ResumeCtrl::on_event(const event_engine::Event& event) {
-  LOG4CXX_INFO(logger_, "ResumeCtrl::on_event ");
+  LOG4CXX_TRACE(logger_, "Response from HMI command");
 }
 
 bool ResumeCtrl::RestoreApplicationHMILevel(ApplicationSharedPtr application) {
@@ -102,6 +108,7 @@ bool ResumeCtrl::RestoreApplicationHMILevel(ApplicationSharedPtr application) {
     LOG4CXX_ERROR(logger_, " RestoreApplicationHMILevel() application pointer in invalid");
     return false;
   }
+  LOG4CXX_TRACE(logger_, "ENTER app_id : " << application->app_id());
   Json::Value::iterator it = GetSavedApplications().begin();
   for (;it != GetSavedApplications().end(); ++it) {
     const std::string& saved_m_app_id = (*it)[strings::app_id].asString();
@@ -117,21 +124,22 @@ bool ResumeCtrl::RestoreApplicationHMILevel(ApplicationSharedPtr application) {
         application->set_audio_streaming_state(audio_streaming_state);
       saved_hmi_level = static_cast<mobile_apis::HMILevel::eType>(
                             (*it)[strings::hmi_level].asInt());
-
+      LOG4CXX_TRACE(logger_, "Saved HMI Level is : " << saved_hmi_level);
       return SetupHMILevel(application, saved_hmi_level, audio_streaming_state);
+      LOG4CXX_TRACE_EXIT(logger_);
     }
   }
   LOG4CXX_INFO(logger_, "Failed to restore application HMILevel");
+  LOG4CXX_TRACE_EXIT(logger_);
   return false;
 }
 
 bool ResumeCtrl::SetupDefaultHMILevel(ApplicationSharedPtr application) {
-  LOG4CXX_TRACE_ENTER(logger_);
   if (false == application.valid()) {
     LOG4CXX_ERROR(logger_, "SetupDefaultHMILevel application pointer is invalid");
     return false;
   }
-
+  LOG4CXX_TRACE(logger_, "ENTER app_id : " << application->app_id());
   mobile_apis::HMILevel::eType default_hmi = mobile_apis::HMILevel::HMI_NONE;
 
   if (policy::PolicyHandler::instance()->PolicyEnabled()) {
@@ -150,6 +158,7 @@ bool ResumeCtrl::SetupDefaultHMILevel(ApplicationSharedPtr application) {
         default_hmi = mobile_apis::HMILevel::HMI_NONE;
       } else {
         LOG4CXX_ERROR(logger_, "Unable to convert " + default_hmi_string + "to HMILevel");
+        LOG4CXX_TRACE_EXIT(logger_);
         return false;
       }
     } else {
@@ -157,24 +166,24 @@ bool ResumeCtrl::SetupDefaultHMILevel(ApplicationSharedPtr application) {
                     << policy_app_id);
     }
   }
-
-  return SetupHMILevel(application, default_hmi,
-                       mobile_apis::AudioStreamingState::NOT_AUDIBLE, false);
+  bool result = SetupHMILevel(application, default_hmi,
+                         mobile_apis::AudioStreamingState::NOT_AUDIBLE, false);
+  LOG4CXX_TRACE_EXIT(logger_);
+  return result;
 }
 
 bool ResumeCtrl::SetupHMILevel(ApplicationSharedPtr application,
                                mobile_apis::HMILevel::eType hmi_level,
                                mobile_apis::AudioStreamingState::eType audio_streaming_state,
                                bool check_policy) {
-
   if (false == application.valid()) {
-    LOG4CXX_ERROR(logger_, "SetupHMILevel() application pointer in invalid");
+    LOG4CXX_ERROR(logger_, "Application pointer in invalid");
     return false;
   }
-#ifdef ENABLE_LOG
-  bool seted_up_hmi_level = hmi_level;
-#endif
-
+  LOG4CXX_TRACE(logger_, " ENTER Params : ( " << application->app_id()
+                << "," << hmi_level
+                << "," << audio_streaming_state
+                << "," << check_policy << " )");
   const std::string device_id =
       MessageHelper::GetDeviceMacAddressForHandle(application->device());
 
@@ -183,6 +192,7 @@ bool ResumeCtrl::SetupHMILevel(ApplicationSharedPtr application,
       != policy::DeviceConsent::kDeviceAllowed) {
     LOG4CXX_ERROR(logger_, "Resumption abort. Data consent wasn't allowed");
     SetupDefaultHMILevel(application);
+    LOG4CXX_TRACE_EXIT(logger_);
     return false;
   }
 
@@ -191,63 +201,71 @@ bool ResumeCtrl::SetupHMILevel(ApplicationSharedPtr application,
       (hmi_level != mobile_apis::HMILevel::HMI_NONE)) {
     LOG4CXX_WARN(logger_, "Hmi level " << hmi_level << " should not be set to "
                  << application->mobile_app_id()->asString() << "  " << application->hmi_level());
-
+    LOG4CXX_TRACE_EXIT(logger_);
     return false;
   }
 
-  if (hmi_level == mobile_apis::HMILevel::HMI_FULL) {
-#ifdef ENABLE_LOG
-    seted_up_hmi_level = app_mngr_->PutApplicationInFull(application);
-#else
-    app_mngr_->PutApplicationInFull(application);
-#endif
-  } else if (hmi_level == mobile_apis::HMILevel::HMI_LIMITED) {
-#ifdef ENABLE_LOG
-    seted_up_hmi_level = app_mngr_->PutApplicationInLimited(application);
-#else
-    app_mngr_->PutApplicationInLimited(application);
-#endif
-    if (audio_streaming_state == mobile_apis::AudioStreamingState::AUDIBLE) {
-      //implemented SDLAQ-CRS-839
-      //checking the existence of application with AudioStreamingState=AUDIBLE
-      //notification resumeAudioSource is sent if only resumed application has
-      //AudioStreamingState=AUDIBLE
-      bool application_exist_with_audible_state = false;
-      ApplicationManagerImpl::ApplicationListAccessor accessor;
-      const std::set<ApplicationSharedPtr> app_list = accessor.applications();
-      std::set<ApplicationSharedPtr>::const_iterator app_list_it = app_list.begin();
-      uint32_t app_id = application->app_id();
-      for (; app_list.end() != app_list_it; ++app_list_it) {
-        if (((*app_list_it)->audio_streaming_state() ==
-             mobile_apis::AudioStreamingState::AUDIBLE) &&
-            ((*app_list_it))->app_id() != app_id) {
-          application_exist_with_audible_state = true;
-          break;
+  if (mobile_apis::HMILevel::HMI_FULL == hmi_level) {
+    hmi_level = app_mngr_->PutApplicationInFull(application);
+
+    if ((mobile_apis::HMILevel::HMI_FULL == hmi_level ||
+        mobile_apis::HMILevel::HMI_LIMITED == hmi_level) &&
+        (mobile_apis::AudioStreamingState::AUDIBLE == audio_streaming_state)) {
+      application->set_audio_streaming_state(audio_streaming_state);
+    }
+  } else if (mobile_apis::HMILevel::HMI_LIMITED == hmi_level) {
+    if ((false == application->IsAudioApplication()) ||
+        app_mngr_->DoesAudioAppWithSameHMITypeExistInFullOrLimited(application)) {
+      hmi_level = mobile_apis::HMILevel::HMI_BACKGROUND;
+    } else {
+      if (audio_streaming_state == mobile_apis::AudioStreamingState::AUDIBLE) {
+        //implemented SDLAQ-CRS-839
+        //checking the existence of application with AudioStreamingState=AUDIBLE
+        //notification resumeAudioSource is sent if only resumed application has
+        //AudioStreamingState=AUDIBLE
+        bool application_exist_with_audible_state = false;
+        ApplicationManagerImpl::ApplicationListAccessor accessor;
+        const std::set<ApplicationSharedPtr> app_list = accessor.applications();
+        std::set<ApplicationSharedPtr>::const_iterator app_list_it = app_list
+            .begin();
+        uint32_t app_id = application->app_id();
+        for (; app_list.end() != app_list_it; ++app_list_it) {
+          if ((mobile_apis::AudioStreamingState::AUDIBLE ==
+              (*app_list_it)->audio_streaming_state())
+              && ((*app_list_it))->app_id() != app_id) {
+            application_exist_with_audible_state = true;
+            break;
+          }
         }
-      }
-      if (application_exist_with_audible_state) {
-        application->set_audio_streaming_state(
+        if (application_exist_with_audible_state) {
+          application->set_audio_streaming_state(
               mobile_apis::AudioStreamingState::NOT_AUDIBLE);
-      } else {
-        MessageHelper::SendOnResumeAudioSourceToHMI(application->app_id());
+        } else {
+          MessageHelper::SendOnResumeAudioSourceToHMI(application->app_id());
+        }
       }
     }
   }
-  application->set_hmi_level(hmi_level);
+
   if (hmi_level != mobile_apis::HMILevel::HMI_FULL) {
-    //APPLINK-7244
-    MessageHelper::SendHMIStatusNotification(*(application.get()));
+    application->set_hmi_level(hmi_level);
   }
+
+  MessageHelper::SendHMIStatusNotification(*(application.get()));
 
   LOG4CXX_INFO(logger_, "Set up application "
                << application->mobile_app_id()->asString()
-               << " to HMILevel " << seted_up_hmi_level);
+               << " to HMILevel " << hmi_level);
   return true;
 }
 
 bool ResumeCtrl::RestoreApplicationData(ApplicationSharedPtr application) {
-  LOG4CXX_INFO(logger_, "RestoreApplicationData");
-  DCHECK(application.get());
+  if (false == application.valid()) {
+    LOG4CXX_ERROR(logger_, "Application pointer in invalid");
+    return false;
+  }
+
+  LOG4CXX_TRACE(logger_, "ENTER app_id : " << application->app_id());
 
   Json::Value::iterator it = GetSavedApplications().begin();
   for (; it != GetSavedApplications().end(); ++it) {
@@ -259,6 +277,7 @@ bool ResumeCtrl::RestoreApplicationData(ApplicationSharedPtr application) {
 
   if (it == GetSavedApplications().end()) {
     LOG4CXX_WARN(logger_, "Application not saved");
+    LOG4CXX_TRACE_EXIT(logger_);
     return false;
   }
 
@@ -289,7 +308,6 @@ bool ResumeCtrl::RestoreApplicationData(ApplicationSharedPtr application) {
       file.file_name = file_data[strings::sync_file_name].asString();
       file.file_type = static_cast<mobile_apis::FileType::eType> (
                          file_data[strings::file_type].asInt());
-      LOG4CXX_INFO(logger_, "RestoreApplicationData file " << file.file_name);
       application->AddFile(file);
     }
   }
@@ -429,12 +447,7 @@ bool ResumeCtrl::RestoreApplicationData(ApplicationSharedPtr application) {
          json_it != subscribtions_ivi.end(); ++json_it) {
       VehicleDataType ivi;
       ivi = static_cast<VehicleDataType>((*json_it).asInt());
-      LOG4CXX_INFO(logger_, "VehicleDataType :" <<  ivi);
-#ifdef ENABLE_LOG
-      bool result =
-#endif
       application->SubscribeToIVI(ivi);
-      LOG4CXX_INFO(logger_, "result = :" <<  result);
     }
     requests = MessageHelper::GetIVISubscribtionRequests(application->app_id());
 
@@ -443,15 +456,17 @@ bool ResumeCtrl::RestoreApplicationData(ApplicationSharedPtr application) {
       ProcessHMIRequest(*it,true);
     }
   }
+  LOG4CXX_TRACE_EXIT(logger_);
   return true;
 }
 
 bool ResumeCtrl::IsHMIApplicationIdExist(uint32_t hmi_app_id) {
-  LOG4CXX_INFO(logger_, "ResumeCtrl::IsHMIApplicationIdExist " << hmi_app_id);
+  LOG4CXX_TRACE(logger_, "ENTER hmi_app_id :"  << hmi_app_id);
 
   for (Json::Value::iterator it = GetSavedApplications().begin();
       it != GetSavedApplications().end(); ++it) {
     if ((*it)[strings::hmi_app_id].asUInt() == hmi_app_id) {
+      LOG4CXX_TRACE_EXIT(logger_);
       return true;
     }
   }
@@ -462,14 +477,16 @@ bool ResumeCtrl::IsHMIApplicationIdExist(uint32_t hmi_app_id) {
                                    app_mngr_->application_list_.end();
   for (;it != it_end; ++it) {
     if (hmi_app_id == (*it)->hmi_app_id()) {
+      LOG4CXX_TRACE(logger_, "EXIT result = true");
       return true;
     }
   }
-
+  LOG4CXX_TRACE(logger_, "EXIT result = false");
   return false;
 }
 
 bool ResumeCtrl::IsApplicationSaved(const std::string& mobile_app_id) {
+  LOG4CXX_TRACE(logger_, "ENTER mobile_app_id :"  << mobile_app_id);
   bool result = false;
   for (Json::Value::iterator it = GetSavedApplications().begin();
       it != GetSavedApplications().end(); ++it) {
@@ -477,11 +494,12 @@ bool ResumeCtrl::IsApplicationSaved(const std::string& mobile_app_id) {
       result = true;
     }
   }
-  LOG4CXX_INFO(logger_, "IsApplicationSaved " << mobile_app_id << " : " << (result?"true":"false"));
+  LOG4CXX_TRACE(logger_, "EXIT mobile_app_id :" << mobile_app_id <<" result: " << (result ? "true" : "false"));
   return result;
 }
 
 uint32_t ResumeCtrl::GetHMIApplicationID(const std::string& mobile_app_id) {
+  LOG4CXX_TRACE(logger_, "ENTER mobile_app_id :"  << mobile_app_id);
   uint32_t hmi_app_id = 0;
   for (Json::Value::iterator it = GetSavedApplications().begin();
       it != GetSavedApplications().end(); ++it) {
@@ -489,13 +507,16 @@ uint32_t ResumeCtrl::GetHMIApplicationID(const std::string& mobile_app_id) {
       hmi_app_id = (*it)[strings::hmi_app_id].asUInt();
     }
   }
-
+  LOG4CXX_TRACE(logger_, "EXIT hmi_app_id :"  << hmi_app_id);
   return hmi_app_id;
 }
 
 bool ResumeCtrl::RemoveApplicationFromSaved(ApplicationConstSharedPtr application) {
-  LOG4CXX_INFO(logger_, "ResumeCtrl::RemoveApplicationFromSaved ");
-  DCHECK(application.get());
+  if (false == application.valid()) {
+    LOG4CXX_ERROR(logger_, "Application pointer in invalid");
+    return false;
+  }
+  LOG4CXX_TRACE(logger_, "ENTER app_id :"  << application->app_id());
 
   bool result = false;
   std::vector<Json::Value> temp;
@@ -511,6 +532,7 @@ bool ResumeCtrl::RemoveApplicationFromSaved(ApplicationConstSharedPtr applicatio
   }
 
   if (false == result) {
+    LOG4CXX_TRACE(logger_, "EXIT result: " << (result ? "true" : "false"));
     return result;
   }
 
@@ -519,11 +541,12 @@ bool ResumeCtrl::RemoveApplicationFromSaved(ApplicationConstSharedPtr applicatio
       it != temp.end(); ++it) {
     GetSavedApplications().append((*it));
   }
+  LOG4CXX_TRACE(logger_, "EXIT result: " << (result ? "true" : "false"));
   return result;
 }
 
 void ResumeCtrl::IgnitionOff() {
-  LOG4CXX_INFO(logger_, "ResumeCtrl::IgnitionOff()");
+  LOG4CXX_TRACE_ENTER(logger_);
 
   Json::Value to_save;
   for (Json::Value::iterator it = GetSavedApplications().begin();
@@ -536,17 +559,36 @@ void ResumeCtrl::IgnitionOff() {
     }
   }
   SetSavedApplication(to_save);
+  LOG4CXX_TRACE_EXIT(logger_);
 }
+
+#ifdef CUSTOMER_PASA
+
+void ResumeCtrl::StartSavePersistentDataTimer() {
+  LOG4CXX_TRACE_ENTER(logger_);
+  if (!save_persistent_data_timer_.isRunning()) {
+    save_persistent_data_timer_.start(
+        profile::Profile::instance()->app_resumption_save_persistent_data_timeout());
+  }
+  LOG4CXX_TRACE_EXIT(logger_);
+}
+
+void ResumeCtrl::StopSavePersistentDataTimer() {
+  LOG4CXX_TRACE_ENTER(logger_);
+  if (save_persistent_data_timer_.isRunning()) {
+    save_persistent_data_timer_.stop();
+  }
+  LOG4CXX_TRACE_EXIT(logger_);
+}
+#endif // CUSTOMER_PASA
 
 bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
                                  uint32_t hash) {
-  LOG4CXX_INFO(logger_, "ResumeCtrl::StartResumption");
   if (!application.valid()) {
     LOG4CXX_WARN(logger_, "Application not exist");
     return false;
   }
-
-  LOG4CXX_INFO(logger_, " app_id = " << application->app_id()
+  LOG4CXX_TRACE(logger_, " ENTER app_id = " << application->app_id()
                         << " hmi_app_id = " << application->hmi_app_id()
                         << " mobile_id = "
                         << application->mobile_app_id()->asString());
@@ -566,33 +608,37 @@ bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
       }
 
       application->UpdateHash();
-      if (!timer_.isRunning() && accessor.applications().size() > 1) {
+      if (!restore_hmi_level_timer_.isRunning() &&
+          accessor.applications().size() > 1) {
         RestoreApplicationHMILevel(application);
         RemoveApplicationFromSaved(application);
       } else {
-        sync_primitives::AutoLock auto_lock(queue_lock_);
+        // please avoid AutoLock usage to avoid deadlock
+        queue_lock_.Acquire();
         SetupDefaultHMILevel(application);
         waiting_for_timer_.insert(std::make_pair(application->app_id(),
                                                  time_stamp));
-        timer_.start(kTimeStep);
+        queue_lock_.Release();
+        restore_hmi_level_timer_.start(profile::Profile::instance()->app_resuming_timeout());
       }
+      LOG4CXX_TRACE(logger_, "EXIT true");
       return true;
     }
   }
 
-  LOG4CXX_INFO(logger_, "ResumeCtrl::Application wasn't saved");
+  LOG4CXX_INFO(logger_, "Application wasn't saved");
   MessageHelper::SendHMIStatusNotification(*application);
+  LOG4CXX_TRACE(logger_, "EXIT false");
   return false;
 }
 
 bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
-  LOG4CXX_INFO(logger_, "ResumeCtrl::StartResumptionOnlyHMILevel");
   if (!application.valid()) {
-    LOG4CXX_WARN(logger_, "Application not exist");
+    LOG4CXX_WARN(logger_, "Application do not exists");
     return false;
   }
 
-  LOG4CXX_INFO(logger_, "app_id = " << application->app_id()
+  LOG4CXX_TRACE(logger_, "ENTER app_id = " << application->app_id()
                         << "mobile_id = "
                         << application->mobile_app_id()->asString());
 
@@ -602,30 +648,37 @@ bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
     const std::string& saved_m_app_id = (*it)[strings::app_id].asString();
     if (saved_m_app_id == application->mobile_app_id()->asString()) {
       uint32_t time_stamp= (*it)[strings::time_stamp].asUInt();
-      if (!timer_.isRunning() && accessor.applications().size() > 1) {
+      if (!restore_hmi_level_timer_.isRunning() && accessor.applications().size() > 1) {
         // resume in case there is already registered app
         RestoreApplicationHMILevel(application);
         RemoveApplicationFromSaved(application);
       } else {
-        sync_primitives::AutoLock auto_lock(queue_lock_);
+        // please avoid AutoLock usage to avoid deadlock
+        queue_lock_.Acquire();
         SetupDefaultHMILevel(application);
         waiting_for_timer_.insert(std::make_pair(application->app_id(),
                                                  time_stamp));
+        queue_lock_.Release();
         // woun't start timer if it is active already
-        timer_.start(kTimeStep);
+        restore_hmi_level_timer_.start(profile::Profile::instance()->app_resuming_timeout());
       }
+      LOG4CXX_TRACE(logger_, "EXIT true");
       return true;
     }
   }
 
   LOG4CXX_INFO(logger_, "ResumeCtrl::Application wasn't saved");
   MessageHelper::SendHMIStatusNotification(*application);
+  LOG4CXX_TRACE(logger_, "EXIT false");
   return false;
 }
 
 bool ResumeCtrl::CheckPersistenceFilesForResumption(ApplicationSharedPtr application) {
-  LOG4CXX_INFO(logger_, "CheckPersistenceFilesForResumption");
-  DCHECK(application.get());
+  if (!application.valid()) {
+    LOG4CXX_WARN(logger_, "Application do not exists");
+    return false;
+  }
+  LOG4CXX_TRACE(logger_, "ENTER app_id = " << application->app_id());
 
   Json::Value::iterator it = GetSavedApplications().begin();
   for (; it != GetSavedApplications().end(); ++it) {
@@ -638,6 +691,7 @@ bool ResumeCtrl::CheckPersistenceFilesForResumption(ApplicationSharedPtr applica
 
   if (it == GetSavedApplications().end()) {
     LOG4CXX_WARN(logger_, "Application not saved");
+    LOG4CXX_TRACE(logger_, "EXIT false");
     return false;
   }
 
@@ -659,6 +713,7 @@ bool ResumeCtrl::CheckPersistenceFilesForResumption(ApplicationSharedPtr applica
         MessageHelper::VerifyImageFiles(message, application);
     if (verification_result == mobile_apis::Result::INVALID_DATA) {
       LOG4CXX_WARN(logger_, "app_commands missed icons");
+      LOG4CXX_TRACE(logger_, "EXIT false");
       return false;
     }
   }
@@ -673,16 +728,25 @@ bool ResumeCtrl::CheckPersistenceFilesForResumption(ApplicationSharedPtr applica
     mobile_apis::Result::eType verification_result =
         MessageHelper::VerifyImageFiles(msg_param, application);
     if (verification_result == mobile_apis::Result::INVALID_DATA) {
-      LOG4CXX_WARN(logger_, "app_choise_sets missed icons");
+      LOG4CXX_WARN(logger_, "App_choise_sets missed icons");
+      LOG4CXX_TRACE(logger_, "EXIT false");
       return false;
     }
   }
-
+  LOG4CXX_TRACE(logger_, "EXIT true");
   return true;
 }
 
 bool ResumeCtrl::CheckApplicationHash(ApplicationSharedPtr application,
                                       uint32_t hash) {
+  if (false == application.valid()) {
+    LOG4CXX_ERROR(logger_, "Application pointer is invalid");
+    return false;
+  }
+
+  LOG4CXX_TRACE(logger_, "ENTER app_id : " << application->app_id()
+                << "hash : " << hash);
+
   Json::Value::iterator it = GetSavedApplications().begin();
   for (; it != GetSavedApplications().end(); ++it) {
     std::string saved_m_app_id = (*it)[strings::app_id].asString();
@@ -692,17 +756,18 @@ bool ResumeCtrl::CheckApplicationHash(ApplicationSharedPtr application,
       LOG4CXX_INFO(logger_, "received hash = " << hash);
       LOG4CXX_INFO(logger_, "saved hash = " << saved_hash);
       if (hash == saved_hash) {
+        LOG4CXX_TRACE(logger_, "EXIT true");
         return true;
       }
     }
   }
-
+  LOG4CXX_TRACE(logger_, "EXIT false");
   return false;
 }
 
-void ResumeCtrl::onTimer() {
-  LOG4CXX_INFO(logger_, "ResumeCtrl::onTimer() size is "
-                         << waiting_for_timer_.size());
+void ResumeCtrl::ApplicationResumptiOnTimer() {
+  LOG4CXX_TRACE(logger_, "ENTER waiting for resumption HMI_Level count is :"
+                << waiting_for_timer_.size());
   sync_primitives::AutoLock auto_lock(queue_lock_);
 
   std::multiset<application_timestamp, TimeStampComparator>::iterator it=
@@ -721,13 +786,27 @@ void ResumeCtrl::onTimer() {
   }
 
   waiting_for_timer_.clear();
+  LOG4CXX_TRACE_EXIT(logger_);
+}
+
+void ResumeCtrl::SaveDataOnTimer() {
+  LOG4CXX_TRACE_ENTER(logger_);
+  if (waiting_for_timer_.size() > 0) {
+    LOG4CXX_INFO(logger_, "There are some applications, that are waiting for resumption HMILevel. Data should not be saved");
+    return;
+  }
+  if (false == is_data_saved) {
+    SaveAllApplications();
+    is_data_saved = true;
+    resumption::LastState::instance()->SaveToFileSystem();
+  }
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 bool ResumeCtrl::IsDeviceMacAddressEqual(ApplicationSharedPtr application,
                                          const std::string& saved_device_mac) {
   const std::string device_mac =
       MessageHelper::GetDeviceMacAddressForHandle(application->device());
-
   return device_mac == saved_device_mac;
 }
 
@@ -740,16 +819,18 @@ void ResumeCtrl::SetSavedApplication(Json::Value& apps_json) {
 }
 
 void ResumeCtrl::ClearResumptionInfo() {
-	Json::Value empty_json;
+  LOG4CXX_TRACE_ENTER(logger_);
+  Json::Value empty_json;
 
-	SetSavedApplication(empty_json);
-	resumption::LastState::instance()->SaveToFileSystem();
+  SetSavedApplication(empty_json);
+  resumption::LastState::instance()->SaveToFileSystem();
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 Json::Value ResumeCtrl::GetApplicationCommands(
     ApplicationConstSharedPtr application) {
   DCHECK(application.get());
-  LOG4CXX_INFO(logger_, "ResumeCtrl::GetApplicationCommands "
+  LOG4CXX_TRACE(logger_, "ENTER app_id:"
                << application->app_id());
 
   Json::Value result;
@@ -762,13 +843,14 @@ Json::Value ResumeCtrl::GetApplicationCommands(
     result.append(curr);
     LOG4CXX_INFO(logger_, "Converted:" << curr.toStyledString());
   }
+  LOG4CXX_TRACE_EXIT(logger_);
   return result;
 }
 
 Json::Value ResumeCtrl::GetApplicationSubMenus(
     ApplicationConstSharedPtr application) {
   DCHECK(application.get());
-  LOG4CXX_INFO(logger_, "ResumeCtrl::GetApplicationCommands "
+  LOG4CXX_TRACE(logger_, "ENTER app_id:"
                << application->app_id());
 
   Json::Value result;
@@ -781,13 +863,14 @@ Json::Value ResumeCtrl::GetApplicationSubMenus(
     result.append(curr);
     LOG4CXX_INFO(logger_, "Converted:" << curr.toStyledString());
   }
+  LOG4CXX_TRACE_EXIT(logger_);
   return result;
 }
 
 Json::Value ResumeCtrl::GetApplicationInteractionChoiseSets(
     ApplicationConstSharedPtr application) {
   DCHECK(application.get());
-  LOG4CXX_INFO(logger_, "ResumeCtrl::GetApplicationInteractionChoiseSets "
+  LOG4CXX_TRACE(logger_, "ENTER app_id:"
                << application->app_id());
 
   Json::Value result;
@@ -800,13 +883,14 @@ Json::Value ResumeCtrl::GetApplicationInteractionChoiseSets(
     result.append(curr);
     LOG4CXX_INFO(logger_, "Converted:" << curr.toStyledString());
   }
+  LOG4CXX_TRACE_EXIT(logger_);
   return result;
 }
 
 Json::Value ResumeCtrl::GetApplicationGlobalProperties(
     ApplicationConstSharedPtr application) {
   DCHECK(application.get());
-  LOG4CXX_INFO(logger_, "ResumeCtrl::GetApplicationGlobalProperties "
+  LOG4CXX_TRACE(logger_, "ENTER app_id:"
                << application->app_id());
 
   Json::Value result;
@@ -829,13 +913,14 @@ Json::Value ResumeCtrl::GetApplicationGlobalProperties(
   sgp[strings::menu_title] = JsonFromSO(menu_title);
   sgp[strings::menu_icon] = JsonFromSO(menu_icon);
 
+  LOG4CXX_TRACE_EXIT(logger_);
   return sgp;
 }
 
 Json::Value ResumeCtrl::GetApplicationSubscriptions(
     ApplicationConstSharedPtr application) {
   DCHECK(application.get());
-  LOG4CXX_INFO(logger_, "ResumeCtrl::GetApplicationSubscriptions "
+  LOG4CXX_TRACE(logger_, "ENTER app_id:"
                << application->app_id());
 
   Json::Value result;
@@ -850,13 +935,14 @@ Json::Value ResumeCtrl::GetApplicationSubscriptions(
        it_vehicle != application->SubscribesIVI().end(); ++it_vehicle) {
     result[strings::application_vehicle_info].append(*it_vehicle);
   }
+  LOG4CXX_TRACE_EXIT(logger_);
   return result;
 }
 
 Json::Value ResumeCtrl::GetApplicationFiles(
     ApplicationConstSharedPtr application) {
   DCHECK(application.get());
-  LOG4CXX_INFO(logger_, "ResumeCtrl::GetApplicationFiles "
+  LOG4CXX_TRACE(logger_, "ENTER app_id:"
                << application->app_id());
 
   Json::Value result;
@@ -873,14 +959,15 @@ Json::Value ResumeCtrl::GetApplicationFiles(
       result.append(file_data);
     }
   }
+  LOG4CXX_TRACE_EXIT(logger_);
   return result;
 }
 
 Json::Value ResumeCtrl::GetApplicationShow(
     ApplicationConstSharedPtr application) {
   DCHECK(application.get());
-  LOG4CXX_INFO(logger_, "ResumeCtrl::GetApplicationShow "
-                 << application->app_id());
+  LOG4CXX_TRACE(logger_, "ENTER app_id:"
+               << application->app_id());
 
   Json::Value result;
   const smart_objects::SmartObject* show_so = application->show_command();
@@ -888,6 +975,7 @@ Json::Value ResumeCtrl::GetApplicationShow(
     return result;
   }
   result = JsonFromSO(show_so);
+  LOG4CXX_TRACE_EXIT(logger_);
   return result;
 }
 
@@ -901,6 +989,7 @@ Json::Value ResumeCtrl::JsonFromSO(const smart_objects::SmartObject *so) {
 
 bool ResumeCtrl::ProcessHMIRequest(smart_objects::SmartObject* request,
                                    bool use_events) {
+  LOG4CXX_TRACE_ENTER(logger_);
   if (use_events) {
     const hmi_apis::FunctionID::eType function_id =
         static_cast<hmi_apis::FunctionID::eType>(
@@ -912,15 +1001,17 @@ bool ResumeCtrl::ProcessHMIRequest(smart_objects::SmartObject* request,
   }
   if (!ApplicationManagerImpl::instance()->ManageHMICommand(request)) {
     LOG4CXX_ERROR(logger_, "Unable to send request");
+    LOG4CXX_TRACE_EXIT(logger_);
     return true;
   }
+  LOG4CXX_TRACE_EXIT(logger_);
   return false;
 }
 
 void ResumeCtrl::SendHMIRequest(
     const hmi_apis::FunctionID::eType& function_id,
     const smart_objects::SmartObject* msg_params, bool use_events) {
-
+  LOG4CXX_TRACE_ENTER(logger_);
   NsSmartDeviceLink::NsSmartObjects::SmartObject* result =
       MessageHelper::CreateModuleInfoSO(function_id);
   int32_t hmi_correlation_id =
@@ -936,6 +1027,7 @@ void ResumeCtrl::SendHMIRequest(
   if (!ApplicationManagerImpl::instance()->ManageHMICommand(result)) {
     LOG4CXX_ERROR(logger_, "Unable to send request");
   }
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 }  // namespace application_manager

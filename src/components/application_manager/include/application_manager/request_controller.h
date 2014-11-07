@@ -120,7 +120,7 @@ class RequestController {
     * @return Result code
     *
     */
-    TResult addMobileRequest(const MobileRequestPtr& request,
+    TResult addMobileRequest(const RequestPtr& request,
                              const mobile_apis::HMILevel::eType& hmi_level);
 
 
@@ -131,7 +131,7 @@ class RequestController {
     * @return Result code
     *
     */
-    TResult addHMIRequest(const RequestPtr& request);
+    TResult addHMIRequest(const RequestPtr request);
 
     /**
     * @ Add notification to collection
@@ -177,17 +177,34 @@ class RequestController {
     */
     void terminateAllHMIRequests();
 
+
+    /**
+    * @brief Terminates all requests from Mobile
+    */
+    void terminateAllMobileRequests();
+
     /**
     * @brief Updates request timeout
     *
     * @param app_id Connection key of application
     * @param mobile_correlation_id Correlation ID of the mobile request
-    * @param new_timeout_value New timeout to be set
+    * @param new_timeout_value New timeout to be set in milliseconds
     */
     void updateRequestTimeout(const uint32_t& app_id,
                               const uint32_t& mobile_correlation_id,
                               const uint32_t& new_timeout);
 
+    /*
+     * @brief Function Should be called when Low Voltage is occured
+     */
+    void OnLowVoltage();
+
+    /*
+     * @brief Function Should be called when Low Voltage is occured
+     */
+    void OnWakeUp();
+
+    bool IsLowVoltage();
   protected:
 
     /**
@@ -196,7 +213,9 @@ class RequestController {
      * @param app_time_scale - time scale (seconds)
      * @param max_request_per_time_scale - maximum count of request that should be allowed for app_time_scale secconds
      */
-    bool checkTimeScaleMaxRequest(const uint32_t& app_id, const uint32_t& app_time_scale, const uint32_t& max_request_per_time_scale);
+    bool checkTimeScaleMaxRequest(const uint32_t& app_id,
+                                  const uint32_t& app_time_scale,
+                                  const uint32_t& max_request_per_time_scale);
 
     /**
      * @brief Checs if this app as able to add new requests in current hmi_level, or limits was exceeded
@@ -205,7 +224,10 @@ class RequestController {
      * @param app_time_scale - time scale (seconds)
      * @param max_request_per_time_scale - maximum count of request that should be allowed for app_time_scale secconds
      */
-    bool checkHMILevelTimeScaleMaxRequest(const mobile_apis::HMILevel::eType& hmi_level, const uint32_t& app_id, const uint32_t& app_time_scale, const uint32_t& max_request_per_time_scale);
+    bool checkHMILevelTimeScaleMaxRequest(const mobile_apis::HMILevel::eType& hmi_level,
+                                          const uint32_t& app_id,
+                                          const uint32_t& app_time_scale,
+                                          const uint32_t& max_request_per_time_scale);
 
     void onTimer();
 
@@ -214,6 +236,7 @@ class RequestController {
     * Not thread safe
     */
     void UpdateTimer();
+
 
   private:
 
@@ -232,17 +255,12 @@ class RequestController {
         volatile bool                                    stop_flag_;
     };
 
-    /**
-    * @brief Typedef for thread shared pointer
-    */
-    typedef utils::SharedPtr<Thread> ThreadSharedPtr;
-
-    std::vector<ThreadSharedPtr> pool_;
+    std::vector<Thread*> pool_;
     volatile TPoolState pool_state_;
     uint32_t pool_size_;
     sync_primitives::ConditionalVariable cond_var_;
 
-    std::list<MobileRequestPtr> mobile_request_list_;
+    std::list<RequestPtr> mobile_request_list_;
     sync_primitives::Lock mobile_request_list_lock_;
 
     RequestInfoSet pending_request_set_;
@@ -256,6 +274,7 @@ class RequestController {
     timer::TimerThread<RequestController>  timer_;
     static const uint32_t dafault_sleep_time_ = UINT_MAX;
 
+    bool is_low_voltage_;
     DISALLOW_COPY_AND_ASSIGN(RequestController);
 };
 

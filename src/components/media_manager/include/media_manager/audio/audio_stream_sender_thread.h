@@ -139,6 +139,11 @@ class AudioStreamSenderThread : public threads::ThreadDelegate {
 
     static const int32_t                  kAudioPassThruTimeout;
 
+#ifdef CUSTOMER_PASA
+    mqd_t 				  mq_apt_handle_;
+    uint32_t				  total_bytes_from_mq_;
+#endif // CUSTOMER_PASA
+
     DISALLOW_COPY_AND_ASSIGN(AudioStreamSenderThread);
 };
 }  // namespace media_manager

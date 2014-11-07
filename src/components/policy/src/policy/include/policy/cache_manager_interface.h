@@ -189,6 +189,12 @@ class CacheManagerInterface {
   virtual bool ApplyUpdate(const policy_table::Table& update_pt) = 0;
 
   /**
+   * @brief Gets list of appHMIType associated with mobile appID
+   * @param container of appHMIType
+   */
+  virtual void GetHMIAppTypeAfterUpdate(std::map<std::string, StringArray>& app_hmi_types) = 0;
+
+  /**
    * Gets flag updateRequired
    * @return true if update is required
    */

@@ -56,7 +56,7 @@ LIB_PATHS += \
 #  LIB - Define the static library for Message Queue
 #
 #
-COMPONENT_LIB = $(LIB_PATH)$(LIB_PREFIX)$(COMPONENT_NAME)$(DEBUG_EXT).$(LIB_EXT)
+COMPONENT_LIB = $(SLIB_PATH)$(LIB_PREFIX)$(COMPONENT_NAME)$(DEBUG_EXT).$(SO_EXT)
 
 ## Sources Section
 
@@ -102,8 +102,9 @@ OBJECTS = \
 	$(CPP_LANG_OBJECTS) \
 	$(CC_LANG_OBJECTS)
 
+ALL_OBJECTS = $(addprefix $(BLD_PATH),$(addsuffix .$(OBJ_EXT),$(notdir $(basename $(NON_LOCAL_SRCS) )) ) ) \
+				$(OBJECTS)
 
-	
 # All headers that are dependencies.  Wildcard is easy to pickup local headers.
 #  This is only to automate the rebuilding, all builds on the servers are cleans
 #  So this is not a huge deal when building on a component level.
@@ -111,10 +112,11 @@ HEADERS = \
 	$(wildcard ../include/$(COMPONENT_NAME)/*.h*) \
 	$(wildcard ../include/$(COMPONENT_NAME)/threads/*.h*)
 
-	
-LIBRARIES = \
-	$(COMPONENT_LIB)
 
+LIBRARIES = \
+    $(COMPONENT_LIB)
+
+DYNAMIC_LIBS +=
 
 # Make targets
 #  Standard
@@ -141,7 +143,11 @@ local: $(OBJECTS)
 
 # For a static library
 $(COMPONENT_LIB): $(OBJECTS)
-	$(AR_CMD)
+#	$(AR_CMD)
+$(COMPONENT_LIB): $(OBJECTS) subdirs
+	$(LD_CMD) $(LD_OFLAG) $(@) $(ALL_OBJECTS) \
+	-shared $(addprefix -L , $(LIB_PATHS)) \
+	-Bstatic -Wl,"-start-group" $(addprefix -l , $(STATIC_LIBS)) -Wl,"-end-group" -Bdynamic $(addprefix -l , $(DYNAMIC_LIBS))
 
 # Standard set of derived targets
 library: base subdirs \
@@ -155,12 +161,12 @@ binary: base \
 #  standard form is of
 #  $(MAKE) -C subdirectory_name $(MAKECMDGOALS) 
 subdirs:
-	$(MAKE) -C threads $(MAKECMDGOALS) 
-	
+	$(MAKE) -C threads $(MAKECMDGOALS)
+
 clean:
 	-rm -f $(BINARIES)
 	-rm -f $(LIBRARIES)
-	-rm -f $(OBJECTS)
+	-rm -f $(ALL_OBJECTS)
 	@echo "objs: --> $(OBJECTS)"
 	@echo "sources: --> $(SOURCES)"
 	@echo "headers: --> $(HEADERS)"

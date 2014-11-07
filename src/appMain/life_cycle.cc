@@ -43,6 +43,8 @@
 #include "security_manager/crypto_manager_impl.h"
 #endif  // ENABLE_SECURITY
 
+#include "utils/threads/thread_manager.h"
+
 using threads::Thread;
 
 namespace main_namespace {
@@ -90,7 +92,7 @@ LifeCycle::LifeCycle()
   , mb_pasa_adapter_thread_(NULL)
 #endif  // PASA_HMI
 #endif  // CUSTOMER_PASA
-  , components_started(false)
+  , components_started_(false)
 { }
 
 bool LifeCycle::StartComponents() {
@@ -100,7 +102,9 @@ bool LifeCycle::StartComponents() {
   DCHECK(transport_manager_ != NULL);
 
   protocol_handler_ =
-    new protocol_handler::ProtocolHandlerImpl(transport_manager_);
+    new protocol_handler::ProtocolHandlerImpl(transport_manager_,
+                                              profile::Profile::instance()->message_frequency_time(),
+                                              profile::Profile::instance()->message_frequency_count());
   DCHECK(protocol_handler_ != NULL);
 
   connection_handler_ =
@@ -153,7 +157,7 @@ bool LifeCycle::StartComponents() {
   if (protocol_name == "TLSv1.0") {
     protocol = security_manager::TLSv1;
   } else if (protocol_name == "TLSv1.1") {
-      protocol = security_manager::TLSv1_1;
+    protocol = security_manager::TLSv1_1;
   } else if (protocol_name == "TLSv1.2") {
     protocol = security_manager::TLSv1_2;
   } else if (protocol_name == "SSLv3") {
@@ -218,7 +222,7 @@ bool LifeCycle::StartComponents() {
   transport_manager_->Visibility(true);
 #endif
 
-  components_started = true;
+  components_started_ = true;
   return true;
 }
 
@@ -368,13 +372,45 @@ bool LifeCycle::InitMessageSystem() {
     hmi_message_adapter_);
   return true;
 }
-#endif  // MQUEUE_HMIADAPTER
 
+#endif  // MQUEUE_HMIADAPTER
 #endif  // CUSTOMER_PASA
 
+namespace {
+  void sig_handler(int sig) {
+    MessageQueue<threads::ThreadManager::ThreadDesc>& threads = ::threads::ThreadManager::instance()->threads_to_terminate;
+    threads.Shutdown();
+  }
+}
+
+void LifeCycle::Run() {
+  // First, register signal handler
+  ::utils::SubscribeToTerminateSignal(&sig_handler);
+  // Then run main loop until signal caught
+  MessageQueue<threads::ThreadManager::ThreadDesc>& threads = ::threads::ThreadManager::instance()->threads_to_terminate;
+  while(!threads.IsShuttingDown()) {
+    while (!threads.empty()) {
+      ::threads::ThreadManager::ThreadDesc desc = threads.pop();
+      pthread_join(desc.handle, NULL);
+      delete desc.delegate;
+    }
+    threads.wait();
+  }
+}
+
+#ifdef CUSTOMER_PASA
+void LifeCycle::LowVoltage() {
+  transport_manager_->Visibility(false);
+}
+
+void LifeCycle::WakeUp() {
+  transport_manager_->Reinit();
+  transport_manager_->Visibility(true);
+}
+#endif
+
 void LifeCycle::StopComponents() {
-  LOG4CXX_TRACE(logger_, "enter");
-  if (components_started == false) {
+  if (!components_started_) {
     LOG4CXX_TRACE(logger_, "exit");
     LOG4CXX_ERROR(logger_, "Components wasn't started");
     return;
@@ -491,7 +527,7 @@ void LifeCycle::StopComponents() {
     time_tester_ = NULL;
   }
 #endif  // TIME_TESTER
-  components_started =false;
+  components_started_ = false;
   LOG4CXX_TRACE(logger_, "exit");
 }
 

@@ -123,7 +123,7 @@ def main():
     prev_commit = last_managed_commit()
     if (commit_info["hash"] == prev_commit):
         print("Commit ", prev_commit, " was already managed")
-        exit(1)
+        exit(0)
     recipients = {}  # mapping from user name to list of files
     changed_files = commit_info["files"]
     for changed in changed_files:

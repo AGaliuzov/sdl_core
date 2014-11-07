@@ -252,8 +252,12 @@ if input_file_name == "":
     man()
     exit()
 
-f = open(input_file_name, "r+")
+f = open(input_file_name, "rb")
 file_text = f.read()
+try:
+    file_text = file_text.decode()
+except:
+    file_text = file_text.decode("cp1251")
 f.close()
 file_tokens = split_to_tokens(file_text)
 remove_undefined(file_tokens)

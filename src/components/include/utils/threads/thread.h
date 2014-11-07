@@ -75,7 +75,14 @@ typedef pthread_t PlatformThreadHandle;
  * thread.join();
  * printf("ok!\n");
  */
+class Thread;
+Thread* CreateThread(const char* name, ThreadDelegate* delegate);
+Thread* CreateThread(const char* name, ThreadDelegate* delegate, bool deferred_join);
+void DeleteThread(Thread*);
+
 class Thread {
+  friend Thread* CreateThread(const char* name, ThreadDelegate* delegate, bool deferred_join);  
+  friend void DeleteThread(Thread*);
  public:
   /**
    * Class that represents unique in-process thread identifier
@@ -89,6 +96,7 @@ class Thread {
    public:
     explicit Id(const impl::PlatformThreadHandle& id): id_(id) {}
     bool operator==(const Id& that) const;
+    impl::PlatformThreadHandle Handle() const { return id_; }
    private:
     impl::PlatformThreadHandle id_;
     friend class Thread;
@@ -104,45 +112,12 @@ class Thread {
   static void SetNameForId(const Id& thread_id, const std::string& name);
 
   /**
-   * @brief Set current thread as main
-   */
-  static void SetMainThread();
-
-  /**
-   * @brief Send SIGINT to main thread
-   * @return \a true on success and \a false otherwise
-   */
-  static bool InterruptMainThread();
-
-  /**
-   * @brief Mask all POSIX signals for current thread
-   */
-  static void MaskSignals();
-
-  /**
-   * @brief Unmask all POSIX signals for current thread
-   */
-  static void UnmaskSignals();
-
-  /**
-   * Ctor.
-   * @param name - display string to identify the thread.
-   * @param delegate - thread procedure delegate. Look for
-   * 'threads/thread_delegate.h' for details.
-   * NOTE: delegate will be deleted by destructor.
-   */
-  Thread(const char* name, ThreadDelegate* delegate);
-
-  /**
-   * Dtor.
-   */
-  virtual ~Thread();
-
-  /**
    * Starts the thread.
    * @return true if the thread was successfully started.
    */
   bool start();
+
+  ThreadDelegate* delegate() const;
 
   /**
    * Starts the thread. Behaves exactly like Start in addition to
@@ -164,13 +139,6 @@ class Thread {
   void stop();
 
   /**
-   * Joins with a thread created via the Create function.
-   * This function blocks the caller until the designated thread exits.
-   * This will invalidate |thread_handle|.
-   */
-  void join();
-
-  /**
    * Get thread name.
    * @return thread name
    */
@@ -185,6 +153,10 @@ class Thread {
    */
   bool is_running() const {
     return isThreadRunning_;
+  }
+
+  void set_running(bool running) {
+    isThreadRunning_ = running;
   }
 
   /**
@@ -231,16 +203,31 @@ class Thread {
    * Minimum size of thread stack for specific platform.
    */
   static size_t kMinStackSize;
+  bool deferred_join_;
 
  protected:
   const std::string name_;
   ThreadDelegate* delegate_;
   impl::PlatformThreadHandle thread_handle_;
   ThreadOptions thread_options_;
-  bool isThreadRunning_;
+  volatile unsigned int isThreadRunning_;
 
  private:
+  /**
+   * Ctor.
+   * @param name - display string to identify the thread.
+   * @param delegate - thread procedure delegate. Look for
+   * 'threads/thread_delegate.h' for details.
+   * @param deferred_join - if true, thread will be joined in \
+   * LifeCycle thread , otherwise it will be joined in stop method
+   * NOTE: delegate will be deleted after thread will be joined
+   *       This constructor made private to prevent
+   *       Thread object to be created on stack
+   */
+  Thread(const char* name, ThreadDelegate* delegate, bool deferred_join);
+
   DISALLOW_COPY_AND_ASSIGN(Thread);
+  virtual ~Thread() { }
 };
 
 inline bool operator!= (const Thread::Id& left, const Thread::Id& right) {

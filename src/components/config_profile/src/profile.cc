@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -69,6 +69,7 @@ const char* kTransportManagerSection = "TransportManager";
 const char* kApplicationManagerSection = "ApplicationManager";
 const char* kFilesystemRestrictionsSection = "FILESYSTEM RESTRICTIONS";
 const char* kIAPSection = "IAP";
+const char* kProtocolHandlerSection = "ProtocolHandler";
 
 const char* kHmiCapabilitiesKey = "HMICapabilities";
 const char* kPathToSnapshotKey = "PathToSnapshot";
@@ -90,6 +91,7 @@ const char* kVideoStreamFileKey = "VideoStreamFile";
 const char* kAudioStreamFileKey = "AudioStreamFile";
 
 #ifdef CUSTOMER_PASA
+const char* kHMIHeartBeatTimeoutKey = "HMIHeartBeatTimeout";
 const char* kLoggerSection = "LOGGING";
 const char* kAudioMQPath = "MQAudioPath";
 const char* kLoggerConfigFileKey = "LoggerConfigFile";
@@ -122,6 +124,7 @@ const char* kDeleteFileRequestKey = "DeleteFileRequest";
 const char* kListFilesRequestKey = "ListFilesRequest";
 const char* kDefaultTimeoutKey = "DefaultTimeout";
 const char* kAppResumingTimeoutKey = "ApplicationResumingTimeout";
+const char* kAppSavePersistentDataTimeoutKey = "AppSavePersistentDataTimeout";
 const char* kAppDirectoryQuotaKey = "AppDirectoryQuota";
 const char* kAppTimeScaleMaxRequestsKey = "AppTimeScaleMaxRequests";
 const char* kAppRequestsTimeScaleKey = "AppRequestsTimeScale";
@@ -151,6 +154,9 @@ const char* kIAP2HubConnectAttemptskey = "IAP2HubConnectAttempts";
 const char* kIAPHubConnectionWaitTimeoutKey = "ConnectionWaitTimeout";
 const char* kDefaultHubProtocolIndexKey = "DefaultHubProtocolIndex";
 const char* kTTSGlobalPropertiesTimeoutKey = "TTSGlobalPropertiesTimeout";
+const char* kMaximumPayloadSizeKey ="MaximumPayloadSize";
+const char* kFrequencyCount ="FrequencyCount";
+const char* kFrequencyTime ="FrequencyTime";
 
 const char* kDefaultPoliciesSnapshotFileName = "sdl_snapshot.json";
 const char* kDefaultHmiCapabilitiesFileName = "hmi_capabilities.json";
@@ -160,6 +166,7 @@ const char* kDefaultAppInfoFileName = "app_info.dat";
 const char* kDefaultSystemFilesPath = "/tmp/fs/mp/images/ivsu_cache";
 const char* kDefaultTtsDelimiter = ",";
 #ifdef CUSTOMER_PASA
+const uint32_t kDefaultHMIHeartBeatTimeout = 3; // timeout in seconds
 const char* kDefaultMQName = "/dev/mqueue/AppLinkAudioPass";
 const char* kDefaultLog4cxxConfig = "/fs/mp/etc/AppLink/log4cxx.properties";
 const char* kDefaultRemoteLoggingFlagFile = "log/capturelog.evt";
@@ -194,7 +201,8 @@ const uint32_t kDefaultPutFileRequestInNone = 5;
 const uint32_t kDefaultDeleteFileRequestInNone = 5;
 const uint32_t kDefaultListFilesRequestInNone = 5;
 const uint32_t kDefaultTimeout = 10;
-const uint32_t kDefaultAppResumingTimeout = 5;
+const uint32_t kDefaultAppResumingTimeout = 3;
+const uint32_t kDefaultAppSavePersistentDataTimeout = 10;
 const uint32_t kDefaultDirQuota = 104857600;
 const uint32_t kDefaultAppTimeScaleMaxRequests = 100;
 const uint32_t kDefaultAppRequestsTimeScale = 10;
@@ -210,6 +218,10 @@ const uint32_t kDefaultMaxThreadPoolSize = 2;
 const int kDefaultIAP2HubConnectAttempts = 0;
 const int kDefaultIAPHubConnectionWaitTimeout = 10;
 const uint16_t kDefaultTTSGlobalPropertiesTimeout = 20;
+// TCP MTU - header size = 1500 - 12
+const size_t kDefaultMaximumPayloadSize = 1500 - 12;
+const size_t kDefaultFrequencyCount = 1000;
+const size_t kDefaultFrequencyTime  = 1000;
 
 }  // namespace
 
@@ -260,6 +272,7 @@ Profile::Profile()
     transport_manager_tcp_adapter_port_(kDefautTransportManagerTCPPort),
     tts_delimiter_(kDefaultTtsDelimiter),
 #ifdef CUSTOMER_PASA
+    hmi_heart_beat_timeout_(kDefaultHMIHeartBeatTimeout),
     audio_mq_path_(kDefaultMQName),
     log4cxx_config_file_(kDefaultLog4cxxConfig),
     remote_logging_flag_file_(kDefaultRemoteLoggingFlagFile),
@@ -289,7 +302,7 @@ Profile::~Profile() {
 }
 
 void Profile::config_file_name(const std::string& fileName) {
-  if (false == fileName.empty()) {    
+  if (false == fileName.empty()) {
     config_file_name_ = fileName;
     UpdateValues();
   }
@@ -345,6 +358,10 @@ const uint32_t& Profile::default_timeout() const {
 
 const uint32_t& Profile::app_resuming_timeout() const {
   return app_resuming_timeout_;
+}
+
+const uint32_t& Profile::app_resumption_save_persistent_data_timeout() const {
+  return app_resumption_save_persistent_data_timeout_;
 }
 
 const std::string& Profile::vr_help_title() const {
@@ -417,6 +434,11 @@ const std::string& Profile::audio_stream_file() const {
 }
 
 #ifdef CUSTOMER_PASA
+
+const uint32_t& Profile::hmi_heart_beat_timeout() {
+  return hmi_heart_beat_timeout_;
+}
+
 const std::string &profile::Profile::audio_mq_path() const {
   LOG4CXX_INFO(logger_, "Default MQ name " << audio_mq_path_);
   return audio_mq_path_;
@@ -563,7 +585,7 @@ uint32_t Profile::thread_pool_size() const  {
 }
 
 uint32_t Profile::default_hub_protocol_index() const{
-	return default_hub_protocol_index_;
+  return default_hub_protocol_index_;
 }
 
 const std::string& Profile::iap_legacy_protocol_mask() const {
@@ -592,6 +614,27 @@ int Profile::iap2_hub_connect_attempts() const {
 
 int Profile::iap_hub_connection_wait_timeout() const {
   return iap_hub_connection_wait_timeout_;
+}
+
+size_t Profile::maximum_payload_size() const {
+  size_t maximum_payload_size = 0;
+  ReadUIntValue(&maximum_payload_size, kDefaultMaximumPayloadSize,
+                kProtocolHandlerSection, kMaximumPayloadSizeKey);
+  return maximum_payload_size;
+}
+
+size_t Profile::message_frequency_count() const {
+  size_t message_frequency_count = 0;
+  ReadUIntValue(&message_frequency_count, kDefaultFrequencyCount,
+                kProtocolHandlerSection, kFrequencyCount);
+  return message_frequency_count;
+}
+
+size_t Profile::message_frequency_time() const {
+  size_t message_frequency_time = 0;
+  ReadUIntValue(&message_frequency_time, kDefaultFrequencyTime,
+                kProtocolHandlerSection,kFrequencyTime );
+  return message_frequency_time;
 }
 
 uint16_t Profile::tts_global_properties_timeout() const {
@@ -771,6 +814,12 @@ ReadStringValue(&app_info_storage_, kDefaultAppInfoFileName,
                       kMediaManagerSection);
 
 #ifdef CUSTOMER_PASA
+    // Heartbeat timeout
+    ReadUIntValue(&hmi_heart_beat_timeout_, kDefaultHeartBeatTimeout, kMainSection,
+                  kHMIHeartBeatTimeoutKey);
+
+    LOG_UPDATED_VALUE(hmi_heart_beat_timeout_, kHMIHeartBeatTimeoutKey, kMainSection);
+
     ReadStringValue(&audio_mq_path_, "", kMediaManagerSection,
                     kAudioMQPath);
 
@@ -898,6 +947,15 @@ ReadStringValue(&app_info_storage_, kDefaultAppInfoFileName,
     if (app_resuming_timeout_ <= 0) {
         app_resuming_timeout_ = kDefaultAppResumingTimeout;
   }
+    // Save resumption info to File System
+    LOG_UPDATED_VALUE(app_resuming_timeout_, kAppSavePersistentDataTimeoutKey,
+                      kMainSection);
+    ReadUIntValue(&app_resumption_save_persistent_data_timeout_,
+                  kDefaultAppSavePersistentDataTimeout,
+                  kMainSection, kAppSavePersistentDataTimeoutKey);
+    if (app_resuming_timeout_ <= 0) {
+        app_resuming_timeout_ = kDefaultAppSavePersistentDataTimeout;
+    }
 
     LOG_UPDATED_VALUE(app_resuming_timeout_, kAppResumingTimeoutKey,
                       kMainSection);

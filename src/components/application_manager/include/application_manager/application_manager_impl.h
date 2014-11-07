@@ -47,7 +47,7 @@
 #include "protocol_handler/protocol_observer.h"
 #include "hmi_message_handler/hmi_message_observer.h"
 #include "hmi_message_handler/hmi_message_sender.h"
-
+#include "application_manager/policies/policy_handler_observer.h"
 #include "media_manager/media_manager_impl.h"
 
 #include "connection_handler/connection_handler_observer.h"
@@ -170,6 +170,7 @@ class ApplicationManagerImpl : public ApplicationManager,
   public hmi_message_handler::HMIMessageObserver,
   public protocol_handler::ProtocolObserver,
   public connection_handler::ConnectionHandlerObserver,
+  public policy::PolicyHandlerObserver,
   public impl::FromMobileQueue::Handler, public impl::ToMobileQueue::Handler,
   public impl::FromHmiQueue::Handler, public impl::ToHmiQueue::Handler,
   public utils::Singleton<ApplicationManagerImpl> {
@@ -201,6 +202,41 @@ class ApplicationManagerImpl : public ApplicationManager,
     std::vector<ApplicationSharedPtr> applications_by_button(uint32_t button);
     std::vector<ApplicationSharedPtr> applications_by_ivi(uint32_t vehicle_info);
     std::vector<ApplicationSharedPtr> applications_with_navi();
+
+    /**
+     * @brief Returns media application with LIMITED HMI Level if exist.
+     *
+     * @return Shared pointer to application if application does not
+     * exist returns empty shared pointer.
+     */
+    ApplicationSharedPtr get_limited_media_application() const;
+
+    /**
+     * @brief Returns navigation application with LIMITED HMI Level if exist.
+     *
+     * @return Shared pointer to application if application does not
+     * exist returns empty shared pointer
+     */
+    ApplicationSharedPtr get_limited_navi_application() const;
+
+    /**
+     * @brief Returns voice communication application with LIMITED HMI Level if exist.
+     *
+     * @return Shared pointer to application if application does not
+     * exist returns empty shared pointer
+     */
+    ApplicationSharedPtr get_limited_voice_application() const;
+
+    /**
+     * @brief Check's if there are audio(media, voice communication or navi) applications
+     *        exist in HMI_FULL or HMI_LIMITED level with same audible HMI type.
+     *        Used for resumption.
+     *
+     * @param app Pointer to application to compare with
+     *
+     * @return true if exist otherwise false
+     */
+    bool DoesAudioAppWithSameHMITypeExistInFullOrLimited(ApplicationSharedPtr app) const;
 
     /**
      * @brief Notifies all components interested in Vehicle Data update
@@ -266,12 +302,13 @@ class ApplicationManagerImpl : public ApplicationManager,
      */
     void HeadUnitReset(
         mobile_api::AppInterfaceUnregisteredReason::eType reason);
-
+#ifdef CUSTOMER_PASA
     /*
      * @brief Called by HMI on SUSPEND.
      * SDL must save all persistence data(Resume, Policy)
      */
     void HeadUnitSuspend();
+#endif // CUSTOMER_PASA
 
     /*
      * @brief Closes all registered applications
@@ -281,14 +318,6 @@ class ApplicationManagerImpl : public ApplicationManager,
     bool RemoveAppDataFromHMI(ApplicationSharedPtr app);
     bool LoadAppDataToHMI(ApplicationSharedPtr app);
     bool ActivateApplication(ApplicationSharedPtr app);
-    /**
-     * @brief Put application in Limited HMI Level if possible,
-     *        otherwise put applicatuion other HMI level.
-     *        do not send any notifications to mobile
-     * @param app, application, that need to be puted in Limeted
-     * @return seted HMI Level
-     */
-    mobile_api::HMILevel::eType PutApplicationInLimited(ApplicationSharedPtr app);
 
     /**
      * @brief Put application in FULL HMI Level if possible,
@@ -364,6 +393,39 @@ class ApplicationManagerImpl : public ApplicationManager,
      */
     void set_all_apps_allowed(const bool& allowed);
 
+#ifdef CUSTOMER_PASA
+    /**
+     * @brief Retrieves value of is_state_suspended_
+     *
+     * @return Returns TRUE if SDL has received OnExitAllApplication notification with reason "SUSPEND"
+     * otherwise returns FALSE
+     */
+    inline bool state_suspended() const;
+
+    /**
+     * @brief Sets value of is_state_suspended_
+     *
+     * @param contains TRUE if method is called when SDL has received
+     * OnExitAllApplication notification with reason "SUSPEND"
+     * contains FALSE if method is called when SDL has received
+     * OnAwakeSDL notification.
+     */
+    void set_state_suspended(const bool flag_suspended);
+#endif // CUSTOMER_PASA
+
+    /**
+     * @brief Notification from PolicyHandler about PTU.
+     * Compares AppHMIType between saved in app and received from PTU. If they are different method sends:
+     * UI_ChangeRegistration with list new AppHMIType;
+     * ActivateApp with HMI level BACKGROUND;
+     * OnHMIStatus notification;
+     * for app with HMI level FULL or LIMITED.
+     * method sends:
+     * UI_ChangeRegistration with list new AppHMIType
+     * for app with HMI level BACKGROUND.
+     */
+    virtual void OnUpdateHMIAppType(std::map<std::string, std::vector<std::string> > app_hmi_types);
+
     /*
      * @brief Starts audio pass thru thread
      *
@@ -404,41 +466,37 @@ class ApplicationManagerImpl : public ApplicationManager,
     // if |final_message| parameter is set connection to mobile will be closed
     // after processing this message
     void SendMessageToMobile(
-      const utils::SharedPtr<smart_objects::SmartObject>& message,
+      const utils::SharedPtr<smart_objects::SmartObject> message,
       bool final_message = false);
     bool ManageMobileCommand(
-      const utils::SharedPtr<smart_objects::SmartObject>& message);
+      const utils::SharedPtr<smart_objects::SmartObject> message);
     void SendMessageToHMI(
-      const utils::SharedPtr<smart_objects::SmartObject>& message);
+      const utils::SharedPtr<smart_objects::SmartObject> message);
     bool ManageHMICommand(
-      const utils::SharedPtr<smart_objects::SmartObject>& message);
+      const utils::SharedPtr<smart_objects::SmartObject> message);
 
     /////////////////////////////////////////////////////////
-    /*
-     * @brief Overriden ProtocolObserver method
-     */
+    // Overriden ProtocolObserver method
     virtual void OnMessageReceived(
-        const RawMessagePtr message);
-
-    /*
-     * @brief Overriden ProtocolObserver method
-     */
+        const ::protocol_handler::RawMessagePtr message) OVERRIDE;
     virtual void OnMobileMessageSent(
-        const RawMessagePtr message);
+        const ::protocol_handler::RawMessagePtr message) OVERRIDE;
 
-    void OnMessageReceived(hmi_message_handler::MessageSharedPointer message);
-    void OnErrorSending(hmi_message_handler::MessageSharedPointer message);
+    // Overriden HMIMessageObserver method
+    void OnMessageReceived(hmi_message_handler::MessageSharedPointer message) OVERRIDE;
+    void OnErrorSending(hmi_message_handler::MessageSharedPointer message) OVERRIDE;
 
-    void OnDeviceListUpdated(const connection_handler::DeviceMap& device_list);
+    // Overriden ConnectionHandlerObserver method
+    void OnDeviceListUpdated(const connection_handler::DeviceMap& device_list) OVERRIDE;
     //TODO (EZamakhov): fix all indentations in this file
-  virtual void OnFindNewApplicationsRequest();
-    void RemoveDevice(const connection_handler::DeviceHandle& device_handle);
+    void OnFindNewApplicationsRequest() OVERRIDE;
+    void RemoveDevice(const connection_handler::DeviceHandle& device_handle) OVERRIDE;
     bool OnServiceStartedCallback(
-      const connection_handler::DeviceHandle& device_handle,
-      const int32_t& session_key, const protocol_handler::ServiceType& type);
+        const connection_handler::DeviceHandle& device_handle,
+        const int32_t& session_key, const protocol_handler::ServiceType& type) OVERRIDE;
     void OnServiceEndedCallback(const int32_t& session_key,
-                                const protocol_handler::ServiceType& type);
-
+                                const protocol_handler::ServiceType& type) OVERRIDE;
+    void OnApplicationFloodCallBack(const uint32_t& connection_key) OVERRIDE;
     /**
      * @ Add notification to collection
      *
@@ -458,7 +516,7 @@ class ApplicationManagerImpl : public ApplicationManager,
      *
      * @param connection_key Connection key of application
      * @param mobile_correlation_id Correlation ID of the mobile request
-     * @param new_timeout_value New timeout to be set
+     * @param new_timeout_value New timeout in milliseconds to be set
      */
     void updateRequestTimeout(uint32_t connection_key,
                               uint32_t mobile_correlation_id,
@@ -601,6 +659,20 @@ class ApplicationManagerImpl : public ApplicationManager,
     void RemoveAppFromTTSGlobalPropertiesList(const uint32_t app_id);
 
     /**
+     * @brief method adds application in FULL and LIMITED state
+     * to on_phone_call_app_list_.
+     * Also OnHMIStateNotification with BACKGROUND state sent for these apps
+     */
+    void CreatePhoneCallAppList();
+
+    /**
+     * @brief method removes application from on_phone_call_app_list_.
+     *
+     * Also OnHMIStateNotification with previous HMI state sent for these apps
+     */
+    void ResetPhoneCallAppList();
+
+    /**
      * Function used only by HMI request/response/notification base classes
      * to change HMI app id to Mobile app id and vice versa.
      * Dot use it inside Core
@@ -626,6 +698,20 @@ class ApplicationManagerImpl : public ApplicationManager,
         mobile_apis::FunctionID::eType function_id,
         const RPCParams& rpc_params,
         CommandParametersPermissions* params_permissions = NULL);
+    /*
+     * @brief Function Should be called when Low Voltage is occured
+     */
+    void OnLowVoltage();
+
+    /*
+     * @brief returns true if low voltage state is active
+     */
+    bool IsLowVoltage();
+
+    /*
+     * @brief Function Should be called when WakeUp occures after Low Voltage
+     */
+    void OnWakeUp();
 
     // typedef for Applications list
     typedef const std::set<ApplicationSharedPtr> TAppList;
@@ -676,6 +762,22 @@ class ApplicationManagerImpl : public ApplicationManager,
   private:
     ApplicationManagerImpl();
 
+    /**
+     * @brief Method transforms string to AppHMIType
+     * @param str contains string AppHMIType
+     * @return enum AppHMIType
+     */
+    mobile_apis::AppHMIType::eType StringToAppHMIType(std::string str);
+
+    /**
+     * @brief Method compares arrays of app HMI type
+     * @param from_policy contains app HMI type from policy
+     * @param from_application contains app HMI type from application
+     * @return return TRUE if arrays of appHMIType equal, otherwise return FALSE
+     */
+    bool CompareAppHMIType (const smart_objects::SmartObject& from_policy,
+                            const smart_objects::SmartObject& from_application);
+
     hmi_apis::HMI_API& hmi_so_factory();
     mobile_apis::MOBILE_API& mobile_so_factory();
 
@@ -684,10 +786,10 @@ class ApplicationManagerImpl : public ApplicationManager,
     bool ConvertSOtoMessage(const smart_objects::SmartObject& message,
                             Message& output);
     utils::SharedPtr<Message> ConvertRawMsgToMessage(
-      const RawMessagePtr message);
+      const ::protocol_handler::RawMessagePtr message);
 
-    void ProcessMessageFromMobile(const utils::SharedPtr<Message>& message);
-    void ProcessMessageFromHMI(const utils::SharedPtr<Message>& message);
+    void ProcessMessageFromMobile(const utils::SharedPtr<Message> message);
+    void ProcessMessageFromHMI(const utils::SharedPtr<Message> message);
 
     // threads::MessageLoopThread<*>::Handler implementations
     /*
@@ -738,6 +840,27 @@ class ApplicationManagerImpl : public ApplicationManager,
      */
     std::map<uint32_t, TimevalStruct> tts_global_properties_app_list_;
 
+
+    struct AppState {
+      AppState(const mobile_apis::HMILevel::eType& level,
+               const mobile_apis::AudioStreamingState::eType& streaming_state,
+               const mobile_apis::SystemContext::eType& context)
+      : hmi_level(level),
+        audio_streaming_state(streaming_state),
+        system_context(context) { }
+
+      mobile_apis::HMILevel::eType            hmi_level;
+      mobile_apis::AudioStreamingState::eType audio_streaming_state;
+      mobile_apis::SystemContext::eType       system_context;
+    };
+
+    /**
+     * @brief Map contains apps with HMI state before incoming call
+     * After incoming call ends previous HMI state must restore
+     *
+     */
+    std::map<uint32_t, AppState> on_phone_call_app_list_;
+
     bool audio_pass_thru_active_;
     sync_primitives::Lock audio_pass_thru_lock_;
     sync_primitives::Lock tts_global_properties_app_list_lock_;
@@ -781,6 +904,14 @@ class ApplicationManagerImpl : public ApplicationManager,
      * application in case INGITION_OFF or MASTER_RESSET
      */
     ResumeCtrl resume_ctrl_;
+#ifdef CUSTOMER_PASA
+    /**
+     * @brief Contains TRUE if SDL has received onExitAllApplication notification with
+     * reason "SUSPENDED" otherwise contains FALSE.
+     */
+    bool is_state_suspended_;
+#endif // CUSTOMER_PASA
+
 
 #ifdef TIME_TESTER
     AMMetricObserver* metric_observer_;
@@ -790,8 +921,7 @@ class ApplicationManagerImpl : public ApplicationManager,
      public:
       ApplicationListUpdateTimer(ApplicationManagerImpl* callee) :
           timer::TimerThread<ApplicationManagerImpl>("AM ListUpdater",
-              callee, &ApplicationManagerImpl::OnApplicationListUpdateTimer
-          ) {
+              callee, &ApplicationManagerImpl::OnApplicationListUpdateTimer) {
       }
     };
     typedef utils::SharedPtr<ApplicationListUpdateTimer> ApplicationListUpdateTimerSptr;
@@ -799,6 +929,7 @@ class ApplicationManagerImpl : public ApplicationManager,
 
     timer::TimerThread<ApplicationManagerImpl>  tts_global_properties_timer_;
 
+    bool is_low_voltage_;
     DISALLOW_COPY_AND_ASSIGN(ApplicationManagerImpl);
 
     FRIEND_BASE_SINGLETON_CLASS(ApplicationManagerImpl);
@@ -815,6 +946,12 @@ bool ApplicationManagerImpl::driver_distraction() const {
 inline bool ApplicationManagerImpl::all_apps_allowed() const {
   return is_all_apps_allowed_;
 }
+#ifdef CUSTOMER_PASA
+
+bool ApplicationManagerImpl::state_suspended() const {
+  return is_state_suspended_;
+}
+#endif // CUSTOMER_PASA
 }  // namespace application_manager
 
 #endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_H_

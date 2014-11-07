@@ -79,8 +79,6 @@ using namespace ::security_manager;
   const size_t handshake_data_out_size =
       sizeof(handshake_data_out)/sizeof(handshake_data_out[0]);
 
-//  using ::RawMessage;
-//  using ::RawMessagePtr;
   using ::security_manager::SecurityQuery;
   using security_manager_test::InternalErrorWithErrId;
   using ::testing::Return;
@@ -112,8 +110,8 @@ using namespace ::security_manager;
     */
     void call_OnMessageReceived(const uint8_t* const data, uint32_t dataSize,
                                 const ServiceType serviceType) {
-      const RawMessagePtr rawMessagePtr(
-            new RawMessage(key, protocolVersion, data, dataSize, serviceType));
+      const ::protocol_handler::RawMessagePtr rawMessagePtr(
+            new ::protocol_handler::RawMessage(key, protocolVersion, data, dataSize, serviceType));
       security_manager_->OnMessageReceived(rawMessagePtr);
     }
     /*
@@ -263,8 +261,8 @@ using namespace ::security_manager;
    * Shall skip all OnMobileMessageSent
    */
   TEST_F(SecurityManagerTest, OnMobileMessageSent) {
-    const RawMessagePtr rawMessagePtr(
-          new RawMessage(key, protocolVersion, NULL, 0));
+    const ::protocol_handler::RawMessagePtr rawMessagePtr(
+          new ::protocol_handler::RawMessage(key, protocolVersion, NULL, 0));
     security_manager_->OnMobileMessageSent(rawMessagePtr);
   }
   /*
@@ -279,7 +277,7 @@ using namespace ::security_manager;
     call_OnMessageReceived(NULL, 0, kInvalidServiceType);
   }
   /*
-   * Shall send InternallError on null data recieved
+   * Shall send InternallError on null data received
    */
   TEST_F(SecurityManagerTest, GetEmptyQuery) {
     EXPECT_CALL(mock_protocol_handler,
@@ -291,7 +289,7 @@ using namespace ::security_manager;
     call_OnMessageReceived(NULL, 0, secureServiceType);
   }
   /*
-   * Shall send InternallError on null data recieved
+   * Shall send InternallError on null data received
    */
   TEST_F(SecurityManagerTest, GetWrongJSONSize) {
     SetMockCryptoManger();

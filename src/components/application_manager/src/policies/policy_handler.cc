@@ -50,6 +50,7 @@
 #include "application_manager/usage_statistics.h"
 #include "policy/policy_types.h"
 #include "interfaces/MOBILE_API.h"
+#include "utils/file_system.h"
 
 namespace policy {
 
@@ -206,6 +207,7 @@ PolicyHandler* PolicyHandler::instance_ = NULL;
 const std::string PolicyHandler::kLibrary = "libPolicy.so";
 
 PolicyHandler::PolicyHandler()
+
   : dl_handle_(0),
 #ifdef EXTENDED_POLICY
     exchange_handler_(new PTExchangeHandlerExt(this)),
@@ -215,7 +217,10 @@ PolicyHandler::PolicyHandler()
     on_ignition_check_done_(false),
     last_activated_app_id_(0),
     registration_in_progress(false),
-    is_user_requested_policy_table_update_(false) {
+    is_user_requested_policy_table_update_(false),
+    listener_(NULL),
+    statistic_manager_impl_(new StatisticManagerImpl())
+    {
 }
 
 PolicyHandler::~PolicyHandler() {
@@ -269,7 +274,11 @@ bool PolicyHandler::InitPolicyTable() {
         hmi_apis::FunctionID::BasicCommunication_OnReady);
   std::string preloaded_file =
     profile::Profile::instance()->preloaded_pt_file();
-  return policy_manager_->InitPT(preloaded_file);
+  if (file_system::FileExists(preloaded_file)) {
+    return policy_manager_->InitPT(preloaded_file);
+  }
+  LOG4CXX_WARN(logger_, "The file which contains preloaded PT is not exist");
+  return false;
 }
 
 bool PolicyHandler::ResetPolicyTable() {
@@ -277,7 +286,11 @@ bool PolicyHandler::ResetPolicyTable() {
   POLICY_LIB_CHECK(false);
   std::string preloaded_file =
     profile::Profile::instance()->preloaded_pt_file();
-  return policy_manager_->ResetPT(preloaded_file);
+  if (file_system::FileExists(preloaded_file)) {
+    return policy_manager_->ResetPT(preloaded_file);
+  }
+  LOG4CXX_WARN(logger_, "The file which contains preloaded PT is not exist");
+  return false;
 }
 
 bool PolicyHandler::ClearUserConsent() {
@@ -605,6 +618,8 @@ void PolicyHandler::OnGetStatusUpdate(const uint32_t correlation_id) {
 
 void PolicyHandler::OnUpdateStatusChanged(PolicyTableStatus status) {
   LOG4CXX_INFO(logger_, "OnUpdateStatusChanged");
+  POLICY_LIB_CHECK_VOID();
+  policy_manager_->SaveUpdateStatusRequired(policy::StatusUpToDate != status);
   application_manager::MessageHelper::SendOnStatusUpdate(
     ConvertUpdateStatus(status));
 }
@@ -688,15 +703,10 @@ void PolicyHandler::OnAppRevoked(const std::string& policy_app_id) {
     permissions.appRevoked = true;
     application_manager::MessageHelper::SendOnAppPermissionsChangedNotification(
       app->app_id(), permissions);
-    application_manager::MessageHelper::
-        SendOnAppInterfaceUnregisteredNotificationToMobile(
-          app->app_id(),
-          mobile_apis::AppInterfaceUnregisteredReason::APP_UNAUTHORIZED);
-
-    application_manager::ApplicationManagerImpl::instance()->
-        UnregisterRevokedApplication(app->app_id(),
-                                     mobile_apis::Result::INVALID_ENUM);
     app->set_hmi_level(mobile_apis::HMILevel::HMI_NONE);
+    application_manager::MessageHelper::SendActivateAppToHMI(
+          app->app_id(), hmi_apis::Common_HMILevel::NONE);
+    application_manager::MessageHelper::SendHMIStatusNotification(*app);
     policy_manager_->RemovePendingPermissionChanges(policy_app_id);
     return;
   }
@@ -1291,6 +1301,10 @@ BinaryMessageSptr PolicyHandler::RequestPTUpdate() {
   return policy_manager_->RequestPTUpdate();
 }
 
+void PolicyHandler::set_listener(PolicyHandlerObserver* listener) {
+  listener_ = listener;
+}
+
 const std::vector<int> PolicyHandler::RetrySequenceDelaysSeconds() {
   POLICY_LIB_CHECK(std::vector<int>());
   return policy_manager_->RetrySequenceDelaysSeconds();
@@ -1298,8 +1312,7 @@ const std::vector<int> PolicyHandler::RetrySequenceDelaysSeconds() {
 
 utils::SharedPtr<usage_statistics::StatisticsManager>
 PolicyHandler::GetStatisticManager() {
-  return utils::SharedPtr<PolicyManager>::
-      static_pointer_cast<usage_statistics::StatisticsManager>(policy_manager_);
+  return statistic_manager_impl_;
 }
 
 void PolicyHandler::AddStatisticsInfo(int type) {
@@ -1366,6 +1379,13 @@ void PolicyHandler::OnUserRequestedUpdateCheckRequired() {
                "User-requested update is postponed.");
 }
 
+void PolicyHandler::OnUpdateHMIAppType(std::map<std::string, StringArray> app_hmi_types) {
+  LOG4CXX_INFO(logger_, "OnUpdateHMIAppType");
+  if (listener_) {
+    listener_->OnUpdateHMIAppType(app_hmi_types);
+  }
+}
+
 void PolicyHandler::RemoveDevice(const std::string& device_id) {
   LOG4CXX_INFO(logger_, "PolicyHandler::RemoveDevice");
   POLICY_LIB_CHECK_VOID();
@@ -1419,6 +1439,30 @@ bool PolicyHandler::CheckStealFocus(int system_action,
 uint16_t PolicyHandler::HeartBeatTimeout(const std::string& app_id) const {
   POLICY_LIB_CHECK(0);
   return policy_manager_->HeartBeatTimeout(app_id);
+}
+
+void PolicyHandler::Increment(usage_statistics::GlobalCounterId type) {
+  POLICY_LIB_CHECK();
+  policy_manager_->Increment(type);
+}
+
+void PolicyHandler::Increment(const std::string& app_id, usage_statistics::AppCounterId type) {
+  POLICY_LIB_CHECK();
+  policy_manager_->Increment(app_id, type);
+}
+
+void PolicyHandler::Set(const std::string& app_id,
+                        usage_statistics::AppInfoId type,
+                        const std::string& value) {
+  POLICY_LIB_CHECK();
+  policy_manager_->Set(app_id, type, value);
+}
+
+void PolicyHandler::Add(const std::string& app_id,
+                        usage_statistics::AppStopwatchId type,
+                        int32_t timespan_seconds) {
+  POLICY_LIB_CHECK();
+  policy_manager_->Add(app_id, type, timespan_seconds);
 }
 
 }  //  namespace policy

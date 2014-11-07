@@ -82,6 +82,9 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   bool hmi_supports_navi_audio_streaming() const;
   void set_hmi_supports_navi_audio_streaming(bool supports);
 
+  virtual bool is_voice_communication_supported() const;
+  virtual void set_voice_communication_supported(
+      bool is_voice_communication_supported);
   inline bool app_allowed() const;
   bool has_been_activated() const;
 
@@ -148,7 +151,10 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
 
   virtual uint32_t nextHash();
   virtual uint32_t curHash() const;
-
+#ifdef CUSTOMER_PASA
+  virtual bool flag_sending_hash_change_after_awake() const;
+  virtual void set_flag_sending_hash_change_after_awake(bool flag);
+#endif // CUSTOMER_PASA
   /**
    * @brief Change Hash for current application
    * and send notification to mobile
@@ -165,6 +171,13 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   virtual bool IsSubscribedToSoftButton(const uint32_t softbutton_id);
 
   virtual void UnsubscribeFromSoftButtons(int32_t cmd_id);
+
+  /**
+   * @brief Check's if it is media, voice communication or navigation application
+   *
+   * @return true if application is media, voice communication or navigation
+   */
+  virtual bool IsAudioApplication() const;
 
  protected:
 
@@ -220,7 +233,10 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   std::set<uint32_t>                       subscribed_vehicle_info_;
   UsageStatistics                          usage_report_;
   ProtocolVersion                          protocol_version_;
-
+  bool                                     is_voice_communication_application_;
+#ifdef CUSTOMER_PASA
+  bool                                     flag_sending_hash_change_after_awake_;
+#endif // CUSTOMER_PASA
   // NAVI retry stream
   volatile bool                            is_video_stream_retry_active_;
   volatile bool                            is_audio_stream_retry_active_;

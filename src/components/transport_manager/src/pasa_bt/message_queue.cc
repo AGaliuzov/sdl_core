@@ -37,16 +37,14 @@
 namespace transport_manager {
 namespace transport_adapter {
 
-mqd_t OpenMsgQ(const char *queue_name,
-               const bool is_outcome,
+mqd_t OpenMsgQ(const char *queue_name, const bool is_outcome,
                const bool is_blocking) {
   struct mq_attr attributes;
   attributes.mq_maxmsg = MSGQ_MAX_MESSAGES;
   attributes.mq_msgsize = MAX_QUEUE_MSG_SIZE;
   attributes.mq_flags = 0;
-  const int open_flags = O_CREAT |
-      (is_outcome ? O_WRONLY : O_RDONLY) |
-      (is_blocking ? 0 : O_NONBLOCK);
+  const int open_flags = O_CREAT | (is_outcome ? O_WRONLY : O_RDONLY)
+      | (is_blocking ? 0 : O_NONBLOCK);
   return mq_open(queue_name, open_flags, 0666, &attributes);
 }
 
@@ -54,19 +52,16 @@ void CloseMsgQ(const mqd_t q_fd) {
   mq_close(q_fd);
 }
 
-int SendMsgQ(const mqd_t q_fd,
-             const uint8_t msgType,
-             const uint32_t length,
-             const void *const data) {
-  uint8_t sendBuf[MSGQ_MESSAGE_SIZE];
-  if(!data || length <= 0 || (length-1) > MSGQ_MESSAGE_SIZE) {
+int SendMsgQ(const mqd_t q_fd, const uint8_t msgType, const uint32_t length,
+             const void * const data) {
+  uint8_t sendBuf[MSGQ_MESSAGE_SIZE] = { };
+  if (!data || length <= 0 || (length - 1) > MSGQ_MESSAGE_SIZE) {
     return -1;
   }
-  memset(sendBuf, MSGQ_MESSAGE_SIZE, sizeof(*sendBuf));
   sendBuf[0] = msgType;
   // copy the msg to send buffer
   memcpy(sendBuf + 1, data, length);
-  return mq_send(q_fd, (const char *)&sendBuf[0], sizeof(sendBuf), 0);
+  return mq_send(q_fd, (const char *) &sendBuf[0], sizeof(sendBuf), 0);
 }
 
 }  // namespace transport_adapter

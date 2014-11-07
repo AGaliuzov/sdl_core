@@ -39,6 +39,7 @@
 
 #include "utils/file_system.h"
 #include "json/reader.h"
+#include "json/features.h"
 #include "utils/logger.h"
 
 #ifdef EXTENDED_POLICY
@@ -79,6 +80,25 @@ CacheManager::CacheManager()
     ),
     update_required(false) {
 
+  LOG4CXX_TRACE_ENTER(logger_);
+  backuper_ = new BackgroundBackuper(this);
+  backup_thread_ = threads::CreateThread("Backup thread", backuper_, false);
+
+  if (backup_thread_) {
+    backup_thread_->start();
+  } else {
+    LOG4CXX_ERROR(logger_, "The background thread delegate has not been created");
+  }
+  LOG4CXX_TRACE_EXIT(logger_);
+}
+
+CacheManager::~CacheManager() {
+  if (backup_thread_) {
+    backuper_ = NULL;
+
+    backup_thread_->stop();
+    threads::DeleteThread(backup_thread_);
+  }
 }
 
 bool CacheManager::CanAppKeepContext(const std::string &app_id) {
@@ -154,7 +174,11 @@ bool CacheManager::GetUserPermissionsForDevice(const std::string &device_id,
   LOG4CXX_TRACE_ENTER(logger_);
   CACHE_MANAGER_CHECK(false);
 #ifdef EXTENDED_POLICY
-  const policy_table::DeviceParams& params = (*pt_->policy_table.device_data)[device_id];
+  policy_table::DeviceData& device_data = *pt_->policy_table.device_data;
+  if (device_data.end() == device_data.find(device_id)) {
+    return true;
+  }
+  const policy_table::DeviceParams& params = device_data[device_id];
   const policy_table::UserConsentRecords& ucr = *(params.user_consent_records);
   policy_table::UserConsentRecords::const_iterator iter = ucr.begin();
   policy_table::UserConsentRecords::const_iterator iter_end = ucr.end();
@@ -325,6 +349,7 @@ void CacheManager::RemoveAppConsentForGroup(const std::string& app_id,
 bool CacheManager::ApplyUpdate(const policy_table::Table& update_pt) {
   LOG4CXX_TRACE_ENTER(logger_);
   CACHE_MANAGER_CHECK(false);
+  sync_primitives::AutoLock auto_lock(cache_lock_);
   pt_->policy_table.functional_groupings =
       update_pt.policy_table.functional_groupings;
 
@@ -343,44 +368,37 @@ bool CacheManager::ApplyUpdate(const policy_table::Table& update_pt) {
     pt_->policy_table.consumer_friendly_messages =
         update_pt.policy_table.consumer_friendly_messages;
   }
-
   LOG4CXX_TRACE_EXIT(logger_);
   return true;
 }
 
-void CacheManager::Backup() {
+void CacheManager::GetHMIAppTypeAfterUpdate(std::map<std::string, StringArray>& app_hmi_types) {
+  LOG4CXX_TRACE_ENTER(logger_);
   CACHE_MANAGER_CHECK_VOID();
-  sync_primitives::AutoLock auto_lock(cache_lock_);
-  if (backup_.valid()) {
-    if (pt_.valid()) {
-      backup_->Save(*pt_);
-      backup_->SaveUpdateRequired(update_required);
-
-
-      policy_table::ApplicationPolicies::const_iterator app_policy_iter =
-          pt_->policy_table.app_policies.begin();
-      policy_table::ApplicationPolicies::const_iterator app_policy_iter_end =
-          pt_->policy_table.app_policies.end();
-
-      for (; app_policy_iter != app_policy_iter_end; ++app_policy_iter) {
-
-        const std::string app_id = (*app_policy_iter).first;
-        backup_->SaveApplicationCustomData(app_id,
-                                          IsApplicationRevoked(app_id),
-                                          IsDefaultPolicy(app_id),
-                                          is_predata_[app_id]);
+  policy_table::ApplicationPolicies::const_iterator policy_iter_begin =
+      pt_->policy_table.app_policies.begin();
+  policy_table::ApplicationPolicies::const_iterator policy_iter_end =
+      pt_->policy_table.app_policies.end();
+  std::vector<std::string> transform_app_hmi_types;
+  for(; policy_iter_begin != policy_iter_end; ++policy_iter_begin) {
+    const policy_table::ApplicationParams& app_params = (*policy_iter_begin).second;
+    if(app_params.AppHMIType.is_initialized()) {
+      if(!(transform_app_hmi_types.empty())) {
+        transform_app_hmi_types.clear();
       }
-
-  // In case of extended policy the meta info should be backuped as well.
-#ifdef EXTENDED_POLICY
-      if (ex_backup_.valid()) {
-        ex_backup_->SetMetaInfo(*(*pt_->policy_table.module_meta).ccpu_version,
-                                *(*pt_->policy_table.module_meta).wers_country_code,
-                                *(*pt_->policy_table.module_meta).language);
-        ex_backup_->SetVINValue(*(*pt_->policy_table.module_meta).vin);
-      }
-#endif // EXTENDED_POLICY
+      std::transform(app_params.AppHMIType->begin(), app_params.AppHMIType->end(),
+                     std::back_inserter(transform_app_hmi_types), AppHMITypeToString());
+      app_hmi_types[(*policy_iter_begin).first] = transform_app_hmi_types;
     }
+  }
+  LOG4CXX_TRACE_EXIT(logger_);
+}
+
+void CacheManager::Backup() {
+  if (backuper_) {
+    backuper_->DoBackup();
+  }else {
+    LOG4CXX_ERROR(logger_, "Backuper thread not exists any more");
   }
 }
 
@@ -455,6 +473,7 @@ bool CacheManager::SetDeviceData(const std::string &device_id,
   *params.connection_type = connection_type;
 
 #endif // EXTENDED_POLICY
+  Backup();
   LOG4CXX_TRACE_EXIT(logger_);
   return true;
 }
@@ -491,6 +510,7 @@ bool CacheManager::SetUserPermissionsForDevice(
     *ucr_iter->second.time_stamp = currentDateTime();
   }
 #endif // EXTENDED_POLICY
+  Backup();
   LOG4CXX_TRACE_EXIT(logger_);
   return true;
 }
@@ -533,6 +553,7 @@ bool CacheManager::ReactOnUserDevConsentForApp(const std::string &app_id,
     }
   }
 #endif // EXTENDED_POLICY
+  Backup();
   LOG4CXX_TRACE_EXIT(logger_);
   return result;
 }
@@ -578,6 +599,7 @@ bool CacheManager::SetUserPermissionsForApp(
     }
   }
 #endif // EXTENDED_POLICY
+  Backup();
   LOG4CXX_TRACE_EXIT(logger_);
   return true;
 }
@@ -587,8 +609,8 @@ bool CacheManager::UpdateRequired() const {
 }
 
 void CacheManager::SaveUpdateRequired(bool status) {
-
   update_required = status;
+  Backup();
 }
 
 bool CacheManager::IsApplicationRevoked(const std::string& app_id) {
@@ -705,6 +727,7 @@ bool CacheManager::SetCountersPassedForSuccessfulUpdate(int kilometers,
   *pt_->policy_table.module_meta->pt_exchanged_at_odometer_x = kilometers;
   *pt_->policy_table.module_meta->pt_exchanged_x_days_after_epoch = days_after_epoch;
 #endif
+  Backup();
   return true;
 }
 
@@ -732,6 +755,7 @@ void CacheManager::IncrementIgnitionCycles() {
       (*pt_->policy_table.module_meta->ignition_cycles_since_last_exchange);
   (*pt_->policy_table.module_meta->ignition_cycles_since_last_exchange) = ign_val + 1;
 #endif // EXTENDED_POLICY
+  Backup();
 }
 
 void CacheManager::ResetIgnitionCycles() {
@@ -739,6 +763,7 @@ void CacheManager::ResetIgnitionCycles() {
 #ifdef EXTENDED_POLICY
   (*pt_->policy_table.module_meta->ignition_cycles_since_last_exchange) = 0;
 #endif // EXTENDED_POLICY
+  Backup();
 }
 
 int CacheManager::TimeoutResponse() {
@@ -980,6 +1005,43 @@ void CacheManager::CheckSnapshotInitialization() {
 #endif
 }
 
+void CacheManager::PersistData() {
+  sync_primitives::AutoLock auto_lock(cache_lock_);
+  LOG4CXX_TRACE_ENTER(logger_);
+  if (backup_.valid()) {
+    if (pt_.valid()) {
+      backup_->Save(*pt_);
+      backup_->SaveUpdateRequired(update_required);
+
+      policy_table::ApplicationPolicies::const_iterator app_policy_iter =
+          pt_->policy_table.app_policies.begin();
+      policy_table::ApplicationPolicies::const_iterator app_policy_iter_end =
+          pt_->policy_table.app_policies.end();
+
+      for (; app_policy_iter != app_policy_iter_end; ++app_policy_iter) {
+
+        const std::string app_id = (*app_policy_iter).first;
+        backup_->SaveApplicationCustomData(app_id,
+                                          IsApplicationRevoked(app_id),
+                                          IsDefaultPolicy(app_id),
+                                          is_predata_[app_id]);
+      }
+
+  // In case of extended policy the meta info should be backuped as well.
+#ifdef EXTENDED_POLICY
+      if (ex_backup_.valid()) {
+        ex_backup_->SetMetaInfo(*(*pt_->policy_table.module_meta).ccpu_version,
+                                *(*pt_->policy_table.module_meta).wers_country_code,
+                                *(*pt_->policy_table.module_meta).language);
+        ex_backup_->SetVINValue(*(*pt_->policy_table.module_meta).vin);
+      }
+#endif // EXTENDED_POLICY
+    }
+    backup_->WriteDb();
+  }
+
+}
+
 utils::SharedPtr<policy_table::Table>
 CacheManager::GenerateSnapshot() {
   CACHE_MANAGER_CHECK(snapshot_);
@@ -1004,7 +1066,7 @@ bool CacheManager::GetInitialAppData(const std::string& app_id,
               std::back_inserter(nicknames));
 
     std::transform(app_params.AppHMIType->begin(), app_params.AppHMIType->end(),
-                   std::back_inserter(nicknames), AppHMITypeToString());
+                   std::back_inserter(app_hmi_types), AppHMITypeToString());
   }
   LOG4CXX_TRACE_EXIT(logger_);
   return true;
@@ -1088,6 +1150,7 @@ bool CacheManager::SetMetaInfo(const std::string &ccpu_version,
   *pt_->policy_table.module_meta->wers_country_code = wers_country_code;
   *pt_->policy_table.module_meta->language = language;
 #endif // EXTENDED_POLICY
+  Backup();
   return true;
 }
 
@@ -1107,6 +1170,7 @@ bool CacheManager::SetSystemLanguage(const std::string &language) {
 #ifdef EXTENDED_POLICY
   *pt_->policy_table.module_meta->language = language;
 #endif // EXTENDED_POLICY
+  Backup();
   return true;
 }
 
@@ -1159,6 +1223,7 @@ void CacheManager::Increment(usage_statistics::GlobalCounterId type) {
       return;
   }
 #endif // EXTENDED_POLICY
+  Backup();
 }
 
 void CacheManager::Increment(const std::string &app_id,
@@ -1203,6 +1268,7 @@ void CacheManager::Increment(const std::string &app_id,
       return;
   }
 #endif
+  Backup();
 }
 
 void CacheManager::Set(const std::string &app_id,
@@ -1224,6 +1290,7 @@ void CacheManager::Set(const std::string &app_id,
       return;
   }
 #endif
+  Backup();
 }
 
 void CacheManager::Add(const std::string &app_id,
@@ -1254,6 +1321,7 @@ void CacheManager::Add(const std::string &app_id,
       return;
   }
 #endif
+  Backup();
 }
 
 void CacheManager::CopyInternalParams(const std::string &from,
@@ -1280,6 +1348,7 @@ bool CacheManager::SetDefaultPolicy(const std::string &app_id) {
 
     pt_->policy_table.app_policies[app_id].set_to_string(kDefaultId);
   }
+  Backup();
   return true;
 }
 
@@ -1322,6 +1391,7 @@ bool CacheManager::SetPredataPolicy(const std::string &app_id) {
     SetIsPredata(app_id, true);
     SetIsDefault(app_id, false);
   }
+  Backup();
   return true;
 }
 
@@ -1363,6 +1433,7 @@ bool CacheManager::SetVINValue(const std::string& value) {
 #ifdef EXTENDED_POLICY
   *pt_->policy_table.module_meta->vin = value;
 #endif // EXTENDED_POLICY
+  Backup();
   return true;
 }
 
@@ -1375,6 +1446,7 @@ bool CacheManager::IsApplicationRepresented(const std::string& app_id) const {
 
 bool CacheManager::Init(const std::string& file_name) {
   LOG4CXX_INFO(logger_, "CacheManager::Init");
+
   InitResult init_result = backup_->Init();
 #ifdef EXTENDED_POLICY
   ex_backup_ = utils::SharedPtr<PTRepresentation>::
@@ -1447,15 +1519,17 @@ bool CacheManager::LoadFromFile(const std::string& file_name) {
   }
 
   Json::Value value;
-  Json::Reader reader;
+  Json::Reader reader(Json::Features::strictMode());
   std::string json(json_string.begin(), json_string.end());
-  if (reader.parse(json.c_str(), value)) {
+  bool ok = reader.parse(json.c_str(), value);
+  if (ok) {
     pt_ = new policy_table::Table(&value);
+  } else {
+    LOG4CXX_WARN(logger_, reader.getFormattedErrorMessages());
   }
 
   if (!pt_) {
     LOG4CXX_WARN(logger_, "Failed to parse policy table");
-    //utils::SharedPtr<policy_table::Table> table = new policy_table::Table();
     return false;
   }
 
@@ -1478,6 +1552,7 @@ bool CacheManager::ResetPT(const std::string& file_name) {
 #ifdef EXTENDED_POLICY
   result = LoadFromFile(file_name);
 #endif // EXTENDE_POLICY
+  Backup();
   return result;
 }
 
@@ -1502,6 +1577,57 @@ int32_t CacheManager::GenerateHash(const std::string& str_to_hash) {
   // This is needed to avoid overflow for signed int.
   const int32_t result = hash & 0x7FFFFFFF;
   return result;
+}
+
+CacheManager::BackgroundBackuper::BackgroundBackuper(CacheManager* cache_manager)
+  : cache_manager_(cache_manager),
+    stop_flag_(false),
+    new_data_available_(false) {
+  LOG4CXX_TRACE_ENTER(logger_);
+}
+
+CacheManager::BackgroundBackuper::~BackgroundBackuper() {
+  LOG4CXX_TRACE_ENTER(logger_);
+  cache_manager_ = NULL;
+  LOG4CXX_TRACE_EXIT(logger_);
+}
+
+void CacheManager::BackgroundBackuper::InternalBackup() {
+  LOG4CXX_TRACE_ENTER(logger_);
+  if (cache_manager_) {
+    LOG4CXX_INFO(logger_, "DoBackup");
+    new_data_available_ = false;
+    cache_manager_->PersistData();
+
+    if (new_data_available_ ) {
+      InternalBackup();
+    }
+  }
+  LOG4CXX_TRACE_EXIT(logger_);
+}
+
+void CacheManager::BackgroundBackuper::threadMain() {
+  sync_primitives::AutoLock auto_lock(need_backup_lock_);
+  while(!stop_flag_) {
+    InternalBackup();
+    LOG4CXX_INFO(logger_, "Wait for a next backup");
+    backup_notifier_.Wait(auto_lock);
+  }
+}
+
+bool CacheManager::BackgroundBackuper::exitThreadMain() {
+  sync_primitives::AutoLock auto_lock(need_backup_lock_);
+  cache_manager_ = NULL;
+  stop_flag_ = true;
+  backup_notifier_.NotifyOne();
+  return true;
+}
+
+void CacheManager::BackgroundBackuper::DoBackup() {
+  LOG4CXX_TRACE_ENTER(logger_);
+  new_data_available_ = true;
+  backup_notifier_.NotifyOne();
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 }

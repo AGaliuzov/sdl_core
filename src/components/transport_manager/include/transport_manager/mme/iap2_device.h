@@ -51,8 +51,7 @@ namespace transport_adapter {
 
 class IAP2Device : public MmeDevice {
  public:
-  IAP2Device(const std::string& mount_point,
-             const std::string& name,
+  IAP2Device(const std::string& mount_point, const std::string& name,
              const DeviceUID& unique_device_id,
              TransportAdapterController* controller);
 
@@ -64,6 +63,8 @@ class IAP2Device : public MmeDevice {
     return IAP2;
   }
 
+  virtual void Stop();
+
  protected:
   virtual ApplicationList GetApplicationList() const;
 
@@ -72,7 +73,7 @@ class IAP2Device : public MmeDevice {
   typedef std::map<std::string, int> ProtocolInUseNamePool;
   typedef std::pair<std::string, iap2ea_hdl_t*> AppRecord;
   typedef std::map<ApplicationHandle, AppRecord> AppContainer;
-  typedef std::map<std::string, utils::SharedPtr<threads::Thread> > ThreadContainer;
+  typedef std::map<std::string, threads::Thread*> ThreadContainer;
 
   class ProtocolConnectionTimer;
   typedef utils::SharedPtr<ProtocolConnectionTimer> ProtocolConnectionTimerSPtr;
@@ -142,7 +143,8 @@ class IAP2Device : public MmeDevice {
 
   class IAP2HubConnectThreadDelegate : public threads::ThreadDelegate {
    public:
-    IAP2HubConnectThreadDelegate(IAP2Device* parent, const std::string& protocol_name);
+    IAP2HubConnectThreadDelegate(IAP2Device* parent,
+                                 const std::string& protocol_name);
     void threadMain();
    private:
     IAP2Device* parent_;
@@ -150,12 +152,13 @@ class IAP2Device : public MmeDevice {
   };
 
   class IAP2ConnectThreadDelegate : public threads::ThreadDelegate {
-    public:
-      IAP2ConnectThreadDelegate(IAP2Device* parent, const std::string& protocol_name);
-      void threadMain();
-    private:
-      IAP2Device* parent_;
-      std::string protocol_name_;
+   public:
+    IAP2ConnectThreadDelegate(IAP2Device* parent,
+                              const std::string& protocol_name);
+    void threadMain();
+   private:
+    IAP2Device* parent_;
+    std::string protocol_name_;
   };
 
   class ProtocolConnectionTimer {

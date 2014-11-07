@@ -43,6 +43,7 @@
 #include "utils/logger.h"
 #include "utils/singleton.h"
 #include "usage_statistics/statistics_manager.h"
+#include "policy_handler_observer.h"
 
 namespace Json {
 class Value;
@@ -92,6 +93,7 @@ class PolicyHandler :
   void OnExceededTimeout();
   BinaryMessageSptr RequestPTUpdate();
   const std::vector<int> RetrySequenceDelaysSeconds();
+  void set_listener(PolicyHandlerObserver* listener);
 
   utils::SharedPtr<usage_statistics::StatisticsManager> GetStatisticManager();
 
@@ -273,6 +275,8 @@ class PolicyHandler :
 
   virtual void OnUserRequestedUpdateCheckRequired();
 
+  virtual void OnUpdateHMIAppType(std::map<std::string, StringArray> app_hmi_types);
+
   virtual void OnDeviceConsentChanged(const std::string& device_id,
                                       bool is_allowed);
 
@@ -302,6 +306,18 @@ class PolicyHandler :
    * otherwise heart beat for specific application isn't set
    */
   uint16_t HeartBeatTimeout(const std::string& app_id) const;
+
+//TODO(AKutsan) REMOVE THIS UGLY HOTFIX
+  virtual void Increment(usage_statistics::GlobalCounterId type);
+  virtual void Increment(const std::string& app_id,
+                         usage_statistics::AppCounterId type);
+  virtual void Set(const std::string& app_id,
+                   usage_statistics::AppInfoId type,
+                   const std::string& value);
+  virtual void Add(const std::string& app_id,
+                   usage_statistics::AppStopwatchId type,
+                   int32_t timespan_seconds);
+
 
 protected:
 
@@ -338,6 +354,33 @@ protected:
   const std::string ConvertUpdateStatus(policy::PolicyTableStatus status);
 
 private:
+
+  class StatisticManagerImpl: public usage_statistics::StatisticsManager {
+      //TODO(AKutsan) REMOVE THIS UGLY HOTFIX
+        virtual void Increment(usage_statistics::GlobalCounterId type) {
+        return PolicyHandler::instance()->Increment(type);
+      }
+
+        virtual void Increment(const std::string& app_id,
+                               usage_statistics::AppCounterId type) {
+        return PolicyHandler::instance()->Increment(app_id, type);
+      }
+
+        virtual void Set(const std::string& app_id,
+                         usage_statistics::AppInfoId type,
+                         const std::string& value) {
+        return PolicyHandler::instance()->Set(app_id, type, value);
+      }
+
+        virtual void Add(const std::string& app_id,
+                         usage_statistics::AppStopwatchId type,
+                         int32_t timespan_seconds) {
+        return PolicyHandler::instance()->Add(app_id, type, timespan_seconds);
+      }
+  };
+  //TODO(AKutsan) REMOVE THIS UGLY HOTFIX
+
+
   PolicyHandler();
   static PolicyHandler* instance_;
   static const std::string kLibrary;
@@ -358,12 +401,17 @@ private:
   inline bool CreateManager();
 
   bool is_user_requested_policy_table_update_;
+  PolicyHandlerObserver* listener_;
 
   /**
    * @brief Application-to-device map is used for getting/setting user consents
    * for all apps
    */
   std::map<std::string, std::string> app_to_device_link_;
+
+
+  utils::SharedPtr<StatisticManagerImpl> statistic_manager_impl_;
+
 
   DISALLOW_COPY_AND_ASSIGN(PolicyHandler);
   FRIEND_BASE_SINGLETON_CLASS_WITH_DELETER(PolicyHandler,

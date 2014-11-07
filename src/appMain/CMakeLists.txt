@@ -182,6 +182,7 @@ include_directories (
     ./main_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/utils/test/date_time_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/utils/test/file_system_test.cc
+    ${CMAKE_SOURCE_DIR}/src/components/utils/test/messagemeter_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/media_manager/test/media_adapter_impl_test.cc
     ${AM_TEST_DIR}/command_impl_test.cc
   )
@@ -219,6 +220,7 @@ if(ENABLE_LOG)
   list(APPEND test_exec_libraries expat -L${EXPAT_LIBS_DIRECTORY})
 endif()
 
+  include(${CMAKE_SOURCE_DIR}/src/components/policy/test/include.cmake)
 
   IF(${CMAKE_SYSTEM_NAME} MATCHES "QNX")
     list(REMOVE_ITEM test_exec_libraries dl)

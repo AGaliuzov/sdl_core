@@ -44,16 +44,17 @@
 namespace transport_manager {
 namespace transport_adapter {
 
-BluetoothPASADevice::SCOMMChannel::SCOMMChannel():mSppQueueName("") {
+BluetoothPASADevice::SCOMMChannel::SCOMMChannel()
+    : mSppQueueName("") {
 }
 
-BluetoothPASADevice::SCOMMChannel::SCOMMChannel(const char *sppQue):
-  mSppQueueName(sppQue) {
+BluetoothPASADevice::SCOMMChannel::SCOMMChannel(const char *sppQue)
+    : mSppQueueName(sppQue) {
 }
 
 BluetoothPASADevice::BluetoothPASADevice(const char* name, const UI_8 (&mac)[6])
-  : Device(name, MacToString(mac)),
-    last_app_handle_(0) {
+    : Device(name, MacToString(mac)),
+      last_app_handle_(0) {
   memcpy(mac_, mac, sizeof(mac));
 }
 
@@ -69,9 +70,11 @@ bool BluetoothPASADevice::IsSameAs(const Device* other) const {
 }
 
 // Todd: BT Support
-std::string BluetoothPASADevice::GetSppQName(ApplicationHandle app_handle) const {
+std::string BluetoothPASADevice::GetSppQName(
+    ApplicationHandle app_handle) const {
   sync_primitives::AutoLock lock(applications_lock_);
-  for (Applications::const_iterator i = applications_.begin(); i != applications_.end(); ++i) {
+  for (Applications::const_iterator i = applications_.begin();
+      i != applications_.end(); ++i) {
     if (i->first == app_handle) {
       return i->second.mSppQueueName;
     }
@@ -82,20 +85,23 @@ std::string BluetoothPASADevice::GetSppQName(ApplicationHandle app_handle) const
 void BluetoothPASADevice::AddChannel(const SCOMMChannel& channel) {
   bool channel_exists = false;
   sync_primitives::AutoLock lock(applications_lock_);
-  for (Applications::const_iterator i = applications_.begin(); i != applications_.end(); ++i) {
+  for (Applications::const_iterator i = applications_.begin();
+      i != applications_.end(); ++i) {
     if (i->second == channel) {
       channel_exists = true;
       break;
     }
   }
-  if(!channel_exists) {
+  if (!channel_exists) {
     applications_.push_back(std::make_pair(++last_app_handle_, channel));
   }
 }
 
-bool BluetoothPASADevice::RemoveChannel(const SCOMMChannel& channel, ApplicationHandle* app_handle) {
+bool BluetoothPASADevice::RemoveChannel(const SCOMMChannel& channel,
+                                        ApplicationHandle* app_handle) {
   sync_primitives::AutoLock lock(applications_lock_);
-  for (Applications::iterator i = applications_.begin(); i != applications_.end(); ++i) {
+  for (Applications::iterator i = applications_.begin();
+      i != applications_.end(); ++i) {
     if (i->second == channel) {
       if (app_handle) {
         *app_handle = i->first;
@@ -114,7 +120,8 @@ const UI_8* BluetoothPASADevice::mac() const {
 ApplicationList BluetoothPASADevice::GetApplicationList() const {
   ApplicationList result;
   sync_primitives::AutoLock lock(applications_lock_);
-  for (Applications::const_iterator i = applications_.begin(); i != applications_.end(); ++i) {
+  for (Applications::const_iterator i = applications_.begin();
+      i != applications_.end(); ++i) {
     result.push_back(i->first);
   }
   return result;
@@ -123,9 +130,10 @@ ApplicationList BluetoothPASADevice::GetApplicationList() const {
 std::string MacToString(const UI_8 (&mac)[6]) {
   std::ostringstream oss;
   oss << std::hex;
-  for (int i = 0; ; ++i) {
+  for (int i = 0;; ++i) {
     oss << static_cast<int>(mac[i]);
-    if (i == (sizeof(mac) / sizeof(mac[0]) - 1)) break;
+    if (i == (sizeof(mac) / sizeof(mac[0]) - 1))
+      break;
     oss << ":";
   }
   return oss.str();

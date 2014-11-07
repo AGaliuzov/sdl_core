@@ -1,4 +1,4 @@
-/**
+﻿/**
 * \file request_info.h
 * \brief request information structure header file.
 *
@@ -52,29 +52,35 @@ namespace request_controller {
    *
    */
   typedef utils::SharedPtr<commands::Command> RequestPtr;
-  typedef utils::SharedPtr<commands::CommandRequestImpl> MobileRequestPtr;
 
   struct RequestInfo {
-      RequestInfo(const uint64_t timeout_sec):
-      timeout_sec_(timeout_sec) {
+    enum RequestType {MobileRequest, HMIRequest};
+    RequestInfo(const RequestType requst_type, const uint64_t timeout_sec)
+      : timeout_sec_(timeout_sec) {
         start_time_ = date_time::DateTime::getCurrentTime();
         updateEndTime();
+        requst_type_ = requst_type;
       }
 
-      RequestInfo(const TimevalStruct& start_time,const  uint64_t timeout_sec):
-        start_time_(start_time),
+    RequestInfo(const RequestType requst_type, const TimevalStruct& start_time,const  uint64_t timeout_sec)
+      : start_time_(start_time),
         timeout_sec_(timeout_sec) {
         updateEndTime();
-      }
+        requst_type_ = requst_type;
+    }
 
-      virtual ~RequestInfo(){}
+    virtual ~RequestInfo(){}
 
-      virtual uint32_t requestId() = 0;
-      virtual commands::Command* request() = 0;
+    virtual uint32_t requestId() = 0;
+    virtual commands::Command* request() = 0;
 
     void updateEndTime() {
       end_time_ = date_time::DateTime::getCurrentTime();
       end_time_.tv_sec += timeout_sec_;
+
+      // possible delay during IPC
+      const uint32_t hmi_delay_sec = 1;
+      end_time_.tv_sec += hmi_delay_sec;
     }
 
     void updateTimeOut(const uint64_t& timeout_sec) {
@@ -89,9 +95,11 @@ namespace request_controller {
       }
       return true;
     }
+
     TimevalStruct start_time() {
       return start_time_;
     }
+
     uint64_t timeout_sec() {
       return timeout_sec_;
     }
@@ -100,42 +108,66 @@ namespace request_controller {
       return end_time_;
     }
 
+    uint32_t app_id() {
+      return app_id_;
+    }
+
+    mobile_apis::HMILevel::eType hmi_level() {
+      return hmi_level_;
+    }
+    RequestType requst_type() const {
+       return requst_type_;
+     }
+
   protected:
-    TimevalStruct start_time_;
-    uint64_t timeout_sec_;
-    TimevalStruct end_time_;
+    TimevalStruct                 start_time_;
+    uint64_t                      timeout_sec_;
+    TimevalStruct                 end_time_;
+    uint32_t                      app_id_;
+    mobile_apis::HMILevel::eType  hmi_level_;
+    RequestType                   requst_type_;
   };
 
   typedef utils::SharedPtr<RequestInfo> RequestInfoPtr;
 
   struct RequestInfoComparator {
-      bool operator() (const RequestInfoPtr lhs, const RequestInfoPtr rhs) const {
-        date_time::TimeCompare compare_result = date_time::DateTime::compareTime(lhs->end_time(), rhs->end_time());
-        return  compare_result == date_time::LESS;
+      bool operator() (const RequestInfoPtr lhs,
+                       const RequestInfoPtr rhs) const {
+        date_time::TimeCompare compare_result =
+            date_time::DateTime::compareTime(lhs->end_time(), rhs->end_time());
+
+        return compare_result == date_time::LESS;
       }
   };
 
   typedef std::set<RequestInfoPtr,RequestInfoComparator> RequestInfoSet;
 
   struct HMIRequestInfo: public RequestInfo {
-      HMIRequestInfo(RequestPtr request, const uint64_t timeout_sec);
-      HMIRequestInfo(RequestPtr request, const TimevalStruct& start_time,const  uint64_t timeout_sec);
+    HMIRequestInfo(RequestPtr request, const uint64_t timeout_sec);
+    HMIRequestInfo(RequestPtr request, const TimevalStruct& start_time,
+                     const  uint64_t timeout_sec);
+
     RequestPtr request_;
     uint32_t correlation_id_;
+
     virtual uint32_t requestId() {
       return correlation_id_;
     }
+
     virtual commands::Command* request() {
       return request_.get();
     }
   };
 
   struct MobileRequestInfo: public RequestInfo {
-      MobileRequestInfo(MobileRequestPtr request, const uint64_t timeout_sec);
-      MobileRequestInfo(MobileRequestPtr request, const TimevalStruct& start_time, const  uint64_t timeout_sec);
-    MobileRequestPtr request_;
-    uint32_t app_id_;
-    mobile_apis::HMILevel::eType hmi_level_;
+    MobileRequestInfo(RequestPtr request,
+                      const uint64_t timeout_sec);
+
+    MobileRequestInfo(RequestPtr request,
+                      const TimevalStruct& start_time,
+                      const uint64_t timeout_sec);
+
+    RequestPtr request_;
     uint32_t mobile_correlation_id_;
 
     virtual uint32_t requestId() {
@@ -152,27 +184,26 @@ namespace request_controller {
   * during time scale
   */
   struct TimeScale {
-    explicit TimeScale(const TimevalStruct& start, const TimevalStruct& end,
-                       const int32_t& app_id)
+    TimeScale(const TimevalStruct& start,
+              const TimevalStruct& end,
+              const uint32_t& app_id)
       : start_(start),
         end_(end),
         app_id_(app_id) {}
 
     bool operator()(RequestInfoPtr setEntry) {
-      MobileRequestInfo* mobile_request_info = NULL;
-      RequestInfo* request = setEntry.get();
-      mobile_request_info = dynamic_cast<MobileRequestInfo*>(request);
-      if (NULL == mobile_request_info) {
+
+      if (!setEntry.valid()) {
         return false;
       }
 
-      if (mobile_request_info->app_id_ != app_id_) {
+      if (setEntry->app_id() != app_id_) {
         return false;
       }
 
-      if (date_time::DateTime::getmSecs(mobile_request_info->start_time())
+      if (date_time::DateTime::getmSecs(setEntry->start_time())
           < date_time::DateTime::getmSecs(start_) ||
-          date_time::DateTime::getmSecs(mobile_request_info->start_time())
+          date_time::DateTime::getmSecs(setEntry->start_time())
           > date_time::DateTime::getmSecs(end_)) {
         return false;
       }
@@ -181,9 +212,9 @@ namespace request_controller {
     }
 
   private:
-    TimevalStruct start_;
-    TimevalStruct end_;
-    uint32_t app_id_;
+    TimevalStruct  start_;
+    TimevalStruct  end_;
+    uint32_t       app_id_;
   };
 
   /**
@@ -191,30 +222,31 @@ namespace request_controller {
   * during time scale for application in defined hmi level
   */
   struct HMILevelTimeScale {
-    explicit HMILevelTimeScale(
-      const TimevalStruct& start, const TimevalStruct& end,
-      const uint32_t& app_id, const mobile_apis::HMILevel::eType& hmi_level)
+    HMILevelTimeScale(const TimevalStruct& start,
+                      const TimevalStruct& end,
+                      const uint32_t& app_id,
+                      const mobile_apis::HMILevel::eType& hmi_level)
       : start_(start),
         end_(end),
         app_id_(app_id),
         hmi_level_(hmi_level) {}
 
     bool operator()(RequestInfoPtr setEntry) {
-      MobileRequestInfo* mobile_request_info = NULL;
-      mobile_request_info = dynamic_cast<MobileRequestInfo*>(setEntry.get());
-      if (NULL == mobile_request_info) {
-        return false;
-      }
-      if (mobile_request_info->app_id_ != app_id_) {
-        return false;
-      }
-      if (mobile_request_info->hmi_level_ != hmi_level_) {
+      if (!setEntry.valid()) {
         return false;
       }
 
-      if (date_time::DateTime::getSecs(mobile_request_info->start_time())
+      if (setEntry->app_id() != app_id_) {
+        return false;
+      }
+
+      if (setEntry->hmi_level() != hmi_level_) {
+        return false;
+      }
+
+      if (date_time::DateTime::getSecs(setEntry->start_time())
           < date_time::DateTime::getSecs(start_) ||
-          date_time::DateTime::getSecs(mobile_request_info->start_time())
+          date_time::DateTime::getSecs(setEntry->start_time())
           > date_time::DateTime::getSecs(end_)) {
         return false;
       }
@@ -222,9 +254,9 @@ namespace request_controller {
       return true;
     }
   private:
-    TimevalStruct start_;
-    TimevalStruct end_;
-    uint32_t app_id_;
+    TimevalStruct                start_;
+    TimevalStruct                end_;
+    uint32_t                     app_id_;
     mobile_apis::HMILevel::eType hmi_level_;
   };
 

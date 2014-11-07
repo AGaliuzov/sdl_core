@@ -203,7 +203,6 @@ namespace NsMessageBroker
         Close();
 #endif
         stop = true;
-        sync_primitives::AutoLock auto_lock(receiving_thread_lock_);
       }
 
    protected:

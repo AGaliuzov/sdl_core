@@ -63,7 +63,7 @@ bool AOAConnection::Init() {
   return wrapper_->Subscribe(observer_);
 }
 
-TransportAdapter::Error AOAConnection::SendData(RawMessagePtr message) {
+TransportAdapter::Error AOAConnection::SendData(::protocol_handler::RawMessagePtr message) {
   LOG4CXX_TRACE(logger_,
                 "AOA: send data to " << device_uid_ << " " << app_handle_);
   if (!wrapper_->SendMessage(message)) {
@@ -75,7 +75,7 @@ TransportAdapter::Error AOAConnection::SendData(RawMessagePtr message) {
   return TransportAdapter::OK;
 }
 
-void AOAConnection::ReceiveDone(RawMessagePtr message) {
+void AOAConnection::ReceiveDone(::protocol_handler::RawMessagePtr message) {
   LOG4CXX_TRACE(
       logger_,
       "AOA: receive done data from " << device_uid_ << " " << app_handle_);
@@ -88,14 +88,14 @@ void AOAConnection::ReceiveFailed() {
   controller_->DataReceiveFailed(device_uid_, app_handle_, DataReceiveError());
 }
 
-void AOAConnection::TransmitDone(RawMessagePtr message) {
+void AOAConnection::TransmitDone(::protocol_handler::RawMessagePtr message) {
   LOG4CXX_TRACE(
       logger_,
       "AOA: transmit done data to " << device_uid_ << " " << app_handle_);
   controller_->DataSendDone(device_uid_, app_handle_, message);
 }
 
-void AOAConnection::TransmitFailed(RawMessagePtr message) {
+void AOAConnection::TransmitFailed(::protocol_handler::RawMessagePtr message) {
   LOG4CXX_WARN(logger_,
                "AOA: transmit failed to " << device_uid_ << " " << app_handle_);
   controller_->DataSendFailed(device_uid_, app_handle_, message,
@@ -115,7 +115,7 @@ TransportAdapter::Error AOAConnection::Disconnect() {
   return TransportAdapter::OK;
 }
 
-void AOAConnection::OnMessageReceived(bool success, RawMessagePtr message) {
+void AOAConnection::OnMessageReceived(bool success, ::protocol_handler::RawMessagePtr message) {
   LOG4CXX_TRACE(logger_,
                 "AOA: message received " << device_uid_ << " " << app_handle_);
   if (success) {
@@ -126,7 +126,7 @@ void AOAConnection::OnMessageReceived(bool success, RawMessagePtr message) {
   wrapper_->ReceiveMessage();
 }
 
-void AOAConnection::OnMessageTransmitted(bool success, RawMessagePtr message) {
+void AOAConnection::OnMessageTransmitted(bool success, ::protocol_handler::RawMessagePtr message) {
   LOG4CXX_TRACE(
       logger_, "AOA: message transmitted " << device_uid_ << " " << app_handle_);
   if (success) {
@@ -150,12 +150,12 @@ AOAConnection::ConnectionObserver::ConnectionObserver(
 }
 
 void AOAConnection::ConnectionObserver::OnMessageReceived(
-    bool success, RawMessagePtr message) {
+    bool success, ::protocol_handler::RawMessagePtr message) {
   parent_->OnMessageReceived(success, message);
 }
 
 void AOAConnection::ConnectionObserver::OnMessageTransmitted(
-    bool success, RawMessagePtr message) {
+    bool success, ::protocol_handler::RawMessagePtr message) {
   parent_->OnMessageTransmitted(success, message);
 }
 

@@ -31,9 +31,14 @@
  */
 
 #include "application_manager/commands/hmi/on_exit_all_applications_notification.h"
+
+#include <sys/types.h>
+#include <unistd.h>
+#include <signal.h>
+
 #include "application_manager/application_manager_impl.h"
 #include "interfaces/HMI_API.h"
-#include "utils/signals.h"
+
 
 namespace application_manager {
 
@@ -72,7 +77,10 @@ void OnExitAllApplicationsNotification::Run() {
       break;
     }
     case hmi_apis::Common_ApplicationsCloseReason::SUSPEND: {
+#ifdef CUSTOMER_PASA
+      app_manager->set_state_suspended(true);
       app_manager->HeadUnitSuspend();
+#endif // CUSTOMER_PASA
       SendOnSDLPersistenceComplete();
       return;
     }
@@ -89,7 +97,7 @@ void OnExitAllApplicationsNotification::Run() {
     app_manager->HeadUnitReset(mob_reason);
   }
 
-  threads::Thread::InterruptMainThread();
+  kill(getpid(), SIGINT);
 }
 
 void OnExitAllApplicationsNotification::SendOnSDLPersistenceComplete() {

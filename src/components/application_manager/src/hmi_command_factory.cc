@@ -259,6 +259,10 @@
 #include "application_manager/commands/hmi/navi_send_location_request.h"
 #include "application_manager/commands/hmi/navi_send_location_response.h"
 #include "application_manager/commands/hmi/on_tts_reset_timeout_notification.h"
+#include "application_manager/commands/hmi/on_phone_call_notification.h"
+#ifdef CUSTOMER_PASA
+#include "application_manager/commands/hmi/basic_communication_on_awake_sdl.h"
+#endif // CUSTOMER_PASA
 
 namespace application_manager {
 
@@ -275,8 +279,8 @@ CommandSharedPtr HMICommandFactory::CreateCommand(
       new application_manager::commands::CommandImpl(message));
 
   bool is_response = false;
-  if ((*message)[strings::params][strings::message_type]
-      == static_cast<int>(application_manager::MessageType::kResponse)) {
+  const int msg_type = (*message)[strings::params][strings::message_type].asInt();
+  if (msg_type == static_cast<int>(application_manager::MessageType::kResponse)) {
     is_response = true;
     LOG4CXX_INFO(logger_, "HMICommandFactory::CreateCommand response");
   } else if ((*message)[strings::params][strings::message_type]
@@ -2035,6 +2039,16 @@ CommandSharedPtr HMICommandFactory::CreateCommand(
       command.reset(new commands::hmi::OnTTSResetTimeoutNotification(message));
       break;
     }
+    case hmi_apis::FunctionID::BasicCommunication_OnPhoneCall: {
+      command.reset(new commands::hmi::OnPhoneCallNotification(message));
+      break;
+    }
+#ifdef CUSTOMER_PASA
+    case hmi_apis::FunctionID::BasicCommunication_OnAwakeSDL: {
+      command.reset(new commands::OnAwakeSDLNotification(message));
+      break;
+    }
+#endif // CUSTOMER_PASA
   }
 
   return command;

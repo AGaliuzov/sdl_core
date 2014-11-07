@@ -38,15 +38,19 @@
 #include "utils/shared_ptr.h"
 #include "policy/pt_representation.h"
 #include "policy/pt_ext_representation.h"
-#include "utils/lock.h"
 #include "usage_statistics/statistics_manager.h"
 #include "policy/cache_manager_interface.h"
+
+#include "utils/lock.h"
+#include "utils/timer_thread.h"
+#include "utils/conditional_variable.h"
 
 namespace policy {
 
 class CacheManager : public CacheManagerInterface {
  public:
   CacheManager();
+  ~CacheManager();
 
   /**
    * @brief Check if specified RPC for specified application
@@ -187,6 +191,12 @@ class CacheManager : public CacheManagerInterface {
    * @return true if successfully
    */
   bool ApplyUpdate(const policy_table::Table& update_pt);
+
+  /**
+   * @brief Gets list of appHMIType associated with mobile appID
+   * @param container of appHMIType
+   */
+  virtual void GetHMIAppTypeAfterUpdate(std::map<std::string, StringArray>& app_hmi_types);
 
   /**
    * Gets flag updateRequired
@@ -541,6 +551,7 @@ class CacheManager : public CacheManagerInterface {
    */
   void Backup();
 
+
   /**
    * Returns heart beat timeout
    * @param app_id application id
@@ -579,6 +590,8 @@ private:
    */
   void CheckSnapshotInitialization();
 
+  void PersistData();
+
 private:
   utils::SharedPtr<policy_table::Table> pt_;
   utils::SharedPtr<policy_table::Table> snapshot_;
@@ -589,6 +602,28 @@ private:
   std::map<std::string, bool> is_unpaired_;
 
   sync_primitives::Lock cache_lock_;
+
+  class BackgroundBackuper: public threads::ThreadDelegate {
+      friend class CacheManager;
+    public:
+      BackgroundBackuper(CacheManager* cache_manager);
+      ~BackgroundBackuper();
+      virtual void threadMain();
+      virtual bool exitThreadMain();
+      void DoBackup();
+    private:
+      void InternalBackup();
+      CacheManager* cache_manager_;
+      sync_primitives::ConditionalVariable backup_notifier_;
+      volatile bool stop_flag_;
+      volatile bool new_data_available_;
+
+      sync_primitives::Lock need_backup_lock_;
+      DISALLOW_COPY_AND_ASSIGN(BackgroundBackuper);
+  };
+  threads::Thread* backup_thread_;
+  BackgroundBackuper* backuper_;
+
 };
 } // policy
 

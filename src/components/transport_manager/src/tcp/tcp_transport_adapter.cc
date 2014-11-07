@@ -1,5 +1,4 @@
-/**
- *
+/*
  * Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
@@ -40,6 +39,7 @@
 #include "resumption/last_state.h"
 
 #include "utils/logger.h"
+#include "utils/threads/thread_delegate.h"
 
 #include "transport_manager/tcp/tcp_transport_adapter.h"
 #include "transport_manager/tcp/tcp_client_listener.h"

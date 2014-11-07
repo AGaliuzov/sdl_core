@@ -216,12 +216,11 @@ enum RESULT_CODE {
   RESULT_REASSIGN = 12,
   RESULT_XML_PARSING = 13,
   RESULT_RESEND_ACK = 14,
-  RESULT_DEFRERRED = 15,
+  RESULT_DEFERRED = 15,
   RESULT_ENCRYPTION_FAILED = 16,
   RESULT_HEARTBEAT_IS_NOT_SUPPORTED = 17,
   RESULT_UNKNOWN = 255
 };
 }  // namespace protocol_handler
-typedef ::protocol_handler::RawMessage    RawMessage;
-typedef ::protocol_handler::RawMessagePtr RawMessagePtr;
+
 #endif  // SRC_COMPONENTS_INCLUDE_PROTOCOL_COMMON_H_

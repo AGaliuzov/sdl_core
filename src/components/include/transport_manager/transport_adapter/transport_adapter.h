@@ -123,6 +123,12 @@ class TransportAdapter {
   virtual Error Init() = 0;
 
   /**
+   * @brief Stops device adapter
+   * Called from transport manager to stop device adapter
+   */
+  virtual void Terminate() = 0;
+
+  /**
    * @brief Add listener to the container(list) of device adapter listeners.
    *
    * @param listener Pointer to the device adapter listener.
@@ -224,7 +230,7 @@ class TransportAdapter {
    **/
   virtual Error SendData(const DeviceUID& device_handle,
                          const ApplicationHandle& app_handle,
-                         const RawMessagePtr data) = 0;
+                         const protocol_handler::RawMessagePtr data) = 0;
 
   /**
    * @brief Create container(vector) of device unique identifiers.

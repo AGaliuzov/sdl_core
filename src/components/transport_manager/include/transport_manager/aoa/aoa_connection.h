@@ -51,7 +51,7 @@ class AOAConnection : public Connection {
   bool Init();
 
  protected:
-  virtual TransportAdapter::Error SendData(RawMessagePtr message);
+  virtual TransportAdapter::Error SendData(::protocol_handler::RawMessagePtr message);
   virtual TransportAdapter::Error Disconnect();
 
  private:
@@ -61,20 +61,20 @@ class AOAConnection : public Connection {
   ApplicationHandle app_handle_;
   TransportAdapterController* controller_;
 
-  void OnMessageReceived(bool success, RawMessagePtr message);
-  void OnMessageTransmitted(bool success, RawMessagePtr message);
+  void OnMessageReceived(bool success, ::protocol_handler::RawMessagePtr message);
+  void OnMessageTransmitted(bool success, ::protocol_handler::RawMessagePtr message);
   void OnDisconnected();
-  void ReceiveDone(RawMessagePtr message);
+  void ReceiveDone(::protocol_handler::RawMessagePtr message);
   void ReceiveFailed();
-  void TransmitDone(RawMessagePtr message);
-  void TransmitFailed(RawMessagePtr message);
+  void TransmitDone(::protocol_handler::RawMessagePtr message);
+  void TransmitFailed(::protocol_handler::RawMessagePtr message);
   void Abort();
 
   class ConnectionObserver : public AOAConnectionObserver {
    public:
     explicit ConnectionObserver(AOAConnection* const parent);
-    void OnMessageReceived(bool success, RawMessagePtr message);
-    void OnMessageTransmitted(bool success, RawMessagePtr message);
+    void OnMessageReceived(bool success, ::protocol_handler::RawMessagePtr message);
+    void OnMessageTransmitted(bool success, ::protocol_handler::RawMessagePtr message);
     void OnDisconnected();
    private:
     AOAConnection* parent_;

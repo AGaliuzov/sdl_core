@@ -966,6 +966,27 @@ FFW.BasicCommunication = FFW.RPCObserver
         },
 
         /**
+         * Sender: HMI->SDL. When: upon phone-call event started or ended
+         *
+         * @params {Boolean}
+         */
+        OnPhoneCall: function(isActive) {
+
+            Em.Logger.log("FFW.BasicCommunication.OnPhoneCall");
+
+            // send request
+
+            var JSONMessage = {
+                "jsonrpc": "2.0",
+                "method": "BasicCommunication.OnPhoneCall",
+                "params": {
+                    "isActive": isActive
+                }
+            };
+            this.client.send(JSONMessage);
+        },
+
+        /**
          * Initiated by HMI user. In response optional list of found devices -
          * if not provided, not were found.
          */
@@ -981,6 +1002,24 @@ FFW.BasicCommunication = FFW.RPCObserver
             };
             this.client.send(JSONMessage);
         },
+
+        /**
+         * OnAwakeSDL from HMI returns SDL to normal operation
+         * after OnExitAllApplications(SUSPEND)
+         */
+        OnAwakeSDL: function() {
+
+            Em.Logger.log("FFW.BasicCommunication.OnAwakeSDL");
+
+            // send request
+            var JSONMessage = {
+                "jsonrpc": "2.0",
+                "method": "BasicCommunication.OnAwakeSDL"
+            };
+            this.client.send(JSONMessage);
+        },
+
+
 
         /**
          * Used by HMI when User chooses to exit application.

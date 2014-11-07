@@ -124,7 +124,8 @@ namespace commands {
 
 RegisterAppInterfaceRequest::RegisterAppInterfaceRequest(
   const MessageSharedPtr& message)
-  : CommandRequestImpl(message) {
+  : CommandRequestImpl(message),
+    result_checking_app_hmi_type_(mobile_apis::Result::INVALID_ENUM) {
 }
 
 RegisterAppInterfaceRequest::~RegisterAppInterfaceRequest() {
@@ -154,18 +155,19 @@ void RegisterAppInterfaceRequest::Run() {
   }
 #endif
 
-  std::string mobile_app_id = (*message_)[strings::msg_params][strings::app_id]
+  const std::string mobile_app_id = (*message_)[strings::msg_params][strings::app_id]
                                                                .asString();
-  if (policy::PolicyHandler::instance()->IsApplicationRevoked(mobile_app_id)) {
-    SendResponse(false, mobile_apis::Result::DISALLOWED);
-    return;
-  }
 
   ApplicationSharedPtr application =
     ApplicationManagerImpl::instance()->application(connection_key());
 
   if (application) {
     SendResponse(false, mobile_apis::Result::APPLICATION_REGISTERED_ALREADY);
+    return;
+  }
+
+  if (IsApplicationWithSameAppIdRegistered()) {
+    SendResponse(false, mobile_apis::Result::DISALLOWED);
     return;
   }
 
@@ -187,11 +189,6 @@ void RegisterAppInterfaceRequest::Run() {
       ++count_of_rejections_duplicate_name;
     }
     SendResponse(false, coincidence_result);
-    return;
-  }
-
-  if (IsApplicationWithSameAppIdRegistered()) {
-    SendResponse(false, mobile_apis::Result::DISALLOWED);
     return;
   }
 
@@ -252,14 +249,20 @@ void RegisterAppInterfaceRequest::Run() {
     if (msg_params.keyExists(strings::app_hmi_type)) {
       app->set_app_types(msg_params[strings::app_hmi_type]);
 
-      // check if app is NAVI
-      const int32_t is_navi_type = mobile_apis::AppHMIType::NAVIGATION;
+      // check app type
       const smart_objects::SmartObject& app_type =
         msg_params.getElement(strings::app_hmi_type);
 
       for (size_t i = 0; i < app_type.length(); ++i) {
-        if (is_navi_type == app_type.getElement(i).asInt()) {
+        if (mobile_apis::AppHMIType::NAVIGATION ==
+            static_cast<mobile_apis::AppHMIType::eType>(
+                app_type.getElement(i).asUInt())) {
           app->set_allowed_support_navigation(true);
+        }
+        if (mobile_apis::AppHMIType::COMMUNICATION ==
+            static_cast<mobile_apis::AppHMIType::eType>(
+            app_type.getElement(i).asUInt())) {
+          app->set_voice_communication_supported(true);
         }
       }
     }
@@ -465,29 +468,40 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile(
   ResumeCtrl& resumer = ApplicationManagerImpl::instance()->resume_controller();
   uint32_t hash_id = 0;
 
-  const char* add_info = "";
+  std::string add_info("");
   bool resumption = (*message_)[strings::msg_params].keyExists(strings::hash_id);
+  bool need_restore_vr = resumption;
   if (resumption) {
     hash_id = (*message_)[strings::msg_params][strings::hash_id].asUInt();
     if (!resumer.CheckApplicationHash(application, hash_id)) {
       LOG4CXX_WARN(logger_, "Hash does not matches");
       result = mobile_apis::Result::RESUME_FAILED;
       add_info = "Hash does not matches";
-      resumption = false;
+      need_restore_vr = false;
     } else if (!resumer.CheckPersistenceFilesForResumption(application)) {
       LOG4CXX_WARN(logger_, "Persistent data is missed");
       result = mobile_apis::Result::RESUME_FAILED;
       add_info = "Persistent data is missed";
-      resumption = false;
+      need_restore_vr = false;
     } else {
       add_info = " Resume Succeed";
     }
   }
+  if ((mobile_apis::Result::SUCCESS == result) &&
+      (mobile_apis::Result::INVALID_ENUM != result_checking_app_hmi_type_)) {
+    add_info += response_info_;
+    result = result_checking_app_hmi_type_;
+  }
+  SendResponse(true, result, add_info.c_str(), params);
 
-  SendResponse(true, result, add_info, params);
+  // in case application exist in resumption we need to send resumeVrgrammars
+  if (false == resumption) {
+    resumption = resumer.IsApplicationSaved(application->mobile_app_id()->asString());
+  }
 
   MessageHelper::SendOnAppRegisteredNotificationToHMI(*(application.get()),
-                                                      resumption);
+                                                      resumption,
+                                                      need_restore_vr);
 
   MessageHelper::SendChangeRegistrationRequestToHMI(application);
 
@@ -602,7 +616,7 @@ mobile_apis::Result::eType RegisterAppInterfaceRequest::CheckWithPolicyData() {
       if (!log.empty()) {
         response_info_ = "Following AppHMITypes are not present in policy "
                          "table:" + log;
-        result = mobile_apis::Result::WARNINGS;
+        result_checking_app_hmi_type_ = mobile_apis::Result::WARNINGS;
       }
     }
     // Replace AppHMITypes in request with values allowed by policy table

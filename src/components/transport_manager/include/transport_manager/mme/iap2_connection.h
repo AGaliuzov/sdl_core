@@ -49,16 +49,16 @@ class IAP2Device;
 class IAP2Connection : public Connection {
  public:
   IAP2Connection(const DeviceUID& device_uid,
-    const ApplicationHandle& app_handle,
-    TransportAdapterController* controller,
-    IAP2Device* parent);
+                 const ApplicationHandle& app_handle,
+                 TransportAdapterController* controller, IAP2Device* parent);
   ~IAP2Connection();
 
   bool Init();
   void Finalize();
 
  protected:
-  virtual TransportAdapter::Error SendData(RawMessagePtr message);
+  virtual TransportAdapter::Error SendData(
+      ::protocol_handler::RawMessagePtr message);
   virtual TransportAdapter::Error Disconnect();
 
  private:
@@ -72,12 +72,12 @@ class IAP2Connection : public Connection {
   TransportAdapterController* controller_;
   IAP2Device* parent_;
   iap2ea_hdl_t* iap2ea_hdl_;
-  std::string protocol_name_; // for logging purposes only
+  std::string protocol_name_;  // for logging purposes only
   uint8_t buffer_[kBufferSize];
-  bool unexpected_disconnect_;
 
-  utils::SharedPtr<threads::Thread> receiver_thread_;
+  threads::Thread* receiver_thread_;
   threads::ThreadDelegate* receiver_thread_delegate_;
+  bool unexpected_disconnect_;
 
   class ReceiverThreadDelegate : public threads::PulseThreadDelegate {
    public:

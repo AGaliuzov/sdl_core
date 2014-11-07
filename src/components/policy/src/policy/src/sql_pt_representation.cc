@@ -34,6 +34,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include "utils/logger.h"
 #include "policy/sql_pt_representation.h"
@@ -78,7 +79,6 @@ SQLPTRepresentation::SQLPTRepresentation()
 }
 
 SQLPTRepresentation::~SQLPTRepresentation() {
-  db_->Backup();
   db_->Close();
   delete db_;
 }
@@ -307,8 +307,23 @@ InitResult SQLPTRepresentation::Init() {
   LOG4CXX_INFO(logger_, "SQLPTRepresentation::Init");
 
   if (!db_->Open()) {
-    LOG4CXX_ERROR(logger_, "Failed opening database");
-    return InitResult::FAIL;
+    LOG4CXX_ERROR(logger_, "Failed opening database.");
+    LOG4CXX_INFO(logger_, "Starting opening retries.");
+    const uint8_t attempts = 5;
+    bool is_opened = false;
+    const useconds_t sleep_interval_mcsec = 500000;
+    for (int i = 0; i < attempts; ++i) {
+      usleep(sleep_interval_mcsec);
+      LOG4CXX_INFO(logger_, "Attempt: " << i+1);
+      if (db_->Open()){
+        LOG4CXX_INFO(logger_, "Database opened.");
+        is_opened = true;
+        break;
+      }
+    }
+    if (!is_opened) {
+      return InitResult::FAIL;
+    }
   }
   dbms::SQLQuery check_pages(db());
   if (!check_pages.Prepare(sql_pt::kCheckPgNumber) || !check_pages.Next()) {
@@ -378,6 +393,10 @@ bool SQLPTRepresentation::Drop() {
     return false;
   }
   return true;
+}
+
+void SQLPTRepresentation::WriteDb() {
+  db_->Backup();
 }
 
 bool SQLPTRepresentation::Clear() {
@@ -706,9 +725,9 @@ bool SQLPTRepresentation::SaveRpcs(int64_t group_id,
         for (ps_it = parameters.begin(); ps_it != parameters.end(); ++ps_it) {
           query_parameter.Bind(0, it->first);
           query_parameter.Bind(
-            1, std::string(policy_table::EnumToJsonString(*hmi_it)));
+                1, std::string(policy_table::EnumToJsonString(*hmi_it)));
           query_parameter.Bind(
-            2, std::string(policy_table::EnumToJsonString(*ps_it)));
+                2, std::string(policy_table::EnumToJsonString(*ps_it)));
           query_parameter.Bind(3, group_id);
           if (!query_parameter.Exec() || !query_parameter.Reset()) {
             LOG4CXX_WARN(logger_, "Incorrect insert into rpc with parameter");
