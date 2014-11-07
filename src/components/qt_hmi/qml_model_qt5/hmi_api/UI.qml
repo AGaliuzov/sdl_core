@@ -631,7 +631,7 @@ Item {
         }
     }
 
-    function performAudioPassThru (audioPassThruDisplayTexts, timeout, appID) {
+    function performAudioPassThru (appID, audioPassThruDisplayTexts, timeout) {
         var displayTextsLog = "";
         if (audioPassThruDisplayTexts) {
             for (var i = 0; i < audioPassThruDisplayTexts.length; i++) {
