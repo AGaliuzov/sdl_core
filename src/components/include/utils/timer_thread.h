@@ -259,9 +259,10 @@ void TimerThread<T>::stop() {
     LOG4CXX_INFO(logger_, "TimerThread thread_ stop " << name_);
     thread_->stop();
     threads::DeleteThread(thread_);
+    thread_ = NULL;
     is_running_ = false;
   } else {
-    LOG4CXX_INFO(logger_, "TimerThread thread_ not stoped " << name_);
+    LOG4CXX_WARN(logger_, "TimerThread thread_ not stoped " << name_);
   }
 }
 

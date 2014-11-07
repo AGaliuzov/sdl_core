@@ -63,7 +63,6 @@ RequestController::~RequestController() {
     DestroyThreadpool();
   }
 
-  pool_.clear();
   mobile_request_list_.clear();
   pending_request_set_.clear();
 }
@@ -94,11 +93,12 @@ void RequestController::DestroyThreadpool() {
     pool_[i]->stop();
     threads::DeleteThread(pool_[i]);
   }
+  pool_.clear();
   LOG4CXX_INFO(logger_, "Threads exited from the thread pool " << pool_size_);
 }
 
 RequestController::TResult RequestController::addMobileRequest(
-    const RequestPtr& request,
+    const RequestPtr request,
     const mobile_apis::HMILevel::eType& hmi_level) {
   LOG4CXX_TRACE_ENTER(logger_);
   if (!request.valid()) {

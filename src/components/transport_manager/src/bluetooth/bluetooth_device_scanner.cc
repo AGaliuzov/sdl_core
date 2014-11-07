@@ -121,6 +121,11 @@ BluetoothDeviceScanner::BluetoothDeviceScanner(
 }
 
 BluetoothDeviceScanner::~BluetoothDeviceScanner() {
+  if(thread_) {
+    thread_->stop();
+    threads::DeleteThread(thread_);
+    thread_ = NULL;
+  }
 }
 
 

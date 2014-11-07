@@ -120,7 +120,7 @@ class RequestController {
     * @return Result code
     *
     */
-    TResult addMobileRequest(const RequestPtr& request,
+    TResult addMobileRequest(const RequestPtr request,
                              const mobile_apis::HMILevel::eType& hmi_level);
 
 

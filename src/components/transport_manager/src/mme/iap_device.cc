@@ -60,6 +60,7 @@ void IAPDevice::Stop() {
     running_ = false;
     receiver_thread_->stop();
     threads::DeleteThread(receiver_thread_);
+    receiver_thread_ = NULL;
   }
 }
 

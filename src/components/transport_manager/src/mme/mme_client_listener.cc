@@ -114,6 +114,8 @@ void MmeClientListener::Terminate() {
 
   if (notify_thread_) {
     notify_thread_->stop();
+    threads::DeleteThread(notify_thread_);
+    notify_thread_ = NULL;
   }
 
   const std::string& event_mq_name =
