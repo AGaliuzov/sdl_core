@@ -39,11 +39,11 @@
 #include "transport_manager/common.h"
 #include "transport_manager/transport_manager_impl.h"
 
-#include "transport_manager/raw_message_matcher.h"
-#include "transport_manager/mock_transport_adapter.h"
-#include "transport_manager/mock_device.h"
-#include "transport_manager/mock_transport_manager_listener.h"
-#include "transport_manager/transport_manager_listener_empty.h"
+#include "include/raw_message_matcher.h"
+#include "include/mock_transport_adapter.h"
+#include "include/mock_device.h"
+#include "include/mock_transport_manager_listener.h"
+#include "../../components/include/transport_manager/transport_manager_listener_empty.h"
 
 using ::testing::_;
 using ::testing::AtLeast;
@@ -278,8 +278,8 @@ TEST_F(TransportManagerTest, ConnectDisconnectSendReciveDone) {
 }  // namespace transport_manager
 }  // namespace components
 }  // namespace test
-
-int main(int argc, char **argv) {
-  testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
+//
+//int main(int argc, char **argv) {
+//  testing::InitGoogleTest(&argc, argv);
+//  return RUN_ALL_TESTS();
+//}

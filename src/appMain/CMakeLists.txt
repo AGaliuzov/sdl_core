@@ -189,7 +189,7 @@ include_directories (
 #TODO to ALL : Please FIX heart_beat_monitor_test.cc
   set(testSources
     ./main_test.cc
-    ${CMAKE_SOURCE_DIR}/src/components/utils/test/date_time_test.cc
+    ${CMAKE_SOURCE_DIR}/src/components/utils/test/date_time_test.cc    
     ${CMAKE_SOURCE_DIR}/src/components/utils/test/file_system_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/utils/test/messagemeter_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/media_manager/test/media_adapter_impl_test.cc
@@ -215,7 +215,7 @@ include_directories (
     MOBILE_API
     v4_protocol_v1_2_no_extra
     SmartObjects
-    formatters
+    formatters    
     ProtocolLibrary
     ProtocolHandler
     connectionHandler
@@ -225,6 +225,7 @@ include_directories (
     ConfigProfile
     MediaManager
     Resumption
+    transport_manager
   )
 
 if(ENABLE_LOG)
