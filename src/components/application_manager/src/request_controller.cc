@@ -333,13 +333,15 @@ void RequestController::updateRequestTimeout(
     const uint32_t& mobile_correlation_id,
     const uint32_t& new_timeout) {
   AutoLock auto_lock(pending_request_set_lock_);
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_TRACE(logger_," ENTER app_id : " << app_id
+                << " mobile_correlation_id : " << mobile_correlation_id
+                << " new_timeout : " << new_timeout);
   RequestInfoSet::iterator it = pending_request_set_.begin();
   RequestInfoPtr request_info;
   for (; pending_request_set_.end() != it; ++it) {
     request_info = *it;
     if (false == request_info.valid()) {
-      LOG4CXX_ERROR(logger_, "Invalid request, can't update timeout");
+      LOG4CXX_ERROR(logger_, "Invalid request pointer in pending_request_set_");
       continue;
     }
     if (RequestInfo::MobileRequest != request_info->requst_type()) {
@@ -394,8 +396,9 @@ bool RequestController::IsLowVoltage() {
 void RequestController::onTimer() {
   AutoLock auto_lock(pending_request_set_lock_);
   LOG4CXX_TRACE_ENTER(logger_);
-  RequestInfoSet::iterator probably_expired = pending_request_set_.begin();
-  while (pending_request_set_.end() != probably_expired) {
+
+  while (!pending_request_set_.empty()) {
+    RequestInfoSet::iterator probably_expired = pending_request_set_.begin();
     RequestInfoPtr request = *probably_expired;
     if (request->timeout_sec() == 0) {
       LOG4CXX_DEBUG(logger_, "Ignore " << request->requestId());
@@ -404,12 +407,18 @@ void RequestController::onTimer() {
       continue;
     }
     if (request->isExpired()) {
-      pending_request_set_.erase(probably_expired);
       LOG4CXX_INFO(logger_, "Timeout for request id: " << request->requestId() <<
                                         "connection_key: " << request->app_id() << " expired");
       request->request()->onTimeOut();
-      request->request()->CleanUp();
-      probably_expired = pending_request_set_.begin();
+      if (request->isExpired()) {
+        request->request()->CleanUp();
+        pending_request_set_.erase(probably_expired);
+        LOG4CXX_INFO(logger_, "Erased request id: " << request->requestId() <<
+                                          "connection_key: " << request->app_id() << " expired");
+      } else {
+        LOG4CXX_INFO(logger_, "Timeout for request id: " << request->requestId() <<
+                     "connection_key: " << request->app_id() << " updated" );
+      }
       break;
     }
   }
