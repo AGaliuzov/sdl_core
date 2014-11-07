@@ -49,7 +49,8 @@ RequestController::RequestController()
   : pool_state_(UNDEFINED),
     pool_size_(profile::Profile::instance()->thread_pool_size()),
     pending_request_set_lock_(true),
-    timer_("RequestCtrlTimer", this, &RequestController::onTimer, true) {
+    timer_("RequestCtrlTimer", this, &RequestController::onTimer, true),
+    is_low_voltage_(false) {
   LOG4CXX_INFO(logger_, "RequestController::RequestController()");
   InitializeThreadpool();
   timer_.start(dafault_sleep_time_);
@@ -404,7 +405,8 @@ void RequestController::onTimer() {
     }
     if (request->isExpired()) {
       pending_request_set_.erase(probably_expired);
-      LOG4CXX_INFO(logger_, "Timeout for request id " << request->requestId() << " expired");
+      LOG4CXX_INFO(logger_, "Timeout for request id: " << request->requestId() <<
+                                        "connection_key: " << request->app_id() << " expired");
       request->request()->onTimeOut();
       request->request()->CleanUp();
       probably_expired = pending_request_set_.begin();
@@ -457,7 +459,7 @@ void RequestController::Worker::threadMain() {
     request_controller_->pending_request_set_lock_.Acquire();
     request_controller_->pending_request_set_.insert(request_info_ptr);
     if (0 != timeout_in_seconds) {
-      LOG4CXX_INFO(logger_, "Add Request " << request_info_ptr->requestId() <<
+      LOG4CXX_INFO(logger_, "Execute MobileRequest corr_id = " << request_info_ptr->requestId() <<
                             " with timeout: " << timeout_in_seconds);
       request_controller_->UpdateTimer();
     } else {
