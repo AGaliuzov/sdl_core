@@ -1104,6 +1104,15 @@ void ApplicationManagerImpl::OnServiceEndedCallback(const int32_t& session_key,
   }
 }
 
+void ApplicationManagerImpl::OnApplicationFloodCallBack(const uint32_t &connection_key) {
+  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_DEBUG(logger_, "Unregister flooding application " << connection_key);
+  UnregisterApplication(connection_key, mobile_apis::Result::TOO_MANY_PENDING_REQUESTS,
+                        true, true);
+  // TODO(EZamakhov): increment "removals_for_bad_behaviour" field in policy table
+  LOG4CXX_TRACE_EXIT(logger_);
+}
+
 void ApplicationManagerImpl::set_hmi_message_handler(
   hmi_message_handler::HMIMessageHandler* handler) {
   hmi_handler_ = handler;
@@ -1362,7 +1371,10 @@ bool ApplicationManagerImpl::ManageMobileCommand(
         connection_key, mobile_api::AppInterfaceUnregisteredReason::
         REQUEST_WHILE_IN_NONE_HMI_LEVEL);
 
-      application(connection_key)->usage_report().RecordRemovalsForBadBehavior();
+      ApplicationSharedPtr app_ptr = application(connection_key);
+      if(app_ptr) {
+        app_ptr->usage_report().RecordRemovalsForBadBehavior();
+      }
       UnregisterApplication(connection_key, mobile_apis::Result::INVALID_ENUM,
                             false);
       return false;
@@ -2045,7 +2057,10 @@ void ApplicationManagerImpl::UnregisterApplication(
     case mobile_apis::Result::INVALID_CERT: break;
     case mobile_apis::Result::EXPIRED_CERT: break;
     case mobile_apis::Result::TOO_MANY_PENDING_REQUESTS: {
-      application(app_id)->usage_report().RecordRemovalsForBadBehavior();
+        ApplicationSharedPtr app_ptr = application(app_id);
+        if(app_ptr) {
+          app_ptr->usage_report().RecordRemovalsForBadBehavior();
+        }
       break;
     }
     default: {
@@ -2627,6 +2642,7 @@ void ApplicationManagerImpl::OnUpdateHMIAppType(std::map<std::string, std::vecto
 
       if (flag_diffirence_app_hmi_type) {
         (*it)->set_app_types(transform_app_hmi_types);
+        (*it)->ChangeSupportingAppHMIType();
         if ((*it)->hmi_level() == mobile_api::HMILevel::HMI_BACKGROUND) {
 
           MessageHelper::SendUIChangeRegistrationRequestToHMI(*it);

@@ -1,4 +1,4 @@
-/**
+/*
  * \file usb_handler.h
  * \brief libusb USB handler class header file.
  *

@@ -1,4 +1,4 @@
-﻿/**
+﻿/*
  * Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
@@ -71,6 +71,11 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   void CloseActiveMessage();
   bool IsFullscreen() const;
   bool MakeFullscreen();
+
+  /**
+   * @brief change supporting COMMUNICATION NAVIGATION
+   */
+  virtual void ChangeSupportingAppHMIType();
   bool IsAudible() const;
   void MakeNotAudible();
 

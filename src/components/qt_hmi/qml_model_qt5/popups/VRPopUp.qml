@@ -57,12 +57,29 @@ PopUp {
         anchors.right: parent.right
         source: "../res/controlButtons/vrImage.png"
     }
+    OvalButton{
+        id:helpButton
+        anchors.rightMargin: Constants.popupMargin
+        anchors.leftMargin: Constants.popupMargin
+        anchors.top: voice.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        text: "Help"
+        onClicked:{
+            if (interactionPopup.performInteractionIsActiveNow)
+                ttsPopUp.activate(ttsPopUp.helpPromptstr)
+            if (dataContainer.activeVR) {
+                vrPopUp.complete();
+                vrHelpPopup.hide()
+            }
+        }
+    }
 
     ScrollableListView {
         anchors.bottomMargin: Constants.popupMargin
         anchors.rightMargin: Constants.popupMargin
         anchors.leftMargin: Constants.popupMargin
-        anchors.top: voice.bottom
+        anchors.top: helpButton.bottom
         anchors.right: parent.right
         anchors.bottom: parent.bottom
         anchors.left: parent.left

@@ -476,31 +476,27 @@ class ApplicationManagerImpl : public ApplicationManager,
       const utils::SharedPtr<smart_objects::SmartObject> message);
 
     /////////////////////////////////////////////////////////
-    /*
-     * @brief Overriden ProtocolObserver method
-     */
+    // Overriden ProtocolObserver method
     virtual void OnMessageReceived(
-        const ::protocol_handler::RawMessagePtr message);
-
-    /*
-     * @brief Overriden ProtocolObserver method
-     */
+        const ::protocol_handler::RawMessagePtr message) OVERRIDE;
     virtual void OnMobileMessageSent(
-        const ::protocol_handler::RawMessagePtr message);
+        const ::protocol_handler::RawMessagePtr message) OVERRIDE;
 
-    void OnMessageReceived(hmi_message_handler::MessageSharedPointer message);
-    void OnErrorSending(hmi_message_handler::MessageSharedPointer message);
+    // Overriden HMIMessageObserver method
+    void OnMessageReceived(hmi_message_handler::MessageSharedPointer message) OVERRIDE;
+    void OnErrorSending(hmi_message_handler::MessageSharedPointer message) OVERRIDE;
 
-    void OnDeviceListUpdated(const connection_handler::DeviceMap& device_list);
+    // Overriden ConnectionHandlerObserver method
+    void OnDeviceListUpdated(const connection_handler::DeviceMap& device_list) OVERRIDE;
     //TODO (EZamakhov): fix all indentations in this file
-  virtual void OnFindNewApplicationsRequest();
-    void RemoveDevice(const connection_handler::DeviceHandle& device_handle);
+    void OnFindNewApplicationsRequest() OVERRIDE;
+    void RemoveDevice(const connection_handler::DeviceHandle& device_handle) OVERRIDE;
     bool OnServiceStartedCallback(
-      const connection_handler::DeviceHandle& device_handle,
-      const int32_t& session_key, const protocol_handler::ServiceType& type);
+        const connection_handler::DeviceHandle& device_handle,
+        const int32_t& session_key, const protocol_handler::ServiceType& type) OVERRIDE;
     void OnServiceEndedCallback(const int32_t& session_key,
-                                const protocol_handler::ServiceType& type);
-
+                                const protocol_handler::ServiceType& type) OVERRIDE;
+    void OnApplicationFloodCallBack(const uint32_t& connection_key) OVERRIDE;
     /**
      * @ Add notification to collection
      *

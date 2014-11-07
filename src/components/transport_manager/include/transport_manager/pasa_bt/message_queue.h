@@ -52,8 +52,7 @@ namespace transport_adapter {
  *
  * @return message queue descriptor or -1 on error
  */
-mqd_t OpenMsgQ(const char *queue_name,
-               const bool is_outcome,
+mqd_t OpenMsgQ(const char *queue_name, const bool is_outcome,
                const bool is_blocking);
 
 /**
@@ -72,12 +71,10 @@ void CloseMsgQ(const mqd_t q_fd);
  * @param data pointer to data array
  *
  * @return On success return zero; on error -1 is
-     returned, with errno set to indicate the error.
+ returned, with errno set to indicate the error.
  */
-int SendMsgQ(const mqd_t q_fd,
-            const uint8_t msgType,
-            const uint32_t length,
-            const void* const data);
+int SendMsgQ(const mqd_t q_fd, const uint8_t msgType, const uint32_t length,
+             const void* const data);
 
 }  // namespace transport_adapter
 }  // namespace transport_manager

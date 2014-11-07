@@ -1,4 +1,4 @@
-/**
+/*
  * \file usb_device_scanner.h
  * \brief UsbDeviceScanner class header file.
  *

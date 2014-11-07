@@ -41,6 +41,7 @@
 #include "utils/message_queue.h"
 #include "utils/threads/message_loop_thread.h"
 #include "utils/shared_ptr.h"
+#include "utils/messagemeter.h"
 
 #include "protocol_handler/protocol_handler.h"
 #include "protocol_handler/protocol_packet.h"
@@ -128,10 +129,14 @@ class ProtocolHandlerImpl
   /**
    * \brief Constructor
    * \param transportManager Pointer to Transport layer handler for
+   * \param message_frequency_time used as time for flood filtering
+   * \param message_frequency_count used as maximum value of messages
+   *        per message_frequency_time period
    * message exchange.
    */
   explicit ProtocolHandlerImpl(
-      transport_manager::TransportManager *transport_manager_param);
+      transport_manager::TransportManager *transport_manager_param,
+      size_t message_frequency_time, size_t message_frequency_count);
 
   /**
    * \brief Destructor
@@ -440,6 +445,9 @@ class ProtocolHandlerImpl
   RESULT_CODE EncryptFrame(ProtocolFramePtr packet);
   RESULT_CODE DecryptFrame(ProtocolFramePtr packet);
 #endif  // ENABLE_SECURITY
+
+  bool TrackMessage(const uint32_t& connection_key);
+
  private:
   /**
    *\brief Pointer on instance of class implementing IProtocolObserver
@@ -464,7 +472,7 @@ class ProtocolHandlerImpl
   std::map<int32_t, ProtocolFramePtr> incomplete_multi_frame_messages_;
 
   /**
-   * \brief Map of messages (frames) recieved over mobile nave session
+   * \brief Map of messages (frames) received over mobile nave session
    * for map streaming.
    */
   MessagesOverNaviMap message_over_navi_session_;
@@ -498,6 +506,9 @@ class ProtocolHandlerImpl
 
   ProtocolPacket::ProtocolHeaderValidator protocol_header_validator_;
   IncomingDataHandler incoming_data_handler_;
+  // Use uint32_t as application identifier
+  utils::MessageMeter<uint32_t> message_meter_;
+  size_t message_max_frequency_;
 
 #ifdef ENABLE_SECURITY
   security_manager::SecurityManager *security_manager_;

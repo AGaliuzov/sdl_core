@@ -41,7 +41,7 @@ namespace transport_adapter {
 
 class ProtocolConfig {
  public:
-  typedef std::map <int, std::string>ProtocolNameContainer;
+  typedef std::map<int, std::string> ProtocolNameContainer;
 
   static const ProtocolNameContainer& IAPLegacyProtocolNames();
   static const ProtocolNameContainer& IAP2LegacyProtocolNames();
@@ -61,7 +61,9 @@ class ProtocolConfig {
   static const ProtocolNameContainer ReadIAPPoolProtocolNames();
   static const ProtocolNameContainer ReadIAP2PoolProtocolNames();
 
-  static const ProtocolNameContainer ReadProtocolNames(const std::string& config_file_name, const std::string& section_name, const std::string& protocol_mask);
+  static const ProtocolNameContainer ReadProtocolNames(
+      const std::string& config_file_name, const std::string& section_name,
+      const std::string& protocol_mask);
 };
 
 }  // namespace transport_adapter

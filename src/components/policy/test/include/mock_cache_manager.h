@@ -176,6 +176,8 @@ class MockCacheManagerInterface : public CacheManagerInterface {
       void());
   MOCK_CONST_METHOD1(HeartBeatTimeout,
       uint16_t(const std::string& app_id));
+  MOCK_METHOD1(GetHMIAppTypeAfterUpdate,
+        void(std::map<std::string, StringArray>& app_hmi_types));
 };
 
 }  // namespace policy

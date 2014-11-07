@@ -1,4 +1,4 @@
-/**
+/*
  * \file tcp_device.h
  * \brief TcpDevice class header file.
  *

@@ -1,4 +1,4 @@
-/**
+/*
  * \file bluetooth_device.h
  * \brief BluetoothDevice class header file.
  *

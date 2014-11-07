@@ -102,7 +102,9 @@ bool LifeCycle::StartComponents() {
   DCHECK(transport_manager_ != NULL);
 
   protocol_handler_ =
-    new protocol_handler::ProtocolHandlerImpl(transport_manager_);
+    new protocol_handler::ProtocolHandlerImpl(transport_manager_,
+                                              profile::Profile::instance()->message_frequency_time(),
+                                              profile::Profile::instance()->message_frequency_count());
   DCHECK(protocol_handler_ != NULL);
 
   connection_handler_ =
@@ -395,6 +397,17 @@ void LifeCycle::Run() {
     threads.wait();
   }
 }
+
+#ifdef CUSTOMER_PASA
+void LifeCycle::LowVoltage() {
+  transport_manager_->Visibility(false);
+}
+
+void LifeCycle::WakeUp() {
+  transport_manager_->Reinit();
+  transport_manager_->Visibility(true);
+}
+#endif
 
 void LifeCycle::StopComponents() {
   if (!components_started_) {
