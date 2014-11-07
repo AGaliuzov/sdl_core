@@ -2643,6 +2643,7 @@ void ApplicationManagerImpl::OnUpdateHMIAppType(std::map<std::string, std::vecto
 
       if (flag_diffirence_app_hmi_type) {
         (*it)->set_app_types(transform_app_hmi_types);
+        (*it)->ChangeSupportingAppHMIType();
         if ((*it)->hmi_level() == mobile_api::HMILevel::HMI_BACKGROUND) {
 
           MessageHelper::SendUIChangeRegistrationRequestToHMI(*it);
