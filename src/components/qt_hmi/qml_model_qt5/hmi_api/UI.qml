@@ -339,7 +339,11 @@ Item {
                     break
                 }
                 newStartTime = Internal.hmsTime(startTime.hours, startTime.minutes, startTime.seconds)
-                newEndTime = endTime ? Internal.hmsTime(endTime.hours, endTime.minutes, endTime.seconds) : dataContainer.currentApplication.mediaClock.upperTimeLimit
+                newEndTime = endTime ? Internal.hmsTime(endTime.hours,
+                                                        endTime.minutes,
+                                                        endTime.seconds)
+                          : dataContainer.currentApplication.mediaClock.upperTimeLimit
+
                 newUpdateMode = Internal.MediaClockUpdateMode.MCU_COUNTUP
                 newRunningMode = Internal.MediaClockRunningMode.MCR_RUNNING
                 newStartTimeForProgress = Internal.hmsTime(startTime.hours, startTime.minutes, startTime.seconds)
