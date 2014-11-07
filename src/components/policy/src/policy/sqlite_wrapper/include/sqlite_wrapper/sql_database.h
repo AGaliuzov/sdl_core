@@ -95,6 +95,12 @@ class SQLDatabase {
   void set_path(const std::string& path);
 
   /**
+   * Checks if database is read/write
+   * @return true if database is read/write
+   */
+  bool IsReadWrite();
+
+  /**
    * Call backup for opened DB
    */
   bool Backup();
