@@ -380,6 +380,7 @@ void RequestController::OnWakeUp() {
     LOG4CXX_TRACE_ENTER(logger_);
     terminateAllHMIRequests();
     terminateAllMobileRequests();
+    is_low_voltage_ = false;
     LOG4CXX_ERROR(logger_, "Terminate OnWAkeUp remove old reuests done");
     LOG4CXX_TRACE_EXIT(logger_);
 }
