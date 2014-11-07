@@ -89,8 +89,8 @@ namespace request_controller {
     }
 
     bool isExpired() {
-      if ( date_time::GREATER ==
-           date_time::DateTime::compareTime(end_time_, date_time::DateTime::getCurrentTime()) ) {
+      if (date_time::GREATER ==
+           date_time::DateTime::compareTime(end_time_, date_time::DateTime::getCurrentTime())) {
         return false;
       }
       return true;

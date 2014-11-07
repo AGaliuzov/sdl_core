@@ -84,6 +84,7 @@ TransportAdapter::Error TcpClientListener::Init() {
 void TcpClientListener::Terminate() {
   LOG4CXX_TRACE(logger_, "enter");
   threads::DeleteThread(thread_);
+  thread_ = NULL;
   LOG4CXX_TRACE(logger_, "exit");
 }
 

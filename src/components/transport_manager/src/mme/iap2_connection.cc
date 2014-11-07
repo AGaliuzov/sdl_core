@@ -60,6 +60,8 @@ IAP2Connection::IAP2Connection(const DeviceUID& device_uid,
 IAP2Connection::~IAP2Connection() {
   if (receiver_thread_) {
     receiver_thread_->stop();
+    threads::DeleteThread(receiver_thread_);
+    receiver_thread_ = NULL;
   }
 }
 

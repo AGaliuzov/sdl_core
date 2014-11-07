@@ -389,7 +389,7 @@ void ApplinkNotificationThreadDelegate::sendHeartBeat() {
     if (-1 == mq_send(mq_from_sdl_, &buf[0], MAX_QUEUE_MSG_SIZE, 0)) {
       LOG4CXX_ERROR(logger_, "Unable to send heart beat via mq: " << strerror(errno));
     } else {
-      LOG4CXX_ERROR(logger_, "heart beat to applink has been sent");
+      LOG4CXX_DEBUG(logger_, "heart beat to applink has been sent");
     }
   }
 }
@@ -435,7 +435,7 @@ int main(int argc, char** argv) {
 
     close(pipefd[1]);
     exit(EXIT_SUCCESS);
-  } 
+  }
   close(pipefd[1]);
 
   profile::Profile::instance()->config_file_name(SDL_INIFILE_PATH);
