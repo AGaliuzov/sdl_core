@@ -55,8 +55,8 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-#include "../../../src/components/transport_manager/include/transport_manager/transport_manager.h"
-#include "../../../src/components/transport_manager/include/transport_manager/transport_manager_impl.h"
+#include "../include/transport_manager/transport_manager.h"
+#include "include/transport_manager/transport_manager_impl.h"
 //#include "../../../src/components/TransportManager/src/CTransportManager.hpp"
 //#include "TransportManager/ITransportManagerDataListener.hpp"
 //#include "TransportManager/ITransportManagerDeviceListener.hpp"

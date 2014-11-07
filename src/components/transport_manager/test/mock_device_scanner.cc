@@ -33,9 +33,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "transport_manager/mock_device_scanner.h"
-#include "transport_manager/mock_transport_adapter.h"
-#include "transport_manager/mock_device.h"
+#include "include/mock_device_scanner.h"
+#include "include/mock_transport_adapter.h"
+#include "include/mock_device.h"
 
 using ::transport_manager::SearchDeviceError;
 

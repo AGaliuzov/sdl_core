@@ -33,11 +33,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "transport_manager/mock_connection.h"
-#include "transport_manager/mock_device.h"
-#include "transport_manager/mock_transport_adapter.h"
-#include "transport_manager/mock_device_scanner.h"
-#include "transport_manager/mock_connection_factory.h"
+#include "include/mock_connection.h"
+#include "include/mock_device.h"
+#include "include/mock_transport_adapter.h"
+#include "include/mock_device_scanner.h"
+#include "include/mock_connection_factory.h"
 
 namespace test {
 namespace components {

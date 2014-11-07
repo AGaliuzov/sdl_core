@@ -34,6 +34,7 @@
  */
 
 #include "include/raw_message_matcher.h"
+//#include "../../include/protocol/raw_message.h"
 
 namespace test {
 namespace components {
