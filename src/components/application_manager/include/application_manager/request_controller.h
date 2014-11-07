@@ -146,7 +146,7 @@ class RequestController {
     * @param mobile_corellation_id Active mobile request correlation ID
     *
     */
-    void terminateMobileRequest(const uint32_t& mobile_correlation_id);
+    void terminateMobileRequest(const uint32_t& mobile_correlation_id, const uint32_t& connection_key);
 
 
     /**

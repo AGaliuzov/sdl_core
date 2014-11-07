@@ -1191,7 +1191,8 @@ void ApplicationManagerImpl::SendMessageToMobile(
   // checked against policy permissions
   if (msg_to_mobile[strings::params].keyExists(strings::correlation_id)) {
     request_ctrl_.terminateMobileRequest(
-      msg_to_mobile[strings::params][strings::correlation_id].asInt());
+      msg_to_mobile[strings::params][strings::correlation_id].asInt(),
+      msg_to_mobile[strings::params][strings::connection_key].asInt());
   } else if (app) {
     mobile_apis::FunctionID::eType function_id =
         static_cast<mobile_apis::FunctionID::eType>(
@@ -1885,8 +1886,10 @@ void ApplicationManagerImpl::removeNotification(const commands::Command* notific
 void ApplicationManagerImpl::updateRequestTimeout(uint32_t connection_key,
     uint32_t mobile_correlation_id,
     uint32_t new_timeout_value) {
+  LOG4CXX_TRACE_ENTER(logger_);
   request_ctrl_.updateRequestTimeout(connection_key, mobile_correlation_id,
                                      new_timeout_value);
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 const uint32_t ApplicationManagerImpl::application_id
