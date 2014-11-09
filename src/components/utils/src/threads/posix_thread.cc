@@ -57,7 +57,6 @@ namespace threads {
 CREATE_LOGGERPTR_GLOBAL(logger_, "Utils")
 
 namespace {
-
 static void* threadFunc(void* arg) {
   LOG4CXX_INFO(logger_, "Thread #" << pthread_self() << " started successfully");
   threads::Thread* thread = static_cast<threads::Thread*>(arg);
@@ -75,25 +74,9 @@ static void* threadFunc(void* arg) {
   LOG4CXX_INFO(logger_, "Thread #" << pthread_self() << " exited successfully");
   return NULL;
 }
-
-}
+}  // namespace
 
 size_t Thread::kMinStackSize = PTHREAD_STACK_MIN; /* Ubuntu : 16384 ; QNX : 256; */
-
-/*
-void ThreadBase::set_name(const std::string name) {
-  std::string trimname = name.erase(15);
-  if(pthread_setname_np(thread_handle_, trimname.c_str()) != EOK) {
-    LOG4CXX_WARN(logger_, "Couldn't set pthread name \""
-                       << trimname
-                       << "\", error code "
-                       << pthread_result
-                       << " ("
-                       << strerror(pthread_result)
-                       << ")");
-  }
-}
-*/
 
 void Thread::SetNameForId(const Id& thread_id, const std::string& name) {
   std::string nm = name;
@@ -188,14 +171,20 @@ void Thread::stop() {
   usleep(100000);
 #endif
 
+  LOG4CXX_DEBUG(logger_, "Stopping thread #" << thread_handle_
+                << " \""  << name_ << " \"");
   if (!atomic_post_clr(&isThreadRunning_))
   {
+    LOG4CXX_DEBUG(logger_, "Thread #" << thread_handle_
+                  << " \""  << name_ << " \" is not running");
+    LOG4CXX_TRACE_EXIT(logger_);
     return;
   }
 
   if (delegate_ && !delegate_->exitThreadMain()) {
     if (thread_handle_ != pthread_self()) {
-      LOG4CXX_WARN(logger_, "Cancelling thread #" << thread_handle_);
+      LOG4CXX_WARN(logger_, "Cancelling thread #" << thread_handle_
+                   << " \""  << name_ << " \"");
       const int pthread_result = pthread_cancel(thread_handle_);
       if (pthread_result != EOK) {
         LOG4CXX_WARN(logger_,
@@ -217,6 +206,8 @@ void Thread::stop() {
     LOG4CXX_INFO(logger_, "Deleted #" << thread_handle_ << "named : " << name_);
     delegate_ = NULL;
   }
+  LOG4CXX_DEBUG(logger_, "Stopped thread #" << thread_handle_
+                << " \""  << name_ << " \"");
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
