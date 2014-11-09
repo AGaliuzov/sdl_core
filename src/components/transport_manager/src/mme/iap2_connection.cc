@@ -58,11 +58,13 @@ IAP2Connection::IAP2Connection(const DeviceUID& device_uid,
 }
 
 IAP2Connection::~IAP2Connection() {
+  LOG4CXX_TRACE_ENTER(logger_);
   if (receiver_thread_) {
     receiver_thread_->stop();
     threads::DeleteThread(receiver_thread_);
     receiver_thread_ = NULL;
   }
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 bool IAP2Connection::Init() {
@@ -73,7 +75,8 @@ bool IAP2Connection::Init() {
     const std::string thread_name = "iAP2 " + protocol_name_;
     receiver_thread_delegate_ = new ReceiverThreadDelegate(iap2ea_hdl_, this);
     receiver_thread_ = threads::CreateThread(thread_name.c_str(),
-                                             receiver_thread_delegate_);
+                                             receiver_thread_delegate_,
+                                             false);
     receiver_thread_->start();
 
     controller_->ConnectDone(device_uid_, app_handle_);
@@ -83,9 +86,12 @@ bool IAP2Connection::Init() {
 }
 
 void IAP2Connection::Finalize() {
+  LOG4CXX_TRACE_ENTER(logger_);
   if (!unexpected_disconnect_) {
+    LOG4CXX_DEBUG(logger_, "DisconnectDone on unexpected_disconnect_");
     controller_->DisconnectDone(device_uid_, app_handle_);
   }
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 TransportAdapter::Error IAP2Connection::SendData(
@@ -108,12 +114,16 @@ TransportAdapter::Error IAP2Connection::SendData(
 }
 
 TransportAdapter::Error IAP2Connection::Disconnect() {
+  LOG4CXX_TRACE_ENTER(logger_);
   controller_->ConnectionFinished(device_uid_, app_handle_);
+  const TransportAdapter::Error error =
+      Close() ? TransportAdapter::OK : TransportAdapter::FAIL;
   if (receiver_thread_) {
     receiver_thread_->stop();
+    threads::DeleteThread(receiver_thread_);
+    receiver_thread_ = NULL;
   }
-  TransportAdapter::Error error =
-      Close() ? TransportAdapter::OK : TransportAdapter::FAIL;
+  LOG4CXX_TRACE_EXIT(logger_);
   return error;
 }
 
