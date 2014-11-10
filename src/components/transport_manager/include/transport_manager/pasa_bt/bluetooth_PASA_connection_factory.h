@@ -50,7 +50,6 @@ class BluetoothPASAConnectionFactory : public ServerConnectionFactory {
    */
   BluetoothPASAConnectionFactory(TransportAdapterController* controller);
 
- protected:
   /**
    * @brief BT initialization
    */
@@ -62,8 +61,8 @@ class BluetoothPASAConnectionFactory : public ServerConnectionFactory {
    * @param device_uid Device unique identifier.
    * @param ap_handle Handle of application.
    */
-  virtual TransportAdapter::Error CreateConnection(const DeviceUID& device_uid,
-      const ApplicationHandle& app_handle);
+  virtual TransportAdapter::Error CreateConnection(
+      const DeviceUID& device_uid, const ApplicationHandle& app_handle);
   /**
    * @brief
    */

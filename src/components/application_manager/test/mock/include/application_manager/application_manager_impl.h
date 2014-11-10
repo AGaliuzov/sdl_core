@@ -166,6 +166,7 @@ class ApplicationManagerImpl : public ApplicationManager,
                                             const protocol_handler::ServiceType&));
   MOCK_METHOD2(OnServiceEndedCallback, void (const int32_t&,
                                              const protocol_handler::ServiceType&));
+  MOCK_METHOD1(OnApplicationFloodCallBack, void(const uint32_t&));
   MOCK_METHOD1(Handle, void (const impl::MessageFromMobile));
   MOCK_METHOD1(Handle, void (const impl::MessageToMobile));
   MOCK_METHOD1(Handle, void (const impl::MessageFromHmi));
@@ -272,6 +273,7 @@ class ApplicationManagerImpl : public ApplicationManager,
   MOCK_METHOD0(OnApplicationListUpdateTimer, void());
   MOCK_METHOD0(OnLowVoltage, void());
   MOCK_METHOD0(OnWakeUp, void());
+  MOCK_METHOD1(OnUpdateHMIAppType, void(std::map<std::string, std::vector<std::string> >));
 
   typedef const std::set<ApplicationSharedPtr> TAppList;
   typedef std::set<ApplicationSharedPtr>::iterator TAppListIt;

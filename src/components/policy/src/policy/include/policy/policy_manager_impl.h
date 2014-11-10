@@ -249,6 +249,12 @@ class PolicyManagerImpl : public PolicyManager {
      */
     bool IsNewApplication(const std::string& application_id) const;
 
+    /**
+     * Checks existing and permissions of AppStorageFolder
+     * @return true if AppStorageFolder exists and has permissions read/write
+     */
+    bool CheckAppStorageFolder() const;
+
     PolicyListener* listener_;
 
     UpdateStatusManagerInterfaceSPtr update_status_manager_;

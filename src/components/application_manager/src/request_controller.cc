@@ -49,7 +49,8 @@ RequestController::RequestController()
   : pool_state_(UNDEFINED),
     pool_size_(profile::Profile::instance()->thread_pool_size()),
     pending_request_set_lock_(true),
-    timer_("RequestCtrlTimer", this, &RequestController::onTimer, true) {
+    timer_("RequestCtrlTimer", this, &RequestController::onTimer, true),
+    is_low_voltage_(false) {
   LOG4CXX_INFO(logger_, "RequestController::RequestController()");
   InitializeThreadpool();
   timer_.start(dafault_sleep_time_);
@@ -63,7 +64,6 @@ RequestController::~RequestController() {
     DestroyThreadpool();
   }
 
-  pool_.clear();
   mobile_request_list_.clear();
   pending_request_set_.clear();
 }
@@ -94,20 +94,21 @@ void RequestController::DestroyThreadpool() {
     pool_[i]->stop();
     threads::DeleteThread(pool_[i]);
   }
+  pool_.clear();
   LOG4CXX_INFO(logger_, "Threads exited from the thread pool " << pool_size_);
 }
 
 RequestController::TResult RequestController::addMobileRequest(
-    const RequestPtr& request,
+    const RequestPtr request,
     const mobile_apis::HMILevel::eType& hmi_level) {
-  LOG4CXX_TRACE_ENTER(logger_);
   if (!request.valid()) {
-    LOG4CXX_INFO(logger_, "Null Pointer request");
-    LOG4CXX_TRACE_EXIT(logger_);
+    LOG4CXX_ERROR(logger_, "Null Pointer request");
     cond_var_.NotifyOne();
     return INVALID_DATA;
   }
 
+  LOG4CXX_DEBUG(logger_, "ENTER correlation_id : " << request->correlation_id()
+                << "connection_key : " << request->connection_key());
   const uint32_t& app_hmi_level_none_time_scale =
       profile::Profile::instance()->app_hmi_level_none_time_scale();
 
@@ -159,9 +160,12 @@ RequestController::TResult RequestController::addMobileRequest(
 
 RequestController::TResult RequestController::addHMIRequest(
     const RequestPtr request) {
-  LOG4CXX_TRACE_ENTER(logger_);
   DCHECK(request.valid());
-  LOG4CXX_DEBUG(logger_, "addHMIRequest " << request->correlation_id());
+  if (!request.valid()) {
+    LOG4CXX_ERROR(logger_, "HMI request pointer is invalid");
+    return RequestController::INVALID_DATA;
+  }
+  LOG4CXX_DEBUG(logger_, "ENTER addHMIRequest : " << request->correlation_id());
 
   const uint32_t timeout_in_seconds =
       request->default_timeout() / date_time::DateTime::MILLISECONDS_IN_SECOND;
@@ -204,15 +208,17 @@ void RequestController::removeNotification(const commands::Command* notification
 }
 
 void RequestController::terminateMobileRequest(
-    const uint32_t& mobile_correlation_id) {
-  LOG4CXX_TRACE_ENTER(logger_);
-
+    const uint32_t& mobile_correlation_id,
+    const uint32_t& connection_key) {
   AutoLock auto_lock(pending_request_set_lock_);
+  LOG4CXX_TRACE(logger_, "ENTER corr_id = " << mobile_correlation_id
+                << " connection_key = " << connection_key);
   RequestInfoSet::iterator it = pending_request_set_.begin();
   for (; pending_request_set_.end() != it; ++it) {
     RequestInfoPtr request_info = (*it);
     if ((false == request_info.valid()) ||
-        RequestInfo::MobileRequest != request_info->requst_type()) {
+        RequestInfo::MobileRequest != request_info->requst_type()||
+        connection_key != request_info->app_id()) {
       continue;
     }
     if (mobile_correlation_id == request_info->requestId()) {
@@ -231,13 +237,14 @@ void RequestController::terminateMobileRequest(
 }
 
 void RequestController::terminateHMIRequest(const uint32_t &correlation_id) {
-  LOG4CXX_TRACE_ENTER(logger_);
   AutoLock auto_lock(pending_request_set_lock_);
+  LOG4CXX_TRACE(logger_, "ENTER correlation_id = " << correlation_id);
   RequestInfoSet::iterator it = pending_request_set_.begin();
   for (; pending_request_set_.end() != it; ++it) {
     RequestInfoPtr request_info = (*it);
     if ((false == request_info.valid()) ||
-        RequestInfo::HMIRequest != request_info->requst_type()) {
+        RequestInfo::HMIRequest != request_info->requst_type() ||
+        (0 != request_info->app_id())) {
       continue;
     }
     if (correlation_id == request_info->requestId()) {
@@ -256,9 +263,8 @@ void RequestController::terminateHMIRequest(const uint32_t &correlation_id) {
 
 void RequestController::terminateAppRequests(
     const uint32_t& app_id) {
-  LOG4CXX_TRACE_ENTER(logger_);
-
   AutoLock auto_lock(pending_request_set_lock_);
+  LOG4CXX_TRACE(logger_,"ENTER app_id = " << app_id);
   RequestInfoSet::iterator it = pending_request_set_.begin();
   while (pending_request_set_.end() != it) {
     RequestInfoPtr request_info = (*it);
@@ -281,8 +287,8 @@ void RequestController::terminateAppRequests(
 }
 
 void RequestController::terminateAllHMIRequests() {
-  LOG4CXX_TRACE_ENTER(logger_);
   AutoLock auto_lock(pending_request_set_lock_);
+  LOG4CXX_TRACE_ENTER(logger_);
   RequestInfoSet::iterator it = pending_request_set_.begin();
   while (pending_request_set_.end() != it) {
     RequestInfoPtr request_info = (*it);
@@ -298,9 +304,8 @@ void RequestController::terminateAllHMIRequests() {
   LOG4CXX_TRACE_EXIT(logger_);
 }
 void RequestController::terminateAllMobileRequests() {
-  LOG4CXX_TRACE_ENTER(logger_);
-
   AutoLock auto_lock(pending_request_set_lock_);
+  LOG4CXX_TRACE_ENTER(logger_);
   RequestInfoSet::iterator it = pending_request_set_.begin();
   while (pending_request_set_.end() != it) {
     RequestInfoPtr request_info = (*it);
@@ -322,16 +327,16 @@ void RequestController::updateRequestTimeout(
     const uint32_t& app_id,
     const uint32_t& mobile_correlation_id,
     const uint32_t& new_timeout) {
-
-  LOG4CXX_TRACE_ENTER(logger_);
-
   AutoLock auto_lock(pending_request_set_lock_);
+  LOG4CXX_TRACE(logger_," ENTER app_id : " << app_id
+                << " mobile_correlation_id : " << mobile_correlation_id
+                << " new_timeout : " << new_timeout);
   RequestInfoSet::iterator it = pending_request_set_.begin();
   RequestInfoPtr request_info;
   for (; pending_request_set_.end() != it; ++it) {
     request_info = *it;
     if (false == request_info.valid()) {
-      LOG4CXX_ERROR(logger_, "Invalid request, can't update timeout");
+      LOG4CXX_ERROR(logger_, "Invalid request pointer in pending_request_set_");
       continue;
     }
     if (RequestInfo::MobileRequest != request_info->requst_type()) {
@@ -373,32 +378,42 @@ void RequestController::OnWakeUp() {
     LOG4CXX_TRACE_ENTER(logger_);
     terminateAllHMIRequests();
     terminateAllMobileRequests();
-    LOG4CXX_ERROR(logger_, "Terminate OnWAkeUp remove old reuests done");
+    is_low_voltage_ = false;
+    LOG4CXX_DEBUG(logger_, "Terminate old reuests done");
     LOG4CXX_TRACE_EXIT(logger_);
 }
 
 bool RequestController::IsLowVoltage() {
+  LOG4CXX_TRACE(logger_, "result: " << is_low_voltage_);
   return is_low_voltage_;
 }
 
 void RequestController::onTimer() {
-  LOG4CXX_TRACE_ENTER(logger_);
   AutoLock auto_lock(pending_request_set_lock_);
-  RequestInfoSet::iterator probably_expired = pending_request_set_.begin();
-  while (pending_request_set_.end() != probably_expired) {
+  LOG4CXX_TRACE_ENTER(logger_);
+
+  while (!pending_request_set_.empty()) {
+    RequestInfoSet::iterator probably_expired = pending_request_set_.begin();
     RequestInfoPtr request = *probably_expired;
     if (request->timeout_sec() == 0) {
-      LOG4CXX_INFO(logger_, "Ignore " << request->requestId());
+      LOG4CXX_DEBUG(logger_, "Ignore " << request->requestId());
       ++probably_expired;
       // This request should not be observed for TIME_OUT
       continue;
     }
     if (request->isExpired()) {
-      pending_request_set_.erase(probably_expired);
+      LOG4CXX_INFO(logger_, "Timeout for request id: " << request->requestId() <<
+                                        "connection_key: " << request->app_id() << " expired");
       request->request()->onTimeOut();
-      request->request()->CleanUp();
-      LOG4CXX_INFO(logger_, "Timeout for request id " << request->requestId() << " expired");
-      probably_expired = pending_request_set_.begin();
+      if (request->isExpired()) {
+        request->request()->CleanUp();
+        pending_request_set_.erase(probably_expired);
+        LOG4CXX_INFO(logger_, "Erased request id: " << request->requestId() <<
+                                          "connection_key: " << request->app_id() << " expired");
+      } else {
+        LOG4CXX_INFO(logger_, "Timeout for request id: " << request->requestId() <<
+                     "connection_key: " << request->app_id() << " updated" );
+      }
       break;
     }
   }
@@ -415,8 +430,8 @@ RequestController::Worker::~Worker() {
 }
 
 void RequestController::Worker::threadMain() {
-  LOG4CXX_TRACE_ENTER(logger_);
   sync_primitives::AutoLock auto_lock(thread_lock_);
+  LOG4CXX_TRACE_ENTER(logger_);
   while (!stop_flag_) {
     // Try to pick a request
     sync_primitives::AutoLock auto_lock(request_controller_->mobile_request_list_lock_);
@@ -449,7 +464,7 @@ void RequestController::Worker::threadMain() {
     request_controller_->pending_request_set_lock_.Acquire();
     request_controller_->pending_request_set_.insert(request_info_ptr);
     if (0 != timeout_in_seconds) {
-      LOG4CXX_INFO(logger_, "Add Request " << request_info_ptr->requestId() <<
+      LOG4CXX_INFO(logger_, "Execute MobileRequest corr_id = " << request_info_ptr->requestId() <<
                             " with timeout: " << timeout_in_seconds);
       request_controller_->UpdateTimer();
     } else {

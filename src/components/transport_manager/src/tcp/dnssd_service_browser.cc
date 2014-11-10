@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
@@ -56,12 +56,15 @@ void DnssdServiceBrowser::Terminate() {
   }
   if (0 != avahi_service_browser_) {
     avahi_service_browser_free(avahi_service_browser_);
+    avahi_service_browser_ = NULL;
   }
   if (0 != avahi_client_) {
     avahi_client_free(avahi_client_);
+    avahi_client_ = NULL;
   }
   if (0 != avahi_threaded_poll_) {
     avahi_threaded_poll_free(avahi_threaded_poll_);
+    avahi_threaded_poll_ = NULL;
   }
   LOG4CXX_TRACE(logger_, "exit");
 }
@@ -246,9 +249,11 @@ TransportAdapter::Error DnssdServiceBrowser::CreateAvahiClientAndBrowser() {
   LOG4CXX_TRACE(logger_, "enter");
   if (0 != avahi_service_browser_) {
     avahi_service_browser_free(avahi_service_browser_);
+    avahi_service_browser_ = NULL;
   }
   if (0 != avahi_client_) {
     avahi_client_free(avahi_client_);
+    avahi_client_ = NULL;
   }
 
   int avahi_error;

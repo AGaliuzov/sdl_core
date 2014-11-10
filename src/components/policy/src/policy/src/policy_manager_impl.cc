@@ -43,6 +43,7 @@
 #include "utils/logger.h"
 #include "policy/cache_manager.h"
 #include "policy/update_status_manager.h"
+#include "config_profile/profile.h"
 
 policy::PolicyManager* CreateManager() {
   return new policy::PolicyManagerImpl();
@@ -170,6 +171,16 @@ bool PolicyManagerImpl::LoadPT(const std::string& file,
     LOG4CXX_WARN(logger_, "Unsuccessful save of updated policy table.");
     return false;
   }
+
+  std::map<std::string, StringArray> app_hmi_types;
+  cache_->GetHMIAppTypeAfterUpdate(app_hmi_types);
+  if (!app_hmi_types.empty()) {
+    LOG4CXX_INFO(logger_, "app_hmi_types is full calling OnUpdateHMIAppType");
+    listener_->OnUpdateHMIAppType(app_hmi_types);
+  }else{
+    LOG4CXX_INFO(logger_, "app_hmi_types empty" << pt_content.size());
+  }
+
   // Removing last app request from update requests
   RemoveAppFromUpdateList();
 
@@ -1047,7 +1058,7 @@ void PolicyManagerImpl::Add(const std::string& app_id,
 }
 
 bool PolicyManagerImpl::IsApplicationRevoked(const std::string& app_id) const {
-  return const_cast<PolicyManagerImpl*>(this)->cache_->IsApplicationRevoked(app_id);
+  return cache_->IsApplicationRevoked(app_id);
 }
 
 int PolicyManagerImpl::IsConsentNeeded(const std::string& app_id) {
@@ -1191,12 +1202,41 @@ bool PolicyManagerImpl::ResetPT(const std::string& file_name) {
   return result;
 }
 
+bool PolicyManagerImpl::CheckAppStorageFolder() const {
+  LOG4CXX_TRACE_ENTER(logger_);
+  const std::string app_storage_folder =
+      profile::Profile::instance()->app_storage_folder();
+  LOG4CXX_DEBUG(logger_, "AppStorageFolder " << app_storage_folder);
+  if (!file_system::DirectoryExists(app_storage_folder)) {
+    LOG4CXX_WARN(logger_,
+                 "Storage directory doesn't exist " << app_storage_folder);
+    LOG4CXX_TRACE_EXIT(logger_);
+    return false;
+  }
+  if (!(file_system::IsWritingAllowed(app_storage_folder) &&
+        file_system::IsReadingAllowed(app_storage_folder))) {
+    LOG4CXX_WARN(
+        logger_,
+        "Storage directory doesn't have read/write permissions " << app_storage_folder);
+    LOG4CXX_TRACE_EXIT(logger_);
+    return false;
+  }
+  LOG4CXX_TRACE_EXIT(logger_);
+  return true;
+}
+
 bool PolicyManagerImpl::InitPT(const std::string& file_name) {
+  LOG4CXX_TRACE_ENTER(logger_);
+  if (!CheckAppStorageFolder()) {
+    LOG4CXX_ERROR(logger_, "Can not read/write into AppStorageFolder");
+    return false;
+  }
   const bool ret = cache_->Init(file_name);
   if (ret) {
     RefreshRetrySequence();
     update_status_manager_->OnPolicyInit(cache_->UpdateRequired());
   }
+  LOG4CXX_TRACE_EXIT(logger_);
   return ret;
 }
 

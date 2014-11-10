@@ -102,6 +102,7 @@ ApplicationManagerImpl::ApplicationManagerImpl()
                                       true),
     is_low_voltage_(false) {
     std::srand(std::time(0));
+    policy::PolicyHandler::instance()->set_listener(this);
 }
 
 ApplicationManagerImpl::~ApplicationManagerImpl() {
@@ -1103,6 +1104,15 @@ void ApplicationManagerImpl::OnServiceEndedCallback(const int32_t& session_key,
   }
 }
 
+void ApplicationManagerImpl::OnApplicationFloodCallBack(const uint32_t &connection_key) {
+  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_DEBUG(logger_, "Unregister flooding application " << connection_key);
+  UnregisterApplication(connection_key, mobile_apis::Result::TOO_MANY_PENDING_REQUESTS,
+                        true, true);
+  // TODO(EZamakhov): increment "removals_for_bad_behaviour" field in policy table
+  LOG4CXX_TRACE_EXIT(logger_);
+}
+
 void ApplicationManagerImpl::set_hmi_message_handler(
   hmi_message_handler::HMIMessageHandler* handler) {
   hmi_handler_ = handler;
@@ -1181,7 +1191,8 @@ void ApplicationManagerImpl::SendMessageToMobile(
   // checked against policy permissions
   if (msg_to_mobile[strings::params].keyExists(strings::correlation_id)) {
     request_ctrl_.terminateMobileRequest(
-      msg_to_mobile[strings::params][strings::correlation_id].asInt());
+      msg_to_mobile[strings::params][strings::correlation_id].asInt(),
+      msg_to_mobile[strings::params][strings::connection_key].asInt());
   } else if (app) {
     mobile_apis::FunctionID::eType function_id =
         static_cast<mobile_apis::FunctionID::eType>(
@@ -1361,7 +1372,10 @@ bool ApplicationManagerImpl::ManageMobileCommand(
         connection_key, mobile_api::AppInterfaceUnregisteredReason::
         REQUEST_WHILE_IN_NONE_HMI_LEVEL);
 
-      application(connection_key)->usage_report().RecordRemovalsForBadBehavior();
+      ApplicationSharedPtr app_ptr = application(connection_key);
+      if(app_ptr) {
+        app_ptr->usage_report().RecordRemovalsForBadBehavior();
+      }
       UnregisterApplication(connection_key, mobile_apis::Result::INVALID_ENUM,
                             false);
       return false;
@@ -1872,8 +1886,10 @@ void ApplicationManagerImpl::removeNotification(const commands::Command* notific
 void ApplicationManagerImpl::updateRequestTimeout(uint32_t connection_key,
     uint32_t mobile_correlation_id,
     uint32_t new_timeout_value) {
+  LOG4CXX_TRACE_ENTER(logger_);
   request_ctrl_.updateRequestTimeout(connection_key, mobile_correlation_id,
                                      new_timeout_value);
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 const uint32_t ApplicationManagerImpl::application_id
@@ -2044,7 +2060,10 @@ void ApplicationManagerImpl::UnregisterApplication(
     case mobile_apis::Result::INVALID_CERT: break;
     case mobile_apis::Result::EXPIRED_CERT: break;
     case mobile_apis::Result::TOO_MANY_PENDING_REQUESTS: {
-      application(app_id)->usage_report().RecordRemovalsForBadBehavior();
+        ApplicationSharedPtr app_ptr = application(app_id);
+        if(app_ptr) {
+          app_ptr->usage_report().RecordRemovalsForBadBehavior();
+        }
       break;
     }
     default: {
@@ -2254,6 +2273,7 @@ void  ApplicationManagerImpl::OnLowVoltage() {
 }
 
 bool ApplicationManagerImpl::IsLowVoltage() {
+  LOG4CXX_TRACE(logger_, "result: " << is_low_voltage_);
   return is_low_voltage_;
 }
 
@@ -2534,4 +2554,114 @@ void ApplicationManagerImpl::set_state_suspended(const bool flag_suspended) {
   is_state_suspended_ = flag_suspended;
 }
 #endif // CUSTOMER_PASA
+
+mobile_apis::AppHMIType::eType ApplicationManagerImpl::StringToAppHMIType(std::string str) {
+  LOG4CXX_INFO(logger_, "ApplicationManagerImpl::StringToAppHMIType");
+  if ("DEFAULT" == str) {
+    return mobile_apis::AppHMIType::DEFAULT;
+  } else if ("COMMUNICATION" == str) {
+    return mobile_apis::AppHMIType::COMMUNICATION;
+  } else if ("MEDIA" == str) {
+    return mobile_apis::AppHMIType::MEDIA;
+  } else if ("MESSAGING" == str) {
+    return mobile_apis::AppHMIType::MESSAGING;
+  } else if ("NAVIGATION" == str) {
+    return mobile_apis::AppHMIType::NAVIGATION;
+  } else if ("INFORMATION" == str) {
+    return mobile_apis::AppHMIType::INFORMATION;
+  } else if ("SOCIAL" == str) {
+    return mobile_apis::AppHMIType::SOCIAL;
+  } else if ("BACKGROUND_PROCESS" == str) {
+    return mobile_apis::AppHMIType::BACKGROUND_PROCESS;
+  } else if ("TESTING" == str) {
+    return mobile_apis::AppHMIType::TESTING;
+  } else if ("SYSTEM" == str) {
+    return mobile_apis::AppHMIType::SYSTEM;
+  } else {
+    return mobile_apis::AppHMIType::INVALID_ENUM;
+  }
+}
+
+bool ApplicationManagerImpl::CompareAppHMIType (const smart_objects::SmartObject& from_policy,
+                                                const smart_objects::SmartObject& from_application) {
+  LOG4CXX_INFO(logger_, "ApplicationManagerImpl::CompareAppHMIType");
+  bool equal = false;
+  uint32_t lenght_policy_app_types = from_policy.length();
+  uint32_t lenght_application_app_types = from_application.length();
+
+  for(uint32_t i = 0; i < lenght_application_app_types; ++i) {
+    for(uint32_t k = 0; k < lenght_policy_app_types; ++k) {
+      if (from_application[i] == from_policy[k]) {
+        equal = true;
+        break;
+      }
+    }
+    if(!equal) {
+      return false;
+    }
+    equal = false;
+  }
+  return true;
+}
+
+void ApplicationManagerImpl::OnUpdateHMIAppType(std::map<std::string, std::vector<std::string> > app_hmi_types) {
+  LOG4CXX_INFO(logger_, "ApplicationManagerImpl::OnUpdateHMIAppType");
+
+  sync_primitives::AutoLock lock(applications_list_lock_);
+  std::map<std::string, std::vector<std::string> >::iterator it_app_hmi_types_from_policy;
+  std::vector<std::string> hmi_types_from_policy;
+  smart_objects::SmartObject transform_app_hmi_types(smart_objects::SmartType_Array);
+  const smart_objects::SmartObject *save_application_hmi_type = NULL;
+  bool flag_diffirence_app_hmi_type = false;
+
+  for (TAppListIt it = application_list_.begin();
+      it != application_list_.end(); ++it) {
+
+    it_app_hmi_types_from_policy =
+        app_hmi_types.find(((*it)->mobile_app_id())->asString());
+
+    if (it_app_hmi_types_from_policy != app_hmi_types.end() &&
+        ((it_app_hmi_types_from_policy->second).size())) {
+      flag_diffirence_app_hmi_type = false;
+      hmi_types_from_policy = (it_app_hmi_types_from_policy->second);
+
+      if(transform_app_hmi_types.length()) {
+        transform_app_hmi_types =
+            smart_objects::SmartObject(smart_objects::SmartType_Array);
+      }
+
+      for(uint32_t i = 0; i < hmi_types_from_policy.size(); ++i) {
+        transform_app_hmi_types[i] = StringToAppHMIType(hmi_types_from_policy[i]);
+      }
+
+      save_application_hmi_type = (*it)->app_types();
+
+      if (save_application_hmi_type == NULL ||
+          ((*save_application_hmi_type).length() != transform_app_hmi_types.length())) {
+        flag_diffirence_app_hmi_type = true;
+      } else {
+        flag_diffirence_app_hmi_type = !(CompareAppHMIType(transform_app_hmi_types,
+                                                        *save_application_hmi_type));
+      }
+
+      if (flag_diffirence_app_hmi_type) {
+        (*it)->set_app_types(transform_app_hmi_types);
+        (*it)->ChangeSupportingAppHMIType();
+        if ((*it)->hmi_level() == mobile_api::HMILevel::HMI_BACKGROUND) {
+
+          MessageHelper::SendUIChangeRegistrationRequestToHMI(*it);
+        } else if (((*it)->hmi_level() == mobile_api::HMILevel::HMI_FULL) ||
+            ((*it)->hmi_level() == mobile_api::HMILevel::HMI_LIMITED)) {
+
+          MessageHelper::SendActivateAppToHMI((*it)->app_id(),
+                                              hmi_apis::Common_HMILevel::BACKGROUND,
+                                              false);
+          MessageHelper::SendUIChangeRegistrationRequestToHMI(*it);
+          (*it)->set_hmi_level(mobile_api::HMILevel::HMI_BACKGROUND);
+          MessageHelper::SendHMIStatusNotification(*(*it));
+        }
+      }
+    }
+  }
+}
 }  // namespace application_manager

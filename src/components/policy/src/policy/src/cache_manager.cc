@@ -1,34 +1,34 @@
 ﻿/*
-* Copyright (c) 2014, Ford Motor Company
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-*
-* Redistributions of source code must retain the above copyright notice, this
-* list of conditions and the following disclaimer.
-*
-* Redistributions in binary form must reproduce the above copyright notice,
-* this list of conditions and the following
-* disclaimer in the documentation and/or other materials provided with the
-* distribution.
-*
-* Neither the name of the Ford Motor Company nor the names of its contributors
-* may be used to endorse or promote products derived from this software
-* without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*/
+ * Copyright (c) 2014, Ford Motor Company
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following
+ * disclaimer in the documentation and/or other materials provided with the
+ * distribution.
+ *
+ * Neither the name of the Ford Motor Company nor the names of its contributors
+ * may be used to endorse or promote products derived from this software
+ * without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
 
 #include "policy/cache_manager.h"
 
@@ -349,6 +349,7 @@ void CacheManager::RemoveAppConsentForGroup(const std::string& app_id,
 bool CacheManager::ApplyUpdate(const policy_table::Table& update_pt) {
   LOG4CXX_TRACE_ENTER(logger_);
   CACHE_MANAGER_CHECK(false);
+  sync_primitives::AutoLock auto_lock(cache_lock_);
   pt_->policy_table.functional_groupings =
       update_pt.policy_table.functional_groupings;
 
@@ -369,6 +370,28 @@ bool CacheManager::ApplyUpdate(const policy_table::Table& update_pt) {
   }
   LOG4CXX_TRACE_EXIT(logger_);
   return true;
+}
+
+void CacheManager::GetHMIAppTypeAfterUpdate(std::map<std::string, StringArray>& app_hmi_types) {
+  LOG4CXX_TRACE_ENTER(logger_);
+  CACHE_MANAGER_CHECK_VOID();
+  policy_table::ApplicationPolicies::const_iterator policy_iter_begin =
+      pt_->policy_table.app_policies.begin();
+  policy_table::ApplicationPolicies::const_iterator policy_iter_end =
+      pt_->policy_table.app_policies.end();
+  std::vector<std::string> transform_app_hmi_types;
+  for(; policy_iter_begin != policy_iter_end; ++policy_iter_begin) {
+    const policy_table::ApplicationParams& app_params = (*policy_iter_begin).second;
+    if(app_params.AppHMIType.is_initialized()) {
+      if(!(transform_app_hmi_types.empty())) {
+        transform_app_hmi_types.clear();
+      }
+      std::transform(app_params.AppHMIType->begin(), app_params.AppHMIType->end(),
+                     std::back_inserter(transform_app_hmi_types), AppHMITypeToString());
+      app_hmi_types[(*policy_iter_begin).first] = transform_app_hmi_types;
+    }
+  }
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void CacheManager::Backup() {
@@ -590,7 +613,7 @@ void CacheManager::SaveUpdateRequired(bool status) {
   Backup();
 }
 
-bool CacheManager::IsApplicationRevoked(const std::string& app_id) {
+bool CacheManager::IsApplicationRevoked(const std::string& app_id) const {
   CACHE_MANAGER_CHECK(false);
   bool is_revoked = false;
   if (pt_->policy_table.app_policies.end() !=
@@ -1043,7 +1066,7 @@ bool CacheManager::GetInitialAppData(const std::string& app_id,
               std::back_inserter(nicknames));
 
     std::transform(app_params.AppHMIType->begin(), app_params.AppHMIType->end(),
-                   std::back_inserter(nicknames), AppHMITypeToString());
+                   std::back_inserter(app_hmi_types), AppHMITypeToString());
   }
   LOG4CXX_TRACE_EXIT(logger_);
   return true;
@@ -1558,7 +1581,8 @@ int32_t CacheManager::GenerateHash(const std::string& str_to_hash) {
 
 CacheManager::BackgroundBackuper::BackgroundBackuper(CacheManager* cache_manager)
   : cache_manager_(cache_manager),
-    stop_flag_(false){
+    stop_flag_(false),
+    new_data_available_(false) {
   LOG4CXX_TRACE_ENTER(logger_);
 }
 
@@ -1568,31 +1592,42 @@ CacheManager::BackgroundBackuper::~BackgroundBackuper() {
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
-void CacheManager::BackgroundBackuper::threadMain() {
-  while(!stop_flag_) {
-    sync_primitives::AutoLock auto_lock(need_backup_lock_);
-    if (cache_manager_) {
-      LOG4CXX_INFO(logger_, "DoBackup");
-      cache_manager_->PersistData();
+void CacheManager::BackgroundBackuper::InternalBackup() {
+  LOG4CXX_TRACE_ENTER(logger_);
+  if (cache_manager_) {
+    LOG4CXX_INFO(logger_, "DoBackup");
+    new_data_available_ = false;
+    cache_manager_->PersistData();
+
+    if (new_data_available_ ) {
+      InternalBackup();
     }
+  }
+  LOG4CXX_TRACE_EXIT(logger_);
+}
+
+void CacheManager::BackgroundBackuper::threadMain() {
+  sync_primitives::AutoLock auto_lock(need_backup_lock_);
+  while(!stop_flag_) {
+    InternalBackup();
     LOG4CXX_INFO(logger_, "Wait for a next backup");
     backup_notifier_.Wait(auto_lock);
   }
 }
 
 bool CacheManager::BackgroundBackuper::exitThreadMain() {
-  {
-    sync_primitives::AutoLock auto_lock(need_backup_lock_);
-    cache_manager_ = NULL;
-    stop_flag_ = true;
-    backup_notifier_.NotifyOne();
-  }
+  sync_primitives::AutoLock auto_lock(need_backup_lock_);
+  cache_manager_ = NULL;
+  stop_flag_ = true;
+  backup_notifier_.NotifyOne();
   return true;
 }
 
 void CacheManager::BackgroundBackuper::DoBackup() {
-  sync_primitives::AutoLock auto_lock(need_backup_lock_);
+  LOG4CXX_TRACE_ENTER(logger_);
+  new_data_available_ = true;
   backup_notifier_.NotifyOne();
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 }

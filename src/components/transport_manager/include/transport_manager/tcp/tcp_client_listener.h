@@ -1,4 +1,4 @@
-/**
+/*
  * \file tcp_client_listener.h
  * \brief TcpClientListener class header file.
  *
@@ -49,8 +49,7 @@ class TransportAdapterController;
 /**
  * @brief Listener of device adapter that use TCP transport.
  */
-class TcpClientListener : public ClientConnectionListener,
-                          public threads::ThreadDelegate {
+class TcpClientListener : public ClientConnectionListener {
  public:
   /**
    * @breaf Constructor.
@@ -62,14 +61,6 @@ class TcpClientListener : public ClientConnectionListener,
    */
   TcpClientListener(TransportAdapterController* controller, uint16_t port,
                     bool enable_keepalive);
-
-  /**
-   * @brief Start TCP client listener thread.
-   */
-  void threadMain();
-
-  bool exitThreadMain();
- protected:
 
   /**
    * @brief Destructor.
@@ -107,15 +98,26 @@ class TcpClientListener : public ClientConnectionListener,
    * @brief Terminate TCP client listener thread.
    */
   virtual TransportAdapter::Error StopListening();
+
  private:
   const uint16_t port_;
   const bool enable_keepalive_;
   TransportAdapterController* controller_;
-  // TODO(Eamakhov): change to threads::Thread usage
   threads::Thread* thread_;
   int socket_;
-  bool thread_started_;
   bool thread_stop_requested_;
+
+  void Loop();
+  void StopLoop();
+
+  class ListeningThreadDelegate : public threads::ThreadDelegate {
+   public:
+    explicit ListeningThreadDelegate(TcpClientListener* parent);
+    virtual void threadMain();
+    bool exitThreadMain();
+   private:
+    TcpClientListener* parent_;
+  };
 };
 
 }  // namespace transport_adapter

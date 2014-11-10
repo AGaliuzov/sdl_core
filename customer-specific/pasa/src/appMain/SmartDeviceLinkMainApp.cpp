@@ -1,4 +1,6 @@
-﻿#include <string.h>
+#include <fcntl.h>
+#include <semaphore.h>
+#include <string.h>
 #include <log4cxx/rollingfileappender.h>
 #include <log4cxx/fileappender.h>
 #include <errno.h>
@@ -231,22 +233,23 @@ void stopSmartDeviceLink()
 
 class ApplinkNotificationThreadDelegate : public threads::ThreadDelegate {
  public:
-  ApplinkNotificationThreadDelegate();
+  ApplinkNotificationThreadDelegate(int fd);
   ~ApplinkNotificationThreadDelegate();
   virtual void threadMain();
  private:
+  int readfd_;
   void init_mq(const std::string& name, int flags, mqd_t& mq_desc);
   void close_mq(mqd_t mq_to_close);
   void sendHeartBeat();
   utils::SharedPtr<timer::TimerThread<ApplinkNotificationThreadDelegate> > heart_beat_sender_;
-  mqd_t mq_to_sdl_;
   mqd_t mq_from_sdl_;
   struct mq_attr attributes_;
   size_t heart_beat_timeout_;
 };
 
-ApplinkNotificationThreadDelegate::ApplinkNotificationThreadDelegate()
-  : heart_beat_sender_(
+ApplinkNotificationThreadDelegate::ApplinkNotificationThreadDelegate(int fd)
+  : readfd_(fd),
+    heart_beat_sender_(
       new timer::TimerThread<ApplinkNotificationThreadDelegate>(
         "AppLinkHearBeat",
         this,
@@ -257,19 +260,17 @@ ApplinkNotificationThreadDelegate::ApplinkNotificationThreadDelegate()
   attributes_.mq_msgsize = MAX_QUEUE_MSG_SIZE;
   attributes_.mq_flags = 0;
 
-  init_mq(PREFIX_STR_SDL_PROXY_QUEUE, O_RDONLY | O_CREAT, mq_to_sdl_);
   init_mq(PREFIX_STR_FROMSDLHEARTBEAT_QUEUE, O_RDWR | O_CREAT, mq_from_sdl_);
 }
 
 ApplinkNotificationThreadDelegate::~ApplinkNotificationThreadDelegate() {
-  close_mq(mq_to_sdl_);
   close_mq(mq_from_sdl_);
 }
 
 void ApplinkNotificationThreadDelegate::threadMain() {
 
   char buffer[MAX_QUEUE_MSG_SIZE];
-  ssize_t length=0;
+  ssize_t length = 0;
 
 #if defined __QNX__
   // Policy initialization
@@ -285,12 +286,13 @@ void ApplinkNotificationThreadDelegate::threadMain() {
   }
 #endif
 
+  sem_t *sem;
   while (!g_bTerminate) {
-    if ( (length = mq_receive(mq_to_sdl_, buffer, sizeof(buffer), 0)) != -1) {
+    if ( (length = read(readfd_, buffer, sizeof(buffer))) != -1) {
       switch (buffer[0]) {
         case SDL_MSG_SDL_START:
           startSmartDeviceLink();
-          if (0 > heart_beat_timeout_) {
+          if (0 < heart_beat_timeout_) {
             heart_beat_sender_->start(heart_beat_timeout_);
           }
           break;
@@ -304,11 +306,64 @@ void ApplinkNotificationThreadDelegate::threadMain() {
 #endif
           DEINIT_LOGGER();
           exit(EXIT_SUCCESS);
+          break;
+        case SDL_MSG_LOW_VOLTAGE:
+          main_namespace::LifeCycle::instance()->LowVoltage();
+          sem = sem_open("/SDLSleep", O_RDWR);
+          if (!sem) {
+            fprintf(stderr, "Error opening semaphore: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
+          }
+          sem_post(sem);
+          sem_close(sem);
+          break;
+        case SDL_MSG_WAKE_UP:
+          main_namespace::LifeCycle::instance()->WakeUp();
+          break;
         default:
           break;
       }
     }
   } //while-end
+}
+
+void dispatchCommands(mqd_t mqueue, int pipefd, int pid) {
+  char buffer[MAX_QUEUE_MSG_SIZE];
+  ssize_t length = 0;
+  sem_t *sem;
+
+  while (!g_bTerminate) {
+    if ( (length = mq_receive(mqueue, buffer, sizeof(buffer), 0)) != -1) {
+      switch (buffer[0]) {
+        case SDL_MSG_LOW_VOLTAGE:
+          sem = sem_open("/SDLSleep", O_CREAT | O_RDONLY, 0666, 0);
+          write(pipefd, buffer, length);
+          if (!sem) {
+            fprintf(stderr, "Error opening semaphore: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
+          }
+          sem_wait(sem);
+          sem_close(sem);
+          if(kill(pid, SIGSTOP) == -1) {
+            fprintf(stderr, "Error sending SIGSTOP signal: %s\n", strerror(errno));
+          }
+          break;
+        case SDL_MSG_WAKE_UP:
+          if(kill(pid, SIGCONT) == -1) {
+            fprintf(stderr, "Error sending SIGCONT signal: %s\n", strerror(errno));
+          }
+          write(pipefd, buffer, length);
+          break;
+        case SDL_MSG_SDL_STOP:
+          g_bTerminate = true;
+          write(pipefd, buffer, length);
+          break;
+        default:
+          write(pipefd, buffer, length);
+          break;
+      }
+    }
+  } // while(!g_bTerminate)
 }
 
 void ApplinkNotificationThreadDelegate::init_mq(const std::string& name,
@@ -333,9 +388,12 @@ void ApplinkNotificationThreadDelegate::sendHeartBeat() {
     buf[0] = SDL_MSG_HEARTBEAT_ACK;
     if (-1 == mq_send(mq_from_sdl_, &buf[0], MAX_QUEUE_MSG_SIZE, 0)) {
       LOG4CXX_ERROR(logger_, "Unable to send heart beat via mq: " << strerror(errno));
+    } else {
+      LOG4CXX_DEBUG(logger_, "heart beat to applink has been sent");
     }
   }
 }
+
 
 /**
  * \brief Entry point of the program.
@@ -344,6 +402,41 @@ void ApplinkNotificationThreadDelegate::sendHeartBeat() {
  * \return EXIT_SUCCESS
  */
 int main(int argc, char** argv) {
+
+  int pipefd[2];
+  if (pipe(pipefd) != 0) {
+    fprintf(stderr, "Error creating pipe: %s", strerror(errno));
+    exit(EXIT_FAILURE);
+  }
+
+  int pid  = getpid();
+  int cpid = fork();
+
+  if (cpid < 0) {
+    fprintf(stderr, "Error due fork() call: %s", strerror(errno));
+    exit(EXIT_FAILURE);
+  }
+
+  if (cpid == 0) {
+    // Child process reads mqueue, translates all received messages to the pipe
+    // and reacts on some of them (e.g. SDL_MSG_LOW_VOLTAGE)
+    close(pipefd[0]);
+    struct mq_attr attributes;
+    attributes.mq_maxmsg = MSGQ_MAX_MESSAGES;
+    attributes.mq_msgsize = MAX_QUEUE_MSG_SIZE;
+    attributes.mq_flags = 0;
+
+    mqd_t mq = mq_open(PREFIX_STR_SDL_PROXY_QUEUE,
+                       O_RDONLY | O_CREAT,
+                       S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH,
+                       &attributes);
+
+    dispatchCommands(mq, pipefd[1], pid);
+
+    close(pipefd[1]);
+    exit(EXIT_SUCCESS);
+  }
+  close(pipefd[1]);
 
   profile::Profile::instance()->config_file_name(SDL_INIFILE_PATH);
   INIT_LOGGER(profile::Profile::instance()->log4cxx_config_file());
@@ -358,13 +451,17 @@ int main(int argc, char** argv) {
   }
 
   threads::Thread* applink_notification_thread =
-      threads::CreateThread("ApplinkNotify", new ApplinkNotificationThreadDelegate());
+      threads::CreateThread("ApplinkNotify", new ApplinkNotificationThreadDelegate(pipefd[0]));
   applink_notification_thread->start();
 
   main_namespace::LifeCycle::instance()->Run();
 
   LOG4CXX_INFO(logger_, "Stopping application due to signal caught");
   stopSmartDeviceLink();
+
+  close(pipefd[0]);
+  int result;
+  waitpid(cpid, &result, 0);
 
   LOG4CXX_INFO(logger_, "Application successfully stopped");
 #ifdef ENABLE_LOG

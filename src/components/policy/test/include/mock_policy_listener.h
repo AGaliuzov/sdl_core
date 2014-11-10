@@ -70,6 +70,8 @@ class MockPolicyListener : public PolicyListener {
   MOCK_METHOD2(OnDeviceConsentChanged,
                void(const std::string& device_id,
                     bool is_allowed));
+  MOCK_METHOD1(OnUpdateHMIAppType,
+               void(std::map<std::string, StringArray>));
 };
 
 }  // namespace policy

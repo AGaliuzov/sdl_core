@@ -189,6 +189,12 @@ class CacheManagerInterface {
   virtual bool ApplyUpdate(const policy_table::Table& update_pt) = 0;
 
   /**
+   * @brief Gets list of appHMIType associated with mobile appID
+   * @param container of appHMIType
+   */
+  virtual void GetHMIAppTypeAfterUpdate(std::map<std::string, StringArray>& app_hmi_types) = 0;
+
+  /**
    * Gets flag updateRequired
    * @return true if update is required
    */
@@ -219,7 +225,7 @@ class CacheManagerInterface {
    * @param app_id application id
    * @return true if application is revoked
    */
-  virtual bool IsApplicationRevoked(const std::string& app_id) = 0;
+  virtual bool IsApplicationRevoked(const std::string& app_id) const = 0;
 
   /**
    * @brief Get functional groupings from DB

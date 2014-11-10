@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
@@ -28,7 +28,7 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
-*/
+ */
 
 #ifndef SRC_COMPONENTS_UTILS_INCLUDE_UTILS_TIMER_THREAD
 #define SRC_COMPONENTS_UTILS_INCLUDE_UTILS_TIMER_THREAD
@@ -259,9 +259,10 @@ void TimerThread<T>::stop() {
     LOG4CXX_INFO(logger_, "TimerThread thread_ stop " << name_);
     thread_->stop();
     threads::DeleteThread(thread_);
+    thread_ = NULL;
     is_running_ = false;
   } else {
-    LOG4CXX_INFO(logger_, "TimerThread thread_ not stoped " << name_);
+    LOG4CXX_WARN(logger_, "TimerThread thread_ not stoped " << name_);
   }
 }
 

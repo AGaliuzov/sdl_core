@@ -506,6 +506,10 @@ class Profile : public utils::Singleton<Profile> {
      */
     size_t maximum_payload_size() const;
 
+    size_t message_frequency_count() const;
+
+    size_t message_frequency_time() const;
+
   private:
     /**
      * Default constructor

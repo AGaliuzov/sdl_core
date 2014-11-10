@@ -155,6 +155,8 @@ const char* kIAPHubConnectionWaitTimeoutKey = "ConnectionWaitTimeout";
 const char* kDefaultHubProtocolIndexKey = "DefaultHubProtocolIndex";
 const char* kTTSGlobalPropertiesTimeoutKey = "TTSGlobalPropertiesTimeout";
 const char* kMaximumPayloadSizeKey ="MaximumPayloadSize";
+const char* kFrequencyCount ="FrequencyCount";
+const char* kFrequencyTime ="FrequencyTime";
 
 const char* kDefaultPoliciesSnapshotFileName = "sdl_snapshot.json";
 const char* kDefaultHmiCapabilitiesFileName = "hmi_capabilities.json";
@@ -218,6 +220,8 @@ const int kDefaultIAPHubConnectionWaitTimeout = 10;
 const uint16_t kDefaultTTSGlobalPropertiesTimeout = 20;
 // TCP MTU - header size = 1500 - 12
 const size_t kDefaultMaximumPayloadSize = 1500 - 12;
+const size_t kDefaultFrequencyCount = 1000;
+const size_t kDefaultFrequencyTime  = 1000;
 
 }  // namespace
 
@@ -617,6 +621,20 @@ size_t Profile::maximum_payload_size() const {
   ReadUIntValue(&maximum_payload_size, kDefaultMaximumPayloadSize,
                 kProtocolHandlerSection, kMaximumPayloadSizeKey);
   return maximum_payload_size;
+}
+
+size_t Profile::message_frequency_count() const {
+  size_t message_frequency_count = 0;
+  ReadUIntValue(&message_frequency_count, kDefaultFrequencyCount,
+                kProtocolHandlerSection, kFrequencyCount);
+  return message_frequency_count;
+}
+
+size_t Profile::message_frequency_time() const {
+  size_t message_frequency_time = 0;
+  ReadUIntValue(&message_frequency_time, kDefaultFrequencyTime,
+                kProtocolHandlerSection,kFrequencyTime );
+  return message_frequency_time;
 }
 
 uint16_t Profile::tts_global_properties_timeout() const {

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -120,7 +120,7 @@ class RequestController {
     * @return Result code
     *
     */
-    TResult addMobileRequest(const RequestPtr& request,
+    TResult addMobileRequest(const RequestPtr request,
                              const mobile_apis::HMILevel::eType& hmi_level);
 
 
@@ -146,7 +146,7 @@ class RequestController {
     * @param mobile_corellation_id Active mobile request correlation ID
     *
     */
-    void terminateMobileRequest(const uint32_t& mobile_correlation_id);
+    void terminateMobileRequest(const uint32_t& mobile_correlation_id, const uint32_t& connection_key);
 
 
     /**

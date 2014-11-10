@@ -50,7 +50,7 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
 UsbConnection::UsbConnection(const DeviceUID& device_uid,
                              const ApplicationHandle& app_handle,
                              TransportAdapterController* controller,
-                             const UsbHandlerSptr& libusb_handler,
+                             const UsbHandlerSptr libusb_handler,
                              PlatformUsbDevice* device)
     : device_uid_(device_uid),
       app_handle_(app_handle),

@@ -47,7 +47,7 @@
 #include "protocol_handler/protocol_observer.h"
 #include "hmi_message_handler/hmi_message_observer.h"
 #include "hmi_message_handler/hmi_message_sender.h"
-
+#include "application_manager/policies/policy_handler_observer.h"
 #include "media_manager/media_manager_impl.h"
 
 #include "connection_handler/connection_handler_observer.h"
@@ -170,6 +170,7 @@ class ApplicationManagerImpl : public ApplicationManager,
   public hmi_message_handler::HMIMessageObserver,
   public protocol_handler::ProtocolObserver,
   public connection_handler::ConnectionHandlerObserver,
+  public policy::PolicyHandlerObserver,
   public impl::FromMobileQueue::Handler, public impl::ToMobileQueue::Handler,
   public impl::FromHmiQueue::Handler, public impl::ToHmiQueue::Handler,
   public utils::Singleton<ApplicationManagerImpl> {
@@ -411,6 +412,20 @@ class ApplicationManagerImpl : public ApplicationManager,
      */
     void set_state_suspended(const bool flag_suspended);
 #endif // CUSTOMER_PASA
+
+    /**
+     * @brief Notification from PolicyHandler about PTU.
+     * Compares AppHMIType between saved in app and received from PTU. If they are different method sends:
+     * UI_ChangeRegistration with list new AppHMIType;
+     * ActivateApp with HMI level BACKGROUND;
+     * OnHMIStatus notification;
+     * for app with HMI level FULL or LIMITED.
+     * method sends:
+     * UI_ChangeRegistration with list new AppHMIType
+     * for app with HMI level BACKGROUND.
+     */
+    virtual void OnUpdateHMIAppType(std::map<std::string, std::vector<std::string> > app_hmi_types);
+
     /*
      * @brief Starts audio pass thru thread
      *
@@ -461,31 +476,27 @@ class ApplicationManagerImpl : public ApplicationManager,
       const utils::SharedPtr<smart_objects::SmartObject> message);
 
     /////////////////////////////////////////////////////////
-    /*
-     * @brief Overriden ProtocolObserver method
-     */
+    // Overriden ProtocolObserver method
     virtual void OnMessageReceived(
-        const ::protocol_handler::RawMessagePtr message);
-
-    /*
-     * @brief Overriden ProtocolObserver method
-     */
+        const ::protocol_handler::RawMessagePtr message) OVERRIDE;
     virtual void OnMobileMessageSent(
-        const ::protocol_handler::RawMessagePtr message);
+        const ::protocol_handler::RawMessagePtr message) OVERRIDE;
 
-    void OnMessageReceived(hmi_message_handler::MessageSharedPointer message);
-    void OnErrorSending(hmi_message_handler::MessageSharedPointer message);
+    // Overriden HMIMessageObserver method
+    void OnMessageReceived(hmi_message_handler::MessageSharedPointer message) OVERRIDE;
+    void OnErrorSending(hmi_message_handler::MessageSharedPointer message) OVERRIDE;
 
-    void OnDeviceListUpdated(const connection_handler::DeviceMap& device_list);
+    // Overriden ConnectionHandlerObserver method
+    void OnDeviceListUpdated(const connection_handler::DeviceMap& device_list) OVERRIDE;
     //TODO (EZamakhov): fix all indentations in this file
-  virtual void OnFindNewApplicationsRequest();
-    void RemoveDevice(const connection_handler::DeviceHandle& device_handle);
+    void OnFindNewApplicationsRequest() OVERRIDE;
+    void RemoveDevice(const connection_handler::DeviceHandle& device_handle) OVERRIDE;
     bool OnServiceStartedCallback(
-      const connection_handler::DeviceHandle& device_handle,
-      const int32_t& session_key, const protocol_handler::ServiceType& type);
+        const connection_handler::DeviceHandle& device_handle,
+        const int32_t& session_key, const protocol_handler::ServiceType& type) OVERRIDE;
     void OnServiceEndedCallback(const int32_t& session_key,
-                                const protocol_handler::ServiceType& type);
-
+                                const protocol_handler::ServiceType& type) OVERRIDE;
+    void OnApplicationFloodCallBack(const uint32_t& connection_key) OVERRIDE;
     /**
      * @ Add notification to collection
      *
@@ -750,6 +761,22 @@ class ApplicationManagerImpl : public ApplicationManager,
 
   private:
     ApplicationManagerImpl();
+
+    /**
+     * @brief Method transforms string to AppHMIType
+     * @param str contains string AppHMIType
+     * @return enum AppHMIType
+     */
+    mobile_apis::AppHMIType::eType StringToAppHMIType(std::string str);
+
+    /**
+     * @brief Method compares arrays of app HMI type
+     * @param from_policy contains app HMI type from policy
+     * @param from_application contains app HMI type from application
+     * @return return TRUE if arrays of appHMIType equal, otherwise return FALSE
+     */
+    bool CompareAppHMIType (const smart_objects::SmartObject& from_policy,
+                            const smart_objects::SmartObject& from_application);
 
     hmi_apis::HMI_API& hmi_so_factory();
     mobile_apis::MOBILE_API& mobile_so_factory();

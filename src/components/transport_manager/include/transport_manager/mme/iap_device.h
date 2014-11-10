@@ -51,8 +51,7 @@ class IAPConnection;
 
 class IAPDevice : public MmeDevice {
  public:
-  IAPDevice(const std::string& mount_point,
-            const std::string& name,
+  IAPDevice(const std::string& mount_point, const std::string& name,
             const DeviceUID& unique_device_id,
             TransportAdapterController* controller);
 
@@ -63,6 +62,8 @@ class IAPDevice : public MmeDevice {
   virtual Protocol protocol() const {
     return IAP;
   }
+
+  virtual void Stop();
 
  protected:
   virtual ApplicationList GetApplicationList() const;
@@ -81,12 +82,16 @@ class IAPDevice : public MmeDevice {
 
   static const int kProtocolNameSize = 256;
 
-  const AppRecord RegisterConnection(ApplicationHandle app_id, IAPConnection* connection);
+  const AppRecord RegisterConnection(ApplicationHandle app_id,
+                                     IAPConnection* connection);
   void UnregisterConnection(ApplicationHandle app_id);
   void OnSessionOpened(uint32_t protocol_id, int session_id);
-  void OnSessionOpened(uint32_t protocol_id, const char* protocol_name, int session_id);
-  void OnHubSessionOpened(uint32_t protocol_id, const char* protocol_name, int session_id);
-  void OnRegularSessionOpened(uint32_t protocol_id, const char* protocol_name, int session_id);
+  void OnSessionOpened(uint32_t protocol_id, const char* protocol_name,
+                       int session_id);
+  void OnHubSessionOpened(uint32_t protocol_id, const char* protocol_name,
+                          int session_id);
+  void OnRegularSessionOpened(uint32_t protocol_id, const char* protocol_name,
+                              int session_id);
   void OnSessionClosed(int session_id);
   void OnDataReady(int session_id);
 
@@ -120,6 +125,7 @@ class IAPDevice : public MmeDevice {
   ipod_hdl_t* ipod_hdl_;
   threads::Thread* receiver_thread_;
   ApplicationHandle last_app_id_;
+  volatile bool running_;
 
   AppContainer apps_;
   mutable sync_primitives::Lock apps_lock_;

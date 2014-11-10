@@ -34,7 +34,6 @@
 
 import QtQuick 2.0
 import "Common.js" as Common
-
 Item {
     function isReady() {
         console.log("Message Received - {method: 'VR.IsReady'}")
@@ -109,6 +108,46 @@ Item {
                     "appID: " + appID +
                     "}}")
         dataContainer.changeRegistrationTTSVR(language, appID);
+        console.debug("exit");
+    }
+    function ttsChunksToString(ttsChunks){
+        return ttsChunks.map(function(str) { return str.text }).join('\n')
+    }
+    function performInteraction(helpPrompt, initialPrompt, timeoutPrompt, timeout) {
+        console.debug("enter");
+        var helpttsChunksLog = "",
+            initialttsChunkLog = "",
+            timeoutttsChunkLog = "";
+
+        if (helpPrompt) {
+            for (var i = 0; i < helpPrompt.length; i++) {
+                helpttsChunksLog += "{type: " + helpPrompt[i].type + ", " +
+                        "text: '" + helpPrompt[i].text + "'}, ";
+            }
+        }
+        if (initialPrompt) {
+            for (var i = 0; i < initialPrompt.length; i++) {
+                initialttsChunkLog += "{type: " + initialPrompt[i].type + ", " +
+                        "text: '" + initialPrompt[i].text + "'}, ";
+            }
+        }
+        if (timeoutPrompt) {
+            for (var i = 0; i < timeoutPrompt.length; i++) {
+                timeoutttsChunkLog += "{type: " + timeoutPrompt[i].type + ", " +
+                        "text: '" + timeoutPrompt[i].text + "'}, ";
+            }
+        }
+        console.log("Message Received - {method: 'TTS.PerformInteraction', params:{ " +
+                    "helpPrompt: [" + helpttsChunksLog + "], " +
+                    "initialPrompt: [" + initialttsChunkLog + "], " +
+                    "timeoutPrompt: [" + timeoutttsChunkLog + "], " +
+                    "timeout: " + timeout +
+                    "}}")
+
+        ttsPopUp.performInteraction(ttsChunksToString(helpPrompt),
+                                    ttsChunksToString(initialPrompt),
+                                    ttsChunksToString(timeoutPrompt),
+                                    timeout)
         console.debug("exit");
     }
 }

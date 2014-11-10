@@ -1,4 +1,4 @@
-/**
+/*
  * \file bluetooth_device_scanner.cc
  * \brief BluetoothDeviceScanner class header file.
  *
@@ -121,6 +121,11 @@ BluetoothDeviceScanner::BluetoothDeviceScanner(
 }
 
 BluetoothDeviceScanner::~BluetoothDeviceScanner() {
+  if(thread_) {
+    thread_->stop();
+    threads::DeleteThread(thread_);
+    thread_ = NULL;
+  }
 }
 
 
