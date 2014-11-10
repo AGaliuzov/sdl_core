@@ -34,6 +34,7 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include "logger.h"
 
 #ifdef CUSTOMER_PASA
 // Todd: PASA support
@@ -64,12 +65,15 @@
 
 #define DCHECK(condition) \
   if (!(condition)) { \
-    printf("\nDCHECK  [%s:%d][%s]", __FILE__, __LINE__, __FUNCTION__); \
-    printf("[Check failed: " #condition "]\n\n"); \
-    assert((condition)); \
+    CREATE_LOGGERPTR_LOCAL(logger_, "assert"); \
+    LOG4CXX_FATAL(logger_,  "DCHECK failed with :" << #condition \
+       << '[' << __FILE__ << ':' << __LINE__ << "][" << __FUNCTION__ \
+       << ']'); \
+    DEINIT_LOGGER(); \
+    assert(condition); \
   }
 
-#define NOTREACHED() DCHECK(false)
+#define NOTREACHED() DCHECK(!"Unreachable code")
 
 // Allows to perform static check that virtual function from base class is
 // actually being overriden if compiler support is available
