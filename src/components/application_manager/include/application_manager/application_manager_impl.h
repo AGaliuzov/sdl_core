@@ -163,7 +163,16 @@ typedef threads::MessageLoopThread<utils::PrioritizedQueue<MessageFromMobile> > 
 typedef threads::MessageLoopThread<utils::PrioritizedQueue<MessageToMobile> > ToMobileQueue;
 typedef threads::MessageLoopThread<utils::PrioritizedQueue<MessageFromHmi> > FromHmiQueue;
 typedef threads::MessageLoopThread<utils::PrioritizedQueue<MessageToHmi> > ToHmiQueue;
+
+// AudioPassThru
+typedef struct  {
+std::vector<uint8_t> binary_data;
+int32_t              session_key;
+} AudioData;
+typedef std::queue<AudioData>                          RawAudioDataQueue;
+typedef threads::MessageLoopThread<RawAudioDataQueue>  AudioPassThruQueue;
 }
+
 typedef std::vector<std::string> RPCParams;
 
 class ApplicationManagerImpl : public ApplicationManager,
@@ -173,6 +182,7 @@ class ApplicationManagerImpl : public ApplicationManager,
   public policy::PolicyHandlerObserver,
   public impl::FromMobileQueue::Handler, public impl::ToMobileQueue::Handler,
   public impl::FromHmiQueue::Handler, public impl::ToHmiQueue::Handler,
+  public impl::AudioPassThruQueue::Handler,
   public utils::Singleton<ApplicationManagerImpl> {
 
     friend class ResumeCtrl;
@@ -447,8 +457,17 @@ class ApplicationManagerImpl : public ApplicationManager,
      */
     void StopAudioPassThru(int32_t application_key);
 
+    /*
+     * @brief Creates AudioPassThru data chunk and inserts it
+     * to audio_pass_thru_messages_
+     *
+     * @param session_key Id of application for which
+     * audio pass thru should be sent
+     *
+     * @param binary_data AudioPassThru data chunk
+     */
     void SendAudioPassThroughNotification(uint32_t session_key,
-                                          std::vector<uint8_t> binaryData);
+                                          std::vector<uint8_t>& binary_data);
 
     std::string GetDeviceName(connection_handler::DeviceHandle handle);
 
@@ -808,6 +827,9 @@ class ApplicationManagerImpl : public ApplicationManager,
     // CALLED ON messages_to_hmi_ thread!
     virtual void Handle(const impl::MessageToHmi message) OVERRIDE;
 
+    // CALLED ON audio_pass_thru_messages_ thread!
+    virtual void Handle(const impl::AudioData message) OVERRIDE;
+
     void SendUpdateAppList(const std::list<uint32_t>& applications_ids);
     void OnApplicationListUpdateTimer();
 
@@ -892,6 +914,8 @@ class ApplicationManagerImpl : public ApplicationManager,
     impl::FromHmiQueue messages_from_hmi_;
     // Thread that pumps messages being passed to HMI.
     impl::ToHmiQueue messages_to_hmi_;
+    // Thread that pumps messages audio pass thru to mobile.
+    impl::AudioPassThruQueue audio_pass_thru_messages_;
 
 
     HMICapabilities                         hmi_capabilities_;
