@@ -145,7 +145,7 @@ bool TimeManager::Streamer::exitThreadMain() {
   stop_flag_ = true;
   Stop();
   server_->messages_.Shutdown();
-  return false;
+  return true;
 }
 
 void TimeManager::Streamer::Start() {

@@ -190,7 +190,7 @@ bool PipeStreamerAdapter::Streamer::exitThreadMain() {
   LOG4CXX_INFO(logger, "Streamer::exitThreadMain");
   stop_flag_ = true;
   server_->messages_.Shutdown();
-  return false;
+  return true;
 }
 
 void PipeStreamerAdapter::Streamer::open() {
