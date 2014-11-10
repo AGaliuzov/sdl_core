@@ -207,7 +207,6 @@ class TimerThread {
     TimerDelegate*       delegate_;
     //threads::Thread*     thread_;
     std::string       name_;
-    volatile bool     is_running_;
     volatile bool     is_looper_;
 
     DISALLOW_COPY_AND_ASSIGN(TimerThread);
@@ -220,14 +219,16 @@ TimerThread<T>::TimerThread(const char* name, T* callee, void (T::*f)(), bool is
     callee_(callee),
     delegate_(NULL),
     name_(name),
-    is_running_(false),
     is_looper_(is_looper) {
 }
 
 template <class T>
 TimerThread<T>::~TimerThread() {
-  LOG4CXX_INFO(logger_, "TimerThread is to destroy " << name_);
-  stop();
+  LOG4CXX_DEBUG(logger_, "TimerThread is to destroy " << name_);
+  if (thread_) {
+    thread_->stop();
+    threads::DeleteThread(thread_);
+  }
   callback_ = NULL;
   callee_ = NULL;
 }
@@ -235,7 +236,7 @@ TimerThread<T>::~TimerThread() {
 template <class T>
 void TimerThread<T>::start(uint32_t timeout_seconds) {
   LOG4CXX_TRACE(logger_, "Starting timer " << this);
-  if (is_running_) {
+  if (isRunning()) {
     LOG4CXX_INFO(logger_, "TimerThread start needs stop " << name_);
     stop();
   }
@@ -243,11 +244,12 @@ void TimerThread<T>::start(uint32_t timeout_seconds) {
   delegate_ = is_looper_ ?
       new TimerLooperDelegate(this) :
       new TimerDelegate(this);
-  delegate_->setTimeOut(timeout_seconds);
+  if(delegate_) {
+    delegate_->setTimeOut(timeout_seconds);
+  }
 
   thread_ = threads::CreateThread(name_.c_str(), delegate_);
-  if (delegate_ && thread_) {
-    is_running_ = true;
+  if (thread_) {
     thread_->start();
   }
 }
@@ -255,12 +257,12 @@ void TimerThread<T>::start(uint32_t timeout_seconds) {
 template <class T>
 void TimerThread<T>::stop() {
   LOG4CXX_TRACE(logger_, "Stopping timer " << this);
-  if (is_running_ && delegate_ && thread_) {
-    LOG4CXX_INFO(logger_, "TimerThread thread_ stop " << name_);
+  if (thread_) {
+    LOG4CXX_DEBUG(logger_, "TimerThread thread_ stop " << name_);
     thread_->stop();
     threads::DeleteThread(thread_);
     thread_ = NULL;
-    is_running_ = false;
+    delegate_ = NULL;
   } else {
     LOG4CXX_WARN(logger_, "TimerThread thread_ not stoped " << name_);
   }
@@ -268,7 +270,7 @@ void TimerThread<T>::stop() {
 
 template <class T>
 bool TimerThread<T>::isRunning() {
-  return is_running_;
+  return thread_ && thread_->is_running();
 }
 
 template <class T>

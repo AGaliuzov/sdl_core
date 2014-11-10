@@ -61,6 +61,7 @@ IAP2Connection::~IAP2Connection() {
   LOG4CXX_TRACE_ENTER(logger_);
   if (receiver_thread_) {
     receiver_thread_->stop();
+    receiver_thread_->join();
     threads::DeleteThread(receiver_thread_);
     receiver_thread_ = NULL;
   }
@@ -149,7 +150,8 @@ void IAP2Connection::ReceiveData() {
 // anyway delegate can be stopped directly
 //      receiver_thread_delegate_->exitThreadMain();
         receiver_thread_->stop();
-        DeleteThread(receiver_thread_);
+        receiver_thread_->join();
+        threads::DeleteThread(receiver_thread_);
         receiver_thread_ = NULL;
         Close();
         unexpected_disconnect_ = true;

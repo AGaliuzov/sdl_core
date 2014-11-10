@@ -82,9 +82,11 @@ void TimeManager::Init(protocol_handler::ProtocolHandlerImpl* ph) {
 void TimeManager::Stop() {
   if (thread_) {
     thread_->stop();
-    thread_ = NULL;
     if (socket_fd_ != -1) {
       ::close(socket_fd_);
+    thread_->join();
+    threads::DeleteThread(thread_);
+    thread_ = NULL;
     }
   }
   messages_.Reset();
@@ -110,7 +112,7 @@ TimeManager::Streamer::~Streamer() {
 }
 
 void TimeManager::Streamer::threadMain() {
-  LOG4CXX_INFO(logger_, "Streamer::threadMain");
+  LOG4CXX_TRACE_ENTER(logger_);
 
   Start();
 
@@ -138,6 +140,7 @@ void TimeManager::Streamer::threadMain() {
       server_->messages_.wait();
     }
   }
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 bool TimeManager::Streamer::exitThreadMain() {

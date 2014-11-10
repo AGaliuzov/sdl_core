@@ -281,6 +281,9 @@ TransportAdapter::Error TcpClientListener::StopListening() {
   }
 
   thread_->stop();
+  thread_->join();
+  threads::DeleteThread(thread_);
+  thread_ = NULL;
   close(socket_);
   socket_ = -1;
   LOG4CXX_TRACE_EXIT(logger_);
