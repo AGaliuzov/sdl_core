@@ -314,33 +314,44 @@ void PolicyManagerImpl::CheckPermissions(const PTString& app_id,
 
 #ifdef EXTENDED_POLICY
   const std::string device_id = GetCurrentDeviceId(app_id);
-  // Get actual application group permission according to user consents
-  std::vector<FunctionalGroupPermission> app_group_permissions;
-  GetPermissionsForApp(device_id, app_id, app_group_permissions);
 
-  // Fill struct with known groups RPCs
-  policy_table::FunctionalGroupings functional_groupings;
-  cache_->GetFunctionalGroupings(functional_groupings);
-
-  policy_table::Strings app_groups;
-  std::vector<FunctionalGroupPermission>::const_iterator it =
-    app_group_permissions.begin();
-  std::vector<FunctionalGroupPermission>::const_iterator it_end =
-    app_group_permissions.end();
-  for (; it != it_end; ++it) {
-    app_groups.push_back((*it).group_name);
-  }
-
+  // Check, if there are calculated permission present in cache
   Permissions rpc_permissions;
-  // Undefined groups (without user consent) disallowed by default, since
-  // OnPermissionsChange notification has no "undefined" section
-  // For RPC permission checking undefinded group will be treated as separate
-  // type
-  ProcessFunctionalGroup processor(functional_groupings,
-                                   app_group_permissions,
-                                   rpc_permissions,
-                                   GroupConsent::kGroupUndefined);
-  std::for_each(app_groups.begin(), app_groups.end(), processor);
+  if (!cache_->IsPermissionsCalculated(device_id, app_id, rpc_permissions)) {
+    LOG4CXX_INFO(logger_, "IsPermissionsCalculated for device: " << device_id
+                 << " and app: " << app_id << " returns false");
+    // Get actual application group permission according to user consents
+    std::vector<FunctionalGroupPermission> app_group_permissions;
+    GetPermissionsForApp(device_id, app_id, app_group_permissions);
+
+    // Fill struct with known groups RPCs
+    policy_table::FunctionalGroupings functional_groupings;
+    cache_->GetFunctionalGroupings(functional_groupings);
+
+    policy_table::Strings app_groups;
+    std::vector<FunctionalGroupPermission>::const_iterator it =
+      app_group_permissions.begin();
+    std::vector<FunctionalGroupPermission>::const_iterator it_end =
+      app_group_permissions.end();
+    for (; it != it_end; ++it) {
+      app_groups.push_back((*it).group_name);
+    }
+
+    // Undefined groups (without user consent) disallowed by default, since
+    // OnPermissionsChange notification has no "undefined" section
+    // For RPC permission checking undefinded group will be treated as separate
+    // type
+    ProcessFunctionalGroup processor(functional_groupings,
+                                     app_group_permissions,
+                                     rpc_permissions,
+                                     GroupConsent::kGroupUndefined);
+    std::for_each(app_groups.begin(), app_groups.end(), processor);
+
+    cache_->AddCalculatedPermissions(device_id, app_id, rpc_permissions);
+  } else {
+    LOG4CXX_INFO(logger_, "IsPermissionsCalculated for device: " << device_id
+                 << " and app: " << app_id << " returns true");
+  }
 
   const bool known_rpc = rpc_permissions.end() != rpc_permissions.find(rpc);
   LOG4CXX_INFO(logger_, "Is known rpc" << known_rpc);
@@ -530,6 +541,7 @@ void PolicyManagerImpl::SetUserConsentForDevice(const std::string& device_id,
     return;
   }
 #ifdef EXTENDED_POLICY
+  cache_->ResetCalculatedPermissions();
   // Get device permission groups from app_policies section, which hadn't been
   // preconsented
   policy_table::Strings groups;
@@ -645,6 +657,7 @@ void PolicyManagerImpl::SetUserConsentForApp(
     const PermissionConsent& permissions) {
   LOG4CXX_INFO(logger_, "SetUserConsentForApp");
 #ifdef EXTENDED_POLICY
+  cache_->ResetCalculatedPermissions();
   PermissionConsent verified_permissions =
       EnsureCorrectPermissionConsent(permissions);
 
@@ -1195,6 +1208,7 @@ bool PolicyManagerImpl::IsNewApplication(
 }
 
 bool PolicyManagerImpl::ResetPT(const std::string& file_name) {
+  cache_->ResetCalculatedPermissions();
   const bool result = cache_->ResetPT(file_name);
   if (result) {
     RefreshRetrySequence();

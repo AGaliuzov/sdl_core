@@ -82,6 +82,8 @@ TransportManagerImpl::TransportManagerImpl()
 
 TransportManagerImpl::~TransportManagerImpl() {
   LOG4CXX_DEBUG(logger_, "TransportManager object destroying");
+  message_queue_.Shutdown();
+  event_queue_.Shutdown();
 
   for (std::vector<TransportAdapter*>::iterator it =
          transport_adapters_.begin();

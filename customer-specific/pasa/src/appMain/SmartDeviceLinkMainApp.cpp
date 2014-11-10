@@ -198,7 +198,7 @@ void startSmartDeviceLink()
   // End section
 
   if (!main_namespace::LifeCycle::instance()->StartComponents()) {
-    LOG4CXX_INFO(logger_, "StartComponents failed.");
+    LOG4CXX_FATAL(logger_, "Failed start components");
 #ifdef ENABLE_LOG
     logger::LogMessageLoopThread::destroy();
 #endif
@@ -210,7 +210,7 @@ void startSmartDeviceLink()
   // Third-Party components initialization.
 
   if (!main_namespace::LifeCycle::instance()->InitMessageSystem()) {
-    LOG4CXX_INFO(logger_, "InitMessageBroker failed");
+    LOG4CXX_FATAL(logger_, "Failed InitMessageBroker");
 #ifdef ENABLE_LOG
     logger::LogMessageLoopThread::destroy();
 #endif
@@ -277,10 +277,7 @@ void ApplinkNotificationThreadDelegate::threadMain() {
   utils::System policy_init(kShellInterpreter);
   policy_init.Add(kPolicyInitializationScript);
   if (!policy_init.Execute(true)) {
-    LOG4CXX_ERROR(logger_, "QDB initialization failed.");
-#ifdef ENABLE_LOG
-    logger::LogMessageLoopThread::destroy();
-#endif
+    LOG4CXX_FATAL(logger_, "Failed QDB initialization");
     DEINIT_LOGGER();
     exit(EXIT_FAILURE);
   }
@@ -301,9 +298,7 @@ void ApplinkNotificationThreadDelegate::threadMain() {
           break;
         case SDL_MSG_SDL_STOP:
           stopSmartDeviceLink();
-#ifdef ENABLE_LOG
-          logger::LogMessageLoopThread::destroy();
-#endif
+          LOG4CXX_INFO(logger_, "Application stopped due SDL_MSG_SDL_STOP");
           DEINIT_LOGGER();
           exit(EXIT_SUCCESS);
           break;
@@ -459,17 +454,13 @@ int main(int argc, char** argv) {
   LOG4CXX_INFO(logger_, "Stopping application due to signal caught");
   stopSmartDeviceLink();
 
+  LOG4CXX_INFO(logger_, "Waiting SDL controller finished.");
   close(pipefd[0]);
   int result;
   waitpid(cpid, &result, 0);
 
   LOG4CXX_INFO(logger_, "Application successfully stopped");
-#ifdef ENABLE_LOG
-  logger::LogMessageLoopThread::destroy();
-#endif
   DEINIT_LOGGER();
   return EXIT_SUCCESS;
 }
-
-
 ///EOF

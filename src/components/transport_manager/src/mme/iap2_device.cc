@@ -61,17 +61,23 @@ void IAP2Device::Stop() {
       i != hub_connection_threads_.end(); ++i) {
     threads::Thread* thread = i->second;
     thread->stop();
+    threads::DeleteThread(thread);
   }
+  hub_connection_threads_.clear();
   for (ThreadContainer::const_iterator i = legacy_connection_threads_.begin();
       i != legacy_connection_threads_.end(); ++i) {
     threads::Thread* thread = i->second;
     thread->stop();
+    threads::DeleteThread(thread);
   }
+  legacy_connection_threads_.clear();
   for (ThreadContainer::const_iterator i = pool_connection_threads_.begin();
       i != pool_connection_threads_.end(); ++i) {
     threads::Thread* thread = i->second;
     thread->stop();
+    threads::DeleteThread(thread);
   }
+  pool_connection_threads_.clear();
 }
 
 bool IAP2Device::Init() {
@@ -315,6 +321,7 @@ void IAP2Device::StopThread(const std::string& protocol_name) {
   if (j != pool_connection_threads_.end()) {
     threads::Thread* thread = j->second;
     thread->stop();
+    threads::DeleteThread(thread);
     pool_connection_threads_.erase(j);
   }
 }

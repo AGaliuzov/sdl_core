@@ -82,21 +82,16 @@ CacheManager::CacheManager()
 
   LOG4CXX_TRACE_ENTER(logger_);
   backuper_ = new BackgroundBackuper(this);
-  backup_thread_ = threads::CreateThread("Backup thread", backuper_, false);
-
-  if (backup_thread_) {
-    backup_thread_->start();
-  } else {
-    LOG4CXX_ERROR(logger_, "The background thread delegate has not been created");
-  }
+  backup_thread_ = threads::CreateThread("Backup thread", backuper_);
+  backup_thread_->start();
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
 CacheManager::~CacheManager() {
   if (backup_thread_) {
     backuper_ = NULL;
-
     backup_thread_->stop();
+    backup_thread_->join();
     threads::DeleteThread(backup_thread_);
   }
 }
@@ -1040,6 +1035,47 @@ void CacheManager::PersistData() {
     backup_->WriteDb();
   }
 
+}
+
+void CacheManager::ResetCalculatedPermissions() {
+  LOG4CXX_INFO(logger_, "ResetCalculatedPermissions");
+  sync_primitives::AutoLock lock(calculated_permissions_lock_);
+  calculated_permissions_.clear();
+}
+
+void CacheManager::AddCalculatedPermissions(
+    const std::string& device_id,
+    const std::string& policy_app_id,
+    const Permissions& permissions) {
+  LOG4CXX_INFO(logger_, "AddCalculatedPermissions for device: " << device_id
+               << " and app: " << policy_app_id);
+  sync_primitives::AutoLock lock(calculated_permissions_lock_);
+  calculated_permissions_[device_id][policy_app_id] = permissions;
+}
+
+bool CacheManager::IsPermissionsCalculated(
+    const std::string& device_id,
+    const std::string& policy_app_id,
+    Permissions& permission) {
+  LOG4CXX_INFO(logger_, "IsPermissionsCalculated for device: " << device_id
+               << " and app: " << policy_app_id);
+  sync_primitives::AutoLock lock(calculated_permissions_lock_);
+  CalculatedPermissions::const_iterator it =
+      calculated_permissions_.find(device_id);
+
+  if (calculated_permissions_.end() == it) {
+    return false;
+  }
+
+  AppCalculatedPermissions::const_iterator app_it =
+      (*it).second.find(policy_app_id);
+  if ((*it).second.end() == app_it) {
+    return false;
+  } else {
+    permission = (*app_it).second;
+    return true;
+  }
+  return false;
 }
 
 utils::SharedPtr<policy_table::Table>

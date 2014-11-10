@@ -49,15 +49,13 @@ IAPDevice::IAPDevice(const std::string& mount_point, const std::string& name,
       controller_(controller),
       ipod_hdl_(0),
       last_app_id_(0),
-      running_(false),
       app_table_lock_(true),
       connections_lock_(true),
       receiver_thread_(0) {
 }
 
 void IAPDevice::Stop() {
-  if (running_ && receiver_thread_) {
-    running_ = false;
+  if (receiver_thread_) {
     receiver_thread_->stop();
     threads::DeleteThread(receiver_thread_);
     receiver_thread_ = NULL;
@@ -93,7 +91,6 @@ bool IAPDevice::Init() {
     receiver_thread_ = threads::CreateThread(
         "iAP event", new IAPEventThreadDelegate(ipod_hdl_, this));
     receiver_thread_->start();
-    running_ = true;
 
     return true;
   } else {

@@ -59,7 +59,12 @@
 
     // without this line log4cxx threads continue using some instances destroyed by exit()
     #define DEINIT_LOGGER() \
-      log4cxx::Logger::getRootLogger()->closeNestedAppenders();
+    do { \
+      CREATE_LOGGERPTR_LOCAL (logger_, "Logger")\
+      LOG4CXX_DEBUG(logger_, "Logger deinitialization"); \
+      logger::LogMessageLoopThread::destroy(); \
+      log4cxx::Logger::getRootLogger()->closeNestedAppenders(); \
+    } while (false)
 
     #define LOG4CXX_IS_TRACE_ENABLED(logger) logger->isTraceEnabled()
 
