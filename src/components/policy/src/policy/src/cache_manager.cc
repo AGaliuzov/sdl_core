@@ -82,21 +82,16 @@ CacheManager::CacheManager()
 
   LOG4CXX_TRACE_ENTER(logger_);
   backuper_ = new BackgroundBackuper(this);
-  backup_thread_ = threads::CreateThread("Backup thread", backuper_, false);
-
-  if (backup_thread_) {
-    backup_thread_->start();
-  } else {
-    LOG4CXX_ERROR(logger_, "The background thread delegate has not been created");
-  }
+  backup_thread_ = threads::CreateThread("Backup thread", backuper_);
+  backup_thread_->start();
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
 CacheManager::~CacheManager() {
   if (backup_thread_) {
     backuper_ = NULL;
-
     backup_thread_->stop();
+    backup_thread_->join();
     threads::DeleteThread(backup_thread_);
   }
 }

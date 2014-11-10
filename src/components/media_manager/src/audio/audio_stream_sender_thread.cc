@@ -189,6 +189,7 @@ void AudioStreamSenderThread::mqSendAudioChunkToMobile(
   if (-1 == dataSize) {
     LOG4CXX_ERROR(logger_, "Unable to receive data from mqueue: "
                   << strerror(errno));
+    delete[] buffer;
     return;
   }
 

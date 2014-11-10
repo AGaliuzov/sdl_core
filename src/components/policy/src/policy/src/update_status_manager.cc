@@ -45,7 +45,7 @@ UpdateStatusManager::UpdateStatusManager() :
   exchange_pending_(false),
   last_update_status_(policy::StatusUnknown) {
   update_status_thread_delegate_ = new UpdateThreadDelegate(this);
-  thread_ = threads::CreateThread("UpdateStatusThread", update_status_thread_delegate_, false);
+  thread_ = threads::CreateThread("UpdateStatusThread", update_status_thread_delegate_);
   thread_->start();
 }
 
@@ -55,6 +55,7 @@ UpdateStatusManager::~UpdateStatusManager() {
   update_status_thread_delegate_->update_status_manager_ = NULL;
   DCHECK(thread_);
   thread_->stop();
+  thread_->join();
   threads::DeleteThread(thread_);
   LOG4CXX_DEBUG(logger_, "update_response_timer_ deleted ");
 }
@@ -199,10 +200,8 @@ void UpdateStatusManager::UpdateThreadDelegate::threadMain() {
 }
 
 bool UpdateStatusManager::UpdateThreadDelegate::exitThreadMain() {
-  {
-    sync_primitives::AutoLock auto_lock(state_lock_);
-    stop_flag_ = true;
-  }
+  sync_primitives::AutoLock auto_lock(state_lock_);
+  stop_flag_ = true;
   LOG4CXX_INFO(logger_, "before notify");
   termination_condition_.NotifyOne();
   return true;

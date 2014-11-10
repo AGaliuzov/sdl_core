@@ -58,11 +58,13 @@ IAP2Connection::IAP2Connection(const DeviceUID& device_uid,
 }
 
 IAP2Connection::~IAP2Connection() {
+  LOG4CXX_TRACE_ENTER(logger_);
   if (receiver_thread_) {
     receiver_thread_->stop();
     threads::DeleteThread(receiver_thread_);
     receiver_thread_ = NULL;
   }
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 bool IAP2Connection::Init() {
@@ -83,9 +85,12 @@ bool IAP2Connection::Init() {
 }
 
 void IAP2Connection::Finalize() {
+  LOG4CXX_TRACE_ENTER(logger_);
   if (!unexpected_disconnect_) {
+    LOG4CXX_DEBUG(logger_, "DisconnectDone on unexpected_disconnect_");
     controller_->DisconnectDone(device_uid_, app_handle_);
   }
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 TransportAdapter::Error IAP2Connection::SendData(
@@ -108,12 +113,17 @@ TransportAdapter::Error IAP2Connection::SendData(
 }
 
 TransportAdapter::Error IAP2Connection::Disconnect() {
+  LOG4CXX_TRACE_ENTER(logger_);
   controller_->ConnectionFinished(device_uid_, app_handle_);
+  const TransportAdapter::Error error =
+      Close() ? TransportAdapter::OK : TransportAdapter::FAIL;
   if (receiver_thread_) {
     receiver_thread_->stop();
+    receiver_thread_->join();
+    threads::DeleteThread(receiver_thread_);
+    receiver_thread_ = NULL;
   }
-  TransportAdapter::Error error =
-      Close() ? TransportAdapter::OK : TransportAdapter::FAIL;
+  LOG4CXX_TRACE_EXIT(logger_);
   return error;
 }
 
@@ -137,7 +147,10 @@ void IAP2Connection::ReceiveData() {
 // receiver_thread_->stop() cannot be invoked here
 // because this method is called from receiver_thread_
 // anyway delegate can be stopped directly
-        receiver_thread_delegate_->exitThreadMain();
+//      receiver_thread_delegate_->exitThreadMain();
+        receiver_thread_->stop();
+        DeleteThread(receiver_thread_);
+        receiver_thread_ = NULL;
         Close();
         unexpected_disconnect_ = true;
         controller_->ConnectionAborted(device_uid_, app_handle_,

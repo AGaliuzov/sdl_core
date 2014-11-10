@@ -125,7 +125,6 @@ class IAPDevice : public MmeDevice {
   ipod_hdl_t* ipod_hdl_;
   threads::Thread* receiver_thread_;
   ApplicationHandle last_app_id_;
-  volatile bool running_;
 
   AppContainer apps_;
   mutable sync_primitives::Lock apps_lock_;
