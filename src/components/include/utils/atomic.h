@@ -30,12 +30,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef SRC_COMPONENTS_INCLUDE_UTILS_ATOMIC_H_
+#define SRC_COMPONENTS_INCLUDE_UTILS_ATOMIC_H_
+
 #ifdef __QNXNTO__
 #include <atomic.h>
 #endif
-
-#ifndef SRC_COMPONENTS_INCLUDE_UTILS_ATOMIC_H_
-#define SRC_COMPONENTS_INCLUDE_UTILS_ATOMIC_H_
 
 #if defined(__QNXNTO__)
 #define atomic_post_inc(ptr) atomic_add_value((ptr), 1)
