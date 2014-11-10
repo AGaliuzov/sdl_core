@@ -20,12 +20,7 @@
 #include <iostream>  // cpplint: Streams are highly discouraged.
 #include <fstream>   // cpplint: Streams are highly discouraged.
 
-#include <applink_types.h>
-enum _ESDLMsgType2 {
-SDL_MSG_LOW_VOLTAGE = 100,
-SDL_MSG_WAKE_UP,
-SDL_MSG_POWER_DOWN
-};
+#include <applink_types.h> nb
 
 #define MAX_QUEUE_NAME_SIZE     24
 #define MAX_QUEUE_MSG_SIZE 		4095
