@@ -1043,7 +1043,7 @@ void CacheManager::PersistData() {
 }
 
 void CacheManager::ResetCalculatedPermissions() {
-  LOG4CXX_INFO(logger_, "ResetCalculatedPermissions");
+  LOG4CXX_TRACE(logger_, "ResetCalculatedPermissions");
   sync_primitives::AutoLock lock(calculated_permissions_lock_);
   calculated_permissions_.clear();
 }
@@ -1052,7 +1052,7 @@ void CacheManager::AddCalculatedPermissions(
     const std::string& device_id,
     const std::string& policy_app_id,
     const Permissions& permissions) {
-  LOG4CXX_INFO(logger_, "AddCalculatedPermissions for device: " << device_id
+  LOG4CXX_DEBUG(logger_, "AddCalculatedPermissions for device: " << device_id
                << " and app: " << policy_app_id);
   sync_primitives::AutoLock lock(calculated_permissions_lock_);
   calculated_permissions_[device_id][policy_app_id] = permissions;
@@ -1062,7 +1062,7 @@ bool CacheManager::IsPermissionsCalculated(
     const std::string& device_id,
     const std::string& policy_app_id,
     Permissions& permission) {
-  LOG4CXX_INFO(logger_, "IsPermissionsCalculated for device: " << device_id
+  LOG4CXX_DEBUG(logger_, "IsPermissionsCalculated for device: " << device_id
                << " and app: " << policy_app_id);
   sync_primitives::AutoLock lock(calculated_permissions_lock_);
   CalculatedPermissions::const_iterator it =
