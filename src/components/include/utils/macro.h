@@ -66,7 +66,7 @@
   if (!(condition)) { \
     printf("\nDCHECK  [%s:%d][%s]", __FILE__, __LINE__, __FUNCTION__); \
     printf("[Check failed: " #condition "]\n\n"); \
-    assert(false); \
+    assert((condition)); \
   }
 
 #define NOTREACHED() DCHECK(false)

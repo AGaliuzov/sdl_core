@@ -75,8 +75,7 @@ bool IAP2Connection::Init() {
     const std::string thread_name = "iAP2 " + protocol_name_;
     receiver_thread_delegate_ = new ReceiverThreadDelegate(iap2ea_hdl_, this);
     receiver_thread_ = threads::CreateThread(thread_name.c_str(),
-                                             receiver_thread_delegate_,
-                                             false);
+                                             receiver_thread_delegate_);
     receiver_thread_->start();
 
     controller_->ConnectDone(device_uid_, app_handle_);
@@ -120,6 +119,7 @@ TransportAdapter::Error IAP2Connection::Disconnect() {
       Close() ? TransportAdapter::OK : TransportAdapter::FAIL;
   if (receiver_thread_) {
     receiver_thread_->stop();
+    receiver_thread_->join();
     threads::DeleteThread(receiver_thread_);
     receiver_thread_ = NULL;
   }
@@ -147,7 +147,10 @@ void IAP2Connection::ReceiveData() {
 // receiver_thread_->stop() cannot be invoked here
 // because this method is called from receiver_thread_
 // anyway delegate can be stopped directly
-        receiver_thread_delegate_->exitThreadMain();
+//      receiver_thread_delegate_->exitThreadMain();
+        receiver_thread_->stop();
+        DeleteThread(receiver_thread_);
+        receiver_thread_ = NULL;
         Close();
         unexpected_disconnect_ = true;
         controller_->ConnectionAborted(device_uid_, app_handle_,

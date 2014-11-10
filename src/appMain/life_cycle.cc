@@ -392,6 +392,10 @@ void LifeCycle::Run() {
     while (!threads.empty()) {
       ::threads::ThreadManager::ThreadDesc desc = threads.pop();
       pthread_join(desc.handle, NULL);
+      sync_primitives::AutoLock(desc.delegate->thread_lock_);
+      if (desc.delegate->CurrentThread()) {
+        desc.delegate->CurrentThread()->delegate_ = NULL;
+      }
       delete desc.delegate;
     }
     threads.wait();

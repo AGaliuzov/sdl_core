@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
@@ -34,6 +34,8 @@
 
 #include <errno.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "utils/logger.h"
 
@@ -77,34 +79,35 @@ Lock::Lock(bool is_mutex_recursive)
 }
 
 Lock::~Lock() {
+  LOG4CXX_TRACE(logger_, "Destroying mutex " << &mutex_);
 #ifndef NDEBUG
   if (lock_taken_ > 0) {
-    LOG4CXX_ERROR(logger_, "Destroying non-released mutex");
+    LOG4CXX_ERROR(logger_, "Destroying non-released mutex " << &mutex_);
   }
 #endif
   int32_t status = pthread_mutex_destroy(&mutex_);
   if (status != 0) {
-    LOG4CXX_ERROR(logger_, "Failed to destroy mutex");
-  }
+    LOG4CXX_ERROR(logger_, "Failed to destroy mutex " << &mutex_ << ": " << strerror(status)); }
 }
 
 void Lock::Acquire() {
   int32_t status = pthread_mutex_lock(&mutex_);
   if (status != 0) {
-    LOG4CXX_ERROR(logger_, "Failed to acquire mutex");
+    LOG4CXX_ERROR(logger_, "Failed to acquire mutex " << &mutex_ << ": " << strerror(status));
+  } else {
+    AssertFreeAndMarkTaken();
   }
-  AssertFreeAndMarkTaken();
 }
 
 void Lock::Release() {
   AssertTakenAndMarkFree();
   int32_t status = pthread_mutex_unlock(&mutex_);
   if (status != 0) {
-    LOG4CXX_ERROR(logger_, "Failed to unlock mutex");
+    LOG4CXX_ERROR(logger_, "Failed to unlock mutex" << &mutex_ << ": " << strerror(status));
   }
 }
 
-bool Lock::Try() {
+/*bool Lock::Try() {
   bool ackquired = false;
 #ifndef NDEBUG
   if ((lock_taken_ > 0) && !is_mutex_recursive_) {
@@ -127,7 +130,7 @@ bool Lock::Try() {
     }
   }
   return ackquired;
-}
+}*/
 
 #ifndef NDEBUG
 void Lock::AssertFreeAndMarkTaken() {

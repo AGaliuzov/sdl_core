@@ -377,12 +377,12 @@ void RequestController::OnLowVoltage() {
 }
 
 void RequestController::OnWakeUp() {
-    LOG4CXX_TRACE_ENTER(logger_);
-    terminateAllHMIRequests();
-    terminateAllMobileRequests();
-    is_low_voltage_ = false;
-    LOG4CXX_ERROR(logger_, "Terminate OnWAkeUp remove old reuests done");
-    LOG4CXX_TRACE_EXIT(logger_);
+  LOG4CXX_TRACE_ENTER(logger_);
+  terminateAllHMIRequests();
+  terminateAllMobileRequests();
+  is_low_voltage_ = false;
+  LOG4CXX_DEBUG(logger_, "Terminate OnWakeUp remove old requests done");
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 bool RequestController::IsLowVoltage() {
@@ -479,7 +479,7 @@ bool RequestController::Worker::exitThreadMain() {
   stop_flag_ = true;
   sync_primitives::AutoLock auto_lock(thread_lock_);
   // setup stop flag and whit while threadMain will be finished correctly
-  // FIXME (dchmerev@luxoft.com): There is no wating
+  // FIXME (dchmerev@luxoft.com): There is no waiting
   return true;
 }
 
