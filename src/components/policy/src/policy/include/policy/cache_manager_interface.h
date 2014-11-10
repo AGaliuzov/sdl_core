@@ -552,6 +552,18 @@ class CacheManagerInterface {
    * otherwise heart beat for specific application isn't set
    */
   virtual uint16_t HeartBeatTimeout(const std::string& app_id) const = 0;
+
+  virtual void ResetCalculatedPermissions() = 0;
+
+  virtual void AddCalculatedPermissions(
+      const std::string& device_id,
+      const std::string& policy_app_id,
+      const policy::Permissions& permissions) = 0;
+
+  virtual bool IsPermissionsCalculated(
+      const std::string& device_id,
+      const std::string& policy_app_id,
+      policy::Permissions& permission) = 0;
 };
 
 typedef utils::SharedPtr<CacheManagerInterface> CacheManagerInterfaceSPtr;
