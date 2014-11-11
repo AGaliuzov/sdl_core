@@ -26,7 +26,7 @@ TEST(TcpAdapterBasicTest, Basic) {
   EXPECT_TRUE(transport_adapter->IsSearchDevicesSupported());
 
 }
-/*
+
 TEST(TcpAdapterBasicTest, NotInitialised) {
   TransportAdapter* transport_adapter = new TcpTransportAdapter(12345);
 
@@ -308,7 +308,7 @@ TEST_F(TcpAdapterTest, StartStop) {
   EXPECT_FALSE(client_.Connect(port()));
   wakeUp();
 }
-*/
+
 }  // namespace
 }  // namespace
 

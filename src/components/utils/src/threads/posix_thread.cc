@@ -186,17 +186,11 @@ bool Thread::startWithOptions(const ThreadOptions& options) {
 
 void Thread::stop() {
   LOG4CXX_TRACE_ENTER(logger_);
-<<<<<<< HEAD
-#ifdef BUILD_TESTS
-  // Temporary fix for UnitTest until APPLINK-9987 is resolved
-  usleep(100000);
-#endif
-=======
+
   #ifdef BUILD_TESTS
   // Temporary fix for UnitTest until APPLINK-9987 is resolved
   usleep(100000);
   #endif
->>>>>>> APPLINK-10058: Connection Handler, Utils Unit-test refactoring
 
   if (!atomic_post_clr(&isThreadRunning_))
   {
