@@ -110,6 +110,7 @@ include_directories (
   ${COMPONENTS_DIR}/application_manager/include
   ${COMPONENTS_DIR}/formatters/include
   ${COMPONENTS_DIR}/transport_manager/include
+  ${COMPONENTS_DIR}/security_manager/include
   ${SecurityManagerIncludeDir}
   ${COMPONENTS_DIR}/security_manager/include
   ${COMPONENTS_DIR}/config_profile/include
@@ -179,6 +180,7 @@ if(BUILD_TESTS)
 include_directories (
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
+  ${COMPONENTS_DIR}/security_manager/include
   ${COMPONENTS_DIR}/security_manager/test/include
   ${COMPONENTS_DIR}/application_manager/include
   ${COMPONENTS_DIR}/protocol_handler/test/include
@@ -220,6 +222,9 @@ include_directories (
     ${COMPONENTS_DIR}/smart_objects/test/SmartObjectStressTest.cc
     ${COMPONENTS_DIR}/smart_objects/test/SmartObjectUnitTest.cc
     ${COMPONENTS_DIR}/smart_objects/test/TSharedPtrTest.cc
+    ${COMPONENTS_DIR}/protocol_handler/test/protocol_handler_tm_test.cc
+    ${COMPONENTS_DIR}/protocol_handler/test/incoming_data_handler_test.cc
+    ${COMPONENTS_DIR}/protocol_handler/test/protocol_header_validator_test.cc
   )
 
   set(test_exec_libraries

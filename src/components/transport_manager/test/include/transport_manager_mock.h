@@ -54,6 +54,8 @@ class TransportManagerMock: public ::transport_manager::TransportManager {
  public:
   MOCK_METHOD0(Init,
                int());
+  MOCK_METHOD0(Reinit,
+                int());
   MOCK_METHOD0(SearchDevices,
                int());
   MOCK_METHOD1(ConnectDevice,

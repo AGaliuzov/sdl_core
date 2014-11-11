@@ -27,3 +27,7 @@ endforeach()
 
 add_library(ProtocolHandler ${SOURCES})
 target_link_libraries(ProtocolHandler ${LIBRARIES})
+
+if(BUILD_TESTS)
+  add_subdirectory(test)
+endif()

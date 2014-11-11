@@ -34,11 +34,11 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
   include/
-  
-  ${SecurityManagerIncludeDir}
+  #${SecurityManagerIncludeDir}
   ${COMPONENTS_DIR}/protocol_handler/test/include
   ${COMPONENTS_DIR}/transport_manager/test/include
   ${COMPONENTS_DIR}/security_manager/include
+  #${COMPONENTS_DIR}/security_manager/test/include
 )
 
 set(SOURCES
