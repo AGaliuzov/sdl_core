@@ -20,7 +20,7 @@
 #include <iostream>  // cpplint: Streams are highly discouraged.
 #include <fstream>   // cpplint: Streams are highly discouraged.
 
-#include <applink_types.h> nb
+#include <applink_types.h>
 
 #define MAX_QUEUE_NAME_SIZE     24
 #define MAX_QUEUE_MSG_SIZE 		4095
