@@ -105,28 +105,28 @@ endif()
 
 include_directories (
   ./
-  ${CMAKE_SOURCE_DIR}/src/components/protocol_handler/include/
+  ${COMPONENTS_DIR}/protocol_handler/include/
   ${JSONCPP_INCLUDE_DIRECTORY}
-  ${CMAKE_SOURCE_DIR}/src/components/application_manager/include
-  ${CMAKE_SOURCE_DIR}/src/components/formatters/include
-  ${CMAKE_SOURCE_DIR}/src/components/transport_manager/include
+  ${COMPONENTS_DIR}/application_manager/include
+  ${COMPONENTS_DIR}/formatters/include
+  ${COMPONENTS_DIR}/transport_manager/include
   ${SecurityManagerIncludeDir}
-  ${CMAKE_SOURCE_DIR}/src/components/security_manager/include
-  ${CMAKE_SOURCE_DIR}/src/components/config_profile/include
-  ${CMAKE_SOURCE_DIR}/src/components/utils/include/
-  ${CMAKE_SOURCE_DIR}/src/components/connection_handler/include/
-  ${CMAKE_SOURCE_DIR}/src/components/hmi_message_handler/include
-  ${CMAKE_SOURCE_DIR}/src/components/request_watchdog/include
-  ${CMAKE_SOURCE_DIR}/src/components/smart_objects/include/
-  ${CMAKE_SOURCE_DIR}/src/components/media_manager/include/
-  ${CMAKE_SOURCE_DIR}/src/components/time_tester/include
-  ${CMAKE_SOURCE_DIR}/src/components/policy/src/policy/include/
-  ${CMAKE_SOURCE_DIR}/src/components/resumption/include/
+  ${COMPONENTS_DIR}/security_manager/include
+  ${COMPONENTS_DIR}/config_profile/include
+  ${COMPONENTS_DIR}/utils/include/
+  ${COMPONENTS_DIR}/connection_handler/include/
+  ${COMPONENTS_DIR}/hmi_message_handler/include
+  ${COMPONENTS_DIR}/request_watchdog/include
+  ${COMPONENTS_DIR}/smart_objects/include/
+  ${COMPONENTS_DIR}/media_manager/include/
+  ${COMPONENTS_DIR}/time_tester/include
+  ${COMPONENTS_DIR}/policy/src/policy/include/
+  ${COMPONENTS_DIR}/resumption/include/
   ${MESSAGE_BROKER_INCLUDE_DIRECTORY}
   ${ENCRYPTION_INCLUDE_DIRECTORY}
-  ${CMAKE_SOURCE_DIR}/src/components/
+  ${COMPONENTS_DIR}
   ${CMAKE_BINARY_DIR}/src/components/
-  ${CMAKE_SOURCE_DIR}/src/components/dbus/include/
+  ${COMPONENTS_DIR}/dbus/include/
   ${CMAKE_BINARY_DIR}/src/components/policy/src/policy
   ${CMAKE_SOURCE_DIR}
   ${default_media_inc}
@@ -163,7 +163,6 @@ target_link_libraries(${PROJECT} ${LIBRARIES})
 
 #======================= Unit-Test section =======================
 if(BUILD_TESTS)
-  set (COMPONENTS_DIR ${CMAKE_SOURCE_DIR}/src/components)
   set (AM_TEST_DIR ${CMAKE_SOURCE_DIR}/src/components/application_manager/test)
   set (AM_MOCK_DIR ${CMAKE_SOURCE_DIR}/src/components/application_manager/test/mock)
 
