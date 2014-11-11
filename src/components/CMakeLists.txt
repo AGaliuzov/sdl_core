@@ -28,8 +28,6 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-set(COMPONENTS_DIR ${CMAKE_SOURCE_DIR}/src/components)
-
 # --- HMI_API interfaces
 add_subdirectory(./interfaces)
 

@@ -163,6 +163,7 @@ target_link_libraries(${PROJECT} ${LIBRARIES})
 
 #======================= Unit-Test section =======================
 if(BUILD_TESTS)
+  set (COMPONENTS_DIR ${CMAKE_SOURCE_DIR}/src/components)
   set (AM_TEST_DIR ${CMAKE_SOURCE_DIR}/src/components/application_manager/test)
   set (AM_MOCK_DIR ${CMAKE_SOURCE_DIR}/src/components/application_manager/test/mock)
 
@@ -179,38 +180,47 @@ if(BUILD_TESTS)
 include_directories (
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
-  ${CMAKE_SOURCE_DIR}/src/components/security_manager/test/include
-  ${CMAKE_SOURCE_DIR}/src/components/application_manager/include
-  ${CMAKE_SOURCE_DIR}/src/components/media_manager/include
-  ${CMAKE_SOURCE_DIR}/src/components/utils/include
+  ${COMPONENTS_DIR}/security_manager/test/include
+  ${COMPONENTS_DIR}/application_manager/include
+  ${COMPONENTS_DIR}/protocol_handler/test/include
+  ${COMPONENTS_DIR}/media_manager/include
+  ${COMPONENTS_DIR}/utils/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8
-  ${CMAKE_SOURCE_DIR}/src/components/dbus/src
+  ${COMPONENTS_DIR}/dbus/src
   ${COMPONENTS_DIR}/config_profile/include
   #${CMAKE_SOURCE_DIR}/test/components/include
   ${GMOCK_INCLUDE_DIRECTORY}
   ${JSONCPP_INCLUDE_DIRECTORY}
   ${MESSAGE_BROKER_INCLUDE_DIRECTORY}
   ${LOG4CXX_INCLUDE_DIRECTORY}
-  ${CMAKE_SOURCE_DIR}/src/components/utils/include
-  
+  ${COMPONENTS_DIR}/transport_manager/test/include
 )
 
 #TODO to ALL : Please FIX heart_beat_monitor_test.cc
   set(testSources
     ./main_test.cc
-    ${CMAKE_SOURCE_DIR}/src/components/utils/test/date_time_test.cc
-    ${CMAKE_SOURCE_DIR}/src/components/utils/test/file_system_test.cc
-    ${CMAKE_SOURCE_DIR}/src/components/utils/test/messagemeter_test.cc
-    ${CMAKE_SOURCE_DIR}/src/components/media_manager/test/media_adapter_impl_test.cc
-    ${CMAKE_SOURCE_DIR}/src/components/media_manager/test/media_manager_impl_test.cc
-    ${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/connection_handler_impl_test.cc
-    ${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/connection_test.cc
-    #${CMAKE_SOURCE_DIR}/src/components/rpc_base/test/rpc_base_dbus_test.cc
-    ${CMAKE_SOURCE_DIR}/src/components/rpc_base/test/rpc_base_json_test.cc
-    ${CMAKE_SOURCE_DIR}/src/components/rpc_base/test/rpc_base_test.cc
-    ${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/heart_beat_monitor_test.cc
-    ${CMAKE_SOURCE_DIR}/src/components/formatters/test/generic_json_formatter_test.cc
+    ${COMPONENTS_DIR}/utils/test/messagemeter_test.cc
+    ${COMPONENTS_DIR}/utils/test/date_time_test.cc
+    ${COMPONENTS_DIR}/utils/test/file_system_test.cc
+    ${COMPONENTS_DIR}/media_manager/test/media_adapter_impl_test.cc
+    ${COMPONENTS_DIR}/media_manager/test/media_manager_impl_test.cc
+    ${COMPONENTS_DIR}/connection_handler/test/connection_handler_impl_test.cc
+    ${COMPONENTS_DIR}/connection_handler/test/connection_test.cc
+    #${COMPONENTS_DIR}/rpc_base/test/rpc_base_dbus_test.cc
+    ${COMPONENTS_DIR}/rpc_base/test/rpc_base_json_test.cc
+    ${COMPONENTS_DIR}/rpc_base/test/rpc_base_test.cc
+    ${COMPONENTS_DIR}/connection_handler/test/heart_beat_monitor_test.cc
+    ${COMPONENTS_DIR}/formatters/test/generic_json_formatter_test.cc
+    ${COMPONENTS_DIR}/security_manager/test/crypto_manager_impl_test.cc
+    ${COMPONENTS_DIR}/security_manager/test/security_manager_test.cc
+    ${COMPONENTS_DIR}/security_manager/test/security_query_test.cc
+    ${COMPONENTS_DIR}/security_manager/test/security_query_matcher.cc
     ${AM_TEST_DIR}/command_impl_test.cc
+    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectDraftTest.cc
+    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectInvalidTest.cc
+    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectStressTest.cc
+    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectUnitTest.cc
+    ${COMPONENTS_DIR}/smart_objects/test/TSharedPtrTest.cc
   )
 
   set(test_exec_libraries
@@ -252,7 +262,7 @@ if(ENABLE_LOG)
   list(APPEND test_exec_libraries expat -L${EXPAT_LIBS_DIRECTORY})
 endif()
 
-  include(${CMAKE_SOURCE_DIR}/src/components/policy/test/include.cmake)
+  include(${COMPONENTS_DIR}/policy/test/include.cmake)
 
   IF(${CMAKE_SYSTEM_NAME} MATCHES "QNX")
     list(REMOVE_ITEM test_exec_libraries dl)
