@@ -224,7 +224,7 @@ TimerThread<T>::TimerThread(const char* name, T* callee, void (T::*f)(), bool is
 
 template <class T>
 TimerThread<T>::~TimerThread() {
-  LOG4CXX_DEBUG(logger_, "TimerThread is to destroy " << name_);
+  LOG4CXX_DEBUG(logger_, "TimerThread is to be destroyed " << name_);
   if (thread_) {
     thread_->stop();
     threads::DeleteThread(thread_);
@@ -264,7 +264,7 @@ void TimerThread<T>::stop() {
     thread_ = NULL;
     delegate_ = NULL;
   } else {
-    LOG4CXX_WARN(logger_, "TimerThread thread_ not stoped " << name_);
+    LOG4CXX_WARN(logger_, "TimerThread thread_ not stopped " << name_);
   }
 }
 

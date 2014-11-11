@@ -198,7 +198,7 @@ void startSmartDeviceLink()
   // End section
 
   if (!main_namespace::LifeCycle::instance()->StartComponents()) {
-    LOG4CXX_FATAL(logger_, "Failed start components");
+    LOG4CXX_FATAL(logger_, "Failed to start components");
 #ifdef ENABLE_LOG
     logger::LogMessageLoopThread::destroy();
 #endif
@@ -210,7 +210,7 @@ void startSmartDeviceLink()
   // Third-Party components initialization.
 
   if (!main_namespace::LifeCycle::instance()->InitMessageSystem()) {
-    LOG4CXX_FATAL(logger_, "Failed InitMessageBroker");
+    LOG4CXX_FATAL(logger_, "Failed to init MessageBroker");
 #ifdef ENABLE_LOG
     logger::LogMessageLoopThread::destroy();
 #endif
@@ -277,7 +277,7 @@ void ApplinkNotificationThreadDelegate::threadMain() {
   utils::System policy_init(kShellInterpreter);
   policy_init.Add(kPolicyInitializationScript);
   if (!policy_init.Execute(true)) {
-    LOG4CXX_FATAL(logger_, "Failed QDB initialization");
+    LOG4CXX_FATAL(logger_, "Failed to init QDB");
     DEINIT_LOGGER();
     exit(EXIT_FAILURE);
   }
@@ -298,7 +298,7 @@ void ApplinkNotificationThreadDelegate::threadMain() {
           break;
         case SDL_MSG_SDL_STOP:
           stopSmartDeviceLink();
-          LOG4CXX_INFO(logger_, "Application stopped due SDL_MSG_SDL_STOP");
+          LOG4CXX_INFO(logger_, "Application stopped due to SDL_MSG_SDL_STOP");
           DEINIT_LOGGER();
           exit(EXIT_SUCCESS);
           break;
@@ -415,7 +415,7 @@ int main(int argc, char** argv) {
   if (cpid == 0) {
     // Child process reads mqueue, translates all received messages to the pipe
     // and reacts on some of them (e.g. SDL_MSG_LOW_VOLTAGE)
-    
+
     // rename child process
     int argv_size = strlen(argv[0]);
     strncpy(argv[0],"SDLDispatcher",argv_size);
@@ -459,7 +459,7 @@ int main(int argc, char** argv) {
   LOG4CXX_INFO(logger_, "Stopping application due to signal caught");
   stopSmartDeviceLink();
 
-  LOG4CXX_INFO(logger_, "Waiting SDL controller finished.");
+  LOG4CXX_INFO(logger_, "Waiting for SDL controller finished.");
   close(pipefd[0]);
   int result;
   waitpid(cpid, &result, 0);

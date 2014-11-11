@@ -334,7 +334,7 @@ void RequestController::updateRequestTimeout(
     const uint32_t& mobile_correlation_id,
     const uint32_t& new_timeout) {
   AutoLock auto_lock(pending_request_set_lock_);
-  LOG4CXX_TRACE(logger_," ENTER app_id : " << app_id
+  LOG4CXX_TRACE(logger_, " ENTER app_id : " << app_id
                 << " mobile_correlation_id : " << mobile_correlation_id
                 << " new_timeout : " << new_timeout);
   RequestInfoSet::iterator it = pending_request_set_.begin();
@@ -419,7 +419,7 @@ void RequestController::onTimer() {
                                           "connection_key: " << request->app_id() << " expired");
       } else {
         LOG4CXX_INFO(logger_, "Timeout for request id: " << request->requestId() <<
-                     "connection_key: " << request->app_id() << " updated" );
+                     "connection_key: " << request->app_id() << " updated");
       }
       break;
     }
@@ -563,7 +563,7 @@ void RequestController::UpdateTimer() {
     }
     const TimevalStruct curent_time = date_time::DateTime::getCurrentTime();
     const int64_t left = request->end_time().tv_sec - curent_time.tv_sec;
-    if(left >= 0) {
+    if (left >= 0) {
       sleep_time = left;
       break;
     }
