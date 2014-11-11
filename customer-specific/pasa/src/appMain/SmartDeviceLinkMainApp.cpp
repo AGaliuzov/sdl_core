@@ -327,7 +327,6 @@ void dispatchCommands(mqd_t mqueue, int pipefd, int pid) {
   ssize_t length = 0;
   sem_t *sem;
   bool low_voltage = false;
-  bool waikup = false;
 
   while (!g_bTerminate) {
     if ( (length = mq_receive(mqueue, buffer, sizeof(buffer), 0)) != -1) {
