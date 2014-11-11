@@ -415,8 +415,10 @@ void RequestController::onTimer() {
       continue;
     }
     if (request->isExpired()) {
-      LOG4CXX_INFO(logger_, "Timeout for request id: " << request->requestId() <<
-                                        "connection_key: " << request->app_id() << " expired");
+      LOG4CXX_INFO(logger_, "Timeout for "
+                   << (RequestInfo::HMIRequest == request->requst_type() ? "HMI": "Mobile")
+                   << " request. id: " << request->requestId()
+                   << " connection_key: " << request->app_id() << " is expired");
 
       // Mobile Requests will  be erased by TIME_OUT response;
       request->request()->onTimeOut();
