@@ -53,11 +53,11 @@ IAPConnection::IAPConnection(const DeviceUID& device_uid,
 }
 
 void IAPConnection::Init() {
+  controller_->ConnectDone(device_uid_, app_handle_);
+
   IAPDevice::AppRecord record = parent_->RegisterConnection(app_handle_, this);
   protocol_name_ = record.first;
   ipod_hdl_ = record.second;
-
-  controller_->ConnectDone(device_uid_, app_handle_);
 }
 
 TransportAdapter::Error IAPConnection::SendData(

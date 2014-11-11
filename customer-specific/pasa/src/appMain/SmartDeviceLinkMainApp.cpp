@@ -415,6 +415,11 @@ int main(int argc, char** argv) {
   if (cpid == 0) {
     // Child process reads mqueue, translates all received messages to the pipe
     // and reacts on some of them (e.g. SDL_MSG_LOW_VOLTAGE)
+    
+    // rename child process
+    int argv_size = strlen(argv[0]);
+    strncpy(argv[0],"SDLDispatcher",argv_size);
+
     close(pipefd[0]);
     struct mq_attr attributes;
     attributes.mq_maxmsg = MSGQ_MAX_MESSAGES;
