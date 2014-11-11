@@ -418,13 +418,13 @@ void RequestController::onTimer() {
       LOG4CXX_INFO(logger_, "Timeout for request id: " << request->requestId() <<
                                         "connection_key: " << request->app_id() << " expired");
 
-      // Mobile Requests will  be erazed by TIME_OUT response;
+      // Mobile Requests will  be erased by TIME_OUT response;
       request->request()->onTimeOut();
       if (RequestInfo::HMIRequest == request->requst_type()) {
         pending_request_set_.erase(probably_expired);
       }
-      //if request is ersed by response probably_expired iterator is invalid
-      //if request timeout updated, set probably_expired iterator is invalid too.
+      // If request is ersed by response probably_expired iterator is invalid
+      // If request timeout updated, set probably_expired iterator is invalid too.
       probably_expired =  pending_request_set_.begin();
     } else {
       ++probably_expired;
