@@ -81,9 +81,9 @@ void TimeManager::Init(protocol_handler::ProtocolHandlerImpl* ph) {
 
 void TimeManager::Stop() {
   if (thread_) {
-    thread_->stop();
     if (socket_fd_ != -1) {
       ::close(socket_fd_);
+    thread_->stop();
     thread_->join();
     threads::DeleteThread(thread_);
     thread_ = NULL;
