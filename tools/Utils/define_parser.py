@@ -113,7 +113,8 @@ cmake_token_specification = [
     (TokenType.comment_token,   "(#.*\n)"),  #oneline comment block
     (TokenType.cmakeif_token,   "([ |\t]*if[ |\t]*\([ |\t]*([A-Za-z0-9_]*)[ |\t]*\)[ |\t]*.*\n)"), #cmake if
     (TokenType.Name,            "[\a]"),  #stub to save order of groups and TokenType enum
-    (TokenType.cmakeifnot_token,"([ |\t]*if[ |\t]*\([ |\t]*NOT[ |\t]*([A-Za-z0-9_]*)[ |\t]*\)[ |\t]*.*\n)"), #cmake if NOT customer
+    (TokenType.cmakeifnot_token,"([ |\t]*if[ |\t]*\([ |\t]*(NOT|not)[ |\t]?([A-Za-z0-9_]*)[ |\t]*\)[ |\t]*.*\n)"), #cmake if NOT customer
+    (TokenType.Name,            "[\a]"),  #stub to save order of groups and TokenType enum
     (TokenType.Name,            "[\a]"),  #stub to save order of groups and TokenType enum
     (TokenType.cmakeif2_token,  "([ |\t]*if[ |\t]*\([ |\t]*([A-Za-z0-9_]*[ |\t]*[A-Za-z0-9_]*[ |\t]*.*[ |\t]*)[ |\t]*\)[ |\t]*.*\n)"), #cmake if
     (TokenType.Name,            "[\a]"),  #stub to save order of groups and TokenType enum
@@ -139,6 +140,8 @@ def parce_type(group):
             if (((token_type == TokenType.ifdef_token or token_type == TokenType.ifndef_token) and rules_type == Rules.cpp)
                 or ((token_type == TokenType.cmakeif_token or token_type == TokenType.cmakeifnot_token) and rules_type == Rules.cmake)):
                 name = group[i + 1]
+                if token_type == TokenType.cmakeifnot_token :
+                    name = group[i + 2]
                 if (name not in defined) and (name not in undefined):
                     if rules_type == Rules.cpp:
                         token_type = TokenType.if_token
