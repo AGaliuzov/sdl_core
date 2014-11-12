@@ -189,7 +189,6 @@ include_directories (
   ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8
   ${COMPONENTS_DIR}/dbus/src
   ${COMPONENTS_DIR}/config_profile/include
-  #${CMAKE_SOURCE_DIR}/test/components/include
   ${GMOCK_INCLUDE_DIRECTORY}
   ${JSONCPP_INCLUDE_DIRECTORY}
   ${MESSAGE_BROKER_INCLUDE_DIRECTORY}
