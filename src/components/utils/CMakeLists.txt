@@ -29,6 +29,7 @@ if(ENABLE_LOG)
     ./src/push_log.cc
     ./src/log_message_loop_thread.cc
     ./src/logger_status.cc
+    ./src/auto_trace.cc
   )
 endif()
 

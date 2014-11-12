@@ -42,6 +42,7 @@
   #include <log4cxx/spi/loggingevent.h>
   #include "utils/push_log.h"
   #include "utils/logger_status.h"
+  #include "utils/auto_trace.h"
 #endif  // ENABLE_LOG
 
 #ifdef ENABLE_LOG
@@ -117,6 +118,7 @@
 
     #define LOG4CXX_TRACE_ENTER(logger) LOG4CXX_TRACE(logger, "ENTER: " << __PRETTY_FUNCTION__ )
     #define LOG4CXX_TRACE_EXIT(logger) LOG4CXX_TRACE(logger, "EXIT: " << __PRETTY_FUNCTION__ )
+    #define LOG4CXX_AUTO_TRACE(loggerPtr, auto_trace) logger::AutoTrace auto_trace(loggerPtr, LOG4CXX_LOCATION)
 
     #define LOG4CXX_ERROR_WITH_ERRNO(logger, message) \
       LOG4CXX_ERROR(logger, message << ", error code " << errno << " (" << strerror(errno) << ")")
