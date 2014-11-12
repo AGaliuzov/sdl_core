@@ -33,8 +33,8 @@ set (LIBRARIES
 )
 
 set(SOURCES
-#${COMPONENTS_DIR}/hmi_message_handler/test/mock_subscriber.cc
-#${COMPONENTS_DIR}/hmi_message_handler/test/test_dbus_message_adapter.cc
+${COMPONENTS_DIR}/hmi_message_handler/test/mock_subscriber.cc
+${COMPONENTS_DIR}/hmi_message_handler/test/test_dbus_message_adapter.cc
 ${COMPONENTS_DIR}/hmi_message_handler/test/test_mqueue_adapter.cc #ok
 
 )          
