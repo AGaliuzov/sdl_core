@@ -745,8 +745,8 @@ void PolicyHandler::OnPendingPermissionChange(
           SendOnAppPermissionsChangedNotification(app->app_id(), permissions);
 
       policy_manager_->RemovePendingPermissionChanges(policy_app_id);
+      break;
     }
-    break;
   }
   case mobile_apis::HMILevel::HMI_BACKGROUND: {
     if (permissions.isAppPermissionsRevoked) {
