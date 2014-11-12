@@ -330,7 +330,6 @@ std::vector<std::string> file_system::ListFiles(
 
 #ifdef __QNXNTO__
   delete[] direntbuffer;
-  delete dir_element;
 #endif
 
   return listFiles;
