@@ -1974,8 +1974,7 @@ void ApplicationManagerImpl::SendOnSDLClose() {
 
 
 void ApplicationManagerImpl::UnregisterAllApplications(bool generated_by_hmi) {
-  LOG4CXX_INFO(logger_, "ApplicationManagerImpl::UnregisterAllApplications " <<
-               unregister_reason_);
+  LOG4CXX_DEBUG(logger_, "Unregister reason  " << unregister_reason_);
 
   hmi_cooperating_ = false;
 

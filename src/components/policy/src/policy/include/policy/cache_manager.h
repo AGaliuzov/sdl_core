@@ -638,9 +638,8 @@ private:
       DISALLOW_COPY_AND_ASSIGN(BackgroundBackuper);
   };
   threads::Thread* backup_thread_;
+  sync_primitives::Lock backuper_lock_;
   BackgroundBackuper* backuper_;
-
 };
-} // policy
-
+}  // namespace policy
 #endif // SRC_COMPONENTS_POLICY_INCLUDE_CACHE_MANAGER_H_
