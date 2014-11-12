@@ -165,6 +165,7 @@ void TcpClientListener::Loop() {
 
     if (AF_INET != client_address.sin_family) {
       LOG4CXX_DEBUG(logger_, "Address of connected client is invalid");
+      close(connection_fd);
       continue;
     }
 
