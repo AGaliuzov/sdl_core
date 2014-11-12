@@ -326,11 +326,14 @@ void dispatchCommands(mqd_t mqueue, int pipefd, int pid) {
   char buffer[MAX_QUEUE_MSG_SIZE];
   ssize_t length = 0;
   sem_t *sem;
+  bool low_voltage = false;
 
   while (!g_bTerminate) {
     if ( (length = mq_receive(mqueue, buffer, sizeof(buffer), 0)) != -1) {
       switch (buffer[0]) {
         case SDL_MSG_LOW_VOLTAGE:
+          if (low_voltage) continue;
+          low_voltage = true;
           sem = sem_open("/SDLSleep", O_CREAT | O_RDONLY, 0666, 0);
           write(pipefd, buffer, length);
           if (!sem) {
@@ -344,6 +347,8 @@ void dispatchCommands(mqd_t mqueue, int pipefd, int pid) {
           }
           break;
         case SDL_MSG_WAKE_UP:
+          if (!low_voltage) continue;
+          low_voltage = false;
           if(kill(pid, SIGCONT) == -1) {
             fprintf(stderr, "Error sending SIGCONT signal: %s\n", strerror(errno));
           }

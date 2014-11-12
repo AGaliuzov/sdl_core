@@ -90,6 +90,7 @@ LifeCycle::LifeCycle()
 #ifdef PASA_HMI
   , mb_pasa_adapter_(NULL)
   , mb_pasa_adapter_thread_(NULL)
+  , low_voltage_(false)
 #endif  // PASA_HMI
 #endif  // CUSTOMER_PASA
   , components_started_(false)
@@ -404,14 +405,25 @@ void LifeCycle::Run() {
 
 #ifdef CUSTOMER_PASA
 void LifeCycle::LowVoltage() {
+  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_TRACE(logger_, "Good night!");
+  low_voltage_ = true;
   transport_manager_->Visibility(false);
   app_manager_->OnLowVoltage();
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void LifeCycle::WakeUp() {
+  LOG4CXX_TRACE_ENTER(logger_);
+  DCHECK(low_voltage_ == true);
+
+  LOG4CXX_TRACE(logger_, "Wake up and sing!");
+  app_manager_->OnWakeUp();
   transport_manager_->Reinit();
   transport_manager_->Visibility(true);
-  app_manager_->OnWakeUp();
+  low_voltage_ = false;
+
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 #endif
 
