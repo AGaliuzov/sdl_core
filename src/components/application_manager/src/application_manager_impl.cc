@@ -348,8 +348,6 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
   const utils::SharedPtr<smart_objects::SmartObject>&
   request_for_registration) {
 
-  sync_primitives::AutoLock lock(applications_list_lock_);
-
   LOG4CXX_DEBUG(logger_, "Restarting application list update timer");
   uint32_t timeout = profile::Profile::instance()->application_list_update_timeout();
   application_list_update_timer_->start(timeout);
@@ -486,7 +484,9 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
     }
   }
 
+  applications_list_lock_.Acquire();
   application_list_.insert(application);
+  applications_list_lock_.Release();
 
   return application;
 }
