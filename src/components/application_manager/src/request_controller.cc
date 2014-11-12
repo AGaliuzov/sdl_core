@@ -567,6 +567,7 @@ void RequestController::UpdateTimer() {
       sleep_time = left;
       break;
     }
+    ++it;
   }
   timer_.updateTimeOut(sleep_time);
   LOG4CXX_INFO(logger_, "Sleep for: " << sleep_time);
