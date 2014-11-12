@@ -478,12 +478,11 @@ int main(int argc, char** argv) {
 
     close(pipefd[0]);
 
-    char* msg;
     MQueue queue;
     Dispatcher dispatcher(pipefd[1], pid);
-    while (dispetcher.IsActive()) {
+    while (dispatcher.IsActive()) {
       std::string msg = queue.Receive();
-      dispetcher.Process(msg);
+      dispatcher.Process(msg);
     }
 
     close(pipefd[1]);
