@@ -117,7 +117,6 @@ BluetoothDeviceScanner::BluetoothDeviceScanner(
                                                   };
   sdp_uuid128_create(&smart_device_link_service_uuid_,
                      smart_device_link_service_uuid_data);
-  thread_ = threads::CreateThread("BT Device Scaner", new  BluetoothDeviceScannerDelegate(this));
 }
 
 BluetoothDeviceScanner::~BluetoothDeviceScanner() {
@@ -429,6 +428,10 @@ void BluetoothDeviceScanner::TimedWaitForDeviceScanRequest() {
 
 TransportAdapter::Error BluetoothDeviceScanner::Init() {
   LOG4CXX_TRACE(logger_, "enter");
+  if(!thread_) {
+    thread_ = threads::CreateThread("BT Device Scaner",
+                                    new  BluetoothDeviceScannerDelegate(this));
+  }
   if(!thread_->start()) {
     LOG4CXX_ERROR(logger_, "Bluetooth device scanner thread start failed");
     LOG4CXX_TRACE(logger_, "exit with TransportAdapter:Fail");

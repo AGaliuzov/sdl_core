@@ -72,6 +72,14 @@ BluetoothPASAListener::BluetoothPASAListener(
 }
 
 BluetoothPASAListener::~BluetoothPASAListener() {
+  LOG4CXX_TRACE_ENTER(logger_);
+  if(thread_) {
+    thread_->stop();
+    thread_->join();
+    threads::DeleteThread(thread_);
+    thread_ = NULL;
+  }
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void BluetoothPASAListener::ListeningThreadDelegate::threadMain() {
@@ -220,16 +228,17 @@ TransportAdapter::Error BluetoothPASAListener::StartListening() {
 
 TransportAdapter::Error BluetoothPASAListener::StopListening() {
   LOG4CXX_TRACE_ENTER(logger_);
-
-  if (!thread_ || !thread_->is_running()) {
+  if (!thread_) {
     LOG4CXX_ERROR(logger_, "PASA incoming messages thread stop failed");
     LOG4CXX_TRACE_EXIT(logger_);
     return TransportAdapter::BAD_STATE;
   }
-  thread_->stop();
-  thread_->join();
-  threads::DeleteThread(thread_);
-  thread_ = NULL;
+  if(thread_) {
+    thread_->stop();
+    thread_->join();
+    threads::DeleteThread(thread_);
+    thread_ = NULL;
+  }
   CloseMsgQ(mq_to_sdl_);
   mq_to_sdl_ = -1;
   LOG4CXX_INFO(logger_, "PASA incoming messages thread stopped");

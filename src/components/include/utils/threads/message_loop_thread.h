@@ -95,10 +95,10 @@ class MessageLoopThread {
     // threads::ThreadDelegate overrides
     virtual void threadMain() OVERRIDE;
     virtual bool exitThreadMain() OVERRIDE;
+
    private:
     // Handle all messages that are in the queue until it is empty
     void DrainQue();
-   private:
     // Handler that processes messages
     Handler& handler_;
     // Message queue that is actually owned by MessageLoopThread
@@ -138,11 +138,14 @@ void MessageLoopThread<Q>::PostMessage(const Message& message) {
 
 template <class Q>
 void MessageLoopThread<Q>::Shutdown() {
+  CREATE_LOGGERPTR_LOCAL(logger_, "Utils")
+  LOG4CXX_TRACE_ENTER(logger_);
   if(thread_) {
     thread_->stop();
     threads::DeleteThread(thread_);
     thread_ = NULL;
   }
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 //////////
