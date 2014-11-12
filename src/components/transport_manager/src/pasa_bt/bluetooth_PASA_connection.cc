@@ -73,6 +73,8 @@ BluetoothPASAConnection::~BluetoothPASAConnection() {
   Notify();
   errno = 0;
   thread_->stop();
+  thread_->join();
+  threads::DeleteThread(thread_);
   if (-1 != read_fd_)
     close(read_fd_);
   if (-1 != write_fd_)

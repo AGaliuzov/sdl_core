@@ -187,8 +187,9 @@ class ApplicationManagerImpl : public ApplicationManager,
   MOCK_METHOD1(set_connection_handler, void (connection_handler::ConnectionHandler*));
 
   //ApplicationManagerImpl methods:
-
+#ifdef TIME_TESTER
   MOCK_METHOD1(SetTimeMetricObserver, void(AMMetricObserver*));
+#endif
   MOCK_METHOD1(RegisterApplication,
                 ApplicationSharedPtr(const utils::SharedPtr<smart_objects::SmartObject>&));
   MOCK_METHOD0(hmi_capabilities, HMICapabilities& ());

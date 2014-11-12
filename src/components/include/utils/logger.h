@@ -37,7 +37,6 @@
   #include <errno.h>
   #include <string.h>
   #include <sstream>
-  #include <apr_time.h>
   #include <log4cxx/propertyconfigurator.h>
   #include <log4cxx/spi/loggingevent.h>
   #include "utils/push_log.h"
@@ -57,16 +56,14 @@
     #define INIT_LOGGER(file_name) \
       log4cxx::PropertyConfigurator::configure(file_name);
 
-    // without this line log4cxx threads continue using some instances destroyed by exit()
-    #define DEINIT_LOGGER() \
-    do { \
-      CREATE_LOGGERPTR_LOCAL (logger_, "Logger")\
-      LOG4CXX_DEBUG(logger_, "Logger deinitialization"); \
-      logger::LogMessageLoopThread::destroy(); \
-      log4cxx::Logger::getRootLogger()->closeNestedAppenders(); \
-    } while (false)
+    // Logger deinitilization function and macro, need to stop log4cxx writing
+    // without this deinitilization log4cxx threads continue using some instances destroyed by exit()
+    void deinit_logger ();
+    #define DEINIT_LOGGER() deinit_logger()
 
     #define LOG4CXX_IS_TRACE_ENABLED(logger) logger->isTraceEnabled()
+
+    log4cxx_time_t time_now();
 
     #define LOG_WITH_LEVEL(loggerPtr, logLevel, logEvent) \
     do { \
@@ -74,7 +71,8 @@
         if (loggerPtr->isEnabledFor(logLevel)) { \
           std::stringstream accumulator; \
           accumulator << logEvent; \
-          logger::push_log(loggerPtr, logLevel, accumulator.str(), apr_time_now(), LOG4CXX_LOCATION, ::log4cxx::spi::LoggingEvent::getCurrentThreadName()); \
+          logger::push_log(loggerPtr, logLevel, accumulator.str(), time_now(), \
+                           LOG4CXX_LOCATION, ::log4cxx::spi::LoggingEvent::getCurrentThreadName()); \
         } \
       } \
     } while (false)

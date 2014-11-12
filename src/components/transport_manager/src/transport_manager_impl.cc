@@ -263,6 +263,9 @@ int TransportManagerImpl::Stop() {
     return E_TM_IS_NOT_INITIALIZED;
   }
 
+  message_queue_.Shutdown();
+  event_queue_.Shutdown();
+
   DisconnectAllDevices();
   TerminateAllAdapters();
 

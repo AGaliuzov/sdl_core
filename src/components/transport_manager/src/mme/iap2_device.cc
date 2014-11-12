@@ -61,6 +61,7 @@ void IAP2Device::Stop() {
       i != hub_connection_threads_.end(); ++i) {
     threads::Thread* thread = i->second;
     thread->stop();
+    thread->join();
     threads::DeleteThread(thread);
   }
   hub_connection_threads_.clear();
@@ -68,6 +69,7 @@ void IAP2Device::Stop() {
       i != legacy_connection_threads_.end(); ++i) {
     threads::Thread* thread = i->second;
     thread->stop();
+    thread->join();
     threads::DeleteThread(thread);
   }
   legacy_connection_threads_.clear();
@@ -75,6 +77,7 @@ void IAP2Device::Stop() {
       i != pool_connection_threads_.end(); ++i) {
     threads::Thread* thread = i->second;
     thread->stop();
+    thread->join();
     threads::DeleteThread(thread);
   }
   pool_connection_threads_.clear();

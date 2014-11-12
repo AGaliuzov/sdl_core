@@ -176,7 +176,7 @@ int32_t main(int32_t argc, char** argv) {
 #ifdef __QNX__
   if (profile::Profile::instance()->enable_policy()) {
     if (!utils::System("./init_policy.sh").Execute(true)) {
-      LOG4CXX_FATAL(logger_, "Failed initialization of policy database");
+      LOG4CXX_FATAL(logger_, "Failed to init policy database");
       DEINIT_LOGGER();
       exit(EXIT_FAILURE);
     }
@@ -184,7 +184,7 @@ int32_t main(int32_t argc, char** argv) {
 #endif  // __QNX__
 
   if (!main_namespace::LifeCycle::instance()->StartComponents()) {
-    LOG4CXX_FATAL(logger_, "Failed start components");
+    LOG4CXX_FATAL(logger_, "Failed start to components");
     main_namespace::LifeCycle::instance()->StopComponents();
     DEINIT_LOGGER();
     exit(EXIT_FAILURE);
@@ -194,7 +194,7 @@ int32_t main(int32_t argc, char** argv) {
   // Third-Party components initialization.
 
   if (!main_namespace::LifeCycle::instance()->InitMessageSystem()) {
-    LOG4CXX_FATAL(logger_, "Failed init message system");
+    LOG4CXX_FATAL(logger_, "Failed to init message system");
     DEINIT_LOGGER();
     exit(EXIT_FAILURE);
   }
@@ -206,7 +206,7 @@ int32_t main(int32_t argc, char** argv) {
 
 #ifndef NO_HMI
       if (!InitHmi()) {
-        LOG4CXX_FATAL(logger_, "Failed init HMI");
+        LOG4CXX_FATAL(logger_, "Failed to init HMI");
         main_namespace::LifeCycle::instance()->StopComponents();
         DEINIT_LOGGER();
         exit(EXIT_FAILURE);

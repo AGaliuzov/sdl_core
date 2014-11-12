@@ -26,6 +26,7 @@ set (SOURCES
 
 if(ENABLE_LOG)
   list(APPEND SOURCES
+    ./src/logger.cc
     ./src/push_log.cc
     ./src/log_message_loop_thread.cc
     ./src/logger_status.cc

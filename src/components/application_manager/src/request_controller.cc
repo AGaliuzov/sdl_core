@@ -92,6 +92,7 @@ void RequestController::DestroyThreadpool() {
   }
   for (uint32_t i = 0; i < pool_size_; i++) {
     pool_[i]->stop();
+    pool_[i]->join();
     threads::DeleteThread(pool_[i]);
   }
   pool_.clear();
@@ -333,7 +334,7 @@ void RequestController::updateRequestTimeout(
     const uint32_t& mobile_correlation_id,
     const uint32_t& new_timeout) {
   AutoLock auto_lock(pending_request_set_lock_);
-  LOG4CXX_TRACE(logger_," ENTER app_id : " << app_id
+  LOG4CXX_TRACE(logger_, " ENTER app_id : " << app_id
                 << " mobile_correlation_id : " << mobile_correlation_id
                 << " new_timeout : " << new_timeout);
   RequestInfoSet::iterator it = pending_request_set_.begin();
@@ -401,6 +402,7 @@ void RequestController::onTimer() {
     RequestInfoSet::iterator probably_expired = pending_request_set_.begin();
     RequestInfoPtr request = *probably_expired;
     if (request->timeout_sec() == 0) {
+      // FIXME(EZamakhov): inf loop on true
       LOG4CXX_DEBUG(logger_, "Ignore " << request->requestId());
       ++probably_expired;
       // This request should not be observed for TIME_OUT
@@ -417,7 +419,7 @@ void RequestController::onTimer() {
                                           "connection_key: " << request->app_id() << " expired");
       } else {
         LOG4CXX_INFO(logger_, "Timeout for request id: " << request->requestId() <<
-                     "connection_key: " << request->app_id() << " updated" );
+                     "connection_key: " << request->app_id() << " updated");
       }
       break;
     }
@@ -559,9 +561,12 @@ void RequestController::UpdateTimer() {
       // This request should not be observed for TIME_OUT
       continue;
     }
-    sleep_time = request->end_time().tv_sec -
-                           date_time::DateTime::getCurrentTime().tv_sec;
-    break;
+    const TimevalStruct curent_time = date_time::DateTime::getCurrentTime();
+    const int64_t left = request->end_time().tv_sec - curent_time.tv_sec;
+    if (left >= 0) {
+      sleep_time = left;
+      break;
+    }
   }
   timer_.updateTimeOut(sleep_time);
   LOG4CXX_INFO(logger_, "Sleep for: " << sleep_time);
