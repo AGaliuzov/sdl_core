@@ -2025,8 +2025,6 @@ void ApplicationManagerImpl::UnregisterApplication(
   //remove appID from tts_global_properties_app_list_
   RemoveAppFromTTSGlobalPropertiesList(app_id);
 
-  sync_primitives::AutoLock lock(applications_list_lock_);
-
   switch (reason) {
     case mobile_apis::Result::SUCCESS:break;
     case mobile_apis::Result::DISALLOWED: break;
@@ -2047,6 +2045,7 @@ void ApplicationManagerImpl::UnregisterApplication(
   }
 
   ApplicationSharedPtr app_to_remove;
+  applications_list_lock_.Acquire();
   std::set<ApplicationSharedPtr>::const_iterator it = application_list_.begin();
   for (; it != application_list_.end(); ++it) {
     if ((*it)->app_id() == app_id) {
@@ -2056,9 +2055,11 @@ void ApplicationManagerImpl::UnregisterApplication(
   }
   if (!app_to_remove) {
     LOG4CXX_ERROR(logger_, "Cant find application with app_id = " << app_id);
+    applications_list_lock_.Release();
     return;
   }
   application_list_.erase(app_to_remove);
+  applications_list_lock_.Release();
 #ifndef CUSTOMER_PASA
   if (is_resuming) {
     resume_ctrl_.SaveApplication(app_to_remove);
