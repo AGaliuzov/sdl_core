@@ -186,7 +186,7 @@ bool PolicyManagerImpl::LoadPT(const std::string& file,
 
   // If there was a user request for policy table update, it should be started
   // right after current update is finished
-  if(listener_) {
+  if (listener_) {
     RefreshRetrySequence();
     listener_->OnUserRequestedUpdateCheckRequired();
     return true;

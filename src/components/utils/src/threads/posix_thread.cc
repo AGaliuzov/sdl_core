@@ -105,7 +105,7 @@ void Thread::SetNameForId(const Id& thread_id, const std::string& name) {
   std::string nm = name;
   std::string& trimname = nm.size() > 15 ? nm.erase(15) : nm;
   const int rc = pthread_setname_np(thread_id.id_, trimname.c_str());
-  if(rc != EOK) {
+  if (rc != EOK) {
     LOG4CXX_WARN(logger_, "Couldn't set pthread name \""
                        << trimname
                        << "\", error code "
@@ -230,7 +230,20 @@ void Thread::stop() {
 }
 
 void Thread::join() {
-  pthread_join(thread_handle_, NULL);
+  LOG4CXX_TRACE_ENTER(logger_);
+  if (isThreadRunning_) {
+    const int pthread_result = pthread_join(thread_handle_, NULL);
+    if (pthread_result != EOK) {
+      LOG4CXX_ERROR(logger_,
+                   "Couldn't join thread (#" << thread_handle_ << " \"" << name_ <<
+                   "\") from thread #" << pthread_self() << ". Error code = "
+                   << pthread_result << " (\"" << strerror(pthread_result) << "\")");
+    }
+  } else {
+    LOG4CXX_DEBUG(logger_, "Thread #" << thread_handle_
+                  << " \""  << name_ << " \" is not running");
+  }
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 bool Thread::Id::operator==(const Thread::Id& other) const {
@@ -239,7 +252,7 @@ bool Thread::Id::operator==(const Thread::Id& other) const {
 
 std::ostream& operator<<(std::ostream& os, const Thread::Id& thread_id) {
   char name[32];
-  if(pthread_getname_np(thread_id.Handle(), name, 32) == 0) {
+  if (pthread_getname_np(thread_id.Handle(), name, 32) == 0) {
     os << name;
   }
   return os;

@@ -244,7 +244,7 @@ void TimerThread<T>::start(uint32_t timeout_seconds) {
   delegate_ = is_looper_ ?
       new TimerLooperDelegate(this) :
       new TimerDelegate(this);
-  if(delegate_) {
+  if (delegate_) {
     delegate_->setTimeOut(timeout_seconds);
   }
 

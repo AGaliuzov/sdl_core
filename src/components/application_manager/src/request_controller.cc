@@ -333,10 +333,10 @@ void RequestController::updateRequestTimeout(
     const uint32_t& app_id,
     const uint32_t& mobile_correlation_id,
     const uint32_t& new_timeout) {
-  AutoLock auto_lock(pending_request_set_lock_);
   LOG4CXX_TRACE(logger_, " ENTER app_id : " << app_id
                 << " mobile_correlation_id : " << mobile_correlation_id
                 << " new_timeout : " << new_timeout);
+  AutoLock auto_lock(pending_request_set_lock_);
   RequestInfoSet::iterator it = pending_request_set_.begin();
   RequestInfoPtr request_info;
   for (; pending_request_set_.end() != it; ++it) {

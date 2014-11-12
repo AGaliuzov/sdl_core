@@ -83,7 +83,7 @@ TransportAdapter::Error TcpClientListener::Init() {
 
 void TcpClientListener::Terminate() {
   LOG4CXX_TRACE(logger_, "enter");
-  if(thread_) {
+  if (thread_) {
     thread_->stop();
     thread_->join();
     threads::DeleteThread(thread_);
@@ -285,7 +285,7 @@ TransportAdapter::Error TcpClientListener::StopListening() {
     return TransportAdapter::BAD_STATE;
   }
 
-  if(thread_) {
+  if (thread_) {
     thread_->stop();
     thread_->join();
     threads::DeleteThread(thread_);

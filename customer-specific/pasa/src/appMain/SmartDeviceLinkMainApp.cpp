@@ -464,7 +464,7 @@ int main(int argc, char** argv) {
   LOG4CXX_INFO(logger_, "Stopping application due to signal caught");
   stopSmartDeviceLink();
 
-  LOG4CXX_INFO(logger_, "Waiting for SDL controller finished.");
+  LOG4CXX_INFO(logger_, "Waiting for SDL controller to be finished.");
   close(pipefd[0]);
   int result;
   waitpid(cpid, &result, 0);

@@ -120,7 +120,7 @@ BluetoothDeviceScanner::BluetoothDeviceScanner(
 }
 
 BluetoothDeviceScanner::~BluetoothDeviceScanner() {
-  if(thread_) {
+  if (thread_) {
     thread_->stop();
     thread_->join();
     threads::DeleteThread(thread_);
@@ -428,11 +428,11 @@ void BluetoothDeviceScanner::TimedWaitForDeviceScanRequest() {
 
 TransportAdapter::Error BluetoothDeviceScanner::Init() {
   LOG4CXX_TRACE(logger_, "enter");
-  if(!thread_) {
+  if (!thread_) {
     thread_ = threads::CreateThread("BT Device Scaner",
                                     new  BluetoothDeviceScannerDelegate(this));
   }
-  if(!thread_->start()) {
+  if (!thread_->start()) {
     LOG4CXX_ERROR(logger_, "Bluetooth device scanner thread start failed");
     LOG4CXX_TRACE(logger_, "exit with TransportAdapter:Fail");
     return TransportAdapter::FAIL;
@@ -453,7 +453,7 @@ void BluetoothDeviceScanner::Terminate() {
     }
     LOG4CXX_INFO(logger_,
                  "Waiting for bluetooth device scanner thread termination");
-    if(thread_) {
+    if (thread_) {
       thread_->stop();
       thread_->join();
       threads::DeleteThread(thread_);

@@ -73,7 +73,7 @@ BluetoothPASAListener::BluetoothPASAListener(
 
 BluetoothPASAListener::~BluetoothPASAListener() {
   LOG4CXX_TRACE_ENTER(logger_);
-  if(thread_) {
+  if (thread_) {
     thread_->stop();
     thread_->join();
     threads::DeleteThread(thread_);
@@ -233,7 +233,7 @@ TransportAdapter::Error BluetoothPASAListener::StopListening() {
     LOG4CXX_TRACE_EXIT(logger_);
     return TransportAdapter::BAD_STATE;
   }
-  if(thread_) {
+  if (thread_) {
     thread_->stop();
     thread_->join();
     threads::DeleteThread(thread_);

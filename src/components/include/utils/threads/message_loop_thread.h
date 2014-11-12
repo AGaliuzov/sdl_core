@@ -140,7 +140,7 @@ template <class Q>
 void MessageLoopThread<Q>::Shutdown() {
   CREATE_LOGGERPTR_LOCAL(logger_, "Utils")
   LOG4CXX_TRACE_ENTER(logger_);
-  if(thread_) {
+  if (thread_) {
     thread_->stop();
     threads::DeleteThread(thread_);
     thread_ = NULL;
