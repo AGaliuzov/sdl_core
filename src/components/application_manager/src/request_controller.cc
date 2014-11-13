@@ -396,11 +396,17 @@ bool RequestController::IsLowVoltage() {
 
 void RequestController::onTimer() {
   AutoLock auto_lock(pending_request_set_lock_);
-  LOG4CXX_TRACE_ENTER(logger_);
-
-  while (!pending_request_set_.empty()) {
-    RequestInfoSet::iterator probably_expired = pending_request_set_.begin();
+  LOG4CXX_TRACE(logger_, "ENTER pending_request_set_ size :"
+                << pending_request_set_.size());
+  RequestInfoSet::iterator probably_expired = pending_request_set_.begin();
+  while (probably_expired != pending_request_set_.end()) {
     RequestInfoPtr request = *probably_expired;
+    if (false == request.valid()) {
+      LOG4CXX_ERROR(logger_, "Invalid pointer in pending_request_set_");
+      pending_request_set_.erase(probably_expired);
+      probably_expired =  pending_request_set_.begin();
+      continue;
+    }
     if (request->timeout_sec() == 0) {
       // FIXME(EZamakhov): inf loop on true
       LOG4CXX_DEBUG(logger_, "Ignore " << request->requestId());
@@ -409,19 +415,21 @@ void RequestController::onTimer() {
       continue;
     }
     if (request->isExpired()) {
-      LOG4CXX_INFO(logger_, "Timeout for request id: " << request->requestId() <<
-                                        "connection_key: " << request->app_id() << " expired");
+      LOG4CXX_INFO(logger_, "Timeout for "
+                   << (RequestInfo::HMIRequest == request->requst_type() ? "HMI": "Mobile")
+                   << " request. id: " << request->requestId()
+                   << " connection_key: " << request->app_id() << " is expired");
+
+      // Mobile Requests will  be erased by TIME_OUT response;
       request->request()->onTimeOut();
-      if (request->isExpired()) {
-        request->request()->CleanUp();
+      if (RequestInfo::HMIRequest == request->requst_type()) {
         pending_request_set_.erase(probably_expired);
-        LOG4CXX_INFO(logger_, "Erased request id: " << request->requestId() <<
-                                          "connection_key: " << request->app_id() << " expired");
-      } else {
-        LOG4CXX_INFO(logger_, "Timeout for request id: " << request->requestId() <<
-                     "connection_key: " << request->app_id() << " updated");
       }
-      break;
+      // If request is ersed by response probably_expired iterator is invalid
+      // If request timeout updated, set probably_expired iterator is invalid too.
+      probably_expired =  pending_request_set_.begin();
+    } else {
+      ++probably_expired;
     }
   }
   UpdateTimer();
