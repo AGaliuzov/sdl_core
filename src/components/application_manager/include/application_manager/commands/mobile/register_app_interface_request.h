@@ -99,23 +99,6 @@ class RegisterAppInterfaceRequest : public CommandRequestImpl {
   bool IsApplicationWithSameAppIdRegistered();
 
   /*
-   * @brief Check for some request param. names restrictions, e.g. for
-   * newline characters
-   *
-   * return SUCCESS if param name pass the check, otherwise - error code
-   * will be returned
-   */
-  mobile_apis::Result::eType CheckRestrictions() const;
-
-  /*
-   * @brief Removes hidden symbols and spaces
-   *
-   * return cleared copy of param name
-   */
-  std::string ClearParamName(std::string param_name) const;
-
-
-  /*
    * @brief Check new application parameters (name, tts, vr) for
    * coincidence with already known parameters of registered applications
    *
