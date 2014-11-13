@@ -358,7 +358,7 @@ void AlertRequest::SendPlayToneNotification(int32_t app_id) {
       // crate HMI basic communication playtone request
       smart_objects::SmartObject msg_params = smart_objects::SmartObject(
           smart_objects::SmartType_Map);
-
+      msg_params[strings::app_id] = app_id;
       CreateHMINotification(hmi_apis::FunctionID::BasicCommunication_PlayTone,
                             msg_params);
     }
