@@ -34,22 +34,37 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
   include/
+<<<<<<< HEAD
   
   ${SecurityManagerIncludeDir}
   ${COMPONENTS_DIR}/protocol_handler/test/include
   ${COMPONENTS_DIR}/transport_manager/test/include
   ${COMPONENTS_DIR}/security_manager/include
+=======
+  #${SecurityManagerIncludeDir}
+  ${COMPONENTS_DIR}/protocol_handler/test/include
+  ${COMPONENTS_DIR}/transport_manager/test/include
+  ${COMPONENTS_DIR}/security_manager/include
+  #${COMPONENTS_DIR}/security_manager/test/include
+>>>>>>> unit_test_refactoring
 )
 
 set(SOURCES
   ${COMPONENTS_DIR}/security_manager/test/crypto_manager_impl_test.cc
+<<<<<<< HEAD
   #${COMPONENTS_DIR}/security_manager/test/security_manager_test.cc
+=======
+  ${COMPONENTS_DIR}/security_manager/test/security_manager_test.cc
+>>>>>>> unit_test_refactoring
   ${COMPONENTS_DIR}/security_manager/test/security_query_test.cc
   ${COMPONENTS_DIR}/security_manager/test/security_query_matcher.cc
 )
 
 set(LIBRARIES
+<<<<<<< HEAD
   gtest
+=======
+>>>>>>> unit_test_refactoring
   gtest_main
   gmock
   gmock_main

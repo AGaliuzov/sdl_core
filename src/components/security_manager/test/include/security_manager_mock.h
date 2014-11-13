@@ -45,6 +45,40 @@ namespace components  {
 namespace security_manager_test {
 
 
+<<<<<<< HEAD
+=======
+/*
+ * MOCK implementation of ::security_manager::SecurityManager
+ */
+class SecurityManagerMock: public ::security_manager::SecurityManager {
+ public:
+  MOCK_METHOD1(set_session_observer,
+               void(::protocol_handler::SessionObserver *));
+  MOCK_METHOD1(set_protocol_handler,
+               void(::protocol_handler::ProtocolHandler *));
+  MOCK_METHOD1(set_crypto_manager,
+               void(::security_manager::CryptoManager *));
+  MOCK_METHOD4(SendInternalError,
+               void(const uint32_t ,
+                    const uint8_t &,
+                    const std::string &,
+                    const uint32_t));
+  MOCK_METHOD1(CreateSSLContext,
+               ::security_manager::SSLContext * (const uint32_t &));
+  MOCK_METHOD1(StartHandshake,
+               void(uint32_t));
+  MOCK_METHOD1(AddListener,
+               void(::security_manager::SecurityManagerListener *));
+  MOCK_METHOD1(RemoveListener,
+               void(::security_manager::SecurityManagerListener *));
+  // protocol_handler::ProtocolObserver part
+  MOCK_METHOD1(OnMessageReceived,
+               void(const ::protocol_handler::RawMessagePtr));
+  MOCK_METHOD1(OnMobileMessageSent,
+               void(const ::protocol_handler::RawMessagePtr));
+};
+
+>>>>>>> unit_test_refactoring
   /*
    * MOCK implementation of protocol_handler::SessionObserver interface
    */
@@ -62,17 +96,30 @@ namespace security_manager_test {
                    const uint32_t& key,
                    const protocol_handler::ServiceType& service_type));
     MOCK_METHOD5(OnSessionStartedCallback,
+<<<<<<< HEAD
                  uint32_t(
                    const transport_manager::ConnectionUID& connection_handle,
                    const uint8_t session_id,
                    const protocol_handler::ServiceType& service_type,
                    const bool is_protected, uint32_t* hash_id));
+=======
+                   uint32_t(
+                     const transport_manager::ConnectionUID &connection_handle,
+                     const uint8_t session_id,
+                     const ::protocol_handler::ServiceType &service_type,
+                     const bool is_protected, uint32_t* hash_id));
+>>>>>>> unit_test_refactoring
     MOCK_METHOD4(OnSessionEndedCallback,
                  uint32_t(
                    const transport_manager::ConnectionUID& connection_handle,
                    const uint8_t sessionId,
                    const uint32_t& hashCode,
                    const protocol_handler::ServiceType& service_type));
+<<<<<<< HEAD
+=======
+    MOCK_METHOD1(OnApplicationFloodCallBack,
+                 void(const uint32_t&));
+>>>>>>> unit_test_refactoring
     MOCK_METHOD2(KeyFromPair,
                  uint32_t(
                    transport_manager::ConnectionUID connection_handle,
@@ -87,12 +134,22 @@ namespace security_manager_test {
                          uint32_t* app_id,
                          std::list<int32_t>* sessions_list,
                          uint32_t* device_id));
+<<<<<<< HEAD
     MOCK_METHOD4(GetDataOnDeviceID,
                  int32_t(
                    uint32_t device_handle,
                    std::string* device_name,
                    std::list<uint32_t>* applications_list,
                    std::string* mac_address));
+=======
+    MOCK_METHOD5(GetDataOnDeviceID,
+                  int32_t(
+                    uint32_t device_handle,
+                    std::string *device_name,
+                    std::list<uint32_t> *applications_list,
+                    std::string *mac_address,
+                    std::string *connection_type));
+>>>>>>> unit_test_refactoring
     MOCK_METHOD2(IsHeartBeatSupported,
                  bool( transport_manager::ConnectionUID connection_handle,
                        uint8_t session_id));

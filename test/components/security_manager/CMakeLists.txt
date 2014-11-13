@@ -35,6 +35,7 @@ include_directories(
   ${SecurityManagerIncludeDir}
   ${CMAKE_SOURCE_DIR}/src/components/utils/include
   ${CMAKE_SOURCE_DIR}/src/components/protocol_handler/include
+  ${CMAKE_SOURCE_DIR}/src/components/utils/include/
   ${LOG4CXX_INCLUDE_DIRECTORY}
   ${GMOCK_INCLUDE_DIRECTORY}
   ${CMAKE_SOURCE_DIR}/src/thirdPartyLibs/gmock-1.7.0/include

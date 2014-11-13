@@ -42,4 +42,3 @@ ${COMPONENTS_DIR}/hmi_message_handler/test/test_mqueue_adapter.cc #ok
 
 create_test("test_hmi_message_handler" "${SOURCES}" "${LIBRARIES}")
 
-
