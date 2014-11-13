@@ -19,11 +19,6 @@ set (LIBRARIES
  
     transport_manager
     ApplicationManagerTest 
-#    SmartObjects        
-#    ProtocolLibrary
-#    ProtocolHandler
-#    connectionHandler
-#    HMIMessageHandler
     Utils
     
     ConfigProfile
@@ -49,7 +44,6 @@ ${COMPONENTS_DIR}/transport_manager/test/raw_message_matcher.cc    #ok
 ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter_listener.cc   #ok
 ${COMPONENTS_DIR}/transport_manager/test/test_dnssd_service_browser.cc     #ok
 ${COMPONENTS_DIR}/transport_manager/test/test_tcp_transport_adapter.cc     ##ok
-#${COMPONENTS_DIR}/transport_manager/test/transport_manager_instance_test.cc    ##use outdated tests
 ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter.cc         #ok
 ${COMPONENTS_DIR}/transport_manager/test/transport_manager_test.cc    #ok
 )          

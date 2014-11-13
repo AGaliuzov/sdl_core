@@ -180,7 +180,7 @@ if(BUILD_TESTS)
 include_directories (
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
-#<<<<<<< HEAD
+
   ${CMAKE_SOURCE_DIR}/src/components/security_manager/test/include
   ${CMAKE_SOURCE_DIR}/src/components/utils/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8
@@ -206,6 +206,9 @@ include_directories (
   ${COMPONENTS_DIR}/transport_manager/test/include
 )
 
+if (BUILD_AVAHI_SUPPORT)
+  list(APPEND LIBRARIES avahi-client avahi-common)
+endif()
 
 #TODO to ALL : Please FIX heart_beat_monitor_test.cc
   set(testSources
@@ -222,42 +225,38 @@ include_directories (
     ${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/heart_beat_monitor_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/formatters/test/generic_json_formatter_test.cc
     
-#    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/transport_manager_test.cc
-#    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/mock_application.cc
-#    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/mock_connection_factory.cc  ##ok
-#    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/mock_connection.cc       #ok
-#    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/mock_device.cc            #ok
-#    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/mock_device_scanner.cc     ##ok
-#    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/raw_message_matcher.cc    #ok
-#    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/mock_transport_adapter_listener.cc   #ok
-#    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/test_dnssd_service_browser.cc     #ok
-#    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/test_tcp_transport_adapter.cc     ##ok
-#    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/mock_transport_adapter.cc         #ok
-#    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/transport_manager_test.cc    #ok
-#=======
-#
-#)
-#
-#TODO to ALL : Please FIX heart_beat_monitor_test.cc
-#  set(testSources
-#    ./main_test.cc
-#    ${COMPONENTS_DIR}/utils/test/messagemeter_test.cc
-#    ${COMPONENTS_DIR}/utils/test/date_time_test.cc
-#    ${COMPONENTS_DIR}/utils/test/file_system_test.cc
-#    ${COMPONENTS_DIR}/media_manager/test/media_adapter_impl_test.cc
-#    ${COMPONENTS_DIR}/media_manager/test/media_manager_impl_test.cc
-#    ${COMPONENTS_DIR}/connection_handler/test/connection_handler_impl_test.cc
-#    ${COMPONENTS_DIR}/connection_handler/test/connection_test.cc
-    #${COMPONENTS_DIR}/rpc_base/test/rpc_base_dbus_test.cc
-#    ${COMPONENTS_DIR}/rpc_base/test/rpc_base_json_test.cc
-#    ${COMPONENTS_DIR}/rpc_base/test/rpc_base_test.cc
-#    ${COMPONENTS_DIR}/connection_handler/test/heart_beat_monitor_test.cc
-#    ${COMPONENTS_DIR}/formatters/test/generic_json_formatter_test.cc
-#    ${COMPONENTS_DIR}/security_manager/test/crypto_manager_impl_test.cc
-#    ${COMPONENTS_DIR}/security_manager/test/security_manager_test.cc
-#    ${COMPONENTS_DIR}/security_manager/test/security_query_test.cc
-#    ${COMPONENTS_DIR}/security_manager/test/security_query_matcher.cc
-#>>>>>>> unit_test_refactoring
+    
+    ./main_test.cc
+    ${COMPONENTS_DIR}/utils/test/messagemeter_test.cc
+    ${COMPONENTS_DIR}/utils/test/date_time_test.cc
+    ${COMPONENTS_DIR}/utils/test/file_system_test.cc
+    ${COMPONENTS_DIR}/media_manager/test/media_adapter_impl_test.cc
+    ${COMPONENTS_DIR}/media_manager/test/media_manager_impl_test.cc
+    ${COMPONENTS_DIR}/connection_handler/test/connection_handler_impl_test.cc
+    ${COMPONENTS_DIR}/connection_handler/test/connection_test.cc
+    ${COMPONENTS_DIR}/rpc_base/test/rpc_base_dbus_test.cc
+    ${COMPONENTS_DIR}/rpc_base/test/rpc_base_json_test.cc
+    ${COMPONENTS_DIR}/rpc_base/test/rpc_base_test.cc
+    ${COMPONENTS_DIR}/connection_handler/test/heart_beat_monitor_test.cc
+    ${COMPONENTS_DIR}/formatters/test/generic_json_formatter_test.cc
+    ${COMPONENTS_DIR}/security_manager/test/crypto_manager_impl_test.cc
+    ${COMPONENTS_DIR}/security_manager/test/security_manager_test.cc
+    ${COMPONENTS_DIR}/security_manager/test/security_query_test.cc
+    ${COMPONENTS_DIR}/security_manager/test/security_query_matcher.cc
+    
+
+    ${COMPONENTS_DIR}/transport_manager/test/mock_application.cc
+    ${COMPONENTS_DIR}/transport_manager/test/mock_connection_factory.cc  ##ok
+    ${COMPONENTS_DIR}/transport_manager/test/mock_connection.cc       #ok
+    ${COMPONENTS_DIR}/transport_manager/test/mock_device.cc            #ok
+    ${COMPONENTS_DIR}/transport_manager/test/mock_device_scanner.cc     ##ok
+    ${COMPONENTS_DIR}/transport_manager/test/raw_message_matcher.cc    #ok
+    ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter_listener.cc   #ok
+#    ${COMPONENTS_DIR}/transport_manager/test/test_dnssd_service_browser.cc     #ok
+#    ${COMPONENTS_DIR}/transport_manager/test/test_tcp_transport_adapter.cc     ##ok
+    ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter.cc         #ok
+    ${COMPONENTS_DIR}/transport_manager/test/transport_manager_test.cc    #ok
+
     ${AM_TEST_DIR}/command_impl_test.cc
     ${COMPONENTS_DIR}/smart_objects/test/SmartObjectDraftTest.cc
     ${COMPONENTS_DIR}/smart_objects/test/SmartObjectInvalidTest.cc

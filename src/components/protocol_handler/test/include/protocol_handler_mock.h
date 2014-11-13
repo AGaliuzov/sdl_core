@@ -57,11 +57,7 @@ using namespace transport_manager;
 class ProtocolHandlerMock: public ::protocol_handler::ProtocolHandler {
  public:
   MOCK_METHOD2(SendMessageToMobileApp,
-//<<<<<<< HEAD
-//               void(const RawMessagePtr message,
-//=======
                void(const ::protocol_handler::RawMessagePtr message,
-//>>>>>>> unit_test_refactoring
                     bool final_message));
   MOCK_METHOD1(AddProtocolObserver,
                void(::protocol_handler::ProtocolObserver *observer));
