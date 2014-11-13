@@ -180,13 +180,30 @@ if(BUILD_TESTS)
 include_directories (
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
-<<<<<<< HEAD
+#<<<<<<< HEAD
   ${CMAKE_SOURCE_DIR}/src/components/security_manager/test/include
   ${CMAKE_SOURCE_DIR}/src/components/utils/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8
   ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8/dbus/
   ${CMAKE_SOURCE_DIR}/src/components/dbus/src
   ${COMPONENTS_DIR}/config_profile/include
+  
+  ${COMPONENTS_DIR}/security_manager/test/include
+  ${COMPONENTS_DIR}/application_manager/include
+  ${COMPONENTS_DIR}/protocol_handler/test/include
+  
+    ${COMPONENTS_DIR}/security_manager/include
+ 
+  ${COMPONENTS_DIR}/media_manager/include
+  ${COMPONENTS_DIR}/utils/include
+  
+  ${COMPONENTS_DIR}/dbus/src
+  ${COMPONENTS_DIR}/config_profile/include
+  ${GMOCK_INCLUDE_DIRECTORY}
+  ${JSONCPP_INCLUDE_DIRECTORY}
+  ${MESSAGE_BROKER_INCLUDE_DIRECTORY}
+  ${LOG4CXX_INCLUDE_DIRECTORY}
+  ${COMPONENTS_DIR}/transport_manager/test/include
 )
 
 
@@ -217,43 +234,30 @@ include_directories (
 #    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/test_tcp_transport_adapter.cc     ##ok
 #    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/mock_transport_adapter.cc         #ok
 #    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/transport_manager_test.cc    #ok
-=======
-  ${COMPONENTS_DIR}/security_manager/include
-  ${COMPONENTS_DIR}/security_manager/test/include
-  ${COMPONENTS_DIR}/application_manager/include
-  ${COMPONENTS_DIR}/protocol_handler/test/include
-  ${COMPONENTS_DIR}/media_manager/include
-  ${COMPONENTS_DIR}/utils/include
-  ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8
-  ${COMPONENTS_DIR}/dbus/src
-  ${COMPONENTS_DIR}/config_profile/include
-  ${GMOCK_INCLUDE_DIRECTORY}
-  ${JSONCPP_INCLUDE_DIRECTORY}
-  ${MESSAGE_BROKER_INCLUDE_DIRECTORY}
-  ${LOG4CXX_INCLUDE_DIRECTORY}
-  ${COMPONENTS_DIR}/transport_manager/test/include
-)
-
+#=======
+#
+#)
+#
 #TODO to ALL : Please FIX heart_beat_monitor_test.cc
-  set(testSources
-    ./main_test.cc
-    ${COMPONENTS_DIR}/utils/test/messagemeter_test.cc
-    ${COMPONENTS_DIR}/utils/test/date_time_test.cc
-    ${COMPONENTS_DIR}/utils/test/file_system_test.cc
-    ${COMPONENTS_DIR}/media_manager/test/media_adapter_impl_test.cc
-    ${COMPONENTS_DIR}/media_manager/test/media_manager_impl_test.cc
-    ${COMPONENTS_DIR}/connection_handler/test/connection_handler_impl_test.cc
-    ${COMPONENTS_DIR}/connection_handler/test/connection_test.cc
+#  set(testSources
+#    ./main_test.cc
+#    ${COMPONENTS_DIR}/utils/test/messagemeter_test.cc
+#    ${COMPONENTS_DIR}/utils/test/date_time_test.cc
+#    ${COMPONENTS_DIR}/utils/test/file_system_test.cc
+#    ${COMPONENTS_DIR}/media_manager/test/media_adapter_impl_test.cc
+#    ${COMPONENTS_DIR}/media_manager/test/media_manager_impl_test.cc
+#    ${COMPONENTS_DIR}/connection_handler/test/connection_handler_impl_test.cc
+#    ${COMPONENTS_DIR}/connection_handler/test/connection_test.cc
     #${COMPONENTS_DIR}/rpc_base/test/rpc_base_dbus_test.cc
-    ${COMPONENTS_DIR}/rpc_base/test/rpc_base_json_test.cc
-    ${COMPONENTS_DIR}/rpc_base/test/rpc_base_test.cc
-    ${COMPONENTS_DIR}/connection_handler/test/heart_beat_monitor_test.cc
-    ${COMPONENTS_DIR}/formatters/test/generic_json_formatter_test.cc
-    ${COMPONENTS_DIR}/security_manager/test/crypto_manager_impl_test.cc
-    ${COMPONENTS_DIR}/security_manager/test/security_manager_test.cc
-    ${COMPONENTS_DIR}/security_manager/test/security_query_test.cc
-    ${COMPONENTS_DIR}/security_manager/test/security_query_matcher.cc
->>>>>>> unit_test_refactoring
+#    ${COMPONENTS_DIR}/rpc_base/test/rpc_base_json_test.cc
+#    ${COMPONENTS_DIR}/rpc_base/test/rpc_base_test.cc
+#    ${COMPONENTS_DIR}/connection_handler/test/heart_beat_monitor_test.cc
+#    ${COMPONENTS_DIR}/formatters/test/generic_json_formatter_test.cc
+#    ${COMPONENTS_DIR}/security_manager/test/crypto_manager_impl_test.cc
+#    ${COMPONENTS_DIR}/security_manager/test/security_manager_test.cc
+#    ${COMPONENTS_DIR}/security_manager/test/security_query_test.cc
+#    ${COMPONENTS_DIR}/security_manager/test/security_query_matcher.cc
+#>>>>>>> unit_test_refactoring
     ${AM_TEST_DIR}/command_impl_test.cc
     ${COMPONENTS_DIR}/smart_objects/test/SmartObjectDraftTest.cc
     ${COMPONENTS_DIR}/smart_objects/test/SmartObjectInvalidTest.cc

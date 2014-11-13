@@ -37,11 +37,9 @@
 #include "protocol/common.h"
 #include "security_manager/security_manager_impl.h"
 
-<<<<<<< HEAD
-#include "session_observer_mock.h"
-=======
+
 //#include "session_observer_mock.h"
->>>>>>> unit_test_refactoring
+
 #include "protocol_handler_mock.h"
 #include "protocol_observer_mock.h"
 #include "include/security_manager_mock.h"

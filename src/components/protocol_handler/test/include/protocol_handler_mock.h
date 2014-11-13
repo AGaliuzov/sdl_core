@@ -57,11 +57,11 @@ using namespace transport_manager;
 class ProtocolHandlerMock: public ::protocol_handler::ProtocolHandler {
  public:
   MOCK_METHOD2(SendMessageToMobileApp,
-<<<<<<< HEAD
-               void(const RawMessagePtr message,
-=======
+//<<<<<<< HEAD
+//               void(const RawMessagePtr message,
+//=======
                void(const ::protocol_handler::RawMessagePtr message,
->>>>>>> unit_test_refactoring
+//>>>>>>> unit_test_refactoring
                     bool final_message));
   MOCK_METHOD1(AddProtocolObserver,
                void(::protocol_handler::ProtocolObserver *observer));
@@ -74,12 +74,7 @@ class ProtocolHandlerMock: public ::protocol_handler::ProtocolHandler {
   MOCK_METHOD2(SendEndSession,
                void(int32_t connection_id, uint8_t session_id));
 };
-<<<<<<< HEAD
-}  // namespace protocol_handler_test
-}  // namespace components
-}  // namespace test
-#endif  // TEST_COMPONENTS_INCLUDE_PROTOCOL_HANDLER_PROTOCOL_HANDLER_MOCK_H_
-=======
+
 
 /*
  * MOCK implementation of transport_manager::TransportManager interface
@@ -196,4 +191,4 @@ class SecurityManagerMock: public security_manager::SecurityManager {
 }  // namespace components
 }  // namespace protocol_handler_test
 #endif  // TEST_COMPONENTS_PROTOCOL_HANDLER_INCLUDE_PROTOCOL_HANDLER_PROTOCOL_HANDLER_MOCK_H_
->>>>>>> unit_test_refactoring
+

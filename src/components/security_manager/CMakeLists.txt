@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 include_directories(
-=======
-    include_directories(
->>>>>>> unit_test_refactoring
   include/
   ${COMPONENTS_DIR}/protocol_handler/include/
   ${COMPONENTS_DIR}/connection_handler/include
