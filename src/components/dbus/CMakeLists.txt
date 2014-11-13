@@ -6,6 +6,7 @@ include_directories (
   ${COMPONENTS_DIR}/formatters/include/
   ${COMPONENTS_DIR}/smart_objects/include/
   ${COMPONENTS_DIR}/utils/include/
+  ${CMAKE_BINARY_DIR}/src/components
 )
 
 set (SOURCES
@@ -42,3 +43,7 @@ add_library("DBus" ${SOURCES})
 ADD_DEPENDENCIES("DBus" Utils install-3rd_party_dbus)
 
 target_link_libraries("DBus" "${LIBRARIES}")
+
+if(BUILD_TESTS)
+  add_subdirectory(test)
+endif()

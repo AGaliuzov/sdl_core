@@ -224,6 +224,8 @@ include_directories (
     ${COMPONENTS_DIR}/protocol_handler/test/protocol_handler_tm_test.cc
     ${COMPONENTS_DIR}/protocol_handler/test/incoming_data_handler_test.cc
     ${COMPONENTS_DIR}/protocol_handler/test/protocol_header_validator_test.cc
+    ${COMPONENTS_DIR}/dbus/test/test_schema.cc
+    ${COMPONENTS_DIR}/dbus/test/test_dbus_adapter.cc
   )
 
   set(test_exec_libraries
