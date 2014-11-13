@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
@@ -49,7 +49,6 @@ Lock::Lock()
         is_mutex_recursive_(false)
 #endif // NDEBUG
 {
-  LOG4CXX_TRACE(logger_, "Creation mutex " << &mutex_);
   int32_t status = pthread_mutex_init(&mutex_, NULL);
   if (status != 0) {
     LOG4CXX_ERROR(logger_, "Failed to initialize mutex");
@@ -62,7 +61,6 @@ Lock::Lock(bool is_mutex_recursive)
         is_mutex_recursive_(is_mutex_recursive)
 #endif // NDEBUG
 {
-  LOG4CXX_TRACE(logger_, "Creation mutex " << &mutex_);
   int32_t status;
 
   if (is_mutex_recursive) {
@@ -81,7 +79,6 @@ Lock::Lock(bool is_mutex_recursive)
 }
 
 Lock::~Lock() {
-  LOG4CXX_TRACE(logger_, "Destroying mutex " << &mutex_);
 #ifndef NDEBUG
   if (lock_taken_ > 0) {
     LOG4CXX_ERROR(logger_, "Destroying non-released mutex " << &mutex_);
