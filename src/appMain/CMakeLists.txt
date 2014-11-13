@@ -182,9 +182,11 @@ include_directories (
   ${CMAKE_SOURCE_DIR}/src/components/security_manager/test/include
   ${CMAKE_SOURCE_DIR}/src/components/utils/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8
+  ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8/dbus/
   ${CMAKE_SOURCE_DIR}/src/components/dbus/src
   ${COMPONENTS_DIR}/config_profile/include
 )
+
 
 #TODO to ALL : Please FIX heart_beat_monitor_test.cc
   set(testSources
@@ -200,6 +202,19 @@ include_directories (
     ${CMAKE_SOURCE_DIR}/src/components/rpc_base/test/rpc_base_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/heart_beat_monitor_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/formatters/test/generic_json_formatter_test.cc
+    
+#    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/transport_manager_test.cc
+#    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/mock_application.cc
+#    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/mock_connection_factory.cc  ##ok
+#    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/mock_connection.cc       #ok
+#    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/mock_device.cc            #ok
+#    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/mock_device_scanner.cc     ##ok
+#    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/raw_message_matcher.cc    #ok
+#    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/mock_transport_adapter_listener.cc   #ok
+#    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/test_dnssd_service_browser.cc     #ok
+#    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/test_tcp_transport_adapter.cc     ##ok
+#    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/mock_transport_adapter.cc         #ok
+#    ${CMAKE_SOURCE_DIR}/src/components/transport_manager/test/transport_manager_test.cc    #ok
     ${AM_TEST_DIR}/command_impl_test.cc
   )
 

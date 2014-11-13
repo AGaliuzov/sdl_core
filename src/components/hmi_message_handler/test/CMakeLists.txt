@@ -16,8 +16,7 @@ include_directories (
 #  ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8
 #  ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8/dbus/
 #)
-set (LIBRARIES
-    DBus
+set (LIBRARIES    
     gtest
     gtest_main
     gmock
@@ -30,10 +29,12 @@ set (LIBRARIES
     HMIMessageHandler
     ${RTLIB}
     ProtocolLibrary
+#    DBus
 )
 
 set(SOURCES
-${COMPONENTS_DIR}/hmi_message_handler/test/mock_subscriber.cc
+${COMPONENTS_DIR}/hmi_message_handler/test/main.cc  
+${COMPONENTS_DIR}/hmi_message_handler/test/mock_subscriber.cc #ok
 ${COMPONENTS_DIR}/hmi_message_handler/test/test_dbus_message_adapter.cc
 ${COMPONENTS_DIR}/hmi_message_handler/test/test_mqueue_adapter.cc #ok
 
