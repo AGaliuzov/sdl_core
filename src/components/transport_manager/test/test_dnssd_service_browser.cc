@@ -37,10 +37,10 @@
 #include <sys/types.h>
 #include <ifaddrs.h>
 
-#include "../include/transport_manager/transport_adapter/transport_adapter_controller.h"
-#include "../include/transport_manager/tcp/dnssd_service_browser.h"
-#include "../include/transport_manager/tcp/tcp_device.h"
-#include "../include/transport_manager/transport_adapter/transport_adapter_impl.h"
+#include "transport_manager/transport_adapter/transport_adapter_controller.h"
+#include "transport_manager/tcp/dnssd_service_browser.h"
+#include "transport_manager/tcp/tcp_device.h"
+
 
 namespace transport_manager {
 namespace transport_adapter {
