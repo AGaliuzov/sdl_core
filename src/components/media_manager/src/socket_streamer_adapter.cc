@@ -201,19 +201,16 @@ void SocketStreamerAdapter::Streamer::threadMain() {
   LOG4CXX_TRACE(logger,"exit " << this);
 }
 
-bool SocketStreamerAdapter::Streamer::exitThreadMain() {
+void SocketStreamerAdapter::Streamer::exitThreadMain() {
   LOG4CXX_TRACE(logger,"enter " << this);
   stop_flag_ = true;
   stop();
   server_->messages_.Shutdown();
-  //exith threadMainshould whait while threadMain will be finished
   if (server_->socket_fd_ != -1) {
     shutdown(server_->socket_fd_, SHUT_RDWR);
     close(server_->socket_fd_);
   }
-  sync_primitives::AutoLock auto_lock(thread_lock);
   LOG4CXX_TRACE(logger,"exit " << this);
-  return true;
 }
 
 void SocketStreamerAdapter::Streamer::start() {

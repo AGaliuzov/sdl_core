@@ -379,7 +379,7 @@ bool LifeCycle::InitMessageSystem() {
 
 namespace {
   void sig_handler(int sig) {
-    MessageQueue<threads::ThreadManager::ThreadDesc>& threads = ::threads::ThreadManager::instance()->threads_to_terminate;
+    MessageQueue<threads::Thread*>& threads = ::threads::ThreadManager::instance()->threads_to_terminate;
     threads.Shutdown();
   }
 }
@@ -388,19 +388,7 @@ void LifeCycle::Run() {
   // First, register signal handler
   ::utils::SubscribeToTerminateSignal(&sig_handler);
   // Then run main loop until signal caught
-  MessageQueue<threads::ThreadManager::ThreadDesc>& threads = ::threads::ThreadManager::instance()->threads_to_terminate;
-  while(!threads.IsShuttingDown()) {
-    while (!threads.empty()) {
-      ::threads::ThreadManager::ThreadDesc desc = threads.pop();
-      pthread_join(desc.handle, NULL);
-      sync_primitives::AutoLock(desc.delegate->thread_lock_);
-      if (desc.delegate->CurrentThread()) {
-        desc.delegate->CurrentThread()->delegate_ = NULL;
-      }
-      delete desc.delegate;
-    }
-    threads.wait();
-  }
+  threads::ThreadManager::instance()->TerminateThreadsLoop();
 }
 
 #ifdef CUSTOMER_PASA

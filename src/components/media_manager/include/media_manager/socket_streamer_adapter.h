@@ -85,7 +85,7 @@ class SocketStreamerAdapter : public MediaAdapterImpl {
         /*
          * Function called by thread on exit
          */
-        bool exitThreadMain();
+        void exitThreadMain();
 
         /*
          * Checks if server is ready

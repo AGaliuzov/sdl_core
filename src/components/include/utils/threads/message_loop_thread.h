@@ -94,7 +94,7 @@ class MessageLoopThread {
 
     // threads::ThreadDelegate overrides
     virtual void threadMain() OVERRIDE;
-    virtual bool exitThreadMain() OVERRIDE;
+    virtual void exitThreadMain() OVERRIDE;
 
    private:
     // Handle all messages that are in the queue until it is empty
@@ -142,6 +142,7 @@ void MessageLoopThread<Q>::Shutdown() {
   LOG4CXX_TRACE_ENTER(logger_);
   if (thread_) {
     thread_->stop();
+    thread_->join();
     threads::DeleteThread(thread_);
     thread_ = NULL;
   }
@@ -173,16 +174,11 @@ void MessageLoopThread<Q>::LoopThreadDelegate::threadMain() {
 }
 
 template<class Q>
-bool MessageLoopThread<Q>::LoopThreadDelegate::exitThreadMain() {
+void MessageLoopThread<Q>::LoopThreadDelegate::exitThreadMain() {
   CREATE_LOGGERPTR_LOCAL(logger_, "Utils")
   LOG4CXX_TRACE_ENTER(logger_);
   message_queue_.Shutdown();
-  {
-    sync_primitives::AutoLock auto_lock(active_lock);
-    // Prevent canceling thread until queue is drained
-  }
   LOG4CXX_TRACE_EXIT(logger_);
-  return true;
 }
 
 template<class Q>

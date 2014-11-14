@@ -143,12 +143,11 @@ void TimeManager::Streamer::threadMain() {
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
-bool TimeManager::Streamer::exitThreadMain() {
+void TimeManager::Streamer::exitThreadMain() {
   LOG4CXX_INFO(logger_, "Streamer::exitThreadMain");
   stop_flag_ = true;
   Stop();
   server_->messages_.Shutdown();
-  return true;
 }
 
 void TimeManager::Streamer::Start() {

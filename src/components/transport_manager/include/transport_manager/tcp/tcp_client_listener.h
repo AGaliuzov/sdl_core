@@ -114,7 +114,7 @@ class TcpClientListener : public ClientConnectionListener {
    public:
     explicit ListeningThreadDelegate(TcpClientListener* parent);
     virtual void threadMain();
-    bool exitThreadMain();
+    void exitThreadMain();
    private:
     TcpClientListener* parent_;
   };

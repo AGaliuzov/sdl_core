@@ -64,7 +64,7 @@ class TimeManager {
     explicit Streamer(TimeManager* const server);
     ~Streamer();
     void threadMain() OVERRIDE;
-    bool exitThreadMain() OVERRIDE;
+    void exitThreadMain() OVERRIDE;
     bool IsReady() const;
     void Start();
     void Stop();

@@ -625,7 +625,7 @@ private:
       BackgroundBackuper(CacheManager* cache_manager);
       ~BackgroundBackuper();
       virtual void threadMain();
-      virtual bool exitThreadMain();
+      virtual void exitThreadMain();
       void DoBackup();
     private:
       void InternalBackup();

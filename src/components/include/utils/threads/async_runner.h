@@ -85,11 +85,9 @@ class AsyncRunner {
         virtual void threadMain();
 
         /**
-         * @brief exitThreadMain doing stuff before exith from thread.
-         *
-         * @return always true.
+         * @brief exitThreadMain doing stuff before exit from thread.
          */
-        virtual bool exitThreadMain();
+        virtual void exitThreadMain();
 
         /**
          * @brief runDelegate push obtained delegate into specific queue

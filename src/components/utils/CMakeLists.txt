@@ -14,6 +14,7 @@ set (SOURCES
     ./src/file_system.cc
     ./src/threads/posix_thread.cc
     ./src/threads/thread_manager.cc
+    ./src/threads/thread_delegate.cc
     ./src/threads/thread_validator.cc
     ./src/threads/async_runner.cc
     ./src/lock_posix.cc

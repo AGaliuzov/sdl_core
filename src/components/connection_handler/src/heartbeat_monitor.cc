@@ -144,14 +144,13 @@ void HeartBeatMonitor::KeepAlive(uint8_t session_id) {
   }
 }
 
-bool HeartBeatMonitor::exitThreadMain() {
+void HeartBeatMonitor::exitThreadMain() {
   // FIXME (dchmerev@luxoft.com): thread requested to stop should stop as soon as possible,
   // not running one more iteration before actual stop
   LOG4CXX_TRACE_ENTER(logger_);
   run_ = false;
   AutoLock main_lock(main_thread_lock_);
   LOG4CXX_TRACE_EXIT(logger_);
-  return true;
 }
 
 void HeartBeatMonitor::set_heartbeat_timeout_seconds(int32_t timeout) {

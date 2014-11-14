@@ -133,7 +133,7 @@ class ThreadedSocketConnection : public Connection,
   int read_fd_;
   int write_fd_;
   void threadMain();
-  bool exitThreadMain();
+  void exitThreadMain();
   void Transmit();
   void Finalize();
   TransportAdapter::Error Notify() const;

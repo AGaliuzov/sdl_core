@@ -199,12 +199,11 @@ void UpdateStatusManager::UpdateThreadDelegate::threadMain() {
   }
 }
 
-bool UpdateStatusManager::UpdateThreadDelegate::exitThreadMain() {
+void UpdateStatusManager::UpdateThreadDelegate::exitThreadMain() {
   sync_primitives::AutoLock auto_lock(state_lock_);
   stop_flag_ = true;
   LOG4CXX_INFO(logger_, "before notify");
   termination_condition_.NotifyOne();
-  return true;
 }
 
 void UpdateStatusManager::UpdateThreadDelegate::updateTimeOut(const uint32_t timeout_ms) {

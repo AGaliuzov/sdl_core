@@ -159,7 +159,7 @@ class TimerThread {
         /**
          * @brief Called by thread::thread to free all allocated resources.
          */
-        virtual bool exitThreadMain();
+        virtual void exitThreadMain();
 
         /**
          * @brief Set new Timeout
@@ -351,13 +351,10 @@ void TimerThread<T>::TimerLooperDelegate::threadMain() {
 
 
 template <class T>
-bool TimerThread<T>::TimerDelegate::exitThreadMain() {
-  {
+void TimerThread<T>::TimerDelegate::exitThreadMain() {
   sync_primitives::AutoLock auto_lock(state_lock_);
   stop_flag_ = true;
-  }
   termination_condition_.NotifyOne();
-  return true;
 }
 
 template <class T>

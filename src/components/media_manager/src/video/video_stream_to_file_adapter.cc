@@ -169,11 +169,10 @@ void VideoStreamToFileAdapter::Streamer::threadMain() {
   close();
 }
 
-bool VideoStreamToFileAdapter::Streamer::exitThreadMain() {
+void VideoStreamToFileAdapter::Streamer::exitThreadMain() {
   LOG4CXX_INFO(logger, "Streamer::exitThreadMain");
   stop_flag_ = true;
   server_->messages_.Shutdown();
-  return true;
 }
 
 void VideoStreamToFileAdapter::Streamer::open() {

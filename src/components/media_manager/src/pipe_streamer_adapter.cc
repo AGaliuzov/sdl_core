@@ -187,11 +187,10 @@ void PipeStreamerAdapter::Streamer::threadMain() {
   close();
 }
 
-bool PipeStreamerAdapter::Streamer::exitThreadMain() {
+void PipeStreamerAdapter::Streamer::exitThreadMain() {
   LOG4CXX_INFO(logger, "Streamer::exitThreadMain");
   stop_flag_ = true;
   server_->messages_.Shutdown();
-  return true;
 }
 
 void PipeStreamerAdapter::Streamer::open() {

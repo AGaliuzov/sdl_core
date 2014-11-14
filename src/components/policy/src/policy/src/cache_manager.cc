@@ -1676,14 +1676,13 @@ void CacheManager::BackgroundBackuper::threadMain() {
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
-bool CacheManager::BackgroundBackuper::exitThreadMain() {
+void CacheManager::BackgroundBackuper::exitThreadMain() {
   LOG4CXX_TRACE_ENTER(logger_);
   sync_primitives::AutoLock auto_lock(need_backup_lock_);
   cache_manager_ = NULL;
   stop_flag_ = true;
   backup_notifier_.NotifyOne();
   LOG4CXX_TRACE_EXIT(logger_);
-  return true;
 }
 
 void CacheManager::BackgroundBackuper::DoBackup() {
