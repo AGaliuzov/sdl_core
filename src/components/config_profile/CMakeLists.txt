@@ -1,12 +1,12 @@
 include_directories (
-  ./include
-  ../utils/include/
+  include
+  ${COMPONENTS_DIR}/utils/include/
   ${LOG4CXX_INCLUDE_DIRECTORY}
 )
 
 set (SOURCES
-    ./src/profile.cc
-    ./src/ini_file.cc
+    ${COMPONENTS_DIR}/config_profile/src/profile.cc
+    ${COMPONENTS_DIR}/config_profile/src/ini_file.cc
 )
 
 add_library("ConfigProfile" ${SOURCES})

@@ -11,7 +11,8 @@ set(testSources
 set(testLibraries
   gmock
   gtest
-  Utils)
+  Utils
+  )
 
 add_executable(utils_test ${testSources})
 target_link_libraries(utils_test ${testLibraries})

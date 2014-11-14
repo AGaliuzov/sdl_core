@@ -52,6 +52,8 @@ namespace test {
 namespace components {
 namespace transport_manager {
 
+using namespace ::protocol_handler;
+
 class RawMessageMatcher : public MatcherInterface<RawMessagePtr> {
  public:
   explicit RawMessageMatcher(RawMessagePtr ptr);

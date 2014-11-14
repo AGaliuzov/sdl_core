@@ -13,7 +13,7 @@ add_subdirectory(./application_manager)
 
 if(ENABLE_SECURITY)
 # --- ProtocolHandler
-add_subdirectory(./protocol_handler)
+#add_subdirectory(./protocol_handler)
 # --- SecurityManager
 add_subdirectory(./security_manager)
 # TODO(EZamakhov): split connection tests and security

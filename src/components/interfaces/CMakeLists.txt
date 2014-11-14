@@ -1,6 +1,6 @@
 include_directories (
-  ../utils/include/
-  ../formatters/include
+  ${COMPONENTS_DIR}/utils/include/
+  ${COMPONENTS_DIR}/formatters/include
 )
 
 GenerateInterface("v4_protocol_v1_2_no_extra.xml" "NsSmartDeviceLinkRPC::V1" "sdlrpcv1")
@@ -27,9 +27,8 @@ IF (${HMI_DBUS_API})
                        )
 
     include_directories (
-        ../../../src/components/smart_objects/include
-        ../../../src/components/formatters/include/
-        ${CMAKE_SOURCE_DIR}/src/components/formatters/include/
+        ${COMPONENTS_DIR}/smart_objects/include
+        ${COMPONENTS_DIR}/formatters/include/
         ${CMAKE_BINARY_DIR}
     )
 

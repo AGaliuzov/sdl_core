@@ -35,7 +35,6 @@
 #include <limits.h>
 #include <stddef.h>
 #include <signal.h>
-#include <unistd.h>
 
 #include "utils/atomic.h"
 #include "utils/threads/thread.h"
@@ -43,6 +42,10 @@
 #include "utils/logger.h"
 #include "pthread.h"
 
+ #ifdef BUILD_TESTS
+  // Temporary fix for UnitTest until APPLINK-9987 is resolved
+ #include <unistd.h>
+ #endif
 
 #ifndef __QNXNTO__
   const int EOK = 0;
@@ -187,6 +190,11 @@ bool Thread::startWithOptions(const ThreadOptions& options) {
 
 void Thread::stop() {
   LOG4CXX_TRACE_ENTER(logger_);
+
+#ifdef BUILD_TESTS
+  // Temporary fix for UnitTest until APPLINK-9987 is resolved
+  usleep(100000);
+endif
 
   LOG4CXX_DEBUG(logger_, "Stopping thread #" << thread_handle_
                   << " \""  << name_ << " \"");

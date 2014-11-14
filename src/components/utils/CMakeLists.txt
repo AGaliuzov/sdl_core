@@ -1,62 +1,67 @@
-set(UtilsIncludeDir ${CMAKE_SOURCE_DIR}/src/components/utils/include)
+set(UTILS_INCLUDE_DIR ${COMPONENTS_DIR}/utils/include)
+set(UTILS_SRC_DIR ${COMPONENTS_DIR}/utils/src)
 
 include_directories (
-  ./include
-  ../config_profile/include
-  ../media_manager/include/
-  ../protocol_handler/include/
+  ${UTILS_INCLUDE_DIR}
+  ${COMPONENTS_DIR}/config_profile/include
+  ${COMPONENTS_DIR}/media_manager/include
+  ${COMPONENTS_DIR}/protocol_handler/include
   ${LOG4CXX_INCLUDE_DIRECTORY}
 )
 
 set (SOURCES
-    ./src/bitstream.cc
-    ./src/conditional_variable_posix.cc
-    ./src/file_system.cc
-    ./src/threads/posix_thread.cc
-    ./src/threads/thread_manager.cc
-    ./src/threads/thread_validator.cc
-    ./src/lock_posix.cc
-    ./src/rwlock_posix.cc
-    ./src/date_time.cc
-    ./src/signals_linux.cc
-    ./src/system.cc
-    ./src/resource_usage.cc
-    ./src/appenders_loader.cc
+    ${UTILS_SRC_DIR}/bitstream.cc
+    ${UTILS_SRC_DIR}/conditional_variable_posix.cc
+    ${UTILS_SRC_DIR}/file_system.cc
+    ${UTILS_SRC_DIR}/threads/posix_thread.cc
+    ${UTILS_SRC_DIR}/threads/thread_manager.cc
+    ${UTILS_SRC_DIR}/threads/thread_validator.cc
+    ${UTILS_SRC_DIR}/lock_posix.cc
+    ${UTILS_SRC_DIR}/rwlock_posix.cc
+    ${UTILS_SRC_DIR}/date_time.cc
+    ${UTILS_SRC_DIR}/signals_linux.cc
+    ${UTILS_SRC_DIR}/system.cc
+    ${UTILS_SRC_DIR}/resource_usage.cc
+    ${UTILS_SRC_DIR}/appenders_loader.cc
 )
 
 if(ENABLE_LOG)
   list(APPEND SOURCES
-    ./src/push_log.cc
-    ./src/log_message_loop_thread.cc
-    ./src/logger_status.cc
+    ${UTILS_SRC_DIR}/push_log.cc
+    ${UTILS_SRC_DIR}/log_message_loop_thread.cc
+    ${UTILS_SRC_DIR}/logger_status.cc
   )
 endif()
 
 if (BUILD_BACKTRACE_SUPPORT)
     list(APPEND SOURCES
-    ./src/back_trace.cc
+    ${UTILS_SRC_DIR}/back_trace.cc
     )
 endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
     list(APPEND SOURCES
-    ./src/threads/pulse_thread_delegate.cc
+    ${UTILS_SRC_DIR}l/threads/pulse_thread_delegate.cc
     )
 endif()
 
+
 add_library("Utils" SHARED ${SOURCES})
+
+list(APPEND LIBRARIES dl)
 
 if(ENABLE_LOG)
   list(APPEND LIBRARIES log4cxx -L${LOG4CXX_LIBS_DIRECTORY})
   list(APPEND LIBRARIES apr-1 -L${APR_LIBS_DIRECTORY})
   list(APPEND LIBRARIES aprutil-1 -L${APR_UTIL_LIBS_DIRECTORY})
-  target_link_libraries("Utils" ${LIBRARIES})
   ADD_DEPENDENCIES(Utils install-3rd_party_logger)
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_link_libraries("Utils" pthread ${RTLIB})
 endif()
+
+target_link_libraries("Utils" ${LIBRARIES})
 
 if(BUILD_TESTS)
   add_subdirectory(test)

@@ -6,11 +6,10 @@ include_directories (
   ${CMAKE_SOURCE_DIR}/src/components/utils/include/
   ${LIBUSB_INCLUDE_DIRECTORY}
   ${LOG4CXX_INCLUDE_DIRECTORY}
+  ${CMAKE_SOURCE_DIR}/src/components/utils/include
 )
 
 set (LIBRARIES
-    gtest
-    gtest_main
     gmock
     gmock_main
     TransportManager
