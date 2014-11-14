@@ -246,16 +246,14 @@ endif()
     
 
     ${COMPONENTS_DIR}/transport_manager/test/mock_application.cc
-    ${COMPONENTS_DIR}/transport_manager/test/mock_connection_factory.cc  ##ok
-    ${COMPONENTS_DIR}/transport_manager/test/mock_connection.cc       #ok
-    ${COMPONENTS_DIR}/transport_manager/test/mock_device.cc            #ok
-    ${COMPONENTS_DIR}/transport_manager/test/mock_device_scanner.cc     ##ok
-    ${COMPONENTS_DIR}/transport_manager/test/raw_message_matcher.cc    #ok
-    ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter_listener.cc   #ok
-#    ${COMPONENTS_DIR}/transport_manager/test/test_dnssd_service_browser.cc     #ok
-#    ${COMPONENTS_DIR}/transport_manager/test/test_tcp_transport_adapter.cc     ##ok
-    ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter.cc         #ok
-    ${COMPONENTS_DIR}/transport_manager/test/transport_manager_test.cc    #ok
+    ${COMPONENTS_DIR}/transport_manager/test/mock_connection_factory.cc  
+    ${COMPONENTS_DIR}/transport_manager/test/mock_connection.cc       
+    ${COMPONENTS_DIR}/transport_manager/test/mock_device.cc           
+    ${COMPONENTS_DIR}/transport_manager/test/mock_device_scanner.cc    
+    ${COMPONENTS_DIR}/transport_manager/test/raw_message_matcher.cc   
+    ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter_listener.cc
+    ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter.cc 
+    ${COMPONENTS_DIR}/transport_manager/test/transport_manager_test.cc 
 
     ${AM_TEST_DIR}/command_impl_test.cc
     ${COMPONENTS_DIR}/smart_objects/test/SmartObjectDraftTest.cc
