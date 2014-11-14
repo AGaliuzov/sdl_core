@@ -2070,7 +2070,7 @@
     <function name="PlayTone" messagetype="notification">
       <description>Sent by SDL to HMI to notify that the tone should be played.</description>
       <param name="appID" type="Integer" mandatory="true">
-         <description>ID of the application which receives notification</description>
+         <description>ID of the application that invoked this notification</description>
       </param>
     </function>
     <!-- Policies -->
