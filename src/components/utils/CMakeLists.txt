@@ -15,6 +15,7 @@ set (SOURCES
     ./src/threads/posix_thread.cc
     ./src/threads/thread_manager.cc
     ./src/threads/thread_validator.cc
+    ./src/threads/async_runner.cc
     ./src/lock_posix.cc
     ./src/rwlock_posix.cc
     ./src/date_time.cc
@@ -30,6 +31,7 @@ if(ENABLE_LOG)
     ./src/push_log.cc
     ./src/log_message_loop_thread.cc
     ./src/logger_status.cc
+    ./src/auto_trace.cc
   )
 endif()
 

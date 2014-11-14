@@ -40,10 +40,16 @@
 #include "policy/policy_manager.h"
 #include "application_manager/policies/policy_event_observer.h"
 #include "application_manager/policies/pt_exchange_handler.h"
+#include "application_manager/policies/delegates/statistics_delegate.h"
 #include "utils/logger.h"
 #include "utils/singleton.h"
+#include "utils/threads/thread.h"
+#include "utils/threads/thread_delegate.h"
+#include "utils/conditional_variable.h"
+#include "utils/lock.h"
 #include "usage_statistics/statistics_manager.h"
 #include "policy_handler_observer.h"
+#include "utils/threads/async_runner.h"
 
 namespace Json {
 class Value;
@@ -55,7 +61,8 @@ typedef std::vector<uint32_t> DeviceHandles;
 
 class PolicyHandler :
     public utils::Singleton<PolicyHandler, utils::deleters::Deleter<PolicyHandler> >,
-    public PolicyListener {
+    public PolicyListener,
+    public threads::AsyncRunner {
  public:
   virtual ~PolicyHandler();
   bool LoadPolicyLibrary();
@@ -173,7 +180,7 @@ class PolicyHandler :
    * @param permissions User-changed group permissions consent
    */
   void OnAppPermissionConsent(const uint32_t connection_key,
-                              PermissionConsent& permissions);
+                              const PermissionConsent &permissions);
 
   /**
    * @brief Get appropriate message parameters and send them with response
@@ -352,29 +359,45 @@ protected:
    */
   const std::string ConvertUpdateStatus(policy::PolicyTableStatus status);
 
+  /**
+   * @brief OnAppPermissionConsentInternal reacts on permission changing
+   *
+   * @param connection_key connection key
+   *
+   * @param permissions new permissions.
+   */
+  void OnAppPermissionConsentInternal(const uint32_t connection_key,
+                                      PermissionConsent& permissions);
 private:
-
   class StatisticManagerImpl: public usage_statistics::StatisticsManager {
       //TODO(AKutsan) REMOVE THIS UGLY HOTFIX
         virtual void Increment(usage_statistics::GlobalCounterId type) {
-        return PolicyHandler::instance()->Increment(type);
+
+        PolicyHandler::instance()->AsyncRun(new StatisticsDelegate(type));
       }
 
         virtual void Increment(const std::string& app_id,
                                usage_statistics::AppCounterId type) {
-        return PolicyHandler::instance()->Increment(app_id, type);
+
+        PolicyHandler::instance()->AsyncRun(new StatisticsDelegate(app_id,
+                                                                   type));
       }
 
         virtual void Set(const std::string& app_id,
                          usage_statistics::AppInfoId type,
                          const std::string& value) {
-        return PolicyHandler::instance()->Set(app_id, type, value);
+
+        PolicyHandler::instance()->AsyncRun(new StatisticsDelegate(app_id,
+                                                                   type,
+                                                                   value));
       }
 
         virtual void Add(const std::string& app_id,
                          usage_statistics::AppStopwatchId type,
                          int32_t timespan_seconds) {
-        return PolicyHandler::instance()->Add(app_id, type, timespan_seconds);
+
+        PolicyHandler::instance()->AsyncRun(new StatisticsDelegate(
+                                              app_id, type, timespan_seconds));
       }
   };
   //TODO(AKutsan) REMOVE THIS UGLY HOTFIX
@@ -391,6 +414,7 @@ private:
   bool on_ignition_check_done_;
   uint32_t last_activated_app_id_;
   bool registration_in_progress;
+
 
   /**
    * @brief Contains device handles, which were sent for user consent to HMI
@@ -411,6 +435,7 @@ private:
 
   utils::SharedPtr<StatisticManagerImpl> statistic_manager_impl_;
 
+  friend class AppPermissionDelegate;
 
   DISALLOW_COPY_AND_ASSIGN(PolicyHandler);
   FRIEND_BASE_SINGLETON_CLASS_WITH_DELETER(PolicyHandler,
