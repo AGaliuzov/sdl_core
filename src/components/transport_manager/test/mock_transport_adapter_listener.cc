@@ -1,7 +1,4 @@
 /*
- * \file mock_transport_adapter_listener.h
- * \brief
- *
  * Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
