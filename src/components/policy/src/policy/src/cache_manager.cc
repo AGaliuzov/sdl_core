@@ -1001,44 +1001,65 @@ void CacheManager::CheckSnapshotInitialization() {
 }
 
 void CacheManager::PersistData() {
-  sync_primitives::AutoLock auto_lock(cache_lock_);
   LOG4CXX_TRACE_ENTER(logger_);
   if (backup_.valid()) {
     if (pt_.valid()) {
-      backup_->Save(*pt_);
+
+      cache_lock_.Acquire();
+      policy_table::Table copy_pt(*pt_);
+      std::map<std::string, bool> copy_is_predata = is_predata_;
+      cache_lock_.Release();
+
+      backup_->Save(copy_pt);
       backup_->SaveUpdateRequired(update_required);
 
       policy_table::ApplicationPolicies::const_iterator app_policy_iter =
-          pt_->policy_table.app_policies.begin();
+          copy_pt.policy_table.app_policies.begin();
       policy_table::ApplicationPolicies::const_iterator app_policy_iter_end =
-          pt_->policy_table.app_policies.end();
+          copy_pt.policy_table.app_policies.end();
+
+      bool is_revoked = false;
+      bool is_default_policy;
 
       for (; app_policy_iter != app_policy_iter_end; ++app_policy_iter) {
 
         const std::string app_id = (*app_policy_iter).first;
+
+        if (copy_pt.policy_table.app_policies.end() !=
+            copy_pt.policy_table.app_policies.find(app_id)) {
+          is_revoked = copy_pt.policy_table.app_policies[app_id].is_null();
+        }
+
+        is_default_policy = copy_pt.policy_table.app_policies.end() !=
+            copy_pt.policy_table.app_policies.find(app_id) &&
+            !copy_pt.policy_table.app_policies[app_id].get_string().empty();
+
         backup_->SaveApplicationCustomData(app_id,
-                                          IsApplicationRevoked(app_id),
-                                          IsDefaultPolicy(app_id),
-                                          is_predata_[app_id]);
+                                           is_revoked,
+                                           is_default_policy,
+                                           copy_is_predata[app_id]);
+        is_revoked = false;
       }
 
   // In case of extended policy the meta info should be backuped as well.
 #ifdef EXTENDED_POLICY
       if (ex_backup_.valid()) {
-        ex_backup_->SetMetaInfo(*(*pt_->policy_table.module_meta).ccpu_version,
-                                *(*pt_->policy_table.module_meta).wers_country_code,
-                                *(*pt_->policy_table.module_meta).language);
-        ex_backup_->SetVINValue(*(*pt_->policy_table.module_meta).vin);
+
+        ex_backup_->SetMetaInfo(*(*copy_pt.policy_table.module_meta).ccpu_version,
+                                *(*copy_pt.policy_table.module_meta).wers_country_code,
+                                *(*copy_pt.policy_table.module_meta).language);
+        ex_backup_->SetVINValue(*(*copy_pt.policy_table.module_meta).vin);
+
+
       }
 #endif // EXTENDED_POLICY
+      backup_->WriteDb();
     }
-    backup_->WriteDb();
   }
-
 }
 
 void CacheManager::ResetCalculatedPermissions() {
-  LOG4CXX_INFO(logger_, "ResetCalculatedPermissions");
+  LOG4CXX_TRACE(logger_, "ResetCalculatedPermissions");
   sync_primitives::AutoLock lock(calculated_permissions_lock_);
   calculated_permissions_.clear();
 }
@@ -1047,7 +1068,7 @@ void CacheManager::AddCalculatedPermissions(
     const std::string& device_id,
     const std::string& policy_app_id,
     const Permissions& permissions) {
-  LOG4CXX_INFO(logger_, "AddCalculatedPermissions for device: " << device_id
+  LOG4CXX_DEBUG(logger_, "AddCalculatedPermissions for device: " << device_id
                << " and app: " << policy_app_id);
   sync_primitives::AutoLock lock(calculated_permissions_lock_);
   calculated_permissions_[device_id][policy_app_id] = permissions;
@@ -1057,7 +1078,7 @@ bool CacheManager::IsPermissionsCalculated(
     const std::string& device_id,
     const std::string& policy_app_id,
     Permissions& permission) {
-  LOG4CXX_INFO(logger_, "IsPermissionsCalculated for device: " << device_id
+  LOG4CXX_DEBUG(logger_, "IsPermissionsCalculated for device: " << device_id
                << " and app: " << policy_app_id);
   sync_primitives::AutoLock lock(calculated_permissions_lock_);
   CalculatedPermissions::const_iterator it =

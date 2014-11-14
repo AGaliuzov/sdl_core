@@ -1,5 +1,5 @@
 ﻿/*
- Copyright (c) 2013, Ford Motor Company
+ Copyright (c) 2014, Ford Motor Company
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,12 @@
 #include <algorithm>
 #include <vector>
 #include "application_manager/smart_object_keys.h"
+
 #include "application_manager/policies/policy_handler.h"
 #include "application_manager/policies/pt_exchange_handler_impl.h"
 #include "application_manager/policies/pt_exchange_handler_ext.h"
+#include "application_manager/policies/delegates/app_permission_delegate.h"
+
 #include "application_manager/application_manager_impl.h"
 #include "application_manager/message_helper.h"
 #include "policy/policy_manager_impl.h"
@@ -51,6 +54,7 @@
 #include "policy/policy_types.h"
 #include "interfaces/MOBILE_API.h"
 #include "utils/file_system.h"
+#include "utils/threads/async_runner.h"
 
 namespace policy {
 
@@ -208,7 +212,8 @@ const std::string PolicyHandler::kLibrary = "libPolicy.so";
 
 PolicyHandler::PolicyHandler()
 
-  : dl_handle_(0),
+  : AsyncRunner("PolicyHandler async runner thread"),
+    dl_handle_(0),
 #ifdef EXTENDED_POLICY
     exchange_handler_(new PTExchangeHandlerExt(this)),
 #else  // EXTENDED_POLICY
@@ -219,8 +224,7 @@ PolicyHandler::PolicyHandler()
     registration_in_progress(false),
     is_user_requested_policy_table_update_(false),
     listener_(NULL),
-    statistic_manager_impl_(new StatisticManagerImpl())
-    {
+    statistic_manager_impl_(new StatisticManagerImpl()) {
 }
 
 PolicyHandler::~PolicyHandler() {
@@ -418,6 +422,13 @@ const std::string PolicyHandler::ConvertUpdateStatus(PolicyTableStatus status) {
   }
 }
 
+void PolicyHandler::OnAppPermissionConsent(const uint32_t connection_key,
+                                           const PermissionConsent& permissions) {
+  LOG4CXX_TRACE_ENTER(logger_);
+  AsyncRun(new AppPermissionDelegate(connection_key, permissions));
+  LOG4CXX_TRACE_EXIT(logger_);
+}
+
 void PolicyHandler::OnDeviceConsentChanged(const std::string& device_id,
                                            bool is_allowed) {
   POLICY_LIB_CHECK_VOID();
@@ -469,8 +480,8 @@ void PolicyHandler::SetDeviceInfo(std::string& device_id,
   policy_manager_->SetDeviceInfo(device_id, device_info);
 }
 
-void PolicyHandler::OnAppPermissionConsent(const uint32_t connection_key,
-  PermissionConsent &permissions) {
+void PolicyHandler::OnAppPermissionConsentInternal(
+    const uint32_t connection_key, PermissionConsent &permissions) {
   LOG4CXX_INFO(logger_, "OnAppPermissionConsent");
   POLICY_LIB_CHECK_VOID();
   if (connection_key) {
@@ -745,8 +756,8 @@ void PolicyHandler::OnPendingPermissionChange(
           SendOnAppPermissionsChangedNotification(app->app_id(), permissions);
 
       policy_manager_->RemovePendingPermissionChanges(policy_app_id);
+      break;
     }
-    break;
   }
   case mobile_apis::HMILevel::HMI_BACKGROUND: {
     if (permissions.isAppPermissionsRevoked) {

@@ -178,6 +178,12 @@ class MockCacheManagerInterface : public CacheManagerInterface {
       uint16_t(const std::string& app_id));
   MOCK_METHOD1(GetHMIAppTypeAfterUpdate,
         void(std::map<std::string, StringArray>& app_hmi_types));
+  MOCK_METHOD0(ResetCalculatedPermissions,
+               void());
+  MOCK_METHOD3(AddCalculatedPermissions,
+               void(const std::string& device_id, const std::string& policy_app_id, const policy::Permissions& permissions));
+  MOCK_METHOD3(IsPermissionsCalculated,
+               bool(const std::string& device_id, const std::string& policy_app_id, policy::Permissions& permission));
 };
 
 }  // namespace policy

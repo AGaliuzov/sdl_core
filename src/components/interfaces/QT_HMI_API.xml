@@ -1961,6 +1961,9 @@
     </function>
     <function name="PlayTone" messagetype="notification" provider="sdl">
       <description>Sent by SDL to HMI to notify that the tone should be played.</description>
+      <param name="appID" type="Integer" mandatory="true">
+         <description>ID of the application that invoked this notification</description>
+      </param>
     </function>
     <!-- Policies -->
     <!-- SyncP RPC-->

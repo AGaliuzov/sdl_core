@@ -39,6 +39,7 @@
 #include <memory.h>
 #include <signal.h>
 #include <errno.h>
+#include <unistd.h>
 
 namespace transport_manager {
 namespace transport_adapter {
@@ -107,6 +108,9 @@ bool TcpServerOiginatedSocketConnection::Establish(ConnectError** error) {
                   << application_handle() << ", error " << errno);
     *error = new ConnectError();
     LOG4CXX_TRACE(logger_, "exit with FALSE. Condition: failed to connect to application");
+
+    ::close(socket);
+
     return false;
   }
 

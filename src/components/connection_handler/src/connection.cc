@@ -92,6 +92,7 @@ Connection::Connection(ConnectionHandle connection_handle,
 Connection::~Connection() {
   LOG4CXX_TRACE_ENTER(logger_);
   heart_beat_monitor_thread_->stop();
+  heart_beat_monitor_thread_->join();
   threads::DeleteThread(heart_beat_monitor_thread_);
   sync_primitives::AutoLock lock(session_map_lock_);
   session_map_.clear();

@@ -198,7 +198,7 @@ void startSmartDeviceLink()
   // End section
 
   if (!main_namespace::LifeCycle::instance()->StartComponents()) {
-    LOG4CXX_FATAL(logger_, "Failed start components");
+    LOG4CXX_FATAL(logger_, "Failed to start components");
 #ifdef ENABLE_LOG
     logger::LogMessageLoopThread::destroy();
 #endif
@@ -210,7 +210,7 @@ void startSmartDeviceLink()
   // Third-Party components initialization.
 
   if (!main_namespace::LifeCycle::instance()->InitMessageSystem()) {
-    LOG4CXX_FATAL(logger_, "Failed InitMessageBroker");
+    LOG4CXX_FATAL(logger_, "Failed to init MessageBroker");
 #ifdef ENABLE_LOG
     logger::LogMessageLoopThread::destroy();
 #endif
@@ -277,7 +277,7 @@ void ApplinkNotificationThreadDelegate::threadMain() {
   utils::System policy_init(kShellInterpreter);
   policy_init.Add(kPolicyInitializationScript);
   if (!policy_init.Execute(true)) {
-    LOG4CXX_FATAL(logger_, "Failed QDB initialization");
+    LOG4CXX_FATAL(logger_, "Failed to init QDB");
     DEINIT_LOGGER();
     exit(EXIT_FAILURE);
   }
@@ -298,7 +298,7 @@ void ApplinkNotificationThreadDelegate::threadMain() {
           break;
         case SDL_MSG_SDL_STOP:
           stopSmartDeviceLink();
-          LOG4CXX_INFO(logger_, "Application stopped due SDL_MSG_SDL_STOP");
+          LOG4CXX_INFO(logger_, "Application stopped due to SDL_MSG_SDL_STOP");
           DEINIT_LOGGER();
           exit(EXIT_SUCCESS);
           break;
@@ -320,45 +320,6 @@ void ApplinkNotificationThreadDelegate::threadMain() {
       }
     }
   } //while-end
-}
-
-void dispatchCommands(mqd_t mqueue, int pipefd, int pid) {
-  char buffer[MAX_QUEUE_MSG_SIZE];
-  ssize_t length = 0;
-  sem_t *sem;
-
-  while (!g_bTerminate) {
-    if ( (length = mq_receive(mqueue, buffer, sizeof(buffer), 0)) != -1) {
-      switch (buffer[0]) {
-        case SDL_MSG_LOW_VOLTAGE:
-          sem = sem_open("/SDLSleep", O_CREAT | O_RDONLY, 0666, 0);
-          write(pipefd, buffer, length);
-          if (!sem) {
-            fprintf(stderr, "Error opening semaphore: %s\n", strerror(errno));
-            exit(EXIT_FAILURE);
-          }
-          sem_wait(sem);
-          sem_close(sem);
-          if(kill(pid, SIGSTOP) == -1) {
-            fprintf(stderr, "Error sending SIGSTOP signal: %s\n", strerror(errno));
-          }
-          break;
-        case SDL_MSG_WAKE_UP:
-          if(kill(pid, SIGCONT) == -1) {
-            fprintf(stderr, "Error sending SIGCONT signal: %s\n", strerror(errno));
-          }
-          write(pipefd, buffer, length);
-          break;
-        case SDL_MSG_SDL_STOP:
-          g_bTerminate = true;
-          write(pipefd, buffer, length);
-          break;
-        default:
-          write(pipefd, buffer, length);
-          break;
-      }
-    }
-  } // while(!g_bTerminate)
 }
 
 void ApplinkNotificationThreadDelegate::init_mq(const std::string& name,
@@ -389,6 +350,101 @@ void ApplinkNotificationThreadDelegate::sendHeartBeat() {
   }
 }
 
+class Dispatcher {
+ public:
+  Dispatcher(int pipefd, int pid)
+      : state_(kRun), pipefd_(pipefd), pid_(pid) {}
+  void Process(const std::string& msg) {
+    if (msg.empty()) {
+      fprintf(stderr, "Error: message is empty\n");
+      return;
+    }
+    char code = msg[0];
+    switch (state_) {
+      case kRun:
+        if (code == SDL_MSG_LOW_VOLTAGE) {
+          OnLowVoltage(msg);
+          Signal(SIGSTOP);
+          state_ = kSleep;
+        } else if (code == SDL_MSG_SDL_STOP) {
+          Send(msg);
+          state_ = kStop;
+        } else if (code != SDL_MSG_WAKE_UP) {
+          Send(msg);
+        }
+        break;
+      case kSleep:
+        if (code == SDL_MSG_WAKE_UP) {
+          Signal(SIGCONT);
+          Send(msg);
+          state_ = kRun;
+        } else if (code == SDL_MSG_SDL_STOP) {
+          Signal(SIGCONT);
+          Send(msg);
+          state_ = kStop;
+        }
+        break;
+      case kStop: /* nothing do here */ break;
+    }
+  }
+  bool IsActive() const {
+    return state_ != kStop;
+  }
+ private:
+  enum State { kRun, kSleep, kStop };
+  State state_;
+  int pipefd_;
+  int pid_;
+  void OnLowVoltage(const std::string& msg) {
+    sem_t *sem = sem_open("/SDLSleep", O_CREAT | O_RDONLY, 0666, 0);
+    if (!sem) {
+      fprintf(stderr, "Error opening semaphore: %s\n", strerror(errno));
+      exit(EXIT_FAILURE);
+    }
+    Send(msg);
+    sem_wait(sem);
+    sem_close(sem);
+  }
+  void Signal(int sig) {
+    if (kill(pid_, sig) == -1) {
+      fprintf(stderr, "Error sending %s signal: %s\n",
+              strsignal(sig), strerror(errno));
+    }
+  }
+  void Send(const std::string& msg) {
+    write(pipefd_, msg.c_str(), msg.length());
+  }
+};
+
+class MQueue {
+ public:
+  MQueue(): mq_(-1) {
+    struct mq_attr attributes;
+    attributes.mq_maxmsg = MSGQ_MAX_MESSAGES;
+    attributes.mq_msgsize = MAX_QUEUE_MSG_SIZE;
+    attributes.mq_flags = 0;
+
+    mq_ = mq_open(PREFIX_STR_SDL_PROXY_QUEUE,
+                  O_RDONLY | O_CREAT,
+                  S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH,
+                  &attributes);
+  }
+  ~MQueue() {
+    mq_close(mq_);
+  }
+  std::string Receive() {
+    ssize_t length = mq_receive(mq_, buffer_, sizeof(buffer_), 0);
+    if (length == -1) {
+      fprintf(stderr, "Error receiving message: %s\n", strerror(errno));
+      return "";
+    }
+    return std::string(buffer_, length);
+  }
+
+ private:
+  mqd_t mq_;
+  char buffer_[MAX_QUEUE_MSG_SIZE];
+};
 
 /**
  * \brief Entry point of the program.
@@ -415,18 +471,19 @@ int main(int argc, char** argv) {
   if (cpid == 0) {
     // Child process reads mqueue, translates all received messages to the pipe
     // and reacts on some of them (e.g. SDL_MSG_LOW_VOLTAGE)
+
+    // rename child process
+    int argv_size = strlen(argv[0]);
+    strncpy(argv[0],"SDLDispatcher",argv_size);
+
     close(pipefd[0]);
-    struct mq_attr attributes;
-    attributes.mq_maxmsg = MSGQ_MAX_MESSAGES;
-    attributes.mq_msgsize = MAX_QUEUE_MSG_SIZE;
-    attributes.mq_flags = 0;
 
-    mqd_t mq = mq_open(PREFIX_STR_SDL_PROXY_QUEUE,
-                       O_RDONLY | O_CREAT,
-                       S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH,
-                       &attributes);
-
-    dispatchCommands(mq, pipefd[1], pid);
+    MQueue queue;
+    Dispatcher dispatcher(pipefd[1], pid);
+    while (dispatcher.IsActive()) {
+      std::string msg = queue.Receive();
+      dispatcher.Process(msg);
+    }
 
     close(pipefd[1]);
     exit(EXIT_SUCCESS);
@@ -454,7 +511,7 @@ int main(int argc, char** argv) {
   LOG4CXX_INFO(logger_, "Stopping application due to signal caught");
   stopSmartDeviceLink();
 
-  LOG4CXX_INFO(logger_, "Waiting SDL controller finished.");
+  LOG4CXX_INFO(logger_, "Waiting for SDL controller finished.");
   close(pipefd[0]);
   int result;
   waitpid(cpid, &result, 0);

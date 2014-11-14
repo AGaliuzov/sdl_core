@@ -318,7 +318,7 @@ void PolicyManagerImpl::CheckPermissions(const PTString& app_id,
   // Check, if there are calculated permission present in cache
   Permissions rpc_permissions;
   if (!cache_->IsPermissionsCalculated(device_id, app_id, rpc_permissions)) {
-    LOG4CXX_INFO(logger_, "IsPermissionsCalculated for device: " << device_id
+    LOG4CXX_DEBUG(logger_, "IsPermissionsCalculated for device: " << device_id
                  << " and app: " << app_id << " returns false");
     // Get actual application group permission according to user consents
     std::vector<FunctionalGroupPermission> app_group_permissions;
@@ -349,7 +349,7 @@ void PolicyManagerImpl::CheckPermissions(const PTString& app_id,
 
     cache_->AddCalculatedPermissions(device_id, app_id, rpc_permissions);
   } else {
-    LOG4CXX_INFO(logger_, "IsPermissionsCalculated for device: " << device_id
+    LOG4CXX_DEBUG(logger_, "IsPermissionsCalculated for device: " << device_id
                  << " and app: " << app_id << " returns true");
   }
 
