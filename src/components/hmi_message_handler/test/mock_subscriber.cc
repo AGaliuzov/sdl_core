@@ -32,7 +32,7 @@
 
 #include "include/mock_subscriber.h"
 
-//#include "../../../3rd_party/dbus-1.7.8/dbus/dbus.h"
+
 #include <dbus/dbus.h>
 
 
