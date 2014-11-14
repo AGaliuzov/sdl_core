@@ -1672,12 +1672,11 @@ void CacheManager::BackgroundBackuper::threadMain() {
   }
 }
 
-bool CacheManager::BackgroundBackuper::exitThreadMain() {
+void CacheManager::BackgroundBackuper::exitThreadMain() {
   sync_primitives::AutoLock auto_lock(need_backup_lock_);
   cache_manager_ = NULL;
   stop_flag_ = true;
   backup_notifier_.NotifyOne();
-  return true;
 }
 
 void CacheManager::BackgroundBackuper::DoBackup() {

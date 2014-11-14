@@ -496,12 +496,10 @@ void RequestController::Worker::threadMain() {
   }
 }
 
-bool RequestController::Worker::exitThreadMain() {
+void RequestController::Worker::exitThreadMain() {
   stop_flag_ = true;
-  sync_primitives::AutoLock auto_lock(thread_lock_);
   // setup stop flag and whit while threadMain will be finished correctly
   // FIXME (dchmerev@luxoft.com): There is no waiting
-  return true;
 }
 
 bool RequestController::checkTimeScaleMaxRequest(

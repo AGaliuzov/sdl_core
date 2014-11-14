@@ -43,6 +43,7 @@
 #include "utils/macro.h"
 #include "utils/threads/thread_delegate.h"
 #include "utils/threads/thread_options.h"
+#include "utils/conditional_variable.h"
 #include "utils/lock.h"
 
 namespace threads {
@@ -77,6 +78,8 @@ typedef pthread_t PlatformThreadHandle;
  * printf("ok!\n");
  */
 class Thread;
+void enqueue_to_join(Thread*);
+
 Thread* CreateThread(const char* name, ThreadDelegate* delegate);
 void DeleteThread(Thread*);
 
@@ -117,8 +120,6 @@ class Thread {
    */
   bool start();
 
-  ThreadDelegate* delegate() const;
-
   /**
    * Starts the thread. Behaves exactly like Start in addition to
    * allow to override the default options.
@@ -158,9 +159,7 @@ class Thread {
     return isThreadRunning_;
   }
 
-  void set_running(bool running) {
-    isThreadRunning_ = running;
-  }
+  void set_running(bool running);
 
   /**
    * Is thread joinable?
@@ -207,15 +206,28 @@ class Thread {
    */
   static size_t kMinStackSize;
 
-  sync_primitives::Lock delegate_lock_;
+  sync_primitives::Lock& delegate_lock() {
+    return delegate_lock_;
+  }
+
+  ThreadDelegate *delegate() const {
+    return delegate_;
+  }
+
+  void set_delegate(ThreadDelegate *delegate) {
+    delegate_ = delegate;
+  }
+
  protected:
   const std::string name_;
- public:
-  ThreadDelegate* delegate_;
  protected:
+  ThreadDelegate* delegate_;
+  sync_primitives::Lock delegate_lock_;
   impl::PlatformThreadHandle thread_handle_;
   ThreadOptions thread_options_;
   volatile unsigned int isThreadRunning_;
+  sync_primitives::Lock state_lock_;
+  sync_primitives::ConditionalVariable state_cond_;
 
  private:
   /**
@@ -230,7 +242,7 @@ class Thread {
    */
   Thread(const char* name, ThreadDelegate* delegate);
   DISALLOW_COPY_AND_ASSIGN(Thread);
-  virtual ~Thread() { }
+  virtual ~Thread();
 };
 
 inline bool operator!= (const Thread::Id& left, const Thread::Id& right) {

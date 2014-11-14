@@ -50,7 +50,7 @@ class FromMicToFileRecorderThread : public threads::ThreadDelegate {
 
     void threadMain();
 
-    bool exitThreadMain();
+    void exitThreadMain();
 
     void set_output_file(const std::string& output_file);
     void set_record_duration(int32_t duration);

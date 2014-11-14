@@ -215,10 +215,9 @@ void AudioStreamSenderThread::setShouldBeStopped(bool should_stop) {
   shouldBeStoped_cv_.NotifyOne();
 }
 
-bool AudioStreamSenderThread::exitThreadMain() {
+void AudioStreamSenderThread::exitThreadMain() {
   LOG4CXX_INFO(logger_, "AudioStreamSenderThread::exitThreadMain");
   setShouldBeStopped(true);
-  return true;
 }
 
 uint32_t AudioStreamSenderThread::session_key() const {

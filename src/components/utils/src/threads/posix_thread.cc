@@ -30,6 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "utils/threads/thread.h"
+
 #include <errno.h>
 
 #include <limits.h>
@@ -38,11 +40,10 @@
 #include <unistd.h>
 
 #include "utils/atomic.h"
-#include "utils/threads/thread.h"
+#include "utils/threads/thread_delegate.h"
 #include "utils/threads/thread_manager.h"
 #include "utils/logger.h"
 #include "pthread.h"
-
 
 #ifndef __QNXNTO__
   const int EOK = 0;
@@ -56,20 +57,11 @@ namespace threads {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "Utils")
 
-namespace {
-enum ThreadState {
-  THREAD_INIT,
-  THREAD_STARTED,
-  THREAD_RUNNING,
-  THREAD_STOPPED
-};
-
-void enqueue_to_join(pthread_t thread, ThreadDelegate* delegate) {
-  MessageQueue<ThreadManager::ThreadDesc>& threads = ::threads::ThreadManager::instance()->threads_to_terminate;
+void enqueue_to_join(Thread* thread) {
+  MessageQueue<Thread*>& threads = ::threads::ThreadManager::instance()->threads_to_terminate;
   if (!threads.IsShuttingDown() ) {
     LOG4CXX_DEBUG(logger_, "Pushing thread #" << pthread_self() << " to join queue");
-    ThreadManager::ThreadDesc desc = { thread, delegate };
-    threads.push(desc);
+    threads.push(thread);
   }
 }
 
@@ -77,27 +69,26 @@ static void* threadFunc(void* arg) {
   LOG4CXX_DEBUG(logger_, "Thread #" << pthread_self() << " started successfully");
   threads::ThreadDelegate* delegate = static_cast<threads::ThreadDelegate*>(arg);
 
-  delegate->thread_lock().Acquire();
-  threads::Thread* thread = delegate->CurrentThread();
-  if (thread) {
-    thread->set_running(true);
+  if (!delegate->ImproveState(kStarted)) {
+    enqueue_to_join(delegate->thread());
+    return NULL;
   }
-  delegate->thread_lock().Release();
+
+  threads::Thread* thread = delegate->thread();
+  DCHECK(thread);
+
+  thread->set_running(true);
 
   delegate->threadMain();
 
-  delegate->thread_lock().Acquire();
-  thread = delegate->CurrentThread();
-  if (thread) {
-    thread->set_running(false);
+  if (!delegate->ImproveState(kStopReq)) {
+    NOTREACHED();
   }
-  delegate->thread_lock().Release();
 
-  enqueue_to_join(pthread_self(), delegate);
+  enqueue_to_join(thread);
   LOG4CXX_DEBUG(logger_, "Thread #" << pthread_self() << " exited successfully");
   return NULL;
 }
-}  // namespace
 
 size_t Thread::kMinStackSize = PTHREAD_STACK_MIN; /* Ubuntu : 16384 ; QNX : 256; */
 
@@ -122,10 +113,6 @@ Thread::Thread(const char* name, ThreadDelegate* delegate)
     thread_handle_(0),
     thread_options_(),
     isThreadRunning_(0) { }
-
-ThreadDelegate* Thread::delegate() const {
-  return delegate_;
-}
 
 bool Thread::start() {
   return startWithOptions(thread_options_);
@@ -172,7 +159,6 @@ bool Thread::startWithOptions(const ThreadOptions& options) {
     }
   }
 
-  delegate_->run_ = true;
   pthread_result = pthread_create(&thread_handle_, &attributes, threadFunc, delegate_);
   if (pthread_result != EOK) {
     LOG4CXX_WARN(logger_, "Couldn't create thread. Error code = "
@@ -185,6 +171,12 @@ bool Thread::startWithOptions(const ThreadOptions& options) {
   return pthread_result == EOK;
 }
 
+void Thread::set_running(bool running) {
+  sync_primitives::AutoLock auto_lock(state_lock_);
+  isThreadRunning_ = running;
+  state_cond_.Broadcast();
+}
+
 void Thread::stop() {
   LOG4CXX_TRACE_ENTER(logger_);
 
@@ -193,7 +185,6 @@ void Thread::stop() {
 
   sync_primitives::AutoLock auto_lock(delegate_lock_);
   if (delegate_) {
-    delegate_->run_ = false;
   }
 
   if (!atomic_post_clr(&isThreadRunning_)) {
@@ -205,23 +196,14 @@ void Thread::stop() {
   }
 
   // TODO(EZamakhov): fix segfault in case exitThreadMain return false and correctly finished
-  if (delegate_ && !delegate_->exitThreadMain()) {
-    if (thread_handle_ != pthread_self()) {
-      LOG4CXX_WARN(logger_, "Cancelling thread #" << thread_handle_
-                   << " \""  << name_ << " \"");
-      const int pthread_result = pthread_cancel(thread_handle_);
-      if (pthread_result == EOK) {
-        enqueue_to_join(thread_handle_, delegate_);
-      } else {
-        LOG4CXX_ERROR(logger_,
-                     "Couldn't cancel thread (#" << thread_handle_ << " \"" << name_ <<
-                     "\") from thread #" << pthread_self() << ". Error code = "
-                     << pthread_result << " (\"" << strerror(pthread_result) << "\")");
+  if (delegate_) {
+    delegate_->exitThreadMain();
+    if (delegate_->state() == kStarted) {
+      if (thread_handle_ == pthread_self()) {
+        enqueue_to_join(this);
+        LOG4CXX_WARN(logger_, "Exiting from thread #" << thread_handle_);
+        pthread_exit(NULL);
       }
-    } else {
-      enqueue_to_join(thread_handle_, delegate_);
-      LOG4CXX_WARN(logger_, "Exiting from thread #" << thread_handle_);
-      pthread_exit(NULL);
     }
   }
   LOG4CXX_DEBUG(logger_, "Stopped thread #" << thread_handle_
@@ -231,17 +213,20 @@ void Thread::stop() {
 
 void Thread::join() {
   LOG4CXX_TRACE_ENTER(logger_);
+  sync_primitives::AutoLock auto_lock(state_lock_);
   if (isThreadRunning_) {
-    pthread_join(thread_handle_, NULL);
-  } else {
-    LOG4CXX_DEBUG(logger_, "Thread #" << thread_handle_
-                  << " \""  << name_ << " \" is not running");
+    state_cond_.Wait(auto_lock);
   }
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
 bool Thread::Id::operator==(const Thread::Id& other) const {
   return pthread_equal(id_, other.id_) != 0;
+}
+
+Thread::~Thread() {
+  stop();
+  join();
 }
 
 std::ostream& operator<<(std::ostream& os, const Thread::Id& thread_id) {
@@ -254,10 +239,8 @@ std::ostream& operator<<(std::ostream& os, const Thread::Id& thread_id) {
 
 
 Thread* CreateThread(const char* name, ThreadDelegate* delegate) {
-  delegate->thread_lock().Acquire();
   Thread* thread = new Thread(name, delegate);
-  delegate->thread_ = thread;
-  delegate->thread_lock().Release();
+  delegate->set_thread(thread);
   return thread;
 }
 
@@ -266,14 +249,13 @@ void DeleteThread(Thread* thread) {
     thread->delegate_lock_.Acquire();
     ThreadDelegate* delegate = thread->delegate();
     if (delegate) {
-      delegate->thread_lock().Acquire();
-      delegate->thread_ = NULL;
-      delegate->thread_lock().Release();
+      delegate->set_thread(NULL);
     }
     thread->delegate_lock_.Release();
     delete thread;
   }
 }
+
 
 
 }  // namespace threads

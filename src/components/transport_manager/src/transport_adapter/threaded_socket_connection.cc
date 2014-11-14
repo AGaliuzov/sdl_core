@@ -64,7 +64,6 @@ ThreadedSocketConnection::~ThreadedSocketConnection() {
   terminate_flag_ = true;
   Notify();
   pthread_mutex_destroy(&frames_to_send_mutex_);
-
 }
 
 void ThreadedSocketConnection::Abort() {
@@ -161,10 +160,9 @@ TransportAdapter::Error ThreadedSocketConnection::Disconnect() {
   return error;
 }
 
-bool ThreadedSocketConnection::exitThreadMain() {
+void ThreadedSocketConnection::exitThreadMain() {
   terminate_flag_ = true;
   Notify();
-  return true;
 }
 
 void ThreadedSocketConnection::threadMain() {

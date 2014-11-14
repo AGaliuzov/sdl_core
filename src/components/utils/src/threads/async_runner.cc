@@ -99,10 +99,10 @@ void AsyncRunner::AsyncRunnerDelegate::threadMain() {
   }
 }
 
-bool AsyncRunner::AsyncRunnerDelegate::exitThreadMain() {
+void AsyncRunner::AsyncRunnerDelegate::exitThreadMain() {
+  sync_primitives::AutoLock lock(delegates_queue_lock_);
   stop_flag_ = true;
   delegate_notifier_.NotifyOne();
-  return true;
 }
 
 void AsyncRunner::AsyncRunnerDelegate::runDelegate(ThreadDelegate* delegate) {

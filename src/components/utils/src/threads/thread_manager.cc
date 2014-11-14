@@ -51,4 +51,20 @@ namespace threads {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "Utils")
 
+  void ThreadManager::TerminateThreadsLoop() {
+    while(!threads_to_terminate.IsShuttingDown()) {
+      while (!threads_to_terminate.empty()) {
+        ::threads::Thread* thread = threads_to_terminate.pop();
+        pthread_join(thread->thread_handle(), NULL);
+        thread->set_running(false);
+        if (thread->delegate()) {
+          sync_primitives::AutoLock(thread->delegate_lock());
+          if (thread->delegate()) {
+            thread->delegate()->ImproveState(kInit);
+          }
+        }
+      }
+      threads_to_terminate.wait();
+    }
+  }
 } // namespace threads

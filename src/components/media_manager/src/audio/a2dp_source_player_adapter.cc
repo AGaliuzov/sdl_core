@@ -54,7 +54,7 @@ class A2DPSourcePlayerAdapter::A2DPSourcePlayerThread
 
     void threadMain();
 
-    bool exitThreadMain();
+    void exitThreadMain();
 
   private:
     // The Sample format to use
@@ -165,10 +165,9 @@ void A2DPSourcePlayerAdapter::A2DPSourcePlayerThread::freeStreams() {
   }
 }
 
-bool A2DPSourcePlayerAdapter::A2DPSourcePlayerThread::exitThreadMain() {
+void A2DPSourcePlayerAdapter::A2DPSourcePlayerThread::exitThreadMain() {
   sync_primitives::AutoLock auto_lock(should_be_stopped_lock_);
   should_be_stopped_ = true;
-  return true;
 }
 
 void A2DPSourcePlayerAdapter::A2DPSourcePlayerThread::threadMain() {

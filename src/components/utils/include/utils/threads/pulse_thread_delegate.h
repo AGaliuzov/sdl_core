@@ -57,7 +57,7 @@ class PulseThreadDelegate : public ThreadDelegate {
   */
   PulseThreadDelegate();
   virtual void threadMain();
-  virtual bool exitThreadMain();
+  virtual void exitThreadMain();
 
  protected:
 /**

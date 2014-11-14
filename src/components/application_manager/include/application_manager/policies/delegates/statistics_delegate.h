@@ -65,7 +65,7 @@ namespace policy {
 
       virtual void threadMain();
 
-      virtual bool exitThreadMain();
+      virtual void exitThreadMain();
     private:
       StatisticType type_;
       usage_statistics::GlobalCounterId global_counter_;

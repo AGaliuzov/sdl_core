@@ -80,7 +80,7 @@ class VideoStreamToFileAdapter : public MediaAdapterImpl {
         /*
          * @brief Function called by thread on exit
          */
-        bool exitThreadMain();
+        void exitThreadMain();
 
         /*
          * @brief Opens file

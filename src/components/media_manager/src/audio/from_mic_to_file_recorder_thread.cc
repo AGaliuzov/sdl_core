@@ -181,6 +181,7 @@ void FromMicToFileRecorderThread::threadMain() {
 
     bool shouldBeStoped;
     {
+      // FIXME(dchmerev@luxoft.com): 
       sync_primitives::AutoLock auto_lock(stopFlagLock_);
       shouldBeStoped = shouldBeStoped_;
     }
@@ -233,7 +234,7 @@ void FromMicToFileRecorderThread::SleepThreadDelegate::threadMain() {
   }
 }
 
-bool FromMicToFileRecorderThread::exitThreadMain() {
+void FromMicToFileRecorderThread::exitThreadMain() {
   LOG4CXX_TRACE_ENTER(logger_);
 
   if (NULL != loop) {
@@ -251,12 +252,8 @@ bool FromMicToFileRecorderThread::exitThreadMain() {
   }
 
   LOG4CXX_TRACE(logger_, "Set should be stopped flag\n");
-  {
-    sync_primitives::AutoLock auto_lock(stopFlagLock_);
-    shouldBeStoped_ = true;
-  }
-
-  return true;
+  sync_primitives::AutoLock auto_lock(stopFlagLock_);
+  shouldBeStoped_ = true;
 }
 
 }  // namespace media_manager

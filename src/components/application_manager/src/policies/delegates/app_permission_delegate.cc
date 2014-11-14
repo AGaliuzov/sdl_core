@@ -49,8 +49,8 @@ namespace policy {
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
-bool AppPermissionDelegate::exitThreadMain() {
-  return true;
+void AppPermissionDelegate::exitThreadMain() {
+  // Do nothing
 }
 
 } // namespace policy

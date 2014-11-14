@@ -264,9 +264,8 @@ TransportAdapter::Error TcpClientListener::StartListening() {
   return TransportAdapter::OK;
 }
 
-bool TcpClientListener::ListeningThreadDelegate::exitThreadMain() {
+void TcpClientListener::ListeningThreadDelegate::exitThreadMain() {
   parent_->StopLoop();
-  return true;
 }
 
 void TcpClientListener::ListeningThreadDelegate::threadMain() {

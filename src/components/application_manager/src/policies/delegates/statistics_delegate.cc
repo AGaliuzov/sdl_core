@@ -98,7 +98,7 @@ namespace policy {
     LOG4CXX_TRACE_EXIT(logger_);
   }
 
-  bool StatisticsDelegate::exitThreadMain() {
-    return true;
+  void StatisticsDelegate::exitThreadMain() {
+    // Do nothing
   }
 } // namespace policy
