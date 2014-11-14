@@ -148,6 +148,7 @@ bool CacheManager::GetDefaultHMI(const std::string &app_id,
 
 bool CacheManager::ResetUserConsent() {
   CACHE_MANAGER_CHECK(false);
+  sync_primitives::AutoLock lock (cache_lock_);
 #ifdef EXTENDED_POLICY
   policy_table::DeviceData::iterator iter =
       pt_->policy_table.device_data->begin();
@@ -517,6 +518,7 @@ bool CacheManager::ReactOnUserDevConsentForApp(const std::string &app_id,
   CACHE_MANAGER_CHECK(false);
   bool result = true;
 #ifdef EXTENDED_POLICY
+  cache_lock_.Acquire();
   if (is_device_allowed) {
     // If app has pre_DataConsented groups it should be 'promoted' to default
     // If app has only pre_DataConsented flag it should be only set to false and
@@ -548,6 +550,7 @@ bool CacheManager::ReactOnUserDevConsentForApp(const std::string &app_id,
       result = SetIsPredata(app_id, true);
     }
   }
+  cache_lock_.Release();
 #endif // EXTENDED_POLICY
   Backup();
   LOG4CXX_TRACE_EXIT(logger_);
@@ -1491,7 +1494,9 @@ bool CacheManager::UnpairedDevicesList(DeviceIds& device_ids) {
 bool CacheManager::SetVINValue(const std::string& value) {
   CACHE_MANAGER_CHECK(false);
 #ifdef EXTENDED_POLICY
+   cache_lock_.Acquire();
   *pt_->policy_table.module_meta->vin = value;
+   cache_lock_.Release();
 #endif // EXTENDED_POLICY
   Backup();
   return true;
@@ -1537,7 +1542,7 @@ void CacheManager::FillAppSpecificData() {
   policy_table::ApplicationPolicies::const_iterator iter =
       pt_->policy_table.app_policies.begin();
   policy_table::ApplicationPolicies::const_iterator iter_end =
-      pt_->policy_table.app_policies.begin();
+      pt_->policy_table.app_policies.end();
 
   for (; iter != iter_end; ++iter) {
     const std::string& app_name = (*iter).first;
@@ -1558,6 +1563,7 @@ void CacheManager::FillDeviceSpecificData() {
 }
 
 bool CacheManager::LoadFromBackup() {
+  sync_primitives::AutoLock lock(cache_lock_);
   pt_ = backup_->GenerateSnapshot();
   update_required = backup_->UpdateRequired();
 
@@ -1581,17 +1587,24 @@ bool CacheManager::LoadFromFile(const std::string& file_name) {
   Json::Value value;
   Json::Reader reader(Json::Features::strictMode());
   std::string json(json_string.begin(), json_string.end());
-  bool ok = reader.parse(json.c_str(), value);
-  if (ok) {
+  LOG4CXX_INFO(logger_, "Start reset table.");
+  cache_lock_.Acquire();
+  if (reader.parse(json.c_str(), value)) {
+    backup_->Clear();
+    is_predata_.clear();
+    is_unpaired_.clear();
+
     pt_ = new policy_table::Table(&value);
+    final_result = backup_->Save(*pt_);
+    if (final_result) {
+      backup_->WriteDb();
+    }
   } else {
     LOG4CXX_WARN(logger_, reader.getFormattedErrorMessages());
   }
 
-  if (!pt_) {
-    LOG4CXX_WARN(logger_, "Failed to parse policy table");
-    return false;
-  }
+  LOG4CXX_INFO(logger_, "Finish reset table.");
+  cache_lock_.Release();
 
   if (!pt_->is_valid()) {
     rpc::ValidationReport report("policy_table");
@@ -1600,7 +1613,6 @@ bool CacheManager::LoadFromFile(const std::string& file_name) {
                  rpc::PrettyFormat(report));
   }
 
-  final_result = backup_->Save(*pt_);
   LOG4CXX_INFO(
     logger_,
     "Loading from file was " << (final_result ? "successful" : "unsuccessful"));
