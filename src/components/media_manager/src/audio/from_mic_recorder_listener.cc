@@ -46,10 +46,14 @@ FromMicRecorderListener::FromMicRecorderListener(
 }
 
 FromMicRecorderListener::~FromMicRecorderListener() {
+  LOG4CXX_TRACE_ENTER(logger_);
   if (reader_) {
     reader_->stop();
-    reader_ = NULL;
+    threads::ThreadDelegate * delegate = reader_->delegate();
+    threads::DeleteThread(reader_);
+    delete delegate;
   }
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void FromMicRecorderListener::OnDataReceived(
@@ -89,7 +93,6 @@ void FromMicRecorderListener::OnActivityEnded(int32_t application_key) {
   }
   if (reader_) {
     reader_->stop();
-    reader_ = NULL;
   }
   current_application_ = 0;
 }

@@ -51,14 +51,16 @@ CREATE_LOGGERPTR_GLOBAL(logger, "SocketStreamerAdapter")
 SocketStreamerAdapter::SocketStreamerAdapter()
   : socket_fd_(0),
     is_ready_(false),
-    thread_(NULL),
-    streamer_(NULL),
+    streamer_(new Streamer(this)),
+    thread_(threads::CreateThread("SocketStreamer", streamer_)),
     messages_() {
 }
 
 SocketStreamerAdapter::~SocketStreamerAdapter() {
-  thread_->stop();
-  streamer_ = NULL;
+  LOG4CXX_TRACE_ENTER(logger);
+  threads::DeleteThread(thread_);
+  delete streamer_;
+  LOG4CXX_TRACE_EXIT(logger);
 }
 
 void SocketStreamerAdapter::StartActivity(int32_t application_key) {
@@ -110,14 +112,12 @@ bool SocketStreamerAdapter::is_app_performing_activity(
 }
 
 void SocketStreamerAdapter::Init() {
-  if (!thread_) {
-    LOG4CXX_INFO(logger, "Create and start sending thread");
-    streamer_ = new Streamer(this);
-    thread_ = threads::CreateThread("SocketStreamer", streamer_);
+  if (!thread_->is_running()) {
+    LOG4CXX_DEBUG(logger, "Start sending thread");
     const size_t kStackSize = 16384;
     thread_->startWithOptions(threads::ThreadOptions(kStackSize));
   } else {
-    LOG4CXX_WARN(logger, "thread is already exist");
+    LOG4CXX_WARN(logger, "thread is already running");
   }
 }
 

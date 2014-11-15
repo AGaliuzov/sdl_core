@@ -37,7 +37,6 @@
 #include "utils/threads/thread.h"
 #include "media_manager/audio/a2dp_source_player_adapter.h"
 #include "utils/lock.h"
-#include "utils/threads/thread_delegate.h"
 #include "utils/logger.h"
 #include "connection_handler/connection_handler_impl.h"
 
@@ -74,13 +73,11 @@ A2DPSourcePlayerAdapter::A2DPSourcePlayerAdapter() {
 }
 
 A2DPSourcePlayerAdapter::~A2DPSourcePlayerAdapter() {
-  for (std::map<int32_t, threads::Thread*>::iterator it = sources_.begin();
-       sources_.end() != it;
-       ++it) {
-    if (NULL != it->second) {
-      it->second->stop();
-      threads::DeleteThread(it->second);
-    }
+  for (SourcesMap::iterator it = sources_.begin();
+       sources_.end() != it; ++it) {
+    Pair pair = *it;
+    threads::DeleteThread(pair.first);
+    delete pair.second;
   }
   sources_.clear();
 }
@@ -105,10 +102,11 @@ void A2DPSourcePlayerAdapter::StartActivity(int32_t application_key) {
     // following format : "bluez_source.XX_XX_XX_XX_XX_XX" if needed
     // before passing to the A2DPSourcePlayerThread constructor
 
+    A2DPSourcePlayerThread* delegate =
+        new A2DPSourcePlayerAdapter::A2DPSourcePlayerThread(mac_adddress);
     threads::Thread* new_activity = threads::CreateThread(
-      mac_adddress.c_str(),
-      new A2DPSourcePlayerAdapter::A2DPSourcePlayerThread(mac_adddress));
-    sources_[application_key] = new_activity;
+      mac_adddress.c_str(), delegate);
+    sources_[application_key] = Pair(new_activity, delegate);
     new_activity->start();
   }
 }
@@ -119,19 +117,11 @@ void A2DPSourcePlayerAdapter::StopActivity(int32_t application_key) {
   if (application_key != current_application_) {
     return;
   }
-  std::map<int32_t, threads::Thread*>::iterator it =
-    sources_.find(application_key);
+  SourcesMap::iterator it = sources_.find(application_key);
   if (sources_.end() != it) {
-    LOG4CXX_DEBUG(logger_, "Source exists.");
-    if (NULL != it->second) {
-      LOG4CXX_DEBUG(logger_, "Sources thread was allocated");
-      if ((*it).second->is_running()) {
-        // Sources thread was started - stop it
-        LOG4CXX_DEBUG(logger_, "Sources thread was started - stop it");
-        (*it).second->stop();
-        threads::DeleteThread(it->second);
-      }
-    }
+    Pair pair = *it;
+    threads::DeleteThread(pair.first);
+    delete pair.second;
     current_application_ = 0;
   }
 }

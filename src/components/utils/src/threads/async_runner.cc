@@ -43,13 +43,9 @@ namespace threads {
 AsyncRunner::AsyncRunner(const std::string &thread_name)
   : executor_(new AsyncRunnerDelegate) {
   LOG4CXX_TRACE_ENTER(logger_);
-  if (executor_) {
-    thread_ = threads::CreateThread(thread_name.c_str(),
-                                    executor_);
-    if (NULL != thread_) {
-      thread_->start();
-    }
-  }
+  thread_ = threads::CreateThread(thread_name.c_str(),
+                                  executor_);
+  thread_->start();
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
@@ -59,11 +55,8 @@ void AsyncRunner::AsyncRun(ThreadDelegate* delegate) {
 
 AsyncRunner::~AsyncRunner() {
   LOG4CXX_TRACE_ENTER(logger_);
-  thread_->stop();
   threads::DeleteThread(thread_);
-
-  thread_ = NULL;
-  executor_  = NULL;
+  delete executor_;
   LOG4CXX_TRACE_ENTER(logger_);
 }
 
