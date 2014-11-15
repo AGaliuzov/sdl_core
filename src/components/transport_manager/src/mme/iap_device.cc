@@ -51,15 +51,16 @@ IAPDevice::IAPDevice(const std::string& mount_point, const std::string& name,
       last_app_id_(0),
       app_table_lock_(true),
       connections_lock_(true),
-      receiver_thread_(0) {
+      receiver_thread_(0),
+      receiver_thread_delegate_(0) {
 }
 
 void IAPDevice::Stop() {
   if (receiver_thread_) {
-    receiver_thread_->stop();
-    receiver_thread_->join();
     threads::DeleteThread(receiver_thread_);
+    delete receiver_thread_delegate_;
     receiver_thread_ = NULL;
+    receiver_thread_delegate_ = NULL;
   }
 }
 
@@ -89,8 +90,8 @@ bool IAPDevice::Init() {
   ipod_hdl_ = ipod_connect(mount_point().c_str(), 0);
   if (ipod_hdl_ != 0) {
     LOG4CXX_DEBUG(logger_, "iAP: connected to " << mount_point());
-    receiver_thread_ = threads::CreateThread(
-        "iAP event", new IAPEventThreadDelegate(ipod_hdl_, this));
+    receiver_thread_delegate_ = new IAPEventThreadDelegate(ipod_hdl_, this);
+    receiver_thread_ = threads::CreateThread("iAP event", receiver_thread_delegate_);
     receiver_thread_->start();
 
     return true;

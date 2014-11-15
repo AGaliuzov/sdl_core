@@ -71,7 +71,7 @@ if (BUILD_MME_SUPPORT)
     src/mme/mme_device.cc
     src/mme/iap_device.cc
     src/mme/iap2_device.cc
-    src/mme/mme_device_scanner.cc
+    src/mme/mme_client_listener.cc
     src/mme/mme_connection_factory.cc
     src/mme/iap_connection.cc
     src/mme/iap2_connection.cc

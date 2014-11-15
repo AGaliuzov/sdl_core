@@ -60,10 +60,8 @@ IAP2Connection::IAP2Connection(const DeviceUID& device_uid,
 IAP2Connection::~IAP2Connection() {
   LOG4CXX_TRACE_ENTER(logger_);
   if (receiver_thread_) {
-    receiver_thread_->stop();
-    receiver_thread_->join();
     threads::DeleteThread(receiver_thread_);
-    receiver_thread_ = NULL;
+    delete receiver_thread_delegate_;
   }
   LOG4CXX_TRACE_EXIT(logger_);
 }
@@ -77,8 +75,7 @@ bool IAP2Connection::Init() {
     iap2ea_hdl_ = record.second;
     const std::string thread_name = "iAP2 " + protocol_name_;
     receiver_thread_delegate_ = new ReceiverThreadDelegate(iap2ea_hdl_, this);
-    receiver_thread_ = threads::CreateThread(thread_name.c_str(),
-                                             receiver_thread_delegate_);
+    receiver_thread_ = threads::CreateThread(thread_name.c_str(), receiver_thread_delegate_);
     receiver_thread_->start();
 
     return true;
@@ -120,10 +117,10 @@ TransportAdapter::Error IAP2Connection::Disconnect() {
   const TransportAdapter::Error error =
       Close() ? TransportAdapter::OK : TransportAdapter::FAIL;
   if (receiver_thread_) {
-    receiver_thread_->stop();
-    receiver_thread_->join();
     threads::DeleteThread(receiver_thread_);
+    delete receiver_thread_delegate_;
     receiver_thread_ = NULL;
+    receiver_thread_delegate_ = NULL;
   }
   LOG4CXX_TRACE_EXIT(logger_);
   return error;
@@ -146,14 +143,10 @@ void IAP2Connection::ReceiveData() {
       case ECONNRESET:
         LOG4CXX_INFO(logger_,
                      "iAP2: protocol " << protocol_name_ << " disconnected");
-// receiver_thread_->stop() cannot be invoked here
+// DeleteThread(receiver_thread_) cannot be invoked here
 // because this method is called from receiver_thread_
-// anyway delegate can be stopped directly
-//      receiver_thread_delegate_->exitThreadMain();
+// anyway delegate should be stopped
         receiver_thread_->stop();
-        receiver_thread_->join();
-        threads::DeleteThread(receiver_thread_);
-        receiver_thread_ = NULL;
         Close();
         unexpected_disconnect_ = true;
         controller_->ConnectionAborted(device_uid_, app_handle_,
