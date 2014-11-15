@@ -88,12 +88,10 @@ CacheManager::CacheManager()
 }
 
 CacheManager::~CacheManager() {
-  if (backup_thread_) {
-    backuper_ = NULL;
-    backup_thread_->stop();
-    backup_thread_->join();
-    threads::DeleteThread(backup_thread_);
-  }
+  LOG4CXX_TRACE_ENTER(logger_);
+  threads::DeleteThread(backup_thread_);
+  delete backuper_;
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 bool CacheManager::CanAppKeepContext(const std::string &app_id) {

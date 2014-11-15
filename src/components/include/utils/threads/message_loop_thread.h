@@ -41,11 +41,13 @@
 #include "utils/message_queue.h"
 #include "utils/threads/thread_manager.h"
 #include "utils/lock.h"
+#include "utils/shared_ptr.h"
 
 namespace threads {
 
-/*
- * Class that handles a thread which sole purpose is to pump messages pushed
+/**
+ * \class MessageLoopThread
+ * \brief Handles a thread which sole purpose is to pump messages pushed
  * to it's queue. To handle messages someone, Handler must be implemented and
  * passed to MessageLoopThread constructor.
  */
@@ -54,14 +56,15 @@ class MessageLoopThread {
  public:
   typedef Q Queue;
   typedef typename Queue::value_type Message;
-  /*
-   * Handler interface. It is called from a thread that is
+  /**
+   * struct MessageLoopThread
+   * \brief Handler interface. It is called from a thread that is
    * owned by MessageLoopThread so make sure is only accesses
    * thread-safe data
    */
   struct Handler {
-    /*
-     * Method called by MessageLoopThread to process single message
+    /**
+     * \brief Method called by MessageLoopThread to process single message
      * from it's queue. After calling this method message is discarded.
      */
     virtual void Handle(const Message message) = 0; // TODO(dchmerev): Use reference?
@@ -69,18 +72,22 @@ class MessageLoopThread {
     virtual ~Handler() {}
   };
 
-  /*
-   * Constructs new MessageLoopThread. Must be named to aid debugging.
+  /**
+   * \brief Constructs new MessageLoopThread. Must be named to aid debugging.
    */
   MessageLoopThread(const std::string& name,
                     Handler* handler,
                     const ThreadOptions& thread_opts = ThreadOptions());
   ~MessageLoopThread();
 
-  // Places a message to the therad's queue. Thread-safe.
+  /**
+   * \brief Places a message to the therad's queue. Thread-safe.
+   */
   void PostMessage(const Message& message);
 
-  // Process already posted messages and stop thread processing. Thread-safe.
+  /**
+   * \brief Process already posted messages and stop thread processing. Thread-safe.
+   */
   void Shutdown();
 
  private:
@@ -108,6 +115,7 @@ class MessageLoopThread {
 
  private:
   MessageQueue<Message, Queue> message_queue_;
+  utils::SharedPtr<LoopThreadDelegate> thread_delegate_;
   threads::Thread* thread_;
 };
 
@@ -117,18 +125,20 @@ template<class Q>
 MessageLoopThread<Q>::MessageLoopThread(const std::string&   name,
                                         Handler*             handler,
                                         const ThreadOptions& thread_opts)
-    : thread_(threads::CreateThread(name.c_str(),
-                                    new LoopThreadDelegate(&message_queue_, handler))) {
-  bool started = thread_->startWithOptions(thread_opts);
+    : thread_delegate_(new LoopThreadDelegate(&message_queue_, handler)),
+      thread_(threads::CreateThread(name.c_str(),
+                                    thread_delegate_.get())) {
+  const bool started = thread_->startWithOptions(thread_opts);
   if (!started) {
     CREATE_LOGGERPTR_LOCAL(logger_, "Utils")
-    LOG4CXX_ERROR(logger_, "Failed to start thread " << name);
+    LOG4CXX_ERROR(logger_, "Failed to start loop thread " << name);
   }
 }
 
 template<class Q>
 MessageLoopThread<Q>::~MessageLoopThread() {
   Shutdown();
+  threads::DeleteThread(thread_);
 }
 
 template <class Q>
@@ -138,12 +148,7 @@ void MessageLoopThread<Q>::PostMessage(const Message& message) {
 
 template <class Q>
 void MessageLoopThread<Q>::Shutdown() {
-  if(thread_) {
-    thread_->stop();
-    thread_->join();
-    threads::DeleteThread(thread_);
-    thread_ = NULL;
-  }
+  thread_->stop();
 }
 
 //////////

@@ -45,20 +45,23 @@ CREATE_LOGGERPTR_GLOBAL(logger, "PipeStreamerAdapter")
 
 PipeStreamerAdapter::PipeStreamerAdapter()
   : is_ready_(false),
-    thread_(NULL),
+    thread_(threads::CreateThread("PipeStreamer", new Streamer(this))),
     messages_() {
-  LOG4CXX_INFO(logger, "PipeStreamerAdapter::PipeStreamerAdapter");
+  LOG4CXX_DEBUG(logger, "PipeStreamerAdapter::PipeStreamerAdapter");
 }
 
 PipeStreamerAdapter::~PipeStreamerAdapter() {
-  LOG4CXX_INFO(logger, "PipeStreamerAdapter::~PipeStreamerAdapter");
+  LOG4CXX_TRACE_ENTER(logger);
 
   if ((0 != current_application_ ) && (is_ready_)) {
     StopActivity(current_application_);
   }
 
   thread_->stop();
-  thread_->join();
+  threads::ThreadDelegate * delegate = thread_->delegate();
+  threads::DeleteThread(thread_);
+  delete delegate;
+  LOG4CXX_TRACE_EXIT(logger);
 }
 
 void PipeStreamerAdapter::SendData(
@@ -97,7 +100,7 @@ void PipeStreamerAdapter::StartActivity(int32_t application_key) {
 }
 
 void PipeStreamerAdapter::StopActivity(int32_t application_key) {
-  LOG4CXX_INFO(logger, "PipeStreamerAdapter::StopActivity");
+  LOG4CXX_DEBUG(logger, "PipeStreamerAdapter::StopActivity");
 
   if (application_key != current_application_) {
     LOG4CXX_WARN(logger, "Not performing activity for " << application_key);
@@ -120,12 +123,12 @@ bool PipeStreamerAdapter::is_app_performing_activity(
 }
 
 void PipeStreamerAdapter::Init() {
-  if (!thread_) {
-    LOG4CXX_INFO(logger, "Create and start sending thread");
-    thread_ = threads::CreateThread("PipeStreamer", new Streamer(this));
-    const size_t kStackSize = 16384;
-    thread_->startWithOptions(threads::ThreadOptions(kStackSize));
+  if (thread_->is_running()) {
+    thread_->stop();
   }
+  LOG4CXX_DEBUG(logger, "Create and start sending thread");
+  const size_t kStackSize = 16384;
+  thread_->startWithOptions(threads::ThreadOptions(kStackSize));
 }
 
 PipeStreamerAdapter::Streamer::Streamer(

@@ -47,7 +47,7 @@ class FromMicToFileRecorderThread : public threads::ThreadDelegate {
   public:
     FromMicToFileRecorderThread(const std::string& output_file,
                                 int32_t duration);
-
+    ~FromMicToFileRecorderThread();
     void threadMain();
 
     void exitThreadMain();

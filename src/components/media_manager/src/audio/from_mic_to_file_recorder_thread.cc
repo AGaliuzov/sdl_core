@@ -51,13 +51,25 @@ FromMicToFileRecorderThread::FromMicToFileRecorderThread(
     outputFileName_(output_file) {
   LOG4CXX_TRACE_ENTER(logger_);
   set_record_duration(duration);
+  LOG4CXX_TRACE_EXIT(logger_);
+}
+
+FromMicToFileRecorderThread::~FromMicToFileRecorderThread() {
+  LOG4CXX_TRACE_ENTER(logger_);
+  if(sleepThread_) {
+    sleepThread_->stop();
+    threads::ThreadDelegate * delegate = sleepThread_->delegate();
+    threads::DeleteThread(sleepThread_);
+    delete delegate;
+  }
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void FromMicToFileRecorderThread::set_output_file(
   const std::string& output_file) {
   LOG4CXX_TRACE_ENTER(logger_);
-
   outputFileName_ = output_file;
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void FromMicToFileRecorderThread::set_record_duration(int32_t duration) {
@@ -66,6 +78,7 @@ void FromMicToFileRecorderThread::set_record_duration(int32_t duration) {
   std::stringstream stringStream;
   stringStream << duration / 1000;
   durationString_ = stringStream.str();
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void FromMicToFileRecorderThread::initArgs() {
@@ -84,6 +97,7 @@ void FromMicToFileRecorderThread::initArgs() {
   argv_[2] = const_cast<gchar*>(outputFileName_.c_str());
   argv_[3] = const_cast<gchar*>(tKey_.c_str());
   argv_[4] = const_cast<gchar*>(durationString_.c_str());
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void FromMicToFileRecorderThread::threadMain() {
@@ -181,7 +195,7 @@ void FromMicToFileRecorderThread::threadMain() {
 
     bool shouldBeStoped;
     {
-      // FIXME(dchmerev@luxoft.com): 
+      // FIXME(dchmerev@luxoft.com):
       sync_primitives::AutoLock auto_lock(stopFlagLock_);
       shouldBeStoped = shouldBeStoped_;
     }
@@ -214,6 +228,7 @@ void FromMicToFileRecorderThread::threadMain() {
   g_main_loop_unref(loop);
 
   loop = NULL;
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 FromMicToFileRecorderThread::SleepThreadDelegate::SleepThreadDelegate(GstTimeout
@@ -244,16 +259,15 @@ void FromMicToFileRecorderThread::exitThreadMain() {
     }
   }
 
-  if (NULL != sleepThread_) {
-    LOG4CXX_TRACE(logger_, "Stop sleep thread\n");
+  if (sleepThread_) {
+    LOG4CXX_DEBUG(logger_, "Stop sleep thread\n");
     sleepThread_->stop();
-    threads::DeleteThread(sleepThread_);
-    sleepThread_ = NULL;
   }
 
   LOG4CXX_TRACE(logger_, "Set should be stopped flag\n");
   sync_primitives::AutoLock auto_lock(stopFlagLock_);
   shouldBeStoped_ = true;
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 }  // namespace media_manager

@@ -42,25 +42,29 @@ CREATE_LOGGERPTR_GLOBAL(logger, "VideoStreamToFileAdapter")
 VideoStreamToFileAdapter::VideoStreamToFileAdapter(const std::string& file_name)
   : file_name_(file_name),
     is_ready_(false),
-    thread_(NULL) {
+    thread_(threads::CreateThread("VideoStreamer",
+                                    new Streamer(this))) {
   Init();
 }
 
 VideoStreamToFileAdapter::~VideoStreamToFileAdapter() {
+  LOG4CXX_TRACE_ENTER(logger);
   if ((0 != current_application_ ) && (is_ready_)) {
     StopActivity(current_application_);
   }
-
-  thread_->stop();
+  threads::ThreadDelegate * delegate = thread_->delegate();
+  threads::DeleteThread(thread_);
+  delete delegate;
+  LOG4CXX_TRACE_EXIT(logger);
 }
 
 void VideoStreamToFileAdapter::Init() {
-  if (!thread_) {
-    LOG4CXX_INFO(logger, "Create and start sending thread");
-    thread_ = threads::CreateThread("VideoStreamer",
-                                  new Streamer(this));
+  if (thread_->is_running()) {
+    LOG4CXX_DEBUG(logger, "Start sending thread");
     const size_t kStackSize = 16384;
     thread_->startWithOptions(threads::ThreadOptions(kStackSize));
+  } else {
+    LOG4CXX_WARN(logger, "thread is already running");
   }
 }
 

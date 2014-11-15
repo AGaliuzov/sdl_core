@@ -61,7 +61,7 @@ class ReceiverThreadDelegate : public threads::ThreadDelegate {
         continue;
       }
       const std::string message_string(buffer, buffer + size);
-      LOG4CXX_INFO(logger_, "Message: " << message_string);
+      LOG4CXX_DEBUG(logger_, "Message: " << message_string);
       MessageSharedPointer message(new application_manager::Message(
           protocol_handler::MessagePriority::kDefault));
       message->set_json_message(message_string);
@@ -78,7 +78,7 @@ MqueueAdapter::MqueueAdapter(HMIMessageHandler* hmi_message_handler)
     : HMIMessageAdapter(hmi_message_handler),
       sdl_to_hmi_mqueue_(-1),
       hmi_to_sdl_mqueue_(-1),
-      receiver_thread_() {
+      receiver_thread_(NULL) {
   mq_attr mq_attributes;
   mq_attributes.mq_maxmsg = kMqueueSize;
   mq_attributes.mq_msgsize = kMqueueMessageSize;
@@ -96,18 +96,15 @@ MqueueAdapter::MqueueAdapter(HMIMessageHandler* hmi_message_handler)
                               << kHmiToSdlQueue << ", error " << errno);
     return;
   }
-  ReceiverThreadDelegate* receiver_thread_delegate =
-      new ReceiverThreadDelegate(hmi_to_sdl_mqueue_, hmi_message_handler);
-  receiver_thread_ =
-      threads::CreateThread("MqueueAdapter", receiver_thread_delegate);
+  receiver_thread_delegate_ = new ReceiverThreadDelegate(hmi_to_sdl_mqueue_,
+                                                        hmi_message_handler);
+  receiver_thread_ = threads::CreateThread("MqueueAdapter",
+                                           receiver_thread_delegate_.get());
   receiver_thread_->start();
 }
 
 MqueueAdapter::~MqueueAdapter() {
-  if (receiver_thread_) {
-    receiver_thread_->stop();
-    threads::DeleteThread(receiver_thread_);
-  }
+  threads::DeleteThread(receiver_thread_);
   if (-1 != hmi_to_sdl_mqueue_) mq_close(hmi_to_sdl_mqueue_);
   if (-1 != sdl_to_hmi_mqueue_) mq_close(sdl_to_hmi_mqueue_);
   mq_unlink(kHmiToSdlQueue);

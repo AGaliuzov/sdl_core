@@ -85,14 +85,13 @@ Connection::Connection(ConnectionHandle connection_handle,
 
   heartbeat_monitor_ = new HeartBeatMonitor(heartbeat_timeout, this);
   heart_beat_monitor_thread_ = threads::CreateThread("HeartBeatMonitor",
-                                                   heartbeat_monitor_);
+                                                     heartbeat_monitor_.get());
   heart_beat_monitor_thread_->start();
 }
 
 Connection::~Connection() {
   LOG4CXX_TRACE_ENTER(logger_);
-  heart_beat_monitor_thread_->stop();
-  heart_beat_monitor_thread_->join();
+  // HB will be stoped and joined indirectly
   threads::DeleteThread(heart_beat_monitor_thread_);
   sync_primitives::AutoLock lock(session_map_lock_);
   session_map_.clear();

@@ -43,35 +43,39 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "PolicyHandler")
 
 PTExchangeHandlerImpl::PTExchangeHandlerImpl(PolicyHandler* handler)
     : policy_handler_(handler),
-      retry_sequence_(threads::CreateThread("RetrySequence", new RetrySequence(handler))) {
+      retry_sequence_delegate_(new RetrySequence(handler)),
+      retry_sequence_thread_(threads::CreateThread("RetrySequence",
+                                                   retry_sequence_delegate_.get())) {
   DCHECK(policy_handler_);
-  LOG4CXX_INFO(logger_, "Exchan created");
+  LOG4CXX_DEBUG(logger_, "Exchange created");
 }
 
 PTExchangeHandlerImpl::~PTExchangeHandlerImpl() {
-  Stop();
+  LOG4CXX_TRACE_ENTER(logger_);
+  sync_primitives::AutoLock locker(retry_sequence_lock_);
+  threads::DeleteThread(retry_sequence_thread_);
   policy_handler_ = NULL;
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void PTExchangeHandlerImpl::Start() {
   sync_primitives::AutoLock locker(retry_sequence_lock_);
-  LOG4CXX_INFO(logger_, "Exchan started");
+  LOG4CXX_DEBUG(logger_, "Exchange starting");
 
-  retry_sequence_->stop();
-  threads::DeleteThread(retry_sequence_);
-  retry_sequence_ = threads::CreateThread("RetrySequence", new RetrySequence(policy_handler_));
+  if (retry_sequence_thread_->is_running()) {
+    retry_sequence_thread_->stop();
+  }
 
   if (policy_handler_) {
     policy_handler_->ResetRetrySequence();
+    retry_sequence_thread_->start();
   }
-  retry_sequence_->start();
 }
 
 void PTExchangeHandlerImpl::Stop() {
+  LOG4CXX_DEBUG(logger_, "Exchange stopping");
   sync_primitives::AutoLock locker(retry_sequence_lock_);
-  if (retry_sequence_->is_running()) {
-    retry_sequence_->stop();
-  }
+  retry_sequence_thread_->stop();
 }
 
 }  //  namespace policy
