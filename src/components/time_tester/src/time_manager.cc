@@ -76,7 +76,7 @@ void TimeManager::Init(protocol_handler::ProtocolHandlerImpl* ph) {
   application_manager::ApplicationManagerImpl::instance()->SetTimeMetricObserver(&app_observer);
   transport_manager::TransportManagerDefault::instance()->SetTimeMetricObserver(&tm_observer);
   ph->SetTimeMetricObserver(&ph_observer);
-  thread_->start();
+    thread_->start(threads::ThreadOptions());
   LOG4CXX_INFO(logger_, "Create and start sending thread");
 }
 

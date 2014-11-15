@@ -95,6 +95,7 @@ void CommandRequestImpl::onTimeOut() {
 
   unsubscribe_from_all_events();
   {
+    // FIXME (dchmerev@luxoft.com): atomic_xchg fits better
     sync_primitives::AutoLock auto_lock(state_lock_);
     if (kCompleted == current_state_) {
       // don't send timeout if request completed

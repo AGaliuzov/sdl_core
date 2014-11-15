@@ -75,9 +75,7 @@ class ThreadDelegate {
     return thread_;
   }
 
-  void set_thread(Thread *thread) {
-    thread_ = thread;
-  }
+  void set_thread(Thread *thread);
 
   bool ImproveState(unsigned int to) {
     state_lock_.Lock();

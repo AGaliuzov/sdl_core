@@ -64,8 +64,6 @@ namespace threads {
 class ThreadManager : public utils::Singleton<ThreadManager> {
  public:
   ThreadManager() {}
-  MessageQueue<Thread*> threads_to_terminate;
-  void TerminateThreadsLoop();
  private:
   DISALLOW_COPY_AND_ASSIGN(ThreadManager);
 

@@ -874,7 +874,7 @@ bool PolicyHandler::UnloadPolicyLibrary() {
   LOG4CXX_TRACE(logger_, "enter. policy_manager_ = " << policy_manager_);
   bool ret = true;
   if (policy_manager_) {
-    policy_manager_.release();
+    //policy_manager_.release();
   }
   if (dl_handle_) {
     ret = (dlclose(dl_handle_) == 0);

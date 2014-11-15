@@ -43,8 +43,6 @@
 #include "security_manager/crypto_manager_impl.h"
 #endif  // ENABLE_SECURITY
 
-#include "utils/threads/thread_manager.h"
-
 using threads::Thread;
 
 namespace main_namespace {
@@ -54,7 +52,7 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "appMain")
 namespace {
 void NameMessageBrokerThread(const System::Thread& thread,
                              const std::string& name) {
-  Thread::SetNameForId(Thread::Id(thread.GetId()), name);
+  Thread::SetNameForId(thread.GetId(), name);
 }
 }  // namespace
 
@@ -379,16 +377,15 @@ bool LifeCycle::InitMessageSystem() {
 
 namespace {
   void sig_handler(int sig) {
-    MessageQueue<threads::Thread*>& threads = ::threads::ThreadManager::instance()->threads_to_terminate;
-    threads.Shutdown();
+    // Do nothing
   }
 }
 
 void LifeCycle::Run() {
   // First, register signal handler
   ::utils::SubscribeToTerminateSignal(&sig_handler);
-  // Then run main loop until signal caught
-  threads::ThreadManager::instance()->TerminateThreadsLoop();
+  // Now wait for any signal
+  pause();
 }
 
 #ifdef CUSTOMER_PASA
