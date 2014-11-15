@@ -51,11 +51,10 @@ RequestController::RequestController()
     pending_request_set_lock_(true),
     timer_("RequestCtrlTimer", this, &RequestController::onTimer, true),
     is_low_voltage_(false) {
-  LOG4CXX_INFO(logger_, "RequestController::RequestController()");
+  LOG4CXX_TRACE_ENTER(logger_);
   InitializeThreadpool();
   timer_.start(dafault_sleep_time_);
-  LOG4CXX_DEBUG(logger_,
-                " Create timer thread ; timer thread = " << timer_.thread_->thread_handle());
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 RequestController::~RequestController() {
@@ -63,23 +62,21 @@ RequestController::~RequestController() {
   if (pool_state_ != TPoolState::STOPPED) {
     DestroyThreadpool();
   }
-
-  mobile_request_list_.clear();
-  pending_request_set_.clear();
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void RequestController::InitializeThreadpool() {
   LOG4CXX_TRACE_ENTER(logger_);
   // TODO: Consider lazy loading threads instead of creating all at once
   pool_state_ = TPoolState::STARTED;
+  char name[50];
   for (uint32_t i = 0; i < pool_size_; i++) {
-    char name[50];
-    snprintf(name, sizeof(name)/sizeof(name[0]),
-             "AM Pool %d", i);
+    snprintf(name, sizeof(name)/sizeof(name[0]), "AM Pool %d", i);
     pool_.push_back(threads::CreateThread(name, new Worker(this)));
     pool_[i]->start();
-    LOG4CXX_INFO(logger_, "Request thread initialized: " << name);
+    LOG4CXX_DEBUG(logger_, "Request thread initialized: " << name);
   }
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void RequestController::DestroyThreadpool() {
@@ -87,16 +84,17 @@ void RequestController::DestroyThreadpool() {
   {
     sync_primitives::AutoLock auto_lock(mobile_request_list_lock_);
     pool_state_ = TPoolState::STOPPED;
-    LOG4CXX_INFO(logger_, "Broadcasting STOP signal to all threads...");
+    LOG4CXX_DEBUG(logger_, "Broadcasting STOP signal to all threads...");
     cond_var_.Broadcast();  // notify all threads we are shutting down
   }
-  for (uint32_t i = 0; i < pool_size_; i++) {
-    pool_[i]->stop();
-    pool_[i]->join();
-    threads::DeleteThread(pool_[i]);
+  for (size_t i = 0; i < pool_.size(); i++) {
+    Thread* thread = pool_[i];
+    threads::ThreadDelegate* delegate = thread->delegate();
+    threads::DeleteThread(thread);
+    delete delegate;
   }
   pool_.clear();
-  LOG4CXX_INFO(logger_, "Threads exited from the thread pool " << pool_size_);
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 RequestController::TResult RequestController::addMobileRequest(

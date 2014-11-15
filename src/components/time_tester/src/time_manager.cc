@@ -59,36 +59,32 @@ TimeManager::TimeManager():
   ph_observer(this) {
     ip_ = profile::Profile::instance()->server_address();
     port_ = profile::Profile::instance()->time_testing_port();
+    streamer_ = new Streamer(this);
+    thread_ = threads::CreateThread("TimeManager", streamer_ );
 }
 
 TimeManager::~TimeManager() {
-  LOG4CXX_INFO(logger_, "Destroing TimeManager");
+  LOG4CXX_TRACE_ENTER(logger_);
   Stop();
+  threads::DeleteThread(thread_);
+  delete streamer_;
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void TimeManager::Init(protocol_handler::ProtocolHandlerImpl* ph) {
   DCHECK(ph);
-  if (!thread_) {
-    streamer_ = new Streamer(this);
-    thread_ = threads::CreateThread("TimeManager", streamer_ );
-    application_manager::ApplicationManagerImpl::instance()->SetTimeMetricObserver(&app_observer);
-    transport_manager::TransportManagerDefault::instance()->SetTimeMetricObserver(&tm_observer);
-    ph->SetTimeMetricObserver(&ph_observer);
-    thread_->startWithOptions(threads::ThreadOptions());
-    LOG4CXX_INFO(logger_, "Create and start sending thread");
-    }
+  application_manager::ApplicationManagerImpl::instance()->SetTimeMetricObserver(&app_observer);
+  transport_manager::TransportManagerDefault::instance()->SetTimeMetricObserver(&tm_observer);
+  ph->SetTimeMetricObserver(&ph_observer);
+  thread_->start();
+  LOG4CXX_INFO(logger_, "Create and start sending thread");
 }
 
 void TimeManager::Stop() {
-  if (thread_) {
-    if (socket_fd_ != -1) {
-      ::close(socket_fd_);
-    thread_->stop();
-    thread_->join();
-    threads::DeleteThread(thread_);
-    thread_ = NULL;
-    }
+  if (socket_fd_ != -1) {
+    ::close(socket_fd_);
   }
+  thread_->stop();
   messages_.Reset();
   LOG4CXX_INFO(logger_, "TimeManager stopped");
 }

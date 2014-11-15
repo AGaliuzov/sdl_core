@@ -88,13 +88,11 @@ CacheManager::CacheManager()
 }
 
 CacheManager::~CacheManager() {
-  if (backup_thread_) {
-    sync_primitives::AutoLock lock(backuper_lock_);
-    backuper_ = NULL;
-    backup_thread_->stop();
-    backup_thread_->join();
-    threads::DeleteThread(backup_thread_);
-  }
+  LOG4CXX_TRACE_ENTER(logger_);
+  sync_primitives::AutoLock lock(backuper_locker_);
+  threads::DeleteThread(backup_thread_);
+  delete backuper_;
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 bool CacheManager::CanAppKeepContext(const std::string &app_id) {
@@ -391,12 +389,9 @@ void CacheManager::GetHMIAppTypeAfterUpdate(std::map<std::string, StringArray>& 
 }
 
 void CacheManager::Backup() {
-  sync_primitives::AutoLock lock(backuper_lock_);
-  if (backuper_) {
-    backuper_->DoBackup();
-  } else {
-    LOG4CXX_ERROR(logger_, "Backuper thread not exists any more");
-  }
+  sync_primitives::AutoLock lock(backuper_locker_);
+  DCHECK(backuper_);
+  backuper_->DoBackup();
 }
 
 std::string CacheManager::currentDateTime() {

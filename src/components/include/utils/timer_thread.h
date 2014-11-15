@@ -40,6 +40,7 @@
 
 #include "utils/conditional_variable.h"
 #include "utils/lock.h"
+#include "utils/shared_ptr.h"
 #include "utils/logger.h"
 #include "utils/macro.h"
 #include "utils/timer_thread.h"
@@ -52,8 +53,9 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "Utils")
 
 class TimerDelegate;
 
-/*
- * The TimerThread class provide possibility to run timer in a separate thread.
+/**
+ * \class TimerThread
+ * \brief TimerThread class provide possibility to run timer in a separate thread.
  * The client should specify callee and const callback function.
  * Example usage:
  *
@@ -115,7 +117,7 @@ class TimerThread {
      */
     virtual bool isRunning();
 
-    /*
+    /**
      * @brief Stop timer update timeout and start timer again
      * Note that it cancel thread of timer, If you use it from callback,
      * it probably will stop execution of callback function
@@ -123,7 +125,6 @@ class TimerThread {
      *
      */
     virtual void updateTimeOut(const uint32_t timeout_seconds);
-    threads::Thread*                                   thread_;
   protected:
 
     /**
@@ -202,10 +203,10 @@ class TimerThread {
       private:
         DISALLOW_COPY_AND_ASSIGN(TimerLooperDelegate);
     };
+    threads::Thread*     thread_;
     void (T::*callback_)();
     T*                  callee_;
     TimerDelegate*       delegate_;
-    //threads::Thread*     thread_;
     std::string       name_;
     volatile bool     is_looper_;
 
@@ -220,57 +221,47 @@ TimerThread<T>::TimerThread(const char* name, T* callee, void (T::*f)(), bool is
     delegate_(NULL),
     name_(name),
     is_looper_(is_looper) {
+  delegate_ = is_looper_ ?
+      new TimerLooperDelegate(this) :
+      new TimerDelegate(this);
+
+  thread_ = threads::CreateThread(name_.c_str(), delegate_);
 }
 
 template <class T>
 TimerThread<T>::~TimerThread() {
   LOG4CXX_DEBUG(logger_, "TimerThread is to be destroyed " << name_);
-  if (thread_) {
-    thread_->stop();
-    threads::DeleteThread(thread_);
-  }
+  threads::DeleteThread(thread_);
+  delete delegate_;
   callback_ = NULL;
   callee_ = NULL;
 }
 
 template <class T>
 void TimerThread<T>::start(uint32_t timeout_seconds) {
-  LOG4CXX_TRACE(logger_, "Starting timer " << this);
+  LOG4CXX_TRACE_ENTER(logger_);
   if (isRunning()) {
     LOG4CXX_INFO(logger_, "TimerThread start needs stop " << name_);
     stop();
   }
-
-  delegate_ = is_looper_ ?
-      new TimerLooperDelegate(this) :
-      new TimerDelegate(this);
-  if (delegate_) {
-    delegate_->setTimeOut(timeout_seconds);
-  }
-
-  thread_ = threads::CreateThread(name_.c_str(), delegate_);
-  if (thread_) {
-    thread_->start();
-  }
+  updateTimeOut(timeout_seconds);
+  thread_->start();
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 template <class T>
 void TimerThread<T>::stop() {
-  LOG4CXX_TRACE(logger_, "Stopping timer " << this);
-  if (thread_) {
-    LOG4CXX_DEBUG(logger_, "TimerThread thread_ stop " << name_);
-    thread_->stop();
-    threads::DeleteThread(thread_);
-    thread_ = NULL;
-    delegate_ = NULL;
-  } else {
-    LOG4CXX_WARN(logger_, "TimerThread thread_ not stopped " << name_);
-  }
+  LOG4CXX_TRACE_ENTER(logger_);
+  DCHECK(thread_);
+  LOG4CXX_DEBUG(logger_, "Stopping timer  " << name_);
+  thread_->stop();
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 template <class T>
 bool TimerThread<T>::isRunning() {
-  return thread_ && thread_->is_running();
+  DCHECK(thread_);
+  return thread_->is_running();
 }
 
 template <class T>
@@ -278,15 +269,9 @@ void TimerThread<T>::updateTimeOut(const uint32_t timeout_seconds) {
   delegate_->setTimeOut(timeout_seconds);
 }
 
-template <class T>
-void TimerThread<T>::onTimeOut() const {
+template <class T>void TimerThread<T>::onTimeOut() const {
   if (callee_ && callback_) {
     (callee_->*callback_)();
-    /*
-    if (!is_looper_) {
-      stop();
-    }
-    */
   }
 }
 
@@ -323,10 +308,6 @@ void TimerThread<T>::TimerDelegate::threadMain() {
         wait_milliseconds_left <= 0) {
       break;
     }
-  }
-  if (!stop_flag_) {
-    timer_thread_->onTimeOut();
-    timer_thread_->stop();
   }
 }
 

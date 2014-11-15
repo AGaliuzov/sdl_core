@@ -50,14 +50,12 @@ UpdateStatusManager::UpdateStatusManager() :
 }
 
 UpdateStatusManager::~UpdateStatusManager() {
-  LOG4CXX_DEBUG(logger_, "Destroy update Status manager");
+  LOG4CXX_TRACE_ENTER(logger_);
   DCHECK(update_status_thread_delegate_);
-  update_status_thread_delegate_->update_status_manager_ = NULL;
   DCHECK(thread_);
-  thread_->stop();
-  thread_->join();
   threads::DeleteThread(thread_);
-  LOG4CXX_DEBUG(logger_, "update_response_timer_ deleted ");
+  delete update_status_thread_delegate_;
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void UpdateStatusManager::set_listener(PolicyListener* listener) {

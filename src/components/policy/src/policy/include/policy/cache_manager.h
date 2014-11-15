@@ -638,7 +638,7 @@ private:
       DISALLOW_COPY_AND_ASSIGN(BackgroundBackuper);
   };
   threads::Thread* backup_thread_;
-  sync_primitives::Lock backuper_lock_;
+  sync_primitives::Lock backuper_locker_;
   BackgroundBackuper* backuper_;
 };
 }  // namespace policy
