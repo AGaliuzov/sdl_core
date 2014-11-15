@@ -113,6 +113,12 @@ const std::string kSelectAppLevels =
   "  `app_registration_language_gui`, "
   "  `app_registration_language_vui` "
   "FROM `app_level`";
+
+const std::string kUpdateGlobalCounters = "UPDATE `usage_and_error_count` SET "
+    "`count_of_iap_buffer_full` = ?, "
+    "`count_sync_out_of_memory` = ?, "
+    "`count_of_sync_reboots` = ? ";
+
 const std::string kInsertDeviceData =
   "INSERT OR IGNORE INTO `device` "
   "(`id`, `hardware`, `firmware_rev`, `os`, `os_version`, `carrier`, "

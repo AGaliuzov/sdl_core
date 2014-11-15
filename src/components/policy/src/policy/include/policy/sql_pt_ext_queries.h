@@ -56,6 +56,7 @@ extern const std::string kSelectPreconsentedGroups;
 extern const std::string kDeletePreconsentedGroups;
 extern const std::string kSelectUsageAndErrorCount;
 extern const std::string kSelectAppLevels;
+extern const std::string kUpdateGlobalCounters;
 extern const std::string kInsertDeviceData;
 extern const std::string kInsertConsentGroups;
 extern const std::string kDeleteAppConsent;
