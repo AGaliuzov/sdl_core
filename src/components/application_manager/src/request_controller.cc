@@ -553,32 +553,40 @@ bool RequestController::checkHMILevelTimeScaleMaxRequest(
 }
 
 void RequestController::UpdateTimer() {
-  LOG4CXX_TRACE_ENTER(logger_);
-  uint32_t sleep_time = dafault_sleep_time_;
-  RequestInfoSet::iterator it = pending_request_set_.begin();
+  LOG4CXX_AUTO_TRACE(logger_, auto_trace);
+  if(pending_request_set_.empty()) {
+    LOG4CXX_DEBUG(logger_, "Sleep for default sleep time "
+                 << dafault_sleep_time_ << " secs");
+    timer_.updateTimeOut(dafault_sleep_time_);
+    return;
+  }
 
+  RequestInfoSet::iterator it = pending_request_set_.begin();
   while (it != pending_request_set_.end()) {
     RequestInfoPtr request = *it;
     DCHECK(request.valid());
-    if (0 == request->timeout_sec()) {
-      ++it;
-      // This request should not be observed for TIME_OUT
-      continue;
-    }
-    const TimevalStruct curent_time = date_time::DateTime::getCurrentTime();
-    const int64_t left = request->end_time().tv_sec - curent_time.tv_sec;
-    if (left >= 0) {
-      sleep_time = left;
-      break;
+    // This request should not be observed for TIME_OUT
+    if (0 != request->timeout_sec()) {
+      const TimevalStruct current_time = date_time::DateTime::getCurrentTime();
+      const TimevalStruct end_time = request->end_time();
+      if (current_time < end_time) {
+        const uint64_t secs = end_time.tv_sec - current_time.tv_sec;
+        LOG4CXX_DEBUG(logger_, "Sleep for " << secs << " secs");
+        // Timeout for bigger than 5 minutes is a mistake
+        DCHECK(secs < 300);
+        timer_.updateTimeOut(secs);
+      } else {
+        LOG4CXX_DEBUG(logger_, "Request is expired: "
+                      << end_time.tv_sec << " - "
+                      << current_time.tv_sec << " >= "
+                      << request->timeout_sec());
+        timer_.updateTimeOut(0);
+      }
+      return;
     }
     ++it;
   }
-  timer_.updateTimeOut(sleep_time);
-  LOG4CXX_INFO(logger_, "Sleep for: " << sleep_time);
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
-
 }  //  namespace request_controller
-
 }  //  namespace application_manager
