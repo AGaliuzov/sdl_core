@@ -60,25 +60,25 @@ void IAP2Device::Stop() {
   for (ThreadContainer::const_iterator i = hub_connection_threads_.begin();
       i != hub_connection_threads_.end(); ++i) {
     threads::Thread* thread = i->second;
-    threads::ThreadDelegate* delegate = thread->delegate();
+    thread->join();
+    delete thread->delegate();
     threads::DeleteThread(thread);
-    delete delegate;
   }
   hub_connection_threads_.clear();
   for (ThreadContainer::const_iterator i = legacy_connection_threads_.begin();
       i != legacy_connection_threads_.end(); ++i) {
     threads::Thread* thread = i->second;
-    threads::ThreadDelegate* delegate = thread->delegate();
+    thread->join();
+    delete thread->delegate();
     threads::DeleteThread(thread);
-    delete delegate;
   }
   legacy_connection_threads_.clear();
   for (ThreadContainer::const_iterator i = pool_connection_threads_.begin();
       i != pool_connection_threads_.end(); ++i) {
     threads::Thread* thread = i->second;
-    threads::ThreadDelegate* delegate = thread->delegate();
+    thread->join();
+    delete thread->delegate();
     threads::DeleteThread(thread);
-    delete delegate;
   }
   pool_connection_threads_.clear();
 }
@@ -334,9 +334,9 @@ void IAP2Device::StopThread(const std::string& protocol_name) {
   ThreadContainer::iterator j = pool_connection_threads_.find(protocol_name);
   if (j != pool_connection_threads_.end()) {
     threads::Thread* thread = j->second;
-    threads::ThreadDelegate* delegate = thread->delegate();
+    thread->join();
+    delete thread->delegate();
     threads::DeleteThread(thread);
-    delete delegate;
     pool_connection_threads_.erase(j);
   }
 }

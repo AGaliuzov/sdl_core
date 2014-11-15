@@ -76,8 +76,9 @@ A2DPSourcePlayerAdapter::~A2DPSourcePlayerAdapter() {
   for (SourcesMap::iterator it = sources_.begin();
        sources_.end() != it; ++it) {
     Pair pair = *it;
-    threads::DeleteThread(pair.first);
+    pair.first->join();
     delete pair.second;
+    threads::DeleteThread(pair.first);
   }
   sources_.clear();
 }
@@ -120,8 +121,9 @@ void A2DPSourcePlayerAdapter::StopActivity(int32_t application_key) {
   SourcesMap::iterator it = sources_.find(application_key);
   if (sources_.end() != it) {
     Pair pair = *it;
-    threads::DeleteThread(pair.first);
+    pair.first->join();
     delete pair.second;
+    threads::DeleteThread(pair.first);
     current_application_ = 0;
   }
 }

@@ -74,9 +74,9 @@ BluetoothPASAListener::BluetoothPASAListener(
 }
 
 BluetoothPASAListener::~BluetoothPASAListener() {
-  threads::ThreadDelegate *delegate = thread_->delegate();
+  thread_->join();
+  delete thread_->delegate();
   threads::DeleteThread(thread_);
-  delete delegate;
 }
 
 void BluetoothPASAListener::ListeningThreadDelegate::threadMain() {

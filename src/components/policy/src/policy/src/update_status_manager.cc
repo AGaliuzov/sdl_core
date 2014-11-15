@@ -53,8 +53,9 @@ UpdateStatusManager::~UpdateStatusManager() {
   LOG4CXX_TRACE_ENTER(logger_);
   DCHECK(update_status_thread_delegate_);
   DCHECK(thread_);
-  threads::DeleteThread(thread_);
+  thread_->join();
   delete update_status_thread_delegate_;
+  threads::DeleteThread(thread_);
   LOG4CXX_TRACE_EXIT(logger_);
 }
 

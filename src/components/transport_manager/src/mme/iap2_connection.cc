@@ -60,8 +60,9 @@ IAP2Connection::IAP2Connection(const DeviceUID& device_uid,
 IAP2Connection::~IAP2Connection() {
   LOG4CXX_TRACE_ENTER(logger_);
   if (receiver_thread_) {
+    receiver_thread_->join();
+    delete receiver_thread_->delegate();
     threads::DeleteThread(receiver_thread_);
-    delete receiver_thread_delegate_;
   }
   LOG4CXX_TRACE_EXIT(logger_);
 }
@@ -117,8 +118,9 @@ TransportAdapter::Error IAP2Connection::Disconnect() {
   const TransportAdapter::Error error =
       Close() ? TransportAdapter::OK : TransportAdapter::FAIL;
   if (receiver_thread_) {
+    receiver_thread_->join();
+    delete receiver_thread_->delegate();
     threads::DeleteThread(receiver_thread_);
-    delete receiver_thread_delegate_;
     receiver_thread_ = NULL;
     receiver_thread_delegate_ = NULL;
   }

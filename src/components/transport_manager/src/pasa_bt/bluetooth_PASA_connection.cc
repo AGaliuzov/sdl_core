@@ -79,9 +79,9 @@ BluetoothPASAConnection::~BluetoothPASAConnection() {
   if (-1 != write_fd_)
     close(write_fd_);
 
-  threads::ThreadDelegate *delegate = thread_->delegate();
+  thread_->join();
+  delete thread_->delegate();
   threads::DeleteThread(thread_);
-  delete delegate;
   LOG4CXX_TRACE_EXIT(logger_);
 }
 

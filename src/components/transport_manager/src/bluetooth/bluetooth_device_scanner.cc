@@ -122,9 +122,9 @@ BluetoothDeviceScanner::BluetoothDeviceScanner(
 }
 
 BluetoothDeviceScanner::~BluetoothDeviceScanner() {
-  threads::ThreadDelegate *delegate = thread_->delegate();
+  thread_->join();
+  delete thread_->delegate();
   threads::DeleteThread(thread_);
-  delete delegate;
 }
 
 

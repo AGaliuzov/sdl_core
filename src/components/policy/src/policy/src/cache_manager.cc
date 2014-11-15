@@ -90,8 +90,9 @@ CacheManager::CacheManager()
 CacheManager::~CacheManager() {
   LOG4CXX_TRACE_ENTER(logger_);
   sync_primitives::AutoLock lock(backuper_locker_);
+  backup_thread_->join();
+  delete backup_thread_->delegate();
   threads::DeleteThread(backup_thread_);
-  delete backuper_;
   LOG4CXX_TRACE_EXIT(logger_);
 }
 

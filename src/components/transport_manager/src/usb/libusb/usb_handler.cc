@@ -100,9 +100,9 @@ UsbHandler::~UsbHandler() {
     libusb_exit(libusb_context_);
     libusb_context_ = 0;
   }
-  threads::ThreadDelegate *delegate = thread_->delegate();
+  thread_->join();
+  delete thread_->delegate();
   threads::DeleteThread(thread_);
-  delete delegate;
 }
 
 void UsbHandler::DeviceArrived(libusb_device* device_libusb) {

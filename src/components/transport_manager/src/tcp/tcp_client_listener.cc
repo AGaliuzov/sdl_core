@@ -87,14 +87,14 @@ void TcpClientListener::Terminate() {
 }
 
 bool TcpClientListener::IsInitialised() const {
-  return thread_ && thread_->is_running();
+  return thread_;
 }
 
 TcpClientListener::~TcpClientListener() {
   LOG4CXX_TRACE_ENTER(logger_);
-  threads::ThreadDelegate *delegate = thread_->delegate();
+  thread_->join();
+  delete thread_->delegate();
   threads::DeleteThread(thread_);
-  delete delegate;
   LOG4CXX_TRACE_EXIT(logger_);
 }
 

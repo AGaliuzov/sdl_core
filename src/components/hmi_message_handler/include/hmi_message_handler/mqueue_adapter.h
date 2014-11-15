@@ -58,7 +58,7 @@ class MqueueAdapter : public HMIMessageAdapter {
   mqd_t sdl_to_hmi_mqueue_;
   mqd_t hmi_to_sdl_mqueue_;
 
-  utils::SharedPtr<ReceiverThreadDelegate> receiver_thread_delegate_;
+  ReceiverThreadDelegate* receiver_thread_delegate_;
   threads::Thread* receiver_thread_;
 };
 

@@ -64,6 +64,11 @@ ThreadedSocketConnection::ThreadedSocketConnection(
 ThreadedSocketConnection::~ThreadedSocketConnection() {
   terminate_flag_ = true;
   Notify();
+  if (thread_) {
+    thread_->join();
+    delete thread_->delegate();
+    threads::DeleteThread(thread_);
+  }
 }
 
 void ThreadedSocketConnection::Abort() {

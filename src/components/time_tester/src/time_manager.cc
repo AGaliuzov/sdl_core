@@ -66,8 +66,9 @@ TimeManager::TimeManager():
 TimeManager::~TimeManager() {
   LOG4CXX_TRACE_ENTER(logger_);
   Stop();
-  threads::DeleteThread(thread_);
+  thread_->join();
   delete streamer_;
+  threads::DeleteThread(thread_);
   LOG4CXX_TRACE_EXIT(logger_);
 }
 

@@ -57,10 +57,9 @@ PipeStreamerAdapter::~PipeStreamerAdapter() {
     StopActivity(current_application_);
   }
 
-  thread_->stop();
-  threads::ThreadDelegate * delegate = thread_->delegate();
+  thread_->join();
+  delete thread_->delegate();
   threads::DeleteThread(thread_);
-  delete delegate;
 }
 
 void PipeStreamerAdapter::SendData(

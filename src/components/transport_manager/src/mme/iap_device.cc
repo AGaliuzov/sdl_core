@@ -57,8 +57,9 @@ IAPDevice::IAPDevice(const std::string& mount_point, const std::string& name,
 
 void IAPDevice::Stop() {
   if (receiver_thread_) {
+    receiver_thread_->join();
+    delete receiver_thread_->delegate();
     threads::DeleteThread(receiver_thread_);
-    delete receiver_thread_delegate_;
     receiver_thread_ = NULL;
     receiver_thread_delegate_ = NULL;
   }

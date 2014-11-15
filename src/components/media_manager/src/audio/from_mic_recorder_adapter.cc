@@ -53,10 +53,9 @@ FromMicRecorderAdapter::FromMicRecorderAdapter()
 FromMicRecorderAdapter::~FromMicRecorderAdapter() {
   LOG4CXX_TRACE_ENTER(logger_);
   if (recorder_thread_) {
-    recorder_thread_->stop();
-    threads::ThreadDelegate * delegate = recorder_thread_->delegate();
+    recorder_thread_->join();
+    delete recorder_thread_->delegate();
     threads::DeleteThread(recorder_thread_);
-    delete delegate;
   }
   LOG4CXX_TRACE_EXIT(logger_);
 }

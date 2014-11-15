@@ -89,9 +89,9 @@ void RequestController::DestroyThreadpool() {
   }
   for (size_t i = 0; i < pool_.size(); i++) {
     Thread* thread = pool_[i];
-    threads::ThreadDelegate* delegate = thread->delegate();
+    thread->join();
+    delete thread->delegate();
     threads::DeleteThread(thread);
-    delete delegate;
   }
   pool_.clear();
   LOG4CXX_TRACE_EXIT(logger_);

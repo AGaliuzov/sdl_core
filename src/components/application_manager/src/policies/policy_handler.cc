@@ -764,7 +764,7 @@ void PolicyHandler::OnPendingPermissionChange(
       application_manager::MessageHelper::
           SendOnAppPermissionsChangedNotification(app->app_id(), permissions);
 
-      policy_manager_->RemovePendingPermissionChanges(policy_app_id);      
+      policy_manager_->RemovePendingPermissionChanges(policy_app_id);
     }
     break;
   }
@@ -874,7 +874,7 @@ bool PolicyHandler::UnloadPolicyLibrary() {
   LOG4CXX_TRACE(logger_, "enter. policy_manager_ = " << policy_manager_);
   bool ret = true;
   if (policy_manager_) {
-    //policy_manager_.release();
+    policy_manager_.release();
   }
   if (dl_handle_) {
     ret = (dlclose(dl_handle_) == 0);

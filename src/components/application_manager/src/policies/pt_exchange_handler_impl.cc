@@ -44,13 +44,15 @@ PTExchangeHandlerImpl::PTExchangeHandlerImpl(PolicyHandler* handler)
     : policy_handler_(handler),
       retry_sequence_delegate_(new RetrySequence(handler)),
       retry_sequence_thread_(threads::CreateThread("RetrySequence",
-                                                   retry_sequence_delegate_.get())) {
+                                                   retry_sequence_delegate_)) {
   DCHECK(policy_handler_);
 }
 
 PTExchangeHandlerImpl::~PTExchangeHandlerImpl() {
   LOG4CXX_AUTO_TRACE(logger_, autotrace);
   sync_primitives::AutoLock locker(retry_sequence_lock_);
+  retry_sequence_thread_->join();
+  delete retry_sequence_delegate_;
   threads::DeleteThread(retry_sequence_thread_);
   policy_handler_ = NULL;
 }

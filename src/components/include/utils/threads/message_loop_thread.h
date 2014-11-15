@@ -41,7 +41,6 @@
 #include "utils/message_queue.h"
 #include "utils/threads/thread_manager.h"
 #include "utils/lock.h"
-#include "utils/shared_ptr.h"
 
 namespace threads {
 
@@ -110,7 +109,7 @@ class MessageLoopThread {
 
  private:
   MessageQueue<Message, Queue> message_queue_;
-  utils::SharedPtr<LoopThreadDelegate> thread_delegate_;
+  LoopThreadDelegate* thread_delegate_;
   threads::Thread* thread_;
 };
 
@@ -122,7 +121,7 @@ MessageLoopThread<Q>::MessageLoopThread(const std::string&   name,
                                         const ThreadOptions& thread_opts)
     : thread_delegate_(new LoopThreadDelegate(&message_queue_, handler)),
       thread_(threads::CreateThread(name.c_str(),
-                                    thread_delegate_.get())) {
+                                    thread_delegate_)) {
   const bool started = thread_->start(thread_opts);
   if (!started) {
     CREATE_LOGGERPTR_LOCAL(logger_, "Utils")
@@ -133,6 +132,8 @@ MessageLoopThread<Q>::MessageLoopThread(const std::string&   name,
 template<class Q>
 MessageLoopThread<Q>::~MessageLoopThread() {
   Shutdown();
+  thread_->join();
+  delete thread_delegate_;
   threads::DeleteThread(thread_);
 }
 

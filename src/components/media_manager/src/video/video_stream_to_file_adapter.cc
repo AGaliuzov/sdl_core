@@ -52,9 +52,9 @@ VideoStreamToFileAdapter::~VideoStreamToFileAdapter() {
   if ((0 != current_application_ ) && (is_ready_)) {
     StopActivity(current_application_);
   }
-  threads::ThreadDelegate * delegate = thread_->delegate();
+  thread_->join();
+  delete thread_->delegate();
   threads::DeleteThread(thread_);
-  delete delegate;
   LOG4CXX_TRACE_EXIT(logger);
 }
 

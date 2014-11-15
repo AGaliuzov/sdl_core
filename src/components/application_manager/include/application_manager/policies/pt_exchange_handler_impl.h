@@ -51,7 +51,7 @@ class PTExchangeHandlerImpl : public PTExchangeHandler {
 
  protected:
   PolicyHandler* policy_handler_;
-  utils::SharedPtr<RetrySequence> retry_sequence_delegate_;
+  RetrySequence* retry_sequence_delegate_;
   threads::Thread* retry_sequence_thread_;
   sync_primitives::Lock retry_sequence_lock_;
 

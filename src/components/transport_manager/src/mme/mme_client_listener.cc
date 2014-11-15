@@ -113,8 +113,9 @@ void MmeClientListener::Terminate() {
   initialised_ = false;
 
   if (notify_thread_) {
+    notify_thread_->join();
+    delete notify_thread_->delegate();
     threads::DeleteThread(notify_thread_);
-    delete notify_thread_delegate_;
     notify_thread_ = NULL;
     notify_thread_delegate_ = NULL;
   }
@@ -165,8 +166,9 @@ TransportAdapter::Error MmeClientListener::StartListening() {
 
 TransportAdapter::Error MmeClientListener::StopListening() {
   if (notify_thread_) {
+    notify_thread_->join();
+    delete notify_thread_->delegate();
     threads::DeleteThread(notify_thread_);
-    delete notify_thread_delegate_;
     notify_thread_ = NULL;
     notify_thread_delegate_ = NULL;
   }
