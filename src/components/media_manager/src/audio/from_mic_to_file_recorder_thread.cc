@@ -56,7 +56,7 @@ FromMicToFileRecorderThread::FromMicToFileRecorderThread(
 
 FromMicToFileRecorderThread::~FromMicToFileRecorderThread() {
   LOG4CXX_TRACE_ENTER(logger_);
-  if(sleepThread_) {
+  if (sleepThread_) {
     sleepThread_->stop();
     threads::ThreadDelegate * delegate = sleepThread_->delegate();
     threads::DeleteThread(sleepThread_);

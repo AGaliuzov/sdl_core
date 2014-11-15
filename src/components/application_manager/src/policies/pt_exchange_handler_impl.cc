@@ -35,7 +35,6 @@
 #include "utils/logger.h"
 #include "application_manager/policies/policy_handler.h"
 #include "application_manager/policies/policy_retry_sequence.h"
-#include "utils/threads/thread_manager.h"
 
 namespace policy {
 
@@ -47,20 +46,18 @@ PTExchangeHandlerImpl::PTExchangeHandlerImpl(PolicyHandler* handler)
       retry_sequence_thread_(threads::CreateThread("RetrySequence",
                                                    retry_sequence_delegate_.get())) {
   DCHECK(policy_handler_);
-  LOG4CXX_DEBUG(logger_, "Exchange created");
 }
 
 PTExchangeHandlerImpl::~PTExchangeHandlerImpl() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_, autotrace);
   sync_primitives::AutoLock locker(retry_sequence_lock_);
   threads::DeleteThread(retry_sequence_thread_);
   policy_handler_ = NULL;
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void PTExchangeHandlerImpl::Start() {
+  LOG4CXX_AUTO_TRACE(logger_, autotrace);
   sync_primitives::AutoLock locker(retry_sequence_lock_);
-  LOG4CXX_DEBUG(logger_, "Exchange starting");
 
   if (retry_sequence_thread_->is_running()) {
     retry_sequence_thread_->stop();
@@ -73,7 +70,7 @@ void PTExchangeHandlerImpl::Start() {
 }
 
 void PTExchangeHandlerImpl::Stop() {
-  LOG4CXX_DEBUG(logger_, "Exchange stopping");
+  LOG4CXX_AUTO_TRACE(logger_, autotrace);
   sync_primitives::AutoLock locker(retry_sequence_lock_);
   retry_sequence_thread_->stop();
 }

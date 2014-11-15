@@ -41,17 +41,18 @@
 
 namespace media_manager {
 
-CREATE_LOGGERPTR_GLOBAL(logger, "PipeStreamerAdapter")
+CREATE_LOGGERPTR_GLOBAL(logger_, "PipeStreamerAdapter")
 
 PipeStreamerAdapter::PipeStreamerAdapter()
   : is_ready_(false),
     thread_(threads::CreateThread("PipeStreamer", new Streamer(this))),
     messages_() {
-  LOG4CXX_DEBUG(logger, "PipeStreamerAdapter::PipeStreamerAdapter");
+  LOG4CXX_AUTO_TRACE(logger_, autotrace);
+  LOG4CXX_DEBUG(logger_, "PipeStreamerAdapter::PipeStreamerAdapter");
 }
 
 PipeStreamerAdapter::~PipeStreamerAdapter() {
-  LOG4CXX_TRACE_ENTER(logger);
+  LOG4CXX_AUTO_TRACE(logger_, autotrace);
 
   if ((0 != current_application_ ) && (is_ready_)) {
     StopActivity(current_application_);
@@ -61,16 +62,15 @@ PipeStreamerAdapter::~PipeStreamerAdapter() {
   threads::ThreadDelegate * delegate = thread_->delegate();
   threads::DeleteThread(thread_);
   delete delegate;
-  LOG4CXX_TRACE_EXIT(logger);
 }
 
 void PipeStreamerAdapter::SendData(
   int32_t application_key,
   const ::protocol_handler::RawMessagePtr message) {
-  LOG4CXX_INFO(logger, "PipeStreamerAdapter::SendData");
+  LOG4CXX_AUTO_TRACE(logger_, autotrace);
 
   if (application_key != current_application_) {
-    LOG4CXX_WARN(logger, "Wrong application " << application_key);
+    LOG4CXX_WARN(logger_, "Wrong application " << application_key);
     return;
   }
 
@@ -80,10 +80,10 @@ void PipeStreamerAdapter::SendData(
 }
 
 void PipeStreamerAdapter::StartActivity(int32_t application_key) {
-  LOG4CXX_INFO(logger, "PipeStreamerAdapter::StartActivity");
+  LOG4CXX_AUTO_TRACE(logger_, autotrace);
 
   if (application_key == current_application_) {
-    LOG4CXX_WARN(logger, "Already started activity for " << application_key);
+    LOG4CXX_WARN(logger_, "Already started activity for " << application_key);
     return;
   }
 
@@ -96,14 +96,14 @@ void PipeStreamerAdapter::StartActivity(int32_t application_key) {
     (*it)->OnActivityStarted(application_key);
   }
 
-  LOG4CXX_TRACE(logger, "Pipe was opened for writing " << named_pipe_path_);
+  LOG4CXX_DEBUG(logger_, "Pipe was opened for writing " << named_pipe_path_);
 }
 
 void PipeStreamerAdapter::StopActivity(int32_t application_key) {
-  LOG4CXX_DEBUG(logger, "PipeStreamerAdapter::StopActivity");
+  LOG4CXX_AUTO_TRACE(logger_, autotrace);
 
   if (application_key != current_application_) {
-    LOG4CXX_WARN(logger, "Not performing activity for " << application_key);
+    LOG4CXX_WARN(logger_, "Not performing activity for " << application_key);
     return;
   }
 
@@ -117,16 +117,17 @@ void PipeStreamerAdapter::StopActivity(int32_t application_key) {
   }
 }
 
-bool PipeStreamerAdapter::is_app_performing_activity(
-  int32_t application_key) {
+bool PipeStreamerAdapter::is_app_performing_activity( int32_t application_key) {
   return (application_key == current_application_);
 }
 
 void PipeStreamerAdapter::Init() {
+  LOG4CXX_AUTO_TRACE(logger_, autotrace);
   if (thread_->is_running()) {
     thread_->stop();
+    thread_->join();
   }
-  LOG4CXX_DEBUG(logger, "Create and start sending thread");
+  LOG4CXX_DEBUG(logger_, "Start sending thread");
   const size_t kStackSize = 16384;
   thread_->startWithOptions(threads::ThreadOptions(kStackSize));
 }
@@ -143,7 +144,7 @@ PipeStreamerAdapter::Streamer::~Streamer() {
 }
 
 void PipeStreamerAdapter::Streamer::threadMain() {
-  LOG4CXX_INFO(logger, "Streamer::threadMain");
+  LOG4CXX_AUTO_TRACE(logger_, autotrace);
 
   open();
 
@@ -151,7 +152,7 @@ void PipeStreamerAdapter::Streamer::threadMain() {
     while (!server_->messages_.empty()) {
       ::protocol_handler::RawMessagePtr msg = server_->messages_.pop();
       if (!msg) {
-        LOG4CXX_ERROR(logger, "Null pointer message");
+        LOG4CXX_ERROR(logger_, "Null pointer message");
         continue;
       }
 
@@ -159,7 +160,7 @@ void PipeStreamerAdapter::Streamer::threadMain() {
                           msg.get()->data_size());
 
       if (ret == -1) {
-        LOG4CXX_ERROR(logger, "Failed writing data to pipe "
+        LOG4CXX_ERROR(logger_, "Failed writing data to pipe "
                       << server_->named_pipe_path_);
 
         std::set<MediaListenerPtr>::iterator it =
@@ -168,14 +169,14 @@ void PipeStreamerAdapter::Streamer::threadMain() {
           (*it)->OnErrorReceived(server_->current_application_, -1);
         }
       } else if (static_cast<uint32_t>(ret) != msg.get()->data_size()) {
-        LOG4CXX_WARN(logger, "Couldn't write all the data to pipe "
+        LOG4CXX_WARN(logger_, "Couldn't write all the data to pipe "
                      << server_->named_pipe_path_);
       }
 
       static int32_t messsages_for_session = 0;
       ++messsages_for_session;
 
-      LOG4CXX_INFO(logger, "Handling map streaming message. This is "
+      LOG4CXX_DEBUG(logger_, "Handling map streaming message. This is "
                    << messsages_for_session << " the message for "
                    << server_->current_application_);
       std::set<MediaListenerPtr>::iterator it =
@@ -191,14 +192,13 @@ void PipeStreamerAdapter::Streamer::threadMain() {
 }
 
 void PipeStreamerAdapter::Streamer::exitThreadMain() {
-  LOG4CXX_INFO(logger, "Streamer::exitThreadMain");
+  LOG4CXX_AUTO_TRACE(logger_, autotrace);
   stop_flag_ = true;
   server_->messages_.Shutdown();
 }
 
 void PipeStreamerAdapter::Streamer::open() {
-
-  LOG4CXX_INFO(logger, "Streamer::open() " << server_->named_pipe_path_.c_str());
+  LOG4CXX_AUTO_TRACE(logger_, autotrace);
 
   DCHECK(file_system::CreateDirectoryRecursively(
       profile::Profile::instance()->app_storage_folder()));
@@ -206,22 +206,23 @@ void PipeStreamerAdapter::Streamer::open() {
   if ((mkfifo(server_->named_pipe_path_.c_str(),
               S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) < 0)
       && (errno != EEXIST)) {
-    LOG4CXX_ERROR(logger, "Cannot create pipe " << server_->named_pipe_path_);
+    LOG4CXX_ERROR(logger_, "Cannot create pipe " << server_->named_pipe_path_);
     return;
   }
 
   pipe_fd_ = ::open(server_->named_pipe_path_.c_str(), O_RDWR, 0);
   if (-1 == pipe_fd_) {
-    LOG4CXX_ERROR(logger, "Cannot open pipe for writing "
+    LOG4CXX_ERROR(logger_, "Cannot open pipe for writing "
                   << server_->named_pipe_path_);
     return;
   }
 
-  LOG4CXX_TRACE(logger, "Pipe " << server_->named_pipe_path_
+  LOG4CXX_DEBUG(logger_, "Pipe " << server_->named_pipe_path_
                 << " was successfully created");
 }
 
 void PipeStreamerAdapter::Streamer::close() {
+  LOG4CXX_AUTO_TRACE(logger_, autotrace);
   ::close(pipe_fd_);
   unlink(server_->named_pipe_path_.c_str());
 }

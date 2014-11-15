@@ -38,6 +38,7 @@
 
 #include "utils/lock.h"
 #include "utils/shared_ptr.h"
+#include "utils/threads/thread.h"
 #include "connection_handler/device.h"
 #include "connection_handler/heartbeat_monitor.h"
 #include "protocol/service_type.h"

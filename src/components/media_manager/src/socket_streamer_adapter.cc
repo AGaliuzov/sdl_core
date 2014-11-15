@@ -112,7 +112,7 @@ bool SocketStreamerAdapter::is_app_performing_activity(
 }
 
 void SocketStreamerAdapter::Init() {
-  if(!thread_->is_running()) {
+  if (!thread_->is_running()) {
     LOG4CXX_DEBUG(logger, "Start sending thread");
     const size_t kStackSize = 16384;
     thread_->startWithOptions(threads::ThreadOptions(kStackSize));

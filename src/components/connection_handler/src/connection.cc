@@ -45,7 +45,6 @@
 #include "security_manager/security_manager.h"
 #endif  // ENABLE_SECURITY
 
-#include "utils/threads/thread_manager.h"
 
 /**
  * \namespace connection_handler

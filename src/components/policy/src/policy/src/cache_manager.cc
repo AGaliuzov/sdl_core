@@ -89,6 +89,7 @@ CacheManager::CacheManager()
 
 CacheManager::~CacheManager() {
   LOG4CXX_TRACE_ENTER(logger_);
+  sync_primitives::AutoLock lock(backuper_locker_);
   threads::DeleteThread(backup_thread_);
   delete backuper_;
   LOG4CXX_TRACE_EXIT(logger_);
@@ -388,11 +389,9 @@ void CacheManager::GetHMIAppTypeAfterUpdate(std::map<std::string, StringArray>& 
 }
 
 void CacheManager::Backup() {
-  if (backuper_) {
-    backuper_->DoBackup();
-  }else {
-    LOG4CXX_ERROR(logger_, "Backuper thread not exists any more");
-  }
+  sync_primitives::AutoLock lock(backuper_locker_);
+  DCHECK(backuper_);
+  backuper_->DoBackup();
 }
 
 std::string CacheManager::currentDateTime() {

@@ -47,7 +47,7 @@ FromMicRecorderListener::FromMicRecorderListener(
 
 FromMicRecorderListener::~FromMicRecorderListener() {
   LOG4CXX_TRACE_ENTER(logger_);
-  if(reader_) {
+  if (reader_) {
     reader_->stop();
     threads::ThreadDelegate * delegate = reader_->delegate();
     threads::DeleteThread(reader_);
