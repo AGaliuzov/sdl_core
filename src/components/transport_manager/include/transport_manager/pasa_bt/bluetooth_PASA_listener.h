@@ -36,9 +36,9 @@
 #include <applink_types.h>
 
 #include "utils/threads/thread_delegate.h"
-#include "utils/threads/thread.h"
-
 #include "transport_manager/transport_adapter/client_connection_listener.h"
+
+class Thread;
 
 namespace transport_manager {
 namespace transport_adapter {

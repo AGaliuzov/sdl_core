@@ -53,7 +53,7 @@
 #include <sstream>
 
 #include "utils/logger.h"
-
+#include "utils/threads/thread.h"
 #include "transport_manager/transport_adapter/transport_adapter_controller.h"
 #include "transport_manager/tcp/tcp_device.h"
 #include "transport_manager/tcp/tcp_socket_connection.h"
@@ -72,32 +72,30 @@ TcpClientListener::TcpClientListener(TransportAdapterController* controller,
       thread_(0),
       socket_(-1),
       thread_stop_requested_(false) {
+  thread_ = threads::CreateThread("TcpClientListener",
+                                  new ListeningThreadDelegate(this));
 }
 
 TransportAdapter::Error TcpClientListener::Init() {
+  LOG4CXX_TRACE_ENTER(logger_);
   thread_stop_requested_ = false;
-  thread_ = threads::CreateThread("TcpClientListener",
-                                  new ListeningThreadDelegate(this));
+  LOG4CXX_TRACE_EXIT(logger_);
   return TransportAdapter::OK;
 }
 
 void TcpClientListener::Terminate() {
-  LOG4CXX_TRACE(logger_, "enter");
-  if(thread_) {
-    thread_->stop();
-    thread_->join();
-    threads::DeleteThread(thread_);
-    thread_ = NULL;
-  }
-  LOG4CXX_TRACE(logger_, "exit");
 }
 
 bool TcpClientListener::IsInitialised() const {
-  return true;
+  return thread_ && thread_->is_running();
 }
 
 TcpClientListener::~TcpClientListener() {
-  LOG4CXX_INFO(logger_, "destructor");
+  LOG4CXX_TRACE_ENTER(logger_);
+  threads::ThreadDelegate *delegate = thread_->delegate();
+  threads::DeleteThread(thread_);
+  delete delegate;
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void SetKeepaliveOptions(const int fd) {
@@ -284,12 +282,7 @@ TransportAdapter::Error TcpClientListener::StopListening() {
     return TransportAdapter::BAD_STATE;
   }
 
-  if(thread_) {
-    thread_->stop();
-    thread_->join();
-    threads::DeleteThread(thread_);
-    thread_ = NULL;
-  }
+  thread_->stop();
   close(socket_);
   socket_ = -1;
   LOG4CXX_TRACE_EXIT(logger_);

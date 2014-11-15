@@ -40,6 +40,7 @@
 #include "transport_manager/transport_adapter/transport_adapter_impl.h"
 
 #include "utils/logger.h"
+#include "utils/threads/thread.h"
 
 namespace transport_manager {
 namespace transport_adapter {
@@ -75,14 +76,16 @@ class UsbHandler::ControlTransferSequenceState {
 
 UsbHandler::UsbHandler()
   : shutdown_requested_(false),
-    thread_(),
+    thread_(NULL),
     usb_device_listeners_(),
     devices_(),
     transfer_sequences_(),
     device_handles_to_close_(),
     libusb_context_(NULL),
     arrived_callback_handle_(),
-    left_callback_handle_() {}
+    left_callback_handle_() {
+  thread_ = threads::CreateThread("UsbHandler", new UsbHandlerDelegate(this));
+}
 
 UsbHandler::~UsbHandler() {
   shutdown_requested_ = true;
@@ -91,12 +94,15 @@ UsbHandler::~UsbHandler() {
                                        arrived_callback_handle_);
     libusb_hotplug_deregister_callback(libusb_context_, left_callback_handle_);
   }
-  pthread_join(thread_, 0);
+  thread_->stop();
   LOG4CXX_INFO(logger_, "UsbHandler thread finished");
   if (libusb_context_) {
     libusb_exit(libusb_context_);
     libusb_context_ = 0;
   }
+  threads::ThreadDelegate *delegate = thread_->delegate();
+  threads::DeleteThread(thread_);
+  delete delegate;
 }
 
 void UsbHandler::DeviceArrived(libusb_device* device_libusb) {
@@ -209,11 +215,6 @@ void UsbHandler::CloseDeviceHandle(libusb_device_handle* device_handle) {
   device_handles_to_close_.push_back(device_handle);
 }
 
-void* UsbHandlerThread(void* data) {
-  static_cast<UsbHandler*>(data)->Thread();
-  return 0;
-}
-
 int ArrivedCallback(libusb_context* context, libusb_device* device,
                     libusb_hotplug_event event, void* data) {
   LOG4CXX_TRACE(logger_, "enter. libusb device arrived (bus number "
@@ -286,19 +287,12 @@ TransportAdapter::Error UsbHandler::Init() {
     return TransportAdapter::FAIL;
   }
 
-  const int thread_start_error =
-    pthread_create(&thread_, 0, &UsbHandlerThread, this);
-  if (0 != thread_start_error) {
-    LOG4CXX_ERROR(logger_, "USB device scanner thread start failed, error code "
-                  << thread_start_error);
+  if (!thread_->start()) {
+    LOG4CXX_ERROR(logger_, "USB device scanner thread start failed, error code");
     LOG4CXX_TRACE(logger_,
-                  "exit with TransportAdapter::FAIL. Condition: 0 !== thread_start_error");
+                  "exit with TransportAdapter::FAIL.");
     return TransportAdapter::FAIL;
   }
-  LOG4CXX_INFO(logger_, "UsbHandler thread started");
-  pthread_setname_np(thread_, "UsbHandler" );
-  LOG4CXX_TRACE(logger_,
-                "exit with TransportAdapter::OK. Condition: 0 == thread_start_error");
   return TransportAdapter::OK;
 }
 
@@ -468,6 +462,18 @@ UsbControlTransfer* UsbHandler::ControlTransferSequenceState::CurrentTransfer() 
 
 void UsbHandler::ControlTransferSequenceState::Finish() {
   finished_ = true;
+}
+
+UsbHandler::UsbHandlerDelegate::UsbHandlerDelegate(
+    UsbHandler* handler)
+  : handler_(handler) {
+}
+
+void UsbHandler::UsbHandlerDelegate::threadMain() {
+  LOG4CXX_TRACE_ENTER(logger_);
+  DCHECK(handler_);
+  handler_->Thread();
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 }  // namespace

@@ -32,7 +32,6 @@
 
 #include "transport_manager/transport_manager_impl.h"
 
-#include <pthread.h>
 #include <stdint.h>
 #include <cstring>
 #include <queue>

@@ -41,9 +41,11 @@
 #include "transport_manager/transport_adapter/connection.h"
 #include "protocol/common.h"
 #include "utils/threads/thread_delegate.h"
-#include "utils/threads/thread.h"
+#include "utils/lock.h"
 
 using ::transport_manager::transport_adapter::Connection;
+
+class Thread;
 
 namespace transport_manager {
 namespace transport_adapter {
@@ -147,7 +149,7 @@ class ThreadedSocketConnection : public Connection,
    **/
   typedef std::queue<protocol_handler::RawMessagePtr> FrameQueue;
   FrameQueue frames_to_send_;
-  mutable pthread_mutex_t frames_to_send_mutex_;
+  mutable sync_primitives::Lock frames_to_send_mutex_;
 
   int socket_;
   bool terminate_flag_;
