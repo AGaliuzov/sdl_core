@@ -402,7 +402,8 @@ std::string CacheManager::currentDateTime() {
   struct tm  tstruct;
   char       buf[80];
   tstruct = *localtime(&now);
-  strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
+  // ISO_8601 format is expected, e.g. “2000-01-01T12:18:53Z”
+  strftime(buf, sizeof(buf), "%Y-%m-%dT%XZ", &tstruct);
   return buf;
 }
 
