@@ -1650,7 +1650,7 @@ CacheManager::BackgroundBackuper::~BackgroundBackuper() {
 void CacheManager::BackgroundBackuper::InternalBackup() {
   LOG4CXX_TRACE_ENTER(logger_);
   if (cache_manager_) {
-    LOG4CXX_INFO(logger_, "DoBackup");
+    LOG4CXX_DEBUG(logger_, "DoBackup");
     new_data_available_ = false;
     cache_manager_->PersistData();
 
@@ -1662,19 +1662,23 @@ void CacheManager::BackgroundBackuper::InternalBackup() {
 }
 
 void CacheManager::BackgroundBackuper::threadMain() {
+  LOG4CXX_TRACE_ENTER(logger_);
   sync_primitives::AutoLock auto_lock(need_backup_lock_);
   while(!stop_flag_) {
     InternalBackup();
     LOG4CXX_INFO(logger_, "Wait for a next backup");
     backup_notifier_.Wait(auto_lock);
   }
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void CacheManager::BackgroundBackuper::exitThreadMain() {
+  LOG4CXX_TRACE_ENTER(logger_);
   sync_primitives::AutoLock auto_lock(need_backup_lock_);
   cache_manager_ = NULL;
   stop_flag_ = true;
   backup_notifier_.NotifyOne();
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void CacheManager::BackgroundBackuper::DoBackup() {

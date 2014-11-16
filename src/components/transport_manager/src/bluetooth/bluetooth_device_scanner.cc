@@ -118,7 +118,8 @@ BluetoothDeviceScanner::BluetoothDeviceScanner(
                                                   };
   sdp_uuid128_create(&smart_device_link_service_uuid_,
                      smart_device_link_service_uuid_data);
-  thread_ = threads::CreateThread("BT Device Scaner", new  BluetoothDeviceScannerDelegate(this));
+  thread_ = threads::CreateThread("BT Device Scaner",
+                                  new  BluetoothDeviceScannerDelegate(this));
 }
 
 BluetoothDeviceScanner::~BluetoothDeviceScanner() {

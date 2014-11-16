@@ -121,7 +121,6 @@ void* Thread::threadFunc(void* arg) {
 void Thread::SetNameForId(const PlatformThreadHandle& thread_id, std::string name) {
   if (name.size() > THREAD_NAME_SIZE)
     name.erase(THREAD_NAME_SIZE);
-
   const int rc = pthread_setname_np(thread_id, name.c_str());
   if(rc != EOK) {
     LOG4CXX_WARN(logger_, "Couldn't set pthread name \""
@@ -141,7 +140,8 @@ Thread::Thread(const char* name, ThreadDelegate* delegate)
     thread_options_(),
     isThreadRunning_(0),
     stopped_(false),
-    finalized_(false) { }
+    finalized_(false),
+    thread_created_(false) { }
 
 bool Thread::start() {
   return start(thread_options_);

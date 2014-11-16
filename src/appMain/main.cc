@@ -184,7 +184,7 @@ int32_t main(int32_t argc, char** argv) {
 #endif  // __QNX__
 
   if (!main_namespace::LifeCycle::instance()->StartComponents()) {
-    LOG4CXX_FATAL(logger_, "Failed start to components");
+    LOG4CXX_FATAL(logger_, "Failed to start components");
     main_namespace::LifeCycle::instance()->StopComponents();
     DEINIT_LOGGER();
     exit(EXIT_FAILURE);

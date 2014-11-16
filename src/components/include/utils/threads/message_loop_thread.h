@@ -39,8 +39,8 @@
 #include "utils/logger.h"
 #include "utils/macro.h"
 #include "utils/message_queue.h"
-#include "utils/threads/thread_manager.h"
-#include "utils/lock.h"
+#include "utils/threads/thread.h"
+#include "utils/shared_ptr.h"
 
 namespace threads {
 
@@ -96,15 +96,14 @@ class MessageLoopThread {
     // threads::ThreadDelegate overrides
     virtual void threadMain() OVERRIDE;
     virtual void exitThreadMain() OVERRIDE;
+
    private:
     // Handle all messages that are in the queue until it is empty
     void DrainQue();
-   private:
     // Handler that processes messages
     Handler& handler_;
     // Message queue that is actually owned by MessageLoopThread
     MessageQueue<Message, Queue>& message_queue_;
-    sync_primitives::Lock active_lock;
   };
 
  private:
@@ -161,7 +160,6 @@ template<class Q>
 void MessageLoopThread<Q>::LoopThreadDelegate::threadMain() {
   CREATE_LOGGERPTR_LOCAL(logger_, "Utils")
   LOG4CXX_TRACE_ENTER(logger_);
-  sync_primitives::AutoLock auto_lock(active_lock);
   while (!message_queue_.IsShuttingDown()) {
     DrainQue();
     message_queue_.wait();

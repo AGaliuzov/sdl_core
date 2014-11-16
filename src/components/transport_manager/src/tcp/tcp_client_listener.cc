@@ -84,6 +84,7 @@ TransportAdapter::Error TcpClientListener::Init() {
 }
 
 void TcpClientListener::Terminate() {
+    thread_->stop();
 }
 
 bool TcpClientListener::IsInitialised() const {
