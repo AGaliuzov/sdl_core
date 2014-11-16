@@ -40,7 +40,7 @@ namespace policy {
 namespace smart_objects = NsSmartDeviceLink::NsSmartObjects;
 using namespace application_manager;
 
-PolicyEventObserver::PolicyEventObserver(utils::SharedPtr<PolicyManager> policy_manager)
+PolicyEventObserver::PolicyEventObserver(PolicyManager* policy_manager)
     : policy_manager_(policy_manager) {
 }
 

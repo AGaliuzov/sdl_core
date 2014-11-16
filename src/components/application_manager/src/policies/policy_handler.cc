@@ -94,9 +94,8 @@ struct DeactivateApplication {
 };
 
 struct SDLAlowedNotification {
-  explicit SDLAlowedNotification(
-    const connection_handler::DeviceHandle& device_id,
-        utils::SharedPtr<PolicyManager> policy_manager)
+  SDLAlowedNotification(const connection_handler::DeviceHandle& device_id,
+                        PolicyManager* policy_manager)
     : device_id_(device_id),
       policy_manager_(policy_manager){}
 
@@ -135,7 +134,7 @@ struct SDLAlowedNotification {
     }
   private:
     connection_handler::DeviceHandle device_id_;
-    utils::SharedPtr<PolicyManager> policy_manager_;
+    PolicyManager* policy_manager_;
 };
 
 struct LinkAppToDevice {
@@ -244,7 +243,7 @@ bool PolicyHandler::LoadPolicyLibrary() {
   if (error_string == NULL) {
     if (CreateManager()) {
       policy_manager_->set_listener(this);
-      event_observer_= new PolicyEventObserver(policy_manager_);
+      event_observer_= new PolicyEventObserver(policy_manager_.get());
     }
   } else {
     LOG4CXX_ERROR(logger_, error_string);
@@ -874,7 +873,7 @@ bool PolicyHandler::UnloadPolicyLibrary() {
   LOG4CXX_TRACE(logger_, "enter. policy_manager_ = " << policy_manager_);
   bool ret = true;
   if (policy_manager_) {
-    policy_manager_.release();
+    policy_manager_.reset();
   }
   if (dl_handle_) {
     ret = (dlclose(dl_handle_) == 0);
@@ -966,7 +965,7 @@ void PolicyHandler::OnAllowSDLFunctionalityNotification(bool is_allowed,
       ApplicationList app_list = accessor.applications();
 
       std::for_each(app_list.begin(), app_list.end(),
-                    SDLAlowedNotification(device_id, policy_manager_));
+                    SDLAlowedNotification(device_id, policy_manager_.get()));
     }
 #endif
   }
