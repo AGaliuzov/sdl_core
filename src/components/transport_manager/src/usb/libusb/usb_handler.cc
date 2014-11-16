@@ -39,6 +39,7 @@
 #include "transport_manager/usb/common.h"
 #include "transport_manager/transport_adapter/transport_adapter_impl.h"
 
+#include "utils/macro.h"
 #include "utils/logger.h"
 #include "utils/threads/thread.h"
 
@@ -351,13 +352,13 @@ void UsbHandler::SubmitControlTransfer(
   assert(transfer->Type() == UsbControlTransfer::VENDOR);
   const libusb_request_type request_type = LIBUSB_REQUEST_TYPE_VENDOR;
 
-  libusb_endpoint_direction endpoint_direction;
+  libusb_endpoint_direction endpoint_direction = LIBUSB_ENDPOINT_IN;
   if (transfer->Direction() == UsbControlTransfer::IN) {
     endpoint_direction = LIBUSB_ENDPOINT_IN;
   } else if (transfer->Direction() == UsbControlTransfer::OUT) {
     endpoint_direction = LIBUSB_ENDPOINT_OUT;
   } else {
-    assert(0);
+    NOTREACHED();
   }
   const uint8_t request = transfer->Request();
   const uint16_t value = transfer->Value();
@@ -476,5 +477,5 @@ void UsbHandler::UsbHandlerDelegate::threadMain() {
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
-}  // namespace
-}  // namespace
+}  // namespace transport_adapter
+}  // namespace transport_manager
