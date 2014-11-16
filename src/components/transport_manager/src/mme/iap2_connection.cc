@@ -61,7 +61,7 @@ IAP2Connection::~IAP2Connection() {
   LOG4CXX_TRACE_ENTER(logger_);
   if (receiver_thread_) {
     receiver_thread_->join();
-    delete receiver_thread_->delegate();
+    delete receiver_thread_delegate_;
     threads::DeleteThread(receiver_thread_);
   }
   LOG4CXX_TRACE_EXIT(logger_);
@@ -145,10 +145,10 @@ void IAP2Connection::ReceiveData() {
       case ECONNRESET:
         LOG4CXX_INFO(logger_,
                      "iAP2: protocol " << protocol_name_ << " disconnected");
-// DeleteThread(receiver_thread_) cannot be invoked here
+// receiver_thread_->stop() cannot be invoked here
 // because this method is called from receiver_thread_
-// anyway delegate should be stopped
-        receiver_thread_->stop();
+// anyway delegate can be stopped directly
+        receiver_thread_delegate_->exitThreadMain();
         Close();
         unexpected_disconnect_ = true;
         controller_->ConnectionAborted(device_uid_, app_handle_,
