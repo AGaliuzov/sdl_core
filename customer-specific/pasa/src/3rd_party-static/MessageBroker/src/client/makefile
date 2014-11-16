@@ -32,6 +32,7 @@ INCLUDES = \
 	$(CC_IFLAG)../../include \
 	$(CC_IFLAG)../../../jsoncpp/include \
 	$(CC_IFLAG)$(PRJ_ROOT)/src/components/include/ \
+	$(CC_IFLAG)$(PRJ_ROOT)/src/3rd_party/log4cxx/include \
 	$(DEPENDS_INCLUDES)
 
 
