@@ -40,6 +40,7 @@
 #include <string>
 
 #include "utils/lock.h"
+#include "utils/rwlock.h"
 #include "transport_manager/transport_adapter/transport_adapter.h"
 #include "transport_manager/transport_adapter/transport_adapter_controller.h"
 #include "transport_manager/transport_adapter/connection.h"
@@ -514,7 +515,7 @@ class TransportAdapterImpl : public TransportAdapter,
   /**
    * @brief Mutex restricting access to connections map.
    **/
-  mutable sync_primitives::Lock connections_mutex_;
+  mutable sync_primitives::RWLock connections_lock_;
 
  protected:
 #ifdef TIME_TESTER
