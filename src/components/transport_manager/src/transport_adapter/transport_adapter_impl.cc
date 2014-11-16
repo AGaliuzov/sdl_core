@@ -53,7 +53,7 @@ TransportAdapterImpl::TransportAdapterImpl(
     devices_(),
     devices_mutex_(),
     connections_(),
-    connections_mutex_(),
+    connections_lock_(),
 #ifdef TIME_TESTER
     metric_observer_(NULL),
 #endif  // TIME_TESTER
@@ -93,10 +93,10 @@ void TransportAdapterImpl::Terminate() {
     LOG4CXX_DEBUG(logger_, "client_connection_listener_ " << client_connection_listener_ << " terminated.");
   }
 
-  connections_mutex_.Acquire();
   ConnectionMap connections;
+  connections_lock_.AcquireForWriting();
   std::swap(connections, connections_);
-  connections_mutex_.Release();
+  connections_lock_.Release();
   connections.clear();
 
   LOG4CXX_DEBUG(logger_, "Connections deleted");
@@ -164,7 +164,7 @@ TransportAdapter::Error TransportAdapterImpl::Connect(
     return BAD_STATE;
   }
 
-  connections_mutex_.Acquire();
+  connections_lock_.AcquireForWriting();
   const bool already_exists =
     connections_.end() !=
     connections_.find(std::make_pair(device_id, app_handle));
@@ -174,7 +174,7 @@ TransportAdapter::Error TransportAdapterImpl::Connect(
     info.device_id = device_id;
     info.state = ConnectionInfo::NEW;
   }
-  connections_mutex_.Release();
+  connections_lock_.Release();
   if (already_exists) {
     LOG4CXX_TRACE(logger_, "exit with ALREADY_EXISTS");
     return ALREADY_EXISTS;
@@ -183,9 +183,9 @@ TransportAdapter::Error TransportAdapterImpl::Connect(
   const TransportAdapter::Error err =
     server_connection_factory_->CreateConnection(device_id, app_handle);
   if (TransportAdapter::OK != err) {
-    connections_mutex_.Acquire();
+    connections_lock_.AcquireForWriting();
     connections_.erase(std::make_pair(device_id, app_handle));
-    connections_mutex_.Release();
+    connections_lock_.Release();
   }
   LOG4CXX_TRACE(logger_, "exit with error: " << err);
   return err;
@@ -233,23 +233,25 @@ TransportAdapter::Error TransportAdapterImpl::DisconnectDevice(
   }
 
   Error error = OK;
-  sync_primitives::AutoLock locker(connections_mutex_);
-  ConnectionMap::iterator it = connections_.begin();
-  while (it != connections_.end()) {
-    ConnectionInfo& info = it->second;
-    LOG4CXX_DEBUG(logger_, "Connection with device_id=" << info.device_id
-                  << ", app_handle=" << info.app_handle);
-    ++it;
-    if (info.device_id == device_id &&
-        info.state != ConnectionInfo::FINALISING) {
-      LOG4CXX_DEBUG(logger_, "Disconnection connection with device_id=" << info.device_id
-                    << ", app_handle=" << info.app_handle);
-      if (OK != info.connection->Disconnect()) {
-        error = FAIL;
-        LOG4CXX_ERROR(logger_, "Error on disconnect" << error);
-      }
+
+  std::vector<ConnectionInfo> to_disconnect;
+  connections_lock_.AcquireForReading();
+  for (ConnectionMap::const_iterator i = connections_.begin(); i != connections_.end(); ++i) {
+    ConnectionInfo info = i->second;
+    if (info.device_id == device_id && info.state != ConnectionInfo::FINALISING) {
+      to_disconnect.push_back(info);
     }
   }
+  connections_lock_.Release();
+
+  for (std::vector<ConnectionInfo>::const_iterator j = to_disconnect.begin(); j != to_disconnect.end(); ++j) {
+    ConnectionInfo info = *j;
+    if (OK != info.connection->Disconnect()) {
+      error = FAIL;
+      LOG4CXX_ERROR(logger_, "Error on disconnect " << error);
+    }
+  }
+
   LOG4CXX_TRACE(logger_, "exit with error " << error);
   return error;
 }
@@ -387,7 +389,7 @@ void TransportAdapterImpl::SearchDeviceDone(const DeviceVector& devices) {
     new_devices[device->unique_device_id()] = device;
   }
 
-  connections_mutex_.Acquire();
+  connections_lock_.AcquireForReading();
   std::set<DeviceUID> connected_devices;
   for (ConnectionMap::const_iterator it = connections_.begin();
        it != connections_.end(); ++it) {
@@ -396,7 +398,7 @@ void TransportAdapterImpl::SearchDeviceDone(const DeviceVector& devices) {
       connected_devices.insert(info.device_id);
     }
   }
-  connections_mutex_.Release();
+  connections_lock_.Release();
 
   DeviceMap all_devices = new_devices;
   devices_mutex_.Acquire();
@@ -474,12 +476,13 @@ void TransportAdapterImpl::ConnectionCreated(
   const ApplicationHandle& app_handle) {
   LOG4CXX_TRACE(logger_, "enter connection:" << connection << ", device_id: " << &device_id
                 << ", app_handle: " << &app_handle);
-  sync_primitives::AutoLock locker(connections_mutex_);
+  connections_lock_.AcquireForReading();
   ConnectionInfo& info = connections_[std::make_pair(device_id, app_handle)];
   info.app_handle = app_handle;
   info.device_id = device_id;
   info.connection = connection;
   info.state = ConnectionInfo::NEW;
+  connections_lock_.Release();
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
@@ -498,17 +501,18 @@ void TransportAdapterImpl::DeviceDisconnected(
     }
   }
 
-  connections_mutex_.Acquire();
   for (TransportAdapterListenerList::iterator it = listeners_.begin();
        it != listeners_.end(); ++it) {
     TransportAdapterListener* listener = *it;
     listener->OnDisconnectDeviceDone(this, device_uid);
   }
+
+  connections_lock_.AcquireForWriting();
   for (ApplicationList::const_iterator i = app_list.begin(); i != app_list.end(); ++i) {
     ApplicationHandle app_handle = *i;
     connections_.erase(std::make_pair(device_uid, app_handle));
   }
-  connections_mutex_.Release();
+  connections_lock_.Release();
 
   RemoveDevice(device_uid);
   LOG4CXX_TRACE(logger_, "exit");
@@ -521,7 +525,7 @@ void TransportAdapterImpl::DisconnectDone(
   LOG4CXX_TRACE(logger_, "enter. device_id: " << &device_uid << ", app_handle: " <<
                 &app_uid);
   bool device_disconnected = true;
-  connections_mutex_.Acquire();
+  connections_lock_.AcquireForReading();
   for (ConnectionMap::const_iterator it = connections_.begin();
        it != connections_.end(); ++it) {
     const DeviceUID& current_device_id = it->first.first;
@@ -533,7 +537,7 @@ void TransportAdapterImpl::DisconnectDone(
       break;
     }
   }
-  connections_mutex_.Release();
+  connections_lock_.Release();
   for (TransportAdapterListenerList::iterator it = listeners_.begin();
        it != listeners_.end(); ++it) {
     TransportAdapterListener* listener = *it;
@@ -542,9 +546,9 @@ void TransportAdapterImpl::DisconnectDone(
       listener->OnDisconnectDeviceDone(this, device_uid);
     }
   }
-  connections_mutex_.Acquire();
+  connections_lock_.AcquireForWriting();
   connections_.erase(std::make_pair(device_uid, app_uid));
-  connections_mutex_.Release();
+  connections_lock_.Release();
 
   if (device_disconnected) {
     RemoveDevice(device_uid);
@@ -625,14 +629,14 @@ void TransportAdapterImpl::ConnectDone(const DeviceUID& device_id,
                                        const ApplicationHandle& app_handle) {
   LOG4CXX_TRACE(logger_, "enter. device_id: " << &device_id << ", app_handle: " <<
                 &app_handle);
-  connections_mutex_.Acquire();
+  connections_lock_.AcquireForReading();
   ConnectionMap::iterator it_conn =
     connections_.find(std::make_pair(device_id, app_handle));
   if (it_conn != connections_.end()) {
     ConnectionInfo& info = it_conn->second;
     info.state = ConnectionInfo::ESTABLISHED;
   }
-  connections_mutex_.Release();
+  connections_lock_.Release();
 
   for (TransportAdapterListenerList::iterator it = listeners_.begin();
        it != listeners_.end(); ++it) {
@@ -649,9 +653,9 @@ void TransportAdapterImpl::ConnectFailed(const DeviceUID& device_handle,
   const ApplicationHandle app_uid = app_handle;
   LOG4CXX_TRACE(logger_, "enter. device_id: " << &device_uid << ", app_handle: " <<
                 &app_uid << ", error: " << &error);
-  connections_mutex_.Acquire();
+  connections_lock_.AcquireForWriting();
   connections_.erase(std::make_pair(device_uid, app_uid));
-  connections_mutex_.Release();
+  connections_lock_.Release();
   for (TransportAdapterListenerList::iterator it = listeners_.begin();
        it != listeners_.end(); ++it) {
     (*it)->OnConnectFailed(this, device_uid, app_uid, error);
@@ -683,13 +687,14 @@ void TransportAdapterImpl::ConnectionFinished(
   const DeviceUID& device_id, const ApplicationHandle& app_handle) {
   LOG4CXX_TRACE(logger_, "enter. device_id: " << &device_id << ", app_handle: " <<
                 &app_handle);
-  sync_primitives::AutoLock locker(connections_mutex_);
+  connections_lock_.AcquireForReading();
   ConnectionMap::iterator it =
     connections_.find(std::make_pair(device_id, app_handle));
   if (it != connections_.end()) {
     ConnectionInfo& info = it->second;
     info.state = ConnectionInfo::FINALISING;
   }
+  connections_lock_.Release();
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
@@ -776,7 +781,7 @@ Connection* TransportAdapterImpl::FindEstablishedConnection(
   LOG4CXX_TRACE(logger_, "enter. device_id: " << &device_id << ", app_handle: " <<
                 &app_handle);
   Connection* connection = NULL;
-  sync_primitives::AutoLock locker(connections_mutex_);
+  connections_lock_.AcquireForReading();
   ConnectionMap::const_iterator it =
     connections_.find(std::make_pair(device_id, app_handle));
   if (it != connections_.end()) {
@@ -785,6 +790,7 @@ Connection* TransportAdapterImpl::FindEstablishedConnection(
       connection = info.connection;
     }
   }
+  connections_lock_.Release();
   LOG4CXX_TRACE(logger_, "exit with Connection: " << connection);
   return connection;
 }
