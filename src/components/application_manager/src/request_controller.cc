@@ -89,9 +89,9 @@ void RequestController::DestroyThreadpool() {
   }
   for (size_t i = 0; i < pool_.size(); i++) {
     Thread* thread = pool_[i];
-    threads::ThreadDelegate* delegate = thread->delegate();
+    thread->join();
+    delete thread->delegate();
     threads::DeleteThread(thread);
-    delete delegate;
   }
   pool_.clear();
   LOG4CXX_TRACE_EXIT(logger_);
@@ -567,16 +567,19 @@ void RequestController::UpdateTimer() {
     DCHECK(request.valid());
     // This request should not be observed for TIME_OUT
     if (0 != request->timeout_sec()) {
-      const TimevalStruct curent_time = date_time::DateTime::getCurrentTime();
+      const TimevalStruct current_time = date_time::DateTime::getCurrentTime();
       const TimevalStruct end_time = request->end_time();
-      if (end_time < curent_time) {
-        const uint64_t secs = end_time.tv_sec - curent_time.tv_sec;
+      if (current_time < end_time) {
+        const uint64_t secs = end_time.tv_sec - current_time.tv_sec;
         LOG4CXX_DEBUG(logger_, "Sleep for " << secs << " secs");
         // Timeout for bigger than 5 minutes is a mistake
         DCHECK(secs < 300);
         timer_.updateTimeOut(secs);
       } else {
-        LOG4CXX_DEBUG(logger_, "Request is expired");
+        LOG4CXX_DEBUG(logger_, "Request is expired: "
+                      << end_time.tv_sec << " - "
+                      << current_time.tv_sec << " >= "
+                      << request->timeout_sec());
         timer_.updateTimeOut(0);
       }
       return;

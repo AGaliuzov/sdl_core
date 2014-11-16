@@ -41,22 +41,23 @@ namespace threads {
 
 ThreadDelegate::~ThreadDelegate() {
   if(thread_) {
-    sync_primitives::AutoLock auto_lock(thread_->delegate_lock());
     thread_->set_delegate(NULL);
   }
 }
 
 void ThreadDelegate::exitThreadMain() {
-  state_ = kStopReq;
   if (thread_) {
     if (thread_->thread_handle() == pthread_self()) {
-      threads::enqueue_to_join(thread_);
       pthread_exit(NULL);
     } else {
       pthread_cancel(thread_->thread_handle());
-      threads::enqueue_to_join(thread_);
     }
   }
+}
+
+void ThreadDelegate::set_thread(Thread *thread) {
+  DCHECK(thread && !thread->is_running());
+  thread_ = thread;
 }
 
 }

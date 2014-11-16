@@ -40,7 +40,6 @@
 
 #include "utils/conditional_variable.h"
 #include "utils/lock.h"
-#include "utils/shared_ptr.h"
 #include "utils/logger.h"
 #include "utils/macro.h"
 #include "utils/timer_thread.h"
@@ -231,8 +230,9 @@ TimerThread<T>::TimerThread(const char* name, T* callee, void (T::*f)(), bool is
 template <class T>
 TimerThread<T>::~TimerThread() {
   LOG4CXX_DEBUG(logger_, "TimerThread is to be destroyed " << name_);
-  threads::DeleteThread(thread_);
+  thread_->join();
   delete delegate_;
+  threads::DeleteThread(thread_);
   callback_ = NULL;
   callee_ = NULL;
 }

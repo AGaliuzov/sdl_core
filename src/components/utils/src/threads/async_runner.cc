@@ -55,8 +55,9 @@ void AsyncRunner::AsyncRun(ThreadDelegate* delegate) {
 
 AsyncRunner::~AsyncRunner() {
   LOG4CXX_TRACE_ENTER(logger_);
-  threads::DeleteThread(thread_);
+  thread_->join();
   delete executor_;
+  threads::DeleteThread(thread_);
   LOG4CXX_TRACE_ENTER(logger_);
 }
 

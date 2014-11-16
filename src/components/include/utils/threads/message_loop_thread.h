@@ -55,15 +55,14 @@ class MessageLoopThread {
  public:
   typedef Q Queue;
   typedef typename Queue::value_type Message;
-  /**
-   * struct MessageLoopThread
-   * \brief Handler interface. It is called from a thread that is
+  /*
+   * Handler interface. It is called from a thread that is
    * owned by MessageLoopThread so make sure is only accesses
    * thread-safe data
    */
   struct Handler {
-    /**
-     * \brief Method called by MessageLoopThread to process single message
+    /*
+     * Method called by MessageLoopThread to process single message
      * from it's queue. After calling this method message is discarded.
      */
     virtual void Handle(const Message message) = 0; // TODO(dchmerev): Use reference?
@@ -71,22 +70,18 @@ class MessageLoopThread {
     virtual ~Handler() {}
   };
 
-  /**
-   * \brief Constructs new MessageLoopThread. Must be named to aid debugging.
+  /*
+   * Constructs new MessageLoopThread. Must be named to aid debugging.
    */
   MessageLoopThread(const std::string& name,
                     Handler* handler,
                     const ThreadOptions& thread_opts = ThreadOptions());
   ~MessageLoopThread();
 
-  /**
-   * \brief Places a message to the therad's queue. Thread-safe.
-   */
+  // Places a message to the therad's queue. Thread-safe.
   void PostMessage(const Message& message);
 
-  /**
-   * \brief Process already posted messages and stop thread processing. Thread-safe.
-   */
+  // Process already posted messages and stop thread processing. Thread-safe.
   void Shutdown();
 
  private:
@@ -113,7 +108,7 @@ class MessageLoopThread {
 
  private:
   MessageQueue<Message, Queue> message_queue_;
-  utils::SharedPtr<LoopThreadDelegate> thread_delegate_;
+  LoopThreadDelegate* thread_delegate_;
   threads::Thread* thread_;
 };
 
@@ -125,17 +120,19 @@ MessageLoopThread<Q>::MessageLoopThread(const std::string&   name,
                                         const ThreadOptions& thread_opts)
     : thread_delegate_(new LoopThreadDelegate(&message_queue_, handler)),
       thread_(threads::CreateThread(name.c_str(),
-                                    thread_delegate_.get())) {
-  const bool started = thread_->startWithOptions(thread_opts);
+                                    thread_delegate_)) {
+  const bool started = thread_->start(thread_opts);
   if (!started) {
     CREATE_LOGGERPTR_LOCAL(logger_, "Utils")
-    LOG4CXX_ERROR(logger_, "Failed to start loop thread " << name);
+    LOG4CXX_ERROR(logger_, "Failed to start thread " << name);
   }
 }
 
 template<class Q>
 MessageLoopThread<Q>::~MessageLoopThread() {
   Shutdown();
+  thread_->join();
+  delete thread_delegate_;
   threads::DeleteThread(thread_);
 }
 

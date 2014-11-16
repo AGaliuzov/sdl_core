@@ -58,8 +58,9 @@ SocketStreamerAdapter::SocketStreamerAdapter()
 
 SocketStreamerAdapter::~SocketStreamerAdapter() {
   LOG4CXX_TRACE_ENTER(logger);
-  threads::DeleteThread(thread_);
+  thread_->join();
   delete streamer_;
+  threads::DeleteThread(thread_);
   LOG4CXX_TRACE_EXIT(logger);
 }
 
@@ -112,13 +113,9 @@ bool SocketStreamerAdapter::is_app_performing_activity(
 }
 
 void SocketStreamerAdapter::Init() {
-  if (!thread_->is_running()) {
-    LOG4CXX_DEBUG(logger, "Start sending thread");
-    const size_t kStackSize = 16384;
-    thread_->startWithOptions(threads::ThreadOptions(kStackSize));
-  } else {
-    LOG4CXX_WARN(logger, "thread is already running");
-  }
+  LOG4CXX_DEBUG(logger, "Start sending thread");
+  const size_t kStackSize = 16384;
+  thread_->start(threads::ThreadOptions(kStackSize));
 }
 
 void SocketStreamerAdapter::SendData(

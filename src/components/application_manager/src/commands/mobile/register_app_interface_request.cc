@@ -143,6 +143,7 @@ void RegisterAppInterfaceRequest::Run() {
   // Fix problem with SDL and HMI HTML. This problem is not actual for HMI PASA.
   // Flag conditional compilation "CUSTOMER_PASA" is used in order to exclude hit code
   // to RTC
+  // FIXME(EZamakhov): on shutdown - get freez
   if (true == profile::Profile::instance()->launch_hmi()) {
     // wait till HMI started
     while (!ApplicationManagerImpl::instance()->IsHMICooperating()) {

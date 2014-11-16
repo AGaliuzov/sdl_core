@@ -48,7 +48,6 @@ PipeStreamerAdapter::PipeStreamerAdapter()
     thread_(threads::CreateThread("PipeStreamer", new Streamer(this))),
     messages_() {
   LOG4CXX_AUTO_TRACE(logger_, autotrace);
-  LOG4CXX_DEBUG(logger_, "PipeStreamerAdapter::PipeStreamerAdapter");
 }
 
 PipeStreamerAdapter::~PipeStreamerAdapter() {
@@ -58,10 +57,9 @@ PipeStreamerAdapter::~PipeStreamerAdapter() {
     StopActivity(current_application_);
   }
 
-  thread_->stop();
-  threads::ThreadDelegate * delegate = thread_->delegate();
+  thread_->join();
+  delete thread_->delegate();
   threads::DeleteThread(thread_);
-  delete delegate;
 }
 
 void PipeStreamerAdapter::SendData(
@@ -129,7 +127,7 @@ void PipeStreamerAdapter::Init() {
   }
   LOG4CXX_DEBUG(logger_, "Start sending thread");
   const size_t kStackSize = 16384;
-  thread_->startWithOptions(threads::ThreadOptions(kStackSize));
+  thread_->start(threads::ThreadOptions(kStackSize));
 }
 
 PipeStreamerAdapter::Streamer::Streamer(

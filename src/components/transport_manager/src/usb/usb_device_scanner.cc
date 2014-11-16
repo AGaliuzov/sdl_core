@@ -72,7 +72,7 @@ void UsbDeviceScanner::OnDeviceArrived(PlatformUsbDevice* device) {
 void UsbDeviceScanner::OnDeviceLeft(PlatformUsbDevice* device) {
   LOG4CXX_TRACE(logger_, "enter. PlatformUsbDevice " << device);
   bool list_changed = false;
-  pthread_mutex_lock(&devices_mutex_);
+  devices_mutex_.Acquire();
   for (Devices::iterator it = devices_.begin(); it != devices_.end(); ++it) {
     if (device == *it) {
       devices_.erase(it);
@@ -80,7 +80,7 @@ void UsbDeviceScanner::OnDeviceLeft(PlatformUsbDevice* device) {
       break;
     }
   }
-  pthread_mutex_unlock(&devices_mutex_);
+  devices_mutex_.Release();
   if (list_changed) {
     UpdateList();
   }
@@ -89,11 +89,9 @@ void UsbDeviceScanner::OnDeviceLeft(PlatformUsbDevice* device) {
 
 UsbDeviceScanner::UsbDeviceScanner(TransportAdapterController* controller)
   : controller_(controller) {
-  pthread_mutex_init(&devices_mutex_, 0);
 }
 
 UsbDeviceScanner::~UsbDeviceScanner() {
-  pthread_mutex_destroy(&devices_mutex_);
 }
 
 class AoaInitSequence::AoaGetProtocolRequest : public UsbControlInTransfer {
@@ -203,9 +201,9 @@ void UsbDeviceScanner::TurnIntoAccessoryMode(PlatformUsbDevice* device) {
 void UsbDeviceScanner::SupportedDeviceFound(PlatformUsbDevice* device) {
   LOG4CXX_TRACE(logger_, "enter PlatformUsbDevice: " << device);
 
-  pthread_mutex_lock(&devices_mutex_);
+  devices_mutex_.Acquire();
   devices_.push_back(device);
-  pthread_mutex_unlock(&devices_mutex_);
+  devices_mutex_.Release();
   LOG4CXX_INFO(logger_, "USB device (bus number "
                << static_cast<int>(device->bus_number())
                << ", address "
@@ -227,7 +225,7 @@ TransportAdapter::Error UsbDeviceScanner::Scan() {
 void UsbDeviceScanner::UpdateList() {
   LOG4CXX_TRACE(logger_, "enter");
   DeviceVector device_vector;
-  pthread_mutex_lock(&devices_mutex_);
+  devices_mutex_.Acquire();
   for (Devices::const_iterator it = devices_.begin(); it != devices_.end();
        ++it) {
     const std::string device_name =
@@ -241,7 +239,7 @@ void UsbDeviceScanner::UpdateList() {
     DeviceSptr device(new UsbDevice(*it, device_name, device_uid));
     device_vector.push_back(device);
   }
-  pthread_mutex_unlock(&devices_mutex_);
+  devices_mutex_.Release();
 
   LOG4CXX_INFO(logger_, "USB search done " << device_vector.size());
   controller_->SearchDeviceDone(device_vector);

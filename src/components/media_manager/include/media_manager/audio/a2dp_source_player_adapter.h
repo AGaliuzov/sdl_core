@@ -37,7 +37,6 @@
 #include "protocol/common.h"
 #include "media_manager/media_adapter_impl.h"
 #include "utils/threads/thread_delegate.h"
-#include "utils/threads/thread_delegate.h"
 
 namespace threads {
 class Thread;

@@ -99,11 +99,13 @@ MqueueAdapter::MqueueAdapter(HMIMessageHandler* hmi_message_handler)
   receiver_thread_delegate_ = new ReceiverThreadDelegate(hmi_to_sdl_mqueue_,
                                                         hmi_message_handler);
   receiver_thread_ = threads::CreateThread("MqueueAdapter",
-                                           receiver_thread_delegate_.get());
+                                           receiver_thread_delegate_);
   receiver_thread_->start();
 }
 
 MqueueAdapter::~MqueueAdapter() {
+  receiver_thread_->join();
+  delete receiver_thread_delegate_;
   threads::DeleteThread(receiver_thread_);
   if (-1 != hmi_to_sdl_mqueue_) mq_close(hmi_to_sdl_mqueue_);
   if (-1 != sdl_to_hmi_mqueue_) mq_close(sdl_to_hmi_mqueue_);

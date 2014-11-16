@@ -40,11 +40,12 @@
 #include <vector>
 #include <string.h>
 #include <sstream>
+
+#include "utils/logger.h"
+#include "utils/threads/thread.h"
 #include "transport_manager/pasa_bt/bluetooth_PASA_transport_adapter.h"
 #include "transport_manager/pasa_bt/bluetooth_PASA_device.h"
 #include "transport_manager/pasa_bt/message_queue.h"
-
-#include "utils/logger.h"
 
 namespace transport_manager {
 namespace transport_adapter {
@@ -69,16 +70,14 @@ BluetoothPASAListener::BluetoothPASAListener(
       thread_(NULL),
       mq_from_sdl_(-1),
       mq_to_sdl_(-1) {
+  thread_ = threads::CreateThread("BT PASA", new ListeningThreadDelegate(this));
 }
 
 BluetoothPASAListener::~BluetoothPASAListener() {
   LOG4CXX_TRACE_ENTER(logger_);
-  if (thread_) {
-    thread_->stop();
-    thread_->join();
-    threads::DeleteThread(thread_);
-    thread_ = NULL;
-  }
+  thread_->join();
+  delete thread_->delegate();
+  threads::DeleteThread(thread_);
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
@@ -214,7 +213,6 @@ void BluetoothPASAListener::Terminate() {
 TransportAdapter::Error BluetoothPASAListener::StartListening() {
   LOG4CXX_TRACE_ENTER(logger_);
   mq_to_sdl_ = OpenMsgQ(PREFIX_STR_TOSDLCOREBTADAPTER_QUEUE, false, true);
-  thread_ = threads::CreateThread("BT PASA", new ListeningThreadDelegate(this));
   if (thread_->start()) {
     LOG4CXX_INFO(logger_, "PASA incoming messages thread started");
     LOG4CXX_TRACE_EXIT(logger_);
@@ -233,12 +231,7 @@ TransportAdapter::Error BluetoothPASAListener::StopListening() {
     LOG4CXX_TRACE_EXIT(logger_);
     return TransportAdapter::BAD_STATE;
   }
-  if (thread_) {
-    thread_->stop();
-    thread_->join();
-    threads::DeleteThread(thread_);
-    thread_ = NULL;
-  }
+  thread_->stop();
   CloseMsgQ(mq_to_sdl_);
   mq_to_sdl_ = -1;
   LOG4CXX_INFO(logger_, "PASA incoming messages thread stopped");
