@@ -206,7 +206,7 @@ include_directories (
     ${COMPONENTS_DIR}/media_manager/test/media_manager_impl_test.cc
     ${COMPONENTS_DIR}/connection_handler/test/connection_handler_impl_test.cc
     ${COMPONENTS_DIR}/connection_handler/test/connection_test.cc
-    #${COMPONENTS_DIR}/rpc_base/test/rpc_base_dbus_test.cc
+    ${COMPONENTS_DIR}/rpc_base/test/rpc_base_dbus_test.cc
     ${COMPONENTS_DIR}/rpc_base/test/rpc_base_json_test.cc
     ${COMPONENTS_DIR}/rpc_base/test/rpc_base_test.cc
     ${COMPONENTS_DIR}/connection_handler/test/heart_beat_monitor_test.cc
