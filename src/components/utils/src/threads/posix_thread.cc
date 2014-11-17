@@ -238,7 +238,9 @@ void Thread::stop() {
 
   if (delegate_ && isThreadRunning_) {
     delegate_->exitThreadMain();
-    state_cond_.Wait(auto_lock);
+    if (!pthread_equal(pthread_self(), handle_)) {
+      state_cond_.Wait(auto_lock);
+    }
   }
 
   LOG4CXX_DEBUG(logger_, "Stopped thread #" << handle_
