@@ -2006,7 +2006,8 @@ void ApplicationManagerImpl::UnregisterAllApplications(bool generated_by_hmi) {
                           mobile_apis::Result::INVALID_ENUM, false,
                           is_unexpected_disconnect);
 #endif // CUSTOMER_PASA
-    connection_handler_->CloseSession(app_to_remove->app_id());
+    connection_handler_->CloseSession(app_to_remove->app_id(),
+                                      connection_handler::kCommon);
     it = application_list_.begin();
   }
 
@@ -2090,7 +2091,7 @@ void ApplicationManagerImpl::UnregisterRevokedApplication(
     const uint32_t& app_id, mobile_apis::Result::eType reason) {
   UnregisterApplication(app_id, reason);
 
-  connection_handler_->CloseSession(app_id);
+  connection_handler_->CloseSession(app_id, connection_handler::kCommon);
 
   if (application_list_.empty()) {
     connection_handler_->CloseRevokedConnection(app_id);
@@ -2142,7 +2143,8 @@ void ApplicationManagerImpl::Handle(const impl::MessageToMobile message) {
   LOG4CXX_INFO(logger_, "Message for mobile given away");
 
   if (close_session) {
-    connection_handler_->CloseSession(message->connection_key());
+    connection_handler_->CloseSession(message->connection_key(),
+                                      connection_handler::kCommon);
   }
 }
 
