@@ -871,10 +871,10 @@ bool PolicyHandler::ReceiveMessageFromSDK(const std::string& file,
 bool PolicyHandler::UnloadPolicyLibrary() {
   LOG4CXX_TRACE(logger_, "enter. policy_manager_ = " << policy_manager_);
   bool ret = true;
+  AsyncRunner::Stop();
   if (policy_manager_) {
     policy_manager_.reset();
   }
-  AsyncRunner::Stop();
   if (dl_handle_) {
     ret = (dlclose(dl_handle_) == 0);
     dl_handle_ = 0;

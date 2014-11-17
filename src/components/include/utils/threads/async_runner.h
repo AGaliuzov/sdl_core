@@ -70,7 +70,9 @@ class AsyncRunner {
      * @param delegate the objet which has to be concuremtly run
      */
     void AsyncRun(threads::ThreadDelegate* delegate);
-
+    /**
+     * @brief Stop delegates activity
+     */
     void Stop();
 
     ~AsyncRunner();
