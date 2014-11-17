@@ -30,13 +30,12 @@
 * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef TEST_COMPONENTS_HMI_MESSAGE_HANDLER_INCLUDE_HMI_MESSAGE_HANDLER_MOCK_DBUS_MESSAGE_CONTROLLER_H_
-#define TEST_COMPONENTS_HMI_MESSAGE_HANDLER_INCLUDE_HMI_MESSAGE_HANDLER_MOCK_DBUS_MESSAGE_CONTROLLER_H_
+#ifndef COMPONENTS_HMI_MESSAGE_HANDLER_INCLUDE_HMI_MESSAGE_HANDLER_MOCK_DBUS_MESSAGE_CONTROLLER_H_
+#define COMPONENTS_HMI_MESSAGE_HANDLER_INCLUDE_HMI_MESSAGE_HANDLER_MOCK_DBUS_MESSAGE_CONTROLLER_H_
 
 #include <pthread.h>
 #include "hmi_message_handler/dbus_message_adapter.h"
 #include "dbus/dbus_message_controller.h"
-//#include "hmi_message_handler/dbus_message_controller.h"
 
 namespace Json {
 class Value;
@@ -45,8 +44,6 @@ class Value;
 class MockDBusMessageController :
     public ::dbus::DBusMessageController {
  public:
- // MOCK_METHOD1(Recv, void(std::string&));
-
   MockDBusMessageController(const std::string& serviceName,
                             const std::string& path,
 							const std::string& hmiserviceName,
@@ -73,4 +70,4 @@ class MockDBusMessageController :
 };
 
 
-#endif  // TEST_COMPONENTS_HMI_MESSAGE_HANDLER_INCLUDE_HMI_MESSAGE_HANDLER_MOCK_DBUS_MESSAGE_CONTROLLER_H_
+#endif  // COMPONENTS_HMI_MESSAGE_HANDLER_INCLUDE_HMI_MESSAGE_HANDLER_MOCK_DBUS_MESSAGE_CONTROLLER_H_
