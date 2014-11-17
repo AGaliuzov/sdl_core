@@ -30,52 +30,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_UTILS_INCLUDE_UTILS_LOG_MESSAGE_LOOP_THREAD_H_
-#define SRC_COMPONENTS_UTILS_INCLUDE_UTILS_LOG_MESSAGE_LOOP_THREAD_H_
+#ifndef SRC_COMPONENTS_INCLUDE_UTILS_AUTO_TRACE_H_
+#define SRC_COMPONENTS_INCLUDE_UTILS_AUTO_TRACE_H_
 
-#include <string>
-#include <queue>
 #include <log4cxx/logger.h>
-
-#include "utils/macro.h"
-#include "utils/threads/message_loop_thread.h"
-#include "utils/singleton.h"
+#include <string>
 
 namespace logger {
 
-typedef struct {
-  log4cxx::LoggerPtr logger;
-  log4cxx::LevelPtr level;
-  std::string entry;
-  log4cxx_time_t timeStamp;
-  log4cxx::spi::LocationInfo location;
-  log4cxx::LogString threadName;
-} LogMessage;
-
-typedef std::queue<LogMessage> LogMessageQueue;
-
-typedef threads::MessageLoopThread<LogMessageQueue> LogMessageLoopThreadTemplate;
-
-class LogMessageHandler : public LogMessageLoopThreadTemplate::Handler {
+class AutoTrace {
  public:
-  virtual void Handle(const LogMessage message) OVERRIDE;
-};
-
-class LogMessageLoopThread :
-  public LogMessageLoopThreadTemplate,
-  public utils::Singleton<LogMessageLoopThread> {
-
- public:
-  ~LogMessageLoopThread();
+  AutoTrace(
+    log4cxx::LoggerPtr logger,
+    const log4cxx::spi::LocationInfo& location
+  );
+  ~AutoTrace();
 
  private:
-  LogMessageLoopThread();
-
-DISALLOW_COPY_AND_ASSIGN(LogMessageLoopThread);
-FRIEND_BASE_SINGLETON_CLASS(LogMessageLoopThread);
-
+  log4cxx::LoggerPtr logger_;
+  log4cxx::spi::LocationInfo location_;
 };
 
 }  // namespace logger
 
-#endif  // SRC_COMPONENTS_UTILS_INCLUDE_UTILS_LOG_MESSAGE_LOOP_THREAD_H_
+#endif  // SRC_COMPONENTS_INCLUDE_UTILS_AUTO_TRACE_H_

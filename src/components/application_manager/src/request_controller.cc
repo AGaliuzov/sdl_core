@@ -92,6 +92,7 @@ void RequestController::DestroyThreadpool() {
   }
   for (uint32_t i = 0; i < pool_size_; i++) {
     pool_[i]->stop();
+    pool_[i]->join();
     threads::DeleteThread(pool_[i]);
   }
   pool_.clear();
@@ -333,7 +334,7 @@ void RequestController::updateRequestTimeout(
     const uint32_t& mobile_correlation_id,
     const uint32_t& new_timeout) {
   AutoLock auto_lock(pending_request_set_lock_);
-  LOG4CXX_TRACE(logger_," ENTER app_id : " << app_id
+  LOG4CXX_TRACE(logger_, " ENTER app_id : " << app_id
                 << " mobile_correlation_id : " << mobile_correlation_id
                 << " new_timeout : " << new_timeout);
   RequestInfoSet::iterator it = pending_request_set_.begin();
@@ -395,31 +396,40 @@ bool RequestController::IsLowVoltage() {
 
 void RequestController::onTimer() {
   AutoLock auto_lock(pending_request_set_lock_);
-  LOG4CXX_TRACE_ENTER(logger_);
-
-  while (!pending_request_set_.empty()) {
-    RequestInfoSet::iterator probably_expired = pending_request_set_.begin();
+  LOG4CXX_TRACE(logger_, "ENTER pending_request_set_ size :"
+                << pending_request_set_.size());
+  RequestInfoSet::iterator probably_expired = pending_request_set_.begin();
+  while (probably_expired != pending_request_set_.end()) {
     RequestInfoPtr request = *probably_expired;
+    if (false == request.valid()) {
+      LOG4CXX_ERROR(logger_, "Invalid pointer in pending_request_set_");
+      pending_request_set_.erase(probably_expired);
+      probably_expired =  pending_request_set_.begin();
+      continue;
+    }
     if (request->timeout_sec() == 0) {
+      // FIXME(EZamakhov): inf loop on true
       LOG4CXX_DEBUG(logger_, "Ignore " << request->requestId());
       ++probably_expired;
       // This request should not be observed for TIME_OUT
       continue;
     }
     if (request->isExpired()) {
-      LOG4CXX_INFO(logger_, "Timeout for request id: " << request->requestId() <<
-                                        "connection_key: " << request->app_id() << " expired");
+      LOG4CXX_INFO(logger_, "Timeout for "
+                   << (RequestInfo::HMIRequest == request->requst_type() ? "HMI": "Mobile")
+                   << " request. id: " << request->requestId()
+                   << " connection_key: " << request->app_id() << " is expired");
+
+      // Mobile Requests will  be erased by TIME_OUT response;
       request->request()->onTimeOut();
-      if (request->isExpired()) {
-        request->request()->CleanUp();
+      if (RequestInfo::HMIRequest == request->requst_type()) {
         pending_request_set_.erase(probably_expired);
-        LOG4CXX_INFO(logger_, "Erased request id: " << request->requestId() <<
-                                          "connection_key: " << request->app_id() << " expired");
-      } else {
-        LOG4CXX_INFO(logger_, "Timeout for request id: " << request->requestId() <<
-                     "connection_key: " << request->app_id() << " updated" );
       }
-      break;
+      // If request is ersed by response probably_expired iterator is invalid
+      // If request timeout updated, set probably_expired iterator is invalid too.
+      probably_expired =  pending_request_set_.begin();
+    } else {
+      ++probably_expired;
     }
   }
   UpdateTimer();
@@ -559,9 +569,13 @@ void RequestController::UpdateTimer() {
       // This request should not be observed for TIME_OUT
       continue;
     }
-    sleep_time = request->end_time().tv_sec -
-                           date_time::DateTime::getCurrentTime().tv_sec;
-    break;
+    const TimevalStruct curent_time = date_time::DateTime::getCurrentTime();
+    const int64_t left = request->end_time().tv_sec - curent_time.tv_sec;
+    if (left >= 0) {
+      sleep_time = left;
+      break;
+    }
+    ++it;
   }
   timer_.updateTimeOut(sleep_time);
   LOG4CXX_INFO(logger_, "Sleep for: " << sleep_time);

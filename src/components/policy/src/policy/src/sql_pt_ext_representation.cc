@@ -1346,6 +1346,11 @@ bool SQLPTExtRepresentation::SaveMessageString(
 
 bool SQLPTExtRepresentation::SaveUsageAndErrorCounts(
     const policy_table::UsageAndErrorCounts& counts) {
+  return SaveAppCounters(*counts.app_level) && SaveGlobalCounters(counts);
+}
+
+bool SQLPTExtRepresentation::SaveAppCounters(
+    const rpc::policy_table_interface_base::AppLevels& app_levels) {
   dbms::SQLQuery query(db());
   if (!query.Exec(sql_pt::kDeleteAppLevel)) {
     LOG4CXX_WARN(logger_, "Incorrect delete from app level.");
@@ -1357,7 +1362,6 @@ bool SQLPTExtRepresentation::SaveUsageAndErrorCounts(
   }
 
   policy_table::AppLevels::const_iterator it;
-  const policy_table::AppLevels& app_levels = *counts.app_level;
   for (it = app_levels.begin(); it != app_levels.end(); ++it) {
     query.Bind(0, it->first);
     query.Bind(1, it->second.minutes_in_hmi_full);
@@ -1379,6 +1383,26 @@ bool SQLPTExtRepresentation::SaveUsageAndErrorCounts(
       return false;
     }
   }
+  return true;
+}
+
+bool SQLPTExtRepresentation::SaveGlobalCounters(
+    const rpc::policy_table_interface_base::UsageAndErrorCounts& counts) {
+  dbms::SQLQuery query(db());
+  if (!query.Prepare(sql_pt_ext::kUpdateGlobalCounters)) {
+    LOG4CXX_WARN(logger_, "Incorrect insert statement for global counters.");
+    return false;
+  }
+
+  query.Bind(0, *counts.count_of_iap_buffer_full);
+  query.Bind(1, *counts.count_sync_out_of_memory);
+  query.Bind(2, *counts.count_of_sync_reboots);
+
+  if (!query.Exec() || !query.Reset()) {
+    LOG4CXX_WARN(logger_, "Incorrect insert into global counters.");
+    return false;
+  }
+
   return true;
 }
 

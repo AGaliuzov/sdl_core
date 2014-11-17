@@ -30,52 +30,36 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_UTILS_INCLUDE_UTILS_LOG_MESSAGE_LOOP_THREAD_H_
-#define SRC_COMPONENTS_UTILS_INCLUDE_UTILS_LOG_MESSAGE_LOOP_THREAD_H_
+#include <apr_time.h>
+#include <log4cxx/spi/loggingevent.h>
 
-#include <string>
-#include <queue>
-#include <log4cxx/logger.h>
-
-#include "utils/macro.h"
-#include "utils/threads/message_loop_thread.h"
-#include "utils/singleton.h"
+#include "utils/auto_trace.h"
+#include "utils/push_log.h"
 
 namespace logger {
 
-typedef struct {
-  log4cxx::LoggerPtr logger;
-  log4cxx::LevelPtr level;
-  std::string entry;
-  log4cxx_time_t timeStamp;
-  log4cxx::spi::LocationInfo location;
-  log4cxx::LogString threadName;
-} LogMessage;
+AutoTrace::AutoTrace(
+  log4cxx::LoggerPtr logger,
+  const log4cxx::spi::LocationInfo& location) :
+  logger_(logger), location_(location) {
 
-typedef std::queue<LogMessage> LogMessageQueue;
+  push_log(logger_,
+           ::log4cxx::Level::getTrace(),
+           "Enter",
+           apr_time_now(),
+           location_,
+           ::log4cxx::spi::LoggingEvent::getCurrentThreadName()
+  );
+}
 
-typedef threads::MessageLoopThread<LogMessageQueue> LogMessageLoopThreadTemplate;
-
-class LogMessageHandler : public LogMessageLoopThreadTemplate::Handler {
- public:
-  virtual void Handle(const LogMessage message) OVERRIDE;
-};
-
-class LogMessageLoopThread :
-  public LogMessageLoopThreadTemplate,
-  public utils::Singleton<LogMessageLoopThread> {
-
- public:
-  ~LogMessageLoopThread();
-
- private:
-  LogMessageLoopThread();
-
-DISALLOW_COPY_AND_ASSIGN(LogMessageLoopThread);
-FRIEND_BASE_SINGLETON_CLASS(LogMessageLoopThread);
-
-};
+AutoTrace::~AutoTrace() {
+  push_log(logger_,
+           ::log4cxx::Level::getTrace(),
+           "Exit",
+           apr_time_now(),
+           location_, // the location corresponds rather to creation of autotrace object than to deletion
+           ::log4cxx::spi::LoggingEvent::getCurrentThreadName()
+  );
+}
 
 }  // namespace logger
-
-#endif  // SRC_COMPONENTS_UTILS_INCLUDE_UTILS_LOG_MESSAGE_LOOP_THREAD_H_

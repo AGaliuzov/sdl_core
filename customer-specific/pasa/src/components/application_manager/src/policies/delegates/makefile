@@ -3,16 +3,12 @@
 #
 
 # Name of the componet (team/domain prefix '_' component name)
-COMPONENT_NAME = interfaces
+COMPONENT_NAME = application_manager/policies/delegates
 
 ifndef PRJ_ROOT
-export PRJ_ROOT = $(CURDIR)/../../../
+export PRJ_ROOT = $(CURDIR)/../../../../../../
 endif
 include $(PRJ_ROOT)cfg/depends.mk
-
-PYTHON_BIN=$(PRJ_ROOT)tools\InterfaceGenerator\python
-GENERATOR=$(PRJ_ROOT)tools\InterfaceGenerator\Generator.py
-INTEFRACE_GENERATOR_CMD=$(PYTHON_BIN) -B $(GENERATOR)
 
 # Additive Compile Flags (Flags from initiating make process will still apply)
 DEFS += \
@@ -33,11 +29,26 @@ DEFS += \
 INCLUDES = \
 	$(CFG_INCS) \
 	$(CC_IFLAG)./ \
-	$(CC_IFLAG)../utils/include \
-	$(CC_IFLAG)../include \
-	$(CC_IFLAG)../formatters/include \
-	$(CC_IFLAG)../smart_objects/include \
-	$(CC_IFLAG)../../3rd_party/log4cxx/include \
+	$(CC_IFLAG)../../../include \
+	$(CC_IFLAG)../../../../include \
+	$(CC_IFLAG)../../../../transport_manager/include \
+	$(CC_IFLAG)../../../../protocol_handler/include \
+	$(CC_IFLAG)../../../../connection_handler/include \
+	$(CC_IFLAG)../../../../config_profile/include \
+	$(CC_IFLAG)../../../../policies/include \
+	$(CC_IFLAG)../../../../smart_objects/include \
+	$(CC_IFLAG)../../../../request_watchdog/include \
+	$(CC_IFLAG)../../../../hmi_message_handler/include \
+	$(CC_IFLAG)../../../../formatters/include \
+	$(CC_IFLAG)../../../../utils/include \
+	$(CC_IFLAG)../../../../media_manager/include \
+	$(CC_IFLAG)../../../../components/interfaces \
+	$(CC_IFLAG)../../../../policy/src/policy/include \
+	$(CC_IFLAG)../../../../policy/src/policy/usage_statistics/include \
+	$(CC_IFLAG)../../../../ \
+	$(CC_IFLAG)../../../../../3rd_party-static/jsoncpp/include \
+	$(CC_IFLAG)../../../../../3rd_party-static/encryption/include \
+	$(CC_IFLAG)../../../../../3rd_party/log4cxx/include \
 	$(DEPENDS_INCLUDES)
 
 
@@ -61,7 +72,7 @@ LIB_PATHS += \
 #  LIB - Define the static library for Message Queue
 #
 #
-COMPONENT_LIB = $(LIB_PATH)$(LIB_PREFIX)$(COMPONENT_NAME)$(DEBUG_EXT).$(LIB_EXT)
+#COMPONENT_LIB = $(LIB_PATH)$(LIB_PREFIX)$(COMPONENT_NAME)$(DEBUG_EXT).$(LIB_EXT)
 
 ## Sources Section
 
@@ -76,8 +87,8 @@ COMPONENT_SRCS = \
 # Define sources that my not be local to your component
 # here, you can define indivial files or wildcard from 
 # a different folder.
-NON_LOCAL_SRCS = \
- 
+NON_LOCAL_SRCS =
+  
 
 # List of all sources to be built.  Can be assembled from the other defintitions.
 #  This only defines sources for the current directory, so if there are subdirectories
@@ -110,8 +121,7 @@ OBJECTS = \
 #  This is only to automate the rebuilding, all builds on the servers are cleans
 #  So this is not a huge deal when building on a component level.
 HEADERS = \
-	$(wildcard *.h*) \
-
+	
 	
 LIBRARIES = \
 	$(COMPONENT_LIB)
@@ -136,7 +146,6 @@ $(CPP_LANG_OBJECTS): $(SOURCES) $(HEADERS)
 $(CC_LANG_OBJECTS): $(SOURCES) $(HEADERS)
 	$(CCC_CMD)
 
-
 local: $(OBJECTS)
 
 # Defines specific for each deliverable
@@ -157,8 +166,6 @@ binary: base \
 #  standard form is of
 #  $(MAKE) -C subdirectory_name $(MAKECMDGOALS) 
 subdirs:
-#	$(INTEFRACE_GENERATOR_CMD) --parser-type jsonrpc HMI_API.xml hmi_apis . 
-#	$(INTEFRACE_GENERATOR_CMD) --parser-type sdlrpcv2 MOBILE_API.xml mobile_apis . 
 	
 clean:
 	-rm -f $(BINARIES)

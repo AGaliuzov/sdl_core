@@ -30,52 +30,17 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_UTILS_INCLUDE_UTILS_LOG_MESSAGE_LOOP_THREAD_H_
-#define SRC_COMPONENTS_UTILS_INCLUDE_UTILS_LOG_MESSAGE_LOOP_THREAD_H_
+#include "utils/logger.h"
+#include "utils/log_message_loop_thread.h"
+#include <apr_time.h>
 
-#include <string>
-#include <queue>
-#include <log4cxx/logger.h>
+void deinit_logger () {
+  CREATE_LOGGERPTR_LOCAL (logger_, "Logger");
+  LOG4CXX_DEBUG(logger_, "Logger deinitialization");
+  logger::LogMessageLoopThread::destroy();
+  log4cxx::Logger::getRootLogger()->closeNestedAppenders();
+}
 
-#include "utils/macro.h"
-#include "utils/threads/message_loop_thread.h"
-#include "utils/singleton.h"
-
-namespace logger {
-
-typedef struct {
-  log4cxx::LoggerPtr logger;
-  log4cxx::LevelPtr level;
-  std::string entry;
-  log4cxx_time_t timeStamp;
-  log4cxx::spi::LocationInfo location;
-  log4cxx::LogString threadName;
-} LogMessage;
-
-typedef std::queue<LogMessage> LogMessageQueue;
-
-typedef threads::MessageLoopThread<LogMessageQueue> LogMessageLoopThreadTemplate;
-
-class LogMessageHandler : public LogMessageLoopThreadTemplate::Handler {
- public:
-  virtual void Handle(const LogMessage message) OVERRIDE;
-};
-
-class LogMessageLoopThread :
-  public LogMessageLoopThreadTemplate,
-  public utils::Singleton<LogMessageLoopThread> {
-
- public:
-  ~LogMessageLoopThread();
-
- private:
-  LogMessageLoopThread();
-
-DISALLOW_COPY_AND_ASSIGN(LogMessageLoopThread);
-FRIEND_BASE_SINGLETON_CLASS(LogMessageLoopThread);
-
-};
-
-}  // namespace logger
-
-#endif  // SRC_COMPONENTS_UTILS_INCLUDE_UTILS_LOG_MESSAGE_LOOP_THREAD_H_
+log4cxx_time_t time_now() {
+  return apr_time_now();
+}

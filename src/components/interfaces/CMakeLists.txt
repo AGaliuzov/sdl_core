@@ -33,7 +33,7 @@ include_directories (
   ${COMPONENTS_DIR}/utils/include/
   ${COMPONENTS_DIR}/formatters/include
 )
-
+  
 GenerateInterface("v4_protocol_v1_2_no_extra.xml" "NsSmartDeviceLinkRPC::V1" "sdlrpcv1")
 GenerateInterface("MOBILE_API.xml" "mobile_apis" "sdlrpcv2")
 
@@ -78,3 +78,4 @@ IF (${HMI_DBUS_API})
   add_library(HMI_API "${CMAKE_CURRENT_BINARY_DIR}/HMI_API_schema.cc")
 ENDIF (${HMI_DBUS_API})
 
+add_dependencies(HMI_API Utils)

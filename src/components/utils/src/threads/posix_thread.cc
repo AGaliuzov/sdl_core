@@ -70,14 +70,14 @@ enum ThreadState {
 void enqueue_to_join(pthread_t thread, ThreadDelegate* delegate) {
   MessageQueue<ThreadManager::ThreadDesc>& threads = ::threads::ThreadManager::instance()->threads_to_terminate;
   if (!threads.IsShuttingDown() ) {
-    LOG4CXX_INFO(logger_, "Pushing thread #" << pthread_self() << " to join queue");
+    LOG4CXX_DEBUG(logger_, "Pushing thread #" << pthread_self() << " to join queue");
     ThreadManager::ThreadDesc desc = { thread, delegate };
     threads.push(desc);
   }
 }
 
 static void* threadFunc(void* arg) {
-  LOG4CXX_INFO(logger_, "Thread #" << pthread_self() << " started successfully");
+  LOG4CXX_DEBUG(logger_, "Thread #" << pthread_self() << " started successfully");
   threads::ThreadDelegate* delegate = static_cast<threads::ThreadDelegate*>(arg);
 
   delegate->thread_lock().Acquire();
@@ -97,7 +97,7 @@ static void* threadFunc(void* arg) {
   delegate->thread_lock().Release();
 
   enqueue_to_join(pthread_self(), delegate);
-  LOG4CXX_INFO(logger_, "Thread #" << pthread_self() << " exited successfully");
+  LOG4CXX_DEBUG(logger_, "Thread #" << pthread_self() << " exited successfully");
   return NULL;
 }
 }  // namespace
@@ -212,6 +212,7 @@ void Thread::stop() {
     return;
   }
 
+  // TODO(EZamakhov): fix segfault in case exitThreadMain return false and correctly finished
   if (delegate_ && !delegate_->exitThreadMain()) {
     if (thread_handle_ != pthread_self()) {
       LOG4CXX_WARN(logger_, "Cancelling thread #" << thread_handle_
@@ -237,7 +238,14 @@ void Thread::stop() {
 }
 
 void Thread::join() {
-  pthread_join(thread_handle_, NULL);
+  LOG4CXX_TRACE_ENTER(logger_);
+  if (isThreadRunning_) {
+    pthread_join(thread_handle_, NULL);
+  } else {
+    LOG4CXX_DEBUG(logger_, "Thread #" << thread_handle_
+                  << " \""  << name_ << " \" is not running");
+  }
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 bool Thread::Id::operator==(const Thread::Id& other) const {

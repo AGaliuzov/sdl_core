@@ -114,6 +114,7 @@ void MmeClientListener::Terminate() {
 
   if (notify_thread_) {
     notify_thread_->stop();
+    notify_thread_->join();
     threads::DeleteThread(notify_thread_);
     notify_thread_ = NULL;
   }
@@ -166,6 +167,9 @@ TransportAdapter::Error MmeClientListener::StartListening() {
 TransportAdapter::Error MmeClientListener::StopListening() {
   if (notify_thread_) {
     notify_thread_->stop();
+    notify_thread_->join();
+    threads::DeleteThread(notify_thread_);
+    notify_thread_ = NULL;
   }
   return TransportAdapter::OK;
 }
