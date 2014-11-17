@@ -1,5 +1,5 @@
-/**
-* Copyright (c) 2013, Ford Motor Company
+/*
+* Copyright (c) 2014, Ford Motor Company
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -30,11 +30,10 @@
 * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef TEST_COMPONENTS_HMI_MESSAGE_HANDLER_INCLUDE_HMI_MESSAGE_HANDLER_DBUS_SUBSCRIBER_H_
-#define TEST_COMPONENTS_HMI_MESSAGE_HANDLER_INCLUDE_HMI_MESSAGE_HANDLER_DBUS_SUBSCRIBER_H_
+#ifndef SRC_COMPONENTS_HMI_MESSAGE_HANDLER_TEST_INCLUDE_MOCK_SUBSCRIBER_H_
+#define SRC_COMPONENTS_HMI_MESSAGE_HANDLER_TEST_INCLUDE_MOCK_SUBSCRIBER_H_
 
 #include <string>
-//#include <dbus/dbus.h>
 
 struct DBusConnection;
 
@@ -44,7 +43,7 @@ namespace hmi_message_handler {
 
 class MockSubscriber {
  public:
-  MockSubscriber(const std::string nameService, const std::string path);
+  MockSubscriber(const std::string &nameService, const std::string & path);
   virtual ~MockSubscriber();
   virtual void Receive();
   bool Start();
@@ -60,4 +59,4 @@ class MockSubscriber {
 }  // namespace components
 }  // namespace test
 
-#endif  // TEST_COMPONENTS_HMI_MESSAGE_HANDLER_INCLUDE_HMI_MESSAGE_HANDLER_DBUS_SUBSCRIBER_H_
+#endif  // SRC_COMPONENTS_HMI_MESSAGE_HANDLER_TEST_INCLUDE_MOCK_SUBSCRIBER_H_

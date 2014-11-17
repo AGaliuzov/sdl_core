@@ -41,10 +41,10 @@ namespace components {
 namespace hmi_message_handler {
 
 MockSubscriber::MockSubscriber(
-    const std::string nameService, const std::string path)
+    const std::string & nameService, const std::string & path)
     : nameService_(nameService),
       path_(path),
-      conn_(nullptr) {
+      conn_(NULL) {
 }
 
 MockSubscriber::~MockSubscriber() {
@@ -62,15 +62,7 @@ bool MockSubscriber::Start() {
     dbus_error_free(&err);
     return false;
   }
-//  ret = dbus_bus_request_name(conn_, nameService_.c_str(),
-//                              DBUS_NAME_FLAG_REPLACE_EXISTING, &err);
-//  if (dbus_error_is_set(&err)) {
-//    dbus_error_free(&err);
-//    return false;
-//  }
-//  if (DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER != ret) {
-//    return false;
-//  }
+
 
   std::string rule = "type='signal',interface='" + nameService_ + "'";
   dbus_bus_add_match(conn_, rule.c_str(), &err);
