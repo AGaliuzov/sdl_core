@@ -38,6 +38,10 @@
 
 #include "application_manager/application_manager_impl.h"
 #include "interfaces/HMI_API.h"
+#ifdef CUSTOMER_PASA
+#include <mqueue.h>
+#include <applink_types.h>
+#endif
 
 
 namespace application_manager {
@@ -97,8 +101,26 @@ void OnExitAllApplicationsNotification::Run() {
       mobile_api::AppInterfaceUnregisteredReason::FACTORY_DEFAULTS == mob_reason) {
     app_manager->HeadUnitReset(mob_reason);
   }
+#ifdef CUSTOMER_PASA
+  struct mq_attr attributes;
+  attributes.mq_maxmsg = 128;
+  attributes.mq_msgsize = 4095;
+  attributes.mq_flags = 0;
 
+  mqd_t mq = mq_open(PREFIX_STR_SDL_PROXY_QUEUE,
+                O_RDONLY | O_CREAT,
+                S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH,
+                &attributes);
+  char buf = SDL_MSG_SDL_STOP;
+  if (-1 == mq_send(mq, &buf, 1, 0)) {
+    LOG4CXX_ERROR(logger_, "Unable to send SDL_MSG_SDL_STOP " << strerror(errno));
+  } else {
+    LOG4CXX_DEBUG(logger_, "SDL_MSG_SDL_STOP sent to SDL controller");
+  }
+  mq_close(mq);
+#else
   kill(getpid(), SIGINT);
+#endif
 }
 
 void OnExitAllApplicationsNotification::SendOnSDLPersistenceComplete() {
