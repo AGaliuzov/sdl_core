@@ -419,12 +419,14 @@ bool BluetoothPASAConnection::Send() {
 }
 
 bool BluetoothPASAConnection::Establish(ConnectError** error) {
-  LOG4CXX_INFO(logger_, "enter");
+  LOG4CXX_AUTO_TRACE(logger_, autotrace);
   DeviceSptr device = controller()->FindDevice(device_handle());
   if (!device) {
+    if (error) {
+      *error = new ConnectError();
+    }
     LOG4CXX_ERROR_WITH_ERRNO(
         logger_, "Device not found by device handle " << device_handle());
-    LOG4CXX_INFO(logger_, "exit");
     return false;
   }
 
@@ -454,13 +456,11 @@ bool BluetoothPASAConnection::Establish(ConnectError** error) {
     LOG4CXX_ERROR_WITH_ERRNO(
         logger_,
         "SPP device " << sPPQ << " for device handle " << device_handle() << " not opened.");
-    LOG4CXX_INFO(logger_, "exit");
     return false;
   }
   LOG4CXX_DEBUG(
       logger_,
       "SPP device " << sPPQ << " for device handle " << device_handle() << " opened.");
-  LOG4CXX_INFO(logger_, "exit");
   return true;
 }
 
