@@ -180,13 +180,23 @@ if(BUILD_TESTS)
 include_directories (
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
-  ${COMPONENTS_DIR}/security_manager/include
+
+  ${CMAKE_SOURCE_DIR}/src/components/security_manager/test/include
+  ${CMAKE_SOURCE_DIR}/src/components/utils/include
+  ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8
+  ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8/dbus/
+  ${CMAKE_SOURCE_DIR}/src/components/dbus/src
+  ${COMPONENTS_DIR}/config_profile/include
+  
   ${COMPONENTS_DIR}/security_manager/test/include
   ${COMPONENTS_DIR}/application_manager/include
   ${COMPONENTS_DIR}/protocol_handler/test/include
+  
+    ${COMPONENTS_DIR}/security_manager/include
+ 
   ${COMPONENTS_DIR}/media_manager/include
   ${COMPONENTS_DIR}/utils/include
-  ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8
+  
   ${COMPONENTS_DIR}/dbus/src
   ${COMPONENTS_DIR}/config_profile/include
   ${GMOCK_INCLUDE_DIRECTORY}
@@ -196,8 +206,26 @@ include_directories (
   ${COMPONENTS_DIR}/transport_manager/test/include
 )
 
+if (BUILD_AVAHI_SUPPORT)
+  list(APPEND LIBRARIES avahi-client avahi-common)
+endif()
+
 #TODO to ALL : Please FIX heart_beat_monitor_test.cc
   set(testSources
+    ./main_test.cc
+    ${CMAKE_SOURCE_DIR}/src/components/utils/test/date_time_test.cc    
+    ${CMAKE_SOURCE_DIR}/src/components/utils/test/file_system_test.cc
+    ${CMAKE_SOURCE_DIR}/src/components/utils/test/messagemeter_test.cc
+    ${CMAKE_SOURCE_DIR}/src/components/media_manager/test/media_adapter_impl_test.cc
+    ${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/connection_handler_impl_test.cc
+    ${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/connection_test.cc
+    #${CMAKE_SOURCE_DIR}/src/components/rpc_base/test/rpc_base_dbus_test.cc
+    ${CMAKE_SOURCE_DIR}/src/components/rpc_base/test/rpc_base_json_test.cc
+    ${CMAKE_SOURCE_DIR}/src/components/rpc_base/test/rpc_base_test.cc
+    ${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/heart_beat_monitor_test.cc
+    ${CMAKE_SOURCE_DIR}/src/components/formatters/test/generic_json_formatter_test.cc
+    
+    
     ./main_test.cc
     ${COMPONENTS_DIR}/utils/test/messagemeter_test.cc
     ${COMPONENTS_DIR}/utils/test/date_time_test.cc
@@ -206,7 +234,7 @@ include_directories (
     ${COMPONENTS_DIR}/media_manager/test/media_manager_impl_test.cc
     ${COMPONENTS_DIR}/connection_handler/test/connection_handler_impl_test.cc
     ${COMPONENTS_DIR}/connection_handler/test/connection_test.cc
-    #${COMPONENTS_DIR}/rpc_base/test/rpc_base_dbus_test.cc
+    ${COMPONENTS_DIR}/rpc_base/test/rpc_base_dbus_test.cc
     ${COMPONENTS_DIR}/rpc_base/test/rpc_base_json_test.cc
     ${COMPONENTS_DIR}/rpc_base/test/rpc_base_test.cc
     ${COMPONENTS_DIR}/connection_handler/test/heart_beat_monitor_test.cc
@@ -215,6 +243,18 @@ include_directories (
     ${COMPONENTS_DIR}/security_manager/test/security_manager_test.cc
     ${COMPONENTS_DIR}/security_manager/test/security_query_test.cc
     ${COMPONENTS_DIR}/security_manager/test/security_query_matcher.cc
+    
+
+    ${COMPONENTS_DIR}/transport_manager/test/mock_application.cc
+    ${COMPONENTS_DIR}/transport_manager/test/mock_connection_factory.cc  
+    ${COMPONENTS_DIR}/transport_manager/test/mock_connection.cc       
+    ${COMPONENTS_DIR}/transport_manager/test/mock_device.cc           
+    ${COMPONENTS_DIR}/transport_manager/test/mock_device_scanner.cc    
+    ${COMPONENTS_DIR}/transport_manager/test/raw_message_matcher.cc   
+    ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter_listener.cc
+    ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter.cc 
+    ${COMPONENTS_DIR}/transport_manager/test/transport_manager_test.cc 
+
     ${AM_TEST_DIR}/command_impl_test.cc
     ${COMPONENTS_DIR}/smart_objects/test/SmartObjectDraftTest.cc
     ${COMPONENTS_DIR}/smart_objects/test/SmartObjectInvalidTest.cc
@@ -240,7 +280,7 @@ include_directories (
     MOBILE_API
     v4_protocol_v1_2_no_extra
     SmartObjects
-    formatters
+    formatters    
     ProtocolLibrary
     ProtocolHandler
     connectionHandler
@@ -256,6 +296,7 @@ include_directories (
     encryption
     ${RTLIB}
     Resumption
+    transport_manager
     Policy
     ${SecurityManagerLibrary}
   )

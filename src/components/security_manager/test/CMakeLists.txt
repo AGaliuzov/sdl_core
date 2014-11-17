@@ -34,11 +34,13 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
   include/
+
   #${SecurityManagerIncludeDir}
   ${COMPONENTS_DIR}/protocol_handler/test/include
   ${COMPONENTS_DIR}/transport_manager/test/include
   ${COMPONENTS_DIR}/security_manager/include
   #${COMPONENTS_DIR}/security_manager/test/include
+
 )
 
 set(SOURCES
@@ -49,6 +51,9 @@ set(SOURCES
 )
 
 set(LIBRARIES
+
+#  gtest
+
   gtest_main
   gmock
   gmock_main
@@ -65,5 +70,3 @@ set(LIBRARIES
 add_library(test_security_manager ${SOURCES})
 target_link_libraries(test_security_manager ${LIBRARIES} )
 create_test(test_security_manager_test "${SOURCES}" "${LIBRARIES}")
-
-# vim: set ts=2 sw=2 et:

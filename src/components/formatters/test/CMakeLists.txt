@@ -42,6 +42,7 @@ include_directories (
 set (LIBRARIES
     gmock
     gmock_main
+    gtest
     gtest_main  
     SmartObjects
     formatters

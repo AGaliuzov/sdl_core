@@ -71,6 +71,7 @@ class ProtocolHandlerMock: public ::protocol_handler::ProtocolHandler {
                void(int32_t connection_id, uint8_t session_id));
 };
 
+
 /*
  * MOCK implementation of transport_manager::TransportManager interface
  */
@@ -186,3 +187,4 @@ class SecurityManagerMock: public security_manager::SecurityManager {
 }  // namespace components
 }  // namespace protocol_handler_test
 #endif  // TEST_COMPONENTS_PROTOCOL_HANDLER_INCLUDE_PROTOCOL_HANDLER_PROTOCOL_HANDLER_MOCK_H_
+

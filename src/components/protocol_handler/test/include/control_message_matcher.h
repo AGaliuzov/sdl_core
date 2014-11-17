@@ -45,6 +45,7 @@ namespace protocol_handler_test {
  * Matcher for checking RawMessage with ControlMessage
  * Check error id
  */
+
 MATCHER_P2(ControlMessage, ExpectedFrameData, ExpectedEncryption,
            (std::string(ExpectedEncryption ? "Protected" : "Unprotected")
            + " control message ")) {
@@ -79,6 +80,7 @@ MATCHER_P2(ControlMessage, ExpectedFrameData, ExpectedEncryption,
 }
 
 
+
 MATCHER_P4(ControlMessage, ExpectedFrameData, ExpectedEncryption,
            ConnectionKey, VectorMatcher,
            (std::string(ExpectedEncryption ? "Protected" : "Unprotected")
@@ -86,6 +88,7 @@ MATCHER_P4(ControlMessage, ExpectedFrameData, ExpectedEncryption,
   // Nack shall be always with flag protected off
   DCHECK(ExpectedFrameData  != 0x03 /*FRAME_DATA_START_SERVICE_NACK*/ ||
          !ExpectedEncryption);
+
   const ::protocol_handler::RawMessagePtr message = arg;
   ::protocol_handler::ProtocolPacket packet(message->connection_key());
   const protocol_handler::RESULT_CODE result =
@@ -94,6 +97,7 @@ MATCHER_P4(ControlMessage, ExpectedFrameData, ExpectedEncryption,
     *result_listener <<  "Error while message deserialization.";
     return false;
   }
+
   if (::protocol_handler::FRAME_TYPE_CONTROL != packet.frame_type()) {
     *result_listener << "Is not control message";
     return false;
@@ -130,6 +134,8 @@ MATCHER_P4(ControlMessage, ExpectedFrameData, ExpectedEncryption,
   }
   return true;
 }
+
+
 
 
 }  // namespace protocol_handler_test

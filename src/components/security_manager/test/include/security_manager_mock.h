@@ -45,6 +45,7 @@ namespace components  {
 namespace security_manager_test {
 
 
+
 /*
  * MOCK implementation of ::security_manager::SecurityManager
  */
@@ -76,6 +77,7 @@ class SecurityManagerMock: public ::security_manager::SecurityManager {
                void(const ::protocol_handler::RawMessagePtr));
 };
 
+
   /*
    * MOCK implementation of protocol_handler::SessionObserver interface
    */
@@ -93,19 +95,23 @@ class SecurityManagerMock: public ::security_manager::SecurityManager {
                    const uint32_t& key,
                    const protocol_handler::ServiceType& service_type));
     MOCK_METHOD5(OnSessionStartedCallback,
+
                    uint32_t(
                      const transport_manager::ConnectionUID &connection_handle,
                      const uint8_t session_id,
                      const ::protocol_handler::ServiceType &service_type,
                      const bool is_protected, uint32_t* hash_id));
+
     MOCK_METHOD4(OnSessionEndedCallback,
                  uint32_t(
                    const transport_manager::ConnectionUID& connection_handle,
                    const uint8_t sessionId,
                    const uint32_t& hashCode,
                    const protocol_handler::ServiceType& service_type));
+
     MOCK_METHOD1(OnApplicationFloodCallBack,
                  void(const uint32_t&));
+
     MOCK_METHOD2(KeyFromPair,
                  uint32_t(
                    transport_manager::ConnectionUID connection_handle,
@@ -120,6 +126,14 @@ class SecurityManagerMock: public ::security_manager::SecurityManager {
                          uint32_t* app_id,
                          std::list<int32_t>* sessions_list,
                          uint32_t* device_id));
+
+    MOCK_METHOD4(GetDataOnDeviceID,
+                 int32_t(
+                   uint32_t device_handle,
+                   std::string* device_name,
+                   std::list<uint32_t>* applications_list,
+                   std::string* mac_address));
+
     MOCK_METHOD5(GetDataOnDeviceID,
                   int32_t(
                     uint32_t device_handle,
@@ -127,6 +141,7 @@ class SecurityManagerMock: public ::security_manager::SecurityManager {
                     std::list<uint32_t> *applications_list,
                     std::string *mac_address,
                     std::string *connection_type));
+
     MOCK_METHOD2(IsHeartBeatSupported,
                  bool( transport_manager::ConnectionUID connection_handle,
                        uint8_t session_id));

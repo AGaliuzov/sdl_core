@@ -28,7 +28,6 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-
 set(target TransportManager)
 set(TM_SRC_DIR ${COMPONENTS_DIR}/transport_manager/src)
 
@@ -156,4 +155,12 @@ if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
   if (BUILD_AOA_SUPPORT)
     target_link_libraries(${target} aoa)
   endif(BUILD_AOA_SUPPORT)
+endif()
+
+add_library("transport_manager" ${SOURCES}
+        ${TRANSPORT_MANAGER_SOURCES}
+)
+
+if(BUILD_TESTS)
+  add_subdirectory(test)
 endif()

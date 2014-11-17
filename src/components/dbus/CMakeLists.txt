@@ -37,7 +37,7 @@ include_directories (
   ${COMPONENTS_DIR}/formatters/include/
   ${COMPONENTS_DIR}/smart_objects/include/
   ${COMPONENTS_DIR}/utils/include/
-  ${CMAKE_BINARY_DIR}/src/components
+  ${CMAKE_BINARY_DIR}/src/components/
 )
 
 set (SOURCES

@@ -1,16 +1,47 @@
+# Copyright (c) 2014, Ford Motor Company
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following
+# disclaimer in the documentation and/or other materials provided with the
+# distribution.
+#
+# Neither the name of the Ford Motor Company nor the names of its contributors
+# may be used to endorse or promote products derived from this software
+# without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+
 include_directories (
-  ${GMOCK_INCLUDE_DIRECTORY}
-  ${JSONCPP_INCLUDE_DIRECTORY}
   ${LOG4CXX_INCLUDE_DIRECTORY}
-  ${CMAKE_SOURCE_DIR}/src/components/utils/include/
-  ${CMAKE_SOURCE_DIR}/src/components/application_manager/include/
-  ${CMAKE_SOURCE_DIR}/src/components/hmi_message_handler/include/
-  ${CMAKE_SOURCE_DIR}/src/components/smart_objects/include/
-  ${CMAKE_SOURCE_DIR}/test/components/hmi_message_handler/include/
-  ${CMAKE_BINARY_DIR}/src/components/
+  ${GMOCK_INCLUDE_DIRECTORY}
+  ${COMPONENTS_DIR}/smart_objects/include
+  ${COMPONENTS_DIR}/hmi_message_handler/include
+  ${COMPONENTS_DIR}/utils/include
+  ${JSONCPP_INCLUDE_DIRECTORY}
+  ${CMAKE_BINARY_DIR}
+  ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8
+  ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8/dbus/
 )
 
-set (LIBRARIES
+
+set (LIBRARIES    
     gtest
     gtest_main
     gmock
@@ -25,11 +56,13 @@ set (LIBRARIES
     ProtocolLibrary
 )
 
-set (SOURCES
-   #./src/mock_subscriber.cc
-   #./src/test_dbus_message_adapter.cc
-)
+set(SOURCES
+${COMPONENTS_DIR}/hmi_message_handler/test/main.cc  
+${COMPONENTS_DIR}/hmi_message_handler/test/mock_subscriber.cc 
+${COMPONENTS_DIR}/hmi_message_handler/test/test_dbus_message_adapter.cc
+${COMPONENTS_DIR}/hmi_message_handler/test/test_mqueue_adapter.cc 
 
-#create_test("test_DBusMessageAdapter" "${SOURCES}" "${LIBRARIES}")
-create_test("test_mqueue_adapter" "./src/test_mqueue_adapter.cc" "${LIBRARIES}")
+)          
+
+create_test("test_hmi_message_handler" "${SOURCES}" "${LIBRARIES}")
 
