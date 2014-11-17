@@ -48,7 +48,7 @@ set (SOURCES
     ${UTILS_SRC_DIR}/threads/thread_manager.cc
     ${UTILS_SRC_DIR}/threads/thread_validator.cc
     ${UTILS_SRC_DIR}/lock_posix.cc
-    ${UTILS_SRC_DIR}/async_runner.cc
+    ${UTILS_SRC_DIR}/threads/async_runner.cc
     ${UTILS_SRC_DIR}/rwlock_posix.cc
     ${UTILS_SRC_DIR}/date_time.cc
     ${UTILS_SRC_DIR}/signals_linux.cc
