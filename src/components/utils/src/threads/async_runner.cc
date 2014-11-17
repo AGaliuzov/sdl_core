@@ -64,7 +64,7 @@ AsyncRunner::~AsyncRunner() {
 
   thread_ = NULL;
   executor_  = NULL;
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 AsyncRunner::AsyncRunnerDelegate::AsyncRunnerDelegate()
@@ -110,7 +110,7 @@ void AsyncRunner::AsyncRunnerDelegate::runDelegate(ThreadDelegate* delegate) {
   sync_primitives::AutoLock lock(delegates_queue_lock_);
   delegates_queue_.push(delegate);
   delegate_notifier_.NotifyOne();
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 } // namespace policy.
