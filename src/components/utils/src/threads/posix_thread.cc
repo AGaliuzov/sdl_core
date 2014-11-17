@@ -194,7 +194,7 @@ void Thread::stop() {
 #ifdef BUILD_TESTS
   // Temporary fix for UnitTest until APPLINK-9987 is resolved
   usleep(100000);
-endif
+#endif
 
   LOG4CXX_DEBUG(logger_, "Stopping thread #" << thread_handle_
                   << " \""  << name_ << " \"");

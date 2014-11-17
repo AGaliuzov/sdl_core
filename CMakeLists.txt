@@ -62,6 +62,7 @@ set(ENABLE_LOG_OPTION 	"$ENV{ENABLE_LOG}")
 set(ARCH_TYPE_OPTION	"$ENV{ARCH_TYPE}")
 set(POLICY_OPTION 	"$ENV{POLICY_TYPE}")
 set(SECURITY_OPTION 	"$ENV{SECURITY_MODE}")
+set(COMPONENTS_DIR ${CMAKE_SOURCE_DIR}/src/components)
 
 add_custom_target(pasa-tarball
   COMMAND ${CMAKE_SOURCE_DIR}/tools/Utils/export-customer-specific.sh ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} pasa
@@ -177,7 +178,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 # flag is handled by CMake
 set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR})
 set(ARCHIVE_OUTPUT_DIRECTORY ./bin)
-set(CMAKE_CXX_FLAGS "-fPIC -g3 -ggdb3 -std=gnu++0x -Wall -Werror -Wuninitialized -Wvla")
+set(CMAKE_CXX_FLAGS "-fPIC -g3 -ggdb3 -std=gnu++0x -Wall -Werror -Wuninitialized -Wvla") 
 if(ENABLE_SANITIZE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
 endif()
@@ -328,9 +329,8 @@ macro (GenerateInterface arg_xml_name arg_namespace parser_type)
                        )
 
     include_directories (
-        ../../../src/components/smart_objects/include
-        ../../../src/components/formatters/include/
-        ${CMAKE_SOURCE_DIR}/src/components/formatters/include/
+        ${COMPONENTS_DIR}/smart_objects/include
+        ${COMPONENTS_DIR}/formatters/include/
         ${CMAKE_BINARY_DIR}
     )
 
@@ -400,8 +400,8 @@ endif()
 
 # --- Directory with SDL interfaces, global types and ProtocolLib component
 include_directories(
-  ${CMAKE_SOURCE_DIR}/src/components/include
-  ${CMAKE_SOURCE_DIR}/src/components/protocol/include
+  ${COMPONENTS_DIR}/include
+  ${COMPONENTS_DIR}/protocol/include
 )
 
 # --- 3rd party libs
@@ -478,8 +478,8 @@ add_custom_target(install-3rd_party
 if(ENABLE_SECURITY)
   add_definitions(-DENABLE_SECURITY)
   set(SecurityManagerLibrary SecurityManager)
-  set(SecurityManagerIncludeDir ${CMAKE_SOURCE_DIR}/src/components/security_manager/include)
-  set(SecurityManagerTestIncludeDir ${CMAKE_SOURCE_DIR}/test/components/security_manager/include)
+  set(SecurityManagerIncludeDir ${COMPONENTS_DIR}/security_manager/include)
+  #set(SecurityManagerTestIncludeDir ${CMAKE_SOURCE_DIR}/test/components/security_manager/include)
 endif()
 
 set(RTLIB rt)
@@ -516,7 +516,7 @@ add_subdirectory(./src/plugins)
 if(BUILD_TESTS)
     # Directory test is deprecated. Use src/components/<name>/test
     include(Dart)
-    add_subdirectory(./test)
+    #add_subdirectory(./test)
 endif()
                                                                                                                                                                                        
 # Building documentation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    

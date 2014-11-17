@@ -53,6 +53,8 @@
 
 namespace media_manager {
 
+using profile::Profile;
+
 CREATE_LOGGERPTR_GLOBAL(logger_, "MediaManagerImpl")
 
 MediaManagerImpl::MediaManagerImpl()

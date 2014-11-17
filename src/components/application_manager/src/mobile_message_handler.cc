@@ -50,6 +50,7 @@ const uint8_t kUnknown = 0xF;
 }
 
 namespace application_manager {
+using protocol_handler::Extract;
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "MobileMessageHandler")
 

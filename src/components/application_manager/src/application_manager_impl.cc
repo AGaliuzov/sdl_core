@@ -51,6 +51,8 @@
 #include "config_profile/profile.h"
 #include "utils/threads/thread.h"
 #include "utils/file_system.h"
+#include "smart_objects/enum_schema_item.h"
+#include "interfaces/HMI_API_schema.h"
 #include "application_manager/application_impl.h"
 #include "usage_statistics/counter.h"
 #ifdef CUSTOMER_PASA
@@ -67,6 +69,8 @@ const uint32_t ApplicationManagerImpl::max_corelation_id_ = UINT_MAX;
 
 namespace formatters = NsSmartDeviceLink::NsJSONHandler::Formatters;
 namespace jhs = NsSmartDeviceLink::NsJSONHandler::strings;
+
+using namespace NsSmartDeviceLink::NsSmartObjects;
 
 ApplicationManagerImpl::ApplicationManagerImpl()
   : applications_list_lock_(true),

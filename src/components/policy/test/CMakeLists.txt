@@ -37,6 +37,7 @@ include_directories(
   ${COMPONENTS_DIR}/policy/src/policy/qdb_wrapper/include
   ${COMPONENTS_DIR}/policy/src/policy/usage_statistics/include
   ${COMPONENTS_DIR}/rpc_base/include
+  ${COMPONENTS_DIR}/config_profile/include
   ${COMPONENTS_DIR}/utils/include/
 
 )
