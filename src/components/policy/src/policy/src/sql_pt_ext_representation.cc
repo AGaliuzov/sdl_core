@@ -989,6 +989,11 @@ bool SQLPTExtRepresentation::SaveConsentGroup(
         query.Bind(
           3,
           std::string(policy_table::EnumToJsonString(*(it->second.input))));
+        query.Bind(4, std::string(*(it->second.time_stamp)));
+        LOG4CXX_INFO(logger_, "Device:" <<
+                     "time stamp " << std::string(*(it->second.time_stamp))
+                     << " group " << it_groups->first
+                     << " consent " << it_groups->second);
       } else {
         if (!query.Prepare(sql_pt_ext::kInsertConsentGroups)) {
           LOG4CXX_WARN(logger_,
@@ -1002,6 +1007,11 @@ bool SQLPTExtRepresentation::SaveConsentGroup(
         query.Bind(
           4,
           std::string(policy_table::EnumToJsonString(*(it->second.input))));
+        query.Bind(5, std::string(*(it->second.time_stamp)));
+        LOG4CXX_INFO(logger_, "Device:" <<
+                     "time stamp " << std::string(*(it->second.time_stamp))
+                     << " group " << it_groups->first
+                     << " consent " << it_groups->second);
       }
 
       if (!query.Exec() || !query.Reset()) {

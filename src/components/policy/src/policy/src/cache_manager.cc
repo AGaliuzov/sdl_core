@@ -592,6 +592,8 @@ bool CacheManager::SetUserPermissionsForApp(
       GetGroupNameByHashID((*iter).group_id, group_name);
 
       (*ucr.consent_groups)[group_name] = ((*iter).state == policy::kGroupAllowed);
+      *ucr.input = policy_table::Input::I_GUI;
+      *ucr.time_stamp = currentDateTime();
     }
   }
 #endif // EXTENDED_POLICY
