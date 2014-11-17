@@ -97,6 +97,7 @@ void BluetoothPASAListener::Loop() {
   while (true) {
     const ssize_t length = mq_receive(mq_to_sdl_, buffer, sizeof(buffer), 0);
     if (length == -1) {
+      LOG4CXX_WARN(logger_, "Can not receive message from PASA FW BT");
       continue;
     };
     switch (buffer[0]) {
@@ -213,7 +214,7 @@ void BluetoothPASAListener::Terminate() {
 TransportAdapter::Error BluetoothPASAListener::StartListening() {
   LOG4CXX_TRACE_ENTER(logger_);
   mq_to_sdl_ = OpenMsgQ(PREFIX_STR_TOSDLCOREBTADAPTER_QUEUE, false, true);
-  if (thread_->start()) {
+  if (mq_to_sdl_ != -1 && thread_->start()) {
     LOG4CXX_INFO(logger_, "PASA incoming messages thread started");
     LOG4CXX_TRACE_EXIT(logger_);
     return TransportAdapter::OK;
@@ -231,7 +232,7 @@ TransportAdapter::Error BluetoothPASAListener::StopListening() {
     LOG4CXX_TRACE_EXIT(logger_);
     return TransportAdapter::BAD_STATE;
   }
-  thread_->stop();
+  thread_->join();
   CloseMsgQ(mq_to_sdl_);
   mq_to_sdl_ = -1;
   LOG4CXX_INFO(logger_, "PASA incoming messages thread stopped");
