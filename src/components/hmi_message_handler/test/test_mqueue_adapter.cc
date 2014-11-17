@@ -45,10 +45,10 @@ using application_manager::Message;
 class MockHandler : public HMIMessageHandler {
  public:
   MOCK_METHOD1(OnMessageReceived, void(MessageSharedPointer message));
-  virtual void AddHMIMessageAdapter(HMIMessageAdapter* adapter) {}
-  virtual void RemoveHMIMessageAdapter(HMIMessageAdapter* adapter) {}
-  virtual void OnErrorSending(MessageSharedPointer message) {}
-  virtual void SendMessageToHMI(MessageSharedPointer message) {}
+  MOCK_METHOD1(AddHMIMessageAdapter, void(HMIMessageAdapter* adapter));
+  MOCK_METHOD1(RemoveHMIMessageAdapter, void(HMIMessageAdapter* adapter));
+  MOCK_METHOD1(OnErrorSending, void(MessageSharedPointer message));
+  MOCK_METHOD1(SendMessageToHMI, void(MessageSharedPointer message));
 };
 
 TEST(MqueueAdapter, Send) {
