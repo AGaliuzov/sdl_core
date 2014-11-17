@@ -54,7 +54,6 @@
 #include "policy/policy_types.h"
 #include "interfaces/MOBILE_API.h"
 #include "utils/file_system.h"
-#include "utils/threads/async_runner.h"
 
 namespace policy {
 
@@ -875,6 +874,7 @@ bool PolicyHandler::UnloadPolicyLibrary() {
   if (policy_manager_) {
     policy_manager_.reset();
   }
+  AsyncRunner::Stop();
   if (dl_handle_) {
     ret = (dlclose(dl_handle_) == 0);
     dl_handle_ = 0;

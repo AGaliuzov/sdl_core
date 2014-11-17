@@ -50,7 +50,13 @@ AsyncRunner::AsyncRunner(const std::string &thread_name)
 }
 
 void AsyncRunner::AsyncRun(ThreadDelegate* delegate) {
+  LOG4CXX_AUTO_TRACE(logger_, autotrace);
   executor_->runDelegate(delegate);
+}
+
+void AsyncRunner::Stop() {
+  LOG4CXX_AUTO_TRACE(logger_, autotrace);
+  thread_->join();
 }
 
 AsyncRunner::~AsyncRunner() {

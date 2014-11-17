@@ -52,11 +52,12 @@ OnExitAllApplicationsNotification::~OnExitAllApplicationsNotification() {
 }
 
 void OnExitAllApplicationsNotification::Run() {
-  LOG4CXX_INFO(logger_, "OnExitAllApplicationsNotification::Run");
+  LOG4CXX_AUTO_TRACE(logger_, autotrace);
 
   const hmi_apis::Common_ApplicationsCloseReason::eType reason =
       static_cast<hmi_apis::Common_ApplicationsCloseReason::eType>(
           (*message_)[strings::msg_params][hmi_request::reason].asInt());
+  LOG4CXX_DEBUG(logger_, "Reason " << reason);
 
   mobile_api::AppInterfaceUnregisteredReason::eType mob_reason =
       mobile_api::AppInterfaceUnregisteredReason::INVALID_ENUM;
@@ -101,8 +102,7 @@ void OnExitAllApplicationsNotification::Run() {
 }
 
 void OnExitAllApplicationsNotification::SendOnSDLPersistenceComplete() {
-  LOG4CXX_INFO(logger_, ""
-      "OnExitAllApplicationsNotification::SendOnSDLPersistenceComplete");
+  LOG4CXX_AUTO_TRACE(logger_, autotrace);
 
   smart_objects::SmartObject* message =
       new smart_objects::SmartObject(smart_objects::SmartType_Map);

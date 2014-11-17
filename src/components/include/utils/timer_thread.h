@@ -322,7 +322,7 @@ void TimerThread<T>::TimerLooperDelegate::threadMain() {
     // Quit sleeping or continue sleeping in case of spurious wake up
     if (ConditionalVariable::kTimeout == wait_status ||
          wait_milliseconds_left <= 0) {
-      LOG4CXX_TRACE(logger_, "Timer timeout " << wait_milliseconds_left);
+      LOG4CXX_TRACE(logger_, "Timer timeout " << wait_milliseconds_left << " ms");
       TimerDelegate::timer_thread_->onTimeOut();
     } else {
       LOG4CXX_DEBUG(logger_, "Timeout reset force: " << TimerDelegate::timeout_seconds_);

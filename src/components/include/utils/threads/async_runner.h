@@ -71,6 +71,8 @@ class AsyncRunner {
      */
     void AsyncRun(threads::ThreadDelegate* delegate);
 
+    void Stop();
+
     ~AsyncRunner();
 
   private:
