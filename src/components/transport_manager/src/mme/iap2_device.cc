@@ -165,7 +165,7 @@ void IAP2Device::OnHubConnect(const std::string& protocol_name,
   } else {
     LOG4CXX_WARN(
         logger_,
-        "iAP2: error occurred while sending data on hub protocol " << protocol_name);
+        "iAP2: error occurred while sending data on hub protocol " << protocol_name << ", errno = " << errno);
     if (picked) {
       StopThread(pool_protocol_name);
       FreeProtocol(pool_protocol_name);
@@ -180,7 +180,7 @@ void IAP2Device::OnHubConnect(const std::string& protocol_name,
   } else {
     LOG4CXX_WARN(
         logger_,
-        "iAP2: could not close connection on hub protocol " << protocol_name);
+        "iAP2: could not close connection on hub protocol " << protocol_name << ", errno = " << errno);
   }
 }
 
