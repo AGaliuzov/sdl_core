@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -305,7 +305,7 @@ class ConnectionHandlerImpl : public ConnectionHandler,
    * \brief Close session associated with the key
    * \param key Unique key used by other components as session identifier
    */
-  virtual void CloseSession(uint32_t key);
+  virtual void CloseSession(uint32_t key, CloseSessionReason close_reason);
 
   /**
    * \brief Function used by HearbeatMonitior to close session on HB timeout
@@ -313,7 +313,8 @@ class ConnectionHandlerImpl : public ConnectionHandler,
    * \param session_id Identifier of the session to be ended
    */
   virtual void CloseSession(ConnectionHandle connection_handle,
-                            uint8_t session_id);
+                            uint8_t session_id,
+                            CloseSessionReason close_reason);
 
   /**
    * \brief Return count of session for specified connection
