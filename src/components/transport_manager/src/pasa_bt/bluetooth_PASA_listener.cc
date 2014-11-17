@@ -73,6 +73,8 @@ BluetoothPASAListener::BluetoothPASAListener(
 }
 
 BluetoothPASAListener::~BluetoothPASAListener() {
+  StopListening();
+  Terminate();
 }
 
 void BluetoothPASAListener::ListeningThreadDelegate::threadMain() {
@@ -231,6 +233,7 @@ TransportAdapter::Error BluetoothPASAListener::StopListening() {
   thread_->join();
   delete thread_->delegate();
   threads::DeleteThread(thread_);
+  thread_ = NULL;
   CloseMsgQ(mq_to_sdl_);
   mq_to_sdl_ = -1;
   LOG4CXX_INFO(logger_, "PASA incoming messages thread stopped");
