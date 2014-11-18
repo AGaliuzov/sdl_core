@@ -180,20 +180,16 @@ if(BUILD_TESTS)
 include_directories (
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
-
-  ${CMAKE_SOURCE_DIR}/src/components/security_manager/test/include
-  ${CMAKE_SOURCE_DIR}/src/components/utils/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8
   ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8/dbus/
-  ${CMAKE_SOURCE_DIR}/src/components/dbus/src
-  ${COMPONENTS_DIR}/config_profile/include
+  
+  #${CMAKE_SOURCE_DIR}/src/components/dbus/src
+  #${COMPONENTS_DIR}/config_profile/include
   
   ${COMPONENTS_DIR}/security_manager/test/include
   ${COMPONENTS_DIR}/application_manager/include
-  ${COMPONENTS_DIR}/protocol_handler/test/include
-  
-    ${COMPONENTS_DIR}/security_manager/include
- 
+  ${COMPONENTS_DIR}/protocol_handler/test/include  
+  ${COMPONENTS_DIR}/security_manager/include 
   ${COMPONENTS_DIR}/media_manager/include
   ${COMPONENTS_DIR}/utils/include
   
@@ -212,8 +208,7 @@ endif()
 
 
 if (${QT_HMI})
-set(SOURCES
-    ${CMAKE_SOURCE_DIR}/src/components/rpc_base/test/rpc_base_dbus_test.cc    
+set(SOURCES  
     ${COMPONENTS_DIR}/rpc_base/test/rpc_base_dbus_test.cc
     ${COMPONENTS_DIR}/dbus/test/test_schema.cc
     ${COMPONENTS_DIR}/dbus/test/test_dbus_adapter.cc
@@ -225,19 +220,7 @@ endif ()
 #TODO to ALL : Please FIX heart_beat_monitor_test.cc
   set(testSources
     ./main_test.cc
-    ${CMAKE_SOURCE_DIR}/src/components/utils/test/date_time_test.cc    
-    ${CMAKE_SOURCE_DIR}/src/components/utils/test/file_system_test.cc
-    ${CMAKE_SOURCE_DIR}/src/components/utils/test/messagemeter_test.cc
-    ${CMAKE_SOURCE_DIR}/src/components/media_manager/test/media_adapter_impl_test.cc
-    ${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/connection_handler_impl_test.cc
-    ${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/connection_test.cc
-    ${CMAKE_SOURCE_DIR}/src/components/rpc_base/test/rpc_base_json_test.cc
-    ${CMAKE_SOURCE_DIR}/src/components/rpc_base/test/rpc_base_test.cc
-    ${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/heart_beat_monitor_test.cc
-    ${CMAKE_SOURCE_DIR}/src/components/formatters/test/generic_json_formatter_test.cc
-    
-    
-    ./main_test.cc
+
     ${COMPONENTS_DIR}/utils/test/messagemeter_test.cc
     ${COMPONENTS_DIR}/utils/test/date_time_test.cc
     ${COMPONENTS_DIR}/utils/test/file_system_test.cc
@@ -252,9 +235,7 @@ endif ()
     ${COMPONENTS_DIR}/security_manager/test/crypto_manager_impl_test.cc
     ${COMPONENTS_DIR}/security_manager/test/security_manager_test.cc
     ${COMPONENTS_DIR}/security_manager/test/security_query_test.cc
-    ${COMPONENTS_DIR}/security_manager/test/security_query_matcher.cc
-    
-
+    ${COMPONENTS_DIR}/security_manager/test/security_query_matcher.cc   
     ${COMPONENTS_DIR}/transport_manager/test/mock_application.cc
     ${COMPONENTS_DIR}/transport_manager/test/mock_connection_factory.cc  
     ${COMPONENTS_DIR}/transport_manager/test/mock_connection.cc       
@@ -304,8 +285,7 @@ endif ()
     MessageBrokerServer
     encryption
     ${RTLIB}
-    Resumption
-    transport_manager
+    Resumption    
     Policy
     ${SecurityManagerLibrary}
   )
