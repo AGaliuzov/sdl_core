@@ -1074,15 +1074,16 @@ bool PolicyManagerImpl::IsApplicationRevoked(const std::string& app_id) const {
   return cache_->IsApplicationRevoked(app_id);
 }
 
-int PolicyManagerImpl::IsConsentNeeded(const std::string& app_id) {
+bool PolicyManagerImpl::IsConsentNeeded(const std::string& app_id) {
+  LOG4CXX_TRACE_ENTER(logger_);
 #ifdef EXTENDED_POLICY
   const std::string device_id = GetCurrentDeviceId(app_id);
-  int count = 0;
-  if (cache_->CountUnconsentedGroups(app_id, device_id, count)) {
-    return count;
-  }
+  int count = cache_->CountUnconsentedGroups(app_id, device_id);
+  LOG4CXX_TRACE_EXIT(logger_);
+  return count != 0;
 #endif
-  return 0;
+  LOG4CXX_TRACE_EXIT(logger_);
+  return false;
 }
 
 void PolicyManagerImpl::SetVINValue(const std::string& value) {

@@ -127,8 +127,6 @@ class PolicyManagerImpl : public PolicyManager {
 
     virtual uint32_t GetNotificationsNumber(const std::string& priority);
 
-    virtual int IsConsentNeeded(const std::string& app_id);
-
     virtual void SetVINValue(const std::string& value);
 
     // Interface StatisticsManager (begin)
@@ -254,6 +252,12 @@ class PolicyManagerImpl : public PolicyManager {
      * @return true if AppStorageFolder exists and has permissions read/write
      */
     bool CheckAppStorageFolder() const;
+
+    /**
+     * @brief Checks whether need ask the permission of users
+     * @return true if user consent is needed
+     */
+    virtual bool IsConsentNeeded(const std::string& app_id);
 
     PolicyListener* listener_;
 

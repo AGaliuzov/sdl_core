@@ -1148,19 +1148,22 @@ bool CacheManager::GetFunctionalGroupings(
   return true;
 }
 
-bool CacheManager::CountUnconsentedGroups(const std::string& policy_app_id,
-                                          const std::string& device_id,
-                                          int& result) {
+int CacheManager::CountUnconsentedGroups(const std::string& policy_app_id,
+                                          const std::string& device_id) {
   LOG4CXX_TRACE_ENTER(logger_);
   CACHE_MANAGER_CHECK(false);
+  LOG4CXX_DEBUG(logger_, "Application id: " << policy_app_id);
+  int result = 0;
 #ifdef EXTENDED_POLICY
-  if (pt_->policy_table.app_policies.end() ==
-      pt_->policy_table.app_policies.find(policy_app_id)) {
-    return true;
-  } else if ((AppExists(policy_app_id) && pt_->
-              policy_table.app_policies[policy_app_id].get_string() == "default")
-             || is_predata_.end() != is_predata_.find(policy_app_id)) {
-    return true;
+  if (!AppExists(policy_app_id)) {
+    LOG4CXX_TRACE_EXIT(logger_);
+    return 0;
+  } else if (IsDefaultPolicy(policy_app_id)) {
+    LOG4CXX_TRACE_EXIT(logger_);
+    return 0;
+  } else if (IsPredataPolicy(policy_app_id)) {
+    LOG4CXX_TRACE_EXIT(logger_);
+    return 0;
   }
 
   policy_table::FunctionalGroupings::const_iterator groups_iter =
@@ -1201,7 +1204,7 @@ bool CacheManager::CountUnconsentedGroups(const std::string& policy_app_id,
   }
 #endif // EXTENDED_POLICY
   LOG4CXX_TRACE_EXIT(logger_);
-  return true;
+  return result;
 }
 
 bool CacheManager::SetMetaInfo(const std::string &ccpu_version,
