@@ -1398,7 +1398,7 @@ bool SQLPTExtRepresentation::SaveGlobalCounters(
   query.Bind(1, *counts.count_sync_out_of_memory);
   query.Bind(2, *counts.count_of_sync_reboots);
 
-  if (!query.Exec() || !query.Reset()) {
+  if (!query.Exec()) {
     LOG4CXX_WARN(logger_, "Incorrect insert into global counters.");
     return false;
   }
