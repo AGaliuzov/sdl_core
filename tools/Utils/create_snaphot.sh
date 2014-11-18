@@ -71,10 +71,10 @@ function build() {
 }
 
 function load_on_ftp() {
-  lftp -u sdl_user,sdl_user ford-applink.luxoft.com -e "mirror -R $RELEASE_BINARIES snapshot/$SNAPSHOT_TAG/"
+  lftp -u sdl_user,sdl_user ford-applink.luxoft.com -e "mirror -R $RELEASE_BINARIES snapshot/$SNAPSHOT_TAG/; exit"
   echo "Binaries are aviable: ftp://ford-applink.luxoft.com/snapshot/$SNAPSHOT_TAG/binaries"
   if [ $quick_mode -eq 0 ]; then 
-    lftp -u sdl_user,sdl_user ford-applink.luxoft.com -e "mirror -R /tmp/PASA  snapshot/$SNAPSHOT_TAG/"
+    lftp -u sdl_user,sdl_user ford-applink.luxoft.com -e "mirror -R /tmp/PASA  snapshot/$SNAPSHOT_TAG/; exit"
     echo "Sources are aviable: ftp://ford-applink.luxoft.com/snapshot/$SNAPSHOT_TAG/PASA"
   fi
 }
