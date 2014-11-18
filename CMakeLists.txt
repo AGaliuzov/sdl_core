@@ -62,9 +62,11 @@ set(ENABLE_LOG_OPTION 	"$ENV{ENABLE_LOG}")
 set(ARCH_TYPE_OPTION	"$ENV{ARCH_TYPE}")
 set(POLICY_OPTION 	"$ENV{POLICY_TYPE}")
 set(SECURITY_OPTION 	"$ENV{SECURITY_MODE}")
+set(SNAPSHOT_TAG 	"$ENV{SNAPSHOT_TAG}")
+
 
 add_custom_target(pasa-tarball
-  COMMAND ${CMAKE_SOURCE_DIR}/tools/Utils/export-customer-specific.sh ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} pasa
+  COMMAND ${CMAKE_SOURCE_DIR}/tools/Utils/export-customer-specific.sh ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} pasa ${SNAPSHOT_TAG}
   COMMAND tar -cz -C /tmp/PASA -f ${CMAKE_BINARY_DIR}/pasa.tar.gz .
   DEPENDS HMI_API MOBILE_API v4_protocol_v1_2_no_extra
 )

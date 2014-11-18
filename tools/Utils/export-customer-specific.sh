@@ -2,10 +2,15 @@
 
 shopt -s extglob
 shopt -s dotglob
- 
+
 srcdir=$1
 bindir=$2
 customer=$3
+args=("$@")
+#All args after customer will be passed to post_install function
+additional_args=${args[@]:2}
+
+
 
 function post_install {
 # this function should be overrided by customer configuration file if nesessary
@@ -180,5 +185,5 @@ done
 
 set +f
 cp -r $specificdir/* $export_dir/
-post_install
+post_install $additional_args
 
