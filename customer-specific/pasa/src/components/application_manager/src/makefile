@@ -93,6 +93,7 @@ COMPONENT_SRCS = \
 # a different folder.
 NON_LOCAL_SRCS = \
 	$(wildcard policies/*.c*) \
+	$(wildcard policies/delegates/*.c*) \
 	$(wildcard event_engine/*.c*) \
 	$(wildcard commands/*.c*) \
 	$(wildcard commands/hmi/*.c*) \
@@ -142,6 +143,7 @@ HEADERS = \
 	$(wildcard ../include/$(COMPONENT_NAME)/commands/mobile/*.h*) \
 	$(wildcard ../include/$(COMPONENT_NAME)/event_engine/*.h*) \
 	$(wildcard ../include/$(COMPONENT_NAME)/policies/*.h*) \
+	$(wildcard ../include/$(COMPONENT_NAME)/policies/delegates/*.h*) \
 	$(wildcard ../../protocol_handler/include/protocol_handler/*.h*) \
 	$(wildcard ../../connection_handler/include/connection_handler/*.h*) \
 	$(wildcard ../../policy/src/policy/include/policy/*.h*) \
@@ -199,6 +201,7 @@ subdirs:
 	$(MAKE) -C commands/mobile $(MAKECMDGOALS)
 	$(MAKE) -C event_engine $(MAKECMDGOALS) 
 	$(MAKE) -C policies $(MAKECMDGOALS) 
+	$(MAKE) -C policies/delegates $(MAKECMDGOALS) 
 	
 clean:
 	-rm -f $(BINARIES)

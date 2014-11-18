@@ -73,6 +73,8 @@ BluetoothPASAConnection::~BluetoothPASAConnection() {
   Notify();
   errno = 0;
   thread_->stop();
+  thread_->join();
+  threads::DeleteThread(thread_);
   if (-1 != read_fd_)
     close(read_fd_);
   if (-1 != write_fd_)
@@ -331,8 +333,8 @@ bool BluetoothPASAConnection::Receive() {
     }
     // numBytes < 0
     if (EAGAIN == errno_value || EWOULDBLOCK == errno_value) {
-      LOG4CXX_DEBUG(logger_, "No more data avalible for connection " << this);
-      // No more data avalible
+      LOG4CXX_DEBUG(logger_, "No more data available for connection " << this);
+      // No more data available
       break;
     }
     LOG4CXX_ERROR(

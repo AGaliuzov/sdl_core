@@ -166,14 +166,14 @@ void ChangeRegistrationRequest::Run() {
                  &tts_params, true);
 }
 
-bool ChangeRegistrationRequest::WasAnySuccess(
+bool ChangeRegistrationRequest::AllHmiResponsesSuccess(
       const hmi_apis::Common_Result::eType ui,
       const hmi_apis::Common_Result::eType vr,
       const hmi_apis::Common_Result::eType tts) {
 
   return
-      hmi_apis::Common_Result::SUCCESS == ui ||
-      hmi_apis::Common_Result::SUCCESS == vr ||
+      hmi_apis::Common_Result::SUCCESS == ui &&
+      hmi_apis::Common_Result::SUCCESS == vr &&
       hmi_apis::Common_Result::SUCCESS == tts;
 }
 
@@ -237,7 +237,7 @@ void ChangeRegistrationRequest::on_event(const event_engine::Event& event) {
     (*message_)[strings::params][strings::function_id] =
           mobile_apis::FunctionID::eType::ChangeRegistrationID;
 
-    SendResponse(WasAnySuccess(ui_result_, vr_result_, tts_result_),
+    SendResponse(AllHmiResponsesSuccess(ui_result_, vr_result_, tts_result_),
                  static_cast<mobile_apis::Result::eType>(greates_result_code),
                  NULL, &(message[strings::msg_params]));
   } else {

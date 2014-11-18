@@ -83,8 +83,12 @@ TransportAdapter::Error TcpClientListener::Init() {
 
 void TcpClientListener::Terminate() {
   LOG4CXX_TRACE(logger_, "enter");
-  threads::DeleteThread(thread_);
-  thread_ = NULL;
+  if(thread_) {
+    thread_->stop();
+    thread_->join();
+    threads::DeleteThread(thread_);
+    thread_ = NULL;
+  }
   LOG4CXX_TRACE(logger_, "exit");
 }
 
@@ -161,6 +165,7 @@ void TcpClientListener::Loop() {
 
     if (AF_INET != client_address.sin_family) {
       LOG4CXX_DEBUG(logger_, "Address of connected client is invalid");
+      close(connection_fd);
       continue;
     }
 
@@ -280,7 +285,12 @@ TransportAdapter::Error TcpClientListener::StopListening() {
     return TransportAdapter::BAD_STATE;
   }
 
-  thread_->stop();
+  if(thread_) {
+    thread_->stop();
+    thread_->join();
+    threads::DeleteThread(thread_);
+    thread_ = NULL;
+  }
   close(socket_);
   socket_ = -1;
   LOG4CXX_TRACE_EXIT(logger_);
