@@ -15,12 +15,12 @@ RELEASE_BINARIES=""
 quick_mode=0
 
 function show_help() {
-	echo "h: show this help \n"
-	echo "s: source dir \n"
-	echo "b: build dir \n"
-	echo "p: pasa build dir \n"
-	echo "q: quick mode (upload only binaries on ftp) \n"
-	echo "t: snapshot tag \n"
+	echo "h: show this help "
+	echo "s: source dir (MANDATORY)"
+	echo "b: build dir (MANDATORY)"
+	echo "p: pasa build dir (MANDATORY)"
+	echo "q: quick mode (upload only binaries on ftp) (default quick mode is disabled)"
+	echo "t: snapshot tag (default is SNAPSHOT_PASA%d%m%Y)"
 	exit
 }
 
