@@ -49,7 +49,7 @@ PTExchangeHandlerImpl::PTExchangeHandlerImpl(PolicyHandler* handler)
 }
 
 PTExchangeHandlerImpl::~PTExchangeHandlerImpl() {
-  LOG4CXX_AUTO_TRACE(logger_, autotrace);
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock locker(retry_sequence_lock_);
   retry_sequence_thread_->join();
   delete retry_sequence_delegate_;
@@ -58,7 +58,7 @@ PTExchangeHandlerImpl::~PTExchangeHandlerImpl() {
 }
 
 void PTExchangeHandlerImpl::Start() {
-  LOG4CXX_AUTO_TRACE(logger_, autotrace);
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock locker(retry_sequence_lock_);
 
   if (retry_sequence_thread_->is_running()) {
@@ -72,7 +72,7 @@ void PTExchangeHandlerImpl::Start() {
 }
 
 void PTExchangeHandlerImpl::Stop() {
-  LOG4CXX_AUTO_TRACE(logger_, autotrace);
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock locker(retry_sequence_lock_);
   retry_sequence_thread_->stop();
 }

@@ -47,11 +47,11 @@ PipeStreamerAdapter::PipeStreamerAdapter()
   : is_ready_(false),
     thread_(threads::CreateThread("PipeStreamer", new Streamer(this))),
     messages_() {
-  LOG4CXX_AUTO_TRACE(logger_, autotrace);
+  LOG4CXX_AUTO_TRACE(logger_);
 }
 
 PipeStreamerAdapter::~PipeStreamerAdapter() {
-  LOG4CXX_AUTO_TRACE(logger_, autotrace);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   if ((0 != current_application_ ) && (is_ready_)) {
     StopActivity(current_application_);
@@ -65,7 +65,7 @@ PipeStreamerAdapter::~PipeStreamerAdapter() {
 void PipeStreamerAdapter::SendData(
   int32_t application_key,
   const ::protocol_handler::RawMessagePtr message) {
-  LOG4CXX_AUTO_TRACE(logger_, autotrace);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   if (application_key != current_application_) {
     LOG4CXX_WARN(logger_, "Wrong application " << application_key);
@@ -78,7 +78,7 @@ void PipeStreamerAdapter::SendData(
 }
 
 void PipeStreamerAdapter::StartActivity(int32_t application_key) {
-  LOG4CXX_AUTO_TRACE(logger_, autotrace);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   if (application_key == current_application_) {
     LOG4CXX_WARN(logger_, "Already started activity for " << application_key);
@@ -98,7 +98,7 @@ void PipeStreamerAdapter::StartActivity(int32_t application_key) {
 }
 
 void PipeStreamerAdapter::StopActivity(int32_t application_key) {
-  LOG4CXX_AUTO_TRACE(logger_, autotrace);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   if (application_key != current_application_) {
     LOG4CXX_WARN(logger_, "Not performing activity for " << application_key);
@@ -120,7 +120,7 @@ bool PipeStreamerAdapter::is_app_performing_activity( int32_t application_key) {
 }
 
 void PipeStreamerAdapter::Init() {
-  LOG4CXX_AUTO_TRACE(logger_, autotrace);
+  LOG4CXX_AUTO_TRACE(logger_);
   if (thread_->is_running()) {
     thread_->stop();
     thread_->join();
@@ -142,7 +142,7 @@ PipeStreamerAdapter::Streamer::~Streamer() {
 }
 
 void PipeStreamerAdapter::Streamer::threadMain() {
-  LOG4CXX_AUTO_TRACE(logger_, autotrace);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   open();
 
@@ -190,13 +190,13 @@ void PipeStreamerAdapter::Streamer::threadMain() {
 }
 
 void PipeStreamerAdapter::Streamer::exitThreadMain() {
-  LOG4CXX_AUTO_TRACE(logger_, autotrace);
+  LOG4CXX_AUTO_TRACE(logger_);
   stop_flag_ = true;
   server_->messages_.Shutdown();
 }
 
 void PipeStreamerAdapter::Streamer::open() {
-  LOG4CXX_AUTO_TRACE(logger_, autotrace);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   DCHECK(file_system::CreateDirectoryRecursively(
       profile::Profile::instance()->app_storage_folder()));
@@ -220,7 +220,7 @@ void PipeStreamerAdapter::Streamer::open() {
 }
 
 void PipeStreamerAdapter::Streamer::close() {
-  LOG4CXX_AUTO_TRACE(logger_, autotrace);
+  LOG4CXX_AUTO_TRACE(logger_);
   ::close(pipe_fd_);
   unlink(server_->named_pipe_path_.c_str());
 }

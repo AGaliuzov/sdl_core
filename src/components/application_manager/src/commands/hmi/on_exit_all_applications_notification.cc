@@ -56,7 +56,7 @@ OnExitAllApplicationsNotification::~OnExitAllApplicationsNotification() {
 }
 
 void OnExitAllApplicationsNotification::Run() {
-  LOG4CXX_AUTO_TRACE(logger_, autotrace);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   const hmi_apis::Common_ApplicationsCloseReason::eType reason =
       static_cast<hmi_apis::Common_ApplicationsCloseReason::eType>(
@@ -124,7 +124,7 @@ void OnExitAllApplicationsNotification::Run() {
 }
 
 void OnExitAllApplicationsNotification::SendOnSDLPersistenceComplete() {
-  LOG4CXX_AUTO_TRACE(logger_, autotrace);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   smart_objects::SmartObject* message =
       new smart_objects::SmartObject(smart_objects::SmartType_Map);

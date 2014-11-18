@@ -116,7 +116,8 @@
 
     #define LOG4CXX_TRACE_ENTER(logger) LOG4CXX_TRACE(logger, "ENTER: " << __PRETTY_FUNCTION__ )
     #define LOG4CXX_TRACE_EXIT(logger) LOG4CXX_TRACE(logger, "EXIT: " << __PRETTY_FUNCTION__ )
-    #define LOG4CXX_AUTO_TRACE(loggerPtr, auto_trace) logger::AutoTrace auto_trace(loggerPtr, LOG4CXX_LOCATION)
+    #define LOG4CXX_AUTO_TRACE_WITH_NAME_SPECIFIED(loggerPtr, auto_trace) logger::AutoTrace auto_trace(loggerPtr, LOG4CXX_LOCATION)
+    #define LOG4CXX_AUTO_TRACE(loggerPtr) LOG4CXX_AUTO_TRACE_WITH_NAME_SPECIFIED(loggerPtr, SDL_local_auto_trace_object)
 
     #define LOG4CXX_ERROR_WITH_ERRNO(logger, message) \
       LOG4CXX_ERROR(logger, message << ", error code " << errno << " (" << strerror(errno) << ")")

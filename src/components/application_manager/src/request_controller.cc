@@ -553,7 +553,7 @@ bool RequestController::checkHMILevelTimeScaleMaxRequest(
 }
 
 void RequestController::UpdateTimer() {
-  LOG4CXX_AUTO_TRACE(logger_, auto_trace);
+  LOG4CXX_AUTO_TRACE(logger_);
   if(pending_request_set_.empty()) {
     LOG4CXX_DEBUG(logger_, "Sleep for default sleep time "
                  << dafault_sleep_time_ << " secs");
