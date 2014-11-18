@@ -419,7 +419,7 @@ bool BluetoothPASAConnection::Send() {
 }
 
 bool BluetoothPASAConnection::Establish(ConnectError** error) {
-  LOG4CXX_AUTO_TRACE(logger_, autotrace);
+  LOG4CXX_AUTO_TRACE(logger_);
   DeviceSptr device = controller()->FindDevice(device_handle());
   if (!device) {
     if (error) {
