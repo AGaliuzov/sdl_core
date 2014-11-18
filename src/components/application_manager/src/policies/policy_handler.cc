@@ -270,7 +270,7 @@ bool PolicyHandler::CreateManager() {
 }
 
 bool PolicyHandler::InitPolicyTable() {
-  LOG4CXX_TRACE(logger_, "Init policy table from preloaded.");
+  LOG4CXX_TRACE(logger_, "Init policy table.");
   POLICY_LIB_CHECK(false);
   // Subscribing to notification for system readiness to be able to get system
   // info necessary for policy table

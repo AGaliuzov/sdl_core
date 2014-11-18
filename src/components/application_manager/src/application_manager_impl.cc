@@ -1448,19 +1448,6 @@ bool ApplicationManagerImpl::ManageHMICommand(
 
 bool ApplicationManagerImpl::Init() {
   LOG4CXX_TRACE(logger_, "Init application manager");
-  if (policy::PolicyHandler::instance()->PolicyEnabled()) {
-    if(!policy::PolicyHandler::instance()->LoadPolicyLibrary()) {
-      LOG4CXX_ERROR(logger_, "Policy library is not loaded. Check LD_LIBRARY_PATH");
-      return false;
-    }
-    LOG4CXX_INFO(logger_, "Policy library is loaded, now initing PT");
-    if (!policy::PolicyHandler::instance()->InitPolicyTable()) {
-      LOG4CXX_ERROR(logger_, "Policy table is not initialized.");
-      return false;
-    }
-  } else {
-    LOG4CXX_WARN(logger_, "System is configured to work without policy functionality.");
-  }
   const std::string app_storage_folder =
       profile::Profile::instance()->app_storage_folder();
   if (!file_system::DirectoryExists(app_storage_folder)) {
@@ -1495,6 +1482,19 @@ bool ApplicationManagerImpl::Init() {
     LOG4CXX_ERROR(logger_,
                   "System directory doesn't have read/write permissions");
     return false;
+  }
+  if (policy::PolicyHandler::instance()->PolicyEnabled()) {
+    if(!policy::PolicyHandler::instance()->LoadPolicyLibrary()) {
+      LOG4CXX_ERROR(logger_, "Policy library is not loaded. Check LD_LIBRARY_PATH");
+      return false;
+    }
+    LOG4CXX_INFO(logger_, "Policy library is loaded, now initing PT");
+    if (!policy::PolicyHandler::instance()->InitPolicyTable()) {
+      LOG4CXX_ERROR(logger_, "Policy table is not initialized.");
+      return false;
+    }
+  } else {
+    LOG4CXX_WARN(logger_, "System is configured to work without policy functionality.");
   }
   media_manager_ = media_manager::MediaManagerImpl::instance();
   return true;
@@ -1895,9 +1895,9 @@ void ApplicationManagerImpl::HeadUnitReset(
     mobile_api::AppInterfaceUnregisteredReason::eType reason) {
   switch (reason) {
     case mobile_api::AppInterfaceUnregisteredReason::MASTER_RESET: {
+      policy::PolicyHandler::instance()->ResetPolicyTable();
       file_system::remove_directory_content(profile::Profile::instance()->app_storage_folder());
       resume_controller().ClearResumptionInfo();
-      policy::PolicyHandler::instance()->ResetPolicyTable();
       break;
     }
     case mobile_api::AppInterfaceUnregisteredReason::FACTORY_DEFAULTS: {
