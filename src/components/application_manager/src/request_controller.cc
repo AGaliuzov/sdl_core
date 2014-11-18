@@ -106,11 +106,8 @@ RequestController::TResult RequestController::addMobileRequest(
     return INVALID_DATA;
   }
 
-  TResult result = SUCCESS;
-  const commands::CommandRequestImpl* request_impl =
-      static_cast<commands::CommandRequestImpl*>(request.get());
-  LOG4CXX_DEBUG(logger_, "ENTER correlation_id : " << request_impl->correlation_id()
-                << "connection_key : " << request_impl->connection_key());
+  LOG4CXX_DEBUG(logger_, "ENTER correlation_id : " << request->correlation_id()
+                << "connection_key : " << request->connection_key());
   const uint32_t& app_hmi_level_none_time_scale =
       profile::Profile::instance()->app_hmi_level_none_time_scale();
 
@@ -126,40 +123,38 @@ RequestController::TResult RequestController::addMobileRequest(
   const uint32_t& pending_requests_amount =
       profile::Profile::instance()->pending_requests_amount();
 
-  if (0 != app_hmi_level_none_max_request_per_time_scale) {
-      if (!checkHMILevelTimeScaleMaxRequest(mobile_apis::HMILevel::HMI_NONE,
-                                            request_impl->connection_key(),
-                                            app_hmi_level_none_time_scale,
-                                            app_hmi_level_none_max_request_per_time_scale)) {
-        LOG4CXX_ERROR(logger_, "Too many application requests in hmi level NONE");
-        result = RequestController::NONE_HMI_LEVEL_MANY_REQUESTS;
-      }
-  } else if (0 != max_request_per_time_scale) {
-      if (!checkTimeScaleMaxRequest(request_impl->connection_key(),
-                                    app_time_scale,
-                                    max_request_per_time_scale)) {
-        LOG4CXX_ERROR(logger_, "Too many application requests");
-        result = RequestController::TOO_MANY_REQUESTS;
-      }
-  } else if (0 != pending_requests_amount &&
-            pending_requests_amount == mobile_request_list_.size()) {
+  if (!CheckHMILevelTimeScaleMaxRequest(mobile_apis::HMILevel::HMI_NONE,
+                                        request->connection_key(),
+                                        app_hmi_level_none_time_scale,
+                                        app_hmi_level_none_max_request_per_time_scale)) {
+    LOG4CXX_ERROR(logger_, "Too many application requests in hmi level NONE");
+    LOG4CXX_TRACE_EXIT(logger_);
+    return RequestController::NONE_HMI_LEVEL_MANY_REQUESTS;
+  }
+  if (!CheckTimeScaleMaxRequest(request->connection_key(),
+                                app_time_scale,
+                                max_request_per_time_scale)) {
+    LOG4CXX_ERROR(logger_, "Too many application requests");
+    LOG4CXX_TRACE_EXIT(logger_);
+    return RequestController::TOO_MANY_REQUESTS;
+  }
+  if (!CheckPendingRequestsAmount(pending_requests_amount)) {
     LOG4CXX_ERROR(logger_, "Too many pending request");
-    result = RequestController::TOO_MANY_PENDING_REQUESTS;
+    LOG4CXX_TRACE_EXIT(logger_);
+    return RequestController::TOO_MANY_PENDING_REQUESTS;
   }
   {
-    AutoLock auto_lock(mobile_request_list_lock_);
-
+    AutoLock auto_lock_list(mobile_request_list_lock_);
+    AutoLock auto_lock_set(pending_request_set_lock_);
     mobile_request_list_.push_back(request);
-    LOG4CXX_DEBUG(logger_, "mobile_request_list_ size is "
-                 << mobile_request_list_.size()
-                 << " pending_request_set_ size is "
-                 << pending_request_set_.size());
-  }
-
+    LOG4CXX_DEBUG(logger_,
+                  "new mobile_request_list_ size is " << mobile_request_list_.size()
+                  << ", pending_request_set_ size is " << pending_request_set_.size());
   // wake up one thread that is waiting for a task to be available
+  }
   cond_var_.NotifyOne();
   LOG4CXX_TRACE_EXIT(logger_);
-  return result;
+  return SUCCESS;
 }
 
 RequestController::TResult RequestController::addHMIRequest(
@@ -463,6 +458,7 @@ void RequestController::Worker::threadMain() {
       break;
     }
 
+    DCHECK(!request_controller_->mobile_request_list_.empty());
     RequestPtr request(request_controller_->mobile_request_list_.front());
 
     request_controller_->mobile_request_list_.pop_front();
@@ -500,12 +496,13 @@ void RequestController::Worker::exitThreadMain() {
   // FIXME (dchmerev@luxoft.com): There is no waiting
 }
 
-bool RequestController::checkTimeScaleMaxRequest(
+bool RequestController::CheckTimeScaleMaxRequest(
     const uint32_t& app_id,
     const uint32_t& app_time_scale,
     const uint32_t& max_request_per_time_scale) {
   LOG4CXX_TRACE_ENTER(logger_);
-  {
+  if (max_request_per_time_scale > 0
+      && app_time_scale > 0) {
     AutoLock auto_lock(pending_request_set_lock_);
     TimevalStruct end = date_time::DateTime::getCurrentTime();
     TimevalStruct start = {0, 0};
@@ -514,40 +511,67 @@ bool RequestController::checkTimeScaleMaxRequest(
     TimeScale scale(start, end, app_id);
     const uint32_t count = std::count_if(pending_request_set_.begin(),
                                          pending_request_set_.end(), scale);
-    if (count == max_request_per_time_scale) {
-      LOG4CXX_ERROR(logger_, "Requests count " << count <<
-                    " exceed application limit " << max_request_per_time_scale);
+    if (count >= max_request_per_time_scale) {
+      LOG4CXX_WARN(logger_, "Processing requests count " << count <<
+                   " exceed application limit " << max_request_per_time_scale);
       LOG4CXX_TRACE_EXIT(logger_);
-      return true;
+      return false;
     }
+    LOG4CXX_DEBUG(logger_, "Requests count " << count);
+  } else {
+    LOG4CXX_DEBUG(logger_, "CheckTimeScaleMaxRequest disabled");
   }
   LOG4CXX_TRACE_EXIT(logger_);
   return true;
 }
 
-bool RequestController::checkHMILevelTimeScaleMaxRequest(
+bool RequestController::CheckHMILevelTimeScaleMaxRequest(
     const mobile_apis::HMILevel::eType& hmi_level,
     const uint32_t& app_id,
     const uint32_t& app_time_scale,
     const uint32_t& max_request_per_time_scale) {
   LOG4CXX_TRACE_ENTER(logger_);
-    {
-      AutoLock auto_lock(pending_request_set_lock_);
-      TimevalStruct end = date_time::DateTime::getCurrentTime();
-      TimevalStruct start = {0, 0};
-      start.tv_sec = end.tv_sec - app_time_scale;
+  if (max_request_per_time_scale > 0 &&
+      app_time_scale > 0) {
+    AutoLock auto_lock(pending_request_set_lock_);
+    TimevalStruct end = date_time::DateTime::getCurrentTime();
+    TimevalStruct start = {0, 0};
+    start.tv_sec = end.tv_sec - app_time_scale;
 
-      HMILevelTimeScale scale(start, end, app_id, hmi_level);
-      const uint32_t count = std::count_if(pending_request_set_.begin(),
-                                           pending_request_set_.end(), scale);
-      if (count == max_request_per_time_scale) {
-        LOG4CXX_ERROR(logger_, "Requests count " << count
-                      << " exceed application limit " << max_request_per_time_scale
-                      << " in hmi level " << hmi_level);
-        LOG4CXX_TRACE_EXIT(logger_);
-        return false;
-      }
+    HMILevelTimeScale scale(start, end, app_id, hmi_level);
+    const uint32_t count = std::count_if(pending_request_set_.begin(),
+                                         pending_request_set_.end(), scale);
+    if (count >= max_request_per_time_scale) {
+      LOG4CXX_WARN(logger_, "Processing requests count " << count
+                   << " exceed application limit " << max_request_per_time_scale
+                   << " in hmi level " << hmi_level);
+      LOG4CXX_TRACE_EXIT(logger_);
+      return false;
     }
+    LOG4CXX_DEBUG(logger_, "Requests count " << count);
+  } else {
+    LOG4CXX_DEBUG(logger_, "CheckHMILevelTimeScaleMaxRequest disabled");
+  }
+  LOG4CXX_TRACE_EXIT(logger_);
+  return true;
+}
+
+bool RequestController::CheckPendingRequestsAmount(
+    const uint32_t& pending_requests_amount) {
+  LOG4CXX_TRACE_ENTER(logger_);
+  if (pending_requests_amount > 0) {
+    AutoLock auto_lock(mobile_request_list_lock_);
+    const size_t pending_requests_size = mobile_request_list_.size();
+    const bool available_to_add =
+        pending_requests_amount > pending_requests_size;
+    if(!available_to_add) {
+      LOG4CXX_WARN(logger_, "Pending requests count " << pending_requests_size
+                   << " exceed application limit " << pending_requests_amount);
+    }
+    LOG4CXX_TRACE_EXIT(logger_);
+    return available_to_add;
+  }
+  LOG4CXX_DEBUG(logger_, "CheckPendingRequestsAmount disabled");
   LOG4CXX_TRACE_EXIT(logger_);
   return true;
 }

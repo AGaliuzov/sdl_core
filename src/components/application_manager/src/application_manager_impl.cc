@@ -1303,7 +1303,7 @@ bool ApplicationManagerImpl::ManageMobileCommand(
 
     // commands will be launched from request_ctrl
 
-    request_controller::RequestController::TResult result =
+    const request_controller::RequestController::TResult result =
       request_ctrl_.addMobileRequest(command, app_hmi_level);
 
     if (result == request_controller::RequestController::SUCCESS) {
@@ -1448,19 +1448,6 @@ bool ApplicationManagerImpl::ManageHMICommand(
 
 bool ApplicationManagerImpl::Init() {
   LOG4CXX_TRACE(logger_, "Init application manager");
-  if (policy::PolicyHandler::instance()->PolicyEnabled()) {
-    if(!policy::PolicyHandler::instance()->LoadPolicyLibrary()) {
-      LOG4CXX_ERROR(logger_, "Policy library is not loaded. Check LD_LIBRARY_PATH");
-      return false;
-    }
-    LOG4CXX_INFO(logger_, "Policy library is loaded, now initing PT");
-    if (!policy::PolicyHandler::instance()->InitPolicyTable()) {
-      LOG4CXX_ERROR(logger_, "Policy table is not initialized.");
-      return false;
-    }
-  } else {
-    LOG4CXX_WARN(logger_, "System is configured to work without policy functionality.");
-  }
   const std::string app_storage_folder =
       profile::Profile::instance()->app_storage_folder();
   if (!file_system::DirectoryExists(app_storage_folder)) {
@@ -1495,6 +1482,19 @@ bool ApplicationManagerImpl::Init() {
     LOG4CXX_ERROR(logger_,
                   "System directory doesn't have read/write permissions");
     return false;
+  }
+  if (policy::PolicyHandler::instance()->PolicyEnabled()) {
+    if(!policy::PolicyHandler::instance()->LoadPolicyLibrary()) {
+      LOG4CXX_ERROR(logger_, "Policy library is not loaded. Check LD_LIBRARY_PATH");
+      return false;
+    }
+    LOG4CXX_INFO(logger_, "Policy library is loaded, now initing PT");
+    if (!policy::PolicyHandler::instance()->InitPolicyTable()) {
+      LOG4CXX_ERROR(logger_, "Policy table is not initialized.");
+      return false;
+    }
+  } else {
+    LOG4CXX_WARN(logger_, "System is configured to work without policy functionality.");
   }
   media_manager_ = media_manager::MediaManagerImpl::instance();
   return true;
@@ -1895,9 +1895,9 @@ void ApplicationManagerImpl::HeadUnitReset(
     mobile_api::AppInterfaceUnregisteredReason::eType reason) {
   switch (reason) {
     case mobile_api::AppInterfaceUnregisteredReason::MASTER_RESET: {
+      policy::PolicyHandler::instance()->ResetPolicyTable();
       file_system::remove_directory_content(profile::Profile::instance()->app_storage_folder());
       resume_controller().ClearResumptionInfo();
-      policy::PolicyHandler::instance()->ResetPolicyTable();
       break;
     }
     case mobile_api::AppInterfaceUnregisteredReason::FACTORY_DEFAULTS: {
@@ -2005,7 +2005,8 @@ void ApplicationManagerImpl::UnregisterAllApplications(bool generated_by_hmi) {
                           mobile_apis::Result::INVALID_ENUM, false,
                           is_unexpected_disconnect);
 #endif // CUSTOMER_PASA
-    connection_handler_->CloseSession(app_to_remove->app_id());
+    connection_handler_->CloseSession(app_to_remove->app_id(),
+                                      connection_handler::kCommon);
     it = application_list_.begin();
   }
 
@@ -2089,7 +2090,7 @@ void ApplicationManagerImpl::UnregisterRevokedApplication(
     const uint32_t& app_id, mobile_apis::Result::eType reason) {
   UnregisterApplication(app_id, reason);
 
-  connection_handler_->CloseSession(app_id);
+  connection_handler_->CloseSession(app_id, connection_handler::kCommon);
 
   if (application_list_.empty()) {
     connection_handler_->CloseRevokedConnection(app_id);
@@ -2141,7 +2142,8 @@ void ApplicationManagerImpl::Handle(const impl::MessageToMobile message) {
   LOG4CXX_INFO(logger_, "Message for mobile given away");
 
   if (close_session) {
-    connection_handler_->CloseSession(message->connection_key());
+    connection_handler_->CloseSession(message->connection_key(),
+                                      connection_handler::kCommon);
   }
 }
 

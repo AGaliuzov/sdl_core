@@ -1146,6 +1146,11 @@ void ProtocolHandlerImpl::Handle(const impl::RawFordMessageToMobile message) {
   SendFrame(message);
 }
 
+void ProtocolHandlerImpl::Stop() {
+  raw_ford_messages_from_mobile_.Shutdown();
+  raw_ford_messages_to_mobile_.Shutdown();
+}
+
 #ifdef ENABLE_SECURITY
 void ProtocolHandlerImpl::set_security_manager(
     security_manager::SecurityManager* security_manager) {
