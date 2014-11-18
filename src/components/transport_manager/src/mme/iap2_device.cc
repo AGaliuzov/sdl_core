@@ -61,17 +61,26 @@ void IAP2Device::Stop() {
       i != hub_connection_threads_.end(); ++i) {
     threads::Thread* thread = i->second;
     thread->stop();
+    thread->join();
+    threads::DeleteThread(thread);
   }
+  hub_connection_threads_.clear();
   for (ThreadContainer::const_iterator i = legacy_connection_threads_.begin();
       i != legacy_connection_threads_.end(); ++i) {
     threads::Thread* thread = i->second;
     thread->stop();
+    thread->join();
+    threads::DeleteThread(thread);
   }
+  legacy_connection_threads_.clear();
   for (ThreadContainer::const_iterator i = pool_connection_threads_.begin();
       i != pool_connection_threads_.end(); ++i) {
     threads::Thread* thread = i->second;
     thread->stop();
+    thread->join();
+    threads::DeleteThread(thread);
   }
+  pool_connection_threads_.clear();
 }
 
 bool IAP2Device::Init() {
@@ -156,7 +165,7 @@ void IAP2Device::OnHubConnect(const std::string& protocol_name,
   } else {
     LOG4CXX_WARN(
         logger_,
-        "iAP2: error occurred while sending data on hub protocol " << protocol_name);
+        "iAP2: error occurred while sending data on hub protocol " << protocol_name << ", errno = " << errno);
     if (picked) {
       StopThread(pool_protocol_name);
       FreeProtocol(pool_protocol_name);
@@ -171,7 +180,7 @@ void IAP2Device::OnHubConnect(const std::string& protocol_name,
   } else {
     LOG4CXX_WARN(
         logger_,
-        "iAP2: could not close connection on hub protocol " << protocol_name);
+        "iAP2: could not close connection on hub protocol " << protocol_name << ", errno = " << errno);
   }
 }
 
@@ -315,6 +324,7 @@ void IAP2Device::StopThread(const std::string& protocol_name) {
   if (j != pool_connection_threads_.end()) {
     threads::Thread* thread = j->second;
     thread->stop();
+    threads::DeleteThread(thread);
     pool_connection_threads_.erase(j);
   }
 }

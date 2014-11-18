@@ -86,6 +86,7 @@ ApplicationManagerImpl::ApplicationManagerImpl()
     messages_to_mobile_("AM ToMobile", this),
     messages_from_hmi_("AM FromHMI", this),
     messages_to_hmi_("AM ToHMI", this),
+    audio_pass_thru_messages_("AudioPassThru", this),
     hmi_capabilities_(this),
     unregister_reason_(mobile_api::AppInterfaceUnregisteredReason::IGNITION_OFF),
     resume_ctrl_(this),
@@ -347,8 +348,6 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
   const utils::SharedPtr<smart_objects::SmartObject>&
   request_for_registration) {
 
-  sync_primitives::AutoLock lock(applications_list_lock_);
-
   LOG4CXX_DEBUG(logger_, "Restarting application list update timer");
   uint32_t timeout = profile::Profile::instance()->application_list_update_timeout();
   application_list_update_timer_->start(timeout);
@@ -485,7 +484,9 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
     }
   }
 
+  applications_list_lock_.Acquire();
   application_list_.insert(application);
+  applications_list_lock_.Release();
 
   return application;
 }
@@ -707,7 +708,7 @@ void ApplicationManagerImpl::StartAudioPassThruThread(int32_t session_key,
 
 void ApplicationManagerImpl::SendAudioPassThroughNotification(
   uint32_t session_key,
-  std::vector<uint8_t> binaryData) {
+  std::vector<uint8_t>& binary_data) {
   LOG4CXX_TRACE_ENTER(logger_);
 
   if (!audio_pass_thru_active_) {
@@ -715,38 +716,11 @@ void ApplicationManagerImpl::SendAudioPassThroughNotification(
                   " when PassThrough is not active");
     return;
   }
-  smart_objects::SmartObject* on_audio_pass = NULL;
-  on_audio_pass = new smart_objects::SmartObject();
 
-  if (NULL == on_audio_pass) {
-    LOG4CXX_ERROR_EXT(logger_, "OnAudioPassThru NULL pointer");
-
-    return;
-  }
-
-  LOG4CXX_INFO_EXT(logger_, "Fill smart object");
-
-  (*on_audio_pass)[strings::params][strings::message_type] =
-    application_manager::MessageType::kNotification;
-
-  (*on_audio_pass)[strings::params][strings::connection_key] =
-    static_cast<int32_t>(session_key);
-  (*on_audio_pass)[strings::params][strings::function_id] =
-    mobile_apis::FunctionID::OnAudioPassThruID;
-
-  LOG4CXX_INFO_EXT(logger_, "Fill binary data");
-  // binary data
-  (*on_audio_pass)[strings::params][strings::binary_data] =
-    smart_objects::SmartObject(binaryData);
-
-  LOG4CXX_INFO_EXT(logger_, "After fill binary data");
-
-  LOG4CXX_INFO_EXT(logger_, "Send data");
-  CommandSharedPtr command (
-    MobileCommandFactory::CreateCommand(&(*on_audio_pass)));
-  command->Init();
-  command->Run();
-  command->CleanUp();
+  impl::AudioData data;
+  data.session_key = session_key;
+  data.binary_data = binary_data;
+  audio_pass_thru_messages_.PostMessage(data);
 }
 
 void ApplicationManagerImpl::StopAudioPassThru(int32_t application_key) {
@@ -1107,6 +1081,11 @@ void ApplicationManagerImpl::OnServiceEndedCallback(const int32_t& session_key,
 void ApplicationManagerImpl::OnApplicationFloodCallBack(const uint32_t &connection_key) {
   LOG4CXX_TRACE_ENTER(logger_);
   LOG4CXX_DEBUG(logger_, "Unregister flooding application " << connection_key);
+
+  MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
+      connection_key,
+      mobile_apis::AppInterfaceUnregisteredReason::TOO_MANY_REQUESTS);
+
   UnregisterApplication(connection_key, mobile_apis::Result::TOO_MANY_PENDING_REQUESTS,
                         true, true);
   // TODO(EZamakhov): increment "removals_for_bad_behaviour" field in policy table
@@ -1191,7 +1170,8 @@ void ApplicationManagerImpl::SendMessageToMobile(
   // checked against policy permissions
   if (msg_to_mobile[strings::params].keyExists(strings::correlation_id)) {
     request_ctrl_.terminateMobileRequest(
-      msg_to_mobile[strings::params][strings::correlation_id].asInt());
+      msg_to_mobile[strings::params][strings::correlation_id].asInt(),
+      msg_to_mobile[strings::params][strings::connection_key].asInt());
   } else if (app) {
     mobile_apis::FunctionID::eType function_id =
         static_cast<mobile_apis::FunctionID::eType>(
@@ -1328,7 +1308,7 @@ bool ApplicationManagerImpl::ManageMobileCommand(
 
     // commands will be launched from request_ctrl
 
-    request_controller::RequestController::TResult result =
+    const request_controller::RequestController::TResult result =
       request_ctrl_.addMobileRequest(command, app_hmi_level);
 
     if (result == request_controller::RequestController::SUCCESS) {
@@ -1473,19 +1453,6 @@ bool ApplicationManagerImpl::ManageHMICommand(
 
 bool ApplicationManagerImpl::Init() {
   LOG4CXX_TRACE(logger_, "Init application manager");
-  if (policy::PolicyHandler::instance()->PolicyEnabled()) {
-    if(!policy::PolicyHandler::instance()->LoadPolicyLibrary()) {
-      LOG4CXX_ERROR(logger_, "Policy library is not loaded. Check LD_LIBRARY_PATH");
-      return false;
-    }
-    LOG4CXX_INFO(logger_, "Policy library is loaded, now initing PT");
-    if (!policy::PolicyHandler::instance()->InitPolicyTable()) {
-      LOG4CXX_ERROR(logger_, "Policy table is not initialized.");
-      return false;
-    }
-  } else {
-    LOG4CXX_WARN(logger_, "System is configured to work without policy functionality.");
-  }
   const std::string app_storage_folder =
       profile::Profile::instance()->app_storage_folder();
   if (!file_system::DirectoryExists(app_storage_folder)) {
@@ -1520,6 +1487,19 @@ bool ApplicationManagerImpl::Init() {
     LOG4CXX_ERROR(logger_,
                   "System directory doesn't have read/write permissions");
     return false;
+  }
+  if (policy::PolicyHandler::instance()->PolicyEnabled()) {
+    if(!policy::PolicyHandler::instance()->LoadPolicyLibrary()) {
+      LOG4CXX_ERROR(logger_, "Policy library is not loaded. Check LD_LIBRARY_PATH");
+      return false;
+    }
+    LOG4CXX_INFO(logger_, "Policy library is loaded, now initing PT");
+    if (!policy::PolicyHandler::instance()->InitPolicyTable()) {
+      LOG4CXX_ERROR(logger_, "Policy table is not initialized.");
+      return false;
+    }
+  } else {
+    LOG4CXX_WARN(logger_, "System is configured to work without policy functionality.");
   }
   media_manager_ = media_manager::MediaManagerImpl::instance();
   return true;
@@ -1885,8 +1865,10 @@ void ApplicationManagerImpl::removeNotification(const commands::Command* notific
 void ApplicationManagerImpl::updateRequestTimeout(uint32_t connection_key,
     uint32_t mobile_correlation_id,
     uint32_t new_timeout_value) {
+  LOG4CXX_TRACE_ENTER(logger_);
   request_ctrl_.updateRequestTimeout(connection_key, mobile_correlation_id,
                                      new_timeout_value);
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 const uint32_t ApplicationManagerImpl::application_id
@@ -1918,9 +1900,9 @@ void ApplicationManagerImpl::HeadUnitReset(
     mobile_api::AppInterfaceUnregisteredReason::eType reason) {
   switch (reason) {
     case mobile_api::AppInterfaceUnregisteredReason::MASTER_RESET: {
+      policy::PolicyHandler::instance()->ResetPolicyTable();
       file_system::remove_directory_content(profile::Profile::instance()->app_storage_folder());
       resume_controller().ClearResumptionInfo();
-      policy::PolicyHandler::instance()->ResetPolicyTable();
       break;
     }
     case mobile_api::AppInterfaceUnregisteredReason::FACTORY_DEFAULTS: {
@@ -2029,7 +2011,8 @@ void ApplicationManagerImpl::UnregisterAllApplications(bool generated_by_hmi) {
                           mobile_apis::Result::INVALID_ENUM, false,
                           is_unexpected_disconnect);
 #endif // CUSTOMER_PASA
-    connection_handler_->CloseSession(app_to_remove->app_id());
+    connection_handler_->CloseSession(app_to_remove->app_id(),
+                                      connection_handler::kCommon);
     it = application_list_.begin();
   }
 
@@ -2047,8 +2030,6 @@ void ApplicationManagerImpl::UnregisterApplication(
                "ApplicationManagerImpl::UnregisterApplication " << app_id);
   //remove appID from tts_global_properties_app_list_
   RemoveAppFromTTSGlobalPropertiesList(app_id);
-
-  sync_primitives::AutoLock lock(applications_list_lock_);
 
   switch (reason) {
     case mobile_apis::Result::SUCCESS:break;
@@ -2070,6 +2051,7 @@ void ApplicationManagerImpl::UnregisterApplication(
   }
 
   ApplicationSharedPtr app_to_remove;
+  applications_list_lock_.Acquire();
   std::set<ApplicationSharedPtr>::const_iterator it = application_list_.begin();
   for (; it != application_list_.end(); ++it) {
     if ((*it)->app_id() == app_id) {
@@ -2079,9 +2061,11 @@ void ApplicationManagerImpl::UnregisterApplication(
   }
   if (!app_to_remove) {
     LOG4CXX_ERROR(logger_, "Cant find application with app_id = " << app_id);
+    applications_list_lock_.Release();
     return;
   }
   application_list_.erase(app_to_remove);
+  applications_list_lock_.Release();
 #ifndef CUSTOMER_PASA
   if (is_resuming) {
     resume_ctrl_.SaveApplication(app_to_remove);
@@ -2112,7 +2096,7 @@ void ApplicationManagerImpl::UnregisterRevokedApplication(
     const uint32_t& app_id, mobile_apis::Result::eType reason) {
   UnregisterApplication(app_id, reason);
 
-  connection_handler_->CloseSession(app_id);
+  connection_handler_->CloseSession(app_id, connection_handler::kCommon);
 
   if (application_list_.empty()) {
     connection_handler_->CloseRevokedConnection(app_id);
@@ -2164,7 +2148,8 @@ void ApplicationManagerImpl::Handle(const impl::MessageToMobile message) {
   LOG4CXX_INFO(logger_, "Message for mobile given away");
 
   if (close_session) {
-    connection_handler_->CloseSession(message->connection_key());
+    connection_handler_->CloseSession(message->connection_key(),
+                                      connection_handler::kCommon);
   }
 }
 
@@ -2188,6 +2173,41 @@ void ApplicationManagerImpl::Handle(const impl::MessageToHmi message) {
 
   hmi_handler_->SendMessageToHMI(message);
   LOG4CXX_INFO(logger_, "Message to hmi given away.");
+}
+
+void ApplicationManagerImpl::Handle(const impl::AudioData message) {
+  LOG4CXX_INFO(logger_, "Send AudioPassThru notification");
+  smart_objects::SmartObject* on_audio_pass = NULL;
+  on_audio_pass = new smart_objects::SmartObject();
+
+  if (NULL == on_audio_pass) {
+    LOG4CXX_ERROR_EXT(logger_, "OnAudioPassThru NULL pointer");
+  return;
+  }
+
+  LOG4CXX_INFO_EXT(logger_, "Fill smart object");
+
+  (*on_audio_pass)[strings::params][strings::message_type] =
+      application_manager::MessageType::kNotification;
+
+  (*on_audio_pass)[strings::params][strings::connection_key] =
+      static_cast<int32_t>(message.session_key);
+  (*on_audio_pass)[strings::params][strings::function_id] =
+      mobile_apis::FunctionID::OnAudioPassThruID;
+
+  LOG4CXX_INFO_EXT(logger_, "Fill binary data");
+  // binary data
+  (*on_audio_pass)[strings::params][strings::binary_data] =
+      smart_objects::SmartObject(message.binary_data);
+
+   LOG4CXX_INFO_EXT(logger_, "After fill binary data");
+
+   LOG4CXX_INFO_EXT(logger_, "Send data");
+   CommandSharedPtr command (
+       MobileCommandFactory::CreateCommand(&(*on_audio_pass)));
+   command->Init();
+   command->Run();
+   command->CleanUp();
 }
 
 mobile_apis::Result::eType ApplicationManagerImpl::CheckPolicyPermissions(
@@ -2270,6 +2290,7 @@ void  ApplicationManagerImpl::OnLowVoltage() {
 }
 
 bool ApplicationManagerImpl::IsLowVoltage() {
+  LOG4CXX_TRACE(logger_, "result: " << is_low_voltage_);
   return is_low_voltage_;
 }
 

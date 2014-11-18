@@ -227,6 +227,7 @@ TransportAdapter::Error BluetoothPASAListener::StopListening() {
     return TransportAdapter::BAD_STATE;
   }
   thread_->stop();
+  thread_->join();
   threads::DeleteThread(thread_);
   thread_ = NULL;
   CloseMsgQ(mq_to_sdl_);

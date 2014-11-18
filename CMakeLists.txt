@@ -475,6 +475,10 @@ add_custom_target(install-3rd_party
   WORKING_DIRECTORY ${3RD_PARTY_BINARY_DIRECTORY}
 )
 
+if(ENABLE_LOG)
+  include_directories ( ${LOG4CXX_INCLUDE_DIRECTORY} )
+endif()
+
 if(ENABLE_SECURITY)
   add_definitions(-DENABLE_SECURITY)
   set(SecurityManagerLibrary SecurityManager)

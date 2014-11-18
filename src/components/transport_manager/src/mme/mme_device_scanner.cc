@@ -202,6 +202,9 @@ void MmeDeviceScanner::Terminate() {
 
   if (notify_thread_) {
     notify_thread_->stop();
+    notify_thread_->join();
+    threads::DeleteThread(notify_thread_);
+    notify_thread_ = NULL;
   }
 
   const std::string& event_mq_name =

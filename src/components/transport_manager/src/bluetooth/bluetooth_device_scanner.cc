@@ -121,11 +121,17 @@ BluetoothDeviceScanner::BluetoothDeviceScanner(
 }
 
 BluetoothDeviceScanner::~BluetoothDeviceScanner() {
+  if(thread_) {
+    thread_->stop();
+    thread_->join();
+    threads::DeleteThread(thread_);
+    thread_ = NULL;
+  }
 }
 
 
 bool BluetoothDeviceScanner::IsInitialised() const {
-  return thread_->is_running();
+  return thread_ && thread_->is_running();
 }
 
 void BluetoothDeviceScanner::UpdateTotalDeviceList() {
@@ -436,7 +442,7 @@ TransportAdapter::Error BluetoothDeviceScanner::Init() {
 void BluetoothDeviceScanner::Terminate() {
   LOG4CXX_TRACE(logger_, "enter");
   shutdown_requested_ = true;
-  if (thread_->is_running()) {
+  if (thread_) {
     {
       sync_primitives::AutoLock auto_lock(device_scan_requested_lock_);
       device_scan_requested_ = false;
@@ -444,7 +450,12 @@ void BluetoothDeviceScanner::Terminate() {
     }
     LOG4CXX_INFO(logger_,
                  "Waiting for bluetooth device scanner thread termination");
-    thread_->stop();
+    if(thread_) {
+      thread_->stop();
+      thread_->join();
+      threads::DeleteThread(thread_);
+      thread_ = NULL;
+    }
     LOG4CXX_INFO(logger_, "PASA Bluetooth device scanner thread joined");
   }
   LOG4CXX_TRACE(logger_, "exit");

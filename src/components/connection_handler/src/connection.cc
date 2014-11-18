@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -92,6 +92,7 @@ Connection::Connection(ConnectionHandle connection_handle,
 Connection::~Connection() {
   LOG4CXX_TRACE_ENTER(logger_);
   heart_beat_monitor_thread_->stop();
+  heart_beat_monitor_thread_->join();
   threads::DeleteThread(heart_beat_monitor_thread_);
   sync_primitives::AutoLock lock(session_map_lock_);
   session_map_.clear();
@@ -312,7 +313,9 @@ void Connection::CloseSession(uint8_t session_id) {
     size = session_map_.size();
   }
 
-  connection_handler_->CloseSession(connection_handle_, session_id);
+  connection_handler_->CloseSession(connection_handle_,
+                                    session_id,
+                                    connection_handler::kCommon);
 
   //Close connection if it is last session
   if (1 == size) {

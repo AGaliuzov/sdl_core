@@ -124,6 +124,8 @@ bool Resources::GetProcInfo(Resources::PidStats& output) {
   if (0 >= fd) {
     LOG4CXX_ERROR(logger_, "Failed open process proc file : " << GetProcPath() <<
                   "; error no : " << strerror( errno ) );
+
+    close(fd);
     return false;
   }
   devctl(fd, DCMD_PROC_INFO, &output, sizeof(output), 0);
@@ -154,8 +156,9 @@ bool Resources::GetMemInfo(Resources::MemInfo &output) {
     result = false;
     return result;
   }  
-  if (0 == (proc_entry = readdir(proc_dir))) {
+  if (0 == readdir(proc_dir)) {
     LOG4CXX_ERROR(logger_, "Unable to read : " << proc_dir);
+    closedir(proc_dir);
     result = false;
     return result;
   }
