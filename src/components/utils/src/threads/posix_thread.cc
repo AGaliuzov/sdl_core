@@ -60,7 +60,7 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "Utils")
 size_t Thread::kMinStackSize = PTHREAD_STACK_MIN; /* Ubuntu : 16384 ; QNX : 256; */
 
 void Thread::cleanup(void* arg) {
-  LOG4CXX_AUTO_TRACE(logger_, autotrace);
+  LOG4CXX_AUTO_TRACE(logger_);
   Thread* thread = reinterpret_cast<Thread*>(arg);
   sync_primitives::AutoLock auto_lock(thread->state_lock_);
   thread->isThreadRunning_ = false;
