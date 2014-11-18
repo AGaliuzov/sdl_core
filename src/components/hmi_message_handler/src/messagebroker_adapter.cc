@@ -152,8 +152,12 @@ void MessageBrokerAdapter::SubscribeTo() {
 
 void* MessageBrokerAdapter::SubscribeAndBeginReceiverThread(void* param) {
   PassToThread(threads::Thread::CurrentId());
+#ifndef CUSTOMER_PASA
+  // For PASA we don't need to subscribe and register controller
+  // this will prevent from errors on start up
   registerController();
   SubscribeTo();
+#endif // CUSTOMER_PASA
   return MethodForReceiverThread(param);
 }
 
