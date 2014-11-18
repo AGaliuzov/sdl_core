@@ -181,6 +181,8 @@
 
     #define LOG4CXX_TRACE_ENTER(logger)
     #define LOG4CXX_TRACE_EXIT(logger)
+    #define LOG4CXX_AUTO_TRACE_WITH_NAME_SPECIFIED(loggerPtr, auto_trace)
+    #define LOG4CXX_AUTO_TRACE(loggerPtr)
 #endif  // ENABLE_LOG
 
 #endif  // SRC_COMPONENTS_UTILS_INCLUDE_UTILS_LOGGER_H_
