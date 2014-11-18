@@ -2188,6 +2188,17 @@ bool MessageHelper::VerifySoftButtonString(const std::string& str) {
   return true;
 }
 
+bool MessageHelper::CheckWithPolicy(
+    int system_action, const std::string& app_mobile_id) {
+  bool result = true;
+  policy::PolicyHandler* policy_handler = policy::PolicyHandler::instance();
+  if (NULL != policy_handler && policy_handler->PolicyEnabled()) {
+    result = policy_handler->CheckKeepContext(system_action, app_mobile_id) ||
+        policy_handler->CheckStealFocus(system_action, app_mobile_id);
+  }
+  return result;
+}
+
 mobile_apis::Result::eType MessageHelper::ProcessSoftButtons(
   smart_objects::SmartObject& message_params, ApplicationConstSharedPtr app) {
   if (!message_params.keyExists(strings::soft_buttons)) {
@@ -2215,17 +2226,14 @@ mobile_apis::Result::eType MessageHelper::ProcessSoftButtons(
   smart_objects::SmartObject soft_buttons = smart_objects::SmartObject(
         smart_objects::SmartType_Array);
 
-  policy::PolicyHandler* policy_handler = policy::PolicyHandler::instance();
-  std::string app_mobile_id = app->mobile_app_id()->asString();
 
   uint32_t j = 0;
   size_t size = request_soft_buttons.length();
   for (uint32_t i = 0; i < size; ++i) {
-    int system_action = request_soft_buttons[i][strings::system_action].asInt();
-    if (!policy_handler->CheckKeepContext(system_action, app_mobile_id) ||
-        !policy_handler->CheckStealFocus(system_action, app_mobile_id)) {
+    const int system_action = request_soft_buttons[i][strings::system_action].asInt();
+
+    if (!CheckWithPolicy(system_action, app->mobile_app_id()->asString()))
       return mobile_apis::Result::DISALLOWED;
-    }
 
     switch (request_soft_buttons[i][strings::type].asInt()) {
       case mobile_apis::SoftButtonType::SBT_IMAGE: {
