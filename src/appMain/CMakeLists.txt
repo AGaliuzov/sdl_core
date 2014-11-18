@@ -183,8 +183,6 @@ include_directories (
   ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8
   ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8/dbus/
   
-  #${CMAKE_SOURCE_DIR}/src/components/dbus/src
-  #${COMPONENTS_DIR}/config_profile/include
   
   ${COMPONENTS_DIR}/security_manager/test/include
   ${COMPONENTS_DIR}/application_manager/include
