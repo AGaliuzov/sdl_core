@@ -423,11 +423,14 @@ void LifeCycle::StopComponents() {
   protocol_handler_->RemoveProtocolObserver(app_manager_);
   app_manager_->Stop();
 
-  LOG4CXX_INFO(logger_, "Destroying Media Manager");
+  LOG4CXX_INFO(logger_, "Stopping Protocol Handler");
   protocol_handler_->RemoveProtocolObserver(media_manager_);
 #ifdef ENABLE_SECURITY
   protocol_handler_->RemoveProtocolObserver(security_manager_);
 #endif  // ENABLE_SECURITY
+  protocol_handler_->Stop();
+
+  LOG4CXX_INFO(logger_, "Destroying Media Manager");
   media_manager_->SetProtocolHandler(NULL);
   media_manager::MediaManagerImpl::destroy();
 

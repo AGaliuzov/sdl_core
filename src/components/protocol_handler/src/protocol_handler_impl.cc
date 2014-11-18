@@ -1155,6 +1155,10 @@ void ProtocolHandlerImpl::set_security_manager(
   }
   security_manager_ = security_manager;
 }
+void ProtocolHandlerImpl::Stop() {
+  raw_ford_messages_from_mobile_.Shutdown();
+  raw_ford_messages_to_mobile_.Shutdown();
+}
 
 RESULT_CODE ProtocolHandlerImpl::EncryptFrame(ProtocolFramePtr packet) {
   DCHECK(packet);
