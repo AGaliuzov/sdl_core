@@ -2054,6 +2054,9 @@
       </param>
     </function>
     <function name="OnAwakeSDL" messagetype="notification">
+        <description>
+            Sender: HMI->SDL. Must be sent to return SDL to normal operation after 'Suspend' or 'LowVoltage' events
+        </description>
     </function>
     <function name="MixingAudioSupported" messagetype="request">
       <description>Request from SDL to HMI to find out if the last one supports mixing audio (i.e. recording TTS command and playing audio).</description>
@@ -2066,6 +2069,9 @@
     </function>
     <function name="PlayTone" messagetype="notification">
       <description>Sent by SDL to HMI to notify that the tone should be played.</description>
+      <param name="appID" type="Integer" mandatory="true">
+         <description>ID of the application that invoked this notification</description>
+      </param>
     </function>
     <!-- Policies -->
 

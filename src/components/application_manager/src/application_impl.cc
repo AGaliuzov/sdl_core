@@ -162,6 +162,25 @@ bool ApplicationImpl::MakeFullscreen() {
   }
   return true;
 }
+void ApplicationImpl::ChangeSupportingAppHMIType() {
+  allowed_support_navigation_ = false;
+  is_voice_communication_application_ = false;
+  const smart_objects::SmartObject& array_app_types = *app_types_;
+  uint32_t lenght_app_types = array_app_types.length();
+
+  for (uint32_t i = 0; i < lenght_app_types; ++i) {
+    if (mobile_apis::AppHMIType::NAVIGATION ==
+        static_cast<mobile_apis::AppHMIType::eType>(
+            array_app_types[i].asUInt())) {
+      allowed_support_navigation_ = true;
+    }
+    if (mobile_apis::AppHMIType::COMMUNICATION ==
+        static_cast<mobile_apis::AppHMIType::eType>(
+            array_app_types[i].asUInt())) {
+      is_voice_communication_application_ = true;
+    }
+  }
+}
 
 bool ApplicationImpl::IsAudible() const {
   return mobile_api::HMILevel::HMI_FULL == hmi_level_

@@ -43,6 +43,7 @@
 #include "utils/macro.h"
 #include "utils/threads/thread_delegate.h"
 #include "utils/threads/thread_options.h"
+#include "utils/lock.h"
 
 namespace threads {
 
@@ -77,11 +78,10 @@ typedef pthread_t PlatformThreadHandle;
  */
 class Thread;
 Thread* CreateThread(const char* name, ThreadDelegate* delegate);
-Thread* CreateThread(const char* name, ThreadDelegate* delegate, bool deferred_join);
 void DeleteThread(Thread*);
 
 class Thread {
-  friend Thread* CreateThread(const char* name, ThreadDelegate* delegate, bool deferred_join);  
+  friend Thread* CreateThread(const char* name, ThreadDelegate* delegate);
   friend void DeleteThread(Thread*);
  public:
   /**
@@ -138,11 +138,14 @@ class Thread {
    */
   void stop();
 
+
+  void join();
+
   /**
    * Get thread name.
    * @return thread name
    */
-  const std::string& thread_name() {
+  const std::string& name() {
     return name_;
   }
 
@@ -203,11 +206,13 @@ class Thread {
    * Minimum size of thread stack for specific platform.
    */
   static size_t kMinStackSize;
-  bool deferred_join_;
 
+  sync_primitives::Lock delegate_lock_;
  protected:
   const std::string name_;
+ public:
   ThreadDelegate* delegate_;
+ protected:
   impl::PlatformThreadHandle thread_handle_;
   ThreadOptions thread_options_;
   volatile unsigned int isThreadRunning_;
@@ -218,14 +223,12 @@ class Thread {
    * @param name - display string to identify the thread.
    * @param delegate - thread procedure delegate. Look for
    * 'threads/thread_delegate.h' for details.
-   * @param deferred_join - if true, thread will be joined in \
    * LifeCycle thread , otherwise it will be joined in stop method
    * NOTE: delegate will be deleted after thread will be joined
    *       This constructor made private to prevent
    *       Thread object to be created on stack
    */
-  Thread(const char* name, ThreadDelegate* delegate, bool deferred_join);
-
+  Thread(const char* name, ThreadDelegate* delegate);
   DISALLOW_COPY_AND_ASSIGN(Thread);
   virtual ~Thread() { }
 };

@@ -229,7 +229,7 @@ class CacheManager : public CacheManagerInterface {
    * @param app_id application id
    * @return true if application is revoked
    */
-  bool IsApplicationRevoked(const std::string& app_id);
+  bool IsApplicationRevoked(const std::string& app_id) const;
 
   /**
    * @brief Get functional groupings from DB
@@ -592,6 +592,17 @@ private:
 
   void PersistData();
 
+  void ResetCalculatedPermissions();
+
+  void AddCalculatedPermissions(
+      const std::string& device_id,
+      const std::string& policy_app_id,
+      const policy::Permissions& permissions);
+
+  bool IsPermissionsCalculated(const std::string& device_id,
+                               const std::string& policy_app_id,
+                               policy::Permissions& permission);
+
 private:
   utils::SharedPtr<policy_table::Table> pt_;
   utils::SharedPtr<policy_table::Table> snapshot_;
@@ -602,6 +613,11 @@ private:
   std::map<std::string, bool> is_unpaired_;
 
   sync_primitives::Lock cache_lock_;
+
+  typedef std::map<std::string, Permissions> AppCalculatedPermissions;
+  typedef std::map<std::string, AppCalculatedPermissions> CalculatedPermissions;
+  CalculatedPermissions calculated_permissions_;
+  sync_primitives::Lock calculated_permissions_lock_;
 
   class BackgroundBackuper: public threads::ThreadDelegate {
       friend class CacheManager;

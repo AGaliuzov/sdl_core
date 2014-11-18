@@ -200,8 +200,10 @@ char ini_write_value(const char *fname,
   }
 #else   // #if USE_MKSTEMP
   tmpnam(temp_fname);
-  if (0 == (wr_fp = fopen(temp_fname, "w")))
+  if (0 == (wr_fp = fopen(temp_fname, "w"))) {
+     fclose(rd_fp);
      return FALSE;
+  }
 #endif   // #else #if USE_MKSTEMP
 
   snprintf(tag, INI_LINE_LEN, "%s", chapter);

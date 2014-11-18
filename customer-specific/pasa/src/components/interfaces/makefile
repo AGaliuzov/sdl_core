@@ -37,6 +37,7 @@ INCLUDES = \
 	$(CC_IFLAG)../include \
 	$(CC_IFLAG)../formatters/include \
 	$(CC_IFLAG)../smart_objects/include \
+	$(CC_IFLAG)../../3rd_party/log4cxx/include \
 	$(DEPENDS_INCLUDES)
 
 

@@ -35,30 +35,47 @@
 
 #include <pthread.h>
 
+#include "utils/lock.h"
+
 namespace threads {
+
+class Thread;
 
 /**
  * Thread procedure interface.
  * Look for "threads/thread.h" for example
  */
 class ThreadDelegate {
-  public:
+  friend class Thread;
+  friend Thread* CreateThread(const char* name, ThreadDelegate* delegate);
+  friend void DeleteThread(Thread*);
+ public:
+  /**
+   * Thread procedure.
+   */
+  virtual void threadMain() = 0;
 
-    /**
-     * Thread procedure.
-     */
-    virtual void threadMain() = 0;
-
-    /**
-     * Should be called to free all resources allocated in threadMain
-     * and exiting threadMain
-     * This function should be blocking and return only when threadMain() will be
-     * finished in other case segmantation failes are possible
-     */
-    virtual bool exitThreadMain() {
-      return false;
-    }
-    virtual ~ThreadDelegate() { }
+  /**
+   * Should be called to free all resources allocated in threadMain
+   * and exiting threadMain
+   * This function should be blocking and return only when threadMain() will be
+   * finished in other case segmantation failes are possible
+   */
+  virtual bool exitThreadMain() {
+    return false;
+  }
+  virtual ~ThreadDelegate() { }
+  Thread* CurrentThread() const {
+    return thread_;
+  }
+  sync_primitives::Lock& thread_lock() {
+    return thread_lock_;
+  }
+  Thread* thread_;
+ private:
+  volatile bool run_;
+ public:
+  sync_primitives::Lock thread_lock_;
 };
 
 }  // namespace threads

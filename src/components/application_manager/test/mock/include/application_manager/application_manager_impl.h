@@ -133,6 +133,13 @@ typedef threads::MessageLoopThread<utils::PrioritizedQueue<MessageToMobile> > To
 typedef threads::MessageLoopThread<utils::PrioritizedQueue<MessageFromHmi> > FromHmiQueue;
 typedef threads::MessageLoopThread<utils::PrioritizedQueue<MessageToHmi> > ToHmiQueue;
 
+// AudioPassThru
+typedef struct  {
+std::vector<uint8_t> binary_data;
+int32_t              session_key;
+} AudioData;
+typedef std::queue<AudioData>                          RawAudioDataQueue;
+typedef threads::MessageLoopThread<RawAudioDataQueue>  AudioPassThruQueue;
 }
 typedef std::vector<std::string> RPCParams;
 
@@ -142,6 +149,7 @@ class ApplicationManagerImpl : public ApplicationManager,
   public connection_handler::ConnectionHandlerObserver,
   public impl::FromMobileQueue::Handler, public impl::ToMobileQueue::Handler,
   public impl::FromHmiQueue::Handler, public impl::ToHmiQueue::Handler,
+  public impl::AudioPassThruQueue::Handler,
   public utils::Singleton<ApplicationManagerImpl> {
 
     friend class ResumeCtrl;
@@ -171,6 +179,7 @@ class ApplicationManagerImpl : public ApplicationManager,
   MOCK_METHOD1(Handle, void (const impl::MessageToMobile));
   MOCK_METHOD1(Handle, void (const impl::MessageFromHmi));
   MOCK_METHOD1(Handle, void (const impl::MessageToHmi));
+  MOCK_METHOD1(Handle, void (const impl::AudioData));
 
   //ApplicationManager methods
   MOCK_METHOD1(set_hmi_message_handler, void (hmi_message_handler::HMIMessageHandler*));
@@ -178,8 +187,9 @@ class ApplicationManagerImpl : public ApplicationManager,
   MOCK_METHOD1(set_connection_handler, void (connection_handler::ConnectionHandler*));
 
   //ApplicationManagerImpl methods:
-
+#ifdef TIME_TESTER
   MOCK_METHOD1(SetTimeMetricObserver, void(AMMetricObserver*));
+#endif
   MOCK_METHOD1(RegisterApplication,
                 ApplicationSharedPtr(const utils::SharedPtr<smart_objects::SmartObject>&));
   MOCK_METHOD0(hmi_capabilities, HMICapabilities& ());
@@ -243,7 +253,7 @@ class ApplicationManagerImpl : public ApplicationManager,
   MOCK_METHOD1(removeNotification, void(const commands::Command*));
   MOCK_METHOD1(addNotification, void(const CommandSharedPtr ));
   MOCK_METHOD0(StartDevicesDiscovery, void());
-  MOCK_METHOD2(SendAudioPassThroughNotification, void(uint32_t, std::vector<uint8_t>));
+  MOCK_METHOD2(SendAudioPassThroughNotification, void(uint32_t, std::vector<uint8_t>&));
   MOCK_METHOD1(set_all_apps_allowed, void(const bool));
   MOCK_CONST_METHOD0(all_apps_allowed, bool());
   MOCK_METHOD1(set_vr_session_started, void(const bool));

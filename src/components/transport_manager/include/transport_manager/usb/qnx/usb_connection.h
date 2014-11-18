@@ -51,7 +51,7 @@ class UsbConnection : public Connection {
   UsbConnection(const DeviceUID& device_uid,
                 const ApplicationHandle& app_handle,
                 TransportAdapterController* controller,
-                const UsbHandlerSptr& libusb_handler,
+                const UsbHandlerSptr libusb_handler,
                 PlatformUsbDevice* device);
 
   bool Init();
@@ -82,7 +82,7 @@ class UsbConnection : public Connection {
 
   unsigned char* in_buffer_;
   void* out_buffer_;
-  
+
   usbd_urb* in_urb_;
   usbd_urb* out_urb_;
 

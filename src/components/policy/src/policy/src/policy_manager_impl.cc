@@ -43,6 +43,7 @@
 #include "utils/logger.h"
 #include "policy/cache_manager.h"
 #include "policy/update_status_manager.h"
+#include "config_profile/profile.h"
 
 policy::PolicyManager* CreateManager() {
   return new policy::PolicyManagerImpl();
@@ -313,33 +314,44 @@ void PolicyManagerImpl::CheckPermissions(const PTString& app_id,
 
 #ifdef EXTENDED_POLICY
   const std::string device_id = GetCurrentDeviceId(app_id);
-  // Get actual application group permission according to user consents
-  std::vector<FunctionalGroupPermission> app_group_permissions;
-  GetPermissionsForApp(device_id, app_id, app_group_permissions);
 
-  // Fill struct with known groups RPCs
-  policy_table::FunctionalGroupings functional_groupings;
-  cache_->GetFunctionalGroupings(functional_groupings);
-
-  policy_table::Strings app_groups;
-  std::vector<FunctionalGroupPermission>::const_iterator it =
-    app_group_permissions.begin();
-  std::vector<FunctionalGroupPermission>::const_iterator it_end =
-    app_group_permissions.end();
-  for (; it != it_end; ++it) {
-    app_groups.push_back((*it).group_name);
-  }
-
+  // Check, if there are calculated permission present in cache
   Permissions rpc_permissions;
-  // Undefined groups (without user consent) disallowed by default, since
-  // OnPermissionsChange notification has no "undefined" section
-  // For RPC permission checking undefinded group will be treated as separate
-  // type
-  ProcessFunctionalGroup processor(functional_groupings,
-                                   app_group_permissions,
-                                   rpc_permissions,
-                                   GroupConsent::kGroupUndefined);
-  std::for_each(app_groups.begin(), app_groups.end(), processor);
+  if (!cache_->IsPermissionsCalculated(device_id, app_id, rpc_permissions)) {
+    LOG4CXX_DEBUG(logger_, "IsPermissionsCalculated for device: " << device_id
+                 << " and app: " << app_id << " returns false");
+    // Get actual application group permission according to user consents
+    std::vector<FunctionalGroupPermission> app_group_permissions;
+    GetPermissionsForApp(device_id, app_id, app_group_permissions);
+
+    // Fill struct with known groups RPCs
+    policy_table::FunctionalGroupings functional_groupings;
+    cache_->GetFunctionalGroupings(functional_groupings);
+
+    policy_table::Strings app_groups;
+    std::vector<FunctionalGroupPermission>::const_iterator it =
+      app_group_permissions.begin();
+    std::vector<FunctionalGroupPermission>::const_iterator it_end =
+      app_group_permissions.end();
+    for (; it != it_end; ++it) {
+      app_groups.push_back((*it).group_name);
+    }
+
+    // Undefined groups (without user consent) disallowed by default, since
+    // OnPermissionsChange notification has no "undefined" section
+    // For RPC permission checking undefinded group will be treated as separate
+    // type
+    ProcessFunctionalGroup processor(functional_groupings,
+                                     app_group_permissions,
+                                     rpc_permissions,
+                                     GroupConsent::kGroupUndefined);
+    std::for_each(app_groups.begin(), app_groups.end(), processor);
+
+    cache_->AddCalculatedPermissions(device_id, app_id, rpc_permissions);
+  } else {
+    LOG4CXX_DEBUG(logger_, "IsPermissionsCalculated for device: " << device_id
+                 << " and app: " << app_id << " returns true");
+  }
 
   const bool known_rpc = rpc_permissions.end() != rpc_permissions.find(rpc);
   LOG4CXX_INFO(logger_, "Is known rpc" << known_rpc);
@@ -529,6 +541,7 @@ void PolicyManagerImpl::SetUserConsentForDevice(const std::string& device_id,
     return;
   }
 #ifdef EXTENDED_POLICY
+  cache_->ResetCalculatedPermissions();
   // Get device permission groups from app_policies section, which hadn't been
   // preconsented
   policy_table::Strings groups;
@@ -644,6 +657,7 @@ void PolicyManagerImpl::SetUserConsentForApp(
     const PermissionConsent& permissions) {
   LOG4CXX_INFO(logger_, "SetUserConsentForApp");
 #ifdef EXTENDED_POLICY
+  cache_->ResetCalculatedPermissions();
   PermissionConsent verified_permissions =
       EnsureCorrectPermissionConsent(permissions);
 
@@ -1057,7 +1071,7 @@ void PolicyManagerImpl::Add(const std::string& app_id,
 }
 
 bool PolicyManagerImpl::IsApplicationRevoked(const std::string& app_id) const {
-  return const_cast<PolicyManagerImpl*>(this)->cache_->IsApplicationRevoked(app_id);
+  return cache_->IsApplicationRevoked(app_id);
 }
 
 int PolicyManagerImpl::IsConsentNeeded(const std::string& app_id) {
@@ -1194,6 +1208,7 @@ bool PolicyManagerImpl::IsNewApplication(
 }
 
 bool PolicyManagerImpl::ResetPT(const std::string& file_name) {
+  cache_->ResetCalculatedPermissions();
   const bool result = cache_->ResetPT(file_name);
   if (result) {
     RefreshRetrySequence();
@@ -1201,12 +1216,41 @@ bool PolicyManagerImpl::ResetPT(const std::string& file_name) {
   return result;
 }
 
+bool PolicyManagerImpl::CheckAppStorageFolder() const {
+  LOG4CXX_TRACE_ENTER(logger_);
+  const std::string app_storage_folder =
+      profile::Profile::instance()->app_storage_folder();
+  LOG4CXX_DEBUG(logger_, "AppStorageFolder " << app_storage_folder);
+  if (!file_system::DirectoryExists(app_storage_folder)) {
+    LOG4CXX_WARN(logger_,
+                 "Storage directory doesn't exist " << app_storage_folder);
+    LOG4CXX_TRACE_EXIT(logger_);
+    return false;
+  }
+  if (!(file_system::IsWritingAllowed(app_storage_folder) &&
+        file_system::IsReadingAllowed(app_storage_folder))) {
+    LOG4CXX_WARN(
+        logger_,
+        "Storage directory doesn't have read/write permissions " << app_storage_folder);
+    LOG4CXX_TRACE_EXIT(logger_);
+    return false;
+  }
+  LOG4CXX_TRACE_EXIT(logger_);
+  return true;
+}
+
 bool PolicyManagerImpl::InitPT(const std::string& file_name) {
+  LOG4CXX_TRACE_ENTER(logger_);
+  if (!CheckAppStorageFolder()) {
+    LOG4CXX_ERROR(logger_, "Can not read/write into AppStorageFolder");
+    return false;
+  }
   const bool ret = cache_->Init(file_name);
   if (ret) {
     RefreshRetrySequence();
     update_status_manager_->OnPolicyInit(cache_->UpdateRequired());
   }
+  LOG4CXX_TRACE_EXIT(logger_);
   return ret;
 }
 

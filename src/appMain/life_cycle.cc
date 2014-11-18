@@ -90,6 +90,7 @@ LifeCycle::LifeCycle()
 #ifdef PASA_HMI
   , mb_pasa_adapter_(NULL)
   , mb_pasa_adapter_thread_(NULL)
+  , low_voltage_(false)
 #endif  // PASA_HMI
 #endif  // CUSTOMER_PASA
   , components_started_(false)
@@ -392,6 +393,10 @@ void LifeCycle::Run() {
     while (!threads.empty()) {
       ::threads::ThreadManager::ThreadDesc desc = threads.pop();
       pthread_join(desc.handle, NULL);
+      sync_primitives::AutoLock(desc.delegate->thread_lock_);
+      if (desc.delegate->CurrentThread()) {
+        desc.delegate->CurrentThread()->delegate_ = NULL;
+      }
       delete desc.delegate;
     }
     threads.wait();
@@ -400,12 +405,25 @@ void LifeCycle::Run() {
 
 #ifdef CUSTOMER_PASA
 void LifeCycle::LowVoltage() {
+  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_TRACE(logger_, "Good night!");
+  low_voltage_ = true;
   transport_manager_->Visibility(false);
+  app_manager_->OnLowVoltage();
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void LifeCycle::WakeUp() {
+  LOG4CXX_TRACE_ENTER(logger_);
+  DCHECK(low_voltage_ == true);
+
+  LOG4CXX_TRACE(logger_, "Wake up and sing!");
+  app_manager_->OnWakeUp();
   transport_manager_->Reinit();
   transport_manager_->Visibility(true);
+  low_voltage_ = false;
+
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 #endif
 

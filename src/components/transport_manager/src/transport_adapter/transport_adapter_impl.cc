@@ -243,9 +243,13 @@ TransportAdapter::Error TransportAdapterImpl::DisconnectDevice(
   ConnectionMap::iterator it = connections_.begin();
   while (it != connections_.end()) {
     ConnectionInfo& info = it->second;
+    LOG4CXX_DEBUG(logger_, "Connection with device_id=" << info.device_id
+                  << ", app_handle=" << info.app_handle);
     ++it;
     if (info.device_id == device_id &&
         info.state != ConnectionInfo::FINALISING) {
+      LOG4CXX_DEBUG(logger_, "Disconnection connection with device_id=" << info.device_id
+                    << ", app_handle=" << info.app_handle);
       if (OK != info.connection->Disconnect()) {
         error = FAIL;
         LOG4CXX_ERROR(logger_, "Error on disconnect" << error);

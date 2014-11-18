@@ -44,6 +44,7 @@ HMIRequestInfo::HMIRequestInfo(
   RequestInfo(HMIRequest, timeout_sec),
   request_(request) {
     correlation_id_ = request_->correlation_id();
+    app_id_ = 0;
 }
 
 HMIRequestInfo::HMIRequestInfo(
@@ -53,6 +54,7 @@ HMIRequestInfo::HMIRequestInfo(
   RequestInfo(HMIRequest, start_time, timeout_sec),
   request_(request) {
     correlation_id_ = request_->correlation_id();
+    app_id_ = 0;
 }
 
 MobileRequestInfo::MobileRequestInfo(
