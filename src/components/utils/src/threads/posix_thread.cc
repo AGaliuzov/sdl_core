@@ -60,6 +60,7 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "Utils")
 size_t Thread::kMinStackSize = PTHREAD_STACK_MIN; /* Ubuntu : 16384 ; QNX : 256; */
 
 void Thread::cleanup(void* arg) {
+  LOG4CXX_AUTO_TRACE(logger_, autotrace);
   Thread* thread = reinterpret_cast<Thread*>(arg);
   sync_primitives::AutoLock auto_lock(thread->state_lock_);
   thread->isThreadRunning_ = false;
@@ -83,7 +84,6 @@ void* Thread::threadFunc(void* arg) {
   LOG4CXX_DEBUG(logger_, "Thread #" << pthread_self() << " started successfully");
 
   threads::Thread* thread = reinterpret_cast<Thread*>(arg);
-
   DCHECK(thread);
 
   pthread_cleanup_push(&cleanup, thread);
@@ -91,8 +91,8 @@ void* Thread::threadFunc(void* arg) {
   thread->state_lock_.Acquire();
   thread->state_cond_.Broadcast();
 
-
   while (!thread->finalized_) {
+    LOG4CXX_DEBUG(logger_, "Thread #" << pthread_self() << " iteration");
     thread->run_cond_.Wait(thread->state_lock_);
     if (!thread->stopped_ && !thread->finalized_) {
 
@@ -238,9 +238,6 @@ void Thread::stop() {
 
   if (delegate_ && isThreadRunning_) {
     delegate_->exitThreadMain();
-    if (!pthread_equal(pthread_self(), handle_)) {
-      state_cond_.Wait(auto_lock);
-    }
   }
 
   LOG4CXX_DEBUG(logger_, "Stopped thread #" << handle_
@@ -250,13 +247,16 @@ void Thread::stop() {
 
 void Thread::join() {
   LOG4CXX_TRACE_ENTER(logger_);
+  DCHECK(!pthread_equal(pthread_self(), handle_));
 
   stop();
 
   sync_primitives::AutoLock auto_lock(state_lock_);
   run_cond_.NotifyOne();
   if (isThreadRunning_) {
-    state_cond_.Wait(auto_lock);
+    if(!pthread_equal(pthread_self(), handle_)) {
+      state_cond_.Wait(auto_lock);
+    }
   }
   LOG4CXX_TRACE_EXIT(logger_);
 }
