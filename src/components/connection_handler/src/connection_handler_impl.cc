@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -378,10 +378,15 @@ void ConnectionHandlerImpl::OnApplicationFloodCallBack(const uint32_t &connectio
   transport_manager::ConnectionUID connection_handle = 0;
   uint8_t session_id = 0;
   PairFromKey(connection_key, &connection_handle, &session_id);
+
   LOG4CXX_INFO(logger_, "Disconnect flooding application");
-  transport_manager::ConnectionUID connection_uid =
-      ConnectionUIDFromHandle(connection_handle);
-  transport_manager_->DisconnectForce(connection_uid);
+  if (session_id != 0) {
+    CloseSession(connection_handle, session_id, kFlood);
+  } else {
+    transport_manager::ConnectionUID connection_uid =
+        ConnectionUIDFromHandle(connection_handle);
+    transport_manager_->DisconnectForce(connection_uid);
+  }
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
@@ -728,18 +733,20 @@ uint32_t ConnectionHandlerImpl::GetConnectionSessionsCount(
   return 0;
 }
 
-void ConnectionHandlerImpl::CloseSession(uint32_t key) {
+void ConnectionHandlerImpl::CloseSession(uint32_t key,
+                                         CloseSessionReason close_reason) {
   LOG4CXX_TRACE(logger_, "ConnectionHandlerImpl::CloseSession");
 
   uint32_t connection_handle = 0;
   uint8_t session_id = 0;
   PairFromKey(key, &connection_handle, &session_id);
 
-  CloseSession(connection_handle, session_id);
+  CloseSession(connection_handle, session_id, close_reason);
 }
 
 void ConnectionHandlerImpl::CloseSession(ConnectionHandle connection_handle,
-                                         uint8_t session_id) {
+                                         uint8_t session_id,
+                                         CloseSessionReason close_reason) {
   if (protocol_handler_) {
     protocol_handler_->SendEndSession(connection_handle, session_id);
   }
@@ -751,8 +758,7 @@ void ConnectionHandlerImpl::CloseSession(ConnectionHandle connection_handle,
   ConnectionList::iterator itr = connection_list_.find(connection_id);
 
   if (connection_list_.end() != itr) {
-    sync_primitives::AutoLock lock(connection_handler_observer_lock_);
-    if (connection_handler_observer_) {
+    if (connection_handler_observer_ && kCommon == close_reason) {
       SessionMap session_map = itr->second->session_map();
       SessionMap::iterator session_it = session_map.find(session_id);
       if (session_it != session_map.end()) {

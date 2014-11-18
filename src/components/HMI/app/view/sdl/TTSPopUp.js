@@ -103,7 +103,7 @@ SDL.TTSPopUp = Em.ContainerView.create( {
 
         classNames: 'checkBoxTTS',
 
-        checked: false
+        checked: true
 
     }),
 
