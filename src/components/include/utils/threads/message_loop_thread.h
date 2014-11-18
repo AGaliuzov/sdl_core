@@ -79,6 +79,10 @@ class MessageLoopThread {
 
   // Places a message to the therad's queue. Thread-safe.
   void PostMessage(const Message& message);
+
+  // Process already posted messages and stop thread processing. Thread-safe.
+  void Shutdown();
+
  private:
   /*
    * Implementation of ThreadDelegate that actually pumps the queue and is
@@ -101,6 +105,7 @@ class MessageLoopThread {
     MessageQueue<Message, Queue>& message_queue_;
     sync_primitives::Lock active_lock;
   };
+
  private:
   MessageQueue<Message, Queue> message_queue_;
   threads::Thread* thread_;
@@ -112,7 +117,8 @@ template<class Q>
 MessageLoopThread<Q>::MessageLoopThread(const std::string&   name,
                                         Handler*             handler,
                                         const ThreadOptions& thread_opts)
-    : thread_(threads::CreateThread(name.c_str(), new LoopThreadDelegate(&message_queue_, handler))) {
+    : thread_(threads::CreateThread(name.c_str(),
+                                    new LoopThreadDelegate(&message_queue_, handler))) {
   bool started = thread_->startWithOptions(thread_opts);
   if (!started) {
     CREATE_LOGGERPTR_LOCAL(logger_, "Utils")
@@ -122,12 +128,21 @@ MessageLoopThread<Q>::MessageLoopThread(const std::string&   name,
 
 template<class Q>
 MessageLoopThread<Q>::~MessageLoopThread() {
-  thread_->stop();
+  Shutdown();
 }
 
 template <class Q>
 void MessageLoopThread<Q>::PostMessage(const Message& message) {
   message_queue_.push(message);
+}
+
+template <class Q>
+void MessageLoopThread<Q>::Shutdown() {
+  if(thread_) {
+    thread_->stop();
+    threads::DeleteThread(thread_);
+    thread_ = NULL;
+  }
 }
 
 //////////
@@ -142,28 +157,34 @@ MessageLoopThread<Q>::LoopThreadDelegate::LoopThreadDelegate(
 
 template<class Q>
 void MessageLoopThread<Q>::LoopThreadDelegate::threadMain() {
+  CREATE_LOGGERPTR_LOCAL(logger_, "Utils")
+  LOG4CXX_TRACE_ENTER(logger_);
   sync_primitives::AutoLock auto_lock(active_lock);
-  while(!message_queue_.IsShuttingDown()){
+  while (!message_queue_.IsShuttingDown()) {
     DrainQue();
     message_queue_.wait();
   }
   // Process leftover messages
   DrainQue();
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 template<class Q>
 bool MessageLoopThread<Q>::LoopThreadDelegate::exitThreadMain() {
+  CREATE_LOGGERPTR_LOCAL(logger_, "Utils")
+  LOG4CXX_TRACE_ENTER(logger_);
   message_queue_.Shutdown();
   {
     sync_primitives::AutoLock auto_lock(active_lock);
     // Prevent canceling thread until queue is drained
   }
+  LOG4CXX_TRACE_EXIT(logger_);
   return true;
 }
 
 template<class Q>
 void MessageLoopThread<Q>::LoopThreadDelegate::DrainQue() {
-  while(!message_queue_.empty()) {
+  while (!message_queue_.empty()) {
     handler_.Handle(message_queue_.pop());
   }
 }

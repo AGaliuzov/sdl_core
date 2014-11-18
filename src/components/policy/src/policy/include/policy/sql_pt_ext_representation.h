@@ -156,6 +156,10 @@ class SQLPTExtRepresentation : public SQLPTRepresentation,
     virtual bool SaveUsageAndErrorCounts(
         const policy_table::UsageAndErrorCounts& counts);
 
+    bool SaveAppCounters(const policy_table::AppLevels& app_levels);
+
+    bool SaveGlobalCounters(const policy_table::UsageAndErrorCounts& counts);
+
     bool IsExistAppLevel(const std::string& app_id) const;
 
     bool GetAllAppGroups(const std::string& policy_app_id,

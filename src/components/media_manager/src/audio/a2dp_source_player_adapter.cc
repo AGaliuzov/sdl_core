@@ -239,6 +239,7 @@ void A2DPSourcePlayerAdapter::A2DPSourcePlayerThread::threadMain() {
 
     bool should_be_stopped;
     {
+      // FIXME (dchmerev@luxoft.com): Remove these insane blockings
       sync_primitives::AutoLock auto_lock(should_be_stopped_lock_);
       should_be_stopped = should_be_stopped_;
     }

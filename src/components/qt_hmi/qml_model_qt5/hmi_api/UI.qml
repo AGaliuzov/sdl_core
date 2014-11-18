@@ -203,6 +203,7 @@ Item {
                 "updateMode": Internal.MediaClockUpdateMode.MCU_COUNTUP,
                 "runningMode": Internal.MediaClockRunningMode.MCR_STOPPED,
                 "magic": Internal.stringToHmsTime(fieldSubstrings[Common.TextFieldName.mediaClock]),
+                "startTime": Internal.stringToHmsTime(fieldSubstrings[Common.TextFieldName.mediaClock]),
                 "startTimeForProgress": -1
             }
         }

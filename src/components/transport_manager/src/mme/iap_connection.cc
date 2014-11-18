@@ -53,11 +53,11 @@ IAPConnection::IAPConnection(const DeviceUID& device_uid,
 }
 
 void IAPConnection::Init() {
+  controller_->ConnectDone(device_uid_, app_handle_);
+
   IAPDevice::AppRecord record = parent_->RegisterConnection(app_handle_, this);
   protocol_name_ = record.first;
   ipod_hdl_ = record.second;
-
-  controller_->ConnectDone(device_uid_, app_handle_);
 }
 
 TransportAdapter::Error IAPConnection::SendData(
@@ -86,7 +86,7 @@ TransportAdapter::Error IAPConnection::SendData(
   } else {
     LOG4CXX_WARN(
         logger_,
-        "iAP: error occurred while sending data on protocol " << protocol_name_);
+        "iAP: error occurred while sending data on protocol " << protocol_name_ << ", errno = " << errno);
     controller_->DataSendFailed(device_uid_, app_handle_, message,
                                 DataSendError());
     return TransportAdapter::FAIL;
@@ -129,7 +129,7 @@ void IAPConnection::ReceiveData(int session_id) {
         default:
           LOG4CXX_WARN(
               logger_,
-              "iAP: error occurred while receiving data on protocol " << protocol_name_);
+              "iAP: error occurred while receiving data on protocol " << protocol_name_ << ", errno = " << errno);
           controller_->DataReceiveFailed(device_uid_, app_handle_,
                                          DataReceiveError());
           break;

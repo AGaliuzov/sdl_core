@@ -82,21 +82,16 @@ CacheManager::CacheManager()
 
   LOG4CXX_TRACE_ENTER(logger_);
   backuper_ = new BackgroundBackuper(this);
-  backup_thread_ = threads::CreateThread("Backup thread", backuper_, false);
-
-  if (backup_thread_) {
-    backup_thread_->start();
-  } else {
-    LOG4CXX_ERROR(logger_, "The background thread delegate has not been created");
-  }
+  backup_thread_ = threads::CreateThread("Backup thread", backuper_);
+  backup_thread_->start();
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
 CacheManager::~CacheManager() {
   if (backup_thread_) {
     backuper_ = NULL;
-
     backup_thread_->stop();
+    backup_thread_->join();
     threads::DeleteThread(backup_thread_);
   }
 }
@@ -153,6 +148,7 @@ bool CacheManager::GetDefaultHMI(const std::string &app_id,
 
 bool CacheManager::ResetUserConsent() {
   CACHE_MANAGER_CHECK(false);
+  sync_primitives::AutoLock lock (cache_lock_);
 #ifdef EXTENDED_POLICY
   policy_table::DeviceData::iterator iter =
       pt_->policy_table.device_data->begin();
@@ -407,7 +403,8 @@ std::string CacheManager::currentDateTime() {
   struct tm  tstruct;
   char       buf[80];
   tstruct = *localtime(&now);
-  strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
+  // ISO_8601 format is expected, e.g. “2000-01-01T12:18:53Z”
+  strftime(buf, sizeof(buf), "%Y-%m-%dT%XZ", &tstruct);
   return buf;
 }
 
@@ -521,6 +518,7 @@ bool CacheManager::ReactOnUserDevConsentForApp(const std::string &app_id,
   CACHE_MANAGER_CHECK(false);
   bool result = true;
 #ifdef EXTENDED_POLICY
+  cache_lock_.Acquire();
   if (is_device_allowed) {
     // If app has pre_DataConsented groups it should be 'promoted' to default
     // If app has only pre_DataConsented flag it should be only set to false and
@@ -552,6 +550,7 @@ bool CacheManager::ReactOnUserDevConsentForApp(const std::string &app_id,
       result = SetIsPredata(app_id, true);
     }
   }
+  cache_lock_.Release();
 #endif // EXTENDED_POLICY
   Backup();
   LOG4CXX_TRACE_EXIT(logger_);
@@ -596,6 +595,8 @@ bool CacheManager::SetUserPermissionsForApp(
       GetGroupNameByHashID((*iter).group_id, group_name);
 
       (*ucr.consent_groups)[group_name] = ((*iter).state == policy::kGroupAllowed);
+      *ucr.input = policy_table::Input::I_GUI;
+      *ucr.time_stamp = currentDateTime();
     }
   }
 #endif // EXTENDED_POLICY
@@ -613,7 +614,7 @@ void CacheManager::SaveUpdateRequired(bool status) {
   Backup();
 }
 
-bool CacheManager::IsApplicationRevoked(const std::string& app_id) {
+bool CacheManager::IsApplicationRevoked(const std::string& app_id) const {
   CACHE_MANAGER_CHECK(false);
   bool is_revoked = false;
   if (pt_->policy_table.app_policies.end() !=
@@ -1006,40 +1007,102 @@ void CacheManager::CheckSnapshotInitialization() {
 }
 
 void CacheManager::PersistData() {
-  sync_primitives::AutoLock auto_lock(cache_lock_);
   LOG4CXX_TRACE_ENTER(logger_);
   if (backup_.valid()) {
     if (pt_.valid()) {
-      backup_->Save(*pt_);
+
+      cache_lock_.Acquire();
+      policy_table::Table copy_pt(*pt_);
+      std::map<std::string, bool> copy_is_predata = is_predata_;
+      cache_lock_.Release();
+
+      backup_->Save(copy_pt);
       backup_->SaveUpdateRequired(update_required);
 
       policy_table::ApplicationPolicies::const_iterator app_policy_iter =
-          pt_->policy_table.app_policies.begin();
+          copy_pt.policy_table.app_policies.begin();
       policy_table::ApplicationPolicies::const_iterator app_policy_iter_end =
-          pt_->policy_table.app_policies.end();
+          copy_pt.policy_table.app_policies.end();
+
+      bool is_revoked = false;
+      bool is_default_policy;
 
       for (; app_policy_iter != app_policy_iter_end; ++app_policy_iter) {
 
         const std::string app_id = (*app_policy_iter).first;
+
+        if (copy_pt.policy_table.app_policies.end() !=
+            copy_pt.policy_table.app_policies.find(app_id)) {
+          is_revoked = copy_pt.policy_table.app_policies[app_id].is_null();
+        }
+
+        is_default_policy = copy_pt.policy_table.app_policies.end() !=
+            copy_pt.policy_table.app_policies.find(app_id) &&
+            !copy_pt.policy_table.app_policies[app_id].get_string().empty();
+
         backup_->SaveApplicationCustomData(app_id,
-                                          IsApplicationRevoked(app_id),
-                                          IsDefaultPolicy(app_id),
-                                          is_predata_[app_id]);
+                                           is_revoked,
+                                           is_default_policy,
+                                           copy_is_predata[app_id]);
+        is_revoked = false;
       }
 
   // In case of extended policy the meta info should be backuped as well.
 #ifdef EXTENDED_POLICY
       if (ex_backup_.valid()) {
-        ex_backup_->SetMetaInfo(*(*pt_->policy_table.module_meta).ccpu_version,
-                                *(*pt_->policy_table.module_meta).wers_country_code,
-                                *(*pt_->policy_table.module_meta).language);
-        ex_backup_->SetVINValue(*(*pt_->policy_table.module_meta).vin);
+
+        ex_backup_->SetMetaInfo(*(*copy_pt.policy_table.module_meta).ccpu_version,
+                                *(*copy_pt.policy_table.module_meta).wers_country_code,
+                                *(*copy_pt.policy_table.module_meta).language);
+        ex_backup_->SetVINValue(*(*copy_pt.policy_table.module_meta).vin);
+
+
       }
 #endif // EXTENDED_POLICY
+      backup_->WriteDb();
     }
-    backup_->WriteDb();
+  }
+}
+
+void CacheManager::ResetCalculatedPermissions() {
+  LOG4CXX_TRACE(logger_, "ResetCalculatedPermissions");
+  sync_primitives::AutoLock lock(calculated_permissions_lock_);
+  calculated_permissions_.clear();
+}
+
+void CacheManager::AddCalculatedPermissions(
+    const std::string& device_id,
+    const std::string& policy_app_id,
+    const Permissions& permissions) {
+  LOG4CXX_DEBUG(logger_, "AddCalculatedPermissions for device: " << device_id
+               << " and app: " << policy_app_id);
+  sync_primitives::AutoLock lock(calculated_permissions_lock_);
+  calculated_permissions_[device_id][policy_app_id] = permissions;
+}
+
+bool CacheManager::IsPermissionsCalculated(
+    const std::string& device_id,
+    const std::string& policy_app_id,
+    Permissions& permission) {
+  LOG4CXX_DEBUG(logger_, "IsPermissionsCalculated for device: " << device_id
+               << " and app: " << policy_app_id);
+  sync_primitives::AutoLock lock(calculated_permissions_lock_);
+  CalculatedPermissions::const_iterator it =
+      calculated_permissions_.find(device_id);
+
+  if (calculated_permissions_.end() == it) {
+    return false;
   }
 
+  AppCalculatedPermissions::const_iterator app_it =
+      (*it).second.find(policy_app_id);
+  if ((*it).second.end() == app_it) {
+    return false;
+  } else {
+    permission = (*app_it).second;
+    return true;
+  }
+  return false;
 }
 
 utils::SharedPtr<policy_table::Table>
@@ -1431,7 +1494,9 @@ bool CacheManager::UnpairedDevicesList(DeviceIds& device_ids) {
 bool CacheManager::SetVINValue(const std::string& value) {
   CACHE_MANAGER_CHECK(false);
 #ifdef EXTENDED_POLICY
+   cache_lock_.Acquire();
   *pt_->policy_table.module_meta->vin = value;
+   cache_lock_.Release();
 #endif // EXTENDED_POLICY
   Backup();
   return true;
@@ -1477,7 +1542,7 @@ void CacheManager::FillAppSpecificData() {
   policy_table::ApplicationPolicies::const_iterator iter =
       pt_->policy_table.app_policies.begin();
   policy_table::ApplicationPolicies::const_iterator iter_end =
-      pt_->policy_table.app_policies.begin();
+      pt_->policy_table.app_policies.end();
 
   for (; iter != iter_end; ++iter) {
     const std::string& app_name = (*iter).first;
@@ -1498,6 +1563,7 @@ void CacheManager::FillDeviceSpecificData() {
 }
 
 bool CacheManager::LoadFromBackup() {
+  sync_primitives::AutoLock lock(cache_lock_);
   pt_ = backup_->GenerateSnapshot();
   update_required = backup_->UpdateRequired();
 
@@ -1521,17 +1587,24 @@ bool CacheManager::LoadFromFile(const std::string& file_name) {
   Json::Value value;
   Json::Reader reader(Json::Features::strictMode());
   std::string json(json_string.begin(), json_string.end());
-  bool ok = reader.parse(json.c_str(), value);
-  if (ok) {
+  LOG4CXX_INFO(logger_, "Start reset table.");
+  cache_lock_.Acquire();
+  if (reader.parse(json.c_str(), value)) {
+    backup_->Clear();
+    is_predata_.clear();
+    is_unpaired_.clear();
+
     pt_ = new policy_table::Table(&value);
+    final_result = backup_->Save(*pt_);
+    if (final_result) {
+      backup_->WriteDb();
+    }
   } else {
     LOG4CXX_WARN(logger_, reader.getFormattedErrorMessages());
   }
 
-  if (!pt_) {
-    LOG4CXX_WARN(logger_, "Failed to parse policy table");
-    return false;
-  }
+  LOG4CXX_INFO(logger_, "Finish reset table.");
+  cache_lock_.Release();
 
   if (!pt_->is_valid()) {
     rpc::ValidationReport report("policy_table");
@@ -1540,7 +1613,6 @@ bool CacheManager::LoadFromFile(const std::string& file_name) {
                  rpc::PrettyFormat(report));
   }
 
-  final_result = backup_->Save(*pt_);
   LOG4CXX_INFO(
     logger_,
     "Loading from file was " << (final_result ? "successful" : "unsuccessful"));

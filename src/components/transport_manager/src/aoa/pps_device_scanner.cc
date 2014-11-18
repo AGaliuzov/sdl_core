@@ -120,7 +120,11 @@ TransportAdapter::Error PPSDeviceScanner::Scan() {
 
 void PPSDeviceScanner::Terminate() {
   initialised_ = false;
-  thread_->stop();
+  if(thread_ && thread_->is_running()) {
+    thread_->stop();
+    threads::DeleteThread(thread_);
+    thread_ = NULL;
+  }
   ClosePps();
 }
 

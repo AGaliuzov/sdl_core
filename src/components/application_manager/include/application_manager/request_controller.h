@@ -120,7 +120,7 @@ class RequestController {
     * @return Result code
     *
     */
-    TResult addMobileRequest(const RequestPtr& request,
+    TResult addMobileRequest(const RequestPtr request,
                              const mobile_apis::HMILevel::eType& hmi_level);
 
 
@@ -146,7 +146,7 @@ class RequestController {
     * @param mobile_corellation_id Active mobile request correlation ID
     *
     */
-    void terminateMobileRequest(const uint32_t& mobile_correlation_id);
+    void terminateMobileRequest(const uint32_t& mobile_correlation_id, const uint32_t& connection_key);
 
 
     /**
@@ -208,26 +208,35 @@ class RequestController {
   protected:
 
     /**
-     * @brief Checs if this app as able to add new requests, or limits was exceeded
+     * @brief Check if this app is able to add new requests, or limits was exceeded
      * @param app_id - application id
      * @param app_time_scale - time scale (seconds)
-     * @param max_request_per_time_scale - maximum count of request that should be allowed for app_time_scale secconds
+     * @param max_request_per_time_scale - maximum count of request that should be allowed for app_time_scale seconds
+     * @return True if new request could be added, false otherwise
      */
-    bool checkTimeScaleMaxRequest(const uint32_t& app_id,
+    bool CheckTimeScaleMaxRequest(const uint32_t& app_id,
                                   const uint32_t& app_time_scale,
                                   const uint32_t& max_request_per_time_scale);
 
     /**
-     * @brief Checs if this app as able to add new requests in current hmi_level, or limits was exceeded
+     * @brief Check if this app is able to add new requests in current hmi_level, or limits was exceeded
      * @param hmi_level - hmi level
      * @param app_id - application id
      * @param app_time_scale - time scale (seconds)
-     * @param max_request_per_time_scale - maximum count of request that should be allowed for app_time_scale secconds
+     * @param max_request_per_time_scale - maximum count of request that should be allowed for app_time_scale seconds
+     * @return True if new request could be added, false otherwise
      */
-    bool checkHMILevelTimeScaleMaxRequest(const mobile_apis::HMILevel::eType& hmi_level,
+    bool CheckHMILevelTimeScaleMaxRequest(const mobile_apis::HMILevel::eType& hmi_level,
                                           const uint32_t& app_id,
                                           const uint32_t& app_time_scale,
                                           const uint32_t& max_request_per_time_scale);
+
+    /**
+     * @brief Check Posibility to add new requests, or limits was exceeded
+     * @param pending_requests_amount - maximum count of request that should be allowed for all applications
+     * @return True if new request could be added, false otherwise
+     */
+    bool CheckPendingRequestsAmount(const uint32_t& pending_requests_amount);
 
     void onTimer();
 

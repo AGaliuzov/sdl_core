@@ -225,7 +225,7 @@ class CacheManagerInterface {
    * @param app_id application id
    * @return true if application is revoked
    */
-  virtual bool IsApplicationRevoked(const std::string& app_id) = 0;
+  virtual bool IsApplicationRevoked(const std::string& app_id) const = 0;
 
   /**
    * @brief Get functional groupings from DB
@@ -552,6 +552,36 @@ class CacheManagerInterface {
    * otherwise heart beat for specific application isn't set
    */
   virtual uint16_t HeartBeatTimeout(const std::string& app_id) const = 0;
+
+  /**
+   * @brief Resets all calculated permissions in cache
+   */
+  virtual void ResetCalculatedPermissions() = 0;
+
+  /**
+   * @brief Adds calculated permissions for specific app on particular device
+   * into cache
+   * @param device_id Device id
+   * @param policy_app_id Application id
+   * @param permissions Calculated permissions
+   */
+  virtual void AddCalculatedPermissions(
+      const std::string& device_id,
+      const std::string& policy_app_id,
+      const policy::Permissions& permissions) = 0;
+
+  /**
+   * @brief Checks if permissions calculated for specific app on particular
+   * device
+   * @param device_id Device id
+   * @param policy_app_id Application id
+   * @param permission Permissions to be filled, in case of presence in cache
+   * @return true if present, otherwise false
+   */
+  virtual bool IsPermissionsCalculated(
+      const std::string& device_id,
+      const std::string& policy_app_id,
+      policy::Permissions& permission) = 0;
 };
 
 typedef utils::SharedPtr<CacheManagerInterface> CacheManagerInterfaceSPtr;

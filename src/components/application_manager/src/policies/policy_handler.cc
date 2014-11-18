@@ -1,5 +1,5 @@
 ﻿/*
- Copyright (c) 2013, Ford Motor Company
+ Copyright (c) 2014, Ford Motor Company
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,12 @@
 #include <algorithm>
 #include <vector>
 #include "application_manager/smart_object_keys.h"
+
 #include "application_manager/policies/policy_handler.h"
 #include "application_manager/policies/pt_exchange_handler_impl.h"
 #include "application_manager/policies/pt_exchange_handler_ext.h"
+#include "application_manager/policies/delegates/app_permission_delegate.h"
+
 #include "application_manager/application_manager_impl.h"
 #include "application_manager/message_helper.h"
 #include "policy/policy_manager_impl.h"
@@ -51,6 +54,7 @@
 #include "policy/policy_types.h"
 #include "interfaces/MOBILE_API.h"
 #include "utils/file_system.h"
+#include "utils/threads/async_runner.h"
 
 namespace policy {
 
@@ -208,7 +212,8 @@ const std::string PolicyHandler::kLibrary = "libPolicy.so";
 
 PolicyHandler::PolicyHandler()
 
-  : dl_handle_(0),
+  : AsyncRunner("PolicyHandler async runner thread"),
+    dl_handle_(0),
 #ifdef EXTENDED_POLICY
     exchange_handler_(new PTExchangeHandlerExt(this)),
 #else  // EXTENDED_POLICY
@@ -219,8 +224,7 @@ PolicyHandler::PolicyHandler()
     registration_in_progress(false),
     is_user_requested_policy_table_update_(false),
     listener_(NULL),
-    statistic_manager_impl_(new StatisticManagerImpl())
-    {
+    statistic_manager_impl_(new StatisticManagerImpl()) {
 }
 
 PolicyHandler::~PolicyHandler() {
@@ -266,7 +270,7 @@ bool PolicyHandler::CreateManager() {
 }
 
 bool PolicyHandler::InitPolicyTable() {
-  LOG4CXX_TRACE(logger_, "Init policy table from preloaded.");
+  LOG4CXX_TRACE(logger_, "Init policy table.");
   POLICY_LIB_CHECK(false);
   // Subscribing to notification for system readiness to be able to get system
   // info necessary for policy table
@@ -364,39 +368,41 @@ uint32_t PolicyHandler::GetAppIdForSending() {
   return selected_app_id;
 }
 
-DeviceConsent PolicyHandler::GetDeviceForSending(DeviceParams& device_params) {
+DeviceConsent PolicyHandler::GetDeviceForSending() {
   POLICY_LIB_CHECK(kDeviceDisallowed);
-  uint32_t app_id = 0;
-  uint32_t app_id_previous = 0;
-  while (true) {
-    app_id = GetAppIdForSending();
+  application_manager::ApplicationManagerImpl::ApplicationListAccessor accessor;
+  const uint32_t apps_number = accessor.applications().size();
+  if (!apps_number) {
+    LOG4CXX_WARN(logger_,
+                 "There is no appropriate application for sending PTS.");
+    return kDeviceDisallowed;
+  }
+  DeviceConsent consent = kDeviceDisallowed;
+  for (uint32_t i = 0; i < apps_number; ++i) {
+    uint32_t app_id = GetAppIdForSending();
     if (!app_id) {
       LOG4CXX_WARN(logger_,
                    "There is no appropriate application for sending PTS.");
       return kDeviceDisallowed;
     }
 
-    // If only one application is available, return its device params
-    if (app_id == app_id_previous) {
-      return kDeviceDisallowed;
-    }
-
-    app_id_previous = app_id;
+    DeviceParams device_params;
     application_manager::MessageHelper::GetDeviceInfoForApp(app_id,
         &device_params);
 
-    DeviceConsent consent = policy_manager_->GetUserConsentForDevice(
-                              device_params.device_mac_address);
+    consent = policy_manager_->GetUserConsentForDevice(
+          device_params.device_mac_address);
+
     switch (consent) {
       case kDeviceAllowed:
         return consent;
       case kDeviceDisallowed:
         continue;
       case kDeviceHasNoConsent:
-        return consent;
+        continue;
       default:
         LOG4CXX_WARN(logger_, "Consent result is not impelemented.");
-        return consent;
+        return kDeviceDisallowed;
     }
   }
   return kDeviceDisallowed;
@@ -414,6 +420,13 @@ const std::string PolicyHandler::ConvertUpdateStatus(PolicyTableStatus status) {
       return "UNKNOWN";
     }
   }
+}
+
+void PolicyHandler::OnAppPermissionConsent(const uint32_t connection_key,
+                                           const PermissionConsent& permissions) {
+  LOG4CXX_TRACE_ENTER(logger_);
+  AsyncRun(new AppPermissionDelegate(connection_key, permissions));
+  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void PolicyHandler::OnDeviceConsentChanged(const std::string& device_id,
@@ -467,8 +480,8 @@ void PolicyHandler::SetDeviceInfo(std::string& device_id,
   policy_manager_->SetDeviceInfo(device_id, device_info);
 }
 
-void PolicyHandler::OnAppPermissionConsent(const uint32_t connection_key,
-  PermissionConsent &permissions) {
+void PolicyHandler::OnAppPermissionConsentInternal(
+    const uint32_t connection_key, PermissionConsent &permissions) {
   LOG4CXX_INFO(logger_, "OnAppPermissionConsent");
   POLICY_LIB_CHECK_VOID();
   if (connection_key) {
@@ -743,8 +756,8 @@ void PolicyHandler::OnPendingPermissionChange(
           SendOnAppPermissionsChangedNotification(app->app_id(), permissions);
 
       policy_manager_->RemovePendingPermissionChanges(policy_app_id);
+      break;
     }
-    break;
   }
   case mobile_apis::HMILevel::HMI_BACKGROUND: {
     if (permissions.isAppPermissionsRevoked) {
@@ -884,19 +897,13 @@ void PolicyHandler::StartPTExchange(bool skip_device_selection) {
   }
 
   if (!skip_device_selection) {
-    DeviceParams device_params;
-    DeviceConsent consent = GetDeviceForSending(device_params);
-    switch (consent) {
-      case kDeviceHasNoConsent:
-        // Send OnSDLConsentNeeded to HMI for user consent on device usage
-        pending_device_handles_.push_back(device_params.device_handle);
-        application_manager::MessageHelper::SendOnSDLConsentNeeded(
-          device_params);
-        return;
-      case kDeviceDisallowed:
-        return;
-      default:
+    switch (GetDeviceForSending()) {
+      case kDeviceAllowed:
         break;
+      default:
+      LOG4CXX_INFO(logger_, "There are no allowed devices found for sending"
+                            " policy update.");
+        return;
     }
   }
 
@@ -1003,6 +1010,7 @@ void PolicyHandler::OnAllowSDLFunctionalityNotification(bool is_allowed,
         //app_manager->PutApplicationInFull(app);
         app_manager->ActivateApplication(app);
         // Put application in full
+        application_manager::MessageHelper::SendHMIStatusNotification(*app);
         application_manager::MessageHelper::SendActivateAppToHMI(app->app_id());
       }
     // Skip device selection, since user already consented device usage
