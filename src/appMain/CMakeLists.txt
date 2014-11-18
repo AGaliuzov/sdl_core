@@ -210,6 +210,18 @@ if (BUILD_AVAHI_SUPPORT)
   list(APPEND LIBRARIES avahi-client avahi-common)
 endif()
 
+
+if (${QT_HMI})
+set(SOURCES
+    ${CMAKE_SOURCE_DIR}/src/components/rpc_base/test/rpc_base_dbus_test.cc    
+    ${COMPONENTS_DIR}/rpc_base/test/rpc_base_dbus_test.cc
+    ${COMPONENTS_DIR}/dbus/test/test_schema.cc
+    ${COMPONENTS_DIR}/dbus/test/test_dbus_adapter.cc
+    ${COMPONENTS_DIR}/hmi_message_handler/test/mock_subscriber.cc 
+    ${COMPONENTS_DIR}/hmi_message_handler/test/test_dbus_message_adapter.cc    
+    )
+endif ()
+
 #TODO to ALL : Please FIX heart_beat_monitor_test.cc
   set(testSources
     ./main_test.cc
@@ -219,7 +231,6 @@ endif()
     ${CMAKE_SOURCE_DIR}/src/components/media_manager/test/media_adapter_impl_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/connection_handler_impl_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/connection_test.cc
-    #${CMAKE_SOURCE_DIR}/src/components/rpc_base/test/rpc_base_dbus_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/rpc_base/test/rpc_base_json_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/rpc_base/test/rpc_base_test.cc
     ${CMAKE_SOURCE_DIR}/src/components/connection_handler/test/heart_beat_monitor_test.cc
@@ -234,7 +245,6 @@ endif()
     ${COMPONENTS_DIR}/media_manager/test/media_manager_impl_test.cc
     ${COMPONENTS_DIR}/connection_handler/test/connection_handler_impl_test.cc
     ${COMPONENTS_DIR}/connection_handler/test/connection_test.cc
-    ${COMPONENTS_DIR}/rpc_base/test/rpc_base_dbus_test.cc
     ${COMPONENTS_DIR}/rpc_base/test/rpc_base_json_test.cc
     ${COMPONENTS_DIR}/rpc_base/test/rpc_base_test.cc
     ${COMPONENTS_DIR}/connection_handler/test/heart_beat_monitor_test.cc
@@ -264,8 +274,7 @@ endif()
     ${COMPONENTS_DIR}/protocol_handler/test/protocol_handler_tm_test.cc
     ${COMPONENTS_DIR}/protocol_handler/test/incoming_data_handler_test.cc
     ${COMPONENTS_DIR}/protocol_handler/test/protocol_header_validator_test.cc
-    ${COMPONENTS_DIR}/dbus/test/test_schema.cc
-    ${COMPONENTS_DIR}/dbus/test/test_dbus_adapter.cc
+    ${COMPONENTS_DIR}/hmi_message_handler/test/test_mqueue_adapter.cc 
   )
 
   set(test_exec_libraries

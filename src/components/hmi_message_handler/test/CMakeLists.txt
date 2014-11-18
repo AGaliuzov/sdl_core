@@ -55,11 +55,14 @@ set (LIBRARIES
     ${RTLIB}
     ProtocolLibrary
 )
-
+if (${QT_HMI})
 set(SOURCES
-${COMPONENTS_DIR}/hmi_message_handler/test/main.cc  
 ${COMPONENTS_DIR}/hmi_message_handler/test/mock_subscriber.cc 
 ${COMPONENTS_DIR}/hmi_message_handler/test/test_dbus_message_adapter.cc
+)
+endif ()
+set(SOURCES
+${COMPONENTS_DIR}/hmi_message_handler/test/main.cc  
 ${COMPONENTS_DIR}/hmi_message_handler/test/test_mqueue_adapter.cc 
 
 )          
