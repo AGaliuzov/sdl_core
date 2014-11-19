@@ -309,6 +309,9 @@ void TimerThread<T>::TimerDelegate::threadMain() {
       break;
     }
   }
+  if (!stop_flag_) {
+    timer_thread_->onTimeOut();
+  }
 }
 
 template <class T>
