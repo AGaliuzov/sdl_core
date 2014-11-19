@@ -213,7 +213,6 @@ const std::string PolicyHandler::kLibrary = "libPolicy.so";
 PolicyHandler::PolicyHandler()
 
   : AsyncRunner("PolicyHandler async runner thread"),
-    // Use recursive mutex, because unload will be done in main loop
     dl_handle_(0),
 #ifdef EXTENDED_POLICY
     exchange_handler_(new PTExchangeHandlerExt(this)),
