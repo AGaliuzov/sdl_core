@@ -206,7 +206,7 @@ endif()
 
 
 if (${QT_HMI})
-set(SOURCES  
+list(APPEND testSources  
     ${COMPONENTS_DIR}/rpc_base/test/rpc_base_dbus_test.cc
     ${COMPONENTS_DIR}/dbus/test/test_schema.cc
     ${COMPONENTS_DIR}/dbus/test/test_dbus_adapter.cc
@@ -217,8 +217,7 @@ endif ()
 
 #TODO to ALL : Please FIX heart_beat_monitor_test.cc
   set(testSources
-    ./main_test.cc
-
+    main_test.cc
     ${COMPONENTS_DIR}/utils/test/messagemeter_test.cc
     ${COMPONENTS_DIR}/utils/test/date_time_test.cc
     ${COMPONENTS_DIR}/utils/test/file_system_test.cc
@@ -243,7 +242,6 @@ endif ()
     ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter_listener.cc
     ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter.cc 
     ${COMPONENTS_DIR}/transport_manager/test/transport_manager_test.cc 
-
     ${AM_TEST_DIR}/command_impl_test.cc
     ${COMPONENTS_DIR}/smart_objects/test/SmartObjectDraftTest.cc
     ${COMPONENTS_DIR}/smart_objects/test/SmartObjectInvalidTest.cc
