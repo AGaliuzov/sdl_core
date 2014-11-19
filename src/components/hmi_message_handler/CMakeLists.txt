@@ -45,9 +45,6 @@ include_directories (
   ${COMPONENTS_DIR}/dbus/include/
   ${CMAKE_SOURCE_DIR}/
   ${LOG4CXX_INCLUDE_DIRECTORY}
-  
-  ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8
-  ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8/dbus/
 )
 
 IF (HMIADAPTER STREQUAL "dbus")
