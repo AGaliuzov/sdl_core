@@ -46,7 +46,7 @@
 #include "utils/threads/thread.h"
 #include "utils/threads/thread_delegate.h"
 #include "utils/conditional_variable.h"
-#include "utils/lock.h"
+#include "utils/rwlock.h"
 #include "usage_statistics/statistics_manager.h"
 #include "policy_handler_observer.h"
 #include "utils/threads/async_runner.h"
@@ -98,6 +98,8 @@ class PolicyHandler :
   int NextRetryTimeout();
   int TimeoutExchange();
   void OnExceededTimeout();
+  void OnSystemReady();
+  void PTUpdatedAt(int kilometers, int days_after_epoch);
   BinaryMessageSptr RequestPTUpdate();
   const std::vector<int> RetrySequenceDelaysSeconds();
   void set_listener(PolicyHandlerObserver* listener);
@@ -406,7 +408,7 @@ private:
   PolicyHandler();
   static PolicyHandler* instance_;
   static const std::string kLibrary;
-  mutable sync_primitives::Lock policy_manager_lock_;
+  mutable sync_primitives::RWLock policy_manager_lock_;
   utils::SharedPtr<PolicyManager> policy_manager_;
   void* dl_handle_;
   AppIds last_used_app_ids_;

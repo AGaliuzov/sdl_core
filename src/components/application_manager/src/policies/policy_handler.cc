@@ -58,19 +58,19 @@
 namespace policy {
 
 #define POLICY_LIB_CHECK(return_value) {\
+  sync_primitives::AutoReadLock lock(policy_manager_lock_); \
   if (!policy_manager_) {\
     LOG4CXX_WARN(logger_, "The shared library of policy is not loaded");\
     return return_value;\
   }\
-  sync_primitives::AutoLock lock(policy_manager_lock_); \
 }
 
 #define POLICY_LIB_CHECK_VOID() {\
+  sync_primitives::AutoReadLock lock(policy_manager_lock_); \
   if (!policy_manager_) {\
     LOG4CXX_WARN(logger_, "The shared library of policy is not loaded");\
     return;\
   }\
-  sync_primitives::AutoLock lock(policy_manager_lock_); \
 }
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "PolicyHandler")
@@ -213,7 +213,7 @@ const std::string PolicyHandler::kLibrary = "libPolicy.so";
 PolicyHandler::PolicyHandler()
 
   : AsyncRunner("PolicyHandler async runner thread"),
-    policy_manager_lock_(true) ,
+    // Use recursive mutex, because unload will be done in main loop
     dl_handle_(0),
 #ifdef EXTENDED_POLICY
     exchange_handler_(new PTExchangeHandlerExt(this)),
@@ -234,7 +234,7 @@ PolicyHandler::~PolicyHandler() {
 
 bool PolicyHandler::LoadPolicyLibrary() {
   LOG4CXX_AUTO_TRACE(logger_);
-  sync_primitives::AutoLock lock(policy_manager_lock_);
+  sync_primitives::AutoWriteLock lock(policy_manager_lock_);
   if (!PolicyEnabled()) {
     LOG4CXX_WARN(logger_, "System is configured to work without policy "
                  "functionality.");
@@ -247,7 +247,7 @@ bool PolicyHandler::LoadPolicyLibrary() {
   if (error_string == NULL) {
     if (CreateManager()) {
       policy_manager_->set_listener(this);
-      event_observer_= new PolicyEventObserver(policy_manager_.get());
+      event_observer_= new PolicyEventObserver(this);
     }
   } else {
     LOG4CXX_ERROR(logger_, error_string);
@@ -883,10 +883,7 @@ bool PolicyHandler::UnloadPolicyLibrary() {
   LOG4CXX_DEBUG(logger_, "policy_manager_ = " << policy_manager_);
   bool ret = true;
   AsyncRunner::Stop();
-  if(event_observer_) {
-    event_observer_->set_policy_manager(NULL);
-  }
-  sync_primitives::AutoLock lock(policy_manager_lock_);
+  sync_primitives::AutoWriteLock lock(policy_manager_lock_);
   if (policy_manager_) {
     policy_manager_.reset();
   }
@@ -1063,7 +1060,7 @@ void PolicyHandler::OnActivateApp(uint32_t connection_key,
 
   AppPermissions permissions(policy_app_id);
 
-  sync_primitives::AutoLock lock(policy_manager_lock_);
+  sync_primitives::AutoReadLock lock(policy_manager_lock_);
   if (!policy_manager_) {
     LOG4CXX_WARN(logger_, "The shared library of policy is not loaded");
     if (!PolicyEnabled()) {
@@ -1317,6 +1314,17 @@ int PolicyHandler::TimeoutExchange() {
 void PolicyHandler::OnExceededTimeout() {
   POLICY_LIB_CHECK_VOID();
   policy_manager_->OnExceededTimeout();
+}
+
+void PolicyHandler::OnSystemReady() {
+  POLICY_LIB_CHECK_VOID();
+  policy_manager_->OnSystemReady();
+}
+
+void PolicyHandler::PTUpdatedAt(int kilometers, int days_after_epoch) {
+  POLICY_LIB_CHECK_VOID();
+  policy_manager_->PTUpdatedAt(kilometers, days_after_epoch);
+
 }
 
 BinaryMessageSptr PolicyHandler::RequestPTUpdate() {
