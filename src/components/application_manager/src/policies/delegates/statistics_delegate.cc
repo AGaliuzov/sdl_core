@@ -72,7 +72,7 @@ namespace policy {
       stop_watch_(type),
       app_id_(app_id),
       value_(""),
-      timespan_seconds_(0) {
+      timespan_seconds_(timespan_seconds) {
 
   }
 
