@@ -181,16 +181,13 @@ include_directories (
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8
-  ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8/dbus/
-  
-  
+  ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8/dbus/ 
   ${COMPONENTS_DIR}/security_manager/test/include
   ${COMPONENTS_DIR}/application_manager/include
   ${COMPONENTS_DIR}/protocol_handler/test/include  
   ${COMPONENTS_DIR}/security_manager/include 
   ${COMPONENTS_DIR}/media_manager/include
   ${COMPONENTS_DIR}/utils/include
-  
   ${COMPONENTS_DIR}/dbus/src
   ${COMPONENTS_DIR}/config_profile/include
   ${GMOCK_INCLUDE_DIRECTORY}
@@ -203,8 +200,6 @@ include_directories (
 if (BUILD_AVAHI_SUPPORT)
   list(APPEND LIBRARIES avahi-client avahi-common)
 endif()
-
-
 
 #TODO to ALL : Please FIX heart_beat_monitor_test.cc
   set(testSources
