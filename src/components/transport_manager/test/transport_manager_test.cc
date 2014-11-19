@@ -177,67 +177,69 @@ MockTransportManagerListener *TransportManagerTest::tm_listener = NULL;
 
 
 
-//TEST_F(TransportManagerTest, ScanDeviceFailed) {
-//  EXPECT_CALL(*tm_listener, OnDeviceFound(_)).Times(0);
-//  EXPECT_CALL(*tm_listener, OnScanDevicesFailed(_)).Times(1).WillOnce(
-//      SignalTest(this));
-//
-//  mock_adapter->get_device_scanner()->fail_further_search();
-//  tm->SearchDevices();
-//  EXPECT_TRUE(waitCond(1));
-//  mock_adapter->get_device_scanner()->reset();
-//}
+TEST_F(TransportManagerTest, ScanDeviceFailed) {
+  EXPECT_CALL(*tm_listener, OnDeviceFound(_)).Times(0);
+  EXPECT_CALL(*tm_listener, OnScanDevicesFailed(_)).Times(1).WillOnce(
+      SignalTest(this));
 
-//TEST_F(TransportManagerTest, ScanDeviceNoFound) {
-//  EXPECT_CALL(*tm_listener, OnScanDevicesFailed(_)).Times(0);
-//  EXPECT_CALL(*tm_listener, OnDeviceFound(_)).Times(0);
-//  EXPECT_CALL(*tm_listener, OnScanDevicesFinished()).Times(1).WillOnce(
-//      SignalTest(this));
-//
-//  tm->SearchDevices();
-//  EXPECT_TRUE(waitCond(1));
-//  mock_adapter->get_device_scanner()->reset();
-//}
-//
-//TEST_F(TransportManagerTest, ScanDeviceDone) {
-//  EXPECT_CALL(*tm_listener, OnScanDevicesFailed(_)).Times(0);
-//  EXPECT_CALL(*tm_listener, OnDeviceFound(_)).Times(1);
-//  EXPECT_CALL(*tm_listener, OnScanDevicesFinished()).Times(1).WillOnce(
-//      SignalTest(this));
-//
-//
-//  //added to fixed warnings
-//  EXPECT_CALL(*tm_listener, OnDeviceAdded(_)).Times(3);
-//  EXPECT_CALL(*tm_listener, OnDeviceListUpdated(_)).Times(1);
-//  EXPECT_CALL(*tm_listener, OnDeviceRemoved(_)).Times(1);
-//  //
-//
-//
-//  mock_adapter->get_device_scanner()->AddDevice("TestDevice", "MA:CA:DR:ES:S");
-//  tm->SearchDevices();
-//  EXPECT_TRUE(waitCond(1));
-//  mock_adapter->get_device_scanner()->reset();
-//}
+  mock_adapter->get_device_scanner()->fail_further_search();
+  tm->SearchDevices();
+  EXPECT_TRUE(waitCond(1));
+  mock_adapter->get_device_scanner()->reset();
+}
 
-//TEST_F(TransportManagerTest, ScanManyDeviceDone) {
-//  EXPECT_CALL(*tm_listener, OnScanDevicesFailed(_)).Times(0);
-//  EXPECT_CALL(*tm_listener, OnDeviceFound(_)).Times(2);
-//  EXPECT_CALL(*tm_listener, OnScanDevicesFinished()).Times(1).WillOnce(
-//      SignalTest(this));
-//  mock_adapter->get_device_scanner()->AddDevice("TestDevice1",
-//                                                "MA:CA:DR:ES:S1");
-//  mock_adapter->get_device_scanner()->AddDevice("TestDevice2",
-//                                                "MA:CA:DR:ES:S2");
-//  tm->SearchDevices();
-//
-//  EXPECT_CALL(*tm_listener, OnDeviceListUpdated(_)).Times(1);
-//  EXPECT_TRUE(waitCond(1));
-//  mock_adapter->get_device_scanner()->reset();
-//}
+TEST_F(TransportManagerTest, ScanDeviceNoFound) {
+  EXPECT_CALL(*tm_listener, OnScanDevicesFailed(_)).Times(0);
+  EXPECT_CALL(*tm_listener, OnDeviceFound(_)).Times(0);
+  EXPECT_CALL(*tm_listener, OnScanDevicesFinished()).Times(1).WillOnce(
+      SignalTest(this));
+
+  tm->SearchDevices();
+  EXPECT_TRUE(waitCond(1));
+  mock_adapter->get_device_scanner()->reset();
+}
+
+TEST_F(TransportManagerTest, ScanDeviceDone) {
+  EXPECT_CALL(*tm_listener, OnScanDevicesFailed(_)).Times(0);
+  EXPECT_CALL(*tm_listener, OnDeviceFound(_)).Times(1);
+  EXPECT_CALL(*tm_listener, OnScanDevicesFinished()).Times(1).WillOnce(
+      SignalTest(this));
 
 
+  //added to fixed warnings
+  EXPECT_CALL(*tm_listener, OnDeviceAdded(_)).Times(3);
+  EXPECT_CALL(*tm_listener, OnDeviceListUpdated(_)).Times(1);
+  EXPECT_CALL(*tm_listener, OnDeviceRemoved(_)).Times(3);
+  //
 
-TEST_F(TransportManagerTest, ConnectDisconnectSendReciveDone) {
+
+  mock_adapter->get_device_scanner()->AddDevice("TestDevice", "MA:CA:DR:ES:S");
+  tm->SearchDevices();
+  EXPECT_TRUE(waitCond(1));
+  mock_adapter->get_device_scanner()->reset();
+}
+
+TEST_F(TransportManagerTest, ScanManyDeviceDone) {
+  EXPECT_CALL(*tm_listener, OnScanDevicesFailed(_)).Times(0);
+  EXPECT_CALL(*tm_listener, OnDeviceFound(_)).Times(2);
+  EXPECT_CALL(*tm_listener, OnScanDevicesFinished()).Times(1).WillOnce(
+      SignalTest(this));
+  mock_adapter->get_device_scanner()->AddDevice("TestDevice1",
+                                                "MA:CA:DR:ES:S1");
+  mock_adapter->get_device_scanner()->AddDevice("TestDevice2",
+                                                "MA:CA:DR:ES:S2");
+  tm->SearchDevices();
+
+  EXPECT_CALL(*tm_listener, OnDeviceListUpdated(_)).Times(1);
+  EXPECT_TRUE(waitCond(1));
+  mock_adapter->get_device_scanner()->reset();
+}
+
+
+
+//TEST_F(TransportManagerTest, ConnectDisconnectSendReciveDone) {
+
+TEST_F(TransportManagerTest, ConnectAddDeviceCannotFailConnection) {
   const DeviceInfo kInfo(1, "MA:CA:DR:ES:S", "TestDeviceName", "BTMAC");
   const ConnectionUID kConnection = 1;
 
@@ -254,14 +256,83 @@ TEST_F(TransportManagerTest, ConnectDisconnectSendReciveDone) {
   tm->SearchDevices();
   EXPECT_TRUE(waitCond(10));
 
-  EXPECT_CALL(*tm_listener, OnConnectionFailed(_, _)).Times(0);
-  EXPECT_CALL(*tm_listener, OnConnectionEstablished(kInfo, kConnection))
-      .Times(1);
-  tm->ConnectDevice(kInfo.device_handle());
-  EXPECT_TRUE(waitCond(10));
+
+    EXPECT_CALL(*tm_listener, OnConnectionFailed(_, _)).Times(0);
+    EXPECT_CALL(*tm_listener, OnConnectionEstablished(kInfo, kConnection)).Times(1);
+    tm->ConnectDevice(kInfo.device_handle());
+    EXPECT_TRUE(waitCond(10));
+
+//---
+    const int kTimes = 10;  // Times of send message //if kTimes>10 OnTMMessageSend will fail
+      const unsigned int kVersionProtocol = 1;
+      EXPECT_CALL(*tm_listener, OnTMMessageSendFailed(_, _)).Times(0);
+      EXPECT_CALL(*tm_listener, OnTMMessageReceiveFailed(_, _)).Times(0);
+      EXPECT_CALL(*tm_listener, OnConnectionClosed(kConnection)).Times(0);
+
+      EXPECT_CALL(*tm_listener, OnTMMessageSend(_)).Times(kTimes);
+    //   EXPECT_CALL(*tm_listener, OnTMMessageSend()).Times(kTimes); // FIXME
+      // (dchmerev@luxoft.com): make proper expect_call
+      EXPECT_CALL(*tm_listener, OnTMMessageReceived(_)).Times(kTimes);
+
+      const unsigned int kSize = 12;
+      unsigned char data[kSize] = {0x20, 0x07, 0x01, 0x00, 0x00, 0x00,
+                                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+      for (int i = 0; i < kTimes; ++i) {
+        const RawMessagePtr kMessage =
+            new RawMessage(kConnection, kVersionProtocol, data, kSize);
+        tm->SendMessageToDevice(kMessage);
+        usleep(1000);
+      }
+      EXPECT_TRUE(waitCond(10))<<"Message is not send or is send wrong";
 
 
-  const int kTimes = 10;  // Times of send message
+}
+//---------
+      TEST_F(TransportManagerTest, ConnectAddDeviceCannotCloseFail) {
+
+    	  //--precondition
+        const DeviceInfo kInfo(1, "MA:CA:DR:ES:S", "TestDeviceName", "BTMAC");
+        const ConnectionUID kConnection = 1;
+
+        EXPECT_CALL(*tm_listener, OnDeviceFound(_)).Times(1);
+        EXPECT_CALL(*tm_listener, OnScanDevicesFinished()).Times(1);
+
+        EXPECT_CALL(*tm_listener, OnDeviceAdded(_)).Times(1);
+        EXPECT_CALL(*tm_listener, OnDeviceListUpdated(_)).Times(1);
+
+        MyTransportListener *myListener = new MyTransportListener(this);
+        mock_adapter->get_device_scanner()->AddDevice(kInfo.name(),
+                                                      kInfo.mac_address());
+        tm->AddEventListener(myListener);
+        tm->SearchDevices();
+        EXPECT_TRUE(waitCond(10));
+        //------
+
+        EXPECT_CALL(*tm_listener, OnConnectionClosedFailure(_, _)).Times(0);
+        EXPECT_CALL(*tm_listener, OnDisconnectFailed(kInfo.device_handle(), _))
+            .Times(0);
+        EXPECT_CALL(*tm_listener, OnConnectionClosed(kConnection)).Times(1).WillOnce(
+            SignalTest(this));
+        tm->DisconnectDevice(kInfo.device_handle());
+        EXPECT_TRUE(waitCond(10));
+
+
+
+
+        tm->Stop();
+        delete myListener;
+        mock_adapter->get_device_scanner()->reset();
+
+
+//  mock_adapter->get_device_scanner()->reset();
+}
+
+
+//-----------------
+/*
+  TEST_F(TransportManagerTest, ConnectDisconnectSendReciveDone) {
+
+  const int kTimes = 10;  // Times of send message //if kTimes>10 OnTMMessageSend will fail
   const unsigned int kVersionProtocol = 1;
   EXPECT_CALL(*tm_listener, OnTMMessageSendFailed(_, _)).Times(0);
   EXPECT_CALL(*tm_listener, OnTMMessageReceiveFailed(_, _)).Times(0);
@@ -283,6 +354,7 @@ TEST_F(TransportManagerTest, ConnectDisconnectSendReciveDone) {
   }
   EXPECT_TRUE(waitCond(10));
 
+  //----------------
   EXPECT_CALL(*tm_listener, OnConnectionClosedFailure(_, _)).Times(0);
   EXPECT_CALL(*tm_listener, OnDisconnectFailed(kInfo.device_handle(), _))
       .Times(0);
@@ -298,7 +370,7 @@ TEST_F(TransportManagerTest, ConnectDisconnectSendReciveDone) {
   delete myListener;
   mock_adapter->get_device_scanner()->reset();
 }
-
+*/
 
 }  // namespace transport_manager
 }  // namespace components
