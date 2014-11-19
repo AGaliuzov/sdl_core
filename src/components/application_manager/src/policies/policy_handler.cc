@@ -224,6 +224,7 @@ PolicyHandler::PolicyHandler()
     registration_in_progress(false),
     is_user_requested_policy_table_update_(false),
     listener_(NULL),
+    app_to_device_link_lock_(true),
     statistic_manager_impl_(new StatisticManagerImpl()) {
 }
 
@@ -506,6 +507,7 @@ void PolicyHandler::OnAppPermissionConsentInternal(
     return;
   }
 
+  sync_primitives::AutoLock lock(app_to_device_link_lock_);
   if (!app_to_device_link_.size()) {
     LOG4CXX_WARN(logger_, "There are no applications previously stored for "
                  "setting common permissions.");
@@ -565,6 +567,7 @@ void PolicyHandler::OnGetListOfPermissions(const uint32_t connection_key,
   // If no specific app was passed, get permissions for all currently registered
   // applications
   if (!connection_key) {
+    sync_primitives::AutoLock lock(app_to_device_link_lock_);
     LinkAppToDevice linker(app_to_device_link_);
     application_manager::ApplicationManagerImpl::ApplicationListAccessor accessor;
     const ApplicationList app_list = accessor.applications();
