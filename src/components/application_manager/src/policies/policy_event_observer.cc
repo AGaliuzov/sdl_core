@@ -40,11 +40,21 @@ namespace policy {
 namespace smart_objects = NsSmartDeviceLink::NsSmartObjects;
 using namespace application_manager;
 
+CREATE_LOGGERPTR_GLOBAL(logger_, "PolicyHandler")
+
 PolicyEventObserver::PolicyEventObserver(PolicyManager* policy_manager)
-    : policy_manager_(policy_manager) {
+  : policy_manager_(policy_manager) {
+}
+
+void PolicyEventObserver::set_policy_manager(PolicyManager* policy_manager) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  sync_primitives::AutoLock lock(policy_manager_lock_);
+  LOG4CXX_DEBUG(logger_, "Set policy manager " << policy_manager);
+  policy_manager_ = policy_manager;
 }
 
 void PolicyEventObserver::on_event(const event_engine::Event& event) {
+  sync_primitives::AutoLock lock(policy_manager_lock_);
   if (!policy_manager_) {
     return;
   }

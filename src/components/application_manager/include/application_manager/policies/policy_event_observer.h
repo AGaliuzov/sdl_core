@@ -44,11 +44,13 @@ class PolicyEventObserver :
     public application_manager::event_engine::EventObserver {
  public:
   explicit PolicyEventObserver(PolicyManager* policy_manager);
+  void set_policy_manager(PolicyManager* policy_manager);
   void on_event(const application_manager::event_engine::Event& event);
   void subscribe_on_event(
       const application_manager::event_engine::Event::EventID& event_id,
       int32_t hmi_correlation_id = 0);
  private:
+  sync_primitives::Lock policy_manager_lock_;
   PolicyManager* policy_manager_;
   void ProcessOdometerEvent(const smart_objects::SmartObject& message);
 };

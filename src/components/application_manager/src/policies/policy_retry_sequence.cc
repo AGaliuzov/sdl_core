@@ -52,7 +52,6 @@ void RetrySequence::threadMain() {
 void RetrySequence::StartNextRetry() {
   LOG4CXX_TRACE(logger_, "Start next retry of exchanging PT");
   DCHECK(policy_handler_);
-  // TODO(Ezamakhov): inverstigate StartNextRetry on unload policy lib
 
   BinaryMessageSptr pt_snapshot = policy_handler_
       ->RequestPTUpdate();
@@ -69,6 +68,7 @@ void RetrySequence::StartNextRetry() {
     }
     if (seconds > 0) {
       sleep(seconds);
+      // TODO(Ezamakhov): inverstigate StackOverFlow
       StartNextRetry();
     } else {
       LOG4CXX_INFO(logger_, "End retry sequence. Update PT was not received");

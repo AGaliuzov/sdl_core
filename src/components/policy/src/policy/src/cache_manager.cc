@@ -1658,6 +1658,7 @@ void CacheManager::BackgroundBackuper::InternalBackup() {
     cache_manager_->PersistData();
 
     if (new_data_available_ ) {
+      // TODO(Ezamakhov): inverstigate StackOverFlow
       InternalBackup();
     }
   }

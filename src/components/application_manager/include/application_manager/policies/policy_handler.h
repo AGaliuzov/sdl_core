@@ -406,6 +406,7 @@ private:
   PolicyHandler();
   static PolicyHandler* instance_;
   static const std::string kLibrary;
+  mutable sync_primitives::Lock policy_manager_lock_;
   utils::SharedPtr<PolicyManager> policy_manager_;
   void* dl_handle_;
   AppIds last_used_app_ids_;
