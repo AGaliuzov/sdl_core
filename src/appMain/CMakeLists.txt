@@ -205,15 +205,6 @@ if (BUILD_AVAHI_SUPPORT)
 endif()
 
 
-if (${QT_HMI})
-list(APPEND testSources  
-    ${COMPONENTS_DIR}/rpc_base/test/rpc_base_dbus_test.cc
-    ${COMPONENTS_DIR}/dbus/test/test_schema.cc
-    ${COMPONENTS_DIR}/dbus/test/test_dbus_adapter.cc
-    ${COMPONENTS_DIR}/hmi_message_handler/test/mock_subscriber.cc 
-    ${COMPONENTS_DIR}/hmi_message_handler/test/test_dbus_message_adapter.cc    
-    )
-endif ()
 
 #TODO to ALL : Please FIX heart_beat_monitor_test.cc
   set(testSources
@@ -253,6 +244,17 @@ endif ()
     ${COMPONENTS_DIR}/protocol_handler/test/protocol_header_validator_test.cc
     ${COMPONENTS_DIR}/hmi_message_handler/test/test_mqueue_adapter.cc 
   )
+  
+if (${QT_HMI})
+    list (APPEND testSources
+        ${COMPONENTS_DIR}/rpc_base/test/rpc_base_dbus_test.cc
+        ${COMPONENTS_DIR}/dbus/test/test_schema.cc
+        ${COMPONENTS_DIR}/dbus/test/test_dbus_adapter.cc
+        ${COMPONENTS_DIR}/hmi_message_handler/test/mock_subscriber.cc 
+        ${COMPONENTS_DIR}/hmi_message_handler/test/test_dbus_message_adapter.cc    
+       )
+endif ()
+
 
   set(test_exec_libraries
     gmock

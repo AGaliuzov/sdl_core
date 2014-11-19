@@ -55,17 +55,17 @@ set (LIBRARIES
     ${RTLIB}
     ProtocolLibrary
 )
-if (${QT_HMI})
-set(SOURCES
-${COMPONENTS_DIR}/hmi_message_handler/test/mock_subscriber.cc 
-${COMPONENTS_DIR}/hmi_message_handler/test/test_dbus_message_adapter.cc
-)
-endif ()
-set(SOURCES
-${COMPONENTS_DIR}/hmi_message_handler/test/main.cc  
-${COMPONENTS_DIR}/hmi_message_handler/test/test_mqueue_adapter.cc 
 
+
+set(SOURCES
+    ${COMPONENTS_DIR}/hmi_message_handler/test/main.cc  
+    ${COMPONENTS_DIR}/hmi_message_handler/test/test_mqueue_adapter.cc 
 )          
-
+if (${QT_HMI})
+  list (APPEND SOURCES  
+    ${COMPONENTS_DIR}/hmi_message_handler/test/mock_subscriber.cc 
+    ${COMPONENTS_DIR}/hmi_message_handler/test/test_dbus_message_adapter.cc
+  )
+endif ()
 create_test("test_hmi_message_handler" "${SOURCES}" "${LIBRARIES}")
 
