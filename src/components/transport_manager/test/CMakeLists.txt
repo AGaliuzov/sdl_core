@@ -28,6 +28,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+if(BUILD_TESTS)
 include_directories (
   ${LOG4CXX_INCLUDE_DIRECTORY}
   ${GMOCK_INCLUDE_DIRECTORY}
@@ -69,13 +70,13 @@ ${COMPONENTS_DIR}/transport_manager/test/mock_connection.cc
 ${COMPONENTS_DIR}/transport_manager/test/mock_device.cc            
 ${COMPONENTS_DIR}/transport_manager/test/mock_device_scanner.cc    
 ${COMPONENTS_DIR}/transport_manager/test/raw_message_matcher.cc    
-${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter_listener.cc   
-${COMPONENTS_DIR}/transport_manager/test/test_dnssd_service_browser.cc     
-${COMPONENTS_DIR}/transport_manager/test/test_tcp_transport_adapter.cc     
+#${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter_listener.cc   #do we need it?
+#${COMPONENTS_DIR}/transport_manager/test/test_dnssd_service_browser.cc     
+#${COMPONENTS_DIR}/transport_manager/test/test_tcp_transport_adapter.cc     
 ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter.cc         
 ${COMPONENTS_DIR}/transport_manager/test/transport_manager_test.cc    
 )          
 
 create_test("test_transport_manager" "${SOURCES}" "${LIBRARIES}")
 
-
+endif()
