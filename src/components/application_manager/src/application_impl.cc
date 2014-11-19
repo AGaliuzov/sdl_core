@@ -152,7 +152,7 @@ bool ApplicationImpl::IsFullscreen() const {
 }
 
 bool ApplicationImpl::MakeFullscreen() {
-  hmi_level_ = mobile_api::HMILevel::HMI_FULL;
+  set_hmi_level(mobile_api::HMILevel::HMI_FULL);
   if (is_media_ && !tts_speak_state_) {
     audio_streaming_state_ = mobile_api::AudioStreamingState::AUDIBLE;
   }
@@ -188,7 +188,7 @@ bool ApplicationImpl::IsAudible() const {
 }
 
 void ApplicationImpl::MakeNotAudible() {
-  hmi_level_ = mobile_api::HMILevel::HMI_BACKGROUND;
+  set_hmi_level(mobile_api::HMILevel::HMI_BACKGROUND);
   audio_streaming_state_ = mobile_api::AudioStreamingState::NOT_AUDIBLE;
 }
 
