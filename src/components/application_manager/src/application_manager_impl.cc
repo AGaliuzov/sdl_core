@@ -113,13 +113,8 @@ ApplicationManagerImpl::~ApplicationManagerImpl() {
   media_manager_ = NULL;
   hmi_handler_ = NULL;
   connection_handler_ = NULL;
-  if (hmi_so_factory_) {
-    delete hmi_so_factory_;
-  }
-  hmi_so_factory_ = NULL;
-  if (mobile_so_factory_) {
-    delete mobile_so_factory_;
-  }
+  delete hmi_so_factory_;
+  delete mobile_so_factory_;
   mobile_so_factory_ = NULL;
   protocol_handler_ = NULL;
   media_manager_ = NULL;

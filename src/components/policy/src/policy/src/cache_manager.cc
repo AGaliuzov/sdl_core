@@ -1641,55 +1641,51 @@ CacheManager::BackgroundBackuper::BackgroundBackuper(CacheManager* cache_manager
   : cache_manager_(cache_manager),
     stop_flag_(false),
     new_data_available_(false) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 }
 
 CacheManager::BackgroundBackuper::~BackgroundBackuper() {
-  LOG4CXX_TRACE_ENTER(logger_);
-  cache_manager_ = NULL;
-  LOG4CXX_TRACE_EXIT(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 }
 
 void CacheManager::BackgroundBackuper::InternalBackup() {
-  LOG4CXX_TRACE_ENTER(logger_);
-  if (cache_manager_) {
-    LOG4CXX_DEBUG(logger_, "DoBackup");
-    new_data_available_ = false;
-    cache_manager_->PersistData();
+  LOG4CXX_AUTO_TRACE(logger_);
+  DCHECK(cache_manager_);
 
-    if (new_data_available_ ) {
-      // TODO(Ezamakhov): inverstigate StackOverFlow
-      InternalBackup();
-    }
+  while (new_data_available_) {
+    new_data_available_ = false;
+    LOG4CXX_DEBUG(logger_, "DoBackup");
+    cache_manager_->PersistData();
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void CacheManager::BackgroundBackuper::threadMain() {
-  LOG4CXX_TRACE_ENTER(logger_);
-  sync_primitives::AutoLock auto_lock(need_backup_lock_);
-  while(!stop_flag_) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  sync_primitives::AutoLock lock(need_backup_lock_);
+  while (!stop_flag_) {
+    need_backup_lock_.Release();
     InternalBackup();
-    LOG4CXX_INFO(logger_, "Wait for a next backup");
-    backup_notifier_.Wait(auto_lock);
+    need_backup_lock_.Acquire();
+    if (new_data_available_ || stop_flag_) {
+      continue;
+    }
+    LOG4CXX_DEBUG(logger_, "Wait for a next backup");
+    backup_notifier_.Wait(need_backup_lock_);
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void CacheManager::BackgroundBackuper::exitThreadMain() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock auto_lock(need_backup_lock_);
-  cache_manager_ = NULL;
   stop_flag_ = true;
   backup_notifier_.NotifyOne();
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void CacheManager::BackgroundBackuper::DoBackup() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
+  sync_primitives::AutoLock auto_lock(need_backup_lock_);
   new_data_available_ = true;
   backup_notifier_.NotifyOne();
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
-}
+}  // namespace policy
