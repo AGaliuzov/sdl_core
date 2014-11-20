@@ -43,7 +43,6 @@ namespace components {
 namespace dbus {
 
 class DBusAdapterTest : public ::testing::Test {
- protected:
 };
 
 TEST_F(DBusAdapterTest, Initialization) {
