@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Removes LOG4CXX_TRACE_EXIT and
-   replaces LOG4CXX_TRACE_ENTER to LOG4CXX_AUTO_TRACE
+"""Improves logs
 
   Usage:
     auto_trace.py --dir=<name of directory>
@@ -17,10 +16,10 @@ from argparse import ArgumentParser
 file_extensions = ('.cc', '.cpp', '.hpp', '.h')
 
 def replace_trace_enter(source):
-  """Replaces LOG4CXX_TRACE_ENTER to LOG4CXX_AUTO_TRACE"""
+  """Replaces LOG4CXX_TRACE_ENTER with LOG4CXX_AUTO_TRACE"""
 
-  regex = re.compile(r"((\n\s*)LOG4CXX_TRACE_ENTER\((.*?)\);)")
-  return regex.sub(r"\2LOG4CXX_AUTO_TRACE(\3);", source)
+  regex = re.compile(r"(?P<space>\n\s*)LOG4CXX_TRACE_ENTER\((?P<logger>.*?)\);")
+  return regex.sub(r"\g<space>LOG4CXX_AUTO_TRACE(\g<logger>);", source)
 
 def remove_trace_exit(source):
   """Removes LOG4CXX_TRACE_EXIT"""
@@ -28,15 +27,39 @@ def remove_trace_exit(source):
   regex = re.compile(r"\n\s*LOG4CXX_TRACE_EXIT\(.*?\);")
   return regex.sub(r"", source)
 
+def replace_info_warn(source):
+  """Replaces LOG4CXX_INFO with LOG4CXX_WARN in default section of switch"""
+
+  regex = re.compile(r"(?P<begin>default\s*:\s*LOG4CXX_)INFO\(")
+  return regex.sub(r"\g<begin>WARN(", source)
+
+def replace_info_trace(source):
+  """Replaces LOG4CXX_INFO with LOG4CXX_AUTO_TRACE"""
+
+  token = r"[^;{},\s]+"
+  const_override = r"((?:const|OVERRIDE)\s*){0,2}"
+  signature = r"[\s\w\d,<>:*&]*"
+  function = r"%s\s+(?P<name>%s)\s*\(%s\)\s*%s\s*{" % (token, token, signature, const_override)
+  info = r"LOG4CXX_INFO\((?P<logger>.*?),\s*\"(?P=name)\"\);"
+  pattern = r"^(?P<function>.*?%s\s*)%s" % (function, info)
+  regex = re.compile(pattern, re.DOTALL | re.MULTILINE | re.IGNORECASE)
+  repl = r"\g<function>LOG4CXX_AUTO_TRACE(\g<logger>);"
+  return regex.sub(repl, source)
+
+def replace_info(source):
+  """Replaces LOG4CXX_INFO"""
+
+  return replace_info_trace(replace_info_warn(source))
+
 def swap_trace_lock(source):
   """Swaps LOG4CXX_AUTO_TRACE and AutoLock
   if they in wrong order and they are neighbors"""
 
-  lock = r"(sync_primitives::){0,1}AutoLock\s*[^()]+\(.*?\);"
+  lock = r"(?:sync_primitives::){0,1}Auto(?:Read|Write){0,1}Lock\s*[^()]+\(.*?\);"
   trace = r"LOG4CXX_AUTO_TRACE\(.*?\);"
-  pattern = r"((\n\s*%s)\s*(\n\s*%s))" % (lock, trace)
+  pattern = r"(?P<lock>\n\s*%s)\s*(?P<trace>\n\s*%s)" % (lock, trace)
   regex = re.compile(pattern)
-  return regex.sub(r"\4\2", source)
+  return regex.sub(r"\g<trace>\g<lock>", source)
 
 def get_files_list(dir):
   """Read list of files in DIR"""
@@ -58,7 +81,9 @@ def process(file):
   source = f.read()
   f.close()
 
-  dest = swap_trace_lock(replace_trace_enter(remove_trace_exit(source)))
+  step1 = remove_trace_exit(source)
+  step2 = replace_info(replace_trace_enter(step1))
+  dest = swap_trace_lock(step2)
 
   fo = open(output_file, 'w')
   fo.write(dest)
