@@ -1079,6 +1079,7 @@ bool PolicyManagerImpl::IsConsentNeeded(const std::string& app_id) {
 #ifdef EXTENDED_POLICY
   const std::string device_id = GetCurrentDeviceId(app_id);
   int count = cache_->CountUnconsentedGroups(app_id, device_id);
+  LOG4CXX_DEBUG(logger_, "There are: " << count << " unconsented groups.");
   LOG4CXX_TRACE_EXIT(logger_);
   return count != 0;
 #endif
