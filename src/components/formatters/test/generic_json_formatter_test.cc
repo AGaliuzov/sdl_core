@@ -29,7 +29,6 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #include "gtest/gtest.h"
-
 #include "formatters/generic_json_formatter.h"
 
 namespace test {
