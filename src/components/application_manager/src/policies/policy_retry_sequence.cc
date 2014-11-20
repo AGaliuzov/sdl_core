@@ -68,7 +68,7 @@ void RetrySequence::StartNextRetry() {
     }
     if (seconds > 0) {
       sleep(seconds);
-      // TODO(Ezamakhov): inverstigate StackOverFlow
+      // TODO(Ezamakhov): investigate StackOverFlow
       StartNextRetry();
     } else {
       LOG4CXX_INFO(logger_, "End retry sequence. Update PT was not received");

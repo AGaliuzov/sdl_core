@@ -1323,7 +1323,6 @@ void PolicyHandler::OnSystemReady() {
 void PolicyHandler::PTUpdatedAt(int kilometers, int days_after_epoch) {
   POLICY_LIB_CHECK_VOID();
   policy_manager_->PTUpdatedAt(kilometers, days_after_epoch);
-
 }
 
 BinaryMessageSptr PolicyHandler::RequestPTUpdate() {

@@ -50,7 +50,7 @@ PolicyEventObserver::PolicyEventObserver(PolicyHandler* const policy_handler)
 void PolicyEventObserver::set_policy_handler(policy::PolicyHandler* const policy_handler) {
   LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock auto_lock(policy_handler_lock_);
-  LOG4CXX_DEBUG(logger_, "Set policy manager " << policy_handler);
+  LOG4CXX_DEBUG(logger_, "Set policy handler " << policy_handler);
   policy_handler_ = policy_handler;
 }
 
@@ -99,7 +99,7 @@ void PolicyEventObserver::ProcessOdometerEvent(const smart_objects::SmartObject&
       const int kSecondsInDay = 60 * 60 * 24;
       int days_after_epoch = current_time.tv_sec / kSecondsInDay;
 
-      if(policy_handler_) {
+      if (policy_handler_) {
         policy_handler_->PTUpdatedAt(
               message[strings::msg_params][strings::odometer].asInt(),
             days_after_epoch);
