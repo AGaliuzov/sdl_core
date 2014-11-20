@@ -58,6 +58,7 @@
 namespace policy {
 
 #define POLICY_LIB_CHECK(return_value) {\
+  sync_primitives::AutoReadLock lock(policy_manager_lock_); \
   if (!policy_manager_) {\
     LOG4CXX_WARN(logger_, "The shared library of policy is not loaded");\
     return return_value;\
@@ -65,6 +66,7 @@ namespace policy {
 }
 
 #define POLICY_LIB_CHECK_VOID() {\
+  sync_primitives::AutoReadLock lock(policy_manager_lock_); \
   if (!policy_manager_) {\
     LOG4CXX_WARN(logger_, "The shared library of policy is not loaded");\
     return;\
@@ -123,7 +125,7 @@ struct SDLAlowedNotification {
           return ;
         }
         if (app->hmi_level() == default_mobile_hmi) {
-          LOG4CXX_INFO(logger_, "Application already in default hmi state.");
+          LOG4CXX_DEBUG(logger_, "Application already in default hmi state.");
         } else {
           app->set_hmi_level(default_mobile_hmi);
           application_manager::MessageHelper::SendHMIStatusNotification(*app);
@@ -230,6 +232,8 @@ PolicyHandler::~PolicyHandler() {
 }
 
 bool PolicyHandler::LoadPolicyLibrary() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  sync_primitives::AutoWriteLock lock(policy_manager_lock_);
   if (!PolicyEnabled()) {
     LOG4CXX_WARN(logger_, "System is configured to work without policy "
                  "functionality.");
@@ -242,7 +246,7 @@ bool PolicyHandler::LoadPolicyLibrary() {
   if (error_string == NULL) {
     if (CreateManager()) {
       policy_manager_->set_listener(this);
-      event_observer_= new PolicyEventObserver(policy_manager_.get());
+      event_observer_= new PolicyEventObserver(this);
     }
   } else {
     LOG4CXX_ERROR(logger_, error_string);
@@ -264,15 +268,15 @@ bool PolicyHandler::CreateManager() {
   } else {
     LOG4CXX_WARN(logger_, error_string);
   }
-  return policy_manager_;
+  return policy_manager_.valid();
 }
 
 bool PolicyHandler::InitPolicyTable() {
-  LOG4CXX_TRACE(logger_, "Init policy table.");
+  LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK(false);
   // Subscribing to notification for system readiness to be able to get system
   // info necessary for policy table
-  event_observer_.get()->subscribe_on_event(
+  event_observer_->subscribe_on_event(
         hmi_apis::FunctionID::BasicCommunication_OnReady);
   std::string preloaded_file =
     profile::Profile::instance()->preloaded_pt_file();
@@ -296,7 +300,7 @@ bool PolicyHandler::ResetPolicyTable() {
 }
 
 bool PolicyHandler::ClearUserConsent() {
-  LOG4CXX_INFO(logger_, "Removing user consent records in policy table.");
+  LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK(false);
   return policy_manager_->ResetUserConsent();
 }
@@ -388,8 +392,13 @@ DeviceConsent PolicyHandler::GetDeviceForSending() {
     application_manager::MessageHelper::GetDeviceInfoForApp(app_id,
         &device_params);
 
-    consent = policy_manager_->GetUserConsentForDevice(
-          device_params.device_mac_address);
+    DCHECK(policy_manager_);
+    if(policy_manager_) {
+      consent = policy_manager_->GetUserConsentForDevice(
+            device_params.device_mac_address);
+    } else {
+      consent = kDeviceAllowed;
+    }
 
     switch (consent) {
       case kDeviceAllowed:
@@ -473,14 +482,14 @@ void PolicyHandler::AddApplication(const std::string& application_id) {
 
 void PolicyHandler::SetDeviceInfo(std::string& device_id,
                                   const DeviceInfo& device_info) {
-  LOG4CXX_INFO(logger_, "SetDeviceInfo");
+  LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK_VOID();
   policy_manager_->SetDeviceInfo(device_id, device_info);
 }
 
 void PolicyHandler::OnAppPermissionConsentInternal(
     const uint32_t connection_key, PermissionConsent &permissions) {
-  LOG4CXX_INFO(logger_, "OnAppPermissionConsent");
+  LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK_VOID();
   if (connection_key) {
     application_manager::ApplicationSharedPtr app =
@@ -547,7 +556,7 @@ void PolicyHandler::OnAppPermissionConsentInternal(
 void PolicyHandler::OnGetUserFriendlyMessage(
   const std::vector<std::string>& message_codes, const std::string& language,
   uint32_t correlation_id) {
-  LOG4CXX_INFO(logger_, "OnGetUserFriendlyMessage");
+  LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK_VOID();
   std::vector<UserFriendlyMessage> result = policy_manager_
       ->GetUserFriendlyMessages(message_codes, language);
@@ -558,7 +567,7 @@ void PolicyHandler::OnGetUserFriendlyMessage(
 
 void PolicyHandler::OnGetListOfPermissions(const uint32_t connection_key,
     const uint32_t correlation_id) {
-  LOG4CXX_INFO(logger_, "OnGetListOfPermissions");
+  LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK_VOID();
   // If no specific app was passed, get permissions for all currently registered
   // applications
@@ -620,7 +629,7 @@ void PolicyHandler::OnGetListOfPermissions(const uint32_t connection_key,
 }
 
 void PolicyHandler::OnGetStatusUpdate(const uint32_t correlation_id) {
-  LOG4CXX_INFO(logger_, "OnGetStatusUpdate");
+  LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK_VOID();
   policy::PolicyTableStatus status = policy_manager_->GetPolicyTableStatus();
   application_manager::MessageHelper::SendGetStatusUpdateResponse(
@@ -628,7 +637,7 @@ void PolicyHandler::OnGetStatusUpdate(const uint32_t correlation_id) {
 }
 
 void PolicyHandler::OnUpdateStatusChanged(PolicyTableStatus status) {
-  LOG4CXX_INFO(logger_, "OnUpdateStatusChanged");
+  LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK_VOID();
   policy_manager_->SaveUpdateStatusRequired(policy::StatusUpToDate != status);
   application_manager::MessageHelper::SendOnStatusUpdate(
@@ -637,7 +646,7 @@ void PolicyHandler::OnUpdateStatusChanged(PolicyTableStatus status) {
 
 std::string PolicyHandler::OnCurrentDeviceIdUpdateRequired(
   const std::string& policy_app_id) {
-  LOG4CXX_INFO(logger_, "OnCurrentDeviceIdUpdateRequired");
+  LOG4CXX_AUTO_TRACE(logger_);
   application_manager::ApplicationSharedPtr app =
     application_manager::ApplicationManagerImpl::instance()
     ->application_by_policy_id(policy_app_id);
@@ -654,7 +663,7 @@ std::string PolicyHandler::OnCurrentDeviceIdUpdateRequired(
 }
 
 void PolicyHandler::OnSystemInfoChanged(const std::string& language) {
-  LOG4CXX_INFO(logger_, "OnSystemInfoChanged");
+  LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK_VOID();
   policy_manager_->SetSystemLanguage(language);
 }
@@ -662,13 +671,13 @@ void PolicyHandler::OnSystemInfoChanged(const std::string& language) {
 void PolicyHandler::OnGetSystemInfo(const std::string& ccpu_version,
                                     const std::string& wers_country_code,
                                     const std::string& language) {
-  LOG4CXX_INFO(logger_, "OnGetSystemInfo");
+  LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK_VOID();
   policy_manager_->SetSystemInfo(ccpu_version, wers_country_code, language);
 }
 
 void PolicyHandler::OnSystemInfoUpdateRequired() {
-  LOG4CXX_INFO(logger_, "OnSystemInfoUpdateRequired");
+  LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK_VOID();
   application_manager::MessageHelper::SendGetSystemInfoRequest();
 }
@@ -725,7 +734,7 @@ void PolicyHandler::OnAppRevoked(const std::string& policy_app_id) {
 
 void PolicyHandler::OnPendingPermissionChange(
     const std::string& policy_app_id) {
-  LOG4CXX_INFO(logger_, "PolicyHandler::OnPendingPermissionChange for "
+  LOG4CXX_DEBUG(logger_, "PolicyHandler::OnPendingPermissionChange for "
                << policy_app_id);
   POLICY_LIB_CHECK_VOID();
   application_manager::ApplicationSharedPtr app =
@@ -790,7 +799,7 @@ void PolicyHandler::OnPendingPermissionChange(
 }
 
 bool PolicyHandler::SendMessageToSDK(const BinaryMessage& pt_string) {
-  LOG4CXX_INFO(logger_, "PolicyHandler::SendMessageToSDK");
+  LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK(false);
 
   std::string url;
@@ -814,7 +823,7 @@ bool PolicyHandler::SendMessageToSDK(const BinaryMessage& pt_string) {
   }
   url = policy_manager_->GetUpdateUrl(PolicyServiceTypes::POLICY);
 
-  LOG4CXX_INFO(logger_, "Update url is " << url << " for application "
+  LOG4CXX_DEBUG(logger_, "Update url is " << url << " for application "
                << application_manager::ApplicationManagerImpl::instance()
                ->application(app_id)->name());
 
@@ -846,7 +855,7 @@ bool PolicyHandler::ReceiveMessageFromSDK(const std::string& file,
       application_manager::ApplicationManagerImpl::instance()
       ->GetNextHMICorrelationID();
 
-    event_observer_.get()->subscribe_on_event(
+    event_observer_->subscribe_on_event(
 #ifdef HMI_DBUS_API
       hmi_apis::FunctionID::VehicleInfo_GetOdometer, correlation_id
 #else
@@ -869,9 +878,11 @@ bool PolicyHandler::ReceiveMessageFromSDK(const std::string& file,
 }
 
 bool PolicyHandler::UnloadPolicyLibrary() {
-  LOG4CXX_TRACE(logger_, "enter. policy_manager_ = " << policy_manager_);
+  LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(logger_, "policy_manager_ = " << policy_manager_);
   bool ret = true;
   AsyncRunner::Stop();
+  sync_primitives::AutoWriteLock lock(policy_manager_lock_);
   if (policy_manager_) {
     policy_manager_.reset();
   }
@@ -885,7 +896,7 @@ bool PolicyHandler::UnloadPolicyLibrary() {
 }
 
 void PolicyHandler::StartPTExchange(bool skip_device_selection) {
-  LOG4CXX_INFO(logger_, "PolicyHandler::StartPTExchange");
+  LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK_VOID();
 
   if (policy_manager_->GetPolicyTableStatus() ==
@@ -900,7 +911,7 @@ void PolicyHandler::StartPTExchange(bool skip_device_selection) {
       case kDeviceAllowed:
         break;
       default:
-      LOG4CXX_INFO(logger_, "There are no allowed devices found for sending"
+      LOG4CXX_WARN(logger_, "There are no allowed devices found for sending"
                             " policy update.");
         return;
     }
@@ -911,7 +922,7 @@ void PolicyHandler::StartPTExchange(bool skip_device_selection) {
 
 void PolicyHandler::OnAllowSDLFunctionalityNotification(bool is_allowed,
     uint32_t device_id) {
-  LOG4CXX_INFO(logger_, "OnAllowSDLFunctionalityNotification");
+  LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK_VOID();
   // Device ids, need to be changed
   std::set<uint32_t> device_ids;
@@ -1022,20 +1033,20 @@ void PolicyHandler::OnAllowSDLFunctionalityNotification(bool is_allowed,
 }
 
 void PolicyHandler::OnIgnitionCycleOver() {
-  LOG4CXX_INFO(logger_, "OnIgnitionCycleOver");
+  LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK_VOID();
   policy_manager_->IncrementIgnitionCycles();
 }
 
 void PolicyHandler::KmsChanged(int kms) {
-  LOG4CXX_INFO(logger_, "PolicyHandler::KmsChanged " << kms << " kilometers");
+  LOG4CXX_DEBUG(logger_, "PolicyHandler::KmsChanged " << kms << " kilometers");
   POLICY_LIB_CHECK_VOID();
   PTExchangeAtOdometer(kms);
 }
 
 void PolicyHandler::OnActivateApp(uint32_t connection_key,
                                   uint32_t correlation_id) {
-  LOG4CXX_INFO(logger_, "OnActivateApp");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   application_manager::ApplicationSharedPtr app =
     application_manager::ApplicationManagerImpl::instance()->application(
@@ -1048,6 +1059,7 @@ void PolicyHandler::OnActivateApp(uint32_t connection_key,
 
   AppPermissions permissions(policy_app_id);
 
+  sync_primitives::AutoReadLock lock(policy_manager_lock_);
   if (!policy_manager_) {
     LOG4CXX_WARN(logger_, "The shared library of policy is not loaded");
     if (!PolicyEnabled()) {
@@ -1123,7 +1135,7 @@ void PolicyHandler::OnActivateApp(uint32_t connection_key,
 }
 
 void PolicyHandler::PTExchangeAtRegistration(const std::string& app_id) {
-  LOG4CXX_INFO(logger_, "PTExchangeAtIgnition");
+  LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK_VOID();
 
   if (policy_manager_->IsAppInUpdateList(app_id)) {
@@ -1193,7 +1205,7 @@ void PolicyHandler::OnPermissionsUpdated(const std::string& policy_app_id,
   application_manager::MessageHelper::SendOnPermissionsChangeNotification(
     app->app_id(), permissions);
 
-  LOG4CXX_INFO(
+  LOG4CXX_DEBUG(
     logger_,
     "Notification sent for application_id:" << policy_app_id
     << " and connection_key " << app->app_id());
@@ -1210,7 +1222,7 @@ void PolicyHandler::OnPermissionsUpdated(const std::string& policy_app_id,
     return;
   }
   if (current_hmi_level == hmi_level) {
-    LOG4CXX_INFO(logger_, "Application already in default hmi state.");
+    LOG4CXX_DEBUG(logger_, "Application already in default hmi state.");
     return;
   }
   switch (current_hmi_level) {
@@ -1303,6 +1315,16 @@ void PolicyHandler::OnExceededTimeout() {
   policy_manager_->OnExceededTimeout();
 }
 
+void PolicyHandler::OnSystemReady() {
+  POLICY_LIB_CHECK_VOID();
+  policy_manager_->OnSystemReady();
+}
+
+void PolicyHandler::PTUpdatedAt(int kilometers, int days_after_epoch) {
+  POLICY_LIB_CHECK_VOID();
+  policy_manager_->PTUpdatedAt(kilometers, days_after_epoch);
+}
+
 BinaryMessageSptr PolicyHandler::RequestPTUpdate() {
   POLICY_LIB_CHECK(BinaryMessageSptr());
   return policy_manager_->RequestPTUpdate();
@@ -1373,7 +1395,7 @@ std::string PolicyHandler::GetAppName(const std::string& policy_app_id) {
 }
 
 void PolicyHandler::OnUserRequestedUpdateCheckRequired() {
-  LOG4CXX_INFO(logger_, "OnUserRequestedUpdateCheckRequired");
+  LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK_VOID();
   policy::PolicyTableStatus status = policy_manager_->GetPolicyTableStatus();
   if (is_user_requested_policy_table_update_ &&
@@ -1387,14 +1409,14 @@ void PolicyHandler::OnUserRequestedUpdateCheckRequired() {
 }
 
 void PolicyHandler::OnUpdateHMIAppType(std::map<std::string, StringArray> app_hmi_types) {
-  LOG4CXX_INFO(logger_, "OnUpdateHMIAppType");
+  LOG4CXX_AUTO_TRACE(logger_);
   if (listener_) {
     listener_->OnUpdateHMIAppType(app_hmi_types);
   }
 }
 
 void PolicyHandler::RemoveDevice(const std::string& device_id) {
-  LOG4CXX_INFO(logger_, "PolicyHandler::RemoveDevice");
+  LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK_VOID();
 
   policy_manager_->MarkUnpairedDevice(device_id);
@@ -1420,7 +1442,7 @@ bool PolicyHandler::IsApplicationRevoked(const std::string& app_id) {
 }
 
 void PolicyHandler::OnUpdateRequestSentToMobile() {
-  LOG4CXX_INFO(logger_, "OnUpdateRequestSentToMobile");
+  LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK_VOID();
   policy_manager_->OnUpdateStarted();
 }
