@@ -427,6 +427,16 @@ class MessageHelper {
       smart_objects::SmartObject& message_params,
       ApplicationConstSharedPtr app);
 
+    /**
+     * @brief checkWithPolicy allows to check soft button's parameters
+     * according to the current policy
+     * @param system_action system action
+     * @param app_mobile_id policy application id
+     * @return
+     */
+    static bool CheckWithPolicy(int system_action,
+                                const std::string& app_mobile_id);
+
     /*
      * @brief subscribe application to softbutton
      *

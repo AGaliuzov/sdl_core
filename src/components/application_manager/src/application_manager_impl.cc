@@ -1076,6 +1076,11 @@ void ApplicationManagerImpl::OnServiceEndedCallback(const int32_t& session_key,
 void ApplicationManagerImpl::OnApplicationFloodCallBack(const uint32_t &connection_key) {
   LOG4CXX_TRACE_ENTER(logger_);
   LOG4CXX_DEBUG(logger_, "Unregister flooding application " << connection_key);
+
+  MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
+      connection_key,
+      mobile_apis::AppInterfaceUnregisteredReason::TOO_MANY_REQUESTS);
+
   UnregisterApplication(connection_key, mobile_apis::Result::TOO_MANY_PENDING_REQUESTS,
                         true, true);
   // TODO(EZamakhov): increment "removals_for_bad_behaviour" field in policy table

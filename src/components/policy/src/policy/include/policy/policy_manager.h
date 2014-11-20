@@ -386,12 +386,6 @@ class PolicyManager : public usage_statistics::StatisticsManager {
     virtual uint32_t GetNotificationsNumber(const std::string& priority) = 0;
 
     /**
-     * @brief Provide info about device consent for application
-     * @return Amount of groups for which app is allowed
-     */
-    virtual int IsConsentNeeded(const std::string& app_id) = 0;
-
-    /**
      * @brief Allows to update Vehicle Identification Number in policy table.
      * @param new value for the parameter.
      */

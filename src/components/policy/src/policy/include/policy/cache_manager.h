@@ -435,12 +435,10 @@ class CacheManager : public CacheManagerInterface {
    * groups for specific application.
    * @param policy_app_id application id.
    * @param device_id device id.
-   * @param result the count of unconsented groups
-   * @return true in case opperation has been done successfully.
+   * @return the count of unconsented groups
    */
-  bool CountUnconsentedGroups(const std::string& policy_app_id,
-                              const std::string& device_id,
-                              int& result);
+  int CountUnconsentedGroups(const std::string& policy_app_id,
+                              const std::string& device_id);
 
   /**
    * @brief Gets functional group names and user_consent_prompts, if any

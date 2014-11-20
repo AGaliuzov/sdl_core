@@ -142,8 +142,8 @@ class MockCacheManagerInterface : public CacheManagerInterface {
       void(const std::string& app_id, usage_statistics::AppInfoId type, const std::string& value));
   MOCK_METHOD3(Add,
       void(const std::string& app_id, usage_statistics::AppStopwatchId type, int seconds));
-  MOCK_METHOD3(CountUnconsentedGroups,
-      bool(const std::string& policy_app_id, const std::string& device_id, int& result));
+  MOCK_METHOD2(CountUnconsentedGroups,
+      int(const std::string& policy_app_id, const std::string& device_id));
   MOCK_METHOD1(GetFunctionalGroupNames,
       bool(FunctionalGroupNames& names));
   MOCK_METHOD2(GetAllAppGroups,
