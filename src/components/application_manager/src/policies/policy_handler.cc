@@ -1170,6 +1170,8 @@ void PolicyHandler::PTExchangeAtOdometer(int kilometers) {
   if (policy_manager_->ExceededKilometers(kilometers)) {
     LOG4CXX_INFO(logger_, "Enough kilometers passed to send for PT update.");
     StartPTExchange();
+  } else {
+    LOG4CXX_INFO(logger_, "Not enough kilometers passed to send for PT update.");
   }
 }
 
