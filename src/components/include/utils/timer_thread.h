@@ -243,6 +243,7 @@ void TimerThread<T>::start(uint32_t timeout_seconds) {
   if (isRunning()) {
     LOG4CXX_INFO(logger_, "TimerThread start needs stop " << name_);
     stop();
+    thread_->join();
   }
   updateTimeOut(timeout_seconds);
   thread_->start();
@@ -298,6 +299,7 @@ template <class T>
 void TimerThread<T>::TimerDelegate::threadMain() {
   using sync_primitives::ConditionalVariable;
   sync_primitives::AutoLock auto_lock(state_lock_);
+  stop_flag_ = false;
   while (!stop_flag_) {
     // Sleep
     int32_t  wait_milliseconds_left = TimerDelegate::calculateMillisecondsLeft();
@@ -306,11 +308,13 @@ void TimerThread<T>::TimerDelegate::threadMain() {
     // Quit sleeping or continue sleeping in case of spurious wake up
     if (ConditionalVariable::kTimeout == wait_status ||
         wait_milliseconds_left <= 0) {
-      break;
+      LOG4CXX_TRACE(logger_, "Timer timeout " << wait_milliseconds_left << " ms");
+      timer_thread_->onTimeOut();
+      return;
+    } else {
+      LOG4CXX_DEBUG(logger_, "Timeout reset force: " << TimerDelegate::timeout_seconds_);
+      return;
     }
-  }
-  if (!stop_flag_) {
-    timer_thread_->onTimeOut();
   }
 }
 
@@ -318,6 +322,7 @@ template <class T>
 void TimerThread<T>::TimerLooperDelegate::threadMain() {
   using sync_primitives::ConditionalVariable;
   sync_primitives::AutoLock auto_lock(TimerDelegate::state_lock_);
+  TimerDelegate::stop_flag_ = false;
   while (!TimerDelegate::stop_flag_) {
     int32_t  wait_milliseconds_left = TimerDelegate::calculateMillisecondsLeft();
     ConditionalVariable::WaitStatus wait_status =

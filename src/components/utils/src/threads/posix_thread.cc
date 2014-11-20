@@ -94,6 +94,8 @@ void* Thread::threadFunc(void* arg) {
   while (!thread->finalized_) {
     LOG4CXX_DEBUG(logger_, "Thread #" << pthread_self() << " iteration");
     thread->run_cond_.Wait(thread->state_lock_);
+    LOG4CXX_DEBUG(logger_, "Thread #" << pthread_self() << " execute. "
+                  << "stopped_ = " << thread->stopped_ << "; finalized_ = " << thread->finalized_);
     if (!thread->stopped_ && !thread->finalized_) {
 
       thread->state_lock_.Release();
@@ -221,6 +223,8 @@ bool Thread::start(const ThreadOptions& options) {
           << " (\"" << strerror(pthread_result) << "\")");
     }
   }
+
+  stopped_ = false;
   run_cond_.NotifyOne();
 
   LOG4CXX_TRACE_EXIT(logger_);
@@ -263,7 +267,7 @@ void Thread::join() {
 
 Thread::~Thread() {
   finalized_ = true;
-  stopped_   = true;
+  stopped_ = true;
   join();
   pthread_join(handle_, NULL);
 }

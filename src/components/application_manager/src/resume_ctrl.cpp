@@ -72,7 +72,9 @@ void ResumeCtrl::SaveApplication(ApplicationConstSharedPtr application) {
   uint32_t hash = application->curHash();
   uint32_t grammar_id = application->get_grammar_id();
 
-  LOG4CXX_INFO(logger_, "Hash = " << hash);
+  LOG4CXX_INFO(logger_, "hash = " << hash);
+  LOG4CXX_INFO(logger_, "grammar_id = " << grammar_id);
+
   (*json_app)[strings::device_mac] =
       MessageHelper::GetDeviceMacAddressForHandle(application->device());
   (*json_app)[strings::app_id] = m_app_id;
@@ -96,6 +98,7 @@ void ResumeCtrl::SaveApplication(ApplicationConstSharedPtr application) {
   (*json_app)[strings::application_files] = GetApplicationFiles(application);
   (*json_app)[strings::time_stamp] = (uint32_t)time(NULL);
   (*json_app)[strings::audio_streaming_state] = application->audio_streaming_state();
+  LOG4CXX_INFO(logger_, "SaveApplication : " << json_app->toStyledString());
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
@@ -283,8 +286,6 @@ bool ResumeCtrl::RestoreApplicationData(ApplicationSharedPtr application) {
 
   Json::Value& saved_app = *it;
   MessageHelper::SmartObjectList requests;
-
-  LOG4CXX_INFO(logger_, saved_app.toStyledString());
   Json::Value& app_commands = saved_app[strings::application_commands];
   Json::Value& app_submenus = saved_app[strings::application_submenus];
   Json::Value& app_choise_sets = saved_app[strings::application_choise_sets];
@@ -590,8 +591,8 @@ bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
   }
   LOG4CXX_TRACE(logger_, " ENTER app_id = " << application->app_id()
                         << " hmi_app_id = " << application->hmi_app_id()
-                        << " mobile_id = "
-                        << application->mobile_app_id()->asString());
+                        << " mobile_id = " << application->mobile_app_id()->asString()
+                        << "recieved hash = " << hash);
 
   Json::Value::iterator it = GetSavedApplications().begin();
   ApplicationManagerImpl::ApplicationListAccessor accessor;
@@ -660,6 +661,8 @@ bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
                                                  time_stamp));
         queue_lock_.Release();
         // woun't start timer if it is active already
+        LOG4CXX_TRACE(logger_, "Application " << application->app_id() << " inserted to timer queue. "
+                      << "timer started for " << profile::Profile::instance()->app_resuming_timeout());
         restore_hmi_level_timer_.start(profile::Profile::instance()->app_resuming_timeout());
       }
       LOG4CXX_TRACE(logger_, "EXIT true");
@@ -698,7 +701,6 @@ bool ResumeCtrl::CheckPersistenceFilesForResumption(ApplicationSharedPtr applica
   Json::Value& saved_app = *it;
   MessageHelper::SmartObjectList requests;
 
-  LOG4CXX_INFO(logger_, saved_app.toStyledString());
   Json::Value& app_commands = saved_app[strings::application_commands];
   Json::Value& app_choise_sets = saved_app[strings::application_choise_sets];
 
@@ -745,7 +747,7 @@ bool ResumeCtrl::CheckApplicationHash(ApplicationSharedPtr application,
   }
 
   LOG4CXX_TRACE(logger_, "ENTER app_id : " << application->app_id()
-                << "hash : " << hash);
+                << " hash : " << hash);
 
   Json::Value::iterator it = GetSavedApplications().begin();
   for (; it != GetSavedApplications().end(); ++it) {
@@ -753,6 +755,7 @@ bool ResumeCtrl::CheckApplicationHash(ApplicationSharedPtr application,
 
     if (saved_m_app_id == application->mobile_app_id()->asString()) {
       uint32_t saved_hash = (*it)[strings::hash_id].asUInt();
+      LOG4CXX_TRACE(logger_, "Found saved application : " << (*it).toStyledString());
       LOG4CXX_INFO(logger_, "received hash = " << hash);
       LOG4CXX_INFO(logger_, "saved hash = " << saved_hash);
       if (hash == saved_hash) {
@@ -841,7 +844,6 @@ Json::Value ResumeCtrl::GetApplicationCommands(
     Json::Value curr;
     Formatters::CFormatterJsonBase::objToJsonValue(*so, curr);
     result.append(curr);
-    LOG4CXX_INFO(logger_, "Converted:" << curr.toStyledString());
   }
   LOG4CXX_TRACE_EXIT(logger_);
   return result;
@@ -861,7 +863,6 @@ Json::Value ResumeCtrl::GetApplicationSubMenus(
     Json::Value curr;
     Formatters::CFormatterJsonBase::objToJsonValue(*so, curr);
     result.append(curr);
-    LOG4CXX_INFO(logger_, "Converted:" << curr.toStyledString());
   }
   LOG4CXX_TRACE_EXIT(logger_);
   return result;
@@ -881,7 +882,6 @@ Json::Value ResumeCtrl::GetApplicationInteractionChoiseSets(
     Json::Value curr;
     Formatters::CFormatterJsonBase::objToJsonValue(*so, curr);
     result.append(curr);
-    LOG4CXX_INFO(logger_, "Converted:" << curr.toStyledString());
   }
   LOG4CXX_TRACE_EXIT(logger_);
   return result;
