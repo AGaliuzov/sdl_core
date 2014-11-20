@@ -24,7 +24,7 @@ function show_help() {
 	exit
 }
 
-function ommit_license() {
+function prepare_compiler() {
   cd ${PASA_DIR}/SmartDeviceLink/
   sed -i "s/CC = \${QNX_HOST}\/usr\/bin\/qcc/CC = \${QNX_HOST}\/usr\/bin\/ntoarmv7-gcc/" cfg/qnx_armv7.mk
   sed -i "s/CPP = \${QNX_HOST}\/usr\/bin\/qcc/CPP = \${QNX_HOST}\/usr\/bin\/ntoarmv7-g++/" cfg/qnx_armv7.mk
@@ -62,7 +62,7 @@ function build() {
   make pasa-tarball
   tar -xzf pasa.tar.gz -C ${PASA_DIR}/SmartDeviceLink/
   cd ${PASA_DIR}/SmartDeviceLink/
-  ommit_license
+  prepare_compiler
   make -j4
   if [ $? -ne 0 ]; then
     echo "Failed to create snapshot";
