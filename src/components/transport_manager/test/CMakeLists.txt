@@ -74,7 +74,7 @@ ${COMPONENTS_DIR}/transport_manager/test/raw_message_matcher.cc
 #${COMPONENTS_DIR}/transport_manager/test/test_dnssd_service_browser.cc     
 #${COMPONENTS_DIR}/transport_manager/test/test_tcp_transport_adapter.cc     
 ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter.cc         
-${COMPONENTS_DIR}/transport_manager/test/transport_manager_test.cc    
+${COMPONENTS_DIR}/transport_manager/test/transport_manager_test.cc    #refactored
 )          
 
 create_test("test_transport_manager" "${SOURCES}" "${LIBRARIES}")
