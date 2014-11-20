@@ -1177,31 +1177,54 @@ int CacheManager::CountUnconsentedGroups(const std::string& policy_app_id,
   policy_table::Strings::const_iterator app_spec_iter_end =
       pt_->policy_table.app_policies[policy_app_id].groups.end();
 
+  policy_table::Strings groups_to_be_consented;
   policy_table::FunctionalGroupings::iterator current_groups_iter;
   for (; app_spec_iter != app_spec_iter_end; ++app_spec_iter) {
-    current_groups_iter = pt_->policy_table.functional_groupings.find(*app_spec_iter);
+
+    current_groups_iter =
+        pt_->policy_table.functional_groupings.find(*app_spec_iter);
+
     if (groups_iter_end != current_groups_iter) {
       if (current_groups_iter->second.user_consent_prompt.is_initialized()) {
-        if (pt_->policy_table.device_data->end() !=
-            pt_->policy_table.device_data->find(device_id)) {
-
-          policy_table::DeviceParams& params = (*pt_->policy_table.device_data)[device_id];
-          policy_table::UserConsentRecords& ucr = *(params.user_consent_records);
-
-          if (ucr.end() != ucr.find(policy_app_id)) {
-            policy_table::ConsentRecords cgr = ucr[policy_app_id];
-            policy_table::ConsentGroups::const_iterator con_iter =
-                cgr.consent_groups->begin();
-
-            con_iter = cgr.consent_groups->find((*groups_iter).first);
-            if (con_iter != cgr.consent_groups->end()) {
-              ++result;
-            }
-          }
-        }
+        groups_to_be_consented.push_back(*app_spec_iter);
       }
     }
   }
+
+  if (groups_to_be_consented.empty()) {
+    return 0;
+  }
+
+  // If there is no device record, all groups with consents should be consented
+  if (pt_->policy_table.device_data->end() ==
+      pt_->policy_table.device_data->find(device_id)) {
+    return groups_to_be_consented.size();
+  }
+
+  policy_table::DeviceParams& params =
+      (*pt_->policy_table.device_data)[device_id];
+
+  policy_table::UserConsentRecords& ucr = *(params.user_consent_records);
+
+  // If there is no application record, all groups with consents should be
+  // consented
+  if (ucr.end() == ucr.find(policy_app_id)) {
+    return groups_to_be_consented.size();
+  }
+
+  policy_table::ConsentRecords& cgr = ucr[policy_app_id];
+
+  policy_table::Strings::const_iterator to_consent_it =
+      groups_to_be_consented.begin();
+
+  for (;to_consent_it != groups_to_be_consented.end(); ++to_consent_it) {
+    policy_table::ConsentGroups::const_iterator already_consented_iter =
+        cgr.consent_groups->find(*to_consent_it);
+    if (already_consented_iter == cgr.consent_groups->end()) {
+      ++result;
+    }
+  }
+
 #endif // EXTENDED_POLICY
   LOG4CXX_TRACE_EXIT(logger_);
   return result;
