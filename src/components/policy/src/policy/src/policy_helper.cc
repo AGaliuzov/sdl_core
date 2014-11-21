@@ -269,6 +269,7 @@ void CheckAppPolicy::SendOnPendingPermissions(
 
 bool CheckAppPolicy::IsAppRevoked(
   const AppPoliciesValueType& app_policy) const {
+  LOG4CXX_AUTO_TRACE(logger_);
   // Application params are not initialized = application revoked
   // i.e. "123":null
   return app_policy.second.is_null();

@@ -322,7 +322,7 @@ const std::string kInsertInitData =
   "INSERT OR IGNORE INTO `module_config` (`preloaded_pt`, `is_first_run`,"
   "  `exchange_after_x_ignition_cycles`, `exchange_after_x_kilometers`, "
   "  `exchange_after_x_days`, `timeout_after_x_seconds`) "
-  "  VALUES(1, 1, 0, 0, 0, 0); "
+  "  VALUES(1, 0, 0, 0, 0, 0); "
   "INSERT OR IGNORE INTO `priority`(`value`) VALUES ('EMERGENCY'); "
   "INSERT OR IGNORE INTO `priority`(`value`) VALUES ('NAVIGATION'); "
   "INSERT OR IGNORE INTO `priority`(`value`) VALUES ('VOICECOMMUNICATION'); "

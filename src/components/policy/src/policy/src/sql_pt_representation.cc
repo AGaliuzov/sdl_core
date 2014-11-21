@@ -1336,9 +1336,12 @@ bool SQLPTRepresentation::IsApplicationRevoked(
   if (!query.Prepare(sql_pt::kSelectApplicationRevoked)) {
     LOG4CXX_WARN(logger_, "Incorrect select from is_revoked of application");
   }
-   if (!query.Exec()) {
+
+  query.Bind(0, app_id);
+
+  if (!query.Exec()) {
     LOG4CXX_WARN(logger_, "Failed select is_revoked of application");
-     return false;
+    return false;
   }
   return query.IsNull(0) ? false : query.GetBoolean(0);
  }

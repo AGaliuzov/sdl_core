@@ -148,6 +148,7 @@ bool CacheManager::GetDefaultHMI(const std::string &app_id,
 
 bool CacheManager::ResetUserConsent() {
   CACHE_MANAGER_CHECK(false);
+  sync_primitives::AutoLock lock (cache_lock_);
 #ifdef EXTENDED_POLICY
   policy_table::DeviceData::iterator iter =
       pt_->policy_table.device_data->begin();
@@ -354,6 +355,12 @@ bool CacheManager::ApplyUpdate(const policy_table::Table& update_pt) {
       update_pt.policy_table.app_policies.end();
 
   for (;iter != iter_end; ++iter) {
+    policy_table::ApplicationPolicies::iterator beg =
+        pt_->policy_table.app_policies.find(iter->first);
+    if (pt_->policy_table.app_policies.end() != beg) {
+      SetIsDefault(iter->first, false);
+      SetIsPredata(iter->first, false);
+    }
     pt_->policy_table.app_policies[iter->first] = iter->second;
   }
 
@@ -364,6 +371,7 @@ bool CacheManager::ApplyUpdate(const policy_table::Table& update_pt) {
         update_pt.policy_table.consumer_friendly_messages;
   }
   LOG4CXX_TRACE_EXIT(logger_);
+  Backup();
   return true;
 }
 
@@ -515,6 +523,7 @@ bool CacheManager::ReactOnUserDevConsentForApp(const std::string &app_id,
   CACHE_MANAGER_CHECK(false);
   bool result = true;
 #ifdef EXTENDED_POLICY
+  cache_lock_.Acquire();
   if (is_device_allowed) {
     // If app has pre_DataConsented groups it should be 'promoted' to default
     // If app has only pre_DataConsented flag it should be only set to false and
@@ -546,6 +555,7 @@ bool CacheManager::ReactOnUserDevConsentForApp(const std::string &app_id,
       result = SetIsPredata(app_id, true);
     }
   }
+  cache_lock_.Release();
 #endif // EXTENDED_POLICY
   Backup();
   LOG4CXX_TRACE_EXIT(logger_);
@@ -687,13 +697,14 @@ int CacheManager::IgnitionCyclesBeforeExchange() {
   const uint8_t limit = std::max(
         static_cast<int>(
           pt_->policy_table.module_config.exchange_after_x_ignition_cycles), 0);
-
+  LOG4CXX_DEBUG(logger_, "IgnitionCyclesBeforeExchange limit:" << limit);
   uint8_t current = 0;
 
 #ifdef EXTENDED_POLICY
   const int last_exch = static_cast<int>
       (*pt_->policy_table.module_meta->ignition_cycles_since_last_exchange);
   current = std::max(last_exch, 0);
+  LOG4CXX_DEBUG(logger_, "IgnitionCyclesBeforeExchange current:" << current);
 #endif // EXTENDED_POLICY
 
   return std::max(limit - current, 0);
@@ -704,15 +715,18 @@ int CacheManager::KilometersBeforeExchange(int current) {
   const uint8_t limit = std::max(
         static_cast<int>(
           pt_->policy_table.module_config.exchange_after_x_kilometers), 0);
+  LOG4CXX_DEBUG(logger_, "KilometersBeforeExchange limit:" << limit);
   uint8_t last = 0;
 
 #ifdef EXTENDED_POLICY
   const int odo_val = static_cast<int>
       (*pt_->policy_table.module_meta->pt_exchanged_at_odometer_x);
   last = std::max(odo_val, 0);
+  LOG4CXX_DEBUG(logger_, "KilometersBeforeExchange last:" << last);
 #endif // EXTENDED_POLICY
 
   const uint8_t actual = std::max((current - last), 0);
+  LOG4CXX_DEBUG(logger_, "KilometersBeforeExchange actual:" << actual);
   return std::max(limit - actual, 0);
 }
 
@@ -722,6 +736,8 @@ bool CacheManager::SetCountersPassedForSuccessfulUpdate(int kilometers,
 #ifdef EXTENDED_POLICY
   *pt_->policy_table.module_meta->pt_exchanged_at_odometer_x = kilometers;
   *pt_->policy_table.module_meta->pt_exchanged_x_days_after_epoch = days_after_epoch;
+  LOG4CXX_DEBUG(logger_, "SetCountersPassedForSuccessfulUpdate km:" << kilometers);
+  LOG4CXX_DEBUG(logger_, "SetCountersPassedForSuccessfulUpdate days epoh:" << days_after_epoch);
 #endif
   Backup();
   return true;
@@ -732,15 +748,18 @@ int CacheManager::DaysBeforeExchange(int current) {
   const uint8_t limit = std::max(
         static_cast<int>(
           pt_->policy_table.module_config.exchange_after_x_days), 0);
+  LOG4CXX_DEBUG(logger_, "DaysBeforeExchange limit:" << limit);
   uint8_t last = 0;
 
 #ifdef EXTENDED_POLICY
   const int odo_val = static_cast<int>
       (*pt_->policy_table.module_meta->pt_exchanged_x_days_after_epoch);
   last = std::max(odo_val, 0);
+  LOG4CXX_DEBUG(logger_, "DaysBeforeExchange last:" << last);
 #endif // EXTENDED_POLICY
 
   const uint8_t actaul = std::max((current - last), 0);
+  LOG4CXX_DEBUG(logger_, "DaysBeforeExchange actual:" << actaul);
   return std::max(limit - actaul, 0);
 }
 
@@ -750,6 +769,7 @@ void CacheManager::IncrementIgnitionCycles() {
   const int ign_val = static_cast<int>
       (*pt_->policy_table.module_meta->ignition_cycles_since_last_exchange);
   (*pt_->policy_table.module_meta->ignition_cycles_since_last_exchange) = ign_val + 1;
+  LOG4CXX_DEBUG(logger_, "IncrementIgnitionCycles ignitions:" << ign_val);
 #endif // EXTENDED_POLICY
   Backup();
 }
@@ -1515,7 +1535,9 @@ bool CacheManager::UnpairedDevicesList(DeviceIds& device_ids) {
 bool CacheManager::SetVINValue(const std::string& value) {
   CACHE_MANAGER_CHECK(false);
 #ifdef EXTENDED_POLICY
+   cache_lock_.Acquire();
   *pt_->policy_table.module_meta->vin = value;
+   cache_lock_.Release();
 #endif // EXTENDED_POLICY
   Backup();
   return true;
@@ -1582,6 +1604,7 @@ void CacheManager::FillDeviceSpecificData() {
 }
 
 bool CacheManager::LoadFromBackup() {
+  sync_primitives::AutoLock lock(cache_lock_);
   pt_ = backup_->GenerateSnapshot();
   update_required = backup_->UpdateRequired();
 
@@ -1605,17 +1628,24 @@ bool CacheManager::LoadFromFile(const std::string& file_name) {
   Json::Value value;
   Json::Reader reader(Json::Features::strictMode());
   std::string json(json_string.begin(), json_string.end());
-  bool ok = reader.parse(json.c_str(), value);
-  if (ok) {
+  LOG4CXX_INFO(logger_, "Start reset table.");
+  cache_lock_.Acquire();
+  if (reader.parse(json.c_str(), value)) {
+    backup_->Clear();
+    is_predata_.clear();
+    is_unpaired_.clear();
+
     pt_ = new policy_table::Table(&value);
+    final_result = backup_->Save(*pt_);
+    if (final_result) {
+      backup_->WriteDb();
+    }
   } else {
     LOG4CXX_WARN(logger_, reader.getFormattedErrorMessages());
   }
 
-  if (!pt_) {
-    LOG4CXX_WARN(logger_, "Failed to parse policy table");
-    return false;
-  }
+  LOG4CXX_INFO(logger_, "Finish reset table.");
+  cache_lock_.Release();
 
   if (!pt_->is_valid()) {
     rpc::ValidationReport report("policy_table");
@@ -1624,7 +1654,6 @@ bool CacheManager::LoadFromFile(const std::string& file_name) {
                  rpc::PrettyFormat(report));
   }
 
-  final_result = backup_->Save(*pt_);
   LOG4CXX_INFO(
     logger_,
     "Loading from file was " << (final_result ? "successful" : "unsuccessful"));
