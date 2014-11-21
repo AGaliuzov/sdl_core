@@ -210,52 +210,51 @@ endif()
 #TODO to ALL : Please FIX heart_beat_monitor_test.cc
   set(testSources
     ./main_test.cc
-#    ${COMPONENTS_DIR}/utils/test/messagemeter_test.cc
-#    ${COMPONENTS_DIR}/utils/test/date_time_test.cc
-#    ${COMPONENTS_DIR}/utils/test/file_system_test.cc
-#    ${COMPONENTS_DIR}/media_manager/test/media_adapter_impl_test.cc
-#    ${COMPONENTS_DIR}/media_manager/test/media_manager_impl_test.cc
-#    ${COMPONENTS_DIR}/connection_handler/test/connection_handler_impl_test.cc
-#    ${COMPONENTS_DIR}/connection_handler/test/connection_test.cc
-#    ${COMPONENTS_DIR}/rpc_base/test/rpc_base_json_test.cc
-#    ${COMPONENTS_DIR}/rpc_base/test/rpc_base_test.cc
-#    ${COMPONENTS_DIR}/connection_handler/test/heart_beat_monitor_test.cc
-#    ${COMPONENTS_DIR}/formatters/test/generic_json_formatter_test.cc
-#    ${COMPONENTS_DIR}/security_manager/test/crypto_manager_impl_test.cc
-#    ${COMPONENTS_DIR}/security_manager/test/security_manager_test.cc
-#    ${COMPONENTS_DIR}/security_manager/test/security_query_test.cc
-#    ${COMPONENTS_DIR}/security_manager/test/security_query_matcher.cc   
+    ${COMPONENTS_DIR}/utils/test/messagemeter_test.cc
+    ${COMPONENTS_DIR}/utils/test/date_time_test.cc
+    ${COMPONENTS_DIR}/utils/test/file_system_test.cc
+    ${COMPONENTS_DIR}/media_manager/test/media_adapter_impl_test.cc
+    ${COMPONENTS_DIR}/media_manager/test/media_manager_impl_test.cc
+    ${COMPONENTS_DIR}/connection_handler/test/connection_handler_impl_test.cc
+    ${COMPONENTS_DIR}/connection_handler/test/connection_test.cc
+    ${COMPONENTS_DIR}/rpc_base/test/rpc_base_json_test.cc
+    ${COMPONENTS_DIR}/rpc_base/test/rpc_base_test.cc
+    ${COMPONENTS_DIR}/connection_handler/test/heart_beat_monitor_test.cc
+    ${COMPONENTS_DIR}/formatters/test/generic_json_formatter_test.cc
+    ${COMPONENTS_DIR}/security_manager/test/crypto_manager_impl_test.cc
+    ${COMPONENTS_DIR}/security_manager/test/security_manager_test.cc
+    ${COMPONENTS_DIR}/security_manager/test/security_query_test.cc
+    ${COMPONENTS_DIR}/security_manager/test/security_query_matcher.cc   
     ${COMPONENTS_DIR}/transport_manager/test/mock_application.cc
     ${COMPONENTS_DIR}/transport_manager/test/mock_connection_factory.cc  
     ${COMPONENTS_DIR}/transport_manager/test/mock_connection.cc       
     ${COMPONENTS_DIR}/transport_manager/test/mock_device.cc           
     ${COMPONENTS_DIR}/transport_manager/test/mock_device_scanner.cc    
     ${COMPONENTS_DIR}/transport_manager/test/raw_message_matcher.cc   
-   # ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter_listener.cc
     ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter.cc 
     ${COMPONENTS_DIR}/transport_manager/test/transport_manager_test.cc 
     ${AM_TEST_DIR}/command_impl_test.cc
-#    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectDraftTest.cc
-#    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectInvalidTest.cc
-#    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectStressTest.cc
-#    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectUnitTest.cc
-#    ${COMPONENTS_DIR}/smart_objects/test/TSharedPtrTest.cc
-#    ${COMPONENTS_DIR}/protocol_handler/test/protocol_handler_tm_test.cc
-#    ${COMPONENTS_DIR}/protocol_handler/test/incoming_data_handler_test.cc
-#    ${COMPONENTS_DIR}/protocol_handler/test/protocol_header_validator_test.cc
-#    ${COMPONENTS_DIR}/hmi_message_handler/test/test_mqueue_adapter.cc 
+    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectDraftTest.cc
+    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectInvalidTest.cc
+    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectStressTest.cc
+    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectUnitTest.cc
+    ${COMPONENTS_DIR}/smart_objects/test/TSharedPtrTest.cc
+    ${COMPONENTS_DIR}/protocol_handler/test/protocol_handler_tm_test.cc
+    ${COMPONENTS_DIR}/protocol_handler/test/incoming_data_handler_test.cc
+    ${COMPONENTS_DIR}/protocol_handler/test/protocol_header_validator_test.cc
+    ${COMPONENTS_DIR}/hmi_message_handler/test/test_mqueue_adapter.cc 
     
   )
   
-#if (${QT_HMI})
-#    list (APPEND testSources
-#        ${COMPONENTS_DIR}/rpc_base/test/rpc_base_dbus_test.cc
-#        ${COMPONENTS_DIR}/dbus/test/test_schema.cc
-#        ${COMPONENTS_DIR}/dbus/test/test_dbus_adapter.cc
-#        ${COMPONENTS_DIR}/hmi_message_handler/test/mock_subscriber.cc 
-#        ${COMPONENTS_DIR}/hmi_message_handler/test/test_dbus_message_adapter.cc    
-#       )
-#endif ()
+if (${QT_HMI})
+    list (APPEND testSources
+        ${COMPONENTS_DIR}/rpc_base/test/rpc_base_dbus_test.cc
+        ${COMPONENTS_DIR}/dbus/test/test_schema.cc
+        ${COMPONENTS_DIR}/dbus/test/test_dbus_adapter.cc
+        ${COMPONENTS_DIR}/hmi_message_handler/test/mock_subscriber.cc 
+        ${COMPONENTS_DIR}/hmi_message_handler/test/test_dbus_message_adapter.cc    
+       )
+endif ()
 
 
   set(test_exec_libraries
