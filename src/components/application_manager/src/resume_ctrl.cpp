@@ -98,7 +98,7 @@ void ResumeCtrl::SaveApplication(ApplicationConstSharedPtr application) {
   (*json_app)[strings::application_files] = GetApplicationFiles(application);
   (*json_app)[strings::time_stamp] = (uint32_t)time(NULL);
   (*json_app)[strings::audio_streaming_state] = application->audio_streaming_state();
-  LOG4CXX_INFO(logger_, "SaveApplication : " << json_app->toStyledString());
+  LOG4CXX_DEBUG(logger_, "SaveApplication : " << json_app->toStyledString());
   LOG4CXX_TRACE_EXIT(logger_);
 }
 
