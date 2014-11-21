@@ -71,7 +71,7 @@ if (EXTENDED_POLICY_FLAG)
 else ()
   include_directories(${COMPONENTS_DIR}/policy/src/policy/policy_table/table_struct)
   list (APPEND testSources
-    #sql_pt_representation_test.cc
+    sql_pt_representation_test.cc
   )
 endif ()
 

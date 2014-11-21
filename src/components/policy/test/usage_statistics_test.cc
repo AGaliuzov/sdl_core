@@ -42,7 +42,7 @@ namespace test {
 // TEST(A, B_C_D) { ... }
 // A - What you test
 // B - What you do
-// C - Input data/
+// C - Input data
 // D - Expected result
 
 TEST(StatisticsManagerIncrementMethod1Arg, GlobalCounterOverloadedIncrement_CallONCE_StatisticsManagerIncrementCalledONCE) {
@@ -50,7 +50,7 @@ TEST(StatisticsManagerIncrementMethod1Arg, GlobalCounterOverloadedIncrement_Call
   MockStatisticsManager* msm = new StrictMock<MockStatisticsManager>();
   GlobalCounter reboots_counter(msm, SYNC_REBOOTS);
 
-  //Accert
+  //Assert
   EXPECT_CALL(*msm, Increment(SYNC_REBOOTS)).Times(1);
 
   //Act
@@ -62,7 +62,7 @@ TEST(StatisticsManagerIncrementMethod1Arg, GlobalCounterOverloadedIncrement_Call
   MockStatisticsManager* msm = new StrictMock<MockStatisticsManager>();
   GlobalCounter reboots_counter(msm, SYNC_REBOOTS);
 
-  //Accert
+  //Assert
   EXPECT_CALL(*msm, Increment(SYNC_REBOOTS)).Times(2);
 
   //Act
@@ -75,7 +75,7 @@ TEST(StatisticsManagerIncrementMethod2Args, AppCounterOverloadedIncrement_CallON
   MockStatisticsManager* msm = new StrictMock<MockStatisticsManager>();
   AppCounter user_selections_counter(msm, "HelloApp", USER_SELECTIONS);
 
-  //Accert
+  //Assert
   EXPECT_CALL(*msm, Increment("HelloApp", USER_SELECTIONS)).Times(1);
 
   //Act
@@ -87,7 +87,7 @@ TEST(StatisticsManagerIncrementMethod2Args, AppCounterOverloadedIncrement_CallTW
   MockStatisticsManager* msm = new StrictMock<MockStatisticsManager>();
   AppCounter user_selections_counter(msm, "HelloApp", USER_SELECTIONS);
 
-  //Accert
+  //Assert
   EXPECT_CALL(*msm, Increment("HelloApp", USER_SELECTIONS)).Times(2);
 
   //Act
@@ -100,7 +100,7 @@ TEST(StatisticsManagerSetMethod, AppInfoUpdateMethod_CallONCE_StatisticsManagerS
   MockStatisticsManager* msm = new StrictMock<MockStatisticsManager>();
   AppInfo gui_language_info(msm, "HelloApp", LANGUAGE_GUI);
 
-  //Accert
+  //Assert
   EXPECT_CALL(*msm, Set("HelloApp", LANGUAGE_GUI, "Klingon")).Times(1);
 
   //Act
@@ -112,7 +112,7 @@ TEST(StatisticsManagerSetMethod, AppInfoUpdateMethod_CallTWICE_StatisticsManager
   MockStatisticsManager* msm = new StrictMock<MockStatisticsManager>();
   AppInfo gui_language_info(msm, "HelloApp", LANGUAGE_GUI);
 
-  //Accert
+  //Assert
   EXPECT_CALL(*msm, Set("HelloApp", LANGUAGE_GUI, "Klingon")).Times(1);
   EXPECT_CALL(*msm, Set("HelloApp", LANGUAGE_GUI, "UA")).Times(1);
 
@@ -126,7 +126,7 @@ TEST(StatisticsManagerSetMethod, AppStopwatchStartMethod_CallONCE_StatisticsMana
   MockStatisticsManager* msm = new StrictMock<MockStatisticsManager>();
   AppStopwatch hmi_full_stopwatch(msm, "HelloApp");
 
-  //Accert
+  //Assert
   EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_FULL, 0)).Times(1);
 
   //Act
@@ -138,7 +138,7 @@ TEST(StatisticsManagerAddMethod, AppStopwatchStartMethod_Call_StatisticsManagerA
   MockStatisticsManager* msm = new StrictMock<MockStatisticsManager>();
   AppStopwatch hmi_full_stopwatch(msm, "HelloApp");
 
-  //Accert
+  //Assert
   EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_FULL, 0)).Times(1);
 
   //Act
@@ -151,7 +151,7 @@ TEST(StatisticsManagerAddMethod, AppStopwatchStopMethod_Call_StatisticsManagerAd
   AppStopwatch hmi_full_stopwatch(msm, "HelloApp");
   hmi_full_stopwatch.Start(SECONDS_HMI_FULL);
 
-  //Accert
+  //Assert
   EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_FULL, 0)).Times(1);
 
   //Act
@@ -164,7 +164,7 @@ TEST(StatisticsManagerAddMethod, AppStopwatchSwitchMethod_Call_StatisticsManager
   AppStopwatch hmi_full_stopwatch(msm, "HelloApp");
   hmi_full_stopwatch.Start(SECONDS_HMI_FULL);
 
-  //Accert
+  //Assert
   EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_FULL, 0)).Times(2); // Once in stop(), once in destructor
 
   //Act
@@ -176,7 +176,7 @@ TEST(StatisticsManagerAddMethod, AppStopwatchStartMethod_CallAnd1SecSleepAfter_S
   MockStatisticsManager* msm = new StrictMock<MockStatisticsManager>();
   AppStopwatch hmi_full_stopwatch(msm, "HelloApp");
 
-  //Accert
+  //Assert
   EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_FULL, 1)).Times(1);
 
   //Act
@@ -189,7 +189,7 @@ TEST(StatisticsManagerAddMethod, AppStopwatchSwitchMethod_CallAnd1SecSleepAfter_
   MockStatisticsManager* msm = new StrictMock<MockStatisticsManager>();
   AppStopwatch hmi_full_stopwatch(msm, "HelloApp");
 
-  //Accert
+  //Assert
   EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_NONE, 0)).Times(1);
   EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_BACKGROUND, 1)).Times(1);
 
