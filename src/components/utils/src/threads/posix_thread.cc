@@ -102,7 +102,6 @@ void* Thread::threadFunc(void* arg) {
       thread->isThreadRunning_ = true;
       pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
       pthread_testcancel();
-
       thread->delegate_->threadMain();
 
       pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
@@ -110,6 +109,7 @@ void* Thread::threadFunc(void* arg) {
       thread->state_lock_.Acquire();
 
       thread->state_cond_.Broadcast();
+      LOG4CXX_DEBUG(logger_, "Thread #" << pthread_self() << " finished iteration");
     }
   }
 
@@ -175,7 +175,8 @@ bool Thread::start(const ThreadOptions& options) {
   }
 
   if (isThreadRunning_) {
-    LOG4CXX_TRACE_EXIT(logger_);
+    LOG4CXX_TRACE(logger_, "EXIT thread "<< name_
+                  << " #" << handle_ << "is already runing");
     return true;
   }
 
@@ -226,7 +227,9 @@ bool Thread::start(const ThreadOptions& options) {
 
   stopped_ = false;
   run_cond_.NotifyOne();
-
+  LOG4CXX_DEBUG(logger_,"Thread " << name_
+                << " #" << handle_ << " started. pthread_result = "
+                << pthread_result);
   LOG4CXX_TRACE_EXIT(logger_);
   return pthread_result == EOK;
 }
