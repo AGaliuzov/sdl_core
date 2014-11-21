@@ -94,13 +94,14 @@ void* Thread::threadFunc(void* arg) {
   while (!thread->finalized_) {
     LOG4CXX_DEBUG(logger_, "Thread #" << pthread_self() << " iteration");
     thread->run_cond_.Wait(thread->state_lock_);
+    LOG4CXX_DEBUG(logger_, "Thread #" << pthread_self() << " execute. "
+                  << "stopped_ = " << thread->stopped_ << "; finalized_ = " << thread->finalized_);
     if (!thread->stopped_ && !thread->finalized_) {
 
       thread->state_lock_.Release();
       thread->isThreadRunning_ = true;
       pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
       pthread_testcancel();
-
       thread->delegate_->threadMain();
 
       pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
@@ -108,6 +109,7 @@ void* Thread::threadFunc(void* arg) {
       thread->state_lock_.Acquire();
 
       thread->state_cond_.Broadcast();
+      LOG4CXX_DEBUG(logger_, "Thread #" << pthread_self() << " finished iteration");
     }
   }
 
@@ -173,7 +175,8 @@ bool Thread::start(const ThreadOptions& options) {
   }
 
   if (isThreadRunning_) {
-    LOG4CXX_TRACE_EXIT(logger_);
+    LOG4CXX_TRACE(logger_, "EXIT thread "<< name_
+                  << " #" << handle_ << "is already runing");
     return true;
   }
 
@@ -221,8 +224,12 @@ bool Thread::start(const ThreadOptions& options) {
           << " (\"" << strerror(pthread_result) << "\")");
     }
   }
-  run_cond_.NotifyOne();
 
+  stopped_ = false;
+  run_cond_.NotifyOne();
+  LOG4CXX_DEBUG(logger_,"Thread " << name_
+                << " #" << handle_ << " started. pthread_result = "
+                << pthread_result);
   LOG4CXX_TRACE_EXIT(logger_);
   return pthread_result == EOK;
 }
@@ -263,7 +270,7 @@ void Thread::join() {
 
 Thread::~Thread() {
   finalized_ = true;
-  stopped_   = true;
+  stopped_ = true;
   join();
   pthread_join(handle_, NULL);
 }
