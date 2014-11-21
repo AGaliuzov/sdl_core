@@ -46,6 +46,7 @@ ContextPopup {
     property int appID
     property int interactionLayout
     property var async
+    property var grammarID
     property bool performInteractionIsActiveNow
 
     Text {
@@ -71,6 +72,7 @@ ContextPopup {
             icon: image
             onClicked: {
                 complete(Common.Result.SUCCESS, {"choiceID": model.choiceID})
+                vrPopUp.sortModel()
             }
         }
     }
@@ -90,6 +92,7 @@ ContextPopup {
         var dataToUpdate = {}
 
         performInteractionIsActiveNow = true
+        if (initialText !== undefined)
         initialText.text = initialText.fieldText
         this.timeout = timeout
         this.appID = appID
@@ -124,6 +127,8 @@ ContextPopup {
         if (piPopUp.choiceSet.count !== 0) {
             activate()
         }
+        else
+            if (grammarID) vrActivate();
         console.debug("exit")
         return async
     }
@@ -132,7 +137,19 @@ ContextPopup {
         console.debug("enter")
         timer.interval = timeout
         timer.start()
+        if (grammarID)
+        vrPopUp.sortModelforPerformIn()
         show()
+        console.debug("exit")
+    }
+    function vrActivate () {
+        console.debug("enter")
+        timer.interval = timeout
+        timer.start()
+        if (grammarID)
+        vrPopUp.sortModelforPerformIn()
+        vrPopUp.show()
+        vrHelpPopup.show()
         console.debug("exit")
     }
 
@@ -150,6 +167,8 @@ ContextPopup {
                 break
         }
         timer.stop()
+        vrPopUp.sortModel()
+        grammarID = ""
         hide()
         performInteractionIsActiveNow = false
         console.debug("exit")
