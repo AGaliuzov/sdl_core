@@ -355,6 +355,12 @@ bool CacheManager::ApplyUpdate(const policy_table::Table& update_pt) {
       update_pt.policy_table.app_policies.end();
 
   for (;iter != iter_end; ++iter) {
+    policy_table::ApplicationPolicies::iterator beg =
+        pt_->policy_table.app_policies.find(iter->first);
+    if (pt_->policy_table.app_policies.end() != beg) {
+      SetIsDefault(iter->first, false);
+      SetIsPredata(iter->first, false);
+    }
     pt_->policy_table.app_policies[iter->first] = iter->second;
   }
 
@@ -365,6 +371,7 @@ bool CacheManager::ApplyUpdate(const policy_table::Table& update_pt) {
         update_pt.policy_table.consumer_friendly_messages;
   }
   LOG4CXX_TRACE_EXIT(logger_);
+  Backup();
   return true;
 }
 
@@ -690,13 +697,14 @@ int CacheManager::IgnitionCyclesBeforeExchange() {
   const uint8_t limit = std::max(
         static_cast<int>(
           pt_->policy_table.module_config.exchange_after_x_ignition_cycles), 0);
-
+  LOG4CXX_DEBUG(logger_, "IgnitionCyclesBeforeExchange limit:" << limit);
   uint8_t current = 0;
 
 #ifdef EXTENDED_POLICY
   const int last_exch = static_cast<int>
       (*pt_->policy_table.module_meta->ignition_cycles_since_last_exchange);
   current = std::max(last_exch, 0);
+  LOG4CXX_DEBUG(logger_, "IgnitionCyclesBeforeExchange current:" << current);
 #endif // EXTENDED_POLICY
 
   return std::max(limit - current, 0);
@@ -707,15 +715,18 @@ int CacheManager::KilometersBeforeExchange(int current) {
   const uint8_t limit = std::max(
         static_cast<int>(
           pt_->policy_table.module_config.exchange_after_x_kilometers), 0);
+  LOG4CXX_DEBUG(logger_, "KilometersBeforeExchange limit:" << limit);
   uint8_t last = 0;
 
 #ifdef EXTENDED_POLICY
   const int odo_val = static_cast<int>
       (*pt_->policy_table.module_meta->pt_exchanged_at_odometer_x);
   last = std::max(odo_val, 0);
+  LOG4CXX_DEBUG(logger_, "KilometersBeforeExchange last:" << last);
 #endif // EXTENDED_POLICY
 
   const uint8_t actual = std::max((current - last), 0);
+  LOG4CXX_DEBUG(logger_, "KilometersBeforeExchange actual:" << actual);
   return std::max(limit - actual, 0);
 }
 
@@ -725,6 +736,8 @@ bool CacheManager::SetCountersPassedForSuccessfulUpdate(int kilometers,
 #ifdef EXTENDED_POLICY
   *pt_->policy_table.module_meta->pt_exchanged_at_odometer_x = kilometers;
   *pt_->policy_table.module_meta->pt_exchanged_x_days_after_epoch = days_after_epoch;
+  LOG4CXX_DEBUG(logger_, "SetCountersPassedForSuccessfulUpdate km:" << kilometers);
+  LOG4CXX_DEBUG(logger_, "SetCountersPassedForSuccessfulUpdate days epoh:" << days_after_epoch);
 #endif
   Backup();
   return true;
@@ -735,15 +748,18 @@ int CacheManager::DaysBeforeExchange(int current) {
   const uint8_t limit = std::max(
         static_cast<int>(
           pt_->policy_table.module_config.exchange_after_x_days), 0);
+  LOG4CXX_DEBUG(logger_, "DaysBeforeExchange limit:" << limit);
   uint8_t last = 0;
 
 #ifdef EXTENDED_POLICY
   const int odo_val = static_cast<int>
       (*pt_->policy_table.module_meta->pt_exchanged_x_days_after_epoch);
   last = std::max(odo_val, 0);
+  LOG4CXX_DEBUG(logger_, "DaysBeforeExchange last:" << last);
 #endif // EXTENDED_POLICY
 
   const uint8_t actaul = std::max((current - last), 0);
+  LOG4CXX_DEBUG(logger_, "DaysBeforeExchange actual:" << actaul);
   return std::max(limit - actaul, 0);
 }
 
@@ -753,6 +769,7 @@ void CacheManager::IncrementIgnitionCycles() {
   const int ign_val = static_cast<int>
       (*pt_->policy_table.module_meta->ignition_cycles_since_last_exchange);
   (*pt_->policy_table.module_meta->ignition_cycles_since_last_exchange) = ign_val + 1;
+  LOG4CXX_DEBUG(logger_, "IncrementIgnitionCycles ignitions:" << ign_val);
 #endif // EXTENDED_POLICY
   Backup();
 }
