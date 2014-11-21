@@ -75,7 +75,7 @@ function load_on_ftp() {
   echo "Binaries are aviable: ftp://ford-applink.luxoft.com/snapshot/$SNAPSHOT_TAG/binaries"
   if [ $quick_mode -eq 0 ]; then 
     lftp -u sdl_user,sdl_user ford-applink.luxoft.com -e "put $BUILD_DIR/pasa.tar.gz -o snapshot/$SNAPSHOT_TAG/; exit"
-    echo "Sources are aviable: ftp://ford-applink.luxoft.com/snapshot/$SNAPSHOT_TAG/pasa.tar.gzgit "
+    echo "Sources are aviable: ftp://ford-applink.luxoft.com/snapshot/$SNAPSHOT_TAG/pasa.tar.gz; exit "
   fi
 }
 
