@@ -240,10 +240,15 @@ MATCHER_P(ContainsMessage, str, ""){ return strlen(str) == arg->data_size() && 0
 TEST_F(TcpAdapterTestWithListenerAutoStart, Connect) {
   {
     ::testing::InSequence seq;
+    EXPECT_CALL(mock_dal_, OnDeviceListUpdated(_));
+
     EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).WillOnce(
         InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp));
   }
   EXPECT_TRUE(client_.Connect(port()));
+
+  EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).WillOnce(
+          Invoke(Disconnect));
 }
 
 TEST_F(TcpAdapterTestWithListenerAutoStart, Receive) {
@@ -339,6 +344,7 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, SendToDisconnected) {
   EXPECT_TRUE(client_.Connect(port()));
 }
 
+/*
 TEST_F(TcpAdapterTestWithListenerAutoStart, SendFailed) {
   static unsigned char zzz[2000000];  //2000000 is much more than socket buffer
   SendHelper* helper = new SendHelper(TransportAdapter::OK);
@@ -357,6 +363,7 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, SendFailed) {
   client_.Disconnect();
 }
 
+*/
 TEST_F(TcpAdapterTest, StartStop) {
   EXPECT_EQ(TransportAdapter::BAD_STATE, transport_adapter_->StopClientListening());
   EXPECT_FALSE(client_.Connect(port()));
