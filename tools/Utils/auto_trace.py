@@ -37,12 +37,12 @@ def replace_info_trace(source):
   """Replaces LOG4CXX_INFO with LOG4CXX_AUTO_TRACE"""
 
   token = r"[^;{},\s]+"
-  const_override = r"((?:const|OVERRIDE)\s*){0,2}"
+  const_override = r"(?:(?:const|OVERRIDE)\s*){0,2}"
   signature = r"[\s\w\d,<>:*&]*"
   function = r"%s\s+(?P<name>%s)\s*\(%s\)\s*%s\s*{" % (token, token, signature, const_override)
-  info = r"LOG4CXX_INFO\((?P<logger>.*?),\s*\"(?P=name)\"\);"
-  pattern = r"^(?P<function>.*?%s\s*)%s" % (function, info)
-  regex = re.compile(pattern, re.DOTALL | re.MULTILINE | re.IGNORECASE)
+  info = r"LOG4CXX_INFO\((?P<logger>\w*?),\s*\"(?P=name)\"\);"
+  pattern = r"(?P<function>%s\s*)%s" % (function, info)
+  regex = re.compile(pattern)
   repl = r"\g<function>LOG4CXX_AUTO_TRACE(\g<logger>);"
   return regex.sub(repl, source)
 
