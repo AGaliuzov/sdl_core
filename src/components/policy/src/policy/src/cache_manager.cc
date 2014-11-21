@@ -712,11 +712,11 @@ int CacheManager::IgnitionCyclesBeforeExchange() {
 
 int CacheManager::KilometersBeforeExchange(int current) {
   CACHE_MANAGER_CHECK(0);
-  const uint8_t limit = std::max(
+  const int limit = std::max(
         static_cast<int>(
           pt_->policy_table.module_config.exchange_after_x_kilometers), 0);
   LOG4CXX_DEBUG(logger_, "KilometersBeforeExchange limit:" << limit);
-  uint8_t last = 0;
+  int last = 0;
 
 #ifdef EXTENDED_POLICY
   const int odo_val = static_cast<int>
@@ -725,7 +725,7 @@ int CacheManager::KilometersBeforeExchange(int current) {
   LOG4CXX_DEBUG(logger_, "KilometersBeforeExchange last:" << last);
 #endif // EXTENDED_POLICY
 
-  const uint8_t actual = std::max((current - last), 0);
+  const int actual = std::max((current - last), 0);
   LOG4CXX_DEBUG(logger_, "KilometersBeforeExchange actual:" << actual);
   return std::max(limit - actual, 0);
 }
