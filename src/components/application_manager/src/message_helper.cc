@@ -285,6 +285,7 @@ void MessageHelper::SendHMIStatusNotification(
     static_cast<int32_t>(application_impl.system_context());
 
   ApplicationManagerImpl::instance()->ManageMobileCommand(notification);
+  ApplicationManagerImpl::instance()->resume_controller().ApplicationsDataUpdated();
 }
 
 void MessageHelper::SendOnAppRegisteredNotificationToHMI(
