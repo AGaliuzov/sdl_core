@@ -84,13 +84,15 @@ void AsyncRunner::AsyncRunnerDelegate::processDelegate() {
 }
 
 void AsyncRunner::AsyncRunnerDelegate::waitForDelegate() {
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(delegates_queue_lock_);
-  if (delegates_queue_.empty()) {
+  if (!stop_flag_ && delegates_queue_.empty()) {
     delegate_notifier_.Wait(lock);
   }
 }
 
 void AsyncRunner::AsyncRunnerDelegate::threadMain() {
+  LOG4CXX_AUTO_TRACE(logger_);
   while (!stop_flag_) {
     processDelegate();
     waitForDelegate();
@@ -98,6 +100,7 @@ void AsyncRunner::AsyncRunnerDelegate::threadMain() {
 }
 
 void AsyncRunner::AsyncRunnerDelegate::exitThreadMain() {
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(delegates_queue_lock_);
   stop_flag_ = true;
   delegate_notifier_.NotifyOne();
