@@ -2073,9 +2073,7 @@ void ApplicationManagerImpl::UnregisterApplication(
 #ifndef CUSTOMER_PASA
   if (is_resuming) {
     resume_ctrl_.SaveApplication(app_to_remove);
-  } else {
-    resume_ctrl_.RemoveApplicationFromSaved(app_to_remove);
-  }
+  } 
 #endif // !CUSTOMER_PASA
 #ifdef CUSTOMER_PASA
   if (is_resuming && !is_state_suspended_) {
