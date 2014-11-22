@@ -223,42 +223,37 @@ int TransportManagerImpl::AddEventListener(TransportManagerListener* listener) {
 }
 
 void TransportManagerImpl::DisconnectAllDevices() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   for (DeviceInfoList::iterator i = device_list_.begin();
       i != device_list_.end(); ++i) {
     DeviceInfo& device = i->second;
     DisconnectDevice(device.device_handle());
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void TransportManagerImpl::TerminateAllAdapters() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   for (std::vector<TransportAdapter*>::iterator i = transport_adapters_.begin();
       i != transport_adapters_.end(); ++i) {
     (*i)->Terminate();
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 int TransportManagerImpl::InitAllAdapters() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   for (std::vector<TransportAdapter*>::iterator i = transport_adapters_.begin();
       i != transport_adapters_.end(); ++i) {
     if ((*i)->Init() != TransportAdapter::OK) {
-      LOG4CXX_TRACE_EXIT(logger_);
       return E_ADAPTERS_FAIL;
     }
   }
-  LOG4CXX_TRACE_EXIT(logger_);
   return E_SUCCESS;
 }
 
 int TransportManagerImpl::Stop() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   if (!is_initialized_) {
     LOG4CXX_WARN(logger_, "TransportManager is not initialized_");
-    LOG4CXX_TRACE_EXIT(logger_);
     return E_TM_IS_NOT_INITIALIZED;
   }
 
@@ -269,8 +264,6 @@ int TransportManagerImpl::Stop() {
   TerminateAllAdapters();
 
   is_initialized_ = false;
-
-  LOG4CXX_TRACE_EXIT(logger_);
   return E_SUCCESS;
 }
 
@@ -429,11 +422,10 @@ int TransportManagerImpl::Init() {
 }
 
 int TransportManagerImpl::Reinit() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   DisconnectAllDevices();
   TerminateAllAdapters();
   int ret = InitAllAdapters();
-  LOG4CXX_TRACE_EXIT(logger_);
   return ret;
 }
 
@@ -519,10 +511,9 @@ void TransportManagerImpl::PostMessage(const ::protocol_handler::RawMessagePtr m
 }
 
 void TransportManagerImpl::PostEvent(const TransportAdapterEvent& event) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_, "TransportAdapterEvent: " << &event);
   event_queue_.PostMessage(event);
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void TransportManagerImpl::AddConnection(const ConnectionInternal& c) {

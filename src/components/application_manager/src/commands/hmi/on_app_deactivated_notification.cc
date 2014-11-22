@@ -49,7 +49,7 @@ OnAppDeactivatedNotification::~OnAppDeactivatedNotification() {
 }
 
 void OnAppDeactivatedNotification::Run() {
-  LOG4CXX_INFO(logger_, "OnAppDeactivatedNotification::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
   uint32_t app_id = (*message_)[strings::msg_params][strings::app_id].asUInt();
   ApplicationSharedPtr app =
       ApplicationManagerImpl::instance()->application(app_id);

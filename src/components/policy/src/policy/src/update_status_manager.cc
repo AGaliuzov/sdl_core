@@ -50,13 +50,12 @@ UpdateStatusManager::UpdateStatusManager() :
 }
 
 UpdateStatusManager::~UpdateStatusManager() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   DCHECK(update_status_thread_delegate_);
   DCHECK(thread_);
   thread_->join();
   delete update_status_thread_delegate_;
   threads::DeleteThread(thread_);
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void UpdateStatusManager::set_listener(PolicyListener* listener) {

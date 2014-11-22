@@ -105,11 +105,10 @@ PPSDeviceScanner::PPSDeviceScanner(TransportAdapterController* controller)
 
 PPSDeviceScanner::~PPSDeviceScanner() {
   Terminate();
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   thread_->join();
   delete thread_->delegate();
   threads::DeleteThread(thread_);
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 TransportAdapter::Error PPSDeviceScanner::Init() {

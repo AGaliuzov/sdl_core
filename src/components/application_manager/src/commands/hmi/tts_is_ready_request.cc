@@ -44,7 +44,7 @@ TTSIsReadyRequest::~TTSIsReadyRequest() {
 }
 
 void TTSIsReadyRequest::Run() {
-  LOG4CXX_INFO(logger_, "TTSIsReadyRequest::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   SendRequest();
 }

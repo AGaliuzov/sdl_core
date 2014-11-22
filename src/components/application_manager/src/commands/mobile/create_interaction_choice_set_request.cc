@@ -53,7 +53,7 @@ CreateInteractionChoiceSetRequest::~CreateInteractionChoiceSetRequest() {
 }
 
 void CreateInteractionChoiceSetRequest::Run() {
-  LOG4CXX_INFO(logger_, "CreateInteractionChoiceSetRequest::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   ApplicationSharedPtr app = ApplicationManagerImpl::instance()->application(
       (*message_)[strings::params][strings::connection_key].asUInt());
@@ -114,7 +114,7 @@ void CreateInteractionChoiceSetRequest::Run() {
 
 mobile_apis::Result::eType CreateInteractionChoiceSetRequest::CheckChoiceSet(
     ApplicationConstSharedPtr app) {
-  LOG4CXX_INFO(logger_, "CreateInteractionChoiceSetRequest::CheckChoiceSet");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   const smart_objects::SmartArray* new_choice_set_array =
     (*message_)[strings::msg_params][strings::choice_set].asArray();
@@ -257,7 +257,7 @@ bool CreateInteractionChoiceSetRequest::compareStr(
 
 bool CreateInteractionChoiceSetRequest::IsWhiteSpaceExist(
     const smart_objects::SmartObject& choice_set) {
-  LOG4CXX_INFO(logger_, "CreateInteractionChoiceSetRequest::IsWhiteSpaceExist");
+  LOG4CXX_AUTO_TRACE(logger_);
   const char* str = NULL;
 
   str = choice_set[strings::menu_name].asCharArray();

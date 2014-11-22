@@ -48,14 +48,13 @@ VideoStreamToFileAdapter::VideoStreamToFileAdapter(const std::string& file_name)
 }
 
 VideoStreamToFileAdapter::~VideoStreamToFileAdapter() {
-  LOG4CXX_TRACE_ENTER(logger);
+  LOG4CXX_AUTO_TRACE(logger);
   if ((0 != current_application_ ) && (is_ready_)) {
     StopActivity(current_application_);
   }
   thread_->join();
   delete thread_->delegate();
   threads::DeleteThread(thread_);
-  LOG4CXX_TRACE_EXIT(logger);
 }
 
 void VideoStreamToFileAdapter::Init() {

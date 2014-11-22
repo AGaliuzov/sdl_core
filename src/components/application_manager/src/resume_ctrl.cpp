@@ -32,7 +32,7 @@ ResumeCtrl::ResumeCtrl(ApplicationManagerImpl* app_mngr)
 }
 
 void ResumeCtrl::SaveAllApplications() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   DCHECK(app_mngr_);
 
   std::set<ApplicationSharedPtr>::iterator it =
@@ -42,7 +42,6 @@ void ResumeCtrl::SaveAllApplications() {
   for (; it != it_end; ++it) {
     SaveApplication(*it);
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void ResumeCtrl::SaveApplication(ApplicationConstSharedPtr application) {
@@ -99,7 +98,6 @@ void ResumeCtrl::SaveApplication(ApplicationConstSharedPtr application) {
   (*json_app)[strings::time_stamp] = (uint32_t)time(NULL);
   (*json_app)[strings::audio_streaming_state] = application->audio_streaming_state();
   LOG4CXX_DEBUG(logger_, "SaveApplication : " << json_app->toStyledString());
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void ResumeCtrl::on_event(const event_engine::Event& event) {
@@ -129,11 +127,9 @@ bool ResumeCtrl::RestoreApplicationHMILevel(ApplicationSharedPtr application) {
                             (*it)[strings::hmi_level].asInt());
       LOG4CXX_TRACE(logger_, "Saved HMI Level is : " << saved_hmi_level);
       return SetupHMILevel(application, saved_hmi_level, audio_streaming_state);
-      LOG4CXX_TRACE_EXIT(logger_);
     }
   }
   LOG4CXX_INFO(logger_, "Failed to restore application HMILevel");
-  LOG4CXX_TRACE_EXIT(logger_);
   return false;
 }
 
@@ -161,7 +157,6 @@ bool ResumeCtrl::SetupDefaultHMILevel(ApplicationSharedPtr application) {
         default_hmi = mobile_apis::HMILevel::HMI_NONE;
       } else {
         LOG4CXX_ERROR(logger_, "Unable to convert " + default_hmi_string + "to HMILevel");
-        LOG4CXX_TRACE_EXIT(logger_);
         return false;
       }
     } else {
@@ -171,7 +166,6 @@ bool ResumeCtrl::SetupDefaultHMILevel(ApplicationSharedPtr application) {
   }
   bool result = SetupHMILevel(application, default_hmi,
                          mobile_apis::AudioStreamingState::NOT_AUDIBLE, false);
-  LOG4CXX_TRACE_EXIT(logger_);
   return result;
 }
 
@@ -195,7 +189,6 @@ bool ResumeCtrl::SetupHMILevel(ApplicationSharedPtr application,
       != policy::DeviceConsent::kDeviceAllowed) {
     LOG4CXX_ERROR(logger_, "Resumption abort. Data consent wasn't allowed");
     SetupDefaultHMILevel(application);
-    LOG4CXX_TRACE_EXIT(logger_);
     return false;
   }
 
@@ -204,7 +197,6 @@ bool ResumeCtrl::SetupHMILevel(ApplicationSharedPtr application,
       (hmi_level != mobile_apis::HMILevel::HMI_NONE)) {
     LOG4CXX_WARN(logger_, "Hmi level " << hmi_level << " should not be set to "
                  << application->mobile_app_id()->asString() << "  " << application->hmi_level());
-    LOG4CXX_TRACE_EXIT(logger_);
     return false;
   }
 
@@ -280,7 +272,6 @@ bool ResumeCtrl::RestoreApplicationData(ApplicationSharedPtr application) {
 
   if (it == GetSavedApplications().end()) {
     LOG4CXX_WARN(logger_, "Application not saved");
-    LOG4CXX_TRACE_EXIT(logger_);
     return false;
   }
 
@@ -457,7 +448,6 @@ bool ResumeCtrl::RestoreApplicationData(ApplicationSharedPtr application) {
       ProcessHMIRequest(*it,true);
     }
   }
-  LOG4CXX_TRACE_EXIT(logger_);
   return true;
 }
 
@@ -467,7 +457,6 @@ bool ResumeCtrl::IsHMIApplicationIdExist(uint32_t hmi_app_id) {
   for (Json::Value::iterator it = GetSavedApplications().begin();
       it != GetSavedApplications().end(); ++it) {
     if ((*it)[strings::hmi_app_id].asUInt() == hmi_app_id) {
-      LOG4CXX_TRACE_EXIT(logger_);
       return true;
     }
   }
@@ -547,7 +536,7 @@ bool ResumeCtrl::RemoveApplicationFromSaved(ApplicationConstSharedPtr applicatio
 }
 
 void ResumeCtrl::IgnitionOff() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   Json::Value to_save;
   for (Json::Value::iterator it = GetSavedApplications().begin();
@@ -560,26 +549,23 @@ void ResumeCtrl::IgnitionOff() {
     }
   }
   SetSavedApplication(to_save);
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 #ifdef CUSTOMER_PASA
 
 void ResumeCtrl::StartSavePersistentDataTimer() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   if (!save_persistent_data_timer_.isRunning()) {
     save_persistent_data_timer_.start(
         profile::Profile::instance()->app_resumption_save_persistent_data_timeout());
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void ResumeCtrl::StopSavePersistentDataTimer() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   if (save_persistent_data_timer_.isRunning()) {
     save_persistent_data_timer_.stop();
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 #endif // CUSTOMER_PASA
 
@@ -789,11 +775,10 @@ void ResumeCtrl::ApplicationResumptiOnTimer() {
   }
 
   waiting_for_timer_.clear();
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void ResumeCtrl::SaveDataOnTimer() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   if (waiting_for_timer_.size() > 0) {
     LOG4CXX_INFO(logger_, "There are some applications, that are waiting for resumption HMILevel. Data should not be saved");
     return;
@@ -803,7 +788,6 @@ void ResumeCtrl::SaveDataOnTimer() {
     is_data_saved = true;
     resumption::LastState::instance()->SaveToFileSystem();
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 bool ResumeCtrl::IsDeviceMacAddressEqual(ApplicationSharedPtr application,
@@ -822,12 +806,11 @@ void ResumeCtrl::SetSavedApplication(Json::Value& apps_json) {
 }
 
 void ResumeCtrl::ClearResumptionInfo() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   Json::Value empty_json;
 
   SetSavedApplication(empty_json);
   resumption::LastState::instance()->SaveToFileSystem();
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 Json::Value ResumeCtrl::GetApplicationCommands(
@@ -845,7 +828,6 @@ Json::Value ResumeCtrl::GetApplicationCommands(
     Formatters::CFormatterJsonBase::objToJsonValue(*so, curr);
     result.append(curr);
   }
-  LOG4CXX_TRACE_EXIT(logger_);
   return result;
 }
 
@@ -864,7 +846,6 @@ Json::Value ResumeCtrl::GetApplicationSubMenus(
     Formatters::CFormatterJsonBase::objToJsonValue(*so, curr);
     result.append(curr);
   }
-  LOG4CXX_TRACE_EXIT(logger_);
   return result;
 }
 
@@ -883,7 +864,6 @@ Json::Value ResumeCtrl::GetApplicationInteractionChoiseSets(
     Formatters::CFormatterJsonBase::objToJsonValue(*so, curr);
     result.append(curr);
   }
-  LOG4CXX_TRACE_EXIT(logger_);
   return result;
 }
 
@@ -912,8 +892,6 @@ Json::Value ResumeCtrl::GetApplicationGlobalProperties(
   sgp[strings::keyboard_properties] = JsonFromSO(keyboard_props);
   sgp[strings::menu_title] = JsonFromSO(menu_title);
   sgp[strings::menu_icon] = JsonFromSO(menu_icon);
-
-  LOG4CXX_TRACE_EXIT(logger_);
   return sgp;
 }
 
@@ -935,7 +913,6 @@ Json::Value ResumeCtrl::GetApplicationSubscriptions(
        it_vehicle != application->SubscribesIVI().end(); ++it_vehicle) {
     result[strings::application_vehicle_info].append(*it_vehicle);
   }
-  LOG4CXX_TRACE_EXIT(logger_);
   return result;
 }
 
@@ -959,7 +936,6 @@ Json::Value ResumeCtrl::GetApplicationFiles(
       result.append(file_data);
     }
   }
-  LOG4CXX_TRACE_EXIT(logger_);
   return result;
 }
 
@@ -975,7 +951,6 @@ Json::Value ResumeCtrl::GetApplicationShow(
     return result;
   }
   result = JsonFromSO(show_so);
-  LOG4CXX_TRACE_EXIT(logger_);
   return result;
 }
 
@@ -989,7 +964,7 @@ Json::Value ResumeCtrl::JsonFromSO(const smart_objects::SmartObject *so) {
 
 bool ResumeCtrl::ProcessHMIRequest(smart_objects::SmartObject* request,
                                    bool use_events) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   if (use_events) {
     const hmi_apis::FunctionID::eType function_id =
         static_cast<hmi_apis::FunctionID::eType>(
@@ -1001,17 +976,15 @@ bool ResumeCtrl::ProcessHMIRequest(smart_objects::SmartObject* request,
   }
   if (!ApplicationManagerImpl::instance()->ManageHMICommand(request)) {
     LOG4CXX_ERROR(logger_, "Unable to send request");
-    LOG4CXX_TRACE_EXIT(logger_);
     return true;
   }
-  LOG4CXX_TRACE_EXIT(logger_);
   return false;
 }
 
 void ResumeCtrl::SendHMIRequest(
     const hmi_apis::FunctionID::eType& function_id,
     const smart_objects::SmartObject* msg_params, bool use_events) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   NsSmartDeviceLink::NsSmartObjects::SmartObject* result =
       MessageHelper::CreateModuleInfoSO(function_id);
   int32_t hmi_correlation_id =
@@ -1027,7 +1000,6 @@ void ResumeCtrl::SendHMIRequest(
   if (!ApplicationManagerImpl::instance()->ManageHMICommand(result)) {
     LOG4CXX_ERROR(logger_, "Unable to send request");
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 }  // namespace application_manager

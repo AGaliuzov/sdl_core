@@ -44,7 +44,7 @@ VIDiagnosticMessageRequest::~VIDiagnosticMessageRequest() {
 }
 
 void VIDiagnosticMessageRequest::Run() {
-  LOG4CXX_INFO(logger_, "VIDiagnosticMessageRequest::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   SendRequest();
 }

@@ -254,7 +254,7 @@ void PolicyManagerImpl::RemoveAppFromUpdateList() {
 }
 
 std::string PolicyManagerImpl::GetUpdateUrl(int service_type) {
-  LOG4CXX_INFO(logger_, "PolicyManagerImpl::GetUpdateUrl");
+  LOG4CXX_AUTO_TRACE(logger_);
   EndpointUrls urls = cache_->GetUpdateUrls(service_type);
 
   static uint32_t index = 0;
@@ -270,7 +270,7 @@ std::string PolicyManagerImpl::GetUpdateUrl(int service_type) {
 }
 
 EndpointUrls PolicyManagerImpl::GetUpdateUrls(int service_type) {
-  LOG4CXX_INFO(logger_, "PolicyManagerImpl::GetUpdateUrls");
+  LOG4CXX_AUTO_TRACE(logger_);
   return cache_->GetUpdateUrls(service_type);
 }
 
@@ -1075,15 +1075,13 @@ bool PolicyManagerImpl::IsApplicationRevoked(const std::string& app_id) const {
 }
 
 bool PolicyManagerImpl::IsConsentNeeded(const std::string& app_id) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 #ifdef EXTENDED_POLICY
   const std::string device_id = GetCurrentDeviceId(app_id);
   int count = cache_->CountUnconsentedGroups(app_id, device_id);
   LOG4CXX_DEBUG(logger_, "There are: " << count << " unconsented groups.");
-  LOG4CXX_TRACE_EXIT(logger_);
   return count != 0;
 #endif
-  LOG4CXX_TRACE_EXIT(logger_);
   return false;
 }
 
@@ -1174,7 +1172,7 @@ bool PolicyManagerImpl::IsPredataPolicy(const std::string &policy_app_id) {
 
 void PolicyManagerImpl::AddNewApplication(const std::string& application_id,
                                           DeviceConsent device_consent) {
-  LOG4CXX_INFO(logger_, "PolicyManagerImpl::AddNewApplication");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   LOG4CXX_INFO(
     logger_,
@@ -1219,14 +1217,13 @@ bool PolicyManagerImpl::ResetPT(const std::string& file_name) {
 }
 
 bool PolicyManagerImpl::CheckAppStorageFolder() const {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   const std::string app_storage_folder =
       profile::Profile::instance()->app_storage_folder();
   LOG4CXX_DEBUG(logger_, "AppStorageFolder " << app_storage_folder);
   if (!file_system::DirectoryExists(app_storage_folder)) {
     LOG4CXX_WARN(logger_,
                  "Storage directory doesn't exist " << app_storage_folder);
-    LOG4CXX_TRACE_EXIT(logger_);
     return false;
   }
   if (!(file_system::IsWritingAllowed(app_storage_folder) &&
@@ -1234,15 +1231,13 @@ bool PolicyManagerImpl::CheckAppStorageFolder() const {
     LOG4CXX_WARN(
         logger_,
         "Storage directory doesn't have read/write permissions " << app_storage_folder);
-    LOG4CXX_TRACE_EXIT(logger_);
     return false;
   }
-  LOG4CXX_TRACE_EXIT(logger_);
   return true;
 }
 
 bool PolicyManagerImpl::InitPT(const std::string& file_name) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   if (!CheckAppStorageFolder()) {
     LOG4CXX_ERROR(logger_, "Can not read/write into AppStorageFolder");
     return false;
@@ -1252,7 +1247,6 @@ bool PolicyManagerImpl::InitPT(const std::string& file_name) {
     RefreshRetrySequence();
     update_status_manager_->OnPolicyInit(cache_->UpdateRequired());
   }
-  LOG4CXX_TRACE_EXIT(logger_);
   return ret;
 }
 

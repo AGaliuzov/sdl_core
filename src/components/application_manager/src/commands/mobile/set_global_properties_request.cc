@@ -59,7 +59,7 @@ SetGlobalPropertiesRequest::~SetGlobalPropertiesRequest() {
 }
 
 void SetGlobalPropertiesRequest::Run() {
-  LOG4CXX_INFO(logger_, "SetGlobalPropertiesRequest::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   const smart_objects::SmartObject& msg_params =
       (*message_)[strings::msg_params];
@@ -304,7 +304,7 @@ bool SetGlobalPropertiesRequest::CheckVrHelpItemsOrder() {
 }
 
 void SetGlobalPropertiesRequest::on_event(const event_engine::Event& event) {
-  LOG4CXX_INFO(logger_, "SetGlobalPropertiesRequest::on_event");
+  LOG4CXX_AUTO_TRACE(logger_);
   const smart_objects::SmartObject& message = event.smart_object();
 
   ApplicationSharedPtr app = ApplicationManagerImpl::instance()->application(CommandRequestImpl::connection_key());
@@ -383,7 +383,7 @@ bool SetGlobalPropertiesRequest::ValidateConditionalMandatoryParameters(
 }
 
 bool SetGlobalPropertiesRequest::IsWhiteSpaceExist() {
-  LOG4CXX_INFO(logger_, "SetGlobalPropertiesRequest::IsWhiteSpaceExist");
+  LOG4CXX_AUTO_TRACE(logger_);
   const char* str;
 
   const smart_objects::SmartObject& msg_params =

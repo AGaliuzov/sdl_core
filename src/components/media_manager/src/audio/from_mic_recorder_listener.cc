@@ -46,13 +46,12 @@ FromMicRecorderListener::FromMicRecorderListener(
 }
 
 FromMicRecorderListener::~FromMicRecorderListener() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   if (reader_) {
     reader_->join();
     delete reader_->delegate();
     threads::DeleteThread(reader_);
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void FromMicRecorderListener::OnDataReceived(

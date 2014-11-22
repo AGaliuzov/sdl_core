@@ -79,7 +79,7 @@ Connection::Connection(ConnectionHandle connection_handle,
     : connection_handler_(connection_handler),
       connection_handle_(connection_handle),
       connection_device_handle_(connection_device_handle) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   DCHECK(connection_handler_);
 
   heartbeat_monitor_ = new HeartBeatMonitor(heartbeat_timeout, this);
@@ -89,13 +89,12 @@ Connection::Connection(ConnectionHandle connection_handle,
 }
 
 Connection::~Connection() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   heart_beat_monitor_thread_->join();
   delete heartbeat_monitor_;
   threads::DeleteThread(heart_beat_monitor_thread_);
   sync_primitives::AutoLock lock(session_map_lock_);
   session_map_.clear();
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 // Finds a key not presented in std::map<unsigned char, T>
@@ -113,7 +112,7 @@ uint32_t findGap(const std::map<unsigned char, T> &map) {
 }  // namespace
 
 uint32_t Connection::AddNewSession() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(session_map_lock_);
   const uint32_t session_id = findGap(session_map_);
   if (session_id > 0) {

@@ -79,13 +79,12 @@ ConnectionHandlerImpl::~ConnectionHandlerImpl() {
 }
 
 void ConnectionHandlerImpl::Stop() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   ConnectionList::iterator itr = connection_list_.begin();
   while (itr != connection_list_.end()) {
     RemoveConnection(itr->second->connection_handle());
     itr = connection_list_.begin();
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void ConnectionHandlerImpl::set_connection_handler_observer(
@@ -225,7 +224,7 @@ void ConnectionHandlerImpl::OnConnectionFailed(
 
 void ConnectionHandlerImpl::OnConnectionClosed(
     transport_manager::ConnectionUID connection_id) {
-  LOG4CXX_INFO(logger_, "ConnectionHandlerImpl::OnConnectionClosed");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   OnConnectionEnded(connection_id);
 }
@@ -302,7 +301,7 @@ uint32_t ConnectionHandlerImpl::OnSessionStartedCallback(
     const transport_manager::ConnectionUID &connection_handle,
     const uint8_t session_id, const protocol_handler::ServiceType &service_type,
     const bool is_protected, uint32_t* hash_id) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   if (hash_id) {
     *hash_id = protocol_handler::HASH_ID_WRONG;
@@ -316,7 +315,6 @@ uint32_t ConnectionHandlerImpl::OnSessionStartedCallback(
   ConnectionList::iterator it = connection_list_.find(connection_handle);
   if (connection_list_.end() == it) {
     LOG4CXX_ERROR(logger_, "Unknown connection!");
-    LOG4CXX_TRACE_EXIT(logger_);
     return 0;
   }
   uint32_t new_session_id = 0;
@@ -326,7 +324,6 @@ uint32_t ConnectionHandlerImpl::OnSessionStartedCallback(
     new_session_id = connection->AddNewSession();
     if (0 == new_session_id) {
       LOG4CXX_ERROR(logger_, "Couldn't start new session!");
-      LOG4CXX_TRACE_EXIT(logger_);
       return 0;
     }
     if (hash_id) {
@@ -340,7 +337,6 @@ uint32_t ConnectionHandlerImpl::OnSessionStartedCallback(
 #endif  // ENABLE_SECURITY
                     << " service " << static_cast<int>(service_type)
                     << " for session " << static_cast<int>(session_id));
-      LOG4CXX_TRACE_EXIT(logger_);
       return 0;
     }
     new_session_id = session_id;
@@ -359,16 +355,14 @@ uint32_t ConnectionHandlerImpl::OnSessionStartedCallback(
       } else {
         connection->RemoveService(session_id, service_type);
       }
-      LOG4CXX_TRACE_EXIT(logger_);
       return 0;
     }
   }
-  LOG4CXX_TRACE_EXIT(logger_);
   return new_session_id;
 }
 
 void ConnectionHandlerImpl::OnApplicationFloodCallBack(const uint32_t &connection_key) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   {
     sync_primitives::AutoLock lock(connection_handler_observer_lock_);
     if(connection_handler_observer_) {
@@ -387,7 +381,6 @@ void ConnectionHandlerImpl::OnApplicationFloodCallBack(const uint32_t &connectio
         ConnectionUIDFromHandle(connection_handle);
     transport_manager_->DisconnectForce(connection_uid);
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 uint32_t ConnectionHandlerImpl::OnSessionEndedCallback(

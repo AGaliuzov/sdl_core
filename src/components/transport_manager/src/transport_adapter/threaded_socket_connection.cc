@@ -72,14 +72,13 @@ ThreadedSocketConnection::~ThreadedSocketConnection() {
 }
 
 void ThreadedSocketConnection::Abort() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   unexpected_disconnect_ = true;
   terminate_flag_ = true;
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 TransportAdapter::Error ThreadedSocketConnection::Start() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   int fds[2];
   const int pipe_ret = pipe(fds);
   if (0 == pipe_ret) {
@@ -113,7 +112,7 @@ TransportAdapter::Error ThreadedSocketConnection::Start() {
 }
 
 void ThreadedSocketConnection::Finalize() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   if (unexpected_disconnect_) {
     LOG4CXX_DEBUG(logger_, "unexpected_disconnect");
     controller_->ConnectionAborted(device_handle(), application_handle(),

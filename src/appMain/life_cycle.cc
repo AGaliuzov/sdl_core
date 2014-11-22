@@ -390,16 +390,15 @@ void LifeCycle::Run() {
 
 #ifdef CUSTOMER_PASA
 void LifeCycle::LowVoltage() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_TRACE(logger_, "Good night!");
   low_voltage_ = true;
   transport_manager_->Visibility(false);
   app_manager_->OnLowVoltage();
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void LifeCycle::WakeUp() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   DCHECK(low_voltage_ == true);
 
   LOG4CXX_TRACE(logger_, "Wake up and sing!");
@@ -407,8 +406,6 @@ void LifeCycle::WakeUp() {
   transport_manager_->Reinit();
   transport_manager_->Visibility(true);
   low_voltage_ = false;
-
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 #endif
 

@@ -51,22 +51,20 @@ RequestController::RequestController()
     pending_request_set_lock_(true),
     timer_("RequestCtrlTimer", this, &RequestController::onTimer, true),
     is_low_voltage_(false) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   InitializeThreadpool();
   timer_.start(dafault_sleep_time_);
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 RequestController::~RequestController() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   if (pool_state_ != TPoolState::STOPPED) {
     DestroyThreadpool();
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void RequestController::InitializeThreadpool() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   // TODO: Consider lazy loading threads instead of creating all at once
   pool_state_ = TPoolState::STARTED;
   char name[50];
@@ -76,11 +74,10 @@ void RequestController::InitializeThreadpool() {
     pool_[i]->start();
     LOG4CXX_DEBUG(logger_, "Request thread initialized: " << name);
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void RequestController::DestroyThreadpool() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   {
     sync_primitives::AutoLock auto_lock(mobile_request_list_lock_);
     pool_state_ = TPoolState::STOPPED;
@@ -94,7 +91,6 @@ void RequestController::DestroyThreadpool() {
     threads::DeleteThread(thread);
   }
   pool_.clear();
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 RequestController::TResult RequestController::addMobileRequest(
@@ -128,19 +124,16 @@ RequestController::TResult RequestController::addMobileRequest(
                                         app_hmi_level_none_time_scale,
                                         app_hmi_level_none_max_request_per_time_scale)) {
     LOG4CXX_ERROR(logger_, "Too many application requests in hmi level NONE");
-    LOG4CXX_TRACE_EXIT(logger_);
     return RequestController::NONE_HMI_LEVEL_MANY_REQUESTS;
   }
   if (!CheckTimeScaleMaxRequest(request->connection_key(),
                                 app_time_scale,
                                 max_request_per_time_scale)) {
     LOG4CXX_ERROR(logger_, "Too many application requests");
-    LOG4CXX_TRACE_EXIT(logger_);
     return RequestController::TOO_MANY_REQUESTS;
   }
   if (!CheckPendingRequestsAmount(pending_requests_amount)) {
     LOG4CXX_ERROR(logger_, "Too many pending request");
-    LOG4CXX_TRACE_EXIT(logger_);
     return RequestController::TOO_MANY_PENDING_REQUESTS;
   }
   {
@@ -153,7 +146,6 @@ RequestController::TResult RequestController::addMobileRequest(
   // wake up one thread that is waiting for a task to be available
   }
   cond_var_.NotifyOne();
-  LOG4CXX_TRACE_EXIT(logger_);
   return SUCCESS;
 }
 
@@ -182,18 +174,16 @@ RequestController::TResult RequestController::addHMIRequest(
     LOG4CXX_INFO(logger_, "Default timeout was set to 0."
                  "RequestController will not track timeout of this request.");
   }
-  LOG4CXX_TRACE_EXIT(logger_);
   return RequestController::SUCCESS;
 }
 
 void RequestController::addNotification(const RequestPtr ptr) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   notification_list_.push_back(ptr);
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void RequestController::removeNotification(const commands::Command* notification) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   std::list<RequestPtr>::iterator it = notification_list_.begin();
   for (; notification_list_.end() != it; ) {
     if (it->get() == notification) {
@@ -203,7 +193,6 @@ void RequestController::removeNotification(const commands::Command* notification
       ++it;
     }
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void RequestController::terminateMobileRequest(
@@ -226,13 +215,11 @@ void RequestController::terminateMobileRequest(
       LOG4CXX_INFO(logger_, "Mobile request terminated: " << mobile_correlation_id <<
                    " pending_request_set_ size : " << pending_request_set_.size());
       UpdateTimer();
-      LOG4CXX_TRACE_EXIT(logger_);
       return;
     }
   }
   LOG4CXX_INFO(logger_, "Mobile request NOT terminated: " << mobile_correlation_id <<
                         " pending_request_set_ size : " << pending_request_set_.size());
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void RequestController::terminateHMIRequest(const uint32_t &correlation_id) {
@@ -251,13 +238,11 @@ void RequestController::terminateHMIRequest(const uint32_t &correlation_id) {
       pending_request_set_.erase(it);
       LOG4CXX_DEBUG(logger_, "HMI request terminated: " << correlation_id);
       UpdateTimer();
-      LOG4CXX_TRACE_EXIT(logger_);
       return;
     }
   }
   LOG4CXX_INFO(logger_, "HMI request NOT terminated: " << correlation_id <<
                         " pending_request_set_ size : " << pending_request_set_.size());
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void RequestController::terminateAppRequests(
@@ -282,12 +267,11 @@ void RequestController::terminateAppRequests(
     }
   }
   UpdateTimer();
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void RequestController::terminateAllHMIRequests() {
+  LOG4CXX_AUTO_TRACE(logger_);
   AutoLock auto_lock(pending_request_set_lock_);
-  LOG4CXX_TRACE_ENTER(logger_);
   RequestInfoSet::iterator it = pending_request_set_.begin();
   while (pending_request_set_.end() != it) {
     RequestInfoPtr request_info = (*it);
@@ -300,11 +284,10 @@ void RequestController::terminateAllHMIRequests() {
     pending_request_set_.erase(it++);
     LOG4CXX_INFO(logger_, "HMI request terminated: ");
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 void RequestController::terminateAllMobileRequests() {
+  LOG4CXX_AUTO_TRACE(logger_);
   AutoLock auto_lock(pending_request_set_lock_);
-  LOG4CXX_TRACE_ENTER(logger_);
   RequestInfoSet::iterator it = pending_request_set_.begin();
   while (pending_request_set_.end() != it) {
     RequestInfoPtr request_info = (*it);
@@ -319,7 +302,6 @@ void RequestController::terminateAllMobileRequests() {
     pending_request_set_.erase(it++);
   }
   UpdateTimer();
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void RequestController::updateRequestTimeout(
@@ -368,18 +350,16 @@ void RequestController::updateRequestTimeout(
 }
 
 void RequestController::OnLowVoltage() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   is_low_voltage_ = true;
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void RequestController::OnWakeUp() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   terminateAllHMIRequests();
   terminateAllMobileRequests();
   is_low_voltage_ = false;
   LOG4CXX_DEBUG(logger_, "Terminate old requests done");
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 bool RequestController::IsLowVoltage() {
@@ -426,7 +406,6 @@ void RequestController::onTimer() {
     }
   }
   UpdateTimer();
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 RequestController::Worker::Worker(RequestController* requestController)
@@ -438,8 +417,8 @@ RequestController::Worker::~Worker() {
 }
 
 void RequestController::Worker::threadMain() {
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock auto_lock(thread_lock_);
-  LOG4CXX_TRACE_ENTER(logger_);
   while (!stop_flag_) {
     // Try to pick a request
     sync_primitives::AutoLock auto_lock(request_controller_->mobile_request_list_lock_);
@@ -500,7 +479,7 @@ bool RequestController::CheckTimeScaleMaxRequest(
     const uint32_t& app_id,
     const uint32_t& app_time_scale,
     const uint32_t& max_request_per_time_scale) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   if (max_request_per_time_scale > 0
       && app_time_scale > 0) {
     AutoLock auto_lock(pending_request_set_lock_);
@@ -514,14 +493,12 @@ bool RequestController::CheckTimeScaleMaxRequest(
     if (count >= max_request_per_time_scale) {
       LOG4CXX_WARN(logger_, "Processing requests count " << count <<
                    " exceed application limit " << max_request_per_time_scale);
-      LOG4CXX_TRACE_EXIT(logger_);
       return false;
     }
     LOG4CXX_DEBUG(logger_, "Requests count " << count);
   } else {
     LOG4CXX_DEBUG(logger_, "CheckTimeScaleMaxRequest disabled");
   }
-  LOG4CXX_TRACE_EXIT(logger_);
   return true;
 }
 
@@ -530,7 +507,7 @@ bool RequestController::CheckHMILevelTimeScaleMaxRequest(
     const uint32_t& app_id,
     const uint32_t& app_time_scale,
     const uint32_t& max_request_per_time_scale) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   if (max_request_per_time_scale > 0 &&
       app_time_scale > 0) {
     AutoLock auto_lock(pending_request_set_lock_);
@@ -545,20 +522,18 @@ bool RequestController::CheckHMILevelTimeScaleMaxRequest(
       LOG4CXX_WARN(logger_, "Processing requests count " << count
                    << " exceed application limit " << max_request_per_time_scale
                    << " in hmi level " << hmi_level);
-      LOG4CXX_TRACE_EXIT(logger_);
       return false;
     }
     LOG4CXX_DEBUG(logger_, "Requests count " << count);
   } else {
     LOG4CXX_DEBUG(logger_, "CheckHMILevelTimeScaleMaxRequest disabled");
   }
-  LOG4CXX_TRACE_EXIT(logger_);
   return true;
 }
 
 bool RequestController::CheckPendingRequestsAmount(
     const uint32_t& pending_requests_amount) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   if (pending_requests_amount > 0) {
     AutoLock auto_lock(mobile_request_list_lock_);
     const size_t pending_requests_size = mobile_request_list_.size();
@@ -568,11 +543,9 @@ bool RequestController::CheckPendingRequestsAmount(
       LOG4CXX_WARN(logger_, "Pending requests count " << pending_requests_size
                    << " exceed application limit " << pending_requests_amount);
     }
-    LOG4CXX_TRACE_EXIT(logger_);
     return available_to_add;
   }
   LOG4CXX_DEBUG(logger_, "CheckPendingRequestsAmount disabled");
-  LOG4CXX_TRACE_EXIT(logger_);
   return true;
 }
 

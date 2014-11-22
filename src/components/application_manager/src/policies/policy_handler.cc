@@ -432,9 +432,8 @@ const std::string PolicyHandler::ConvertUpdateStatus(PolicyTableStatus status) {
 
 void PolicyHandler::OnAppPermissionConsent(const uint32_t connection_key,
                                            const PermissionConsent& permissions) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   AsyncRun(new AppPermissionDelegate(connection_key, permissions));
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void PolicyHandler::OnDeviceConsentChanged(const std::string& device_id,

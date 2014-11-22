@@ -562,7 +562,7 @@ bool SQLPTExtRepresentation::GatherConsumerFriendlyMessages(
 bool SQLPTExtRepresentation::SetMetaInfo(const std::string& ccpu_version,
     const std::string& wers_country_code,
     const std::string& language) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   dbms::SQLQuery query(db());
   if (!query.Prepare(sql_pt_ext::kUpdateMetaParams)) {
     LOG4CXX_WARN(logger_, "Incorrect statement for insert to module meta.");
@@ -577,7 +577,6 @@ bool SQLPTExtRepresentation::SetMetaInfo(const std::string& ccpu_version,
     LOG4CXX_WARN(logger_, "Incorrect insert to module meta.");
     return false;
   }
-  LOG4CXX_TRACE_EXIT(logger_);
   return true;
 }
 

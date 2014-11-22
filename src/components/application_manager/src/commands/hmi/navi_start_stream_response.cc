@@ -45,7 +45,7 @@ NaviStartStreamResponse::~NaviStartStreamResponse() {
 }
 
 void NaviStartStreamResponse::Run() {
-  LOG4CXX_INFO(logger_, "NaviStartStreamResponse::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   ApplicationSharedPtr app =
       ApplicationManagerImpl::instance()->active_application();

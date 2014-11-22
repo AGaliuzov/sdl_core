@@ -64,7 +64,7 @@ PerformInteractionRequest::~PerformInteractionRequest() {
 }
 
 void PerformInteractionRequest::onTimer() {
-  LOG4CXX_INFO(logger_, "PerformInteractionRequest::onTimer");
+  LOG4CXX_AUTO_TRACE(logger_);
 }
 
 bool PerformInteractionRequest::Init() {
@@ -87,7 +87,7 @@ bool PerformInteractionRequest::Init() {
 }
 
 void PerformInteractionRequest::Run() {
-  LOG4CXX_INFO(logger_, "PerformInteractionRequest::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   ApplicationSharedPtr app =
       ApplicationManagerImpl::instance()->application(connection_key());
@@ -243,7 +243,7 @@ void PerformInteractionRequest::Run() {
 }
 
 void PerformInteractionRequest::on_event(const event_engine::Event& event) {
-  LOG4CXX_INFO(logger_, "PerformInteractionRequest::on_event");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   switch (event.id()) {
     case hmi_apis::FunctionID::UI_OnResetTimeout: {
@@ -271,7 +271,7 @@ void PerformInteractionRequest::on_event(const event_engine::Event& event) {
 }
 
 void PerformInteractionRequest::onTimeOut() {
-  LOG4CXX_INFO(logger_, "PerformInteractionRequest::onTimeOut");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   switch (interaction_mode_) {
     case mobile_apis::InteractionMode::BOTH: {
@@ -308,7 +308,7 @@ void PerformInteractionRequest::onTimeOut() {
 
 void PerformInteractionRequest::ProcessVRResponse(
     const smart_objects::SmartObject& message) {
-  LOG4CXX_INFO(logger_, "PerformInteractionRequest::ProcessVRResponse");
+  LOG4CXX_AUTO_TRACE(logger_);
   const uint32_t app_id = connection_key();
   ApplicationSharedPtr app = ApplicationManagerImpl::instance()->application(app_id);
   if (!app.get()) {
@@ -372,8 +372,7 @@ void PerformInteractionRequest::ProcessVRResponse(
 
 void PerformInteractionRequest::ProcessPerformInteractionResponse(
     const smart_objects::SmartObject& message) {
-  LOG4CXX_INFO(logger_,
-               "PerformInteractionRequest::ProcessPerformInteractionResponse");
+  LOG4CXX_AUTO_TRACE(logger_);
   const uint32_t app_id = connection_key();
   ApplicationSharedPtr app = ApplicationManagerImpl::instance()->application(app_id);
   if (!app.get()) {
@@ -752,7 +751,7 @@ void PerformInteractionRequest::DisablePerformInteraction() {
 }
 
 bool PerformInteractionRequest::IsWhiteSpaceExist() {
-  LOG4CXX_INFO(logger_, "PerformInteractionRequest::IsWhiteSpaceExist");
+  LOG4CXX_AUTO_TRACE(logger_);
   const char* str = NULL;
 
   str = (*message_)[strings::msg_params][strings::initial_text].asCharArray();
@@ -847,7 +846,7 @@ void PerformInteractionRequest::TerminatePerformInteraction() {
 
 bool PerformInteractionRequest::CheckChoiceIDFromResponse(
     ApplicationSharedPtr app, int32_t choice_id) {
-  LOG4CXX_INFO(logger_, "PerformInteractionRequest::CheckChoiceIDFromResponse");
+  LOG4CXX_AUTO_TRACE(logger_);
   const PerformChoiceSetMap& choice_set_map = app
         ->performinteraction_choice_set_map();
 

@@ -50,7 +50,7 @@ DeleteInteractionChoiceSetRequest::~DeleteInteractionChoiceSetRequest() {
 }
 
 void DeleteInteractionChoiceSetRequest::Run() {
-  LOG4CXX_INFO(logger_, "DeleteInteractionChoiceSetRequest::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   ApplicationSharedPtr app = ApplicationManagerImpl::instance()->application(
       (*message_)[strings::params][strings::connection_key].asUInt());

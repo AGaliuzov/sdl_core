@@ -91,7 +91,7 @@ void CommandRequestImpl::Run() {
 }
 
 void CommandRequestImpl::onTimeOut() {
-  LOG4CXX_INFO(logger_, "CommandRequestImpl::onTimeOut");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   unsubscribe_from_all_events();
   {

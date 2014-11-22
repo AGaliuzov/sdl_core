@@ -64,12 +64,11 @@ TimeManager::TimeManager():
 }
 
 TimeManager::~TimeManager() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   Stop();
   thread_->join();
   delete streamer_;
   threads::DeleteThread(thread_);
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void TimeManager::Init(protocol_handler::ProtocolHandlerImpl* ph) {
@@ -109,7 +108,7 @@ TimeManager::Streamer::~Streamer() {
 }
 
 void TimeManager::Streamer::threadMain() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   Start();
 
@@ -137,7 +136,6 @@ void TimeManager::Streamer::threadMain() {
       server_->messages_.wait();
     }
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void TimeManager::Streamer::exitThreadMain() {

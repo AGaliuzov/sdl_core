@@ -1606,7 +1606,7 @@ smart_objects::SmartObject* MessageHelper::CreateNegativeResponse(
 }
 
 void MessageHelper::SendNaviStartStream(int32_t connection_key) {
-  LOG4CXX_INFO(logger_, "MessageHelper::SendNaviStartStream");
+  LOG4CXX_AUTO_TRACE(logger_);
   smart_objects::SmartObject* start_stream = new smart_objects::SmartObject(
     smart_objects::SmartType_Map);
 
