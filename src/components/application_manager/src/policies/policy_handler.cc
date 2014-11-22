@@ -284,7 +284,7 @@ bool PolicyHandler::InitPolicyTable() {
   if (file_system::FileExists(preloaded_file)) {
     return policy_manager_->InitPT(preloaded_file);
   }
-  LOG4CXX_WARN(logger_, "The file which contains preloaded PT is not exist");
+  LOG4CXX_FATAL(logger_, "The file which contains preloaded PT is not exist");
   return false;
 }
 
