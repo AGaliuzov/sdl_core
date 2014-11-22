@@ -297,9 +297,9 @@ void ApplinkNotificationThreadDelegate::threadMain() {
           startUSBLogging();
           break;
         case SDL_MSG_SDL_STOP:
+          DEINIT_LOGGER();
           stopSmartDeviceLink();
           LOG4CXX_INFO(logger_, "Application stopped due to SDL_MSG_SDL_STOP");
-          DEINIT_LOGGER();
           exit(EXIT_SUCCESS);
           break;
         case SDL_MSG_LOW_VOLTAGE:
@@ -508,16 +508,16 @@ int main(int argc, char** argv) {
 
   main_namespace::LifeCycle::instance()->Run();
 
-  LOG4CXX_INFO(logger_, "Stopping application due to signal caught");
+  //LOG4CXX_INFO(logger_, "Stopping application due to signal caught");
   stopSmartDeviceLink();
 
-  LOG4CXX_INFO(logger_, "Waiting for SDL controller to be finished.");
+  //LOG4CXX_INFO(logger_, "Waiting for SDL controller to be finished.");
   close(pipefd[0]);
   int result;
   waitpid(cpid, &result, 0);
 
-  LOG4CXX_INFO(logger_, "Application successfully stopped");
-  DEINIT_LOGGER();
+  //LOG4CXX_INFO(logger_, "Application successfully stopped");
+  //DEINIT_LOGGER();
   return EXIT_SUCCESS;
 }
 ///EOF
