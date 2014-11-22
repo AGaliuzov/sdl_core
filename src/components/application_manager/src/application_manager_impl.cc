@@ -58,6 +58,12 @@
 #endif
 #include <time.h>
 
+namespace {
+  int get_rand_from_range(uint32_t from = 0, int to = RAND_MAX) {
+    return std::rand() % to + from;
+  }
+}
+
 namespace application_manager {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "ApplicationManager")
@@ -898,15 +904,19 @@ uint32_t ApplicationManagerImpl::GenerateGrammarID() {
 }
 
 uint32_t ApplicationManagerImpl::GenerateNewHMIAppID() {
-  uint32_t hmi_app_id = rand();
+  LOG4CXX_TRACE(logger_, "ENTER");
+  uint32_t hmi_app_id = get_rand_from_range(1);
+  LOG4CXX_DEBUG(logger_, "GenerateNewHMIAppID value is: " << hmi_app_id);
 
   while (resume_ctrl_.IsHMIApplicationIdExist(hmi_app_id)) {
-    hmi_app_id = rand();
+    LOG4CXX_DEBUG(logger_, "HMI appID " << hmi_app_id << " is exists.");
+    hmi_app_id = get_rand_from_range(1);
+    LOG4CXX_DEBUG(logger_, "Trying new value: " << hmi_app_id);
   }
 
+  LOG4CXX_TRACE(logger_, "EXIT");
   return hmi_app_id;
 }
-
 void ApplicationManagerImpl::ReplaceMobileByHMIAppId(
     smart_objects::SmartObject& message) {
   MessageHelper::PrintSmartObject(message);
