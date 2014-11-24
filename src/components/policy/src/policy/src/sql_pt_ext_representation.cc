@@ -493,7 +493,7 @@ std::vector<UserFriendlyMessage> SQLPTExtRepresentation::GetUserFriendlyMsg(
     query.Bind(0, *it);
     query.Bind(1, msg_language);
 
-    if (!query.Exec()) {
+    if (!query.Exec() || !query.Reset()) {
       LOG4CXX_WARN(logger_, "Incorrect select from friendly messages.");
       return result;
     }
@@ -1388,7 +1388,7 @@ bool SQLPTExtRepresentation::SaveAppCounters(
     query.Bind(12, it->second.count_of_run_attempts_while_revoked);
     query.Bind(13, it->second.app_registration_language_gui);
     query.Bind(14, it->second.app_registration_language_vui);
-    if (!query.Exec()) {
+    if (!query.Exec() || !query.Reset()) {
       LOG4CXX_WARN(logger_, "Incorrect insert into app level.");
       return false;
     }
