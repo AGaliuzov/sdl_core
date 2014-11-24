@@ -361,7 +361,11 @@ bool CacheManager::ApplyUpdate(const policy_table::Table& update_pt) {
       SetIsDefault(iter->first, false);
       SetIsPredata(iter->first, false);
     }
-    pt_->policy_table.app_policies[iter->first] = iter->second;
+    if (iter->second.is_null()) {
+      pt_->policy_table.app_policies[iter->first].set_to_null();
+    } else {
+      pt_->policy_table.app_policies[iter->first] = iter->second;
+    }
   }
 
   pt_->policy_table.module_config = update_pt.policy_table.module_config;
