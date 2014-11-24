@@ -1201,7 +1201,14 @@ int CacheManager::CountUnconsentedGroups(const std::string& policy_app_id,
 
     if (groups_iter_end != current_groups_iter) {
       if (current_groups_iter->second.user_consent_prompt.is_initialized()) {
-        groups_to_be_consented.push_back(*app_spec_iter);
+        // Check if groups which requires user consent prompt
+        // not included in "preconsented_groups" section
+        if (pt_->policy_table.app_policies[policy_app_id].preconsented_groups->end() ==
+            std::find(pt_->policy_table.app_policies[policy_app_id].preconsented_groups->begin(),
+                      pt_->policy_table.app_policies[policy_app_id].preconsented_groups->end(),
+                      *app_spec_iter)) {
+          groups_to_be_consented.push_back(*app_spec_iter);
+        }
       }
     }
   }

@@ -229,6 +229,7 @@ class String : public PrimitiveType {
     String(const Json::Value* value, const std::string& def_value);
     bool operator<(String new_val);
     String& operator=(const std::string& new_val);
+    bool operator==(const String& rhs);
     operator const std::string& () const;
     Json::Value ToJsonValue() const;
     void ToDbusWriter(dbus::MessageWriter* writer) const;
