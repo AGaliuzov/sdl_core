@@ -255,7 +255,7 @@ bool ResumeCtrl::SetupHMILevel(ApplicationSharedPtr application,
 }
 
 bool ResumeCtrl::RestoreApplicationData(ApplicationSharedPtr application) {
-  if (false == application.valid()) {
+  if (!application.valid()) {
     LOG4CXX_ERROR(logger_, "Application pointer in invalid");
     return false;
   }
@@ -441,7 +441,7 @@ bool ResumeCtrl::RestoreApplicationData(ApplicationSharedPtr application) {
       ivi = static_cast<VehicleDataType>((*json_it).asInt());
       application->SubscribeToIVI(ivi);
     }
-    requests = MessageHelper::GetIVISubscribtionRequests(application->app_id());
+    requests = MessageHelper::GetIVISubscriptionRequests(application);
 
     for (MessageHelper::SmartObjectList::iterator it = requests.begin();
          it != requests.end(); ++it) {

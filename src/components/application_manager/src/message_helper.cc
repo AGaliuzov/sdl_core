@@ -448,6 +448,7 @@ std::string MessageHelper::StringifiedHMILevel(
 
 std::string MessageHelper::StringifiedFunctionID(
   mobile_apis::FunctionID::eType function_id) {
+  LOG4CXX_AUTO_TRACE(logger_);
   using namespace NsSmartDeviceLink::NsSmartObjects;
   const char* str = 0;
   if (EnumConversionHelper<mobile_apis::FunctionID::eType>::EnumToCString(
@@ -497,6 +498,7 @@ static std::map<std::string, uint16_t> vehicle_data_args = create_get_vehicle_da
 #endif
 
 void MessageHelper::CreateGetVehicleDataRequest(uint32_t correlation_id, const std::vector<std::string>& params) {
+  LOG4CXX_AUTO_TRACE(logger_);
 #ifdef HMI_DBUS_API
   for (std::vector<std::string>::const_iterator it = params.begin();
        it != params.end(); it++) {
@@ -536,10 +538,8 @@ smart_objects::SmartObject* MessageHelper::CreateBlockedByPoliciesResponse(
   mobile_apis::FunctionID::eType function_id,
   mobile_apis::Result::eType result, uint32_t correlation_id,
   uint32_t connection_key) {
+  LOG4CXX_AUTO_TRACE(logger_);
   smart_objects::SmartObject* response = new smart_objects::SmartObject;
-  if (!response) {
-    return NULL;
-  }
 
   (*response)[strings::params][strings::function_id] =
     static_cast<int>(function_id);
@@ -559,12 +559,9 @@ smart_objects::SmartObject* MessageHelper::CreateBlockedByPoliciesResponse(
 
 smart_objects::SmartObject* MessageHelper::CreateDeviceListSO(
   const connection_handler::DeviceMap& devices) {
+  LOG4CXX_AUTO_TRACE(logger_);
   smart_objects::SmartObject* device_list_so = new smart_objects::SmartObject(
     smart_objects::SmartType_Map);
-
-  if (NULL == device_list_so) {
-    return NULL;
-  }
 
   (*device_list_so)[strings::device_list] = smart_objects::SmartObject(
         smart_objects::SmartType_Array);
@@ -589,6 +586,7 @@ smart_objects::SmartObject* MessageHelper::CreateDeviceListSO(
 
 smart_objects::SmartObject* MessageHelper::CreateModuleInfoSO(
   uint32_t function_id) {
+  LOG4CXX_AUTO_TRACE(logger_);
   smart_objects::SmartObject* module_info = new smart_objects::SmartObject(
     smart_objects::SmartType_Map);
   smart_objects::SmartObject& object = *module_info;
@@ -603,6 +601,7 @@ smart_objects::SmartObject* MessageHelper::CreateModuleInfoSO(
 
 smart_objects::SmartObject* MessageHelper::CreateSetAppIcon(
   const std::string& path_to_icon, uint32_t app_id) {
+  LOG4CXX_AUTO_TRACE(logger_);
   smart_objects::SmartObject* set_icon = new smart_objects::SmartObject(
     smart_objects::SmartType_Map);
 
@@ -621,14 +620,14 @@ smart_objects::SmartObject* MessageHelper::CreateSetAppIcon(
 }
 
 bool MessageHelper::SendIVISubscribtions(const uint32_t app_id) {
-  LOG4CXX_INFO(logger_, " MessageHelper::SendIVISubscribtions ");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   bool succes = true;
   ApplicationSharedPtr app = ApplicationManagerImpl::instance()->application(
                                app_id);
   DCHECK(app.get());
 
-  SmartObjectList requests = GetIVISubscribtionRequests(app_id);
+  SmartObjectList requests = GetIVISubscriptionRequests(app);
   for (SmartObjectList::const_iterator it = requests.begin();
        it != requests.end(); ++it) {
     if (!ApplicationManagerImpl::instance()->ManageHMICommand(*it)) {
@@ -638,17 +637,15 @@ bool MessageHelper::SendIVISubscribtions(const uint32_t app_id) {
   return succes;
 }
 
-MessageHelper::SmartObjectList MessageHelper::GetIVISubscribtionRequests(
-  const uint32_t app_id) {
-  LOG4CXX_INFO(logger_, " MessageHelper::GetIVISubscribtionRequests ");
+MessageHelper::SmartObjectList MessageHelper::GetIVISubscriptionRequests(
+  ApplicationSharedPtr app) {
+  LOG4CXX_AUTO_TRACE(logger_);
 
-  ApplicationSharedPtr app = ApplicationManagerImpl::instance()->application(
-                               app_id);
   DCHECK(app);
 
   smart_objects::SmartObject msg_params = smart_objects::SmartObject(
       smart_objects::SmartType_Map);
-  msg_params[strings::app_id] = app_id;
+  msg_params[strings::app_id] = app->app_id();
   const VehicleData& vehicle_data = MessageHelper::vehicle_data_;
   VehicleData::const_iterator ivi_it = vehicle_data.begin();
   const std::set<uint32_t>& subscribes = app->SubscribesIVI();
@@ -685,6 +682,7 @@ MessageHelper::SmartObjectList MessageHelper::GetIVISubscribtionRequests(
 }
 
 void MessageHelper::SendAppDataToHMI(ApplicationConstSharedPtr app) {
+  LOG4CXX_AUTO_TRACE(logger_);
   uint32_t id = app->app_id();
 
   utils::SharedPtr<smart_objects::SmartObject> set_app_icon(
@@ -719,6 +717,7 @@ void MessageHelper::SendAppDataToHMI(ApplicationConstSharedPtr app) {
 }
 
 void MessageHelper::SendGlobalPropertiesToHMI(ApplicationConstSharedPtr app) {
+  LOG4CXX_AUTO_TRACE(logger_);
   DCHECK(app.get());
 
   SmartObjectList requests = CreateGlobalPropertiesRequestsToHMI(app);
@@ -730,6 +729,7 @@ void MessageHelper::SendGlobalPropertiesToHMI(ApplicationConstSharedPtr app) {
 
 MessageHelper::SmartObjectList MessageHelper::CreateGlobalPropertiesRequestsToHMI(
   ApplicationConstSharedPtr app) {
+  LOG4CXX_AUTO_TRACE(logger_);
 
   SmartObjectList requests;
   DCHECK(app.get());
@@ -818,6 +818,7 @@ MessageHelper::SmartObjectList MessageHelper::CreateGlobalPropertiesRequestsToHM
 
 void MessageHelper::SendTTSGlobalProperties(
     ApplicationSharedPtr app, bool default_help_prompt) {
+  LOG4CXX_AUTO_TRACE(logger_);
   if (!app.valid()) {
     return;
   }
