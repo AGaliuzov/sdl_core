@@ -34,7 +34,6 @@
  */
 
 #include "connection_handler/device.h"
-#include "encryption/hashing.h"
 #include "utils/logger.h"
 
 /**
@@ -52,7 +51,7 @@ Device::Device(DeviceHandle device_handle,
       user_friendly_name_(user_friendly_name),
       mac_address_(mac_address),
       connection_type_(connection_type){
-    mac_address_ = encryption::MakeHash(mac_address);
+  LOG4CXX_INFO(logger_, "MAC address: " << mac_address_);
 }
 
 DeviceHandle Device::device_handle() const {

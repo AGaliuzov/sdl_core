@@ -577,9 +577,13 @@ smart_objects::SmartObject* MessageHelper::CreateDeviceListSO(
       static_cast<connection_handler::Device>(it->second);
     list_so[index][strings::name] = d.user_friendly_name();
     list_so[index][strings::id] = it->second.device_handle();
+    policy::DeviceParams device_params;
+    GetDeviceInfoForHandle(it->second.device_handle(), &device_params);
 
     const policy::DeviceConsent device_consent =
-        policy::PolicyHandler::instance()->GetUserConsentForDevice(it->second.mac_address());
+        policy::PolicyHandler::instance()->GetUserConsentForDevice(
+          device_params.device_mac_address);
+
     list_so[index][strings::isSDLAllowed] =
         policy::DeviceConsent::kDeviceAllowed == device_consent;
   }
@@ -1297,7 +1301,7 @@ void MessageHelper::SendActivateAppToHMI(uint32_t const app_id,
     std::string mac_adress;
     connection_handler::DeviceHandle device_handle = app->device();
     connection_handler::ConnectionHandlerImpl::instance()->
-        GetDataOnDeviceID(device_handle, NULL, NULL, &mac_adress, NULL);
+        GetDataOnDeviceID(device_handle, NULL, NULL, &mac_adress, NULL, true);
 
     policy::DeviceConsent consent =
         policy::PolicyHandler::instance()->GetUserConsentForDevice(mac_adress);
@@ -1338,24 +1342,25 @@ void MessageHelper::SendOnResumeAudioSourceToHMI(const uint32_t app_id) {
   ApplicationManagerImpl::instance()->ManageHMICommand(message);
 }
 
+
 std::string MessageHelper::GetDeviceMacAddressForHandle(
   const uint32_t device_handle) {
+  policy::DeviceParams device_params;
+  GetDeviceInfoForHandle(device_handle,&device_params);
 
-  std::string device_mac_address = "";
-  connection_handler::ConnectionHandlerImpl::instance()->GetDataOnDeviceID(
-    device_handle, NULL, NULL, &device_mac_address);
-
-  return device_mac_address;
+  return device_params.device_mac_address;
 }
 
 void MessageHelper::GetDeviceInfoForHandle(const uint32_t device_handle,
-    policy::DeviceParams* device_info) {
+    policy::DeviceParams* device_info,
+    bool hash_mac_address) {
   if (!device_info) {
     return;
   }
   connection_handler::ConnectionHandlerImpl::instance()->GetDataOnDeviceID(
     device_handle, &device_info->device_name, NULL,
-    &device_info->device_mac_address, &device_info->device_connection_type);
+    &device_info->device_mac_address, &device_info->device_connection_type,
+    hash_mac_address);
 }
 
 void MessageHelper::GetDeviceInfoForApp(uint32_t connection_key,

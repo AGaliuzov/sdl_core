@@ -221,7 +221,7 @@ class MessageHelper {
     /*
      * @brief Creates BasicCommunication.OnAppUnregistered notification
      * @param app Application instance
-     * @param is_unexpected_disconnect 
+     * @param is_unexpected_disconnect
      * Indicates if connection was unexpectedly lost by TM or HB
      */
     static void SendOnAppUnregNotificationToHMI(ApplicationConstSharedPtr app,
@@ -237,7 +237,8 @@ class MessageHelper {
       const uint32_t device_handle);
 
     static void GetDeviceInfoForHandle(const uint32_t device_handle,
-                                       policy::DeviceParams* device_info);
+                                       policy::DeviceParams* device_info,
+                                       bool hash_mac_address = true);
     static void GetDeviceInfoForApp(uint32_t connection_key,
                                     policy::DeviceParams* device_info);
 

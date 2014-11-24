@@ -1071,7 +1071,14 @@ void CacheManager::PersistData() {
                                 *(*copy_pt.policy_table.module_meta).language);
         ex_backup_->SetVINValue(*(*copy_pt.policy_table.module_meta).vin);
 
-
+        //Save unpaired flag for devices
+        std::map<std::string, bool>::const_iterator it = is_unpaired_.begin();
+        std::map<std::string, bool>::const_iterator it_end = is_unpaired_.end();
+        for (;it != it_end; ++it) {
+          if (it->second) {
+          ex_backup_->SetUnpairedDevice(it->first);
+          }
+        }
       }
 #endif // EXTENDED_POLICY
       backup_->WriteDb();
@@ -1300,10 +1307,28 @@ bool CacheManager::GetFunctionalGroupNames(FunctionalGroupNames &names) {
 bool CacheManager::CleanupUnpairedDevices(const DeviceIds &device_ids) {
   CACHE_MANAGER_CHECK(false);
 #ifdef EXTENDED_POLICY
+  sync_primitives::AutoLock lock(cache_lock_);
   DeviceIds::const_iterator iter = device_ids.begin();
   DeviceIds::const_iterator iter_end = device_ids.end();
   for (; iter != iter_end; ++iter) {
     is_unpaired_.erase(*iter);
+
+    // Delete device
+    if (!pt_->policy_table.device_data.is_initialized()) {
+      LOG4CXX_ERROR(logger_, "Device_data section is not initialized.");
+      return false;
+    }
+    policy_table::DeviceData& device_data = *pt_->policy_table.device_data;
+    policy_table::DeviceData::iterator it_device = device_data.find(*iter);
+    if (device_data.end() == it_device) {
+      LOG4CXX_INFO(logger_, "No device id " << *iter
+                   <<  " had been found in device_data section.");
+      return false;
+    }
+
+    pt_->policy_table.device_data->erase(it_device);
+    LOG4CXX_INFO(logger_, "Device id " << *iter
+                 <<  " had been deleted from device_data section.");
   }
 #endif // EXTENDED_POLICY
   return true;
@@ -1511,10 +1536,15 @@ bool CacheManager::IsPredataPolicy(const std::string &app_id) {
 }
 
 bool CacheManager::SetUnpairedDevice(const std::string &device_id) {
-
-  const bool result = is_unpaired_.end() != is_unpaired_.find(device_id);
+  const bool result =
+        pt_->policy_table.device_data->end() !=
+        pt_->policy_table.device_data->find(device_id);
   if (result) {
     is_unpaired_[device_id] = true;
+    LOG4CXX_DEBUG(logger_, "Unpaired flag was set for device id " << device_id);
+  } else {
+  LOG4CXX_DEBUG(logger_, "Couldn't set unpaired flag for device id "
+      << device_id << " , since it wasn't found.");
   }
   return result;
 }

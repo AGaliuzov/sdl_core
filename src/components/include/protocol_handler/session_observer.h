@@ -151,7 +151,8 @@ class SessionObserver {
                                     std::string *device_name,
                                     std::list<uint32_t> *applications_list,
                                     std::string *mac_address,
-                                    std::string *connection_type) = 0;
+                                    std::string *connection_type,
+                                    bool hash_mac_address) = 0;
 
   /**
    * \brief returns TRUE if session supports sending HEARTBEAT ACK to mobile side

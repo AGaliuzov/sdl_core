@@ -531,6 +531,7 @@ DeviceConsent PolicyManagerImpl::GetUserConsentForDevice(
 void PolicyManagerImpl::SetUserConsentForDevice(const std::string& device_id,
     bool is_allowed) {
   LOG4CXX_INFO(logger_, "SetUserConsentForDevice");
+  LOG4CXX_DEBUG(logger_, "Device :" << device_id);
   DeviceConsent current_consent = GetUserConsentForDevice(device_id);
   bool is_current_device_allowed =
       DeviceConsent::kDeviceAllowed == current_consent ? true : false;
@@ -608,6 +609,7 @@ bool PolicyManagerImpl::GetInitialAppData(const std::string& application_id,
 void PolicyManagerImpl::SetDeviceInfo(const std::string& device_id,
                                       const DeviceInfo& device_info) {
   LOG4CXX_INFO(logger_, "SetDeviceInfo");
+  LOG4CXX_DEBUG(logger_, "Device :" << device_id);
 #ifdef EXTENDED_POLICY
   if (!cache_->SetDeviceData(device_id, device_info.hardware,
                              device_info.firmware_rev, device_info.os,
@@ -1132,8 +1134,11 @@ bool PolicyManagerImpl::CanAppStealFocus(const std::string& app_id) {
 
 void PolicyManagerImpl::MarkUnpairedDevice(const std::string& device_id) {
 #ifdef EXTENDED_POLICY
-    cache_->SetUnpairedDevice(device_id);
-    SetUserConsentForDevice(device_id, false);
+  if (!cache_->SetUnpairedDevice(device_id)) {
+    LOG4CXX_DEBUG(logger_, "Could not set unpaired flag for " << device_id);
+    return;
+  }
+  SetUserConsentForDevice(device_id, false);
 #endif  // EXTENDED_POLICY
 }
 
