@@ -50,8 +50,6 @@ void ResumeCtrl::SaveApplication(ApplicationConstSharedPtr application) {
 
   Json::Value* json_app = NULL;
   const std::string& m_app_id = application->mobile_app_id()->asString();
-  std::cout << "SaveApplication " << m_app_id << std::endl;
-  fflush(stdout);
   LOG4CXX_TRACE(logger_, "ENTER app_id : " << application->app_id()
                 << " mobile app_id : " << m_app_id);
   Json::Value::iterator it = GetSavedApplications().begin();
@@ -519,9 +517,8 @@ bool ResumeCtrl::RemoveApplicationFromSaved(ApplicationConstSharedPtr applicatio
     LOG4CXX_ERROR(logger_, "Application pointer in invalid");
     return false;
   }
-  std::cout << "RemoveApplicationFromSaved " << application->mobile_app_id()->asString() << std::endl;
-  fflush(stdout);
-  LOG4CXX_TRACE(logger_, "ENTER app_id :"  << application->app_id());
+  LOG4CXX_TRACE(logger_, "ENTER app_id :"  << application->app_id()
+                << "; mobile_app_id " << application->mobile_app_id()->asString());
 
   bool result = false;
   std::vector<Json::Value> temp;
