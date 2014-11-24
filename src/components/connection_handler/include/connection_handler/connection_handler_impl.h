@@ -242,8 +242,7 @@ class ConnectionHandlerImpl : public ConnectionHandler,
                                     std::string *device_name = NULL,
                                     std::list<uint32_t> *applications_list = NULL,
                                     std::string *mac_address = NULL,
-                                    std::string* connection_type = NULL,
-                                    bool hash_mac_address = false);
+                                    std::string* connection_type = NULL);
 #ifdef ENABLE_SECURITY
   /**
    * \brief Sets crypto context of connection

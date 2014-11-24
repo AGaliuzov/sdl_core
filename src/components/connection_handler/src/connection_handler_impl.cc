@@ -38,7 +38,6 @@
 #include "connection_handler/connection_handler_impl.h"
 #include "transport_manager/info.h"
 #include "config_profile/profile.h"
-#include "encryption/hashing.h"
 
 #ifdef ENABLE_SECURITY
 #include "security_manager/security_manager.h"
@@ -549,8 +548,7 @@ int32_t ConnectionHandlerImpl::GetDataOnDeviceID(
     DeviceHandle device_handle,
     std::string *device_name,
     std::list<uint32_t> *applications_list, std::string *mac_address,
-    std::string* connection_type ,
-    bool hash_mac_address) {
+    std::string* connection_type ) {
   LOG4CXX_TRACE(logger_, "ConnectionHandlerImpl::GetDataOnDeviceID");
 
   int32_t result = -1;
@@ -585,11 +583,7 @@ int32_t ConnectionHandlerImpl::GetDataOnDeviceID(
   }
 
   if (mac_address) {
-    if (hash_mac_address) {
-      *mac_address = encryption::MakeHash(it->second.mac_address());
-    } else {
-      *mac_address = it->second.mac_address();
-    }
+    *mac_address = it->second.mac_address();
   }
 
   result = 0;
