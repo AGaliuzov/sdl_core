@@ -83,6 +83,7 @@ void OnExitAllApplicationsNotification::Run() {
     }
     case hmi_apis::Common_ApplicationsCloseReason::SUSPEND: {
 #ifdef CUSTOMER_PASA
+      mob_reason = mobile_api::AppInterfaceUnregisteredReason::IGNITION_OFF;
       app_manager->set_state_suspended(true);
       app_manager->HeadUnitSuspend();
 #endif // CUSTOMER_PASA

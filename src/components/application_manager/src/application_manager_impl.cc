@@ -53,6 +53,9 @@
 #include "utils/file_system.h"
 #include "application_manager/application_impl.h"
 #include "usage_statistics/counter.h"
+#include <iostream>
+#include <stdio.h>
+
 #ifdef CUSTOMER_PASA
 #include "resumption/last_state.h"
 #endif
@@ -1899,6 +1902,8 @@ void ApplicationManagerImpl::set_application_id(const int32_t correlation_id,
 void ApplicationManagerImpl::SetUnregisterAllApplicationsReason(
   mobile_api::AppInterfaceUnregisteredReason::eType reason) {
   unregister_reason_ = reason;
+  std::cout << "SetUnregisterAllApplicationsReason " << reason <<std::endl;
+  fflush(stdout);
 }
 
 void ApplicationManagerImpl::HeadUnitReset(
@@ -1928,6 +1933,8 @@ void ApplicationManagerImpl::HeadUnitSuspend() {
   resume_controller().StopSavePersistentDataTimer();
   resume_controller().SaveAllApplications();
   resumption::LastState::instance()->SaveToFileSystem();
+  std::cout << "HeadUnitSuspend " << std::endl;
+  fflush(stdout);
 }
 #endif // CUSTOMER_PASA
 
@@ -1985,13 +1992,15 @@ void ApplicationManagerImpl::SendOnSDLClose() {
 
 void ApplicationManagerImpl::UnregisterAllApplications(bool generated_by_hmi) {
   LOG4CXX_DEBUG(logger_, "Unregister reason  " << unregister_reason_);
-
+  std::cout << "UnregisterAllApplications " <<unregister_reason_ << std::endl;
+  fflush(stdout);
   hmi_cooperating_ = false;
 
   bool is_ignition_off =
       unregister_reason_ ==
       mobile_api::AppInterfaceUnregisteredReason::IGNITION_OFF ? true : false;
-
+  std::cout << "UnregisterAllApplications is_ignition_off = " <<is_ignition_off << std::endl;
+  fflush(stdout);
   bool is_unexpected_disconnect = (generated_by_hmi != true);
 
   sync_primitives::AutoLock lock(applications_list_lock_);
@@ -2002,19 +2011,16 @@ void ApplicationManagerImpl::UnregisterAllApplications(bool generated_by_hmi) {
 #ifndef CUSTOMER_PASA
     MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
             app_to_remove->app_id(), unregister_reason_);
-    UnregisterApplication(app_to_remove->app_id(),
-                          mobile_apis::Result::INVALID_ENUM, is_ignition_off,
-                          is_unexpected_disconnect);
 #endif // !CUSTOMER_PASA
 #ifdef CUSTOMER_PASA
     if (!is_ignition_off) {
       MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
           app_to_remove->app_id(), unregister_reason_);
     }
-    UnregisterApplication(app_to_remove->app_id(),
-                          mobile_apis::Result::INVALID_ENUM, false,
-                          is_unexpected_disconnect);
 #endif // CUSTOMER_PASA
+    UnregisterApplication(app_to_remove->app_id(),
+                          mobile_apis::Result::INVALID_ENUM, is_ignition_off,
+                          is_unexpected_disconnect);
     connection_handler_->CloseSession(app_to_remove->app_id(),
                                       connection_handler::kCommon);
     it = application_list_.begin();
@@ -2032,6 +2038,8 @@ void ApplicationManagerImpl::UnregisterApplication(
   bool is_resuming, bool is_unexpected_disconnect) {
   LOG4CXX_INFO(logger_,
                "ApplicationManagerImpl::UnregisterApplication " << app_id);
+  std::cout << "UnregisterApplication is_resuming =" << is_resuming << app_id <<std::endl;
+  fflush(stdout);
   //remove appID from tts_global_properties_app_list_
   RemoveAppFromTTSGlobalPropertiesList(app_id);
 
@@ -2070,17 +2078,23 @@ void ApplicationManagerImpl::UnregisterApplication(
   }
   application_list_.erase(app_to_remove);
   applications_list_lock_.Release();
-#ifndef CUSTOMER_PASA
   if (is_resuming) {
-    resume_ctrl_.SaveApplication(app_to_remove);
-  } 
-#endif // !CUSTOMER_PASA
+    std::cout << "UnregisterApplication is_resumption = true" << app_id <<std::endl;
+    fflush(stdout);
 #ifdef CUSTOMER_PASA
-  if (is_resuming && !is_state_suspended_) {
+    if (false == is_state_suspended_) {
+      std::cout << "UnregisterApplication is_state_suspended_ = false " << app_id <<std::endl;
+      fflush(stdout);
+#endif
       resume_ctrl_.SaveApplication(app_to_remove);
+#ifdef CUSTOMER_PASA
     }
-#endif // CUSTOMER_PASA
-
+#endif
+  } else {
+    std::cout << "UnregisterApplication not_resumption " << app_id <<std::endl;
+    fflush(stdout);
+    resume_ctrl_.RemoveApplicationFromSaved(app_to_remove);
+  }
 
   if (audio_pass_thru_active_) {
     // May be better to put this code in MessageHelper?
