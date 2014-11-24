@@ -1900,6 +1900,7 @@ void ApplicationManagerImpl::set_application_id(const int32_t correlation_id,
 
 void ApplicationManagerImpl::SetUnregisterAllApplicationsReason(
   mobile_api::AppInterfaceUnregisteredReason::eType reason) {
+  LOG4CXX_TRACE(logger_, "reason = " << reason);
   unregister_reason_ = reason;
 }
 
@@ -2001,22 +2002,17 @@ void ApplicationManagerImpl::UnregisterAllApplications(bool generated_by_hmi) {
   std::set<ApplicationSharedPtr>::iterator it = application_list_.begin();
   while (it != application_list_.end()) {
     ApplicationSharedPtr app_to_remove = *it;
-#ifndef CUSTOMER_PASA
-    MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
-            app_to_remove->app_id(), unregister_reason_);
+#ifdef CUSTOMER_PASA
+    if (!is_ignition_off) {
+#endif // CUSTOMER_PASA
+      MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
+          app_to_remove->app_id(), unregister_reason_);
+#ifdef CUSTOMER_PASA
+    }
+#endif // CUSTOMER_PASA
     UnregisterApplication(app_to_remove->app_id(),
                           mobile_apis::Result::INVALID_ENUM, is_ignition_off,
                           is_unexpected_disconnect);
-#endif // !CUSTOMER_PASA
-#ifdef CUSTOMER_PASA
-    if (!is_ignition_off) {
-      MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
-          app_to_remove->app_id(), unregister_reason_);
-    }
-    UnregisterApplication(app_to_remove->app_id(),
-                          mobile_apis::Result::INVALID_ENUM, false,
-                          is_unexpected_disconnect);
-#endif // CUSTOMER_PASA
     connection_handler_->CloseSession(app_to_remove->app_id(),
                                       connection_handler::kCommon);
     it = application_list_.begin();
@@ -2032,8 +2028,10 @@ void ApplicationManagerImpl::UnregisterAllApplications(bool generated_by_hmi) {
 void ApplicationManagerImpl::UnregisterApplication(
   const uint32_t& app_id, mobile_apis::Result::eType reason,
   bool is_resuming, bool is_unexpected_disconnect) {
-  LOG4CXX_INFO(logger_,
-               "ApplicationManagerImpl::UnregisterApplication " << app_id);
+  LOG4CXX_INFO(logger_, "app_id = " << app_id
+               << "; reason = " << reason
+               << "; is_resuming = " << is_resuming
+               << "; is_unexpected_disconnect = " << is_unexpected_disconnect);
   //remove appID from tts_global_properties_app_list_
   RemoveAppFromTTSGlobalPropertiesList(app_id);
 
@@ -2072,17 +2070,17 @@ void ApplicationManagerImpl::UnregisterApplication(
   }
   application_list_.erase(app_to_remove);
   applications_list_lock_.Release();
-#ifndef CUSTOMER_PASA
   if (is_resuming) {
-    resume_ctrl_.SaveApplication(app_to_remove);
-  } 
-#endif // !CUSTOMER_PASA
 #ifdef CUSTOMER_PASA
-  if (is_resuming && !is_state_suspended_) {
+    if (false == is_state_suspended_) {
+#endif
       resume_ctrl_.SaveApplication(app_to_remove);
+#ifdef CUSTOMER_PASA
     }
-#endif // CUSTOMER_PASA
-
+#endif
+  } else {
+    resume_ctrl_.RemoveApplicationFromSaved(app_to_remove);
+  }
 
   if (audio_pass_thru_active_) {
     // May be better to put this code in MessageHelper?
