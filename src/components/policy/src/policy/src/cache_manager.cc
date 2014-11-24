@@ -1618,7 +1618,7 @@ bool CacheManager::LoadFromFile(const std::string& file_name) {
   LOG4CXX_AUTO_TRACE(logger_);
   BinaryMessage json_string;
   if (!file_system::ReadBinaryFile(file_name, json_string)) {
-    LOG4CXX_FATAL(logger_, "Failed to read pt file.");
+    LOG4CXX_WARN(logger_, "Failed to read pt file.");
     return false;
   }
 
@@ -1626,7 +1626,7 @@ bool CacheManager::LoadFromFile(const std::string& file_name) {
   Json::Reader reader(Json::Features::strictMode());
   std::string json(json_string.begin(), json_string.end());
   if (!reader.parse(json.c_str(), value)) {
-    LOG4CXX_FATAL(
+    LOG4CXX_WARN(
         logger_,
         "Preloaded PT is corrupted: " << reader.getFormattedErrorMessages());
     return false;
