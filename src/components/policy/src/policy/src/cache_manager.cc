@@ -1123,7 +1123,7 @@ bool CacheManager::IsPermissionsCalculated(
 utils::SharedPtr<policy_table::Table>
 CacheManager::GenerateSnapshot() {
   CACHE_MANAGER_CHECK(snapshot_);
-  snapshot_ = backup_->GenerateSnapshot();
+  snapshot_ = utils::SharedPtr<policy_table::Table>(new policy_table::Table(pt_->policy_table));
   CheckSnapshotInitialization();
   return snapshot_;
 }
@@ -1614,46 +1614,50 @@ bool CacheManager::LoadFromBackup() {
   return true;
 }
 
+
 bool CacheManager::LoadFromFile(const std::string& file_name) {
-  LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_INFO(logger_, "CacheManager::LoadFromFile");
   BinaryMessage json_string;
-  if (!file_system::ReadBinaryFile(file_name, json_string)) {
+  bool final_result = false;
+  final_result = file_system::ReadBinaryFile(file_name, json_string);
+  if (!final_result) {
     LOG4CXX_WARN(logger_, "Failed to read pt file.");
-    return false;
+    return final_result;
   }
 
   Json::Value value;
   Json::Reader reader(Json::Features::strictMode());
   std::string json(json_string.begin(), json_string.end());
-  if (!reader.parse(json.c_str(), value)) {
-    LOG4CXX_WARN(
-        logger_,
-        "Preloaded PT is corrupted: " << reader.getFormattedErrorMessages());
-    return false;
-  }
+  LOG4CXX_INFO(logger_, "Start reset table.");
+  cache_lock_.Acquire();
+  if (reader.parse(json.c_str(), value)) {
+    backup_->Clear();
+    is_predata_.clear();
+    is_unpaired_.clear();
 
-  LOG4CXX_TRACE(logger_, "Start create PT");
-  sync_primitives::AutoLock locker(cache_lock_);
-  backup_->Clear();
-  is_predata_.clear();
-  is_unpaired_.clear();
-
-  pt_ = new policy_table::Table(&value);
-  if (pt_->is_valid()) {
-    if (backup_->Save(*pt_)) {
+    pt_ = new policy_table::Table(&value);
+    final_result = backup_->Save(*pt_);
+    if (final_result) {
       backup_->WriteDb();
-      return true;
-    } else {
-      LOG4CXX_FATAL(logger_, "Failed to save PT");
-      return false;
     }
   } else {
+    LOG4CXX_WARN(logger_, reader.getFormattedErrorMessages());
+  }
+
+  LOG4CXX_INFO(logger_, "Finish reset table.");
+  cache_lock_.Release();
+
+  if (!pt_->is_valid()) {
     rpc::ValidationReport report("policy_table");
     pt_->ReportErrors(&report);
-    LOG4CXX_FATAL(logger_,
-                  "Parsed table is not valid " << rpc::PrettyFormat(report));
-    return false;
+    LOG4CXX_WARN(logger_, "Parsed table is not valid " <<
+                 rpc::PrettyFormat(report));
   }
+
+  LOG4CXX_INFO(
+    logger_,
+    "Loading from file was " << (final_result ? "successful" : "unsuccessful"));
+  return final_result;
 }
 
 bool CacheManager::ResetPT(const std::string& file_name) {

@@ -64,6 +64,7 @@ namespace {
   }
 }
 
+
 namespace application_manager {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "ApplicationManager")
@@ -917,6 +918,7 @@ uint32_t ApplicationManagerImpl::GenerateNewHMIAppID() {
   LOG4CXX_TRACE(logger_, "EXIT");
   return hmi_app_id;
 }
+
 void ApplicationManagerImpl::ReplaceMobileByHMIAppId(
     smart_objects::SmartObject& message) {
   MessageHelper::PrintSmartObject(message);
