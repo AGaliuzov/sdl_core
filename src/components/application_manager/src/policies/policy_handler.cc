@@ -1129,7 +1129,6 @@ void PolicyHandler::OnActivateApp(uint32_t connection_key,
   application_manager::MessageHelper::SendSDLActivateAppResponse(permissions,
                                                               correlation_id);
   if (is_app_activated) {
-    LOG4CXX_WARN(logger_, "SendHMIStatusNotification");
     application_manager::MessageHelper::SendHMIStatusNotification(*app.get());
   }
 }

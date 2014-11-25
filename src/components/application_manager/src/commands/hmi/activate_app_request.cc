@@ -105,7 +105,7 @@ namespace application_manager {
 
       if (mobile_apis::HMILevel::HMI_FULL == requested_hmi_level) {
         if (ApplicationManagerImpl::instance()->ActivateApplication(application)) {
-          LOG4CXX_ERROR(logger_, "SendHMIStatusNotification");
+          LOG4CXX_DEBUG(logger_, "Put Application in FULL succes");
           MessageHelper::SendHMIStatusNotification(*(application.get()));
         }
       }
