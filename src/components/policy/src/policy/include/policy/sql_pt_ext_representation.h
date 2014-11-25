@@ -156,6 +156,8 @@ class SQLPTExtRepresentation : public SQLPTRepresentation,
     virtual bool SaveUsageAndErrorCounts(
         const policy_table::UsageAndErrorCounts& counts);
 
+    virtual bool SaveModuleMeta(const policy_table::ModuleMeta& meta);
+
     bool SaveAppCounters(const policy_table::AppLevels& app_levels);
 
     bool SaveGlobalCounters(const policy_table::UsageAndErrorCounts& counts);

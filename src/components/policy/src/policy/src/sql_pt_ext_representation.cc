@@ -1359,6 +1359,32 @@ bool SQLPTExtRepresentation::SaveUsageAndErrorCounts(
   return SaveAppCounters(*counts.app_level) && SaveGlobalCounters(counts);
 }
 
+bool SQLPTExtRepresentation::SaveModuleMeta(
+    const policy_table::ModuleMeta& meta) {
+  dbms::SQLQuery query(db());
+
+  if (!query.Prepare(sql_pt_ext::kSaveModuleMeta)) {
+    LOG4CXX_WARN(logger_, "Incorrect insert statement for module_meta.");
+    return false;
+  }
+  const int64_t odometer = *(meta.pt_exchanged_at_odometer_x);
+
+  query.Bind(0, *(meta.ccpu_version));
+  query.Bind(1, *(meta.language));
+  query.Bind(2, *(meta.wers_country_code));
+  query.Bind(3, odometer);
+  query.Bind(4, *(meta.pt_exchanged_x_days_after_epoch));
+  query.Bind(5, *(meta.ignition_cycles_since_last_exchange));
+  query.Bind(6, *(meta.vin));
+
+  if (!query.Exec()) {
+    LOG4CXX_WARN(logger_, "Incorrect update for module_meta.");
+    return false;
+  }
+
+  return true;
+}
+
 bool SQLPTExtRepresentation::SaveAppCounters(
     const rpc::policy_table_interface_base::AppLevels& app_levels) {
   dbms::SQLQuery query(db());

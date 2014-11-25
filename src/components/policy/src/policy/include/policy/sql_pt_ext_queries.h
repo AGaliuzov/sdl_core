@@ -1,4 +1,4 @@
-/*
+﻿/*
  Copyright (c) 2013, " Ford Motor Company
  All rights reserved.
 
@@ -64,6 +64,7 @@ extern const std::string kCountUnconsentedGroups;
 extern const std::string kSelectModuleMeta;
 extern const std::string kUpdateMetaParams;
 extern const std::string kUpdateModuleMetaVinParam;
+extern const std::string kSaveModuleMeta;
 extern const std::string kSelectMetaParams;
 extern const std::string kCountAppLevel;
 extern const std::string kUpdateGroupPermissions;
