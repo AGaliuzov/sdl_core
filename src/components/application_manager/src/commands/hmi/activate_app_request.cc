@@ -82,8 +82,15 @@ namespace application_manager {
       // Mobile id is converted to HMI id for HMI requests
       const uint32_t hmi_app_id = ApplicationManagerImpl::instance()->
                                   application_id(correlation_id);
-      mobile_apis::HMILevel::eType requested_hmi_level = static_cast<mobile_apis::HMILevel::eType>(
-          (*message_)[strings::msg_params][strings::activate_app_hmi_level].asInt());
+
+      mobile_apis::HMILevel::eType requested_hmi_level = mobile_apis::HMILevel::HMI_FULL;
+      if ((*message_)[strings::msg_params].keyExists(
+            strings::activate_app_hmi_level)) {
+        requested_hmi_level = static_cast<mobile_apis::HMILevel::eType>(
+                   (*message_)[strings::msg_params][strings::activate_app_hmi_level].asInt());
+        LOG4CXX_INFO(logger_, "requested_hmi_level = " << requested_hmi_level);
+      }
+
       if (0 == hmi_app_id) {
         LOG4CXX_ERROR(logger_, "Error hmi_app_id = "<< hmi_app_id);
         return;
@@ -95,8 +102,10 @@ namespace application_manager {
         LOG4CXX_ERROR(logger_, "Application can't be activated.");
         return;
       }
+
       if (mobile_apis::HMILevel::HMI_FULL == requested_hmi_level) {
         if (ApplicationManagerImpl::instance()->ActivateApplication(application)) {
+          LOG4CXX_ERROR(logger_, "SendHMIStatusNotification");
           MessageHelper::SendHMIStatusNotification(*(application.get()));
         }
       }
