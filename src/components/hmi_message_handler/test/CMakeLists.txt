@@ -28,6 +28,8 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+if(BUILD_TESTS)
+
 include_directories (
   ${LOG4CXX_INCLUDE_DIRECTORY}
   ${GMOCK_INCLUDE_DIRECTORY}
@@ -69,3 +71,4 @@ if (${QT_HMI})
 endif ()
 create_test("test_hmi_message_handler" "${SOURCES}" "${LIBRARIES}")
 
+endif()
