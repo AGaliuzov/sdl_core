@@ -1636,6 +1636,7 @@ bool CacheManager::LoadFromFile(const std::string& file_name) {
   Json::Value value;
   Json::Reader reader(Json::Features::strictMode());
   std::string json(json_string.begin(), json_string.end());
+
   if (!reader.parse(json.c_str(), value)) {
     LOG4CXX_WARN(
         logger_,
@@ -1645,9 +1646,6 @@ bool CacheManager::LoadFromFile(const std::string& file_name) {
 
   LOG4CXX_TRACE(logger_, "Start create PT");
   sync_primitives::AutoLock locker(cache_lock_);
-  backup_->Clear();
-  is_predata_.clear();
-  is_unpaired_.clear();
 
   pt_ = new policy_table::Table(&value);
   if (pt_->is_valid()) {
@@ -1670,6 +1668,9 @@ bool CacheManager::LoadFromFile(const std::string& file_name) {
 bool CacheManager::ResetPT(const std::string& file_name) {
   bool result = true;
 #ifdef EXTENDED_POLICY
+  is_predata_.clear();
+  is_unpaired_.clear();
+  backup_->RefreshDB();
   result = LoadFromFile(file_name);
 #endif // EXTENDE_POLICY
   Backup();
