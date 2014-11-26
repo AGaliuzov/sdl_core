@@ -269,10 +269,10 @@ TEST_F(TransportManagerTest, ConnectAddDeviceCannotFailConnection) {
 
   //assert
   EXPECT_CALL(*tm_listener, OnDeviceFound(_));
-  EXPECT_CALL(*tm_listener, OnScanDevicesFinished()).Times(1);
+  EXPECT_CALL(*tm_listener, OnScanDevicesFinished());
 
   EXPECT_CALL(*tm_listener, OnDeviceAdded(_));
-  EXPECT_CALL(*tm_listener, OnDeviceListUpdated(_)).Times(1);
+  EXPECT_CALL(*tm_listener, OnDeviceListUpdated(_));
 
   //act
   MyTransportListener *myListener = new MyTransportListener(this);
