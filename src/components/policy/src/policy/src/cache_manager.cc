@@ -1127,7 +1127,7 @@ bool CacheManager::IsPermissionsCalculated(
 utils::SharedPtr<policy_table::Table>
 CacheManager::GenerateSnapshot() {
   CACHE_MANAGER_CHECK(snapshot_);
-  snapshot_ = utils::SharedPtr<policy_table::Table>(new policy_table::Table(pt_->policy_table));
+  snapshot_ = backup_->GenerateSnapshot();
   CheckSnapshotInitialization();
   return snapshot_;
 }
