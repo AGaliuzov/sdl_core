@@ -853,7 +853,8 @@ void MessageHelper::SendTTSGlobalProperties(
     msg_params[strings::help_prompt] = smart_objects::SmartObject(
         smart_objects::SmartType_Array);
     if (default_help_prompt) {
-      const CommandsMap& commands = app->commands_map();
+      const DataAccessor<CommandsMap> accessor = app->commands_map();
+      const CommandsMap& commands = accessor.GetData();
       CommandsMap::const_iterator it = commands.begin();
       uint32_t index = 0;
       for (; commands.end() != it; ++it) {
@@ -899,7 +900,8 @@ smart_objects::SmartObject* MessageHelper::CreateAppVrHelp(
   }
 
   // copy all app VR commands
-  const CommandsMap& commands = app->commands_map();
+  const DataAccessor<CommandsMap> cmd_accessor = app->commands_map();
+  const CommandsMap& commands = cmd_accessor.GetData();
   CommandsMap::const_iterator it = commands.begin();
 
   for (; commands.end() != it; ++it) {
@@ -1001,7 +1003,8 @@ MessageHelper::SmartObjectList MessageHelper::CreateAddCommandRequestToHMI(
     return requests;
   }
 
-  const CommandsMap& commands = app->commands_map();
+  const DataAccessor<CommandsMap> accessor = app->commands_map();
+  const CommandsMap& commands = accessor.GetData();
   CommandsMap::const_iterator i = commands.begin();
   for (; commands.end() != i; ++i) {
     // UI Interface
@@ -1231,7 +1234,8 @@ void MessageHelper::SendAddSubMenuRequestToHMI(ApplicationConstSharedPtr app) {
 MessageHelper::SmartObjectList MessageHelper::CreateAddSubMenuRequestToHMI(
   ApplicationConstSharedPtr app) {
   SmartObjectList requsets;
-  const SubMenuMap& sub_menu = app->sub_menu_map();
+  const DataAccessor<SubMenuMap> accessor = app->sub_menu_map();
+  const SubMenuMap& sub_menu = accessor.GetData();
   SubMenuMap::const_iterator i = sub_menu.begin();
   for (; sub_menu.end() != i; ++i) {
     smart_objects::SmartObject* ui_sub_menu = new smart_objects::SmartObject(
