@@ -11,19 +11,19 @@ SO_EXT = so
 LIB_PREFIX = lib
 OBJ_EXT = o
 BIN_EXT = 
-CC = ${QNX_HOST}/usr/bin/qcc -c
-CPP = ${QNX_HOST}/usr/bin/qcc -c
+CC = ${QNX_HOST}/usr/bin/ntoarmv7-gcc -c
+CPP = ${QNX_HOST}/usr/bin/ntoarmv7-g++ -c
 AS = ${QNX_HOST}/usr/bin/ntoarmv7-as
 AR = ${QNX_HOST}/usr/bin/ntoarmv7-ar
 STRIP = ${QNX_HOST}/usr/bin/ntoarmv7-strip
-LD = qcc
+LD = ${QNX_HOST}/usr/bin/ntoarmv7-g++
 # Add addtion Linker Flags....
 # If your application contains c++ code you will need 
 # the -lang-c++
-LD_CPP = -lang-c++
+LD_CPP = 
 
 # Compile options and commands
-TARGET_FLG = -Vgcc_ntoarmv7le_gpp
+TARGET_FLG = 
 
 # Set Debug Flag
 ifdef DEBUG
@@ -55,7 +55,7 @@ endif
 # Compiler Options
 CC_OFLAG = -o 
 CC_IFLAG = -I
-CC_FLAGS = $(TARGET_FLG) -w9 -Wc,-Wall -shared $(CC_OPT_FLG) $(CC_PROFILING_FLG) $(CC_DEBUG_FLG) -DOS_POSIX -DEXTENDED_POLICY
+CC_FLAGS = $(TARGET_FLG) -fPIC -w9 -Wall -shared $(CC_OPT_FLG) $(CC_PROFILING_FLG) $(CC_DEBUG_FLG) -DOS_POSIX -DEXTENDED_POLICY -funwind-tables #-finstrument-functions
 # To build aoa support need to uncomment next line
 #export BUILD_AOA_SUPPORT := TRUE
 ifdef BUILD_AOA_SUPPORT

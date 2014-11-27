@@ -19,6 +19,9 @@
 #include "utils/appenders_loader.h"
 #include "utils/threads/thread.h"
 #include "utils/timer_thread.h"
+#include <pthread.h>
+#include <map>
+#include <stack>
 
 #include "hmi_message_handler/hmi_message_handler_impl.h"
 #include "hmi_message_handler/messagebroker_adapter.h"
@@ -520,4 +523,17 @@ int main(int argc, char** argv) {
   //DEINIT_LOGGER();
   return EXIT_SUCCESS;
 }
+
+extern "C" {
+std::map<pthread_t, std::stack<void*> > _My_call_stack;
+
+void __cyg_profile_func_enter(void* this_fn, void* call_site) {
+  _My_call_stack[pthread_self()].push(this_fn);
+}
+
+void __cyg_profile_func_exit(void* this_fn, void* call_site) {
+  _My_call_stack[pthread_self()].pop();
+}
+}
+
 ///EOF
