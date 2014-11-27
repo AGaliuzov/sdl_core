@@ -929,11 +929,26 @@ void SQLPTExtRepresentation::GatherConsentGroup(
 }
 
 bool SQLPTExtRepresentation::SaveDeviceData(
-  const policy_table::DeviceData& devices) {
+const policy_table::DeviceData& devices) {
+  LOG4CXX_INFO(logger_, "SaveDeviceData");
   dbms::SQLQuery drop_device_query(db());
   const std::string drop_device = "DELETE FROM `device`";
   if (!drop_device_query.Exec(drop_device)) {
-    LOG4CXX_WARN(logger_, "Could not clear device table.");
+	LOG4CXX_WARN(logger_, "Could not clear device table.");
+	return false;
+  }
+
+  dbms::SQLQuery drop_device_consents_query(db());
+  const std::string drop_device_consents = "DELETE FROM `device_consent_group`";
+  if (!drop_device_consents_query.Exec(drop_device_consents)) {
+    LOG4CXX_WARN(logger_, "Could not clear device consents.");
+    return false;
+  }
+
+  dbms::SQLQuery drop_user_consents_query(db());
+  const std::string drop_user_consents = "DELETE FROM `consent_group`";
+  if (!drop_user_consents_query.Exec(drop_user_consents)) {
+    LOG4CXX_WARN(logger_, "Could not clear user consents.");
     return false;
   }
 
@@ -973,20 +988,6 @@ bool SQLPTExtRepresentation::SaveConsentGroup(
   const std::string& device_id,
   const policy_table::UserConsentRecords& records) {
   LOG4CXX_INFO(logger_, "SaveConsentGroup");
-  dbms::SQLQuery drop_device_consents_query(db());
-  const std::string drop_device_consents = "DELETE FROM `device_consent_group`";
-  if (!drop_device_consents_query.Exec(drop_device_consents)) {
-    LOG4CXX_WARN(logger_, "Could not clear device table.");
-    return false;
-  }
-
-  dbms::SQLQuery drop_user_consents_query(db());
-  const std::string drop_user_consents = "DELETE FROM `consent_group`";
-  if (!drop_user_consents_query.Exec(drop_user_consents)) {
-    LOG4CXX_WARN(logger_, "Could not clear device table.");
-    return false;
-  }
-
   dbms::SQLQuery query(db());
 
   policy_table::UserConsentRecords::const_iterator it = records.begin();

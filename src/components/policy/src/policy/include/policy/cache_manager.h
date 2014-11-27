@@ -569,7 +569,6 @@ private:
 
   void GetGroupNameByHashID(const int32_t group_id, std::string& group_name);
   void FillDeviceSpecificData();
-  void FillAppSpecificData();
   bool AppExists(const std::string& app_id) const;
   long ConvertSecondsToMinute(int seconds);
 

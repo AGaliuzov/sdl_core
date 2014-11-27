@@ -1057,6 +1057,9 @@ void CacheManager::PersistData() {
             copy_pt.policy_table.device_data->begin();
         policy_table::DeviceData::const_iterator it_end_device =
             copy_pt.policy_table.device_data->end();
+
+        policy_table::DeviceData& device_data = *copy_pt.policy_table.device_data;
+        LOG4CXX_DEBUG(logger_, "Device_data size is: " << device_data.size());
         for (;it_device != it_end_device; ++it_device) {
           if (is_unpaired_.end() != is_unpaired_.find(it_device->first)) {
             ex_backup_->SetUnpairedDevice(it_device->first, true);
@@ -1064,6 +1067,7 @@ void CacheManager::PersistData() {
             ex_backup_->SetUnpairedDevice(it_device->first, false);
           }
         }
+        LOG4CXX_DEBUG(logger_, "Device_data size is: " << device_data.size());
       }
 #endif // EXTENDED_POLICY
       backup_->WriteDb();
@@ -1297,7 +1301,9 @@ bool CacheManager::CleanupUnpairedDevices(const DeviceIds &device_ids) {
   DeviceIds::const_iterator iter = device_ids.begin();
   DeviceIds::const_iterator iter_end = device_ids.end();
   for (; iter != iter_end; ++iter) {
+	LOG4CXX_DEBUG(logger_, "Is_unpaired size is: " << is_unpaired_.size());
     is_unpaired_.erase(*iter);
+    LOG4CXX_DEBUG(logger_, "Is_unpaired size is: " << is_unpaired_.size());
 
     // Delete device
     if (!pt_->policy_table.device_data.is_initialized()) {
@@ -1312,9 +1318,11 @@ bool CacheManager::CleanupUnpairedDevices(const DeviceIds &device_ids) {
       return false;
     }
 
+    LOG4CXX_DEBUG(logger_, "Device_data size is: " << device_data.size());
     device_data.erase(it_device);
     LOG4CXX_INFO(logger_, "Device id " << *iter
                  <<  " had been deleted from device_data section.");
+    LOG4CXX_DEBUG(logger_, "Device_data size is: " << device_data.size());
   }
 #endif // EXTENDED_POLICY
   Backup();
