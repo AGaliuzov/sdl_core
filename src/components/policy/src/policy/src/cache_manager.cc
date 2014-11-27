@@ -1634,7 +1634,6 @@ bool CacheManager::LoadFromFile(const std::string& file_name) {
   cache_lock_.Acquire();
   if (reader.parse(json.c_str(), value)) {
     backup_->Clear();
-    is_predata_.clear();
     is_unpaired_.clear();
 
     pt_ = new policy_table::Table(&value);
