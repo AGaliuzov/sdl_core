@@ -467,6 +467,8 @@ SDL.SDLController = Em.Object
             if (choiceID && SDL.TTSPopUp.active && FFW.TTS.requestId == null) {
                 SDL.TTSPopUp.DeactivateTTS();
             }
+
+            SDL.SDLModel.interactionData.helpPrompt = null;
         },
         /**
          * Method to sent notification for Alert
