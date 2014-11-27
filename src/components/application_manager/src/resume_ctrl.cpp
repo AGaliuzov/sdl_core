@@ -858,7 +858,7 @@ Json::Value ResumeCtrl::GetApplicationSubMenus(
                << application->app_id());
 
   Json::Value result;
-  const DataAccessor<SubMenuMap> accessor = application->commands_map();
+  const DataAccessor<SubMenuMap> accessor = application->sub_menu_map();
   const SubMenuMap& sub_menus = accessor.GetData();
   SubMenuMap::const_iterator it = sub_menus.begin();
   for (;it != sub_menus.end(); ++it) {
