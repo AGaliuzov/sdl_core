@@ -711,7 +711,7 @@ void MessageHelper::SendAppDataToHMI(ApplicationConstSharedPtr app) {
 
     so_to_send[strings::msg_params] = smart_objects::SmartObject(
                                         smart_objects::SmartType_Map);
-    smart_objects::SmartObject* msg_params = MessageHelper::CreateSetAppIcon(
+    utils::SharedPtr<smart_objects::SmartObject> msg_params = MessageHelper::CreateSetAppIcon(
           app->app_icon_path(), id);
 
     if (msg_params) {
@@ -914,15 +914,15 @@ smart_objects::SmartObject* MessageHelper::CreateAppVrHelp(
 MessageHelper::SmartObjectList MessageHelper::CreateShowRequestToHMI(
   ApplicationConstSharedPtr app) {
 
-  SmartObjectList requests;  
-  if (!app.valid()) {
+  SmartObjectList requests;
+  if (!app) {
     LOG4CXX_ERROR(logger_, "Invalid application");
     return requests;
   }
 
-  smart_objects::SmartObject* ui_show = new smart_objects::SmartObject(
-    smart_objects::SmartType_Map);
   if (app->show_command()) {
+    smart_objects::SmartObject* ui_show = new smart_objects::SmartObject(
+        smart_objects::SmartType_Map);
     (*ui_show)[strings::params][strings::function_id] =
       static_cast<int>(hmi_apis::FunctionID::UI_Show);
     (*ui_show)[strings::params][strings::message_type] =
@@ -958,14 +958,12 @@ void MessageHelper::SendShowConstantTBTRequestToHMI(
     return;
   }
 
-  smart_objects::SmartObject* navi_show_tbt = new smart_objects::SmartObject(
-    smart_objects::SmartType_Map);
-
-  if (!navi_show_tbt) {
-    return;
-  }
-
   if (app->tbt_show_command()) {
+    utils::SharedPtr<smart_objects::SmartObject> navi_show_tbt = new smart_objects::SmartObject(
+        smart_objects::SmartType_Map);
+    if (!navi_show_tbt) {
+      return;
+    }
     (*navi_show_tbt)[strings::params][strings::function_id] =
       static_cast<int>(hmi_apis::FunctionID::Navigation_ShowConstantTBT);
     (*navi_show_tbt)[strings::params][strings::message_type] =
@@ -1292,16 +1290,16 @@ void MessageHelper::SendOnAppUnregNotificationToHMI(
 void MessageHelper::SendActivateAppToHMI(uint32_t const app_id,
     hmi_apis::Common_HMILevel::eType level,
     bool send_policy_priority) {
-  smart_objects::SmartObject* message = new smart_objects::SmartObject(
-    smart_objects::SmartType_Map);
-
   application_manager::ApplicationConstSharedPtr app =
     application_manager::ApplicationManagerImpl::instance()
     ->application(app_id);
-  if (!app.valid()) {
+  if (!app) {
     LOG4CXX_WARN(logger_, "Invalid app_id: " << app_id);
     return;
   }
+
+  utils::SharedPtr<smart_objects::SmartObject> message = new smart_objects::SmartObject(
+    smart_objects::SmartType_Map);
 
   (*message)[strings::params][strings::function_id] =
     hmi_apis::FunctionID::BasicCommunication_ActivateApp;
@@ -1342,16 +1340,16 @@ void MessageHelper::SendActivateAppToHMI(uint32_t const app_id,
 
 void MessageHelper::SendOnResumeAudioSourceToHMI(const uint32_t app_id) {
   LOG4CXX_WARN(logger_, "SendOnResumeAudioSourceToHMI app_id: " << app_id);
-
-  smart_objects::SmartObject* message = new smart_objects::SmartObject(
-    smart_objects::SmartType_Map);
   application_manager::ApplicationConstSharedPtr app =
     application_manager::ApplicationManagerImpl::instance()
     ->application(app_id);
-  if (!app.valid()) {
+  if (!app) {
     LOG4CXX_WARN(logger_, "Invalid app_id: " << app_id);
     return;
   }
+
+  utils::SharedPtr<smart_objects::SmartObject> message = new smart_objects::SmartObject(
+    smart_objects::SmartType_Map);
 
   (*message)[strings::params][strings::function_id] =
     hmi_apis::FunctionID::BasicCommunication_OnResumeAudioSource;
@@ -1847,10 +1845,10 @@ void MessageHelper::SendPolicySnapshotNotification(
 
 void MessageHelper::SendOnPermissionsChangeNotification(
   uint32_t connection_key, const policy::Permissions& permissions) {
-  smart_objects::SmartObject* notification = new smart_objects::SmartObject(
+  utils::SharedPtr<smart_objects::SmartObject> notification = new smart_objects::SmartObject(
     smart_objects::SmartType_Map);
   smart_objects::SmartObject& content = *notification;
-  ;
+
   content[strings::params][strings::function_id] =
     mobile_apis::FunctionID::OnPermissionsChangeID;
   content[strings::params][strings::message_type] =
@@ -1861,7 +1859,7 @@ void MessageHelper::SendOnPermissionsChangeNotification(
     commands::CommandImpl::protocol_version_;
   content[strings::params][strings::connection_key] = connection_key;
 
-  smart_objects::SmartObject* p_msg_params = new smart_objects::SmartObject(
+  utils::SharedPtr<smart_objects::SmartObject> p_msg_params = new smart_objects::SmartObject(
     smart_objects::SmartType_Map);
 
   smart_objects::SmartObject& msg_params = *p_msg_params;
