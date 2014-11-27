@@ -54,8 +54,8 @@ TEST(TcpAdapterBasicTest, GetDeviceType_Return_sdltcp) {
   //arrange
   TransportAdapter* transport_adapter = new TcpTransportAdapter(12345);
 
-	//assert
-	EXPECT_EQ("sdl-tcp", transport_adapter->GetDeviceType());
+  //assert
+  EXPECT_EQ("sdl-tcp", transport_adapter->GetDeviceType());
 }
 
 TEST(TcpAdapterBasicTest, isServerOriginatedConnectSupported_Return_True) {

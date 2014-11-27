@@ -103,7 +103,7 @@ return false;
 
 TEST(DnssdServiceBrowser, Basic) {
  MockTransportAdapterController controller;
- EXPECT_CALL(controller, SearchDeviceDone(HasService(4444))).Times(0);
+ EXPECT_CALL(controller, SearchDeviceDone(HasService(4444)));
 
  DnssdServiceBrowser dnssd_service_browser(&controller);
  DeviceScanner& device_scanner = dnssd_service_browser;
@@ -113,11 +113,11 @@ TEST(DnssdServiceBrowser, Basic) {
  ASSERT_EQ(TransportAdapter::OK, error);
 
  while (!device_scanner.IsInitialised()) {
-	 sleep(0);
+   sleep(0);
  }
  ASSERT_TRUE(device_scanner.IsInitialised());
 
- EXPECT_EQ(TransportAdapter::NOT_SUPPORTED, device_scanner.Scan());
+ EXPECT_EQ(TransportAdapter::OK, device_scanner.Scan());
 
 }
 
