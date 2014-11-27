@@ -380,13 +380,13 @@ bool CheckAppPolicy::IsConsentRequired(const std::string& app_id,
     return false;
   }
 
-  const policy_table::Strings::value_type str(group_name);
-  policy_table::Strings::const_iterator pre_begin =
+  policy_table::Strings::value_type str(group_name);
+  policy_table::Strings::iterator pre_begin =
       update_->policy_table.app_policies[app_id].preconsented_groups->begin();
-  policy_table::Strings::const_iterator pre_end =
+  policy_table::Strings::iterator pre_end =
       update_->policy_table.app_policies[app_id].preconsented_groups->end();
 
-  policy_table::Strings::const_iterator it2 = std::find(pre_begin, pre_end, str);
+  policy_table::Strings::iterator it2 = std::find(pre_begin, pre_end, str);
 
   const bool is_preconsented = pre_end != it2;
 
