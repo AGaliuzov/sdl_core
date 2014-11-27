@@ -1625,50 +1625,46 @@ bool CacheManager::LoadFromBackup() {
   return true;
 }
 
-
 bool CacheManager::LoadFromFile(const std::string& file_name) {
-  LOG4CXX_INFO(logger_, "CacheManager::LoadFromFile");
+  LOG4CXX_AUTO_TRACE(logger_);
   BinaryMessage json_string;
-  bool final_result = false;
-  final_result = file_system::ReadBinaryFile(file_name, json_string);
-  if (!final_result) {
+  if (!file_system::ReadBinaryFile(file_name, json_string)) {
     LOG4CXX_WARN(logger_, "Failed to read pt file.");
-    return final_result;
+    return false;
   }
 
   Json::Value value;
   Json::Reader reader(Json::Features::strictMode());
   std::string json(json_string.begin(), json_string.end());
-  LOG4CXX_INFO(logger_, "Start reset table.");
-  cache_lock_.Acquire();
-  if (reader.parse(json.c_str(), value)) {
-    backup_->Clear();
-    is_predata_.clear();
-    is_unpaired_.clear();
+  if (!reader.parse(json.c_str(), value)) {
+    LOG4CXX_WARN(
+        logger_,
+        "Preloaded PT is corrupted: " << reader.getFormattedErrorMessages());
+    return false;
+  }
 
-    pt_ = new policy_table::Table(&value);
-    final_result = backup_->Save(*pt_);
-    if (final_result) {
+  LOG4CXX_TRACE(logger_, "Start create PT");
+  sync_primitives::AutoLock locker(cache_lock_);
+  backup_->Clear();
+  is_predata_.clear();
+  is_unpaired_.clear();
+
+  pt_ = new policy_table::Table(&value);
+  if (pt_->is_valid()) {
+    if (backup_->Save(*pt_)) {
       backup_->WriteDb();
+      return true;
+    } else {
+      LOG4CXX_FATAL(logger_, "Failed to save PT");
+      return false;
     }
   } else {
-    LOG4CXX_WARN(logger_, reader.getFormattedErrorMessages());
-  }
-
-  LOG4CXX_INFO(logger_, "Finish reset table.");
-  cache_lock_.Release();
-
-  if (!pt_->is_valid()) {
     rpc::ValidationReport report("policy_table");
     pt_->ReportErrors(&report);
-    LOG4CXX_WARN(logger_, "Parsed table is not valid " <<
-                 rpc::PrettyFormat(report));
+    LOG4CXX_FATAL(logger_,
+                  "Parsed table is not valid " << rpc::PrettyFormat(report));
+    return false;
   }
-
-  LOG4CXX_INFO(
-    logger_,
-    "Loading from file was " << (final_result ? "successful" : "unsuccessful"));
-  return final_result;
 }
 
 bool CacheManager::ResetPT(const std::string& file_name) {
