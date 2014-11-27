@@ -454,12 +454,14 @@ void PolicyManagerImpl::SendNotificationOnPermissionsUpdated(
                           notification_data);
 
   LOG4CXX_INFO(logger_, "Send notification for application_id:" << application_id);
+
   std::string default_hmi;
- #ifdef EXTENDED_POLICY
-  cache_->GetDefaultHMI(application_id, default_hmi);
+#ifdef EXTENDED_POLICY
+  GetDefaultHmi(application_id, &default_hmi);
 #else
   default_hmi = "NONE";
 #endif
+
   listener()->OnPermissionsUpdated(application_id, notification_data,
                                    default_hmi);
 }
@@ -531,6 +533,7 @@ DeviceConsent PolicyManagerImpl::GetUserConsentForDevice(
 void PolicyManagerImpl::SetUserConsentForDevice(const std::string& device_id,
     bool is_allowed) {
   LOG4CXX_INFO(logger_, "SetUserConsentForDevice");
+  LOG4CXX_DEBUG(logger_, "Device :" << device_id);
   DeviceConsent current_consent = GetUserConsentForDevice(device_id);
   bool is_current_device_allowed =
       DeviceConsent::kDeviceAllowed == current_consent ? true : false;
@@ -542,6 +545,10 @@ void PolicyManagerImpl::SetUserConsentForDevice(const std::string& device_id,
   }
 #ifdef EXTENDED_POLICY
   cache_->ResetCalculatedPermissions();
+  // Remove unpaired mark, if device re-paired and re-consented again
+  if (is_allowed) {
+    cache_->SetUnpairedDevice(device_id, false);
+  }
   // Get device permission groups from app_policies section, which hadn't been
   // preconsented
   policy_table::Strings groups;
@@ -588,7 +595,6 @@ void PolicyManagerImpl::SetUserConsentForDevice(const std::string& device_id,
 bool PolicyManagerImpl::ReactOnUserDevConsentForApp(const std::string app_id,
     bool is_device_allowed) {
 #ifdef EXTENDED_POLICY
-  // TODO(AOleynik): Move out logic from PT representation to policy manager
   return cache_->ReactOnUserDevConsentForApp(app_id, is_device_allowed);
 #endif
   return true;
@@ -608,6 +614,7 @@ bool PolicyManagerImpl::GetInitialAppData(const std::string& application_id,
 void PolicyManagerImpl::SetDeviceInfo(const std::string& device_id,
                                       const DeviceInfo& device_info) {
   LOG4CXX_INFO(logger_, "SetDeviceInfo");
+  LOG4CXX_DEBUG(logger_, "Device :" << device_id);
 #ifdef EXTENDED_POLICY
   if (!cache_->SetDeviceData(device_id, device_info.hardware,
                              device_info.firmware_rev, device_info.os,
@@ -690,7 +697,7 @@ void PolicyManagerImpl::SetUserConsentForApp(
                           app_group_permissons, notification_data);
 
   std::string default_hmi;
-  cache_->GetDefaultHMI(verified_permissions.policy_app_id, default_hmi);
+  GetDefaultHmi(verified_permissions.policy_app_id, &default_hmi);
 
   listener()->OnPermissionsUpdated(verified_permissions.policy_app_id,
                                    notification_data,
@@ -702,7 +709,12 @@ bool PolicyManagerImpl::GetDefaultHmi(const std::string& policy_app_id,
                                       std::string* default_hmi) {
   LOG4CXX_INFO(logger_, "GetDefaultHmi");
 #ifdef EXTENDED_POLICY
-  return cache_->GetDefaultHMI(policy_app_id, *default_hmi);
+  const std::string device_id = GetCurrentDeviceId(policy_app_id);
+  DeviceConsent device_consent = GetUserConsentForDevice(device_id);
+  const std::string app_id =
+      policy::kDeviceAllowed != device_consent ?  kPreDataConsentId :
+                                                  policy_app_id;
+  return cache_->GetDefaultHMI(app_id, *default_hmi);
 #else
   return false;
 #endif
@@ -829,7 +841,8 @@ void PolicyManagerImpl::GetPermissionsForApp(
   if (cache_->IsDefaultPolicy(policy_app_id)) {
     app_id_to_check = kDefaultId;
     allowed_by_default = true;
-  } else if (cache_->IsPredataPolicy(policy_app_id)) {
+  } else if (cache_->IsPredataPolicy(policy_app_id) ||
+             policy::kDeviceDisallowed == GetUserConsentForDevice(device_id)) {
     app_id_to_check = kPreDataConsentId;
     allowed_by_default = true;
   }
@@ -853,7 +866,7 @@ void PolicyManagerImpl::GetPermissionsForApp(
   // The "default" and "pre_DataConsent" are auto-allowed groups
   // So, check if application in the one of these mode.
   if (allowed_by_default) {
-    LOG4CXX_INFO(logger_, "Get auto allowe groups");
+    LOG4CXX_INFO(logger_, "Get auto allowed groups");
     GroupType type = (kDefaultId == app_id_to_check ?
           kTypeDefault : kTypePreDataConsented);
 
@@ -1132,7 +1145,10 @@ bool PolicyManagerImpl::CanAppStealFocus(const std::string& app_id) {
 
 void PolicyManagerImpl::MarkUnpairedDevice(const std::string& device_id) {
 #ifdef EXTENDED_POLICY
-    cache_->SetUnpairedDevice(device_id);
+    if (!cache_->SetUnpairedDevice(device_id)) {
+      LOG4CXX_DEBUG(logger_, "Could not set unpaired flag for " << device_id);
+      return;
+    }
     SetUserConsentForDevice(device_id, false);
 #endif  // EXTENDED_POLICY
 }
@@ -1176,14 +1192,15 @@ void PolicyManagerImpl::AddNewApplication(const std::string& application_id,
                                           DeviceConsent device_consent) {
   LOG4CXX_INFO(logger_, "PolicyManagerImpl::AddNewApplication");
 
-  LOG4CXX_INFO(
-    logger_,
-    "Setting default permissions for application id: " << application_id);
 #ifdef EXTENDED_POLICY
   if (kDeviceHasNoConsent == device_consent ||
       kDeviceDisallowed == device_consent) {
+    LOG4CXX_INFO(logger_, "Setting " << policy::kPreDataConsentId
+                 << " permissions for application id: " << application_id);
     cache_->SetPredataPolicy(application_id);
   } else {
+    LOG4CXX_INFO(logger_, "Setting " << policy::kDefaultId
+                 << " permissions for application id: " << application_id);
     cache_->SetDefaultPolicy(application_id);
   }
 #else
@@ -1193,14 +1210,11 @@ void PolicyManagerImpl::AddNewApplication(const std::string& application_id,
 
 void PolicyManagerImpl::PromoteExistedApplication(
     const std::string& application_id, DeviceConsent device_consent) {
-
-  if (kDeviceHasNoConsent != device_consent
+  // If device consent changed to allowed during application being
+  // disconnected, app permissions should be changed also
+  if (kDeviceAllowed == device_consent
       && cache_->IsPredataPolicy(application_id)) {
-    // If device consent changed to allowed during application being
-    // disconnected, app permissions should be changed also
-    if (kDeviceAllowed == device_consent) {
-      cache_->SetDefaultPolicy(application_id);
-    }
+    cache_->SetDefaultPolicy(application_id);
   }
 }
 

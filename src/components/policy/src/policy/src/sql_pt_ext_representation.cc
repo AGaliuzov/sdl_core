@@ -930,6 +930,13 @@ void SQLPTExtRepresentation::GatherConsentGroup(
 
 bool SQLPTExtRepresentation::SaveDeviceData(
   const policy_table::DeviceData& devices) {
+  dbms::SQLQuery drop_device_query(db());
+  const std::string drop_device = "DELETE FROM `device`";
+  if (!drop_device_query.Exec(drop_device)) {
+    LOG4CXX_WARN(logger_, "Could not clear device table.");
+    return false;
+  }
+
   dbms::SQLQuery query(db());
   if (!query.Prepare(sql_pt_ext::kInsertDeviceData)) {
     LOG4CXX_WARN(logger_, "Incorrect insert statement for device data.");
@@ -966,6 +973,20 @@ bool SQLPTExtRepresentation::SaveConsentGroup(
   const std::string& device_id,
   const policy_table::UserConsentRecords& records) {
   LOG4CXX_INFO(logger_, "SaveConsentGroup");
+  dbms::SQLQuery drop_device_consents_query(db());
+  const std::string drop_device_consents = "DELETE FROM `device_consent_group`";
+  if (!drop_device_consents_query.Exec(drop_device_consents)) {
+    LOG4CXX_WARN(logger_, "Could not clear device table.");
+    return false;
+  }
+
+  dbms::SQLQuery drop_user_consents_query(db());
+  const std::string drop_user_consents = "DELETE FROM `consent_group`";
+  if (!drop_user_consents_query.Exec(drop_user_consents)) {
+    LOG4CXX_WARN(logger_, "Could not clear device table.");
+    return false;
+  }
+
   dbms::SQLQuery query(db());
 
   policy_table::UserConsentRecords::const_iterator it = records.begin();
@@ -1575,7 +1596,8 @@ bool SQLPTExtRepresentation::SetIsPredata(const std::string& app_id,
   return true;
 }
 
-bool SQLPTExtRepresentation::SetUnpairedDevice(const std::string& device_id) const {
+bool SQLPTExtRepresentation::SetUnpairedDevice(const std::string& device_id,
+                                               bool unpaired) const {
   LOG4CXX_TRACE(logger_, "Set unpaired device: " << device_id);
   dbms::SQLQuery query(db());
   if (!query.Prepare(sql_pt_ext::kUpdateUnpairedDevice)) {
@@ -1583,7 +1605,7 @@ bool SQLPTExtRepresentation::SetUnpairedDevice(const std::string& device_id) con
     return false;
   }
 
-  query.Bind(0, true);
+  query.Bind(0, unpaired);
   query.Bind(1, device_id);
   if (!query.Exec()) {
     LOG4CXX_WARN(logger_, "Failed update unpaired device");

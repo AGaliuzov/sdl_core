@@ -121,7 +121,7 @@ class SQLPTExtRepresentation : public SQLPTRepresentation,
     bool SetPredataPolicy(const std::string& app_id);
     bool SetIsPredata(const std::string& app_id, bool is_pre_data);
     bool IsPredataPolicy(const std::string& app_id) const;
-    bool SetUnpairedDevice(const std::string& device_id) const;
+    bool SetUnpairedDevice(const std::string& device_id, bool unpaired) const;
     bool UnpairedDevicesList(DeviceIds* device_ids) const;
     bool RemoveAppConsentForGroup(
         const std::string& policy_app_id,

@@ -58,8 +58,8 @@ extern const std::string kSelectUsageAndErrorCount;
 extern const std::string kSelectAppLevels;
 extern const std::string kUpdateGlobalCounters;
 extern const std::string kInsertDeviceData;
+extern const std::string kDeleteDeviceData;
 extern const std::string kInsertConsentGroups;
-extern const std::string kDeleteAppConsent;
 extern const std::string kCountUnconsentedGroups;
 extern const std::string kSelectModuleMeta;
 extern const std::string kUpdateMetaParams;
@@ -88,6 +88,7 @@ extern const std::string kUpdateUnpairedDevice;
 extern const std::string kSelectUnpairedDevices;
 extern const std::string kHasMsgLanguageCode;
 extern const std::string kDeletePreconsentedGroupsByApplicationId;
+extern const std::string kDeleteAppConsent;
 
 }  // namespace sql_pt_ext
 }  // namespace policy
