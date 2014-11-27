@@ -41,7 +41,6 @@
 #include "transport_manager/tcp/tcp_transport_adapter.h"
 #include "transport_manager/transport_adapter/transport_adapter_listener.h"
 #include "include/mock_transport_adapter_listener.h"
-//#include "../../include/protocol/raw_message.h"
 #include "protocol/raw_message.h"
 
 
@@ -51,44 +50,74 @@ namespace transport_adapter {
 using namespace ::protocol_handler;
 
 TEST(TcpAdapterBasicTest, GetDeviceType_Return_sdltcp) {
-	TransportAdapter* transport_adapter = new TcpTransportAdapter(12345);
+
+  //arrange
+  TransportAdapter* transport_adapter = new TcpTransportAdapter(12345);
+
+	//assert
 	EXPECT_EQ("sdl-tcp", transport_adapter->GetDeviceType());
 }
 
 TEST(TcpAdapterBasicTest, isServerOriginatedConnectSupported_Return_True) {
-	TransportAdapter* transport_adapter = new TcpTransportAdapter(12345);
-	EXPECT_TRUE(transport_adapter->IsServerOriginatedConnectSupported());
+
+  //arrange
+  TransportAdapter* transport_adapter = new TcpTransportAdapter(12345);
+
+  //assert
+  EXPECT_TRUE(transport_adapter->IsServerOriginatedConnectSupported());
 }
 
 TEST(TcpAdapterBasicTest, isClientOriginatedConnectSupported_Return_True) {
-	TransportAdapter* transport_adapter = new TcpTransportAdapter(12345);
-	EXPECT_TRUE(transport_adapter->IsClientOriginatedConnectSupported());
+
+  //arrange
+  TransportAdapter* transport_adapter = new TcpTransportAdapter(12345);
+  EXPECT_TRUE(transport_adapter->IsClientOriginatedConnectSupported());
 }
 
 TEST(TcpAdapterBasicTest, isSearchDevicesSupported_Return_True) {
-	TransportAdapter* transport_adapter = new TcpTransportAdapter(12345);
-	 EXPECT_TRUE(transport_adapter->IsSearchDevicesSupported());
+
+  //arrange
+  TransportAdapter* transport_adapter = new TcpTransportAdapter(12345);
+
+  //assert
+  EXPECT_TRUE(transport_adapter->IsSearchDevicesSupported());
 }
 
 TEST(TcpAdapterBasicTest, NotInitialised_Return_BAD_STATE) {
+
+  //arrange
   TransportAdapter* transport_adapter = new TcpTransportAdapter(12345);
+
+  //assert
   EXPECT_EQ(TransportAdapter::BAD_STATE, transport_adapter->SearchDevices());
 }
 
 TEST(TcpAdapterBasicTest, NotInitialised_Return_OK) {
+
+  //arrange
   TransportAdapter* transport_adapter = new TcpTransportAdapter(12345);
+
+  //assert
   EXPECT_EQ(TransportAdapter::OK,
             transport_adapter->Connect(DeviceUID("xxx"), 2));
 }
 
 TEST(TcpAdapterBasicTest, NotInitialised_Return_BAD_STATE_in_Disconnect) {
+
+  //arrange
   TransportAdapter* transport_adapter = new TcpTransportAdapter(12345);
+
+  //assert
   EXPECT_EQ(TransportAdapter::BAD_STATE,
             transport_adapter->Disconnect(DeviceUID("xxx"), 2));
 }
 
 TEST(TcpAdapterBasicTest, NotInitialised_Return_BAD_STATE_in_DisconnectDevice) {
+
+  //arrange
   TransportAdapter* transport_adapter = new TcpTransportAdapter(12345);
+
+  //assert
   EXPECT_EQ(TransportAdapter::BAD_STATE,
             transport_adapter->DisconnectDevice(DeviceUID("xxx")));
 }
@@ -389,16 +418,28 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, SendFailed) {
 
 
 TEST_F(TcpAdapterTest, StartStop) {
+
+  //assert
   EXPECT_EQ(TransportAdapter::BAD_STATE, transport_adapter_->StopClientListening());
   EXPECT_FALSE(client_.Connect(port()));
   EXPECT_EQ(TransportAdapter::OK, transport_adapter_->StartClientListening());
   EXPECT_TRUE(client_.Connect(port()));
+
+  //act
   client_.Disconnect();
+
+  //assert
   EXPECT_EQ(TransportAdapter::BAD_STATE, transport_adapter_->StartClientListening());
   EXPECT_TRUE(client_.Connect(port()));
+
+  //act
   client_.Disconnect();
+
+  //assert
   EXPECT_EQ(TransportAdapter::OK, transport_adapter_->StopClientListening());
   EXPECT_FALSE(client_.Connect(port()));
+
+  //act
   wakeUp();
 }
 

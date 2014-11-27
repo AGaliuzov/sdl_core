@@ -108,17 +108,17 @@ TEST(DnssdServiceBrowser, Basic) {
  DnssdServiceBrowser dnssd_service_browser(&controller);
  DeviceScanner& device_scanner = dnssd_service_browser;
 
-// device_scanner.Init();
+
  const TransportAdapter::Error error = device_scanner.Init();
  ASSERT_EQ(TransportAdapter::OK, error);
-
 
  while (!device_scanner.IsInitialised()) {
 	 sleep(0);
  }
- sleep(1);
+ ASSERT_TRUE(device_scanner.IsInitialised());
 
  EXPECT_EQ(TransportAdapter::NOT_SUPPORTED, device_scanner.Scan());
+
 }
 
 }  // namespace
