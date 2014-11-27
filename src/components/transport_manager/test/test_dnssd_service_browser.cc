@@ -103,15 +103,22 @@ return false;
 
 TEST(DnssdServiceBrowser, Basic) {
  MockTransportAdapterController controller;
- EXPECT_CALL(controller, SearchDeviceDone(HasService(4444)));
+ EXPECT_CALL(controller, SearchDeviceDone(HasService(4444))).Times(0);
 
  DnssdServiceBrowser dnssd_service_browser(&controller);
  DeviceScanner& device_scanner = dnssd_service_browser;
- device_scanner.Init();
+
+// device_scanner.Init();
+ const TransportAdapter::Error error = device_scanner.Init();
+ ASSERT_EQ(TransportAdapter::OK, error);
+
+
  while (!device_scanner.IsInitialised()) {
+	 sleep(0);
  }
  sleep(1);
- device_scanner.Scan();
+
+ EXPECT_EQ(TransportAdapter::NOT_SUPPORTED, device_scanner.Scan());
 }
 
 }  // namespace
