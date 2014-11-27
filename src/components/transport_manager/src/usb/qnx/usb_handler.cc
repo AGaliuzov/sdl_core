@@ -38,7 +38,7 @@
 #include <cstring>
 #include <cstdlib>
 
-#include "transport_manager/usb/common.h"
+//#include "transport_manager/usb/common.h"
 #include "transport_manager/transport_adapter/transport_adapter_impl.h"
 
 #include "utils/logger.h"
