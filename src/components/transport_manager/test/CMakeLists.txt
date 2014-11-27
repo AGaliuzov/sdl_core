@@ -35,16 +35,15 @@ include_directories (
   ${COMPONENTS_DIR}/smart_objects/include
   ${COMPONENTS_DIR}/transport_manager/include
   ${COMPONENTS_DIR}/utils/include
-  ${COMPONENTS_DIR}/include
   ${JSONCPP_INCLUDE_DIRECTORY}
   ${CMAKE_BINARY_DIR}
 )
 
 
 set (LIBRARIES
-   
-    gmock
-    gtest  
+     
+    gmock_main
+    gtest_main
     ConfigProfile 
     transport_manager
     ApplicationManagerTest 
@@ -68,12 +67,10 @@ ${COMPONENTS_DIR}/transport_manager/test/mock_connection.cc
 ${COMPONENTS_DIR}/transport_manager/test/mock_device.cc            
 ${COMPONENTS_DIR}/transport_manager/test/mock_device_scanner.cc    
 ${COMPONENTS_DIR}/transport_manager/test/raw_message_matcher.cc    
-${COMPONENTS_DIR}/transport_manager/test/transport_manager_instance_test.cc
 ${COMPONENTS_DIR}/transport_manager/test/test_dnssd_service_browser.cc     
 ${COMPONENTS_DIR}/transport_manager/test/test_tcp_transport_adapter.cc     
 ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter.cc         
 ${COMPONENTS_DIR}/transport_manager/test/transport_manager_test.cc    
-
 )          
 
 create_test("test_transport_manager" "${SOURCES}" "${LIBRARIES}")
