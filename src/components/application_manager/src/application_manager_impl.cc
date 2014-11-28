@@ -1909,6 +1909,7 @@ void ApplicationManagerImpl::HeadUnitReset(
   switch (reason) {
     case mobile_api::AppInterfaceUnregisteredReason::MASTER_RESET: {
       policy::PolicyHandler::instance()->ResetPolicyTable();
+      policy::PolicyHandler::instance()->UnloadPolicyLibrary();
       file_system::remove_directory_content(profile::Profile::instance()->app_storage_folder());
       resume_controller().ClearResumptionInfo();
       break;
