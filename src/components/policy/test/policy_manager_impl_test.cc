@@ -415,7 +415,7 @@ TEST_F(PolicyManagerImplTest, GetPolicyTableStatus) {
 
 #ifdef EXTENDED_POLICY
 TEST_F(PolicyManagerImplTest, MarkUnpairedDevice) {
-  EXPECT_CALL(*cache_manager, SetUnpairedDevice("12345")).WillOnce(Return(true));
+  EXPECT_CALL(*cache_manager, SetUnpairedDevice("12345", true)).WillOnce(Return(true));
   EXPECT_CALL(*cache_manager, GetDeviceGroupsFromPolicies(_, _)).Times(1);
   manager->MarkUnpairedDevice("12345");
 }
