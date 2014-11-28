@@ -28,7 +28,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-
+if(BUILD_TESTS)
 add_definitions(-DUNIT_TESTS)
 
 # --- SchemaItems
@@ -47,7 +47,6 @@ set (LIBRARIES
     gtest
     gtest_main
     gmock
-    gmock_main
     SmartObjects
     formatters
     jsoncpp
@@ -70,3 +69,5 @@ create_test(test_smart_object_test "${SOURCES}" "${LIBRARIES}")
 create_test("test_smart_object_convertion_time_test" "./SmartObjectConvertionTimeTest.cc" "${LIBRARIES}")
 create_test("test_smart_object_performance_test" "./smart_object_performance_test.cc" "${LIBRARIES}")
 create_test("test_map_performance_test" "./map_performance_test.cc" "${LIBRARIES}")
+
+endif()
