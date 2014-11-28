@@ -133,29 +133,32 @@ FFW.RPCClient = Em.Object
 
             JSON.parse(evt.data, SDL.RPCController.capabilitiesCheck);
 
-            if (jsonObj.method == 'UI.Show' && SDL.RPCController.capabilityCheckResult == 'UNSUPPORTED_RESOURCE' && Object.size(jsonObj.params) != 3 && jsonObj.params.showStrings.length != 0) {
+            if (SDL.RPCController.capabilityCheckResult) {
 
-                this.observer.errorResponsePull[jsonObj.id] = SDL.SDLModel.resultCode["WARNINGS"];
+                if (jsonObj.method == 'UI.Show' && SDL.RPCController.capabilityCheckResult.code == 'UNSUPPORTED_RESOURCE' && Object.size(jsonObj.params) != 3 && jsonObj.params.showStrings.length != 0) {
 
-                Em.Logger.error('Image of STATIC type is not supported on HMI. Other information was successfully displayed');
+                    this.observer.errorResponsePull[jsonObj.id] = {code: 'WARNINGS', type: SDL.RPCController.capabilityCheckResult.type};
 
-                SDL.RPCController.capabilityCheckResult = null;
-            } else {
+                    Em.Logger.error('Image of STATIC type is not supported on HMI. Other information was successfully displayed');
 
-                switch (SDL.RPCController.capabilityCheckResult) {
-                    case 'UNSUPPORTED_RESOURCE': {
+                    SDL.RPCController.capabilityCheckResult = null;
+                } else {
 
-                        this.observer.errorResponsePull[jsonObj.id] = SDL.SDLModel.resultCode["UNSUPPORTED_RESOURCE"];
+                    switch (SDL.RPCController.capabilityCheckResult.code) {
+                        case 'UNSUPPORTED_RESOURCE': {
 
-                        Em.Logger.error('Unsupported incoming resource! In method ' + jsonObj.method);
+                            this.observer.errorResponsePull[jsonObj.id] = SDL.RPCController.capabilityCheckResult;
 
-                        SDL.RPCController.capabilityCheckResult = null;
+                            Em.Logger.error('Unsupported incoming resource! In method ' + jsonObj.method);
 
-                        break;
+                            SDL.RPCController.capabilityCheckResult = null;
+
+                            break;
+                        }
                     }
                 }
-            }
 
+            }
 
             // handle component registration
             if (jsonObj.id == this.registerRequestId && jsonObj.method == null && typeof jsonObj.result == 'number') {
@@ -289,14 +292,14 @@ FFW.RPCClient = Em.Object
 
             if (this.socket.readyState == this.socket.OPEN) {
 
-                if (this.observer.errorResponsePull[obj.id] && this.observer.errorResponsePull[obj.id] !== 0 && obj.result) {
+                if (this.observer.errorResponsePull[obj.id] && this.observer.errorResponsePull[obj.id].code !== "SUCCESS" && obj.result) {
                     var method = obj.result.method;
 
                     delete obj.result;
 
                     obj.error = {
-                        "code": this.observer.errorResponsePull[obj.id],
-                        "message": this.observer.errorResponsePull[obj.id] == 21 ? "Image of STATIC type is not supported on HMI. Other information was successfully displayed" : "Unsupported incoming resource!",
+                        "code": SDL.SDLModel.resultCode[this.observer.errorResponsePull[obj.id].code],
+                        "message": this.observer.errorResponsePull[obj.id].code == "WARNINGS" ? "Image of STATIC type is not supported on HMI. Other information was successfully displayed" : "Type " + this.observer.errorResponsePull[obj.id].type + " is not supported on HMI. Request was not displayed",
                         "data": {
                             "method": method
                         }

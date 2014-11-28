@@ -72,19 +72,19 @@ SDL.RPCController = Em.Object
 
         capabilitiesCheck: function(key, value) {
             if (key == "imageType" && value == "STATIC") {
-                SDL.RPCController.capabilityCheckResult = 'UNSUPPORTED_RESOURCE';
+                SDL.RPCController.capabilityCheckResult = {code: 'UNSUPPORTED_RESOURCE', type: value};
             }
             if (key == "type" && value == "PRE_RECORDED") {
-                SDL.RPCController.capabilityCheckResult = 'UNSUPPORTED_RESOURCE';
+                SDL.RPCController.capabilityCheckResult = {code: 'UNSUPPORTED_RESOURCE', type: value};
             }
             if (key == "type" && value == "SAPI_PHONEMES") {
-                SDL.RPCController.capabilityCheckResult = 'UNSUPPORTED_RESOURCE';
+                SDL.RPCController.capabilityCheckResult = {code: 'UNSUPPORTED_RESOURCE', type: value};
             }
             if (key == "type" && value == "LHPLUS_PHONEMES") {
-                SDL.RPCController.capabilityCheckResult = 'UNSUPPORTED_RESOURCE';
+                SDL.RPCController.capabilityCheckResult = {code: 'UNSUPPORTED_RESOURCE', type: value};
             }
             if (key == "type" && value == "SILENCE") {
-                SDL.RPCController.capabilityCheckResult = 'UNSUPPORTED_RESOURCE';
+                SDL.RPCController.capabilityCheckResult = {code: 'UNSUPPORTED_RESOURCE', type: value};
             }
         },
 
