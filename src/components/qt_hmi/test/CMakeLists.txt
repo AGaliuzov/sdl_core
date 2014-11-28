@@ -33,10 +33,19 @@ if(BUILD_TESTS)
 
 cmake_minimum_required(VERSION 2.8.11)
 
+set(QT_HMI_TESTS_LIST 
+${COMPONENTS_DIR}/qt_hmi/test/src/tst_AddCommand.qml
+${COMPONENTS_DIR}/qt_hmi/test/src/tst_AddSubMenu.qml
+${COMPONENTS_DIR}/qt_hmi/test/src/tst_DeleteCommand.qml
+${COMPONENTS_DIR}/qt_hmi/test/src/tst_ScrollableMessage.qml
+${COMPONENTS_DIR}/qt_hmi/test/src/tst_SetMediaClockTimer.qml
+${COMPONENTS_DIR}/qt_hmi/test/src/tst_Show.qml
+${COMPONENTS_DIR}/qt_hmi/test/src/tst_Slider.qml
+)
+
 include_directories(
   ${CMAKE_CURRENT_BINARY_DIR} 
   ${CMAKE_CURRENT_SOURCE_DIR}
-  ${LOG4CXX_INCLUDE_DIRECTORY}
   )
 
 set(CONFIG
@@ -52,5 +61,9 @@ set(target test_QtHMI)
 
 create_test("test_QtHMI" "${SOURCES}" "")
 qt5_use_modules(${target} Core Qml Quick QuickTest)
+
+foreach( file_i ${QT_HMI_TESTS_LIST})
+file(COPY ${file_i} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+endforeach( file_i )
 
 endif()
