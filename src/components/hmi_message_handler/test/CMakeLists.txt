@@ -31,38 +31,21 @@
 if(BUILD_TESTS)
 
 include_directories (
-  ${LOG4CXX_INCLUDE_DIRECTORY}
-  ${GMOCK_INCLUDE_DIRECTORY}
-  ${COMPONENTS_DIR}/smart_objects/include
-  ${COMPONENTS_DIR}/hmi_message_handler/include
-  ${COMPONENTS_DIR}/utils/include
-  ${JSONCPP_INCLUDE_DIRECTORY}
-  ${CMAKE_BINARY_DIR}
-  ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8
-  ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8/dbus/
+   ${GMOCK_INCLUDE_DIRECTORY}
+   ${COMPONENTS_DIR}/hmi_message_handler/include
 )
-
 
 set (LIBRARIES    
-    gtest
-    gtest_main
     gmock
-    gmock_main
-    Utils
-    ProtocolHandler
     ApplicationManager
-    SmartObjects
-    jsoncpp
     HMIMessageHandler
-    ${RTLIB}
-    ProtocolLibrary
 )
-
 
 set(SOURCES
     ${COMPONENTS_DIR}/hmi_message_handler/test/main.cc  
     ${COMPONENTS_DIR}/hmi_message_handler/test/test_mqueue_adapter.cc 
 )          
+
 if (${QT_HMI})
   list (APPEND SOURCES  
     ${COMPONENTS_DIR}/hmi_message_handler/test/mock_subscriber.cc 
