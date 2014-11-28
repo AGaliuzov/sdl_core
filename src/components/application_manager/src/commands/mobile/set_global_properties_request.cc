@@ -197,7 +197,8 @@ void SetGlobalPropertiesRequest::Run() {
     SendHMIRequest(hmi_apis::FunctionID::UI_SetGlobalProperties,
                        &params, true);
   } else if (!is_vr_help_title_present && !is_vr_help_present) {
-    const CommandsMap& cmdMap = app->commands_map();
+    const DataAccessor<CommandsMap> accessor = app->commands_map();
+    const CommandsMap& cmdMap = accessor.GetData();
     CommandsMap::const_iterator command_it = cmdMap.begin();
 
     int32_t index = 0;

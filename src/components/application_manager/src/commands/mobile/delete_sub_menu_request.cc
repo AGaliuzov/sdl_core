@@ -79,7 +79,8 @@ void DeleteSubMenuRequest::Run() {
 void DeleteSubMenuRequest::DeleteSubMenuVRCommands(ApplicationConstSharedPtr app) {
   LOG4CXX_INFO(logger_, "DeleteSubMenuRequest::DeleteSubMenuVRCommands");
 
-  const CommandsMap& commands = app->commands_map();
+  const DataAccessor<CommandsMap> accessor = app->commands_map();
+  const CommandsMap& commands = accessor.GetData();
   CommandsMap::const_iterator it = commands.begin();
 
   for (; commands.end() != it; ++it) {
@@ -106,7 +107,8 @@ void DeleteSubMenuRequest::DeleteSubMenuVRCommands(ApplicationConstSharedPtr app
 void DeleteSubMenuRequest::DeleteSubMenuUICommands(ApplicationSharedPtr const app) {
   LOG4CXX_INFO(logger_, "DeleteSubMenuRequest::DeleteSubMenuUICommands");
 
-  const CommandsMap& commands = app->commands_map();
+  const DataAccessor<CommandsMap> accessor = app->commands_map();
+  const CommandsMap& commands = accessor.GetData();
   CommandsMap::const_iterator it = commands.begin();
 
   while (commands.end() != it) {

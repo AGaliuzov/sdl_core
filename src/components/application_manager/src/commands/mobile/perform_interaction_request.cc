@@ -848,8 +848,9 @@ void PerformInteractionRequest::TerminatePerformInteraction() {
 bool PerformInteractionRequest::CheckChoiceIDFromResponse(
     ApplicationSharedPtr app, int32_t choice_id) {
   LOG4CXX_INFO(logger_, "PerformInteractionRequest::CheckChoiceIDFromResponse");
-  const PerformChoiceSetMap& choice_set_map = app
-        ->performinteraction_choice_set_map();
+  const DataAccessor<PerformChoiceSetMap> accessor =
+      app->performinteraction_choice_set_map();
+  const PerformChoiceSetMap& choice_set_map = accessor.GetData();
 
   for (PerformChoiceSetMap::const_iterator it = choice_set_map.begin();
       choice_set_map.end() != it; ++it) {

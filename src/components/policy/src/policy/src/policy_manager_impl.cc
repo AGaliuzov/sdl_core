@@ -653,6 +653,48 @@ PermissionConsent PolicyManagerImpl::EnsureCorrectPermissionConsent(
   return permissions_to_set;
 }
 
+void PolicyManagerImpl::CheckPendingPermissionsChanges(
+    const std::string& policy_app_id,
+    const std::vector<FunctionalGroupPermission>& current_permissions) {
+  LOG4CXX_INFO(logger_, "CheckPendingPermissionsChanges");
+  sync_primitives::AutoLock lock(app_permissions_diff_lock_);
+  std::map<std::string, AppPermissions>::iterator it_pending =
+      app_permissions_diff_.find(policy_app_id);
+  if (app_permissions_diff_.end() == it_pending) {
+    LOG4CXX_WARN(logger_,
+                 "No pending permissions had been found for appID: "
+                 << policy_app_id);
+    return;
+  }
+
+  LOG4CXX_DEBUG(logger_,
+                "Pending permissions had been found for appID: "
+                << policy_app_id);
+
+  // Change appPermissionsConsentNeeded depending on unconsented groups
+  // presence
+  std::vector<policy::FunctionalGroupPermission>::const_iterator it_groups =
+      current_permissions.begin();
+  std::vector<policy::FunctionalGroupPermission>::const_iterator it_end_groups =
+      current_permissions.end();
+
+  for (; it_groups != it_end_groups; ++it_groups) {
+    if (policy::kGroupUndefined == it_groups->state) {
+      LOG4CXX_DEBUG(logger_,
+                    "Unconsented groups still present for appID: "
+                    << policy_app_id);
+      it_pending->second.appPermissionsConsentNeeded = true;
+      return;
+    }
+  }
+
+  LOG4CXX_DEBUG(logger_,
+                "Unconsented groups not present anymore for appID: "
+                << policy_app_id);
+  it_pending->second.appPermissionsConsentNeeded = false;
+  return;
+}
+
 void PolicyManagerImpl::SetUserConsentForApp(
     const PermissionConsent& permissions) {
   LOG4CXX_INFO(logger_, "SetUserConsentForApp");
@@ -664,11 +706,17 @@ void PolicyManagerImpl::SetUserConsentForApp(
   if (!cache_->SetUserPermissionsForApp(verified_permissions)) {
     LOG4CXX_WARN(logger_, "Can't set user permissions for application.");
   }
+
   // Send OnPermissionChange notification, since consents were changed
   std::vector<FunctionalGroupPermission> app_group_permissons;
   GetPermissionsForApp(verified_permissions.device_id,
                        verified_permissions.policy_app_id,
                        app_group_permissons);
+
+  // Change pending permissions isConsentNeeded state, if no unconsented
+  // groups left
+  CheckPendingPermissionsChanges(permissions.policy_app_id,
+                  app_group_permissons);
 
   // Get current functional groups from DB with RPC permissions
   policy_table::FunctionalGroupings functional_groups;
