@@ -232,7 +232,7 @@ endif()
     ${COMPONENTS_DIR}/transport_manager/test/mock_device_scanner.cc    
     ${COMPONENTS_DIR}/transport_manager/test/raw_message_matcher.cc   
     ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter.cc 
-    ${COMPONENTS_DIR}/transport_manager/test/transport_manager_test.cc 
+   # ${COMPONENTS_DIR}/transport_manager/test/transport_manager_test.cc 
     ${AM_TEST_DIR}/command_impl_test.cc
     ${COMPONENTS_DIR}/smart_objects/test/SmartObjectDraftTest.cc
     ${COMPONENTS_DIR}/smart_objects/test/SmartObjectInvalidTest.cc

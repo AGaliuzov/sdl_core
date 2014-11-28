@@ -28,7 +28,9 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+
 if(BUILD_TESTS)
+
 include_directories (
   ${LOG4CXX_INCLUDE_DIRECTORY}
   ${GMOCK_INCLUDE_DIRECTORY}
@@ -41,19 +43,26 @@ include_directories (
 )
 
 
-set (LIBRARIES
-   
-    gmock
-    gtest  
+set (LIBRARIES   
+    gmock 
     ConfigProfile 
     transport_manager
     ApplicationManagerTest 
     Utils    
     ConfigProfile
     Resumption
-    jsoncpp 
-    
+    jsoncpp     
 )
+
+
+
+if (BUILD_USB_SUPPORT)
+  list(APPEND LIBRARIES Libusb-1.0.16)
+endif()
+
+if (BUILD_BT_SUPPORT)
+  list(APPEND LIBRARIES bluetooth)
+endif()
 
 if (BUILD_AVAHI_SUPPORT)
   list(APPEND LIBRARIES avahi-client avahi-common)
@@ -63,16 +72,17 @@ endif()
 set(SOURCES
 ${COMPONENTS_DIR}/transport_manager/test/main.cc  
 ${COMPONENTS_DIR}/transport_manager/test/mock_application.cc
+
+${COMPONENTS_DIR}/transport_manager/test/transport_manager_test.cc  
 ${COMPONENTS_DIR}/transport_manager/test/mock_connection_factory.cc  
 ${COMPONENTS_DIR}/transport_manager/test/mock_connection.cc       
 ${COMPONENTS_DIR}/transport_manager/test/mock_device.cc            
 ${COMPONENTS_DIR}/transport_manager/test/mock_device_scanner.cc    
 ${COMPONENTS_DIR}/transport_manager/test/raw_message_matcher.cc    
-${COMPONENTS_DIR}/transport_manager/test/transport_manager_instance_test.cc
-${COMPONENTS_DIR}/transport_manager/test/test_dnssd_service_browser.cc     
-${COMPONENTS_DIR}/transport_manager/test/test_tcp_transport_adapter.cc     
+${COMPONENTS_DIR}/transport_manager/test/dnssd_service_browser_test.cc     
+${COMPONENTS_DIR}/transport_manager/test/tcp_transport_adapter_test.cc     
 ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter.cc         
-${COMPONENTS_DIR}/transport_manager/test/transport_manager_test.cc    
+  
 
 )          
 

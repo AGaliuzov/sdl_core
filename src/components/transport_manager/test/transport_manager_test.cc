@@ -45,6 +45,12 @@
 #include "include/mock_transport_manager_listener.h"
 #include "transport_manager/transport_manager_listener_empty.h"
 
+//for instance test
+#include "transport_manager/transport_manager.h"
+#include "transport_manager/transport_adapter/transport_adapter.h"
+#include "transport_manager/transport_manager_default.h"
+#include "../../connection_handler/include/connection_handler/connection_handler.h"
+
 using ::testing::_;
 using ::testing::AtLeast;
 
@@ -373,3 +379,14 @@ TEST_F(TransportManagerTest, ConnectAddDeviceCannotFailClose) {
 }  // namespace transport_manager
 }  // namespace components
 }  // namespace test
+
+
+namespace test{
+namespace test_transport_manager_instance {
+TEST(testTransportManager, CreateOnlyInstance)
+{
+  transport_manager::TransportManager *Instance = transport_manager::TransportManagerDefault::instance();
+  ASSERT_EQ(Instance, transport_manager::TransportManagerDefault::instance());
+  delete Instance;
+}
+}}
