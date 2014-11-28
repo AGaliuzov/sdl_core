@@ -356,7 +356,7 @@ void ApplinkNotificationThreadDelegate::sendHeartBeat() {
 class Dispatcher {
  public:
   Dispatcher(int pipefd, int pid)
-      : state_(kRun), pipefd_(pipefd), pid_(pid) {}
+      : state_(kNone), pipefd_(pipefd), pid_(pid) {}
   void Process(const std::string& msg) {
     if (msg.empty()) {
       fprintf(stderr, "Error: message is empty\n");
@@ -364,6 +364,11 @@ class Dispatcher {
     }
     char code = msg[0];
     switch (state_) {
+      case kNone:
+        if (code == SLD_MSG_SDL_START) {
+          Send(msg);
+          state_ = kRun;
+        }
       case kRun:
         if (code == SDL_MSG_LOW_VOLTAGE) {
           OnLowVoltage(msg);
@@ -372,7 +377,11 @@ class Dispatcher {
         } else if (code == SDL_MSG_SDL_STOP) {
           Send(msg);
           state_ = kStop;
-        } else if (code != SDL_MSG_WAKE_UP) {
+        } else if (code == SDL_MSG_WAKE_UP) {
+          // Do nothing
+        } else if (code == SDL_MSG_SDL_START) {
+          // Do nothing
+        } else {
           Send(msg);
         }
         break;
@@ -394,7 +403,7 @@ class Dispatcher {
     return state_ != kStop;
   }
  private:
-  enum State { kRun, kSleep, kStop };
+  enum State { kNone, kRun, kSleep, kStop };
   State state_;
   int pipefd_;
   int pid_;
