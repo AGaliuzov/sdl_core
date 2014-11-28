@@ -252,6 +252,7 @@ void CheckAppPolicy::SendOnPendingPermissions(
       FunctionalGroupInserter(preconsented_groups, list_of_permissions));
     // TODO(PV): logic has changed.
     if (!list_of_permissions.empty()) {
+      sync_primitives::AutoLock lock(pm_->app_permissions_diff_lock_);
       pm_->app_permissions_diff_.insert(
         std::make_pair(app_policy.first, permissions));
       pm_->listener()->OnPendingPermissionChange(app_policy.first);
@@ -261,6 +262,7 @@ void CheckAppPolicy::SendOnPendingPermissions(
   }
   // TODO(AOleynik): Seems, it is unused part?
   if (permissions.isAppPermissionsRevoked) {
+    sync_primitives::AutoLock lock(pm_->app_permissions_diff_lock_);
     pm_->app_permissions_diff_.insert(
       std::make_pair(app_policy.first, permissions));
     pm_->listener()->OnPendingPermissionChange(app_policy.first);
@@ -308,7 +310,9 @@ bool CheckAppPolicy::operator()(const AppPoliciesValueType& app_policy) {
   // Check revocation
   if (!IsPredefinedApp(app_policy) && IsAppRevoked(app_policy)) {
     permissions_diff.appRevoked = true;
+    pm_->app_permissions_diff_lock_.Acquire();
     pm_->app_permissions_diff_.insert(std::make_pair(app_id, permissions_diff));
+    pm_->app_permissions_diff_lock_.Release();
     pm_->listener()->OnAppRevoked(app_id);
     policy_table::ApplicationPolicies::iterator it = current_policies.find(
           app_id);
@@ -335,7 +339,9 @@ bool CheckAppPolicy::operator()(const AppPoliciesValueType& app_policy) {
 
   if (!IsPredefinedApp(app_policy) && !NicknamesMatch(app_id, app_policy)) {
     permissions_diff.appUnauthorized = true;
+    pm_->app_permissions_diff_lock_.Acquire();
     pm_->app_permissions_diff_.insert(std::make_pair(app_id, permissions_diff));
+    pm_->app_permissions_diff_lock_.Release();
     pm_->listener()->OnPendingPermissionChange(app_policy.first);
     policy_table::ApplicationPolicies::iterator it = current_policies.find(
           app_id);
