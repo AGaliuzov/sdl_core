@@ -140,7 +140,7 @@ Integer<T, minval, maxval>::Integer(const Json::Value* value)
 
 template<typename T, T minval, T maxval>
 Integer<T, minval, maxval>::Integer(const Integer& val)
-  : PrimitiveType(kValid),
+  : PrimitiveType(range_.Includes(val.value_) ? kValid : kInvalid),
     value_(val.value_) {
 }
 
