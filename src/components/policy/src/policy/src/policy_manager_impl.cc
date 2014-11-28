@@ -165,8 +165,6 @@ bool PolicyManagerImpl::LoadPT(const std::string& file,
   CheckPermissionsChanges(pt_update, policy_table_snapshot);
 
   // Replace current data with updated
-
-
   if (!cache_->ApplyUpdate(*pt_update)) {
     LOG4CXX_WARN(logger_, "Unsuccessful save of updated policy table.");
     return false;

@@ -691,6 +691,9 @@ bool SQLPTExtRepresentation::SaveSpecificAppPolicy(
     return true;
   }
 
+  SetIsDefault(app.first, false);
+  SetIsPredata(app.first, false);
+
   dbms::SQLQuery app_query(db());
   if (!app_query.Prepare(sql_pt_ext::kInsertApplication)) {
     LOG4CXX_WARN(logger_, "Incorrect insert statement into application.");
