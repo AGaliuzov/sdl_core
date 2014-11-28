@@ -28,31 +28,29 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+
 if(BUILD_TESTS)
 
-include_directories (
-  ${GMOCK_INCLUDE_DIRECTORY}
-  ${COMPONENTS_DIR}/hmi_message_handler/include
-  ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8
-  ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8/dbus/
-)
+cmake_minimum_required(VERSION 2.8.11)
 
-set (LIBRARIES    
-    gmock
-    ApplicationManager
-    HMIMessageHandler
+include_directories(
+  ${CMAKE_CURRENT_BINARY_DIR} 
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${LOG4CXX_INCLUDE_DIRECTORY}
+  )
+
+set(CONFIG
+  warn_on 
+  qmltestcase
 )
 
 set(SOURCES
-    ${COMPONENTS_DIR}/hmi_message_handler/test/main.cc  
-    ${COMPONENTS_DIR}/hmi_message_handler/test/test_mqueue_adapter.cc 
-)          
-if (${QT_HMI})
-  list (APPEND SOURCES  
-    ${COMPONENTS_DIR}/hmi_message_handler/test/mock_subscriber.cc 
-    ${COMPONENTS_DIR}/hmi_message_handler/test/test_dbus_message_adapter.cc
-  )
-endif ()
-create_test("test_hmi_message_handler" "${SOURCES}" "${LIBRARIES}")
+  qt_hmi_test.cc
+)
+
+set(target test_QtHMI)
+
+create_test("test_QtHMI" "${SOURCES}" "")
+qt5_use_modules(${target} Core Qml Quick QuickTest)
 
 endif()

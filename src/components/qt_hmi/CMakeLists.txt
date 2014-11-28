@@ -36,3 +36,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
 else ()
     add_subdirectory(./qml_model_qt5)
 endif ()
+
+if(BUILD_TESTS)
+  add_subdirectory(test)
+endif()
