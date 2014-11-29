@@ -1171,8 +1171,8 @@ AppPermissions PolicyManagerImpl::GetAppPermissionsChanges(
   } else {
     permissions.appPermissionsConsentNeeded = IsConsentNeeded(policy_app_id);
     permissions.appRevoked = IsApplicationRevoked(policy_app_id);
-    GetPriority(permissions.application_id, &permissions.priority);
   }
+  GetPriority(permissions.application_id, &permissions.priority);
   return permissions;
 }
 
