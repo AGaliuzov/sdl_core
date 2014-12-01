@@ -60,7 +60,8 @@ class PolicyManagerImpl : public PolicyManager {
     virtual bool ResetPT(const std::string& file_name);
     virtual std::string GetUpdateUrl(int service_type);
     virtual EndpointUrls GetUpdateUrls(int service_type);
-    virtual BinaryMessageSptr RequestPTUpdate();
+    virtual void RequestPTUpdate();
+    virtual void StartPTExchange(const std::string& device_id);
     virtual void CheckPermissions(const PTString& app_id,
         const PTString& hmi_level,
         const PTString& rpc,

@@ -39,7 +39,6 @@
 #include <vector>
 #include "policy/policy_manager.h"
 #include "application_manager/policies/policy_event_observer.h"
-#include "application_manager/policies/pt_exchange_handler.h"
 #include "application_manager/policies/delegates/statistics_delegate.h"
 #include "utils/logger.h"
 #include "utils/singleton.h"
@@ -70,7 +69,7 @@ class PolicyHandler :
   bool InitPolicyTable();
   bool ResetPolicyTable();
   bool ClearUserConsent();
-  bool SendMessageToSDK(const BinaryMessage& pt_string);
+  bool SendMessageToSDK(const BinaryMessage& pt_string, const std::string& url);
   bool ReceiveMessageFromSDK(const std::string& file,
                              const BinaryMessage& pt_string);
   bool UnloadPolicyLibrary();
@@ -78,6 +77,8 @@ class PolicyHandler :
   void OnPermissionsUpdated(const std::string& policy_app_id,
                             const Permissions& permissions,
                             const HMILevel& default_hmi);
+
+  virtual void OnSnapshotCreated(const BinaryMessage& pt_string);
 
   bool GetPriority(const std::string& policy_app_id, std::string* priority);
   void CheckPermissions(const PTString& app_id,
@@ -100,7 +101,6 @@ class PolicyHandler :
   void OnExceededTimeout();
   void OnSystemReady();
   void PTUpdatedAt(int kilometers, int days_after_epoch);
-  BinaryMessageSptr RequestPTUpdate();
   const std::vector<int> RetrySequenceDelaysSeconds();
   void set_listener(PolicyHandlerObserver* listener);
 
@@ -327,7 +327,6 @@ class PolicyHandler :
                    usage_statistics::AppStopwatchId type,
                    int32_t timespan_seconds);
 
-
 protected:
 
   /**
@@ -344,15 +343,9 @@ protected:
   /**
      * Starts proccess updating policy table
    */
-    void StartPTExchange(bool skip_device_selection = false);
+    void StartPTExchange();
 
  private:
-  /**
-   * @brief Choose device according to app HMI status and user consent for
-   * device
-   * @return consent status for selected device
-   */
-  DeviceConsent GetDeviceForSending();
 
   /**
    * @brief Convert internal policy update status to appropriate status for HMI
@@ -406,13 +399,13 @@ private:
 
 
   PolicyHandler();
+  bool SaveSnapshot(const BinaryMessage& pt_string, std::string& snap_path);
   static PolicyHandler* instance_;
   static const std::string kLibrary;
   mutable sync_primitives::RWLock policy_manager_lock_;
   utils::SharedPtr<PolicyManager> policy_manager_;
   void* dl_handle_;
   AppIds last_used_app_ids_;
-  utils::SharedPtr<PTExchangeHandler> exchange_handler_;
   utils::SharedPtr<PolicyEventObserver> event_observer_;
   bool on_ignition_check_done_;
   uint32_t last_activated_app_id_;

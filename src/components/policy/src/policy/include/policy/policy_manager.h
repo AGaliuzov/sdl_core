@@ -88,9 +88,15 @@ class PolicyManager : public usage_statistics::StatisticsManager {
 
     /**
      * @brief PTU is needed, for this PTS has to be formed and sent.
-     * @return BinaryMessage* PTS.
      */
-    virtual BinaryMessageSptr RequestPTUpdate() = 0;
+    virtual void RequestPTUpdate() = 0;
+
+    /**
+     * @brief StartPTExchange allows to start PTU. The function will check
+     * if one is required and starts the update flow in only case when previous
+     * condition is true.
+     */
+    virtual void StartPTExchange(const std::string& device_id) = 0;
 
     /**
      * @brief Check if specified RPC for specified application

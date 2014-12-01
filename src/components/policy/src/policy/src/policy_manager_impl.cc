@@ -203,6 +203,10 @@ bool PolicyManagerImpl::LoadPT(const std::string& file,
 
   RefreshRetrySequence();
 
+
+  // TODO (STILL IN PROGRESS)
+  //exchange_handler_->Stop();
+
   return true;
 }
 
@@ -272,13 +276,13 @@ EndpointUrls PolicyManagerImpl::GetUpdateUrls(int service_type) {
   return cache_->GetUpdateUrls(service_type);
 }
 
-BinaryMessageSptr PolicyManagerImpl::RequestPTUpdate() {
+void PolicyManagerImpl::RequestPTUpdate() {
   LOG4CXX_INFO(logger_, "Creating PT Snapshot");
   utils::SharedPtr<policy_table::Table> policy_table_snapshot =
       cache_->GenerateSnapshot();
   if (!policy_table_snapshot) {
     LOG4CXX_ERROR(logger_, "Failed to create snapshot of policy table");
-    return NULL;
+    return;
   }
 
 #ifdef EXTENDED_POLICY
@@ -297,7 +301,25 @@ BinaryMessageSptr PolicyManagerImpl::RequestPTUpdate() {
   Json::Value value = policy_table_snapshot->ToJsonValue();
   Json::FastWriter writer;
   std::string message_string = writer.write(value);
-  return new BinaryMessage(message_string.begin(), message_string.end());
+
+  BinaryMessage update(message_string.begin(), message_string.end());
+
+  listener_->OnSnapshotCreated(update);
+}
+
+void PolicyManagerImpl::StartPTExchange(const std::string& device_id) {
+
+  if (GetPolicyTableStatus() == PolicyTableStatus::StatusUpdatePending) {
+    LOG4CXX_INFO(logger_, "Starting exchange skipped, since another exchange "
+                 "is in progress.");
+    return;
+  }
+
+  DeviceConsent consent = GetUserConsentForDevice(device_id);
+
+  if (kDeviceAllowed == consent && cache_->UpdateRequired()) {
+    RequestPTUpdate();
+  }
 }
 
 void PolicyManagerImpl::CheckPermissions(const PTString& app_id,

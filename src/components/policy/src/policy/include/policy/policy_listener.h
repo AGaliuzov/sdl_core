@@ -1,4 +1,4 @@
-/*
+﻿/*
  Copyright (c) 2013, Ford Motor Company
  All rights reserved.
 
@@ -53,6 +53,7 @@ class PolicyListener {
   virtual std::string GetAppName(const std::string& policy_app_id) = 0;
   virtual void OnUserRequestedUpdateCheckRequired() = 0;
   virtual void OnUpdateHMIAppType(std::map<std::string, StringArray> app_hmi_types) = 0;
+  virtual void OnSnapshotCreated(const BinaryMessage& pt_string) = 0;
 
   /**
    * @brief Make appropriate changes for related applications permissions and
