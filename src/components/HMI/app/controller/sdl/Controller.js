@@ -200,7 +200,9 @@ SDL.SDLController = Em.Object
                         SDL.VRHelpListView.deactivate();
                     }
                 }
-            }
+            } else if (SDL.VRHelpListView.active) {
+                    SDL.VRHelpListView.deactivate();
+                }
         }.observes('SDL.SDLModel.VRActive', 'SDL.SDLModel.interactionData.vrHelp'),
 
         /**
@@ -650,6 +652,10 @@ SDL.SDLController = Em.Object
             SDL.VRPopUp.DeleteActivateApp(appID);
             if (SDL.SDLModel.stateLimited == appID) {
                 SDL.SDLModel.set('stateLimited', null);
+            }
+
+            if (SDL.VRHelpListView.active) {
+                this.showVRHelpItems();
             }
         },
         /**
