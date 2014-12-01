@@ -216,7 +216,7 @@ class TcpAdapterTest : public ::testing::Test {
   }
 
   virtual void TearDown() {
-	transport_adapter_-> StopClientListening();
+    transport_adapter_-> StopClientListening();
   }
 
 
