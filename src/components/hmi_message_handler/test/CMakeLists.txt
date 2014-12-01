@@ -31,11 +31,11 @@
 if(BUILD_TESTS)
 
 include_directories (
-   ${GMOCK_INCLUDE_DIRECTORY}
-   ${COMPONENTS_DIR}/hmi_message_handler/include
+    ${GMOCK_INCLUDE_DIRECTORY}
+    ${COMPONENTS_DIR}/hmi_message_handler/include
 )
 
-set (LIBRARIES    
+set(LIBRARIES    
     gmock
     ApplicationManager
     HMIMessageHandler
@@ -46,12 +46,12 @@ set(SOURCES
     ${COMPONENTS_DIR}/hmi_message_handler/test/test_mqueue_adapter.cc 
 )          
 
-if (${QT_HMI})
-  list (APPEND SOURCES  
+if(${QT_HMI})
+    list (APPEND SOURCES  
     ${COMPONENTS_DIR}/hmi_message_handler/test/mock_subscriber.cc 
     ${COMPONENTS_DIR}/hmi_message_handler/test/test_dbus_message_adapter.cc
   )
-endif ()
-create_test("test_hmi_message_handler" "${SOURCES}" "${LIBRARIES}")
+endif()
+create_test("hmi_message_handler_test" "${SOURCES}" "${LIBRARIES}")
 
 endif()
