@@ -35,23 +35,17 @@ add_definitions(-DUNIT_TESTS)
 add_subdirectory(./SchemaItem)
 
 include_directories (
-  ${LOG4CXX_INCLUDE_DIRECTORY}
   ${COMPONENTS_DIR}/utils/include
   ${GMOCK_INCLUDE_DIRECTORY}
   ${COMPONENTS_DIR}/smart_objects/include
-  ${COMPONENTS_DIR}/formatters/include/
   ${JSONCPP_INCLUDE_DIRECTORY}
 )
 
 set (LIBRARIES
-    gtest
     gtest_main
     gmock
     SmartObjects
-    formatters
-    jsoncpp
-    ${RTLIB}
-    ProtocolLibrary
+    jsoncpp   
 )
 
 set (SOURCES
@@ -66,7 +60,6 @@ set (SOURCES
 add_library(test_smart_object ${SOURCES})
 create_test(test_smart_object_test "${SOURCES}" "${LIBRARIES}")
 
-create_test("test_smart_object_convertion_time_test" "./SmartObjectConvertionTimeTest.cc" "${LIBRARIES}")
 create_test("test_smart_object_performance_test" "./smart_object_performance_test.cc" "${LIBRARIES}")
 create_test("test_map_performance_test" "./map_performance_test.cc" "${LIBRARIES}")
 

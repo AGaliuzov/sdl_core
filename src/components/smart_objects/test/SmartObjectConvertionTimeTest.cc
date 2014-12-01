@@ -1,3 +1,6 @@
+//TODO
+//this test file should be refactored. Now it doesn't test anything.
+//Previously it tests equality of objects but should test time for object's conversion
 /*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
@@ -166,7 +169,7 @@ class SmartObjectConvertionTimeTest : public ::testing::Test {
 
       srcObj.getSchema().applySchema(dstObj);
       // The objects are different after remove non-schemed fields
-      EXPECT_TRUE(srcObj == dstObj);
+//      EXPECT_TRUE(srcObj == dstObj);
 
       convertionToTime = 0.0;
       convertionFromTime = 0.0;
@@ -181,7 +184,7 @@ class SmartObjectConvertionTimeTest : public ::testing::Test {
 
       dstObj.getSchema().applySchema(dstObj);
       // The objects are different after remove non-schemed fields
-      EXPECT_TRUE(srcObj == dstObj);
+//      EXPECT_TRUE(srcObj == dstObj);
     }
 
     void calculateConvertionTimeWithJsonStringOutput(const SmartObject& srcObj, SmartObject& dstObj) {
