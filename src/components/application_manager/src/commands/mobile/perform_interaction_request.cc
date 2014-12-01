@@ -565,6 +565,7 @@ void PerformInteractionRequest::SendVRPerformInteractionRequest(
             smart_objects::SmartObject item(smart_objects::SmartType_Map);
             // Since there is no custom data from application side, SDL should
             // construct prompt and append delimiter to each item
+            item[strings::type] = hmi_apis::Common_SpeechCapabilities::SC_TEXT;
             item[strings::text] = vr_commands[0].asString() +
                                   profile::Profile::instance()->tts_delimiter();
             msg_params[strings::help_prompt][index++] = item;
