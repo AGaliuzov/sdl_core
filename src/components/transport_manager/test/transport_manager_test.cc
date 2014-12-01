@@ -187,7 +187,7 @@ TEST_F(TransportManagerTest, ScanDeviceFailed) {
 
   //assert
   EXPECT_CALL(*tm_listener, OnDeviceFound(_)).Times(0);
-  EXPECT_CALL(*tm_listener, OnScanDevicesFailed(_)).Times(1).WillOnce(
+  EXPECT_CALL(*tm_listener, OnScanDevicesFailed(_)).WillOnce(
       SignalTest(this));
 
   //act
