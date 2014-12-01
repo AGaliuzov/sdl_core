@@ -55,7 +55,7 @@ SDL.SDLController = Em.Object
          */
         sysContext: function() {
 
-            if (SDL.VRPopUp.VRActive) {
+            if (SDL.SDLModel.VRActive) {
                 return 'VRSESSION';
             }
             if (SDL.AlertPopUp.active) {
@@ -78,7 +78,7 @@ SDL.SDLController = Em.Object
         }.property('SDL.OptionsView.active',
             'SDL.SliderView.active',
             'SDL.SDLModel.AudioPassThruState',
-            'SDL.VRPopUp.VRActive',
+            'SDL.SDLModel.VRActive',
             'SDL.AlertPopUp.active',
             'SDL.States.info.nonMedia.active',
             'SDL.States.media.sdlmedia.active',
@@ -745,6 +745,9 @@ SDL.SDLController = Em.Object
          */
         onActivateSDLApp: function(element) {
 
+            if (SDL.SDLModel.VRActive) {
+                SDL.SDLModel.toggleProperty('VRActive');
+            }
             FFW.BasicCommunication.ActivateApp(element.appID);
         },
         /**
