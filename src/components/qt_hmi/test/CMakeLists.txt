@@ -41,6 +41,7 @@ ${COMPONENTS_DIR}/qt_hmi/test/src/tst_ScrollableMessage.qml
 ${COMPONENTS_DIR}/qt_hmi/test/src/tst_SetMediaClockTimer.qml
 ${COMPONENTS_DIR}/qt_hmi/test/src/tst_Show.qml
 ${COMPONENTS_DIR}/qt_hmi/test/src/tst_Slider.qml
+${COMPONENTS_DIR}/qt_hmi/test/readme.txt
 )
 
 include_directories(

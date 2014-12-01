@@ -9,5 +9,6 @@ A few comments on test writting for QML Unit Testing
 - for async testing use timer
 - each system's entity that changes during RPC must be tested
 - test incoming arguments is not necessary as it will be verified by Qt abstraction layer
-- run test with following command "./test_QtHMI -import ./../../../src/components/qt_hmi/qml_model"
+- run test with following command: 
+ "./test_QtHMI -import ../../qt_hmi/qml_model_qt5/"
 
