@@ -1097,8 +1097,10 @@ void ApplicationManagerImpl::OnApplicationFloodCallBack(const uint32_t &connecti
       connection_key,
       mobile_apis::AppInterfaceUnregisteredReason::TOO_MANY_REQUESTS);
 
+  const bool resuming = true;
+  const bool unexpected_disconnect = false;
   UnregisterApplication(connection_key, mobile_apis::Result::TOO_MANY_PENDING_REQUESTS,
-                        true, true);
+                        resuming, unexpected_disconnect);
   // TODO(EZamakhov): increment "removals_for_bad_behaviour" field in policy table
 }
 
