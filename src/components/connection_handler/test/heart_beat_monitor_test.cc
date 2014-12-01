@@ -33,7 +33,6 @@
 #include <string>
 #include <stdio.h>
 #include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "connection_handler/heartbeat_monitor.h"
 #include "connection_handler/connection.h"
 #include "connection_handler/connection_handler.h"
