@@ -32,26 +32,26 @@ if(BUILD_TESTS)
 
 set(appMain_DIR ${CMAKE_SOURCE_DIR}/src/appMain)
 include_directories (
-  ${GMOCK_INCLUDE_DIRECTORY}
-  ${COMPONENTS_DIR}/connection_handler/include
-  ${COMPONENTS_DIR}/security_manager/test/include
-  ${COMPONENTS_DIR}/security_manager/include
-  )
+    ${GMOCK_INCLUDE_DIRECTORY}
+    ${COMPONENTS_DIR}/connection_handler/include
+    ${COMPONENTS_DIR}/security_manager/test/include
+    ${COMPONENTS_DIR}/security_manager/include
+)
 
 set (LIBRARIES
     gmock
     connectionHandler
     ConfigProfile
- )
-
-set (SOURCES
-  connection_handler_impl_test.cc
-  connection_test.cc
-  heart_beat_monitor_test.cc
-  main.cc
 )
 
- file(COPY ${appMain_DIR}/smartDeviceLink.ini DESTINATION "./")
+set (SOURCES
+    connection_handler_impl_test.cc
+    connection_test.cc
+    heart_beat_monitor_test.cc
+    main.cc
+)
+
+file(COPY ${appMain_DIR}/smartDeviceLink.ini DESTINATION "./")
 
 create_test("test_connection_handler" "${SOURCES}" "${LIBRARIES}")
 add_library("test_connection_handler_test" ${SOURCES})
