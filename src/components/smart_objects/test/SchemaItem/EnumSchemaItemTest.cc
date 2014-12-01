@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Ford Motor Company
+// Copyright (c) 2014, Ford Motor Company
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "gtest/gtest.h"
+
 #include "gmock/gmock.h"
 
 #include "smart_objects/smart_object.h"
@@ -38,7 +38,10 @@
 #include <string>
 
 
-namespace test { namespace components { namespace SmartObjects { namespace SchemaItem {
+namespace test {
+namespace components {
+namespace SmartObjects {
+namespace SchemaItem      {
 
     using namespace NsSmartDeviceLink::NsSmartObjects;
     namespace TestType {
@@ -269,9 +272,4 @@ EnumConversionHelper<test::components::SmartObjects::SchemaItem::TestType::eType
 };
 
 }
-}
-
-int main(int argc, char **argv) {
-  ::testing::InitGoogleMock(&argc, argv);
-  return RUN_ALL_TESTS();
 }

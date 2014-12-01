@@ -45,7 +45,6 @@ set (LIBRARIES
     gmock
     SmartObjects
     formatters
-    jsoncpp
 )
 
 set (SOURCES

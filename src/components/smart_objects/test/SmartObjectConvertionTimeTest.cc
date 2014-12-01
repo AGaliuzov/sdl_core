@@ -33,7 +33,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gtest/gtest.h"
+
 #include "gmock/gmock.h"
 
 #include "utils/shared_ptr.h"

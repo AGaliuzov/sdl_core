@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Ford Motor Company
+// Copyright (c) 2014, Ford Motor Company
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 
 #include <sstream>
 
-#include "gtest/gtest.h"
+
 #include "gmock/gmock.h"
 
 #include "smart_objects/smart_object.h"
@@ -40,7 +40,10 @@
 //#define COPY_SUB_OBJECTS_WORKAROUND
 
 
-namespace test { namespace components { namespace SmartObjects { namespace SmartObjectStressTest {
+namespace test {
+namespace components {
+namespace SmartObjects {
+namespace SmartObjectStressTest {
 
     using namespace NsSmartDeviceLink::NsSmartObjects;
 

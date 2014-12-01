@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Ford Motor Company
+// Copyright (c) 2014, Ford Motor Company
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,6 @@
 #include <stdlib.h>
 #include <vector>
 
-#include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
 #include "utils/shared_ptr.h"
@@ -106,8 +105,8 @@ TEST(SharedPtrTest, Constructor) {
   p3 = p4;
   ASSERT_EQ(2, p3->getId());
 
-  EXPECT_CALL(*object1, destructor()).Times(1);
-  EXPECT_CALL(*object2, destructor()).Times(1);
+  EXPECT_CALL(*object1, destructor());
+  EXPECT_CALL(*object2, destructor());
 }
 
 TEST(SharedPtrTest, PointerTypeCast) {
@@ -131,8 +130,8 @@ TEST(SharedPtrTest, PointerTypeCast) {
   p1 = ep2;
   ASSERT_EQ(2, p1->getId());
 
-  EXPECT_CALL(*object1, destructor()).Times(1);
-  EXPECT_CALL(*object2, destructor()).Times(1);
+  EXPECT_CALL(*object1, destructor());
+  EXPECT_CALL(*object2, destructor());
 }
 
 TEST(SharedPtrTest, AddedOperators) {
@@ -166,8 +165,8 @@ TEST(SharedPtrTest, AddedOperators) {
   *p2 = 3;
   ASSERT_EQ(3, *p2);
 
-  EXPECT_CALL(*object1, destructor()).Times(1);
-  EXPECT_CALL(*object2, destructor()).Times(1);
+  EXPECT_CALL(*object1, destructor());
+  EXPECT_CALL(*object2, destructor());
 }
 
 TEST(SharedPtrTest, StressTest) {
@@ -183,7 +182,7 @@ TEST(SharedPtrTest, StressTest) {
         (0 == rand() % 256)) {
       test::components::utils::SharedPtrTest::CMockObject* object = new
       test::components::utils::SharedPtrTest::CMockObject(0);
-      EXPECT_CALL(*object, destructor()).Times(1);
+      EXPECT_CALL(*object, destructor());
 
       objects.push_back(object);
 
