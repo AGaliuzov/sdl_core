@@ -40,9 +40,7 @@ include_directories (
 
 # Libraries are the same for all SchemaItem tests
 set (LIBRARIES
-    gtest
     gtest_main
-    gmock
     SmartObjects
     formatters
 )
