@@ -37,6 +37,6 @@ else ()
     add_subdirectory(./qml_model_qt5)
 endif ()
 
-if(BUILD_TESTS)
-  add_subdirectory(test)
+if(HMI STREQUAL "qt" AND BUILD_TESTS)
+    add_subdirectory(test)
 endif()

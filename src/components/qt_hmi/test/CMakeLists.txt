@@ -34,37 +34,37 @@ if(BUILD_TESTS)
 cmake_minimum_required(VERSION 2.8.11)
 
 set(QT_HMI_TESTS_LIST 
-${COMPONENTS_DIR}/qt_hmi/test/src/tst_AddCommand.qml
-${COMPONENTS_DIR}/qt_hmi/test/src/tst_AddSubMenu.qml
-${COMPONENTS_DIR}/qt_hmi/test/src/tst_DeleteCommand.qml
-${COMPONENTS_DIR}/qt_hmi/test/src/tst_ScrollableMessage.qml
-${COMPONENTS_DIR}/qt_hmi/test/src/tst_SetMediaClockTimer.qml
-${COMPONENTS_DIR}/qt_hmi/test/src/tst_Show.qml
-${COMPONENTS_DIR}/qt_hmi/test/src/tst_Slider.qml
-${COMPONENTS_DIR}/qt_hmi/test/readme.txt
+    ${COMPONENTS_DIR}/qt_hmi/test/src/tst_AddCommand.qml
+    ${COMPONENTS_DIR}/qt_hmi/test/src/tst_AddSubMenu.qml
+    ${COMPONENTS_DIR}/qt_hmi/test/src/tst_DeleteCommand.qml
+    ${COMPONENTS_DIR}/qt_hmi/test/src/tst_ScrollableMessage.qml
+    ${COMPONENTS_DIR}/qt_hmi/test/src/tst_SetMediaClockTimer.qml
+    ${COMPONENTS_DIR}/qt_hmi/test/src/tst_Show.qml
+    ${COMPONENTS_DIR}/qt_hmi/test/src/tst_Slider.qml
+    ${COMPONENTS_DIR}/qt_hmi/test/readme.txt
 )
 
 include_directories(
-  ${CMAKE_CURRENT_BINARY_DIR} 
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  )
+    ${CMAKE_CURRENT_BINARY_DIR} 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
 set(CONFIG
-  warn_on 
-  qmltestcase
+    warn_on 
+    qmltestcase
 )
 
 set(SOURCES
-  qt_hmi_test.cc
+    qt_hmi_test.cc
 )
 
-set(target test_QtHMI)
+set(target qt_hmi_test)
 
-create_test("test_QtHMI" "${SOURCES}" "")
+create_test("qt_hmi_test" "${SOURCES}" "")
 qt5_use_modules(${target} Core Qml Quick QuickTest)
 
 foreach( file_i ${QT_HMI_TESTS_LIST})
-file(COPY ${file_i} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+    file(COPY ${file_i} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 endforeach( file_i )
 
 endif()
