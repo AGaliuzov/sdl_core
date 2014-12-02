@@ -54,13 +54,12 @@ set (SOURCES
   ${COMPONENTS_DIR}/smart_objects/test/SmartObjectStressTest.cc
   ${COMPONENTS_DIR}/smart_objects/test/SmartObjectUnitTest.cc
   ${COMPONENTS_DIR}/smart_objects/test/TSharedPtrTest.cc
+  ${COMPONENTS_DIR}/smart_objects/test/smart_object_performance_test.cc
+  ${COMPONENTS_DIR}/smart_objects/test/map_performance_test.cc
   ${COMPONENTS_DIR}/smart_objects/test/main.cc
 )
 
 add_library(test_smart_object ${SOURCES})
 create_test(test_smart_object_test "${SOURCES}" "${LIBRARIES}")
-
-create_test("test_smart_object_performance_test" "./smart_object_performance_test.cc" "${LIBRARIES}")
-create_test("test_map_performance_test" "./map_performance_test.cc" "${LIBRARIES}")
 
 endif()
