@@ -46,21 +46,21 @@ set (LIBRARIES
 )
 
 set (SOURCES
-  ${COMPONENTS_DIR}/smart_objects/test/SmartObjectDraftTest.cc
-  ${COMPONENTS_DIR}/smart_objects/test/SmartObjectInvalidTest.cc
-  ${COMPONENTS_DIR}/smart_objects/test/SmartObjectStressTest.cc
-  ${COMPONENTS_DIR}/smart_objects/test/SmartObjectUnitTest.cc
-  ${COMPONENTS_DIR}/smart_objects/test/TSharedPtrTest.cc
+  ${COMPONENTS_DIR}/smart_objects/test/SmartObjectDraft_test.cc
+  ${COMPONENTS_DIR}/smart_objects/test/SmartObjectInvalid_test.cc
+  ${COMPONENTS_DIR}/smart_objects/test/SmartObjectStress_test.cc
+  ${COMPONENTS_DIR}/smart_objects/test/SmartObjectUnit_test.cc
+  ${COMPONENTS_DIR}/smart_objects/test/TSharedPtr_test.cc
   ${COMPONENTS_DIR}/smart_objects/test/smart_object_performance_test.cc
   ${COMPONENTS_DIR}/smart_objects/test/map_performance_test.cc
   ${COMPONENTS_DIR}/smart_objects/test/main.cc
-  ${COMPONENTS_DIR}/smart_objects/test/BoolSchemaItemTest.cc
-  ${COMPONENTS_DIR}/smart_objects/test/NumberSchemaItemTest.cc
-  ${COMPONENTS_DIR}/smart_objects/test/StringSchemaItemTest.cc
-  ${COMPONENTS_DIR}/smart_objects/test/ArraySchemaItemTest.cc
-  ${COMPONENTS_DIR}/smart_objects/test/CObjectSchemaItem.cc
-  ${COMPONENTS_DIR}/smart_objects/test/AlwaysTrueSchemaItemTest.cc
-  ${COMPONENTS_DIR}/smart_objects/test/AlwaysFalseSchemaItemTest.cc
+  ${COMPONENTS_DIR}/smart_objects/test/BoolSchemaItem_test.cc
+  ${COMPONENTS_DIR}/smart_objects/test/NumberSchemaItem_test.cc
+  ${COMPONENTS_DIR}/smart_objects/test/StringSchemaItem_test.cc
+  ${COMPONENTS_DIR}/smart_objects/test/ArraySchemaItem_test.cc
+  ${COMPONENTS_DIR}/smart_objects/test/CObjectSchemaItem_test.cc
+  ${COMPONENTS_DIR}/smart_objects/test/AlwaysTrueSchemaItem_test.cc
+  ${COMPONENTS_DIR}/smart_objects/test/AlwaysFalseSchemaItem_test.cc
 )
 
 add_library(test_smart_object ${SOURCES})
