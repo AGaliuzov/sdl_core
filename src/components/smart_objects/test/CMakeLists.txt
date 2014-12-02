@@ -32,7 +32,6 @@ if(BUILD_TESTS)
 add_definitions(-DUNIT_TESTS)
 
 include_directories (
-  ${COMPONENTS_DIR}/utils/include
   ${GMOCK_INCLUDE_DIRECTORY}
   ${COMPONENTS_DIR}/smart_objects/include
   ${COMPONENTS_DIR}/formatters/include/
@@ -65,6 +64,6 @@ set (SOURCES
 )
 
 add_library(test_smart_object ${SOURCES})
-create_test(test_smart_object_test "${SOURCES}" "${LIBRARIES}")
+create_test(smart_object_test "${SOURCES}" "${LIBRARIES}")
 
 endif()
