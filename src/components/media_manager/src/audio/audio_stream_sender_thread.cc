@@ -213,10 +213,12 @@ void AudioStreamSenderThread::setShouldBeStopped(bool should_stop) {
   shouldBeStoped_cv_.NotifyOne();
 }
 
+#ifndef CUSTOMER_PASA
 void AudioStreamSenderThread::exitThreadMain() {
   LOG4CXX_AUTO_TRACE(logger_);
   setShouldBeStopped(true);
 }
+#endif
 
 uint32_t AudioStreamSenderThread::session_key() const {
   return session_key_;
