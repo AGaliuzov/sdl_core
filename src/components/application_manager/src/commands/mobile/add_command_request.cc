@@ -198,7 +198,8 @@ bool AddCommandRequest::CheckCommandName(ApplicationConstSharedPtr app) {
     return false;
   }
 
-  const CommandsMap& commands = app->commands_map();
+  const DataAccessor<CommandsMap> accessor = app->commands_map();
+  const CommandsMap& commands = accessor.GetData();
   CommandsMap::const_iterator i = commands.begin();
   uint32_t saved_parent_id = 0;
   uint32_t parent_id = 0;
@@ -235,7 +236,8 @@ bool AddCommandRequest::CheckCommandVRSynonym(ApplicationConstSharedPtr app) {
     return false;
   }
 
-  const CommandsMap& commands = app->commands_map();
+  const DataAccessor<CommandsMap> accessor = app->commands_map();
+  const CommandsMap& commands = accessor.GetData();
   CommandsMap::const_iterator it = commands.begin();
 
   for (; commands.end() != it; ++it) {

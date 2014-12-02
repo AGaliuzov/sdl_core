@@ -622,26 +622,34 @@ smart_objects::SmartObject* MessageHelper::CreateSetAppIcon(
 bool MessageHelper::SendIVISubscribtions(const uint32_t app_id) {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  bool succes = true;
+  bool result = true;
   ApplicationSharedPtr app = ApplicationManagerImpl::instance()->application(
                                app_id);
-  DCHECK(app.get());
+
+  if (!app.valid()) {
+    LOG4CXX_ERROR(logger_, "Invalid application " << app_id);
+    return result;
+  }
 
   SmartObjectList requests = GetIVISubscriptionRequests(app);
   for (SmartObjectList::const_iterator it = requests.begin();
        it != requests.end(); ++it) {
     if (!ApplicationManagerImpl::instance()->ManageHMICommand(*it)) {
-      succes = false;
+      result = false;
     }
   }
-  return succes;
+  return result;
 }
 
 MessageHelper::SmartObjectList MessageHelper::GetIVISubscriptionRequests(
   ApplicationSharedPtr app) {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  DCHECK(app);
+  SmartObjectList hmi_requests;
+  if (!app.valid()) {
+    LOG4CXX_ERROR(logger_, "Invalid application pointer ");
+    return hmi_requests;
+  }
 
   smart_objects::SmartObject msg_params = smart_objects::SmartObject(
       smart_objects::SmartType_Map);
@@ -658,7 +666,6 @@ MessageHelper::SmartObjectList MessageHelper::GetIVISubscriptionRequests(
     }
   }
 
-  SmartObjectList hmi_requests;
 #ifdef HMI_JSON_API
   smart_objects::SmartObject* request = MessageHelper::CreateModuleInfoSO(
                                           hmi_apis::FunctionID::VehicleInfo_SubscribeVehicleData);
@@ -717,8 +724,10 @@ void MessageHelper::SendAppDataToHMI(ApplicationConstSharedPtr app) {
 }
 
 void MessageHelper::SendGlobalPropertiesToHMI(ApplicationConstSharedPtr app) {
-  LOG4CXX_AUTO_TRACE(logger_);
-  DCHECK(app.get());
+  if (!app.valid()) {
+    LOG4CXX_ERROR(logger_, "Invalid application");
+    return;
+  }
 
   SmartObjectList requests = CreateGlobalPropertiesRequestsToHMI(app);
   for (SmartObjectList::const_iterator it = requests.begin();
@@ -732,7 +741,10 @@ MessageHelper::SmartObjectList MessageHelper::CreateGlobalPropertiesRequestsToHM
   LOG4CXX_AUTO_TRACE(logger_);
 
   SmartObjectList requests;
-  DCHECK(app.get());
+  if (!app.valid()) {
+    LOG4CXX_ERROR(logger_, "Invalid application");
+    return requests;
+  }
 
   // UI global properties
 
@@ -841,7 +853,8 @@ void MessageHelper::SendTTSGlobalProperties(
     msg_params[strings::help_prompt] = smart_objects::SmartObject(
         smart_objects::SmartType_Array);
     if (default_help_prompt) {
-      const CommandsMap& commands = app->commands_map();
+      const DataAccessor<CommandsMap> accessor = app->commands_map();
+      const CommandsMap& commands = accessor.GetData();
       CommandsMap::const_iterator it = commands.begin();
       uint32_t index = 0;
       for (; commands.end() != it; ++it) {
@@ -887,7 +900,8 @@ smart_objects::SmartObject* MessageHelper::CreateAppVrHelp(
   }
 
   // copy all app VR commands
-  const CommandsMap& commands = app->commands_map();
+  const DataAccessor<CommandsMap> cmd_accessor = app->commands_map();
+  const CommandsMap& commands = cmd_accessor.GetData();
   CommandsMap::const_iterator it = commands.begin();
 
   for (; commands.end() != it; ++it) {
@@ -901,9 +915,13 @@ smart_objects::SmartObject* MessageHelper::CreateAppVrHelp(
 
 MessageHelper::SmartObjectList MessageHelper::CreateShowRequestToHMI(
   ApplicationConstSharedPtr app) {
-  DCHECK(app.get());
 
-  SmartObjectList requests;
+  SmartObjectList requests;  
+  if (!app.valid()) {
+    LOG4CXX_ERROR(logger_, "Invalid application");
+    return requests;
+  }
+
   smart_objects::SmartObject* ui_show = new smart_objects::SmartObject(
     smart_objects::SmartType_Map);
   if (app->show_command()) {
@@ -978,10 +996,15 @@ void MessageHelper::SendAddCommandRequestToHMI(ApplicationConstSharedPtr app) {
 
 MessageHelper::SmartObjectList MessageHelper::CreateAddCommandRequestToHMI(
   ApplicationConstSharedPtr app) {
-  DCHECK(app.get());
 
   SmartObjectList requests;
-  const CommandsMap& commands = app->commands_map();
+  if (!app.valid()) {
+    LOG4CXX_ERROR(logger_, "Invalid application");
+    return requests;
+  }
+
+  const DataAccessor<CommandsMap> accessor = app->commands_map();
+  const CommandsMap& commands = accessor.GetData();
   CommandsMap::const_iterator i = commands.begin();
   for (; commands.end() != i; ++i) {
     // UI Interface
@@ -1196,7 +1219,11 @@ bool MessageHelper::CreateHMIApplicationStruct(ApplicationConstSharedPtr app,
 }
 
 void MessageHelper::SendAddSubMenuRequestToHMI(ApplicationConstSharedPtr app) {
-  DCHECK(app.get());
+  if (!app.valid()) {
+    LOG4CXX_ERROR(logger_, "Invalid application");
+    return;
+  }
+
   SmartObjectList requests = CreateAddSubMenuRequestToHMI(app);
   for (SmartObjectList::iterator it = requests.begin(); it != requests.end();
        ++it) {
@@ -1207,7 +1234,8 @@ void MessageHelper::SendAddSubMenuRequestToHMI(ApplicationConstSharedPtr app) {
 MessageHelper::SmartObjectList MessageHelper::CreateAddSubMenuRequestToHMI(
   ApplicationConstSharedPtr app) {
   SmartObjectList requsets;
-  const SubMenuMap& sub_menu = app->sub_menu_map();
+  const DataAccessor<SubMenuMap> accessor = app->sub_menu_map();
+  const SubMenuMap& sub_menu = accessor.GetData();
   SubMenuMap::const_iterator i = sub_menu.begin();
   for (; sub_menu.end() != i; ++i) {
     smart_objects::SmartObject* ui_sub_menu = new smart_objects::SmartObject(

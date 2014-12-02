@@ -66,7 +66,7 @@ class SQLPTRepresentation : public virtual PTRepresentation {
     virtual void ResetIgnitionCycles();
     virtual int TimeoutResponse();
     virtual bool SecondsBetweenRetries(std::vector<int>* seconds);
-
+    virtual bool RefreshDB();
     virtual VehicleData GetVehicleData();
 
     virtual std::vector<UserFriendlyMessage> GetUserFriendlyMsg(

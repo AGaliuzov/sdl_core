@@ -29,24 +29,44 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#ifndef SRC_COMPONENTS_INCLUDE_UTILS_DATA_ACCESSOR_H_
+#define SRC_COMPONENTS_INCLUDE_UTILS_DATA_ACCESSOR_H_
 
-#ifndef SRC_COMPONENTS_INCLUDE_UTILS_LOGGER_STATUS_H_
-#define SRC_COMPONENTS_INCLUDE_UTILS_LOGGER_STATUS_H_
+#include "utils/lock.h"
 
-namespace logger {
+// This class is for thread-safe access to data
+template<class T>
+class DataAccessor {
+ public:
+  DataAccessor(const T& data, const sync_primitives::Lock& lock)
+  : data_(data)
+  , lock_(const_cast<sync_primitives::Lock&>(lock))
+  , counter_(0) {
+  lock_.Acquire();
+  }
+  template<class O> DataAccessor(const DataAccessor<O>& other)
+  : data_(other.data_)
+  , lock_(other.lock_)
+  , counter_(other.counter_) {
+    ++counter_;
+  }
+  ~DataAccessor() {
+    if (counter_ > 0) {
+      --counter_;
+    }
+    if (0 == counter_) {
+      lock_.Release();
+    }
+  }
+  const T& GetData() const {
+    return data_;
+  }
+ private:
+  template <class O> const DataAccessor<T>& operator=(const DataAccessor<O>& other);
 
-typedef enum {
-  LoggerThreadNotCreated,
-  CreatingLoggerThread,
-  LoggerThreadCreated,
-  DeletingLoggerThread
-} LoggerStatus;
+  const T&                     data_;
+  sync_primitives::Lock&           lock_;
+  uint32_t                         counter_;
+};
 
-// this variable is only changed when creating and deleting logger thread
-// its reads and writes are believed to be atomic
-// thus it shall be considered thread safe
-extern volatile LoggerStatus logger_status;
-
-}  // namespace logger
-
-#endif  // SRC_COMPONENTS_INCLUDE_UTILS_LOGGER_STATUS_H_
+#endif  // SRC_COMPONENTS_INCLUDE_UTILS_DATA_ACCESSOR_H_

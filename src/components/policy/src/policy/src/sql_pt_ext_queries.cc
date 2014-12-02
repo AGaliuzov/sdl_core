@@ -1,4 +1,4 @@
-/*
+﻿/*
  Copyright (c) 2013, " Ford Motor Company
  All rights reserved.
 
@@ -160,6 +160,12 @@ const std::string kUpdateMetaParams = "UPDATE `module_meta` SET "
 
 const std::string kUpdateModuleMetaVinParam =
     "UPDATE `module_meta` SET `vin` = ? ";
+
+const std::string kSaveModuleMeta =
+    "UPDATE `module_meta` SET `ccpu_version` = ?, `language` = ?,"
+    "`wers_country_code` = ?, `pt_exchanged_at_odometer_x` = ?,"
+    "`pt_exchanged_x_days_after_epoch` = ?,"
+    "`ignition_cycles_since_last_exchange` = ?, `vin` = ?";
 
 const std::string kSelectMetaParams = "SELECT `ccpu_version`, "
                    "`wers_country_code`, `language` from `module_meta`";

@@ -136,7 +136,7 @@ bool CheckAppPolicy::HasSameGroups(const AppPoliciesValueType& app_policy,
       break;
     }
     if (Compare(*diff.first, *diff.second) &&
-        IsConsentRequired(*(diff.first))) {
+        IsConsentRequired(app_id, *(diff.first))) {
       perms->isAppPermissionsRevoked = true;
       FunctionalGroupPermission group;
       group.group_name = *(diff.first);
@@ -147,14 +147,14 @@ bool CheckAppPolicy::HasSameGroups(const AppPoliciesValueType& app_policy,
       // according to the SDLAQ-CRS-2757 we have to set
       // appPermissionsConsentNeeded should not be set to true
       // in case if this group is auto-allowed
-      perms->appPermissionsConsentNeeded = IsConsentRequired(*new_it);
+      perms->appPermissionsConsentNeeded = IsConsentRequired(app_id, *new_it);
       old_it = diff.first;
       new_it = ++diff.second;
     }
   }
 
   for (StringsConstItr it = old_it; it != it_groups_curr_end; ++it) {
-    if (!IsConsentRequired(*it)) {
+    if (!IsConsentRequired(app_id, *it)) {
       continue;
     }
     perms->isAppPermissionsRevoked = true;
@@ -252,6 +252,7 @@ void CheckAppPolicy::SendOnPendingPermissions(
       FunctionalGroupInserter(preconsented_groups, list_of_permissions));
     // TODO(PV): logic has changed.
     if (!list_of_permissions.empty()) {
+      sync_primitives::AutoLock lock(pm_->app_permissions_diff_lock_);
       pm_->app_permissions_diff_.insert(
         std::make_pair(app_policy.first, permissions));
       pm_->listener()->OnPendingPermissionChange(app_policy.first);
@@ -261,6 +262,7 @@ void CheckAppPolicy::SendOnPendingPermissions(
   }
   // TODO(AOleynik): Seems, it is unused part?
   if (permissions.isAppPermissionsRevoked) {
+    sync_primitives::AutoLock lock(pm_->app_permissions_diff_lock_);
     pm_->app_permissions_diff_.insert(
       std::make_pair(app_policy.first, permissions));
     pm_->listener()->OnPendingPermissionChange(app_policy.first);
@@ -308,7 +310,9 @@ bool CheckAppPolicy::operator()(const AppPoliciesValueType& app_policy) {
   // Check revocation
   if (!IsPredefinedApp(app_policy) && IsAppRevoked(app_policy)) {
     permissions_diff.appRevoked = true;
+    pm_->app_permissions_diff_lock_.Acquire();
     pm_->app_permissions_diff_.insert(std::make_pair(app_id, permissions_diff));
+    pm_->app_permissions_diff_lock_.Release();
     pm_->listener()->OnAppRevoked(app_id);
     policy_table::ApplicationPolicies::iterator it = current_policies.find(
           app_id);
@@ -335,7 +339,9 @@ bool CheckAppPolicy::operator()(const AppPoliciesValueType& app_policy) {
 
   if (!IsPredefinedApp(app_policy) && !NicknamesMatch(app_id, app_policy)) {
     permissions_diff.appUnauthorized = true;
+    pm_->app_permissions_diff_lock_.Acquire();
     pm_->app_permissions_diff_.insert(std::make_pair(app_id, permissions_diff));
+    pm_->app_permissions_diff_lock_.Release();
     pm_->listener()->OnPendingPermissionChange(app_policy.first);
     policy_table::ApplicationPolicies::iterator it = current_policies.find(
           app_id);
@@ -369,15 +375,31 @@ bool CheckAppPolicy::operator()(const AppPoliciesValueType& app_policy) {
   return true;
 }
 
-bool CheckAppPolicy::IsConsentRequired(const std::string& group_name) const {
+bool CheckAppPolicy::IsConsentRequired(const std::string& app_id,
+                                       const std::string& group_name) const {
   const policy_table::FunctionalGroupings& functional_groupings =
       snapshot_->policy_table.functional_groupings;
+
   FuncGroupConstItr it = functional_groupings.find(group_name);
+
   if (functional_groupings.end() == it) {
     return false;
   }
 
-  return it->second.user_consent_prompt.is_initialized();
+  bool is_preconsented = false;
+#ifdef EXTENDED_POLICY
+  policy_table::Strings::value_type str(group_name);
+  policy_table::Strings::iterator pre_begin =
+      update_->policy_table.app_policies[app_id].preconsented_groups->begin();
+  policy_table::Strings::iterator pre_end =
+      update_->policy_table.app_policies[app_id].preconsented_groups->end();
+
+  policy_table::Strings::iterator it2 = std::find(pre_begin, pre_end, str);
+
+  is_preconsented = pre_end != it2;
+#endif // EXTENDED_POLICY
+
+  return it->second.user_consent_prompt.is_initialized() && !is_preconsented;
 }
 
 FillNotificationData::FillNotificationData(Permissions& data,
