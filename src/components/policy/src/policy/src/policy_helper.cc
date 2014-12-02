@@ -126,6 +126,10 @@ bool CheckAppPolicy::HasSameGroups(const AppPoliciesValueType& app_policy,
 
   std::pair<StringsConstItr, StringsConstItr> diff;
 
+  // PM has to notify app about changed permissions, i.e. groups, even if these
+  // groups don't require user consent
+  bool is_new_group_present = false;
+
   while (it_groups_new_end != new_it && it_groups_curr_end != old_it) {
     size_t size = ((it_groups_new_end - new_it) > (it_groups_curr_end - old_it))
                   ? it_groups_curr_end - old_it : it_groups_new_end - new_it;
@@ -144,6 +148,7 @@ bool CheckAppPolicy::HasSameGroups(const AppPoliciesValueType& app_policy,
       old_it = ++diff.first;
       new_it = diff.second;
     } else {
+      is_new_group_present = true;
       // according to the SDLAQ-CRS-2757 we have to set
       // appPermissionsConsentNeeded should not be set to true
       // in case if this group is auto-allowed
@@ -163,7 +168,6 @@ bool CheckAppPolicy::HasSameGroups(const AppPoliciesValueType& app_policy,
     perms->appRevokedPermissions.push_back(group);
   }
 
-  bool is_new_group_present = false;
   if (it_groups_new_end != new_it) {
     is_new_group_present = true;
     for (; new_it != it_groups_new_end; ++new_it) {
