@@ -31,20 +31,18 @@
 if(BUILD_TESTS)
 add_definitions(-DUNIT_TESTS)
 
-# --- SchemaItems
-add_subdirectory(./SchemaItem)
-
 include_directories (
   ${COMPONENTS_DIR}/utils/include
   ${GMOCK_INCLUDE_DIRECTORY}
   ${COMPONENTS_DIR}/smart_objects/include
+  ${COMPONENTS_DIR}/formatters/include/
   ${JSONCPP_INCLUDE_DIRECTORY}
 )
 
 set (LIBRARIES
-    gtest_main
-    gmock
+    gmock_main
     SmartObjects
+    formatters
     jsoncpp   
 )
 
@@ -57,6 +55,13 @@ set (SOURCES
   ${COMPONENTS_DIR}/smart_objects/test/smart_object_performance_test.cc
   ${COMPONENTS_DIR}/smart_objects/test/map_performance_test.cc
   ${COMPONENTS_DIR}/smart_objects/test/main.cc
+  ${COMPONENTS_DIR}/smart_objects/test/BoolSchemaItemTest.cc
+  ${COMPONENTS_DIR}/smart_objects/test/NumberSchemaItemTest.cc
+  ${COMPONENTS_DIR}/smart_objects/test/StringSchemaItemTest.cc
+  ${COMPONENTS_DIR}/smart_objects/test/ArraySchemaItemTest.cc
+  ${COMPONENTS_DIR}/smart_objects/test/CObjectSchemaItem.cc
+  ${COMPONENTS_DIR}/smart_objects/test/AlwaysTrueSchemaItemTest.cc
+  ${COMPONENTS_DIR}/smart_objects/test/AlwaysFalseSchemaItemTest.cc
 )
 
 add_library(test_smart_object ${SOURCES})
