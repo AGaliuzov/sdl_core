@@ -163,12 +163,18 @@ bool CheckAppPolicy::HasSameGroups(const AppPoliciesValueType& app_policy,
     perms->appRevokedPermissions.push_back(group);
   }
 
+  bool is_new_group_present = false;
   if (it_groups_new_end != new_it) {
-    perms->appPermissionsConsentNeeded = true;
+    is_new_group_present = true;
+    for (; new_it != it_groups_new_end; ++new_it) {
+      if (IsConsentRequired(app_id, *new_it)) {
+        perms->appPermissionsConsentNeeded = true;
+        break;
+      }
+    }
   }
 
   if (perms->isAppPermissionsRevoked) {
-
       std::vector<policy::FunctionalGroupPermission>::const_iterator it =
           perms->appRevokedPermissions.begin();
       std::vector<policy::FunctionalGroupPermission>::const_iterator it_end =
@@ -180,7 +186,8 @@ bool CheckAppPolicy::HasSameGroups(const AppPoliciesValueType& app_policy,
 
 
   return !(perms->appRevokedPermissions.size() > 0
-           || perms->appPermissionsConsentNeeded);
+           || perms->appPermissionsConsentNeeded
+           || is_new_group_present);
 }
 
 bool CheckAppPolicy::IsNewAppication(const std::string& application_id) const {
