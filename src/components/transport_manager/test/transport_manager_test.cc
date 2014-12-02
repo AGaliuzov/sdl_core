@@ -31,9 +31,6 @@
  */
 #include <pthread.h>
 
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
-
 #include "protocol/common.h"
 #include "transport_manager/info.h"
 #include "transport_manager/common.h"
@@ -49,7 +46,7 @@
 #include "transport_manager/transport_manager.h"
 #include "transport_manager/transport_adapter/transport_adapter.h"
 #include "transport_manager/transport_manager_default.h"
-#include "../../connection_handler/include/connection_handler/connection_handler.h"
+#include "connection_handler/connection_handler.h"
 
 using ::testing::_;
 using ::testing::AtLeast;

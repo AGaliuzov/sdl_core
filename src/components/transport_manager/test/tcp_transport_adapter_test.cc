@@ -30,8 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gtest/gtest.h"
-#include "gmock/gmock.h"
 
 #include <sys/time.h>
 #include <sys/socket.h>
@@ -42,7 +40,6 @@
 #include "transport_manager/transport_adapter/transport_adapter_listener.h"
 #include "include/mock_transport_adapter_listener.h"
 #include "protocol/raw_message.h"
-
 
 namespace transport_manager {
 namespace transport_adapter {
