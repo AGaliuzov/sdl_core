@@ -126,6 +126,10 @@ bool CheckAppPolicy::HasSameGroups(const AppPoliciesValueType& app_policy,
 
   std::pair<StringsConstItr, StringsConstItr> diff;
 
+  // PM has to notify app about changed permissions, i.e. groups, even if these
+  // groups don't require user consent
+  bool is_new_group_present = false;
+
   while (it_groups_new_end != new_it && it_groups_curr_end != old_it) {
     size_t size = ((it_groups_new_end - new_it) > (it_groups_curr_end - old_it))
                   ? it_groups_curr_end - old_it : it_groups_new_end - new_it;
@@ -144,6 +148,7 @@ bool CheckAppPolicy::HasSameGroups(const AppPoliciesValueType& app_policy,
       old_it = ++diff.first;
       new_it = diff.second;
     } else {
+      is_new_group_present = true;
       // according to the SDLAQ-CRS-2757 we have to set
       // appPermissionsConsentNeeded should not be set to true
       // in case if this group is auto-allowed
@@ -164,11 +169,16 @@ bool CheckAppPolicy::HasSameGroups(const AppPoliciesValueType& app_policy,
   }
 
   if (it_groups_new_end != new_it) {
-    perms->appPermissionsConsentNeeded = true;
+    is_new_group_present = true;
+    for (; new_it != it_groups_new_end; ++new_it) {
+      if (IsConsentRequired(app_id, *new_it)) {
+        perms->appPermissionsConsentNeeded = true;
+        break;
+      }
+    }
   }
 
   if (perms->isAppPermissionsRevoked) {
-
       std::vector<policy::FunctionalGroupPermission>::const_iterator it =
           perms->appRevokedPermissions.begin();
       std::vector<policy::FunctionalGroupPermission>::const_iterator it_end =
@@ -180,7 +190,8 @@ bool CheckAppPolicy::HasSameGroups(const AppPoliciesValueType& app_policy,
 
 
   return !(perms->appRevokedPermissions.size() > 0
-           || perms->appPermissionsConsentNeeded);
+           || perms->appPermissionsConsentNeeded
+           || is_new_group_present);
 }
 
 bool CheckAppPolicy::IsNewAppication(const std::string& application_id) const {
