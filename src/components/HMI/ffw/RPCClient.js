@@ -129,35 +129,17 @@ FFW.RPCClient = Em.Object
 
             Em.Logger.log("Message received: " + evt.data);
 
-            var jsonObj = JSON.parse(evt.data);
+            var jsonObj = JSON.parse(evt.data, SDL.RPCController.capabilitiesCheck);
 
-            JSON.parse(evt.data, SDL.RPCController.capabilitiesCheck);
-
-            if (SDL.RPCController.capabilityCheckResult) {
-
-                if (jsonObj.method == 'UI.Show' && SDL.RPCController.capabilityCheckResult.code == 'UNSUPPORTED_RESOURCE' && Object.size(jsonObj.params) != 3 && jsonObj.params.showStrings.length != 0) {
-
-                    this.observer.errorResponsePull[jsonObj.id] = {code: 'WARNINGS', type: SDL.RPCController.capabilityCheckResult.type};
-
-                    Em.Logger.error('Image of STATIC type is not supported on HMI. Other information was successfully displayed');
-
-                    SDL.RPCController.capabilityCheckResult = null;
-                } else {
-
-                    switch (SDL.RPCController.capabilityCheckResult.code) {
-                        case 'UNSUPPORTED_RESOURCE': {
-
-                            this.observer.errorResponsePull[jsonObj.id] = SDL.RPCController.capabilityCheckResult;
-
-                            Em.Logger.error('Unsupported incoming resource! In method ' + jsonObj.method);
-
-                            SDL.RPCController.capabilityCheckResult = null;
-
-                            break;
-                        }
-                    }
-                }
-
+            if (SDL.RPCController.capabilityCheckResult != null) {
+                this.observer.errorResponsePull[jsonObj.id] = SDL.RPCController.capabilityCheckResult;
+                SDL.RPCController.capabilityCheckResult = null;
+                this.observer.checkImage(jsonObj.params);
+                this.observer.checkSoftButtons(jsonObj.params);
+                this.observer.checkChoice(jsonObj.params);
+                this.observer.checkChunk(jsonObj.params);
+                this.observer.checkHelpItems(jsonObj.params);
+                this.observer.checkTurnList(jsonObj.params);
             }
 
             // handle component registration
@@ -291,22 +273,6 @@ FFW.RPCClient = Em.Object
         send: function(obj) {
 
             if (this.socket.readyState == this.socket.OPEN) {
-
-                if (this.observer.errorResponsePull[obj.id] && this.observer.errorResponsePull[obj.id].code !== "SUCCESS" && obj.result) {
-                    var method = obj.result.method;
-
-                    delete obj.result;
-
-                    obj.error = {
-                        "code": SDL.SDLModel.resultCode[this.observer.errorResponsePull[obj.id].code],
-                        "message": this.observer.errorResponsePull[obj.id].code == "WARNINGS" ? "Image of STATIC type is not supported on HMI. Other information was successfully displayed" : "Type " + this.observer.errorResponsePull[obj.id].type + " is not supported on HMI. Request was not displayed",
-                        "data": {
-                            "method": method
-                        }
-                    }
-
-                    delete this.observer.errorResponsePull[obj.id];
-                }
 
                 var strJson = JSON.stringify(obj);
                 Em.Logger.log(strJson);
