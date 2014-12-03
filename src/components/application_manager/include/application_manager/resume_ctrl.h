@@ -280,11 +280,11 @@ class ResumeCtrl: public event_engine::EventObserver {
         const NsSmartDeviceLink::NsSmartObjects::SmartObject *so);
 
     void SendHMIRequest(const hmi_apis::FunctionID::eType& function_id,
-                        const smart_objects::SmartObject* msg_params = NULL,
+                        const smart_objects::SmartObjectSPtr msg_params = NULL,
                         bool use_events = false);
 
     bool ProcessHMIRequest(
-        NsSmartDeviceLink::NsSmartObjects::SmartObject* request = NULL,
+        smart_objects::SmartObjectSPtr request = NULL,
         bool use_events = false);
 
     void InsertToTimerQueue(uint32_t app_id, uint32_t time_stamp);

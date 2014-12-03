@@ -1,6 +1,38 @@
-﻿#include <fstream>
+﻿/*
+ Copyright (c) 2013, Ford Motor Company
+ All rights reserved.
 
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+
+ Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following
+ disclaimer in the documentation and/or other materials provided with the
+ distribution.
+
+ Neither the name of the Ford Motor Company nor the names of its contributors
+ may be used to endorse or promote products derived from this software
+ without specific prior written permission.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
+ */
 #include "application_manager/resume_ctrl.h"
+
+#include <fstream>
+
 #include "config_profile/profile.h"
 #include "utils/file_system.h"
 #include "connection_handler/connection_handler_impl.h"
@@ -275,7 +307,7 @@ bool ResumeCtrl::RestoreApplicationData(ApplicationSharedPtr application) {
   }
 
   Json::Value& saved_app = *it;
-  MessageHelper::SmartObjectList requests;
+  smart_objects::SmartObjectList requests;
   Json::Value& app_commands = saved_app[strings::application_commands];
   Json::Value& app_submenus = saved_app[strings::application_submenus];
   Json::Value& app_choise_sets = saved_app[strings::application_choise_sets];
@@ -314,7 +346,7 @@ bool ResumeCtrl::RestoreApplicationData(ApplicationSharedPtr application) {
   }
   requests = MessageHelper::CreateAddSubMenuRequestToHMI(application);
 
-  for (MessageHelper::SmartObjectList::iterator it = requests.begin();
+  for (smart_objects::SmartObjectList::iterator it = requests.begin();
        it != requests.end(); ++it) {
     ProcessHMIRequest(*it, true);
   }
@@ -331,7 +363,7 @@ bool ResumeCtrl::RestoreApplicationData(ApplicationSharedPtr application) {
 
   requests = MessageHelper::CreateAddCommandRequestToHMI(application);
 
-  for (MessageHelper::SmartObjectList::iterator it = requests.begin();
+  for (smart_objects::SmartObjectList::iterator it = requests.begin();
        it != requests.end(); ++it) {
     ProcessHMIRequest(*it, true);
   }
@@ -442,7 +474,7 @@ bool ResumeCtrl::RestoreApplicationData(ApplicationSharedPtr application) {
     }
     requests = MessageHelper::GetIVISubscriptionRequests(application);
 
-    for (MessageHelper::SmartObjectList::iterator it = requests.begin();
+    for (smart_objects::SmartObjectList::iterator it = requests.begin();
          it != requests.end(); ++it) {
       ProcessHMIRequest(*it,true);
     }
@@ -689,7 +721,7 @@ bool ResumeCtrl::CheckPersistenceFilesForResumption(ApplicationSharedPtr applica
   }
 
   Json::Value& saved_app = *it;
-  MessageHelper::SmartObjectList requests;
+  smart_objects::SmartObjectList requests;
 
   Json::Value& app_commands = saved_app[strings::application_commands];
   Json::Value& app_choise_sets = saved_app[strings::application_choise_sets];
@@ -970,7 +1002,7 @@ Json::Value ResumeCtrl::JsonFromSO(const smart_objects::SmartObject *so) {
   return temp;
 }
 
-bool ResumeCtrl::ProcessHMIRequest(smart_objects::SmartObject* request,
+bool ResumeCtrl::ProcessHMIRequest(smart_objects::SmartObjectSPtr request,
                                    bool use_events) {
   LOG4CXX_AUTO_TRACE(logger_);
   if (use_events) {
@@ -998,7 +1030,7 @@ void ResumeCtrl::InsertToTimerQueue(uint32_t app_id, uint32_t time_stamp) {
 
 void ResumeCtrl::SendHMIRequest(
     const hmi_apis::FunctionID::eType& function_id,
-    const smart_objects::SmartObject* msg_params, bool use_events) {
+    const smart_objects::SmartObjectSPtr msg_params, bool use_events) {
   LOG4CXX_AUTO_TRACE(logger_);
   NsSmartDeviceLink::NsSmartObjects::SmartObject* result =
       MessageHelper::CreateModuleInfoSO(function_id);

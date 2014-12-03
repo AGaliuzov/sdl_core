@@ -67,9 +67,6 @@ typedef std::map<std::string, VehicleDataType> VehicleData;
  **/
 class MessageHelper {
   public:
-
-    typedef std::vector<smart_objects::SmartObject*> SmartObjectList;
-
     /**
      * @brief Creates request for different interfaces(JSON, DBUS)
      * @param correlation_id unique ID
@@ -178,19 +175,19 @@ class MessageHelper {
     /**
      * @brief Sends IVI subscriptions
      */
-    static SmartObjectList GetIVISubscriptionRequests(ApplicationSharedPtr app);
+    static smart_objects::SmartObjectList GetIVISubscriptionRequests(ApplicationSharedPtr app);
 
     static void SendAppDataToHMI(ApplicationConstSharedPtr app);
     static void SendGlobalPropertiesToHMI(ApplicationConstSharedPtr app);
-    static SmartObjectList CreateGlobalPropertiesRequestsToHMI(ApplicationConstSharedPtr app);
+    static smart_objects::SmartObjectList CreateGlobalPropertiesRequestsToHMI(ApplicationConstSharedPtr app);
 
     static smart_objects::SmartObject* CreateAppVrHelp(ApplicationConstSharedPtr app);
 
-    static SmartObjectList CreateShowRequestToHMI(ApplicationConstSharedPtr app);
+    static smart_objects::SmartObjectList CreateShowRequestToHMI(ApplicationConstSharedPtr app);
     static void SendShowRequestToHMI(ApplicationConstSharedPtr app);
     static void SendShowConstantTBTRequestToHMI(ApplicationConstSharedPtr app);
     static void SendAddCommandRequestToHMI(ApplicationConstSharedPtr app);
-    static SmartObjectList CreateAddCommandRequestToHMI(ApplicationConstSharedPtr app);
+    static smart_objects::SmartObjectList CreateAddCommandRequestToHMI(ApplicationConstSharedPtr app);
 
     /**
      * @brief Sends UI_ChangeRegistration to HMI with list of AppHMIType
@@ -216,7 +213,7 @@ class MessageHelper {
                                       smart_objects::SmartObject& output);
 
     static void SendAddSubMenuRequestToHMI(ApplicationConstSharedPtr app);
-    static SmartObjectList CreateAddSubMenuRequestToHMI(ApplicationConstSharedPtr app);
+    static smart_objects::SmartObjectList CreateAddSubMenuRequestToHMI(ApplicationConstSharedPtr app);
 
     /*
      * @brief Creates BasicCommunication.OnAppUnregistered notification
