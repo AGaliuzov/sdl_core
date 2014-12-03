@@ -100,8 +100,8 @@ class MockCacheManagerInterface : public CacheManagerInterface {
       bool(const std::string& app_id));
   MOCK_METHOD1(IsDefaultPolicy,
       bool(const std::string& app_id));
-  MOCK_METHOD2(SetIsDefault,
-      bool(const std::string& app_id, bool is_default));
+  MOCK_METHOD1(SetIsDefault,
+      bool(const std::string& app_id));
   MOCK_METHOD1(IsPredataPolicy,
       bool(const std::string& app_id));
   MOCK_METHOD1(SetDefaultPolicy,
@@ -158,12 +158,10 @@ class MockCacheManagerInterface : public CacheManagerInterface {
       void(const std::string& app_id, const std::string& group_name));
   MOCK_METHOD1(SetPredataPolicy,
       bool(const std::string& app_id));
-  MOCK_METHOD2(SetIsPredata,
-      bool(const std::string& app_id, bool is_pre_data));
   MOCK_METHOD1(CleanupUnpairedDevices,
       bool(const DeviceIds& device_ids));
-  MOCK_METHOD1(SetUnpairedDevice,
-      bool(const std::string& device_id));
+  MOCK_METHOD2(SetUnpairedDevice,
+      bool(const std::string& device_id, bool unpaired));
   MOCK_METHOD1(UnpairedDevicesList,
       bool(DeviceIds& device_ids));
   MOCK_METHOD1(ResetPT,

@@ -141,7 +141,8 @@ mobile_apis::Result::eType CreateInteractionChoiceSetRequest::CheckChoiceSet(
     }
 
     // Check new choice set params along with already registered choice sets
-    const ChoiceSetMap& app_choice_set_map = app->choice_set_map();
+    const DataAccessor<ChoiceSetMap> accessor = app->choice_set_map();
+    const ChoiceSetMap& app_choice_set_map = accessor.GetData();
     ChoiceSetMap::const_iterator it = app_choice_set_map.begin();
     ChoiceSetMap::const_iterator itEnd = app_choice_set_map.end();
     for (; it != itEnd; ++it) {

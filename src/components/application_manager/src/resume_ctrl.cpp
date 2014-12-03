@@ -506,7 +506,8 @@ bool ResumeCtrl::RemoveApplicationFromSaved(ApplicationConstSharedPtr applicatio
     LOG4CXX_ERROR(logger_, "Application pointer in invalid");
     return false;
   }
-  LOG4CXX_TRACE(logger_, "ENTER app_id :"  << application->app_id());
+  LOG4CXX_TRACE(logger_, "ENTER app_id :"  << application->app_id()
+                << "; mobile_app_id " << application->mobile_app_id()->asString());
 
   bool result = false;
   std::vector<Json::Value> temp;
@@ -820,7 +821,8 @@ Json::Value ResumeCtrl::GetApplicationCommands(
                << application->app_id());
 
   Json::Value result;
-  const CommandsMap& commands = application->commands_map();
+  const DataAccessor<CommandsMap> accessor = application->commands_map();
+  const CommandsMap& commands = accessor.GetData();
   CommandsMap::const_iterator it = commands.begin();
   for (;it != commands.end(); ++it) {
     smart_objects::SmartObject* so = it->second;
@@ -838,7 +840,8 @@ Json::Value ResumeCtrl::GetApplicationSubMenus(
                << application->app_id());
 
   Json::Value result;
-  const SubMenuMap& sub_menus = application->sub_menu_map();
+  const DataAccessor<SubMenuMap> accessor = application->sub_menu_map();
+  const SubMenuMap& sub_menus = accessor.GetData();
   SubMenuMap::const_iterator it = sub_menus.begin();
   for (;it != sub_menus.end(); ++it) {
     smart_objects::SmartObject* so = it->second;
@@ -856,7 +859,8 @@ Json::Value ResumeCtrl::GetApplicationInteractionChoiseSets(
                << application->app_id());
 
   Json::Value result;
-  const ChoiceSetMap& choices = application->choice_set_map();
+  const DataAccessor<ChoiceSetMap> accessor = application->choice_set_map();
+  const ChoiceSetMap& choices = accessor.GetData();
   ChoiceSetMap::const_iterator it = choices.begin();
   for ( ;it != choices.end(); ++it) {
     smart_objects::SmartObject* so = it->second;

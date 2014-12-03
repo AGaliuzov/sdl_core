@@ -42,7 +42,6 @@ AutoTrace::AutoTrace(
   log4cxx::LoggerPtr logger,
   const log4cxx::spi::LocationInfo& location) :
   logger_(logger), location_(location) {
-
   if (logger_->isTraceEnabled()) {
     push_log(logger_,
              ::log4cxx::Level::getTrace(),

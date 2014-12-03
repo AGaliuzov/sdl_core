@@ -1018,11 +1018,7 @@ void PolicyHandler::OnAllowSDLFunctionalityNotification(bool is_allowed,
       }
       if (app) {
         // Send HMI status notification to mobile
-        // TODO(PV): requires additonal checking
-        //app_manager->PutApplicationInFull(app);
-        app_manager->ActivateApplication(app);
         // Put application in full
-        application_manager::MessageHelper::SendHMIStatusNotification(*app);
         application_manager::MessageHelper::SendActivateAppToHMI(app->app_id());
       }
     // Skip device selection, since user already consented device usage

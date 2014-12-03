@@ -84,6 +84,7 @@ class PTRepresentation {
      */
     virtual bool IsPTPreloaded() = 0;
 
+    virtual bool RefreshDB() = 0;
     /**
      * Gets number of ignition cycles before next update policy table
      * @return number of ignition cycles
