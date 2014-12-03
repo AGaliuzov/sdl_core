@@ -809,7 +809,7 @@ void ApplicationManagerImpl::OnDeviceListUpdated(
   so_to_send[jhs::S_PARAMS][jhs::S_PROTOCOL_VERSION] = 3;
   so_to_send[jhs::S_PARAMS][jhs::S_PROTOCOL_TYPE] = 1;
   so_to_send[jhs::S_PARAMS][jhs::S_CORRELATION_ID] = GetNextHMICorrelationID();
-  smart_objects::SmartObject* msg_params = MessageHelper::CreateDeviceListSO(
+  utils::SharedPtr<smart_objects::SmartObject> msg_params = MessageHelper::CreateDeviceListSO(
         device_list);
   if (!msg_params) {
     LOG4CXX_WARN(logger_, "Failed to create sub-smart object.");
@@ -2121,7 +2121,13 @@ void ApplicationManagerImpl::Handle(const impl::MessageFromMobile message) {
 }
 
 void ApplicationManagerImpl::Handle(const impl::MessageToMobile message) {
-  protocol_handler::RawMessage* rawMessage = 0;
+  if (!protocol_handler_) {
+    LOG4CXX_WARN(logger_,
+                 "Protocol Handler is not set; cannot send message to mobile.");
+    return;
+  }
+
+  utils::SharedPtr<protocol_handler::RawMessage> rawMessage;
   if (message->protocol_version() == application_manager::kV1) {
     rawMessage = MobileMessageHandler::HandleOutgoingMessageProtocolV1(message);
   } else if ((message->protocol_version() == application_manager::kV2) ||
@@ -2130,17 +2136,11 @@ void ApplicationManagerImpl::Handle(const impl::MessageToMobile message) {
   } else {
     return;
   }
+
   if (!rawMessage) {
     LOG4CXX_ERROR(logger_, "Failed to create raw message.");
     return;
   }
-
-  if (!protocol_handler_) {
-    LOG4CXX_WARN(logger_,
-                 "Protocol Handler is not set; cannot send message to mobile.");
-    return;
-  }
-
 
   bool is_final = message.is_final;
   bool close_session = false;

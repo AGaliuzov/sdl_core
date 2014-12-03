@@ -66,14 +66,17 @@ TransportAdapterImpl::~TransportAdapterImpl() {
   Terminate();
 
   if (device_scanner_) {
+    LOG4CXX_DEBUG(logger_, "Deleting device_scanner_ " << device_scanner_);
     delete device_scanner_;
     LOG4CXX_DEBUG(logger_, "device_scanner_ deleted.");
   }
   if (server_connection_factory_) {
+    LOG4CXX_DEBUG(logger_, "Deleting server_connection_factory " << server_connection_factory_);
     delete server_connection_factory_;
     LOG4CXX_DEBUG(logger_, "server_connection_factory deleted.");
   }
   if (client_connection_listener_) {
+    LOG4CXX_DEBUG(logger_, "Deleting client_connection_listener_ " << client_connection_listener_);
     delete client_connection_listener_;
     LOG4CXX_DEBUG(logger_, "client_connection_listener_ deleted.");
   }
