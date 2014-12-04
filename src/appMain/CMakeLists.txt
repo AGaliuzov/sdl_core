@@ -237,7 +237,7 @@ endif()
     ${COMPONENTS_DIR}/protocol_handler/test/protocol_handler_tm_test.cc
     ${COMPONENTS_DIR}/protocol_handler/test/incoming_data_handler_test.cc
     ${COMPONENTS_DIR}/protocol_handler/test/protocol_header_validator_test.cc
-    ${COMPONENTS_DIR}/hmi_message_handler/test/test_mqueue_adapter.cc 
+    ${COMPONENTS_DIR}/hmi_message_handler/test/mqueue_adapter_test.cc 
   )
   
 if (${QT_HMI})
@@ -246,7 +246,7 @@ if (${QT_HMI})
         ${COMPONENTS_DIR}/dbus/test/test_schema.cc
         ${COMPONENTS_DIR}/dbus/test/test_dbus_adapter.cc
         ${COMPONENTS_DIR}/hmi_message_handler/test/mock_subscriber.cc 
-        ${COMPONENTS_DIR}/hmi_message_handler/test/test_dbus_message_adapter.cc    
+        ${COMPONENTS_DIR}/hmi_message_handler/test/dbus_message_adapter_test.cc    
        )
 endif ()
 
