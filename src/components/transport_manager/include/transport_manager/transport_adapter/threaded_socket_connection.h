@@ -55,8 +55,7 @@ class TransportAdapterController;
 /**
  * @brief Class responsible for communication over sockets.
  */
-class ThreadedSocketConnection : public Connection,
-                                 public threads::ThreadDelegate {
+class ThreadedSocketConnection : public Connection {
  public:
 
   /**
@@ -131,11 +130,18 @@ class ThreadedSocketConnection : public Connection,
   }
 
  private:
+  class SocketConnectionDelegate : public threads::ThreadDelegate {
+   public:
+    explicit SocketConnectionDelegate(
+        ThreadedSocketConnection* connection);
+    void threadMain() OVERRIDE;
+   private:
+    ThreadedSocketConnection* connection_;
+  };
 
   int read_fd_;
   int write_fd_;
   void threadMain();
-  void exitThreadMain();
   void Transmit();
   void Finalize();
   TransportAdapter::Error Notify() const;

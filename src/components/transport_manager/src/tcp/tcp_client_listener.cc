@@ -83,7 +83,6 @@ TransportAdapter::Error TcpClientListener::Init() {
 }
 
 void TcpClientListener::Terminate() {
-    thread_->stop();
 }
 
 bool TcpClientListener::IsInitialised() const {
@@ -92,6 +91,7 @@ bool TcpClientListener::IsInitialised() const {
 
 TcpClientListener::~TcpClientListener() {
   LOG4CXX_AUTO_TRACE(logger_);
+  StopListening();
   thread_->join();
   delete thread_->delegate();
   threads::DeleteThread(thread_);
@@ -143,7 +143,7 @@ void SetKeepaliveOptions(const int fd) {
 }
 
 void TcpClientListener::Loop() {
-  LOG4CXX_TRACE(logger_, "enter");
+  LOG4CXX_AUTO_TRACE(logger_);
   while (!thread_stop_requested_) {
     sockaddr_in client_address;
     socklen_t client_address_size = sizeof(client_address);
@@ -191,7 +191,6 @@ void TcpClientListener::Loop() {
       delete connection;
     }
   }
-  LOG4CXX_TRACE(logger_, "exit");
 }
 
 void TcpClientListener::StopLoop() {
@@ -209,11 +208,11 @@ void TcpClientListener::StopLoop() {
 }
 
 TransportAdapter::Error TcpClientListener::StartListening() {
-  LOG4CXX_TRACE(logger_, "enter");
-  if (!thread_ || thread_->is_running()) {
-    LOG4CXX_TRACE(
+  LOG4CXX_AUTO_TRACE(logger_);
+  if (thread_->is_running()) {
+    LOG4CXX_WARN(
         logger_,
-        "exit with TransportAdapter::BAD_STATE. Condition: thread_started_");
+        "TransportAdapter::BAD_STATE. Listener have already started");
     return TransportAdapter::BAD_STATE;
   }
 
@@ -275,8 +274,8 @@ TcpClientListener::ListeningThreadDelegate::ListeningThreadDelegate(
 
 TransportAdapter::Error TcpClientListener::StopListening() {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (!thread_ || !thread_->is_running()) {
-    LOG4CXX_TRACE(logger_, "TcpClientListener is not running now");
+  if (!thread_->is_running()) {
+    LOG4CXX_INFO(logger_, "TcpClientListener is not running now");
     return TransportAdapter::BAD_STATE;
   }
 
