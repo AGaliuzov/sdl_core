@@ -10,5 +10,5 @@ A few comments on test writting for QML Unit Testing
 - each system's entity that changes during RPC must be tested
 - test incoming arguments is not necessary as it will be verified by Qt abstraction layer
 - run test with following command: 
- "./qt_hmi_test -import ../qml_model_qt5/"
+ "./qt_hmi_test -import ../git push qml_model_qt5/"
 
