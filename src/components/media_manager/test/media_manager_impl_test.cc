@@ -30,13 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <net/if.h>
 #include "gmock/gmock.h"
 #include "media_manager/media_manager_impl.h"
-#include "utils/threads/thread.h"
-#include "utils/threads/thread_delegate.h"
-#include "utils/logger.h"
-#include "utils/date_time.h"
 
 namespace test {
 namespace components {
@@ -54,23 +49,6 @@ void MediaManagerTest::SetUp() {
 }
 
 void MediaManagerTest::TearDown() {
-}
-
-TEST_F(MediaManagerTest, RecordMicrophoneStream) {
-//  media_manager::MediaManager* mediaManager =
-//    media_manager::MediaManagerImpl::instance();
-
-  //mediaManager->startMicrophoneRecording(std::string("record.wav"),
-  //                   mobile_apis::SamplingRate::SamplingRate_44KHZ,
-  //                                                               5,
-  //                mobile_apis::BitsPerSample::BitsPerSample_16_BIT);
-
-  /*usleep(40000000);
-
-  // Sleep for 15 sec
-  usleep(15000000);
-
-  mediaManager->stopMicrophoneRecording();*/
 }
 
 TEST_F(MediaManagerTest, AddAndPlayStream) {
