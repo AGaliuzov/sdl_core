@@ -46,7 +46,7 @@ OnAwakeSDLNotification::~OnAwakeSDLNotification() {
 }
 
 void OnAwakeSDLNotification::Run() {
-  LOG4CXX_INFO(logger_, "OnAwakeSDLNotification::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   ApplicationManagerImpl* app_manager = ApplicationManagerImpl::instance();
   if (app_manager->state_suspended()) {

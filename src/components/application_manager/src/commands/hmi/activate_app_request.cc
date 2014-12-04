@@ -69,7 +69,7 @@ namespace application_manager {
 
 
     void ActivateAppRequest::on_event(const event_engine::Event& event) {
-      LOG4CXX_TRACE_ENTER(logger_);
+      LOG4CXX_AUTO_TRACE(logger_);
       const smart_objects::SmartObject* response = &(event.smart_object());
       const hmi_apis::Common_Result::eType code =
           static_cast<hmi_apis::Common_Result::eType>(

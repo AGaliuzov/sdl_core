@@ -102,7 +102,9 @@ class AudioStreamSenderThread : public threads::ThreadDelegate {
      */
     uint32_t session_key() const;
 
+#ifndef CUSTOMER_PASA
     void exitThreadMain();
+#endif
 
   private:
     /*

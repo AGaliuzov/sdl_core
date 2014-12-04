@@ -173,7 +173,7 @@ void AvahiServiceBrowserCallback(AvahiServiceBrowser* avahi_service_browser,
 
 void DnssdServiceBrowser::ServiceResolved(
   const DnssdServiceRecord& service_record) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock locker(mutex_);
   ServiceRecords::iterator service_record_it = std::find(
         service_records_.begin(), service_records_.end(), service_record);
@@ -182,12 +182,11 @@ void DnssdServiceBrowser::ServiceResolved(
   }
   DeviceVector device_vector = PrepareDeviceVector();
   controller_->SearchDeviceDone(device_vector);
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void DnssdServiceBrowser::ServiceResolveFailed(
   const DnssdServiceRecord& service_record) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_,
                 "AvahiServiceResolver failure for: " << service_record.name);
   sync_primitives::AutoLock locker(mutex_);
@@ -196,7 +195,6 @@ void DnssdServiceBrowser::ServiceResolveFailed(
   if (service_record_it != service_records_.end()) {
     service_records_.erase(service_record_it);
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void AvahiServiceResolverCallback(AvahiServiceResolver* avahi_service_resolver,
@@ -306,7 +304,7 @@ TransportAdapter::Error DnssdServiceBrowser::Scan() {
 void DnssdServiceBrowser::AddService(AvahiIfIndex interface,
                                      AvahiProtocol protocol, const char* name,
                                      const char* type, const char* domain) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_, "interface " << interface << " protocol " << protocol <<
                 " name " << name << " type " << type << " domain " << domain);
   DnssdServiceRecord record;
@@ -325,14 +323,13 @@ void DnssdServiceBrowser::AddService(AvahiIfIndex interface,
       AVAHI_PROTO_INET, static_cast<AvahiLookupFlags>(0),
       AvahiServiceResolverCallback, this);
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void DnssdServiceBrowser::RemoveService(AvahiIfIndex interface,
                                         AvahiProtocol protocol,
                                         const char* name, const char* type,
                                         const char* domain) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_, "interface " << interface << " protocol " << protocol <<
                 " name " << name << " type " << type << " domain " << domain);
   DnssdServiceRecord record;
@@ -346,11 +343,10 @@ void DnssdServiceBrowser::RemoveService(AvahiIfIndex interface,
   service_records_.erase(
     std::remove(service_records_.begin(), service_records_.end(), record),
     service_records_.end());
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 DeviceVector DnssdServiceBrowser::PrepareDeviceVector() const {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   std::map<uint32_t, TcpDevice*> devices;
   for (ServiceRecords::const_iterator it = service_records_.begin();
        it != service_records_.end(); ++it) {
@@ -373,7 +369,6 @@ DeviceVector DnssdServiceBrowser::PrepareDeviceVector() const {
        it != devices.end(); ++it) {
     device_vector.push_back(DeviceSptr(it->second));
   }
-  LOG4CXX_TRACE_EXIT(logger_);
   return device_vector;
 }
 

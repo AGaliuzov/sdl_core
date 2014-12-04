@@ -284,7 +284,7 @@ bool PolicyHandler::InitPolicyTable() {
   if (file_system::FileExists(preloaded_file)) {
     return policy_manager_->InitPT(preloaded_file);
   }
-  LOG4CXX_WARN(logger_, "The file which contains preloaded PT is not exist");
+  LOG4CXX_FATAL(logger_, "The file which contains preloaded PT is not exist");
   return false;
 }
 
@@ -432,9 +432,8 @@ const std::string PolicyHandler::ConvertUpdateStatus(PolicyTableStatus status) {
 
 void PolicyHandler::OnAppPermissionConsent(const uint32_t connection_key,
                                            const PermissionConsent& permissions) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   AsyncRun(new AppPermissionDelegate(connection_key, permissions));
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void PolicyHandler::OnDeviceConsentChanged(const std::string& device_id,

@@ -178,7 +178,7 @@ class MessageHelper {
     /**
      * @brief Sends IVI subscriptions
      */
-    static SmartObjectList GetIVISubscribtionRequests(const uint32_t app_id);
+    static SmartObjectList GetIVISubscriptionRequests(ApplicationSharedPtr app);
 
     static void SendAppDataToHMI(ApplicationConstSharedPtr app);
     static void SendGlobalPropertiesToHMI(ApplicationConstSharedPtr app);

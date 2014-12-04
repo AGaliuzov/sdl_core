@@ -46,7 +46,7 @@ OnPutFileNotification::~OnPutFileNotification() {
 }
 
 void OnPutFileNotification::Run() {
-  LOG4CXX_INFO(logger_, "OnPutFileNotification::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
   SendNotification();
 }
 

@@ -77,7 +77,7 @@ namespace policy {
   }
 
   void StatisticsDelegate::threadMain() {
-    LOG4CXX_TRACE_ENTER(logger_);
+    LOG4CXX_AUTO_TRACE(logger_);
     switch (type_) {
       case INCREMENT_GLOBAL:
         PolicyHandler::instance()->Increment(global_counter_);
@@ -95,7 +95,6 @@ namespace policy {
         LOG4CXX_ERROR(logger_,"Unknown statistics operator");
         break;
     }
-    LOG4CXX_TRACE_EXIT(logger_);
   }
 
   void StatisticsDelegate::exitThreadMain() {

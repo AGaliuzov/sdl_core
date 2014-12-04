@@ -68,19 +68,18 @@ bool TcpDevice::IsSameAs(const Device* other) const {
 }
 
 ApplicationList TcpDevice::GetApplicationList() const {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock locker(applications_mutex_);
   ApplicationList app_list;
   for (std::map<ApplicationHandle, Application>::const_iterator it =
          applications_.begin(); it != applications_.end(); ++it) {
     app_list.push_back(it->first);
   }
-  LOG4CXX_TRACE_EXIT(logger_);
   return app_list;
 }
 
 ApplicationHandle TcpDevice::AddIncomingApplication(int socket_fd) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_, "Socket_fd: " << socket_fd);
   Application app;
   app.incoming = true;
@@ -90,12 +89,11 @@ ApplicationHandle TcpDevice::AddIncomingApplication(int socket_fd) {
   const ApplicationHandle app_handle = ++last_handle_;
   applications_[app_handle] = app;
   LOG4CXX_DEBUG(logger_, "App_handle " << app_handle);
-  LOG4CXX_TRACE_EXIT(logger_);
   return app_handle;
 }
 
 ApplicationHandle TcpDevice::AddDiscoveredApplication(int port) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_, "Port " << port);
   Application app;
   app.incoming = false;
@@ -105,17 +103,15 @@ ApplicationHandle TcpDevice::AddDiscoveredApplication(int port) {
   const ApplicationHandle app_handle = ++last_handle_;
   applications_[app_handle] = app;
   LOG4CXX_DEBUG(logger_, "App_handle " << app_handle);
-  LOG4CXX_TRACE_EXIT(logger_);
   return app_handle;
 }
 
 
 void TcpDevice::RemoveApplication(const ApplicationHandle app_handle) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_, "ApplicationHandle: " << app_handle);
   sync_primitives::AutoLock locker(applications_mutex_);
   applications_.erase(app_handle);
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 TcpDevice::~TcpDevice() {

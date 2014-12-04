@@ -471,10 +471,9 @@ UsbHandler::UsbHandlerDelegate::UsbHandlerDelegate(
 }
 
 void UsbHandler::UsbHandlerDelegate::threadMain() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   DCHECK(handler_);
   handler_->Thread();
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 }  // namespace transport_adapter

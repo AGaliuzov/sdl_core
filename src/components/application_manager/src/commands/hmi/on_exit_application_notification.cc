@@ -49,7 +49,7 @@ OnExitApplicationNotification::~OnExitApplicationNotification() {
 }
 
 void OnExitApplicationNotification::Run() {
-  LOG4CXX_INFO(logger_, "OnExitApplicationNotification::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   ApplicationManagerImpl* app_mgr = ApplicationManagerImpl::instance();
   ApplicationSharedPtr app_impl = app_mgr->application(

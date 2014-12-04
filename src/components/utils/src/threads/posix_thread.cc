@@ -157,7 +157,7 @@ void Thread::WaitForRun() {
 }
 
 bool Thread::start(const ThreadOptions& options) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   sync_primitives::AutoLock auto_lock(state_lock_);
   // 1 - state_lock locked
@@ -167,7 +167,6 @@ bool Thread::start(const ThreadOptions& options) {
   if (!delegate_) {
     LOG4CXX_ERROR(logger_, "Cannot start thread" << name_
         << ": delegate is NULL");
-    LOG4CXX_TRACE_EXIT(logger_);
     // 0 - state_lock unlocked
     return false;
   }
@@ -228,12 +227,11 @@ bool Thread::start(const ThreadOptions& options) {
   LOG4CXX_DEBUG(logger_,"Thread " << name_
                 << " #" << handle_ << " started. pthread_result = "
                 << pthread_result);
-  LOG4CXX_TRACE_EXIT(logger_);
   return pthread_result == EOK;
 }
 
 void Thread::stop() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock auto_lock(state_lock_);
 
   stopped_ = true;
@@ -247,11 +245,10 @@ void Thread::stop() {
 
   LOG4CXX_DEBUG(logger_, "Stopped thread #" << handle_
                 << " \""  << name_ << " \"");
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void Thread::join() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   DCHECK(!pthread_equal(pthread_self(), handle_));
 
   stop();
@@ -263,7 +260,6 @@ void Thread::join() {
       state_cond_.Wait(auto_lock);
     }
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 Thread::~Thread() {

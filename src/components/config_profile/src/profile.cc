@@ -642,7 +642,7 @@ uint16_t Profile::tts_global_properties_timeout() const {
 }
 
 void Profile::UpdateValues() {
-  LOG4CXX_INFO(logger_, "Profile::UpdateValues");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   // Launch HMI parameter
   std::string launch_value;

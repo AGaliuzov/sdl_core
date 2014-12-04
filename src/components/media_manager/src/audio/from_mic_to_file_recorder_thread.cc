@@ -49,39 +49,35 @@ FromMicToFileRecorderThread::FromMicToFileRecorderThread(
     tKey_("-t"),
     sleepThread_(NULL),
     outputFileName_(output_file) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   set_record_duration(duration);
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 FromMicToFileRecorderThread::~FromMicToFileRecorderThread() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   if (sleepThread_) {
     sleepThread_->join();
     delete sleepThread_->delegate();
     threads::DeleteThread(sleepThread_);
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void FromMicToFileRecorderThread::set_output_file(
   const std::string& output_file) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   outputFileName_ = output_file;
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void FromMicToFileRecorderThread::set_record_duration(int32_t duration) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   std::stringstream stringStream;
   stringStream << duration / 1000;
   durationString_ = stringStream.str();
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void FromMicToFileRecorderThread::initArgs() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   argv_ = new gchar*[argc_];
 
@@ -96,11 +92,10 @@ void FromMicToFileRecorderThread::initArgs() {
   argv_[2] = const_cast<gchar*>(outputFileName_.c_str());
   argv_[3] = const_cast<gchar*>(tKey_.c_str());
   argv_[4] = const_cast<gchar*>(durationString_.c_str());
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void FromMicToFileRecorderThread::threadMain() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   {
     sync_primitives::AutoLock auto_lock(stopFlagLock_);
@@ -227,7 +222,6 @@ void FromMicToFileRecorderThread::threadMain() {
   g_main_loop_unref(loop);
 
   loop = NULL;
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 FromMicToFileRecorderThread::SleepThreadDelegate::SleepThreadDelegate(GstTimeout
@@ -249,7 +243,7 @@ void FromMicToFileRecorderThread::SleepThreadDelegate::threadMain() {
 }
 
 void FromMicToFileRecorderThread::exitThreadMain() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   if (NULL != loop) {
     if (g_main_loop_is_running(loop)) {
@@ -266,7 +260,6 @@ void FromMicToFileRecorderThread::exitThreadMain() {
   LOG4CXX_TRACE(logger_, "Set should be stopped flag\n");
   sync_primitives::AutoLock auto_lock(stopFlagLock_);
   shouldBeStoped_ = true;
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 }  // namespace media_manager

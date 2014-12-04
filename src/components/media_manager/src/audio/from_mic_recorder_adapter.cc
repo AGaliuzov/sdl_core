@@ -51,13 +51,12 @@ FromMicRecorderAdapter::FromMicRecorderAdapter()
 }
 
 FromMicRecorderAdapter::~FromMicRecorderAdapter() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   if (recorder_thread_) {
     recorder_thread_->join();
     delete recorder_thread_->delegate();
     threads::DeleteThread(recorder_thread_);
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void FromMicRecorderAdapter::StartActivity(int32_t application_key) {

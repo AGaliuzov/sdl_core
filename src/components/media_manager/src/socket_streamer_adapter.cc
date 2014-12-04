@@ -57,11 +57,10 @@ SocketStreamerAdapter::SocketStreamerAdapter()
 }
 
 SocketStreamerAdapter::~SocketStreamerAdapter() {
-  LOG4CXX_TRACE_ENTER(logger);
+  LOG4CXX_AUTO_TRACE(logger);
   thread_->join();
   delete streamer_;
   threads::DeleteThread(thread_);
-  LOG4CXX_TRACE_EXIT(logger);
 }
 
 void SocketStreamerAdapter::StartActivity(int32_t application_key) {

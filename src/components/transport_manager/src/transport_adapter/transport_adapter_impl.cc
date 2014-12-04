@@ -66,16 +66,19 @@ TransportAdapterImpl::~TransportAdapterImpl() {
   Terminate();
 
   if (device_scanner_) {
+    LOG4CXX_DEBUG(logger_, "Deleting device_scanner_ " << device_scanner_);
     delete device_scanner_;
-    LOG4CXX_DEBUG(logger_, "device_scanner_ " << device_scanner_ << " deleted.");
+    LOG4CXX_DEBUG(logger_, "device_scanner_ deleted.");
   }
   if (server_connection_factory_) {
+    LOG4CXX_DEBUG(logger_, "Deleting server_connection_factory " << server_connection_factory_);
     delete server_connection_factory_;
-    LOG4CXX_DEBUG(logger_, "server_connection_factory " << server_connection_factory_ << " deleted.");
+    LOG4CXX_DEBUG(logger_, "server_connection_factory deleted.");
   }
   if (client_connection_listener_) {
+    LOG4CXX_DEBUG(logger_, "Deleting client_connection_listener_ " << client_connection_listener_);
     delete client_connection_listener_;
-    LOG4CXX_DEBUG(logger_, "client_connection_listener_ " << client_connection_listener_ << " deleted.");
+    LOG4CXX_DEBUG(logger_, "client_connection_listener_ deleted.");
   }
 }
 
@@ -313,7 +316,7 @@ TransportAdapter::Error TransportAdapterImpl::StopClientListening() {
 }
 
 DeviceList TransportAdapterImpl::GetDeviceList() const {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   DeviceList devices;
   sync_primitives::AutoLock locker(devices_mutex_);
   for (DeviceMap::const_iterator it = devices_.begin(); it != devices_.end();
@@ -483,7 +486,6 @@ void TransportAdapterImpl::ConnectionCreated(
   info.connection = connection;
   info.state = ConnectionInfo::NEW;
   connections_lock_.Release();
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void TransportAdapterImpl::DeviceDisconnected(
@@ -695,7 +697,6 @@ void TransportAdapterImpl::ConnectionFinished(
     info.state = ConnectionInfo::FINALISING;
   }
   connections_lock_.Release();
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void TransportAdapterImpl::ConnectionAborted(
@@ -833,7 +834,7 @@ TransportAdapter::Error TransportAdapterImpl::ConnectDevice(DeviceSptr device) {
 }
 
 void TransportAdapterImpl::RemoveDevice(const DeviceUID& device_handle) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_, "Device_handle: " << &device_handle);
   sync_primitives::AutoLock locker(devices_mutex_);
   DeviceMap::iterator i = devices_.find(
@@ -849,7 +850,6 @@ void TransportAdapterImpl::RemoveDevice(const DeviceUID& device_handle) {
       }
     }
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 #ifdef CUSTOMER_PASA

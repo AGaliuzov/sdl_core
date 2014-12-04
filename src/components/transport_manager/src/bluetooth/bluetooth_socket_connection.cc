@@ -60,7 +60,7 @@ BluetoothSocketConnection::~BluetoothSocketConnection() {
 }
 
 bool BluetoothSocketConnection::Establish(ConnectError** error) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_, "error: " << error);
   DeviceSptr device = controller()->FindDevice(device_handle());
 

@@ -114,7 +114,7 @@ MqueueAdapter::~MqueueAdapter() {
 }
 
 void MqueueAdapter::SendMessageToHMI(const MessageSharedPointer message) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   if (-1 == sdl_to_hmi_mqueue_) {
     LOG4CXX_ERROR(logger_, "Message queue is not opened");
@@ -130,8 +130,6 @@ void MqueueAdapter::SendMessageToHMI(const MessageSharedPointer message) {
     LOG4CXX_ERROR(logger_, "Could not send message, error " << errno);
     return;
   }
-
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void MqueueAdapter::SubscribeTo() {

@@ -77,9 +77,8 @@ TcpClientListener::TcpClientListener(TransportAdapterController* controller,
 }
 
 TransportAdapter::Error TcpClientListener::Init() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   thread_stop_requested_ = false;
-  LOG4CXX_TRACE_EXIT(logger_);
   return TransportAdapter::OK;
 }
 
@@ -92,11 +91,10 @@ bool TcpClientListener::IsInitialised() const {
 }
 
 TcpClientListener::~TcpClientListener() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   thread_->join();
   delete thread_->delegate();
   threads::DeleteThread(thread_);
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void SetKeepaliveOptions(const int fd) {
@@ -197,7 +195,7 @@ void TcpClientListener::Loop() {
 }
 
 void TcpClientListener::StopLoop() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   thread_stop_requested_ = true;
   // We need to connect to the listening socket to unblock accept() call
   int byesocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -208,7 +206,6 @@ void TcpClientListener::StopLoop() {
   connect(byesocket, (sockaddr*) &server_address, sizeof(server_address));
   shutdown(byesocket, SHUT_RDWR);
   close(byesocket);
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 TransportAdapter::Error TcpClientListener::StartListening() {
@@ -277,7 +274,7 @@ TcpClientListener::ListeningThreadDelegate::ListeningThreadDelegate(
 }
 
 TransportAdapter::Error TcpClientListener::StopListening() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   if (!thread_ || !thread_->is_running()) {
     LOG4CXX_TRACE(logger_, "TcpClientListener is not running now");
     return TransportAdapter::BAD_STATE;
@@ -286,7 +283,6 @@ TransportAdapter::Error TcpClientListener::StopListening() {
   thread_->stop();
   close(socket_);
   socket_ = -1;
-  LOG4CXX_TRACE_EXIT(logger_);
   return TransportAdapter::OK;
 }
 

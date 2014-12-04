@@ -42,11 +42,10 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "AsyncRunner");
 
 AsyncRunner::AsyncRunner(const std::string &thread_name)
   : executor_(new AsyncRunnerDelegate) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   thread_ = threads::CreateThread(thread_name.c_str(),
                                   executor_);
   thread_->start();
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void AsyncRunner::AsyncRun(ThreadDelegate* delegate) {
@@ -60,11 +59,10 @@ void AsyncRunner::Stop() {
 }
 
 AsyncRunner::~AsyncRunner() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   thread_->join();
   delete executor_;
   threads::DeleteThread(thread_);
-  LOG4CXX_TRACE_ENTER(logger_);
 }
 
 AsyncRunner::AsyncRunnerDelegate::AsyncRunnerDelegate()
@@ -86,13 +84,15 @@ void AsyncRunner::AsyncRunnerDelegate::processDelegate() {
 }
 
 void AsyncRunner::AsyncRunnerDelegate::waitForDelegate() {
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(delegates_queue_lock_);
-  if (delegates_queue_.empty()) {
+  if (!stop_flag_ && delegates_queue_.empty()) {
     delegate_notifier_.Wait(lock);
   }
 }
 
 void AsyncRunner::AsyncRunnerDelegate::threadMain() {
+  LOG4CXX_AUTO_TRACE(logger_);
   while (!stop_flag_) {
     processDelegate();
     waitForDelegate();
@@ -100,17 +100,17 @@ void AsyncRunner::AsyncRunnerDelegate::threadMain() {
 }
 
 void AsyncRunner::AsyncRunnerDelegate::exitThreadMain() {
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(delegates_queue_lock_);
   stop_flag_ = true;
   delegate_notifier_.NotifyOne();
 }
 
 void AsyncRunner::AsyncRunnerDelegate::runDelegate(ThreadDelegate* delegate) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(delegates_queue_lock_);
   delegates_queue_.push(delegate);
   delegate_notifier_.NotifyOne();
-  LOG4CXX_TRACE_ENTER(logger_);
 }
 
 } // namespace policy.

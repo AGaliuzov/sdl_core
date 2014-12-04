@@ -45,7 +45,7 @@ TTSGetSupportedLanguagesRequest::~TTSGetSupportedLanguagesRequest() {
 }
 
 void TTSGetSupportedLanguagesRequest::Run() {
-  LOG4CXX_INFO(logger_, "TTSGetSupportedLanguagesRequest::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   SendRequest();
 }

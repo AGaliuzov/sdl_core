@@ -156,8 +156,7 @@ int SQLPTRepresentation::KilometersBeforeExchange(int current) {
 
 bool SQLPTRepresentation::SetCountersPassedForSuccessfulUpdate(
   int kilometers, int days_after_epoch) {
-  LOG4CXX_INFO(logger_,
-               "SQLPTRepresentation::SetCountersPassedForSuccessfulUpdate");
+  LOG4CXX_AUTO_TRACE(logger_);
   dbms::SQLQuery query(db());
   if (!query.Prepare(sql_pt::kUpdateCountersSuccessfulUpdate)) {
     LOG4CXX_WARN(logger_,
@@ -304,7 +303,7 @@ bool SQLPTRepresentation::GetPriority(const std::string& policy_app_id,
 }
 
 InitResult SQLPTRepresentation::Init() {
-  LOG4CXX_INFO(logger_, "SQLPTRepresentation::Init");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   if (!db_->Open()) {
     LOG4CXX_ERROR(logger_, "Failed opening database.");
@@ -1183,6 +1182,7 @@ bool SQLPTRepresentation::SaveDeviceData(
 
 bool SQLPTRepresentation::SaveUsageAndErrorCounts(
   const policy_table::UsageAndErrorCounts& counts) {
+  const_cast<policy_table::UsageAndErrorCounts&>(counts).mark_initialized();
   dbms::SQLQuery query(db());
   if (!query.Exec(sql_pt::kDeleteAppLevel)) {
     LOG4CXX_WARN(logger_, "Incorrect delete from app level.");
@@ -1195,6 +1195,7 @@ bool SQLPTRepresentation::SaveUsageAndErrorCounts(
 
   policy_table::AppLevels::const_iterator it;
   const policy_table::AppLevels& app_levels = *counts.app_level;
+  const_cast<policy_table::AppLevels&>(*counts.app_level).mark_initialized();
   for (it = app_levels.begin(); it != app_levels.end(); ++it) {
     query.Bind(0, it->first);
     if (!query.Exec()) {

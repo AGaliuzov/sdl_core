@@ -87,7 +87,7 @@ BluetoothPASAListener::ListeningThreadDelegate::ListeningThreadDelegate(
 }
 
 void BluetoothPASAListener::Loop() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   char buffer[MAX_QUEUE_MSG_SIZE];
   while (true) {
@@ -122,8 +122,6 @@ void BluetoothPASAListener::Loop() {
         break;
     }
   }
-
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 bool BluetoothPASAListener::IsInitialised() const {
@@ -131,13 +129,12 @@ bool BluetoothPASAListener::IsInitialised() const {
 }
 
 void BluetoothPASAListener::UpdateTotalApplicationList() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   controller_->FindNewApplicationsRequest();
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void BluetoothPASAListener::ConnectDevice(void *data) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   const PBTDeviceConnectInfo pDeviceInfo =
       static_cast<PBTDeviceConnectInfo>(data);
   const DeviceUID device_id = MacToString(pDeviceInfo->mac);
@@ -161,11 +158,10 @@ void BluetoothPASAListener::ConnectDevice(void *data) {
       logger_,
       "Bluetooth channel " << pDeviceInfo->cSppQueName << " added to " << pDeviceInfo->cDeviceName);
   SendMsgQ(mq_from_sdl_, SDL_MSG_BT_DEVICE_CONNECT_ACK, 0, NULL);
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void BluetoothPASAListener::DisconnectDevice(void *data) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   const PBTDeviceDisconnectInfo pDeviceInfo =
       static_cast<PBTDeviceDisconnectInfo>(data);
   const DeviceUID device_id = MacToString(pDeviceInfo->mac);
@@ -174,7 +170,7 @@ void BluetoothPASAListener::DisconnectDevice(void *data) {
 }
 
 void BluetoothPASAListener::DisconnectSPP(void *data) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   const PBTDeviceDisConnectSPPInfo pDeviceInfo =
       static_cast<PBTDeviceDisConnectSPPInfo>(data);
   const DeviceUID device_id = MacToString(pDeviceInfo->mac);
@@ -190,44 +186,38 @@ void BluetoothPASAListener::DisconnectSPP(void *data) {
                                    disconnected_app);
     }
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 TransportAdapter::Error BluetoothPASAListener::Init() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   mq_from_sdl_ = OpenMsgQ(PREFIX_STR_FROMSDLCOREBTADAPTER_QUEUE, true, true);
-  LOG4CXX_TRACE_EXIT(logger_);
   return mq_from_sdl_ != -1 ? TransportAdapter::OK : TransportAdapter::FAIL;
 }
 
 void BluetoothPASAListener::Terminate() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   CloseMsgQ(mq_from_sdl_);
   mq_from_sdl_ = -1;
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 TransportAdapter::Error BluetoothPASAListener::StartListening() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   mq_to_sdl_ = OpenMsgQ(PREFIX_STR_TOSDLCOREBTADAPTER_QUEUE, false, true);
   if (mq_to_sdl_ != -1) {
     thread_ = threads::CreateThread("BT PASA", new ListeningThreadDelegate(this));
     thread_->start();
     LOG4CXX_INFO(logger_, "PASA incoming messages thread started");
-    LOG4CXX_TRACE_EXIT(logger_);
     return TransportAdapter::OK;
   } else {
     LOG4CXX_ERROR(logger_, "PASA incoming messages thread start failed");
-    LOG4CXX_TRACE_EXIT(logger_);
     return TransportAdapter::FAIL;
   }
 }
 
 TransportAdapter::Error BluetoothPASAListener::StopListening() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   if (!thread_) {
     LOG4CXX_ERROR(logger_, "PASA incoming messages thread stop failed");
-    LOG4CXX_TRACE_EXIT(logger_);
     return TransportAdapter::BAD_STATE;
   }
   thread_->join();
@@ -237,7 +227,6 @@ TransportAdapter::Error BluetoothPASAListener::StopListening() {
   CloseMsgQ(mq_to_sdl_);
   mq_to_sdl_ = -1;
   LOG4CXX_INFO(logger_, "PASA incoming messages thread stopped");
-  LOG4CXX_TRACE_EXIT(logger_);
   return TransportAdapter::OK;
 }
 

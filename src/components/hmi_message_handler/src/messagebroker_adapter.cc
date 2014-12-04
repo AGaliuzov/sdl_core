@@ -86,17 +86,17 @@ void MessageBrokerAdapter::SendMessageToHMI(
 
 void MessageBrokerAdapter::processResponse(std::string method,
     Json::Value& root) {
-  LOG4CXX_INFO(logger_, "MessageBrokerAdapter::processResponse");
+  LOG4CXX_AUTO_TRACE(logger_);
   ProcessRecievedFromMB(root);
 }
 
 void MessageBrokerAdapter::processRequest(Json::Value& root) {
-  LOG4CXX_INFO(logger_, "MessageBrokerAdapter::processRequest");
+  LOG4CXX_AUTO_TRACE(logger_);
   ProcessRecievedFromMB(root);
 }
 
 void MessageBrokerAdapter::processNotification(Json::Value& root) {
-  LOG4CXX_INFO(logger_, "MessageBrokerAdapter::processNotification");
+  LOG4CXX_AUTO_TRACE(logger_);
   ProcessRecievedFromMB(root);
 }
 
@@ -162,7 +162,7 @@ void* MessageBrokerAdapter::SubscribeAndBeginReceiverThread(void* param) {
 }
 
 void MessageBrokerAdapter::ProcessRecievedFromMB(Json::Value& root) {
-  LOG4CXX_INFO(logger_, "MessageBrokerAdapter::ProcessRecievedFromMB");
+  LOG4CXX_AUTO_TRACE(logger_);
   if (root.isNull()) {
     // LOG
     return;

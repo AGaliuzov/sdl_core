@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,35 +29,44 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#ifndef SRC_COMPONENTS_INCLUDE_UTILS_DATA_ACCESSOR_H_
+#define SRC_COMPONENTS_INCLUDE_UTILS_DATA_ACCESSOR_H_
 
-#include "application_manager/commands/hmi/on_ui_touch_event_notification.h"
-#include "interfaces/MOBILE_API.h"
+#include "utils/lock.h"
 
-namespace application_manager {
+// This class is for thread-safe access to data
+template<class T>
+class DataAccessor {
+ public:
+  DataAccessor(const T& data, const sync_primitives::Lock& lock)
+  : data_(data)
+  , lock_(const_cast<sync_primitives::Lock&>(lock))
+  , counter_(0) {
+  lock_.Acquire();
+  }
+  template<class O> DataAccessor(const DataAccessor<O>& other)
+  : data_(other.data_)
+  , lock_(other.lock_)
+  , counter_(other.counter_) {
+    ++counter_;
+  }
+  ~DataAccessor() {
+    if (counter_ > 0) {
+      --counter_;
+    }
+    if (0 == counter_) {
+      lock_.Release();
+    }
+  }
+  const T& GetData() const {
+    return data_;
+  }
+ private:
+  template <class O> const DataAccessor<T>& operator=(const DataAccessor<O>& other);
 
-namespace commands {
+  const T&                     data_;
+  sync_primitives::Lock&           lock_;
+  uint32_t                         counter_;
+};
 
-namespace hmi {
-
-OnUITouchEventNotification::OnUITouchEventNotification(
-    const MessageSharedPtr& message) : NotificationFromHMI(message) {
-}
-
-OnUITouchEventNotification::~OnUITouchEventNotification() {
-}
-
-void OnUITouchEventNotification::Run() {
-  LOG4CXX_AUTO_TRACE(logger_);
-
-  //prepare SmartObject for mobile factory
-  (*message_)[strings::params][strings::function_id] =
-  mobile_apis::FunctionID::OnTouchEventID;
-  SendNotificationToMobile(message_);
-}
-
-}  // namespace hmi
-
-}  // namespace commands
-
-}  // namespace application_manager
-
+#endif  // SRC_COMPONENTS_INCLUDE_UTILS_DATA_ACCESSOR_H_

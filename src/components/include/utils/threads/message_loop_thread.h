@@ -159,22 +159,20 @@ MessageLoopThread<Q>::LoopThreadDelegate::LoopThreadDelegate(
 template<class Q>
 void MessageLoopThread<Q>::LoopThreadDelegate::threadMain() {
   CREATE_LOGGERPTR_LOCAL(logger_, "Utils")
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   while (!message_queue_.IsShuttingDown()) {
     DrainQue();
     message_queue_.wait();
   }
   // Process leftover messages
   DrainQue();
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 template<class Q>
 void MessageLoopThread<Q>::LoopThreadDelegate::exitThreadMain() {
   CREATE_LOGGERPTR_LOCAL(logger_, "Utils")
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   message_queue_.Shutdown();
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 template<class Q>

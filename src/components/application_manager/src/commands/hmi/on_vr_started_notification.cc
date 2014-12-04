@@ -46,7 +46,7 @@ OnVRStartedNotification::~OnVRStartedNotification() {
 }
 
 void OnVRStartedNotification::Run() {
-  LOG4CXX_INFO(logger_, "OnVRStartedNotification::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   ApplicationManagerImpl::instance()->set_vr_session_started(true);
   ApplicationManagerImpl::instance()->Mute(kVRSessionChanging);

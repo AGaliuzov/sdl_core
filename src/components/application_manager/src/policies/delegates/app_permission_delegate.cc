@@ -43,10 +43,9 @@ namespace policy {
   }
 
   void AppPermissionDelegate::threadMain() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   PolicyHandler::instance()->OnAppPermissionConsentInternal(connection_key_,
                                                             permissions_);
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void AppPermissionDelegate::exitThreadMain() {

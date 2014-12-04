@@ -43,7 +43,7 @@ AudioStopStreamResponse::~AudioStopStreamResponse() {
 }
 
 void AudioStopStreamResponse::Run() {
-  LOG4CXX_INFO(logger_, "AudioStopStreamResponse::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
 
 }
 
