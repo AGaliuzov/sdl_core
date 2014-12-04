@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -98,6 +98,8 @@ class UpdateStatusManagerInterface {
    * @return
    */
   virtual PolicyTableStatus GetUpdateStatus() = 0;
+
+  virtual bool IsUpdateRequired () const = 0;
 };
 
 typedef utils::SharedPtr<UpdateStatusManagerInterface> UpdateStatusManagerInterfaceSPtr;

@@ -33,6 +33,7 @@
 
 #include <algorithm>
 #include <set>
+#include <queue>
 #include <iterator>
 #include "json/reader.h"
 #include "json/writer.h"
@@ -41,6 +42,7 @@
 #include "policy/policy_helper.h"
 #include "utils/file_system.h"
 #include "utils/logger.h"
+#include "utils/date_time.h"
 #include "policy/cache_manager.h"
 #include "policy/update_status_manager.h"
 #include "config_profile/profile.h"
@@ -98,7 +100,8 @@ PolicyManagerImpl::PolicyManagerImpl()
     update_status_manager_(new UpdateStatusManager),
     cache_(new CacheManager),
     retry_sequence_timeout_(60),
-    retry_sequence_index_(0) {
+    retry_sequence_index_(0),
+    ignition_check(true) {
 }
 
 void PolicyManagerImpl::set_listener(PolicyListener* listener) {
@@ -116,6 +119,21 @@ utils::SharedPtr<policy_table::Table> PolicyManagerImpl::Parse(
   } else {
     return utils::SharedPtr<policy_table::Table>();
   }
+}
+
+bool PolicyManagerImpl::CheckTriggers()  {
+
+  const bool update_required = GetPolicyTableStatus() == StatusUpdateRequired;
+  const bool exceed_ignition_cycles = ExceededIgnitionCycles();
+  const bool exceed_days = ExceededDays();
+
+  LOG4CXX_INFO(
+    logger_,
+        "\nIgnition cycles exceeded: " << std::boolalpha << update_required <<
+        "\nDays exceeded: " << std::boolalpha << exceed_ignition_cycles <<
+        "\nStatusUpdateRequired: " << std::boolalpha<< exceed_days);
+
+  return update_required || exceed_ignition_cycles || exceed_days;
 }
 
 bool PolicyManagerImpl::LoadPT(const std::string& file,
@@ -184,29 +202,22 @@ bool PolicyManagerImpl::LoadPT(const std::string& file,
 
   // If there was a user request for policy table update, it should be started
   // right after current update is finished
-  if (listener_) {
-    RefreshRetrySequence();
-    listener_->OnUserRequestedUpdateCheckRequired();
-    return true;
-  }
-
-
-  // TODO(AOleynik): Check, if there is updated info present for apps in list
-  // and skip update in this case for given app
-  if (!update_requests_list_.empty()) {
-    if (listener_) {
-      listener_->OnPTExchangeNeeded();
-    }
+  if (update_status_manager_ && update_status_manager_->IsUpdateRequired()) {
+      StartPTExchange();
   } else {
-    LOG4CXX_INFO(logger_, "Update request queue is empty.");
+    // TODO(AOleynik): Check, if there is updated info present for apps in list
+    // and skip update in this case for given app
+    if (!update_requests_list_.empty()) {
+      if (listener_) {
+        StartPTExchange();
+      }
+    } else {
+      LOG4CXX_INFO(logger_, "Update request queue is empty.");
+    }
   }
 
+  // TODO (AGALIUZOV: Check logic again)
   RefreshRetrySequence();
-
-
-  // TODO (STILL IN PROGRESS)
-  //exchange_handler_->Stop();
-
   return true;
 }
 
@@ -304,21 +315,54 @@ void PolicyManagerImpl::RequestPTUpdate() {
 
   BinaryMessage update(message_string.begin(), message_string.end());
 
-  listener_->OnSnapshotCreated(update);
+  listener_->OnSnapshotCreated(update,
+                               RetrySequenceDelaysSeconds(),
+                               TimeoutExchange());
 }
 
-void PolicyManagerImpl::StartPTExchange(const std::string& device_id) {
+bool PolicyManagerImpl::HasConsentedDevice() {
+  std::queue<std::string> apps;
+  listener_->GetAvailableApps(apps);
+  bool result = !apps.empty();
 
-  if (GetPolicyTableStatus() == PolicyTableStatus::StatusUpdatePending) {
+  if(result) {
+    std::string device_id;
+    DeviceConsent consent;
+    while(!apps.empty() || kDeviceAllowed != consent) {
+      std::string app_id = apps.front();
+      device_id = listener_->OnCurrentDeviceIdUpdateRequired(app_id);
+      consent = GetUserConsentForDevice(device_id);
+    }
+  }
+  return result;
+}
+
+void PolicyManagerImpl::StartPTExchange() {
+  LOG4CXX_INFO(logger_, "Trying to start exchange");
+  using namespace update_reason;
+  const bool update_in_progress =
+      GetPolicyTableStatus() == PolicyTableStatus::StatusUpdatePending;
+
+  if (update_in_progress) {
     LOG4CXX_INFO(logger_, "Starting exchange skipped, since another exchange "
                  "is in progress.");
     return;
   }
 
-  DeviceConsent consent = GetUserConsentForDevice(device_id);
+  if (HasConsentedDevice()) {
+    LOG4CXX_DEBUG(logger_, "Device Has Consents");
 
-  if (kDeviceAllowed == consent && cache_->UpdateRequired()) {
-    RequestPTUpdate();
+    bool start_update = true;
+
+    if (ignition_check) {
+      LOG4CXX_DEBUG(logger_, "Update at ignition");
+      start_update = CheckTriggers();
+      ignition_check = false;
+    }
+
+    if (start_update) {
+      RequestPTUpdate();
+    }
   }
 }
 
@@ -609,6 +653,7 @@ void PolicyManagerImpl::SetUserConsentForDevice(const std::string& device_id,
     LOG4CXX_WARN(logger_, "Event listener is not initialized. "
                  "Can't call OnDeviceConsentChanged");
   }
+  StartPTExchange();
 #endif
 }
 
@@ -1045,19 +1090,33 @@ bool PolicyManagerImpl::ExceededIgnitionCycles() {
   return 0 == cache_->IgnitionCyclesBeforeExchange();
 }
 
-bool PolicyManagerImpl::ExceededDays(int days) {
+bool PolicyManagerImpl::ExceededDays() {
+
+  TimevalStruct current_time = date_time::DateTime::getCurrentTime();
+  const int kSecondsInDay = 60 * 60 * 24;
+  int days = current_time.tv_sec / kSecondsInDay;
+
   return 0 == cache_->DaysBeforeExchange(days);
 }
 
-bool PolicyManagerImpl::ExceededKilometers(int kilometers) {
-  return 0 == cache_->KilometersBeforeExchange(kilometers);
+bool PolicyManagerImpl::KmsChanged(int kilometers) {
+  if (0 == cache_->KilometersBeforeExchange(kilometers)) {
+    LOG4CXX_INFO(logger_, "Enough kilometers passed to send for PT update.");
+    StartPTExchange();
+  }
+  return true;
 }
 
 void PolicyManagerImpl::IncrementIgnitionCycles() {
   cache_->IncrementIgnitionCycles();
 }
 
-PolicyTableStatus PolicyManagerImpl::GetPolicyTableStatus() {
+PolicyTableStatus PolicyManagerImpl::ExchangeByUserRequest() {
+  StartPTExchange();
+  return update_status_manager_->GetUpdateStatus();
+}
+
+PolicyTableStatus PolicyManagerImpl::GetPolicyTableStatus() const {
   return update_status_manager_->GetUpdateStatus();
 }
 

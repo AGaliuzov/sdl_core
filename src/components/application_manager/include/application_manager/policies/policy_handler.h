@@ -73,12 +73,13 @@ class PolicyHandler :
   bool ReceiveMessageFromSDK(const std::string& file,
                              const BinaryMessage& pt_string);
   bool UnloadPolicyLibrary();
-  void OnPTExchangeNeeded();
   void OnPermissionsUpdated(const std::string& policy_app_id,
                             const Permissions& permissions,
                             const HMILevel& default_hmi);
 
-  virtual void OnSnapshotCreated(const BinaryMessage& pt_string);
+  virtual void OnSnapshotCreated(const BinaryMessage& pt_string,
+                                 const std::vector<int>& retry_delay_seconds,
+                                 int timeout_exchange);
 
   bool GetPriority(const std::string& policy_app_id, std::string* priority);
   void CheckPermissions(const PTString& app_id,
@@ -101,7 +102,6 @@ class PolicyHandler :
   void OnExceededTimeout();
   void OnSystemReady();
   void PTUpdatedAt(int kilometers, int days_after_epoch);
-  const std::vector<int> RetrySequenceDelaysSeconds();
   void set_listener(PolicyHandlerObserver* listener);
 
   utils::SharedPtr<usage_statistics::StatisticsManager> GetStatisticManager();
@@ -156,11 +156,6 @@ class PolicyHandler :
   void OnAppRevoked(const std::string& policy_app_id);
 
   void OnPendingPermissionChange(const std::string& policy_app_id);
-
-  /**
-   * Initializes PT exchange at ignition if need
-   */
-  void PTExchangeAtRegistration(const std::string& app_id);
 
   /**
    * Initializes PT exchange at user request
@@ -282,12 +277,14 @@ class PolicyHandler :
 
   std::string GetAppName(const std::string& policy_app_id);
 
-  virtual void OnUserRequestedUpdateCheckRequired();
-
   virtual void OnUpdateHMIAppType(std::map<std::string, StringArray> app_hmi_types);
 
   virtual void OnDeviceConsentChanged(const std::string& device_id,
                                       bool is_allowed);
+
+  virtual void OnPTExchangeNeeded();
+
+  virtual void GetAvailableApps(std::queue<std::string>& apps);
 
   /**
    * @brief Allows to add new or update existed application during
@@ -333,17 +330,6 @@ protected:
    * Starts next retry exchange policy table
    */
   void StartNextRetry();
-
-  /**
-   * Initializes PT exchange at odometer if need
-   * @param kilometers value from odometer in kilometers
-   */
-  void PTExchangeAtOdometer(int kilometers);
-
-  /**
-     * Starts proccess updating policy table
-   */
-    void StartPTExchange();
 
  private:
 
@@ -407,10 +393,7 @@ private:
   void* dl_handle_;
   AppIds last_used_app_ids_;
   utils::SharedPtr<PolicyEventObserver> event_observer_;
-  bool on_ignition_check_done_;
   uint32_t last_activated_app_id_;
-  bool registration_in_progress;
-
 
   /**
    * @brief Contains device handles, which were sent for user consent to HMI
@@ -419,7 +402,6 @@ private:
 
   inline bool CreateManager();
 
-  bool is_user_requested_policy_table_update_;
   PolicyHandlerObserver* listener_;
 
   /**

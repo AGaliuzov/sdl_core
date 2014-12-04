@@ -1,4 +1,4 @@
-#ifndef SRC_COMPONENTS_POLICY_INCLUDE_POLICY_UPDATE_STATUS_MANAGER_H
+﻿#ifndef SRC_COMPONENTS_POLICY_INCLUDE_POLICY_UPDATE_STATUS_MANAGER_H
 #define SRC_COMPONENTS_POLICY_INCLUDE_POLICY_UPDATE_STATUS_MANAGER_H
 
 #include "policy/update_status_manager_interface.h"
@@ -79,6 +79,8 @@ class UpdateStatusManager : public UpdateStatusManagerInterface {
    * @return
    */
   PolicyTableStatus GetUpdateStatus();
+
+  virtual bool IsUpdateRequired () const;
 
 private:
   /*

@@ -34,13 +34,13 @@
 #define SRC_COMPONENTS_POLICY_INCLUDE_POLICY_LISTENER_H_
 
 #include "policy/policy_types.h"
+#include <queue>
 
 namespace policy {
 class PolicyListener {
  public:
   virtual ~PolicyListener() {
   }
-  virtual void OnPTExchangeNeeded() = 0;
   virtual void OnPermissionsUpdated(const std::string& policy_app_id,
                                     const Permissions& permissions,
                                     const policy::HMILevel& default_hmi) = 0;
@@ -51,9 +51,10 @@ class PolicyListener {
       const std::string& policy_app_id) = 0;
   virtual void OnSystemInfoUpdateRequired() = 0;
   virtual std::string GetAppName(const std::string& policy_app_id) = 0;
-  virtual void OnUserRequestedUpdateCheckRequired() = 0;
   virtual void OnUpdateHMIAppType(std::map<std::string, StringArray> app_hmi_types) = 0;
-  virtual void OnSnapshotCreated(const BinaryMessage& pt_string) = 0;
+  virtual void OnSnapshotCreated(const BinaryMessage& pt_string,
+                                 const std::vector<int>& retry_seconds,
+                                 int timeout_exceed) = 0;
 
   /**
    * @brief Make appropriate changes for related applications permissions and
@@ -63,6 +64,9 @@ class PolicyListener {
    */
   virtual void OnDeviceConsentChanged(const std::string& device_id,
                                       bool is_allowed) = 0;
+
+  virtual void OnPTExchangeNeeded() = 0;
+  virtual void GetAvailableApps(std::queue<std::string>&) = 0;
 };
 }  //  namespace policy
 #endif  //  SRC_COMPONENTS_POLICY_INCLUDE_POLICY_LISTENER_H_

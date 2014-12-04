@@ -61,7 +61,7 @@ class PolicyManagerImpl : public PolicyManager {
     virtual std::string GetUpdateUrl(int service_type);
     virtual EndpointUrls GetUpdateUrls(int service_type);
     virtual void RequestPTUpdate();
-    virtual void StartPTExchange(const std::string& device_id);
+    virtual void StartPTExchange();
     virtual void CheckPermissions(const PTString& app_id,
         const PTString& hmi_level,
         const PTString& rpc,
@@ -69,10 +69,11 @@ class PolicyManagerImpl : public PolicyManager {
         CheckPermissionResult& result);
     virtual bool ResetUserConsent();
     virtual bool ExceededIgnitionCycles();
-    virtual bool ExceededDays(int days);
-    virtual bool ExceededKilometers(int kilometers);
+    virtual bool ExceededDays();
+    virtual bool KmsChanged(int kilometers);
     virtual void IncrementIgnitionCycles();
-    virtual PolicyTableStatus GetPolicyTableStatus();
+    virtual policy::PolicyTableStatus ExchangeByUserRequest();
+    virtual PolicyTableStatus GetPolicyTableStatus() const;
     virtual void ResetRetrySequence();
     virtual int NextRetryTimeout();
     virtual int TimeoutExchange();
@@ -179,6 +180,8 @@ class PolicyManagerImpl : public PolicyManager {
         const BinaryMessage& pt_content);
 
   private:
+    bool HasConsentedDevice();
+    bool CheckTriggers();
     /*
      * @brief Checks policy table update along with current data for any changes
      * in assigned functional group list of application
@@ -321,6 +324,8 @@ class PolicyManagerImpl : public PolicyManager {
      * @brief Holds device ids, which were unpaired
      */
     DeviceIds unpaired_device_ids_;
+
+    bool ignition_check;
 
     friend struct CheckAppPolicy;
 };

@@ -40,7 +40,16 @@
 #include "usage_statistics/statistics_manager.h"
 
 namespace policy {
-
+  namespace update_reason {
+    enum UpdateReason {
+      kUserReqest,
+      kOdometer,
+      kRegistration,
+      kIgnition,
+      kActivation,
+      kQueuedApp
+    };
+  }
 class PolicyManager : public usage_statistics::StatisticsManager {
   public:
     virtual ~PolicyManager() {
@@ -96,7 +105,7 @@ class PolicyManager : public usage_statistics::StatisticsManager {
      * if one is required and starts the update flow in only case when previous
      * condition is true.
      */
-    virtual void StartPTExchange(const std::string& device_id) = 0;
+    virtual void StartPTExchange() = 0;
 
     /**
      * @brief Check if specified RPC for specified application
@@ -124,7 +133,7 @@ class PolicyManager : public usage_statistics::StatisticsManager {
      * @brief Returns current status of policy table for HMI
      * @return Current status of policy table
      */
-    virtual PolicyTableStatus GetPolicyTableStatus() = 0;
+    virtual PolicyTableStatus GetPolicyTableStatus() const = 0;
 
     /**
      * Checks is PT exceeded IgnitionCycles
@@ -134,22 +143,26 @@ class PolicyManager : public usage_statistics::StatisticsManager {
 
     /**
      * Checks is PT exceeded days
-     * @param days current day after epoch
      * @return true if exceeded
      */
-    virtual bool ExceededDays(int days) = 0;
+    virtual bool ExceededDays() = 0;
 
     /**
      * Checks is PT exceeded kilometers
      * @param kilometers current kilometers at odometer
      * @return true if exceeded
      */
-    virtual bool ExceededKilometers(int kilometers) = 0;
+    virtual bool KmsChanged(int kilometers) = 0;
 
     /**
      * Increments counter of ignition cycles
      */
     virtual void IncrementIgnitionCycles() = 0;
+
+    /**
+     * @brief ExchangeByUserRequest
+     */
+    virtual policy::PolicyTableStatus ExchangeByUserRequest() = 0;
 
     /**
      * Resets retry sequence

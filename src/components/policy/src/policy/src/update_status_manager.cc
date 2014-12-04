@@ -1,4 +1,4 @@
-/*
+﻿/*
  Copyright (c) 2014, Ford Motor Company
  All rights reserved.
 
@@ -69,6 +69,7 @@ void UpdateStatusManager::OnUpdateSentOut(uint32_t update_timeout) {
   update_status_thread_delegate_->updateTimeOut(update_timeout *
                                                 milliseconds_in_second);
   set_exchange_in_progress(true);
+  set_exchange_pending(true);
 }
 
 void UpdateStatusManager::OnUpdateTimeoutOccurs() {
@@ -130,6 +131,10 @@ PolicyTableStatus UpdateStatusManager::GetUpdateStatus() {
   }
 
   return PolicyTableStatus::StatusUpdatePending;
+}
+
+bool UpdateStatusManager::IsUpdateRequired() const {
+  return update_required_;
 }
 
 void UpdateStatusManager::CheckUpdateStatus() {
