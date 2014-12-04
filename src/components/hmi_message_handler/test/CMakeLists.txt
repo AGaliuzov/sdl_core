@@ -43,13 +43,13 @@ set(LIBRARIES
 
 set(SOURCES
     ${COMPONENTS_DIR}/hmi_message_handler/test/main.cc  
-    ${COMPONENTS_DIR}/hmi_message_handler/test/test_mqueue_adapter.cc 
+    ${COMPONENTS_DIR}/hmi_message_handler/test/mqueue_adapter_test.cc 
 )          
 
 if(${QT_HMI})
     list (APPEND SOURCES  
     ${COMPONENTS_DIR}/hmi_message_handler/test/mock_subscriber.cc 
-    ${COMPONENTS_DIR}/hmi_message_handler/test/test_dbus_message_adapter.cc
+    ${COMPONENTS_DIR}/hmi_message_handler/test/dbus_message_adapter_test.cc
   )
 endif()
 create_test("hmi_message_handler_test" "${SOURCES}" "${LIBRARIES}")
