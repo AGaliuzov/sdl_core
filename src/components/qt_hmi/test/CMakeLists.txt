@@ -28,69 +28,43 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-set(COMPONENTS_DIR ${CMAKE_SOURCE_DIR}/src/components)
 
-# --- HMI_API interfaces
-add_subdirectory(./interfaces)
+if(BUILD_TESTS)
 
-# --- ProtocolHandler
-add_subdirectory(./protocol)
+cmake_minimum_required(VERSION 2.8.11)
 
-# --- TransportManager
-add_subdirectory(./transport_manager)
+set(QT_HMI_TESTS_LIST 
+    ${COMPONENTS_DIR}/qt_hmi/test/src/tst_AddCommand.qml
+    ${COMPONENTS_DIR}/qt_hmi/test/src/tst_AddSubMenu.qml
+    ${COMPONENTS_DIR}/qt_hmi/test/src/tst_DeleteCommand.qml
+    ${COMPONENTS_DIR}/qt_hmi/test/src/tst_ScrollableMessage.qml
+    ${COMPONENTS_DIR}/qt_hmi/test/src/tst_SetMediaClockTimer.qml
+    ${COMPONENTS_DIR}/qt_hmi/test/src/tst_Show.qml
+    ${COMPONENTS_DIR}/qt_hmi/test/src/tst_Slider.qml
+    ${COMPONENTS_DIR}/qt_hmi/test/readme.txt
+)
 
-# --- Policies
-add_subdirectory(./resumption)
+include_directories(
+    ${CMAKE_CURRENT_BINARY_DIR} 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
-# --- formatters
-add_subdirectory(./formatters)
+set(CONFIG
+    warn_on 
+    qmltestcase
+)
 
-# --- ProtocolHandler
-add_subdirectory(./protocol_handler)
+set(SOURCES
+    qt_hmi_test.cc
+)
 
-# --- ConnectionHandler
-add_subdirectory(./connection_handler)
+set(target qt_hmi_test)
 
-# --- Utils
-add_subdirectory(./utils)
+create_test("qt_hmi_test" "${SOURCES}" "")
+qt5_use_modules(${target} Core Qml Quick QuickTest)
 
-# --- Security manager
-if(ENABLE_SECURITY)
-  add_subdirectory(./security_manager)
+foreach( file_i ${QT_HMI_TESTS_LIST})
+    file(COPY ${file_i} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+endforeach( file_i )
+
 endif()
-#
-# --- Policy_impl
-add_subdirectory(./policy)
-
-# --- Validated types
-add_subdirectory(./rpc_base)
-
-# --- SmartObjects
-add_subdirectory(./smart_objects)
-
-# --- Application manager
-add_subdirectory(./application_manager)
-
-# --- HMI Message Handler
-add_subdirectory(./hmi_message_handler)
-
-# --- Config
-add_subdirectory(./config_profile)
-
-# --- AudioManager
-add_subdirectory(./media_manager)
-
-if (TIME_TESTER)
-    add_subdirectory(./time_tester)
-endif()
-
-
-if (${HMI_DBUS_API})
-# --- DBus
-    add_subdirectory(./dbus)
-endif ()
-if (${QT_HMI})
-# --- Qt HMI
-    add_subdirectory(./qt_hmi)
-endif ()
-
