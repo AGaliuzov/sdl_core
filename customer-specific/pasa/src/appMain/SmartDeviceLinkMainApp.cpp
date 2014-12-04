@@ -365,7 +365,7 @@ class Dispatcher {
     char code = msg[0];
     switch (state_) {
       case kNone:
-        if (code == SLD_MSG_SDL_START) {
+        if (code == SDL_MSG_SDL_START) {
           Send(msg);
           state_ = kRun;
         }
