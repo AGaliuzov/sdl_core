@@ -207,7 +207,6 @@ endif()
     ${COMPONENTS_DIR}/utils/test/messagemeter_test.cc
     ${COMPONENTS_DIR}/utils/test/date_time_test.cc
     ${COMPONENTS_DIR}/utils/test/file_system_test.cc
-    ${COMPONENTS_DIR}/media_manager/test/media_adapter_impl_test.cc
     ${COMPONENTS_DIR}/media_manager/test/media_manager_impl_test.cc
     ${COMPONENTS_DIR}/connection_handler/test/connection_handler_impl_test.cc
     ${COMPONENTS_DIR}/connection_handler/test/connection_test.cc

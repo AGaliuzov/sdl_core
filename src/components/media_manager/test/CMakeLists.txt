@@ -28,6 +28,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+if(BUILD_TESTS)
 
 include_directories (
   ${LOG4CXX_INCLUDE_DIRECTORY}
@@ -51,7 +52,6 @@ endif()
 set (SOURCES
  media_manager_impl_test.cc
  main.cc
- media_adapter_impl_test.cc
 )
 
 set (LIBRARIES
@@ -91,5 +91,7 @@ create_test("media_manager_test" "${SOURCES}" "${LIBRARIES}")
 
 if(ENABLE_LOG)
   target_link_libraries("media_manager_test" log4cxx -L${LOG4CXX_LIBS_DIRECTORY})
+endif()
+
 endif()
 # vim: set ts=2 sw=2 et:
