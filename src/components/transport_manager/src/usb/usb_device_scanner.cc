@@ -209,7 +209,8 @@ void UsbDeviceScanner::SupportedDeviceFound(PlatformUsbDevice* device) {
                << ", address "
                << static_cast<int>(device->address())
                << ") identified as: " << device->GetManufacturer()
-               << ", " << device->GetProductName());
+               << ", " << device->GetProductName()
+               << ", serial: " << device->GetSerialNumber());
   UpdateList();
   LOG4CXX_TRACE(logger_, "exit");
 }
@@ -232,9 +233,7 @@ void UsbDeviceScanner::UpdateList() {
       (*it)->GetManufacturer() + " " + (*it)->GetProductName();
     std::ostringstream oss;
     oss << (*it)->GetManufacturer() << ":" << (*it)->GetProductName() << ":"
-        << (*it)->GetSerialNumber() << ":"
-        << static_cast<int>((*it)->bus_number()) << ":"
-        << static_cast<int>((*it)->address());
+        << (*it)->GetSerialNumber();
     const DeviceUID device_uid = oss.str();
     DeviceSptr device(new UsbDevice(*it, device_name, device_uid));
     device_vector.push_back(device);
