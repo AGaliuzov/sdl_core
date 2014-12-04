@@ -113,7 +113,7 @@ TEST(UsageStatisticsTest, TestAppStopwatchAddsZero) {
   hmi_full_stopwatch.Start(SECONDS_HMI_FULL);
   hmi_full_stopwatch.Switch(SECONDS_HMI_BACKGROUND);
   hmi_full_stopwatch.Switch(SECONDS_HMI_FULL);
-  hmi_full_stopwatch.Stop();
+ // hmi_full_stopwatch.Stop();
 }
 
 TEST(UsageStatisticsTest, TestAppStopwatchAutoStopsInASecond) {
