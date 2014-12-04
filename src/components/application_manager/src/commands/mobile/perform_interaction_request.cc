@@ -336,6 +336,14 @@ void PerformInteractionRequest::ProcessVRResponse(
     }
   }
 
+  if (mobile_apis::Result::SUCCESS == vr_perform_interaction_code_ &&
+      mobile_apis::InteractionMode::MANUAL_ONLY == interaction_mode_) {
+    LOG4CXX_INFO(logger_, "VR response SUCCESS in MANUAL_ONLY mode " <<
+                          "Wait for UI response");
+    // in case MANUAL_ONLY mode VR.PI SUCCESS just return
+    return;
+  }
+
   smart_objects::SmartObject msg_params =
         smart_objects::SmartObject(smart_objects::SmartType_Map);
   smart_objects::SmartObject* ptr_msg_params = NULL;
