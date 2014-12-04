@@ -244,10 +244,9 @@ bool ResumeCtrl::SetupHMILevel(ApplicationSharedPtr application,
 
   if (hmi_level != mobile_apis::HMILevel::HMI_FULL) {
     application->set_hmi_level(hmi_level);
+    MessageHelper::SendHMIStatusNotification(*(application.get()));
+    // HMI status for full wil be get after ActivateApp response
   }
-
-  MessageHelper::SendHMIStatusNotification(*(application.get()));
-
   LOG4CXX_INFO(logger_, "Set up application "
                << application->mobile_app_id()->asString()
                << " to HMILevel " << hmi_level);

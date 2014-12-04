@@ -476,7 +476,7 @@ bool PolicyManagerImpl::CleanupUnpairedDevices() {
 
 DeviceConsent PolicyManagerImpl::GetUserConsentForDevice(
   const std::string& device_id) {
-  LOG4CXX_INFO(logger_, "GetUserConsentForDevice");
+  LOG4CXX_AUTO_TRACE(logger_);
 #ifdef EXTENDED_POLICY
   // Get device permission groups from app_policies section, which hadn't been
   // preconsented
