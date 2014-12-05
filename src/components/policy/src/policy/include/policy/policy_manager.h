@@ -40,16 +40,6 @@
 #include "usage_statistics/statistics_manager.h"
 
 namespace policy {
-  namespace update_reason {
-    enum UpdateReason {
-      kUserReqest,
-      kOdometer,
-      kRegistration,
-      kIgnition,
-      kActivation,
-      kQueuedApp
-    };
-  }
 class PolicyManager : public usage_statistics::StatisticsManager {
   public:
     virtual ~PolicyManager() {
@@ -101,13 +91,6 @@ class PolicyManager : public usage_statistics::StatisticsManager {
     virtual void RequestPTUpdate() = 0;
 
     /**
-     * @brief StartPTExchange allows to start PTU. The function will check
-     * if one is required and starts the update flow in only case when previous
-     * condition is true.
-     */
-    virtual void StartPTExchange() = 0;
-
-    /**
      * @brief Check if specified RPC for specified application
      * has permission to be executed in specified HMI Level
      * and also its permitted params.
@@ -133,19 +116,7 @@ class PolicyManager : public usage_statistics::StatisticsManager {
      * @brief Returns current status of policy table for HMI
      * @return Current status of policy table
      */
-    virtual PolicyTableStatus GetPolicyTableStatus() const = 0;
-
-    /**
-     * Checks is PT exceeded IgnitionCycles
-     * @return true if exceeded
-     */
-    virtual bool ExceededIgnitionCycles() = 0;
-
-    /**
-     * Checks is PT exceeded days
-     * @return true if exceeded
-     */
-    virtual bool ExceededDays() = 0;
+    virtual std::string GetPolicyTableStatus() const = 0;
 
     /**
      * Checks is PT exceeded kilometers
@@ -162,7 +133,7 @@ class PolicyManager : public usage_statistics::StatisticsManager {
     /**
      * @brief ExchangeByUserRequest
      */
-    virtual policy::PolicyTableStatus ExchangeByUserRequest() = 0;
+    virtual std::string ForcePTExchange() = 0;
 
     /**
      * Resets retry sequence
@@ -366,14 +337,6 @@ class PolicyManager : public usage_statistics::StatisticsManager {
     virtual void AddApplication(const std::string& application_id) = 0;
 
     /**
-     * @brief IsAppInUpdateList allows to check if specific application
-     * presents in update list.
-     * @param app_id id of the application that should be verified.
-     * @return true in case of application is in update list, false otherwise.
-     */
-    virtual bool IsAppInUpdateList(const std::string& app_id) const = 0;
-
-    /**
      * @brief Removes unpaired device records and related records from DB
      * @param device_ids List of device_id, which should be removed
      * @return true, if succedeed, otherwise - false
@@ -429,6 +392,25 @@ class PolicyManager : public usage_statistics::StatisticsManager {
      * @brief SaveUpdateStatusRequired alows to save update status.
      */
     virtual void SaveUpdateStatusRequired(bool is_update_needed) = 0;
+  protected:
+    /**
+     * Checks is PT exceeded IgnitionCycles
+     * @return true if exceeded
+     */
+    virtual bool ExceededIgnitionCycles() = 0;
+
+    /**
+     * Checks is PT exceeded days
+     * @return true if exceeded
+     */
+
+    virtual bool ExceededDays() = 0;
+    /**
+     * @brief StartPTExchange allows to start PTU. The function will check
+     * if one is required and starts the update flow in only case when previous
+     * condition is true.
+     */
+    virtual void StartPTExchange() = 0;
 };
 
 }  // namespace policy

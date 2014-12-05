@@ -210,7 +210,7 @@ class PolicyHandler :
    * @brief Send notification to HMI with changed policy update status
    * @param status Current policy update state
    */
-  void OnUpdateStatusChanged(policy::PolicyTableStatus status);
+  void OnUpdateStatusChanged(const std::string& status);
 
   /**
    * @brief Update currently used device id in policies manager for given
@@ -332,13 +332,6 @@ protected:
   void StartNextRetry();
 
  private:
-
-  /**
-   * @brief Convert internal policy update status to appropriate status for HMI
-   * @param status Internal policy update status
-   * @return Converted status for sending to HMI
-   */
-  const std::string ConvertUpdateStatus(policy::PolicyTableStatus status);
 
   /**
    * @brief OnAppPermissionConsentInternal reacts on permission changing

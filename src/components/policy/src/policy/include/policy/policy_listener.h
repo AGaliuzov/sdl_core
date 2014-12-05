@@ -46,7 +46,7 @@ class PolicyListener {
                                     const policy::HMILevel& default_hmi) = 0;
   virtual void OnPendingPermissionChange(const std::string& policy_app_id) = 0;
   virtual void OnAppRevoked(const std::string& policy_app_id) = 0;
-  virtual void OnUpdateStatusChanged(policy::PolicyTableStatus status) = 0;
+  virtual void OnUpdateStatusChanged(const std::string&) = 0;
   virtual std::string OnCurrentDeviceIdUpdateRequired(
       const std::string& policy_app_id) = 0;
   virtual void OnSystemInfoUpdateRequired() = 0;
@@ -64,8 +64,6 @@ class PolicyListener {
    */
   virtual void OnDeviceConsentChanged(const std::string& device_id,
                                       bool is_allowed) = 0;
-
-  virtual void OnPTExchangeNeeded() = 0;
   virtual void GetAvailableApps(std::queue<std::string>&) = 0;
 };
 }  //  namespace policy

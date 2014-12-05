@@ -70,6 +70,7 @@ void UpdateStatusManager::OnUpdateSentOut(uint32_t update_timeout) {
                                                 milliseconds_in_second);
   set_exchange_in_progress(true);
   set_exchange_pending(true);
+  set_update_required(false);
 }
 
 void UpdateStatusManager::OnUpdateTimeoutOccurs() {
@@ -83,7 +84,7 @@ void UpdateStatusManager::OnUpdateTimeoutOccurs() {
 void UpdateStatusManager::OnValidUpdateReceived() {
   LOG4CXX_INFO(logger_, "OnValidUpdateReceived");
   update_status_thread_delegate_->updateTimeOut(0); // Stop Timer
-  set_update_required(false);
+  set_exchange_pending(false);
   set_exchange_in_progress(false);
 }
 
@@ -120,7 +121,7 @@ void UpdateStatusManager::OnPolicyInit(bool is_update_required) {
   update_required_ = is_update_required;
 }
 
-PolicyTableStatus UpdateStatusManager::GetUpdateStatus() {
+PolicyTableStatus UpdateStatusManager::GetUpdateStatus() const {
   LOG4CXX_INFO(logger_, "GetUpdateStatus");
   if (!exchange_in_progress_ && !exchange_pending_ && !update_required_) {
     return PolicyTableStatus::StatusUpToDate;
@@ -137,11 +138,34 @@ bool UpdateStatusManager::IsUpdateRequired() const {
   return update_required_;
 }
 
+bool UpdateStatusManager::IsUpdatePending() const {
+  return exchange_pending_;
+}
+
+void UpdateStatusManager::ScheduleUpdate() {
+  set_update_required(true);
+}
+
+std::string UpdateStatusManager::StringifiedUpdateStatus() const{
+  switch (GetUpdateStatus()) {
+    case policy::StatusUpdatePending:
+      return "UPDATING";
+    case policy::StatusUpdateRequired:
+      return "UPDATE_NEEDED";
+    case policy::StatusUpToDate:
+      return "UP_TO_DATE";
+    default: {
+      return "UNKNOWN";
+    }
+  }
+}
+
 void UpdateStatusManager::CheckUpdateStatus() {
   LOG4CXX_INFO(logger_, "CheckUpdateStatus");
   policy::PolicyTableStatus status = GetUpdateStatus();
   if (listener_ && last_update_status_ != status) {
-    listener_->OnUpdateStatusChanged(status);
+    LOG4CXX_INFO(logger_, "Send OnUpdateStatusChanged");
+    listener_->OnUpdateStatusChanged(StringifiedUpdateStatus());
   }
   last_update_status_ = status;
 }

@@ -362,20 +362,6 @@ uint32_t PolicyHandler::GetAppIdForSending() {
   return selected_app_id;
 }
 
-const std::string PolicyHandler::ConvertUpdateStatus(PolicyTableStatus status) {
-  switch (status) {
-    case policy::StatusUpdatePending:
-      return "UPDATING";
-    case policy::StatusUpdateRequired:
-      return "UPDATE_NEEDED";
-    case policy::StatusUpToDate:
-      return "UP_TO_DATE";
-    default: {
-      return "UNKNOWN";
-    }
-  }
-}
-
 void PolicyHandler::OnAppPermissionConsent(const uint32_t connection_key,
                                            const PermissionConsent& permissions) {
   LOG4CXX_AUTO_TRACE(logger_);
@@ -421,15 +407,17 @@ void PolicyHandler::OnDeviceConsentChanged(const std::string& device_id,
 
 void PolicyHandler::OnPTExchangeNeeded() {
   POLICY_LIB_CHECK_VOID();
-  policy_manager_->StartPTExchange();
+  policy_manager_->ForcePTExchange();
 }
 
 void PolicyHandler::GetAvailableApps(std::queue<std::string>& apps) {
+  LOG4CXX_INFO(logger_, "GetAvailable apps");
   application_manager::ApplicationManagerImpl::ApplicationListAccessor accessor;
   const ApplicationList app_list = accessor.applications();
-  ApplicationList::const_iterator iter = app_list.end();
+  ApplicationList::const_iterator iter = app_list.begin();
 
   for (;app_list.end() != iter; ++iter) {
+    LOG4CXX_INFO(logger_, "one more app");
     apps.push((*iter)->mobile_app_id()->asString());
   }
 }
@@ -592,17 +580,13 @@ void PolicyHandler::OnGetListOfPermissions(const uint32_t connection_key,
 void PolicyHandler::OnGetStatusUpdate(const uint32_t correlation_id) {
   LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK_VOID();
-  policy::PolicyTableStatus status = policy_manager_->GetPolicyTableStatus();
   application_manager::MessageHelper::SendGetStatusUpdateResponse(
-    ConvertUpdateStatus(status), correlation_id);
+    policy_manager_->GetPolicyTableStatus(), correlation_id);
 }
 
-void PolicyHandler::OnUpdateStatusChanged(PolicyTableStatus status) {
+void PolicyHandler::OnUpdateStatusChanged(const std::string& status) {
   LOG4CXX_AUTO_TRACE(logger_);
-  POLICY_LIB_CHECK_VOID();
-  policy_manager_->SaveUpdateStatusRequired(policy::StatusUpToDate != status);
-  application_manager::MessageHelper::SendOnStatusUpdate(
-    ConvertUpdateStatus(status));
+  application_manager::MessageHelper::SendOnStatusUpdate(status);
 }
 
 std::string PolicyHandler::OnCurrentDeviceIdUpdateRequired(
@@ -796,13 +780,6 @@ bool PolicyHandler::SendMessageToSDK(const BinaryMessage& pt_string,
 bool PolicyHandler::ReceiveMessageFromSDK(const std::string& file,
     const BinaryMessage& pt_string) {
   POLICY_LIB_CHECK(false);
-
-  if (policy_manager_->GetPolicyTableStatus() !=
-      PolicyTableStatus::StatusUpdatePending) {
-    LOG4CXX_WARN(logger_, "PTU processing skipped, since current status is "
-                          "different from pending.");
-    return false;
-  }
 
   bool ret = policy_manager_->LoadPT(file, pt_string);
   LOG4CXX_INFO(logger_, "Policy table is saved: " << std::boolalpha << ret);
@@ -1047,9 +1024,9 @@ void PolicyHandler::KmsChanged(int kilometers) {
 void PolicyHandler::PTExchangeAtUserRequest(uint32_t correlation_id) {
   LOG4CXX_TRACE(logger_, "PT exchange at user request");
   POLICY_LIB_CHECK_VOID();
-  policy::PolicyTableStatus status = policy_manager_->ExchangeByUserRequest();
-  application_manager::MessageHelper::SendUpdateSDLResponse(
-    ConvertUpdateStatus(status), correlation_id);
+  std::string update_status = policy_manager_->ForcePTExchange();
+  application_manager::MessageHelper::SendUpdateSDLResponse(update_status,
+                                                            correlation_id);
 }
 
 void PolicyHandler::OnPermissionsUpdated(const std::string& policy_app_id,

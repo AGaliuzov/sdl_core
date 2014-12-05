@@ -40,7 +40,7 @@
 #include "mock_cache_manager.h"
 #include "mock_update_status_manager.h"
 #include "policy/policy_manager_impl.h"
-#include "policy/update_status_manager_interface.h"
+#include "policy/update_status_manager.h"
 #include "policy/cache_manager_interface.h"
 #include "json/value.h"
 #include "utils/shared_ptr.h"
@@ -56,12 +56,12 @@ using ::policy::MockPolicyListener;
 using ::policy::MockPTRepresentation;
 using ::policy::MockPTExtRepresentation;
 using ::policy::MockCacheManagerInterface;
-using ::policy::MockUpdateStatusManagerInterface;
+using ::policy::MockUpdateStatusManager;
 using ::policy::PolicyManagerImpl;
 using ::policy::PolicyTable;
 using ::policy::EndpointUrls;
 using ::policy::CacheManagerInterfaceSPtr;
-using ::policy::UpdateStatusManagerInterfaceSPtr;
+using ::policy::UpdateStatusManager;
 
 namespace policy_table = rpc::policy_table_interface_base;
 
@@ -73,7 +73,7 @@ class PolicyManagerImplTest : public ::testing::Test {
  protected:
   PolicyManagerImpl* manager;
   MockCacheManagerInterface* cache_manager;
-  MockUpdateStatusManagerInterface* update_manager;
+  MockUpdateStatusManager update_manager;
   MockPolicyListener* listener;
 
   void SetUp() {
@@ -82,11 +82,8 @@ class PolicyManagerImplTest : public ::testing::Test {
     cache_manager = new MockCacheManagerInterface();
     manager->set_cache_manager(cache_manager);
 
-    update_manager = new MockUpdateStatusManagerInterface();
-    manager->set_update_status_manager(update_manager);
-
     listener = new MockPolicyListener();
-    EXPECT_CALL(*update_manager, set_listener(listener)).Times(1);
+    EXPECT_CALL(update_manager, set_listener(listener)).Times(1);
     manager->set_listener(listener);
   }
 
@@ -105,32 +102,6 @@ class PolicyManagerImplTest : public ::testing::Test {
     }
  }
 };
-
-TEST_F(PolicyManagerImplTest, ExceededIgnitionCycles) {
-  EXPECT_CALL(*cache_manager, IgnitionCyclesBeforeExchange()).Times(2).WillOnce(
-      Return(5)).WillOnce(Return(0));
-  EXPECT_CALL(*cache_manager, IncrementIgnitionCycles()).Times(1);
-
-  EXPECT_FALSE(manager->ExceededIgnitionCycles());
-  manager->IncrementIgnitionCycles();
-  EXPECT_TRUE(manager->ExceededIgnitionCycles());
-}
-
-TEST_F(PolicyManagerImplTest, ExceededDays) {
-  EXPECT_CALL(*cache_manager, DaysBeforeExchange(_)).Times(2).WillOnce(
-      Return(5)).WillOnce(Return(0));
-
-  EXPECT_FALSE(manager->ExceededDays(5));
-  EXPECT_TRUE(manager->ExceededDays(15));
-}
-
-TEST_F(PolicyManagerImplTest, ExceededKilometers) {
-  EXPECT_CALL(*cache_manager, KilometersBeforeExchange(_)).Times(2).WillOnce(
-      Return(50)).WillOnce(Return(0));
-
-  EXPECT_FALSE(manager->ExceededKilometers(50));
-  EXPECT_TRUE(manager->ExceededKilometers(150));
-}
 
 TEST_F(PolicyManagerImplTest, RefreshRetrySequence) {
   std::vector<int> seconds;
@@ -365,7 +336,7 @@ TEST_F(PolicyManagerImplTest, LoadPT) {
   utils::SharedPtr<policy_table::Table> snapshot =
       new policy_table::Table(update.policy_table);
 
-  EXPECT_CALL(*update_manager, OnValidUpdateReceived()).Times(1);
+  EXPECT_CALL(update_manager, OnValidUpdateReceived()).Times(1);
   EXPECT_CALL(*cache_manager, GenerateSnapshot()).Times(1).WillOnce(Return(snapshot));
   EXPECT_CALL(*cache_manager, ApplyUpdate(_)).Times(1).WillOnce(Return(true));
   EXPECT_CALL(*listener, GetAppName("1234")).Times(1).WillOnce(Return(""));
@@ -379,17 +350,13 @@ TEST_F(PolicyManagerImplTest, LoadPT) {
 TEST_F(PolicyManagerImplTest, RequestPTUpdate) {
   ::utils::SharedPtr< ::policy_table::Table> p_table =
       new ::policy_table::Table();
-  std::string json = p_table->ToJsonValue().toStyledString();
-  ::policy::BinaryMessageSptr expect = new ::policy::BinaryMessage(json.begin(),
-      json.end());
 
   EXPECT_CALL(*cache_manager, GenerateSnapshot()).WillOnce(Return(p_table));
 #ifdef EXTENDED_POLICY
   EXPECT_CALL(*cache_manager, UnpairedDevicesList(_)).Times(1);
 #endif  // EXTENDED_POLICY
 
-  ::policy::BinaryMessageSptr output = manager->RequestPTUpdate();
-  EXPECT_EQ(*expect, *output);
+  manager->RequestPTUpdate();
 }
 
 #ifdef EXTENDED_POLICY
