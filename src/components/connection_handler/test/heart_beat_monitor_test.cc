@@ -31,7 +31,7 @@
  */
 
 #include <string>
-#include <stdio.h>
+//#include <stdio.h>
 #include "gmock/gmock.h"
 #include "connection_handler/heartbeat_monitor.h"
 #include "connection_handler/connection.h"
