@@ -84,24 +84,13 @@ PopUp {
         anchors.bottom: parent.bottom
         anchors.left: parent.left
 
-        model: dataContainer.vrCommands
+        model: if (interactionPopup.grammarID) dataContainer.choisesVrCommands
+               else dataContainer.vrCommands
 
         delegate: OvalButton {
             width: parent.width
             text: command
-            visible:
-                if (interactionPopup.performInteractionIsActiveNow)
-                       {
-                        for (var i = 0; i < interactionPopup.grammarID.length; i++)
-                             {
-                               if (interactionPopup.grammarID[i] === grammarID){
-                                  return true
-                              }
-                          }
-                        return false
-                  }
-                     else type
-
+            visible: visibleButtons(grammarID,type)
             onClicked: {
                 if (interactionPopup.performInteractionIsActiveNow && !type)
                     interactionPopup.complete(Common.Result.SUCCESS, {"choiceID": cmdID})
@@ -118,10 +107,6 @@ PopUp {
         dataContainer.activeVR = true;
         sdlVR.started();
         show();
-        if (interactionPopup.performInteractionIsActiveNow && interactionPopup.grammarID)
-            sortModelforPerformIn();
-        else
-            sortModel();
     }
 
     function complete(reason) {
@@ -129,42 +114,42 @@ PopUp {
         sdlVR.stopped();
         hide();
     }
-    function sortModel()
-        {
-            var n;
-            var i;
-            for (n = 0; n < dataContainer.vrCommands.count; n++)
-                for (i = n + 1; i < dataContainer.vrCommands.count; i++)
+
+    function sortModelforPerformIn() {
+        var n;
+        var i;
+        var j;
+        for (n = 0; n < dataContainer.choisesVrCommands.count; n++)
+            for (i= n + 1; i < dataContainer.choisesVrCommands.count; i++)
+            {
+                if (dataContainer.choisesVrCommands.get(n).type > dataContainer.choisesVrCommands.get(i).type)
                 {
-                    if (dataContainer.vrCommands.get(n).type < dataContainer.vrCommands.get(i).type)
+                    dataContainer.choisesVrCommands.move(i, n, 1);
+                    n=0;
+                }
+            }
+        for (j = interactionPopup.grammarID.length; j > 0; j--)
+            for (n = 0; n < dataContainer.choisesVrCommands.count && dataContainer.choisesVrCommands.get(n).type === 0; n++)
+                for (i = n + 1; i < dataContainer.choisesVrCommands.count && dataContainer.choisesVrCommands.get(i).type === 0; i++)
+                { if (dataContainer.choisesVrCommands.get(n).grammarID !== interactionPopup.grammarID[j-1]
+                            && dataContainer.choisesVrCommands.get(i).grammarID === interactionPopup.grammarID[j-1])
                     {
-                        dataContainer.vrCommands.move(i, n, 1);
+                        dataContainer.choisesVrCommands.move(i, n, 1);
                         n=0;
                     }
                 }
+    }
+    function visibleButtons(grammarID, type) {
+        if (interactionPopup.grammarID){
+            for (var i = 0; i < interactionPopup.grammarID.length; i++)
+            {
+                if (interactionPopup.grammarID[i] === grammarID) {
+                    return true
+                }
+            }
+            return false
         }
-    function sortModelforPerformIn()
-        {
-            var n;
-            var i;
-            var j;
-            for (n = 0; n < dataContainer.vrCommands.count; n++)
-                for (i= n + 1; i < dataContainer.vrCommands.count; i++)
-                {
-                    if (dataContainer.vrCommands.get(n).type > dataContainer.vrCommands.get(i).type)
-                    {
-                        dataContainer.vrCommands.move(i, n, 1);
-                        n=0;
-                    }
-                }
-            for (j = interactionPopup.grammarID.length; j > 0; j--)
-                for (n = 0; n < dataContainer.vrCommands.count && dataContainer.vrCommands.get(n).type === 0; n++)
-                    for (i = n + 1; i < dataContainer.vrCommands.count && dataContainer.vrCommands.get(i).type === 0; i++)
-                    { if (dataContainer.vrCommands.get(n).grammarID !== interactionPopup.grammarID[j-1]
-                                && dataContainer.vrCommands.get(i).grammarID === interactionPopup.grammarID[j-1])
-                        {
-                            dataContainer.vrCommands.move(i, n, 1);
-                            n=0;
-                        }
-        }}
+        else return type
+    }
+
 }

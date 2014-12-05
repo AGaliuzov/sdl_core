@@ -72,7 +72,6 @@ ContextPopup {
             icon: image
             onClicked: {
                 complete(Common.Result.SUCCESS, {"choiceID": model.choiceID})
-                vrPopUp.sortModel()
             }
         }
     }
@@ -146,7 +145,6 @@ ContextPopup {
         console.debug("enter")
         timer.interval = timeout
         timer.start()
-        if (grammarID)
         vrPopUp.sortModelforPerformIn()
         vrPopUp.show()
         vrHelpPopup.show()
@@ -167,7 +165,6 @@ ContextPopup {
                 break
         }
         timer.stop()
-        vrPopUp.sortModel()
         grammarID = ""
         hide()
         performInteractionIsActiveNow = false

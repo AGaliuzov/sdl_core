@@ -57,6 +57,7 @@ Item {
                     "grammarID: " + grammarID +
                     "}}")
         for (var i = 0; i < vrCommands.length; ++i) {
+            if (type) {
             dataContainer.vrCommands.append({
                                                cmdID: cmdID,
                                                command: vrCommands[i],
@@ -64,9 +65,18 @@ Item {
                                                type: type,
                                                grammarID: grammarID,
                                            });
+            }
+            else {
+                dataContainer.choisesVrCommands.append({
+                                                   cmdID: cmdID,
+                                                   command: vrCommands[i],
+                                                   appID: appID === undefined ? 0 : appID,
+                                                   type: type,
+                                                   grammarID: grammarID,
+                                               });
+            }
         }
         console.log("exit")
-        vrPopUp.sortModel()
     }
 
     function deleteCommand(cmdID, appID) {
