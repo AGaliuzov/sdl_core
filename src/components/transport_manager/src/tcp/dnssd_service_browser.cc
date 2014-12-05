@@ -50,7 +50,7 @@ bool operator==(const DnssdServiceRecord& a, const DnssdServiceRecord& b) {
 }
 
 void DnssdServiceBrowser::Terminate() {
-  LOG4CXX_TRACE(logger_, "enter");
+  LOG4CXX_AUTO_TRACE(logger_);
   if (0 != avahi_threaded_poll_) {
     avahi_threaded_poll_stop(avahi_threaded_poll_);
   }
@@ -66,7 +66,6 @@ void DnssdServiceBrowser::Terminate() {
     avahi_threaded_poll_free(avahi_threaded_poll_);
     avahi_threaded_poll_ = NULL;
   }
-  LOG4CXX_TRACE(logger_, "exit");
 }
 
 bool DnssdServiceBrowser::IsInitialised() const {

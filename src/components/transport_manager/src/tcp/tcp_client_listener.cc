@@ -79,10 +79,49 @@ TcpClientListener::TcpClientListener(TransportAdapterController* controller,
 TransportAdapter::Error TcpClientListener::Init() {
   LOG4CXX_AUTO_TRACE(logger_);
   thread_stop_requested_ = false;
+
+  socket_ = socket(AF_INET, SOCK_STREAM, 0);
+  if (-1 == socket_) {
+    LOG4CXX_ERROR_WITH_ERRNO(logger_, "Failed to create socket");
+    LOG4CXX_TRACE(logger_,
+                  "exit with TransportAdapter::FAIL. Condition: -1 == socket_");
+    return TransportAdapter::FAIL;
+  }
+
+  sockaddr_in server_address = { 0 };
+  server_address.sin_family = AF_INET;
+  server_address.sin_port = htons(port_);
+  server_address.sin_addr.s_addr = INADDR_ANY;
+
+  int optval = 1;
+  setsockopt(socket_, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
+
+  if (bind(socket_, reinterpret_cast<sockaddr*>(&server_address),
+           sizeof(server_address)) != 0) {
+    LOG4CXX_ERROR_WITH_ERRNO(logger_, "bind() failed");
+    return TransportAdapter::FAIL;
+  }
+
+  if (0 != listen(socket_, 128)) {
+    LOG4CXX_ERROR_WITH_ERRNO(logger_, "listen() failed");
+    return TransportAdapter::FAIL;
+  }
   return TransportAdapter::OK;
 }
 
 void TcpClientListener::Terminate() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  if (socket_ == -1) {
+    LOG4CXX_WARN(logger_, "Socket has been closed");
+    return;
+  }
+  if (shutdown(socket_, SHUT_RDWR) != 0) {
+    LOG4CXX_ERROR_WITH_ERRNO(logger_, "Failed shutdown socket");
+  }
+  if (close(socket_) != 0) {
+    LOG4CXX_ERROR_WITH_ERRNO(logger_, "Failed close socket");
+  }
+  socket_ = -1;
 }
 
 bool TcpClientListener::IsInitialised() const {
@@ -92,9 +131,9 @@ bool TcpClientListener::IsInitialised() const {
 TcpClientListener::~TcpClientListener() {
   LOG4CXX_AUTO_TRACE(logger_);
   StopListening();
-  thread_->join();
   delete thread_->delegate();
   threads::DeleteThread(thread_);
+  Terminate();
 }
 
 void SetKeepaliveOptions(const int fd) {
@@ -152,6 +191,7 @@ void TcpClientListener::Loop() {
                                      &client_address_size);
     if (thread_stop_requested_) {
       LOG4CXX_DEBUG(logger_, "thread_stop_requested_");
+      close(connection_fd);
       break;
     }
 
@@ -216,41 +256,11 @@ TransportAdapter::Error TcpClientListener::StartListening() {
     return TransportAdapter::BAD_STATE;
   }
 
-  socket_ = socket(AF_INET, SOCK_STREAM, 0);
-
-  if (-1 == socket_) {
-    LOG4CXX_ERROR_WITH_ERRNO(logger_, "Failed to create socket");
-    LOG4CXX_TRACE(logger_,
-                  "exit with TransportAdapter::FAIL. Condition: -1 == socket_");
-    return TransportAdapter::FAIL;
-  }
-
-  sockaddr_in server_address = { 0 };
-  server_address.sin_family = AF_INET;
-  server_address.sin_port = htons(port_);
-  server_address.sin_addr.s_addr = INADDR_ANY;
-
-  int optval = 1;
-  setsockopt(socket_, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
-
-  if (bind(socket_, reinterpret_cast<sockaddr*>(&server_address),
-           sizeof(server_address)) != 0) {
-    LOG4CXX_ERROR_WITH_ERRNO(logger_, "bind() failed");
-    return TransportAdapter::FAIL;
-  }
-
-  if (0 != listen(socket_, 128)) {
-    LOG4CXX_ERROR_WITH_ERRNO(logger_, "listen() failed");
-    return TransportAdapter::FAIL;
-  }
-
-  if (thread_->start()) {
-    LOG4CXX_DEBUG(logger_, "Tcp client listener thread started");
-  } else {
+  if (!thread_->start()) {
     LOG4CXX_ERROR(logger_, "Tcp client listener thread start failed");
     return TransportAdapter::FAIL;
   }
-  LOG4CXX_TRACE(logger_, "exit with TransportAdapter::OK");
+  LOG4CXX_INFO(logger_, "Tcp client listener has started successful");
   return TransportAdapter::OK;
 }
 
@@ -274,9 +284,9 @@ TransportAdapter::Error TcpClientListener::StopListening() {
     return TransportAdapter::BAD_STATE;
   }
 
-  thread_->stop();
-  close(socket_);
-  socket_ = -1;
+  thread_->join();
+
+  LOG4CXX_INFO(logger_, "Tcp client listener has stopped successful");
   return TransportAdapter::OK;
 }
 
