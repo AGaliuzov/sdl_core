@@ -85,14 +85,15 @@ ContextPopup {
         }
     }
 
-    function performInteraction(initialText, choiceSet, vrHelpTitle, vrHelp, timeout, interactionLayout, appID) {
+    function performInteraction(initialTextArg, choiceSet, vrHelpTitle, vrHelp, timeout, interactionLayout, appID) {
         console.debug("enter")
         var app = dataContainer.getApplication(appID)
         var dataToUpdate = {}
 
         performInteractionIsActiveNow = true
-        if (initialText !== undefined)
-        initialText.text = initialText.fieldText
+        if (initialTextArg !== undefined){
+            initialText.text = initialTextArg.fieldText
+        }
         this.timeout = timeout
         this.appID = appID
 

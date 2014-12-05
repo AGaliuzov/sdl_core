@@ -135,7 +135,7 @@ PopUp {
                             && dataContainer.choisesVrCommands.get(i).grammarID === interactionPopup.grammarID[j-1])
                     {
                         dataContainer.choisesVrCommands.move(i, n, 1);
-                        n=0;
+                        n = 0;
                     }
                 }
     }
