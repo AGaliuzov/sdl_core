@@ -225,6 +225,7 @@ class ResumeCtrl: public event_engine::EventObserver {
       is_data_saved = false;
     }
 
+    void RestoreHmiLevel(ApplicationManagerImpl::ApplicationListAccessor accessor, uint32_t time_stamp, ApplicationSharedPtr application);
   private:
 
     typedef std::pair<uint32_t, uint32_t> application_timestamp;
@@ -285,6 +286,8 @@ class ResumeCtrl: public event_engine::EventObserver {
     bool ProcessHMIRequest(
         NsSmartDeviceLink::NsSmartObjects::SmartObject* request = NULL,
         bool use_events = false);
+
+    void InsertToTimerQueue(uint32_t app_id, uint32_t time_stamp);
 
     /**
      *  @brief times of IGN_OFF that zombie application have to be saved.
