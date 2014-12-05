@@ -29,53 +29,42 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 
-include_directories (
-    include/
-    ${COMPONENTS_DIR}/application_manager/include/
-    ${COMPONENTS_DIR}/utils/include/
-    ${COMPONENTS_DIR}/smart_objects/include/
-    ${COMPONENTS_DIR}/formatters/include/
-    ${COMPONENTS_DIR}/config_profile/include/
-    ${COMPONENTS_DIR}/media_manager/include/
-    ${COMPONENTS_DIR}/protocol_handler/include
-    ${JSONCPP_INCLUDE_DIRECTORY}
-    ${MESSAGE_BROKER_INCLUDE_DIRECTORY}
-    ${COMPONENTS_DIR}
-    ${CMAKE_BINARY_DIR}/src/components/
-    ${COMPONENTS_DIR}/dbus/include/
-    ${CMAKE_SOURCE_DIR}/
-    ${LOG4CXX_INCLUDE_DIRECTORY}
+if(BUILD_TESTS)
+
+cmake_minimum_required(VERSION 2.8.11)
+
+set(QT_HMI_TESTS_LIST 
+    ${COMPONENTS_DIR}/qt_hmi/test/src/tst_AddCommand.qml
+    ${COMPONENTS_DIR}/qt_hmi/test/src/tst_AddSubMenu.qml
+    ${COMPONENTS_DIR}/qt_hmi/test/src/tst_DeleteCommand.qml
+    ${COMPONENTS_DIR}/qt_hmi/test/src/tst_ScrollableMessage.qml
+    ${COMPONENTS_DIR}/qt_hmi/test/src/tst_SetMediaClockTimer.qml
+    ${COMPONENTS_DIR}/qt_hmi/test/src/tst_Show.qml
+    ${COMPONENTS_DIR}/qt_hmi/test/src/tst_Slider.qml
+    ${COMPONENTS_DIR}/qt_hmi/test/readme.txt
 )
 
-IF (HMIADAPTER STREQUAL "dbus")
-    set (DBUS_SOURCE ./src/dbus_message_adapter.cc)
-    set (DBUS_ADAPTER DBus)
-ENDIF ()
-
-set (SOURCES
-    ${COMPONENTS_DIR}/hmi_message_handler/src/hmi_message_handler_impl.cc
-    ${COMPONENTS_DIR}/hmi_message_handler/src/messagebroker_adapter.cc
-    ${COMPONENTS_DIR}/hmi_message_handler/src/hmi_message_adapter.cc
-    ${COMPONENTS_DIR}/hmi_message_handler/src/mqueue_adapter.cc
-    ${DBUS_SOURCE}
+include_directories(
+    ${CMAKE_CURRENT_BINARY_DIR} 
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-set(LIBRARIES
-    Utils
-    ${DBUS_ADAPTER}
-    ${RTLIB}
+set(CONFIG
+    warn_on 
+    qmltestcase
 )
 
-add_library("HMIMessageHandler" ${SOURCES})
-target_link_libraries("HMIMessageHandler" ${LIBRARIES})
+set(SOURCES
+    qt_hmi_test.cc
+)
 
-if(ENABLE_LOG)
-    target_link_libraries("HMIMessageHandler" log4cxx -L${LOG4CXX_LIBS_DIRECTORY})
+set(target qt_hmi_test)
+
+create_test("qt_hmi_test" "${SOURCES}" "")
+qt5_use_modules(${target} Core Qml Quick QuickTest)
+
+foreach( file_i ${QT_HMI_TESTS_LIST})
+    file(COPY ${file_i} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+endforeach( file_i )
+
 endif()
-
-# Tests temporary are inactivated. For details please check
-# Readme.txt in test directory of hmi_message_handler 
-
-#if(BUILD_TESTS)
-#  add_subdirectory(test)
-#endif()
