@@ -30,7 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
 #include <netinet/in.h>
@@ -107,11 +106,18 @@ TEST(DnssdServiceBrowser, Basic) {
 
  DnssdServiceBrowser dnssd_service_browser(&controller);
  DeviceScanner& device_scanner = dnssd_service_browser;
- device_scanner.Init();
+
+
+ const TransportAdapter::Error error = device_scanner.Init();
+ ASSERT_EQ(TransportAdapter::OK, error);
+
  while (!device_scanner.IsInitialised()) {
+   sleep(0);
  }
- sleep(1);
- device_scanner.Scan();
+ ASSERT_TRUE(device_scanner.IsInitialised());
+
+ EXPECT_EQ(TransportAdapter::OK, device_scanner.Scan());
+
 }
 
 }  // namespace

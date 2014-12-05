@@ -30,8 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gtest/gtest.h"
-#include "gmock/gmock.h"
 
 #include <sys/time.h>
 #include <sys/socket.h>
@@ -41,35 +39,86 @@
 #include "transport_manager/tcp/tcp_transport_adapter.h"
 #include "transport_manager/transport_adapter/transport_adapter_listener.h"
 #include "include/mock_transport_adapter_listener.h"
-#include "../../include/protocol/raw_message.h"
+#include "protocol/raw_message.h"
 
 namespace transport_manager {
 namespace transport_adapter {
 
 using namespace ::protocol_handler;
 
-TEST(TcpAdapterBasicTest, Basic) {
+TEST(TcpAdapterBasicTest, GetDeviceType_Return_sdltcp) {
 
+  //arrange
   TransportAdapter* transport_adapter = new TcpTransportAdapter(12345);
 
+  //assert
   EXPECT_EQ("sdl-tcp", transport_adapter->GetDeviceType());
-  EXPECT_TRUE(transport_adapter->IsServerOriginatedConnectSupported());
-  EXPECT_TRUE(transport_adapter->IsClientOriginatedConnectSupported());
-  EXPECT_TRUE(transport_adapter->IsSearchDevicesSupported());
-
 }
 
-TEST(TcpAdapterBasicTest, NotInitialised) {
+TEST(TcpAdapterBasicTest, isServerOriginatedConnectSupported_Return_True) {
+
+  //arrange
   TransportAdapter* transport_adapter = new TcpTransportAdapter(12345);
 
+  //assert
+  EXPECT_TRUE(transport_adapter->IsServerOriginatedConnectSupported());
+}
+
+TEST(TcpAdapterBasicTest, isClientOriginatedConnectSupported_Return_True) {
+
+  //arrange
+  TransportAdapter* transport_adapter = new TcpTransportAdapter(12345);
+  EXPECT_TRUE(transport_adapter->IsClientOriginatedConnectSupported());
+}
+
+TEST(TcpAdapterBasicTest, isSearchDevicesSupported_Return_True) {
+
+  //arrange
+  TransportAdapter* transport_adapter = new TcpTransportAdapter(12345);
+
+  //assert
+  EXPECT_TRUE(transport_adapter->IsSearchDevicesSupported());
+}
+
+TEST(TcpAdapterBasicTest, NotInitialised_Return_BAD_STATE) {
+
+  //arrange
+  TransportAdapter* transport_adapter = new TcpTransportAdapter(12345);
+
+  //assert
   EXPECT_EQ(TransportAdapter::BAD_STATE, transport_adapter->SearchDevices());
+}
+
+TEST(TcpAdapterBasicTest, NotInitialised_Return_OK) {
+
+  //arrange
+  TransportAdapter* transport_adapter = new TcpTransportAdapter(12345);
+
+  //assert
   EXPECT_EQ(TransportAdapter::OK,
             transport_adapter->Connect(DeviceUID("xxx"), 2));
+}
+
+TEST(TcpAdapterBasicTest, NotInitialised_Return_BAD_STATE_in_Disconnect) {
+
+  //arrange
+  TransportAdapter* transport_adapter = new TcpTransportAdapter(12345);
+
+  //assert
   EXPECT_EQ(TransportAdapter::BAD_STATE,
             transport_adapter->Disconnect(DeviceUID("xxx"), 2));
+}
+
+TEST(TcpAdapterBasicTest, NotInitialised_Return_BAD_STATE_in_DisconnectDevice) {
+
+  //arrange
+  TransportAdapter* transport_adapter = new TcpTransportAdapter(12345);
+
+  //assert
   EXPECT_EQ(TransportAdapter::BAD_STATE,
             transport_adapter->DisconnectDevice(DeviceUID("xxx")));
 }
+
 
 class ClientTcpSocket {
  public:
@@ -133,6 +182,8 @@ void Disconnect(const TransportAdapter* transport_adapter,
       TransportAdapter::OK,
       const_cast<TransportAdapter*>(transport_adapter)->Disconnect(device_handle,
                                                              app_handle));
+
+  std::cout<<"adapter is disconnected";
 }
 
 
@@ -152,7 +203,7 @@ class TcpAdapterTest : public ::testing::Test {
   }
 
   virtual void SetUp() {
-    const TransportAdapter::Error error = transport_adapter_->Init();
+	const TransportAdapter::Error error = transport_adapter_->Init();
     ASSERT_EQ(TransportAdapter::OK, error);
     transport_adapter_->AddListener(&mock_dal_);
     time_t end_time = time(NULL) + 5;
@@ -160,6 +211,11 @@ class TcpAdapterTest : public ::testing::Test {
       sleep(0);
     ASSERT_TRUE(transport_adapter_->IsInitialised());
   }
+
+  virtual void TearDown() {
+    transport_adapter_-> StopClientListening();
+  }
+
 
   virtual ~TcpAdapterTest() {
     pthread_mutex_lock(&suspend_mutex_);
@@ -179,6 +235,7 @@ class TcpAdapterTest : public ::testing::Test {
     }
     pthread_mutex_unlock(&suspend_mutex_);
     delete transport_adapter_;
+
     pthread_mutex_destroy(&suspend_mutex_);
     pthread_cond_destroy(&suspend_cond_);
   }
@@ -202,6 +259,7 @@ class TcpAdapterTest : public ::testing::Test {
   pthread_mutex_t suspend_mutex_;
   bool suspended_;
   bool finished_;
+
 };
 
 class TcpAdapterTestWithListenerAutoStart : public TcpAdapterTest {
@@ -209,23 +267,39 @@ class TcpAdapterTestWithListenerAutoStart : public TcpAdapterTest {
     TcpAdapterTest::SetUp();
     transport_adapter_->StartClientListening();
   }
+
 };
+
 
 MATCHER_P(ContainsMessage, str, ""){ return strlen(str) == arg->data_size() && 0 == memcmp(str, arg->data(), arg->data_size());}
 
-TEST_F(TcpAdapterTestWithListenerAutoStart, Connect) {
+TEST_F(TcpAdapterTestWithListenerAutoStart, Connect_Return_True) {
   {
     ::testing::InSequence seq;
+    EXPECT_CALL(mock_dal_, OnDeviceListUpdated(_));
     EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).WillOnce(
         InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp));
   }
   EXPECT_TRUE(client_.Connect(port()));
 }
 
-TEST_F(TcpAdapterTestWithListenerAutoStart, Receive) {
+TEST_F(TcpAdapterTestWithListenerAutoStart, SecondConnect_Return_True) {
   {
     ::testing::InSequence seq;
+    EXPECT_CALL(mock_dal_, OnDeviceListUpdated(_));
+    EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).WillOnce(
+        InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp));
+  }
+  EXPECT_TRUE(client_.Connect(port()));
+}
+
+TEST_F(TcpAdapterTestWithListenerAutoStart, Receive_Return_True) {
+  {
+    ::testing::InSequence seq;
+
+    EXPECT_CALL(mock_dal_, OnDeviceListUpdated(_));
     EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _));
+
     EXPECT_CALL(
         mock_dal_,
         OnDataReceiveDone(transport_adapter_, _, _, ContainsMessage("abcd"))).
@@ -234,6 +308,7 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, Receive) {
   EXPECT_TRUE(client_.Connect(port()));
   EXPECT_TRUE(client_.Send("abcd"));
 }
+
 
 struct SendHelper {
   explicit SendHelper(TransportAdapter::Error expected_error)
@@ -258,10 +333,13 @@ struct SendHelper {
   RawMessagePtr message_;
 };
 
-TEST_F(TcpAdapterTestWithListenerAutoStart, Send) {
+
+
+TEST_F(TcpAdapterTestWithListenerAutoStart, Send_Message) {
   SendHelper helper(TransportAdapter::OK);
   {
     ::testing::InSequence seq;
+
     EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).WillOnce(
         Invoke(&helper, &SendHelper::sendMessage));
     EXPECT_CALL(mock_dal_,
@@ -273,9 +351,11 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, Send) {
   EXPECT_EQ("efgh", client_.receive(4));
 }
 
+
 TEST_F(TcpAdapterTestWithListenerAutoStart, DisconnectFromClient) {
   {
     ::testing::InSequence seq;
+
     EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _));
     EXPECT_CALL(mock_dal_, OnUnexpectedDisconnect(transport_adapter_, _, _, _));
     EXPECT_CALL(mock_dal_, OnDisconnectDone(transport_adapter_, _, _)).WillOnce(
@@ -288,6 +368,7 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, DisconnectFromClient) {
 TEST_F(TcpAdapterTestWithListenerAutoStart, DisconnectFromServer) {
   {
     ::testing::InSequence seq;
+
     EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).WillOnce(
         Invoke(Disconnect));
     EXPECT_CALL(mock_dal_, OnDisconnectDone(transport_adapter_, _, _)).WillOnce(
@@ -300,6 +381,7 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, SendToDisconnected) {
   SendHelper* helper = new SendHelper(TransportAdapter::BAD_PARAM);
   {
     ::testing::InSequence seq;
+
     EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).WillOnce(
         Invoke(Disconnect));
     EXPECT_CALL(mock_dal_, OnDisconnectDone(transport_adapter_, _, _)).WillOnce(
@@ -309,8 +391,11 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, SendToDisconnected) {
   EXPECT_TRUE(client_.Connect(port()));
 }
 
+
 TEST_F(TcpAdapterTestWithListenerAutoStart, SendFailed) {
-  static unsigned char zzz[2000000];  //2000000 is much more than socket buffer
+//  static unsigned char zzz[2000000];  //message will send without fail because socket buffer can contain it
+										//this test works correctly starting with number 2539009
+  static unsigned char zzz[2600000];
   SendHelper* helper = new SendHelper(TransportAdapter::OK);
   helper->message_ = new RawMessage(1, 1, zzz, sizeof(zzz));
   {
@@ -327,20 +412,35 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, SendFailed) {
   client_.Disconnect();
 }
 
+
 TEST_F(TcpAdapterTest, StartStop) {
+
+  //assert
   EXPECT_EQ(TransportAdapter::BAD_STATE, transport_adapter_->StopClientListening());
   EXPECT_FALSE(client_.Connect(port()));
   EXPECT_EQ(TransportAdapter::OK, transport_adapter_->StartClientListening());
   EXPECT_TRUE(client_.Connect(port()));
+
+  //act
   client_.Disconnect();
+
+  //assert
   EXPECT_EQ(TransportAdapter::BAD_STATE, transport_adapter_->StartClientListening());
   EXPECT_TRUE(client_.Connect(port()));
+
+  //act
   client_.Disconnect();
+
+  //assert
   EXPECT_EQ(TransportAdapter::OK, transport_adapter_->StopClientListening());
   EXPECT_FALSE(client_.Connect(port()));
+
+  //act
   wakeUp();
 }
 
+
 }  // namespace
 }  // namespace
+
 
