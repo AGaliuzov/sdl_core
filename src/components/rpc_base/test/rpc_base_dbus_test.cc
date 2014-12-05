@@ -30,11 +30,7 @@
  */
 
 #include "gtest/gtest.h"
-#include "gtest/gtest-spi.h"
-
 #include "dbus/dbus_message.h"
-#include "dbus_message.cc"
-#include "rpc_base/rpc_base.h"
 #include "rpc_base/rpc_base_dbus_inl.h"
 
 namespace test {

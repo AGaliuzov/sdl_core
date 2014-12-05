@@ -33,7 +33,6 @@
 #include "gtest/gtest.h"
 #include "json/value.h"
 #include "rpc_base/rpc_base.h"
-#include "rpc_base/rpc_base_json_inl.h"
 
 namespace test {
 using namespace rpc;
