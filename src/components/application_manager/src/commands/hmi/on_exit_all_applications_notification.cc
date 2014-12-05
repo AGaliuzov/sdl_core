@@ -98,10 +98,6 @@ void OnExitAllApplicationsNotification::Run() {
 
   app_manager->SetUnregisterAllApplicationsReason(mob_reason);
 
-  if (mobile_api::AppInterfaceUnregisteredReason::MASTER_RESET == mob_reason) {
-    app_manager->UnregisterAllApplications();
-  }
-
   if (mobile_api::AppInterfaceUnregisteredReason::MASTER_RESET == mob_reason ||
       mobile_api::AppInterfaceUnregisteredReason::FACTORY_DEFAULTS == mob_reason) {
     app_manager->HeadUnitReset(mob_reason);
