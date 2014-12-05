@@ -190,8 +190,8 @@ void ThreadedSocketConnection::threadMain() {
 void ThreadedSocketConnection::Transmit() {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  const nfds_t poll_fds_size = 2;
-  pollfd poll_fds[poll_fds_size];
+  const nfds_t kPollFdsSize = 2;
+  pollfd poll_fds[kPollFdsSize];
   poll_fds[0].fd = socket_;
   poll_fds[0].events = POLLIN | POLLPRI
       | (frames_to_send_.empty() ? 0 : POLLOUT);
@@ -199,7 +199,7 @@ void ThreadedSocketConnection::Transmit() {
   poll_fds[1].events = POLLIN | POLLPRI;
 
   LOG4CXX_DEBUG(logger_, "poll " << this);
-  if (-1 == poll(poll_fds, poll_fds_size, -1)) {
+  if (-1 == poll(poll_fds, kPollFdsSize, -1)) {
     LOG4CXX_ERROR_WITH_ERRNO(logger_, "poll failed for connection " << this);
     Abort();
     return;
@@ -335,5 +335,5 @@ void ThreadedSocketConnection::SocketConnectionDelegate::threadMain() {
   connection_->threadMain();
 }
 
-}  // namespace
-}  // namespace
+}  // namespace transport_adapter
+}  // namespace transport_manager

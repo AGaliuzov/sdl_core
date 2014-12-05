@@ -144,7 +144,7 @@ void AvahiServiceBrowserCallback(AvahiServiceBrowser* avahi_service_browser,
     case AVAHI_BROWSER_FAILURE:
       LOG4CXX_ERROR(
           logger_,
-          "AvahiServiceBrowser failure: " << avahi_strerror( avahi_client_errno( avahi_service_browser_get_client( avahi_service_browser))));
+          "AvahiServiceBrowser failure: " << avahi_strerror(avahi_client_errno(avahi_service_browser_get_client(avahi_service_browser))));
       break;
 
     case AVAHI_BROWSER_NEW:
@@ -366,6 +366,5 @@ DeviceVector DnssdServiceBrowser::PrepareDeviceVector() const {
   return device_vector;
 }
 
-}  // namespace
-}  // namespace
-
+}  // namespace transport_adapter
+}  // namespace transport_manager

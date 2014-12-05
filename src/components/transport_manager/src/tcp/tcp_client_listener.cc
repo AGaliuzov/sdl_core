@@ -98,7 +98,8 @@ TcpClientListener::~TcpClientListener() {
 }
 
 void SetKeepaliveOptions(const int fd) {
-  LOG4CXX_TRACE(logger_, "enter. fd: " << fd);
+  LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(logger_, "fd: " << fd);
   int yes = 1;
   int keepidle = 3;  // 3 seconds to disconnection detecting
   int keepcnt = 5;
@@ -112,7 +113,7 @@ void SetKeepaliveOptions(const int fd) {
   setsockopt(fd, IPPROTO_TCP, TCP_USER_TIMEOUT, &user_timeout,
              sizeof(user_timeout));
 #elif defined(__QNX__)  // __linux__
-  // TODO (KKolodiy): Out of order!
+  // TODO(KKolodiy): Out of order!
   const int kMidLength = 4;
   int mib[kMidLength];
 
@@ -139,7 +140,6 @@ void SetKeepaliveOptions(const int fd) {
   setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &yes, sizeof(yes));
   setsockopt(fd, IPPROTO_TCP, TCP_KEEPALIVE, &tval, sizeof(tval));
 #endif  // __QNX__
-  LOG4CXX_TRACE(logger_, "exit");
 }
 
 void TcpClientListener::Loop() {
@@ -202,7 +202,8 @@ void TcpClientListener::StopLoop() {
   server_address.sin_family = AF_INET;
   server_address.sin_port = htons(port_);
   server_address.sin_addr.s_addr = INADDR_ANY;
-  connect(byesocket, (sockaddr*) &server_address, sizeof(server_address));
+  connect(byesocket, reinterpret_cast<sockaddr*>(&server_address),
+          sizeof(server_address));
   shutdown(byesocket, SHUT_RDWR);
   close(byesocket);
 }
@@ -210,9 +211,8 @@ void TcpClientListener::StopLoop() {
 TransportAdapter::Error TcpClientListener::StartListening() {
   LOG4CXX_AUTO_TRACE(logger_);
   if (thread_->is_running()) {
-    LOG4CXX_WARN(
-        logger_,
-        "TransportAdapter::BAD_STATE. Listener have already started");
+    LOG4CXX_WARN(logger_,
+                 "TransportAdapter::BAD_STATE. Listener have already started");
     return TransportAdapter::BAD_STATE;
   }
 
@@ -233,19 +233,14 @@ TransportAdapter::Error TcpClientListener::StartListening() {
   int optval = 1;
   setsockopt(socket_, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
 
-  if (0 != bind(socket_, (sockaddr*) &server_address, sizeof(server_address))) {
+  if (bind(socket_, reinterpret_cast<sockaddr*>(&server_address),
+           sizeof(server_address)) != 0) {
     LOG4CXX_ERROR_WITH_ERRNO(logger_, "bind() failed");
-    LOG4CXX_TRACE(
-        logger_,
-        "exit with TransportAdapter::FAIL. Condition: 0 != bind(socket_, (sockaddr*) &server_address, sizeof(server_address))");
     return TransportAdapter::FAIL;
   }
 
   if (0 != listen(socket_, 128)) {
     LOG4CXX_ERROR_WITH_ERRNO(logger_, "listen() failed");
-    LOG4CXX_TRACE(
-        logger_,
-        "exit with TransportAdapter::FAIL. Condition: 0 != listen(socket_, 128)");
     return TransportAdapter::FAIL;
   }
 

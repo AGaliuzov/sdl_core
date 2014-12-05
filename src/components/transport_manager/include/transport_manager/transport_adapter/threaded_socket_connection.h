@@ -57,7 +57,6 @@ class TransportAdapterController;
  */
 class ThreadedSocketConnection : public Connection {
  public:
-
   /**
    * @brief Send data frame.
    *
@@ -87,8 +86,8 @@ class ThreadedSocketConnection : public Connection {
   void set_socket(int socket) {
     socket_ = socket;
   }
- protected:
 
+ protected:
   /**
    * @brief Constructor.
    *
@@ -104,7 +103,6 @@ class ThreadedSocketConnection : public Connection {
    * @brief Destructor.
    */
   virtual ~ThreadedSocketConnection();
-
 
   virtual bool Establish(ConnectError** error) = 0;
 
@@ -132,8 +130,7 @@ class ThreadedSocketConnection : public Connection {
  private:
   class SocketConnectionDelegate : public threads::ThreadDelegate {
    public:
-    explicit SocketConnectionDelegate(
-        ThreadedSocketConnection* connection);
+    explicit SocketConnectionDelegate(ThreadedSocketConnection* connection);
     void threadMain() OVERRIDE;
    private:
     ThreadedSocketConnection* connection_;
@@ -167,4 +164,4 @@ class ThreadedSocketConnection : public Connection {
 }  // namespace transport_adapter
 }  // namespace transport_manager
 
-#endif  //SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_transport_adapter_SOCKET_COMMUNICATION
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_TRANSPORT_ADAPTER_THREADED_SOCKET_CONNECTION_H_
