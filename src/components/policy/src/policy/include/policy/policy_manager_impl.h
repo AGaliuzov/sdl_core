@@ -293,12 +293,6 @@ class PolicyManagerImpl : public PolicyManager {
      */
     std::string last_device_id_;
 
-    // TODO(AOleynik): Do we need this here? Cache manager already has it
-    /**
-     * @brief Holds device ids, which were unpaired
-     */
-    DeviceIds unpaired_device_ids_;
-
     bool ignition_check;
 
     friend struct CheckAppPolicy;

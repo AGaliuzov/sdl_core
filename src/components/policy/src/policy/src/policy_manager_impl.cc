@@ -259,9 +259,6 @@ void PolicyManagerImpl::RequestPTUpdate() {
     return;
   }
 
-#ifdef EXTENDED_POLICY
-    cache_->UnpairedDevicesList(unpaired_device_ids_);
-#endif  // EXTENDED_POLICY
   policy_table_snapshot->SetPolicyTableType(policy_table::PT_SNAPSHOT);
   if (false == policy_table_snapshot->is_valid()) {
     LOG4CXX_ERROR(
@@ -499,7 +496,7 @@ void PolicyManagerImpl::SendNotificationOnPermissionsUpdated(
 bool PolicyManagerImpl::CleanupUnpairedDevices() {
   LOG4CXX_INFO(logger_, "CleanupUnpairedDevices");
 #ifdef EXTENDED_POLICY
-  return cache_->CleanupUnpairedDevices(unpaired_device_ids_);
+  return cache_->CleanupUnpairedDevices();
 #else  // EXTENDED_POLICY
   // For SDL-specific it doesn't matter
   return true;
