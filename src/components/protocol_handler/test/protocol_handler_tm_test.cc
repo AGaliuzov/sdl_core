@@ -30,21 +30,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
-
 #include <string>
-
-#include "utils/shared_ptr.h"
 
 #include "protocol_handler/protocol_handler_impl.h"
 #include "protocol/common.h"
-
 #include "include/protocol_handler_mock.h"
 #include "protocol_observer_mock.h"
-//#include "session_observer_mock.h"
-#include "control_message_matcher.h"
 #include "security_manager_mock.h"
-#include "ssl_context_mock.h"
 #include "transport_manager_mock.h"
 #include "control_message_matcher.h"
 
@@ -58,9 +50,7 @@ namespace protocol_handler_test {
 
 using namespace ::protocol_handler;
 using namespace ::transport_manager;  // For TM states
-//using namespace ::security_manager;
 using ::transport_manager::TransportManagerListener;
-using protocol_handler_test::ControlMessage;
 using ::testing::Return;
 using ::testing::ReturnNull;
 using ::testing::AnyOf;
