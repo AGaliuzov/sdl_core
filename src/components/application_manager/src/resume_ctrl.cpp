@@ -620,8 +620,9 @@ bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
   return false;
 }
 
-void ResumeCtrl::RestoreHmiLevel(ApplicationManagerImpl::ApplicationListAccessor accessor, uint32_t time_stamp, ApplicationSharedPtr application)
-{
+void ResumeCtrl::RestoreHmiLevel(uint32_t time_stamp,
+                                 ApplicationSharedPtr application) {
+  ApplicationManagerImpl::ApplicationListAccessor accessor;
   if (!restore_hmi_level_timer_.isRunning() &&
       accessor.applications().size() > 1) {
     // resume in case there is already registered app
@@ -632,7 +633,7 @@ void ResumeCtrl::RestoreHmiLevel(ApplicationManagerImpl::ApplicationListAccessor
     SetupDefaultHMILevel(application);
     InsertToTimerQueue(application->app_id(), time_stamp);
     // woun't start timer if it is active already
-    LOG4CXX_TRACE(logger_, "Application " << application->app_id() << " inserted to timer queue. "
+    LOG4CXX_DEBUG(logger_, "Application " << application->app_id() << " inserted to timer queue. "
                   << "timer started for " << profile::Profile::instance()->app_resuming_timeout());
     restore_hmi_level_timer_.start(profile::Profile::instance()->app_resuming_timeout());
   }
@@ -649,12 +650,11 @@ bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
                         << application->mobile_app_id()->asString());
 
   Json::Value::iterator it = GetSavedApplications().begin();
-  ApplicationManagerImpl::ApplicationListAccessor accessor;
   for (; it != GetSavedApplications().end(); ++it) {
     const std::string& saved_m_app_id = (*it)[strings::app_id].asString();
     if (saved_m_app_id == application->mobile_app_id()->asString()) {
       uint32_t time_stamp= (*it)[strings::time_stamp].asUInt();
-      RestoreHmiLevel(accessor, time_stamp, application);
+      RestoreHmiLevel(time_stamp, application);
       LOG4CXX_TRACE(logger_, "EXIT true");
       return true;
     }

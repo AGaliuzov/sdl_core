@@ -225,7 +225,7 @@ class ResumeCtrl: public event_engine::EventObserver {
       is_data_saved = false;
     }
 
-    void RestoreHmiLevel(ApplicationManagerImpl::ApplicationListAccessor accessor, uint32_t time_stamp, ApplicationSharedPtr application);
+    void RestoreHmiLevel(uint32_t time_stamp, ApplicationSharedPtr application);
   private:
 
     typedef std::pair<uint32_t, uint32_t> application_timestamp;
