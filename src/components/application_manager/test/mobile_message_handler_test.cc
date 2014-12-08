@@ -1,8 +1,5 @@
 /*
- * \file mobile_message_handler_test.h
- * \brief MobileMessageHandler test header file.
- *
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,157 +30,40 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
-
-#include "../../application_manager/include/application_manager/message.h"
 #include "application_manager/mobile_message_handler.h"
 #include "application_manager/application_manager_impl.h"
-//#include "mobile_message_handler/mobile_message_handler_impl.h"
-#include "protocol_handler/protocol_handler_impl.h"
-#include "utils/lock.h"
-#include "utils/conditional_variable.h"
-#include "utils/threads/thread.h"
-#include "utils/threads/thread_delegate.h"
+#include "utils/shared_ptr.h"
 
-//! ---------------------------------------------------------------------------
-
-sync_primitives::Lock lock;
-sync_primitives::ConditionalVariable cond_var;
-const unsigned int kTimeout = 2;
-bool flag = false;
-
-//! ---------------------------------------------------------------------------
-//namespace test {
-//namespace components {
-//namespace mobile_message_handler_test {
-/**
- * @class MobileMessageHandlerTester implements ApplicationManager
- * and ProtocolHandler logic.
- */
-//
-//class MobileMessageHandlerTester :
-////  public mobile_message_handler::MobileMessageObserver,
-////  public mobile_message_handler,
-//  public protocol_handler::ProtocolHandler {
-//  public:
-//    virtual void AddProtocolObserver(protocol_handler::ProtocolObserver* observer) {}
-//
-//    virtual void RemoveProtocolObserver(protocol_handler::ProtocolObserver* observer) {}
-//
-//    /**
-//     * \brief Sets pointer for Connection Handler layer for managing sessions
-//     * \param observer Pointer to object of the class implementing
-//     * ISessionObserver
-//     */
-//    virtual void set_session_observer(protocol_handler::SessionObserver* observer) {}
-//
-//    /**
-//     * \brief Method for sending message to Mobile Application.
-//     * \param message RawMessage with params to be sent to Mobile App.
-//     */
-//    void SendMessageToMobileApp(const protocol_handler::RawMessagePtr& message) {}
-//
-//    void SendFramesNumber(int connection_key, int number_of_frames) {}
-//
-//    MobileMessageHandlerTester()
-//      : mmh_(NULL) {
-//    }
-//
-////    bool init(const MobileMessage& message) {
-////      message_ = message;
-////      mmh_ = mobile_message_handler::MobileMessageHandlerImpl::instance();
-////      DCHECK(mmh_ != NULL);
-////
-////      return true;
-////    }
-//
-////    void OnMobileMessageReceived(const MobileMessage& message) {
-////      ASSERT_TRUE(message_->operator ==(*message));
-////
-////      flag = true;
-////      cond_var.NotifyOne();
-////    }
-//
-//    void sendMessageToMobileApp(const protocol_handler::RawMessagePtr message) {
-//      //      mmh_->OnMessageReceived(message);//todo: YK uncoment sometime
-//    }
-//
-//  private:
-//    mobile_message_handler::MobileMessageHandlerImpl* mmh_;
-//    MobileMessage message_;
-//
-//    DISALLOW_COPY_AND_ASSIGN(MobileMessageHandlerTester);
-//};
-
-/**
- * @class MobileMessageHandlerTestObserverThread
- */
-/*
-class MobileMessageHandlerTestObserverThread : public threads::ThreadDelegate {
-  public:
-    explicit MobileMessageHandlerTestObserverThread(const MobileMessage& message)
-      : message_(message) {
-    }
-    ~MobileMessageHandlerTestObserverThread() {
-    }
-
-    void threadMain() {
-      mobile_message_handler::MobileMessageHandlerImpl* mmh =
-        mobile_message_handler::MobileMessageHandlerImpl::instance();
-      DCHECK(mmh != NULL);
-
-      mmh->SendMessageToMobileApp(message_);
-      sync_primitives::AutoLock auto_lock(lock);
-      cond_var.WaitFor(auto_lock, kTimeout * 1000);
-      //ASSERT_TRUE(flag);
-    }
-
-  private:
-    MobileMessage message_;
-    DISALLOW_COPY_AND_ASSIGN(MobileMessageHandlerTestObserverThread);
-};
-*/
-
-//! ---------------------------------------------------------------------------
+using ::testing::_;
 
 namespace application_manager {
 
-TEST(mobile_message_handler_test, component_test) {
+TEST(mobile_message_test, basic_test) {
   // Example message
-//  MobileMessage message(new application_manager::Message);
-	MobileMessage message = new application_manager::Message(MessagePriority::kDefault)
-  application_manager::BinaryData binary_data;
-  binary_data.push_back('X');
-  message->set_binary_data(&binary_data);
+  MobileMessage message = new application_manager::Message(
+      protocol_handler::MessagePriority::kDefault);
+  EXPECT_FALSE(message->has_binary_data());
+
+  BinaryData* binary_data = new BinaryData;
+
+  binary_data->push_back('X');
+  message->set_binary_data(binary_data);
+  EXPECT_TRUE(message->has_binary_data());
+
   message->set_connection_key(100);
   message->set_correlation_id(10);
   message->set_function_id(5);
   message->set_json_message("test json string!!!");
   message->set_message_type(application_manager::kRequest);
   message->set_protocol_version(application_manager::kV2);
-
-  // Component initialization.
-  MobileMessageHandlerTester observer;
-  observer.init(message);
-
-  mobile_message_handler::MobileMessageHandlerImpl* mmh =
-    mobile_message_handler::MobileMessageHandlerImpl::instance();
-  DCHECK(mmh != NULL);
-  mmh->set_protocol_handler(&observer);
-  mmh->AddMobileMessageListener(&observer);
-
-  // Message processing
-  threads::Thread* observer_thread = new threads::Thread(
-    "MobileMessageHandler::MobileMessageHandlerTestObserverThread",
-    new MobileMessageHandlerTestObserverThread(message));
-
-  observer_thread->start();
-  observer_thread->join();
+  EXPECT_EQ(message->connection_key(), 100);
+  EXPECT_EQ(message->correlation_id(), 10);
+  EXPECT_EQ(message->function_id(), 5);
+  EXPECT_EQ(message->json_message(), "test json string!!!");
+  EXPECT_EQ(message->protocol_version(), application_manager::kV2);
+  EXPECT_EQ(message->type(), application_manager::kRequest);
 }
 
 }
-//}  // namespace mobile_message_handler_test
-//}  // namespace components
-//}  // namespace test

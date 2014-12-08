@@ -46,7 +46,7 @@ include_directories (
 
 set(testSources
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/src/gmock_main.cc
-  ${AM_TEST_DIR}/command_impl_test.cc
+#  ${AM_TEST_DIR}/command_impl_test.cc
   
   
   ${COMPONENTS_DIR}/application_manager/test/mobile_message_handler_test.cc
