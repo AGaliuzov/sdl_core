@@ -37,6 +37,7 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
+#include "../../application_manager/include/application_manager/message.h"
 #include "application_manager/mobile_message_handler.h"
 #include "application_manager/application_manager_impl.h"
 //#include "mobile_message_handler/mobile_message_handler_impl.h"
@@ -54,70 +55,72 @@ const unsigned int kTimeout = 2;
 bool flag = false;
 
 //! ---------------------------------------------------------------------------
-namespace test {
-namespace components {
-namespace mobile_message_handler_test {
+//namespace test {
+//namespace components {
+//namespace mobile_message_handler_test {
 /**
  * @class MobileMessageHandlerTester implements ApplicationManager
  * and ProtocolHandler logic.
  */
-class MobileMessageHandlerTester :
-//  public mobile_message_handler::MobileMessageObserver,
-  public mobile_message_handler,
-  public protocol_handler::ProtocolHandler {
-  public:
-    virtual void AddProtocolObserver(protocol_handler::ProtocolObserver* observer) {}
-
-    virtual void RemoveProtocolObserver(protocol_handler::ProtocolObserver* observer) {}
-
-    /**
-     * \brief Sets pointer for Connection Handler layer for managing sessions
-     * \param observer Pointer to object of the class implementing
-     * ISessionObserver
-     */
-    virtual void set_session_observer(protocol_handler::SessionObserver* observer) {}
-
-    /**
-     * \brief Method for sending message to Mobile Application.
-     * \param message RawMessage with params to be sent to Mobile App.
-     */
-    void SendMessageToMobileApp(const protocol_handler::RawMessagePtr& message) {}
-
-    void SendFramesNumber(int connection_key, int number_of_frames) {}
-
-    MobileMessageHandlerTester()
-      : mmh_(NULL) {
-    }
-
-    bool init(const MobileMessage& message) {
-      message_ = message;
-      mmh_ = mobile_message_handler::MobileMessageHandlerImpl::instance();
-      DCHECK(mmh_ != NULL);
-
-      return true;
-    }
-
-    void OnMobileMessageReceived(const MobileMessage& message) {
-      ASSERT_TRUE(message_->operator ==(*message));
-
-      flag = true;
-      cond_var.NotifyOne();
-    }
-
-    void sendMessageToMobileApp(const protocol_handler::RawMessagePtr message) {
-      //      mmh_->OnMessageReceived(message);//todo: YK uncoment sometime
-    }
-
-  private:
-    mobile_message_handler::MobileMessageHandlerImpl* mmh_;
-    MobileMessage message_;
-
-    DISALLOW_COPY_AND_ASSIGN(MobileMessageHandlerTester);
-};
+//
+//class MobileMessageHandlerTester :
+////  public mobile_message_handler::MobileMessageObserver,
+////  public mobile_message_handler,
+//  public protocol_handler::ProtocolHandler {
+//  public:
+//    virtual void AddProtocolObserver(protocol_handler::ProtocolObserver* observer) {}
+//
+//    virtual void RemoveProtocolObserver(protocol_handler::ProtocolObserver* observer) {}
+//
+//    /**
+//     * \brief Sets pointer for Connection Handler layer for managing sessions
+//     * \param observer Pointer to object of the class implementing
+//     * ISessionObserver
+//     */
+//    virtual void set_session_observer(protocol_handler::SessionObserver* observer) {}
+//
+//    /**
+//     * \brief Method for sending message to Mobile Application.
+//     * \param message RawMessage with params to be sent to Mobile App.
+//     */
+//    void SendMessageToMobileApp(const protocol_handler::RawMessagePtr& message) {}
+//
+//    void SendFramesNumber(int connection_key, int number_of_frames) {}
+//
+//    MobileMessageHandlerTester()
+//      : mmh_(NULL) {
+//    }
+//
+////    bool init(const MobileMessage& message) {
+////      message_ = message;
+////      mmh_ = mobile_message_handler::MobileMessageHandlerImpl::instance();
+////      DCHECK(mmh_ != NULL);
+////
+////      return true;
+////    }
+//
+////    void OnMobileMessageReceived(const MobileMessage& message) {
+////      ASSERT_TRUE(message_->operator ==(*message));
+////
+////      flag = true;
+////      cond_var.NotifyOne();
+////    }
+//
+//    void sendMessageToMobileApp(const protocol_handler::RawMessagePtr message) {
+//      //      mmh_->OnMessageReceived(message);//todo: YK uncoment sometime
+//    }
+//
+//  private:
+//    mobile_message_handler::MobileMessageHandlerImpl* mmh_;
+//    MobileMessage message_;
+//
+//    DISALLOW_COPY_AND_ASSIGN(MobileMessageHandlerTester);
+//};
 
 /**
  * @class MobileMessageHandlerTestObserverThread
  */
+/*
 class MobileMessageHandlerTestObserverThread : public threads::ThreadDelegate {
   public:
     explicit MobileMessageHandlerTestObserverThread(const MobileMessage& message)
@@ -141,12 +144,16 @@ class MobileMessageHandlerTestObserverThread : public threads::ThreadDelegate {
     MobileMessage message_;
     DISALLOW_COPY_AND_ASSIGN(MobileMessageHandlerTestObserverThread);
 };
+*/
 
 //! ---------------------------------------------------------------------------
 
+namespace application_manager {
+
 TEST(mobile_message_handler_test, component_test) {
   // Example message
-  MobileMessage message(new application_manager::Message);
+//  MobileMessage message(new application_manager::Message);
+	MobileMessage message = new application_manager::Message(MessagePriority::kDefault)
   application_manager::BinaryData binary_data;
   binary_data.push_back('X');
   message->set_binary_data(&binary_data);
@@ -175,6 +182,8 @@ TEST(mobile_message_handler_test, component_test) {
   observer_thread->start();
   observer_thread->join();
 }
-}  // namespace mobile_message_handler_test
-}  // namespace components
-}  // namespace test
+
+}
+//}  // namespace mobile_message_handler_test
+//}  // namespace components
+//}  // namespace test
