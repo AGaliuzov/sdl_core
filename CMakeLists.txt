@@ -40,8 +40,6 @@ option(EXTENDED_MEDIA_MODE "Turn on and off extended Madia Manager features rela
 option(BUILD_SHARED_LIBS "Build all libraries as shared (if ON) or static (if OFF)" OFF)
 option(BUILD_BT_SUPPORT "Bluetooth support" ON)
 option(BUILD_USB_SUPPORT "libusb support" ON)
-option(BUILD_AOA_SUPPORT "libaoa support" OFF)
-option(BUILD_MME_SUPPORT "Apple devices support" OFF)
 option(BUILD_AVAHI_SUPPORT "libavahi support" ON)
 option(BUILD_BACKTRACE_SUPPORT "backtrace support" ON)
 option(BUILD_TESTS "Possibility to build and run tests" OFF)
