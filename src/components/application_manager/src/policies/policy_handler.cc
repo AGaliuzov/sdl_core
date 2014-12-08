@@ -997,22 +997,18 @@ void PolicyHandler::OnActivateApp(uint32_t connection_key,
 #endif
     policy_manager_->RemovePendingPermissionChanges(policy_app_id);
   }
-
-  bool is_app_activated = false;
   // If application is revoked it should not be activated
   // In this case we need to activate application
   if (false == permissions.appRevoked && true == permissions.isSDLAllowed) {
-    is_app_activated =
-        application_manager::ApplicationManagerImpl::instance()->
-        ActivateApplication(app);
+        LOG4CXX_INFO(logger_, "Application will be activated");
+        application_manager::MessageHelper::SendActivateAppToHMI(app->app_id());
+  } else {
+    LOG4CXX_INFO(logger_, "Application should not be activated");
   }
 
   last_activated_app_id_ = connection_key;
   application_manager::MessageHelper::SendSDLActivateAppResponse(permissions,
                                                               correlation_id);
-  if (is_app_activated) {
-    application_manager::MessageHelper::SendHMIStatusNotification(*app.get());
-  }
 }
 
 void PolicyHandler::KmsChanged(int kilometers) {
@@ -1076,10 +1072,11 @@ void PolicyHandler::OnPermissionsUpdated(const std::string& policy_app_id,
       if (mobile_apis::HMILevel::HMI_FULL == hmi_level) {
         application_manager::MessageHelper::SendActivateAppToHMI(app->app_id());
         break;
+      } else {
+        // Set application hmi level
+        app->set_hmi_level(hmi_level);
+        // If hmi Level is full, it will be seted after ActivateApp response
       }
-
-      // Set application hmi level
-      app->set_hmi_level(hmi_level);
 
       // Send notification to mobile
       application_manager::MessageHelper::SendHMIStatusNotification(*app.get());

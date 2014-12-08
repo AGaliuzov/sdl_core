@@ -318,7 +318,7 @@ void ApplicationImpl::set_hmi_level(
     delete_file_in_none_count_ = 0;
     list_files_in_none_count_ = 0;
   }
-
+  LOG4CXX_INFO(logger_, "hmi_level = " << hmi_level);
   hmi_level_ = hmi_level;
   usage_report_.RecordHmiStateChanged(hmi_level);
 }
