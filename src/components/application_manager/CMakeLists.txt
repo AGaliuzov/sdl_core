@@ -46,16 +46,9 @@ if (EXTENDED_POLICY_FLAG)
   include_directories(
     ${COMPONENTS_DIR}/policy/src/policy/policy_table/table_struct_ext
   )
-  list(APPEND POLICIES_MANAGER
-    ${AM_SOURCE_DIR}/src/policies/pt_exchange_handler_ext.cc
-  )
 else ()
   include_directories(
     ${COMPONENTS_DIR}/policy/src/policy/policy_table/table_struct
-  )
-  list(APPEND POLICIES_MANAGER
-    ${AM_SOURCE_DIR}/src/policies/pt_exchange_handler_impl.cc
-    ${AM_SOURCE_DIR}/src/policies/policy_retry_sequence.cc
   )
 endif ()
 
