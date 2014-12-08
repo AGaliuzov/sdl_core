@@ -1912,6 +1912,7 @@ void ApplicationManagerImpl::HeadUnitReset(
     mobile_api::AppInterfaceUnregisteredReason::eType reason) {
   switch (reason) {
     case mobile_api::AppInterfaceUnregisteredReason::MASTER_RESET: {
+      UnregisterAllApplications();
       policy::PolicyHandler::instance()->ResetPolicyTable();
       policy::PolicyHandler::instance()->UnloadPolicyLibrary();
       file_system::remove_directory_content(profile::Profile::instance()->app_storage_folder());
