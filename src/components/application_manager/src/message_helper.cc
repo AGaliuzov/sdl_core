@@ -384,7 +384,7 @@ smart_objects::SmartObject* MessageHelper::GetHashUpdateNotification(
 }
 
 void MessageHelper::SendHashUpdateNotification(const uint32_t app_id) {
-  LOG4CXX_INFO(logger_, "SendHashUpdateNotification");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   smart_objects::SmartObject* so = GetHashUpdateNotification(app_id);
   if (so) {

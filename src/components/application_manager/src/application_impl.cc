@@ -679,6 +679,7 @@ uint32_t ApplicationImpl::curHash() const {
 }
 
 uint32_t ApplicationImpl::UpdateHash() {
+  LOG4CXX_AUTO_TRACE(logger_);
   uint32_t new_hash= nextHash();
 #ifndef CUSTOMER_PASA
   MessageHelper::SendHashUpdateNotification(app_id());

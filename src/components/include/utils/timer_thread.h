@@ -243,7 +243,6 @@ void TimerThread<T>::start(uint32_t timeout_seconds) {
   if (isRunning()) {
     LOG4CXX_INFO(logger_, "TimerThread start needs stop " << name_);
     stop();
-    thread_->join();
   }
   updateTimeOut(timeout_seconds);
   thread_->start();
@@ -254,7 +253,7 @@ void TimerThread<T>::stop() {
   LOG4CXX_AUTO_TRACE(logger_);
   DCHECK(thread_);
   LOG4CXX_DEBUG(logger_, "Stopping timer  " << name_);
-  thread_->stop();
+  thread_->join();
 }
 
 template <class T>
