@@ -30,7 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #include <string>
 
 #include "gmock/gmock.h"
@@ -51,7 +50,7 @@ TEST(test_no_default_value, test_ArraySchemaItemTest) {
   using namespace NsSmartDeviceLink::NsSmartObjects;
   SmartObject obj;
 
-  ISchemaItemPtr item = CArraySchemaItem::create(); // No schema item, no min and max size
+  ISchemaItemPtr item = CArraySchemaItem::create();  // No schema item, no min and max size
 
   obj[0] = 38;
   obj[1] = true;
@@ -66,7 +65,6 @@ TEST(test_no_default_value, test_ArraySchemaItemTest) {
   EXPECT_EQ(39, obj[3][0].asInt());
   EXPECT_FALSE(obj[3][1].asBool());
   EXPECT_EQ(std::string("Another String"), obj[3][2].asString());
-
 
   int resultType = item->validate(obj);
   EXPECT_EQ(Errors::OK, resultType);
@@ -129,7 +127,7 @@ TEST(test_item_with_default_value, test_ArraySchemaItemTest) {
   using namespace NsSmartDeviceLink::NsSmartObjects;
   SmartObject obj;
 
-  ISchemaItemPtr item = CArraySchemaItem::create(); // No min and max size
+  ISchemaItemPtr item = CArraySchemaItem::create();  // No min and max size
 
   obj[0] = "Some String";
   obj[1] = "true";
@@ -190,8 +188,8 @@ TEST(test_array_with_min_size, test_ArraySchemaItemTest) {
   SmartObject obj;
 
   ISchemaItemPtr item = CArraySchemaItem::create(
-                          CStringSchemaItem::create(TSchemaItemParameter<size_t>(25)),
-                          TSchemaItemParameter<size_t>(3));
+      CStringSchemaItem::create(TSchemaItemParameter<size_t>(25)),
+      TSchemaItemParameter<size_t>(3));
 
   obj[0] = "Some String";
 
@@ -221,11 +219,9 @@ TEST(test_array_with_max_size, test_ArraySchemaItemTest) {
   SmartObject obj;
 
   ISchemaItemPtr item = CArraySchemaItem::create(
-                          CStringSchemaItem::create(
-                            TSchemaItemParameter<size_t>(),
-                            TSchemaItemParameter<size_t>(25)),
-                          TSchemaItemParameter<size_t>(),
-                          TSchemaItemParameter<size_t>(3)); // No min size
+      CStringSchemaItem::create(TSchemaItemParameter<size_t>(),
+                                TSchemaItemParameter<size_t>(25)),
+      TSchemaItemParameter<size_t>(), TSchemaItemParameter<size_t>(3));  // No min size
 
   obj[0] = "Some String";
 
@@ -261,11 +257,9 @@ TEST(test_array_with_min_and_max_size, test_ArraySchemaItemTest) {
   SmartObject obj;
 
   ISchemaItemPtr item = CArraySchemaItem::create(
-                          CStringSchemaItem::create(
-                            TSchemaItemParameter<size_t>(),
-                            TSchemaItemParameter<size_t>(25)),
-                          TSchemaItemParameter<size_t>(2),
-                          TSchemaItemParameter<size_t>(4));
+      CStringSchemaItem::create(TSchemaItemParameter<size_t>(),
+                                TSchemaItemParameter<size_t>(25)),
+      TSchemaItemParameter<size_t>(2), TSchemaItemParameter<size_t>(4));
 
   obj[0] = "Some String";
 
@@ -304,11 +298,9 @@ TEST(test_map_validate, test_ArraySchemaItemTest) {
   SmartObject obj;
 
   ISchemaItemPtr item = CArraySchemaItem::create(
-                          CStringSchemaItem::create(
-                            TSchemaItemParameter<size_t>(),
-                            TSchemaItemParameter<size_t>(25)),
-                          TSchemaItemParameter<size_t>(2),
-                          TSchemaItemParameter<size_t>(4));
+      CStringSchemaItem::create(TSchemaItemParameter<size_t>(),
+                                TSchemaItemParameter<size_t>(25)),
+      TSchemaItemParameter<size_t>(2), TSchemaItemParameter<size_t>(4));
 
   obj["array"][0] = "Some String";
 

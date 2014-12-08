@@ -30,13 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
-#ifndef TEST_COMPONENTS_SMARTOBJECTS_TSHAREDPTRTEST_H_
-#define TEST_COMPONENTS_SMARTOBJECTS_TSHAREDPTRTEST_H_
-
 #include <string>
 #include <set>
-
 
 #include "gmock/gmock.h"
 
@@ -65,7 +60,7 @@ TEST(SmartObjectPerformanceTest, SmartObjectPerformance) {
   SmartObject object;
   MakeMapObject(object, 100);
 
-  std::set<std::string> keys = object.enumerate();
+  std::set < std::string > keys = object.enumerate();
   for (std::set<std::string>::iterator i = keys.begin(); i != keys.end(); ++i) {
     printf("%s - ", i->c_str());
     SmartArray* array = object[*i].asArray();
@@ -78,5 +73,3 @@ TEST(SmartObjectPerformanceTest, SmartObjectPerformance) {
     }
   }
 }
-
-#endif  // TEST_COMPONENTS_SMARTOBJECTS_TSHAREDPTRTEST_H_

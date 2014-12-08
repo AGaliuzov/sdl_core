@@ -30,20 +30,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
-#ifndef TEST_COMPONENTS_MAP_TSHAREDPTRTEST_H_
-#define TEST_COMPONENTS_MAP_TSHAREDPTRTEST_H_
-
 #include <string>
 #include <vector>
 #include <map>
-
 
 #include "gmock/gmock.h"
 
 typedef std::string Key;
 typedef std::vector<std::string> Value;
-typedef std::map<Key, Value > Map;
+typedef std::map<Key, Value> Map;
 
 namespace {
 void MakeMapObject(Map &obj, const int size) {
@@ -78,5 +73,3 @@ TEST(SmartObjectPerformanceTest, SmartObjectMapPerformance) {
     }
   }
 }
-
-#endif  // TEST_COMPONENTS_MAP_TSHAREDPTRTEST_H_

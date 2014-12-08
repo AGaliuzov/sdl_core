@@ -30,7 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #include <string>
 
 #include "gmock/gmock.h"
@@ -53,7 +52,7 @@ TEST(test_no_default_value, test_StringSchemaItemTest) {
   using namespace NsSmartDeviceLink::NsSmartObjects;
   SmartObject obj;
 
-  ISchemaItemPtr item = CStringSchemaItem::create(); // No default value, no max length
+  ISchemaItemPtr item = CStringSchemaItem::create();  // No default value, no max length
 
   //Object - valid string
   obj = "New valid string";
@@ -99,9 +98,8 @@ TEST(test_item_with_default_value, test_StringSchemaItemTest) {
   SmartObject obj;
 
   ISchemaItemPtr item = CStringSchemaItem::create(
-                          TSchemaItemParameter<size_t>(),
-                          TSchemaItemParameter<size_t>(),
-                          TSchemaItemParameter<std::string>("Default string")); // Default value, no max length
+      TSchemaItemParameter<size_t>(), TSchemaItemParameter<size_t>(),
+      TSchemaItemParameter<std::string>("Default string"));  // Default value, no max length
 
   //Object - valid string
   obj = "New valid string";
@@ -143,9 +141,8 @@ TEST(test_item_with_max_length, test_StringSchemaItemTest) {
   SmartObject obj;
 
   ISchemaItemPtr item = CStringSchemaItem::create(
-                          TSchemaItemParameter<size_t>(0),
-                          TSchemaItemParameter<size_t>(25),
-                          TSchemaItemParameter<std::string>("Default string"));
+      TSchemaItemParameter<size_t>(0), TSchemaItemParameter<size_t>(25),
+      TSchemaItemParameter<std::string>("Default string"));
 
   //Object - valid string
   obj = "New valid string";
@@ -171,15 +168,13 @@ TEST(test_item_with_max_length, test_StringSchemaItemTest) {
   EXPECT_EQ(Errors::OK, resultType);
 }
 
-
 TEST(test_map_validate, test_StringSchemaItemTest) {
   using namespace NsSmartDeviceLink::NsSmartObjects;
   SmartObject obj;
 
   ISchemaItemPtr item = CStringSchemaItem::create(
-                          TSchemaItemParameter<size_t>(0),
-                          TSchemaItemParameter<size_t>(25),
-                          TSchemaItemParameter<std::string>("Default string"));
+      TSchemaItemParameter<size_t>(0), TSchemaItemParameter<size_t>(25),
+      TSchemaItemParameter<std::string>("Default string"));
 
   obj["str"] = "New valid string";
   obj["long"] = "New very very loooooong string";
@@ -238,9 +233,8 @@ TEST(test_array_validate, test_StringSchemaItemTest) {
   SmartObject obj;
 
   ISchemaItemPtr item = CStringSchemaItem::create(
-                          TSchemaItemParameter<size_t>(0),
-                          TSchemaItemParameter<size_t>(25),
-                          TSchemaItemParameter<std::string>("Default string"));
+      TSchemaItemParameter<size_t>(0), TSchemaItemParameter<size_t>(25),
+      TSchemaItemParameter<std::string>("Default string"));
 
   obj[0] = "New valid string";
   obj[1] = "New very very loooooong string";

@@ -30,7 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #include <string>
 #include <vector>
 
@@ -89,7 +88,7 @@ TEST(SmartObjectsDraftTest, test_array_access) {
   SmartObject obj;
 
   obj[0] = 5;
-  obj[-1] = 6; //  Appending new item to array
+  obj[-1] = 6;  //  Appending new item to array
 
   ASSERT_EQ(5, obj[0].asInt());
   ASSERT_EQ(6, obj[1].asInt());
@@ -243,8 +242,8 @@ TEST(SmartObjectsDraftTest, compare_empty_objects_by_types) {
 }
 
 TEST(SmartObjectsDraftTest, compare_integer_type) {
-  SmartObject value       = SmartObject(0xFFFFF);
-  SmartObject same_value  = SmartObject(static_cast<int64_t>(value.asInt()));
+  SmartObject value = SmartObject(0xFFFFF);
+  SmartObject same_value = SmartObject(static_cast<int64_t>(value.asInt()));
 
   ASSERT_EQ(value, same_value);
   ASSERT_EQ(same_value, value);
@@ -257,14 +256,14 @@ TEST(SmartObjectsDraftTest, compare_integer_type) {
   ASSERT_NE(other_value, same_value);
   ASSERT_NE(same_value, other_value);
 
-  ASSERT_NE(value,       SmartObject());
+  ASSERT_NE(value, SmartObject());
   ASSERT_NE(other_value, SmartObject());
-  ASSERT_NE(same_value,  SmartObject());
+  ASSERT_NE(same_value, SmartObject());
 }
 
 TEST(SmartObjectsDraftTest, compare_double_type) {
-  SmartObject value       = SmartObject(6.0);
-  SmartObject same_value  = SmartObject(6.0);
+  SmartObject value = SmartObject(6.0);
+  SmartObject same_value = SmartObject(6.0);
 
   ASSERT_EQ(value, same_value);
   ASSERT_EQ(same_value, value);
@@ -277,15 +276,14 @@ TEST(SmartObjectsDraftTest, compare_double_type) {
   ASSERT_NE(other_value, same_value);
   ASSERT_NE(same_value, other_value);
 
-
-  ASSERT_NE(value,       SmartObject());
+  ASSERT_NE(value, SmartObject());
   ASSERT_NE(other_value, SmartObject());
-  ASSERT_NE(same_value,  SmartObject());
+  ASSERT_NE(same_value, SmartObject());
 }
 
 TEST(SmartObjectsDraftTest, compare_bool_type) {
-  SmartObject value       = SmartObject(true);
-  SmartObject same_value  = SmartObject(true);
+  SmartObject value = SmartObject(true);
+  SmartObject same_value = SmartObject(true);
 
   ASSERT_EQ(value, same_value);
   ASSERT_EQ(same_value, value);
@@ -298,15 +296,14 @@ TEST(SmartObjectsDraftTest, compare_bool_type) {
   ASSERT_NE(other_value, same_value);
   ASSERT_NE(same_value, other_value);
 
-
-  ASSERT_NE(value,       SmartObject());
+  ASSERT_NE(value, SmartObject());
   ASSERT_NE(other_value, SmartObject());
-  ASSERT_NE(same_value,  SmartObject());
+  ASSERT_NE(same_value, SmartObject());
 }
 
 TEST(SmartObjectsDraftTest, compare_string_type) {
-  SmartObject value       = SmartObject("Test string");
-  SmartObject same_value  = SmartObject(std::string("Test string"));
+  SmartObject value = SmartObject("Test string");
+  SmartObject same_value = SmartObject(std::string("Test string"));
 
   ASSERT_EQ(value, same_value);
   ASSERT_EQ(same_value, value);
@@ -319,9 +316,9 @@ TEST(SmartObjectsDraftTest, compare_string_type) {
   ASSERT_NE(other_value, same_value);
   ASSERT_NE(same_value, other_value);
 
-  ASSERT_NE(value,       SmartObject());
+  ASSERT_NE(value, SmartObject());
   ASSERT_NE(other_value, SmartObject());
-  ASSERT_NE(same_value,  SmartObject());
+  ASSERT_NE(same_value, SmartObject());
 }
 
 TEST(SmartObjectsDraftTest, compare_map_type) {
@@ -355,13 +352,13 @@ TEST(SmartObjectsDraftTest, compare_map_type) {
   ASSERT_NE(value, other_value2);
   ASSERT_NE(other_value2, value);
 
-  ASSERT_NE(value,        SmartObject());
-  ASSERT_NE(same_value,   SmartObject());
-  ASSERT_NE(other_value,  SmartObject());
+  ASSERT_NE(value, SmartObject());
+  ASSERT_NE(same_value, SmartObject());
+  ASSERT_NE(other_value, SmartObject());
   ASSERT_NE(other_value2, SmartObject());
 }
 // TODO(Ezamakhov): add test for conversion string/int/double
-}  // namespace SmartObjectDraftTest
+}// namespace SmartObjectDraftTest
 }  // namespace SmartObjects
 }  // namespace components
 }  // namespace test

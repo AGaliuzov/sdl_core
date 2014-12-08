@@ -30,8 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
-
 #include "gmock/gmock.h"
 
 #include "smart_objects/smart_object.h"
@@ -40,7 +38,6 @@
 
 #include <string>
 
-
 namespace test {
 namespace components {
 namespace SmartObjects {
@@ -48,36 +45,36 @@ namespace SchemaItem {
 
 using namespace NsSmartDeviceLink::NsSmartObjects;
 namespace TestType {
- enum eType {
-   INVALID_ENUM = -1,
-   USER_EXIT = 0,
-   IGNITION_OFF,
-   BLUETOOTH_OFF,
-   USB_DISCONNECTED,
-   TOO_MANY_REQUESTS,
-   MASTER_RESET,
-   FACTORY_DEFAULTS,
-   APP_UNAUTHORIZED
- };
+enum eType {
+  INVALID_ENUM = -1,
+  USER_EXIT = 0,
+  IGNITION_OFF,
+  BLUETOOTH_OFF,
+  USB_DISCONNECTED,
+  TOO_MANY_REQUESTS,
+  MASTER_RESET,
+  FACTORY_DEFAULTS,
+  APP_UNAUTHORIZED
+};
 }
 
 class EnumSchemaItemTest : public ::testing::Test {
-protected:
- EnumSchemaItemTest() {
-     testEnum.insert(TestType::USER_EXIT);
-     testEnum.insert(TestType::IGNITION_OFF);
-     testEnum.insert(TestType::BLUETOOTH_OFF);
-     testEnum.insert(TestType::USB_DISCONNECTED);
-     testEnum.insert(TestType::TOO_MANY_REQUESTS);
-     testEnum.insert(TestType::MASTER_RESET);
-     testEnum.insert(TestType::FACTORY_DEFAULTS);
-     testEnum.insert(TestType::APP_UNAUTHORIZED);
- }
+ protected:
+  EnumSchemaItemTest() {
+    testEnum.insert(TestType::USER_EXIT);
+    testEnum.insert(TestType::IGNITION_OFF);
+    testEnum.insert(TestType::BLUETOOTH_OFF);
+    testEnum.insert(TestType::USB_DISCONNECTED);
+    testEnum.insert(TestType::TOO_MANY_REQUESTS);
+    testEnum.insert(TestType::MASTER_RESET);
+    testEnum.insert(TestType::FACTORY_DEFAULTS);
+    testEnum.insert(TestType::APP_UNAUTHORIZED);
+  }
 
- virtual void SetUp() {
- }
+  virtual void SetUp() {
+  }
 
- std::set<TestType::eType> testEnum;
+  std::set<TestType::eType> testEnum;
 };
 
 /**
@@ -87,47 +84,47 @@ protected:
  * SmartObject should contain default value.
  * Not Enum SmartObject should converted to intObject and setted up by the default value.
  **/
-TEST_F(EnumSchemaItemTest, test_item_with_default_value)
-{
-    SmartObject obj;
-    ISchemaItemPtr item = TEnumSchemaItem<TestType::eType>::create(testEnum,
-        TSchemaItemParameter<TestType::eType>(TestType::FACTORY_DEFAULTS));
+TEST_F(EnumSchemaItemTest, test_item_with_default_value) {
+  SmartObject obj;
+  ISchemaItemPtr item = TEnumSchemaItem<TestType::eType>::create(
+      testEnum,
+      TSchemaItemParameter<TestType::eType>(TestType::FACTORY_DEFAULTS));
 
-    //Object - valid enum
-    obj = TestType::BLUETOOTH_OFF;
-    int resultType = item->validate(obj);
-    EXPECT_EQ(Errors::OK, resultType);
-    bool resDefault = item->setDefaultValue(obj);
-    EXPECT_TRUE(resDefault);
-    EXPECT_EQ(TestType::FACTORY_DEFAULTS, obj.asInt());
+  //Object - valid enum
+  obj = TestType::BLUETOOTH_OFF;
+  int resultType = item->validate(obj);
+  EXPECT_EQ(Errors::OK, resultType);
+  bool resDefault = item->setDefaultValue(obj);
+  EXPECT_TRUE(resDefault);
+  EXPECT_EQ(TestType::FACTORY_DEFAULTS, obj.asInt());
 
-    //Obj - bool
-    obj = true;
+  //Obj - bool
+  obj = true;
 
-    resultType = item->validate(obj);
-    EXPECT_EQ(Errors::INVALID_VALUE, resultType);
-    resDefault = item->setDefaultValue(obj);
-    EXPECT_TRUE(resDefault);
-    EXPECT_EQ(TestType::FACTORY_DEFAULTS, obj.asInt());
+  resultType = item->validate(obj);
+  EXPECT_EQ(Errors::INVALID_VALUE, resultType);
+  resDefault = item->setDefaultValue(obj);
+  EXPECT_TRUE(resDefault);
+  EXPECT_EQ(TestType::FACTORY_DEFAULTS, obj.asInt());
 
-    //Object - number
-    obj = 3.1415926;
+  //Object - number
+  obj = 3.1415926;
 
-    resultType = item->validate(obj);
-    EXPECT_EQ(Errors::INVALID_VALUE, resultType);
+  resultType = item->validate(obj);
+  EXPECT_EQ(Errors::INVALID_VALUE, resultType);
 
-    resDefault = item->setDefaultValue(obj);
-    EXPECT_TRUE(resDefault);
-    EXPECT_EQ(TestType::FACTORY_DEFAULTS, obj.asInt());
+  resDefault = item->setDefaultValue(obj);
+  EXPECT_TRUE(resDefault);
+  EXPECT_EQ(TestType::FACTORY_DEFAULTS, obj.asInt());
 
-    //Object - string
-    obj = "Some string";
-    resultType = item->validate(obj);
-    EXPECT_EQ(Errors::INVALID_VALUE, resultType);
+  //Object - string
+  obj = "Some string";
+  resultType = item->validate(obj);
+  EXPECT_EQ(Errors::INVALID_VALUE, resultType);
 
-    resDefault = item->setDefaultValue(obj);
-    EXPECT_TRUE(resDefault);
-    EXPECT_EQ(TestType::FACTORY_DEFAULTS, obj.asInt());
+  resDefault = item->setDefaultValue(obj);
+  EXPECT_TRUE(resDefault);
+  EXPECT_EQ(TestType::FACTORY_DEFAULTS, obj.asInt());
 }
 
 /**
@@ -136,141 +133,140 @@ TEST_F(EnumSchemaItemTest, test_item_with_default_value)
  * Create SchemaItem without default value. Method setDefaultValue should return false,
  * SmartObject should contain previous value.
  **/
-TEST_F(EnumSchemaItemTest, test_item_without_default_value)
-{
-    SmartObject obj;
+TEST_F(EnumSchemaItemTest, test_item_without_default_value) {
+  SmartObject obj;
 
-    ISchemaItemPtr item = TEnumSchemaItem<TestType::eType>::create(testEnum,
-        TSchemaItemParameter<TestType::eType>());
+  ISchemaItemPtr item = TEnumSchemaItem<TestType::eType>::create(
+      testEnum, TSchemaItemParameter<TestType::eType>());
 
-    //Object - valid enum
-    obj = TestType::BLUETOOTH_OFF;
-    int resultType = item->validate(obj);
-    EXPECT_EQ(Errors::OK, resultType);
-    bool resDefault = item->setDefaultValue(obj);
-    EXPECT_FALSE(resDefault);
-    EXPECT_EQ(TestType::BLUETOOTH_OFF, obj.asInt());
+  //Object - valid enum
+  obj = TestType::BLUETOOTH_OFF;
+  int resultType = item->validate(obj);
+  EXPECT_EQ(Errors::OK, resultType);
+  bool resDefault = item->setDefaultValue(obj);
+  EXPECT_FALSE(resDefault);
+  EXPECT_EQ(TestType::BLUETOOTH_OFF, obj.asInt());
 
-    //Obj - bool
-    obj = true;
+  //Obj - bool
+  obj = true;
 
-    resultType = item->validate(obj);
-    EXPECT_EQ(Errors::INVALID_VALUE, resultType);
-    resDefault = item->setDefaultValue(obj);
-    EXPECT_FALSE(resDefault);
-    EXPECT_TRUE(obj.asBool());
+  resultType = item->validate(obj);
+  EXPECT_EQ(Errors::INVALID_VALUE, resultType);
+  resDefault = item->setDefaultValue(obj);
+  EXPECT_FALSE(resDefault);
+  EXPECT_TRUE(obj.asBool());
 
-    //Object - number
-    obj = 3.1415926;
+  //Object - number
+  obj = 3.1415926;
 
-    resultType = item->validate(obj);
-    EXPECT_EQ(Errors::INVALID_VALUE, resultType);
+  resultType = item->validate(obj);
+  EXPECT_EQ(Errors::INVALID_VALUE, resultType);
 
-    resDefault = item->setDefaultValue(obj);
-    EXPECT_FALSE(resDefault);
-    EXPECT_EQ(3.1415926, obj.asDouble());
+  resDefault = item->setDefaultValue(obj);
+  EXPECT_FALSE(resDefault);
+  EXPECT_EQ(3.1415926, obj.asDouble());
 
-    //Object - string
-    obj = "Some string";
-    resultType = item->validate(obj);
-    EXPECT_EQ(Errors::INVALID_VALUE, resultType);
+  //Object - string
+  obj = "Some string";
+  resultType = item->validate(obj);
+  EXPECT_EQ(Errors::INVALID_VALUE, resultType);
 
-    resDefault = item->setDefaultValue(obj);
-    EXPECT_FALSE(resDefault);
-    EXPECT_EQ(std::string("Some string"), obj.asString());
+  resDefault = item->setDefaultValue(obj);
+  EXPECT_FALSE(resDefault);
+  EXPECT_EQ(std::string("Some string"), obj.asString());
 
-    //Object - int in range of enum
-    obj = 6;
-    resultType = item->validate(obj);
-    EXPECT_EQ(Errors::OK, resultType);
+  //Object - int in range of enum
+  obj = 6;
+  resultType = item->validate(obj);
+  EXPECT_EQ(Errors::OK, resultType);
 
-    //Object - int out of enum range
-    obj = 15;
-    resultType = item->validate(obj);
-    EXPECT_EQ(Errors::OUT_OF_RANGE, resultType);
+  //Object - int out of enum range
+  obj = 15;
+  resultType = item->validate(obj);
+  EXPECT_EQ(Errors::OUT_OF_RANGE, resultType);
 }
 
 /**
  * Test apply and unapply EnumSchemaItem
  **/
-TEST_F(EnumSchemaItemTest, test_apply_unapply_schema)
-{
-    SmartObject obj;
+TEST_F(EnumSchemaItemTest, test_apply_unapply_schema) {
+  SmartObject obj;
 
-    ISchemaItemPtr item = TEnumSchemaItem<TestType::eType>::create(testEnum,
-        TSchemaItemParameter<TestType::eType>(TestType::FACTORY_DEFAULTS));
+  ISchemaItemPtr item = TEnumSchemaItem<TestType::eType>::create(
+      testEnum,
+      TSchemaItemParameter<TestType::eType>(TestType::FACTORY_DEFAULTS));
 
-    //Object - valid enum
-    obj = TestType::BLUETOOTH_OFF;
-    int resultType = item->validate(obj);
-    EXPECT_EQ(Errors::OK, resultType);
-    bool resDefault = item->setDefaultValue(obj);
-    EXPECT_TRUE(resDefault);
-    EXPECT_EQ(TestType::FACTORY_DEFAULTS, obj.asInt());
+  //Object - valid enum
+  obj = TestType::BLUETOOTH_OFF;
+  int resultType = item->validate(obj);
+  EXPECT_EQ(Errors::OK, resultType);
+  bool resDefault = item->setDefaultValue(obj);
+  EXPECT_TRUE(resDefault);
+  EXPECT_EQ(TestType::FACTORY_DEFAULTS, obj.asInt());
 
-    item->unapplySchema(obj);
-    resultType = item->validate(obj);
-    EXPECT_EQ(Errors::INVALID_VALUE, resultType);
-    EXPECT_EQ(std::string("FACTORY_DEFAULTS"), obj.asString());
+  item->unapplySchema(obj);
+  resultType = item->validate(obj);
+  EXPECT_EQ(Errors::INVALID_VALUE, resultType);
+  EXPECT_EQ(std::string("FACTORY_DEFAULTS"), obj.asString());
 
-    item->applySchema(obj);
-    resultType = item->validate(obj);
-    EXPECT_EQ(Errors::OK, resultType);
-    EXPECT_EQ(TestType::FACTORY_DEFAULTS, obj.asInt());
+  item->applySchema(obj);
+  resultType = item->validate(obj);
+  EXPECT_EQ(Errors::OK, resultType);
+  EXPECT_EQ(TestType::FACTORY_DEFAULTS, obj.asInt());
 
-    obj = "TOO_MANY_REQUESTS";
-    item->applySchema(obj);
-    resultType = item->validate(obj);
-    EXPECT_EQ(Errors::OK, resultType);
-    EXPECT_EQ(TestType::TOO_MANY_REQUESTS, obj.asInt());
+  obj = "TOO_MANY_REQUESTS";
+  item->applySchema(obj);
+  resultType = item->validate(obj);
+  EXPECT_EQ(Errors::OK, resultType);
+  EXPECT_EQ(TestType::TOO_MANY_REQUESTS, obj.asInt());
 
-    obj = "ENOUGH_REQUESTS";
-    item->applySchema(obj);
-    resultType = item->validate(obj);
-    EXPECT_EQ(Errors::INVALID_VALUE, resultType);
-    EXPECT_EQ(std::string("ENOUGH_REQUESTS"), obj.asString());
+  obj = "ENOUGH_REQUESTS";
+  item->applySchema(obj);
+  resultType = item->validate(obj);
+  EXPECT_EQ(Errors::INVALID_VALUE, resultType);
+  EXPECT_EQ(std::string("ENOUGH_REQUESTS"), obj.asString());
 }
 
-}}}}
+}
+}
+}
+}
 
 namespace NsSmartDeviceLink {
 namespace NsSmartObjects {
 
 template<>
-const EnumConversionHelper<test::components::SmartObjects::SchemaItem::TestType::eType>::EnumToCStringMap
-EnumConversionHelper<test::components::SmartObjects::SchemaItem::TestType::eType>::enum_to_cstring_map_ =
-  EnumConversionHelper<test::components::SmartObjects::SchemaItem::TestType::eType>::InitEnumToCStringMap();
+const EnumConversionHelper<
+    test::components::SmartObjects::SchemaItem::TestType::eType>::EnumToCStringMap EnumConversionHelper<
+    test::components::SmartObjects::SchemaItem::TestType::eType>::enum_to_cstring_map_ =
+    EnumConversionHelper<
+        test::components::SmartObjects::SchemaItem::TestType::eType>::InitEnumToCStringMap();
 
 template<>
-const EnumConversionHelper<test::components::SmartObjects::SchemaItem::TestType::eType>::CStringToEnumMap
-EnumConversionHelper<test::components::SmartObjects::SchemaItem::TestType::eType>::cstring_to_enum_map_ =
-  EnumConversionHelper<test::components::SmartObjects::SchemaItem::TestType::eType>::InitCStringToEnumMap();
+const EnumConversionHelper<
+    test::components::SmartObjects::SchemaItem::TestType::eType>::CStringToEnumMap EnumConversionHelper<
+    test::components::SmartObjects::SchemaItem::TestType::eType>::cstring_to_enum_map_ =
+    EnumConversionHelper<
+        test::components::SmartObjects::SchemaItem::TestType::eType>::InitCStringToEnumMap();
 
 template<>
-const char* const
-EnumConversionHelper<test::components::SmartObjects::SchemaItem::TestType::eType>::cstring_values_[] = {
-    "USER_EXIT",
-    "IGNITION_OFF",
-    "BLUETOOTH_OFF",
-    "USB_DISCONNECTED",
-    "TOO_MANY_REQUESTS",
-    "MASTER_RESET",
-    "FACTORY_DEFAULTS",
-    "APP_UNAUTHORIZED"
-};
+const char* const EnumConversionHelper<
+    test::components::SmartObjects::SchemaItem::TestType::eType>::cstring_values_[] =
+    { "USER_EXIT", "IGNITION_OFF", "BLUETOOTH_OFF", "USB_DISCONNECTED",
+        "TOO_MANY_REQUESTS", "MASTER_RESET", "FACTORY_DEFAULTS",
+        "APP_UNAUTHORIZED" };
 
 template<>
-const test::components::SmartObjects::SchemaItem::TestType::eType
-EnumConversionHelper<test::components::SmartObjects::SchemaItem::TestType::eType>::enum_values_[] = {
-    test::components::SmartObjects::SchemaItem::TestType::USER_EXIT,
-    test::components::SmartObjects::SchemaItem::TestType::IGNITION_OFF,
-    test::components::SmartObjects::SchemaItem::TestType::BLUETOOTH_OFF,
-    test::components::SmartObjects::SchemaItem::TestType::USB_DISCONNECTED,
-    test::components::SmartObjects::SchemaItem::TestType::TOO_MANY_REQUESTS,
-    test::components::SmartObjects::SchemaItem::TestType::MASTER_RESET,
-    test::components::SmartObjects::SchemaItem::TestType::FACTORY_DEFAULTS,
-    test::components::SmartObjects::SchemaItem::TestType::APP_UNAUTHORIZED
-};
+const test::components::SmartObjects::SchemaItem::TestType::eType EnumConversionHelper<
+    test::components::SmartObjects::SchemaItem::TestType::eType>::enum_values_[] =
+    { test::components::SmartObjects::SchemaItem::TestType::USER_EXIT,
+        test::components::SmartObjects::SchemaItem::TestType::IGNITION_OFF,
+        test::components::SmartObjects::SchemaItem::TestType::BLUETOOTH_OFF,
+        test::components::SmartObjects::SchemaItem::TestType::USB_DISCONNECTED,
+        test::components::SmartObjects::SchemaItem::TestType::TOO_MANY_REQUESTS,
+        test::components::SmartObjects::SchemaItem::TestType::MASTER_RESET,
+        test::components::SmartObjects::SchemaItem::TestType::FACTORY_DEFAULTS,
+        test::components::SmartObjects::SchemaItem::TestType::APP_UNAUTHORIZED };
 
 }
 }

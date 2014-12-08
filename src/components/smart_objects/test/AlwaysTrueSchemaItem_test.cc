@@ -30,7 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #include <string>
 
 #include "gmock/gmock.h"
@@ -78,7 +77,6 @@ TEST(test_AlwaysTrueSchemaItemTest, simple_test) {
   EXPECT_EQ(Errors::OK, resultType);
   EXPECT_EQ(std::string("Some string"), obj["First"].asString());
   EXPECT_EQ(555, obj["Second"].asInt());
-
 
   obj[0] = true;
   obj[1] = false;

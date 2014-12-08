@@ -30,11 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #include <string>
 
 #include "gmock/gmock.h"
-
 #include "smart_objects/smart_object.h"
 #include "smart_objects/number_schema_item.h"
 
@@ -56,8 +54,7 @@ TEST(test_int_no_default_value, test_NumberSchemaItemTest) {
 
   SmartObject obj;
 
-  ISchemaItemPtr item =
-    TNumberSchemaItem<int>::create(); // No default value, no min, no max
+  ISchemaItemPtr item = TNumberSchemaItem<int>::create();  // No default value, no min, no max
 
   //Object int
   obj = 5;
@@ -100,8 +97,8 @@ TEST(test_int_min_value, test_NumberSchemaItemTest) {
 
   SmartObject obj;
 
-  ISchemaItemPtr item = TNumberSchemaItem<int>::create(TSchemaItemParameter<int>
-                        (10)); // No default value, no max value
+  ISchemaItemPtr item = TNumberSchemaItem<int>::create(
+      TSchemaItemParameter<int>(10));  // No default value, no max value
 
   //Object int correct
   obj = 15;
@@ -134,8 +131,7 @@ TEST(test_int_max_value, test_NumberSchemaItemTest) {
   SmartObject obj;
 
   ISchemaItemPtr item = TNumberSchemaItem<int>::create(
-                          TSchemaItemParameter<int>(),
-                          TSchemaItemParameter<int>(749)  ); // No default value, no min value
+      TSchemaItemParameter<int>(), TSchemaItemParameter<int>(749));  // No default value, no min value
 
   //Object int correct
   obj = 749;
@@ -168,7 +164,7 @@ TEST(test_int_min_max_value, test_NumberSchemaItemTest) {
   SmartObject obj;
 
   ISchemaItemPtr item = TNumberSchemaItem<int>::create(
-                          TSchemaItemParameter<int>(-949), TSchemaItemParameter<int>(749) ); // No default value
+      TSchemaItemParameter<int>(-949), TSchemaItemParameter<int>(749));  // No default value
 
   //Object int correct
   obj = 749;
@@ -209,9 +205,8 @@ TEST(test_int_correct_default_value, test_NumberSchemaItemTest) {
   SmartObject obj;
 
   ISchemaItemPtr item = TNumberSchemaItem<int>::create(
-                          TSchemaItemParameter<int>(-12000),
-                          TSchemaItemParameter<int>(100),
-                          TSchemaItemParameter<int>(-38));
+      TSchemaItemParameter<int>(-12000), TSchemaItemParameter<int>(100),
+      TSchemaItemParameter<int>(-38));
 
   //Object int correct
   obj = -12000;
@@ -268,9 +263,8 @@ TEST(test_int_default_value_out_of_range, test_NumberSchemaItemTest) {
   SmartObject obj;
 
   ISchemaItemPtr item = TNumberSchemaItem<int>::create(
-                          TSchemaItemParameter<int>(90),
-                          TSchemaItemParameter<int>(100),
-                          TSchemaItemParameter<int>(50)); // Default value out of range
+      TSchemaItemParameter<int>(90), TSchemaItemParameter<int>(100),
+      TSchemaItemParameter<int>(50));  // Default value out of range
 
   //Object int correct
   obj = 90;
@@ -324,9 +318,8 @@ TEST(test_int_map_validate, test_NumberSchemaItemTest) {
   SmartObject obj;
 
   ISchemaItemPtr item = TNumberSchemaItem<int>::create(
-                          TSchemaItemParameter<int>(-120),
-                          TSchemaItemParameter<int>(100),
-                          TSchemaItemParameter<int>(-38));
+      TSchemaItemParameter<int>(-120), TSchemaItemParameter<int>(100),
+      TSchemaItemParameter<int>(-38));
 
   obj["min"] = -120;
   obj["out_of_min"] = -121;
@@ -369,9 +362,8 @@ TEST(test_int_array_validate, test_NumberSchemaItemTest) {
   SmartObject obj;
 
   ISchemaItemPtr item = TNumberSchemaItem<int>::create(
-                          TSchemaItemParameter<int>(-120),
-                          TSchemaItemParameter<int>(100),
-                          TSchemaItemParameter<int>(-38) );
+      TSchemaItemParameter<int>(-120), TSchemaItemParameter<int>(100),
+      TSchemaItemParameter<int>(-38));
 
   obj[0] = -121;
   obj[1] = -120;
@@ -379,7 +371,8 @@ TEST(test_int_array_validate, test_NumberSchemaItemTest) {
   obj[3] = 101;
 
   int resultType = item->validate(obj[0]);
-  EXPECT_EQ(NsSmartDeviceLink::NsSmartObjects::Errors::OUT_OF_RANGE, resultType);
+  EXPECT_EQ(NsSmartDeviceLink::NsSmartObjects::Errors::OUT_OF_RANGE,
+            resultType);
 
   resultType = item->validate(obj[1]);
   EXPECT_EQ(NsSmartDeviceLink::NsSmartObjects::Errors::OK, resultType);
@@ -388,10 +381,12 @@ TEST(test_int_array_validate, test_NumberSchemaItemTest) {
   EXPECT_EQ(NsSmartDeviceLink::NsSmartObjects::Errors::OK, resultType);
 
   resultType = item->validate(obj[3]);
-  EXPECT_EQ(NsSmartDeviceLink::NsSmartObjects::Errors::OUT_OF_RANGE, resultType);
+  EXPECT_EQ(NsSmartDeviceLink::NsSmartObjects::Errors::OUT_OF_RANGE,
+            resultType);
 
   resultType = item->validate(obj);
-  EXPECT_EQ(NsSmartDeviceLink::NsSmartObjects::Errors::INVALID_VALUE, resultType);
+  EXPECT_EQ(NsSmartDeviceLink::NsSmartObjects::Errors::INVALID_VALUE,
+            resultType);
 
   bool resDefault = item->setDefaultValue(obj[0]);
   EXPECT_TRUE(resDefault);
@@ -405,10 +400,12 @@ TEST(test_int_array_validate, test_NumberSchemaItemTest) {
   EXPECT_EQ(NsSmartDeviceLink::NsSmartObjects::Errors::OK, resultType);
 
   resultType = item->validate(obj[0]);
-  EXPECT_EQ(NsSmartDeviceLink::NsSmartObjects::Errors::INVALID_VALUE, resultType);
+  EXPECT_EQ(NsSmartDeviceLink::NsSmartObjects::Errors::INVALID_VALUE,
+            resultType);
 
   resultType = item->validate(obj);
-  EXPECT_EQ(NsSmartDeviceLink::NsSmartObjects::Errors::INVALID_VALUE, resultType);
+  EXPECT_EQ(NsSmartDeviceLink::NsSmartObjects::Errors::INVALID_VALUE,
+            resultType);
 }
 
 /**
@@ -422,8 +419,7 @@ TEST(test_double_no_default_value, test_NumberSchemaItemTest) {
 
   SmartObject obj;
 
-  ISchemaItemPtr item =
-    TNumberSchemaItem<double>::create(); // No default value, no min, no max
+  ISchemaItemPtr item = TNumberSchemaItem<double>::create();  // No default value, no min, no max
 
   //Object int
   obj = 5.79;
@@ -468,8 +464,8 @@ TEST(test_double_min_value, test_NumberSchemaItemTest) {
 
   SmartObject obj;
 
-  ISchemaItemPtr item = TNumberSchemaItem<double>::create(TSchemaItemParameter<double>
-                        (10.0)); // No default value, no max value
+  ISchemaItemPtr item = TNumberSchemaItem<double>::create(
+      TSchemaItemParameter<double>(10.0));  // No default value, no max value
 
   //Object double correct
   obj = 10.000001;
@@ -485,12 +481,12 @@ TEST(test_double_min_value, test_NumberSchemaItemTest) {
   resultType = item->validate(obj);
   EXPECT_EQ(Errors::OUT_OF_RANGE, resultType);
   /*
-          //Object int
-          obj = 10;
-          ASSERT_EQ(10, obj.asInt());
+   //Object int
+   obj = 10;
+   ASSERT_EQ(10, obj.asInt());
 
-          resultType = item->validate(obj);
-          EXPECT_EQ(Errors::INVALID_VALUE, resultType);*/
+   resultType = item->validate(obj);
+   EXPECT_EQ(Errors::INVALID_VALUE, resultType);*/
 }
 
 /**
@@ -502,8 +498,7 @@ TEST(test_double_max_value, test_NumberSchemaItemTest) {
   SmartObject obj;
 
   ISchemaItemPtr item = TNumberSchemaItem<double>::create(
-                          TSchemaItemParameter<double>(),
-                          TSchemaItemParameter<double>(749.0)); // No default value, no min value
+      TSchemaItemParameter<double>(), TSchemaItemParameter<double>(749.0));  // No default value, no min value
 
   //Object double correct
   obj = 749.0;
@@ -536,8 +531,8 @@ TEST(test_double_min_max_value, test_NumberSchemaItemTest) {
   SmartObject obj;
 
   ISchemaItemPtr item = TNumberSchemaItem<double>::create(
-                          TSchemaItemParameter<double>(-949.0),
-                          TSchemaItemParameter<double>(749.0)); // No default value
+      TSchemaItemParameter<double>(-949.0),
+      TSchemaItemParameter<double>(749.0));  // No default value
 
   //Object double correct
   obj = 749.0;
@@ -578,9 +573,8 @@ TEST(test_double_correct_default_value, test_NumberSchemaItemTest) {
   SmartObject obj;
 
   ISchemaItemPtr item = TNumberSchemaItem<double>::create(
-                          TSchemaItemParameter<double>(-12000.0),
-                          TSchemaItemParameter<double>(100.0),
-                          TSchemaItemParameter<double>(-38.0));
+      TSchemaItemParameter<double>(-12000.0),
+      TSchemaItemParameter<double>(100.0), TSchemaItemParameter<double>(-38.0));
 
   //Object double correct
   obj = -12000.0;
@@ -637,9 +631,8 @@ TEST(test_double_default_value_out_of_range, test_NumberSchemaItemTest) {
   SmartObject obj;
 
   ISchemaItemPtr item = TNumberSchemaItem<double>::create(
-                          TSchemaItemParameter<double>(90.0),
-                          TSchemaItemParameter<double>(100.0),
-                          TSchemaItemParameter<double>(50.0)); // Default value out of range
+      TSchemaItemParameter<double>(90.0), TSchemaItemParameter<double>(100.0),
+      TSchemaItemParameter<double>(50.0));  // Default value out of range
 
   //Object double correct
   obj = 90.0;
@@ -693,9 +686,8 @@ TEST(test_double_map_validate, test_NumberSchemaItemTest) {
   SmartObject obj;
 
   ISchemaItemPtr item = TNumberSchemaItem<double>::create(
-                          TSchemaItemParameter<double>(-120.0),
-                          TSchemaItemParameter<double>(100.0),
-                          TSchemaItemParameter<double>(-38.0));
+      TSchemaItemParameter<double>(-120.0), TSchemaItemParameter<double>(100.0),
+      TSchemaItemParameter<double>(-38.0));
 
   obj["min"] = -120.0;
   obj["out_of_min"] = -120.001;
@@ -737,9 +729,8 @@ TEST(test_double_array_validate, test_NumberSchemaItemTest) {
   SmartObject obj;
 
   ISchemaItemPtr item = TNumberSchemaItem<double>::create(
-                          TSchemaItemParameter<double>(-120.0),
-                          TSchemaItemParameter<double>(100.0),
-                          TSchemaItemParameter<double>(-38.0));
+      TSchemaItemParameter<double>(-120.0), TSchemaItemParameter<double>(100.0),
+      TSchemaItemParameter<double>(-38.0));
 
   obj[0] = -120.001;
   obj[1] = -120.0;
@@ -747,7 +738,8 @@ TEST(test_double_array_validate, test_NumberSchemaItemTest) {
   obj[3] = 100.000001;
 
   int resultType = item->validate(obj[0]);
-  EXPECT_EQ(NsSmartDeviceLink::NsSmartObjects::Errors::OUT_OF_RANGE, resultType);
+  EXPECT_EQ(NsSmartDeviceLink::NsSmartObjects::Errors::OUT_OF_RANGE,
+            resultType);
 
   resultType = item->validate(obj[1]);
   EXPECT_EQ(NsSmartDeviceLink::NsSmartObjects::Errors::OK, resultType);
@@ -756,10 +748,12 @@ TEST(test_double_array_validate, test_NumberSchemaItemTest) {
   EXPECT_EQ(NsSmartDeviceLink::NsSmartObjects::Errors::OK, resultType);
 
   resultType = item->validate(obj[3]);
-  EXPECT_EQ(NsSmartDeviceLink::NsSmartObjects::Errors::OUT_OF_RANGE, resultType);
+  EXPECT_EQ(NsSmartDeviceLink::NsSmartObjects::Errors::OUT_OF_RANGE,
+            resultType);
 
   resultType = item->validate(obj);
-  EXPECT_EQ(NsSmartDeviceLink::NsSmartObjects::Errors::INVALID_VALUE, resultType);
+  EXPECT_EQ(NsSmartDeviceLink::NsSmartObjects::Errors::INVALID_VALUE,
+            resultType);
 
   bool resDefault = item->setDefaultValue(obj[0]);
   EXPECT_TRUE(resDefault);
@@ -773,10 +767,12 @@ TEST(test_double_array_validate, test_NumberSchemaItemTest) {
   EXPECT_EQ(NsSmartDeviceLink::NsSmartObjects::Errors::OK, resultType);
 
   resultType = item->validate(obj[0]);
-  EXPECT_EQ(NsSmartDeviceLink::NsSmartObjects::Errors::INVALID_VALUE, resultType);
+  EXPECT_EQ(NsSmartDeviceLink::NsSmartObjects::Errors::INVALID_VALUE,
+            resultType);
 
   resultType = item->validate(obj);
-  EXPECT_EQ(NsSmartDeviceLink::NsSmartObjects::Errors::INVALID_VALUE, resultType);
+  EXPECT_EQ(NsSmartDeviceLink::NsSmartObjects::Errors::INVALID_VALUE,
+            resultType);
 }
 }  // namespace SchemaItem
 }  // namespace SmartObjects

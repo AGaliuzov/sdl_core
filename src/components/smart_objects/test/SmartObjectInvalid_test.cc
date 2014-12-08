@@ -30,7 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #include <string>
 
 #include "gmock/gmock.h"
@@ -169,7 +168,8 @@ TEST(test_SmartObjectInvalidTest, invalid_object_remains_invalid) {
   ASSERT_EQ(invalid_int_value, obj["request"]["id"].asInt());
   ASSERT_EQ(invalid_string_value, obj["response"]["name"].asString());
   ASSERT_EQ(invalid_int_value, obj["response"]["id"].asInt());
-  ASSERT_EQ(invalid_bool_value, obj["we"]["need"]["to"]["go"]["deeper"].asBool());
+  ASSERT_EQ(invalid_bool_value,
+            obj["we"]["need"]["to"]["go"]["deeper"].asBool());
 }
 }  // namespace SmartObjectInvalidTest
 }  // namespace SmartObjects

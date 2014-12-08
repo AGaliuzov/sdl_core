@@ -30,12 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #include <stdlib.h>
 #include <vector>
-
 #include "gmock/gmock.h"
-
 #include "utils/shared_ptr.h"
 
 namespace test {
@@ -50,11 +47,11 @@ class CMockObject {
 
   MOCK_METHOD0(destructor, void ());
 
- private:
+private:
   int mId;
 };
 
-class CExtendedMockObject: public CMockObject {
+class CExtendedMockObject : public CMockObject {
  public:
   CExtendedMockObject(int id);
 };
@@ -64,7 +61,7 @@ class CExtendedMockObject: public CMockObject {
 }  // namespace test
 
 test::components::utils::SharedPtrTest::CMockObject::CMockObject(int id)
-  : mId(id) {
+    : mId(id) {
 }
 
 test::components::utils::SharedPtrTest::CMockObject::~CMockObject(void) {
@@ -75,20 +72,20 @@ int test::components::utils::SharedPtrTest::CMockObject::getId(void) const {
   return mId;
 }
 
-test::components::utils::SharedPtrTest::CExtendedMockObject::CExtendedMockObject(int id)
-  : CMockObject(id) {
+test::components::utils::SharedPtrTest::CExtendedMockObject::CExtendedMockObject(
+    int id)
+    : CMockObject(id) {
 }
 
-typedef utils::SharedPtr<test::components::utils::SharedPtrTest::CMockObject>
-tMockObjectPtr;
-typedef utils::SharedPtr<test::components::utils::SharedPtrTest::CExtendedMockObject>
-tExtendedMockObjectPtr;
+typedef utils::SharedPtr<test::components::utils::SharedPtrTest::CMockObject> tMockObjectPtr;
+typedef utils::SharedPtr<
+    test::components::utils::SharedPtrTest::CExtendedMockObject> tExtendedMockObjectPtr;
 
 TEST(SharedPtrTest, Constructor) {
-  test::components::utils::SharedPtrTest::CMockObject* object1 = new
-  test::components::utils::SharedPtrTest::CMockObject(1);
-  test::components::utils::SharedPtrTest::CMockObject* object2 = new
-  test::components::utils::SharedPtrTest::CMockObject(2);
+  test::components::utils::SharedPtrTest::CMockObject* object1 =
+      new test::components::utils::SharedPtrTest::CMockObject(1);
+  test::components::utils::SharedPtrTest::CMockObject* object2 =
+      new test::components::utils::SharedPtrTest::CMockObject(2);
 
   EXPECT_CALL(*object1, destructor()).Times(0);
   EXPECT_CALL(*object2, destructor()).Times(0);
@@ -113,10 +110,10 @@ TEST(SharedPtrTest, Constructor) {
 }
 
 TEST(SharedPtrTest, PointerTypeCast) {
-  test::components::utils::SharedPtrTest::CExtendedMockObject* object1 = new
-  test::components::utils::SharedPtrTest::CExtendedMockObject(1);
-  test::components::utils::SharedPtrTest::CExtendedMockObject* object2 = new
-  test::components::utils::SharedPtrTest::CExtendedMockObject(2);
+  test::components::utils::SharedPtrTest::CExtendedMockObject* object1 =
+      new test::components::utils::SharedPtrTest::CExtendedMockObject(1);
+  test::components::utils::SharedPtrTest::CExtendedMockObject* object2 =
+      new test::components::utils::SharedPtrTest::CExtendedMockObject(2);
 
   EXPECT_CALL(*object1, destructor()).Times(0);
   EXPECT_CALL(*object2, destructor()).Times(0);
@@ -138,10 +135,10 @@ TEST(SharedPtrTest, PointerTypeCast) {
 }
 
 TEST(SharedPtrTest, AddedOperators) {
-  test::components::utils::SharedPtrTest::CExtendedMockObject* object1 = new
-  test::components::utils::SharedPtrTest::CExtendedMockObject(1);
-  test::components::utils::SharedPtrTest::CExtendedMockObject* object2 = new
-  test::components::utils::SharedPtrTest::CExtendedMockObject(2);
+  test::components::utils::SharedPtrTest::CExtendedMockObject* object1 =
+      new test::components::utils::SharedPtrTest::CExtendedMockObject(1);
+  test::components::utils::SharedPtrTest::CExtendedMockObject* object2 =
+      new test::components::utils::SharedPtrTest::CExtendedMockObject(2);
 
   EXPECT_CALL(*object1, destructor()).Times(0);
   EXPECT_CALL(*object2, destructor()).Times(0);
@@ -181,10 +178,9 @@ TEST(SharedPtrTest, StressTest) {
   std::vector<tMockObjectPtr> objects;
 
   for (size_t i = 0U; i < cNumIterations; ++i) {
-    if ((true == objects.empty()) ||
-        (0 == rand() % 256)) {
-      test::components::utils::SharedPtrTest::CMockObject* object = new
-      test::components::utils::SharedPtrTest::CMockObject(0);
+    if ((true == objects.empty()) || (0 == rand() % 256)) {
+      test::components::utils::SharedPtrTest::CMockObject* object =
+          new test::components::utils::SharedPtrTest::CMockObject(0);
       EXPECT_CALL(*object, destructor());
 
       objects.push_back(object);
@@ -202,6 +198,6 @@ TEST(SharedPtrTest, StressTest) {
       }
     }
   }
-  printf("%zu objects created, %zu pointers copied\n",
-         objectCreated, pointersCopied);
+  printf("%zu objects created, %zu pointers copied\n", objectCreated,
+         pointersCopied);
 }
