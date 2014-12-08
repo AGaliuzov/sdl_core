@@ -40,13 +40,15 @@ option(EXTENDED_MEDIA_MODE "Turn on and off extended Madia Manager features rela
 option(BUILD_SHARED_LIBS "Build all libraries as shared (if ON) or static (if OFF)" OFF)
 option(BUILD_BT_SUPPORT "Bluetooth support" ON)
 option(BUILD_USB_SUPPORT "libusb support" ON)
+option(BUILD_AOA_SUPPORT "libaoa support" OFF)
+option(BUILD_MME_SUPPORT "Apple devices support" OFF)
 option(BUILD_AVAHI_SUPPORT "libavahi support" ON)
-option(BUILD_RWLOCK_SUPPORT "rwlocks support" OFF)
 option(BUILD_BACKTRACE_SUPPORT "backtrace support" ON)
 option(BUILD_TESTS "Possibility to build and run tests" OFF)
 option(TIME_TESTER "Enable profiling time test util" ON)
 option(ENABLE_LOG "Logging feature" ON)
 option(ENABLE_GCOV "gcov code coverage feature" OFF)
+option(ENABLE_SANITIZE "Sanitize tool" OFF)
 option(ENABLE_SECURITY "Security Ford protocol protection" ON)
 if(NOT CUSTOMER_GENIVI)
  option(BUILD_AOA_SUPPORT "libaoa support" OFF)
@@ -64,6 +66,8 @@ set(ENABLE_LOG_OPTION 	"$ENV{ENABLE_LOG}")
 set(ARCH_TYPE_OPTION	"$ENV{ARCH_TYPE}")
 set(POLICY_OPTION 	"$ENV{POLICY_TYPE}")
 set(SECURITY_OPTION 	"$ENV{SECURITY_MODE}")
+set(SNAPSHOT_TAG 	"$ENV{SNAPSHOT_TAG}")
+
 
 if (ARCH_TYPE_OPTION)
   if (NOT (${ARCH_TYPE_OPTION} STREQUAL "x86") AND NOT (${ARCH_TYPE_OPTION} STREQUAL "armv7"))
@@ -180,17 +184,16 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 # flag is handled by CMake
 set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR})
 set(ARCHIVE_OUTPUT_DIRECTORY ./bin)
-set(CMAKE_CXX_FLAGS "-fPIC -g3 -ggdb3 -std=gnu++0x -Wall -Werror -Wuninitialized")
-if (ENABLE_GCOV)
+set(CMAKE_CXX_FLAGS "-fPIC -std=gnu++0x -Wall -Werror -Wuninitialized -Wvla")
+if(ENABLE_SANITIZE)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
+endif()
+if(ENABLE_GCOV)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
   add_definitions(-DGCOV_ENABLED)
 endif()
-set(CMAKE_CXX_FLAGS_RELEASE "-fPIC -s -O2") #It will be appended to CMAKE_CXX_FLAGS in release
-
-#include_directories(
-#  ../../../src/components/policy/
-#  ../../../src/components/rpc_base/
-#)
+set(CMAKE_CXX_FLAGS_RELEASE " -DNDEBUG -s -O2")
+set(CMAKE_CXX_FLAGS_DEBUG   " -DDEBUG -g3 -ggdb3")
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
   add_definitions(-DOS_LINUX)
@@ -235,10 +238,6 @@ if (BUILD_AVAHI_SUPPORT)
   message(STATUS "Avahi support is enabled")
 endif()
 
-if (BUILD_RWLOCK_SUPPORT)
-  add_definitions(-DRWLOCK_SUPPORT)
-endif()
-
 if (BUILD_BACKTRACE_SUPPORT)
   add_definitions(-DBACKTRACE_SUPPORT)
 endif()
@@ -254,16 +253,6 @@ endif()
 
 # TODO(AK): check current OS here
 add_definitions(-DOS_POSIX)
-
-# FIXME(DC): weird logic
-IF(CMAKE_C_FLAGS_DEBUG)
-    SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDEBUG" )
-    add_definitions(-DDEBUG)
-ELSE (CMAKE_C_FLAGS_DEBUG)
-    SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRELEASE" )
-    add_definitions(-DRELEASE)
-ENDIF(CMAKE_C_FLAGS_DEBUG)
-
 
 if (EXTENDED_MEDIA_MODE)
 add_definitions(-DEXTENDED_MEDIA_MODE)
@@ -488,6 +477,10 @@ add_custom_target(install-3rd_party
   DEPENDS ${install-3rd_party_dbus_var}
   WORKING_DIRECTORY ${3RD_PARTY_BINARY_DIRECTORY}
 )
+
+if(ENABLE_LOG)
+  include_directories ( ${LOG4CXX_INCLUDE_DIRECTORY} )
+endif()
 
 if(ENABLE_SECURITY)
   add_definitions(-DENABLE_SECURITY)

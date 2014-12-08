@@ -126,7 +126,7 @@ private:
     UpdateThreadDelegate(UpdateStatusManager* update_status_manager);
     ~UpdateThreadDelegate();
     virtual void threadMain();
-    virtual bool exitThreadMain();
+    virtual void exitThreadMain();
     void updateTimeOut(const uint32_t timeout_ms);
 
     volatile uint32_t                                timeout_;

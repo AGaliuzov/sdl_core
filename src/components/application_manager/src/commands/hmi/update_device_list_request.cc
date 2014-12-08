@@ -50,7 +50,7 @@ UpdateDeviceListRequest::~UpdateDeviceListRequest() {
 }
 
 void UpdateDeviceListRequest::Run() {
-  LOG4CXX_INFO(logger_, "UpdateDeviceListRequest::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock auto_lock(wait_hmi_lock);
 #ifndef CUSTOMER_PASA
   // Fix problem with SDL and HMI HTML. This problem is not actual for HMI PASA.
@@ -58,10 +58,10 @@ void UpdateDeviceListRequest::Run() {
   // hit code to RTC
   if (true == profile::Profile::instance()->launch_hmi()) {
     if (!ApplicationManagerImpl::instance()->IsHMICooperating()) {
-      LOG4CXX_INFO(logger_, "MY Wait for HMI Cooperation");
+      LOG4CXX_INFO(logger_, "Wait for HMI Cooperation");
       subscribe_on_event(hmi_apis::FunctionID::BasicCommunication_OnReady);
       termination_condition_.Wait(auto_lock);
-      LOG4CXX_INFO(logger_, "MY HMI Cooperation OK");
+      LOG4CXX_DEBUG(logger_, "HMI Cooperation OK");
     }
   }
 #endif
@@ -70,7 +70,7 @@ void UpdateDeviceListRequest::Run() {
 }
 
 void UpdateDeviceListRequest::on_event(const event_engine::Event& event) {
-  LOG4CXX_INFO(logger_, "UpdateDeviceListRequest::on_event");
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock auto_lock(wait_hmi_lock);
   switch (event.id()) {
     case hmi_apis::FunctionID::BasicCommunication_OnReady : {

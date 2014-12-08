@@ -173,6 +173,11 @@ class ProtocolHandlerImpl
 #endif  // ENABLE_SECURITY
 
   /**
+   * \brief Stop all handling activity
+   */
+  void Stop();
+
+  /**
    * \brief Method for sending message to Mobile Application
    * \param message Message with params to be sent to Mobile App
    */

@@ -255,10 +255,9 @@ class CacheManager : public CacheManagerInterface {
   /**
    * @brief SetIsDefault Sets is_default flag for application
    * @param app_id app specific application
-   * @param is_default true if default false otherwise.
    * @return  true in case opperation was done successfully.
    */
-  bool SetIsDefault(const std::string& app_id, bool is_default);
+  bool SetIsDefault(const std::string& app_id);
 
   /**
    * Checks if the application has pre_data policy
@@ -435,12 +434,10 @@ class CacheManager : public CacheManagerInterface {
    * groups for specific application.
    * @param policy_app_id application id.
    * @param device_id device id.
-   * @param result the count of unconsented groups
-   * @return true in case opperation has been done successfully.
+   * @return the count of unconsented groups
    */
-  bool CountUnconsentedGroups(const std::string& policy_app_id,
-                              const std::string& device_id,
-                              int& result);
+  int CountUnconsentedGroups(const std::string& policy_app_id,
+                              const std::string& device_id);
 
   /**
    * @brief Gets functional group names and user_consent_prompts, if any
@@ -499,14 +496,6 @@ class CacheManager : public CacheManagerInterface {
   bool SetPredataPolicy(const std::string& app_id);
 
   /**
-   * @brief Updates application policy to either pre_DataConsented or not
-   * @param app_id Policy Id of application to be checked
-   * @param is_pre_data True of False to setting app policy to be pre_DataConsented
-   * @return true, if succeeded, otherwise - false
-   */
-  bool SetIsPredata(const std::string& app_id, bool is_pre_data);
-
-  /**
    * @brief Removes unpaired devices
    * @return true if success
    */
@@ -514,10 +503,11 @@ class CacheManager : public CacheManagerInterface {
 
   /**
    * Sets flag of unpaired device
-   * @param device_id
+   * @param device_id Unique device id
+   * @param unpaired True, if should be marked as unpaired, otherwise - false
    * @return true if success
    */
-  bool SetUnpairedDevice(const std::string& device_id);
+  bool SetUnpairedDevice(const std::string& device_id, bool unpaired = true);
 
   /**
    * Gets list of unpaired devices
@@ -579,9 +569,7 @@ private:
 
   void GetGroupNameByHashID(const int32_t group_id, std::string& group_name);
   void FillDeviceSpecificData();
-  void FillAppSpecificData();
   bool AppExists(const std::string& app_id) const;
-  void CopyInternalParams(const std::string &from, const std::string& to);
   long ConvertSecondsToMinute(int seconds);
 
   /**
@@ -592,16 +580,33 @@ private:
 
   void PersistData();
 
+  void ResetCalculatedPermissions();
+
+  void AddCalculatedPermissions(
+      const std::string& device_id,
+      const std::string& policy_app_id,
+      const policy::Permissions& permissions);
+
+  bool IsPermissionsCalculated(const std::string& device_id,
+                               const std::string& policy_app_id,
+                               policy::Permissions& permission);
+
 private:
   utils::SharedPtr<policy_table::Table> pt_;
   utils::SharedPtr<policy_table::Table> snapshot_;
   utils::SharedPtr<PTRepresentation> backup_;
   utils::SharedPtr<PTExtRepresentation> ex_backup_;
   bool update_required;
-  std::map<std::string, bool> is_predata_;
-  std::map<std::string, bool> is_unpaired_;
+  typedef std::set<std::string> UnpairedDevices;
+  UnpairedDevices is_unpaired_;
 
   sync_primitives::Lock cache_lock_;
+  sync_primitives::Lock unpaired_lock_;
+
+  typedef std::map<std::string, Permissions> AppCalculatedPermissions;
+  typedef std::map<std::string, AppCalculatedPermissions> CalculatedPermissions;
+  CalculatedPermissions calculated_permissions_;
+  sync_primitives::Lock calculated_permissions_lock_;
 
   class BackgroundBackuper: public threads::ThreadDelegate {
       friend class CacheManager;
@@ -609,7 +614,7 @@ private:
       BackgroundBackuper(CacheManager* cache_manager);
       ~BackgroundBackuper();
       virtual void threadMain();
-      virtual bool exitThreadMain();
+      virtual void exitThreadMain();
       void DoBackup();
     private:
       void InternalBackup();
@@ -622,9 +627,8 @@ private:
       DISALLOW_COPY_AND_ASSIGN(BackgroundBackuper);
   };
   threads::Thread* backup_thread_;
+  sync_primitives::Lock backuper_locker_;
   BackgroundBackuper* backuper_;
-
 };
-} // policy
-
+}  // namespace policy
 #endif // SRC_COMPONENTS_POLICY_INCLUDE_CACHE_MANAGER_H_

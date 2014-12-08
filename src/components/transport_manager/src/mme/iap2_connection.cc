@@ -58,32 +58,35 @@ IAP2Connection::IAP2Connection(const DeviceUID& device_uid,
 }
 
 IAP2Connection::~IAP2Connection() {
+  LOG4CXX_AUTO_TRACE(logger_);
   if (receiver_thread_) {
-    receiver_thread_->stop();
+    receiver_thread_->join();
+    delete receiver_thread_delegate_;
     threads::DeleteThread(receiver_thread_);
-    receiver_thread_ = NULL;
   }
 }
 
 bool IAP2Connection::Init() {
   IAP2Device::AppRecord record;
   if (parent_->RecordByAppId(app_handle_, record)) {
+    controller_->ConnectDone(device_uid_, app_handle_);
+
     protocol_name_ = record.first;
     iap2ea_hdl_ = record.second;
     const std::string thread_name = "iAP2 " + protocol_name_;
     receiver_thread_delegate_ = new ReceiverThreadDelegate(iap2ea_hdl_, this);
-    receiver_thread_ = threads::CreateThread(thread_name.c_str(),
-                                             receiver_thread_delegate_);
+    receiver_thread_ = threads::CreateThread(thread_name.c_str(), receiver_thread_delegate_);
     receiver_thread_->start();
 
-    controller_->ConnectDone(device_uid_, app_handle_);
     return true;
   }
   return false;
 }
 
 void IAP2Connection::Finalize() {
+  LOG4CXX_AUTO_TRACE(logger_);
   if (!unexpected_disconnect_) {
+    LOG4CXX_DEBUG(logger_, "DisconnectDone on unexpected_disconnect_");
     controller_->DisconnectDone(device_uid_, app_handle_);
   }
 }
@@ -100,7 +103,7 @@ TransportAdapter::Error IAP2Connection::SendData(
   } else {
     LOG4CXX_WARN(
         logger_,
-        "iAP2: error occurred while sending data on protocol " << protocol_name_);
+        "iAP2: error occurred while sending data on protocol " << protocol_name_ << ", errno = " << errno);
     controller_->DataSendFailed(device_uid_, app_handle_, message,
                                 DataSendError());
     return TransportAdapter::FAIL;
@@ -108,12 +111,17 @@ TransportAdapter::Error IAP2Connection::SendData(
 }
 
 TransportAdapter::Error IAP2Connection::Disconnect() {
+  LOG4CXX_AUTO_TRACE(logger_);
   controller_->ConnectionFinished(device_uid_, app_handle_);
-  if (receiver_thread_) {
-    receiver_thread_->stop();
-  }
-  TransportAdapter::Error error =
+  const TransportAdapter::Error error =
       Close() ? TransportAdapter::OK : TransportAdapter::FAIL;
+  if (receiver_thread_) {
+    receiver_thread_->join();
+    delete receiver_thread_->delegate();
+    threads::DeleteThread(receiver_thread_);
+    receiver_thread_ = NULL;
+    receiver_thread_delegate_ = NULL;
+  }
   return error;
 }
 
@@ -146,7 +154,7 @@ void IAP2Connection::ReceiveData() {
       default:
         LOG4CXX_WARN(
             logger_,
-            "iAP2: error occurred while receiving data on protocol " << protocol_name_);
+            "iAP2: error occurred while receiving data on protocol " << protocol_name_ << ", errno = " << errno);
         controller_->DataReceiveFailed(device_uid_, app_handle_,
                                        DataReceiveError());
         break;
@@ -167,7 +175,7 @@ bool IAP2Connection::Close() {
   } else {
     LOG4CXX_WARN(
         logger_,
-        "iAP2: could not close connection on protocol " << protocol_name_);
+        "iAP2: could not close connection on protocol " << protocol_name_ << ", errno = " << errno);
     result = false;
   }
 

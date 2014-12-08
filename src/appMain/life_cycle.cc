@@ -43,8 +43,6 @@
 #include "security_manager/crypto_manager_impl.h"
 #endif  // ENABLE_SECURITY
 
-#include "utils/threads/thread_manager.h"
-
 using threads::Thread;
 
 namespace main_namespace {
@@ -54,7 +52,7 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "appMain")
 namespace {
 void NameMessageBrokerThread(const System::Thread& thread,
                              const std::string& name) {
-  Thread::SetNameForId(Thread::Id(thread.GetId()), name);
+  Thread::SetNameForId(thread.GetId(), name);
 }
 }  // namespace
 
@@ -90,6 +88,7 @@ LifeCycle::LifeCycle()
 #ifdef PASA_HMI
   , mb_pasa_adapter_(NULL)
   , mb_pasa_adapter_thread_(NULL)
+  , low_voltage_(false)
 #endif  // PASA_HMI
 #endif  // CUSTOMER_PASA
   , components_started_(false)
@@ -378,36 +377,35 @@ bool LifeCycle::InitMessageSystem() {
 
 namespace {
   void sig_handler(int sig) {
-    MessageQueue<threads::ThreadManager::ThreadDesc>& threads = ::threads::ThreadManager::instance()->threads_to_terminate;
-    threads.Shutdown();
+    // Do nothing
   }
 }
 
 void LifeCycle::Run() {
   // First, register signal handler
   ::utils::SubscribeToTerminateSignal(&sig_handler);
-  // Then run main loop until signal caught
-  MessageQueue<threads::ThreadManager::ThreadDesc>& threads = ::threads::ThreadManager::instance()->threads_to_terminate;
-  while(!threads.IsShuttingDown()) {
-    while (!threads.empty()) {
-      ::threads::ThreadManager::ThreadDesc desc = threads.pop();
-      pthread_join(desc.handle, NULL);
-      delete desc.delegate;
-    }
-    threads.wait();
-  }
+  // Now wait for any signal
+  pause();
 }
 
 #ifdef CUSTOMER_PASA
 void LifeCycle::LowVoltage() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_TRACE(logger_, "Good night!");
+  low_voltage_ = true;
   transport_manager_->Visibility(false);
   app_manager_->OnLowVoltage();
 }
 
 void LifeCycle::WakeUp() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  DCHECK(low_voltage_ == true);
+
+  LOG4CXX_TRACE(logger_, "Wake up and sing!");
+  app_manager_->OnWakeUp();
   transport_manager_->Reinit();
   transport_manager_->Visibility(true);
-  app_manager_->OnWakeUp();
+  low_voltage_ = false;
 }
 #endif
 
@@ -422,11 +420,14 @@ void LifeCycle::StopComponents() {
   protocol_handler_->RemoveProtocolObserver(app_manager_);
   app_manager_->Stop();
 
-  LOG4CXX_INFO(logger_, "Destroying Media Manager");
+  LOG4CXX_INFO(logger_, "Stopping Protocol Handler");
   protocol_handler_->RemoveProtocolObserver(media_manager_);
 #ifdef ENABLE_SECURITY
   protocol_handler_->RemoveProtocolObserver(security_manager_);
 #endif  // ENABLE_SECURITY
+  protocol_handler_->Stop();
+
+  LOG4CXX_INFO(logger_, "Destroying Media Manager");
   media_manager_->SetProtocolHandler(NULL);
   media_manager::MediaManagerImpl::destroy();
 
@@ -480,6 +481,9 @@ void LifeCycle::StopComponents() {
     mb_adapter_->unregisterController();
     mb_adapter_->Close();
     mb_adapter_->exitReceivingThread();
+    if (mb_adapter_thread_) {
+      mb_adapter_thread_->Join();
+    }
     delete mb_adapter_;
   }
   if (mb_adapter_thread_) {

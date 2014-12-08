@@ -35,6 +35,7 @@
 #include <errno.h>
 #include <sstream>
 #include <cstdlib>
+#include <stdio.h>
 
 #include "resumption/last_state.h"
 
@@ -100,7 +101,7 @@ void TcpTransportAdapter::Store() const {
         if (port != -1) { // don't want to store incoming applications
           Json::Value application_dictionary;
           char port_record[12];
-          sprintf(port_record, "%d", port);
+          snprintf(port_record, sizeof(port_record), "%d", port);
           application_dictionary["port"] = std::string(port_record);
           applications_dictionary.append(application_dictionary);
         }

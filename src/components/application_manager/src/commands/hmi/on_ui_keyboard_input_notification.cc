@@ -47,7 +47,7 @@ OnUIKeyBoardInputNotification::~OnUIKeyBoardInputNotification() {
 }
 
 void OnUIKeyBoardInputNotification::Run() {
-  LOG4CXX_INFO(logger_, "OnUIKeyBoardInputNotification::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   //prepare SmartObject for mobile factory
   (*message_)[strings::params][strings::function_id] =

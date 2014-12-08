@@ -102,7 +102,9 @@ class AudioStreamSenderThread : public threads::ThreadDelegate {
      */
     uint32_t session_key() const;
 
-    bool exitThreadMain();
+#ifndef CUSTOMER_PASA
+    void exitThreadMain();
+#endif
 
   private:
     /*
@@ -115,8 +117,11 @@ class AudioStreamSenderThread : public threads::ThreadDelegate {
 #ifdef CUSTOMER_PASA
     /**
      * @brief The function allows to send data obtained from mqueue.
+     *
+     * @param buffer        Internal buffer for mqueue data
+     * @param buffer_size   Internal buffer size
      */
-    void mqSendAudioChunkToMobile();
+    void mqSendAudioChunkToMobile(char*& buffer, size_t buffer_size);
 #endif // CUSTOMER_PASA
 
     /*
@@ -140,8 +145,8 @@ class AudioStreamSenderThread : public threads::ThreadDelegate {
     static const int32_t                  kAudioPassThruTimeout;
 
 #ifdef CUSTOMER_PASA
-    mqd_t 				  mq_apt_handle_;
-    uint32_t				  total_bytes_from_mq_;
+    mqd_t             mq_apt_handle_;
+    uint32_t          total_bytes_from_mq_;
 #endif // CUSTOMER_PASA
 
     DISALLOW_COPY_AND_ASSIGN(AudioStreamSenderThread);

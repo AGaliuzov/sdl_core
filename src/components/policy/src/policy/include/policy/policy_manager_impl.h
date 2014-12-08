@@ -127,8 +127,6 @@ class PolicyManagerImpl : public PolicyManager {
 
     virtual uint32_t GetNotificationsNumber(const std::string& priority);
 
-    virtual int IsConsentNeeded(const std::string& app_id);
-
     virtual void SetVINValue(const std::string& value);
 
     // Interface StatisticsManager (begin)
@@ -255,12 +253,30 @@ class PolicyManagerImpl : public PolicyManager {
      */
     bool CheckAppStorageFolder() const;
 
+    /**
+     * @brief Checks whether need ask the permission of users
+     * @return true if user consent is needed
+     */
+    virtual bool IsConsentNeeded(const std::string& app_id);
+
+    /**
+     * @brief Changes isConsentNeeded for app pending permissions, in case
+     * user set permissions before app activation.
+     * @param Unique app id
+     * @param Current permissions for app
+     */
+    void CheckPendingPermissionsChanges(
+                const std::string& policy_app_id,
+                const std::vector<FunctionalGroupPermission>& current_permissions);
+
+
     PolicyListener* listener_;
 
     UpdateStatusManagerInterfaceSPtr update_status_manager_;
     CacheManagerInterfaceSPtr cache_;
     sync_primitives::Lock update_request_list_lock_;
     sync_primitives::Lock apps_registration_lock_;
+    sync_primitives::Lock app_permissions_diff_lock_;
     std::map<std::string, AppPermissions> app_permissions_diff_;
 
     /**
@@ -299,6 +315,7 @@ class PolicyManagerImpl : public PolicyManager {
      */
     std::string last_device_id_;
 
+    // TODO(AOleynik): Do we need this here? Cache manager already has it
     /**
      * @brief Holds device ids, which were unpaired
      */

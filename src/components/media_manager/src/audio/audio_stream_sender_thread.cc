@@ -38,6 +38,7 @@
 
 
 #include <string>
+#include <string.h>
 #include "application_manager/application_manager_impl.h"
 #include "application_manager/mobile_command_factory.h"
 #include "application_manager/application_impl.h"
@@ -69,14 +70,14 @@ AudioStreamSenderThread::AudioStreamSenderThread(
     total_bytes_from_mq_(0),
 #endif //CUSTOMER PASA
     shouldBeStoped_cv_() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 }
 
 AudioStreamSenderThread::~AudioStreamSenderThread() {
 }
 
 void AudioStreamSenderThread::threadMain() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   offset_ = 0;
 #ifdef CUSTOMER_PASA
@@ -87,6 +88,21 @@ void AudioStreamSenderThread::threadMain() {
                   << strerror(errno));
     return;
   }
+
+  struct mq_attr attr;
+  if (-1 == mq_getattr(mq_apt_handle_, &attr)) {
+    LOG4CXX_ERROR(logger_, "Unable to read mq_attributes: "
+                    << strerror(errno));
+    return;
+  } else {
+    LOG4CXX_INFO(logger_, "mq_msgsize = " << &attr.mq_msgsize);
+  }
+
+  char* buffer = new char[attr.mq_msgsize];
+  if (NULL == buffer) {
+    LOG4CXX_INFO(logger_, "Memory allocation error");
+    return;
+  }
 #endif
 
   while (false == getShouldBeStopped()) {
@@ -95,13 +111,16 @@ void AudioStreamSenderThread::threadMain() {
     shouldBeStoped_cv_.WaitFor(auto_lock, kAudioPassThruTimeout * 1000);
 #endif
 #ifdef CUSTOMER_PASA
-    mqSendAudioChunkToMobile();
+    memset(buffer, '\0', attr.mq_msgsize);
+    mqSendAudioChunkToMobile(buffer, attr.mq_msgsize);
 #else
     sendAudioChunkToMobile();
 #endif
   }
 
 #ifdef CUSTOMER_PASA
+  delete[] buffer;
+
   if (-1 == mq_close(mq_apt_handle_)) {
     LOG4CXX_ERROR(logger_, "MQ wasn't closed properly: "
                 << strerror(errno));
@@ -114,13 +133,13 @@ void AudioStreamSenderThread::threadMain() {
   } else {
         LOG4CXX_INFO(logger_, "MQ was unlinked properly.");
   }
-#endif
 
-  LOG4CXX_TRACE_EXIT(logger_);
+  LOG4CXX_INFO(logger_, "total_bytes_from_mq_ =  " << total_bytes_from_mq_);
+#endif
 }
 
 void AudioStreamSenderThread::sendAudioChunkToMobile() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   std::vector<uint8_t> binaryData;
   std::vector<uint8_t>::iterator from;
@@ -146,10 +165,10 @@ void AudioStreamSenderThread::sendAudioChunkToMobile() {
     LOG4CXX_INFO_EXT(logger_, "from != binaryData.end()");
 
     offset_ = offset_ + to - from;
+    std::vector<uint8_t> data(from, to);
 
     application_manager::ApplicationManagerImpl::instance()->
-    SendAudioPassThroughNotification(session_key_,
-                                     std::vector<uint8_t>(from, to));
+    SendAudioPassThroughNotification(session_key_, data);
     binaryData.clear();
   }
 #if !defined(EXTENDED_MEDIA_MODE)
@@ -159,31 +178,16 @@ void AudioStreamSenderThread::sendAudioChunkToMobile() {
 }
 
 #ifdef CUSTOMER_PASA
-void AudioStreamSenderThread::mqSendAudioChunkToMobile() {
-  struct mq_attr attr;
-  char* buffer;
-
-  if (-1 == mq_getattr(mq_apt_handle_, &attr)) {
-    LOG4CXX_ERROR(logger_, "Unable to read mq_attributes: "
-                    << strerror(errno));
-    return;
-  } else {
-    LOG4CXX_INFO(logger_, "mq_msgsize = " << attr.mq_msgsize);
-  }
-
-  buffer = new char[attr.mq_msgsize];
-  if (buffer == NULL) {
-    LOG4CXX_INFO(logger_, "Memory allocation error");
-    return;
-  }
-
+void AudioStreamSenderThread::mqSendAudioChunkToMobile(
+    char*& buffer, size_t buffer_size) {
   LOG4CXX_INFO(logger_, "Waiting for data to be available in MQ.");
   const ssize_t dataSize = mq_receive(mq_apt_handle_, buffer,
-                                      attr.mq_msgsize, 0);
+                                      buffer_size, 0);
 
   if (-1 == dataSize) {
-    LOG4CXX_ERROR(logger_, "Unable to recieve data from mqueue: "
+    LOG4CXX_ERROR(logger_, "Unable to receive data from mqueue: "
                   << strerror(errno));
+    delete[] buffer;
     return;
   }
 
@@ -191,11 +195,6 @@ void AudioStreamSenderThread::mqSendAudioChunkToMobile() {
                 << " bytes have been successfully obtained.");
 
   std::vector<uint8_t> data(buffer, buffer + dataSize);
-
-  delete[] buffer;
-
-  LOG4CXX_INFO(logger_, "data.size() =  " << data.size());
-
   total_bytes_from_mq_ += data.size();
 
   application_manager::ApplicationManagerImpl::instance()->
@@ -214,11 +213,12 @@ void AudioStreamSenderThread::setShouldBeStopped(bool should_stop) {
   shouldBeStoped_cv_.NotifyOne();
 }
 
-bool AudioStreamSenderThread::exitThreadMain() {
-  LOG4CXX_INFO(logger_, "AudioStreamSenderThread::exitThreadMain");
+#ifndef CUSTOMER_PASA
+void AudioStreamSenderThread::exitThreadMain() {
+  LOG4CXX_AUTO_TRACE(logger_);
   setShouldBeStopped(true);
-  return true;
 }
+#endif
 
 uint32_t AudioStreamSenderThread::session_key() const {
   return session_key_;

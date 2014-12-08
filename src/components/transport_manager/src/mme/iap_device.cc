@@ -49,18 +49,19 @@ IAPDevice::IAPDevice(const std::string& mount_point, const std::string& name,
       controller_(controller),
       ipod_hdl_(0),
       last_app_id_(0),
-      running_(false),
       app_table_lock_(true),
       connections_lock_(true),
-      receiver_thread_(0) {
+      receiver_thread_(0),
+      receiver_thread_delegate_(0) {
 }
 
 void IAPDevice::Stop() {
-  if (running_ && receiver_thread_) {
-    running_ = false;
-    receiver_thread_->stop();
+  if (receiver_thread_) {
+    receiver_thread_->join();
+    delete receiver_thread_->delegate();
     threads::DeleteThread(receiver_thread_);
     receiver_thread_ = NULL;
+    receiver_thread_delegate_ = NULL;
   }
 }
 
@@ -71,7 +72,7 @@ IAPDevice::~IAPDevice() {
   if (ipod_disconnect(ipod_hdl_) != -1) {
     LOG4CXX_DEBUG(logger_, "iAP: disconnected from " << mount_point());
   } else {
-    LOG4CXX_WARN(logger_, "iAP: could not disconnect from " << mount_point());
+    LOG4CXX_WARN(logger_, "iAP: could not disconnect from " << mount_point() << ", errno = " << errno);
   }
 }
 
@@ -90,10 +91,9 @@ bool IAPDevice::Init() {
   ipod_hdl_ = ipod_connect(mount_point().c_str(), 0);
   if (ipod_hdl_ != 0) {
     LOG4CXX_DEBUG(logger_, "iAP: connected to " << mount_point());
-    receiver_thread_ = threads::CreateThread(
-        "iAP event", new IAPEventThreadDelegate(ipod_hdl_, this));
+    receiver_thread_delegate_ = new IAPEventThreadDelegate(ipod_hdl_, this);
+    receiver_thread_ = threads::CreateThread("iAP event", receiver_thread_delegate_);
     receiver_thread_->start();
-    running_ = true;
 
     return true;
   } else {
@@ -306,7 +306,7 @@ void IAPDevice::OnHubSessionOpened(uint32_t protocol_id,
   } else {
     LOG4CXX_WARN(
         logger_,
-        "iAP: error occurred while sending data on hub protocol " << protocol_name);
+        "iAP: error occurred while sending data on hub protocol " << protocol_name << ", errno = " << errno);
   }
 }
 
@@ -415,7 +415,7 @@ bool IAPDevice::IAPEventThreadDelegate::ArmEvent(struct sigevent* event) {
     LOG4CXX_DEBUG(logger_, "Successfully armed for iAP event notification");
     return true;
   } else {
-    LOG4CXX_WARN(logger_, "Could not arm for iAP event notification");
+    LOG4CXX_WARN(logger_, "Could not arm for iAP event notification, errno = " << errno);
     return false;
   }
 }
@@ -490,7 +490,7 @@ void IAPDevice::IAPEventThreadDelegate::AcceptSession(
     OpenSession(protocol_id, protocol_name);
   } else {
     LOG4CXX_ERROR(
-        logger_, "iAP: failed to accept session on protocol " << protocol_name);
+        logger_, "iAP: failed to accept session on protocol " << protocol_name << ", errno = " << errno);
   }
 }
 
@@ -499,7 +499,7 @@ void IAPDevice::IAPEventThreadDelegate::CloseSession(uint32_t session_id) {
   if (ipod_eaf_session_free(ipod_hdl_, session_id) != -1) {
     LOG4CXX_DEBUG(logger_, "iAP: session " << session_id << " closed");
   } else {
-    LOG4CXX_WARN(logger_, "iAP: failed to close session " << session_id);
+    LOG4CXX_WARN(logger_, "iAP: failed to close session " << session_id << ", errno = " << errno);
   }
   parent_->OnSessionClosed(session_id);
 }
@@ -526,7 +526,7 @@ void IAPDevice::IAPEventThreadDelegate::OpenSession(uint32_t protocol_id,
     parent_->OnSessionOpened(protocol_id, protocol_name, session_id);
   } else {
     LOG4CXX_ERROR(logger_,
-                  "iAP: failed to open session on protocol " << protocol_name);
+                  "iAP: failed to open session on protocol " << protocol_name << ", errno = " << errno);
   }
 }
 

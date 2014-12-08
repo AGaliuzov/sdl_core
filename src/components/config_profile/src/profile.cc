@@ -204,11 +204,11 @@ const uint32_t kDefaultTimeout = 10;
 const uint32_t kDefaultAppResumingTimeout = 3;
 const uint32_t kDefaultAppSavePersistentDataTimeout = 10;
 const uint32_t kDefaultDirQuota = 104857600;
-const uint32_t kDefaultAppTimeScaleMaxRequests = 100;
-const uint32_t kDefaultAppRequestsTimeScale = 10;
+const uint32_t kDefaultAppTimeScaleMaxRequests = 0;
+const uint32_t kDefaultAppRequestsTimeScale = 0;
 const uint32_t kDefaultAppHmiLevelNoneTimeScaleMaxRequests = 100;
 const uint32_t kDefaultAppHmiLevelNoneRequestsTimeScale = 10;
-const uint32_t kDefaultPendingRequestsAmount = 1000;
+const uint32_t kDefaultPendingRequestsAmount = 0;
 const uint32_t kDefaultTransportManagerDisconnectTimeout = 0;
 const uint32_t kDefaultApplicationListUpdateTimeout = 1;
 const std::pair<uint32_t, uint32_t> kReadDIDFrequency = {5 , 1};
@@ -642,7 +642,7 @@ uint16_t Profile::tts_global_properties_timeout() const {
 }
 
 void Profile::UpdateValues() {
-  LOG4CXX_INFO(logger_, "Profile::UpdateValues");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   // Launch HMI parameter
   std::string launch_value;

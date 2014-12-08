@@ -125,6 +125,7 @@ class LifeCycle : public utils::Singleton<LifeCycle> {
 #ifdef PASA_HMI
     hmi_message_handler::MessageBrokerAdapter* mb_pasa_adapter_;
     System::Thread* mb_pasa_adapter_thread_;
+    bool low_voltage_;
 #endif  // PASA_HMI
 #endif  // CUSTOMER_PASA
 
