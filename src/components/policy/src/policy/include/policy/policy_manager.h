@@ -123,7 +123,7 @@ class PolicyManager : public usage_statistics::StatisticsManager {
      * @param kilometers current kilometers at odometer
      * @return true if exceeded
      */
-    virtual bool KmsChanged(int kilometers) = 0;
+    virtual void KmsChanged(int kilometers) = 0;
 
     /**
      * Increments counter of ignition cycles
@@ -403,8 +403,8 @@ class PolicyManager : public usage_statistics::StatisticsManager {
      * Checks is PT exceeded days
      * @return true if exceeded
      */
-
     virtual bool ExceededDays() = 0;
+
     /**
      * @brief StartPTExchange allows to start PTU. The function will check
      * if one is required and starts the update flow in only case when previous

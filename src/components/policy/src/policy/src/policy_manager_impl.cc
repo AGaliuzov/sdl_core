@@ -121,11 +121,11 @@ utils::SharedPtr<policy_table::Table> PolicyManagerImpl::Parse(
 }
 
 void PolicyManagerImpl::CheckTriggers() {
-  LOG4CXX_DEBUG(logger_, "Check ignition triggers");
+  LOG4CXX_AUTO_TRACE(logger_);
   const bool exceed_ignition_cycles = ExceededIgnitionCycles();
   const bool exceed_days = ExceededDays();
 
-  LOG4CXX_INFO(
+  LOG4CXX_DEBUG(
     logger_,
         "\nDays exceeded: " << std::boolalpha << exceed_ignition_cycles <<
         "\nStatusUpdateRequired: " << std::boolalpha<< exceed_days);
@@ -204,7 +204,6 @@ bool PolicyManagerImpl::LoadPT(const std::string& file,
     return true;
   }
 
-  // TODO (AGALIUZOV: Check logic again)
   RefreshRetrySequence();
   return true;
 }
@@ -252,7 +251,7 @@ EndpointUrls PolicyManagerImpl::GetUpdateUrls(int service_type) {
 }
 
 void PolicyManagerImpl::RequestPTUpdate() {
-  LOG4CXX_INFO(logger_, "Creating PT Snapshot");
+  LOG4CXX_AUTO_TRACE(logger_);
   utils::SharedPtr<policy_table::Table> policy_table_snapshot =
       cache_->GenerateSnapshot();
   if (!policy_table_snapshot) {
@@ -265,11 +264,11 @@ void PolicyManagerImpl::RequestPTUpdate() {
 #endif  // EXTENDED_POLICY
   policy_table_snapshot->SetPolicyTableType(policy_table::PT_SNAPSHOT);
   if (false == policy_table_snapshot->is_valid()) {
-    LOG4CXX_INFO(
+    LOG4CXX_ERROR(
           logger_, "Policy snappshot is not valid");
     rpc::ValidationReport report("policy_table");
     policy_table_snapshot->ReportErrors(&report);
-    LOG4CXX_INFO(logger_,
+    LOG4CXX_DEBUG(logger_,
                  "Errors: " << rpc::PrettyFormat(report));
   }
 
@@ -291,7 +290,7 @@ bool PolicyManagerImpl::HasConsentedDevice() {
   bool result = !apps.empty();
 
   if(result) {
-     LOG4CXX_INFO(logger_, "App list is not empty");
+    LOG4CXX_INFO(logger_, "App list is not empty");
     std::string device_id;
     std::string app_id;
     while(!apps.empty()) {
@@ -312,7 +311,7 @@ bool PolicyManagerImpl::HasConsentedDevice() {
 }
 
 void PolicyManagerImpl::StartPTExchange() {
-  LOG4CXX_INFO(logger_, "Trying to start exchange");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   if (update_status_manager_.IsUpdatePending()) {
     update_status_manager_.ScheduleUpdate();
@@ -322,8 +321,6 @@ void PolicyManagerImpl::StartPTExchange() {
   }
 
   if (HasConsentedDevice()) {
-    LOG4CXX_DEBUG(logger_, "Device Has Consents");
-
     if (ignition_check) {
       CheckTriggers();
       ignition_check = false;
@@ -1068,12 +1065,12 @@ bool PolicyManagerImpl::ExceededDays() {
   return 0 == cache_->DaysBeforeExchange(days);
 }
 
-bool PolicyManagerImpl::KmsChanged(int kilometers) {
+void PolicyManagerImpl::KmsChanged(int kilometers) {
+  LOG4CXX_AUTO_TRACE(logger_);
   if (0 == cache_->KilometersBeforeExchange(kilometers)) {
     LOG4CXX_INFO(logger_, "Enough kilometers passed to send for PT update.");
     StartPTExchange();
   }
-  return true;
 }
 
 void PolicyManagerImpl::IncrementIgnitionCycles() {

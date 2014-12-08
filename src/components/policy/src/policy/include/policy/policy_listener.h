@@ -33,8 +33,9 @@
 #ifndef SRC_COMPONENTS_POLICY_INCLUDE_POLICY_LISTENER_H_
 #define SRC_COMPONENTS_POLICY_INCLUDE_POLICY_LISTENER_H_
 
-#include "policy/policy_types.h"
 #include <queue>
+
+#include "policy/policy_types.h"
 
 namespace policy {
 class PolicyListener {
@@ -52,6 +53,17 @@ class PolicyListener {
   virtual void OnSystemInfoUpdateRequired() = 0;
   virtual std::string GetAppName(const std::string& policy_app_id) = 0;
   virtual void OnUpdateHMIAppType(std::map<std::string, StringArray> app_hmi_types) = 0;
+
+  /**
+   * @brief OnSnapshotCreated the notification which will be sent
+   * when snapshot for PTU has been created.
+   *
+   * @param pt_string the snapshot
+   *
+   * @param retry_seconds retry sequence timeouts.
+   *
+   * @param timeout_exceed timeout.
+   */
   virtual void OnSnapshotCreated(const BinaryMessage& pt_string,
                                  const std::vector<int>& retry_seconds,
                                  int timeout_exceed) = 0;
@@ -64,6 +76,10 @@ class PolicyListener {
    */
   virtual void OnDeviceConsentChanged(const std::string& device_id,
                                       bool is_allowed) = 0;
+
+  /**
+   * @brief GetAvailableApps allows to obtain list of registered applications.
+   */
   virtual void GetAvailableApps(std::queue<std::string>&) = 0;
 };
 }  //  namespace policy

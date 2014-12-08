@@ -67,7 +67,7 @@ class PolicyManagerImpl : public PolicyManager {
         const RPCParams& rpc_params,
         CheckPermissionResult& result);
     virtual bool ResetUserConsent();
-    virtual bool KmsChanged(int kilometers);
+    virtual void KmsChanged(int kilometers);
     virtual void IncrementIgnitionCycles();
     virtual std::string ForcePTExchange();
     virtual std::string GetPolicyTableStatus() const;

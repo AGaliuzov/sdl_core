@@ -61,7 +61,6 @@ using ::policy::PolicyManagerImpl;
 using ::policy::PolicyTable;
 using ::policy::EndpointUrls;
 using ::policy::CacheManagerInterfaceSPtr;
-using ::policy::UpdateStatusManager;
 
 namespace policy_table = rpc::policy_table_interface_base;
 

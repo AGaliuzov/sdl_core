@@ -122,7 +122,7 @@ void UpdateStatusManager::OnPolicyInit(bool is_update_required) {
 }
 
 PolicyTableStatus UpdateStatusManager::GetUpdateStatus() const {
-  LOG4CXX_INFO(logger_, "GetUpdateStatus");
+  LOG4CXX_AUTO_TRACE(logger_);
   if (!exchange_in_progress_ && !exchange_pending_ && !update_required_) {
     return PolicyTableStatus::StatusUpToDate;
   }
@@ -146,7 +146,7 @@ void UpdateStatusManager::ScheduleUpdate() {
   set_update_required(true);
 }
 
-std::string UpdateStatusManager::StringifiedUpdateStatus() const{
+std::string UpdateStatusManager::StringifiedUpdateStatus() const {
   switch (GetUpdateStatus()) {
     case policy::StatusUpdatePending:
       return "UPDATING";
@@ -161,7 +161,7 @@ std::string UpdateStatusManager::StringifiedUpdateStatus() const{
 }
 
 void UpdateStatusManager::CheckUpdateStatus() {
-  LOG4CXX_INFO(logger_, "CheckUpdateStatus");
+  LOG4CXX_AUTO_TRACE(logger_);
   policy::PolicyTableStatus status = GetUpdateStatus();
   if (listener_ && last_update_status_ != status) {
     LOG4CXX_INFO(logger_, "Send OnUpdateStatusChanged");

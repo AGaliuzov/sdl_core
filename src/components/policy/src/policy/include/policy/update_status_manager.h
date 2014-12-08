@@ -78,20 +78,20 @@ class UpdateStatusManager {
    *
    * @return  true if update required.
    */
-  bool IsUpdateRequired () const;
+  bool IsUpdateRequired() const;
 
   /**
    * @brief IsUpdatePending allows to distinguish if update is in pending mode.
    *
    * @return true if update is in pending mode.
    */
-  bool IsUpdatePending () const;
+  bool IsUpdatePending() const;
 
   /**
    * @brief ScheduleUpdate allows to schedule next update.
    * It will change state to Update_Needed, that's is.
    */
-  void ScheduleUpdate ();
+  void ScheduleUpdate();
 
   /**
    * @brief StringifiedUpdateStatus allows to obtain update status as a string.
