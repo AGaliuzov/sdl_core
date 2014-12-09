@@ -84,7 +84,18 @@ AppStopwatch::AppStopwatch(utils::SharedPtr<usage_statistics::StatisticsManager>
       stopwatch_type_(SECONDS_HMI_NONE),
       statistics_manager_(statistics_manager),
       timer_(new Timer("HMI levels timer",this, &AppStopwatch::WriteTime, true)),
-      time_out_(60){
+      time_out_(60) {
+}
+
+AppStopwatch::AppStopwatch(utils::SharedPtr<StatisticsManager> statistics_manager,
+                           const std::string& app_id,
+                           std::uint32_t time_out)
+  : app_id_(app_id),
+    stopwatch_type_(SECONDS_HMI_NONE),
+    statistics_manager_(statistics_manager),
+    timer_(new Timer("HMI levels timer",this, &AppStopwatch::WriteTime, true)),
+    time_out_(time_out) {
+
 }
 
 AppStopwatch::~AppStopwatch() {
