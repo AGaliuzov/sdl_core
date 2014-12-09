@@ -137,13 +137,13 @@ TEST(UsageStatisticsTest, TestAppStopwatchStopsInTwoSeconds) {
 
   EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_NONE, 0)).Times(0);
   EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_FULL, 1)).Times(1);
-  //EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_BACKGROUND, 1)).Times(1);
+  EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_BACKGROUND, 1)).Times(1);
 
   hmi_full_stopwatch.Start(SECONDS_HMI_NONE);
   hmi_full_stopwatch.Switch(SECONDS_HMI_FULL);
-  sleep(1);
-  //hmi_full_stopwatch.Switch(SECONDS_HMI_BACKGROUND);
-  //sleep(1);
+  sleep(2);
+  hmi_full_stopwatch.Switch(SECONDS_HMI_BACKGROUND);
+  sleep(2);
 }
 
 }  // namespace test
