@@ -28,9 +28,8 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-
+if(BUILD_TESTS)
 include_directories (
-  ${LOG4CXX_INCLUDE_DIRECTORY}
   ${COMPONENTS_DIR}/dbus/include
   ${COMPONENTS_DIR}/dbus/src
   ${COMPONENTS_DIR}/rpc_base/include
@@ -40,11 +39,8 @@ include_directories (
 )
 
 set (LIBRARIES
-    gmock
-    gmock_main
-    gtest
-    gtest_main
-    jsoncpp
+  gmock
+  jsoncpp
 )
 
 set (SOURCES
@@ -60,8 +56,7 @@ if (${HMI_DBUS_API})
   set (SOURCES ${SOURCES} rpc_base_dbus_test.cc)
 endif ()
 
-create_test("test_rpc_base" "${SOURCES}" "${LIBRARIES}")
+create_test("rpc_base_test" "${SOURCES}" "${LIBRARIES}")
 
-
-
+endif()
 

@@ -34,7 +34,6 @@
 #include "json/writer.h"
 #include "rpc_base/gtest_support.h"
 #include "rpc_base/rpc_base.h"
-#include "rpc_base/rpc_base_json_inl.h"
 
 namespace test {
 using namespace rpc;
