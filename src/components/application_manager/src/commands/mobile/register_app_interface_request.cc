@@ -278,7 +278,6 @@ void RegisterAppInterfaceRequest::Run() {
         device_info);
 
     SendRegisterAppInterfaceResponseToMobile();
-    policy::PolicyHandler::instance()->PTExchangeAtRegistration(mobile_app_id);
   }
 }
 

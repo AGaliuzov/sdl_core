@@ -33,6 +33,7 @@
 
 #include <algorithm>
 #include <set>
+#include <queue>
 #include <iterator>
 #include "json/reader.h"
 #include "json/writer.h"
@@ -41,6 +42,7 @@
 #include "policy/policy_helper.h"
 #include "utils/file_system.h"
 #include "utils/logger.h"
+#include "utils/date_time.h"
 #include "policy/cache_manager.h"
 #include "policy/update_status_manager.h"
 #include "config_profile/profile.h"
@@ -95,15 +97,15 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "PolicyManagerImpl")
 PolicyManagerImpl::PolicyManagerImpl()
   : PolicyManager(),
     listener_(NULL),
-    update_status_manager_(new UpdateStatusManager),
     cache_(new CacheManager),
     retry_sequence_timeout_(60),
-    retry_sequence_index_(0) {
+    retry_sequence_index_(0),
+    ignition_check(true) {
 }
 
 void PolicyManagerImpl::set_listener(PolicyListener* listener) {
   listener_ = listener;
-  update_status_manager_->set_listener(listener);
+  update_status_manager_.set_listener(listener);
 }
 
 utils::SharedPtr<policy_table::Table> PolicyManagerImpl::Parse(
@@ -118,6 +120,21 @@ utils::SharedPtr<policy_table::Table> PolicyManagerImpl::Parse(
   }
 }
 
+void PolicyManagerImpl::CheckTriggers() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  const bool exceed_ignition_cycles = ExceededIgnitionCycles();
+  const bool exceed_days = ExceededDays();
+
+  LOG4CXX_DEBUG(
+    logger_,
+        "\nDays exceeded: " << std::boolalpha << exceed_ignition_cycles <<
+        "\nStatusUpdateRequired: " << std::boolalpha<< exceed_days);
+
+  if (exceed_ignition_cycles || exceed_days) {
+    update_status_manager_.ScheduleUpdate();
+  }
+}
+
 bool PolicyManagerImpl::LoadPT(const std::string& file,
                                const BinaryMessage& pt_content) {
   LOG4CXX_INFO(logger_, "LoadPT of size " << pt_content.size());
@@ -126,7 +143,7 @@ bool PolicyManagerImpl::LoadPT(const std::string& file,
   utils::SharedPtr<policy_table::Table> pt_update = Parse(pt_content);
   if (!pt_update) {
     LOG4CXX_WARN(logger_, "Parsed table pointer is 0.");
-    update_status_manager_->OnWrongUpdateReceived();
+    update_status_manager_.OnWrongUpdateReceived();
     return false;
   }
   pt_update->SetPolicyTableType(policy_table::PT_UPDATE);
@@ -141,11 +158,12 @@ bool PolicyManagerImpl::LoadPT(const std::string& file,
     LOG4CXX_WARN(logger_, "Parsed table is not valid " <<
                  rpc::PrettyFormat(report));
 
-    update_status_manager_->OnWrongUpdateReceived();
+    update_status_manager_.OnWrongUpdateReceived();
     return false;
   }
 
-  update_status_manager_->OnValidUpdateReceived();
+  update_status_manager_.OnValidUpdateReceived();
+  cache_->SaveUpdateRequired(false);
 
   sync_primitives::AutoLock lock(apps_registration_lock_);
 
@@ -179,30 +197,14 @@ bool PolicyManagerImpl::LoadPT(const std::string& file,
     LOG4CXX_INFO(logger_, "app_hmi_types empty" << pt_content.size());
   }
 
-  // Removing last app request from update requests
-  RemoveAppFromUpdateList();
-
   // If there was a user request for policy table update, it should be started
   // right after current update is finished
-  if (listener_) {
-    RefreshRetrySequence();
-    listener_->OnUserRequestedUpdateCheckRequired();
+  if (update_status_manager_.IsUpdateRequired()) {
+    StartPTExchange();
     return true;
   }
 
-
-  // TODO(AOleynik): Check, if there is updated info present for apps in list
-  // and skip update in this case for given app
-  if (!update_requests_list_.empty()) {
-    if (listener_) {
-      listener_->OnPTExchangeNeeded();
-    }
-  } else {
-    LOG4CXX_INFO(logger_, "Update request queue is empty.");
-  }
-
   RefreshRetrySequence();
-
   return true;
 }
 
@@ -227,30 +229,6 @@ void PolicyManagerImpl::PrepareNotificationData(
   std::for_each(group_names.begin(), group_names.end(), processor);
 }
 
-void PolicyManagerImpl::AddAppToUpdateList(const std::string& application_id) {
-  sync_primitives::AutoLock lock(update_request_list_lock_);
-  LOG4CXX_INFO(logger_,
-               "Adding application " << application_id << " to update list");
-  // Add application id only once
-  std::list<std::string>::const_iterator it = std::find(
-        update_requests_list_.begin(), update_requests_list_.end(),
-        application_id);
-  if (it == update_requests_list_.end()) {
-    update_requests_list_.push_back(application_id);
-  }
-}
-
-void PolicyManagerImpl::RemoveAppFromUpdateList() {
-  sync_primitives::AutoLock lock(update_request_list_lock_);
-  if (update_requests_list_.empty()) {
-    return;
-  }
-  LOG4CXX_INFO(
-    logger_,
-    "Removing application " << update_requests_list_.front() << " from update list");
-  update_requests_list_.pop_front();
-}
-
 std::string PolicyManagerImpl::GetUpdateUrl(int service_type) {
   LOG4CXX_AUTO_TRACE(logger_);
   EndpointUrls urls = cache_->GetUpdateUrls(service_type);
@@ -272,32 +250,83 @@ EndpointUrls PolicyManagerImpl::GetUpdateUrls(int service_type) {
   return cache_->GetUpdateUrls(service_type);
 }
 
-BinaryMessageSptr PolicyManagerImpl::RequestPTUpdate() {
-  LOG4CXX_INFO(logger_, "Creating PT Snapshot");
+void PolicyManagerImpl::RequestPTUpdate() {
+  LOG4CXX_AUTO_TRACE(logger_);
   utils::SharedPtr<policy_table::Table> policy_table_snapshot =
       cache_->GenerateSnapshot();
   if (!policy_table_snapshot) {
     LOG4CXX_ERROR(logger_, "Failed to create snapshot of policy table");
-    return NULL;
+    return;
   }
 
-#ifdef EXTENDED_POLICY
-    cache_->UnpairedDevicesList(unpaired_device_ids_);
-#endif  // EXTENDED_POLICY
   policy_table_snapshot->SetPolicyTableType(policy_table::PT_SNAPSHOT);
   if (false == policy_table_snapshot->is_valid()) {
-    LOG4CXX_INFO(
+    LOG4CXX_ERROR(
           logger_, "Policy snappshot is not valid");
     rpc::ValidationReport report("policy_table");
     policy_table_snapshot->ReportErrors(&report);
-    LOG4CXX_INFO(logger_,
+    LOG4CXX_DEBUG(logger_,
                  "Errors: " << rpc::PrettyFormat(report));
   }
 
   Json::Value value = policy_table_snapshot->ToJsonValue();
   Json::FastWriter writer;
   std::string message_string = writer.write(value);
-  return new BinaryMessage(message_string.begin(), message_string.end());
+
+  BinaryMessage update(message_string.begin(), message_string.end());
+
+  listener_->OnSnapshotCreated(update,
+                               RetrySequenceDelaysSeconds(),
+                               TimeoutExchange());
+}
+
+bool PolicyManagerImpl::HasConsentedDevice() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  std::queue<std::string> apps;
+  listener_->GetAvailableApps(apps);
+  bool result = !apps.empty();
+
+  if(result) {
+    LOG4CXX_INFO(logger_, "App list is not empty");
+    std::string device_id;
+    std::string app_id;
+    while(!apps.empty()) {
+      app_id = apps.front();
+      LOG4CXX_INFO(logger_, "App to get update: " << app_id);
+      device_id = listener_->OnCurrentDeviceIdUpdateRequired(app_id);
+      result = (kDeviceAllowed == GetUserConsentForDevice(device_id));
+
+      if (result) {
+        break;
+      }
+
+      apps.pop();
+    }
+  }
+  LOG4CXX_INFO(logger_, "HasConsent result: " << result);
+  return result;
+}
+
+void PolicyManagerImpl::StartPTExchange() {
+  LOG4CXX_AUTO_TRACE(logger_);
+
+  if (update_status_manager_.IsUpdatePending()) {
+    update_status_manager_.ScheduleUpdate();
+    LOG4CXX_INFO(logger_, "Starting exchange skipped, since another exchange "
+                 "is in progress.");
+    return;
+  }
+
+  if (HasConsentedDevice()) {
+    if (ignition_check) {
+      CheckTriggers();
+      ignition_check = false;
+    }
+
+    if (update_status_manager_.IsUpdateRequired()) {
+      RequestPTUpdate();
+    }
+  }
 }
 
 void PolicyManagerImpl::CheckPermissions(const PTString& app_id,
@@ -467,7 +496,7 @@ void PolicyManagerImpl::SendNotificationOnPermissionsUpdated(
 bool PolicyManagerImpl::CleanupUnpairedDevices() {
   LOG4CXX_INFO(logger_, "CleanupUnpairedDevices");
 #ifdef EXTENDED_POLICY
-  return cache_->CleanupUnpairedDevices(unpaired_device_ids_);
+  return cache_->CleanupUnpairedDevices();
 #else  // EXTENDED_POLICY
   // For SDL-specific it doesn't matter
   return true;
@@ -476,7 +505,7 @@ bool PolicyManagerImpl::CleanupUnpairedDevices() {
 
 DeviceConsent PolicyManagerImpl::GetUserConsentForDevice(
   const std::string& device_id) {
-  LOG4CXX_INFO(logger_, "GetUserConsentForDevice");
+  LOG4CXX_AUTO_TRACE(logger_);
 #ifdef EXTENDED_POLICY
   // Get device permission groups from app_policies section, which hadn't been
   // preconsented
@@ -587,6 +616,7 @@ void PolicyManagerImpl::SetUserConsentForDevice(const std::string& device_id,
     LOG4CXX_WARN(logger_, "Event listener is not initialized. "
                  "Can't call OnDeviceConsentChanged");
   }
+  StartPTExchange();
 #endif
 }
 
@@ -1023,20 +1053,35 @@ bool PolicyManagerImpl::ExceededIgnitionCycles() {
   return 0 == cache_->IgnitionCyclesBeforeExchange();
 }
 
-bool PolicyManagerImpl::ExceededDays(int days) {
+bool PolicyManagerImpl::ExceededDays() {
+
+  TimevalStruct current_time = date_time::DateTime::getCurrentTime();
+  const int kSecondsInDay = 60 * 60 * 24;
+  int days = current_time.tv_sec / kSecondsInDay;
+
   return 0 == cache_->DaysBeforeExchange(days);
 }
 
-bool PolicyManagerImpl::ExceededKilometers(int kilometers) {
-  return 0 == cache_->KilometersBeforeExchange(kilometers);
+void PolicyManagerImpl::KmsChanged(int kilometers) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  if (0 == cache_->KilometersBeforeExchange(kilometers)) {
+    LOG4CXX_INFO(logger_, "Enough kilometers passed to send for PT update.");
+    StartPTExchange();
+  }
 }
 
 void PolicyManagerImpl::IncrementIgnitionCycles() {
   cache_->IncrementIgnitionCycles();
 }
 
-PolicyTableStatus PolicyManagerImpl::GetPolicyTableStatus() {
-  return update_status_manager_->GetUpdateStatus();
+std::string PolicyManagerImpl::ForcePTExchange() {
+  update_status_manager_.ScheduleUpdate();
+  StartPTExchange();
+  return update_status_manager_.StringifiedUpdateStatus();
+}
+
+std::string PolicyManagerImpl::GetPolicyTableStatus() const {
+  return update_status_manager_.StringifiedUpdateStatus();
 }
 
 int PolicyManagerImpl::NextRetryTimeout() {
@@ -1061,7 +1106,7 @@ void PolicyManagerImpl::RefreshRetrySequence() {
 void PolicyManagerImpl::ResetRetrySequence() {
   sync_primitives::AutoLock auto_lock(retry_sequence_lock_);
   retry_sequence_index_ = 0;
-  update_status_manager_->OnResetRetrySequence();
+  update_status_manager_.OnResetRetrySequence();
 }
 
 int PolicyManagerImpl::TimeoutExchange() {
@@ -1074,13 +1119,14 @@ const std::vector<int> PolicyManagerImpl::RetrySequenceDelaysSeconds() {
 }
 
 void PolicyManagerImpl::OnExceededTimeout() {
-  update_status_manager_->OnUpdateTimeoutOccurs();
+  update_status_manager_.OnUpdateTimeoutOccurs();
 }
 
 void PolicyManagerImpl::OnUpdateStarted() {
   int update_timeout = TimeoutExchange();
   LOG4CXX_INFO(logger_, "Update timeout will be set to: " << update_timeout);
-  update_status_manager_->OnUpdateSentOut(update_timeout);
+  update_status_manager_.OnUpdateSentOut(update_timeout);
+  cache_->SaveUpdateRequired(true);
 }
 
 void PolicyManagerImpl::PTUpdatedAt(int kilometers, int days_after_epoch) {
@@ -1205,21 +1251,12 @@ void PolicyManagerImpl::AddApplication(const std::string& application_id) {
 
   if (IsNewApplication(application_id)) {
     AddNewApplication(application_id, device_consent);
-    AddAppToUpdateList(application_id);
-    if (PolicyTableStatus::StatusUpToDate == GetPolicyTableStatus()) {
-      update_status_manager_->OnNewApplicationAdded();
-    }
+    update_status_manager_.OnNewApplicationAdded();
   } else {
     PromoteExistedApplication(application_id, device_consent);
   }
+  StartPTExchange();
   SendNotificationOnPermissionsUpdated(application_id);
-}
-
-bool PolicyManagerImpl::IsAppInUpdateList(const std::string& app_id) const {
-  return update_requests_list_.end() !=
-      std::find(update_requests_list_.begin(),
-                update_requests_list_.end(),
-                app_id);
 }
 
 void PolicyManagerImpl::RemoveAppConsentForGroup(const std::string& app_id,
@@ -1305,7 +1342,7 @@ bool PolicyManagerImpl::InitPT(const std::string& file_name) {
   const bool ret = cache_->Init(file_name);
   if (ret) {
     RefreshRetrySequence();
-    update_status_manager_->OnPolicyInit(cache_->UpdateRequired());
+    update_status_manager_.OnPolicyInit(cache_->UpdateRequired());
   }
   return ret;
 }
@@ -1321,11 +1358,6 @@ void PolicyManagerImpl::SaveUpdateStatusRequired(bool is_update_needed) {
 void PolicyManagerImpl::set_cache_manager(
     CacheManagerInterface* cache_manager) {
   cache_ = cache_manager;
-}
-
-void PolicyManagerImpl::set_update_status_manager(
-    UpdateStatusManagerInterface* update_manager) {
-  update_status_manager_ = update_manager;
 }
 
 }  //  namespace policy

@@ -158,8 +158,8 @@ class MockCacheManagerInterface : public CacheManagerInterface {
       void(const std::string& app_id, const std::string& group_name));
   MOCK_METHOD1(SetPredataPolicy,
       bool(const std::string& app_id));
-  MOCK_METHOD1(CleanupUnpairedDevices,
-      bool(const DeviceIds& device_ids));
+  MOCK_METHOD0(CleanupUnpairedDevices,
+      bool());
   MOCK_METHOD2(SetUnpairedDevice,
       bool(const std::string& device_id, bool unpaired));
   MOCK_METHOD1(UnpairedDevicesList,

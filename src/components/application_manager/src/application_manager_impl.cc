@@ -506,6 +506,7 @@ bool ApplicationManagerImpl::LoadAppDataToHMI(ApplicationSharedPtr app) {
 }
 
 bool ApplicationManagerImpl::ActivateApplication(ApplicationSharedPtr app) {
+  LOG4CXX_AUTO_TRACE(logger_);
   if (!app) {
     LOG4CXX_ERROR(logger_, "Null-pointer application received.");
     NOTREACHED();
@@ -577,8 +578,12 @@ bool ApplicationManagerImpl::ActivateApplication(ApplicationSharedPtr app) {
 
 mobile_api::HMILevel::eType ApplicationManagerImpl::PutApplicationInFull(
   ApplicationSharedPtr app) {
-  DCHECK(app.get())
-
+  LOG4CXX_AUTO_TRACE(logger_);
+  if (!app) {
+    LOG4CXX_ERROR(logger_, "Application pointer invalid");
+    NOTREACHED();
+    return mobile_api::HMILevel::INVALID_ENUM;
+  }
   bool is_audio_app = app->IsAudioApplication();
   bool does_audio_app_with_same_type_exist =
       DoesAudioAppWithSameHMITypeExistInFullOrLimited(app);
@@ -596,7 +601,6 @@ mobile_api::HMILevel::eType ApplicationManagerImpl::PutApplicationInFull(
   }
 
   if (mobile_api::HMILevel::HMI_FULL == result) {
-    app->set_hmi_level(result);
     MessageHelper::SendActivateAppToHMI(app->app_id());
   }
   return result;

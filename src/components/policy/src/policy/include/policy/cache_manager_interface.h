@@ -493,7 +493,7 @@ class CacheManagerInterface {
    * @brief Removes unpaired devices
    * @return true if success
    */
-  virtual bool CleanupUnpairedDevices(const DeviceIds& device_ids) = 0;
+  virtual bool CleanupUnpairedDevices() = 0;
 
   /**
    * Sets flag of unpaired device
@@ -502,13 +502,6 @@ class CacheManagerInterface {
    * @return true if success
    */
   virtual bool SetUnpairedDevice(const std::string& device_id, bool unpaired = true) = 0;
-
-  /**
-   * Gets list of unpaired devices
-   * @param device_ids output list
-   * @return true if success
-   */
-  virtual bool UnpairedDevicesList(DeviceIds& device_ids) = 0;
 
   /**
    * Resets Policy Table

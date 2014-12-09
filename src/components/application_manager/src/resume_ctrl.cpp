@@ -244,10 +244,9 @@ bool ResumeCtrl::SetupHMILevel(ApplicationSharedPtr application,
 
   if (hmi_level != mobile_apis::HMILevel::HMI_FULL) {
     application->set_hmi_level(hmi_level);
+    MessageHelper::SendHMIStatusNotification(*(application.get()));
+    // HMI status for full wil be get after ActivateApp response
   }
-
-  MessageHelper::SendHMIStatusNotification(*(application.get()));
-
   LOG4CXX_INFO(logger_, "Set up application "
                << application->mobile_app_id()->asString()
                << " to HMILevel " << hmi_level);
@@ -602,11 +601,12 @@ bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
         RemoveApplicationFromSaved(application);
       } else {
         // please avoid AutoLock usage to avoid deadlock
-        queue_lock_.Acquire();
         SetupDefaultHMILevel(application);
-        waiting_for_timer_.insert(std::make_pair(application->app_id(),
-                                                 time_stamp));
-        queue_lock_.Release();
+        InsertToTimerQueue(application->app_id(), time_stamp);
+        LOG4CXX_DEBUG(logger_, "HMI Level for " << application->app_id()
+                      << " will be restored in "
+                      << profile::Profile::instance()->app_resuming_timeout()
+                      << " seconds");
         restore_hmi_level_timer_.start(profile::Profile::instance()->app_resuming_timeout());
       }
       LOG4CXX_TRACE(logger_, "EXIT true");
@@ -620,6 +620,25 @@ bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
   return false;
 }
 
+void ResumeCtrl::RestoreHmiLevel(uint32_t time_stamp,
+                                 ApplicationSharedPtr application) {
+  ApplicationManagerImpl::ApplicationListAccessor accessor;
+  if (!restore_hmi_level_timer_.isRunning() &&
+      accessor.applications().size() > 1) {
+    // resume in case there is already registered app
+    RestoreApplicationHMILevel(application);
+    RemoveApplicationFromSaved(application);
+  } else {
+    // please avoid AutoLock usage to avoid deadlock
+    SetupDefaultHMILevel(application);
+    InsertToTimerQueue(application->app_id(), time_stamp);
+    // woun't start timer if it is active already
+    LOG4CXX_DEBUG(logger_, "Application " << application->app_id() << " inserted to timer queue. "
+                  << "timer started for " << profile::Profile::instance()->app_resuming_timeout());
+    restore_hmi_level_timer_.start(profile::Profile::instance()->app_resuming_timeout());
+  }
+}
+
 bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
   if (!application.valid()) {
     LOG4CXX_WARN(logger_, "Application do not exists");
@@ -631,27 +650,11 @@ bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
                         << application->mobile_app_id()->asString());
 
   Json::Value::iterator it = GetSavedApplications().begin();
-  ApplicationManagerImpl::ApplicationListAccessor accessor;
   for (; it != GetSavedApplications().end(); ++it) {
     const std::string& saved_m_app_id = (*it)[strings::app_id].asString();
     if (saved_m_app_id == application->mobile_app_id()->asString()) {
       uint32_t time_stamp= (*it)[strings::time_stamp].asUInt();
-      if (!restore_hmi_level_timer_.isRunning() && accessor.applications().size() > 1) {
-        // resume in case there is already registered app
-        RestoreApplicationHMILevel(application);
-        RemoveApplicationFromSaved(application);
-      } else {
-        // please avoid AutoLock usage to avoid deadlock
-        queue_lock_.Acquire();
-        SetupDefaultHMILevel(application);
-        waiting_for_timer_.insert(std::make_pair(application->app_id(),
-                                                 time_stamp));
-        queue_lock_.Release();
-        // woun't start timer if it is active already
-        LOG4CXX_TRACE(logger_, "Application " << application->app_id() << " inserted to timer queue. "
-                      << "timer started for " << profile::Profile::instance()->app_resuming_timeout());
-        restore_hmi_level_timer_.start(profile::Profile::instance()->app_resuming_timeout());
-      }
+      RestoreHmiLevel(time_stamp, application);
       LOG4CXX_TRACE(logger_, "EXIT true");
       return true;
     }
@@ -776,6 +779,7 @@ void ResumeCtrl::ApplicationResumptiOnTimer() {
   }
 
   waiting_for_timer_.clear();
+  LOG4CXX_TRACE(logger_, "EXIT");
 }
 
 void ResumeCtrl::SaveDataOnTimer() {
@@ -983,6 +987,13 @@ bool ResumeCtrl::ProcessHMIRequest(smart_objects::SmartObject* request,
     return true;
   }
   return false;
+}
+
+void ResumeCtrl::InsertToTimerQueue(uint32_t app_id, uint32_t time_stamp) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  sync_primitives::AutoLock autolock(queue_lock_);
+  LOG4CXX_DEBUG(logger_,"After queue_lock_ Accure");
+  waiting_for_timer_.insert(std::make_pair(app_id, time_stamp));
 }
 
 void ResumeCtrl::SendHMIRequest(
