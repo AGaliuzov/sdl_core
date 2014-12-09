@@ -32,13 +32,8 @@ if(BUILD_TESTS)
 
 include_directories(
   ${GMOCK_INCLUDE_DIRECTORY}
-  ${COMPONENTS_DIR}/utils/include
   ${COMPONENTS_DIR}/protocol_handler/include
   ${COMPONENTS_DIR}/protocol_handler/test/include
-  ${COMPONENTS_DIR}/security_manager/test/include
-  ${COMPONENTS_DIR}/transport_manager/test/include
-  ${SecurityManagerIncludeDir}
-  ${COMPONENTS_DIR}/config_profile/include
 )
 
 set(LIBRARIES
@@ -52,9 +47,9 @@ set(LIBRARIES
 
 set(SOURCES
   main.cc
-  protocol_handler_tm_test.cc
   incoming_data_handler_test.cc
   protocol_header_validator_test.cc
+  protocol_handler_tm_test.cc
 )
 
 create_test("protocol_handler_test" "${SOURCES}" "${LIBRARIES}")

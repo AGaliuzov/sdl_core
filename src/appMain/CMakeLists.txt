@@ -197,10 +197,6 @@ include_directories (
   ${COMPONENTS_DIR}/transport_manager/test/include
 )
 
-if (BUILD_AVAHI_SUPPORT)
-  list(APPEND LIBRARIES avahi-client avahi-common)
-endif()
-
 #TODO to ALL : Please FIX heart_beat_monitor_test.cc
   set(testSources
     main_test.cc
@@ -208,17 +204,10 @@ endif()
     ${COMPONENTS_DIR}/utils/test/date_time_test.cc
     ${COMPONENTS_DIR}/utils/test/file_system_test.cc
     ${COMPONENTS_DIR}/media_manager/test/media_adapter_impl_test.cc
-    ${COMPONENTS_DIR}/media_manager/test/media_manager_impl_test.cc
-    ${COMPONENTS_DIR}/connection_handler/test/connection_handler_impl_test.cc
-    ${COMPONENTS_DIR}/connection_handler/test/connection_test.cc
     ${COMPONENTS_DIR}/rpc_base/test/rpc_base_json_test.cc
     ${COMPONENTS_DIR}/rpc_base/test/rpc_base_test.cc
     ${COMPONENTS_DIR}/connection_handler/test/heart_beat_monitor_test.cc
     ${COMPONENTS_DIR}/formatters/test/generic_json_formatter_test.cc
-    ${COMPONENTS_DIR}/security_manager/test/crypto_manager_impl_test.cc
-    ${COMPONENTS_DIR}/security_manager/test/security_manager_test.cc
-    ${COMPONENTS_DIR}/security_manager/test/security_query_test.cc
-    ${COMPONENTS_DIR}/security_manager/test/security_query_matcher.cc   
     ${COMPONENTS_DIR}/transport_manager/test/mock_application.cc
     ${COMPONENTS_DIR}/transport_manager/test/mock_connection_factory.cc  
     ${COMPONENTS_DIR}/transport_manager/test/mock_connection.cc       
@@ -238,6 +227,18 @@ endif()
     ${COMPONENTS_DIR}/protocol_handler/test/protocol_header_validator_test.cc
     ${COMPONENTS_DIR}/hmi_message_handler/test/mqueue_adapter_test.cc 
   )
+  
+if(ENABLE_SECURITY)
+  list (APPEND testSources
+    ${COMPONENTS_DIR}/media_manager/test/media_manager_impl_test.cc   
+    ${COMPONENTS_DIR}/connection_handler/test/connection_handler_impl_test.cc
+    ${COMPONENTS_DIR}/connection_handler/test/connection_test.cc
+    ${COMPONENTS_DIR}/security_manager/test/crypto_manager_impl_test.cc
+    ${COMPONENTS_DIR}/security_manager/test/security_manager_test.cc
+    ${COMPONENTS_DIR}/security_manager/test/security_query_test.cc
+    ${COMPONENTS_DIR}/security_manager/test/security_query_matcher.cc   
+  )
+ endif()
   
 if (${QT_HMI})
     list (APPEND testSources
@@ -269,8 +270,6 @@ endif ()
     HMIMessageHandler
     Utils
     jsoncpp
-    MediaManager
-    ApplicationManager
     TransportManager
     MessageBroker
     MessageBrokerClient
@@ -281,6 +280,25 @@ endif ()
     Policy
     ${SecurityManagerLibrary}
   )
+  
+if(ENABLE_SECURITY)
+   list(APPEND test_exec_libraries       
+      MediaManager
+      ApplicationManager
+   ) 
+endif()
+
+if (BUILD_BT_SUPPORT)
+  list(APPEND test_exec_libraries bluetooth)
+endif()
+if (BUILD_AVAHI_SUPPORT)
+  list(APPEND test_exec_libraries avahi-client avahi-common)
+endif()
+if (BUILD_USB_SUPPORT)
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  list(APPEND test_exec_libraries Libusb-1.0.16)
+endif()
+endif()
 
 if(ENABLE_LOG)
   list(APPEND test_exec_libraries log4cxx -L${LOG4CXX_LIBS_DIRECTORY})

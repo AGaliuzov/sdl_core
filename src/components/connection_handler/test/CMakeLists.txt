@@ -45,11 +45,16 @@ set (LIBRARIES
 )
 
 set (SOURCES
-    connection_handler_impl_test.cc
-    connection_test.cc
     heart_beat_monitor_test.cc
     main.cc
 )
+
+if(ENABLE_SECURITY)
+  list (APPEND testSources
+   connection_handler_impl_test.cc
+   connection_test.cc
+   )
+ endif()
 
 file(COPY ${appMain_DIR}/smartDeviceLink.ini DESTINATION "./")
 
