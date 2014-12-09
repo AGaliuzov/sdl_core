@@ -28,17 +28,11 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+if(BUILD_TESTS)
 
 include_directories (
-  ${LOG4CXX_INCLUDE_DIRECTORY}
-  ${GMOCK_INCLUDE_DIRECTORY}
-  ${COMPONENTS_DIR}/media_manager/include
-  ${COMPONENTS_DIR}/utils/include/
-  /usr/lib/i386-linux-gnu/glib-2.0/include
-  /usr/lib/x86_64-linux-gnu/glib-2.0/include/
-  ${GSTREAMER_gst_INCLUDE_DIR}
-  ${GLIB_glib_2_INCLUDE_DIR}
-  ${CMAKE_BINARY_DIR}/src/components/
+    ${GMOCK_INCLUDE_DIRECTORY}
+    ${COMPONENTS_DIR}/media_manager/include
 )
 
 if (EXTENDED_MEDIA_MODE)
@@ -49,34 +43,16 @@ if (EXTENDED_MEDIA_MODE)
 endif()
 
 set (SOURCES
- media_manager_impl_test.cc
- main.cc
- media_adapter_impl_test.cc
+    media_manager_impl_test.cc
+    main.cc
 )
 
 set (LIBRARIES
     MediaManager
     ApplicationManager
-    gtest_main
     gmock
-    gmock_main
-    formatters
-    HMI_API
-    v4_protocol_v1_2_no_extra
-    SmartObjects
-    ProtocolHandler
-    Utils
-    ConfigProfile
     connectionHandler
-    MOBILE_API
-    jsoncpp
-    TransportManager
-    HMIMessageHandler
-    MessageBroker
-    MessageBrokerClient
-    MessageBrokerServer
     encryption
-    ${RTLIB}
     Resumption
     Policy
     ${SecurityManagerLibrary}
@@ -90,6 +66,8 @@ endif()
 create_test("media_manager_test" "${SOURCES}" "${LIBRARIES}")
 
 if(ENABLE_LOG)
-  target_link_libraries("media_manager_test" log4cxx -L${LOG4CXX_LIBS_DIRECTORY})
+    target_link_libraries("media_manager_test" log4cxx -L${LOG4CXX_LIBS_DIRECTORY})
+endif()
+
 endif()
 # vim: set ts=2 sw=2 et:
