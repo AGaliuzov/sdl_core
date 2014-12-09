@@ -223,11 +223,11 @@ include_directories (
     ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter.cc 
     ${COMPONENTS_DIR}/transport_manager/test/transport_manager_test.cc 
     ${AM_TEST_DIR}/command_impl_test.cc
-    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectDraftTest.cc
-    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectInvalidTest.cc
-    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectStressTest.cc
-    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectUnitTest.cc
-    ${COMPONENTS_DIR}/smart_objects/test/TSharedPtrTest.cc
+    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectDraft_test.cc
+    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectInvalid_test.cc
+    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectStress_test.cc
+    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectUnit_test.cc
+    ${COMPONENTS_DIR}/smart_objects/test/TSharedPtr_test.cc
     ${COMPONENTS_DIR}/protocol_handler/test/protocol_handler_tm_test.cc
     ${COMPONENTS_DIR}/protocol_handler/test/incoming_data_handler_test.cc
     ${COMPONENTS_DIR}/protocol_handler/test/protocol_header_validator_test.cc

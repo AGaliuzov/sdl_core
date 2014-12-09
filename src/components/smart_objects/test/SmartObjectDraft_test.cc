@@ -1,36 +1,38 @@
-// Copyright (c) 2013, Ford Motor Company
-// All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-//
-// Redistributions of source code must retain the above copyright notice, this
-// list of conditions and the following disclaimer.
-//
-// Redistributions in binary form must reproduce the above copyright notice,
-// this list of conditions and the following
-// disclaimer in the documentation and/or other materials provided with the
-// distribution.
-//
-// Neither the name of the Ford Motor Company nor the names of its contributors
-// may be used to endorse or promote products derived from this software
-// without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR 'A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+/*
+ * Copyright (c) 2014, Ford Motor Company
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following
+ * disclaimer in the documentation and/or other materials provided with the
+ * distribution.
+ *
+ * Neither the name of the Ford Motor Company nor the names of its contributors
+ * may be used to endorse or promote products derived from this software
+ * without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
 
 #include <string>
 #include <vector>
-#include "gtest/gtest.h"
+
 #include "gmock/gmock.h"
 
 #include "smart_objects/smart_object.h"
@@ -86,7 +88,7 @@ TEST(SmartObjectsDraftTest, test_array_access) {
   SmartObject obj;
 
   obj[0] = 5;
-  obj[-1] = 6; //  Appending new item to array
+  obj[-1] = 6;  //  Appending new item to array
 
   ASSERT_EQ(5, obj[0].asInt());
   ASSERT_EQ(6, obj[1].asInt());
@@ -240,8 +242,8 @@ TEST(SmartObjectsDraftTest, compare_empty_objects_by_types) {
 }
 
 TEST(SmartObjectsDraftTest, compare_integer_type) {
-  SmartObject value       = SmartObject(0xFFFFF);
-  SmartObject same_value  = SmartObject(static_cast<int64_t>(value.asInt()));
+  SmartObject value = SmartObject(0xFFFFF);
+  SmartObject same_value = SmartObject(static_cast<int64_t>(value.asInt()));
 
   ASSERT_EQ(value, same_value);
   ASSERT_EQ(same_value, value);
@@ -254,14 +256,14 @@ TEST(SmartObjectsDraftTest, compare_integer_type) {
   ASSERT_NE(other_value, same_value);
   ASSERT_NE(same_value, other_value);
 
-  ASSERT_NE(value,       SmartObject());
+  ASSERT_NE(value, SmartObject());
   ASSERT_NE(other_value, SmartObject());
-  ASSERT_NE(same_value,  SmartObject());
+  ASSERT_NE(same_value, SmartObject());
 }
 
 TEST(SmartObjectsDraftTest, compare_double_type) {
-  SmartObject value       = SmartObject(6.0);
-  SmartObject same_value  = SmartObject(6.0);
+  SmartObject value = SmartObject(6.0);
+  SmartObject same_value = SmartObject(6.0);
 
   ASSERT_EQ(value, same_value);
   ASSERT_EQ(same_value, value);
@@ -274,15 +276,14 @@ TEST(SmartObjectsDraftTest, compare_double_type) {
   ASSERT_NE(other_value, same_value);
   ASSERT_NE(same_value, other_value);
 
-
-  ASSERT_NE(value,       SmartObject());
+  ASSERT_NE(value, SmartObject());
   ASSERT_NE(other_value, SmartObject());
-  ASSERT_NE(same_value,  SmartObject());
+  ASSERT_NE(same_value, SmartObject());
 }
 
 TEST(SmartObjectsDraftTest, compare_bool_type) {
-  SmartObject value       = SmartObject(true);
-  SmartObject same_value  = SmartObject(true);
+  SmartObject value = SmartObject(true);
+  SmartObject same_value = SmartObject(true);
 
   ASSERT_EQ(value, same_value);
   ASSERT_EQ(same_value, value);
@@ -295,15 +296,14 @@ TEST(SmartObjectsDraftTest, compare_bool_type) {
   ASSERT_NE(other_value, same_value);
   ASSERT_NE(same_value, other_value);
 
-
-  ASSERT_NE(value,       SmartObject());
+  ASSERT_NE(value, SmartObject());
   ASSERT_NE(other_value, SmartObject());
-  ASSERT_NE(same_value,  SmartObject());
+  ASSERT_NE(same_value, SmartObject());
 }
 
 TEST(SmartObjectsDraftTest, compare_string_type) {
-  SmartObject value       = SmartObject("Test string");
-  SmartObject same_value  = SmartObject(std::string("Test string"));
+  SmartObject value = SmartObject("Test string");
+  SmartObject same_value = SmartObject(std::string("Test string"));
 
   ASSERT_EQ(value, same_value);
   ASSERT_EQ(same_value, value);
@@ -316,9 +316,9 @@ TEST(SmartObjectsDraftTest, compare_string_type) {
   ASSERT_NE(other_value, same_value);
   ASSERT_NE(same_value, other_value);
 
-  ASSERT_NE(value,       SmartObject());
+  ASSERT_NE(value, SmartObject());
   ASSERT_NE(other_value, SmartObject());
-  ASSERT_NE(same_value,  SmartObject());
+  ASSERT_NE(same_value, SmartObject());
 }
 
 TEST(SmartObjectsDraftTest, compare_map_type) {
@@ -352,13 +352,13 @@ TEST(SmartObjectsDraftTest, compare_map_type) {
   ASSERT_NE(value, other_value2);
   ASSERT_NE(other_value2, value);
 
-  ASSERT_NE(value,        SmartObject());
-  ASSERT_NE(same_value,   SmartObject());
-  ASSERT_NE(other_value,  SmartObject());
+  ASSERT_NE(value, SmartObject());
+  ASSERT_NE(same_value, SmartObject());
+  ASSERT_NE(other_value, SmartObject());
   ASSERT_NE(other_value2, SmartObject());
 }
 // TODO(Ezamakhov): add test for conversion string/int/double
-}  // namespace SmartObjectDraftTest
+}// namespace SmartObjectDraftTest
 }  // namespace SmartObjects
 }  // namespace components
 }  // namespace test
