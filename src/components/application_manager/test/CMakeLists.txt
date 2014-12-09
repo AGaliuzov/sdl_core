@@ -98,8 +98,6 @@ endif ()
 
 set(testLibraries
   gmock
-  gtest
-  gmock
   gmock_main
   UsageStatistics
   dl

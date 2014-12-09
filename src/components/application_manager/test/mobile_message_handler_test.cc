@@ -30,10 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gtest/gtest.h"
+
 #include "gmock/gmock.h"
 #include "application_manager/mobile_message_handler.h"
-#include "application_manager/application_manager_impl.h"
 #include "utils/shared_ptr.h"
 
 using ::testing::_;
