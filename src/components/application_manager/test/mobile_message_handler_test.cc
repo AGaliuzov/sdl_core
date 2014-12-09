@@ -45,25 +45,10 @@ TEST(mobile_message_test, basic_test) {
   MobileMessage message = new application_manager::Message(
       protocol_handler::MessagePriority::kDefault);
   EXPECT_FALSE(message->has_binary_data());
-
   BinaryData* binary_data = new BinaryData;
-
   binary_data->push_back('X');
   message->set_binary_data(binary_data);
   EXPECT_TRUE(message->has_binary_data());
-
-  message->set_connection_key(100);
-  message->set_correlation_id(10);
-  message->set_function_id(5);
-  message->set_json_message("test json string!!!");
-  message->set_message_type(application_manager::kRequest);
-  message->set_protocol_version(application_manager::kV2);
-  EXPECT_EQ(message->connection_key(), 100);
-  EXPECT_EQ(message->correlation_id(), 10);
-  EXPECT_EQ(message->function_id(), 5);
-  EXPECT_EQ(message->json_message(), "test json string!!!");
-  EXPECT_EQ(message->protocol_version(), application_manager::kV2);
-  EXPECT_EQ(message->type(), application_manager::kRequest);
 }
 
 }
