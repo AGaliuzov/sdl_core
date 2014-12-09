@@ -2,6 +2,9 @@ include_directories (
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include)
 
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
+
 set(testSources
   main.cc
   messagemeter_test.cc
