@@ -443,7 +443,7 @@ QtObject {
     property ListModel applicationList: ListModel { }
     property ListModel stashedApplicationsList: ListModel { }
     property ListModel vrCommands: ListModel { }
-    property ListModel choisesVrCommands: ListModel { }
+    property ListModel choicesVrCommands: ListModel { }
 
     function reset () {
         console.log("dataContainer reset enter");

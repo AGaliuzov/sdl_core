@@ -84,7 +84,7 @@ PopUp {
         anchors.bottom: parent.bottom
         anchors.left: parent.left
 
-        model: if (interactionPopup.grammarID) dataContainer.choisesVrCommands
+        model: if (interactionPopup.grammarID) dataContainer.choicesVrCommands
                else dataContainer.vrCommands
 
         delegate: OvalButton {
@@ -92,7 +92,7 @@ PopUp {
             text: command
             visible: visibleButtons(grammarID,type)
             onClicked: {
-                if (interactionPopup.performInteractionIsActiveNow && !type)
+                if (interactionPopup.performInteractionIsActiveNow && type === Common.VRCommandType.Choice)
                     interactionPopup.complete(Common.Result.SUCCESS, {"choiceID": cmdID})
                 sdlVR.onCommand(cmdID, appID === 0 ? undefined : appID);
                 if (dataContainer.activeVR) {
@@ -115,41 +115,52 @@ PopUp {
         hide();
     }
 
-    function sortModelforPerformIn() {
-        var n;
-        var i;
-        var j;
-        for (n = 0; n < dataContainer.choisesVrCommands.count; n++)
-            for (i= n + 1; i < dataContainer.choisesVrCommands.count; i++)
-            {
-                if (dataContainer.choisesVrCommands.get(n).type > dataContainer.choisesVrCommands.get(i).type)
-                {
-                    dataContainer.choisesVrCommands.move(i, n, 1);
-                    n=0;
+    function sortModelforPerformInteraction() {
+        var n,
+            i,
+            j;
+        for (n = 0; n < dataContainer.choicesVrCommands.count; n++) {
+            for (i = n + 1; i < dataContainer.choicesVrCommands.count; i++) {
+                if (dataContainer.choicesVrCommands.get(n).type === Common.VRCommandType.Command &&
+                        dataContainer.choicesVrCommands.get(i).type === Common.VRCommandType.Choice) {
+                    dataContainer.choicesVrCommands.move(i, n, 1);
+                    n = 0;
                 }
             }
-        for (j = interactionPopup.grammarID.length; j > 0; j--)
-            for (n = 0; n < dataContainer.choisesVrCommands.count && dataContainer.choisesVrCommands.get(n).type === 0; n++)
-                for (i = n + 1; i < dataContainer.choisesVrCommands.count && dataContainer.choisesVrCommands.get(i).type === 0; i++)
-                { if (dataContainer.choisesVrCommands.get(n).grammarID !== interactionPopup.grammarID[j-1]
-                            && dataContainer.choisesVrCommands.get(i).grammarID === interactionPopup.grammarID[j-1])
-                    {
-                        dataContainer.choisesVrCommands.move(i, n, 1);
+        }
+        for (j = interactionPopup.grammarID.length; j > 0; j--) {
+            for (n = 0; n < dataContainer.choicesVrCommands.count &&
+                 dataContainer.choicesVrCommands.get(n).type === Common.VRCommandType.Choice; n++) {
+                for (i = n + 1; i < dataContainer.choicesVrCommands.count &&
+                     dataContainer.choicesVrCommands.get(i).type === Common.VRCommandType.Choice; i++) {
+                    if (dataContainer.choicesVrCommands.get(n).grammarID !== interactionPopup.grammarID[j-1]
+                            && dataContainer.choicesVrCommands.get(i).grammarID === interactionPopup.grammarID[j-1]) {
+                        dataContainer.choicesVrCommands.move(i, n, 1);
                         n = 0;
                     }
                 }
+            }
+        }
     }
+
     function visibleButtons(grammarID, type) {
-        if (interactionPopup.grammarID){
-            for (var i = 0; i < interactionPopup.grammarID.length; i++)
-            {
-                if (interactionPopup.grammarID[i] === grammarID) {
+        if (interactionPopup.grammarID) {
+            if (interactionPopup.grammarID.indexOf(grammarID) !== -1) {
                     return true
                 }
+            else {
+                return false
             }
-            return false
         }
-        else return type
+        else {
+            if (type === Common.VRCommandType.Choice){
+                return false
+            }
+            else {
+                return true
+            }
+        }
+
     }
 
 }

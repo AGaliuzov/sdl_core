@@ -57,7 +57,7 @@ Item {
                     "grammarID: " + grammarID +
                     "}}")
         for (var i = 0; i < vrCommands.length; ++i) {
-            if (type) {
+            if (type === Common.VRCommandType.Command) {
             dataContainer.vrCommands.append({
                                                cmdID: cmdID,
                                                command: vrCommands[i],
@@ -67,7 +67,7 @@ Item {
                                            });
             }
             else {
-                dataContainer.choisesVrCommands.append({
+                dataContainer.choicesVrCommands.append({
                                                    cmdID: cmdID,
                                                    command: vrCommands[i],
                                                    appID: appID === undefined ? 0 : appID,

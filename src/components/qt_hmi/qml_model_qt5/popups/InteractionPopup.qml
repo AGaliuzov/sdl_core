@@ -127,8 +127,11 @@ ContextPopup {
         if (piPopUp.choiceSet.count !== 0) {
             activate()
         }
-        else
-            if (grammarID) vrActivate();
+        else {
+            if (grammarID){
+                vrActivate()
+            }
+        }
         console.debug("exit")
         return async
     }
@@ -138,7 +141,7 @@ ContextPopup {
         timer.interval = timeout
         timer.start()
         if (grammarID)
-        vrPopUp.sortModelforPerformIn()
+        vrPopUp.sortModelforPerformInteraction()
         show()
         console.debug("exit")
     }
@@ -146,7 +149,7 @@ ContextPopup {
         console.debug("enter")
         timer.interval = timeout
         timer.start()
-        vrPopUp.sortModelforPerformIn()
+        vrPopUp.sortModelforPerformInteraction()
         vrPopUp.show()
         vrHelpPopup.show()
         console.debug("exit")
