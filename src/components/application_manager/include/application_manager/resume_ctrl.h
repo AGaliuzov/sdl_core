@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
@@ -226,6 +226,7 @@ class ResumeCtrl: public event_engine::EventObserver {
     }
 
     void RestoreHmiLevel(uint32_t time_stamp, ApplicationSharedPtr application);
+
   private:
 
     typedef std::pair<uint32_t, uint32_t> application_timestamp;
@@ -288,6 +289,14 @@ class ResumeCtrl: public event_engine::EventObserver {
         bool use_events = false);
 
     void InsertToTimerQueue(uint32_t app_id, uint32_t time_stamp);
+
+    void AddFiles(ApplicationSharedPtr application, Json::Value& saved_app);
+    void AddSubmenues(ApplicationSharedPtr application, Json::Value& saved_app);
+    void AddCommands(ApplicationSharedPtr application, Json::Value& saved_app);
+    void AddChoicesets(ApplicationSharedPtr application, Json::Value& saved_app);
+    void SetGlobalProperties(ApplicationSharedPtr application, Json::Value& saved_app);
+    void MakeSubscriptions(ApplicationSharedPtr application, Json::Value& saved_app);
+    void ProcessHMIRequests(const std::vector<smart_objects::SmartObject*> & requests);
 
     /**
      *  @brief times of IGN_OFF that zombie application have to be saved.

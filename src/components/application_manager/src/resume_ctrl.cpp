@@ -1,4 +1,5 @@
 #include <fstream>
+#include <algorithm>
 
 #include "application_manager/resume_ctrl.h"
 #include "config_profile/profile.h"
@@ -253,6 +254,8 @@ bool ResumeCtrl::SetupHMILevel(ApplicationSharedPtr application,
   return true;
 }
 
+
+
 bool ResumeCtrl::RestoreApplicationData(ApplicationSharedPtr application) {
   if (!application.valid()) {
     LOG4CXX_ERROR(logger_, "Application pointer in invalid");
@@ -275,129 +278,16 @@ bool ResumeCtrl::RestoreApplicationData(ApplicationSharedPtr application) {
   }
 
   Json::Value& saved_app = *it;
-  MessageHelper::SmartObjectList requests;
-  Json::Value& app_commands = saved_app[strings::application_commands];
-  Json::Value& app_submenus = saved_app[strings::application_submenus];
-  Json::Value& app_choise_sets = saved_app[strings::application_choise_sets];
-  Json::Value& global_properties = saved_app[strings::application_global_properties];
-  Json::Value& subscribtions = saved_app[strings::application_subscribtions];
-  Json::Value& application_files = saved_app[strings::application_files];
-  uint32_t app_grammar_id = saved_app[strings::grammar_id].asUInt();
+
+  const uint32_t app_grammar_id = saved_app[strings::grammar_id].asUInt();
   application->set_grammar_id(app_grammar_id);
 
-
-  // files
-  for (Json::Value::iterator json_it = application_files.begin();
-      json_it != application_files.end(); ++json_it)  {
-    Json::Value& file_data = *json_it;
-
-    bool is_persistent = file_data[strings::persistent_file].asBool();
-    if (is_persistent) {
-      AppFile file;
-      file.is_persistent = is_persistent;
-      file.is_download_complete = file_data[strings::is_download_complete].asBool();
-      file.file_name = file_data[strings::sync_file_name].asString();
-      file.file_type = static_cast<mobile_apis::FileType::eType> (
-                         file_data[strings::file_type].asInt());
-      application->AddFile(file);
-    }
-  }
-
-  //add submenus
-  for (Json::Value::iterator json_it = app_submenus.begin();
-      json_it != app_submenus.end(); ++json_it)  {
-    Json::Value& json_submenu = *json_it;
-    smart_objects::SmartObject message = smart_objects::SmartObject(
-                                         smart_objects::SmartType::SmartType_Map);
-    Formatters::CFormatterJsonBase::jsonValueToObj(json_submenu, message);
-    application->AddSubMenu(message[strings::menu_id].asUInt(), message);
-  }
-  requests = MessageHelper::CreateAddSubMenuRequestToHMI(application);
-
-  for (MessageHelper::SmartObjectList::iterator it = requests.begin();
-       it != requests.end(); ++it) {
-    ProcessHMIRequest(*it, true);
-  }
-
-  //add commands
-  for (Json::Value::iterator json_it = app_commands.begin();
-      json_it != app_commands.end(); ++json_it)  {
-    Json::Value& json_command = *json_it;
-    smart_objects::SmartObject message = smart_objects::SmartObject(
-                                         smart_objects::SmartType::SmartType_Map);
-    Formatters::CFormatterJsonBase::jsonValueToObj(json_command, message);
-    application->AddCommand(message[strings::cmd_id].asUInt(), message);
-  }
-
-  requests = MessageHelper::CreateAddCommandRequestToHMI(application);
-
-  for (MessageHelper::SmartObjectList::iterator it = requests.begin();
-       it != requests.end(); ++it) {
-    ProcessHMIRequest(*it, true);
-  }
-
-  //add choisets
-  for (Json::Value::iterator json_it = app_choise_sets.begin();
-      json_it != app_choise_sets.end(); ++json_it)  {
-    Json::Value& json_choiset = *json_it;
-    smart_objects::SmartObject msg_param = smart_objects::SmartObject(
-                                         smart_objects::SmartType::SmartType_Map);
-    Formatters::CFormatterJsonBase::jsonValueToObj(json_choiset , msg_param);
-    const int32_t choice_set_id = msg_param
-        [strings::interaction_choice_set_id].asInt();
-    uint32_t choice_grammar_id = msg_param[strings::grammar_id].asUInt();
-    application->AddChoiceSet(choice_set_id, msg_param);
-
-    for (size_t j = 0; j < msg_param[strings::choice_set].length(); ++j) {
-      smart_objects::SmartObject choise_params = smart_objects::SmartObject(
-                                                smart_objects::SmartType_Map);
-      choise_params[strings::app_id] = application->app_id();
-      choise_params[strings::cmd_id] =
-          msg_param[strings::choice_set][j][strings::choice_id];
-      choise_params[strings::vr_commands] = smart_objects::SmartObject(
-                                           smart_objects::SmartType_Array);
-      choise_params[strings::vr_commands] =
-          msg_param[strings::choice_set][j][strings::vr_commands];
-
-      choise_params[strings::type] = hmi_apis::Common_VRCommandType::Choice;
-      choise_params[strings::grammar_id] =  choice_grammar_id;
-      SendHMIRequest(hmi_apis::FunctionID::VR_AddCommand, &choise_params);
-    }
-  }
-
-  //setglobal properties
-  if (!global_properties.isNull()) {
-    smart_objects::SmartObject properties_so = smart_objects::SmartObject(
-                                         smart_objects::SmartType::SmartType_Map);
-    Formatters::CFormatterJsonBase::jsonValueToObj(global_properties , properties_so);
-    application->load_global_properties(properties_so);
-    MessageHelper::SendGlobalPropertiesToHMI(application);
-  }
-
-  //subscribes
-  if (!subscribtions.isNull()) {
-    Json::Value& subscribtions_buttons = subscribtions[strings::application_buttons];
-    Json::Value& subscribtions_ivi= subscribtions[strings::application_vehicle_info];
-    for (Json::Value::iterator json_it = subscribtions_buttons.begin();
-         json_it != subscribtions_buttons.end(); ++json_it) {
-      mobile_apis::ButtonName::eType btn;
-      btn = static_cast<mobile_apis::ButtonName::eType>((*json_it).asInt());
-      application->SubscribeToButton(btn);
-    }
-
-    for (Json::Value::iterator json_it = subscribtions_ivi.begin();
-         json_it != subscribtions_ivi.end(); ++json_it) {
-      VehicleDataType ivi;
-      ivi = static_cast<VehicleDataType>((*json_it).asInt());
-      application->SubscribeToIVI(ivi);
-    }
-    requests = MessageHelper::GetIVISubscriptionRequests(application);
-
-    for (MessageHelper::SmartObjectList::iterator it = requests.begin();
-         it != requests.end(); ++it) {
-      ProcessHMIRequest(*it,true);
-    }
-  }
+  AddFiles(application, saved_app);
+  AddSubmenues(application, saved_app);
+  AddCommands(application, saved_app);
+  AddChoicesets(application, saved_app);
+  SetGlobalProperties(application, saved_app);
+  MakeSubscriptions(application, saved_app);
   return true;
 }
 
@@ -589,8 +479,6 @@ void ResumeCtrl::RestoreHmiLevel(uint32_t time_stamp,
     restore_hmi_level_timer_.start(profile::Profile::instance()->app_resuming_timeout());
   }
 }
-
-
 
 bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
   if (!application.valid()) {
@@ -947,6 +835,123 @@ void ResumeCtrl::InsertToTimerQueue(uint32_t app_id, uint32_t time_stamp) {
   sync_primitives::AutoLock autolock(queue_lock_);
   LOG4CXX_DEBUG(logger_,"After queue_lock_ Accure");
   waiting_for_timer_.insert(std::make_pair(app_id, time_stamp));
+}
+
+void ResumeCtrl::AddFiles(ApplicationSharedPtr application, Json::Value& saved_app) {
+  Json::Value& application_files = saved_app[strings::application_files];
+  for (Json::Value::iterator json_it = application_files.begin();
+      json_it != application_files.end(); ++json_it)  {
+    Json::Value& file_data = *json_it;
+
+    bool is_persistent = file_data[strings::persistent_file].asBool();
+    if (is_persistent) {
+      AppFile file;
+      file.is_persistent = is_persistent;
+      file.is_download_complete = file_data[strings::is_download_complete].asBool();
+      file.file_name = file_data[strings::sync_file_name].asString();
+      file.file_type = static_cast<mobile_apis::FileType::eType> (
+                         file_data[strings::file_type].asInt());
+      application->AddFile(file);
+    }
+  }
+}
+
+void ResumeCtrl::AddSubmenues(ApplicationSharedPtr application, Json::Value& saved_app) {
+  Json::Value& app_submenus = saved_app[strings::application_submenus];
+  for (Json::Value::iterator json_it = app_submenus.begin();
+      json_it != app_submenus.end(); ++json_it)  {
+    Json::Value& json_submenu = *json_it;
+    smart_objects::SmartObject message = smart_objects::SmartObject(
+                                         smart_objects::SmartType::SmartType_Map);
+    Formatters::CFormatterJsonBase::jsonValueToObj(json_submenu, message);
+    application->AddSubMenu(message[strings::menu_id].asUInt(), message);
+  }
+
+  ProcessHMIRequests(MessageHelper::CreateAddSubMenuRequestToHMI(application));
+}
+
+void ResumeCtrl::AddCommands(ApplicationSharedPtr application, Json::Value& saved_app) {
+  Json::Value& app_commands = saved_app[strings::application_commands];
+  for (Json::Value::iterator json_it = app_commands.begin();
+      json_it != app_commands.end(); ++json_it)  {
+    Json::Value& json_command = *json_it;
+    smart_objects::SmartObject message(smart_objects::SmartType::SmartType_Map);
+    Formatters::CFormatterJsonBase::jsonValueToObj(json_command, message);
+    application->AddCommand(message[strings::cmd_id].asUInt(), message);
+  }
+
+  ProcessHMIRequests(MessageHelper::CreateAddCommandRequestToHMI(application));
+}
+
+void ResumeCtrl::AddChoicesets(ApplicationSharedPtr application, Json::Value& saved_app) {
+  Json::Value& app_choise_sets = saved_app[strings::application_choise_sets];
+  for (Json::Value::iterator json_it = app_choise_sets.begin();
+      json_it != app_choise_sets.end(); ++json_it)  {
+    Json::Value& json_choiset = *json_it;
+    smart_objects::SmartObject msg_param(smart_objects::SmartType::SmartType_Map);
+    Formatters::CFormatterJsonBase::jsonValueToObj(json_choiset , msg_param);
+    const int32_t choice_set_id = msg_param
+        [strings::interaction_choice_set_id].asInt();
+    uint32_t choice_grammar_id = msg_param[strings::grammar_id].asUInt();
+    application->AddChoiceSet(choice_set_id, msg_param);
+
+    for (size_t j = 0; j < msg_param[strings::choice_set].length(); ++j) {
+      smart_objects::SmartObject choise_params(smart_objects::SmartType_Map);
+      choise_params[strings::app_id] = application->app_id();
+      choise_params[strings::cmd_id] =
+          msg_param[strings::choice_set][j][strings::choice_id];
+      choise_params[strings::vr_commands] = smart_objects::SmartObject(
+                                           smart_objects::SmartType_Array);
+      choise_params[strings::vr_commands] =
+          msg_param[strings::choice_set][j][strings::vr_commands];
+
+      choise_params[strings::type] = hmi_apis::Common_VRCommandType::Choice;
+      choise_params[strings::grammar_id] =  choice_grammar_id;
+      SendHMIRequest(hmi_apis::FunctionID::VR_AddCommand, &choise_params);
+    }
+  }
+}
+
+void ResumeCtrl::SetGlobalProperties(ApplicationSharedPtr application, Json::Value& saved_app) {
+  Json::Value& global_properties = saved_app[strings::application_global_properties];
+  if (!global_properties.isNull()) {
+    smart_objects::SmartObject properties_so(smart_objects::SmartType::SmartType_Map);
+    Formatters::CFormatterJsonBase::jsonValueToObj(global_properties , properties_so);
+    application->load_global_properties(properties_so);
+    MessageHelper::SendGlobalPropertiesToHMI(application);
+  }
+}
+
+void ResumeCtrl::MakeSubscriptions(ApplicationSharedPtr application, Json::Value& saved_app) {
+  Json::Value& subscribtions = saved_app[strings::application_subscribtions];
+  if (!subscribtions.isNull()) {
+
+    Json::Value& subscribtions_buttons = subscribtions[strings::application_buttons];
+    mobile_apis::ButtonName::eType btn;
+    for (Json::Value::iterator json_it = subscribtions_buttons.begin();
+         json_it != subscribtions_buttons.end(); ++json_it) {
+      btn = static_cast<mobile_apis::ButtonName::eType>((*json_it).asInt());
+      application->SubscribeToButton(btn);
+    }
+
+    Json::Value& subscribtions_ivi= subscribtions[strings::application_vehicle_info];
+    VehicleDataType ivi;
+    for (Json::Value::iterator json_it = subscribtions_ivi.begin();
+         json_it != subscribtions_ivi.end(); ++json_it) {
+      ivi = static_cast<VehicleDataType>((*json_it).asInt());
+      application->SubscribeToIVI(ivi);
+    }
+
+    ProcessHMIRequests(MessageHelper::GetIVISubscriptionRequests(application));
+  }
+}
+
+void ResumeCtrl::ProcessHMIRequests(const MessageHelper::SmartObjectList& requests) {
+  for (MessageHelper::SmartObjectList::const_iterator it = requests.begin(),
+       total = requests.end();
+       it != total; ++it) {
+    ProcessHMIRequest(*it, true);
+  }
 }
 
 void ResumeCtrl::SendHMIRequest(
