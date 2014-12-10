@@ -1157,8 +1157,6 @@ int CacheManager::CountUnconsentedGroups(const std::string& policy_app_id,
     return 0;
   }
 
-  policy_table::FunctionalGroupings::const_iterator groups_iter =
-      pt_->policy_table.functional_groupings.begin();
   policy_table::FunctionalGroupings::const_iterator groups_iter_end =
       pt_->policy_table.functional_groupings.end();
 
