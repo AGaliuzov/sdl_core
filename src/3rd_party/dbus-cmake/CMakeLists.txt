@@ -64,7 +64,9 @@ add_custom_command(OUTPUT ${DBUS_BUILD_DIRECTORY}/Makefile
 
 add_custom_target(dbus ALL make
   COMMAND /bin/bash -c \"
-        if [ ${is_git_folder} == 0 ]; then
+          cd ${CMAKE_CURRENT_SOURCE_DIR}\;
+          git log . 1>/dev/null 2>&1\;
+          if [ \\$$? == 0 ]; then
           grep \\".commit_hash\\" ${DBUS_BUILD_DIRECTORY}/dbus/.libs/libdbus-1.so 1>/dev/null 2>&1\;
           if [ ! \\\$$? == 0 ]\; then
             cd ${CMAKE_CURRENT_SOURCE_DIR} &&

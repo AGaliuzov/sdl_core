@@ -66,7 +66,9 @@ add_custom_command(OUTPUT ${LOG4CXX_BUILD_DIRECTORY}/Makefile
 
 add_custom_target(liblog4cxx ALL make
   COMMAND /bin/bash -c \"
-        if [ ${is_git_folder} == 0 ]; then
+	cd ${CMAKE_CURRENT_SOURCE_DIR}\;
+	git log . 1>/dev/null 2>&1\;
+        if [ \\$$? == 0 ]; then
           grep \\".commit_hash\\" ${LOG4CXX_LIBS_DIRECTORY}/liblog4cxx.so 1>/dev/null 2>&1\;
           if [ ! \\\$$? == 0 ]\; then
             cd ${CMAKE_CURRENT_SOURCE_DIR} &&
