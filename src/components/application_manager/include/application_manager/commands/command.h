@@ -44,7 +44,6 @@ namespace application_manager {
  **/
 
 namespace smart_objects = NsSmartDeviceLink::NsSmartObjects;
-typedef utils::SharedPtr<smart_objects::SmartObject> MessageSharedPtr;
 
 namespace commands {
 
@@ -109,6 +108,8 @@ class Command {
   virtual void onTimeOut() = 0;
 
 };
+
+typedef smart_objects::SmartObjectSPtr MessageSharedPtr;
 
 }  // namespace commands
 

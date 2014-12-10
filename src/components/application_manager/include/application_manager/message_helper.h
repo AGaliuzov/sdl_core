@@ -146,7 +146,7 @@ class MessageHelper {
     static std::string StringifiedFunctionID(
       mobile_apis::FunctionID::eType function_id);
 
-    static smart_objects::SmartObject* CreateBlockedByPoliciesResponse(
+    static smart_objects::SmartObjectSPtr CreateBlockedByPoliciesResponse(
       mobile_apis::FunctionID::eType function_id,
       mobile_apis::Result::eType result, uint32_t correlation_id,
       uint32_t connection_key);

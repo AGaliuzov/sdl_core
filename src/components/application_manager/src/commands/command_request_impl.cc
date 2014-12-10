@@ -117,7 +117,7 @@ void CommandRequestImpl::on_event(const event_engine::Event& event) {
 
 void CommandRequestImpl::SendResponse(
     const bool success, const mobile_apis::Result::eType& result_code,
-    const char* info, const NsSmart::SmartObject* response_params) {
+    const char* info, const smart_objects::SmartObject* response_params) {
 
   {
     sync_primitives::AutoLock auto_lock(state_lock_);
@@ -129,13 +129,12 @@ void CommandRequestImpl::SendResponse(
     current_state_ = kCompleted;
   }
 
-  NsSmartDeviceLink::NsSmartObjects::SmartObject* result =
-      new NsSmartDeviceLink::NsSmartObjects::SmartObject;
+  smart_objects::SmartObjectSPtr result = new smart_objects::SmartObject;
   if (!result) {
     LOG4CXX_ERROR(logger_, "Memory allocation failed.");
     return;
   }
-  NsSmartDeviceLink::NsSmartObjects::SmartObject& response = *result;
+  smart_objects::SmartObject& response = *result;
 
   response[strings::params][strings::message_type] = MessageType::kResponse;
   response[strings::params][strings::correlation_id] = correlation_id();
@@ -194,10 +193,9 @@ bool CommandRequestImpl::CheckSyntax(std::string str, bool allow_empty_line) {
 
 void CommandRequestImpl::SendHMIRequest(
     const hmi_apis::FunctionID::eType& function_id,
-    const NsSmart::SmartObject* msg_params, bool use_events) {
+    const smart_objects::SmartObject* msg_params, bool use_events) {
 
-  NsSmartDeviceLink::NsSmartObjects::SmartObject* result =
-      new NsSmartDeviceLink::NsSmartObjects::SmartObject;
+  smart_objects::SmartObjectSPtr result = new smart_objects::SmartObject;
   if (!result) {
     LOG4CXX_ERROR(logger_, "Memory allocation failed.");
     return;
@@ -210,7 +208,7 @@ void CommandRequestImpl::SendHMIRequest(
     subscribe_on_event(function_id, hmi_correlation_id);
   }
 
-  NsSmartDeviceLink::NsSmartObjects::SmartObject& request = *result;
+  smart_objects::SmartObject& request = *result;
   request[strings::params][strings::message_type] = MessageType::kRequest;
   request[strings::params][strings::function_id] = function_id;
   request[strings::params][strings::correlation_id] = hmi_correlation_id;
@@ -233,13 +231,12 @@ void CommandRequestImpl::CreateHMINotification(
     const hmi_apis::FunctionID::eType& function_id,
     const NsSmart::SmartObject& msg_params) const {
 
-  NsSmartDeviceLink::NsSmartObjects::SmartObject* result =
-      new NsSmartDeviceLink::NsSmartObjects::SmartObject;
+  smart_objects::SmartObjectSPtr result = new smart_objects::SmartObject;
   if (!result) {
     LOG4CXX_ERROR(logger_, "Memory allocation failed.");
     return;
   }
-  NsSmartDeviceLink::NsSmartObjects::SmartObject& notify = *result;
+  smart_objects::SmartObject& notify = *result;
 
   notify[strings::params][strings::message_type] =
       static_cast<int32_t>(application_manager::MessageType::kNotification);
@@ -405,7 +402,7 @@ bool CommandRequestImpl::CheckAllowedParameters() {
 
       // Check, if RPC is allowed by policy
       if (mobile_apis::Result::SUCCESS != check_result) {
-        smart_objects::SmartObject* response =
+        smart_objects::SmartObjectSPtr response =
           MessageHelper::CreateBlockedByPoliciesResponse(
               static_cast<mobile_api::FunctionID::eType>(function_id()),
               check_result, correlation_id(), (*it_app_list)->app_id());

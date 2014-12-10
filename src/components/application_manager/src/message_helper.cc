@@ -259,7 +259,7 @@ uint32_t MessageHelper::GetAppCommandLimit(const std::string& policy_app_id) {
 
 void MessageHelper::SendHMIStatusNotification(
   const Application& application_impl) {
-  smart_objects::SmartObject* notification = new smart_objects::SmartObject;
+  smart_objects::SmartObjectSPtr notification = new smart_objects::SmartObject;
   if (!notification) {
     // TODO(VS): please add logger.
     return;
@@ -289,7 +289,7 @@ void MessageHelper::SendHMIStatusNotification(
 
 void MessageHelper::SendOnAppRegisteredNotificationToHMI(
   const Application& application_impl, bool resumption, bool need_restore_vr) {
-  smart_objects::SmartObject* notification = new smart_objects::SmartObject;
+  smart_objects::SmartObjectSPtr notification = new smart_objects::SmartObject;
   if (!notification) {
     // TODO(VS): please add logger.
     return;
@@ -400,7 +400,7 @@ void MessageHelper::SendHashUpdateNotification(const uint32_t app_id) {
 void MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
   int32_t connection_key,
   mobile_api::AppInterfaceUnregisteredReason::eType reason) {
-  smart_objects::SmartObject* notification = new smart_objects::SmartObject;
+  smart_objects::SmartObjectSPtr notification = new smart_objects::SmartObject;
   if (!notification) {
     // TODO(VS): please add logger.
     return;
@@ -497,12 +497,13 @@ static std::map<std::string, uint16_t> vehicle_data_args = create_get_vehicle_da
 }
 #endif
 
-void MessageHelper::CreateGetVehicleDataRequest(uint32_t correlation_id, const std::vector<std::string>& params) {
+void MessageHelper::CreateGetVehicleDataRequest(
+    uint32_t correlation_id, const std::vector<std::string>& params) {
   LOG4CXX_AUTO_TRACE(logger_);
 #ifdef HMI_DBUS_API
   for (std::vector<std::string>::const_iterator it = params.begin();
        it != params.end(); it++) {
-    smart_objects::SmartObject* request = new smart_objects::SmartObject;
+    smart_objects::SmartObjectSPtr request = new smart_objects::SmartObject;
 
     (*request)[strings::params][strings::message_type] = static_cast<int>(kRequest);
     (*request)[strings::params][strings::correlation_id] = correlation_id;
@@ -515,7 +516,7 @@ void MessageHelper::CreateGetVehicleDataRequest(uint32_t correlation_id, const s
     ApplicationManagerImpl::instance()->ManageHMICommand(request);
   }
 #else
-  smart_objects::SmartObject* request = new smart_objects::SmartObject;
+  smart_objects::SmartObjectSPtr request = new smart_objects::SmartObject;
 
   (*request)[strings::params][strings::message_type] = static_cast<int>(kRequest);
   (*request)[strings::params][strings::function_id] =
@@ -534,12 +535,12 @@ void MessageHelper::CreateGetVehicleDataRequest(uint32_t correlation_id, const s
 #endif
 }
 
-smart_objects::SmartObject* MessageHelper::CreateBlockedByPoliciesResponse(
-  mobile_apis::FunctionID::eType function_id,
-  mobile_apis::Result::eType result, uint32_t correlation_id,
-  uint32_t connection_key) {
+smart_objects::SmartObjectSPtr MessageHelper::CreateBlockedByPoliciesResponse(
+    mobile_apis::FunctionID::eType function_id,
+    mobile_apis::Result::eType result, uint32_t correlation_id,
+    uint32_t connection_key) {
   LOG4CXX_AUTO_TRACE(logger_);
-  smart_objects::SmartObject* response = new smart_objects::SmartObject;
+  smart_objects::SmartObjectSPtr response = new smart_objects::SmartObject;
 
   (*response)[strings::params][strings::function_id] =
     static_cast<int>(function_id);
@@ -690,10 +691,7 @@ smart_objects::SmartObjectList MessageHelper::GetIVISubscriptionRequests(
 
 void MessageHelper::SendAppDataToHMI(ApplicationConstSharedPtr app) {
   LOG4CXX_AUTO_TRACE(logger_);
-  uint32_t id = app->app_id();
-
-  utils::SharedPtr<smart_objects::SmartObject> set_app_icon(
-    new smart_objects::SmartObject);
+  smart_objects::SmartObjectSPtr set_app_icon(new smart_objects::SmartObject);
   if (set_app_icon) {
     smart_objects::SmartObject& so_to_send = *set_app_icon;
     so_to_send[strings::params][strings::function_id] =
@@ -709,8 +707,8 @@ void MessageHelper::SendAppDataToHMI(ApplicationConstSharedPtr app) {
 
     so_to_send[strings::msg_params] = smart_objects::SmartObject(
                                         smart_objects::SmartType_Map);
-    utils::SharedPtr<smart_objects::SmartObject> msg_params = MessageHelper::CreateSetAppIcon(
-          app->app_icon_path(), id);
+    smart_objects::SmartObjectSPtr msg_params = MessageHelper::CreateSetAppIcon(
+          app->app_icon_path(), app->app_id());
 
     if (msg_params) {
       so_to_send[strings::msg_params] = *msg_params;
@@ -831,10 +829,10 @@ smart_objects::SmartObjectList MessageHelper::CreateGlobalPropertiesRequestsToHM
 void MessageHelper::SendTTSGlobalProperties(
     ApplicationSharedPtr app, bool default_help_prompt) {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (!app.valid()) {
+  if (!app) {
     return;
   }
-  utils::SharedPtr<smart_objects::SmartObject> tts_global_properties(
+  smart_objects::SmartObjectSPtr tts_global_properties(
       new smart_objects::SmartObject);
   if (tts_global_properties) {
     smart_objects::SmartObject& so_to_send = *tts_global_properties;
@@ -1792,11 +1790,10 @@ void MessageHelper::SendAudioStopStream(int32_t connection_key) {
 bool MessageHelper::SendStopAudioPathThru() {
   LOG4CXX_INFO(logger_, "MessageHelper::SendAudioStopAudioPathThru");
 
-  NsSmartDeviceLink::NsSmartObjects::SmartObject* result =
-    new NsSmartDeviceLink::NsSmartObjects::SmartObject;
+  smart_objects::SmartObjectSPtr result = new smart_objects::SmartObject;
   const uint32_t hmi_correlation_id = ApplicationManagerImpl::instance()
                                       ->GetNextHMICorrelationID();
-  NsSmartDeviceLink::NsSmartObjects::SmartObject& request = *result;
+  smart_objects::SmartObject& request = *result;
   request[strings::params][strings::message_type] = MessageType::kRequest;
   request[strings::params][strings::function_id] =
     hmi_apis::FunctionID::UI_EndAudioPassThru;

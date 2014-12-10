@@ -803,8 +803,14 @@ void ApplicationManagerImpl::OnErrorSending(
 void ApplicationManagerImpl::OnDeviceListUpdated(
     const connection_handler::DeviceMap& device_list) {
   LOG4CXX_AUTO_TRACE(logger_);
+  smart_objects::SmartObjectSPtr msg_params = MessageHelper::CreateDeviceListSO(
+        device_list);
+  if (!msg_params) {
+    LOG4CXX_WARN(logger_, "Failed to create sub-smart object.");
+    return;
+  }
 
-  smart_objects::SmartObject* update_list = new smart_objects::SmartObject;
+  smart_objects::SmartObjectSPtr update_list = new smart_objects::SmartObject;
   smart_objects::SmartObject& so_to_send = *update_list;
   so_to_send[jhs::S_PARAMS][jhs::S_FUNCTION_ID] =
     hmi_apis::FunctionID::BasicCommunication_UpdateDeviceList;
@@ -813,13 +819,6 @@ void ApplicationManagerImpl::OnDeviceListUpdated(
   so_to_send[jhs::S_PARAMS][jhs::S_PROTOCOL_VERSION] = 3;
   so_to_send[jhs::S_PARAMS][jhs::S_PROTOCOL_TYPE] = 1;
   so_to_send[jhs::S_PARAMS][jhs::S_CORRELATION_ID] = GetNextHMICorrelationID();
-  utils::SharedPtr<smart_objects::SmartObject> msg_params = MessageHelper::CreateDeviceListSO(
-        device_list);
-  if (!msg_params) {
-    LOG4CXX_WARN(logger_, "Failed to create sub-smart object.");
-    delete update_list;
-    return;
-  }
   so_to_send[jhs::S_MSG_PARAMS] = *msg_params;
   ManageHMICommand(update_list);
 }
@@ -1133,8 +1132,7 @@ void ApplicationManagerImpl::StartDevicesDiscovery() {
 }
 
 void ApplicationManagerImpl::SendMessageToMobile(
-  const utils::SharedPtr<smart_objects::SmartObject> message,
-  bool final_message) {
+    const commands::MessageSharedPtr message, bool final_message) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (!message) {
@@ -1227,7 +1225,7 @@ void ApplicationManagerImpl::SendMessageToMobile(
 }
 
 bool ApplicationManagerImpl::ManageMobileCommand(
-  const utils::SharedPtr<smart_objects::SmartObject> message) {
+    const commands::MessageSharedPtr message) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (!message) {
@@ -1386,7 +1384,7 @@ bool ApplicationManagerImpl::ManageMobileCommand(
 }
 
 void ApplicationManagerImpl::SendMessageToHMI(
-  const utils::SharedPtr<smart_objects::SmartObject> message) {
+    const commands::MessageSharedPtr message) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (!message) {
@@ -1428,7 +1426,7 @@ void ApplicationManagerImpl::SendMessageToHMI(
 }
 
 bool ApplicationManagerImpl::ManageHMICommand(
-  const utils::SharedPtr<smart_objects::SmartObject> message) {
+    const commands::MessageSharedPtr message) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (!message) {
@@ -1785,8 +1783,7 @@ void ApplicationManagerImpl::ProcessMessageFromMobile(
   AMMetricObserver::MessageMetricSharedPtr metric(new AMMetricObserver::MessageMetric());
   metric->begin = date_time::DateTime::getCurrentTime();
 #endif  // TIME_TESTER
-  utils::SharedPtr<smart_objects::SmartObject> so_from_mobile(
-    new smart_objects::SmartObject);
+  smart_objects::SmartObjectSPtr so_from_mobile(new smart_objects::SmartObject);
 
   if (!so_from_mobile) {
     LOG4CXX_ERROR(logger_, "Null pointer");
@@ -1815,8 +1812,7 @@ void ApplicationManagerImpl::ProcessMessageFromMobile(
 void ApplicationManagerImpl::ProcessMessageFromHMI(
   const utils::SharedPtr<Message> message) {
   LOG4CXX_INFO(logger_, "ApplicationManagerImpl::ProcessMessageFromHMI()");
-  utils::SharedPtr<smart_objects::SmartObject> smart_object(
-    new smart_objects::SmartObject);
+  smart_objects::SmartObjectSPtr smart_object(new smart_objects::SmartObject);
 
   if (!smart_object) {
     LOG4CXX_ERROR(logger_, "Null pointer");
@@ -2191,12 +2187,11 @@ void ApplicationManagerImpl::Handle(const impl::MessageToHmi message) {
 
 void ApplicationManagerImpl::Handle(const impl::AudioData message) {
   LOG4CXX_INFO(logger_, "Send AudioPassThru notification");
-  smart_objects::SmartObject* on_audio_pass = NULL;
-  on_audio_pass = new smart_objects::SmartObject();
+  smart_objects::SmartObjectSPtr on_audio_pass = new smart_objects::SmartObject();
 
-  if (NULL == on_audio_pass) {
+  if (!on_audio_pass) {
     LOG4CXX_ERROR_EXT(logger_, "OnAudioPassThru NULL pointer");
-  return;
+    return;
   }
 
   LOG4CXX_INFO_EXT(logger_, "Fill smart object");
@@ -2218,7 +2213,7 @@ void ApplicationManagerImpl::Handle(const impl::AudioData message) {
 
    LOG4CXX_INFO_EXT(logger_, "Send data");
    CommandSharedPtr command (
-       MobileCommandFactory::CreateCommand(&(*on_audio_pass)));
+       MobileCommandFactory::CreateCommand(on_audio_pass));
    command->Init();
    command->Run();
    command->CleanUp();
