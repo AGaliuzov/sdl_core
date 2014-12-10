@@ -33,7 +33,7 @@
 
 #include "gmock/gmock.h"
 #include "application_manager/mobile_message_handler.h"
-#include "utils/shared_ptr.h"
+
 
 using ::testing::_;
 
