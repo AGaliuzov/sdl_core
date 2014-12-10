@@ -1,4 +1,4 @@
-﻿#include <fstream>
+#include <fstream>
 
 #include "application_manager/resume_ctrl.h"
 #include "config_profile/profile.h"
@@ -370,56 +370,7 @@ bool ResumeCtrl::RestoreApplicationData(ApplicationSharedPtr application) {
     smart_objects::SmartObject properties_so = smart_objects::SmartObject(
                                          smart_objects::SmartType::SmartType_Map);
     Formatters::CFormatterJsonBase::jsonValueToObj(global_properties , properties_so);
-
-    const smart_objects::SmartObject& vr_help_title =
-        properties_so.getElement(strings::vr_help_title);
-    if (vr_help_title.getType() != smart_objects::SmartType::SmartType_Invalid &&
-        vr_help_title.getType() != smart_objects::SmartType::SmartType_Null) {
-      application->set_vr_help_title(vr_help_title);
-    }
-
-    const smart_objects::SmartObject& vr_help =
-        properties_so.getElement(strings::vr_help);
-    if (vr_help.getType() != smart_objects::SmartType::SmartType_Invalid  &&
-        vr_help.getType() != smart_objects::SmartType::SmartType_Null) {
-      application->set_vr_help(vr_help);
-    }
-
-    const smart_objects::SmartObject& timeout_prompt =
-        properties_so.getElement(strings::timeout_prompt);
-    if (timeout_prompt.getType() != smart_objects::SmartType::SmartType_Invalid  &&
-        timeout_prompt.getType() != smart_objects::SmartType::SmartType_Null) {
-      application->set_timeout_prompt(timeout_prompt);
-    }
-
-    const smart_objects::SmartObject& help_prompt =
-        properties_so.getElement(strings::help_prompt);
-    if (help_prompt.getType() != smart_objects::SmartType::SmartType_Invalid &&
-        help_prompt.getType() != smart_objects::SmartType::SmartType_Null) {
-      application->set_help_prompt(help_prompt);
-    }
-
-    const smart_objects::SmartObject& keyboard_properties =
-        properties_so.getElement(strings::keyboard_properties);
-    if (keyboard_properties.getType() != smart_objects::SmartType::SmartType_Invalid  &&
-        keyboard_properties.getType() != smart_objects::SmartType::SmartType_Null) {
-      application->set_keyboard_props(keyboard_properties);
-    }
-
-    const smart_objects::SmartObject& menu_title =
-        properties_so.getElement(strings::menu_title);
-    if (menu_title.getType() != smart_objects::SmartType::SmartType_Invalid  &&
-        menu_title.getType() != smart_objects::SmartType::SmartType_Null) {
-      application->set_menu_title(menu_title);
-    }
-
-    const smart_objects::SmartObject& menu_icon =
-        properties_so.getElement(strings::menu_icon);
-    if (menu_icon.getType() != smart_objects::SmartType::SmartType_Invalid  &&
-        menu_icon.getType() != smart_objects::SmartType::SmartType_Null) {
-      application->set_menu_icon(menu_icon);
-    }
-
+    application->load_global_properties(properties_so);
     MessageHelper::SendGlobalPropertiesToHMI(application);
   }
 
@@ -638,6 +589,8 @@ void ResumeCtrl::RestoreHmiLevel(uint32_t time_stamp,
     restore_hmi_level_timer_.start(profile::Profile::instance()->app_resuming_timeout());
   }
 }
+
+
 
 bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
   if (!application.valid()) {

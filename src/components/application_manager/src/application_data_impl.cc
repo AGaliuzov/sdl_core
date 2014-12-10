@@ -277,6 +277,30 @@ const NsSmartDeviceLink::NsSmartObjects::SmartObject* DynamicApplicationDataImpl
   return menu_icon_;
 }
 
+void DynamicApplicationDataImpl::load_global_properties(
+    const smart_objects::SmartObject& properties_so) {
+  SetGlobalProperties(properties_so.getElement(strings::vr_help_title),
+                      this, &DynamicApplicationData::set_vr_help_title);
+
+  SetGlobalProperties(properties_so.getElement(strings::vr_help),
+                      this, &DynamicApplicationData::set_vr_help);
+
+  SetGlobalProperties(properties_so.getElement(strings::timeout_prompt),
+                      this, &DynamicApplicationData::set_timeout_prompt);
+
+  SetGlobalProperties(properties_so.getElement(strings::help_prompt),
+                      this, &DynamicApplicationData::set_help_prompt);
+
+  SetGlobalProperties(properties_so.getElement(strings::keyboard_properties),
+                      this, &DynamicApplicationData::set_keyboard_props);
+
+  SetGlobalProperties(properties_so.getElement(strings::menu_title),
+                      this, &DynamicApplicationData::set_menu_title);
+
+  SetGlobalProperties(properties_so.getElement(strings::menu_icon),
+                      this, &DynamicApplicationData::set_menu_icon);
+}
+
 void DynamicApplicationDataImpl::set_help_prompt(
     const smart_objects::SmartObject& help_prompt) {
   if (help_prompt_) {
@@ -368,6 +392,20 @@ void DynamicApplicationDataImpl::set_menu_icon(
   menu_icon_= new smart_objects::SmartObject(menu_icon);
 }
 
+void DynamicApplicationDataImpl::SetGlobalProperties(
+    const smart_objects::SmartObject& param,
+    DynamicApplicationData* callee,
+    void (DynamicApplicationData::*callback)(
+    const smart_objects::SmartObject&)) {
+
+  smart_objects::SmartType so_type = param.getType();
+  if (so_type != smart_objects::SmartType::SmartType_Invalid  &&
+      so_type != smart_objects::SmartType::SmartType_Null) {
+    if (callee && callback) {
+      (callee->*callback)(param);
+    }
+  }
+}
 
 void DynamicApplicationDataImpl::AddCommand(
   uint32_t cmd_id, const smart_objects::SmartObject& command) {
