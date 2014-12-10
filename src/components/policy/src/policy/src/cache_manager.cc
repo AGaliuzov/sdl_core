@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -348,8 +348,6 @@ bool CacheManager::ApplyUpdate(const policy_table::Table& update_pt) {
       update_pt.policy_table.app_policies.end();
 
   for (;iter != iter_end; ++iter) {
-    policy_table::ApplicationPolicies::iterator beg =
-        pt_->policy_table.app_policies.find(iter->first);
     if (iter->second.is_null()) {
       pt_->policy_table.app_policies[iter->first].set_to_null();
       pt_->policy_table.app_policies[iter->first].set_to_string("");
