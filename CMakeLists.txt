@@ -453,7 +453,12 @@ if(ENABLE_LOG)
                                if [ \\$$? == 0 ]\; then 
                                  VAR1=\\$$\( readelf -p .commit_hash ${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib/liblog4cxx.so 2>/dev/null\)\; 
                                  VAR1=\\$$\(echo \\$$VAR1 | awk '{print \\$$NF}'\)\; 
-                                 VAR2=\\$$\(git log --pretty=\"format:%H\" -1 ${3RD_PARTY_SOURCE_DIRECTORY}/apache-log4cxx-0.10.0\)\; 
+                                 VAR2=-1\;
+                                 cd ${CMAKE_CURRENT_SOURCE_DIR}\;
+                                 git log . 1>/dev/null 2>&1\;
+                                 if [ \\$$? == 0 ]; then 
+                                     VAR2=\\$$\(git log --pretty=\"format:%H\" -1 ${3RD_PARTY_SOURCE_DIRECTORY}/apache-log4cxx-0.10.0\)\; 
+                                 fi\;
                                  if [ \\$$VAR1 != \\$$VAR2 ]\; then 
                                    echo " Need to rebuild logger. " \; 
                                    cd ${3RD_PARTY_BINARY_DIRECTORY}\; 
@@ -478,7 +483,12 @@ if(ENABLE_LOG)
                                if [ \\$$? == 0 ]\; then 
                                  VAR1=\\$$\( readelf -p .commit_hash ${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib/liblog4cxx.so 2>/dev/null\)\; 
                                  VAR1=\\$$\(echo \\$$VAR1 | awk '{print \\$$NF}'\)\; 
-                                 VAR2=\\$$\(git log --pretty=\"format:%H\" -1 ${3RD_PARTY_SOURCE_DIRECTORY}/apache-log4cxx-0.10.0\)\; 
+                                 VAR2=-1\;
+                                 cd ${CMAKE_CURRENT_SOURCE_DIR}\;
+                                 git log . 1>/dev/null 2>&1\;
+                                 if [ \\$$? == 0 ]; then 
+                                     VAR2=\\$$\(git log --pretty=\"format:%H\" -1 ${3RD_PARTY_SOURCE_DIRECTORY}/apache-log4cxx-0.10.0\)\; 
+                                 fi\;
                                  if [ \\$$VAR1 != \\$$VAR2 ]\; then 
                                    USE_DEFAULT_3RD_PARTY_PATH=${USE_DEFAULT_3RD_PARTY_PATH}\; 
                                    if [ \\$$USE_DEFAULT_3RD_PARTY_PATH == "true" ]\; then 
@@ -544,7 +554,12 @@ if (HMIADAPTER STREQUAL "dbus")
                                if [ \\$$? == 0 ]\; then 
                                  VAR1=\\$$\(readelf -p .commit_hash ${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib/libdbus-1.so 2>/dev/null\)\; 
                                  VAR1=\\$$\(echo \\$$VAR1 | awk '{print \\$$NF}'\)\; 
-                                 VAR2=\\$$\(git log --pretty=\"format:%H\" -1 ${3RD_PARTY_SOURCE_DIRECTORY}/dbus-1.7.8\)\; 
+                                 VAR2=-1\;
+                                 cd ${CMAKE_CURRENT_SOURCE_DIR}\;
+                                 git log . 1>/dev/null 2>&1\;
+                                 if [ \\$$? == 0 ]; then 
+                                     VAR2=\\$$\(git log --pretty=\"format:%H\" -1 ${3RD_PARTY_SOURCE_DIRECTORY}/dbus-1.7.8\)\; 
+                                 fi\;
                                  if [ \\$$VAR1 != \\$$VAR2 ]\; then 
                                    echo " Need to rebuild D-Bus. " \; 
                                    cd ${3RD_PARTY_BINARY_DIRECTORY}\; 
@@ -568,7 +583,12 @@ if (HMIADAPTER STREQUAL "dbus")
                                if [ \\$$? == 0 ]\; then 
                                  VAR1=\\$$\(readelf -p .commit_hash ${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib/libdbus-1.so 2>/dev/null\)\; 
                                  VAR1=\\$$\(echo \\$$VAR1 | awk '{print \\$$NF}'\)\; 
-                                 VAR2=\\$$\(git log --pretty=\"format:%H\" -1 ${3RD_PARTY_SOURCE_DIRECTORY}/dbus-1.7.8\)\; 
+                                 VAR2=-1\;
+                                 cd ${CMAKE_CURRENT_SOURCE_DIR}\;
+                                 git log . 1>/dev/null 2>&1\;
+                                 if [ \\$$? == 0 ]; then 
+                                     VAR2=\\$$\(git log --pretty=\"format:%H\" -1 ${3RD_PARTY_SOURCE_DIRECTORY}/dbus-1.7.8\)\; 
+                                 fi\;
                                  if [ \\$$VAR1 != \\$$VAR2 ]\; then 
                                    USE_DEFAULT_3RD_PARTY_PATH=${USE_DEFAULT_3RD_PARTY_PATH}\; 
                                    if [ \\$$USE_DEFAULT_3RD_PARTY_PATH == "true" ]\; then 
