@@ -579,8 +579,8 @@ smart_objects::SmartObject* MessageHelper::CreateDeviceListSO(
         policy::PolicyHandler::instance()->GetUserConsentForDevice(it->second.mac_address());
     list_so[index][strings::isSDLAllowed] =
         policy::DeviceConsent::kDeviceAllowed == device_consent;
+    ++index;
   }
-  ++index;
   return device_list_so;
 }
 
