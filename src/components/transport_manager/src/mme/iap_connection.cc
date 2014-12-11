@@ -86,7 +86,7 @@ TransportAdapter::Error IAPConnection::SendData(
   } else {
     LOG4CXX_WARN(
         logger_,
-        "iAP: error occurred while sending data on protocol " << protocol_name_);
+        "iAP: error occurred while sending data on protocol " << protocol_name_ << ", errno = " << errno);
     controller_->DataSendFailed(device_uid_, app_handle_, message,
                                 DataSendError());
     return TransportAdapter::FAIL;
@@ -129,7 +129,7 @@ void IAPConnection::ReceiveData(int session_id) {
         default:
           LOG4CXX_WARN(
               logger_,
-              "iAP: error occurred while receiving data on protocol " << protocol_name_);
+              "iAP: error occurred while receiving data on protocol " << protocol_name_ << ", errno = " << errno);
           controller_->DataReceiveFailed(device_uid_, app_handle_,
                                          DataReceiveError());
           break;

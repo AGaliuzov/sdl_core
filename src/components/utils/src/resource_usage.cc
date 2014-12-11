@@ -150,7 +150,6 @@ bool Resources::GetMemInfo(Resources::MemInfo &output) {
   std::string as_path = GetStatPath();
   struct stat st;
   struct _dir* proc_dir = 0;
-  struct dirent* proc_entry = 0;
   if (0 == (proc_dir = opendir(proc))) {
     LOG4CXX_ERROR(logger_, "Unable to access to " << proc);
     result = false;

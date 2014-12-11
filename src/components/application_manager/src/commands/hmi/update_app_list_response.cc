@@ -44,7 +44,7 @@ UpdateAppListResponse::~UpdateAppListResponse() {
 }
 
 void UpdateAppListResponse::Run() {
-  LOG4CXX_INFO(logger_, "UpdateAppListResponse::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   // TODO(PV): add check
 }

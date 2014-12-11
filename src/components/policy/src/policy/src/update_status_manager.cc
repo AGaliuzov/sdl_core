@@ -1,4 +1,4 @@
-/*
+﻿/*
  Copyright (c) 2014, Ford Motor Company
  All rights reserved.
 
@@ -50,14 +50,12 @@ UpdateStatusManager::UpdateStatusManager() :
 }
 
 UpdateStatusManager::~UpdateStatusManager() {
-  LOG4CXX_DEBUG(logger_, "Destroy update Status manager");
+  LOG4CXX_AUTO_TRACE(logger_);
   DCHECK(update_status_thread_delegate_);
-  update_status_thread_delegate_->update_status_manager_ = NULL;
   DCHECK(thread_);
-  thread_->stop();
   thread_->join();
+  delete update_status_thread_delegate_;
   threads::DeleteThread(thread_);
-  LOG4CXX_DEBUG(logger_, "update_response_timer_ deleted ");
 }
 
 void UpdateStatusManager::set_listener(PolicyListener* listener) {
@@ -71,6 +69,8 @@ void UpdateStatusManager::OnUpdateSentOut(uint32_t update_timeout) {
   update_status_thread_delegate_->updateTimeOut(update_timeout *
                                                 milliseconds_in_second);
   set_exchange_in_progress(true);
+  set_exchange_pending(true);
+  set_update_required(false);
 }
 
 void UpdateStatusManager::OnUpdateTimeoutOccurs() {
@@ -84,7 +84,7 @@ void UpdateStatusManager::OnUpdateTimeoutOccurs() {
 void UpdateStatusManager::OnValidUpdateReceived() {
   LOG4CXX_INFO(logger_, "OnValidUpdateReceived");
   update_status_thread_delegate_->updateTimeOut(0); // Stop Timer
-  set_update_required(false);
+  set_exchange_pending(false);
   set_exchange_in_progress(false);
 }
 
@@ -121,8 +121,8 @@ void UpdateStatusManager::OnPolicyInit(bool is_update_required) {
   update_required_ = is_update_required;
 }
 
-PolicyTableStatus UpdateStatusManager::GetUpdateStatus() {
-  LOG4CXX_INFO(logger_, "GetUpdateStatus");
+PolicyTableStatus UpdateStatusManager::GetUpdateStatus() const {
+  LOG4CXX_AUTO_TRACE(logger_);
   if (!exchange_in_progress_ && !exchange_pending_ && !update_required_) {
     return PolicyTableStatus::StatusUpToDate;
   }
@@ -134,11 +134,38 @@ PolicyTableStatus UpdateStatusManager::GetUpdateStatus() {
   return PolicyTableStatus::StatusUpdatePending;
 }
 
+bool UpdateStatusManager::IsUpdateRequired() const {
+  return update_required_;
+}
+
+bool UpdateStatusManager::IsUpdatePending() const {
+  return exchange_pending_;
+}
+
+void UpdateStatusManager::ScheduleUpdate() {
+  set_update_required(true);
+}
+
+std::string UpdateStatusManager::StringifiedUpdateStatus() const {
+  switch (GetUpdateStatus()) {
+    case policy::StatusUpdatePending:
+      return "UPDATING";
+    case policy::StatusUpdateRequired:
+      return "UPDATE_NEEDED";
+    case policy::StatusUpToDate:
+      return "UP_TO_DATE";
+    default: {
+      return "UNKNOWN";
+    }
+  }
+}
+
 void UpdateStatusManager::CheckUpdateStatus() {
-  LOG4CXX_INFO(logger_, "CheckUpdateStatus");
+  LOG4CXX_AUTO_TRACE(logger_);
   policy::PolicyTableStatus status = GetUpdateStatus();
   if (listener_ && last_update_status_ != status) {
-    listener_->OnUpdateStatusChanged(status);
+    LOG4CXX_INFO(logger_, "Send OnUpdateStatusChanged");
+    listener_->OnUpdateStatusChanged(StringifiedUpdateStatus());
   }
   last_update_status_ = status;
 }
@@ -199,12 +226,11 @@ void UpdateStatusManager::UpdateThreadDelegate::threadMain() {
   }
 }
 
-bool UpdateStatusManager::UpdateThreadDelegate::exitThreadMain() {
+void UpdateStatusManager::UpdateThreadDelegate::exitThreadMain() {
   sync_primitives::AutoLock auto_lock(state_lock_);
   stop_flag_ = true;
   LOG4CXX_INFO(logger_, "before notify");
   termination_condition_.NotifyOne();
-  return true;
 }
 
 void UpdateStatusManager::UpdateThreadDelegate::updateTimeOut(const uint32_t timeout_ms) {

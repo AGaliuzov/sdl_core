@@ -69,7 +69,7 @@ class AppPermissionDelegate: public threads::ThreadDelegate {
      *
      * @return true in case when thread has been finished properly
      */
-    virtual bool exitThreadMain();
+    virtual void exitThreadMain();
 
   private:
     uint32_t connection_key_;

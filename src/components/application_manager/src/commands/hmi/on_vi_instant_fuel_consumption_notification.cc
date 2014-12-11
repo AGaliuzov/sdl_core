@@ -46,7 +46,7 @@ OnVIInstantFuelConsumptionNotification::~OnVIInstantFuelConsumptionNotification(
 }
 
 void OnVIInstantFuelConsumptionNotification::Run() {
-  LOG4CXX_INFO(logger_, "OnVIInstantFuelConsumptionNotification::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   // prepare SmartObject for mobile factory
   (*message_)[strings::params][strings::function_id] =

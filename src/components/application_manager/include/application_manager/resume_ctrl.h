@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
@@ -206,7 +206,7 @@ class ResumeCtrl: public event_engine::EventObserver {
     uint32_t GetHMIApplicationID(const std::string& mobile_app_id);
 
     /**
-     * @brief Timer calback for  restoring HMI Level
+     * @brief Timer callback for  restoring HMI Level
      *
      */
     void ApplicationResumptiOnTimer();
@@ -214,7 +214,7 @@ class ResumeCtrl: public event_engine::EventObserver {
 
     /**
      * @brief SaveDataOnTimer :
-     *  Timer calback for persisting ResumptionData each N secconds
+     *  Timer callback for persisting ResumptionData each N seconds
      *  N gets from property
      */
     void SaveDataOnTimer();
@@ -225,6 +225,7 @@ class ResumeCtrl: public event_engine::EventObserver {
       is_data_saved = false;
     }
 
+    void RestoreHmiLevel(uint32_t time_stamp, ApplicationSharedPtr application);
   private:
 
     typedef std::pair<uint32_t, uint32_t> application_timestamp;
@@ -285,6 +286,8 @@ class ResumeCtrl: public event_engine::EventObserver {
     bool ProcessHMIRequest(
         NsSmartDeviceLink::NsSmartObjects::SmartObject* request = NULL,
         bool use_events = false);
+
+    void InsertToTimerQueue(uint32_t app_id, uint32_t time_stamp);
 
     /**
      *  @brief times of IGN_OFF that zombie application have to be saved.

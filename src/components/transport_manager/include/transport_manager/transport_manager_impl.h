@@ -33,15 +33,12 @@
 #ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_TRANSPORT_MANAGER_IMPL_H_
 #define SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_TRANSPORT_MANAGER_IMPL_H_
 
-#include <pthread.h>
-
 #include <queue>
 #include <map>
 #include <list>
 #include <algorithm>
 
 #include "utils/timer_thread.h"
-#include "utils/rwlock.h"
 
 #include "transport_manager/transport_manager.h"
 #include "transport_manager/transport_manager_listener.h"

@@ -252,10 +252,9 @@ class CacheManagerInterface {
   /**
    * @brief SetIsDefault Sets is_default flag for application
    * @param app_id app specific application
-   * @param is_default true if default false otherwise.
    * @return  true in case opperation was done successfully.
    */
-  virtual bool SetIsDefault(const std::string& app_id, bool is_default) = 0;
+  virtual bool SetIsDefault(const std::string& app_id) = 0;
 
   /**
    * Checks if the application has pre_data policy
@@ -429,12 +428,10 @@ class CacheManagerInterface {
    * groups for specific application.
    * @param policy_app_id application id.
    * @param device_id device id.
-   * @param result the count of unconsented groups
-   * @return true in case opperation has been done successfully.
+   * @param the count of unconsented groups
    */
-  virtual bool CountUnconsentedGroups(const std::string& policy_app_id,
-                                      const std::string& device_id,
-                                      int& result) = 0;
+  virtual int CountUnconsentedGroups(const std::string& policy_app_id,
+                                      const std::string& device_id) = 0;
 
   /**
    * @brief Gets functional group names and user_consent_prompts, if any
@@ -493,32 +490,18 @@ class CacheManagerInterface {
   virtual bool SetPredataPolicy(const std::string& app_id) = 0;
 
   /**
-   * @brief Updates application policy to either pre_DataConsented or not
-   * @param app_id Policy Id of application to be checked
-   * @param is_pre_data True of False to setting app policy to be pre_DataConsented
-   * @return true, if succeeded, otherwise - false
-   */
-  virtual bool SetIsPredata(const std::string& app_id, bool is_pre_data) = 0;
-
-  /**
    * @brief Removes unpaired devices
    * @return true if success
    */
-  virtual bool CleanupUnpairedDevices(const DeviceIds& device_ids) = 0;
+  virtual bool CleanupUnpairedDevices() = 0;
 
   /**
    * Sets flag of unpaired device
-   * @param device_id
+   * @param device_id Unique device id
+   * @param unpaired True, if should be marked as unpaired, otherwise - false
    * @return true if success
    */
-  virtual bool SetUnpairedDevice(const std::string& device_id) = 0;
-
-  /**
-   * Gets list of unpaired devices
-   * @param device_ids output list
-   * @return true if success
-   */
-  virtual bool UnpairedDevicesList(DeviceIds& device_ids) = 0;
+  virtual bool SetUnpairedDevice(const std::string& device_id, bool unpaired = true) = 0;
 
   /**
    * Resets Policy Table

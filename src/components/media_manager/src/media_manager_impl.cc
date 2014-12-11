@@ -135,14 +135,14 @@ void MediaManagerImpl::Init() {
 }
 
 void MediaManagerImpl::PlayA2DPSource(int32_t application_key) {
-  LOG4CXX_INFO(logger_, "MediaManagerImpl::PlayA2DPSource");
+  LOG4CXX_AUTO_TRACE(logger_);
   if (a2dp_player_) {
     a2dp_player_->StartActivity(application_key);
   }
 }
 
 void MediaManagerImpl::StopA2DPSource(int32_t application_key) {
-  LOG4CXX_INFO(logger_, "MediaManagerImpl::StopA2DPSource");
+  LOG4CXX_AUTO_TRACE(logger_);
   if (a2dp_player_) {
     a2dp_player_->StopActivity(application_key);
   }
@@ -208,7 +208,7 @@ void MediaManagerImpl::StartMicrophoneRecording(
 }
 
 void MediaManagerImpl::StopMicrophoneRecording(int32_t application_key) {
-  LOG4CXX_INFO(logger_, "MediaManagerImpl::StopMicrophoneRecording");
+  LOG4CXX_AUTO_TRACE(logger_);
 #if defined(EXTENDED_MEDIA_MODE)
   if (from_mic_recorder_) {
     from_mic_recorder_->StopActivity(application_key);
@@ -220,7 +220,7 @@ void MediaManagerImpl::StopMicrophoneRecording(int32_t application_key) {
 }
 
 void MediaManagerImpl::StartVideoStreaming(int32_t application_key) {
-  LOG4CXX_INFO(logger_, "MediaManagerImpl::StartVideoStreaming");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   if (video_streamer_) {
     if (!video_stream_active_) {
@@ -232,7 +232,7 @@ void MediaManagerImpl::StartVideoStreaming(int32_t application_key) {
 }
 
 void MediaManagerImpl::StopVideoStreaming(int32_t application_key) {
-  LOG4CXX_INFO(logger_, "MediaManagerImpl::StopVideoStreaming");
+  LOG4CXX_AUTO_TRACE(logger_);
   if (video_streamer_) {
     video_stream_active_ = false;
     application_manager::MessageHelper::SendNaviStopStream(application_key);
@@ -241,7 +241,7 @@ void MediaManagerImpl::StopVideoStreaming(int32_t application_key) {
 }
 
 void MediaManagerImpl::StartAudioStreaming(int32_t application_key) {
-  LOG4CXX_INFO(logger_, "MediaManagerImpl::StartAudioStreaming");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   if (audio_streamer_) {
     if (!audio_stream_active_) {
@@ -253,7 +253,7 @@ void MediaManagerImpl::StartAudioStreaming(int32_t application_key) {
 }
 
 void MediaManagerImpl::StopAudioStreaming(int32_t application_key) {
-  LOG4CXX_INFO(logger_, "MediaManagerImpl::StopAudioStreaming");
+  LOG4CXX_AUTO_TRACE(logger_);
   if (audio_streamer_) {
     audio_stream_active_ = false;
     application_manager::MessageHelper::SendAudioStopStream(application_key);

@@ -55,7 +55,7 @@ ChangeRegistrationRequest::~ChangeRegistrationRequest() {
 }
 
 void ChangeRegistrationRequest::Run() {
-  LOG4CXX_INFO(logger_, "ChangeRegistrationRequest::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   ApplicationManagerImpl* instance = ApplicationManagerImpl::instance();
   const HMICapabilities& hmi_capabilities = instance->hmi_capabilities();
@@ -178,7 +178,7 @@ bool ChangeRegistrationRequest::AllHmiResponsesSuccess(
 }
 
 void ChangeRegistrationRequest::on_event(const event_engine::Event& event) {
-  LOG4CXX_INFO(logger_, "ChangeRegistrationRequest::on_event");
+  LOG4CXX_AUTO_TRACE(logger_);
   const smart_objects::SmartObject& message = event.smart_object();
 
   hmi_apis::FunctionID::eType event_id = event.id();
@@ -374,7 +374,7 @@ bool ChangeRegistrationRequest::IsWhiteSpaceExist() {
 }
 
 mobile_apis::Result::eType ChangeRegistrationRequest::CheckCoincidence() {
-  LOG4CXX_INFO(logger_, "ChangeRegistrationRequest::CheckCoincidence");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   const smart_objects::SmartObject& msg_params =
       (*message_)[strings::msg_params];

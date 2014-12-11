@@ -35,6 +35,7 @@
 #include <errno.h>
 #include <sstream>
 #include <cstdlib>
+#include <stdio.h>
 
 #include "resumption/last_state.h"
 

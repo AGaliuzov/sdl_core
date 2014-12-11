@@ -44,7 +44,7 @@ VIGetDTCsRequest::~VIGetDTCsRequest() {
 }
 
 void VIGetDTCsRequest::Run() {
-  LOG4CXX_INFO(logger_, "VIGetDTCsRequest::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   SendRequest();
 }

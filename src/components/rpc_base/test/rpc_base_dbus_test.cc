@@ -31,6 +31,7 @@
 
 #include "gtest/gtest.h"
 #include "dbus/dbus_message.h"
+#include "rpc_base/rpc_base.h"
 #include "rpc_base/rpc_base_dbus_inl.h"
 
 namespace test {
@@ -300,13 +301,14 @@ TEST_F(DbusDeserialization, DeserializeOptionalInt) {
   }
   {
     dbus::MessageReader reader(msgref);
-    Optional < Integer<int32_t, 1, 90> > readback(&reader);
+    Optional < Integer<int32_t, 1, 90>> readback;
     ASSERT_FALSE(readback.is_initialized());
     ASSERT_TRUE(readback.is_valid());
     ASSERT_FALSE(reader.has_failed());
     ASSERT_FALSE(reader.HasNext());
   }
 }
+
 
 TEST_F(DbusDeserialization, SerializeDeserializeBool) {
   {
@@ -374,6 +376,7 @@ TEST_F(DbusDeserialization, SerializeDeserializeInt64t) {
     ASSERT_FALSE(reader.HasNext());
   }
 }
+
 
 TEST_F(DbusDeserialization, SerializeDeserializeDouble) {
   {

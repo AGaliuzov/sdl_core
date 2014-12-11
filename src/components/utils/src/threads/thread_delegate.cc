@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,25 +30,34 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "utils/threads/thread_manager.h"
 #include "utils/threads/thread_delegate.h"
-#include "utils/lock.h"
-#include "utils/conditional_variable.h"
-#include "utils/threads/thread.h"
-#include "utils/logger.h"
 
 #include <pthread.h>
 
-#include <sstream>
-#include <list>
-
-#if defined(OS_LINUX)
-#include <sys/syscall.h>
-#include <unistd.h>
-#endif
+#include "utils/threads/thread.h"
+#include "utils/lock.h"
 
 namespace threads {
 
-CREATE_LOGGERPTR_GLOBAL(logger_, "Utils")
+ThreadDelegate::~ThreadDelegate() {
+  if(thread_) {
+    thread_->set_delegate(NULL);
+  }
+}
 
-} // namespace threads
+void ThreadDelegate::exitThreadMain() {
+  if (thread_) {
+    if (thread_->thread_handle() == pthread_self()) {
+      pthread_exit(NULL);
+    } else {
+      pthread_cancel(thread_->thread_handle());
+    }
+  }
+}
+
+void ThreadDelegate::set_thread(Thread *thread) {
+  DCHECK(thread && !thread->is_running());
+  thread_ = thread;
+}
+
+}

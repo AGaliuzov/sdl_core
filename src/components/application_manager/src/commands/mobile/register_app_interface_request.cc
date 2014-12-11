@@ -132,7 +132,7 @@ RegisterAppInterfaceRequest::~RegisterAppInterfaceRequest() {
 }
 
 bool RegisterAppInterfaceRequest::Init() {
-  LOG4CXX_INFO(logger_, "RegisterAppInterfaceRequest::Init");
+  LOG4CXX_AUTO_TRACE(logger_);
   return true;
 }
 
@@ -141,8 +141,9 @@ void RegisterAppInterfaceRequest::Run() {
 
 #ifndef CUSTOMER_PASA
   // Fix problem with SDL and HMI HTML. This problem is not actual for HMI PASA.
-  // Flag conditional compilation "CUSTOMER_PASA" is used in order to exclude hit code
+  // Flag conditional compilation specific to customer is used in order to exclude hit code
   // to RTC
+  // FIXME(EZamakhov): on shutdown - get freez
   if (true == profile::Profile::instance()->launch_hmi()) {
     // wait till HMI started
     while (!ApplicationManagerImpl::instance()->IsHMICooperating()) {
@@ -277,12 +278,11 @@ void RegisterAppInterfaceRequest::Run() {
         device_info);
 
     SendRegisterAppInterfaceResponseToMobile();
-    policy::PolicyHandler::instance()->PTExchangeAtRegistration(mobile_app_id);
   }
 }
 
 void RegisterAppInterfaceRequest::on_event(const event_engine::Event& event) {
-  LOG4CXX_INFO(logger_, "RegisterAppInterfaceRequest::on_event");
+  LOG4CXX_AUTO_TRACE(logger_);
   switch (event.id()) {
     case hmi_apis::FunctionID::TTS_Speak: {
       const smart_objects::SmartObject& message = event.smart_object();
@@ -507,7 +507,7 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile(
 
 mobile_apis::Result::eType
 RegisterAppInterfaceRequest::CheckCoincidence() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   const smart_objects::SmartObject& msg_params =
     (*message_)[strings::msg_params];
 
@@ -686,7 +686,7 @@ bool RegisterAppInterfaceRequest::IsApplicationWithSameAppIdRegistered() {
 }
 
 bool RegisterAppInterfaceRequest::IsWhiteSpaceExist() {
-  LOG4CXX_INFO(logger_, "RegisterAppInterfaceRequest::IsWhiteSpaceExist");
+  LOG4CXX_AUTO_TRACE(logger_);
   const char* str = NULL;
 
   str = (*message_)[strings::msg_params][strings::app_name].asCharArray();

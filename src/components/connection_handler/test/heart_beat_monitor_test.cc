@@ -62,11 +62,18 @@ class ConnectionHandlerMock : public connection_handler::ConnectionHandler {
   MOCK_METHOD2(GetDeviceID,
       bool(const std::string& mac_address,
           connection_handler::DeviceHandle* device_handle));
-  MOCK_METHOD1(CloseSession,
-      void(uint32_t key));
+//  MOCK_METHOD1(CloseSession,
+//      void(uint32_t key));
+//  MOCK_METHOD2(CloseSession,
+//      void(connection_handler::ConnectionHandle connection_handle,
+//          uint8_t session_id));
   MOCK_METHOD2(CloseSession,
-      void(connection_handler::ConnectionHandle connection_handle,
-          uint8_t session_id));
+            void(uint32_t key,
+                 connection_handler::CloseSessionReason close_reason));
+  MOCK_METHOD3(CloseSession,
+             void(connection_handler::ConnectionHandle connection_handle,
+                  uint8_t session_id,
+                  connection_handler::CloseSessionReason close_reason));
   MOCK_METHOD1(StartSessionHeartBeat,
       void(uint32_t key));
   MOCK_METHOD2(SendHeartBeat,
@@ -133,7 +140,7 @@ TEST_F(HeartBeatMonitorTest, TimerNotElapsed) {
 TEST_F(HeartBeatMonitorTest, TimerElapsed) {
   const uint32_t session = conn->AddNewSession();
 
-  EXPECT_CALL(connection_handler_mock, CloseSession(_, session))
+  EXPECT_CALL(connection_handler_mock, CloseSession(_, session,_))
   .WillOnce(RemoveSession(conn, session));
   EXPECT_CALL(connection_handler_mock, CloseConnection(_));
   EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, session));
@@ -162,7 +169,7 @@ TEST_F(HeartBeatMonitorTest, NotKeptAlive) {
   const uint32_t session = conn->AddNewSession();
 
   EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, session));
-  EXPECT_CALL(connection_handler_mock, CloseSession(_, session))
+  EXPECT_CALL(connection_handler_mock, CloseSession(_, session,_))
   .WillOnce(RemoveSession(conn, session));
   EXPECT_CALL(connection_handler_mock, CloseConnection(_));
 
@@ -180,9 +187,9 @@ TEST_F(HeartBeatMonitorTest, TwoSessionsElapsed) {
   const uint32_t kSession1 = conn->AddNewSession();
   const uint32_t kSession2 = conn->AddNewSession();
 
-  EXPECT_CALL(connection_handler_mock, CloseSession(_, kSession1))
+  EXPECT_CALL(connection_handler_mock, CloseSession(_, kSession1,_))
   .WillOnce(RemoveSession(conn, kSession1));
-  EXPECT_CALL(connection_handler_mock, CloseSession(_, kSession2))
+  EXPECT_CALL(connection_handler_mock, CloseSession(_, kSession2,_))
   .WillOnce(RemoveSession(conn, kSession2));
   EXPECT_CALL(connection_handler_mock, CloseConnection(_));
   EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, kSession1));
@@ -211,7 +218,7 @@ TEST_F(HeartBeatMonitorTest, IncreaseHeartBeatTimeout) {
 TEST_F(HeartBeatMonitorTest, DecreaseHeartBeatTimeout) {
   const uint32_t kSession = conn->AddNewSession();
   EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, kSession));
-  EXPECT_CALL(connection_handler_mock, CloseSession(_, kSession))
+  EXPECT_CALL(connection_handler_mock, CloseSession(_, kSession,_))
   .WillOnce(RemoveSession(conn, kSession));
   EXPECT_CALL(connection_handler_mock, CloseConnection(_));
 

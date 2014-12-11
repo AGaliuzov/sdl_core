@@ -45,7 +45,7 @@ AudioStartStreamResponse::~AudioStartStreamResponse() {
 }
 
 void AudioStartStreamResponse::Run() {
-  LOG4CXX_INFO(logger_, "AudioStartStreamResponse::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
   ApplicationSharedPtr app =
       ApplicationManagerImpl::instance()->active_application();
 
