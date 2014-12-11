@@ -96,7 +96,7 @@ class MessageHelper {
     /**
      * @brief Create mobile HashUpdateNotification
      */
-    static smart_objects::SmartObject* GetHashUpdateNotification(const uint32_t app_id);
+    static smart_objects::SmartObjectSPtr GetHashUpdateNotification(const uint32_t app_id);
 
     /**
      * @brief Sends to mobile HashUpdateNotification
@@ -158,14 +158,14 @@ class MessageHelper {
      * @param devices Devices list
      *
      */
-    static smart_objects::SmartObject* CreateDeviceListSO(
-      const connection_handler::DeviceMap& devices);
+    static smart_objects::SmartObjectSPtr CreateDeviceListSO(
+        const connection_handler::DeviceMap& devices);
 
-    static smart_objects::SmartObject* CreateModuleInfoSO(
-      uint32_t function_id);
+    static smart_objects::SmartObjectSPtr CreateModuleInfoSO(
+        uint32_t function_id);
 
-    static smart_objects::SmartObject* CreateSetAppIcon(
-      const std::string& path_to_icon, uint32_t app_id);
+    static smart_objects::SmartObjectSPtr CreateSetAppIcon(
+        const std::string& path_to_icon, uint32_t app_id);
 
     /**
      * @brief Sends IVI subscriptions
@@ -181,7 +181,8 @@ class MessageHelper {
     static void SendGlobalPropertiesToHMI(ApplicationConstSharedPtr app);
     static smart_objects::SmartObjectList CreateGlobalPropertiesRequestsToHMI(ApplicationConstSharedPtr app);
 
-    static smart_objects::SmartObject* CreateAppVrHelp(ApplicationConstSharedPtr app);
+    static smart_objects::SmartObjectSPtr CreateAppVrHelp(
+        ApplicationConstSharedPtr app);
 
     static smart_objects::SmartObjectList CreateShowRequestToHMI(ApplicationConstSharedPtr app);
     static void SendShowRequestToHMI(ApplicationConstSharedPtr app);
@@ -199,9 +200,9 @@ class MessageHelper {
       uint32_t cmd_id, const smart_objects::SmartObject& vr_commands,
       uint32_t app_id);
 
-    static smart_objects::SmartObject* CreateAddVRCommandToHMI(
-      uint32_t cmd_id, const smart_objects::SmartObject& vr_commands,
-      uint32_t app_id);
+    static smart_objects::SmartObjectSPtr CreateAddVRCommandToHMI(
+        uint32_t cmd_id, const smart_objects::SmartObject& vr_commands,
+        uint32_t app_id);
 
     /*
      * @brief Create Common.HMIApplication struct application instance
@@ -218,7 +219,7 @@ class MessageHelper {
     /*
      * @brief Creates BasicCommunication.OnAppUnregistered notification
      * @param app Application instance
-     * @param is_unexpected_disconnect 
+     * @param is_unexpected_disconnect
      * Indicates if connection was unexpectedly lost by TM or HB
      */
     static void SendOnAppUnregNotificationToHMI(ApplicationConstSharedPtr app,
@@ -377,9 +378,9 @@ class MessageHelper {
      */
     static bool SendStopAudioPathThru();
 
-    static smart_objects::SmartObject* CreateNegativeResponse(
-      uint32_t connection_key, int32_t function_id, uint32_t correlation_id,
-      int32_t result_code);
+    static smart_objects::SmartObjectSPtr CreateNegativeResponse(
+        uint32_t connection_key, int32_t function_id, uint32_t correlation_id,
+        int32_t result_code);
 
     /*
      * @brief Verify image and add image file full path
@@ -493,9 +494,9 @@ class MessageHelper {
     static void FillAppRevokedPermissions(const policy::AppPermissions& permissions,
                                    smart_objects::SmartObject& message);
 
-    static smart_objects::SmartObject* CreateChangeRegistration(
-      int32_t function_id, int32_t language, uint32_t app_id,
-      const smart_objects::SmartObject* app_types = NULL);
+    static smart_objects::SmartObjectSPtr CreateChangeRegistration(
+        int32_t function_id, int32_t language, uint32_t app_id,
+        const smart_objects::SmartObject* app_types = NULL);
 
     MessageHelper();
 
