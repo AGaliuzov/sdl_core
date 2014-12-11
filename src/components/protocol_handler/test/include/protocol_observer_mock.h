@@ -30,8 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef TEST_COMPONENTS_INCLUDE_PROTOCOL_HANDLER_PROTOCOL_OBSERVER_MOCK_H_
-#define TEST_COMPONENTS_INCLUDE_PROTOCOL_HANDLER_PROTOCOL_OBSERVER_MOCK_H_
+#ifndef SRC_COMPONENTS_PROTOCOL_HANDLER_TEST_INCLUDE_PROTOCOL_OBSERVER_MOCK_H_
+#define SRC_COMPONENTS_PROTOCOL_HANDLER_TEST_INCLUDE_PROTOCOL_OBSERVER_MOCK_H_
 
 #include <gmock/gmock.h>
 #include <string>
@@ -51,8 +51,7 @@ class ProtocolObserverMock : public ::protocol_handler::ProtocolObserver {
   MOCK_METHOD1(OnMobileMessageSent,
       void(const ::protocol_handler::RawMessagePtr));
 };
-}
-  // namespace protocol_handler_test
+} // namespace protocol_handler_test
 } // namespace components
-}  // namespace test
-#endif  // TEST_COMPONENTS_INCLUDE_PROTOCOL_HANDLER_PROTOCOL_OBSERVER_MOCK_H_
+} // namespace test
+#endif  //SRC_COMPONENTS_PROTOCOL_HANDLER_TEST_INCLUDE_PROTOCOL_OBSERVER_MOCK_H_

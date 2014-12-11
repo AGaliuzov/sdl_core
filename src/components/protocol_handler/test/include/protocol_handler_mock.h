@@ -29,8 +29,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef TEST_COMPONENTS_PROTOCOL_HANDLER_INCLUDE_PROTOCOL_HANDLER_PROTOCOL_HANDLER_MOCK_H_
-#define TEST_COMPONENTS_PROTOCOL_HANDLER_INCLUDE_PROTOCOL_HANDLER_PROTOCOL_HANDLER_MOCK_H_
+#ifndef SRC_COMPONENTS_PROTOCOL_HANDLER_TEST_INCLUDE_PROTOCOL_HANDLER_MOCK_H_
+#define SRC_COMPONENTS_PROTOCOL_HANDLER_TEST_INCLUDE_PROTOCOL_HANDLER_MOCK_H_
 
 #include <gmock/gmock.h>
 #include "transport_manager/transport_manager.h"
@@ -162,8 +162,8 @@ class SessionObserverMock : public protocol_handler::SessionObserver {
 /*
  * MOCK implementation of security_manager::SecurityManager
  */
-class SecurityManagerMock: public security_manager::SecurityManager {
-public:
+class SecurityManagerMock : public security_manager::SecurityManager {
+ public:
   MOCK_METHOD1(AddListener,
       void(security_manager::SecurityManagerListener *));
   MOCK_METHOD1(CreateSSLContext,
@@ -191,8 +191,8 @@ public:
       void(const ::protocol_handler::RawMessagePtr));
 };
 
-class SSLContextMock: public security_manager::SSLContext {
-public:
+class SSLContextMock : public security_manager::SSLContext {
+ public:
   MOCK_CONST_METHOD0(mode, int ());
   MOCK_METHOD2(StartHandshake,
       security_manager::SSLContext::HandshakeResult (
@@ -218,5 +218,5 @@ public:
   // namespace test
 } // namespace components
 }  // namespace protocol_handler_test
-#endif  // TEST_COMPONENTS_PROTOCOL_HANDLER_INCLUDE_PROTOCOL_HANDLER_PROTOCOL_HANDLER_MOCK_H_
+#endif  // SRC_COMPONENTS_PROTOCOL_HANDLER_TEST_INCLUDE_PROTOCOL_HANDLER_MOCK_H_
 
