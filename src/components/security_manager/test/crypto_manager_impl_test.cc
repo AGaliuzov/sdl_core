@@ -30,7 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #include <gtest/gtest.h>
 
 #include <sys/types.h>
@@ -65,8 +64,7 @@ namespace security_manager_test {
 namespace {
 bool isErrorFatal(SSL *connection, int res) {
   const int error = SSL_get_error(connection, res);
-  return (error != SSL_ERROR_WANT_READ &&
-          error != SSL_ERROR_WANT_WRITE);
+  return (error != SSL_ERROR_WANT_READ && error != SSL_ERROR_WANT_WRITE);
 }
 }
 // TODO(EZamakhov): May be split to SSLContext and Cyptomanager tests (separate files)
@@ -75,15 +73,16 @@ class SSLTest : public testing::Test {
  protected:
   static void SetUpTestCase() {
     crypto_manager = new security_manager::CryptoManagerImpl();
-    const bool crypto_manager_initialization =
-        crypto_manager->Init(security_manager::SERVER, security_manager::TLSv1_2, "mycert.pem",
-                         "mykey.pem", FORD_CIPHER, false);
+    const bool crypto_manager_initialization = crypto_manager->Init(
+        security_manager::SERVER, security_manager::TLSv1_2, "mycert.pem",
+        "mykey.pem", FORD_CIPHER, false);
     EXPECT_TRUE(crypto_manager_initialization);
 
     client_manager = new security_manager::CryptoManagerImpl();
-    const bool client_manager_initialization =
-        client_manager->Init(security_manager::CLIENT, security_manager::TLSv1_2, "", "",
-                         FORD_CIPHER, false);
+    const bool client_manager_initialization = client_manager->Init(
+        security_manager::CLIENT, security_manager::TLSv1_2, "", "",
+        FORD_CIPHER,
+        false);
     EXPECT_TRUE(client_manager_initialization);
   }
 
@@ -128,15 +127,15 @@ TEST(CryptoManagerTest, WrongInit) {
 //  EXPECT_FALSE(crypto_manager->LastError().empty());
   // Unexistent cert file
   EXPECT_FALSE(crypto_manager->Init(security_manager::SERVER, security_manager::TLSv1_2,
-                                    "unexists_file.pem", "mykey.pem", FORD_CIPHER, false));
+          "unexists_file.pem", "mykey.pem", FORD_CIPHER, false));
   EXPECT_FALSE(crypto_manager->LastError().empty());
   // Unexistent key file
   EXPECT_FALSE(crypto_manager->Init(security_manager::SERVER, security_manager::TLSv1_2,
-                                    "mycert.pem", "unexists_file.pem", FORD_CIPHER, false));
+          "mycert.pem", "unexists_file.pem", FORD_CIPHER, false));
   EXPECT_FALSE(crypto_manager->LastError().empty());
   // Unexistent cipher value
   EXPECT_FALSE(crypto_manager->Init(security_manager::SERVER, security_manager::TLSv1_2,
-                                    "mycert.pem", "mykey.pem", "INVALID_UNKNOWN_CIPHER", false));
+          "mycert.pem", "mykey.pem", "INVALID_UNKNOWN_CIPHER", false));
   EXPECT_FALSE(crypto_manager->LastError().empty());
   delete crypto_manager;
 }
@@ -145,23 +144,23 @@ TEST(CryptoManagerTest, CorrectInit) {
   security_manager::CryptoManager *crypto_manager = new security_manager::CryptoManagerImpl();
   // Empty cert and key values for SERVER
   EXPECT_TRUE(crypto_manager->Init(security_manager::SERVER, security_manager::TLSv1_2,
-                                   "", "", FORD_CIPHER, false));
+          "", "", FORD_CIPHER, false));
   EXPECT_TRUE(crypto_manager->LastError().empty());
   // Recall init
   EXPECT_TRUE(crypto_manager->Init(security_manager::CLIENT, security_manager::TLSv1_2,
-                                   "", "", FORD_CIPHER, false));
+          "", "", FORD_CIPHER, false));
   EXPECT_TRUE(crypto_manager->LastError().empty());
   // Recall init with other protocols
   EXPECT_TRUE(crypto_manager->Init(security_manager::CLIENT, security_manager::TLSv1_1,
-                                   "", "", FORD_CIPHER, false));
+          "", "", FORD_CIPHER, false));
   EXPECT_TRUE(crypto_manager->LastError().empty());
   EXPECT_TRUE(crypto_manager->Init(security_manager::CLIENT, security_manager::TLSv1,
-                                   "", "", FORD_CIPHER, false));
+          "", "", FORD_CIPHER, false));
   EXPECT_TRUE(crypto_manager->LastError().empty());
 
   // Cipher value
   EXPECT_TRUE(crypto_manager->Init(security_manager::SERVER, security_manager::TLSv1_2,
-                                   "mycert.pem", "mykey.pem", ALL_CIPHERS, false));
+          "mycert.pem", "mykey.pem", ALL_CIPHERS, false));
   EXPECT_TRUE(crypto_manager->LastError().empty());
   delete crypto_manager;
 }
@@ -181,8 +180,8 @@ TEST_F(SSLTest, BrokenHandshake) {
   size_t server_buf_len;
   size_t client_buf_len;
   ASSERT_EQ(security_manager::SSLContext::Handshake_Result_Success,
-            client_ctx->StartHandshake(&client_buf,
-                                       &client_buf_len));
+      client_ctx->StartHandshake(&client_buf,
+          &client_buf_len));
   ASSERT_FALSE(client_buf == NULL);
   ASSERT_GT(client_buf_len, 0u);
   // Broke 3 bytes for get abnormal fail of handshake
@@ -191,9 +190,9 @@ TEST_F(SSLTest, BrokenHandshake) {
   const_cast<uint8_t*>(client_buf)[client_buf_len - 1] ^= 0xFF;
   ASSERT_EQ(security_manager::SSLContext::Handshake_Result_AbnormalFail,
       server_ctx->DoHandshakeStep(client_buf,
-                                  client_buf_len,
-                                  &server_buf,
-                                  &server_buf_len));
+          client_buf_len,
+          &server_buf,
+          &server_buf_len));
 }
 
 // TODO(EZamakhov): split to SSL/TLS1/1.1/1.2 tests
@@ -204,25 +203,25 @@ TEST_F(SSLTest, Positive) {
   size_t server_buf_len;
   size_t client_buf_len;
   ASSERT_EQ(client_ctx->StartHandshake(&client_buf,
-                                       &client_buf_len),
-            security_manager::SSLContext::Handshake_Result_Success);
+          &client_buf_len),
+      security_manager::SSLContext::Handshake_Result_Success);
   ASSERT_FALSE(client_buf == NULL);
   ASSERT_GT(client_buf_len, 0u);
 
   for (;;) {
     ASSERT_EQ(server_ctx->DoHandshakeStep(client_buf,
-                                          client_buf_len,
-                                          &server_buf,
-                                          &server_buf_len),
-                security_manager::SSLContext::Handshake_Result_Success);
+            client_buf_len,
+            &server_buf,
+            &server_buf_len),
+        security_manager::SSLContext::Handshake_Result_Success);
     ASSERT_FALSE(server_buf == NULL);
     ASSERT_GT(server_buf_len, 0u);
 
     ASSERT_EQ(client_ctx->DoHandshakeStep(server_buf,
-                                          server_buf_len,
-                                          &client_buf,
-                                          &client_buf_len),
-                security_manager::SSLContext::Handshake_Result_Success);
+            server_buf_len,
+            &client_buf,
+            &client_buf_len),
+        security_manager::SSLContext::Handshake_Result_Success);
     if (server_ctx->IsInitCompleted()) {
       break;
     }
@@ -253,8 +252,8 @@ TEST_F(SSLTest, Positive) {
   ASSERT_GT(text_len, 0u);
 
   ASSERT_EQ(strncmp(reinterpret_cast<const char*>(text),
-                    "abra",
-                    4), 0);
+          "abra",
+          4), 0);
 }
 
 TEST_F(SSLTest, EcncryptionFail) {
@@ -264,21 +263,21 @@ TEST_F(SSLTest, EcncryptionFail) {
   size_t server_buf_len;
   size_t client_buf_len;
   ASSERT_EQ(client_ctx->StartHandshake(&client_buf,
-                                       &client_buf_len),
-            security_manager::SSLContext::Handshake_Result_Success);
+          &client_buf_len),
+      security_manager::SSLContext::Handshake_Result_Success);
 
   while (!server_ctx->IsInitCompleted()) {
     ASSERT_FALSE(client_buf == NULL);
     ASSERT_GT(client_buf_len, 0u);
     ASSERT_EQ(server_ctx->DoHandshakeStep(client_buf, client_buf_len,
-                                          &server_buf, &server_buf_len),
-              security_manager::SSLContext::Handshake_Result_Success);
+            &server_buf, &server_buf_len),
+        security_manager::SSLContext::Handshake_Result_Success);
     ASSERT_FALSE(server_buf == NULL);
     ASSERT_GT(server_buf_len, 0u);
 
     ASSERT_EQ(client_ctx->DoHandshakeStep(server_buf, server_buf_len,
-                                          &client_buf, &client_buf_len),
-              security_manager::SSLContext::Handshake_Result_Success);
+            &client_buf, &client_buf_len),
+        security_manager::SSLContext::Handshake_Result_Success);
   }
   // expect empty buffers after init complete
   ASSERT_TRUE(client_buf == NULL);
@@ -312,145 +311,146 @@ TEST_F(SSLTest, EcncryptionFail) {
 }
 
 /*
-TEST_F(SSLTest, DISABLED_BadData) {
-  using security_manager::LastError;
-  int res = 0;
+ TEST_F(SSLTest, DISABLED_BadData) {
+ using security_manager::LastError;
+ int res = 0;
 
-  uint8_t *outBuf = new uint8_t[1024 * 1024];
-  const uint8_t *inBuf;
+ uint8_t *outBuf = new uint8_t[1024 * 1024];
+ const uint8_t *inBuf;
 
-  for(;;) {
-    res = SSL_do_handshake(connection);
-    if (res >= 0) {
-      break;
-    }
+ for(;;) {
+ res = SSL_do_handshake(connection);
+ if (res >= 0) {
+ break;
+ }
 
-    if (isErrorFatal(connection, res)) {
-      break;
-    }
+ if (isErrorFatal(connection, res)) {
+ break;
+ }
 
-    size_t outLen  = BIO_ctrl_pending(bioOut);
-    if (outLen) {
-      BIO_read(bioOut, outBuf, outLen);
-    }
-    size_t inLen;
-    server_ctx->DoHandshakeStep(outBuf, outLen, &inBuf, &inLen);
-    EXPECT_TRUE(inBuf != NULL);
+ size_t outLen  = BIO_ctrl_pending(bioOut);
+ if (outLen) {
+ BIO_read(bioOut, outBuf, outLen);
+ }
+ size_t inLen;
+ server_ctx->DoHandshakeStep(outBuf, outLen, &inBuf, &inLen);
+ EXPECT_TRUE(inBuf != NULL);
 
-    if (inLen) {
-      BIO_write(bioIn, inBuf, inLen);
-    }
-  }
-  delete[] outBuf;
+ if (inLen) {
+ BIO_write(bioIn, inBuf, inLen);
+ }
+ }
+ delete[] outBuf;
 
-  EXPECT_EQ(res, 1);
+ EXPECT_EQ(res, 1);
 
-  BIO *bioF = BIO_new(BIO_f_ssl());
-  BIO_set_ssl(bioF, connection, BIO_NOCLOSE);
+ BIO *bioF = BIO_new(BIO_f_ssl());
+ BIO_set_ssl(bioF, connection, BIO_NOCLOSE);
 
-  const char *text = "Hello, it's the text to be encrypted";
-  uint8_t *encryptedText = new uint8_t[1024];
-  const   uint8_t *decryptedText;
-  size_t text_len;
+ const char *text = "Hello, it's the text to be encrypted";
+ uint8_t *encryptedText = new uint8_t[1024];
+ const   uint8_t *decryptedText;
+ size_t text_len;
 
-  // Encrypt text on client side
-  BIO_write(bioF, text, sizeof(text));
-  text_len = BIO_ctrl_pending(bioOut);
-  size_t len = BIO_read(bioOut, encryptedText, text_len);
+ // Encrypt text on client side
+ BIO_write(bioF, text, sizeof(text));
+ text_len = BIO_ctrl_pending(bioOut);
+ size_t len = BIO_read(bioOut, encryptedText, text_len);
 
-  // Make improvements
-  encryptedText[len / 3] ^= 0x80;
+ // Make improvements
+ encryptedText[len / 3] ^= 0x80;
 
-  // Decrypt text on server
-  server_ctx->Decrypt(encryptedText, len, &decryptedText, &text_len);
+ // Decrypt text on server
+ server_ctx->Decrypt(encryptedText, len, &decryptedText, &text_len);
 
-  delete[] encryptedText;
+ delete[] encryptedText;
 
-  EXPECT_FALSE(decryptedText == NULL);
-  EXPECT_GT(LastError().length(), 0u);
-  delete[] encryptedText;
+ EXPECT_FALSE(decryptedText == NULL);
+ EXPECT_GT(LastError().length(), 0u);
+ delete[] encryptedText;
+ }
+
+
+
+ TEST_F(SSLTest, Positive2) {
+ using security_manager::LastError;
+ int res = 0;
+
+ uint8_t *outBuf = new uint8_t[1024 * 1024];
+ const uint8_t *inBuf;
+
+ for(;;) {
+ res = SSL_do_handshake(connection);
+ if (res >= 0) {
+ break;
+ }
+
+ if (isErrorFatal(connection, res)) {
+ break;
+ }
+
+ size_t outLen  = BIO_ctrl_pending(bioOut);
+ if (outLen) {
+ BIO_read(bioOut, outBuf, outLen);
+ }
+ size_t inLen;
+ server_ctx->DoHandshakeStep(outBuf, outLen, &inBuf, &inLen);
+ EXPECT_TRUE(inBuf != NULL);
+
+ if (inLen) {
+ BIO_write(bioIn, inBuf, inLen);
+ }
+ }
+ delete[] outBuf;
+
+ EXPECT_EQ(res, 1);
+
+ EXPECT_NE(SSL_is_init_finished(connection), 0u);
+
+ BIO *bioF = BIO_new(BIO_f_ssl());
+ BIO_set_ssl(bioF, connection, BIO_NOCLOSE);
+
+ const int N =1000;
+ int last_max = 0;
+ int min_oh = N , max_oh = 0;
+ for (int l = 1; l < N; ++l) {
+ char *text = new char[l+1];
+ text[l]='\0';
+ uint8_t *encryptedText = new uint8_t[1024*N];
+ const uint8_t *decryptedText;
+ size_t text_len;
+ // Encrypt text on client side
+ BIO_write(bioF, text, l);
+ text_len = BIO_ctrl_pending(bioOut);
+ size_t len = BIO_read(bioOut, encryptedText, text_len);
+ const int temp = len - l;
+ min_oh = temp < min_oh ? temp : min_oh;
+ max_oh = temp > max_oh ? temp : max_oh;
+ if (last_max < len) {
+ std::cout << l << "->" << len;
+ if (l > 1) {
+ std::cout << ", last overhead = " << last_max << "-" << l-1
+ << " = " << last_max - (l - 1) << "bytes || ";
+ std::cout << " overhead = " << len << "-" << l
+ << " = " << len - l << "bytes";
+ }
+ std::cout << std::endl;
+ last_max = len;
+
+ // Decrypt text on server
+ server_ctx->Decrypt(encryptedText, len, &decryptedText, &text_len);
+ const_cast<uint8_t*>(decryptedText)[text_len] = 0;
+
+ EXPECT_TRUE(decryptedText != NULL);
+ EXPECT_EQ(strcmp(reinterpret_cast<const char*>(decryptedText), text), 0u);
+ delete[] text;
+ }
+ std::cout << " min = " << min_oh << ", max = " << max_oh << std::endl;
+ }
+
+
 }
-
-
-
-TEST_F(SSLTest, Positive2) {
-  using security_manager::LastError;
-  int res = 0;
-
-  uint8_t *outBuf = new uint8_t[1024 * 1024];
-  const uint8_t *inBuf;
-
-  for(;;) {
-    res = SSL_do_handshake(connection);
-    if (res >= 0) {
-      break;
-    }
-
-    if (isErrorFatal(connection, res)) {
-      break;
-    }
-
-    size_t outLen  = BIO_ctrl_pending(bioOut);
-    if (outLen) {
-      BIO_read(bioOut, outBuf, outLen);
-    }
-    size_t inLen;
-    server_ctx->DoHandshakeStep(outBuf, outLen, &inBuf, &inLen);
-    EXPECT_TRUE(inBuf != NULL);
-
-    if (inLen) {
-      BIO_write(bioIn, inBuf, inLen);
-    }
-  }
-  delete[] outBuf;
-
-  EXPECT_EQ(res, 1);
-
-  EXPECT_NE(SSL_is_init_finished(connection), 0u);
-
-  BIO *bioF = BIO_new(BIO_f_ssl());
-  BIO_set_ssl(bioF, connection, BIO_NOCLOSE);
-
-  const int N =1000;
-  int last_max = 0;
-  int min_oh = N , max_oh = 0;
-  for (int l = 1; l < N; ++l) {
-    char *text = new char[l+1];
-    text[l]='\0';
-    uint8_t *encryptedText = new uint8_t[1024*N];
-    const uint8_t *decryptedText;
-    size_t text_len;
-    // Encrypt text on client side
-    BIO_write(bioF, text, l);
-    text_len = BIO_ctrl_pending(bioOut);
-    size_t len = BIO_read(bioOut, encryptedText, text_len);
-    const int temp = len - l;
-    min_oh = temp < min_oh ? temp : min_oh;
-    max_oh = temp > max_oh ? temp : max_oh;
-    if (last_max < len) {
-      std::cout << l << "->" << len;
-      if (l > 1) {
-        std::cout << ", last overhead = " << last_max << "-" << l-1
-                  << " = " << last_max - (l - 1) << "bytes || ";
-        std::cout << " overhead = " << len << "-" << l
-                  << " = " << len - l << "bytes";
-      }
-      std::cout << std::endl;
-      last_max = len;
-
-    // Decrypt text on server
-    server_ctx->Decrypt(encryptedText, len, &decryptedText, &text_len);
-    const_cast<uint8_t*>(decryptedText)[text_len] = 0;
-
-    EXPECT_TRUE(decryptedText != NULL);
-    EXPECT_EQ(strcmp(reinterpret_cast<const char*>(decryptedText), text), 0u);
-    delete[] text;
-  }
-  std::cout << " min = " << min_oh << ", max = " << max_oh << std::endl;
-}
-//*/
-
-}  // namespace crypto_manager_test
-}  // namespace components
+  // namespace crypto_manager_test
+} // namespace components
 }  // namespace test
 

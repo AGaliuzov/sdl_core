@@ -28,19 +28,17 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+if (BUILD_TESTS)
+  
 include_directories(
   ${LOG4CXX_INCLUDE_DIRECTORY}
   ${GMOCK_INCLUDE_DIRECTORY}
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
-  include/
-
-  #${SecurityManagerIncludeDir}
   ${COMPONENTS_DIR}/protocol_handler/test/include
   ${COMPONENTS_DIR}/transport_manager/test/include
   ${COMPONENTS_DIR}/security_manager/include
-  #${COMPONENTS_DIR}/security_manager/test/include
-
+  include
 )
 
 set(SOURCES
@@ -48,12 +46,9 @@ set(SOURCES
   ${COMPONENTS_DIR}/security_manager/test/security_manager_test.cc
   ${COMPONENTS_DIR}/security_manager/test/security_query_test.cc
   ${COMPONENTS_DIR}/security_manager/test/security_query_matcher.cc
-)
+ )
 
 set(LIBRARIES
-
-#  gtest
-
   gtest_main
   gmock
   gmock_main
@@ -67,6 +62,8 @@ set(LIBRARIES
   ProtocolLibrary
 )
 
-add_library(test_security_manager ${SOURCES})
-target_link_libraries(test_security_manager ${LIBRARIES} )
-create_test(test_security_manager_test "${SOURCES}" "${LIBRARIES}")
+add_library (test_security_manager ${SOURCES})
+target_link_libraries (test_security_manager ${LIBRARIES} )
+create_test (security_manager_test "${SOURCES}" "${LIBRARIES}")
+
+endif ()
