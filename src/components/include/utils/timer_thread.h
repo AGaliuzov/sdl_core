@@ -269,6 +269,7 @@ bool TimerThread<T>::isRunning() {
 
 template <class T>
 void TimerThread<T>::pause() {
+  LOG4CXX_DEBUG(logger_, "Suspension of timer " << name_);
   uint32_t  wait_seconds = std::numeric_limits<uint32_t>::max();
   updateTimeOut(wait_seconds);
 }
