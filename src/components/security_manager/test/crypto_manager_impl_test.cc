@@ -447,7 +447,7 @@ TEST_F(SSLTest, EcncryptionFail) {
  }
  std::cout << " min = " << min_oh << ", max = " << max_oh << std::endl;
  }
-
+ //*/
 
 }
   // namespace crypto_manager_test
