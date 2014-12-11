@@ -290,13 +290,29 @@ class ResumeCtrl: public event_engine::EventObserver {
 
     void InsertToTimerQueue(uint32_t app_id, uint32_t time_stamp);
 
-    void AddFiles(ApplicationSharedPtr application, Json::Value& saved_app);
-    void AddSubmenues(ApplicationSharedPtr application, Json::Value& saved_app);
-    void AddCommands(ApplicationSharedPtr application, Json::Value& saved_app);
-    void AddChoicesets(ApplicationSharedPtr application, Json::Value& saved_app);
-    void SetGlobalProperties(ApplicationSharedPtr application, Json::Value& saved_app);
-    void MakeSubscriptions(ApplicationSharedPtr application, Json::Value& saved_app);
+    void AddFiles(ApplicationSharedPtr application, const Json::Value& saved_app);
+    void AddSubmenues(ApplicationSharedPtr application, const Json::Value& saved_app);
+    void AddCommands(ApplicationSharedPtr application, const Json::Value& saved_app);
+    void AddChoicesets(ApplicationSharedPtr application, const Json::Value& saved_app);
+    void SetGlobalProperties(ApplicationSharedPtr application, const Json::Value& saved_app);
+    void MakeSubscriptions(ApplicationSharedPtr application, const Json::Value& saved_app);
     void ProcessHMIRequests(const std::vector<smart_objects::SmartObject*> & requests);
+
+    bool CheckIcons(ApplicationSharedPtr application, const Json::Value& json_object);
+
+    Json::Value& GetFromSavedOrAppend(const std::string& mobile_app_id);
+
+    template<typename Iterator>
+    Json::Value Append(Iterator first,
+                       Iterator last,
+                       const std::string& key,
+                       Json::Value& result) {
+      while (first != last) {
+        result[key].append(*first);
+        ++first;
+      }
+      return result;
+    }
 
     /**
      *  @brief times of IGN_OFF that zombie application have to be saved.
