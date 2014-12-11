@@ -1,4 +1,4 @@
-﻿/*
+/*
  Copyright (c) 2013, Ford Motor Company
  All rights reserved.
 
@@ -83,7 +83,7 @@ class PolicyManager : public usage_statistics::StatisticsManager {
      * @param service_type Service specifies user of URL
      * @return vector of urls
      */
-    virtual EndpointUrls GetUpdateUrls(int service_type) = 0;
+    virtual void GetUpdateUrls(int service_type, EndpointUrls& end_points) = 0;
 
     /**
      * @brief PTU is needed, for this PTS has to be formed and sent.

@@ -95,7 +95,7 @@ class PolicyHandler :
   bool GetInitialAppData(const std::string& application_id,
                                  StringArray* nicknames = NULL,
                                  StringArray* app_hmi_types = NULL);
-  EndpointUrls GetUpdateUrls(int service_type);
+  void GetUpdateUrls(int service_type, EndpointUrls& end_points);
   void ResetRetrySequence();
   int NextRetryTimeout();
   int TimeoutExchange();

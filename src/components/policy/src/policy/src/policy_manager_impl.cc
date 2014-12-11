@@ -231,23 +231,28 @@ void PolicyManagerImpl::PrepareNotificationData(
 
 std::string PolicyManagerImpl::GetUpdateUrl(int service_type) {
   LOG4CXX_AUTO_TRACE(logger_);
-  EndpointUrls urls = cache_->GetUpdateUrls(service_type);
+  EndpointUrls urls;
+  cache_->GetUpdateUrls(service_type, urls);
 
-  static uint32_t index = 0;
   std::string url;
+  if (!urls.empty()) {
+    static uint32_t index = 0;
 
-  if (!urls.empty() && index >= urls.size()) {
-    index = 0;
+    if (!urls.empty() && index >= urls.size()) {
+      index = 0;
+    }
+    url = urls[index].url.empty() ? "" :urls[index].url[0];
+
+    ++index;
+  } else {
+    LOG4CXX_ERROR(logger_, "The endpoint entry is empty");
   }
-  url = urls[index].url.empty() ? "" :urls[index].url[0];
-
-  ++index;
   return url;
 }
 
-EndpointUrls PolicyManagerImpl::GetUpdateUrls(int service_type) {
+void PolicyManagerImpl::GetUpdateUrls(int service_type, EndpointUrls& end_points) {
   LOG4CXX_AUTO_TRACE(logger_);
-  return cache_->GetUpdateUrls(service_type);
+  cache_->GetUpdateUrls(service_type, end_points);
 }
 
 void PolicyManagerImpl::RequestPTUpdate() {
