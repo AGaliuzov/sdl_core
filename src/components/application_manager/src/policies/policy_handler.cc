@@ -37,8 +37,7 @@
 #include "application_manager/smart_object_keys.h"
 
 #include "application_manager/policies/policy_handler.h"
-#include "application_manager/policies/pt_exchange_handler_impl.h"
-#include "application_manager/policies/pt_exchange_handler_ext.h"
+
 #include "application_manager/policies/delegates/app_permission_delegate.h"
 
 #include "application_manager/application_manager_impl.h"
@@ -87,6 +86,7 @@ struct DeactivateApplication {
         app->set_hmi_level(mobile_apis::HMILevel::HMI_NONE);
         application_manager::MessageHelper::SendActivateAppToHMI(
           app->app_id(), hmi_apis::Common_HMILevel::NONE);
+        application_manager::MessageHelper::SendHMIStatusNotification(*app.get());
       }
     }
 
@@ -214,15 +214,7 @@ PolicyHandler::PolicyHandler()
 
   : AsyncRunner("PolicyHandler async runner thread"),
     dl_handle_(0),
-#ifdef EXTENDED_POLICY
-    exchange_handler_(new PTExchangeHandlerExt(this)),
-#else  // EXTENDED_POLICY
-    exchange_handler_(new PTExchangeHandlerImpl(this)),
-#endif  // EXTENDED_POLICY
-    on_ignition_check_done_(false),
     last_activated_app_id_(0),
-    registration_in_progress(false),
-    is_user_requested_policy_table_update_(false),
     listener_(NULL),
     app_to_device_link_lock_(true),
     statistic_manager_impl_(new StatisticManagerImpl()) {
@@ -371,65 +363,6 @@ uint32_t PolicyHandler::GetAppIdForSending() {
   return selected_app_id;
 }
 
-DeviceConsent PolicyHandler::GetDeviceForSending() {
-  POLICY_LIB_CHECK(kDeviceDisallowed);
-  application_manager::ApplicationManagerImpl::ApplicationListAccessor accessor;
-  const uint32_t apps_number = accessor.applications().size();
-  if (!apps_number) {
-    LOG4CXX_WARN(logger_,
-                 "There is no appropriate application for sending PTS.");
-    return kDeviceDisallowed;
-  }
-  DeviceConsent consent = kDeviceDisallowed;
-  for (uint32_t i = 0; i < apps_number; ++i) {
-    uint32_t app_id = GetAppIdForSending();
-    if (!app_id) {
-      LOG4CXX_WARN(logger_,
-                   "There is no appropriate application for sending PTS.");
-      return kDeviceDisallowed;
-    }
-
-    DeviceParams device_params;
-    application_manager::MessageHelper::GetDeviceInfoForApp(app_id,
-        &device_params);
-
-    DCHECK(policy_manager_);
-    if(policy_manager_) {
-      consent = policy_manager_->GetUserConsentForDevice(
-            device_params.device_mac_address);
-    } else {
-      consent = kDeviceAllowed;
-    }
-
-    switch (consent) {
-      case kDeviceAllowed:
-        return consent;
-      case kDeviceDisallowed:
-        continue;
-      case kDeviceHasNoConsent:
-        continue;
-      default:
-        LOG4CXX_WARN(logger_, "Consent result is not impelemented.");
-        return kDeviceDisallowed;
-    }
-  }
-  return kDeviceDisallowed;
-}
-
-const std::string PolicyHandler::ConvertUpdateStatus(PolicyTableStatus status) {
-  switch (status) {
-    case policy::StatusUpdatePending:
-      return "UPDATING";
-    case policy::StatusUpdateRequired:
-      return "UPDATE_NEEDED";
-    case policy::StatusUpToDate:
-      return "UP_TO_DATE";
-    default: {
-      return "UNKNOWN";
-    }
-  }
-}
-
 void PolicyHandler::OnAppPermissionConsent(const uint32_t connection_key,
                                            const PermissionConsent& permissions) {
   LOG4CXX_AUTO_TRACE(logger_);
@@ -473,9 +406,24 @@ void PolicyHandler::OnDeviceConsentChanged(const std::string& device_id,
   }
 }
 
+void PolicyHandler::OnPTExchangeNeeded() {
+  POLICY_LIB_CHECK_VOID();
+  policy_manager_->ForcePTExchange();
+}
+
+void PolicyHandler::GetAvailableApps(std::queue<std::string>& apps) {
+  LOG4CXX_INFO(logger_, "GetAvailable apps");
+  application_manager::ApplicationManagerImpl::ApplicationListAccessor accessor;
+  const ApplicationList app_list = accessor.applications();
+  ApplicationList::const_iterator iter = app_list.begin();
+
+  for (;app_list.end() != iter; ++iter) {
+    LOG4CXX_INFO(logger_, "one more app");
+    apps.push((*iter)->mobile_app_id()->asString());
+  }
+}
+
 void PolicyHandler::AddApplication(const std::string& application_id) {
-  // TODO (AGaliuzov): remove this workaround during refactoring.
-  registration_in_progress = true;
   POLICY_LIB_CHECK_VOID();
   policy_manager_->AddApplication(application_id);
 }
@@ -633,17 +581,13 @@ void PolicyHandler::OnGetListOfPermissions(const uint32_t connection_key,
 void PolicyHandler::OnGetStatusUpdate(const uint32_t correlation_id) {
   LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK_VOID();
-  policy::PolicyTableStatus status = policy_manager_->GetPolicyTableStatus();
   application_manager::MessageHelper::SendGetStatusUpdateResponse(
-    ConvertUpdateStatus(status), correlation_id);
+    policy_manager_->GetPolicyTableStatus(), correlation_id);
 }
 
-void PolicyHandler::OnUpdateStatusChanged(PolicyTableStatus status) {
+void PolicyHandler::OnUpdateStatusChanged(const std::string& status) {
   LOG4CXX_AUTO_TRACE(logger_);
-  POLICY_LIB_CHECK_VOID();
-  policy_manager_->SaveUpdateStatusRequired(policy::StatusUpToDate != status);
-  application_manager::MessageHelper::SendOnStatusUpdate(
-    ConvertUpdateStatus(status));
+  application_manager::MessageHelper::SendOnStatusUpdate(status);
 }
 
 std::string PolicyHandler::OnCurrentDeviceIdUpdateRequired(
@@ -800,11 +744,15 @@ void PolicyHandler::OnPendingPermissionChange(
   }
 }
 
-bool PolicyHandler::SendMessageToSDK(const BinaryMessage& pt_string) {
+bool PolicyHandler::SendMessageToSDK(const BinaryMessage& pt_string,
+                                     const std::string& url) {
   LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK(false);
 
-  std::string url;
+  if (last_used_app_ids_.empty()) {
+    LOG4CXX_WARN(logger_, "last_used_app_ids_ is empty");
+    return false;
+  }
   uint32_t app_id = last_used_app_ids_.back();
 
   application_manager::ApplicationSharedPtr app =
@@ -823,15 +771,13 @@ bool PolicyHandler::SendMessageToSDK(const BinaryMessage& pt_string) {
                  " has no application id.");
     return false;
   }
-  url = policy_manager_->GetUpdateUrl(PolicyServiceTypes::POLICY);
 
   LOG4CXX_DEBUG(logger_, "Update url is " << url << " for application "
                << application_manager::ApplicationManagerImpl::instance()
                ->application(app_id)->name());
 
-  application_manager::MessageHelper::SendPolicySnapshotNotification(app_id,
-      pt_string,
-      url, 0);
+  application_manager::MessageHelper::SendPolicySnapshotNotification(
+        app_id, pt_string, url, 0);
 
   return true;
 }
@@ -840,18 +786,10 @@ bool PolicyHandler::ReceiveMessageFromSDK(const std::string& file,
     const BinaryMessage& pt_string) {
   POLICY_LIB_CHECK(false);
 
-  if (policy_manager_->GetPolicyTableStatus() !=
-      PolicyTableStatus::StatusUpdatePending) {
-    LOG4CXX_WARN(logger_, "PTU processing skipped, since current status is "
-                          "different from pending.");
-    return false;
-  }
-
   bool ret = policy_manager_->LoadPT(file, pt_string);
   LOG4CXX_INFO(logger_, "Policy table is saved: " << std::boolalpha << ret);
   if (ret) {
     LOG4CXX_INFO(logger_, "PTU was successful.");
-    exchange_handler_->Stop();
     policy_manager_->CleanupUnpairedDevices();
     int32_t correlation_id =
       application_manager::ApplicationManagerImpl::instance()
@@ -892,34 +830,8 @@ bool PolicyHandler::UnloadPolicyLibrary() {
     ret = (dlclose(dl_handle_) == 0);
     dl_handle_ = 0;
   }
-  exchange_handler_->Stop();
   LOG4CXX_TRACE(logger_, "exit");
   return ret;
-}
-
-void PolicyHandler::StartPTExchange(bool skip_device_selection) {
-  LOG4CXX_AUTO_TRACE(logger_);
-  POLICY_LIB_CHECK_VOID();
-
-  if (policy_manager_->GetPolicyTableStatus() ==
-      PolicyTableStatus::StatusUpdatePending) {
-    LOG4CXX_INFO(logger_, "Starting exchange skipped, since another exchange "
-                 "is in progress.");
-    return;
-  }
-
-  if (!skip_device_selection) {
-    switch (GetDeviceForSending()) {
-      case kDeviceAllowed:
-        break;
-      default:
-      LOG4CXX_WARN(logger_, "There are no allowed devices found for sending"
-                            " policy update.");
-        return;
-    }
-  }
-
-  exchange_handler_->Start();
 }
 
 void PolicyHandler::OnAllowSDLFunctionalityNotification(bool is_allowed,
@@ -998,13 +910,6 @@ void PolicyHandler::OnAllowSDLFunctionalityNotification(bool is_allowed,
 
 #ifdef EXTENDED_POLICY
   if (is_allowed) {
-    // TODO (AGaliuzov): remove this workaround during refactoring.
-    if (registration_in_progress) {
-      StartPTExchange(true);
-      registration_in_progress = false;
-
-    }
-
     application_manager::ApplicationManagerImpl* app_manager =
         application_manager::ApplicationManagerImpl::instance();
 
@@ -1021,25 +926,14 @@ void PolicyHandler::OnAllowSDLFunctionalityNotification(bool is_allowed,
         // Put application in full
         application_manager::MessageHelper::SendActivateAppToHMI(app->app_id());
       }
-    // Skip device selection, since user already consented device usage
-    StartPTExchange(true);
   }
-#else  // EXTENDED_POLICY
-  // Skip device selection, since user already consented device usage
-  StartPTExchange(true);
-#endif // NO EXTENDED POLICY
+#endif // EXTENDED_POLICY
 }
 
 void PolicyHandler::OnIgnitionCycleOver() {
   LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK_VOID();
   policy_manager_->IncrementIgnitionCycles();
-}
-
-void PolicyHandler::KmsChanged(int kms) {
-  LOG4CXX_DEBUG(logger_, "PolicyHandler::KmsChanged " << kms << " kilometers");
-  POLICY_LIB_CHECK_VOID();
-  PTExchangeAtOdometer(kms);
 }
 
 void PolicyHandler::OnActivateApp(uint32_t connection_key,
@@ -1106,86 +1000,36 @@ void PolicyHandler::OnActivateApp(uint32_t connection_key,
 #else
     permissions.isSDLAllowed = true;
 #endif
-
-    if (permissions.isSDLAllowed &&
-        PolicyTableStatus::StatusUpdateRequired ==
-        policy_manager_->GetPolicyTableStatus()) {
-      StartPTExchange();
-    }
     policy_manager_->RemovePendingPermissionChanges(policy_app_id);
   }
-
-  bool is_app_activated = false;
   // If application is revoked it should not be activated
   // In this case we need to activate application
   if (false == permissions.appRevoked && true == permissions.isSDLAllowed) {
-    is_app_activated =
-        application_manager::ApplicationManagerImpl::instance()->
-        ActivateApplication(app);
+        LOG4CXX_INFO(logger_, "Application will be activated");
+        if (application_manager::ApplicationManagerImpl::instance()->ActivateApplication(app)) {
+          application_manager::MessageHelper::SendHMIStatusNotification(*(app.get()));
+        }
+  } else {
+    LOG4CXX_INFO(logger_, "Application should not be activated");
   }
 
   last_activated_app_id_ = connection_key;
   application_manager::MessageHelper::SendSDLActivateAppResponse(permissions,
                                                               correlation_id);
-  if (is_app_activated) {
-    application_manager::MessageHelper::SendHMIStatusNotification(*app.get());
-  }
 }
 
-void PolicyHandler::PTExchangeAtRegistration(const std::string& app_id) {
-  LOG4CXX_AUTO_TRACE(logger_);
+void PolicyHandler::KmsChanged(int kilometers) {
+  LOG4CXX_DEBUG(logger_, "PolicyHandler::KmsChanged " << kilometers << " kilometers");
   POLICY_LIB_CHECK_VOID();
-
-  if (policy_manager_->IsAppInUpdateList(app_id)) {
-    StartPTExchange();
-  } else if (false == on_ignition_check_done_) { // TODO(AG): add cond. var to handle this case.
-    TimevalStruct current_time = date_time::DateTime::getCurrentTime();
-    const int kSecondsInDay = 60 * 60 * 24;
-    int days = current_time.tv_sec / kSecondsInDay;
-
-    LOG4CXX_INFO(
-      logger_,
-      "\nIgnition cycles exceeded: " << std::boolalpha <<
-      policy_manager_->ExceededIgnitionCycles()
-      << "\nDays exceeded: " << std::boolalpha
-      << policy_manager_->ExceededDays(days)
-      << "\nStatusUpdateRequired: " << std::boolalpha
-      << (policy_manager_->GetPolicyTableStatus() == StatusUpdateRequired));
-    if (policy_manager_->ExceededIgnitionCycles()
-        || policy_manager_->ExceededDays(days)
-        || policy_manager_->GetPolicyTableStatus() == StatusUpdateRequired) {
-      StartPTExchange();
-    }
-  }
-  on_ignition_check_done_ = true;
-}
-
-void PolicyHandler::PTExchangeAtOdometer(int kilometers) {
-  POLICY_LIB_CHECK_VOID();
-  if (policy_manager_->ExceededKilometers(kilometers)) {
-    LOG4CXX_INFO(logger_, "Enough kilometers passed to send for PT update.");
-    StartPTExchange();
-  } else {
-    LOG4CXX_INFO(logger_, "Not enough kilometers passed to send for PT update.");
-  }
+  policy_manager_->KmsChanged(kilometers);
 }
 
 void PolicyHandler::PTExchangeAtUserRequest(uint32_t correlation_id) {
   LOG4CXX_TRACE(logger_, "PT exchange at user request");
   POLICY_LIB_CHECK_VOID();
-  policy::PolicyTableStatus status = policy_manager_->GetPolicyTableStatus();
-  if (status != policy::StatusUpdatePending) {
-    OnPTExchangeNeeded();
-    status = policy::StatusUpdatePending;
-  } else {
-    is_user_requested_policy_table_update_ = true;
-  }
-  application_manager::MessageHelper::SendUpdateSDLResponse(
-    ConvertUpdateStatus(status), correlation_id);
-}
-
-void PolicyHandler::OnPTExchangeNeeded() {
-  StartPTExchange();
+  std::string update_status = policy_manager_->ForcePTExchange();
+  application_manager::MessageHelper::SendUpdateSDLResponse(update_status,
+                                                            correlation_id);
 }
 
 void PolicyHandler::OnPermissionsUpdated(const std::string& policy_app_id,
@@ -1194,7 +1038,7 @@ void PolicyHandler::OnPermissionsUpdated(const std::string& policy_app_id,
   application_manager::ApplicationSharedPtr app =
     application_manager::ApplicationManagerImpl::instance()
     ->application_by_policy_id(policy_app_id);
-
+  LOG4CXX_AUTO_TRACE(logger_);
   if (!app.valid()) {
     LOG4CXX_WARN(
       logger_,
@@ -1234,21 +1078,57 @@ void PolicyHandler::OnPermissionsUpdated(const std::string& policy_app_id,
       // sent on response receiving.
       if (mobile_apis::HMILevel::HMI_FULL == hmi_level) {
         application_manager::MessageHelper::SendActivateAppToHMI(app->app_id());
-        break;
-      }
-
-      // Set application hmi level
-      app->set_hmi_level(hmi_level);
-
-      // Send notification to mobile
-      application_manager::MessageHelper::SendHMIStatusNotification(*app.get());
+      } else {
+        // Set application hmi level
+        app->set_hmi_level(hmi_level);
+        // If hmi Level is full, it will be seted after ActivateApp response
+        application_manager::MessageHelper::SendHMIStatusNotification(*app.get());
       }
       break;
+    }
     default:
       LOG4CXX_WARN(logger_, "Application " << policy_app_id << " is running."
                    "HMI level won't be changed.");
       break;
   }
+}
+
+bool PolicyHandler::SaveSnapshot(const BinaryMessage& pt_string,
+                                 std::string& snap_path) {
+  using namespace profile;
+
+  const std::string& policy_snapshot_file_name = Profile::instance()->policies_snapshot_file_name();
+  const std::string& system_files_path = Profile::instance()->system_files_path();
+  snap_path = system_files_path + '/' + policy_snapshot_file_name;
+
+  bool result = false;
+  if (file_system::CreateDirectoryRecursively(system_files_path)) {
+    result = file_system::WriteBinaryFile(snap_path, pt_string);
+  }
+
+  if (!result) {
+    LOG4CXX_ERROR(logger_, "Failed to write snapshot file to " << snap_path);
+  }
+
+  return result;
+}
+
+void PolicyHandler::OnSnapshotCreated(const BinaryMessage& pt_string,
+                                      const std::vector<int>& retry_delay_seconds,
+                                      int timeout_exchange) {
+  using namespace application_manager;
+#ifdef EXTENDED_POLICY
+  POLICY_LIB_CHECK_VOID()
+
+  std::string policy_snapshot_full_path;
+  if (SaveSnapshot(pt_string, policy_snapshot_full_path)) {
+    MessageHelper::SendPolicyUpdate(policy_snapshot_full_path,
+                                    timeout_exchange,
+                                    retry_delay_seconds);
+  }
+#else
+  SendMessageToSDK(pt_string, policy_manager_->GetUpdateUrl(POLICY));
+#endif // EXTENDED_POLICY
 }
 
 bool PolicyHandler::GetPriority(const std::string& policy_app_id,
@@ -1290,9 +1170,9 @@ bool PolicyHandler::GetInitialAppData(const std::string& application_id,
   return policy_manager_->GetInitialAppData(application_id, nicknames, app_hmi_types);
 }
 
-EndpointUrls PolicyHandler::GetUpdateUrls(int service_type) {
-  POLICY_LIB_CHECK(EndpointUrls());
-  return policy_manager_->GetUpdateUrls(service_type);
+void PolicyHandler::GetUpdateUrls(int service_type, EndpointUrls& end_points) {
+  POLICY_LIB_CHECK_VOID();
+  policy_manager_->GetUpdateUrls(service_type, end_points);
 }
 
 void PolicyHandler::ResetRetrySequence() {
@@ -1325,18 +1205,8 @@ void PolicyHandler::PTUpdatedAt(int kilometers, int days_after_epoch) {
   policy_manager_->PTUpdatedAt(kilometers, days_after_epoch);
 }
 
-BinaryMessageSptr PolicyHandler::RequestPTUpdate() {
-  POLICY_LIB_CHECK(BinaryMessageSptr());
-  return policy_manager_->RequestPTUpdate();
-}
-
 void PolicyHandler::set_listener(PolicyHandlerObserver* listener) {
   listener_ = listener;
-}
-
-const std::vector<int> PolicyHandler::RetrySequenceDelaysSeconds() {
-  POLICY_LIB_CHECK(std::vector<int>());
-  return policy_manager_->RetrySequenceDelaysSeconds();
 }
 
 utils::SharedPtr<usage_statistics::StatisticsManager>
@@ -1392,20 +1262,6 @@ std::string PolicyHandler::GetAppName(const std::string& policy_app_id) {
     return "";
   }
   return  app->name();
-}
-
-void PolicyHandler::OnUserRequestedUpdateCheckRequired() {
-  LOG4CXX_AUTO_TRACE(logger_);
-  POLICY_LIB_CHECK_VOID();
-  policy::PolicyTableStatus status = policy_manager_->GetPolicyTableStatus();
-  if (is_user_requested_policy_table_update_ &&
-      status != policy::StatusUpdatePending) {
-    is_user_requested_policy_table_update_ = false;
-    OnPTExchangeNeeded();
-    return;
-  }
-  LOG4CXX_WARN(logger_, "There is another pending update is present."
-               "User-requested update is postponed.");
 }
 
 void PolicyHandler::OnUpdateHMIAppType(std::map<std::string, StringArray> app_hmi_types) {

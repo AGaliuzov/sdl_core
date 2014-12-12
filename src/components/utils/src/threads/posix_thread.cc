@@ -97,15 +97,16 @@ void* Thread::threadFunc(void* arg) {
     LOG4CXX_DEBUG(logger_, "Thread #" << pthread_self() << " execute. "
                   << "stopped_ = " << thread->stopped_ << "; finalized_ = " << thread->finalized_);
     if (!thread->stopped_ && !thread->finalized_) {
-      thread->state_lock_.Release();
       thread->isThreadRunning_ = true;
       pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
       pthread_testcancel();
+
+      thread->state_lock_.Release();
       thread->delegate_->threadMain();
+      thread->state_lock_.Acquire();
 
       pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
       thread->isThreadRunning_ = false;
-      thread->state_lock_.Acquire();
     }
     thread->state_cond_.Broadcast();
     LOG4CXX_DEBUG(logger_, "Thread #" << pthread_self() << " finished iteration");
@@ -221,7 +222,6 @@ bool Thread::start(const ThreadOptions& options) {
           << " (\"" << strerror(pthread_result) << "\")");
     }
   }
-
   stopped_ = false;
   run_cond_.NotifyOne();
   LOG4CXX_DEBUG(logger_,"Thread " << name_

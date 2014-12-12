@@ -141,7 +141,7 @@ void RegisterAppInterfaceRequest::Run() {
 
 #ifndef CUSTOMER_PASA
   // Fix problem with SDL and HMI HTML. This problem is not actual for HMI PASA.
-  // Flag conditional compilation "CUSTOMER_PASA" is used in order to exclude hit code
+  // Flag conditional compilation specific to customer is used in order to exclude hit code
   // to RTC
   // FIXME(EZamakhov): on shutdown - get freez
   if (true == profile::Profile::instance()->launch_hmi()) {
@@ -278,7 +278,6 @@ void RegisterAppInterfaceRequest::Run() {
         device_info);
 
     SendRegisterAppInterfaceResponseToMobile();
-    policy::PolicyHandler::instance()->PTExchangeAtRegistration(mobile_app_id);
   }
 }
 

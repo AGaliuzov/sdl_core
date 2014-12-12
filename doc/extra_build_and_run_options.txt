@@ -50,11 +50,7 @@
       By default it is OFF.
       Turn on and off extended Madia Manager features relates to PulseAudio A2DP and GStreamer
 
-  3: ENABLE_SECURITY
-      By default it is ON.
-      Security Ford protocol protection
-
-  4: CMAKE_BUILD_TYPE
+  3: CMAKE_BUILD_TYPE
       By default it is Debug.
       Choose the type of build. Options are: None, Debug, Release, RelWithDebInfo, MinSizeRel
       For release build use "-D CMAKE_BUILD_TYPE=Release"

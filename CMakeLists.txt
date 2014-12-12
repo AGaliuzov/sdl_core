@@ -40,8 +40,6 @@ option(EXTENDED_MEDIA_MODE "Turn on and off extended Madia Manager features rela
 option(BUILD_SHARED_LIBS "Build all libraries as shared (if ON) or static (if OFF)" OFF)
 option(BUILD_BT_SUPPORT "Bluetooth support" ON)
 option(BUILD_USB_SUPPORT "libusb support" ON)
-option(BUILD_AOA_SUPPORT "libaoa support" OFF)
-option(BUILD_MME_SUPPORT "Apple devices support" OFF)
 option(BUILD_AVAHI_SUPPORT "libavahi support" ON)
 option(BUILD_BACKTRACE_SUPPORT "backtrace support" ON)
 option(BUILD_TESTS "Possibility to build and run tests" OFF)
@@ -50,7 +48,11 @@ option(ENABLE_LOG "Logging feature" ON)
 option(ENABLE_GCOV "gcov code coverage feature" OFF)
 option(ENABLE_SANITIZE "Sanitize tool" OFF)
 option(ENABLE_SECURITY "Security Ford protocol protection" ON)
-option(EXTENDED_POLICY_FLAG "Build with specific features and extended functionality" OFF)
+if(NOT CUSTOMER_GENIVI)
+ option(BUILD_AOA_SUPPORT "libaoa support" OFF)
+ option(EXTENDED_POLICY_FLAG "Build with specific features and extended functionality" OFF)
+ option(BUILD_MME_SUPPORT "Apple devices support" OFF)
+endif()
 
 set(OS_TYPE_OPTION 	"$ENV{OS_TYPE}")
 set(DEBUG_OPTION 	"$ENV{DEBUG}")
@@ -64,24 +66,6 @@ set(POLICY_OPTION 	"$ENV{POLICY_TYPE}")
 set(SECURITY_OPTION 	"$ENV{SECURITY_MODE}")
 set(SNAPSHOT_TAG 	"$ENV{SNAPSHOT_TAG}")
 
-
-add_custom_target(pasa-tarball
-  COMMAND ${CMAKE_SOURCE_DIR}/tools/Utils/export-customer-specific.sh ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} pasa ${SNAPSHOT_TAG}
-  COMMAND tar -cz -C /tmp/PASA -f ${CMAKE_BINARY_DIR}/pasa.tar.gz .
-  DEPENDS HMI_API MOBILE_API v4_protocol_v1_2_no_extra
-)
-
-add_custom_target(ford-tarball
-  COMMAND ${CMAKE_SOURCE_DIR}/tools/Utils/export-customer-specific.sh ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} FORD
-  COMMAND tar -czv -C /tmp/FORD -f ${CMAKE_BINARY_DIR}/ford.tar.gz .
-  DEPENDS HMI_API MOBILE_API v4_protocol_v1_2_no_extra
-)
-
-add_custom_target(genivi-tarball
-  COMMAND ${CMAKE_SOURCE_DIR}/tools/Utils/export-customer-specific.sh ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} genivi
-  COMMAND tar -czv -C /tmp/GENIVI -f ${CMAKE_BINARY_DIR}/genivi.tar.gz .
-  DEPENDS HMI_API MOBILE_API v4_protocol_v1_2_no_extra
-)
 
 if (ARCH_TYPE_OPTION)
   if (NOT (${ARCH_TYPE_OPTION} STREQUAL "x86") AND NOT (${ARCH_TYPE_OPTION} STREQUAL "armv7"))
@@ -152,10 +136,12 @@ if (ENABLE_LOG_OPTION)
   endif()
 endif()
 
-if (POLICY_OPTION)
-  if (${POLICY_OPTION} STREQUAL "EXTENDED_POLICY")
-    message(STATUS "Jenkins integration: Extended policy is used")
-    set (EXTENDED_POLICY_FLAG ON)
+if(NOT CUSTOMER_GENIVI)
+  if (POLICY_OPTION)
+    if (${POLICY_OPTION} STREQUAL "EXTENDED_POLICY")
+      message(STATUS "Jenkins integration: Extended policy is used")
+      set (EXTENDED_POLICY_FLAG ON)
+    endif()
   endif()
 endif()
 
@@ -166,8 +152,25 @@ if (SECURITY_OPTION)
   endif()
 endif()
 
-
 #Jenkins integration section end
+
+add_custom_target(pasa-tarball
+  COMMAND ${CMAKE_SOURCE_DIR}/tools/Utils/export-customer-specific.sh ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} pasa
+  COMMAND tar -cz -C /tmp/PASA -f ${CMAKE_BINARY_DIR}/pasa.tar.gz .
+  DEPENDS HMI_API MOBILE_API v4_protocol_v1_2_no_extra
+)
+
+add_custom_target(ford-tarball
+  COMMAND ${CMAKE_SOURCE_DIR}/tools/Utils/export-customer-specific.sh ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} ford
+  COMMAND tar -cz -C /tmp/FORD -f ${CMAKE_BINARY_DIR}/ford.tar.gz .
+  DEPENDS HMI_API MOBILE_API v4_protocol_v1_2_no_extra
+)
+
+add_custom_target(genivi-tarball
+  COMMAND ${CMAKE_SOURCE_DIR}/tools/Utils/export-customer-specific.sh ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} genivi
+  COMMAND tar -cz -C /tmp/GENIVI -f ${CMAKE_BINARY_DIR}/genivi.tar.gz .
+)
+
 
 project (${PROJECT})
 
@@ -400,58 +403,219 @@ set(3RD_PARTY_BINARY_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/3rd_party)
 
 set (install-3rd_party_logger_var "")
 set (install-3rd_party_dbus_var "")
-set (is_logger_actual 1)
-set (is_dbus_actual 1)
-if(ENABLE_LOG)
-  #build logger
-  execute_process(
-      COMMAND /bin/bash -c "cd ${CMAKE_CURRENT_SOURCE_DIR} && grep .commit_hash ${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib/liblog4cxx.so 1>/dev/null 2>&1; if [ $? == 0 ]; then VAR1=\$(readelf -p .commit_hash ${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib/liblog4cxx.so 2>/dev/null); VAR1=\$(echo $VAR1 | awk '{print \$NF}'); VAR2=\$(git log --pretty=\"format:%H\" -1 ${3RD_PARTY_SOURCE_DIRECTORY}/apache-log4cxx-0.10.0); if [[ \$VAR1 == \$VAR2 ]]; then exit 0; else exit 1; fi; else exit 1; fi"
-      RESULT_VARIABLE is_logger_actual
-  )
-  if(is_logger_actual EQUAL 0)
-    message(STATUS "Logger is actual.")
-  else()
-    message(STATUS "Need to rebuild logger.")
 
-    add_custom_target(3rd_party_logger
-      make
-      WORKING_DIRECTORY ${3RD_PARTY_BINARY_DIRECTORY}
-    )
-    #install logger
-    #install either to default place with sudo or none-default plase without sudo.
-    #to install with sudo to none-default place use manual installation
-    add_custom_target(install-3rd_party_logger
-      COMMAND /bin/bash -c \"if [ ! ${is_logger_actual} == 0 ]\; then USE_DEFAULT_3RD_PARTY_PATH=${USE_DEFAULT_3RD_PARTY_PATH}\; if [[ \\$$USE_DEFAULT_3RD_PARTY_PATH == "true" ]]\; then sudo make install\; else make install\; fi\; fi\"
-      DEPENDS 3rd_party_logger
-      WORKING_DIRECTORY ${3RD_PARTY_BINARY_DIRECTORY}
-    )
+if(NO_REBUILD_3RD_PARTY)
+  set(NO_REBUILD_3RD_PARTY_LOGGER ON)
+  set(NO_REBUILD_3RD_PARTY_DBUS ON)
+endif()
+
+if(FORCE_3RD_PARTY)
+  if(NO_REBUILD_3RD_PARTY)
+  	message(FATAL_ERROR "Please don't turn on both FORCE_3RD_PARTY and NO_REBUILD_3RD_PARTY at the same time.")
+  else()
+	set(FORCE_3RD_PARTY_LOGGER ON)
+	set(FORCE_3RD_PARTY_DBUS ON)
+  endif()
+endif()
+
+if(ENABLE_LOG)
+  if(NO_REBUILD_3RD_PARTY_LOGGER)
+  	message(STATUS "Not rebuilding logger.")
+  else()
+    if(FORCE_3RD_PARTY_LOGGER)
+      message(STATUS "Force to rebuild logger.")
+      
+      #build logger
+      add_custom_target(3rd_party_logger
+        make 
+        WORKING_DIRECTORY ${3RD_PARTY_BINARY_DIRECTORY}
+      )
+      
+      #install logger
+      #install either to default place with sudo or non-default plase without sudo.
+      #to install with sudo to non-default place use manual installation
+      add_custom_target(install-3rd_party_logger
+        COMMAND /bin/bash -c \"USE_DEFAULT_3RD_PARTY_PATH=${USE_DEFAULT_3RD_PARTY_PATH}\; 
+                               if [ \\$$USE_DEFAULT_3RD_PARTY_PATH == "true" ]\; then 
+                                 sudo -k \; 
+                                 sudo make install\; 
+                               else 
+                                 make install\; 
+                               fi\"
+        DEPENDS 3rd_party_logger
+        WORKING_DIRECTORY ${3RD_PARTY_BINARY_DIRECTORY}
+      )
+    else()
+      #build logger
+      add_custom_target(3rd_party_logger
+        COMMAND /bin/bash -c \"cd ${CMAKE_CURRENT_SOURCE_DIR} && 
+                               grep .commit_hash ${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib/liblog4cxx.so 1>/dev/null 2>&1\; 
+                               if [ \\$$? == 0 ]\; then 
+                                 VAR1=\\$$\( readelf -p .commit_hash ${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib/liblog4cxx.so 2>/dev/null\)\; 
+                                 VAR1=\\$$\(echo \\$$VAR1 | awk '{print \\$$NF}'\)\; 
+                                 VAR2=-1\;
+                                 cd ${CMAKE_CURRENT_SOURCE_DIR}\;
+                                 git log . 1>/dev/null 2>&1\;
+                                 if [ \\$$? == 0 ]; then 
+                                     VAR2=\\$$\(git log --pretty=\"format:%H\" -1 ${3RD_PARTY_SOURCE_DIRECTORY}/apache-log4cxx-0.10.0\)\; 
+                                 fi\;
+                                 if [ \\$$VAR1 != \\$$VAR2 ]\; then 
+                                   echo " Need to rebuild logger. " \; 
+                                   cd ${3RD_PARTY_BINARY_DIRECTORY}\; 
+                                   make\; 
+                                 else 
+                                   echo " Logger is actual. " \; 
+                                 fi\; 
+                               else 
+                                 echo " Need to build logger. " \; 
+                                 cd ${3RD_PARTY_BINARY_DIRECTORY}\; 
+                                 make\; 
+                               fi\"
+        WORKING_DIRECTORY ${3RD_PARTY_BINARY_DIRECTORY}
+      )
+      
+      #install logger
+      #install either to default place with sudo or non-default plase without sudo.
+      #to install with sudo to non-default place use manual installation
+      add_custom_target(install-3rd_party_logger
+        COMMAND /bin/bash -c \"cd ${CMAKE_CURRENT_SOURCE_DIR} && 
+                               grep .commit_hash ${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib/liblog4cxx.so 1>/dev/null 2>&1\; 
+                               if [ \\$$? == 0 ]\; then 
+                                 VAR1=\\$$\( readelf -p .commit_hash ${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib/liblog4cxx.so 2>/dev/null\)\; 
+                                 VAR1=\\$$\(echo \\$$VAR1 | awk '{print \\$$NF}'\)\; 
+                                 VAR2=-1\;
+                                 cd ${CMAKE_CURRENT_SOURCE_DIR}\;
+                                 git log . 1>/dev/null 2>&1\;
+                                 if [ \\$$? == 0 ]; then 
+                                     VAR2=\\$$\(git log --pretty=\"format:%H\" -1 ${3RD_PARTY_SOURCE_DIRECTORY}/apache-log4cxx-0.10.0\)\; 
+                                 fi\;
+                                 if [ \\$$VAR1 != \\$$VAR2 ]\; then 
+                                   USE_DEFAULT_3RD_PARTY_PATH=${USE_DEFAULT_3RD_PARTY_PATH}\; 
+                                   if [ \\$$USE_DEFAULT_3RD_PARTY_PATH == "true" ]\; then 
+                                     cd ${3RD_PARTY_BINARY_DIRECTORY}\;
+                                     sudo -k \; 
+                                     sudo make install\; 
+                                   else 
+                                     cd ${3RD_PARTY_BINARY_DIRECTORY}\;
+                                     make install\; 
+                                   fi\; 
+                                 fi\; 
+                               else 
+                                 USE_DEFAULT_3RD_PARTY_PATH=${USE_DEFAULT_3RD_PARTY_PATH}\; 
+                                 if [ \\$$USE_DEFAULT_3RD_PARTY_PATH == "true" ]\; then 
+                                   cd ${3RD_PARTY_BINARY_DIRECTORY}\;
+                                   sudo -k \; 
+                                   sudo make install\; 
+                                 else 
+                                   cd ${3RD_PARTY_BINARY_DIRECTORY}\;
+                                   make install\; 
+                                 fi\;
+                               fi\"
+        DEPENDS 3rd_party_logger
+        WORKING_DIRECTORY ${3RD_PARTY_BINARY_DIRECTORY}
+      )
+    endif()
+        
     set (install-3rd_party_logger_var "install-3rd_party_logger")
   endif()
 endif()
 
 if (HMIADAPTER STREQUAL "dbus")
-#build d-bus
-  execute_process(
-      COMMAND /bin/bash -c "grep .commit_hash ${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib/libdbus-1.so 1>/dev/null 2>&1; if [ $? == 0 ]; then VAR1=\$(readelf -p .commit_hash ${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib/libdbus-1.so 2>/dev/null); VAR1=\$(echo $VAR1 | awk '{print \$NF}'); VAR2=\$(git log --pretty=\"format:%H\" -1 ${3RD_PARTY_SOURCE_DIRECTORY}/dbus-1.7.8); if [[ \$VAR1 == \$VAR2 ]]; then exit 0; else exit 1; fi; else exit 1; fi"
-      RESULT_VARIABLE is_dbus_actual
-  )
-  if(is_dbus_actual EQUAL 0)
-    message(STATUS "D-Bus is actual.")
+  if(NO_REBUILD_3RD_PARTY_DBUS)
+  	message(STATUS "Not rebuilding D-Bus.")
   else()
-    message(STATUS "Need to rebuild D-Bus.")
-
-    add_custom_target(3rd_party_dbus
-      make
-      WORKING_DIRECTORY ${3RD_PARTY_BINARY_DIRECTORY}
-    )
-    #install d-bus
-    #install either to default place with sudo or none default plase without sudo.
-    #to install with sudo to none default place use manual installation
-    add_custom_target(install-3rd_party_dbus
-      COMMAND /bin/bash -c \"if [ ! ${is_dbus_actual} == 0 ]\; then USE_DEFAULT_3RD_PARTY_PATH=${USE_DEFAULT_3RD_PARTY_PATH}\; if [[ \\$$USE_DEFAULT_3RD_PARTY_PATH == "true" ]]\; then sudo make install\; else make install\; fi\; fi\"
-      DEPENDS 3rd_party_dbus
-      WORKING_DIRECTORY ${3RD_PARTY_BINARY_DIRECTORY}
-    )
+    if(FORCE_3RD_PARTY_DBUS)
+      message(STATUS "Force to rebuild D-Bus.")
+      
+      #build d-bus
+      add_custom_target(3rd_party_dbus
+        make
+        WORKING_DIRECTORY ${3RD_PARTY_BINARY_DIRECTORY}
+      )
+      
+      #install d-bus
+      #install either to default place with sudo or non-default plase without sudo.
+      #to install with sudo to non-default place use manual installation
+      add_custom_target(install-3rd_party_dbus
+        COMMAND /bin/bash -c \"USE_DEFAULT_3RD_PARTY_PATH=${USE_DEFAULT_3RD_PARTY_PATH}\; 
+                               if [ \\$$USE_DEFAULT_3RD_PARTY_PATH == "true" ]\; then 
+                                 sudo -k \; 
+                                 sudo make install\; 
+                               else 
+                                 make install\; 
+                               fi\"
+        DEPENDS 3rd_party_dbus
+        WORKING_DIRECTORY ${3RD_PARTY_BINARY_DIRECTORY}
+      )
+    else()
+      #build d-bus
+      add_custom_target(3rd_party_dbus
+        COMMAND /bin/bash -c \"grep .commit_hash ${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib/libdbus-1.so 1>/dev/null 2>&1\; 
+                               if [ \\$$? == 0 ]\; then 
+                                 VAR1=\\$$\(readelf -p .commit_hash ${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib/libdbus-1.so 2>/dev/null\)\; 
+                                 VAR1=\\$$\(echo \\$$VAR1 | awk '{print \\$$NF}'\)\; 
+                                 VAR2=-1\;
+                                 cd ${CMAKE_CURRENT_SOURCE_DIR}\;
+                                 git log . 1>/dev/null 2>&1\;
+                                 if [ \\$$? == 0 ]; then 
+                                     VAR2=\\$$\(git log --pretty=\"format:%H\" -1 ${3RD_PARTY_SOURCE_DIRECTORY}/dbus-1.7.8\)\; 
+                                 fi\;
+                                 if [ \\$$VAR1 != \\$$VAR2 ]\; then 
+                                   echo " Need to rebuild D-Bus. " \; 
+                                   cd ${3RD_PARTY_BINARY_DIRECTORY}\; 
+                                   make\; 
+                                 else 
+                                   echo " D-Bus is actual. " \; 
+                                 fi\; 
+                               else 
+                                 echo " Need to build D-Bus. " \; 
+                                 cd ${3RD_PARTY_BINARY_DIRECTORY}\; 
+                                 make\; 
+                               fi\"
+        WORKING_DIRECTORY ${3RD_PARTY_BINARY_DIRECTORY}
+      )
+      
+      #install d-bus
+      #install either to default place with sudo or non-default plase without sudo.
+      #to install with sudo to non-default place use manual installation
+      add_custom_target(install-3rd_party_dbus
+        COMMAND /bin/bash -c \"grep .commit_hash ${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib/libdbus-1.so 1>/dev/null 2>&1\; 
+                               if [ \\$$? == 0 ]\; then 
+                                 VAR1=\\$$\(readelf -p .commit_hash ${3RD_PARTY_INSTALL_PREFIX_ARCH}/lib/libdbus-1.so 2>/dev/null\)\; 
+                                 VAR1=\\$$\(echo \\$$VAR1 | awk '{print \\$$NF}'\)\; 
+                                 VAR2=-1\;
+                                 cd ${CMAKE_CURRENT_SOURCE_DIR}\;
+                                 git log . 1>/dev/null 2>&1\;
+                                 if [ \\$$? == 0 ]; then 
+                                     VAR2=\\$$\(git log --pretty=\"format:%H\" -1 ${3RD_PARTY_SOURCE_DIRECTORY}/dbus-1.7.8\)\; 
+                                 fi\;
+                                 if [ \\$$VAR1 != \\$$VAR2 ]\; then 
+                                   USE_DEFAULT_3RD_PARTY_PATH=${USE_DEFAULT_3RD_PARTY_PATH}\; 
+                                   if [ \\$$USE_DEFAULT_3RD_PARTY_PATH == "true" ]\; then 
+                                     cd ${3RD_PARTY_BINARY_DIRECTORY}\;
+                                     sudo -k \; 
+                                     sudo make install\; 
+                                   else 
+                                     cd ${3RD_PARTY_BINARY_DIRECTORY}\;
+                                     make install\; 
+                                   fi\; 
+                                 fi\; 
+                               else 
+                                 USE_DEFAULT_3RD_PARTY_PATH=${USE_DEFAULT_3RD_PARTY_PATH}\; 
+                                 if [ \\$$USE_DEFAULT_3RD_PARTY_PATH == "true" ]\; then 
+                                   cd ${3RD_PARTY_BINARY_DIRECTORY}\;
+                                   sudo -k \; 
+                                   sudo make install\; 
+                                 else 
+                                   cd ${3RD_PARTY_BINARY_DIRECTORY}\;
+                                   make install\; 
+                                 fi\; 
+                               fi\"
+        DEPENDS 3rd_party_dbus
+        WORKING_DIRECTORY ${3RD_PARTY_BINARY_DIRECTORY}
+      )
+    endif()
+    
     set (install-3rd_party_dbus_var "install-3rd_party_dbus")
   endif()
 endif()

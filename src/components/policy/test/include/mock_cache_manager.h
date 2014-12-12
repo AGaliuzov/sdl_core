@@ -72,8 +72,8 @@ class MockCacheManagerInterface : public CacheManagerInterface {
       bool(const std::string& value));
   MOCK_METHOD2(GetUserFriendlyMsg,
       std::vector<UserFriendlyMessage>(const std::vector<std::string>& msg_codes, const std::string& language));
-  MOCK_METHOD1(GetUpdateUrls,
-      EndpointUrls(int service_type));
+  MOCK_METHOD2(GetUpdateUrls,
+      void(int service_type, EndpointUrls& end_points));
   MOCK_METHOD1(GetNotificationsNumber,
       int(const std::string& priority));
   MOCK_METHOD2(GetPriority,
@@ -158,8 +158,8 @@ class MockCacheManagerInterface : public CacheManagerInterface {
       void(const std::string& app_id, const std::string& group_name));
   MOCK_METHOD1(SetPredataPolicy,
       bool(const std::string& app_id));
-  MOCK_METHOD1(CleanupUnpairedDevices,
-      bool(const DeviceIds& device_ids));
+  MOCK_METHOD0(CleanupUnpairedDevices,
+      bool());
   MOCK_METHOD2(SetUnpairedDevice,
       bool(const std::string& device_id, bool unpaired));
   MOCK_METHOD1(UnpairedDevicesList,

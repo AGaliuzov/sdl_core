@@ -111,10 +111,15 @@ class TimerThread {
     virtual void stop();
 
     /**
-     * @brief Tell tmer status
+     * @brief Tell timer status
      * @return true if timer is currently running, otherwise return false
      */
     virtual bool isRunning();
+
+    /**
+     * @brief method suspends timer execution
+     */
+    virtual void pause();
 
     /**
      * @brief Stop timer update timeout and start timer again
@@ -243,7 +248,6 @@ void TimerThread<T>::start(uint32_t timeout_seconds) {
   if (isRunning()) {
     LOG4CXX_INFO(logger_, "TimerThread start needs stop " << name_);
     stop();
-    thread_->join();
   }
   updateTimeOut(timeout_seconds);
   thread_->start();
@@ -254,13 +258,20 @@ void TimerThread<T>::stop() {
   LOG4CXX_AUTO_TRACE(logger_);
   DCHECK(thread_);
   LOG4CXX_DEBUG(logger_, "Stopping timer  " << name_);
-  thread_->stop();
+  thread_->join();
 }
 
 template <class T>
 bool TimerThread<T>::isRunning() {
   DCHECK(thread_);
   return thread_->is_running();
+}
+
+template <class T>
+void TimerThread<T>::pause() {
+  LOG4CXX_DEBUG(logger_, "Suspension of timer " << name_);
+  const uint32_t  wait_seconds = std::numeric_limits<uint32_t>::max();
+  updateTimeOut(wait_seconds);
 }
 
 template <class T>

@@ -369,6 +369,7 @@ class Dispatcher {
           Send(msg);
           state_ = kRun;
         }
+        break;
       case kRun:
         if (code == SDL_MSG_LOW_VOLTAGE) {
           OnLowVoltage(msg);

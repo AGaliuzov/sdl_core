@@ -165,18 +165,24 @@ void IAP2Connection::ReceiveData() {
 bool IAP2Connection::Close() {
   bool result;
 
-  LOG4CXX_TRACE(logger_,
+  if (iap2ea_hdl_ != 0) {
+    LOG4CXX_TRACE(logger_,
                 "iAP2: closing connection on protocol " << protocol_name_);
-  if (iap2_eap_close(iap2ea_hdl_) != -1) {
-    LOG4CXX_DEBUG(
+    if (iap2_eap_close(iap2ea_hdl_) != -1) {
+      LOG4CXX_DEBUG(
         logger_,
         "iAP2: connection on protocol " << protocol_name_ << " closed");
-    result = true;
-  } else {
-    LOG4CXX_WARN(
+      result = true;
+    } else {
+      LOG4CXX_WARN(
         logger_,
         "iAP2: could not close connection on protocol " << protocol_name_ << ", errno = " << errno);
-    result = false;
+      result = false;
+    }
+  }
+  else {
+    LOG4CXX_DEBUG(logger_, "iAP2: protocol " << protocol_name_ << " not connected");
+    result = true;
   }
 
   parent_->OnDisconnect(app_handle_);

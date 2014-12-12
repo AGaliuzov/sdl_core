@@ -384,7 +384,7 @@ smart_objects::SmartObject* MessageHelper::GetHashUpdateNotification(
 }
 
 void MessageHelper::SendHashUpdateNotification(const uint32_t app_id) {
-  LOG4CXX_INFO(logger_, "SendHashUpdateNotification");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   smart_objects::SmartObject* so = GetHashUpdateNotification(app_id);
   if (so) {
@@ -579,8 +579,8 @@ smart_objects::SmartObject* MessageHelper::CreateDeviceListSO(
         policy::PolicyHandler::instance()->GetUserConsentForDevice(it->second.mac_address());
     list_so[index][strings::isSDLAllowed] =
         policy::DeviceConsent::kDeviceAllowed == device_consent;
+    ++index;
   }
-  ++index;
   return device_list_so;
 }
 
@@ -1399,6 +1399,7 @@ void MessageHelper::GetDeviceInfoForApp(uint32_t connection_key,
 
 void MessageHelper::SendSDLActivateAppResponse(policy::AppPermissions& permissions,
     uint32_t correlation_id) {
+  LOG4CXX_AUTO_TRACE(logger_);
   smart_objects::SmartObject* message = new smart_objects::SmartObject(
     smart_objects::SmartType_Map);
   if (!message) {
@@ -1444,15 +1445,6 @@ void MessageHelper::SendSDLActivateAppResponse(policy::AppPermissions& permissio
   // If application is revoked it should not be activated
   if (permissions.appRevoked || !permissions.isSDLAllowed) {
     return;
-  }
-
-  // Send HMI status notification to mobile
-  ApplicationSharedPtr app = ApplicationManagerImpl::instance()
-                             ->application_by_policy_id(permissions.application_id);
-  if (app) {
-    ApplicationManagerImpl::instance()->ActivateApplication(app);
-  } else {
-    LOG4CXX_WARN(logger_, "Unable to find app_id: " << permissions.application_id);
   }
 }
 

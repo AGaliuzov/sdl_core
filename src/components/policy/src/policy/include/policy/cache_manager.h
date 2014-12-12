@@ -153,7 +153,7 @@ class CacheManager : public CacheManagerInterface {
    * @param service_type If URLs for specific service are preset,
    * return them otherwise default URLs.
    */
-  virtual EndpointUrls GetUpdateUrls(int service_type);
+  virtual void GetUpdateUrls(int service_type, EndpointUrls& end_points);
 
   /**
    * @brief Get allowed number of notifications
@@ -499,7 +499,7 @@ class CacheManager : public CacheManagerInterface {
    * @brief Removes unpaired devices
    * @return true if success
    */
-  bool CleanupUnpairedDevices(const DeviceIds& device_ids);
+  bool CleanupUnpairedDevices();
 
   /**
    * Sets flag of unpaired device
@@ -508,13 +508,6 @@ class CacheManager : public CacheManagerInterface {
    * @return true if success
    */
   bool SetUnpairedDevice(const std::string& device_id, bool unpaired = true);
-
-  /**
-   * Gets list of unpaired devices
-   * @param device_ids output list
-   * @return true if success
-   */
-  bool UnpairedDevicesList(DeviceIds& device_ids);
 
   /**
    * Resets Policy Table

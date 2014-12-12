@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -348,8 +348,6 @@ bool CacheManager::ApplyUpdate(const policy_table::Table& update_pt) {
       update_pt.policy_table.app_policies.end();
 
   for (;iter != iter_end; ++iter) {
-    policy_table::ApplicationPolicies::iterator beg =
-        pt_->policy_table.app_policies.find(iter->first);
     if (iter->second.is_null()) {
       pt_->policy_table.app_policies[iter->first].set_to_null();
       pt_->policy_table.app_policies[iter->first].set_to_string("");
@@ -814,11 +812,11 @@ std::vector<UserFriendlyMessage> CacheManager::GetUserFriendlyMsg(
   return result;
 }
 
-EndpointUrls CacheManager::GetUpdateUrls(int service_type) {
+void CacheManager::GetUpdateUrls(int service_type,
+                                 EndpointUrls& end_points) {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  EndpointUrls result;
-  CACHE_MANAGER_CHECK(result);
+  CACHE_MANAGER_CHECK_VOID();
   char buff[32];
   sprintf(buff, "%x", service_type);
 
@@ -842,10 +840,9 @@ EndpointUrls CacheManager::GetUpdateUrls(int service_type) {
       std::copy((*url_list_iter).second.begin(), (*url_list_iter).second.end(),
               std::back_inserter(data.url));
 
-      result.push_back(data);
+      end_points.push_back(data);
     }
   }
-  return result;
 }
 
 int CacheManager::GetNotificationsNumber(const std::string &priority) {
@@ -1157,8 +1154,6 @@ int CacheManager::CountUnconsentedGroups(const std::string& policy_app_id,
     return 0;
   }
 
-  policy_table::FunctionalGroupings::const_iterator groups_iter =
-      pt_->policy_table.functional_groupings.begin();
   policy_table::FunctionalGroupings::const_iterator groups_iter_end =
       pt_->policy_table.functional_groupings.end();
 
@@ -1278,18 +1273,15 @@ bool CacheManager::GetFunctionalGroupNames(FunctionalGroupNames &names) {
   return true;
 }
 
-bool CacheManager::CleanupUnpairedDevices(const DeviceIds &device_ids) {
+bool CacheManager::CleanupUnpairedDevices() {
   CACHE_MANAGER_CHECK(false);
 #ifdef EXTENDED_POLICY
   sync_primitives::AutoLock lock(cache_lock_);
   sync_primitives::AutoLock lock_unpaired(unpaired_lock_);
-  DeviceIds::const_iterator iter = device_ids.begin();
-  DeviceIds::const_iterator iter_end = device_ids.end();
-  for (; iter != iter_end; ++iter) {
-	LOG4CXX_DEBUG(logger_, "Is_unpaired size is: " << is_unpaired_.size());
-    is_unpaired_.erase(*iter);
-    LOG4CXX_DEBUG(logger_, "Is_unpaired size is: " << is_unpaired_.size());
-
+  UnpairedDevices::iterator iter = is_unpaired_.begin();
+  UnpairedDevices::const_iterator iter_end = is_unpaired_.end();
+  LOG4CXX_DEBUG(logger_, "Is_unpaired size is: " << is_unpaired_.size());
+  for (; iter != iter_end; ++iter) {    
     // Delete device
     if (!pt_->policy_table.device_data.is_initialized()) {
       LOG4CXX_ERROR(logger_, "Device_data section is not initialized.");
@@ -1309,6 +1301,7 @@ bool CacheManager::CleanupUnpairedDevices(const DeviceIds &device_ids) {
                  <<  " had been deleted from device_data section.");
     LOG4CXX_DEBUG(logger_, "Device_data size is: " << device_data.size());
   }
+  is_unpaired_.clear();
 #endif // EXTENDED_POLICY
   Backup();
   return true;
@@ -1531,13 +1524,6 @@ bool CacheManager::SetUnpairedDevice(const std::string &device_id,
     LOG4CXX_DEBUG(logger_, "Unpaired flag was removed for device id " << device_id);
   }
   return result;
-}
-
-bool CacheManager::UnpairedDevicesList(DeviceIds& device_ids) {
-  sync_primitives::AutoLock lock(unpaired_lock_);
-  std::copy(is_unpaired_.begin(), is_unpaired_.end(),
-            std::back_inserter(device_ids));
-  return true;
 }
 
 bool CacheManager::SetVINValue(const std::string& value) {

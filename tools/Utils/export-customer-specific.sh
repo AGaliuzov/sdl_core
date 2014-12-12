@@ -95,11 +95,14 @@ function is_excluded_bin() {
 }
 
 function is_to_filter() {
+set -f
   for entry in @($files_to_filter); do
     if [[ ${1%%*/} == ${entry} ]]; then
-      return 0
+        set +f
+        return 0
     fi
   done
+  set +f
   return 1
 }
 
@@ -111,8 +114,10 @@ if [ -z $srcdir ] ||  [ -z $customer ]; then
   exit 1
 fi
 
+set -f
 source $srcdir/customer-specific/$customer.conf
 specificdir=$srcdir/customer-specific/$customer
+set +f
 
 readarray -t excludes_src < <(for entry in $exclude_src; do echo $entry; done | sort)
 readarray -t excludes_bin < <(for entry in $exclude_bin; do echo $entry; done | sort)
@@ -138,8 +143,13 @@ function integrate_src() {
       integrate_src $l $2;
     done
   elif [ -f $1 ]; then
-    if is_to_filter $relfn; then
-      $srcdir/$filter_command $1  > $export_dir/$relfn
+    if is_to_filter $relfn $2; then
+      file_name=$(basename $1)
+      if [[ ${file_name} == "CMakeLists.txt" || ${file_name##*.} == "cmake" ]]; then
+        $srcdir/$filter_command $1 -t cmake > $export_dir/$relfn
+      else
+        $srcdir/$filter_command $1  > $export_dir/$relfn
+      fi
     else
       cp $1 $export_dir/$relfn
       echo $1" copied to "$export_dir/$relfn
@@ -159,7 +169,7 @@ function integrate_bin() {
       integrate_bin $l $2;
     done
   elif [ -f $1 ]; then
-    if is_to_filter $relfn; then
+    if is_to_filter $relfn $2; then
       $srcdir/$filter_command $1  > $export_dir/$relfn
     else
       cp $1 $export_dir/$relfn
@@ -174,6 +184,7 @@ for entry in $include_src; do
     integrate_src $p $srcdir
   done
 done
+set +f
 
 set -f
 for entry in $include_bin; do
@@ -183,7 +194,7 @@ for entry in $include_bin; do
   done
 done
 
-set +f
+
+
 cp -r $specificdir/* $export_dir/
 post_install $additional_args
-

@@ -506,6 +506,7 @@ bool ApplicationManagerImpl::LoadAppDataToHMI(ApplicationSharedPtr app) {
 }
 
 bool ApplicationManagerImpl::ActivateApplication(ApplicationSharedPtr app) {
+  LOG4CXX_AUTO_TRACE(logger_);
   if (!app) {
     LOG4CXX_ERROR(logger_, "Null-pointer application received.");
     NOTREACHED();
@@ -577,8 +578,12 @@ bool ApplicationManagerImpl::ActivateApplication(ApplicationSharedPtr app) {
 
 mobile_api::HMILevel::eType ApplicationManagerImpl::PutApplicationInFull(
   ApplicationSharedPtr app) {
-  DCHECK(app.get())
-
+  LOG4CXX_AUTO_TRACE(logger_);
+  if (!app) {
+    LOG4CXX_ERROR(logger_, "Application pointer invalid");
+    NOTREACHED();
+    return mobile_api::HMILevel::INVALID_ENUM;
+  }
   bool is_audio_app = app->IsAudioApplication();
   bool does_audio_app_with_same_type_exist =
       DoesAudioAppWithSameHMITypeExistInFullOrLimited(app);
@@ -596,7 +601,6 @@ mobile_api::HMILevel::eType ApplicationManagerImpl::PutApplicationInFull(
   }
 
   if (mobile_api::HMILevel::HMI_FULL == result) {
-    app->set_hmi_level(result);
     MessageHelper::SendActivateAppToHMI(app->app_id());
   }
   return result;
@@ -1912,6 +1916,7 @@ void ApplicationManagerImpl::HeadUnitReset(
     mobile_api::AppInterfaceUnregisteredReason::eType reason) {
   switch (reason) {
     case mobile_api::AppInterfaceUnregisteredReason::MASTER_RESET: {
+      UnregisterAllApplications();
       policy::PolicyHandler::instance()->ResetPolicyTable();
       policy::PolicyHandler::instance()->UnloadPolicyLibrary();
       file_system::remove_directory_content(profile::Profile::instance()->app_storage_folder());
@@ -2512,11 +2517,11 @@ void ApplicationManagerImpl::RemoveAppFromTTSGlobalPropertiesList(
       tts_global_properties_app_list_.find(app_id);
   if (tts_global_properties_app_list_.end() != it) {
     tts_global_properties_app_list_.erase(it);
-    if (!(tts_global_properties_app_list_.size())) {
+    if (tts_global_properties_app_list_.empty()) {
       LOG4CXX_INFO(logger_, "Stop tts_global_properties_timer_");
       // if container is empty need to stop timer
       tts_global_properties_app_list_lock_.Release();
-      tts_global_properties_timer_.stop();
+      tts_global_properties_timer_.pause();
       return;
     }
   }

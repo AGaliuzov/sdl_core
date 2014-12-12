@@ -247,8 +247,22 @@ void RequestController::terminateHMIRequest(const uint32_t &correlation_id) {
 
 void RequestController::terminateAppRequests(
     const uint32_t& app_id) {
+  LOG4CXX_INFO(logger_, "ENTER terminate all app requests : " << app_id
+                        << " mobile_request_list_ size is : " << mobile_request_list_.size()
+                        << " pending_request_set_ size is : " << pending_request_set_.size());
+
+  AutoLock mobile_requests_auto_lock(mobile_request_list_lock_);
+  std::list<RequestPtr>::iterator request_it = mobile_request_list_.begin();
+  while (mobile_request_list_.end() != request_it) {
+    RequestPtr request = (*request_it);
+    if ((request.valid()) && (request->connection_key() == app_id)) {
+      mobile_request_list_.erase(request_it++);
+    } else {
+      ++request_it;
+    }
+  }
+
   AutoLock auto_lock(pending_request_set_lock_);
-  LOG4CXX_TRACE(logger_,"ENTER app_id = " << app_id);
   RequestInfoSet::iterator it = pending_request_set_.begin();
   while (pending_request_set_.end() != it) {
     RequestInfoPtr request_info = (*it);
@@ -261,11 +275,15 @@ void RequestController::terminateAppRequests(
     if (request_info->app_id() == app_id) {
       request_info->request()->CleanUp();
       pending_request_set_.erase(it++);
-      LOG4CXX_INFO(logger_, "terminated all app requests : " << app_id);
     } else {
       ++it;
     }
   }
+
+  LOG4CXX_INFO(logger_, "EXIT terminate all app requests : " << app_id
+                        << " mobile_request_list_ size is : " << mobile_request_list_.size()
+                        << " pending_request_set_ size is : " << pending_request_set_.size());
+
   UpdateTimer();
 }
 
@@ -424,7 +442,7 @@ void RequestController::Worker::threadMain() {
     sync_primitives::AutoLock auto_lock(request_controller_->mobile_request_list_lock_);
 
     while ((request_controller_->pool_state_ != TPoolState::STOPPED) &&
-        (request_controller_->mobile_request_list_.empty())) {
+           (request_controller_->mobile_request_list_.empty())) {
       // Wait until there is a task in the queue
       // Unlock mutex while wait, then lock it back when signaled
       LOG4CXX_INFO(logger_, "Unlocking and waiting");
@@ -437,9 +455,12 @@ void RequestController::Worker::threadMain() {
       break;
     }
 
-    DCHECK(!request_controller_->mobile_request_list_.empty());
-    RequestPtr request(request_controller_->mobile_request_list_.front());
+    if (request_controller_->mobile_request_list_.empty()) {
+      LOG4CXX_WARN(logger_, "Mobile request list is empty");
+      break;
+    }
 
+    RequestPtr request(request_controller_->mobile_request_list_.front());
     request_controller_->mobile_request_list_.pop_front();
     bool init_res = request->Init();  // to setup specific default timeout
 

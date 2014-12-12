@@ -42,9 +42,7 @@
 #include "policy/sql_pt_queries.h"
 #include "policy/policy_helper.h"
 #include "policy/cache_manager.h"
-#ifndef __QNX__
-#  include "config_profile/profile.h"
-#endif  // __QNX__
+#include "config_profile/profile.h"
 
 namespace policy {
 
@@ -308,9 +306,15 @@ InitResult SQLPTRepresentation::Init() {
   if (!db_->Open()) {
     LOG4CXX_ERROR(logger_, "Failed opening database.");
     LOG4CXX_INFO(logger_, "Starting opening retries.");
-    const uint8_t attempts = 5;
+    const uint16_t attempts =
+        profile::Profile::instance()->attempts_to_open_policy_db();
+    LOG4CXX_DEBUG(logger_, "Total attempts number is: " << attempts);
     bool is_opened = false;
-    const useconds_t sleep_interval_mcsec = 500000;
+    const uint16_t open_attempt_timeout_ms =
+        profile::Profile::instance()->open_attempt_timeout_ms();
+    const useconds_t sleep_interval_mcsec = open_attempt_timeout_ms * 1000;
+    LOG4CXX_DEBUG(logger_, "Open attempt timeout(ms) is: "
+                  << open_attempt_timeout_ms);
     for (int i = 0; i < attempts; ++i) {
       usleep(sleep_interval_mcsec);
       LOG4CXX_INFO(logger_, "Attempt: " << i+1);
@@ -321,6 +325,10 @@ InitResult SQLPTRepresentation::Init() {
       }
     }
     if (!is_opened) {
+      LOG4CXX_ERROR(logger_, "Open retry sequence failed. Tried "
+                    << attempts << " attempts with "
+                    << open_attempt_timeout_ms
+                    << " open timeout(ms) for each.");
       return InitResult::FAIL;
     }
   }
