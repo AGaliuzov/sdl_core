@@ -109,7 +109,7 @@ void TimeManager::Streamer::threadMain() {
 
   Start();
   while (!stop_flag_) {
-    LOG4CXX_INFO(logger_, "Server socket is listenning ");
+    LOG4CXX_INFO(logger_, "Server socket is listening ");
     client_socket_fd_ = accept(server_socket_fd_, NULL, NULL);
     if (0 > client_socket_fd_) {
       LOG4CXX_ERROR(logger_, "Cant open socket . Socket is busy ");
