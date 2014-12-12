@@ -32,8 +32,10 @@
 
 #include "application_manager/application_data_impl.h"
 #include "application_manager/smart_object_keys.h"
+#include "utils/logger.h"
 
 namespace application_manager {
+CREATE_LOGGERPTR_GLOBAL(logger_, "ApplicationDataImpl")
 
 InitialApplicationDataImpl::InitialApplicationDataImpl()
     : app_types_(NULL),
@@ -277,6 +279,30 @@ const NsSmartDeviceLink::NsSmartObjects::SmartObject* DynamicApplicationDataImpl
   return menu_icon_;
 }
 
+void DynamicApplicationDataImpl::load_global_properties(
+    const smart_objects::SmartObject& properties_so) {
+  SetGlobalProperties(properties_so.getElement(strings::vr_help_title),
+                       &DynamicApplicationData::set_vr_help_title);
+
+  SetGlobalProperties(properties_so.getElement(strings::vr_help),
+                       &DynamicApplicationData::set_vr_help);
+
+  SetGlobalProperties(properties_so.getElement(strings::timeout_prompt),
+                      &DynamicApplicationData::set_timeout_prompt);
+
+  SetGlobalProperties(properties_so.getElement(strings::help_prompt),
+                      &DynamicApplicationData::set_help_prompt);
+
+  SetGlobalProperties(properties_so.getElement(strings::keyboard_properties),
+                      &DynamicApplicationData::set_keyboard_props);
+
+  SetGlobalProperties(properties_so.getElement(strings::menu_title),
+                      &DynamicApplicationData::set_menu_title);
+
+  SetGlobalProperties(properties_so.getElement(strings::menu_icon),
+                      &DynamicApplicationData::set_menu_icon);
+}
+
 void DynamicApplicationDataImpl::set_help_prompt(
     const smart_objects::SmartObject& help_prompt) {
   if (help_prompt_) {
@@ -368,6 +394,21 @@ void DynamicApplicationDataImpl::set_menu_icon(
   menu_icon_= new smart_objects::SmartObject(menu_icon);
 }
 
+void DynamicApplicationDataImpl::SetGlobalProperties(
+    const smart_objects::SmartObject& param,
+    void (DynamicApplicationData::*callback)(
+      const NsSmartDeviceLink::NsSmartObjects::SmartObject&)) {
+
+  smart_objects::SmartType so_type = param.getType();
+  if (so_type != smart_objects::SmartType::SmartType_Invalid  &&
+      so_type != smart_objects::SmartType::SmartType_Null) {
+    if (callback) {
+      (this->*callback)(param);
+    }
+  } else {
+    LOG4CXX_WARN(logger_, "Invalid or Null smart object");
+  }
+}
 
 void DynamicApplicationDataImpl::AddCommand(
   uint32_t cmd_id, const smart_objects::SmartObject& command) {
