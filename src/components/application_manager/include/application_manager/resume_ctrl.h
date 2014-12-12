@@ -290,17 +290,101 @@ class ResumeCtrl: public event_engine::EventObserver {
 
     void InsertToTimerQueue(uint32_t app_id, uint32_t time_stamp);
 
+    /**
+     * @brief AddFiles allows to add files for the application
+     * which should be resumed
+     *
+     * @param application application which will be resumed
+     *
+     * @param saved_app application specific section from backup file
+     */
     void AddFiles(ApplicationSharedPtr application, const Json::Value& saved_app);
+
+    /**
+     * @brief AddSubmenues allows to add sub menues for the application
+     * which should be resumed
+     *
+     * @param application application which will be resumed
+     *
+     * @param saved_app application specific section from backup file
+     */
     void AddSubmenues(ApplicationSharedPtr application, const Json::Value& saved_app);
+
+    /**
+     * @brief AddCommands allows to add commands for the application
+     * which should be resumed
+     *
+     * @param application application which will be resumed
+     *
+     * @param saved_app application specific section from backup file
+     */
     void AddCommands(ApplicationSharedPtr application, const Json::Value& saved_app);
+
+    /**
+     * @brief AddChoicesets allows to add choice sets for the application
+     * which should be resumed
+     *
+     * @param application application which will be resumed
+     *
+     * @param saved_app application specific section from backup file
+     */
     void AddChoicesets(ApplicationSharedPtr application, const Json::Value& saved_app);
+
+    /**
+     * @brief SetGlobalProperties allows to restore global properties.
+     *
+     * @param application application which will be resumed
+     *
+     * @param saved_app application specific section from backup file
+     */
     void SetGlobalProperties(ApplicationSharedPtr application, const Json::Value& saved_app);
-    void MakeSubscriptions(ApplicationSharedPtr application, const Json::Value& saved_app);
+
+    /**
+     * @brief AddSubscriptions allows to restore subscriptions
+     *
+     * @param application application which will be resumed
+     *
+     * @param saved_app application specific section from backup file
+     */
+    void AddSubscriptions(ApplicationSharedPtr application, const Json::Value& saved_app);
+
+    /**
+     * @brief ProcessHMIRequests allows to process obtained requests.
+     *
+     * @param requests request that should be processed.
+     */
     void ProcessHMIRequests(const std::vector<smart_objects::SmartObject*> & requests);
 
+    /**
+     * @brief CheckIcons allows to check application icons
+     *
+     * @param application application under resumtion  application
+     *
+     * @param json_object
+     *
+     * @return true in case icons exists, false otherwise
+     */
     bool CheckIcons(ApplicationSharedPtr application, const Json::Value& json_object);
 
+    /**
+     * @brief GetFromSavedOrAppend allows to get existed record about application
+     * or adds the new on_event.
+     *
+     * @param mobile_app_id application id.
+     *
+     * @return the reference to the record in applications array.
+     */
     Json::Value& GetFromSavedOrAppend(const std::string& mobile_app_id);
+
+    /**
+     * @brief GetObjectIndex allows to obtain specified obbject index from
+     * applications arrays.
+     *
+     * @param mobile_app_id application id that should be found.
+     *
+     * @return application's index of or -1 if it doesn't exists
+     */
+    int GetObjectIndex(const std::string& mobile_app_id);
 
     template<typename Iterator>
     Json::Value Append(Iterator first,
