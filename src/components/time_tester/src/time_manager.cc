@@ -116,7 +116,7 @@ void TimeManager::Streamer::threadMain() {
       Stop();
       break;
     }
-    LOG4CXX_INFO(logger_, "Client connetced");
+    LOG4CXX_INFO(logger_, "Client connected");
 
     is_client_connected_ = true;
     while (is_client_connected_) {
@@ -195,7 +195,7 @@ void TimeManager::Streamer::ShutDownAndCloseSocket(int32_t socket_fd) {
 void TimeManager::Streamer::Stop() {
   LOG4CXX_AUTO_TRACE(logger_);
   if (stop_flag_) {
-    LOG4CXX_WARN(logger_, "Already Stoped");
+    LOG4CXX_WARN(logger_, "Already Stopped");
     return;
   }
   stop_flag_ = true;
