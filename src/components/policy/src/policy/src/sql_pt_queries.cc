@@ -533,9 +533,7 @@ const std::string kSelectModuleConfig =
   " FROM `module_config`";
 
 const std::string kSelectEndpoints =
-  "SELECT `url`, `service`, `application_id` "
-  "FROM `endpoint` "
-  "GROUP BY `application_id`";
+  "SELECT `url`, `service`, `application_id` FROM `endpoint` ";
 
 const std::string kSelectNotificationsPerMin =
   "SELECT `priority_value`, `value` FROM notifications_by_priority";
