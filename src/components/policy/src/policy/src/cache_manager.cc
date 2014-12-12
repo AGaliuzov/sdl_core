@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -348,8 +348,6 @@ bool CacheManager::ApplyUpdate(const policy_table::Table& update_pt) {
       update_pt.policy_table.app_policies.end();
 
   for (;iter != iter_end; ++iter) {
-    policy_table::ApplicationPolicies::iterator beg =
-        pt_->policy_table.app_policies.find(iter->first);
     if (iter->second.is_null()) {
       pt_->policy_table.app_policies[iter->first].set_to_null();
       pt_->policy_table.app_policies[iter->first].set_to_string("");
@@ -1157,8 +1155,6 @@ int CacheManager::CountUnconsentedGroups(const std::string& policy_app_id,
     return 0;
   }
 
-  policy_table::FunctionalGroupings::const_iterator groups_iter =
-      pt_->policy_table.functional_groupings.begin();
   policy_table::FunctionalGroupings::const_iterator groups_iter_end =
       pt_->policy_table.functional_groupings.end();
 

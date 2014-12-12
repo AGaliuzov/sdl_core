@@ -77,6 +77,9 @@ class AppStopwatch {
  public:
   AppStopwatch(utils::SharedPtr<usage_statistics::StatisticsManager> statistics_manager,
                const std::string& app_id);
+  AppStopwatch(utils::SharedPtr<usage_statistics::StatisticsManager> statistics_manager,
+               const std::string& app_id,
+               std::uint32_t time_out);
   ~AppStopwatch();
   void Start(AppStopwatchId stopwatch_type);
   void Switch(AppStopwatchId stopwatch_type);
