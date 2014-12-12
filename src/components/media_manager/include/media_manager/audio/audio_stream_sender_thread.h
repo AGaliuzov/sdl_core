@@ -124,14 +124,6 @@ class AudioStreamSenderThread : public threads::ThreadDelegate {
     void mqSendAudioChunkToMobile(char*& buffer, size_t buffer_size);
 #endif // CUSTOMER_PASA
 
-    /*
-     * @brief Creates command for corresponding smart object
-     *
-     * @param cmd Smart object representing command
-     */
-    void FactoryCreateCommand(
-      NsSmartDeviceLink::NsSmartObjects::SmartObject* cmd);
-
     bool getShouldBeStopped();
     void setShouldBeStopped(bool should_stop);
 

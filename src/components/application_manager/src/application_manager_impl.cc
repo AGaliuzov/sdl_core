@@ -835,8 +835,8 @@ void ApplicationManagerImpl::SendUpdateAppList(const std::list<uint32_t>& applic
 
   LOG4CXX_DEBUG(logger_, applications_ids.size() << " applications.");
 
-  smart_objects::SmartObject* request = MessageHelper::CreateModuleInfoSO(
-                                          hmi_apis::FunctionID::BasicCommunication_UpdateAppList);
+  smart_objects::SmartObjectSPtr request = MessageHelper::CreateModuleInfoSO(
+      hmi_apis::FunctionID::BasicCommunication_UpdateAppList);
   (*request)[strings::msg_params][strings::applications] =
       smart_objects::SmartObject(smart_objects::SmartType_Array);
 
@@ -1274,12 +1274,11 @@ bool ApplicationManagerImpl::ManageMobileCommand(
     app = ApplicationManagerImpl::instance()->application(connection_key);
     if (!app) {
       LOG4CXX_ERROR_EXT(logger_, "RET APPLICATION_NOT_REGISTERED");
-      smart_objects::SmartObject* response =
-        MessageHelper::CreateNegativeResponse(
-          connection_key,
-          static_cast<int32_t>(function_id),
-          correlation_id,
-          static_cast<int32_t>(mobile_apis::Result::APPLICATION_NOT_REGISTERED));
+      smart_objects::SmartObjectSPtr response =
+          MessageHelper::CreateNegativeResponse(connection_key,
+                                                static_cast<int32_t>(function_id),
+                                                correlation_id,
+                                                static_cast<int32_t>(mobile_apis::Result::APPLICATION_NOT_REGISTERED));
 
       SendMessageToMobile(response);
       return false;
@@ -1333,12 +1332,11 @@ bool ApplicationManagerImpl::ManageMobileCommand(
       LOG4CXX_ERROR_EXT(logger_, "RET  Unable top perform request: " <<
                         "TOO_MANY_PENDING_REQUESTS");
 
-      smart_objects::SmartObject* response =
-        MessageHelper::CreateNegativeResponse(
-          connection_key,
-          static_cast<int32_t>(function_id),
-          correlation_id,
-          static_cast<int32_t>(mobile_apis::Result::TOO_MANY_PENDING_REQUESTS));
+      smart_objects::SmartObjectSPtr response =
+          MessageHelper::CreateNegativeResponse(connection_key,
+                                                static_cast<int32_t>(function_id),
+                                                correlation_id,
+                                                static_cast<int32_t>(mobile_apis::Result::TOO_MANY_PENDING_REQUESTS));
 
       SendMessageToMobile(response);
       return false;
@@ -1622,7 +1620,7 @@ bool ApplicationManagerImpl::ConvertMessageToSO(
           output[strings::msg_params][strings::result_code] =
             NsSmartDeviceLinkRPC::V1::Result::UNSUPPORTED_VERSION;
 
-          smart_objects::SmartObject* msg_to_send = new smart_objects::SmartObject(output);
+          smart_objects::SmartObjectSPtr msg_to_send = new smart_objects::SmartObject(output);
           v1_shema.attachSchema(*msg_to_send);
           SendMessageToMobile(msg_to_send);
           return false;
@@ -1944,7 +1942,7 @@ void ApplicationManagerImpl::SendOnSDLClose() {
   LOG4CXX_AUTO_TRACE(logger_);
 
   // must be sent to PASA HMI on shutdown synchronously
-  smart_objects::SmartObject* msg = new smart_objects::SmartObject(
+  smart_objects::SmartObjectSPtr msg = new smart_objects::SmartObject(
       smart_objects::SmartType_Map);
 
   (*msg)[strings::params][strings::function_id] =
@@ -1987,7 +1985,6 @@ void ApplicationManagerImpl::SendOnSDLClose() {
     return;
   }
 
-  delete msg;
   hmi_handler_->SendMessageToHMI(message_to_send);
 }
 
@@ -2635,7 +2632,6 @@ void ApplicationManagerImpl::OnUpdateHMIAppType(std::map<std::string, std::vecto
   std::map<std::string, std::vector<std::string> >::iterator it_app_hmi_types_from_policy;
   std::vector<std::string> hmi_types_from_policy;
   smart_objects::SmartObject transform_app_hmi_types(smart_objects::SmartType_Array);
-  const smart_objects::SmartObject *save_application_hmi_type = NULL;
   bool flag_diffirence_app_hmi_type = false;
 
   for (TAppListIt it = application_list_.begin();
@@ -2658,7 +2654,8 @@ void ApplicationManagerImpl::OnUpdateHMIAppType(std::map<std::string, std::vecto
         transform_app_hmi_types[i] = StringToAppHMIType(hmi_types_from_policy[i]);
       }
 
-      save_application_hmi_type = (*it)->app_types();
+      ApplicationConstSharedPtr app = *it;
+      const smart_objects::SmartObject* save_application_hmi_type = app->app_types();
 
       if (save_application_hmi_type == NULL ||
           ((*save_application_hmi_type).length() != transform_app_hmi_types.length())) {

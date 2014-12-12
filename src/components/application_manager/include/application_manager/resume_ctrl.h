@@ -276,11 +276,10 @@ class ResumeCtrl: public event_engine::EventObserver {
     Json::Value GetApplicationShow(
         ApplicationConstSharedPtr application);
 
-    Json::Value JsonFromSO(
-        const NsSmartDeviceLink::NsSmartObjects::SmartObject *so);
+    Json::Value JsonFromSO(const smart_objects::SmartObject *so);
 
     void SendHMIRequest(const hmi_apis::FunctionID::eType& function_id,
-                        const smart_objects::SmartObjectSPtr msg_params = NULL,
+                        const smart_objects::SmartObject* msg_params = NULL,
                         bool use_events = false);
 
     bool ProcessHMIRequest(

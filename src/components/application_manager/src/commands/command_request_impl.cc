@@ -53,12 +53,12 @@ struct DisallowedParamsInserter {
         application_manager::MessageHelper::vehicle_data();
     VehicleData::const_iterator it = vehicle_data.find(param);
     if (vehicle_data.end() != it) {
-      smart_objects::SmartObject* disallowed_param =
+      smart_objects::SmartObjectSPtr disallowed_param =
           new smart_objects::SmartObject(smart_objects::SmartType_Map);
       (*disallowed_param)[strings::data_type] = (*it).second;
       (*disallowed_param)[strings::result_code] = code_;
-     response_[strings::msg_params][param.c_str()] = *disallowed_param;
-     return true;
+      response_[strings::msg_params][param.c_str()] = *disallowed_param;
+      return true;
     }
     return false;
   }

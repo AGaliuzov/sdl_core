@@ -1030,9 +1030,9 @@ void ResumeCtrl::InsertToTimerQueue(uint32_t app_id, uint32_t time_stamp) {
 
 void ResumeCtrl::SendHMIRequest(
     const hmi_apis::FunctionID::eType& function_id,
-    const smart_objects::SmartObjectSPtr msg_params, bool use_events) {
+    const smart_objects::SmartObject* msg_params, bool use_events) {
   LOG4CXX_AUTO_TRACE(logger_);
-  NsSmartDeviceLink::NsSmartObjects::SmartObject* result =
+  smart_objects::SmartObjectSPtr result =
       MessageHelper::CreateModuleInfoSO(function_id);
   int32_t hmi_correlation_id =
       (*result)[strings::params][strings::correlation_id].asInt();
