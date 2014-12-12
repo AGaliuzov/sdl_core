@@ -62,11 +62,6 @@ class ConnectionHandlerMock : public connection_handler::ConnectionHandler {
   MOCK_METHOD2(GetDeviceID,
       bool(const std::string& mac_address,
           connection_handler::DeviceHandle* device_handle));
-//  MOCK_METHOD1(CloseSession,
-//      void(uint32_t key));
-//  MOCK_METHOD2(CloseSession,
-//      void(connection_handler::ConnectionHandle connection_handle,
-//          uint8_t session_id));
   MOCK_METHOD2(CloseSession,
             void(uint32_t key,
                  connection_handler::CloseSessionReason close_reason));

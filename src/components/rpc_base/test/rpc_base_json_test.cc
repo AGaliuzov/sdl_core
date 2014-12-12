@@ -281,13 +281,13 @@ TEST(ValidatedTypesJson, OptionalMapAbsentValueTest) {
   ASSERT_TRUE(map.is_valid());
 }
 
-TEST(ValidatedTypesJson, ArrayFromInvalidJsonTest) {
+TEST(ValidatedTypesJson, ArrayJsonTest) {
   Value array_value;
   array_value.append(Value("Hello"));
   array_value.append(Value("World"));
   Array<Integer<int8_t, 0, 32>, 2, 4> int_array(&array_value);
   ASSERT_TRUE(int_array.is_initialized());
-  ASSERT_FALSE(int_array.is_valid());
+  ASSERT_TRUE(int_array.is_valid());
   ASSERT_EQ(int_array.size(), array_value.size());
 }
 

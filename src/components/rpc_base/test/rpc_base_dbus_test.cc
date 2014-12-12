@@ -301,11 +301,12 @@ TEST_F(DbusDeserialization, DeserializeOptionalInt) {
   }
   {
     dbus::MessageReader reader(msgref);
-    Optional < Integer<int32_t, 1, 90>> readback;
+    Optional < Integer<int32_t, 1, 90>> readback(&reader);
     ASSERT_FALSE(readback.is_initialized());
     ASSERT_TRUE(readback.is_valid());
     ASSERT_FALSE(reader.has_failed());
     ASSERT_FALSE(reader.HasNext());
+
   }
 }
 
