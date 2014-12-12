@@ -459,6 +459,7 @@ bool PolicyManagerImpl::ResetUserConsent() {
 
 void PolicyManagerImpl::SendNotificationOnPermissionsUpdated(
   const std::string& application_id) {
+  LOG4CXX_AUTO_TRACE(logger_);
   const std::string device_id = GetCurrentDeviceId(application_id);
   if (device_id.empty()) {
     LOG4CXX_WARN(logger_, "Couldn't find device info for application id "

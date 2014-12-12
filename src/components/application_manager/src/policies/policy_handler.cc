@@ -86,6 +86,7 @@ struct DeactivateApplication {
         app->set_hmi_level(mobile_apis::HMILevel::HMI_NONE);
         application_manager::MessageHelper::SendActivateAppToHMI(
           app->app_id(), hmi_apis::Common_HMILevel::NONE);
+        application_manager::MessageHelper::SendHMIStatusNotification(*app.get());
       }
     }
 
@@ -1005,7 +1006,9 @@ void PolicyHandler::OnActivateApp(uint32_t connection_key,
   // In this case we need to activate application
   if (false == permissions.appRevoked && true == permissions.isSDLAllowed) {
         LOG4CXX_INFO(logger_, "Application will be activated");
-        application_manager::MessageHelper::SendActivateAppToHMI(app->app_id());
+        if (application_manager::ApplicationManagerImpl::instance()->ActivateApplication(app)) {
+          application_manager::MessageHelper::SendHMIStatusNotification(*(app.get()));
+        }
   } else {
     LOG4CXX_INFO(logger_, "Application should not be activated");
   }
@@ -1035,7 +1038,7 @@ void PolicyHandler::OnPermissionsUpdated(const std::string& policy_app_id,
   application_manager::ApplicationSharedPtr app =
     application_manager::ApplicationManagerImpl::instance()
     ->application_by_policy_id(policy_app_id);
-
+  LOG4CXX_AUTO_TRACE(logger_);
   if (!app.valid()) {
     LOG4CXX_WARN(
       logger_,
@@ -1075,17 +1078,14 @@ void PolicyHandler::OnPermissionsUpdated(const std::string& policy_app_id,
       // sent on response receiving.
       if (mobile_apis::HMILevel::HMI_FULL == hmi_level) {
         application_manager::MessageHelper::SendActivateAppToHMI(app->app_id());
-        break;
       } else {
         // Set application hmi level
         app->set_hmi_level(hmi_level);
         // If hmi Level is full, it will be seted after ActivateApp response
-      }
-
-      // Send notification to mobile
-      application_manager::MessageHelper::SendHMIStatusNotification(*app.get());
+        application_manager::MessageHelper::SendHMIStatusNotification(*app.get());
       }
       break;
+    }
     default:
       LOG4CXX_WARN(logger_, "Application " << policy_app_id << " is running."
                    "HMI level won't be changed.");
