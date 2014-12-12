@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -149,7 +149,7 @@ class CacheManagerInterface {
    * @param service_type If URLs for specific service are preset,
    * return them otherwise default URLs.
    */
-  virtual EndpointUrls GetUpdateUrls(int service_type) = 0;
+  virtual void GetUpdateUrls(int service_type, EndpointUrls& end_points) = 0;
 
   /**
    * @brief Get allowed number of notifications

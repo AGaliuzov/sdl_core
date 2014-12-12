@@ -1170,9 +1170,9 @@ bool PolicyHandler::GetInitialAppData(const std::string& application_id,
   return policy_manager_->GetInitialAppData(application_id, nicknames, app_hmi_types);
 }
 
-EndpointUrls PolicyHandler::GetUpdateUrls(int service_type) {
-  POLICY_LIB_CHECK(EndpointUrls());
-  return policy_manager_->GetUpdateUrls(service_type);
+void PolicyHandler::GetUpdateUrls(int service_type, EndpointUrls& end_points) {
+  POLICY_LIB_CHECK_VOID();
+  policy_manager_->GetUpdateUrls(service_type, end_points);
 }
 
 void PolicyHandler::ResetRetrySequence() {

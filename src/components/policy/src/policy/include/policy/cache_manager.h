@@ -153,7 +153,7 @@ class CacheManager : public CacheManagerInterface {
    * @param service_type If URLs for specific service are preset,
    * return them otherwise default URLs.
    */
-  virtual EndpointUrls GetUpdateUrls(int service_type);
+  virtual void GetUpdateUrls(int service_type, EndpointUrls& end_points);
 
   /**
    * @brief Get allowed number of notifications
