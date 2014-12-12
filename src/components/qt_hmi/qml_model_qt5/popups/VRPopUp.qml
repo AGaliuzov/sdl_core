@@ -84,8 +84,12 @@ PopUp {
         anchors.bottom: parent.bottom
         anchors.left: parent.left
 
-        model: if (interactionPopup.grammarID) dataContainer.choicesVrCommands
-               else dataContainer.vrCommands
+        model: if (interactionPopup.grammarID) {
+                   dataContainer.choicesVrCommands
+               }
+               else {
+                   dataContainer.vrCommands
+               }
 
         delegate: OvalButton {
             width: parent.width
@@ -145,22 +149,10 @@ PopUp {
 
     function visibleButtons(grammarID, type) {
         if (interactionPopup.grammarID) {
-            if (interactionPopup.grammarID.indexOf(grammarID) !== -1) {
-                    return true
-                }
-            else {
-                return false
+            return interactionPopup.grammarID.indexOf(grammarID) !== -1
             }
-        }
         else {
-            if (type === Common.VRCommandType.Choice){
-                return false
-            }
-            else {
-                return true
+           return type === Common.VRCommandType.Command
             }
         }
-
-    }
-
 }

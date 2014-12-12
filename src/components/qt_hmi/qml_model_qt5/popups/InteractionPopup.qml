@@ -126,11 +126,8 @@ ContextPopup {
         async = new Async.AsyncCall()
         if (piPopUp.choiceSet.count !== 0) {
             activate()
-        }
-        else {
-            if (grammarID){
+        }else if (grammarID) {
                 vrActivate()
-            }
         }
         console.debug("exit")
         return async
@@ -140,8 +137,9 @@ ContextPopup {
         console.debug("enter")
         timer.interval = timeout
         timer.start()
-        if (grammarID)
-        vrPopUp.sortModelforPerformInteraction()
+        if (grammarID) {
+            vrPopUp.sortModelforPerformInteraction()
+        }
         show()
         console.debug("exit")
     }

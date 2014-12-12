@@ -58,7 +58,7 @@ Item {
                     "}}")
         for (var i = 0; i < vrCommands.length; ++i) {
             if (type === Common.VRCommandType.Command) {
-            dataContainer.vrCommands.append({
+                dataContainer.vrCommands.append({
                                                cmdID: cmdID,
                                                command: vrCommands[i],
                                                appID: appID === undefined ? 0 : appID,
