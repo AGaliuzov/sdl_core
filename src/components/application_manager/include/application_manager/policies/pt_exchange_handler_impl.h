@@ -40,6 +40,7 @@
 namespace policy {
 
 class PolicyHandler;
+class RetrySequence;
 
 class PTExchangeHandlerImpl : public PTExchangeHandler {
  public:
@@ -50,7 +51,8 @@ class PTExchangeHandlerImpl : public PTExchangeHandler {
 
  protected:
   PolicyHandler* policy_handler_;
-  threads::Thread* retry_sequence_;
+  RetrySequence* retry_sequence_delegate_;
+  threads::Thread* retry_sequence_thread_;
   sync_primitives::Lock retry_sequence_lock_;
 
   friend class RetrySequence;

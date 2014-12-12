@@ -50,14 +50,12 @@ UpdateStatusManager::UpdateStatusManager() :
 }
 
 UpdateStatusManager::~UpdateStatusManager() {
-  LOG4CXX_DEBUG(logger_, "Destroy update Status manager");
+  LOG4CXX_AUTO_TRACE(logger_);
   DCHECK(update_status_thread_delegate_);
-  update_status_thread_delegate_->update_status_manager_ = NULL;
   DCHECK(thread_);
-  thread_->stop();
   thread_->join();
+  delete update_status_thread_delegate_;
   threads::DeleteThread(thread_);
-  LOG4CXX_DEBUG(logger_, "update_response_timer_ deleted ");
 }
 
 void UpdateStatusManager::set_listener(PolicyListener* listener) {
@@ -199,12 +197,11 @@ void UpdateStatusManager::UpdateThreadDelegate::threadMain() {
   }
 }
 
-bool UpdateStatusManager::UpdateThreadDelegate::exitThreadMain() {
+void UpdateStatusManager::UpdateThreadDelegate::exitThreadMain() {
   sync_primitives::AutoLock auto_lock(state_lock_);
   stop_flag_ = true;
   LOG4CXX_INFO(logger_, "before notify");
   termination_condition_.NotifyOne();
-  return true;
 }
 
 void UpdateStatusManager::UpdateThreadDelegate::updateTimeOut(const uint32_t timeout_ms) {

@@ -165,8 +165,6 @@ bool PolicyManagerImpl::LoadPT(const std::string& file,
   CheckPermissionsChanges(pt_update, policy_table_snapshot);
 
   // Replace current data with updated
-
-
   if (!cache_->ApplyUpdate(*pt_update)) {
     LOG4CXX_WARN(logger_, "Unsuccessful save of updated policy table.");
     return false;
@@ -186,7 +184,7 @@ bool PolicyManagerImpl::LoadPT(const std::string& file,
 
   // If there was a user request for policy table update, it should be started
   // right after current update is finished
-  if(listener_) {
+  if (listener_) {
     RefreshRetrySequence();
     listener_->OnUserRequestedUpdateCheckRequired();
     return true;
@@ -254,7 +252,7 @@ void PolicyManagerImpl::RemoveAppFromUpdateList() {
 }
 
 std::string PolicyManagerImpl::GetUpdateUrl(int service_type) {
-  LOG4CXX_INFO(logger_, "PolicyManagerImpl::GetUpdateUrl");
+  LOG4CXX_AUTO_TRACE(logger_);
   EndpointUrls urls = cache_->GetUpdateUrls(service_type);
 
   static uint32_t index = 0;
@@ -270,7 +268,7 @@ std::string PolicyManagerImpl::GetUpdateUrl(int service_type) {
 }
 
 EndpointUrls PolicyManagerImpl::GetUpdateUrls(int service_type) {
-  LOG4CXX_INFO(logger_, "PolicyManagerImpl::GetUpdateUrls");
+  LOG4CXX_AUTO_TRACE(logger_);
   return cache_->GetUpdateUrls(service_type);
 }
 
@@ -454,12 +452,14 @@ void PolicyManagerImpl::SendNotificationOnPermissionsUpdated(
                           notification_data);
 
   LOG4CXX_INFO(logger_, "Send notification for application_id:" << application_id);
+
   std::string default_hmi;
- #ifdef EXTENDED_POLICY
-  cache_->GetDefaultHMI(application_id, default_hmi);
+#ifdef EXTENDED_POLICY
+  GetDefaultHmi(application_id, &default_hmi);
 #else
   default_hmi = "NONE";
 #endif
+
   listener()->OnPermissionsUpdated(application_id, notification_data,
                                    default_hmi);
 }
@@ -531,6 +531,7 @@ DeviceConsent PolicyManagerImpl::GetUserConsentForDevice(
 void PolicyManagerImpl::SetUserConsentForDevice(const std::string& device_id,
     bool is_allowed) {
   LOG4CXX_INFO(logger_, "SetUserConsentForDevice");
+  LOG4CXX_DEBUG(logger_, "Device :" << device_id);
   DeviceConsent current_consent = GetUserConsentForDevice(device_id);
   bool is_current_device_allowed =
       DeviceConsent::kDeviceAllowed == current_consent ? true : false;
@@ -542,6 +543,10 @@ void PolicyManagerImpl::SetUserConsentForDevice(const std::string& device_id,
   }
 #ifdef EXTENDED_POLICY
   cache_->ResetCalculatedPermissions();
+  // Remove unpaired mark, if device re-paired and re-consented again
+  if (is_allowed) {
+    cache_->SetUnpairedDevice(device_id, false);
+  }
   // Get device permission groups from app_policies section, which hadn't been
   // preconsented
   policy_table::Strings groups;
@@ -588,7 +593,6 @@ void PolicyManagerImpl::SetUserConsentForDevice(const std::string& device_id,
 bool PolicyManagerImpl::ReactOnUserDevConsentForApp(const std::string app_id,
     bool is_device_allowed) {
 #ifdef EXTENDED_POLICY
-  // TODO(AOleynik): Move out logic from PT representation to policy manager
   return cache_->ReactOnUserDevConsentForApp(app_id, is_device_allowed);
 #endif
   return true;
@@ -608,6 +612,7 @@ bool PolicyManagerImpl::GetInitialAppData(const std::string& application_id,
 void PolicyManagerImpl::SetDeviceInfo(const std::string& device_id,
                                       const DeviceInfo& device_info) {
   LOG4CXX_INFO(logger_, "SetDeviceInfo");
+  LOG4CXX_DEBUG(logger_, "Device :" << device_id);
 #ifdef EXTENDED_POLICY
   if (!cache_->SetDeviceData(device_id, device_info.hardware,
                              device_info.firmware_rev, device_info.os,
@@ -653,6 +658,48 @@ PermissionConsent PolicyManagerImpl::EnsureCorrectPermissionConsent(
   return permissions_to_set;
 }
 
+void PolicyManagerImpl::CheckPendingPermissionsChanges(
+    const std::string& policy_app_id,
+    const std::vector<FunctionalGroupPermission>& current_permissions) {
+  LOG4CXX_INFO(logger_, "CheckPendingPermissionsChanges");
+  sync_primitives::AutoLock lock(app_permissions_diff_lock_);
+  std::map<std::string, AppPermissions>::iterator it_pending =
+      app_permissions_diff_.find(policy_app_id);
+  if (app_permissions_diff_.end() == it_pending) {
+    LOG4CXX_WARN(logger_,
+                 "No pending permissions had been found for appID: "
+                 << policy_app_id);
+    return;
+  }
+
+  LOG4CXX_DEBUG(logger_,
+                "Pending permissions had been found for appID: "
+                << policy_app_id);
+
+  // Change appPermissionsConsentNeeded depending on unconsented groups
+  // presence
+  std::vector<policy::FunctionalGroupPermission>::const_iterator it_groups =
+      current_permissions.begin();
+  std::vector<policy::FunctionalGroupPermission>::const_iterator it_end_groups =
+      current_permissions.end();
+
+  for (; it_groups != it_end_groups; ++it_groups) {
+    if (policy::kGroupUndefined == it_groups->state) {
+      LOG4CXX_DEBUG(logger_,
+                    "Unconsented groups still present for appID: "
+                    << policy_app_id);
+      it_pending->second.appPermissionsConsentNeeded = true;
+      return;
+    }
+  }
+
+  LOG4CXX_DEBUG(logger_,
+                "Unconsented groups not present anymore for appID: "
+                << policy_app_id);
+  it_pending->second.appPermissionsConsentNeeded = false;
+  return;
+}
+
 void PolicyManagerImpl::SetUserConsentForApp(
     const PermissionConsent& permissions) {
   LOG4CXX_INFO(logger_, "SetUserConsentForApp");
@@ -664,11 +711,17 @@ void PolicyManagerImpl::SetUserConsentForApp(
   if (!cache_->SetUserPermissionsForApp(verified_permissions)) {
     LOG4CXX_WARN(logger_, "Can't set user permissions for application.");
   }
+
   // Send OnPermissionChange notification, since consents were changed
   std::vector<FunctionalGroupPermission> app_group_permissons;
   GetPermissionsForApp(verified_permissions.device_id,
                        verified_permissions.policy_app_id,
                        app_group_permissons);
+
+  // Change pending permissions isConsentNeeded state, if no unconsented
+  // groups left
+  CheckPendingPermissionsChanges(permissions.policy_app_id,
+                  app_group_permissons);
 
   // Get current functional groups from DB with RPC permissions
   policy_table::FunctionalGroupings functional_groups;
@@ -690,7 +743,7 @@ void PolicyManagerImpl::SetUserConsentForApp(
                           app_group_permissons, notification_data);
 
   std::string default_hmi;
-  cache_->GetDefaultHMI(verified_permissions.policy_app_id, default_hmi);
+  GetDefaultHmi(verified_permissions.policy_app_id, &default_hmi);
 
   listener()->OnPermissionsUpdated(verified_permissions.policy_app_id,
                                    notification_data,
@@ -702,7 +755,12 @@ bool PolicyManagerImpl::GetDefaultHmi(const std::string& policy_app_id,
                                       std::string* default_hmi) {
   LOG4CXX_INFO(logger_, "GetDefaultHmi");
 #ifdef EXTENDED_POLICY
-  return cache_->GetDefaultHMI(policy_app_id, *default_hmi);
+  const std::string device_id = GetCurrentDeviceId(policy_app_id);
+  DeviceConsent device_consent = GetUserConsentForDevice(device_id);
+  const std::string app_id =
+      policy::kDeviceAllowed != device_consent ?  kPreDataConsentId :
+                                                  policy_app_id;
+  return cache_->GetDefaultHMI(app_id, *default_hmi);
 #else
   return false;
 #endif
@@ -829,7 +887,8 @@ void PolicyManagerImpl::GetPermissionsForApp(
   if (cache_->IsDefaultPolicy(policy_app_id)) {
     app_id_to_check = kDefaultId;
     allowed_by_default = true;
-  } else if (cache_->IsPredataPolicy(policy_app_id)) {
+  } else if (cache_->IsPredataPolicy(policy_app_id) ||
+             policy::kDeviceDisallowed == GetUserConsentForDevice(device_id)) {
     app_id_to_check = kPreDataConsentId;
     allowed_by_default = true;
   }
@@ -853,7 +912,7 @@ void PolicyManagerImpl::GetPermissionsForApp(
   // The "default" and "pre_DataConsent" are auto-allowed groups
   // So, check if application in the one of these mode.
   if (allowed_by_default) {
-    LOG4CXX_INFO(logger_, "Get auto allowe groups");
+    LOG4CXX_INFO(logger_, "Get auto allowed groups");
     GroupType type = (kDefaultId == app_id_to_check ?
           kTypeDefault : kTypePreDataConsented);
 
@@ -1074,15 +1133,15 @@ bool PolicyManagerImpl::IsApplicationRevoked(const std::string& app_id) const {
   return cache_->IsApplicationRevoked(app_id);
 }
 
-int PolicyManagerImpl::IsConsentNeeded(const std::string& app_id) {
+bool PolicyManagerImpl::IsConsentNeeded(const std::string& app_id) {
+  LOG4CXX_AUTO_TRACE(logger_);
 #ifdef EXTENDED_POLICY
   const std::string device_id = GetCurrentDeviceId(app_id);
-  int count = 0;
-  if (cache_->CountUnconsentedGroups(app_id, device_id, count)) {
-    return count;
-  }
+  int count = cache_->CountUnconsentedGroups(app_id, device_id);
+  LOG4CXX_DEBUG(logger_, "There are: " << count << " unconsented groups.");
+  return count != 0;
 #endif
-  return 0;
+  return false;
 }
 
 void PolicyManagerImpl::SetVINValue(const std::string& value) {
@@ -1110,8 +1169,8 @@ AppPermissions PolicyManagerImpl::GetAppPermissionsChanges(
   } else {
     permissions.appPermissionsConsentNeeded = IsConsentNeeded(policy_app_id);
     permissions.appRevoked = IsApplicationRevoked(policy_app_id);
-    GetPriority(permissions.application_id, &permissions.priority);
   }
+  GetPriority(permissions.application_id, &permissions.priority);
   return permissions;
 }
 
@@ -1130,7 +1189,10 @@ bool PolicyManagerImpl::CanAppStealFocus(const std::string& app_id) {
 
 void PolicyManagerImpl::MarkUnpairedDevice(const std::string& device_id) {
 #ifdef EXTENDED_POLICY
-    cache_->SetUnpairedDevice(device_id);
+    if (!cache_->SetUnpairedDevice(device_id)) {
+      LOG4CXX_DEBUG(logger_, "Could not set unpaired flag for " << device_id);
+      return;
+    }
     SetUserConsentForDevice(device_id, false);
 #endif  // EXTENDED_POLICY
 }
@@ -1172,16 +1234,17 @@ bool PolicyManagerImpl::IsPredataPolicy(const std::string &policy_app_id) {
 
 void PolicyManagerImpl::AddNewApplication(const std::string& application_id,
                                           DeviceConsent device_consent) {
-  LOG4CXX_INFO(logger_, "PolicyManagerImpl::AddNewApplication");
+  LOG4CXX_AUTO_TRACE(logger_);
 
-  LOG4CXX_INFO(
-    logger_,
-    "Setting default permissions for application id: " << application_id);
 #ifdef EXTENDED_POLICY
   if (kDeviceHasNoConsent == device_consent ||
       kDeviceDisallowed == device_consent) {
+    LOG4CXX_INFO(logger_, "Setting " << policy::kPreDataConsentId
+                 << " permissions for application id: " << application_id);
     cache_->SetPredataPolicy(application_id);
   } else {
+    LOG4CXX_INFO(logger_, "Setting " << policy::kDefaultId
+                 << " permissions for application id: " << application_id);
     cache_->SetDefaultPolicy(application_id);
   }
 #else
@@ -1191,14 +1254,11 @@ void PolicyManagerImpl::AddNewApplication(const std::string& application_id,
 
 void PolicyManagerImpl::PromoteExistedApplication(
     const std::string& application_id, DeviceConsent device_consent) {
-
-  if (kDeviceHasNoConsent != device_consent
+  // If device consent changed to allowed during application being
+  // disconnected, app permissions should be changed also
+  if (kDeviceAllowed == device_consent
       && cache_->IsPredataPolicy(application_id)) {
-    // If device consent changed to allowed during application being
-    // disconnected, app permissions should be changed also
-    if (kDeviceAllowed == device_consent) {
-      cache_->SetDefaultPolicy(application_id);
-    }
+    cache_->SetDefaultPolicy(application_id);
   }
 }
 
@@ -1217,14 +1277,13 @@ bool PolicyManagerImpl::ResetPT(const std::string& file_name) {
 }
 
 bool PolicyManagerImpl::CheckAppStorageFolder() const {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   const std::string app_storage_folder =
       profile::Profile::instance()->app_storage_folder();
   LOG4CXX_DEBUG(logger_, "AppStorageFolder " << app_storage_folder);
   if (!file_system::DirectoryExists(app_storage_folder)) {
     LOG4CXX_WARN(logger_,
                  "Storage directory doesn't exist " << app_storage_folder);
-    LOG4CXX_TRACE_EXIT(logger_);
     return false;
   }
   if (!(file_system::IsWritingAllowed(app_storage_folder) &&
@@ -1232,15 +1291,13 @@ bool PolicyManagerImpl::CheckAppStorageFolder() const {
     LOG4CXX_WARN(
         logger_,
         "Storage directory doesn't have read/write permissions " << app_storage_folder);
-    LOG4CXX_TRACE_EXIT(logger_);
     return false;
   }
-  LOG4CXX_TRACE_EXIT(logger_);
   return true;
 }
 
 bool PolicyManagerImpl::InitPT(const std::string& file_name) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   if (!CheckAppStorageFolder()) {
     LOG4CXX_ERROR(logger_, "Can not read/write into AppStorageFolder");
     return false;
@@ -1250,7 +1307,6 @@ bool PolicyManagerImpl::InitPT(const std::string& file_name) {
     RefreshRetrySequence();
     update_status_manager_->OnPolicyInit(cache_->UpdateRequired());
   }
-  LOG4CXX_TRACE_EXIT(logger_);
   return ret;
 }
 

@@ -156,8 +156,7 @@ int SQLPTRepresentation::KilometersBeforeExchange(int current) {
 
 bool SQLPTRepresentation::SetCountersPassedForSuccessfulUpdate(
   int kilometers, int days_after_epoch) {
-  LOG4CXX_INFO(logger_,
-               "SQLPTRepresentation::SetCountersPassedForSuccessfulUpdate");
+  LOG4CXX_AUTO_TRACE(logger_);
   dbms::SQLQuery query(db());
   if (!query.Prepare(sql_pt::kUpdateCountersSuccessfulUpdate)) {
     LOG4CXX_WARN(logger_,
@@ -304,7 +303,7 @@ bool SQLPTRepresentation::GetPriority(const std::string& policy_app_id,
 }
 
 InitResult SQLPTRepresentation::Init() {
-  LOG4CXX_INFO(logger_, "SQLPTRepresentation::Init");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   if (!db_->Open()) {
     LOG4CXX_ERROR(logger_, "Failed opening database.");
@@ -410,6 +409,28 @@ bool SQLPTRepresentation::Clear() {
   if (!query.Exec(sql_pt::kDeleteData)) {
     LOG4CXX_ERROR(logger_,
                  "Failed clearing database: " << query.LastError().text());
+    return false;
+  }
+  if (!query.Exec(sql_pt::kInsertInitData)) {
+    LOG4CXX_ERROR(
+      logger_,
+      "Failed insert init data to database: " << query.LastError().text());
+    return false;
+  }
+  return true;
+}
+
+bool SQLPTRepresentation::RefreshDB() {
+  dbms::SQLQuery query(db());
+  if (!query.Exec(sql_pt::kDropSchema)) {
+    LOG4CXX_WARN(logger_,
+                 "Failed dropping database: " << query.LastError().text());
+    return false;
+  }
+  if (!query.Exec(sql_pt::kCreateSchema)) {
+    LOG4CXX_ERROR(
+      logger_,
+      "Failed creating schema of database: " << query.LastError().text());
     return false;
   }
   if (!query.Exec(sql_pt::kInsertInitData)) {
@@ -626,7 +647,7 @@ bool SQLPTRepresentation::GatherApplicationPolicies(
 }
 
 bool SQLPTRepresentation::Save(const policy_table::Table& table) {
-  LOG4CXX_INFO(logger_, "SQLPTRepresentation::Save");
+  LOG4CXX_AUTO_TRACE(logger_);
   db_->BeginTransaction();
   if (!SaveFunctionalGroupings(table.policy_table.functional_groupings)) {
     db_->RollbackTransaction();
@@ -1006,7 +1027,7 @@ bool SQLPTRepresentation::SaveServiceEndpoints(
 
 bool SQLPTRepresentation::SaveConsumerFriendlyMessages(
   const policy_table::ConsumerFriendlyMessages& messages) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   // According CRS-2419  If there is no “consumer_friendly_messages” key,
   // the current local consumer_friendly_messages section shall be maintained in
@@ -1161,6 +1182,7 @@ bool SQLPTRepresentation::SaveDeviceData(
 
 bool SQLPTRepresentation::SaveUsageAndErrorCounts(
   const policy_table::UsageAndErrorCounts& counts) {
+  const_cast<policy_table::UsageAndErrorCounts&>(counts).mark_initialized();
   dbms::SQLQuery query(db());
   if (!query.Exec(sql_pt::kDeleteAppLevel)) {
     LOG4CXX_WARN(logger_, "Incorrect delete from app level.");
@@ -1173,6 +1195,7 @@ bool SQLPTRepresentation::SaveUsageAndErrorCounts(
 
   policy_table::AppLevels::const_iterator it;
   const policy_table::AppLevels& app_levels = *counts.app_level;
+  const_cast<policy_table::AppLevels&>(*counts.app_level).mark_initialized();
   for (it = app_levels.begin(); it != app_levels.end(); ++it) {
     query.Bind(0, it->first);
     if (!query.Exec()) {
@@ -1336,9 +1359,12 @@ bool SQLPTRepresentation::IsApplicationRevoked(
   if (!query.Prepare(sql_pt::kSelectApplicationRevoked)) {
     LOG4CXX_WARN(logger_, "Incorrect select from is_revoked of application");
   }
-   if (!query.Exec()) {
+
+  query.Bind(0, app_id);
+
+  if (!query.Exec()) {
     LOG4CXX_WARN(logger_, "Failed select is_revoked of application");
-     return false;
+    return false;
   }
   return query.IsNull(0) ? false : query.GetBoolean(0);
  }

@@ -46,7 +46,9 @@
 #include "transport_manager/transport_adapter/device_scanner.h"
 #include "utils/conditional_variable.h"
 #include "utils/lock.h"
-#include "utils/threads/thread.h"
+#include "utils/threads/thread_delegate.h"
+
+class Thread;
 
 namespace transport_manager {
 namespace transport_adapter {

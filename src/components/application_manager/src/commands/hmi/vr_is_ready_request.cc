@@ -44,7 +44,7 @@ VRIsReadyRequest::~VRIsReadyRequest() {
 }
 
 void VRIsReadyRequest::Run() {
-  LOG4CXX_INFO(logger_, "VRIsReadyRequest::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   SendRequest();
 }

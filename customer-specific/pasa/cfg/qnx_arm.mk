@@ -11,11 +11,11 @@ CC = qcc -c
 CPP = qcc -c
 AS = ntoarm-as
 AR = ntoarm-ar
-LD = qcc
+LD = ${QNX_HOST}/usr/bin/ntoarmv7-g++
 # Add addtion Linker Flags....
 # If your application contains c++ code you will need 
 # the -lang-c++
-LD_CPP = -lang-c++
+LD_CPP = 
 
 # Compile options and commands
 TARGET_FLG = -Vgcc_ntoarmle
@@ -48,7 +48,7 @@ endif
 # Compiler Options
 CC_OFLAG = -o 
 CC_IFLAG = -I
-CC_FLAGS = $(TARGET_FLG) -w9 -Wc,-Wall -shared  $(CC_OPT_FLG) $(CC_PROFILING_FLG) $(CC_DEBUG_FLG)
+CC_FLAGS = $(TARGET_FLG) -fPIC -w9 -Wall -shared  $(CC_OPT_FLG) $(CC_PROFILING_FLG) $(CC_DEBUG_FLG)
 CC_TARGET = $(@)
 CC_CMD = $(CC) $(CC_FLAGS) $(DEFS) $(INCLUDES) $(@F:.$(OBJ_EXT)=.c) -o $(@) 
 CPP_CMD = $(CPP) $(CC_FLAGS) $(DEFS) $(INCLUDES) $(@F:.$(OBJ_EXT)=.cpp) -o $(@) 

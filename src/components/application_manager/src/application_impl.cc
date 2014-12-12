@@ -152,7 +152,7 @@ bool ApplicationImpl::IsFullscreen() const {
 }
 
 bool ApplicationImpl::MakeFullscreen() {
-  hmi_level_ = mobile_api::HMILevel::HMI_FULL;
+  set_hmi_level(mobile_api::HMILevel::HMI_FULL);
   if (is_media_ && !tts_speak_state_) {
     audio_streaming_state_ = mobile_api::AudioStreamingState::AUDIBLE;
   }
@@ -188,7 +188,7 @@ bool ApplicationImpl::IsAudible() const {
 }
 
 void ApplicationImpl::MakeNotAudible() {
-  hmi_level_ = mobile_api::HMILevel::HMI_BACKGROUND;
+  set_hmi_level(mobile_api::HMILevel::HMI_BACKGROUND);
   audio_streaming_state_ = mobile_api::AudioStreamingState::NOT_AUDIBLE;
 }
 
@@ -395,7 +395,7 @@ void ApplicationImpl::OnVideoStreamRetry() {
     video_stream_retry_timer_->updateTimeOut(time_out);
   } else {
     LOG4CXX_INFO(logger_, "Stop video streaming retry");
-    video_stream_retry_timer_.release();
+    video_stream_retry_timer_->stop();
     set_video_stream_retry_active(false);
   }
 }
@@ -414,7 +414,7 @@ void ApplicationImpl::OnAudioStreamRetry() {
     audio_stream_retry_timer_->updateTimeOut(time_out);
   } else {
     LOG4CXX_INFO(logger_, "Stop audio streaming retry");
-    audio_stream_retry_timer_.release();
+    audio_stream_retry_timer_->stop();
     set_audio_stream_retry_active(false);
   }
 }

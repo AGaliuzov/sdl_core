@@ -36,6 +36,7 @@
 #include <string>
 #include <map>
 #include "utils/shared_ptr.h"
+#include "utils/data_accessor.h"
 #include "interfaces/MOBILE_API.h"
 #include "connection_handler/device.h"
 #include "application_manager/message.h"
@@ -268,7 +269,7 @@ class DynamicApplicationData {
      *
      * @return ChoiceSet map that is currently in use
      */
-    virtual const PerformChoiceSetMap&
+    virtual DataAccessor<PerformChoiceSetMap>
     performinteraction_choice_set_map() const = 0;
 
     /*
@@ -285,17 +286,17 @@ class DynamicApplicationData {
     /*
      * @brief Retrieve application commands
      */
-    virtual const CommandsMap& commands_map() const = 0;
+    virtual DataAccessor<CommandsMap> commands_map() const = 0;
 
     /*
      * @brief Retrieve application sub menus
      */
-    virtual const SubMenuMap& sub_menu_map() const = 0;
+    virtual DataAccessor<SubMenuMap> sub_menu_map() const = 0;
 
     /*
      * @brief Retrieve application choice set map
      */
-    virtual const ChoiceSetMap& choice_set_map() const = 0;
+    virtual DataAccessor<ChoiceSetMap> choice_set_map() const = 0;
 
     /*
      * @brief Sets perform interaction state

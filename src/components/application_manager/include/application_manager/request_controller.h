@@ -256,7 +256,7 @@ class RequestController {
         Worker(RequestController* requestController);
         virtual ~Worker();
         virtual void threadMain();
-        virtual bool exitThreadMain();
+        virtual void exitThreadMain();
       protected:
       private:
         RequestController*                               request_controller_;

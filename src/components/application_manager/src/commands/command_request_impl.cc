@@ -91,10 +91,11 @@ void CommandRequestImpl::Run() {
 }
 
 void CommandRequestImpl::onTimeOut() {
-  LOG4CXX_INFO(logger_, "CommandRequestImpl::onTimeOut");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   unsubscribe_from_all_events();
   {
+    // FIXME (dchmerev@luxoft.com): atomic_xchg fits better
     sync_primitives::AutoLock auto_lock(state_lock_);
     if (kCompleted == current_state_) {
       // don't send timeout if request completed

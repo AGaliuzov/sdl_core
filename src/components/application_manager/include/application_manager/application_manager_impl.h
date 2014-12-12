@@ -74,10 +74,6 @@
 #include "utils/lock.h"
 #include "utils/singleton.h"
 
-namespace policy {
-class PolicyManager;
-}
-
 namespace NsSmartDeviceLink {
 namespace NsSmartObjects {
 class SmartObject;

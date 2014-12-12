@@ -76,7 +76,7 @@ ProtocolHandlerImpl::ProtocolHandlerImpl(
 #endif  // TIME_TESTER
 
 {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   protocol_header_validator_.set_max_payload_size(profile::Profile::instance()->maximum_payload_size());
   incoming_data_handler_.set_validator(&protocol_header_validator_);
   const size_t time_range_msecs = message_frequency_time;
@@ -93,7 +93,6 @@ ProtocolHandlerImpl::ProtocolHandlerImpl(
   } else {
     LOG4CXX_WARN(logger_, "Frequency meter is disabled");
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 ProtocolHandlerImpl::~ProtocolHandlerImpl() {
@@ -114,15 +113,13 @@ void ProtocolHandlerImpl::AddProtocolObserver(ProtocolObserver *observer) {
 }
 
 void ProtocolHandlerImpl::RemoveProtocolObserver(ProtocolObserver* observer) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   if (!observer) {
     LOG4CXX_ERROR(logger_, "Invalid (NULL) pointer to IProtocolObserver.");
-    LOG4CXX_TRACE_EXIT(logger_);
     return;
   }
   sync_primitives::AutoLock lock(protocol_observers_lock_);
   protocol_observers_.erase(observer);
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void ProtocolHandlerImpl::set_session_observer(SessionObserver *observer) {
@@ -156,7 +153,7 @@ void ProtocolHandlerImpl::SendStartSessionAck(ConnectionID connection_id,
                                               uint32_t hash_id,
                                               uint8_t service_type,
                                               bool protection) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   uint8_t protocolVersion;
   if (0 == profile::Profile::instance()->heart_beat_timeout()) {
@@ -182,14 +179,13 @@ void ProtocolHandlerImpl::SendStartSessionAck(ConnectionID connection_id,
                << " for service_type " << static_cast<int32_t>(service_type)
                << " session_id " << static_cast<int32_t>(session_id)
                << " protection " << (protection ? "ON" : "OFF"));
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void ProtocolHandlerImpl::SendStartSessionNAck(ConnectionID connection_id,
                                                uint8_t session_id,
                                                uint8_t protocol_version,
                                                uint8_t service_type) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
       protocol_version, PROTECTION_OFF, FRAME_TYPE_CONTROL,
@@ -203,14 +199,13 @@ void ProtocolHandlerImpl::SendStartSessionNAck(ConnectionID connection_id,
                "SendStartSessionNAck() for connection " << connection_id
                << " for service_type " << static_cast<int32_t>(service_type)
                << " session_id " << static_cast<int32_t>(session_id));
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void ProtocolHandlerImpl::SendEndSessionNAck(ConnectionID connection_id,
                                              uint32_t session_id,
                                              uint8_t protocol_version,
                                              uint8_t service_type) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
       protocol_version, PROTECTION_OFF, FRAME_TYPE_CONTROL,
@@ -223,14 +218,13 @@ void ProtocolHandlerImpl::SendEndSessionNAck(ConnectionID connection_id,
   LOG4CXX_INFO(logger_, "SendEndSessionNAck() for connection " << connection_id
                << " for service_type " << static_cast<int32_t>(service_type)
                << " session_id " << static_cast<int32_t>(session_id));
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void ProtocolHandlerImpl::SendEndSessionAck(ConnectionID connection_id,
                                             uint8_t session_id,
                                             uint8_t protocol_version,
                                             uint8_t service_type) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
       protocol_version, PROTECTION_OFF, FRAME_TYPE_CONTROL,
@@ -244,12 +238,11 @@ void ProtocolHandlerImpl::SendEndSessionAck(ConnectionID connection_id,
                "SendEndSessionAck() for connection " << connection_id
                << " for service_type " << static_cast<int32_t>(service_type)
                << " session_id " << static_cast<int32_t>(session_id));
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void ProtocolHandlerImpl::SendEndSession(int32_t connection_id,
                                          uint8_t session_id) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
       PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
@@ -262,13 +255,12 @@ void ProtocolHandlerImpl::SendEndSession(int32_t connection_id,
   LOG4CXX_INFO(logger_, "SendEndSession() for connection " << connection_id
                << " for service_type " << static_cast<int32_t>(SERVICE_TYPE_RPC)
                << " session_id " << static_cast<int32_t>(session_id));
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 RESULT_CODE ProtocolHandlerImpl::SendHeartBeatAck(ConnectionID connection_id,
                                                   uint8_t session_id,
                                                   uint32_t message_id) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
       PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
@@ -277,14 +269,12 @@ RESULT_CODE ProtocolHandlerImpl::SendHeartBeatAck(ConnectionID connection_id,
 
   raw_ford_messages_to_mobile_.PostMessage(
       impl::RawFordMessageToMobile(ptr, false));
-
-  LOG4CXX_TRACE_EXIT(logger_);
   return RESULT_OK;
 }
 
 void ProtocolHandlerImpl::SendHeartBeat(int32_t connection_id,
                                         uint8_t session_id) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
       PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
@@ -293,8 +283,6 @@ void ProtocolHandlerImpl::SendHeartBeat(int32_t connection_id,
 
   raw_ford_messages_to_mobile_.PostMessage(
       impl::RawFordMessageToMobile(ptr, false));
-
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void ProtocolHandlerImpl::SendMessageToMobileApp(const RawMessagePtr message,
@@ -302,11 +290,10 @@ void ProtocolHandlerImpl::SendMessageToMobileApp(const RawMessagePtr message,
 #ifdef TIME_TESTER
     const TimevalStruct start_time = date_time::DateTime::getCurrentTime();
 #endif  // TIME_TESTER
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   if (!message) {
     LOG4CXX_ERROR(logger_,
         "Invalid message for sending to mobile app is received.");
-    LOG4CXX_TRACE_EXIT(logger_);
     return;
   }
 
@@ -382,11 +369,10 @@ void ProtocolHandlerImpl::SendMessageToMobileApp(const RawMessagePtr message,
         metric_observer_->EndMessageProcess(metric);
       }
 #endif
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void ProtocolHandlerImpl::OnTMMessageReceived(const RawMessagePtr tm_message) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   if (tm_message) {
     LOG4CXX_INFO(logger_,
@@ -397,7 +383,6 @@ void ProtocolHandlerImpl::OnTMMessageReceived(const RawMessagePtr tm_message) {
         logger_,
         "Invalid incoming message received in"
         << " ProtocolHandler from Transport Manager.");
-    LOG4CXX_TRACE_EXIT(logger_);
     return;
   }
 
@@ -432,7 +417,6 @@ void ProtocolHandlerImpl::OnTMMessageReceived(const RawMessagePtr tm_message) {
 
     raw_ford_messages_from_mobile_.PostMessage(msg);
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void ProtocolHandlerImpl::OnTMMessageReceiveFailed(
@@ -518,10 +502,9 @@ void ProtocolHandlerImpl::OnConnectionClosed(
 }
 
 RESULT_CODE ProtocolHandlerImpl::SendFrame(const ProtocolFramePtr packet) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   if (!packet) {
     LOG4CXX_ERROR(logger_, "Failed to send empty packet.");
-    LOG4CXX_TRACE_EXIT(logger_);
     return RESULT_FAIL;
   }
 #ifdef ENABLE_SECURITY
@@ -529,7 +512,6 @@ RESULT_CODE ProtocolHandlerImpl::SendFrame(const ProtocolFramePtr packet) {
   const RESULT_CODE result = EncryptFrame(packet);
   if (result != RESULT_OK) {
     LOG4CXX_WARN(logger_, "Error frame encryption. Frame droped.");
-    LOG4CXX_TRACE_EXIT(logger_);
     return RESULT_FAIL;
   }
 #endif  // ENABLE_SECURITY
@@ -548,17 +530,13 @@ RESULT_CODE ProtocolHandlerImpl::SendFrame(const ProtocolFramePtr packet) {
 
   if (!transport_manager_) {
     LOG4CXX_WARN(logger_, "No Transport Manager found.");
-    LOG4CXX_TRACE_EXIT(logger_);
     return RESULT_FAIL;
   }
   if (transport_manager::E_SUCCESS !=
       transport_manager_->SendMessageToDevice(message_to_send)) {
     LOG4CXX_WARN(logger_, "Can't send message to device");
-    LOG4CXX_TRACE_EXIT(logger_);
     return RESULT_FAIL;
   };
-
-  LOG4CXX_TRACE_EXIT(logger_);
   return RESULT_OK;
 }
 
@@ -567,7 +545,7 @@ RESULT_CODE ProtocolHandlerImpl::SendSingleFrameMessage(
     const uint32_t protocol_version, const uint8_t service_type,
     const size_t data_size, const uint8_t *data,
     const bool is_final_message) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
       protocol_version, PROTECTION_OFF, FRAME_TYPE_SINGLE, service_type, FRAME_DATA_SINGLE,
@@ -575,8 +553,6 @@ RESULT_CODE ProtocolHandlerImpl::SendSingleFrameMessage(
 
   raw_ford_messages_to_mobile_.PostMessage(
       impl::RawFordMessageToMobile(ptr, is_final_message));
-
-  LOG4CXX_TRACE_EXIT(logger_);
   return RESULT_OK;
 }
 
@@ -585,7 +561,7 @@ RESULT_CODE ProtocolHandlerImpl::SendMultiFrameMessage(
     const uint8_t protocol_version, const uint8_t service_type,
     const size_t data_size, const uint8_t *data,
     const size_t maxdata_size, const bool is_final_message) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   LOG4CXX_INFO_EXT(
       logger_, " data size " << data_size << " maxdata_size " << maxdata_size);
@@ -647,41 +623,34 @@ RESULT_CODE ProtocolHandlerImpl::SendMultiFrameMessage(
     raw_ford_messages_to_mobile_.PostMessage(
           impl::RawFordMessageToMobile(ptr, is_final_packet));
   }
-  LOG4CXX_TRACE_EXIT(logger_);
   return RESULT_OK;
 }
 
 RESULT_CODE ProtocolHandlerImpl::HandleMessage(ConnectionID connection_id,
                                                const ProtocolFramePtr packet) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   switch (packet->frame_type()) {
     case FRAME_TYPE_CONTROL:
       LOG4CXX_TRACE(logger_, "handleMessage() - case FRAME_TYPE_CONTROL");
-      LOG4CXX_TRACE_EXIT(logger_);
       return HandleControlMessage(connection_id, packet);
     case FRAME_TYPE_SINGLE:
-      LOG4CXX_TRACE_EXIT(logger_);
       return HandleSingleFrameMessage(connection_id, packet);
     case FRAME_TYPE_FIRST:
     case FRAME_TYPE_CONSECUTIVE:
       LOG4CXX_TRACE(logger_, "handleMessage() - case FRAME_TYPE_CONSECUTIVE");
-      LOG4CXX_TRACE_EXIT(logger_);
       return HandleMultiFrameMessage(connection_id, packet);
     default: {
       LOG4CXX_WARN(logger_, "handleMessage() - case unknown frame type"
                    << packet->frame_type());
-      LOG4CXX_TRACE_EXIT(logger_);
       return RESULT_FAIL;
     }
   }
-
-  LOG4CXX_TRACE_EXIT(logger_);
   return RESULT_OK;
 }
 
 RESULT_CODE ProtocolHandlerImpl::HandleSingleFrameMessage(
     ConnectionID connection_id, const ProtocolFramePtr packet) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   LOG4CXX_INFO(logger_,
         "FRAME_TYPE_SINGLE message of size " << packet->data_size() << "; message "
@@ -691,7 +660,6 @@ RESULT_CODE ProtocolHandlerImpl::HandleSingleFrameMessage(
     LOG4CXX_ERROR(logger_,
                   "Cannot handle message from Transport"
                   << " Manager: ISessionObserver doesn't exist.");
-    LOG4CXX_TRACE_EXIT(logger_);
     return RESULT_FAIL;
   }
 
@@ -706,7 +674,6 @@ RESULT_CODE ProtocolHandlerImpl::HandleSingleFrameMessage(
                        packet->service_type(),
                        packet->payload_size()));
   if (!rawMessage) {
-    LOG4CXX_TRACE_EXIT(logger_);
     return RESULT_FAIL;
   }
 #ifdef TIME_TESTER
@@ -722,17 +689,15 @@ RESULT_CODE ProtocolHandlerImpl::HandleSingleFrameMessage(
 
   // TODO(EZamakhov): check service in session
   NotifySubscribers(rawMessage);
-  LOG4CXX_TRACE_EXIT(logger_);
   return RESULT_OK;
 }
 
 RESULT_CODE ProtocolHandlerImpl::HandleMultiFrameMessage(
     ConnectionID connection_id, const ProtocolFramePtr packet) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   if (!session_observer_) {
     LOG4CXX_ERROR(logger_, "No ISessionObserver set.");
-    LOG4CXX_TRACE_EXIT(logger_);
     return RESULT_FAIL;
   }
 
@@ -755,8 +720,6 @@ RESULT_CODE ProtocolHandlerImpl::HandleMultiFrameMessage(
     if (it == incomplete_multi_frame_messages_.end()) {
       LOG4CXX_ERROR(
           logger_, "Frame of multiframe message for non-existing session id");
-
-      LOG4CXX_TRACE_EXIT(logger_);
       return RESULT_FAIL;
     }
 
@@ -764,8 +727,6 @@ RESULT_CODE ProtocolHandlerImpl::HandleMultiFrameMessage(
         != RESULT_OK) {
       LOG4CXX_ERROR(logger_,
           "Failed to append frame for multiframe message.");
-
-      LOG4CXX_TRACE_EXIT(logger_);
       return RESULT_FAIL;
     }
 
@@ -780,8 +741,6 @@ RESULT_CODE ProtocolHandlerImpl::HandleMultiFrameMessage(
           LOG4CXX_ERROR(
               logger_,
               "Cannot handle multiframe message: no IProtocolObserver is set.");
-
-          LOG4CXX_TRACE_EXIT(logger_);
           return RESULT_FAIL;
         }
       }
@@ -805,7 +764,6 @@ RESULT_CODE ProtocolHandlerImpl::HandleMultiFrameMessage(
                     " payload_size " << completePacket->payload_size());
 
       if (!rawMessage) {
-        LOG4CXX_TRACE_EXIT(logger_);
         return RESULT_FAIL;
       }
 
@@ -823,18 +781,15 @@ RESULT_CODE ProtocolHandlerImpl::HandleMultiFrameMessage(
       incomplete_multi_frame_messages_.erase(it);
     }
   }
-
-  LOG4CXX_TRACE_EXIT(logger_);
   return RESULT_OK;
 }
 
 RESULT_CODE ProtocolHandlerImpl::HandleControlMessage(
     ConnectionID connection_id, const ProtocolFramePtr packet) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   if (!session_observer_) {
     LOG4CXX_ERROR(logger_, "ISessionObserver is not set.");
-    LOG4CXX_TRACE_EXIT(logger_);
     return RESULT_FAIL;
   }
 
@@ -846,7 +801,6 @@ RESULT_CODE ProtocolHandlerImpl::HandleControlMessage(
     case FRAME_DATA_HEART_BEAT: {
       LOG4CXX_DEBUG(logger_,
                    "Received heart beat for connection " << connection_id);
-      LOG4CXX_TRACE_EXIT(logger_);
       return HandleControlMessageHeartBeat(connection_id, *(packet.get()));
     }
     case FRAME_DATA_HEART_BEAT_ACK: {
@@ -858,7 +812,6 @@ RESULT_CODE ProtocolHandlerImpl::HandleControlMessage(
       LOG4CXX_WARN(logger_,
           "Control message of type " <<  static_cast<int>(packet->frame_data())
               << " ignored");
-      LOG4CXX_TRACE_EXIT(logger_);
       return RESULT_OK;
   }
   return RESULT_OK;
@@ -1067,27 +1020,24 @@ RESULT_CODE ProtocolHandlerImpl::HandleControlMessageHeartBeat(
 }
 
 bool ProtocolHandlerImpl::TrackMessage(const uint32_t& connection_key) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
   const size_t message_frequency = message_meter_.TrackMessage(connection_key);
   LOG4CXX_DEBUG(logger_, "Frequency of " << connection_key << " is " << message_frequency);
   if (message_frequency > message_max_frequency_) {
     LOG4CXX_WARN(logger_, "Frequency of " << connection_key << " is marked as high.");
     session_observer_->OnApplicationFloodCallBack(connection_key);
     message_meter_.RemoveIdentifier(connection_key);
-    LOG4CXX_TRACE_EXIT(logger_);
     return true;
   }
-  LOG4CXX_TRACE_EXIT(logger_);
   return false;
 }
 
 void ProtocolHandlerImpl::Handle(
     const impl::RawFordMessageFromMobile message) {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   if (NULL == session_observer_) {
     LOG4CXX_WARN(logger_, "Session Observer is NULL");
-    LOG4CXX_TRACE_EXIT(logger_);
     return;
   }
 
@@ -1099,7 +1049,6 @@ void ProtocolHandlerImpl::Handle(
         const uint32_t connection_key = session_observer_->KeyFromPair(
               message->connection_id(), message->session_id());
         if (TrackMessage(connection_key)) {
-          LOG4CXX_TRACE_EXIT(logger_);
           return;
         }
       }
@@ -1126,7 +1075,6 @@ void ProtocolHandlerImpl::Handle(
     LOG4CXX_WARN(logger_,
                  "handleMessagesFromMobileApp() - incorrect or NULL data");
   }
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void ProtocolHandlerImpl::Handle(const impl::RawFordMessageToMobile message) {
@@ -1144,6 +1092,11 @@ void ProtocolHandlerImpl::Handle(const impl::RawFordMessageToMobile message) {
   }
 
   SendFrame(message);
+}
+
+void ProtocolHandlerImpl::Stop() {
+  raw_ford_messages_from_mobile_.Shutdown();
+  raw_ford_messages_to_mobile_.Shutdown();
 }
 
 #ifdef ENABLE_SECURITY

@@ -39,6 +39,8 @@
 #include <memory>
 #include <string>
 
+#include "utils/lock.h"
+#include "utils/rwlock.h"
 #include "transport_manager/transport_adapter/transport_adapter.h"
 #include "transport_manager/transport_adapter/transport_adapter_controller.h"
 #include "transport_manager/transport_adapter/connection.h"
@@ -503,7 +505,7 @@ class TransportAdapterImpl : public TransportAdapter,
   /**
    * @brief Mutex restricting access to device map.
    **/
-  mutable pthread_mutex_t devices_mutex_;
+  mutable sync_primitives::Lock devices_mutex_;
 
   /**
    * @brief Container(map) of connections.
@@ -513,9 +515,16 @@ class TransportAdapterImpl : public TransportAdapter,
   /**
    * @brief Mutex restricting access to connections map.
    **/
-  mutable pthread_mutex_t connections_mutex_;
+  mutable sync_primitives::RWLock connections_lock_;
 
  protected:
+#ifdef TIME_TESTER
+  /**
+   * @brief Pointer to time metric observer
+   */
+  TMMetricObserver* metric_observer_;
+#endif  // TIME_TESTER
+
   /**
    * @brief Pointer to the device scanner.
    */
@@ -530,14 +539,8 @@ class TransportAdapterImpl : public TransportAdapter,
    * @brief Pointer to the factory of connections initiated from client.
    */
   ClientConnectionListener* client_connection_listener_;
-
-#ifdef TIME_TESTER
-  /**
-   * @brief Pointer to time metric observer
-   */
-  TMMetricObserver* metric_observer_;
-#endif  // TIME_TESTER
 };
+
 }  // namespace transport_adapter
 }  // namespace transport_manager
 

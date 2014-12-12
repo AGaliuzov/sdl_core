@@ -123,7 +123,6 @@ class IAPDevice : public MmeDevice {
 
   TransportAdapterController* controller_;
   ipod_hdl_t* ipod_hdl_;
-  threads::Thread* receiver_thread_;
   ApplicationHandle last_app_id_;
 
   AppContainer apps_;
@@ -140,6 +139,9 @@ class IAPDevice : public MmeDevice {
   sync_primitives::Lock protocol_name_pool_lock_;
   TimerContainer timers_protocols_;
   sync_primitives::Lock timers_protocols_lock_;
+
+  threads::Thread* receiver_thread_;
+  threads::ThreadDelegate* receiver_thread_delegate_;
 
   class IAPEventThreadDelegate : public threads::PulseThreadDelegate {
    public:

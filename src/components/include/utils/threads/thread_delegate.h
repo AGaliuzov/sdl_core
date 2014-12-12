@@ -39,6 +39,12 @@
 
 namespace threads {
 
+enum ThreadState {
+  kInit = 0,
+  kStarted = 1,
+  kStopReq = 2
+};
+
 class Thread;
 
 /**
@@ -46,12 +52,12 @@ class Thread;
  * Look for "threads/thread.h" for example
  */
 class ThreadDelegate {
-  friend class Thread;
-  friend Thread* CreateThread(const char* name, ThreadDelegate* delegate);
-  friend void DeleteThread(Thread*);
  public:
+   ThreadDelegate()
+     : state_(kInit),
+       thread_(NULL) { }
   /**
-   * Thread procedure.
+   * \brief Thread procedure.
    */
   virtual void threadMain() = 0;
 
@@ -61,21 +67,33 @@ class ThreadDelegate {
    * This function should be blocking and return only when threadMain() will be
    * finished in other case segmantation failes are possible
    */
-  virtual bool exitThreadMain() {
-    return false;
-  }
-  virtual ~ThreadDelegate() { }
-  Thread* CurrentThread() const {
+  virtual void exitThreadMain();
+
+  virtual ~ThreadDelegate();
+
+  Thread* thread() const {
     return thread_;
   }
-  sync_primitives::Lock& thread_lock() {
-    return thread_lock_;
+
+  void set_thread(Thread *thread);
+
+  bool ImproveState(unsigned int to) {
+    state_lock_.Lock();
+    if ((state_ + 1 == to) ||
+        (to == kInit && state_ == kStopReq)) {
+      state_ = to;
+    }
+    state_lock_.Unlock();
+    return state_ == to;
   }
-  Thread* thread_;
+
+  unsigned int state() const {
+    return state_;
+  }
  private:
-  volatile bool run_;
- public:
-  sync_primitives::Lock thread_lock_;
+  volatile unsigned int state_;
+  sync_primitives::SpinMutex state_lock_;
+  Thread* thread_;
 };
 
 }  // namespace threads
