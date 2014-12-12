@@ -7,11 +7,11 @@ from datetime import datetime
 from optparse import OptionParser
 
 def main ():
-  usage = "%prog --input FILE --output FILE [--gap NUMBER]"
+  usage = "%prog --input <FILE> --output <FILE> [--gap <NUMBER>]"
   parser = OptionParser(usage)
-  parser.add_option("--input", "-i", action = "store", dest = "input", metavar = "FILE", help = "input file")
-  parser.add_option("--output", "-o", action = "store", dest = "output", metavar = "FILE", help = "output file")
-  parser.add_option("--gap", "-t", action = "store", dest = "gap", default = 100, metavar = "NUMBER", help = "gap in milliseconds (100 by default)")
+  parser.add_option("--input", "-i", action = "store", dest = "input", metavar = "<FILE>", help = "input file")
+  parser.add_option("--output", "-o", action = "store", dest = "output", metavar = "<FILE>", help = "output file")
+  parser.add_option("--gap", "-t", action = "store", dest = "gap", default = 100, metavar = "<NUMBER>", help = "gap in milliseconds (100 by default)")
 
   (options, args) = parser.parse_args()
 
