@@ -59,7 +59,6 @@ BluetoothPASAConnection::BluetoothPASAConnection(
       controller_(controller),
       thread_(NULL),
       terminate_flag_(false),
-      unexpected_disconnect_(false),
       device_uid_(device_uid),
       app_handle_(app_handle),
       sppDeviceFd(-1) {
@@ -71,22 +70,21 @@ BluetoothPASAConnection::~BluetoothPASAConnection() {
   LOG4CXX_AUTO_TRACE(logger_);
   terminate_flag_ = true;
   Notify();
-  errno = 0;
-  thread_->stop();
+
+  thread_->join();
+  delete thread_->delegate();
+  threads::DeleteThread(thread_);
 
   if (-1 != read_fd_)
     close(read_fd_);
   if (-1 != write_fd_)
     close(write_fd_);
-
-  thread_->join();
-  delete thread_->delegate();
-  threads::DeleteThread(thread_);
 }
 
 void BluetoothPASAConnection::Abort() {
   LOG4CXX_AUTO_TRACE(logger_);
-  unexpected_disconnect_ = true;
+  controller_->ConnectionAborted(device_handle(), application_handle(),
+                                 CommunicationError());
   terminate_flag_ = true;
 }
 
@@ -107,28 +105,14 @@ TransportAdapter::Error BluetoothPASAConnection::Start() {
     LOG4CXX_ERROR(logger_, "fcntl failed");
     return TransportAdapter::FAIL;
   }
+
   if (!thread_->start()) {
-    LOG4CXX_ERROR(
-        logger_,
-        "thread " << thread_ << " start failed");
+    LOG4CXX_ERROR(logger_, "thread " << thread_ << " start failed");
     return TransportAdapter::FAIL;
   }
+
   LOG4CXX_DEBUG(logger_, "thread created");
   return TransportAdapter::OK;
-}
-
-void BluetoothPASAConnection::Finalize() {
-  LOG4CXX_AUTO_TRACE(logger_);
-  if (unexpected_disconnect_) {
-    LOG4CXX_INFO(logger_, "unexpected_disconnect");
-    controller_->ConnectionAborted(device_handle(), application_handle(),
-                                   CommunicationError());
-  } else {
-    LOG4CXX_INFO(logger_,
-                 "not unexpected_disconnect");
-    controller_->ConnectionFinished(device_handle(), application_handle());
-  }
-  LOG4CXX_INFO(logger_, "Connection finalized");
 }
 
 TransportAdapter::Error BluetoothPASAConnection::Notify() const {
@@ -158,6 +142,7 @@ TransportAdapter::Error BluetoothPASAConnection::SendData(
 TransportAdapter::Error BluetoothPASAConnection::Disconnect() {
   LOG4CXX_AUTO_TRACE(logger_);
   terminate_flag_ = true;
+  controller_->ConnectionFinished(device_handle(), application_handle());
   return Notify();
 }
 
@@ -174,33 +159,23 @@ void BluetoothPASAConnection::BluetoothPASAConnectionDelegate::threadMain() {
 
 void BluetoothPASAConnection::Thread() {
   LOG4CXX_AUTO_TRACE(logger_);
-  controller_->ConnectionCreated(this, device_uid_, app_handle_);
   ConnectError* connect_error = NULL;
-  if (Establish(&connect_error)) {
-    LOG4CXX_DEBUG(logger_,
-                  "Connection established");
-    controller_->ConnectDone(device_handle(), application_handle());
-    while (!terminate_flag_) {
-      Transmit();
-    }
-    LOG4CXX_DEBUG(logger_,
-                  "Connection is to finalize");
-    Finalize();
-    sync_primitives::AutoLock auto_lock(frames_to_send_lock_);
-    while (!frames_to_send_.empty()) {
-      LOG4CXX_DEBUG(logger_, "removing message");
-      ::protocol_handler::RawMessagePtr message = frames_to_send_.front();
-      frames_to_send_.pop();
-      controller_->DataSendFailed(device_handle(), application_handle(),
-                                  message, DataSendError());
-    }
-    controller_->DisconnectDone(device_handle(), application_handle());
-  } else {
-    LOG4CXX_ERROR(logger_,
-                  "Connection Establish failed");
-    controller_->ConnectFailed(device_handle(), application_handle(),
-                               *connect_error);
+  if (!Establish(&connect_error)) {
+    LOG4CXX_ERROR(logger_, "Connection Establish failed");
     delete connect_error;
+  }
+  LOG4CXX_DEBUG(logger_, "Connection established");
+  while (!terminate_flag_) {
+    Transmit();
+  }
+  LOG4CXX_DEBUG(logger_, "Connection is to finalize");
+  sync_primitives::AutoLock auto_lock(frames_to_send_lock_);
+  while (!frames_to_send_.empty()) {
+    LOG4CXX_DEBUG(logger_, "removing message");
+    ::protocol_handler::RawMessagePtr message = frames_to_send_.front();
+    frames_to_send_.pop();
+    controller_->DataSendFailed(device_handle(), application_handle(), message,
+                                DataSendError());
   }
 }
 
@@ -241,8 +216,7 @@ void BluetoothPASAConnection::Transmit() {
 
   // send data if possible
   if (!frames_to_send_.empty() && (poll_fds[0].revents | POLLOUT)) {
-    LOG4CXX_DEBUG(logger_,
-                  "frames_to_send_ not empty() ");
+    LOG4CXX_DEBUG(logger_, "frames_to_send_ not empty() ");
     // clear notifications
     char buffer[256];
     ssize_t bytes_read = -1;
@@ -296,14 +270,17 @@ void BluetoothPASAConnection::Transmit() {
 bool BluetoothPASAConnection::Receive() {
   LOG4CXX_AUTO_TRACE(logger_);
   while (true) {
-    const ssize_t num_bytes = read(sppDeviceFd, (void*)data_receive_buffer_, MAX_SPP_PACKET_SIZE);
+    const ssize_t num_bytes = read(sppDeviceFd, (void*) data_receive_buffer_,
+                                   MAX_SPP_PACKET_SIZE);
     const int errno_value = errno;
     LOG4CXX_DEBUG(logger_,
                   "Received " << num_bytes << " bytes for connection " << this);
     if (num_bytes > 0) {
       ::protocol_handler::RawMessagePtr frame(
-            new protocol_handler::RawMessage(0, 0, data_receive_buffer_, num_bytes));
-      controller_->DataReceiveDone(device_handle(), application_handle(), frame);
+          new protocol_handler::RawMessage(0, 0, data_receive_buffer_,
+                                           num_bytes));
+      controller_->DataReceiveDone(device_handle(), application_handle(),
+                                   frame);
       // try to read more
       continue;
     }
@@ -333,24 +310,19 @@ bool BluetoothPASAConnection::Send() {
   frames_to_send_lock_.Release();
 
   while (!frames_to_send.empty()) {
-    LOG4CXX_INFO(logger_,
-                 "frames_to_send is not empty");
+    LOG4CXX_INFO(logger_, "frames_to_send is not empty");
     ::protocol_handler::RawMessagePtr frame = frames_to_send.front();
     bool frame_sent = false;
     if (frame) {
       if (frame->data() && frame->data_size() > 0) {
-        LOG4CXX_DEBUG(
-            logger_,
-            frame->data_size() << " bytes to write");
+        LOG4CXX_DEBUG(logger_, frame->data_size() << " bytes to write");
         if (frame->data_size() < MAX_SPP_PACKET_SIZE) {
           SPPframe sppFrame = { };
           sppFrame.length = frame->data_size();
           memcpy(sppFrame.data, frame->data(), sppFrame.length);
           const ssize_t written = write(sppDeviceFd, (void*) sppFrame.data,
                                         sppFrame.length);
-          LOG4CXX_DEBUG(
-              logger_,
-              "written " << written << " bytes");
+          LOG4CXX_DEBUG(logger_, "written " << written << " bytes");
           frame_sent = (written >= sppFrame.length);
         } else {
           //Send Frame in MAX_SPPFRAME_MESSAGE chunks
@@ -366,9 +338,7 @@ bool BluetoothPASAConnection::Send() {
 
             const ssize_t written = write(sppDeviceFd, (void*) sppFrame.data,
                                           sppFrame.length);
-            LOG4CXX_DEBUG(
-                logger_,
-                "written " << written << " bytes");
+            LOG4CXX_DEBUG(logger_, "written " << written << " bytes");
             frame_sent = (written >= sppFrame.length);
 
             if (!frame_sent) {

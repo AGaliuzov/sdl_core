@@ -272,7 +272,7 @@ class TransportAdapterImpl : public TransportAdapter,
    * @param device_handle Device unique identifier.
    * @param app_handle Handle of application.
    */
-  virtual void ConnectionCreated(Connection* connection,
+  virtual void ConnectionCreated(ConnectionSPtr connection,
                                  const DeviceUID& device_handle,
                                  const ApplicationHandle& app_handle);
 
@@ -413,13 +413,7 @@ class TransportAdapterImpl : public TransportAdapter,
   virtual TMMetricObserver* GetTimeMetricObserver();
 #endif  // TIME_TESTER
 
-#ifdef CUSTOMER_PASA
-  virtual TransportAdapter::Error AbortConnection(
-      const DeviceUID& device_handle, const ApplicationHandle& app_handle);
-#endif  // CUSTOMER_PASA
-
  protected:
-
   /**
    * @brief Store adapter state where applicable
    */
@@ -445,7 +439,7 @@ class TransportAdapterImpl : public TransportAdapter,
    *
    * @return pointer to the connection.
    */
-  Connection* FindEstablishedConnection(const DeviceUID& device_handle,
+  ConnectionSPtr FindEstablishedConnection(const DeviceUID& device_handle,
                                            const ApplicationHandle& app_handle) const;
 
  private:
@@ -476,7 +470,7 @@ class TransportAdapterImpl : public TransportAdapter,
    * @brief Structure that holds information about connection.
    */
   struct ConnectionInfo {
-    Connection* connection;
+    ConnectionSPtr connection;
     DeviceUID device_id;
     ApplicationHandle app_handle;
     enum {

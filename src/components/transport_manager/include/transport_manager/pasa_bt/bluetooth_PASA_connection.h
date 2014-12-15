@@ -54,8 +54,7 @@ class TransportAdapterController;
 /**
  * @brief Class responsible for communication over bluetooth sockets.
  */
-class BluetoothPASAConnection :
-    public ::transport_manager::transport_adapter::Connection {
+class BluetoothPASAConnection : public Connection {
  public:
   /**
    * @brief Constructor.
@@ -135,7 +134,6 @@ class BluetoothPASAConnection :
   int write_fd_;
   void Thread();
   void Transmit();
-  void Finalize();
   TransportAdapter::Error Notify() const;
   bool Receive();
   bool Send();
@@ -154,7 +152,6 @@ class BluetoothPASAConnection :
   threads::Thread* thread_;
 
   bool terminate_flag_;
-  bool unexpected_disconnect_;
   const DeviceUID device_uid_;
   const ApplicationHandle app_handle_;
   uint8_t data_receive_buffer_[MAX_SPP_PACKET_SIZE];

@@ -95,7 +95,7 @@ class TransportAdapterController {
    * @param device_handle Device unique identifier.
    * @param app_handle Handle of application.
    */
-  virtual void ConnectionCreated(Connection* connection,
+  virtual void ConnectionCreated(ConnectionSPtr connection,
                                  const DeviceUID& device_handle,
                                  const ApplicationHandle& app_handle) = 0;
 
@@ -199,13 +199,6 @@ class TransportAdapterController {
   virtual void DataSendFailed(const DeviceUID& device_handle,
                               const ApplicationHandle& app_handle,
                               ::protocol_handler::RawMessagePtr message, const DataSendError&) = 0;
-#ifdef CUSTOMER_PASA
-  virtual TransportAdapter::Error DisconnectDevice(
-      const DeviceUID& device_handle) = 0;
-
-  virtual TransportAdapter::Error AbortConnection(
-      const DeviceUID& device_handle, const ApplicationHandle& app_handle) = 0;
-#endif  // CUSTOMER_PASA
 };
 
 }  // namespace transport_adapter
