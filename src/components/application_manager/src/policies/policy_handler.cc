@@ -1035,24 +1035,18 @@ void PolicyHandler::PTExchangeAtUserRequest(uint32_t correlation_id) {
 void PolicyHandler::OnPermissionsUpdated(const std::string& policy_app_id,
                                          const Permissions& permissions,
                                          const HMILevel& default_hmi) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  OnPermissionsUpdated(policy_app_id, permissions);
+
   application_manager::ApplicationSharedPtr app =
     application_manager::ApplicationManagerImpl::instance()
     ->application_by_policy_id(policy_app_id);
-  LOG4CXX_AUTO_TRACE(logger_);
   if (!app.valid()) {
     LOG4CXX_WARN(
       logger_,
       "Connection_key not found for application_id:" << policy_app_id);
     return;
   }
-
-  application_manager::MessageHelper::SendOnPermissionsChangeNotification(
-    app->app_id(), permissions);
-
-  LOG4CXX_DEBUG(
-    logger_,
-    "Notification sent for application_id:" << policy_app_id
-    << " and connection_key " << app->app_id());
 
   // The application currently not running (i.e. in NONE) should change HMI
   // level to default
@@ -1091,6 +1085,28 @@ void PolicyHandler::OnPermissionsUpdated(const std::string& policy_app_id,
                    "HMI level won't be changed.");
       break;
   }
+}
+
+void PolicyHandler::OnPermissionsUpdated(const std::string& policy_app_id,
+                                         const Permissions& permissions) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  application_manager::ApplicationSharedPtr app =
+    application_manager::ApplicationManagerImpl::instance()
+    ->application_by_policy_id(policy_app_id);
+  if (!app.valid()) {
+    LOG4CXX_WARN(
+      logger_,
+      "Connection_key not found for application_id:" << policy_app_id);
+    return;
+  }
+
+  application_manager::MessageHelper::SendOnPermissionsChangeNotification(
+    app->app_id(), permissions);
+
+  LOG4CXX_DEBUG(
+    logger_,
+    "Notification sent for application_id:" << policy_app_id
+    << " and connection_key " << app->app_id());
 }
 
 bool PolicyHandler::SaveSnapshot(const BinaryMessage& pt_string,

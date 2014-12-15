@@ -778,12 +778,8 @@ void PolicyManagerImpl::SetUserConsentForApp(
   PrepareNotificationData(functional_groups, app_groups,
                           app_group_permissons, notification_data);
 
-  std::string default_hmi;
-  GetDefaultHmi(verified_permissions.policy_app_id, &default_hmi);
-
   listener()->OnPermissionsUpdated(verified_permissions.policy_app_id,
-                                   notification_data,
-                                   default_hmi);
+                                   notification_data);
 #endif
 }
 

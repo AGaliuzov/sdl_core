@@ -73,9 +73,12 @@ class PolicyHandler :
   bool ReceiveMessageFromSDK(const std::string& file,
                              const BinaryMessage& pt_string);
   bool UnloadPolicyLibrary();
-  void OnPermissionsUpdated(const std::string& policy_app_id,
-                            const Permissions& permissions,
-                            const HMILevel& default_hmi);
+  virtual void OnPermissionsUpdated(const std::string& policy_app_id,
+                                    const Permissions& permissions,
+                                    const HMILevel& default_hmi);
+
+  virtual void OnPermissionsUpdated(const std::string& policy_app_id,
+                                    const Permissions& permissions);
 
   virtual void OnSnapshotCreated(const BinaryMessage& pt_string,
                                  const std::vector<int>& retry_delay_seconds,
