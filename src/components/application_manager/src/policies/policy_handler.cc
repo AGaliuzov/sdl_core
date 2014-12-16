@@ -909,7 +909,7 @@ void PolicyHandler::OnAllowSDLFunctionalityNotification(bool is_allowed,
   }
 
 #ifdef EXTENDED_POLICY
-  if (is_allowed) {
+  if (is_allowed && last_activated_app_id_) {
     application_manager::ApplicationManagerImpl* app_manager =
         application_manager::ApplicationManagerImpl::instance();
 
@@ -925,6 +925,7 @@ void PolicyHandler::OnAllowSDLFunctionalityNotification(bool is_allowed,
         // Send HMI status notification to mobile
         // Put application in full
         application_manager::MessageHelper::SendActivateAppToHMI(app->app_id());
+        last_activated_app_id_ = 0;
       }
   }
 #endif // EXTENDED_POLICY
