@@ -84,6 +84,7 @@ class MmeClientListener : public ClientConnectionListener {
   mqd_t ack_mqd_;
   qdb_hdl_t* qdb_hdl_;
   threads::Thread* notify_thread_;
+  threads::ThreadDelegate* notify_thread_delegate_;
   sync_primitives::Lock devices_lock_;
 
   class NotifyThreadDelegate : public threads::ThreadDelegate {

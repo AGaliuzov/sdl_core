@@ -35,6 +35,7 @@
 #include "transport_manager/tcp/tcp_socket_connection.h"
 #include "transport_manager/tcp/tcp_device.h"
 #include "utils/logger.h"
+#include "utils/threads/thread.h"
 
 #include <memory.h>
 #include <signal.h>

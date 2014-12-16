@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, Ford Motor Company
+/* Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,18 +29,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
-#include <string>
-#include <set>
-#include <sstream>
-#include <fstream>
-
 #include "gtest/gtest.h"
-#include "gmock/gmock.h"
-
+#include <fstream>
 #include "config_profile/profile.h"
-
 #include "mock_policy_listener.h"
 #include "policy/policy_manager_impl.h"
 
@@ -238,7 +229,7 @@ void PolicyManagerImplStressTest::CreateTable(std::ofstream& ofs) {
 
 TEST_F(PolicyManagerImplStressTest, OneCheck) {
 #ifdef EXTENDED_POLICY
-  EXPECT_CALL(*mock_listener, OnCurrentDeviceIdUpdateRequired(_)).Times(1);
+  EXPECT_CALL(*mock_listener, OnCurrentDeviceIdUpdateRequired(_));
 #endif  // EXTENDED_POLICY
   ::policy::RPCParams input_params;
   ::policy::CheckPermissionResult output;
@@ -248,7 +239,7 @@ TEST_F(PolicyManagerImplStressTest, OneCheck) {
 
 TEST_F(PolicyManagerImplStressTest, NoApp) {
 #ifdef EXTENDED_POLICY
-  EXPECT_CALL(*mock_listener, OnCurrentDeviceIdUpdateRequired(_)).Times(1);
+  EXPECT_CALL(*mock_listener, OnCurrentDeviceIdUpdateRequired(_));
 #endif  // EXTENDED_POLICY
   ::policy::RPCParams input_params;
   ::policy::CheckPermissionResult output;
@@ -268,7 +259,7 @@ TEST_F(PolicyManagerImplStressTest, NoFunc) {
 
 TEST_F(PolicyManagerImplStressTest, NoHmi) {
 #ifdef EXTENDED_POLICY
-  EXPECT_CALL(*mock_listener, OnCurrentDeviceIdUpdateRequired(_)).Times    (1);
+  EXPECT_CALL(*mock_listener, OnCurrentDeviceIdUpdateRequired(_));
 #endif  // EXTENDED_POLICY
   ::policy::RPCParams input_params;
   ::policy::CheckPermissionResult output;

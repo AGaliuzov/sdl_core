@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@
 #include <map>
 #include "protocol/common.h"
 #include "media_manager/media_adapter_impl.h"
+#include "utils/threads/thread_delegate.h"
 
 namespace threads {
 class Thread;
@@ -56,7 +57,9 @@ class A2DPSourcePlayerAdapter : public MediaAdapterImpl {
   private:
     class A2DPSourcePlayerThread;
 
-    std::map<int32_t, threads::Thread*> sources_;
+    typedef std::pair<threads::Thread*, A2DPSourcePlayerThread*> Pair;
+    typedef std::map<int32_t, Pair> SourcesMap;
+    SourcesMap sources_;
     DISALLOW_COPY_AND_ASSIGN(A2DPSourcePlayerAdapter);
 };
 

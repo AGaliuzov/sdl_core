@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, Ford Motor Company
+/* Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,7 +96,6 @@ class SQLQueryTest : public ::testing::Test {
 sqlite3* SQLQueryTest::conn = 0;
 const std::string SQLQueryTest::kDatabaseName = "test-query";
 
-
 TEST_F(SQLQueryTest, Query) {
   const std::string kSelect("SELECT * FROM testTable WHERE integerValue = ?");
 
@@ -167,7 +166,7 @@ TEST_F(SQLQueryTest, Bind) {
   EXPECT_TRUE(IsDone(query4.LastError()));
 }
 
-TEST_F(SQLQueryTest, Value) {
+TEST_F(SQLQueryTest, SetValue) {
   const char* insert = "INSERT INTO testTable "
       "(integerValue, doubleValue, stringValue) "
       "VALUES (1, 2.3, 'four');";

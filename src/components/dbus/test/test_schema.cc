@@ -58,6 +58,7 @@ class DBusSchemaTest : public ::testing::Test {
   }
 
   static const DBusSchema* schema_;
+  static const int test_negative_value = -3;
 };
 
 const DBusSchema* DBusSchemaTest::schema_ = 0;
@@ -68,7 +69,7 @@ TEST_F(DBusSchemaTest, GetName) {
   MessageName name = schema_->getMessageName(kId);
   EXPECT_EQ(kExpName, name);
 
-  const MessageId kIdWrong = static_cast<const MessageId>(-3);
+  const MessageId kIdWrong = static_cast<const MessageId>(test_negative_value);
   const MessageName kExpNameWrong("", "");
   name = schema_->getMessageName(kIdWrong);
   EXPECT_EQ(kExpNameWrong, name);
@@ -100,9 +101,9 @@ TEST_F(DBusSchemaTest, GetListArg) {
   EXPECT_EQ(params[0], argsId[0]);
   EXPECT_EQ(params[1], argsId[1]);
 
-  const MessageId kIdWrong = static_cast<const MessageId>(-3);
+  const MessageId kIdWrong = static_cast<const MessageId>(test_negative_value);
   const MessageName kNameWrong("TestInterface", "TestMessage");
-  const MessageType kTypeWrong = static_cast<const MessageType>(-3);
+  const MessageType kTypeWrong = static_cast<const MessageType>(test_negative_value);
   const ListArgs kExpListWrong;
   argsName = schema_->getListArgs(kNameWrong, kTypeWrong);
   EXPECT_EQ(kExpListWrong, argsName);

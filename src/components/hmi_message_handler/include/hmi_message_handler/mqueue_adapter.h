@@ -40,6 +40,8 @@
 
 namespace hmi_message_handler {
 
+class ReceiverThreadDelegate;
+
 /**
  * \brief HMI message adapter for mqueue
  */
@@ -55,9 +57,10 @@ class MqueueAdapter : public HMIMessageAdapter {
  private:
   mqd_t sdl_to_hmi_mqueue_;
   mqd_t hmi_to_sdl_mqueue_;
+
+  ReceiverThreadDelegate* receiver_thread_delegate_;
   threads::Thread* receiver_thread_;
 };
 
 }  // namespace hmi_message_handler
-
 #endif  // SRC_COMPONENTS_HMI_MESSAGE_HANDLER_INCLUDE_HMI_MESSAGE_HANDLER_MQUEUE_ADAPTER_H_

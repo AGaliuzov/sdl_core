@@ -46,7 +46,8 @@ include_directories (
 
 set(testSources
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/src/gmock_main.cc
-  ${AM_TEST_DIR}/command_impl_test.cc
+  ${AM_TEST_DIR}/command_impl_test.cc  
+  ${COMPONENTS_DIR}/application_manager/test/mobile_message_handler_test.cc
 )
 set (mockedSources
   ${AM_MOCK_DIR}/src/application_manager_impl.cc
@@ -80,22 +81,13 @@ if (EXTENDED_POLICY_FLAG)
   include_directories(
     ${COMPONENTS_DIR}/policy/src/policy/policy_table/table_struct_ext
   )
-  list(APPEND AM_SOURCES
-    ${COMPONENTS_DIR}/application_manager/src/policies/pt_exchange_handler_ext.cc
-  )
 else ()
   include_directories(
     ${AM_SOURCE_DIR}/policy/src/policy/policy_table/table_struct
   )
-  list(APPEND AM_SOURCES
-    ${COMPONENTS_DIR}/application_manager/src/policies/pt_exchange_handler_impl.cc
-    ${COMPONENTS_DIR}/application_manager/src/policies/policy_retry_sequence.cc
-  )
 endif ()
 
 set(testLibraries
-  gmock
-  gtest
   gmock
   gmock_main
   UsageStatistics

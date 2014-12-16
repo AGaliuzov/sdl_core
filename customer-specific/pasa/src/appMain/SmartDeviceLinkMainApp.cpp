@@ -19,6 +19,9 @@
 #include "utils/appenders_loader.h"
 #include "utils/threads/thread.h"
 #include "utils/timer_thread.h"
+#include <pthread.h>
+#include <map>
+#include <stack>
 
 #include "hmi_message_handler/hmi_message_handler_impl.h"
 #include "hmi_message_handler/messagebroker_adapter.h"
@@ -297,9 +300,9 @@ void ApplinkNotificationThreadDelegate::threadMain() {
           startUSBLogging();
           break;
         case SDL_MSG_SDL_STOP:
+          DEINIT_LOGGER();
           stopSmartDeviceLink();
           LOG4CXX_INFO(logger_, "Application stopped due to SDL_MSG_SDL_STOP");
-          DEINIT_LOGGER();
           exit(EXIT_SUCCESS);
           break;
         case SDL_MSG_LOW_VOLTAGE:
@@ -353,7 +356,7 @@ void ApplinkNotificationThreadDelegate::sendHeartBeat() {
 class Dispatcher {
  public:
   Dispatcher(int pipefd, int pid)
-      : state_(kRun), pipefd_(pipefd), pid_(pid) {}
+      : state_(kNone), pipefd_(pipefd), pid_(pid) {}
   void Process(const std::string& msg) {
     if (msg.empty()) {
       fprintf(stderr, "Error: message is empty\n");
@@ -361,6 +364,12 @@ class Dispatcher {
     }
     char code = msg[0];
     switch (state_) {
+      case kNone:
+        if (code == SDL_MSG_SDL_START) {
+          Send(msg);
+          state_ = kRun;
+        }
+        break;
       case kRun:
         if (code == SDL_MSG_LOW_VOLTAGE) {
           OnLowVoltage(msg);
@@ -369,7 +378,11 @@ class Dispatcher {
         } else if (code == SDL_MSG_SDL_STOP) {
           Send(msg);
           state_ = kStop;
-        } else if (code != SDL_MSG_WAKE_UP) {
+        } else if (code == SDL_MSG_WAKE_UP) {
+          // Do nothing
+        } else if (code == SDL_MSG_SDL_START) {
+          // Do nothing
+        } else {
           Send(msg);
         }
         break;
@@ -391,7 +404,7 @@ class Dispatcher {
     return state_ != kStop;
   }
  private:
-  enum State { kRun, kSleep, kStop };
+  enum State { kNone, kRun, kSleep, kStop };
   State state_;
   int pipefd_;
   int pid_;
@@ -508,16 +521,29 @@ int main(int argc, char** argv) {
 
   main_namespace::LifeCycle::instance()->Run();
 
-  LOG4CXX_INFO(logger_, "Stopping application due to signal caught");
+  //LOG4CXX_INFO(logger_, "Stopping application due to signal caught");
   stopSmartDeviceLink();
 
-  LOG4CXX_INFO(logger_, "Waiting for SDL controller finished.");
+  //LOG4CXX_INFO(logger_, "Waiting for SDL controller to be finished.");
   close(pipefd[0]);
   int result;
   waitpid(cpid, &result, 0);
 
-  LOG4CXX_INFO(logger_, "Application successfully stopped");
-  DEINIT_LOGGER();
+  //LOG4CXX_INFO(logger_, "Application successfully stopped");
+  //DEINIT_LOGGER();
   return EXIT_SUCCESS;
 }
+
+extern "C" {
+std::map<pthread_t, std::stack<void*> > _My_call_stack;
+
+void __cyg_profile_func_enter(void* this_fn, void* call_site) {
+  _My_call_stack[pthread_self()].push(this_fn);
+}
+
+void __cyg_profile_func_exit(void* this_fn, void* call_site) {
+  _My_call_stack[pthread_self()].pop();
+}
+}
+
 ///EOF

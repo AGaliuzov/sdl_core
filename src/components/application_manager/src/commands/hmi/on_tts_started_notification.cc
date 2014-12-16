@@ -46,7 +46,7 @@ OnTTSStartedNotification::~OnTTSStartedNotification() {
 }
 
 void OnTTSStartedNotification::Run() {
-  LOG4CXX_INFO(logger_, "OnTTSStartedNotification::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   ApplicationManagerImpl::instance()->Mute(kTTSSessionChanging);
 }

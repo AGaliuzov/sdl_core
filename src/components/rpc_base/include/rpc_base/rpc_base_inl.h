@@ -185,6 +185,13 @@ Integer<T, minval, maxval>& Integer<T, minval, maxval>::operator=(IntType new_va
 }
 
 template<typename T, T minval, T maxval>
+Integer<T, minval, maxval>& Integer<T, minval, maxval>::operator=(const Integer& new_val) {
+  this->value_ = new_val.value_;
+  this->value_state_= range_.Includes(new_val.value_) ? kValid : kInvalid;
+  return *this;
+}
+
+template<typename T, T minval, T maxval>
 Integer<T, minval, maxval>& Integer<T, minval, maxval>::operator++() {
   ++value_;
   return *this;
@@ -268,6 +275,18 @@ String<minlen, maxlen>& String<minlen, maxlen>::operator=(const std::string& new
   value_ = new_val;
   value_state_ = length_range_.Includes(new_val.length()) ? kValid : kInvalid;
   return *this;
+}
+
+template<size_t minlen, size_t maxlen>
+String<minlen, maxlen>& String<minlen, maxlen>::operator=(const String& new_val) {
+  value_ = new_val.value_;
+  value_state_ = new_val.value_state_;
+  return *this;
+}
+
+template<size_t minlen, size_t maxlen>
+bool String<minlen, maxlen>::operator==(const String& rhs) {
+  return value_ == rhs.value_;
 }
 
 template<size_t minlen, size_t maxlen>

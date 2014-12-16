@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, Ford Motor Company
+/* Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,9 +30,7 @@
  */
 
 #include <sqlite3.h>
-
 #include "gtest/gtest.h"
-
 #include "generated_code_with_sqlite_test.h"
 
 namespace rpc {
@@ -62,27 +60,29 @@ class GeneratedCodeTest : public ::testing::Test {
 
 const std::string GeneratedCodeTest::kDatabaseName = "test_db";
 
-const std::string GeneratedCodeTest::kEndpointsCreation = "CREATE TABLE Endpoints ("
-  "endpoint_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
-  "service_id VARCHAR(45) NOT NULL,"
-  "application_id VARCHAR(45),"
-  "url VARCHAR(45) NOT NULL,"
-  "is_default INTEGER NOT NULL CHECK(is_default>=0))";
+const std::string GeneratedCodeTest::kEndpointsCreation =
+    "CREATE TABLE Endpoints ("
+        "endpoint_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
+        "service_id VARCHAR(45) NOT NULL,"
+        "application_id VARCHAR(45),"
+        "url VARCHAR(45) NOT NULL,"
+        "is_default INTEGER NOT NULL CHECK(is_default>=0))";
 
-const std::string GeneratedCodeTest::kEndpointsContent = "INSERT INTO Endpoints "
-    "VALUES (1, '0x07', null, 'http://test.example.com', 1)";
+const std::string GeneratedCodeTest::kEndpointsContent =
+    "INSERT INTO Endpoints "
+        "VALUES (1, '0x07', null, 'http://test.example.com', 1)";
 
-const std::string GeneratedCodeTest::kAppPoliciesCreation = "CREATE TABLE AppPolicies ("
-  "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
-  "application_id VARCHAR(45),"
-  "priority VARCHAR(45),"
-  "is_default INTEGER NOT NULL CHECK(is_default>=0))";
+const std::string GeneratedCodeTest::kAppPoliciesCreation =
+    "CREATE TABLE AppPolicies ("
+        "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
+        "application_id VARCHAR(45),"
+        "priority VARCHAR(45),"
+        "is_default INTEGER NOT NULL CHECK(is_default>=0))";
 
 const std::string GeneratedCodeTest::kGroupsCreation = "CREATE TABLE Groups ("
-  "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
-  "application_id VARCHAR(45) NOT NULL,"
-  "group_name VARCHAR(45) NOT NULL )";
-
+    "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
+    "application_id VARCHAR(45) NOT NULL,"
+    "group_name VARCHAR(45) NOT NULL )";
 
 TEST_F(GeneratedCodeTest, FindSectionEndpoints) {
   dbms::SQLDatabase db(GeneratedCodeTest::kDatabaseName);
@@ -163,7 +163,9 @@ TEST_F(GeneratedCodeTest, UpdateSectionAppPolicies) {
   EXPECT_EQ(1, sqlquery.GetInteger(0));
   EXPECT_TRUE(sqlquery.Reset());
 
-  EXPECT_TRUE(sqlquery.Prepare("select application_id from Groups where group_name='Base-4'"));
+  EXPECT_TRUE(
+      sqlquery.Prepare(
+          "select application_id from Groups where group_name='Base-4'"));
   EXPECT_TRUE(sqlquery.Exec());
   // Index for binding starts from 1, index for results starts from 0
   EXPECT_EQ(application_id, sqlquery.GetString(0));

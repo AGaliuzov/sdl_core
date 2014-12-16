@@ -181,16 +181,13 @@ include_directories (
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8
-  ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8/dbus/
-  
-  
+  ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8/dbus/ 
   ${COMPONENTS_DIR}/security_manager/test/include
   ${COMPONENTS_DIR}/application_manager/include
   ${COMPONENTS_DIR}/protocol_handler/test/include  
   ${COMPONENTS_DIR}/security_manager/include 
   ${COMPONENTS_DIR}/media_manager/include
   ${COMPONENTS_DIR}/utils/include
-  
   ${COMPONENTS_DIR}/dbus/src
   ${COMPONENTS_DIR}/config_profile/include
   ${GMOCK_INCLUDE_DIRECTORY}
@@ -200,19 +197,12 @@ include_directories (
   ${COMPONENTS_DIR}/transport_manager/test/include
 )
 
-if (BUILD_AVAHI_SUPPORT)
-  list(APPEND LIBRARIES avahi-client avahi-common)
-endif()
-
-
-
 #TODO to ALL : Please FIX heart_beat_monitor_test.cc
   set(testSources
     main_test.cc
     ${COMPONENTS_DIR}/utils/test/messagemeter_test.cc
     ${COMPONENTS_DIR}/utils/test/date_time_test.cc
     ${COMPONENTS_DIR}/utils/test/file_system_test.cc
-    ${COMPONENTS_DIR}/media_manager/test/media_adapter_impl_test.cc
     ${COMPONENTS_DIR}/media_manager/test/media_manager_impl_test.cc
     ${COMPONENTS_DIR}/connection_handler/test/connection_handler_impl_test.cc
     ${COMPONENTS_DIR}/connection_handler/test/connection_test.cc
@@ -230,19 +220,18 @@ endif()
     ${COMPONENTS_DIR}/transport_manager/test/mock_device.cc           
     ${COMPONENTS_DIR}/transport_manager/test/mock_device_scanner.cc    
     ${COMPONENTS_DIR}/transport_manager/test/raw_message_matcher.cc   
-    ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter_listener.cc
     ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter.cc 
     ${COMPONENTS_DIR}/transport_manager/test/transport_manager_test.cc 
     ${AM_TEST_DIR}/command_impl_test.cc
-    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectDraftTest.cc
-    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectInvalidTest.cc
-    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectStressTest.cc
-    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectUnitTest.cc
-    ${COMPONENTS_DIR}/smart_objects/test/TSharedPtrTest.cc
+    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectDraft_test.cc
+    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectInvalid_test.cc
+    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectStress_test.cc
+    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectUnit_test.cc
+    ${COMPONENTS_DIR}/smart_objects/test/TSharedPtr_test.cc
     ${COMPONENTS_DIR}/protocol_handler/test/protocol_handler_tm_test.cc
     ${COMPONENTS_DIR}/protocol_handler/test/incoming_data_handler_test.cc
     ${COMPONENTS_DIR}/protocol_handler/test/protocol_header_validator_test.cc
-    ${COMPONENTS_DIR}/hmi_message_handler/test/test_mqueue_adapter.cc 
+    ${COMPONENTS_DIR}/hmi_message_handler/test/mqueue_adapter_test.cc 
   )
   
 if (${QT_HMI})
@@ -251,10 +240,9 @@ if (${QT_HMI})
         ${COMPONENTS_DIR}/dbus/test/test_schema.cc
         ${COMPONENTS_DIR}/dbus/test/test_dbus_adapter.cc
         ${COMPONENTS_DIR}/hmi_message_handler/test/mock_subscriber.cc 
-        ${COMPONENTS_DIR}/hmi_message_handler/test/test_dbus_message_adapter.cc    
+        ${COMPONENTS_DIR}/hmi_message_handler/test/dbus_message_adapter_test.cc    
        )
 endif ()
-
 
   set(test_exec_libraries
     gmock
@@ -287,6 +275,19 @@ endif ()
     Policy
     ${SecurityManagerLibrary}
   )
+
+if (BUILD_AVAHI_SUPPORT)
+  list(APPEND test_exec_libraries avahi-client avahi-common)
+endif()
+if (BUILD_BT_SUPPORT)
+  list(APPEND test_exec_libraries bluetooth)
+endif()
+if (BUILD_USB_SUPPORT)
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  list(APPEND test_exec_libraries Libusb-1.0.16)
+endif()
+endif()
+
 
 if(ENABLE_LOG)
   list(APPEND test_exec_libraries log4cxx -L${LOG4CXX_LIBS_DIRECTORY})

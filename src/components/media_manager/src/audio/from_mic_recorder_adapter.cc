@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,18 +46,21 @@ FromMicRecorderAdapter::FromMicRecorderAdapter()
   : recorder_thread_(NULL)
   , output_file_("default_recorded_audio.wav")
   , kDefaultDuration(1000)
-  , duration_(0) {
-  duration_ = kDefaultDuration;
+  , duration_(kDefaultDuration) {
+
 }
 
 FromMicRecorderAdapter::~FromMicRecorderAdapter() {
-  LOG4CXX_INFO(logger_, "FromMicRecorderAdapter::~FromMicRecorderAdapter()");
-  StopActivity(current_application_);
+  LOG4CXX_AUTO_TRACE(logger_);
+  if (recorder_thread_) {
+    recorder_thread_->join();
+    delete recorder_thread_->delegate();
+    threads::DeleteThread(recorder_thread_);
+  }
 }
 
 void FromMicRecorderAdapter::StartActivity(int32_t application_key) {
-  LOG4CXX_INFO(logger_, "FromMicRecorderAdapter::StartActivity "
-               << application_key);
+  LOG4CXX_DEBUG(logger_, "Start with app " << application_key);
   if (application_key == current_application_) {
     LOG4CXX_WARN(logger_, "Running recording from mic for "
                  << current_application_);
@@ -90,9 +93,8 @@ void FromMicRecorderAdapter::StopActivity(int32_t application_key) {
     return;
   }
 
-  if (NULL != recorder_thread_) {
+  if (recorder_thread_) {
     recorder_thread_->stop();
-    recorder_thread_ = NULL;
   }
   current_application_ = 0;
 }

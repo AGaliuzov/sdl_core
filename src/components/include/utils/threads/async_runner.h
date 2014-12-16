@@ -70,6 +70,10 @@ class AsyncRunner {
      * @param delegate the objet which has to be concuremtly run
      */
     void AsyncRun(threads::ThreadDelegate* delegate);
+    /**
+     * @brief Stop delegates activity
+     */
+    void Stop();
 
     ~AsyncRunner();
 
@@ -85,11 +89,9 @@ class AsyncRunner {
         virtual void threadMain();
 
         /**
-         * @brief exitThreadMain doing stuff before exith from thread.
-         *
-         * @return always true.
+         * @brief exitThreadMain doing stuff before exit from thread.
          */
-        virtual bool exitThreadMain();
+        virtual void exitThreadMain();
 
         /**
          * @brief runDelegate push obtained delegate into specific queue

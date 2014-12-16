@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2013, Ford Motor Company
+// Copyright (c) 2014, Ford Motor Company
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -70,14 +70,14 @@ AudioStreamSenderThread::AudioStreamSenderThread(
     total_bytes_from_mq_(0),
 #endif //CUSTOMER PASA
     shouldBeStoped_cv_() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 }
 
 AudioStreamSenderThread::~AudioStreamSenderThread() {
 }
 
 void AudioStreamSenderThread::threadMain() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   offset_ = 0;
 #ifdef CUSTOMER_PASA
@@ -136,12 +136,10 @@ void AudioStreamSenderThread::threadMain() {
 
   LOG4CXX_INFO(logger_, "total_bytes_from_mq_ =  " << total_bytes_from_mq_);
 #endif
-
-  LOG4CXX_TRACE_EXIT(logger_);
 }
 
 void AudioStreamSenderThread::sendAudioChunkToMobile() {
-  LOG4CXX_TRACE_ENTER(logger_);
+  LOG4CXX_AUTO_TRACE(logger_);
 
   std::vector<uint8_t> binaryData;
   std::vector<uint8_t>::iterator from;
@@ -215,11 +213,12 @@ void AudioStreamSenderThread::setShouldBeStopped(bool should_stop) {
   shouldBeStoped_cv_.NotifyOne();
 }
 
-bool AudioStreamSenderThread::exitThreadMain() {
-  LOG4CXX_INFO(logger_, "AudioStreamSenderThread::exitThreadMain");
+#ifndef CUSTOMER_PASA
+void AudioStreamSenderThread::exitThreadMain() {
+  LOG4CXX_AUTO_TRACE(logger_);
   setShouldBeStopped(true);
-  return true;
 }
+#endif
 
 uint32_t AudioStreamSenderThread::session_key() const {
   return session_key_;

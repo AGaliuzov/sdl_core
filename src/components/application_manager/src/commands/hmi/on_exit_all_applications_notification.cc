@@ -38,6 +38,10 @@
 
 #include "application_manager/application_manager_impl.h"
 #include "interfaces/HMI_API.h"
+#ifdef CUSTOMER_PASA
+#include <mqueue.h>
+#include <applink_types.h>
+#endif
 
 
 namespace application_manager {
@@ -52,11 +56,12 @@ OnExitAllApplicationsNotification::~OnExitAllApplicationsNotification() {
 }
 
 void OnExitAllApplicationsNotification::Run() {
-  LOG4CXX_INFO(logger_, "OnExitAllApplicationsNotification::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   const hmi_apis::Common_ApplicationsCloseReason::eType reason =
       static_cast<hmi_apis::Common_ApplicationsCloseReason::eType>(
           (*message_)[strings::msg_params][hmi_request::reason].asInt());
+  LOG4CXX_DEBUG(logger_, "Reason " << reason);
 
   mobile_api::AppInterfaceUnregisteredReason::eType mob_reason =
       mobile_api::AppInterfaceUnregisteredReason::INVALID_ENUM;
@@ -78,6 +83,7 @@ void OnExitAllApplicationsNotification::Run() {
     }
     case hmi_apis::Common_ApplicationsCloseReason::SUSPEND: {
 #ifdef CUSTOMER_PASA
+      mob_reason = mobile_api::AppInterfaceUnregisteredReason::IGNITION_OFF;
       app_manager->set_state_suspended(true);
       app_manager->HeadUnitSuspend();
 #endif // CUSTOMER_PASA
@@ -96,13 +102,35 @@ void OnExitAllApplicationsNotification::Run() {
       mobile_api::AppInterfaceUnregisteredReason::FACTORY_DEFAULTS == mob_reason) {
     app_manager->HeadUnitReset(mob_reason);
   }
+#ifdef CUSTOMER_PASA
+  struct mq_attr attributes;
+  attributes.mq_maxmsg = 128;
+  attributes.mq_msgsize = 4095;
+  attributes.mq_flags = 0;
 
+  mqd_t mq = mq_open(PREFIX_STR_SDL_PROXY_QUEUE,
+                O_WRONLY | O_CREAT,
+                S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH,
+                &attributes);
+  if (-1 == mq) {
+    LOG4CXX_ERROR(logger_, "Unable to open mqueue " << strerror(errno));
+    return;
+  }
+  LOG4CXX_DEBUG(logger_, "Opened mqueue");
+  char buf = SDL_MSG_SDL_STOP;
+  if (-1 != mq_send(mq, &buf, 1, 0)) {
+    LOG4CXX_DEBUG(logger_, "SDL_MSG_SDL_STOP sent to SDL controller");
+  } else {
+    LOG4CXX_ERROR(logger_, "Unable to send SDL_MSG_SDL_STOP " << strerror(errno));
+  }
+  mq_close(mq);
+#else
   kill(getpid(), SIGINT);
+#endif
 }
 
 void OnExitAllApplicationsNotification::SendOnSDLPersistenceComplete() {
-  LOG4CXX_INFO(logger_, ""
-      "OnExitAllApplicationsNotification::SendOnSDLPersistenceComplete");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   smart_objects::SmartObject* message =
       new smart_objects::SmartObject(smart_objects::SmartType_Map);
