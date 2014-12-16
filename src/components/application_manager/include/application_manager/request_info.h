@@ -55,14 +55,17 @@ namespace request_controller {
 
   struct RequestInfo {
     enum RequestType {MobileRequest, HMIRequest};
-    RequestInfo(const RequestType requst_type, const uint64_t timeout_sec)
+
+    RequestInfo(){};
+
+    RequestInfo(RequestPtr request, const RequestType requst_type, const uint64_t timeout_sec)
       : timeout_sec_(timeout_sec) {
         start_time_ = date_time::DateTime::getCurrentTime();
         updateEndTime();
         requst_type_ = requst_type;
       }
 
-    RequestInfo(const RequestType requst_type, const TimevalStruct& start_time,const  uint64_t timeout_sec)
+    RequestInfo(RequestPtr request, const RequestType requst_type, const TimevalStruct& start_time,const  uint64_t timeout_sec)
       : start_time_(start_time),
         timeout_sec_(timeout_sec) {
         updateEndTime();
@@ -70,9 +73,6 @@ namespace request_controller {
     }
 
     virtual ~RequestInfo(){}
-
-    virtual uint32_t requestId() = 0;
-    virtual commands::Command* request() = 0;
 
     void updateEndTime() {
       end_time_ = date_time::DateTime::getCurrentTime();
@@ -115,69 +115,84 @@ namespace request_controller {
     mobile_apis::HMILevel::eType hmi_level() {
       return hmi_level_;
     }
+
     RequestType requst_type() const {
        return requst_type_;
      }
 
+    uint32_t requestId() {
+      return correlation_id_;
+    }
+
+    commands::Command* request() {
+      return request_.get();
+    }
+    uint64_t hash();
+    static uint64_t GenerateHash(uint32_t var1, uint32_t var2);
+
   protected:
+    RequestPtr request_;
     TimevalStruct                 start_time_;
     uint64_t                      timeout_sec_;
     TimevalStruct                 end_time_;
     uint32_t                      app_id_;
     mobile_apis::HMILevel::eType  hmi_level_;
     RequestType                   requst_type_;
+    uint32_t                      correlation_id_;
   };
 
   typedef utils::SharedPtr<RequestInfo> RequestInfoPtr;
 
-  struct RequestInfoComparator {
-      bool operator() (const RequestInfoPtr lhs,
-                       const RequestInfoPtr rhs) const {
-        date_time::TimeCompare compare_result =
-            date_time::DateTime::compareTime(lhs->end_time(), rhs->end_time());
-
-        return compare_result == date_time::LESS;
-      }
+  struct MobileRequestInfo: public RequestInfo {
+      MobileRequestInfo(RequestPtr request,
+                      const uint64_t timeout_sec);
+    MobileRequestInfo(RequestPtr request,
+                      const TimevalStruct& start_time,
+                      const uint64_t timeout_sec);
   };
-
-  typedef std::set<RequestInfoPtr,RequestInfoComparator> RequestInfoSet;
 
   struct HMIRequestInfo: public RequestInfo {
     HMIRequestInfo(RequestPtr request, const uint64_t timeout_sec);
     HMIRequestInfo(RequestPtr request, const TimevalStruct& start_time,
                      const  uint64_t timeout_sec);
-
-    RequestPtr request_;
-    uint32_t correlation_id_;
-
-    virtual uint32_t requestId() {
-      return correlation_id_;
-    }
-
-    virtual commands::Command* request() {
-      return request_.get();
-    }
   };
 
-  struct MobileRequestInfo: public RequestInfo {
-    MobileRequestInfo(RequestPtr request,
-                      const uint64_t timeout_sec);
-
-    MobileRequestInfo(RequestPtr request,
-                      const TimevalStruct& start_time,
-                      const uint64_t timeout_sec);
-
-    RequestPtr request_;
-    uint32_t mobile_correlation_id_;
-
-    virtual uint32_t requestId() {
-      return mobile_correlation_id_;
-    }
-
-    virtual commands::Command* request() {
-      return request_.get();
-    }
+  struct FakeRequestInfo :public RequestInfo {
+      FakeRequestInfo(uint32_t app_id, uint32_t correaltion_id);
   };
+
+  struct RequestInfoTimeComparator {
+      bool operator() (const RequestInfoPtr lhs,
+                       const RequestInfoPtr rhs) const {
+        date_time::TimeCompare compare_result =
+            date_time::DateTime::compareTime(lhs->end_time(), rhs->end_time());
+        return compare_result == date_time::LESS ||
+               compare_result == date_time::EQUAL;
+      }
+  };
+
+  struct RequestInfoHashComparator {
+      bool operator() (const RequestInfoPtr lhs,
+                       const RequestInfoPtr rhs) const {
+        return lhs->hash() < rhs->hash();
+      }
+  };
+
+  typedef std::set<RequestInfoPtr,RequestInfoTimeComparator> TimeSortedRequestInfoSet;
+  typedef std::set<RequestInfoPtr,RequestInfoHashComparator> HashSortedRequestInfoSet;
+
+  class RequestInfoSet {
+    public:
+      bool Add(RequestInfoPtr request_info);
+      RequestInfoPtr Find(const uint32_t  connection_key, const uint32_t correlation_id);
+      RequestInfoPtr Front();
+      bool Erase(const RequestInfoPtr request_info);
+    private:
+      inline void CheckSetSizes();
+      TimeSortedRequestInfoSet time_sorted_pending_requests_;
+      HashSortedRequestInfoSet hash_sorted_pending_requests_;
+  };
+
 
   /**
   * @brief Structure used in std algorithms to determine amount of request

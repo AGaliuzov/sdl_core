@@ -140,6 +140,16 @@ class RequestController {
     */
     void addNotification(const RequestPtr ptr);
 
+
+    /**
+    * @brief Removes request from queue
+    *
+    * @param corellation_id Active request correlation ID,
+    * connection_key - Active request connection key (0 for HMI requersts)
+    *
+    */
+    void terminateRequest(const uint32_t& correlation_id, const uint32_t& connection_key);
+
     /**
     * @brief Removes request from queue
     *
@@ -147,6 +157,7 @@ class RequestController {
     *
     */
     void terminateMobileRequest(const uint32_t& mobile_correlation_id, const uint32_t& connection_key);
+
 
 
     /**
@@ -205,6 +216,7 @@ class RequestController {
     void OnWakeUp();
 
     bool IsLowVoltage();
+
   protected:
 
     /**
@@ -246,7 +258,8 @@ class RequestController {
     */
     void UpdateTimer();
 
-
+    void terminateWaitingForExecutionAppRequests(const uint32_t& app_id);
+    void terminateWaitingForResponseAppRequests(const uint32_t& app_id);
   private:
 
     // Data types
@@ -272,8 +285,11 @@ class RequestController {
     std::list<RequestPtr> mobile_request_list_;
     sync_primitives::Lock mobile_request_list_lock_;
 
-    RequestInfoSet pending_request_set_;
-    sync_primitives::Lock pending_request_set_lock_;
+    TimeSortedRequestInfoSet time_sorted_pending_requests_;
+    HashSortedRequestInfoSet hash_sorted_pending_requests_;
+
+    RequestInfoSet waiting_for_response_;
+    sync_primitives::Lock waiting_for_response_lock_;
 
     /**
     * @brief Set of HMI notifications with timeout.
