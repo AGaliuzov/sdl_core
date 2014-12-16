@@ -217,6 +217,7 @@ class RequestController {
 
     bool IsLowVoltage();
 
+
   protected:
 
     /**
@@ -260,6 +261,8 @@ class RequestController {
 
     void terminateWaitingForExecutionAppRequests(const uint32_t& app_id);
     void terminateWaitingForResponseAppRequests(const uint32_t& app_id);
+
+    TResult CheckPreconditionsForMobileRequest(const RequestPtr request);
   private:
 
     // Data types

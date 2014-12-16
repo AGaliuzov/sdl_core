@@ -93,18 +93,8 @@ void RequestController::DestroyThreadpool() {
   pool_.clear();
 }
 
-RequestController::TResult RequestController::addMobileRequest(
-    const RequestPtr request,
-    const mobile_apis::HMILevel::eType& hmi_level) {
+RequestController::TResult  RequestController::CheckPreconditionsForMobileRequest(const RequestPtr request) {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (request) {
-    LOG4CXX_ERROR(logger_, "Null Pointer request");
-    cond_var_.NotifyOne();
-    return INVALID_DATA;
-  }
-
-  LOG4CXX_DEBUG(logger_, "correlation_id : " << request->correlation_id()
-                << "connection_key : " << request->connection_key());
   const uint32_t& app_hmi_level_none_time_scale =
       profile::Profile::instance()->app_hmi_level_none_time_scale();
 
@@ -137,9 +127,23 @@ RequestController::TResult RequestController::addMobileRequest(
     LOG4CXX_ERROR(logger_, "Too many pending request");
     return RequestController::TOO_MANY_PENDING_REQUESTS;
   }
-  {
+  return SUCCESS;
+}
+
+RequestController::TResult RequestController::addMobileRequest(
+    const RequestPtr request,
+    const mobile_apis::HMILevel::eType& hmi_level) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  if (request) {
+    LOG4CXX_ERROR(logger_, "Null Pointer request");
+    cond_var_.NotifyOne();
+    return INVALID_DATA;
+  }
+  LOG4CXX_DEBUG(logger_, "correlation_id : " << request->correlation_id()
+                << "connection_key : " << request->connection_key());
+  RequestController::TResult result = CheckPreconditionsForMobileRequest(request);
+  if (SUCCESS ==result) {
     AutoLock auto_lock_list(mobile_request_list_lock_);
-    AutoLock auto_lock_set(waiting_for_response_lock_);
     mobile_request_list_.push_back(request);
     LOG4CXX_DEBUG(logger_,
                   "new mobile_request_list_ size is " << mobile_request_list_.size()
@@ -147,17 +151,18 @@ RequestController::TResult RequestController::addMobileRequest(
   // wake up one thread that is waiting for a task to be available
   }
   cond_var_.NotifyOne();
-  return SUCCESS;
+  return result;
 }
 
 RequestController::TResult RequestController::addHMIRequest(
     const RequestPtr request) {
-  DCHECK(request.valid());
+  LOG4CXX_AUTO_TRACE(logger_);
+
   if (!request.valid()) {
     LOG4CXX_ERROR(logger_, "HMI request pointer is invalid");
     return RequestController::INVALID_DATA;
   }
-  LOG4CXX_DEBUG(logger_, "ENTER addHMIRequest : " << request->correlation_id());
+  LOG4CXX_DEBUG(logger_, " correlation_id : " << request->correlation_id());
 
   const uint32_t timeout_in_seconds =
       request->default_timeout() / date_time::DateTime::MILLISECONDS_IN_SECOND;
@@ -167,7 +172,7 @@ RequestController::TResult RequestController::addHMIRequest(
 
   if (0 != timeout_in_seconds) {
     AutoLock auto_lock(waiting_for_response_lock_);
-    time_sorted_pending_requests_.insert(request_info_ptr);
+    waiting_for_response_.Add(request_info_ptr);
     LOG4CXX_INFO(logger_, "pending_request_set_ size is "
                  << time_sorted_pending_requests_.size());
     UpdateTimer();
@@ -189,11 +194,13 @@ void RequestController::removeNotification(const commands::Command* notification
   for (; notification_list_.end() != it; ) {
     if (it->get() == notification) {
       notification_list_.erase(it++);
+      LOG4CXX_DEBUG(logger_, "Notification removed");
       break;
     } else {
       ++it;
     }
   }
+  LOG4CXX_DEBUG(logger_, "Cant find notification");
 }
 
 void RequestController::terminateRequest(
@@ -204,30 +211,19 @@ void RequestController::terminateRequest(
     LOG4CXX_DEBUG(logger_, "correlation_id = " << correlation_id
                   << " connection_key = " << connection_key);
 
-  utils::SharedPtr<FakeRequestInfo> request_info_for_search =
-      new FakeRequestInfo(connection_key, correlation_id);
-  std::set<RequestInfoPtr,RequestInfoTimeComparator>::iterator it =
-      hash_sorted_pending_requests_.find(request_info_for_search);
-
-  if (it != hash_sorted_pending_requests_.end()) {
-    RequestInfoPtr request = *it;
-    request->request()->CleanUp();
-    hash_sorted_pending_requests_.erase(it);
-    size_t erased_count = time_sorted_pending_requests_.erase(request);
-    if (1 != erased_count) {
-      LOG4CXX_ERROR(logger_, "Count of erased elements is not valid : "
-                    << erased_count);
-    }
-    LOG4CXX_INFO(logger_, "Request terminated: " << correlation_id);
+  RequestInfoPtr request = waiting_for_response_.Find(connection_key,
+                                                      correlation_id);
+  if (request) {
+    waiting_for_response_.Erase(request);
     UpdateTimer();
   } else {
-    LOG4CXX_WARN(logger_, "Request not found in pending_request_set : " << correlation_id );
+    LOG4CXX_WARN(logger_, "Request not found in waiting_for_response_ : "
+                 << correlation_id );
   }
-  DCHECK(time_sorted_pending_requests_.size() == hash_sorted_pending_requests_.size());
-  LOG4CXX_DEBUG(logger_, "Waiting for response count : " << time_sorted_pending_requests_.size());
 }
 
-void RequestController::terminateMobileRequest(const uint32_t& mobile_correlation_id, const uint32_t& connection_key) {
+void RequestController::terminateMobileRequest(const uint32_t& mobile_correlation_id,
+                                               const uint32_t& connection_key) {
   LOG4CXX_AUTO_TRACE(logger_);
   terminateRequest(mobile_correlation_id, connection_key);
 }
