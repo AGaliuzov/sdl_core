@@ -62,6 +62,11 @@ void SingleThreadSimpleValidator::AssertRunningOnCreationThread() const {
   }
 }
 
+PlatformThreadHandle SingleThreadSimpleValidator::GetThreadId() const
+{
+  return creation_thread_id_;
+}
+
 
 SingleThreadValidator::SingleThreadValidator()
     : owning_thread_id_(Thread::CurrentId()){
