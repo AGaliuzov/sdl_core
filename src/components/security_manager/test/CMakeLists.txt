@@ -31,10 +31,7 @@
 if (BUILD_TESTS)
   
 include_directories(
-  ${LOG4CXX_INCLUDE_DIRECTORY}
   ${GMOCK_INCLUDE_DIRECTORY}
-  ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
-  ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
   ${COMPONENTS_DIR}/protocol_handler/test/include
   ${COMPONENTS_DIR}/transport_manager/test/include
   ${COMPONENTS_DIR}/security_manager/include
@@ -46,22 +43,13 @@ set(SOURCES
   ${COMPONENTS_DIR}/security_manager/test/security_manager_test.cc
   ${COMPONENTS_DIR}/security_manager/test/security_query_test.cc
   ${COMPONENTS_DIR}/security_manager/test/security_query_matcher.cc
+  ${COMPONENTS_DIR}/security_manager/test/main.cc
  )
 
 set(LIBRARIES
-  gtest_main
   gmock
-  gmock_main
   ${SecurityManagerLibrary}
-  crypto
-  ssl
-  ProtocolHandler
-  connectionHandler
-  Utils
-  ${RTLIB}
-  ProtocolLibrary
 )
-
 
 set(CERT_LIST 
   ${CMAKE_SOURCE_DIR}/mycert.pem
