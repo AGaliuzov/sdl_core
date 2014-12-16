@@ -291,7 +291,7 @@ void MessageHelper::SendOnAppRegisteredNotificationToHMI(
   const Application& application_impl, bool resumption, bool need_restore_vr) {
   smart_objects::SmartObjectSPtr notification = new smart_objects::SmartObject;
   if (!notification) {
-    LOG4CXX_ERROR(logger_, "Failed creating smart object");
+    LOG4CXX_ERROR(logger_, "Failed to create smart object");
     return;
   }
   smart_objects::SmartObject& message = *notification;
