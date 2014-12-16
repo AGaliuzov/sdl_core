@@ -390,6 +390,7 @@ void PolicyManagerImpl::CheckPermissions(const PTString& app_id,
   if (!known_rpc) {
     // RPC not found in list == disallowed by backend
     result.hmi_level_permitted = kRpcDisallowed;
+    return;
   }
 
   // Check HMI level
@@ -406,6 +407,10 @@ void PolicyManagerImpl::CheckPermissions(const PTString& app_id,
       rpc_permissions[rpc].hmi_permissions[kUserDisallowedKey].find(hmi_level)) {
     // RPC found in allowed == allowed by backend, but disallowed by user
     result.hmi_level_permitted = kRpcUserDisallowed;
+  } else {
+    LOG4CXX_DEBUG(logger_, "HMI level " << hmi_level << " wasn't found "
+                  << " for rpc " << rpc << " and appID " << app_id);
+    return;
   }
 
   // Add parameters of RPC, if any
