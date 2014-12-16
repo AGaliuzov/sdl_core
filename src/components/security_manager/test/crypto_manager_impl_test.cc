@@ -31,7 +31,6 @@
  */
 
 #include <gtest/gtest.h>
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -51,7 +50,7 @@
 #ifdef __QNXNTO__
 #define FORD_CIPHER   SSL3_TXT_RSA_DES_192_CBC3_SHA
 #else
-// Used cipehr from ford protocolo requirment
+// Used cipher from ford protocol requirement
 #define FORD_CIPHER   TLS1_TXT_RSA_WITH_AES_256_GCM_SHA384
 #endif
 
@@ -67,7 +66,7 @@ bool isErrorFatal(SSL *connection, int res) {
   return (error != SSL_ERROR_WANT_READ && error != SSL_ERROR_WANT_WRITE);
 }
 }
-// TODO(EZamakhov): May be split to SSLContext and Cyptomanager tests (separate files)
+// TODO(EZamakhov): May be split to SSLContext and Cryptomanager tests (separate files)
 // TODO(EZamakhov): add test for EnsureBufferSizeEnough
 class SSLTest : public testing::Test {
  protected:
@@ -121,10 +120,10 @@ TEST(CryptoManagerTest, UsingBeforeInit) {
 
 TEST(CryptoManagerTest, WrongInit) {
   security_manager::CryptoManager *crypto_manager = new security_manager::CryptoManagerImpl();
-  // TODO(EZamakhov): Unkown protocol version
-//  EXPECT_FALSE(crypto_manager->Init(security_manager::SERVER, security_manager::UNKNOWN,
-//                                    "mycert.pem", "mykey.pem", FORD_CIPHER, false));
-//  EXPECT_FALSE(crypto_manager->LastError().empty());
+  // TODO(EZamakhov): Unknown protocol version
+  EXPECT_FALSE(crypto_manager->Init(security_manager::SERVER, security_manager::UNKNOWN,
+          "mycert.pem", "mykey.pem", FORD_CIPHER, false));
+  EXPECT_FALSE(crypto_manager->LastError().empty());
   // Unexistent cert file
   EXPECT_FALSE(crypto_manager->Init(security_manager::SERVER, security_manager::TLSv1_2,
           "unexists_file.pem", "mykey.pem", FORD_CIPHER, false));
