@@ -309,17 +309,11 @@ bool ResumeCtrl::IsHMIApplicationIdExist(uint32_t hmi_app_id) {
 bool ResumeCtrl::IsApplicationSaved(const std::string& mobile_app_id) {
   LOG4CXX_TRACE(logger_, "ENTER mobile_app_id :"  << mobile_app_id);
   bool result = false;
-  for (Json::Value::iterator it = GetSavedApplications().begin();
-      it != GetSavedApplications().end(); ++it) {
-    if ((*it).isMember(strings::app_id)) {
-      if ((*it)[strings::app_id].asString() == mobile_app_id) {
-        result = true;
-      }
-    }
+  int index = GetObjectIndex(mobile_app_id);
+  if (-1 != index) {
+    result = true;
   }
-  LOG4CXX_TRACE(logger_, "EXIT mobile_app_id :" <<
-                mobile_app_id <<
-                " result: " <<
+  LOG4CXX_TRACE(logger_, "EXIT result: " <<
                 (result ? "true" : "false"));
   return result;
 }
@@ -615,7 +609,7 @@ bool ResumeCtrl::IsDeviceMacAddressEqual(ApplicationSharedPtr application,
 }
 
 Json::Value& ResumeCtrl::GetSavedApplications() {
-  return resumption::LastState::instance()->dictionary[strings::resumption];
+  return resumption::LastState::instance()->dictionary  [strings::resumption];
 }
 
 void ResumeCtrl::SetSavedApplication(Json::Value& apps_json) {
@@ -982,13 +976,15 @@ Json::Value& ResumeCtrl::GetFromSavedOrAppend(const std::string& mobile_app_id) 
 }
 
 int ResumeCtrl::GetObjectIndex(const std::string& mobile_app_id) {
+  LOG4CXX_AUTO_TRACE(logger_);
 
   const Json::Value& apps = GetSavedApplications();
-
   const Json::ArrayIndex size = apps.size();
-  Json::ArrayIndex idx = apps.size();
+  Json::ArrayIndex idx = 0;
   for (; idx != size; ++idx) {
-    if (mobile_app_id == apps[idx][strings::app_id].asString()) {
+    const std::string& saved_app_id = apps[idx][strings::app_id].asString();
+    if (mobile_app_id == saved_app_id) {
+      LOG4CXX_DEBUG(logger_, "Found " << idx);
       return idx;
     }
   }
