@@ -1,4 +1,4 @@
-﻿/* Copyright (c) 2014, Ford Motor Company
+/* Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -76,6 +76,8 @@ class MockPolicyListener : public PolicyListener {
                void(const BinaryMessage& pt_string,
                     const std::vector<int>& retry_seconds,
                     int timeout_exceed));
+  MOCK_METHOD0(CanUpdate,
+               bool());
 };
 
 }  // namespace policy

@@ -1,4 +1,4 @@
-﻿/*
+/*
  Copyright (c) 2013, Ford Motor Company
  All rights reserved.
 
@@ -49,6 +49,7 @@
 #include "usage_statistics/statistics_manager.h"
 #include "policy_handler_observer.h"
 #include "utils/threads/async_runner.h"
+#include "application_manager/application_manager_impl.h"
 
 namespace Json {
 class Value;
@@ -278,6 +279,8 @@ class PolicyHandler :
   std::string GetAppName(const std::string& policy_app_id);
 
   virtual void OnUpdateHMIAppType(std::map<std::string, StringArray> app_hmi_types);
+
+  virtual bool CanUpdate();
 
   virtual void OnDeviceConsentChanged(const std::string& device_id,
                                       bool is_allowed);

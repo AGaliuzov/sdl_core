@@ -285,33 +285,6 @@ void PolicyManagerImpl::RequestPTUpdate() {
                                TimeoutExchange());
 }
 
-bool PolicyManagerImpl::HasConsentedDevice() {
-  LOG4CXX_AUTO_TRACE(logger_);
-  std::queue<std::string> apps;
-  listener_->GetAvailableApps(apps);
-  bool result = !apps.empty();
-
-  if(result) {
-    LOG4CXX_INFO(logger_, "App list is not empty");
-    std::string device_id;
-    std::string app_id;
-    while(!apps.empty()) {
-      app_id = apps.front();
-      LOG4CXX_INFO(logger_, "App to get update: " << app_id);
-      device_id = listener_->OnCurrentDeviceIdUpdateRequired(app_id);
-      result = (kDeviceAllowed == GetUserConsentForDevice(device_id));
-
-      if (result) {
-        break;
-      }
-
-      apps.pop();
-    }
-  }
-  LOG4CXX_INFO(logger_, "HasConsent result: " << result);
-  return result;
-}
-
 void PolicyManagerImpl::StartPTExchange() {
   LOG4CXX_AUTO_TRACE(logger_);
 
@@ -322,7 +295,7 @@ void PolicyManagerImpl::StartPTExchange() {
     return;
   }
 
-  if (HasConsentedDevice()) {
+  if (listener_ && listener_->CanUpdate()) {
     if (ignition_check) {
       CheckTriggers();
       ignition_check = false;
