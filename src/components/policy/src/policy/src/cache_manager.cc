@@ -1040,7 +1040,7 @@ void CacheManager::PersistData() {
         policy_table::DeviceData::const_iterator it_end_device =
             copy_pt.policy_table.device_data->end();
 
-        policy_table::DeviceData& device_data = *copy_pt.policy_table.device_data;
+//        policy_table::DeviceData& device_data = *copy_pt.policy_table.device_data;
         LOG4CXX_DEBUG(logger_, "Device_data size is: " << device_data.size());
         for (;it_device != it_end_device; ++it_device) {
           if (is_unpaired_.end() != is_unpaired_.find(it_device->first)) {

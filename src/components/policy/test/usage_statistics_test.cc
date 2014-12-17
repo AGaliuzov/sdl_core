@@ -135,7 +135,6 @@ TEST(StatisticsManagerAddMethod, DISABLED_AppStopwatchStartMethod_CallONCE_Stati
   hmi_full_stopwatch.Start(SECONDS_HMI_FULL);
 }
 
-//---
 TEST(StatisticsManagerAddMethod, DISABLED_AppStopwatchStartMethod_Call_StatisticsManagerAddMethodCALLED) {
   //Arrange
 
@@ -150,20 +149,6 @@ TEST(StatisticsManagerAddMethod, DISABLED_AppStopwatchStartMethod_Call_Statistic
   hmi_full_stopwatch.Start(SECONDS_HMI_FULL);
   sleep(2);
 }
-
-//not actual
-//TEST(StatisticsManagerAddMethod, AppStopwatchStopMethod_Call_StatisticsManagerAddMethodCALLED) {
-//  //Arrange
-//  MockStatisticsManager* msm = new StrictMock<MockStatisticsManager>();
-//  AppStopwatch hmi_full_stopwatch(msm, "HelloApp");
-//  hmi_full_stopwatch.Start(SECONDS_HMI_FULL);
-//
-//  //Assert
-//  EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_FULL, 0)).Times(1);
-//
-//  //Act
-//  hmi_full_stopwatch.Stop();
-//}
 
 TEST(StatisticsManagerAddMethod, DISABLED_AppStopwatchSwitchMethod_Call_StatisticsManagerAddMethodCALLED) {
   //Arrange
