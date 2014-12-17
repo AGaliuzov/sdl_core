@@ -1588,7 +1588,20 @@ bool ApplicationManagerImpl::ConvertMessageToSO(
         return false;
       }
       if (output.validate() != smart_objects::Errors::OK) {
-        LOG4CXX_WARN(logger_, "Incorrect parameter from HMI");
+        LOG4CXX_ERROR(logger_, "Incorrect parameter from HMI");
+
+        if (application_manager::MessageType::kNotification ==
+            output[strings::params][strings::message_type].asInt()) {
+          LOG4CXX_ERROR(logger_, "Ignore wrong HMI notification");
+          return false;
+        }
+
+        if (application_manager::MessageType::kRequest ==
+            output[strings::params][strings::message_type].asInt()) {
+          LOG4CXX_ERROR(logger_, "Ignore wrong HMI request");
+          return false;
+        }
+
         output.erase(strings::msg_params);
         output[strings::params][hmi_response::code] =
           hmi_apis::Common_Result::INVALID_DATA;
