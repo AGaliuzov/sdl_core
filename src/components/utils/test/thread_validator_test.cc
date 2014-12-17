@@ -33,7 +33,6 @@
 #include <unistd.h>
 
 #include "gtest/gtest.h"
-#include "gmock/gmock.h"
 
 #include "utils/threads/thread_validator.h"
 
@@ -43,10 +42,10 @@ namespace utils {
 
 using namespace ::threads;
 
-TEST(ThreadValidatorTest, CheckCurrentThread) {
-  SingleThreadSimpleValidator *object1 = new SingleThreadSimpleValidator();
-  ASSERT_EQ(object1->GetThreadId(), pthread_self());
-  delete object1;
+TEST(ThreadValidatorTest, SingleThreadSimpleValidatorCtorTest_InputData_object_Expect_creation_in_CurrentThread) {
+  SingleThreadSimpleValidator *object = new SingleThreadSimpleValidator();
+  ASSERT_EQ(object->GetThreadId(), pthread_self());
+  delete object;
 }
 
 }
