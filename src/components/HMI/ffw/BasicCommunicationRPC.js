@@ -345,7 +345,7 @@ FFW.BasicCommunication = FFW.RPCObserver
 
                 if (notification.params.isAppPermissionsRevoked) {
 
-                    SDL.SDLModel.setAppPermissions(notification.params.appID, response.result.appRevokedPermissions);
+                    SDL.SDLModel.setAppPermissions(notification.params.appID, notification.params.appRevokedPermissions);
                 }
 
                 if (notification.params.appRevoked) {

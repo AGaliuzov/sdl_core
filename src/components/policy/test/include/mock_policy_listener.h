@@ -51,6 +51,9 @@ class MockPolicyListener : public PolicyListener {
                void(const std::string& policy_app_id,
                     const Permissions& permissions,
                     const policy::HMILevel& default_hmi));
+  MOCK_METHOD2(OnPermissionsUpdated,
+               void(const std::string& policy_app_id,
+                    const Permissions& permissions));
   MOCK_METHOD1(OnPendingPermissionChange,
                void(const std::string& policy_app_id));
   MOCK_METHOD1(OnAppRevoked,
