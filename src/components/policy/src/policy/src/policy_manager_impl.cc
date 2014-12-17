@@ -422,6 +422,11 @@ void PolicyManagerImpl::CheckPermissions(const PTString& app_id,
             rpc_permissions[rpc].parameter_permissions[kUndefinedKey].end(),
             std::back_inserter(result.list_of_undefined_params));
 
+  if (cache_->IsApplicationRevoked(app_id)) {
+    result.hmi_level_permitted = kRpcDisallowed;
+    return;
+  }
+
   // In case when RPCParams is not empty we have to check
   // If all rpc parameters are in the allowed list,
   // in this case we don't mind about HMILevel permissions
