@@ -51,4 +51,4 @@ TEST(ThreadValidatorTest, SingleThreadSimpleValidatorCtorTest_InputData_object_E
 }
   // namespace utils
 } // namespace components
-}  // namespace test
+} // namespace test
