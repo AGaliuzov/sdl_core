@@ -71,11 +71,11 @@ System& System::Add(const std::string& arg) {
   return *this;
 }
 
-std::string System::GetCommand() const {
+std::string System::command() const {
   return command_;
 }
 
-std::vector<std::string> System::GetArgumentsList() const {
+std::vector<std::string> System::argv() const {
   return argv_;
 }
 

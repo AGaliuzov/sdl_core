@@ -76,10 +76,8 @@ class System {
    */
   bool Execute(bool wait);
 
-#ifdef BUILD_TESTS
-  std::string GetCommand() const;
-  std::vector<std::string> GetArgumentsList() const;
-#endif
+  std::string command() const;
+  std::vector<std::string> argv() const;
 
  private:
   /**

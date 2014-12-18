@@ -42,65 +42,65 @@ using namespace ::utils;
 TEST(SystemTest, CommandCreated_WithoutArguments) {
   // Command creation without any arguments
   std::string test_command("ls");
-  System *object = new System(test_command);
+  System object(test_command);
 
   // Check if the object was created with correct command
-  ASSERT_EQ(object->GetCommand(), test_command);
-  ASSERT_EQ(object->GetArgumentsList().size(), 1);
-
-  delete object;
+  ASSERT_EQ(object.command(), test_command);
+  ASSERT_EQ(object.argv().size(), 1);
 }
 
 TEST(SystemTest, CommandCreated_WithArguments_Positive) {
   // Command creation with 1 argument
   std::string test_command("ls");
   std::string test_list_args("-la");
-  System *object = new System(test_command, test_list_args);
+  System object(test_command, test_list_args);
 
   // Check if the object was created with correct command
-  ASSERT_EQ(object->GetCommand(), test_command);
+  ASSERT_EQ(object.command(), test_command);
 
   // Check if actual number of arguments arec correct
-  ASSERT_EQ(object->GetArgumentsList().size(), 1);// Correct number of arguments is 1
+  ASSERT_EQ(object.argv().size(), 1);// Correct number of arguments is 1
 
-  delete object;
 }
 
 TEST(SystemTest, AddedArgumentsToExistingCommand_Positive) {
-  // Command creation without arguments
   std::string test_command("ls");
   const char* args[] = {"-la", "cp", "rm", "mv"};
-  System *object = new System(test_command);
+  System object(test_command);
 
   // Adding arguments
-  object->Add(args[0]);
-  object->Add(args[1]);
-  object->Add(args[2]);
-  object->Add(args[3]);
+  object.Add(args[0]);
+  object.Add(args[1]);
+  object.Add(args[2]);
+  object.Add(args[3]);
 
   // Check if the object was created with correct command
-  ASSERT_EQ(object->GetCommand(), test_command);
+  ASSERT_EQ(object.command(), test_command);
 
   // Check if the object was appended by correct argument
-  ASSERT_STREQ(object->GetArgumentsList().back().c_str(), args[3]);
+  ASSERT_STREQ(object.argv().back().c_str(), args[3]);
 
   // Check if actual number of arguments equal args stored in object
-  ASSERT_EQ(object->GetArgumentsList().size(), 5);// Correct number of arguments is 5
-
-  delete object;
+  ASSERT_EQ(object.argv().size(), 5);// Correct number of arguments is 5
 }
 
-TEST(SystemTest, ExecutedExistingCommandWithArgs_Positive) {
-  // Command creation with 1 argument
+TEST(SystemTest, SynchronousInvokeExistingCommand_Positive) {
   std::string test_command("ls");
   std::string test_list_args("-la");
-  System *object = new System(test_command, test_list_args);
+  System object(test_command, test_list_args);
 
-  // Check if Execute() method is working properly
-  ASSERT_TRUE(object->Execute());
-  ASSERT_TRUE(object->Execute(true));
+  // Check if Execute() method is working properly with synchronous command invoke
 
-  delete object;
+  ASSERT_TRUE(object.Execute(true));
+}
+
+TEST(SystemTest, ASynchronousInvokeExistingCommand_Positive) {
+  std::string test_command("ls");
+  std::string test_list_args("-la");
+  System object(test_command, test_list_args);
+
+  // Check if Execute() method is working properly with asynchronous command invoke
+  ASSERT_TRUE(object.Execute());
 }
 
 } // namespace utils
