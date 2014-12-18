@@ -35,7 +35,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <iostream>
 
 #include "security_manager/crypto_manager.h"
 #include "security_manager/crypto_manager_impl.h"
