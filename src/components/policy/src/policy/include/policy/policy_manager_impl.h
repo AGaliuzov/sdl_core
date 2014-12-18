@@ -1,4 +1,4 @@
-﻿/*
+/*
  Copyright (c) 2013, Ford Motor Company
  All rights reserved.
 
@@ -59,7 +59,7 @@ class PolicyManagerImpl : public PolicyManager {
     virtual bool LoadPT(const std::string& file, const BinaryMessage& pt_content);
     virtual bool ResetPT(const std::string& file_name);
     virtual std::string GetUpdateUrl(int service_type);
-    virtual EndpointUrls GetUpdateUrls(int service_type);
+    virtual void GetUpdateUrls(int service_type, EndpointUrls& end_points);
     virtual void RequestPTUpdate();
     virtual void CheckPermissions(const PTString& app_id,
         const PTString& hmi_level,

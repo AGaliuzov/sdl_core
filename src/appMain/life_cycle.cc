@@ -43,6 +43,10 @@
 #include "security_manager/crypto_manager_impl.h"
 #endif  // ENABLE_SECURITY
 
+#ifdef ENABLE_LOG
+#include "utils/log_message_loop_thread.h"
+#endif
+
 using threads::Thread;
 
 namespace main_namespace {
@@ -376,14 +380,30 @@ bool LifeCycle::InitMessageSystem() {
 #endif  // CUSTOMER_PASA
 
 namespace {
+
   void sig_handler(int sig) {
     // Do nothing
   }
-}
+
+  void agony(int sig) {
+// these actions are not signal safe
+// (in case logger is on)
+// but they cannot be moved to a separate thread
+// because the application most probably will crash as soon as this handler returns
+//
+// the application is anyway about to crash
+    LOG4CXX_FATAL(logger_, "Stopping application due to segmentation fault");
+#ifdef ENABLE_LOG
+    logger::LogMessageLoopThread::destroy();
+#endif
+  }
+
+}  //  namespace
 
 void LifeCycle::Run() {
-  // First, register signal handler
+  // First, register signal handlers
   ::utils::SubscribeToTerminateSignal(&sig_handler);
+  ::utils::SubscribeToFaultSignal(&agony);
   // Now wait for any signal
   pause();
 }

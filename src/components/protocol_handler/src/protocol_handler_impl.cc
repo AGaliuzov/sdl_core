@@ -426,6 +426,7 @@ void ProtocolHandlerImpl::OnTMMessageReceiveFailed(
 }
 
 void ProtocolHandlerImpl::NotifySubscribers(const RawMessagePtr message) {
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(protocol_observers_lock_);
   for (ProtocolObservers::iterator it = protocol_observers_.begin();
       protocol_observers_.end() != it; ++it) {

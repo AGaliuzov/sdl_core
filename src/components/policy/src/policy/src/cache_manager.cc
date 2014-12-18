@@ -362,6 +362,7 @@ bool CacheManager::ApplyUpdate(const policy_table::Table& update_pt) {
     pt_->policy_table.consumer_friendly_messages =
         update_pt.policy_table.consumer_friendly_messages;
   }
+  ResetCalculatedPermissions();
   Backup();
   return true;
 }
@@ -812,11 +813,11 @@ std::vector<UserFriendlyMessage> CacheManager::GetUserFriendlyMsg(
   return result;
 }
 
-EndpointUrls CacheManager::GetUpdateUrls(int service_type) {
+void CacheManager::GetUpdateUrls(int service_type,
+                                 EndpointUrls& end_points) {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  EndpointUrls result;
-  CACHE_MANAGER_CHECK(result);
+  CACHE_MANAGER_CHECK_VOID();
   char buff[32];
   sprintf(buff, "%x", service_type);
 
@@ -840,10 +841,9 @@ EndpointUrls CacheManager::GetUpdateUrls(int service_type) {
       std::copy((*url_list_iter).second.begin(), (*url_list_iter).second.end(),
               std::back_inserter(data.url));
 
-      result.push_back(data);
+      end_points.push_back(data);
     }
   }
-  return result;
 }
 
 int CacheManager::GetNotificationsNumber(const std::string &priority) {
@@ -1040,8 +1040,10 @@ void CacheManager::PersistData() {
         policy_table::DeviceData::const_iterator it_end_device =
             copy_pt.policy_table.device_data->end();
 
-//        policy_table::DeviceData& device_data = *copy_pt.policy_table.device_data;
+#ifdef ENABLE_LOG
+        policy_table::DeviceData& device_data = *copy_pt.policy_table.device_data;
         LOG4CXX_DEBUG(logger_, "Device_data size is: " << device_data.size());
+#endif //ENABLE_LOG
         for (;it_device != it_end_device; ++it_device) {
           if (is_unpaired_.end() != is_unpaired_.find(it_device->first)) {
             ex_backup_->SetUnpairedDevice(it_device->first, true);

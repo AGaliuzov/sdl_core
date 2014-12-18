@@ -84,12 +84,20 @@ PopUp {
         anchors.bottom: parent.bottom
         anchors.left: parent.left
 
-        model: dataContainer.vrCommands
+        model: if (interactionPopup.grammarID) {
+                   dataContainer.choicesVrCommands
+               }
+               else {
+                   dataContainer.vrCommands
+               }
 
         delegate: OvalButton {
             width: parent.width
             text: command
+            visible: visibleButtons(grammarID,type)
             onClicked: {
+                if (interactionPopup.performInteractionIsActiveNow && type === Common.VRCommandType.Choice)
+                    interactionPopup.complete(Common.Result.SUCCESS, {"choiceID": cmdID})
                 sdlVR.onCommand(cmdID, appID === 0 ? undefined : appID);
                 if (dataContainer.activeVR) {
                     vrPopUp.complete();
@@ -110,4 +118,41 @@ PopUp {
         sdlVR.stopped();
         hide();
     }
+
+    function sortModelforPerformInteraction() {
+        var n,
+            i,
+            j;
+        for (n = 0; n < dataContainer.choicesVrCommands.count; n++) {
+            for (i = n + 1; i < dataContainer.choicesVrCommands.count; i++) {
+                if (dataContainer.choicesVrCommands.get(n).type === Common.VRCommandType.Command &&
+                        dataContainer.choicesVrCommands.get(i).type === Common.VRCommandType.Choice) {
+                    dataContainer.choicesVrCommands.move(i, n, 1);
+                    n = 0;
+                }
+            }
+        }
+        for (j = interactionPopup.grammarID.length; j > 0; j--) {
+            for (n = 0; n < dataContainer.choicesVrCommands.count &&
+                 dataContainer.choicesVrCommands.get(n).type === Common.VRCommandType.Choice; n++) {
+                for (i = n + 1; i < dataContainer.choicesVrCommands.count &&
+                     dataContainer.choicesVrCommands.get(i).type === Common.VRCommandType.Choice; i++) {
+                    if (dataContainer.choicesVrCommands.get(n).grammarID !== interactionPopup.grammarID[j-1]
+                            && dataContainer.choicesVrCommands.get(i).grammarID === interactionPopup.grammarID[j-1]) {
+                        dataContainer.choicesVrCommands.move(i, n, 1);
+                        n = 0;
+                    }
+                }
+            }
+        }
+    }
+
+    function visibleButtons(grammarID, type) {
+        if (interactionPopup.grammarID) {
+            return interactionPopup.grammarID.indexOf(grammarID) !== -1
+            }
+        else {
+           return type === Common.VRCommandType.Command
+            }
+        }
 }

@@ -51,7 +51,7 @@ TEST(StatisticsManagerIncrementMethod1Arg, GlobalCounterOverloadedIncrement_Call
   GlobalCounter reboots_counter(msm, SYNC_REBOOTS);
 
   //Assert
-  EXPECT_CALL(*msm, Increment(SYNC_REBOOTS)).Times(1);
+  EXPECT_CALL(*msm, Increment(SYNC_REBOOTS));
 
   //Act
   ++reboots_counter;
@@ -76,7 +76,7 @@ TEST(StatisticsManagerIncrementMethod2Args, AppCounterOverloadedIncrement_CallON
   AppCounter user_selections_counter(msm, "HelloApp", USER_SELECTIONS);
 
   //Assert
-  EXPECT_CALL(*msm, Increment("HelloApp", USER_SELECTIONS)).Times(1);
+  EXPECT_CALL(*msm, Increment("HelloApp", USER_SELECTIONS));
 
   //Act
   ++user_selections_counter;
@@ -101,7 +101,7 @@ TEST(StatisticsManagerSetMethod, AppInfoUpdateMethod_CallONCE_StatisticsManagerS
   AppInfo gui_language_info(msm, "HelloApp", LANGUAGE_GUI);
 
   //Assert
-  EXPECT_CALL(*msm, Set("HelloApp", LANGUAGE_GUI, "Klingon")).Times(1);
+  EXPECT_CALL(*msm, Set("HelloApp", LANGUAGE_GUI, "Klingon"));
 
   //Act
   gui_language_info.Update("Klingon");
@@ -113,8 +113,8 @@ TEST(StatisticsManagerSetMethod, AppInfoUpdateMethod_CallTWICE_StatisticsManager
   AppInfo gui_language_info(msm, "HelloApp", LANGUAGE_GUI);
 
   //Assert
-  EXPECT_CALL(*msm, Set("HelloApp", LANGUAGE_GUI, "Klingon")).Times(1);
-  EXPECT_CALL(*msm, Set("HelloApp", LANGUAGE_GUI, "UA")).Times(1);
+  EXPECT_CALL(*msm, Set("HelloApp", LANGUAGE_GUI, "Klingon"));
+  EXPECT_CALL(*msm, Set("HelloApp", LANGUAGE_GUI, "UA"));
 
   //Act
   gui_language_info.Update("Klingon");
@@ -129,7 +129,7 @@ TEST(StatisticsManagerAddMethod, DISABLED_AppStopwatchStartMethod_CallONCE_Stati
   AppStopwatch hmi_full_stopwatch(msm, "HelloApp", time_out);
 
   //Assert
-  EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_FULL, 0)).Times(1);
+  EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_FULL, 0));
 
   //Act
   hmi_full_stopwatch.Start(SECONDS_HMI_FULL);
@@ -143,7 +143,7 @@ TEST(StatisticsManagerAddMethod, DISABLED_AppStopwatchStartMethod_Call_Statistic
   AppStopwatch hmi_full_stopwatch(msm, "HelloApp", time_out);
 
   //Assert
-  EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_FULL, 0)).Times(1);
+  EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_FULL, 0));
 
   //Act
   hmi_full_stopwatch.Start(SECONDS_HMI_FULL);
@@ -169,7 +169,7 @@ TEST(StatisticsManagerAddMethod, DISABLED_AppStopwatchStartMethod_CallAnd1SecSle
   AppStopwatch hmi_full_stopwatch(msm, "HelloApp");
 
   //Assert
-  EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_FULL, 1)).Times(1);
+  EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_FULL, 1));
 
   //Act
   hmi_full_stopwatch.Start(SECONDS_HMI_FULL);
@@ -184,8 +184,8 @@ TEST(StatisticsManagerAddMethod, DISABLED_AppStopwatchSwitchMethod_CallAnd1SecSl
   AppStopwatch hmi_full_stopwatch(msm, "HelloApp", time_out);
 
   //Assert
-  EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_NONE, 0)).Times(1);
-  EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_BACKGROUND, 1)).Times(1);
+  EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_NONE, 0));
+  EXPECT_CALL(*msm, Add("HelloApp", SECONDS_HMI_BACKGROUND, 1));
 
   //Act
   hmi_full_stopwatch.Start(SECONDS_HMI_NONE);

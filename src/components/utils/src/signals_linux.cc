@@ -33,22 +33,31 @@
 #include <cstdlib>
 #include <stdint.h>
 
+#include "utils/signals.h"
+
 namespace utils {
 
-bool SubscribeToTerminateSignal(void (*func)(int32_t p)) {
+bool SubscribeToTerminateSignal(sighandler_t func) {
   struct sigaction act;
   act.sa_handler = func;
   sigemptyset(&act.sa_mask);
   act.sa_flags = 0;
 
-  return (sigaction(SIGINT, &act, NULL) == 0)
-      && (sigaction(SIGTERM, &act, NULL) == 0);
+  bool sigint_subscribed = (sigaction(SIGINT, &act, NULL) == 0);
+  bool sigterm_subscribed = (sigaction(SIGTERM, &act, NULL) == 0);
+
+  return sigint_subscribed && sigterm_subscribed;
 }
 
-bool ResetSubscribeToTerminateSignal() {
-  void (*prev_func)(int32_t p);
-  prev_func = signal(SIGINT, SIG_DFL);
-  return (SIG_ERR != prev_func);
+bool SubscribeToFaultSignal(sighandler_t func) {
+  struct sigaction act;
+  act.sa_handler = func;
+  sigemptyset(&act.sa_mask);
+  act.sa_flags = SA_RESETHAND; // we only want to catch SIGSEGV once to flush logger queue
+
+  bool sigsegv_subscribed = (sigaction(SIGSEGV, &act, NULL) == 0);
+
+  return sigsegv_subscribed;
 }
 
 }  //  namespace utils

@@ -32,7 +32,6 @@
 #include <vector>
 
 #include "gtest/gtest.h"
-
 #include "mock_policy_listener.h"
 #include "mock_pt_ext_representation.h"
 #include "mock_cache_manager.h"
@@ -120,29 +119,15 @@ TEST_F(PolicyManagerImplTest, RefreshRetrySequence_SetSecondsBetweenRetries_Expe
   EXPECT_EQ(0, manager->NextRetryTimeout());
 }
 
-TEST_F(PolicyManagerImplTest, GetUpdateUrl_SetUrlData_GetUrls) {
+TEST_F(PolicyManagerImplTest, DISABLED_GetUpdateUrl) {
 
-  //arrange
-  EndpointUrls urls_1234, urls_4321;
-  urls_1234.push_back(::policy::EndpointData("http://ford.com/cloud/1"));
-  urls_1234.push_back(::policy::EndpointData("http://ford.com/cloud/2"));
-  urls_1234.push_back(::policy::EndpointData("http://ford.com/cloud/3"));
-  urls_4321.push_back(::policy::EndpointData("http://panasonic.com/cloud/1"));
-  urls_4321.push_back(::policy::EndpointData("http://panasonic.com/cloud/2"));
-  urls_4321.push_back(::policy::EndpointData("http://panasonic.com/cloud/3"));
+  EXPECT_CALL(*cache_manager, GetUpdateUrls(7,_)).Times(1);
+  EXPECT_CALL(*cache_manager, GetUpdateUrls(4,_)).Times(1);
 
-  //assert
-  EXPECT_CALL(*cache_manager, GetUpdateUrls(7)).Times(4).WillRepeatedly(
-      Return(urls_1234));
-  EXPECT_CALL(*cache_manager, GetUpdateUrls(4)).Times(2).WillRepeatedly(
-      Return(urls_4321));
+  EXPECT_EQ("http://policies.telematics.ford.com/api/policies",
+            manager->GetUpdateUrl(7));
+  EXPECT_EQ("http://policies.ford.com/api/policies", manager->GetUpdateUrl(4));
 
-  EXPECT_EQ("http://ford.com/cloud/1", manager->GetUpdateUrl(7));
-  EXPECT_EQ("http://ford.com/cloud/2", manager->GetUpdateUrl(7));
-  EXPECT_EQ("http://ford.com/cloud/3", manager->GetUpdateUrl(7));
-  EXPECT_EQ("http://panasonic.com/cloud/1", manager->GetUpdateUrl(4));
-  EXPECT_EQ("http://ford.com/cloud/2", manager->GetUpdateUrl(7));
-  EXPECT_EQ("http://panasonic.com/cloud/3", manager->GetUpdateUrl(4));
 }
 
 #ifdef EXTENDED_POLICY
@@ -403,13 +388,13 @@ TEST_F(PolicyManagerImplTest, ResetUserConsent_ResetOnlyOnce) {
 }
 #endif  // EXTENDED_POLICY
 
-TEST_F(PolicyManagerImplTest, AddApplication) {
+TEST_F(PolicyManagerImplTest, DISABLED_AddApplication) {
   // TODO(AOleynik): Implementation of method should be changed to avoid
   // using of snapshot
   //manager->AddApplication("12345678");
 }
 
-TEST_F(PolicyManagerImplTest, GetPolicyTableStatus) {
+TEST_F(PolicyManagerImplTest, DISABLED_GetPolicyTableStatus) {
   // TODO(AOleynik): Test is not finished, to be continued
   //manager->GetPolicyTableStatus();
 }

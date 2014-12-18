@@ -68,11 +68,16 @@ void IAPDevice::Stop() {
 IAPDevice::~IAPDevice() {
   Stop();
 
-  LOG4CXX_TRACE(logger_, "iAP: disconnecting from " << mount_point());
-  if (ipod_disconnect(ipod_hdl_) != -1) {
-    LOG4CXX_DEBUG(logger_, "iAP: disconnected from " << mount_point());
-  } else {
-    LOG4CXX_WARN(logger_, "iAP: could not disconnect from " << mount_point() << ", errno = " << errno);
+  if (ipod_hdl_ != 0) {
+    LOG4CXX_TRACE(logger_, "iAP: disconnecting from " << mount_point());
+    if (ipod_disconnect(ipod_hdl_) != -1) {
+      LOG4CXX_DEBUG(logger_, "iAP: disconnected from " << mount_point());
+    } else {
+      LOG4CXX_WARN(logger_, "iAP: could not disconnect from " << mount_point() << ", errno = " << errno);
+    }
+  }
+  else {
+    LOG4CXX_DEBUG(logger_, "iAP: " << mount_point() << " not connected");
   }
 }
 
