@@ -124,6 +124,7 @@ TEST(CryptoManagerTest, WrongInit) {
   //We have to cast (-1) to security_manager::Protocol Enum to be accepted by crypto_manager->Init(...)
   security_manager::Protocol UNKNOWN = static_cast<security_manager::Protocol>(-1);
 
+  // Unknown protocol version
   EXPECT_FALSE(crypto_manager->Init(security_manager::SERVER, UNKNOWN,
           "mycert.pem", "mykey.pem", FORD_CIPHER, false));
 
