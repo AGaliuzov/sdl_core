@@ -34,8 +34,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-
 #include <unistd.h>
+#include <iostream>
 
 #include "security_manager/crypto_manager.h"
 #include "security_manager/crypto_manager_impl.h"
@@ -120,9 +120,13 @@ TEST(CryptoManagerTest, UsingBeforeInit) {
 
 TEST(CryptoManagerTest, WrongInit) {
   security_manager::CryptoManager *crypto_manager = new security_manager::CryptoManagerImpl();
-  // TODO(EZamakhov): Unknown protocol version
-  EXPECT_FALSE(crypto_manager->Init(security_manager::SERVER, security_manager::UNKNOWN,
+
+  //We have to cast (-1) to security_manager::Protocol Enum to be accepted by crypto_manager->Init(...)
+  security_manager::Protocol UNKNOWN = static_cast<security_manager::Protocol>(-1);
+
+  EXPECT_FALSE(crypto_manager->Init(security_manager::SERVER, UNKNOWN,
           "mycert.pem", "mykey.pem", FORD_CIPHER, false));
+
   EXPECT_FALSE(crypto_manager->LastError().empty());
   // Unexistent cert file
   EXPECT_FALSE(crypto_manager->Init(security_manager::SERVER, security_manager::TLSv1_2,
@@ -136,7 +140,8 @@ TEST(CryptoManagerTest, WrongInit) {
   EXPECT_FALSE(crypto_manager->Init(security_manager::SERVER, security_manager::TLSv1_2,
           "mycert.pem", "mykey.pem", "INVALID_UNKNOWN_CIPHER", false));
   EXPECT_FALSE(crypto_manager->LastError().empty());
-  delete crypto_manager;
+
+   delete crypto_manager;
 }
 
 TEST(CryptoManagerTest, CorrectInit) {
