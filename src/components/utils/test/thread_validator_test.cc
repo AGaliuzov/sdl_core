@@ -43,10 +43,9 @@ namespace utils {
 using namespace ::threads;
 
 TEST(ThreadValidatorTest, SingleThreadSimpleValidatorCtorTest_CreatedInCurrentThread) {
-  SingleThreadSimpleValidator *object = new SingleThreadSimpleValidator();
-  ASSERT_EQ(object->GetThreadId(), pthread_self());
+  SingleThreadSimpleValidator object;
+  ASSERT_EQ(object.creation_thread_id(), pthread_self());
 
-  delete object;
 }
 
 } // namespace utils

@@ -67,9 +67,7 @@ class SingleThreadSimpleValidator {
   // This method should be called in every public method
   // of classes being checked for absence of concurrent access
   void AssertRunningOnCreationThread() const;
-#ifdef BUILD_TESTS
-  PlatformThreadHandle GetThreadId() const;
-#endif
+  PlatformThreadHandle creation_thread_id() const;
  private:
   const PlatformThreadHandle creation_thread_id_;
 };
