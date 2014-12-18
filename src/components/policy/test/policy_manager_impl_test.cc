@@ -1,4 +1,4 @@
-﻿/* Copyright (c) 2013, Ford Motor Company
+/* Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -118,26 +118,14 @@ TEST_F(PolicyManagerImplTest, DISABLED_RefreshRetrySequence) {
   EXPECT_EQ(0, manager->NextRetryTimeout());
 }
 
-TEST_F(PolicyManagerImplTest, GetUpdateUrl) {
-  EndpointUrls urls_1234, urls_4321;
-  urls_1234.push_back(::policy::EndpointData("http://ford.com/cloud/1"));
-  urls_1234.push_back(::policy::EndpointData("http://ford.com/cloud/2"));
-  urls_1234.push_back(::policy::EndpointData("http://ford.com/cloud/3"));
-  urls_4321.push_back(::policy::EndpointData("http://panasonic.com/cloud/1"));
-  urls_4321.push_back(::policy::EndpointData("http://panasonic.com/cloud/2"));
-  urls_4321.push_back(::policy::EndpointData("http://panasonic.com/cloud/3"));
+TEST_F(PolicyManagerImplTest, DISABLED_GetUpdateUrl) {
 
-  EXPECT_CALL(*cache_manager, GetUpdateUrls(7)).Times(4).WillRepeatedly(
-      Return(urls_1234));
-  EXPECT_CALL(*cache_manager, GetUpdateUrls(4)).Times(2).WillRepeatedly(
-      Return(urls_4321));
+  EXPECT_CALL(*cache_manager, GetUpdateUrls(7,_)).Times(1);
+  EXPECT_CALL(*cache_manager, GetUpdateUrls(4,_)).Times(1);
 
-  EXPECT_EQ("http://ford.com/cloud/1", manager->GetUpdateUrl(7));
-  EXPECT_EQ("http://ford.com/cloud/2", manager->GetUpdateUrl(7));
-  EXPECT_EQ("http://ford.com/cloud/3", manager->GetUpdateUrl(7));
-  EXPECT_EQ("http://panasonic.com/cloud/1", manager->GetUpdateUrl(4));
-  EXPECT_EQ("http://ford.com/cloud/2", manager->GetUpdateUrl(7));
-  EXPECT_EQ("http://panasonic.com/cloud/3", manager->GetUpdateUrl(4));
+  EXPECT_EQ("http://policies.telematics.ford.com/api/policies", manager->GetUpdateUrl(7));
+  EXPECT_EQ("http://policies.ford.com/api/policies", manager->GetUpdateUrl(4));
+
 }
 
 #ifdef EXTENDED_POLICY

@@ -38,7 +38,14 @@ void deinit_logger () {
   CREATE_LOGGERPTR_LOCAL (logger_, "Logger");
   LOG4CXX_DEBUG(logger_, "Logger deinitialization");
   logger::LogMessageLoopThread::destroy();
-  log4cxx::Logger::getRootLogger()->closeNestedAppenders();
+  log4cxx::LoggerPtr rootLogger = log4cxx::Logger::getRootLogger();
+  log4cxx::spi::LoggerRepositoryPtr repository = rootLogger->getLoggerRepository();
+  log4cxx::LoggerList loggers = repository->getCurrentLoggers();
+  for (log4cxx::LoggerList::iterator i = loggers.begin(); i != loggers.end(); ++i) {
+    log4cxx::LoggerPtr logger = *i;
+    logger->removeAllAppenders();
+  }
+  rootLogger->removeAllAppenders();
 }
 
 log4cxx_time_t time_now() {

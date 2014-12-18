@@ -73,9 +73,12 @@ class PolicyHandler :
   bool ReceiveMessageFromSDK(const std::string& file,
                              const BinaryMessage& pt_string);
   bool UnloadPolicyLibrary();
-  void OnPermissionsUpdated(const std::string& policy_app_id,
-                            const Permissions& permissions,
-                            const HMILevel& default_hmi);
+  virtual void OnPermissionsUpdated(const std::string& policy_app_id,
+                                    const Permissions& permissions,
+                                    const HMILevel& default_hmi);
+
+  virtual void OnPermissionsUpdated(const std::string& policy_app_id,
+                                    const Permissions& permissions);
 
   virtual void OnSnapshotCreated(const BinaryMessage& pt_string,
                                  const std::vector<int>& retry_delay_seconds,
@@ -95,7 +98,7 @@ class PolicyHandler :
   bool GetInitialAppData(const std::string& application_id,
                                  StringArray* nicknames = NULL,
                                  StringArray* app_hmi_types = NULL);
-  EndpointUrls GetUpdateUrls(int service_type);
+  void GetUpdateUrls(int service_type, EndpointUrls& end_points);
   void ResetRetrySequence();
   int NextRetryTimeout();
   int TimeoutExchange();

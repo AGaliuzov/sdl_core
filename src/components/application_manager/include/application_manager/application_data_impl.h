@@ -90,6 +90,7 @@ class DynamicApplicationDataImpl : public virtual Application {
     const smart_objects::SmartObject* menu_title() const;
     const smart_objects::SmartObject* menu_icon() const;
 
+    void load_global_properties(const smart_objects::SmartObject& properties_so);
     void set_help_prompt(const smart_objects::SmartObject& help_prompt);
     void set_timeout_prompt(const smart_objects::SmartObject& timeout_prompt);
     void set_vr_help_title(const smart_objects::SmartObject& vr_help_title);
@@ -292,6 +293,9 @@ class DynamicApplicationDataImpl : public virtual Application {
     bool is_reset_global_properties_active_;
     int32_t perform_interaction_mode_;
   private:
+    void SetGlobalProperties(const smart_objects::SmartObject& param,
+                             void (DynamicApplicationData::*callback)(
+                               const NsSmartDeviceLink::NsSmartObjects::SmartObject&));
     DISALLOW_COPY_AND_ASSIGN(DynamicApplicationDataImpl);
 };
 

@@ -1592,7 +1592,20 @@ bool ApplicationManagerImpl::ConvertMessageToSO(
         return false;
       }
       if (output.validate() != smart_objects::Errors::OK) {
-        LOG4CXX_WARN(logger_, "Incorrect parameter from HMI");
+        LOG4CXX_ERROR(logger_, "Incorrect parameter from HMI");
+
+        if (application_manager::MessageType::kNotification ==
+            output[strings::params][strings::message_type].asInt()) {
+          LOG4CXX_ERROR(logger_, "Ignore wrong HMI notification");
+          return false;
+        }
+
+        if (application_manager::MessageType::kRequest ==
+            output[strings::params][strings::message_type].asInt()) {
+          LOG4CXX_ERROR(logger_, "Ignore wrong HMI request");
+          return false;
+        }
+
         output.erase(strings::msg_params);
         output[strings::params][hmi_response::code] =
           hmi_apis::Common_Result::INVALID_DATA;
@@ -2521,11 +2534,11 @@ void ApplicationManagerImpl::RemoveAppFromTTSGlobalPropertiesList(
       tts_global_properties_app_list_.find(app_id);
   if (tts_global_properties_app_list_.end() != it) {
     tts_global_properties_app_list_.erase(it);
-    if (!(tts_global_properties_app_list_.size())) {
+    if (tts_global_properties_app_list_.empty()) {
       LOG4CXX_INFO(logger_, "Stop tts_global_properties_timer_");
       // if container is empty need to stop timer
       tts_global_properties_app_list_lock_.Release();
-      tts_global_properties_timer_.stop();
+      tts_global_properties_timer_.pause();
       return;
     }
   }

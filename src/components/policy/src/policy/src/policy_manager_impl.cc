@@ -231,23 +231,28 @@ void PolicyManagerImpl::PrepareNotificationData(
 
 std::string PolicyManagerImpl::GetUpdateUrl(int service_type) {
   LOG4CXX_AUTO_TRACE(logger_);
-  EndpointUrls urls = cache_->GetUpdateUrls(service_type);
+  EndpointUrls urls;
+  cache_->GetUpdateUrls(service_type, urls);
 
-  static uint32_t index = 0;
   std::string url;
+  if (!urls.empty()) {
+    static uint32_t index = 0;
 
-  if (!urls.empty() && index >= urls.size()) {
-    index = 0;
+    if (!urls.empty() && index >= urls.size()) {
+      index = 0;
+    }
+    url = urls[index].url.empty() ? "" :urls[index].url[0];
+
+    ++index;
+  } else {
+    LOG4CXX_ERROR(logger_, "The endpoint entry is empty");
   }
-  url = urls[index].url.empty() ? "" :urls[index].url[0];
-
-  ++index;
   return url;
 }
 
-EndpointUrls PolicyManagerImpl::GetUpdateUrls(int service_type) {
+void PolicyManagerImpl::GetUpdateUrls(int service_type, EndpointUrls& end_points) {
   LOG4CXX_AUTO_TRACE(logger_);
-  return cache_->GetUpdateUrls(service_type);
+  cache_->GetUpdateUrls(service_type, end_points);
 }
 
 void PolicyManagerImpl::RequestPTUpdate() {
@@ -385,6 +390,7 @@ void PolicyManagerImpl::CheckPermissions(const PTString& app_id,
   if (!known_rpc) {
     // RPC not found in list == disallowed by backend
     result.hmi_level_permitted = kRpcDisallowed;
+    return;
   }
 
   // Check HMI level
@@ -401,6 +407,10 @@ void PolicyManagerImpl::CheckPermissions(const PTString& app_id,
       rpc_permissions[rpc].hmi_permissions[kUserDisallowedKey].find(hmi_level)) {
     // RPC found in allowed == allowed by backend, but disallowed by user
     result.hmi_level_permitted = kRpcUserDisallowed;
+  } else {
+    LOG4CXX_DEBUG(logger_, "HMI level " << hmi_level << " wasn't found "
+                  << " for rpc " << rpc << " and appID " << app_id);
+    return;
   }
 
   // Add parameters of RPC, if any
@@ -416,6 +426,11 @@ void PolicyManagerImpl::CheckPermissions(const PTString& app_id,
   std::copy(rpc_permissions[rpc].parameter_permissions[kUndefinedKey].begin(),
             rpc_permissions[rpc].parameter_permissions[kUndefinedKey].end(),
             std::back_inserter(result.list_of_undefined_params));
+
+  if (cache_->IsApplicationRevoked(app_id)) {
+    result.hmi_level_permitted = kRpcDisallowed;
+    return;
+  }
 
   // In case when RPCParams is not empty we have to check
   // If all rpc parameters are in the allowed list,
@@ -454,6 +469,7 @@ bool PolicyManagerImpl::ResetUserConsent() {
 
 void PolicyManagerImpl::SendNotificationOnPermissionsUpdated(
   const std::string& application_id) {
+  LOG4CXX_AUTO_TRACE(logger_);
   const std::string device_id = GetCurrentDeviceId(application_id);
   if (device_id.empty()) {
     LOG4CXX_WARN(logger_, "Couldn't find device info for application id "
@@ -772,12 +788,8 @@ void PolicyManagerImpl::SetUserConsentForApp(
   PrepareNotificationData(functional_groups, app_groups,
                           app_group_permissons, notification_data);
 
-  std::string default_hmi;
-  GetDefaultHmi(verified_permissions.policy_app_id, &default_hmi);
-
   listener()->OnPermissionsUpdated(verified_permissions.policy_app_id,
-                                   notification_data,
-                                   default_hmi);
+                                   notification_data);
 #endif
 }
 

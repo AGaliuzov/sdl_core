@@ -1642,27 +1642,25 @@ FFW.UI = FFW.RPCObserver.create({
 
         if (this.errorResponsePull[requestID]) {
 
-            if (resultCode === SDL.SDLModel.resultCode["SUCCESS"]) {
-                // send repsonse
-                var JSONMessage = {
-                    "jsonrpc": "2.0",
-                    "id": requestID,
-                    "error": {
-                        "code": this.errorResponsePull[requestID].code,
-                        "message": "Unsupported " + this.errorResponsePull[requestID].type + " type. Available data in request was processed.",
-                        "data": {
-                            "method": "UI.PerformInteraction"
-                        }
+            // send repsonse
+            var JSONMessage = {
+                "jsonrpc": "2.0",
+                "id": requestID,
+                "error": {
+                    "code": this.errorResponsePull[requestID].code,
+                    "message": "Unsupported " + this.errorResponsePull[requestID].type + " type. Available data in request was processed.",
+                    "data": {
+                        "method": "UI.PerformInteraction"
                     }
-                };
-
-                if (commandID) {
-                    JSONMessage.error.data.choiceID = commandID;
                 }
+            };
 
-                if (manualTextEntry != null) {
-                    JSONMessage.error.data.manualTextEntry = manualTextEntry;
-                }
+            if (commandID) {
+                JSONMessage.error.data.choiceID = commandID;
+            }
+
+            if (manualTextEntry != null) {
+                JSONMessage.error.data.manualTextEntry = manualTextEntry;
             }
 
             this.client.send(JSONMessage);
