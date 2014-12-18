@@ -42,13 +42,13 @@ namespace utils {
 
 using namespace ::threads;
 
-TEST(ThreadValidatorTest, SingleThreadSimpleValidatorCtorTest_InputData_object_Expect_creation_in_CurrentThread) {
+TEST(ThreadValidatorTest, SingleThreadSimpleValidatorCtorTest_CreatedInCurrentThread) {
   SingleThreadSimpleValidator *object = new SingleThreadSimpleValidator();
   ASSERT_EQ(object->GetThreadId(), pthread_self());
+
   delete object;
 }
 
-}
-  // namespace utils
+} // namespace utils
 } // namespace components
 } // namespace test
