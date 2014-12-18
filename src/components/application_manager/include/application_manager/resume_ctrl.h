@@ -410,6 +410,7 @@ class ResumeCtrl: public event_engine::EventObserver {
     */
     std::multiset<application_timestamp, TimeStampComparator> waiting_for_timer_;
     mutable sync_primitives::Lock   queue_lock_;
+    sync_primitives::Lock resumtion_lock_;
     ApplicationManagerImpl*         app_mngr_;
     timer::TimerThread<ResumeCtrl>  restore_hmi_level_timer_;
     timer::TimerThread<ResumeCtrl>  save_persistent_data_timer_;
