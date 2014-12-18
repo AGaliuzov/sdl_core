@@ -39,65 +39,70 @@ namespace utils {
 
 using namespace ::utils;
 
-TEST(SystemTest, CreateCommand_without_arguments) {
+TEST(SystemTest, CommandCreated_WithoutArguments) {
   // Command creation without any arguments
   std::string test_command("ls");
   System *object = new System(test_command);
 
-  ASSERT_TRUE(object->GetCommand() == test_command);
-  ASSERT_TRUE(object->GetArgumentsList().size() == 1);
-  ASSERT_FALSE(object->GetArgumentsList().empty());
+  // Check if the object was created with correct command
+  ASSERT_EQ(object->GetCommand(), test_command);
+  ASSERT_EQ(object->GetArgumentsList().size(), 1);
 
   delete object;
 }
 
-TEST(SystemTest, CreateCommand_with_arguments) {
+TEST(SystemTest, CommandCreated_WithArguments_Positive) {
   // Command creation with 1 argument
   std::string test_command("ls");
   std::string test_list_args("-la");
   System *object = new System(test_command, test_list_args);
 
   // Check if the object was created with correct command
-  ASSERT_TRUE(object->GetCommand() == test_command);
+  ASSERT_EQ(object->GetCommand(), test_command);
 
   // Check if actual number of arguments arec correct
-  ASSERT_TRUE(object->GetArgumentsList().size() == 1);// Correct number of arguments is 1
-  ASSERT_FALSE(object->GetArgumentsList().size() == 3);
+  ASSERT_EQ(object->GetArgumentsList().size(), 1);// Correct number of arguments is 1
+
   delete object;
 }
 
-TEST(SystemTest, AddArgumentToExistingCommand) {
-  // Command creation with 1 argument
+TEST(SystemTest, AddedArgumentsToExistingCommand_Positive) {
+  // Command creation without arguments
   std::string test_command("ls");
-  std::string test_list_args("-la");
+  const char* args[] = {"-la", "cp", "rm", "mv"};
   System *object = new System(test_command);
 
-  object->Add(test_list_args);
+  // Adding arguments
+  object->Add(args[0]);
+  object->Add(args[1]);
+  object->Add(args[2]);
+  object->Add(args[3]);
 
   // Check if the object was created with correct command
-  ASSERT_TRUE(object->GetCommand() == test_command);
+  ASSERT_EQ(object->GetCommand(), test_command);
 
   // Check if the object was appended by correct argument
-  ASSERT_TRUE(object->GetArgumentsList().back() == test_list_args);
+  ASSERT_STREQ(object->GetArgumentsList().back().c_str(), args[3]);
 
-  // Check if actual number of arguments are correct
-  ASSERT_TRUE(object->GetArgumentsList().size() == 2);// Correct number of arguments is 2
+  // Check if actual number of arguments equal args stored in object
+  ASSERT_EQ(object->GetArgumentsList().size(), 5);// Correct number of arguments is 5
+
   delete object;
 }
 
-TEST(SystemTest, ExecuteExistingCommandWithArgs) {
+TEST(SystemTest, ExecutedExistingCommandWithArgs_Positive) {
   // Command creation with 1 argument
   std::string test_command("ls");
   std::string test_list_args("-la");
   System *object = new System(test_command, test_list_args);
 
+  // Check if Execute() method is working properly
   ASSERT_TRUE(object->Execute());
   ASSERT_TRUE(object->Execute(true));
 
   delete object;
 }
 
-
-}  // namespace utils
-}  // namespace components
+} // namespace utils
+} // namespace components
 }  // namespace test
