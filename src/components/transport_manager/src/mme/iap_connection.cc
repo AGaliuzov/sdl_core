@@ -50,6 +50,16 @@ IAPConnection::IAPConnection(const DeviceUID& device_uid,
       controller_(controller),
       parent_(parent),
       ipod_hdl_(0) {
+  LOG4CXX_DEBUG(
+      logger_,
+      "iAP: connection device " << device_uid_ << ", app " << app_handle_);
+}
+
+IAPConnection::~IAPConnection() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(
+      logger_,
+      "iAP: connection device " << device_uid_ << ", app " << app_handle_);
 }
 
 void IAPConnection::Init() {

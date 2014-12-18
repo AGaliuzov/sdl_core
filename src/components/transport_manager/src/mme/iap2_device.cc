@@ -53,6 +53,7 @@ IAP2Device::IAP2Device(const std::string& mount_point, const std::string& name,
 }
 
 IAP2Device::~IAP2Device() {
+  LOG4CXX_AUTO_TRACE(logger_);
   Stop();
 }
 

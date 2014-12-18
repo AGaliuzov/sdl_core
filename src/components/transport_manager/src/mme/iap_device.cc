@@ -66,6 +66,7 @@ void IAPDevice::Stop() {
 }
 
 IAPDevice::~IAPDevice() {
+  LOG4CXX_AUTO_TRACE(logger_);
   Stop();
 
   LOG4CXX_TRACE(logger_, "iAP: disconnecting from " << mount_point());

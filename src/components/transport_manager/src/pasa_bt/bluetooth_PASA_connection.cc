@@ -157,6 +157,10 @@ void BluetoothPASAConnection::BluetoothPASAConnectionDelegate::threadMain() {
   connection_->Thread();
 }
 
+void BluetoothPASAConnection::BluetoothPASAConnectionDelegate::exitThreadMain() {
+  LOG4CXX_AUTO_TRACE(logger_);
+}
+
 void BluetoothPASAConnection::Thread() {
   LOG4CXX_AUTO_TRACE(logger_);
   ConnectError* connect_error = NULL;

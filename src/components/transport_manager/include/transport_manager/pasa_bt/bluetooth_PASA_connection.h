@@ -126,6 +126,7 @@ class BluetoothPASAConnection : public Connection {
     explicit BluetoothPASAConnectionDelegate(
         BluetoothPASAConnection* connection);
     void threadMain() OVERRIDE;
+    void exitThreadMain() OVERRIDE;
    private:
     BluetoothPASAConnection* connection_;
   };
