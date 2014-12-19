@@ -135,7 +135,9 @@ void AvahiServiceBrowserCallback(AvahiServiceBrowser* avahi_service_browser,
   LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(
       logger_,
-      "avahi_service_browser " << avahi_service_browser << " interface " << interface << " protocol " << protocol << " event " << event << " name " << name << " type " << type << " domain " << domain << " flags " << flags << " data " << data);
+      "avahi_service_browser " << avahi_service_browser << " interface " << interface <<
+      " protocol " << protocol << " event " << event << " name " << name <<
+      " type " << type << " domain " << domain << " flags " << flags << " data " << data);
   DnssdServiceBrowser* dnssd_service_browser =
       static_cast<DnssdServiceBrowser*>(data);
 
@@ -143,7 +145,8 @@ void AvahiServiceBrowserCallback(AvahiServiceBrowser* avahi_service_browser,
     case AVAHI_BROWSER_FAILURE:
       LOG4CXX_ERROR(
           logger_,
-          "AvahiServiceBrowser failure: " << avahi_strerror(avahi_client_errno(avahi_service_browser_get_client(avahi_service_browser))));
+          "AvahiServiceBrowser failure: " << avahi_strerror(avahi_client_errno(
+              avahi_service_browser_get_client(avahi_service_browser))));
       break;
 
     case AVAHI_BROWSER_NEW:
@@ -206,7 +209,11 @@ void AvahiServiceResolverCallback(AvahiServiceResolver* avahi_service_resolver,
   LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(
       logger_,
-      "avahi_service_resolver " << avahi_service_resolver << " interface " << interface << " protocol " << protocol << " event " << event << " name " << name << " type " << type << " domain " << domain << " host_name " << host_name << " avahi_address " << avahi_address << " port " << port << " txt " << txt << " flags " << flags << " data " << data);
+      "avahi_service_resolver " << avahi_service_resolver << " interface " << interface <<
+      " protocol " << protocol << " event " << event << " name " << name <<
+      " type " << type << " domain " << domain << " host_name " << host_name <<
+      " avahi_address " << avahi_address << " port " << port <<
+      " txt " << txt << " flags " << flags << " data " << data);
   DnssdServiceBrowser* dnssd_service_browser =
       static_cast<DnssdServiceBrowser*>(data);
 

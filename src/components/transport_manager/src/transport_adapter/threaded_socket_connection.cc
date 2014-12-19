@@ -92,7 +92,7 @@ TransportAdapter::Error ThreadedSocketConnection::Start() {
   int fds[2];
   const int pipe_ret = pipe(fds);
   if (0 == pipe_ret) {
-    LOG4CXX_INFO(logger_, "pipe created");
+    LOG4CXX_DEBUG(logger_, "pipe created");
     read_fd_ = fds[0];
     write_fd_ = fds[1];
   } else {
@@ -117,11 +117,11 @@ TransportAdapter::Error ThreadedSocketConnection::Start() {
 void ThreadedSocketConnection::Finalize() {
   LOG4CXX_AUTO_TRACE(logger_);
   if (unexpected_disconnect_) {
-    LOG4CXX_INFO(logger_, "unexpected_disconnect");
+    LOG4CXX_DEBUG(logger_, "unexpected_disconnect");
     controller_->ConnectionAborted(device_handle(), application_handle(),
                                    CommunicationError());
   } else {
-    LOG4CXX_INFO(logger_, "not unexpected_disconnect");
+    LOG4CXX_DEBUG(logger_, "not unexpected_disconnect");
     controller_->ConnectionFinished(device_handle(), application_handle());
   }
   close(socket_);
@@ -162,28 +162,24 @@ void ThreadedSocketConnection::threadMain() {
   LOG4CXX_AUTO_TRACE(logger_);
   controller_->ConnectionCreated(this, device_uid_, app_handle_);
   ConnectError* connect_error = NULL;
-  if (Establish(&connect_error)) {
-    LOG4CXX_DEBUG(logger_, "Connection established");
-    controller_->ConnectDone(device_handle(), application_handle());
-    while (!terminate_flag_) {
-      Transmit();
-    }
-    LOG4CXX_DEBUG(logger_, "Connection is to finalize");
-    Finalize();
-    sync_primitives::AutoLock auto_lock(frames_to_send_mutex_);
-    while (!frames_to_send_.empty()) {
-      LOG4CXX_INFO(logger_, "removing message");
-      ::protocol_handler::RawMessagePtr message = frames_to_send_.front();
-      frames_to_send_.pop();
-      controller_->DataSendFailed(device_handle(), application_handle(),
-                                  message, DataSendError());
-    }
-    controller_->DisconnectDone(device_handle(), application_handle());
-  } else {
+  if (!Establish(&connect_error)) {
     LOG4CXX_ERROR(logger_, "Connection Establish failed");
-    controller_->ConnectFailed(device_handle(), application_handle(),
-                               *connect_error);
     delete connect_error;
+  }
+  LOG4CXX_DEBUG(logger_, "Connection established");
+  controller_->ConnectDone(device_handle(), application_handle());
+  while (!terminate_flag_) {
+    Transmit();
+  }
+  LOG4CXX_DEBUG(logger_, "Connection is to finalize");
+  Finalize();
+  sync_primitives::AutoLock auto_lock(frames_to_send_mutex_);
+  while (!frames_to_send_.empty()) {
+    LOG4CXX_INFO(logger_, "removing message");
+    ::protocol_handler::RawMessagePtr message = frames_to_send_.front();
+    frames_to_send_.pop();
+    controller_->DataSendFailed(device_handle(), application_handle(),
+                                message, DataSendError());
   }
 }
 
@@ -206,7 +202,8 @@ void ThreadedSocketConnection::Transmit() {
   }
   LOG4CXX_DEBUG(
       logger_,
-      "poll is ok " << this << " revents0:" << std::hex << poll_fds[0].revents << " revents1:" << std::hex << poll_fds[1].revents);
+      "poll is ok " << this << " revents0: " << std::hex << poll_fds[0].revents <<
+      " revents1:" << std::hex << poll_fds[1].revents);
   // error check
   if (0 != (poll_fds[1].revents & (POLLERR | POLLHUP | POLLNVAL))) {
     LOG4CXX_ERROR(logger_,
@@ -333,6 +330,10 @@ void ThreadedSocketConnection::SocketConnectionDelegate::threadMain() {
   LOG4CXX_AUTO_TRACE(logger_);
   DCHECK(connection_);
   connection_->threadMain();
+}
+
+void ThreadedSocketConnection::SocketConnectionDelegate::exitThreadMain() {
+  LOG4CXX_AUTO_TRACE(logger_);
 }
 
 }  // namespace transport_adapter

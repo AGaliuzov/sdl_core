@@ -61,10 +61,10 @@ TransportAdapter::Error TcpConnectionFactory::CreateConnection(
                                              controller_));
   controller_->ConnectionCreated(connection, device_uid, app_handle);
   if (connection->Start()) {
-    LOG4CXX_INFO(logger_, "TCP connection initialised");
+    LOG4CXX_DEBUG(logger_, "TCP connection initialised");
     return TransportAdapter::OK;
   } else {
-    LOG4CXX_WARN(logger_, "Could not initialise TCP connection");
+    LOG4CXX_ERROR(logger_, "Could not initialise TCP connection");
     return TransportAdapter::FAIL;
   }
 }

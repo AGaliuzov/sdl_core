@@ -83,8 +83,6 @@ TransportAdapter::Error TcpClientListener::Init() {
   socket_ = socket(AF_INET, SOCK_STREAM, 0);
   if (-1 == socket_) {
     LOG4CXX_ERROR_WITH_ERRNO(logger_, "Failed to create socket");
-    LOG4CXX_TRACE(logger_,
-                  "exit with TransportAdapter::FAIL. Condition: -1 == socket_");
     return TransportAdapter::FAIL;
   }
 
@@ -102,7 +100,8 @@ TransportAdapter::Error TcpClientListener::Init() {
     return TransportAdapter::FAIL;
   }
 
-  if (0 != listen(socket_, 128)) {
+  const int kBacklog = 128;
+  if (0 != listen(socket_, kBacklog)) {
     LOG4CXX_ERROR_WITH_ERRNO(logger_, "listen() failed");
     return TransportAdapter::FAIL;
   }
@@ -116,10 +115,10 @@ void TcpClientListener::Terminate() {
     return;
   }
   if (shutdown(socket_, SHUT_RDWR) != 0) {
-    LOG4CXX_ERROR_WITH_ERRNO(logger_, "Failed shutdown socket");
+    LOG4CXX_ERROR_WITH_ERRNO(logger_, "Failed to shutdown socket");
   }
   if (close(socket_) != 0) {
-    LOG4CXX_ERROR_WITH_ERRNO(logger_, "Failed close socket");
+    LOG4CXX_ERROR_WITH_ERRNO(logger_, "Failed to close socket");
   }
   socket_ = -1;
 }
@@ -252,7 +251,7 @@ TransportAdapter::Error TcpClientListener::StartListening() {
   LOG4CXX_AUTO_TRACE(logger_);
   if (thread_->is_running()) {
     LOG4CXX_WARN(logger_,
-                 "TransportAdapter::BAD_STATE. Listener have already started");
+                 "TransportAdapter::BAD_STATE. Listener has already been started");
     return TransportAdapter::BAD_STATE;
   }
 
@@ -260,7 +259,7 @@ TransportAdapter::Error TcpClientListener::StartListening() {
     LOG4CXX_ERROR(logger_, "Tcp client listener thread start failed");
     return TransportAdapter::FAIL;
   }
-  LOG4CXX_INFO(logger_, "Tcp client listener has started successful");
+  LOG4CXX_INFO(logger_, "Tcp client listener has started successfully");
   return TransportAdapter::OK;
 }
 
@@ -280,13 +279,13 @@ TcpClientListener::ListeningThreadDelegate::ListeningThreadDelegate(
 TransportAdapter::Error TcpClientListener::StopListening() {
   LOG4CXX_AUTO_TRACE(logger_);
   if (!thread_->is_running()) {
-    LOG4CXX_INFO(logger_, "TcpClientListener is not running now");
+    LOG4CXX_DEBUG(logger_, "TcpClientListener is not running now");
     return TransportAdapter::BAD_STATE;
   }
 
   thread_->join();
 
-  LOG4CXX_INFO(logger_, "Tcp client listener has stopped successful");
+  LOG4CXX_INFO(logger_, "Tcp client listener has stopped successfully");
   return TransportAdapter::OK;
 }
 

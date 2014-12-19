@@ -50,6 +50,7 @@ TcpDevice::TcpDevice(const in_addr_t& in_addr, const std::string& name)
       applications_mutex_(),
       in_addr_(in_addr),
       last_handle_(0) {
+  LOG4CXX_AUTO_TRACE(logger_);
 }
 
 bool TcpDevice::IsSameAs(const Device* other) const {
@@ -115,6 +116,7 @@ void TcpDevice::RemoveApplication(const ApplicationHandle app_handle) {
 }
 
 TcpDevice::~TcpDevice() {
+  LOG4CXX_AUTO_TRACE(logger_);
 }
 
 int TcpDevice::GetApplicationSocket(const ApplicationHandle app_handle) const {

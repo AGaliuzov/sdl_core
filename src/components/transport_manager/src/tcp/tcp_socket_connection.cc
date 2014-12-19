@@ -72,6 +72,7 @@ TcpServerOiginatedSocketConnection::~TcpServerOiginatedSocketConnection() {
 
 bool TcpServerOiginatedSocketConnection::Establish(ConnectError** error) {
   LOG4CXX_AUTO_TRACE(logger_);
+  DCHECK(error);
   LOG4CXX_DEBUG(logger_, "error " << error);
   DeviceSptr device = controller()->FindDevice(device_handle());
   if (!device.valid()) {
@@ -81,8 +82,8 @@ bool TcpServerOiginatedSocketConnection::Establish(ConnectError** error) {
   }
   TcpDevice* tcp_device = static_cast<TcpDevice*>(device.get());
 
-  int port;
-  if (-1 == (port = tcp_device->GetApplicationPort(application_handle()))) {
+  const int port = tcp_device->GetApplicationPort(application_handle());
+  if (-1 == port) {
     LOG4CXX_ERROR(
         logger_,
         "Application port for " << application_handle() << " not found");
@@ -102,7 +103,7 @@ bool TcpServerOiginatedSocketConnection::Establish(ConnectError** error) {
   addr.sin_addr.s_addr = tcp_device->in_addr();
   addr.sin_port = htons(port);
 
-  LOG4CXX_INFO(logger_,
+  LOG4CXX_DEBUG(logger_,
                "Connecting " << inet_ntoa(addr.sin_addr) << ":" << port);
   if (::connect(socket, (struct sockaddr*) &addr, sizeof(addr)) < 0) {
     LOG4CXX_ERROR(
