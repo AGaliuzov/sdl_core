@@ -54,20 +54,16 @@ namespace application_manager {
 
 namespace request_controller {
 
-using namespace threads;
-
 /**
 * @brief RequestController class is used to control currently active mobile
 * requests.
 */
 class RequestController {
   public:
-
     /**
     * @brief Result code for addRequest
     */
-    enum TResult
-    {
+    enum TResult {
       SUCCESS = 0,
       TOO_MANY_REQUESTS,
       TOO_MANY_PENDING_REQUESTS,
@@ -78,8 +74,7 @@ class RequestController {
     /**
     * @brief Thread pool state
     */
-    enum TPoolState
-    {
+    enum TPoolState {
       UNDEFINED = 0,
       STARTED,
       STOPPED,
@@ -148,7 +143,8 @@ class RequestController {
     * connection_key - Active request connection key (0 for HMI requersts)
     *
     */
-    void terminateRequest(const uint32_t& correlation_id, const uint32_t& connection_key);
+    void terminateRequest(const uint32_t& correlation_id,
+                          const uint32_t& connection_key);
 
     /**
     * @brief Removes request from queue
@@ -156,8 +152,8 @@ class RequestController {
     * @param mobile_corellation_id Active mobile request correlation ID
     *
     */
-    void terminateMobileRequest(const uint32_t& mobile_correlation_id, const uint32_t& connection_key);
-
+    void terminateMobileRequest(const uint32_t& mobile_correlation_id,
+                                const uint32_t& connection_key);
 
 
     /**
@@ -219,8 +215,9 @@ class RequestController {
 
 
   protected:
-
-
+    /**
+    * @brief Timer Callback
+    */
     void onTimer();
 
     /**
@@ -232,7 +229,12 @@ class RequestController {
     void terminateWaitingForExecutionAppRequests(const uint32_t& app_id);
     void terminateWaitingForResponseAppRequests(const uint32_t& app_id);
 
-    TResult CheckPreconditionsForMobileRequest(const RequestPtr request);
+    /**
+     * @brief Check Posibility to add new requests, or limits was exceeded
+     * @param request - request to check possipility to Add
+     * @return True if new request could be added, false otherwise
+     */
+    TResult CheckPosibilitytoAdd(const RequestPtr request);
 
     /**
      * @brief Check Posibility to add new requests, or limits was exceeded
@@ -242,12 +244,9 @@ class RequestController {
     bool CheckPendingRequestsAmount(const uint32_t& pending_requests_amount);
 
   private:
-
-    // Data types
-
-    class Worker : public ThreadDelegate {
+    class Worker : public threads::ThreadDelegate {
       public:
-        Worker(RequestController* requestController);
+        explicit Worker(RequestController* requestController);
         virtual ~Worker();
         virtual void threadMain();
         virtual void exitThreadMain();
@@ -258,7 +257,7 @@ class RequestController {
         volatile bool                                    stop_flag_;
     };
 
-    std::vector<Thread*> pool_;
+    std::vector<threads::Thread*> pool_;
     volatile TPoolState pool_state_;
     uint32_t pool_size_;
     sync_primitives::ConditionalVariable cond_var_;
@@ -266,6 +265,11 @@ class RequestController {
     std::list<RequestPtr> mobile_request_list_;
     sync_primitives::Lock mobile_request_list_lock_;
 
+    /*
+     * Requests, that are waiting for responses
+     * RequestInfoSet provides correct processing of requests with thre same
+     * app_id and corr_id
+     */
     RequestInfoSet waiting_for_response_;
     sync_primitives::Lock waiting_for_response_lock_;
 
@@ -274,7 +278,10 @@ class RequestController {
     */
     std::list<RequestPtr> notification_list_;
 
-    timer::TimerThread<RequestController>  timer_;
+    /*
+     * timer for checking requests timeout
+     */
+    timer::TimerThread<RequestController> timer_;
     static const uint32_t dafault_sleep_time_ = UINT_MAX;
 
     bool is_low_voltage_;

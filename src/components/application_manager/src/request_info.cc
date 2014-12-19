@@ -1,35 +1,35 @@
 ﻿/*
- * \file request_info.h
- * \brief request information structure source file.
- *
- * Copyright (c) 2014, Ford Motor Company
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following
- * disclaimer in the documentation and/or other materials provided with the
- * distribution.
- *
- * Neither the name of the Ford Motor Company nor the names of its contributors
- * may be used to endorse or promote products derived from this software
- * without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+* \file request_info.h
+* \brief request information structure source file.
+*
+* Copyright (c) 2014, Ford Motor Company
+* All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* Redistributions of source code must retain the above copyright notice, this
+* list of conditions and the following disclaimer.
+*
+* Redistributions in binary form must reproduce the above copyright notice,
+* this list of conditions and the following
+* disclaimer in the documentation and/or other materials provided with the
+* distribution.
+*
+* Neither the name of the Ford Motor Company nor the names of its contributors
+* may be used to endorse or promote products derived from this software
+* without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 * POSSIBILITY OF SUCH DAMAGE.
 */
 
@@ -46,7 +46,6 @@ HMIRequestInfo::HMIRequestInfo(
     RequestPtr request,
     const uint64_t timeout_sec):
   RequestInfo(request, HMIRequest, timeout_sec) {
-
     correlation_id_ = request_->correlation_id();
     app_id_ = 0;
 }
@@ -107,8 +106,8 @@ void RequestInfo::updateTimeOut(const uint64_t& timeout_sec)  {
 bool RequestInfo::isExpired() {
   TimevalStruct curr_time = date_time::DateTime::getCurrentTime();
   return end_time_.tv_sec <= curr_time.tv_sec;
-  //TODO(AKutsan) APPLINK-9711 	 Need to use compareTime method when timer will support millisecconds
-  //return date_time::GREATER == date_time::DateTime::compareTime(end_time_, curr_time);
+  // TODO(AKutsan) APPLINK-9711 Need to use compareTime method when timer will support millisecconds
+  // return date_time::GREATER == date_time::DateTime::compareTime(end_time_, curr_time);
 }
 
 uint64_t RequestInfo::hash() {
@@ -231,7 +230,7 @@ uint32_t RequestInfoSet::RemoveRequests(const RequestInfoSet::AppIdCompararator&
                                             hash_sorted_pending_requests_.begin(),
                                             hash_sorted_pending_requests_.end(),
                                             filter);
-  while(it !=  hash_sorted_pending_requests_.end()) {
+  while (it !=  hash_sorted_pending_requests_.end()) {
     Erase(it++);
     it = std::find_if(it, hash_sorted_pending_requests_.end(), filter);
     erased++;
@@ -316,7 +315,7 @@ bool RequestInfoSet::CheckHMILevelTimeScaleMaxRequest(mobile_apis::HMILevel::eTy
   return true;
 }
 
-bool RequestInfoSet::AppIdCompararator::operator ()(const RequestInfoPtr value_compare) const {
+bool RequestInfoSet::AppIdCompararator::operator()(const RequestInfoPtr value_compare) const {
   switch (compare_type_) {
     case Equal:
       return value_compare->app_id() == app_id_;
@@ -327,7 +326,8 @@ bool RequestInfoSet::AppIdCompararator::operator ()(const RequestInfoPtr value_c
   }
 }
 
-bool RequestInfoTimeComparator::operator()(const RequestInfoPtr lhs, const RequestInfoPtr rhs) const {
+bool RequestInfoTimeComparator::operator()(const RequestInfoPtr lhs,
+                                           const RequestInfoPtr rhs) const {
   date_time::TimeCompare compare_result =
       date_time::DateTime::compareTime(lhs->end_time(), rhs->end_time());
   if (compare_result == date_time::LESS) {
@@ -336,7 +336,7 @@ bool RequestInfoTimeComparator::operator()(const RequestInfoPtr lhs, const Reque
     return false;
   }
   // compare_result == date_time::EQUAL
-  //If time is equal, sort by hash
+  // If time is equal, sort by hash
   LOG4CXX_ERROR(logger_, "EQUAL " << lhs->end_time().tv_sec << ":" << lhs->end_time().tv_usec
                 << " and " << rhs->end_time().tv_sec << ":" << rhs->end_time().tv_usec
                 << "; compare hash: " << lhs->hash() << " < " << rhs->hash()
@@ -344,11 +344,11 @@ bool RequestInfoTimeComparator::operator()(const RequestInfoPtr lhs, const Reque
   return lhs->hash() < rhs->hash();
 }
 
-bool RequestInfoHashComparator::operator()(const RequestInfoPtr lhs, const RequestInfoPtr rhs) const {
+bool RequestInfoHashComparator::operator()(const RequestInfoPtr lhs,
+                                           const RequestInfoPtr rhs) const {
   return lhs->hash() < rhs->hash();
 }
 
+}  // namespace request_controller
 
-} // namespace request_controller
-
-} // namespace application_manager
+}  // namespace application_manager

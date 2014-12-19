@@ -37,6 +37,7 @@
 #define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_REQUEST_INFO_H_
 
 #include <stdint.h>
+#include <set>
 
 #include "application_manager/commands/command_request_impl.h"
 #include "commands/hmi/request_to_hmi.h"
@@ -56,8 +57,8 @@ namespace request_controller {
   struct RequestInfo {
     enum RequestType {MobileRequest, HMIRequest};
 
-    RequestInfo(){};
-    virtual ~RequestInfo(){}
+    RequestInfo() {}
+    virtual ~RequestInfo() {}
 
     RequestInfo(RequestPtr request,
                 const RequestType requst_type,
@@ -70,7 +71,7 @@ namespace request_controller {
       }
 
     RequestInfo(RequestPtr request, const RequestType requst_type,
-                const TimevalStruct& start_time,const  uint64_t timeout_sec);
+                const TimevalStruct& start_time, const  uint64_t timeout_sec);
 
     void updateEndTime();
 
@@ -153,13 +154,14 @@ namespace request_controller {
                        const RequestInfoPtr rhs) const;
   };
 
-  typedef std::set<RequestInfoPtr,RequestInfoTimeComparator> TimeSortedRequestInfoSet;
-  typedef std::set<RequestInfoPtr,RequestInfoHashComparator> HashSortedRequestInfoSet;
+  typedef std::set<RequestInfoPtr, RequestInfoTimeComparator> TimeSortedRequestInfoSet;
+  typedef std::set<RequestInfoPtr, RequestInfoHashComparator> HashSortedRequestInfoSet;
 
   class RequestInfoSet {
     public:
       bool Add(RequestInfoPtr request_info);
-      RequestInfoPtr Find(const uint32_t  connection_key, const uint32_t correlation_id);
+      RequestInfoPtr Find(const uint32_t  connection_key,
+                          const uint32_t correlation_id);
       RequestInfoPtr Front();
       RequestInfoPtr FrontWithNotNullTimeout();
       bool Erase(const RequestInfoPtr request_info);
@@ -171,10 +173,12 @@ namespace request_controller {
       const ssize_t Size();
 
       /**
-       * @brief Check if this app is able to add new requests, or limits was exceeded
+       * @brief Check if this app is able to add new requests,
+       * or limits was exceeded
        * @param app_id - application id
        * @param app_time_scale - time scale (seconds)
-       * @param max_request_per_time_scale - maximum count of request that should be allowed for app_time_scale seconds
+       * @param max_request_per_time_scale - maximum count of request
+       * that should be allowed for app_time_scale seconds
        * @return True if new request could be added, false otherwise
        */
       bool CheckTimeScaleMaxRequest(uint32_t app_id,
@@ -182,11 +186,13 @@ namespace request_controller {
                                     uint32_t max_request_per_time_scale);
 
       /**
-       * @brief Check if this app is able to add new requests in current hmi_level, or limits was exceeded
+       * @brief Check if this app is able to add new requests
+       * in current hmi_level, or limits was exceeded
        * @param hmi_level - hmi level
        * @param app_id - application id
        * @param app_time_scale - time scale (seconds)
-       * @param max_request_per_time_scale - maximum count of request that should be allowed for app_time_scale seconds
+       * @param max_request_per_time_scale - maximum count of request
+       * that should be allowed for app_time_scale seconds
        * @return True if new request could be added, false otherwise
        */
       bool CheckHMILevelTimeScaleMaxRequest(mobile_apis::HMILevel::eType hmi_level,
@@ -194,15 +200,14 @@ namespace request_controller {
                                             uint32_t app_time_scale,
                                             uint32_t max_request_per_time_scale);
       TimeSortedRequestInfoSet::iterator GetRequestsByConnectionKey(uint32_t connection_key);
-//      void GetRequestsByConnectionKey(uint32_t connection_key,
-//                                      std::list<RequestInfoPtr> request_list);
+
     private:
       struct AppIdCompararator {
           enum CompareType {Equal, NotEqual};
           AppIdCompararator(CompareType compare_type, uint32_t app_id):
             app_id_(app_id),
-            compare_type_(compare_type){}
-          bool operator ()(const RequestInfoPtr value_compare) const;
+            compare_type_(compare_type) {}
+          bool operator()(const RequestInfoPtr value_compare) const;
 
         private:
           uint32_t app_id_;
@@ -210,7 +215,6 @@ namespace request_controller {
       };
 
       bool Erase(HashSortedRequestInfoSet::iterator it);
-      //bool Erase(HashSortedRequestInfoSet::iterator it);
       uint32_t RemoveRequests(const RequestInfoSet::AppIdCompararator& filter);
       inline void CheckSetSizes();
       TimeSortedRequestInfoSet time_sorted_pending_requests_;
@@ -231,7 +235,6 @@ namespace request_controller {
         app_id_(app_id) {}
 
     bool operator()(RequestInfoPtr setEntry) {
-
       if (!setEntry.valid()) {
         return false;
       }
@@ -292,6 +295,7 @@ namespace request_controller {
 
       return true;
     }
+
   private:
     TimevalStruct                start_;
     TimevalStruct                end_;
@@ -299,9 +303,7 @@ namespace request_controller {
     mobile_apis::HMILevel::eType hmi_level_;
   };
 
-
-
 }  //  namespace request_controller
 
-} //  namespace application_manager
+}  //  namespace application_manager
 #endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_REQUEST_INFO_H_
