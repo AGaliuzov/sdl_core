@@ -310,13 +310,7 @@ void AddCommandRequest::on_event(const event_engine::Event& event) {
           message[strings::params][hmi_response::code].asInt());
 
       if (hmi_apis::Common_Result::SUCCESS != ui_result_) {
-           (*message_)[strings::msg_params].erase(strings::menu_params);
-        if (hmi_apis::Common_Result::WARNINGS != ui_result_ &&
-            hmi_apis::Common_Result::UNSUPPORTED_RESOURCE != ui_result_) {
-            msg_params[strings::grammar_id] = app->get_grammar_id();
-            msg_params[strings::type] = hmi_apis::Common_VRCommandType::Command;
-            SendHMIRequest(hmi_apis::FunctionID::VR_DeleteCommand, &msg_param);
-        }
+        (*message_)[strings::msg_params].erase(strings::menu_params);
       }
       break;
     }
@@ -328,7 +322,6 @@ void AddCommandRequest::on_event(const event_engine::Event& event) {
 
       if (hmi_apis::Common_Result::SUCCESS != vr_result_) {
         (*message_)[strings::msg_params].erase(strings::vr_commands);
-        SendHMIRequest(hmi_apis::FunctionID::UI_DeleteCommand, &msg_param);
       }
       break;
     }
@@ -339,11 +332,16 @@ void AddCommandRequest::on_event(const event_engine::Event& event) {
   }
 
   if (!IsPendingResponseExist()) {
-
+    ApplicationSharedPtr application =
+        ApplicationManagerImpl::instance()->application(connection_key());
 
     if (hmi_apis::Common_Result::REJECTED == ui_result_) {
       RemoveCommand();
     }
+
+    smart_objects::SmartObject msg_params(smart_objects::SmartType_Map);
+    msg_params[strings::cmd_id] = (*message_)[strings::msg_params][strings::cmd_id];
+    msg_params[strings::app_id] = application->app_id();
 
     mobile_apis::Result::eType result_code = mobile_apis::Result::INVALID_ENUM;
 
@@ -367,14 +365,27 @@ void AddCommandRequest::on_event(const event_engine::Event& event) {
       if (hmi_apis::Common_Result::SUCCESS != ui_result_ &&
           hmi_apis::Common_Result::WARNINGS != ui_result_ &&
           hmi_apis::Common_Result::UNSUPPORTED_RESOURCE != ui_result_) {
-        result_code = mobile_apis::Result::GENERIC_ERROR;
+
+        result_code =
+            (ui_result_ == hmi_apis::Common_Result::REJECTED) ?
+              mobile_apis::Result::REJECTED : mobile_apis::Result::GENERIC_ERROR;
+
+        msg_params[strings::grammar_id] = application->get_grammar_id();
+        msg_params[strings::type] = hmi_apis::Common_VRCommandType::Command;
+
+        SendHMIRequest(hmi_apis::FunctionID::VR_DeleteCommand, &msg_params);
         result = false;
       }
     }
 
     if(send_vr_ && hmi_apis::Common_Result::SUCCESS == ui_result_ &&
        hmi_apis::Common_Result::SUCCESS != vr_result_) {
-      result_code = mobile_apis::Result::GENERIC_ERROR;
+
+      result_code =
+          (vr_result_ == hmi_apis::Common_Result::REJECTED) ?
+            mobile_apis::Result::REJECTED : mobile_apis::Result::GENERIC_ERROR;
+
+      SendHMIRequest(hmi_apis::FunctionID::UI_DeleteCommand, &msg_params);
       result = false;
     }
 
