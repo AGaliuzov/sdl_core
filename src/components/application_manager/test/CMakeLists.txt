@@ -28,8 +28,10 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+# TODO{ALeshin}: APPLINK-10792. Do not write tests which use
+# application manager(AM) singleton while refactoring of AM is finished.
 
-#Replace include for mocking singltone
+# Replace include for mocking singltone
 get_property(the_include_dirs DIRECTORY "" PROPERTY INCLUDE_DIRECTORIES)
 set(class_to_mock ${CMAKE_SOURCE_DIR}/src/components/application_manager/include)
 list(FIND the_include_dirs ${class_to_mock} find_idx)
@@ -38,7 +40,7 @@ if(find_idx GREATER -1)
 endif()
 set_property(DIRECTORY "" PROPERTY INCLUDE_DIRECTORIES ${the_include_dirs})
 
-include_directories (
+include_directories(
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
   ${COMPONENTS_DIR}/application_manager/include/application_manager/policies
@@ -49,11 +51,12 @@ set(testSources
   ${AM_TEST_DIR}/command_impl_test.cc  
   ${COMPONENTS_DIR}/application_manager/test/mobile_message_handler_test.cc
 )
-set (mockedSources
+
+set(mockedSources
   ${AM_MOCK_DIR}/src/application_manager_impl.cc
 )
 
-set (AM_SOURCES
+set(AM_SOURCES
   ${AM_SOURCE_DIR}/src/policies/policy_handler.cc
   ${AM_SOURCE_DIR}/src/policies/policy_event_observer.cc
 
@@ -93,7 +96,7 @@ set(testLibraries
   UsageStatistics
   dl
   ProtocolLibrary
-  )
+)
 
 set(test_exec_libraries
   HMI_API
@@ -110,6 +113,7 @@ set(test_exec_libraries
   MediaManager
   Resumption
 )
+
 IF(${CMAKE_SYSTEM_NAME} MATCHES "QNX")
   list(REMOVE_ITEM test_exec_libraries dl)
 endif()
