@@ -112,7 +112,6 @@ void DeleteSubMenuRequest::DeleteSubMenuUICommands(ApplicationSharedPtr const ap
   CommandsMap::const_iterator it = commands.begin();
 
   while (commands.end() != it) {
-    LOG4CXX_DEBUG(logger_, "Cycle");
     if (!(*it->second).keyExists(strings::menu_params)) {
       ++it;
       LOG4CXX_ERROR(logger_, "menu_params not exist");
@@ -126,20 +125,15 @@ void DeleteSubMenuRequest::DeleteSubMenuUICommands(ApplicationSharedPtr const ap
           smart_objects::SmartType_Map);
       msg_params[strings::app_id] = app->app_id();
       msg_params[strings::cmd_id] = (*it->second)[strings::cmd_id].asInt();
-      LOG4CXX_DEBUG(logger_, "Will Remove command");
       app->RemoveCommand((*it->second)[strings::cmd_id].asInt());
-
-      LOG4CXX_DEBUG(logger_, "Remove command");
       it = commands.begin();  // Can not relay on
                               // iterators after erase was called
 
       SendHMIRequest(hmi_apis::FunctionID::UI_DeleteCommand, &msg_params);
     } else {
-      LOG4CXX_ERROR(logger_, "menu_id mistmatch");
       ++it;
     }
   }
-  LOG4CXX_DEBUG(logger_, "Cycle finished");
 }
 
 void DeleteSubMenuRequest::on_event(const event_engine::Event& event) {
