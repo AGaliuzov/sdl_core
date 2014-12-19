@@ -34,6 +34,8 @@
 */
 
 #include "application_manager/request_info.h"
+
+#include <algorithm>
 namespace application_manager {
 
 namespace request_controller {
@@ -75,6 +77,40 @@ MobileRequestInfo::MobileRequestInfo(
     app_id_ = request_.get()->connection_key();
 }
 
+RequestInfo::RequestInfo(RequestPtr request,
+                         const RequestInfo::RequestType requst_type,
+                         const TimevalStruct& start_time,
+                         const uint64_t timeout_sec):
+  request_(request),
+  start_time_(start_time),
+  timeout_sec_(timeout_sec) {
+  updateEndTime();
+  requst_type_ = requst_type;
+  correlation_id_ = request_->correlation_id();
+  app_id_ = request_->connection_key();
+}
+
+void application_manager::request_controller::RequestInfo::updateEndTime() {
+  end_time_ = date_time::DateTime::getCurrentTime();
+  end_time_.tv_sec += timeout_sec_;
+
+  // possible delay during IPC
+  const uint32_t hmi_delay_sec = 1;
+  end_time_.tv_sec += hmi_delay_sec;
+}
+
+void RequestInfo::updateTimeOut(const uint64_t& timeout_sec)  {
+  timeout_sec_ = timeout_sec;
+  updateEndTime();
+}
+
+bool RequestInfo::isExpired() {
+  TimevalStruct curr_time = date_time::DateTime::getCurrentTime();
+  return end_time_.tv_sec <= curr_time.tv_sec;
+  //TODO(AKutsan) APPLINK-9711 	 Need to use compareTime method when timer will support millisecconds
+  //return date_time::GREATER == date_time::DateTime::compareTime(end_time_, curr_time);
+}
+
 uint64_t RequestInfo::hash() {
   return GenerateHash(app_id(), requestId());
 }
@@ -93,13 +129,21 @@ FakeRequestInfo::FakeRequestInfo(uint32_t app_id, uint32_t correaltion_id) {
 }
 
 bool RequestInfoSet::Add(RequestInfoPtr request_info) {
-  std::pair<HashSortedRequestInfoSet::iterator, bool> insert_resilt =
+  DCHECK(request_info);
+  LOG4CXX_ERROR(logger_, "Add request app_id = " << request_info->app_id()
+                << "; corr_id = " << request_info->requestId());
+  CheckSetSizes();
+  const std::pair<HashSortedRequestInfoSet::iterator, bool>& insert_resilt =
       hash_sorted_pending_requests_.insert(request_info);
   if (insert_resilt.second == true) {
-    time_sorted_pending_requests_.insert(request_info);
+    const std::pair<HashSortedRequestInfoSet::iterator, bool>& insert_resilt =
+        time_sorted_pending_requests_.insert(request_info);
+    DCHECK(insert_resilt.second);
+    CheckSetSizes();
+    return true;
   } else {
     LOG4CXX_ERROR(logger_, "Request with app_id = " << request_info->app_id()
-                  << "; corr_id " << request_info->requestId() << "Already exist ");
+                  << "; corr_id " << request_info->requestId() << " Already exist ");
   }
   CheckSetSizes();
   return false;
@@ -108,8 +152,9 @@ bool RequestInfoSet::Add(RequestInfoPtr request_info) {
 RequestInfoPtr RequestInfoSet::Find(const uint32_t connection_key,
                                     const uint32_t correlation_id) {
   RequestInfoPtr result;
-  utils::SharedPtr<FakeRequestInfo> request_info_for_search =
-      new FakeRequestInfo(connection_key, correlation_id);
+  utils::SharedPtr<FakeRequestInfo> request_info_for_search(
+      new FakeRequestInfo(connection_key, correlation_id));
+
   HashSortedRequestInfoSet::iterator it =
       hash_sorted_pending_requests_.find(request_info_for_search);
   if (it != hash_sorted_pending_requests_.end()) {
@@ -127,29 +172,182 @@ RequestInfoPtr RequestInfoSet::Front() {
   return result;
 }
 
-
-bool RequestInfoSet::Erase(const RequestInfoPtr request_info) {
-  size_t erased_count =
-      hash_sorted_pending_requests_.erase(request_info);
-  bool result = false;
-  if (erased_count > 1) {
-    LOG4CXX_ERROR(logger_, "Count of erased elements from is not valid : "
-                  << erased_count);
-    NOTREACHED();
+RequestInfoPtr RequestInfoSet::FrontWithNotNullTimeout() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  RequestInfoPtr result;
+  TimeSortedRequestInfoSet::iterator it = time_sorted_pending_requests_.begin();
+  while (it != time_sorted_pending_requests_.end()) {
+    if (0 != (*it)->timeout_sec()) {
+      result =*it;
+      it = time_sorted_pending_requests_.end();
+    } else {
+      ++it;
+    }
   }
-  if (1 == erased_count) {
-    time_sorted_pending_requests_.erase(request_info);
-    result = true;
-  }
-  CheckSetSizes();
   return result;
 }
 
+
+bool RequestInfoSet::Erase(const RequestInfoPtr request_info) {
+  DCHECK(request_info);
+  CheckSetSizes();
+  size_t erased_count =
+      hash_sorted_pending_requests_.erase(request_info);
+  DCHECK((erased_count <= 1));
+  if (1 == erased_count) {
+    TimeSortedRequestInfoSet::iterator it = time_sorted_pending_requests_.find(request_info);
+    DCHECK(it != time_sorted_pending_requests_.end());
+    const RequestInfoPtr found = *it;
+    DCHECK(request_info == found);
+    time_sorted_pending_requests_.erase(it);
+    CheckSetSizes();
+    return 1 == erased_count;
+  }
+  CheckSetSizes();
+  return false;
+}
+
+bool RequestInfoSet::Erase(HashSortedRequestInfoSet::iterator it) {
+  CheckSetSizes();
+  RequestInfoPtr request_info = *it;
+  size_t erased_count =
+      time_sorted_pending_requests_.erase(request_info);
+  DCHECK((erased_count <= 1));
+  if (1 == erased_count) {
+    hash_sorted_pending_requests_.erase(it);
+    CheckSetSizes();
+    return true;
+  }
+  CheckSetSizes();
+  return false;
+}
+
+
+uint32_t RequestInfoSet::RemoveRequests(const RequestInfoSet::AppIdCompararator& filter) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  uint32_t erased = 0;
+
+  TimeSortedRequestInfoSet::iterator it = std::find_if(
+                                            hash_sorted_pending_requests_.begin(),
+                                            hash_sorted_pending_requests_.end(),
+                                            filter);
+  while(it !=  hash_sorted_pending_requests_.end()) {
+    Erase(it++);
+    it = std::find_if(it, hash_sorted_pending_requests_.end(), filter);
+    erased++;
+  }
+  CheckSetSizes();
+  return erased;
+}
+
+
+uint32_t RequestInfoSet::RemoveByConnectionKey(uint32_t connection_key) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  return RemoveRequests(AppIdCompararator(AppIdCompararator::Equal, connection_key));
+}
+
+uint32_t RequestInfoSet::RemoveMobileRequests() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  return RemoveRequests(AppIdCompararator(AppIdCompararator::NotEqual, 0));
+}
+
+const ssize_t RequestInfoSet::Size() {
+  CheckSetSizes();
+  return time_sorted_pending_requests_.size();
+}
+
 void RequestInfoSet::CheckSetSizes() {
-  bool set_sizes_equal =
-      (time_sorted_pending_requests_.size() == hash_sorted_pending_requests_.size());
+  const ssize_t time_set_size = time_sorted_pending_requests_.size();
+  const ssize_t hash_set_size = hash_sorted_pending_requests_.size();
+  const bool set_sizes_equal = (time_set_size == hash_set_size);
   DCHECK(set_sizes_equal);
 }
+
+bool RequestInfoSet::CheckTimeScaleMaxRequest(
+    uint32_t app_id,
+    uint32_t app_time_scale,
+    uint32_t max_request_per_time_scale) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  if (max_request_per_time_scale > 0
+      && app_time_scale > 0) {
+    TimevalStruct end = date_time::DateTime::getCurrentTime();
+    TimevalStruct start = {0, 0};
+    start.tv_sec = end.tv_sec - app_time_scale;
+
+    TimeScale scale(start, end, app_id);
+    const uint32_t count = std::count_if(time_sorted_pending_requests_.begin(),
+                                         time_sorted_pending_requests_.end(), scale);
+    if (count >= max_request_per_time_scale) {
+      LOG4CXX_WARN(logger_, "Processing requests count " << count <<
+                   " exceed application limit " << max_request_per_time_scale);
+      return false;
+    }
+    LOG4CXX_DEBUG(logger_, "Requests count " << count);
+  } else {
+    LOG4CXX_DEBUG(logger_, "CheckTimeScaleMaxRequest disabled");
+  }
+  return true;
+}
+
+bool RequestInfoSet::CheckHMILevelTimeScaleMaxRequest(mobile_apis::HMILevel::eType hmi_level,
+    uint32_t app_id,
+    uint32_t app_time_scale,
+    uint32_t max_request_per_time_scale) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  if (max_request_per_time_scale > 0 &&
+      app_time_scale > 0) {
+    TimevalStruct end = date_time::DateTime::getCurrentTime();
+    TimevalStruct start = {0, 0};
+    start.tv_sec = end.tv_sec - app_time_scale;
+
+    HMILevelTimeScale scale(start, end, app_id, hmi_level);
+    const uint32_t count = std::count_if(time_sorted_pending_requests_.begin(),
+                                         time_sorted_pending_requests_.end(), scale);
+    if (count >= max_request_per_time_scale) {
+      LOG4CXX_WARN(logger_, "Processing requests count " << count
+                   << " exceed application limit " << max_request_per_time_scale
+                   << " in hmi level " << hmi_level);
+      return false;
+    }
+    LOG4CXX_DEBUG(logger_, "Requests count " << count);
+  } else {
+    LOG4CXX_DEBUG(logger_, "CheckHMILevelTimeScaleMaxRequest disabled");
+  }
+  return true;
+}
+
+bool RequestInfoSet::AppIdCompararator::operator ()(const RequestInfoPtr value_compare) const {
+  switch (compare_type_) {
+    case Equal:
+      return value_compare->app_id() == app_id_;
+    case NotEqual:
+      return value_compare->app_id() != app_id_;
+    default:
+      return false;
+  }
+}
+
+bool RequestInfoTimeComparator::operator()(const RequestInfoPtr lhs, const RequestInfoPtr rhs) const {
+  date_time::TimeCompare compare_result =
+      date_time::DateTime::compareTime(lhs->end_time(), rhs->end_time());
+  if (compare_result == date_time::LESS) {
+    return true;
+  } else if (compare_result == date_time::GREATER) {
+    return false;
+  }
+  // compare_result == date_time::EQUAL
+  //If time is equal, sort by hash
+  LOG4CXX_ERROR(logger_, "EQUAL " << lhs->end_time().tv_sec << ":" << lhs->end_time().tv_usec
+                << " and " << rhs->end_time().tv_sec << ":" << rhs->end_time().tv_usec
+                << "; compare hash: " << lhs->hash() << " < " << rhs->hash()
+                << " = " << (lhs->hash() < rhs->hash()));
+  return lhs->hash() < rhs->hash();
+}
+
+bool RequestInfoHashComparator::operator()(const RequestInfoPtr lhs, const RequestInfoPtr rhs) const {
+  return lhs->hash() < rhs->hash();
+}
+
 
 } // namespace request_controller
 

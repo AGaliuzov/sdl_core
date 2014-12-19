@@ -57,44 +57,26 @@ namespace request_controller {
     enum RequestType {MobileRequest, HMIRequest};
 
     RequestInfo(){};
+    virtual ~RequestInfo(){}
 
-    RequestInfo(RequestPtr request, const RequestType requst_type, const uint64_t timeout_sec)
-      : timeout_sec_(timeout_sec) {
+    RequestInfo(RequestPtr request,
+                const RequestType requst_type,
+                const uint64_t timeout_sec)
+      : request_(request),
+        timeout_sec_(timeout_sec) {
         start_time_ = date_time::DateTime::getCurrentTime();
         updateEndTime();
         requst_type_ = requst_type;
       }
 
-    RequestInfo(RequestPtr request, const RequestType requst_type, const TimevalStruct& start_time,const  uint64_t timeout_sec)
-      : start_time_(start_time),
-        timeout_sec_(timeout_sec) {
-        updateEndTime();
-        requst_type_ = requst_type;
-    }
+    RequestInfo(RequestPtr request, const RequestType requst_type,
+                const TimevalStruct& start_time,const  uint64_t timeout_sec);
 
-    virtual ~RequestInfo(){}
+    void updateEndTime();
 
-    void updateEndTime() {
-      end_time_ = date_time::DateTime::getCurrentTime();
-      end_time_.tv_sec += timeout_sec_;
+    void updateTimeOut(const uint64_t& timeout_sec);
 
-      // possible delay during IPC
-      const uint32_t hmi_delay_sec = 1;
-      end_time_.tv_sec += hmi_delay_sec;
-    }
-
-    void updateTimeOut(const uint64_t& timeout_sec) {
-      timeout_sec_ = timeout_sec;
-      updateEndTime();
-    }
-
-    bool isExpired() {
-      if (date_time::GREATER ==
-           date_time::DateTime::compareTime(end_time_, date_time::DateTime::getCurrentTime())) {
-        return false;
-      }
-      return true;
-    }
+    bool isExpired();
 
     TimevalStruct start_time() {
       return start_time_;
@@ -163,19 +145,12 @@ namespace request_controller {
 
   struct RequestInfoTimeComparator {
       bool operator() (const RequestInfoPtr lhs,
-                       const RequestInfoPtr rhs) const {
-        date_time::TimeCompare compare_result =
-            date_time::DateTime::compareTime(lhs->end_time(), rhs->end_time());
-        return compare_result == date_time::LESS ||
-               compare_result == date_time::EQUAL;
-      }
+                       const RequestInfoPtr rhs) const;
   };
 
   struct RequestInfoHashComparator {
       bool operator() (const RequestInfoPtr lhs,
-                       const RequestInfoPtr rhs) const {
-        return lhs->hash() < rhs->hash();
-      }
+                       const RequestInfoPtr rhs) const;
   };
 
   typedef std::set<RequestInfoPtr,RequestInfoTimeComparator> TimeSortedRequestInfoSet;
@@ -186,8 +161,57 @@ namespace request_controller {
       bool Add(RequestInfoPtr request_info);
       RequestInfoPtr Find(const uint32_t  connection_key, const uint32_t correlation_id);
       RequestInfoPtr Front();
+      RequestInfoPtr FrontWithNotNullTimeout();
       bool Erase(const RequestInfoPtr request_info);
+
+
+      uint32_t RemoveByConnectionKey(uint32_t connection_key);
+      uint32_t RemoveMobileRequests();
+
+      const ssize_t Size();
+
+      /**
+       * @brief Check if this app is able to add new requests, or limits was exceeded
+       * @param app_id - application id
+       * @param app_time_scale - time scale (seconds)
+       * @param max_request_per_time_scale - maximum count of request that should be allowed for app_time_scale seconds
+       * @return True if new request could be added, false otherwise
+       */
+      bool CheckTimeScaleMaxRequest(uint32_t app_id,
+                                    uint32_t app_time_scale,
+                                    uint32_t max_request_per_time_scale);
+
+      /**
+       * @brief Check if this app is able to add new requests in current hmi_level, or limits was exceeded
+       * @param hmi_level - hmi level
+       * @param app_id - application id
+       * @param app_time_scale - time scale (seconds)
+       * @param max_request_per_time_scale - maximum count of request that should be allowed for app_time_scale seconds
+       * @return True if new request could be added, false otherwise
+       */
+      bool CheckHMILevelTimeScaleMaxRequest(mobile_apis::HMILevel::eType hmi_level,
+                                            uint32_t app_id,
+                                            uint32_t app_time_scale,
+                                            uint32_t max_request_per_time_scale);
+      TimeSortedRequestInfoSet::iterator GetRequestsByConnectionKey(uint32_t connection_key);
+//      void GetRequestsByConnectionKey(uint32_t connection_key,
+//                                      std::list<RequestInfoPtr> request_list);
     private:
+      struct AppIdCompararator {
+          enum CompareType {Equal, NotEqual};
+          AppIdCompararator(CompareType compare_type, uint32_t app_id):
+            app_id_(app_id),
+            compare_type_(compare_type){}
+          bool operator ()(const RequestInfoPtr value_compare) const;
+
+        private:
+          uint32_t app_id_;
+          CompareType compare_type_;
+      };
+
+      bool Erase(HashSortedRequestInfoSet::iterator it);
+      //bool Erase(HashSortedRequestInfoSet::iterator it);
+      uint32_t RemoveRequests(const RequestInfoSet::AppIdCompararator& filter);
       inline void CheckSetSizes();
       TimeSortedRequestInfoSet time_sorted_pending_requests_;
       HashSortedRequestInfoSet hash_sorted_pending_requests_;

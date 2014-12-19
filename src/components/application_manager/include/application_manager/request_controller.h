@@ -220,36 +220,6 @@ class RequestController {
 
   protected:
 
-    /**
-     * @brief Check if this app is able to add new requests, or limits was exceeded
-     * @param app_id - application id
-     * @param app_time_scale - time scale (seconds)
-     * @param max_request_per_time_scale - maximum count of request that should be allowed for app_time_scale seconds
-     * @return True if new request could be added, false otherwise
-     */
-    bool CheckTimeScaleMaxRequest(const uint32_t& app_id,
-                                  const uint32_t& app_time_scale,
-                                  const uint32_t& max_request_per_time_scale);
-
-    /**
-     * @brief Check if this app is able to add new requests in current hmi_level, or limits was exceeded
-     * @param hmi_level - hmi level
-     * @param app_id - application id
-     * @param app_time_scale - time scale (seconds)
-     * @param max_request_per_time_scale - maximum count of request that should be allowed for app_time_scale seconds
-     * @return True if new request could be added, false otherwise
-     */
-    bool CheckHMILevelTimeScaleMaxRequest(const mobile_apis::HMILevel::eType& hmi_level,
-                                          const uint32_t& app_id,
-                                          const uint32_t& app_time_scale,
-                                          const uint32_t& max_request_per_time_scale);
-
-    /**
-     * @brief Check Posibility to add new requests, or limits was exceeded
-     * @param pending_requests_amount - maximum count of request that should be allowed for all applications
-     * @return True if new request could be added, false otherwise
-     */
-    bool CheckPendingRequestsAmount(const uint32_t& pending_requests_amount);
 
     void onTimer();
 
@@ -263,6 +233,14 @@ class RequestController {
     void terminateWaitingForResponseAppRequests(const uint32_t& app_id);
 
     TResult CheckPreconditionsForMobileRequest(const RequestPtr request);
+
+    /**
+     * @brief Check Posibility to add new requests, or limits was exceeded
+     * @param pending_requests_amount - maximum count of request that should be allowed for all applications
+     * @return True if new request could be added, false otherwise
+     */
+    bool CheckPendingRequestsAmount(const uint32_t& pending_requests_amount);
+
   private:
 
     // Data types
@@ -287,9 +265,6 @@ class RequestController {
 
     std::list<RequestPtr> mobile_request_list_;
     sync_primitives::Lock mobile_request_list_lock_;
-
-    TimeSortedRequestInfoSet time_sorted_pending_requests_;
-    HashSortedRequestInfoSet hash_sorted_pending_requests_;
 
     RequestInfoSet waiting_for_response_;
     sync_primitives::Lock waiting_for_response_lock_;
