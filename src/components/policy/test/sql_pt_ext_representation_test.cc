@@ -29,6 +29,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <vector>
 #include "gtest/gtest.h"
 #include <algorithm>
 #include "driver_dbms.h"

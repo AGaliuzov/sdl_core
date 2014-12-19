@@ -29,6 +29,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <vector>
 #include "gtest/gtest.h"
 #include "driver_dbms.h"
 #include "policy/sql_pt_representation.h"

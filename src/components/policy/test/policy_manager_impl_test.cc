@@ -105,8 +105,8 @@ TEST_F(PolicyManagerImplTest, RefreshRetrySequence_SetSecondsBetweenRetries_Expe
   seconds.push_back(200);
 
   //assert
-  EXPECT_CALL(*cache_manager, TimeoutResponse()).Times(1).WillOnce(Return(60));
-  EXPECT_CALL(*cache_manager, SecondsBetweenRetries(_)).Times(1).WillOnce(
+  EXPECT_CALL(*cache_manager, TimeoutResponse()).WillOnce(Return(60));
+  EXPECT_CALL(*cache_manager, SecondsBetweenRetries(_)).WillOnce(
       DoAll(SetArgReferee<0>(seconds), Return(true)));
 
   //act
@@ -121,8 +121,8 @@ TEST_F(PolicyManagerImplTest, RefreshRetrySequence_SetSecondsBetweenRetries_Expe
 
 TEST_F(PolicyManagerImplTest, DISABLED_GetUpdateUrl) {
 
-  EXPECT_CALL(*cache_manager, GetUpdateUrls(7,_)).Times(1);
-  EXPECT_CALL(*cache_manager, GetUpdateUrls(4,_)).Times(1);
+  EXPECT_CALL(*cache_manager, GetUpdateUrls(7,_));
+  EXPECT_CALL(*cache_manager, GetUpdateUrls(4,_));
 
   EXPECT_EQ("http://policies.telematics.ford.com/api/policies",
             manager->GetUpdateUrl(7));
@@ -198,16 +198,16 @@ TEST_F(PolicyManagerImplTest, DISABLED_CheckPermissions) {
   group_names[1] = std::make_pair<std::string, std::string>("", "AlertGroup");
 
   //assert
-  EXPECT_CALL(*listener, OnCurrentDeviceIdUpdateRequired("12345678")).Times(1);
-  EXPECT_CALL(*cache_manager, GetFunctionalGroupings(_)).Times(1).WillOnce(
+  EXPECT_CALL(*listener, OnCurrentDeviceIdUpdateRequired("12345678"));
+  EXPECT_CALL(*cache_manager, GetFunctionalGroupings(_)).WillOnce(
       DoAll(SetArgReferee<0>(groups), Return(true)));
-  EXPECT_CALL(*cache_manager, IsDefaultPolicy("12345678")).Times(1).WillOnce(
+  EXPECT_CALL(*cache_manager, IsDefaultPolicy("12345678")).WillOnce(
       Return(false));
-  EXPECT_CALL(*cache_manager, IsPredataPolicy("12345678")).Times(1).WillOnce(
+  EXPECT_CALL(*cache_manager, IsPredataPolicy("12345678")).WillOnce(
       Return(false));
-  EXPECT_CALL(*cache_manager, GetPermissionsForApp(_, "12345678", _)).Times(1)
-  .WillOnce(DoAll(SetArgReferee<2>(group_types), Return(true)));
-  EXPECT_CALL(*cache_manager, GetFunctionalGroupNames(_)).Times(1).WillOnce(
+  EXPECT_CALL(*cache_manager, GetPermissionsForApp(_, "12345678", _)).WillOnce(
+      DoAll(SetArgReferee<2>(group_types), Return(true)));
+  EXPECT_CALL(*cache_manager, GetFunctionalGroupNames(_)).WillOnce(
       DoAll(SetArgReferee<0>(group_names), Return(true)));
 
   //act
@@ -234,7 +234,7 @@ TEST_F(PolicyManagerImplTest, CheckPermissions_SetHmiLevelFullForAlert_ExpectAll
 
   //assert
   EXPECT_CALL(*cache_manager, CheckPermissions("12345678", "FULL", "Alert", _)).
-      Times(1).WillOnce(SetArgReferee<3>(expected));
+      WillOnce(SetArgReferee<3>(expected));
 
   //act
   ::policy::RPCParams input_params;
@@ -350,10 +350,9 @@ TEST_F(PolicyManagerImplTest, LoadPT_SetPT_PTIsLoaded) {
       update.policy_table);
 
   //assert
-  EXPECT_CALL(*cache_manager, GenerateSnapshot()).Times(1).WillOnce(
-      Return(snapshot));
-  EXPECT_CALL(*cache_manager, ApplyUpdate(_)).Times(1).WillOnce(Return(true));
-  EXPECT_CALL(*listener, GetAppName("1234")).Times(1).WillOnce(Return(""));
+  EXPECT_CALL(*cache_manager, GenerateSnapshot()).WillOnce(Return(snapshot));
+  EXPECT_CALL(*cache_manager, ApplyUpdate(_)).WillOnce(Return(true));
+  EXPECT_CALL(*listener, GetAppName("1234")).WillOnce(Return(""));
   EXPECT_CALL(*listener, OnUpdateStatusChanged(_));
   EXPECT_CALL(*cache_manager, SaveUpdateRequired(false));
   EXPECT_CALL(*cache_manager, TimeoutResponse());
