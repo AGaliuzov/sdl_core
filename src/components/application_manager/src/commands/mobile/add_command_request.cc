@@ -290,6 +290,18 @@ void AddCommandRequest::on_event(const event_engine::Event& event) {
 
   const smart_objects::SmartObject& message = event.smart_object();
 
+  ApplicationSharedPtr application =
+      ApplicationManagerImpl::instance()->application(connection_key());
+
+  if (!application) {
+    LOG4CXX_ERROR(logger_, "NULL pointer");
+    return;
+  }
+
+  smart_objects::SmartObject msg_param(smart_objects::SmartType_Map);
+  msg_param[strings::cmd_id] = (*message_)[strings::msg_params][strings::cmd_id];
+  msg_param[strings::app_id] = application->app_id();
+
   switch (event.id()) {
     case hmi_apis::FunctionID::UI_AddCommand: {
       LOG4CXX_INFO(logger_, "Received UI_AddCommand event");
@@ -299,7 +311,13 @@ void AddCommandRequest::on_event(const event_engine::Event& event) {
 
       if (hmi_apis::Common_Result::SUCCESS != ui_result_) {
            (*message_)[strings::msg_params].erase(strings::menu_params);
-         }
+        if (hmi_apis::Common_Result::WARNINGS != ui_result_ &&
+            hmi_apis::Common_Result::UNSUPPORTED_RESOURCE != ui_result_) {
+            msg_params[strings::grammar_id] = app->get_grammar_id();
+            msg_params[strings::type] = hmi_apis::Common_VRCommandType::Command;
+            SendHMIRequest(hmi_apis::FunctionID::VR_DeleteCommand, &msg_param);
+        }
+      }
       break;
     }
     case hmi_apis::FunctionID::VR_AddCommand: {
@@ -310,6 +328,7 @@ void AddCommandRequest::on_event(const event_engine::Event& event) {
 
       if (hmi_apis::Common_Result::SUCCESS != vr_result_) {
         (*message_)[strings::msg_params].erase(strings::vr_commands);
+        SendHMIRequest(hmi_apis::FunctionID::UI_DeleteCommand, &msg_param);
       }
       break;
     }
@@ -320,13 +339,7 @@ void AddCommandRequest::on_event(const event_engine::Event& event) {
   }
 
   if (!IsPendingResponseExist()) {
-    ApplicationSharedPtr application =
-        ApplicationManagerImpl::instance()->application(connection_key());
 
-    if (!application) {
-      LOG4CXX_ERROR(logger_, "NULL pointer");
-      return;
-    }
 
     if (hmi_apis::Common_Result::REJECTED == ui_result_) {
       RemoveCommand();
@@ -348,6 +361,21 @@ void AddCommandRequest::on_event(const event_engine::Event& event) {
     } else {
       result_code = static_cast<mobile_apis::Result::eType>(
           std::max(ui_result_, vr_result_));
+    }
+
+    if (send_ui_ && hmi_apis::Common_Result::SUCCESS == vr_result_) {
+      if (hmi_apis::Common_Result::SUCCESS != ui_result_ &&
+          hmi_apis::Common_Result::WARNINGS != ui_result_ &&
+          hmi_apis::Common_Result::UNSUPPORTED_RESOURCE != ui_result_) {
+        result_code = mobile_apis::Result::GENERIC_ERROR;
+        result = false;
+      }
+    }
+
+    if(send_vr_ && hmi_apis::Common_Result::SUCCESS == ui_result_ &&
+       hmi_apis::Common_Result::SUCCESS != vr_result_) {
+      result_code = mobile_apis::Result::GENERIC_ERROR;
+      result = false;
     }
 
     SendResponse(result, result_code, NULL, &(message[strings::msg_params]));
@@ -407,6 +435,21 @@ void AddCommandRequest::RemoveCommand() {
     LOG4CXX_ERROR(logger_, "No application associated with session key");
     return;
   }
+
+  smart_objects::SmartObject msg_params(smart_objects::SmartType_Map);
+  msg_params[strings::cmd_id] = (*message_)[strings::msg_params][strings::cmd_id];
+  msg_params[strings::app_id] = app->app_id();
+
+  if (send_ui_ && !is_vr_received_) {
+    SendHMIRequest(hmi_apis::FunctionID::UI_DeleteCommand, &msg_params);
+  }
+
+  if (send_vr_ && !is_ui_received_) {
+    msg_params[strings::grammar_id] = app->get_grammar_id();
+    msg_params[strings::type] = hmi_apis::Common_VRCommandType::Command;
+    SendHMIRequest(hmi_apis::FunctionID::VR_DeleteCommand, &msg_params);
+  }
+
   app->RemoveCommand((*message_)[strings::msg_params]
                                  [strings::cmd_id].asUInt());
 }
