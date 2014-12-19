@@ -208,7 +208,8 @@ void IAP2Device::OnDisconnect(ApplicationHandle app_id) {
   apps_lock_.Acquire();
   AppContainer::iterator i = apps_.find(app_id);
   if (i != apps_.end()) {
-    AppRecord record = i->second;
+    AppRecord& record = i->second;
+    record.to_remove = true;
     std::string protocol_name = record.protocol_name;
     LOG4CXX_DEBUG(
         logger_,
@@ -217,16 +218,9 @@ void IAP2Device::OnDisconnect(ApplicationHandle app_id) {
     ThreadContainer::iterator j = legacy_connection_threads_.find(
         protocol_name);
     if (j != legacy_connection_threads_.end()) {
-      threads::Thread* old_thread = j->second;
-      threads::ThreadDelegate* delegate = old_thread->delegate(); // we can use the same delegate
-      threads::DeleteThread(old_thread);
-      ::std::string thread_name = "iAP2 notifier " + protocol_name;
-      threads::Thread* new_thread = threads::CreateThread(thread_name.c_str(), delegate);
-      LOG4CXX_INFO(
-          logger_,
-          "iAP2: restarting connection thread for legacy protocol " << protocol_name);
-      new_thread->start();
-      j->second = new_thread;
+      threads::Thread* thread = j->second;
+      thread->stop();
+      thread->start();
     } else {
       if (!FreeProtocol(protocol_name)) {
         LOG4CXX_WARN(
@@ -307,30 +301,25 @@ bool IAP2Device::FreeProtocol(const std::string& name) {
 }
 
 void IAP2Device::StartThread(const std::string& protocol_name) {
+  threads::Thread* thread;
   threads::ThreadDelegate* delegate;
   pool_connection_threads_lock_.Acquire();
   ThreadContainer::iterator i = pool_connection_threads_.find(protocol_name);
-  if (i != pool_connection_threads_.end()) {
-    threads::Thread* old_thread = i->second;
-    delegate = old_thread->delegate(); // we can use the same delegate
-    threads::DeleteThread(old_thread);
-    pool_connection_threads_.erase(i);
-  }
-  else {
+  if (i == pool_connection_threads_.end()) {
     delegate = new IAP2ConnectThreadDelegate(this, protocol_name);
+    std::string thread_name = "iAP2 dev " + protocol_name;
+    thread = threads::CreateThread(thread_name.c_str(), delegate);
+    pool_connection_threads_.insert(std::make_pair(protocol_name, thread));
+  } else {
+    thread = i->second;
+    thread->stop();
   }
   pool_connection_threads_lock_.Release();
 
-  std::string thread_name = "iAP2 dev " + protocol_name;
-  threads::Thread* new_thread = threads::CreateThread(thread_name.c_str(), delegate);
   LOG4CXX_DEBUG(
       logger_,
       "iAP2: starting connection thread for protocol " << protocol_name);
-  new_thread->start();
-
-  pool_connection_threads_lock_.Acquire();
-  pool_connection_threads_.insert(std::make_pair(protocol_name, new_thread));
-  pool_connection_threads_lock_.Release();
+  thread->start();
 }
 
 void IAP2Device::StopThread(const std::string& protocol_name) {
@@ -379,19 +368,23 @@ void IAP2Device::IAP2HubConnectThreadDelegate::threadMain() {
         break;
       }
     }
-    KillFinishedConnections();
+    parent_->KillFinishedConnections();
   }
 }
 
 void IAP2Device::KillFinishedConnections() {
   LOG4CXX_AUTO_TRACE(logger_);
+  const DeviceUID& device_uid = unique_device_id();
   sync_primitives::AutoLock auto_lock(apps_lock_);
-  for (AppContainer::iterator i = apps_.begin(); i != apps_.end(); ++i) {
+  AppContainer::iterator i = apps_.begin();
+  while (i != apps_.end()) {
     const ApplicationHandle app_hanle = i->first;
     const AppRecord& record = i->second;
+    AppContainer::iterator item = i;
+    i++;
     if (record.to_remove) {
-      apps_.erase(i);
-      controller_->DisconnectDone(unique_device_id_, app_hanle);
+      apps_.erase(item);
+      controller_->DisconnectDone(device_uid, app_hanle);
     }
   }
 }

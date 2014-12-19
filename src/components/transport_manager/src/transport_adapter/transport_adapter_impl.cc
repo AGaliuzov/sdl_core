@@ -519,26 +519,38 @@ void TransportAdapterImpl::DeviceDisconnected(
   LOG4CXX_TRACE(logger_, "exit");
 }
 
+bool TransportAdapterImpl::IsSingleApplication(const DeviceUID& device_uid,
+                                             const ApplicationHandle& app_uid) {
+  sync_primitives::AutoReadLock locker(connections_lock_);
+  for (ConnectionMap::const_iterator it = connections_.begin();
+       it != connections_.end(); ++it) {
+    const DeviceUID& current_device_id = it->first.first;
+    const ApplicationHandle& current_app_handle = it->first.second;
+    if (current_device_id == device_uid && current_app_handle != app_uid) {
+      LOG4CXX_DEBUG(logger_,
+                    "break. Condition: current_device_id == device_id && current_app_handle != app_handle");
+
+      return false;
+    }
+  }
+  return true;
+}
+
 void TransportAdapterImpl::DisconnectDone(
     const DeviceUID& device_handle, const ApplicationHandle& app_handle) {
   const DeviceUID device_uid = device_handle;
   const ApplicationHandle app_uid = app_handle;
   LOG4CXX_TRACE(logger_, "enter. device_id: " << &device_uid << ", app_handle: " <<
                 &app_uid);
-  bool device_disconnected = true;
-  connections_lock_.AcquireForReading();
-  for (ConnectionMap::const_iterator it = connections_.begin();
-       it != connections_.end(); ++it) {
-    const DeviceUID& current_device_id = it->first.first;
-    const ApplicationHandle& current_app_handle = it->first.second;
-    if (current_device_id == device_uid && current_app_handle != app_uid) {
-      device_disconnected = false;
-      LOG4CXX_DEBUG(logger_,
-                    "break. Condition: current_device_id == device_id && current_app_handle != app_handle");
-      break;
-    }
+  DeviceSptr device = FindDevice(device_handle);
+  if (!device) {
+    LOG4CXX_WARN(logger_, "Device: uid " << &device_uid << " not found");
+    return;
   }
-  connections_lock_.Release();
+
+  bool device_disconnected = ToBeAutoDisconnected(device) &&
+      IsSingleApplication(device_uid, app_uid);
+
   for (TransportAdapterListenerList::iterator it = listeners_.begin();
        it != listeners_.end(); ++it) {
     TransportAdapterListener* listener = *it;
@@ -774,6 +786,10 @@ bool TransportAdapterImpl::Restore() {
 
 bool TransportAdapterImpl::ToBeAutoConnected(DeviceSptr device) const {
   return false;
+}
+
+bool TransportAdapterImpl::ToBeAutoDisconnected(DeviceSptr device) const {
+  return true;
 }
 
 ConnectionSPtr TransportAdapterImpl::FindEstablishedConnection(

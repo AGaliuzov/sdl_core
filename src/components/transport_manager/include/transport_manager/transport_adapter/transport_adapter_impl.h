@@ -431,6 +431,13 @@ class TransportAdapterImpl : public TransportAdapter,
    */
   virtual bool ToBeAutoConnected(DeviceSptr device) const;
 
+
+  /**
+   * @brief Returns true if \a device is to be disconnected automatically when
+   * all applications will be closed
+   */
+  virtual bool ToBeAutoDisconnected(DeviceSptr device) const;
+
   /**
    * @brief Find connection that has state - ESTABLISHED.
    *
@@ -455,6 +462,15 @@ class TransportAdapterImpl : public TransportAdapter,
    * @param device_handle Device unique identifier.
    */
   void RemoveDevice(const DeviceUID& device_handle);
+
+  /**
+   * Checks whether application is single active on device
+   * @param device_uid
+   * @param app_uid
+   * @return true if this application is the single application on device
+   */
+  bool IsSingleApplication(const DeviceUID& device_uid,
+                           const ApplicationHandle& app_uid);
 
   /**
    * @brief Listener for device adapter notifications.

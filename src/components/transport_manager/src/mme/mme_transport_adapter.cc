@@ -68,5 +68,9 @@ bool MmeTransportAdapter::ToBeAutoConnected(DeviceSptr device) const {
   return true;
 }
 
+bool MmeTransportAdapter::ToBeAutoDisconnected(DeviceSptr device) const {
+  return false;
+}
+
 }  // namespace transport_adapter
 }  // namespace transport_manager
