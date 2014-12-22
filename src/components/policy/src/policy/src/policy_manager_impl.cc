@@ -1,4 +1,4 @@
-﻿/*
+/*
  Copyright (c) 2013, Ford Motor Company
  All rights reserved.
 
@@ -279,6 +279,10 @@ void PolicyManagerImpl::RequestPTUpdate() {
   std::string message_string = writer.write(value);
 
   BinaryMessage update(message_string.begin(), message_string.end());
+
+  // Need to reset update schedule since all currenly registered applications
+  // were already added to the snapshot so no update for them required.
+  update_status_manager_.ResetUpdateSchedule();
 
   listener_->OnSnapshotCreated(update,
                                RetrySequenceDelaysSeconds(),
