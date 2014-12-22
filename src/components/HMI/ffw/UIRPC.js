@@ -317,8 +317,10 @@ FFW.UI = FFW.RPCObserver.create({
                         } else {
                             //If no available data sent error response and stop process current request
 
-                            this.sendError(this.errorResponsePull[request.id].code, request.id, request.method,
-                                    "Unsupported " + this.errorResponsePull[request.id].type + " type. Request was not processed.");
+                            this.sendError(this.errorResponsePull[request.id].code,
+                                request.id,
+                                request.method,
+                                "Unsupported " + this.errorResponsePull[request.id].type + " type. Request was not processed.");
                             this.errorResponsePull[request.id] = null;
 
                             return;
@@ -338,7 +340,10 @@ FFW.UI = FFW.RPCObserver.create({
                     if (resultCode === SDL.SDLModel.resultCode["SUCCESS"]) {
                         this.sendUIResult(resultCode, request.id, request.method);
                     } else {
-                        this.sendError(resultCode, request.id, request.method, 'Request is ignored, because the intended result is already in effect.');
+                        this.sendError(resultCode,
+                            request.id,
+                            request.method,
+                            'Request is ignored, because the intended result is already in effect.');
                     }
 
                     break;
@@ -365,10 +370,13 @@ FFW.UI = FFW.RPCObserver.create({
                 {
 
                     if (request.params.appName) {
-                        SDL.SDLController.getApplicationModel(request.params.appID).set('appName', request.params.appName);
+                        SDL.SDLController.getApplicationModel(request.params.appID).set('appName',
+                            request.params.appName);
                     }
 
-                    SDL.SDLModel.changeRegistrationUI(request.params.language, request.params.appID, request.params.appName);
+                    SDL.SDLModel.changeRegistrationUI(request.params.language,
+                        request.params.appID,
+                        request.params.appName);
                     this.sendUIResult(SDL.SDLModel.resultCode["SUCCESS"], request.id, request.method);
 
                     break;
@@ -889,7 +897,11 @@ FFW.UI = FFW.RPCObserver.create({
                 {
 
                     if (this.performAudioPassThruRequestID > 0) {
-                        this.sendError(SDL.SDLModel.resultCode["REJECTED"], request.id, request.method, 'PerformAudioPassThru request aborted!');
+                        this.sendError(
+                            SDL.SDLModel.resultCode["REJECTED"],
+                            request.id,
+                            request.method,
+                            'PerformAudioPassThru request aborted!');
                     } else {
 
                         this.performAudioPassThruRequestID = request.id;
@@ -1648,7 +1660,8 @@ FFW.UI = FFW.RPCObserver.create({
                 "id": requestID,
                 "error": {
                     "code": this.errorResponsePull[requestID].code,
-                    "message": "Unsupported " + this.errorResponsePull[requestID].type + " type. Available data in request was processed.",
+                    "message": "Unsupported " + this.errorResponsePull[requestID].type
+                    + " type. Available data in request was processed.",
                     "data": {
                         "method": "UI.PerformInteraction"
                     }
