@@ -253,7 +253,7 @@ void RequestController::terminateMobileRequest(
 
 void RequestController::terminateHMIRequest(const uint32_t &correlation_id) {
   LOG4CXX_AUTO_TRACE(logger_);
-  terminateRequest(correlation_id, 0);
+  terminateRequest(correlation_id, RequestInfo::HmiConnectoinKey);
 }
 
 void RequestController::terminateWaitingForExecutionAppRequests(
@@ -301,7 +301,7 @@ void RequestController::terminateAppRequests(
 
 void RequestController::terminateAllHMIRequests() {
   LOG4CXX_AUTO_TRACE(logger_);
-  terminateWaitingForResponseAppRequests(0);
+  terminateWaitingForResponseAppRequests(RequestInfo::HmiConnectoinKey);
 }
 
 void RequestController::terminateAllMobileRequests() {
@@ -378,7 +378,7 @@ void RequestController::onTimer() {
                  << " connection_key: " <<
                  probably_expired ->app_id() << " is expired");
     probably_expired->request()->onTimeOut();
-    if (0 == probably_expired ->app_id()) {
+    if (RequestInfo::HmiConnectoinKey == probably_expired ->app_id()) {
       LOG4CXX_DEBUG(logger_, "Erase HMI request: "
                     << probably_expired ->requestId());
       waiting_for_response_.Erase(probably_expired);

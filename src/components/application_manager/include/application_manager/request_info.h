@@ -112,7 +112,7 @@ namespace request_controller {
     }
     uint64_t hash();
     static uint64_t GenerateHash(uint32_t var1, uint32_t var2);
-
+    static uint32_t HmiConnectoinKey;
   protected:
     RequestPtr request_;
     TimevalStruct                 start_time_;
@@ -156,7 +156,7 @@ namespace request_controller {
                        const RequestInfoPtr rhs) const;
   };
 
-  const uint32_t HmiConnectoinKey;
+
   typedef std::set<RequestInfoPtr, RequestInfoTimeComparator> TimeSortedRequestInfoSet;
   typedef std::set<RequestInfoPtr, RequestInfoHashComparator> HashSortedRequestInfoSet;
 
