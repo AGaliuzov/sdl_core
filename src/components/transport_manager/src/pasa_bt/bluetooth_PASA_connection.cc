@@ -169,6 +169,7 @@ void BluetoothPASAConnection::Thread() {
     delete connect_error;
   }
   LOG4CXX_DEBUG(logger_, "Connection established");
+  controller_->ConnectDone(device_handle(), application_handle());
   while (!terminate_flag_) {
     Transmit();
   }
