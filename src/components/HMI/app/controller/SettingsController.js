@@ -208,7 +208,11 @@ SDL.SettingsController = Em.Object.create( {
      */
     permissionsFriendlyMessageUpdate: function(message, appID) {
 
+
+        SDL.SettingsController.simpleParseUserFriendlyMessageData(message);
+
         SDL.States.goToStates('settings.policies.appPermissions');
+
     },
 
     updateSDL: function() {
@@ -236,19 +240,22 @@ SDL.SettingsController = Em.Object.create( {
         }
 
         if (str) {
-            SDL.PopUp.create().appendTo('body').popupActivate(messages[0].textBody, SDL.SettingsController.OnAllowSDLFunctionality);
+            SDL.SettingsController.simpleParseUserFriendlyMessageData(message, SDL.SettingsController.OnAllowSDLFunctionality);
         } else {
-            SDL.PopUp.create().appendTo('body').popupActivate('WARNING!!!!!!!!!!!!!! There is no text from SDL in GetUserFriendlyMessage for DataConsent parameter!!! Please allow the device...', SDL.SettingsController.OnAllowSDLFunctionality);
+            SDL.PopUp.create().appendTo('body').popupActivate(
+                'WARNING!!!!!!!!!!!!!! '
+                + 'There is no text from SDL in GetUserFriendlyMessage for DataConsent parameter!!! Please allow the device...',
+                SDL.SettingsController.OnAllowSDLFunctionality);
         }
 
     },
 
     userFriendlyMessagePopUp: function(appId, messageCode) {
 
-        FFW.BasicCommunication.GetUserFriendlyMessage(function(message){SDL.PopUp.create().appendTo('body').popupActivate(message)}, appId, messageCode);
+        FFW.BasicCommunication.GetUserFriendlyMessage(SDL.SettingsController.simpleParseUserFriendlyMessageData(message), appId, messageCode);
     },
 
-    simpleParseUserFriendlyMessageData: function (messages) {
+    simpleParseUserFriendlyMessageData: function (messages, func) {
         var tts = "",
             text = "";
 
@@ -273,7 +280,7 @@ SDL.SettingsController = Em.Object.create( {
 
 
         if (text) {
-            SDL.PopUp.create().appendTo('body').popupActivate(text);
+            SDL.PopUp.create().appendTo('body').popupActivate(text, func);
         }
     },
 
