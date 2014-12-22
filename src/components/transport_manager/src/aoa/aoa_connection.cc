@@ -59,8 +59,8 @@ AOAConnection::~AOAConnection() {
 }
 
 bool AOAConnection::Init() {
-  controller_->ConnectDone(device_uid_, app_handle_);
-  return wrapper_->Subscribe(observer_);
+  bool ret = wrapper_->Subscribe(observer_);
+  return ret;
 }
 
 TransportAdapter::Error AOAConnection::SendData(::protocol_handler::RawMessagePtr message) {

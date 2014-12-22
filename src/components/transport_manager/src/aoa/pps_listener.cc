@@ -29,8 +29,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-#include "transport_manager/aoa/pps_device_scanner.h"
+#include "transport_manager/aoa/pps_listener.h"
 
 #include <stdlib.h>
 #include <unistd.h>
@@ -75,12 +74,12 @@ enum {
 /* The keys required by usblauncher to send to the device */
 static const char *kKeys[] = { "manufacturer", "model", "version",
 
-    NULL };
+NULL };
 
 /* The values used to switch the phone into AOA mode */
 static const char *kValues[] = { "Ford", "HMI", "1.0",
 
-    NULL };
+NULL };
 
 /*
  * Product list of known devices (currently sequential so we
@@ -89,19 +88,19 @@ static const char *kValues[] = { "Ford", "HMI", "1.0",
 static const uint32_t kProductList[] = { 0x2d00, 0x2d01, 0x2d02, 0x2d03, 0x2d04,
     0x2d05 };
 
-const std::string PPSDeviceScanner::kUSBStackPath = "/dev/io-usb/io-usb";
-const std::string PPSDeviceScanner::kPpsPathRoot = "/pps/qnx/device/";
-const std::string PPSDeviceScanner::kPpsPathAll = ".all";
-const std::string PPSDeviceScanner::kPpsPathCtrl = "usb_ctrl1";
+const std::string PPSListener::kUSBStackPath = "/dev/io-usb/io-usb";
+const std::string PPSListener::kPpsPathRoot = "/pps/qnx/device/";
+const std::string PPSListener::kPpsPathAll = ".all";
+const std::string PPSListener::kPpsPathCtrl = "usb_ctrl1";
 
-PPSDeviceScanner::PPSDeviceScanner(TransportAdapterController* controller)
+PPSListener::PPSListener(TransportAdapterController* controller)
     : initialised_(false),
       controller_(controller),
       fd_(-1),
-      thread_(new threads::Thread("PPS scanner", new PpsThreadDelegate(this))) {
+      thread_(threads::CreateThread("PPS scanner", new PpsThreadDelegate(this))) {
 }
 
-PPSDeviceScanner::~PPSDeviceScanner() {
+PPSListener::~PPSListener() {
   LOG4CXX_AUTO_TRACE(logger_);
   Terminate();
   thread_->join();
@@ -109,27 +108,21 @@ PPSDeviceScanner::~PPSDeviceScanner() {
   threads::DeleteThread(thread_);
 }
 
-TransportAdapter::Error PPSDeviceScanner::Init() {
+TransportAdapter::Error PPSListener::Init() {
   initialised_ = OpenPps();
-  thread_->start();
   return (initialised_) ? TransportAdapter::OK : TransportAdapter::FAIL;
 }
 
-TransportAdapter::Error PPSDeviceScanner::Scan() {
-  return TransportAdapter::NOT_SUPPORTED;
-}
-
-void PPSDeviceScanner::Terminate() {
+void PPSListener::Terminate() {
   initialised_ = false;
-  thread_->stop();
   ClosePps();
 }
 
-bool PPSDeviceScanner::IsInitialised() const {
+bool PPSListener::IsInitialised() const {
   return initialised_;
 }
 
-bool PPSDeviceScanner::OpenPps() {
+bool PPSListener::OpenPps() {
   LOG4CXX_TRACE(logger_, "AOA: open pps");
   const std::string kPath = kPpsPathRoot + kPpsPathAll;
   if ((fd_ = open(kPath.c_str(), O_RDONLY)) == -1) {
@@ -141,7 +134,7 @@ bool PPSDeviceScanner::OpenPps() {
   return true;
 }
 
-bool PPSDeviceScanner::ArmEvent(struct sigevent* event) {
+bool PPSListener::ArmEvent(struct sigevent* event) {
   LOG4CXX_TRACE(logger_, "AOA: arm event");
   uint8_t buf[2048];
   while (ionotify(fd_, _NOTIFY_ACTION_POLLARM, _NOTIFY_COND_INPUT, event)
@@ -155,7 +148,7 @@ bool PPSDeviceScanner::ArmEvent(struct sigevent* event) {
   return true;
 }
 
-std::string PPSDeviceScanner::ParsePpsData(char* ppsdata, const char** vals) {
+std::string PPSListener::ParsePpsData(char* ppsdata, const char** vals) {
   LOG4CXX_TRACE(logger_, "AOA: parse pps data");
   static const char* attrs[] = { "aoa", "busno", "devno", "manufacturer",
       "vendor_id", "product", "product_id", "serial_number", NULL };
@@ -171,7 +164,8 @@ std::string PPSDeviceScanner::ParsePpsData(char* ppsdata, const char** vals) {
       LOG4CXX_DEBUG(logger_, "AOA: object name " << object_name);
     } else if (rc == PPS_ATTRIBUTE && info.attr_index != -1) {
       LOG4CXX_DEBUG(
-          logger_, "AOA: index " << info.attr_index << ", value " << info.value);
+          logger_,
+          "AOA: index " << info.attr_index << ", value " << info.value);
       /* If our value matches our attribute index, keep a pointer to it */
       vals[info.attr_index] = info.value;
     }
@@ -180,7 +174,7 @@ std::string PPSDeviceScanner::ParsePpsData(char* ppsdata, const char** vals) {
   return object_name;
 }
 
-void PPSDeviceScanner::Process(uint8_t* buf, size_t size) {
+void PPSListener::Process(uint8_t* buf, size_t size) {
   LOG4CXX_TRACE(logger_, "AOA: process pps");
   if (!buf) {
     return;
@@ -195,22 +189,13 @@ void PPSDeviceScanner::Process(uint8_t* buf, size_t size) {
     FillUsbInfo(object_name, vals, &aoa_usb_info);
     if (IsAOAMode(aoa_usb_info)) {
       AddDevice(aoa_usb_info);
-      InitDevice(aoa_usb_info);
     } else {
       SwitchMode(object_name.c_str(), vals);
     }
   }
 }
 
-void PPSDeviceScanner::InitDevice(const AOAWrapper::AOAUsbInfo& aoa_usb_info) {
-  sync_primitives::AutoLock loker(devices_lock_);
-  DeviceContainer::iterator i = devices_.find(aoa_usb_info.serial_number);
-  if (i != devices_.end()) {
-    AOADevicePtr::static_pointer_cast<AOADynamicDevice>(i->second)->Init();
-  }
-}
-
-bool PPSDeviceScanner::IsAOAMode(const AOAWrapper::AOAUsbInfo& aoa_usb_info) {
+bool PPSListener::IsAOAMode(const AOAWrapper::AOAUsbInfo& aoa_usb_info) {
   LOG4CXX_TRACE(logger_, "AOA: check a mode device");
   /*
    * Check a device if it's already in AOA mode (product and vendor ID's
@@ -232,7 +217,7 @@ bool PPSDeviceScanner::IsAOAMode(const AOAWrapper::AOAUsbInfo& aoa_usb_info) {
   return false;
 }
 
-bool PPSDeviceScanner::IsAOADevice(const char** attrs) {
+bool PPSListener::IsAOADevice(const char** attrs) {
   LOG4CXX_TRACE(logger_, "AOA: check data about device");
   /* Make sure we support AOA and have all fields */
   for (int i = 0; i < ATTR_COUNT; i++) {
@@ -243,9 +228,9 @@ bool PPSDeviceScanner::IsAOADevice(const char** attrs) {
   return true;
 }
 
-void PPSDeviceScanner::FillUsbInfo(const std::string& object_name,
-                                   const char** attrs,
-                                   AOAWrapper::AOAUsbInfo* info) {
+void PPSListener::FillUsbInfo(const std::string& object_name,
+                              const char** attrs,
+                              AOAWrapper::AOAUsbInfo* info) {
   info->path = kUSBStackPath;
   info->aoa_version = strtoul(attrs[ATTR_AOA], NULL, 0);
   info->busno = strtoul(attrs[ATTR_BUSNO], NULL, 0);
@@ -258,7 +243,7 @@ void PPSDeviceScanner::FillUsbInfo(const std::string& object_name,
   info->iface = 0;
 }
 
-void PPSDeviceScanner::SwitchMode(const char* objname, const char** attrs) {
+void PPSListener::SwitchMode(const char* objname, const char** attrs) {
   LOG4CXX_TRACE(logger_, "AOA: switch mode");
   int i, rc, fd;
   char cmd[PATH_MAX];
@@ -302,46 +287,44 @@ void PPSDeviceScanner::SwitchMode(const char* objname, const char** attrs) {
   close(fd);
 }
 
-void PPSDeviceScanner::ClosePps() {
+void PPSListener::ClosePps() {
   LOG4CXX_TRACE(logger_, "AOA: close pps");
   close(fd_);
   fd_ = -1;
 }
 
-void PPSDeviceScanner::AddDevice(const AOAWrapper::AOAUsbInfo& aoa_usb_info) {
+void PPSListener::AddDevice(const AOAWrapper::AOAUsbInfo& aoa_usb_info) {
   LOG4CXX_TRACE(logger_, "AOA: add device");
-  AOADevicePtr aoa_device(
-      new AOADynamicDevice(aoa_usb_info.product, aoa_usb_info.serial_number,
-                           aoa_usb_info, controller_));
-  sync_primitives::AutoLock loker(devices_lock_);
-  devices_.insert(std::make_pair(aoa_usb_info.serial_number, aoa_device));
+  AOADynamicDevice* aoa_device = new AOADynamicDevice(
+      aoa_usb_info.product, aoa_usb_info.serial_number, aoa_usb_info,
+      controller_);
+  aoa_device->Init();
+  DeviceSptr device = AOADevicePtr::static_pointer_cast<AOADynamicDevice>(
+      aoa_device);
+  controller_->AddDevice(device);
 }
 
-void PPSDeviceScanner::NotifyDevicesUpdated() {
-  LOG4CXX_TRACE(logger_, "AOA: notify devices update");
-  DeviceVector devices;
-  devices_lock_.Acquire();
-  for (DeviceContainer::const_iterator i = devices_.begin();
-      i != devices_.end(); ++i) {
-    AOADevicePtr aoa_device = i->second;
-    DeviceSptr device = AOADevicePtr::static_pointer_cast<Device>(aoa_device);
-    devices.push_back(device);
-  }
-  devices_lock_.Release();
-  controller_->SearchDeviceDone(devices);
+TransportAdapter::Error PPSListener::StartListening() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  thread_->start();
+  return TransportAdapter::OK;
 }
 
-PPSDeviceScanner::PpsThreadDelegate::PpsThreadDelegate(PPSDeviceScanner* parent)
+TransportAdapter::Error PPSListener::StopListening() {
+  thread_->stop();
+  return TransportAdapter::OK;
+}
+
+PPSListener::PpsThreadDelegate::PpsThreadDelegate(PPSListener* parent)
     : parent_(parent) {
 }
 
-bool PPSDeviceScanner::PpsThreadDelegate::ArmEvent(struct sigevent* event) {
+bool PPSListener::PpsThreadDelegate::ArmEvent(struct sigevent* event) {
   return parent_->ArmEvent(event);
 }
 
-void PPSDeviceScanner::PpsThreadDelegate::OnPulse() {
+void PPSListener::PpsThreadDelegate::OnPulse() {
 }
 
 }  // namespace transport_adapter
 }  // namespace transport_manager
-

@@ -55,11 +55,6 @@ class AOADynamicDevice : public AOADevice {
   bool Init();
 
  private:
-  typedef std::map<AOAWrapper::AOAHandle, AOADevicePtr> DeviceContainer;
-
-  static DeviceContainer devices_;
-  static sync_primitives::Lock devices_lock_;
-
   AOADeviceLife* life_;
   TransportAdapterController* controller_;
   AOAWrapper::AOAUsbInfo aoa_usb_info_;
@@ -70,7 +65,6 @@ class AOADynamicDevice : public AOADevice {
   void LoopDevice(AOAWrapper::AOAHandle hdl);
   void StopDevice(AOAWrapper::AOAHandle hdl);
   void RemoveDevice(AOAWrapper::AOAHandle hdl);
-  void Notify();
 
   class DeviceLife : public AOADeviceLife {
    public:

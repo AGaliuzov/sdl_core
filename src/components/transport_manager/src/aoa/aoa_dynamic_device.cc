@@ -61,35 +61,14 @@ bool AOADynamicDevice::Init() {
   return AOAWrapper::Init(life_, aoa_usb_info_);
 }
 
-void AOADynamicDevice::Notify() {
-  LOG4CXX_TRACE(logger_, "AOA: notify about all connected devices");
-  DeviceVector devices;
-  devices_lock_.Acquire();
-  for (DeviceContainer::const_iterator i = devices_.begin();
-      i != devices_.end(); ++i) {
-    AOADevicePtr aoa_device = i->second;
-    DeviceSptr device = AOADevicePtr::static_pointer_cast<Device>(aoa_device);
-    devices.push_back(device);
-  }
-  devices_lock_.Release();
-  controller_->SearchDeviceDone(devices);
-}
-
 void AOADynamicDevice::AddDevice(AOAWrapper::AOAHandle hdl) {
   LOG4CXX_TRACE(logger_, "AOA: add new device " << hdl);
   set_handle(hdl);
-  devices_lock_.Acquire();
-  devices_.insert(std::make_pair(hdl, this));
-  devices_lock_.Release();
-  Notify();
+  controller_->ApplicationListUpdated(unique_device_id());
 }
 
 void AOADynamicDevice::RemoveDevice(AOAWrapper::AOAHandle hdl) {
   LOG4CXX_TRACE(logger_, "AOA: remove device " << hdl);
-  devices_lock_.Acquire();
-  devices_.erase(hdl);
-  devices_lock_.Release();
-  Notify();
 }
 
 void AOADynamicDevice::LoopDevice(AOAWrapper::AOAHandle hdl) {

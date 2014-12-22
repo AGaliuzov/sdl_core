@@ -29,8 +29,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-#include "transport_manager/aoa/aoa_device_scanner.h"
+#include "transport_manager/aoa/aoa_listener.h"
 
 #include <sstream>
 
@@ -43,59 +42,29 @@ namespace transport_adapter {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
 
-const std::string AOADeviceScanner::kPathToConfig = "";  // default on QNX /etc/mm/aoa.conf
+const std::string AOAListener::kPathToConfig = "";  // default on QNX /etc/mm/aoa.conf
 
-AOADeviceScanner::AOADeviceScanner(TransportAdapterController* controller)
-    : initialised_(false),
-      life_(NULL),
+AOAListener::AOAListener(TransportAdapterController* controller)
+    : life_(NULL),
       controller_(controller) {
 }
 
-TransportAdapter::Error AOADeviceScanner::Init() {
-  LOG4CXX_TRACE(logger_, "AOA: init device scanner");
-  life_ = new DeviceLife(this);
-  if (kPathToConfig.empty()) {
-    initialised_ = AOAWrapper::Init(life_);
-  } else {
-    initialised_ = AOAWrapper::Init(life_, kPathToConfig);
-  }
-  return (initialised_) ? TransportAdapter::OK : TransportAdapter::FAIL;
+TransportAdapter::Error AOAListener::Init() {
+  return TransportAdapter::OK;
 }
 
-TransportAdapter::Error AOADeviceScanner::Scan() {
-  return TransportAdapter::NOT_SUPPORTED;
+void AOAListener::Terminate() {
 }
 
-void AOADeviceScanner::Terminate() {
-  AOAWrapper::Shutdown();
-  delete life_;
-  life_ = NULL;
+bool AOAListener::IsInitialised() const {
+  return true;
 }
 
-bool AOADeviceScanner::IsInitialised() const {
-  return initialised_;
-}
-
-void AOADeviceScanner::Notify() {
-  LOG4CXX_TRACE(logger_, "AOA: notify about all connected devices");
-  DeviceVector devices;
-  devices_lock_.Acquire();
-  for (DeviceContainer::const_iterator i = devices_.begin();
-      i != devices_.end(); ++i) {
-    AOADevicePtr aoa_device = i->second;
-    DeviceSptr device = AOADevicePtr::static_pointer_cast<Device>(aoa_device);
-    devices.push_back(device);
-  }
-  devices_lock_.Release();
-  controller_->SearchDeviceDone(devices);
-}
-
-std::string AOADeviceScanner::GetName(const std::string& unique_id) {
+std::string AOAListener::GetName(const std::string& unique_id) {
   return "AOA device " + unique_id;
 }
 
-std::string AOADeviceScanner::GetUniqueId() {
-  sync_primitives::AutoLock locker(devices_lock_);
+std::string AOAListener::GetUniqueId() {
   static int counter = 0;
   ++counter;
   std::ostringstream stream;
@@ -103,26 +72,21 @@ std::string AOADeviceScanner::GetUniqueId() {
   return "#_" + stream.str() + "_aoa";
 }
 
-void AOADeviceScanner::AddDevice(AOAWrapper::AOAHandle hdl) {
+void AOAListener::AddDevice(AOAWrapper::AOAHandle hdl) {
   LOG4CXX_TRACE(logger_, "AOA: add new device " << hdl);
   const std::string unique_id = GetUniqueId();
   const std::string name = GetName(unique_id);
-  AOADevicePtr aoa_device(new AOADevice(hdl, name, unique_id));
-  devices_lock_.Acquire();
-  devices_.insert(std::make_pair(hdl, aoa_device));
-  devices_lock_.Release();
-  Notify();
+  DeviceSptr aoa_device(new AOADevice(hdl, name, unique_id));
+  controller_->AddDevice(aoa_device);
+  DeviceUID device_uid = aoa_device->unique_device_id();
+  controller_->ApplicationListUpdated(device_uid);
 }
 
-void AOADeviceScanner::RemoveDevice(AOAWrapper::AOAHandle hdl) {
+void AOAListener::RemoveDevice(AOAWrapper::AOAHandle hdl) {
   LOG4CXX_TRACE(logger_, "AOA: remove device " << hdl);
-  devices_lock_.Acquire();
-  devices_.erase(hdl);
-  devices_lock_.Release();
-  Notify();
 }
 
-void AOADeviceScanner::LoopDevice(AOAWrapper::AOAHandle hdl) {
+void AOAListener::LoopDevice(AOAWrapper::AOAHandle hdl) {
   LOG4CXX_TRACE(logger_, "AOA: loop of life device " << hdl);
   sync_primitives::AutoLock locker(life_lock_);
   while (AOAWrapper::IsHandleValid(hdl)) {
@@ -134,23 +98,42 @@ void AOADeviceScanner::LoopDevice(AOAWrapper::AOAHandle hdl) {
   }
 }
 
-void AOADeviceScanner::StopDevice(AOAWrapper::AOAHandle hdl) {
+void AOAListener::StopDevice(AOAWrapper::AOAHandle hdl) {
   LOG4CXX_TRACE(logger_, "AOA: stop device " << hdl);
   life_cond_.Broadcast();
 }
 
-AOADeviceScanner::DeviceLife::DeviceLife(AOADeviceScanner* parent)
+AOAListener::DeviceLife::DeviceLife(AOAListener* parent)
     : parent_(parent) {
 }
 
-void AOADeviceScanner::DeviceLife::Loop(AOAWrapper::AOAHandle hdl) {
+void AOAListener::DeviceLife::Loop(AOAWrapper::AOAHandle hdl) {
   parent_->AddDevice(hdl);
   parent_->LoopDevice(hdl);
   parent_->RemoveDevice(hdl);
 }
 
-void AOADeviceScanner::DeviceLife::OnDied(AOAWrapper::AOAHandle hdl) {
+void AOAListener::DeviceLife::OnDied(AOAWrapper::AOAHandle hdl) {
   parent_->StopDevice(hdl);
+}
+
+TransportAdapter::Error AOAListener::StartListening() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  life_ = new DeviceLife(this);
+  bool ret;
+  if (kPathToConfig.empty()) {
+    ret = AOAWrapper::Init(life_);
+  } else {
+    ret = AOAWrapper::Init(life_, kPathToConfig);
+  }
+  return ret ? TransportAdapter::OK : TransportAdapter::FAIL;
+}
+
+TransportAdapter::Error AOAListener::StopListening() {
+  AOAWrapper::Shutdown();
+  delete life_;
+  life_ = NULL;
+  return TransportAdapter::OK;
 }
 
 }  // namespace transport_adapter

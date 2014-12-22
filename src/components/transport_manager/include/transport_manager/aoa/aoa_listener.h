@@ -29,16 +29,15 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_AOA_AOA_DEVICE_SCANNER_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_AOA_AOA_DEVICE_SCANNER_H_
+#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_SRC_AOA_AOA_LISTENER_H_
+#define SRC_COMPONENTS_TRANSPORT_MANAGER_SRC_AOA_AOA_LISTENER_H_
 
 #include <map>
 
 #include "utils/lock.h"
 #include "utils/conditional_variable.h"
 
-#include "transport_manager/transport_adapter/device_scanner.h"
+#include "transport_manager/transport_adapter/client_connection_listener.h"
 #include "transport_manager/aoa/aoa_device.h"
 #include "transport_manager/aoa/aoa_wrapper.h"
 
@@ -47,25 +46,21 @@ namespace transport_adapter {
 
 class TransportAdapterController;
 
-class AOADeviceScanner : public DeviceScanner {
+class AOAListener : public ClientConnectionListener {
  public:
-  explicit AOADeviceScanner(TransportAdapterController* controller);
+  explicit AOAListener(TransportAdapterController* controller);
 
  protected:
   virtual TransportAdapter::Error Init();
-  virtual TransportAdapter::Error Scan();
   virtual void Terminate();
+  virtual TransportAdapter::Error StartListening();
+  virtual TransportAdapter::Error StopListening();
   virtual bool IsInitialised() const;
 
  private:
-  typedef std::map<AOAWrapper::AOAHandle, AOADevicePtr> DeviceContainer;
-
   static const std::string kPathToConfig;
-  bool initialised_;
   AOADeviceLife* life_;
   TransportAdapterController* controller_;
-  DeviceContainer devices_;
-  sync_primitives::Lock devices_lock_;
   sync_primitives::Lock life_lock_;
   sync_primitives::ConditionalVariable life_cond_;
 
@@ -74,21 +69,22 @@ class AOADeviceScanner : public DeviceScanner {
   void StopDevice(AOAWrapper::AOAHandle hdl);
   void RemoveDevice(AOAWrapper::AOAHandle hdl);
 
-  void Notify();
   std::string GetName(const std::string& unique_id);
   std::string GetUniqueId();
 
   class DeviceLife : public AOADeviceLife {
    public:
-    explicit DeviceLife(AOADeviceScanner* parent);
+    explicit DeviceLife(AOAListener* parent);
     void Loop(AOAWrapper::AOAHandle hdl);
     void OnDied(AOAWrapper::AOAHandle hdl);
    private:
-    AOADeviceScanner* parent_;
+    AOAListener* parent_;
   };
 };
 
 }  // namespace transport_adapter
 }  // namespace transport_manager
 
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_AOA_AOA_DEVICE_SCANNER_H_
+
+
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_SRC_AOA_AOA_LISTENER_H_
