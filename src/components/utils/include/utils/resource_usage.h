@@ -38,9 +38,7 @@
 #include <sys/procfs.h>
 #endif
 
-#define FRIEND_TEST(test_case_name, test_name)\
-friend class test_case_name##_##test_name##_Test
-
+#include "utils/macro.h"
 #include <string>
 #include <iostream>
 
@@ -123,12 +121,7 @@ class Resources {
 
 private:
 
-  /*
-   * @brief reads /proc/PID/stat file on linux
-   *        do not work on QNX ( return false, output wan't be changed )
-   * @param output - storage for result string ( there will be separated content of /proc/PID/stat )
-   * @return true on succes false onb fail
-   */
+#ifdef BUILD_TESTS
   friend class ResourceUsagePrivateTest;
   FRIEND_TEST(ResourceUsagePrivateTest, ReadStatFileTest);
   FRIEND_TEST(ResourceUsagePrivateTest, GetProcInfoTest);
@@ -136,9 +129,15 @@ private:
   FRIEND_TEST(ResourceUsagePrivateTest, GetStatPathTest_FileExists);
   FRIEND_TEST(ResourceUsagePrivateTest, GetStatPathTest_ReadFile);
   FRIEND_TEST(ResourceUsagePrivateTest, GetProcPathTest);
+#endif
 
+  /*
+   * @brief reads /proc/PID/stat file on linux
+   *        do not work on QNX ( return false, output wan't be changed )
+   * @param output - storage for result string ( there will be separated content of /proc/PID/stat )
+   * @return true on succes false onb fail
+   */
   static bool ReadStatFile(std::string& output);
-
 
   /*
    * @brief Grab information about curent process
