@@ -49,7 +49,7 @@ HMIRequestInfo::HMIRequestInfo(
     const uint64_t timeout_sec):
   RequestInfo(request, HMIRequest, timeout_sec) {
     correlation_id_ = request_->correlation_id();
-    app_id_ = HmiConnectoinKey;
+    app_id_ = RequestInfo::HmiConnectoinKey;
 }
 
 HMIRequestInfo::HMIRequestInfo(
@@ -58,7 +58,7 @@ HMIRequestInfo::HMIRequestInfo(
     const uint64_t timeout_sec):
   RequestInfo(request, HMIRequest, start_time, timeout_sec) {
     correlation_id_ = request_->correlation_id();
-    app_id_ = HmiConnectoinKey;
+    app_id_ = RequestInfo::HmiConnectoinKey;
 }
 
 MobileRequestInfo::MobileRequestInfo(
@@ -173,7 +173,7 @@ RequestInfoPtr RequestInfoSet::Find(const uint32_t connection_key,
   return result;
 }
 
-RequestInfoPtr RequestInfoSet::Front() {contriller
+RequestInfoPtr RequestInfoSet::Front() {
   RequestInfoPtr result;
   TimeSortedRequestInfoSet::iterator it = time_sorted_pending_requests_.begin();
   if (it != time_sorted_pending_requests_.end()) {
@@ -228,7 +228,7 @@ bool RequestInfoSet::Erase(const RequestInfoPtr request_info) {
 bool RequestInfoSet::Erase(HashSortedRequestInfoSet::iterator it) {
   CheckSetSizes();
   RequestInfoPtr request_info = *it;
-  Erase(request_info);
+  return Erase(request_info);
 }
 
 
@@ -257,7 +257,7 @@ uint32_t RequestInfoSet::RemoveByConnectionKey(uint32_t connection_key) {
 
 uint32_t RequestInfoSet::RemoveMobileRequests() {
   LOG4CXX_AUTO_TRACE(logger_);
-  return RemoveRequests(AppIdCompararator(AppIdCompararator::NotEqual, HmiConnectoinKey));
+  return RemoveRequests(AppIdCompararator(AppIdCompararator::NotEqual, RequestInfo::HmiConnectoinKey));
 }
 
 const ssize_t RequestInfoSet::Size() {
