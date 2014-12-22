@@ -38,7 +38,12 @@ set(testSources
   main.cc
   messagemeter_test.cc
   file_system_test.cc
-  date_time_test.cc)
+  date_time_test.cc
+  )
+
+if (BUILD_BACKTRACE_SUPPORT)
+  list(APPEND testSources back_trace_test.cc)
+endif()
 
 set(testLibraries
   gmock
