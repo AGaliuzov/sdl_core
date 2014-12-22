@@ -262,7 +262,7 @@ void RequestController::terminateWaitingForExecutionAppRequests(
   LOG4CXX_DEBUG(logger_, "app_id: "  << app_id
                 << "Waiting for execution" << mobile_request_list_.size());
   AutoLock
-      mobile_requests_auto_lock(mobile_request_list_lock_);
+      auto_lock(mobile_request_list_lock_);
   std::list<RequestPtr>::iterator request_it = mobile_request_list_.begin();
   while (mobile_request_list_.end() != request_it) {
     RequestPtr request = (*request_it);
@@ -472,7 +472,6 @@ void RequestController::UpdateTimer() {
       const uint64_t secs = end_time.tv_sec - current_time.tv_sec;
       LOG4CXX_DEBUG(logger_, "Sleep for " << secs << " secs");
       // Timeout for bigger than 5 minutes is a mistake
-      DCHECK(secs < 300);
       timer_.updateTimeOut(secs);
     } else {
       LOG4CXX_WARN(logger_, "Request app_id = " << front->app_id()

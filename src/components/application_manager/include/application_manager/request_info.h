@@ -140,6 +140,8 @@ namespace request_controller {
                      const  uint64_t timeout_sec);
   };
 
+  // Request info, for searching in request info set by log_n time
+  // Returns correct hash by app_id and corr_id
   struct FakeRequestInfo :public RequestInfo {
       FakeRequestInfo(uint32_t app_id, uint32_t correaltion_id);
   };
@@ -154,6 +156,7 @@ namespace request_controller {
                        const RequestInfoPtr rhs) const;
   };
 
+  const uint32_t HmiConnectoinKey;
   typedef std::set<RequestInfoPtr, RequestInfoTimeComparator> TimeSortedRequestInfoSet;
   typedef std::set<RequestInfoPtr, RequestInfoHashComparator> HashSortedRequestInfoSet;
 

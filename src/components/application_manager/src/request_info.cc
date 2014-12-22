@@ -129,15 +129,22 @@ FakeRequestInfo::FakeRequestInfo(uint32_t app_id, uint32_t correaltion_id) {
 
 bool RequestInfoSet::Add(RequestInfoPtr request_info) {
   DCHECK(request_info);
+  if (!request_info) {
+    LOG4CXX_ERROR(logger_, "NULL ponter request_info");
+    return false;
+  }
   LOG4CXX_ERROR(logger_, "Add request app_id = " << request_info->app_id()
                 << "; corr_id = " << request_info->requestId());
   CheckSetSizes();
   const std::pair<HashSortedRequestInfoSet::iterator, bool>& insert_resilt =
       hash_sorted_pending_requests_.insert(request_info);
   if (insert_resilt.second == true) {
-    const std::pair<HashSortedRequestInfoSet::iterator, bool>& insert_resilt =
+    const std::pair<TimeSortedRequestInfoSet::iterator, bool>& insert_resilt =
         time_sorted_pending_requests_.insert(request_info);
     DCHECK(insert_resilt.second);
+    if (!insert_resilt.second) {
+      return false;
+    }
     CheckSetSizes();
     return true;
   } else {
@@ -151,6 +158,8 @@ bool RequestInfoSet::Add(RequestInfoPtr request_info) {
 RequestInfoPtr RequestInfoSet::Find(const uint32_t connection_key,
                                     const uint32_t correlation_id) {
   RequestInfoPtr result;
+
+  // Request info for searching in request info set by log_n time
   utils::SharedPtr<FakeRequestInfo> request_info_for_search(
       new FakeRequestInfo(connection_key, correlation_id));
 
@@ -162,7 +171,7 @@ RequestInfoPtr RequestInfoSet::Find(const uint32_t connection_key,
   return result;
 }
 
-RequestInfoPtr RequestInfoSet::Front() {
+RequestInfoPtr RequestInfoSet::Front() {contriller
   RequestInfoPtr result;
   TimeSortedRequestInfoSet::iterator it = time_sorted_pending_requests_.begin();
   if (it != time_sorted_pending_requests_.end()) {
@@ -186,16 +195,24 @@ RequestInfoPtr RequestInfoSet::FrontWithNotNullTimeout() {
   return result;
 }
 
-
 bool RequestInfoSet::Erase(const RequestInfoPtr request_info) {
   DCHECK(request_info);
+  if (!request_info) {
+    LOG4CXX_ERROR(logger_, "NULL ponter request_info");
+    return false;
+  }
   CheckSetSizes();
   size_t erased_count =
       hash_sorted_pending_requests_.erase(request_info);
   DCHECK((erased_count <= 1));
   if (1 == erased_count) {
-    TimeSortedRequestInfoSet::iterator it = time_sorted_pending_requests_.find(request_info);
+    TimeSortedRequestInfoSet::iterator it =
+        time_sorted_pending_requests_.find(request_info);
     DCHECK(it != time_sorted_pending_requests_.end());
+    if (it == time_sorted_pending_requests_.end()) {
+      LOG4CXX_ERROR(logger_, "Can't find request in time_sorted_requests_");
+      return false;
+    }
     const RequestInfoPtr found = *it;
     DCHECK(request_info == found);
     time_sorted_pending_requests_.erase(it);
@@ -209,16 +226,7 @@ bool RequestInfoSet::Erase(const RequestInfoPtr request_info) {
 bool RequestInfoSet::Erase(HashSortedRequestInfoSet::iterator it) {
   CheckSetSizes();
   RequestInfoPtr request_info = *it;
-  size_t erased_count =
-      time_sorted_pending_requests_.erase(request_info);
-  DCHECK((erased_count <= 1));
-  if (1 == erased_count) {
-    hash_sorted_pending_requests_.erase(it);
-    CheckSetSizes();
-    return true;
-  }
-  CheckSetSizes();
-  return false;
+  Erase(request_info);
 }
 
 
