@@ -6,7 +6,9 @@ set(testSources
   main.cc
   messagemeter_test.cc
   file_system_test.cc
-  date_time_test.cc)
+  resource_usage_test.cc
+  date_time_test.cc
+  )
 
 set(testLibraries
   gmock

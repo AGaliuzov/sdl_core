@@ -38,6 +38,9 @@
 #include <sys/procfs.h>
 #endif
 
+#define FRIEND_TEST(test_case_name, test_name)\
+friend class test_case_name##_##test_name##_Test
+
 #include <string>
 #include <iostream>
 
@@ -126,7 +129,16 @@ private:
    * @param output - storage for result string ( there will be separated content of /proc/PID/stat )
    * @return true on succes false onb fail
    */
+  friend class ResourceUsagePrivateTest;
+  FRIEND_TEST(ResourceUsagePrivateTest, ReadStatFileTest);
+  FRIEND_TEST(ResourceUsagePrivateTest, GetProcInfoTest);
+  FRIEND_TEST(ResourceUsagePrivateTest, GetMemInfoTest);
+  FRIEND_TEST(ResourceUsagePrivateTest, GetStatPathTest_FileExists);
+  FRIEND_TEST(ResourceUsagePrivateTest, GetStatPathTest_ReadFile);
+  FRIEND_TEST(ResourceUsagePrivateTest, GetProcPathTest);
+
   static bool ReadStatFile(std::string& output);
+
 
   /*
    * @brief Grab information about curent process
