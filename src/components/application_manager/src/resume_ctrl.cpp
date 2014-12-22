@@ -527,22 +527,22 @@ bool ResumeCtrl::CheckPersistenceFilesForResumption(ApplicationSharedPtr applica
     return false;
   }
 
-  const Json::Value& saved_app = GetSavedApplications()[idx];
+    const Json::Value& saved_app = GetSavedApplications()[idx];
 
-  if (!saved_app.isMember(strings::application_commands) ||
-      !saved_app.isMember(strings::application_choise_sets)) {
-     LOG4CXX_WARN(logger_, "application_commands or "<<
-                  "application_choise_sets are not exists");
-    return false;
-  }
+    if (!saved_app.isMember(strings::application_commands) ||
+        !saved_app.isMember(strings::application_choise_sets)) {
+       LOG4CXX_WARN(logger_, "application_commands or "
+                    "application_choise_sets are not exists");
+      return false;
+    }
 
-  if (!CheckIcons(application, saved_app[strings::application_commands])) {
-    return false;
-  }
-  if (!CheckIcons(application, saved_app[strings::application_choise_sets])) {
-    return false;
-  }
-
+    if (!CheckIcons(application, saved_app[strings::application_commands])) {
+      return false;
+    }
+    if (!CheckIcons(application, saved_app[strings::application_choise_sets])) {
+      return false;
+    }
+  LOG4CXX_DEBUG(logger_, " result = true");
   return true;
 }
 
@@ -965,9 +965,9 @@ bool ResumeCtrl::CheckIcons(ApplicationSharedPtr application,
       if (!json_command.isNull()) {
         smart_objects::SmartObject message(smart_objects::SmartType::SmartType_Map);
         Formatters::CFormatterJsonBase::jsonValueToObj(json_command, message);
-
-        result = (mobile_apis::Result::INVALID_DATA ==
-            MessageHelper::VerifyImageFiles(message, application));
+        const mobile_apis::Result::eType verify_images =
+            MessageHelper::VerifyImageFiles(message, application);
+        result = (mobile_apis::Result::INVALID_DATA != verify_images);
       } else {
         LOG4CXX_WARN(logger_, "Invalid json object");
       }
@@ -975,7 +975,7 @@ bool ResumeCtrl::CheckIcons(ApplicationSharedPtr application,
   } else {
         LOG4CXX_WARN(logger_, "Passed json object is null");
   }
-  LOG4CXX_DEBUG(logger_, "CheckIcons result");
+  LOG4CXX_DEBUG(logger_, "CheckIcons result " << result);
   return result;
 }
 
