@@ -947,10 +947,16 @@ SDL.SDLModel = Em.Object.create({
      *
      * @type {String} lang
      */
-    changeRegistrationUI: function (lang, appID) {
+    changeRegistrationUI: function (lang, appID, appName) {
 
         if (SDL.SDLController.getApplicationModel(appID)) {
             SDL.SDLController.getApplicationModel(appID).set('UILanguage', lang);
+        }
+
+        if (appName) {
+            SDL.SDLMediaController.currentAppId = 0;
+            SDL.SDLController.getApplicationModel(appID).appName = appName;
+            SDL.SDLMediaController.set('currentAppId', appID);
         }
     },
 
