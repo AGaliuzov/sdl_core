@@ -39,7 +39,7 @@ namespace utils {
 
 using namespace ::utils;
 
-TEST(SystemTest, CommandCreated_WithoutArguments) {
+TEST(SystemTest, Constructor_WithCommandName_ArgsStored) {
   // Command creation without any arguments
   std::string test_command("ls");
   System object(test_command);
@@ -49,7 +49,7 @@ TEST(SystemTest, CommandCreated_WithoutArguments) {
   ASSERT_EQ(object.argv().size(), 1);
 }
 
-TEST(SystemTest, CommandCreated_WithArguments_Positive) {
+TEST(SystemTest, Constructor_WithFileNameCommandName_ArgsStored) {
   // Command creation with 1 argument
   std::string test_command("ls");
   std::string test_list_args("-la");
@@ -59,45 +59,47 @@ TEST(SystemTest, CommandCreated_WithArguments_Positive) {
   ASSERT_EQ(object.command(), test_command);
 
   // Check if actual number of arguments arec correct
-  ASSERT_EQ(object.argv().size(), 1);// Correct number of arguments is 1
+  ASSERT_EQ(object.argv().size(), 1);  // Correct number of arguments is 1
 
 }
 
-TEST(SystemTest, AddedArgumentsToExistingCommand_Positive) {
-  std::string test_command("ls");
-  const char* args[] = {"-la", "cp", "rm", "mv"};
+TEST(SystemTest, AddArgsToCommand_TwoArgs_TwoAdded) {
+  std::string test_command("echo");
+  const char* args[] = {"-e", "\b"};
   System object(test_command);
 
   // Adding arguments
   object.Add(args[0]);
   object.Add(args[1]);
-  object.Add(args[2]);
-  object.Add(args[3]);
-
-  // Check if the object was created with correct command
-  ASSERT_EQ(object.command(), test_command);
-
-  // Check if the object was appended by correct argument
-  ASSERT_STREQ(object.argv().back().c_str(), args[3]);
 
   // Check if actual number of arguments equal args stored in object
-  ASSERT_EQ(object.argv().size(), 5);// Correct number of arguments is 5
+  ASSERT_EQ(object.argv().size(), 3);  // Correct number of arguments is 3
+
+  // Check if the object was appended by correct argument
+  ASSERT_STREQ(object.argv().back().c_str(), args[1]);
 }
 
-TEST(SystemTest, SynchronousInvokeExistingCommand_Positive) {
-  std::string test_command("ls");
-  std::string test_list_args("-la");
-  System object(test_command, test_list_args);
+TEST(SystemTest, SynchronousInvokeAnyExistingCommandOrScript_InvokeSuccessfull) {
+  const std::string test_command("./testscript.sh");
+  System object(test_command);
 
   // Check if Execute() method is working properly with synchronous command invoke
-
   ASSERT_TRUE(object.Execute(true));
 }
 
-TEST(SystemTest, ASynchronousInvokeExistingCommand_Positive) {
-  std::string test_command("ls");
-  std::string test_list_args("-la");
+TEST(SystemTest, SynchronousInvokeAnyIncorrectCommand_InvokeFailed) {
+  std::string test_command("abracadabra");  //incorrect command
+  std::string test_list_args("wikipedia");
   System object(test_command, test_list_args);
+
+  // Check if Execute() method will fail with not correct command (synchronous command invoke)
+  ASSERT_FALSE(object.Execute(true));
+}
+
+TEST(SystemTest, ASynchronousInvokeAnyCommand_Positive) {
+  std::string test_command("echor345436346");  //Possible to put here any command (existing or incorrect)
+  std::string test_list_args("wikipedia");     //as command will never be executed from child process
+  System object(test_command, test_list_args); //as parrent process does not wait for child process to be finished
 
   // Check if Execute() method is working properly with asynchronous command invoke
   ASSERT_TRUE(object.Execute());
@@ -105,4 +107,4 @@ TEST(SystemTest, ASynchronousInvokeExistingCommand_Positive) {
 
 } // namespace utils
 } // namespace components
-}  // namespace test
+} // namespace test
