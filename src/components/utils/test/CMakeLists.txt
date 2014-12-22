@@ -15,6 +15,7 @@ set(testLibraries
   gtest
   Utils)
 
+file(COPY testscript.sh DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 add_executable(utils_test ${testSources})
 target_link_libraries(utils_test ${testLibraries})
 

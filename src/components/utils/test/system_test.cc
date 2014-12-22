@@ -41,7 +41,7 @@ using namespace ::utils;
 
 TEST(SystemTest, Constructor_WithCommandName_ArgsStored) {
   // Command creation without any arguments
-  std::string test_command("ls");
+  const std::string test_command("ls");
   System object(test_command);
 
   // Check if the object was created with correct command
@@ -51,8 +51,8 @@ TEST(SystemTest, Constructor_WithCommandName_ArgsStored) {
 
 TEST(SystemTest, Constructor_WithFileNameCommandName_ArgsStored) {
   // Command creation with 1 argument
-  std::string test_command("ls");
-  std::string test_list_args("-la");
+  const std::string test_command("ls");
+  const std::string test_list_args("-la");
   System object(test_command, test_list_args);
 
   // Check if the object was created with correct command
@@ -63,8 +63,8 @@ TEST(SystemTest, Constructor_WithFileNameCommandName_ArgsStored) {
 
 }
 
-TEST(SystemTest, AddArgsToCommand_TwoArgs_TwoAdded) {
-  std::string test_command("echo");
+TEST(SystemTest, AddArgsToCommand_CheckArgsNumber_ArgsNumberCorrect) {
+  const std::string test_command("echo");
   const char* args[] = {"-e", "\b"};
   System object(test_command);
 
@@ -74,10 +74,23 @@ TEST(SystemTest, AddArgsToCommand_TwoArgs_TwoAdded) {
 
   // Check if actual number of arguments equal args stored in object
   ASSERT_EQ(object.argv().size(), 3);  // Correct number of arguments is 3
-
-  // Check if the object was appended by correct argument
-  ASSERT_STREQ(object.argv().back().c_str(), args[1]);
 }
+
+TEST(SystemTest, AddArgsToCommand_CheckOrder_OrderCorrect) {
+  const std::string test_command("echo");
+  const char* args[] = {"-e", "\b"};
+  System object(test_command);
+
+  // Adding arguments
+  object.Add(args[0]);
+  object.Add(args[1]);
+
+  // Check if the object was appended by correct arguments in correct order
+  ASSERT_STREQ(object.argv()[1].c_str(), args[0]);
+  ASSERT_STREQ(object.argv()[2].c_str(), args[1]);
+}
+
+
 
 TEST(SystemTest, SynchronousInvokeAnyExistingCommandOrScript_InvokeSuccessfull) {
   const std::string test_command("./testscript.sh");
@@ -88,8 +101,8 @@ TEST(SystemTest, SynchronousInvokeAnyExistingCommandOrScript_InvokeSuccessfull) 
 }
 
 TEST(SystemTest, SynchronousInvokeAnyIncorrectCommand_InvokeFailed) {
-  std::string test_command("abracadabra");  //incorrect command
-  std::string test_list_args("wikipedia");
+  const std::string test_command("abracadabra");  //incorrect command
+  const std::string test_list_args("wikipedia");
   System object(test_command, test_list_args);
 
   // Check if Execute() method will fail with not correct command (synchronous command invoke)
@@ -97,9 +110,9 @@ TEST(SystemTest, SynchronousInvokeAnyIncorrectCommand_InvokeFailed) {
 }
 
 TEST(SystemTest, ASynchronousInvokeAnyCommand_Positive) {
-  std::string test_command("echor345436346");  //Possible to put here any command (existing or incorrect)
-  std::string test_list_args("wikipedia");     //as command will never be executed from child process
-  System object(test_command, test_list_args); //as parrent process does not wait for child process to be finished
+  const std::string test_command("echor345436346");  //Possible to put here any command (existing or incorrect)
+  const std::string test_list_args("wikipedia");    //as command will never be executed from child process
+  System object(test_command, test_list_args);      //as parrent process does not wait for child process to be finished
 
   // Check if Execute() method is working properly with asynchronous command invoke
   ASSERT_TRUE(object.Execute());
