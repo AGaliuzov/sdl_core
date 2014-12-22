@@ -167,21 +167,21 @@ TEST_F(SecurityManagerTest, SetNULL_Intefaces) {
   /*
    * Add/Remove NULL listeners do not any additional logics
    */
-  TEST_F(SecurityManagerTest, Listeners_NULL) {
+TEST_F(SecurityManagerTest, Listeners_NULL) {
     security_manager_->AddListener(NULL);
     security_manager_->RemoveListener(NULL);
   }
   /*
    * Twice remove listener
    */
-  TEST_F(SecurityManagerTest, Listeners_TwiceRemoveListeners) {
+TEST_F(SecurityManagerTest, Listeners_TwiceRemoveListeners) {
     security_manager_->RemoveListener(&mock_sm_listener);
     security_manager_->RemoveListener(&mock_sm_listener);
   }
   /*
    * Add and remove listeners
    */
-  TEST_F(SecurityManagerTest, Listeners_NoListeners) {
+TEST_F(SecurityManagerTest, Listeners_NoListeners) {
     // Check correct removing listener
     security_manager_->RemoveListener(&mock_sm_listener);
 
@@ -196,7 +196,7 @@ TEST_F(SecurityManagerTest, SetNULL_Intefaces) {
   /*
    * Notifying two listeners
    */
-  TEST_F(SecurityManagerTest, Listeners_Notifying) {
+TEST_F(SecurityManagerTest, Listeners_Notifying) {
     // Check correct removing listener
     security_manager_->RemoveListener(&mock_sm_listener);
 
@@ -236,14 +236,12 @@ TEST_F(SecurityManagerTest, SetNULL_Intefaces) {
    * SecurityManager with NULL CryptoManager shall send
    * InternallError (ERROR_NOT_SUPPORTED) on any Query
    */
-  TEST_F(SecurityManagerTest, SecurityManager_NULLCryptoManager) {
+TEST_F(SecurityManagerTest, SecurityManager_NULLCryptoManager) {
     // Expect InternalError with ERROR_ID
     EXPECT_CALL(
     mock_protocol_handler,
-    SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_NOT_SUPPORTED), is_final))
-.
-        Times(1);
-    const SecurityQuery::QueryHeader header(
+    SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_NOT_SUPPORTED), is_final));
+const SecurityQuery::QueryHeader header(
           SecurityQuery::REQUEST,
           // It could be any query id
           SecurityQuery::INVALID_QUERY_ID);
@@ -253,7 +251,7 @@ TEST_F(SecurityManagerTest, SetNULL_Intefaces) {
   /*
    * Shall skip all OnMobileMessageSent
    */
-  TEST_F(SecurityManagerTest, OnMobileMessageSent) {
+TEST_F(SecurityManagerTest, OnMobileMessageSent) {
     const ::protocol_handler::RawMessagePtr rawMessagePtr(
           new ::protocol_handler::RawMessage(key, protocolVersion, NULL, 0));
     security_manager_->OnMobileMessageSent(rawMessagePtr);
@@ -261,7 +259,7 @@ TEST_F(SecurityManagerTest, SetNULL_Intefaces) {
   /*
    * Shall skip all not-Secure messages
    */
-  TEST_F(SecurityManagerTest, GetWrongServiceType) {
+TEST_F(SecurityManagerTest, GetWrongServiceType) {
     // Call with wrong Service type
     call_OnMessageReceived(NULL, 0, kRpc);
     call_OnMessageReceived(NULL, 0, kAudio);
@@ -272,27 +270,23 @@ TEST_F(SecurityManagerTest, SetNULL_Intefaces) {
   /*
    * Shall send InternallError on null data recieved
    */
-  TEST_F(SecurityManagerTest, GetEmptyQuery) {
+TEST_F(SecurityManagerTest, GetEmptyQuery) {
     EXPECT_CALL(
     mock_protocol_handler,
-    SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_INVALID_QUERY_SIZE), is_final))
-.
-        Times(1);
-    // Call with NULL data
-    call_OnMessageReceived(NULL, 0, secureServiceType);
+    SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_INVALID_QUERY_SIZE), is_final));
+// Call with NULL data
+call_OnMessageReceived(NULL, 0, secureServiceType);
   }
   /*
    * Shall send InternallError on null data recieved
    */
-  TEST_F(SecurityManagerTest, GetWrongJSONSize) {
+TEST_F(SecurityManagerTest, GetWrongJSONSize) {
     SetMockCryptoManger();
     // Expect InternalError with ERROR_ID
     EXPECT_CALL(
     mock_protocol_handler,
-    SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_INVALID_QUERY_SIZE), is_final))
-.
-        Times(1);
-    SecurityQuery::QueryHeader header(
+    SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_INVALID_QUERY_SIZE), is_final));
+SecurityQuery::QueryHeader header(
           SecurityQuery::REQUEST,
           SecurityQuery::INVALID_QUERY_ID);
     header.json_size = 0x0FFFFFFF;
@@ -301,15 +295,13 @@ TEST_F(SecurityManagerTest, SetNULL_Intefaces) {
   /*
    * Shall send InternallError on INVALID_QUERY_ID
    */
-  TEST_F(SecurityManagerTest, GetInvalidQueryId) {
+TEST_F(SecurityManagerTest, GetInvalidQueryId) {
     SetMockCryptoManger();
     // Expect InternalError with ERROR_ID
     EXPECT_CALL(
     mock_protocol_handler,
-    SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_INVALID_QUERY_ID), is_final))
-.
-        Times(1);
-    const SecurityQuery::QueryHeader header(
+    SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_INVALID_QUERY_ID), is_final));
+const SecurityQuery::QueryHeader header(
           SecurityQuery::REQUEST,
           SecurityQuery::INVALID_QUERY_ID);
     const uint8_t data = 0;
@@ -319,7 +311,7 @@ TEST_F(SecurityManagerTest, SetNULL_Intefaces) {
    * Shall send Internall Error on call
    * CreateSSLContext for already protected connections
    */
-  TEST_F(SecurityManagerTest, CreateSSLContext_ServiceAlreadyProtected) {
+TEST_F(SecurityManagerTest, CreateSSLContext_ServiceAlreadyProtected) {
     SetMockCryptoManger();
 
     // Return mock SSLContext
@@ -333,17 +325,15 @@ TEST_F(SecurityManagerTest, SetNULL_Intefaces) {
   /*
    * Shall send Internall Error on error create SSL
    */
-  TEST_F(SecurityManagerTest, CreateSSLContext_ErrorCreateSSL) {
+TEST_F(SecurityManagerTest, CreateSSLContext_ErrorCreateSSL) {
     SetMockCryptoManger();
     // Expect InternalError with ERROR_ID
     EXPECT_CALL(
     mock_protocol_handler,
-    SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_INTERNAL), is_final)).
-        Times(1);
+    SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_INTERNAL), is_final));
 
-    // Emulate SessionObserver and CryptoManager result
-    EXPECT_CALL(
-    mock_session_observer, GetSSLContext(key, kControl)).
+// Emulate SessionObserver and CryptoManager result
+EXPECT_CALL(mock_session_observer, GetSSLContext(key, kControl)).
         WillOnce(ReturnNull());
     EXPECT_CALL(
     mock_crypto_manager, CreateSSLContext())
@@ -357,28 +347,23 @@ TEST_F(SecurityManagerTest, SetNULL_Intefaces) {
    * Shall send InternalError with SERVICE_NOT_FOUND
    * on getting any Error with call SetSSLContext
    */
-  TEST_F(SecurityManagerTest, CreateSSLContext_SetSSLContextError) {
+TEST_F(SecurityManagerTest, CreateSSLContext_SetSSLContextError) {
     SetMockCryptoManger();
     // Expect InternalError with ERROR_ID
     EXPECT_CALL(
     mock_protocol_handler,
-    SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_UNKWOWN_INTERNAL_ERROR), is_final)).
-        Times(1);
+    SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_UNKWOWN_INTERNAL_ERROR), is_final));
 
-    // Emulate SessionObserver and CryptoManager result
-    EXPECT_CALL(
-    mock_session_observer, GetSSLContext(key, kControl)).
+// Emulate SessionObserver and CryptoManager result
+EXPECT_CALL(mock_session_observer, GetSSLContext(key, kControl)).
         WillOnce(ReturnNull());
     EXPECT_CALL(
     mock_crypto_manager, CreateSSLContext()).
         WillOnce(Return(&mock_ssl_context_new));
     EXPECT_CALL(
-    mock_crypto_manager, ReleaseSSLContext(&mock_ssl_context_new)).
-        Times(1);
-    EXPECT_CALL(
+    mock_crypto_manager, ReleaseSSLContext(&mock_ssl_context_new));EXPECT_CALL(
     mock_session_observer, SetSSLContext(key, &mock_ssl_context_new))
-.
-        WillOnce(Return(SecurityManager::ERROR_UNKWOWN_INTERNAL_ERROR));
+.WillOnce(Return(SecurityManager::ERROR_UNKWOWN_INTERNAL_ERROR));
 
     const bool rezult = security_manager_->CreateSSLContext(key);
     EXPECT_FALSE(rezult);
@@ -386,7 +371,7 @@ TEST_F(SecurityManagerTest, SetNULL_Intefaces) {
   /*
    * Shall protect connection on correct call CreateSSLContext
    */
-  TEST_F(SecurityManagerTest, CreateSSLContext_Success) {
+TEST_F(SecurityManagerTest, CreateSSLContext_Success) {
     SetMockCryptoManger();
     // Expect no Errors
     // Expect no notifying listeners - it will be done after handshake
@@ -410,37 +395,32 @@ TEST_F(SecurityManagerTest, SetNULL_Intefaces) {
   /*
    * Shall send InternallError on call StartHandshake for uprotected service
    */
-  TEST_F(SecurityManagerTest, StartHandshake_ServiceStillUnprotected) {
+TEST_F(SecurityManagerTest, StartHandshake_ServiceStillUnprotected) {
     SetMockCryptoManger();
     // Expect InternalError with ERROR_INTERNAL
     EXPECT_CALL(
     mock_protocol_handler,
-    SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_INTERNAL), is_final)).
-        Times(1);
+    SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_INTERNAL), is_final));
     // Expect notifying listeners (unsuccess)
     EXPECT_CALL(
-    mock_sm_listener, OnHandshakeDone(key, false)).
-        WillOnce(Return(true));
+    mock_sm_listener, OnHandshakeDone(key, false)).WillOnce(Return(true));
 
     // Emulate SessionObserver result
     EXPECT_CALL(
-    mock_session_observer, GetSSLContext(key, kControl))
-.
-        WillOnce(ReturnNull());
+    mock_session_observer, GetSSLContext(key, kControl)).WillOnce(ReturnNull());
 
     security_manager_->StartHandshake(key);
   }
   /*
    * Shall send InternallError on SSL error and notify listeners
    */
-  TEST_F(SecurityManagerTest, StartHandshake_SSLInternalError) {
+TEST_F(SecurityManagerTest, StartHandshake_SSLInternalError) {
     SetMockCryptoManger();
 
     // Expect InternalError with ERROR_ID
     EXPECT_CALL(
     mock_protocol_handler,
-    SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_INTERNAL), is_final)).
-        Times(1);
+    SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_INTERNAL), is_final));
     // Expect notifying listeners (unsuccess)
     EXPECT_CALL(
     mock_sm_listener, OnHandshakeDone(key, false)).
@@ -466,12 +446,11 @@ TEST_F(SecurityManagerTest, SetNULL_Intefaces) {
   /*
    * Shall send data on call StartHandshake
    */
-  TEST_F(SecurityManagerTest, StartHandshake_SSLInitIsNotComplete) {
+TEST_F(SecurityManagerTest, StartHandshake_SSLInitIsNotComplete) {
     SetMockCryptoManger();
 
     // Expect send one message (with correct pointer and size data)
-    EXPECT_CALL(mock_protocol_handler, SendMessageToMobileApp(_, is_final)).
-        Times(1);
+    EXPECT_CALL(mock_protocol_handler, SendMessageToMobileApp(_, is_final));
 
     // Return mock SSLContext
     EXPECT_CALL(
@@ -509,7 +488,7 @@ TEST_F(SecurityManagerTest, SetNULL_Intefaces) {
   /*
    * Shall notify listeners on call StartHandshake after SSLContext initialization complete
    */
-  TEST_F(SecurityManagerTest, StartHandshake_SSLInitIsComplete) {
+TEST_F(SecurityManagerTest, StartHandshake_SSLInitIsComplete) {
     SetMockCryptoManger();
     // Expect no message send
     // Expect notifying listeners (success)
@@ -531,14 +510,12 @@ TEST_F(SecurityManagerTest, SetNULL_Intefaces) {
    * Shall send InternallError on
    * getting SEND_HANDSHAKE_DATA with NULL data
    */
-  TEST_F(SecurityManagerTest, ProccessHandshakeData_WrongDataSize) {
+TEST_F(SecurityManagerTest, ProccessHandshakeData_WrongDataSize) {
     SetMockCryptoManger();
     // Expect InternalError with ERROR_ID
     EXPECT_CALL(
     mock_protocol_handler,
-    SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_INVALID_QUERY_SIZE), is_final))
-.
-        Times(1);
+    SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_INVALID_QUERY_SIZE), is_final));
     EmulateMobileMessageHandShake(NULL, 0);
   }
   /*
@@ -546,13 +523,12 @@ TEST_F(SecurityManagerTest, SetNULL_Intefaces) {
    * getting SEND_HANDSHAKE_DATA from mobile side
    * for service which is not protected
    */
-  TEST_F(SecurityManagerTest, ProccessHandshakeData_ServiceNotProtected) {
+TEST_F(SecurityManagerTest, ProccessHandshakeData_ServiceNotProtected) {
     SetMockCryptoManger();
     // Expect InternalError with ERROR_ID
     EXPECT_CALL(
     mock_protocol_handler,
-    SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_SERVICE_NOT_PROTECTED), is_final)).
-        Times(1);
+    SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_SERVICE_NOT_PROTECTED), is_final));
     // Expect notifying listeners (unsuccess)
     EXPECT_CALL(
     mock_sm_listener, OnHandshakeDone(key, false)).
@@ -560,9 +536,7 @@ TEST_F(SecurityManagerTest, SetNULL_Intefaces) {
 
     // Emulate SessionObserver result
     EXPECT_CALL(
-    mock_session_observer, GetSSLContext(key, kControl))
-.
-        WillOnce(ReturnNull());
+    mock_session_observer, GetSSLContext(key, kControl)).WillOnce(ReturnNull());
 
     const uint8_t data[] = {0x1, 0x2};
     EmulateMobileMessageHandShake(data, sizeof(data)/sizeof(data[0]));
@@ -572,7 +546,7 @@ TEST_F(SecurityManagerTest, SetNULL_Intefaces) {
    * SEND_HANDSHAKE_DATA from mobile side with invalid handshake
    * data (DoHandshakeStep return NULL pointer)
    */
-  TEST_F(SecurityManagerTest, ProccessHandshakeData_InvalidData) {
+TEST_F(SecurityManagerTest, ProccessHandshakeData_InvalidData) {
     SetMockCryptoManger();
 
     // Count handshake calls
@@ -627,7 +601,7 @@ TEST_F(SecurityManagerTest, SetNULL_Intefaces) {
    * Shall send HandshakeData on getting SEND_HANDSHAKE_DATA from mobile side
    * with correct handshake data Check Fail and sussecc states
    */
-  TEST_F(SecurityManagerTest, ProccessHandshakeData_Answer) {
+TEST_F(SecurityManagerTest, ProccessHandshakeData_Answer) {
     SetMockCryptoManger();
     // Count handshake calls
     const int handshake_emulates = 2;
@@ -673,7 +647,7 @@ TEST_F(SecurityManagerTest, SetNULL_Intefaces) {
    * and return handshake data
    * Check Fail and sussecc states
    */
-  TEST_F(SecurityManagerTest, ProccessHandshakeData_HandShakeFinished) {
+TEST_F(SecurityManagerTest, ProccessHandshakeData_HandShakeFinished) {
     SetMockCryptoManger();
     // Count handshake calls
     const int handshake_emulates = 6;

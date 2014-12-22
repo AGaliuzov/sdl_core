@@ -45,8 +45,7 @@ namespace connection_handle_test {
 
 using namespace ::connection_handler;
 using ::protocol_handler::ServiceType;
-using namespace ::protocol_handler;
-// For service types and PROTECTION_ON/OFF
+using namespace ::protocol_handler;  // For service types and PROTECTION_ON/OFF
 
 class ConnectionHandlerTest : public ::testing::Test {
  protected:
