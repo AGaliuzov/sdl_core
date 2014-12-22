@@ -82,11 +82,10 @@ TEST(SQLDatabaseTest, OpenCloseFile_OpenAndCloseSpecifiedDB_ActsWithoutError) {
   //assert
   EXPECT_FALSE(IsError(db.LastError()));
 
-  //act
   remove("test-database.sqlite");
 }
 
-TEST(SQLDatabaseTest, DoubleOpen_TwiceOpenDB_ExpectActsWithoutError) {
+TEST(SQLDatabaseTest, OpenDBTwice_NoError) {
 
   //arrange
   SQLDatabase db;
@@ -103,11 +102,10 @@ TEST(SQLDatabaseTest, DoubleOpen_TwiceOpenDB_ExpectActsWithoutError) {
   EXPECT_FALSE(IsError(db.LastError()));
   ASSERT_TRUE(ret);
 
-  //act
   db.Close();
 }
 
-TEST(SQLDatabaseTest, DoubleClose_TwiceCloseDB_ExpectActsWithoutError) {
+TEST(SQLDatabaseTest, CloseDBTwice_NoError) {
 
   //arrange
   SQLDatabase db;
@@ -130,9 +128,9 @@ TEST(SQLDatabaseTest, DoubleClose_TwiceCloseDB_ExpectActsWithoutError) {
   EXPECT_FALSE(IsError(db.LastError()));
 }
 
-TEST(SQLDatabaseTest, CloseWithoutOpen_ExpectActWithoutError) {
+TEST(SQLDatabaseTest, Close_DBWasNotOpened_NoError) {
 
-  //arrange
+  //act
   SQLDatabase db;
   db.Close();
 
@@ -152,7 +150,6 @@ TEST(SQLDatabaseTest, CommitTransaction_StartAndCommitTransaction_ExpectActsWith
   EXPECT_TRUE(db.CommitTransaction());
   EXPECT_FALSE(IsError(db.LastError()));
 
-  //act
   db.Close();
 }
 
@@ -168,7 +165,6 @@ TEST(SQLDatabaseTest, RollbackTransaction_StartAndRollbackTransaction_ExpectActs
   EXPECT_TRUE(db.RollbackTransaction());
   EXPECT_FALSE(IsError(db.LastError()));
 
-  //act
   db.Close();
 }
 
@@ -182,7 +178,6 @@ TEST(SQLDatabaseTest, FailedCommitTransaction_CommitTransactionWithoutBeginning_
   EXPECT_FALSE(db.CommitTransaction());
   EXPECT_TRUE(IsError(db.LastError()));
 
-  //act
   db.Close();
 }
 
@@ -196,7 +191,6 @@ TEST(SQLDatabaseTest, FailedRollbackTransaction_RollbackTransactionWithoutBeginn
   EXPECT_FALSE(db.RollbackTransaction());
   EXPECT_TRUE(IsError(db.LastError()));
 
-  //act
   db.Close();
 }
 
@@ -225,7 +219,6 @@ TEST(SQLDatabaseTest, IsReadWrite_FirstOpenDBIsRWSecondIsNot) {
   ASSERT_TRUE(db.Open());
   EXPECT_FALSE(db.IsReadWrite());
 
-  //act
   db.Close();
   remove("test-database.sqlite");
 }
