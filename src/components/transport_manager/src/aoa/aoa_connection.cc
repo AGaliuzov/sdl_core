@@ -60,6 +60,11 @@ AOAConnection::~AOAConnection() {
 
 bool AOAConnection::Init() {
   bool ret = wrapper_->Subscribe(observer_);
+  if (ret) {
+    controller_->ConnectDone(device_uid_, app_handle_);
+  } else {
+    controller_->ConnectFailed(device_uid_, app_handle_, ConnectError());
+  }
   return ret;
 }
 

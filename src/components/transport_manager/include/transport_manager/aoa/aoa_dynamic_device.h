@@ -76,6 +76,8 @@ class AOADynamicDevice : public AOADevice {
   };
 };
 
+typedef utils::SharedPtr<AOADynamicDevice> AOADynamicDeviceSPtr;
+
 }  // namespace transport_adapter
 }  // namespace transport_manager
 

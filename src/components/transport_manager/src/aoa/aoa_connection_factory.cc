@@ -57,9 +57,10 @@ bool AOAConnectionFactory::IsInitialised() const {
 
 TransportAdapter::Error AOAConnectionFactory::CreateConnection(
     const DeviceUID& device_uid, const ApplicationHandle& app_handle) {
-  LOG4CXX_TRACE(
+  LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(
       logger_,
-      "AOA: create connection DeviceUID: " << &device_uid << ", ApplicationHandle: " << &app_handle);
+      "AOA: device_uid " << device_uid << ", app_handle " << app_handle);
 
   DeviceSptr device = controller_->FindDevice(device_uid);
   if (!device) {
@@ -73,10 +74,10 @@ TransportAdapter::Error AOAConnectionFactory::CreateConnection(
                                                     controller_,
                                                     aoa_device->handle());
   controller_->ConnectionCreated(aoa_connection, device_uid, app_handle);
-  LOG4CXX_INFO(logger_, "AOA: connection created");
+  LOG4CXX_DEBUG(logger_, "AOA: connection created");
 
   if (aoa_connection->Init()) {
-    LOG4CXX_INFO(logger_, "AOA: connection initialised");
+    LOG4CXX_DEBUG(logger_, "AOA: connection initialised");
     return TransportAdapter::OK;
   } else {
     LOG4CXX_WARN(logger_, "AOA: Could not initialise AOA connection");

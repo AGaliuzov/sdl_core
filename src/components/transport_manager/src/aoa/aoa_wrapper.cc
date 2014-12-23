@@ -128,13 +128,13 @@ bool AOAWrapper::Init(AOADeviceLife *life) {
 }
 
 bool AOAWrapper::Init(AOADeviceLife* life, const std::string& config_path) {
-  LOG4CXX_TRACE(logger_, "AOA: init default usb_info");
+  LOG4CXX_TRACE(logger_, "AOA: init with path to config");
   return Init(life, config_path.c_str(), NULL);
 }
 
 bool AOAWrapper::Init(AOADeviceLife* life,
                       const AOAWrapper::AOAUsbInfo& aoa_usb_info) {
-  LOG4CXX_TRACE(logger_, "AOA: init default path to config");
+  LOG4CXX_TRACE(logger_, "AOA: init with usb info");
   usb_info_t usb_info;
   PrepareUsbInfo(aoa_usb_info, &usb_info);
   return Init(life, NULL, &usb_info);
