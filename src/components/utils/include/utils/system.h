@@ -76,6 +76,9 @@ class System {
    */
   bool Execute(bool wait);
 
+  std::string command() const;
+  std::vector<std::string> argv() const;
+
  private:
   /**
    * Command for executing
