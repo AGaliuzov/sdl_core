@@ -75,11 +75,11 @@ void OnDriverDistractionNotification::Run() {
       state;
 
   ApplicationManagerImpl::ApplicationListAccessor accessor;
-  const std::set<ApplicationSharedPtr> applications = accessor.applications();
+  const ApplicationManagerImpl::ApplictionSet applications = accessor.applications();
 
-  std::set<ApplicationSharedPtr>::const_iterator it = applications.begin();
+  ApplicationManagerImpl::ApplictionSetConstIt it = applications.begin();
   for (; applications.end() != it; ++it) {
-    ApplicationSharedPtr app = *it;
+    const ApplicationSharedPtr app = *it;
     if (app.valid()) {
       if (mobile_apis::HMILevel::eType::HMI_NONE != app->hmi_level()) {
           (*on_driver_distraction)[strings::params]

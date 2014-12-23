@@ -886,11 +886,11 @@ smart_objects::SmartObject* MessageHelper::CreateAppVrHelp(
   vr_help[strings::vr_help_title] = app->name();
 
   ApplicationManagerImpl::ApplicationListAccessor accessor;
-  const std::set<ApplicationSharedPtr> apps = accessor.applications();
 
   int32_t index = 0;
-  std::set<ApplicationSharedPtr>::const_iterator it_app = apps.begin();
-  for (; apps.end() != it_app; ++it_app) {
+ ApplicationManagerImpl::ApplictionSetConstIt it_app =
+     accessor.begin();
+  for (; accessor.end() != it_app; ++it_app) {
     if ((*it_app)->vr_synonyms()) {
       smart_objects::SmartObject item(smart_objects::SmartType_Map);
       item[strings::text] = (*((*it_app)->vr_synonyms())).getElement(0);

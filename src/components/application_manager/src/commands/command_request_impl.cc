@@ -370,11 +370,11 @@ bool CommandRequestImpl::CheckAllowedParameters() {
     return true;
   }
 
-  typedef std::set<application_manager::ApplicationSharedPtr> ApplicationList;
   ApplicationManagerImpl::ApplicationListAccessor accessor;
-  ApplicationList app_list = accessor.applications();
-  ApplicationList::const_iterator it_app_list = app_list.begin();
-  ApplicationList::const_iterator it_app_list_end = app_list.end();
+  ApplicationManagerImpl::ApplictionSetConstIt it_app_list =
+      accessor.begin();
+  ApplicationManagerImpl::ApplictionSetConstIt it_app_list_end =
+      accessor.end();
   for (; it_app_list != it_app_list_end; ++it_app_list) {
     if (connection_key() == (*it_app_list).get()->app_id()) {
 

@@ -37,6 +37,8 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <algorithm>
+
 #include "application_manager/hmi_command_factory.h"
 #include "application_manager/application_manager.h"
 #include "application_manager/hmi_capabilities.h"
@@ -49,10 +51,8 @@
 #include "hmi_message_handler/hmi_message_sender.h"
 #include "application_manager/policies/policy_handler_observer.h"
 #include "media_manager/media_manager_impl.h"
-
 #include "connection_handler/connection_handler_observer.h"
 #include "connection_handler/device.h"
-
 #include "formatters/CSmartFactory.hpp"
 
 #include "interfaces/HMI_API.h"
@@ -73,6 +73,9 @@
 #include "utils/threads/message_loop_thread.h"
 #include "utils/lock.h"
 #include "utils/singleton.h"
+#include "utils/data_accessor.h"
+
+
 
 namespace NsSmartDeviceLink {
 namespace NsSmartObjects {
@@ -251,7 +254,7 @@ class ApplicationManagerImpl : public ApplicationManager,
      * @param vehicle_info Enum value of type of vehicle data
      * @param new value (for integer values currently) of vehicle data
      */
-    std::vector<utils::SharedPtr<Application>> IviInfoUpdated(
+    std::vector<ApplicationSharedPtr> IviInfoUpdated(
       VehicleDataType vehicle_info, int value);
 
     /////////////////////////////////////////////////////
@@ -723,44 +726,83 @@ class ApplicationManagerImpl : public ApplicationManager,
      */
     void OnWakeUp();
 
+    struct ApplicationsAppIdSorter {
+      bool operator() (const ApplicationSharedPtr lhs,
+                       const ApplicationSharedPtr rhs) {
+        return lhs->app_id() < rhs->app_id();
+      }
+    };
+
     // typedef for Applications list
-    typedef const std::set<ApplicationSharedPtr> TAppList;
+    typedef std::set<ApplicationSharedPtr,
+                     ApplicationsAppIdSorter> ApplictionSet;
 
     // typedef for Applications list iterator
-    typedef std::set<ApplicationSharedPtr>::iterator TAppListIt;
+    typedef ApplictionSet::iterator ApplictionSetIt;
 
     // typedef for Applications list const iterator
-    typedef std::set<ApplicationSharedPtr>::const_iterator TAppListConstIt;
+    typedef ApplictionSet::const_iterator ApplictionSetConstIt;
+
 
     /**
      * Class for thread-safe access to applications list
      */
-    class ApplicationListAccessor {
+    class ApplicationListAccessor: public DataAccessor<ApplictionSet> {
      public:
 
       /**
        * @brief ApplicationListAccessor class constructor
        */
-      ApplicationListAccessor() {
-        ApplicationManagerImpl::instance()->applications_list_lock_.Acquire();
-      }
+      ApplicationListAccessor();
 
-      /**
-       * @brief ApplicationListAccessor class destructor
-       */
-      ~ApplicationListAccessor() {
-        ApplicationManagerImpl::instance()->applications_list_lock_.Release();
-      }
-
-      // TODO(VS): Now we have return application list by value, because we have
-      // situations, when our process is killed without Stop method called.
-      // This problem must be discussed and fixed.
       /**
        * @brief thread-safe getter for applications
        * @return applications list
        */
-      TAppList applications() {
-        return ApplicationManagerImpl::instance()->application_list_;
+      const ApplictionSet& applications() const {
+        return GetData();
+      }
+
+      ApplictionSetConstIt begin() {
+        return applications().begin();
+      }
+
+      ApplictionSetConstIt end() {
+        return applications().end();
+      }
+
+      template<class UnaryPredicate>
+      ApplicationSharedPtr Find(UnaryPredicate finder) {
+        ApplicationSharedPtr result;
+        ApplictionSetConstIt it = std::find_if(begin(), end(), finder);
+        if (it != end()) {
+          result = *it;
+        }
+        return result;
+      }
+
+      template<class UnaryPredicate>
+      std::vector<ApplicationSharedPtr> FindAll(UnaryPredicate finder) {
+        std::vector<ApplicationSharedPtr> result;
+        ApplictionSetConstIt it = begin();
+        while (it != end()) {
+          it = std::find_if(it, end(), AppIdPredicate(0));
+          const ApplicationSharedPtr app = *it;
+          result.push_back(app);
+        }
+        return result;
+      }
+
+      void Erase(ApplicationSharedPtr app_to_remove) {
+        ApplicationManagerImpl::instance()->applications_.erase(app_to_remove);
+      }
+
+      void Insert(ApplicationSharedPtr app_to_insert) {
+        ApplicationManagerImpl::instance()->applications_.insert(app_to_insert);
+      }
+
+      bool Empty() {
+        return ApplicationManagerImpl::instance()->applications_.empty();
       }
 
      private:
@@ -768,6 +810,49 @@ class ApplicationManagerImpl : public ApplicationManager,
     };
 
     friend class ApplicationListAccessor;
+
+    struct AppIdPredicate {
+      uint32_t app_id_;
+      AppIdPredicate(uint32_t app_id): app_id_(app_id) {}
+      bool operator () (const ApplicationSharedPtr app) const {
+        return app ? app_id_ == app->app_id() : false;
+      }
+    };
+
+    struct HmiAppIdPredicate {
+      uint32_t hmi_app_id_;
+      HmiAppIdPredicate(uint32_t hmi_app_id): hmi_app_id_(hmi_app_id) {}
+      bool operator () (const ApplicationSharedPtr app) const {
+        return app ? hmi_app_id_ == app->hmi_app_id() : false;
+      }
+    };
+
+    struct MobileAppIdPredicate {
+      std::string policy_app_id_;
+      MobileAppIdPredicate(const std::string& hmi_app_id):
+        policy_app_id_(hmi_app_id) {}
+      bool operator () (const ApplicationSharedPtr app) const {
+        return app ? policy_app_id_ == app->mobile_app_id()->asString() : false;
+      }
+    };
+
+    struct SubscribedToButtonPredicate {
+      mobile_apis::ButtonName::eType button_;
+      SubscribedToButtonPredicate(mobile_apis::ButtonName::eType button)
+        : button_(button) {}
+      bool operator () (const ApplicationSharedPtr app) const {
+        return app ? app->IsSubscribedToButton(button_) : false;
+      }
+    };
+
+    struct SubscribedToIVIPredicate {
+      int32_t vehicle_info_;
+      SubscribedToIVIPredicate(int32_t  vehicle_info)
+        : vehicle_info_(vehicle_info) {}
+      bool operator () (const ApplicationSharedPtr app) const {
+        return app ? app->IsSubscribedToIVI(vehicle_info_) : false;
+      }
+    };
 
   private:
     ApplicationManagerImpl();
@@ -842,7 +927,7 @@ class ApplicationManagerImpl : public ApplicationManager,
     /**
      * @brief List of applications
      */
-    std::set<ApplicationSharedPtr> application_list_;
+    ApplictionSet applications_;
 
     // Lock for applications list
     mutable sync_primitives::Lock applications_list_lock_;

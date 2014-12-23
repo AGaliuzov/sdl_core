@@ -512,12 +512,12 @@ RegisterAppInterfaceRequest::CheckCoincidence() {
     (*message_)[strings::msg_params];
 
   ApplicationManagerImpl::ApplicationListAccessor accessor;
-  const std::set<ApplicationSharedPtr> applications = accessor.applications();
 
-  std::set<ApplicationSharedPtr>::const_iterator it = applications.begin();
+ ApplicationManagerImpl::ApplictionSetConstIt it =
+     accessor.begin();
   const std::string app_name = msg_params[strings::app_name].asString();
 
-  for (; applications.end() != it; ++it) {
+  for (; accessor.end() != it; ++it) {
 
     // name check
     const std::string& cur_name = (*it)->name();
@@ -671,10 +671,10 @@ bool RegisterAppInterfaceRequest::IsApplicationWithSameAppIdRegistered() {
                                     [strings::app_id].asString();
 
   ApplicationManagerImpl::ApplicationListAccessor accessor;
-  const std::set<ApplicationSharedPtr> applications = accessor.applications();
+  const ApplicationManagerImpl::ApplictionSet applications = accessor.applications();
 
-  std::set<ApplicationSharedPtr>::const_iterator it = applications.begin();
-  std::set<ApplicationSharedPtr>::const_iterator it_end = applications.end();
+ ApplicationManagerImpl::ApplictionSetConstIt it = applications.begin();
+ ApplicationManagerImpl::ApplictionSetConstIt it_end = applications.end();
 
   for (; it != it_end; ++it) {
     if (mobile_app_id == (*it)->mobile_app_id()->asString()) {
