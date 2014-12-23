@@ -197,7 +197,6 @@ include_directories (
   ${COMPONENTS_DIR}/transport_manager/test/include
 )
 
-#TODO to ALL : Please FIX heart_beat_monitor_test.cc
   set(testSources
     main_test.cc
     ${COMPONENTS_DIR}/utils/test/messagemeter_test.cc
