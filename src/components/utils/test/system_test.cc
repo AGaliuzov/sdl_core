@@ -63,7 +63,7 @@ TEST(SystemTest, Constructor_WithFileNameCommandName_ExpectArgsStored) {
 
 }
 
-TEST(SystemTest, AddArgsToCommand_CheckArgsNumber_ExpectArgsNumberCorrect) {
+TEST(SystemTest, AddTwoArgsToCommand_ExpectTwoArgsAdded) {
   const std::string test_command("echo");
   const char* args[] = {"-e", "\b"};
   System object(test_command);
@@ -76,7 +76,7 @@ TEST(SystemTest, AddArgsToCommand_CheckArgsNumber_ExpectArgsNumberCorrect) {
   ASSERT_EQ(object.argv().size(), 3);  // Correct number of arguments is 3
 }
 
-TEST(SystemTest, AddArgsToCommand_CheckOrder_ExpectOrderCorrect) {
+TEST(SystemTest, AddTwoArgsToCommand_CheckOrder_ExpectOrderCorrect) {
   const std::string test_command("echo");
   const char* args[] = {"-e", "\b"};
   System object(test_command);
