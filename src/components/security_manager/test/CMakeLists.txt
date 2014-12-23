@@ -69,4 +69,4 @@ set(LIBRARIES
 
 add_library(test_security_manager ${SOURCES})
 target_link_libraries(test_security_manager ${LIBRARIES} )
-create_test(test_security_manager_test "${SOURCES}" "${LIBRARIES}")
+create_test("test_security_manager_test" "${SOURCES}" "${LIBRARIES}")

@@ -30,24 +30,24 @@
 
 if(BUILD_TESTS)
 
-include_directories (
+include_directories(
     ${GMOCK_INCLUDE_DIRECTORY}
     ${COMPONENTS_DIR}/media_manager/include
 )
 
-if (EXTENDED_MEDIA_MODE)
+if(EXTENDED_MEDIA_MODE)
   include_directories (
     ${GSTREAMER_gst_INCLUDE_DIR}
     ${GLIB_glib_2_INCLUDE_DIR}
   )
 endif()
 
-set (SOURCES
+set(SOURCES
     media_manager_impl_test.cc
     main.cc
 )
 
-set (LIBRARIES
+set(LIBRARIES
     MediaManager
     ApplicationManager
     gmock
@@ -58,7 +58,7 @@ set (LIBRARIES
     ${SecurityManagerLibrary}
 )
 
-if (EXTENDED_MEDIA_MODE)
+if(EXTENDED_MEDIA_MODE)
   list(APPEND LIBRARIES
     ${GSTREAMER_gstreamer_LIBRARY})
 endif()
@@ -69,5 +69,6 @@ if(ENABLE_LOG)
     target_link_libraries("media_manager_test" log4cxx -L${LOG4CXX_LIBS_DIRECTORY})
 endif()
 
-endif()
+endif() # BUILD_TESTS
+
 # vim: set ts=2 sw=2 et:

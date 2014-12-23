@@ -163,153 +163,153 @@ target_link_libraries(${PROJECT} ${LIBRARIES})
 
 
 #======================= Unit-Test section =======================
-if(BUILD_TESTS)
-  set (AM_TEST_DIR ${CMAKE_SOURCE_DIR}/src/components/application_manager/test)
-  set (AM_MOCK_DIR ${CMAKE_SOURCE_DIR}/src/components/application_manager/test/mock)
+#if(BUILD_TESTS)
+#  set (AM_TEST_DIR ${CMAKE_SOURCE_DIR}/src/components/application_manager/test)
+#  set (AM_MOCK_DIR ${CMAKE_SOURCE_DIR}/src/components/application_manager/test/mock)
 
-  get_property(the_include_dirs DIRECTORY "" PROPERTY INCLUDE_DIRECTORIES)
-       #replace include for mocking singltone
-       set(class_to_mock ${CMAKE_SOURCE_DIR}/src/components/application_manager/include)
-       list(FIND the_include_dirs ${class_to_mock} find_idx)
-       if(find_idx GREATER -1)
-         LIST_REPLACE(the_include_dirs ${find_idx} ${AM_MOCK_DIR}/include)
-       endif()
-  set_property(DIRECTORY "" PROPERTY INCLUDE_DIRECTORIES ${the_include_dirs})
+#  get_property(the_include_dirs DIRECTORY "" PROPERTY INCLUDE_DIRECTORIES)
+#       #replace include for mocking singltone
+#       set(class_to_mock ${CMAKE_SOURCE_DIR}/src/components/application_manager/include)
+#       list(FIND the_include_dirs ${class_to_mock} find_idx)
+#       if(find_idx GREATER -1)
+#         LIST_REPLACE(the_include_dirs ${find_idx} ${AM_MOCK_DIR}/include)
+#       endif()
+#  set_property(DIRECTORY "" PROPERTY INCLUDE_DIRECTORIES ${the_include_dirs})
 
 
-include_directories (
-  ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
-  ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
-  ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8
-  ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8/dbus/ 
-  ${COMPONENTS_DIR}/security_manager/test/include
-  ${COMPONENTS_DIR}/application_manager/include
-  ${COMPONENTS_DIR}/protocol_handler/test/include  
-  ${COMPONENTS_DIR}/security_manager/include 
-  ${COMPONENTS_DIR}/media_manager/include
-  ${COMPONENTS_DIR}/utils/include
-  ${COMPONENTS_DIR}/dbus/src
-  ${COMPONENTS_DIR}/config_profile/include
-  ${GMOCK_INCLUDE_DIRECTORY}
-  ${JSONCPP_INCLUDE_DIRECTORY}
-  ${MESSAGE_BROKER_INCLUDE_DIRECTORY}
-  ${LOG4CXX_INCLUDE_DIRECTORY}
-  ${COMPONENTS_DIR}/transport_manager/test/include
-)
+#include_directories (
+#  ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
+#  ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
+#  ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8
+#  ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8/dbus/
+#  ${COMPONENTS_DIR}/security_manager/test/include
+#  ${COMPONENTS_DIR}/application_manager/include
+#  ${COMPONENTS_DIR}/protocol_handler/test/include
+#  ${COMPONENTS_DIR}/security_manager/include
+#  ${COMPONENTS_DIR}/media_manager/include
+#  ${COMPONENTS_DIR}/utils/include
+#  ${COMPONENTS_DIR}/dbus/src
+#  ${COMPONENTS_DIR}/config_profile/include
+#  ${GMOCK_INCLUDE_DIRECTORY}
+#  ${JSONCPP_INCLUDE_DIRECTORY}
+#  ${MESSAGE_BROKER_INCLUDE_DIRECTORY}
+#  ${LOG4CXX_INCLUDE_DIRECTORY}
+#  ${COMPONENTS_DIR}/transport_manager/test/include
+#)
 
-#TODO to ALL : Please FIX heart_beat_monitor_test.cc
-  set(testSources
-    main_test.cc
-    ${COMPONENTS_DIR}/utils/test/messagemeter_test.cc
-    ${COMPONENTS_DIR}/utils/test/date_time_test.cc
-    ${COMPONENTS_DIR}/utils/test/file_system_test.cc
-    ${COMPONENTS_DIR}/media_manager/test/media_manager_impl_test.cc
-    ${COMPONENTS_DIR}/connection_handler/test/connection_handler_impl_test.cc
-    ${COMPONENTS_DIR}/connection_handler/test/connection_test.cc
-    ${COMPONENTS_DIR}/rpc_base/test/rpc_base_json_test.cc
-    ${COMPONENTS_DIR}/rpc_base/test/rpc_base_test.cc
-    ${COMPONENTS_DIR}/connection_handler/test/heart_beat_monitor_test.cc
-    ${COMPONENTS_DIR}/formatters/test/generic_json_formatter_test.cc
-    ${COMPONENTS_DIR}/security_manager/test/crypto_manager_impl_test.cc
-    ${COMPONENTS_DIR}/security_manager/test/security_manager_test.cc
-    ${COMPONENTS_DIR}/security_manager/test/security_query_test.cc
-    ${COMPONENTS_DIR}/security_manager/test/security_query_matcher.cc   
-    ${COMPONENTS_DIR}/transport_manager/test/mock_application.cc
-    ${COMPONENTS_DIR}/transport_manager/test/mock_connection_factory.cc  
-    ${COMPONENTS_DIR}/transport_manager/test/mock_connection.cc       
-    ${COMPONENTS_DIR}/transport_manager/test/mock_device.cc           
-    ${COMPONENTS_DIR}/transport_manager/test/mock_device_scanner.cc    
-    ${COMPONENTS_DIR}/transport_manager/test/raw_message_matcher.cc   
-    ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter.cc 
-    ${COMPONENTS_DIR}/transport_manager/test/transport_manager_test.cc 
-    ${AM_TEST_DIR}/command_impl_test.cc
-    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectDraft_test.cc
-    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectInvalid_test.cc
-    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectStress_test.cc
-    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectUnit_test.cc
-    ${COMPONENTS_DIR}/smart_objects/test/TSharedPtr_test.cc
-    ${COMPONENTS_DIR}/protocol_handler/test/protocol_handler_tm_test.cc
-    ${COMPONENTS_DIR}/protocol_handler/test/incoming_data_handler_test.cc
-    ${COMPONENTS_DIR}/protocol_handler/test/protocol_header_validator_test.cc
-    ${COMPONENTS_DIR}/hmi_message_handler/test/mqueue_adapter_test.cc 
-  )
+##TODO to ALL : Please FIX heart_beat_monitor_test.cc
+#  set(testSources
+#    main_test.cc
+#    ${COMPONENTS_DIR}/utils/test/messagemeter_test.cc
+#    ${COMPONENTS_DIR}/utils/test/date_time_test.cc
+#    ${COMPONENTS_DIR}/utils/test/file_system_test.cc
+#    ${COMPONENTS_DIR}/media_manager/test/media_manager_impl_test.cc
+#    ${COMPONENTS_DIR}/connection_handler/test/connection_handler_impl_test.cc
+#    ${COMPONENTS_DIR}/connection_handler/test/connection_test.cc
+#    ${COMPONENTS_DIR}/rpc_base/test/rpc_base_json_test.cc
+#    ${COMPONENTS_DIR}/rpc_base/test/rpc_base_test.cc
+#    ${COMPONENTS_DIR}/connection_handler/test/heart_beat_monitor_test.cc
+#    ${COMPONENTS_DIR}/formatters/test/generic_json_formatter_test.cc
+#    ${COMPONENTS_DIR}/security_manager/test/crypto_manager_impl_test.cc
+#    ${COMPONENTS_DIR}/security_manager/test/security_manager_test.cc
+#    ${COMPONENTS_DIR}/security_manager/test/security_query_test.cc
+#    ${COMPONENTS_DIR}/security_manager/test/security_query_matcher.cc
+#    ${COMPONENTS_DIR}/transport_manager/test/mock_application.cc
+#    ${COMPONENTS_DIR}/transport_manager/test/mock_connection_factory.cc
+#    ${COMPONENTS_DIR}/transport_manager/test/mock_connection.cc
+#    ${COMPONENTS_DIR}/transport_manager/test/mock_device.cc
+#    ${COMPONENTS_DIR}/transport_manager/test/mock_device_scanner.cc
+#    ${COMPONENTS_DIR}/transport_manager/test/raw_message_matcher.cc
+#    ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter.cc
+#    ${COMPONENTS_DIR}/transport_manager/test/transport_manager_test.cc
+#    ${AM_TEST_DIR}/command_impl_test.cc
+#    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectDraft_test.cc
+#    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectInvalid_test.cc
+#    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectStress_test.cc
+#    ${COMPONENTS_DIR}/smart_objects/test/SmartObjectUnit_test.cc
+#    ${COMPONENTS_DIR}/smart_objects/test/TSharedPtr_test.cc
+#    ${COMPONENTS_DIR}/protocol_handler/test/protocol_handler_tm_test.cc
+#    ${COMPONENTS_DIR}/protocol_handler/test/incoming_data_handler_test.cc
+#    ${COMPONENTS_DIR}/protocol_handler/test/protocol_header_validator_test.cc
+#    ${COMPONENTS_DIR}/hmi_message_handler/test/mqueue_adapter_test.cc
+#  )
   
-if (${QT_HMI})
-    list (APPEND testSources
-        ${COMPONENTS_DIR}/rpc_base/test/rpc_base_dbus_test.cc
-        ${COMPONENTS_DIR}/dbus/test/test_schema.cc
-        ${COMPONENTS_DIR}/dbus/test/test_dbus_adapter.cc
-        ${COMPONENTS_DIR}/hmi_message_handler/test/mock_subscriber.cc 
-        ${COMPONENTS_DIR}/hmi_message_handler/test/dbus_message_adapter_test.cc    
-       )
-endif ()
+#if (${QT_HMI})
+#    list (APPEND testSources
+#        ${COMPONENTS_DIR}/rpc_base/test/rpc_base_dbus_test.cc
+#        ${COMPONENTS_DIR}/dbus/test/test_schema.cc
+#        ${COMPONENTS_DIR}/dbus/test/test_dbus_adapter.cc
+#        ${COMPONENTS_DIR}/hmi_message_handler/test/mock_subscriber.cc
+#        ${COMPONENTS_DIR}/hmi_message_handler/test/dbus_message_adapter_test.cc
+#       )
+#endif ()
 
-  set(test_exec_libraries
-    gmock
-    gtest
-    gmock_main
-    gtest_main
-    ConfigProfile
-    SmartObjects
-    ApplicationManagerTest #Mocked Singlton
-    HMI_API
-    MOBILE_API
-    v4_protocol_v1_2_no_extra
-    SmartObjects
-    formatters    
-    ProtocolLibrary
-    ProtocolHandler
-    connectionHandler
-    HMIMessageHandler
-    Utils
-    jsoncpp
-    MediaManager
-    ApplicationManager
-    TransportManager
-    MessageBroker
-    MessageBrokerClient
-    MessageBrokerServer
-    encryption
-    ${RTLIB}
-    Resumption    
-    Policy
-    ${SecurityManagerLibrary}
-  )
+#  set(test_exec_libraries
+#    gmock
+#    gtest
+#    gmock_main
+#    gtest_main
+#    ConfigProfile
+#    SmartObjects
+#    ApplicationManagerTest #Mocked Singlton
+#    HMI_API
+#    MOBILE_API
+#    v4_protocol_v1_2_no_extra
+#    SmartObjects
+#    formatters
+#    ProtocolLibrary
+#    ProtocolHandler
+#    connectionHandler
+#    HMIMessageHandler
+#    Utils
+#    jsoncpp
+#    MediaManager
+#    ApplicationManager
+#    TransportManager
+#    MessageBroker
+#    MessageBrokerClient
+#    MessageBrokerServer
+#    encryption
+#    ${RTLIB}
+#    Resumption
+#    Policy
+#    ${SecurityManagerLibrary}
+#  )
 
-if (BUILD_AVAHI_SUPPORT)
-  list(APPEND test_exec_libraries avahi-client avahi-common)
-endif()
-if (BUILD_BT_SUPPORT)
-  list(APPEND test_exec_libraries bluetooth)
-endif()
-if (BUILD_USB_SUPPORT)
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  list(APPEND test_exec_libraries Libusb-1.0.16)
-endif()
-endif()
+#if (BUILD_AVAHI_SUPPORT)
+#  list(APPEND test_exec_libraries avahi-client avahi-common)
+#endif()
+#if (BUILD_BT_SUPPORT)
+#  list(APPEND test_exec_libraries bluetooth)
+#endif()
+#if (BUILD_USB_SUPPORT)
+#if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+#  list(APPEND test_exec_libraries Libusb-1.0.16)
+#endif()
+#endif()
 
 
-if(ENABLE_LOG)
-  list(APPEND test_exec_libraries log4cxx -L${LOG4CXX_LIBS_DIRECTORY})
-  list(APPEND test_exec_libraries apr-1 -L${APR_LIBS_DIRECTORY})
-  list(APPEND test_exec_libraries aprutil-1 -L${APR_UTIL_LIBS_DIRECTORY})
-  list(APPEND test_exec_libraries expat -L${EXPAT_LIBS_DIRECTORY})
-endif()
+#if(ENABLE_LOG)
+#  list(APPEND test_exec_libraries log4cxx -L${LOG4CXX_LIBS_DIRECTORY})
+#  list(APPEND test_exec_libraries apr-1 -L${APR_LIBS_DIRECTORY})
+#  list(APPEND test_exec_libraries aprutil-1 -L${APR_UTIL_LIBS_DIRECTORY})
+#  list(APPEND test_exec_libraries expat -L${EXPAT_LIBS_DIRECTORY})
+#endif()
 
-  include(${COMPONENTS_DIR}/policy/test/include.cmake)
+#  include(${COMPONENTS_DIR}/policy/test/include.cmake)
 
-  IF(${CMAKE_SYSTEM_NAME} MATCHES "QNX")
-    list(REMOVE_ITEM test_exec_libraries dl)
-  endif()
+#  IF(${CMAKE_SYSTEM_NAME} MATCHES "QNX")
+#    list(REMOVE_ITEM test_exec_libraries dl)
+#  endif()
 
-  add_executable(${PROJECT}_test ${testSources})
-  target_link_libraries(${PROJECT}_test ${test_exec_libraries})
+#  add_executable(${PROJECT}_test ${testSources})
+#  target_link_libraries(${PROJECT}_test ${test_exec_libraries})
 
-  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/log4cxx.properties DESTINATION ${CMAKE_BINARY_DIR}/test/)
-  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/smartDeviceLink.ini DESTINATION ${CMAKE_BINARY_DIR}/test/)
-  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/hmi_capabilities.json DESTINATION ${CMAKE_BINARY_DIR}/test/)
+#  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/log4cxx.properties DESTINATION ${CMAKE_BINARY_DIR}/test/)
+#  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/smartDeviceLink.ini DESTINATION ${CMAKE_BINARY_DIR}/test/)
+#  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/hmi_capabilities.json DESTINATION ${CMAKE_BINARY_DIR}/test/)
 
-endif()
+#endif()
 
 #=================================================================
 

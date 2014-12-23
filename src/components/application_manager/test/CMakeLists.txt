@@ -126,10 +126,14 @@ if(ENABLE_LOG)
 endif()
 
 add_library("ApplicationManagerTest" ${mockedSources} ${testSources} ${AM_SOURCES})
+
 target_link_libraries("ApplicationManagerTest" ${testLibraries} AMHMICommandsLibrary
                                                                 AMMobileCommandsLibrary
                                                                 AMEventEngine
                                                                 AMPolicyLibrary)
 
-add_executable(application_manager_test ${testSources})
-target_link_libraries(application_manager_test ApplicationManagerTest ${test_exec_libraries})
+create_test("application_manager_test" "${testSources}" "${ApplicationManagerTest}")
+target_link_libraries("application_manager_test" ApplicationManagerTest ${test_exec_libraries})
+
+#add_executable(application_manager_test ${testSources})
+#target_link_libraries(application_manager_test ApplicationManagerTest ${test_exec_libraries})

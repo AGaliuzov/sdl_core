@@ -34,18 +34,18 @@ include_directories (
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include)
 
-set(testSources
+set(Sources
   main.cc
   messagemeter_test.cc
   file_system_test.cc
-  date_time_test.cc)
+  date_time_test.cc
+)
 
-set(testLibraries
+set(Libraries
   gmock
   Utils
-  )
+)
 
-add_executable(utils_test ${testSources})
-target_link_libraries(utils_test ${testLibraries})
+create_test("utils_test" "${Sources}" "${Libraries}")
 
 endif()
