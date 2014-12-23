@@ -42,7 +42,7 @@ namespace utils {
 
 using namespace ::threads;
 
-TEST(ThreadValidatorTest, SingleThreadSimpleValidatorCtorTest_CreatedInCurrentThread) {
+TEST(ThreadValidatorTest, CompareID_CurrentThreadAndPthread_AreEqual) {
   SingleThreadSimpleValidator object;
   ASSERT_EQ(object.creation_thread_id(), pthread_self());
 
