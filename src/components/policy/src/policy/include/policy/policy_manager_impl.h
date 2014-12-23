@@ -168,7 +168,6 @@ class PolicyManagerImpl : public PolicyManager {
         const BinaryMessage& pt_content);
 
   private:
-    bool HasConsentedDevice();
     void CheckTriggers();
     /*
      * @brief Checks policy table update along with current data for any changes
