@@ -206,7 +206,7 @@ SDL.SettingsController = Em.Object.create( {
      * @param {Object} message
      *
      */
-    permissionsFriendlyMessageUpdate: function(message, appID) {
+    permissionsFriendlyMessageUpdate: function(message) {
 
 
         SDL.SettingsController.simpleParseUserFriendlyMessageData(message);
@@ -225,22 +225,8 @@ SDL.SettingsController = Em.Object.create( {
 
     AllowSDLFunctionality: function(messages) {
 
-        var str = '';
-
-        if (messages[0].line1) {
-            str += messages[0].line1;
-        }
-
-        if (messages[0].line2) {
-            str += messages[0].line2;
-        }
-
-        if (messages[0].textBody) {
-            str += messages[0].textBody;
-        }
-
-        if (str) {
-            SDL.SettingsController.simpleParseUserFriendlyMessageData(message, SDL.SettingsController.OnAllowSDLFunctionality);
+        if (messages.length > 0) {
+            SDL.SettingsController.simpleParseUserFriendlyMessageData(messages, SDL.SettingsController.OnAllowSDLFunctionality);
         } else {
             SDL.PopUp.create().appendTo('body').popupActivate(
                 'WARNING!!!!!!!!!!!!!! '
@@ -252,7 +238,7 @@ SDL.SettingsController = Em.Object.create( {
 
     userFriendlyMessagePopUp: function(appId, messageCode) {
 
-        FFW.BasicCommunication.GetUserFriendlyMessage(SDL.SettingsController.simpleParseUserFriendlyMessageData(message), appId, messageCode);
+        FFW.BasicCommunication.GetUserFriendlyMessage(SDL.SettingsController.simpleParseUserFriendlyMessageData, appId, messageCode);
     },
 
     simpleParseUserFriendlyMessageData: function (messages, func) {

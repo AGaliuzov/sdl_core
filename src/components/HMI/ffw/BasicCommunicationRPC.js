@@ -208,7 +208,7 @@ FFW.BasicCommunication = FFW.RPCObserver
 
                 if (response.id in SDL.SDLModel.userFriendlyMessagePull) {
                     var callbackObj = SDL.SDLModel.userFriendlyMessagePull[response.id];
-                    callbackObj.callbackFunc(response.result.messages, callbackObj.appID);
+                    callbackObj.callbackFunc(response.result.messages);
                     delete SDL.SDLModel.userFriendlyMessagePull[response.id];
                 }
             }
