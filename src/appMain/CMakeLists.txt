@@ -250,7 +250,6 @@ endif ()
     gmock_main
     gtest_main
     ConfigProfile
-    SmartObjects
     ApplicationManagerTest #Mocked Singlton
     HMI_API
     MOBILE_API
