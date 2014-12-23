@@ -9,6 +9,7 @@ set(testSources
   date_time_test.cc
   system_test.cc
   signals_linux_test.cc
+  thread_validator_test.cc
   )
 
 set(testLibraries
