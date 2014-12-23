@@ -39,7 +39,7 @@ namespace utils {
 
 using namespace ::utils;
 
-TEST(SystemTest, Constructor_WithCommandName_ArgsStored) {
+TEST(SystemTest, Constructor_WithCommandName_ExpectArgsStored) {
   // Command creation without any arguments
   const std::string test_command("ls");
   System object(test_command);
@@ -49,7 +49,7 @@ TEST(SystemTest, Constructor_WithCommandName_ArgsStored) {
   ASSERT_EQ(object.argv().size(), 1);
 }
 
-TEST(SystemTest, Constructor_WithFileNameCommandName_ArgsStored) {
+TEST(SystemTest, Constructor_WithFileNameCommandName_ExpectArgsStored) {
   // Command creation with 1 argument
   const std::string test_command("ls");
   const std::string test_list_args("-la");
@@ -63,7 +63,7 @@ TEST(SystemTest, Constructor_WithFileNameCommandName_ArgsStored) {
 
 }
 
-TEST(SystemTest, AddArgsToCommand_CheckArgsNumber_ArgsNumberCorrect) {
+TEST(SystemTest, AddArgsToCommand_CheckArgsNumber_ExpectArgsNumberCorrect) {
   const std::string test_command("echo");
   const char* args[] = {"-e", "\b"};
   System object(test_command);
@@ -76,7 +76,7 @@ TEST(SystemTest, AddArgsToCommand_CheckArgsNumber_ArgsNumberCorrect) {
   ASSERT_EQ(object.argv().size(), 3);  // Correct number of arguments is 3
 }
 
-TEST(SystemTest, AddArgsToCommand_CheckOrder_OrderCorrect) {
+TEST(SystemTest, AddArgsToCommand_CheckOrder_ExpectOrderCorrect) {
   const std::string test_command("echo");
   const char* args[] = {"-e", "\b"};
   System object(test_command);
@@ -92,7 +92,7 @@ TEST(SystemTest, AddArgsToCommand_CheckOrder_OrderCorrect) {
 
 
 
-TEST(SystemTest, SynchronousInvokeAnyExistingCommandOrScript_InvokeSuccessfull) {
+TEST(SystemTest, SynchronousInvokeWithExistingCommand_ExpectSuccessfull) {
   const std::string test_command("./testscript.sh");
   System object(test_command);
 
@@ -100,7 +100,7 @@ TEST(SystemTest, SynchronousInvokeAnyExistingCommandOrScript_InvokeSuccessfull) 
   ASSERT_TRUE(object.Execute(true));
 }
 
-TEST(SystemTest, SynchronousInvokeAnyIncorrectCommand_InvokeFailed) {
+TEST(SystemTest, SynchronousInvokeWithEmptyCommand_IncorrectCommand_ExpectFailed) {
   const std::string test_command("");  //any incorrect command
   System object(test_command);
 
@@ -108,7 +108,7 @@ TEST(SystemTest, SynchronousInvokeAnyIncorrectCommand_InvokeFailed) {
   ASSERT_FALSE(object.Execute(true));
 }
 
-TEST(SystemTest, ASynchronousInvokeAnyCommand_InvokeSuccessfull) {
+TEST(SystemTest, ASynchronousInvokeEmptyCommand_InvokeSuccessfull) {
   const std::string test_command("");            //Possible to put here any command (existing or incorrect)
   const std::string test_list_args("anything");  //as command will never be executed from child process
   System object(test_command, test_list_args);   //as parrent process does not wait for child process to be finished
