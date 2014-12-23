@@ -225,20 +225,20 @@ class SMListenerMock : public security_manager::SecurityManagerListener {
  */
 MATCHER_P2(RawMessageEq, exp_data, exp_data_size,
     std::string(negation ? "is not" : "is") + " RawMessages "){
-const size_t arg_data_size = arg->data_size();
-if (arg_data_size != exp_data_size) {
-  *result_listener << "Got " << arg_data_size << " bytes "
-  << " expected " << exp_data_size << " bytes";
-  return false;
-}
-const uint8_t *arg_data = arg->data();
-for (int i = 0; i < arg_data_size; ++i) {
-  if (arg_data[i] != exp_data[i]) {
-    *result_listener << "Fail in " << i << " byte";
+  const size_t arg_data_size = arg->data_size();
+  if (arg_data_size != exp_data_size) {
+    *result_listener << "Got " << arg_data_size << " bytes "
+    << " expected " << exp_data_size << " bytes";
     return false;
   }
-}
-return true;
+  const uint8_t *arg_data = arg->data();
+  for (int i = 0; i < arg_data_size; ++i) {
+    if (arg_data[i] != exp_data[i]) {
+      *result_listener << "Fail in " << i << " byte";
+      return false;
+    }
+  }
+  return true;
 }
 
 /*
@@ -248,57 +248,57 @@ return true;
 MATCHER_P(InternalErrorWithErrId, expectedErrorId,
     std::string(negation ? "is not" : "is")
     + " InternalError with selected error" ){
-const size_t header_size = sizeof(security_manager::SecurityQuery::QueryHeader);
-if (arg->data_size() <= header_size) {
-  *result_listener << "Size " << arg->data_size()
-  << " bytes less or equal sizeof(QueryHeader)="
-  << header_size;
-  return false;
+  const size_t header_size = sizeof(security_manager::SecurityQuery::QueryHeader);
+  if (arg->data_size() <= header_size) {
+    *result_listener << "Size " << arg->data_size()
+    << " bytes less or equal sizeof(QueryHeader)="
+    << header_size;
+    return false;
+  }
+  const uint8_t *data = arg->data();
+  const uint8_t query_type = data[0];
+  if (security_manager::SecurityQuery::NOTIFICATION != query_type) {
+    *result_listener << "RawMessage is not notification, type=0x"
+    << std::hex << static_cast<int>(query_type);
+    return false;
+  }
+  // Read Big-Endian number
+  const uint32_t query_id = data[1] << 16 |
+  data[2] << 8 |
+  data[3];
+  if (security_manager::SecurityQuery::SEND_INTERNAL_ERROR != query_id) {
+    *result_listener << "Notification is not InternalError, id=0x"
+    << std::hex << query_id;
+    return false;
+  }
+  const uint32_t json_size = data[8] << 24 |
+  data[9] << 16 |
+  data[10] << 8 |
+  data[11];
+  if (header_size + json_size >= arg->data_size()) {
+    *result_listener << "InternalError contains only JSON data.";
+    return false;
+  }
+  // Read err_id as bin data number
+  const uint8_t* err_id =
+  reinterpret_cast<const uint8_t*>(data + header_size + json_size);
+  if (expectedErrorId != *err_id) {
+    *result_listener << "InternalError id " << static_cast<int>(*err_id)
+    << " and not equal error " << expectedErrorId;
+    return false;
+  }
+  return true;
 }
-const uint8_t *data = arg->data();
-const uint8_t query_type = data[0];
-if (security_manager::SecurityQuery::NOTIFICATION != query_type) {
-  *result_listener << "RawMessage is not notification, type=0x"
-  << std::hex << static_cast<int>(query_type);
-  return false;
-}
-// Read Big-Endian number
-const uint32_t query_id = data[1] << 16 |
-data[2] << 8 |
-data[3];
-if (security_manager::SecurityQuery::SEND_INTERNAL_ERROR != query_id) {
-  *result_listener << "Notification is not InternalError, id=0x"
-  << std::hex << query_id;
-  return false;
-}
-const uint32_t json_size = data[8] << 24 |
-data[9] << 16 |
-data[10] << 8 |
-data[11];
-if (header_size + json_size >= arg->data_size()) {
-  *result_listener << "InternalError contains only JSON data.";
-  return false;
-}
-// Read err_id as bin data number
-const uint8_t* err_id =
-reinterpret_cast<const uint8_t*>(data + header_size + json_size);
-if (expectedErrorId != *err_id) {
-  *result_listener << "InternalError id " << static_cast<int>(*err_id)
-  << " and not equal error " << expectedErrorId;
-  return false;
-}
-return true;
-}
-}
-  // namespace security_manager_test
+
+} // namespace security_manager_test
 } // namespace components
-}  // namespace test
+} // namespace test
 /*
  * Matcher for checking QueryHeader equal in GTests
  */
 ::testing::AssertionResult QueryHeader_EQ(
-const char* m_expr, const char* n_expr,
-const ::security_manager::SecurityQuery::QueryHeader& q1,
-const ::security_manager::SecurityQuery::QueryHeader& q2);
+                                          const char* m_expr, const char* n_expr,
+                                          const ::security_manager::SecurityQuery::QueryHeader& q1,
+                                          const ::security_manager::SecurityQuery::QueryHeader& q2);
 
 #endif  // TEST_COMPONENTS_SECURITY_MANAGER_INCLUDE_SECURITY_MANAGER_SECURITY_MANAGER_MOCK_H_

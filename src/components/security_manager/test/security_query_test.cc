@@ -450,7 +450,7 @@ TEST_F(SecurityQueryTest, Parse_InternalError) {
   const std::vector<uint8_t> deserialize_vector = query.DeserializeQuery();
   ASSERT_EQ(deserialize_vector, vector);
 }
-}
-  // namespace security_manager_test
+
+} // namespace security_manager_test
 } // namespace components
-}  // namespace test
+} // namespace test
