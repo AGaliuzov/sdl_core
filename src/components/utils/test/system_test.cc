@@ -86,8 +86,8 @@ TEST(SystemTest, AddArgsToCommand_CheckOrder_OrderCorrect) {
   object.Add(args[1]);
 
   // Check if the object was appended by correct arguments in correct order
-  ASSERT_STREQ(object.argv()[1].c_str(), args[0]);
-  ASSERT_STREQ(object.argv()[2].c_str(), args[1]);
+  EXPECT_STREQ(object.argv()[1].c_str(), args[0]);
+  EXPECT_STREQ(object.argv()[2].c_str(), args[1]);
 }
 
 
@@ -101,18 +101,17 @@ TEST(SystemTest, SynchronousInvokeAnyExistingCommandOrScript_InvokeSuccessfull) 
 }
 
 TEST(SystemTest, SynchronousInvokeAnyIncorrectCommand_InvokeFailed) {
-  const std::string test_command("abracadabra");  //incorrect command
-  const std::string test_list_args("wikipedia");
-  System object(test_command, test_list_args);
+  const std::string test_command("");  //any incorrect command
+  System object(test_command);
 
   // Check if Execute() method will fail with not correct command (synchronous command invoke)
   ASSERT_FALSE(object.Execute(true));
 }
 
-TEST(SystemTest, ASynchronousInvokeAnyCommand_Positive) {
-  const std::string test_command("echor345436346");  //Possible to put here any command (existing or incorrect)
-  const std::string test_list_args("wikipedia");    //as command will never be executed from child process
-  System object(test_command, test_list_args);      //as parrent process does not wait for child process to be finished
+TEST(SystemTest, ASynchronousInvokeAnyCommand_InvokeSuccessfull) {
+  const std::string test_command("");            //Possible to put here any command (existing or incorrect)
+  const std::string test_list_args("anything");  //as command will never be executed from child process
+  System object(test_command, test_list_args);   //as parrent process does not wait for child process to be finished
 
   // Check if Execute() method is working properly with asynchronous command invoke
   ASSERT_TRUE(object.Execute());
