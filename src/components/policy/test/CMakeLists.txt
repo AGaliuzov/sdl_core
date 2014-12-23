@@ -76,8 +76,8 @@ if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
   # --- Tests for QDB Wrapper
   include_directories(../src/policy/qdb_wrapper/include)
   list (APPEND testSources
-    #qdb_wrapper/sql_database_test.cc
-    #qdb_wrapper/sql_query_test.cc
+    qdb_wrapper/sql_database_test.cc
+    qdb_wrapper/sql_query_test.cc
   )
   file(COPY qdbserver.sh DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
   file(COPY test-qdb.ini DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
