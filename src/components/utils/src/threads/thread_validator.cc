@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,6 +60,11 @@ void SingleThreadSimpleValidator::AssertRunningOnCreationThread() const {
 #endif
     );
   }
+}
+
+PlatformThreadHandle SingleThreadSimpleValidator::creation_thread_id() const
+{
+  return creation_thread_id_;
 }
 
 
