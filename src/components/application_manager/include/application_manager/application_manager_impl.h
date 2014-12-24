@@ -754,6 +754,7 @@ class ApplicationManagerImpl : public ApplicationManager,
        * @brief ApplicationListAccessor class constructor
        */
       ApplicationListAccessor();
+      ~ApplicationListAccessor();
 
       /**
        * @brief thread-safe getter for applications

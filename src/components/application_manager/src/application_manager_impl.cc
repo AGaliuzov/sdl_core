@@ -158,21 +158,27 @@ bool ApplicationManagerImpl::Stop() {
 ApplicationSharedPtr ApplicationManagerImpl::application(uint32_t app_id) const {
   AppIdPredicate finder(app_id);
   ApplicationListAccessor accessor;
-  return accessor.Find(finder);;
+  ApplicationSharedPtr app = accessor.Find(finder);
+  LOG4CXX_DEBUG(logger_, "AKUTSAN app_id << " << app_id << "Found = " << app);
+  return app;
 }
 
 ApplicationSharedPtr ApplicationManagerImpl::application_by_hmi_app(
   uint32_t hmi_app_id) const {
   HmiAppIdPredicate finder(hmi_app_id);
   ApplicationListAccessor accessor;
-  return accessor.Find(finder);;
+  ApplicationSharedPtr app = accessor.Find(finder);
+  LOG4CXX_DEBUG(logger_, "AKUTSAN hmi_app_id << " << hmi_app_id << "Found = " << app);
+  return app;
 }
 
 ApplicationSharedPtr ApplicationManagerImpl::application_by_policy_id(
   const std::string& policy_app_id) const {
   MobileAppIdPredicate finder(policy_app_id);
   ApplicationListAccessor accessor;
-  return accessor.Find(finder);;
+  ApplicationSharedPtr app = accessor.Find(finder);
+  LOG4CXX_DEBUG(logger_, "AKUTSAN policy_app_id << " << policy_app_id << "Found = " << app);
+  return app;
 }
 
 bool ActiveAppPredicate (const ApplicationSharedPtr app) {
@@ -182,7 +188,9 @@ bool ActiveAppPredicate (const ApplicationSharedPtr app) {
 ApplicationSharedPtr ApplicationManagerImpl::active_application() const {
   // TODO(DK) : check driver distraction
   ApplicationListAccessor accessor;
-  return accessor.Find(ActiveAppPredicate);;
+  ApplicationSharedPtr app = accessor.Find(ActiveAppPredicate);
+  LOG4CXX_DEBUG(logger_, "AKUTSAN Found = " << app);
+  return app;
 }
 
 bool LimitedAppPredicate (const ApplicationSharedPtr app) {
@@ -193,7 +201,9 @@ bool LimitedAppPredicate (const ApplicationSharedPtr app) {
 ApplicationSharedPtr
 ApplicationManagerImpl::get_limited_media_application() const {
   ApplicationListAccessor accessor;
-  return accessor.Find(LimitedAppPredicate);
+  ApplicationSharedPtr app = accessor.Find(LimitedAppPredicate);
+  LOG4CXX_DEBUG(logger_, "AKUTSAN Found = " << app);
+  return app;
 }
 
 bool LimitedNaviAppPredicate (const ApplicationSharedPtr app) {
@@ -205,7 +215,9 @@ bool LimitedNaviAppPredicate (const ApplicationSharedPtr app) {
 ApplicationSharedPtr
 ApplicationManagerImpl::get_limited_navi_application() const {
   ApplicationListAccessor accessor;
-  return accessor.Find(LimitedNaviAppPredicate);
+  ApplicationSharedPtr app = accessor.Find(LimitedNaviAppPredicate);
+  LOG4CXX_DEBUG(logger_, "AKUTSAN Found = " << app);
+  return app;
 }
 
 bool LimitedVoiceAppPredicate (const ApplicationSharedPtr app) {
@@ -217,7 +229,9 @@ bool LimitedVoiceAppPredicate (const ApplicationSharedPtr app) {
 ApplicationSharedPtr
 ApplicationManagerImpl::get_limited_voice_application() const {
   ApplicationListAccessor accessor;
-  return accessor.Find(LimitedVoiceAppPredicate);
+  ApplicationSharedPtr app = accessor.Find(LimitedVoiceAppPredicate);
+  LOG4CXX_DEBUG(logger_, "AKUTSAN Found = " << app);
+  return app;
 }
 
 bool NaviAppPredicate (const ApplicationSharedPtr app) {
@@ -226,14 +240,18 @@ bool NaviAppPredicate (const ApplicationSharedPtr app) {
 
 std::vector<ApplicationSharedPtr> ApplicationManagerImpl::applications_with_navi() {
   ApplicationListAccessor accessor;
-  return accessor.FindAll(NaviAppPredicate);
+  std::vector<ApplicationSharedPtr> apps = accessor.FindAll(NaviAppPredicate);
+  LOG4CXX_DEBUG(logger_, "AKUTSAN Found count: " << apps.size());
+  return apps;
 }
 std::vector<ApplicationSharedPtr> ApplicationManagerImpl::applications_by_button(
   uint32_t button) {
   SubscribedToButtonPredicate finder(
         static_cast<mobile_apis::ButtonName::eType>(button));
   ApplicationListAccessor accessor;
-  return accessor.FindAll(finder);
+  std::vector<ApplicationSharedPtr> apps = accessor.FindAll(NaviAppPredicate);
+  LOG4CXX_DEBUG(logger_, "AKUTSAN Found count: " << apps.size());
+  return apps;
 }
 
 std::vector<ApplicationSharedPtr> ApplicationManagerImpl::IviInfoUpdated(
@@ -252,7 +270,9 @@ std::vector<ApplicationSharedPtr> ApplicationManagerImpl::IviInfoUpdated(
   SubscribedToIVIPredicate finder(
         static_cast<int32_t>(vehicle_info));
   ApplicationListAccessor accessor;
-  return accessor.FindAll(finder);
+  std::vector<ApplicationSharedPtr> apps = accessor.FindAll(NaviAppPredicate);
+  LOG4CXX_DEBUG(logger_, "AKUTSAN vehicle_info << " << vehicle_info << "Found count: " << apps.size());
+  return apps;
 }
 
 bool ApplicationManagerImpl::DoesAudioAppWithSameHMITypeExistInFullOrLimited(
@@ -2668,7 +2688,11 @@ void ApplicationManagerImpl::OnUpdateHMIAppType(
 ApplicationManagerImpl::ApplicationListAccessor::ApplicationListAccessor():
   DataAccessor(ApplicationManagerImpl::instance()->applications_,
                ApplicationManagerImpl::instance()->applications_list_lock_){
+  LOG4CXX_DEBUG(logger_, "AKUTSAN Lock");
+}
 
+ApplicationManagerImpl::ApplicationListAccessor::~ApplicationListAccessor() {
+         LOG4CXX_DEBUG(logger_, "AKUTSAN Release");
 }
 
 }  // namespace application_manager
