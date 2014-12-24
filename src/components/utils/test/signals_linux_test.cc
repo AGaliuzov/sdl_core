@@ -40,9 +40,9 @@ namespace components {
 namespace utils {
 
 void handler(int sig) {
-  const char *str = "handled..\n";
-  ssize_t value = write(1, str, strlen(str));
-  assert(value != -1);
+//  const char *str = "handled..\n";
+//  ssize_t value = write(1, str, strlen(str));
+//  assert(value != -1);
 }
 
 TEST(SignalsLinuxTest, SubscribeToTerminateSignal_Positive) {
