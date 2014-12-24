@@ -46,7 +46,8 @@ TEST(SystemTest, Constructor_WithCommandName_ExpectArgsStored) {
 
   // Check if the object was created with correct command
   ASSERT_EQ(object.command(), test_command);
-  ASSERT_EQ(object.argv().size(), 1);
+  int vec_size = object.argv().size();
+  ASSERT_EQ(vec_size, 1);
 }
 
 TEST(SystemTest, Constructor_WithFileNameCommandName_ExpectArgsStored) {
@@ -59,7 +60,8 @@ TEST(SystemTest, Constructor_WithFileNameCommandName_ExpectArgsStored) {
   ASSERT_EQ(object.command(), test_command);
 
   // Check if actual number of arguments arec correct
-  ASSERT_EQ(object.argv().size(), 1);  // Correct number of arguments is 1
+  int vec_size = object.argv().size();
+  ASSERT_EQ(vec_size, 1);  // Correct number of arguments is 1
 
 }
 
@@ -73,7 +75,8 @@ TEST(SystemTest, AddTwoArgsToCommand_ExpectTwoArgsAdded) {
   object.Add(args[1]);
 
   // Check if actual number of arguments equal args stored in object
-  ASSERT_EQ(object.argv().size(), 3);  // Correct number of arguments is 3
+  int vec_size = object.argv().size();
+  ASSERT_EQ(vec_size, 3);  // Correct number of arguments is 3
 }
 
 TEST(SystemTest, AddTwoArgsToCommand_CheckOrder_ExpectOrderCorrect) {
@@ -101,7 +104,7 @@ TEST(SystemTest, SynchronousInvokeWithExistingCommand_ExpectSuccessfull) {
 }
 
 TEST(SystemTest, SynchronousInvokeWithEmptyCommand_IncorrectCommand_ExpectFailed) {
-  const std::string test_command("");  //any incorrect command
+  const std::string test_command("");  // any incorrect command
   System object(test_command);
 
   // Check if Execute() method will fail with not correct command (synchronous command invoke)
@@ -109,9 +112,9 @@ TEST(SystemTest, SynchronousInvokeWithEmptyCommand_IncorrectCommand_ExpectFailed
 }
 
 TEST(SystemTest, ASynchronousInvokeEmptyCommand_InvokeSuccessfull) {
-  const std::string test_command("");            //Possible to put here any command (existing or incorrect)
-  const std::string test_list_args("anything");  //as command will never be executed from child process
-  System object(test_command, test_list_args);   //as parrent process does not wait for child process to be finished
+  const std::string test_command("");            // Possible to put here any command (existing or incorrect)
+  const std::string test_list_args("anything");  // as command will never be executed from child process
+  System object(test_command, test_list_args);   // as parrent process does not wait for child process to be finished
 
   // Check if Execute() method is working properly with asynchronous command invoke
   ASSERT_TRUE(object.Execute());
