@@ -30,67 +30,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_UTILS_INCLUDE_UTILS_SYSTEM_H_
-#define SRC_COMPONENTS_UTILS_INCLUDE_UTILS_SYSTEM_H_
+#include <unistd.h>
 
-#include <string>
-#include <vector>
+#include "gtest/gtest.h"
 
+#include "utils/threads/thread_validator.h"
+
+namespace test {
+namespace components {
 namespace utils {
 
-/**
- * Class to execute shell scripts
- */
-class System {
- public:
-  /**
-   * Constructs instantiation
-   * @param command name of command for executing
-   */
-  explicit System(const std::string& command);
+using namespace ::threads;
 
-  /**
-   * Constructs instantiation
-   * @param file name of file for executing
-   * @param command name of command
-   */
-  System(const std::string& file, const std::string& command);
+TEST(ThreadValidatorTest, CompareID_CurrentThreadAndPthread_AreEqual) {
+  SingleThreadSimpleValidator object;
+  ASSERT_EQ(object.creation_thread_id(), pthread_self());
 
-  /**
-   * Adds argument
-   * @param arg argument of command
-   * @return itself object
-   */
-  System& Add(const std::string& arg);
+}
 
-  /**
-   * Executes command as new child process
-   * @return true if success
-   */
-  bool Execute();
-
-  /**
-   * Executes command
-   * @param wait if this flag is true then wait until command is terminated
-   * @return true if success
-   */
-  bool Execute(bool wait);
-
-  std::string command() const;
-  std::vector<std::string> argv() const;
-
- private:
-  /**
-   * Command for executing
-   */
-  std::string command_;
-
-  /**
-   * List of arguments
-   */
-  std::vector<std::string> argv_;
-};
-
-}  // utils
-
-#endif  // SRC_COMPONENTS_UTILS_INCLUDE_UTILS_SYSTEM_H_
+} // namespace utils
+} // namespace components
+} // namespace test

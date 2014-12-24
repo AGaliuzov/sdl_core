@@ -30,67 +30,26 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_UTILS_INCLUDE_UTILS_SYSTEM_H_
-#define SRC_COMPONENTS_UTILS_INCLUDE_UTILS_SYSTEM_H_
+#include "gtest/gtest.h"
+#include "utils/signals.h"
 
-#include <string>
-#include <vector>
-
+namespace test {
+namespace components {
 namespace utils {
 
-/**
- * Class to execute shell scripts
- */
-class System {
- public:
-  /**
-   * Constructs instantiation
-   * @param command name of command for executing
-   */
-  explicit System(const std::string& command);
+void handler(int sig) {
+  const char *str = "handled..\n";
+  write(1, str, strlen(str));
+}
 
-  /**
-   * Constructs instantiation
-   * @param file name of file for executing
-   * @param command name of command
-   */
-  System(const std::string& file, const std::string& command);
+TEST(SignalsLinuxTest, SubscribeToTerminateSignal_Positive) {
+  ASSERT_TRUE(::utils::SubscribeToTerminateSignal(handler));
+}
 
-  /**
-   * Adds argument
-   * @param arg argument of command
-   * @return itself object
-   */
-  System& Add(const std::string& arg);
+TEST(SignalsLinuxTest, SubscribeToFaultSignal_Positive) {
+  ASSERT_TRUE(::utils::SubscribeToFaultSignal(handler));
+}
 
-  /**
-   * Executes command as new child process
-   * @return true if success
-   */
-  bool Execute();
-
-  /**
-   * Executes command
-   * @param wait if this flag is true then wait until command is terminated
-   * @return true if success
-   */
-  bool Execute(bool wait);
-
-  std::string command() const;
-  std::vector<std::string> argv() const;
-
- private:
-  /**
-   * Command for executing
-   */
-  std::string command_;
-
-  /**
-   * List of arguments
-   */
-  std::vector<std::string> argv_;
-};
-
-}  // utils
-
-#endif  // SRC_COMPONENTS_UTILS_INCLUDE_UTILS_SYSTEM_H_
+} // namespace utils
+} // namespace components
+} // namespace test
