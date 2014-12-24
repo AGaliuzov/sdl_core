@@ -46,7 +46,8 @@ TEST(SystemTest, Constructor_WithCommandName_ExpectArgsStored) {
 
   // Check if the object was created with correct command
   ASSERT_EQ(object.command(), test_command);
-  ASSERT_EQ(object.argv().size(), 1);
+  int x = object.argv().size();
+  ASSERT_EQ(x, 1);
 }
 
 TEST(SystemTest, Constructor_WithFileNameCommandName_ExpectArgsStored) {
@@ -59,7 +60,8 @@ TEST(SystemTest, Constructor_WithFileNameCommandName_ExpectArgsStored) {
   ASSERT_EQ(object.command(), test_command);
 
   // Check if actual number of arguments arec correct
-  ASSERT_EQ(object.argv().size(), 1);  // Correct number of arguments is 1
+  int x = object.argv().size();
+  ASSERT_EQ(x, 1);  // Correct number of arguments is 1
 
 }
 
@@ -73,7 +75,8 @@ TEST(SystemTest, AddTwoArgsToCommand_ExpectTwoArgsAdded) {
   object.Add(args[1]);
 
   // Check if actual number of arguments equal args stored in object
-  ASSERT_EQ(object.argv().size(), 3);  // Correct number of arguments is 3
+  int x = object.argv().size();
+  ASSERT_EQ(x, 3);  // Correct number of arguments is 3
 }
 
 TEST(SystemTest, AddTwoArgsToCommand_CheckOrder_ExpectOrderCorrect) {
