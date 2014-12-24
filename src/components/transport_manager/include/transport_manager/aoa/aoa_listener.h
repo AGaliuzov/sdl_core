@@ -64,10 +64,10 @@ class AOAListener : public ClientConnectionListener {
   sync_primitives::Lock life_lock_;
   sync_primitives::ConditionalVariable life_cond_;
 
-  void AddDevice(AOAWrapper::AOAHandle hdl);
+  DeviceUID AddDevice(AOAWrapper::AOAHandle hdl);
   void LoopDevice(AOAWrapper::AOAHandle hdl);
   void StopDevice(AOAWrapper::AOAHandle hdl);
-  void RemoveDevice(AOAWrapper::AOAHandle hdl);
+  void RemoveDevice(const DeviceUID& device_uid);
 
   std::string GetName(const std::string& unique_id);
   std::string GetUniqueId();

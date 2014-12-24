@@ -43,6 +43,7 @@ namespace transport_adapter {
 CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
 
 static void OnConnectedDevice(aoa_hdl_t *hdl, const void *udata) {
+  LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_, "AOA: connected device " << hdl);
   AOADeviceLife* const * p = static_cast<AOADeviceLife* const *>(udata);
   AOADeviceLife* life = *p;
@@ -51,6 +52,7 @@ static void OnConnectedDevice(aoa_hdl_t *hdl, const void *udata) {
 
 static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
                            uint32_t status, const void *udata) {
+  LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_, "AOA: received data from device " << hdl);
   bool error = AOAWrapper::IsError(status);
   if (error) {
@@ -79,6 +81,7 @@ static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
 
 static void OnTransmittedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
                               uint32_t status, const void *udata) {
+  LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(
       logger_,
       "AOA: transmitted data to device " << hdl << ", size=" << sz << ", data=" << data);

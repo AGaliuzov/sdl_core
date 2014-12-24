@@ -50,9 +50,14 @@ AOADynamicDevice::AOADynamicDevice(const std::string& name,
       life_(new DeviceLife(this)),
       controller_(controller),
       aoa_usb_info_(info) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(logger_, "AOA: device " << unique_device_id());
 }
 
 AOADynamicDevice::~AOADynamicDevice() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(logger_, "AOA: device " << unique_device_id());
+  life_cond_.Broadcast();
   AOAWrapper::Shutdown();
   delete life_;
 }
@@ -86,6 +91,7 @@ void AOADynamicDevice::LoopDevice(AOAWrapper::AOAHandle hdl) {
 void AOADynamicDevice::StopDevice(AOAWrapper::AOAHandle hdl) {
   LOG4CXX_TRACE(logger_, "AOA: stop device " << hdl);
   life_cond_.Broadcast();
+  controller_->DeviceDisconnected(unique_device_id(), DisconnectDeviceError());
 }
 
 AOADynamicDevice::DeviceLife::DeviceLife(AOADynamicDevice* parent)

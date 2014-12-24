@@ -72,7 +72,7 @@ std::string AOAListener::GetUniqueId() {
   return "#_" + stream.str() + "_aoa";
 }
 
-void AOAListener::AddDevice(AOAWrapper::AOAHandle hdl) {
+DeviceUID AOAListener::AddDevice(AOAWrapper::AOAHandle hdl) {
   LOG4CXX_TRACE(logger_, "AOA: add new device " << hdl);
   const std::string unique_id = GetUniqueId();
   const std::string name = GetName(unique_id);
@@ -80,10 +80,12 @@ void AOAListener::AddDevice(AOAWrapper::AOAHandle hdl) {
   controller_->AddDevice(aoa_device);
   DeviceUID device_uid = aoa_device->unique_device_id();
   controller_->ApplicationListUpdated(device_uid);
+  return device_uid;
 }
 
-void AOAListener::RemoveDevice(AOAWrapper::AOAHandle hdl) {
-  LOG4CXX_TRACE(logger_, "AOA: remove device " << hdl);
+void AOAListener::RemoveDevice(const DeviceUID& device_uid) {
+  LOG4CXX_TRACE(logger_, "AOA: remove device " << device_uid);
+  controller_->DeviceDisconnected(device_uid, DisconnectDeviceError());
 }
 
 void AOAListener::LoopDevice(AOAWrapper::AOAHandle hdl) {
@@ -108,9 +110,9 @@ AOAListener::DeviceLife::DeviceLife(AOAListener* parent)
 }
 
 void AOAListener::DeviceLife::Loop(AOAWrapper::AOAHandle hdl) {
-  parent_->AddDevice(hdl);
+  DeviceUID device_uid = parent_->AddDevice(hdl);
   parent_->LoopDevice(hdl);
-  parent_->RemoveDevice(hdl);
+  parent_->RemoveDevice(device_uid);
 }
 
 void AOAListener::DeviceLife::OnDied(AOAWrapper::AOAHandle hdl) {
