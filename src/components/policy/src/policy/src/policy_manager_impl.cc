@@ -280,13 +280,14 @@ void PolicyManagerImpl::RequestPTUpdate() {
 
   BinaryMessage update(message_string.begin(), message_string.end());
 
-  // Need to reset update schedule since all currenly registered applications
-  // were already added to the snapshot so no update for them required.
-  update_status_manager_.ResetUpdateSchedule();
 
   listener_->OnSnapshotCreated(update,
                                RetrySequenceDelaysSeconds(),
                                TimeoutExchange());
+
+  // Need to reset update schedule since all currenly registered applications
+  // were already added to the snapshot so no update for them required.
+  update_status_manager_.ResetUpdateSchedule();
 }
 
 void PolicyManagerImpl::StartPTExchange() {
