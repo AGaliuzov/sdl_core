@@ -142,11 +142,11 @@ bool UpdateStatusManager::IsUpdatePending() const {
 }
 
 void UpdateStatusManager::ScheduleUpdate() {
-  set_update_required(true);
+  update_required_ = true;
 }
 
 void UpdateStatusManager::ResetUpdateSchedule() {
-  set_update_required(false);
+  update_required_ = false;
 }
 
 std::string UpdateStatusManager::StringifiedUpdateStatus() const {
