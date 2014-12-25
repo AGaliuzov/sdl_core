@@ -1371,7 +1371,7 @@ std::string MessageHelper::GetDeviceMacAddressForHandle(
   std::string device_mac_address = "";
   connection_handler::ConnectionHandlerImpl::instance()->GetDataOnDeviceID(
     device_handle, NULL, NULL, &device_mac_address);
-
+  LOG4CXX_DEBUG(logger_, "result : " << device_handle);
   return device_mac_address;
 }
 
