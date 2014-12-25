@@ -30,42 +30,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_SECURITY_MANAGER_INCLUDE_SECURITY_MANAGER_CRYPTO_MANAGER_H_
-#define SRC_COMPONENTS_SECURITY_MANAGER_INCLUDE_SECURITY_MANAGER_CRYPTO_MANAGER_H_
+#include <unistd.h>
 
-#include <string>
+#include "gtest/gtest.h"
 
-/**
- * \class security_manager::CryptoManager
- * \brief Class factory, producing instances of \ref SSLContext
- *
- * \fn security_manager::SSLContext *security_manager::CryptoManager::CreateSSLContext()
- * \brief Creates an instance of \ref SSLContext class
- *
-  * \fn void security_manager::CryptoManager::ReleaseSSLContext(security_manager::SSLContext *context)
- * \brief Frees \ref SSLContext instance
- */
+#include "utils/threads/thread_validator.h"
 
-namespace security_manager {
-class SSLContext;
+namespace test {
+namespace components {
+namespace utils {
 
-enum Mode { CLIENT, SERVER };
-enum Protocol { SSLv3, TLSv1, TLSv1_1, TLSv1_2};
+using namespace ::threads;
 
-class CryptoManager {
- public:
-  virtual bool Init(Mode mode,
-                    Protocol protocol,
-                    const std::string &cert_filename,
-                    const std::string &key_filename,
-                    const std::string &ciphers_list,
-                    bool verify_peer) = 0;
-  virtual void Finish() = 0;
-  virtual SSLContext *CreateSSLContext() = 0;
-  virtual void ReleaseSSLContext(SSLContext *context) = 0;
-  virtual std::string LastError() const = 0;
-  virtual ~CryptoManager() { }
-};
+TEST(ThreadValidatorTest, CompareID_CurrentThreadAndPthread_AreEqual) {
+  SingleThreadSimpleValidator object;
+  ASSERT_EQ(object.creation_thread_id(), pthread_self());
 
-}  // namespace security_manager
-#endif  // SRC_COMPONENTS_SECURITY_MANAGER_INCLUDE_SECURITY_MANAGER_CRYPTO_MANAGER_H_
+}
+
+} // namespace utils
+} // namespace components
+} // namespace test

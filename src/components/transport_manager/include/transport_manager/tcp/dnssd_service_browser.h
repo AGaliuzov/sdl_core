@@ -36,12 +36,13 @@
 #ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_TCP_DNSSD_SERVICE_BROWSER_H_
 #define SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_TCP_DNSSD_SERVICE_BROWSER_H_
 
-#include <string>
-#include <vector>
 #include <avahi-client/client.h>
 #include <avahi-client/lookup.h>
 #include <avahi-common/error.h>
 #include <avahi-common/thread-watch.h>
+
+#include <string>
+#include <vector>
 
 #include "utils/lock.h"
 #include "transport_manager/transport_adapter/device_scanner.h"
@@ -74,13 +75,15 @@ class DnssdServiceBrowser : public DeviceScanner {
    *
    * @param controller Pointer to the device adapter controller.
    */
-  DnssdServiceBrowser(class TransportAdapterController* controller);
+  explicit DnssdServiceBrowser(class TransportAdapterController* controller);
   virtual ~DnssdServiceBrowser();
+
  protected:
   virtual TransportAdapter::Error Init();
   virtual TransportAdapter::Error Scan();
   virtual void Terminate();
   virtual bool IsInitialised() const;
+
  private:
   TransportAdapter::Error CreateAvahiClientAndBrowser();
   void AddService(AvahiIfIndex interface, AvahiProtocol protocol,
@@ -124,10 +127,9 @@ class DnssdServiceBrowser : public DeviceScanner {
   sync_primitives::Lock mutex_;
 
   bool initialised_;
-}
-;
+};
 
-}  // namespace
-}  // namespace
+}  // namespace transport_adapter
+}  // namespace transport_manager
 
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_DNSSD_SERVICE_BROWSER
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_TCP_DNSSD_SERVICE_BROWSER_H_

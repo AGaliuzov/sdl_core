@@ -123,4 +123,4 @@ class TcpClientListener : public ClientConnectionListener {
 }  // namespace transport_adapter
 }  // namespace transport_manager
 
-#endif /* TCP_CLIENT_LISTENER_H_ */
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_TCP_TCP_CLIENT_LISTENER_H_

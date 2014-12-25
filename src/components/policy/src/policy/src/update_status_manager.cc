@@ -1,4 +1,4 @@
-﻿/*
+/*
  Copyright (c) 2014, Ford Motor Company
  All rights reserved.
 
@@ -70,7 +70,6 @@ void UpdateStatusManager::OnUpdateSentOut(uint32_t update_timeout) {
                                                 milliseconds_in_second);
   set_exchange_in_progress(true);
   set_exchange_pending(true);
-  set_update_required(false);
 }
 
 void UpdateStatusManager::OnUpdateTimeoutOccurs() {
@@ -144,6 +143,10 @@ bool UpdateStatusManager::IsUpdatePending() const {
 
 void UpdateStatusManager::ScheduleUpdate() {
   set_update_required(true);
+}
+
+void UpdateStatusManager::ResetUpdateSchedule() {
+  set_update_required(false);
 }
 
 std::string UpdateStatusManager::StringifiedUpdateStatus() const {

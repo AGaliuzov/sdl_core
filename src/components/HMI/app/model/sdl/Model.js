@@ -593,7 +593,7 @@ SDL.SDLModel = Em.Object.create({
 
         messageCodes.push("AppPermissionsRevoked");
 
-        FFW.BasicCommunication.GetUserFriendlyMessage(function(message){SDL.SettingsController.simpleParseUserFriendlyMessageData(message)}, appID, messageCodes);
+        FFW.BasicCommunication.GetUserFriendlyMessage(SDL.SettingsController.simpleParseUserFriendlyMessageData, appID, messageCodes);
 
     },
 
@@ -947,10 +947,16 @@ SDL.SDLModel = Em.Object.create({
      *
      * @type {String} lang
      */
-    changeRegistrationUI: function (lang, appID) {
+    changeRegistrationUI: function (lang, appID, appName) {
 
         if (SDL.SDLController.getApplicationModel(appID)) {
             SDL.SDLController.getApplicationModel(appID).set('UILanguage', lang);
+        }
+
+        if (appName) {
+            SDL.SDLMediaController.currentAppId = 0;
+            SDL.SDLController.getApplicationModel(appID).appName = appName;
+            SDL.SDLMediaController.set('currentAppId', appID);
         }
     },
 
