@@ -34,7 +34,7 @@ include_directories (
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include)
 
-set(Sources
+set(testSources
   main.cc
   messagemeter_test.cc
   file_system_test.cc
@@ -44,7 +44,7 @@ set(Sources
   thread_validator_test.cc
 )
 
-set(Libraries
+set(testLibraries
   gmock
   Utils
 )
