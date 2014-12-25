@@ -647,34 +647,37 @@ void PolicyHandler::OnPendingPermissionChange(
   AppPermissions permissions = policy_manager_->GetAppPermissionsChanges(
                                  policy_app_id);
 
+  const uint32_t app_id = app->app_id();
+
+  using mobile_apis::HMILevel::eType;
   if (permissions.appRevoked) {
     application_manager::MessageHelper::SendOnAppPermissionsChangedNotification(
-      app->app_id(), permissions);
-    app->set_hmi_level(mobile_apis::HMILevel::HMI_NONE);
+      app_id, permissions);
+    app->set_hmi_level(eType::HMI_NONE);
     application_manager::MessageHelper::SendActivateAppToHMI(
-          app->app_id(), hmi_apis::Common_HMILevel::NONE);
+          app_id, hmi_apis::Common_HMILevel::NONE);
     application_manager::MessageHelper::SendHMIStatusNotification(*app);
     policy_manager_->RemovePendingPermissionChanges(policy_app_id);
     return;
   }
 
-  mobile_apis::HMILevel::eType app_hmi_level = app->hmi_level();
+  eType app_hmi_level = app->hmi_level();
 
   switch (app_hmi_level) {
-  case mobile_apis::HMILevel::HMI_FULL:
-  case mobile_apis::HMILevel::HMI_LIMITED: {
+  case eType::HMI_FULL:
+  case eType::HMI_LIMITED: {
     if (permissions.appPermissionsConsentNeeded) {
       application_manager::MessageHelper::
-          SendOnAppPermissionsChangedNotification(app->app_id(), permissions);
+          SendOnAppPermissionsChangedNotification(app_id, permissions);
 
       policy_manager_->RemovePendingPermissionChanges(policy_app_id);
       break;
     }
   }
-  case mobile_apis::HMILevel::HMI_BACKGROUND: {
+  case eType::HMI_BACKGROUND: {
     if (permissions.isAppPermissionsRevoked) {
       application_manager::MessageHelper::
-          SendOnAppPermissionsChangedNotification(app->app_id(), permissions);
+          SendOnAppPermissionsChangedNotification(app_id, permissions);
 
       policy_manager_->RemovePendingPermissionChanges(policy_app_id);
     }
@@ -685,19 +688,18 @@ void PolicyHandler::OnPendingPermissionChange(
   }
 
   if (permissions.appUnauthorized) {
-    if (mobile_apis::HMILevel::HMI_FULL == app_hmi_level ||
-        mobile_apis::HMILevel::HMI_LIMITED == app_hmi_level) {
+    if (eType::HMI_FULL == app_hmi_level ||
+        eType::HMI_LIMITED == app_hmi_level) {
       application_manager::MessageHelper::
-          SendOnAppPermissionsChangedNotification(app->app_id(), permissions);
+          SendOnAppPermissionsChangedNotification(app_id, permissions);
     }
+    using namespace mobile_apis;
     application_manager::MessageHelper::
         SendOnAppInterfaceUnregisteredNotificationToMobile(
-          app->app_id(),
-          mobile_apis::AppInterfaceUnregisteredReason::APP_UNAUTHORIZED);
+          app->app_id(), AppInterfaceUnregisteredReason::APP_UNAUTHORIZED);
 
     application_manager::ApplicationManagerImpl::instance()->
-        UnregisterRevokedApplication(app->app_id(),
-                                     mobile_apis::Result::INVALID_ENUM);
+        UnregisterRevokedApplication(app_id, Result::INVALID_ENUM);
 
     policy_manager_->RemovePendingPermissionChanges(policy_app_id);
   }
