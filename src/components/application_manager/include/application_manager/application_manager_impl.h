@@ -753,7 +753,11 @@ class ApplicationManagerImpl : public ApplicationManager,
       /**
        * @brief ApplicationListAccessor class constructor
        */
-      ApplicationListAccessor();
+      ApplicationListAccessor() :
+        DataAccessor<ApplictionSet>(ApplicationManagerImpl::instance()->applications_,
+                     ApplicationManagerImpl::instance()->applications_list_lock_) {
+      }
+
       ~ApplicationListAccessor();
 
       /**

@@ -2685,14 +2685,8 @@ void ApplicationManagerImpl::OnUpdateHMIAppType(
   }
 }
 
-ApplicationManagerImpl::ApplicationListAccessor::ApplicationListAccessor():
-  DataAccessor(ApplicationManagerImpl::instance()->applications_,
-               ApplicationManagerImpl::instance()->applications_list_lock_){
-  LOG4CXX_DEBUG(logger_, "AKUTSAN Lock");
-}
 
 ApplicationManagerImpl::ApplicationListAccessor::~ApplicationListAccessor() {
-         LOG4CXX_DEBUG(logger_, "AKUTSAN Release");
 }
 
 }  // namespace application_manager
