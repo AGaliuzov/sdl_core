@@ -192,7 +192,7 @@ const char* kDefaultIAPSystemConfig = "/fs/mp/etc/mm/ipod.cfg";
 const char* kDefaultIAP2SystemConfig = "/fs/mp/etc/mm/iap2.cfg";
 
 const uint32_t kDefaultHubProtocolIndex = 0;
-const uint32_t kDefaultHeartBeatTimeout = 0;
+const uint32_t kDefaultHeartBeatTimeout = 0; // heart_beat_timeout() reads value from here
 const uint16_t kDefautTransportManagerTCPPort = 12345;
 const uint16_t kDefaultServerPort = 8087;
 const uint16_t kDefaultVideoStreamingPort = 5050;

@@ -114,10 +114,11 @@ SDL.PopUp = Em.ContainerView.extend({
         }
 
         this.set('callback', null);
+        this.set('content', '');
         this.remove();
     },
 
-    popupActivate: function(message, callback) {
+    popupActivate: function(textBody, callback, label, line1, line2) {
         this.set('active', true);
 
         clearTimeout(this.timer);
@@ -135,7 +136,10 @@ SDL.PopUp = Em.ContainerView.extend({
             5000);
         }
 
-        this.set('content', message);
+        this.set('content', textBody);
+        this.set('label', label);
+        this.set('line1', line1);
+        this.set('line2', line2);
 
         return ++this.popUpId;
     }

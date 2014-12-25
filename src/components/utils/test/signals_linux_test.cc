@@ -30,6 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <unistd.h>
+#include <assert.h>
 #include "gtest/gtest.h"
 #include "utils/signals.h"
 
@@ -38,8 +40,6 @@ namespace components {
 namespace utils {
 
 void handler(int sig) {
-  const char *str = "handled..\n";
-  write(1, str, strlen(str));
 }
 
 TEST(SignalsLinuxTest, SubscribeToTerminateSignal_Positive) {

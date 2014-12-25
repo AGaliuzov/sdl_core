@@ -32,13 +32,14 @@ include_directories(
   include
   ${GMOCK_INCLUDE_DIRECTORY}
   ${JSONCPP_INCLUDE_DIRECTORY}
-  ../src/policy/include/
-  ../src/policy/sqlite_wrapper/include
-  ../src/policy/qdb_wrapper/include
-  ../src/policy/usage_statistics/include
-  ${CMAKE_SOURCE_DIR}/src/components/config_profile/include
-  ${CMAKE_SOURCE_DIR}/src/components/rpc_base/include
-  ${CMAKE_SOURCE_DIR}/src/components/utils/include/
+  ${COMPONENTS_DIR}/policy/src/policy/include/
+  ${COMPONENTS_DIR}/policy/src/policy/sqlite_wrapper/include
+  ${COMPONENTS_DIR}/policy/src/policy/qdb_wrapper/include
+  ${COMPONENTS_DIR}/policy/src/policy/usage_statistics/include
+  ${COMPONENTS_DIR}/rpc_base/include
+  ${COMPONENTS_DIR}/config_profile/include
+  ${COMPONENTS_DIR}/utils/include/
+
 )
 
 set(testLibraries
@@ -63,12 +64,12 @@ set(testSources
 
 if (EXTENDED_POLICY_FLAG)
   add_definitions(-DEXTENDED_POLICY)
-  include_directories(../src/policy/policy_table/table_struct_ext)
+  include_directories(${COMPONENTS_DIR}/policy/src/policy/policy_table/table_struct_ext)
   list (APPEND testSources
     sql_pt_ext_representation_test.cc
 )
 else ()
-  include_directories(../src/policy/policy_table/table_struct)
+  include_directories(${COMPONENTS_DIR}/policy/src/policy/policy_table/table_struct)
   list (APPEND testSources
     sql_pt_representation_test.cc
   )

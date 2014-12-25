@@ -51,6 +51,8 @@
 #include "config_profile/profile.h"
 #include "utils/threads/thread.h"
 #include "utils/file_system.h"
+#include "smart_objects/enum_schema_item.h"
+#include "interfaces/HMI_API_schema.h"
 #include "application_manager/application_impl.h"
 #include "usage_statistics/counter.h"
 #ifdef CUSTOMER_PASA
@@ -73,6 +75,8 @@ const uint32_t ApplicationManagerImpl::max_corelation_id_ = UINT_MAX;
 
 namespace formatters = NsSmartDeviceLink::NsJSONHandler::Formatters;
 namespace jhs = NsSmartDeviceLink::NsJSONHandler::strings;
+
+using namespace NsSmartDeviceLink::NsSmartObjects;
 
 ApplicationManagerImpl::ApplicationManagerImpl()
   : applications_list_lock_(true),
@@ -1588,7 +1592,20 @@ bool ApplicationManagerImpl::ConvertMessageToSO(
         return false;
       }
       if (output.validate() != smart_objects::Errors::OK) {
-        LOG4CXX_WARN(logger_, "Incorrect parameter from HMI");
+        LOG4CXX_ERROR(logger_, "Incorrect parameter from HMI");
+
+        if (application_manager::MessageType::kNotification ==
+            output[strings::params][strings::message_type].asInt()) {
+          LOG4CXX_ERROR(logger_, "Ignore wrong HMI notification");
+          return false;
+        }
+
+        if (application_manager::MessageType::kRequest ==
+            output[strings::params][strings::message_type].asInt()) {
+          LOG4CXX_ERROR(logger_, "Ignore wrong HMI request");
+          return false;
+        }
+
         output.erase(strings::msg_params);
         output[strings::params][hmi_response::code] =
           hmi_apis::Common_Result::INVALID_DATA;

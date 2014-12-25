@@ -1,4 +1,4 @@
-﻿/*
+/*
  Copyright (c) 2013, Ford Motor Company
  All rights reserved.
 
@@ -49,6 +49,7 @@
 #include "usage_statistics/statistics_manager.h"
 #include "policy_handler_observer.h"
 #include "utils/threads/async_runner.h"
+#include "application_manager/application_manager_impl.h"
 
 namespace Json {
 class Value;
@@ -73,9 +74,12 @@ class PolicyHandler :
   bool ReceiveMessageFromSDK(const std::string& file,
                              const BinaryMessage& pt_string);
   bool UnloadPolicyLibrary();
-  void OnPermissionsUpdated(const std::string& policy_app_id,
-                            const Permissions& permissions,
-                            const HMILevel& default_hmi);
+  virtual void OnPermissionsUpdated(const std::string& policy_app_id,
+                                    const Permissions& permissions,
+                                    const HMILevel& default_hmi);
+
+  virtual void OnPermissionsUpdated(const std::string& policy_app_id,
+                                    const Permissions& permissions);
 
   virtual void OnSnapshotCreated(const BinaryMessage& pt_string,
                                  const std::vector<int>& retry_delay_seconds,
@@ -278,6 +282,8 @@ class PolicyHandler :
   std::string GetAppName(const std::string& policy_app_id);
 
   virtual void OnUpdateHMIAppType(std::map<std::string, StringArray> app_hmi_types);
+
+  virtual bool CanUpdate();
 
   virtual void OnDeviceConsentChanged(const std::string& device_id,
                                       bool is_allowed);

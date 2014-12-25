@@ -1,4 +1,4 @@
-﻿/* Copyright (c) 2014, Ford Motor Company
+/* Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,6 +51,9 @@ class MockPolicyListener : public PolicyListener {
                void(const std::string& policy_app_id,
                     const Permissions& permissions,
                     const policy::HMILevel& default_hmi));
+  MOCK_METHOD2(OnPermissionsUpdated,
+               void(const std::string& policy_app_id,
+                    const Permissions& permissions));
   MOCK_METHOD1(OnPendingPermissionChange,
                void(const std::string& policy_app_id));
   MOCK_METHOD1(OnAppRevoked,
@@ -76,6 +79,8 @@ class MockPolicyListener : public PolicyListener {
                void(const BinaryMessage& pt_string,
                     const std::vector<int>& retry_seconds,
                     int timeout_exceed));
+  MOCK_METHOD0(CanUpdate,
+               bool());
 };
 
 }  // namespace policy

@@ -1,4 +1,4 @@
-﻿/*
+/*
  Copyright (c) 2013, Ford Motor Company
  All rights reserved.
 
@@ -280,36 +280,13 @@ void PolicyManagerImpl::RequestPTUpdate() {
 
   BinaryMessage update(message_string.begin(), message_string.end());
 
+  // Need to reset update schedule since all currenly registered applications
+  // were already added to the snapshot so no update for them required.
+  update_status_manager_.ResetUpdateSchedule();
+
   listener_->OnSnapshotCreated(update,
                                RetrySequenceDelaysSeconds(),
                                TimeoutExchange());
-}
-
-bool PolicyManagerImpl::HasConsentedDevice() {
-  LOG4CXX_AUTO_TRACE(logger_);
-  std::queue<std::string> apps;
-  listener_->GetAvailableApps(apps);
-  bool result = !apps.empty();
-
-  if(result) {
-    LOG4CXX_INFO(logger_, "App list is not empty");
-    std::string device_id;
-    std::string app_id;
-    while(!apps.empty()) {
-      app_id = apps.front();
-      LOG4CXX_INFO(logger_, "App to get update: " << app_id);
-      device_id = listener_->OnCurrentDeviceIdUpdateRequired(app_id);
-      result = (kDeviceAllowed == GetUserConsentForDevice(device_id));
-
-      if (result) {
-        break;
-      }
-
-      apps.pop();
-    }
-  }
-  LOG4CXX_INFO(logger_, "HasConsent result: " << result);
-  return result;
 }
 
 void PolicyManagerImpl::StartPTExchange() {
@@ -322,7 +299,7 @@ void PolicyManagerImpl::StartPTExchange() {
     return;
   }
 
-  if (HasConsentedDevice()) {
+  if (listener_ && listener_->CanUpdate()) {
     if (ignition_check) {
       CheckTriggers();
       ignition_check = false;
@@ -390,6 +367,7 @@ void PolicyManagerImpl::CheckPermissions(const PTString& app_id,
   if (!known_rpc) {
     // RPC not found in list == disallowed by backend
     result.hmi_level_permitted = kRpcDisallowed;
+    return;
   }
 
   // Check HMI level
@@ -406,6 +384,10 @@ void PolicyManagerImpl::CheckPermissions(const PTString& app_id,
       rpc_permissions[rpc].hmi_permissions[kUserDisallowedKey].find(hmi_level)) {
     // RPC found in allowed == allowed by backend, but disallowed by user
     result.hmi_level_permitted = kRpcUserDisallowed;
+  } else {
+    LOG4CXX_DEBUG(logger_, "HMI level " << hmi_level << " wasn't found "
+                  << " for rpc " << rpc << " and appID " << app_id);
+    return;
   }
 
   // Add parameters of RPC, if any
@@ -421,6 +403,11 @@ void PolicyManagerImpl::CheckPermissions(const PTString& app_id,
   std::copy(rpc_permissions[rpc].parameter_permissions[kUndefinedKey].begin(),
             rpc_permissions[rpc].parameter_permissions[kUndefinedKey].end(),
             std::back_inserter(result.list_of_undefined_params));
+
+  if (cache_->IsApplicationRevoked(app_id)) {
+    result.hmi_level_permitted = kRpcDisallowed;
+    return;
+  }
 
   // In case when RPCParams is not empty we have to check
   // If all rpc parameters are in the allowed list,
@@ -778,12 +765,8 @@ void PolicyManagerImpl::SetUserConsentForApp(
   PrepareNotificationData(functional_groups, app_groups,
                           app_group_permissons, notification_data);
 
-  std::string default_hmi;
-  GetDefaultHmi(verified_permissions.policy_app_id, &default_hmi);
-
   listener()->OnPermissionsUpdated(verified_permissions.policy_app_id,
-                                   notification_data,
-                                   default_hmi);
+                                   notification_data);
 #endif
 }
 

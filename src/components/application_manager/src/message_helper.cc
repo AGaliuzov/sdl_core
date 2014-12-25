@@ -1,4 +1,4 @@
-﻿/*
+/*
  Copyright (c) 2013, Ford Motor Company
  All rights reserved.
 
@@ -2109,6 +2109,7 @@ mobile_apis::Result::eType MessageHelper::VerifyImageFiles(
     for (uint32_t i = 0; i < message.length(); ++i) {
       mobile_apis::Result::eType res = VerifyImageFiles(message[i], app);
       if (mobile_apis::Result::SUCCESS != res) {
+        LOG4CXX_DEBUG(logger_, "VerifyImageFiles result:" << res);
         return res;
       }
     }
@@ -2119,6 +2120,7 @@ mobile_apis::Result::eType MessageHelper::VerifyImageFiles(
           app);
 
       if (mobile_apis::Result::SUCCESS != verification_result) {
+        LOG4CXX_DEBUG(logger_, "VerifyImageFiles result:" << verification_result);
         return verification_result;  // exit point
       }
     } else {
@@ -2129,6 +2131,7 @@ mobile_apis::Result::eType MessageHelper::VerifyImageFiles(
         if (strings::soft_buttons != (*key)) {
           mobile_apis::Result::eType res = VerifyImageFiles(message[*key], app);
           if (mobile_apis::Result::SUCCESS != res) {
+            LOG4CXX_DEBUG(logger_, "VerifyImageFiles result:" << res);
             return res;
           }
         }

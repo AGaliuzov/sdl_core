@@ -37,13 +37,19 @@
 #include <limits.h>
 #include <stddef.h>
 #include <signal.h>
-#include <unistd.h>
 
 #include "utils/atomic.h"
 #include "utils/threads/thread_delegate.h"
 #include "utils/threads/thread_manager.h"
 #include "utils/logger.h"
 #include "pthread.h"
+
+
+ #ifdef BUILD_TESTS
+  // Temporary fix for UnitTest until APPLINK-9987 is resolved
+ #include <unistd.h>
+ #endif
+
 
 #ifndef __QNXNTO__
   const int EOK = 0;
@@ -234,9 +240,16 @@ void Thread::stop() {
   LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock auto_lock(state_lock_);
 
+
+  #ifdef BUILD_TESTS
+  // Temporary fix for UnitTest until APPLINK-9987 is resolved
+  usleep(100000);
+  #endif
+
   stopped_ = true;
 
   LOG4CXX_DEBUG(logger_, "Stopping thread #" << handle_
+
                   << " \""  << name_ << " \"");
 
   if (delegate_ && isThreadRunning_) {

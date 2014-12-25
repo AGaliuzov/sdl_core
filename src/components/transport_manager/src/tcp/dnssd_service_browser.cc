@@ -33,24 +33,26 @@
 
 #include <algorithm>
 #include <map>
+#include "utils/logger.h"
 
 #include "transport_manager/transport_adapter/transport_adapter_impl.h"
 #include "transport_manager/tcp/tcp_device.h"
 #include "transport_manager/tcp/dnssd_service_browser.h"
-#include "utils/logger.h"
+
 
 namespace transport_manager {
 namespace transport_adapter {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
 
+
 bool operator==(const DnssdServiceRecord& a, const DnssdServiceRecord& b) {
   return a.name == b.name && a.type == b.type && a.interface == b.interface
-         && a.protocol == b.protocol && a.domain_name == b.domain_name;
+      && a.protocol == b.protocol && a.domain_name == b.domain_name;
 }
 
 void DnssdServiceBrowser::Terminate() {
-  LOG4CXX_TRACE(logger_, "enter");
+  LOG4CXX_AUTO_TRACE(logger_);
   if (0 != avahi_threaded_poll_) {
     avahi_threaded_poll_stop(avahi_threaded_poll_);
   }
@@ -66,7 +68,6 @@ void DnssdServiceBrowser::Terminate() {
     avahi_threaded_poll_free(avahi_threaded_poll_);
     avahi_threaded_poll_ = NULL;
   }
-  LOG4CXX_TRACE(logger_, "exit");
 }
 
 bool DnssdServiceBrowser::IsInitialised() const {
@@ -74,13 +75,13 @@ bool DnssdServiceBrowser::IsInitialised() const {
 }
 
 DnssdServiceBrowser::DnssdServiceBrowser(TransportAdapterController* controller)
-  : controller_(controller),
-    avahi_service_browser_(0),
-    avahi_threaded_poll_(0),
-    avahi_client_(0),
-    service_records_(),
-    mutex_(),
-    initialised_(false) {
+    : controller_(controller),
+      avahi_service_browser_(0),
+      avahi_threaded_poll_(0),
+      avahi_client_(0),
+      service_records_(),
+      mutex_(),
+      initialised_(false) {
 }
 
 DnssdServiceBrowser::~DnssdServiceBrowser() {
@@ -92,7 +93,7 @@ void DnssdServiceBrowser::OnClientConnected() {
 }
 
 void DnssdServiceBrowser::OnClientFailure() {
-  LOG4CXX_TRACE(logger_, "enter");
+  LOG4CXX_AUTO_TRACE(logger_);
   const int avahi_errno = avahi_client_errno(avahi_client_);
   if (avahi_errno == AVAHI_ERR_DISCONNECTED) {
     LOG4CXX_DEBUG(logger_, "AvahiClient disconnected");
@@ -101,16 +102,16 @@ void DnssdServiceBrowser::OnClientFailure() {
     LOG4CXX_ERROR(logger_,
                   "AvahiClient failure: " << avahi_strerror(avahi_errno));
   }
-  LOG4CXX_TRACE(logger_, "exit");
 }
 
 void AvahiClientCallback(AvahiClient* avahi_client,
                          AvahiClientState avahi_client_state, void* data) {
-  LOG4CXX_TRACE(logger_,
-                "enter. avahi_client " << avahi_client << "avahi_client_state " <<
-                avahi_client_state << "data " << data);
+  LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(
+      logger_,
+      "avahi_client " << avahi_client << ", avahi_client_state " << avahi_client_state << ", data " << data);
   DnssdServiceBrowser* dnssd_service_browser =
-    static_cast<DnssdServiceBrowser*>(data);
+      static_cast<DnssdServiceBrowser*>(data);
 
   switch (avahi_client_state) {
     case AVAHI_CLIENT_S_RUNNING:
@@ -122,10 +123,10 @@ void AvahiClientCallback(AvahiClient* avahi_client,
       LOG4CXX_DEBUG(logger_, "avahi_client_state: AVAHI_CLIENT_FAILURE");
       break;
     default: {
-      LOG4CXX_ERROR(logger_, "Unknown avahi_client_state: " << avahi_client_state);
+      LOG4CXX_ERROR(logger_,
+                    "Unknown avahi_client_state: " << avahi_client_state);
     }
   }
-  LOG4CXX_TRACE(logger_, "exit");
 }
 
 void AvahiServiceBrowserCallback(AvahiServiceBrowser* avahi_service_browser,
@@ -133,21 +134,21 @@ void AvahiServiceBrowserCallback(AvahiServiceBrowser* avahi_service_browser,
                                  AvahiBrowserEvent event, const char* name,
                                  const char* type, const char* domain,
                                  AvahiLookupResultFlags flags, void* data) {
-  LOG4CXX_TRACE(logger_, "enter. avahi_service_browser " << avahi_service_browser <<
-                " interface " << interface << " protocol " << protocol <<
-                " event " << event << " name " << name << " type " << type << " domain " << domain <<
-                " flags " << flags << " data " << data);
+  LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(
+      logger_,
+      "avahi_service_browser " << avahi_service_browser << " interface " << interface <<
+      " protocol " << protocol << " event " << event << " name " << name <<
+      " type " << type << " domain " << domain << " flags " << flags << " data " << data);
   DnssdServiceBrowser* dnssd_service_browser =
-    static_cast<DnssdServiceBrowser*>(data);
+      static_cast<DnssdServiceBrowser*>(data);
 
   switch (event) {
     case AVAHI_BROWSER_FAILURE:
       LOG4CXX_ERROR(
           logger_,
-          "AvahiServiceBrowser failure: " << avahi_strerror(
-                      avahi_client_errno(
-                          avahi_service_browser_get_client(
-                              avahi_service_browser))));
+          "AvahiServiceBrowser failure: " << avahi_strerror(avahi_client_errno(
+              avahi_service_browser_get_client(avahi_service_browser))));
       break;
 
     case AVAHI_BROWSER_NEW:
@@ -164,6 +165,7 @@ void AvahiServiceBrowserCallback(AvahiServiceBrowser* avahi_service_browser,
 
     case AVAHI_BROWSER_ALL_FOR_NOW:
       LOG4CXX_DEBUG(logger_, "event: AVAHI_BROWSER_ALL_FOR_NOW");
+      break;
     case AVAHI_BROWSER_CACHE_EXHAUSTED:
       LOG4CXX_DEBUG(logger_, "event: AVAHI_BROWSER_CACHE_EXHAUSTED");
       break;
@@ -172,11 +174,11 @@ void AvahiServiceBrowserCallback(AvahiServiceBrowser* avahi_service_browser,
 }
 
 void DnssdServiceBrowser::ServiceResolved(
-  const DnssdServiceRecord& service_record) {
+    const DnssdServiceRecord& service_record) {
   LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock locker(mutex_);
   ServiceRecords::iterator service_record_it = std::find(
-        service_records_.begin(), service_records_.end(), service_record);
+      service_records_.begin(), service_records_.end(), service_record);
   if (service_record_it != service_records_.end()) {
     *service_record_it = service_record;
   }
@@ -185,13 +187,13 @@ void DnssdServiceBrowser::ServiceResolved(
 }
 
 void DnssdServiceBrowser::ServiceResolveFailed(
-  const DnssdServiceRecord& service_record) {
+    const DnssdServiceRecord& service_record) {
   LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_,
                 "AvahiServiceResolver failure for: " << service_record.name);
   sync_primitives::AutoLock locker(mutex_);
   ServiceRecords::iterator service_record_it = std::find(
-        service_records_.begin(), service_records_.end(), service_record);
+      service_records_.begin(), service_records_.end(), service_record);
   if (service_record_it != service_records_.end()) {
     service_records_.erase(service_record_it);
   }
@@ -206,14 +208,16 @@ void AvahiServiceResolverCallback(AvahiServiceResolver* avahi_service_resolver,
                                   const AvahiAddress* avahi_address,
                                   uint16_t port, AvahiStringList* txt,
                                   AvahiLookupResultFlags flags, void* data) {
-  LOG4CXX_TRACE(logger_, "enter. avahi_service_resolver " << avahi_service_resolver <<
-                " interface " << interface <<
-                " protocol " << protocol << " event " << event << " name " << name << " type " << type <<
-                " domain " << domain << " host_name " << host_name <<
-                " avahi_address " << avahi_address << " port " << port << " txt " << txt << " flags " <<
-                flags << " data " << data);
+  LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(
+      logger_,
+      "avahi_service_resolver " << avahi_service_resolver << " interface " << interface <<
+      " protocol " << protocol << " event " << event << " name " << name <<
+      " type " << type << " domain " << domain << " host_name " << host_name <<
+      " avahi_address " << avahi_address << " port " << port <<
+      " txt " << txt << " flags " << flags << " data " << data);
   DnssdServiceBrowser* dnssd_service_browser =
-    static_cast<DnssdServiceBrowser*>(data);
+      static_cast<DnssdServiceBrowser*>(data);
 
   DnssdServiceRecord service_record;
   service_record.interface = interface;
@@ -236,11 +240,10 @@ void AvahiServiceResolverCallback(AvahiServiceResolver* avahi_service_resolver,
   }
 
   avahi_service_resolver_free(avahi_service_resolver);
-  LOG4CXX_TRACE(logger_, "exit");
 }
 
 TransportAdapter::Error DnssdServiceBrowser::CreateAvahiClientAndBrowser() {
-  LOG4CXX_TRACE(logger_, "enter");
+  LOG4CXX_AUTO_TRACE(logger_);
   if (0 != avahi_service_browser_) {
     avahi_service_browser_free(avahi_service_browser_);
     avahi_service_browser_ = NULL;
@@ -252,11 +255,12 @@ TransportAdapter::Error DnssdServiceBrowser::CreateAvahiClientAndBrowser() {
 
   int avahi_error;
   avahi_client_ = avahi_client_new(
-                    avahi_threaded_poll_get(avahi_threaded_poll_), AVAHI_CLIENT_NO_FAIL,
-                    AvahiClientCallback, this, &avahi_error);
+      avahi_threaded_poll_get(avahi_threaded_poll_), AVAHI_CLIENT_NO_FAIL,
+      AvahiClientCallback, this, &avahi_error);
   if (0 == avahi_client_) {
-    LOG4CXX_ERROR(logger_, "Failed to create AvahiClient: " << avahi_strerror(avahi_error));
-    LOG4CXX_TRACE(logger_, "exit with TransportAdapter::FAIL");
+    LOG4CXX_ERROR(
+        logger_,
+        "Failed to create AvahiClient: " << avahi_strerror(avahi_error));
     return TransportAdapter::FAIL;
   }
 
@@ -265,35 +269,31 @@ TransportAdapter::Error DnssdServiceBrowser::CreateAvahiClientAndBrowser() {
   mutex_.Release();
 
   avahi_service_browser_ = avahi_service_browser_new(
-                             avahi_client_, AVAHI_IF_UNSPEC, /* TODO use only required iface */
-                             AVAHI_PROTO_INET, DNSSD_DEFAULT_SERVICE_TYPE, NULL, /* use default domain */
-                             static_cast<AvahiLookupFlags>(0), AvahiServiceBrowserCallback, this);
-  LOG4CXX_TRACE(logger_, "exit with TransportAdapter::OK");
+      avahi_client_, AVAHI_IF_UNSPEC, /* TODO use only required iface */
+      AVAHI_PROTO_INET, DNSSD_DEFAULT_SERVICE_TYPE, NULL, /* use default domain */
+      static_cast<AvahiLookupFlags>(0), AvahiServiceBrowserCallback, this);
   return TransportAdapter::OK;
 }
 
 TransportAdapter::Error DnssdServiceBrowser::Init() {
-  LOG4CXX_TRACE(logger_, "enter");
+  LOG4CXX_AUTO_TRACE(logger_);
   avahi_threaded_poll_ = avahi_threaded_poll_new();
   if (0 == avahi_threaded_poll_) {
     LOG4CXX_ERROR(logger_, "Failed to create AvahiThreadedPoll");
-    LOG4CXX_TRACE(logger_, "exit with TransportAdapter::FAIL");
     return TransportAdapter::FAIL;
   }
 
   const TransportAdapter::Error err = CreateAvahiClientAndBrowser();
   if (err != TransportAdapter::OK) {
-    LOG4CXX_TRACE(logger_, "exit with error " << err);
+    LOG4CXX_ERROR(logger_, "Error " << err);
     return err;
   }
 
   const int poll_start_status = avahi_threaded_poll_start(avahi_threaded_poll_);
   if (0 != poll_start_status) {
     LOG4CXX_ERROR(logger_, "Failed to start AvahiThreadedPoll");
-    LOG4CXX_TRACE(logger_, "exit with TransportAdapter::FAIL. Condition: 0 != poll_start_status");
     return TransportAdapter::FAIL;
   }
-  LOG4CXX_TRACE(logger_, "exit with TransportAdapter::OK");
   return TransportAdapter::OK;
 }
 
@@ -305,8 +305,9 @@ void DnssdServiceBrowser::AddService(AvahiIfIndex interface,
                                      AvahiProtocol protocol, const char* name,
                                      const char* type, const char* domain) {
   LOG4CXX_AUTO_TRACE(logger_);
-  LOG4CXX_DEBUG(logger_, "interface " << interface << " protocol " << protocol <<
-                " name " << name << " type " << type << " domain " << domain);
+  LOG4CXX_DEBUG(
+      logger_,
+      "interface " << interface << " protocol " << protocol << " name " << name << " type " << type << " domain " << domain);
   DnssdServiceRecord record;
   record.interface = interface;
   record.protocol = protocol;
@@ -318,10 +319,10 @@ void DnssdServiceBrowser::AddService(AvahiIfIndex interface,
   if (service_records_.end()
       == std::find(service_records_.begin(), service_records_.end(), record)) {
     service_records_.push_back(record);
-    avahi_service_resolver_new(
-      avahi_client_, interface, protocol, name, type, domain,
-      AVAHI_PROTO_INET, static_cast<AvahiLookupFlags>(0),
-      AvahiServiceResolverCallback, this);
+    avahi_service_resolver_new(avahi_client_, interface, protocol, name, type,
+                               domain, AVAHI_PROTO_INET,
+                               static_cast<AvahiLookupFlags>(0),
+                               AvahiServiceResolverCallback, this);
   }
 }
 
@@ -330,8 +331,9 @@ void DnssdServiceBrowser::RemoveService(AvahiIfIndex interface,
                                         const char* name, const char* type,
                                         const char* domain) {
   LOG4CXX_AUTO_TRACE(logger_);
-  LOG4CXX_DEBUG(logger_, "interface " << interface << " protocol " << protocol <<
-                " name " << name << " type " << type << " domain " << domain);
+  LOG4CXX_DEBUG(
+      logger_,
+      "interface " << interface << " protocol " << protocol << " name " << name << " type " << type << " domain " << domain);
   DnssdServiceRecord record;
   record.interface = interface;
   record.protocol = protocol;
@@ -341,37 +343,36 @@ void DnssdServiceBrowser::RemoveService(AvahiIfIndex interface,
 
   sync_primitives::AutoLock locker(mutex_);
   service_records_.erase(
-    std::remove(service_records_.begin(), service_records_.end(), record),
-    service_records_.end());
+      std::remove(service_records_.begin(), service_records_.end(), record),
+      service_records_.end());
 }
 
 DeviceVector DnssdServiceBrowser::PrepareDeviceVector() const {
   LOG4CXX_AUTO_TRACE(logger_);
   std::map<uint32_t, TcpDevice*> devices;
   for (ServiceRecords::const_iterator it = service_records_.begin();
-       it != service_records_.end(); ++it) {
+      it != service_records_.end(); ++it) {
     const DnssdServiceRecord& service_record = *it;
     if (service_record.host_name.empty()) {
       continue;
     }
     if (devices[service_record.addr] == 0) {
       devices[service_record.addr] = new TcpDevice(service_record.addr,
-          service_record.host_name);
+                                                   service_record.host_name);
     }
     if (devices[service_record.addr] != 0) {
       devices[service_record.addr]->AddDiscoveredApplication(
-        service_record.port);
+          service_record.port);
     }
   }
   DeviceVector device_vector;
   device_vector.reserve(devices.size());
   for (std::map<uint32_t, TcpDevice*>::const_iterator it = devices.begin();
-       it != devices.end(); ++it) {
+      it != devices.end(); ++it) {
     device_vector.push_back(DeviceSptr(it->second));
   }
   return device_vector;
 }
 
-}  // namespace
-}  // namespace
-
+}  // namespace transport_adapter
+}  // namespace transport_manager
