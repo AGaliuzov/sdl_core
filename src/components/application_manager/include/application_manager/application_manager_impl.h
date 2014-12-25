@@ -785,11 +785,10 @@ class ApplicationManagerImpl : public ApplicationManager,
       template<class UnaryPredicate>
       std::vector<ApplicationSharedPtr> FindAll(UnaryPredicate finder) {
         std::vector<ApplicationSharedPtr> result;
-        ApplictionSetConstIt it = begin();
+        ApplictionSetConstIt it = std::find_if(begin(), end(), finder);
         while (it != end()) {
-          it = std::find_if(it, end(), AppIdPredicate(0));
-          const ApplicationSharedPtr app = *it;
-          result.push_back(app);
+          result.push_back(*it);
+          it  = std::find_if(it, end(), finder);
         }
         return result;
       }

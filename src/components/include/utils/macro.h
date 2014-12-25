@@ -86,6 +86,19 @@
     ASSERT((condition)); \
   }
 
+/*
+ * Will cauch assert on debug version,
+ * Will return return_value in release build
+ */
+#define DCHECK_OR_RETURN(condition, return_value) \
+  if (!(condition)) { \
+    CREATE_LOGGERPTR_LOCAL(logger_, "assert"); \
+    LOG4CXX_FATAL(logger_,  "DCHECK failed with \"" << #condition \
+       << "\" [" << __FUNCTION__ << "][" << __FILE__ << ':' << __LINE__ << ']' ); \
+    ASSERT((condition)); \
+    return (return_value); \
+  }
+
 #define NOTREACHED() DCHECK(!"Unreachable code")
 
 // Allows to perform static check that virtual function from base class is
