@@ -51,45 +51,6 @@ policy::PolicyManager* CreateManager() {
   return new policy::PolicyManagerImpl();
 }
 
-namespace {
-
-struct CheckGroupName {
-  CheckGroupName(const std::string& name)
-    : name_(name) {
-  }
-
-  bool operator()(const policy::FunctionalGroupPermission& value) {
-    return value.group_name == name_;
-  }
-
-private:
-  const std::string& name_;
-};
-
-struct CopyPermissions{
-  CopyPermissions(const std::vector<policy::FunctionalGroupPermission>& groups)
-    : groups_(groups) {
-  }
-
-bool operator()(policy::FunctionalGroupPermission& value) {
-  CheckGroupName checker(value.group_name);
-  std::vector<policy::FunctionalGroupPermission>::const_iterator it =
-      std::find_if(groups_.begin(), groups_.end(), checker);
-  if (groups_.end() == it) {
-    return false;
-  }
-  value.group_alias = it->group_alias;
-  value.group_id = it->group_id;
-  value.state = it->state;
-  return true;
-}
-
-private:
-  const std::vector<policy::FunctionalGroupPermission>& groups_;
-};
-
-}
-
 namespace policy {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "PolicyManagerImpl")
@@ -146,18 +107,12 @@ bool PolicyManagerImpl::LoadPT(const std::string& file,
     update_status_manager_.OnWrongUpdateReceived();
     return false;
   }
-  pt_update->SetPolicyTableType(policy_table::PT_UPDATE);
 
 #ifdef EXTENDED_POLICY
   file_system::DeleteFile(file);
 #endif
 
-  if (!pt_update->is_valid()) {
-    rpc::ValidationReport report("policy_table");
-    pt_update->ReportErrors(&report);
-    LOG4CXX_WARN(logger_, "Parsed table is not valid " <<
-                 rpc::PrettyFormat(report));
-
+  if (!IsPTValid(pt_update, policy_table::PT_UPDATE)) {
     update_status_manager_.OnWrongUpdateReceived();
     return false;
   }
@@ -165,7 +120,7 @@ bool PolicyManagerImpl::LoadPT(const std::string& file,
   update_status_manager_.OnValidUpdateReceived();
   cache_->SaveUpdateRequired(false);
 
-  sync_primitives::AutoLock lock(apps_registration_lock_);
+  apps_registration_lock_.Acquire();
 
   // Get current DB data, since it could be updated during awaiting of PTU
   utils::SharedPtr<policy_table::Table> policy_table_snapshot =
@@ -175,18 +130,14 @@ bool PolicyManagerImpl::LoadPT(const std::string& file,
     return false;
   }
 
-  // Replace predefined policies with its actual setting, e.g. "123":"default"
-  // to actual values of default section
-  UnwrapAppPolicies(pt_update->policy_table.app_policies);
-
-  // Check and update permissions for applications, send notifications
-  CheckPermissionsChanges(pt_update, policy_table_snapshot);
-
   // Replace current data with updated
   if (!cache_->ApplyUpdate(*pt_update)) {
     LOG4CXX_WARN(logger_, "Unsuccessful save of updated policy table.");
     return false;
   }
+
+  // Check permissions for applications, send notifications
+  CheckPermissionsChanges(pt_update, policy_table_snapshot);
 
   std::map<std::string, StringArray> app_hmi_types;
   cache_->GetHMIAppTypeAfterUpdate(app_hmi_types);
@@ -196,6 +147,8 @@ bool PolicyManagerImpl::LoadPT(const std::string& file,
   }else{
     LOG4CXX_INFO(logger_, "app_hmi_types empty" << pt_content.size());
   }
+
+  apps_registration_lock_.Release();
 
   // If there was a user request for policy table update, it should be started
   // right after current update is finished
@@ -212,6 +165,10 @@ void PolicyManagerImpl::CheckPermissionsChanges(
     const utils::SharedPtr<policy_table::Table> pt_update,
     const utils::SharedPtr<policy_table::Table> snapshot) {
   LOG4CXX_INFO(logger_, "Checking incoming permissions.");
+
+  // Replace predefined policies with its actual setting, e.g. "123":"default"
+  // to actual values of default section
+  UnwrapAppPolicies(pt_update->policy_table.app_policies);
 
   std::for_each(pt_update->policy_table.app_policies.begin(),
                 pt_update->policy_table.app_policies.end(),
@@ -264,15 +221,7 @@ void PolicyManagerImpl::RequestPTUpdate() {
     return;
   }
 
-  policy_table_snapshot->SetPolicyTableType(policy_table::PT_SNAPSHOT);
-  if (false == policy_table_snapshot->is_valid()) {
-    LOG4CXX_ERROR(
-          logger_, "Policy snappshot is not valid");
-    rpc::ValidationReport report("policy_table");
-    policy_table_snapshot->ReportErrors(&report);
-    LOG4CXX_DEBUG(logger_,
-                 "Errors: " << rpc::PrettyFormat(report));
-  }
+  IsPTValid(policy_table_snapshot, policy_table::PT_SNAPSHOT);
 
   Json::Value value = policy_table_snapshot->ToJsonValue();
   Json::FastWriter writer;
@@ -1042,6 +991,22 @@ bool PolicyManagerImpl::ExceededIgnitionCycles() {
   return 0 == cache_->IgnitionCyclesBeforeExchange();
 }
 
+bool PolicyManagerImpl::IsPTValid(
+    utils::SharedPtr<policy_table::Table> policy_table,
+    policy_table::PolicyTableType type) const {
+  policy_table->SetPolicyTableType(type);
+  if (!policy_table->is_valid()) {
+    LOG4CXX_ERROR(
+          logger_, "Policy table is not valid.");
+    rpc::ValidationReport report("policy_table");
+    policy_table->ReportErrors(&report);
+    LOG4CXX_DEBUG(logger_,
+                 "Errors: " << rpc::PrettyFormat(report));
+    return false;
+  }
+  return true;
+}
+
 bool PolicyManagerImpl::ExceededDays() {
 
   TimevalStruct current_time = date_time::DateTime::getCurrentTime();
@@ -1186,20 +1151,11 @@ void PolicyManagerImpl::SetVINValue(const std::string& value) {
 }
 
 AppPermissions PolicyManagerImpl::GetAppPermissionsChanges(
-    const std::string& device_id,
     const std::string& policy_app_id) {
   typedef std::map<std::string, AppPermissions>::iterator PermissionsIt;
   PermissionsIt app_id_diff = app_permissions_diff_.find(policy_app_id);
   AppPermissions permissions(policy_app_id);
   if (app_permissions_diff_.end() != app_id_diff) {
-    // At this point we're able to know the device id for which user consents
-    // could be evaluated
-    std::vector<FunctionalGroupPermission> groups;
-    GetUserConsentForApp(device_id, policy_app_id, groups);
-    CopyPermissions copier(groups);
-    std::for_each(app_id_diff->second.appRevokedPermissions.begin(),
-                  app_id_diff->second.appRevokedPermissions.end(),
-                  copier);
     permissions = app_id_diff->second;
   } else {
     permissions.appPermissionsConsentNeeded = IsConsentNeeded(policy_app_id);

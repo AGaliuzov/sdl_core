@@ -630,31 +630,6 @@ void PolicyHandler::OnVehicleDataUpdated(
 #endif // EXTENDED_POLICY
 }
 
-void PolicyHandler::OnAppRevoked(const std::string& policy_app_id) {
-  LOG4CXX_TRACE(logger_, "OnAppRevoked with policy_app_id " << policy_app_id << " is revoked.");
-  POLICY_LIB_CHECK_VOID();
-  application_manager::ApplicationSharedPtr app =
-    application_manager::ApplicationManagerImpl::instance()
-    ->application_by_policy_id(policy_app_id);
-  if (app.valid()) {
-    DeviceParams device_params;
-    application_manager::MessageHelper::GetDeviceInfoForApp(app->app_id(),
-                                                            &device_params);
-    AppPermissions permissions = policy_manager_->GetAppPermissionsChanges(
-                                   device_params.device_mac_address,
-                                   policy_app_id);
-    permissions.appRevoked = true;
-    application_manager::MessageHelper::SendOnAppPermissionsChangedNotification(
-      app->app_id(), permissions);
-    app->set_hmi_level(mobile_apis::HMILevel::HMI_NONE);
-    application_manager::MessageHelper::SendActivateAppToHMI(
-          app->app_id(), hmi_apis::Common_HMILevel::NONE);
-    application_manager::MessageHelper::SendHMIStatusNotification(*app);
-    policy_manager_->RemovePendingPermissionChanges(policy_app_id);
-    return;
-  }
-}
-
 void PolicyHandler::OnPendingPermissionChange(
     const std::string& policy_app_id) {
   LOG4CXX_DEBUG(logger_, "PolicyHandler::OnPendingPermissionChange for "
@@ -669,12 +644,19 @@ void PolicyHandler::OnPendingPermissionChange(
     return;
   }
 
-  DeviceParams device_params;
-  application_manager::MessageHelper::GetDeviceInfoForApp(app->app_id(),
-                                                          &device_params);
   AppPermissions permissions = policy_manager_->GetAppPermissionsChanges(
-                                 device_params.device_mac_address,
                                  policy_app_id);
+
+  if (permissions.appRevoked) {
+    application_manager::MessageHelper::SendOnAppPermissionsChangedNotification(
+      app->app_id(), permissions);
+    app->set_hmi_level(mobile_apis::HMILevel::HMI_NONE);
+    application_manager::MessageHelper::SendActivateAppToHMI(
+          app->app_id(), hmi_apis::Common_HMILevel::NONE);
+    application_manager::MessageHelper::SendHMIStatusNotification(*app);
+    policy_manager_->RemovePendingPermissionChanges(policy_app_id);
+    return;
+  }
 
   mobile_apis::HMILevel::eType app_hmi_level = app->hmi_level();
 
@@ -936,18 +918,18 @@ void PolicyHandler::OnActivateApp(uint32_t connection_key,
       permissions.isSDLAllowed = true;
     }
   } else {
-    DeviceParams device_params;
-    application_manager::MessageHelper::GetDeviceInfoForApp(connection_key,
-                                                            &device_params);
     permissions = policy_manager_->GetAppPermissionsChanges(
-                    device_params.device_mac_address,
                     policy_app_id);
 
 #ifdef EXTENDED_POLICY
+
     application_manager::UsageStatistics& usage = app->usage_report();
 
     usage.RecordAppUserSelection();
 
+    DeviceParams device_params;
+    application_manager::MessageHelper::GetDeviceInfoForApp(connection_key,
+                                                            &device_params);
     permissions.deviceInfo = device_params;
 
     DeviceConsent consent = policy_manager_->GetUserConsentForDevice(
