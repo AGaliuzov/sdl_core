@@ -31,31 +31,50 @@
  */
 
 #include <unistd.h>
+#include <pthread.h>
+#include "lock.h"
 
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
 #include "utils/conditional_variable.h"
 
-namespace test  {
-namespace components  {
-namespace utils  {
+namespace test {
+namespace components {
+namespace utils {
 
-TEST() {
-  ASSERT_NE();
-  ASSERT_GE();
+std::string test_value("initialized");
+sync_primitives::ConditionalVariable cond_var;
+sync_primitives::Lock test_mutex;
 
+void* task_one(void *arg) {
+  test_mutex.Acquire();
+  test_value = "changed by thread 1";
+  cond_var.NotifyOne();
+  test_value = "changed again by thread 1";
+  test_mutex.Release();
+  return NULL;
+}
+
+TEST(ConditionalVariableTest, CheckNotifyOne_OneThreadNotified_ExpectSuccessful) {
+  pthread_t thread1;
+  int check_value = 0;
+  test_mutex.Acquire();
+  test_value = "changed by main thread";
+  check_value = pthread_create(&thread1, NULL, task_one, NULL);
+  if (check_value) {
+    std::cout<<"thread1 is not created! "<<std::endl;
+    exit(1);
   }
-
-TEST() {
-  }
-
-
-TEST() {
-    ASSERT_EQ();
+  test_value = "changed twice by main thread";
+  cond_var.Wait(test_mutex);
+  test_mutex.Release();
+  std::string last_value("changed again by thread 1");
+  EXPECT_EQ(last_value, test_value);
 }
 
 
-}  // namespace utils
-}  // namespace components
-}  // namespace test
+
+} // namespace utils
+} // namespace components
+} // namespace test
