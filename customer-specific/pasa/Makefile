@@ -10,4 +10,8 @@ clean clobber:
 	$(MAKE) -C src DEBUG=TRUE $(MAKECMDGOALS)	
 #	$(MAKE) -C src TARGET=x86 $(MAKECMDGOALS)
 #	$(MAKE) -C src TARGET=x86 DEBUG=TRUE $(MAKECMDGOALS)
+
+clean-3rd_party:
+	$(MAKE) -C src $(MAKECMDGOALS)
+	$(MAKE) -C src DEBUG=TRUE $(MAKECMDGOALS)
 	
