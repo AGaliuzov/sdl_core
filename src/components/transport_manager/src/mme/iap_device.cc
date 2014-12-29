@@ -66,6 +66,7 @@ void IAPDevice::Stop() {
 }
 
 IAPDevice::~IAPDevice() {
+  LOG4CXX_AUTO_TRACE(logger_);
   Stop();
 
   if (ipod_hdl_ != 0) {
