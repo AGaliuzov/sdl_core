@@ -167,10 +167,8 @@ RequestController::TResult RequestController::addMobileRequest(
   if (SUCCESS ==result) {
     AutoLock auto_lock_list(mobile_request_list_lock_);
     mobile_request_list_.push_back(request);
-    LOG4CXX_DEBUG(logger_,
-                  "mobile_requests count: " << mobile_request_list_.size()
-                  << ", waiting for response count: "
-                  << waiting_for_response_.Size());
+    LOG4CXX_DEBUG(logger_, "Waiting for execution: "
+                  << mobile_request_list_.size());
   // wake up one thread that is waiting for a task to be available
   }
   cond_var_.NotifyOne();
