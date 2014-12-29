@@ -77,7 +77,7 @@ using namespace application_manager;
 CREATE_LOGGERPTR_GLOBAL(logger_, "PolicyHandler")
 
 
-struct ApplicationListSorter {
+struct ApplicationListHmiLevelSorter {
   bool operator() (const application_manager::ApplicationSharedPtr& lhs,
                    const application_manager::ApplicationSharedPtr& rhs) {
     if (lhs && rhs) {

@@ -98,6 +98,7 @@ void CommandRequestImpl::onTimeOut() {
     // FIXME (dchmerev@luxoft.com): atomic_xchg fits better
     sync_primitives::AutoLock auto_lock(state_lock_);
     if (kCompleted == current_state_) {
+      LOG4CXX_DEBUG(logger_, "current_state_ = kCompleted");
       // don't send timeout if request completed
       return;
     }

@@ -54,20 +54,16 @@ namespace application_manager {
 
 namespace request_controller {
 
-using namespace threads;
-
 /**
 * @brief RequestController class is used to control currently active mobile
 * requests.
 */
 class RequestController {
   public:
-
     /**
     * @brief Result code for addRequest
     */
-    enum TResult
-    {
+    enum TResult {
       SUCCESS = 0,
       TOO_MANY_REQUESTS,
       TOO_MANY_PENDING_REQUESTS,
@@ -78,8 +74,7 @@ class RequestController {
     /**
     * @brief Thread pool state
     */
-    enum TPoolState
-    {
+    enum TPoolState {
       UNDEFINED = 0,
       STARTED,
       STOPPED,
@@ -140,13 +135,25 @@ class RequestController {
     */
     void addNotification(const RequestPtr ptr);
 
+
+    /**
+    * @brief Removes request from queue
+    *
+    * @param corellation_id Active request correlation ID,
+    * connection_key - Active request connection key (0 for HMI requersts)
+    *
+    */
+    void terminateRequest(const uint32_t& correlation_id,
+                          const uint32_t& connection_key);
+
     /**
     * @brief Removes request from queue
     *
     * @param mobile_corellation_id Active mobile request correlation ID
     *
     */
-    void terminateMobileRequest(const uint32_t& mobile_correlation_id, const uint32_t& connection_key);
+    void terminateMobileRequest(const uint32_t& mobile_correlation_id,
+                                const uint32_t& connection_key);
 
 
     /**
@@ -205,39 +212,12 @@ class RequestController {
     void OnWakeUp();
 
     bool IsLowVoltage();
+
+
   protected:
-
     /**
-     * @brief Check if this app is able to add new requests, or limits was exceeded
-     * @param app_id - application id
-     * @param app_time_scale - time scale (seconds)
-     * @param max_request_per_time_scale - maximum count of request that should be allowed for app_time_scale seconds
-     * @return True if new request could be added, false otherwise
-     */
-    bool CheckTimeScaleMaxRequest(const uint32_t& app_id,
-                                  const uint32_t& app_time_scale,
-                                  const uint32_t& max_request_per_time_scale);
-
-    /**
-     * @brief Check if this app is able to add new requests in current hmi_level, or limits was exceeded
-     * @param hmi_level - hmi level
-     * @param app_id - application id
-     * @param app_time_scale - time scale (seconds)
-     * @param max_request_per_time_scale - maximum count of request that should be allowed for app_time_scale seconds
-     * @return True if new request could be added, false otherwise
-     */
-    bool CheckHMILevelTimeScaleMaxRequest(const mobile_apis::HMILevel::eType& hmi_level,
-                                          const uint32_t& app_id,
-                                          const uint32_t& app_time_scale,
-                                          const uint32_t& max_request_per_time_scale);
-
-    /**
-     * @brief Check Posibility to add new requests, or limits was exceeded
-     * @param pending_requests_amount - maximum count of request that should be allowed for all applications
-     * @return True if new request could be added, false otherwise
-     */
-    bool CheckPendingRequestsAmount(const uint32_t& pending_requests_amount);
-
+    * @brief Timer Callback
+    */
     void onTimer();
 
     /**
@@ -246,14 +226,27 @@ class RequestController {
     */
     void UpdateTimer();
 
+    void terminateWaitingForExecutionAppRequests(const uint32_t& app_id);
+    void terminateWaitingForResponseAppRequests(const uint32_t& app_id);
+
+    /**
+     * @brief Check Posibility to add new requests, or limits was exceeded
+     * @param request - request to check possipility to Add
+     * @return True if new request could be added, false otherwise
+     */
+    TResult CheckPosibilitytoAdd(const RequestPtr request);
+
+    /**
+     * @brief Check Posibility to add new requests, or limits was exceeded
+     * @param pending_requests_amount - maximum count of request that should be allowed for all applications
+     * @return True if new request could be added, false otherwise
+     */
+    bool CheckPendingRequestsAmount(const uint32_t& pending_requests_amount);
 
   private:
-
-    // Data types
-
-    class Worker : public ThreadDelegate {
+    class Worker : public threads::ThreadDelegate {
       public:
-        Worker(RequestController* requestController);
+        explicit Worker(RequestController* requestController);
         virtual ~Worker();
         virtual void threadMain();
         virtual void exitThreadMain();
@@ -264,7 +257,7 @@ class RequestController {
         volatile bool                                    stop_flag_;
     };
 
-    std::vector<Thread*> pool_;
+    std::vector<threads::Thread*> pool_;
     volatile TPoolState pool_state_;
     uint32_t pool_size_;
     sync_primitives::ConditionalVariable cond_var_;
@@ -272,15 +265,23 @@ class RequestController {
     std::list<RequestPtr> mobile_request_list_;
     sync_primitives::Lock mobile_request_list_lock_;
 
-    RequestInfoSet pending_request_set_;
-    sync_primitives::Lock pending_request_set_lock_;
+    /*
+     * Requests, that are waiting for responses
+     * RequestInfoSet provides correct processing of requests with thre same
+     * app_id and corr_id
+     */
+    RequestInfoSet waiting_for_response_;
+    sync_primitives::Lock waiting_for_response_lock_;
 
     /**
     * @brief Set of HMI notifications with timeout.
     */
     std::list<RequestPtr> notification_list_;
 
-    timer::TimerThread<RequestController>  timer_;
+    /*
+     * timer for checking requests timeout
+     */
+    timer::TimerThread<RequestController> timer_;
     static const uint32_t dafault_sleep_time_ = UINT_MAX;
 
     bool is_low_voltage_;
