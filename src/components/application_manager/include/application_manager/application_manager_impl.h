@@ -480,15 +480,11 @@ class ApplicationManagerImpl : public ApplicationManager,
     // Put message to the queue to be sent to mobile.
     // if |final_message| parameter is set connection to mobile will be closed
     // after processing this message
-    void SendMessageToMobile(
-      const utils::SharedPtr<smart_objects::SmartObject> message,
-      bool final_message = false);
-    bool ManageMobileCommand(
-      const utils::SharedPtr<smart_objects::SmartObject> message);
-    void SendMessageToHMI(
-      const utils::SharedPtr<smart_objects::SmartObject> message);
-    bool ManageHMICommand(
-      const utils::SharedPtr<smart_objects::SmartObject> message);
+    void SendMessageToMobile(const commands::MessageSharedPtr message,
+                             bool final_message = false);
+    bool ManageMobileCommand(const commands::MessageSharedPtr message);
+    void SendMessageToHMI(const commands::MessageSharedPtr message);
+    bool ManageHMICommand(const commands::MessageSharedPtr message);
 
     /////////////////////////////////////////////////////////
     // Overriden ProtocolObserver method

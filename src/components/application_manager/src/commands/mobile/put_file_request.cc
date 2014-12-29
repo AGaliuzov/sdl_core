@@ -232,7 +232,7 @@ void PutFileRequest::Run() {
 
 void PutFileRequest::SendOnPutFileNotification() {
   LOG4CXX_INFO(logger_, "SendOnPutFileNotification" );
-  smart_objects::SmartObject* notification = new smart_objects::SmartObject(
+  smart_objects::SmartObjectSPtr notification = new smart_objects::SmartObject(
     smart_objects::SmartType_Map);
 
   smart_objects::SmartObject& message = *notification;
@@ -250,7 +250,7 @@ void PutFileRequest::SendOnPutFileNotification() {
   message[strings::msg_params][strings::length] = length_;
   message[strings::msg_params][strings::persistent_file] = is_persistent_file_;
   message[strings::msg_params][strings::file_type] = file_type_;
-  ApplicationManagerImpl::instance()->ManageHMICommand(&message);
+  ApplicationManagerImpl::instance()->ManageHMICommand(notification);
 }
 
 }  // namespace commands

@@ -125,7 +125,7 @@ void ResetGlobalPropertiesRequest::Run() {
         smart_objects::SmartType_Map);
 
     if (vr_help_title_items) {
-      smart_objects::SmartObject* vr_help = MessageHelper::CreateAppVrHelp(app);
+      smart_objects::SmartObjectSPtr vr_help = MessageHelper::CreateAppVrHelp(app);
       if (!vr_help) {
         return;
       }

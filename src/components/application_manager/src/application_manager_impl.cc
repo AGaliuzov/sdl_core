@@ -812,8 +812,14 @@ void ApplicationManagerImpl::OnErrorSending(
 void ApplicationManagerImpl::OnDeviceListUpdated(
     const connection_handler::DeviceMap& device_list) {
   LOG4CXX_AUTO_TRACE(logger_);
+  smart_objects::SmartObjectSPtr msg_params = MessageHelper::CreateDeviceListSO(
+        device_list);
+  if (!msg_params) {
+    LOG4CXX_WARN(logger_, "Failed to create sub-smart object.");
+    return;
+  }
 
-  smart_objects::SmartObject* update_list = new smart_objects::SmartObject;
+  smart_objects::SmartObjectSPtr update_list = new smart_objects::SmartObject;
   smart_objects::SmartObject& so_to_send = *update_list;
   so_to_send[jhs::S_PARAMS][jhs::S_FUNCTION_ID] =
     hmi_apis::FunctionID::BasicCommunication_UpdateDeviceList;
@@ -822,13 +828,6 @@ void ApplicationManagerImpl::OnDeviceListUpdated(
   so_to_send[jhs::S_PARAMS][jhs::S_PROTOCOL_VERSION] = 3;
   so_to_send[jhs::S_PARAMS][jhs::S_PROTOCOL_TYPE] = 1;
   so_to_send[jhs::S_PARAMS][jhs::S_CORRELATION_ID] = GetNextHMICorrelationID();
-  utils::SharedPtr<smart_objects::SmartObject> msg_params = MessageHelper::CreateDeviceListSO(
-        device_list);
-  if (!msg_params) {
-    LOG4CXX_WARN(logger_, "Failed to create sub-smart object.");
-    delete update_list;
-    return;
-  }
   so_to_send[jhs::S_MSG_PARAMS] = *msg_params;
   ManageHMICommand(update_list);
 }
@@ -845,8 +844,8 @@ void ApplicationManagerImpl::SendUpdateAppList(const std::list<uint32_t>& applic
 
   LOG4CXX_DEBUG(logger_, applications_ids.size() << " applications.");
 
-  smart_objects::SmartObject* request = MessageHelper::CreateModuleInfoSO(
-                                          hmi_apis::FunctionID::BasicCommunication_UpdateAppList);
+  smart_objects::SmartObjectSPtr request = MessageHelper::CreateModuleInfoSO(
+      hmi_apis::FunctionID::BasicCommunication_UpdateAppList);
   (*request)[strings::msg_params][strings::applications] =
       smart_objects::SmartObject(smart_objects::SmartType_Array);
 
@@ -1142,8 +1141,7 @@ void ApplicationManagerImpl::StartDevicesDiscovery() {
 }
 
 void ApplicationManagerImpl::SendMessageToMobile(
-  const utils::SharedPtr<smart_objects::SmartObject> message,
-  bool final_message) {
+    const commands::MessageSharedPtr message, bool final_message) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (!message) {
@@ -1236,7 +1234,7 @@ void ApplicationManagerImpl::SendMessageToMobile(
 }
 
 bool ApplicationManagerImpl::ManageMobileCommand(
-  const utils::SharedPtr<smart_objects::SmartObject> message) {
+    const commands::MessageSharedPtr message) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (!message) {
@@ -1285,12 +1283,11 @@ bool ApplicationManagerImpl::ManageMobileCommand(
     app = ApplicationManagerImpl::instance()->application(connection_key);
     if (!app) {
       LOG4CXX_ERROR_EXT(logger_, "RET APPLICATION_NOT_REGISTERED");
-      smart_objects::SmartObject* response =
-        MessageHelper::CreateNegativeResponse(
-          connection_key,
-          static_cast<int32_t>(function_id),
-          correlation_id,
-          static_cast<int32_t>(mobile_apis::Result::APPLICATION_NOT_REGISTERED));
+      smart_objects::SmartObjectSPtr response =
+          MessageHelper::CreateNegativeResponse(connection_key,
+                                                static_cast<int32_t>(function_id),
+                                                correlation_id,
+                                                static_cast<int32_t>(mobile_apis::Result::APPLICATION_NOT_REGISTERED));
 
       SendMessageToMobile(response);
       return false;
@@ -1344,12 +1341,11 @@ bool ApplicationManagerImpl::ManageMobileCommand(
       LOG4CXX_ERROR_EXT(logger_, "RET  Unable top perform request: " <<
                         "TOO_MANY_PENDING_REQUESTS");
 
-      smart_objects::SmartObject* response =
-        MessageHelper::CreateNegativeResponse(
-          connection_key,
-          static_cast<int32_t>(function_id),
-          correlation_id,
-          static_cast<int32_t>(mobile_apis::Result::TOO_MANY_PENDING_REQUESTS));
+      smart_objects::SmartObjectSPtr response =
+          MessageHelper::CreateNegativeResponse(connection_key,
+                                                static_cast<int32_t>(function_id),
+                                                correlation_id,
+                                                static_cast<int32_t>(mobile_apis::Result::TOO_MANY_PENDING_REQUESTS));
 
       SendMessageToMobile(response);
       return false;
@@ -1395,7 +1391,7 @@ bool ApplicationManagerImpl::ManageMobileCommand(
 }
 
 void ApplicationManagerImpl::SendMessageToHMI(
-  const utils::SharedPtr<smart_objects::SmartObject> message) {
+    const commands::MessageSharedPtr message) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (!message) {
@@ -1437,7 +1433,7 @@ void ApplicationManagerImpl::SendMessageToHMI(
 }
 
 bool ApplicationManagerImpl::ManageHMICommand(
-  const utils::SharedPtr<smart_objects::SmartObject> message) {
+    const commands::MessageSharedPtr message) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (!message) {
@@ -1646,7 +1642,7 @@ bool ApplicationManagerImpl::ConvertMessageToSO(
           output[strings::msg_params][strings::result_code] =
             NsSmartDeviceLinkRPC::V1::Result::UNSUPPORTED_VERSION;
 
-          smart_objects::SmartObject* msg_to_send = new smart_objects::SmartObject(output);
+          smart_objects::SmartObjectSPtr msg_to_send = new smart_objects::SmartObject(output);
           v1_shema.attachSchema(*msg_to_send);
           SendMessageToMobile(msg_to_send);
           return false;
@@ -1807,8 +1803,7 @@ void ApplicationManagerImpl::ProcessMessageFromMobile(
   AMMetricObserver::MessageMetricSharedPtr metric(new AMMetricObserver::MessageMetric());
   metric->begin = date_time::DateTime::getCurrentTime();
 #endif  // TIME_TESTER
-  utils::SharedPtr<smart_objects::SmartObject> so_from_mobile(
-    new smart_objects::SmartObject);
+  smart_objects::SmartObjectSPtr so_from_mobile(new smart_objects::SmartObject);
 
   if (!so_from_mobile) {
     LOG4CXX_ERROR(logger_, "Null pointer");
@@ -1837,8 +1832,7 @@ void ApplicationManagerImpl::ProcessMessageFromMobile(
 void ApplicationManagerImpl::ProcessMessageFromHMI(
   const utils::SharedPtr<Message> message) {
   LOG4CXX_INFO(logger_, "ApplicationManagerImpl::ProcessMessageFromHMI()");
-  utils::SharedPtr<smart_objects::SmartObject> smart_object(
-    new smart_objects::SmartObject);
+  smart_objects::SmartObjectSPtr smart_object(new smart_objects::SmartObject);
 
   if (!smart_object) {
     LOG4CXX_ERROR(logger_, "Null pointer");
@@ -1970,7 +1964,7 @@ void ApplicationManagerImpl::SendOnSDLClose() {
   LOG4CXX_AUTO_TRACE(logger_);
 
   // must be sent to PASA HMI on shutdown synchronously
-  smart_objects::SmartObject* msg = new smart_objects::SmartObject(
+  smart_objects::SmartObjectSPtr msg = new smart_objects::SmartObject(
       smart_objects::SmartType_Map);
 
   (*msg)[strings::params][strings::function_id] =
@@ -2013,7 +2007,6 @@ void ApplicationManagerImpl::SendOnSDLClose() {
     return;
   }
 
-  delete msg;
   hmi_handler_->SendMessageToHMI(message_to_send);
 }
 
@@ -2213,12 +2206,11 @@ void ApplicationManagerImpl::Handle(const impl::MessageToHmi message) {
 
 void ApplicationManagerImpl::Handle(const impl::AudioData message) {
   LOG4CXX_INFO(logger_, "Send AudioPassThru notification");
-  smart_objects::SmartObject* on_audio_pass = NULL;
-  on_audio_pass = new smart_objects::SmartObject();
+  smart_objects::SmartObjectSPtr on_audio_pass = new smart_objects::SmartObject();
 
-  if (NULL == on_audio_pass) {
+  if (!on_audio_pass) {
     LOG4CXX_ERROR_EXT(logger_, "OnAudioPassThru NULL pointer");
-  return;
+    return;
   }
 
   LOG4CXX_INFO_EXT(logger_, "Fill smart object");
@@ -2240,7 +2232,7 @@ void ApplicationManagerImpl::Handle(const impl::AudioData message) {
 
    LOG4CXX_INFO_EXT(logger_, "Send data");
    CommandSharedPtr command (
-       MobileCommandFactory::CreateCommand(&(*on_audio_pass)));
+       MobileCommandFactory::CreateCommand(on_audio_pass));
    command->Init();
    command->Run();
    command->CleanUp();
@@ -2662,7 +2654,6 @@ void ApplicationManagerImpl::OnUpdateHMIAppType(std::map<std::string, std::vecto
   std::map<std::string, std::vector<std::string> >::iterator it_app_hmi_types_from_policy;
   std::vector<std::string> hmi_types_from_policy;
   smart_objects::SmartObject transform_app_hmi_types(smart_objects::SmartType_Array);
-  const smart_objects::SmartObject *save_application_hmi_type = NULL;
   bool flag_diffirence_app_hmi_type = false;
 
   for (TAppListIt it = application_list_.begin();
@@ -2685,7 +2676,8 @@ void ApplicationManagerImpl::OnUpdateHMIAppType(std::map<std::string, std::vecto
         transform_app_hmi_types[i] = StringToAppHMIType(hmi_types_from_policy[i]);
       }
 
-      save_application_hmi_type = (*it)->app_types();
+      ApplicationConstSharedPtr app = *it;
+      const smart_objects::SmartObject* save_application_hmi_type = app->app_types();
 
       if (save_application_hmi_type == NULL ||
           ((*save_application_hmi_type).length() != transform_app_hmi_types.length())) {
