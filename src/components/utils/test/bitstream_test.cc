@@ -53,25 +53,6 @@ TEST(BitstreamTest, CreateBitstream_CreateBitStreamWithoutDataWithoutDatasize_Bi
   delete bs;
 }
 
-TEST(BitstreamTest, DISABLED_ExtractBitstream_CreateBitStreamWithoutDataWithoutDatasize_BitStreamIsBad) {
-
-  //arrange
-  uint8_t *data = NULL;
-  size_t bits = sizeof(data);
-  BitStream* bs = new BitStream(data, bits);
-
-  //assert
-  EXPECT_TRUE(bs->IsGood());
-
-  //act
-  Extract(bs, data, bits);
-
-  //arrange
-  EXPECT_TRUE(bs->IsGood());
-
-  delete bs;
-}
-
 TEST(BitstreamTest, CreateBitstream_CreateBitStreamWithoutDataWithBigDataSize_BitStreamIsGood) {
 
   //arrange
@@ -81,24 +62,6 @@ TEST(BitstreamTest, CreateBitstream_CreateBitStreamWithoutDataWithBigDataSize_Bi
 
   //assert
   EXPECT_TRUE(bs->IsGood());
-  delete bs;
-}
-
-TEST(BitstreamTest, DISABLED_ExtractBitstream_CreateBitStreamWithoutDataWithBigDataSize_BitStreamIsBad) {
-
-  //arrange
-  uint8_t *data = NULL;
-  size_t bits = 65535;
-  BitStream* bs = new BitStream(data, bits);
-
-  //assert
-  EXPECT_TRUE(bs->IsGood());
-
-  //act
-  Extract(bs, data, bits);
-
-  //assert
-  EXPECT_TRUE(bs->IsBad());
   delete bs;
 }
 
@@ -122,6 +85,36 @@ TEST(BitstreamTest, ExtractBitstream_CreateBitStreamWithDataWithLessDataSize_Bit
   uint8_t element = 255;
   uint8_t *data = &element;
   size_t bits = sizeof(char);
+  BitStream* bs = new BitStream(data, bits);
+
+  Extract(bs, data, bits);
+  //assert
+  EXPECT_TRUE(bs->IsGood());
+
+  delete bs;
+}
+
+TEST(BitstreamTest, DISABLED_ExtractBitstream_CreateBitStreamWithZeroDataWithBigDataSize_BitStreamIsGood) {
+
+  //arrange
+  uint8_t element = 0;
+  uint8_t *data = &element;
+  size_t bits =65535;
+  BitStream* bs = new BitStream(data, bits);
+
+  Extract(bs, data, bits);
+  //assert
+  EXPECT_TRUE(bs->IsGood());
+
+  delete bs;
+}
+
+TEST(BitstreamTest, DISABLED_ExtractBitstream_CreateBitStreamWithSmallDataWithBiggerDataSize_BitStreamIsGood) {
+
+  //arrange
+  uint8_t element = 1;
+  uint8_t *data = &element;
+  size_t bits =10;
   BitStream* bs = new BitStream(data, bits);
 
   Extract(bs, data, bits);
@@ -169,28 +162,6 @@ TEST(BitstreamTest, ExtractBitstream_CreateBitStreamWithDataMarkedBad_ExpectIsBa
   delete bs;
 }
 
-TEST(BitstreamTest, DISABLED_ExtractBitstream_CreateBitStreamWithoutDataMarkedBad_ExpectIsBad) {
-
-  //arrange
-  uint8_t *data = NULL;
-  size_t bits = sizeof(data);
-  BitStream* bs = new BitStream(data, bits);
-
-  //assert
-  EXPECT_TRUE(bs->IsGood());
-  //act
-  bs->MarkBad();
-  //assert
-  EXPECT_TRUE(bs->IsBad());
-
-  //act
-  Extract(bs, data, bits);
-
-  //arrange
-  EXPECT_TRUE(bs->IsBad());
-
-  delete bs;
-}
 
 }  // namespace utils
 }  // namespace components
