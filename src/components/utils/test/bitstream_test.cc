@@ -68,10 +68,9 @@ TEST(BitstreamTest, CreateBitstream_CreateBitStreamWithoutDataWithBigDataSize_Bi
 TEST(BitstreamTest, CreateBitstream_CreateBitStreamWithDataWithLessDataSize_BitStreamIsGood) {
 
   //arrange
-  uint8_t element = 255;
-  uint8_t *data = &element;
+  uint8_t data =255;
   size_t bits = sizeof(char);
-  BitStream* bs = new BitStream(data, bits);
+  BitStream* bs = new BitStream(&data, bits);
 
   //assert
   EXPECT_TRUE(bs->IsGood());
@@ -82,12 +81,11 @@ TEST(BitstreamTest, CreateBitstream_CreateBitStreamWithDataWithLessDataSize_BitS
 TEST(BitstreamTest, ExtractBitstream_CreateBitStreamWithDataWithLessDataSize_BitStreamIsGood) {
 
   //arrange
-  uint8_t element = 255;
-  uint8_t *data = &element;
+  uint8_t data =255;
   size_t bits = sizeof(char);
-  BitStream* bs = new BitStream(data, bits);
+  BitStream* bs = new BitStream(&data, bits);
 
-  Extract(bs, data, bits);
+  Extract(bs, &data, bits);
   //assert
   EXPECT_TRUE(bs->IsGood());
 
@@ -97,12 +95,11 @@ TEST(BitstreamTest, ExtractBitstream_CreateBitStreamWithDataWithLessDataSize_Bit
 TEST(BitstreamTest, DISABLED_ExtractBitstream_CreateBitStreamWithZeroDataWithBigDataSize_BitStreamIsGood) {
 
   //arrange
-  uint8_t element = 0;
-  uint8_t *data = &element;
+  uint8_t data =0;
   size_t bits =65535;
-  BitStream* bs = new BitStream(data, bits);
+  BitStream* bs = new BitStream(&data, bits);
 
-  Extract(bs, data, bits);
+  Extract(bs, &data, bits);
   //assert
   EXPECT_TRUE(bs->IsGood());
 
@@ -112,12 +109,11 @@ TEST(BitstreamTest, DISABLED_ExtractBitstream_CreateBitStreamWithZeroDataWithBig
 TEST(BitstreamTest, DISABLED_ExtractBitstream_CreateBitStreamWithSmallDataWithBiggerDataSize_BitStreamIsGood) {
 
   //arrange
-  uint8_t element = 1;
-  uint8_t *data = &element;
+  uint8_t data =1;
   size_t bits =10;
-  BitStream* bs = new BitStream(data, bits);
+  BitStream* bs = new BitStream(&data, bits);
 
-  Extract(bs, data, bits);
+  Extract(bs, &data, bits);
   //assert
   EXPECT_TRUE(bs->IsGood());
 
@@ -127,12 +123,11 @@ TEST(BitstreamTest, DISABLED_ExtractBitstream_CreateBitStreamWithSmallDataWithBi
 TEST(BitstreamTest, ExtractBitstream_CreateBitStreamWithDataWithZeroDataSize_BitStreamIsGood) {
 
   //arrange
-  uint8_t element = 255;
-  uint8_t *data = &element;
+  uint8_t data =255;
   size_t bits = 0;
-  BitStream* bs = new BitStream(data, bits);
+  BitStream* bs = new BitStream(&data, bits);
 
-  Extract(bs, data, bits);
+  Extract(bs, &data, bits);
 
   //assert
   EXPECT_TRUE(bs->IsGood());
@@ -143,10 +138,9 @@ TEST(BitstreamTest, ExtractBitstream_CreateBitStreamWithDataWithZeroDataSize_Bit
 TEST(BitstreamTest, ExtractBitstream_CreateBitStreamWithDataMarkedBad_ExpectIsBad) {
 
   //arrange
-  uint8_t element = 255;
-  uint8_t *data = &element;
+  uint8_t data =255;
   size_t bits = sizeof(int);
-  BitStream* bs = new BitStream(data, bits);
+  BitStream* bs = new BitStream(&data, bits);
   //assert
   EXPECT_TRUE(bs->IsGood());
   //act
@@ -155,7 +149,7 @@ TEST(BitstreamTest, ExtractBitstream_CreateBitStreamWithDataMarkedBad_ExpectIsBa
   //assert
   EXPECT_TRUE(bs->IsBad());
   //act
-  Extract(bs, data, bits);
+  Extract(bs, &data, bits);
   //arrange
   EXPECT_TRUE(bs->IsBad());
 
