@@ -246,7 +246,7 @@ class Connection {
    * Sets heart beat timeout
    * @param timeout in seconds
    */
-  void SetHeartBeatTimeout(int32_t timeout);
+  void SetHeartBeatTimeout(int32_t timeout, uint8_t session_id);
 
   /**
    * \brief changes protocol version in session

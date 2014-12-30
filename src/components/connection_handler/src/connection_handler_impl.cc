@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -790,7 +790,7 @@ void ConnectionHandlerImpl::SetHeartBeatTimeout(uint32_t connection_key,
   sync_primitives::AutoLock lock(connection_list_lock_);
   ConnectionList::iterator it = connection_list_.find(connection_handle);
   if (connection_list_.end() != it) {
-    it->second->SetHeartBeatTimeout(timeout);
+    it->second->SetHeartBeatTimeout(timeout, session_id);
   }
 }
 
