@@ -54,6 +54,6 @@ set(SOURCES
 
 file(COPY ${appMain_DIR}/smartDeviceLink.ini DESTINATION "./")
 
-#create_test("connection_handler_test" "${SOURCES}" "${LIBRARIES}")
+create_test("connection_handler_test" "${SOURCES}" "${LIBRARIES}")
 
 endif()
