@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -356,8 +356,8 @@ void Connection::KeepAlive(uint8_t session_id) {
   heartbeat_monitor_->KeepAlive(session_id);
 }
 
-void Connection::SetHeartBeatTimeout(int32_t timeout) {
-  heartbeat_monitor_->set_heartbeat_timeout_seconds(timeout);
+void Connection::SetHeartBeatTimeout(int32_t timeout, uint8_t session_id) {
+  heartbeat_monitor_->set_heartbeat_timeout_seconds(timeout, session_id);
 }
 
 }  // namespace connection_handler

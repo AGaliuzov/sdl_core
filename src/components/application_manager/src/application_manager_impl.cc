@@ -591,11 +591,11 @@ mobile_api::HMILevel::eType ApplicationManagerImpl::PutApplicationInFull(
   bool is_audio_app = app->IsAudioApplication();
   bool does_audio_app_with_same_type_exist =
       DoesAudioAppWithSameHMITypeExistInFullOrLimited(app);
-
-  mobile_api::HMILevel::eType result = mobile_api::HMILevel::HMI_FULL;
-
   bool is_active_app_exist = active_application().valid();
 
+
+
+  mobile_api::HMILevel::eType result = mobile_api::HMILevel::HMI_FULL;
   if (is_audio_app && does_audio_app_with_same_type_exist) {
     result = mobile_apis::HMILevel::HMI_BACKGROUND;
   } else if (is_active_app_exist && is_audio_app) {
@@ -603,6 +603,11 @@ mobile_api::HMILevel::eType ApplicationManagerImpl::PutApplicationInFull(
   } else if (is_active_app_exist && (!is_audio_app)) {
     result = mobile_apis::HMILevel::HMI_BACKGROUND;
   }
+  LOG4CXX_ERROR(logger_, "is_audio_app : " << is_audio_app
+                << "; does_audio_app_with_same_type_exist : " << does_audio_app_with_same_type_exist
+                << "; is_active_app_exist : " << is_active_app_exist
+                << "; result : " << result);
+
 
   if (mobile_api::HMILevel::HMI_FULL == result) {
     MessageHelper::SendActivateAppToHMI(app->app_id());

@@ -77,14 +77,16 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "PolicyHandler")
 typedef std::set<application_manager::ApplicationSharedPtr> ApplicationList;
 
 struct ApplicationListSorter {
-  bool operator() (application_manager::ApplicationSharedPtr lhs,
-                   application_manager::ApplicationSharedPtr rhs) {
+  bool operator() (const application_manager::ApplicationSharedPtr& lhs,
+                   const application_manager::ApplicationSharedPtr& rhs) {
     if (lhs && rhs) {
       mobile_apis::HMILevel::eType lhs_hmi_level = lhs->hmi_level();
       mobile_apis::HMILevel::eType rhs_hmi_level = rhs->hmi_level();
 
-      return (lhs_hmi_level < rhs_hmi_level) ||
-          (lhs_hmi_level == rhs_hmi_level);
+      if (lhs_hmi_level == rhs_hmi_level) {
+        return lhs->app_id() < rhs->app_id();
+      }
+      return lhs_hmi_level < rhs_hmi_level;
     }
 
     return false;
@@ -319,9 +321,9 @@ bool PolicyHandler::ClearUserConsent() {
 uint32_t PolicyHandler::GetAppIdForSending() {
   using namespace application_manager;
   typedef ApplicationManagerImpl::ApplicationListAccessor AppAccessor;
-  // Get app.list
 
-  ApplicationList apps(AppAccessor().applications());
+  AppAccessor accessor;
+  ApplicationList apps(accessor.applications());
   OrderedApplicationList app_list(apps.begin(), apps.end());
 
   LOG4CXX_INFO(logger_, "Apps size: " << app_list.size());
