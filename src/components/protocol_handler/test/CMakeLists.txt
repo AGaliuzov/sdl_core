@@ -61,5 +61,5 @@ set(SOURCES
   protocol_header_validator_test.cc
 )
 
-create_test(test_protocol_handler "${SOURCES}" "${LIBRARIES}")
+create_test("protocol_handler_test" "${SOURCES}" "${LIBRARIES}")
 #add_library(test_protocol_handler_test ${SOURCES})
