@@ -108,7 +108,6 @@ USB_PERMISSIONS="SUBSYSTEM==\"usb\", GROUP=\"users\", MODE=\"0666\""
 DISTRIB_CODENAME=$(grep -oP 'CODENAME=(.+)' -m 1 /etc/lsb-release | awk -F= '{ print $NF }')
 LIBXML2="libxml2-dev"
 AUTOMAKE1_11="automake1.11"
-LIB_SQLITE="libsqlite3-dev"
 LIB_SSL="libssl-dev"
 
 GSTREAMER_REPO_LINK="deb http://ppa.launchpad.net/gstreamer-developers/ppa/ubuntu"
@@ -343,8 +342,14 @@ echo "Installing ${LIB_SSL}"
 apt-install ${LIB_SSL}
 echo $OK
 
-echo "Installing ${LIB_SQLITE}"
-apt-install ${LIB_SQLITE}
+echo "Installing libsqlite3 and libsqlite3-dev"
+ubuntu_version=$(lsb_release -rs)
+if [ "$ubuntu_version" == "12.04" ]; then
+  echo "Need to newer version of sqlite at least 3.7.11 update..."
+  add-apt-repository "deb http://ppa.launchpad.net/freeday/ppa/ubuntu precise main"
+  apt-get update
+fi
+apt-install libsqlite3-dev
 echo $OK
 
 echo "Installing dos2unix"
