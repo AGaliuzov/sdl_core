@@ -1103,6 +1103,7 @@
   <description>Defines the type of the request which causes text-to-speech prompt</description>
   <element name="ALERT" />
   <element name="SPEAK" />
+  <element name="AUDIO_PASS_THRU" />
 </enum>
 
 <enum name="AlertType">
@@ -2073,7 +2074,7 @@
          <description>ID of the application that invoked this notification</description>
       </param>
       <param name="methodName" type="Common.MethodName" mandatory="true">
-         <description>The rpc name which relates to the notification</description>
+         <description>Defines the name of app's request that initiates playing a tone</description>
       </param>
     </function>
     <!-- Policies -->
