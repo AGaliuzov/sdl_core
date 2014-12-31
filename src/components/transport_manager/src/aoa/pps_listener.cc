@@ -98,7 +98,7 @@ PPSListener::PPSListener(TransportAdapterController* controller)
     : initialised_(false),
       controller_(controller),
       fd_(-1),
-      thread_(threads::CreateThread("PPS scanner", new PpsThreadDelegate(this))) {
+      thread_(threads::CreateThread("PPS listener", new PpsThreadDelegate(this))) {
   LOG4CXX_AUTO_TRACE(logger_);
 }
 
@@ -309,6 +309,9 @@ void PPSListener::AddDevice(const AOAWrapper::AOAUsbInfo& aoa_usb_info) {
 
 TransportAdapter::Error PPSListener::StartListening() {
   LOG4CXX_AUTO_TRACE(logger_);
+  if (!thread_->delegate()) {
+    thread_->set_delegate(new PpsThreadDelegate(this));
+  }
   thread_->start();
   return TransportAdapter::OK;
 }
@@ -316,6 +319,8 @@ TransportAdapter::Error PPSListener::StartListening() {
 TransportAdapter::Error PPSListener::StopListening() {
   LOG4CXX_AUTO_TRACE(logger_);
   thread_->stop();
+  delete thread_->delegate();
+  thread_->set_delegate(0);
   return TransportAdapter::OK;
 }
 
