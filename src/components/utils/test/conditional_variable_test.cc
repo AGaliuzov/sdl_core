@@ -41,31 +41,36 @@ namespace test {
 namespace components {
 namespace utils {
 
-  std::string test_value("initialized");
-  sync_primitives::ConditionalVariable cond_var;
-  sync_primitives::Lock test_mutex;
-  unsigned counter = 0;
+// Global variables
+namespace {
+std::string test_value("initialized");
+sync_primitives::ConditionalVariable cond_var;
+sync_primitives::Lock test_mutex;
+unsigned counter = 0;
+}
 
+// Defines threads behaviour which depends on counter value
 void check_counter(unsigned cnt) {
   test_mutex.Acquire();
   if (cnt <= 1) {
     counter++;
-    cond_var.Wait(test_mutex);
+    cond_var.Wait(test_mutex);  // Mutex unlock & Thread sleeps until Notification
     test_mutex.Release();
     return;
   } else if (cnt == 2) {
     test_mutex.Release();
-    cond_var.Broadcast();
+    cond_var.Broadcast();  // Notify All threads waiting on conditional variable
     return;
   }
 }
 
+// Tasks for threads to begin with
 void* task_one(void *arg) {
-  test_mutex.Acquire();
+  test_mutex.Acquire();  // Mutex lock
   test_value = "changed by thread 1";
-  cond_var.NotifyOne();
+  cond_var.NotifyOne();  // Notify At least one thread waiting on conditional variable
   test_value = "changed again by thread 1";
-  test_mutex.Release();
+  test_mutex.Release();  // Mutex release
   return NULL;
 }
 
