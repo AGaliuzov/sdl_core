@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,22 +30,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <unistd.h>
 #include <pthread.h>
+#include <iostream>
 #include "lock.h"
 
 #include "gtest/gtest.h"
-#include "gmock/gmock.h"
-
 #include "utils/conditional_variable.h"
 
 namespace test {
 namespace components {
 namespace utils {
 
-std::string test_value("initialized");
-sync_primitives::ConditionalVariable cond_var;
-sync_primitives::Lock test_mutex;
+  std::string test_value("initialized");
+  sync_primitives::ConditionalVariable cond_var;
+  sync_primitives::Lock test_mutex;
+  unsigned counter = 0;
+
+void check_counter(unsigned cnt) {
+  test_mutex.Acquire();
+  if (cnt <= 1) {
+    counter++;
+    cond_var.Wait(test_mutex);
+    test_mutex.Release();
+    return;
+  } else if (cnt == 2) {
+    test_mutex.Release();
+    cond_var.Broadcast();
+    return;
+  }
+}
 
 void* task_one(void *arg) {
   test_mutex.Acquire();
@@ -56,14 +69,25 @@ void* task_one(void *arg) {
   return NULL;
 }
 
-TEST(ConditionalVariableTest, CheckNotifyOne_OneThreadNotified_ExpectSuccessful) {
+void* task_two(void *arg) {
+  check_counter(counter);
+  return NULL;
+}
+
+void* task_three(void *arg) {
+  check_counter(counter);
+  return NULL;
+}
+
+TEST(ConditionalVariableTest, CheckNotifyOne_OneThreadNotified_ExpectSuccessful)
+{
   pthread_t thread1;
   int check_value = 0;
   test_mutex.Acquire();
   test_value = "changed by main thread";
   check_value = pthread_create(&thread1, NULL, task_one, NULL);
   if (check_value) {
-    std::cout<<"thread1 is not created! "<<std::endl;
+    std::cout << "thread1 is not created! " << std::endl;
     exit(1);
   }
   test_value = "changed twice by main thread";
@@ -73,7 +97,24 @@ TEST(ConditionalVariableTest, CheckNotifyOne_OneThreadNotified_ExpectSuccessful)
   EXPECT_EQ(last_value, test_value);
 }
 
-
+TEST(ConditionalVariableTest, CheckBroadcast_AllThreadsNotified_ExpectSuccessful)
+{
+  pthread_t thread1;
+  pthread_t thread2;
+  int check_value = 0;
+  check_value = pthread_create(&thread1, NULL, task_two, NULL);
+  if (check_value) {
+    std::cout << "thread1 is not created! " << std::endl;
+    exit(1);
+  }
+  check_value = pthread_create(&thread2, NULL, task_three, NULL);
+  if (check_value) {
+    std::cout << "thread2 is not created! " << std::endl;
+    exit(1);
+  }
+  check_counter(counter);
+  EXPECT_EQ(2, counter);
+}
 
 } // namespace utils
 } // namespace components
