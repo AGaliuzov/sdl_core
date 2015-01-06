@@ -46,6 +46,8 @@ namespace {
 std::string test_value("initialized");
 sync_primitives::ConditionalVariable cond_var;
 sync_primitives::Lock test_mutex;
+sync_primitives::Lock test_mutex2;
+sync_primitives::AutoLock test_lock(test_mutex2);
 unsigned counter = 0;
 }
 
@@ -119,6 +121,13 @@ TEST(ConditionalVariableTest, CheckBroadcast_AllThreadsNotified_ExpectSuccessful
   }
   check_counter(counter);
   EXPECT_EQ(2, counter);
+}
+
+TEST(ConditionalVariableTest, CheckWaitForWithTimeout2secs_ThreadBlockedForTimeout_ExpectSuccessfulWakeUp)
+{
+  sync_primitives::ConditionalVariable::WaitStatus wait_st = cond_var.WaitFor(test_lock, 2000);
+  std::cout<<std::endl<<"\t     Thread has been woken up after 2 secs"<<std::endl;
+  EXPECT_EQ(1, wait_st);
 }
 
 } // namespace utils
