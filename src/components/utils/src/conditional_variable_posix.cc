@@ -33,6 +33,7 @@
 
 #include <errno.h>
 #include <time.h>
+#include <iostream>
 
 #include "utils/lock.h"
 #include "utils/logger.h"
@@ -113,7 +114,6 @@ ConditionalVariable::WaitStatus ConditionalVariable::WaitFor(
       (milliseconds % kMillisecondsPerSecond) * kNanosecondsPerMillisecond;
   wait_interval.tv_sec += wait_interval.tv_nsec / kNanosecondsPerSecond;
   wait_interval.tv_nsec %= kNanosecondsPerSecond;
-
   Lock& lock = auto_lock.GetLock();
   lock.AssertTakenAndMarkFree();
   int32_t timedwait_status = pthread_cond_timedwait(&cond_var_,
@@ -138,7 +138,6 @@ ConditionalVariable::WaitStatus ConditionalVariable::WaitFor(
       LOG4CXX_ERROR(logger_, "Failed to timewait for conditional variable timedwait_status: " << timedwait_status);
     }
   }
-
   return wait_status;
 }
 

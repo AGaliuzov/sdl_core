@@ -79,7 +79,6 @@ if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
     )
 endif()
 
-
 add_library("Utils" SHARED ${SOURCES})
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
