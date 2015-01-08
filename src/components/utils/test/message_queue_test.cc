@@ -48,7 +48,6 @@ std::string test_val_2("Beautiful ");
 std::string test_val_3("World!");
 }
 
-
 TEST(MessageQueueTest, DefaultCtorTest_ExpectEmptyQueueCreated) {
   bool test_value = true;
   // Check if the queue is empty
@@ -64,7 +63,7 @@ TEST(MessageQueueTest, MessageQueuePushThreeElementsTest_ExpectThreeElementsAdde
   ASSERT_EQ(3, test_queue.size());
 }
 
-TEST(MessageQueueTest, MessageQueuePopOneElementTest_ExpectOneElementRemeiovedFromQueue) {
+TEST(MessageQueueTest, MessageQueuePopOneElementTest_ExpectOneElementRemovedFromQueue) {
   // Remove 1 element from beginning of queue
   // Check if first element was removed successfully
   ASSERT_EQ(test_val_1, test_queue.pop());
@@ -75,12 +74,11 @@ TEST(MessageQueueTest, MessageQueuePopOneElementTest_ExpectOneElementRemeiovedFr
 TEST(MessageQueueTest, MessageQueueResetTest_ExpectEmptyQueue) {
   // Resetting queue
   test_queue.Reset();
-  // Check if
+  // Check if queue is empty
   ASSERT_TRUE(test_queue.empty());
   // Check the size of queue after reset
   ASSERT_EQ(0, test_queue.size());
 }
-
 
 } // namespace utils
 } // namespace components
