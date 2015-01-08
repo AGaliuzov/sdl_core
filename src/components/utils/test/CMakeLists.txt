@@ -42,6 +42,7 @@ set(testSources
   system_test.cc
   signals_linux_test.cc
   thread_validator_test.cc
+  message_queue_test.cc
 )
 
 set(testLibraries

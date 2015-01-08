@@ -45,6 +45,9 @@
  * \brief Wrapper for multithreading queue.
  */
  //TODO(Ezamakhov): move to utils namespace
+
+namespace utils {
+
 template<typename T, class Q = std::queue<T> > class MessageQueue {
   public:
     typedef Q Queue;
@@ -192,5 +195,7 @@ template<typename T, class Q> void MessageQueue<T, Q>::Reset() {
     queue_.swap(empty_queue);
   }
 }
+
+}  // utils
 
 #endif  //  MESSAGE_QUEUE_CLASS

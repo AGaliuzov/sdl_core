@@ -50,6 +50,8 @@
 
 namespace time_tester {
 
+using ::utils::MessageQueue;
+
 class TimeManager {
  public:
   TimeManager();
