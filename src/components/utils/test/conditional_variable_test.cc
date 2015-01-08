@@ -52,18 +52,20 @@ unsigned counter = 0;
 }
 
 // Defines threads behaviour which depends on counter value
-void check_counter(unsigned cnt) {
+void* check_counter(void *arg) {
+  unsigned cnt = *(unsigned *) arg;
   test_mutex.Acquire();
   if (cnt <= 1) {
     counter++;
     cond_var.Wait(test_mutex);  // Mutex unlock & Thread sleeps until Notification
     test_mutex.Release();
-    return;
+    return NULL;
   } else if (cnt == 2) {
     test_mutex.Release();
     cond_var.Broadcast();  // Notify All threads waiting on conditional variable
-    return;
+    return NULL;
   }
+  return NULL;
 }
 
 // Tasks for threads to begin with
@@ -73,16 +75,6 @@ void* task_one(void *arg) {
   cond_var.NotifyOne();  // Notify At least one thread waiting on conditional variable
   test_value = "changed again by thread 1";
   test_mutex.Release();  // Mutex release
-  return NULL;
-}
-
-void* task_two(void *arg) {
-  check_counter(counter);
-  return NULL;
-}
-
-void* task_three(void *arg) {
-  check_counter(counter);
   return NULL;
 }
 
@@ -109,17 +101,17 @@ TEST(ConditionalVariableTest, CheckBroadcast_AllThreadsNotified_ExpectSuccessful
   pthread_t thread1;
   pthread_t thread2;
   int check_value = 0;
-  check_value = pthread_create(&thread1, NULL, task_two, NULL);
+  check_value = pthread_create(&thread1, NULL, check_counter, &counter);
   if (check_value) {
     std::cout << "thread1 is not created! " << std::endl;
     exit(1);
   }
-  check_value = pthread_create(&thread2, NULL, task_three, NULL);
+  check_value = pthread_create(&thread2, NULL, check_counter, &counter);
   if (check_value) {
     std::cout << "thread2 is not created! " << std::endl;
     exit(1);
   }
-  check_counter(counter);
+  check_counter(&counter);
   EXPECT_EQ(2, counter);
 }
 
