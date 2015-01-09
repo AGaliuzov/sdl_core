@@ -46,6 +46,36 @@ MessageQueue<std::string> test_queue;
 std::string test_val_1("Hello,");
 std::string test_val_2("Beautiful ");
 std::string test_val_3("World!");
+std::string test_line("");
+bool check_value = false;
+}
+
+// Thread function - adds 1 element1 to the queue
+void * add_one_element_to_queue(void *arg) {
+  test_queue.push(test_val_1);
+  pthread_exit(NULL);
+}
+
+// Thread function - removes 1 element from beginning of queue
+void * extract_from_queue(void *arg) {
+  test_queue.wait();
+  test_line = test_queue.pop();
+  pthread_exit(NULL);
+}
+
+// Thread function - adds 3 elements to the queue
+void * add_three_elements_to_queue(void *arg) {
+  test_queue.push(test_val_1);
+  test_queue.push(test_val_2);
+  test_queue.push(test_val_3);
+  pthread_exit(NULL);
+}
+
+// Thread function - adds 3 elements to the queue
+void * ShutDownQueue(void *arg) {
+  check_value = true;
+  test_queue.Shutdown();
+  pthread_exit(NULL);
 }
 
 TEST(MessageQueueTest, DefaultCtorTest_ExpectEmptyQueueCreated) {
@@ -55,20 +85,11 @@ TEST(MessageQueueTest, DefaultCtorTest_ExpectEmptyQueueCreated) {
 }
 
 TEST(MessageQueueTest, MessageQueuePushThreeElementsTest_ExpectThreeElementsAdded) {
-  // Add 3 elements to the queue
-  test_queue.push(test_val_1);
-  test_queue.push(test_val_2);
-  test_queue.push(test_val_3);
+  pthread_t thread1;
+  pthread_create(&thread1, NULL, &add_three_elements_to_queue, NULL);
+  pthread_join(thread1, NULL);
   // check if 3 elements were added successfully
   ASSERT_EQ(3, test_queue.size());
-}
-
-TEST(MessageQueueTest, MessageQueuePopOneElementTest_ExpectOneElementRemovedFromQueue) {
-  // Remove 1 element from beginning of queue
-  // Check if first element was removed successfully
-  ASSERT_EQ(test_val_1, test_queue.pop());
-  // Check the size of queue after 1 element was removed
-  ASSERT_EQ(2, test_queue.size());
 }
 
 TEST(MessageQueueTest, MessageQueueResetTest_ExpectEmptyQueue) {
@@ -79,6 +100,35 @@ TEST(MessageQueueTest, MessageQueueResetTest_ExpectEmptyQueue) {
   // Check the size of queue after reset
   ASSERT_EQ(0, test_queue.size());
 }
+
+TEST(MessageQueueTest, MessageQueuePopOneElementTest_ExpectOneElementRemovedFromQueue) {
+  pthread_t thread1;
+  pthread_t thread2;
+  // Creating threads with thread function mentioned above
+  pthread_create(&thread1, NULL, &add_one_element_to_queue, NULL);
+  pthread_create(&thread2, NULL, &extract_from_queue, NULL);
+  // primary thread waits until thread 2 to be finished
+  pthread_join(thread2, NULL);
+  // Check if first element was removed successfully
+  ASSERT_EQ(test_val_1, test_line);
+  // Check the size of queue after 1 element was removed
+  ASSERT_EQ(0, test_queue.size());
+}
+
+//TEST(MessageQueueTest, MessageQueueShutdownTest_ExpectMessageQueueWillBeShutDown) {
+//  pthread_t thread1;
+//  // Resetting queue
+//  test_queue.Reset();
+//  // Creating thread with thread function mentioned above
+//  pthread_create(&thread1, NULL, &ShutDownQueue, NULL);
+//  ASSERT_TRUE(test_queue.empty());
+//  std::cout<<std::endl<<"Queue size is :  "<<test_queue.size()<<std::endl;
+//  test_queue.wait();
+//  test_queue.push(test_val_1);
+//  // Check the size of queue after 1 element was removed
+//  ASSERT_EQ(1, test_queue.size());
+//  std::cout<<std::endl<<"Queue size is :  "<<test_queue.size()<<std::endl;
+//}
 
 } // namespace utils
 } // namespace components
