@@ -118,10 +118,11 @@ TEST(ConditionalVariableTest, CheckBroadcast_AllThreadsNotified_ExpectSuccessful
 TEST(ConditionalVariableTest, CheckWaitForWithTimeout2secs_ThreadBlockedForTimeout_ExpectSuccessfulWakeUp)
 {
   sync_primitives::ConditionalVariable::WaitStatus wait_st = cond_var.WaitFor(test_lock, 2000);
-  std::cout<<std::endl<<"\t     Thread has been woken up after 2 secs"<<std::endl;
+  std::cout << std::endl << "\t     Thread has been woken up after 2 secs" << std::endl;
   EXPECT_EQ(1, wait_st);
 }
 
 } // namespace utils
 } // namespace components
 } // namespace test
+
