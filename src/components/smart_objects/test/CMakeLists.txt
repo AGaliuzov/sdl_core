@@ -38,14 +38,14 @@ include_directories (
   ${JSONCPP_INCLUDE_DIRECTORY}
 )
 
-set (LIBRARIES
+set(LIBRARIES
     gmock_main
     SmartObjects
     formatters
     jsoncpp   
 )
 
-set (SOURCES
+set(SOURCES
   ${COMPONENTS_DIR}/smart_objects/test/SmartObjectDraft_test.cc
   ${COMPONENTS_DIR}/smart_objects/test/SmartObjectInvalid_test.cc
   ${COMPONENTS_DIR}/smart_objects/test/SmartObjectStress_test.cc
@@ -63,7 +63,6 @@ set (SOURCES
   ${COMPONENTS_DIR}/smart_objects/test/AlwaysFalseSchemaItem_test.cc
 )
 
-add_library(test_smart_object ${SOURCES})
-create_test(smart_object_test "${SOURCES}" "${LIBRARIES}")
+create_test("smart_object_test" "${SOURCES}" "${LIBRARIES}")
 
 endif()

@@ -31,20 +31,21 @@
 if(BUILD_TESTS)
 
 set(appMain_DIR ${CMAKE_SOURCE_DIR}/src/appMain)
-include_directories (
+
+include_directories(
     ${GMOCK_INCLUDE_DIRECTORY}
     ${COMPONENTS_DIR}/connection_handler/include
     ${COMPONENTS_DIR}/security_manager/test/include
     ${COMPONENTS_DIR}/security_manager/include
 )
 
-set (LIBRARIES
+set(LIBRARIES
     gmock
     connectionHandler
     ConfigProfile
 )
 
-set (SOURCES
+set(SOURCES
     connection_handler_impl_test.cc
     connection_test.cc
     heart_beat_monitor_test.cc

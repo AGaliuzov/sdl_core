@@ -1,4 +1,4 @@
-﻿/*
+/*
  Copyright (c) 2014, Ford Motor Company
  All rights reserved.
 
@@ -75,6 +75,26 @@ namespace policy {
 CREATE_LOGGERPTR_GLOBAL(logger_, "PolicyHandler")
 
 typedef std::set<application_manager::ApplicationSharedPtr> ApplicationList;
+
+struct ApplicationListSorter {
+  bool operator() (const application_manager::ApplicationSharedPtr& lhs,
+                   const application_manager::ApplicationSharedPtr& rhs) {
+    if (lhs && rhs) {
+      mobile_apis::HMILevel::eType lhs_hmi_level = lhs->hmi_level();
+      mobile_apis::HMILevel::eType rhs_hmi_level = rhs->hmi_level();
+
+      if (lhs_hmi_level == rhs_hmi_level) {
+        return lhs->app_id() < rhs->app_id();
+      }
+      return lhs_hmi_level < rhs_hmi_level;
+    }
+
+    return false;
+  }
+};
+
+typedef std::set<application_manager::ApplicationSharedPtr, ApplicationListSorter>
+OrderedApplicationList;
 
 struct DeactivateApplication {
     explicit DeactivateApplication(
@@ -299,68 +319,27 @@ bool PolicyHandler::ClearUserConsent() {
 }
 
 uint32_t PolicyHandler::GetAppIdForSending() {
-  // Get app.list
-  application_manager::ApplicationManagerImpl::ApplicationListAccessor accessor;
-  const ApplicationList app_list = accessor.applications();
+  using namespace application_manager;
+  typedef ApplicationManagerImpl::ApplicationListAccessor AppAccessor;
 
-  if (app_list.empty()) {
-    return 0;
-  }
+  AppAccessor accessor;
+  ApplicationList apps(accessor.applications());
+  OrderedApplicationList app_list(apps.begin(), apps.end());
 
-  // Choose application
-  uint32_t selected_app_id = 0;
-  AppIds app_ids_last_resort;
-  AppIds app_ids_preferred;
+  LOG4CXX_INFO(logger_, "Apps size: " << app_list.size());
 
-  ApplicationList::const_iterator it_app_list = app_list.begin();
-  ApplicationList::const_iterator it_app_list_end = app_list.end();
-  for (; it_app_list != it_app_list_end; ++it_app_list) {
-    switch ((*it_app_list)->hmi_level()) {
-      case mobile_apis::HMILevel::HMI_NONE:
-        app_ids_last_resort.push_back((*it_app_list)->app_id());
-        break;
-      default:
-        app_ids_preferred.push_back((*it_app_list)->app_id());
-        break;
+  DeviceParams device_param;
+  for (OrderedApplicationList::const_iterator first = app_list.begin();
+       first != app_list.end(); ++first) {
+    const uint32_t app_id = (*first)->app_id();
+    MessageHelper::GetDeviceInfoForApp(app_id, &device_param);
+    if (kDeviceAllowed ==
+        policy_manager_->GetUserConsentForDevice(device_param.device_mac_address)) {
+      return app_id;
     }
   }
 
-  AppIds& app_ids_to_use =
-    app_ids_preferred.empty() ? app_ids_last_resort : app_ids_preferred;
-
-  // Checking, if some of currently known apps was not used already
-  std::sort(last_used_app_ids_.begin(), last_used_app_ids_.end());
-  std::sort(app_ids_to_use.begin(), app_ids_to_use.end());
-
-  bool is_all_used = std::includes(last_used_app_ids_.begin(),
-                                   last_used_app_ids_.end(),
-                                   app_ids_to_use.begin(),
-                                   app_ids_to_use.end());
-
-  if (is_all_used) {
-    last_used_app_ids_.clear();
-  }
-
-  // Leave only unused apps
-  AppIds::iterator it_apps_to_use = app_ids_to_use.begin();
-  AppIds::iterator it_apps_to_use_end = app_ids_to_use.end();
-
-  AppIds::const_iterator it_last_used_app_ids = last_used_app_ids_.begin();
-  AppIds::const_iterator it_last_used_app_ids_end = last_used_app_ids_.end();
-
-  for (; it_last_used_app_ids != it_last_used_app_ids_end;
-       ++it_last_used_app_ids) {
-
-    std::remove(it_apps_to_use, it_apps_to_use_end, *it_last_used_app_ids);
-  }
-
-  // Random selection of filtered apps
-  std::srand(time(0));
-  selected_app_id =
-    *(app_ids_to_use.begin() + (rand() % app_ids_to_use.size()));
-
-  last_used_app_ids_.push_back(selected_app_id);
-  return selected_app_id;
+  return 0;
 }
 
 void PolicyHandler::OnAppPermissionConsent(const uint32_t connection_key,
@@ -1286,6 +1265,10 @@ void PolicyHandler::OnUpdateHMIAppType(std::map<std::string, StringArray> app_hm
   if (listener_) {
     listener_->OnUpdateHMIAppType(app_hmi_types);
   }
+}
+
+bool PolicyHandler::CanUpdate() {
+  return 0 != GetAppIdForSending();
 }
 
 void PolicyHandler::RemoveDevice(const std::string& device_id) {

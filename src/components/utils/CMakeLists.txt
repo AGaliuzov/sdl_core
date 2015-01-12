@@ -75,7 +75,7 @@ endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
     list(APPEND SOURCES
-    ${UTILS_SRC_DIR}l/threads/pulse_thread_delegate.cc
+    ${UTILS_SRC_DIR}/threads/pulse_thread_delegate.cc
     )
 endif()
 

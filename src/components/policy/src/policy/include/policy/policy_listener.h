@@ -56,6 +56,15 @@ class PolicyListener {
   virtual std::string GetAppName(const std::string& policy_app_id) = 0;
   virtual void OnUpdateHMIAppType(std::map<std::string, StringArray> app_hmi_types) = 0;
 
+    /**
+   * @brief CanUpdate allows to find active application
+   * and check whether related device consented.
+   *
+   * @return true if there are at least one application has been registered
+   * with consented device.
+   */
+  virtual bool CanUpdate() = 0;
+
   /**
    * @brief OnSnapshotCreated the notification which will be sent
    * when snapshot for PTU has been created.

@@ -193,7 +193,6 @@ bool ResumeCtrl::SetupHMILevel(ApplicationSharedPtr application,
     return false;
   }
 
-
   if ((hmi_level == application->hmi_level()) &&
       (hmi_level != mobile_apis::HMILevel::HMI_NONE)) {
     LOG4CXX_WARN(logger_, "Hmi level " << hmi_level << " should not be set to "
@@ -527,22 +526,22 @@ bool ResumeCtrl::CheckPersistenceFilesForResumption(ApplicationSharedPtr applica
     return false;
   }
 
-  const Json::Value& saved_app = GetSavedApplications()[idx];
+    const Json::Value& saved_app = GetSavedApplications()[idx];
 
-  if (!saved_app.isMember(strings::application_commands) ||
-      !saved_app.isMember(strings::application_choise_sets)) {
-     LOG4CXX_WARN(logger_, "application_commands or "<<
-                  "application_choise_sets are not exists");
-    return false;
-  }
+    if (!saved_app.isMember(strings::application_commands) ||
+        !saved_app.isMember(strings::application_choise_sets)) {
+       LOG4CXX_WARN(logger_, "application_commands or "
+                    "application_choise_sets are not exists");
+      return false;
+    }
 
-  if (!CheckIcons(application, saved_app[strings::application_commands])) {
-    return false;
-  }
-  if (!CheckIcons(application, saved_app[strings::application_choise_sets])) {
-    return false;
-  }
-
+    if (!CheckIcons(application, saved_app[strings::application_commands])) {
+      return false;
+    }
+    if (!CheckIcons(application, saved_app[strings::application_choise_sets])) {
+      return false;
+    }
+  LOG4CXX_DEBUG(logger_, " result = true");
   return true;
 }
 
@@ -641,11 +640,13 @@ void ResumeCtrl::ClearResumptionInfo() {
 
 Json::Value ResumeCtrl::GetApplicationCommands(
     ApplicationConstSharedPtr application) {
-  DCHECK(application.get());
-  LOG4CXX_TRACE(logger_, "ENTER app_id:"
-               << application->app_id());
-
+  LOG4CXX_AUTO_TRACE(logger_);
   Json::Value result;
+  DCHECK(application.get());
+  if (!application) {
+    LOG4CXX_ERROR(logger_, "NULL Pointer App");
+    return result;
+  }
   const DataAccessor<CommandsMap> accessor = application->commands_map();
   const CommandsMap& commands = accessor.GetData();
   CommandsMap::const_iterator it = commands.begin();
@@ -660,11 +661,13 @@ Json::Value ResumeCtrl::GetApplicationCommands(
 
 Json::Value ResumeCtrl::GetApplicationSubMenus(
     ApplicationConstSharedPtr application) {
-  DCHECK(application.get());
-  LOG4CXX_TRACE(logger_, "ENTER app_id:"
-               << application->app_id());
-
+  LOG4CXX_AUTO_TRACE(logger_);
   Json::Value result;
+  DCHECK(application.get());
+  if (!application) {
+    LOG4CXX_ERROR(logger_, "NULL Pointer App");
+    return result;
+  }
   const DataAccessor<SubMenuMap> accessor = application->sub_menu_map();
   const SubMenuMap& sub_menus = accessor.GetData();
   SubMenuMap::const_iterator it = sub_menus.begin();
@@ -698,9 +701,13 @@ Json::Value ResumeCtrl::GetApplicationInteractionChoiseSets(
 
 Json::Value ResumeCtrl::GetApplicationGlobalProperties(
     ApplicationConstSharedPtr application) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  Json::Value sgp;
   DCHECK(application.get());
-  LOG4CXX_TRACE(logger_, "ENTER app_id:"
-               << application->app_id());
+  if (!application) {
+    LOG4CXX_ERROR(logger_, "NULL Pointer App");
+    return sgp;
+  }
 
   const smart_objects::SmartObject* help_promt = application->help_prompt();
   const smart_objects::SmartObject* timeout_prompt = application->timeout_prompt();
@@ -711,7 +718,6 @@ Json::Value ResumeCtrl::GetApplicationGlobalProperties(
   const smart_objects::SmartObject* menu_title = application->menu_title();
   const smart_objects::SmartObject* menu_icon = application->menu_icon();
 
-  Json::Value sgp;
   sgp[strings::help_prompt] = JsonFromSO(help_promt);
   sgp[strings::timeout_prompt] = JsonFromSO(timeout_prompt);
   sgp[strings::vr_help] = JsonFromSO(vr_help);
@@ -726,19 +732,21 @@ Json::Value ResumeCtrl::GetApplicationGlobalProperties(
 Json::Value ResumeCtrl::GetApplicationSubscriptions(
     ApplicationConstSharedPtr application) {
   LOG4CXX_AUTO_TRACE(logger_);
-  DCHECK(application.get());
   Json::Value result;
+  DCHECK(application.get());
   if (!application) {
-    LOG4CXX_DEBUG(logger_, "ENTER app_id:" << application->app_id());
-
-    Append(application->SubscribedButtons().begin(),
-                        application->SubscribedButtons().end(),
-                        strings::application_buttons, result);
-
-    Append(application->SubscribedButtons().begin(),
-                        application->SubscribedButtons().end(),
-                        strings::application_vehicle_info, result);
+    LOG4CXX_ERROR(logger_, "NULL Pointer App");
+    return result;
   }
+  LOG4CXX_DEBUG(logger_, "app_id:" << application->app_id());
+  LOG4CXX_DEBUG(logger_, "SubscribedButtons:" << application->SubscribedButtons().size());
+  Append(application->SubscribedButtons().begin(),
+         application->SubscribedButtons().end(),
+         strings::application_buttons, result);
+  LOG4CXX_DEBUG(logger_, "SubscribesIVI:" << application->SubscribesIVI().size());
+  Append(application->SubscribesIVI().begin(),
+         application->SubscribesIVI().end(),
+         strings::application_vehicle_info, result);
   return result;
 }
 
@@ -965,9 +973,9 @@ bool ResumeCtrl::CheckIcons(ApplicationSharedPtr application,
       if (!json_command.isNull()) {
         smart_objects::SmartObject message(smart_objects::SmartType::SmartType_Map);
         Formatters::CFormatterJsonBase::jsonValueToObj(json_command, message);
-
-        result = (mobile_apis::Result::INVALID_DATA ==
-            MessageHelper::VerifyImageFiles(message, application));
+        const mobile_apis::Result::eType verify_images =
+            MessageHelper::VerifyImageFiles(message, application);
+        result = (mobile_apis::Result::INVALID_DATA != verify_images);
       } else {
         LOG4CXX_WARN(logger_, "Invalid json object");
       }
@@ -975,7 +983,7 @@ bool ResumeCtrl::CheckIcons(ApplicationSharedPtr application,
   } else {
         LOG4CXX_WARN(logger_, "Passed json object is null");
   }
-  LOG4CXX_DEBUG(logger_, "CheckIcons result");
+  LOG4CXX_DEBUG(logger_, "CheckIcons result " << result);
   return result;
 }
 

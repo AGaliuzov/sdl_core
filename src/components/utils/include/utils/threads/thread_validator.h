@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,6 +67,7 @@ class SingleThreadSimpleValidator {
   // This method should be called in every public method
   // of classes being checked for absence of concurrent access
   void AssertRunningOnCreationThread() const;
+  PlatformThreadHandle creation_thread_id() const;
  private:
   const PlatformThreadHandle creation_thread_id_;
 };

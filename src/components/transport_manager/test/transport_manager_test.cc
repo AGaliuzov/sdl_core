@@ -301,79 +301,81 @@ TEST_F(TransportManagerTest, ConnectAddDeviceCannotFailConnection) {
   mock_adapter->get_device_scanner()->reset();
 }
 
-//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+//TODO{ALeshin}: APPLINK-10846
 //TEST_F(TransportManagerTest, ConnectDeviceSendReciveMessage) {
-//
+
 //  //arrange
 //  const ConnectionUID kConnection = 1;
-//  const int kTimes = 10;  // Times of send message //if kTimes>99 OnTMMessageSend will fail
+//  const int kTimes = 99;  // Times of send message //if kTimes>99 OnTMMessageSend will fail
 //  const unsigned int kVersionProtocol = 1;
-//
+
+
 //  //assert
 //  EXPECT_CALL(*tm_listener, OnTMMessageSendFailed(_, _)).Times(0);
 //  EXPECT_CALL(*tm_listener, OnTMMessageReceiveFailed(_, _)).Times(0);
 //  EXPECT_CALL(*tm_listener, OnConnectionClosed(kConnection)).Times(0);
-//
+
 //  EXPECT_CALL(*tm_listener, OnTMMessageSend(_)).Times(kTimes);
 //  EXPECT_CALL(*tm_listener, OnTMMessageReceived(_)).Times(kTimes);
-//
+
 //  //act
 //  const unsigned int kSize = 12;
 //  unsigned char data[kSize] = {0x20, 0x07, 0x01, 0x00, 0x00, 0x00,
 //                               0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-//
 //  for (int i = 0; i < kTimes; ++i) {
 //   const RawMessagePtr kMessage =
 //    new RawMessage(kConnection, kVersionProtocol, data, kSize);
 //    tm->SendMessageToDevice(kMessage);
-//    std::cout<<"message "<<i<<"\n";
-//    usleep(1);
+//    usleep(1000);
 //  }
-//
+
 //  //assert
 //  EXPECT_TRUE(waitCond(10));
-//
+
+//  //act
 //  mock_adapter->get_device_scanner()->reset();
 //}
 
-TEST_F(TransportManagerTest, ConnectAddDeviceCannotFailClose) {
+//TODO{ALeshin}: APPLINK-10846
+//TEST_F(TransportManagerTest, ConnectAddDeviceCannotFailClose) {
 
-  //arrange
-  const DeviceInfo kInfo(1, "MA:CA:DR:ES:S", "TestDeviceName", "BTMAC");
-  const ConnectionUID kConnection = 1;
+//  //arrange
+//  const DeviceInfo kInfo(1, "MA:CA:DR:ES:S", "TestDeviceName", "BTMAC");
+//  const ConnectionUID kConnection = 1;
 
-  //assert
-  EXPECT_CALL(*tm_listener, OnDeviceFound(_));
-  EXPECT_CALL(*tm_listener, OnScanDevicesFinished());
-  EXPECT_CALL(*tm_listener, OnDeviceListUpdated(_));
+//  //assert
+//  EXPECT_CALL(*tm_listener, OnDeviceFound(_));
+//  EXPECT_CALL(*tm_listener, OnScanDevicesFinished());
+//  EXPECT_CALL(*tm_listener, OnDeviceListUpdated(_));
 
 
-  //act
-  MyTransportListener *myListener = new MyTransportListener(this);
-  mock_adapter->get_device_scanner()->AddDevice(kInfo.name(),
-                                                      kInfo.mac_address());
-  tm->AddEventListener(myListener);
-  tm->SearchDevices();
+//  //act
+//  MyTransportListener *myListener = new MyTransportListener(this);
+//  mock_adapter->get_device_scanner()->AddDevice(kInfo.name(),
+//                                                      kInfo.mac_address());
+//  tm->AddEventListener(myListener);
+//  tm->SearchDevices();
 
-  //assert
-  EXPECT_TRUE(waitCond(10));
+//  //assert
+//  EXPECT_TRUE(waitCond(10));
 
-  EXPECT_CALL(*tm_listener, OnConnectionClosedFailure(_, _)).Times(0);
-  EXPECT_CALL(*tm_listener, OnDisconnectFailed(kInfo.device_handle(), _))
-            .Times(0);
-  EXPECT_CALL(*tm_listener, OnConnectionClosed(kConnection)).WillOnce(SignalTest(this));
+//  EXPECT_CALL(*tm_listener, OnConnectionClosedFailure(_, _)).Times(0);
+//  EXPECT_CALL(*tm_listener, OnDisconnectFailed(kInfo.device_handle(), _))
+//            .Times(0);
+//  EXPECT_CALL(*tm_listener, OnConnectionClosed(kConnection)).WillOnce(SignalTest(this));
 
-  //act
-  tm->DisconnectDevice(kInfo.device_handle());
+//  //act
+//  tm->DisconnectDevice(kInfo.device_handle());
 
-  //assert
-  EXPECT_TRUE(waitCond(10));
+//  //assert
+//  EXPECT_TRUE(waitCond(10));
 
-  //act
-  tm->Stop();
-  delete myListener;
-  mock_adapter->get_device_scanner()->reset();
-}
+//  //act
+//  tm->Stop();
+//  delete myListener;
+//  mock_adapter->get_device_scanner()->reset();
+//}
 
 
 }  // namespace transport_manager

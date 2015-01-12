@@ -452,6 +452,7 @@ void LifeCycle::StopComponents() {
   media_manager::MediaManagerImpl::destroy();
 
   LOG4CXX_INFO(logger_, "Destroying Transport Manager.");
+  transport_manager_->Visibility(false);
   transport_manager_->Stop();
   transport_manager::TransportManagerDefault::destroy();
 

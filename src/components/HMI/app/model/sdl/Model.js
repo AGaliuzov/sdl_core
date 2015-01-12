@@ -593,7 +593,7 @@ SDL.SDLModel = Em.Object.create({
 
         messageCodes.push("AppPermissionsRevoked");
 
-        FFW.BasicCommunication.GetUserFriendlyMessage(function(message){SDL.SettingsController.simpleParseUserFriendlyMessageData(message)}, appID, messageCodes);
+        FFW.BasicCommunication.GetUserFriendlyMessage(SDL.SettingsController.simpleParseUserFriendlyMessageData, appID, messageCodes);
 
     },
 
