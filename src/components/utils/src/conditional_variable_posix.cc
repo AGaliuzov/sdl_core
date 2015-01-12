@@ -33,7 +33,6 @@
 
 #include <errno.h>
 #include <time.h>
-#include <iostream>
 
 #include "utils/lock.h"
 #include "utils/logger.h"
