@@ -61,7 +61,6 @@ TransportAdapter::Error BluetoothPASAConnectionFactory::CreateConnection(
     controller_->ConnectFailed(device_uid, app_handle, ConnectError());
     LOG4CXX_ERROR(logger_, "connection::Start() failed");
   }
-  controller_->ConnectDone(device_uid, app_handle);
   return error;
 }
 
