@@ -84,6 +84,6 @@ ${COMPONENTS_DIR}/transport_manager/test/tcp_transport_adapter_test.cc
 ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter.cc          
 )          
 
-create_test("test_transport_manager" "${SOURCES}" "${LIBRARIES}")
+create_test("transport_manager_test" "${SOURCES}" "${LIBRARIES}")
 
 endif()
