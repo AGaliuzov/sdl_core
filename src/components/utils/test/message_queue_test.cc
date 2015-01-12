@@ -33,7 +33,6 @@
 #include <unistd.h>
 #include "gtest/gtest.h"
 #include "utils/message_queue.h"
-#include <iostream>
 
 namespace test {
 namespace components {
@@ -107,7 +106,7 @@ TEST(MessageQueueTest, MessageQueuePopOneElementTest_ExpectOneElementRemovedFrom
   // Creating threads with thread function mentioned above
   pthread_create(&thread1, NULL, &add_one_element_to_queue, NULL);
   pthread_create(&thread2, NULL, &extract_from_queue, NULL);
-  // primary thread waits until thread 2 to be finished
+  // Primary thread waits until thread 2 to be finished
   pthread_join(thread2, NULL);
   // Check if first element was removed successfully
   ASSERT_EQ(test_val_1, test_line);
@@ -115,20 +114,18 @@ TEST(MessageQueueTest, MessageQueuePopOneElementTest_ExpectOneElementRemovedFrom
   ASSERT_EQ(0, test_queue.size());
 }
 
-//TEST(MessageQueueTest, MessageQueueShutdownTest_ExpectMessageQueueWillBeShutDown) {
-//  pthread_t thread1;
-//  // Resetting queue
-//  test_queue.Reset();
-//  // Creating thread with thread function mentioned above
-//  pthread_create(&thread1, NULL, &ShutDownQueue, NULL);
-//  ASSERT_TRUE(test_queue.empty());
-//  std::cout<<std::endl<<"Queue size is :  "<<test_queue.size()<<std::endl;
-//  test_queue.wait();
-//  test_queue.push(test_val_1);
-//  // Check the size of queue after 1 element was removed
-//  ASSERT_EQ(1, test_queue.size());
-//  std::cout<<std::endl<<"Queue size is :  "<<test_queue.size()<<std::endl;
-//}
+TEST(MessageQueueTest, MessageQueueShutdownTest_ExpectMessageQueueWillBeShutDown) {
+  pthread_t thread1;
+  check_value = false;
+  // Resetting queue
+  test_queue.Reset();
+  // Creating thread with thread function mentioned above
+  pthread_create(&thread1, NULL, &ShutDownQueue, NULL);
+  // Primary thread sleeps until thread1 will make queue shutdown
+  test_queue.wait();
+  check_value = true;
+  ASSERT_TRUE(check_value);
+}
 
 } // namespace utils
 } // namespace components

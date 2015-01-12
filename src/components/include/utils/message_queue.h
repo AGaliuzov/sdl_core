@@ -44,7 +44,6 @@
  * \class MessageQueue
  * \brief Wrapper for multithreading queue.
  */
- //TODO(Ezamakhov): move to utils namespace
 
 namespace utils {
 
@@ -175,7 +174,6 @@ template<typename T, class Q> T MessageQueue<T, Q>::pop() {
     CREATE_LOGGERPTR_LOCAL(logger_, "Utils")
     LOG4CXX_ERROR(logger_, "Runtime error, popping out of empty queue");
     NOTREACHED();
-    exit(1);
   }
   T result = queue_.front();
   queue_.pop();
