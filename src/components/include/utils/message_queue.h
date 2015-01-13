@@ -30,8 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef MESSAGE_QUEUE_CLASS
-#define MESSAGE_QUEUE_CLASS
+#ifndef SRC_COMPONENTS_INCLUDE_UTILS_MESSAGE_QUEUE_H_
+#define SRC_COMPONENTS_INCLUDE_UTILS_MESSAGE_QUEUE_H_
 
 #include <queue>
 
@@ -109,7 +109,6 @@ template<typename T, class Q = std::queue<T> > class MessageQueue {
     void Reset();
 
   private:
-
     /**
      *\brief Queue
      */
@@ -195,6 +194,6 @@ template<typename T, class Q> void MessageQueue<T, Q>::Reset() {
   }
 }
 
-}  // utils
+}  // namespace utils
 
-#endif  //  MESSAGE_QUEUE_CLASS
+#endif  // SRC_COMPONENTS_INCLUDE_UTILS_MESSAGE_QUEUE_H_
