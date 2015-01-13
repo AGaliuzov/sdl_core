@@ -52,7 +52,7 @@ MmeClientListener::MmeClientListener(TransportAdapterController* controller)
 
 TransportAdapter::Error MmeClientListener::Init() {
   TransportAdapter::Error error = TransportAdapter::OK;
-#if !QNX_BARE_SYSTEM_WORKAROUND
+
   const std::string& mme_db_name = profile::Profile::instance()->mme_db_name();
   LOG4CXX_TRACE(logger_, "Connecting to " << mme_db_name);
   qdb_hdl_ = qdb_connect(mme_db_name.c_str(), 0);
@@ -104,7 +104,6 @@ TransportAdapter::Error MmeClientListener::Init() {
     error = TransportAdapter::FAIL;
   }
 
-#endif
   initialised_ = true;
   return error;
 }
