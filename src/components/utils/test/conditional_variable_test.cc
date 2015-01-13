@@ -42,24 +42,22 @@ namespace test {
 namespace components {
 namespace utils {
 
-
 class ConditionalVariableTest : public ::testing::Test {
  public:
   ConditionalVariableTest()
-      : test_value_("initialized"), counter_(0) {
+      : test_value_("initialized"),
+        counter_(0) {
   }
   void* check_counter();
   void* task_one();
 
-  static void* check_counter_helper(void *context)
-      {
-          return ((ConditionalVariableTest *)context)->check_counter();
-      }
+  static void* check_counter_helper(void *context) {
+    return ((ConditionalVariableTest *) context)->check_counter();
+  }
 
-  static void* task_one_helper(void *context)
-        {
-            return ((ConditionalVariableTest *)context)->task_one();
-        }
+  static void* task_one_helper(void *context) {
+    return ((ConditionalVariableTest *) context)->task_one();
+  }
  protected:
   std::string test_value_;
   sync_primitives::ConditionalVariable cond_var_;
