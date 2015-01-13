@@ -49,15 +49,15 @@ class MessageQueueTest : public testing::Test {
         test_line(""),
         check_value(false) {
   }
-  void * add_one_element_to_queue();
-  void * extract_from_queue();
-  void * add_three_elements_to_queue();
-  void * ShutDownQueue();
+  void add_one_element_to_queue();
+  void extract_from_queue();
+  void add_three_elements_to_queue();
+  void ShutDownQueue();
 
-  static void * add_one_element_to_queue_helper(void *context);
-  static void * extract_from_queue_helper(void *context);
-  static void * add_three_elements_to_queue_helper(void *context);
-  static void * ShutDownQueue_helper(void *context);
+  static void* add_one_element_to_queue_helper(void *context);
+  static void* extract_from_queue_helper(void *context);
+  static void* add_three_elements_to_queue_helper(void *context);
+  static void* ShutDownQueue_helper(void *context);
 
  protected:
   MessageQueue<std::string> test_queue;
@@ -69,20 +69,20 @@ class MessageQueueTest : public testing::Test {
 };
 
 // Thread function - adds 1 element1 to the queue
-void * MessageQueueTest::add_one_element_to_queue() {
+void MessageQueueTest::add_one_element_to_queue() {
   test_queue.push(test_val_1);
   pthread_exit(NULL);
 }
 
 // Thread function - removes 1 element from beginning of queue
-void * MessageQueueTest::extract_from_queue() {
+void MessageQueueTest::extract_from_queue() {
   test_queue.wait();
   test_line = test_queue.pop();
   pthread_exit(NULL);
 }
 
 // Thread function - adds 3 elements to the queue
-void * MessageQueueTest::add_three_elements_to_queue() {
+void MessageQueueTest::add_three_elements_to_queue() {
   test_queue.push(test_val_1);
   test_queue.push(test_val_2);
   test_queue.push(test_val_3);
@@ -90,25 +90,27 @@ void * MessageQueueTest::add_three_elements_to_queue() {
 }
 
 // Thread function - adds 3 elements to the queue
-void * MessageQueueTest::ShutDownQueue() {
+void MessageQueueTest::ShutDownQueue() {
   check_value = true;
   test_queue.Shutdown();
   pthread_exit(NULL);
 }
 
-void * MessageQueueTest::add_one_element_to_queue_helper(void *context) {
-  return (reinterpret_cast<MessageQueueTest *>(context))
-      ->add_one_element_to_queue();
+void* MessageQueueTest::add_one_element_to_queue_helper(void *context) {
+  (reinterpret_cast<MessageQueueTest *>(context))->add_one_element_to_queue();
+  return NULL;
 }
-void * MessageQueueTest::extract_from_queue_helper(void *context) {
-  return (reinterpret_cast<MessageQueueTest *>(context))->extract_from_queue();
+void* MessageQueueTest::extract_from_queue_helper(void *context) {
+  (reinterpret_cast<MessageQueueTest *>(context))->extract_from_queue();
+  return NULL;
 }
-void * MessageQueueTest::add_three_elements_to_queue_helper(void *context) {
-  return (reinterpret_cast<MessageQueueTest *>(context))
-      ->add_three_elements_to_queue();
+void* MessageQueueTest::add_three_elements_to_queue_helper(void *context) {
+  (reinterpret_cast<MessageQueueTest *>(context))->add_three_elements_to_queue();
+  return NULL;
 }
-void * MessageQueueTest::ShutDownQueue_helper(void *context) {
-  return (reinterpret_cast<MessageQueueTest *>(context))->ShutDownQueue();
+void* MessageQueueTest::ShutDownQueue_helper(void *context) {
+  (reinterpret_cast<MessageQueueTest *>(context))->ShutDownQueue();
+  return NULL;
 }
 
 TEST_F(MessageQueueTest, DefaultCtorTest_ExpectEmptyQueueCreated) {
