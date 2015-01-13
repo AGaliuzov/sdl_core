@@ -69,7 +69,6 @@ class ConditionalVariableTest : public ::testing::Test {
 
 // Defines threads behaviour which depends on counter value
 void* ConditionalVariableTest::check_counter() {
-  //unsigned cnt = *(unsigned *) arg;
   sync_primitives::AutoLock test_lock(test_mutex_);
   if (counter_ <= 1) {
     counter_++;
@@ -110,7 +109,6 @@ TEST_F(ConditionalVariableTest, CheckBroadcast_AllThreadsNotified_ExpectSuccessf
 {
   pthread_t thread1;
   pthread_t thread2;
-  //ConditionalVariableTest cv;
   bool thread_created = pthread_create(&thread1, NULL, &ConditionalVariableTest::check_counter_helper, this);
   if (thread_created) {
     std::cout << "thread1 is not created! " << std::endl;
