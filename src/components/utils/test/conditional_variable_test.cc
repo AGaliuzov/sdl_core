@@ -32,6 +32,7 @@
 
 #include <pthread.h>
 #include <iostream>
+
 #include "lock.h"
 #include "macro.h"
 
@@ -48,15 +49,17 @@ class ConditionalVariableTest : public ::testing::Test {
       : test_value_("initialized"),
         counter_(0) {
   }
-  void* check_counter();
-  void* task_one();
+  void check_counter();
+  void task_one();
 
   static void* check_counter_helper(void *context) {
-    return ((ConditionalVariableTest *) context)->check_counter();
+    (reinterpret_cast<ConditionalVariableTest *>(context))->check_counter();
+    return NULL;
   }
 
   static void* task_one_helper(void *context) {
-    return ((ConditionalVariableTest *) context)->task_one();
+    (reinterpret_cast<ConditionalVariableTest *>(context))->task_one();
+    return NULL;
   }
  protected:
   std::string test_value_;
@@ -66,33 +69,32 @@ class ConditionalVariableTest : public ::testing::Test {
 };
 
 // Defines threads behaviour which depends on counter value
-void* ConditionalVariableTest::check_counter() {
+void ConditionalVariableTest::check_counter() {
   sync_primitives::AutoLock test_lock(test_mutex_);
   if (counter_ <= 1) {
     counter_++;
     cond_var_.Wait(test_mutex_);  // Mutex unlock & Thread sleeps until Notification
-    return NULL;
   }
   DCHECK(counter_ == 2);
   cond_var_.Broadcast();  // Notify All threads waiting on conditional variable
-  return NULL;
 }
 
 // Tasks for threads to begin with
-void* ConditionalVariableTest::task_one() {
+void ConditionalVariableTest::task_one() {
   sync_primitives::AutoLock test_lock(test_mutex_);
   test_value_ = "changed by thread 1";
   cond_var_.NotifyOne();  // Notify At least one thread waiting on conditional variable
   test_value_ = "changed again by thread 1";
-  return NULL;
 }
 
-TEST_F(ConditionalVariableTest, CheckNotifyOne_OneThreadNotified_ExpectSuccessful)
-{
+TEST_F(ConditionalVariableTest, CheckNotifyOne_OneThreadNotified_ExpectSuccessful) {
   pthread_t thread1;
   sync_primitives::AutoLock test_lock(test_mutex_);
   test_value_ = "changed by main thread";
-  const bool thread_created = pthread_create(&thread1, NULL, &ConditionalVariableTest::task_one_helper, this);
+  const bool thread_created = pthread_create(&thread1,
+      NULL,
+      &ConditionalVariableTest::task_one_helper,
+      this);
   if (thread_created) {
     std::cout << "thread1 is not created! " << std::endl;
     exit(1);
@@ -103,16 +105,21 @@ TEST_F(ConditionalVariableTest, CheckNotifyOne_OneThreadNotified_ExpectSuccessfu
   EXPECT_EQ(last_value, test_value_);
 }
 
-TEST_F(ConditionalVariableTest, CheckBroadcast_AllThreadsNotified_ExpectSuccessful)
-{
+TEST_F(ConditionalVariableTest, CheckBroadcast_AllThreadsNotified_ExpectSuccessful) {
   pthread_t thread1;
   pthread_t thread2;
-  bool thread_created = pthread_create(&thread1, NULL, &ConditionalVariableTest::check_counter_helper, this);
+  bool thread_created = pthread_create(&thread1,
+      NULL,
+      &ConditionalVariableTest::check_counter_helper,
+      this);
   if (thread_created) {
     std::cout << "thread1 is not created! " << std::endl;
     exit(1);
   }
-  thread_created = pthread_create(&thread2, NULL, &ConditionalVariableTest::check_counter_helper, this);
+  thread_created = pthread_create(&thread2,
+      NULL,
+      &ConditionalVariableTest::check_counter_helper,
+      this);
   if (thread_created) {
     std::cout << "thread2 is not created! " << std::endl;
     exit(1);
@@ -121,15 +128,14 @@ TEST_F(ConditionalVariableTest, CheckBroadcast_AllThreadsNotified_ExpectSuccessf
   EXPECT_EQ(2, counter_);
 }
 
-TEST_F(ConditionalVariableTest, CheckWaitForWithTimeout2secs_ThreadBlockedForTimeout_ExpectSuccessfulWakeUp)
-{
+TEST_F(ConditionalVariableTest, CheckWaitForWithTimeout2secs_ThreadBlockedForTimeout_ExpectSuccessfulWakeUp) {
   sync_primitives::AutoLock test_lock(test_mutex_);
   sync_primitives::ConditionalVariable::WaitStatus test_value = sync_primitives::ConditionalVariable::kTimeout;
   sync_primitives::ConditionalVariable::WaitStatus wait_st = cond_var_.WaitFor(test_lock, 2000);
   EXPECT_EQ(test_value, wait_st);
 }
 
-} // namespace utils
-} // namespace components
-} // namespace test
+}  // namespace utils
+}  // namespace components
+}  // namespace test
 
