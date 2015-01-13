@@ -32,13 +32,16 @@ if(BUILD_TESTS)
 
 include_directories (
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
-  ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include)
+  ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
+  ${COMPONENTS_DIR}/include/utils)
 
 set(testSources
   main.cc
   messagemeter_test.cc
   file_system_test.cc
-  date_time_test.cc)
+  data_accessor_test.cc
+  date_time_test.cc
+  )
 
 set(testLibraries
   gmock
