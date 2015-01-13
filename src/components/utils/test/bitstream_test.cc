@@ -46,11 +46,10 @@ TEST(BitstreamTest, CreateBitstream_CreateBitStreamWithoutDataWithoutDatasize_Bi
   //arrange
   uint8_t *data = NULL;
   size_t bits = sizeof(data);
- BitStream bs(data, bits);
+  BitStream bs(data, bits);
 
   //assert
   EXPECT_TRUE(bs.IsGood());
-
 }
 
 TEST(BitstreamTest, CreateBitstream_CreateBitStreamWithoutDataWithBigDataSize_BitStreamIsGood) {
@@ -58,68 +57,63 @@ TEST(BitstreamTest, CreateBitstream_CreateBitStreamWithoutDataWithBigDataSize_Bi
   //arrange
   uint8_t *data = NULL;
   size_t bits = 65535;
- BitStream bs(data, bits);
+  BitStream bs(data, bits);
 
   //assert
   EXPECT_TRUE(bs.IsGood());
-
 }
 
 TEST(BitstreamTest, CreateBitstream_CreateBitStreamWithDataWithLessDataSize_BitStreamIsGood) {
 
   //arrange
-  uint8_t data =255;
+  uint8_t data = 255;
   size_t bits = sizeof(char);
   BitStream bs(&data, bits);
 
   //assert
   EXPECT_TRUE(bs.IsGood());
-
 }
 
 TEST(BitstreamTest, ExtractBitstream_CreateBitStreamWithDataWithLessDataSize_BitStreamIsGood) {
 
   //arrange
-  uint8_t data =255;
+  uint8_t data = 255;
   size_t bits = sizeof(char);
   BitStream bs(&data, bits);
 
   Extract(&bs, &data, bits);
   //assert
   EXPECT_TRUE(bs.IsGood());
-
 }
 
 TEST(BitstreamTest, DISABLED_ExtractBitstream_CreateBitStreamWithZeroDataWithBigDataSize_BitStreamIsGood) {
 
   //arrange
-  uint8_t data =0;
-  size_t bits =65535;
+  uint8_t data = 0;
+  size_t bits = 65535;
   BitStream bs(&data, bits);
 
   Extract(&bs, &data, bits);
   //assert
   EXPECT_TRUE(bs.IsGood());
-
 }
 
 TEST(BitstreamTest, DISABLED_ExtractBitstream_CreateBitStreamWithSmallDataWithBiggerDataSize_BitStreamIsGood) {
 
   //arrange
-  uint8_t data =1;
-  size_t bits =10;
+  uint8_t data = 1;
+  size_t bits = 10;
   BitStream bs(&data, bits);
 
   Extract(&bs, &data, bits);
   //assert
   EXPECT_TRUE(bs.IsGood());
-
 }
 
 TEST(BitstreamTest, ExtractBitstream_CreateBitStreamWithDataWithZeroDataSize_BitStreamIsGood) {
 
   //arrange
-  uint8_t data =255;
+  uint8_t data = 255;
   size_t bits = 0;
   BitStream bs(&data, bits);
 
@@ -127,13 +121,12 @@ TEST(BitstreamTest, ExtractBitstream_CreateBitStreamWithDataWithZeroDataSize_Bit
 
   //assert
   EXPECT_TRUE(bs.IsGood());
-
 }
 
 TEST(BitstreamTest, ExtractBitstream_CreateBitStreamWithDataMarkedBad_ExpectIsBad) {
 
   //arrange
-  uint8_t data =255;
+  uint8_t data = 255;
   size_t bits = sizeof(int);
   BitStream bs(&data, bits);
   //assert
@@ -147,9 +140,7 @@ TEST(BitstreamTest, ExtractBitstream_CreateBitStreamWithDataMarkedBad_ExpectIsBa
   Extract(&bs, &data, bits);
   //arrange
   EXPECT_TRUE(bs.IsBad());
-
 }
-
 
 }  // namespace utils
 }  // namespace components
