@@ -39,7 +39,7 @@ namespace test {
 namespace components {
 namespace utils {
 
-using namespace ::utils;
+using ::utils::BitStream;
 
 TEST(BitstreamTest, CreateBitstream_CreateBitStreamWithoutDataWithoutDatasize_BitStreamIsGood) {
 
