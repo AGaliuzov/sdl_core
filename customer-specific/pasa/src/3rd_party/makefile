@@ -42,7 +42,7 @@ apr-util: expat apr
 
 log4cxx: expat apr apr-util
 	cd apache-log4cxx-0.10.0 && CC="${CC_cfg_3rd_party}" CXX="${CPP_cfg_3rd_party}" ./configure \
-	--host=arm-nto-qnx --with-apr=../apr-1.5.0 --with-apr-util=../apr-util-1.5.3 && cd ..
+	--host=arm-nto-qnx --with-apr=../apr-1.5.0 --with-apr-util=../apr-util-1.5.3 LDFLAGS=-L../expat-2.1.0/.libs/ && cd ..
 	$(MAKE) -C apache-log4cxx-0.10.0 OPTIMIZATION=NONE TARGET_FLG=
 	cp -r apache-log4cxx-0.10.0/src/main/include/log4cxx $(CURDIR)/log4cxx/include
 	cp apache-log4cxx-0.10.0/src/main/cpp/.libs/liblog4cxx.so.10.0.0 $(SLIB_PATH)liblog4cxx$(DEBUG_EXT).so.10.0.0
