@@ -2308,9 +2308,14 @@ void ApplicationManagerImpl::OnWakeUp() {
 
 void ApplicationManagerImpl::Mute(VRTTSSessionChanging changing_state) {
   mobile_apis::AudioStreamingState::eType state =
-    hmi_capabilities_.attenuated_supported()
-    ? mobile_apis::AudioStreamingState::ATTENUATED
-    : mobile_apis::AudioStreamingState::NOT_AUDIBLE;
+      mobile_apis::AudioStreamingState::NOT_AUDIBLE;
+
+  // ATTENUATED state applicable only for TTS
+  if ((kTTSSessionChanging == changing_state) &&
+       hmi_capabilities_.attenuated_supported()) {
+    state = mobile_apis::AudioStreamingState::ATTENUATED;
+  }
+
   ApplicationManagerImpl::ApplicationListAccessor accessor;
 
   ApplicationManagerImpl::ApplictionSetConstIt it =
