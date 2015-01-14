@@ -54,7 +54,6 @@ class IAP2Connection : public Connection {
   ~IAP2Connection();
 
   bool Init();
-  void Finalize();
 
  protected:
   virtual TransportAdapter::Error SendData(
@@ -77,14 +76,12 @@ class IAP2Connection : public Connection {
 
   threads::Thread* receiver_thread_;
   threads::ThreadDelegate* receiver_thread_delegate_;
-  bool unexpected_disconnect_;
 
   class ReceiverThreadDelegate : public threads::PulseThreadDelegate {
    public:
     ReceiverThreadDelegate(iap2ea_hdl_t* iap2ea_hdl, IAP2Connection* parent);
 
    protected:
-    void Finalize() OVERRIDE;
     virtual bool ArmEvent(struct sigevent* event);
     virtual void OnPulse();
 

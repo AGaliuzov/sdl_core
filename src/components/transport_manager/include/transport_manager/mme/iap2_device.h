@@ -71,7 +71,7 @@ class IAP2Device : public MmeDevice {
  private:
   typedef std::map<int, std::string> FreeProtocolNamePool;
   typedef std::map<std::string, int> ProtocolInUseNamePool;
-  typedef std::pair<std::string, iap2ea_hdl_t*> AppRecord;
+  struct AppRecord;
   typedef std::map<ApplicationHandle, AppRecord> AppContainer;
   typedef std::map<std::string, threads::Thread*> ThreadContainer;
 
@@ -124,6 +124,8 @@ class IAP2Device : public MmeDevice {
    */
   void StopTimer(const std::string& name);
 
+  void KillFinishedConnections();
+
   TransportAdapterController* controller_;
   int last_app_id_;
 
@@ -140,6 +142,12 @@ class IAP2Device : public MmeDevice {
   sync_primitives::Lock pool_connection_threads_lock_;
   TimerContainer timers_protocols_;
   sync_primitives::Lock timers_protocols_lock_;
+
+  struct AppRecord {
+    std::string protocol_name;
+    iap2ea_hdl_t* handle;
+    bool to_remove;
+  };
 
   class IAP2HubConnectThreadDelegate : public threads::ThreadDelegate {
    public:

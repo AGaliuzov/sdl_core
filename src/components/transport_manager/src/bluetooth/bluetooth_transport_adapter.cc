@@ -152,7 +152,7 @@ bool BluetoothTransportAdapter::Restore() {
   if (result) {
     LOG4CXX_TRACE(logger_, "exit with TRUE");
   } else {
-      LOG4CXX_TRACE(logger_, "exit with FALSE");
+    LOG4CXX_TRACE(logger_, "exit with FALSE");
   }
   return result;
 }
