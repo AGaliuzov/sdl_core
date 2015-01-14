@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,18 +41,42 @@ namespace utils {
 
 using ::utils::BitStream;
 
-TEST(BitstreamTest, CreateBitstream_CreateBitStreamWithoutDataWithoutDatasize_BitStreamIsGood) {
+TEST(BitstreamTest, CreateBitstream_WithDataWithDatasize_BitStreamIsGood) {
+
+  //arrange
+  uint8_t data = 10;
+  size_t bits = 2;
+  BitStream bs(&data, bits);
+
+  //assert
+  EXPECT_TRUE(bs.IsGood());
+}
+
+TEST(BitstreamTest, ExtractBitstream_WithDataWithDatasize_BitStreamIsGood) {
+
+  //arrange
+  uint8_t data = 10;
+  size_t bits = 2;
+  BitStream bs(&data, bits);
+
+  Extract(&bs, &data, bits);
+
+  //assert
+  EXPECT_TRUE(bs.IsGood());
+}
+
+TEST(BitstreamTest, CreateBitstream_NoDataNoDatasize_BitStreamIsGood) {
 
   //arrange
   uint8_t *data = NULL;
-  size_t bits = sizeof(data);
+  size_t bits = 0;
   BitStream bs(data, bits);
 
   //assert
   EXPECT_TRUE(bs.IsGood());
 }
 
-TEST(BitstreamTest, CreateBitstream_CreateBitStreamWithoutDataWithBigDataSize_BitStreamIsGood) {
+TEST(BitstreamTest, CreateBitstream_NoDataWithUpperboundDataSize_BitStreamIsGood) {
 
   //arrange
   uint8_t *data = NULL;
@@ -63,7 +87,7 @@ TEST(BitstreamTest, CreateBitstream_CreateBitStreamWithoutDataWithBigDataSize_Bi
   EXPECT_TRUE(bs.IsGood());
 }
 
-TEST(BitstreamTest, CreateBitstream_CreateBitStreamWithDataWithLessDataSize_BitStreamIsGood) {
+TEST(BitstreamTest, CreateBitstream_WithUpperboundDataWithLessDataSize_BitStreamIsGood) {
 
   //arrange
   uint8_t data = 255;
@@ -74,7 +98,7 @@ TEST(BitstreamTest, CreateBitstream_CreateBitStreamWithDataWithLessDataSize_BitS
   EXPECT_TRUE(bs.IsGood());
 }
 
-TEST(BitstreamTest, ExtractBitstream_CreateBitStreamWithDataWithLessDataSize_BitStreamIsGood) {
+TEST(BitstreamTest, ExtractBitstream_WithUpperboundDataWithLessDataSize_BitStreamIsGood) {
 
   //arrange
   uint8_t data = 255;
@@ -86,7 +110,7 @@ TEST(BitstreamTest, ExtractBitstream_CreateBitStreamWithDataWithLessDataSize_Bit
   EXPECT_TRUE(bs.IsGood());
 }
 
-TEST(BitstreamTest, DISABLED_ExtractBitstream_CreateBitStreamWithZeroDataWithBigDataSize_BitStreamIsGood) {
+TEST(BitstreamTest, DISABLED_ExtractBitstream_WithZeroDataWithBigDataSize_BitStreamIsGood) {
 
   //arrange
   uint8_t data = 0;
@@ -98,7 +122,7 @@ TEST(BitstreamTest, DISABLED_ExtractBitstream_CreateBitStreamWithZeroDataWithBig
   EXPECT_TRUE(bs.IsGood());
 }
 
-TEST(BitstreamTest, DISABLED_ExtractBitstream_CreateBitStreamWithSmallDataWithBiggerDataSize_BitStreamIsGood) {
+TEST(BitstreamTest, DISABLED_ExtractBitstream_WithSmallDataWithBiggerDataSize_BitStreamIsGood) {
 
   //arrange
   uint8_t data = 1;
@@ -110,7 +134,7 @@ TEST(BitstreamTest, DISABLED_ExtractBitstream_CreateBitStreamWithSmallDataWithBi
   EXPECT_TRUE(bs.IsGood());
 }
 
-TEST(BitstreamTest, ExtractBitstream_CreateBitStreamWithDataWithZeroDataSize_BitStreamIsGood) {
+TEST(BitstreamTest, ExtractBitstream_WithUpperboundDataWithZeroDataSize_BitStreamIsGood) {
 
   //arrange
   uint8_t data = 255;
@@ -123,7 +147,7 @@ TEST(BitstreamTest, ExtractBitstream_CreateBitStreamWithDataWithZeroDataSize_Bit
   EXPECT_TRUE(bs.IsGood());
 }
 
-TEST(BitstreamTest, ExtractBitstream_CreateBitStreamWithDataMarkedBad_ExpectIsBad) {
+TEST(BitstreamTest, ExtractBitstream_WithDataMarkedBad_ExpectIsBad) {
 
   //arrange
   uint8_t data = 255;
