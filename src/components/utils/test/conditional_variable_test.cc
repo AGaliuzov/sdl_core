@@ -100,7 +100,7 @@ TEST_F(ConditionalVariableTest, CheckNotifyOne_OneThreadNotified_ExpectSuccessfu
     exit(1);
   }
   test_value_ = "changed twice by main thread";
-  cond_var_.Wait(test_mutex_);
+  cond_var_.WaitFor(test_lock,3000);
   std::string last_value("changed again by thread 1");
   EXPECT_EQ(last_value, test_value_);
 }
