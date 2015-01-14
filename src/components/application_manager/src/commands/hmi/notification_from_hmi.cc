@@ -42,7 +42,7 @@ NotificationFromHMI::NotificationFromHMI(const MessageSharedPtr& message)
     : CommandImpl(message) {
 
   // Replace HMI app id with Mobile connection id
-  ApplicationManagerImpl::instance()->ReplaceHMIByMobileAppId(*(message.get()));
+  ApplicationManagerImpl::instance()->ReplaceHMIByMobileAppId(*message);
 }
 
 NotificationFromHMI::~NotificationFromHMI() {
@@ -69,10 +69,9 @@ void NotificationFromHMI::SendNotificationToMobile(
 
 void NotificationFromHMI::CreateHMIRequest(
     const hmi_apis::FunctionID::eType& function_id,
-    const NsSmartObj::SmartObject& msg_params) const {
+    const smart_objects::SmartObject& msg_params) const {
 
-  NsSmartDeviceLink::NsSmartObjects::SmartObject* result =
-      new NsSmartDeviceLink::NsSmartObjects::SmartObject;
+  smart_objects::SmartObjectSPtr result = new smart_objects::SmartObject;
   if (!result) {
     LOG4CXX_ERROR(logger_, "Memory allocation failed.");
     return;
