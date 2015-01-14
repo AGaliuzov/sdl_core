@@ -113,8 +113,8 @@ void DeleteSubMenuRequest::DeleteSubMenuUICommands(ApplicationSharedPtr const ap
 
   while (commands.end() != it) {
     if (!(*it->second).keyExists(strings::menu_params)) {
-      ++it;
       LOG4CXX_ERROR(logger_, "menu_params not exist");
+      ++it;
       continue;
     }
 
