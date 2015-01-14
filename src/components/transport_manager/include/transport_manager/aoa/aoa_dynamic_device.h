@@ -61,16 +61,16 @@ class AOADynamicDevice : public AOADevice {
   sync_primitives::Lock life_lock_;
   sync_primitives::ConditionalVariable life_cond_;
 
-  void AddDevice(AOAWrapper::AOAHandle hdl);
-  void LoopDevice(AOAWrapper::AOAHandle hdl);
-  void StopDevice(AOAWrapper::AOAHandle hdl);
-  void RemoveDevice(AOAWrapper::AOAHandle hdl);
+  void AddDevice(AOAWrapper::AOAHandle handle);
+  void LoopDevice(AOAWrapper::AOAHandle handle);
+  void StopDevice(AOAWrapper::AOAHandle handle);
+  void RemoveDevice();
 
   class DeviceLife : public AOADeviceLife {
    public:
     explicit DeviceLife(AOADynamicDevice* parent);
     void Loop(AOAWrapper::AOAHandle handle);
-    void OnDied(AOAWrapper::AOAHandle hdl);
+    void OnDied(AOAWrapper::AOAHandle handle);
    private:
     AOADynamicDevice* parent_;
   };

@@ -98,7 +98,7 @@ PPSListener::PPSListener(TransportAdapterController* controller)
     : initialised_(false),
       controller_(controller),
       fd_(-1),
-      thread_(threads::CreateThread("PPS listener", new PpsThreadDelegate(this))) {
+      thread_(0) {
   LOG4CXX_AUTO_TRACE(logger_);
 }
 
@@ -298,9 +298,9 @@ void PPSListener::ClosePps() {
 
 void PPSListener::AddDevice(const AOAWrapper::AOAUsbInfo& aoa_usb_info) {
   LOG4CXX_AUTO_TRACE(logger_);
-  AOADynamicDeviceSPtr aoa_device = new AOADynamicDevice(
+  AOADynamicDeviceSPtr aoa_device(new AOADynamicDevice(
       aoa_usb_info.product, aoa_usb_info.serial_number, aoa_usb_info,
-      controller_);
+      controller_));
   controller_->AddDevice(aoa_device);
   if (!aoa_device->Init()) {
     LOG4CXX_WARN(logger_, "Can not initialize device");
@@ -309,18 +309,17 @@ void PPSListener::AddDevice(const AOAWrapper::AOAUsbInfo& aoa_usb_info) {
 
 TransportAdapter::Error PPSListener::StartListening() {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (!thread_->delegate()) {
-    thread_->set_delegate(new PpsThreadDelegate(this));
-  }
+  thread_ = threads::CreateThread("PPS listener", new PpsThreadDelegate(this));
   thread_->start();
   return TransportAdapter::OK;
 }
 
 TransportAdapter::Error PPSListener::StopListening() {
   LOG4CXX_AUTO_TRACE(logger_);
-  thread_->stop();
+  thread_->join();
   delete thread_->delegate();
-  thread_->set_delegate(0);
+  threads::DeleteThread(thread_);
+  thread_ = NULL;
   return TransportAdapter::OK;
 }
 

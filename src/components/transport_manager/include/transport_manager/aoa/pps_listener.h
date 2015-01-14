@@ -61,16 +61,12 @@ class PPSListener : public ClientConnectionListener {
   virtual bool IsInitialised() const;
 
  private:
-  typedef std::map<DeviceUID, AOADevicePtr> DeviceContainer;
-
   static const std::string kUSBStackPath;
   static const std::string kPpsPathRoot;
   static const std::string kPpsPathAll;
   static const std::string kPpsPathCtrl;
   bool initialised_;
   TransportAdapterController* controller_;
-  DeviceContainer devices_;
-  sync_primitives::Lock devices_lock_;
   int fd_;
   threads::Thread* thread_;
 

@@ -45,7 +45,7 @@ AOAConnection::AOAConnection(const DeviceUID& device_uid,
                              const ApplicationHandle& app_handle,
                              TransportAdapterController* controller,
                              AOAWrapper::AOAHandle aoa_handle)
-    : wrapper_(new AOAWrapper(aoa_handle)),
+    : wrapper_(new AOAWrapper(aoa_handle, kTimeout)),
       observer_(new ConnectionObserver(this)),
       device_uid_(device_uid),
       app_handle_(app_handle),
