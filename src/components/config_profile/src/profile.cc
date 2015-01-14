@@ -70,6 +70,7 @@ const char* kApplicationManagerSection = "ApplicationManager";
 const char* kFilesystemRestrictionsSection = "FILESYSTEM RESTRICTIONS";
 const char* kIAPSection = "IAP";
 const char* kProtocolHandlerSection = "ProtocolHandler";
+const char* kSDL4Section = "SDL4";
 
 const char* kHmiCapabilitiesKey = "HMICapabilities";
 const char* kPathToSnapshotKey = "PathToSnapshot";
@@ -718,36 +719,36 @@ void Profile::UpdateValues() {
 
   // Enable protocol ver.4 parameter
   std::string enable_protocol_4_value;
-  if (ReadValue(&enable_protocol_4_value, kMainSection, kEnableProtocol4Key) &&
+  if (ReadValue(&enable_protocol_4_value, kSDL4Section, kEnableProtocol4Key) &&
       0 == strcmp("true", enable_protocol_4_value.c_str())) {
     enable_protocol_4_ = true;
   } else {
     enable_protocol_4_ = false;
   }
 
-  LOG_UPDATED_BOOL_VALUE(enable_protocol_4_, kEnableProtocol4Key, kMainSection);
+  LOG_UPDATED_BOOL_VALUE(enable_protocol_4_, kEnableProtocol4Key, kSDL4Section);
 
   // Application icon folder
   ReadStringValue(&app_icons_folder_,
                   file_system::CurrentWorkingDirectory().c_str(),
-                  kMainSection, kAppIconsFolderKey);
+                  kSDL4Section, kAppIconsFolderKey);
 
   LOG_UPDATED_VALUE(app_icons_folder_, kAppIconsFolderKey,
-                    kMainSection);
+                    kSDL4Section);
 
   // Application icon folder maximum size
   ReadUIntValue(&app_icons_folder_max_size_, kDefaultAppIconsFolderMaxSize,
-                kMainSection, kAppIconsFolderMaxSizeKey);
+                kSDL4Section, kAppIconsFolderMaxSizeKey);
 
   LOG_UPDATED_VALUE(app_icons_folder_max_size_, kAppIconsFolderMaxSizeKey,
-                    kMainSection);
+                    kSDL4Section);
 
   // Application icon folder maximum size
   ReadUIntValue(&app_icons_amount_to_remove_, kDefaultAppIconsAmountToRemove,
-                kMainSection, kAppIconsAmountToRemoveKey);
+                kSDL4Section, kAppIconsAmountToRemoveKey);
 
   LOG_UPDATED_VALUE(app_icons_amount_to_remove_, kAppIconsAmountToRemoveKey,
-                    kMainSection);
+                    kSDL4Section);
 
   // Application info file name
   ReadStringValue(&app_info_storage_, kDefaultAppInfoFileName,
