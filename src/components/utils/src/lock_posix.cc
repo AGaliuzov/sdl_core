@@ -106,6 +106,16 @@ void Lock::Release() {
   }
 }
 
+bool Lock::Try() {
+  if (lock_taken_ == 0 || is_mutex_recursive_) {
+    pthread_mutex_lock(&mutex_);
+    lock_taken_++;
+    return true;
+  } else {
+    return false;
+  }
+}
+
 #ifndef NDEBUG
 void Lock::AssertFreeAndMarkTaken() {
   if ((lock_taken_ > 0) && !is_mutex_recursive_) {
