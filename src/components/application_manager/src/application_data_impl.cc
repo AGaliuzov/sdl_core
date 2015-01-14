@@ -173,6 +173,7 @@ DynamicApplicationDataImpl::DynamicApplicationDataImpl()
       menu_icon_(NULL),
       tbt_show_command_(NULL),
       commands_(),
+      commands_lock_(true),
       sub_menu_(),
       choice_set_map_(),
       performinteraction_choice_set_map_(),

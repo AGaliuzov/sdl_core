@@ -38,7 +38,7 @@ void ResumeCtrl::SaveAllApplications() {
   DCHECK(app_mngr_);
   if (app_mngr_) {
     ApplicationManagerImpl::ApplicationListAccessor accessor;
-    ApplicationManagerImpl::TAppList apps(accessor.applications());
+    ApplicationManagerImpl::ApplictionSet apps(accessor.applications());
     std::for_each(apps.begin(),
                   apps.end(),
                   std::bind1st(std::mem_fun(&ResumeCtrl::SaveApplication), this));
@@ -220,11 +220,10 @@ bool ResumeCtrl::SetupHMILevel(ApplicationSharedPtr application,
         //AudioStreamingState=AUDIBLE
         bool application_exist_with_audible_state = false;
         ApplicationManagerImpl::ApplicationListAccessor accessor;
-        const std::set<ApplicationSharedPtr> app_list = accessor.applications();
-        std::set<ApplicationSharedPtr>::const_iterator app_list_it = app_list
-            .begin();
+       ApplicationManagerImpl::ApplictionSetConstIt app_list_it =
+           accessor.begin();
         uint32_t app_id = application->app_id();
-        for (; app_list.end() != app_list_it; ++app_list_it) {
+        for (; accessor.end() != app_list_it; ++app_list_it) {
           if ((mobile_apis::AudioStreamingState::AUDIBLE ==
               (*app_list_it)->audio_streaming_state())
               && ((*app_list_it))->app_id() != app_id) {
@@ -296,9 +295,9 @@ bool ResumeCtrl::IsHMIApplicationIdExist(uint32_t hmi_app_id) {
     }
   }
   ApplicationManagerImpl::ApplicationListAccessor accessor;
-  ApplicationManagerImpl::TAppList apps(accessor.applications());
-  std::set<ApplicationSharedPtr>::iterator it = apps.begin();
-  std::set<ApplicationSharedPtr>::iterator it_end = apps.end();
+  ApplicationManagerImpl::ApplictionSet apps(accessor.applications());
+  ApplicationManagerImpl::ApplictionSetIt it = apps.begin();
+  ApplicationManagerImpl::ApplictionSetIt it_end = apps.end();
 
   for (;it != it_end; ++it) {
     if (hmi_app_id == (*it)->hmi_app_id()) {

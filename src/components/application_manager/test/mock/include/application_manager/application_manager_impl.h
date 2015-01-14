@@ -285,9 +285,9 @@ class ApplicationManagerImpl : public ApplicationManager,
   MOCK_METHOD0(OnWakeUp, void());
   MOCK_METHOD1(OnUpdateHMIAppType, void(std::map<std::string, std::vector<std::string> >));
 
-  typedef const std::set<ApplicationSharedPtr> TAppList;
-  typedef std::set<ApplicationSharedPtr>::iterator TAppListIt;
-  typedef std::set<ApplicationSharedPtr>::const_iterator TAppListConstIt;
+  typedef const ApplictionSet ApplictionSet;
+  typedef ApplicationManagerImpl::ApplictionSetIt ApplictionSetIt;
+  typedef ApplictionSet::const_iterator ApplictionSetConstIt;
   class ApplicationListUpdateTimer : public timer::TimerThread<ApplicationManagerImpl> {
    public:
     ApplicationListUpdateTimer(ApplicationManagerImpl* callee) :
@@ -300,14 +300,14 @@ class ApplicationManagerImpl : public ApplicationManager,
 
   class ApplicationListAccessor {
    public:
-    MOCK_METHOD0(applications, TAppList());
+    MOCK_METHOD0(applications, ApplictionSet());
    private:
   };
   friend class ApplicationListAccessor;
 
   private:
     //FIXME(AKutsan) In resume_controller is is nessesery to change realisation for remove using application_list_
-    std::set<ApplicationSharedPtr> application_list_;
+    ApplictionSet application_list_;
   FRIEND_BASE_SINGLETON_CLASS(ApplicationManagerImpl);
 };
 

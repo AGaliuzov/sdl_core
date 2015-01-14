@@ -380,15 +380,14 @@ mobile_apis::Result::eType ChangeRegistrationRequest::CheckCoincidence() {
       (*message_)[strings::msg_params];
 
   ApplicationManagerImpl::ApplicationListAccessor accessor;
-  const std::set<ApplicationSharedPtr> applications = accessor.applications();
-  std::set<ApplicationSharedPtr>::const_iterator it = applications.begin();
   std::string app_name;
   uint32_t app_id = connection_key();
   if (msg_params.keyExists(strings::app_name)) {
     app_name = msg_params[strings::app_name].asString();
   }
 
-  for (; applications.end() != it; ++it) {
+  ApplicationManagerImpl::ApplictionSetConstIt it = accessor.begin();
+  for (; accessor.end() != it; ++it) {
     if (app_id == (*it)->app_id()) {
       continue;
     }
