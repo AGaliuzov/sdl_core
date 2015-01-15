@@ -285,9 +285,43 @@ class ApplicationManagerImpl : public ApplicationManager,
   MOCK_METHOD0(OnWakeUp, void());
   MOCK_METHOD1(OnUpdateHMIAppType, void(std::map<std::string, std::vector<std::string> >));
 
-  typedef const ApplictionSet ApplictionSet;
-  typedef ApplicationManagerImpl::ApplictionSetIt ApplictionSetIt;
+  struct ApplicationsAppIdSorter {
+    bool operator() (const ApplicationSharedPtr lhs,
+                     const ApplicationSharedPtr rhs) {
+      return lhs->app_id() < rhs->app_id();
+    }
+  };
+
+  // typedef for Applications list
+  typedef std::set<ApplicationSharedPtr,
+                   ApplicationsAppIdSorter> ApplictionSet;
+
+  // typedef for Applications list iterator
+  typedef ApplictionSet::iterator ApplictionSetIt;
+
+  // typedef for Applications list const iterator
   typedef ApplictionSet::const_iterator ApplictionSetConstIt;
+
+
+  /**
+   * Class for thread-safe access to applications list
+   */
+  class ApplicationListAccessor: public DataAccessor<ApplictionSet> {
+    public:
+      ApplicationListAccessor() :
+        DataAccessor<ApplictionSet>(ApplictionSet(),sync_primitives::Lock()) {
+      }
+      MOCK_CONST_METHOD0(applications, const ApplictionSet());
+      MOCK_METHOD0(begin, ApplictionSetConstIt());
+      MOCK_METHOD0(end, ApplictionSetConstIt());
+      MOCK_METHOD1(Erase, void(ApplicationSharedPtr));
+      MOCK_METHOD1(Insert, void(ApplicationSharedPtr));
+      MOCK_METHOD0(Empty, bool());
+  };
+
+  friend class ApplicationListAccessor;
+
+
   class ApplicationListUpdateTimer : public timer::TimerThread<ApplicationManagerImpl> {
    public:
     ApplicationListUpdateTimer(ApplicationManagerImpl* callee) :
@@ -298,12 +332,6 @@ class ApplicationManagerImpl : public ApplicationManager,
   };
   typedef utils::SharedPtr<ApplicationListUpdateTimer> ApplicationListUpdateTimerSptr;
 
-  class ApplicationListAccessor {
-   public:
-    MOCK_METHOD0(applications, ApplictionSet());
-   private:
-  };
-  friend class ApplicationListAccessor;
 
   private:
     //FIXME(AKutsan) In resume_controller is is nessesery to change realisation for remove using application_list_
