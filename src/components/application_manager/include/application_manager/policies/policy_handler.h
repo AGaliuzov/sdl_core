@@ -153,12 +153,6 @@ class PolicyHandler :
    */
   void OnIgnitionCycleOver();
 
-  /**
-   * @brief Send notification to HMI concerning revocation of application
-   * @param policy_app_id Unique identifier of application
-   */
-  void OnAppRevoked(const std::string& policy_app_id);
-
   void OnPendingPermissionChange(const std::string& policy_app_id);
 
   /**
