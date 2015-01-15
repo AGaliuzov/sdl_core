@@ -41,6 +41,9 @@
 #include "utils/threads/thread_delegate.h"
 
 namespace media_manager {
+
+using ::utils::MessageQueue;
+
 class PipeStreamerAdapter : public MediaAdapterImpl {
   public:
     PipeStreamerAdapter();
