@@ -45,8 +45,8 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "Utils")
 
 Lock::Lock()
 #ifndef NDEBUG
-      : lock_taken_(0),
-        is_mutex_recursive_(false)
+    : lock_taken_(0),
+      is_mutex_recursive_(false)
 #endif // NDEBUG
 {
   const int32_t status = pthread_mutex_init(&mutex_, NULL);
@@ -57,8 +57,8 @@ Lock::Lock()
 
 Lock::Lock(bool is_mutex_recursive)
 #ifndef NDEBUG
-      : lock_taken_(0),
-        is_mutex_recursive_(is_mutex_recursive)
+    : lock_taken_(0),
+      is_mutex_recursive_(is_mutex_recursive)
 #endif // NDEBUG
 {
   int32_t status;
@@ -86,7 +86,8 @@ Lock::~Lock() {
 #endif
   int32_t status = pthread_mutex_destroy(&mutex_);
   if (status != 0) {
-    LOG4CXX_ERROR(logger_, "Failed to destroy mutex " << &mutex_ << ": " << strerror(status)); }
+    LOG4CXX_ERROR(logger_, "Failed to destroy mutex " << &mutex_ << ": " << strerror(status));
+  }
 }
 
 void Lock::Acquire() {
@@ -108,12 +109,16 @@ void Lock::Release() {
 
 bool Lock::Try() {
   if (lock_taken_ == 0 || is_mutex_recursive_) {
-    pthread_mutex_lock(&mutex_);
-    lock_taken_++;
-    return true;
-  } else {
-    return false;
+    int32_t status = pthread_mutex_lock(&mutex_);
+    if (status != 0) {
+      LOG4CXX_ERROR(logger_, "Failed to acquire mutex " << &mutex_ << ": " << strerror(status));
+    } else {
+      lock_taken_++;
+      return true;
+    }
   }
+  return false;
+
 }
 
 #ifndef NDEBUG
@@ -133,5 +138,4 @@ void Lock::AssertTakenAndMarkFree() {
 }
 #endif
 
-
-} // namespace sync_primitives
+}  // namespace sync_primitives
