@@ -30,15 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <unistd.h>
-
 #include "gtest/gtest.h"
-#include "utils/macro.h"
-
-#include "data_accessor.h"
+#include "utils/data_accessor.h"
 #include "utils/lock.h"
-#include <pthread.h>
-#include <iostream>
 
 namespace test {
 namespace components {
