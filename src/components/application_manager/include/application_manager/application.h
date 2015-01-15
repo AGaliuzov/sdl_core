@@ -361,6 +361,12 @@ class DynamicApplicationData {
 class Application : public virtual InitialApplicationData,
   public virtual DynamicApplicationData {
   public:
+    enum ApplicationState {
+      kRegistered = 0,
+      kWaitForRegistration
+    };
+
+  public:
     virtual ~Application() {
     }
 
@@ -557,6 +563,44 @@ class Application : public virtual InitialApplicationData,
      */
     virtual bool IsAudioApplication() const = 0;
 
+    /**
+     * @brief IsRegistered allows to distinguish if this
+     * application has been registered.
+     *
+     * @return true if registered false otherwise.
+     */
+    virtual bool IsRegistered() const { return app_state_ == kRegistered;}
+
+    /**
+     * @brief MarkRegistered allows to mark applicatoin as registered.
+     */
+    virtual void MarkRegistered() {app_state_ = kRegistered;}
+
+    /**
+     * @brief MarkUnregistered allows to mark application as unregistered.
+     */
+    virtual void MarkUnregistered() {app_state_ = kWaitForRegistration;}
+
+    /**
+     * @brief schemaUrl contains application's url (for 4th protocol version)
+     *
+     * @return application's url.
+     */
+    virtual std::string SchemaUrl() const {return url_;}
+
+    virtual void SetShemaUrl(const std::string& url) {url_ = url;}
+
+    /**
+     * @brief packagName allows to obtain application's package name.
+     *
+     * @return pakage name.
+     */
+    virtual std::string PackageName() const {return package_name_;}
+
+    virtual void SetPackageName(const std::string& packageName) {
+      package_name_ = packageName;
+    }
+
   protected:
 
     // interfaces for NAVI retry sequence
@@ -566,6 +610,11 @@ class Application : public virtual InitialApplicationData,
     virtual void set_audio_stream_retry_active(bool active) = 0;
     virtual void OnVideoStreamRetry() = 0;
     virtual void OnAudioStreamRetry() = 0;
+
+  protected:
+    ApplicationState app_state_;
+    std::string url_;
+    std::string package_name_;
 };
 
 typedef utils::SharedPtr<Application> ApplicationSharedPtr;

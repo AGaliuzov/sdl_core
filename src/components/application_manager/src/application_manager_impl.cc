@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -402,6 +402,7 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
     ManageMobileCommand(response);
     return ApplicationSharedPtr();
   }
+
   application->set_device(device_id);
   application->set_grammar_id(GenerateGrammarID());
   mobile_api::Language::eType launguage_desired =
@@ -469,7 +470,9 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
   }
 
   ApplicationListAccessor app_list_accesor;
+  application->MarkRegistered();
   app_list_accesor.Insert(application);
+
   return application;
 }
 
@@ -811,10 +814,10 @@ void ApplicationManagerImpl::OnFindNewApplicationsRequest() {
   application_list_update_timer_->start(timeout);
 }
 
-void ApplicationManagerImpl::SendUpdateAppList(const std::list<uint32_t>& applications_ids) {
+void ApplicationManagerImpl::SendUpdateAppList() {
   LOG4CXX_TRACE(logger_, "SendUpdateAppList");
 
-  LOG4CXX_DEBUG(logger_, applications_ids.size() << " applications.");
+  LOG4CXX_DEBUG(logger_, applications_.size() << " applications.");
 
   smart_objects::SmartObjectSPtr request = MessageHelper::CreateModuleInfoSO(
       hmi_apis::FunctionID::BasicCommunication_UpdateAppList);
@@ -825,22 +828,22 @@ void ApplicationManagerImpl::SendUpdateAppList(const std::list<uint32_t>& applic
       (*request)[strings::msg_params][strings::applications];
 
   uint32_t app_count = 0;
-  for (std::list<uint32_t>::const_iterator it = applications_ids.begin();
-       it != applications_ids.end(); ++it) {
-    ApplicationSharedPtr app = application(*it);
-
-    if (!app.valid()) {
-      LOG4CXX_ERROR(logger_, "Application not found , id = " << *it);
+  ApplicationListAccessor app_list;
+  ApplictionSet::const_iterator it;
+  for (it = app_list.begin(); it != app_list.end(); ++it) {
+    if (!it->valid()) {
+      LOG4CXX_ERROR(logger_, "Application not found ");
       continue;
     }
 
     smart_objects::SmartObject hmi_application(smart_objects::SmartType_Map);;
-    if (!MessageHelper::CreateHMIApplicationStruct(app, hmi_application)) {
-      LOG4CXX_ERROR(logger_, "Can't CreateHMIApplicationStruct ', id = " << *it);
+    if (!MessageHelper::CreateHMIApplicationStruct(*it, hmi_application)) {
+      LOG4CXX_ERROR(logger_, "Can't CreateHMIApplicationStruct ");
       continue;
     }
     applications[app_count++] = hmi_application;
   }
+  applications_list_lock_.Release();
   if (app_count <= 0) {
     LOG4CXX_WARN(logger_, "Empty applications list");
   }
@@ -1390,7 +1393,6 @@ void ApplicationManagerImpl::SendMessageToHMI(
     logger_,
     "Attached schema to message, result if valid: " << message->isValid());
 
-
 #ifdef HMI_DBUS_API
   message_to_send->set_smart_object(*message);
 #else
@@ -1850,6 +1852,49 @@ mobile_apis::MOBILE_API& ApplicationManagerImpl::mobile_so_factory() {
 
 HMICapabilities& ApplicationManagerImpl::hmi_capabilities() {
   return hmi_capabilities_;
+}
+
+void ApplicationManagerImpl::ProcessQueryApp(
+    const smart_objects::SmartObject& sm_object) {
+  using namespace policy;
+  if (sm_object.keyExists(strings::application)) {
+    SmartArray* obj_array = sm_object[strings::application].asArray();
+    if (NULL != obj_array) {
+      const std::string app_icon_dir(profile::Profile::instance()->app_icons_folder());
+
+      const std::size_t arr_size(obj_array->size());
+      for (std::size_t idx = 0; idx < arr_size; ++idx) {
+
+        const SmartObject& app_data = (*obj_array)[idx];
+        if (app_data.isValid()) {
+          const std::string url_schema(app_data[strings::urlSchema].asString());
+          const std::string package_name(app_data[strings::packageName].asString());
+          const std::string mobile_app_id(app_data[strings::app_id].asString());
+          const std::string appName(app_data[strings::app_name].asString());
+
+          const uint32_t hmi_app_id(GenerateNewHMIAppID());
+
+          ApplicationSharedPtr app(
+                new ApplicationImpl(hmi_app_id,
+                                    mobile_app_id,
+                                    appName,
+                                    PolicyHandler::instance()->GetStatisticManager()));
+          if (app) {
+            app->SetShemaUrl(url_schema);
+            app->SetPackageName(package_name);
+            ApplicationListAccessor app_list;
+            app_list.Insert(app);
+            const std::string full_icon_path(
+                  app_icon_dir + "/" + app->mobile_app_id()->asString());
+            if (file_system::FileExists(full_icon_path)) {
+              MessageHelper::SendSetAppIcon(app, full_icon_path);
+            }
+          }
+        }
+        SendUpdateAppList();
+      }
+    }
+  }
 }
 
 #ifdef TIME_TESTER
@@ -2435,18 +2480,7 @@ bool ApplicationManagerImpl::IsHMICooperating() const {
 
 void ApplicationManagerImpl::OnApplicationListUpdateTimer() {
   LOG4CXX_DEBUG(logger_, "Application list update timer finished");
-
-  std::list <uint32_t> applications_ids;
-  ApplicationListAccessor accessor;
-
-  for (ApplictionSetConstIt it = accessor.begin();
-       it != accessor.end(); ++it) {
-    const ApplicationSharedPtr application = *it;
-    const uint32_t app_id = application->app_id();
-    applications_ids.push_back(app_id);
-  }
-
-  SendUpdateAppList(applications_ids);
+  SendUpdateAppList();
 }
 
 void ApplicationManagerImpl::OnTimerSendTTSGlobalProperties() {

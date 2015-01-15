@@ -485,7 +485,9 @@ class MessageHelper {
     static void SendTTSGlobalProperties(
         ApplicationSharedPtr app, bool default_help_prompt);
 
-    private:
+    static void SendSetAppIcon(ApplicationConstSharedPtr app,
+                               const std::string& icon_path);
+  private:
     /**
      * @brief Allows to fill SO according to the  current permissions.
      * @param permissions application permissions.

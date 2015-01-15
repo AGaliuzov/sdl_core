@@ -261,6 +261,8 @@ class ApplicationManagerImpl : public ApplicationManager,
 
     HMICapabilities& hmi_capabilities();
 
+    void ProcessQueryApp(const smart_objects::SmartObject& sm_object);
+
 #ifdef TIME_TESTER
     /**
      * @brief Setup observer for time metric.
@@ -906,7 +908,7 @@ class ApplicationManagerImpl : public ApplicationManager,
     // CALLED ON audio_pass_thru_messages_ thread!
     virtual void Handle(const impl::AudioData message) OVERRIDE;
 
-    void SendUpdateAppList(const std::list<uint32_t>& applications_ids);
+    void SendUpdateAppList();
     void OnApplicationListUpdateTimer();
 
     /*
