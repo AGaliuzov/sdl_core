@@ -91,7 +91,7 @@ Lock::~Lock() {
 }
 
 void Lock::Acquire() {
-  int32_t status = pthread_mutex_lock(&mutex_);
+  const int32_t status = pthread_mutex_lock(&mutex_);
   if (status != 0) {
     LOG4CXX_ERROR(logger_, "Failed to acquire mutex " << &mutex_ << ": " << strerror(status));
   } else {
@@ -101,24 +101,19 @@ void Lock::Acquire() {
 
 void Lock::Release() {
   AssertTakenAndMarkFree();
-  int32_t status = pthread_mutex_unlock(&mutex_);
+  const int32_t status = pthread_mutex_unlock(&mutex_);
   if (status != 0) {
     LOG4CXX_ERROR(logger_, "Failed to unlock mutex" << &mutex_ << ": " << strerror(status));
   }
 }
 
 bool Lock::Try() {
-  if (lock_taken_ == 0 || is_mutex_recursive_) {
-    int32_t status = pthread_mutex_trylock(&mutex_);
-    if (status != 0) {
-      LOG4CXX_ERROR(logger_, "Failed to acquire mutex " << &mutex_ << ": " << strerror(status));
-    } else {
-      lock_taken_++;
-      return true;
-    }
+  const int32_t status = pthread_mutex_trylock(&mutex_);
+  if (status == 0) {
+    lock_taken_++;
+    return true;
   }
   return false;
-
 }
 
 #ifndef NDEBUG

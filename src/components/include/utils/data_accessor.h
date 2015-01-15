@@ -33,6 +33,7 @@
 #define SRC_COMPONENTS_INCLUDE_UTILS_DATA_ACCESSOR_H_
 
 #include "utils/lock.h"
+#include "utils/shared_ptr.h"
 
 // This class is for thread-safe access to data
 template<class T>
@@ -41,9 +42,8 @@ class DataAccessor {
   DataAccessor(const T& data, const sync_primitives::Lock& lock)
       : data_(data),
         lock_(const_cast<sync_primitives::Lock&>(lock)),
-        counter_(NULL) {
+        counter_( new uint32_t(0)) {
     lock_.Acquire();
-    counter_ = new uint32_t(0);
   }
 
   DataAccessor(const DataAccessor<T>& other)
@@ -56,7 +56,6 @@ class DataAccessor {
   ~DataAccessor() {
     if (0 == *counter_) {
           lock_.Release();
-          delete counter_;
     } else {
       --(*counter_);
     }
@@ -71,7 +70,7 @@ class DataAccessor {
   };
   const T& data_;
   sync_primitives::Lock& lock_;
-  uint32_t* counter_;
+  utils::SharedPtr<uint32_t> counter_;
 };
 
 #endif  // SRC_COMPONENTS_INCLUDE_UTILS_DATA_ACCESSOR_H_
