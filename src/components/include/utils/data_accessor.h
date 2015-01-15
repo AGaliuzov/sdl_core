@@ -66,6 +66,9 @@ class DataAccessor {
   }
  private:
 
+  void *operator new(size_t size){
+    return malloc(size);
+  };
   const T& data_;
   sync_primitives::Lock& lock_;
   uint32_t* counter_;
