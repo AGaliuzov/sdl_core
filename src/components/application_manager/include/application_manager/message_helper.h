@@ -1,4 +1,4 @@
-﻿/*
+/*
  Copyright (c) 2013, Ford Motor Company
  All rights reserved.
 
@@ -309,6 +309,13 @@ class MessageHelper {
       unsigned int connection_key, const std::vector<uint8_t>& policy_data,
       const std::string& url = "", int timeout = -1);
 
+    static void SendSystemRequestNotification(
+        unsigned int connection_key,
+        NsSmartDeviceLink::NsSmartObjects::SmartObject& content);
+
+    static void SendLaunchApp(unsigned int connection_key,
+                              const std::string& urlSchema,
+                              const std::string& packageName);
     /*
     * @brief Send notification to mobile on application permissions update
     * @param connection_key Id of application to send message to
@@ -342,6 +349,21 @@ class MessageHelper {
     static void SendUpdateSDLResponse(const std::string& result,
                                       uint32_t correlation_id);
 
+    /**
+     * @brief SendResponse allows to send response to hmi
+     *
+     * @param success the response result.
+     *
+     * @param correlation_id the correlation id for the rfesponse.
+     *
+     * @param function_id the function id for which response will be sent
+     *
+     * @param result_code the result code.
+     */
+    static void SendResponse(bool success,
+                             uint32_t correlation_id,
+                             hmi_apis::FunctionID::eType function_id,
+                             hmi_apis::Common_Result::eType result_code);
     /**
      * @brief Send OnStatusUpdate to HMI on policy update status change
      * @param status Policy table update status

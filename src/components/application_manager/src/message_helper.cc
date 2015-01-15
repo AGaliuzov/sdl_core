@@ -1811,9 +1811,26 @@ bool MessageHelper::SendStopAudioPathThru() {
 void MessageHelper::SendPolicySnapshotNotification(
   unsigned int connection_key, const std::vector<uint8_t>& policy_data,
   const std::string& url, int timeout) {
-  smart_objects::SmartObjectSPtr pt_notification =
-      new smart_objects::SmartObject(smart_objects::SmartType_Map);
-  smart_objects::SmartObject& content = *pt_notification;
+
+  smart_objects::SmartObject content (smart_objects::SmartType_Map);
+  if (!url.empty()) {
+    content[strings::msg_params][mobile_notification::syncp_url] = url;
+  }
+
+  content[strings::msg_params][strings::request_type] =
+    mobile_apis::RequestType::HTTP;
+
+  content[strings::params][strings::binary_data] = smart_objects::SmartObject(
+        policy_data);
+  content[strings::params][strings::binary_data] = smart_objects::SmartObject(
+        policy_data);
+
+  SendSystemRequestNotification(connection_key, content);
+}
+
+void MessageHelper::SendSystemRequestNotification (
+    unsigned int connection_key,
+    smart_objects::SmartObject& content) {
 
   content[strings::params][strings::function_id] =
     mobile_apis::FunctionID::OnSystemRequestID;
@@ -1823,20 +1840,25 @@ void MessageHelper::SendPolicySnapshotNotification(
     commands::CommandImpl::mobile_protocol_type_;
   content[strings::params][strings::protocol_version] =
     commands::CommandImpl::protocol_version_;
+
   content[strings::params][strings::connection_key] = connection_key;
-  if (!url.empty()) {
-    content[strings::msg_params][mobile_notification::syncp_url] = url;
-  }
-  content[strings::msg_params][strings::file_type] =
-    mobile_apis::FileType::BINARY;
-  content[strings::msg_params][strings::request_type] =
-    mobile_apis::RequestType::HTTP;
-  /*if (-1 != timeout) {
-   content[strings::msg_params][mobile_notification::syncp_timeout] = timeout;
-   }*/
-  content[strings::params][strings::binary_data] = smart_objects::SmartObject(
-        policy_data);
-  ApplicationManagerImpl::instance()->ManageMobileCommand(pt_notification);
+  content[strings::msg_params][strings::file_type] = mobile_apis::FileType::BINARY;
+
+  ApplicationManagerImpl::instance()->ManageMobileCommand(new smart_objects::SmartObject(content));
+}
+
+void MessageHelper::SendLaunchApp(unsigned int connection_key,
+                                  const std::string& urlSchema,
+                                  const std::string& packageName) {
+
+  using namespace mobile_apis;
+  smart_objects::SmartObject content (smart_objects::SmartType_Map);
+  content[strings::msg_params][strings::request_type] = RequestType::LAUNCH_APP;
+  content[strings::msg_params][strings::app_id] = connection_key;
+  content[strings::msg_params][strings::urlSchema] = urlSchema;
+  content[strings::msg_params][strings::packageName] = packageName;
+
+  SendSystemRequestNotification(connection_key, content);
 }
 
 void MessageHelper::SendOnPermissionsChangeNotification(
@@ -2064,7 +2086,23 @@ void MessageHelper::SendUpdateSDLResponse(const std::string& result,
   ApplicationManagerImpl::instance()->ManageHMICommand(message);
 }
 
+void MessageHelper::SendResponse(bool success,
+                                 uint32_t correlation_id,
+                                 hmi_apis::FunctionID::eType function_id,
+                                 hmi_apis::Common_Result::eType result_code) {
+  smart_objects::SmartObject* message = new smart_objects::SmartObject(
+    smart_objects::SmartType_Map);
 
+  (*message)[strings::params][strings::function_id] = function_id;
+  (*message)[strings::params][strings::message_type] = MessageType::kResponse;
+  (*message)[strings::params][strings::correlation_id] = correlation_id;
+  (*message)[strings::params][hmi_response::code] = 0;
+
+  (*message)[strings::msg_params][strings::success] = success;
+  (*message)[strings::msg_params][strings::result_code] = result_code;
+
+  ApplicationManagerImpl::instance()->ManageHMICommand(message);
+}
 
 void MessageHelper::SendOnStatusUpdate(const std::string& status) {
   smart_objects::SmartObjectSPtr message = new smart_objects::SmartObject(

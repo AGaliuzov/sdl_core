@@ -32,6 +32,7 @@
 
 #include "application_manager/commands/hmi/sdl_activate_app_request.h"
 #include "application_manager/policies/policy_handler.h"
+#include "application_manager/message_helper.h"
 
 namespace application_manager {
 
@@ -46,9 +47,41 @@ SDLActivateAppRequest::~SDLActivateAppRequest() {
 
 void SDLActivateAppRequest::Run() {
   LOG4CXX_AUTO_TRACE(logger_);
-  policy::PolicyHandler::instance()->OnActivateApp(
-      (*message_)[strings::msg_params][strings::app_id].asUInt(),
-      (*message_)[strings::params][strings::correlation_id].asInt());
+  using namespace application_manager;
+  using namespace hmi_apis::FunctionID;
+
+  const uint32_t app_id = connection_key();
+  ApplicationConstSharedPtr app =
+      ApplicationManagerImpl::instance()->application(app_id);
+
+  if (app && !app->IsRegistered()) {
+    MessageHelper::SendLaunchApp(app_id, app->SchemaUrl(), app->PackageName());
+    subscribe_on_event(BasicCommunication_OnAppRegistered);
+  } else {
+    policy::PolicyHandler::instance()->OnActivateApp(app_id, correlation_id());
+  }
+}
+
+void SDLActivateAppRequest::onTimeOut() {
+  using namespace hmi_apis::FunctionID;
+  using namespace hmi_apis::Common_Result;
+  using namespace application_manager;
+  unsubscribe_from_event(BasicCommunication_OnAppRegistered);
+  const bool success = false;
+  MessageHelper::SendResponse(success,
+                              correlation_id(),
+                              BasicCommunication_ActivateApp,
+                              APPLICATION_NOT_REGISTERED);
+}
+
+
+void SDLActivateAppRequest::on_event(const event_engine::Event& event) {
+  using namespace hmi_apis::FunctionID;
+  if (event.id() != BasicCommunication_OnAppRegistered) {
+    return;
+  }
+  unsubscribe_from_event(BasicCommunication_OnAppRegistered);
+  policy::PolicyHandler::instance()->OnActivateApp(connection_key(), correlation_id());
 }
 
 }  // namespace commands

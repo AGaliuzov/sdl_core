@@ -1,4 +1,4 @@
-﻿  /*
+  /*
    Copyright (c) 2014, Ford Motor Company
    All rights reserved.
 
@@ -48,14 +48,14 @@
 
   namespace NsSmart = NsSmartDeviceLink::NsSmartObjects;
 
-  class RequestFromHMI : public CommandImpl {
+  class RequestFromHMI : public CommandImpl, public event_engine::EventObserver {
    public:
     explicit RequestFromHMI(const MessageSharedPtr& message);
     virtual ~RequestFromHMI();
     virtual bool Init();
     virtual bool CleanUp();
     virtual void Run();
-
+    virtual void on_event(const event_engine::Event& event);
    private:
     DISALLOW_COPY_AND_ASSIGN(RequestFromHMI);
   };

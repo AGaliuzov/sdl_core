@@ -58,6 +58,9 @@ bool RequestFromHMI::CleanUp() {
 void RequestFromHMI::Run() {
 }
 
+void RequestFromHMI::on_event(const event_engine::Event& event) {
+}
+
 }  // namespace commands
 }  // namespace application_manager
 
