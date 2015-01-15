@@ -104,6 +104,7 @@ struct DeactivateApplication {
     void operator()(const ApplicationSharedPtr& app) {
       if (device_id_ == app->device()) {
         app->set_hmi_level(mobile_apis::HMILevel::HMI_NONE);
+        app->set_audio_streaming_state(mobile_api::AudioStreamingState::NOT_AUDIBLE); 
         MessageHelper::SendActivateAppToHMI(
           app->app_id(), hmi_apis::Common_HMILevel::NONE);
         MessageHelper::SendHMIStatusNotification(*app.get());
@@ -669,8 +670,8 @@ void PolicyHandler::OnPendingPermissionChange(
           SendOnAppPermissionsChangedNotification(app->app_id(), permissions);
 
       policy_manager_->RemovePendingPermissionChanges(policy_app_id);
-      break;
     }
+    break;
   }
   case eType::HMI_BACKGROUND: {
     if (permissions.isAppPermissionsRevoked) {
