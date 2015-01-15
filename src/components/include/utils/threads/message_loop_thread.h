@@ -44,6 +44,8 @@
 
 namespace threads {
 
+using ::utils::MessageQueue;
+
 /**
  * \class MessageLoopThread
  * \brief Handles a thread which sole purpose is to pump messages pushed
