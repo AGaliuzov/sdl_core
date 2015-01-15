@@ -1,4 +1,4 @@
-# Copyright (c) 2014, Ford Motor Company
+# Copyright (c) 2015, Ford Motor Company
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,9 @@ if(BUILD_TESTS)
 
 include_directories (
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
-  ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include)
+  ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
+  ${COMPONENTS_DIR}/include/utils
+  )
 
 set(testSources
   main.cc
@@ -42,7 +44,10 @@ set(testSources
   system_test.cc
   signals_linux_test.cc
   thread_validator_test.cc
+  conditional_variable_test.cc
+  message_queue_test.cc
 )
+
 
 set(testLibraries
   gmock

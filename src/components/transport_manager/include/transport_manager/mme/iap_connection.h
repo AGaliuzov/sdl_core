@@ -51,7 +51,7 @@ class IAPConnection : public Connection {
   IAPConnection(const DeviceUID& device_uid,
                 const ApplicationHandle& app_handle,
                 TransportAdapterController* controller, IAPDevice* parent);
-
+  virtual ~IAPConnection();
   void Init();
 
  protected:

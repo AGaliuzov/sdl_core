@@ -51,6 +51,7 @@ class MmeTransportAdapter : public TransportAdapterImpl {
 // and to connect to new applications on MME device
   virtual void ApplicationListUpdated(const DeviceUID& device_handle);
   virtual bool ToBeAutoConnected(DeviceSptr device) const;
+  virtual bool ToBeAutoDisconnected(DeviceSptr device) const;
 
  private:
   bool initialised_;

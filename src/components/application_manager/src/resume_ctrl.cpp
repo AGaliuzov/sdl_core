@@ -1,7 +1,39 @@
+﻿/*
+ Copyright (c) 2013-2014, Ford Motor Company
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+
+ Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following
+ disclaimer in the documentation and/or other materials provided with the
+ distribution.
+
+ Neither the name of the Ford Motor Company nor the names of its contributors
+ may be used to endorse or promote products derived from this software
+ without specific prior written permission.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
+ */
+#include "application_manager/resume_ctrl.h"
+
 #include <fstream>
 #include <algorithm>
 
-#include "application_manager/resume_ctrl.h"
 #include "config_profile/profile.h"
 #include "utils/file_system.h"
 #include "connection_handler/connection_handler_impl.h"
@@ -38,7 +70,7 @@ void ResumeCtrl::SaveAllApplications() {
   DCHECK(app_mngr_);
   if (app_mngr_) {
     ApplicationManagerImpl::ApplicationListAccessor accessor;
-    ApplicationManagerImpl::TAppList apps(accessor.applications());
+    ApplicationManagerImpl::ApplictionSet apps(accessor.applications());
     std::for_each(apps.begin(),
                   apps.end(),
                   std::bind1st(std::mem_fun(&ResumeCtrl::SaveApplication), this));
@@ -220,11 +252,10 @@ bool ResumeCtrl::SetupHMILevel(ApplicationSharedPtr application,
         //AudioStreamingState=AUDIBLE
         bool application_exist_with_audible_state = false;
         ApplicationManagerImpl::ApplicationListAccessor accessor;
-        const std::set<ApplicationSharedPtr> app_list = accessor.applications();
-        std::set<ApplicationSharedPtr>::const_iterator app_list_it = app_list
-            .begin();
+       ApplicationManagerImpl::ApplictionSetConstIt app_list_it =
+           accessor.begin();
         uint32_t app_id = application->app_id();
-        for (; app_list.end() != app_list_it; ++app_list_it) {
+        for (; accessor.end() != app_list_it; ++app_list_it) {
           if ((mobile_apis::AudioStreamingState::AUDIBLE ==
               (*app_list_it)->audio_streaming_state())
               && ((*app_list_it))->app_id() != app_id) {
@@ -296,9 +327,9 @@ bool ResumeCtrl::IsHMIApplicationIdExist(uint32_t hmi_app_id) {
     }
   }
   ApplicationManagerImpl::ApplicationListAccessor accessor;
-  ApplicationManagerImpl::TAppList apps(accessor.applications());
-  std::set<ApplicationSharedPtr>::iterator it = apps.begin();
-  std::set<ApplicationSharedPtr>::iterator it_end = apps.end();
+  ApplicationManagerImpl::ApplictionSet apps(accessor.applications());
+  ApplicationManagerImpl::ApplictionSetIt it = apps.begin();
+  ApplicationManagerImpl::ApplictionSetIt it_end = apps.end();
 
   for (;it != it_end; ++it) {
     if (hmi_app_id == (*it)->hmi_app_id()) {
@@ -796,7 +827,7 @@ Json::Value ResumeCtrl::JsonFromSO(const smart_objects::SmartObject *so) {
   return temp;
 }
 
-bool ResumeCtrl::ProcessHMIRequest(smart_objects::SmartObject* request,
+bool ResumeCtrl::ProcessHMIRequest(smart_objects::SmartObjectSPtr request,
                                    bool use_events) {
   LOG4CXX_AUTO_TRACE(logger_);
   if (use_events) {
@@ -954,8 +985,8 @@ void ResumeCtrl::AddSubscriptions(ApplicationSharedPtr application, const Json::
   }
 }
 
-void ResumeCtrl::ProcessHMIRequests(const MessageHelper::SmartObjectList& requests) {
-  for (MessageHelper::SmartObjectList::const_iterator it = requests.begin(),
+void ResumeCtrl::ProcessHMIRequests(const smart_objects::SmartObjectList& requests) {
+  for (smart_objects::SmartObjectList::const_iterator it = requests.begin(),
        total = requests.end();
        it != total; ++it) {
     ProcessHMIRequest(*it, true);
@@ -1020,7 +1051,7 @@ void ResumeCtrl::SendHMIRequest(
     const hmi_apis::FunctionID::eType& function_id,
     const smart_objects::SmartObject* msg_params, bool use_events) {
   LOG4CXX_AUTO_TRACE(logger_);
-  NsSmartDeviceLink::NsSmartObjects::SmartObject* result =
+  smart_objects::SmartObjectSPtr result =
       MessageHelper::CreateModuleInfoSO(function_id);
   int32_t hmi_correlation_id =
       (*result)[strings::params][strings::correlation_id].asInt();

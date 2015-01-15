@@ -47,7 +47,10 @@ namespace transport_adapter {
 CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
 
 MmeClientListener::MmeClientListener(TransportAdapterController* controller)
-  : controller_(controller) {
+  : controller_(controller),
+    qdb_hdl_(NULL),
+    notify_thread_(NULL),
+    notify_thread_delegate_(NULL) {
 }
 
 TransportAdapter::Error MmeClientListener::Init() {

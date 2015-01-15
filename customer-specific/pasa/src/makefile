@@ -38,8 +38,8 @@ library:
 	@echo "***************************************************************************"
 	$(MAKE) -C 3rd_party-static/encryption/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C 3rd_party-static/jsoncpp/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C 3rd_party OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C 3rd_party-static/MessageBroker/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
+	$(MAKE) -C 3rd_party/log4cxx OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/interfaces OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/utils/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/media_manager/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
@@ -83,6 +83,7 @@ clean lint metrics:
 	$(MAKE) -C 3rd_party-static/encryption/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C 3rd_party-static/jsoncpp/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C 3rd_party-static/MessageBroker/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
+	$(MAKE) -C 3rd_party/log4cxx OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/interfaces OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/utils/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/smart_objects/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
@@ -106,6 +107,3 @@ clean lint metrics:
 
 clobber:
 	rm -fr $(BUILD_ROOTS)
-
-clean-3rd_party:
-	$(MAKE) -C 3rd_party OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@

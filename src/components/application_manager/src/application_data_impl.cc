@@ -173,6 +173,7 @@ DynamicApplicationDataImpl::DynamicApplicationDataImpl()
       menu_icon_(NULL),
       tbt_show_command_(NULL),
       commands_(),
+      commands_lock_(true),
       sub_menu_(),
       choice_set_map_(),
       performinteraction_choice_set_map_(),
@@ -267,15 +268,15 @@ DynamicApplicationDataImpl::tbt_show_command() const {
   return tbt_show_command_;
 }
 
-const NsSmartDeviceLink::NsSmartObjects::SmartObject *DynamicApplicationDataImpl::keyboard_props() const {
+const smart_objects::SmartObject* DynamicApplicationDataImpl::keyboard_props() const {
   return keyboard_props_;
 }
 
-const NsSmartDeviceLink::NsSmartObjects::SmartObject *DynamicApplicationDataImpl::menu_title() const {
+const smart_objects::SmartObject* DynamicApplicationDataImpl::menu_title() const {
   return menu_title_;
 }
 
-const NsSmartDeviceLink::NsSmartObjects::SmartObject* DynamicApplicationDataImpl::menu_icon() const {
+const smart_objects::SmartObject* DynamicApplicationDataImpl::menu_icon() const {
   return menu_icon_;
 }
 

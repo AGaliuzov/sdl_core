@@ -38,8 +38,7 @@ namespace transport_manager {
 namespace transport_adapter {
 
 MmeTransportAdapter::MmeTransportAdapter()
-    : TransportAdapterImpl(NULL,
-                           new MmeConnectionFactory(this),
+    : TransportAdapterImpl(NULL, new MmeConnectionFactory(this),
                            new MmeClientListener(this)),
       initialised_(false) {
 }
@@ -67,6 +66,10 @@ void MmeTransportAdapter::ApplicationListUpdated(
 
 bool MmeTransportAdapter::ToBeAutoConnected(DeviceSptr device) const {
   return true;
+}
+
+bool MmeTransportAdapter::ToBeAutoDisconnected(DeviceSptr device) const {
+  return false;
 }
 
 }  // namespace transport_adapter

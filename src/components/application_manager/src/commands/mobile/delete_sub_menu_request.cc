@@ -107,13 +107,14 @@ void DeleteSubMenuRequest::DeleteSubMenuVRCommands(ApplicationConstSharedPtr app
 void DeleteSubMenuRequest::DeleteSubMenuUICommands(ApplicationSharedPtr const app) {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  const DataAccessor<CommandsMap> accessor = app->commands_map();
+  const DataAccessor<CommandsMap> accessor(app->commands_map());
   const CommandsMap& commands = accessor.GetData();
   CommandsMap::const_iterator it = commands.begin();
 
   while (commands.end() != it) {
-
     if (!(*it->second).keyExists(strings::menu_params)) {
+      ++it;
+      LOG4CXX_ERROR(logger_, "menu_params not exist");
       continue;
     }
 
@@ -124,9 +125,7 @@ void DeleteSubMenuRequest::DeleteSubMenuUICommands(ApplicationSharedPtr const ap
           smart_objects::SmartType_Map);
       msg_params[strings::app_id] = app->app_id();
       msg_params[strings::cmd_id] = (*it->second)[strings::cmd_id].asInt();
-
       app->RemoveCommand((*it->second)[strings::cmd_id].asInt());
-
       it = commands.begin();  // Can not relay on
                               // iterators after erase was called
 

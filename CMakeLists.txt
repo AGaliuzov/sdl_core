@@ -64,11 +64,9 @@ set(ENABLE_LOG_OPTION 	"$ENV{ENABLE_LOG}")
 set(ARCH_TYPE_OPTION	"$ENV{ARCH_TYPE}")
 set(POLICY_OPTION 	"$ENV{POLICY_TYPE}")
 set(SECURITY_OPTION 	"$ENV{SECURITY_MODE}")
-#<<<<<<< HEAD
 set(COMPONENTS_DIR ${CMAKE_SOURCE_DIR}/src/components)
-#=======
 set(SNAPSHOT_TAG 	"$ENV{SNAPSHOT_TAG}")
-#>>>>>>> develop
+
 
 
 if (ARCH_TYPE_OPTION)
@@ -156,21 +154,9 @@ if (SECURITY_OPTION)
   endif()
 endif()
 
-project (${PROJECT})
-
 #Jenkins integration section end
 
-set(had_logger_lib 0)
-find_library(LOGGER_LIB NAMES liblog4cxx.so)
-if(LOGGER_LIB)
-  set(had_logger_lib 1)
-endif()
-
 add_custom_target(pasa-tarball
-  COMMAND /bin/bash -c \"if [ ${had_logger_lib} == 1 ]\; then 
-  							echo " WARNING. log4cxx LIBS OR HEADERS ARE PRESENT IN SYSTEM PATHS. "\;
-  							echo " CROSS COMPILING ON LINUX CAN LEAD TO UNEXPECTED RESULTS. "\; 
-  						fi\"
   COMMAND ${CMAKE_SOURCE_DIR}/tools/Utils/export-customer-specific.sh ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} pasa
   COMMAND tar -cz -C /tmp/PASA -f ${CMAKE_BINARY_DIR}/pasa.tar.gz .
   DEPENDS HMI_API MOBILE_API v4_protocol_v1_2_no_extra
@@ -187,6 +173,8 @@ add_custom_target(genivi-tarball
   COMMAND tar -cz -C /tmp/GENIVI -f ${CMAKE_BINARY_DIR}/genivi.tar.gz .
 )
 
+
+project (${PROJECT})
 
 #ADD_DEPENDENCIES(${PROJECT} Policy)
 
