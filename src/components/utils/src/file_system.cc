@@ -412,3 +412,10 @@ bool file_system::CreateFile(const std::string& path) {
     return true;
   }
 }
+
+
+long file_system::GetFileModificationTime(const std::string& path) {
+  struct stat info;
+  stat(path.c_str(), &info);
+  return info.st_mtim.tv_nsec;
+}

@@ -31,26 +31,43 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "application_manager/commands/mobile/set_icon_response.h"
-#include "application_manager/application_manager_impl.h"
+#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_MOBILE_SET_ICON_RESPONSE_H_
+#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_MOBILE_SET_ICON_RESPONSE_H_
+
+#include "application_manager/commands/command_response_impl.h"
+#include "utils/macro.h"
 
 namespace application_manager {
 
 namespace commands {
 
-SetIconResponse::SetIconResponse(const MessageSharedPtr& message)
-    : CommandResponseImpl(message) {
-}
+/**
+ * @brief SetIconResponse command class
+ **/
+class SetAppIconResponse : public CommandResponseImpl {
+ public:
+  /**
+   * @brief SetIconResponse class constructor
+   *
+   * @param message Incoming SmartObject message
+   **/
+  explicit SetAppIconResponse(const MessageSharedPtr& message);
 
-SetIconResponse::~SetIconResponse() {
-}
+  /**
+   * @brief SetIconResponse class destructor
+   **/
+  virtual ~SetAppIconResponse();
 
-void SetIconResponse::Run() {
-  LOG4CXX_AUTO_TRACE(logger_);
+  /**
+   * @brief Execute command
+   **/
+  virtual void Run();
 
-  ApplicationManagerImpl::instance()->SendMessageToMobile(message_);
-}
+ private:
+  DISALLOW_COPY_AND_ASSIGN(SetAppIconResponse);
+};
 
 }  // namespace commands
-
 }  // namespace application_manager
+
+#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_MOBILE_SET_ICON_RESPONSE_H_

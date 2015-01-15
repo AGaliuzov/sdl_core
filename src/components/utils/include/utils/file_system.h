@@ -234,6 +234,13 @@ const std::string ConvertPathForURL(const std::string& path);
 */
 bool CreateFile(const std::string& path);
 
+/**
+ * @brief Get modification time of file
+ * @param path Path to file
+ * @return Modification time in nanoseconds
+ */
+long GetFileModificationTime(const std::string& path);
+
 void remove_directory_content(const std::string& directory_name);
 
 }  // namespace file_system
