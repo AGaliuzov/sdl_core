@@ -34,6 +34,7 @@ include_directories (
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
   ${COMPONENTS_DIR}/include/utils
+  ${COMPONENTS_DIR}/application_manager/include
   )
 
 set(testSources
