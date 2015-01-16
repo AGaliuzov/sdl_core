@@ -514,7 +514,7 @@ FFW.BasicCommunication = FFW.RPCObserver
 
             SDL.SDLModel.activateAppRequestsList[itemIndex] = {
                 "appID": appID,
-                "popUp": SDL.PopUp.create().appendTo('body').popupActivate("Activation in progress...", "indicator")
+                "popUp": SDL.PopUp.create().appendTo('body').popupActivate("Activation in progress...", null, true)
             };
 
             Em.Logger.log("FFW.SDL.OnAppActivated: Request from HMI!");
