@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -565,6 +565,12 @@ class CacheManagerInterface {
       const std::string& device_id,
       const std::string& policy_app_id,
       policy::Permissions& permission) = 0;
+
+  /**
+   * @brief RemoteAppsUrl allows to obtain url for QUERY_APP system request.
+   * @return url.
+   */
+  virtual std::string RemoteAppsUrl() const = 0;
 };
 
 typedef utils::SharedPtr<CacheManagerInterface> CacheManagerInterfaceSPtr;

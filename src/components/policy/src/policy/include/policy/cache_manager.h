@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -583,6 +583,8 @@ private:
   bool IsPermissionsCalculated(const std::string& device_id,
                                const std::string& policy_app_id,
                                policy::Permissions& permission);
+
+  virtual std::string RemoteAppsUrl() const;
 
 private:
   utils::SharedPtr<policy_table::Table> pt_;

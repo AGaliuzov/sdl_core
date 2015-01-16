@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
@@ -118,6 +118,7 @@ ApplicationImpl::ApplicationImpl(uint32_t application_id,
   set_mobile_app_id(smart_objects::SmartObject(mobile_app_id));
   set_name(app_name);
 
+  MarkUnregistered();
   // subscribe application to custom button by default
   SubscribeToButton(mobile_apis::ButtonName::CUSTOM_BUTTON);
 

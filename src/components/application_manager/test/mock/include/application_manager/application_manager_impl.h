@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -193,6 +193,7 @@ class ApplicationManagerImpl : public ApplicationManager,
   MOCK_METHOD1(RegisterApplication,
                 ApplicationSharedPtr(const utils::SharedPtr<smart_objects::SmartObject>&));
   MOCK_METHOD0(hmi_capabilities, HMICapabilities& ());
+  MOCK_METHOD1(ProcessQueryApp, void (const smart_objects::SmartObject& sm_object));
   MOCK_METHOD1(ManageHMICommand, bool (const utils::SharedPtr<smart_objects::SmartObject>&));
   MOCK_METHOD1(ManageMobileCommand, bool (const utils::SharedPtr<smart_objects::SmartObject>& message));
   MOCK_METHOD1(SendMessageToHMI, bool (const utils::SharedPtr<smart_objects::SmartObject>&));

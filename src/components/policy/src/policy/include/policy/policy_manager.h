@@ -410,6 +410,13 @@ class PolicyManager : public usage_statistics::StatisticsManager {
      * condition is true.
      */
     virtual void StartPTExchange() = 0;
+
+    /**
+     * @brief RemoteAppsUrl allows to obtain url for QUERY_APP system request.
+     *
+     * @return url.
+     */
+    virtual std::string RemoteAppsUrl() const = 0;
 };
 
 }  // namespace policy

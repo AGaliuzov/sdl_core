@@ -219,7 +219,16 @@ FFW.BasicCommunication = FFW.RPCObserver
 
                 if (response.id in SDL.SDLModel.activateAppRequestsList) {
 
-                    var appID = SDL.SDLModel.activateAppRequestsList[response.id];
+                    var appID = SDL.SDLModel.activateAppRequestsList[response.id].appID,
+                        popUp = SDL.SDLModel.activateAppRequestsList[response.id].popUp;
+
+                    popUp.deactivate();
+
+                    if (response.error && response.error.code === SDL.SDLModel.resultCode["APPLICATION_NOT_REGISTERED"]) {
+
+                        SDL.PopUp.create().appendTo('body').popupActivate("Activation FAILED!");
+                        return;
+                    }
 
                     if (!response.result.isSDLAllowed) {
 
@@ -422,6 +431,11 @@ FFW.BasicCommunication = FFW.RPCObserver
 
                     SDL.PopUp.create().appendTo('body').popupActivate(message);
 
+                    for(var app in request.params.applications) {
+
+                        SDL.SDLController.registerApplication(app, null);
+                    }
+
                     this.sendBCResult(SDL.SDLModel.resultCode["SUCCESS"],
                         request.id,
                         request.method);
@@ -498,7 +512,10 @@ FFW.BasicCommunication = FFW.RPCObserver
 
             var itemIndex = this.client.generateId();
 
-            SDL.SDLModel.activateAppRequestsList[itemIndex] = appID;
+            SDL.SDLModel.activateAppRequestsList[itemIndex] = {
+                "appID": appID,
+                "popUp": SDL.PopUp.create().appendTo('body').popupActivate("Activation in progress...", null, true)
+            };
 
             Em.Logger.log("FFW.SDL.OnAppActivated: Request from HMI!");
 

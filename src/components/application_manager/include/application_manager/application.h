@@ -361,6 +361,12 @@ class DynamicApplicationData {
 class Application : public virtual InitialApplicationData,
   public virtual DynamicApplicationData {
   public:
+    enum ApplicationState {
+      kRegistered = 0,
+      kWaitingForRegistration
+    };
+
+  public:
     virtual ~Application() {
     }
 
@@ -557,6 +563,62 @@ class Application : public virtual InitialApplicationData,
      */
     virtual bool IsAudioApplication() const = 0;
 
+    /**
+     * @brief IsRegistered allows to distinguish if this
+     * application has been registered.
+     *
+     * @return true if registered, false otherwise.
+     */
+    bool IsRegistered() const { return app_state_ == kRegistered;}
+
+    /**
+     * @brief MarkRegistered allows to mark application as registered.
+     */
+    void MarkRegistered() {app_state_ = kRegistered;}
+
+    /**
+     * @brief MarkUnregistered allows to mark application as unregistered.
+     */
+    void MarkUnregistered() {app_state_ = kWaitingForRegistration;}
+
+    /**
+     * @brief schemaUrl contains application's url (for 4th protocol version)
+     *
+     * @return application's url.
+     */
+    std::string SchemaUrl() const {return url_;}
+
+    /**
+     * @brief SetShemaUrl allows to store schema url for application.
+     *
+     * @param url url to store.
+     */
+    void SetShemaUrl(const std::string& url) {url_ = url;}
+
+    /**
+     * @brief packagName allows to obtain application's package name.
+     *
+     * @return pakage name.
+     */
+    std::string PackageName() const {return package_name_;}
+
+    /**
+     * @brief SetPackageName allows to store package name for application.
+     *
+     * @param packageName package name to store.
+     */
+    void SetPackageName(const std::string& packageName) {
+      package_name_ = packageName;
+    }
+
+    /**
+     * @brief GetDeviceId allows to obtain device id which posseses
+     * by this application.
+     *
+     * @return device the device id.
+     */
+    std::string GetDeviceId() const {return device_id_;}
+
   protected:
 
     // interfaces for NAVI retry sequence
@@ -566,6 +628,12 @@ class Application : public virtual InitialApplicationData,
     virtual void set_audio_stream_retry_active(bool active) = 0;
     virtual void OnVideoStreamRetry() = 0;
     virtual void OnAudioStreamRetry() = 0;
+
+  protected:
+    ApplicationState app_state_;
+    std::string url_;
+    std::string package_name_;
+    std::string device_id_;
 };
 
 typedef utils::SharedPtr<Application> ApplicationSharedPtr;

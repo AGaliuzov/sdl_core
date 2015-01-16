@@ -249,6 +249,7 @@ class PolicyManagerImpl : public PolicyManager {
                 const std::vector<FunctionalGroupPermission>& current_permissions);
 
     virtual void StartPTExchange();
+    virtual std::string RemoteAppsUrl() const;
     virtual bool ExceededDays();
     virtual bool ExceededIgnitionCycles();
     bool IsPTValid(utils::SharedPtr<policy_table::Table> policy_table,

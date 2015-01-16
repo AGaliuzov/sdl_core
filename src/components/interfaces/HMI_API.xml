@@ -1304,10 +1304,10 @@
     <param name="appID" type="Integer" mandatory="true">
       <description>Unique (during ignition cycle) id of the application. To be used in all RPCs sent by both HU system and SDL</description>
     </param>
-    <param name="hmiDisplayLanguageDesired" type="Common.Language" mandatory="true">
+    <param name="hmiDisplayLanguageDesired" type="Common.Language" mandatory="false">
       <description>The language the application intends to use on HU  </description>
     </param>
-    <param name="isMediaApplication" type="Boolean" mandatory="true">
+    <param name="isMediaApplication" type="Boolean" mandatory="false">
       <description>Indicates whether it is a media or a non-media application.</description>
     </param>
     <param name="appType" type="Common.AppHMIType" minsize="1" maxsize="100" array="true" mandatory="false">

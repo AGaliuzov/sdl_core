@@ -328,11 +328,13 @@ uint32_t PolicyHandler::GetAppIdForSending() {
   DeviceParams device_param;
   for (HmiLevelOrderedApplicationList::const_iterator first = app_list.begin();
        first != app_list.end(); ++first) {
-    const uint32_t app_id = (*first)->app_id();
-    MessageHelper::GetDeviceInfoForApp(app_id, &device_param);
-    if (kDeviceAllowed ==
-        policy_manager_->GetUserConsentForDevice(device_param.device_mac_address)) {
-      return app_id;
+    if ((*first)->IsRegistered()) {
+      const uint32_t app_id = (*first)->app_id();
+      MessageHelper::GetDeviceInfoForApp(app_id, &device_param);
+      if (kDeviceAllowed ==
+          policy_manager_->GetUserConsentForDevice(device_param.device_mac_address)) {
+        return app_id;
+      }
     }
   }
 
