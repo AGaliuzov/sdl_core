@@ -688,11 +688,12 @@ smart_objects::SmartObjectList MessageHelper::GetIVISubscriptionRequests(
   return hmi_requests;
 }
 
-void MessageHelper::SendAppDataToHMI(ApplicationConstSharedPtr app) {
-  LOG4CXX_AUTO_TRACE(logger_);
-  smart_objects::SmartObjectSPtr set_app_icon(new smart_objects::SmartObject);
+void MessageHelper::SendSetAppIcon(uint32_t app_id,
+                                   const std::string& icon_path) {
+  using namespace smart_objects;
+  SmartObjectSPtr set_app_icon(new smart_objects::SmartObject);
   if (set_app_icon) {
-    smart_objects::SmartObject& so_to_send = *set_app_icon;
+    SmartObject& so_to_send = *set_app_icon;
     so_to_send[strings::params][strings::function_id] =
       static_cast<int>(hmi_apis::FunctionID::UI_SetAppIcon);
     so_to_send[strings::params][strings::message_type] =
@@ -706,18 +707,22 @@ void MessageHelper::SendAppDataToHMI(ApplicationConstSharedPtr app) {
 
     so_to_send[strings::msg_params] = smart_objects::SmartObject(
                                         smart_objects::SmartType_Map);
-    smart_objects::SmartObjectSPtr msg_params = MessageHelper::CreateSetAppIcon(
-          app->app_icon_path(), app->app_id());
+    SmartObjectSPtr msg_params(MessageHelper::CreateSetAppIcon(icon_path, app_id));
 
     if (msg_params) {
       so_to_send[strings::msg_params] = *msg_params;
     }
-    // TODO(PV): appropriate handling of result
-    DCHECK(ApplicationManagerImpl::instance()->ManageHMICommand(set_app_icon));
+    ApplicationManagerImpl::instance()->ManageHMICommand(set_app_icon);
   }
+}
 
-  SendGlobalPropertiesToHMI(app);
-  SendShowRequestToHMI(app);
+void MessageHelper::SendAppDataToHMI(ApplicationConstSharedPtr app) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  if (app) {
+    SendSetAppIcon(app, app->app_icon_path());
+    SendGlobalPropertiesToHMI(app);
+    SendShowRequestToHMI(app);
+  }
 }
 
 void MessageHelper::SendGlobalPropertiesToHMI(ApplicationConstSharedPtr app) {

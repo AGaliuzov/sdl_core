@@ -1,4 +1,4 @@
-﻿/*
+/*
  Copyright (c) 2013, Ford Motor Company
  All rights reserved.
 
@@ -485,7 +485,16 @@ class MessageHelper {
     static void SendTTSGlobalProperties(
         ApplicationSharedPtr app, bool default_help_prompt);
 
-    private:
+    /**
+     * @brief SendSetAppIcon allows to send SetAppIcon request.
+     *
+     * @param app_id application for which icon request should be sent.
+     *
+     * @param icon_path path to the icon.
+     */
+    static void SendSetAppIcon(uint32_t app_id,
+                               const std::string& icon_path);
+  private:
     /**
      * @brief Allows to fill SO according to the  current permissions.
      * @param permissions application permissions.
