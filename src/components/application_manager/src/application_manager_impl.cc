@@ -35,6 +35,7 @@
 #include <climits>
 #include <string>
 #include <fstream>
+#include <utility>
 
 #include "application_manager/application_manager_impl.h"
 #include "application_manager/mobile_command_factory.h"
@@ -843,7 +844,7 @@ void ApplicationManagerImpl::SendUpdateAppList() {
     }
     applications[app_count++] = hmi_application;
   }
-  applications_list_lock_.Release();
+
   if (app_count <= 0) {
     LOG4CXX_WARN(logger_, "Empty applications list");
   }
@@ -1854,44 +1855,63 @@ HMICapabilities& ApplicationManagerImpl::hmi_capabilities() {
   return hmi_capabilities_;
 }
 
+void ApplicationManagerImpl::CreateApplications(
+    SmartArray& obj_array,
+    const std::string& app_icon_dir,
+    std::vector<std::pair<const int, const std::string>>& apps_with_icon) {
+
+  using namespace policy;
+
+  const std::size_t arr_size(obj_array.size());
+  for (std::size_t idx = 0; idx < arr_size; ++idx) {
+
+    const SmartObject& app_data = obj_array[idx];
+    if (app_data.isValid()) {
+      const std::string url_schema(app_data[strings::urlSchema].asString());
+      const std::string package_name(app_data[strings::packageName].asString());
+      const std::string mobile_app_id(app_data[strings::app_id].asString());
+      const std::string appName(app_data[strings::app_name].asString());
+
+      const uint32_t hmi_app_id(GenerateNewHMIAppID());
+
+      ApplicationSharedPtr app(
+            new ApplicationImpl(hmi_app_id,
+                                mobile_app_id,
+                                appName,
+                                PolicyHandler::instance()->GetStatisticManager()));
+      if (app) {
+        app->SetShemaUrl(url_schema);
+        app->SetPackageName(package_name);
+        ApplicationListAccessor app_list;
+        app_list.Insert(app);
+        const std::string full_icon_path(
+              app_icon_dir + "/" + app->mobile_app_id()->asString());
+        if (file_system::FileExists(full_icon_path)) {
+          apps_with_icon.push_back(std::make_pair(app->app_id(), full_icon_path));
+        }
+      }
+    }
+  }
+}
+
 void ApplicationManagerImpl::ProcessQueryApp(
     const smart_objects::SmartObject& sm_object) {
   using namespace policy;
+  using namespace profile;
+
+  typedef std::vector<std::pair<const int, const std::string>> AppsWithIcon;
+  AppsWithIcon apps_with_icon;
+
   if (sm_object.keyExists(strings::application)) {
     SmartArray* obj_array = sm_object[strings::application].asArray();
     if (NULL != obj_array) {
-      const std::string app_icon_dir(profile::Profile::instance()->app_icons_folder());
+      const std::string app_icon_dir(Profile::instance()->app_icons_folder());
+      CreateApplications(*obj_array, app_icon_dir, apps_with_icon);
+      SendUpdateAppList();
 
-      const std::size_t arr_size(obj_array->size());
-      for (std::size_t idx = 0; idx < arr_size; ++idx) {
-
-        const SmartObject& app_data = (*obj_array)[idx];
-        if (app_data.isValid()) {
-          const std::string url_schema(app_data[strings::urlSchema].asString());
-          const std::string package_name(app_data[strings::packageName].asString());
-          const std::string mobile_app_id(app_data[strings::app_id].asString());
-          const std::string appName(app_data[strings::app_name].asString());
-
-          const uint32_t hmi_app_id(GenerateNewHMIAppID());
-
-          ApplicationSharedPtr app(
-                new ApplicationImpl(hmi_app_id,
-                                    mobile_app_id,
-                                    appName,
-                                    PolicyHandler::instance()->GetStatisticManager()));
-          if (app) {
-            app->SetShemaUrl(url_schema);
-            app->SetPackageName(package_name);
-            ApplicationListAccessor app_list;
-            app_list.Insert(app);
-            const std::string full_icon_path(
-                  app_icon_dir + "/" + app->mobile_app_id()->asString());
-            if (file_system::FileExists(full_icon_path)) {
-              MessageHelper::SendSetAppIcon(app, full_icon_path);
-            }
-          }
-        }
-        SendUpdateAppList();
+      AppsWithIcon::const_iterator it = apps_with_icon.begin();
+      for (; it != apps_with_icon.end(); ++it) {
+        MessageHelper::SendSetAppIcon(it->first, it->second);
       }
     }
   }

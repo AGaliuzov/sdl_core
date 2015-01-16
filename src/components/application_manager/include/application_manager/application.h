@@ -363,7 +363,7 @@ class Application : public virtual InitialApplicationData,
   public:
     enum ApplicationState {
       kRegistered = 0,
-      kWaitForRegistration
+      kWaitingForRegistration
     };
 
   public:
@@ -567,39 +567,57 @@ class Application : public virtual InitialApplicationData,
      * @brief IsRegistered allows to distinguish if this
      * application has been registered.
      *
-     * @return true if registered false otherwise.
+     * @return true if registered, false otherwise.
      */
-    virtual bool IsRegistered() const { return app_state_ == kRegistered;}
+    bool IsRegistered() const { return app_state_ == kRegistered;}
 
     /**
-     * @brief MarkRegistered allows to mark applicatoin as registered.
+     * @brief MarkRegistered allows to mark application as registered.
      */
-    virtual void MarkRegistered() {app_state_ = kRegistered;}
+    void MarkRegistered() {app_state_ = kRegistered;}
 
     /**
      * @brief MarkUnregistered allows to mark application as unregistered.
      */
-    virtual void MarkUnregistered() {app_state_ = kWaitForRegistration;}
+    void MarkUnregistered() {app_state_ = kWaitingForRegistration;}
 
     /**
      * @brief schemaUrl contains application's url (for 4th protocol version)
      *
      * @return application's url.
      */
-    virtual std::string SchemaUrl() const {return url_;}
+    std::string SchemaUrl() const {return url_;}
 
-    virtual void SetShemaUrl(const std::string& url) {url_ = url;}
+    /**
+     * @brief SetShemaUrl allows to store schema url for application.
+     *
+     * @param url url to store.
+     */
+    void SetShemaUrl(const std::string& url) {url_ = url;}
 
     /**
      * @brief packagName allows to obtain application's package name.
      *
      * @return pakage name.
      */
-    virtual std::string PackageName() const {return package_name_;}
+    std::string PackageName() const {return package_name_;}
 
-    virtual void SetPackageName(const std::string& packageName) {
+    /**
+     * @brief SetPackageName allows to store package name for application.
+     *
+     * @param packageName package name to store.
+     */
+    void SetPackageName(const std::string& packageName) {
       package_name_ = packageName;
     }
+
+    /**
+     * @brief GetDeviceId allows to obtain device id which posseses
+     * by this application.
+     *
+     * @return device the device id.
+     */
+    std::string GetDeviceId() const {return device_id_;}
 
   protected:
 
@@ -615,6 +633,7 @@ class Application : public virtual InitialApplicationData,
     ApplicationState app_state_;
     std::string url_;
     std::string package_name_;
+    std::string device_id_;
 };
 
 typedef utils::SharedPtr<Application> ApplicationSharedPtr;

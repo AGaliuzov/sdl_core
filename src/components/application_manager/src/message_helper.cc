@@ -688,11 +688,11 @@ smart_objects::SmartObjectList MessageHelper::GetIVISubscriptionRequests(
   return hmi_requests;
 }
 
-void MessageHelper::SendSetAppIcon(ApplicationConstSharedPtr app,
+void MessageHelper::SendSetAppIcon(uint32_t app_id,
                                    const std::string& icon_path) {
   using namespace smart_objects;
   SmartObjectSPtr set_app_icon(new smart_objects::SmartObject);
-  if (app && set_app_icon) {
+  if (set_app_icon) {
     SmartObject& so_to_send = *set_app_icon;
     so_to_send[strings::params][strings::function_id] =
       static_cast<int>(hmi_apis::FunctionID::UI_SetAppIcon);
@@ -707,8 +707,7 @@ void MessageHelper::SendSetAppIcon(ApplicationConstSharedPtr app,
 
     so_to_send[strings::msg_params] = smart_objects::SmartObject(
                                         smart_objects::SmartType_Map);
-    SmartObjectSPtr msg_params(MessageHelper::CreateSetAppIcon(icon_path,
-                                                               app->app_id()));
+    SmartObjectSPtr msg_params(MessageHelper::CreateSetAppIcon(icon_path, app_id));
 
     if (msg_params) {
       so_to_send[strings::msg_params] = *msg_params;

@@ -261,6 +261,12 @@ class ApplicationManagerImpl : public ApplicationManager,
 
     HMICapabilities& hmi_capabilities();
 
+    /**
+     * @brief ProcessQueryApp executes logic related to QUERY_APP system request.
+     *
+     * @param sm_object smart object wich is actually parsed json obtained within
+     * system request.
+     */
     void ProcessQueryApp(const smart_objects::SmartObject& sm_object);
 
 #ifdef TIME_TESTER
@@ -910,6 +916,20 @@ class ApplicationManagerImpl : public ApplicationManager,
 
     void SendUpdateAppList();
     void OnApplicationListUpdateTimer();
+
+    /**
+     * @brief CreateApplications creates aplpication adds it to application list
+     * and prepare data for sending AppIcon request.
+     *
+     * @param obj_array applications array.
+     *
+     * @param app_icon_dir application icons directory
+     *
+     * @param apps_with_icon container which store application and it's icon path.
+     */
+    void CreateApplications(smart_objects::SmartArray& obj_array,
+                            const std::string& app_icon_dir,
+                            std::vector<std::pair<const int, const std::string>>& apps_with_icon);
 
     /*
      * @brief Function is called on IGN_OFF, Master_reset or Factory_defaults
