@@ -83,10 +83,11 @@ class ConnectionTest: public ::testing::Test {
         AddNewService(session_id, service_type, protection);
     EXPECT_EQ(result, expect_add_new_service_call_result);
 
+#ifdef ENABLE_SECURITY
     if (protection) {
       connection_->SetProtectionFlag(session_id, service_type);
     }
-
+#endif  // ENABLE_SECURITY
     const SessionMap session_map = connection_->session_map();
     EXPECT_FALSE(session_map.empty());
     const ServiceList newServiceList = session_map.begin()->second.service_list;
