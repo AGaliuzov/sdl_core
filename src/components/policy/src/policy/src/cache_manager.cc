@@ -1098,6 +1098,10 @@ bool CacheManager::IsPermissionsCalculated(
   return false;
 }
 
+std::string CacheManager::RemoteAppsUrl() const {
+  return "Not implemented";
+}
+
 utils::SharedPtr<policy_table::Table>
 CacheManager::GenerateSnapshot() {
   CACHE_MANAGER_CHECK(snapshot_);
