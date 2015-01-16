@@ -70,7 +70,7 @@ void SpeakRequest::Run() {
 
   (*message_)[strings::msg_params][strings::app_id] = app->app_id();
   (*message_)[strings::msg_params][hmi_request::speak_type] =
-      hmi_apis::Common_SpeakType::SPEAK;
+      hmi_apis::Common_MethodName::SPEAK;
   SendHMIRequest(hmi_apis::FunctionID::TTS_Speak,
                  &message_->getElement(strings::msg_params), true);
 }

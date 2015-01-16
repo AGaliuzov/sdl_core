@@ -50,6 +50,7 @@ const char default_app_id[] = "default";
 
 
 const char msg_params[] = "msg_params";
+const char method_name[] = "methodName";
 const char info[] = "info";
 const char app_id[] = "appID";
 const char hmi_app_id[] = "hmiAppID";
