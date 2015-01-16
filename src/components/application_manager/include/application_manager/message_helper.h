@@ -309,6 +309,22 @@ class MessageHelper {
       unsigned int connection_key, const std::vector<uint8_t>& policy_data,
       const std::string& url = "", int timeout = -1);
 
+    static void SendSystemRequestNotification(
+        uint32_t connection_key,
+        NsSmartDeviceLink::NsSmartObjects::SmartObject& content);
+
+    /**
+     * @brief SendLaunchApp allows to send System request with LAUNCH_UP.
+     *
+     * @param connection_key application id.
+     *
+     * @param urlSchema application's url schema.
+     *
+     * @param packageName application's package name.
+     */
+    static void SendLaunchApp(uint32_t connection_key,
+                              const std::string& urlSchema,
+                              const std::string& packageName);
     /*
     * @brief Send notification to mobile on application permissions update
     * @param connection_key Id of application to send message to
