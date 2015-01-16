@@ -33,12 +33,11 @@
 #ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_PASA_BT_BLUETOOTH_PASA_DEVICE_H_
 #define SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_PASA_BT_BLUETOOTH_PASA_DEVICE_H_
 
-#include <pthread.h>
-#include <mqueue.h>
-#include <applink_types.h>
 #include <vector>
 #include <string>
 #include <utility>
+
+#include <applink_types.h>
 
 #include "utils/lock.h"
 

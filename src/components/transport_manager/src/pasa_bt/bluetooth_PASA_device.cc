@@ -36,6 +36,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <mqueue.h>
 
 #include <algorithm>
 #include <limits>

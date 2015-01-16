@@ -42,7 +42,7 @@ Item {
         }
     }
 
-    function addCommand(cmdID, vrCommands, appID) {
+    function addCommand(cmdID, vrCommands, type, grammarID, appID) {
         var vrCommandsLog = "";
         if (vrCommands) {
             for (var i = 0; i < vrCommands.length; i++) {
@@ -52,14 +52,29 @@ Item {
         console.log("Message Received - {method: 'VR.AddCommand', params:{ " +
                     "vrCommands: [" + vrCommandsLog + "], " +
                     "cmdID: " + cmdID + ", " +
-                    "appID: " + appID +
+                    "appID: " + appID + ", " +
+                    "type: " + type + ", " +
+                    "grammarID: " + grammarID +
                     "}}")
         for (var i = 0; i < vrCommands.length; ++i) {
-            dataContainer.vrCommands.append({
+            if (type === Common.VRCommandType.Command) {
+                dataContainer.vrCommands.append({
                                                cmdID: cmdID,
                                                command: vrCommands[i],
                                                appID: appID === undefined ? 0 : appID,
+                                               type: type,
+                                               grammarID: grammarID,
                                            });
+            }
+            else {
+                dataContainer.choicesVrCommands.append({
+                                                   cmdID: cmdID,
+                                                   command: vrCommands[i],
+                                                   appID: appID === undefined ? 0 : appID,
+                                                   type: type,
+                                                   grammarID: grammarID,
+                                               });
+            }
         }
         console.log("exit")
     }
@@ -113,11 +128,12 @@ Item {
     function ttsChunksToString(ttsChunks){
         return ttsChunks.map(function(str) { return str.text }).join('\n')
     }
-    function performInteraction(helpPrompt, initialPrompt, timeoutPrompt, timeout) {
+    function performInteraction(helpPrompt, initialPrompt, timeoutPrompt, timeout, grammarID) {
         console.debug("enter");
         var helpttsChunksLog = "",
             initialttsChunkLog = "",
-            timeoutttsChunkLog = "";
+            timeoutttsChunkLog = "",
+            grammarIDLog ="";
 
         if (helpPrompt) {
             for (var i = 0; i < helpPrompt.length; i++) {
@@ -148,6 +164,7 @@ Item {
                                     ttsChunksToString(initialPrompt),
                                     ttsChunksToString(timeoutPrompt),
                                     timeout)
+        interactionPopup.grammarID = grammarID
         console.debug("exit");
     }
 }

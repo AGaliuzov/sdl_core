@@ -43,7 +43,7 @@ NaviStopStreamResponse::~NaviStopStreamResponse() {
 }
 
 void NaviStopStreamResponse::Run() {
-  LOG4CXX_INFO(logger_, "NaviStopStreamResponse::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
 
 }
 

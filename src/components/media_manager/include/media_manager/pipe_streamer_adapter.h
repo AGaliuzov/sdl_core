@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,9 @@
 #include "utils/threads/thread_delegate.h"
 
 namespace media_manager {
+
+using ::utils::MessageQueue;
+
 class PipeStreamerAdapter : public MediaAdapterImpl {
   public:
     PipeStreamerAdapter();
@@ -82,7 +85,7 @@ class PipeStreamerAdapter : public MediaAdapterImpl {
         /*
          * @brief Function called by thread on exit
          */
-        bool exitThreadMain();
+        void exitThreadMain();
 
         /*
          * @brief Opens pipe

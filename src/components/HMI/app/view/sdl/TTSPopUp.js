@@ -103,7 +103,7 @@ SDL.TTSPopUp = Em.ContainerView.create( {
 
         classNames: 'checkBoxTTS',
 
-        checked: false
+        checked: true
 
     }),
 
@@ -121,7 +121,6 @@ SDL.TTSPopUp = Em.ContainerView.create( {
     resetTimeout: function () {
         this.set('timerSeconds', 10);
         FFW.TTS.OnResetTimeout(this.appID, "TTS.Speak");
-        this.appID = null;
     },
 
     ActivateTTS: function(msg, appID) {
@@ -149,6 +148,7 @@ SDL.TTSPopUp = Em.ContainerView.create( {
     DeactivateTTS: function() {
         clearInterval(this.timer);
         this.set('active', false);
+        this.appID = null;
         this.set('timerSeconds', 5);
 
         if (this.checkBox.checked) {

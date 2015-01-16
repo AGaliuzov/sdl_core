@@ -50,11 +50,11 @@ UpdateDeviceListRequest::~UpdateDeviceListRequest() {
 }
 
 void UpdateDeviceListRequest::Run() {
-  LOG4CXX_INFO(logger_, "UpdateDeviceListRequest::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock auto_lock(wait_hmi_lock);
 #ifndef CUSTOMER_PASA
   // Fix problem with SDL and HMI HTML. This problem is not actual for HMI PASA.
-  // Flag conditional compilation "CUSTOMER_PASA" is used in order to exclude
+  // Flag conditional compilation for specific customer is used in order to exclude
   // hit code to RTC
   if (true == profile::Profile::instance()->launch_hmi()) {
     if (!ApplicationManagerImpl::instance()->IsHMICooperating()) {
@@ -70,7 +70,7 @@ void UpdateDeviceListRequest::Run() {
 }
 
 void UpdateDeviceListRequest::on_event(const event_engine::Event& event) {
-  LOG4CXX_INFO(logger_, "UpdateDeviceListRequest::on_event");
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock auto_lock(wait_hmi_lock);
   switch (event.id()) {
     case hmi_apis::FunctionID::BasicCommunication_OnReady : {

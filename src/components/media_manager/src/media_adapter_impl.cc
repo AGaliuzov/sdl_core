@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,12 +46,12 @@ MediaAdapterImpl::~MediaAdapterImpl() {
 }
 
 void MediaAdapterImpl::AddListener(const MediaListenerPtr& listener) {
-  LOG4CXX_INFO(logger_, "MediaAdapterImpl::AddListener");
+  LOG4CXX_AUTO_TRACE(logger_);
   media_listeners_.insert(listener);
 }
 
 void MediaAdapterImpl::RemoveListener(const MediaListenerPtr& listener) {
-  LOG4CXX_INFO(logger_, "MediaAdapterImpl::RemoveListener");
+  LOG4CXX_AUTO_TRACE(logger_);
   media_listeners_.erase(listener);
 }
 

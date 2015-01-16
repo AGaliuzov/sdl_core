@@ -47,13 +47,12 @@ namespace transport_adapter {
  */
 class TcpConnectionFactory : public ServerConnectionFactory {
  public:
-
   /**
    * @brief Constructor.
    *
    * @param controller Pointer to the device adapter controller.
    */
-  TcpConnectionFactory(TransportAdapterController* controller);
+  explicit TcpConnectionFactory(TransportAdapterController* controller);
 
   /**
    * @brief Start TCP connection factory.
@@ -88,6 +87,7 @@ class TcpConnectionFactory : public ServerConnectionFactory {
    * @brief Destructor.
    */
   virtual ~TcpConnectionFactory();
+
  private:
   TransportAdapterController* controller_;
 };
@@ -95,4 +95,4 @@ class TcpConnectionFactory : public ServerConnectionFactory {
 }  // namespace transport_adapter
 }  // namespace transport_manager
 
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_TCP_CONNECTION_FACTORY_H_
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_TCP_TCP_CONNECTION_FACTORY_H_

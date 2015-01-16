@@ -47,12 +47,15 @@ namespace transport_adapter {
 CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
 
 MmeClientListener::MmeClientListener(TransportAdapterController* controller)
-  : controller_(controller) {
+  : controller_(controller),
+    qdb_hdl_(NULL),
+    notify_thread_(NULL),
+    notify_thread_delegate_(NULL) {
 }
 
 TransportAdapter::Error MmeClientListener::Init() {
   TransportAdapter::Error error = TransportAdapter::OK;
-#if !QNX_BARE_SYSTEM_WORKAROUND
+
   const std::string& mme_db_name = profile::Profile::instance()->mme_db_name();
   LOG4CXX_TRACE(logger_, "Connecting to " << mme_db_name);
   qdb_hdl_ = qdb_connect(mme_db_name.c_str(), 0);
@@ -104,7 +107,6 @@ TransportAdapter::Error MmeClientListener::Init() {
     error = TransportAdapter::FAIL;
   }
 
-#endif
   initialised_ = true;
   return error;
 }
@@ -113,10 +115,11 @@ void MmeClientListener::Terminate() {
   initialised_ = false;
 
   if (notify_thread_) {
-    notify_thread_->stop();
     notify_thread_->join();
+    delete notify_thread_->delegate();
     threads::DeleteThread(notify_thread_);
     notify_thread_ = NULL;
+    notify_thread_delegate_ = NULL;
   }
 
   const std::string& event_mq_name =
@@ -151,9 +154,8 @@ bool MmeClientListener::IsInitialised() const {
 TransportAdapter::Error MmeClientListener::StartListening() {
   LOG4CXX_TRACE(logger_, "enter");
   if ((event_mqd_ != -1) && (ack_mqd_ != -1)) {
-    notify_thread_ = threads::CreateThread(
-        "MME MQ notifier",
-        new NotifyThreadDelegate(event_mqd_, ack_mqd_, this));
+    notify_thread_delegate_ = new NotifyThreadDelegate(event_mqd_, ack_mqd_, this);
+    notify_thread_ = threads::CreateThread("MME MQ notifier", notify_thread_delegate_);
     notify_thread_->start();
     LOG4CXX_TRACE(logger_, "exit");
     return TransportAdapter::OK;
@@ -166,10 +168,11 @@ TransportAdapter::Error MmeClientListener::StartListening() {
 
 TransportAdapter::Error MmeClientListener::StopListening() {
   if (notify_thread_) {
-    notify_thread_->stop();
     notify_thread_->join();
+    delete notify_thread_->delegate();
     threads::DeleteThread(notify_thread_);
     notify_thread_ = NULL;
+    notify_thread_delegate_ = NULL;
   }
   return TransportAdapter::OK;
 }

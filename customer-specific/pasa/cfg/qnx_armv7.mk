@@ -27,8 +27,10 @@ TARGET_FLG = -Vgcc_ntoarmv7le_gpp
 
 # Set Debug Flag
 ifdef DEBUG
-CC_DEBUG_FLG = -g
+CC_DEBUG_FLG = -g -DDEBUG
 DEBUG_EXT=_g
+else
+CC_DEBUG_FLG = -DNDEBUG
 endif
 
 # Set Profiling Flag

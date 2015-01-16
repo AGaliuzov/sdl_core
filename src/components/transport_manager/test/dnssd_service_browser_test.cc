@@ -50,7 +50,7 @@ public:
  MOCK_METHOD1(SearchDeviceDone, void(const DeviceVector& devices));
  MOCK_METHOD1(SearchDeviceFailed, void(const SearchDeviceError& error));
  MOCK_CONST_METHOD1(FindDevice, DeviceSptr(const DeviceUID& device_handle));
- MOCK_METHOD3(ConnectionCreated, void(Connection* connection, const DeviceUID& device_handle, const ApplicationHandle& app_handle));
+ MOCK_METHOD3(ConnectionCreated, void(ConnectionSPtr connection, const DeviceUID& device_handle, const ApplicationHandle& app_handle));
  MOCK_METHOD2(ConnectDone, void(const DeviceUID& device_handle, const ApplicationHandle& app_handle));
  MOCK_METHOD3(ConnectFailed, void(const DeviceUID& device_handle, const ApplicationHandle& app_handle, const ConnectError& error));
  MOCK_METHOD2(ConnectionFinished, void(const DeviceUID& device_handle, const ApplicationHandle& app_handle));

@@ -102,7 +102,7 @@ if (BUILD_MME_SUPPORT)
     ${TM_SRC_DIR}/mme/mme_device.cc
     ${TM_SRC_DIR}/mme/iap_device.cc
     ${TM_SRC_DIR}/mme/iap2_device.cc
-    ${TM_SRC_DIR}/mme/mme_device_scanner.cc
+    ${TM_SRC_DIR}/mme/mme_client_listener.cc
     ${TM_SRC_DIR}/mme/mme_connection_factory.cc
     ${TM_SRC_DIR}/mme/iap_connection.cc
     ${TM_SRC_DIR}/mme/iap2_connection.cc

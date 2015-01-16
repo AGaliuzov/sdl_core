@@ -30,6 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <pthread.h>
 #include <unistd.h>
 #include <iomanip>
 

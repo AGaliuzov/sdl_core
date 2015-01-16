@@ -53,4 +53,5 @@ set(SOURCES
 )
 
 create_test("protocol_handler_test" "${SOURCES}" "${LIBRARIES}")
+
 endif()

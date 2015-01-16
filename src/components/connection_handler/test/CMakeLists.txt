@@ -31,6 +31,7 @@
 if(BUILD_TESTS)
 
 set(appMain_DIR ${CMAKE_SOURCE_DIR}/src/appMain)
+
 include_directories (
   ${GMOCK_INCLUDE_DIRECTORY}
   ${COMPONENTS_DIR}/connection_handler/include

@@ -81,6 +81,27 @@ class Profile : public utils::Singleton<Profile> {
     const std::string& app_resourse_folder() const;
 
     /**
+     * @brief Returns true, if SDL 4.0 is enabled
+     */
+    bool enable_protocol_4() const;
+
+    /**
+     * @brief Returns application icons folder path
+     */
+    const std::string& app_icons_folder() const;
+
+    /**
+     * @brief Returns application icons folder maximum size
+     */
+    const uint32_t& app_icons_folder_max_size() const;
+
+    /**
+     * @brief Returns application icons amount to remove from icon folder,
+     * if maximum size exceeded
+     */
+    const uint32_t& app_icons_amount_to_remove() const;
+
+    /**
      * @brief Returns the path to the config file
      */
     const std::string& config_file_name() const;
@@ -510,6 +531,10 @@ class Profile : public utils::Singleton<Profile> {
 
     size_t message_frequency_time() const;
 
+    uint16_t attempts_to_open_policy_db() const;
+
+    uint16_t open_attempt_timeout_ms() const;
+
   private:
     /**
      * Default constructor
@@ -608,6 +633,10 @@ class Profile : public utils::Singleton<Profile> {
     std::string                     app_config_folder_;
     std::string                     app_storage_folder_;
     std::string                     app_resourse_folder_;
+    bool                            enable_protocol_4_;
+    std::string                     app_icons_folder_;
+    uint32_t                        app_icons_folder_max_size_;
+    uint32_t                        app_icons_amount_to_remove_;
     std::string                     config_file_name_;
     std::string                     server_address_;
     uint16_t                        server_port_;
@@ -698,6 +727,8 @@ class Profile : public utils::Singleton<Profile> {
     int                             iap2_hub_connect_attempts_;
     int                             iap_hub_connection_wait_timeout_;
     uint16_t                        tts_global_properties_timeout_;
+    uint16_t                        attempts_to_open_policy_db_;
+    uint16_t                        open_attempt_timeout_ms_;
 
     FRIEND_BASE_SINGLETON_CLASS(Profile);
     DISALLOW_COPY_AND_ASSIGN(Profile);

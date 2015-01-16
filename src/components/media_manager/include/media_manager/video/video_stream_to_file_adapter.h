@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,8 @@
 
 namespace media_manager {
 
+using ::utils::MessageQueue;
+
 class VideoStreamToFileAdapter : public MediaAdapterImpl {
   public:
     explicit VideoStreamToFileAdapter(const std::string& file_name);
@@ -80,7 +82,7 @@ class VideoStreamToFileAdapter : public MediaAdapterImpl {
         /*
          * @brief Function called by thread on exit
          */
-        bool exitThreadMain();
+        void exitThreadMain();
 
         /*
          * @brief Opens file

@@ -593,7 +593,7 @@ SDL.SDLModel = Em.Object.create({
 
         messageCodes.push("AppPermissionsRevoked");
 
-        FFW.BasicCommunication.GetUserFriendlyMessage(function(message){SDL.SettingsController.simpleParseUserFriendlyMessageData(message)}, appID, messageCodes);
+        FFW.BasicCommunication.GetUserFriendlyMessage(SDL.SettingsController.simpleParseUserFriendlyMessageData, appID, messageCodes);
 
     },
 
@@ -947,10 +947,16 @@ SDL.SDLModel = Em.Object.create({
      *
      * @type {String} lang
      */
-    changeRegistrationUI: function (lang, appID) {
+    changeRegistrationUI: function (lang, appID, appName) {
 
         if (SDL.SDLController.getApplicationModel(appID)) {
             SDL.SDLController.getApplicationModel(appID).set('UILanguage', lang);
+        }
+
+        if (appName) {
+            SDL.SDLMediaController.currentAppId = 0;
+            SDL.SDLController.getApplicationModel(appID).appName = appName;
+            SDL.SDLMediaController.set('currentAppId', appID);
         }
     },
 
@@ -1224,7 +1230,6 @@ SDL.SDLModel = Em.Object.create({
         setTimeout(function(){
             if (SDL.SDLModel.vrActiveRequests.vrPerformInteraction) {
                 SDL.SDLModel.onPrompt(message.params.timeoutPrompt);
-                SDL.SDLModel.interactionData.helpPrompt = null;
             }
         }, message.params.timeout - 2000); //Magic numer is a platform depended HMI behavior: -2 seconds for timeout prompt
 

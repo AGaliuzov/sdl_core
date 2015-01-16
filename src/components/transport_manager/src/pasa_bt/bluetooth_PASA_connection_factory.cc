@@ -52,15 +52,15 @@ TransportAdapter::Error BluetoothPASAConnectionFactory::Init() {
 
 TransportAdapter::Error BluetoothPASAConnectionFactory::CreateConnection(
     const DeviceUID& device_uid, const ApplicationHandle& app_handle) {
-  LOG4CXX_TRACE_ENTER(logger_);
-  BluetoothPASAConnection* connection(
-      new BluetoothPASAConnection(device_uid, app_handle, controller_));
+  LOG4CXX_AUTO_TRACE(logger_);
+  BluetoothPASAConnection* connection =
+      new BluetoothPASAConnection(device_uid, app_handle, controller_);
+  controller_->ConnectionCreated(connection, device_uid, app_handle);
   const TransportAdapter::Error error = connection->Start();
   if (error != TransportAdapter::OK) {
+    controller_->ConnectFailed(device_uid, app_handle, ConnectError());
     LOG4CXX_ERROR(logger_, "connection::Start() failed");
-    delete connection;
   }
-  LOG4CXX_TRACE_EXIT(logger_);
   return error;
 }
 

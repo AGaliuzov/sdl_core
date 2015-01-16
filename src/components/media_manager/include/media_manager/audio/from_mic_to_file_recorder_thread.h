@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,10 +47,10 @@ class FromMicToFileRecorderThread : public threads::ThreadDelegate {
   public:
     FromMicToFileRecorderThread(const std::string& output_file,
                                 int32_t duration);
-
+    ~FromMicToFileRecorderThread();
     void threadMain();
 
-    bool exitThreadMain();
+    void exitThreadMain();
 
     void set_output_file(const std::string& output_file);
     void set_record_duration(int32_t duration);

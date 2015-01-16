@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,9 @@
 #include "utils/threads/thread_delegate.h"
 
 namespace media_manager {
+
+using ::utils::MessageQueue;
+
 class SocketStreamerAdapter : public MediaAdapterImpl {
   public:
     SocketStreamerAdapter();
@@ -85,7 +88,7 @@ class SocketStreamerAdapter : public MediaAdapterImpl {
         /*
          * Function called by thread on exit
          */
-        bool exitThreadMain();
+        void exitThreadMain();
 
         /*
          * Checks if server is ready
@@ -125,8 +128,8 @@ class SocketStreamerAdapter : public MediaAdapterImpl {
 
     int32_t                                       socket_fd_;
     bool                                          is_ready_;
-    threads::Thread*                              thread_;
     Streamer*                                     streamer_;
+    threads::Thread*                              thread_;
     MessageQueue<protocol_handler::RawMessagePtr>                   messages_;
     DISALLOW_COPY_AND_ASSIGN(SocketStreamerAdapter);
 };

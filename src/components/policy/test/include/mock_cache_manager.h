@@ -72,8 +72,8 @@ class MockCacheManagerInterface : public CacheManagerInterface {
       bool(const std::string& value));
   MOCK_METHOD2(GetUserFriendlyMsg,
       std::vector<UserFriendlyMessage>(const std::vector<std::string>& msg_codes, const std::string& language));
-  MOCK_METHOD1(GetUpdateUrls,
-      EndpointUrls(int service_type));
+  MOCK_METHOD2(GetUpdateUrls,
+      void(int service_type, EndpointUrls& end_points));
   MOCK_METHOD1(GetNotificationsNumber,
       int(const std::string& priority));
   MOCK_METHOD2(GetPriority,
@@ -100,8 +100,8 @@ class MockCacheManagerInterface : public CacheManagerInterface {
       bool(const std::string& app_id));
   MOCK_METHOD1(IsDefaultPolicy,
       bool(const std::string& app_id));
-  MOCK_METHOD2(SetIsDefault,
-      bool(const std::string& app_id, bool is_default));
+  MOCK_METHOD1(SetIsDefault,
+      bool(const std::string& app_id));
   MOCK_METHOD1(IsPredataPolicy,
       bool(const std::string& app_id));
   MOCK_METHOD1(SetDefaultPolicy,
@@ -142,8 +142,8 @@ class MockCacheManagerInterface : public CacheManagerInterface {
       void(const std::string& app_id, usage_statistics::AppInfoId type, const std::string& value));
   MOCK_METHOD3(Add,
       void(const std::string& app_id, usage_statistics::AppStopwatchId type, int seconds));
-  MOCK_METHOD3(CountUnconsentedGroups,
-      bool(const std::string& policy_app_id, const std::string& device_id, int& result));
+  MOCK_METHOD2(CountUnconsentedGroups,
+      int(const std::string& policy_app_id, const std::string& device_id));
   MOCK_METHOD1(GetFunctionalGroupNames,
       bool(FunctionalGroupNames& names));
   MOCK_METHOD2(GetAllAppGroups,
@@ -158,12 +158,10 @@ class MockCacheManagerInterface : public CacheManagerInterface {
       void(const std::string& app_id, const std::string& group_name));
   MOCK_METHOD1(SetPredataPolicy,
       bool(const std::string& app_id));
-  MOCK_METHOD2(SetIsPredata,
-      bool(const std::string& app_id, bool is_pre_data));
-  MOCK_METHOD1(CleanupUnpairedDevices,
-      bool(const DeviceIds& device_ids));
-  MOCK_METHOD1(SetUnpairedDevice,
-      bool(const std::string& device_id));
+  MOCK_METHOD0(CleanupUnpairedDevices,
+      bool());
+  MOCK_METHOD2(SetUnpairedDevice,
+      bool(const std::string& device_id, bool unpaired));
   MOCK_METHOD1(UnpairedDevicesList,
       bool(DeviceIds& device_ids));
   MOCK_METHOD1(ResetPT,

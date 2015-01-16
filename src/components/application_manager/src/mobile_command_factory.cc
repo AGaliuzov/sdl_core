@@ -129,7 +129,7 @@
 namespace application_manager {
 
 commands::Command *MobileCommandFactory::CreateCommand(
-    const MessageSharedPtr& message) {
+    const commands::MessageSharedPtr& message) {
 
   switch ((*message)[strings::params][strings::function_id].asInt()) {
     case mobile_apis::FunctionID::RegisterAppInterfaceID: {

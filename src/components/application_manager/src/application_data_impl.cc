@@ -32,8 +32,10 @@
 
 #include "application_manager/application_data_impl.h"
 #include "application_manager/smart_object_keys.h"
+#include "utils/logger.h"
 
 namespace application_manager {
+CREATE_LOGGERPTR_GLOBAL(logger_, "ApplicationDataImpl")
 
 InitialApplicationDataImpl::InitialApplicationDataImpl()
     : app_types_(NULL),
@@ -171,6 +173,7 @@ DynamicApplicationDataImpl::DynamicApplicationDataImpl()
       menu_icon_(NULL),
       tbt_show_command_(NULL),
       commands_(),
+      commands_lock_(true),
       sub_menu_(),
       choice_set_map_(),
       performinteraction_choice_set_map_(),
@@ -265,16 +268,40 @@ DynamicApplicationDataImpl::tbt_show_command() const {
   return tbt_show_command_;
 }
 
-const NsSmartDeviceLink::NsSmartObjects::SmartObject *DynamicApplicationDataImpl::keyboard_props() const {
+const smart_objects::SmartObject* DynamicApplicationDataImpl::keyboard_props() const {
   return keyboard_props_;
 }
 
-const NsSmartDeviceLink::NsSmartObjects::SmartObject *DynamicApplicationDataImpl::menu_title() const {
+const smart_objects::SmartObject* DynamicApplicationDataImpl::menu_title() const {
   return menu_title_;
 }
 
-const NsSmartDeviceLink::NsSmartObjects::SmartObject* DynamicApplicationDataImpl::menu_icon() const {
+const smart_objects::SmartObject* DynamicApplicationDataImpl::menu_icon() const {
   return menu_icon_;
+}
+
+void DynamicApplicationDataImpl::load_global_properties(
+    const smart_objects::SmartObject& properties_so) {
+  SetGlobalProperties(properties_so.getElement(strings::vr_help_title),
+                       &DynamicApplicationData::set_vr_help_title);
+
+  SetGlobalProperties(properties_so.getElement(strings::vr_help),
+                       &DynamicApplicationData::set_vr_help);
+
+  SetGlobalProperties(properties_so.getElement(strings::timeout_prompt),
+                      &DynamicApplicationData::set_timeout_prompt);
+
+  SetGlobalProperties(properties_so.getElement(strings::help_prompt),
+                      &DynamicApplicationData::set_help_prompt);
+
+  SetGlobalProperties(properties_so.getElement(strings::keyboard_properties),
+                      &DynamicApplicationData::set_keyboard_props);
+
+  SetGlobalProperties(properties_so.getElement(strings::menu_title),
+                      &DynamicApplicationData::set_menu_title);
+
+  SetGlobalProperties(properties_so.getElement(strings::menu_icon),
+                      &DynamicApplicationData::set_menu_icon);
 }
 
 void DynamicApplicationDataImpl::set_help_prompt(
@@ -368,15 +395,31 @@ void DynamicApplicationDataImpl::set_menu_icon(
   menu_icon_= new smart_objects::SmartObject(menu_icon);
 }
 
+void DynamicApplicationDataImpl::SetGlobalProperties(
+    const smart_objects::SmartObject& param,
+    void (DynamicApplicationData::*callback)(
+      const NsSmartDeviceLink::NsSmartObjects::SmartObject&)) {
+
+  smart_objects::SmartType so_type = param.getType();
+  if (so_type != smart_objects::SmartType::SmartType_Invalid  &&
+      so_type != smart_objects::SmartType::SmartType_Null) {
+    if (callback) {
+      (this->*callback)(param);
+    }
+  } else {
+    LOG4CXX_WARN(logger_, "Invalid or Null smart object");
+  }
+}
 
 void DynamicApplicationDataImpl::AddCommand(
   uint32_t cmd_id, const smart_objects::SmartObject& command) {
+  sync_primitives::AutoLock lock(commands_lock_);
   commands_[cmd_id] = new smart_objects::SmartObject(command);
 }
 
 void DynamicApplicationDataImpl::RemoveCommand(uint32_t cmd_id) {
+  sync_primitives::AutoLock lock(commands_lock_);
   CommandsMap::iterator it = commands_.find(cmd_id);
-
   if (commands_.end() != it) {
     delete it->second;
     commands_.erase(it);
@@ -385,6 +428,7 @@ void DynamicApplicationDataImpl::RemoveCommand(uint32_t cmd_id) {
 
 smart_objects::SmartObject* DynamicApplicationDataImpl::FindCommand(
     uint32_t cmd_id) {
+  sync_primitives::AutoLock lock(commands_lock_);
   CommandsMap::const_iterator it = commands_.find(cmd_id);
   if (it != commands_.end()) {
     return it->second;
@@ -396,10 +440,12 @@ smart_objects::SmartObject* DynamicApplicationDataImpl::FindCommand(
 // TODO(VS): Create common functions for processing collections
 void DynamicApplicationDataImpl::AddSubMenu(
   uint32_t menu_id, const smart_objects::SmartObject& menu) {
+  sync_primitives::AutoLock lock(sub_menu_lock_);
   sub_menu_[menu_id] = new smart_objects::SmartObject(menu);
 }
 
 void DynamicApplicationDataImpl::RemoveSubMenu(uint32_t menu_id) {
+  sync_primitives::AutoLock lock(sub_menu_lock_);
   SubMenuMap::iterator it = sub_menu_.find(menu_id);
 
   if (sub_menu_.end() != it) {
@@ -410,6 +456,7 @@ void DynamicApplicationDataImpl::RemoveSubMenu(uint32_t menu_id) {
 
 smart_objects::SmartObject* DynamicApplicationDataImpl::FindSubMenu(
     uint32_t menu_id) const {
+  sync_primitives::AutoLock lock(sub_menu_lock_);
   SubMenuMap::const_iterator it = sub_menu_.find(menu_id);
   if (it != sub_menu_.end()) {
     return it->second;
@@ -420,6 +467,7 @@ smart_objects::SmartObject* DynamicApplicationDataImpl::FindSubMenu(
 
 bool DynamicApplicationDataImpl::IsSubMenuNameAlreadyExist(
     const std::string& name) {
+  sync_primitives::AutoLock lock(sub_menu_lock_);
   for (SubMenuMap::iterator it = sub_menu_.begin();
        sub_menu_.end() != it;
        ++it) {
@@ -433,10 +481,12 @@ bool DynamicApplicationDataImpl::IsSubMenuNameAlreadyExist(
 
 void DynamicApplicationDataImpl::AddChoiceSet(
   uint32_t choice_set_id, const smart_objects::SmartObject& choice_set) {
+  sync_primitives::AutoLock lock(choice_set_map_lock_);
   choice_set_map_[choice_set_id] = new smart_objects::SmartObject(choice_set);
 }
 
 void DynamicApplicationDataImpl::RemoveChoiceSet(uint32_t choice_set_id) {
+  sync_primitives::AutoLock lock(choice_set_map_lock_);
   ChoiceSetMap::iterator it = choice_set_map_.find(choice_set_id);
 
   if (choice_set_map_.end() != it) {
@@ -447,6 +497,7 @@ void DynamicApplicationDataImpl::RemoveChoiceSet(uint32_t choice_set_id) {
 
 smart_objects::SmartObject* DynamicApplicationDataImpl::FindChoiceSet(
     uint32_t choice_set_id) {
+  sync_primitives::AutoLock lock(choice_set_map_lock_);
   ChoiceSetMap::const_iterator it = choice_set_map_.find(choice_set_id);
   if (it != choice_set_map_.end()) {
     return it->second;
@@ -457,11 +508,13 @@ smart_objects::SmartObject* DynamicApplicationDataImpl::FindChoiceSet(
 
 void DynamicApplicationDataImpl::AddPerformInteractionChoiceSet(
   uint32_t choice_set_id, const smart_objects::SmartObject& vr_commands) {
+  sync_primitives::AutoLock lock(performinteraction_choice_set_lock_);
   performinteraction_choice_set_map_[choice_set_id] =
       new smart_objects::SmartObject(vr_commands);
 }
 
 void DynamicApplicationDataImpl::DeletePerformInteractionChoiceSetMap() {
+  sync_primitives::AutoLock lock(performinteraction_choice_set_lock_);
   PerformChoiceSetMap::iterator it = performinteraction_choice_set_map_.begin();
   for (; performinteraction_choice_set_map_.end() != it; ++it) {
     delete it->second;
@@ -472,6 +525,7 @@ void DynamicApplicationDataImpl::DeletePerformInteractionChoiceSetMap() {
 smart_objects::SmartObject*
 DynamicApplicationDataImpl::FindPerformInteractionChoiceSet(
   uint32_t choice_set_id) const {
+  sync_primitives::AutoLock lock(performinteraction_choice_set_lock_);
   PerformChoiceSetMap::const_iterator it = performinteraction_choice_set_map_
       .find(choice_set_id);
 

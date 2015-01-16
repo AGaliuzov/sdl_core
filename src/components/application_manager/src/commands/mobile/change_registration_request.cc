@@ -55,7 +55,7 @@ ChangeRegistrationRequest::~ChangeRegistrationRequest() {
 }
 
 void ChangeRegistrationRequest::Run() {
-  LOG4CXX_INFO(logger_, "ChangeRegistrationRequest::Run");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   ApplicationManagerImpl* instance = ApplicationManagerImpl::instance();
   const HMICapabilities& hmi_capabilities = instance->hmi_capabilities();
@@ -178,7 +178,7 @@ bool ChangeRegistrationRequest::AllHmiResponsesSuccess(
 }
 
 void ChangeRegistrationRequest::on_event(const event_engine::Event& event) {
-  LOG4CXX_INFO(logger_, "ChangeRegistrationRequest::on_event");
+  LOG4CXX_AUTO_TRACE(logger_);
   const smart_objects::SmartObject& message = event.smart_object();
 
   hmi_apis::FunctionID::eType event_id = event.id();
@@ -374,21 +374,20 @@ bool ChangeRegistrationRequest::IsWhiteSpaceExist() {
 }
 
 mobile_apis::Result::eType ChangeRegistrationRequest::CheckCoincidence() {
-  LOG4CXX_INFO(logger_, "ChangeRegistrationRequest::CheckCoincidence");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   const smart_objects::SmartObject& msg_params =
       (*message_)[strings::msg_params];
 
   ApplicationManagerImpl::ApplicationListAccessor accessor;
-  const std::set<ApplicationSharedPtr> applications = accessor.applications();
-  std::set<ApplicationSharedPtr>::const_iterator it = applications.begin();
   std::string app_name;
   uint32_t app_id = connection_key();
   if (msg_params.keyExists(strings::app_name)) {
     app_name = msg_params[strings::app_name].asString();
   }
 
-  for (; applications.end() != it; ++it) {
+  ApplicationManagerImpl::ApplictionSetConstIt it = accessor.begin();
+  for (; accessor.end() != it; ++it) {
     if (app_id == (*it)->app_id()) {
       continue;
     }

@@ -83,6 +83,15 @@ void ConditionalVariable::Broadcast() {
 
 }
 
+void ConditionalVariable::Wait(Lock& lock) {
+  lock.AssertTakenAndMarkFree();
+  int32_t wait_status = pthread_cond_wait(&cond_var_,
+                                      &lock.mutex_);
+  lock.AssertFreeAndMarkTaken();
+  if (wait_status != 0)
+    LOG4CXX_ERROR(logger_, "Failed to wait for conditional variable");
+}
+
 void ConditionalVariable::Wait(AutoLock& auto_lock) {
   Lock& lock = auto_lock.GetLock();
   lock.AssertTakenAndMarkFree();
@@ -104,7 +113,6 @@ ConditionalVariable::WaitStatus ConditionalVariable::WaitFor(
       (milliseconds % kMillisecondsPerSecond) * kNanosecondsPerMillisecond;
   wait_interval.tv_sec += wait_interval.tv_nsec / kNanosecondsPerSecond;
   wait_interval.tv_nsec %= kNanosecondsPerSecond;
-
   Lock& lock = auto_lock.GetLock();
   lock.AssertTakenAndMarkFree();
   int32_t timedwait_status = pthread_cond_timedwait(&cond_var_,
@@ -129,7 +137,6 @@ ConditionalVariable::WaitStatus ConditionalVariable::WaitFor(
       LOG4CXX_ERROR(logger_, "Failed to timewait for conditional variable timedwait_status: " << timedwait_status);
     }
   }
-
   return wait_status;
 }
 
