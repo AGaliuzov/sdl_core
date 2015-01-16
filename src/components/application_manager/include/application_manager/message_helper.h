@@ -310,10 +310,19 @@ class MessageHelper {
       const std::string& url = "", int timeout = -1);
 
     static void SendSystemRequestNotification(
-        unsigned int connection_key,
+        uint32_t connection_key,
         NsSmartDeviceLink::NsSmartObjects::SmartObject& content);
 
-    static void SendLaunchApp(unsigned int connection_key,
+    /**
+     * @brief SendLaunchApp allows to send System request with LAUNCH_UP.
+     *
+     * @param connection_key application id.
+     *
+     * @param urlSchema application's url schema.
+     *
+     * @param packageName application's package name.
+     */
+    static void SendLaunchApp(uint32_t connection_key,
                               const std::string& urlSchema,
                               const std::string& packageName);
     /*
@@ -349,21 +358,6 @@ class MessageHelper {
     static void SendUpdateSDLResponse(const std::string& result,
                                       uint32_t correlation_id);
 
-    /**
-     * @brief SendResponse allows to send response to hmi
-     *
-     * @param success the response result.
-     *
-     * @param correlation_id the correlation id for the rfesponse.
-     *
-     * @param function_id the function id for which response will be sent
-     *
-     * @param result_code the result code.
-     */
-    static void SendResponse(bool success,
-                             uint32_t correlation_id,
-                             hmi_apis::FunctionID::eType function_id,
-                             hmi_apis::Common_Result::eType result_code);
     /**
      * @brief Send OnStatusUpdate to HMI on policy update status change
      * @param status Policy table update status
