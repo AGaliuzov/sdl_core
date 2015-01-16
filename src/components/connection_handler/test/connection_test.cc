@@ -183,7 +183,7 @@ TEST_F(ConnectionTest, Session_AddInvalidService) {
 }
 
 // RPC and Bulk Services could be only delay protected
-TEST_F(ConnectionTest, Session_AddRPCBulkServices) {
+TEST_F(ConnectionTest, DISABLED_Session_AddRPCBulkServices) {
   StartSession();
 
   AddNewService(protocol_handler::kRpc, PROTECTION_OFF,
@@ -215,7 +215,7 @@ TEST_F(ConnectionTest, Session_AddAllOtherService_Unprotected) {
                EXPECT_SERVICE_EXISTS);
 }
 
-TEST_F(ConnectionTest, Session_AddAllOtherService_Protected) {
+TEST_F(ConnectionTest, DISABLED_Session_AddAllOtherService_Protected) {
   StartSession();
 
   AddNewService(protocol_handler::kAudio, PROTECTION_ON,
@@ -226,7 +226,7 @@ TEST_F(ConnectionTest, Session_AddAllOtherService_Protected) {
                EXPECT_SERVICE_EXISTS);
 }
 
-TEST_F(ConnectionTest, Session_AddAllOtherService_DelayProtected1) {
+TEST_F(ConnectionTest, DISABLED_Session_AddAllOtherService_DelayProtected1) {
   StartSession();
 
   AddNewService(protocol_handler::kAudio, PROTECTION_OFF,
@@ -245,7 +245,7 @@ TEST_F(ConnectionTest, Session_AddAllOtherService_DelayProtected1) {
                EXPECT_SERVICE_EXISTS);
 }
 //Use other order
-TEST_F(ConnectionTest, Session_AddAllOtherService_DelayProtected2) {
+TEST_F(ConnectionTest, DISABLED_Session_AddAllOtherService_DelayProtected2) {
   StartSession();
 
   AddNewService(protocol_handler::kAudio, PROTECTION_OFF,

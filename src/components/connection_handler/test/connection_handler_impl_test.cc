@@ -319,7 +319,7 @@ TEST_F(ConnectionHandlerTest, SessionStop_CheckSpecificHash) {
   }
 }
 
-TEST_F(ConnectionHandlerTest, SessionStarted_StartSession_SecureSpecific_Unprotect) {
+TEST_F(ConnectionHandlerTest, DISABLED_SessionStarted_StartSession_SecureSpecific_Unprotect) {
   // Add virtual device and connection
   AddTestDeviceConnection();
 
@@ -345,7 +345,7 @@ TEST_F(ConnectionHandlerTest, SessionStarted_StartSession_SecureSpecific_Unprote
   EXPECT_EQ(SessionHash(uid, session_id), out_hash_id);
 }
 
-TEST_F(ConnectionHandlerTest, SessionStarted_StartSession_SecureSpecific_Protect) {
+TEST_F(ConnectionHandlerTest, DISABLED_SessionStarted_StartSession_SecureSpecific_Protect) {
   // Add virtual device and connection
   AddTestDeviceConnection();
 
@@ -370,7 +370,8 @@ TEST_F(ConnectionHandlerTest, SessionStarted_StartSession_SecureSpecific_Protect
                NULL,
                PROTECTION_OFF);
 }
-TEST_F(ConnectionHandlerTest, SessionStarted_StartService_SecureSpecific_Unprotect) {
+
+TEST_F(ConnectionHandlerTest, DISABLED_SessionStarted_StartService_SecureSpecific_Unprotect) {
   AddTestDeviceConnection();
   AddTestSession();
 
@@ -395,7 +396,7 @@ TEST_F(ConnectionHandlerTest, SessionStarted_StartService_SecureSpecific_Unprote
                NULL,
                PROTECTION_OFF);
 }
-TEST_F(ConnectionHandlerTest, SessionStarted_StartService_SecureSpecific_Protect) {
+TEST_F(ConnectionHandlerTest, DISABLED_SessionStarted_StartService_SecureSpecific_Protect) {
   AddTestDeviceConnection();
   AddTestSession();
 
@@ -420,7 +421,7 @@ TEST_F(ConnectionHandlerTest, SessionStarted_StartService_SecureSpecific_Protect
                NULL,
                PROTECTION_ON);
 }
-TEST_F(ConnectionHandlerTest, SessionStarted_DealyProtect) {
+TEST_F(ConnectionHandlerTest, DISABLED_SessionStarted_DealyProtect) {
   AddTestDeviceConnection();
   AddTestSession();
 
@@ -453,7 +454,7 @@ TEST_F(ConnectionHandlerTest, SessionStarted_DealyProtect) {
                PROTECTION_ON);
 }
 
-TEST_F(ConnectionHandlerTest, SessionStarted_DealyProtectBulk) {
+TEST_F(ConnectionHandlerTest, DISABLED_SessionStarted_DealyProtectBulk) {
   AddTestDeviceConnection();
   AddTestSession();
 
