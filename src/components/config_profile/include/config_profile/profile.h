@@ -535,6 +535,12 @@ class Profile : public utils::Singleton<Profile> {
 
     uint16_t open_attempt_timeout_ms() const;
 
+    uint32_t seconds_to_remember_app_for_resumption() const;
+
+    uint32_t wait_for_hmi_level_resume() const;
+
+
+
   private:
     /**
      * Default constructor
@@ -729,6 +735,8 @@ class Profile : public utils::Singleton<Profile> {
     uint16_t                        tts_global_properties_timeout_;
     uint16_t                        attempts_to_open_policy_db_;
     uint16_t                        open_attempt_timeout_ms_;
+    uint32_t                        seconds_to_remember_app_for_resumption_;
+    uint32_t                        wait_for_hmi_level_resume_;
 
     FRIEND_BASE_SINGLETON_CLASS(Profile);
     DISALLOW_COPY_AND_ASSIGN(Profile);

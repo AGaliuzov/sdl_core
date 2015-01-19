@@ -88,7 +88,7 @@ class ResumeCtrl: public event_engine::EventObserver {
      * @param application is application witch HMI Level is need to restore
      * @return true if success, otherwise return false
      */
-    bool RestoreApplicationHMILevel(ApplicationSharedPtr application);
+    bool RestoreApplicationHMIState(ApplicationSharedPtr application);
 
     /**
      * @brief Set application HMI Level as stored in policy
@@ -225,8 +225,12 @@ class ResumeCtrl: public event_engine::EventObserver {
       is_data_saved = false;
     }
 
-    void RestoreHmiLevel(uint32_t time_stamp, ApplicationSharedPtr application);
+    void StartHmiStateResumption(uint32_t time_stamp, ApplicationSharedPtr application);
 
+    bool startTime() const;
+    void setStartTime(bool startTime);
+
+    void ResumeHmiState(uint32_t time_stamp, ApplicationSharedPtr application);
   private:
 
     typedef std::pair<uint32_t, uint32_t> application_timestamp;
@@ -258,8 +262,11 @@ class ResumeCtrl: public event_engine::EventObserver {
     bool IsDeviceMacAddressEqual(ApplicationSharedPtr application,
                                  const std::string& saved_device_mac);
 
+    Json::Value& GetLastStateResumeSection();
     Json::Value& GetSavedApplications();
+    time_t GetLastIgnOffTime();
 
+    void SetLastIgnOffTime(time_t save_time);
     void SetSavedApplication(Json::Value& apps_json);
 
     Json::Value GetApplicationCommands(
@@ -414,7 +421,7 @@ class ResumeCtrl: public event_engine::EventObserver {
     timer::TimerThread<ResumeCtrl>  restore_hmi_level_timer_;
     timer::TimerThread<ResumeCtrl>  save_persistent_data_timer_;
     bool is_data_saved;
-
+    bool start_time_;
 };
 
 }  // namespace application_manager

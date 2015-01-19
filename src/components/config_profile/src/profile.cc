@@ -131,6 +131,8 @@ const char* kListFilesRequestKey = "ListFilesRequest";
 const char* kDefaultTimeoutKey = "DefaultTimeout";
 const char* kAppResumingTimeoutKey = "ApplicationResumingTimeout";
 const char* kAppSavePersistentDataTimeoutKey = "AppSavePersistentDataTimeout";
+const char* kSecondsToRememberAppForResumptionKey = "SecondsToRememberAppForResumption";
+const char* kWaitForHmiLevelResumeTimeKey = "WaitForHmiLevelResumeTime";
 const char* kAppDirectoryQuotaKey = "AppDirectoryQuota";
 const char* kAppTimeScaleMaxRequestsKey = "AppTimeScaleMaxRequests";
 const char* kAppRequestsTimeScaleKey = "AppRequestsTimeScale";
@@ -209,6 +211,9 @@ const uint32_t kDefaultListFilesRequestInNone = 5;
 const uint32_t kDefaultTimeout = 10;
 const uint32_t kDefaultAppResumingTimeout = 3;
 const uint32_t kDefaultAppSavePersistentDataTimeout = 10;
+const uint32_t kSecondsToRememberAppForResumption = 30;
+const uint32_t kWaitForHmiLevelResumeTime = 30;
+
 const uint32_t kDefaultDirQuota = 104857600;
 const uint32_t kDefaultAppTimeScaleMaxRequests = 0;
 const uint32_t kDefaultAppRequestsTimeScale = 0;
@@ -677,6 +682,14 @@ uint16_t Profile::open_attempt_timeout_ms() const {
   return open_attempt_timeout_ms_;
 }
 
+uint32_t Profile::seconds_to_remember_app_for_resumption() const {
+  return seconds_to_remember_app_for_resumption_;
+}
+
+uint32_t Profile::wait_for_hmi_level_resume() const {
+  return wait_for_hmi_level_resume_;
+}
+
 uint16_t Profile::tts_global_properties_timeout() const {
   return tts_global_properties_timeout_;
 }
@@ -1017,6 +1030,7 @@ void Profile::UpdateValues() {
   // Save resumption info to File System
   LOG_UPDATED_VALUE(app_resuming_timeout_, kAppSavePersistentDataTimeoutKey,
                     kMainSection);
+
   ReadUIntValue(&app_resumption_save_persistent_data_timeout_,
                 kDefaultAppSavePersistentDataTimeout,
                 kMainSection, kAppSavePersistentDataTimeoutKey);
@@ -1026,6 +1040,23 @@ void Profile::UpdateValues() {
 
   LOG_UPDATED_VALUE(app_resuming_timeout_, kAppResumingTimeoutKey,
                     kMainSection);
+  // Open attempt timeout in ms
+  ReadUIntValue(&seconds_to_remember_app_for_resumption_,
+                kSecondsToRememberAppForResumption,
+                kMainSection,
+                kSecondsToRememberAppForResumptionKey);
+
+  LOG_UPDATED_VALUE(wait_for_hmi_level_resume_,
+                    kSecondsToRememberAppForResumptionKey, kMainSection);
+
+  // Open attempt timeout in ms
+  ReadUIntValue(&wait_for_hmi_level_resume_,
+                kWaitForHmiLevelResumeTime,
+                kMainSection,
+                kWaitForHmiLevelResumeTimeKey);
+
+  LOG_UPDATED_VALUE(wait_for_hmi_level_resume_,
+                    kWaitForHmiLevelResumeTimeKey, kMainSection);
 
   // Application directory quota
   ReadUIntValue(&app_dir_quota_, kDefaultDirQuota, kMainSection,
