@@ -981,28 +981,45 @@ SDL.SDLModel = Em.Object.create({
      */
     onAppRegistered: function (params) {
 
-        var applicationType = 1;
+        var applicationType = 1,
+            app = SDL.SDLController.getApplicationModel(params.appID);
 
-        if (SDL.SDLController.getApplicationModel(params.application.appID)) {
+        if (app != undefined && app.initialized == false) {
+
+            if (app.isMedia != params.isMediaApplication) {
+                this.convertModel(params)
+            }
+            return;
+        } else if (app != undefined && app.initialized == true) {
             return;
         }
 
         if (params.vrSynonyms) {
 
-            var message = {"cmdID": 0, "vrCommands": params.vrSynonyms, "appID": params.application.appID, "type": "Application"};
+            var message = {"cmdID": 0, "vrCommands": params.vrSynonyms, "appID": params.appID, "type": "Application"};
             this.addCommandVR(message);
         }
 
-        if (params.application.isMediaApplication) {
+        if (params.isMediaApplication) {
             applicationType = 0;
         }
 
-        SDL.SDLController.registerApplication(params.application, applicationType);
+        SDL.SDLController.registerApplication(params, applicationType);
 
-        if (SDL.SDLModel.unRegisteredApps.indexOf(params.application.appID) >= 0) {
-            setTimeout(function(){ SDL.PopUp.create().appendTo('body').popupActivate("Connection with " + params.application.appName + "  is re-established.")}, 1000);
-            this.unRegisteredApps.pop(params.application.appID);
+        if (SDL.SDLModel.unRegisteredApps.indexOf(params.appID) >= 0) {
+            setTimeout(function(){ SDL.PopUp.create().appendTo('body').popupActivate("Connection with " + params.appName + "  is re-established.")}, 1000);
+            this.unRegisteredApps.pop(params.appID);
         }
+    },
+
+    /**
+     * Method to convert existed model to registered type
+     */
+    convertModel: function(params) {
+
+        SDL.SDLModel.get('registeredApps').removeObjects(SDL.SDLModel.get('registeredApps').filterProperty('appID', params.appID));
+
+        this.onAppRegistered(params);
     },
 
     /**

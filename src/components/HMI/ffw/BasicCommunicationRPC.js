@@ -369,7 +369,7 @@ FFW.BasicCommunication = FFW.RPCObserver
             }
 
             if (notification.method == this.onAppRegisteredNotification) {
-                SDL.SDLModel.onAppRegistered(notification.params);
+                SDL.SDLModel.onAppRegistered(notification.params.application);
                 this.OnFindApplications();
             }
 
@@ -433,7 +433,10 @@ FFW.BasicCommunication = FFW.RPCObserver
 
                     for(var app in request.params.applications) {
 
-                        SDL.SDLController.registerApplication(app, null);
+                        if (request.params.applications.hasOwnProperty(app)) {
+                            SDL.SDLModel.onAppRegistered(request.params.applications[app]);
+                        }
+                        //SDL.SDLController.registerApplication(request.params.applications[app], request.params.applications[app].isMediaApplication !== undefined ? request.params.applications[app].isMediaApplication : null);
                     }
 
                     this.sendBCResult(SDL.SDLModel.resultCode["SUCCESS"],
