@@ -661,6 +661,9 @@ add_subdirectory(./src/3rd_party-static)
 # --- Tools
 add_subdirectory(./tools)
 
+
+add_subdirectory(./test)
+
 # --- Components
 add_subdirectory(./src/components)
 
