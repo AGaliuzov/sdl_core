@@ -74,6 +74,7 @@ class SDLActivateAppRequest : public RequestFromHMI {
      */
     virtual void on_event(const event_engine::Event& event);
   private:
+    uint32_t app_id() const;
     DISALLOW_COPY_AND_ASSIGN(SDLActivateAppRequest);
 };
 

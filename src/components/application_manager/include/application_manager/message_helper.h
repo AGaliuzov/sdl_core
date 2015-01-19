@@ -448,7 +448,7 @@ class MessageHelper {
      * @param app_mobile_id policy application id
      * @return
      */
-    static bool CheckWithPolicy(int system_action,
+    static bool CheckWithPolicy(mobile_apis::SystemAction::eType system_action,
                                 const std::string& app_mobile_id);
 
     /*
