@@ -94,7 +94,8 @@ void ProtocolPacket::ProtocolHeader::deserialize(
   dataSize = BE_TO_LE32(data_size_be);
   switch (version) {
     case PROTOCOL_VERSION_2:
-    case PROTOCOL_VERSION_3: {
+    case PROTOCOL_VERSION_3:
+    case PROTOCOL_VERSION_4:{
         if (messageSize < PROTOCOL_HEADER_V2_SIZE) {
           return;
         }
@@ -127,6 +128,7 @@ RESULT_CODE ProtocolPacket::ProtocolHeaderValidator::validate(const ProtocolHead
     case PROTOCOL_VERSION_1:
     case PROTOCOL_VERSION_2:
     case PROTOCOL_VERSION_3:
+    case PROTOCOL_VERSION_4:
       break;
     default:
       return RESULT_FAIL;

@@ -54,6 +54,14 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "ProtocolHandler")
 std::string ConvertPacketDataToString(const uint8_t *data,
                                       const size_t data_size);
 
+/**
+ * Function returns supported SDL Protocol Version,
+ * @return protocol version depends on parameters "EnableProtocol4" and
+ * "HeartBeatTimeout" from smartDeviceLink.ini.
+ */
+uint8_t SupportedSDLProtocolVersion();
+
+
 const size_t kStackSize = 32768;
 
 ProtocolHandlerImpl::ProtocolHandlerImpl(
@@ -155,14 +163,7 @@ void ProtocolHandlerImpl::SendStartSessionAck(ConnectionID connection_id,
                                               bool protection) {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  uint8_t protocolVersion;
-  if (0 == profile::Profile::instance()->heart_beat_timeout()) {
-    protocolVersion = PROTOCOL_VERSION_2;
-    LOG4CXX_INFO(logger_, "Heart beat timeout == 0 => SET PROTOCOL_VERSION_2");
-  } else {
-    protocolVersion = PROTOCOL_VERSION_3;
-    LOG4CXX_INFO(logger_, "Heart beat timeout != 0 => SET PROTOCOL_VERSION_3");
-  }
+  uint8_t protocolVersion = SupportedSDLProtocolVersion();
 
   ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
     protocolVersion, protection, FRAME_TYPE_CONTROL,
@@ -244,17 +245,22 @@ void ProtocolHandlerImpl::SendEndSession(int32_t connection_id,
                                          uint8_t session_id) {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
-      PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
-      SERVICE_TYPE_RPC, FRAME_DATA_END_SERVICE, session_id, 0,
-      message_counters_[session_id]++));
+  uint8_t protocol_version;
+  if (session_observer_->ProtocolVersionUsed(connection_id,
+	    session_id, protocol_version)) {
+    ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
+	    protocol_version, PROTECTION_OFF, FRAME_TYPE_CONTROL,
+	    SERVICE_TYPE_RPC, FRAME_DATA_END_SERVICE, session_id, 0,
+	    message_counters_[session_id]++));
 
-  raw_ford_messages_to_mobile_.PostMessage(
-      impl::RawFordMessageToMobile(ptr, false));
-
-  LOG4CXX_INFO(logger_, "SendEndSession() for connection " << connection_id
-               << " for service_type " << static_cast<int32_t>(SERVICE_TYPE_RPC)
-               << " session_id " << static_cast<int32_t>(session_id));
+    raw_ford_messages_to_mobile_.PostMessage(
+	    impl::RawFordMessageToMobile(ptr, false));
+    LOG4CXX_INFO(logger_, "SendEndSession() for connection " << connection_id
+	                 << " for service_type " << static_cast<int32_t>(SERVICE_TYPE_RPC)
+	                 << " session_id " << static_cast<int32_t>(session_id));
+  } else {
+	LOG4CXX_WARN(logger_, "SendEndSession is failed connection or session does not exist");
+  }
 }
 
 RESULT_CODE ProtocolHandlerImpl::SendHeartBeatAck(ConnectionID connection_id,
@@ -262,27 +268,39 @@ RESULT_CODE ProtocolHandlerImpl::SendHeartBeatAck(ConnectionID connection_id,
                                                   uint32_t message_id) {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
-      PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
-      SERVICE_TYPE_CONTROL, FRAME_DATA_HEART_BEAT_ACK, session_id,
-      0u, message_id));
+  uint8_t protocol_version;
+  if (session_observer_->ProtocolVersionUsed(connection_id,
+	session_id, protocol_version)) {
+	ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
+        protocol_version, PROTECTION_OFF, FRAME_TYPE_CONTROL,
+	    SERVICE_TYPE_CONTROL, FRAME_DATA_HEART_BEAT_ACK, session_id,
+	    0u, message_id));
 
-  raw_ford_messages_to_mobile_.PostMessage(
-      impl::RawFordMessageToMobile(ptr, false));
-  return RESULT_OK;
+	raw_ford_messages_to_mobile_.PostMessage(
+	    impl::RawFordMessageToMobile(ptr, false));
+	return RESULT_OK;
+  }
+  LOG4CXX_WARN(logger_, "SendHeartBeatAck is failed connection or session does not exist");
+  return RESULT_FAIL;
 }
 
 void ProtocolHandlerImpl::SendHeartBeat(int32_t connection_id,
                                         uint8_t session_id) {
   LOG4CXX_AUTO_TRACE(logger_);
+  uint8_t protocol_version;
+  if (session_observer_->ProtocolVersionUsed(connection_id,
+			session_id, protocol_version)) {
+    ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
+	    protocol_version, PROTECTION_OFF, FRAME_TYPE_CONTROL,
+        SERVICE_TYPE_CONTROL, FRAME_DATA_HEART_BEAT, session_id,
+        0u, message_counters_[session_id]++));
 
-  ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
-      PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
-      SERVICE_TYPE_CONTROL, FRAME_DATA_HEART_BEAT, session_id,
-      0u, message_counters_[session_id]++));
-
-  raw_ford_messages_to_mobile_.PostMessage(
-      impl::RawFordMessageToMobile(ptr, false));
+    raw_ford_messages_to_mobile_.PostMessage(
+        impl::RawFordMessageToMobile(ptr, false));
+    LOG4CXX_INFO(logger_, "SendHeartBeat finished successfully");
+  } else {
+    LOG4CXX_WARN(logger_, "SendHeartBeat is failed connection or session does not exist");
+  }
 }
 
 void ProtocolHandlerImpl::SendMessageToMobileApp(const RawMessagePtr message,
@@ -1215,18 +1233,26 @@ void ProtocolHandlerImpl::SendFramesNumber(uint32_t connection_key,
   transport_manager::ConnectionUID connection_id = 0;
   uint8_t session_id = 0;
   session_observer_->PairFromKey(connection_key, &connection_id, &session_id);
-  ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
-      PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
-      SERVICE_TYPE_NAVI, FRAME_DATA_SERVICE_DATA_ACK,
-      session_id, 0, message_counters_[session_id]++));
+  uint8_t protocol_version;
+  if (session_observer_->ProtocolVersionUsed(connection_id, session_id,
+		  protocol_version)) {
+    ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
+	  	  protocol_version, PROTECTION_OFF, FRAME_TYPE_CONTROL,
+	        SERVICE_TYPE_NAVI, FRAME_DATA_SERVICE_DATA_ACK,
+	        session_id, 0, message_counters_[session_id]++));
 
-  // Flow control data shall be 4 bytes according Ford Protocol
-  DCHECK(sizeof(number_of_frames) == 4);
-  number_of_frames = LE_TO_BE32(number_of_frames);
-  ptr->set_data(reinterpret_cast<const uint8_t*>(&number_of_frames),
-                sizeof(number_of_frames));
-  raw_ford_messages_to_mobile_.PostMessage(
-        impl::RawFordMessageToMobile(ptr, false));
+    // Flow control data shall be 4 bytes according Ford Protocol
+    DCHECK(sizeof(number_of_frames) == 4);
+    number_of_frames = LE_TO_BE32(number_of_frames);
+    ptr->set_data(reinterpret_cast<const uint8_t*>(&number_of_frames),
+	                  sizeof(number_of_frames));
+	raw_ford_messages_to_mobile_.PostMessage(
+	     impl::RawFordMessageToMobile(ptr, false));
+	LOG4CXX_INFO(logger_, "SendFramesNumber finished successfully");
+  } else {
+	  LOG4CXX_WARN(logger_, "SendFramesNumber is failed connection or session does not exist");
+  }
+
 }
 
 #ifdef TIME_TESTER
@@ -1250,5 +1276,23 @@ std::string ConvertPacketDataToString(const uint8_t *data,
     }
   }
   return is_printable_array ? std::string(text) : std::string("is raw data");
+}
+
+uint8_t SupportedSDLProtocolVersion() {
+  LOG4CXX_INFO(logger_, "SupportedSDLProtocolVersion");
+
+  uint8_t protocol_version;
+  bool heart_beat_support =
+    (0 != profile::Profile::instance()->heart_beat_timeout());
+  bool sdl4_support = profile::Profile::instance()->enable_protocol_4();
+
+  if (sdl4_support) {
+    protocol_version = PROTOCOL_VERSION_4;
+  } else if (!sdl4_support && heart_beat_support) {
+    protocol_version = PROTOCOL_VERSION_3;
+  } else {
+    protocol_version = PROTOCOL_VERSION_2;
+  }
+  return protocol_version;
 }
 }  // namespace protocol_handler

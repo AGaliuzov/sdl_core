@@ -465,7 +465,8 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
       connection_handler_->BindProtocolVersionWithSession(
           connection_key, static_cast<uint8_t>(protocol_version));
     }
-    if (ProtocolVersion::kV3 == protocol_version) {
+    if (protocol_version >= ProtocolVersion::kV3 &&
+    		profile::Profile::instance()->heart_beat_timeout() > 0) {
       connection_handler_->StartSessionHeartBeat(connection_key);
     }
   }

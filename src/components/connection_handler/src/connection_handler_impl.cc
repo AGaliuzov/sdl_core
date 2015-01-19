@@ -876,6 +876,19 @@ bool ConnectionHandlerImpl::IsHeartBeatSupported(
   return it->second->SupportHeartBeat(session_id);
 }
 
+bool ConnectionHandlerImpl::ProtocolVersionUsed(uint32_t connection_id,
+		  uint8_t session_id, uint8_t& protocol_version) {
+  LOG4CXX_INFO(logger_, "ConnectionHandlerImpl::ProtocolVersionSupported");
+
+  sync_primitives::AutoLock lock(connection_list_lock_);
+  ConnectionList::iterator it = connection_list_.find(connection_id);
+  if (connection_list_.end() != it) {
+    return it->second->ProtocolVersion(session_id, protocol_version);
+  }
+  LOG4CXX_WARN(logger_, "Connection not found !");
+  return false;
+}
+
 #ifdef BUILD_TESTS
 ConnectionList &ConnectionHandlerImpl::getConnectionList() {
   return connection_list_;

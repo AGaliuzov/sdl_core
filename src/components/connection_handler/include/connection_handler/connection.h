@@ -262,6 +262,16 @@ class Connection {
    */
   bool SupportHeartBeat(uint8_t session_id);
 
+  /**
+   * @brief takes protocol version which bind with session
+   * @param session_id id of session which exists in
+   *  session_map_
+   * @param protocol_version method writes value protocol version
+   * @return TRUE if session exists in session_map_ otherwise
+   *   return FALSE
+   */
+   bool ProtocolVersion(uint8_t session_id, uint8_t& protocol_version);
+
 
  private:
   /**
