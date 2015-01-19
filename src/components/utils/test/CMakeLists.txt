@@ -46,6 +46,7 @@ set(testSources
   thread_validator_test.cc
   conditional_variable_test.cc
   message_queue_test.cc
+  resource_usage_test.cc
 )
 
 
