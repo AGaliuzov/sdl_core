@@ -981,17 +981,18 @@ SDL.SDLModel = Em.Object.create({
      */
     onAppRegistered: function (params) {
 
-        var applicationType = 1,
+        var applicationType = 1,//Default value - NonMediaModel see SDL.SDLController.applicationModels
             app = SDL.SDLController.getApplicationModel(params.appID);
 
         if (app != undefined && app.initialized == false) {
 
-            if (app.isMedia != params.isMediaApplication) {
-                this.convertModel(params)
+            if (app.isMedia != params.isMediaApplication) { // If current not initialized model doe not matches the registered application type
+                this.convertModel(params)                   // then model should be changed
             }
             return;
         } else if (app != undefined && app.initialized == true) {
-            return;
+            console.error("Application with appID " + params.appID + " already registered!");
+            return; // if application already registered and correctly initialized and BC.UpdateAppList came from SDL than nothing shoul happend
         }
 
         if (params.vrSynonyms) {

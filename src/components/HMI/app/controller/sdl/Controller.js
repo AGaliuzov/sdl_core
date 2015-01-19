@@ -597,7 +597,7 @@ SDL.SDLController = Em.Object
 
             if (applicationType === undefined || applicationType === null) {
 
-                SDL.SDLModel.get('registeredApps').pushObject(this.applicationModels[0].create( {
+                SDL.SDLModel.get('registeredApps').pushObject(this.applicationModels[0].create( { //Magic number 0 - Default media model for not initialized applications
                     appID: params.appID,
                     appName: params.appName,
                     deviceName: params.deviceName,
