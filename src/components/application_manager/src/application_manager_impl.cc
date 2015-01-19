@@ -1858,7 +1858,7 @@ HMICapabilities& ApplicationManagerImpl::hmi_capabilities() {
 void ApplicationManagerImpl::CreateApplications(
     SmartArray& obj_array,
     const std::string& app_icon_dir,
-    std::vector<std::pair<const int, const std::string>>& apps_with_icon) {
+    std::vector<std::pair<uint32_t, std::string> >& apps_with_icon) {
 
   using namespace policy;
 
@@ -1899,7 +1899,7 @@ void ApplicationManagerImpl::ProcessQueryApp(
   using namespace policy;
   using namespace profile;
 
-  typedef std::vector<std::pair<const int, const std::string>> AppsWithIcon;
+  typedef std::vector<std::pair<uint32_t, std::string> > AppsWithIcon;
   AppsWithIcon apps_with_icon;
 
   if (sm_object.keyExists(strings::application)) {
