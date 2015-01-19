@@ -929,7 +929,7 @@ class ApplicationManagerImpl : public ApplicationManager,
      */
     void CreateApplications(smart_objects::SmartArray& obj_array,
                             const std::string& app_icon_dir,
-                            std::vector<std::pair<const int, const std::string>>& apps_with_icon);
+                            std::vector<std::pair<uint32_t, std::string> >& apps_with_icon);
 
     /*
      * @brief Function is called on IGN_OFF, Master_reset or Factory_defaults
