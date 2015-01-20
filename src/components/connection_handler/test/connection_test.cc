@@ -32,6 +32,7 @@
 
 #include <gtest/gtest.h>
 #include <algorithm>
+#include <iostream>
 #include "protocol/common.h"
 #include "connection_handler/connection.h"
 #include "connection_handler/connection_handler_impl.h"
@@ -125,7 +126,7 @@ class ConnectionTest: public ::testing::Test {
 };
 
 // Try to add service without session
-TEST_F(ConnectionTest, Session_AddNewServiceWithoySession) {
+TEST_F(ConnectionTest, Session_AddNewServiceWithoutSession) {
   EXPECT_EQ(connection_->
             AddNewService(session_id, protocol_handler::kAudio, true),
             EXPECT_RETURN_FALSE);
@@ -158,7 +159,7 @@ TEST_F(ConnectionTest, Session_RemoveRPCBulk) {
             RemoveService(session_id, protocol_handler::kBulk),
             EXPECT_RETURN_FALSE);
 }
-// Control Service couldnot be started anyway
+// Control Service could not be started anyway
 TEST_F(ConnectionTest, Session_AddControlService) {
   StartSession();
 
@@ -183,12 +184,18 @@ TEST_F(ConnectionTest, Session_AddInvalidService) {
 }
 
 // RPC and Bulk Services could be only delay protected
-TEST_F(ConnectionTest, DISABLED_Session_AddRPCBulkServices) {
+TEST_F(ConnectionTest, Session_AddRPCBulkServices) {
   StartSession();
 
+#ifdef ENABLE_SECURITY
   AddNewService(protocol_handler::kRpc, PROTECTION_OFF,
                EXPECT_RETURN_FALSE,
                EXPECT_SERVICE_EXISTS);
+#else
+  AddNewService(protocol_handler::kRpc, PROTECTION_OFF,
+                 EXPECT_RETURN_FALSE,
+                 EXPECT_SERVICE_NOT_EXISTS);
+#endif  // ENABLE_SECURITY
 
   //Bulk shall not be added and shall be PROTECTION_OFF
   AddNewService(protocol_handler::kBulk, PROTECTION_OFF,

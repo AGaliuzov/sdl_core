@@ -33,7 +33,6 @@
 #include <gtest/gtest.h>
 #include <fstream>
 #include <cstdint>
-#include <iostream>
 #include "connection_handler/connection_handler_impl.h"
 #include "protocol/common.h"
 #include "config_profile/profile.h"
