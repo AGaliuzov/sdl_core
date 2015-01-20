@@ -414,8 +414,8 @@ bool file_system::CreateFile(const std::string& path) {
 }
 
 
-long file_system::GetFileModificationTime(const std::string& path) {
+uint64_t file_system::GetFileModificationTime(const std::string& path) {
   struct stat info;
   stat(path.c_str(), &info);
-  return info.st_mtim.tv_nsec;
+  return static_cast<uint64_t>(info.st_mtim.tv_nsec);
 }

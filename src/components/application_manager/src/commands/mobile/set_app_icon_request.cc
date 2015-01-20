@@ -123,10 +123,12 @@ void SetAppIconRequest::CopyToIconStorage(
 
   const std::string icon_storage =
           profile::Profile::instance()->app_icons_folder();
-  const uint32_t storage_max_size =
-          profile::Profile::instance()->app_icons_folder_max_size();
+  const uint64_t storage_max_size =
+      static_cast<uint64_t>(
+        profile::Profile::instance()->app_icons_folder_max_size());
   const uint64_t file_size = file_system::FileSize(path_to_file);
-  const uint32_t storage_size = file_system::DirectorySize(icon_storage);
+  const uint64_t storage_size = static_cast<uint64_t>(
+                                  file_system::DirectorySize(icon_storage));
   if (storage_max_size < (file_size + storage_size)) {
     RemoveOldestIcons(icon_storage,
                       profile::Profile::instance()->
@@ -168,7 +170,7 @@ void SetAppIconRequest::RemoveOldestIcons(const std::string& storage,
     return;
   }
   const std::vector<std::string> icons_list = file_system::ListFiles(storage);
-  std::map<long, std::string> icon_modification_time;
+  std::map<uint64_t, std::string> icon_modification_time;
   std::vector<std::string>::const_iterator it = icons_list.begin();
   for (;it != icons_list.end(); ++it) {
     const std::string file_name = *it;
@@ -176,7 +178,7 @@ void SetAppIconRequest::RemoveOldestIcons(const std::string& storage,
     if (!file_system::FileExists(file_path)) {
       continue;
     }
-    const long time = file_system::GetFileModificationTime(file_path);
+    const uint64_t time = file_system::GetFileModificationTime(file_path);
     icon_modification_time[time] = file_name;
   }
 

@@ -239,7 +239,7 @@ bool CreateFile(const std::string& path);
  * @param path Path to file
  * @return Modification time in nanoseconds
  */
-long GetFileModificationTime(const std::string& path);
+uint64_t GetFileModificationTime(const std::string& path);
 
 void remove_directory_content(const std::string& directory_name);
 
