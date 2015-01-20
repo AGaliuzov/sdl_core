@@ -36,6 +36,7 @@ include_directories (
   ${COMPONENTS_DIR}/include/utils
   )
 
+
 set(testSources
   main.cc
   messagemeter_test.cc
@@ -48,12 +49,14 @@ set(testSources
   message_queue_test.cc
   resource_usage_test.cc
   bitstream_test.cc
+  data_accessor_test.cc
 )
 
 
 if (BUILD_BACKTRACE_SUPPORT)
   list(APPEND testSources back_trace_test.cc)
 endif()
+
 
 set(testLibraries
   gmock
