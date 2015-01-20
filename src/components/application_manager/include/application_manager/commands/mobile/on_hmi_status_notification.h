@@ -35,6 +35,7 @@
 #define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_ON_HMI_STATUS_NOTIFICATION_H_
 
 #include "application_manager/commands/command_notification_impl.h"
+#include "application_manager/application.h"
 #include "utils/macro.h"
 
 namespace application_manager {
@@ -64,6 +65,11 @@ class OnHMIStatusNotification : public CommandNotificationImpl {
   virtual void Run();
 
  private:
+  void HandleExternalOrigin(ApplicationSharedPtr app);
+  void HandleInternalOrigin(ApplicationSharedPtr app);
+
+private:
+  static bool is_apps_requested_;
   DISALLOW_COPY_AND_ASSIGN(OnHMIStatusNotification);
 };
 

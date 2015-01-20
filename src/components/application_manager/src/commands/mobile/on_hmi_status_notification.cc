@@ -40,6 +40,8 @@
 namespace application_manager {
 namespace commands {
 
+bool OnHMIStatusNotification::is_apps_requested_ = false;
+
 OnHMIStatusNotification::OnHMIStatusNotification(
     const MessageSharedPtr& message)
     : CommandNotificationImpl(message) {
@@ -54,11 +56,34 @@ void OnHMIStatusNotification::Run() {
   (*message_)[strings::params][strings::message_type] = static_cast<int32_t> (
       application_manager::MessageType::kNotification);
   ApplicationSharedPtr app = ApplicationManagerImpl::instance()->application(
-        (*message_)[strings::params][strings::connection_key].asUInt());
+        connection_key());
   if (!app.valid()) {
     LOG4CXX_ERROR(logger_, "OnHMIStatusNotification application doesn't exist");
     return;
   }
+
+  if (commands::Command::ORIGIN_INTERNAL == origin_) {
+    HandleInternalOrigin(app);
+  } else {
+    HandleExternalOrigin(app);
+  }
+}
+
+void OnHMIStatusNotification::HandleExternalOrigin(ApplicationSharedPtr app) {
+  // In case if this notification will be received from mobile side, it will
+  // mean, that app is in foreground on mobile. This should trigger remote
+  // apps list query for SDL 4.0 app
+  if (is_apps_requested_) {
+    LOG4CXX_DEBUG(logger_, "Remote apps list had been already requested.");
+    return;
+  }
+  if (ProtocolVersion::kV4 == app->protocol_version()) {
+    MessageHelper::SendQueryApps(connection_key());
+    is_apps_requested_ = true;
+  }
+}
+
+void OnHMIStatusNotification::HandleInternalOrigin(ApplicationSharedPtr app) {
   mobile_apis::HMILevel::eType hmi_level =
       static_cast<mobile_apis::HMILevel::eType>(
           (*message_)[strings::msg_params][strings::hmi_level].asInt());
@@ -74,7 +99,8 @@ void OnHMIStatusNotification::Run() {
       (mobile_apis::HMILevel::HMI_LIMITED == hmi_level)) {
     if (!(app->tts_properties_in_full())) {
       app->set_tts_properties_in_full(true);
-      LOG4CXX_INFO(logger_, "OnHMIStatusNotification AddAppToTTSGlobalPropertiesList");
+      LOG4CXX_INFO(logger_,
+                   "OnHMIStatusNotification AddAppToTTSGlobalPropertiesList");
       ApplicationManagerImpl::instance()->AddAppToTTSGlobalPropertiesList(
           app->app_id());
     }

@@ -1821,6 +1821,7 @@ void MessageHelper::SendPolicySnapshotNotification(
 
   content[strings::msg_params][strings::request_type] = RequestType::HTTP;
   content[strings::params][strings::binary_data] = SmartObject(policy_data);
+  content[strings::msg_params][strings::file_type] = FileType::BINARY;
 
   SendSystemRequestNotification(connection_key, content);
 }
@@ -1838,7 +1839,6 @@ void MessageHelper::SendSystemRequestNotification (uint32_t connection_key,
   content[strings::params][strings::protocol_version] = CommandImpl::protocol_version_;
 
   content[strings::params][strings::connection_key] = connection_key;
-  content[strings::msg_params][strings::file_type] = FileType::BINARY;
 
   ApplicationManagerImpl::instance()->ManageMobileCommand(new SmartObject(content));
 }
@@ -1855,6 +1855,22 @@ void MessageHelper::SendLaunchApp(uint32_t connection_key,
   content[strings::msg_params][strings::app_id] = connection_key;
   content[strings::msg_params][strings::urlSchema] = urlSchema;
   content[strings::msg_params][strings::packageName] = packageName;
+
+  SendSystemRequestNotification(connection_key, content);
+}
+
+void application_manager::MessageHelper::SendQueryApps(
+    uint32_t connection_key) {
+  using namespace mobile_apis;
+  using namespace smart_objects;
+
+  policy::PolicyHandler* policy_handler = policy::PolicyHandler::instance();
+
+  SmartObject content (SmartType_Map);
+  content[strings::msg_params][strings::request_type] = RequestType::QUERY_APPS;
+  content[strings::msg_params][strings::url] = policy_handler->RemoteAppsUrl();
+  content[strings::msg_params][strings::timeout] =
+      policy_handler->TimeoutExchange();
 
   SendSystemRequestNotification(connection_key, content);
 }

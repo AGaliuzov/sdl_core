@@ -1309,6 +1309,12 @@ uint16_t PolicyHandler::HeartBeatTimeout(const std::string& app_id) const {
   return policy_manager_->HeartBeatTimeout(app_id);
 }
 
+const std::string PolicyHandler::RemoteAppsUrl() const {
+  const std::string default_url = "";
+  POLICY_LIB_CHECK(default_url);
+  return policy_manager_->RemoteAppsUrl();
+}
+
 void PolicyHandler::Increment(usage_statistics::GlobalCounterId type) {
   POLICY_LIB_CHECK();
   policy_manager_->Increment(type);

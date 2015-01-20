@@ -1210,7 +1210,8 @@ void ApplicationManagerImpl::SendMessageToMobile(
 }
 
 bool ApplicationManagerImpl::ManageMobileCommand(
-    const commands::MessageSharedPtr message) {
+    const commands::MessageSharedPtr message,
+    commands::Command::CommandOrigin origin) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (!message) {
@@ -1233,6 +1234,8 @@ bool ApplicationManagerImpl::ManageMobileCommand(
     LOG4CXX_WARN(logger_, "RET  Failed to create mobile command from smart object");
     return false;
   }
+
+  command->set_command_origin(origin);
 
   mobile_apis::FunctionID::eType function_id =
     static_cast<mobile_apis::FunctionID::eType>(
@@ -1408,7 +1411,8 @@ void ApplicationManagerImpl::SendMessageToHMI(
 }
 
 bool ApplicationManagerImpl::ManageHMICommand(
-    const commands::MessageSharedPtr message) {
+    const commands::MessageSharedPtr message,
+    commands::Command::CommandOrigin origin) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (!message) {
@@ -1428,6 +1432,8 @@ bool ApplicationManagerImpl::ManageHMICommand(
     LOG4CXX_WARN(logger_, "Failed to create command from smart object");
     return false;
   }
+
+  command->set_command_origin(origin);
 
   int32_t message_type = (*(message.get()))[strings::params][strings::message_type].asInt();
 
@@ -1509,6 +1515,7 @@ bool ApplicationManagerImpl::ConvertMessageToSO(
     << "; json " << message.json_message());
 
   switch (message.protocol_version()) {
+    case ProtocolVersion::kV4:
     case ProtocolVersion::kV3:
     case ProtocolVersion::kV2: {
         const bool conversion_result =
@@ -1793,7 +1800,8 @@ void ApplicationManagerImpl::ProcessMessageFromMobile(
   metric->message = so_from_mobile;
 #endif  // TIME_TESTER
 
-  if (!ManageMobileCommand(so_from_mobile)) {
+  if (!ManageMobileCommand(so_from_mobile,
+                           commands::Command::ORIGIN_EXTERNAL)) {
     LOG4CXX_ERROR(logger_, "Received command didn't run successfully");
   }
 #ifdef TIME_TESTER
@@ -1824,7 +1832,7 @@ void ApplicationManagerImpl::ProcessMessageFromHMI(
 #endif  // HMI_DBUS_API
 
   LOG4CXX_INFO(logger_, "Converted message, trying to create hmi command");
-  if (!ManageHMICommand(smart_object)) {
+  if (!ManageHMICommand(smart_object, commands::Command::ORIGIN_EXTERNAL)) {
     LOG4CXX_ERROR(logger_, "Received command didn't run successfully");
   }
 }
@@ -2186,10 +2194,13 @@ void ApplicationManagerImpl::Handle(const impl::MessageToMobile message) {
   }
 
   utils::SharedPtr<protocol_handler::RawMessage> rawMessage;
-  if (message->protocol_version() == application_manager::kV1) {
+  application_manager::ProtocolVersion protocol_version =
+      message->protocol_version();
+  if (protocol_version == application_manager::kV1) {
     rawMessage = MobileMessageHandler::HandleOutgoingMessageProtocolV1(message);
-  } else if ((message->protocol_version() == application_manager::kV2) ||
-             (message->protocol_version() == application_manager::kV3)) {
+  } else if ((protocol_version == application_manager::kV2) ||
+             (protocol_version == application_manager::kV3) ||
+             (protocol_version == application_manager::kV4)) {
     rawMessage = MobileMessageHandler::HandleOutgoingMessageProtocolV2(message);
   } else {
     return;

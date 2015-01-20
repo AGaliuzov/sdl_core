@@ -44,7 +44,8 @@ const int32_t CommandImpl::protocol_version_ = 3;
 
 CommandImpl::CommandImpl(const MessageSharedPtr& message)
     : message_(message),
-      default_timeout_(profile::Profile::instance()->default_timeout()) {
+      default_timeout_(profile::Profile::instance()->default_timeout()),
+      origin_(CommandOrigin::ORIGIN_INTERNAL) {
 }
 
 CommandImpl::~CommandImpl() {
@@ -84,6 +85,10 @@ uint32_t CommandImpl::connection_key() const {
 
 void CommandImpl::onTimeOut() {
 
+}
+
+void CommandImpl::set_command_origin(CommandOrigin origin) {
+  origin_ = origin;
 }
 
 }  // namespace commands

@@ -107,6 +107,16 @@ class Command {
    */
   virtual void onTimeOut() = 0;
 
+  enum CommandOrigin {
+    ORIGIN_INTERNAL,
+    ORIGIN_EXTERNAL
+  };
+
+  /**
+   * @brief Sets command origin
+   */
+  virtual void set_command_origin(CommandOrigin origin) = 0;
+
 };
 
 typedef smart_objects::SmartObjectSPtr MessageSharedPtr;
