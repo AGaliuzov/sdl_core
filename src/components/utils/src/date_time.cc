@@ -40,6 +40,7 @@ namespace date_time {
   TimevalStruct DateTime::GetTimevalFromTime(time_t time) {
     TimevalStruct tm;
     tm.tv_sec = time / MILLISECONDS_IN_SECOND;
+    tm.tv_usec = 0;
     return tm;
   }
 

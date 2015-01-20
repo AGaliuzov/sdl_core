@@ -106,7 +106,7 @@ class ResumeCtrl: public event_engine::EventObserver {
      * @param check_policy indicate if policy data consent must be verified
      * @return true if success, otherwise return false
      */
-    bool SetupAppHMIState(ApplicationSharedPtr application,
+    bool SetAppHMIState(ApplicationSharedPtr application,
                        mobile_apis::HMILevel::eType hmi_level,
                        mobile_apis::AudioStreamingState::eType audio_streaming_state,
                        bool check_policy = true);

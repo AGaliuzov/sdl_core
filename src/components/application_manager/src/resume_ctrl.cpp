@@ -159,7 +159,7 @@ bool ResumeCtrl::RestoreAppHMIState(ApplicationSharedPtr application) {
           static_cast<mobile_apis::HMILevel::eType>(
             json_app[strings::hmi_level].asInt());
       LOG4CXX_DEBUG(logger_, "Saved HMI Level is : " << saved_hmi_level);
-      return SetupAppHMIState(application, saved_hmi_level, audio_streaming_state);
+      return SetAppHMIState(application, saved_hmi_level, audio_streaming_state);
     } else {
       LOG4CXX_FATAL(logger_, "There are some unknown keys among the stored apps");
     }
@@ -199,15 +199,16 @@ bool ResumeCtrl::SetupDefaultHMILevel(ApplicationSharedPtr application) {
                     << policy_app_id);
     }
   }
-  bool result = SetupAppHMIState(application, default_hmi,
+  bool result = SetAppHMIState(application, default_hmi,
                          mobile_apis::AudioStreamingState::NOT_AUDIBLE, false);
   return result;
 }
 
-bool ResumeCtrl::SetupAppHMIState(ApplicationSharedPtr application,
+bool ResumeCtrl::SetAppHMIState(ApplicationSharedPtr application,
                                mobile_apis::HMILevel::eType hmi_level,
                                mobile_apis::AudioStreamingState::eType audio_streaming_state,
                                bool check_policy) {
+  LOG4CXX_AUTO_TRACE(logger_);
   if (false == application.valid()) {
     LOG4CXX_ERROR(logger_, "Application pointer in invalid");
     return false;
@@ -1095,18 +1096,38 @@ bool ResumeCtrl::CheckIgnCycleRestrictions(const Json::Value& json_app) {
   LOG4CXX_AUTO_TRACE(logger_);
   DCHECK_OR_RETURN(json_app.isMember(strings::ign_off_count), false);
   DCHECK_OR_RETURN(json_app.isMember(strings::time_stamp), false);
+  const bool ign_off_count = json_app[strings::ign_off_count].asUInt();
+  const bool is_previous_ign_cycle = (ign_off_count == 1);
+  LOG4CXX_INFO(logger_, "AKUTSAN  ign_off_count " << ign_off_count
+               << "; is_previous_ign_cycle " << is_previous_ign_cycle
+               );
+
+  if (!is_previous_ign_cycle) {
+    LOG4CXX_INFO(logger_, "Do not need to resume application ign_off_count = "
+                 << ign_off_count);
+    return false;
+  }
+
   time_t time_stamp = static_cast<time_t>(json_app[strings::time_stamp].asUInt());
+
   TimevalStruct curr_time = DateTime::getCurrentTime();
   TimevalStruct sdl_launch_time = DateTime::GetTimevalFromTime(launch_time());
-  const uint32_t ms_from_sdl_start = DateTime::calculateTimeDiff(curr_time,
+  const int64_t ms_from_sdl_start = DateTime::calculateTimeDiff(curr_time,
                                                                  sdl_launch_time);
-  const int64_t seconds_from_sdl_start = ms_from_sdl_start /
+  const uint32_t seconds_from_sdl_start = ms_from_sdl_start /
                                          DateTime::MILLISECONDS_IN_SECOND;
   const uint32_t wait_time =
       Profile::instance()->resumption_delay_before_ign();
+  LOG4CXX_INFO(logger_, "AKUTSAN time_stamp " << time_stamp
+               << "; curr_time " << DateTime::getSecs(curr_time)
+               << "; sdl_launch_time " << DateTime::getSecs(sdl_launch_time)
+               << "; ms_from_sdl_start " << ms_from_sdl_start
+               << "; seconds_from_sdl_start " << seconds_from_sdl_start
+               );
   if (seconds_from_sdl_start > wait_time) {
     LOG4CXX_INFO(logger_, "Do not need to resume application,"
-                 "SDL started more then " << wait_time << " secconds ago");
+                 "SDL started more then " << wait_time << " secconds ago : "
+                 << seconds_from_sdl_start);
     return false;
   }
 
@@ -1116,19 +1137,18 @@ bool ResumeCtrl::CheckIgnCycleRestrictions(const Json::Value& json_app) {
                                                                   app_disconnect_time);
   const uint32_t sec_spent_before_ign = ms_spent_before_ign /
                                         DateTime::MILLISECONDS_IN_SECOND;
+  LOG4CXX_INFO(logger_, "AKUTSAN  curr_time " << DateTime::getSecs(curr_time)
+               << "; ign_off_time " << DateTime::getSecs(ign_off_time)
+               << "; app_disconnect_time " << DateTime::getSecs(app_disconnect_time)
+               << "; ms_spent_before_ign " << ms_spent_before_ign
+               << "; ms_spent_before_ign " << ms_spent_before_ign
+               );
   if (sec_spent_before_ign > Profile::instance()->resumption_delay_after_ign()) {
     LOG4CXX_INFO(logger_, "Do not need to resume application time_spent_before_ign = "
                  << sec_spent_before_ign);
     return false;
   }
 
-  const bool ign_off_count = json_app[strings::ign_off_count].asUInt();
-  const bool is_previous_ign_cycle = (ign_off_count == 1);
-  if (!is_previous_ign_cycle) {
-    LOG4CXX_INFO(logger_, "Do not need to resume application ign_off_count = "
-                 << ign_off_count);
-    return false;
-  }
   return true;
 }
 
