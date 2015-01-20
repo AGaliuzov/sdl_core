@@ -352,7 +352,7 @@ void MessageHelper::SendOnAppRegisteredNotificationToHMI(
   std::string priority;
 
   policy::PolicyHandler::instance()->GetPriority(
-        application_impl.mobile_app_id()->asString(), &priority);
+        application_impl.mobile_app_id(), &priority);
   if (!priority.empty()) {
     message[strings::msg_params][strings::priority] = GetPriorityCode(priority);
   }
@@ -1318,7 +1318,7 @@ void MessageHelper::SendActivateAppToHMI(uint32_t const app_id,
     // TODO(KKolodiy): need remove method policy_manager
 
     policy::PolicyHandler::instance()->GetPriority(
-        app->mobile_app_id()->asString(), &priority);
+        app->mobile_app_id(), &priority);
     // According SDLAQ-CRS-2794
     // SDL have to send ActivateApp without "proirity" parameter to HMI.
     // in case of unconsented device
@@ -2276,7 +2276,7 @@ mobile_apis::Result::eType MessageHelper::ProcessSoftButtons(
     const int system_action = request_soft_buttons[i][strings::system_action].asInt();
 
     if (!CheckWithPolicy(static_cast<SystemAction::eType>(system_action),
-                         app->mobile_app_id()->asString())) {
+                         app->mobile_app_id())) {
       return Result::DISALLOWED;
     }
 

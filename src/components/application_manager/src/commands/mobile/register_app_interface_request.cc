@@ -1,4 +1,4 @@
-﻿/*
+/*
 
  Copyright (c) 2013, Ford Motor Company
  All rights reserved.
@@ -486,7 +486,7 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile(
 
   // in case application exist in resumption we need to send resumeVrgrammars
   if (false == resumption) {
-    resumption = resumer.IsApplicationSaved(application->mobile_app_id()->asString());
+    resumption = resumer.IsApplicationSaved(application->mobile_app_id());
   }
 
   MessageHelper::SendOnAppRegisteredNotificationToHMI(*(application.get()),
@@ -665,7 +665,7 @@ bool RegisterAppInterfaceRequest::IsApplicationWithSameAppIdRegistered() {
                "IsApplicationWithSameAppIdRegistered");
 
   const std::string mobile_app_id = (*message_)[strings::msg_params]
-                                    [strings::app_id].asString();
+                                         [strings::app_id].asString();
 
   ApplicationManagerImpl::ApplicationListAccessor accessor;
   const ApplicationManagerImpl::ApplictionSet applications = accessor.applications();
@@ -674,7 +674,7 @@ bool RegisterAppInterfaceRequest::IsApplicationWithSameAppIdRegistered() {
  ApplicationManagerImpl::ApplictionSetConstIt it_end = applications.end();
 
   for (; it != it_end; ++it) {
-    if (mobile_app_id == (*it)->mobile_app_id()->asString()) {
+    if (!strcasecmp(mobile_app_id.c_str(),(*it)->mobile_app_id().c_str())) {
       return true;
     }
   }
