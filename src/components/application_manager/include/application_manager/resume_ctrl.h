@@ -88,7 +88,7 @@ class ResumeCtrl: public event_engine::EventObserver {
      * @param application is application witch HMI Level is need to restore
      * @return true if success, otherwise return false
      */
-    bool RestoreApplicationHMIState(ApplicationSharedPtr application);
+    bool RestoreAppHMIState(ApplicationSharedPtr application);
 
     /**
      * @brief Set application HMI Level as stored in policy
@@ -106,7 +106,7 @@ class ResumeCtrl: public event_engine::EventObserver {
      * @param check_policy indicate if policy data consent must be verified
      * @return true if success, otherwise return false
      */
-    bool SetupHMILevel(ApplicationSharedPtr application,
+    bool SetupAppHMIState(ApplicationSharedPtr application,
                        mobile_apis::HMILevel::eType hmi_level,
                        mobile_apis::AudioStreamingState::eType audio_streaming_state,
                        bool check_policy = true);
@@ -134,6 +134,7 @@ class ResumeCtrl: public event_engine::EventObserver {
 
     /**
      * @brief Increments ignition counter for all registered applications
+     * and remember ign_off time stamp
      */
     void IgnitionOff();
 
@@ -225,12 +226,35 @@ class ResumeCtrl: public event_engine::EventObserver {
       is_data_saved = false;
     }
 
-    void StartHmiStateResumption(uint32_t time_stamp, ApplicationSharedPtr application);
+    /**
+     * @brief Resume HMI Level and audio streaming state if needed
+     * @param time_stamp - time when application was disconnected
+     * @param application - application to restore hmi levek
+     * and audio streaming state
+     */
+    void StartAppHmiStateResumption(uint32_t time_stamp,
+                                    ApplicationSharedPtr application);
 
-    bool startTime() const;
-    void setStartTime(bool startTime);
+    /**
+     * @brief geter for launch_time_
+     * @return value of launch_time_
+     */
+    time_t launch_time() const;
 
-    void ResumeHmiState(uint32_t time_stamp, ApplicationSharedPtr application);
+    /**
+     * @brief seter for launch_time_
+     * @param launch_time - new value of launch_time_
+     */
+    void set_launch_time(time_t launch_time);
+
+    /**
+     * @brief ResumeAppHmiState will restore hmi_level and
+     * audio streaming state immediatly after 3 secconds if needed
+     * @param time_stamp - time when application was disconnected
+     * @param application - application to restore hmi levek
+     * and audio streaming state
+     */
+    void ResumeAppHmiState(uint32_t time_stamp, ApplicationSharedPtr application);
   private:
 
     typedef std::pair<uint32_t, uint32_t> application_timestamp;
@@ -261,12 +285,34 @@ class ResumeCtrl: public event_engine::EventObserver {
      */
     bool IsDeviceMacAddressEqual(ApplicationSharedPtr application,
                                  const std::string& saved_device_mac);
+    /**
+    * @brief Get Resumption section of LastState
+    * @return Resumption section of LastState in Json
+     */
+    Json::Value& GetResumptionData();
 
-    Json::Value& GetLastStateResumeSection();
+    /**
+    * @brief Get applications for resumption of LastState
+    * @return applications for resumption of LastState
+     */
     Json::Value& GetSavedApplications();
-    time_t GetLastIgnOffTime();
 
-    void SetLastIgnOffTime(time_t save_time);
+    /**
+    * @brief Get the last ignition off time from LastState
+    * @return the last ignition off time from LastState
+     */
+    time_t GetIgnOffTime();
+
+    /**
+    * @brief Setup IgnOff time to LastState
+    * @param ign_off_time - igition Off Time
+     */
+    void SetLastIgnOffTime(time_t ign_off_time);
+
+    /**
+    * @brief Set applications for resumption to LastState
+    * @parems apps_json applications to write in LastState
+     */
     void SetSavedApplication(Json::Value& apps_json);
 
     Json::Value GetApplicationCommands(
@@ -382,6 +428,11 @@ class ResumeCtrl: public event_engine::EventObserver {
      */
     Json::Value& GetFromSavedOrAppend(const std::string& mobile_app_id);
 
+    bool CheckIgnCycleRestrictions(const Json::Value& json_app);
+
+
+    bool CheckAppRestrictions(ApplicationSharedPtr application,
+                              const Json::Value& json_app);
     /**
      * @brief GetObjectIndex allows to obtain specified obbject index from
      * applications arrays.
@@ -421,7 +472,7 @@ class ResumeCtrl: public event_engine::EventObserver {
     timer::TimerThread<ResumeCtrl>  restore_hmi_level_timer_;
     timer::TimerThread<ResumeCtrl>  save_persistent_data_timer_;
     bool is_data_saved;
-    bool start_time_;
+    time_t launch_time_;
 };
 
 }  // namespace application_manager

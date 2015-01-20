@@ -641,7 +641,7 @@ void ApplicationManagerImpl::OnHMIStartedCooperation() {
     connection_handler_->StartTransportManager();
   }
 #endif // CUSTOMER_PASA
-  resume_controller().setStartTime(time(NULL));
+  resume_controller().set_launch_time(time(NULL));
 }
 
 uint32_t ApplicationManagerImpl::GetNextHMICorrelationID() {
