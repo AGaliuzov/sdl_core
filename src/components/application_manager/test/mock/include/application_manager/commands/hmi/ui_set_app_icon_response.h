@@ -1,0 +1,1 @@
+/home/aoleynik/git/applink/src/components/application_manager/include/application_manager/commands/hmi/ui_set_app_icon_response.h
