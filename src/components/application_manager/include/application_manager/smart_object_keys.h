@@ -253,7 +253,7 @@ const char application_files[] = "applicationFiles";
 const char application_show[] = "applicationShow";
 const char resumption[] = "resumption";
 const char resume_app_list[] = "resume_app_list";
-const char last_ign_off_time[] = "last_save_time";
+const char last_ign_off_time[] = "last_ign_off_time";
 
 const char resume_vr_grammars[] = "resumeVrGrammars";
 

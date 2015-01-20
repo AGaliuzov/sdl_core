@@ -229,33 +229,26 @@ class ResumeCtrl: public event_engine::EventObserver {
     /**
      * @brief Resume HMI Level and audio streaming state if needed
      * @param time_stamp - time when application was disconnected
-     * @param application - application to restore hmi levek
+     * @param application - application to restore hmi level
      * and audio streaming state
      */
     void StartAppHmiStateResumption(uint32_t time_stamp,
                                     ApplicationSharedPtr application);
-
     /**
-     * @brief geter for launch_time_
-     * @return value of launch_time_
+     * @brief Update launch_time_ to current
      */
-    time_t launch_time() const;
-
-    /**
-     * @brief seter for launch_time_
-     * @param launch_time - new value of launch_time_
-     */
-    void set_launch_time(time_t launch_time);
+    void ResetLaunchTime();
 
     /**
      * @brief ResumeAppHmiState will restore hmi_level and
      * audio streaming state immediatly after 3 secconds if needed
      * @param time_stamp - time when application was disconnected
-     * @param application - application to restore hmi levek
+     * @param application - application to restore hmi level
      * and audio streaming state
      */
     void ResumeAppHmiState(uint32_t time_stamp, ApplicationSharedPtr application);
   private:
+
 
     typedef std::pair<uint32_t, uint32_t> application_timestamp;
 
@@ -274,6 +267,12 @@ class ResumeCtrl: public event_engine::EventObserver {
             return lhs.second < rhs.second;
         }
     };
+
+    /**
+     * @brief geter for launch_time_
+     * @return value of launch_time_
+     */
+    time_t launch_time() const;
 
     /**
      * @brief Check device MAC address
@@ -428,9 +427,20 @@ class ResumeCtrl: public event_engine::EventObserver {
      */
     Json::Value& GetFromSavedOrAppend(const std::string& mobile_app_id);
 
+    /**
+     * @brief CheckIgnCycleRestrictions checks if is needed to resume HMI state
+     * by ign cycle restrictions
+     * @param json_app - saved application
+     * @return true if resumptions allowed, otherwise return false
+     */
     bool CheckIgnCycleRestrictions(const Json::Value& json_app);
 
-
+    /**
+     * @brief CheckAppRestrictions checks if is needed to resume HMI state
+     * by application type and saved app_level
+     * @param json_app - saved application
+     * @return true if resumptions allowed, otherwise return false
+     */
     bool CheckAppRestrictions(ApplicationSharedPtr application,
                               const Json::Value& json_app);
     /**

@@ -211,8 +211,8 @@ const uint32_t kDefaultListFilesRequestInNone = 5;
 const uint32_t kDefaultTimeout = 10;
 const uint32_t kDefaultAppResumingTimeout = 3;
 const uint32_t kDefaultAppSavePersistentDataTimeout = 10;
-const uint32_t kResumptionDelayBeforeIgn = 30;
-const uint32_t kResumptionDelayAfterIgn = 30;
+const uint32_t kDefaultResumptionDelayBeforeIgn = 30;
+const uint32_t kDefaultResumptionDelayAfterIgn = 30;
 
 const uint32_t kDefaultDirQuota = 104857600;
 const uint32_t kDefaultAppTimeScaleMaxRequests = 0;
@@ -1042,7 +1042,7 @@ void Profile::UpdateValues() {
                     kMainSection);
   // Open attempt timeout in ms
   ReadUIntValue(&resumption_delay_before_ign_,
-                kResumptionDelayBeforeIgn,
+                kDefaultResumptionDelayBeforeIgn,
                 kMainSection,
                 kResumptionDelayBeforeIgnKey);
 
@@ -1051,7 +1051,7 @@ void Profile::UpdateValues() {
 
   // Open attempt timeout in ms
   ReadUIntValue(&resumption_delay_after_ign_,
-                kResumptionDelayAfterIgn,
+                kDefaultResumptionDelayAfterIgn,
                 kMainSection,
                 kResumptionDelayAfterIgnKey);
 

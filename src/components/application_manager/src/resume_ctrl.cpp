@@ -501,8 +501,6 @@ void ResumeCtrl::ResumeAppHmiState(uint32_t time_stamp, ApplicationSharedPtr app
   } else {
     // please avoid AutoLock usage to avoid deadlock
     SetupDefaultHMILevel(application);
-    // if is media app and hmi level is full or limited
-    // if prev ign cycle
     InsertToTimerQueue(application->app_id(), time_stamp);
     // woun't start timer if it is active already
     LOG4CXX_DEBUG(logger_, "Application " << application->app_id() << " inserted to timer queue. "
@@ -525,7 +523,9 @@ void ResumeCtrl::StartAppHmiStateResumption(uint32_t time_stamp,
       && CheckAppRestrictions(application, json_app)) {
     ResumeAppHmiState(time_stamp, application);
   } else {
-    LOG4CXX_INFO(logger_, "Do not need to resume application");
+    LOG4CXX_INFO(logger_, "Do not need to resume application "
+                 << application->app_id());
+    SetupDefaultHMILevel(application);
   }
 }
 
@@ -1111,13 +1111,13 @@ bool ResumeCtrl::CheckIgnCycleRestrictions(const Json::Value& json_app) {
   time_t time_stamp = static_cast<time_t>(json_app[strings::time_stamp].asUInt());
 
   TimevalStruct curr_time = DateTime::getCurrentTime();
-  TimevalStruct sdl_launch_time = DateTime::GetTimevalFromTime(launch_time());
+  TimevalStruct sdl_launch_time = DateTime::ConvertTimeToTimeval(launch_time());
   const int64_t ms_from_sdl_start = DateTime::calculateTimeDiff(curr_time,
                                                                  sdl_launch_time);
   const uint32_t seconds_from_sdl_start = ms_from_sdl_start /
                                          DateTime::MILLISECONDS_IN_SECOND;
   const uint32_t wait_time =
-      Profile::instance()->resumption_delay_before_ign();
+      Profile::instance()->resumption_delay_after_ign();
   LOG4CXX_DEBUG(logger_, " time_stamp " << time_stamp
                << "; curr_time " << DateTime::getSecs(curr_time)
                << "; sdl_launch_time " << DateTime::getSecs(sdl_launch_time)
@@ -1129,16 +1129,16 @@ bool ResumeCtrl::CheckIgnCycleRestrictions(const Json::Value& json_app) {
     return false;
   }
 
-  TimevalStruct ign_off_time = DateTime::GetTimevalFromTime(GetIgnOffTime());
-  TimevalStruct app_disconnect_time = DateTime::GetTimevalFromTime(time_stamp);
+  TimevalStruct ign_off_time = DateTime::ConvertTimeToTimeval(GetIgnOffTime());
+  TimevalStruct app_disconnect_time = DateTime::ConvertTimeToTimeval(time_stamp);
   const int64_t ms_spent_before_ign = DateTime::calculateTimeDiff(ign_off_time,
                                                                   app_disconnect_time);
   const uint32_t sec_spent_before_ign = ms_spent_before_ign /
                                         DateTime::MILLISECONDS_IN_SECOND;
-  LOG4CXX_DEBUG(logger_,"i gn_off_time " << DateTime::getSecs(ign_off_time)
+  LOG4CXX_DEBUG(logger_,"ign_off_time " << DateTime::getSecs(ign_off_time)
                << "; app_disconnect_time " << DateTime::getSecs(app_disconnect_time)
                << "; sec_spent_before_ign " << ms_spent_before_ign );
-  if (sec_spent_before_ign > Profile::instance()->resumption_delay_after_ign()) {
+  if (sec_spent_before_ign > Profile::instance()->resumption_delay_before_ign()) {
     LOG4CXX_INFO(logger_, "Do not need to resume application time_spent_before_ign = "
                  << sec_spent_before_ign);
     return false;
@@ -1191,8 +1191,8 @@ time_t ResumeCtrl::launch_time() const {
   return launch_time_;
 }
 
-void ResumeCtrl::set_launch_time(time_t start_time) {
-  launch_time_ = start_time;
+void ResumeCtrl::ResetLaunchTime() {
+  launch_time_ = time(NULL);
 }
 
 
