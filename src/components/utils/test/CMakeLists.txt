@@ -46,8 +46,14 @@ set(testSources
   thread_validator_test.cc
   conditional_variable_test.cc
   message_queue_test.cc
+  resource_usage_test.cc
+  bitstream_test.cc
 )
 
+
+if (BUILD_BACKTRACE_SUPPORT)
+  list(APPEND testSources back_trace_test.cc)
+endif()
 
 set(testLibraries
   gmock

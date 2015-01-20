@@ -1275,22 +1275,33 @@ void PolicyHandler::OnUpdateRequestSentToMobile() {
   policy_manager_->OnUpdateStarted();
 }
 
-bool PolicyHandler::CheckKeepContext(int system_action,
-                                     const std::string& policy_app_id) {
+bool PolicyHandler::CheckKeepContext(const std::string& policy_app_id) {
   POLICY_LIB_CHECK(false);
-  const bool keep_context = system_action
-      == mobile_apis::SystemAction::KEEP_CONTEXT;
-  const bool allowed = policy_manager_->CanAppKeepContext(policy_app_id);
-  return !(keep_context && !allowed);
+  return policy_manager_->CanAppKeepContext(policy_app_id);
 }
 
-bool PolicyHandler::CheckStealFocus(int system_action,
-                                    const std::string& policy_app_id) {
+bool PolicyHandler::CheckStealFocus(const std::string& policy_app_id) {
   POLICY_LIB_CHECK(false);
-  const bool steal_focus = system_action
-      == mobile_apis::SystemAction::STEAL_FOCUS;
-  const bool allowed = policy_manager_->CanAppStealFocus(policy_app_id);
-  return !(steal_focus && !allowed);
+  return policy_manager_->CanAppStealFocus(policy_app_id);
+}
+
+bool PolicyHandler::CheckSystemAction(
+    mobile_apis::SystemAction::eType system_action,
+    const std::string& policy_app_id) {
+  using namespace mobile_apis;
+  LOG4CXX_AUTO_TRACE(logger_);
+  switch (system_action) {
+    case SystemAction::STEAL_FOCUS:
+      return CheckStealFocus(policy_app_id);
+    case SystemAction::KEEP_CONTEXT:
+      return CheckKeepContext(policy_app_id);
+    case SystemAction::DEFAULT_ACTION:
+      return true;
+    default:
+      break;
+  }
+  LOG4CXX_DEBUG(logger_, "Unknown system action");
+  return false;
 }
 
 uint16_t PolicyHandler::HeartBeatTimeout(const std::string& app_id) const {

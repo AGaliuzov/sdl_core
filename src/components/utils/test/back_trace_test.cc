@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,55 +30,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_SDL_ACTIVATE_APP_REQUEST_H_
-#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_SDL_ACTIVATE_APP_REQUEST_H_
+#include "gtest/gtest.h"
+#include "utils/back_trace.h"
 
-#include "application_manager/commands/hmi/request_from_hmi.h"
+namespace test {
+namespace components {
+namespace utils {
 
-namespace application_manager {
+using namespace ::utils;
 
-namespace commands {
+TEST(BackTraceTest, CallStackShouldNotBeEmpty) {
 
-/**
- * @brief SDLActivateAppRequest command class
- **/
-class SDLActivateAppRequest : public RequestFromHMI {
-  public:
-    /**
-     * @brief SDLActivateAppRequest class constructor
-     *
-     * @param message Incoming SmartObject message
-     **/
-    explicit SDLActivateAppRequest(const MessageSharedPtr& message);
+  //arrange
+  Backtrace newtrace = Backtrace();
+  std::vector < std::string > symbols = newtrace.CallStack();
+  //assert
+  ASSERT_FALSE(symbols.empty());
+}
 
-    /**
-     * @brief SDLActivateAppRequest class destructor
-     **/
-    virtual ~SDLActivateAppRequest();
-
-    /**
-     * @brief Execute command
-     **/
-    virtual void Run();
-
-    /**
-     * @brief onTimeOut allows to process case when timeout has appeared
-     * during request execution.
-     */
-    virtual void onTimeOut();
-
-    /**
-     * @brief on_event allows to handle events
-     *
-     * @param event event type that current request subscribed on.
-     */
-    virtual void on_event(const event_engine::Event& event);
-  private:
-    uint32_t app_id() const;
-    DISALLOW_COPY_AND_ASSIGN(SDLActivateAppRequest);
-};
-
-}  // namespace commands
-}  // namespace application_manager
-
-#endif  //  SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_SDL_ACTIVATE_APP_REQUEST_H_
+}  // namespace utils
+}  // namespace components
+}  // namespace test
