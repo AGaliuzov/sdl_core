@@ -424,35 +424,11 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
   int32_t min_version =
     message[strings::msg_params][strings::sync_msg_version]
     [strings::minor_version].asInt();
-
-  /*if (min_version < APIVersion::kAPIV2) {
-    LOG4CXX_ERROR(logger_, "UNSUPPORTED_VERSION");
-    utils::SharedPtr<smart_objects::SmartObject> response(
-      MessageHelper::CreateNegativeResponse(
-        connection_key, mobile_apis::FunctionID::RegisterAppInterfaceID,
-        message[strings::params][strings::correlation_id],
-        mobile_apis::Result::UNSUPPORTED_VERSION));
-    ManageMobileCommand(response);
-    delete application;
-    return NULL;
-  }*/
   version.min_supported_api_version = static_cast<APIVersion>(min_version);
 
   int32_t max_version =
     message[strings::msg_params][strings::sync_msg_version]
     [strings::major_version].asInt();
-
-  /*if (max_version > APIVersion::kAPIV2) {
-    LOG4CXX_ERROR(logger_, "UNSUPPORTED_VERSION");
-    utils::SharedPtr<smart_objects::SmartObject> response(
-      MessageHelper::CreateNegativeResponse(
-        connection_key, mobile_apis::FunctionID::RegisterAppInterfaceID,
-        message[strings::params][strings::correlation_id],
-        mobile_apis::Result::UNSUPPORTED_VERSION));
-    ManageMobileCommand(response);
-    delete application;
-    return NULL;
-  }*/
   version.max_supported_api_version = static_cast<APIVersion>(max_version);
   application->set_version(version);
 
@@ -901,7 +877,6 @@ uint32_t ApplicationManagerImpl::GenerateNewHMIAppID() {
 void ApplicationManagerImpl::ReplaceMobileByHMIAppId(
     smart_objects::SmartObject& message) {
   MessageHelper::PrintSmartObject(message);
-  flush(std::cout);
   if (message.keyExists(strings::app_id)) {
     ApplicationSharedPtr application =
         ApplicationManagerImpl::instance()->application(
@@ -1131,7 +1106,7 @@ void ApplicationManagerImpl::SendMessageToMobile(
         ProtocolVersion::kV1;
     } else {
       (*message)[strings::params][strings::protocol_version] =
-        ProtocolVersion::kV3;
+        SupportedSDLVersion();
     }
   } else {
     (*message)[strings::params][strings::protocol_version] =
@@ -1740,11 +1715,12 @@ utils::SharedPtr<Message> ApplicationManagerImpl::ConvertRawMsgToMessage(
   }
 
   Message* convertion_result = NULL;
-  if (message->protocol_version() == 1) {
+  if (message->protocol_version() == ProtocolVersion::kV1) {
     convertion_result =
       MobileMessageHandler::HandleIncomingMessageProtocolV1(message);
-  } else if ((message->protocol_version() == 2) ||
-             (message->protocol_version() == 3)) {
+  } else if ((message->protocol_version() == ProtocolVersion::kV2) ||
+             (message->protocol_version() == ProtocolVersion::kV3) ||
+             (message->protocol_version() == ProtocolVersion::kV4)) {
     convertion_result =
       MobileMessageHandler::HandleIncomingMessageProtocolV2(message);
   } else {
@@ -2170,19 +2146,9 @@ void ApplicationManagerImpl::Handle(const impl::MessageToMobile message) {
     return;
   }
 
-  utils::SharedPtr<protocol_handler::RawMessage> rawMessage;
-  application_manager::ProtocolVersion protocol_version =
-      message->protocol_version();
-  if (protocol_version == application_manager::kV1) {
-    rawMessage = MobileMessageHandler::HandleOutgoingMessageProtocolV1(message);
-  } else if ((protocol_version == application_manager::kV2) ||
-             (protocol_version == application_manager::kV3) ||
-             (protocol_version == application_manager::kV4)) {
-    rawMessage = MobileMessageHandler::HandleOutgoingMessageProtocolV2(message);
-  } else {
-    return;
-  }
-
+  utils::SharedPtr<protocol_handler::RawMessage> rawMessage =
+      MobileMessageHandler::HandleOutgoingMessageProtocol(message);
+  
   if (!rawMessage) {
     LOG4CXX_ERROR(logger_, "Failed to create raw message.");
     return;
@@ -2723,6 +2689,26 @@ void ApplicationManagerImpl::OnUpdateHMIAppType(
       }
     }
   }
+}
+
+ProtocolVersion ApplicationManagerImpl::SupportedSDLVersion() {
+  LOG4CXX_INFO(logger_, "SupportedSDLProtocolVersion");
+  ProtocolVersion protocol_version;
+  bool heart_beat_support =
+    (0 < profile::Profile::instance()->heart_beat_timeout());
+  bool sdl4_support = profile::Profile::instance()->enable_protocol_4();
+
+  if (sdl4_support) {
+    LOG4CXX_INFO(logger_, "SDL Supported protocol version 4");
+	protocol_version = ProtocolVersion::kV4;
+  } else if (!sdl4_support && heart_beat_support) {
+	LOG4CXX_INFO(logger_, "SDL Supported protocol version 3");
+	protocol_version = ProtocolVersion::kV3;
+  } else {
+	LOG4CXX_INFO(logger_, "SDL Supported protocol version 2");
+	protocol_version = ProtocolVersion::kV2;
+  }
+  return protocol_version;
 }
 
 
