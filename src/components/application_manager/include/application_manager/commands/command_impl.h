@@ -118,8 +118,6 @@ class CommandImpl : public Command {
    */
   virtual void onTimeOut();
 
-  virtual void set_command_origin(CommandOrigin origin);
-
   // members
   static const int32_t hmi_protocol_type_;
   static const int32_t mobile_protocol_type_;
@@ -128,7 +126,6 @@ class CommandImpl : public Command {
  protected:
   MessageSharedPtr message_;
   uint32_t default_timeout_;
-  CommandOrigin origin_;
 
 #ifdef ENABLE_LOG
   static log4cxx::LoggerPtr logger_;

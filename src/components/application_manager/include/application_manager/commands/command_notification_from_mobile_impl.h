@@ -1,5 +1,4 @@
 /*
-
  Copyright (c) 2013, Ford Motor Company
  All rights reserved.
 
@@ -31,43 +30,35 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_ON_HMI_STATUS_NOTIFICATION_H_
-#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_ON_HMI_STATUS_NOTIFICATION_H_
+#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_COMMAND_NOTIFICATION_FROM_MOBILE_IMPL_H_
+#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_COMMAND_NOTIFICATION_FROM_MOBILE_IMPL_H_
 
-#include "application_manager/commands/command_notification_impl.h"
-#include "utils/macro.h"
+#include "application_manager/commands/command_impl.h"
+
+namespace NsSmartDeviceLink {
+namespace NsSmartObjects {
+class SmartObject;
+}
+}
 
 namespace application_manager {
 
 namespace commands {
 
-/**
- * @brief OnHMIStatusNotification class
- **/
-class OnHMIStatusNotification : public CommandNotificationImpl {
+class CommandNotificationFromMobileImpl : public CommandImpl {
  public:
-  /**
-   * @brief OnHMIStatusNotification class constructor
-   *
-   * @param message Incoming SmartObject message
-   **/
-  explicit OnHMIStatusNotification(const MessageSharedPtr& message);
-
-  /**
-   * @brief OnHMIStatusNotification class destructor
-   **/
-  virtual ~OnHMIStatusNotification();
-
-  /**
-   * @brief Execute command
-   **/
+  explicit CommandNotificationFromMobileImpl(const MessageSharedPtr& message);
+  virtual ~CommandNotificationFromMobileImpl();
+  virtual bool Init();
+  virtual bool CleanUp();
   virtual void Run();
-
-private:
-  DISALLOW_COPY_AND_ASSIGN(OnHMIStatusNotification);
+  void SendNotification();
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CommandNotificationFromMobileImpl);
 };
 
 }  // namespace commands
+
 }  // namespace application_manager
 
-#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_ON_HMI_STATUS_NOTIFICATION_H_
+#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_COMMAND_NOTIFICATION_FROM_MOBILE_IMPL_H_

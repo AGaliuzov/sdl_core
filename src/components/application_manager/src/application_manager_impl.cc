@@ -1228,14 +1228,13 @@ bool ApplicationManagerImpl::ManageMobileCommand(
 #endif
 
   LOG4CXX_INFO(logger_, "Trying to create message in mobile factory.");
-  commands::Command* command = MobileCommandFactory::CreateCommand(message);
+  commands::Command* command = MobileCommandFactory::CreateCommand(message,
+                                                                   origin);
 
   if (!command) {
     LOG4CXX_WARN(logger_, "RET  Failed to create mobile command from smart object");
     return false;
   }
-
-  command->set_command_origin(origin);
 
   mobile_apis::FunctionID::eType function_id =
     static_cast<mobile_apis::FunctionID::eType>(
@@ -1411,8 +1410,7 @@ void ApplicationManagerImpl::SendMessageToHMI(
 }
 
 bool ApplicationManagerImpl::ManageHMICommand(
-    const commands::MessageSharedPtr message,
-    commands::Command::CommandOrigin origin) {
+    const commands::MessageSharedPtr message) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (!message) {
@@ -1432,8 +1430,6 @@ bool ApplicationManagerImpl::ManageHMICommand(
     LOG4CXX_WARN(logger_, "Failed to create command from smart object");
     return false;
   }
-
-  command->set_command_origin(origin);
 
   int32_t message_type = (*(message.get()))[strings::params][strings::message_type].asInt();
 
@@ -1801,7 +1797,7 @@ void ApplicationManagerImpl::ProcessMessageFromMobile(
 #endif  // TIME_TESTER
 
   if (!ManageMobileCommand(so_from_mobile,
-                           commands::Command::ORIGIN_EXTERNAL)) {
+                           commands::Command::ORIGIN_MOBILE)) {
     LOG4CXX_ERROR(logger_, "Received command didn't run successfully");
   }
 #ifdef TIME_TESTER
@@ -1832,7 +1828,7 @@ void ApplicationManagerImpl::ProcessMessageFromHMI(
 #endif  // HMI_DBUS_API
 
   LOG4CXX_INFO(logger_, "Converted message, trying to create hmi command");
-  if (!ManageHMICommand(smart_object, commands::Command::ORIGIN_EXTERNAL)) {
+  if (!ManageHMICommand(smart_object)) {
     LOG4CXX_ERROR(logger_, "Received command didn't run successfully");
   }
 }
@@ -2279,7 +2275,8 @@ void ApplicationManagerImpl::Handle(const impl::AudioData message) {
 
    LOG4CXX_INFO_EXT(logger_, "Send data");
    CommandSharedPtr command (
-       MobileCommandFactory::CreateCommand(on_audio_pass));
+       MobileCommandFactory::CreateCommand(on_audio_pass,
+                                           commands::Command::ORIGIN_SDL));
    command->Init();
    command->Run();
    command->CleanUp();
