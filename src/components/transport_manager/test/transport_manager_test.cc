@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -248,6 +248,8 @@ TEST_F(TransportManagerTest, ScanManyDeviceDone) {
   EXPECT_CALL(*tm_listener, OnDeviceFound(_)).Times(2);
   EXPECT_CALL(*tm_listener, OnScanDevicesFinished()).WillOnce(SignalTest(this));
 
+  //assert
+  EXPECT_CALL(*tm_listener, OnDeviceListUpdated(_));
   //act
   mock_adapter->get_device_scanner()->AddDevice("TestDevice1",
                                                 "MA:CA:DR:ES:S1");
@@ -256,7 +258,6 @@ TEST_F(TransportManagerTest, ScanManyDeviceDone) {
   tm->SearchDevices();
 
   //assert
-  EXPECT_CALL(*tm_listener, OnDeviceListUpdated(_));
   EXPECT_TRUE(waitCond(1));
 
   //act
@@ -300,6 +301,7 @@ TEST_F(TransportManagerTest, ConnectAddDeviceCannotFailConnection) {
   mock_adapter->get_device_scanner()->reset();
 }
 
+
 //TODO{ALeshin}: APPLINK-10846
 //TEST_F(TransportManagerTest, ConnectDeviceSendReciveMessage) {
 
@@ -307,6 +309,7 @@ TEST_F(TransportManagerTest, ConnectAddDeviceCannotFailConnection) {
 //  const ConnectionUID kConnection = 1;
 //  const int kTimes = 99;  // Times of send message //if kTimes>99 OnTMMessageSend will fail
 //  const unsigned int kVersionProtocol = 1;
+
 
 //  //assert
 //  EXPECT_CALL(*tm_listener, OnTMMessageSendFailed(_, _)).Times(0);
