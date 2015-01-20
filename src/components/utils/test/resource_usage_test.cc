@@ -30,28 +30,71 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_PROTOCOL_HANDLER_TEST_INCLUDE_PROTOCOL_OBSERVER_MOCK_H_
-#define SRC_COMPONENTS_PROTOCOL_HANDLER_TEST_INCLUDE_PROTOCOL_OBSERVER_MOCK_H_
+#include <unistd.h>
+#include "gtest/gtest.h"
+#include "utils/macro.h"
 
-#include <gmock/gmock.h>
-#include <string>
-#include "protocol_handler/protocol_observer.h"
+#include "utils/resource_usage.h"
+#include "utils/file_system.h"
+
+namespace utils {
+
+class ResourceUsagePrivateTest : public ::testing::Test {
+ protected:
+  Resources res;
+};
+
+TEST_F(ResourceUsagePrivateTest, ReadStatFileTest) {
+  std::string proc_buf;
+  EXPECT_TRUE(res.ReadStatFile(proc_buf));
+}
+
+TEST_F(ResourceUsagePrivateTest, GetProcInfoTest) {
+  Resources::PidStats pid_stat;
+  EXPECT_TRUE(res.GetProcInfo(pid_stat));
+}
+
+TEST_F(ResourceUsagePrivateTest, GetMemInfoTest) {
+  Resources::MemInfo mem_info;
+  EXPECT_TRUE(res.GetMemInfo(mem_info));
+}
+
+TEST_F(ResourceUsagePrivateTest, GetStatPathTest_FileExists) {
+  //arrange
+  std::string filename = res.GetStatPath();
+  //assert
+  EXPECT_TRUE(file_system::FileExists(filename));
+}
+
+TEST_F(ResourceUsagePrivateTest, GetStatPathTest_ReadFile) {
+  //arrange
+  std::string filename = res.GetStatPath();
+  std::string output;
+  //assert
+  EXPECT_TRUE(file_system::ReadFile(filename, output));
+
+}
+TEST_F(ResourceUsagePrivateTest, GetProcPathTest) {
+  ///arrange
+  std::string fd = res.GetProcPath();
+  std::string filename = res.GetStatPath();
+  //assert
+  EXPECT_EQ(filename, fd + "/stat");
+}
+}
 
 namespace test {
 namespace components {
-namespace protocol_handler_test {
+namespace utils {
+using namespace ::utils;
 
-/*
- * MOCK implementation of ::protocol_handler::ProtocolObserver interface
- */
-class ProtocolObserverMock : public ::protocol_handler::ProtocolObserver {
- public:
-  MOCK_METHOD1(OnMessageReceived,
-      void(const ::protocol_handler::RawMessagePtr));
-  MOCK_METHOD1(OnMobileMessageSent,
-      void(const ::protocol_handler::RawMessagePtr));
-};
-} // namespace protocol_handler_test
-} // namespace components
-} // namespace test
-#endif  //SRC_COMPONENTS_PROTOCOL_HANDLER_TEST_INCLUDE_PROTOCOL_OBSERVER_MOCK_H_
+TEST(ResourceUsageTest, SuccesfulGrabResources) {
+  ResourseUsage* resources = Resources::getCurrentResourseUsage();
+  EXPECT_TRUE(resources != NULL);
+  delete resources;
+
+}
+
+}  // namespace utils
+}  // namespace components
+}  // namespace test

@@ -261,6 +261,10 @@ void PolicyManagerImpl::StartPTExchange() {
   }
 }
 
+std::string PolicyManagerImpl::RemoteAppsUrl() const {
+  return cache_->RemoteAppsUrl();
+}
+
 void PolicyManagerImpl::CheckPermissions(const PTString& app_id,
                                          const PTString& hmi_level,
                                           const PTString& rpc,

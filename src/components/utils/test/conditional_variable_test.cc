@@ -75,8 +75,9 @@ void ConditionalVariableTest::check_counter() {
     counter_++;
     cond_var_.Wait(test_mutex_);  // Mutex unlock & Thread sleeps until Notification
   }
-  DCHECK(counter_ == 2);  // Checking for equal 2 in this specific case. Because we were waiting for 2 threads to be finished
-  cond_var_.Broadcast();  // Notify All threads waiting on conditional variable
+  else if(counter_ == 2) {  // Checking for equal 2 in this specific case. Because we were waiting for 2 threads to be finished
+    cond_var_.Broadcast();  // Notify All threads waiting on conditional variable
+  }
 }
 
 // Tasks for threads to begin with
@@ -100,7 +101,7 @@ TEST_F(ConditionalVariableTest, CheckNotifyOne_OneThreadNotified_ExpectSuccessfu
     exit(1);
   }
   test_value_ = "changed twice by main thread";
-  cond_var_.WaitFor(test_lock, 3000);
+  cond_var_.WaitFor(test_lock, 2000);
   std::string last_value("changed again by thread 1");
   EXPECT_EQ(last_value, test_value_);
 }
@@ -128,11 +129,10 @@ TEST_F(ConditionalVariableTest, CheckBroadcast_AllThreadsNotified_ExpectSuccessf
   EXPECT_EQ(2, counter_);
 }
 
-TEST_F(ConditionalVariableTest, CheckWaitForWithTimeout2secs_ThreadBlockedForTimeout_ExpectSuccessfulWakeUp) {
+TEST_F(ConditionalVariableTest, CheckWaitForWithTimeout1sec_ThreadBlockedForTimeout_ExpectSuccessfulWakeUp) {
   sync_primitives::AutoLock test_lock(test_mutex_);
-  sync_primitives::ConditionalVariable::WaitStatus test_value = sync_primitives::ConditionalVariable::kTimeout;
-  sync_primitives::ConditionalVariable::WaitStatus wait_st = cond_var_.WaitFor(test_lock, 2000);
-  EXPECT_EQ(test_value, wait_st);
+  sync_primitives::ConditionalVariable::WaitStatus wait_st = cond_var_.WaitFor(test_lock, 1000);
+  EXPECT_EQ(sync_primitives::ConditionalVariable::kTimeout, wait_st);
 }
 
 }  // namespace utils

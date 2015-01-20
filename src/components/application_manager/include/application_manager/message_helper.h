@@ -1,4 +1,4 @@
-﻿/*
+/*
  Copyright (c) 2013, Ford Motor Company
  All rights reserved.
 
@@ -309,6 +309,22 @@ class MessageHelper {
       unsigned int connection_key, const std::vector<uint8_t>& policy_data,
       const std::string& url = "", int timeout = -1);
 
+    static void SendSystemRequestNotification(
+        uint32_t connection_key,
+        NsSmartDeviceLink::NsSmartObjects::SmartObject& content);
+
+    /**
+     * @brief SendLaunchApp allows to send System request with LAUNCH_UP.
+     *
+     * @param connection_key application id.
+     *
+     * @param urlSchema application's url schema.
+     *
+     * @param packageName application's package name.
+     */
+    static void SendLaunchApp(uint32_t connection_key,
+                              const std::string& urlSchema,
+                              const std::string& packageName);
     /*
     * @brief Send notification to mobile on application permissions update
     * @param connection_key Id of application to send message to
@@ -432,7 +448,7 @@ class MessageHelper {
      * @param app_mobile_id policy application id
      * @return
      */
-    static bool CheckWithPolicy(int system_action,
+    static bool CheckWithPolicy(mobile_apis::SystemAction::eType system_action,
                                 const std::string& app_mobile_id);
 
     /*
@@ -485,7 +501,16 @@ class MessageHelper {
     static void SendTTSGlobalProperties(
         ApplicationSharedPtr app, bool default_help_prompt);
 
-    private:
+    /**
+     * @brief SendSetAppIcon allows to send SetAppIcon request.
+     *
+     * @param app_id application for which icon request should be sent.
+     *
+     * @param icon_path path to the icon.
+     */
+    static void SendSetAppIcon(uint32_t app_id,
+                               const std::string& icon_path);
+  private:
     /**
      * @brief Allows to fill SO according to the  current permissions.
      * @param permissions application permissions.

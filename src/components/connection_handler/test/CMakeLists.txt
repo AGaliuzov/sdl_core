@@ -32,24 +32,27 @@ if(BUILD_TESTS)
 
 set(appMain_DIR ${CMAKE_SOURCE_DIR}/src/appMain)
 
-include_directories(
-    ${GMOCK_INCLUDE_DIRECTORY}
-    ${COMPONENTS_DIR}/connection_handler/include
-    ${COMPONENTS_DIR}/security_manager/test/include
-    ${COMPONENTS_DIR}/security_manager/include
+include_directories (
+  ${GMOCK_INCLUDE_DIRECTORY}
+  ${COMPONENTS_DIR}/connection_handler/include
+  ${COMPONENTS_DIR}/security_manager/test/include
+  ${COMPONENTS_DIR}/security_manager/include
 )
 
-set(LIBRARIES
-    gmock
-    connectionHandler
-    ConfigProfile
+set (LIBRARIES
+  gmock
+  connectionHandler
+  ConfigProfile
 )
 
-set(SOURCES
+set (SOURCES
+  heart_beat_monitor_test.cc
+  main.cc
+)
+
+list (APPEND testSources
     connection_handler_impl_test.cc
     connection_test.cc
-    heart_beat_monitor_test.cc
-    main.cc
 )
 
 file(COPY ${appMain_DIR}/smartDeviceLink.ini DESTINATION "./")

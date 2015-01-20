@@ -47,19 +47,15 @@ set(testLibraries
   gmock
   Utils
   Policy
-  ${RTLIB}
-  dl
   UsageStatistics
-  dbms
-  ConfigProfile
 )
 
 set(testSources
   main.cc
-  usage_statistics_test.cc
-  shared_library_test.cc
-  generated_code_test.cc
-  policy_manager_impl_test.cc
+  usage_statistics_test.cc    
+  shared_library_test.cc    
+  generated_code_test.cc #APPLINK-10657
+  policy_manager_impl_test.cc 
 )
 
 if (EXTENDED_POLICY_FLAG)
@@ -91,9 +87,9 @@ else ()
   find_package(Sqlite3 REQUIRED)
   include_directories(../src/policy/sqlite_wrapper/include)
   list (APPEND testSources
-    sqlite_wrapper/sql_database_test.cc
-    sqlite_wrapper/sql_query_test.cc
-    generated_code_with_sqlite_test.cc
+    sqlite_wrapper/sql_database_test.cc 
+    sqlite_wrapper/sql_query_test.cc   
+    generated_code_with_sqlite_test.cc   
     policy_manager_impl_stress_test.cc
   )
   list (APPEND testLibraries sqlite3)
