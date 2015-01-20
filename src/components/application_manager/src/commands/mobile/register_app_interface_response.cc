@@ -67,7 +67,7 @@ void RegisterAppInterfaceResponse::Run() {
       application(connection_key);
   if (app.valid()) {
     policy::PolicyHandler *policy_handler = policy::PolicyHandler::instance();
-    std::string mobile_app_id = app->mobile_app_id()->asString();
+    std::string mobile_app_id = app->mobile_app_id();
     policy_handler->AddApplication(mobile_app_id);
     SetHeartBeatTimeout(connection_key, mobile_app_id);
   }
