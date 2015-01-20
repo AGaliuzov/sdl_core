@@ -1098,7 +1098,7 @@ bool ResumeCtrl::CheckIgnCycleRestrictions(const Json::Value& json_app) {
   DCHECK_OR_RETURN(json_app.isMember(strings::time_stamp), false);
   const bool ign_off_count = json_app[strings::ign_off_count].asUInt();
   const bool is_previous_ign_cycle = (ign_off_count == 1);
-  LOG4CXX_INFO(logger_, "AKUTSAN  ign_off_count " << ign_off_count
+  LOG4CXX_DEBUG(logger_, " ign_off_count " << ign_off_count
                << "; is_previous_ign_cycle " << is_previous_ign_cycle
                );
 
@@ -1118,12 +1118,10 @@ bool ResumeCtrl::CheckIgnCycleRestrictions(const Json::Value& json_app) {
                                          DateTime::MILLISECONDS_IN_SECOND;
   const uint32_t wait_time =
       Profile::instance()->resumption_delay_before_ign();
-  LOG4CXX_INFO(logger_, "AKUTSAN time_stamp " << time_stamp
+  LOG4CXX_DEBUG(logger_, " time_stamp " << time_stamp
                << "; curr_time " << DateTime::getSecs(curr_time)
                << "; sdl_launch_time " << DateTime::getSecs(sdl_launch_time)
-               << "; ms_from_sdl_start " << ms_from_sdl_start
-               << "; seconds_from_sdl_start " << seconds_from_sdl_start
-               );
+               << "; seconds_from_sdl_start " << seconds_from_sdl_start );
   if (seconds_from_sdl_start > wait_time) {
     LOG4CXX_INFO(logger_, "Do not need to resume application,"
                  "SDL started more then " << wait_time << " secconds ago : "
@@ -1137,12 +1135,9 @@ bool ResumeCtrl::CheckIgnCycleRestrictions(const Json::Value& json_app) {
                                                                   app_disconnect_time);
   const uint32_t sec_spent_before_ign = ms_spent_before_ign /
                                         DateTime::MILLISECONDS_IN_SECOND;
-  LOG4CXX_INFO(logger_, "AKUTSAN  curr_time " << DateTime::getSecs(curr_time)
-               << "; ign_off_time " << DateTime::getSecs(ign_off_time)
+  LOG4CXX_DEBUG(logger_,"i gn_off_time " << DateTime::getSecs(ign_off_time)
                << "; app_disconnect_time " << DateTime::getSecs(app_disconnect_time)
-               << "; ms_spent_before_ign " << ms_spent_before_ign
-               << "; ms_spent_before_ign " << ms_spent_before_ign
-               );
+               << "; sec_spent_before_ign " << ms_spent_before_ign );
   if (sec_spent_before_ign > Profile::instance()->resumption_delay_after_ign()) {
     LOG4CXX_INFO(logger_, "Do not need to resume application time_spent_before_ign = "
                  << sec_spent_before_ign);
