@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,7 +68,7 @@ class ConnectionHandlerTest : public ::testing::Test {
     // Add Device and connection
     connection_handler_->addDeviceConnection(device_info, uid);
     connection_key = connection_handler_->KeyFromPair(uid, 0u);
-    //Remove all specifis services
+    // Remove all specifis services
     SetSpecificServices("", "");
   }
   void AddTestSession() {
@@ -83,7 +83,7 @@ class ConnectionHandlerTest : public ::testing::Test {
     return connection_handler_->KeyFromPair(connection, session);
   }
 
-  //Additional SetUp
+  // Additional SetUp
   void SetSpecificServices(const std::string& protect,
                            const std::string& not_protect) {
     const char* config_file = "config.ini";
@@ -163,7 +163,7 @@ class ConnectionHandlerTest : public ::testing::Test {
                     const ::protocol_handler::ServiceType serviceId,
                     const ::security_manager::SSLContext* ssl_context,
                     const bool is_protected) {
-    //check all tree to find Service and check own protected value
+    // Check all tree to find Service and check own protected value
     const ConnectionList& connection_list = connection_handler_
         ->getConnectionList();
     ASSERT_FALSE(connection_list.empty());
@@ -667,6 +667,6 @@ TEST_F(ConnectionHandlerTest, GetSSLContext_ByDealyProtecteBulk) {
             &mock_ssl_context);
 }
 #endif  // ENABLE_SECURITY
-}  // connection_handle_test
+}  // namespace connection_handle_test
 }  // namespace components
 }  // namespace test

@@ -1,4 +1,4 @@
-# Copyright (c) 2014, Ford Motor Company
+# Copyright (c) 2015, Ford Motor Company
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ set(LIBRARIES
 set(SOURCES
     connection_handler_impl_test.cc
     connection_test.cc
-    #heart_beat_monitor_test.cc
+    heart_beat_monitor_test.cc
     main.cc
 )
 
