@@ -42,6 +42,9 @@
 #include "utils/threads/thread_delegate.h"
 
 namespace media_manager {
+
+using ::utils::MessageQueue;
+
 class SocketStreamerAdapter : public MediaAdapterImpl {
   public:
     SocketStreamerAdapter();

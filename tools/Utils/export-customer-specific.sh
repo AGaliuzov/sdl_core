@@ -149,8 +149,6 @@ function integrate_src() {
         $srcdir/$filter_command $1 -t cmake > $export_dir/$relfn
       else
         $srcdir/$filter_command $1  > $export_dir/$relfn
-        echo "$export_dir/$relfn" >> $export_dir/timestamp
-        echo "$(stat -c %Y $1)" >> $export_dir/timestamp
       fi
     else
       cp $1 $export_dir/$relfn
@@ -200,5 +198,3 @@ done
 
 cp -r $specificdir/* $export_dir/
 post_install $additional_args
-
-rm $export_dir/timestamp

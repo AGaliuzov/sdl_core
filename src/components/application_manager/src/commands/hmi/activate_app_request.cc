@@ -70,10 +70,10 @@ namespace application_manager {
 
     void ActivateAppRequest::on_event(const event_engine::Event& event) {
       LOG4CXX_AUTO_TRACE(logger_);
-      const smart_objects::SmartObject* response = &(event.smart_object());
+      const smart_objects::SmartObject& response = event.smart_object();
       const hmi_apis::Common_Result::eType code =
           static_cast<hmi_apis::Common_Result::eType>(
-            (*response)[strings::params][hmi_response::code].asInt());
+            response[strings::params][hmi_response::code].asInt());
       if (hmi_apis::Common_Result::SUCCESS != code) {
         LOG4CXX_ERROR(logger_, "Error ActivateApp result code " << code);
         return;

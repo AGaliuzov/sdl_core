@@ -50,6 +50,16 @@ IAPConnection::IAPConnection(const DeviceUID& device_uid,
       controller_(controller),
       parent_(parent),
       ipod_hdl_(0) {
+  LOG4CXX_DEBUG(
+      logger_,
+      "iAP: connection device " << device_uid_ << ", app " << app_handle_);
+}
+
+IAPConnection::~IAPConnection() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(
+      logger_,
+      "iAP: connection device " << device_uid_ << ", app " << app_handle_);
 }
 
 void IAPConnection::Init() {
@@ -158,6 +168,7 @@ void IAPConnection::OnSessionClosed(int session_id) {
     parent_->UnregisterConnection(app_handle_);
     controller_->ConnectionAborted(device_uid_, app_handle_,
                                    CommunicationError());
+    controller_->DisconnectDone(device_uid_, app_handle_);
   }
 }
 

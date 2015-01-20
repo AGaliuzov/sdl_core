@@ -139,8 +139,7 @@ class PolicyManagerImpl : public PolicyManager {
                      int32_t timespan_seconds);
     // Interface StatisticsManager (end)
 
-    AppPermissions GetAppPermissionsChanges(const std::string& device_id,
-                                            const std::string& policy_app_id);
+    AppPermissions GetAppPermissionsChanges(const std::string& policy_app_id);
     void RemovePendingPermissionChanges(const std::string& app_id);
 
     void SendNotificationOnPermissionsUpdated(const std::string& application_id);
@@ -250,8 +249,11 @@ class PolicyManagerImpl : public PolicyManager {
                 const std::vector<FunctionalGroupPermission>& current_permissions);
 
     virtual void StartPTExchange();
+    virtual std::string RemoteAppsUrl() const;
     virtual bool ExceededDays();
     virtual bool ExceededIgnitionCycles();
+    bool IsPTValid(utils::SharedPtr<policy_table::Table> policy_table,
+                   policy_table::PolicyTableType type) const;
 
     PolicyListener* listener_;
 

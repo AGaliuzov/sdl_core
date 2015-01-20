@@ -277,15 +277,14 @@ class ResumeCtrl: public event_engine::EventObserver {
     Json::Value GetApplicationShow(
         ApplicationConstSharedPtr application);
 
-    Json::Value JsonFromSO(
-        const NsSmartDeviceLink::NsSmartObjects::SmartObject *so);
+    Json::Value JsonFromSO(const smart_objects::SmartObject *so);
 
     void SendHMIRequest(const hmi_apis::FunctionID::eType& function_id,
                         const smart_objects::SmartObject* msg_params = NULL,
                         bool use_events = false);
 
     bool ProcessHMIRequest(
-        NsSmartDeviceLink::NsSmartObjects::SmartObject* request = NULL,
+        smart_objects::SmartObjectSPtr request = NULL,
         bool use_events = false);
 
     void InsertToTimerQueue(uint32_t app_id, uint32_t time_stamp);
@@ -353,7 +352,7 @@ class ResumeCtrl: public event_engine::EventObserver {
      *
      * @param requests request that should be processed.
      */
-    void ProcessHMIRequests(const std::vector<smart_objects::SmartObject*> & requests);
+    void ProcessHMIRequests(const smart_objects::SmartObjectList& requests);
 
     /**
      * @brief CheckIcons allows to check application icons

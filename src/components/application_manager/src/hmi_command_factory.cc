@@ -269,7 +269,7 @@ namespace application_manager {
 CREATE_LOGGERPTR_GLOBAL(logger_, "ApplicationManager")
 
 CommandSharedPtr HMICommandFactory::CreateCommand(
-    const MessageSharedPtr& message) {
+    const commands::MessageSharedPtr& message) {
   const int function_id = (*message)[strings::params][strings::function_id]
       .asInt();
   LOG4CXX_INFO(logger_,

@@ -53,12 +53,17 @@ IAP2Connection::IAP2Connection(const DeviceUID& device_uid,
       parent_(parent),
       iap2ea_hdl_(0),
       receiver_thread_(0),
-      receiver_thread_delegate_(0),
-      unexpected_disconnect_(false) {
+      receiver_thread_delegate_(0) {
+  LOG4CXX_DEBUG(
+      logger_,
+      "iAP2: connection device " << device_uid_ << ", app " << app_handle_);
 }
 
 IAP2Connection::~IAP2Connection() {
   LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(
+      logger_,
+      "iAP2: connection device " << device_uid_ << ", app " << app_handle_);
   if (receiver_thread_) {
     receiver_thread_->join();
     delete receiver_thread_delegate_;
@@ -71,8 +76,8 @@ bool IAP2Connection::Init() {
   if (parent_->RecordByAppId(app_handle_, record)) {
     controller_->ConnectDone(device_uid_, app_handle_);
 
-    protocol_name_ = record.first;
-    iap2ea_hdl_ = record.second;
+    protocol_name_ = record.protocol_name;
+    iap2ea_hdl_ = record.handle;
     const std::string thread_name = "iAP2 " + protocol_name_;
     receiver_thread_delegate_ = new ReceiverThreadDelegate(iap2ea_hdl_, this);
     receiver_thread_ = threads::CreateThread(thread_name.c_str(), receiver_thread_delegate_);
@@ -81,14 +86,6 @@ bool IAP2Connection::Init() {
     return true;
   }
   return false;
-}
-
-void IAP2Connection::Finalize() {
-  LOG4CXX_AUTO_TRACE(logger_);
-  if (!unexpected_disconnect_) {
-    LOG4CXX_DEBUG(logger_, "DisconnectDone on unexpected_disconnect_");
-    controller_->DisconnectDone(device_uid_, app_handle_);
-  }
 }
 
 TransportAdapter::Error IAP2Connection::SendData(
@@ -147,7 +144,6 @@ void IAP2Connection::ReceiveData() {
 // anyway delegate can be stopped directly
         receiver_thread_delegate_->exitThreadMain();
         Close();
-        unexpected_disconnect_ = true;
         controller_->ConnectionAborted(device_uid_, app_handle_,
                                        CommunicationError());
         break;
@@ -215,10 +211,6 @@ bool IAP2Connection::ReceiverThreadDelegate::ArmEvent(struct sigevent* event) {
 
 void IAP2Connection::ReceiverThreadDelegate::OnPulse() {
   parent_->ReceiveData();
-}
-
-void IAP2Connection::ReceiverThreadDelegate::Finalize() {
-  parent_->Finalize();
 }
 
 }  // namespace transport_adapter

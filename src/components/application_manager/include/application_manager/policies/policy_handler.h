@@ -111,22 +111,15 @@ class PolicyHandler :
   utils::SharedPtr<usage_statistics::StatisticsManager> GetStatisticManager();
 
   /**
-   * Checks system action of application for permission of keep context
-   * @param system_action system action (see mobile api)
-   * @param policy_app_id unique application id
-   * @return false if system_action is KEEP_CONTEXT and it isn't allowed by policy
-   * otherwise true
+   * @brief CheckSystemAction allows to check whether certain system
+   * action is enabled.
+   *
+   * @param system_action system action to check.
+   *
+   * @return true if specified system action is enabled, false otherwise.
    */
-  bool CheckKeepContext(int system_action, const std::string& policy_app_id);
-
-  /**
-   * Checks system action of application for permission of steal focus
-   * @param system_action system action (see mobile api)
-   * @param policy_app_id unique application id
-   * @return false if system_action is STEAL_FOCUS and it isn't allowed by policy
-   * otherwise true
-   */
-  bool CheckStealFocus(int system_action, const std::string& policy_app_id);
+  bool CheckSystemAction(mobile_apis::SystemAction::eType system_action,
+                         const std::string& policy_app_id);
 
   /**
    * Lets client to notify PolicyHandler that more kilometers expired
@@ -152,12 +145,6 @@ class PolicyHandler :
    * @brief Increment counter for ignition cycles
    */
   void OnIgnitionCycleOver();
-
-  /**
-   * @brief Send notification to HMI concerning revocation of application
-   * @param policy_app_id Unique identifier of application
-   */
-  void OnAppRevoked(const std::string& policy_app_id);
 
   void OnPendingPermissionChange(const std::string& policy_app_id);
 
@@ -338,6 +325,24 @@ protected:
   void StartNextRetry();
 
  private:
+
+  /**
+   * Checks system action of application for permission of keep context
+   * @param system_action system action (see mobile api)
+   * @param policy_app_id unique application id
+   * @return false if system_action is KEEP_CONTEXT and it isn't allowed by policy
+   * otherwise true
+   */
+  bool CheckKeepContext(const std::string& policy_app_id);
+
+  /**
+   * Checks system action of application for permission of steal focus
+   * @param system_action system action (see mobile api)
+   * @param policy_app_id unique application id
+   * @return false if system_action is STEAL_FOCUS and it isn't allowed by policy
+   * otherwise true
+   */
+  bool CheckStealFocus(const std::string& policy_app_id);
 
   /**
    * @brief OnAppPermissionConsentInternal reacts on permission changing
