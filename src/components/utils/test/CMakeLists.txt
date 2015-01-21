@@ -49,6 +49,7 @@ set(testSources
   message_queue_test.cc
   resource_usage_test.cc
   bitstream_test.cc
+  prioritized_queue_test.cc
 )
 
 

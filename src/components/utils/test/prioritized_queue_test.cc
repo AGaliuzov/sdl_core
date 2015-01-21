@@ -30,141 +30,101 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <unistd.h>
+//#include <unistd.h>
+#include <iostream>
 #include "gtest/gtest.h"
 #include "utils/prioritized_queue.h"
-#include "application_manager/application_manager_impl.h"
-
+//#include "application_manager/application_manager_impl.h"
+//#include "message_priority.h"
+//#include "shared_ptr.h"
 
 namespace test {
 namespace components {
 namespace utils {
 
 using ::utils::PrioritizedQueue;
+//using ::utils::SharedPtr;
+//using namespace application_manager;
 
-class PrioritizedQueueTest : public testing::Test {
+class TestMessage {
  public:
-  PrioritizedQueue()
-      : test_val_1("Hello,"),
-        test_val_2("Beautiful "),
-        test_val_3("World!"),
-        test_line(""),
-        check_value(false) {
+  TestMessage()
+      : priority(0) {
   }
-  void add_one_element_to_queue();
-  void extract_from_queue();
-  void add_three_elements_to_queue();
-  void ShutDownQueue();
-
-  static void* add_one_element_to_queue_helper(void *context);
-  static void* extract_from_queue_helper(void *context);
-  static void* add_three_elements_to_queue_helper(void *context);
-  static void* ShutDownQueue_helper(void *context);
-
- protected:
-  PrioritizedQueue<std::string> test_queue;
-  std::string test_val_1;
-  std::string test_val_2;
-  std::string test_val_3;
-  std::string test_line;
-  bool check_value;
+  TestMessage(std::string message, size_t msg_priority)
+      : msg_(message),
+        priority(msg_priority) {
+  }
+  size_t PriorityOrder() const;
+  std::string msg() const;
+  friend bool operator==(const TestMessage &msg1, const TestMessage &msg2);
+ private:
+  std::string msg_;
+  size_t priority;
 };
 
-// Thread function - adds 1 element1 to the queue
-void PrioritizedQueueTest::add_one_element_to_queue() {
-  test_queue.push(test_val_1);
-  pthread_exit(NULL);
+size_t TestMessage::PriorityOrder() const {
+  return priority;
 }
 
-// Thread function - removes 1 element from beginning of queue
-void PrioritizedQueueTest::extract_from_queue() {
-  test_queue.wait();
-  test_line = test_queue.pop();
-  pthread_exit(NULL);
+std::string TestMessage::msg() const {
+  return msg_;
 }
 
-// Thread function - adds 3 elements to the queue
-void PrioritizedQueueTest::add_three_elements_to_queue() {
-  test_queue.push(test_val_1);
-  test_queue.push(test_val_2);
-  test_queue.push(test_val_3);
-  pthread_exit(NULL);
+bool operator==(const TestMessage &msg1, const TestMessage &msg2) {
+  return (msg1.msg() == msg2.msg() && msg1.PriorityOrder() == msg2.PriorityOrder());
 }
 
-// Thread function - adds 3 elements to the queue
-void PrioritizedQueueTest::ShutDownQueue() {
-  check_value = true;
-  test_queue.Shutdown();
-  pthread_exit(NULL);
-}
-
-void* PrioritizedQueueTest::add_one_element_to_queue_helper(void *context) {
-  (reinterpret_cast<PrioritizedQueueTest *>(context))->add_one_element_to_queue();
-  return NULL;
-}
-void* PrioritizedQueueTest::extract_from_queue_helper(void *context) {
-  (reinterpret_cast<PrioritizedQueueTest *>(context))->extract_from_queue();
-  return NULL;
-}
-void* PrioritizedQueueTest::add_three_elements_to_queue_helper(void *context) {
-  (reinterpret_cast<PrioritizedQueueTest *>(context))->add_three_elements_to_queue();
-  return NULL;
-}
-void* PrioritizedQueueTest::ShutDownQueue_helper(void *context) {
-  (reinterpret_cast<PrioritizedQueueTest *>(context))->ShutDownQueue();
-  return NULL;
-}
+class PrioritizedQueueTest : public testing::Test {
+ protected:
+  PrioritizedQueue<TestMessage> test_queue;
+};
 
 TEST_F(PrioritizedQueueTest, DefaultCtorTest_ExpectEmptyQueueCreated) {
-  bool test_value = true;
-  // Check if the queue is empty
-  ASSERT_EQ(test_value, test_queue.empty());
+  EXPECT_TRUE(test_queue.empty());
 }
 
-TEST_F(PrioritizedQueueTest, PrioritizedQueuePushThreeElementsTest_ExpectThreeElementsAdded) {
-  pthread_t thread1;
-  pthread_create(&thread1, NULL, &PrioritizedQueueTest::add_three_elements_to_queue_helper, this);
-  pthread_join(thread1, NULL);
-  // check if 3 elements were added successfully
-  ASSERT_EQ(3, test_queue.size());
+TEST_F(PrioritizedQueueTest, PushFourElementsTest_ExpectFourElementsAdded) {
+  // Creating 4 messages
+  TestMessage message1("Ford", 2);
+  TestMessage message2("Hello", 1);
+  TestMessage message3("Luxoft", 4);
+  TestMessage message4("from", 3);
+  // Adding created messages to Prioritized queue
+  test_queue.push(message4);
+  test_queue.push(message3);
+  test_queue.push(message1);
+  test_queue.push(message2);
+  // Expect 4 messages were added successfully
+  EXPECT_EQ(4, test_queue.size());
 }
 
-TEST_F(PrioritizedQueueTest, NotEmptyPrioritizedQueueResetTest_ExpectEmptyQueue) {
-  // Adding some elements to queue
-  test_queue.push(test_val_1);
-  test_queue.push(test_val_2);
-  test_queue.push(test_val_3);
-  // Resetting queue
-  test_queue.Reset();
-  // Check if queue is empty
-  ASSERT_TRUE(test_queue.empty());
-  // Check the size of queue after reset
-  ASSERT_EQ(0, test_queue.size());
+TEST_F(PrioritizedQueueTest, CheckMessageOrderTest_ExpectMessageWithHighestPriorityAddedFirst) {
+  // Creating 4 messages with different priorities
+  TestMessage message1("Ford", 111);
+  TestMessage message2("Hello", 21);
+  TestMessage message3("Luxoft", 14);
+  TestMessage message4("from", 4);
+  // Adding created messages to Prioritized queue. Expect queue ordered according priority
+  test_queue.push(message4);
+  test_queue.push(message3);
+  test_queue.push(message1);
+  test_queue.push(message2);
+  // Check the first message is the message with highest priority
+  EXPECT_EQ(message1, test_queue.front());
 }
 
-TEST_F(PrioritizedQueueTest, PrioritizedQueuePopOneElementTest_ExpectOneElementRemovedFromQueue) {
-  pthread_t thread1;
-  pthread_t thread2;
-  // Creating threads with thread function mentioned above
-  pthread_create(&thread1, NULL, &PrioritizedQueueTest::add_one_element_to_queue_helper, this);
-  pthread_create(&thread2, NULL, &PrioritizedQueueTest::extract_from_queue_helper, this);
-  // Primary thread waits until thread 2 to be finished
-  pthread_join(thread2, NULL);
-  // Check if first element was removed successfully
-  ASSERT_EQ(test_val_1, test_line);
-  // Check the size of queue after 1 element was removed
-  ASSERT_EQ(0, test_queue.size());
-}
-
-TEST_F(PrioritizedQueueTest, PrioritizedQueueShutdownTest_ExpectPrioritizedQueueWillBeShutDown) {
-  pthread_t thread1;
-  // Creating thread with thread function mentioned above
-  pthread_create(&thread1, NULL, &PrioritizedQueueTest::ShutDownQueue_helper, this);
-  // Primary thread sleeps until thread1 will make queue shutdown
-  test_queue.wait();
-  check_value = true;
-  ASSERT_TRUE(check_value);
-}
+//TEST_F(PrioritizedQueueTest, NotEmptyPrioritizedQueueResetTest_ExpectEmptyQueue) {
+//
+//}
+//
+//TEST_F(PrioritizedQueueTest, PrioritizedQueuePopOneElementTest_ExpectOneElementRemovedFromQueue) {
+//
+//}
+//
+//TEST_F(PrioritizedQueueTest, PrioritizedQueueShutdownTest_ExpectPrioritizedQueueWillBeShutDown) {
+//
+//}
 
 }  // namespace utils
 }  // namespace components

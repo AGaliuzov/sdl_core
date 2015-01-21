@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,7 @@ class PrioritizedQueue {
  public:
   typedef M value_type;
   // std::map guarantees it's contents is sorted by key
-  typedef std::map<size_t, std::queue<value_type> > QueuesMap;
+  typedef std::map<size_t, std::queue<value_type>   > QueuesMap;
   PrioritizedQueue()
     : total_size_(0) {
   }
@@ -71,7 +71,7 @@ class PrioritizedQueue {
   }
   void pop() {
     DCHECK(!queues_.empty() && !queues_.rbegin()->second.empty());
-    typename QueuesMap::iterator last = --queues_.end();
+    typename QueuesMap::iterator last = (queues_.end() - 1);
     last->second.pop();
     --total_size_;
     if (last->second.empty()) {
