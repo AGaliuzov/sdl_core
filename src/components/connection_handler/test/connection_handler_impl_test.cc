@@ -68,7 +68,7 @@ class ConnectionHandlerTest : public ::testing::Test {
     // Add Device and connection
     connection_handler_->addDeviceConnection(device_info, uid);
     connection_key = connection_handler_->KeyFromPair(uid, 0u);
-    // Remove all specifis services
+    // Remove all specific services
     SetSpecificServices("", "");
   }
   void AddTestSession() {
@@ -134,7 +134,7 @@ class ConnectionHandlerTest : public ::testing::Test {
   void CheckServiceExists(const int connectionId, const int session_id,
                           const ::protocol_handler::ServiceType serviceId,
                           const bool exists) {
-    // Check all tree to find Service and check own protected value
+    // Check all trees to find Service and check own protected value
     const ConnectionList& connection_list = connection_handler_
         ->getConnectionList();
     ASSERT_FALSE(connection_list.empty());
