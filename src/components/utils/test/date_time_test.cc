@@ -63,7 +63,7 @@ TEST(DateTimeTest, GetSecs) {
   time.tv_usec = 2 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
 
   //assert
-  ASSERT_EQ(time.tv_sec, date_time::DateTime::getSecs(time));
+  ASSERT_EQ(1, date_time::DateTime::getSecs(time));
 }
 
 TEST(DateTimeTest, GetmSecs) {
@@ -72,11 +72,10 @@ TEST(DateTimeTest, GetmSecs) {
   time.tv_sec = 1;
   time.tv_usec = 2 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
 
+  int64_t expect_value =  time.tv_sec * date_time::DateTime::MILLISECONDS_IN_SECOND
+      + time.tv_usec / date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
   //assert
-  ASSERT_EQ(
-      time.tv_sec * date_time::DateTime::MILLISECONDS_IN_SECOND
-          + time.tv_usec / date_time::DateTime::MICROSECONDS_IN_MILLISECONDS,
-      date_time::DateTime::getmSecs(time));
+  ASSERT_EQ(expect_value,date_time::DateTime::getmSecs(time));
 }
 
 TEST(DateTimeTest, GetuSecs) {
@@ -85,11 +84,10 @@ TEST(DateTimeTest, GetuSecs) {
   time.tv_sec = 3;
   time.tv_usec = 4;
 
+  int64_t expect_value = time.tv_sec * date_time::DateTime::MILLISECONDS_IN_SECOND
+      * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS + time.tv_usec;
   //assert
-  ASSERT_EQ(
-      time.tv_sec * date_time::DateTime::MILLISECONDS_IN_SECOND
-          * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS + time.tv_usec,
-      date_time::DateTime::getuSecs(time));
+  ASSERT_EQ(expect_value, date_time::DateTime::getuSecs(time));
 }
 
 TEST(DateTimeTest, GetuSecsmSecs) {
@@ -98,11 +96,10 @@ TEST(DateTimeTest, GetuSecsmSecs) {
   time.tv_sec = 5;
   time.tv_usec = 6;
 
+  int64_t expect_value = date_time::DateTime::getuSecs(time)/ date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
+
   //assert
-  ASSERT_EQ(
-      date_time::DateTime::getmSecs(time),
-      date_time::DateTime::getuSecs(time)
-          / date_time::DateTime::MICROSECONDS_IN_MILLISECONDS);
+  ASSERT_EQ(expect_value, date_time::DateTime::getmSecs(time));
 }
 
 TEST(DateTimeTest, CalculateTimeSpan) {
@@ -150,6 +147,19 @@ TEST(DateTimeTest, CalculateTimeDiff) {
   ASSERT_EQ(mSecDiff2, date_time::DateTime::calculateTimeDiff(time1, time2));
 }
 
+TEST(DateTimeTest, CalculateEqualTimeDiff) {
+  TimevalStruct time1;
+  time1.tv_sec = 1;
+  time1.tv_usec = 2 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
+
+  TimevalStruct time2;
+  time2.tv_sec = 1;
+  time2.tv_usec = 2 * date_time::DateTime::MICROSECONDS_IN_MILLISECONDS;
+
+  ASSERT_EQ(0, date_time::DateTime::calculateTimeDiff(time2, time1));
+  ASSERT_EQ(0, date_time::DateTime::calculateTimeDiff(time1, time2));
+}
+
 TEST(DateTimeTest, compareTime) {
 
   //arrange
@@ -173,7 +183,7 @@ TEST(DateTimeTest, compareTime) {
   ASSERT_EQ(EQUAL, date_time::DateTime::compareTime(time1, time3));
 }
 
-//TODO(ALeshin) APPLINK-11051 Missing convertation microseconds in seconds
+//TODO(VVeremjova) APPLINK-11051 Missing convertation microseconds in seconds
 
 TEST(DateTimeTest, DISABLED_GetSecs_UsecConvertedInSec) {
   //arrange
@@ -243,7 +253,7 @@ TEST(DateTimeTest, DISABLED_compareGreaterTime_UsecConvertedInSec) {
   ASSERT_TRUE(date_time::DateTime::Greater(time2, time1));
 }
 
-TEST(DateTimeTest, DISABLED_CalculateTimeDiff_UsecConvertedInSec) {
+TEST(DateTimeTest, DISABLED_CalculateTimeSub_UsecConvertedInSec) {
   //arrange
   TimevalStruct time1;
   time1.tv_sec = 1;
@@ -257,6 +267,53 @@ TEST(DateTimeTest, DISABLED_CalculateTimeDiff_UsecConvertedInSec) {
 
   //assert
   ASSERT_EQ(EQUAL, date_time::DateTime::compareTime(time1, time3));
+}
+
+TEST(DateTimeTest, DISABLED_CalculateTimeDiff_UsecConvertedInSec) {
+  TimevalStruct time1;
+  time1.tv_sec = 2;
+  time1.tv_usec = 5 * date_time::DateTime::MICROSECONDS_IN_SECOND;;
+
+  TimevalStruct time2;
+  time2.tv_sec = 3;
+  time2.tv_usec = 1 * date_time::DateTime::MICROSECONDS_IN_SECOND;
+
+  //assert
+  ASSERT_EQ(3000, date_time::DateTime::calculateTimeDiff(time2, time1));
+  ASSERT_EQ(3000, date_time::DateTime::calculateTimeDiff(time1, time2));
+}
+
+
+TEST(DateTimeTest, DISABLED_CalculateEqualTimeDiff_UsecConvertedInSec) {
+  TimevalStruct time1;
+  time1.tv_sec = 2;
+  time1.tv_usec = 2 * date_time::DateTime::MICROSECONDS_IN_SECOND;;
+
+  TimevalStruct time2;
+  time2.tv_sec = 3;
+  time2.tv_usec = 1 * date_time::DateTime::MICROSECONDS_IN_SECOND;
+
+  //assert
+  ASSERT_EQ(0, date_time::DateTime::calculateTimeDiff(time2, time1));
+  ASSERT_EQ(0, date_time::DateTime::calculateTimeDiff(time1, time2));
+}
+
+TEST(DateTimeTest, DISABLED_CalculateEqualTimeSub_UsecConvertedInSec) {
+  TimevalStruct time1;
+  time1.tv_sec = 3;
+  time1.tv_usec = 0;
+
+  TimevalStruct time2;
+  time2.tv_sec = 2;
+  time2.tv_usec = 1 * date_time::DateTime::MICROSECONDS_IN_SECOND;
+
+  TimevalStruct time3 = date_time::DateTime::Sub(time2, time1);
+  TimevalStruct time4 = date_time::DateTime::Sub(time1, time2);
+
+  TimevalStruct time_expected;
+  time_expected.tv_sec=0;
+  ASSERT_EQ(EQUAL, date_time::DateTime::compareTime(time_expected, time3));
+  ASSERT_EQ(EQUAL, date_time::DateTime::compareTime(time_expected, time4));
 }
 
 }  // namespace utils
