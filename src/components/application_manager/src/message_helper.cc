@@ -1204,7 +1204,7 @@ bool MessageHelper::CreateHMIApplicationStruct(ApplicationConstSharedPtr app,
   output[strings::app_name] = app->name();
   output[strings::icon] = app->app_icon_path();
   output[strings::device_name] = device_name;
-  output[strings::app_id] = app->app_id();
+  output[strings::app_id] = app->hmi_app_id();
   output[strings::hmi_display_language_desired] = app->ui_language();
   output[strings::is_media_application] = app->is_media_application();
 
@@ -1853,8 +1853,11 @@ void MessageHelper::SendLaunchApp(uint32_t connection_key,
   SmartObject content (SmartType_Map);
   content[strings::msg_params][strings::request_type] = RequestType::LAUNCH_APP;
   content[strings::msg_params][strings::app_id] = connection_key;
-  content[strings::msg_params][strings::urlSchema] = urlSchema;
-  content[strings::msg_params][strings::packageName] = packageName;
+  if (!urlSchema.empty()) {
+    content[strings::msg_params][strings::urlSchema] = urlSchema;
+  } else if (!packageName.empty()) {
+    content[strings::msg_params][strings::packageName] = packageName;
+  }
 
   SendSystemRequestNotification(connection_key, content);
 }

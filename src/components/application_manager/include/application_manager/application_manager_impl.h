@@ -43,6 +43,7 @@
 #include "application_manager/application_manager.h"
 #include "application_manager/hmi_capabilities.h"
 #include "application_manager/message.h"
+#include "application_manager/message_helper.h"
 #include "application_manager/request_controller.h"
 #include "application_manager/resume_ctrl.h"
 #include "application_manager/vehicle_info_data.h"
@@ -737,9 +738,19 @@ class ApplicationManagerImpl : public ApplicationManager,
       }
     };
 
+    struct ApplicationsMobileAppIdSorter {
+      bool operator() (const ApplicationSharedPtr lhs,
+                       const ApplicationSharedPtr rhs) {
+        return lhs->mobile_app_id() < rhs->mobile_app_id();
+      }
+    };
+
     // typedef for Applications list
     typedef std::set<ApplicationSharedPtr,
                      ApplicationsAppIdSorter> ApplictionSet;
+
+    typedef std::set<ApplicationSharedPtr,
+                     ApplicationsMobileAppIdSorter> AppsWaitRegistrationSet;
 
     // typedef for Applications list iterator
     typedef ApplictionSet::iterator ApplictionSetIt;
@@ -915,6 +926,33 @@ class ApplicationManagerImpl : public ApplicationManager,
     virtual void Handle(const impl::AudioData message) OVERRIDE;
 
     void SendUpdateAppList();
+
+    template<typename ApplicationList>
+    void PrepareApplicationListSO(ApplicationList app_list,
+                                  smart_objects::SmartObject& applications) {
+      CREATE_LOGGERPTR_LOCAL(logger_, "ApplicatinManagerImpl");
+
+      uint32_t app_count = 0;
+      typename ApplicationList::const_iterator it;
+      for (it = app_list.begin(); it != app_list.end(); ++it) {
+        if (!it->valid()) {
+          LOG4CXX_ERROR(logger_, "Application not found ");
+          continue;
+        }
+
+        smart_objects::SmartObject hmi_application(smart_objects::SmartType_Map);;
+        if (MessageHelper::CreateHMIApplicationStruct(*it, hmi_application)) {
+          applications[app_count++] = hmi_application;
+        } else {
+          LOG4CXX_DEBUG(logger_, "Can't CreateHMIApplicationStruct ");
+        }
+      }
+
+      if (0 == app_count) {
+        LOG4CXX_WARN(logger_, "Empty applications list");
+      }
+    }
+
     void OnApplicationListUpdateTimer();
 
     /**
@@ -927,9 +965,7 @@ class ApplicationManagerImpl : public ApplicationManager,
      *
      * @param apps_with_icon container which store application and it's icon path.
      */
-    void CreateApplications(smart_objects::SmartArray& obj_array,
-                            const std::string& app_icon_dir,
-                            std::vector<std::pair<uint32_t, std::string> >& apps_with_icon);
+    void CreateApplications(smart_objects::SmartArray& obj_array);
 
     /*
      * @brief Function is called on IGN_OFF, Master_reset or Factory_defaults
@@ -950,9 +986,11 @@ class ApplicationManagerImpl : public ApplicationManager,
      * @brief List of applications
      */
     ApplictionSet applications_;
+    AppsWaitRegistrationSet apps_to_register_;
 
     // Lock for applications list
     mutable sync_primitives::Lock applications_list_lock_;
+    mutable sync_primitives::Lock apps_to_register_list_lock_;
 
     /**
      * @brief Map of correlation id  and associated application id.
