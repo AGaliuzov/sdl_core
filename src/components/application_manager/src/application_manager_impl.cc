@@ -1715,18 +1715,7 @@ utils::SharedPtr<Message> ApplicationManagerImpl::ConvertRawMsgToMessage(
   }
 
   Message* convertion_result = NULL;
-  if (message->protocol_version() == ProtocolVersion::kV1) {
-    convertion_result =
-      MobileMessageHandler::HandleIncomingMessageProtocolV1(message);
-  } else if ((message->protocol_version() == ProtocolVersion::kV2) ||
-             (message->protocol_version() == ProtocolVersion::kV3) ||
-             (message->protocol_version() == ProtocolVersion::kV4)) {
-    convertion_result =
-      MobileMessageHandler::HandleIncomingMessageProtocolV2(message);
-  } else {
-    LOG4CXX_WARN(logger_, "Unknown protocol version.");
-    return outgoing_message;
-  }
+  convertion_result = MobileMessageHandler::HandleIncomingMessageProtocol(message);
 
   if (convertion_result) {
     outgoing_message = convertion_result;
@@ -2691,24 +2680,23 @@ void ApplicationManagerImpl::OnUpdateHMIAppType(
   }
 }
 
-ProtocolVersion ApplicationManagerImpl::SupportedSDLVersion() {
-  LOG4CXX_INFO(logger_, "SupportedSDLProtocolVersion");
-  ProtocolVersion protocol_version;
+ProtocolVersion ApplicationManagerImpl::SupportedSDLVersion() const {
+  LOG4CXX_AUTO_TRACE(logger_);
   bool heart_beat_support =
-    (0 < profile::Profile::instance()->heart_beat_timeout());
+	profile::Profile::instance()->heart_beat_timeout();
   bool sdl4_support = profile::Profile::instance()->enable_protocol_4();
 
   if (sdl4_support) {
-    LOG4CXX_INFO(logger_, "SDL Supported protocol version 4");
-	protocol_version = ProtocolVersion::kV4;
-  } else if (!sdl4_support && heart_beat_support) {
-	LOG4CXX_INFO(logger_, "SDL Supported protocol version 3");
-	protocol_version = ProtocolVersion::kV3;
-  } else {
-	LOG4CXX_INFO(logger_, "SDL Supported protocol version 2");
-	protocol_version = ProtocolVersion::kV2;
+    LOG4CXX_DEBUG(logger_, "SDL Supported protocol version "<<ProtocolVersion::kV4);
+	return ProtocolVersion::kV4;
   }
-  return protocol_version;
+  if (heart_beat_support) {
+	LOG4CXX_DEBUG(logger_, "SDL Supported protocol version "<<ProtocolVersion::kV3);
+	return ProtocolVersion::kV3;
+  }
+
+  LOG4CXX_DEBUG(logger_, "SDL Supported protocol version "<<ProtocolVersion::kV2);
+  return ProtocolVersion::kV2;
 }
 
 

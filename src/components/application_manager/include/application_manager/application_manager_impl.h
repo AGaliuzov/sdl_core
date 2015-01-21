@@ -986,10 +986,9 @@ class ApplicationManagerImpl : public ApplicationManager,
 
     /**
      * @brief Function returns supported SDL Protocol Version
-     * @return protocol version depends on parameters "EnableProtocol4" and
-     * "HeartBeatTimeout" from smartDeviceLink.ini.
+     * @return protocol version depends on parameters from smartDeviceLink.ini.
      */
-    ProtocolVersion SupportedSDLVersion();
+    ProtocolVersion SupportedSDLVersion() const;
 
     // members
 
