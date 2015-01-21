@@ -123,7 +123,7 @@ size_t ProtocolPacket::ProtocolHeaderValidator::max_payload_size() const {
 }
 
 RESULT_CODE ProtocolPacket::ProtocolHeaderValidator::validate(const ProtocolHeader& header) const {
-  // Protocol version shall be from 1 to 3
+  // Protocol version shall be from 1 to 4
   switch (header.version) {
     case PROTOCOL_VERSION_1:
     case PROTOCOL_VERSION_2:

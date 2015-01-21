@@ -210,7 +210,7 @@ TEST_F(IncomingDataHandlerTest, MalformedPacket_Version) {
   FrameList malformed_packets;
   std::vector<uint8_t> malformed_versions;
   malformed_versions.push_back(0);
-  for (uint8_t version = PROTOCOL_VERSION_3 + 1; version <= PROTOCOL_VERSION_MAX; ++version) {
+  for (uint8_t version = PROTOCOL_VERSION_4 + 1; version <= PROTOCOL_VERSION_MAX; ++version) {
     malformed_versions.push_back(version);
   }
   for (size_t i = 0; i < malformed_versions.size(); ++i) {

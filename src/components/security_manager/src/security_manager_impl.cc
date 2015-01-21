@@ -358,7 +358,7 @@ void SecurityManagerImpl::SendQuery(const SecurityQuery& query,
 		  protocol_version)) {
     const ::protocol_handler::RawMessagePtr rawMessagePtr(
       new protocol_handler::RawMessage(connection_key,
-                                       protocol_version,
+    		                           protocol_version,
                                        &data_sending[0], data_sending.size(),
                                        protocol_handler::kControl));
     DCHECK(protocol_handler_);

@@ -235,7 +235,7 @@ int Connection::SetSSLContext(uint8_t session_id,
 
 security_manager::SSLContext *Connection::GetSSLContext(
     const uint8_t session_id, const protocol_handler::ServiceType &service_type) const {
-  LOG4CXX_TRACE(logger_, "Connection::GetSSLContext");
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(session_map_lock_);
   SessionMap::const_iterator session_it = session_map_.find(session_id);
   if (session_it == session_map_.end()) {
@@ -259,7 +259,7 @@ security_manager::SSLContext *Connection::GetSSLContext(
 
 void Connection::SetProtectionFlag(
     const uint8_t session_id, const protocol_handler::ServiceType &service_type) {
-  LOG4CXX_TRACE(logger_, "Connection::SetProtectionFlag");
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(session_map_lock_);
   SessionMap::iterator session_it = session_map_.find(session_id);
   if (session_it == session_map_.end()) {
@@ -334,6 +334,7 @@ void Connection::UpdateProtocolVersionSession(
 }
 
 bool Connection::SupportHeartBeat(uint8_t session_id) {
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(session_map_lock_);
   SessionMap::iterator session_it = session_map_.find(session_id);
   if (session_map_.end() == session_it) {
@@ -346,7 +347,7 @@ bool Connection::SupportHeartBeat(uint8_t session_id) {
 }
 
 bool Connection::ProtocolVersion(uint8_t session_id, uint8_t& protocol_version) {
-  LOG4CXX_INFO(logger_, "Connection::ProtocolVersion");
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(session_map_lock_);
   SessionMap::iterator session_it = session_map_.find(session_id);
   if (session_map_.end() == session_it) {

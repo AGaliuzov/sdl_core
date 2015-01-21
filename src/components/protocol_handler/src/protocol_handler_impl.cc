@@ -55,9 +55,7 @@ std::string ConvertPacketDataToString(const uint8_t *data,
                                       const size_t data_size);
 
 /**
- * Function returns supported SDL Protocol Version,
- * @return protocol version depends on parameters "EnableProtocol4" and
- * "HeartBeatTimeout" from smartDeviceLink.ini.
+ * @brief Function returns supported SDL Protocol Version,
  */
 uint8_t SupportedSDLProtocolVersion();
 
@@ -297,7 +295,7 @@ void ProtocolHandlerImpl::SendHeartBeat(int32_t connection_id,
 
     raw_ford_messages_to_mobile_.PostMessage(
         impl::RawFordMessageToMobile(ptr, false));
-    LOG4CXX_INFO(logger_, "SendHeartBeat finished successfully");
+    LOG4CXX_DEBUG(logger_, "SendHeartBeat finished successfully");
   } else {
     LOG4CXX_WARN(logger_, "SendHeartBeat is failed connection or session does not exist");
   }
@@ -1248,7 +1246,7 @@ void ProtocolHandlerImpl::SendFramesNumber(uint32_t connection_key,
 	                  sizeof(number_of_frames));
 	raw_ford_messages_to_mobile_.PostMessage(
 	     impl::RawFordMessageToMobile(ptr, false));
-	LOG4CXX_INFO(logger_, "SendFramesNumber finished successfully");
+	LOG4CXX_DEBUG(logger_, "SendFramesNumber finished successfully");
   } else {
 	  LOG4CXX_WARN(logger_, "SendFramesNumber is failed connection or session does not exist");
   }
@@ -1279,20 +1277,18 @@ std::string ConvertPacketDataToString(const uint8_t *data,
 }
 
 uint8_t SupportedSDLProtocolVersion() {
-  LOG4CXX_INFO(logger_, "SupportedSDLProtocolVersion");
+  LOG4CXX_AUTO_TRACE(logger_);
 
-  uint8_t protocol_version;
   bool heart_beat_support =
     (0 != profile::Profile::instance()->heart_beat_timeout());
   bool sdl4_support = profile::Profile::instance()->enable_protocol_4();
 
   if (sdl4_support) {
-    protocol_version = PROTOCOL_VERSION_4;
-  } else if (!sdl4_support && heart_beat_support) {
-    protocol_version = PROTOCOL_VERSION_3;
-  } else {
-    protocol_version = PROTOCOL_VERSION_2;
+    return PROTOCOL_VERSION_4;
   }
-  return protocol_version;
+  if (heart_beat_support) {
+    return PROTOCOL_VERSION_3;
+  }
+  return PROTOCOL_VERSION_2;
 }
 }  // namespace protocol_handler

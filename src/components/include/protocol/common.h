@@ -72,15 +72,15 @@ enum {
    *\brief Constant: number of protocol version (3).
    * Has no difference with v.2 in Mobile_API.xml and frame Header difference
    * Support SSL with Encryption, Video and Audio services
-   * Suuport ControlFrame, End Service to/from mobile support, HeartBeat future
+   * Support ControlFrame, End Service to/from mobile support, HeartBeat feature
    */
   PROTOCOL_VERSION_3 = 0x03,
   /**
-   *\brief Constant: number of protocol version (4).
-   * Has no difference with v.3 in Mobile_API.xml
+   *@brief Constant: number of protocol version (4).
+   * This protocol is compatibility with version 3
    * Support SSL with Encryption, Video and Audio services
-   * Support ControlFrame, End Service to/from mobile support, HeartBeat future,
-   * SDL4.0 future.
+   * Support ControlFrame, End Service to/from mobile support, HeartBeat feature,
+   * SDL4.0 feature.
    */
   PROTOCOL_VERSION_4 = 0x04,
   /**
