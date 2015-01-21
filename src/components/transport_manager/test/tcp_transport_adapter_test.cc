@@ -101,7 +101,8 @@ TEST(TcpAdapterBasicTest, NotInitialised_Return_BAD_STATE) {
   delete transport_adapter;
 }
 
-TEST(TcpAdapterBasicTest, NotInitialised_Return_OK_InConnect) {
+//TODO(KKolodiy)APPLINK-11045
+TEST(TcpAdapterBasicTest, DISABLED_NotInitialised_Return_OK_InConnect) {
 
   //arrange
   TransportAdapter* transport_adapter = new TcpTransportAdapter(12345);
@@ -420,7 +421,7 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_SendFailed) {
   client_.Disconnect();
 }
 
-TEST_F(TcpAdapterTest, StartStop) {
+TEST_F(TcpAdapterTest, DISABLED_StartStop) {
 
   //assert
   EXPECT_EQ(TransportAdapter::BAD_STATE,
