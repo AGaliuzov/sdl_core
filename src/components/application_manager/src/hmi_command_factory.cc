@@ -106,8 +106,8 @@
 #include "application_manager/commands/hmi/ui_set_global_properties_response.h"
 #include "application_manager/commands/hmi/ui_scrollable_message_request.h"
 #include "application_manager/commands/hmi/ui_scrollable_message_response.h"
-#include "application_manager/commands/hmi/ui_set_icon_request.h"
-#include "application_manager/commands/hmi/ui_set_icon_response.h"
+#include "application_manager/commands/hmi/ui_set_app_icon_request.h"
+#include "application_manager/commands/hmi/ui_set_app_icon_response.h"
 #include "application_manager/commands/hmi/ui_perform_audio_pass_thru_response.h"
 #include "application_manager/commands/hmi/ui_perform_audio_pass_thru_request.h"
 #include "application_manager/commands/hmi/ui_end_audio_pass_thru_response.h"
@@ -458,9 +458,9 @@ CommandSharedPtr HMICommandFactory::CreateCommand(
     }
     case hmi_apis::FunctionID::UI_SetAppIcon: {
       if (is_response) {
-        command.reset(new commands::UISetIconResponse(message));
+        command.reset(new commands::UISetAppIconResponse(message));
       } else {
-        command.reset(new commands::UISetIconRequest(message));
+        command.reset(new commands::UISetAppIconRequest(message));
       }
       break;
     }

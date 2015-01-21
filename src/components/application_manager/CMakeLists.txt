@@ -200,8 +200,8 @@ file (GLOB MOBILE_COMMANDS_SOURCES
   ${AM_SOURCE_DIR}/src/commands/hmi/ui_end_audio_pass_thru_response.cc
   ${AM_SOURCE_DIR}/src/commands/hmi/ui_perform_interaction_request.cc
   ${AM_SOURCE_DIR}/src/commands/hmi/ui_perform_interaction_response.cc
-  ${AM_SOURCE_DIR}/src/commands/hmi/ui_set_icon_request.cc
-  ${AM_SOURCE_DIR}/src/commands/hmi/ui_set_icon_response.cc
+  ${AM_SOURCE_DIR}/src/commands/hmi/ui_set_app_icon_request.cc
+  ${AM_SOURCE_DIR}/src/commands/hmi/ui_set_app_icon_response.cc
   ${AM_SOURCE_DIR}/src/commands/hmi/ui_set_media_clock_timer_request.cc
   ${AM_SOURCE_DIR}/src/commands/hmi/ui_set_media_clock_timer_response.cc
   ${AM_SOURCE_DIR}/src/commands/hmi/ui_show_request.cc
