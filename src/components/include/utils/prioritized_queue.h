@@ -30,12 +30,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_UTILS_INCLUDE_UTILS_PRIORITIZED_QUEUE_H_
-#define SRC_COMPONENTS_UTILS_INCLUDE_UTILS_PRIORITIZED_QUEUE_H_
+#ifndef SRC_COMPONENTS_INCLUDE_UTILS_PRIORITIZED_QUEUE_H_
+#define SRC_COMPONENTS_INCLUDE_UTILS_PRIORITIZED_QUEUE_H_
 
 #include <queue>
 #include <map>
-#include <iostream>
 
 #include "utils/macro.h"
 
@@ -79,11 +78,12 @@ class PrioritizedQueue {
       queues_.erase(last);
     }
   }
+
  private:
   QueuesMap queues_;
   size_t total_size_;
 };
 
-}
+}  // namespace utils
 
-#endif  // SRC_COMPONENTS_UTILS_INCLUDE_UTILS_
+#endif  // SRC_COMPONENTS_INCLUDE_UTILS_PRIORITIZED_QUEUE_H_
