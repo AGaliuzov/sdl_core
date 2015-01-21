@@ -641,7 +641,7 @@ void ApplicationManagerImpl::OnHMIStartedCooperation() {
     connection_handler_->StartTransportManager();
   }
 #endif // CUSTOMER_PASA
-  resume_controller().ResetLaunchTime(time(NULL));
+  resume_controller().ResetLaunchTime();
 }
 
 uint32_t ApplicationManagerImpl::GetNextHMICorrelationID() {

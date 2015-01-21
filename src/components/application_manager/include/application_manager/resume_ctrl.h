@@ -241,7 +241,8 @@ class ResumeCtrl: public event_engine::EventObserver {
 
     /**
      * @brief ResumeAppHmiState will restore hmi_level and
-     * audio streaming state immediatly after 3 secconds if needed
+     * audio streaming state immediatly after N secconds if needed.
+     * N is readed from profile.
      * @param time_stamp - time when application was disconnected
      * @param application - application to restore hmi level
      * and audio streaming state
@@ -434,6 +435,30 @@ class ResumeCtrl: public event_engine::EventObserver {
      * @return true if resumptions allowed, otherwise return false
      */
     bool CheckIgnCycleRestrictions(const Json::Value& json_app);
+
+    /**
+     * @brief DisconnectedInLastIgnCycle should check if was connected in prev ign cycle
+     * @param json_app - saved applicationa
+     * @return true if app connected in frep ign_cycle otherwise return false
+     */
+    bool DisconnectedInLastIgnCycle(const Json::Value& json_app);
+
+    /**
+     * @brief DissconnectedJustBeforeIgnOff should check if application
+     * was dissconnected in N secconds delay before ign off.
+     * N will be readed from profile
+     * @param json_app - saved applicationa
+     * @return was dissconnected in N secconds delay before ign off
+     * otherwise return false
+     */
+    bool DissconnectedJustBeforeIgnOff(const Json::Value& json_app);
+
+    /**
+     * @brief CheckDelayAfterIgnOn should check if SDL was started less
+     * then N secconds ago. N will be readed from profile.
+     * @return true if SDL started N secconds ago, otherwise return false
+     */
+    bool CheckDelayAfterIgnOn();
 
     /**
      * @brief CheckAppRestrictions checks if is needed to resume HMI state

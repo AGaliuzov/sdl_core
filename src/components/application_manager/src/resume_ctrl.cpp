@@ -1090,44 +1090,43 @@ Json::Value& ResumeCtrl::GetFromSavedOrAppend(const std::string& mobile_app_id) 
 }
 
 bool ResumeCtrl::CheckIgnCycleRestrictions(const Json::Value& json_app) {
-  using namespace date_time;
-  using namespace profile;
+  LOG4CXX_AUTO_TRACE(logger_);
+  bool result = true;
 
+  if (!DisconnectedInLastIgnCycle(json_app)) {
+    LOG4CXX_INFO(logger_, "Do not need to resume application,"
+                 "connected not in last ign_sycle");
+    result = false;
+  }
+
+  if (!CheckDelayAfterIgnOn()) {
+    LOG4CXX_INFO(logger_, "Application was connected long after ign on");
+    result = false;
+  }
+
+  if (!DissconnectedJustBeforeIgnOff(json_app)) {
+    LOG4CXX_INFO(logger_, "Application was dissconnected long before ign off");
+    result = false;
+  }
+  return result;
+}
+
+bool ResumeCtrl::DisconnectedInLastIgnCycle(const Json::Value& json_app) {
   LOG4CXX_AUTO_TRACE(logger_);
   DCHECK_OR_RETURN(json_app.isMember(strings::ign_off_count), false);
-  DCHECK_OR_RETURN(json_app.isMember(strings::time_stamp), false);
   const bool ign_off_count = json_app[strings::ign_off_count].asUInt();
-  const bool is_previous_ign_cycle = (ign_off_count == 1);
-  LOG4CXX_DEBUG(logger_, " ign_off_count " << ign_off_count
-               << "; is_previous_ign_cycle " << is_previous_ign_cycle
-               );
+  LOG4CXX_DEBUG(logger_, " ign_off_count " << ign_off_count);
+  return (ign_off_count == 1);
+}
 
-  if (!is_previous_ign_cycle) {
-    LOG4CXX_INFO(logger_, "Do not need to resume application ign_off_count = "
-                 << ign_off_count);
-    return false;
-  }
+bool ResumeCtrl::DissconnectedJustBeforeIgnOff(const Json::Value& json_app) {
+  using namespace date_time;
+  using namespace profile;
+  LOG4CXX_AUTO_TRACE(logger_);
+  DCHECK_OR_RETURN(json_app.isMember(strings::time_stamp), false);
 
-  time_t time_stamp = static_cast<time_t>(json_app[strings::time_stamp].asUInt());
-
-  TimevalStruct curr_time = DateTime::getCurrentTime();
-  TimevalStruct sdl_launch_time = DateTime::ConvertTimeToTimeval(launch_time());
-  const int64_t ms_from_sdl_start = DateTime::calculateTimeDiff(curr_time,
-                                                                 sdl_launch_time);
-  const uint32_t seconds_from_sdl_start = ms_from_sdl_start /
-                                         DateTime::MILLISECONDS_IN_SECOND;
-  const uint32_t wait_time =
-      Profile::instance()->resumption_delay_after_ign();
-  LOG4CXX_DEBUG(logger_, " time_stamp " << time_stamp
-               << "; curr_time " << DateTime::getSecs(curr_time)
-               << "; sdl_launch_time " << DateTime::getSecs(sdl_launch_time)
-               << "; seconds_from_sdl_start " << seconds_from_sdl_start );
-  if (seconds_from_sdl_start > wait_time) {
-    LOG4CXX_INFO(logger_, "Do not need to resume application,"
-                 "SDL started more then " << wait_time << " secconds ago : "
-                 << seconds_from_sdl_start);
-    return false;
-  }
+  const time_t time_stamp =
+      static_cast<time_t>(json_app[strings::time_stamp].asUInt());
 
   TimevalStruct ign_off_time = DateTime::ConvertTimeToTimeval(GetIgnOffTime());
   TimevalStruct app_disconnect_time = DateTime::ConvertTimeToTimeval(time_stamp);
@@ -1137,38 +1136,49 @@ bool ResumeCtrl::CheckIgnCycleRestrictions(const Json::Value& json_app) {
                                         DateTime::MILLISECONDS_IN_SECOND;
   LOG4CXX_DEBUG(logger_,"ign_off_time " << DateTime::getSecs(ign_off_time)
                << "; app_disconnect_time " << DateTime::getSecs(app_disconnect_time)
-               << "; sec_spent_before_ign " << ms_spent_before_ign );
-  if (sec_spent_before_ign > Profile::instance()->resumption_delay_before_ign()) {
-    LOG4CXX_INFO(logger_, "Do not need to resume application time_spent_before_ign = "
-                 << sec_spent_before_ign);
-    return false;
-  }
+               << "; sec_spent_before_ign " << sec_spent_before_ign );
 
-  return true;
+  return sec_spent_before_ign <=
+      Profile::instance()->resumption_delay_before_ign();
+}
+
+bool ResumeCtrl::CheckDelayAfterIgnOn() {
+  using namespace date_time;
+  using namespace profile;
+  LOG4CXX_AUTO_TRACE(logger_);
+  TimevalStruct curr_time = DateTime::getCurrentTime();
+  TimevalStruct sdl_launch_time = DateTime::ConvertTimeToTimeval(launch_time());
+  const int64_t ms_from_sdl_start = DateTime::calculateTimeDiff(curr_time,
+                                                                 sdl_launch_time);
+  const uint32_t seconds_from_sdl_start = ms_from_sdl_start /
+                                         DateTime::MILLISECONDS_IN_SECOND;
+  const uint32_t wait_time =
+      Profile::instance()->resumption_delay_after_ign();
+  LOG4CXX_DEBUG(logger_, "curr_time " << DateTime::getSecs(curr_time)
+               << "; sdl_launch_time " << DateTime::getSecs(sdl_launch_time)
+               << "; seconds_from_sdl_start " << seconds_from_sdl_start);
+  return seconds_from_sdl_start <= wait_time;
 }
 
 bool ResumeCtrl::CheckAppRestrictions(ApplicationSharedPtr application,
                                       const Json::Value& json_app) {
-  using namespace date_time;
-  using namespace profile;
+  using namespace mobile_apis;
   LOG4CXX_AUTO_TRACE(logger_);
   DCHECK_OR_RETURN(json_app.isMember(strings::hmi_level), false);
 
   const bool is_media_app = application->is_media_application();
-  if (!is_media_app) {
-    LOG4CXX_INFO(logger_, "Do not need to resume nonmedia app");
-    return false;
+  const HMILevel::eType hmi_level =
+      static_cast<HMILevel::eType>(json_app[strings::hmi_level].asInt());
+  LOG4CXX_DEBUG(logger_, "is_media_app " << is_media_app
+               << "; hmi_level " << hmi_level);
+
+  if (is_media_app) {
+    if (hmi_level == HMILevel::HMI_FULL ||
+        hmi_level == HMILevel::HMI_LIMITED) {
+      return true;
+    }
   }
-  const mobile_apis::HMILevel::eType hmi_level =
-      static_cast<mobile_apis::HMILevel::eType>(
-        json_app[strings::hmi_level].asInt());
-  if (hmi_level != mobile_apis::HMILevel::HMI_FULL &&
-      hmi_level != mobile_apis::HMILevel::HMI_LIMITED ) {
-    LOG4CXX_INFO(logger_, "Do not need to resume application  if HMI_level "
-                 << hmi_level);
-    return false;
-  }
-  return true;
+  return false;
 }
 
 int ResumeCtrl::GetObjectIndex(const std::string& mobile_app_id) {
