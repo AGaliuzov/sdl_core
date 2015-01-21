@@ -421,6 +421,7 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_SendFailed) {
   client_.Disconnect();
 }
 
+//TODO(ALeshin) APPLINK-11049
 TEST_F(TcpAdapterTest, DISABLED_StartStop) {
 
   //assert
