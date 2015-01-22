@@ -145,7 +145,7 @@ void SetAppIconRequest::CopyToIconStorage(
   }
 
   const std::string icon_path =
-          icon_storage + "/" + app->mobile_app_id()->asString();
+          icon_storage + "/" + app->mobile_app_id();
   if (!file_system::CreateFile(icon_path)) {
     LOG4CXX_ERROR(logger_, "Can't create icon: " << icon_path);
     return;

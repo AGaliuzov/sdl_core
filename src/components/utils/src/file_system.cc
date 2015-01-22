@@ -417,5 +417,9 @@ bool file_system::CreateFile(const std::string& path) {
 uint64_t file_system::GetFileModificationTime(const std::string& path) {
   struct stat info;
   stat(path.c_str(), &info);
+#ifndef __QNXNTO__
   return static_cast<uint64_t>(info.st_mtim.tv_nsec);
+#else
+  return static_cast<uint64_t>(info.st_mtime);
+#endif
 }
