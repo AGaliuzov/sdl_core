@@ -1228,7 +1228,8 @@ bool ApplicationManagerImpl::ManageMobileCommand(
 #endif
 
   LOG4CXX_INFO(logger_, "Trying to create message in mobile factory.");
-  utils::SharedPtr<commands::Command> command(MobileCommandFactory::CreateCommand(message));
+  utils::SharedPtr<commands::Command> command(
+		  MobileCommandFactory::CreateCommand(message, origin));
   
   if (!command) {
     LOG4CXX_WARN(logger_, "RET  Failed to create mobile command from smart object");

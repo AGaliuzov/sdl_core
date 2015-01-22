@@ -51,7 +51,7 @@ void EventDispatcher::raise_event(const Event& event) {
     AutoLock auto_lock(state_lock_);
     // check if event is notification
     if (hmi_apis::messageType::notification == event.smart_object_type()) {
-    	const int32_t notification_correlation_id = 0;
+    	const uint32_t notification_correlation_id = 0;
     	observers_list_ = observers_[event.id()][notification_correlation_id];
     }
 
@@ -63,14 +63,14 @@ void EventDispatcher::raise_event(const Event& event) {
 
   // Call observers
   EventObserver* temp;
-  for (;observers_list_.size() > 0;) {
-	observer_list_lock_.Acquire();
-	if (!observers_list_.empty()) {
-	  temp = observers_list_.front();
-	  observers_list_.pop_front();
-	  temp->on_event(event);
-	}
-	observer_list_lock_.Release();
+  while (observers_list_.size() > 0) {
+    observer_list_lock_.Acquire();
+    if (!observers_list_.empty()) {
+      temp = observers_list_.front();
+      observers_list_.pop_front();
+      temp->on_event(event);
+    }
+    observer_list_lock_.Release();
   }
 }
 
@@ -125,11 +125,11 @@ void EventDispatcher::remove_observer_from_list(EventObserver* const observer) {
   AutoLock auto_lock(observer_list_lock_);
   if (!observers_list_.empty()) {
     ObserverList::iterator it_begin = observers_list_.begin();
-	for(; it_begin != observers_list_.end(); ++it_begin) {
-	  if ((*it_begin)->id() == observer->id()) {
-	    it_begin = observers_list_.erase(it_begin);
-	  }
-	}
+    for(; it_begin != observers_list_.end(); ++it_begin) {
+      if ((*it_begin)->id() == observer->id()) {
+        it_begin = observers_list_.erase(it_begin);
+      }
+    }
   }
 }
 

@@ -98,8 +98,8 @@ class EventDispatcher : public utils::Singleton<EventDispatcher> {
   virtual ~EventDispatcher();
 
   /*
-   * @brief removes observer from observers_list_
-   *
+   * @brief removes observer
+   * when occurs unsubscribe from event
    * @param observer to be removed
    */
   void remove_observer_from_list(EventObserver* const observer);
