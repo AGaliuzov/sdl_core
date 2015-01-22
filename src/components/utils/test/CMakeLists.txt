@@ -46,7 +46,7 @@ set(testSources
   signals_linux_test.cc
   thread_validator_test.cc
   conditional_variable_test.cc
-  message_queue_test.cc
+  #message_queue_test.cc
   resource_usage_test.cc
   bitstream_test.cc
   data_accessor_test.cc
