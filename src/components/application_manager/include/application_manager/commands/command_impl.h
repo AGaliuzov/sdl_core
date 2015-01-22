@@ -121,7 +121,7 @@ class CommandImpl : public Command {
   // members
   static const int32_t hmi_protocol_type_;
   static const int32_t mobile_protocol_type_;
-  static const int32_t protocol_version_;
+  static const int32_t protocol_version_;  
 
  protected:
   MessageSharedPtr message_;

@@ -62,7 +62,8 @@ enum APIVersion {
   kAPIV0 = 0,
   kAPIV1 = 1,
   kAPIV2 = 2,
-  kAPIV3 = 3
+  kAPIV3 = 3,
+  kAPIV4 = 4
 };
 
 enum TLimitSource {

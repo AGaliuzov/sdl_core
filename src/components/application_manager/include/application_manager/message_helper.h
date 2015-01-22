@@ -314,7 +314,7 @@ class MessageHelper {
         NsSmartDeviceLink::NsSmartObjects::SmartObject& content);
 
     /**
-     * @brief SendLaunchApp allows to send System request with LAUNCH_UP.
+     * @brief SendLaunchApp allows to send OnSystemRequest with LAUNCH_UP.
      *
      * @param connection_key application id.
      *
@@ -325,6 +325,13 @@ class MessageHelper {
     static void SendLaunchApp(uint32_t connection_key,
                               const std::string& urlSchema,
                               const std::string& packageName);
+
+    /**
+     * @brief Sends OnSystemRequest which queries remote apps list
+     * @param connection_key application id, which is used for sending out
+     */
+    static void SendQueryApps(uint32_t connection_key);
+
     /*
     * @brief Send notification to mobile on application permissions update
     * @param connection_key Id of application to send message to
