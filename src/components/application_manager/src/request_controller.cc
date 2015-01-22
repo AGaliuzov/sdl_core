@@ -47,7 +47,6 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "RequestController");
 RequestController::RequestController()
   : pool_state_(UNDEFINED),
     pool_size_(profile::Profile::instance()->thread_pool_size()),
-    waiting_for_response_lock_(true),
     timer_("RequestCtrlTimer", this, &RequestController::onTimer, true),
     is_low_voltage_(false) {
   LOG4CXX_AUTO_TRACE(logger_);
@@ -116,7 +115,6 @@ RequestController::TResult  RequestController::CheckPosibilitytoAdd(
     return RequestController::TOO_MANY_PENDING_REQUESTS;
   }
 
-  AutoLock auto_lock(waiting_for_response_lock_);
   if (!waiting_for_response_.CheckHMILevelTimeScaleMaxRequest(
                                         mobile_apis::HMILevel::HMI_NONE,
                                         request->connection_key(),
@@ -138,7 +136,6 @@ bool RequestController::CheckPendingRequestsAmount(
     const uint32_t& pending_requests_amount) {
   LOG4CXX_AUTO_TRACE(logger_);
   if (pending_requests_amount > 0) {
-    AutoLock auto_lock(waiting_for_response_lock_);
     const size_t pending_requests_size = mobile_request_list_.size();
     const bool available_to_add =
         pending_requests_amount > pending_requests_size;
@@ -191,7 +188,6 @@ RequestController::TResult RequestController::addHMIRequest(
                                                      timeout_in_seconds));
 
   if (0 != timeout_in_seconds) {
-    AutoLock auto_lock(waiting_for_response_lock_);
     waiting_for_response_.Add(request_info_ptr);
     LOG4CXX_INFO(logger_, "Waiting for response cont:"
                  << waiting_for_response_.Size());
@@ -228,7 +224,6 @@ void RequestController::terminateRequest(
     const uint32_t& correlation_id,
     const uint32_t& connection_key) {
   LOG4CXX_AUTO_TRACE(logger_);
-  AutoLock auto_lock(waiting_for_response_lock_);
   LOG4CXX_DEBUG(logger_, "correlation_id = " << correlation_id
                 << " connection_key = " << connection_key);
   RequestInfoPtr request = waiting_for_response_.Find(connection_key,
@@ -277,7 +272,6 @@ void RequestController::terminateWaitingForExecutionAppRequests(
 void RequestController::terminateWaitingForResponseAppRequests(
     const uint32_t& app_id) {
   LOG4CXX_AUTO_TRACE(logger_);
-  AutoLock auto_lock(waiting_for_response_lock_);
   waiting_for_response_.RemoveByConnectionKey(app_id);
   LOG4CXX_DEBUG(logger_, "Waiting for response count : "
                 << waiting_for_response_.Size());
@@ -304,7 +298,6 @@ void RequestController::terminateAllHMIRequests() {
 
 void RequestController::terminateAllMobileRequests() {
   LOG4CXX_AUTO_TRACE(logger_);
-  AutoLock waiting_response_auto_lock(waiting_for_response_lock_);
   waiting_for_response_.RemoveMobileRequests();
   LOG4CXX_DEBUG(logger_, "Mobile Requests waiting for response cleared");
   AutoLock waiting_execution_auto_lock(mobile_request_list_lock_);
@@ -321,7 +314,6 @@ void RequestController::updateRequestTimeout(
   LOG4CXX_DEBUG(logger_, "app_id : " << app_id
                 << " mobile_correlation_id : " << correlation_id
                 << " new_timeout : " << new_timeout);
-  AutoLock auto_lock(waiting_for_response_lock_);
   RequestInfoPtr request_info =
       waiting_for_response_.Find(app_id, correlation_id);
   if (request_info) {
@@ -362,7 +354,6 @@ bool RequestController::IsLowVoltage() {
 
 void RequestController::onTimer() {
   LOG4CXX_AUTO_TRACE(logger_);
-  AutoLock auto_lock(waiting_for_response_lock_);
   LOG4CXX_DEBUG(logger_, "ENTER Waiting fore response count: "
                 << waiting_for_response_.Size());
   RequestInfoPtr probably_expired =
@@ -431,7 +422,6 @@ void RequestController::Worker::threadMain() {
     RequestInfoPtr request_info_ptr(new MobileRequestInfo(request,
                                                           timeout_in_seconds));
 
-    request_controller_->waiting_for_response_lock_.Acquire();
     request_controller_->waiting_for_response_.Add(request_info_ptr);
     if (0 != timeout_in_seconds) {
       LOG4CXX_INFO(logger_, "Execute MobileRequest corr_id = "
@@ -442,7 +432,7 @@ void RequestController::Worker::threadMain() {
       LOG4CXX_INFO(logger_, "Default timeout was set to 0."
                    "RequestController will not track timeout of this request.");
     }
-    request_controller_->waiting_for_response_lock_.Release();
+
     AutoUnlock unlock(auto_lock);
 
     // execute
@@ -461,7 +451,6 @@ void RequestController::Worker::exitThreadMain() {
 
 void RequestController::UpdateTimer() {
   LOG4CXX_AUTO_TRACE(logger_);
-  AutoLock auto_lock(waiting_for_response_lock_);
   RequestInfoPtr front = waiting_for_response_.FrontWithNotNullTimeout();
   if (front) {
     const TimevalStruct current_time = date_time::DateTime::getCurrentTime();

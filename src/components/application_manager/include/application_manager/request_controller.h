@@ -271,7 +271,6 @@ class RequestController {
      * app_id and corr_id
      */
     RequestInfoSet waiting_for_response_;
-    sync_primitives::Lock waiting_for_response_lock_;
 
     /**
     * @brief Set of HMI notifications with timeout.
