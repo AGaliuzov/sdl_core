@@ -32,6 +32,7 @@
 
 #include "gtest/gtest.h"
 #include "utils/prioritized_queue.h"
+#include <iostream>
 
 namespace test {
 namespace components {
@@ -93,6 +94,21 @@ TEST_F(PrioritizedQueueTest, PushFourElementsTest_ExpectFourElementsAdded) {
   EXPECT_EQ(4, test_queue.size());
 }
 
+TEST_F(PrioritizedQueueTest, AddTwoElementsTest_ExpectQueueNotEmpty) {
+  // Creating 4 messages
+  TestMessage message1("Ford", 2);
+  TestMessage message2("Hello", 1);
+  TestMessage message3("Luxoft", 4);
+  TestMessage message4("from", 3);
+  // Adding created messages to Prioritized queue
+  test_queue.push(message4);
+  test_queue.push(message3);
+  test_queue.push(message1);
+  test_queue.push(message2);
+  // Expect queue not empty
+  EXPECT_FALSE(test_queue.empty());
+}
+
 TEST_F(PrioritizedQueueTest, CheckMessageOrderTest_ExpectMessageWithHighestPriorityAddedFirst) {
   // Creating 4 messages with different priorities
   TestMessage message1("Ford", 111);
@@ -106,6 +122,91 @@ TEST_F(PrioritizedQueueTest, CheckMessageOrderTest_ExpectMessageWithHighestPrior
   test_queue.push(message2);
   // Check the first message is the message with highest priority
   EXPECT_EQ(message1, test_queue.front());
+}
+
+TEST_F(PrioritizedQueueTest, PushTest_AddMessagesWithEqualPriority_ExpectMessagesWithEqualPriorityAdded) {
+  // Creating 4 messages with the same priorities
+  TestMessage message1("Ford", 111);
+  TestMessage message2("Hello", 111);
+  TestMessage message3("Luxoft", 111);
+  TestMessage message4("from", 111);
+  // Adding created messages to Prioritized queue.
+  test_queue.push(message4);
+  test_queue.push(message3);
+  test_queue.push(message1);
+  test_queue.push(message2);
+  // Expect 4 messages were added successfully
+  EXPECT_EQ(4, test_queue.size());
+}
+
+TEST_F(PrioritizedQueueTest, PopTest_OneElementInPriorityQueue_ExpectQueueStillAliveWithRestMessagesWithEqualPriority) {
+  // Creating 4 messages with same priorities
+  TestMessage message1("Ford's", 111);
+  TestMessage message2("Partner", 111);
+  TestMessage message3("Is", 111);
+  TestMessage message4("Luxoft", 111);
+  TestMessage message5("Best", 111);
+ // TestMessage message6("Of", 77);
+  // Adding created messages to Prioritized queue.
+  test_queue.push(message5);
+  //test_queue.push(message6);
+  test_queue.push(message1);
+  test_queue.push(message2);
+  test_queue.push(message3);
+  test_queue.push(message4);
+  // Expect 5 messages were added successfully to One element of prioritized queue
+  EXPECT_EQ(5, test_queue.size());
+  // Extracting first element from the queue
+  EXPECT_EQ(message5, test_queue.front());
+  test_queue.pop();
+  // Check queue with the same priority messages still alive
+  EXPECT_EQ(4, test_queue.size());
+  EXPECT_EQ(message1, test_queue.front());
+  test_queue.pop();
+  EXPECT_EQ(message2, test_queue.front());
+  test_queue.pop();
+  EXPECT_EQ(message3,test_queue.front());
+  test_queue.pop();
+  EXPECT_EQ(message4,test_queue.front());
+  test_queue.pop();
+  EXPECT_EQ(0, test_queue.size());
+}
+
+TEST_F(PrioritizedQueueTest, PopTest_TwoElementsInPriorityQueue_ExpectElementErasedIfOnlyOneWithConcretePriorityExist) {
+  // Creating 4 messages with same priorities
+  TestMessage message1("Ford's", 111);
+  TestMessage message2("Partner", 111);
+  TestMessage message3("Is", 111);
+  TestMessage message4("Luxoft", 111);
+  TestMessage message5("Best", 111);
+  TestMessage message6("Of", 77);
+  // Adding created messages to Prioritized queue.
+  test_queue.push(message5);
+  test_queue.push(message6);
+  test_queue.push(message1);
+  test_queue.push(message2);
+  test_queue.push(message3);
+  test_queue.push(message4);
+  // Expect 6 messages were added successfully to Two elements of prioritized queue
+  EXPECT_EQ(6, test_queue.size());
+  // Extracting first element from the queue
+  EXPECT_EQ(message5, test_queue.front());
+  test_queue.pop();
+  // Check queue with the same priority messages still alive
+  EXPECT_EQ(5, test_queue.size());
+  EXPECT_EQ(message1, test_queue.front());
+  test_queue.pop();
+  EXPECT_EQ(message2, test_queue.front());
+  test_queue.pop();
+  EXPECT_EQ(message3,test_queue.front());
+  test_queue.pop();
+  EXPECT_EQ(message4,test_queue.front());
+  test_queue.pop();
+  // Expect one element with messages with lower priority
+  EXPECT_EQ(message6, test_queue.front());
+  // Delete last element. Expect erased.
+  test_queue.pop();
+  EXPECT_EQ(0, test_queue.size());
 }
 
 TEST_F(PrioritizedQueueTest, NotEmptyPrioritizedQueuePopElement_ExpectQueueDecreasedOneElement) {
