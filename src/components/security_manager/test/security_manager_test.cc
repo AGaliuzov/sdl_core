@@ -235,6 +235,13 @@ TEST_F(SecurityManagerTest, Listeners_Notifying) {
  */
 TEST_F(SecurityManagerTest, SecurityManager_NULLCryptoManager) {
   // Expect InternalError with ERROR_ID
+  uint32_t connection_id = 0;
+  uint8_t session_id = 0;
+  //uint8_t protocol_version = 0;
+  EXPECT_CALL(mock_session_observer, PairFromKey(key, _, _));
+  EXPECT_CALL(mock_session_observer, ProtocolVersionUsed(connection_id, session_id,_)).
+    WillOnce(Return(true));
+
   EXPECT_CALL(
     mock_protocol_handler,
     SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_NOT_SUPPORTED), is_final));
@@ -267,7 +274,14 @@ TEST_F(SecurityManagerTest, GetWrongServiceType) {
  * Shall send InternallError on null data recieved
  */
 TEST_F(SecurityManagerTest, GetEmptyQuery) {
-  EXPECT_CALL(
+  uint32_t connection_id = 0;
+  uint8_t session_id = 0;
+  //uint8_t protocol_version = 0;
+  EXPECT_CALL(mock_session_observer, PairFromKey(key, _, _));
+  EXPECT_CALL(mock_session_observer, ProtocolVersionUsed(connection_id, session_id,_)).
+    WillOnce(Return(true));
+
+	EXPECT_CALL(
     mock_protocol_handler,
     SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_INVALID_QUERY_SIZE), is_final));
   // Call with NULL data
@@ -278,6 +292,12 @@ TEST_F(SecurityManagerTest, GetEmptyQuery) {
  */
 TEST_F(SecurityManagerTest, GetWrongJSONSize) {
   SetMockCryptoManger();
+  uint32_t connection_id = 0;
+  uint8_t session_id = 0;
+  //uint8_t protocol_version = 0;
+  EXPECT_CALL(mock_session_observer, PairFromKey(key, _, _));
+  EXPECT_CALL(mock_session_observer, ProtocolVersionUsed(connection_id, session_id,_)).
+    WillOnce(Return(true));
   // Expect InternalError with ERROR_ID
   EXPECT_CALL(
     mock_protocol_handler,
@@ -293,6 +313,12 @@ TEST_F(SecurityManagerTest, GetWrongJSONSize) {
  */
 TEST_F(SecurityManagerTest, GetInvalidQueryId) {
   SetMockCryptoManger();
+  uint32_t connection_id = 0;
+  uint8_t session_id = 0;
+  //uint8_t protocol_version = 0;
+  EXPECT_CALL(mock_session_observer, PairFromKey(key, _, _));
+  EXPECT_CALL(mock_session_observer, ProtocolVersionUsed(connection_id, session_id,_)).
+    WillOnce(Return(true));
   // Expect InternalError with ERROR_ID
   EXPECT_CALL(
     mock_protocol_handler,
@@ -323,6 +349,12 @@ TEST_F(SecurityManagerTest, CreateSSLContext_ServiceAlreadyProtected) {
 TEST_F(SecurityManagerTest, CreateSSLContext_ErrorCreateSSL) {
   SetMockCryptoManger();
   // Expect InternalError with ERROR_ID
+  uint32_t connection_id = 0;
+  uint8_t session_id = 0;
+  //uint8_t protocol_version = 0;
+  EXPECT_CALL(mock_session_observer, PairFromKey(key, _, _));
+  EXPECT_CALL(mock_session_observer, ProtocolVersionUsed(connection_id, session_id,_)).
+    WillOnce(Return(true));
   EXPECT_CALL(
     mock_protocol_handler,
     SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_INTERNAL), is_final));
@@ -343,6 +375,13 @@ TEST_F(SecurityManagerTest, CreateSSLContext_ErrorCreateSSL) {
 TEST_F(SecurityManagerTest, CreateSSLContext_SetSSLContextError) {
   SetMockCryptoManger();
   // Expect InternalError with ERROR_ID
+  uint32_t connection_id = 0;
+  uint8_t session_id = 0;
+  //uint8_t protocol_version = 0;
+  EXPECT_CALL(mock_session_observer, PairFromKey(key, _, _));
+  EXPECT_CALL(mock_session_observer, ProtocolVersionUsed(connection_id, session_id,_)).
+  WillOnce(Return(true));
+
   EXPECT_CALL(
     mock_protocol_handler,
     SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_UNKWOWN_INTERNAL_ERROR), is_final));
@@ -385,6 +424,12 @@ TEST_F(SecurityManagerTest, CreateSSLContext_Success) {
  */
 TEST_F(SecurityManagerTest, StartHandshake_ServiceStillUnprotected) {
   SetMockCryptoManger();
+  uint32_t connection_id = 0;
+  uint8_t session_id = 0;
+  //uint8_t protocol_version = 0;
+  EXPECT_CALL(mock_session_observer, PairFromKey(key, _, _));
+  EXPECT_CALL(mock_session_observer, ProtocolVersionUsed(connection_id, session_id,_)).
+    WillOnce(Return(true));
   // Expect InternalError with ERROR_INTERNAL
   EXPECT_CALL(mock_protocol_handler,
     SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_INTERNAL), is_final));
@@ -402,6 +447,13 @@ TEST_F(SecurityManagerTest, StartHandshake_ServiceStillUnprotected) {
  */
 TEST_F(SecurityManagerTest, StartHandshake_SSLInternalError) {
   SetMockCryptoManger();
+
+  uint32_t connection_id = 0;
+  uint8_t session_id = 0;
+  //uint8_t protocol_version = 0;
+  EXPECT_CALL(mock_session_observer, PairFromKey(key, _, _));
+  EXPECT_CALL(mock_session_observer, ProtocolVersionUsed(connection_id, session_id,_)).
+   WillOnce(Return(true));
 
   // Expect InternalError with ERROR_ID
   EXPECT_CALL(
@@ -428,6 +480,12 @@ TEST_F(SecurityManagerTest, StartHandshake_SSLInternalError) {
  */
 TEST_F(SecurityManagerTest, StartHandshake_SSLInitIsNotComplete) {
   SetMockCryptoManger();
+  uint32_t connection_id = 0;
+  uint8_t session_id = 0;
+  //uint8_t protocol_version = 0;
+  EXPECT_CALL(mock_session_observer, PairFromKey(key, _, _));
+  EXPECT_CALL(mock_session_observer, ProtocolVersionUsed(connection_id, session_id,_)).
+  WillOnce(Return(true));
 
   // Expect send one message (with correct pointer and size data)
   EXPECT_CALL(mock_protocol_handler, SendMessageToMobileApp(_, is_final));
@@ -483,6 +541,13 @@ TEST_F(SecurityManagerTest, StartHandshake_SSLInitIsComplete) {
  */
 TEST_F(SecurityManagerTest, ProccessHandshakeData_WrongDataSize) {
   SetMockCryptoManger();
+  uint32_t connection_id = 0;
+  uint8_t session_id = 0;
+  //uint8_t protocol_version = 0;
+  EXPECT_CALL(mock_session_observer, PairFromKey(key, _, _));
+  EXPECT_CALL(mock_session_observer, ProtocolVersionUsed(connection_id, session_id,_)).
+    WillOnce(Return(true));
+
   // Expect InternalError with ERROR_ID
   EXPECT_CALL(
     mock_protocol_handler,
@@ -497,6 +562,13 @@ TEST_F(SecurityManagerTest, ProccessHandshakeData_WrongDataSize) {
 TEST_F(SecurityManagerTest, ProccessHandshakeData_ServiceNotProtected) {
   SetMockCryptoManger();
   // Expect InternalError with ERROR_ID
+  uint32_t connection_id = 0;
+  uint8_t session_id = 0;
+  //uint8_t protocol_version = 0;
+  EXPECT_CALL(mock_session_observer, PairFromKey(key, _, _));
+  EXPECT_CALL(mock_session_observer, ProtocolVersionUsed(connection_id, session_id,_)).
+  WillOnce(Return(true));
+
   EXPECT_CALL(
     mock_protocol_handler,
     SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_SERVICE_NOT_PROTECTED), is_final));
@@ -521,6 +593,15 @@ TEST_F(SecurityManagerTest, ProccessHandshakeData_InvalidData) {
 
   // Count handshake calls
   const int handshake_emulates = 4;
+
+  uint32_t connection_id = 0;
+  uint8_t session_id = 0;
+  //uint8_t protocol_version = 0;
+  EXPECT_CALL(mock_session_observer, PairFromKey(key, _, _)).
+   Times(handshake_emulates);
+  EXPECT_CALL(mock_session_observer, ProtocolVersionUsed(connection_id, session_id,_)).
+   Times(handshake_emulates).
+   WillRepeatedly(Return(true));
 
   // Expect InternalError with ERROR_ID
   EXPECT_CALL(
@@ -572,6 +653,15 @@ TEST_F(SecurityManagerTest, ProccessHandshakeData_Answer) {
   SetMockCryptoManger();
   // Count handshake calls
   const int handshake_emulates = 2;
+
+  uint32_t connection_id = 0;
+  uint8_t session_id = 0;
+  //uint8_t protocol_version = 0;
+  EXPECT_CALL(mock_session_observer, PairFromKey(key, _, _)).
+    Times(handshake_emulates);
+  EXPECT_CALL(mock_session_observer, ProtocolVersionUsed(connection_id, session_id,_)).
+    Times(handshake_emulates).
+    WillRepeatedly(Return(true));
 
   // Expect InternalError with ERROR_ID
   EXPECT_CALL(mock_protocol_handler, SendMessageToMobileApp(
@@ -661,6 +751,16 @@ TEST_F(SecurityManagerTest, ProccessHandshakeData_HandShakeFinished) {
                               Handshake_Result_Success)));
 
   // Expect send two message (with correct pointer and size data)
+
+  uint32_t connection_id = 0;
+  uint8_t session_id = 0;
+  //uint8_t protocol_version = 0;
+  EXPECT_CALL(mock_session_observer, PairFromKey(key, _, _)).
+  Times(2);
+  EXPECT_CALL(mock_session_observer, ProtocolVersionUsed(connection_id, session_id,_)).
+  Times(2).
+  WillRepeatedly(Return(true));
+
   EXPECT_CALL(
     mock_protocol_handler, SendMessageToMobileApp(_, is_final)).
         Times(2);
