@@ -30,21 +30,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-//#include <unistd.h>
-#include <iostream>
 #include "gtest/gtest.h"
 #include "utils/prioritized_queue.h"
-//#include "application_manager/application_manager_impl.h"
-//#include "message_priority.h"
-//#include "shared_ptr.h"
 
 namespace test {
 namespace components {
 namespace utils {
 
 using ::utils::PrioritizedQueue;
-//using ::utils::SharedPtr;
-//using namespace application_manager;
 
 class TestMessage {
  public:
@@ -72,7 +65,8 @@ std::string TestMessage::msg() const {
 }
 
 bool operator==(const TestMessage &msg1, const TestMessage &msg2) {
-  return (msg1.msg() == msg2.msg() && msg1.PriorityOrder() == msg2.PriorityOrder());
+  return (msg1.msg() == msg2.msg()
+      && msg1.PriorityOrder() == msg2.PriorityOrder());
 }
 
 class PrioritizedQueueTest : public testing::Test {
@@ -114,17 +108,30 @@ TEST_F(PrioritizedQueueTest, CheckMessageOrderTest_ExpectMessageWithHighestPrior
   EXPECT_EQ(message1, test_queue.front());
 }
 
-//TEST_F(PrioritizedQueueTest, NotEmptyPrioritizedQueueResetTest_ExpectEmptyQueue) {
-//
-//}
-//
-//TEST_F(PrioritizedQueueTest, PrioritizedQueuePopOneElementTest_ExpectOneElementRemovedFromQueue) {
-//
-//}
-//
-//TEST_F(PrioritizedQueueTest, PrioritizedQueueShutdownTest_ExpectPrioritizedQueueWillBeShutDown) {
-//
-//}
+TEST_F(PrioritizedQueueTest, NotEmptyPrioritizedQueuePopElement_ExpectQueueDecreasedOneElement) {
+  // Creating 4 prioritized messages
+  TestMessage message1("Alice", 111);
+  TestMessage message2("walked", 21);
+  TestMessage message3("in", 14);
+  TestMessage message4("Wonderland", 4);
+  // Adding created messages to Prioritized queue
+  test_queue.push(message4);
+  test_queue.push(message3);
+  test_queue.push(message1);
+  test_queue.push(message2);
+  // Extracting first element from the queue
+  test_queue.pop();
+  // Check that one message was extracted
+  EXPECT_EQ(3, test_queue.size());
+  // Checking if extracted message was the message with highest priority
+  // therefore now first message in queue has highest priority
+  EXPECT_EQ(message2, test_queue.front());
+  // Extracting first element from the queue
+  test_queue.pop();
+  // Checking if extracted message was the message with highest priority
+  // therefore now first message in queue has highest priority
+  EXPECT_EQ(message3, test_queue.front());
+}
 
 }  // namespace utils
 }  // namespace components

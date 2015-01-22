@@ -71,7 +71,7 @@ class PrioritizedQueue {
   }
   void pop() {
     DCHECK(!queues_.empty() && !queues_.rbegin()->second.empty());
-    typename QueuesMap::iterator last = (queues_.end() - 1);
+    typename QueuesMap::iterator last = --queues_.end();
     last->second.pop();
     --total_size_;
     if (last->second.empty()) {
