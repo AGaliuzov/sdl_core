@@ -65,6 +65,7 @@ set(AM_SOURCES
   ${AM_SOURCE_DIR}/src/commands/command_request_impl.cc
   ${AM_SOURCE_DIR}/src/commands/command_response_impl.cc
   ${AM_SOURCE_DIR}/src/commands/command_notification_impl.cc
+  ${AM_SOURCE_DIR}/src/commands/command_notification_from_mobile_impl.cc
   ${AM_SOURCE_DIR}/src/commands/pending.cc
 
   ${AM_SOURCE_DIR}/src/usage_statistics.cc

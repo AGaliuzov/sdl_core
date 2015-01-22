@@ -1,5 +1,4 @@
 /*
-
  Copyright (c) 2013, Ford Motor Company
  All rights reserved.
 
@@ -31,43 +30,45 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_ON_HMI_STATUS_NOTIFICATION_H_
-#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_ON_HMI_STATUS_NOTIFICATION_H_
-
-#include "application_manager/commands/command_notification_impl.h"
-#include "utils/macro.h"
+#include "application_manager/commands/command_notification_from_mobile_impl.h"
+#include "application_manager/application_manager_impl.h"
+#include "application_manager/message_helper.h"
 
 namespace application_manager {
 
 namespace commands {
 
-/**
- * @brief OnHMIStatusNotification class
- **/
-class OnHMIStatusNotification : public CommandNotificationImpl {
- public:
-  /**
-   * @brief OnHMIStatusNotification class constructor
-   *
-   * @param message Incoming SmartObject message
-   **/
-  explicit OnHMIStatusNotification(const MessageSharedPtr& message);
+CommandNotificationFromMobileImpl::CommandNotificationFromMobileImpl(
+    const MessageSharedPtr& message)
+    : CommandImpl(message) {
+}
 
-  /**
-   * @brief OnHMIStatusNotification class destructor
-   **/
-  virtual ~OnHMIStatusNotification();
+CommandNotificationFromMobileImpl::~CommandNotificationFromMobileImpl() {
+}
 
-  /**
-   * @brief Execute command
-   **/
-  virtual void Run();
+bool CommandNotificationFromMobileImpl::Init() {
+  return true;
+}
 
-private:
-  DISALLOW_COPY_AND_ASSIGN(OnHMIStatusNotification);
-};
+bool CommandNotificationFromMobileImpl::CleanUp() {
+  return true;
+}
+
+void CommandNotificationFromMobileImpl::Run() {
+}
+
+void CommandNotificationFromMobileImpl::SendNotification() {
+  (*message_)[strings::params][strings::protocol_type] = mobile_protocol_type_;
+  (*message_)[strings::params][strings::protocol_version] = protocol_version_;
+  (*message_)[strings::params][strings::message_type] =
+      static_cast<int32_t>(application_manager::MessageType::kNotification);
+
+  LOG4CXX_INFO(logger_, "SendNotification");
+  MessageHelper::PrintSmartObject(*message_);
+
+  ApplicationManagerImpl::instance()->SendMessageToMobile(message_);
+}
 
 }  // namespace commands
-}  // namespace application_manager
 
-#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_ON_HMI_STATUS_NOTIFICATION_H_
+}  // namespace application_manager

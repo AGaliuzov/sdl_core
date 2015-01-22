@@ -935,6 +935,7 @@ void PolicyHandler::OnActivateApp(uint32_t connection_key,
     // is not allowed.
     if (permissions.isSDLAllowed == false ) {
       permissions.priority.clear();
+      last_activated_app_id_ = connection_key;
     }
 
     if (permissions.appRevoked) {
@@ -962,14 +963,13 @@ void PolicyHandler::OnActivateApp(uint32_t connection_key,
         LOG4CXX_INFO(logger_, "Application will be activated");
         if (ApplicationManagerImpl::instance()->ActivateApplication(app)) {
           MessageHelper::SendHMIStatusNotification(*(app.get()));
+          last_activated_app_id_ = 0;
         }
   } else {
     LOG4CXX_INFO(logger_, "Application should not be activated");
   }
 
-  last_activated_app_id_ = connection_key;
-  MessageHelper::SendSDLActivateAppResponse(permissions,
-                                                              correlation_id);
+  MessageHelper::SendSDLActivateAppResponse(permissions, correlation_id);
 }
 
 void PolicyHandler::KmsChanged(int kilometers) {
@@ -1307,6 +1307,12 @@ bool PolicyHandler::CheckSystemAction(
 uint16_t PolicyHandler::HeartBeatTimeout(const std::string& app_id) const {
   POLICY_LIB_CHECK(0);
   return policy_manager_->HeartBeatTimeout(app_id);
+}
+
+const std::string PolicyHandler::RemoteAppsUrl() const {
+  const std::string default_url = "";
+  POLICY_LIB_CHECK(default_url);
+  return policy_manager_->RemoteAppsUrl();
 }
 
 void PolicyHandler::Increment(usage_statistics::GlobalCounterId type) {

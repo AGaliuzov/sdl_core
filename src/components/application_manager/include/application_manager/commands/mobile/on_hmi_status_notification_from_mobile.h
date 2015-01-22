@@ -31,10 +31,10 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_ON_HMI_STATUS_NOTIFICATION_H_
-#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_ON_HMI_STATUS_NOTIFICATION_H_
+#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_ON_HMI_STATUS_NOTIFICATION_FROM_MOBILE_H_
+#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_ON_HMI_STATUS_NOTIFICATION_FROM_MOBILE_H_
 
-#include "application_manager/commands/command_notification_impl.h"
+#include "application_manager/commands/command_notification_from_mobile_impl.h"
 #include "utils/macro.h"
 
 namespace application_manager {
@@ -42,21 +42,22 @@ namespace application_manager {
 namespace commands {
 
 /**
- * @brief OnHMIStatusNotification class
+ * @brief OnHMIStatusNotificationFromMobile class
  **/
-class OnHMIStatusNotification : public CommandNotificationImpl {
+class OnHMIStatusNotificationFromMobile :
+        public CommandNotificationFromMobileImpl {
  public:
   /**
-   * @brief OnHMIStatusNotification class constructor
+   * @brief OnHMIStatusNotificationFromMobile class constructor
    *
    * @param message Incoming SmartObject message
    **/
-  explicit OnHMIStatusNotification(const MessageSharedPtr& message);
+  explicit OnHMIStatusNotificationFromMobile(const MessageSharedPtr& message);
 
   /**
-   * @brief OnHMIStatusNotification class destructor
+   * @brief OnHMIStatusNotificationFromMobile class destructor
    **/
-  virtual ~OnHMIStatusNotification();
+  virtual ~OnHMIStatusNotificationFromMobile();
 
   /**
    * @brief Execute command
@@ -64,10 +65,11 @@ class OnHMIStatusNotification : public CommandNotificationImpl {
   virtual void Run();
 
 private:
-  DISALLOW_COPY_AND_ASSIGN(OnHMIStatusNotification);
+  static bool is_apps_requested_;
+  DISALLOW_COPY_AND_ASSIGN(OnHMIStatusNotificationFromMobile);
 };
 
 }  // namespace commands
 }  // namespace application_manager
 
-#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_ON_HMI_STATUS_NOTIFICATION_H_
+#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_ON_HMI_STATUS_NOTIFICATION_FROM_MOBILE_H_
