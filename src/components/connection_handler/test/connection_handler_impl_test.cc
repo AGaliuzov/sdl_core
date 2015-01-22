@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,7 +68,7 @@ class ConnectionHandlerTest : public ::testing::Test {
     // Add Device and connection
     connection_handler_->addDeviceConnection(device_info, uid);
     connection_key = connection_handler_->KeyFromPair(uid, 0u);
-    //Remove all specifis services
+    // Remove all specific services
     SetSpecificServices("", "");
   }
   void AddTestSession() {
@@ -83,7 +83,7 @@ class ConnectionHandlerTest : public ::testing::Test {
     return connection_handler_->KeyFromPair(connection, session);
   }
 
-  //Additional SetUp
+  // Additional SetUp
   void SetSpecificServices(const std::string& protect,
                            const std::string& not_protect) {
     const char* config_file = "config.ini";
@@ -134,7 +134,7 @@ class ConnectionHandlerTest : public ::testing::Test {
   void CheckServiceExists(const int connectionId, const int session_id,
                           const ::protocol_handler::ServiceType serviceId,
                           const bool exists) {
-    // Check all tree to find Service and check own protected value
+    // Check all trees to find Service and check own protected value
     const ConnectionList& connection_list = connection_handler_
         ->getConnectionList();
     ASSERT_FALSE(connection_list.empty());
@@ -163,7 +163,7 @@ class ConnectionHandlerTest : public ::testing::Test {
                     const ::protocol_handler::ServiceType serviceId,
                     const ::security_manager::SSLContext* ssl_context,
                     const bool is_protected) {
-    //check all tree to find Service and check own protected value
+    // Check all tree to find Service and check own protected value
     const ConnectionList& connection_list = connection_handler_
         ->getConnectionList();
     ASSERT_FALSE(connection_list.empty());
@@ -319,10 +319,9 @@ TEST_F(ConnectionHandlerTest, SessionStop_CheckSpecificHash) {
   }
 }
 
-TEST_F(ConnectionHandlerTest, DISABLED_SessionStarted_StartSession_SecureSpecific_Unprotect) {
+TEST_F(ConnectionHandlerTest, SessionStarted_StartSession_SecureSpecific_Unprotect) {
   // Add virtual device and connection
   AddTestDeviceConnection();
-
   // Forbid start kRPC without encryption
   SetSpecificServices("0x07", "");
   // Start new session with RPC service
@@ -330,8 +329,13 @@ TEST_F(ConnectionHandlerTest, DISABLED_SessionStarted_StartSession_SecureSpecifi
       connection_handler_->OnSessionStartedCallback(uid, 0, kRpc,
                                                     PROTECTION_OFF,
                                                     &out_hash_id);
+#ifdef ENABLE_SECURITY
   EXPECT_EQ(0u, session_id_fail);
   EXPECT_EQ(protocol_handler::HASH_ID_WRONG, out_hash_id);
+#else
+  EXPECT_EQ(1u, session_id_fail);
+  EXPECT_EQ(SessionHash(uid, session_id_fail), out_hash_id);
+#endif  // ENABLE_SECURITY
 
   // Allow start kRPC without encryption
   SetSpecificServices("0x00, Non", "");
@@ -345,17 +349,20 @@ TEST_F(ConnectionHandlerTest, DISABLED_SessionStarted_StartSession_SecureSpecifi
   EXPECT_EQ(SessionHash(uid, session_id), out_hash_id);
 }
 
-TEST_F(ConnectionHandlerTest, DISABLED_SessionStarted_StartSession_SecureSpecific_Protect) {
+TEST_F(ConnectionHandlerTest, SessionStarted_StartSession_SecureSpecific_Protect) {
   // Add virtual device and connection
   AddTestDeviceConnection();
-
   // Forbid start kRPC with encryption
   SetSpecificServices("", "0x06, 0x07, 0x08, Non");
   // Start new session with RPC service
   const uint32_t session_id_fail =
       connection_handler_->OnSessionStartedCallback(uid, 0, kRpc, PROTECTION_ON,
       NULL);
+#ifdef ENABLE_SECURITY
   EXPECT_EQ(0u, session_id_fail);
+#else
+  EXPECT_EQ(1u, session_id_fail);
+#endif  // ENABLE_SECURITY
 
   // Allow start kRPC with encryption
   SetSpecificServices("", "0x00, 0x05, Non");
@@ -371,7 +378,7 @@ TEST_F(ConnectionHandlerTest, DISABLED_SessionStarted_StartSession_SecureSpecifi
                PROTECTION_OFF);
 }
 
-TEST_F(ConnectionHandlerTest, DISABLED_SessionStarted_StartService_SecureSpecific_Unprotect) {
+TEST_F(ConnectionHandlerTest, SessionStarted_StartService_SecureSpecific_Unprotect) {
   AddTestDeviceConnection();
   AddTestSession();
 
@@ -383,20 +390,29 @@ TEST_F(ConnectionHandlerTest, DISABLED_SessionStarted_StartService_SecureSpecifi
   // Start new session with Audio service
   const uint32_t session_id2 = connection_handler_->OnSessionStartedCallback(
       uid, start_session_id, kAudio, PROTECTION_OFF, NULL);
+#ifdef ENABLE_SECURITY
   EXPECT_EQ(0u, session_id2);
-
+#else
+  EXPECT_EQ(1u, session_id2);
+#endif  // ENABLE_SECURITY
   // Allow start kAudio without encryption
   SetSpecificServices("0x06, 0x0B, 0x08, Non", "");
   const uint32_t session_id3 = connection_handler_->OnSessionStartedCallback(
       uid, start_session_id, kAudio, PROTECTION_OFF, &out_hash_id);
   // Returned original session id
+#ifdef ENABLE_SECURITY
   EXPECT_EQ(start_session_id, session_id3);
   EXPECT_EQ(protocol_handler::HASH_ID_NOT_SUPPORTED, out_hash_id);
   CheckService(uid, session_id3, kRpc,
-               NULL,
-               PROTECTION_OFF);
+                 NULL,
+                 PROTECTION_OFF);
+#else
+  EXPECT_EQ(0u, session_id3);
+  EXPECT_EQ(protocol_handler::HASH_ID_WRONG, out_hash_id);
+#endif  // ENABLE_SECURITY
 }
-TEST_F(ConnectionHandlerTest, DISABLED_SessionStarted_StartService_SecureSpecific_Protect) {
+
+TEST_F(ConnectionHandlerTest, SessionStarted_StartService_SecureSpecific_Protect) {
   AddTestDeviceConnection();
   AddTestSession();
 
@@ -408,32 +424,53 @@ TEST_F(ConnectionHandlerTest, DISABLED_SessionStarted_StartService_SecureSpecifi
   const uint32_t session_id_reject = connection_handler_
       ->OnSessionStartedCallback(uid, start_session_id, kAudio, PROTECTION_ON,
   NULL);
+#ifdef ENABLE_SECURITY
   EXPECT_EQ(0u, session_id_reject);
-
-  // Allow start kAudio without encryption
+#else
+  EXPECT_EQ(1u, session_id_reject);
+#endif  // ENABLE_SECURITY
+  // Allow start kAudio with encryption
   SetSpecificServices("", "Non");
   const uint32_t session_id3 = connection_handler_->OnSessionStartedCallback(
       uid, start_session_id, kAudio, PROTECTION_ON, &out_hash_id);
   // Returned original session id
+#ifdef ENABLE_SECURITY
   EXPECT_EQ(start_session_id, session_id3);
   EXPECT_EQ(protocol_handler::HASH_ID_NOT_SUPPORTED, out_hash_id);
   CheckService(uid, session_id3, kAudio,
                NULL,
                PROTECTION_ON);
+#else
+  EXPECT_EQ(0u, session_id3);
+  EXPECT_EQ(protocol_handler::HASH_ID_WRONG, out_hash_id);
+  CheckService(uid, start_session_id, kAudio,
+                   NULL,
+                   PROTECTION_OFF);
+#endif  // ENABLE_SECURITY
 }
-TEST_F(ConnectionHandlerTest, DISABLED_SessionStarted_DealyProtect) {
+
+TEST_F(ConnectionHandlerTest, SessionStarted_DealyProtect) {
   AddTestDeviceConnection();
   AddTestSession();
 
   // Start RPC protection
   const uint32_t session_id_new = connection_handler_->OnSessionStartedCallback(
       uid, start_session_id, kRpc, PROTECTION_ON, &out_hash_id);
+#ifdef ENABLE_SECURITY
   EXPECT_EQ(start_session_id, session_id_new);
   // Post protection nedd no hash
   EXPECT_EQ(protocol_handler::HASH_ID_NOT_SUPPORTED, out_hash_id);
   CheckService(uid, start_session_id, kRpc,
                NULL,
                PROTECTION_ON);
+#else
+  EXPECT_EQ(0u, session_id_new);
+    // Post protection nedd no hash
+  EXPECT_EQ(protocol_handler::HASH_ID_WRONG, out_hash_id);
+  CheckService(uid, start_session_id, kRpc,
+                 NULL,
+                 PROTECTION_OFF);
+#endif  // ENABLE_SECURITY
 
   // Start Audio session without protection
   const uint32_t session_id2 = connection_handler_->OnSessionStartedCallback(
@@ -447,23 +484,38 @@ TEST_F(ConnectionHandlerTest, DISABLED_SessionStarted_DealyProtect) {
   // Start Audio protection
   const uint32_t session_id3 = connection_handler_->OnSessionStartedCallback(
       uid, start_session_id, kAudio, PROTECTION_ON, &out_hash_id);
+#ifdef ENABLE_SECURITY
   EXPECT_EQ(start_session_id, session_id3);
   EXPECT_EQ(protocol_handler::HASH_ID_NOT_SUPPORTED, out_hash_id);
   CheckService(uid, start_session_id, kAudio,
                NULL,
                PROTECTION_ON);
+#else
+  EXPECT_EQ(0u, session_id3);
+  EXPECT_EQ(protocol_handler::HASH_ID_WRONG, out_hash_id);
+  CheckService(uid, start_session_id, kAudio,
+                 NULL,
+                 PROTECTION_OFF);
+#endif  // ENABLE_SECURITY
 }
 
-TEST_F(ConnectionHandlerTest, DISABLED_SessionStarted_DealyProtectBulk) {
+TEST_F(ConnectionHandlerTest, SessionStarted_DealyProtectBulk) {
   AddTestDeviceConnection();
   AddTestSession();
 
   const uint32_t session_id_new = connection_handler_->OnSessionStartedCallback(
       uid, start_session_id, kBulk, PROTECTION_ON, NULL);
+#ifdef ENABLE_SECURITY
   EXPECT_EQ(start_session_id, session_id_new);
   CheckService(uid, start_session_id, kRpc,
                NULL,
                PROTECTION_ON);
+#else
+  EXPECT_EQ(0u, session_id_new);
+  CheckService(uid, start_session_id, kRpc,
+                 NULL,
+                 PROTECTION_OFF);
+#endif  // ENABLE_SECURITY
 }
 
 #ifdef ENABLE_SECURITY
@@ -615,6 +667,6 @@ TEST_F(ConnectionHandlerTest, GetSSLContext_ByDealyProtecteBulk) {
             &mock_ssl_context);
 }
 #endif  // ENABLE_SECURITY
-}  // connection_handle_test
+}  // namespace connection_handle_test
 }  // namespace components
 }  // namespace test
