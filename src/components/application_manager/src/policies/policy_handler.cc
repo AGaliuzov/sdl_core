@@ -935,6 +935,7 @@ void PolicyHandler::OnActivateApp(uint32_t connection_key,
     // is not allowed.
     if (permissions.isSDLAllowed == false ) {
       permissions.priority.clear();
+      last_activated_app_id_ = connection_key;
     }
 
     if (permissions.appRevoked) {
@@ -962,14 +963,13 @@ void PolicyHandler::OnActivateApp(uint32_t connection_key,
         LOG4CXX_INFO(logger_, "Application will be activated");
         if (ApplicationManagerImpl::instance()->ActivateApplication(app)) {
           MessageHelper::SendHMIStatusNotification(*(app.get()));
+          last_activated_app_id_ = 0;
         }
   } else {
     LOG4CXX_INFO(logger_, "Application should not be activated");
   }
 
-  last_activated_app_id_ = connection_key;
-  MessageHelper::SendSDLActivateAppResponse(permissions,
-                                                              correlation_id);
+  MessageHelper::SendSDLActivateAppResponse(permissions, correlation_id);
 }
 
 void PolicyHandler::KmsChanged(int kilometers) {
