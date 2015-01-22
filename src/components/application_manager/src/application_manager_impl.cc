@@ -1190,7 +1190,7 @@ void ApplicationManagerImpl::SendMessageToMobile(
       }
     }
     const mobile_apis::Result::eType check_result =
-        CheckPolicyPermissions( app->mobile_app_id()->asString(),
+        CheckPolicyPermissions( app->mobile_app_id(),
                                 app->hmi_level(), function_id, params);
     if (mobile_apis::Result::SUCCESS != check_result) {
       const std::string string_functionID =
@@ -1885,7 +1885,7 @@ void ApplicationManagerImpl::CreateApplications(
         ApplicationListAccessor app_list;
         app_list.Insert(app);
         const std::string full_icon_path(
-              app_icon_dir + "/" + app->mobile_app_id()->asString());
+              app_icon_dir + "/" + app->mobile_app_id());
         if (file_system::FileExists(full_icon_path)) {
           apps_with_icon.push_back(std::make_pair(app->app_id(), full_icon_path));
         }
@@ -2688,7 +2688,7 @@ void ApplicationManagerImpl::OnUpdateHMIAppType(
       it != accessor.end(); ++it) {
 
     it_app_hmi_types_from_policy =
-        app_hmi_types.find(((*it)->mobile_app_id())->asString());
+        app_hmi_types.find(((*it)->mobile_app_id()));
 
     if (it_app_hmi_types_from_policy != app_hmi_types.end() &&
         ((it_app_hmi_types_from_policy->second).size())) {

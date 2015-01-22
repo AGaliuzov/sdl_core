@@ -91,8 +91,8 @@
 #include "application_manager/commands/mobile/set_display_layout_response.h"
 #include "application_manager/commands/mobile/set_global_properties_request.h"
 #include "application_manager/commands/mobile/set_global_properties_response.h"
-#include "application_manager/commands/mobile/set_icon_request.h"
-#include "application_manager/commands/mobile/set_icon_response.h"
+#include "application_manager/commands/mobile/set_app_icon_request.h"
+#include "application_manager/commands/mobile/set_app_icon_response.h"
 #include "application_manager/commands/mobile/set_media_clock_timer_request.h"
 #include "application_manager/commands/mobile/set_media_clock_timer_response.h"
 #include "application_manager/commands/mobile/show_constant_tbt_request.h"
@@ -398,9 +398,9 @@ commands::Command *MobileCommandFactory::CreateCommand(
     case mobile_apis::FunctionID::SetAppIconID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        return new commands::SetIconResponse(message);
+        return new commands::SetAppIconResponse(message);
       } else {
-        return new commands::SetIconRequest(message);
+        return new commands::SetAppIconRequest(message);
       }
       break;
     }

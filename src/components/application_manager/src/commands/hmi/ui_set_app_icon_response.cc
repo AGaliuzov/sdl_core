@@ -29,44 +29,29 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_UI_SET_ICON_RESPONSE_H_
-#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_UI_SET_ICON_RESPONSE_H_
-
-#include "application_manager/commands/hmi/response_from_hmi.h"
+#include "application_manager/commands/hmi/ui_set_app_icon_response.h"
+#include "application_manager/event_engine/event.h"
+#include "interfaces/HMI_API.h"
 
 namespace application_manager {
 
 namespace commands {
 
-/**
- * @brief UISetIconResponse command class
- **/
-class UISetIconResponse : public ResponseFromHMI {
- public:
-  /**
-   * @brief UISetIconResponse class constructor
-   *
-   * @param message Incoming SmartObject message
-   **/
-  explicit UISetIconResponse(const MessageSharedPtr& message);
+UISetAppIconResponse::UISetAppIconResponse(const MessageSharedPtr& message)
+    : ResponseFromHMI(message) {
+}
 
-  /**
-   * @brief UISetIconResponse class destructor
-   **/
-  virtual ~UISetIconResponse();
+UISetAppIconResponse::~UISetAppIconResponse() {
+}
 
-  /**
-   * @brief Execute command
-   **/
-  virtual void Run();
+void UISetAppIconResponse::Run() {
+  LOG4CXX_AUTO_TRACE(logger_);
 
- private:
-  DISALLOW_COPY_AND_ASSIGN(UISetIconResponse);
-};
+  event_engine::Event event(hmi_apis::FunctionID::UI_SetAppIcon);
+  event.set_smart_object(*message_);
+  event.raise();
+}
 
 }  // namespace commands
 
 }  // namespace application_manager
-
-#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_UI_SET_ICON_RESPONSE_H_

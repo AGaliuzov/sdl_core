@@ -31,7 +31,7 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "application_manager/commands/mobile/set_icon_request.h"
+#include "application_manager/commands/mobile/set_app_icon_request.h"
 #include "application_manager/application_manager_impl.h"
 #include "application_manager/application_impl.h"
 #include "config_profile/profile.h"
@@ -43,14 +43,14 @@ namespace application_manager {
 
 namespace commands {
 
-SetIconRequest::SetIconRequest(const MessageSharedPtr& message)
+SetAppIconRequest::SetAppIconRequest(const MessageSharedPtr& message)
     : CommandRequestImpl(message) {
 }
 
-SetIconRequest::~SetIconRequest() {
+SetAppIconRequest::~SetAppIconRequest() {
 }
 
-void SetIconRequest::Run() {
+void SetAppIconRequest::Run() {
   LOG4CXX_AUTO_TRACE(logger_);
 
   ApplicationSharedPtr app =
@@ -77,6 +77,8 @@ void SetIconRequest::Run() {
     return;
   }
 
+  CopyToIconStorage(full_file_path);
+
   smart_objects::SmartObject msg_params = smart_objects::SmartObject(
       smart_objects::SmartType_Map);
 
@@ -96,7 +98,7 @@ void SetIconRequest::Run() {
 
   // TODO(VS): research why is image_type hardcoded
   msg_params[strings::sync_file_name][strings::image_type] =
-      static_cast<int32_t> (SetIconRequest::ImageType::DYNAMIC);
+      static_cast<int32_t> (SetAppIconRequest::ImageType::DYNAMIC);
 
   // for further use in on_event function
   (*message_)[strings::msg_params][strings::sync_file_name] =
@@ -105,7 +107,93 @@ void SetIconRequest::Run() {
   SendHMIRequest(hmi_apis::FunctionID::UI_SetAppIcon, &msg_params, true);
 }
 
-void SetIconRequest::on_event(const event_engine::Event& event) {
+void SetAppIconRequest::CopyToIconStorage(
+        const std::string& path_to_file) const {
+  if (!profile::Profile::instance()->enable_protocol_4()) {
+    LOG4CXX_WARN(logger_,
+                 "Icon copying skipped, since protocol ver. 4 is not enabled.");
+    return;
+  }
+
+  std::vector<uint8_t> file_content;
+  if(!file_system::ReadBinaryFile(path_to_file, file_content)) {
+    LOG4CXX_ERROR(logger_, "Can't read icon file: " << path_to_file);
+    return;
+  }
+
+  const std::string icon_storage =
+          profile::Profile::instance()->app_icons_folder();
+  const uint64_t storage_max_size =
+      static_cast<uint64_t>(
+        profile::Profile::instance()->app_icons_folder_max_size());
+  const uint64_t file_size = file_system::FileSize(path_to_file);
+  const uint64_t storage_size = static_cast<uint64_t>(
+                                  file_system::DirectorySize(icon_storage));
+  if (storage_max_size < (file_size + storage_size)) {
+    RemoveOldestIcons(icon_storage,
+                      profile::Profile::instance()->
+                      app_icons_amount_to_remove());
+  }
+  ApplicationConstSharedPtr app =
+          application_manager::ApplicationManagerImpl::instance()->
+          application(connection_key());
+
+  if (!app) {
+    LOG4CXX_ERROR(logger_, "Can't get application for connection key: "
+                  << connection_key());
+    return;
+  }
+
+  const std::string icon_path =
+          icon_storage + "/" + app->mobile_app_id();
+  if (!file_system::CreateFile(icon_path)) {
+    LOG4CXX_ERROR(logger_, "Can't create icon: " << icon_path);
+    return;
+  }
+
+  if (!file_system::Write(icon_path, file_content)) {
+    LOG4CXX_ERROR(logger_, "Can't write icon: " << icon_path);
+    return;
+  }
+
+  LOG4CXX_DEBUG(logger_, "Icon was successfully copied from :" << path_to_file
+                << " to " << icon_path);
+
+  return;
+}
+
+void SetAppIconRequest::RemoveOldestIcons(const std::string& storage,
+                                          const uint32_t icons_amount) const {
+  if (!icons_amount) {
+    LOG4CXX_DEBUG(logger_,
+                  "No icons will be deleted, since amount of files is zero.");
+    return;
+  }
+  const std::vector<std::string> icons_list = file_system::ListFiles(storage);
+  std::map<uint64_t, std::string> icon_modification_time;
+  std::vector<std::string>::const_iterator it = icons_list.begin();
+  for (;it != icons_list.end(); ++it) {
+    const std::string file_name = *it;
+    const std::string file_path = storage + "/" + file_name;
+    if (!file_system::FileExists(file_path)) {
+      continue;
+    }
+    const uint64_t time = file_system::GetFileModificationTime(file_path);
+    icon_modification_time[time] = file_name;
+  }
+
+  for (size_t counter = 0; counter < icons_amount; ++counter) {
+    const std::string file_name = icon_modification_time.begin()->second;
+    const std::string file_path = storage + "/" + file_name;
+    if (!file_system::DeleteFile(file_path)) {
+      LOG4CXX_DEBUG(logger_, "Error while deleting icon " << file_path);
+    }
+    LOG4CXX_DEBUG(logger_, "Old icon " << file_path
+                  << " was deleted successfully.");
+  }
+}
+
+void SetAppIconRequest::on_event(const event_engine::Event& event) {
   LOG4CXX_AUTO_TRACE(logger_);
   const smart_objects::SmartObject& message = event.smart_object();
 

@@ -30,26 +30,43 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "application_manager/commands/hmi/ui_set_icon_request.h"
+#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_UI_SET_ICON_RESPONSE_H_
+#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_UI_SET_ICON_RESPONSE_H_
+
+#include "application_manager/commands/hmi/response_from_hmi.h"
 
 namespace application_manager {
 
 namespace commands {
 
-UISetIconRequest::UISetIconRequest(const MessageSharedPtr& message)
-    : RequestToHMI(message) {
-}
+/**
+ * @brief UISetIconResponse command class
+ **/
+class UISetAppIconResponse : public ResponseFromHMI {
+ public:
+  /**
+   * @brief UISetIconResponse class constructor
+   *
+   * @param message Incoming SmartObject message
+   **/
+  explicit UISetAppIconResponse(const MessageSharedPtr& message);
 
-UISetIconRequest::~UISetIconRequest() {
-}
+  /**
+   * @brief UISetIconResponse class destructor
+   **/
+  virtual ~UISetAppIconResponse();
 
-void UISetIconRequest::Run() {
-  LOG4CXX_AUTO_TRACE(logger_);
+  /**
+   * @brief Execute command
+   **/
+  virtual void Run();
 
-  SendRequest();
-}
+ private:
+  DISALLOW_COPY_AND_ASSIGN(UISetAppIconResponse);
+};
 
 }  // namespace commands
 
 }  // namespace application_manager
 
+#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_UI_SET_ICON_RESPONSE_H_

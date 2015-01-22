@@ -143,6 +143,7 @@ private:
   PolicyListener* listener_;
   bool exchange_in_progress_;
   bool update_required_;
+  bool update_scheduled_;
   bool exchange_pending_;
   sync_primitives::Lock exchange_in_progress_lock_;
   sync_primitives::Lock update_required_lock_;

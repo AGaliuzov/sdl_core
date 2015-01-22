@@ -44,7 +44,7 @@ namespace commands {
 /**
  * @brief SetIconRequest command class
  **/
-class SetIconRequest : public CommandRequestImpl {
+class SetAppIconRequest : public CommandRequestImpl {
  public:
   /**
    * @brief Contains information about the type of image
@@ -59,12 +59,12 @@ class SetIconRequest : public CommandRequestImpl {
    *
    * @param message Incoming SmartObject message
    **/
-  explicit SetIconRequest(const MessageSharedPtr& message);
+  explicit SetAppIconRequest(const MessageSharedPtr& message);
 
   /**
    * @brief SetIconRequest class destructor
    **/
-  virtual ~SetIconRequest();
+  virtual ~SetAppIconRequest();
 
   /**
    * @brief Interface method that is called whenever new event received
@@ -78,8 +78,21 @@ class SetIconRequest : public CommandRequestImpl {
    **/
   virtual void Run();
 
- private:
-  DISALLOW_COPY_AND_ASSIGN(SetIconRequest);
+ private:  
+  /**
+   * @brief Copies file to icon storage
+   * @param path_to_file Path to icon
+   */
+  void CopyToIconStorage(const std::string& path_to_file) const;
+
+  /**
+   * @brief Remove oldest icons
+   * @param storage Path to icons storage
+   * @param icons_amount Amount of icons to be deleted
+   */
+  void RemoveOldestIcons(const std::string& storage,
+                         const uint32_t icons_amount) const;
+  DISALLOW_COPY_AND_ASSIGN(SetAppIconRequest);
 };
 
 }  // namespace commands

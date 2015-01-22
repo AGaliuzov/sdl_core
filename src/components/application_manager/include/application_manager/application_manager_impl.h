@@ -837,10 +837,10 @@ class ApplicationManagerImpl : public ApplicationManager,
 
     struct MobileAppIdPredicate {
       std::string policy_app_id_;
-      MobileAppIdPredicate(const std::string& hmi_app_id):
-        policy_app_id_(hmi_app_id) {}
+      MobileAppIdPredicate(const std::string& policy_app_id):
+        policy_app_id_(policy_app_id) {}
       bool operator () (const ApplicationSharedPtr app) const {
-        return app ? policy_app_id_ == app->mobile_app_id()->asString() : false;
+        return app ? policy_app_id_ == app->mobile_app_id() : false;
       }
     };
 
