@@ -1714,8 +1714,7 @@ utils::SharedPtr<Message> ApplicationManagerImpl::ConvertRawMsgToMessage(
     return outgoing_message;
   }
 
-  Message* convertion_result = NULL;
-  convertion_result = MobileMessageHandler::HandleIncomingMessageProtocol(message);
+  Message* convertion_result = MobileMessageHandler::HandleIncomingMessageProtocol(message);
 
   if (convertion_result) {
     outgoing_message = convertion_result;
@@ -2136,7 +2135,7 @@ void ApplicationManagerImpl::Handle(const impl::MessageToMobile message) {
   }
 
   utils::SharedPtr<protocol_handler::RawMessage> rawMessage =
-      MobileMessageHandler::HandleOutgoingMessageProtocol(message);
+	MobileMessageHandler::HandleOutgoingMessageProtocol(message);
   
   if (!rawMessage) {
     LOG4CXX_ERROR(logger_, "Failed to create raw message.");
