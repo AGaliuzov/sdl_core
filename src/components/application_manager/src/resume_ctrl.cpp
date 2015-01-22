@@ -67,16 +67,10 @@ ResumeCtrl::ResumeCtrl(ApplicationManagerImpl* app_mngr)
 
 void ResumeCtrl::SaveAllApplications() {
   LOG4CXX_AUTO_TRACE(logger_);
-  DCHECK(app_mngr_);
-  if (app_mngr_) {
-    ApplicationManagerImpl::ApplicationListAccessor accessor;
-    ApplicationManagerImpl::ApplictionSet apps(accessor.applications());
+    std::set<ApplicationSharedPtr> apps(retrieve_application());
     std::for_each(apps.begin(),
                   apps.end(),
                   std::bind1st(std::mem_fun(&ResumeCtrl::SaveApplication), this));
-  } else {
-    LOG4CXX_FATAL(logger_, "Application manager object is NULL.");
-  }
 }
 
 void ResumeCtrl::SaveApplication(ApplicationConstSharedPtr application) {
@@ -504,6 +498,11 @@ void ResumeCtrl::RestoreHmiLevel(uint32_t time_stamp,
                   << "timer started for " << profile::Profile::instance()->app_resuming_timeout());
     restore_hmi_level_timer_.start(profile::Profile::instance()->app_resuming_timeout());
   }
+}
+
+std::set<ApplicationSharedPtr> ResumeCtrl::retrieve_application() {
+  ApplicationManagerImpl::ApplicationListAccessor accessor;
+  return std::set<ApplicationSharedPtr>(accessor.begin(), accessor.end());
 }
 
 bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
