@@ -1,4 +1,4 @@
-﻿/*
+/*
 * \file request_info.h
 * \brief request information structure source file.
 *
@@ -138,6 +138,7 @@ bool RequestInfoSet::Add(RequestInfoPtr request_info) {
   LOG4CXX_ERROR(logger_, "Add request app_id = " << request_info->app_id()
                 << "; corr_id = " << request_info->requestId());
   CheckSetSizes();
+  sync_primitives::AutoLock lock(this_lock_);
   const std::pair<HashSortedRequestInfoSet::iterator, bool>& insert_resilt =
       hash_sorted_pending_requests_.insert(request_info);
   if (insert_resilt.second == true) {
@@ -165,6 +166,7 @@ RequestInfoPtr RequestInfoSet::Find(const uint32_t connection_key,
   utils::SharedPtr<FakeRequestInfo> request_info_for_search(
       new FakeRequestInfo(connection_key, correlation_id));
 
+  sync_primitives::AutoLock lock(this_lock_);
   HashSortedRequestInfoSet::iterator it =
       hash_sorted_pending_requests_.find(request_info_for_search);
   if (it != hash_sorted_pending_requests_.end()) {
@@ -175,6 +177,8 @@ RequestInfoPtr RequestInfoSet::Find(const uint32_t connection_key,
 
 RequestInfoPtr RequestInfoSet::Front() {
   RequestInfoPtr result;
+
+  sync_primitives::AutoLock lock(this_lock_);
   TimeSortedRequestInfoSet::iterator it = time_sorted_pending_requests_.begin();
   if (it != time_sorted_pending_requests_.end()) {
     result = *it;
@@ -184,6 +188,7 @@ RequestInfoPtr RequestInfoSet::Front() {
 
 RequestInfoPtr RequestInfoSet::FrontWithNotNullTimeout() {
   LOG4CXX_AUTO_TRACE(logger_);
+  sync_primitives::AutoLock lock(this_lock_);
   RequestInfoPtr result;
   TimeSortedRequestInfoSet::iterator it = time_sorted_pending_requests_.begin();
   while (it != time_sorted_pending_requests_.end()) {
@@ -204,6 +209,7 @@ bool RequestInfoSet::Erase(const RequestInfoPtr request_info) {
     return false;
   }
   CheckSetSizes();
+  sync_primitives::AutoLock lock(this_lock_);
   size_t erased_count =
       hash_sorted_pending_requests_.erase(request_info);
   DCHECK((erased_count <= 1));
@@ -236,6 +242,7 @@ uint32_t RequestInfoSet::RemoveRequests(const RequestInfoSet::AppIdCompararator&
   LOG4CXX_AUTO_TRACE(logger_);
   uint32_t erased = 0;
 
+  sync_primitives::AutoLock lock(this_lock_);
   TimeSortedRequestInfoSet::iterator it = std::find_if(
                                             hash_sorted_pending_requests_.begin(),
                                             hash_sorted_pending_requests_.end(),
@@ -260,7 +267,7 @@ uint32_t RequestInfoSet::RemoveMobileRequests() {
   return RemoveRequests(AppIdCompararator(AppIdCompararator::NotEqual, RequestInfo::HmiConnectoinKey));
 }
 
-const ssize_t RequestInfoSet::Size() {
+const size_t RequestInfoSet::Size() {
   CheckSetSizes();
   return time_sorted_pending_requests_.size();
 }
@@ -283,6 +290,7 @@ bool RequestInfoSet::CheckTimeScaleMaxRequest(
     TimevalStruct start = {0, 0};
     start.tv_sec = end.tv_sec - app_time_scale;
 
+    sync_primitives::AutoLock lock(this_lock_);
     TimeScale scale(start, end, app_id);
     const uint32_t count = std::count_if(time_sorted_pending_requests_.begin(),
                                          time_sorted_pending_requests_.end(), scale);
@@ -309,6 +317,7 @@ bool RequestInfoSet::CheckHMILevelTimeScaleMaxRequest(mobile_apis::HMILevel::eTy
     TimevalStruct start = {0, 0};
     start.tv_sec = end.tv_sec - app_time_scale;
 
+    sync_primitives::AutoLock lock(this_lock_);
     HMILevelTimeScale scale(start, end, app_id, hmi_level);
     const uint32_t count = std::count_if(time_sorted_pending_requests_.begin(),
                                          time_sorted_pending_requests_.end(), scale);
