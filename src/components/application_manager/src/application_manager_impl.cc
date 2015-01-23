@@ -470,6 +470,9 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
     }
   }
 
+  apps_to_register_list_lock_.Acquire();
+  apps_to_register_.erase(application);
+  apps_to_register_list_lock_.Release();
   ApplicationListAccessor app_list_accesor;
   application->MarkRegistered();
   app_list_accesor.Insert(application);
@@ -816,38 +819,21 @@ void ApplicationManagerImpl::OnFindNewApplicationsRequest() {
 }
 
 void ApplicationManagerImpl::SendUpdateAppList() {
-  LOG4CXX_TRACE(logger_, "SendUpdateAppList");
+  LOG4CXX_AUTO_TRACE(logger_);
 
-  LOG4CXX_DEBUG(logger_, applications_.size() << " applications.");
+  using namespace smart_objects;
+  using namespace hmi_apis;
 
-  smart_objects::SmartObjectSPtr request = MessageHelper::CreateModuleInfoSO(
-      hmi_apis::FunctionID::BasicCommunication_UpdateAppList);
-  (*request)[strings::msg_params][strings::applications] =
-      smart_objects::SmartObject(smart_objects::SmartType_Array);
+  SmartObjectSPtr request = MessageHelper::CreateModuleInfoSO(
+        FunctionID::BasicCommunication_UpdateAppList);
 
-  smart_objects::SmartObject& applications =
-      (*request)[strings::msg_params][strings::applications];
+  (*request)[strings::msg_params][strings::applications] = SmartObject(SmartType_Array);
 
-  uint32_t app_count = 0;
-  ApplicationListAccessor app_list;
-  ApplictionSet::const_iterator it;
-  for (it = app_list.begin(); it != app_list.end(); ++it) {
-    if (!it->valid()) {
-      LOG4CXX_ERROR(logger_, "Application not found ");
-      continue;
-    }
+  SmartObject& applications = (*request)[strings::msg_params][strings::applications];
 
-    smart_objects::SmartObject hmi_application(smart_objects::SmartType_Map);;
-    if (!MessageHelper::CreateHMIApplicationStruct(*it, hmi_application)) {
-      LOG4CXX_ERROR(logger_, "Can't CreateHMIApplicationStruct ");
-      continue;
-    }
-    applications[app_count++] = hmi_application;
-  }
+  PrepareApplicationListSO(applications_, applications);
+  PrepareApplicationListSO(apps_to_register_, applications);
 
-  if (app_count <= 0) {
-    LOG4CXX_WARN(logger_, "Empty applications list");
-  }
   ManageHMICommand(request);
 }
 
@@ -1858,10 +1844,7 @@ HMICapabilities& ApplicationManagerImpl::hmi_capabilities() {
   return hmi_capabilities_;
 }
 
-void ApplicationManagerImpl::CreateApplications(
-    SmartArray& obj_array,
-    const std::string& app_icon_dir,
-    std::vector<std::pair<uint32_t, std::string> >& apps_with_icon) {
+void ApplicationManagerImpl::CreateApplications(SmartArray& obj_array) {
 
   using namespace policy;
 
@@ -1878,20 +1861,17 @@ void ApplicationManagerImpl::CreateApplications(
       const uint32_t hmi_app_id(GenerateNewHMIAppID());
 
       ApplicationSharedPtr app(
-            new ApplicationImpl(hmi_app_id,
+            new ApplicationImpl(0,
                                 mobile_app_id,
                                 appName,
                                 PolicyHandler::instance()->GetStatisticManager()));
       if (app) {
         app->SetShemaUrl(url_schema);
         app->SetPackageName(package_name);
-        ApplicationListAccessor app_list;
-        app_list.Insert(app);
-        const std::string full_icon_path(
-              app_icon_dir + "/" + app->mobile_app_id());
-        if (file_system::FileExists(full_icon_path)) {
-          apps_with_icon.push_back(std::make_pair(app->app_id(), full_icon_path));
-        }
+        app->set_hmi_application_id(hmi_app_id);
+
+        sync_primitives::AutoLock lock(apps_to_register_list_lock_);
+        apps_to_register_.insert(app);
       }
     }
   }
@@ -1902,19 +1882,20 @@ void ApplicationManagerImpl::ProcessQueryApp(
   using namespace policy;
   using namespace profile;
 
-  typedef std::vector<std::pair<uint32_t, std::string> > AppsWithIcon;
-  AppsWithIcon apps_with_icon;
-
   if (sm_object.keyExists(strings::application)) {
     SmartArray* obj_array = sm_object[strings::application].asArray();
     if (NULL != obj_array) {
       const std::string app_icon_dir(Profile::instance()->app_icons_folder());
-      CreateApplications(*obj_array, app_icon_dir, apps_with_icon);
+      CreateApplications(*obj_array);
       SendUpdateAppList();
 
-      AppsWithIcon::const_iterator it = apps_with_icon.begin();
-      for (; it != apps_with_icon.end(); ++it) {
-        MessageHelper::SendSetAppIcon(it->first, it->second);
+      AppsWaitRegistrationSet::const_iterator it = apps_to_register_.begin();
+      for (; it != apps_to_register_.end(); ++it) {
+
+        const std::string full_icon_path(app_icon_dir + "/" + (*it)->mobile_app_id());
+        if (file_system::FileExists(full_icon_path)) {
+          MessageHelper::SendSetAppIcon((*it)->hmi_app_id(), full_icon_path);
+        }
       }
     }
   }
