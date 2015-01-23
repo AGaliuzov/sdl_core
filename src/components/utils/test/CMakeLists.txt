@@ -52,7 +52,6 @@ set(testSources
   data_accessor_test.cc
 )
 
-
 if (BUILD_BACKTRACE_SUPPORT)
   list(APPEND testSources back_trace_test.cc)
 endif()

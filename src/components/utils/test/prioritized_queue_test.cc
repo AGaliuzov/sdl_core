@@ -32,7 +32,6 @@
 
 #include "gtest/gtest.h"
 #include "utils/prioritized_queue.h"
-#include <iostream>
 
 namespace test {
 namespace components {
@@ -94,8 +93,8 @@ TEST_F(PrioritizedQueueTest, PushFourElementsTest_ExpectFourElementsAdded) {
   EXPECT_EQ(4, test_queue.size());
 }
 
-TEST_F(PrioritizedQueueTest, AddTwoElementsTest_ExpectQueueNotEmpty) {
-  // Creating 4 messages
+TEST_F(PrioritizedQueueTest, AddFourElementsTest_ExpectQueueNotEmpty) {
+  // Creating 4 messages with different priorities
   TestMessage message1("Ford", 2);
   TestMessage message2("Hello", 1);
   TestMessage message3("Luxoft", 4);
@@ -146,10 +145,8 @@ TEST_F(PrioritizedQueueTest, PopTest_OneElementInPriorityQueue_ExpectQueueStillA
   TestMessage message3("Is", 111);
   TestMessage message4("Luxoft", 111);
   TestMessage message5("Best", 111);
- // TestMessage message6("Of", 77);
   // Adding created messages to Prioritized queue.
   test_queue.push(message5);
-  //test_queue.push(message6);
   test_queue.push(message1);
   test_queue.push(message2);
   test_queue.push(message3);
@@ -165,9 +162,9 @@ TEST_F(PrioritizedQueueTest, PopTest_OneElementInPriorityQueue_ExpectQueueStillA
   test_queue.pop();
   EXPECT_EQ(message2, test_queue.front());
   test_queue.pop();
-  EXPECT_EQ(message3,test_queue.front());
+  EXPECT_EQ(message3, test_queue.front());
   test_queue.pop();
-  EXPECT_EQ(message4,test_queue.front());
+  EXPECT_EQ(message4, test_queue.front());
   test_queue.pop();
   EXPECT_EQ(0, test_queue.size());
 }
@@ -198,9 +195,9 @@ TEST_F(PrioritizedQueueTest, PopTest_TwoElementsInPriorityQueue_ExpectElementEra
   test_queue.pop();
   EXPECT_EQ(message2, test_queue.front());
   test_queue.pop();
-  EXPECT_EQ(message3,test_queue.front());
+  EXPECT_EQ(message3, test_queue.front());
   test_queue.pop();
-  EXPECT_EQ(message4,test_queue.front());
+  EXPECT_EQ(message4, test_queue.front());
   test_queue.pop();
   // Expect one element with messages with lower priority
   EXPECT_EQ(message6, test_queue.front());
