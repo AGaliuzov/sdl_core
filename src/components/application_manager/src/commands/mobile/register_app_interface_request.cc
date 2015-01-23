@@ -462,7 +462,6 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile(
     add_info += response_info_;
     result = result_checking_app_hmi_type_;
   }
-  SendResponse(true, result, add_info.c_str(), &response_params);
 
   // in case application exist in resumption we need to send resumeVrgrammars
   if (false == resumption) {
@@ -475,6 +474,7 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile(
 
   MessageHelper::SendChangeRegistrationRequestToHMI(application);
 
+  SendResponse(true, result, add_info.c_str(), &response_params);
   if (result != mobile_apis::Result::RESUME_FAILED) {
     resumer.StartResumption(application, hash_id);
   } else {
