@@ -1228,9 +1228,9 @@ bool ApplicationManagerImpl::ManageMobileCommand(
 #endif
 
   LOG4CXX_INFO(logger_, "Trying to create message in mobile factory.");
-  commands::Command* command = MobileCommandFactory::CreateCommand(message,
-                                                                   origin);
-
+  utils::SharedPtr<commands::Command> command(
+		  MobileCommandFactory::CreateCommand(message, origin));
+  
   if (!command) {
     LOG4CXX_WARN(logger_, "RET  Failed to create mobile command from smart object");
     return false;
@@ -1281,7 +1281,6 @@ bool ApplicationManagerImpl::ManageMobileCommand(
       command->Run();
       command->CleanUp();
     }
-    delete command;
     return true;
   }
   if (message_type ==
@@ -1290,7 +1289,7 @@ bool ApplicationManagerImpl::ManageMobileCommand(
     if (command->Init()) {
       command->Run();
       if (command->CleanUp()) {
-        request_ctrl_.removeNotification(command);
+        request_ctrl_.removeNotification(command.get());
       }
       // If CleanUp returned false notification should remove it self.
     }
