@@ -281,26 +281,6 @@ void RegisterAppInterfaceRequest::Run() {
   }
 }
 
-void RegisterAppInterfaceRequest::on_event(const event_engine::Event& event) {
-  LOG4CXX_AUTO_TRACE(logger_);
-  switch (event.id()) {
-    case hmi_apis::FunctionID::TTS_Speak: {
-      const smart_objects::SmartObject& message = event.smart_object();
-
-      mobile_apis::Result::eType tts_result =
-        static_cast<mobile_apis::Result::eType>(
-          message[strings::params][hmi_response::code].asInt());
-
-      SendRegisterAppInterfaceResponseToMobile(tts_result);
-      break;
-    }
-    default: {
-      LOG4CXX_ERROR(logger_, "Received unknown event" << event.id());
-      break;
-    }
-  }
-}
-
 void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile(
   mobile_apis::Result::eType result) {
   smart_objects::SmartObject response_params(smart_objects::SmartType_Map);
