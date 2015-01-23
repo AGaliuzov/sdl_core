@@ -97,7 +97,7 @@ class ApplicationManagerImpl;
 
 enum VRTTSSessionChanging {
   kVRSessionChanging = 0,
-  kTTSSessionChanging = 1
+  kTTSSessionChanging
 };
 
 struct CommandParametersPermissions;
@@ -1054,6 +1054,8 @@ class ApplicationManagerImpl : public ApplicationManager,
      */
     bool IsLowVoltage();
 
+
+
   private:
 
     /**
@@ -1259,6 +1261,7 @@ class ApplicationManagerImpl : public ApplicationManager,
     timer::TimerThread<ApplicationManagerImpl>  tts_global_properties_timer_;
 
     bool is_low_voltage_;
+
     DISALLOW_COPY_AND_ASSIGN(ApplicationManagerImpl);
 
     FRIEND_BASE_SINGLETON_CLASS(ApplicationManagerImpl);
