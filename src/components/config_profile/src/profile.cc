@@ -71,6 +71,7 @@ const char* kFilesystemRestrictionsSection = "FILESYSTEM RESTRICTIONS";
 const char* kIAPSection = "IAP";
 const char* kProtocolHandlerSection = "ProtocolHandler";
 const char* kSDL4Section = "SDL4";
+const char* kResumptionSection = "Resumption";
 
 const char* kHmiCapabilitiesKey = "HMICapabilities";
 const char* kPathToSnapshotKey = "PathToSnapshot";
@@ -1022,41 +1023,41 @@ void Profile::UpdateValues() {
 
   // Application resuming timeout
   ReadUIntValue(&app_resuming_timeout_, kDefaultAppResumingTimeout,
-                kMainSection, kAppResumingTimeoutKey);
+                kResumptionSection, kAppResumingTimeoutKey);
 
   if (app_resuming_timeout_ <= 0) {
     app_resuming_timeout_ = kDefaultAppResumingTimeout;
   }
   // Save resumption info to File System
   LOG_UPDATED_VALUE(app_resuming_timeout_, kAppSavePersistentDataTimeoutKey,
-                    kMainSection);
+                    kResumptionSection);
 
   ReadUIntValue(&app_resumption_save_persistent_data_timeout_,
                 kDefaultAppSavePersistentDataTimeout,
-                kMainSection, kAppSavePersistentDataTimeoutKey);
+                kResumptionSection, kAppSavePersistentDataTimeoutKey);
   if (app_resuming_timeout_ <= 0) {
     app_resuming_timeout_ = kDefaultAppSavePersistentDataTimeout;
   }
 
   LOG_UPDATED_VALUE(app_resuming_timeout_, kAppResumingTimeoutKey,
-                    kMainSection);
+                    kResumptionSection);
   // Open attempt timeout in ms
   ReadUIntValue(&resumption_delay_before_ign_,
                 kDefaultResumptionDelayBeforeIgn,
-                kMainSection,
+                kResumptionSection,
                 kResumptionDelayBeforeIgnKey);
 
   LOG_UPDATED_VALUE(resumption_delay_after_ign_,
-                    kResumptionDelayBeforeIgnKey, kMainSection);
+                    kResumptionDelayBeforeIgnKey, kResumptionSection);
 
   // Open attempt timeout in ms
   ReadUIntValue(&resumption_delay_after_ign_,
                 kDefaultResumptionDelayAfterIgn,
-                kMainSection,
+                kResumptionSection,
                 kResumptionDelayAfterIgnKey);
 
   LOG_UPDATED_VALUE(resumption_delay_after_ign_,
-                    kResumptionDelayAfterIgnKey, kMainSection);
+                    kResumptionDelayAfterIgnKey, kResumptionSection);
 
   // Application directory quota
   ReadUIntValue(&app_dir_quota_, kDefaultDirQuota, kMainSection,

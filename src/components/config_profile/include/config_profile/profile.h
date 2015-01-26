@@ -539,6 +539,10 @@ class Profile : public utils::Singleton<Profile> {
 
     uint32_t resumption_delay_after_ign() const;
 
+    /*
+     * @brief Updates all related values from ini file
+     */
+    void UpdateValues();
 
 
   private:
@@ -550,10 +554,6 @@ class Profile : public utils::Singleton<Profile> {
      */
     Profile();
 
-    /*
-     * @brief Updates all related values from ini file
-     */
-    void UpdateValues();
 
     /**
      * @brief Reads a boolean value from the profile

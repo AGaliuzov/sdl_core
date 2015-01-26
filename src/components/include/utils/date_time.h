@@ -52,7 +52,6 @@ class DateTime {
   static const int32_t MICROSECONDS_IN_MILLISECONDS = 1000;
   static const int32_t MICROSECONDS_IN_SECOND = 1000 * 1000;
 
-  static TimevalStruct ConvertTimeToTimeval(time_t time);
   static TimevalStruct getCurrentTime();
 
   // return SECONDS count

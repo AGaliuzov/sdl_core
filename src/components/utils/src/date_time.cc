@@ -37,13 +37,6 @@
 
 namespace date_time {
 
-  TimevalStruct DateTime::ConvertTimeToTimeval(time_t time) {
-    TimevalStruct tm;
-    tm.tv_sec = time;
-    tm.tv_usec = 0;
-    return tm;
-  }
-
   TimevalStruct DateTime::getCurrentTime() {
     TimevalStruct currentTime;
     timezone timeZone;

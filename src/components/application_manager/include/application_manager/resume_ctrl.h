@@ -305,7 +305,7 @@ class ResumeCtrl: public event_engine::EventObserver {
 
     /**
     * @brief Setup IgnOff time to LastState
-    * @param ign_off_time - igition Off Time
+    * @param ign_off_time - igition off time
      */
     void SetLastIgnOffTime(time_t ign_off_time);
 

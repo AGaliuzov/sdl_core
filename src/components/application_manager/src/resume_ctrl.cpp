@@ -95,7 +95,7 @@ void ResumeCtrl::SaveApplication(ApplicationConstSharedPtr application) {
 
   const uint32_t hash = application->curHash();
   const uint32_t grammar_id = application->get_grammar_id();
-
+  const mobile_apis::HMILevel::eType hmi_level = application->hmi_level();
   LOG4CXX_INFO(logger_, "hash = " << hash);
   LOG4CXX_INFO(logger_, "grammar_id = " << grammar_id);
 
@@ -108,8 +108,7 @@ void ResumeCtrl::SaveApplication(ApplicationConstSharedPtr application) {
   json_app[strings::grammar_id] = grammar_id;
   json_app[strings::connection_key] = application->app_id();
   json_app[strings::hmi_app_id] = application->hmi_app_id();
-  json_app[strings::hmi_level] =
-    static_cast<int32_t> (application->hmi_level());
+  json_app[strings::hmi_level] = static_cast<int32_t> (hmi_level);
   json_app[strings::ign_off_count] = 0;
   json_app[strings::hash_id] = hash;
   json_app[strings::application_commands] =
@@ -126,6 +125,21 @@ void ResumeCtrl::SaveApplication(ApplicationConstSharedPtr application) {
   json_app[strings::time_stamp] = (uint32_t)time(NULL);
   json_app[strings::audio_streaming_state] = application->audio_streaming_state();
   LOG4CXX_DEBUG(logger_, "SaveApplication : " << json_app.toStyledString());
+  if (application->is_media_application()&&
+       (hmi_level == mobile_apis::HMILevel::HMI_FULL ||
+       hmi_level == mobile_apis::HMILevel::HMI_LIMITED)) {
+     LOG4CXX_DEBUG(logger_, "Delete HmiLevel for all saved apps");
+     for (Json::Value::iterator it = GetSavedApplications().begin();
+         it != GetSavedApplications().end(); ++it) {
+       Json::Value& json_app = *it;
+       if (json_app[strings::app_id].asString() == m_app_id) {
+          LOG4CXX_DEBUG(logger_, "pass self " << m_app_id);
+          continue;
+       }
+       json_app[strings::hmi_level] = static_cast<int32_t> (
+                                        mobile_apis::HMILevel::INVALID_ENUM);
+     }
+  }
   resumtion_lock_.Release();
 }
 
@@ -434,6 +448,9 @@ void ResumeCtrl::IgnitionOff() {
   }
   SetSavedApplication(to_save);
   SetLastIgnOffTime(time(NULL));
+  LOG4CXX_DEBUG(logger_,
+                GetResumptionData().toStyledString());
+  resumption::LastState::instance()->SaveToFileSystem();
 }
 
 #ifdef CUSTOMER_PASA
@@ -475,6 +492,7 @@ bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
   }
 
   const Json::Value& json_app = GetSavedApplications()[idx];
+  LOG4CXX_DEBUG(logger_, "Saved_application_data: " << json_app.toStyledString());
   if (json_app.isMember(strings::hash_id) && json_app.isMember(strings::time_stamp)) {
     const uint32_t saved_hash = json_app[strings::hash_id].asUInt();
 
@@ -492,17 +510,15 @@ bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
 }
 
 void ResumeCtrl::ResumeAppHmiState(uint32_t time_stamp, ApplicationSharedPtr application) {
+  LOG4CXX_AUTO_TRACE(logger_);
   ApplicationManagerImpl::ApplicationListAccessor accessor;
   if (!restore_hmi_level_timer_.isRunning() &&
       accessor.applications().size() > 1) {
-    // resume in case there is already registered app
     RestoreAppHMIState(application);
     RemoveApplicationFromSaved(application);
   } else {
-    // please avoid AutoLock usage to avoid deadlock
     SetupDefaultHMILevel(application);
     InsertToTimerQueue(application->app_id(), time_stamp);
-    // woun't start timer if it is active already
     LOG4CXX_DEBUG(logger_, "Application " << application->app_id() << " inserted to timer queue. "
                   << "timer started for " << profile::Profile::instance()->app_resuming_timeout());
     restore_hmi_level_timer_.start(profile::Profile::instance()->app_resuming_timeout());
@@ -521,7 +537,8 @@ void ResumeCtrl::StartAppHmiStateResumption(uint32_t time_stamp,
 
   if (CheckIgnCycleRestrictions(json_app)
       && CheckAppRestrictions(application, json_app)) {
-    ResumeAppHmiState(time_stamp, application);
+    RestoreAppHMIState(application);
+    RemoveApplicationFromSaved(application);
   } else {
     LOG4CXX_INFO(logger_, "Do not need to resume application "
                  << application->app_id());
@@ -683,7 +700,12 @@ Json::Value&ResumeCtrl::GetResumptionData() {
     last_state[strings::resumption] = Json::Value(Json::objectValue);
     LOG4CXX_WARN(logger_, "resumption section is missed");
   }
-  return last_state[strings::resumption];
+  Json::Value& resumption =  last_state[strings::resumption];
+  if (!resumption.isObject()) {
+    LOG4CXX_ERROR(logger_, "resumption type INVALID rewrite");
+    resumption =  Json::Value(Json::objectValue);
+  }
+  return resumption;
 }
 
 Json::Value& ResumeCtrl::GetSavedApplications() {
@@ -693,7 +715,12 @@ Json::Value& ResumeCtrl::GetSavedApplications() {
     resumption[strings::resume_app_list] = Json::Value(Json::arrayValue);
     LOG4CXX_WARN(logger_, "app_list section is missed");
   }
-  return resumption[strings::resume_app_list];
+  Json::Value& resume_app_list = resumption[strings::resume_app_list];
+  if (!resume_app_list.isArray()) {
+    LOG4CXX_ERROR(logger_, "resume_app_list type INVALID rewrite");
+    resume_app_list =  Json::Value(Json::arrayValue);
+  }
+  return resume_app_list;
 }
 
 time_t ResumeCtrl::GetIgnOffTime() {
@@ -710,6 +737,7 @@ time_t ResumeCtrl::GetIgnOffTime() {
 
 void ResumeCtrl::SetLastIgnOffTime(time_t ign_off_time) {
   LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_WARN(logger_, "ign_off_time = " << ign_off_time);
   Json::Value& resumption = GetResumptionData();
   resumption[strings::last_ign_off_time] = static_cast<uint32_t>(ign_off_time);
 }
@@ -1114,9 +1142,9 @@ bool ResumeCtrl::CheckIgnCycleRestrictions(const Json::Value& json_app) {
 bool ResumeCtrl::DisconnectedInLastIgnCycle(const Json::Value& json_app) {
   LOG4CXX_AUTO_TRACE(logger_);
   DCHECK_OR_RETURN(json_app.isMember(strings::ign_off_count), false);
-  const bool ign_off_count = json_app[strings::ign_off_count].asUInt();
+  const uint32_t ign_off_count = json_app[strings::ign_off_count].asUInt();
   LOG4CXX_DEBUG(logger_, " ign_off_count " << ign_off_count);
-  return (ign_off_count == 1);
+  return (1 == ign_off_count);
 }
 
 bool ResumeCtrl::DissconnectedJustBeforeIgnOff(const Json::Value& json_app) {
@@ -1127,17 +1155,13 @@ bool ResumeCtrl::DissconnectedJustBeforeIgnOff(const Json::Value& json_app) {
 
   const time_t time_stamp =
       static_cast<time_t>(json_app[strings::time_stamp].asUInt());
-
-  TimevalStruct ign_off_time = DateTime::ConvertTimeToTimeval(GetIgnOffTime());
-  TimevalStruct app_disconnect_time = DateTime::ConvertTimeToTimeval(time_stamp);
-  const int64_t ms_spent_before_ign = DateTime::calculateTimeDiff(ign_off_time,
-                                                                  app_disconnect_time);
-  const uint32_t sec_spent_before_ign = ms_spent_before_ign /
-                                        DateTime::MILLISECONDS_IN_SECOND;
-  LOG4CXX_DEBUG(logger_,"ign_off_time " << DateTime::getSecs(ign_off_time)
-               << "; app_disconnect_time " << DateTime::getSecs(app_disconnect_time)
-               << "; sec_spent_before_ign " << sec_spent_before_ign );
-
+  time_t ign_off_time  = GetIgnOffTime();
+  const uint32_t sec_spent_before_ign = labs(ign_off_time - time_stamp);
+  LOG4CXX_DEBUG(logger_,"ign_off_time " << ign_off_time
+                << "; app_disconnect_time " << time_stamp
+                << "; sec_spent_before_ign " << sec_spent_before_ign
+                << "; resumption_delay_before_ign " <<
+                Profile::instance()->resumption_delay_before_ign());
   return sec_spent_before_ign <=
       Profile::instance()->resumption_delay_before_ign();
 }
@@ -1146,17 +1170,15 @@ bool ResumeCtrl::CheckDelayAfterIgnOn() {
   using namespace date_time;
   using namespace profile;
   LOG4CXX_AUTO_TRACE(logger_);
-  TimevalStruct curr_time = DateTime::getCurrentTime();
-  TimevalStruct sdl_launch_time = DateTime::ConvertTimeToTimeval(launch_time());
-  const int64_t ms_from_sdl_start = DateTime::calculateTimeDiff(curr_time,
-                                                                 sdl_launch_time);
-  const uint32_t seconds_from_sdl_start = ms_from_sdl_start /
-                                         DateTime::MILLISECONDS_IN_SECOND;
+  time_t curr_time = time(NULL);
+  time_t sdl_launch_time = launch_time();
+  const uint32_t seconds_from_sdl_start = labs(curr_time - sdl_launch_time);
   const uint32_t wait_time =
       Profile::instance()->resumption_delay_after_ign();
-  LOG4CXX_DEBUG(logger_, "curr_time " << DateTime::getSecs(curr_time)
-               << "; sdl_launch_time " << DateTime::getSecs(sdl_launch_time)
-               << "; seconds_from_sdl_start " << seconds_from_sdl_start);
+  LOG4CXX_DEBUG(logger_, "curr_time " << curr_time
+               << "; sdl_launch_time " << sdl_launch_time
+               << "; seconds_from_sdl_start " << seconds_from_sdl_start
+               << "; wait_time " << wait_time);
   return seconds_from_sdl_start <= wait_time;
 }
 
