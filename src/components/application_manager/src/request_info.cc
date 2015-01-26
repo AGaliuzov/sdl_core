@@ -135,7 +135,7 @@ bool RequestInfoSet::Add(RequestInfoPtr request_info) {
     LOG4CXX_ERROR(logger_, "NULL ponter request_info");
     return false;
   }
-  LOG4CXX_ERROR(logger_, "Add request app_id = " << request_info->app_id()
+  LOG4CXX_DEBUG(logger_, "Add request app_id = " << request_info->app_id()
                 << "; corr_id = " << request_info->requestId());
   CheckSetSizes();
   sync_primitives::AutoLock lock(this_lock_);
@@ -209,7 +209,7 @@ bool RequestInfoSet::Erase(const RequestInfoPtr request_info) {
     return false;
   }
   CheckSetSizes();
-  sync_primitives::AutoLock lock(this_lock_);
+
   size_t erased_count =
       hash_sorted_pending_requests_.erase(request_info);
   DCHECK((erased_count <= 1));
@@ -231,9 +231,8 @@ bool RequestInfoSet::Erase(const RequestInfoPtr request_info) {
   return false;
 }
 
-bool RequestInfoSet::Erase(HashSortedRequestInfoSet::iterator it) {
-  CheckSetSizes();
-  RequestInfoPtr request_info = *it;
+bool RequestInfoSet::RemoveRequest(const RequestInfoPtr request_info) {
+  sync_primitives::AutoLock lock(this_lock_);
   return Erase(request_info);
 }
 
@@ -243,12 +242,13 @@ uint32_t RequestInfoSet::RemoveRequests(const RequestInfoSet::AppIdCompararator&
   uint32_t erased = 0;
 
   sync_primitives::AutoLock lock(this_lock_);
-  TimeSortedRequestInfoSet::iterator it = std::find_if(
+  HashSortedRequestInfoSet::iterator it = std::find_if(
                                             hash_sorted_pending_requests_.begin(),
                                             hash_sorted_pending_requests_.end(),
                                             filter);
   while (it !=  hash_sorted_pending_requests_.end()) {
-    Erase(it++);
+    HashSortedRequestInfoSet::iterator to_erase = it++;
+    Erase(*to_erase);
     it = std::find_if(it, hash_sorted_pending_requests_.end(), filter);
     erased++;
   }
@@ -356,7 +356,7 @@ bool RequestInfoTimeComparator::operator()(const RequestInfoPtr lhs,
   }
   // compare_result == date_time::EQUAL
   // If time is equal, sort by hash
-  LOG4CXX_ERROR(logger_, "EQUAL " << lhs->end_time().tv_sec << ":" << lhs->end_time().tv_usec
+  LOG4CXX_DEBUG(logger_, "EQUAL " << lhs->end_time().tv_sec << ":" << lhs->end_time().tv_usec
                 << " and " << rhs->end_time().tv_sec << ":" << rhs->end_time().tv_usec
                 << "; compare hash: " << lhs->hash() << " < " << rhs->hash()
                 << " = " << (lhs->hash() < rhs->hash()));

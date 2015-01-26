@@ -229,7 +229,7 @@ void RequestController::terminateRequest(
   RequestInfoPtr request = waiting_for_response_.Find(connection_key,
                                                       correlation_id);
   if (request) {
-    waiting_for_response_.Erase(request);
+    waiting_for_response_.RemoveRequest(request);
     UpdateTimer();
   } else {
     LOG4CXX_WARN(logger_, "Request not found in waiting_for_response_ : "
@@ -319,7 +319,7 @@ void RequestController::updateRequestTimeout(
   if (request_info) {
     uint32_t timeout_in_seconds =
         new_timeout/date_time::DateTime::MILLISECONDS_IN_SECOND;
-    waiting_for_response_.Erase(request_info);
+    waiting_for_response_.RemoveRequest(request_info);
     request_info->updateTimeOut(timeout_in_seconds);
     waiting_for_response_.Add(request_info);
     UpdateTimer();
@@ -370,7 +370,7 @@ void RequestController::onTimer() {
     if (RequestInfo::HmiConnectoinKey == probably_expired ->app_id()) {
       LOG4CXX_DEBUG(logger_, "Erase HMI request: "
                     << probably_expired ->requestId());
-      waiting_for_response_.Erase(probably_expired);
+      waiting_for_response_.RemoveRequest(probably_expired);
     }
     probably_expired = waiting_for_response_.FrontWithNotNullTimeout();
   }
