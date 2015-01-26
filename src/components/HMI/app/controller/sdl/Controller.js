@@ -601,7 +601,8 @@ SDL.SDLController = Em.Object
                     appID: params.appID,
                     appName: params.appName,
                     deviceName: params.deviceName,
-                    isMedia: 0
+                    isMedia: 0,
+                    disabledToActivate: params.disabled ? true : false
                 }));
             } else {
 
@@ -611,7 +612,8 @@ SDL.SDLController = Em.Object
                     deviceName: params.deviceName,
                     appType: params.appType,
                     isMedia: applicationType == 0 ? true : false,
-                    initialized: true
+                    initialized: true,
+                    disabledToActivate: params.disabled ? true : false
                 }));
             }
 

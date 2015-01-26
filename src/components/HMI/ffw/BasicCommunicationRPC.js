@@ -442,6 +442,8 @@ FFW.BasicCommunication = FFW.RPCObserver
                     this.sendBCResult(SDL.SDLModel.resultCode["SUCCESS"],
                         request.id,
                         request.method);
+
+                    SDL.InfoAppsView.showAppList();
                 }
                 if (request.method == "BasicCommunication.SystemRequest") {
 
