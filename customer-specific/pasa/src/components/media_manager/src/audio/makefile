@@ -37,6 +37,7 @@ INCLUDES = \
 	$(CC_IFLAG)../../../connection_handler/include \
 	$(CC_IFLAG)../../../config_profile/include \
 	$(CC_IFLAG)../../../policies/include \
+	$(CC_IFLAG)../../../policy/src/policy/include \
 	$(CC_IFLAG)../../../smart_objects/include \
 	$(CC_IFLAG)../../../request_watchdog/include \
 	$(CC_IFLAG)../../../hmi_message_handler/include \
