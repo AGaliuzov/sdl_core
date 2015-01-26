@@ -55,32 +55,28 @@ class AOADynamicDevice : public AOADevice {
   bool Init();
 
  private:
-  typedef std::map<AOAWrapper::AOAHandle, AOADevicePtr> DeviceContainer;
-
-  static DeviceContainer devices_;
-  static sync_primitives::Lock devices_lock_;
-
   AOADeviceLife* life_;
   TransportAdapterController* controller_;
   AOAWrapper::AOAUsbInfo aoa_usb_info_;
   sync_primitives::Lock life_lock_;
   sync_primitives::ConditionalVariable life_cond_;
 
-  void AddDevice(AOAWrapper::AOAHandle hdl);
-  void LoopDevice(AOAWrapper::AOAHandle hdl);
-  void StopDevice(AOAWrapper::AOAHandle hdl);
-  void RemoveDevice(AOAWrapper::AOAHandle hdl);
-  void Notify();
+  void AddDevice(AOAWrapper::AOAHandle handle);
+  void LoopDevice(AOAWrapper::AOAHandle handle);
+  void StopDevice(AOAWrapper::AOAHandle handle);
+  void RemoveDevice();
 
   class DeviceLife : public AOADeviceLife {
    public:
     explicit DeviceLife(AOADynamicDevice* parent);
     void Loop(AOAWrapper::AOAHandle handle);
-    void OnDied(AOAWrapper::AOAHandle hdl);
+    void OnDied(AOAWrapper::AOAHandle handle);
    private:
     AOADynamicDevice* parent_;
   };
 };
+
+typedef utils::SharedPtr<AOADynamicDevice> AOADynamicDeviceSPtr;
 
 }  // namespace transport_adapter
 }  // namespace transport_manager

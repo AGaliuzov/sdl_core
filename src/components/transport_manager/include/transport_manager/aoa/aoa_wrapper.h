@@ -77,6 +77,7 @@ class AOAWrapper {
     std::string product;
     uint32_t product_id;
     std::string serial_number;
+    std::string stackno;
     uint32_t iface; /* Device interface */
   };
 
