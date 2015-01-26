@@ -213,13 +213,6 @@ class ResumeCtrl: public event_engine::EventObserver {
     uint32_t GetHMIApplicationID(const std::string& mobile_app_id);
 
     /**
-     * @brief Timer callback for  restoring HMI Level
-     *
-     */
-    void ApplicationResumptiOnTimer();
-
-
-    /**
      * @brief SaveDataOnTimer :
      *  Timer callback for persisting ResumptionData each N seconds
      *  N gets from property
@@ -245,15 +238,6 @@ class ResumeCtrl: public event_engine::EventObserver {
      */
     void ResetLaunchTime();
 
-    /**
-     * @brief ResumeAppHmiState will restore hmi_level and
-     * audio streaming state immediatly after N secconds if needed.
-     * N is readed from profile.
-     * @param time_stamp - time when application was disconnected
-     * @param application - application to restore hmi level
-     * and audio streaming state
-     */
-    void ResumeAppHmiState(uint32_t time_stamp, ApplicationSharedPtr application);
   private:
 
 
@@ -506,11 +490,9 @@ class ResumeCtrl: public event_engine::EventObserver {
     *       wait for timer to resume HMI Level
     *
     */
-    std::multiset<application_timestamp, TimeStampComparator> waiting_for_timer_;
     mutable sync_primitives::Lock   queue_lock_;
-    sync_primitives::Lock resumtion_lock_;
+    sync_primitives::Lock           resumtion_lock_;
     ApplicationManagerImpl*         app_mngr_;
-    timer::TimerThread<ResumeCtrl>  restore_hmi_level_timer_;
     timer::TimerThread<ResumeCtrl>  save_persistent_data_timer_;
     bool is_data_saved;
     time_t launch_time_;

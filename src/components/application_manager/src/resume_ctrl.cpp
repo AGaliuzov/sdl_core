@@ -57,8 +57,6 @@ namespace Formatters = NsSmartDeviceLink::NsJSONHandler::Formatters;
 ResumeCtrl::ResumeCtrl(ApplicationManagerImpl* app_mngr)
   : resumtion_lock_(true),
     app_mngr_(app_mngr),
-    restore_hmi_level_timer_("RsmCtrlRstore",
-                             this, &ResumeCtrl::ApplicationResumptiOnTimer),
     save_persistent_data_timer_("RsmCtrlPercist",
                                 this, &ResumeCtrl::SaveDataOnTimer, true),
     is_data_saved(true),
@@ -536,22 +534,6 @@ bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
   return false;
 }
 
-void ResumeCtrl::ResumeAppHmiState(uint32_t time_stamp, ApplicationSharedPtr application) {
-  LOG4CXX_AUTO_TRACE(logger_);
-  ApplicationManagerImpl::ApplicationListAccessor accessor;
-  if (!restore_hmi_level_timer_.isRunning() &&
-      accessor.applications().size() > 1) {
-    RestoreAppHMIState(application);
-    RemoveApplicationFromSaved(application);
-  } else {
-    SetupDefaultHMILevel(application);
-    InsertToTimerQueue(application->app_id(), time_stamp);
-    LOG4CXX_DEBUG(logger_, "Application " << application->app_id() << " inserted to timer queue. "
-                  << "timer started for " << profile::Profile::instance()->app_resuming_timeout());
-    restore_hmi_level_timer_.start(profile::Profile::instance()->app_resuming_timeout());
-  }
-}
-
 void ResumeCtrl::StartAppHmiStateResumption(uint32_t time_stamp,
                                             ApplicationSharedPtr application) {
   LOG4CXX_AUTO_TRACE(logger_);
@@ -676,36 +658,8 @@ bool ResumeCtrl::CheckApplicationHash(ApplicationSharedPtr application,
   return false;
 }
 
-void ResumeCtrl::ApplicationResumptiOnTimer() {
-  LOG4CXX_TRACE(logger_, "ENTER waiting for resumption HMI_Level count is :"
-                << waiting_for_timer_.size());
-  sync_primitives::AutoLock auto_lock(queue_lock_);
-
-  std::multiset<application_timestamp, TimeStampComparator>::iterator it=
-      waiting_for_timer_.begin();
-
-  for (; it != waiting_for_timer_.end(); ++it) {
-    ApplicationSharedPtr app =
-        ApplicationManagerImpl::instance()->application((*it).first);
-    if (!app.get()) {
-      LOG4CXX_ERROR(logger_, "Invalid app_id = " << (*it).first);
-      continue;
-    }
-
-    RestoreAppHMIState(app);
-    RemoveApplicationFromSaved(app);
-  }
-
-  waiting_for_timer_.clear();
-  LOG4CXX_TRACE(logger_, "EXIT");
-}
-
 void ResumeCtrl::SaveDataOnTimer() {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (waiting_for_timer_.size() > 0) {
-    LOG4CXX_INFO(logger_, "There are some applications, that are waiting for resumption HMILevel. Data should not be saved");
-    return;
-  }
   if (false == is_data_saved) {
     SaveAllApplications();
     is_data_saved = true;
@@ -958,13 +912,6 @@ bool ResumeCtrl::ProcessHMIRequest(smart_objects::SmartObjectSPtr request,
     return true;
   }
   return false;
-}
-
-void ResumeCtrl::InsertToTimerQueue(uint32_t app_id, uint32_t time_stamp) {
-  LOG4CXX_AUTO_TRACE(logger_);
-  sync_primitives::AutoLock autolock(queue_lock_);
-  LOG4CXX_DEBUG(logger_,"After queue_lock_ Accure");
-  waiting_for_timer_.insert(std::make_pair(app_id, time_stamp));
 }
 
 void ResumeCtrl::AddFiles(ApplicationSharedPtr application, const Json::Value& saved_app) {
