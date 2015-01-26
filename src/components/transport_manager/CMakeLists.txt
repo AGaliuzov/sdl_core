@@ -116,7 +116,8 @@ if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
       ${TM_SRC_DIR}/aoa/aoa_wrapper.cc
       ${TM_SRC_DIR}/aoa/aoa_device.cc
       ${TM_SRC_DIR}/aoa/aoa_dynamic_device.cc
-      ${TM_SRC_DIR}/aoa/aoa_device_scanner.cc
+      ${TM_SRC_DIR}/aoa/aoa_listener.cc
+      ${TM_SRC_DIR}/aoa/pps_listener.cc
       ${TM_SRC_DIR}/aoa/aoa_connection.cc
       ${TM_SRC_DIR}/aoa/aoa_connection_factory.cc
       ${TM_SRC_DIR}/aoa/aoa_transport_adapter.cc
