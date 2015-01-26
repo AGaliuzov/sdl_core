@@ -984,6 +984,12 @@ class ApplicationManagerImpl : public ApplicationManager,
 
   private:
 
+    /**
+     * @brief Function returns supported SDL Protocol Version
+     * @return protocol version depends on parameters from smartDeviceLink.ini.
+     */
+    ProtocolVersion SupportedSDLVersion() const;
+
     // members
 
     /**

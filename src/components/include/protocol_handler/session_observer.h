@@ -163,6 +163,16 @@ class SessionObserver {
     transport_manager::ConnectionUID connection_handle,
     uint8_t session_id) = 0;
 
+  /**
+   * @brief returns protocol version which application supports
+   * @param connection_id id of connection
+   * @param session_id id of session
+   * @param method writes value protocol version to protocol_version
+   * @return TRUE if session and connection exist otherwise returns FALSE
+   */
+  virtual bool ProtocolVersionUsed(uint32_t connection_id,
+		  uint8_t session_id, uint8_t& protocol_version) = 0;
+
 
 #ifdef ENABLE_SECURITY
   /**

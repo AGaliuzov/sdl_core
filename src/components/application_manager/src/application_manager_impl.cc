@@ -424,35 +424,11 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
   int32_t min_version =
     message[strings::msg_params][strings::sync_msg_version]
     [strings::minor_version].asInt();
-
-  /*if (min_version < APIVersion::kAPIV2) {
-    LOG4CXX_ERROR(logger_, "UNSUPPORTED_VERSION");
-    utils::SharedPtr<smart_objects::SmartObject> response(
-      MessageHelper::CreateNegativeResponse(
-        connection_key, mobile_apis::FunctionID::RegisterAppInterfaceID,
-        message[strings::params][strings::correlation_id],
-        mobile_apis::Result::UNSUPPORTED_VERSION));
-    ManageMobileCommand(response);
-    delete application;
-    return NULL;
-  }*/
   version.min_supported_api_version = static_cast<APIVersion>(min_version);
 
   int32_t max_version =
     message[strings::msg_params][strings::sync_msg_version]
     [strings::major_version].asInt();
-
-  /*if (max_version > APIVersion::kAPIV2) {
-    LOG4CXX_ERROR(logger_, "UNSUPPORTED_VERSION");
-    utils::SharedPtr<smart_objects::SmartObject> response(
-      MessageHelper::CreateNegativeResponse(
-        connection_key, mobile_apis::FunctionID::RegisterAppInterfaceID,
-        message[strings::params][strings::correlation_id],
-        mobile_apis::Result::UNSUPPORTED_VERSION));
-    ManageMobileCommand(response);
-    delete application;
-    return NULL;
-  }*/
   version.max_supported_api_version = static_cast<APIVersion>(max_version);
   application->set_version(version);
 
@@ -465,7 +441,8 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
       connection_handler_->BindProtocolVersionWithSession(
           connection_key, static_cast<uint8_t>(protocol_version));
     }
-    if (ProtocolVersion::kV3 == protocol_version) {
+    if (protocol_version >= ProtocolVersion::kV3 &&
+    		profile::Profile::instance()->heart_beat_timeout() > 0) {
       connection_handler_->StartSessionHeartBeat(connection_key);
     }
   }
@@ -900,7 +877,6 @@ uint32_t ApplicationManagerImpl::GenerateNewHMIAppID() {
 void ApplicationManagerImpl::ReplaceMobileByHMIAppId(
     smart_objects::SmartObject& message) {
   MessageHelper::PrintSmartObject(message);
-  flush(std::cout);
   if (message.keyExists(strings::app_id)) {
     ApplicationSharedPtr application =
         ApplicationManagerImpl::instance()->application(
@@ -1130,7 +1106,7 @@ void ApplicationManagerImpl::SendMessageToMobile(
         ProtocolVersion::kV1;
     } else {
       (*message)[strings::params][strings::protocol_version] =
-        ProtocolVersion::kV3;
+        SupportedSDLVersion();
     }
   } else {
     (*message)[strings::params][strings::protocol_version] =
@@ -1738,18 +1714,7 @@ utils::SharedPtr<Message> ApplicationManagerImpl::ConvertRawMsgToMessage(
     return outgoing_message;
   }
 
-  Message* convertion_result = NULL;
-  if (message->protocol_version() == 1) {
-    convertion_result =
-      MobileMessageHandler::HandleIncomingMessageProtocolV1(message);
-  } else if ((message->protocol_version() == 2) ||
-             (message->protocol_version() == 3)) {
-    convertion_result =
-      MobileMessageHandler::HandleIncomingMessageProtocolV2(message);
-  } else {
-    LOG4CXX_WARN(logger_, "Unknown protocol version.");
-    return outgoing_message;
-  }
+  Message* convertion_result = MobileMessageHandler::HandleIncomingMessageProtocol(message);
 
   if (convertion_result) {
     outgoing_message = convertion_result;
@@ -2169,19 +2134,9 @@ void ApplicationManagerImpl::Handle(const impl::MessageToMobile message) {
     return;
   }
 
-  utils::SharedPtr<protocol_handler::RawMessage> rawMessage;
-  application_manager::ProtocolVersion protocol_version =
-      message->protocol_version();
-  if (protocol_version == application_manager::kV1) {
-    rawMessage = MobileMessageHandler::HandleOutgoingMessageProtocolV1(message);
-  } else if ((protocol_version == application_manager::kV2) ||
-             (protocol_version == application_manager::kV3) ||
-             (protocol_version == application_manager::kV4)) {
-    rawMessage = MobileMessageHandler::HandleOutgoingMessageProtocolV2(message);
-  } else {
-    return;
-  }
-
+  utils::SharedPtr<protocol_handler::RawMessage> rawMessage =
+	MobileMessageHandler::HandleOutgoingMessageProtocol(message);
+  
   if (!rawMessage) {
     LOG4CXX_ERROR(logger_, "Failed to create raw message.");
     return;
@@ -2722,6 +2677,25 @@ void ApplicationManagerImpl::OnUpdateHMIAppType(
       }
     }
   }
+}
+
+ProtocolVersion ApplicationManagerImpl::SupportedSDLVersion() const {
+  LOG4CXX_AUTO_TRACE(logger_);
+  bool heart_beat_support =
+	profile::Profile::instance()->heart_beat_timeout();
+  bool sdl4_support = profile::Profile::instance()->enable_protocol_4();
+
+  if (sdl4_support) {
+    LOG4CXX_DEBUG(logger_, "SDL Supported protocol version "<<ProtocolVersion::kV4);
+	return ProtocolVersion::kV4;
+  }
+  if (heart_beat_support) {
+	LOG4CXX_DEBUG(logger_, "SDL Supported protocol version "<<ProtocolVersion::kV3);
+	return ProtocolVersion::kV3;
+  }
+
+  LOG4CXX_DEBUG(logger_, "SDL Supported protocol version "<<ProtocolVersion::kV2);
+  return ProtocolVersion::kV2;
 }
 
 
