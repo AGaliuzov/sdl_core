@@ -110,6 +110,7 @@ void ResumeCtrl::SaveApplication(ApplicationConstSharedPtr application) {
   json_app[strings::hmi_app_id] = application->hmi_app_id();
   json_app[strings::hmi_level] = static_cast<int32_t> (hmi_level);
   json_app[strings::ign_off_count] = 0;
+  json_app[strings::suspend_count] = 0;
   json_app[strings::hash_id] = hash;
   json_app[strings::application_commands] =
     GetApplicationCommands(application);
@@ -428,7 +429,7 @@ bool ResumeCtrl::RemoveApplicationFromSaved(ApplicationConstSharedPtr applicatio
   return result;
 }
 
-void ResumeCtrl::IgnitionOff() {
+void ResumeCtrl::Suspend() {
   LOG4CXX_AUTO_TRACE(logger_);
 
   Json::Value to_save;
@@ -442,8 +443,15 @@ void ResumeCtrl::IgnitionOff() {
         to_save.append(*it);
       }
     } else {
-      LOG4CXX_FATAL(logger_, "Unknown key among saved applications");
-      return;
+      LOG4CXX_WARN(logger_, "Unknown key among saved applications");
+      (*it)[strings::ign_off_count] = 0;
+    }
+    if ((*it).isMember(strings::suspend_count)) {
+      const uint32_t suspend_count = (*it)[strings::suspend_count].asUInt();
+      (*it)[strings::suspend_count] = suspend_count + 1;
+    } else {
+      LOG4CXX_WARN(logger_, "Unknown key among saved applications");
+      (*it)[strings::suspend_count] = 0;
     }
   }
   SetSavedApplication(to_save);
@@ -451,6 +459,25 @@ void ResumeCtrl::IgnitionOff() {
   LOG4CXX_DEBUG(logger_,
                 GetResumptionData().toStyledString());
   resumption::LastState::instance()->SaveToFileSystem();
+}
+
+void ResumeCtrl::OnAwake() {
+  LOG4CXX_AUTO_TRACE(logger_);
+
+  Json::Value to_save;
+  sync_primitives::AutoLock lock(resumtion_lock_);
+  for (Json::Value::iterator it = GetSavedApplications().begin();
+       it != GetSavedApplications().end(); ++it) {
+    if ((*it).isMember(strings::suspend_count)) {
+      const uint32_t suspend_count = (*it)[strings::suspend_count].asUInt();
+      (*it)[strings::suspend_count] = suspend_count - 1;
+    } else {
+      LOG4CXX_WARN(logger_, "Unknown key among saved applications");
+      (*it)[strings::suspend_count] = 0;
+    }
+  }
+  SetSavedApplication(to_save);
+  ResetLaunchTime();
 }
 
 #ifdef CUSTOMER_PASA
@@ -1141,10 +1168,10 @@ bool ResumeCtrl::CheckIgnCycleRestrictions(const Json::Value& json_app) {
 
 bool ResumeCtrl::DisconnectedInLastIgnCycle(const Json::Value& json_app) {
   LOG4CXX_AUTO_TRACE(logger_);
-  DCHECK_OR_RETURN(json_app.isMember(strings::ign_off_count), false);
-  const uint32_t ign_off_count = json_app[strings::ign_off_count].asUInt();
-  LOG4CXX_DEBUG(logger_, " ign_off_count " << ign_off_count);
-  return (1 == ign_off_count);
+  DCHECK_OR_RETURN(json_app.isMember(strings::suspend_count), false);
+  const uint32_t suspend_count = json_app[strings::suspend_count].asUInt();
+  LOG4CXX_DEBUG(logger_, " suspend_count " << suspend_count);
+  return (1 == suspend_count);
 }
 
 bool ResumeCtrl::DissconnectedJustBeforeIgnOff(const Json::Value& json_app) {

@@ -63,6 +63,7 @@ void OnAwakeSDLNotification::Run() {
       }
     }
     (app_manager->resume_controller()).StartSavePersistentDataTimer();
+    ApplicationManagerImpl::instance()->resume_controller().OnAwake();
   }
 }
 

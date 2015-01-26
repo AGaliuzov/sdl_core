@@ -141,6 +141,7 @@ void OnExitAllApplicationsNotification::SendOnSDLPersistenceComplete() {
       ApplicationManagerImpl::instance()->GetNextHMICorrelationID();
 
    ApplicationManagerImpl::instance()->ManageHMICommand(message);
+   ApplicationManagerImpl::instance()->resume_controller().Suspend();
 }
 
 }  // namespace commands

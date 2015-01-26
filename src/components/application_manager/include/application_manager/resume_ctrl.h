@@ -136,7 +136,13 @@ class ResumeCtrl: public event_engine::EventObserver {
      * @brief Increments ignition counter for all registered applications
      * and remember ign_off time stamp
      */
-    void IgnitionOff();
+    void Suspend();
+
+    /**
+     * @brief Increments ignition counter for all registered applications
+     * and remember ign_off time stamp
+     */
+    void OnAwake();
 
 #ifdef CUSTOMER_PASA
     /**

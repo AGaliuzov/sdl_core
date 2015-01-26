@@ -148,7 +148,7 @@ bool ApplicationManagerImpl::Stop() {
   }
 
 
-  // for PASA customer policy backup should happen OnExitAllApp(SUSPEND)
+  // for PASA customer policy backup should happen :AllApp(SUSPEND)
   LOG4CXX_INFO(logger_, "Unloading policy library.");
   policy::PolicyHandler::instance()->UnloadPolicyLibrary();
 
@@ -2013,10 +2013,6 @@ void ApplicationManagerImpl::UnregisterAllApplications(bool generated_by_hmi) {
     connection_handler_->CloseSession(app_to_remove->app_id(),
                                       connection_handler::kCommon);
     it = accessor.begin();
-  }
-
-  if (is_ignition_off) {
-    resume_controller().IgnitionOff();
   }
 
   request_ctrl_.terminateAllHMIRequests();
