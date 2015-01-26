@@ -99,7 +99,7 @@ for(DeviceVector::const_iterator it = arg.begin(); it != arg.end(); ++it) {
 return false;
 }
 
-TEST(DnssdServiceBrowser, Basic) {
+TEST(DnssdServiceBrowser, DISABLED_Basic) {
   MockTransportAdapterController controller;
 
   DnssdServiceBrowser dnssd_service_browser(&controller);

@@ -126,7 +126,7 @@ TEST_F(ConditionalVariableTest, CheckBroadcast_AllThreadsNotified_ExpectSuccessf
     exit(1);
   }
   check_counter();
-  EXPECT_EQ(2, counter_);
+  EXPECT_EQ(2u, counter_);
 }
 
 TEST_F(ConditionalVariableTest, CheckWaitForWithTimeout1sec_ThreadBlockedForTimeout_ExpectSuccessfulWakeUp) {

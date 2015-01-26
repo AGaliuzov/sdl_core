@@ -46,7 +46,7 @@ set(testSources
   signals_linux_test.cc
   thread_validator_test.cc
   conditional_variable_test.cc
-  #message_queue_test.cc
+  message_queue_test.cc
   resource_usage_test.cc
   bitstream_test.cc
   data_accessor_test.cc
@@ -64,7 +64,7 @@ set(testLibraries
 )
 
 file(COPY testscript.sh DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-add_executable(utils_test ${testSources})
-target_link_libraries(utils_test ${testLibraries})
+
+create_test("utils_test" "${testSources}" "${testLibraries}")
 
 endif()

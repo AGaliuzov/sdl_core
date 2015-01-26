@@ -364,7 +364,7 @@ TEST_F(PolicyManagerImplTest, LoadPT_SetPT_PTIsLoaded) {
 TEST_F(PolicyManagerImplTest, RequestPTUpdate_SetPT_GeneratedSnapshotAndPTUpdate) {
 
   //arrange
-  ::utils::SharedPtr<::policy_table::Table> p_table =
+  ::utils::SharedPtr< ::policy_table::Table > p_table =
       new ::policy_table::Table();
 
   //assert

@@ -96,7 +96,7 @@ TEST_F(RequestInfoTest, RequestInfoSetInsertErazeTest) {
       EXPECT_EQ(1, request_info_set_.RemoveRequest(request));
   }
 
-  EXPECT_EQ(0, request_info_set_.Size());
+  EXPECT_EQ(0u, request_info_set_.Size());
   std::list<utils::SharedPtr<TestRequestInfo> > requests;
 
   for (uint32_t i = 0; i < count_of_requests_for_test_; ++i) {
@@ -113,14 +113,14 @@ TEST_F(RequestInfoTest, RequestInfoSetInsertErazeTest) {
   for (; it != end; ++it) {
       EXPECT_EQ(1,request_info_set_.RemoveRequest(*it));
   }
-  EXPECT_EQ(0, request_info_set_.Size());
+  EXPECT_EQ(0u, request_info_set_.Size());
   it = requests.begin();
   for (; it != end; ++it) {
       EXPECT_TRUE(request_info_set_.Add(*it));
   }
   EXPECT_EQ(count_of_requests_for_test_, request_info_set_.Size());
   EXPECT_EQ(count_of_requests_for_test_, request_info_set_.RemoveByConnectionKey(hmi_connection_key_));
-  EXPECT_EQ(0, request_info_set_.Size());
+  EXPECT_EQ(0u, request_info_set_.Size());
   it = requests.begin();
   for (; it != end; ++it) {
       EXPECT_TRUE(request_info_set_.Add(*it));
@@ -135,16 +135,16 @@ TEST_F(RequestInfoTest, RequestInfoSetInsertErazeTest) {
                        date_time::DateTime::getCurrentTime(), default_timeout_);
   EXPECT_TRUE(request_info_set_.Add(mobile_request2));
   EXPECT_EQ(count_of_requests_for_test_ + 2, request_info_set_.Size());
-  EXPECT_EQ(2, request_info_set_.RemoveMobileRequests());
+  EXPECT_EQ(2u, request_info_set_.RemoveMobileRequests());
   EXPECT_EQ(count_of_requests_for_test_, request_info_set_.Size());
   EXPECT_TRUE(request_info_set_.Add(mobile_request1));
   EXPECT_TRUE(request_info_set_.Add(mobile_request2));
-  EXPECT_EQ(1, request_info_set_.RemoveByConnectionKey(mobile_connection_key1_));
+  EXPECT_EQ(1u, request_info_set_.RemoveByConnectionKey(mobile_connection_key1_));
   EXPECT_EQ(count_of_requests_for_test_ + 1, request_info_set_.Size());
   EXPECT_EQ(count_of_requests_for_test_, request_info_set_.RemoveByConnectionKey(hmi_connection_key_));
-  EXPECT_EQ(1, request_info_set_.Size());
-  EXPECT_EQ(1, request_info_set_.RemoveMobileRequests());
-  EXPECT_EQ(0, request_info_set_.Size());
+  EXPECT_EQ(1u, request_info_set_.Size());
+  EXPECT_EQ(1u, request_info_set_.RemoveMobileRequests());
+  EXPECT_EQ(0u, request_info_set_.Size());
 }
 
 TEST_F(RequestInfoTest, RequestInfoSetFrontTest) {
@@ -159,15 +159,15 @@ TEST_F(RequestInfoTest, RequestInfoSetFrontTest) {
   for (uint32_t i = 1; i < count_of_requests_for_test_; ++i) {
     request_info::RequestInfoPtr request_info = request_info_set_.Front();
     EXPECT_TRUE(request_info.valid());
-    EXPECT_EQ(0, request_info->timeout_sec());
+    EXPECT_EQ(0u, request_info->timeout_sec());
     request_info = request_info_set_.FrontWithNotNullTimeout();
     EXPECT_TRUE(request_info.valid());
     EXPECT_EQ(i, request_info->timeout_sec());
     EXPECT_TRUE(request_info_set_.RemoveRequest(request_info));
   }
-  EXPECT_EQ(1, request_info_set_.Size());
-  EXPECT_EQ(1, request_info_set_.RemoveByConnectionKey(mobile_connection_key1_));
-  EXPECT_EQ(0, request_info_set_.Size());
+  EXPECT_EQ(1u, request_info_set_.Size());
+  EXPECT_EQ(1u, request_info_set_.RemoveByConnectionKey(mobile_connection_key1_));
+  EXPECT_EQ(0u, request_info_set_.Size());
 }
 
 TEST_F(RequestInfoTest, RequestInfoSetFindTest) {
@@ -192,11 +192,11 @@ TEST_F(RequestInfoTest, RequestInfoSetFindTest) {
   for (it = appId_coorrId.begin(); it != end; ++it) {
     request_info::RequestInfoPtr request = request_info_set_.Find(it->first, it->second);
     EXPECT_TRUE(request.valid());
-    EXPECT_EQ(1, request_info_set_.RemoveRequest(request));
+    EXPECT_EQ(1u, request_info_set_.RemoveRequest(request));
     request = request_info_set_.Find(it->first, it->second);
     EXPECT_FALSE(request.valid());
   }
-  EXPECT_EQ(0, request_info_set_.Size());
+  EXPECT_EQ(0u, request_info_set_.Size());
 }
 
 TEST_F(RequestInfoTest, RequestInfoSetEqualHashTest) {
@@ -209,19 +209,19 @@ TEST_F(RequestInfoTest, RequestInfoSetEqualHashTest) {
   EXPECT_TRUE(request_info_set.Add(request));
   EXPECT_FALSE(request_info_set.Add(request));
   EXPECT_FALSE(request_info_set.Add(request));
-  EXPECT_EQ(1, request_info_set.Size());
+  EXPECT_EQ(1u, request_info_set.Size());
   request_info::RequestInfoPtr found = request_info_set.Find(connection_key, corr_id);
   EXPECT_TRUE(found.valid());
-  EXPECT_EQ(1, request_info_set.RemoveRequest(found));
-  EXPECT_EQ(0, request_info_set.Size());
+  EXPECT_EQ(1u, request_info_set.RemoveRequest(found));
+  EXPECT_EQ(0u, request_info_set.Size());
   EXPECT_TRUE(request_info_set.Add(request));
   EXPECT_FALSE(request_info_set.Add(request));
   found =  request_info_set.FrontWithNotNullTimeout();
   EXPECT_TRUE(found.valid());
-  EXPECT_EQ(1, request_info_set.RemoveRequest(found));
+  EXPECT_EQ(1u, request_info_set.RemoveRequest(found));
   found =  request_info_set.FrontWithNotNullTimeout();
   EXPECT_FALSE(found.valid());
-  EXPECT_EQ(0, request_info_set.Size());
+  EXPECT_EQ(0u, request_info_set.Size());
 }
 
 

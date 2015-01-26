@@ -124,7 +124,7 @@ TEST_F(MessageQueueTest, MessageQueuePushThreeElementsTest_ExpectThreeElementsAd
   pthread_create(&thread1, NULL, &MessageQueueTest::add_three_elements_to_queue_helper, this);
   pthread_join(thread1, NULL);
   // check if 3 elements were added successfully
-  ASSERT_EQ(3, test_queue.size());
+  ASSERT_EQ(3u, test_queue.size());
 }
 
 TEST_F(MessageQueueTest, NotEmptyMessageQueueResetTest_ExpectEmptyQueue) {
@@ -137,7 +137,7 @@ TEST_F(MessageQueueTest, NotEmptyMessageQueueResetTest_ExpectEmptyQueue) {
   // Check if queue is empty
   ASSERT_TRUE(test_queue.empty());
   // Check the size of queue after reset
-  ASSERT_EQ(0, test_queue.size());
+  ASSERT_EQ(0u, test_queue.size());
 }
 
 TEST_F(MessageQueueTest, MessageQueuePopOneElementTest_ExpectOneElementRemovedFromQueue) {
@@ -151,7 +151,7 @@ TEST_F(MessageQueueTest, MessageQueuePopOneElementTest_ExpectOneElementRemovedFr
   // Check if first element was removed successfully
   ASSERT_EQ(test_val_1, test_line);
   // Check the size of queue after 1 element was removed
-  ASSERT_EQ(0, test_queue.size());
+  ASSERT_EQ(0u, test_queue.size());
 }
 
 TEST_F(MessageQueueTest, MessageQueueShutdownTest_ExpectMessageQueueWillBeShutDown) {
