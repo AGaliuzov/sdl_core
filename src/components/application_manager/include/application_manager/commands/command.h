@@ -107,6 +107,10 @@ class Command {
    */
   virtual void onTimeOut() = 0;
 
+  enum CommandOrigin {
+    ORIGIN_SDL,
+    ORIGIN_MOBILE
+  };
 };
 
 typedef smart_objects::SmartObjectSPtr MessageSharedPtr;

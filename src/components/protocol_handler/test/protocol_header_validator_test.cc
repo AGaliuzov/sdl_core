@@ -67,7 +67,7 @@ TEST_F(ProtocolHeaderValidatorTest, MaxPayloadSizeSetGet) {
 TEST_F(ProtocolHeaderValidatorTest, Malformed_Version) {
   std::vector<uint8_t> malformed_versions;
   malformed_versions.push_back(0);
-  for (uint8_t version = PROTOCOL_VERSION_3 + 1; version <= PROTOCOL_VERSION_MAX; ++version) {
+  for (uint8_t version = PROTOCOL_VERSION_4 + 1; version <= PROTOCOL_VERSION_MAX; ++version) {
     malformed_versions.push_back(version);
   }
 

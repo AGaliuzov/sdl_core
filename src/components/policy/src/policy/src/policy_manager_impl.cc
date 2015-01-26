@@ -186,7 +186,7 @@ void PolicyManagerImpl::PrepareNotificationData(
   std::for_each(group_names.begin(), group_names.end(), processor);
 }
 
-std::string PolicyManagerImpl::GetUpdateUrl(int service_type) {
+std::string PolicyManagerImpl::GetUpdateUrl(int service_type) const {
   LOG4CXX_AUTO_TRACE(logger_);
   EndpointUrls urls;
   cache_->GetUpdateUrls(service_type, urls);
@@ -262,7 +262,10 @@ void PolicyManagerImpl::StartPTExchange() {
 }
 
 std::string PolicyManagerImpl::RemoteAppsUrl() const {
-  return cache_->RemoteAppsUrl();
+  // TODO(AOleynik): Will be used after implementation of necessary section
+  // support in policy table
+  //return cache_->RemoteAppsUrl();
+  return GetUpdateUrl(7);
 }
 
 void PolicyManagerImpl::CheckPermissions(const PTString& app_id,

@@ -352,7 +352,7 @@ void MessageHelper::SendOnAppRegisteredNotificationToHMI(
   std::string priority;
 
   policy::PolicyHandler::instance()->GetPriority(
-        application_impl.mobile_app_id()->asString(), &priority);
+        application_impl.mobile_app_id(), &priority);
   if (!priority.empty()) {
     message[strings::msg_params][strings::priority] = GetPriorityCode(priority);
   }
@@ -1204,7 +1204,7 @@ bool MessageHelper::CreateHMIApplicationStruct(ApplicationConstSharedPtr app,
   output[strings::app_name] = app->name();
   output[strings::icon] = app->app_icon_path();
   output[strings::device_name] = device_name;
-  output[strings::app_id] = app->app_id();
+  output[strings::app_id] = app->hmi_app_id();
   output[strings::hmi_display_language_desired] = app->ui_language();
   output[strings::is_media_application] = app->is_media_application();
 
@@ -1318,7 +1318,7 @@ void MessageHelper::SendActivateAppToHMI(uint32_t const app_id,
     // TODO(KKolodiy): need remove method policy_manager
 
     policy::PolicyHandler::instance()->GetPriority(
-        app->mobile_app_id()->asString(), &priority);
+        app->mobile_app_id(), &priority);
     // According SDLAQ-CRS-2794
     // SDL have to send ActivateApp without "proirity" parameter to HMI.
     // in case of unconsented device
@@ -1821,6 +1821,7 @@ void MessageHelper::SendPolicySnapshotNotification(
 
   content[strings::msg_params][strings::request_type] = RequestType::HTTP;
   content[strings::params][strings::binary_data] = SmartObject(policy_data);
+  content[strings::msg_params][strings::file_type] = FileType::BINARY;
 
   SendSystemRequestNotification(connection_key, content);
 }
@@ -1838,7 +1839,6 @@ void MessageHelper::SendSystemRequestNotification (uint32_t connection_key,
   content[strings::params][strings::protocol_version] = CommandImpl::protocol_version_;
 
   content[strings::params][strings::connection_key] = connection_key;
-  content[strings::msg_params][strings::file_type] = FileType::BINARY;
 
   ApplicationManagerImpl::instance()->ManageMobileCommand(new SmartObject(content));
 }
@@ -1853,8 +1853,27 @@ void MessageHelper::SendLaunchApp(uint32_t connection_key,
   SmartObject content (SmartType_Map);
   content[strings::msg_params][strings::request_type] = RequestType::LAUNCH_APP;
   content[strings::msg_params][strings::app_id] = connection_key;
-  content[strings::msg_params][strings::urlSchema] = urlSchema;
-  content[strings::msg_params][strings::packageName] = packageName;
+  if (!urlSchema.empty()) {
+    content[strings::msg_params][strings::urlSchema] = urlSchema;
+  } else if (!packageName.empty()) {
+    content[strings::msg_params][strings::packageName] = packageName;
+  }
+
+  SendSystemRequestNotification(connection_key, content);
+}
+
+void application_manager::MessageHelper::SendQueryApps(
+    uint32_t connection_key) {
+  using namespace mobile_apis;
+  using namespace smart_objects;
+
+  policy::PolicyHandler* policy_handler = policy::PolicyHandler::instance();
+
+  SmartObject content (SmartType_Map);
+  content[strings::msg_params][strings::request_type] = RequestType::QUERY_APPS;
+  content[strings::msg_params][strings::url] = policy_handler->RemoteAppsUrl();
+  content[strings::msg_params][strings::timeout] =
+      policy_handler->TimeoutExchange();
 
   SendSystemRequestNotification(connection_key, content);
 }
@@ -2276,7 +2295,7 @@ mobile_apis::Result::eType MessageHelper::ProcessSoftButtons(
     const int system_action = request_soft_buttons[i][strings::system_action].asInt();
 
     if (!CheckWithPolicy(static_cast<SystemAction::eType>(system_action),
-                         app->mobile_app_id()->asString())) {
+                         app->mobile_app_id())) {
       return Result::DISALLOWED;
     }
 

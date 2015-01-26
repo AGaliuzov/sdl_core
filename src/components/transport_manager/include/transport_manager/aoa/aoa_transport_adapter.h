@@ -49,7 +49,7 @@ class AOATransportAdapter : public TransportAdapterImpl {
   virtual DeviceType GetDeviceType() const;
   virtual bool IsInitialised() const;
   virtual TransportAdapter::Error Init();
-  virtual bool ToBeAutoConnected(DeviceSptr device) const;
+  virtual void ApplicationListUpdated(const DeviceUID& device_handle);
 
  private:
   bool initialised_;

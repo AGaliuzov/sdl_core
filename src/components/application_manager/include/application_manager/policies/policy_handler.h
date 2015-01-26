@@ -306,6 +306,11 @@ class PolicyHandler :
    */
   uint16_t HeartBeatTimeout(const std::string& app_id) const;
 
+  /**
+   * @brief Returns URL for querying list of remote apps
+   */
+  const std::string RemoteAppsUrl() const;
+
 //TODO(AKutsan) REMOVE THIS UGLY HOTFIX
   virtual void Increment(usage_statistics::GlobalCounterId type);
   virtual void Increment(const std::string& app_id,

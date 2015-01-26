@@ -50,53 +50,36 @@ AOADynamicDevice::AOADynamicDevice(const std::string& name,
       life_(new DeviceLife(this)),
       controller_(controller),
       aoa_usb_info_(info) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(logger_, "AOA: device " << unique_device_id());
 }
 
 AOADynamicDevice::~AOADynamicDevice() {
-  AOAWrapper::Shutdown();
-  delete life_;
+  LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(logger_, "AOA: device " << unique_device_id());
 }
 
 bool AOADynamicDevice::Init() {
   return AOAWrapper::Init(life_, aoa_usb_info_);
 }
 
-void AOADynamicDevice::Notify() {
-  LOG4CXX_TRACE(logger_, "AOA: notify about all connected devices");
-  DeviceVector devices;
-  devices_lock_.Acquire();
-  for (DeviceContainer::const_iterator i = devices_.begin();
-      i != devices_.end(); ++i) {
-    AOADevicePtr aoa_device = i->second;
-    DeviceSptr device = AOADevicePtr::static_pointer_cast<Device>(aoa_device);
-    devices.push_back(device);
-  }
-  devices_lock_.Release();
-  controller_->SearchDeviceDone(devices);
+void AOADynamicDevice::AddDevice(AOAWrapper::AOAHandle handle) {
+  LOG4CXX_TRACE(logger_, "AOA: add new device " << handle);
+  set_handle(handle);
+  controller_->ApplicationListUpdated(unique_device_id());
 }
 
-void AOADynamicDevice::AddDevice(AOAWrapper::AOAHandle hdl) {
-  LOG4CXX_TRACE(logger_, "AOA: add new device " << hdl);
-  set_handle(hdl);
-  devices_lock_.Acquire();
-  devices_.insert(std::make_pair(hdl, this));
-  devices_lock_.Release();
-  Notify();
+void AOADynamicDevice::RemoveDevice() {
+  AOAWrapper::Shutdown();
+  delete life_;
+  controller_->DeviceDisconnected(unique_device_id(), DisconnectDeviceError());
 }
 
-void AOADynamicDevice::RemoveDevice(AOAWrapper::AOAHandle hdl) {
-  LOG4CXX_TRACE(logger_, "AOA: remove device " << hdl);
-  devices_lock_.Acquire();
-  devices_.erase(hdl);
-  devices_lock_.Release();
-  Notify();
-}
-
-void AOADynamicDevice::LoopDevice(AOAWrapper::AOAHandle hdl) {
-  LOG4CXX_TRACE(logger_, "AOA: loop of life device " << hdl);
+void AOADynamicDevice::LoopDevice(AOAWrapper::AOAHandle handle) {
+  LOG4CXX_TRACE(logger_, "AOA: loop of life device " << handle);
   sync_primitives::AutoLock locker(life_lock_);
-  while (AOAWrapper::IsHandleValid(hdl)) {
-    LOG4CXX_TRACE(logger_, "AOA: wait cond " << hdl);
+  while (AOAWrapper::IsHandleValid(handle)) {
+    LOG4CXX_TRACE(logger_, "AOA: wait cond " << handle);
     life_cond_.Wait(locker);
     // It does nothing because this method is called from libaoa thread so
     // if it returns from the method then thread will stop
@@ -104,8 +87,8 @@ void AOADynamicDevice::LoopDevice(AOAWrapper::AOAHandle hdl) {
   }
 }
 
-void AOADynamicDevice::StopDevice(AOAWrapper::AOAHandle hdl) {
-  LOG4CXX_TRACE(logger_, "AOA: stop device " << hdl);
+void AOADynamicDevice::StopDevice(AOAWrapper::AOAHandle handle) {
+  LOG4CXX_TRACE(logger_, "AOA: stop device " << handle);
   life_cond_.Broadcast();
 }
 
@@ -113,14 +96,14 @@ AOADynamicDevice::DeviceLife::DeviceLife(AOADynamicDevice* parent)
     : parent_(parent) {
 }
 
-void AOADynamicDevice::DeviceLife::Loop(AOAWrapper::AOAHandle hdl) {
-  parent_->AddDevice(hdl);
-  parent_->LoopDevice(hdl);
-  parent_->RemoveDevice(hdl);
+void AOADynamicDevice::DeviceLife::Loop(AOAWrapper::AOAHandle handle) {
+  parent_->AddDevice(handle);
+  parent_->LoopDevice(handle);
+  parent_->RemoveDevice();
 }
 
-void AOADynamicDevice::DeviceLife::OnDied(AOAWrapper::AOAHandle hdl) {
-  parent_->StopDevice(hdl);
+void AOADynamicDevice::DeviceLife::OnDied(AOAWrapper::AOAHandle handle) {
+  parent_->StopDevice(handle);
 }
 
 }  // namespace transport_adapter

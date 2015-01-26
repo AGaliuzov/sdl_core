@@ -67,6 +67,7 @@
 #include "application_manager/commands/mobile/on_button_press_notification.h"
 #include "application_manager/commands/mobile/on_driver_distraction_notification.h"
 #include "application_manager/commands/mobile/on_hmi_status_notification.h"
+#include "application_manager/commands/mobile/on_hmi_status_notification_from_mobile.h"
 #include "application_manager/commands/mobile/on_language_change_notification.h"
 #include "application_manager/commands/mobile/on_command_notification.h"
 #include "application_manager/commands/mobile/on_permissions_change_notification.h"
@@ -129,7 +130,8 @@
 namespace application_manager {
 
 commands::Command *MobileCommandFactory::CreateCommand(
-    const commands::MessageSharedPtr& message) {
+    const commands::MessageSharedPtr& message,
+    commands::Command::CommandOrigin origin) {
 
   switch ((*message)[strings::params][strings::function_id].asInt()) {
     case mobile_apis::FunctionID::RegisterAppInterfaceID: {
@@ -519,6 +521,9 @@ commands::Command *MobileCommandFactory::CreateCommand(
       break;
     }
     case mobile_apis::FunctionID::OnHMIStatusID: {
+      if (origin == commands::Command::ORIGIN_MOBILE) {
+        return new commands::OnHMIStatusNotificationFromMobile(message);
+      }
       return new commands::OnHMIStatusNotification(message);
       break;
     }

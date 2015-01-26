@@ -14,8 +14,8 @@ OBJS_FILE=.objs.txt
 
 # Additive Compile Flags (Flags from initiating make process will still apply)
 DEFS += \
-	-Wc,-Werror=return-type \
-	-Wc,-Wuninitialized
+	-Werror=return-type \
+	-Wuninitialized
 
 # Set local includes and then the reference includes (priority order determines search path)
 # Default pattern are any configuration includes (which would be things like qnx), local (Team) component directories,
@@ -137,6 +137,7 @@ HEADERS = \
 	$(wildcard ../include/$(COMPONENT_NAME)/video/*.h*) \
 	$(wildcard ../../protocol_handler/include/protocol_handler/*.h*) \
 	$(wildcard ../../connection_handler/include/connection_handler/*.h*) \
+	$(wildcard ../../policy/src/policy/include*.h*) \
 	$(wildcard ../../utils/include/utils/*.h*) \
 	$(wildcard ../../utils/include/utils/threads/*.h*)
 

@@ -54,10 +54,13 @@ void SDLActivateAppRequest::Run() {
       ApplicationManagerImpl::instance()->application(application_id);
 
   if (app && !app->IsRegistered()) {
-    MessageHelper::SendLaunchApp(application_id, app->SchemaUrl(), app->PackageName());
+    MessageHelper::SendLaunchApp(application_id,
+                                 app->SchemaUrl(),
+                                 app->PackageName());
     subscribe_on_event(BasicCommunication_OnAppRegistered);
   } else {
-    policy::PolicyHandler::instance()->OnActivateApp(application_id, correlation_id());
+    policy::PolicyHandler::instance()->OnActivateApp(application_id,
+                                                     correlation_id());
   }
 }
 
@@ -67,7 +70,7 @@ void SDLActivateAppRequest::onTimeOut() {
   using namespace application_manager;
   unsubscribe_from_event(BasicCommunication_OnAppRegistered);
   const bool is_success = false;
-  SendResponse(is_success, app_id(),
+  SendResponse(is_success, correlation_id(),
                BasicCommunication_ActivateApp, APPLICATION_NOT_REGISTERED);
 }
 
@@ -77,7 +80,8 @@ void SDLActivateAppRequest::on_event(const event_engine::Event& event) {
     return;
   }
   unsubscribe_from_event(BasicCommunication_OnAppRegistered);
-  policy::PolicyHandler::instance()->OnActivateApp(connection_key(), correlation_id());
+  policy::PolicyHandler::instance()->OnActivateApp(app_id(),
+                                                   correlation_id());
 }
 
 uint32_t SDLActivateAppRequest::app_id() const {

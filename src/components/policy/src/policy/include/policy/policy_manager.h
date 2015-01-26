@@ -76,7 +76,7 @@ class PolicyManager : public usage_statistics::StatisticsManager {
        * @param service_type Service specifies user of URL
      * @return string URL
      */
-    virtual std::string GetUpdateUrl(int service_type) = 0;
+    virtual std::string GetUpdateUrl(int service_type) const = 0;
 
     /**
      * @brief Gets all URLs for sending PTS to from PT itself.
@@ -391,6 +391,14 @@ class PolicyManager : public usage_statistics::StatisticsManager {
      * @brief SaveUpdateStatusRequired alows to save update status.
      */
     virtual void SaveUpdateStatusRequired(bool is_update_needed) = 0;
+
+    /**
+     * @brief RemoteAppsUrl allows to obtain url for QUERY_APP system request.
+     *
+     * @return url.
+     */
+    virtual std::string RemoteAppsUrl() const = 0;
+
   protected:
     /**
      * Checks is PT exceeded IgnitionCycles
@@ -411,12 +419,6 @@ class PolicyManager : public usage_statistics::StatisticsManager {
      */
     virtual void StartPTExchange() = 0;
 
-    /**
-     * @brief RemoteAppsUrl allows to obtain url for QUERY_APP system request.
-     *
-     * @return url.
-     */
-    virtual std::string RemoteAppsUrl() const = 0;
 };
 
 }  // namespace policy

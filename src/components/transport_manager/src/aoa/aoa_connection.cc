@@ -45,7 +45,7 @@ AOAConnection::AOAConnection(const DeviceUID& device_uid,
                              const ApplicationHandle& app_handle,
                              TransportAdapterController* controller,
                              AOAWrapper::AOAHandle aoa_handle)
-    : wrapper_(new AOAWrapper(aoa_handle)),
+    : wrapper_(new AOAWrapper(aoa_handle, kTimeout)),
       observer_(new ConnectionObserver(this)),
       device_uid_(device_uid),
       app_handle_(app_handle),
@@ -59,8 +59,13 @@ AOAConnection::~AOAConnection() {
 }
 
 bool AOAConnection::Init() {
-  controller_->ConnectDone(device_uid_, app_handle_);
-  return wrapper_->Subscribe(observer_);
+  bool ret = wrapper_->Subscribe(observer_);
+  if (ret) {
+    controller_->ConnectDone(device_uid_, app_handle_);
+  } else {
+    controller_->ConnectFailed(device_uid_, app_handle_, ConnectError());
+  }
+  return ret;
 }
 
 TransportAdapter::Error AOAConnection::SendData(::protocol_handler::RawMessagePtr message) {

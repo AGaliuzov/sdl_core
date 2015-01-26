@@ -1,4 +1,4 @@
-﻿/*
+/*
  Copyright (c) 2013-2014, Ford Motor Company
  All rights reserved.
 
@@ -67,16 +67,10 @@ ResumeCtrl::ResumeCtrl(ApplicationManagerImpl* app_mngr)
 
 void ResumeCtrl::SaveAllApplications() {
   LOG4CXX_AUTO_TRACE(logger_);
-  DCHECK(app_mngr_);
-  if (app_mngr_) {
-    ApplicationManagerImpl::ApplicationListAccessor accessor;
-    ApplicationManagerImpl::ApplictionSet apps(accessor.applications());
+    std::set<ApplicationSharedPtr> apps(retrieve_application());
     std::for_each(apps.begin(),
                   apps.end(),
                   std::bind1st(std::mem_fun(&ResumeCtrl::SaveApplication), this));
-  } else {
-    LOG4CXX_FATAL(logger_, "Application manager object is NULL.");
-  }
 }
 
 void ResumeCtrl::SaveApplication(ApplicationConstSharedPtr application) {
@@ -87,7 +81,7 @@ void ResumeCtrl::SaveApplication(ApplicationConstSharedPtr application) {
     return;
   }
 
-  const std::string& m_app_id = application->mobile_app_id()->asString();
+  const std::string& m_app_id = application->mobile_app_id();
   LOG4CXX_TRACE(logger_, "ENTER app_id : " << application->app_id()
                 << " mobile app_id : " << m_app_id);
 
@@ -141,7 +135,7 @@ bool ResumeCtrl::RestoreApplicationHMILevel(ApplicationSharedPtr application) {
   LOG4CXX_DEBUG(logger_, "ENTER app_id : " << application->app_id());
 
   sync_primitives::AutoLock lock(resumtion_lock_);
-  const int idx = GetObjectIndex(application->mobile_app_id()->asString());
+  const int idx = GetObjectIndex(application->mobile_app_id());
   if (-1 != idx) {
     const Json::Value& json_app = GetSavedApplications()[idx];
     if (json_app.isMember(strings::audio_streaming_state) &&
@@ -175,7 +169,7 @@ bool ResumeCtrl::SetupDefaultHMILevel(ApplicationSharedPtr application) {
   mobile_apis::HMILevel::eType default_hmi = mobile_apis::HMILevel::HMI_NONE;
 
   if (policy::PolicyHandler::instance()->PolicyEnabled()) {
-    std::string policy_app_id = application->mobile_app_id()->asString();
+    std::string policy_app_id = application->mobile_app_id();
     std::string default_hmi_string = "";
     bool result_get_hmi = policy::PolicyHandler::instance()->GetDefaultHmi(
           policy_app_id, &default_hmi_string);
@@ -228,7 +222,7 @@ bool ResumeCtrl::SetupHMILevel(ApplicationSharedPtr application,
   if ((hmi_level == application->hmi_level()) &&
       (hmi_level != mobile_apis::HMILevel::HMI_NONE)) {
     LOG4CXX_WARN(logger_, "Hmi level " << hmi_level << " should not be set to "
-                 << application->mobile_app_id()->asString() << "  " << application->hmi_level());
+                 << application->mobile_app_id() << "  " << application->hmi_level());
     return false;
   }
 
@@ -279,7 +273,7 @@ bool ResumeCtrl::SetupHMILevel(ApplicationSharedPtr application,
     // HMI status for full wil be get after ActivateApp response
   }
   LOG4CXX_INFO(logger_, "Set up application "
-               << application->mobile_app_id()->asString()
+               << application->mobile_app_id()
                << " to HMILevel " << hmi_level);
   return true;
 }
@@ -294,7 +288,7 @@ bool ResumeCtrl::RestoreApplicationData(ApplicationSharedPtr application) {
   LOG4CXX_DEBUG(logger_, "ENTER app_id : " << application->app_id());
 
   sync_primitives::AutoLock lock(resumtion_lock_);
-  const int idx = GetObjectIndex(application->mobile_app_id()->asString());
+  const int idx = GetObjectIndex(application->mobile_app_id());
   if (-1 == idx) {
     LOG4CXX_WARN(logger_, "Application not saved");
     return false;
@@ -379,7 +373,7 @@ bool ResumeCtrl::RemoveApplicationFromSaved(ApplicationConstSharedPtr applicatio
     return false;
   }
   LOG4CXX_TRACE(logger_, "ENTER app_id :"  << application->app_id()
-                << "; mobile_app_id " << application->mobile_app_id()->asString());
+                << "; mobile_app_id " << application->mobile_app_id());
 
   bool result = false;
   std::vector<Json::Value> temp;
@@ -389,7 +383,7 @@ bool ResumeCtrl::RemoveApplicationFromSaved(ApplicationConstSharedPtr applicatio
     if ((*it).isMember(strings::app_id)) {
       const std::string& saved_m_app_id = (*it)[strings::app_id].asString();
 
-      if (saved_m_app_id != application->mobile_app_id()->asString()) {
+      if (saved_m_app_id != application->mobile_app_id()) {
         temp.push_back((*it));
       } else {
         result = true;
@@ -459,11 +453,11 @@ bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
   }
   LOG4CXX_DEBUG(logger_, " Resume app_id = " << application->app_id()
                         << " hmi_app_id = " << application->hmi_app_id()
-                        << " mobile_id = " << application->mobile_app_id()->asString()
+                        << " mobile_id = " << application->mobile_app_id()
                         << "recieved hash = " << hash);
 
   sync_primitives::AutoLock lock(resumtion_lock_);
-  const int idx = GetObjectIndex(application->mobile_app_id()->asString());
+  const int idx = GetObjectIndex(application->mobile_app_id());
   if (-1 == idx) {
     LOG4CXX_WARN(logger_, "Application not saved");
     MessageHelper::SendHMIStatusNotification(*application);
@@ -506,6 +500,11 @@ void ResumeCtrl::RestoreHmiLevel(uint32_t time_stamp,
   }
 }
 
+std::set<ApplicationSharedPtr> ResumeCtrl::retrieve_application() {
+  ApplicationManagerImpl::ApplicationListAccessor accessor;
+  return std::set<ApplicationSharedPtr>(accessor.begin(), accessor.end());
+}
+
 bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
   LOG4CXX_AUTO_TRACE(logger_);
   if (!application.valid()) {
@@ -515,10 +514,10 @@ bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
 
   LOG4CXX_DEBUG(logger_, "ENTER app_id = " << application->app_id()
                         << "mobile_id = "
-                        << application->mobile_app_id()->asString());
+                        << application->mobile_app_id());
 
   sync_primitives::AutoLock lock(resumtion_lock_);
-  const int idx = GetObjectIndex(application->mobile_app_id()->asString());
+  const int idx = GetObjectIndex(application->mobile_app_id());
   if (-1 == idx) {
     LOG4CXX_WARN(logger_, "Application not saved");
     MessageHelper::SendHMIStatusNotification(*application);
@@ -551,7 +550,7 @@ bool ResumeCtrl::CheckPersistenceFilesForResumption(ApplicationSharedPtr applica
   LOG4CXX_DEBUG(logger_, "Process app_id = " << application->app_id());
 
   sync_primitives::AutoLock lock(resumtion_lock_);
-  const int idx = GetObjectIndex(application->mobile_app_id()->asString());
+  const int idx = GetObjectIndex(application->mobile_app_id());
   if (-1 == idx) {
     LOG4CXX_WARN(logger_, "Application not saved");
     return false;
@@ -587,7 +586,7 @@ bool ResumeCtrl::CheckApplicationHash(ApplicationSharedPtr application,
                 << " hash : " << hash);
 
   sync_primitives::AutoLock lock(resumtion_lock_);
-  const int idx = GetObjectIndex(application->mobile_app_id()->asString());
+  const int idx = GetObjectIndex(application->mobile_app_id());
   if (-1 == idx) {
     LOG4CXX_WARN(logger_, "Application not saved");
     return false;

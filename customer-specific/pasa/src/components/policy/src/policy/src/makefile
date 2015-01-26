@@ -13,8 +13,8 @@ include $(PRJ_ROOT)cfg/depends.mk
 # Additive Compile Flags (Flags from initiating make process will still apply)
 DEFS += \
 	-DEXTENDED_POLICY \
-	-Wc,-Werror=return-type \
-	-Wc,-Wuninitialized
+	-Werror=return-type \
+	-Wuninitialized
  
 # Set local includes and then the reference includes (priority order determines search path)
 # Default pattern are any configuration includes (which would be things like qnx), local (Team) component directories,
@@ -158,7 +158,7 @@ $(COMPONENT_LIB): $(OBJECTS) subdirs
 # Standard set of derived targets
 library: base \
 	$(LIBRARIES) 
-	$(MAKE) -C ../usage_statistics/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
+	$(MAKE) -C ../usage_statistics/src OPTIMIZATION=NONE TARGET_FLG= $@
 	@echo "***** `date` Done building library: $(COMPONENT_NAME) ******" 
  
 binary: base \
