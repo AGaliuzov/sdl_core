@@ -200,14 +200,14 @@ void ConnectionHandlerImpl::OnScanDevicesFailed(
 void ConnectionHandlerImpl::OnConnectionEstablished(
     const transport_manager::DeviceInfo &device_info,
     const transport_manager::ConnectionUID &connection_id) {
-  LOG4CXX_TRACE(logger_, "ConnectionHandlerImpl::OnConnectionEstablished()");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   DeviceMap::iterator it = device_list_.find(device_info.device_handle());
   if (device_list_.end() == it) {
     LOG4CXX_ERROR(logger_, "Unknown device!");
     return;
   }
-  LOG4CXX_INFO(logger_, "Add Connection:" << connection_id << " to the list.");
+  LOG4CXX_DEBUG(logger_, "Add Connection:" << connection_id << " to the list.");
   sync_primitives::AutoLock lock(connection_list_lock_);
   connection_list_.insert(
       ConnectionList::value_type(

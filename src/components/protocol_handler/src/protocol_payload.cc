@@ -52,7 +52,7 @@ namespace protocol_handler {
 
 void Extract(utils::BitStream *bs, ProtocolPayloadHeaderV2 *headerv2) {
   DCHECK(bs && headerv2);
-  if (*bs) {
+  if (headerv2 && bs && *bs) {
     uint8_t rpc_type;
     utils::Extract(bs, &rpc_type, kRpcTypeBits);
     headerv2->rpc_type = RpcTypeFromByte(rpc_type);
@@ -69,12 +69,11 @@ void Extract(utils::BitStream *bs, ProtocolPayloadHeaderV2 *headerv2) {
 void Extract(utils::BitStream *bs, ProtocolPayloadV2 *payload,
              size_t payload_size) {
   DCHECK(bs && payload);
-  if (*bs) {
+  if (payload && bs && *bs) {
     Extract(bs, &payload->header);
     utils::Extract(bs, &payload->json, payload->header.json_size);
     size_t data_size = payload_size - payload->header.json_size -
         PayloadHeaderBits / CHAR_BIT;
-    DCHECK(data_size < payload_size);
     utils::Extract(bs, &payload->data, data_size);
   }
 }

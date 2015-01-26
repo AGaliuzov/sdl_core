@@ -135,7 +135,7 @@ bool RequestInfoSet::Add(RequestInfoPtr request_info) {
     LOG4CXX_ERROR(logger_, "NULL ponter request_info");
     return false;
   }
-  LOG4CXX_ERROR(logger_, "Add request app_id = " << request_info->app_id()
+  LOG4CXX_DEBUG(logger_, "Add request app_id = " << request_info->app_id()
                 << "; corr_id = " << request_info->requestId());
   CheckSetSizes();
   sync_primitives::AutoLock lock(this_lock_);
@@ -356,7 +356,7 @@ bool RequestInfoTimeComparator::operator()(const RequestInfoPtr lhs,
   }
   // compare_result == date_time::EQUAL
   // If time is equal, sort by hash
-  LOG4CXX_ERROR(logger_, "EQUAL " << lhs->end_time().tv_sec << ":" << lhs->end_time().tv_usec
+  LOG4CXX_DEBUG(logger_, "EQUAL " << lhs->end_time().tv_sec << ":" << lhs->end_time().tv_usec
                 << " and " << rhs->end_time().tv_sec << ":" << rhs->end_time().tv_usec
                 << "; compare hash: " << lhs->hash() << " < " << rhs->hash()
                 << " = " << (lhs->hash() < rhs->hash()));

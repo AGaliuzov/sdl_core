@@ -669,7 +669,7 @@ RESULT_CODE ProtocolHandlerImpl::HandleSingleFrameMessage(
     ConnectionID connection_id, const ProtocolFramePtr packet) {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  LOG4CXX_INFO(logger_,
+  LOG4CXX_DEBUG(logger_,
         "FRAME_TYPE_SINGLE message of size " << packet->data_size() << "; message "
         << ConvertPacketDataToString(packet->data(), packet->data_size()));
 
