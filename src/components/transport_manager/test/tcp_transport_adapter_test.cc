@@ -286,7 +286,8 @@ class TcpAdapterTestWithListenerAutoStart : public TcpAdapterTest {
 
 MATCHER_P(ContainsMessage, str, ""){ return strlen(str) == arg->data_size() && 0 == memcmp(str, arg->data(), arg->data_size());}
 
-TEST_F(TcpAdapterTestWithListenerAutoStart, Connect_Return_True) {
+//TODO{ALeshin} APPLINK-11090
+TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_Connect_Return_True) {
   {
     ::testing::InSequence seq;
     EXPECT_CALL(mock_dal_, OnDeviceListUpdated(_));
@@ -296,7 +297,8 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, Connect_Return_True) {
   EXPECT_TRUE(client_.Connect(port()));
 }
 
-TEST_F(TcpAdapterTestWithListenerAutoStart, SecondConnect_Return_True) {
+//TODO{ALeshin} APPLINK-11090
+TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_SecondConnect_Return_True) {
   {
     ::testing::InSequence seq;
     EXPECT_CALL(mock_dal_, OnDeviceListUpdated(_));
@@ -306,7 +308,8 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, SecondConnect_Return_True) {
   EXPECT_TRUE(client_.Connect(port()));
 }
 
-TEST_F(TcpAdapterTestWithListenerAutoStart, Receive_Return_True) {
+//TODO{ALeshin} APPLINK-11090
+TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_Receive_Return_True) {
   {
     ::testing::InSequence seq;
 
@@ -344,7 +347,8 @@ struct SendHelper {
   RawMessagePtr message_;
 };
 
-TEST_F(TcpAdapterTestWithListenerAutoStart, Send_Message) {
+//TODO{ALeshin} APPLINK-11090
+TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_Send_Message) {
   SendHelper helper(TransportAdapter::OK);
   {
     ::testing::InSequence seq;

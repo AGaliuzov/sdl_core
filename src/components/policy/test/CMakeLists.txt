@@ -90,7 +90,7 @@ else ()
     sqlite_wrapper/sql_database_test.cc 
     sqlite_wrapper/sql_query_test.cc   
     generated_code_with_sqlite_test.cc   
-   policy_manager_impl_stress_test.cc
+    #policy_manager_impl_stress_test.cc
   )
   list (APPEND testLibraries sqlite3)
 endif()
