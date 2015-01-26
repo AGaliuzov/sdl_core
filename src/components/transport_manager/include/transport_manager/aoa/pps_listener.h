@@ -29,9 +29,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_AOA_PPS_DEVICE_SCANNER_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_AOA_PPS_DEVICE_SCANNER_H_
+#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_PPS_LISTENER_H_
+#define SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_PPS_LISTENER_H_
 
 #include <map>
 #include <string>
@@ -40,7 +39,7 @@
 #include "utils/threads/thread.h"
 #include "utils/threads/pulse_thread_delegate.h"
 
-#include "transport_manager/transport_adapter/device_scanner.h"
+#include "transport_manager/transport_adapter/client_connection_listener.h"
 #include "transport_manager/aoa/aoa_dynamic_device.h"
 #include "transport_manager/aoa/aoa_wrapper.h"
 
@@ -49,28 +48,25 @@ namespace transport_adapter {
 
 class TransportAdapterController;
 
-class PPSDeviceScanner : public DeviceScanner {
+class PPSListener : public ClientConnectionListener {
  public:
-  explicit PPSDeviceScanner(TransportAdapterController* controller);
-  ~PPSDeviceScanner();
+  explicit PPSListener(TransportAdapterController* controller);
+  ~PPSListener();
 
  protected:
   virtual TransportAdapter::Error Init();
-  virtual TransportAdapter::Error Scan();
   virtual void Terminate();
+  virtual TransportAdapter::Error StartListening();
+  virtual TransportAdapter::Error StopListening();
   virtual bool IsInitialised() const;
 
  private:
-  typedef std::map<DeviceUID, AOADevicePtr> DeviceContainer;
-
   static const std::string kUSBStackPath;
   static const std::string kPpsPathRoot;
   static const std::string kPpsPathAll;
   static const std::string kPpsPathCtrl;
   bool initialised_;
   TransportAdapterController* controller_;
-  DeviceContainer devices_;
-  sync_primitives::Lock devices_lock_;
   int fd_;
   threads::Thread* thread_;
 
@@ -85,23 +81,23 @@ class PPSDeviceScanner : public DeviceScanner {
                    AOAWrapper::AOAUsbInfo* info);
   bool IsAOAMode(const AOAWrapper::AOAUsbInfo& aoa_usb_info);
   void AddDevice(const AOAWrapper::AOAUsbInfo& aoa_usb_info);
-  void InitDevice(const AOAWrapper::AOAUsbInfo& aoa_usb_info);
-  void NotifyDevicesUpdated();
 
   class PpsThreadDelegate : public threads::PulseThreadDelegate {
    public:
-    explicit PpsThreadDelegate(PPSDeviceScanner* parent);
+    explicit PpsThreadDelegate(PPSListener* parent);
 
    protected:
     virtual bool ArmEvent(struct sigevent* event);
     virtual void OnPulse();
 
    private:
-    PPSDeviceScanner* parent_;
+    PPSListener* parent_;
   };
 };
 
 }  // namespace transport_adapter
 }  // namespace transport_manager
 
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_AOA_PPS_DEVICE_SCANNER_H_
+
+
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_PPS_LISTENER_H_

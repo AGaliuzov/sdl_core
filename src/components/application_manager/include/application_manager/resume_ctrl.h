@@ -211,7 +211,6 @@ class ResumeCtrl: public event_engine::EventObserver {
      */
     void ApplicationResumptiOnTimer();
 
-
     /**
      * @brief SaveDataOnTimer :
      *  Timer callback for persisting ResumptionData each N seconds
@@ -230,6 +229,8 @@ class ResumeCtrl: public event_engine::EventObserver {
   private:
 
     typedef std::pair<uint32_t, uint32_t> application_timestamp;
+
+    std::set<ApplicationSharedPtr> retrieve_application();
 
     /**
      * @brief This struct need to map

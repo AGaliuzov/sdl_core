@@ -1,4 +1,4 @@
-﻿/*
+/*
  * \file request_info.h
  * \brief request information structure header file.
  *
@@ -199,7 +199,7 @@ namespace request_controller {
        * @param request_info - request to erase
        * @return true if Erase succes, otherwise return false
        */
-      bool Erase(const RequestInfoPtr request_info);
+      bool RemoveRequest(const RequestInfoPtr request_info);
 
       /*
        * @brief Erase request from colletion by connection_key
@@ -217,7 +217,7 @@ namespace request_controller {
       /*
        * @return count of requestd in collections
        */
-      const ssize_t Size();
+      const size_t Size();
 
       /**
        * @brief Check if this app is able to add new requests,
@@ -246,8 +246,6 @@ namespace request_controller {
                                             uint32_t app_id,
                                             uint32_t app_time_scale,
                                             uint32_t max_request_per_time_scale);
-      TimeSortedRequestInfoSet::iterator GetRequestsByConnectionKey(uint32_t connection_key);
-
     private:
       /*
        * @brief Comparator of connection key for std::find_if function
@@ -264,7 +262,7 @@ namespace request_controller {
           CompareType compare_type_;
       };
 
-      bool Erase(HashSortedRequestInfoSet::iterator it);
+      bool Erase(const RequestInfoPtr request_info);
 
       /*
        * @brief Erase requests from collection if filter allows
@@ -279,6 +277,9 @@ namespace request_controller {
       inline void CheckSetSizes();
       TimeSortedRequestInfoSet time_sorted_pending_requests_;
       HashSortedRequestInfoSet hash_sorted_pending_requests_;
+
+      // the lock caled this_lock_, since the class represent collection by itself.
+      sync_primitives::Lock this_lock_;
   };
 
 

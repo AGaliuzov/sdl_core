@@ -424,35 +424,11 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
   int32_t min_version =
     message[strings::msg_params][strings::sync_msg_version]
     [strings::minor_version].asInt();
-
-  /*if (min_version < APIVersion::kAPIV2) {
-    LOG4CXX_ERROR(logger_, "UNSUPPORTED_VERSION");
-    utils::SharedPtr<smart_objects::SmartObject> response(
-      MessageHelper::CreateNegativeResponse(
-        connection_key, mobile_apis::FunctionID::RegisterAppInterfaceID,
-        message[strings::params][strings::correlation_id],
-        mobile_apis::Result::UNSUPPORTED_VERSION));
-    ManageMobileCommand(response);
-    delete application;
-    return NULL;
-  }*/
   version.min_supported_api_version = static_cast<APIVersion>(min_version);
 
   int32_t max_version =
     message[strings::msg_params][strings::sync_msg_version]
     [strings::major_version].asInt();
-
-  /*if (max_version > APIVersion::kAPIV2) {
-    LOG4CXX_ERROR(logger_, "UNSUPPORTED_VERSION");
-    utils::SharedPtr<smart_objects::SmartObject> response(
-      MessageHelper::CreateNegativeResponse(
-        connection_key, mobile_apis::FunctionID::RegisterAppInterfaceID,
-        message[strings::params][strings::correlation_id],
-        mobile_apis::Result::UNSUPPORTED_VERSION));
-    ManageMobileCommand(response);
-    delete application;
-    return NULL;
-  }*/
   version.max_supported_api_version = static_cast<APIVersion>(max_version);
   application->set_version(version);
 
@@ -465,11 +441,15 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
       connection_handler_->BindProtocolVersionWithSession(
           connection_key, static_cast<uint8_t>(protocol_version));
     }
-    if (ProtocolVersion::kV3 == protocol_version) {
+    if (protocol_version >= ProtocolVersion::kV3 &&
+    		profile::Profile::instance()->heart_beat_timeout() > 0) {
       connection_handler_->StartSessionHeartBeat(connection_key);
     }
   }
 
+  apps_to_register_list_lock_.Acquire();
+  apps_to_register_.erase(application);
+  apps_to_register_list_lock_.Release();
   ApplicationListAccessor app_list_accesor;
   application->MarkRegistered();
   app_list_accesor.Insert(application);
@@ -816,38 +796,21 @@ void ApplicationManagerImpl::OnFindNewApplicationsRequest() {
 }
 
 void ApplicationManagerImpl::SendUpdateAppList() {
-  LOG4CXX_TRACE(logger_, "SendUpdateAppList");
+  LOG4CXX_AUTO_TRACE(logger_);
 
-  LOG4CXX_DEBUG(logger_, applications_.size() << " applications.");
+  using namespace smart_objects;
+  using namespace hmi_apis;
 
-  smart_objects::SmartObjectSPtr request = MessageHelper::CreateModuleInfoSO(
-      hmi_apis::FunctionID::BasicCommunication_UpdateAppList);
-  (*request)[strings::msg_params][strings::applications] =
-      smart_objects::SmartObject(smart_objects::SmartType_Array);
+  SmartObjectSPtr request = MessageHelper::CreateModuleInfoSO(
+        FunctionID::BasicCommunication_UpdateAppList);
 
-  smart_objects::SmartObject& applications =
-      (*request)[strings::msg_params][strings::applications];
+  (*request)[strings::msg_params][strings::applications] = SmartObject(SmartType_Array);
 
-  uint32_t app_count = 0;
-  ApplicationListAccessor app_list;
-  ApplictionSet::const_iterator it;
-  for (it = app_list.begin(); it != app_list.end(); ++it) {
-    if (!it->valid()) {
-      LOG4CXX_ERROR(logger_, "Application not found ");
-      continue;
-    }
+  SmartObject& applications = (*request)[strings::msg_params][strings::applications];
 
-    smart_objects::SmartObject hmi_application(smart_objects::SmartType_Map);;
-    if (!MessageHelper::CreateHMIApplicationStruct(*it, hmi_application)) {
-      LOG4CXX_ERROR(logger_, "Can't CreateHMIApplicationStruct ");
-      continue;
-    }
-    applications[app_count++] = hmi_application;
-  }
+  PrepareApplicationListSO(applications_, applications);
+  PrepareApplicationListSO(apps_to_register_, applications);
 
-  if (app_count <= 0) {
-    LOG4CXX_WARN(logger_, "Empty applications list");
-  }
   ManageHMICommand(request);
 }
 
@@ -914,7 +877,6 @@ uint32_t ApplicationManagerImpl::GenerateNewHMIAppID() {
 void ApplicationManagerImpl::ReplaceMobileByHMIAppId(
     smart_objects::SmartObject& message) {
   MessageHelper::PrintSmartObject(message);
-  flush(std::cout);
   if (message.keyExists(strings::app_id)) {
     ApplicationSharedPtr application =
         ApplicationManagerImpl::instance()->application(
@@ -1144,7 +1106,7 @@ void ApplicationManagerImpl::SendMessageToMobile(
         ProtocolVersion::kV1;
     } else {
       (*message)[strings::params][strings::protocol_version] =
-        ProtocolVersion::kV3;
+        SupportedSDLVersion();
     }
   } else {
     (*message)[strings::params][strings::protocol_version] =
@@ -1228,9 +1190,9 @@ bool ApplicationManagerImpl::ManageMobileCommand(
 #endif
 
   LOG4CXX_INFO(logger_, "Trying to create message in mobile factory.");
-  commands::Command* command = MobileCommandFactory::CreateCommand(message,
-                                                                   origin);
-
+  utils::SharedPtr<commands::Command> command(
+		  MobileCommandFactory::CreateCommand(message, origin));
+  
   if (!command) {
     LOG4CXX_WARN(logger_, "RET  Failed to create mobile command from smart object");
     return false;
@@ -1281,7 +1243,6 @@ bool ApplicationManagerImpl::ManageMobileCommand(
       command->Run();
       command->CleanUp();
     }
-    delete command;
     return true;
   }
   if (message_type ==
@@ -1290,7 +1251,7 @@ bool ApplicationManagerImpl::ManageMobileCommand(
     if (command->Init()) {
       command->Run();
       if (command->CleanUp()) {
-        request_ctrl_.removeNotification(command);
+        request_ctrl_.removeNotification(command.get());
       }
       // If CleanUp returned false notification should remove it self.
     }
@@ -1753,18 +1714,7 @@ utils::SharedPtr<Message> ApplicationManagerImpl::ConvertRawMsgToMessage(
     return outgoing_message;
   }
 
-  Message* convertion_result = NULL;
-  if (message->protocol_version() == 1) {
-    convertion_result =
-      MobileMessageHandler::HandleIncomingMessageProtocolV1(message);
-  } else if ((message->protocol_version() == 2) ||
-             (message->protocol_version() == 3)) {
-    convertion_result =
-      MobileMessageHandler::HandleIncomingMessageProtocolV2(message);
-  } else {
-    LOG4CXX_WARN(logger_, "Unknown protocol version.");
-    return outgoing_message;
-  }
+  Message* convertion_result = MobileMessageHandler::HandleIncomingMessageProtocol(message);
 
   if (convertion_result) {
     outgoing_message = convertion_result;
@@ -1859,10 +1809,7 @@ HMICapabilities& ApplicationManagerImpl::hmi_capabilities() {
   return hmi_capabilities_;
 }
 
-void ApplicationManagerImpl::CreateApplications(
-    SmartArray& obj_array,
-    const std::string& app_icon_dir,
-    std::vector<std::pair<uint32_t, std::string> >& apps_with_icon) {
+void ApplicationManagerImpl::CreateApplications(SmartArray& obj_array) {
 
   using namespace policy;
 
@@ -1879,20 +1826,17 @@ void ApplicationManagerImpl::CreateApplications(
       const uint32_t hmi_app_id(GenerateNewHMIAppID());
 
       ApplicationSharedPtr app(
-            new ApplicationImpl(hmi_app_id,
+            new ApplicationImpl(0,
                                 mobile_app_id,
                                 appName,
                                 PolicyHandler::instance()->GetStatisticManager()));
       if (app) {
         app->SetShemaUrl(url_schema);
         app->SetPackageName(package_name);
-        ApplicationListAccessor app_list;
-        app_list.Insert(app);
-        const std::string full_icon_path(
-              app_icon_dir + "/" + app->mobile_app_id());
-        if (file_system::FileExists(full_icon_path)) {
-          apps_with_icon.push_back(std::make_pair(app->app_id(), full_icon_path));
-        }
+        app->set_hmi_application_id(hmi_app_id);
+
+        sync_primitives::AutoLock lock(apps_to_register_list_lock_);
+        apps_to_register_.insert(app);
       }
     }
   }
@@ -1903,19 +1847,20 @@ void ApplicationManagerImpl::ProcessQueryApp(
   using namespace policy;
   using namespace profile;
 
-  typedef std::vector<std::pair<uint32_t, std::string> > AppsWithIcon;
-  AppsWithIcon apps_with_icon;
-
   if (sm_object.keyExists(strings::application)) {
     SmartArray* obj_array = sm_object[strings::application].asArray();
     if (NULL != obj_array) {
       const std::string app_icon_dir(Profile::instance()->app_icons_folder());
-      CreateApplications(*obj_array, app_icon_dir, apps_with_icon);
+      CreateApplications(*obj_array);
       SendUpdateAppList();
 
-      AppsWithIcon::const_iterator it = apps_with_icon.begin();
-      for (; it != apps_with_icon.end(); ++it) {
-        MessageHelper::SendSetAppIcon(it->first, it->second);
+      AppsWaitRegistrationSet::const_iterator it = apps_to_register_.begin();
+      for (; it != apps_to_register_.end(); ++it) {
+
+        const std::string full_icon_path(app_icon_dir + "/" + (*it)->mobile_app_id());
+        if (file_system::FileExists(full_icon_path)) {
+          MessageHelper::SendSetAppIcon((*it)->hmi_app_id(), full_icon_path);
+        }
       }
     }
   }
@@ -2189,19 +2134,9 @@ void ApplicationManagerImpl::Handle(const impl::MessageToMobile message) {
     return;
   }
 
-  utils::SharedPtr<protocol_handler::RawMessage> rawMessage;
-  application_manager::ProtocolVersion protocol_version =
-      message->protocol_version();
-  if (protocol_version == application_manager::kV1) {
-    rawMessage = MobileMessageHandler::HandleOutgoingMessageProtocolV1(message);
-  } else if ((protocol_version == application_manager::kV2) ||
-             (protocol_version == application_manager::kV3) ||
-             (protocol_version == application_manager::kV4)) {
-    rawMessage = MobileMessageHandler::HandleOutgoingMessageProtocolV2(message);
-  } else {
-    return;
-  }
-
+  utils::SharedPtr<protocol_handler::RawMessage> rawMessage =
+	MobileMessageHandler::HandleOutgoingMessageProtocol(message);
+  
   if (!rawMessage) {
     LOG4CXX_ERROR(logger_, "Failed to create raw message.");
     return;
@@ -2742,6 +2677,25 @@ void ApplicationManagerImpl::OnUpdateHMIAppType(
       }
     }
   }
+}
+
+ProtocolVersion ApplicationManagerImpl::SupportedSDLVersion() const {
+  LOG4CXX_AUTO_TRACE(logger_);
+  bool heart_beat_support =
+	profile::Profile::instance()->heart_beat_timeout();
+  bool sdl4_support = profile::Profile::instance()->enable_protocol_4();
+
+  if (sdl4_support) {
+    LOG4CXX_DEBUG(logger_, "SDL Supported protocol version "<<ProtocolVersion::kV4);
+	return ProtocolVersion::kV4;
+  }
+  if (heart_beat_support) {
+	LOG4CXX_DEBUG(logger_, "SDL Supported protocol version "<<ProtocolVersion::kV3);
+	return ProtocolVersion::kV3;
+  }
+
+  LOG4CXX_DEBUG(logger_, "SDL Supported protocol version "<<ProtocolVersion::kV2);
+  return ProtocolVersion::kV2;
 }
 
 

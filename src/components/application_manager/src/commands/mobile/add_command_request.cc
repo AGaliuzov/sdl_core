@@ -461,6 +461,15 @@ void AddCommandRequest::RemoveCommand() {
   msg_params[strings::cmd_id] = (*message_)[strings::msg_params][strings::cmd_id];
   msg_params[strings::app_id] = app->app_id();
 
+  app->RemoveCommand((*message_)[strings::msg_params]
+                                 [strings::cmd_id].asUInt());
+
+  if (BothSend() && !(is_vr_received_ || is_ui_received_)) {
+    // in case we have send bth UI and VR and no one respond
+    // we have nothing to remove from HMI so no DeleteCommand expected
+    return;
+  }
+
   if (BothSend() && !is_vr_received_) {
     SendHMIRequest(hmi_apis::FunctionID::UI_DeleteCommand, &msg_params);
   }
@@ -471,8 +480,6 @@ void AddCommandRequest::RemoveCommand() {
     SendHMIRequest(hmi_apis::FunctionID::VR_DeleteCommand, &msg_params);
   }
 
-  app->RemoveCommand((*message_)[strings::msg_params]
-                                 [strings::cmd_id].asUInt());
 }
 
 }  // namespace commands

@@ -33,11 +33,11 @@
 #include "transport_manager/aoa/aoa_transport_adapter.h"
 
 #include "utils/logger.h"
-#include "transport_manager/aoa/aoa_device_scanner.h"
+#include "transport_manager/aoa/aoa_connection_factory.h"
 #ifdef CUSTOMER_PASA
-#  include "transport_manager/aoa/pps_device_scanner.h"
+#  include "transport_manager/aoa/pps_listener.h"
 #else
-#  include "transport_manager/aoa/aoa_connection_factory.h"
+#  include "transport_manager/aoa/aoa_listener.h"
 #endif
 
 namespace transport_manager {
@@ -46,14 +46,12 @@ namespace transport_adapter {
 CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
 
 AOATransportAdapter::AOATransportAdapter()
-    : TransportAdapterImpl(
+    : TransportAdapterImpl(0, new AOAConnectionFactory(this),
 #ifdef CUSTOMER_PASA
-        new PPSDeviceScanner(this),
+                           new PPSListener(this)),
 #else
-        new AOADeviceScanner(this),
+                           new AOAListener(this)),
 #endif  // CUSTOMER_PASA
-        new AOAConnectionFactory(this),
-                           0),
       initialised_(false) {
 }
 
@@ -62,27 +60,28 @@ AOATransportAdapter::~AOATransportAdapter() {
 }
 
 TransportAdapter::Error AOATransportAdapter::Init() {
-  LOG4CXX_TRACE(logger_, "AOA: Init");
+  LOG4CXX_AUTO_TRACE(logger_);
   TransportAdapter::Error error = TransportAdapterImpl::Init();
   if (error != TransportAdapter::OK) {
     LOG4CXX_WARN(logger_, "AOA: Init error " << error);
     return error;
   }
   initialised_ = true;
-  LOG4CXX_TRACE(logger_, "AOA: Init OK");
+  LOG4CXX_DEBUG(logger_, "AOA: Init success");
   return TransportAdapter::OK;
 }
 
 DeviceType AOATransportAdapter::GetDeviceType() const {
-  return "sdl-pasa-aoa";
+  return "pasa-aoa";
 }
 
 bool AOATransportAdapter::IsInitialised() const {
   return initialised_ && TransportAdapterImpl::IsInitialised();
 }
 
-bool AOATransportAdapter::ToBeAutoConnected(DeviceSptr device) const {
-  return true;
+void AOATransportAdapter::ApplicationListUpdated(
+    const DeviceUID& device_handle) {
+  ConnectDevice(device_handle);
 }
 
 }  // namespace transport_adapter

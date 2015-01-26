@@ -235,7 +235,7 @@ int Connection::SetSSLContext(uint8_t session_id,
 
 security_manager::SSLContext *Connection::GetSSLContext(
     const uint8_t session_id, const protocol_handler::ServiceType &service_type) const {
-  LOG4CXX_TRACE(logger_, "Connection::GetSSLContext");
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(session_map_lock_);
   SessionMap::const_iterator session_it = session_map_.find(session_id);
   if (session_it == session_map_.end()) {
@@ -259,7 +259,7 @@ security_manager::SSLContext *Connection::GetSSLContext(
 
 void Connection::SetProtectionFlag(
     const uint8_t session_id, const protocol_handler::ServiceType &service_type) {
-  LOG4CXX_TRACE(logger_, "Connection::SetProtectionFlag");
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(session_map_lock_);
   SessionMap::iterator session_it = session_map_.find(session_id);
   if (session_it == session_map_.end()) {
@@ -334,6 +334,7 @@ void Connection::UpdateProtocolVersionSession(
 }
 
 bool Connection::SupportHeartBeat(uint8_t session_id) {
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(session_map_lock_);
   SessionMap::iterator session_it = session_map_.find(session_id);
   if (session_map_.end() == session_it) {
@@ -341,7 +342,20 @@ bool Connection::SupportHeartBeat(uint8_t session_id) {
     return false;
   }
   Session &session = session_it->second;
-  return ::protocol_handler::PROTOCOL_VERSION_3 == session.protocol_version;
+  return (::protocol_handler::PROTOCOL_VERSION_3 == session.protocol_version ||
+		  ::protocol_handler::PROTOCOL_VERSION_4 == session.protocol_version);
+}
+
+bool Connection::ProtocolVersion(uint8_t session_id, uint8_t& protocol_version) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  sync_primitives::AutoLock lock(session_map_lock_);
+  SessionMap::iterator session_it = session_map_.find(session_id);
+  if (session_map_.end() == session_it) {
+    LOG4CXX_WARN(logger_, "Session not found in this connection!");
+	return false;
+  }
+  protocol_version = (session_it->second).protocol_version;
+  return true;
 }
 
 void Connection::StartHeartBeat(uint8_t session_id) {
