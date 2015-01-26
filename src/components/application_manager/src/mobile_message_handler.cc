@@ -54,6 +54,32 @@ using protocol_handler::Extract;
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "MobileMessageHandler")
 
+application_manager::Message* MobileMessageHandler::HandleIncomingMessageProtocol(
+  const protocol_handler::RawMessagePtr message) {
+  if (message->protocol_version() == ProtocolVersion::kV1) {
+    return MobileMessageHandler::HandleIncomingMessageProtocolV1(message);
+  }
+  if ((message->protocol_version() == ProtocolVersion::kV2) ||
+      (message->protocol_version() == ProtocolVersion::kV3) ||
+      (message->protocol_version() == ProtocolVersion::kV4)) {
+    return MobileMessageHandler::HandleIncomingMessageProtocolV2(message);
+  }
+  return NULL;
+}
+
+protocol_handler::RawMessage* MobileMessageHandler::HandleOutgoingMessageProtocol(
+  const MobileMessage& message) {
+  if (message->protocol_version() == application_manager::kV1) {
+    return MobileMessageHandler::HandleOutgoingMessageProtocolV1(message);
+  }
+  if ((message->protocol_version() == application_manager::kV2) ||
+	  (message->protocol_version() == application_manager::kV3) ||
+	  (message->protocol_version() == application_manager::kV4)) {
+    return MobileMessageHandler::HandleOutgoingMessageProtocolV2(message);
+  }
+  return NULL;
+}
+
 
 application_manager::Message*
 MobileMessageHandler::HandleIncomingMessageProtocolV1(

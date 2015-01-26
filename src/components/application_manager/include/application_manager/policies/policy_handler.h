@@ -1,4 +1,4 @@
-﻿/*
+/*
  Copyright (c) 2013, Ford Motor Company
  All rights reserved.
 
@@ -49,6 +49,7 @@
 #include "usage_statistics/statistics_manager.h"
 #include "policy_handler_observer.h"
 #include "utils/threads/async_runner.h"
+#include "application_manager/application_manager_impl.h"
 
 namespace Json {
 class Value;
@@ -110,22 +111,15 @@ class PolicyHandler :
   utils::SharedPtr<usage_statistics::StatisticsManager> GetStatisticManager();
 
   /**
-   * Checks system action of application for permission of keep context
-   * @param system_action system action (see mobile api)
-   * @param policy_app_id unique application id
-   * @return false if system_action is KEEP_CONTEXT and it isn't allowed by policy
-   * otherwise true
+   * @brief CheckSystemAction allows to check whether certain system
+   * action is enabled.
+   *
+   * @param system_action system action to check.
+   *
+   * @return true if specified system action is enabled, false otherwise.
    */
-  bool CheckKeepContext(int system_action, const std::string& policy_app_id);
-
-  /**
-   * Checks system action of application for permission of steal focus
-   * @param system_action system action (see mobile api)
-   * @param policy_app_id unique application id
-   * @return false if system_action is STEAL_FOCUS and it isn't allowed by policy
-   * otherwise true
-   */
-  bool CheckStealFocus(int system_action, const std::string& policy_app_id);
+  bool CheckSystemAction(mobile_apis::SystemAction::eType system_action,
+                         const std::string& policy_app_id);
 
   /**
    * Lets client to notify PolicyHandler that more kilometers expired
@@ -151,12 +145,6 @@ class PolicyHandler :
    * @brief Increment counter for ignition cycles
    */
   void OnIgnitionCycleOver();
-
-  /**
-   * @brief Send notification to HMI concerning revocation of application
-   * @param policy_app_id Unique identifier of application
-   */
-  void OnAppRevoked(const std::string& policy_app_id);
 
   void OnPendingPermissionChange(const std::string& policy_app_id);
 
@@ -282,6 +270,8 @@ class PolicyHandler :
 
   virtual void OnUpdateHMIAppType(std::map<std::string, StringArray> app_hmi_types);
 
+  virtual bool CanUpdate();
+
   virtual void OnDeviceConsentChanged(const std::string& device_id,
                                       bool is_allowed);
 
@@ -316,6 +306,11 @@ class PolicyHandler :
    */
   uint16_t HeartBeatTimeout(const std::string& app_id) const;
 
+  /**
+   * @brief Returns URL for querying list of remote apps
+   */
+  const std::string RemoteAppsUrl() const;
+
 //TODO(AKutsan) REMOVE THIS UGLY HOTFIX
   virtual void Increment(usage_statistics::GlobalCounterId type);
   virtual void Increment(const std::string& app_id,
@@ -335,6 +330,24 @@ protected:
   void StartNextRetry();
 
  private:
+
+  /**
+   * Checks system action of application for permission of keep context
+   * @param system_action system action (see mobile api)
+   * @param policy_app_id unique application id
+   * @return false if system_action is KEEP_CONTEXT and it isn't allowed by policy
+   * otherwise true
+   */
+  bool CheckKeepContext(const std::string& policy_app_id);
+
+  /**
+   * Checks system action of application for permission of steal focus
+   * @param system_action system action (see mobile api)
+   * @param policy_app_id unique application id
+   * @return false if system_action is STEAL_FOCUS and it isn't allowed by policy
+   * otherwise true
+   */
+  bool CheckStealFocus(const std::string& policy_app_id);
 
   /**
    * @brief OnAppPermissionConsentInternal reacts on permission changing

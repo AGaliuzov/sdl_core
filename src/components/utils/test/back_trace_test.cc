@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,43 +30,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_UI_SET_ICON_RESPONSE_H_
-#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_UI_SET_ICON_RESPONSE_H_
+#include "gtest/gtest.h"
+#include "utils/back_trace.h"
 
-#include "application_manager/commands/hmi/response_from_hmi.h"
+namespace test {
+namespace components {
+namespace utils {
 
-namespace application_manager {
+using namespace ::utils;
 
-namespace commands {
+TEST(BackTraceTest, CallStackShouldNotBeEmpty) {
 
-/**
- * @brief UISetIconResponse command class
- **/
-class UISetIconResponse : public ResponseFromHMI {
- public:
-  /**
-   * @brief UISetIconResponse class constructor
-   *
-   * @param message Incoming SmartObject message
-   **/
-  explicit UISetIconResponse(const MessageSharedPtr& message);
+  //arrange
+  Backtrace newtrace = Backtrace();
+  std::vector < std::string > symbols = newtrace.CallStack();
+  //assert
+  ASSERT_FALSE(symbols.empty());
+}
 
-  /**
-   * @brief UISetIconResponse class destructor
-   **/
-  virtual ~UISetIconResponse();
-
-  /**
-   * @brief Execute command
-   **/
-  virtual void Run();
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(UISetIconResponse);
-};
-
-}  // namespace commands
-
-}  // namespace application_manager
-
-#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_UI_SET_ICON_RESPONSE_H_
+}  // namespace utils
+}  // namespace components
+}  // namespace test

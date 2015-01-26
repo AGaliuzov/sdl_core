@@ -64,7 +64,8 @@ enum ProtocolVersion {
   kHMI = 0,
   kV1 = 1,
   kV2 = 2,
-  kV3 = 3
+  kV3 = 3,
+  kV4 = 4
 };
 
 class Message {

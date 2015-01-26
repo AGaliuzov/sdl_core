@@ -31,13 +31,13 @@
 
 if(BUILD_TESTS)
 
-include_directories (
+include_directories(
   ${GMOCK_INCLUDE_DIRECTORY}
   ${COMPONENTS_DIR}/smart_objects/include
   ${COMPONENTS_DIR}/formatters/include
 )
 
-set (LIBRARIES
+set(LIBRARIES
     gmock 
     SmartObjects
     formatters
@@ -49,6 +49,6 @@ ${COMPONENTS_DIR}/formatters/test/generic_json_formatter_test.cc
 ${COMPONENTS_DIR}/formatters/test/main.cc
 )
 
-create_test("test_generic_json_formatter" "${SOURCES}" "${LIBRARIES}")
+create_test("generic_json_formatter_test" "${SOURCES}" "${LIBRARIES}")
 
 endif()

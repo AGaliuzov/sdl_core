@@ -30,7 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <algorithm>
 #include "utils/logger.h"
 #include "config_profile/profile.h"
 #include "application_manager/request_controller.h"
@@ -48,7 +47,6 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "RequestController");
 RequestController::RequestController()
   : pool_state_(UNDEFINED),
     pool_size_(profile::Profile::instance()->thread_pool_size()),
-    pending_request_set_lock_(true),
     timer_("RequestCtrlTimer", this, &RequestController::onTimer, true),
     is_low_voltage_(false) {
   LOG4CXX_AUTO_TRACE(logger_);
@@ -65,7 +63,7 @@ RequestController::~RequestController() {
 
 void RequestController::InitializeThreadpool() {
   LOG4CXX_AUTO_TRACE(logger_);
-  // TODO: Consider lazy loading threads instead of creating all at once
+  // TODO(DK): Consider lazy loading threads instead of creating all at once
   pool_state_ = TPoolState::STARTED;
   char name[50];
   for (uint32_t i = 0; i < pool_size_; i++) {
@@ -79,13 +77,13 @@ void RequestController::InitializeThreadpool() {
 void RequestController::DestroyThreadpool() {
   LOG4CXX_AUTO_TRACE(logger_);
   {
-    sync_primitives::AutoLock auto_lock(mobile_request_list_lock_);
+    AutoLock auto_lock(mobile_request_list_lock_);
     pool_state_ = TPoolState::STOPPED;
     LOG4CXX_DEBUG(logger_, "Broadcasting STOP signal to all threads...");
     cond_var_.Broadcast();  // notify all threads we are shutting down
   }
   for (size_t i = 0; i < pool_.size(); i++) {
-    Thread* thread = pool_[i];
+    threads::Thread* thread = pool_[i];
     thread->join();
     delete thread->delegate();
     threads::DeleteThread(thread);
@@ -93,22 +91,15 @@ void RequestController::DestroyThreadpool() {
   pool_.clear();
 }
 
-RequestController::TResult RequestController::addMobileRequest(
-    const RequestPtr request,
-    const mobile_apis::HMILevel::eType& hmi_level) {
-  if (!request.valid()) {
-    LOG4CXX_ERROR(logger_, "Null Pointer request");
-    cond_var_.NotifyOne();
-    return INVALID_DATA;
-  }
-
-  LOG4CXX_DEBUG(logger_, "ENTER correlation_id : " << request->correlation_id()
-                << "connection_key : " << request->connection_key());
+RequestController::TResult  RequestController::CheckPosibilitytoAdd(
+    const RequestPtr request) {
+  LOG4CXX_AUTO_TRACE(logger_);
   const uint32_t& app_hmi_level_none_time_scale =
       profile::Profile::instance()->app_hmi_level_none_time_scale();
 
-  const uint32_t& app_hmi_level_none_max_request_per_time_scale =
-      profile::Profile::instance()->app_hmi_level_none_time_scale_max_requests();
+  // app_hmi_level_none_max_request_per_time_scale
+  const uint32_t& hmi_level_none_count =
+     profile::Profile::instance()->app_hmi_level_none_time_scale_max_requests();
 
   const uint32_t& app_time_scale =
       profile::Profile::instance()->app_time_scale();
@@ -119,61 +110,92 @@ RequestController::TResult RequestController::addMobileRequest(
   const uint32_t& pending_requests_amount =
       profile::Profile::instance()->pending_requests_amount();
 
-  if (!CheckHMILevelTimeScaleMaxRequest(mobile_apis::HMILevel::HMI_NONE,
+  if (!CheckPendingRequestsAmount(pending_requests_amount)) {
+    LOG4CXX_ERROR(logger_, "Too many pending request");
+    return RequestController::TOO_MANY_PENDING_REQUESTS;
+  }
+
+  if (!waiting_for_response_.CheckHMILevelTimeScaleMaxRequest(
+                                        mobile_apis::HMILevel::HMI_NONE,
                                         request->connection_key(),
                                         app_hmi_level_none_time_scale,
-                                        app_hmi_level_none_max_request_per_time_scale)) {
+                                        hmi_level_none_count)) {
     LOG4CXX_ERROR(logger_, "Too many application requests in hmi level NONE");
     return RequestController::NONE_HMI_LEVEL_MANY_REQUESTS;
   }
-  if (!CheckTimeScaleMaxRequest(request->connection_key(),
+  if (!waiting_for_response_.CheckTimeScaleMaxRequest(request->connection_key(),
                                 app_time_scale,
                                 max_request_per_time_scale)) {
     LOG4CXX_ERROR(logger_, "Too many application requests");
     return RequestController::TOO_MANY_REQUESTS;
   }
-  if (!CheckPendingRequestsAmount(pending_requests_amount)) {
-    LOG4CXX_ERROR(logger_, "Too many pending request");
-    return RequestController::TOO_MANY_PENDING_REQUESTS;
+  return SUCCESS;
+}
+
+bool RequestController::CheckPendingRequestsAmount(
+    const uint32_t& pending_requests_amount) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  if (pending_requests_amount > 0) {
+    const size_t pending_requests_size = mobile_request_list_.size();
+    const bool available_to_add =
+        pending_requests_amount > pending_requests_size;
+    if (!available_to_add) {
+      LOG4CXX_WARN(logger_, "Pending requests count " << pending_requests_size
+                   << " exceed application limit " << pending_requests_amount);
+    }
+    return available_to_add;
   }
-  {
+  LOG4CXX_DEBUG(logger_, "CheckPendingRequestsAmount disabled");
+  return true;
+}
+
+RequestController::TResult RequestController::addMobileRequest(
+    const RequestPtr request,
+    const mobile_apis::HMILevel::eType& hmi_level) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  if (!request) {
+    LOG4CXX_ERROR(logger_, "Null Pointer request");
+    cond_var_.NotifyOne();
+    return INVALID_DATA;
+  }
+  LOG4CXX_DEBUG(logger_, "correlation_id : " << request->correlation_id()
+                << "connection_key : " << request->connection_key());
+  RequestController::TResult result = CheckPosibilitytoAdd(request);
+  if (SUCCESS ==result) {
     AutoLock auto_lock_list(mobile_request_list_lock_);
-    AutoLock auto_lock_set(pending_request_set_lock_);
     mobile_request_list_.push_back(request);
-    LOG4CXX_DEBUG(logger_,
-                  "new mobile_request_list_ size is " << mobile_request_list_.size()
-                  << ", pending_request_set_ size is " << pending_request_set_.size());
+    LOG4CXX_DEBUG(logger_, "Waiting for execution: "
+                  << mobile_request_list_.size());
   // wake up one thread that is waiting for a task to be available
   }
   cond_var_.NotifyOne();
-  return SUCCESS;
+  return result;
 }
 
 RequestController::TResult RequestController::addHMIRequest(
     const RequestPtr request) {
-  DCHECK(request.valid());
+  LOG4CXX_AUTO_TRACE(logger_);
+
   if (!request.valid()) {
     LOG4CXX_ERROR(logger_, "HMI request pointer is invalid");
     return RequestController::INVALID_DATA;
   }
-  LOG4CXX_DEBUG(logger_, "ENTER addHMIRequest : " << request->correlation_id());
+  LOG4CXX_DEBUG(logger_, " correlation_id : " << request->correlation_id());
 
   const uint32_t timeout_in_seconds =
       request->default_timeout() / date_time::DateTime::MILLISECONDS_IN_SECOND;
-  RequestInfoPtr request_info_ptr =
-      new HMIRequestInfo(request,
-                         timeout_in_seconds);
+  RequestInfoPtr request_info_ptr(new HMIRequestInfo(request,
+                                                     timeout_in_seconds));
 
   if (0 != timeout_in_seconds) {
-    AutoLock auto_lock(pending_request_set_lock_);
-    pending_request_set_.insert(request_info_ptr);
-    LOG4CXX_INFO(logger_, "pending_request_set_ size is "
-                 << pending_request_set_.size());
-    UpdateTimer();
+    waiting_for_response_.Add(request_info_ptr);
+    LOG4CXX_INFO(logger_, "Waiting for response cont:"
+                 << waiting_for_response_.Size());
   } else {
     LOG4CXX_INFO(logger_, "Default timeout was set to 0."
                  "RequestController will not track timeout of this request.");
   }
+  UpdateTimer();
   return RequestController::SUCCESS;
 }
 
@@ -182,76 +204,58 @@ void RequestController::addNotification(const RequestPtr ptr) {
   notification_list_.push_back(ptr);
 }
 
-void RequestController::removeNotification(const commands::Command* notification) {
+void RequestController::removeNotification(
+    const commands::Command* notification) {
   LOG4CXX_AUTO_TRACE(logger_);
   std::list<RequestPtr>::iterator it = notification_list_.begin();
   for (; notification_list_.end() != it; ) {
     if (it->get() == notification) {
       notification_list_.erase(it++);
+      LOG4CXX_DEBUG(logger_, "Notification removed");
       break;
     } else {
       ++it;
     }
+  }
+  LOG4CXX_DEBUG(logger_, "Cant find notification");
+}
+
+void RequestController::terminateRequest(
+    const uint32_t& correlation_id,
+    const uint32_t& connection_key) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(logger_, "correlation_id = " << correlation_id
+                << " connection_key = " << connection_key);
+  RequestInfoPtr request = waiting_for_response_.Find(connection_key,
+                                                      correlation_id);
+  if (request) {
+    waiting_for_response_.Erase(request);
+    UpdateTimer();
+  } else {
+    LOG4CXX_WARN(logger_, "Request not found in waiting_for_response_ : "
+                 << correlation_id);
   }
 }
 
 void RequestController::terminateMobileRequest(
     const uint32_t& mobile_correlation_id,
     const uint32_t& connection_key) {
-  AutoLock auto_lock(pending_request_set_lock_);
-  LOG4CXX_TRACE(logger_, "ENTER corr_id = " << mobile_correlation_id
-                << " connection_key = " << connection_key);
-  RequestInfoSet::iterator it = pending_request_set_.begin();
-  for (; pending_request_set_.end() != it; ++it) {
-    RequestInfoPtr request_info = (*it);
-    if ((false == request_info.valid()) ||
-        RequestInfo::MobileRequest != request_info->requst_type()||
-        connection_key != request_info->app_id()) {
-      continue;
-    }
-    if (mobile_correlation_id == request_info->requestId()) {
-      request_info->request()->CleanUp();
-      pending_request_set_.erase(it);
-      LOG4CXX_INFO(logger_, "Mobile request terminated: " << mobile_correlation_id <<
-                   " pending_request_set_ size : " << pending_request_set_.size());
-      UpdateTimer();
-      return;
-    }
-  }
-  LOG4CXX_INFO(logger_, "Mobile request NOT terminated: " << mobile_correlation_id <<
-                        " pending_request_set_ size : " << pending_request_set_.size());
+  LOG4CXX_AUTO_TRACE(logger_);
+  terminateRequest(mobile_correlation_id, connection_key);
 }
 
 void RequestController::terminateHMIRequest(const uint32_t &correlation_id) {
-  AutoLock auto_lock(pending_request_set_lock_);
-  LOG4CXX_TRACE(logger_, "ENTER correlation_id = " << correlation_id);
-  RequestInfoSet::iterator it = pending_request_set_.begin();
-  for (; pending_request_set_.end() != it; ++it) {
-    RequestInfoPtr request_info = (*it);
-    if ((false == request_info.valid()) ||
-        RequestInfo::HMIRequest != request_info->requst_type() ||
-        (0 != request_info->app_id())) {
-      continue;
-    }
-    if (correlation_id == request_info->requestId()) {
-      request_info->request()->CleanUp();
-      pending_request_set_.erase(it);
-      LOG4CXX_DEBUG(logger_, "HMI request terminated: " << correlation_id);
-      UpdateTimer();
-      return;
-    }
-  }
-  LOG4CXX_INFO(logger_, "HMI request NOT terminated: " << correlation_id <<
-                        " pending_request_set_ size : " << pending_request_set_.size());
+  LOG4CXX_AUTO_TRACE(logger_);
+  terminateRequest(correlation_id, RequestInfo::HmiConnectoinKey);
 }
 
-void RequestController::terminateAppRequests(
+void RequestController::terminateWaitingForExecutionAppRequests(
     const uint32_t& app_id) {
-  LOG4CXX_INFO(logger_, "ENTER terminate all app requests : " << app_id
-                        << " mobile_request_list_ size is : " << mobile_request_list_.size()
-                        << " pending_request_set_ size is : " << pending_request_set_.size());
-
-  AutoLock mobile_requests_auto_lock(mobile_request_list_lock_);
+  LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(logger_, "app_id: "  << app_id
+                << "Waiting for execution" << mobile_request_list_.size());
+  AutoLock
+      auto_lock(mobile_request_list_lock_);
   std::list<RequestPtr>::iterator request_it = mobile_request_list_.begin();
   while (mobile_request_list_.end() != request_it) {
     RequestPtr request = (*request_it);
@@ -261,109 +265,72 @@ void RequestController::terminateAppRequests(
       ++request_it;
     }
   }
+  LOG4CXX_DEBUG(logger_, "Waiting for execution "
+                << mobile_request_list_.size());
+}
 
-  AutoLock auto_lock(pending_request_set_lock_);
-  RequestInfoSet::iterator it = pending_request_set_.begin();
-  while (pending_request_set_.end() != it) {
-    RequestInfoPtr request_info = (*it);
-    if ((false == request_info.valid()) ||
-        RequestInfo::MobileRequest != request_info->requst_type()) {
-      ++it;
-      continue;
-    }
+void RequestController::terminateWaitingForResponseAppRequests(
+    const uint32_t& app_id) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  waiting_for_response_.RemoveByConnectionKey(app_id);
+  LOG4CXX_DEBUG(logger_, "Waiting for response count : "
+                << waiting_for_response_.Size());
+}
 
-    if (request_info->app_id() == app_id) {
-      request_info->request()->CleanUp();
-      pending_request_set_.erase(it++);
-    } else {
-      ++it;
-    }
-  }
+void RequestController::terminateAppRequests(
+    const uint32_t& app_id) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(logger_, "app_id : " << app_id
+                << "Requests waiting for execution count : "
+                << mobile_request_list_.size()
+                << "Requests waiting for response count : "
+                << waiting_for_response_.Size());
 
-  LOG4CXX_INFO(logger_, "EXIT terminate all app requests : " << app_id
-                        << " mobile_request_list_ size is : " << mobile_request_list_.size()
-                        << " pending_request_set_ size is : " << pending_request_set_.size());
-
+  terminateWaitingForExecutionAppRequests(app_id);
+  terminateWaitingForResponseAppRequests(app_id);
   UpdateTimer();
 }
 
 void RequestController::terminateAllHMIRequests() {
   LOG4CXX_AUTO_TRACE(logger_);
-  AutoLock auto_lock(pending_request_set_lock_);
-  RequestInfoSet::iterator it = pending_request_set_.begin();
-  while (pending_request_set_.end() != it) {
-    RequestInfoPtr request_info = (*it);
-    if ((false == request_info.valid()) ||
-        RequestInfo::HMIRequest != request_info->requst_type()) {
-      ++it;
-      continue;
-    }
-    request_info->request()->CleanUp();
-    pending_request_set_.erase(it++);
-    LOG4CXX_INFO(logger_, "HMI request terminated: ");
-  }
+  terminateWaitingForResponseAppRequests(RequestInfo::HmiConnectoinKey);
 }
+
 void RequestController::terminateAllMobileRequests() {
   LOG4CXX_AUTO_TRACE(logger_);
-  AutoLock auto_lock(pending_request_set_lock_);
-  RequestInfoSet::iterator it = pending_request_set_.begin();
-  while (pending_request_set_.end() != it) {
-    RequestInfoPtr request_info = (*it);
-    if ((false == request_info.valid()) ||
-        RequestInfo::MobileRequest != request_info->requst_type()) {
-      ++it;
-      continue;
-    }
-    request_info->request()->CleanUp();
-    LOG4CXX_INFO(logger_, "Mobile request terminated: "
-                 <<  request_info->requestId());
-    pending_request_set_.erase(it++);
-  }
+  waiting_for_response_.RemoveMobileRequests();
+  LOG4CXX_DEBUG(logger_, "Mobile Requests waiting for response cleared");
+  AutoLock waiting_execution_auto_lock(mobile_request_list_lock_);
+  mobile_request_list_.clear();
+  LOG4CXX_DEBUG(logger_, "Mobile Requests waiting for execution cleared");
   UpdateTimer();
 }
 
 void RequestController::updateRequestTimeout(
     const uint32_t& app_id,
-    const uint32_t& mobile_correlation_id,
+    const uint32_t& correlation_id,
     const uint32_t& new_timeout) {
-  LOG4CXX_TRACE(logger_, " ENTER app_id : " << app_id
-                << " mobile_correlation_id : " << mobile_correlation_id
+  LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(logger_, "app_id : " << app_id
+                << " mobile_correlation_id : " << correlation_id
                 << " new_timeout : " << new_timeout);
-  AutoLock auto_lock(pending_request_set_lock_);
-  RequestInfoSet::iterator it = pending_request_set_.begin();
-  RequestInfoPtr request_info;
-  for (; pending_request_set_.end() != it; ++it) {
-    request_info = *it;
-    if (false == request_info.valid()) {
-      LOG4CXX_ERROR(logger_, "Invalid request pointer in pending_request_set_");
-      continue;
-    }
-    if (RequestInfo::MobileRequest != request_info->requst_type()) {
-      continue;
-    }
-    if (app_id == request_info->app_id() &&
-        mobile_correlation_id == request_info->requestId()) {
-      break;
-    }
-  }
-
-  if (it != pending_request_set_.end()) {
-    DCHECK(request_info.valid());
-
-    uint32_t timeout_in_seconds = new_timeout/date_time::DateTime::MILLISECONDS_IN_SECOND;
+  RequestInfoPtr request_info =
+      waiting_for_response_.Find(app_id, correlation_id);
+  if (request_info) {
+    uint32_t timeout_in_seconds =
+        new_timeout/date_time::DateTime::MILLISECONDS_IN_SECOND;
+    waiting_for_response_.Erase(request_info);
     request_info->updateTimeOut(timeout_in_seconds);
-    pending_request_set_.erase(it);
-    pending_request_set_.insert(request_info);
-    // erase and insert need to update ordering of set
+    waiting_for_response_.Add(request_info);
     UpdateTimer();
-    LOG4CXX_ERROR(logger_, "Timeout updated for "
+    LOG4CXX_INFO(logger_, "Timeout updated for "
                   << " app_id " << app_id
-                  << " mobile_correlation_id " << mobile_correlation_id
+                  << " correlation_id " << correlation_id
                   << " new_timeout " << new_timeout);
   } else {
     LOG4CXX_ERROR(logger_, "Can't find request with "
                   << " app_id " << app_id
-                  << " mobile_correlation_id " << mobile_correlation_id);
+                  << " correlation_id " << correlation_id);
   }
 }
 
@@ -386,44 +353,30 @@ bool RequestController::IsLowVoltage() {
 }
 
 void RequestController::onTimer() {
-  AutoLock auto_lock(pending_request_set_lock_);
-  LOG4CXX_TRACE(logger_, "ENTER pending_request_set_ size :"
-                << pending_request_set_.size());
-  RequestInfoSet::iterator probably_expired = pending_request_set_.begin();
-  while (probably_expired != pending_request_set_.end()) {
-    RequestInfoPtr request = *probably_expired;
-    if (false == request.valid()) {
-      LOG4CXX_ERROR(logger_, "Invalid pointer in pending_request_set_");
-      pending_request_set_.erase(probably_expired);
-      probably_expired =  pending_request_set_.begin();
-      continue;
+  LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(logger_, "ENTER Waiting fore response count: "
+                << waiting_for_response_.Size());
+  RequestInfoPtr probably_expired =
+      waiting_for_response_.FrontWithNotNullTimeout();
+  while (probably_expired && probably_expired->isExpired()) {
+    LOG4CXX_INFO(logger_, "Timeout for "
+                 << (RequestInfo::HMIRequest
+                     == probably_expired ->requst_type() ? "HMI": "Mobile")
+                 << " request id: "
+                 << probably_expired ->requestId()
+                 << " connection_key: " <<
+                 probably_expired ->app_id() << " is expired");
+    probably_expired->request()->onTimeOut();
+    if (RequestInfo::HmiConnectoinKey == probably_expired ->app_id()) {
+      LOG4CXX_DEBUG(logger_, "Erase HMI request: "
+                    << probably_expired ->requestId());
+      waiting_for_response_.Erase(probably_expired);
     }
-    if (request->timeout_sec() == 0) {
-      // FIXME(EZamakhov): inf loop on true
-      LOG4CXX_DEBUG(logger_, "Ignore " << request->requestId());
-      ++probably_expired;
-      // This request should not be observed for TIME_OUT
-      continue;
-    }
-    if (request->isExpired()) {
-      LOG4CXX_INFO(logger_, "Timeout for "
-                   << (RequestInfo::HMIRequest == request->requst_type() ? "HMI": "Mobile")
-                   << " request. id: " << request->requestId()
-                   << " connection_key: " << request->app_id() << " is expired");
-
-      // Mobile Requests will  be erased by TIME_OUT response;
-      request->request()->onTimeOut();
-      if (RequestInfo::HMIRequest == request->requst_type()) {
-        pending_request_set_.erase(probably_expired);
-      }
-      // If request is ersed by response probably_expired iterator is invalid
-      // If request timeout updated, set probably_expired iterator is invalid too.
-      probably_expired =  pending_request_set_.begin();
-    } else {
-      ++probably_expired;
-    }
+    probably_expired = waiting_for_response_.FrontWithNotNullTimeout();
   }
   UpdateTimer();
+  LOG4CXX_DEBUG(logger_, "EXIT Waiting for response count : "
+                << waiting_for_response_.Size());
 }
 
 RequestController::Worker::Worker(RequestController* requestController)
@@ -436,10 +389,10 @@ RequestController::Worker::~Worker() {
 
 void RequestController::Worker::threadMain() {
   LOG4CXX_AUTO_TRACE(logger_);
-  sync_primitives::AutoLock auto_lock(thread_lock_);
+  AutoLock auto_lock(thread_lock_);
   while (!stop_flag_) {
     // Try to pick a request
-    sync_primitives::AutoLock auto_lock(request_controller_->mobile_request_list_lock_);
+    AutoLock auto_lock(request_controller_->mobile_request_list_lock_);
 
     while ((request_controller_->pool_state_ != TPoolState::STOPPED) &&
            (request_controller_->mobile_request_list_.empty())) {
@@ -465,21 +418,21 @@ void RequestController::Worker::threadMain() {
     bool init_res = request->Init();  // to setup specific default timeout
 
     const uint32_t timeout_in_seconds =
-        request->default_timeout() / date_time::DateTime::MILLISECONDS_IN_SECOND;
+       request->default_timeout() / date_time::DateTime::MILLISECONDS_IN_SECOND;
     RequestInfoPtr request_info_ptr(new MobileRequestInfo(request,
                                                           timeout_in_seconds));
 
-    request_controller_->pending_request_set_lock_.Acquire();
-    request_controller_->pending_request_set_.insert(request_info_ptr);
+    request_controller_->waiting_for_response_.Add(request_info_ptr);
     if (0 != timeout_in_seconds) {
-      LOG4CXX_INFO(logger_, "Execute MobileRequest corr_id = " << request_info_ptr->requestId() <<
+      LOG4CXX_INFO(logger_, "Execute MobileRequest corr_id = "
+                   << request_info_ptr->requestId() <<
                             " with timeout: " << timeout_in_seconds);
       request_controller_->UpdateTimer();
     } else {
       LOG4CXX_INFO(logger_, "Default timeout was set to 0."
                    "RequestController will not track timeout of this request.");
     }
-    request_controller_->pending_request_set_lock_.Release();
+
     AutoUnlock unlock(auto_lock);
 
     // execute
@@ -496,113 +449,30 @@ void RequestController::Worker::exitThreadMain() {
   // FIXME (dchmerev@luxoft.com): There is no waiting
 }
 
-bool RequestController::CheckTimeScaleMaxRequest(
-    const uint32_t& app_id,
-    const uint32_t& app_time_scale,
-    const uint32_t& max_request_per_time_scale) {
-  LOG4CXX_AUTO_TRACE(logger_);
-  if (max_request_per_time_scale > 0
-      && app_time_scale > 0) {
-    AutoLock auto_lock(pending_request_set_lock_);
-    TimevalStruct end = date_time::DateTime::getCurrentTime();
-    TimevalStruct start = {0, 0};
-    start.tv_sec = end.tv_sec - app_time_scale;
-
-    TimeScale scale(start, end, app_id);
-    const uint32_t count = std::count_if(pending_request_set_.begin(),
-                                         pending_request_set_.end(), scale);
-    if (count >= max_request_per_time_scale) {
-      LOG4CXX_WARN(logger_, "Processing requests count " << count <<
-                   " exceed application limit " << max_request_per_time_scale);
-      return false;
-    }
-    LOG4CXX_DEBUG(logger_, "Requests count " << count);
-  } else {
-    LOG4CXX_DEBUG(logger_, "CheckTimeScaleMaxRequest disabled");
-  }
-  return true;
-}
-
-bool RequestController::CheckHMILevelTimeScaleMaxRequest(
-    const mobile_apis::HMILevel::eType& hmi_level,
-    const uint32_t& app_id,
-    const uint32_t& app_time_scale,
-    const uint32_t& max_request_per_time_scale) {
-  LOG4CXX_AUTO_TRACE(logger_);
-  if (max_request_per_time_scale > 0 &&
-      app_time_scale > 0) {
-    AutoLock auto_lock(pending_request_set_lock_);
-    TimevalStruct end = date_time::DateTime::getCurrentTime();
-    TimevalStruct start = {0, 0};
-    start.tv_sec = end.tv_sec - app_time_scale;
-
-    HMILevelTimeScale scale(start, end, app_id, hmi_level);
-    const uint32_t count = std::count_if(pending_request_set_.begin(),
-                                         pending_request_set_.end(), scale);
-    if (count >= max_request_per_time_scale) {
-      LOG4CXX_WARN(logger_, "Processing requests count " << count
-                   << " exceed application limit " << max_request_per_time_scale
-                   << " in hmi level " << hmi_level);
-      return false;
-    }
-    LOG4CXX_DEBUG(logger_, "Requests count " << count);
-  } else {
-    LOG4CXX_DEBUG(logger_, "CheckHMILevelTimeScaleMaxRequest disabled");
-  }
-  return true;
-}
-
-bool RequestController::CheckPendingRequestsAmount(
-    const uint32_t& pending_requests_amount) {
-  LOG4CXX_AUTO_TRACE(logger_);
-  if (pending_requests_amount > 0) {
-    AutoLock auto_lock(mobile_request_list_lock_);
-    const size_t pending_requests_size = mobile_request_list_.size();
-    const bool available_to_add =
-        pending_requests_amount > pending_requests_size;
-    if(!available_to_add) {
-      LOG4CXX_WARN(logger_, "Pending requests count " << pending_requests_size
-                   << " exceed application limit " << pending_requests_amount);
-    }
-    return available_to_add;
-  }
-  LOG4CXX_DEBUG(logger_, "CheckPendingRequestsAmount disabled");
-  return true;
-}
-
 void RequestController::UpdateTimer() {
   LOG4CXX_AUTO_TRACE(logger_);
-  if(pending_request_set_.empty()) {
-    LOG4CXX_DEBUG(logger_, "Sleep for default sleep time "
-                 << dafault_sleep_time_ << " secs");
-    timer_.updateTimeOut(dafault_sleep_time_);
-    return;
-  }
-
-  RequestInfoSet::iterator it = pending_request_set_.begin();
-  while (it != pending_request_set_.end()) {
-    RequestInfoPtr request = *it;
-    DCHECK(request.valid());
-    // This request should not be observed for TIME_OUT
-    if (0 != request->timeout_sec()) {
-      const TimevalStruct current_time = date_time::DateTime::getCurrentTime();
-      const TimevalStruct end_time = request->end_time();
-      if (current_time < end_time) {
-        const uint64_t secs = end_time.tv_sec - current_time.tv_sec;
-        LOG4CXX_DEBUG(logger_, "Sleep for " << secs << " secs");
-        // Timeout for bigger than 5 minutes is a mistake
-        DCHECK(secs < 300);
-        timer_.updateTimeOut(secs);
-      } else {
-        LOG4CXX_DEBUG(logger_, "Request is expired: "
-                      << end_time.tv_sec << " - "
-                      << current_time.tv_sec << " >= "
-                      << request->timeout_sec());
-        timer_.updateTimeOut(0);
-      }
-      return;
+  RequestInfoPtr front = waiting_for_response_.FrontWithNotNullTimeout();
+  if (front) {
+    const TimevalStruct current_time = date_time::DateTime::getCurrentTime();
+    const TimevalStruct end_time = front->end_time();
+    if (current_time < end_time) {
+      const uint64_t secs = end_time.tv_sec - current_time.tv_sec;
+      LOG4CXX_DEBUG(logger_, "Sleep for " << secs << " secs");
+      // Timeout for bigger than 5 minutes is a mistake
+      timer_.updateTimeOut(secs);
+    } else {
+      LOG4CXX_WARN(logger_, "Request app_id = " << front->app_id()
+                   << "correlation_id = " << front->requestId()
+                   << "is expired a long time ago: "
+                   << end_time.tv_sec << " - "
+                   << current_time.tv_sec << " >= "
+                   << front->timeout_sec());
+      timer_.updateTimeOut(0);
     }
-    ++it;
+  } else {
+    LOG4CXX_DEBUG(logger_, "Sleep for default sleep time "
+                  << dafault_sleep_time_ << " secs");
+    timer_.updateTimeOut(dafault_sleep_time_);
   }
 }
 

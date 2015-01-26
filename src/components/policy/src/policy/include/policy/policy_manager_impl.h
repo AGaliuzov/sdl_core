@@ -58,7 +58,7 @@ class PolicyManagerImpl : public PolicyManager {
     virtual bool InitPT(const std::string& file_name);
     virtual bool LoadPT(const std::string& file, const BinaryMessage& pt_content);
     virtual bool ResetPT(const std::string& file_name);
-    virtual std::string GetUpdateUrl(int service_type);
+    virtual std::string GetUpdateUrl(int service_type) const;
     virtual void GetUpdateUrls(int service_type, EndpointUrls& end_points);
     virtual void RequestPTUpdate();
     virtual void CheckPermissions(const PTString& app_id,
@@ -139,8 +139,7 @@ class PolicyManagerImpl : public PolicyManager {
                      int32_t timespan_seconds);
     // Interface StatisticsManager (end)
 
-    AppPermissions GetAppPermissionsChanges(const std::string& device_id,
-                                            const std::string& policy_app_id);
+    AppPermissions GetAppPermissionsChanges(const std::string& policy_app_id);
     void RemovePendingPermissionChanges(const std::string& app_id);
 
     void SendNotificationOnPermissionsUpdated(const std::string& application_id);
@@ -163,12 +162,13 @@ class PolicyManagerImpl : public PolicyManager {
     virtual bool IsPredataPolicy(const std::string& policy_app_id);
     void set_cache_manager(CacheManagerInterface* cache_manager);
 
+    virtual std::string RemoteAppsUrl() const;
+
   protected:
     virtual utils::SharedPtr<policy_table::Table> Parse(
         const BinaryMessage& pt_content);
 
   private:
-    bool HasConsentedDevice();
     void CheckTriggers();
     /*
      * @brief Checks policy table update along with current data for any changes
@@ -250,9 +250,11 @@ class PolicyManagerImpl : public PolicyManager {
                 const std::string& policy_app_id,
                 const std::vector<FunctionalGroupPermission>& current_permissions);
 
-    virtual void StartPTExchange();
+    virtual void StartPTExchange();    
     virtual bool ExceededDays();
     virtual bool ExceededIgnitionCycles();
+    bool IsPTValid(utils::SharedPtr<policy_table::Table> policy_table,
+                   policy_table::PolicyTableType type) const;
 
     PolicyListener* listener_;
 

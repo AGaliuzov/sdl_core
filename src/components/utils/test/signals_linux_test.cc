@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,26 +30,26 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "application_manager/commands/hmi/ui_set_icon_request.h"
+#include <unistd.h>
+#include <assert.h>
+#include "gtest/gtest.h"
+#include "utils/signals.h"
 
-namespace application_manager {
+namespace test {
+namespace components {
+namespace utils {
 
-namespace commands {
-
-UISetIconRequest::UISetIconRequest(const MessageSharedPtr& message)
-    : RequestToHMI(message) {
+void handler(int sig) {
 }
 
-UISetIconRequest::~UISetIconRequest() {
+TEST(SignalsLinuxTest, SubscribeToTerminateSignal_Positive) {
+  ASSERT_TRUE(::utils::SubscribeToTerminateSignal(handler));
 }
 
-void UISetIconRequest::Run() {
-  LOG4CXX_AUTO_TRACE(logger_);
-
-  SendRequest();
+TEST(SignalsLinuxTest, SubscribeToFaultSignal_Positive) {
+  ASSERT_TRUE(::utils::SubscribeToFaultSignal(handler));
 }
 
-}  // namespace commands
-
-}  // namespace application_manager
-
+} // namespace utils
+} // namespace components
+} // namespace test

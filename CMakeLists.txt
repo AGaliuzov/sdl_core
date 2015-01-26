@@ -64,11 +64,9 @@ set(ENABLE_LOG_OPTION 	"$ENV{ENABLE_LOG}")
 set(ARCH_TYPE_OPTION	"$ENV{ARCH_TYPE}")
 set(POLICY_OPTION 	"$ENV{POLICY_TYPE}")
 set(SECURITY_OPTION 	"$ENV{SECURITY_MODE}")
-#<<<<<<< HEAD
 set(COMPONENTS_DIR ${CMAKE_SOURCE_DIR}/src/components)
-#=======
 set(SNAPSHOT_TAG 	"$ENV{SNAPSHOT_TAG}")
-#>>>>>>> develop
+
 
 
 if (ARCH_TYPE_OPTION)
@@ -662,6 +660,7 @@ add_subdirectory(./src/3rd_party-static)
 
 # --- Tools
 add_subdirectory(./tools)
+
 
 # --- Components
 add_subdirectory(./src/components)

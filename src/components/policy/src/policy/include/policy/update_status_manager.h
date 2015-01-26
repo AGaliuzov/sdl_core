@@ -1,4 +1,4 @@
-﻿#ifndef SRC_COMPONENTS_POLICY_INCLUDE_POLICY_UPDATE_STATUS_MANAGER_H
+#ifndef SRC_COMPONENTS_POLICY_INCLUDE_POLICY_UPDATE_STATUS_MANAGER_H
 #define SRC_COMPONENTS_POLICY_INCLUDE_POLICY_UPDATE_STATUS_MANAGER_H
 
 #include "policy/policy_types.h"
@@ -94,6 +94,11 @@ class UpdateStatusManager {
   void ScheduleUpdate();
 
   /**
+   * @brief ResetUpdateSchedule allows to reset all scheduled updates.
+   */
+  void ResetUpdateSchedule();
+
+  /**
    * @brief StringifiedUpdateStatus allows to obtain update status as a string.
    *
    * @return stringified update status.
@@ -138,6 +143,7 @@ private:
   PolicyListener* listener_;
   bool exchange_in_progress_;
   bool update_required_;
+  bool update_scheduled_;
   bool exchange_pending_;
   sync_primitives::Lock exchange_in_progress_lock_;
   sync_primitives::Lock update_required_lock_;

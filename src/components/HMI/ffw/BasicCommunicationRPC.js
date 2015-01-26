@@ -208,7 +208,7 @@ FFW.BasicCommunication = FFW.RPCObserver
 
                 if (response.id in SDL.SDLModel.userFriendlyMessagePull) {
                     var callbackObj = SDL.SDLModel.userFriendlyMessagePull[response.id];
-                    callbackObj.callbackFunc(response.result.messages, callbackObj.appID);
+                    callbackObj.callbackFunc(response.result.messages);
                     delete SDL.SDLModel.userFriendlyMessagePull[response.id];
                 }
             }
@@ -219,7 +219,16 @@ FFW.BasicCommunication = FFW.RPCObserver
 
                 if (response.id in SDL.SDLModel.activateAppRequestsList) {
 
-                    var appID = SDL.SDLModel.activateAppRequestsList[response.id];
+                    var appID = SDL.SDLModel.activateAppRequestsList[response.id].appID,
+                        popUp = SDL.SDLModel.activateAppRequestsList[response.id].popUp;
+
+                    popUp.deactivate();
+
+                    if (response.error && response.error.code === SDL.SDLModel.resultCode["APPLICATION_NOT_REGISTERED"]) {
+
+                        SDL.PopUp.create().appendTo('body').popupActivate("Activation FAILED!");
+                        return;
+                    }
 
                     if (!response.result.isSDLAllowed) {
 
@@ -360,7 +369,7 @@ FFW.BasicCommunication = FFW.RPCObserver
             }
 
             if (notification.method == this.onAppRegisteredNotification) {
-                SDL.SDLModel.onAppRegistered(notification.params);
+                SDL.SDLModel.onAppRegistered(notification.params.application);
                 this.OnFindApplications();
             }
 
@@ -421,6 +430,14 @@ FFW.BasicCommunication = FFW.RPCObserver
                     var message = "Was found " + request.params.applications.length + " apps";
 
                     SDL.PopUp.create().appendTo('body').popupActivate(message);
+
+                    for(var app in request.params.applications) {
+
+                        if (request.params.applications.hasOwnProperty(app)) {
+                            SDL.SDLModel.onAppRegistered(request.params.applications[app]);
+                        }
+                        //SDL.SDLController.registerApplication(request.params.applications[app], request.params.applications[app].isMediaApplication !== undefined ? request.params.applications[app].isMediaApplication : null);
+                    }
 
                     this.sendBCResult(SDL.SDLModel.resultCode["SUCCESS"],
                         request.id,
@@ -498,7 +515,10 @@ FFW.BasicCommunication = FFW.RPCObserver
 
             var itemIndex = this.client.generateId();
 
-            SDL.SDLModel.activateAppRequestsList[itemIndex] = appID;
+            SDL.SDLModel.activateAppRequestsList[itemIndex] = {
+                "appID": appID,
+                "popUp": SDL.PopUp.create().appendTo('body').popupActivate("Activation in progress...", null, true)
+            };
 
             Em.Logger.log("FFW.SDL.OnAppActivated: Request from HMI!");
 

@@ -272,7 +272,7 @@ class TransportAdapterImpl : public TransportAdapter,
    * @param device_handle Device unique identifier.
    * @param app_handle Handle of application.
    */
-  virtual void ConnectionCreated(Connection* connection,
+  virtual void ConnectionCreated(ConnectionSPtr connection,
                                  const DeviceUID& device_handle,
                                  const ApplicationHandle& app_handle);
 
@@ -413,13 +413,7 @@ class TransportAdapterImpl : public TransportAdapter,
   virtual TMMetricObserver* GetTimeMetricObserver();
 #endif  // TIME_TESTER
 
-#ifdef CUSTOMER_PASA
-  virtual TransportAdapter::Error AbortConnection(
-      const DeviceUID& device_handle, const ApplicationHandle& app_handle);
-#endif  // CUSTOMER_PASA
-
  protected:
-
   /**
    * @brief Store adapter state where applicable
    */
@@ -437,6 +431,13 @@ class TransportAdapterImpl : public TransportAdapter,
    */
   virtual bool ToBeAutoConnected(DeviceSptr device) const;
 
+
+  /**
+   * @brief Returns true if \a device is to be disconnected automatically when
+   * all applications will be closed
+   */
+  virtual bool ToBeAutoDisconnected(DeviceSptr device) const;
+
   /**
    * @brief Find connection that has state - ESTABLISHED.
    *
@@ -445,7 +446,7 @@ class TransportAdapterImpl : public TransportAdapter,
    *
    * @return pointer to the connection.
    */
-  Connection* FindEstablishedConnection(const DeviceUID& device_handle,
+  ConnectionSPtr FindEstablishedConnection(const DeviceUID& device_handle,
                                            const ApplicationHandle& app_handle) const;
 
  private:
@@ -463,6 +464,15 @@ class TransportAdapterImpl : public TransportAdapter,
   void RemoveDevice(const DeviceUID& device_handle);
 
   /**
+   * Checks whether application is single active on device
+   * @param device_uid
+   * @param app_uid
+   * @return true if this application is the single application on device
+   */
+  bool IsSingleApplication(const DeviceUID& device_uid,
+                           const ApplicationHandle& app_uid);
+
+  /**
    * @brief Listener for device adapter notifications.
    **/
   TransportAdapterListenerList listeners_;
@@ -476,7 +486,7 @@ class TransportAdapterImpl : public TransportAdapter,
    * @brief Structure that holds information about connection.
    */
   struct ConnectionInfo {
-    Connection* connection;
+    ConnectionSPtr connection;
     DeviceUID device_id;
     ApplicationHandle app_handle;
     enum {

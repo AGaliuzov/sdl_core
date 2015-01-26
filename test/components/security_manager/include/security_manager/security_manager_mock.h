@@ -96,7 +96,12 @@ namespace security_manager_test {
     MOCK_METHOD2(IsHeartBeatSupported,
                  bool( transport_manager::ConnectionUID connection_handle,
                        uint8_t session_id));
+    MOCK_METHOD3(ProtocolVersionUsed,
+                 bool(uint32_t connection_id, uint8_t session_id,
+                      uint8_t& protocol_version));
+
   };
+
   /*
    * MOCK implementation of protocol_handler::ProtocolObserver interface
    */

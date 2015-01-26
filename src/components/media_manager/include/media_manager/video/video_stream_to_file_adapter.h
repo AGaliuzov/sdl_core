@@ -42,6 +42,8 @@
 
 namespace media_manager {
 
+using ::utils::MessageQueue;
+
 class VideoStreamToFileAdapter : public MediaAdapterImpl {
   public:
     explicit VideoStreamToFileAdapter(const std::string& file_name);

@@ -50,11 +50,14 @@ const char default_app_id[] = "default";
 
 
 const char msg_params[] = "msg_params";
+const char method_name[] = "methodName";
 const char info[] = "info";
 const char app_id[] = "appID";
 const char hmi_app_id[] = "hmiAppID";
 const char device_mac[] = "deviceMAC";
 const char url[] = "url";
+const char urlSchema[] = "urlSchema";
+const char packageName[] = "packageName";
 const char cmd_icon[] = "cmdIcon";
 const char result_code[] = "resultCode";
 const char success[] = "success";

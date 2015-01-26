@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
@@ -115,9 +115,10 @@ ApplicationImpl::ApplicationImpl(uint32_t application_id,
       {date_time::DateTime::getCurrentTime(), 0};
 
 
-  set_mobile_app_id(smart_objects::SmartObject(mobile_app_id));
+  set_mobile_app_id(mobile_app_id);
   set_name(app_name);
 
+  MarkUnregistered();
   // subscribe application to custom button by default
   SubscribeToButton(mobile_apis::ButtonName::CUSTOM_BUTTON);
 
@@ -232,7 +233,7 @@ const std::string& ApplicationImpl::name() const {
 }
 
 const std::string ApplicationImpl::folder_name() const {
-  return name() + mobile_app_id()->asString();
+  return name() + mobile_app_id();
 }
 
 bool ApplicationImpl::is_media_application() const {
@@ -622,7 +623,7 @@ bool ApplicationImpl::IsCommandLimitsExceeded(
   // commands per minute, e.g. 10 command per minute i.e. 1 command per 6 sec
   case POLICY_TABLE: {
     uint32_t cmd_limit = application_manager::MessageHelper::GetAppCommandLimit(
-          mobile_app_id_->asString());
+          mobile_app_id_);
 
     if (0 == cmd_limit) {
       return true;

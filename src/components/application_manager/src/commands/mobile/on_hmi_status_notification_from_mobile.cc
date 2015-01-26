@@ -31,43 +31,51 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_MOBILE_SET_ICON_RESPONSE_H_
-#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_MOBILE_SET_ICON_RESPONSE_H_
-
-#include "application_manager/commands/command_response_impl.h"
-#include "utils/macro.h"
+#include "application_manager/commands/mobile/on_hmi_status_notification_from_mobile.h"
+#include "application_manager/application_manager_impl.h"
+#include "application_manager/message_helper.h"
+#include "application_manager/message.h"
+#include "interfaces/MOBILE_API.h"
 
 namespace application_manager {
-
 namespace commands {
 
-/**
- * @brief SetIconResponse command class
- **/
-class SetIconResponse : public CommandResponseImpl {
- public:
-  /**
-   * @brief SetIconResponse class constructor
-   *
-   * @param message Incoming SmartObject message
-   **/
-  explicit SetIconResponse(const MessageSharedPtr& message);
+bool OnHMIStatusNotificationFromMobile::is_apps_requested_ = false;
 
-  /**
-   * @brief SetIconResponse class destructor
-   **/
-  virtual ~SetIconResponse();
+OnHMIStatusNotificationFromMobile::OnHMIStatusNotificationFromMobile(
+    const MessageSharedPtr& message)
+    : CommandNotificationFromMobileImpl(message) {
+}
 
-  /**
-   * @brief Execute command
-   **/
-  virtual void Run();
+OnHMIStatusNotificationFromMobile::~OnHMIStatusNotificationFromMobile() {
+}
 
- private:
-  DISALLOW_COPY_AND_ASSIGN(SetIconResponse);
-};
+void OnHMIStatusNotificationFromMobile::Run() {
+  LOG4CXX_AUTO_TRACE(logger_);
+
+  (*message_)[strings::params][strings::message_type] = static_cast<int32_t> (
+      application_manager::MessageType::kNotification);
+  ApplicationSharedPtr app = ApplicationManagerImpl::instance()->application(
+        connection_key());
+  if (!app.valid()) {
+    LOG4CXX_ERROR(logger_,
+                  "OnHMIStatusNotificationFromMobile application doesn't exist");
+    return;
+  }
+
+  // In case if this notification will be received from mobile side, it will
+  // mean, that app is in foreground on mobile. This should trigger remote
+  // apps list query for SDL 4.0 app
+  if (is_apps_requested_) {
+    LOG4CXX_DEBUG(logger_, "Remote apps list had been requested already.");
+    return;
+  }
+  if (ProtocolVersion::kV4 == app->protocol_version()) {
+    MessageHelper::SendQueryApps(connection_key());
+    is_apps_requested_ = true;
+  }
+}
 
 }  // namespace commands
-}  // namespace application_manager
 
-#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_MOBILE_SET_ICON_RESPONSE_H_
+}  // namespace application_manager

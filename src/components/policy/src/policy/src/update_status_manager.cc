@@ -1,4 +1,4 @@
-﻿/*
+/*
  Copyright (c) 2014, Ford Motor Company
  All rights reserved.
 
@@ -42,6 +42,7 @@ UpdateStatusManager::UpdateStatusManager() :
   listener_(NULL),
   exchange_in_progress_(false),
   update_required_(false),
+  update_scheduled_(false),
   exchange_pending_(false),
   last_update_status_(policy::StatusUnknown) {
   update_status_thread_delegate_ = new UpdateThreadDelegate(this);
@@ -135,7 +136,7 @@ PolicyTableStatus UpdateStatusManager::GetUpdateStatus() const {
 }
 
 bool UpdateStatusManager::IsUpdateRequired() const {
-  return update_required_;
+  return update_required_ || update_scheduled_;
 }
 
 bool UpdateStatusManager::IsUpdatePending() const {
@@ -143,7 +144,12 @@ bool UpdateStatusManager::IsUpdatePending() const {
 }
 
 void UpdateStatusManager::ScheduleUpdate() {
-  set_update_required(true);
+  update_scheduled_ = true;
+  update_required_ = true;
+}
+
+void UpdateStatusManager::ResetUpdateSchedule() {
+  update_scheduled_ = false;
 }
 
 std::string UpdateStatusManager::StringifiedUpdateStatus() const {

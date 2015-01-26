@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -34,6 +34,7 @@
 #include <string>
 #include <list>
 #include <algorithm>
+#include <memory>
 
 #include "connection_handler/connection_handler_impl.h"
 #include "transport_manager/info.h"
@@ -389,13 +390,16 @@ uint32_t ConnectionHandlerImpl::OnSessionEndedCallback(
     const protocol_handler::ServiceType &service_type) {
   LOG4CXX_TRACE(logger_, "ConnectionHandlerImpl::OnSessionEndedCallback()");
 
-  sync_primitives::AutoLock lock(connection_list_lock_);
+  connection_list_lock_.Acquire();
   ConnectionList::iterator it = connection_list_.find(connection_handle);
   if (connection_list_.end() == it) {
     LOG4CXX_WARN(logger_, "Unknown connection!");
     return 0;
   }
-  Connection *connection = it->second;
+  std::pair<int32_t, Connection*> connection_item = *it;
+  connection_list_lock_.Release();
+
+  Connection *connection = connection_item.second;
   const uint32_t session_key = KeyFromPair(connection_handle, session_id);
 
   if (protocol_handler::kRpc == service_type) {
@@ -790,7 +794,7 @@ void ConnectionHandlerImpl::SetHeartBeatTimeout(uint32_t connection_key,
   sync_primitives::AutoLock lock(connection_list_lock_);
   ConnectionList::iterator it = connection_list_.find(connection_handle);
   if (connection_list_.end() != it) {
-    it->second->SetHeartBeatTimeout(timeout);
+    it->second->SetHeartBeatTimeout(timeout, session_id);
   }
 }
 
@@ -818,16 +822,18 @@ void ConnectionHandlerImpl::OnConnectionEnded(
   LOG4CXX_INFO(logger_, "Delete Connection: " << static_cast<int32_t>(connection_id)
                << " from the list.");
 
-  sync_primitives::AutoLock lock(connection_list_lock_);
+  connection_list_lock_.Acquire();
   ConnectionList::iterator itr = connection_list_.find(connection_id);
   if (connection_list_.end() == itr) {
     LOG4CXX_ERROR(logger_, "Connection not found!");
     return;
   }
+  std::auto_ptr<Connection> connection(itr->second);
+  connection_list_.erase(itr);
+  connection_list_lock_.Release();
 
   sync_primitives::AutoLock lock2(connection_handler_observer_lock_);
-  if (connection_handler_observer_) {
-    const Connection *connection = itr->second;
+  if (connection_handler_observer_ && connection.get() != NULL) {
     const SessionMap session_map = connection->session_map();
 
     for (SessionMap::const_iterator session_it = session_map.begin();
@@ -841,13 +847,11 @@ void ConnectionHandlerImpl::OnConnectionEnded(
       }
     }
   }
-  delete itr->second;
-  connection_list_.erase(itr);
 }
 
 void ConnectionHandlerImpl::BindProtocolVersionWithSession(
     uint32_t connection_key, uint8_t protocol_version) {
-  LOG4CXX_INFO(logger_, "ConnectionHandlerImpl::BindProtocolVersionWithSession()");
+  LOG4CXX_AUTO_TRACE(logger_);
   uint32_t connection_handle = 0;
   uint8_t session_id = 0;
   PairFromKey(connection_key, &connection_handle, &session_id);
@@ -861,7 +865,7 @@ void ConnectionHandlerImpl::BindProtocolVersionWithSession(
 
 bool ConnectionHandlerImpl::IsHeartBeatSupported(
     transport_manager::ConnectionUID connection_handle,uint8_t session_id) {
-  LOG4CXX_INFO(logger_, "ConnectionHandlerImpl::IsHeartBeatSupported()");
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(connection_list_lock_);
   uint32_t connection = static_cast<uint32_t>(connection_handle);
   ConnectionList::iterator it = connection_list_.find(connection);
@@ -870,6 +874,18 @@ bool ConnectionHandlerImpl::IsHeartBeatSupported(
     return false;
   }
   return it->second->SupportHeartBeat(session_id);
+}
+
+bool ConnectionHandlerImpl::ProtocolVersionUsed(uint32_t connection_id,
+		  uint8_t session_id, uint8_t& protocol_version) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  sync_primitives::AutoLock lock(connection_list_lock_);
+  ConnectionList::iterator it = connection_list_.find(connection_id);
+  if (connection_list_.end() != it) {
+    return it->second->ProtocolVersion(session_id, protocol_version);
+  }
+  LOG4CXX_WARN(logger_, "Connection not found !");
+  return false;
 }
 
 #ifdef BUILD_TESTS

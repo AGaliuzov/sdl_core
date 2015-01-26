@@ -12,7 +12,7 @@ include $(PRJ_ROOT)cfg/depends.mk
 COMPONENT_NAME = SmartDeviceLink
 
 DEFS += \
-	-Wc,-std=gnu++0x \
+	-std=gnu++0x \
 	-DEXTENDED_POLICY \
 	-DENABLE_LOG
 
@@ -36,27 +36,27 @@ library:
 	@echo "***************************************************************************"
 	@echo "Make $@ $(COMPONENT_NAME) beginning..."
 	@echo "***************************************************************************"
-	$(MAKE) -C 3rd_party-static/encryption/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C 3rd_party-static/jsoncpp/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C 3rd_party-static/MessageBroker/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C 3rd_party/log4cxx OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/interfaces OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/utils/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/media_manager/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/smart_objects/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/config_profile/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/hmi_message_handler/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/formatters/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/connection_handler/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/protocol/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/protocol_handler/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/transport_manager/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/policy/src/policy/qdb_wrapper/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/policy/src/policy/policy_table/table_struct_ext OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/policy/src/policy/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/application_manager/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/resumption/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C plugins/appenders OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
+	$(MAKE) -C 3rd_party-static/encryption/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C 3rd_party-static/jsoncpp/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C 3rd_party-static/MessageBroker/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C 3rd_party/log4cxx OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/interfaces OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/utils/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/media_manager/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/smart_objects/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/config_profile/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/hmi_message_handler/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/formatters/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/connection_handler/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/protocol/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/protocol_handler/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/transport_manager/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/policy/src/policy/qdb_wrapper/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/policy/src/policy/policy_table/table_struct_ext OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/policy/src/policy/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/application_manager/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/resumption/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C plugins/appenders OPTIMIZATION=NONE TARGET_FLG= $@
 	@echo "***************************************************************************"
 	@echo "Make $@ $(COMPONENT_NAME) finished."
 	@echo "***************************************************************************"
@@ -67,7 +67,7 @@ binary:
 	@echo "***************************************************************************"
 	@echo "Make $@ $(COMPONENT_NAME) beginning..."
 	@echo "***************************************************************************"
-	$(MAKE) -C appMain OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
+	$(MAKE) -C appMain OPTIMIZATION=NONE TARGET_FLG= $@
 	@echo "***************************************************************************"
 	@echo "Make $@ $(COMPONENT_NAME) finished."
 	@echo "***************************************************************************"
@@ -80,27 +80,27 @@ clean lint metrics:
 	@echo "***************************************************************************"
 	@echo "Make $@ $(COMPONENT_NAME) beginning..."
 	@echo "***************************************************************************"
-	$(MAKE) -C 3rd_party-static/encryption/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C 3rd_party-static/jsoncpp/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C 3rd_party-static/MessageBroker/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C 3rd_party/log4cxx OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/interfaces OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/utils/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/smart_objects/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/config_profile/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@	
-	$(MAKE) -C components/hmi_message_handler/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/formatters/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/connection_handler/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/protocol_handler/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/protocol/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/transport_manager/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/policy/src/policy/qdb_wrapper/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/policy/src/policy/policy_table/table_struct_ext OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/policy/src/policy/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/application_manager/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/media_manager/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/resumption/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@	
-	$(MAKE) -C appMain OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
+	$(MAKE) -C 3rd_party-static/encryption/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C 3rd_party-static/jsoncpp/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C 3rd_party-static/MessageBroker/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C 3rd_party/log4cxx OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/interfaces OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/utils/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/smart_objects/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/config_profile/src OPTIMIZATION=NONE TARGET_FLG= $@	
+	$(MAKE) -C components/hmi_message_handler/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/formatters/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/connection_handler/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/protocol_handler/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/protocol/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/transport_manager/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/policy/src/policy/qdb_wrapper/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/policy/src/policy/policy_table/table_struct_ext OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/policy/src/policy/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/application_manager/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/media_manager/src OPTIMIZATION=NONE TARGET_FLG= $@
+	$(MAKE) -C components/resumption/src OPTIMIZATION=NONE TARGET_FLG= $@	
+	$(MAKE) -C appMain OPTIMIZATION=NONE TARGET_FLG= $@
 	@echo "***************************************************************************"
 	@echo "Make $@ $(COMPONENT_NAME) finished."
 	@echo "***************************************************************************"

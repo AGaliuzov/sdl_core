@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -193,6 +193,7 @@ class ApplicationManagerImpl : public ApplicationManager,
   MOCK_METHOD1(RegisterApplication,
                 ApplicationSharedPtr(const utils::SharedPtr<smart_objects::SmartObject>&));
   MOCK_METHOD0(hmi_capabilities, HMICapabilities& ());
+  MOCK_METHOD1(ProcessQueryApp, void (const smart_objects::SmartObject& sm_object));
   MOCK_METHOD1(ManageHMICommand, bool (const utils::SharedPtr<smart_objects::SmartObject>&));
   MOCK_METHOD1(ManageMobileCommand, bool (const utils::SharedPtr<smart_objects::SmartObject>& message));
   MOCK_METHOD1(SendMessageToHMI, bool (const utils::SharedPtr<smart_objects::SmartObject>&));
@@ -285,9 +286,43 @@ class ApplicationManagerImpl : public ApplicationManager,
   MOCK_METHOD0(OnWakeUp, void());
   MOCK_METHOD1(OnUpdateHMIAppType, void(std::map<std::string, std::vector<std::string> >));
 
-  typedef const std::set<ApplicationSharedPtr> TAppList;
-  typedef std::set<ApplicationSharedPtr>::iterator TAppListIt;
-  typedef std::set<ApplicationSharedPtr>::const_iterator TAppListConstIt;
+  struct ApplicationsAppIdSorter {
+    bool operator() (const ApplicationSharedPtr lhs,
+                     const ApplicationSharedPtr rhs) {
+      return lhs->app_id() < rhs->app_id();
+    }
+  };
+
+  // typedef for Applications list
+  typedef std::set<ApplicationSharedPtr,
+                   ApplicationsAppIdSorter> ApplictionSet;
+
+  // typedef for Applications list iterator
+  typedef ApplictionSet::iterator ApplictionSetIt;
+
+  // typedef for Applications list const iterator
+  typedef ApplictionSet::const_iterator ApplictionSetConstIt;
+
+
+  /**
+   * Class for thread-safe access to applications list
+   */
+  class ApplicationListAccessor: public DataAccessor<ApplictionSet> {
+    public:
+      ApplicationListAccessor() :
+        DataAccessor<ApplictionSet>(ApplictionSet(),sync_primitives::Lock()) {
+      }
+      MOCK_CONST_METHOD0(applications, const ApplictionSet());
+      MOCK_METHOD0(begin, ApplictionSetConstIt());
+      MOCK_METHOD0(end, ApplictionSetConstIt());
+      MOCK_METHOD1(Erase, void(ApplicationSharedPtr));
+      MOCK_METHOD1(Insert, void(ApplicationSharedPtr));
+      MOCK_METHOD0(Empty, bool());
+  };
+
+  friend class ApplicationListAccessor;
+
+
   class ApplicationListUpdateTimer : public timer::TimerThread<ApplicationManagerImpl> {
    public:
     ApplicationListUpdateTimer(ApplicationManagerImpl* callee) :
@@ -298,16 +333,10 @@ class ApplicationManagerImpl : public ApplicationManager,
   };
   typedef utils::SharedPtr<ApplicationListUpdateTimer> ApplicationListUpdateTimerSptr;
 
-  class ApplicationListAccessor {
-   public:
-    MOCK_METHOD0(applications, TAppList());
-   private:
-  };
-  friend class ApplicationListAccessor;
 
   private:
     //FIXME(AKutsan) In resume_controller is is nessesery to change realisation for remove using application_list_
-    std::set<ApplicationSharedPtr> application_list_;
+    ApplictionSet application_list_;
   FRIEND_BASE_SINGLETON_CLASS(ApplicationManagerImpl);
 };
 

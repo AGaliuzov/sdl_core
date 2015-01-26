@@ -62,14 +62,13 @@ TEST(ApplicationManager, SingletonInstance_CallTwice_ReferencesAreSame) {
   application_manager::ApplicationManagerImpl* am2 = application_manager::ApplicationManagerImpl::instance();
   ASSERT_EQ(am, am2);
   //EXPECT_CALL((*am), GetNextHMICorrelationID()).WillRepeatedly(Return(1));
-  //smart_objects::SmartObject* so = application_manager::MessageHelper::CreateModuleInfoSO(0);
-  //delete so;
+  //smart_objects::SmartObjectSPtr so = application_manager::MessageHelper::CreateModuleInfoSO(0);
   application_manager::ApplicationManagerImpl::destroy();
 }
 
 TEST(MobileCommandsTest, CommandImplTimeOut) {
   application_manager::ApplicationManagerImpl* am = application_manager::ApplicationManagerImpl::instance();
-  smart_objects::SmartObject* so = application_manager::MessageHelper::CreateModuleInfoSO(0);
+  smart_objects::SmartObjectSPtr so = application_manager::MessageHelper::CreateModuleInfoSO(0);
   application_manager::commands::CommandRequestImpl request(so);
   EXPECT_CALL((*am), ManageMobileCommand(Truly(MessageResultCodeIsGENERIC_ERROR)));
   request.onTimeOut();

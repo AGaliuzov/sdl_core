@@ -28,38 +28,30 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+if(BUILD_TESTS)
 
 include_directories(
   ${GMOCK_INCLUDE_DIRECTORY}
-  ${LOG4CXX_INCLUDE_DIRECTORY}
-  ${COMPONENTS_DIR}/utils/include
-  ./include
   ${COMPONENTS_DIR}/protocol_handler/include
   ${COMPONENTS_DIR}/protocol_handler/test/include
-  ${COMPONENTS_DIR}/security_manager/test/include
-  ${COMPONENTS_DIR}/transport_manager/test/include
-  ${SecurityManagerIncludeDir}
-  ${COMPONENTS_DIR}/config_profile/include
 )
 
 set(LIBRARIES
-  gtest
-  gtest_main
   gmock
-  gmock_main
   ProtocolHandler
   connectionHandler
   Utils
   ConfigProfile
-  ${RTLIB}
   ProtocolLibrary
 )
 
 set(SOURCES
-  protocol_handler_tm_test.cc
+  main.cc
   incoming_data_handler_test.cc
   protocol_header_validator_test.cc
+  protocol_handler_tm_test.cc
 )
 
-#create_test(test_protocol_handler "${SOURCES}" "${LIBRARIES}")
-#add_library(test_protocol_handler_test ${SOURCES})
+create_test("protocol_handler_test" "${SOURCES}" "${LIBRARIES}")
+
+endif()
