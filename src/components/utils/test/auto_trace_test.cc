@@ -76,7 +76,7 @@ bool CheckTraceInFile(const std::string & testlog) {
     }
     file_log.close();
   } else {
-    std::cout << "file cannot be open \n";
+    std::cout << "file cannot be opened \n";
   }
   return isLogFound;
 }
