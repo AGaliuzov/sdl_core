@@ -52,96 +52,64 @@ class SingletonTest : public ::utils::Singleton<SingletonTest> {
 
   FRIEND_BASE_SINGLETON_CLASS (SingletonTest);
  private:
-  int test_value = 0;
+  int test_value;
 };
 
 TEST(SingletonTest, CreateAndDestroySingleton) {
-  //arrange
-  SingletonTest *instance = SingletonTest::instance();
-
   //assert
-  ASSERT_EQ(instance, SingletonTest::instance());
-  ASSERT_EQ(0, instance->GetValue());
-  ASSERT_TRUE(instance->exists());
+  ASSERT_EQ(SingletonTest::instance(), SingletonTest::instance());
+  ASSERT_EQ(0, SingletonTest::instance()->GetValue());
+  ASSERT_TRUE(SingletonTest::exists());
+  SingletonTest::instance()->SetValue(5);
+  ASSERT_EQ(5, SingletonTest::instance()->GetValue());
 
   //act
-  instance->destroy();
+  SingletonTest::destroy();
 
   //assert
-  ASSERT_FALSE(instance->exists());
-}
-
-TEST(SingletonTest, CreateDeleteSingleton_Create2ObjectsDeleteLast) {
-  //arrange
-  SingletonTest *instance = SingletonTest::instance();
-
-  //assert
-  ASSERT_EQ(instance, SingletonTest::instance());
-  ASSERT_EQ(0, instance->GetValue());
-  ASSERT_TRUE(instance->exists());
-
-  //act
-  instance->SetValue(10);
-
-  //assert
-  SingletonTest *instance2 = SingletonTest::instance();
-  ASSERT_EQ(10, instance2->GetValue());
-
-  //act
-  instance2->SetValue(5);
-
-  //assert
-  ASSERT_EQ(5, instance->GetValue());
-  ASSERT_EQ(instance, instance2);
-
-  //act
-  instance2->destroy();
-
-  //assert
-  ASSERT_FALSE(instance->exists());
-  ASSERT_FALSE(instance2->exists());
+  ASSERT_FALSE(SingletonTest::exists());
 }
 
 TEST(SingletonTest, DestroySingletonTwice) {
-  //arrange
-  SingletonTest *instance = SingletonTest::instance();
-
   //assert
-  ASSERT_EQ(0, instance->GetValue());
-  ASSERT_TRUE(instance->exists());
+  ASSERT_EQ(0, SingletonTest::instance()->GetValue());
+  ASSERT_TRUE(SingletonTest::exists());
 
   //act
-  instance->destroy();
+  SingletonTest::destroy();
   //assert
-  ASSERT_FALSE(instance->exists());
+  ASSERT_FALSE(SingletonTest::exists());
 
   //act
-  instance->destroy();
+  SingletonTest::destroy();
   //assert
-  ASSERT_FALSE(instance->exists());
+  ASSERT_FALSE(SingletonTest::exists());
 }
 
 TEST(SingletonTest, DeleteSingletonCreateAnother) {
   //arrange
-  SingletonTest *instance = SingletonTest::instance();
-  instance->SetValue(10);
-
+  SingletonTest::instance();
+  SingletonTest::instance()->SetValue(10);
   //assert
-  ASSERT_TRUE(instance->exists());
+  ASSERT_TRUE(SingletonTest::exists());
+  ASSERT_EQ(10, SingletonTest::instance()->GetValue());
   //act
-  instance->destroy();
+  SingletonTest::destroy();
+  //assert
+  ASSERT_FALSE(SingletonTest::exists());
 
-  SingletonTest *instance_2 = SingletonTest::instance();
+  //act
+  SingletonTest::instance();
 
   //assert
-  ASSERT_EQ(0, instance_2->GetValue());
-  ASSERT_TRUE(instance_2->exists());
-  instance_2->destroy();
+  ASSERT_EQ(0, SingletonTest::instance()->GetValue());
+  ASSERT_TRUE(SingletonTest::exists());
+  SingletonTest::destroy();
 }
 
 void* func_pthread1(void*) {
-  SingletonTest *instance = SingletonTest::instance();
-  pthread_exit(instance);
+  SingletonTest::instance();
+  pthread_exit(SingletonTest::instance());
   return NULL;
 }
 
@@ -154,9 +122,8 @@ void* func_pthread2(void * value) {
 
 TEST(SingletonTest, CreateSingletonInDifferentThreads) {
   //arrange
-  SingletonTest *instance = SingletonTest::instance();
-  ASSERT_EQ(0, instance->GetValue());
-  ASSERT_TRUE(instance->exists());
+  SingletonTest::instance();
+  ASSERT_TRUE(SingletonTest::exists());
 
   pthread_t thread1;
   pthread_create(&thread1, NULL, func_pthread1, NULL);
@@ -166,12 +133,12 @@ TEST(SingletonTest, CreateSingletonInDifferentThreads) {
   SingletonTest * instance_2 = reinterpret_cast<SingletonTest *>(instance2);
 
   //assert
-  ASSERT_EQ(instance, instance_2);
+  ASSERT_EQ(SingletonTest::instance(), instance_2);
 
   //act
-  instance->destroy();
+  SingletonTest::destroy();
   //assert
-  ASSERT_FALSE(instance_2->exists());
+  ASSERT_FALSE(SingletonTest::exists());
 }
 
 TEST(SingletonTest, CreateDeleteSingletonInDifferentThreads) {
@@ -197,7 +164,7 @@ TEST(SingletonTest, CreateDeleteSingletonInDifferentThreads) {
   ASSERT_EQ(instance_1, instance_2);
 
   //act
-  instance_1->destroy();
+  SingletonTest::destroy();
 
   //assert
   ASSERT_FALSE(instance_1->exists());
@@ -206,17 +173,16 @@ TEST(SingletonTest, CreateDeleteSingletonInDifferentThreads) {
 
 TEST(SingletonTest, DeleteSingletonInDifferentThread) {
   //arrange
-  SingletonTest *instance = SingletonTest::instance();
-  ASSERT_EQ(0, instance->GetValue());
-  ASSERT_TRUE(instance->exists());
+  SingletonTest::instance();
+  ASSERT_TRUE(SingletonTest::exists());
 
   pthread_t thread1;
-  pthread_create(&thread1, NULL, func_pthread2, instance);
+  pthread_create(&thread1, NULL, func_pthread2, SingletonTest::instance());
 
   pthread_join(thread1, NULL);
 
   //assert
-  ASSERT_FALSE(instance->exists());
+  ASSERT_FALSE(SingletonTest::exists());
 }
 
 }  // namespace utils
