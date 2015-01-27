@@ -44,6 +44,7 @@ using namespace ::logger;
 CREATE_LOGGERPTR_GLOBAL(logger_, "AutoTraceTestLog");
 
 void Preconditions() {
+  //delete file with previous logs
   const char* file_name = "AutoTraceTestLogFile.log";
   std::remove(file_name);
 }
