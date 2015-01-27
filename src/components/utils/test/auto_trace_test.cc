@@ -34,7 +34,6 @@
 #include "utils/auto_trace.h"
 #include "logger.h"
 #include <fstream>
-#include <string>
 
 namespace test {
 namespace components {
@@ -45,23 +44,20 @@ using namespace ::logger;
 CREATE_LOGGERPTR_GLOBAL(logger_, "AutoTraceTestLog");
 
 void Preconditions() {
-  std::string logfile = "AutoTraceTestLogFile.log";
-  std::ofstream ofs;
-  ofs.open(logfile.c_str(), std::ofstream::out | std::ofstream::trunc);
-  ofs << "";
-  ofs.close();
+  const char* file_name = "AutoTraceTestLogFile.log";
+  std::remove(file_name);
 }
 
 void InitLogger() {
   INIT_LOGGER("log4cxx.properties");
 }
 
-void CreateDeleteAutoTrace(const std::string testlog) {
+void CreateDeleteAutoTrace(const std::string & testlog) {
   LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_, testlog);
 }
 
-bool CheckTraceInFile(const std::string testlog) {
+bool CheckTraceInFile(const std::string & testlog) {
 
   bool isLogFound = false;
   std::string line;
@@ -72,14 +68,15 @@ bool CheckTraceInFile(const std::string testlog) {
     while (getline(file_log, line)) {
       std::size_t found = line.find(testlog);
       std::size_t founddebug = line.find("DEBUG");
-      if ((found != std::string::npos)&&(founddebug!= std::string::npos)) {
+      if ((found != std::string::npos) && (founddebug != std::string::npos)) {
         isLogFound = true;
         break;
       }
     }
     file_log.close();
-  } else
-    std::cout << "file cannot open \n";
+  } else {
+    std::cout << "file cannot be open \n";
+  }
   return isLogFound;
 }
 
@@ -89,7 +86,7 @@ void DeinitLogger() {
 
 TEST(AutoTraceTest, Basic) {
   const std::string testlog =
-      "Test trace is work!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
+      "Test trace is working!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
   Preconditions();
   InitLogger();
   CreateDeleteAutoTrace(testlog);
