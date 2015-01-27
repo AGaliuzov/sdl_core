@@ -187,31 +187,8 @@ bool ResumeCtrl::SetupDefaultHMILevel(ApplicationSharedPtr application) {
     return false;
   }
   LOG4CXX_TRACE(logger_, "ENTER app_id : " << application->app_id());
-  mobile_apis::HMILevel::eType default_hmi = mobile_apis::HMILevel::HMI_NONE;
-
-  if (policy::PolicyHandler::instance()->PolicyEnabled()) {
-    std::string policy_app_id = application->mobile_app_id()->asString();
-    std::string default_hmi_string = "";
-    bool result_get_hmi = policy::PolicyHandler::instance()->GetDefaultHmi(
-          policy_app_id, &default_hmi_string);
-    if (true == result_get_hmi) {
-      if ("BACKGROUND" == default_hmi_string) {
-        default_hmi = mobile_apis::HMILevel::HMI_BACKGROUND;
-      } else if ("FULL" == default_hmi_string) {
-        default_hmi = mobile_apis::HMILevel::HMI_FULL;
-      } else if ("LIMITED" == default_hmi_string) {
-        default_hmi = mobile_apis::HMILevel::HMI_LIMITED;
-      } else if ("NONE" == default_hmi_string) {
-        default_hmi = mobile_apis::HMILevel::HMI_NONE;
-      } else {
-        LOG4CXX_ERROR(logger_, "Unable to convert " + default_hmi_string + "to HMILevel");
-        return false;
-      }
-    } else {
-      LOG4CXX_ERROR(logger_, "SetupDefaultHMILevel() unable to get default hmi_level for "
-                    << policy_app_id);
-    }
-  }
+  mobile_apis::HMILevel::eType default_hmi = ApplicationManagerImpl::instance()->
+                                             GetDefaultHmiLevel(application);
   bool result = SetAppHMIState(application, default_hmi,
                          mobile_apis::AudioStreamingState::NOT_AUDIBLE, false);
   return result;
@@ -462,19 +439,17 @@ void ResumeCtrl::Suspend() {
 void ResumeCtrl::OnAwake() {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  Json::Value to_save;
   sync_primitives::AutoLock lock(resumtion_lock_);
   for (Json::Value::iterator it = GetSavedApplications().begin();
        it != GetSavedApplications().end(); ++it) {
-    if ((*it).isMember(strings::suspend_count)) {
+    if ((*it).isMember(strings::ign_off_count)) {
       const uint32_t ign_off_count = (*it)[strings::ign_off_count].asUInt();
       (*it)[strings::ign_off_count] = ign_off_count - 1;
     } else {
       LOG4CXX_WARN(logger_, "Unknown key among saved applications");
-      (*it)[strings::suspend_count] = 0;
+      (*it)[strings::ign_off_count] = 0;
     }
   }
-  SetSavedApplication(to_save);
   ResetLaunchTime();
 }
 
@@ -512,7 +487,7 @@ bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
   const int idx = GetObjectIndex(application->mobile_app_id()->asString());
   if (-1 == idx) {
     LOG4CXX_WARN(logger_, "Application not saved");
-    MessageHelper::SendHMIStatusNotification(*application);
+    SetupDefaultHMILevel(application);
     return false;
   }
 
@@ -570,7 +545,7 @@ bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
   const int idx = GetObjectIndex(application->mobile_app_id()->asString());
   if (-1 == idx) {
     LOG4CXX_WARN(logger_, "Application not saved");
-    MessageHelper::SendHMIStatusNotification(*application);
+    SetupDefaultHMILevel(application);
     return false;
   }
 

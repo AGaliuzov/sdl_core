@@ -573,7 +573,7 @@ mobile_api::HMILevel::eType ApplicationManagerImpl::PutApplicationInFull(
   } else if (is_active_app_exist && is_audio_app) {
     result = mobile_apis::HMILevel::HMI_LIMITED;
   } else if (is_active_app_exist && (!is_audio_app)) {
-    result = mobile_apis::HMILevel::HMI_BACKGROUND;
+    result = GetDefaultHmiLevel(app);
   }
   LOG4CXX_ERROR(logger_, "is_audio_app : " << is_audio_app
                 << "; does_audio_app_with_same_type_exist : " << does_audio_app_with_same_type_exist
@@ -887,6 +887,36 @@ bool ApplicationManagerImpl::IsVideoStreamingAllowed(uint32_t application_key) c
   }
 
   return false;
+}
+
+mobile_apis::HMILevel::eType ApplicationManagerImpl::GetDefaultHmiLevel(
+    ApplicationSharedPtr application) const {
+  using namespace mobile_apis;
+
+  HMILevel::eType default_hmi = HMILevel::HMI_NONE;
+
+  if (policy::PolicyHandler::instance()->PolicyEnabled()) {
+    const std::string policy_app_id = application->mobile_app_id()->asString();
+    std::string default_hmi_string = "";
+    if (policy::PolicyHandler::instance()->GetDefaultHmi(
+          policy_app_id, &default_hmi_string)) {
+      if ("BACKGROUND" == default_hmi_string) {
+        default_hmi = HMILevel::HMI_BACKGROUND;
+      } else if ("FULL" == default_hmi_string) {
+        default_hmi = HMILevel::HMI_FULL;
+      } else if ("LIMITED" == default_hmi_string) {
+        default_hmi = HMILevel::HMI_LIMITED;
+      } else if ("NONE" == default_hmi_string) {
+        default_hmi = HMILevel::HMI_NONE;
+      } else {
+        LOG4CXX_ERROR(logger_, "Unable to convert " + default_hmi_string + " to HMILevel");
+      }
+    } else {
+      LOG4CXX_ERROR(logger_, "Unable to get default hmi_level for "
+                    << policy_app_id);
+    }
+  }
+  return default_hmi;
 }
 
 uint32_t ApplicationManagerImpl::GenerateGrammarID() {

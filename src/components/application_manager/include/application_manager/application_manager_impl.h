@@ -582,6 +582,9 @@ class ApplicationManagerImpl : public ApplicationManager,
      */
     bool IsVideoStreamingAllowed(uint32_t connection_key) const;
 
+    mobile_api::HMILevel::eType GetDefaultHmiLevel(
+        ApplicationSharedPtr application) const;
+
     /**
       * Getter for resume_controller
       * @return Resume Controller
