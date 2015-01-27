@@ -340,8 +340,8 @@ void ProtocolHandlerImpl::SendMessageToMobileApp(const RawMessagePtr message,
       GetSSLContext(message->connection_key(), message->service_type());
   if (ssl_context && ssl_context->IsInitCompleted()) {
     const size_t max_block_size = ssl_context->get_max_block_size(max_frame_size);
-    DCHECK(max_frame_size);
-    if(max_block_size) {
+    DCHECK(max_block_size > 0);
+    if (max_block_size > 0) {
       max_frame_size = max_block_size;
       LOG4CXX_DEBUG(logger_, "Security set new optimal packet size " << max_frame_size);
     } else {
