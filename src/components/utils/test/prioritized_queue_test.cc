@@ -90,7 +90,7 @@ TEST_F(PrioritizedQueueTest, PushFourElementsTest_ExpectFourElementsAdded) {
   test_queue.push(message1);
   test_queue.push(message2);
   // Expect 4 messages were added successfully
-  EXPECT_EQ(4, test_queue.size());
+  EXPECT_EQ(4u, test_queue.size());
 }
 
 TEST_F(PrioritizedQueueTest, AddFourElementsTest_ExpectQueueNotEmpty) {
@@ -131,7 +131,7 @@ TEST_F(PrioritizedQueueTest, Push_AddMessagesWithEqualPriority_ExpectMessagesWit
   test_queue.push(message1);
   test_queue.push(message2);
   // Expect 2 messages were added successfully
-  EXPECT_EQ(2, test_queue.size());
+  EXPECT_EQ(2u, test_queue.size());
 }
 
 TEST_F(PrioritizedQueueTest, Pop_OneElementInPriorityQueue_ExpectQueueStillAliveWithRestMessagesWithEqualPriority) {
@@ -142,15 +142,15 @@ TEST_F(PrioritizedQueueTest, Pop_OneElementInPriorityQueue_ExpectQueueStillAlive
   test_queue.push(message1);
   test_queue.push(message2);
   // Expect 2 messages were added successfully to One element of prioritized queue
-  EXPECT_EQ(2, test_queue.size());
+  EXPECT_EQ(2u, test_queue.size());
   // Extracting first element from the queue
   EXPECT_EQ(message1, test_queue.front());
   test_queue.pop();
   // Check queue with the same priority messages still alive
-  EXPECT_EQ(1, test_queue.size());
+  EXPECT_EQ(1u, test_queue.size());
   EXPECT_EQ(message2, test_queue.front());
   test_queue.pop();
-  EXPECT_EQ(0, test_queue.size());
+  EXPECT_EQ(0u, test_queue.size());
 }
 
 TEST_F(PrioritizedQueueTest, Pop_TwoElementsInPriorityQueue_ExpectElementErasedIfOnlyOneWithConcretePriorityExist) {
@@ -163,18 +163,18 @@ TEST_F(PrioritizedQueueTest, Pop_TwoElementsInPriorityQueue_ExpectElementErasedI
   test_queue.push(message2);
   test_queue.push(message3);
   // Expect 3 messages were added successfully to Two elements of prioritized queue
-  EXPECT_EQ(3, test_queue.size());
+  EXPECT_EQ(3u, test_queue.size());
   // Extracting first element from the queue
   EXPECT_EQ(message1, test_queue.front());
   test_queue.pop();
   // Check queue with the same priority messages still alive
-  EXPECT_EQ(2, test_queue.size());
+  EXPECT_EQ(2u, test_queue.size());
   EXPECT_EQ(message2, test_queue.front());
   test_queue.pop();
   EXPECT_EQ(message3, test_queue.front());
   // Delete last element. Expect erased.
   test_queue.pop();
-  EXPECT_EQ(0, test_queue.size());
+  EXPECT_EQ(0u, test_queue.size());
 }
 
 TEST_F(PrioritizedQueueTest, NotEmptyPrioritizedQueuePopElement_ExpectQueueDecreasedOneElement) {
@@ -189,7 +189,7 @@ TEST_F(PrioritizedQueueTest, NotEmptyPrioritizedQueuePopElement_ExpectQueueDecre
   // Extracting first element from the queue
   test_queue.pop();
   // Check that one message was extracted
-  EXPECT_EQ(2, test_queue.size());
+  EXPECT_EQ(2u, test_queue.size());
   // Checking if extracted message was the message with highest priority
   // therefore now first message in queue has highest priority
   EXPECT_EQ(message2, test_queue.front());
