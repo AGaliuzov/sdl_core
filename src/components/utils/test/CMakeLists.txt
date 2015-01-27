@@ -50,6 +50,7 @@ set(testSources
   resource_usage_test.cc
   bitstream_test.cc
   data_accessor_test.cc
+  lock_posix_test.cc
 )
 
 
