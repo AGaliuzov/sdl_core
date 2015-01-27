@@ -214,6 +214,10 @@ class ProtocolHandlerImpl
     */
   void SendEndSession(int32_t connection_id, uint8_t session_id);
 
+  void SendEndService(int32_t connection_id,
+                      uint8_t session_id,
+                      uint8_t service_type);
+
   // TODO(Ezamakhov): move Ack/Nack as interface for StartSessionHandler
   /**
    * \brief Sends acknowledgement of starting session to mobile application
@@ -276,7 +280,9 @@ class ProtocolHandlerImpl
                           uint8_t protocol_version,
                           uint8_t service_type);
 
- private:
+  private:
+  void SendEndServicePrivate(int32_t connection_id, uint8_t session_id, uint8_t service_type);
+
   /*
    * Prepare and send heartbeat acknowledge message
    */

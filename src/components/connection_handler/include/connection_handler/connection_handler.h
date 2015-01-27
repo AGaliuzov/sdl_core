@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -114,6 +114,8 @@ class ConnectionHandler {
   virtual void CloseSession(ConnectionHandle connection_handle,
                             uint8_t session_id,
                             CloseSessionReason close_reason) = 0;
+
+  virtual void SendEndService(uint32_t key, uint8_t service_type) = 0;
 
   /**
    * \brief Start heartbeat for specified session

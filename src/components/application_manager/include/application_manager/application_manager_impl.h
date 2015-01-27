@@ -986,7 +986,48 @@ class ApplicationManagerImpl : public ApplicationManager,
      */
     bool IsLowVoltage();
 
+
   private:
+
+    /**
+     * @brief OnHMILevelChanged the callback that allows SDL to react when
+     * applicatin's HMILeval has been changed.
+     *
+     * @param app_id application identifier for which HMILevel has been chaned.
+     *
+     * @param from previous HMILevel.
+     * @param to current HMILevel.
+     */
+    void OnHMILevelChanged(uint32_t app_id,
+                           mobile_apis::HMILevel::eType from,
+                           mobile_apis::HMILevel::eType to);
+
+    /**
+     * @brief EndNaviServices either send EndService to mobile or proceed
+     * unregister application procedure.
+     */
+    void EndNaviServices();
+
+    /**
+     * @brief CloseNaviApp allows to unregister application in case the EndServiceEndedAck
+     * didn't come for at least one of services(audio or video).
+     */
+    void CloseNaviApp();
+
+    /**
+     * @brief AcksReceived allows to distinguish if end Acks were received for both
+     * audio and video services.
+     *
+     * @return the status of acks.
+     */
+    bool AcksReceived();
+
+    /**
+     * @brief NaviAppChangeLevel the callback which reacts on case when applications
+     * hmi level has been changed.
+     */
+    template <mobile_apis::HMILevel::eType>
+    void NaviAppChangeLevel();
 
     /**
      * @brief Function returns supported SDL Protocol Version
@@ -1083,6 +1124,11 @@ class ApplicationManagerImpl : public ApplicationManager,
      * application in case INGITION_OFF or MASTER_RESSET
      */
     ResumeCtrl resume_ctrl_;
+
+    std::map<protocol_handler::ServiceType, bool> service_status_;
+
+    timer::TimerThread<ApplicationManagerImpl> end_services_timer;
+    uint32_t navi_app_to_stop_;
 #ifdef CUSTOMER_PASA
     /**
      * @brief Contains TRUE if SDL has received onExitAllApplication notification with

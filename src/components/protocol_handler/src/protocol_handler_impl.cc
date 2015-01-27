@@ -239,26 +239,38 @@ void ProtocolHandlerImpl::SendEndSessionAck(ConnectionID connection_id,
                << " session_id " << static_cast<int32_t>(session_id));
 }
 
-void ProtocolHandlerImpl::SendEndSession(int32_t connection_id,
-                                         uint8_t session_id) {
+void ProtocolHandlerImpl::SendEndServicePrivate(int32_t connection_id,
+                                                uint8_t session_id,
+                                                uint8_t service_type) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   uint8_t protocol_version;
   if (session_observer_->ProtocolVersionUsed(connection_id,
-	    session_id, protocol_version)) {
+      session_id, protocol_version)) {
     ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
-	    protocol_version, PROTECTION_OFF, FRAME_TYPE_CONTROL,
-	    SERVICE_TYPE_RPC, FRAME_DATA_END_SERVICE, session_id, 0,
-	    message_counters_[session_id]++));
+      protocol_version, PROTECTION_OFF, FRAME_TYPE_CONTROL,
+      service_type, FRAME_DATA_END_SERVICE, session_id, 0,
+      message_counters_[session_id]++));
 
     raw_ford_messages_to_mobile_.PostMessage(
-	    impl::RawFordMessageToMobile(ptr, false));
+      impl::RawFordMessageToMobile(ptr, false));
     LOG4CXX_INFO(logger_, "SendEndSession() for connection " << connection_id
-	                 << " for service_type " << static_cast<int32_t>(SERVICE_TYPE_RPC)
-	                 << " session_id " << static_cast<int32_t>(session_id));
+                   << " for service_type " << static_cast<int32_t>(SERVICE_TYPE_RPC)
+                   << " session_id " << static_cast<int32_t>(session_id));
   } else {
-	LOG4CXX_WARN(logger_, "SendEndSession is failed connection or session does not exist");
+  LOG4CXX_WARN(logger_, "SendEndSession is failed connection or session does not exist");
   }
+}
+
+void ProtocolHandlerImpl::SendEndSession(int32_t connection_id,
+                                         uint8_t session_id) {
+  SendEndServicePrivate(connection_id, session_id, SERVICE_TYPE_RPC);
+}
+
+void ProtocolHandlerImpl::SendEndService(int32_t connection_id,
+                                         uint8_t session_id,
+                                         uint8_t service_type) {
+  SendEndServicePrivate(connection_id, session_id, service_type);
 }
 
 RESULT_CODE ProtocolHandlerImpl::SendHeartBeatAck(ConnectionID connection_id,
