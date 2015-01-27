@@ -93,7 +93,7 @@ TEST_F(RequestInfoTest, RequestInfoSetInsertErazeTest) {
         create_test_info(hmi_connection_key_, i, request_info::RequestInfo::HMIRequest,
                          date_time::DateTime::getCurrentTime(), default_timeout_);
       EXPECT_TRUE(request_info_set_.Add(request));
-      EXPECT_EQ(1, request_info_set_.Erase(request));
+      EXPECT_EQ(1, request_info_set_.RemoveRequest(request));
   }
 
   EXPECT_EQ(0, request_info_set_.Size());
@@ -111,7 +111,7 @@ TEST_F(RequestInfoTest, RequestInfoSetInsertErazeTest) {
   std::list<utils::SharedPtr<TestRequestInfo> >::iterator end = requests.end();
 
   for (; it != end; ++it) {
-      EXPECT_EQ(1,request_info_set_.Erase(*it));
+      EXPECT_EQ(1,request_info_set_.RemoveRequest(*it));
   }
   EXPECT_EQ(0, request_info_set_.Size());
   it = requests.begin();
@@ -163,7 +163,7 @@ TEST_F(RequestInfoTest, RequestInfoSetFrontTest) {
     request_info = request_info_set_.FrontWithNotNullTimeout();
     EXPECT_TRUE(request_info.valid());
     EXPECT_EQ(i, request_info->timeout_sec());
-    EXPECT_TRUE(request_info_set_.Erase(request_info));
+    EXPECT_TRUE(request_info_set_.RemoveRequest(request_info));
   }
   EXPECT_EQ(1, request_info_set_.Size());
   EXPECT_EQ(1, request_info_set_.RemoveByConnectionKey(mobile_connection_key1_));
@@ -192,7 +192,7 @@ TEST_F(RequestInfoTest, RequestInfoSetFindTest) {
   for (it = appId_coorrId.begin(); it != end; ++it) {
     request_info::RequestInfoPtr request = request_info_set_.Find(it->first, it->second);
     EXPECT_TRUE(request.valid());
-    EXPECT_EQ(1, request_info_set_.Erase(request));
+    EXPECT_EQ(1, request_info_set_.RemoveRequest(request));
     request = request_info_set_.Find(it->first, it->second);
     EXPECT_FALSE(request.valid());
   }
@@ -212,13 +212,13 @@ TEST_F(RequestInfoTest, RequestInfoSetEqualHashTest) {
   EXPECT_EQ(1, request_info_set.Size());
   request_info::RequestInfoPtr found = request_info_set.Find(connection_key, corr_id);
   EXPECT_TRUE(found.valid());
-  EXPECT_EQ(1, request_info_set.Erase(found));
+  EXPECT_EQ(1, request_info_set.RemoveRequest(found));
   EXPECT_EQ(0, request_info_set.Size());
   EXPECT_TRUE(request_info_set.Add(request));
   EXPECT_FALSE(request_info_set.Add(request));
   found =  request_info_set.FrontWithNotNullTimeout();
   EXPECT_TRUE(found.valid());
-  EXPECT_EQ(1, request_info_set.Erase(found));
+  EXPECT_EQ(1, request_info_set.RemoveRequest(found));
   found =  request_info_set.FrontWithNotNullTimeout();
   EXPECT_FALSE(found.valid());
   EXPECT_EQ(0, request_info_set.Size());

@@ -199,7 +199,7 @@ namespace request_controller {
        * @param request_info - request to erase
        * @return true if Erase succes, otherwise return false
        */
-      bool Erase(const RequestInfoPtr request_info);
+      bool RemoveRequest(const RequestInfoPtr request_info);
 
       /*
        * @brief Erase request from colletion by connection_key
@@ -262,7 +262,7 @@ namespace request_controller {
           CompareType compare_type_;
       };
 
-      bool Erase(HashSortedRequestInfoSet::iterator it);
+      bool Erase(const RequestInfoPtr request_info);
 
       /*
        * @brief Erase requests from collection if filter allows
