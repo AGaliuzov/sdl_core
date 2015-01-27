@@ -88,7 +88,6 @@ TEST(SingletonTest, DestroySingletonTwice) {
 
 TEST(SingletonTest, DeleteSingletonCreateAnother) {
   //arrange
-  SingletonTest::instance();
   SingletonTest::instance()->SetValue(10);
   //assert
   ASSERT_TRUE(SingletonTest::exists());
@@ -108,8 +107,8 @@ TEST(SingletonTest, DeleteSingletonCreateAnother) {
 }
 
 void* func_pthread1(void*) {
-  SingletonTest::instance();
-  pthread_exit(SingletonTest::instance());
+  SingletonTest* singletone_in_other_thread =  SingletonTest::instance();
+  pthread_exit(singletone_in_other_thread);
   return NULL;
 }
 
