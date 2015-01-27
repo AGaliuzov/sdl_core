@@ -434,6 +434,13 @@ void ResumeCtrl::Suspend() {
   sync_primitives::AutoLock lock(resumtion_lock_);
   for (Json::Value::iterator it = GetSavedApplications().begin();
       it != GetSavedApplications().end(); ++it) {
+    if ((*it).isMember(strings::suspend_count)) {
+      const uint32_t suspend_count = (*it)[strings::suspend_count].asUInt();
+      (*it)[strings::suspend_count] = suspend_count + 1;
+    } else {
+      LOG4CXX_WARN(logger_, "Unknown key among saved applications");
+      (*it)[strings::suspend_count] = 1;
+    }
     if ((*it).isMember(strings::ign_off_count)) {
       const uint32_t ign_off_count = (*it)[strings::ign_off_count].asUInt();
       if (ign_off_count < kApplicationLifes) {
@@ -442,14 +449,7 @@ void ResumeCtrl::Suspend() {
       }
     } else {
       LOG4CXX_WARN(logger_, "Unknown key among saved applications");
-      (*it)[strings::ign_off_count] = 0;
-    }
-    if ((*it).isMember(strings::suspend_count)) {
-      const uint32_t suspend_count = (*it)[strings::suspend_count].asUInt();
-      (*it)[strings::suspend_count] = suspend_count + 1;
-    } else {
-      LOG4CXX_WARN(logger_, "Unknown key among saved applications");
-      (*it)[strings::suspend_count] = 0;
+      (*it)[strings::ign_off_count] = 1;
     }
   }
   SetSavedApplication(to_save);
