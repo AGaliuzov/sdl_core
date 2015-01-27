@@ -207,7 +207,7 @@ void ConnectionHandlerImpl::OnConnectionEstablished(
     LOG4CXX_ERROR(logger_, "Unknown device!");
     return;
   }
-  LOG4CXX_DEBUG(logger_, "Add Connection:" << connection_id << " to the list.");
+  LOG4CXX_DEBUG(logger_, "Add Connection #" << connection_id << " to the list.");
   sync_primitives::AutoLock lock(connection_list_lock_);
   connection_list_.insert(
       ConnectionList::value_type(

@@ -40,11 +40,11 @@ namespace {
 // Protocol header field sizes
 static const size_t kRpcTypeBits       = 4;
 static const size_t kRpcFunctionIdBits = 32 - kRpcTypeBits;
-static const size_t kCorellationIdBits = 32;
+static const size_t kCorrelationIdBits = 32;
 static const size_t kJsonSizeBits      = 32;
 static const size_t PayloadHeaderBits  = kRpcTypeBits +
                                          kRpcFunctionIdBits +
-                                         kCorellationIdBits +
+                                         kCorrelationIdBits +
                                          kJsonSizeBits;
 }
 
@@ -61,7 +61,7 @@ void Extract(utils::BitStream *bs, ProtocolPayloadHeaderV2 *headerv2) {
       return;
     }
     utils::Extract(bs, &headerv2->rpc_function_id, kRpcFunctionIdBits);
-    utils::Extract(bs, &headerv2->corellation_id); // kCorellationIdBits
+    utils::Extract(bs, &headerv2->correlation_id); // kCorrelationIdBits
     utils::Extract(bs, &headerv2->json_size);      // kJsonSizeBits
   }
 }
@@ -82,8 +82,8 @@ std::ostream &operator<<(std::ostream &os,
                          const ProtocolPayloadHeaderV2 &payload_header) {
   return os << "(ProtocolPayloadHeaderV2"     << "  rpc_type: "
             << payload_header.rpc_type        << ", rpc_function_id: "
-            << payload_header.rpc_function_id << ", corellation_id: "
-            << payload_header.corellation_id  << ", json_size: "
+            << payload_header.rpc_function_id << ", correlation_id: "
+            << payload_header.correlation_id  << ", json_size: "
             << payload_header.json_size       << ")";
 }
 
