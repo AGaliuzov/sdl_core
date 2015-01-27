@@ -259,9 +259,6 @@ RawMessagePtr ProtocolPacket::serializePacket() const {
   };
 
   size_t total_packet_size = offset + (packet_data_.data ? packet_data_.totalDataBytes : 0);
-#ifndef BUILD_TESTS // Remove DCHECK for PH tests
-  DCHECK(total_packet_size <= MAXIMUM_FRAME_DATA_SIZE);
-#endif
 
   uint8_t *packet = new (std::nothrow) uint8_t[total_packet_size];
   if (!packet) {
