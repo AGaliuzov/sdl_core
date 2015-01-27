@@ -467,8 +467,8 @@ void ResumeCtrl::OnAwake() {
   for (Json::Value::iterator it = GetSavedApplications().begin();
        it != GetSavedApplications().end(); ++it) {
     if ((*it).isMember(strings::suspend_count)) {
-      const uint32_t ign_off_cont = (*it)[strings::ign_off_cont].asUInt();
-      (*it)[strings::ign_off_cont] = ign_off_cont - 1;
+      const uint32_t ign_off_count = (*it)[strings::ign_off_count].asUInt();
+      (*it)[strings::ign_off_count] = ign_off_count - 1;
     } else {
       LOG4CXX_WARN(logger_, "Unknown key among saved applications");
       (*it)[strings::suspend_count] = 0;
