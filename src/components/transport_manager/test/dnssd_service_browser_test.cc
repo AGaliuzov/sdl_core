@@ -99,7 +99,7 @@ for(DeviceVector::const_iterator it = arg.begin(); it != arg.end(); ++it) {
 return false;
 }
 
-//TODO{ALeshin} APPLINK-11090
+//TODO{ALeshin} APPLINK-11090 - Infinite loop
 TEST(DnssdServiceBrowser, DISABLED_Basic) {
   MockTransportAdapterController controller;
 

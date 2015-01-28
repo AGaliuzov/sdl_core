@@ -96,10 +96,7 @@ TEST_F(ConditionalVariableTest, CheckNotifyOne_OneThreadNotified_ExpectSuccessfu
       NULL,
       &ConditionalVariableTest::task_one_helper,
       this);
-  if (thread_created) {
-    std::cout << "thread1 is not created! " << std::endl;
-    exit(1);
-  }
+  ASSERT_TRUE(thread_created) << "thread1 is not created!";
   test_value_ = "changed twice by main thread";
   cond_var_.WaitFor(test_lock, 2000);
   std::string last_value("changed again by thread 1");
@@ -113,18 +110,12 @@ TEST_F(ConditionalVariableTest, CheckBroadcast_AllThreadsNotified_ExpectSuccessf
       NULL,
       &ConditionalVariableTest::check_counter_helper,
       this);
-  if (thread_created) {
-    std::cout << "thread1 is not created! " << std::endl;
-    exit(1);
-  }
+  ASSERT_TRUE(thread_created) << "thread1 is not created!";
   thread_created = pthread_create(&thread2,
       NULL,
       &ConditionalVariableTest::check_counter_helper,
       this);
-  if (thread_created) {
-    std::cout << "thread2 is not created! " << std::endl;
-    exit(1);
-  }
+  ASSERT_TRUE(thread_created) << "thread2 is not created!";
   check_counter();
   EXPECT_EQ(2u, counter_);
 }

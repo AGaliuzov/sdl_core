@@ -58,18 +58,18 @@ set(testSources
   policy_manager_impl_test.cc
 )
 
-if (EXTENDED_POLICY_FLAG)
+if(EXTENDED_POLICY_FLAG)
   add_definitions(-DEXTENDED_POLICY)
   include_directories(${COMPONENTS_DIR}/policy/src/policy/policy_table/table_struct_ext)
   list (APPEND testSources
     sql_pt_ext_representation_test.cc
 )
-else ()
+else()
   include_directories(${COMPONENTS_DIR}/policy/src/policy/policy_table/table_struct)
   list (APPEND testSources
     sql_pt_representation_test.cc
   )
-endif ()
+endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
   list(REMOVE_ITEM testLibraries dl)
@@ -90,7 +90,7 @@ else ()
     sqlite_wrapper/sql_database_test.cc 
     sqlite_wrapper/sql_query_test.cc   
     generated_code_with_sqlite_test.cc   
-    #policy_manager_impl_stress_test.cc
+    policy_manager_impl_stress_test.cc
   )
   list (APPEND testLibraries sqlite3)
 endif()

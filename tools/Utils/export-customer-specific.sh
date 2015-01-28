@@ -194,7 +194,7 @@ for entry in $include_bin; do
   done
 done
 
-
-
-cp -r $specificdir/* $export_dir/
+if [ -d $specificdir ]; then
+  cp -r $specificdir/* $export_dir/
+fi
 post_install $additional_args

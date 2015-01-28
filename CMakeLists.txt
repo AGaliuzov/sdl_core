@@ -333,17 +333,17 @@ endmacro(GenerateInterface)
 
 # --- Useful macro
 macro(create_test NAME SOURCES LIBS)
-    add_executable("${NAME}" ${SOURCES})
-    target_link_libraries("${NAME}" ${LIBS})
-    target_link_libraries("${NAME}" Utils)
-    if(CMAKE_SYSTEM_NAME STREQUAL "QNX")
-        add_test(${NAME} ${CMAKE_SOURCE_DIR}/qnx/remote_run_test.sh ${NAME})
-    elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-        add_test(NAME ${NAME}
-                 COMMAND ${NAME} --gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/)
-    else()
-        add_test(${NAME} ${NAME})
-    endif()
+  add_executable("${NAME}" ${SOURCES})
+  target_link_libraries("${NAME}" ${LIBS})
+  target_link_libraries("${NAME}" Utils)
+  if(CMAKE_SYSTEM_NAME STREQUAL "QNX")
+    add_test(${NAME} ${CMAKE_SOURCE_DIR}/qnx/remote_run_test.sh ${NAME})
+  elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    add_test(NAME ${NAME}
+    COMMAND ${NAME} --gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/)
+  else()
+    add_test(${NAME} ${NAME})
+  endif()
 endmacro(create_test)
 
 # --replace in list macro

@@ -286,7 +286,7 @@ class TcpAdapterTestWithListenerAutoStart : public TcpAdapterTest {
 
 MATCHER_P(ContainsMessage, str, ""){ return strlen(str) == arg->data_size() && 0 == memcmp(str, arg->data(), arg->data_size());}
 
-//TODO{ALeshin} APPLINK-11090
+// TODO{ALeshin} APPLINK-11090 - transport_adapter_->IsInitialised() doesn't return true as expected
 TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_Connect_Return_True) {
   {
     ::testing::InSequence seq;
@@ -297,7 +297,7 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_Connect_Return_True) {
   EXPECT_TRUE(client_.Connect(port()));
 }
 
-//TODO{ALeshin} APPLINK-11090
+// TODO{ALeshin} APPLINK-11090 - transport_adapter_->IsInitialised() doesn't return true as expected
 TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_SecondConnect_Return_True) {
   {
     ::testing::InSequence seq;
@@ -308,7 +308,7 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_SecondConnect_Return_True) 
   EXPECT_TRUE(client_.Connect(port()));
 }
 
-//TODO{ALeshin} APPLINK-11090
+// TODO{ALeshin} APPLINK-11090 - transport_adapter_->IsInitialised() doesn't return true as expected
 TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_Receive_Return_True) {
   {
     ::testing::InSequence seq;
@@ -347,7 +347,7 @@ struct SendHelper {
   RawMessagePtr message_;
 };
 
-//TODO{ALeshin} APPLINK-11090
+// TODO{ALeshin} APPLINK-11090 - transport_adapter_->IsInitialised() doesn't return true as expected
 TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_Send_Message) {
   SendHelper helper(TransportAdapter::OK);
   {
@@ -425,7 +425,7 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_SendFailed) {
   client_.Disconnect();
 }
 
-//TODO(ALeshin) APPLINK-11049
+// TODO{ALeshin} APPLINK-11090 - transport_adapter_->IsInitialised() doesn't return true as expected
 TEST_F(TcpAdapterTest, DISABLED_StartStop) {
 
   //assert
