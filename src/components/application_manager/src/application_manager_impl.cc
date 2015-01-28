@@ -892,7 +892,7 @@ bool ApplicationManagerImpl::IsVideoStreamingAllowed(uint32_t application_key) c
 mobile_apis::HMILevel::eType ApplicationManagerImpl::GetDefaultHmiLevel(
     ApplicationSharedPtr application) const {
   using namespace mobile_apis;
-
+  LOG4CXX_AUTO_TRACE(logger_);
   HMILevel::eType default_hmi = HMILevel::HMI_NONE;
 
   if (policy::PolicyHandler::instance()->PolicyEnabled()) {

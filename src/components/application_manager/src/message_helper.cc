@@ -259,6 +259,7 @@ uint32_t MessageHelper::GetAppCommandLimit(const std::string& policy_app_id) {
 
 void MessageHelper::SendHMIStatusNotification(
   const Application& application_impl) {
+  LOG4CXX_AUTO_TRACE(logger_);
   smart_objects::SmartObjectSPtr notification = new smart_objects::SmartObject;
   if (!notification) {
     // TODO(VS): please add logger.
