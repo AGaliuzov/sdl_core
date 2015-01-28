@@ -107,8 +107,8 @@ TEST(SingletonTest, DeleteSingletonCreateAnother) {
 }
 
 void* func_pthread1(void*) {
-  SingletonTest* singletone_in_other_thread =  SingletonTest::instance();
-  pthread_exit(singletone_in_other_thread);
+  SingletonTest* singleton_in_other_thread =  SingletonTest::instance();
+  pthread_exit(singleton_in_other_thread);
   return NULL;
 }
 
