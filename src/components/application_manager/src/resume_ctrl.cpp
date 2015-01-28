@@ -93,9 +93,9 @@ void ResumeCtrl::SaveApplication(ApplicationConstSharedPtr application) {
 
   const uint32_t hash = application->curHash();
   const uint32_t grammar_id = application->get_grammar_id();
+  const uint32_t time_stamp = (uint32_t)time(NULL);
+
   const mobile_apis::HMILevel::eType hmi_level = application->hmi_level();
-  LOG4CXX_INFO(logger_, "hash = " << hash);
-  LOG4CXX_INFO(logger_, "grammar_id = " << grammar_id);
 
   resumtion_lock_.Acquire();
   Json::Value& json_app = GetFromSavedOrAppend(m_app_id);
@@ -121,8 +121,7 @@ void ResumeCtrl::SaveApplication(ApplicationConstSharedPtr application) {
   json_app[strings::application_subscribtions] =
     GetApplicationSubscriptions(application);
   json_app[strings::application_files] = GetApplicationFiles(application);
-  json_app[strings::time_stamp] = (uint32_t)time(NULL);
-  json_app[strings::audio_streaming_state] = application->audio_streaming_state();
+  json_app[strings::time_stamp] = time_stamp;
   LOG4CXX_DEBUG(logger_, "SaveApplication : " << json_app.toStyledString());
   if (application->is_media_application()&&
        (hmi_level == mobile_apis::HMILevel::HMI_FULL ||
@@ -159,20 +158,13 @@ bool ResumeCtrl::RestoreAppHMIState(ApplicationSharedPtr application) {
   const int idx = GetObjectIndex(application->mobile_app_id()->asString());
   if (-1 != idx) {
     const Json::Value& json_app = GetSavedApplications()[idx];
-    if (json_app.isMember(strings::audio_streaming_state) &&
-        json_app.isMember(strings::hmi_level)) {
-
-      const AudioStreamingState::eType audio_streaming_state =
-          static_cast<mobile_apis::AudioStreamingState::eType>(
-            json_app[strings::audio_streaming_state].asInt());
-
-      application->set_audio_streaming_state(audio_streaming_state);
+    if (json_app.isMember(strings::hmi_level)) {
 
       const HMILevel::eType saved_hmi_level =
           static_cast<mobile_apis::HMILevel::eType>(
             json_app[strings::hmi_level].asInt());
       LOG4CXX_DEBUG(logger_, "Saved HMI Level is : " << saved_hmi_level);
-      return SetAppHMIState(application, saved_hmi_level, audio_streaming_state);
+      return SetAppHMIState(application, saved_hmi_level);
     } else {
       LOG4CXX_FATAL(logger_, "There are some unknown keys among the stored apps");
     }
@@ -189,15 +181,14 @@ bool ResumeCtrl::SetupDefaultHMILevel(ApplicationSharedPtr application) {
   LOG4CXX_TRACE(logger_, "ENTER app_id : " << application->app_id());
   mobile_apis::HMILevel::eType default_hmi = ApplicationManagerImpl::instance()->
                                              GetDefaultHmiLevel(application);
-  bool result = SetAppHMIState(application, default_hmi,
-                         mobile_apis::AudioStreamingState::NOT_AUDIBLE, false);
+  bool result = SetAppHMIState(application, default_hmi, false);
   return result;
 }
 
 bool ResumeCtrl::SetAppHMIState(ApplicationSharedPtr application,
-                               mobile_apis::HMILevel::eType hmi_level,
-                               mobile_apis::AudioStreamingState::eType audio_streaming_state,
+                               const mobile_apis::HMILevel::eType hmi_level,
                                bool check_policy) {
+  using namespace mobile_apis;
   LOG4CXX_AUTO_TRACE(logger_);
   if (false == application.valid()) {
     LOG4CXX_ERROR(logger_, "Application pointer in invalid");
@@ -205,7 +196,6 @@ bool ResumeCtrl::SetAppHMIState(ApplicationSharedPtr application,
   }
   LOG4CXX_TRACE(logger_, " ENTER Params : ( " << application->app_id()
                 << "," << hmi_level
-                << "," << audio_streaming_state
                 << "," << check_policy << " )");
   const std::string device_id =
       MessageHelper::GetDeviceMacAddressForHandle(application->device());
@@ -217,63 +207,51 @@ bool ResumeCtrl::SetAppHMIState(ApplicationSharedPtr application,
     SetupDefaultHMILevel(application);
     return false;
   }
+  HMILevel::eType restored_hmi_level = hmi_level;
 
   if ((hmi_level == application->hmi_level()) &&
       (hmi_level != mobile_apis::HMILevel::HMI_NONE)) {
-    LOG4CXX_WARN(logger_, "Hmi level " << hmi_level << " should not be set to "
-                 << application->mobile_app_id()->asString() << "  " << application->hmi_level());
+    LOG4CXX_DEBUG(logger_, "Hmi level " << hmi_level << " should not be set to "
+                 << application->mobile_app_id()->asString()
+                 <<"curr hmi_level is " << application->hmi_level());
     return false;
   }
 
-  if (mobile_apis::HMILevel::HMI_FULL == hmi_level) {
-    hmi_level = app_mngr_->PutApplicationInFull(application);
-
-    if ((mobile_apis::HMILevel::HMI_FULL == hmi_level ||
-        mobile_apis::HMILevel::HMI_LIMITED == hmi_level) &&
-        (mobile_apis::AudioStreamingState::AUDIBLE == audio_streaming_state)) {
-      application->set_audio_streaming_state(audio_streaming_state);
-    }
-  } else if (mobile_apis::HMILevel::HMI_LIMITED == hmi_level) {
-    if ((false == application->IsAudioApplication()) ||
-        app_mngr_->DoesAudioAppWithSameHMITypeExistInFullOrLimited(application)) {
-      hmi_level = mobile_apis::HMILevel::HMI_BACKGROUND;
-    } else {
-      if (audio_streaming_state == mobile_apis::AudioStreamingState::AUDIBLE) {
-        //implemented SDLAQ-CRS-839
-        //checking the existence of application with AudioStreamingState=AUDIBLE
-        //notification resumeAudioSource is sent if only resumed application has
-        //AudioStreamingState=AUDIBLE
-        bool application_exist_with_audible_state = false;
-        ApplicationManagerImpl::ApplicationListAccessor accessor;
-       ApplicationManagerImpl::ApplictionSetConstIt app_list_it =
-           accessor.begin();
-        uint32_t app_id = application->app_id();
-        for (; accessor.end() != app_list_it; ++app_list_it) {
-          if ((mobile_apis::AudioStreamingState::AUDIBLE ==
-              (*app_list_it)->audio_streaming_state())
-              && ((*app_list_it))->app_id() != app_id) {
-            application_exist_with_audible_state = true;
-            break;
-          }
-        }
-        if (application_exist_with_audible_state) {
-          application->set_audio_streaming_state(
-              mobile_apis::AudioStreamingState::NOT_AUDIBLE);
-        } else {
-          MessageHelper::SendOnResumeAudioSourceToHMI(application->app_id());
+  if (HMILevel::HMI_FULL == hmi_level) {
+    restored_hmi_level = app_mngr_->IsHmiLevelFullAllowed(application);
+  } else if (HMILevel::HMI_LIMITED == hmi_level) {
+    bool allowed_limited = true;
+    ApplicationManagerImpl::ApplicationListAccessor accessor;
+    ApplicationManagerImpl::ApplictionSetConstIt it = accessor.begin();
+    for (; accessor.end() != it && allowed_limited; ++it) {
+      const ApplicationSharedPtr curr_app = *it;
+      if (curr_app->is_media_application()) {
+        if (curr_app->hmi_level() == HMILevel::HMI_FULL ||
+            curr_app->hmi_level() == HMILevel::HMI_LIMITED) {
+          allowed_limited = false;
         }
       }
     }
+    if (allowed_limited) {
+      restored_hmi_level = HMILevel::HMI_LIMITED;
+    } else {
+      restored_hmi_level =
+          ApplicationManagerImpl::instance()->GetDefaultHmiLevel(application);
+    }
   }
 
-  if (hmi_level != mobile_apis::HMILevel::HMI_FULL) {
-    application->set_hmi_level(hmi_level);
-    MessageHelper::SendHMIStatusNotification(*(application.get()));
-    // HMI status for full wil be get after ActivateApp response
+
+  if (restored_hmi_level == HMILevel::HMI_FULL ||
+      restored_hmi_level == HMILevel::HMI_LIMITED) {
+    MessageHelper::SendOnResumeAudioSourceToHMI(application->app_id());
   }
-  LOG4CXX_INFO(logger_, "Set up application "
-               << application->mobile_app_id()->asString()
-               << " to HMILevel " << hmi_level);
+
+  if (restored_hmi_level == HMILevel::HMI_FULL ) {
+    MessageHelper::SendActivateAppToHMI(application->app_id());
+  } else {
+    application->set_hmi_level(restored_hmi_level);
+    MessageHelper::SendHMIStatusNotification(*(application.get()));
+  }
   return true;
 }
 
@@ -406,7 +384,8 @@ bool ResumeCtrl::RemoveApplicationFromSaved(ApplicationConstSharedPtr applicatio
 
 void ResumeCtrl::Suspend() {
   LOG4CXX_AUTO_TRACE(logger_);
-
+  StopSavePersistentDataTimer();
+  SaveAllApplications();
   Json::Value to_save;
   sync_primitives::AutoLock lock(resumtion_lock_);
   for (Json::Value::iterator it = GetSavedApplications().begin();
@@ -451,9 +430,10 @@ void ResumeCtrl::OnAwake() {
     }
   }
   ResetLaunchTime();
+  StartSavePersistentDataTimer();
 }
 
-#ifdef CUSTOMER_PASA
+
 
 void ResumeCtrl::StartSavePersistentDataTimer() {
   LOG4CXX_AUTO_TRACE(logger_);
@@ -469,7 +449,7 @@ void ResumeCtrl::StopSavePersistentDataTimer() {
     save_persistent_data_timer_.stop();
   }
 }
-#endif // CUSTOMER_PASA
+
 
 bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
                                  uint32_t hash) {

@@ -552,7 +552,7 @@ bool ApplicationManagerImpl::ActivateApplication(ApplicationSharedPtr app) {
   return true;
 }
 
-mobile_api::HMILevel::eType ApplicationManagerImpl::PutApplicationInFull(
+mobile_api::HMILevel::eType ApplicationManagerImpl::IsHmiLevelFullAllowed(
   ApplicationSharedPtr app) {
   LOG4CXX_AUTO_TRACE(logger_);
   if (!app) {
@@ -569,7 +569,7 @@ mobile_api::HMILevel::eType ApplicationManagerImpl::PutApplicationInFull(
 
   mobile_api::HMILevel::eType result = mobile_api::HMILevel::HMI_FULL;
   if (is_audio_app && does_audio_app_with_same_type_exist) {
-    result = mobile_apis::HMILevel::HMI_BACKGROUND;
+    result = GetDefaultHmiLevel(app);
   } else if (is_active_app_exist && is_audio_app) {
     result = mobile_apis::HMILevel::HMI_LIMITED;
   } else if (is_active_app_exist && (!is_audio_app)) {
@@ -579,11 +579,6 @@ mobile_api::HMILevel::eType ApplicationManagerImpl::PutApplicationInFull(
                 << "; does_audio_app_with_same_type_exist : " << does_audio_app_with_same_type_exist
                 << "; is_active_app_exist : " << is_active_app_exist
                 << "; result : " << result);
-
-
-  if (mobile_api::HMILevel::HMI_FULL == result) {
-    MessageHelper::SendActivateAppToHMI(app->app_id());
-  }
   return result;
 }
 
@@ -2044,7 +2039,11 @@ void ApplicationManagerImpl::UnregisterAllApplications(bool generated_by_hmi) {
                                       connection_handler::kCommon);
     it = accessor.begin();
   }
-
+#ifndef CUSTOMER_PASA
+  if (is_ignition_off) {
+    resume_controller().Suspend();
+  }
+#endif // CUSTOMER_PASA
   request_ctrl_.terminateAllHMIRequests();
 }
 

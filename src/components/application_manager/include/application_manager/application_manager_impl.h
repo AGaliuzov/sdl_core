@@ -335,7 +335,7 @@ class ApplicationManagerImpl : public ApplicationManager,
      * @param app, application, that need to be puted in FULL
      * @return seted HMI Level
      */
-    mobile_api::HMILevel::eType PutApplicationInFull(ApplicationSharedPtr app);
+    mobile_api::HMILevel::eType IsHmiLevelFullAllowed(ApplicationSharedPtr app);
 
     void ConnectToDevice(uint32_t id);
     void OnHMIStartedCooperation();

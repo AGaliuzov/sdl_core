@@ -107,8 +107,7 @@ class ResumeCtrl: public event_engine::EventObserver {
      * @return true if success, otherwise return false
      */
     bool SetAppHMIState(ApplicationSharedPtr application,
-                       mobile_apis::HMILevel::eType hmi_level,
-                       mobile_apis::AudioStreamingState::eType audio_streaming_state,
+                       const mobile_apis::HMILevel::eType hmi_level,
                        bool check_policy = true);
 
     /**
@@ -144,7 +143,6 @@ class ResumeCtrl: public event_engine::EventObserver {
      */
     void OnAwake();
 
-#ifdef CUSTOMER_PASA
     /**
      * @brief Method starts timer "RsmCtrlPercist" when SDL receives onAwakeSDL notification
      */
@@ -155,8 +153,6 @@ class ResumeCtrl: public event_engine::EventObserver {
      * with reason "SUSPEND"
      */
     void StopSavePersistentDataTimer();
-
-#endif //CUSTOMER_PASA
 
     /**
      * @brief Start timer for resumption applications
