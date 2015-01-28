@@ -41,7 +41,6 @@ namespace utils {
 using namespace ::logger;
 
 TEST(LogMessageLoopThread,CreateLogMessageSingleton) {
-
   //if logger_status is LoggerThreadNotCreated or LoggerThreadCreated,
   // creation of singleton will be impossible
   logger::logger_status = CreatingLoggerThread;
@@ -50,26 +49,28 @@ TEST(LogMessageLoopThread,CreateLogMessageSingleton) {
   LogMessageLoopThread *instance_2 = LogMessageLoopThread::instance();
 
   //assert
-  ASSERT_EQ(instance_1, instance_2);
+  EXPECT_EQ(instance_1, instance_2);
 
   LogMessageLoopThread::destroy();
 
-  ASSERT_FALSE(LogMessageLoopThread::exists());
+  EXPECT_FALSE(LogMessageLoopThread::exists());
+  logger::logger_status = LoggerThreadNotCreated;
 }
 
 TEST(LogMessageLoopThread, DestroyLogMessage_loggerStatusDeletingLogger) {
-
   logger::logger_status = CreatingLoggerThread;
   LogMessageLoopThread::instance();
 
   //assert
-  ASSERT_EQ(CreatingLoggerThread, logger::logger_status);
+  EXPECT_EQ(CreatingLoggerThread, logger::logger_status);
 
   //act
   LogMessageLoopThread::destroy();
 
   //assert
-  ASSERT_EQ(DeletingLoggerThread, logger::logger_status);
+  EXPECT_EQ(DeletingLoggerThread, logger::logger_status);
+
+  logger::logger_status = LoggerThreadNotCreated;
 }
 
 }  // namespace utils
