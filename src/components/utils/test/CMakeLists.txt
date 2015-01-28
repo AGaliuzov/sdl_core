@@ -51,6 +51,7 @@ set(testSources
   bitstream_test.cc
   data_accessor_test.cc
   lock_posix_test.cc
+  singleton_test.cc
 )
 
 if (ENABLE_LOG)
