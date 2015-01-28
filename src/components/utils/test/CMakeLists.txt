@@ -50,9 +50,11 @@ set(testSources
   resource_usage_test.cc
   bitstream_test.cc
   data_accessor_test.cc
-  auto_trace_test.cc
 )
 
+if (ENABLE_LOG)
+  list(APPEND testSources auto_trace_test.cc)
+endif()
 
 if (BUILD_BACKTRACE_SUPPORT)
   list(APPEND testSources back_trace_test.cc)
@@ -65,6 +67,7 @@ set(testLibraries
 )
 
 file(COPY testscript.sh DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY log4cxx.properties DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 add_executable(utils_test ${testSources})
 target_link_libraries(utils_test ${testLibraries})
 
