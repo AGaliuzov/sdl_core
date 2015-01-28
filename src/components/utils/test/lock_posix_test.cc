@@ -70,6 +70,7 @@ TEST(LockPosixTest, CtorTestWithTrueArgument_ExpectRecursiveMutexCreated) {
   EXPECT_TRUE(test_mutex.Try());
   // Release mutex before destroy
   test_mutex.Release();
+  test_mutex.Release();
 }
 
 TEST(LockPosixTest, AcquireMutex_ExpectMutexLocked) {
