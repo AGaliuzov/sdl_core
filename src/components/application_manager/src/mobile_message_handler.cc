@@ -140,7 +140,7 @@ MobileMessageHandler::HandleIncomingMessageProtocolV2(
   outgoing_message->set_function_id(payload.header.rpc_function_id);
   outgoing_message->set_message_type(
       MessageTypeFromRpcType(payload.header.rpc_type));
-  outgoing_message->set_correlation_id(int32_t(payload.header.corellation_id));
+  outgoing_message->set_correlation_id(int32_t(payload.header.correlation_id));
   outgoing_message->set_connection_key(message->connection_key());
   outgoing_message->set_protocol_version(
     static_cast<application_manager::ProtocolVersion>(message

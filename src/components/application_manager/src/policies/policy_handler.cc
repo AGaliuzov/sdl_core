@@ -61,7 +61,7 @@ using namespace application_manager;
 #define POLICY_LIB_CHECK(return_value) {\
   sync_primitives::AutoReadLock lock(policy_manager_lock_); \
   if (!policy_manager_) {\
-    LOG4CXX_WARN(logger_, "The shared library of policy is not loaded");\
+    LOG4CXX_DEBUG(logger_, "The shared library of policy is not loaded");\
     return return_value;\
   }\
 }
@@ -69,7 +69,7 @@ using namespace application_manager;
 #define POLICY_LIB_CHECK_VOID() {\
   sync_primitives::AutoReadLock lock(policy_manager_lock_); \
   if (!policy_manager_) {\
-    LOG4CXX_WARN(logger_, "The shared library of policy is not loaded");\
+    LOG4CXX_DEBUG(logger_, "The shared library of policy is not loaded");\
     return;\
   }\
 }
@@ -908,7 +908,7 @@ void PolicyHandler::OnActivateApp(uint32_t connection_key,
 
   sync_primitives::AutoReadLock lock(policy_manager_lock_);
   if (!policy_manager_) {
-    LOG4CXX_WARN(logger_, "The shared library of policy is not loaded");
+    LOG4CXX_DEBUG(logger_, "The shared library of policy is not loaded");
     if (!PolicyEnabled()) {
       permissions.isSDLAllowed = true;
     }
