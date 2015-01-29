@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,51 +29,73 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef SRC_COMPONENTS_PROTOCOL_HANDLER_INCLUDE_PROTOCOL_HANDLER_PROTOCOL_PAYLOAD_H_
-#define SRC_COMPONENTS_PROTOCOL_HANDLER_INCLUDE_PROTOCOL_HANDLER_PROTOCOL_PAYLOAD_H_
 
-#include <stdint.h>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "gtest/gtest.h"
+#include "utils/auto_trace.h"
+#include "logger.h"
+#include <fstream>
 
-#include "protocol/rpc_type.h"
-
+namespace test {
+namespace components {
 namespace utils {
-class BitStream;
+
+using namespace ::logger;
+
+CREATE_LOGGERPTR_GLOBAL(logger_, "AutoTraceTestLog");
+
+void Preconditions() {
+  //delete file with previous logs
+  const char* file_name = "AutoTraceTestLogFile.log";
+  std::remove(file_name);
 }
 
-namespace protocol_handler {
+void InitLogger() {
+  INIT_LOGGER("log4cxx.properties");
+}
 
-// Applink Protocolv5 4.1.2 Protocol Payload Binary header
-struct ProtocolPayloadHeaderV2 {
-  ProtocolPayloadHeaderV2()
-    : rpc_type(kRpcTypeReserved),
-      rpc_function_id(0), correlation_id(0), json_size(0) {}
-  RpcType  rpc_type;
-  uint32_t rpc_function_id;
-  uint32_t correlation_id;
-  uint32_t json_size;
-};
+void CreateDeleteAutoTrace(const std::string & testlog) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(logger_, testlog);
+}
 
-// Applink Protocolv5 4.1.1 Protocol Message Payload
-struct ProtocolPayloadV2 {
-  ProtocolPayloadHeaderV2 header;
-  std::string json;
-  std::vector<uint8_t> data;
-};
+bool CheckTraceInFile(const std::string & testlog) {
 
-// Procedures that extract and validate defined protocol structures from
-// a bit stream.
-// If error during parsing is detected, bit stream is marked as invalid
-void Extract(utils::BitStream *bs, ProtocolPayloadHeaderV2 *headerv2);
-void Extract(utils::BitStream *bs, ProtocolPayloadV2 *payload, size_t payload_size);
+  bool isLogFound = false;
+  std::string line;
 
-std::ostream &operator<<(std::ostream &os, const ProtocolPayloadHeaderV2 &payload_header);
-std::ostream &operator<<(std::ostream &os, const ProtocolPayloadV2 &payload);
+  std::ifstream file_log("AutoTraceTestLogFile.log");
 
-//Add for tests
-size_t ProtocolPayloadV2SizeBits();
-} // namespace protocol_handler
+  if (file_log.is_open()) {
+    while (getline(file_log, line)) {
+      std::size_t found = line.find(testlog);
+      std::size_t founddebug = line.find("DEBUG");
+      if ((found != std::string::npos) && (founddebug != std::string::npos)) {
+        isLogFound = true;
+        break;
+      }
+    }
+    file_log.close();
+  } else {
+    std::cout << "file cannot be opened \n";
+  }
+  return isLogFound;
+}
 
-#endif /* SRC_COMPONENTS_PROTOCOL_HANDLER_INCLUDE_PROTOCOL_HANDLER_PROTOCOL_PAYLOAD_H_ */
+void DeinitLogger() {
+  DEINIT_LOGGER();
+}
+
+TEST(AutoTraceTest, Basic) {
+  const std::string testlog =
+      "Test trace is working!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
+  Preconditions();
+  InitLogger();
+  CreateDeleteAutoTrace(testlog);
+  DeinitLogger();
+
+  ASSERT_TRUE(CheckTraceInFile(testlog));
+}
+
+}  // namespace utils
+}  // namespace components
+}  // namespace test

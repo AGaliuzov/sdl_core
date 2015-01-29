@@ -139,7 +139,7 @@ class RequestController {
     /**
     * @brief Removes request from queue
     *
-    * @param corellation_id Active request correlation ID,
+    * @param correlation_id Active request correlation ID,
     * connection_key - Active request connection key (0 for HMI requersts)
     *
     */
@@ -149,7 +149,7 @@ class RequestController {
     /**
     * @brief Removes request from queue
     *
-    * @param mobile_corellation_id Active mobile request correlation ID
+    * @param mobile_correlation_id Active mobile request correlation ID
     *
     */
     void terminateMobileRequest(const uint32_t& mobile_correlation_id,
@@ -159,7 +159,7 @@ class RequestController {
     /**
     * @brief Removes request from queue
     *
-    * @param mobile_corellation_id Active mobile request correlation ID
+    * @param mobile_correlation_id Active mobile request correlation ID
     *
     */
     void terminateHMIRequest(const uint32_t& correlation_id);

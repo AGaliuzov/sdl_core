@@ -66,6 +66,9 @@ void SetAppIconRequest::Run() {
       (*message_)[strings::msg_params][strings::sync_file_name].asString();
 
   std::string full_file_path =
+#ifndef CUSTOMER_PASA
+      file_system::CurrentWorkingDirectory() + "/" +
+#endif // CUSTOMER_PASA
       profile::Profile::instance()->app_storage_folder() + "/";
   full_file_path += app->folder_name();
   full_file_path += "/";
