@@ -31,6 +31,7 @@
  */
 
 #include "gtest/gtest.h"
+#include "gmock/gmock.h"
 #include "utils/log_message_loop_thread.h"
 #include "utils/logger_status.h"
 
@@ -39,6 +40,7 @@ namespace components {
 namespace utils {
 
 using namespace ::logger;
+using ::testing::_;
 
 TEST(LogMessageLoopThread,CreateLogMessageSingleton) {
   //if logger_status is LoggerThreadNotCreated or LoggerThreadCreated,
@@ -70,6 +72,23 @@ TEST(LogMessageLoopThread, DestroyLogMessage_loggerStatusDeletingLogger) {
   //assert
   EXPECT_EQ(DeletingLoggerThread, logger::logger_status);
 
+  logger::logger_status = LoggerThreadNotCreated;
+}
+
+class MockLogMessageTest: public LogMessageHandler
+{
+ public:
+   MOCK_CONST_METHOD1(Handle, void(const LogMessage message));
+};
+
+TEST(LogMessageLoopThread, HandleNeverCalled) {
+  logger::logger_status = CreatingLoggerThread;
+
+  MockLogMessageTest mmock;
+  EXPECT_CALL(mmock,Handle(_)).Times(0);
+  LogMessageLoopThread::instance();
+
+  LogMessageLoopThread::destroy();
   logger::logger_status = LoggerThreadNotCreated;
 }
 
