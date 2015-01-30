@@ -71,6 +71,7 @@ const char* kFilesystemRestrictionsSection = "FILESYSTEM RESTRICTIONS";
 const char* kIAPSection = "IAP";
 const char* kProtocolHandlerSection = "ProtocolHandler";
 const char* kSDL4Section = "SDL4";
+const char* kResumptionSection = "Resumption";
 
 const char* kHmiCapabilitiesKey = "HMICapabilities";
 const char* kPathToSnapshotKey = "PathToSnapshot";
@@ -131,6 +132,8 @@ const char* kListFilesRequestKey = "ListFilesRequest";
 const char* kDefaultTimeoutKey = "DefaultTimeout";
 const char* kAppResumingTimeoutKey = "ApplicationResumingTimeout";
 const char* kAppSavePersistentDataTimeoutKey = "AppSavePersistentDataTimeout";
+const char* kResumptionDelayBeforeIgnKey = "ResumptionDelayBeforeIgn";
+const char* kResumptionDelayAfterIgnKey = "ResumptionDelayAfterIgn";
 const char* kAppDirectoryQuotaKey = "AppDirectoryQuota";
 const char* kAppTimeScaleMaxRequestsKey = "AppTimeScaleMaxRequests";
 const char* kAppRequestsTimeScaleKey = "AppRequestsTimeScale";
@@ -209,6 +212,9 @@ const uint32_t kDefaultListFilesRequestInNone = 5;
 const uint32_t kDefaultTimeout = 10;
 const uint32_t kDefaultAppResumingTimeout = 3;
 const uint32_t kDefaultAppSavePersistentDataTimeout = 10;
+const uint32_t kDefaultResumptionDelayBeforeIgn = 30;
+const uint32_t kDefaultResumptionDelayAfterIgn = 30;
+
 const uint32_t kDefaultDirQuota = 104857600;
 const uint32_t kDefaultAppTimeScaleMaxRequests = 0;
 const uint32_t kDefaultAppRequestsTimeScale = 0;
@@ -677,6 +683,14 @@ uint16_t Profile::open_attempt_timeout_ms() const {
   return open_attempt_timeout_ms_;
 }
 
+uint32_t Profile::resumption_delay_before_ign() const {
+  return resumption_delay_before_ign_;
+}
+
+uint32_t Profile::resumption_delay_after_ign() const {
+  return resumption_delay_after_ign_;
+}
+
 uint16_t Profile::tts_global_properties_timeout() const {
   return tts_global_properties_timeout_;
 }
@@ -1009,23 +1023,41 @@ void Profile::UpdateValues() {
 
   // Application resuming timeout
   ReadUIntValue(&app_resuming_timeout_, kDefaultAppResumingTimeout,
-                kMainSection, kAppResumingTimeoutKey);
+                kResumptionSection, kAppResumingTimeoutKey);
 
   if (app_resuming_timeout_ <= 0) {
     app_resuming_timeout_ = kDefaultAppResumingTimeout;
   }
   // Save resumption info to File System
   LOG_UPDATED_VALUE(app_resuming_timeout_, kAppSavePersistentDataTimeoutKey,
-                    kMainSection);
+                    kResumptionSection);
+
   ReadUIntValue(&app_resumption_save_persistent_data_timeout_,
                 kDefaultAppSavePersistentDataTimeout,
-                kMainSection, kAppSavePersistentDataTimeoutKey);
+                kResumptionSection, kAppSavePersistentDataTimeoutKey);
   if (app_resuming_timeout_ <= 0) {
     app_resuming_timeout_ = kDefaultAppSavePersistentDataTimeout;
   }
 
   LOG_UPDATED_VALUE(app_resuming_timeout_, kAppResumingTimeoutKey,
-                    kMainSection);
+                    kResumptionSection);
+  // Open attempt timeout in ms
+  ReadUIntValue(&resumption_delay_before_ign_,
+                kDefaultResumptionDelayBeforeIgn,
+                kResumptionSection,
+                kResumptionDelayBeforeIgnKey);
+
+  LOG_UPDATED_VALUE(resumption_delay_after_ign_,
+                    kResumptionDelayBeforeIgnKey, kResumptionSection);
+
+  // Open attempt timeout in ms
+  ReadUIntValue(&resumption_delay_after_ign_,
+                kDefaultResumptionDelayAfterIgn,
+                kResumptionSection,
+                kResumptionDelayAfterIgnKey);
+
+  LOG_UPDATED_VALUE(resumption_delay_after_ign_,
+                    kResumptionDelayAfterIgnKey, kResumptionSection);
 
   // Application directory quota
   ReadUIntValue(&app_dir_quota_, kDefaultDirQuota, kMainSection,

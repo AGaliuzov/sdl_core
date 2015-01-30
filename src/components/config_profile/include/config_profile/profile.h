@@ -535,6 +535,16 @@ class Profile : public utils::Singleton<Profile> {
 
     uint16_t open_attempt_timeout_ms() const;
 
+    uint32_t resumption_delay_before_ign() const;
+
+    uint32_t resumption_delay_after_ign() const;
+
+    /*
+     * @brief Updates all related values from ini file
+     */
+    void UpdateValues();
+
+
   private:
     /**
      * Default constructor
@@ -544,10 +554,6 @@ class Profile : public utils::Singleton<Profile> {
      */
     Profile();
 
-    /*
-     * @brief Updates all related values from ini file
-     */
-    void UpdateValues();
 
     /**
      * @brief Reads a boolean value from the profile
@@ -729,6 +735,8 @@ class Profile : public utils::Singleton<Profile> {
     uint16_t                        tts_global_properties_timeout_;
     uint16_t                        attempts_to_open_policy_db_;
     uint16_t                        open_attempt_timeout_ms_;
+    uint32_t                        resumption_delay_before_ign_;
+    uint32_t                        resumption_delay_after_ign_;
 
     FRIEND_BASE_SINGLETON_CLASS(Profile);
     DISALLOW_COPY_AND_ASSIGN(Profile);

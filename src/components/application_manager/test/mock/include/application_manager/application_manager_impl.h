@@ -212,7 +212,7 @@ class ApplicationManagerImpl : public ApplicationManager,
 #endif // CUSTOMER_PASA
   MOCK_METHOD1(LoadAppDataToHMI, bool(ApplicationSharedPtr));
   MOCK_METHOD1(ActivateApplication, bool (ApplicationSharedPtr));
-  MOCK_METHOD1(PutApplicationInFull, mobile_api::HMILevel::eType (ApplicationSharedPtr));
+  MOCK_METHOD1(IsHmiLevelFullAllowed, mobile_api::HMILevel::eType (ApplicationSharedPtr));
   MOCK_METHOD2(UnregisterRevokedApplication, void(uint32_t, mobile_apis::Result::eType));
   MOCK_METHOD1(SetUnregisterAllApplicationsReason, void(mobile_api::AppInterfaceUnregisteredReason::eType));
   MOCK_METHOD1(UnregisterAllApplications, void(bool));
@@ -246,6 +246,8 @@ class ApplicationManagerImpl : public ApplicationManager,
   MOCK_METHOD1(ReplaceMobileByHMIAppId, void(smart_objects::SmartObject&));
   MOCK_METHOD0(resume_controller, ResumeCtrl&());
   MOCK_METHOD1(IsVideoStreamingAllowed, bool(uint32_t));
+  MOCK_METHOD1(GetDefaultHmiLevel, mobile_api::HMILevel::eType (ApplicationSharedPtr));
+
   MOCK_METHOD1(IsAudioStreamingAllowed, bool(uint32_t));
   MOCK_METHOD1(Unmute, void(VRTTSSessionChanging));
   MOCK_METHOD1(Mute, void(VRTTSSessionChanging));

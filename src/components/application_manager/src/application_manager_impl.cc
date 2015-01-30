@@ -149,7 +149,7 @@ bool ApplicationManagerImpl::Stop() {
   }
 
 
-  // for PASA customer policy backup should happen OnExitAllApp(SUSPEND)
+  // for PASA customer policy backup should happen :AllApp(SUSPEND)
   LOG4CXX_INFO(logger_, "Unloading policy library.");
   policy::PolicyHandler::instance()->UnloadPolicyLibrary();
 
@@ -160,7 +160,7 @@ ApplicationSharedPtr ApplicationManagerImpl::application(uint32_t app_id) const 
   AppIdPredicate finder(app_id);
   ApplicationListAccessor accessor;
   ApplicationSharedPtr app = accessor.Find(finder);
-  LOG4CXX_DEBUG(logger_, "AKUTSAN app_id << " << app_id << "Found = " << app);
+  LOG4CXX_DEBUG(logger_, " app_id << " << app_id << "Found = " << app);
   return app;
 }
 
@@ -169,7 +169,7 @@ ApplicationSharedPtr ApplicationManagerImpl::application_by_hmi_app(
   HmiAppIdPredicate finder(hmi_app_id);
   ApplicationListAccessor accessor;
   ApplicationSharedPtr app = accessor.Find(finder);
-  LOG4CXX_DEBUG(logger_, "AKUTSAN hmi_app_id << " << hmi_app_id << "Found = " << app);
+  LOG4CXX_DEBUG(logger_, " hmi_app_id << " << hmi_app_id << "Found = " << app);
   return app;
 }
 
@@ -178,7 +178,7 @@ ApplicationSharedPtr ApplicationManagerImpl::application_by_policy_id(
   MobileAppIdPredicate finder(policy_app_id);
   ApplicationListAccessor accessor;
   ApplicationSharedPtr app = accessor.Find(finder);
-  LOG4CXX_DEBUG(logger_, "AKUTSAN policy_app_id << " << policy_app_id << "Found = " << app);
+  LOG4CXX_DEBUG(logger_, " policy_app_id << " << policy_app_id << "Found = " << app);
   return app;
 }
 
@@ -190,7 +190,7 @@ ApplicationSharedPtr ApplicationManagerImpl::active_application() const {
   // TODO(DK) : check driver distraction
   ApplicationListAccessor accessor;
   ApplicationSharedPtr app = accessor.Find(ActiveAppPredicate);
-  LOG4CXX_DEBUG(logger_, "AKUTSAN Found = " << app);
+  LOG4CXX_DEBUG(logger_, " Found = " << app);
   return app;
 }
 
@@ -203,7 +203,7 @@ ApplicationSharedPtr
 ApplicationManagerImpl::get_limited_media_application() const {
   ApplicationListAccessor accessor;
   ApplicationSharedPtr app = accessor.Find(LimitedAppPredicate);
-  LOG4CXX_DEBUG(logger_, "AKUTSAN Found = " << app);
+  LOG4CXX_DEBUG(logger_, " Found = " << app);
   return app;
 }
 
@@ -217,7 +217,7 @@ ApplicationSharedPtr
 ApplicationManagerImpl::get_limited_navi_application() const {
   ApplicationListAccessor accessor;
   ApplicationSharedPtr app = accessor.Find(LimitedNaviAppPredicate);
-  LOG4CXX_DEBUG(logger_, "AKUTSAN Found = " << app);
+  LOG4CXX_DEBUG(logger_, " Found = " << app);
   return app;
 }
 
@@ -231,7 +231,7 @@ ApplicationSharedPtr
 ApplicationManagerImpl::get_limited_voice_application() const {
   ApplicationListAccessor accessor;
   ApplicationSharedPtr app = accessor.Find(LimitedVoiceAppPredicate);
-  LOG4CXX_DEBUG(logger_, "AKUTSAN Found = " << app);
+  LOG4CXX_DEBUG(logger_, " Found = " << app);
   return app;
 }
 
@@ -242,7 +242,7 @@ bool NaviAppPredicate (const ApplicationSharedPtr app) {
 std::vector<ApplicationSharedPtr> ApplicationManagerImpl::applications_with_navi() {
   ApplicationListAccessor accessor;
   std::vector<ApplicationSharedPtr> apps = accessor.FindAll(NaviAppPredicate);
-  LOG4CXX_DEBUG(logger_, "AKUTSAN Found count: " << apps.size());
+  LOG4CXX_DEBUG(logger_, " Found count: " << apps.size());
   return apps;
 }
 std::vector<ApplicationSharedPtr> ApplicationManagerImpl::applications_by_button(
@@ -251,7 +251,7 @@ std::vector<ApplicationSharedPtr> ApplicationManagerImpl::applications_by_button
         static_cast<mobile_apis::ButtonName::eType>(button));
   ApplicationListAccessor accessor;
   std::vector<ApplicationSharedPtr> apps = accessor.FindAll(NaviAppPredicate);
-  LOG4CXX_DEBUG(logger_, "AKUTSAN Found count: " << apps.size());
+  LOG4CXX_DEBUG(logger_, " Found count: " << apps.size());
   return apps;
 }
 
@@ -272,7 +272,7 @@ std::vector<ApplicationSharedPtr> ApplicationManagerImpl::IviInfoUpdated(
         static_cast<int32_t>(vehicle_info));
   ApplicationListAccessor accessor;
   std::vector<ApplicationSharedPtr> apps = accessor.FindAll(NaviAppPredicate);
-  LOG4CXX_DEBUG(logger_, "AKUTSAN vehicle_info << " << vehicle_info << "Found count: " << apps.size());
+  LOG4CXX_DEBUG(logger_, " vehicle_info << " << vehicle_info << "Found count: " << apps.size());
   return apps;
 }
 
@@ -536,7 +536,7 @@ bool ApplicationManagerImpl::ActivateApplication(ApplicationSharedPtr app) {
   return true;
 }
 
-mobile_api::HMILevel::eType ApplicationManagerImpl::PutApplicationInFull(
+mobile_api::HMILevel::eType ApplicationManagerImpl::IsHmiLevelFullAllowed(
   ApplicationSharedPtr app) {
   LOG4CXX_AUTO_TRACE(logger_);
   if (!app) {
@@ -553,21 +553,16 @@ mobile_api::HMILevel::eType ApplicationManagerImpl::PutApplicationInFull(
 
   mobile_api::HMILevel::eType result = mobile_api::HMILevel::HMI_FULL;
   if (is_audio_app && does_audio_app_with_same_type_exist) {
-    result = mobile_apis::HMILevel::HMI_BACKGROUND;
+    result = GetDefaultHmiLevel(app);
   } else if (is_active_app_exist && is_audio_app) {
     result = mobile_apis::HMILevel::HMI_LIMITED;
   } else if (is_active_app_exist && (!is_audio_app)) {
-    result = mobile_apis::HMILevel::HMI_BACKGROUND;
+    result = GetDefaultHmiLevel(app);
   }
   LOG4CXX_ERROR(logger_, "is_audio_app : " << is_audio_app
                 << "; does_audio_app_with_same_type_exist : " << does_audio_app_with_same_type_exist
                 << "; is_active_app_exist : " << is_active_app_exist
                 << "; result : " << result);
-
-
-  if (mobile_api::HMILevel::HMI_FULL == result) {
-    MessageHelper::SendActivateAppToHMI(app->app_id());
-  }
   return result;
 }
 
@@ -625,6 +620,7 @@ void ApplicationManagerImpl::OnHMIStartedCooperation() {
     connection_handler_->StartTransportManager();
   }
 #endif // CUSTOMER_PASA
+  resume_controller().ResetLaunchTime();
 }
 
 uint32_t ApplicationManagerImpl::GetNextHMICorrelationID() {
@@ -853,6 +849,36 @@ bool ApplicationManagerImpl::IsVideoStreamingAllowed(uint32_t application_key) c
   }
 
   return false;
+}
+
+mobile_apis::HMILevel::eType ApplicationManagerImpl::GetDefaultHmiLevel(
+    ApplicationSharedPtr application) const {
+  using namespace mobile_apis;
+  LOG4CXX_AUTO_TRACE(logger_);
+  HMILevel::eType default_hmi = HMILevel::HMI_NONE;
+
+  if (policy::PolicyHandler::instance()->PolicyEnabled()) {
+    const std::string policy_app_id = application->mobile_app_id();
+    std::string default_hmi_string = "";
+    if (policy::PolicyHandler::instance()->GetDefaultHmi(
+          policy_app_id, &default_hmi_string)) {
+      if ("BACKGROUND" == default_hmi_string) {
+        default_hmi = HMILevel::HMI_BACKGROUND;
+      } else if ("FULL" == default_hmi_string) {
+        default_hmi = HMILevel::HMI_FULL;
+      } else if ("LIMITED" == default_hmi_string) {
+        default_hmi = HMILevel::HMI_LIMITED;
+      } else if ("NONE" == default_hmi_string) {
+        default_hmi = HMILevel::HMI_NONE;
+      } else {
+        LOG4CXX_ERROR(logger_, "Unable to convert " + default_hmi_string + " to HMILevel");
+      }
+    } else {
+      LOG4CXX_ERROR(logger_, "Unable to get default hmi_level for "
+                    << policy_app_id);
+    }
+  }
+  return default_hmi;
 }
 
 uint32_t ApplicationManagerImpl::GenerateGrammarID() {
@@ -2027,11 +2053,11 @@ void ApplicationManagerImpl::UnregisterAllApplications(bool generated_by_hmi) {
                                       connection_handler::kCommon);
     it = accessor.begin();
   }
-
+#ifndef CUSTOMER_PASA
   if (is_ignition_off) {
-    resume_controller().IgnitionOff();
+    resume_controller().Suspend();
   }
-
+#endif // CUSTOMER_PASA
   request_ctrl_.terminateAllHMIRequests();
 }
 

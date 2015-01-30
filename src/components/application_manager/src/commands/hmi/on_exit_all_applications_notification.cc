@@ -86,6 +86,7 @@ void OnExitAllApplicationsNotification::Run() {
       mob_reason = mobile_api::AppInterfaceUnregisteredReason::IGNITION_OFF;
       app_manager->set_state_suspended(true);
       app_manager->HeadUnitSuspend();
+      ApplicationManagerImpl::instance()->resume_controller().Suspend();
 #endif // CUSTOMER_PASA
       SendOnSDLPersistenceComplete();
       return;

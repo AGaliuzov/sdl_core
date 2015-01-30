@@ -88,7 +88,7 @@ class ResumeCtrl: public event_engine::EventObserver {
      * @param application is application witch HMI Level is need to restore
      * @return true if success, otherwise return false
      */
-    bool RestoreApplicationHMILevel(ApplicationSharedPtr application);
+    bool RestoreAppHMIState(ApplicationSharedPtr application);
 
     /**
      * @brief Set application HMI Level as stored in policy
@@ -106,9 +106,8 @@ class ResumeCtrl: public event_engine::EventObserver {
      * @param check_policy indicate if policy data consent must be verified
      * @return true if success, otherwise return false
      */
-    bool SetupHMILevel(ApplicationSharedPtr application,
-                       mobile_apis::HMILevel::eType hmi_level,
-                       mobile_apis::AudioStreamingState::eType audio_streaming_state,
+    bool SetAppHMIState(ApplicationSharedPtr application,
+                       const mobile_apis::HMILevel::eType hmi_level,
                        bool check_policy = true);
 
     /**
@@ -134,10 +133,16 @@ class ResumeCtrl: public event_engine::EventObserver {
 
     /**
      * @brief Increments ignition counter for all registered applications
+     * and remember ign_off time stamp
      */
-    void IgnitionOff();
+    void Suspend();
 
-#ifdef CUSTOMER_PASA
+    /**
+     * @brief Increments ignition counter for all registered applications
+     * and remember ign_off time stamp
+     */
+    void OnAwake();
+
     /**
      * @brief Method starts timer "RsmCtrlPercist" when SDL receives onAwakeSDL notification
      */
@@ -148,8 +153,6 @@ class ResumeCtrl: public event_engine::EventObserver {
      * with reason "SUSPEND"
      */
     void StopSavePersistentDataTimer();
-
-#endif //CUSTOMER_PASA
 
     /**
      * @brief Start timer for resumption applications
@@ -206,12 +209,6 @@ class ResumeCtrl: public event_engine::EventObserver {
     uint32_t GetHMIApplicationID(const std::string& mobile_app_id);
 
     /**
-     * @brief Timer callback for  restoring HMI Level
-     *
-     */
-    void ApplicationResumptiOnTimer();
-
-    /**
      * @brief SaveDataOnTimer :
      *  Timer callback for persisting ResumptionData each N seconds
      *  N gets from property
@@ -224,9 +221,21 @@ class ResumeCtrl: public event_engine::EventObserver {
       is_data_saved = false;
     }
 
-    void RestoreHmiLevel(uint32_t time_stamp, ApplicationSharedPtr application);
+    /**
+     * @brief Resume HMI Level and audio streaming state if needed
+     * @param time_stamp - time when application was disconnected
+     * @param application - application to restore hmi level
+     * and audio streaming state
+     */
+    void StartAppHmiStateResumption(uint32_t time_stamp,
+                                    ApplicationSharedPtr application);
+    /**
+     * @brief Update launch_time_ to current
+     */
+    void ResetLaunchTime();
 
   private:
+
 
     typedef std::pair<uint32_t, uint32_t> application_timestamp;
 
@@ -249,6 +258,12 @@ class ResumeCtrl: public event_engine::EventObserver {
     };
 
     /**
+     * @brief geter for launch_time_
+     * @return value of launch_time_
+     */
+    time_t launch_time() const;
+
+    /**
      * @brief Check device MAC address
      *
      * @param application that is need to be restored
@@ -258,9 +273,34 @@ class ResumeCtrl: public event_engine::EventObserver {
      */
     bool IsDeviceMacAddressEqual(ApplicationSharedPtr application,
                                  const std::string& saved_device_mac);
+    /**
+    * @brief Get Resumption section of LastState
+    * @return Resumption section of LastState in Json
+     */
+    Json::Value& GetResumptionData();
 
+    /**
+    * @brief Get applications for resumption of LastState
+    * @return applications for resumption of LastState
+     */
     Json::Value& GetSavedApplications();
 
+    /**
+    * @brief Get the last ignition off time from LastState
+    * @return the last ignition off time from LastState
+     */
+    time_t GetIgnOffTime();
+
+    /**
+    * @brief Setup IgnOff time to LastState
+    * @param ign_off_time - igition off time
+     */
+    void SetLastIgnOffTime(time_t ign_off_time);
+
+    /**
+    * @brief Set applications for resumption to LastState
+    * @parems apps_json applications to write in LastState
+     */
     void SetSavedApplication(Json::Value& apps_json);
 
     Json::Value GetApplicationCommands(
@@ -377,6 +417,46 @@ class ResumeCtrl: public event_engine::EventObserver {
     Json::Value& GetFromSavedOrAppend(const std::string& mobile_app_id);
 
     /**
+     * @brief CheckIgnCycleRestrictions checks if is needed to resume HMI state
+     * by ign cycle restrictions
+     * @param json_app - saved application
+     * @return true if resumptions allowed, otherwise return false
+     */
+    bool CheckIgnCycleRestrictions(const Json::Value& json_app);
+
+    /**
+     * @brief DisconnectedInLastIgnCycle should check if was connected in prev ign cycle
+     * @param json_app - saved applicationa
+     * @return true if app connected in frep ign_cycle otherwise return false
+     */
+    bool DisconnectedInLastIgnCycle(const Json::Value& json_app);
+
+    /**
+     * @brief DissconnectedJustBeforeIgnOff should check if application
+     * was dissconnected in N secconds delay before ign off.
+     * N will be readed from profile
+     * @param json_app - saved applicationa
+     * @return was dissconnected in N secconds delay before ign off
+     * otherwise return false
+     */
+    bool DissconnectedJustBeforeIgnOff(const Json::Value& json_app);
+
+    /**
+     * @brief CheckDelayAfterIgnOn should check if SDL was started less
+     * then N secconds ago. N will be readed from profile.
+     * @return true if SDL started N secconds ago, otherwise return false
+     */
+    bool CheckDelayAfterIgnOn();
+
+    /**
+     * @brief CheckAppRestrictions checks if is needed to resume HMI state
+     * by application type and saved app_level
+     * @param json_app - saved application
+     * @return true if resumptions allowed, otherwise return false
+     */
+    bool CheckAppRestrictions(ApplicationSharedPtr application,
+                              const Json::Value& json_app);
+    /**
      * @brief GetObjectIndex allows to obtain specified obbject index from
      * applications arrays.
      *
@@ -408,14 +488,12 @@ class ResumeCtrl: public event_engine::EventObserver {
     *       wait for timer to resume HMI Level
     *
     */
-    std::multiset<application_timestamp, TimeStampComparator> waiting_for_timer_;
     mutable sync_primitives::Lock   queue_lock_;
-    sync_primitives::Lock resumtion_lock_;
+    sync_primitives::Lock           resumtion_lock_;
     ApplicationManagerImpl*         app_mngr_;
-    timer::TimerThread<ResumeCtrl>  restore_hmi_level_timer_;
     timer::TimerThread<ResumeCtrl>  save_persistent_data_timer_;
     bool is_data_saved;
-
+    time_t launch_time_;
 };
 
 }  // namespace application_manager

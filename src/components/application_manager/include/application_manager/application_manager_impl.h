@@ -344,7 +344,7 @@ class ApplicationManagerImpl : public ApplicationManager,
      * @param app, application, that need to be puted in FULL
      * @return seted HMI Level
      */
-    mobile_api::HMILevel::eType PutApplicationInFull(ApplicationSharedPtr app);
+    mobile_api::HMILevel::eType IsHmiLevelFullAllowed(ApplicationSharedPtr app);
 
     void ConnectToDevice(uint32_t id);
     void OnHMIStartedCooperation();
@@ -594,6 +594,9 @@ class ApplicationManagerImpl : public ApplicationManager,
      * @brief Checks HMI level and returns true if video streaming is allowed
      */
     bool IsVideoStreamingAllowed(uint32_t connection_key) const;
+
+    mobile_api::HMILevel::eType GetDefaultHmiLevel(
+        ApplicationSharedPtr application) const;
 
     /**
       * Getter for resume_controller

@@ -34,16 +34,17 @@
 #include <stdint.h>
 #include "utils/date_time.h"
 
+
 namespace date_time {
 
-TimevalStruct DateTime::getCurrentTime() {
-  TimevalStruct currentTime;
-  timezone timeZone;
+  TimevalStruct DateTime::getCurrentTime() {
+    TimevalStruct currentTime;
+    timezone timeZone;
 
-  gettimeofday(&currentTime, &timeZone);
+    gettimeofday(&currentTime, &timeZone);
 
-  return currentTime;
-}
+    return currentTime;
+  }
 
 int64_t date_time::DateTime::getSecs(const TimevalStruct &time) {
    return static_cast<int64_t>(time.tv_sec);

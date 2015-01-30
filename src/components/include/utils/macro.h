@@ -98,6 +98,19 @@
     ASSERT((condition)); \
     return (return_value); \
   }
+/*
+ * Will cauch assert on debug version,
+ * Will return return_value in release build
+ */
+#define DCHECK_OR_RETURN_VOID(condition) \
+  if (!(condition)) { \
+    CREATE_LOGGERPTR_LOCAL(logger_, "assert"); \
+    LOG4CXX_FATAL(logger_,  "DCHECK failed with \"" << #condition \
+       << "\" [" << __FUNCTION__ << "][" << __FILE__ << ':' << __LINE__ << ']' ); \
+    ASSERT((condition)); \
+    return ; \
+  }
+
 
 #define NOTREACHED() DCHECK(!"Unreachable code")
 

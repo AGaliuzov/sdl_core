@@ -255,9 +255,14 @@ const char application_subscribtions[] = "subscribtions";
 const char application_files[] = "applicationFiles";
 const char application_show[] = "applicationShow";
 const char resumption[] = "resumption";
+const char resume_app_list[] = "resume_app_list";
+const char last_ign_off_time[] = "last_ign_off_time";
+
 const char resume_vr_grammars[] = "resumeVrGrammars";
 
 const char ign_off_count[] = "ign_off_count";
+const char suspend_count[] = "suspend_count";
+
 const char connection_info[] = "connection_info";
 const char is_download_complete[] = "is_download_complete";
 
