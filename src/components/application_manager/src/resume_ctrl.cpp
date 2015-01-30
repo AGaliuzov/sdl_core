@@ -234,12 +234,13 @@ bool ResumeCtrl::SetAppHMIState(ApplicationSharedPtr application,
   }
 
 
-  if (restored_hmi_level == HMILevel::HMI_FULL ||
-      restored_hmi_level == HMILevel::HMI_LIMITED) {
+  if (restored_hmi_level == HMILevel::HMI_LIMITED) {
+    application->set_audio_streaming_state(AudioStreamingState::AUDIBLE);
     MessageHelper::SendOnResumeAudioSourceToHMI(application->app_id());
   }
 
   if (restored_hmi_level == HMILevel::HMI_FULL ) {
+    application->set_audio_streaming_state(AudioStreamingState::AUDIBLE);
     MessageHelper::SendActivateAppToHMI(application->app_id());
   } else {
     application->set_hmi_level(restored_hmi_level);
