@@ -192,6 +192,7 @@ div {
 #TTSPopUp.active {
     opacity: 1;
     display: block;
+    z-index: 10000;
 }
 
 /* Diver Distraction PopUp */
