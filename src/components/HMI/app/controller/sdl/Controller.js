@@ -868,6 +868,16 @@ SDL.SDLController = Em.Object
             }
         },
         /**
+         * Method to send OnEmergencyEvent to SDL
+         *
+         * @param {String}
+         */
+        OnEmergencyEventNotificationSend: function(element) {
+
+            FFW.BasicCommunication.OnEmergencyEvent(element.enabled);
+            element.set('enabled', !element.enabled);
+        },
+        /**
          * Method sent softButtons pressed and event status to RPC
          * 
          * @param {String}
