@@ -36,7 +36,6 @@ include_directories (
   ${COMPONENTS_DIR}/include/utils
   )
 
-
 set(testSources
   main.cc
   messagemeter_test.cc
@@ -54,6 +53,7 @@ set(testSources
   singleton_test.cc
   posix_thread_test.cc
   stl_utils_test.cc
+  timer_thread_test.cc
 )
 
 if (ENABLE_LOG)
