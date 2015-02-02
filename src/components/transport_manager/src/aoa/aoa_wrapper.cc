@@ -59,6 +59,16 @@ static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
     AOAWrapper::PrintError(status);
   }
 
+  AOAConnectionObserver* const * p =
+      static_cast<AOAConnectionObserver* const *>(udata);
+  AOAConnectionObserver* observer = *p;
+
+  if (!AOAWrapper::IsHandleValid(hdl) || (status == AOA_EINVALIDHDL)) {
+    AOAWrapper::OnDied(hdl);
+    observer->OnDisconnected();
+    return;
+  }
+
   bool success = !error;
   ::protocol_handler::RawMessagePtr message;
   if (data) {
@@ -67,16 +77,7 @@ static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
     LOG4CXX_ERROR(logger_, "AOA: data is null");
     success = false;
   }
-
-  AOAConnectionObserver* const * p =
-      static_cast<AOAConnectionObserver* const *>(udata);
-  AOAConnectionObserver* observer = *p;
   observer->OnMessageReceived(success, message);
-
-  if (!AOAWrapper::IsHandleValid(hdl)) {
-    observer->OnDisconnected();
-    AOAWrapper::OnDied(hdl);
-  }
 }
 
 static void OnTransmittedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
@@ -105,9 +106,9 @@ static void OnTransmittedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
   AOAConnectionObserver* observer = *p;
   observer->OnMessageTransmitted(success, message);
 
-  if (!AOAWrapper::IsHandleValid(hdl)) {
-    observer->OnDisconnected();
+  if (!AOAWrapper::IsHandleValid(hdl) || (status == AOA_EINVALIDHDL)) {
     AOAWrapper::OnDied(hdl);
+    observer->OnDisconnected();
   }
 }
 
@@ -339,8 +340,8 @@ bool AOAWrapper::SendMessage(::protocol_handler::RawMessagePtr message) const {
   DCHECK(message);
 
   if (!IsHandleValid()) {
-    connection_observer_->OnDisconnected();
     OnDied(hdl_);
+    connection_observer_->OnDisconnected();
     return false;
   }
 
@@ -362,8 +363,8 @@ bool AOAWrapper::SendControlMessage(uint16_t request, uint16_t value,
   DCHECK(message);
 
   if (!IsHandleValid()) {
-    connection_observer_->OnDisconnected();
     OnDied(hdl_);
+    connection_observer_->OnDisconnected();
     return false;
   }
 
@@ -382,8 +383,8 @@ bool AOAWrapper::SendControlMessage(uint16_t request, uint16_t value,
   LOG4CXX_TRACE(logger_, "AOA: receive from endpoint");
 
   if (!IsHandleValid()) {
-    connection_observer_->OnDisconnected();
     OnDied(hdl_);
+    connection_observer_->OnDisconnected();
     return ::protocol_handler::RawMessagePtr();
   }
 
@@ -404,8 +405,8 @@ bool AOAWrapper::SendControlMessage(uint16_t request, uint16_t value,
   LOG4CXX_TRACE(logger_, "AOA: receive from control endpoint");
 
   if (!IsHandleValid()) {
-    connection_observer_->OnDisconnected();
     OnDied(hdl_);
+    connection_observer_->OnDisconnected();
     return ::protocol_handler::RawMessagePtr();
   }
 

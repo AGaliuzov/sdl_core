@@ -81,8 +81,8 @@ class ConditionalVariable {
   void Broadcast();
 
   // Wait forever or up to milliseconds time limit
-  void Wait(AutoLock& auto_lock);
-  void Wait(Lock& lock);
+  bool Wait(AutoLock& auto_lock);
+  bool Wait(Lock& lock);
   WaitStatus WaitFor(AutoLock& auto_lock, int32_t milliseconds);
  private:
   impl::PlatformConditionalVariable cond_var_;

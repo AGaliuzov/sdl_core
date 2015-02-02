@@ -52,15 +52,37 @@ AOATransportAdapter::AOATransportAdapter()
 #else
                            new AOAListener(this)),
 #endif  // CUSTOMER_PASA
-      initialised_(false) {
+      initialised_(false),
+      aoa_shutdown_thread_delegate_(0),
+      aoa_shutdown_thread_(0) {
 }
 
 AOATransportAdapter::~AOATransportAdapter() {
+  if (aoa_shutdown_thread_ != 0) {
+    aoa_shutdown_thread_->join();
+    threads::DeleteThread(aoa_shutdown_thread_);
+  }
+  if (aoa_shutdown_thread_delegate_ != 0) {
+    delete aoa_shutdown_thread_delegate_;
+  }
   initialised_ = false;
+}
+
+void AOATransportAdapter::DisconnectDone(const DeviceUID& device_handle, const ApplicationHandle& app_handle) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  if (aoa_shutdown_thread_delegate_) {
+    aoa_shutdown_thread_delegate_->Shutdown();
+  }
+  TransportAdapterImpl::DisconnectDone(device_handle, app_handle);
 }
 
 TransportAdapter::Error AOATransportAdapter::Init() {
   LOG4CXX_AUTO_TRACE(logger_);
+
+  aoa_shutdown_thread_delegate_ = new AOAShutdownThreadDelegate();
+  aoa_shutdown_thread_ = threads::CreateThread("AOA shutdown thread", aoa_shutdown_thread_delegate_);
+  aoa_shutdown_thread_->start();
+
   TransportAdapter::Error error = TransportAdapterImpl::Init();
   if (error != TransportAdapter::OK) {
     LOG4CXX_WARN(logger_, "AOA: Init error " << error);
