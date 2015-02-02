@@ -198,22 +198,12 @@ void AlertRequest::on_event(const event_engine::Event& event) {
       response_success_ = true;
     }
 
-    // If timeout is not set, watchdog will not track request timeout and
-    // HMI is responsible for response returning. In this case, if ABORTED will
-    // be rerurned from HMI, success should be sent to mobile.
-    if (mobile_apis::Result::ABORTED == response_result_ &&
-        0 == default_timeout_) {
-      response_success_ = true;
-    }
-
-    if (
-        ((mobile_apis::Result::ABORTED == tts_speak_response_ )||
+    if (((mobile_apis::Result::ABORTED == tts_speak_response_ )||
         (mobile_apis::Result::REJECTED == tts_speak_response_)) &&
         (!flag_other_component_sent_)) {
       response_success_ = false;
       response_result_ = tts_speak_response_;
     }
-
     SendResponse(response_success_, response_result_,
                  response_info.empty() ? NULL : response_info.c_str(),
                      &response_params_);
