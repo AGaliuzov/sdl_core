@@ -12,8 +12,8 @@ include $(PRJ_ROOT)cfg/depends.mk
  
 # Additive Compile Flags (Flags from initiating make process will still apply)
 DEFS += \
-	-Werror=return-type \
-	-Wuninitialized
+	-Wc,-Werror=return-type \
+	-Wc,-Wuninitialized
  
 # Set local includes and then the reference includes (priority order determines search path)
 # Default pattern are any configuration includes (which would be things like qnx), local (Team) component directories,
