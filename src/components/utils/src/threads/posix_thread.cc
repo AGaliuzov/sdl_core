@@ -233,13 +233,13 @@ bool Thread::start(const ThreadOptions& options) {
   LOG4CXX_DEBUG(logger_,"Thread " << name_
                 << " #" << handle_ << " started. pthread_result = "
                 << pthread_result);
+  pthread_attr_destroy(&attributes);
   return pthread_result == EOK;
 }
 
 void Thread::stop() {
   LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock auto_lock(state_lock_);
-
 
   #ifdef BUILD_TESTS
   // Temporary fix for UnitTest until APPLINK-9987 is resolved

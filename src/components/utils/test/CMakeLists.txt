@@ -52,6 +52,7 @@ set(testSources
   data_accessor_test.cc
   lock_posix_test.cc
   singleton_test.cc
+  posix_thread_test.cc
 )
 
 if (ENABLE_LOG)
