@@ -651,10 +651,12 @@ void PolicyHandler::OnPendingPermissionChange(
   const uint32_t app_id = app->app_id();
 
   using mobile_apis::HMILevel::eType;
+
   if (permissions.appRevoked) {
     application_manager::MessageHelper::SendOnAppPermissionsChangedNotification(
       app_id, permissions);
     app->set_hmi_level(eType::HMI_NONE);
+    app->set_audio_streaming_state(mobile_apis::AudioStreamingState::NOT_AUDIBLE);
     application_manager::MessageHelper::SendActivateAppToHMI(
           app_id, hmi_apis::Common_HMILevel::NONE);
     application_manager::MessageHelper::SendHMIStatusNotification(*app);
