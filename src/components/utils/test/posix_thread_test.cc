@@ -85,7 +85,7 @@ TEST(PosixThreadTest, CheckCreatedThreadNameChange_ExpectThreadNameChanged) {
   char name[MAX_SIZE];
   int result = pthread_getname_np(thread->thread_handle(), name, sizeof(name));
   if (!result)
-  EXPECT_EQ(std::string("new thread with"), std::string(name));
+    EXPECT_EQ(std::string("new thread with"), std::string(name));
   DeleteThread(thread);
   delete threadDelegate;
 }
@@ -101,7 +101,6 @@ TEST(PosixThreadTest, StartThread_ExpectThreadStarted) {
   DeleteThread(thread);
   delete threadDelegate;
 }
-
 
 }  // namespace utils
 }  // namespace components
