@@ -56,6 +56,7 @@ set(testSources
 
 if (ENABLE_LOG)
   list(APPEND testSources auto_trace_test.cc)
+  list(APPEND testSources log_message_loop_thread_test.cc)
 endif()
 
 if (BUILD_BACKTRACE_SUPPORT)
