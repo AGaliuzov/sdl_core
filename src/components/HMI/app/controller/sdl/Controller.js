@@ -201,8 +201,8 @@ SDL.SDLController = Em.Object
                     }
                 }
             } else if (SDL.VRHelpListView.active) {
-                    SDL.VRHelpListView.deactivate();
-                }
+                SDL.VRHelpListView.deactivate();
+            }
         }.observes('SDL.SDLModel.VRActive', 'SDL.SDLModel.interactionData.vrHelp'),
 
         /**
@@ -289,7 +289,15 @@ SDL.SDLController = Em.Object
          */
         activateVRPopUp: function() {
 
+            if (FFW.TTS.requestId) {
+                FFW.TTS.aborted = true;
+                SDL.TTSPopUp.DeactivateTTS();
+            }
+            if (SDL.AlertPopUp.active) {
+                SDL.AlertPopUp.deactivate('ABORTED');
+            }
             SDL.SDLModel.toggleProperty('VRActive');
+
         },
         /**
          * Action for SoftButtons that closes popUp or window and opens
