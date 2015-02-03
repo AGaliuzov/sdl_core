@@ -165,7 +165,7 @@ bool Thread::start(const ThreadOptions& options) {
 
   if (!delegate_) {
     LOG4CXX_ERROR(logger_,
-                  "Cannot start thread" << name_ << ": delegate is NULL");
+                  "Cannot start thread " << name_ << ": delegate is NULL");
     // 0 - state_lock unlocked
     return false;
   }
@@ -173,7 +173,7 @@ bool Thread::start(const ThreadOptions& options) {
   if (isThreadRunning_) {
     LOG4CXX_TRACE(
         logger_,
-        "EXIT thread "<< name_ << " #" << handle_ << "is already runing");
+        "EXIT thread "<< name_ << " #" << handle_ << " is already running");
     return true;
   }
 
@@ -188,8 +188,7 @@ bool Thread::start(const ThreadOptions& options) {
   }
 
   if (!thread_options_.is_joinable()) {
-    pthread_result = pthread_attr_setdetachstate(&attributes,
-    PTHREAD_CREATE_DETACHED);
+    pthread_result = pthread_attr_setdetachstate(&attributes, PTHREAD_CREATE_DETACHED);
     if (pthread_result != EOK) {
       LOG4CXX_WARN(
           logger_,

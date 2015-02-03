@@ -64,7 +64,6 @@ if (BUILD_BACKTRACE_SUPPORT)
   list(APPEND testSources back_trace_test.cc)
 endif()
 
-
 set(testLibraries
   gmock
   Utils
