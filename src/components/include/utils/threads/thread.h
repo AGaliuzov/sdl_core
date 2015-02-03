@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -76,10 +76,10 @@ typedef pthread_t PlatformThreadHandle;
  * printf("ok!\n");
  */
 class Thread;
-void enqueue_to_join(Thread*);
+void enqueue_to_join(Thread* thread);
 
 Thread* CreateThread(const char* name, ThreadDelegate* delegate);
-void DeleteThread(Thread*);
+void DeleteThread(Thread* thread);
 
 class Thread {
  private:
@@ -97,6 +97,7 @@ class Thread {
   bool thread_created_;
   // Signalled when Thread::start() is called
   sync_primitives::ConditionalVariable run_cond_;
+
  public:
   /**
    * Starts the thread.
@@ -113,8 +114,6 @@ class Thread {
    */
   bool start(const ThreadOptions& options);
 
-  void WaitForRun();
-
   sync_primitives::Lock& delegate_lock() {
     return delegate_lock_;
   }
@@ -129,16 +128,15 @@ class Thread {
   }
 
   friend Thread* CreateThread(const char* name, ThreadDelegate* delegate);
-  friend void DeleteThread(Thread*);
+  friend void DeleteThread(Thread* thread);
 
  public:
-
   // Get unique ID of currently executing thread
   static PlatformThreadHandle CurrentId();
 
   // Give thread thread_id a name, helpful for debugging
-  static void SetNameForId(const PlatformThreadHandle& thread_id, std::string name);
-
+  static void SetNameForId(const PlatformThreadHandle& thread_id,
+                           std::string name);
 
   /**
    * Signals the thread to exit and returns once the thread has exited.
@@ -149,7 +147,6 @@ class Thread {
    * already stopped.
    */
   void stop();
-
 
   void join();
 
@@ -224,10 +221,10 @@ class Thread {
    *       Thread object to be created on stack
    */
   Thread(const char* name, ThreadDelegate* delegate);
-  DISALLOW_COPY_AND_ASSIGN(Thread);
   virtual ~Thread();
   static void* threadFunc(void* arg);
   static void cleanup(void* arg);
+  DISALLOW_COPY_AND_ASSIGN(Thread);
 };
 
 }  // namespace threads

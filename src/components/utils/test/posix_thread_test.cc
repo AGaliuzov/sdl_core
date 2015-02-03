@@ -38,68 +38,266 @@ namespace test {
 namespace components {
 namespace utils {
 
-using sync_primitives::Lock;
-using namespace ::threads;
+using namespace sync_primitives;
+using namespace threads;
 
+namespace {
 const uint32_t MAX_SIZE = 20;
+const size_t MyStackSize = 32768;
+const char *threadName("test thread");
+const std::string test_thread_name("THREAD");
+sync_primitives::ConditionalVariable cond_var_;
+sync_primitives::Lock test_mutex_;
+};
 
 // ThreadDelegate successor
 class TestThread : public threads::ThreadDelegate {
  public:
-  void threadMain() {
-    sleep(2);
+  TestThread()
+      : check_value_(false) {
   }
+  void threadMain() {
+    AutoLock test_lock(test_mutex_);
+    check_value_ = true;
+    cond_var_.NotifyOne();
+  }
+
+  bool check_value() const {
+    return check_value_;
+  }
+ private:
+  bool check_value_;
 };
 
 TEST(PosixThreadTest, CreateThread_ExpectThreadCreated) {
-  // Create thread
+  // Arrange
   threads::Thread *thread = NULL;
   threads::ThreadDelegate *threadDelegate = new TestThread();
-  thread = CreateThread("test thread", threadDelegate);
+  // Create thread
+  ASSERT_NO_THROW(thread = CreateThread(threadName, threadDelegate));
+  EXPECT_TRUE(thread != NULL);
   EXPECT_EQ(thread, threadDelegate->thread());
-  EXPECT_TRUE(thread);
+  EXPECT_EQ(thread->delegate(), threadDelegate);
   DeleteThread(thread);
   delete threadDelegate;
+  // Check Delegate Dtor worked successfully
+  EXPECT_EQ(NULL, thread->delegate());
 }
 
 TEST(PosixThreadTest, CheckCreatedThreadName_ExpectCorrectName) {
-  // Create thread
+  // Arrange
   threads::Thread *thread = NULL;
   threads::ThreadDelegate *threadDelegate = new TestThread();
-  thread = CreateThread("test thread", threadDelegate);
+  // Create thread
+  ASSERT_NO_THROW(thread = CreateThread(threadName, threadDelegate));
   // Check thread was created with correct name
-  EXPECT_EQ(std::string("test thread"), thread->name());
+  EXPECT_EQ(threadName, thread->name());
   DeleteThread(thread);
   delete threadDelegate;
+  EXPECT_EQ(NULL, thread->delegate());
 }
 
-TEST(PosixThreadTest, CheckCreatedThreadNameChange_ExpectThreadNameChanged) {
-  // Create thread
+TEST(PosixThreadTest, CheckCreatedThreadNameChangeToLongName_ExpectThreadNameReduced) {
+  // Arrange
   threads::Thread *thread = NULL;
-  threads::ThreadDelegate *threadDelegate = new TestThread();
-  thread = CreateThread("test thread", threadDelegate);
+  TestThread *threadDelegate = new TestThread();
+  AutoLock test_lock(test_mutex_);
+  // Create thread
+  ASSERT_NO_THROW(thread = CreateThread(threadName, threadDelegate));
   thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize));
-  // Check name for created thread
+
+  // Change name for created thread
   thread->SetNameForId(thread->thread_handle(),
                        std::string("new thread with changed name"));
   char name[MAX_SIZE];
   int result = pthread_getname_np(thread->thread_handle(), name, sizeof(name));
   if (!result)
     EXPECT_EQ(std::string("new thread with"), std::string(name));
+  cond_var_.Wait(test_lock);
+  EXPECT_TRUE(threadDelegate->check_value());
   DeleteThread(thread);
   delete threadDelegate;
+  EXPECT_EQ(NULL, thread->delegate());
+}
+
+TEST(PosixThreadTest, StartCreatedThreadWithOptionsJoinableAndMyStackSize_ExpectMyStackSizeStackAndJoinableThreadStarted) {
+  // Arrange
+  threads::Thread *thread = NULL;
+  TestThread *threadDelegate = new TestThread();
+  AutoLock test_lock(test_mutex_);
+  // Create thread
+  ASSERT_NO_THROW(thread = CreateThread(threadName, threadDelegate));
+  // Start thread with following options (Stack size = 32768 & thread is joinable)
+  thread->start(threads::ThreadOptions(MyStackSize));
+  // Check thread is joinable
+  EXPECT_TRUE(thread->is_joinable());
+  // Check thread stack size is 32768
+  EXPECT_EQ(MyStackSize, thread->stack_size());
+  cond_var_.Wait(test_lock);
+  EXPECT_TRUE(threadDelegate->check_value());
+  DeleteThread(thread);
+  delete threadDelegate;
+  EXPECT_EQ(NULL, thread->delegate());
+}
+
+TEST(PosixThreadTest, StartCreatedThreadWithDefaultOptions_ExpectZeroStackAndJoinableThreadStarted) {
+  // Arrange
+  threads::Thread *thread = NULL;
+  TestThread *threadDelegate = new TestThread();
+  AutoLock test_lock(test_mutex_);
+  // Create thread
+  ASSERT_NO_THROW(thread = CreateThread(threadName, threadDelegate));
+  // Start thread with default options (Stack size = 0 & thread is joinable)
+  thread->start(threads::ThreadOptions());
+  // Check thread is joinable
+  EXPECT_TRUE(thread->is_joinable());
+  // Check thread stack size is 0
+  EXPECT_EQ(0, thread->stack_size());
+  cond_var_.Wait(test_lock);
+  EXPECT_TRUE(threadDelegate->check_value());
+  DeleteThread(thread);
+  delete threadDelegate;
+  EXPECT_EQ(NULL, thread->delegate());
+}
+
+TEST(PosixThreadTest, StartThreadWithZeroStackAndDetached_ExpectZeroStackAndDetachedThreadStarted) {
+  // Arrange
+  threads::Thread *thread = NULL;
+  TestThread *threadDelegate = new TestThread();
+  AutoLock test_lock(test_mutex_);
+  // Create thread
+  ASSERT_NO_THROW(thread = CreateThread(threadName, threadDelegate));
+  // Start thread with default options (Stack size = 0 & thread is detached)
+  thread->start(threads::ThreadOptions(0, false));
+  // Check thread is detached
+  EXPECT_FALSE(thread->is_joinable());
+  // Check thread stack size is 0
+  EXPECT_EQ(0, thread->stack_size());
+  cond_var_.Wait(test_lock);
+  EXPECT_TRUE(threadDelegate->check_value());
+  DeleteThread(thread);
+  delete threadDelegate;
+  EXPECT_EQ(NULL, thread->delegate());
+}
+
+TEST(PosixThreadTest, CheckCreatedThreadNameChangeToEmpty_ExpectThreadNameChangedToEmpty) {
+  // Arrange
+  threads::Thread *thread = NULL;
+  TestThread *threadDelegate = new TestThread();
+  AutoLock test_lock(test_mutex_);
+  // Create thread
+  ASSERT_NO_THROW(thread = CreateThread(threadName, threadDelegate));
+  thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize));
+  // Check name for created thread
+  thread->SetNameForId(thread->thread_handle(), std::string(""));
+  char name[MAX_SIZE];
+  int result = pthread_getname_np(thread->thread_handle(), name, sizeof(name));
+  if (!result)
+    EXPECT_EQ(std::string(""), std::string(name));
+  cond_var_.Wait(test_lock);
+  EXPECT_TRUE(threadDelegate->check_value());
+  DeleteThread(thread);
+  delete threadDelegate;
+  EXPECT_EQ(NULL, thread->delegate());
+}
+
+TEST(PosixThreadTest, CheckCreatedThreadNameChangeToShortName_ExpectThreadNameChangedToShort) {
+  // Arrange
+  threads::Thread *thread = NULL;
+  TestThread *threadDelegate = new TestThread();
+  AutoLock test_lock(test_mutex_);
+  // Create thread
+  ASSERT_NO_THROW(thread = CreateThread(threadName, threadDelegate));
+  // Start created thread
+  thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize));
+  // Check name for created thread
+  thread->SetNameForId(thread->thread_handle(), test_thread_name);
+  char name[MAX_SIZE];
+  int result = pthread_getname_np(thread->thread_handle(), name, sizeof(name));
+  if (!result)
+    EXPECT_EQ(test_thread_name, std::string(name));
+  cond_var_.Wait(test_lock);
+  EXPECT_TRUE(threadDelegate->check_value());
+  DeleteThread(thread);
+  delete threadDelegate;
+  EXPECT_EQ(NULL, thread->delegate());
 }
 
 TEST(PosixThreadTest, StartThread_ExpectThreadStarted) {
-  // Create thread
+  // Arrange
   threads::Thread *thread = NULL;
   TestThread *threadDelegate = new TestThread();
-  thread = CreateThread("test thread", threadDelegate);
+  AutoLock test_lock(test_mutex_);
+  // Create thread
+  ASSERT_NO_THROW(thread = CreateThread(threadName, threadDelegate));
   // Start created thread
   EXPECT_TRUE(
       thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize)));
+  cond_var_.Wait(test_lock);
+  EXPECT_TRUE(threadDelegate->check_value());
   DeleteThread(thread);
   delete threadDelegate;
+  EXPECT_EQ(NULL, thread->delegate());
+}
+
+TEST(PosixThreadTest, StartOneThreadTwice_ExpectTheSameThreadStartedTwice) {
+  // Arrange
+  PlatformThreadHandle thread1_id;
+  PlatformThreadHandle thread2_id;
+  threads::Thread *thread = NULL;
+  TestThread *threadDelegate = new TestThread();
+  AutoLock test_lock(test_mutex_);
+  // Create thread
+  ASSERT_NO_THROW(thread = CreateThread(threadName, threadDelegate));
+  // Start created thread
+  EXPECT_TRUE(
+      thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize)));
+  thread1_id = thread->CurrentId();
+  thread->stop();
+  // Try to start thread again
+  EXPECT_TRUE(
+      thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize)));
+  thread2_id = thread->CurrentId();
+  EXPECT_EQ(thread1_id, thread2_id);
+  cond_var_.Wait(test_lock);
+  EXPECT_TRUE(threadDelegate->check_value());
+  DeleteThread(thread);
+  delete threadDelegate;
+  EXPECT_EQ(NULL, thread->delegate());
+}
+
+TEST(PosixThreadTest, StartOneThreadAgainAfterRename_ExpectRenamedThreadStarted) {
+  // Arrange
+  PlatformThreadHandle thread1_id;
+  PlatformThreadHandle thread2_id;
+  threads::Thread *thread = NULL;
+  TestThread *threadDelegate = new TestThread();
+  AutoLock test_lock(test_mutex_);
+  // Create thread
+  ASSERT_NO_THROW(thread = CreateThread(threadName, threadDelegate));
+  // Start created thread
+  EXPECT_TRUE(
+      thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize)));
+  thread1_id = thread->CurrentId();
+  // Rename started thread
+  thread->SetNameForId(thread->thread_handle(), test_thread_name);
+  char name[MAX_SIZE];
+  int result = pthread_getname_np(thread->thread_handle(), name, sizeof(name));
+  if (!result)
+    EXPECT_EQ(test_thread_name, std::string(name));
+  // Stop thread
+  thread->stop();
+  EXPECT_TRUE(
+      thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize)));
+  thread2_id = thread->CurrentId();
+  // Expect the same thread started with the the same name
+  EXPECT_EQ(test_thread_name, std::string(name));
+  EXPECT_EQ(thread1_id, thread2_id);
+  cond_var_.Wait(test_lock);
+  EXPECT_TRUE(threadDelegate->check_value());
+  DeleteThread(thread);
+  delete threadDelegate;
+  EXPECT_EQ(NULL, thread->delegate());
 }
 
 }  // namespace utils
