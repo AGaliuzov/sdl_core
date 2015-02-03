@@ -937,7 +937,7 @@ void PolicyManagerImpl::GetPermissionsForApp(
                                               consent_disallowed);
 
     // Fill result
-    FillFunctionalGroupPermissions(unconsented_groups, group_names,
+    FillFunctionalGroupPermissions(consent_disallowed, group_names,
                                    kGroupUndefined, permissions);
     FillFunctionalGroupPermissions(common_allowed, group_names,
                                    kGroupAllowed, permissions);

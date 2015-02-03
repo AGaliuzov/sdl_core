@@ -78,6 +78,7 @@ void UpdateStatusManager::OnUpdateTimeoutOccurs() {
   LOG4CXX_INFO(logger_, "OnUpdateTimeoutOccurs");
   set_update_required(true);
   set_exchange_in_progress(false);
+  set_exchange_pending(false);
   DCHECK(update_status_thread_delegate_);
   update_status_thread_delegate_->updateTimeOut(0); // Stop Timer
 }

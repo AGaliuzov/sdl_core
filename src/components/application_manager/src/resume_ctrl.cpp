@@ -233,16 +233,19 @@ bool ResumeCtrl::SetAppHMIState(ApplicationSharedPtr application,
     }
   }
 
+  const AudioStreamingState::eType restored_audio_state =
+      HMILevel::HMI_FULL == restored_hmi_level ||
+      HMILevel::HMI_LIMITED == restored_hmi_level ? AudioStreamingState::AUDIBLE:
+                                                    AudioStreamingState::NOT_AUDIBLE;
 
-  if (restored_hmi_level == HMILevel::HMI_LIMITED) {
-    application->set_audio_streaming_state(AudioStreamingState::AUDIBLE);
-    MessageHelper::SendOnResumeAudioSourceToHMI(application->app_id());
-  }
+  application->set_audio_streaming_state(restored_audio_state);
 
-  if (restored_hmi_level == HMILevel::HMI_FULL ) {
-    application->set_audio_streaming_state(AudioStreamingState::AUDIBLE);
+  if (HMILevel::HMI_FULL == restored_hmi_level) {
     MessageHelper::SendActivateAppToHMI(application->app_id());
   } else {
+    if (HMILevel::HMI_LIMITED == restored_hmi_level) {
+      MessageHelper::SendOnResumeAudioSourceToHMI(application->app_id());
+    }
     application->set_hmi_level(restored_hmi_level);
     MessageHelper::SendHMIStatusNotification(*(application.get()));
   }
