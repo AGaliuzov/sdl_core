@@ -34,7 +34,6 @@
 #define SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_AOA_AOA_SHUTDOWN_THREAD_H_
 
 #include "utils/threads/thread_delegate.h"
-#include "utils/threads/thread.h"
 #include "utils/conditional_variable.h"
 
 namespace transport_manager {
