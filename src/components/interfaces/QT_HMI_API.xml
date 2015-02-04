@@ -1806,6 +1806,11 @@
         <description>Must be 'true' - when the phone call is started on HMI. Must be 'false' when the phone call is ended on HMI</description>
       </param>
     </function>
+    <function name="OnEmergencyEvent" messagetype="notification">
+      <description>This method must be invoked by HMI to update SDL about audio state.</description>
+      <param name="enabled" type="Boolean" mandatory="true">
+      </param>
+    </function>
     <function name="OnResumeAudioSource" messagetype="notification" provider="sdl">
       <description>This method must be invoked by SDL to update audio state.</description>
       <param name="appID" type="Integer" mandatory="true">
