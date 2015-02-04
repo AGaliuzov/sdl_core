@@ -317,6 +317,16 @@ class ConnectionHandlerImpl : public ConnectionHandler,
                             CloseSessionReason close_reason);
 
   /**
+   * \brief Function used by OnApplicationFloodCallback and
+   * OnMalformedMessageCallback to close all connection sessions before
+   * connection closing
+   * \param connection_key pair of connection handle and session id
+   * \param close_reason The reason of connection closing
+   */
+  virtual void CloseAllConnectionSessions(uint32_t connection_key,
+                                          CloseSessionReason close_reason);
+
+  /**
    * \brief Return count of session for specified connection
    * \param connection_key pair of connection handle and session id
    */

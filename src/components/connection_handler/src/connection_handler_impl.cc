@@ -774,6 +774,29 @@ void ConnectionHandlerImpl::CloseSession(ConnectionHandle connection_handle,
   }
 }
 
+void ConnectionHandlerImpl::CloseAllConnectionSessions(uint32_t connection_key,
+                                                       CloseSessionReason close_reason) {
+    uint32_t connection_handle = 0;
+    uint8_t session_id = 0;
+    PairFromKey(connection_key, &connection_handle, &session_id);
+
+    transport_manager::ConnectionUID connection_id =
+          ConnectionUIDFromHandle(connection_handle);
+
+    sync_primitives::AutoLock connection_list_lock(connection_list_lock_);
+    ConnectionList::iterator itr = connection_list_.find(connection_id);
+
+    LOG4CXX_INFO(logger_, "Closing all sessions for connection with id: "
+                 << connection_id);
+    if (connection_list_.end() != itr) {
+      SessionMap session_map = itr->second->session_map();
+      SessionMap::const_iterator session_it = session_map.begin();
+      for (;session_it != session_map.end(); ++session_it) {
+        CloseSession(connection_handle, session_it->first, close_reason);
+      }
+    }
+}
+
 void ConnectionHandlerImpl::StartSessionHeartBeat(uint32_t connection_key) {
   uint32_t connection_handle = 0;
   uint8_t session_id = 0;
