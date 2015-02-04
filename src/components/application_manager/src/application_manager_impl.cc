@@ -1080,6 +1080,15 @@ void ApplicationManagerImpl::OnApplicationFloodCallBack(const uint32_t &connecti
   // TODO(EZamakhov): increment "removals_for_bad_behaviour" field in policy table
 }
 
+void ApplicationManagerImpl::OnMalformedMessageCallback(const uint32_t &connection_key) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(logger_, "Unregister malformed messaging application " << connection_key);
+
+  MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
+      connection_key,
+      mobile_apis::AppInterfaceUnregisteredReason::PROTOCOL_VIOLATION);
+}
+
 void ApplicationManagerImpl::set_hmi_message_handler(
   hmi_message_handler::HMIMessageHandler* handler) {
   hmi_handler_ = handler;

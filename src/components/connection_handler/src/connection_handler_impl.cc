@@ -384,6 +384,23 @@ void ConnectionHandlerImpl::OnApplicationFloodCallBack(const uint32_t &connectio
   }
 }
 
+void ConnectionHandlerImpl::OnMalformedMessageCallback(const uint32_t &connection_key) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  {
+    sync_primitives::AutoLock lock(connection_handler_observer_lock_);
+    if(connection_handler_observer_) {
+      connection_handler_observer_->OnMalformedMessageCallback(connection_key);
+    }
+  }
+  transport_manager::ConnectionUID connection_handle = 0;
+  uint8_t session_id = 0;
+  PairFromKey(connection_key, &connection_handle, &session_id);
+
+  LOG4CXX_INFO(logger_, "Disconnect malformed messaging application");
+  CloseAllConnectionSessions(connection_handle, kCommon);
+  CloseConnection(connection_handle);
+}
+
 uint32_t ConnectionHandlerImpl::OnSessionEndedCallback(
     const uint32_t &connection_handle, const uint8_t session_id,
     const uint32_t &hashCode,
