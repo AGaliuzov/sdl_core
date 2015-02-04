@@ -1807,7 +1807,11 @@
       </param>
     </function>
     <function name="OnEmergencyEvent" messagetype="notification">
-      <description>This method must be invoked by HMI to update SDL about audio state.</description>
+      <description>
+        "Sender: HMI->SDL. Conditions: when HMI enters the mode of "911 Assist", or other rear view camera,
+        or something else in the future. Purpose: for SDL to change the audioStreamingState of the related apps to
+        NOT_AUDIBLE when "enabled:true" and back to AUDIBLE when "enabled:false""
+      </description>
       <param name="enabled" type="Boolean" mandatory="true">
       </param>
     </function>
