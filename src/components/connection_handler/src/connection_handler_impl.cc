@@ -378,9 +378,8 @@ void ConnectionHandlerImpl::OnApplicationFloodCallBack(const uint32_t &connectio
   if (session_id != 0) {
     CloseSession(connection_handle, session_id, kFlood);
   } else {
-    transport_manager::ConnectionUID connection_uid =
-        ConnectionUIDFromHandle(connection_handle);
-    transport_manager_->DisconnectForce(connection_uid);
+    CloseAllConnectionSessions(connection_handle, kCommon);
+    CloseConnection(connection_handle);
   }
 }
 
