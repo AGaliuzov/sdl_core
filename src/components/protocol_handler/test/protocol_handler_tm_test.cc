@@ -193,9 +193,9 @@ TEST_F(ProtocolHandlerImplTest, RecieveEmptyRawMessage) {
  * ProtocolHandler shall disconnect on no connection
  */
 TEST_F(ProtocolHandlerImplTest, RecieveOnUnknownConenction) {
-  // expect force dicsonnect on no connection for received data
-  EXPECT_CALL(transport_manager_mock,
-      DisconnectForce(connection_id)).WillOnce(Return(E_SUCCESS));
+  // expect malformed message callback call on no connection for received data
+  EXPECT_CALL(session_observer_mock,
+      OnMalformedMessageCallback(connection_id));
 
   SendTMMessage(connection_id, PROTOCOL_VERSION_3, PROTECTION_OFF,
                 FRAME_TYPE_CONTROL, kRpc, FRAME_DATA_START_SERVICE,
