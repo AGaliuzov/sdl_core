@@ -45,17 +45,30 @@ namespace components {
 namespace utils {
 
 
-timer::TimerThread<MobileRequest> timer(this, &MobileRequest::onTimeOut);
+using namespace timer;
 
+class TimerThreadTest : public ::testing::Test {
+ public :
+  TimerThreadTest(): check_val(true) {
+  }
 
-TEST(TimerThreadTest, CreateTimerThread) {
-
-
+void function() {
+  std::cout << "\nValue :" << check_val << std::endl;;
 }
 
-TEST(TimerThreadTest, ) {
+private:
+bool check_val;
+};
 
+
+TEST_F(TimerThreadTest, CreateTimerThread) {
+TimerThread<TimerThreadTest> timer("Test", this, &TimerThreadTest::function, false);
+//this->function();
+timer.start(5);
+sleep(10);
 }
+
+
 
 }  // namespace utils
 }  // namespace components
