@@ -38,7 +38,7 @@
 #include "utils/threads/thread.h"
 
 #include "transport_manager/transport_adapter/transport_adapter_impl.h"
-#include "transport_manager/aoa/aoa_shutdown_thread.h"
+#include "transport_manager/aoa/aoa_shutdown_thread_delegate.h"
 
 namespace transport_manager {
 namespace transport_adapter {

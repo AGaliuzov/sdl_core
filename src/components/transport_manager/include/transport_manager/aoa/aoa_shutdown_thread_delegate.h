@@ -30,48 +30,31 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "transport_manager/aoa/aoa_shutdown_thread.h"
-#include "transport_manager/aoa/aoa_wrapper.h"
-#include "utils/logger.h"
-#include "utils/atomic.h"
+#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_AOA_AOA_SHUTDOWN_THREAD_DELEGATE_H_
+#define SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_AOA_AOA_SHUTDOWN_THREAD_DELEGATE_H_
+
+#include "utils/threads/thread_delegate.h"
+#include "utils/conditional_variable.h"
 
 namespace transport_manager {
 namespace transport_adapter {
 
-CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
+class AOAShutdownThreadDelegate : public threads::ThreadDelegate {
+ public:
+  AOAShutdownThreadDelegate();
+  void Shutdown();
 
-AOAShutdownThreadDelegate::AOAShutdownThreadDelegate() : shutdown_(0) {
-}
+ protected:
+  virtual void threadMain();
+  virtual void exitThreadMain();
 
-void AOAShutdownThreadDelegate::Shutdown() {
-  LOG4CXX_AUTO_TRACE(logger_);
-  atomic_post_set(&shutdown_);
-  cond_.NotifyOne();
-}
-
-void AOAShutdownThreadDelegate::threadMain() {
-  sync_primitives::Lock lock;
-  run_ = true;
-  LOG4CXX_DEBUG(logger_, "Starting AOA shutdown thread");
-  while (run_) {
-    { // auto_lock scope
-      sync_primitives::AutoLock auto_lock(lock);
-      LOG4CXX_TRACE(logger_, "Waiting on conditional variable");
-      cond_.Wait(auto_lock);
-      LOG4CXX_TRACE(logger_, "Got notification on conditional variable");
-    } // auto_lock scope
-    if (atomic_post_clr(&shutdown_)) {
-      AOAWrapper::Shutdown();
-    }
-  }
-  LOG4CXX_DEBUG(logger_, "AOA shutdown thread finished");
-}
-
-void AOAShutdownThreadDelegate::exitThreadMain() {
-  LOG4CXX_AUTO_TRACE(logger_);
-  run_ = false;
-  cond_.NotifyOne();
-}
+ private:
+  volatile bool run_;
+  unsigned int shutdown_; // unsigned int instead of bool to use atomics
+  sync_primitives::ConditionalVariable cond_;
+};
 
 }  // namespace transport_adapter
 }  // namespace transport_manager
+
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_AOA_AOA_SHUTDOWN_THREAD_DELEGATE_H_
