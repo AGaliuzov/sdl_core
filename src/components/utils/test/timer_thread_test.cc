@@ -38,18 +38,22 @@
 
 #include "gtest/gtest.h"
 #include "utils/conditional_variable.h"
+#include "utils/timer_thread.h"
 
 namespace test {
 namespace components {
 namespace utils {
 
 
+timer::TimerThread<MobileRequest> timer(this, &MobileRequest::onTimeOut);
 
-TEST_F(TimerThreadTest, CheckBroadcast_AllThreadsNotified_ExpectSuccessful) {
+
+TEST(TimerThreadTest, CreateTimerThread) {
+
 
 }
 
-TEST_F(TimerThreadTest, CheckWaitForWithTimeout1sec_ThreadBlockedForTimeout_ExpectSuccessfulWakeUp) {
+TEST(TimerThreadTest, ) {
 
 }
 
