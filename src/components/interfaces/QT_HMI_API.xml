@@ -1811,6 +1811,15 @@
         <description>Must be 'true' - when the phone call is started on HMI. Must be 'false' when the phone call is ended on HMI</description>
       </param>
     </function>
+    <function name="OnEmergencyEvent" messagetype="notification">
+      <description>
+        "Sender: HMI->SDL. Conditions: when HMI enters the mode of "911 Assist", or other rear view camera,
+        or something else in the future. Purpose: for SDL to change the audioStreamingState of the related apps to
+        NOT_AUDIBLE when "enabled:true" and back to AUDIBLE when "enabled:false""
+      </description>
+      <param name="enabled" type="Boolean" mandatory="true">
+      </param>
+    </function>
     <function name="OnResumeAudioSource" messagetype="notification" provider="sdl">
       <description>This method must be invoked by SDL to update audio state.</description>
       <param name="appID" type="Integer" mandatory="true">
