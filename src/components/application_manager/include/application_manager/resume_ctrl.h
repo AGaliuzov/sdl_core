@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -160,7 +160,7 @@ class ResumeCtrl: public event_engine::EventObserver {
      * @param application that is need to be restored
      * @return true if it was saved, otherwise return false
      */
-    bool StartResumption(ApplicationSharedPtr application, uint32_t hash);
+    bool StartResumption(ApplicationSharedPtr application, const std::string& hash);
 
     /**
      * @brief Start timer for resumption applications
@@ -182,7 +182,7 @@ class ResumeCtrl: public event_engine::EventObserver {
      * @param application that is need to be restored
      * @return true if it was saved, otherwise return false
      */
-    bool CheckApplicationHash(ApplicationSharedPtr application, uint32_t hash);
+    bool CheckApplicationHash(ApplicationSharedPtr application, const std::string& hash);
 
     /**
      * @brief Check if Resume controller have saved application with hmi app id

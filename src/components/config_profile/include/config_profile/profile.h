@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -539,6 +539,8 @@ class Profile : public utils::Singleton<Profile> {
 
     uint32_t resumption_delay_after_ign() const;
 
+    uint32_t hash_string_size() const;
+
     /*
      * @brief Updates all related values from ini file
      */
@@ -737,6 +739,7 @@ class Profile : public utils::Singleton<Profile> {
     uint16_t                        open_attempt_timeout_ms_;
     uint32_t                        resumption_delay_before_ign_;
     uint32_t                        resumption_delay_after_ign_;
+    uint32_t                        hash_string_size_;
 
     FRIEND_BASE_SINGLETON_CLASS(Profile);
     DISALLOW_COPY_AND_ASSIGN(Profile);

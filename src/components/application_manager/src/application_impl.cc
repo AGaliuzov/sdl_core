@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@
 
 #include <string>
 #include <strings.h>
-#include <stdlib.h>
 #include "application_manager/application_impl.h"
 #include "application_manager/message_helper.h"
 #include "application_manager/application_manager_impl.h"
@@ -40,6 +39,7 @@
 #include "interfaces/MOBILE_API.h"
 #include "utils/file_system.h"
 #include "utils/logger.h"
+#include "utils/gen_hash.h"
 
 namespace {
 
@@ -670,18 +670,13 @@ const std::set<uint32_t>& ApplicationImpl::SubscribesIVI() const {
   return subscribed_vehicle_info_;
 }
 
-uint32_t ApplicationImpl::nextHash() {
-  hash_val_ = rand();
+const std::string& ApplicationImpl::curHash() const {
   return hash_val_;
 }
 
-uint32_t ApplicationImpl::curHash() const {
-  return hash_val_;
-}
-
-uint32_t ApplicationImpl::UpdateHash() {
+void ApplicationImpl::UpdateHash() {
   LOG4CXX_AUTO_TRACE(logger_);
-  uint32_t new_hash= nextHash();
+  hash_val_ = utils::gen_hash(profile::Profile::instance()->hash_string_size());
 #ifndef CUSTOMER_PASA
   MessageHelper::SendHashUpdateNotification(app_id());
 #endif //!CUSTOMER_PASA
@@ -693,7 +688,6 @@ uint32_t ApplicationImpl::UpdateHash() {
     flag_sending_hash_change_after_awake_ = true;
   }
 #endif //CUSTOMER_PASA
-  return new_hash;
 }
 #ifdef CUSTOMER_PASA
 bool ApplicationImpl::flag_sending_hash_change_after_awake() const {

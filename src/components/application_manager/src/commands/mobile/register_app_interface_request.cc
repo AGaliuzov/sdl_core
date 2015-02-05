@@ -1,6 +1,6 @@
 /*
 
- Copyright (c) 2013, Ford Motor Company
+ Copyright (c) 2015, Ford Motor Company
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -436,17 +436,17 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile(
   }
 
   ResumeCtrl& resumer = ApplicationManagerImpl::instance()->resume_controller();
-  uint32_t hash_id = 0;
+  std::string hash_id = "";
 
   std::string add_info("");
   bool resumption = (*message_)[strings::msg_params].keyExists(strings::hash_id);
   bool need_restore_vr = resumption;
   if (resumption) {
-    hash_id = (*message_)[strings::msg_params][strings::hash_id].asUInt();
+    hash_id = (*message_)[strings::msg_params][strings::hash_id].asString();
     if (!resumer.CheckApplicationHash(application, hash_id)) {
-      LOG4CXX_WARN(logger_, "Hash does not matches");
+      LOG4CXX_WARN(logger_, "Hash does not match");
       result = mobile_apis::Result::RESUME_FAILED;
-      add_info = "Hash does not matches";
+      add_info = "Hash does not match";
       need_restore_vr = false;
     } else if (!resumer.CheckPersistenceFilesForResumption(application)) {
       LOG4CXX_WARN(logger_, "Persistent data is missed");

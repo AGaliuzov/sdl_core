@@ -1,4 +1,4 @@
-# Copyright (c) 2014, Ford Motor Company
+# Copyright (c) 2015, Ford Motor Company
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -55,6 +55,7 @@ set (SOURCES
     ${UTILS_SRC_DIR}/system.cc
     ${UTILS_SRC_DIR}/resource_usage.cc
     ${UTILS_SRC_DIR}/appenders_loader.cc
+    ${UTILS_SRC_DIR}/gen_hash.cc
 )
 
 if(ENABLE_LOG)

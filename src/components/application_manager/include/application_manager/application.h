@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -378,23 +378,17 @@ class Application : public virtual InitialApplicationData,
     virtual const smart_objects::SmartObject* active_message() const = 0;
 
     /**
-     * @brief Change Hash value and return it
-     * @return next Hash value
+     * @brief returns current hash value
+     * @return current hash value
      */
-    virtual uint32_t nextHash() = 0;
-
-    /**
-     * @brief returns cuurent hash value
-     * @return current Hash value
-     */
-    virtual uint32_t curHash() const = 0;
+    virtual const std::string& curHash() const = 0;
 
     /**
      * @brief Change Hash for current application
      * and send notification to mobile
      * @return updated_hash
      */
-    virtual uint32_t UpdateHash() = 0;
+    virtual void UpdateHash() = 0;
 #ifdef CUSTOMER_PASA
     /**
      * @brief Retrieves flag_sending_hash_change_after_awake_

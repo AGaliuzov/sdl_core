@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -154,8 +154,7 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   virtual const std::set<mobile_apis::ButtonName::eType>& SubscribedButtons() const;
   virtual const  std::set<uint32_t>& SubscribesIVI() const;
 
-  virtual uint32_t nextHash();
-  virtual uint32_t curHash() const;
+  virtual const std::string& curHash() const;
 #ifdef CUSTOMER_PASA
   virtual bool flag_sending_hash_change_after_awake() const;
   virtual void set_flag_sending_hash_change_after_awake(bool flag);
@@ -165,7 +164,7 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
    * and send notification to mobile
    * @return updated_hash
    */
-  virtual uint32_t UpdateHash();
+  virtual void UpdateHash();
 
   UsageStatistics& usage_report();
 
@@ -206,7 +205,7 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   void OnVideoStreamRetry();
   void OnAudioStreamRetry();
 
-  uint32_t                                 hash_val_;
+  std::string                              hash_val_;
   uint32_t                                 grammar_id_;
 
 

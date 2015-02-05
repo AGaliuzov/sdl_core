@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2013-2014, Ford Motor Company
+ Copyright (c) 2015, Ford Motor Company
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -85,7 +85,7 @@ void ResumeCtrl::SaveApplication(ApplicationConstSharedPtr application) {
   LOG4CXX_TRACE(logger_, "ENTER app_id : " << application->app_id()
                 << " mobile app_id : " << m_app_id);
 
-  const uint32_t hash = application->curHash();
+  const std::string& hash = application->curHash();
   const uint32_t grammar_id = application->get_grammar_id();
   const uint32_t time_stamp = (uint32_t)time(NULL);
 
@@ -452,7 +452,7 @@ void ResumeCtrl::StopSavePersistentDataTimer() {
 
 
 bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
-                                 uint32_t hash) {
+                                 const std::string& hash) {
   LOG4CXX_AUTO_TRACE(logger_);
   if (!application) {
     LOG4CXX_WARN(logger_, "Application not exist");
@@ -461,7 +461,7 @@ bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
   LOG4CXX_DEBUG(logger_, " Resume app_id = " << application->app_id()
                         << " hmi_app_id = " << application->hmi_app_id()
                         << " mobile_id = " << application->mobile_app_id()
-                        << "recieved hash = " << hash);
+                        << "received hash = " << hash);
 
   sync_primitives::AutoLock lock(resumtion_lock_);
   const int idx = GetObjectIndex(application->mobile_app_id());
@@ -474,7 +474,7 @@ bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
   const Json::Value& json_app = GetSavedApplications()[idx];
   LOG4CXX_DEBUG(logger_, "Saved_application_data: " << json_app.toStyledString());
   if (json_app.isMember(strings::hash_id) && json_app.isMember(strings::time_stamp)) {
-    const uint32_t saved_hash = json_app[strings::hash_id].asUInt();
+    const std::string& saved_hash = json_app[strings::hash_id].asString();
 
     if (saved_hash == hash) {
       RestoreApplicationData(application);
@@ -586,7 +586,7 @@ bool ResumeCtrl::CheckPersistenceFilesForResumption(ApplicationSharedPtr applica
 }
 
 bool ResumeCtrl::CheckApplicationHash(ApplicationSharedPtr application,
-                                      uint32_t hash) {
+                                      const std::string& hash) {
   if (!application) {
     LOG4CXX_ERROR(logger_, "Application pointer is invalid");
     return false;
@@ -605,7 +605,7 @@ bool ResumeCtrl::CheckApplicationHash(ApplicationSharedPtr application,
   const Json::Value& json_app = GetSavedApplications()[idx];
 
   if (json_app.isMember(strings::hash_id)) {
-    const uint32_t saved_hash = json_app[strings::hash_id].asUInt();
+    const std::string& saved_hash = json_app[strings::hash_id].asString();
 
     LOG4CXX_TRACE(logger_, "Found saved application : " << json_app.toStyledString());
     LOG4CXX_INFO(logger_, "received hash = " << hash);

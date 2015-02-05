@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -166,6 +166,7 @@ const char* kTTSGlobalPropertiesTimeoutKey = "TTSGlobalPropertiesTimeout";
 const char* kMaximumPayloadSizeKey ="MaximumPayloadSize";
 const char* kFrequencyCount ="FrequencyCount";
 const char* kFrequencyTime ="FrequencyTime";
+const char* kHashStringSizeKey = "HashStringSize";
 
 const char* kDefaultPoliciesSnapshotFileName = "sdl_snapshot.json";
 const char* kDefaultHmiCapabilitiesFileName = "hmi_capabilities.json";
@@ -214,6 +215,7 @@ const uint32_t kDefaultAppResumingTimeout = 3;
 const uint32_t kDefaultAppSavePersistentDataTimeout = 10;
 const uint32_t kDefaultResumptionDelayBeforeIgn = 30;
 const uint32_t kDefaultResumptionDelayAfterIgn = 30;
+const uint32_t kDefaultHashStringSize = 32;
 
 const uint32_t kDefaultDirQuota = 104857600;
 const uint32_t kDefaultAppTimeScaleMaxRequests = 0;
@@ -317,7 +319,8 @@ Profile::Profile()
     iap_hub_connection_wait_timeout_(kDefaultIAPHubConnectionWaitTimeout),
     tts_global_properties_timeout_(kDefaultTTSGlobalPropertiesTimeout),
     attempts_to_open_policy_db_(kDefaultAttemptsToOpenPolicyDB),
-    open_attempt_timeout_ms_(kDefaultAttemptsToOpenPolicyDB) {
+    open_attempt_timeout_ms_(kDefaultAttemptsToOpenPolicyDB),
+    hash_string_size_(kDefaultHashStringSize) {
 }
 
 Profile::~Profile() {
@@ -689,6 +692,10 @@ uint32_t Profile::resumption_delay_before_ign() const {
 
 uint32_t Profile::resumption_delay_after_ign() const {
   return resumption_delay_after_ign_;
+}
+
+uint32_t Profile::hash_string_size() const {
+  return hash_string_size_;
 }
 
 uint16_t Profile::tts_global_properties_timeout() const {
@@ -1425,6 +1432,15 @@ void Profile::UpdateValues() {
   ReadUIntValue(&default_hub_protocol_index_, kDefaultHubProtocolIndex, kIAPSection, kDefaultHubProtocolIndexKey);
 
   LOG_UPDATED_VALUE(default_hub_protocol_index_, kDefaultHubProtocolIndexKey, kIAPSection);
+
+  ReadUIntValue(&hash_string_size_,
+                kDefaultHashStringSize,
+                kApplicationManagerSection,
+                kHashStringSizeKey);
+
+  LOG_UPDATED_VALUE(hash_string_size_,
+                    kHashStringSizeKey,
+                    kApplicationManagerSection);
 }
 
 bool Profile::ReadValue(bool* value, const char* const pSection,
