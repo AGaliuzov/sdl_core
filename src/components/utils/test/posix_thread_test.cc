@@ -41,6 +41,8 @@ namespace utils {
 using namespace sync_primitives;
 using namespace threads;
 
+// TODO(AByzhynar): Change this to use Gtest class to create all variables for every TEST_F
+
 namespace {
 const uint32_t MAX_SIZE = 20;
 const size_t MyStackSize = 32768;
@@ -51,9 +53,9 @@ sync_primitives::Lock test_mutex_;
 };
 
 // ThreadDelegate successor
-class TestThread : public threads::ThreadDelegate {
+class TestThreadDelegate : public threads::ThreadDelegate {
  public:
-  TestThread()
+  TestThreadDelegate()
       : check_value_(false) {
   }
   void threadMain() {
@@ -72,7 +74,7 @@ class TestThread : public threads::ThreadDelegate {
 TEST(PosixThreadTest, CreateThread_ExpectThreadCreated) {
   // Arrange
   threads::Thread *thread = NULL;
-  threads::ThreadDelegate *threadDelegate = new TestThread();
+  TestThreadDelegate *threadDelegate = new TestThreadDelegate();
   // Create thread
   ASSERT_NO_THROW(thread = CreateThread(threadName, threadDelegate));
   EXPECT_TRUE(thread != NULL);
@@ -87,7 +89,7 @@ TEST(PosixThreadTest, CreateThread_ExpectThreadCreated) {
 TEST(PosixThreadTest, CheckCreatedThreadName_ExpectCorrectName) {
   // Arrange
   threads::Thread *thread = NULL;
-  threads::ThreadDelegate *threadDelegate = new TestThread();
+  threads::ThreadDelegate *threadDelegate = new TestThreadDelegate();
   // Create thread
   ASSERT_NO_THROW(thread = CreateThread(threadName, threadDelegate));
   // Check thread was created with correct name
@@ -100,15 +102,16 @@ TEST(PosixThreadTest, CheckCreatedThreadName_ExpectCorrectName) {
 TEST(PosixThreadTest, CheckCreatedThreadNameChangeToLongName_ExpectThreadNameReduced) {
   // Arrange
   threads::Thread *thread = NULL;
-  TestThread *threadDelegate = new TestThread();
+  TestThreadDelegate *threadDelegate = new TestThreadDelegate();
   AutoLock test_lock(test_mutex_);
   // Create thread
   ASSERT_NO_THROW(thread = CreateThread(threadName, threadDelegate));
   thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize));
-
-  // Change name for created thread
+  // Rename started thread. Name will be cut to 15 symbols.
+  // This is limit in current POSIX thread implementation
   thread->SetNameForId(thread->thread_handle(),
                        std::string("new thread with changed name"));
+  // Name must be enought to keep 16 symbols. This is limit in current POSIX thread implementation
   char name[MAX_SIZE];
   int result = pthread_getname_np(thread->thread_handle(), name, sizeof(name));
   if (!result)
@@ -123,7 +126,7 @@ TEST(PosixThreadTest, CheckCreatedThreadNameChangeToLongName_ExpectThreadNameRed
 TEST(PosixThreadTest, StartCreatedThreadWithOptionsJoinableAndMyStackSize_ExpectMyStackSizeStackAndJoinableThreadStarted) {
   // Arrange
   threads::Thread *thread = NULL;
-  TestThread *threadDelegate = new TestThread();
+  TestThreadDelegate *threadDelegate = new TestThreadDelegate();
   AutoLock test_lock(test_mutex_);
   // Create thread
   ASSERT_NO_THROW(thread = CreateThread(threadName, threadDelegate));
@@ -143,7 +146,7 @@ TEST(PosixThreadTest, StartCreatedThreadWithOptionsJoinableAndMyStackSize_Expect
 TEST(PosixThreadTest, StartCreatedThreadWithDefaultOptions_ExpectZeroStackAndJoinableThreadStarted) {
   // Arrange
   threads::Thread *thread = NULL;
-  TestThread *threadDelegate = new TestThread();
+  TestThreadDelegate *threadDelegate = new TestThreadDelegate();
   AutoLock test_lock(test_mutex_);
   // Create thread
   ASSERT_NO_THROW(thread = CreateThread(threadName, threadDelegate));
@@ -151,8 +154,8 @@ TEST(PosixThreadTest, StartCreatedThreadWithDefaultOptions_ExpectZeroStackAndJoi
   thread->start(threads::ThreadOptions());
   // Check thread is joinable
   EXPECT_TRUE(thread->is_joinable());
-  // Check thread stack size is 0
-  EXPECT_EQ(0, thread->stack_size());
+  // Check thread stack size is minimum value. Stack can not be 0
+  EXPECT_EQ(Thread::kMinStackSize, thread->stack_size());
   cond_var_.Wait(test_lock);
   EXPECT_TRUE(threadDelegate->check_value());
   DeleteThread(thread);
@@ -160,10 +163,10 @@ TEST(PosixThreadTest, StartCreatedThreadWithDefaultOptions_ExpectZeroStackAndJoi
   EXPECT_EQ(NULL, thread->delegate());
 }
 
-TEST(PosixThreadTest, StartThreadWithZeroStackAndDetached_ExpectZeroStackAndDetachedThreadStarted) {
+TEST(PosixThreadTest, StartThreadWithZeroStackAndDetached_ExpectMinimumStackAndDetachedThreadStarted) {
   // Arrange
   threads::Thread *thread = NULL;
-  TestThread *threadDelegate = new TestThread();
+  TestThreadDelegate *threadDelegate = new TestThreadDelegate();
   AutoLock test_lock(test_mutex_);
   // Create thread
   ASSERT_NO_THROW(thread = CreateThread(threadName, threadDelegate));
@@ -172,7 +175,7 @@ TEST(PosixThreadTest, StartThreadWithZeroStackAndDetached_ExpectZeroStackAndDeta
   // Check thread is detached
   EXPECT_FALSE(thread->is_joinable());
   // Check thread stack size is 0
-  EXPECT_EQ(0, thread->stack_size());
+  EXPECT_EQ(Thread::kMinStackSize, thread->stack_size());
   cond_var_.Wait(test_lock);
   EXPECT_TRUE(threadDelegate->check_value());
   DeleteThread(thread);
@@ -183,17 +186,20 @@ TEST(PosixThreadTest, StartThreadWithZeroStackAndDetached_ExpectZeroStackAndDeta
 TEST(PosixThreadTest, CheckCreatedThreadNameChangeToEmpty_ExpectThreadNameChangedToEmpty) {
   // Arrange
   threads::Thread *thread = NULL;
-  TestThread *threadDelegate = new TestThread();
+  TestThreadDelegate *threadDelegate = new TestThreadDelegate();
   AutoLock test_lock(test_mutex_);
   // Create thread
   ASSERT_NO_THROW(thread = CreateThread(threadName, threadDelegate));
   thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize));
-  // Check name for created thread
+  // Rename started thread. Name will be cut to 15 symbols.
+  // This is limit in current POSIX thread implementation
   thread->SetNameForId(thread->thread_handle(), std::string(""));
+  // Name must be enought to keep 16 symbols. This is limit in current POSIX thread implementation
   char name[MAX_SIZE];
   int result = pthread_getname_np(thread->thread_handle(), name, sizeof(name));
-  if (!result)
+  if (!result) {
     EXPECT_EQ(std::string(""), std::string(name));
+  }
   cond_var_.Wait(test_lock);
   EXPECT_TRUE(threadDelegate->check_value());
   DeleteThread(thread);
@@ -204,18 +210,21 @@ TEST(PosixThreadTest, CheckCreatedThreadNameChangeToEmpty_ExpectThreadNameChange
 TEST(PosixThreadTest, CheckCreatedThreadNameChangeToShortName_ExpectThreadNameChangedToShort) {
   // Arrange
   threads::Thread *thread = NULL;
-  TestThread *threadDelegate = new TestThread();
+  TestThreadDelegate *threadDelegate = new TestThreadDelegate();
   AutoLock test_lock(test_mutex_);
   // Create thread
   ASSERT_NO_THROW(thread = CreateThread(threadName, threadDelegate));
   // Start created thread
   thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize));
-  // Check name for created thread
+  // Rename started thread. Name will be cut to 15 symbols.
+  // This is limit in current POSIX thread implementation
   thread->SetNameForId(thread->thread_handle(), test_thread_name);
+  // Name must be enought to keep 16 symbols. This is limit in current POSIX thread implementation
   char name[MAX_SIZE];
   int result = pthread_getname_np(thread->thread_handle(), name, sizeof(name));
-  if (!result)
+  if (!result) {
     EXPECT_EQ(test_thread_name, std::string(name));
+  }
   cond_var_.Wait(test_lock);
   EXPECT_TRUE(threadDelegate->check_value());
   DeleteThread(thread);
@@ -226,13 +235,12 @@ TEST(PosixThreadTest, CheckCreatedThreadNameChangeToShortName_ExpectThreadNameCh
 TEST(PosixThreadTest, StartThread_ExpectThreadStarted) {
   // Arrange
   threads::Thread *thread = NULL;
-  TestThread *threadDelegate = new TestThread();
+  TestThreadDelegate *threadDelegate = new TestThreadDelegate();
   AutoLock test_lock(test_mutex_);
   // Create thread
   ASSERT_NO_THROW(thread = CreateThread(threadName, threadDelegate));
   // Start created thread
-  EXPECT_TRUE(
-      thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize)));
+  EXPECT_TRUE(thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize)));
   cond_var_.Wait(test_lock);
   EXPECT_TRUE(threadDelegate->check_value());
   DeleteThread(thread);
@@ -245,18 +253,16 @@ TEST(PosixThreadTest, StartOneThreadTwice_ExpectTheSameThreadStartedTwice) {
   PlatformThreadHandle thread1_id;
   PlatformThreadHandle thread2_id;
   threads::Thread *thread = NULL;
-  TestThread *threadDelegate = new TestThread();
+  TestThreadDelegate *threadDelegate = new TestThreadDelegate();
   AutoLock test_lock(test_mutex_);
   // Create thread
   ASSERT_NO_THROW(thread = CreateThread(threadName, threadDelegate));
   // Start created thread
-  EXPECT_TRUE(
-      thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize)));
+  EXPECT_TRUE(thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize)));
   thread1_id = thread->CurrentId();
   thread->stop();
   // Try to start thread again
-  EXPECT_TRUE(
-      thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize)));
+  EXPECT_TRUE(thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize)));
   thread2_id = thread->CurrentId();
   EXPECT_EQ(thread1_id, thread2_id);
   cond_var_.Wait(test_lock);
@@ -271,24 +277,24 @@ TEST(PosixThreadTest, StartOneThreadAgainAfterRename_ExpectRenamedThreadStarted)
   PlatformThreadHandle thread1_id;
   PlatformThreadHandle thread2_id;
   threads::Thread *thread = NULL;
-  TestThread *threadDelegate = new TestThread();
+  TestThreadDelegate *threadDelegate = new TestThreadDelegate();
   AutoLock test_lock(test_mutex_);
   // Create thread
   ASSERT_NO_THROW(thread = CreateThread(threadName, threadDelegate));
   // Start created thread
-  EXPECT_TRUE(
-      thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize)));
+  EXPECT_TRUE(thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize)));
   thread1_id = thread->CurrentId();
-  // Rename started thread
+  // Rename started thread. Name will be cut to 15 symbols.
+  // This is limit in current POSIX thread implementation
   thread->SetNameForId(thread->thread_handle(), test_thread_name);
+  // Name must be enought to keep 16 symbols. This is limit in current POSIX thread implementation
   char name[MAX_SIZE];
   int result = pthread_getname_np(thread->thread_handle(), name, sizeof(name));
   if (!result)
     EXPECT_EQ(test_thread_name, std::string(name));
   // Stop thread
   thread->stop();
-  EXPECT_TRUE(
-      thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize)));
+  EXPECT_TRUE(thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize)));
   thread2_id = thread->CurrentId();
   // Expect the same thread started with the the same name
   EXPECT_EQ(test_thread_name, std::string(name));

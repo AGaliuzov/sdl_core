@@ -55,7 +55,7 @@ typedef pthread_t PlatformThreadHandle;
 #endif
 
 /**
- * Non platform specific thread abstraction that establishes a
+ * @brief Non platform specific thread abstraction that establishes a
  * threads::ThreadDelegate on a new thread.
  *
  * ThreadDelegate example:
@@ -75,6 +75,7 @@ typedef pthread_t PlatformThreadHandle;
  * thread.join();
  * printf("ok!\n");
  */
+
 class Thread;
 void enqueue_to_join(Thread* thread);
 
@@ -100,13 +101,13 @@ class Thread {
 
  public:
   /**
-   * Starts the thread.
+   * @brief Starts the thread.
    * @return true if the thread was successfully started.
    */
   bool start();
 
   /**
-   * Starts the thread. Behaves exactly like \ref start() in addition to
+   * @brief Starts the thread. Behaves exactly like \ref start() in addition to
    * allow to override the default options.
    * @param options Thread options. Look for 'threads/thread_options.h'
    * for details.
@@ -139,7 +140,7 @@ class Thread {
                            std::string name);
 
   /**
-   * Signals the thread to exit and returns once the thread has exited.
+   * @brief Signals the thread to exit and returns once the thread has exited.
    * After this method returns, the Thread object is completely reset and may
    * be used as if it were newly constructed (i.e., Start may be called again).
    *
@@ -151,7 +152,7 @@ class Thread {
   void join();
 
   /**
-   * Get thread name.
+   * @brief Get thread name.
    * @return thread name
    */
   const std::string& name() {
@@ -159,7 +160,7 @@ class Thread {
   }
 
   /**
-   * Returns true if the thread has been started, and not yet stopped.
+   * @brief Returns true if the thread has been started, and not yet stopped.
    * When a thread is running, the thread_id_ is non-zero.
    * @return true if the thread has been started, and not yet stopped.
    */
@@ -170,7 +171,7 @@ class Thread {
   void set_running(bool running);
 
   /**
-   * Is thread joinable?
+   * @brief Is thread joinable?
    * @return - Returns true if the thread is joinable.
    */
   bool is_joinable() const {
@@ -178,7 +179,7 @@ class Thread {
   }
 
   /**
-   * Thread stack size
+   * @brief Thread stack size
    * @return thread stack size
    */
   size_t stack_size() const {
@@ -186,7 +187,7 @@ class Thread {
   }
 
   /**
-   * The native thread handle.
+   * @brief The native thread handle.
    * @return thread handle.
    */
   PlatformThreadHandle thread_handle() const {
@@ -194,7 +195,7 @@ class Thread {
   }
 
   /**
-   * Thread options.
+   * @brief Thread options.
    * @return thread options.
    */
   const ThreadOptions& thread_options() const {
@@ -202,7 +203,7 @@ class Thread {
   }
 
   /**
-   * Minimum size of thread stack for specific platform.
+   * @brief Minimum size of thread stack for specific platform.
    */
   static size_t kMinStackSize;
 

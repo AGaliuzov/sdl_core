@@ -38,7 +38,7 @@
 namespace threads {
 
 /**
- * @breif Startup options for thread.
+ * @brief Startup options for thread.
  * Look for "threads/thread.h" for example
  */
 class ThreadOptions {

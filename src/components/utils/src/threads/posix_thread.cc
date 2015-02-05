@@ -206,12 +206,16 @@ bool Thread::start(const ThreadOptions& options) {
           "Couldn't set stacksize = " << stack_size << ". Error code = " << pthread_result << " (\"" << strerror(pthread_result) << "\")");
     }
   }
+  else {
+    ThreadOptions thread_options_temp(Thread::kMinStackSize, thread_options_.is_joinable());
+    thread_options_ = thread_options_temp;
+  }
 
   if (!thread_created_) {
     // state_lock 1
     pthread_result = pthread_create(&handle_, &attributes, threadFunc, this);
     if (pthread_result == EOK) {
-      LOG4CXX_INFO(logger_, "Created thread: " << name_);
+      LOG4CXX_DEBUG(logger_, "Created thread: " << name_);
       SetNameForId(handle_, name_);
       // state_lock 0
       // possible concurrencies: stop and threadFunc
