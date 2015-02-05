@@ -79,6 +79,11 @@ void AOATransportAdapter::DisconnectDone(const DeviceUID& device_handle, const A
 TransportAdapter::Error AOATransportAdapter::Init() {
   LOG4CXX_AUTO_TRACE(logger_);
 
+  if (initialised_) {
+    LOG4CXX_WARN(logger_, "AOA transport adapter already initialized");
+    return BAD_STATE;
+  }
+
   aoa_shutdown_thread_delegate_ = new AOAShutdownThreadDelegate();
   aoa_shutdown_thread_ = threads::CreateThread("AOA shutdown thread", aoa_shutdown_thread_delegate_);
   aoa_shutdown_thread_->start();
