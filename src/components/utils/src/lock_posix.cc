@@ -45,8 +45,8 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "Utils")
 
 Lock::Lock()
 #ifndef NDEBUG
-      : lock_taken_(0),
-        is_mutex_recursive_(false)
+    : lock_taken_(0),
+      is_mutex_recursive_(false)
 #endif // NDEBUG
 {
   const int32_t status = pthread_mutex_init(&mutex_, NULL);
@@ -57,8 +57,8 @@ Lock::Lock()
 
 Lock::Lock(bool is_mutex_recursive)
 #ifndef NDEBUG
-      : lock_taken_(0),
-        is_mutex_recursive_(is_mutex_recursive)
+    : lock_taken_(0),
+      is_mutex_recursive_(is_mutex_recursive)
 #endif // NDEBUG
 {
   int32_t status;
@@ -69,6 +69,7 @@ Lock::Lock(bool is_mutex_recursive)
     pthread_mutexattr_init(&attr);
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
     status = pthread_mutex_init(&mutex_, &attr);
+    pthread_mutexattr_destroy(&attr);
   } else {
     status = pthread_mutex_init(&mutex_, NULL);
   }
@@ -86,11 +87,12 @@ Lock::~Lock() {
 #endif
   int32_t status = pthread_mutex_destroy(&mutex_);
   if (status != 0) {
-    LOG4CXX_ERROR(logger_, "Failed to destroy mutex " << &mutex_ << ": " << strerror(status)); }
+    LOG4CXX_ERROR(logger_, "Failed to destroy mutex " << &mutex_ << ": " << strerror(status));
+  }
 }
 
 void Lock::Acquire() {
-  int32_t status = pthread_mutex_lock(&mutex_);
+  const int32_t status = pthread_mutex_lock(&mutex_);
   if (status != 0) {
     LOG4CXX_ERROR(logger_, "Failed to acquire mutex " << &mutex_ << ": " << strerror(status));
   } else {
@@ -100,10 +102,21 @@ void Lock::Acquire() {
 
 void Lock::Release() {
   AssertTakenAndMarkFree();
-  int32_t status = pthread_mutex_unlock(&mutex_);
+  const int32_t status = pthread_mutex_unlock(&mutex_);
   if (status != 0) {
     LOG4CXX_ERROR(logger_, "Failed to unlock mutex" << &mutex_ << ": " << strerror(status));
   }
+}
+
+bool Lock::Try() {
+  const int32_t status = pthread_mutex_trylock(&mutex_);
+  if (status == 0) {
+#ifndef NDEBUG
+    lock_taken_++;
+#endif
+    return true;
+  }
+  return false;
 }
 
 #ifndef NDEBUG
@@ -123,5 +136,4 @@ void Lock::AssertTakenAndMarkFree() {
 }
 #endif
 
-
-} // namespace sync_primitives
+}  // namespace sync_primitives

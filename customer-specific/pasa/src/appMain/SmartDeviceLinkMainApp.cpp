@@ -514,7 +514,7 @@ int main(int argc, char** argv) {
   if (!utils::appenders_loader.Loaded()) {
     LOG4CXX_ERROR(logger_, "Appenders plugin not loaded, file logging disabled");
   }
-
+  profile::Profile::instance()->UpdateValues();
   threads::Thread* applink_notification_thread =
       threads::CreateThread("ApplinkNotify", new ApplinkNotificationThreadDelegate(pipefd[0]));
   applink_notification_thread->start();

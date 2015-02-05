@@ -72,14 +72,6 @@ class RegisterAppInterfaceRequest : public CommandRequestImpl {
    * @brief Execute command
    **/
   virtual void Run();
-  // virtual void cleanUp() = 0;
-
-  /**
-   * @brief Interface method that is called whenever new event received
-   *
-   * @param event The received event
-   */
-  virtual void on_event(const event_engine::Event& event);
 
   /**
    * @brief Sends RegisterAppInterface response to mobile

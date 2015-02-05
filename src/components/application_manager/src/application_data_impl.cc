@@ -30,6 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <algorithm>
+
 #include "application_manager/application_data_impl.h"
 #include "application_manager/smart_object_keys.h"
 #include "utils/logger.h"
@@ -40,7 +42,6 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "ApplicationDataImpl")
 InitialApplicationDataImpl::InitialApplicationDataImpl()
     : app_types_(NULL),
       vr_synonyms_(NULL),
-      mobile_app_id_(NULL),
       tts_name_(NULL),
       ngn_media_screen_name_(NULL),
       language_(mobile_api::Language::INVALID_ENUM),
@@ -56,11 +57,6 @@ InitialApplicationDataImpl::~InitialApplicationDataImpl() {
   if (vr_synonyms_) {
     delete vr_synonyms_;
     vr_synonyms_ = NULL;
-  }
-
-  if (mobile_app_id_) {
-    delete mobile_app_id_;
-    mobile_app_id_ = NULL;
   }
 
   if (tts_name_) {
@@ -84,8 +80,7 @@ InitialApplicationDataImpl::vr_synonyms() const {
   return vr_synonyms_;
 }
 
-const smart_objects::SmartObject*
-InitialApplicationDataImpl::mobile_app_id() const {
+std::string InitialApplicationDataImpl::mobile_app_id() const {
   return mobile_app_id_;
 }
 
@@ -126,11 +121,8 @@ void InitialApplicationDataImpl::set_vr_synonyms(
 }
 
 void InitialApplicationDataImpl::set_mobile_app_id(
-    const smart_objects::SmartObject& mobile_app_id) {
-  if (mobile_app_id_) {
-    delete mobile_app_id_;
-  }
-  mobile_app_id_ = new smart_objects::SmartObject(mobile_app_id);
+    const std::string& mobile_app_id) {
+  mobile_app_id_ = mobile_app_id;
 }
 
 void InitialApplicationDataImpl::set_tts_name(
@@ -173,6 +165,7 @@ DynamicApplicationDataImpl::DynamicApplicationDataImpl()
       menu_icon_(NULL),
       tbt_show_command_(NULL),
       commands_(),
+      commands_lock_(true),
       sub_menu_(),
       choice_set_map_(),
       performinteraction_choice_set_map_(),
@@ -267,15 +260,15 @@ DynamicApplicationDataImpl::tbt_show_command() const {
   return tbt_show_command_;
 }
 
-const NsSmartDeviceLink::NsSmartObjects::SmartObject *DynamicApplicationDataImpl::keyboard_props() const {
+const smart_objects::SmartObject* DynamicApplicationDataImpl::keyboard_props() const {
   return keyboard_props_;
 }
 
-const NsSmartDeviceLink::NsSmartObjects::SmartObject *DynamicApplicationDataImpl::menu_title() const {
+const smart_objects::SmartObject* DynamicApplicationDataImpl::menu_title() const {
   return menu_title_;
 }
 
-const NsSmartDeviceLink::NsSmartObjects::SmartObject* DynamicApplicationDataImpl::menu_icon() const {
+const smart_objects::SmartObject* DynamicApplicationDataImpl::menu_icon() const {
   return menu_icon_;
 }
 

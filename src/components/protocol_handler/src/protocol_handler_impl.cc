@@ -54,6 +54,12 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "ProtocolHandler")
 std::string ConvertPacketDataToString(const uint8_t *data,
                                       const size_t data_size);
 
+/**
+ * @brief Function returns supported SDL Protocol Version,
+ */
+uint8_t SupportedSDLProtocolVersion();
+
+
 const size_t kStackSize = 32768;
 
 ProtocolHandlerImpl::ProtocolHandlerImpl(
@@ -155,14 +161,7 @@ void ProtocolHandlerImpl::SendStartSessionAck(ConnectionID connection_id,
                                               bool protection) {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  uint8_t protocolVersion;
-  if (0 == profile::Profile::instance()->heart_beat_timeout()) {
-    protocolVersion = PROTOCOL_VERSION_2;
-    LOG4CXX_INFO(logger_, "Heart beat timeout == 0 => SET PROTOCOL_VERSION_2");
-  } else {
-    protocolVersion = PROTOCOL_VERSION_3;
-    LOG4CXX_INFO(logger_, "Heart beat timeout != 0 => SET PROTOCOL_VERSION_3");
-  }
+  uint8_t protocolVersion = SupportedSDLProtocolVersion();
 
   ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
     protocolVersion, protection, FRAME_TYPE_CONTROL,
@@ -244,17 +243,22 @@ void ProtocolHandlerImpl::SendEndSession(int32_t connection_id,
                                          uint8_t session_id) {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
-      PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
-      SERVICE_TYPE_RPC, FRAME_DATA_END_SERVICE, session_id, 0,
-      message_counters_[session_id]++));
+  uint8_t protocol_version;
+  if (session_observer_->ProtocolVersionUsed(connection_id,
+	    session_id, protocol_version)) {
+    ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
+	    protocol_version, PROTECTION_OFF, FRAME_TYPE_CONTROL,
+	    SERVICE_TYPE_RPC, FRAME_DATA_END_SERVICE, session_id, 0,
+	    message_counters_[session_id]++));
 
-  raw_ford_messages_to_mobile_.PostMessage(
-      impl::RawFordMessageToMobile(ptr, false));
-
-  LOG4CXX_INFO(logger_, "SendEndSession() for connection " << connection_id
-               << " for service_type " << static_cast<int32_t>(SERVICE_TYPE_RPC)
-               << " session_id " << static_cast<int32_t>(session_id));
+    raw_ford_messages_to_mobile_.PostMessage(
+	    impl::RawFordMessageToMobile(ptr, false));
+    LOG4CXX_INFO(logger_, "SendEndSession() for connection " << connection_id
+	                 << " for service_type " << static_cast<int32_t>(SERVICE_TYPE_RPC)
+	                 << " session_id " << static_cast<int32_t>(session_id));
+  } else {
+	LOG4CXX_WARN(logger_, "SendEndSession is failed connection or session does not exist");
+  }
 }
 
 RESULT_CODE ProtocolHandlerImpl::SendHeartBeatAck(ConnectionID connection_id,
@@ -262,27 +266,39 @@ RESULT_CODE ProtocolHandlerImpl::SendHeartBeatAck(ConnectionID connection_id,
                                                   uint32_t message_id) {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
-      PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
-      SERVICE_TYPE_CONTROL, FRAME_DATA_HEART_BEAT_ACK, session_id,
-      0u, message_id));
+  uint8_t protocol_version;
+  if (session_observer_->ProtocolVersionUsed(connection_id,
+	session_id, protocol_version)) {
+	ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
+        protocol_version, PROTECTION_OFF, FRAME_TYPE_CONTROL,
+	    SERVICE_TYPE_CONTROL, FRAME_DATA_HEART_BEAT_ACK, session_id,
+	    0u, message_id));
 
-  raw_ford_messages_to_mobile_.PostMessage(
-      impl::RawFordMessageToMobile(ptr, false));
-  return RESULT_OK;
+	raw_ford_messages_to_mobile_.PostMessage(
+	    impl::RawFordMessageToMobile(ptr, false));
+	return RESULT_OK;
+  }
+  LOG4CXX_WARN(logger_, "SendHeartBeatAck is failed connection or session does not exist");
+  return RESULT_FAIL;
 }
 
 void ProtocolHandlerImpl::SendHeartBeat(int32_t connection_id,
                                         uint8_t session_id) {
   LOG4CXX_AUTO_TRACE(logger_);
+  uint8_t protocol_version;
+  if (session_observer_->ProtocolVersionUsed(connection_id,
+			session_id, protocol_version)) {
+    ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
+	    protocol_version, PROTECTION_OFF, FRAME_TYPE_CONTROL,
+        SERVICE_TYPE_CONTROL, FRAME_DATA_HEART_BEAT, session_id,
+        0u, message_counters_[session_id]++));
 
-  ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
-      PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
-      SERVICE_TYPE_CONTROL, FRAME_DATA_HEART_BEAT, session_id,
-      0u, message_counters_[session_id]++));
-
-  raw_ford_messages_to_mobile_.PostMessage(
-      impl::RawFordMessageToMobile(ptr, false));
+    raw_ford_messages_to_mobile_.PostMessage(
+        impl::RawFordMessageToMobile(ptr, false));
+    LOG4CXX_DEBUG(logger_, "SendHeartBeat finished successfully");
+  } else {
+    LOG4CXX_WARN(logger_, "SendHeartBeat is failed connection or session does not exist");
+  }
 }
 
 void ProtocolHandlerImpl::SendMessageToMobileApp(const RawMessagePtr message,
@@ -318,21 +334,26 @@ void ProtocolHandlerImpl::SendMessageToMobileApp(const RawMessagePtr message,
 
   const uint32_t header_size = (PROTOCOL_VERSION_1 == message->protocol_version())
       ? PROTOCOL_HEADER_V1_SIZE : PROTOCOL_HEADER_V2_SIZE;
-  uint32_t maxDataSize = MAXIMUM_FRAME_DATA_SIZE - header_size;
+  uint32_t max_frame_size = MAXIMUM_FRAME_DATA_SIZE - header_size;
 #ifdef ENABLE_SECURITY
   const security_manager::SSLContext *ssl_context = session_observer_->
       GetSSLContext(message->connection_key(), message->service_type());
   if (ssl_context && ssl_context->IsInitCompleted()) {
-    maxDataSize = ssl_context->get_max_block_size(maxDataSize);
-    DCHECK(maxDataSize);
+    const size_t max_block_size = ssl_context->get_max_block_size(max_frame_size);
+    DCHECK(max_block_size > 0);
+    if (max_block_size > 0) {
+      max_frame_size = max_block_size;
+      LOG4CXX_DEBUG(logger_, "Security set new optimal packet size " << max_frame_size);
+    } else {
+      LOG4CXX_ERROR(logger_, "Security could not return max block size, use the origin one");
+    }
   }
-  LOG4CXX_DEBUG(logger_, "Optimal packet size is " << maxDataSize);
+  LOG4CXX_DEBUG(logger_, "Optimal packet size is " << max_frame_size);
 #endif  // ENABLE_SECURITY
-  DCHECK(MAXIMUM_FRAME_DATA_SIZE > maxDataSize);
+  DCHECK(MAXIMUM_FRAME_DATA_SIZE > max_frame_size);
 
 
-
-  if (message->data_size() <= maxDataSize) {
+  if (message->data_size() <= max_frame_size) {
     RESULT_CODE result = SendSingleFrameMessage(connection_handle, sessionID,
                                                 message->protocol_version(),
                                                 message->service_type(),
@@ -344,16 +365,16 @@ void ProtocolHandlerImpl::SendMessageToMobileApp(const RawMessagePtr message,
           "ProtocolHandler failed to send single frame message.");
     }
   } else {
-    LOG4CXX_INFO_EXT(
+    LOG4CXX_DEBUG(
         logger_,
-        "Message will be sent in multiple frames; max size is " << maxDataSize);
+        "Message will be sent in multiple frames; max frame size is " << max_frame_size);
 
     RESULT_CODE result = SendMultiFrameMessage(connection_handle, sessionID,
                                                message->protocol_version(),
                                                message->service_type(),
                                                message->data_size(),
                                                message->data(),
-                                               maxDataSize, final_message);
+                                               max_frame_size, final_message);
     if (result != RESULT_OK) {
       LOG4CXX_ERROR(logger_,
           "ProtocolHandler failed to send multiframe messages.");
@@ -375,7 +396,7 @@ void ProtocolHandlerImpl::OnTMMessageReceived(const RawMessagePtr tm_message) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (tm_message) {
-    LOG4CXX_INFO(logger_,
+    LOG4CXX_DEBUG(logger_,
       "Received data from TM  with connection id " << tm_message->connection_key() <<
       " msg data_size "      << tm_message->data_size());
   } else {
@@ -517,7 +538,7 @@ RESULT_CODE ProtocolHandlerImpl::SendFrame(const ProtocolFramePtr packet) {
   }
 #endif  // ENABLE_SECURITY
 
-  LOG4CXX_INFO_EXT(logger_, "Packet to be sent: " <<
+  LOG4CXX_DEBUG(logger_, "Packet to be sent: " <<
                    ConvertPacketDataToString(packet->data(), packet->data_size()) <<
                    " of size: " << packet->data_size());
   const RawMessagePtr message_to_send = packet->serializePacket();
@@ -525,7 +546,7 @@ RESULT_CODE ProtocolHandlerImpl::SendFrame(const ProtocolFramePtr packet) {
     LOG4CXX_ERROR(logger_, "Serialization error");
         return RESULT_FAIL;
   };
-  LOG4CXX_INFO(logger_,
+  LOG4CXX_DEBUG(logger_,
                "Message to send with connection id " <<
                static_cast<int>(packet->connection_id()));
 
@@ -561,28 +582,28 @@ RESULT_CODE ProtocolHandlerImpl::SendMultiFrameMessage(
     const ConnectionID connection_id, const uint8_t session_id,
     const uint8_t protocol_version, const uint8_t service_type,
     const size_t data_size, const uint8_t *data,
-    const size_t maxdata_size, const bool is_final_message) {
+    const size_t max_frame_size, const bool is_final_message) {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  LOG4CXX_INFO_EXT(
-      logger_, " data size " << data_size << " maxdata_size " << maxdata_size);
+  LOG4CXX_DEBUG(
+      logger_, " data size " << data_size << " max_frame_size " << max_frame_size);
 
   // remainder of last frame
-  const size_t lastframe_remainder = data_size % maxdata_size;
+  const size_t lastframe_remainder = data_size % max_frame_size;
   // size of last frame (full fill or not)
   const size_t lastframe_size =
-      lastframe_remainder > 0 ? lastframe_remainder : maxdata_size;
+      lastframe_remainder > 0 ? lastframe_remainder : max_frame_size;
 
-  const size_t frames_count = data_size / maxdata_size +
+  const size_t frames_count = data_size / max_frame_size +
       // add last frame if not empty
       (lastframe_remainder > 0 ? 1 : 0);
 
-  LOG4CXX_INFO_EXT(
+  LOG4CXX_DEBUG(
       logger_,
       "Data " << data_size << " bytes in " << frames_count <<
       " frames with last frame size " << lastframe_size);
 
-  DCHECK(maxdata_size >= FIRST_FRAME_DATA_SIZE);
+  DCHECK(max_frame_size >= FIRST_FRAME_DATA_SIZE);
   DCHECK(FIRST_FRAME_DATA_SIZE >= 8);
   uint8_t out_data[FIRST_FRAME_DATA_SIZE];
   out_data[0] = data_size >> 24;
@@ -595,7 +616,7 @@ RESULT_CODE ProtocolHandlerImpl::SendMultiFrameMessage(
   out_data[6] = frames_count >> 8;
   out_data[7] = frames_count;
 
-  // TODO(EZamakhov): investigate message_id for CONSECUTIVE frames
+  // TODO(EZamakhov): investigate message_id for CONSECUTIVE frames - APPLINK-9531
   const uint8_t message_id = message_counters_[session_id]++;
   const ProtocolFramePtr firstPacket(
         new protocol_handler::ProtocolPacket(
@@ -605,11 +626,11 @@ RESULT_CODE ProtocolHandlerImpl::SendMultiFrameMessage(
 
   raw_ford_messages_to_mobile_.PostMessage(
       impl::RawFordMessageToMobile(firstPacket, false));
-  LOG4CXX_INFO_EXT(logger_, "First frame is sent.");
+  LOG4CXX_DEBUG(logger_, "First frame is sent.");
 
   for (uint32_t i = 0; i < frames_count; ++i) {
     const bool is_last_frame = (i == (frames_count - 1));
-    const size_t frame_size = is_last_frame ? lastframe_size : maxdata_size;
+    const size_t frame_size = is_last_frame ? lastframe_size : max_frame_size;
     const uint8_t data_type =
         is_last_frame
         ? FRAME_DATA_LAST_CONSECUTIVE
@@ -619,10 +640,11 @@ RESULT_CODE ProtocolHandlerImpl::SendMultiFrameMessage(
     const ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
         protocol_version, PROTECTION_OFF, FRAME_TYPE_CONSECUTIVE,
         service_type, data_type, session_id, frame_size, message_id,
-        data + maxdata_size * i));
+        data + max_frame_size * i));
 
     raw_ford_messages_to_mobile_.PostMessage(
           impl::RawFordMessageToMobile(ptr, is_final_packet));
+    LOG4CXX_DEBUG(logger_, '#' << i << " frame is sent.");
   }
   return RESULT_OK;
 }
@@ -653,7 +675,7 @@ RESULT_CODE ProtocolHandlerImpl::HandleSingleFrameMessage(
     ConnectionID connection_id, const ProtocolFramePtr packet) {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  LOG4CXX_INFO(logger_,
+  LOG4CXX_DEBUG(logger_,
         "FRAME_TYPE_SINGLE message of size " << packet->data_size() << "; message "
         << ConvertPacketDataToString(packet->data(), packet->data_size()));
 
@@ -835,8 +857,7 @@ uint32_t get_hash_id(const ProtocolPacket &packet) {
 
 RESULT_CODE ProtocolHandlerImpl::HandleControlMessageEndSession(
     ConnectionID connection_id, const ProtocolPacket &packet) {
-  LOG4CXX_INFO(logger_,
-               "ProtocolHandlerImpl::HandleControlMessageEndSession()");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   const uint8_t current_session_id = packet.session_id();
   const uint32_t hash_id = get_hash_id(packet);
@@ -1150,7 +1171,6 @@ RESULT_CODE ProtocolHandlerImpl::EncryptFrame(ProtocolFramePtr packet) {
                 << out_data_size << " bytes");
   DCHECK(out_data);
   DCHECK(out_data_size);
-  DCHECK(out_data_size <= MAXIMUM_FRAME_DATA_SIZE);
   packet->set_protection_flag(true);
   packet->set_data(out_data, out_data_size);
   return RESULT_OK;
@@ -1215,18 +1235,26 @@ void ProtocolHandlerImpl::SendFramesNumber(uint32_t connection_key,
   transport_manager::ConnectionUID connection_id = 0;
   uint8_t session_id = 0;
   session_observer_->PairFromKey(connection_key, &connection_id, &session_id);
-  ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
-      PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
-      SERVICE_TYPE_NAVI, FRAME_DATA_SERVICE_DATA_ACK,
-      session_id, 0, message_counters_[session_id]++));
+  uint8_t protocol_version;
+  if (session_observer_->ProtocolVersionUsed(connection_id, session_id,
+		  protocol_version)) {
+    ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
+	  	  protocol_version, PROTECTION_OFF, FRAME_TYPE_CONTROL,
+	        SERVICE_TYPE_NAVI, FRAME_DATA_SERVICE_DATA_ACK,
+	        session_id, 0, message_counters_[session_id]++));
 
-  // Flow control data shall be 4 bytes according Ford Protocol
-  DCHECK(sizeof(number_of_frames) == 4);
-  number_of_frames = LE_TO_BE32(number_of_frames);
-  ptr->set_data(reinterpret_cast<const uint8_t*>(&number_of_frames),
-                sizeof(number_of_frames));
-  raw_ford_messages_to_mobile_.PostMessage(
-        impl::RawFordMessageToMobile(ptr, false));
+    // Flow control data shall be 4 bytes according Ford Protocol
+    DCHECK(sizeof(number_of_frames) == 4);
+    number_of_frames = LE_TO_BE32(number_of_frames);
+    ptr->set_data(reinterpret_cast<const uint8_t*>(&number_of_frames),
+	                  sizeof(number_of_frames));
+	raw_ford_messages_to_mobile_.PostMessage(
+	     impl::RawFordMessageToMobile(ptr, false));
+	LOG4CXX_DEBUG(logger_, "SendFramesNumber finished successfully");
+  } else {
+	  LOG4CXX_WARN(logger_, "SendFramesNumber is failed connection or session does not exist");
+  }
+
 }
 
 #ifdef TIME_TESTER
@@ -1250,5 +1278,21 @@ std::string ConvertPacketDataToString(const uint8_t *data,
     }
   }
   return is_printable_array ? std::string(text) : std::string("is raw data");
+}
+
+uint8_t SupportedSDLProtocolVersion() {
+  LOG4CXX_AUTO_TRACE(logger_);
+
+  bool heart_beat_support =
+    (0 != profile::Profile::instance()->heart_beat_timeout());
+  bool sdl4_support = profile::Profile::instance()->enable_protocol_4();
+
+  if (sdl4_support) {
+    return PROTOCOL_VERSION_4;
+  }
+  if (heart_beat_support) {
+    return PROTOCOL_VERSION_3;
+  }
+  return PROTOCOL_VERSION_2;
 }
 }  // namespace protocol_handler

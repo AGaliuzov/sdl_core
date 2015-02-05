@@ -86,6 +86,32 @@
     ASSERT((condition)); \
   }
 
+/*
+ * Will cauch assert on debug version,
+ * Will return return_value in release build
+ */
+#define DCHECK_OR_RETURN(condition, return_value) \
+  if (!(condition)) { \
+    CREATE_LOGGERPTR_LOCAL(logger_, "assert"); \
+    LOG4CXX_FATAL(logger_,  "DCHECK failed with \"" << #condition \
+       << "\" [" << __FUNCTION__ << "][" << __FILE__ << ':' << __LINE__ << ']' ); \
+    ASSERT((condition)); \
+    return (return_value); \
+  }
+/*
+ * Will cauch assert on debug version,
+ * Will return return_value in release build
+ */
+#define DCHECK_OR_RETURN_VOID(condition) \
+  if (!(condition)) { \
+    CREATE_LOGGERPTR_LOCAL(logger_, "assert"); \
+    LOG4CXX_FATAL(logger_,  "DCHECK failed with \"" << #condition \
+       << "\" [" << __FUNCTION__ << "][" << __FILE__ << ':' << __LINE__ << ']' ); \
+    ASSERT((condition)); \
+    return ; \
+  }
+
+
 #define NOTREACHED() DCHECK(!"Unreachable code")
 
 // Allows to perform static check that virtual function from base class is
@@ -103,5 +129,10 @@
 * @param arr  array, which size need to calculate
 */
 #define ARRAYSIZE(arr) sizeof (arr) / sizeof(*arr)
+
+#ifdef BUILD_TESTS
+#define FRIEND_TEST(test_case_name, test_name)\
+friend class test_case_name##_##test_name##_Test
+#endif
 
 #endif  // SRC_COMPONENTS_INCLUDE_UTILS_MACRO_H_

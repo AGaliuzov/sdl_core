@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,29 +29,25 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include "application_manager/commands/hmi/ui_set_icon_response.h"
-#include "application_manager/event_engine/event.h"
-#include "interfaces/HMI_API.h"
 
-namespace application_manager {
+#include <unistd.h>
 
-namespace commands {
+#include "gtest/gtest.h"
 
-UISetIconResponse::UISetIconResponse(const MessageSharedPtr& message)
-    : ResponseFromHMI(message) {
+#include "utils/threads/thread_validator.h"
+
+namespace test {
+namespace components {
+namespace utils {
+
+using namespace ::threads;
+
+TEST(ThreadValidatorTest, CompareID_CurrentThreadAndPthread_AreEqual) {
+  SingleThreadSimpleValidator object;
+  ASSERT_EQ(object.creation_thread_id(), pthread_self());
+
 }
 
-UISetIconResponse::~UISetIconResponse() {
-}
-
-void UISetIconResponse::Run() {
-  LOG4CXX_AUTO_TRACE(logger_);
-
-  event_engine::Event event(hmi_apis::FunctionID::UI_SetAppIcon);
-  event.set_smart_object(*message_);
-  event.raise();
-}
-
-}  // namespace commands
-
-}  // namespace application_manager
+} // namespace utils
+} // namespace components
+} // namespace test

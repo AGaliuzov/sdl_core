@@ -52,9 +52,8 @@ void OnAwakeSDLNotification::Run() {
   if (app_manager->state_suspended()) {
     app_manager->set_state_suspended(false);
     ApplicationManagerImpl::ApplicationListAccessor accessor;
-    ApplicationManagerImpl::TAppList local_app_list = accessor.applications();
-    ApplicationManagerImpl::TAppListIt it = local_app_list.begin();
-    ApplicationManagerImpl::TAppListIt itEnd = local_app_list.end();
+    ApplicationManagerImpl::ApplictionSetIt it = accessor.begin();
+    ApplicationManagerImpl::ApplictionSetIt itEnd = accessor.end();
     for (; it != itEnd; ++it) {
       if ((*it).valid()) {
         if ((*it)->flag_sending_hash_change_after_awake()) {
@@ -64,6 +63,7 @@ void OnAwakeSDLNotification::Run() {
       }
     }
     (app_manager->resume_controller()).StartSavePersistentDataTimer();
+    ApplicationManagerImpl::instance()->resume_controller().OnAwake();
   }
 }
 

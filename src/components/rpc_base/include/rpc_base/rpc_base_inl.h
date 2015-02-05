@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -279,7 +279,7 @@ String<minlen, maxlen>& String<minlen, maxlen>::operator=(const std::string& new
 
 template<size_t minlen, size_t maxlen>
 String<minlen, maxlen>& String<minlen, maxlen>::operator=(const String& new_val) {
-  value_ = new_val.value_;
+  value_.assign(new_val.value_);
   value_state_ = new_val.value_state_;
   return *this;
 }

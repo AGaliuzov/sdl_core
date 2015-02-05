@@ -137,6 +137,7 @@ HEADERS = \
 	$(wildcard ../include/$(COMPONENT_NAME)/video/*.h*) \
 	$(wildcard ../../protocol_handler/include/protocol_handler/*.h*) \
 	$(wildcard ../../connection_handler/include/connection_handler/*.h*) \
+	$(wildcard ../../policy/src/policy/include*.h*) \
 	$(wildcard ../../utils/include/utils/*.h*) \
 	$(wildcard ../../utils/include/utils/threads/*.h*)
 

@@ -81,6 +81,27 @@ class Profile : public utils::Singleton<Profile> {
     const std::string& app_resourse_folder() const;
 
     /**
+     * @brief Returns true, if SDL 4.0 is enabled
+     */
+    bool enable_protocol_4() const;
+
+    /**
+     * @brief Returns application icons folder path
+     */
+    const std::string& app_icons_folder() const;
+
+    /**
+     * @brief Returns application icons folder maximum size
+     */
+    const uint32_t& app_icons_folder_max_size() const;
+
+    /**
+     * @brief Returns application icons amount to remove from icon folder,
+     * if maximum size exceeded
+     */
+    const uint32_t& app_icons_amount_to_remove() const;
+
+    /**
      * @brief Returns the path to the config file
      */
     const std::string& config_file_name() const;
@@ -514,6 +535,16 @@ class Profile : public utils::Singleton<Profile> {
 
     uint16_t open_attempt_timeout_ms() const;
 
+    uint32_t resumption_delay_before_ign() const;
+
+    uint32_t resumption_delay_after_ign() const;
+
+    /*
+     * @brief Updates all related values from ini file
+     */
+    void UpdateValues();
+
+
   private:
     /**
      * Default constructor
@@ -523,10 +554,6 @@ class Profile : public utils::Singleton<Profile> {
      */
     Profile();
 
-    /*
-     * @brief Updates all related values from ini file
-     */
-    void UpdateValues();
 
     /**
      * @brief Reads a boolean value from the profile
@@ -612,6 +639,10 @@ class Profile : public utils::Singleton<Profile> {
     std::string                     app_config_folder_;
     std::string                     app_storage_folder_;
     std::string                     app_resourse_folder_;
+    bool                            enable_protocol_4_;
+    std::string                     app_icons_folder_;
+    uint32_t                        app_icons_folder_max_size_;
+    uint32_t                        app_icons_amount_to_remove_;
     std::string                     config_file_name_;
     std::string                     server_address_;
     uint16_t                        server_port_;
@@ -704,6 +735,8 @@ class Profile : public utils::Singleton<Profile> {
     uint16_t                        tts_global_properties_timeout_;
     uint16_t                        attempts_to_open_policy_db_;
     uint16_t                        open_attempt_timeout_ms_;
+    uint32_t                        resumption_delay_before_ign_;
+    uint32_t                        resumption_delay_after_ign_;
 
     FRIEND_BASE_SINGLETON_CLASS(Profile);
     DISALLOW_COPY_AND_ASSIGN(Profile);

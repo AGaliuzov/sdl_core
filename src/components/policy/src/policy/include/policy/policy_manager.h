@@ -76,7 +76,7 @@ class PolicyManager : public usage_statistics::StatisticsManager {
        * @param service_type Service specifies user of URL
      * @return string URL
      */
-    virtual std::string GetUpdateUrl(int service_type) = 0;
+    virtual std::string GetUpdateUrl(int service_type) const = 0;
 
     /**
      * @brief Gets all URLs for sending PTS to from PT itself.
@@ -285,12 +285,11 @@ class PolicyManager : public usage_statistics::StatisticsManager {
     /**
      * @brief Gets specific application permissions changes since last policy
      * table update
-     * @param device_id Id of device, which hosts application
      * @param policy_app_id Unique application id
      * @return Permissions changes
      */
     virtual AppPermissions GetAppPermissionsChanges(
-      const std::string& device_id, const std::string& policy_app_id) = 0;
+            const std::string& policy_app_id) = 0;
 
     virtual void RemovePendingPermissionChanges(const std::string& app_id) = 0;
 
@@ -392,6 +391,14 @@ class PolicyManager : public usage_statistics::StatisticsManager {
      * @brief SaveUpdateStatusRequired alows to save update status.
      */
     virtual void SaveUpdateStatusRequired(bool is_update_needed) = 0;
+
+    /**
+     * @brief RemoteAppsUrl allows to obtain url for QUERY_APP system request.
+     *
+     * @return url.
+     */
+    virtual std::string RemoteAppsUrl() const = 0;
+
   protected:
     /**
      * Checks is PT exceeded IgnitionCycles
@@ -411,6 +418,7 @@ class PolicyManager : public usage_statistics::StatisticsManager {
      * condition is true.
      */
     virtual void StartPTExchange() = 0;
+
 };
 
 }  // namespace policy

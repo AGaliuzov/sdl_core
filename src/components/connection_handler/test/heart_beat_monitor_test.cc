@@ -205,7 +205,7 @@ TEST_F(HeartBeatMonitorTest, IncreaseHeartBeatTimeout) {
 
   const int32_t kNewTimeout = kTimeout + 1;
   conn->StartHeartBeat(kSession);
-  conn->SetHeartBeatTimeout(kNewTimeout);
+  conn->SetHeartBeatTimeout(kNewTimeout, kSession);
   // new timeout greater by old timeout so mock object shouldn't be invoked
   sleep(kTimeout);
 }
@@ -219,7 +219,7 @@ TEST_F(HeartBeatMonitorTest, DecreaseHeartBeatTimeout) {
 
   const int32_t kNewTimeout = kTimeout - 1;
   conn->StartHeartBeat(kSession);
-  conn->SetHeartBeatTimeout(kNewTimeout);
+  conn->SetHeartBeatTimeout(kNewTimeout, kSession);
   // new timeout less than old timeout so mock object should be invoked
   sleep(kTimeout*2);
 }

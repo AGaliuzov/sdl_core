@@ -31,58 +31,26 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_MOBILE_SET_ICON_REQUEST_H_
-#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_MOBILE_SET_ICON_REQUEST_H_
-
-#include "application_manager/commands/command_request_impl.h"
-#include "utils/macro.h"
+#include "application_manager/commands/mobile/set_app_icon_response.h"
+#include "application_manager/application_manager_impl.h"
 
 namespace application_manager {
 
 namespace commands {
 
-/**
- * @brief SetIconRequest command class
- **/
-class SetIconRequest : public CommandRequestImpl {
- public:
-  /**
-   * @brief Contains information about the type of image
-   */
-  typedef enum {
-    STATIC = 0,
-    DYNAMIC
-  } ImageType;
+SetAppIconResponse::SetAppIconResponse(const MessageSharedPtr& message)
+    : CommandResponseImpl(message) {
+}
 
-  /**
-   * @brief SetIconRequest class constructor
-   *
-   * @param message Incoming SmartObject message
-   **/
-  explicit SetIconRequest(const MessageSharedPtr& message);
+SetAppIconResponse::~SetAppIconResponse() {
+}
 
-  /**
-   * @brief SetIconRequest class destructor
-   **/
-  virtual ~SetIconRequest();
+void SetAppIconResponse::Run() {
+  LOG4CXX_AUTO_TRACE(logger_);
 
-  /**
-   * @brief Interface method that is called whenever new event received
-   *
-   * @param event The received event
-   */
-  void on_event(const event_engine::Event& event);
-
-  /**
-   * @brief Execute command
-   **/
-  virtual void Run();
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(SetIconRequest);
-};
+  ApplicationManagerImpl::instance()->SendMessageToMobile(message_);
+}
 
 }  // namespace commands
-}  // namespace application_manager
 
-#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_MOBILE_SET_ICON_REQUEST_H_
+}  // namespace application_manager

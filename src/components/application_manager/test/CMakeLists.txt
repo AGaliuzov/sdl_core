@@ -50,6 +50,7 @@ set(testSources
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/src/gmock_main.cc
   ${AM_TEST_DIR}/command_impl_test.cc  
   ${COMPONENTS_DIR}/application_manager/test/mobile_message_handler_test.cc
+  ${AM_TEST_DIR}/request_info_test.cc
 )
 
 set(mockedSources
@@ -64,6 +65,7 @@ set(AM_SOURCES
   ${AM_SOURCE_DIR}/src/commands/command_request_impl.cc
   ${AM_SOURCE_DIR}/src/commands/command_response_impl.cc
   ${AM_SOURCE_DIR}/src/commands/command_notification_impl.cc
+  ${AM_SOURCE_DIR}/src/commands/command_notification_from_mobile_impl.cc
   ${AM_SOURCE_DIR}/src/commands/pending.cc
 
   ${AM_SOURCE_DIR}/src/usage_statistics.cc
@@ -126,10 +128,14 @@ if(ENABLE_LOG)
 endif()
 
 add_library("ApplicationManagerTest" ${mockedSources} ${testSources} ${AM_SOURCES})
+
 target_link_libraries("ApplicationManagerTest" ${testLibraries} AMHMICommandsLibrary
                                                                 AMMobileCommandsLibrary
                                                                 AMEventEngine
                                                                 AMPolicyLibrary)
 
-add_executable(application_manager_test ${testSources})
-target_link_libraries(application_manager_test ApplicationManagerTest ${test_exec_libraries})
+create_test("application_manager_test" "${testSources}" "${ApplicationManagerTest}")
+target_link_libraries("application_manager_test" ApplicationManagerTest ${test_exec_libraries})
+
+#add_executable(application_manager_test ${testSources})
+#target_link_libraries(application_manager_test ApplicationManagerTest ${test_exec_libraries})

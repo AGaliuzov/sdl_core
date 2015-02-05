@@ -64,11 +64,9 @@ set(ENABLE_LOG_OPTION 	"$ENV{ENABLE_LOG}")
 set(ARCH_TYPE_OPTION	"$ENV{ARCH_TYPE}")
 set(POLICY_OPTION 	"$ENV{POLICY_TYPE}")
 set(SECURITY_OPTION 	"$ENV{SECURITY_MODE}")
-#<<<<<<< HEAD
 set(COMPONENTS_DIR ${CMAKE_SOURCE_DIR}/src/components)
-#=======
 set(SNAPSHOT_TAG 	"$ENV{SNAPSHOT_TAG}")
-#>>>>>>> develop
+
 
 
 if (ARCH_TYPE_OPTION)
@@ -335,14 +333,17 @@ endmacro(GenerateInterface)
 
 # --- Useful macro
 macro(create_test NAME SOURCES LIBS)
-    add_executable("${NAME}" ${SOURCES})
-    target_link_libraries("${NAME}" ${LIBS})
-    target_link_libraries("${NAME}" Utils)
-    if(CMAKE_SYSTEM_NAME STREQUAL "QNX")
-        add_test(${NAME} ${CMAKE_SOURCE_DIR}/qnx/remote_run_test.sh ${NAME})
-    else()
-        add_test(${NAME} ${NAME})
-    endif()
+  add_executable("${NAME}" ${SOURCES})
+  target_link_libraries("${NAME}" ${LIBS})
+  target_link_libraries("${NAME}" Utils)
+  if(CMAKE_SYSTEM_NAME STREQUAL "QNX")
+    add_test(${NAME} ${CMAKE_SOURCE_DIR}/qnx/remote_run_test.sh ${NAME})
+  elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    add_test(NAME ${NAME}
+    COMMAND ${NAME} --gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/)
+  else()
+    add_test(${NAME} ${NAME})
+  endif()
 endmacro(create_test)
 
 # --replace in list macro
@@ -662,6 +663,7 @@ add_subdirectory(./src/3rd_party-static)
 
 # --- Tools
 add_subdirectory(./tools)
+
 
 # --- Components
 add_subdirectory(./src/components)

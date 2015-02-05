@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
@@ -35,6 +35,7 @@
 #include <climits>
 #include <string>
 #include <fstream>
+#include <utility>
 
 #include "application_manager/application_manager_impl.h"
 #include "application_manager/mobile_command_factory.h"
@@ -148,7 +149,7 @@ bool ApplicationManagerImpl::Stop() {
   }
 
 
-  // for PASA customer policy backup should happen OnExitAllApp(SUSPEND)
+  // for PASA customer policy backup should happen :AllApp(SUSPEND)
   LOG4CXX_INFO(logger_, "Unloading policy library.");
   policy::PolicyHandler::instance()->UnloadPolicyLibrary();
 
@@ -156,103 +157,123 @@ bool ApplicationManagerImpl::Stop() {
 }
 
 ApplicationSharedPtr ApplicationManagerImpl::application(uint32_t app_id) const {
-  sync_primitives::AutoLock lock(applications_list_lock_);
-
-  std::set<ApplicationSharedPtr>::const_iterator it =
-    application_list_.begin();
-  for (; it != application_list_.end(); ++it) {
-    if ((*it)->app_id() == app_id) {
-      return (*it);
-    }
-  }
-  return ApplicationSharedPtr();
+  AppIdPredicate finder(app_id);
+  ApplicationListAccessor accessor;
+  ApplicationSharedPtr app = accessor.Find(finder);
+  LOG4CXX_DEBUG(logger_, " app_id << " << app_id << "Found = " << app);
+  return app;
 }
 
 ApplicationSharedPtr ApplicationManagerImpl::application_by_hmi_app(
   uint32_t hmi_app_id) const {
-  sync_primitives::AutoLock lock(applications_list_lock_);
-
-  std::set<ApplicationSharedPtr>::const_iterator it =
-    application_list_.begin();
-  for (; it != application_list_.end(); ++it) {
-    if ((*it)->hmi_app_id() == hmi_app_id) {
-      return (*it);
-    }
-  }
-  return ApplicationSharedPtr();
+  HmiAppIdPredicate finder(hmi_app_id);
+  ApplicationListAccessor accessor;
+  ApplicationSharedPtr app = accessor.Find(finder);
+  LOG4CXX_DEBUG(logger_, " hmi_app_id << " << hmi_app_id << "Found = " << app);
+  return app;
 }
 
 ApplicationSharedPtr ApplicationManagerImpl::application_by_policy_id(
   const std::string& policy_app_id) const {
-  sync_primitives::AutoLock lock(applications_list_lock_);
+  MobileAppIdPredicate finder(policy_app_id);
+  ApplicationListAccessor accessor;
+  ApplicationSharedPtr app = accessor.Find(finder);
+  LOG4CXX_DEBUG(logger_, " policy_app_id << " << policy_app_id << "Found = " << app);
+  return app;
+}
 
-  std::vector<ApplicationSharedPtr> result;
-  for (std::set<ApplicationSharedPtr>::iterator it = application_list_.begin();
-       application_list_.end() != it;
-       ++it) {
-    if (policy_app_id.compare((*it)->mobile_app_id()->asString()) == 0) {
-      return *it;
-    }
-  }
-  return ApplicationSharedPtr();
+bool ActiveAppPredicate (const ApplicationSharedPtr app) {
+  return app ? app->IsFullscreen() : false;
 }
 
 ApplicationSharedPtr ApplicationManagerImpl::active_application() const {
   // TODO(DK) : check driver distraction
-  for (std::set<ApplicationSharedPtr>::iterator it = application_list_.begin();
-       application_list_.end() != it;
-       ++it) {
-    if ((*it)->IsFullscreen()) {
-      return *it;
-    }
-  }
-  return ApplicationSharedPtr();
+  ApplicationListAccessor accessor;
+  ApplicationSharedPtr app = accessor.Find(ActiveAppPredicate);
+  LOG4CXX_DEBUG(logger_, " Found = " << app);
+  return app;
 }
 
+bool LimitedAppPredicate (const ApplicationSharedPtr app) {
+  return app ? app->hmi_level() == mobile_api::HMILevel::HMI_LIMITED :
+               false;
+}
 
 ApplicationSharedPtr
 ApplicationManagerImpl::get_limited_media_application() const {
-  sync_primitives::AutoLock lock(applications_list_lock_);
+  ApplicationListAccessor accessor;
+  ApplicationSharedPtr app = accessor.Find(LimitedAppPredicate);
+  LOG4CXX_DEBUG(logger_, " Found = " << app);
+  return app;
+}
 
-  for (TAppListIt it = application_list_.begin();
-       application_list_.end() != it; ++it) {
-    if ((*it)->is_media_application() &&
-        (mobile_api::HMILevel::HMI_LIMITED == (*it)->hmi_level())) {
-      return *it;
-    }
-  }
-
-  return ApplicationSharedPtr();
+bool LimitedNaviAppPredicate (const ApplicationSharedPtr app) {
+  return app ? (app->allowed_support_navigation() &&
+                app->hmi_level() == mobile_api::HMILevel::HMI_LIMITED) :
+               false;
 }
 
 ApplicationSharedPtr
 ApplicationManagerImpl::get_limited_navi_application() const {
-  sync_primitives::AutoLock lock(applications_list_lock_);
+  ApplicationListAccessor accessor;
+  ApplicationSharedPtr app = accessor.Find(LimitedNaviAppPredicate);
+  LOG4CXX_DEBUG(logger_, " Found = " << app);
+  return app;
+}
 
-  for (TAppListIt it = application_list_.begin();
-       application_list_.end() != it; ++it) {
-    if ((*it)->allowed_support_navigation() &&
-        (mobile_api::HMILevel::HMI_LIMITED == (*it)->hmi_level())) {
-      return *it;
-    }
-  }
-
-  return ApplicationSharedPtr();
+bool LimitedVoiceAppPredicate (const ApplicationSharedPtr app) {
+  return app ? (app->is_voice_communication_supported() &&
+                app->hmi_level() == mobile_api::HMILevel::HMI_LIMITED) :
+               false;
 }
 
 ApplicationSharedPtr
 ApplicationManagerImpl::get_limited_voice_application() const {
-  sync_primitives::AutoLock lock(applications_list_lock_);
+  ApplicationListAccessor accessor;
+  ApplicationSharedPtr app = accessor.Find(LimitedVoiceAppPredicate);
+  LOG4CXX_DEBUG(logger_, " Found = " << app);
+  return app;
+}
 
-  for (TAppListIt it = application_list_.begin();
-       application_list_.end() != it; ++it) {
-    if ((*it)->is_voice_communication_supported() &&
-        (mobile_api::HMILevel::HMI_LIMITED == (*it)->hmi_level())) {
-      return *it;
-    }
+bool NaviAppPredicate (const ApplicationSharedPtr app) {
+  return app ? app->allowed_support_navigation() : false;
+}
+
+std::vector<ApplicationSharedPtr> ApplicationManagerImpl::applications_with_navi() {
+  ApplicationListAccessor accessor;
+  std::vector<ApplicationSharedPtr> apps = accessor.FindAll(NaviAppPredicate);
+  LOG4CXX_DEBUG(logger_, " Found count: " << apps.size());
+  return apps;
+}
+std::vector<ApplicationSharedPtr> ApplicationManagerImpl::applications_by_button(
+  uint32_t button) {
+  SubscribedToButtonPredicate finder(
+        static_cast<mobile_apis::ButtonName::eType>(button));
+  ApplicationListAccessor accessor;
+  std::vector<ApplicationSharedPtr> apps = accessor.FindAll(NaviAppPredicate);
+  LOG4CXX_DEBUG(logger_, " Found count: " << apps.size());
+  return apps;
+}
+
+std::vector<ApplicationSharedPtr> ApplicationManagerImpl::IviInfoUpdated(
+                                             VehicleDataType vehicle_info, int value) {
+
+  // Notify Policy Manager if available about info it's interested in,
+  // i.e. odometer etc
+  switch (vehicle_info) {
+    case ODOMETER:
+      policy::PolicyHandler::instance()->KmsChanged(value);
+      break;
+    default:
+      break;
   }
 
-  return ApplicationSharedPtr();
+  SubscribedToIVIPredicate finder(
+        static_cast<int32_t>(vehicle_info));
+  ApplicationListAccessor accessor;
+  std::vector<ApplicationSharedPtr> apps = accessor.FindAll(NaviAppPredicate);
+  LOG4CXX_DEBUG(logger_, " vehicle_info << " << vehicle_info << "Found count: " << apps.size());
+  return apps;
 }
 
 bool ApplicationManagerImpl::DoesAudioAppWithSameHMITypeExistInFullOrLimited(
@@ -307,52 +328,6 @@ bool ApplicationManagerImpl::DoesAudioAppWithSameHMITypeExistInFullOrLimited(
   return false;
 }
 
-std::vector<ApplicationSharedPtr> ApplicationManagerImpl::applications_by_button(
-  uint32_t button) {
-  std::vector<ApplicationSharedPtr> result;
-  for (std::set<ApplicationSharedPtr>::iterator it = application_list_.begin();
-       application_list_.end() != it; ++it) {
-    if ((*it)->IsSubscribedToButton(
-          static_cast<mobile_apis::ButtonName::eType>(button))) {
-      result.push_back(*it);
-    }
-  }
-  return result;
-}
-
-std::vector<utils::SharedPtr<Application>> ApplicationManagerImpl::IviInfoUpdated(
-VehicleDataType vehicle_info, int value) {
-  // Notify Policy Manager if available about info it's interested in,
-  // i.e. odometer etc
-  switch (vehicle_info) {
-    case ODOMETER:
-      policy::PolicyHandler::instance()->KmsChanged(value);
-      break;
-    default:
-      break;
-  }
-
-  std::vector<utils::SharedPtr<application_manager::Application>> result;
-  for (std::set<utils::SharedPtr<application_manager::Application>>::iterator it = application_list_.begin();
-       application_list_.end() != it; ++it) {
-    if ((*it)->IsSubscribedToIVI(static_cast<uint32_t>(vehicle_info))) {
-      result.push_back(*it);
-    }
-  }
-  return result;
-}
-
-std::vector<ApplicationSharedPtr> ApplicationManagerImpl::applications_with_navi() {
-  std::vector<ApplicationSharedPtr> result;
-  for (std::set<ApplicationSharedPtr>::iterator it = application_list_.begin();
-       application_list_.end() != it;
-       ++it) {
-    if ((*it)->allowed_support_navigation()) {
-      result.push_back(*it);
-    }
-  }
-  return result;
-}
 
 ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
   const utils::SharedPtr<smart_objects::SmartObject>&
@@ -428,6 +403,7 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
     ManageMobileCommand(response);
     return ApplicationSharedPtr();
   }
+
   application->set_device(device_id);
   application->set_grammar_id(GenerateGrammarID());
   mobile_api::Language::eType launguage_desired =
@@ -448,35 +424,11 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
   int32_t min_version =
     message[strings::msg_params][strings::sync_msg_version]
     [strings::minor_version].asInt();
-
-  /*if (min_version < APIVersion::kAPIV2) {
-    LOG4CXX_ERROR(logger_, "UNSUPPORTED_VERSION");
-    utils::SharedPtr<smart_objects::SmartObject> response(
-      MessageHelper::CreateNegativeResponse(
-        connection_key, mobile_apis::FunctionID::RegisterAppInterfaceID,
-        message[strings::params][strings::correlation_id],
-        mobile_apis::Result::UNSUPPORTED_VERSION));
-    ManageMobileCommand(response);
-    delete application;
-    return NULL;
-  }*/
   version.min_supported_api_version = static_cast<APIVersion>(min_version);
 
   int32_t max_version =
     message[strings::msg_params][strings::sync_msg_version]
     [strings::major_version].asInt();
-
-  /*if (max_version > APIVersion::kAPIV2) {
-    LOG4CXX_ERROR(logger_, "UNSUPPORTED_VERSION");
-    utils::SharedPtr<smart_objects::SmartObject> response(
-      MessageHelper::CreateNegativeResponse(
-        connection_key, mobile_apis::FunctionID::RegisterAppInterfaceID,
-        message[strings::params][strings::correlation_id],
-        mobile_apis::Result::UNSUPPORTED_VERSION));
-    ManageMobileCommand(response);
-    delete application;
-    return NULL;
-  }*/
   version.max_supported_api_version = static_cast<APIVersion>(max_version);
   application->set_version(version);
 
@@ -489,14 +441,18 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
       connection_handler_->BindProtocolVersionWithSession(
           connection_key, static_cast<uint8_t>(protocol_version));
     }
-    if (ProtocolVersion::kV3 == protocol_version) {
+    if (protocol_version >= ProtocolVersion::kV3 &&
+    		profile::Profile::instance()->heart_beat_timeout() > 0) {
       connection_handler_->StartSessionHeartBeat(connection_key);
     }
   }
 
-  applications_list_lock_.Acquire();
-  application_list_.insert(application);
-  applications_list_lock_.Release();
+  apps_to_register_list_lock_.Acquire();
+  apps_to_register_.erase(application);
+  apps_to_register_list_lock_.Release();
+  ApplicationListAccessor app_list_accesor;
+  application->MarkRegistered();
+  app_list_accesor.Insert(application);
 
   return application;
 }
@@ -580,7 +536,7 @@ bool ApplicationManagerImpl::ActivateApplication(ApplicationSharedPtr app) {
   return true;
 }
 
-mobile_api::HMILevel::eType ApplicationManagerImpl::PutApplicationInFull(
+mobile_api::HMILevel::eType ApplicationManagerImpl::IsHmiLevelFullAllowed(
   ApplicationSharedPtr app) {
   LOG4CXX_AUTO_TRACE(logger_);
   if (!app) {
@@ -591,22 +547,22 @@ mobile_api::HMILevel::eType ApplicationManagerImpl::PutApplicationInFull(
   bool is_audio_app = app->IsAudioApplication();
   bool does_audio_app_with_same_type_exist =
       DoesAudioAppWithSameHMITypeExistInFullOrLimited(app);
-
-  mobile_api::HMILevel::eType result = mobile_api::HMILevel::HMI_FULL;
-
   bool is_active_app_exist = active_application().valid();
 
+
+
+  mobile_api::HMILevel::eType result = mobile_api::HMILevel::HMI_FULL;
   if (is_audio_app && does_audio_app_with_same_type_exist) {
-    result = mobile_apis::HMILevel::HMI_BACKGROUND;
+    result = GetDefaultHmiLevel(app);
   } else if (is_active_app_exist && is_audio_app) {
     result = mobile_apis::HMILevel::HMI_LIMITED;
   } else if (is_active_app_exist && (!is_audio_app)) {
-    result = mobile_apis::HMILevel::HMI_BACKGROUND;
+    result = GetDefaultHmiLevel(app);
   }
-
-  if (mobile_api::HMILevel::HMI_FULL == result) {
-    MessageHelper::SendActivateAppToHMI(app->app_id());
-  }
+  LOG4CXX_ERROR(logger_, "is_audio_app : " << is_audio_app
+                << "; does_audio_app_with_same_type_exist : " << does_audio_app_with_same_type_exist
+                << "; is_active_app_exist : " << is_active_app_exist
+                << "; result : " << result);
   return result;
 }
 
@@ -664,6 +620,7 @@ void ApplicationManagerImpl::OnHMIStartedCooperation() {
     connection_handler_->StartTransportManager();
   }
 #endif // CUSTOMER_PASA
+  resume_controller().ResetLaunchTime();
 }
 
 uint32_t ApplicationManagerImpl::GetNextHMICorrelationID() {
@@ -807,8 +764,14 @@ void ApplicationManagerImpl::OnErrorSending(
 void ApplicationManagerImpl::OnDeviceListUpdated(
     const connection_handler::DeviceMap& device_list) {
   LOG4CXX_AUTO_TRACE(logger_);
+  smart_objects::SmartObjectSPtr msg_params = MessageHelper::CreateDeviceListSO(
+        device_list);
+  if (!msg_params) {
+    LOG4CXX_WARN(logger_, "Failed to create sub-smart object.");
+    return;
+  }
 
-  smart_objects::SmartObject* update_list = new smart_objects::SmartObject;
+  smart_objects::SmartObjectSPtr update_list = new smart_objects::SmartObject;
   smart_objects::SmartObject& so_to_send = *update_list;
   so_to_send[jhs::S_PARAMS][jhs::S_FUNCTION_ID] =
     hmi_apis::FunctionID::BasicCommunication_UpdateDeviceList;
@@ -817,13 +780,6 @@ void ApplicationManagerImpl::OnDeviceListUpdated(
   so_to_send[jhs::S_PARAMS][jhs::S_PROTOCOL_VERSION] = 3;
   so_to_send[jhs::S_PARAMS][jhs::S_PROTOCOL_TYPE] = 1;
   so_to_send[jhs::S_PARAMS][jhs::S_CORRELATION_ID] = GetNextHMICorrelationID();
-  utils::SharedPtr<smart_objects::SmartObject> msg_params = MessageHelper::CreateDeviceListSO(
-        device_list);
-  if (!msg_params) {
-    LOG4CXX_WARN(logger_, "Failed to create sub-smart object.");
-    delete update_list;
-    return;
-  }
   so_to_send[jhs::S_MSG_PARAMS] = *msg_params;
   ManageHMICommand(update_list);
 }
@@ -835,39 +791,22 @@ void ApplicationManagerImpl::OnFindNewApplicationsRequest() {
   application_list_update_timer_->start(timeout);
 }
 
-void ApplicationManagerImpl::SendUpdateAppList(const std::list<uint32_t>& applications_ids) {
-  LOG4CXX_TRACE(logger_, "SendUpdateAppList");
+void ApplicationManagerImpl::SendUpdateAppList() {
+  LOG4CXX_AUTO_TRACE(logger_);
 
-  LOG4CXX_DEBUG(logger_, applications_ids.size() << " applications.");
+  using namespace smart_objects;
+  using namespace hmi_apis;
 
-  smart_objects::SmartObject* request = MessageHelper::CreateModuleInfoSO(
-                                          hmi_apis::FunctionID::BasicCommunication_UpdateAppList);
-  (*request)[strings::msg_params][strings::applications] =
-      smart_objects::SmartObject(smart_objects::SmartType_Array);
+  SmartObjectSPtr request = MessageHelper::CreateModuleInfoSO(
+        FunctionID::BasicCommunication_UpdateAppList);
 
-  smart_objects::SmartObject& applications =
-      (*request)[strings::msg_params][strings::applications];
+  (*request)[strings::msg_params][strings::applications] = SmartObject(SmartType_Array);
 
-  uint32_t app_count = 0;
-  for (std::list<uint32_t>::const_iterator it = applications_ids.begin();
-       it != applications_ids.end(); ++it) {
-    ApplicationSharedPtr app = application(*it);
+  SmartObject& applications = (*request)[strings::msg_params][strings::applications];
 
-    if (!app.valid()) {
-      LOG4CXX_ERROR(logger_, "Application not found , id = " << *it);
-      continue;
-    }
+  PrepareApplicationListSO(applications_, applications);
+  PrepareApplicationListSO(apps_to_register_, applications);
 
-    smart_objects::SmartObject hmi_application(smart_objects::SmartType_Map);;
-    if (!MessageHelper::CreateHMIApplicationStruct(app, hmi_application)) {
-      LOG4CXX_ERROR(logger_, "Can't CreateHMIApplicationStruct ', id = " << *it);
-      continue;
-    }
-    applications[app_count++] = hmi_application;
-  }
-  if (app_count <= 0) {
-    LOG4CXX_WARN(logger_, "Empty applications list");
-  }
   ManageHMICommand(request);
 }
 
@@ -912,6 +851,36 @@ bool ApplicationManagerImpl::IsVideoStreamingAllowed(uint32_t application_key) c
   return false;
 }
 
+mobile_apis::HMILevel::eType ApplicationManagerImpl::GetDefaultHmiLevel(
+    ApplicationSharedPtr application) const {
+  using namespace mobile_apis;
+  LOG4CXX_AUTO_TRACE(logger_);
+  HMILevel::eType default_hmi = HMILevel::HMI_NONE;
+
+  if (policy::PolicyHandler::instance()->PolicyEnabled()) {
+    const std::string policy_app_id = application->mobile_app_id();
+    std::string default_hmi_string = "";
+    if (policy::PolicyHandler::instance()->GetDefaultHmi(
+          policy_app_id, &default_hmi_string)) {
+      if ("BACKGROUND" == default_hmi_string) {
+        default_hmi = HMILevel::HMI_BACKGROUND;
+      } else if ("FULL" == default_hmi_string) {
+        default_hmi = HMILevel::HMI_FULL;
+      } else if ("LIMITED" == default_hmi_string) {
+        default_hmi = HMILevel::HMI_LIMITED;
+      } else if ("NONE" == default_hmi_string) {
+        default_hmi = HMILevel::HMI_NONE;
+      } else {
+        LOG4CXX_ERROR(logger_, "Unable to convert " + default_hmi_string + " to HMILevel");
+      }
+    } else {
+      LOG4CXX_ERROR(logger_, "Unable to get default hmi_level for "
+                    << policy_app_id);
+    }
+  }
+  return default_hmi;
+}
+
 uint32_t ApplicationManagerImpl::GenerateGrammarID() {
   return rand();
 }
@@ -934,7 +903,6 @@ uint32_t ApplicationManagerImpl::GenerateNewHMIAppID() {
 void ApplicationManagerImpl::ReplaceMobileByHMIAppId(
     smart_objects::SmartObject& message) {
   MessageHelper::PrintSmartObject(message);
-  flush(std::cout);
   if (message.keyExists(strings::app_id)) {
     ApplicationSharedPtr application =
         ApplicationManagerImpl::instance()->application(
@@ -1137,8 +1105,7 @@ void ApplicationManagerImpl::StartDevicesDiscovery() {
 }
 
 void ApplicationManagerImpl::SendMessageToMobile(
-  const utils::SharedPtr<smart_objects::SmartObject> message,
-  bool final_message) {
+    const commands::MessageSharedPtr message, bool final_message) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (!message) {
@@ -1165,7 +1132,7 @@ void ApplicationManagerImpl::SendMessageToMobile(
         ProtocolVersion::kV1;
     } else {
       (*message)[strings::params][strings::protocol_version] =
-        ProtocolVersion::kV3;
+        SupportedSDLVersion();
     }
   } else {
     (*message)[strings::params][strings::protocol_version] =
@@ -1211,7 +1178,7 @@ void ApplicationManagerImpl::SendMessageToMobile(
       }
     }
     const mobile_apis::Result::eType check_result =
-        CheckPolicyPermissions( app->mobile_app_id()->asString(),
+        CheckPolicyPermissions( app->mobile_app_id(),
                                 app->hmi_level(), function_id, params);
     if (mobile_apis::Result::SUCCESS != check_result) {
       const std::string string_functionID =
@@ -1231,7 +1198,8 @@ void ApplicationManagerImpl::SendMessageToMobile(
 }
 
 bool ApplicationManagerImpl::ManageMobileCommand(
-  const utils::SharedPtr<smart_objects::SmartObject> message) {
+    const commands::MessageSharedPtr message,
+    commands::Command::CommandOrigin origin) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (!message) {
@@ -1248,8 +1216,9 @@ bool ApplicationManagerImpl::ManageMobileCommand(
 #endif
 
   LOG4CXX_INFO(logger_, "Trying to create message in mobile factory.");
-  commands::Command* command = MobileCommandFactory::CreateCommand(message);
-
+  utils::SharedPtr<commands::Command> command(
+		  MobileCommandFactory::CreateCommand(message, origin));
+  
   if (!command) {
     LOG4CXX_WARN(logger_, "RET  Failed to create mobile command from smart object");
     return false;
@@ -1280,12 +1249,11 @@ bool ApplicationManagerImpl::ManageMobileCommand(
     app = ApplicationManagerImpl::instance()->application(connection_key);
     if (!app) {
       LOG4CXX_ERROR_EXT(logger_, "RET APPLICATION_NOT_REGISTERED");
-      smart_objects::SmartObject* response =
-        MessageHelper::CreateNegativeResponse(
-          connection_key,
-          static_cast<int32_t>(function_id),
-          correlation_id,
-          static_cast<int32_t>(mobile_apis::Result::APPLICATION_NOT_REGISTERED));
+      smart_objects::SmartObjectSPtr response =
+          MessageHelper::CreateNegativeResponse(connection_key,
+                                                static_cast<int32_t>(function_id),
+                                                correlation_id,
+                                                static_cast<int32_t>(mobile_apis::Result::APPLICATION_NOT_REGISTERED));
 
       SendMessageToMobile(response);
       return false;
@@ -1301,7 +1269,6 @@ bool ApplicationManagerImpl::ManageMobileCommand(
       command->Run();
       command->CleanUp();
     }
-    delete command;
     return true;
   }
   if (message_type ==
@@ -1310,7 +1277,7 @@ bool ApplicationManagerImpl::ManageMobileCommand(
     if (command->Init()) {
       command->Run();
       if (command->CleanUp()) {
-        request_ctrl_.removeNotification(command);
+        request_ctrl_.removeNotification(command.get());
       }
       // If CleanUp returned false notification should remove it self.
     }
@@ -1339,12 +1306,11 @@ bool ApplicationManagerImpl::ManageMobileCommand(
       LOG4CXX_ERROR_EXT(logger_, "RET  Unable top perform request: " <<
                         "TOO_MANY_PENDING_REQUESTS");
 
-      smart_objects::SmartObject* response =
-        MessageHelper::CreateNegativeResponse(
-          connection_key,
-          static_cast<int32_t>(function_id),
-          correlation_id,
-          static_cast<int32_t>(mobile_apis::Result::TOO_MANY_PENDING_REQUESTS));
+      smart_objects::SmartObjectSPtr response =
+          MessageHelper::CreateNegativeResponse(connection_key,
+                                                static_cast<int32_t>(function_id),
+                                                correlation_id,
+                                                static_cast<int32_t>(mobile_apis::Result::TOO_MANY_PENDING_REQUESTS));
 
       SendMessageToMobile(response);
       return false;
@@ -1390,7 +1356,7 @@ bool ApplicationManagerImpl::ManageMobileCommand(
 }
 
 void ApplicationManagerImpl::SendMessageToHMI(
-  const utils::SharedPtr<smart_objects::SmartObject> message) {
+    const commands::MessageSharedPtr message) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (!message) {
@@ -1417,7 +1383,6 @@ void ApplicationManagerImpl::SendMessageToHMI(
     logger_,
     "Attached schema to message, result if valid: " << message->isValid());
 
-
 #ifdef HMI_DBUS_API
   message_to_send->set_smart_object(*message);
 #else
@@ -1432,7 +1397,7 @@ void ApplicationManagerImpl::SendMessageToHMI(
 }
 
 bool ApplicationManagerImpl::ManageHMICommand(
-  const utils::SharedPtr<smart_objects::SmartObject> message) {
+    const commands::MessageSharedPtr message) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (!message) {
@@ -1533,6 +1498,7 @@ bool ApplicationManagerImpl::ConvertMessageToSO(
     << "; json " << message.json_message());
 
   switch (message.protocol_version()) {
+    case ProtocolVersion::kV4:
     case ProtocolVersion::kV3:
     case ProtocolVersion::kV2: {
         const bool conversion_result =
@@ -1641,7 +1607,7 @@ bool ApplicationManagerImpl::ConvertMessageToSO(
           output[strings::msg_params][strings::result_code] =
             NsSmartDeviceLinkRPC::V1::Result::UNSUPPORTED_VERSION;
 
-          smart_objects::SmartObject* msg_to_send = new smart_objects::SmartObject(output);
+          smart_objects::SmartObjectSPtr msg_to_send = new smart_objects::SmartObject(output);
           v1_shema.attachSchema(*msg_to_send);
           SendMessageToMobile(msg_to_send);
           return false;
@@ -1774,18 +1740,7 @@ utils::SharedPtr<Message> ApplicationManagerImpl::ConvertRawMsgToMessage(
     return outgoing_message;
   }
 
-  Message* convertion_result = NULL;
-  if (message->protocol_version() == 1) {
-    convertion_result =
-      MobileMessageHandler::HandleIncomingMessageProtocolV1(message);
-  } else if ((message->protocol_version() == 2) ||
-             (message->protocol_version() == 3)) {
-    convertion_result =
-      MobileMessageHandler::HandleIncomingMessageProtocolV2(message);
-  } else {
-    LOG4CXX_WARN(logger_, "Unknown protocol version.");
-    return outgoing_message;
-  }
+  Message* convertion_result = MobileMessageHandler::HandleIncomingMessageProtocol(message);
 
   if (convertion_result) {
     outgoing_message = convertion_result;
@@ -1802,8 +1757,7 @@ void ApplicationManagerImpl::ProcessMessageFromMobile(
   AMMetricObserver::MessageMetricSharedPtr metric(new AMMetricObserver::MessageMetric());
   metric->begin = date_time::DateTime::getCurrentTime();
 #endif  // TIME_TESTER
-  utils::SharedPtr<smart_objects::SmartObject> so_from_mobile(
-    new smart_objects::SmartObject);
+  smart_objects::SmartObjectSPtr so_from_mobile(new smart_objects::SmartObject);
 
   if (!so_from_mobile) {
     LOG4CXX_ERROR(logger_, "Null pointer");
@@ -1818,7 +1772,8 @@ void ApplicationManagerImpl::ProcessMessageFromMobile(
   metric->message = so_from_mobile;
 #endif  // TIME_TESTER
 
-  if (!ManageMobileCommand(so_from_mobile)) {
+  if (!ManageMobileCommand(so_from_mobile,
+                           commands::Command::ORIGIN_MOBILE)) {
     LOG4CXX_ERROR(logger_, "Received command didn't run successfully");
   }
 #ifdef TIME_TESTER
@@ -1832,8 +1787,7 @@ void ApplicationManagerImpl::ProcessMessageFromMobile(
 void ApplicationManagerImpl::ProcessMessageFromHMI(
   const utils::SharedPtr<Message> message) {
   LOG4CXX_INFO(logger_, "ApplicationManagerImpl::ProcessMessageFromHMI()");
-  utils::SharedPtr<smart_objects::SmartObject> smart_object(
-    new smart_objects::SmartObject);
+  smart_objects::SmartObjectSPtr smart_object(new smart_objects::SmartObject);
 
   if (!smart_object) {
     LOG4CXX_ERROR(logger_, "Null pointer");
@@ -1879,6 +1833,63 @@ mobile_apis::MOBILE_API& ApplicationManagerImpl::mobile_so_factory() {
 
 HMICapabilities& ApplicationManagerImpl::hmi_capabilities() {
   return hmi_capabilities_;
+}
+
+void ApplicationManagerImpl::CreateApplications(SmartArray& obj_array) {
+
+  using namespace policy;
+
+  const std::size_t arr_size(obj_array.size());
+  for (std::size_t idx = 0; idx < arr_size; ++idx) {
+
+    const SmartObject& app_data = obj_array[idx];
+    if (app_data.isValid()) {
+      const std::string url_schema(app_data[strings::urlSchema].asString());
+      const std::string package_name(app_data[strings::packageName].asString());
+      const std::string mobile_app_id(app_data[strings::app_id].asString());
+      const std::string appName(app_data[strings::app_name].asString());
+
+      const uint32_t hmi_app_id(GenerateNewHMIAppID());
+
+      ApplicationSharedPtr app(
+            new ApplicationImpl(0,
+                                mobile_app_id,
+                                appName,
+                                PolicyHandler::instance()->GetStatisticManager()));
+      if (app) {
+        app->SetShemaUrl(url_schema);
+        app->SetPackageName(package_name);
+        app->set_hmi_application_id(hmi_app_id);
+
+        sync_primitives::AutoLock lock(apps_to_register_list_lock_);
+        apps_to_register_.insert(app);
+      }
+    }
+  }
+}
+
+void ApplicationManagerImpl::ProcessQueryApp(
+    const smart_objects::SmartObject& sm_object) {
+  using namespace policy;
+  using namespace profile;
+
+  if (sm_object.keyExists(strings::application)) {
+    SmartArray* obj_array = sm_object[strings::application].asArray();
+    if (NULL != obj_array) {
+      const std::string app_icon_dir(Profile::instance()->app_icons_folder());
+      CreateApplications(*obj_array);
+      SendUpdateAppList();
+
+      AppsWaitRegistrationSet::const_iterator it = apps_to_register_.begin();
+      for (; it != apps_to_register_.end(); ++it) {
+
+        const std::string full_icon_path(app_icon_dir + "/" + (*it)->mobile_app_id());
+        if (file_system::FileExists(full_icon_path)) {
+          MessageHelper::SendSetAppIcon((*it)->hmi_app_id(), full_icon_path);
+        }
+      }
+    }
+  }
 }
 
 #ifdef TIME_TESTER
@@ -1965,7 +1976,7 @@ void ApplicationManagerImpl::SendOnSDLClose() {
   LOG4CXX_AUTO_TRACE(logger_);
 
   // must be sent to PASA HMI on shutdown synchronously
-  smart_objects::SmartObject* msg = new smart_objects::SmartObject(
+  smart_objects::SmartObjectSPtr msg = new smart_objects::SmartObject(
       smart_objects::SmartType_Map);
 
   (*msg)[strings::params][strings::function_id] =
@@ -2008,7 +2019,6 @@ void ApplicationManagerImpl::SendOnSDLClose() {
     return;
   }
 
-  delete msg;
   hmi_handler_->SendMessageToHMI(message_to_send);
 }
 
@@ -2024,10 +2034,9 @@ void ApplicationManagerImpl::UnregisterAllApplications(bool generated_by_hmi) {
 
   bool is_unexpected_disconnect = (generated_by_hmi != true);
 
-  sync_primitives::AutoLock lock(applications_list_lock_);
-
-  std::set<ApplicationSharedPtr>::iterator it = application_list_.begin();
-  while (it != application_list_.end()) {
+  ApplicationListAccessor accessor;
+  ApplictionSetConstIt it = accessor.begin();
+  while (it != accessor.end()) {
     ApplicationSharedPtr app_to_remove = *it;
 #ifdef CUSTOMER_PASA
     if (!is_ignition_off) {
@@ -2042,13 +2051,13 @@ void ApplicationManagerImpl::UnregisterAllApplications(bool generated_by_hmi) {
                           is_unexpected_disconnect);
     connection_handler_->CloseSession(app_to_remove->app_id(),
                                       connection_handler::kCommon);
-    it = application_list_.begin();
+    it = accessor.begin();
   }
-
+#ifndef CUSTOMER_PASA
   if (is_ignition_off) {
-    resume_controller().IgnitionOff();
+    resume_controller().Suspend();
   }
-
+#endif // CUSTOMER_PASA
   request_ctrl_.terminateAllHMIRequests();
 }
 
@@ -2082,21 +2091,21 @@ void ApplicationManagerImpl::UnregisterApplication(
   }
 
   ApplicationSharedPtr app_to_remove;
-  applications_list_lock_.Acquire();
-  std::set<ApplicationSharedPtr>::const_iterator it = application_list_.begin();
-  for (; it != application_list_.end(); ++it) {
-    if ((*it)->app_id() == app_id) {
-      app_to_remove = *it;
-      break;
+  {
+    ApplicationListAccessor accessor;
+    ApplictionSetConstIt it = accessor.begin();
+    for (; it != accessor.end(); ++it) {
+      if ((*it)->app_id() == app_id) {
+        app_to_remove = *it;
+        break;
+      }
     }
+    if (!app_to_remove) {
+      LOG4CXX_ERROR(logger_, "Cant find application with app_id = " << app_id);
+      return;
+    }
+    accessor.Erase(app_to_remove);
   }
-  if (!app_to_remove) {
-    LOG4CXX_ERROR(logger_, "Cant find application with app_id = " << app_id);
-    applications_list_lock_.Release();
-    return;
-  }
-  application_list_.erase(app_to_remove);
-  applications_list_lock_.Release();
   if (is_resuming) {
 #ifdef CUSTOMER_PASA
     if (false == is_state_suspended_) {
@@ -2129,7 +2138,7 @@ void ApplicationManagerImpl::UnregisterRevokedApplication(
 
   connection_handler_->CloseSession(app_id, connection_handler::kCommon);
 
-  if (application_list_.empty()) {
+  if (ApplicationListAccessor().Empty()) {
     connection_handler_->CloseRevokedConnection(app_id);
   }
 }
@@ -2151,16 +2160,9 @@ void ApplicationManagerImpl::Handle(const impl::MessageToMobile message) {
     return;
   }
 
-  utils::SharedPtr<protocol_handler::RawMessage> rawMessage;
-  if (message->protocol_version() == application_manager::kV1) {
-    rawMessage = MobileMessageHandler::HandleOutgoingMessageProtocolV1(message);
-  } else if ((message->protocol_version() == application_manager::kV2) ||
-             (message->protocol_version() == application_manager::kV3)) {
-    rawMessage = MobileMessageHandler::HandleOutgoingMessageProtocolV2(message);
-  } else {
-    return;
-  }
-
+  utils::SharedPtr<protocol_handler::RawMessage> rawMessage =
+	MobileMessageHandler::HandleOutgoingMessageProtocol(message);
+  
   if (!rawMessage) {
     LOG4CXX_ERROR(logger_, "Failed to create raw message.");
     return;
@@ -2208,12 +2210,11 @@ void ApplicationManagerImpl::Handle(const impl::MessageToHmi message) {
 
 void ApplicationManagerImpl::Handle(const impl::AudioData message) {
   LOG4CXX_INFO(logger_, "Send AudioPassThru notification");
-  smart_objects::SmartObject* on_audio_pass = NULL;
-  on_audio_pass = new smart_objects::SmartObject();
+  smart_objects::SmartObjectSPtr on_audio_pass = new smart_objects::SmartObject();
 
-  if (NULL == on_audio_pass) {
+  if (!on_audio_pass) {
     LOG4CXX_ERROR_EXT(logger_, "OnAudioPassThru NULL pointer");
-  return;
+    return;
   }
 
   LOG4CXX_INFO_EXT(logger_, "Fill smart object");
@@ -2235,7 +2236,8 @@ void ApplicationManagerImpl::Handle(const impl::AudioData message) {
 
    LOG4CXX_INFO_EXT(logger_, "Send data");
    CommandSharedPtr command (
-       MobileCommandFactory::CreateCommand(&(*on_audio_pass)));
+       MobileCommandFactory::CreateCommand(on_audio_pass,
+                                           commands::Command::ORIGIN_SDL));
    command->Init();
    command->Run();
    command->CleanUp();
@@ -2332,14 +2334,20 @@ void ApplicationManagerImpl::OnWakeUp() {
 
 void ApplicationManagerImpl::Mute(VRTTSSessionChanging changing_state) {
   mobile_apis::AudioStreamingState::eType state =
-    hmi_capabilities_.attenuated_supported()
-    ? mobile_apis::AudioStreamingState::ATTENUATED
-    : mobile_apis::AudioStreamingState::NOT_AUDIBLE;
-  ApplicationManagerImpl::ApplicationListAccessor accessor;
-  ApplicationManagerImpl::TAppList local_app_list = accessor.applications();
+      mobile_apis::AudioStreamingState::NOT_AUDIBLE;
 
-  ApplicationManagerImpl::TAppListConstIt it = local_app_list.begin();
-  ApplicationManagerImpl::TAppListConstIt itEnd = local_app_list.end();
+  // ATTENUATED state applicable only for TTS
+  if ((kTTSSessionChanging == changing_state) &&
+       hmi_capabilities_.attenuated_supported()) {
+    state = mobile_apis::AudioStreamingState::ATTENUATED;
+  }
+
+  ApplicationManagerImpl::ApplicationListAccessor accessor;
+
+  ApplicationManagerImpl::ApplictionSetConstIt it =
+      accessor.begin();
+  ApplicationManagerImpl::ApplictionSetConstIt
+      itEnd = accessor.end();
   for (; it != itEnd; ++it) {
     if ((*it).valid()) {
       if ((*it)->is_media_application()) {
@@ -2360,9 +2368,8 @@ void ApplicationManagerImpl::Mute(VRTTSSessionChanging changing_state) {
 void ApplicationManagerImpl::Unmute(VRTTSSessionChanging changing_state) {
 
   ApplicationManagerImpl::ApplicationListAccessor accessor;
-  ApplicationManagerImpl::TAppList local_app_list = application_list_;
-  ApplicationManagerImpl::TAppListConstIt it = local_app_list.begin();
-  ApplicationManagerImpl::TAppListConstIt itEnd = local_app_list.end();
+  ApplicationManagerImpl::ApplictionSetConstIt it = accessor.begin();
+  ApplicationManagerImpl::ApplictionSetConstIt itEnd = accessor.end();
 
   for (; it != itEnd; ++it) {
     if ((*it).valid()) {
@@ -2462,19 +2469,7 @@ bool ApplicationManagerImpl::IsHMICooperating() const {
 
 void ApplicationManagerImpl::OnApplicationListUpdateTimer() {
   LOG4CXX_DEBUG(logger_, "Application list update timer finished");
-
-  std::list <uint32_t> applications_ids;
-
-  applications_list_lock_.Acquire();
-  for (std::set<ApplicationSharedPtr>::const_iterator i = application_list_.begin();
-       i != application_list_.end(); ++i) {
-    ApplicationSharedPtr application = *i;
-    uint32_t app_id = application->app_id();
-    applications_ids.push_back(app_id);
-  }
-  applications_list_lock_.Release();
-
-  SendUpdateAppList(applications_ids);
+  SendUpdateAppList();
 }
 
 void ApplicationManagerImpl::OnTimerSendTTSGlobalProperties() {
@@ -2549,10 +2544,9 @@ void ApplicationManagerImpl::CreatePhoneCallAppList() {
   LOG4CXX_AUTO_TRACE(logger_);
 
   ApplicationManagerImpl::ApplicationListAccessor accessor;
-  ApplicationManagerImpl::TAppList local_app_list = accessor.applications();
 
-  ApplicationManagerImpl::TAppListIt it = local_app_list.begin();
-  ApplicationManagerImpl::TAppListIt itEnd = local_app_list.end();
+  ApplicationManagerImpl::ApplictionSetIt it = accessor.begin();
+  ApplicationManagerImpl::ApplictionSetIt itEnd = accessor.end();
 
   for (; it != itEnd; ++it) {
     if (mobile_api::HMILevel::HMI_FULL == (*it)->hmi_level() ||
@@ -2577,7 +2571,7 @@ void ApplicationManagerImpl::ResetPhoneCallAppList() {
   LOG4CXX_AUTO_TRACE(logger_);
 
   ApplicationManagerImpl::ApplicationListAccessor accessor;
-  ApplicationManagerImpl::TAppList local_app_list = accessor.applications();
+  ApplicationManagerImpl::ApplictionSet local_app_list = accessor.applications();
 
   std::map<uint32_t, AppState>::iterator it =
       on_phone_call_app_list_.begin();
@@ -2650,21 +2644,20 @@ bool ApplicationManagerImpl::CompareAppHMIType (const smart_objects::SmartObject
   return true;
 }
 
-void ApplicationManagerImpl::OnUpdateHMIAppType(std::map<std::string, std::vector<std::string> > app_hmi_types) {
+void ApplicationManagerImpl::OnUpdateHMIAppType(
+    std::map<std::string, std::vector<std::string> > app_hmi_types) {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  sync_primitives::AutoLock lock(applications_list_lock_);
   std::map<std::string, std::vector<std::string> >::iterator it_app_hmi_types_from_policy;
   std::vector<std::string> hmi_types_from_policy;
   smart_objects::SmartObject transform_app_hmi_types(smart_objects::SmartType_Array);
-  const smart_objects::SmartObject *save_application_hmi_type = NULL;
   bool flag_diffirence_app_hmi_type = false;
-
-  for (TAppListIt it = application_list_.begin();
-      it != application_list_.end(); ++it) {
+  ApplicationListAccessor accessor;
+  for (ApplictionSetIt it = accessor.begin();
+      it != accessor.end(); ++it) {
 
     it_app_hmi_types_from_policy =
-        app_hmi_types.find(((*it)->mobile_app_id())->asString());
+        app_hmi_types.find(((*it)->mobile_app_id()));
 
     if (it_app_hmi_types_from_policy != app_hmi_types.end() &&
         ((it_app_hmi_types_from_policy->second).size())) {
@@ -2680,7 +2673,8 @@ void ApplicationManagerImpl::OnUpdateHMIAppType(std::map<std::string, std::vecto
         transform_app_hmi_types[i] = StringToAppHMIType(hmi_types_from_policy[i]);
       }
 
-      save_application_hmi_type = (*it)->app_types();
+      ApplicationConstSharedPtr app = *it;
+      const smart_objects::SmartObject* save_application_hmi_type = app->app_types();
 
       if (save_application_hmi_type == NULL ||
           ((*save_application_hmi_type).length() != transform_app_hmi_types.length())) {
@@ -2710,4 +2704,28 @@ void ApplicationManagerImpl::OnUpdateHMIAppType(std::map<std::string, std::vecto
     }
   }
 }
+
+ProtocolVersion ApplicationManagerImpl::SupportedSDLVersion() const {
+  LOG4CXX_AUTO_TRACE(logger_);
+  bool heart_beat_support =
+	profile::Profile::instance()->heart_beat_timeout();
+  bool sdl4_support = profile::Profile::instance()->enable_protocol_4();
+
+  if (sdl4_support) {
+    LOG4CXX_DEBUG(logger_, "SDL Supported protocol version "<<ProtocolVersion::kV4);
+	return ProtocolVersion::kV4;
+  }
+  if (heart_beat_support) {
+	LOG4CXX_DEBUG(logger_, "SDL Supported protocol version "<<ProtocolVersion::kV3);
+	return ProtocolVersion::kV3;
+  }
+
+  LOG4CXX_DEBUG(logger_, "SDL Supported protocol version "<<ProtocolVersion::kV2);
+  return ProtocolVersion::kV2;
+}
+
+
+ApplicationManagerImpl::ApplicationListAccessor::~ApplicationListAccessor() {
+}
+
 }  // namespace application_manager

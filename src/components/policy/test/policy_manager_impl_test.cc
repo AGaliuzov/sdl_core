@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, Ford Motor Company
+﻿/* Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,35 +32,30 @@
 #include <vector>
 
 #include "gtest/gtest.h"
-#include "gmock/gmock.h"
-
 #include "mock_policy_listener.h"
-#include "mock_pt_representation.h"
 #include "mock_pt_ext_representation.h"
 #include "mock_cache_manager.h"
 #include "mock_update_status_manager.h"
 #include "policy/policy_manager_impl.h"
-#include "policy/update_status_manager.h"
-#include "policy/cache_manager_interface.h"
-#include "json/value.h"
-#include "utils/shared_ptr.h"
 
 using ::testing::_;
 using ::testing::Return;
 using ::testing::DoAll;
 using ::testing::SetArgReferee;
 using ::testing::NiceMock;
+using ::testing::AtLeast;
 
 using ::policy::PTRepresentation;
 using ::policy::MockPolicyListener;
 using ::policy::MockPTRepresentation;
 using ::policy::MockPTExtRepresentation;
 using ::policy::MockCacheManagerInterface;
+
 using ::policy::MockUpdateStatusManager;
+
 using ::policy::PolicyManagerImpl;
 using ::policy::PolicyTable;
 using ::policy::EndpointUrls;
-using ::policy::CacheManagerInterfaceSPtr;
 
 namespace policy_table = rpc::policy_table_interface_base;
 
@@ -98,20 +93,26 @@ class PolicyManagerImplTest : public ::testing::Test {
       table.ReportErrors(&report);
       return ::testing::AssertionFailure() << ::rpc::PrettyFormat(report);
     }
- }
+  }
 };
 
-TEST_F(PolicyManagerImplTest, DISABLED_RefreshRetrySequence) {
+TEST_F(PolicyManagerImplTest, RefreshRetrySequence_SetSecondsBetweenRetries_ExpectRetryTimeoutSequenceWithSameSeconds) {
+
+  //arrange
   std::vector<int> seconds;
   seconds.push_back(50);
   seconds.push_back(100);
   seconds.push_back(200);
 
-  EXPECT_CALL(*cache_manager, TimeoutResponse()).Times(1).WillOnce(Return(60));
-  EXPECT_CALL(*cache_manager, SecondsBetweenRetries(_)).Times(1).WillOnce(
+  //assert
+  EXPECT_CALL(*cache_manager, TimeoutResponse()).WillOnce(Return(60));
+  EXPECT_CALL(*cache_manager, SecondsBetweenRetries(_)).WillOnce(
       DoAll(SetArgReferee<0>(seconds), Return(true)));
 
+  //act
   manager->RefreshRetrySequence();
+
+  //assert
   EXPECT_EQ(50, manager->NextRetryTimeout());
   EXPECT_EQ(100, manager->NextRetryTimeout());
   EXPECT_EQ(200, manager->NextRetryTimeout());
@@ -120,37 +121,40 @@ TEST_F(PolicyManagerImplTest, DISABLED_RefreshRetrySequence) {
 
 TEST_F(PolicyManagerImplTest, DISABLED_GetUpdateUrl) {
 
-  EXPECT_CALL(*cache_manager, GetUpdateUrls(7,_)).Times(1);
-  EXPECT_CALL(*cache_manager, GetUpdateUrls(4,_)).Times(1);
+  EXPECT_CALL(*cache_manager, GetUpdateUrls(7,_));
+  EXPECT_CALL(*cache_manager, GetUpdateUrls(4,_));
 
-  EXPECT_EQ("http://policies.telematics.ford.com/api/policies", manager->GetUpdateUrl(7));
+  EXPECT_EQ("http://policies.telematics.ford.com/api/policies",
+            manager->GetUpdateUrl(7));
   EXPECT_EQ("http://policies.ford.com/api/policies", manager->GetUpdateUrl(4));
 
 }
 
 #ifdef EXTENDED_POLICY
 TEST_F(PolicyManagerImplTest, IncrementGlobalCounter) {
-  EXPECT_CALL(*cache_manager, Increment(usage_statistics::SYNC_REBOOTS))
-      .Times(1);
+  //assert
+  EXPECT_CALL(*cache_manager, Increment(usage_statistics::SYNC_REBOOTS));
   manager->Increment(usage_statistics::SYNC_REBOOTS);
 }
 
 TEST_F(PolicyManagerImplTest, IncrementAppCounter) {
+  //assert
   EXPECT_CALL(*cache_manager, Increment("12345",
-                                        usage_statistics::USER_SELECTIONS))
-      .Times(1);
+          usage_statistics::USER_SELECTIONS));
   manager->Increment("12345", usage_statistics::USER_SELECTIONS);
 }
 
 TEST_F(PolicyManagerImplTest, SetAppInfo) {
+  //assert
   EXPECT_CALL(*cache_manager, Set("12345", usage_statistics::LANGUAGE_GUI,
-                                  "de-de")).Times(1);
+          "de-de"));
   manager->Set("12345", usage_statistics::LANGUAGE_GUI, "de-de");
 }
 
 TEST_F(PolicyManagerImplTest, AddAppStopwatch) {
+  //assert
   EXPECT_CALL(*cache_manager, Add("12345", usage_statistics::SECONDS_HMI_FULL,
-                                  30)).Times(1);
+          30));
   manager->Add("12345", usage_statistics::SECONDS_HMI_FULL, 30);
 }
 #endif  // EXTENDED_POLICY
@@ -158,8 +162,11 @@ TEST_F(PolicyManagerImplTest, AddAppStopwatch) {
 TEST_F(PolicyManagerImplTest, ResetPT) {
   EXPECT_CALL(*cache_manager, ResetPT("filename")).WillOnce(Return(true))
       .WillOnce(Return(false));
-  EXPECT_CALL(*cache_manager, TimeoutResponse()).Times(1);
-  EXPECT_CALL(*cache_manager, SecondsBetweenRetries(_)).Times(1);
+#ifdef EXTENDED_POLICY
+  EXPECT_CALL(*cache_manager, ResetCalculatedPermissions()).Times(AtLeast(1));
+#endif
+  EXPECT_CALL(*cache_manager, TimeoutResponse());
+  EXPECT_CALL(*cache_manager, SecondsBetweenRetries(_));
 
   EXPECT_TRUE(manager->ResetPT("filename"));
   EXPECT_FALSE(manager->ResetPT("filename"));
@@ -167,6 +174,8 @@ TEST_F(PolicyManagerImplTest, ResetPT) {
 
 #ifdef EXTENDED_POLICY
 TEST_F(PolicyManagerImplTest, DISABLED_CheckPermissions) {
+
+  //arrange
   policy_table::RpcParameters rpc_parameters;
   rpc_parameters.hmi_levels.push_back(policy_table::HL_FULL);
   rpc_parameters.parameters->push_back(policy_table::P_SPEED);
@@ -188,22 +197,25 @@ TEST_F(PolicyManagerImplTest, DISABLED_CheckPermissions) {
   ::policy::FunctionalGroupNames group_names;
   group_names[1] = std::make_pair<std::string, std::string>("", "AlertGroup");
 
-  EXPECT_CALL(*listener, OnCurrentDeviceIdUpdateRequired("12345678"))
-      .Times(1);
-  EXPECT_CALL(*cache_manager, GetFunctionalGroupings(_)).Times(1)
-      .WillOnce(DoAll(SetArgReferee<0>(groups), Return(true)));
-  EXPECT_CALL(*cache_manager, IsDefaultPolicy("12345678")).Times(1)
-      .WillOnce(Return(false));
-  EXPECT_CALL(*cache_manager, IsPredataPolicy("12345678")).Times(1)
-      .WillOnce(Return(false));
-  EXPECT_CALL(*cache_manager, GetPermissionsForApp(_, "12345678", _)).Times(1)
-      .WillOnce(DoAll(SetArgReferee<2>(group_types),Return(true)));
-  EXPECT_CALL(*cache_manager, GetFunctionalGroupNames(_)).Times(1)
-      .WillOnce(DoAll(SetArgReferee<0>(group_names), Return(true)));
+  //assert
+  EXPECT_CALL(*listener, OnCurrentDeviceIdUpdateRequired("12345678"));
+  EXPECT_CALL(*cache_manager, GetFunctionalGroupings(_)).WillOnce(
+      DoAll(SetArgReferee<0>(groups), Return(true)));
+  EXPECT_CALL(*cache_manager, IsDefaultPolicy("12345678")).WillOnce(
+      Return(false));
+  EXPECT_CALL(*cache_manager, IsPredataPolicy("12345678")).WillOnce(
+      Return(false));
+  EXPECT_CALL(*cache_manager, GetPermissionsForApp(_, "12345678", _)).WillOnce(
+      DoAll(SetArgReferee<2>(group_types), Return(true)));
+  EXPECT_CALL(*cache_manager, GetFunctionalGroupNames(_)).WillOnce(
+      DoAll(SetArgReferee<0>(group_names), Return(true)));
 
+  //act
   ::policy::RPCParams input_params;
   ::policy::CheckPermissionResult output;
   manager->CheckPermissions("12345678", "FULL", "Alert", input_params, output);
+
+  //assert
   EXPECT_EQ(::policy::kRpcAllowed, output.hmi_level_permitted);
   ASSERT_TRUE(!output.list_of_allowed_params.empty());
   ASSERT_EQ(3u, output.list_of_allowed_params.size());
@@ -212,20 +224,26 @@ TEST_F(PolicyManagerImplTest, DISABLED_CheckPermissions) {
   EXPECT_EQ("speed", output.list_of_allowed_params[2]);
 }
 #else  // EXTENDED_POLICY
-TEST_F(PolicyManagerImplTest, CheckPermissions) {
+TEST_F(PolicyManagerImplTest, CheckPermissions_SetHmiLevelFullForAlert_ExpectAllowedPermissions) {
+
+  //arrange
   ::policy::CheckPermissionResult expected;
   expected.hmi_level_permitted = ::policy::kRpcAllowed;
   expected.list_of_allowed_params.push_back("speed");
   expected.list_of_allowed_params.push_back("gps");
 
-  EXPECT_CALL(*cache_manager, CheckPermissions("12345678", "FULL", "Alert", _))
-      .Times(1).WillOnce(SetArgReferee<3>(expected));
+  //assert
+  EXPECT_CALL(*cache_manager, CheckPermissions("12345678", "FULL", "Alert", _)).
+      WillOnce(SetArgReferee<3>(expected));
 
+  //act
   ::policy::RPCParams input_params;
   ::policy::CheckPermissionResult output;
   manager->CheckPermissions("12345678", "FULL", "Alert", input_params, output);
 
+  //assert
   EXPECT_EQ(::policy::kRpcAllowed, output.hmi_level_permitted);
+
   ASSERT_TRUE(!output.list_of_allowed_params.empty());
   ASSERT_EQ(2u, output.list_of_allowed_params.size());
   EXPECT_EQ("speed", output.list_of_allowed_params[0]);
@@ -233,7 +251,9 @@ TEST_F(PolicyManagerImplTest, CheckPermissions) {
 }
 #endif  // EXTENDED_POLICY
 
-TEST_F(PolicyManagerImplTest, LoadPT) {
+TEST_F(PolicyManagerImplTest, LoadPT_SetPT_PTIsLoaded) {
+
+  //arrange
   Json::Value table(Json::objectValue);
   table["policy_table"] = Json::Value(Json::objectValue);
 
@@ -314,63 +334,84 @@ TEST_F(PolicyManagerImplTest, LoadPT) {
 
   policy_table::Table update(&table);
   update.SetPolicyTableType(rpc::policy_table_interface_base::PT_UPDATE);
+
+  //assert
   ASSERT_TRUE(IsValid(update));
 
+#ifdef EXTENDED_POLICY
+  EXPECT_CALL(*cache_manager, GetHMIAppTypeAfterUpdate(_)).Times(AtLeast(1));
+#endif
+
+  //act
   std::string json = table.toStyledString();
   ::policy::BinaryMessage msg(json.begin(), json.end());
 
-  utils::SharedPtr<policy_table::Table> snapshot =
-      new policy_table::Table(update.policy_table);
+  utils::SharedPtr<policy_table::Table> snapshot = new policy_table::Table(
+      update.policy_table);
 
-  EXPECT_CALL(*cache_manager, GenerateSnapshot()).Times(1).WillOnce(Return(snapshot));
-  EXPECT_CALL(*cache_manager, ApplyUpdate(_)).Times(1).WillOnce(Return(true));
-  EXPECT_CALL(*listener, GetAppName("1234")).Times(1).WillOnce(Return(""));
-  EXPECT_CALL(*listener, OnUpdateStatusChanged(_)).Times(1);
-  EXPECT_CALL(*cache_manager, SaveUpdateRequired(false)).Times(1);
-  EXPECT_CALL(*cache_manager, TimeoutResponse()).Times(1);
-  EXPECT_CALL(*cache_manager, SecondsBetweenRetries(_)).Times(1);
-
+  //assert
+  EXPECT_CALL(*cache_manager, GenerateSnapshot()).WillOnce(Return(snapshot));
+  EXPECT_CALL(*cache_manager, ApplyUpdate(_)).WillOnce(Return(true));
+  EXPECT_CALL(*listener, GetAppName("1234")).WillOnce(Return(""));
+  EXPECT_CALL(*listener, OnUpdateStatusChanged(_));
+  EXPECT_CALL(*cache_manager, SaveUpdateRequired(false));
+  EXPECT_CALL(*cache_manager, TimeoutResponse());
+  EXPECT_CALL(*cache_manager, SecondsBetweenRetries(_));
 
   EXPECT_TRUE(manager->LoadPT("file_pt_update.json", msg));
 }
 
-TEST_F(PolicyManagerImplTest, RequestPTUpdate) {
-  ::utils::SharedPtr< ::policy_table::Table> p_table =
+TEST_F(PolicyManagerImplTest, RequestPTUpdate_SetPT_GeneratedSnapshotAndPTUpdate) {
+
+  //arrange
+  ::utils::SharedPtr< ::policy_table::Table > p_table =
       new ::policy_table::Table();
 
+  //assert
+#ifdef EXTENDED_POLICY
+  EXPECT_CALL(*listener, OnSnapshotCreated(_,_,_));
+#endif
   EXPECT_CALL(*cache_manager, GenerateSnapshot()).WillOnce(Return(p_table));
+
+  //act
   manager->RequestPTUpdate();
 }
 
 #ifdef EXTENDED_POLICY
-TEST_F(PolicyManagerImplTest, ResetUserConsent) {
-  EXPECT_CALL(*cache_manager, ResetUserConsent()).WillOnce(Return(true)).WillOnce(
-      Return(false));
+TEST_F(PolicyManagerImplTest, ResetUserConsent_ResetOnlyOnce) {
+  EXPECT_CALL(*cache_manager, ResetUserConsent()).WillOnce(Return(true))
+  .WillOnce(Return(false));
 
   EXPECT_TRUE(manager->ResetUserConsent());
   EXPECT_FALSE(manager->ResetUserConsent());
 }
 #endif  // EXTENDED_POLICY
 
-TEST_F(PolicyManagerImplTest, AddApplication) {
+TEST_F(PolicyManagerImplTest, DISABLED_AddApplication) {
   // TODO(AOleynik): Implementation of method should be changed to avoid
   // using of snapshot
   //manager->AddApplication("12345678");
 }
 
-TEST_F(PolicyManagerImplTest, GetPolicyTableStatus) {
+TEST_F(PolicyManagerImplTest, DISABLED_GetPolicyTableStatus) {
   // TODO(AOleynik): Test is not finished, to be continued
   //manager->GetPolicyTableStatus();
 }
 
 #ifdef EXTENDED_POLICY
 TEST_F(PolicyManagerImplTest, MarkUnpairedDevice) {
-  EXPECT_CALL(*cache_manager, SetUnpairedDevice("12345", true)).WillOnce(Return(true));
-  EXPECT_CALL(*cache_manager, GetDeviceGroupsFromPolicies(_, _)).Times(1);
+
+  //assert
+  EXPECT_CALL(*cache_manager, SetUnpairedDevice("12345", true)).WillOnce(
+      Return(true));
+  EXPECT_CALL(*cache_manager, GetDeviceGroupsFromPolicies(_, _));
+
+  //act
   manager->MarkUnpairedDevice("12345");
 }
 #endif  // EXTENDED_POLICY
 
-}  // namespace policy
-}  // namespace components
+}
+// namespace policy
+}// namespace components
 }  // namespace test

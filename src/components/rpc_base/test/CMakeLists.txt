@@ -38,12 +38,12 @@ include_directories (
   ${JSONCPP_INCLUDE_DIRECTORY}
 )
 
-set (LIBRARIES
+set(LIBRARIES
   gmock
   jsoncpp
 )
 
-set (SOURCES
+set(SOURCES
   rpc_base_json_test.cc
   rpc_base_test.cc
   main.cc

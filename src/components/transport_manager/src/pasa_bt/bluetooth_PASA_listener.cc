@@ -165,7 +165,7 @@ void BluetoothPASAListener::DisconnectDevice(void *data) {
   const PBTDeviceDisconnectInfo pDeviceInfo =
       static_cast<PBTDeviceDisconnectInfo>(data);
   const DeviceUID device_id = MacToString(pDeviceInfo->mac);
-  controller_->DisconnectDevice(device_id);
+  controller_->DeviceDisconnected(device_id, DisconnectDeviceError());
   SendMsgQ(mq_from_sdl_, SDL_MSG_BT_DEVICE_DISCONNECT_ACK, 0, NULL);
 }
 
@@ -182,8 +182,9 @@ void BluetoothPASAListener::DisconnectSPP(void *data) {
         BluetoothPASADevice>(device);
     const bool found = bt_device->RemoveChannel(tChannel, &disconnected_app);
     if (found) {
-      controller_->AbortConnection(device->unique_device_id(),
-                                   disconnected_app);
+      controller_->ConnectionAborted(device->unique_device_id(),
+                                     disconnected_app, CommunicationError());
+      controller_->DisconnectDone(device->unique_device_id(), disconnected_app);
     }
   }
 }

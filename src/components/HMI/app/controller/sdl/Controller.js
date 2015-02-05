@@ -595,12 +595,27 @@ SDL.SDLController = Em.Object
          */
         registerApplication: function(params, applicationType) {
 
-            SDL.SDLModel.get('registeredApps').pushObject(this.applicationModels[applicationType].create( {
-                appID: params.appID,
-                appName: params.appName,
-                deviceName: params.deviceName,
-                appType: params.appType
-            }));
+            if (applicationType === undefined || applicationType === null) {
+
+                SDL.SDLModel.get('registeredApps').pushObject(this.applicationModels[0].create( { //Magic number 0 - Default media model for not initialized applications
+                    appID: params.appID,
+                    appName: params.appName,
+                    deviceName: params.deviceName,
+                    isMedia: 0,
+                    disabledToActivate: params.disabled ? true : false
+                }));
+            } else {
+
+                SDL.SDLModel.get('registeredApps').pushObject(this.applicationModels[applicationType].create( {
+                    appID: params.appID,
+                    appName: params.appName,
+                    deviceName: params.deviceName,
+                    appType: params.appType,
+                    isMedia: applicationType == 0 ? true : false,
+                    initialized: true,
+                    disabledToActivate: params.disabled ? true : false
+                }));
+            }
 
             var exitCommand = {
                 "id": -10,
@@ -878,21 +893,23 @@ SDL.SDLController = Em.Object
             if ((appID && SDL.SDLController.getApplicationModel(appID) != SDL.SDLAppController.model)
                 || this.backgroundAlertAppID){
 
-                if (SDL.SDLAppController.model
-                    && SDL.SDLAppController.model.appID != appID
-                    && this.backgroundAlertAppID == null) {
+                if (SDL.SDLAppController.model == null
+                    || (SDL.SDLAppController.model.appID != appID
+                    && this.backgroundAlertAppID == null)) {
 
                     this.backgroundAlertAppID = appID;
                     FFW.UI.OnSystemContext(sysContextValue, appID);
-                    FFW.UI.OnSystemContext('HMI_OBSCURED', SDL.SDLAppController.model.appID);
+                    if (SDL.SDLAppController.model) {
+                        FFW.UI.OnSystemContext('HMI_OBSCURED', SDL.SDLAppController.model.appID);
+                    }
 
-                } else if (SDL.SDLAppController.model
+                } else if (SDL.SDLAppController.model != null
                     && SDL.SDLAppController.model.appID != appID
                     && this.backgroundAlertAppID != null
                     && SDL.SDLAppController.model.appID != this.backgroundAlertAppID) {
 
                     FFW.UI.OnSystemContext('MAIN', this.backgroundAlertAppID);
-                    FFW.UI.OnSystemContext(sysContextValue, SDL.SDLAppController.model.appID);
+                    FFW.UI.OnSystemContext(sysContextValue, appID);
                 }
             } else {
                 if (SDL.SDLAppController.model) {

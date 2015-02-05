@@ -50,7 +50,9 @@ void LastState::SaveToFileSystem() {
   DCHECK(file_system::CreateDirectoryRecursively(
         profile::Profile::instance()->app_storage_folder()));
 
-  LOG4CXX_INFO(logger_, "LastState::SaveToFileSystem " << file);
+  LOG4CXX_INFO(logger_, "LastState::SaveToFileSystem " << file
+               << str);
+
   DCHECK(file_system::Write(file, char_vector_pdata));
 }
 
@@ -61,7 +63,8 @@ void LastState::LoadFromFileSystem() {
   bool result = file_system::ReadFile(file, buffer);
   Json::Reader m_reader;
   if (result && m_reader.parse(buffer, dictionary)) {
-    LOG4CXX_INFO(logger_, "Valid last state was found.");
+    LOG4CXX_INFO(logger_, "Valid last state was found."
+                 << dictionary.toStyledString());
     return;
   }
   LOG4CXX_WARN(logger_, "No valid last state was found.");

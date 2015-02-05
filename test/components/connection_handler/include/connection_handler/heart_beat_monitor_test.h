@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2013-2014, Ford Motor Company
  * All rights reserved.
  *
@@ -204,7 +204,7 @@ TEST_F(HeartBeatMonitorTest, IncreaseHeartBeatTimeout) {
 
   const int32_t kNewTimeout = kTimeout + 1;
   conn->StartHeartBeat(kSession);
-  conn->SetHeartBeatTimeout(kNewTimeout);
+  conn->SetHeartBeatTimeout(kNewTimeout, kSession);
   // new timeout greater by old timeout so mock object shouldn't be invoked
   sleep(kTimeout);
 }
@@ -220,7 +220,7 @@ TEST_F(HeartBeatMonitorTest, DecreaseHeartBeatTimeout) {
 
   const int32_t kNewTimeout = kTimeout - 1;
   conn->StartHeartBeat(kSession);
-  conn->SetHeartBeatTimeout(kNewTimeout);
+  conn->SetHeartBeatTimeout(kNewTimeout, kSession);
   // new timeout less by old timeout so mock object should be invoked
   sleep(kTimeout);
 }

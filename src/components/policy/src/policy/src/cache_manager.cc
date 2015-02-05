@@ -1040,8 +1040,10 @@ void CacheManager::PersistData() {
         policy_table::DeviceData::const_iterator it_end_device =
             copy_pt.policy_table.device_data->end();
 
+#ifdef ENABLE_LOG
         policy_table::DeviceData& device_data = *copy_pt.policy_table.device_data;
         LOG4CXX_DEBUG(logger_, "Device_data size is: " << device_data.size());
+#endif //ENABLE_LOG
         for (;it_device != it_end_device; ++it_device) {
           if (is_unpaired_.end() != is_unpaired_.find(it_device->first)) {
             ex_backup_->SetUnpairedDevice(it_device->first, true);
@@ -1096,6 +1098,10 @@ bool CacheManager::IsPermissionsCalculated(
     return true;
   }
   return false;
+}
+
+std::string CacheManager::RemoteAppsUrl() const {
+  return "Not implemented";
 }
 
 utils::SharedPtr<policy_table::Table>

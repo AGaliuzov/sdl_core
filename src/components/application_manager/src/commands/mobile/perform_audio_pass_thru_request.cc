@@ -177,8 +177,10 @@ void PerformAudioPassThruRequest::on_event(const event_engine::Event& event) {
 
 void PerformAudioPassThruRequest::SendSpeakRequest() {
   // crate HMI TTS speak request
-  smart_objects::SmartObject msg_params = smart_objects::SmartObject(
-      smart_objects::SmartType_Map);
+  using namespace hmi_apis;
+  using namespace smart_objects;
+
+  SmartObject msg_params = smart_objects::SmartObject(SmartType_Map);
 
   if ((*message_)[str::msg_params].keyExists(str::initial_prompt) &&
       (0 < (*message_)[str::msg_params][str::initial_prompt].length())) {
@@ -192,8 +194,9 @@ void PerformAudioPassThruRequest::SendSpeakRequest() {
     }
     // app_id
     msg_params[strings::app_id] = connection_key();
+    msg_params[hmi_request::speak_type] = Common_MethodName::AUDIO_PASS_THRU;
     is_active_tts_speak_ = true;
-    SendHMIRequest(hmi_apis::FunctionID::TTS_Speak, &msg_params, true);
+    SendHMIRequest(FunctionID::TTS_Speak, &msg_params, true);
   }
 }
 

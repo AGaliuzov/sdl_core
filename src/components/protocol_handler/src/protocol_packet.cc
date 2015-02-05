@@ -94,7 +94,8 @@ void ProtocolPacket::ProtocolHeader::deserialize(
   dataSize = BE_TO_LE32(data_size_be);
   switch (version) {
     case PROTOCOL_VERSION_2:
-    case PROTOCOL_VERSION_3: {
+    case PROTOCOL_VERSION_3:
+    case PROTOCOL_VERSION_4:{
         if (messageSize < PROTOCOL_HEADER_V2_SIZE) {
           return;
         }
@@ -122,11 +123,12 @@ size_t ProtocolPacket::ProtocolHeaderValidator::max_payload_size() const {
 }
 
 RESULT_CODE ProtocolPacket::ProtocolHeaderValidator::validate(const ProtocolHeader& header) const {
-  // Protocol version shall be from 1 to 3
+  // Protocol version shall be from 1 to 4
   switch (header.version) {
     case PROTOCOL_VERSION_1:
     case PROTOCOL_VERSION_2:
     case PROTOCOL_VERSION_3:
+    case PROTOCOL_VERSION_4:
       break;
     default:
       return RESULT_FAIL;
@@ -257,9 +259,6 @@ RawMessagePtr ProtocolPacket::serializePacket() const {
   };
 
   size_t total_packet_size = offset + (packet_data_.data ? packet_data_.totalDataBytes : 0);
-#ifndef BUILD_TESTS // Remove DCHECK for PH tests
-  DCHECK(total_packet_size <= MAXIMUM_FRAME_DATA_SIZE);
-#endif
 
   uint8_t *packet = new (std::nothrow) uint8_t[total_packet_size];
   if (!packet) {
