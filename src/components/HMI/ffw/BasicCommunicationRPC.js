@@ -1195,6 +1195,25 @@ FFW.BasicCommunication = FFW.RPCObserver
         },
 
         /**
+         * Notifies if audio state was changed
+         *
+         * @param {Boolean} enabled
+         */
+        OnEmergencyEvent: function(enabled) {
+
+            Em.Logger.log("FFW.BasicCommunication.OnEmergencyEvent");
+
+            // send repsonse
+            var JSONMessage = {
+                "jsonrpc": "2.0",
+                "method": "BasicCommunication.OnEmergencyEvent",
+                "params": {
+                    "enabled": enabled
+                }
+            };
+            this.client.send(JSONMessage);
+        },
+        /**
          * Send error response from onRPCRequest
          *
          * @param {Number}
