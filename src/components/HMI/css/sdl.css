@@ -645,6 +645,22 @@
     padding-right: 10px;
 }
 
+#VehicleInfo .onEmergencyEvent{
+	width: 265px;
+	position: absolute;
+	top: 301px;
+	left: 207px;
+	height: 28px;
+	border: 1px solid #333;
+	border-radius: 2px;
+	cursor: pointer;
+	font-size: 18px;
+	color: #FFF;
+	padding-left: 10px;
+	padding-right: 10px;
+	line-height: 28px;
+}
+
 #VehicleInfo .ecu1Title {
 	top: 180px;
 	width: 290px;
