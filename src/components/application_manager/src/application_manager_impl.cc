@@ -1080,7 +1080,7 @@ void ApplicationManagerImpl::OnApplicationFloodCallBack(const uint32_t &connecti
   // TODO(EZamakhov): increment "removals_for_bad_behaviour" field in policy table
 }
 
-void ApplicationManagerImpl::OnMalformedMessageCallback(const uint32_t &connection_key) {
+void ApplicationManagerImpl::OnMalformedMessageCallback(uint32_t connection_key) {
   LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_, "Unregister malformed messaging application " << connection_key);
 

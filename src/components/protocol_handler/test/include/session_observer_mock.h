@@ -61,7 +61,7 @@ class SessionObserverMock: public ::protocol_handler::SessionObserver {
   MOCK_METHOD1(OnApplicationFloodCallBack,
                void(const uint32_t&));
   MOCK_METHOD1(OnMalformedMessageCallback,
-               void(const uint32_t&));
+               void(uint32_t));
   MOCK_METHOD2(KeyFromPair,
                uint32_t(
                  transport_manager::ConnectionUID connection_handle,

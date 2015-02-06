@@ -71,6 +71,7 @@ ConnectionHandlerImpl::ConnectionHandlerImpl()
   : connection_handler_observer_(NULL),
     transport_manager_(NULL),
     protocol_handler_(NULL),
+    connection_list_lock_(true),
     connection_handler_observer_lock_(true),
     connection_list_deleter_(&connection_list_) {
 }
@@ -383,7 +384,7 @@ void ConnectionHandlerImpl::OnApplicationFloodCallBack(const uint32_t &connectio
   }
 }
 
-void ConnectionHandlerImpl::OnMalformedMessageCallback(const uint32_t &connection_key) {
+void ConnectionHandlerImpl::OnMalformedMessageCallback(uint32_t connection_key) {
   LOG4CXX_AUTO_TRACE(logger_);
   {
     sync_primitives::AutoLock lock(connection_handler_observer_lock_);
@@ -799,11 +800,14 @@ void ConnectionHandlerImpl::CloseAllConnectionSessions(uint32_t connection_key,
     transport_manager::ConnectionUID connection_id =
           ConnectionUIDFromHandle(connection_handle);
 
-    sync_primitives::AutoLock connection_list_lock(connection_list_lock_);
-    ConnectionList::iterator itr = connection_list_.find(connection_id);
+    ConnectionList::iterator itr = connection_list_.end();
+    {
+        sync_primitives::AutoLock connection_list_lock(connection_list_lock_);
+        itr = connection_list_.find(connection_id);
+    }
 
-    LOG4CXX_INFO(logger_, "Closing all sessions for connection with id: "
-                 << connection_id);
+    LOG4CXX_DEBUG(logger_, "Closing all sessions for connection with id: "
+                  << connection_id);
     if (connection_list_.end() != itr) {
       SessionMap session_map = itr->second->session_map();
       SessionMap::const_iterator session_it = session_map.begin();

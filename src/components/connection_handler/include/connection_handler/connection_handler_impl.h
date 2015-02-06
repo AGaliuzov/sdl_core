@@ -200,7 +200,7 @@ class ConnectionHandlerImpl : public ConnectionHandler,
    * when Mobile Application sends malformed message
    * \param connection_key  used by other components as application identifier
    */
-  void OnMalformedMessageCallback(const uint32_t &connection_key) OVERRIDE;
+  void OnMalformedMessageCallback(uint32_t connection_key) OVERRIDE;
 
   /**
    * \brief Creates unique identifier of session (can be used as hash)

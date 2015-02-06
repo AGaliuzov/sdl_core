@@ -107,7 +107,7 @@ class SessionObserver {
    * when Mobile Application sends malformed message
    * \param connection_key used by other components as application identifier
    */
-  virtual void OnMalformedMessageCallback(const uint32_t &connection_key) = 0;
+  virtual void OnMalformedMessageCallback(uint32_t connection_key) = 0;
 
   /**
    * \brief Creates unique identifier of session (can be used as hash)
