@@ -31,26 +31,18 @@
  */
 
 #include "gtest/gtest.h"
-#include "gmock/gmock.h"
 #include "utils/stl_utils.h"
 
 namespace test {
 namespace components {
 namespace utils {
 
-using namespace ::utils;
+using ::utils::StlCollectionDeleter;
+using ::utils::StlMapDeleter;
 
 class TestObject {
  public:
   ~TestObject() {
-  }
-};
-
-class MockTestObject : public TestObject {
- public:
-  MOCK_METHOD0(Die, void());
-  virtual ~MockTestObject() {
-    Die();
   }
 };
 
@@ -59,11 +51,14 @@ typedef std::vector<TestObject*> TestVector;
 
 TEST(StlDeleter, DestructMapWithOneElement) {
   TestMap test_map;
+  EXPECT_EQ(0, test_map.size());
   test_map[1] = new TestObject();
 
-  MockTestObject mock_element;
-  EXPECT_CALL(mock_element, Die());
-  utils::StlMapDeleter<TestMap> test_list_deleter_(&test_map);
+  EXPECT_EQ(1, test_map.size());
+  {
+    StlMapDeleter<TestMap> test_list_deleter_(&test_map);
+  }
+  EXPECT_EQ(0, test_map.size());
 }
 
 TEST(StlDeleter, DestructMapWithSeveralElements) {
@@ -71,18 +66,23 @@ TEST(StlDeleter, DestructMapWithSeveralElements) {
   test_map[1] = new TestObject();
   test_map[2] = new TestObject();
 
-  MockTestObject mock_element;
-  EXPECT_CALL(mock_element, Die());
-  utils::StlMapDeleter<TestMap> test_list_deleter_(&test_map);
+  EXPECT_EQ(2, test_map.size());
+  {
+    StlMapDeleter<TestMap> test_list_deleter_(&test_map);
+  }
+  EXPECT_EQ(0, test_map.size());
 }
 
 TEST(StlDeleter, DestructVectorWithOneElement) {
   TestVector test_vector;
+  EXPECT_EQ(0, test_vector.size());
   test_vector.push_back(new TestObject());
 
-  MockTestObject mock_element;
-  EXPECT_CALL(mock_element, Die());
-  utils::StlCollectionDeleter<TestVector> test_list_deleter_(&test_vector);
+  EXPECT_EQ(1, test_vector.size());
+  {
+    StlCollectionDeleter<TestVector> test_list_deleter_(&test_vector);
+  }
+  EXPECT_EQ(0, test_vector.size());
 }
 
 TEST(StlDeleter, DestructVectorWithSeveralElements) {
@@ -90,11 +90,13 @@ TEST(StlDeleter, DestructVectorWithSeveralElements) {
   test_vector.push_back(new TestObject());
   test_vector.push_back(new TestObject());
 
-  MockTestObject mock_element;
-  EXPECT_CALL(mock_element, Die());
-  utils::StlCollectionDeleter<TestVector> test_list_deleter_(&test_vector);
+  EXPECT_EQ(2, test_vector.size());
+  {
+    StlCollectionDeleter<TestVector> test_list_deleter_(&test_vector);
+  }
+  EXPECT_EQ(0, test_vector.size());
 }
 
-}// namespace utils
+}  // namespace utils
 }  // namespace components
 }  // namespace test
