@@ -50,7 +50,10 @@ using namespace sync_primitives;
 class TimerThreadTest : public ::testing::Test {
  public:
   TimerThreadTest()
-      : check_val(0) {
+      : check_val(0),
+        val1(3),
+        val2(4),
+        wait_val(3000) {
   }
 
   void function() {
@@ -63,83 +66,96 @@ class TimerThreadTest : public ::testing::Test {
   uint32_t check_val;
   Lock lock_;
   ConditionalVariable condvar_;
+  const uint32_t val1;
+  const uint32_t val2;
+  const uint32_t wait_val;
 };
+
+void* start_timer(void *context) {
+  (reinterpret_cast<TimerThread<TimerThreadTest> *>(context))->start(1);
+  return NULL;
+}
 
 TEST_F(TimerThreadTest, StartTimerThreadWithTimeoutOneSec_ExpectSuccessfullInvokeCallbackFuncOnTimeout) {
   // Create Timer with TimerDeleagate
-  TimerThread<TimerThreadTest> timer("Test", this, &TimerThreadTest::function, false);
+  TimerThread<TimerThreadTest> timer("Test", this, &TimerThreadTest::function,
+                                     false);
   AutoLock alock(lock_);
-  EXPECT_EQ(0, this->check_val);
+  EXPECT_EQ(0, check_val);
   // Start timer with 1 second timeout
   timer.start(1);
-  condvar_.WaitFor(alock, 3000);
-  EXPECT_EQ(1, this->check_val);
+  condvar_.WaitFor(alock, wait_val);
+  EXPECT_EQ(1, check_val);
 }
 
 TEST_F(TimerThreadTest, StartTimerThreadWithTimeoutOneSecInLoop_ExpectSuccessfullInvokeCallbackFuncOnEveryTimeout) {
   // Create Timer with TimerLooperDeleagate
-  TimerThread<TimerThreadTest> timer("Test", this, &TimerThreadTest::function, true);
+  TimerThread<TimerThreadTest> timer("Test", this, &TimerThreadTest::function,
+                                     true);
   AutoLock alock(lock_);
-  EXPECT_EQ(0, this->check_val);
+  EXPECT_EQ(0, check_val);
   // Start timer with 1 second timeout
   timer.start(1);
-  while (this->check_val < 4) {
-    condvar_.WaitFor(alock, 3000);
+  while (check_val < val2) {
+    condvar_.WaitFor(alock, wait_val);
   }
   // Check callback function was called 4 times
-  EXPECT_EQ(4, this->check_val);
+  EXPECT_EQ(val2, check_val);
 }
 
 TEST_F(TimerThreadTest, StopStartedTimerThreadWithTimeoutOneSecInLoop_ExpectSuccessfullStop) {
   // Create Timer with TimerLooperDeleagate
-  TimerThread<TimerThreadTest> timer("Test", this, &TimerThreadTest::function, true);
+  TimerThread<TimerThreadTest> timer("Test", this, &TimerThreadTest::function,
+                                     true);
   AutoLock alock(lock_);
-  EXPECT_EQ(0, this->check_val);
+  EXPECT_EQ(0, check_val);
   // Start timer with 1 second timeout
   timer.start(1);
   // Stop timer on 3rd second
-  while (this->check_val < 4) {
-    if (this->check_val == 3) {
+  while (check_val < val2) {
+    if (check_val == val1) {
       timer.stop();
       break;
     }
-    condvar_.WaitFor(alock, 3000);
+    condvar_.WaitFor(alock, wait_val);
   }
-  EXPECT_EQ(3, this->check_val);
+  EXPECT_EQ(val1, check_val);
 }
 
 TEST_F(TimerThreadTest, ChangeTimeoutForStartedTimerThreadWithTimeoutOneSecInLoop_ExpectSuccessfullStop) {
   // Create Timer with TimerLooperDeleagate
-  TimerThread<TimerThreadTest> timer("Test", this, &TimerThreadTest::function, true);
+  TimerThread<TimerThreadTest> timer("Test", this, &TimerThreadTest::function,
+                                     true);
   AutoLock alock(lock_);
-  EXPECT_EQ(0, this->check_val);
+  EXPECT_EQ(0, check_val);
   // Start timer with 1 second timeout
   timer.start(1);
   // Change timer timeout on 3rd second
-  while (this->check_val < 4) {
-    if (this->check_val == 3) {
+  while (check_val < val2) {
+    if (check_val == val1) {
       timer.updateTimeOut(2);
     }
-    condvar_.WaitFor(alock, 3000);
+    condvar_.WaitFor(alock, wait_val);
   }
-  EXPECT_EQ(4, this->check_val);
+  EXPECT_EQ(val2, check_val);
 }
 
-TEST_F(TimerThreadTest, PauseStartedTimerThreadWithTimeoutOneSecInLoop_ExpectSuccessfullStop) {
+TEST_F(TimerThreadTest, CheckStartedTimerIsRunning_ExpectTrue) {
   // Create Timer with TimerLooperDeleagate
-  TimerThread<TimerThreadTest> timer("Test", this, &TimerThreadTest::function, true);
+  TimerThread<TimerThreadTest> timer("Test", this, &TimerThreadTest::function,
+                                     true);
   AutoLock alock(lock_);
-  EXPECT_EQ(0, this->check_val);
+  EXPECT_EQ(0, check_val);
   // Start timer with 1 second timeout
   timer.start(1);
   // Change timer timeout on 3rd second
-  while (this->check_val < 4) {
-    if (this->check_val == 3) {
-      timer.updateTimeOut(2);
-    }
-    condvar_.WaitFor(alock, 3000);
+  while (check_val < val1) {
+    condvar_.WaitFor(alock, wait_val);
+    // Check start is running
+    EXPECT_TRUE(timer.isRunning());
   }
-  EXPECT_EQ(4, this->check_val);
+
+  EXPECT_EQ(val1, check_val);
 }
 
 }  // namespace utils
