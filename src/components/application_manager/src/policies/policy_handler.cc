@@ -104,7 +104,7 @@ struct DeactivateApplication {
     void operator()(const ApplicationSharedPtr& app) {
       if (device_id_ == app->device()) {
         app->set_hmi_level(mobile_apis::HMILevel::HMI_NONE);
-        app->set_audio_streaming_state(mobile_api::AudioStreamingState::NOT_AUDIBLE); 
+        app->set_audio_streaming_state(mobile_api::AudioStreamingState::NOT_AUDIBLE);
         MessageHelper::SendActivateAppToHMI(
           app->app_id(), hmi_apis::Common_HMILevel::NONE);
         MessageHelper::SendHMIStatusNotification(*app.get());
@@ -1315,6 +1315,16 @@ const std::string PolicyHandler::RemoteAppsUrl() const {
   const std::string default_url = "";
   POLICY_LIB_CHECK(default_url);
   return policy_manager_->RemoteAppsUrl();
+}
+
+void policy::PolicyHandler::OnAppsSearchStarted() {
+  POLICY_LIB_CHECK();
+  policy_manager_->OnAppsSearchStarted();
+}
+
+void policy::PolicyHandler::OnAppsSearchCompleted() {
+  POLICY_LIB_CHECK();
+  policy_manager_->OnAppsSearchCompleted();
 }
 
 void PolicyHandler::Increment(usage_statistics::GlobalCounterId type) {

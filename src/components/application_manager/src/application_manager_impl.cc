@@ -334,6 +334,7 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
   request_for_registration) {
 
   LOG4CXX_DEBUG(logger_, "Restarting application list update timer");
+  policy::PolicyHandler::instance()->OnAppsSearchStarted();
   uint32_t timeout = profile::Profile::instance()->application_list_update_timeout();
   application_list_update_timer_->start(timeout);
 
@@ -442,7 +443,7 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
           connection_key, static_cast<uint8_t>(protocol_version));
     }
     if (protocol_version >= ProtocolVersion::kV3 &&
-    		profile::Profile::instance()->heart_beat_timeout() > 0) {
+            profile::Profile::instance()->heart_beat_timeout() > 0) {
       connection_handler_->StartSessionHeartBeat(connection_key);
     }
   }
@@ -789,6 +790,7 @@ void ApplicationManagerImpl::OnFindNewApplicationsRequest() {
   LOG4CXX_DEBUG(logger_, "Starting application list update timer");
   uint32_t timeout = profile::Profile::instance()->application_list_update_timeout();
   application_list_update_timer_->start(timeout);
+  policy::PolicyHandler::instance()->OnAppsSearchStarted();
 }
 
 void ApplicationManagerImpl::SendUpdateAppList() {
@@ -1217,8 +1219,8 @@ bool ApplicationManagerImpl::ManageMobileCommand(
 
   LOG4CXX_INFO(logger_, "Trying to create message in mobile factory.");
   utils::SharedPtr<commands::Command> command(
-		  MobileCommandFactory::CreateCommand(message, origin));
-  
+          MobileCommandFactory::CreateCommand(message, origin));
+
   if (!command) {
     LOG4CXX_WARN(logger_, "RET  Failed to create mobile command from smart object");
     return false;
@@ -2161,8 +2163,8 @@ void ApplicationManagerImpl::Handle(const impl::MessageToMobile message) {
   }
 
   utils::SharedPtr<protocol_handler::RawMessage> rawMessage =
-	MobileMessageHandler::HandleOutgoingMessageProtocol(message);
-  
+    MobileMessageHandler::HandleOutgoingMessageProtocol(message);
+
   if (!rawMessage) {
     LOG4CXX_ERROR(logger_, "Failed to create raw message.");
     return;
@@ -2470,6 +2472,7 @@ bool ApplicationManagerImpl::IsHMICooperating() const {
 void ApplicationManagerImpl::OnApplicationListUpdateTimer() {
   LOG4CXX_DEBUG(logger_, "Application list update timer finished");
   SendUpdateAppList();
+  policy::PolicyHandler::instance()->OnAppsSearchCompleted();
 }
 
 void ApplicationManagerImpl::OnTimerSendTTSGlobalProperties() {
@@ -2708,16 +2711,16 @@ void ApplicationManagerImpl::OnUpdateHMIAppType(
 ProtocolVersion ApplicationManagerImpl::SupportedSDLVersion() const {
   LOG4CXX_AUTO_TRACE(logger_);
   bool heart_beat_support =
-	profile::Profile::instance()->heart_beat_timeout();
+    profile::Profile::instance()->heart_beat_timeout();
   bool sdl4_support = profile::Profile::instance()->enable_protocol_4();
 
   if (sdl4_support) {
     LOG4CXX_DEBUG(logger_, "SDL Supported protocol version "<<ProtocolVersion::kV4);
-	return ProtocolVersion::kV4;
+    return ProtocolVersion::kV4;
   }
   if (heart_beat_support) {
-	LOG4CXX_DEBUG(logger_, "SDL Supported protocol version "<<ProtocolVersion::kV3);
-	return ProtocolVersion::kV3;
+    LOG4CXX_DEBUG(logger_, "SDL Supported protocol version "<<ProtocolVersion::kV3);
+    return ProtocolVersion::kV3;
   }
 
   LOG4CXX_DEBUG(logger_, "SDL Supported protocol version "<<ProtocolVersion::kV2);

@@ -105,6 +105,22 @@ class UpdateStatusManager {
    */
   std::string StringifiedUpdateStatus() const;
 
+  /**
+   * @brief Status handler on applications search started
+   */
+  void OnAppsSearchStarted();
+
+  /**
+   * @brief Status handler on applications search completed
+   */
+  void OnAppsSearchCompleted();
+
+  /**
+   * @brief Returns status is application search in progress
+   * @return true, if in progress, otherwise - false
+   */
+  bool IsAppsSearchInProgress();
+
 private:
   /*
    * @brief Sets flag for update progress
@@ -145,9 +161,11 @@ private:
   bool update_required_;
   bool update_scheduled_;
   bool exchange_pending_;
+  bool apps_search_in_progress_;
   sync_primitives::Lock exchange_in_progress_lock_;
   sync_primitives::Lock update_required_lock_;
   sync_primitives::Lock exchange_pending_lock_;
+  sync_primitives::Lock apps_search_in_progress_lock_;
   /**
    * @brief Last status of policy table update
    */
