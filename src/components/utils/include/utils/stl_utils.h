@@ -49,12 +49,11 @@ class StlCollectionDeleter {
     DCHECK(collection_);
   }
   ~StlCollectionDeleter() {
-    for (typename Collection::iterator i = collection_->begin(),
-                                       end = collection_->end();
-                                       i != end; ++i) {
+    for (typename Collection::iterator i = collection_->begin(), end =
+        collection_->end(); i != end; ++i) {
       delete *i;
+      *i = NULL;
     }
-    collection_->clear();
   }
  private:
   Collection* collection_;
@@ -72,8 +71,9 @@ class StlMapDeleter {
     for (typename Collection::iterator i = collection_->begin(), end =
         collection_->end(); i != end; ++i) {
       delete i->second;
+      i->second = NULL;
     }
-    collection_->clear();
+
   }
  private:
   Collection* collection_;
@@ -81,4 +81,4 @@ class StlMapDeleter {
 
 }  // namespace utils
 
-#endif /* SRC_COMPONENTS_UTILS_INCLUDE_UTILS_STL_UTILS_H_ */
+#endif // SRC_COMPONENTS_UTILS_INCLUDE_UTILS_STL_UTILS_H_

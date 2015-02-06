@@ -51,14 +51,14 @@ typedef std::vector<TestObject*> TestVector;
 
 TEST(StlDeleter, DestructMapWithOneElement) {
   TestMap test_map;
-  EXPECT_EQ(0, test_map.size());
   test_map[1] = new TestObject();
 
   EXPECT_EQ(1, test_map.size());
   {
     StlMapDeleter<TestMap> test_list_deleter_(&test_map);
   }
-  EXPECT_EQ(0, test_map.size());
+  EXPECT_EQ(1, test_map.size());
+  EXPECT_EQ(NULL, test_map[1]);
 }
 
 TEST(StlDeleter, DestructMapWithSeveralElements) {
@@ -70,19 +70,21 @@ TEST(StlDeleter, DestructMapWithSeveralElements) {
   {
     StlMapDeleter<TestMap> test_list_deleter_(&test_map);
   }
-  EXPECT_EQ(0, test_map.size());
+  EXPECT_EQ(2, test_map.size());
+  EXPECT_EQ(NULL, test_map[1]);
+  EXPECT_EQ(NULL, test_map[2]);
 }
 
 TEST(StlDeleter, DestructVectorWithOneElement) {
   TestVector test_vector;
-  EXPECT_EQ(0, test_vector.size());
   test_vector.push_back(new TestObject());
 
   EXPECT_EQ(1, test_vector.size());
   {
     StlCollectionDeleter<TestVector> test_list_deleter_(&test_vector);
   }
-  EXPECT_EQ(0, test_vector.size());
+  EXPECT_EQ(1, test_vector.size());
+  EXPECT_EQ(NULL, test_vector[0]);
 }
 
 TEST(StlDeleter, DestructVectorWithSeveralElements) {
@@ -94,7 +96,9 @@ TEST(StlDeleter, DestructVectorWithSeveralElements) {
   {
     StlCollectionDeleter<TestVector> test_list_deleter_(&test_vector);
   }
-  EXPECT_EQ(0, test_vector.size());
+  EXPECT_EQ(2, test_vector.size());
+  EXPECT_EQ(NULL, test_vector[0]);
+  EXPECT_EQ(NULL, test_vector[1]);
 }
 
 }  // namespace utils
