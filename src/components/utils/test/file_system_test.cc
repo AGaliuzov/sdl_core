@@ -174,11 +174,11 @@ TEST(FileSystemTest, CreateDeleteFile) {
 
 TEST(FileSystemTest, CheckIsDirectory) {
   ASSERT_FALSE(DirectoryExists("./Test directory"));
-  //create derictory and check that IsDirectory=true
+  //create directory and check that IsDirectory=true
   CreateDirectory("./Test directory");
   EXPECT_TRUE(IsDirectory("./Test directory"));
 
-  //delete derictory and check, that IsDirectory=false
+  //delete directory and check, that IsDirectory=false
   EXPECT_TRUE(RemoveDirectory("./Test directory", false));
   EXPECT_FALSE(DirectoryExists("./Test directory"));
   EXPECT_FALSE(IsDirectory("./Test directory"));
@@ -770,11 +770,8 @@ TEST(FileSystemTest, WriteBinaryDataReadBinaryFile) {
   ASSERT_FALSE(FileExists("./test file"));
   EXPECT_TRUE(CreateFile("./test file"));
 
-  std::vector < uint8_t > data;
-  data.push_back(1);
-  data.push_back(2);
-  data.push_back(3);
-  data.push_back(4);
+  uint8_t tmp[] = { 1, 2, 3, 4};
+  std::vector<uint8_t> data(tmp, tmp + 4);
   EXPECT_TRUE(WriteBinaryFile("./test file", data));
 
   // Read data from file
