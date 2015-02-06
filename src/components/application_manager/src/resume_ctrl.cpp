@@ -85,7 +85,7 @@ void ResumeCtrl::SaveApplication(ApplicationConstSharedPtr application) {
   LOG4CXX_TRACE(logger_, "ENTER app_id : " << application->app_id()
                 << " mobile app_id : " << m_app_id);
 
-  const std::string& hash = application->curHash();
+  const std::string hash = application->curHash(); // let's make a copy not to depend on application
   const uint32_t grammar_id = application->get_grammar_id();
   const uint32_t time_stamp = (uint32_t)time(NULL);
 
