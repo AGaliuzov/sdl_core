@@ -116,6 +116,18 @@ struct CheckMissedTypes {
     const policy::StringArray& policy_app_types_;
     std::string& log_;
 };
+
+struct IsSameNickname {
+  IsSameNickname(const std::string& app_id):
+    app_id_(app_id) {
+  }
+  bool operator()(const policy::StringArray::value_type nickname) const {
+    return !strcasecmp(app_id_.c_str(), nickname.c_str());
+  }
+
+private:
+  const std::string& app_id_;
+};
 }
 
 namespace application_manager {
@@ -555,9 +567,10 @@ mobile_apis::Result::eType RegisterAppInterfaceRequest::CheckWithPolicyData() {
   }
 
   if (!app_nicknames.empty()) {
-    policy::StringArray::const_iterator it = std::find(
-          app_nicknames.begin(), app_nicknames.end(),
+    IsSameNickname compare(
           message[strings::msg_params][strings::app_name].asString());
+    policy::StringArray::const_iterator it = std::find_if(
+          app_nicknames.begin(), app_nicknames.end(), compare);
     if (app_nicknames.end() == it) {
       LOG4CXX_WARN(logger_,
                    "Application name was not found in nicknames list.");
