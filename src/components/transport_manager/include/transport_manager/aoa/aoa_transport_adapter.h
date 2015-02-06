@@ -48,6 +48,7 @@ class AOATransportAdapter : public TransportAdapterImpl {
   AOATransportAdapter();
   ~AOATransportAdapter();
   virtual void DisconnectDone(const DeviceUID& device_handle, const ApplicationHandle& app_handle);
+  virtual void Terminate();
 
  protected:
   virtual DeviceType GetDeviceType() const;
@@ -56,6 +57,8 @@ class AOATransportAdapter : public TransportAdapterImpl {
   virtual void ApplicationListUpdated(const DeviceUID& device_handle);
 
  private:
+  void TerminateInternal();
+
   bool initialised_;
   AOAShutdownThreadDelegate* aoa_shutdown_thread_delegate_;
   threads::Thread* aoa_shutdown_thread_;

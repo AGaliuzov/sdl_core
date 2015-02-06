@@ -58,14 +58,8 @@ AOATransportAdapter::AOATransportAdapter()
 }
 
 AOATransportAdapter::~AOATransportAdapter() {
-  if (aoa_shutdown_thread_ != 0) {
-    aoa_shutdown_thread_->join();
-    threads::DeleteThread(aoa_shutdown_thread_);
-  }
-  if (aoa_shutdown_thread_delegate_ != 0) {
-    delete aoa_shutdown_thread_delegate_;
-  }
-  initialised_ = false;
+  LOG4CXX_AUTO_TRACE(logger_);
+  TerminateInternal();
 }
 
 void AOATransportAdapter::DisconnectDone(const DeviceUID& device_handle, const ApplicationHandle& app_handle) {
@@ -74,6 +68,12 @@ void AOATransportAdapter::DisconnectDone(const DeviceUID& device_handle, const A
     aoa_shutdown_thread_delegate_->Shutdown();
   }
   TransportAdapterImpl::DisconnectDone(device_handle, app_handle);
+}
+
+void AOATransportAdapter::Terminate() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  TransportAdapterImpl::Terminate();
+  TerminateInternal();
 }
 
 TransportAdapter::Error AOATransportAdapter::Init() {
@@ -109,6 +109,22 @@ bool AOATransportAdapter::IsInitialised() const {
 void AOATransportAdapter::ApplicationListUpdated(
     const DeviceUID& device_handle) {
   ConnectDevice(device_handle);
+}
+
+void AOATransportAdapter::TerminateInternal() {
+  LOG4CXX_AUTO_TRACE(logger_);
+
+  if (aoa_shutdown_thread_ != 0) {
+    aoa_shutdown_thread_->join();
+    threads::DeleteThread(aoa_shutdown_thread_);
+    aoa_shutdown_thread_ = 0;
+  }
+  if (aoa_shutdown_thread_delegate_ != 0) {
+    delete aoa_shutdown_thread_delegate_;
+    aoa_shutdown_thread_delegate_ = 0;
+  }
+
+  initialised_ = false;
 }
 
 }  // namespace transport_adapter
