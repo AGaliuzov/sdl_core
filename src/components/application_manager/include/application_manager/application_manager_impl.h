@@ -814,7 +814,7 @@ class ApplicationManagerImpl : public ApplicationManager,
         ApplictionSetConstIt it = std::find_if(begin(), end(), finder);
         while (it != end()) {
           result.push_back(*it);
-          it  = std::find_if(it, end(), finder);
+          it  = std::find_if(++it, end(), finder);
         }
         return result;
       }
