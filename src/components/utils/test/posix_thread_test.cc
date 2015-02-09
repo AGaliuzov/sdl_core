@@ -42,6 +42,7 @@ using namespace sync_primitives;
 using namespace threads;
 
 // TODO(AByzhynar): Change this to use Gtest class to create all variables for every TEST_F
+// TODO(AByzhynar): Add multithreading tests
 
 namespace {
 const uint32_t MAX_SIZE = 20;
@@ -107,11 +108,11 @@ TEST(PosixThreadTest, CheckCreatedThreadNameChangeToLongName_ExpectThreadNameRed
   // Create thread
   ASSERT_NO_THROW(thread = CreateThread(threadName, threadDelegate));
   thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize));
-  // Rename started thread. Name will be cut to 15 symbols.
-  // This is limit in current POSIX thread implementation
+  // Rename started thread. Name will be cut to 15 symbols + '\0'
+  // This is the limit in current POSIX thread implementation
   thread->SetNameForId(thread->thread_handle(),
                        std::string("new thread with changed name"));
-  // Name must be enought to keep 16 symbols. This is limit in current POSIX thread implementation
+  // Name must be large enough to keep 16 symbols. Read previous comment
   char name[MAX_SIZE];
   int result = pthread_getname_np(thread->thread_handle(), name, sizeof(name));
   if (!result)
@@ -191,10 +192,10 @@ TEST(PosixThreadTest, CheckCreatedThreadNameChangeToEmpty_ExpectThreadNameChange
   // Create thread
   ASSERT_NO_THROW(thread = CreateThread(threadName, threadDelegate));
   thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize));
-  // Rename started thread. Name will be cut to 15 symbols.
-  // This is limit in current POSIX thread implementation
+  // Rename started thread. Name will be cut to 15 symbols + '\0'
+  // This is the limit in current POSIX thread implementation
   thread->SetNameForId(thread->thread_handle(), std::string(""));
-  // Name must be enought to keep 16 symbols. This is limit in current POSIX thread implementation
+  // Name must be large enough to keep 16 symbols. Read previous comment
   char name[MAX_SIZE];
   int result = pthread_getname_np(thread->thread_handle(), name, sizeof(name));
   if (!result) {
@@ -216,10 +217,10 @@ TEST(PosixThreadTest, CheckCreatedThreadNameChangeToShortName_ExpectThreadNameCh
   ASSERT_NO_THROW(thread = CreateThread(threadName, threadDelegate));
   // Start created thread
   thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize));
-  // Rename started thread. Name will be cut to 15 symbols.
-  // This is limit in current POSIX thread implementation
+  // Rename started thread. Name will be cut to 15 symbols + '\0'
+  // This is the limit in current POSIX thread implementation
   thread->SetNameForId(thread->thread_handle(), test_thread_name);
-  // Name must be enought to keep 16 symbols. This is limit in current POSIX thread implementation
+  // Name must be large enough to keep 16 symbols. Read previous comment
   char name[MAX_SIZE];
   int result = pthread_getname_np(thread->thread_handle(), name, sizeof(name));
   if (!result) {
@@ -284,10 +285,10 @@ TEST(PosixThreadTest, StartOneThreadAgainAfterRename_ExpectRenamedThreadStarted)
   // Start created thread
   EXPECT_TRUE(thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize)));
   thread1_id = thread->CurrentId();
-  // Rename started thread. Name will be cut to 15 symbols.
-  // This is limit in current POSIX thread implementation
+  // Rename started thread. Name will be cut to 15 symbols + '\0'
+  // This is the limit in current POSIX thread implementation
   thread->SetNameForId(thread->thread_handle(), test_thread_name);
-  // Name must be enought to keep 16 symbols. This is limit in current POSIX thread implementation
+  // Name must be large enough to keep 16 symbols. Read previous comment
   char name[MAX_SIZE];
   int result = pthread_getname_np(thread->thread_handle(), name, sizeof(name));
   if (!result)
