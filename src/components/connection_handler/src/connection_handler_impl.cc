@@ -379,7 +379,7 @@ void ConnectionHandlerImpl::OnApplicationFloodCallBack(const uint32_t &connectio
   if (session_id != 0) {
     CloseSession(connection_handle, session_id, kFlood);
   } else {
-    CloseAllConnectionSessions(connection_handle, kCommon);
+    CloseConnectionSessions(connection_handle, kCommon);
     CloseConnection(connection_handle);
   }
 }
@@ -397,7 +397,7 @@ void ConnectionHandlerImpl::OnMalformedMessageCallback(uint32_t connection_key) 
   PairFromKey(connection_key, &connection_handle, &session_id);
 
   LOG4CXX_INFO(logger_, "Disconnect malformed messaging application");
-  CloseAllConnectionSessions(connection_handle, kCommon);
+  CloseConnectionSessions(connection_handle, kCommon);
   CloseConnection(connection_handle);
 }
 
@@ -811,30 +811,45 @@ void ConnectionHandlerImpl::CloseSession(ConnectionHandle connection_handle,
                 << " has been closed successfully");
 }
 
-void ConnectionHandlerImpl::CloseAllConnectionSessions(uint32_t connection_key,
-                                                       CloseSessionReason close_reason) {
-    uint32_t connection_handle = 0;
-    uint8_t session_id = 0;
-    PairFromKey(connection_key, &connection_handle, &session_id);
+void ConnectionHandlerImpl::CloseConnectionSessions(
+    ConnectionHandle connection_handle, CloseSessionReason close_reason) {
 
-    transport_manager::ConnectionUID connection_id =
-          ConnectionUIDFromHandle(connection_handle);
+  LOG4CXX_AUTO_TRACE(logger_);
 
-    ConnectionList::iterator itr = connection_list_.end();
-    {
-        sync_primitives::AutoLock connection_list_lock(connection_list_lock_);
-        itr = connection_list_.find(connection_id);
-    }
+  transport_manager::ConnectionUID connection_id =
+      ConnectionUIDFromHandle(connection_handle);
 
-    LOG4CXX_DEBUG(logger_, "Closing all sessions for connection with id: "
-                  << connection_id);
-    if (connection_list_.end() != itr) {
-      SessionMap session_map = itr->second->session_map();
-      SessionMap::const_iterator session_it = session_map.begin();
-      for (;session_it != session_map.end(); ++session_it) {
-        CloseSession(connection_handle, session_it->first, close_reason);
+  LOG4CXX_DEBUG(logger_, "Closing all sessions for connection with id: "
+                << connection_id);
+
+  typedef std::vector<uint8_t> SessionIdVector;
+  SessionIdVector session_id_vector;
+  {
+    sync_primitives::AutoLock connection_list_lock(connection_list_lock_);
+
+    ConnectionList::iterator connection_list_itr =
+        connection_list_.find(connection_id);
+    if (connection_list_.end() != connection_list_itr) {
+      const SessionMap session_map = connection_list_itr->second->session_map();
+
+      SessionMap::const_iterator session_map_itr = session_map.begin();
+      for (;session_map_itr != session_map.end(); ++session_map_itr) {
+        session_id_vector.push_back(session_map_itr->first);
       }
+    } else {
+      LOG4CXX_ERROR(logger_, "Connection with id: " << connection_id
+                    << " not found");
+      return;
     }
+  }
+  SessionIdVector::const_iterator session_id_itr = session_id_vector.begin();
+  for(;session_id_itr != session_id_vector.end(); ++session_id_itr) {
+    CloseSession(connection_handle, *session_id_itr, close_reason);
+  }
+  session_id_vector.clear();
+
+  LOG4CXX_DEBUG(logger_, "All sessions for connection with id: " << connection_id
+                << " have been closed successfully");
 }
 
 void ConnectionHandlerImpl::StartSessionHeartBeat(uint32_t connection_key) {
