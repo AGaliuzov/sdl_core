@@ -1,0 +1,123 @@
+/*
+ * Copyright (c) 2015, Ford Motor Company
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following
+ * disclaimer in the documentation and/or other materials provided with the
+ * distribution.
+ *
+ * Neither the name of the Ford Motor Company nor the names of its contributors
+ * may be used to endorse or promote products derived from this software
+ * without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+#include "gtest/gtest.h"
+#include "utils/rwlock.h"
+
+namespace test {
+namespace components {
+namespace utils {
+
+using sync_primitives::RWLock;
+
+TEST(RWRWLockPosixTest, DefaultCtorTest_ExpectNonRecursiveMutexCreated) {
+  // Create RWLock object
+  RWLock test_rwlock;
+  // RWLock mutex
+  test_rwlock.Acquire();
+  // Check if created mutex is non-recursive
+  EXPECT_FALSE(test_rwlock.Try());
+  // Release mutex before destroy
+  test_rwlock.Release();
+}
+
+TEST(RWRWLockPosixTest, CtorTestWithFalseArgument_ExpectNonRecursiveMutexCreated) {
+  // Create RWLock object
+  RWLock test_rwlock(false);
+  // RWLock mutex
+  test_rwlock.Acquire();
+  // Check if created mutex is non-recursive
+  EXPECT_FALSE(test_rwlock.Try());
+  // Release mutex before destroy
+  test_rwlock.Release();
+}
+
+TEST(RWRWLockPosixTest, CtorTestWithTrueArgument_ExpectRecursiveMutexCreated) {
+  // Create RWLock object
+  RWLock test_rwlock(true);
+  // RWLock mutex
+  test_rwlock.Acquire();
+  // Check if created mutex is recursive
+  EXPECT_TRUE(test_rwlock.Try());
+  // Release mutex before destroy
+  test_rwlock.Release();
+  test_rwlock.Release();
+}
+
+TEST(RWRWLockPosixTest, AcquireMutex_ExpectMutexRWLocked) {
+  // Create RWLock object (non-recursive mutex)
+  RWLock test_rwlock;
+  // RWLock mutex
+  test_rwlock.Acquire();
+  // Try to RWLock it again. If RWLocked expect false
+  EXPECT_FALSE(test_rwlock.Try());
+  test_rwlock.Release();
+}
+
+TEST(RWRWLockPosixTest, ReleaseMutex_ExpectMutexReleased) {
+  // Create RWLock object (non-recursive mutex)
+  RWLock test_rwlock;
+  // RWLock mutex
+  test_rwlock.Acquire();
+  // Release mutex
+  test_rwlock.Release();
+  // Try to RWLock it again. If released expect true
+  EXPECT_TRUE(test_rwlock.Try());
+  test_rwlock.Release();
+}
+
+TEST(RWRWLockPosixTest, TryRWLockNonRecursiveMutex_ExpectMutexNotRWLockedTwice) {
+  // Create RWLock object (non-recursive mutex)
+  RWLock test_rwlock;
+  // RWLock mutex
+  test_rwlock.Try();
+  // Try to RWLock it again. If RWLocked expect false
+  EXPECT_FALSE(test_rwlock.Try());
+  test_rwlock.Release();
+}
+
+TEST(RWRWLockPosixTest, TryRWLockRecursiveMutex_ExpectMutexRWLockedTwice) {
+  // Create RWLock object (recursive mutex)
+  RWLock test_rwlock(true);
+  // RWLock mutex
+  test_rwlock.Try();
+  // Try to RWLock it again. Expect true and internal counter increase
+  EXPECT_TRUE(test_rwlock.Try());
+  // Release mutex twice as was RWLocked twice.
+  // Every Release() will decrement internal counter
+  test_rwlock.Release();
+  test_rwlock.Release();
+}
+
+}  // namespace utils
+}  // namespace components
+}  // namespace test
