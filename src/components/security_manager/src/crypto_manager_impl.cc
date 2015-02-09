@@ -120,7 +120,7 @@ bool CryptoManagerImpl::Init(Mode mode,
   if (cert_filename.empty()) {
     LOG4CXX_WARN(logger_, "Empty certificate path");
   } else {
-    LOG4CXX_INFO(logger_, "Certificate path: " << cert_filename);
+    LOG4CXX_DEBUG(logger_, "Certificate path: " << cert_filename);
     if (!SSL_CTX_use_certificate_file(context_, cert_filename.c_str(),
                                       SSL_FILETYPE_PEM)) {
       LOG4CXX_ERROR(logger_, "Could not use certificate " << cert_filename);
@@ -131,7 +131,7 @@ bool CryptoManagerImpl::Init(Mode mode,
   if (key_filename.empty()) {
     LOG4CXX_WARN(logger_, "Empty key path");
   } else {
-    LOG4CXX_INFO(logger_, "Key path: " << key_filename);
+    LOG4CXX_DEBUG(logger_, "Key path: " << key_filename);
     if (!SSL_CTX_use_PrivateKey_file(context_, key_filename.c_str(),
                                      SSL_FILETYPE_PEM)) {
       LOG4CXX_ERROR(logger_, "Could not use key " << key_filename);
@@ -146,7 +146,7 @@ bool CryptoManagerImpl::Init(Mode mode,
   if (ciphers_list.empty()) {
     LOG4CXX_WARN(logger_, "Empty ciphers list");
   } else {
-    LOG4CXX_INFO(logger_, "Cipher list: " << ciphers_list);
+    LOG4CXX_DEBUG(logger_, "Cipher list: " << ciphers_list);
     if (!SSL_CTX_set_cipher_list(context_, ciphers_list.c_str())) {
       LOG4CXX_ERROR(logger_, "Could not set cipher list: " << ciphers_list);
       return false;
@@ -167,6 +167,16 @@ void CryptoManagerImpl::Finish() {
   if (atomic_post_dec(&instance_count_) == 1) {
     EVP_cleanup();
     ERR_free_strings();
+  }
+}
+
+void CryptoManagerImpl::UpdateCertificate(const std::string& data) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  if(data.empty()) {
+    LOG4CXX_WARN(logger_, "Empty data for certificate");
+  } else  {
+    LOG4CXX_DEBUG(logger_, "New sertificate data : \"" << data << '"');
+    // FIXME(EZamakhov) : implement logic according to APPLINK-8310
   }
 }
 

@@ -61,6 +61,7 @@ class CryptoManager {
                     const std::string &ciphers_list,
                     bool verify_peer) = 0;
   virtual void Finish() = 0;
+  virtual void UpdateCertificate(const std::string& data) = 0;
   virtual SSLContext *CreateSSLContext() = 0;
   virtual void ReleaseSSLContext(SSLContext *context) = 0;
   virtual std::string LastError() const = 0;
