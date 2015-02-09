@@ -99,7 +99,7 @@ ApplicationManagerImpl::ApplicationManagerImpl()
     messages_to_hmi_("AM ToHMI", this),
     audio_pass_thru_messages_("AudioPassThru", this),
     hmi_capabilities_(this),
-    unregister_reason_(mobile_api::AppInterfaceUnregisteredReason::IGNITION_OFF),
+    unregister_reason_(mobile_api::AppInterfaceUnregisteredReason::INVALID_ENUM),
     resume_ctrl_(this),
 #ifdef CUSTOMER_PASA
     is_state_suspended_(false),
@@ -2032,16 +2032,36 @@ void ApplicationManagerImpl::SendOnSDLClose() {
 }
 
 
-void ApplicationManagerImpl::UnregisterAllApplications(bool generated_by_hmi) {
+void ApplicationManagerImpl::UnregisterAllApplications() {
   LOG4CXX_DEBUG(logger_, "Unregister reason  " << unregister_reason_);
 
   hmi_cooperating_ = false;
+  bool is_ignition_off = false;
+  bool is_unexpected_disconnect = true;
 
-  bool is_ignition_off =
-      unregister_reason_ ==
-      mobile_api::AppInterfaceUnregisteredReason::IGNITION_OFF ? true : false;
+#ifdef CUSTOMER_PASA
+  if (unregister_reason_ ==
+      mobile_api::AppInterfaceUnregisteredReason::IGNITION_OFF) {
+    is_ignition_off = true;
+  }
 
-  bool is_unexpected_disconnect = (generated_by_hmi != true);
+#else
+  if ((unregister_reason_ ==
+      mobile_api::AppInterfaceUnregisteredReason::IGNITION_OFF) ||
+      (unregister_reason_ ==
+          mobile_api::AppInterfaceUnregisteredReason::INVALID_ENUM)) {
+    is_ignition_off = true;
+  }
+#endif
+
+  if ((unregister_reason_ ==
+      mobile_api::AppInterfaceUnregisteredReason::IGNITION_OFF) ||
+      (unregister_reason_ ==
+          mobile_api::AppInterfaceUnregisteredReason::MASTER_RESET) ||
+      (unregister_reason_ ==
+          mobile_api::AppInterfaceUnregisteredReason::FACTORY_DEFAULTS)) {
+    is_unexpected_disconnect = false;
+  }
 
   ApplicationListAccessor accessor;
   ApplictionSetConstIt it = accessor.begin();

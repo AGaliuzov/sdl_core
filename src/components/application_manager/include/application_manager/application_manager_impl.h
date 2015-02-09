@@ -331,7 +331,7 @@ class ApplicationManagerImpl : public ApplicationManager,
     /*
      * @brief Closes all registered applications
      */
-    void UnregisterAllApplications(bool generated_by_hmi = false);
+    void UnregisterAllApplications();
 
     bool RemoveAppDataFromHMI(ApplicationSharedPtr app);
     bool LoadAppDataToHMI(ApplicationSharedPtr app);

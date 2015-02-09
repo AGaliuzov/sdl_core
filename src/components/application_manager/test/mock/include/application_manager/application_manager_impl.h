@@ -216,7 +216,7 @@ class ApplicationManagerImpl : public ApplicationManager,
   MOCK_METHOD1(IsHmiLevelFullAllowed, mobile_api::HMILevel::eType (ApplicationSharedPtr));
   MOCK_METHOD2(UnregisterRevokedApplication, void(uint32_t, mobile_apis::Result::eType));
   MOCK_METHOD1(SetUnregisterAllApplicationsReason, void(mobile_api::AppInterfaceUnregisteredReason::eType));
-  MOCK_METHOD1(UnregisterAllApplications, void(bool));
+  MOCK_METHOD0(UnregisterAllApplications, void());
   MOCK_METHOD0(connection_handler, connection_handler::ConnectionHandler*());
   MOCK_METHOD0(protocol_handler, protocol_handler::ProtocolHandler*());
   MOCK_METHOD0(hmi_message_handler, hmi_message_handler::HMIMessageHandler*());
