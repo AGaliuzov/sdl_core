@@ -729,6 +729,14 @@ void ConnectionHandlerImpl::CloseConnection(
   transport_manager::ConnectionUID connection_uid =
       ConnectionUIDFromHandle(connection_handle);
   transport_manager_->DisconnectForce(connection_uid);
+
+  sync_primitives::AutoLock connection_list_lock(connection_list_lock_);
+
+  ConnectionList::iterator connection_list_itr =
+      connection_list_.find(connection_uid);
+  if (connection_list_.end() != connection_list_itr) {
+    connection_list_.erase(connection_list_itr);
+  }
 }
 
 uint32_t ConnectionHandlerImpl::GetConnectionSessionsCount(
