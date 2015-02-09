@@ -35,7 +35,10 @@
 
 #include <string>
 
+#include "utils/threads/thread.h"
+
 #include "transport_manager/transport_adapter/transport_adapter_impl.h"
+#include "transport_manager/aoa/aoa_shutdown_thread_delegate.h"
 
 namespace transport_manager {
 namespace transport_adapter {
@@ -44,6 +47,8 @@ class AOATransportAdapter : public TransportAdapterImpl {
  public:
   AOATransportAdapter();
   ~AOATransportAdapter();
+  virtual void DisconnectDone(const DeviceUID& device_handle, const ApplicationHandle& app_handle);
+  virtual void Terminate();
 
  protected:
   virtual DeviceType GetDeviceType() const;
@@ -52,7 +57,11 @@ class AOATransportAdapter : public TransportAdapterImpl {
   virtual void ApplicationListUpdated(const DeviceUID& device_handle);
 
  private:
+  void TerminateInternal();
+
   bool initialised_;
+  AOAShutdownThreadDelegate* aoa_shutdown_thread_delegate_;
+  threads::Thread* aoa_shutdown_thread_;
 };
 
 }  // namespace transport_adapter

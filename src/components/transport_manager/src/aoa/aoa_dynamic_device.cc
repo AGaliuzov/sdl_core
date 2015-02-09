@@ -57,6 +57,7 @@ AOADynamicDevice::AOADynamicDevice(const std::string& name,
 AOADynamicDevice::~AOADynamicDevice() {
   LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_, "AOA: device " << unique_device_id());
+  delete life_;
 }
 
 bool AOADynamicDevice::Init() {
@@ -64,23 +65,19 @@ bool AOADynamicDevice::Init() {
 }
 
 void AOADynamicDevice::AddDevice(AOAWrapper::AOAHandle handle) {
-  LOG4CXX_TRACE(logger_, "AOA: add new device " << handle);
+  LOG4CXX_AUTO_TRACE(logger_);
   set_handle(handle);
   controller_->ApplicationListUpdated(unique_device_id());
 }
 
-void AOADynamicDevice::RemoveDevice() {
-  AOAWrapper::Shutdown();
-  delete life_;
-  controller_->DeviceDisconnected(unique_device_id(), DisconnectDeviceError());
-}
-
 void AOADynamicDevice::LoopDevice(AOAWrapper::AOAHandle handle) {
-  LOG4CXX_TRACE(logger_, "AOA: loop of life device " << handle);
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock locker(life_lock_);
   while (AOAWrapper::IsHandleValid(handle)) {
     LOG4CXX_TRACE(logger_, "AOA: wait cond " << handle);
-    life_cond_.Wait(locker);
+    if (!life_cond_.Wait(locker)) {
+      break;
+    }
     // It does nothing because this method is called from libaoa thread so
     // if it returns from the method then thread will stop
     // and device will be disconnected
@@ -99,7 +96,6 @@ AOADynamicDevice::DeviceLife::DeviceLife(AOADynamicDevice* parent)
 void AOADynamicDevice::DeviceLife::Loop(AOAWrapper::AOAHandle handle) {
   parent_->AddDevice(handle);
   parent_->LoopDevice(handle);
-  parent_->RemoveDevice();
 }
 
 void AOADynamicDevice::DeviceLife::OnDied(AOAWrapper::AOAHandle handle) {

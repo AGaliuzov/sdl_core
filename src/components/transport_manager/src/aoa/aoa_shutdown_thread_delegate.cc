@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,55 +29,49 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_AOA_AOA_DYNAMIC_DEVICE_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_AOA_AOA_DYNAMIC_DEVICE_H_
 
-#include <map>
-#include <string>
-
-#include "utils/lock.h"
-#include "utils/conditional_variable.h"
-
-#include "transport_manager/aoa/aoa_device.h"
+#include "transport_manager/aoa/aoa_shutdown_thread_delegate.h"
+#include "transport_manager/aoa/aoa_wrapper.h"
+#include "utils/logger.h"
+#include "utils/atomic.h"
 
 namespace transport_manager {
 namespace transport_adapter {
 
-class TransportAdapterController;
+CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
 
-class AOADynamicDevice : public AOADevice {
- public:
-  AOADynamicDevice(const std::string& name, const DeviceUID& unique_id,
-                   const AOAWrapper::AOAUsbInfo& info,
-                   TransportAdapterController* controller);
-  ~AOADynamicDevice();
+AOAShutdownThreadDelegate::AOAShutdownThreadDelegate() : shutdown_(0) {
+}
 
-  bool Init();
+void AOAShutdownThreadDelegate::Shutdown() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  atomic_post_set(&shutdown_);
+  cond_.NotifyOne();
+}
 
- private:
-  AOADeviceLife* life_;
-  TransportAdapterController* controller_;
-  AOAWrapper::AOAUsbInfo aoa_usb_info_;
-  sync_primitives::Lock life_lock_;
-  sync_primitives::ConditionalVariable life_cond_;
+void AOAShutdownThreadDelegate::threadMain() {
+  sync_primitives::Lock lock;
+  run_ = true;
+  LOG4CXX_DEBUG(logger_, "Starting AOA shutdown thread");
+  while (run_) {
+    { // auto_lock scope
+      sync_primitives::AutoLock auto_lock(lock);
+      LOG4CXX_TRACE(logger_, "Waiting on conditional variable");
+      cond_.Wait(auto_lock);
+      LOG4CXX_TRACE(logger_, "Got notification on conditional variable");
+    } // auto_lock scope
+    if (atomic_post_clr(&shutdown_)) {
+      AOAWrapper::Shutdown();
+    }
+  }
+  LOG4CXX_DEBUG(logger_, "AOA shutdown thread finished");
+}
 
-  void AddDevice(AOAWrapper::AOAHandle handle);
-  void LoopDevice(AOAWrapper::AOAHandle handle);
-  void StopDevice(AOAWrapper::AOAHandle handle);
-
-  class DeviceLife : public AOADeviceLife {
-   public:
-    explicit DeviceLife(AOADynamicDevice* parent);
-    void Loop(AOAWrapper::AOAHandle handle);
-    void OnDied(AOAWrapper::AOAHandle handle);
-   private:
-    AOADynamicDevice* parent_;
-  };
-};
-
-typedef utils::SharedPtr<AOADynamicDevice> AOADynamicDeviceSPtr;
+void AOAShutdownThreadDelegate::exitThreadMain() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  run_ = false;
+  cond_.NotifyOne();
+}
 
 }  // namespace transport_adapter
 }  // namespace transport_manager
-
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_AOA_AOA_DYNAMIC_DEVICE_H_

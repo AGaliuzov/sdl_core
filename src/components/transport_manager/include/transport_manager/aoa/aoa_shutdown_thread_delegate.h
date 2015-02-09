@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,55 +29,32 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_AOA_AOA_DYNAMIC_DEVICE_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_AOA_AOA_DYNAMIC_DEVICE_H_
 
-#include <map>
-#include <string>
+#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_AOA_AOA_SHUTDOWN_THREAD_DELEGATE_H_
+#define SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_AOA_AOA_SHUTDOWN_THREAD_DELEGATE_H_
 
-#include "utils/lock.h"
+#include "utils/threads/thread_delegate.h"
 #include "utils/conditional_variable.h"
-
-#include "transport_manager/aoa/aoa_device.h"
 
 namespace transport_manager {
 namespace transport_adapter {
 
-class TransportAdapterController;
-
-class AOADynamicDevice : public AOADevice {
+class AOAShutdownThreadDelegate : public threads::ThreadDelegate {
  public:
-  AOADynamicDevice(const std::string& name, const DeviceUID& unique_id,
-                   const AOAWrapper::AOAUsbInfo& info,
-                   TransportAdapterController* controller);
-  ~AOADynamicDevice();
+  AOAShutdownThreadDelegate();
+  void Shutdown();
 
-  bool Init();
+ protected:
+  virtual void threadMain();
+  virtual void exitThreadMain();
 
  private:
-  AOADeviceLife* life_;
-  TransportAdapterController* controller_;
-  AOAWrapper::AOAUsbInfo aoa_usb_info_;
-  sync_primitives::Lock life_lock_;
-  sync_primitives::ConditionalVariable life_cond_;
-
-  void AddDevice(AOAWrapper::AOAHandle handle);
-  void LoopDevice(AOAWrapper::AOAHandle handle);
-  void StopDevice(AOAWrapper::AOAHandle handle);
-
-  class DeviceLife : public AOADeviceLife {
-   public:
-    explicit DeviceLife(AOADynamicDevice* parent);
-    void Loop(AOAWrapper::AOAHandle handle);
-    void OnDied(AOAWrapper::AOAHandle handle);
-   private:
-    AOADynamicDevice* parent_;
-  };
+  volatile bool run_;
+  unsigned int shutdown_; // unsigned int instead of bool to use atomics
+  sync_primitives::ConditionalVariable cond_;
 };
-
-typedef utils::SharedPtr<AOADynamicDevice> AOADynamicDeviceSPtr;
 
 }  // namespace transport_adapter
 }  // namespace transport_manager
 
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_AOA_AOA_DYNAMIC_DEVICE_H_
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_AOA_AOA_SHUTDOWN_THREAD_DELEGATE_H_

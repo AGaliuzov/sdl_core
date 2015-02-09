@@ -121,6 +121,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
       ${TM_SRC_DIR}/aoa/aoa_connection.cc
       ${TM_SRC_DIR}/aoa/aoa_connection_factory.cc
       ${TM_SRC_DIR}/aoa/aoa_transport_adapter.cc
+      ${TM_SRC_DIR}/aoa/aoa_shutdown_thread_delegate.cc
     )
   endif(BUILD_AOA_SUPPORT)
 endif()

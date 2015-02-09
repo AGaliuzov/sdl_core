@@ -105,6 +105,22 @@ class TimerThread {
     virtual void start(uint32_t timeout_seconds);
 
     /**
+     * @brief Starts timer for specified timeout.
+     * Previously started timeout will be set to new value.
+     * On timeout TimerThread::onTimeOut interface will be called.
+     * Must not be used in callback function!
+     *
+     * @param timeout_seconds Timeout in seconds to be set
+     *
+     * @param callee A class that use timer
+     *
+     * @param allBackFunction which will be called on timeout
+     *  Attention! "f()" will be called not in main thread but in timer thread
+     *  Never use stop() and start() methods inside f
+     */
+    virtual void start(uint32_t timeout_seconds, T* callee , void (T::*f)());
+
+    /**
      * @brief Stops timer execution
      * Must not be used in callback function!
      */
@@ -251,6 +267,14 @@ void TimerThread<T>::start(uint32_t timeout_seconds) {
   }
   updateTimeOut(timeout_seconds);
   thread_->start();
+}
+
+template <class T>
+void TimerThread<T>::start(uint32_t timeout_seconds,
+                           T* callee, void (T::*f)()) {
+  callee_ = callee;
+  callback_ = f;
+  start(timeout_seconds);
 }
 
 template <class T>
