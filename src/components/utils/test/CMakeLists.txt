@@ -52,6 +52,7 @@ set(testSources
   data_accessor_test.cc
   lock_posix_test.cc
   singleton_test.cc
+  posix_thread_test.cc
 )
 
 if (ENABLE_LOG)
@@ -62,7 +63,6 @@ endif()
 if (BUILD_BACKTRACE_SUPPORT)
   list(APPEND testSources back_trace_test.cc)
 endif()
-
 
 set(testLibraries
   gmock

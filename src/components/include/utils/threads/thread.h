@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,7 @@ typedef pthread_t PlatformThreadHandle;
 #endif
 
 /**
- * Non platform specific thread abstraction that establishes a
+ * @brief Non platform specific thread abstraction that establishes a
  * threads::ThreadDelegate on a new thread.
  *
  * ThreadDelegate example:
@@ -75,11 +75,12 @@ typedef pthread_t PlatformThreadHandle;
  * thread.join();
  * printf("ok!\n");
  */
+
 class Thread;
-void enqueue_to_join(Thread*);
+void enqueue_to_join(Thread* thread);
 
 Thread* CreateThread(const char* name, ThreadDelegate* delegate);
-void DeleteThread(Thread*);
+void DeleteThread(Thread* thread);
 
 class Thread {
  private:
@@ -97,23 +98,22 @@ class Thread {
   bool thread_created_;
   // Signalled when Thread::start() is called
   sync_primitives::ConditionalVariable run_cond_;
+
  public:
   /**
-   * Starts the thread.
+   * @brief Starts the thread.
    * @return true if the thread was successfully started.
    */
   bool start();
 
   /**
-   * Starts the thread. Behaves exactly like \ref start() in addition to
+   * @brief Starts the thread. Behaves exactly like \ref start() in addition to
    * allow to override the default options.
    * @param options Thread options. Look for 'threads/thread_options.h'
    * for details.
    * @return true if the thread was successfully started.
    */
   bool start(const ThreadOptions& options);
-
-  void WaitForRun();
 
   sync_primitives::Lock& delegate_lock() {
     return delegate_lock_;
@@ -129,19 +129,18 @@ class Thread {
   }
 
   friend Thread* CreateThread(const char* name, ThreadDelegate* delegate);
-  friend void DeleteThread(Thread*);
+  friend void DeleteThread(Thread* thread);
 
  public:
-
   // Get unique ID of currently executing thread
   static PlatformThreadHandle CurrentId();
 
   // Give thread thread_id a name, helpful for debugging
-  static void SetNameForId(const PlatformThreadHandle& thread_id, std::string name);
-
+  static void SetNameForId(const PlatformThreadHandle& thread_id,
+                           std::string name);
 
   /**
-   * Signals the thread to exit and returns once the thread has exited.
+   * @brief Signals the thread to exit and returns once the thread has exited.
    * After this method returns, the Thread object is completely reset and may
    * be used as if it were newly constructed (i.e., Start may be called again).
    *
@@ -150,11 +149,10 @@ class Thread {
    */
   void stop();
 
-
   void join();
 
   /**
-   * Get thread name.
+   * @brief Get thread name.
    * @return thread name
    */
   const std::string& name() {
@@ -162,7 +160,7 @@ class Thread {
   }
 
   /**
-   * Returns true if the thread has been started, and not yet stopped.
+   * @brief Returns true if the thread has been started, and not yet stopped.
    * When a thread is running, the thread_id_ is non-zero.
    * @return true if the thread has been started, and not yet stopped.
    */
@@ -173,7 +171,7 @@ class Thread {
   void set_running(bool running);
 
   /**
-   * Is thread joinable?
+   * @brief Is thread joinable?
    * @return - Returns true if the thread is joinable.
    */
   bool is_joinable() const {
@@ -181,7 +179,7 @@ class Thread {
   }
 
   /**
-   * Thread stack size
+   * @brief Thread stack size
    * @return thread stack size
    */
   size_t stack_size() const {
@@ -189,7 +187,7 @@ class Thread {
   }
 
   /**
-   * The native thread handle.
+   * @brief The native thread handle.
    * @return thread handle.
    */
   PlatformThreadHandle thread_handle() const {
@@ -197,7 +195,7 @@ class Thread {
   }
 
   /**
-   * Thread options.
+   * @brief Thread options.
    * @return thread options.
    */
   const ThreadOptions& thread_options() const {
@@ -205,7 +203,7 @@ class Thread {
   }
 
   /**
-   * Minimum size of thread stack for specific platform.
+   * @brief Minimum size of thread stack for specific platform.
    */
   static size_t kMinStackSize;
 
@@ -224,10 +222,10 @@ class Thread {
    *       Thread object to be created on stack
    */
   Thread(const char* name, ThreadDelegate* delegate);
-  DISALLOW_COPY_AND_ASSIGN(Thread);
   virtual ~Thread();
   static void* threadFunc(void* arg);
   static void cleanup(void* arg);
+  DISALLOW_COPY_AND_ASSIGN(Thread);
 };
 
 }  // namespace threads
