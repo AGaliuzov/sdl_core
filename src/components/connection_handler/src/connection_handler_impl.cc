@@ -384,7 +384,7 @@ void ConnectionHandlerImpl::OnApplicationFloodCallBack(const uint32_t &connectio
   }
 }
 
-void ConnectionHandlerImpl::OnMalformedMessageCallback(uint32_t connection_key) {
+void ConnectionHandlerImpl::OnMalformedMessageCallback(const uint32_t &connection_key) {
   LOG4CXX_AUTO_TRACE(logger_);
   {
     sync_primitives::AutoLock lock(connection_handler_observer_lock_);

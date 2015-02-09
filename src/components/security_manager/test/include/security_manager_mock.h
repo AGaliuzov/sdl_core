@@ -111,7 +111,7 @@ class SessionObserverMock : public protocol_handler::SessionObserver {
       void(const uint32_t&));
 
   MOCK_METHOD1(OnMalformedMessageCallback,
-      void(uint32_t));
+      void(const uint32_t&));
 
   MOCK_METHOD2(KeyFromPair,
       uint32_t(
