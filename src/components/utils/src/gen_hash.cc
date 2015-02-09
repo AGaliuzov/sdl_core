@@ -32,7 +32,7 @@
 
 #include "utils/gen_hash.h"
 
-#include <stdlib.h>
+#include <cstdlib>
 
 namespace utils {
 
@@ -44,7 +44,7 @@ const std::string gen_hash(size_t size) {
 
   std::string hash(size, '\0');
   for (std::string::iterator i = hash.begin(); i != hash.end(); ++i) {
-    int index = rand() % capacity;
+    int index = std::rand() % capacity;
     *i = symbols[index];
   }
   return hash;
