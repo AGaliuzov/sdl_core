@@ -53,9 +53,10 @@ class Thread;
  */
 class ThreadDelegate {
  public:
-   ThreadDelegate()
-     : state_(kInit),
-       thread_(NULL) { }
+  ThreadDelegate()
+      : state_(kInit),
+        thread_(NULL) {
+  }
   /**
    * \brief Thread procedure.
    */
@@ -79,8 +80,7 @@ class ThreadDelegate {
 
   bool ImproveState(unsigned int to) {
     state_lock_.Lock();
-    if ((state_ + 1 == to) ||
-        (to == kInit && state_ == kStopReq)) {
+    if ((state_ + 1 == to) || (to == kInit && state_ == kStopReq)) {
       state_ = to;
     }
     state_lock_.Unlock();
@@ -90,6 +90,7 @@ class ThreadDelegate {
   unsigned int state() const {
     return state_;
   }
+
  private:
   volatile unsigned int state_;
   sync_primitives::SpinMutex state_lock_;
