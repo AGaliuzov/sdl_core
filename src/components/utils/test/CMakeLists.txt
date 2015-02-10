@@ -53,6 +53,7 @@ set(testSources
   lock_posix_test.cc
   singleton_test.cc
   posix_thread_test.cc
+  stl_utils_test.cc
 )
 
 if (ENABLE_LOG)
