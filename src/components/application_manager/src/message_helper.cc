@@ -2200,12 +2200,24 @@ mobile_apis::Result::eType MessageHelper::VerifyImage(
     return mobile_apis::Result::INVALID_DATA;
   }
 
-  std::string full_file_path =
-    profile::Profile::instance()->app_storage_folder() + "/";
-
+  std::string full_file_path;
   if (file_name.size() > 0 && file_name[0] == '/') {
     full_file_path = file_name;
   } else {
+    const std::string& app_storage_folder =
+            profile::Profile::instance()->app_storage_folder();
+    if (!app_storage_folder.empty()) {
+      if (app_storage_folder[0] == '/') { // absolute path
+        full_file_path = app_storage_folder + "/";
+      }
+      else { // relative path
+        full_file_path = file_system::CurrentWorkingDirectory() + "/" +
+                         app_storage_folder + "/";
+      }
+    }
+    else { // empty app storage folder
+      full_file_path = file_system::CurrentWorkingDirectory() + "/";
+    }
 
     full_file_path += app->folder_name();
     full_file_path += "/";
