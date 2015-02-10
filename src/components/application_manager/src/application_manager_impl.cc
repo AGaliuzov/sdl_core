@@ -52,6 +52,7 @@
 #include "config_profile/profile.h"
 #include "utils/threads/thread.h"
 #include "utils/file_system.h"
+#include "utils/helpers.h"
 #include "smart_objects/enum_schema_item.h"
 #include "interfaces/HMI_API_schema.h"
 #include "application_manager/application_impl.h"
@@ -2037,7 +2038,7 @@ void ApplicationManagerImpl::UnregisterAllApplications() {
 
   hmi_cooperating_ = false;
   bool is_ignition_off = false;
-  bool is_unexpected_disconnect = true;
+  using namespace mobile_api::AppInterfaceUnregisteredReason;
 
 #ifdef CUSTOMER_PASA
   if (unregister_reason_ ==
@@ -2046,23 +2047,14 @@ void ApplicationManagerImpl::UnregisterAllApplications() {
   }
 
 #else
-  if ((unregister_reason_ ==
-      mobile_api::AppInterfaceUnregisteredReason::IGNITION_OFF) ||
-      (unregister_reason_ ==
-          mobile_api::AppInterfaceUnregisteredReason::INVALID_ENUM)) {
-    is_ignition_off = true;
-  }
+  is_ignition_off =
+      helpers::Compare<eType, helpers::EQ, helpers::ONE>(unregister_reason_, IGNITION_OFF, INVALID_ENUM);
+  LOG4CXX_DEBUG(logger_, "\n\n\n\n\nDTrunov::UnregisterAllApplications() is_ignition_off "<<is_ignition_off<<"\n\n\n\n\n");
 #endif
 
-  if ((unregister_reason_ ==
-      mobile_api::AppInterfaceUnregisteredReason::IGNITION_OFF) ||
-      (unregister_reason_ ==
-          mobile_api::AppInterfaceUnregisteredReason::MASTER_RESET) ||
-      (unregister_reason_ ==
-          mobile_api::AppInterfaceUnregisteredReason::FACTORY_DEFAULTS)) {
-    is_unexpected_disconnect = false;
-  }
-
+  bool is_unexpected_disconnect =
+      helpers::Compare<eType, helpers::NEQ, helpers::ALL>(unregister_reason_, IGNITION_OFF, MASTER_RESET, FACTORY_DEFAULTS);
+  LOG4CXX_DEBUG(logger_, "\n\n\n\n\nDTrunov::UnregisterAllApplications() is_unexpected_disconnect "<<is_unexpected_disconnect<<"\n\n\n\n\n");
   ApplicationListAccessor accessor;
   ApplictionSetConstIt it = accessor.begin();
   while (it != accessor.end()) {
