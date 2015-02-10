@@ -54,6 +54,8 @@ set(testSources
   #posix_thread_test.cc
   stl_utils_test.cc
   #timer_thread_test.cc
+  rwlock_posix_test.cc
+
 )
 
 if (ENABLE_LOG)

@@ -39,83 +39,115 @@ namespace utils {
 
 using sync_primitives::RWLock;
 
-TEST(RWRWLockPosixTest, DefaultCtorTest_ExpectNonRecursiveMutexCreated) {
-  // Create RWLock object
+class RWlockTest : public ::testing::Test {
+ public:
+  void rdlockThread() {
+    EXPECT_FALSE(test_rwlock.AcquireForReading());
+    EXPECT_FALSE(test_rwlock.Release());
+  }
+
+  void tryrdlockThread() {
+    bool temp = test_rwlock.TryAcquireForReading();
+    EXPECT_TRUE(temp);
+    if (!temp) {
+      EXPECT_FALSE(test_rwlock.Release());
+    }
+  }
+
+  void trywrlockThread() {
+    bool temp = test_rwlock.TryAcquireForWriting();
+    EXPECT_TRUE(temp);
+    if (!temp) {
+      EXPECT_FALSE(test_rwlock.Release());
+    }
+  }
+
+  static void* rdlockThread_helper(void *context) {
+    RWlockTest *temp = reinterpret_cast<RWlockTest *>(context);
+    temp->rdlockThread();
+    return NULL;
+  }
+
+  static void* tryrdlockThread_helper(void *context) {
+    RWlockTest *temp = reinterpret_cast<RWlockTest *>(context);
+    temp->tryrdlockThread();
+    return NULL;
+  }
+
+  static void* trywrlockThread_helper(void *context) {
+    RWlockTest *temp = reinterpret_cast<RWlockTest *>(context);
+    temp->trywrlockThread();
+    return NULL;
+  }
+
+ protected:
   RWLock test_rwlock;
-  // RWLock mutex
-  test_rwlock.Acquire();
-  // Check if created mutex is non-recursive
-  EXPECT_FALSE(test_rwlock.Try());
-  // Release mutex before destroy
-  test_rwlock.Release();
+  static const uint32_t kNum_threads_;
+};
+
+const uint32_t RWlockTest::kNum_threads_ = 5;
+
+TEST_F(RWlockTest, AcquireForReading_ExpectAccessForReading) {
+  // Threads IDs
+  pthread_t thread[kNum_threads_];
+  // Try to lock rw lock for reading
+  EXPECT_FALSE(test_rwlock.AcquireForReading());
+  // Try to lock rw lock for reading again
+  EXPECT_FALSE(test_rwlock.AcquireForReading());
+  // Creating reading threads
+  for (uint8_t i = 0; i < kNum_threads_; ++i) {
+    bool thread_created = pthread_create(&thread[i], NULL,
+                                         &RWlockTest::rdlockThread_helper,
+                                         this);
+    ASSERT_FALSE(thread_created)<< "thread is not created!";
+  }
+
+  for (uint8_t i = 0; i < kNum_threads_; ++i) {
+    pthread_join(thread[i], NULL);
+  }
+  // Releasing RW locks
+  EXPECT_FALSE(test_rwlock.Release());
+  EXPECT_FALSE(test_rwlock.Release());
 }
 
-TEST(RWRWLockPosixTest, CtorTestWithFalseArgument_ExpectNonRecursiveMutexCreated) {
-  // Create RWLock object
-  RWLock test_rwlock(false);
-  // RWLock mutex
-  test_rwlock.Acquire();
-  // Check if created mutex is non-recursive
-  EXPECT_FALSE(test_rwlock.Try());
-  // Release mutex before destroy
-  test_rwlock.Release();
+TEST_F(RWlockTest, AcquireForWriting_ExpectNoAccessForReading) {
+  // Threads IDs
+  pthread_t thread[kNum_threads_];
+  // Try to lock rw lock for writing
+  EXPECT_FALSE(test_rwlock.AcquireForWriting());
+  // Try to lock rw lock for reading
+  EXPECT_TRUE(test_rwlock.TryAcquireForReading());
+  // Create reading threads
+  for (uint8_t i = 0; i < kNum_threads_; ++i) {
+    bool thread_created = pthread_create(&thread[i], NULL,
+                                         &RWlockTest::tryrdlockThread_helper,
+                                         this);
+    ASSERT_FALSE(thread_created)<< "thread is not created!";
+  }
+  for (uint8_t i = 0; i < kNum_threads_; ++i) {
+    pthread_join(thread[i], NULL);
+  }
+  EXPECT_FALSE(test_rwlock.Release());
 }
 
-TEST(RWRWLockPosixTest, CtorTestWithTrueArgument_ExpectRecursiveMutexCreated) {
-  // Create RWLock object
-  RWLock test_rwlock(true);
-  // RWLock mutex
-  test_rwlock.Acquire();
-  // Check if created mutex is recursive
-  EXPECT_TRUE(test_rwlock.Try());
-  // Release mutex before destroy
-  test_rwlock.Release();
-  test_rwlock.Release();
-}
-
-TEST(RWRWLockPosixTest, AcquireMutex_ExpectMutexRWLocked) {
-  // Create RWLock object (non-recursive mutex)
-  RWLock test_rwlock;
-  // RWLock mutex
-  test_rwlock.Acquire();
-  // Try to RWLock it again. If RWLocked expect false
-  EXPECT_FALSE(test_rwlock.Try());
-  test_rwlock.Release();
-}
-
-TEST(RWRWLockPosixTest, ReleaseMutex_ExpectMutexReleased) {
-  // Create RWLock object (non-recursive mutex)
-  RWLock test_rwlock;
-  // RWLock mutex
-  test_rwlock.Acquire();
-  // Release mutex
-  test_rwlock.Release();
-  // Try to RWLock it again. If released expect true
-  EXPECT_TRUE(test_rwlock.Try());
-  test_rwlock.Release();
-}
-
-TEST(RWRWLockPosixTest, TryRWLockNonRecursiveMutex_ExpectMutexNotRWLockedTwice) {
-  // Create RWLock object (non-recursive mutex)
-  RWLock test_rwlock;
-  // RWLock mutex
-  test_rwlock.Try();
-  // Try to RWLock it again. If RWLocked expect false
-  EXPECT_FALSE(test_rwlock.Try());
-  test_rwlock.Release();
-}
-
-TEST(RWRWLockPosixTest, TryRWLockRecursiveMutex_ExpectMutexRWLockedTwice) {
-  // Create RWLock object (recursive mutex)
-  RWLock test_rwlock(true);
-  // RWLock mutex
-  test_rwlock.Try();
-  // Try to RWLock it again. Expect true and internal counter increase
-  EXPECT_TRUE(test_rwlock.Try());
-  // Release mutex twice as was RWLocked twice.
-  // Every Release() will decrement internal counter
-  test_rwlock.Release();
-  test_rwlock.Release();
+TEST_F(RWlockTest, AcquireForReading_ExpectNoAccessForWriting) {
+  // Threads IDs
+  pthread_t thread[kNum_threads_];
+  // Try to lock rw lock for writing
+  EXPECT_FALSE(test_rwlock.AcquireForReading());
+  // Try to lock rw lock for reading
+  EXPECT_TRUE(test_rwlock.TryAcquireForWriting());
+  // Create reading threads
+  for (uint8_t i = 0; i < kNum_threads_; ++i) {
+    bool thread_created = pthread_create(&thread[i], NULL,
+                                         &RWlockTest::trywrlockThread_helper,
+                                         this);
+    ASSERT_FALSE(thread_created)<< "thread is not created!";
+  }
+  for (uint8_t i = 0; i < kNum_threads_; ++i) {
+    pthread_join(thread[i], NULL);
+  }
+  EXPECT_FALSE(test_rwlock.Release());
 }
 
 }  // namespace utils

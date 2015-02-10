@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,22 +49,44 @@ RWLock::~RWLock() {
   }
 }
 
-void RWLock::AcquireForReading() {
-  if (pthread_rwlock_rdlock(&rwlock_) != 0) {
+bool RWLock::AcquireForReading() {
+  bool value = true;
+  if ((value = pthread_rwlock_rdlock(&rwlock_)) != 0) {
     LOG4CXX_ERROR(logger_, "Failed to acquire rwlock for reading");
   }
+  return value;
 }
 
-void RWLock::AcquireForWriting() {
-  if (pthread_rwlock_wrlock(&rwlock_) != 0) {
+bool RWLock::TryAcquireForReading() {
+  bool value = true;
+  if ((value = pthread_rwlock_tryrdlock(&rwlock_)) != 0) {
+    LOG4CXX_ERROR(logger_, "Failed to acquire rwlock for reading");
+  }
+  return value;
+}
+
+bool RWLock::AcquireForWriting() {
+  bool value = true;
+  if ((value = pthread_rwlock_wrlock(&rwlock_)) != 0) {
     LOG4CXX_ERROR(logger_, "Failed to acquire rwlock for writing");
   }
+  return value;
 }
 
-void RWLock::Release() {
-  if (pthread_rwlock_unlock(&rwlock_) != 0) {
+bool RWLock::TryAcquireForWriting() {
+  bool value = true;
+  if ((value = pthread_rwlock_trywrlock(&rwlock_)) != 0) {
+    LOG4CXX_ERROR(logger_, "Failed to acquire rwlock for writing");
+  }
+  return value;
+}
+
+bool RWLock::Release() {
+  bool value = true;
+  if ((value = pthread_rwlock_unlock(&rwlock_)) != 0) {
     LOG4CXX_ERROR(logger_, "Failed to release rwlock");
   }
+  return value;
 }
 
 }  // namespace sync_primitives

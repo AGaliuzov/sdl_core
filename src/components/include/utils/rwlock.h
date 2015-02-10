@@ -30,8 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_UTILS_INCLUDE_UTILS_RWLOCK_H_
-#define SRC_COMPONENTS_UTILS_INCLUDE_UTILS_RWLOCK_H_
+#ifndef SRC_COMPONENTS_INCLUDE_UTILS_RWLOCK_H_
+#define SRC_COMPONENTS_INCLUDE_UTILS_RWLOCK_H_
 
 #if defined(OS_POSIX)
 #include <pthread.h>
@@ -53,9 +53,11 @@ class RWLock {
  public:
   RWLock();
   ~RWLock();
-  void AcquireForReading();
-  void AcquireForWriting();
-  void Release();
+  bool AcquireForReading();
+  bool TryAcquireForReading();
+  bool TryAcquireForWriting();
+  bool AcquireForWriting();
+  bool Release();
 
  private:
   impl::PlatformRWLock rwlock_;
@@ -63,7 +65,8 @@ class RWLock {
 
 class AutoReadLock {
  public:
-  explicit AutoReadLock(RWLock& rwlock) : rwlock_(rwlock) {
+  explicit AutoReadLock(RWLock& rwlock)
+      : rwlock_(rwlock) {
     rwlock_.AcquireForReading();
   }
   ~AutoReadLock() {
@@ -72,13 +75,13 @@ class AutoReadLock {
 
  private:
   RWLock& rwlock_;
-
   DISALLOW_COPY_AND_ASSIGN(AutoReadLock);
 };
 
 class AutoWriteLock {
  public:
-  explicit AutoWriteLock(RWLock& rwlock) : rwlock_(rwlock) {
+  explicit AutoWriteLock(RWLock& rwlock)
+      : rwlock_(rwlock) {
     rwlock_.AcquireForWriting();
   }
   ~AutoWriteLock() {
@@ -87,10 +90,9 @@ class AutoWriteLock {
 
  private:
   RWLock& rwlock_;
-
   DISALLOW_COPY_AND_ASSIGN(AutoWriteLock);
 };
 
 }  // namespace sync_primitives
 
-#endif  // SRC_COMPONENTS_UTILS_INCLUDE_UTILS_RWLOCK_H_
+#endif  // SRC_COMPONENTS_INCLUDE_UTILS_RWLOCK_H_
