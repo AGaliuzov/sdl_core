@@ -2049,12 +2049,10 @@ void ApplicationManagerImpl::UnregisterAllApplications() {
 #else
   is_ignition_off =
       helpers::Compare<eType, helpers::EQ, helpers::ONE>(unregister_reason_, IGNITION_OFF, INVALID_ENUM);
-  LOG4CXX_DEBUG(logger_, "\n\n\n\n\nDTrunov::UnregisterAllApplications() is_ignition_off "<<is_ignition_off<<"\n\n\n\n\n");
 #endif
 
   bool is_unexpected_disconnect =
       helpers::Compare<eType, helpers::NEQ, helpers::ALL>(unregister_reason_, IGNITION_OFF, MASTER_RESET, FACTORY_DEFAULTS);
-  LOG4CXX_DEBUG(logger_, "\n\n\n\n\nDTrunov::UnregisterAllApplications() is_unexpected_disconnect "<<is_unexpected_disconnect<<"\n\n\n\n\n");
   ApplicationListAccessor accessor;
   ApplictionSetConstIt it = accessor.begin();
   while (it != accessor.end()) {
