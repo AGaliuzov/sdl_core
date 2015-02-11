@@ -117,7 +117,7 @@ TEST(PosixThreadTest, CheckCreatedThreadNameChangeToLongName_ExpectThreadNameRed
   int result = pthread_getname_np(thread->thread_handle(), name, sizeof(name));
   if (!result)
     EXPECT_EQ(std::string("new thread with"), std::string(name));
-  cond_var_.Wait(test_lock);
+  cond_var_.WaitFor(test_lock, 5000);
   EXPECT_TRUE(threadDelegate->check_value());
   DeleteThread(thread);
   delete threadDelegate;
@@ -137,7 +137,7 @@ TEST(PosixThreadTest, StartCreatedThreadWithOptionsJoinableAndMyStackSize_Expect
   EXPECT_TRUE(thread->is_joinable());
   // Check thread stack size is 32768
   EXPECT_EQ(MyStackSize, thread->stack_size());
-  cond_var_.Wait(test_lock);
+  cond_var_.WaitFor(test_lock, 5000);
   EXPECT_TRUE(threadDelegate->check_value());
   DeleteThread(thread);
   delete threadDelegate;
@@ -157,7 +157,7 @@ TEST(PosixThreadTest, StartCreatedThreadWithDefaultOptions_ExpectZeroStackAndJoi
   EXPECT_TRUE(thread->is_joinable());
   // Check thread stack size is minimum value. Stack can not be 0
   EXPECT_EQ(Thread::kMinStackSize, thread->stack_size());
-  cond_var_.Wait(test_lock);
+  cond_var_.WaitFor(test_lock, 5000);
   EXPECT_TRUE(threadDelegate->check_value());
   DeleteThread(thread);
   delete threadDelegate;
@@ -177,7 +177,7 @@ TEST(PosixThreadTest, StartThreadWithZeroStackAndDetached_ExpectMinimumStackAndD
   EXPECT_FALSE(thread->is_joinable());
   // Check thread stack size is 0
   EXPECT_EQ(Thread::kMinStackSize, thread->stack_size());
-  cond_var_.Wait(test_lock);
+  cond_var_.WaitFor(test_lock, 5000);
   EXPECT_TRUE(threadDelegate->check_value());
   DeleteThread(thread);
   delete threadDelegate;
@@ -201,7 +201,7 @@ TEST(PosixThreadTest, CheckCreatedThreadNameChangeToEmpty_ExpectThreadNameChange
   if (!result) {
     EXPECT_EQ(std::string(""), std::string(name));
   }
-  cond_var_.Wait(test_lock);
+  cond_var_.WaitFor(test_lock, 5000);
   EXPECT_TRUE(threadDelegate->check_value());
   DeleteThread(thread);
   delete threadDelegate;
@@ -226,7 +226,7 @@ TEST(PosixThreadTest, CheckCreatedThreadNameChangeToShortName_ExpectThreadNameCh
   if (!result) {
     EXPECT_EQ(test_thread_name, std::string(name));
   }
-  cond_var_.Wait(test_lock);
+  cond_var_.WaitFor(test_lock, 5000);
   EXPECT_TRUE(threadDelegate->check_value());
   DeleteThread(thread);
   delete threadDelegate;
@@ -242,7 +242,7 @@ TEST(PosixThreadTest, StartThread_ExpectThreadStarted) {
   ASSERT_NO_THROW(thread = CreateThread(threadName, threadDelegate));
   // Start created thread
   EXPECT_TRUE(thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize)));
-  cond_var_.Wait(test_lock);
+  cond_var_.WaitFor(test_lock, 5000);
   EXPECT_TRUE(threadDelegate->check_value());
   DeleteThread(thread);
   delete threadDelegate;
@@ -266,7 +266,7 @@ TEST(PosixThreadTest, StartOneThreadTwice_ExpectTheSameThreadStartedTwice) {
   EXPECT_TRUE(thread->start(threads::ThreadOptions(threads::Thread::kMinStackSize)));
   thread2_id = thread->CurrentId();
   EXPECT_EQ(thread1_id, thread2_id);
-  cond_var_.Wait(test_lock);
+  cond_var_.WaitFor(test_lock, 5000);
   EXPECT_TRUE(threadDelegate->check_value());
   DeleteThread(thread);
   delete threadDelegate;
@@ -300,7 +300,7 @@ TEST(PosixThreadTest, StartOneThreadAgainAfterRename_ExpectRenamedThreadStarted)
   // Expect the same thread started with the the same name
   EXPECT_EQ(test_thread_name, std::string(name));
   EXPECT_EQ(thread1_id, thread2_id);
-  cond_var_.Wait(test_lock);
+  cond_var_.WaitFor(test_lock, 5000);
   EXPECT_TRUE(threadDelegate->check_value());
   DeleteThread(thread);
   delete threadDelegate;
