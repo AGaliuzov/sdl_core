@@ -41,7 +41,7 @@ using sync_primitives::RWLock;
 
 class RWlockTest : public ::testing::Test {
  public:
-  void ThreadsDispatcher(pthread_t *thread, void* (*func)(void*)) {
+  void ThreadsDispatcher(void* (*func)(void*)) {
     for (uint8_t i = 0; i < kNum_threads_; ++i) {
       bool thread_created = pthread_create(&thread[i], NULL, func, this);
       ASSERT_FALSE(thread_created)<< "thread is not created!";
@@ -92,58 +92,49 @@ class RWlockTest : public ::testing::Test {
 
  protected:
   RWLock test_rwlock;
-  static const uint32_t kNum_threads_;
+  enum {kNum_threads_ = 5};
+  pthread_t thread[kNum_threads_];
 };
 
-const uint32_t RWlockTest::kNum_threads_ = 5;
-
 TEST_F(RWlockTest, AcquireForReading_ExpectAccessForReading) {
-  // Threads IDs
-  pthread_t thread[kNum_threads_];
   // Lock rw lock for reading
   EXPECT_TRUE(test_rwlock.AcquireForReading());
   // Try to lock rw lock for reading again
   EXPECT_TRUE(test_rwlock.AcquireForReading());
   // Creating kNumThreads threads, starting them with callback function, waits until all of them finished
-  ThreadsDispatcher(thread, &RWlockTest::ReadLock_helper);
+  ThreadsDispatcher(&RWlockTest::ReadLock_helper);
   // Releasing RW locks
   EXPECT_TRUE(test_rwlock.Release());
   EXPECT_TRUE(test_rwlock.Release());
 }
 
 TEST_F(RWlockTest, AcquireForReading_ExpectNoAccessForWriting) {
-  // Threads IDs
-  pthread_t thread[kNum_threads_];
   // Lock rw lock for reading
   EXPECT_TRUE(test_rwlock.AcquireForReading());
   // Try to lock rw lock for writing
   EXPECT_FALSE(test_rwlock.TryAcquireForWriting());
   // Creating kNumThreads threads, starting them with callback function, waits until all of them finished
-  ThreadsDispatcher(thread, &RWlockTest::TryWriteLock_helper);
+  ThreadsDispatcher(&RWlockTest::TryWriteLock_helper);
   EXPECT_TRUE(test_rwlock.Release());
 }
 
 TEST_F(RWlockTest, AcquireForWriting_ExpectNoAccessForReading) {
-  // Threads IDs
-  pthread_t thread[kNum_threads_];
   // Lock rw lock for writing
   EXPECT_TRUE(test_rwlock.AcquireForWriting());
   // Try to lock rw lock for reading
   EXPECT_FALSE(test_rwlock.TryAcquireForReading());
   // Creating kNumThreads threads, starting them with callback function, waits until all of them finished
-  ThreadsDispatcher(thread, &RWlockTest::TryReadLock_helper);
+  ThreadsDispatcher(&RWlockTest::TryReadLock_helper);
   EXPECT_TRUE(test_rwlock.Release());
 }
 
 TEST_F(RWlockTest, AcquireForWriting_ExpectNoMoreAccessForWriting) {
-  // Threads IDs
-  pthread_t thread[kNum_threads_];
   // Lock rw lock for writing
   EXPECT_TRUE(test_rwlock.AcquireForWriting());
   // Try to lock rw lock for reading
   EXPECT_FALSE(test_rwlock.TryAcquireForWriting());
   // Creating kNumThreads threads, starting them with callback function, waits until all of them finished
-  ThreadsDispatcher(thread, &RWlockTest::TryWriteLock_helper);
+  ThreadsDispatcher(&RWlockTest::TryWriteLock_helper);
   EXPECT_TRUE(test_rwlock.Release());
 }
 
