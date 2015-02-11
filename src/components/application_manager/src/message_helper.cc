@@ -2207,6 +2207,7 @@ mobile_apis::Result::eType MessageHelper::VerifyImage(
     const std::string& app_storage_folder =
             profile::Profile::instance()->app_storage_folder();
     if (!app_storage_folder.empty()) {
+// TODO(nvaganov@luxoft.com): APPLINK-11293
       if (app_storage_folder[0] == '/') { // absolute path
         full_file_path = app_storage_folder + "/";
       }
