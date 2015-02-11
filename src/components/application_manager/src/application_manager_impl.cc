@@ -2039,6 +2039,7 @@ void ApplicationManagerImpl::UnregisterAllApplications() {
   hmi_cooperating_ = false;
   bool is_ignition_off = false;
   using namespace mobile_api::AppInterfaceUnregisteredReason;
+  using namespace helpers;
 
 #ifdef CUSTOMER_PASA
   if (unregister_reason_ ==
@@ -2048,11 +2049,12 @@ void ApplicationManagerImpl::UnregisterAllApplications() {
 
 #else
   is_ignition_off =
-      helpers::Compare<eType, helpers::EQ, helpers::ONE>(unregister_reason_, IGNITION_OFF, INVALID_ENUM);
+      Compare<eType, EQ, ONE>(unregister_reason_, IGNITION_OFF, INVALID_ENUM);
 #endif
 
   bool is_unexpected_disconnect =
-      helpers::Compare<eType, helpers::NEQ, helpers::ALL>(unregister_reason_, IGNITION_OFF, MASTER_RESET, FACTORY_DEFAULTS);
+      Compare<eType, NEQ, ALL>(unregister_reason_,
+                               IGNITION_OFF, MASTER_RESET, FACTORY_DEFAULTS);
   ApplicationListAccessor accessor;
   ApplictionSetConstIt it = accessor.begin();
   while (it != accessor.end()) {
