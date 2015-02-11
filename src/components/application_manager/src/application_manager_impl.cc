@@ -52,6 +52,7 @@
 #include "config_profile/profile.h"
 #include "utils/threads/thread.h"
 #include "utils/file_system.h"
+#include "utils/helpers.h"
 #include "smart_objects/enum_schema_item.h"
 #include "interfaces/HMI_API_schema.h"
 #include "application_manager/application_impl.h"
@@ -99,7 +100,7 @@ ApplicationManagerImpl::ApplicationManagerImpl()
     messages_to_hmi_("AM ToHMI", this),
     audio_pass_thru_messages_("AudioPassThru", this),
     hmi_capabilities_(this),
-    unregister_reason_(mobile_api::AppInterfaceUnregisteredReason::IGNITION_OFF),
+    unregister_reason_(mobile_api::AppInterfaceUnregisteredReason::INVALID_ENUM),
     resume_ctrl_(this),
 #ifdef CUSTOMER_PASA
     is_state_suspended_(false),
@@ -2032,17 +2033,28 @@ void ApplicationManagerImpl::SendOnSDLClose() {
 }
 
 
-void ApplicationManagerImpl::UnregisterAllApplications(bool generated_by_hmi) {
+void ApplicationManagerImpl::UnregisterAllApplications() {
   LOG4CXX_DEBUG(logger_, "Unregister reason  " << unregister_reason_);
 
   hmi_cooperating_ = false;
+  bool is_ignition_off = false;
+  using namespace mobile_api::AppInterfaceUnregisteredReason;
+  using namespace helpers;
 
-  bool is_ignition_off =
-      unregister_reason_ ==
-      mobile_api::AppInterfaceUnregisteredReason::IGNITION_OFF ? true : false;
+#ifdef CUSTOMER_PASA
+  if (unregister_reason_ ==
+      mobile_api::AppInterfaceUnregisteredReason::IGNITION_OFF) {
+    is_ignition_off = true;
+  }
 
-  bool is_unexpected_disconnect = (generated_by_hmi != true);
+#else
+  is_ignition_off =
+      Compare<eType, EQ, ONE>(unregister_reason_, IGNITION_OFF, INVALID_ENUM);
+#endif
 
+  bool is_unexpected_disconnect =
+      Compare<eType, NEQ, ALL>(unregister_reason_,
+                               IGNITION_OFF, MASTER_RESET, FACTORY_DEFAULTS);
   ApplicationListAccessor accessor;
   ApplictionSetConstIt it = accessor.begin();
   while (it != accessor.end()) {
