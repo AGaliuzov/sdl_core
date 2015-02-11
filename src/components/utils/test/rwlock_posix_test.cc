@@ -41,42 +41,52 @@ using sync_primitives::RWLock;
 
 class RWlockTest : public ::testing::Test {
  public:
-  void rdlockThread() {
-    EXPECT_FALSE(test_rwlock.AcquireForReading());
-    EXPECT_FALSE(test_rwlock.Release());
+  void ThreadsDispatcher(pthread_t *thread, void* (*func)(void*)) {
+    for (uint8_t i = 0; i < kNum_threads_; ++i) {
+      bool thread_created = pthread_create(&thread[i], NULL, func, this);
+      ASSERT_FALSE(thread_created)<< "thread is not created!";
+    }
+    for (uint8_t i = 0; i < kNum_threads_; ++i) {
+      pthread_join(thread[i], NULL);
+    }
   }
 
-  void tryrdlockThread() {
+  void ReadLock() {
+    EXPECT_TRUE(test_rwlock.AcquireForReading());
+    EXPECT_TRUE(test_rwlock.Release());
+  }
+
+  void TryReadLock() {
     bool temp = test_rwlock.TryAcquireForReading();
-    EXPECT_TRUE(temp);
-    if (!temp) {
-      EXPECT_FALSE(test_rwlock.Release());
+    EXPECT_FALSE(temp);
+    if (temp) {
+      EXPECT_TRUE(test_rwlock.Release());
     }
   }
 
-  void trywrlockThread() {
+  void TryWriteLock() {
     bool temp = test_rwlock.TryAcquireForWriting();
-    EXPECT_TRUE(temp);
-    if (!temp) {
-      EXPECT_FALSE(test_rwlock.Release());
+    EXPECT_FALSE(temp);
+    if (temp) {
+      EXPECT_TRUE(test_rwlock.Release());
     }
   }
 
-  static void* rdlockThread_helper(void *context) {
+  static void* ReadLock_helper(void *context) {
     RWlockTest *temp = reinterpret_cast<RWlockTest *>(context);
-    temp->rdlockThread();
+    temp->ReadLock();
     return NULL;
   }
 
-  static void* tryrdlockThread_helper(void *context) {
+  static void* TryReadLock_helper(void *context) {
     RWlockTest *temp = reinterpret_cast<RWlockTest *>(context);
-    temp->tryrdlockThread();
+    temp->TryReadLock();
     return NULL;
   }
 
-  static void* trywrlockThread_helper(void *context) {
+  static void* TryWriteLock_helper(void *context) {
     RWlockTest *temp = reinterpret_cast<RWlockTest *>(context);
-    temp->trywrlockThread();
+    temp->TryWriteLock();
     return NULL;
   }
 
@@ -90,64 +100,51 @@ const uint32_t RWlockTest::kNum_threads_ = 5;
 TEST_F(RWlockTest, AcquireForReading_ExpectAccessForReading) {
   // Threads IDs
   pthread_t thread[kNum_threads_];
-  // Try to lock rw lock for reading
-  EXPECT_FALSE(test_rwlock.AcquireForReading());
+  // Lock rw lock for reading
+  EXPECT_TRUE(test_rwlock.AcquireForReading());
   // Try to lock rw lock for reading again
-  EXPECT_FALSE(test_rwlock.AcquireForReading());
-  // Creating reading threads
-  for (uint8_t i = 0; i < kNum_threads_; ++i) {
-    bool thread_created = pthread_create(&thread[i], NULL,
-                                         &RWlockTest::rdlockThread_helper,
-                                         this);
-    ASSERT_FALSE(thread_created)<< "thread is not created!";
-  }
-
-  for (uint8_t i = 0; i < kNum_threads_; ++i) {
-    pthread_join(thread[i], NULL);
-  }
+  EXPECT_TRUE(test_rwlock.AcquireForReading());
+  // Creating kNumThreads threads, starting them with callback function, waits until all of them finished
+  ThreadsDispatcher(thread, &RWlockTest::ReadLock_helper);
   // Releasing RW locks
-  EXPECT_FALSE(test_rwlock.Release());
-  EXPECT_FALSE(test_rwlock.Release());
-}
-
-TEST_F(RWlockTest, AcquireForWriting_ExpectNoAccessForReading) {
-  // Threads IDs
-  pthread_t thread[kNum_threads_];
-  // Try to lock rw lock for writing
-  EXPECT_FALSE(test_rwlock.AcquireForWriting());
-  // Try to lock rw lock for reading
-  EXPECT_TRUE(test_rwlock.TryAcquireForReading());
-  // Create reading threads
-  for (uint8_t i = 0; i < kNum_threads_; ++i) {
-    bool thread_created = pthread_create(&thread[i], NULL,
-                                         &RWlockTest::tryrdlockThread_helper,
-                                         this);
-    ASSERT_FALSE(thread_created)<< "thread is not created!";
-  }
-  for (uint8_t i = 0; i < kNum_threads_; ++i) {
-    pthread_join(thread[i], NULL);
-  }
-  EXPECT_FALSE(test_rwlock.Release());
+  EXPECT_TRUE(test_rwlock.Release());
+  EXPECT_TRUE(test_rwlock.Release());
 }
 
 TEST_F(RWlockTest, AcquireForReading_ExpectNoAccessForWriting) {
   // Threads IDs
   pthread_t thread[kNum_threads_];
+  // Lock rw lock for reading
+  EXPECT_TRUE(test_rwlock.AcquireForReading());
   // Try to lock rw lock for writing
-  EXPECT_FALSE(test_rwlock.AcquireForReading());
+  EXPECT_FALSE(test_rwlock.TryAcquireForWriting());
+  // Creating kNumThreads threads, starting them with callback function, waits until all of them finished
+  ThreadsDispatcher(thread, &RWlockTest::TryWriteLock_helper);
+  EXPECT_TRUE(test_rwlock.Release());
+}
+
+TEST_F(RWlockTest, AcquireForWriting_ExpectNoAccessForReading) {
+  // Threads IDs
+  pthread_t thread[kNum_threads_];
+  // Lock rw lock for writing
+  EXPECT_TRUE(test_rwlock.AcquireForWriting());
   // Try to lock rw lock for reading
-  EXPECT_TRUE(test_rwlock.TryAcquireForWriting());
-  // Create reading threads
-  for (uint8_t i = 0; i < kNum_threads_; ++i) {
-    bool thread_created = pthread_create(&thread[i], NULL,
-                                         &RWlockTest::trywrlockThread_helper,
-                                         this);
-    ASSERT_FALSE(thread_created)<< "thread is not created!";
-  }
-  for (uint8_t i = 0; i < kNum_threads_; ++i) {
-    pthread_join(thread[i], NULL);
-  }
-  EXPECT_FALSE(test_rwlock.Release());
+  EXPECT_FALSE(test_rwlock.TryAcquireForReading());
+  // Creating kNumThreads threads, starting them with callback function, waits until all of them finished
+  ThreadsDispatcher(thread, &RWlockTest::TryReadLock_helper);
+  EXPECT_TRUE(test_rwlock.Release());
+}
+
+TEST_F(RWlockTest, AcquireForWriting_ExpectNoMoreAccessForWriting) {
+  // Threads IDs
+  pthread_t thread[kNum_threads_];
+  // Lock rw lock for writing
+  EXPECT_TRUE(test_rwlock.AcquireForWriting());
+  // Try to lock rw lock for reading
+  EXPECT_FALSE(test_rwlock.TryAcquireForWriting());
+  // Creating kNumThreads threads, starting them with callback function, waits until all of them finished
+  ThreadsDispatcher(thread, &RWlockTest::TryWriteLock_helper);
+  EXPECT_TRUE(test_rwlock.Release());
 }
 
 }  // namespace utils

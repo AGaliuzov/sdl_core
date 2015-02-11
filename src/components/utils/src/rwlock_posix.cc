@@ -50,43 +50,43 @@ RWLock::~RWLock() {
 }
 
 bool RWLock::AcquireForReading() {
-  bool value = true;
-  if ((value = pthread_rwlock_rdlock(&rwlock_)) != 0) {
+  if (pthread_rwlock_rdlock(&rwlock_) != 0) {
     LOG4CXX_ERROR(logger_, "Failed to acquire rwlock for reading");
+    return false;
   }
-  return value;
+  return true;
 }
 
 bool RWLock::TryAcquireForReading() {
-  bool value = true;
-  if ((value = pthread_rwlock_tryrdlock(&rwlock_)) != 0) {
+  if (pthread_rwlock_tryrdlock(&rwlock_) != 0) {
     LOG4CXX_ERROR(logger_, "Failed to acquire rwlock for reading");
+    return false;
   }
-  return value;
+  return true;
 }
 
 bool RWLock::AcquireForWriting() {
-  bool value = true;
-  if ((value = pthread_rwlock_wrlock(&rwlock_)) != 0) {
+  if (pthread_rwlock_wrlock(&rwlock_) != 0) {
     LOG4CXX_ERROR(logger_, "Failed to acquire rwlock for writing");
+    return false;
   }
-  return value;
+  return true;
 }
 
 bool RWLock::TryAcquireForWriting() {
-  bool value = true;
-  if ((value = pthread_rwlock_trywrlock(&rwlock_)) != 0) {
+  if (pthread_rwlock_trywrlock(&rwlock_) != 0) {
     LOG4CXX_ERROR(logger_, "Failed to acquire rwlock for writing");
+    return false;
   }
-  return value;
+  return true;
 }
 
 bool RWLock::Release() {
-  bool value = true;
-  if ((value = pthread_rwlock_unlock(&rwlock_)) != 0) {
+  if (pthread_rwlock_unlock(&rwlock_) != 0) {
     LOG4CXX_ERROR(logger_, "Failed to release rwlock");
+    return false;
   }
-  return value;
+  return true;
 }
 
 }  // namespace sync_primitives
