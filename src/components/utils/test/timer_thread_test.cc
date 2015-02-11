@@ -71,11 +71,6 @@ class TimerThreadTest : public ::testing::Test {
   const uint32_t wait_val;
 };
 
-void* start_timer(void *context) {
-  (reinterpret_cast<TimerThread<TimerThreadTest> *>(context))->start(1);
-  return NULL;
-}
-
 TEST_F(TimerThreadTest, StartTimerThreadWithTimeoutOneSec_ExpectSuccessfullInvokeCallbackFuncOnTimeout) {
   // Create Timer with TimerDeleagate
   TimerThread<TimerThreadTest> timer("Test", this, &TimerThreadTest::function,
@@ -154,7 +149,6 @@ TEST_F(TimerThreadTest, CheckStartedTimerIsRunning_ExpectTrue) {
     // Check start is running
     EXPECT_TRUE(timer.isRunning());
   }
-
   EXPECT_EQ(val1, check_val);
 }
 
