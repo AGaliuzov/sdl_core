@@ -400,11 +400,11 @@ void MessageHelper::SendHashUpdateNotification(const uint32_t app_id) {
 void MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
   int32_t connection_key,
   mobile_api::AppInterfaceUnregisteredReason::eType reason) {
+
+  LOG4CXX_AUTO_TRACE(logger_);
+
   smart_objects::SmartObjectSPtr notification = new smart_objects::SmartObject;
-  if (!notification) {
-    // TODO(VS): please add logger.
-    return;
-  }
+  DCHECK(notification);
   smart_objects::SmartObject& message = *notification;
 
   message[strings::params][strings::function_id] =
@@ -417,7 +417,12 @@ void MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
 
   message[strings::msg_params][strings::reason] = static_cast<int32_t>(reason);
 
-  DCHECK(ApplicationManagerImpl::instance()->ManageMobileCommand(notification));
+  if (ApplicationManagerImpl::instance()->ManageMobileCommand(notification)) {
+    LOG4CXX_DEBUG(logger_, "Mobile command sent");
+  }
+  else {
+    LOG4CXX_WARN(logger_, "Cannot send mobile command");
+  }
 }
 
 const VehicleData& MessageHelper::vehicle_data() {

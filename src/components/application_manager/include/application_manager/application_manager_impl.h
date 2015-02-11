@@ -331,7 +331,7 @@ class ApplicationManagerImpl : public ApplicationManager,
     /*
      * @brief Closes all registered applications
      */
-    void UnregisterAllApplications(bool generated_by_hmi = false);
+    void UnregisterAllApplications();
 
     bool RemoveAppDataFromHMI(ApplicationSharedPtr app);
     bool LoadAppDataToHMI(ApplicationSharedPtr app);
@@ -524,6 +524,7 @@ class ApplicationManagerImpl : public ApplicationManager,
     void OnServiceEndedCallback(const int32_t& session_key,
                                 const protocol_handler::ServiceType& type) OVERRIDE;
     void OnApplicationFloodCallBack(const uint32_t& connection_key) OVERRIDE;
+    void OnMalformedMessageCallback(const uint32_t& connection_key) OVERRIDE;
     /**
      * @ Add notification to collection
      *

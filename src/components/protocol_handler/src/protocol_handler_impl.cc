@@ -413,7 +413,11 @@ void ProtocolHandlerImpl::OnTMMessageReceived(const RawMessagePtr tm_message) {
   if (result == RESULT_FAIL) {
     LOG4CXX_ERROR(logger_,
                   "Incoming data processing failed. Terminating connection.");
-    transport_manager_->DisconnectForce(tm_message->connection_key());
+    if (session_observer_) {
+      session_observer_->OnMalformedMessageCallback(tm_message->connection_key());
+    } else {
+      transport_manager_->DisconnectForce(tm_message->connection_key());
+    }
   }
 
   for (std::list<ProtocolFramePtr>::const_iterator it =
