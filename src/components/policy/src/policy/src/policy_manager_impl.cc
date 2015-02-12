@@ -283,7 +283,9 @@ void PolicyManagerImpl::OnAppsSearchStarted() {
 void PolicyManagerImpl::OnAppsSearchCompleted() {
   LOG4CXX_AUTO_TRACE(logger_);
   update_status_manager_.OnAppsSearchCompleted();
-  StartPTExchange();
+  if (update_status_manager_.IsUpdateRequired()) {
+    StartPTExchange();
+  }
 }
 
 void PolicyManagerImpl::CheckPermissions(const PTString& app_id,
