@@ -59,11 +59,17 @@ class RWlockTest : public ::testing::Test {
   void ExpectReadLockFail() {
     bool temp = test_rwlock.TryAcquireForReading();
     EXPECT_FALSE(temp);
+    if (temp) {
+      test_rwlock.Release();
+    }
   }
 
   void ExpectWriteLockFail() {
     bool temp = test_rwlock.TryAcquireForWriting();
     EXPECT_FALSE(temp);
+    if (temp) {
+      test_rwlock.Release();
+    }
   }
 
   static void* ReadLock_helper(void *context) {
