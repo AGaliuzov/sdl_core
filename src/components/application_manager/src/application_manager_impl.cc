@@ -75,8 +75,6 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "ApplicationManager")
 uint32_t ApplicationManagerImpl::corelation_id_ = 0;
 const uint32_t ApplicationManagerImpl::max_corelation_id_ = UINT_MAX;
 
-const int wait_end_service_timeout = 1;
-
 namespace formatters = NsSmartDeviceLink::NsJSONHandler::Formatters;
 namespace jhs = NsSmartDeviceLink::NsJSONHandler::strings;
 
@@ -105,6 +103,7 @@ ApplicationManagerImpl::ApplicationManagerImpl()
     unregister_reason_(mobile_api::AppInterfaceUnregisteredReason::INVALID_ENUM),
     resume_ctrl_(this),
     end_services_timer("EndServiceTimer", this, &ApplicationManagerImpl::EndNaviServices),
+    wait_end_service_timeout(profile::Profile::instance()->stop_streaming_timeout()),
 #ifdef CUSTOMER_PASA
     is_state_suspended_(false),
 #endif // CUSTOMER_PASA

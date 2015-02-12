@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
@@ -123,6 +123,7 @@ const char* kTCPAdapterPortKey = "TCPAdapterPort";
 const char* kServerPortKey = "ServerPort";
 const char* kVideoStreamingPortKey = "VideoStreamingPort";
 const char* kAudioStreamingPortKey = "AudioStreamingPort";
+const char* kStopStreamingTimeout = "StopStreamingTimeout";
 const char* kTimeTestingPortKey = "TimeTestingPort";
 const char* kThreadStackSizeKey = "ThreadStackSize";
 const char* kMaxCmdIdKey = "MaxCmdID";
@@ -205,6 +206,7 @@ const uint16_t kDefautTransportManagerTCPPort = 12345;
 const uint16_t kDefaultServerPort = 8087;
 const uint16_t kDefaultVideoStreamingPort = 5050;
 const uint16_t kDefaultAudioStreamingPort = 5080;
+const uint32_t kDefaultStopStreamingTimout = 1;
 const uint16_t kDefaultTimeTestingPort = 5090;
 const uint32_t kDefaultMaxCmdId = 2000000000;
 const uint32_t kDefaultPutFileRequestInNone = 5;
@@ -419,6 +421,10 @@ const uint16_t& Profile::video_streaming_port() const {
 
 const uint16_t& Profile::audio_streaming_port() const {
   return audio_streaming_port_;
+}
+
+uint32_t Profile::stop_streaming_timeout() const {
+  return stop_streaming_timeout_;
 }
 
 const uint16_t& Profile::time_testing_port() const {
@@ -818,6 +824,14 @@ void Profile::UpdateValues() {
   LOG_UPDATED_VALUE(audio_streaming_port_, kAudioStreamingPortKey,
                     kHmiSection);
 
+  // Audio streaming port
+  ReadUIntValue(&stop_streaming_timeout_, kDefaultStopStreamingTimout,
+                kHmiSection, kStopStreamingTimeout);
+
+  stop_streaming_timeout_ = std::max(kDefaultStopStreamingTimout, stop_streaming_timeout_);
+
+  LOG_UPDATED_VALUE(stop_streaming_timeout_, kStopStreamingTimeout,
+                    kHmiSection);
 
   // Time testing port
   ReadUIntValue(&time_testing_port_, kDefaultTimeTestingPort, kMainSection,

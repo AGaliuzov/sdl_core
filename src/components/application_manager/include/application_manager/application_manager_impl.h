@@ -1154,6 +1154,7 @@ class ApplicationManagerImpl : public ApplicationManager,
     std::map<protocol_handler::ServiceType, std::pair<bool, bool> > service_status_;
 
     timer::TimerThread<ApplicationManagerImpl> end_services_timer;
+    uint32_t wait_end_service_timeout;
     uint32_t navi_app_to_stop_;
 #ifdef CUSTOMER_PASA
     /**
