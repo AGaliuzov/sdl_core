@@ -43,8 +43,8 @@ class RWlockTest : public ::testing::Test {
  public:
   void ThreadsDispatcher(void* (*func)(void*)) {
     for (uint8_t i = 0; i < kNum_threads_; ++i) {
-      bool thread_created = pthread_create(&thread[i], NULL, func, this);
-      ASSERT_FALSE(thread_created)<< "thread is not created!";
+      bool thread_created = (pthread_create(&thread[i], NULL, func, this) == 0);
+      ASSERT_TRUE(thread_created);
     }
     for (uint8_t i = 0; i < kNum_threads_; ++i) {
       pthread_join(thread[i], NULL);
@@ -56,20 +56,14 @@ class RWlockTest : public ::testing::Test {
     EXPECT_TRUE(test_rwlock.Release());
   }
 
-  void TryReadLock() {
+  void ExpectReadLockFail() {
     bool temp = test_rwlock.TryAcquireForReading();
     EXPECT_FALSE(temp);
-    if (temp) {
-      EXPECT_TRUE(test_rwlock.Release());
-    }
   }
 
-  void TryWriteLock() {
+  void ExpectWriteLockFail() {
     bool temp = test_rwlock.TryAcquireForWriting();
     EXPECT_FALSE(temp);
-    if (temp) {
-      EXPECT_TRUE(test_rwlock.Release());
-    }
   }
 
   static void* ReadLock_helper(void *context) {
@@ -80,19 +74,19 @@ class RWlockTest : public ::testing::Test {
 
   static void* TryReadLock_helper(void *context) {
     RWlockTest *temp = reinterpret_cast<RWlockTest *>(context);
-    temp->TryReadLock();
+    temp->ExpectReadLockFail();
     return NULL;
   }
 
   static void* TryWriteLock_helper(void *context) {
     RWlockTest *temp = reinterpret_cast<RWlockTest *>(context);
-    temp->TryWriteLock();
+    temp->ExpectWriteLockFail();
     return NULL;
   }
 
  protected:
   RWLock test_rwlock;
-  enum {kNum_threads_ = 5};
+  enum { kNum_threads_ = 5 };
   pthread_t thread[kNum_threads_];
 };
 
