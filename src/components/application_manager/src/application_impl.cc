@@ -83,7 +83,7 @@ ApplicationImpl::ApplicationImpl(uint32_t application_id,
       app_id_(application_id),
       active_message_(NULL),
       is_media_(false),
-      allowed_support_navigation_(false),
+      is_navi_(false),
       hmi_supports_navi_video_streaming_(false),
       hmi_supports_navi_audio_streaming_(false),
       is_app_allowed_(true),
@@ -164,7 +164,7 @@ bool ApplicationImpl::MakeFullscreen() {
   return true;
 }
 void ApplicationImpl::ChangeSupportingAppHMIType() {
-  allowed_support_navigation_ = false;
+  is_navi_ = false;
   is_voice_communication_application_ = false;
   const smart_objects::SmartObject& array_app_types = *app_types_;
   uint32_t lenght_app_types = array_app_types.length();
@@ -173,7 +173,7 @@ void ApplicationImpl::ChangeSupportingAppHMIType() {
     if (mobile_apis::AppHMIType::NAVIGATION ==
         static_cast<mobile_apis::AppHMIType::eType>(
             array_app_types[i].asUInt())) {
-      allowed_support_navigation_ = true;
+      is_navi_ = true;
     }
     if (mobile_apis::AppHMIType::COMMUNICATION ==
         static_cast<mobile_apis::AppHMIType::eType>(
@@ -193,12 +193,12 @@ void ApplicationImpl::MakeNotAudible() {
   audio_streaming_state_ = mobile_api::AudioStreamingState::NOT_AUDIBLE;
 }
 
-bool ApplicationImpl::allowed_support_navigation() const {
-  return allowed_support_navigation_;
+bool ApplicationImpl::is_navi() const {
+  return is_navi_;
 }
 
-void ApplicationImpl::set_allowed_support_navigation(bool allow) {
-  allowed_support_navigation_ = allow;
+void ApplicationImpl::set_is_navi(bool allow) {
+  is_navi_ = allow;
 }
 
 bool ApplicationImpl::is_voice_communication_supported() const {
@@ -213,7 +213,7 @@ void ApplicationImpl::set_voice_communication_supported(
 bool ApplicationImpl::IsAudioApplication() const {
   return is_media_ ||
          is_voice_communication_application_ ||
-         allowed_support_navigation_;
+         is_navi_;
 }
 
 const smart_objects::SmartObject* ApplicationImpl::active_message() const {

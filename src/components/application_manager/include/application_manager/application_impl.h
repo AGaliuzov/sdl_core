@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
@@ -80,8 +80,8 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   void MakeNotAudible();
 
   // navi
-  bool allowed_support_navigation() const;
-  void set_allowed_support_navigation(bool allow);
+  bool is_navi() const;
+  void set_is_navi(bool allow);
   bool hmi_supports_navi_video_streaming() const;
   void set_hmi_supports_navi_video_streaming(bool supports);
   bool hmi_supports_navi_audio_streaming() const;
@@ -215,7 +215,7 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   uint32_t                                 app_id_;
   smart_objects::SmartObject*              active_message_;
   bool                                     is_media_;
-  bool                                     allowed_support_navigation_;
+  bool                                     is_navi_;
   bool                                     hmi_supports_navi_video_streaming_;
   bool                                     hmi_supports_navi_audio_streaming_;
   bool                                     is_app_allowed_;

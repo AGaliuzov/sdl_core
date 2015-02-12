@@ -263,23 +263,28 @@ void MediaManagerImpl::StopAudioStreaming(int32_t application_key) {
 
 void MediaManagerImpl::OnMessageReceived(
   const ::protocol_handler::RawMessagePtr message) {
-  if (message->service_type()
-      == protocol_handler::kMobileNav) {
-    if (!(application_manager::ApplicationManagerImpl::instance()->
-         IsVideoStreamingAllowed(message->connection_key()))) {
-       return;
-     }
-    if (video_streamer_) {
-      video_streamer_->SendData(message->connection_key(), message);
+  using namespace application_manager;
+  using namespace protocol_handler;
+
+  const uint32_t app_id = message->connection_key();
+  const bool can_stream =
+      ApplicationManagerImpl::instance()->CanAppStream(app_id);
+  if (!can_stream) {
+    LOG4CXX_DEBUG(logger_, "The application trying to stream when it should not.");
+    return;
+  }
+
+  if (message->service_type() == kMobileNav) {
+    if ((ApplicationManagerImpl::instance()-> IsVideoStreamingAllowed(app_id))) {
+      if (video_streamer_) {
+        video_streamer_->SendData(message->connection_key(), message);
+      }
     }
-  } else if (message->service_type()
-          == protocol_handler::kAudio) {
-    if (!(application_manager::ApplicationManagerImpl::instance()->
-         IsAudioStreamingAllowed(message->connection_key()))) {
-       return;
-     }
-    if (audio_streamer_) {
-      audio_streamer_->SendData(message->connection_key(), message);
+  } else if (message->service_type() == kAudio) {
+    if ((ApplicationManagerImpl::instance()-> IsAudioStreamingAllowed(app_id))) {
+      if (audio_streamer_) {
+        audio_streamer_->SendData(message->connection_key(), message);
+      }
     }
   }
 }

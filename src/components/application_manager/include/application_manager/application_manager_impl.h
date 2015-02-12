@@ -596,6 +596,18 @@ class ApplicationManagerImpl : public ApplicationManager,
      */
     bool IsVideoStreamingAllowed(uint32_t connection_key) const;
 
+    /**
+     * @brief CanAppStream allows to check whether application is permited for
+     * data streaming.
+     *
+     * In case streaming for app is disallowed the method will send EndService to mobile.
+     *
+     * @param app_id the application id which should be checked.
+     *
+     * @return true in case streaming is allowed, false otherwise.
+     */
+    bool CanAppStream(uint32_t app_id);
+
     mobile_api::HMILevel::eType GetDefaultHmiLevel(
         ApplicationSharedPtr application) const;
 
@@ -986,7 +998,6 @@ class ApplicationManagerImpl : public ApplicationManager,
      */
     bool IsLowVoltage();
 
-
   private:
 
     /**
@@ -1015,19 +1026,34 @@ class ApplicationManagerImpl : public ApplicationManager,
     void CloseNaviApp();
 
     /**
-     * @brief AcksReceived allows to distinguish if end Acks were received for both
-     * audio and video services.
+     * @brief AckReceived allows to distinguish if ack for appropriate service
+     * has been received (means EndServiceAck).
      *
-     * @return the status of acks.
+     * @param type service time.
+     *
+     * @return in case EndService has been sent and appropriate ack has been
+     * received it returns true. In case No EndService for appropriate serevice type
+     * jas been sent and no ack has been receive it return treue as well.
+     * Otherwise it will return false.
+     *
      */
-    bool AcksReceived();
+    bool AckReceived(protocol_handler::ServiceType type);
 
     /**
      * @brief NaviAppChangeLevel the callback which reacts on case when applications
      * hmi level has been changed.
      */
-    template <mobile_apis::HMILevel::eType>
-    void NaviAppChangeLevel();
+    void NaviAppChangeLevel(mobile_apis::HMILevel::eType new_level);
+
+    /**
+     * @brief ProcessNaviService allows to start navi service
+     *
+     * @param type service type.
+     *
+     * @param connection_key the application id.
+     */
+    bool ProcessNaviService(protocol_handler::ServiceType type, uint32_t connection_key);
+
 
     /**
      * @brief Function returns supported SDL Protocol Version
@@ -1125,7 +1151,7 @@ class ApplicationManagerImpl : public ApplicationManager,
      */
     ResumeCtrl resume_ctrl_;
 
-    std::map<protocol_handler::ServiceType, bool> service_status_;
+    std::map<protocol_handler::ServiceType, std::pair<bool, bool> > service_status_;
 
     timer::TimerThread<ApplicationManagerImpl> end_services_timer;
     uint32_t navi_app_to_stop_;

@@ -255,7 +255,7 @@ void ProtocolHandlerImpl::SendEndServicePrivate(int32_t connection_id,
     raw_ford_messages_to_mobile_.PostMessage(
       impl::RawFordMessageToMobile(ptr, false));
     LOG4CXX_INFO(logger_, "SendEndSession() for connection " << connection_id
-                   << " for service_type " << static_cast<int32_t>(SERVICE_TYPE_RPC)
+                   << " for service_type " << service_type
                    << " session_id " << static_cast<int32_t>(session_id));
   } else {
   LOG4CXX_WARN(logger_, "SendEndSession is failed connection or session does not exist");

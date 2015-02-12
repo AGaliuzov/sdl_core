@@ -263,7 +263,7 @@ void RegisterAppInterfaceRequest::Run() {
         if (mobile_apis::AppHMIType::NAVIGATION ==
             static_cast<mobile_apis::AppHMIType::eType>(
                 app_type.getElement(i).asUInt())) {
-          app->set_allowed_support_navigation(true);
+          app->set_is_navi(true);
         }
         if (mobile_apis::AppHMIType::COMMUNICATION ==
             static_cast<mobile_apis::AppHMIType::eType>(

@@ -411,12 +411,15 @@ class Application : public virtual InitialApplicationData,
     virtual void ChangeSupportingAppHMIType() = 0;
     virtual bool IsAudible() const = 0;
     virtual void MakeNotAudible() = 0;
-    virtual bool allowed_support_navigation() const = 0;
-    virtual void set_allowed_support_navigation(bool allow) = 0;
+    virtual bool is_navi() const = 0;
+    virtual void set_is_navi(bool allow) = 0;
     virtual bool hmi_supports_navi_video_streaming() const = 0;
     virtual void set_hmi_supports_navi_video_streaming(bool supports) = 0;
     virtual bool hmi_supports_navi_audio_streaming() const = 0;
     virtual void set_hmi_supports_navi_audio_streaming(bool supports) = 0;
+
+    bool can_stream() const { return can_stream_;}
+    void set_can_stream(bool can_stream) { can_stream_ = can_stream;}
 
     virtual bool is_voice_communication_supported() const = 0;
     virtual void set_voice_communication_supported(
@@ -628,6 +631,7 @@ class Application : public virtual InitialApplicationData,
     std::string url_;
     std::string package_name_;
     std::string device_id_;
+    bool can_stream_;
 };
 
 typedef utils::SharedPtr<Application> ApplicationSharedPtr;
