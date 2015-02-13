@@ -92,6 +92,7 @@ class AOAWrapper {
 
   explicit AOAWrapper(AOAHandle hdl);
   AOAWrapper(AOAHandle hdl, uint32_t timeout);
+  ~AOAWrapper();
 
   bool IsHandleValid() const;
   AOAVersion GetProtocolVesrion() const;
@@ -108,8 +109,10 @@ class AOAWrapper {
                                       uint16_t index) const;
 
  private:
+  static const uint32_t kBufferSize = 32768;
   static AOADeviceLife* life_;
   AOAHandle hdl_;
+  uint8_t* buffer_;
   uint32_t timeout_;
   AOAConnectionObserver* connection_observer_;
 

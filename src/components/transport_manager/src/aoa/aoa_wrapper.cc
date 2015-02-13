@@ -118,12 +118,18 @@ AOAWrapper::AOAWrapper(AOAHandle hdl)
     : hdl_(hdl),
       timeout_(AOA_TIMEOUT_INFINITY),
       connection_observer_(0) {
+  aoa_buffer_alloc(hdl_, &buffer_, kBufferSize);
 }
 
 AOAWrapper::AOAWrapper(AOAHandle hdl, uint32_t timeout)
     : hdl_(hdl),
       timeout_(timeout),
       connection_observer_(0) {
+  aoa_buffer_alloc(hdl_, &buffer_, kBufferSize);
+}
+
+AOAWrapper::~AOAWrapper() {
+  aoa_buffer_free(hdl_, buffer_);
 }
 
 bool AOAWrapper::Init(AOADeviceLife *life) {
@@ -163,13 +169,27 @@ bool AOAWrapper::Init(AOADeviceLife* life, const char* config_path,
 bool AOAWrapper::SetCallback(AOAEndpoint endpoint) const {
   LOG4CXX_TRACE(logger_,
                 "AOA: set callback " << hdl_ << ", endpoint " << endpoint);
-  data_clbk_t callback;
+  int ret;
   switch (endpoint) {
     case AOA_Ept_Accessory_BulkIn:
-      callback = &OnReceivedData;
+      ret = aoa_bulk_arx(hdl_,
+                         OnReceivedData,
+                         &connection_observer_,
+                         BitEndpoint(AOA_Ept_Accessory_BulkIn),
+                         timeout_,
+                         buffer_,
+                         kBufferSize,
+                         AOA_FLAG_MANAGED_BUF);
       break;
     case AOA_Ept_Accessory_BulkOut:
-      callback = &OnTransmittedData;
+      ret = aoa_bulk_atx(hdl_,
+                         OnTransmittedData,
+                         &connection_observer_,
+                         BitEndpoint(AOA_Ept_Accessory_BulkOut),
+                         timeout_,
+                         buffer_,
+                         kBufferSize,
+                         AOA_FLAG_MANAGED_BUF);
       break;
     default:
       LOG4CXX_ERROR(
@@ -177,8 +197,6 @@ bool AOAWrapper::SetCallback(AOAEndpoint endpoint) const {
       ;
       return false;
   }
-  int ret = aoa_set_callback(hdl_, callback, &connection_observer_,
-                             BitEndpoint(endpoint));
   if (IsError(ret)) {
     PrintError(ret);
     return false;
@@ -204,7 +222,8 @@ bool AOAWrapper::Subscribe(AOAConnectionObserver *observer) {
 }
 
 bool AOAWrapper::UnsetCallback(AOAEndpoint endpoint) const {
-  int ret_r = aoa_set_callback(hdl_, NULL, NULL, BitEndpoint(endpoint));
+//int ret_r = aoa_set_callback(hdl_, NULL, NULL, BitEndpoint(endpoint));
+  int ret_r = AOA_EOK;
   if (IsError(ret_r)) {
     PrintError(ret_r);
     return false;
@@ -277,7 +296,7 @@ uint32_t AOAWrapper::BitEndpoint(AOAEndpoint endpoint) const {
 
 uint32_t AOAWrapper::GetBufferMaximumSize(AOAEndpoint endpoint) const {
   uint32_t size;
-  int ret = aoa_get_endpoint_bufsz(hdl_, BitEndpoint(endpoint), &size);
+  int ret = aoa_get_bufsz(hdl_, BitEndpoint(endpoint), &size);
   if (IsError(ret)) {
     PrintError(ret);
   }
@@ -348,7 +367,7 @@ bool AOAWrapper::SendMessage(::protocol_handler::RawMessagePtr message) const {
   uint8_t *data = message->data();
   size_t length = message->data_size();
   int ret = aoa_bulk_tx(hdl_, AOA_EPT_ACCESSORY_BULKOUT, timeout_, data,
-                        &length);
+                        &length, AOA_FLAG_MANAGED_BUF);
   if (IsError(ret)) {
     PrintError(ret);
     return false;
@@ -371,7 +390,7 @@ bool AOAWrapper::SendControlMessage(uint16_t request, uint16_t value,
   uint8_t *data = message->data();
   size_t length = message->data_size();
   int ret = aoa_control_tx(hdl_, AOA_EPT_ACCESSORY_CONTROL, timeout_, request,
-                           value, index, data, &length);
+                           value, index, data, &length, AOA_FLAG_MANAGED_BUF);
   if (IsError(ret)) {
     PrintError(ret);
     return false;
@@ -390,7 +409,7 @@ bool AOAWrapper::SendControlMessage(uint16_t request, uint16_t value,
 
   uint8_t *data;
   uint32_t size;
-  int ret = aoa_bulk_rx(hdl_, AOA_EPT_ACCESSORY_BULKIN, timeout_, &data, &size);
+  int ret = aoa_bulk_rx(hdl_, AOA_EPT_ACCESSORY_BULKIN, timeout_, &data, &size, AOA_FLAG_MANAGED_BUF);
   if (IsError(ret)) {
     PrintError(ret);
   } else if (data) {
@@ -413,7 +432,7 @@ bool AOAWrapper::SendControlMessage(uint16_t request, uint16_t value,
   uint8_t *data;
   uint32_t size;
   int ret = aoa_control_rx(hdl_, AOA_EPT_ACCESSORY_CONTROL, timeout_, request,
-                           value, index, &data, &size);
+                           value, index, &data, &size, AOA_FLAG_MANAGED_BUF);
   if (IsError(ret)) {
     PrintError(ret);
   } else if (data) {
