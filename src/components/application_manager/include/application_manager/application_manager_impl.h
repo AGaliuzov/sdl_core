@@ -1060,6 +1060,14 @@ class ApplicationManagerImpl : public ApplicationManager,
      */
     bool ProcessNaviService(protocol_handler::ServiceType type, uint32_t connection_key);
 
+    /**
+     * @brief NaviAppStreamStatus allows to handle case when navi streaming state
+     * has ben changed from streaming to non streaming and vise versa.
+     *
+     * @param stream_active the stream's state - is it streams or not.
+     */
+    void NaviAppStreamStatus(bool stream_active);
+
 
     /**
      * @brief Function returns supported SDL Protocol Version

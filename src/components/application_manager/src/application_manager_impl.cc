@@ -991,6 +991,11 @@ bool ApplicationManagerImpl::ProcessNaviService(protocol_handler::ServiceType ty
       break;
   }
 
+  if (result) {
+    const bool streaming_started = true;
+    NaviAppStreamStatus(streaming_started);
+  }
+
   service_status_[type] = std::make_pair(result, false);
   return result;
 }
@@ -1058,6 +1063,8 @@ void ApplicationManagerImpl::OnServiceEndedCallback(const int32_t& session_key,
         LOG4CXX_WARN(logger_, "Unknown type of service to be ended." << type);
         break;
     }
+    const bool streaming_started = false;
+    NaviAppStreamStatus(streaming_started);
     service_status_[type].second = true;
     LOG4CXX_DEBUG(logger_, "Ack status: " << service_status_[type].first <<" : "
                   << service_status_[type].second);
@@ -2352,6 +2359,18 @@ void  ApplicationManagerImpl::OnLowVoltage() {
 bool ApplicationManagerImpl::IsLowVoltage() {
   LOG4CXX_TRACE(logger_, "result: " << is_low_voltage_);
   return is_low_voltage_;
+}
+
+void ApplicationManagerImpl::NaviAppStreamStatus(bool stream_active) {
+  ApplicationSharedPtr active_app = active_application();
+  using namespace mobile_apis;
+  if(active_app && active_app->is_media_application()) {
+
+    active_app->set_audio_streaming_state(stream_active ?
+                                            AudioStreamingState::ATTENUATED :
+                                            AudioStreamingState::AUDIBLE);
+    MessageHelper::SendHMIStatusNotification(*active_app);
+  }
 }
 
 bool ApplicationManagerImpl::CanAppStream(uint32_t app_id) {
