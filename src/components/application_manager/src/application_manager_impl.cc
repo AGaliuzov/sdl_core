@@ -1957,8 +1957,9 @@ void ApplicationManagerImpl::HeadUnitReset(
       UnregisterAllApplications();
       policy::PolicyHandler::instance()->ResetPolicyTable();
       policy::PolicyHandler::instance()->UnloadPolicyLibrary();
+
+      resume_controller().StopSavePersistentDataTimer();
       file_system::remove_directory_content(profile::Profile::instance()->app_storage_folder());
-      resume_controller().ClearResumptionInfo();
       break;
     }
     case mobile_api::AppInterfaceUnregisteredReason::FACTORY_DEFAULTS: {
