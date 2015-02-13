@@ -251,7 +251,7 @@ std::vector<ApplicationSharedPtr> ApplicationManagerImpl::applications_by_button
   SubscribedToButtonPredicate finder(
         static_cast<mobile_apis::ButtonName::eType>(button));
   ApplicationListAccessor accessor;
-  std::vector<ApplicationSharedPtr> apps = accessor.FindAll(NaviAppPredicate);
+  std::vector<ApplicationSharedPtr> apps = accessor.FindAll(finder);
   LOG4CXX_DEBUG(logger_, " Found count: " << apps.size());
   return apps;
 }
