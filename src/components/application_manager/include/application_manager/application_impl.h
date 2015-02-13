@@ -70,14 +70,12 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   const smart_objects::SmartObject* active_message() const;
   void CloseActiveMessage();
   bool IsFullscreen() const;
-  bool MakeFullscreen();
 
   /**
    * @brief change supporting COMMUNICATION NAVIGATION
    */
   virtual void ChangeSupportingAppHMIType();
   bool IsAudible() const;
-  void MakeNotAudible();
 
   // navi
   bool is_navi() const;
@@ -92,6 +90,7 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
       bool is_voice_communication_supported);
   inline bool app_allowed() const;
   bool has_been_activated() const;
+  bool set_activated(bool is_active);
 
   const Version& version() const;
   void set_hmi_application_id(uint32_t hmi_app_id);

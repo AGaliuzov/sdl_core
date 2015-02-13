@@ -407,10 +407,8 @@ class Application : public virtual InitialApplicationData,
 
     virtual void CloseActiveMessage() = 0;
     virtual bool IsFullscreen() const = 0;
-    virtual bool MakeFullscreen() = 0;
     virtual void ChangeSupportingAppHMIType() = 0;
     virtual bool IsAudible() const = 0;
-    virtual void MakeNotAudible() = 0;
     virtual bool is_navi() const = 0;
     virtual void set_is_navi(bool allow) = 0;
     virtual bool hmi_supports_navi_video_streaming() const = 0;
@@ -426,6 +424,7 @@ class Application : public virtual InitialApplicationData,
         bool is_voice_communication_supported) = 0;
     virtual bool app_allowed() const = 0;
     virtual bool has_been_activated() const = 0;
+    virtual bool set_activated(bool is_active) = 0;
 
     virtual const Version& version() const = 0;
     virtual void set_hmi_application_id(uint32_t hmi_app_id) = 0;

@@ -715,6 +715,12 @@ class ApplicationManagerImpl : public ApplicationManager,
      */
     void ResetPhoneCallAppList();
 
+    void ChangeAppsHMILevel(uint32_t app_id, mobile_apis::HMILevel::eType level);
+
+    void MakeAppNotAudible(uint32_t app_id);
+
+    bool MakeAppFullScreen(uint32_t app_id);
+
     /**
      * Function used only by HMI request/response/notification base classes
      * to change HMI app id to Mobile app id and vice versa.

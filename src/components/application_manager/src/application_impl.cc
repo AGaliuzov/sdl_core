@@ -152,17 +152,6 @@ bool ApplicationImpl::IsFullscreen() const {
   return mobile_api::HMILevel::HMI_FULL == hmi_level_;
 }
 
-bool ApplicationImpl::MakeFullscreen() {
-  set_hmi_level(mobile_api::HMILevel::HMI_FULL);
-  if (is_media_ && !tts_speak_state_) {
-    audio_streaming_state_ = mobile_api::AudioStreamingState::AUDIBLE;
-  }
-  system_context_ = mobile_api::SystemContext::SYSCTXT_MAIN;
-  if (!has_been_activated_) {
-    has_been_activated_ = true;
-  }
-  return true;
-}
 void ApplicationImpl::ChangeSupportingAppHMIType() {
   is_navi_ = false;
   is_voice_communication_application_ = false;
@@ -186,11 +175,6 @@ void ApplicationImpl::ChangeSupportingAppHMIType() {
 bool ApplicationImpl::IsAudible() const {
   return mobile_api::HMILevel::HMI_FULL == hmi_level_
       || mobile_api::HMILevel::HMI_LIMITED == hmi_level_;
-}
-
-void ApplicationImpl::MakeNotAudible() {
-  set_hmi_level(mobile_api::HMILevel::HMI_BACKGROUND);
-  audio_streaming_state_ = mobile_api::AudioStreamingState::NOT_AUDIBLE;
 }
 
 bool ApplicationImpl::is_navi() const {
@@ -474,6 +458,11 @@ void ApplicationImpl::set_grammar_id(uint32_t value) {
 
 bool ApplicationImpl::has_been_activated() const {
   return has_been_activated_;
+}
+
+bool ApplicationImpl::set_activated(bool is_active) {
+  has_been_activated_ = is_active;
+  return true;
 }
 
 void ApplicationImpl::set_protocol_version(

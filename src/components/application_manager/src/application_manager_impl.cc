@@ -482,10 +482,12 @@ bool ApplicationManagerImpl::ActivateApplication(ApplicationSharedPtr app) {
     return false;
   }
 
+  using namespace mobile_api::HMILevel;
+
   bool is_new_app_media = app->is_media_application();
   ApplicationSharedPtr current_active_app = active_application();
 
-  if (mobile_api::HMILevel::eType::HMI_LIMITED != app->hmi_level()) {
+  if (HMI_LIMITED != app->hmi_level()) {
     if (app->has_been_activated()) {
       MessageHelper::SendAppDataToHMI(app);
     }
@@ -493,46 +495,34 @@ bool ApplicationManagerImpl::ActivateApplication(ApplicationSharedPtr app) {
 
   if (current_active_app.valid()) {
     if (is_new_app_media && current_active_app->is_media_application()) {
-      current_active_app->MakeNotAudible();
-    } else if (!(current_active_app->IsAudioApplication())) {
-      current_active_app->set_hmi_level(mobile_api::HMILevel::HMI_BACKGROUND);
+      MakeAppNotAudible(current_active_app->app_id());
     } else {
-      current_active_app->set_hmi_level(mobile_api::HMILevel::HMI_LIMITED);
+      ChangeAppsHMILevel(current_active_app->app_id(),
+                         current_active_app->IsAudioApplication() ? HMI_LIMITED :
+                                                                    HMI_BACKGROUND);
     }
 
     MessageHelper::SendHMIStatusNotification(*current_active_app);
   }
 
-  app->MakeFullscreen();
+  MakeAppFullScreen(app->app_id());
 
   if (is_new_app_media) {
     ApplicationSharedPtr limited_app = get_limited_media_application();
     if (limited_app.valid()) {
-      limited_app->MakeNotAudible();
+      MakeAppNotAudible(limited_app->app_id());
       MessageHelper::SendHMIStatusNotification(*limited_app);
     }
   }
 
-  if (app->is_voice_communication_supported()) {
+  if (app->is_voice_communication_supported() || app->is_navi()) {
     ApplicationSharedPtr limited_app = get_limited_voice_application();
     if (limited_app.valid()) {
       if (limited_app->is_media_application()) {
         limited_app->set_audio_streaming_state(
             mobile_api::AudioStreamingState::NOT_AUDIBLE);
       }
-      limited_app->set_hmi_level(mobile_api::HMILevel::HMI_BACKGROUND);
-      MessageHelper::SendHMIStatusNotification(*limited_app);
-    }
-  }
-
-  if (app->is_navi()) {
-    ApplicationSharedPtr limited_app = get_limited_navi_application();
-    if (limited_app.valid()) {
-      if (limited_app->is_media_application()) {
-        limited_app->set_audio_streaming_state(
-            mobile_api::AudioStreamingState::NOT_AUDIBLE);
-      }
-      limited_app->set_hmi_level(mobile_api::HMILevel::HMI_BACKGROUND);
+      ChangeAppsHMILevel(app->app_id(), HMI_BACKGROUND);
       MessageHelper::SendHMIStatusNotification(*limited_app);
     }
   }
@@ -2692,9 +2682,10 @@ void ApplicationManagerImpl::CreatePhoneCallAppList() {
   ApplicationManagerImpl::ApplictionSetIt it = accessor.begin();
   ApplicationManagerImpl::ApplictionSetIt itEnd = accessor.end();
 
+  using namespace mobile_apis::HMILevel;
+  using namespace helpers;
   for (; it != itEnd; ++it) {
-    if (mobile_api::HMILevel::HMI_FULL == (*it)->hmi_level() ||
-        mobile_api::HMILevel::HMI_LIMITED == (*it)->hmi_level()) {
+    if (Compare<eType, EQ, ONE>((*it)->hmi_level(), HMI_FULL, HMI_LIMITED)) {
 
       // back up app state
       on_phone_call_app_list_.insert(std::pair<uint32_t, AppState>(
@@ -2702,9 +2693,9 @@ void ApplicationManagerImpl::CreatePhoneCallAppList() {
                                     (*it)->audio_streaming_state(),
                                     (*it)->system_context())));
 
-      OnHMILevelChanged((*it)->app_id(), (*it)->hmi_level(), mobile_api::HMILevel::HMI_BACKGROUND);
+      ChangeAppsHMILevel((*it)->app_id() , HMI_BACKGROUND);
+
       // app state during phone call
-      (*it)->set_hmi_level(mobile_api::HMILevel::HMI_BACKGROUND);
       (*it)->set_audio_streaming_state(mobile_api::AudioStreamingState::NOT_AUDIBLE);
       (*it)->set_system_context(mobile_api::SystemContext::SYSCTXT_MAIN);
       MessageHelper::SendHMIStatusNotification(*(*it));
@@ -2715,9 +2706,6 @@ void ApplicationManagerImpl::CreatePhoneCallAppList() {
 void ApplicationManagerImpl::ResetPhoneCallAppList() {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  ApplicationManagerImpl::ApplicationListAccessor accessor;
-  ApplicationManagerImpl::ApplictionSet local_app_list = accessor.applications();
-
   std::map<uint32_t, AppState>::iterator it =
       on_phone_call_app_list_.begin();
   std::map<uint32_t, AppState>::iterator it_end =
@@ -2725,9 +2713,8 @@ void ApplicationManagerImpl::ResetPhoneCallAppList() {
   for (; it != it_end; ++it) {
     ApplicationSharedPtr app = application(it->first);
     if (app) {
-      OnHMILevelChanged(app->app_id(), app->hmi_level(), it->second.hmi_level);
+      ChangeAppsHMILevel(app->app_id(), it->second.hmi_level);
 
-      app->set_hmi_level(it->second.hmi_level);
       app->set_audio_streaming_state(it->second.audio_streaming_state);
       app->set_system_context(it->second.system_context);
       MessageHelper::SendHMIStatusNotification(*app);
@@ -2736,6 +2723,54 @@ void ApplicationManagerImpl::ResetPhoneCallAppList() {
 
   on_phone_call_app_list_.clear();
 }
+
+void ApplicationManagerImpl::ChangeAppsHMILevel(uint32_t app_id,
+                                                mobile_apis::HMILevel::eType level) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  ApplicationSharedPtr app = application(app_id);
+  if (!app) {
+    LOG4CXX_DEBUG(logger_, "There is no app with id: " << app_id);
+    return;
+  }
+  using namespace mobile_apis::HMILevel;
+  eType old_level = app->hmi_level();
+  app->set_hmi_level(level);
+
+  OnHMILevelChanged(app_id, old_level, level);
+}
+
+void ApplicationManagerImpl::MakeAppNotAudible(uint32_t app_id) {
+  using namespace mobile_apis;
+  ApplicationSharedPtr app = application(app_id);
+  if (!app) {
+    LOG4CXX_DEBUG(logger_, "There is no app with id: " << app_id);
+    return;
+  }
+  ChangeAppsHMILevel(app_id, HMILevel::HMI_BACKGROUND);
+  app->set_audio_streaming_state(AudioStreamingState::NOT_AUDIBLE);
+}
+
+bool ApplicationManagerImpl::MakeAppFullScreen(uint32_t app_id) {
+  using namespace mobile_apis;
+  ApplicationSharedPtr app = application(app_id);
+  if (!app) {
+    LOG4CXX_DEBUG(logger_, "There is no app with id: " << app_id);
+    return false;
+  }
+
+  ChangeAppsHMILevel(app_id, HMILevel::HMI_FULL);
+  if (app->is_media_application() && app->tts_speak_state()) {
+    app->set_audio_streaming_state(AudioStreamingState::AUDIBLE);
+  }
+  app->set_system_context(SystemContext::SYSCTXT_MAIN);
+
+  if(!app->has_been_activated()) {
+    app->set_activated(true);
+  }
+
+  return true;
+}
+
 #ifdef CUSTOMER_PASA
 void ApplicationManagerImpl::set_state_suspended(const bool flag_suspended) {
   is_state_suspended_ = flag_suspended;
@@ -2844,7 +2879,7 @@ void ApplicationManagerImpl::OnUpdateHMIAppType(
                                               hmi_apis::Common_HMILevel::BACKGROUND,
                                               false);
           MessageHelper::SendUIChangeRegistrationRequestToHMI(*it);
-          (*it)->set_hmi_level(mobile_api::HMILevel::HMI_BACKGROUND);
+          ChangeAppsHMILevel((*it)->app_id(), mobile_api::HMILevel::HMI_BACKGROUND);
           MessageHelper::SendHMIStatusNotification(*(*it));
         }
       }
