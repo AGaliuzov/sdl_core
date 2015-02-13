@@ -63,25 +63,30 @@ class AsyncRunnerTest : public ::testing::Test {
       : kDelegatesNum_(1),
         asr_pt_(NULL) {
     CreateAsyncRunner();
+    CreateThreadsArray();
+  }
+
+  ~AsyncRunnerTest() {
+    DeleteAsyncRunner();
+    DeleteThreadsArray();
+  }
+
+ protected:
+  Lock test_lock_;
+  uint32_t kDelegatesNum_;
+  ConditionalVariable cond_var_;
+  TestThreadDelegate **delegates_;
+  AsyncRunner *asr_pt_;
+
+  void CreateThreadsArray() {
     srand(std::time(NULL));
     kDelegatesNum_ = (rand() % 20 + 1);
     delegates_ = new TestThreadDelegate*[kDelegatesNum_];
   }
 
-  ~AsyncRunnerTest() {
-    DeleteAsyncRunner();
+  void DeleteThreadsArray() {
     delete[] delegates_;
   }
-
- protected:
-  Lock test_lock_;
-//  enum {
-//    kDelegatesNum_ = 5
-//  };
-  uint32_t kDelegatesNum_;
-  ConditionalVariable cond_var_;
-  TestThreadDelegate **delegates_;
-  AsyncRunner *asr_pt_;
 
   void CreateAsyncRunner() {
     asr_pt_ = new AsyncRunner("test");
