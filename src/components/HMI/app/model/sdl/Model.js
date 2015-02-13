@@ -826,10 +826,33 @@ SDL.SDLModel = Em.Object.create({
      *
      * @param {Object}
      */
-    startStream: function(params) {
+    startStream: function(request) {
 
-        SDL.SDLController.getApplicationModel(params.appID).set('navigationStream', params.url);
-        SDL.SDLModel.playVideo(params.appID);
+        var text = "Would you like to start Video stream?";
+
+        SDL.PopUp.create().appendTo('body').popupActivate(text, function(result){
+            if (result) {
+
+                SDL.SDLController.getApplicationModel(request.params.appID).set('navigationStream', request.params.url);
+                SDL.SDLModel.playVideo(request.params.appID);
+
+                FFW.Navigation.sendNavigationResult(
+                    SDL.SDLModel.resultCode["SUCCESS"],
+                    request.id,
+                    request.method
+                );
+
+            } else if (result === false) {
+
+                FFW.Navigation.sendError(
+                    SDL.SDLModel.resultCode["REJECTED"],
+                    request.id,
+                    request.method,
+                    "Ignored by USER!"
+                );
+            }
+        });
+
     },
 
     /**
@@ -866,8 +889,30 @@ SDL.SDLModel = Em.Object.create({
      */
     startAudioStream: function(params) {
 
-        SDL.SDLController.getApplicationModel(params.appID).set('navigationAudioStream', params.url);
-        SDL.StreamAudio.play(params.url);
+        var text = "Would you like to start Audio stream?";
+
+        SDL.PopUp.create().appendTo('body').popupActivate(text, function(result){
+            if (result) {
+
+                SDL.SDLController.getApplicationModel(params.appID).set('navigationAudioStream', params.url);
+                SDL.StreamAudio.play(params.url);
+
+                FFW.Navigation.sendNavigationResult(
+                    SDL.SDLModel.resultCode["SUCCESS"],
+                    request.id,
+                    request.method
+                );
+
+            } else if (result === false) {
+
+                FFW.Navigation.sendError(
+                    SDL.SDLModel.resultCode["REJECTED"],
+                    request.id,
+                    request.method,
+                    "Ignored by USER!"
+                );
+            }
+        });
     },
 
     /**

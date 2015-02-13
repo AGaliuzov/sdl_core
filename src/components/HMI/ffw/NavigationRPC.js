@@ -240,11 +240,7 @@ FFW.Navigation = FFW.RPCObserver.create( {
                 }
                 case "Navigation.StartAudioStream": {
 
-                    SDL.SDLModel.startAudioStream(request.params);
-
-                    this.sendNavigationResult(SDL.SDLModel.resultCode["SUCCESS"],
-                        request.id,
-                        request.method);
+                    SDL.SDLModel.startAudioStream(request);
 
                     break;
                 }
@@ -260,11 +256,7 @@ FFW.Navigation = FFW.RPCObserver.create( {
                 }
                 case "Navigation.StartStream": {
 
-                    SDL.SDLModel.startStream(request.params);
-
-                    this.sendNavigationResult(SDL.SDLModel.resultCode["SUCCESS"],
-                        request.id,
-                        request.method);
+                    SDL.SDLModel.startStream(request);
 
                     break;
                 }
