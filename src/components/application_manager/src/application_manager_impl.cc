@@ -493,7 +493,7 @@ bool ApplicationManagerImpl::ActivateApplication(ApplicationSharedPtr app) {
     }
   }
 
-  if (current_active_app.valid()) {
+  if (current_active_app) {
     if (is_new_app_media && current_active_app->is_media_application()) {
       MakeAppNotAudible(current_active_app->app_id());
     } else {
@@ -509,7 +509,7 @@ bool ApplicationManagerImpl::ActivateApplication(ApplicationSharedPtr app) {
 
   if (is_new_app_media) {
     ApplicationSharedPtr limited_app = get_limited_media_application();
-    if (limited_app.valid()) {
+    if (limited_app && !limited_app->is_navi()) {
       MakeAppNotAudible(limited_app->app_id());
       MessageHelper::SendHMIStatusNotification(*limited_app);
     }
@@ -821,7 +821,7 @@ bool ApplicationManagerImpl::IsAudioStreamingAllowed(uint32_t application_key) c
   }
 
   return Compare<eType, EQ, ONE>(
-        app->hmi_level(), HMI_FULL, HMI_LIMITED, HMI_BACKGROUND);
+        app->hmi_level(), HMI_FULL, HMI_LIMITED);
 }
 
 bool ApplicationManagerImpl::IsVideoStreamingAllowed(uint32_t application_key) const {
@@ -991,11 +991,6 @@ bool ApplicationManagerImpl::ProcessNaviService(protocol_handler::ServiceType ty
       break;
   }
 
-  if (result) {
-    const bool streaming_started = true;
-    NaviAppStreamStatus(streaming_started);
-  }
-
   service_status_[type] = std::make_pair(result, false);
   return result;
 }
@@ -1063,8 +1058,6 @@ void ApplicationManagerImpl::OnServiceEndedCallback(const int32_t& session_key,
         LOG4CXX_WARN(logger_, "Unknown type of service to be ended." << type);
         break;
     }
-    const bool streaming_started = false;
-    NaviAppStreamStatus(streaming_started);
     service_status_[type].second = true;
     LOG4CXX_DEBUG(logger_, "Ack status: " << service_status_[type].first <<" : "
                   << service_status_[type].second);
@@ -2365,6 +2358,7 @@ void ApplicationManagerImpl::NaviAppStreamStatus(bool stream_active) {
   ApplicationSharedPtr active_app = active_application();
   using namespace mobile_apis;
   if(active_app && active_app->is_media_application()) {
+    LOG4CXX_DEBUG(logger_, "Stream status: " << active_app->app_id());
 
     active_app->set_audio_streaming_state(stream_active ?
                                             AudioStreamingState::ATTENUATED :
@@ -2376,7 +2370,7 @@ void ApplicationManagerImpl::NaviAppStreamStatus(bool stream_active) {
 bool ApplicationManagerImpl::CanAppStream(uint32_t app_id) {
   LOG4CXX_AUTO_TRACE(logger_);
   ApplicationSharedPtr app = application(app_id);
-  if (!app) {
+  if (!(app && app->is_navi())) {
     LOG4CXX_DEBUG(logger_, " There is no application with id: " << app_id);
     return false;
   }
@@ -2403,8 +2397,22 @@ bool ApplicationManagerImpl::CanAppStream(uint32_t app_id) {
     // in case no acks, the application will be unregistered.
     end_services_timer.start(wait_end_service_timeout, this, &ApplicationManagerImpl::CloseNaviApp);
   }
-
+  ChangeStreamStatus(app_id, can_stream);
   return can_stream;
+}
+
+void ApplicationManagerImpl::ChangeStreamStatus(uint32_t app_id, bool can_stream) {
+
+  ApplicationSharedPtr app = application(app_id);
+  if (!app) {
+    LOG4CXX_DEBUG(logger_, " There is no application with id: " << app_id);
+    return;
+  }
+
+  if (can_stream != app->streaming()) {
+    NaviAppStreamStatus(can_stream);
+    app->set_streaming(can_stream);
+  }
 }
 
 void ApplicationManagerImpl::OnHMILevelChanged(uint32_t app_id,
@@ -2746,6 +2754,8 @@ void ApplicationManagerImpl::ResetPhoneCallAppList() {
 void ApplicationManagerImpl::ChangeAppsHMILevel(uint32_t app_id,
                                                 mobile_apis::HMILevel::eType level) {
   LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(logger_, "AppID to change: " << app_id << " -> "
+                << level);
   ApplicationSharedPtr app = application(app_id);
   if (!app) {
     LOG4CXX_DEBUG(logger_, "There is no app with id: " << app_id);
@@ -2778,7 +2788,7 @@ bool ApplicationManagerImpl::MakeAppFullScreen(uint32_t app_id) {
   }
 
   ChangeAppsHMILevel(app_id, HMILevel::HMI_FULL);
-  if (app->is_media_application() && app->tts_speak_state()) {
+  if (app->is_media_application() || app->is_navi()) {
     app->set_audio_streaming_state(AudioStreamingState::AUDIBLE);
   }
   app->set_system_context(SystemContext::SYSCTXT_MAIN);

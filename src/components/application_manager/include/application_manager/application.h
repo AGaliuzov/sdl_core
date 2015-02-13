@@ -418,6 +418,9 @@ class Application : public virtual InitialApplicationData,
 
     bool can_stream() const { return can_stream_;}
     void set_can_stream(bool can_stream) { can_stream_ = can_stream;}
+    bool streaming() const {return streaming_;}
+    void set_streaming(bool can_stream) { streaming_ = can_stream;}
+
 
     virtual bool is_voice_communication_supported() const = 0;
     virtual void set_voice_communication_supported(
@@ -631,6 +634,7 @@ class Application : public virtual InitialApplicationData,
     std::string package_name_;
     std::string device_id_;
     bool can_stream_;
+    bool streaming_;
 };
 
 typedef utils::SharedPtr<Application> ApplicationSharedPtr;

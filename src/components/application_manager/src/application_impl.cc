@@ -423,7 +423,7 @@ void ApplicationImpl::set_system_context(
 
 void ApplicationImpl::set_audio_streaming_state(
     const mobile_api::AudioStreamingState::eType& state) {
-  if (!is_media_application()
+  if (!(is_media_application() || is_navi())
       && state != mobile_api::AudioStreamingState::NOT_AUDIBLE) {
     LOG4CXX_WARN(logger_, "Trying to set audio streaming state"
                   " for non-media application to different from NOT_AUDIBLE");

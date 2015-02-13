@@ -608,6 +608,8 @@ class ApplicationManagerImpl : public ApplicationManager,
      */
     bool CanAppStream(uint32_t app_id);
 
+    void ChangeStreamStatus(uint32_t app_id, bool can_stream);
+
     mobile_api::HMILevel::eType GetDefaultHmiLevel(
         ApplicationSharedPtr application) const;
 
