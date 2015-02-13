@@ -311,6 +311,16 @@ class PolicyHandler :
    */
   const std::string RemoteAppsUrl() const;
 
+  /**
+   * @brief Handler on applications search started
+   */
+  virtual void OnAppsSearchStarted();
+
+  /**
+   * @brief Handler on applications search completed
+   */
+  virtual void OnAppsSearchCompleted();
+
 //TODO(AKutsan) REMOVE THIS UGLY HOTFIX
   virtual void Increment(usage_statistics::GlobalCounterId type);
   virtual void Increment(const std::string& app_id,

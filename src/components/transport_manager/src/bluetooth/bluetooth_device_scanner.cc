@@ -197,6 +197,7 @@ void BluetoothDeviceScanner::DoInquiry() {
                              &found_devices_with_sdl_);
   }
   UpdateTotalDeviceList();
+  controller_->FindNewApplicationsRequest();
 
   close(device_handle);
   delete[] inquiry_info_list;

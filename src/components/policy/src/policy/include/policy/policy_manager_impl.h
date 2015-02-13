@@ -164,6 +164,10 @@ class PolicyManagerImpl : public PolicyManager {
 
     virtual std::string RemoteAppsUrl() const;
 
+    virtual void OnAppsSearchStarted();
+
+    virtual void OnAppsSearchCompleted();
+
   protected:
     virtual utils::SharedPtr<policy_table::Table> Parse(
         const BinaryMessage& pt_content);
@@ -250,7 +254,7 @@ class PolicyManagerImpl : public PolicyManager {
                 const std::string& policy_app_id,
                 const std::vector<FunctionalGroupPermission>& current_permissions);
 
-    virtual void StartPTExchange();    
+    virtual void StartPTExchange();
     virtual bool ExceededDays();
     virtual bool ExceededIgnitionCycles();
     bool IsPTValid(utils::SharedPtr<policy_table::Table> policy_table,

@@ -399,6 +399,16 @@ class PolicyManager : public usage_statistics::StatisticsManager {
      */
     virtual std::string RemoteAppsUrl() const = 0;
 
+    /**
+     * @brief Handler on applications search started
+     */
+    virtual void OnAppsSearchStarted() = 0;
+
+    /**
+     * @brief Handler on applications search completed
+     */
+    virtual void OnAppsSearchCompleted() = 0;
+
   protected:
     /**
      * Checks is PT exceeded IgnitionCycles
@@ -418,7 +428,6 @@ class PolicyManager : public usage_statistics::StatisticsManager {
      * condition is true.
      */
     virtual void StartPTExchange() = 0;
-
 };
 
 }  // namespace policy

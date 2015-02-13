@@ -242,6 +242,13 @@ void PolicyManagerImpl::RequestPTUpdate() {
 void PolicyManagerImpl::StartPTExchange() {
   LOG4CXX_AUTO_TRACE(logger_);
 
+  if (update_status_manager_.IsAppsSearchInProgress()) {
+    update_status_manager_.ScheduleUpdate();
+    LOG4CXX_INFO(logger_, "Starting exchange skipped, since applications "
+                 "search is in progress.");
+    return;
+  }
+
   if (update_status_manager_.IsUpdatePending()) {
     update_status_manager_.ScheduleUpdate();
     LOG4CXX_INFO(logger_, "Starting exchange skipped, since another exchange "
@@ -266,6 +273,19 @@ std::string PolicyManagerImpl::RemoteAppsUrl() const {
   // support in policy table
   //return cache_->RemoteAppsUrl();
   return GetUpdateUrl(7);
+}
+
+void PolicyManagerImpl::OnAppsSearchStarted() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  update_status_manager_.OnAppsSearchStarted();
+}
+
+void PolicyManagerImpl::OnAppsSearchCompleted() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  update_status_manager_.OnAppsSearchCompleted();
+  if (update_status_manager_.IsUpdateRequired()) {
+    StartPTExchange();
+  }
 }
 
 void PolicyManagerImpl::CheckPermissions(const PTString& app_id,

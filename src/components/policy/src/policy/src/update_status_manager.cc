@@ -44,6 +44,7 @@ UpdateStatusManager::UpdateStatusManager() :
   update_required_(false),
   update_scheduled_(false),
   exchange_pending_(false),
+  apps_search_in_progress_(false),
   last_update_status_(policy::StatusUnknown) {
   update_status_thread_delegate_ = new UpdateThreadDelegate(this);
   thread_ = threads::CreateThread("UpdateStatusThread", update_status_thread_delegate_);
@@ -165,6 +166,24 @@ std::string UpdateStatusManager::StringifiedUpdateStatus() const {
       return "UNKNOWN";
     }
   }
+}
+
+void policy::UpdateStatusManager::OnAppsSearchStarted() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  sync_primitives::AutoLock lock(apps_search_in_progress_lock_);
+  apps_search_in_progress_ = true;
+}
+
+void policy::UpdateStatusManager::OnAppsSearchCompleted() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  sync_primitives::AutoLock lock(apps_search_in_progress_lock_);
+  apps_search_in_progress_ = false;
+}
+
+bool policy::UpdateStatusManager::IsAppsSearchInProgress() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  sync_primitives::AutoLock lock(apps_search_in_progress_lock_);
+  return apps_search_in_progress_;
 }
 
 void UpdateStatusManager::CheckUpdateStatus() {
