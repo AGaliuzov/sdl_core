@@ -30,6 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <stdlib.h>
+#include <ctime>
 #include "lock.h"
 #include "threads/async_runner.h"
 #include "utils/conditional_variable.h"
@@ -47,23 +49,6 @@ namespace {
 uint32_t check_value = 0;
 }
 
-class TestThreadDelegate;
-
-class AsyncRunnerTest : public ::testing::Test, public AsyncRunner {
- public:
-  AsyncRunnerTest()
-      : AsyncRunner("test"),
-        delegate_(NULL) {
-  }
-
- protected:
-  Lock test_lock_;
-  enum { kDelegatesNum_ = 5 };
-  ConditionalVariable cond_var_;
-  TestThreadDelegate *delegate_;
-  TestThreadDelegate *delegates_[kDelegatesNum_];
-};
-
 // ThreadDelegate successor
 class TestThreadDelegate : public ThreadDelegate {
  public:
@@ -72,33 +57,53 @@ class TestThreadDelegate : public ThreadDelegate {
   }
 };
 
-TEST_F(AsyncRunnerTest, CheckASyncRunOneDelegate_ExpectSuccessfulDelegateRun) {
-  AutoLock lock(test_lock_);
-  // Clear global value before test
-  check_value = 0;
-  // Create delegate
-  delegate_ = new TestThreadDelegate;
-  // Run cretaed delegate
-  AsyncRun(delegate_);
-  // Give 2 secs to delegate to run
-  cond_var_.WaitFor(lock, 2000);
-  // Expect delegate successfully run
-  EXPECT_EQ(1u, check_value);
-}
+class AsyncRunnerTest : public ::testing::Test {
+ public:
+  AsyncRunnerTest()
+      : kDelegatesNum_(1),
+        asr_pt_(NULL) {
+    CreateAsyncRunner();
+    srand(std::time(NULL));
+    kDelegatesNum_ = (rand() % 20 + 1);
+    delegates_ = new TestThreadDelegate*[kDelegatesNum_];
+  }
+
+  ~AsyncRunnerTest() {
+    DeleteAsyncRunner();
+    delete[] delegates_;
+  }
+
+ protected:
+  Lock test_lock_;
+//  enum {
+//    kDelegatesNum_ = 5
+//  };
+  uint32_t kDelegatesNum_;
+  ConditionalVariable cond_var_;
+  TestThreadDelegate **delegates_;
+  AsyncRunner *asr_pt_;
+
+  void CreateAsyncRunner() {
+    asr_pt_ = new AsyncRunner("test");
+  }
+  void DeleteAsyncRunner() {
+    delete asr_pt_;
+  }
+};
 
 TEST_F(AsyncRunnerTest, ASyncRunManyDelegates_ExpectSuccessfulAllDelegatesRun) {
   AutoLock lock(test_lock_);
   // Clear global value before test
   check_value = 0;
   // Create Delegates and run
-  for (int i = 0; i < kDelegatesNum_; ++i) {
-    delegates_[i] = new TestThreadDelegate;
-    AsyncRun(delegates_[i]);
+  for (unsigned int i = 0; i < kDelegatesNum_; ++i) {
+    delegates_[i] = new TestThreadDelegate();
+    asr_pt_->AsyncRun(delegates_[i]);
   }
   // Wait for 2 secs. Give this time to delegates to be run
   cond_var_.WaitFor(lock, 2000);
   // Expect all delegates run successfully
-  EXPECT_EQ(5u, check_value);
+  EXPECT_EQ(kDelegatesNum_, check_value);
 }
 
 TEST_F(AsyncRunnerTest, RunManyDelegatesAndStop_ExpectSuccessfulDelegatesStop) {
@@ -106,20 +111,22 @@ TEST_F(AsyncRunnerTest, RunManyDelegatesAndStop_ExpectSuccessfulDelegatesStop) {
   // Clear global value before test
   check_value = 0;
   // Create Delegates
-  for (int i = 0; i < kDelegatesNum_; ++i) {
-    delegates_[i] = new TestThreadDelegate;
+  for (unsigned int i = 0; i < kDelegatesNum_; ++i) {
+    delegates_[i] = new TestThreadDelegate();
   }
   // Wait for 2 secs
   cond_var_.WaitFor(lock, 2000);
   // Run created delegates
-  for (int i = 0; i < kDelegatesNum_; ++i) {
-    if (i == 3) {
-      Stop();
+  for (unsigned int i = 0; i < kDelegatesNum_; ++i) {
+    if (kDelegatesNum_ > 1) {
+      if (i == kDelegatesNum_ / 2) {
+        asr_pt_->Stop();
+      }
     }
-    AsyncRun(delegates_[i]);
+    asr_pt_->AsyncRun(delegates_[i]);
   }
   // Expect 3 delegates run successlully. The other stopped.
-  EXPECT_EQ(3u, check_value);
+  EXPECT_EQ(kDelegatesNum_ / 2, check_value);
 }
 
 }  // namespace utils
