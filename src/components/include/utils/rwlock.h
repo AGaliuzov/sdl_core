@@ -90,15 +90,6 @@ class RWLock {
   bool TryAcquireForReading();
 
   /**
-   * @brief try to Acqure read-write lock for writing.
-   * is that if RW lock previously was sucessfully acquired for WRITING
-   * and you will invoke AcquireForReading - calling thread will be blocked
-   * until lock will be released from writing.
-   * Invoke of TryAcquireForReading will not block calling thread and returns "false"
-   * @returns true if lock was acquired and false if was not
-   */
-
-  /**
      * @brief Try to Acqure read-write lock for writing.
      * Applies a write lock like AcquireForWriting(), with the exception that the
      * function fails if any thread currently holds rwlock (for reading or writing)
