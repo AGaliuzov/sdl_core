@@ -64,7 +64,9 @@ MediaManagerImpl::MediaManagerImpl()
   , video_streamer_(NULL)
   , audio_streamer_(NULL)
   , video_stream_active_(false)
-  , audio_stream_active_(false) {
+  , audio_stream_active_(false)
+  , streaming_timer("Streaming timer", this, &MediaManagerImpl::OnStreamingEnded)
+  , streaming_app_id(0) {
   Init();
 }
 
@@ -132,6 +134,10 @@ void MediaManagerImpl::Init() {
   if (NULL != audio_streamer_) {
     audio_streamer_->AddListener(audio_streamer_listener_);
   }
+}
+
+void MediaManagerImpl::OnStreamingEnded() {
+  application_manager::ApplicationManagerImpl::instance()->StreamingEnded(streaming_app_id);
 }
 
 void MediaManagerImpl::PlayA2DPSource(int32_t application_key) {
@@ -266,24 +272,27 @@ void MediaManagerImpl::OnMessageReceived(
   using namespace application_manager;
   using namespace protocol_handler;
 
-  const uint32_t app_id = message->connection_key();
+  streaming_app_id = message->connection_key();
   const bool can_stream =
-      ApplicationManagerImpl::instance()->CanAppStream(app_id);
+      ApplicationManagerImpl::instance()->CanAppStream(streaming_app_id);
   if (!can_stream) {
+    ApplicationManagerImpl::instance()->ForbidStreaming(streaming_app_id);
     LOG4CXX_DEBUG(logger_, "The application trying to stream when it should not.");
     return;
   }
 
   if (message->service_type() == kMobileNav) {
-    if ((ApplicationManagerImpl::instance()-> IsVideoStreamingAllowed(app_id))) {
+    if ((ApplicationManagerImpl::instance()-> IsVideoStreamingAllowed(streaming_app_id))) {
       if (video_streamer_) {
         video_streamer_->SendData(message->connection_key(), message);
+        streaming_timer.start(1);
       }
     }
   } else if (message->service_type() == kAudio) {
-    if ((ApplicationManagerImpl::instance()-> IsAudioStreamingAllowed(app_id))) {
+    if ((ApplicationManagerImpl::instance()-> IsAudioStreamingAllowed(streaming_app_id))) {
       if (audio_streamer_) {
         audio_streamer_->SendData(message->connection_key(), message);
+        streaming_timer.start(1);
       }
     }
   }

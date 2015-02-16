@@ -103,7 +103,7 @@ ApplicationManagerImpl::ApplicationManagerImpl()
     unregister_reason_(mobile_api::AppInterfaceUnregisteredReason::INVALID_ENUM),
     resume_ctrl_(this),
     end_services_timer("EndServiceTimer", this, &ApplicationManagerImpl::EndNaviServices),
-    wait_end_service_timeout(profile::Profile::instance()->stop_streaming_timeout()),
+    wait_end_service_timeout_(profile::Profile::instance()->stop_streaming_timeout()),
 #ifdef CUSTOMER_PASA
     is_state_suspended_(false),
 #endif // CUSTOMER_PASA
@@ -1018,7 +1018,7 @@ bool ApplicationManagerImpl::OnServiceStartedCallback(
   if (Compare<ServiceType, EQ, ONE>(type, kMobileNav, kAudio)) {
     if (app->is_navi()) {
       result = ProcessNaviService(type, session_key);
-      app->set_can_stream(result);
+      app->set_streaming_allowed(result);
     }
   }
   return result;
@@ -2367,52 +2367,65 @@ void ApplicationManagerImpl::NaviAppStreamStatus(bool stream_active) {
   }
 }
 
-bool ApplicationManagerImpl::CanAppStream(uint32_t app_id) {
+void ApplicationManagerImpl::ForbidStreaming(uint32_t app_id) {
   LOG4CXX_AUTO_TRACE(logger_);
+  using namespace protocol_handler;
+  ApplicationSharedPtr app = application(app_id);
+  if (!(app && app->is_navi())) {
+    LOG4CXX_DEBUG(logger_, " There is no application with id: " << app_id);
+    return;
+  }
+
+  if (connection_handler_) {
+    const bool send_end_service = true;
+    const bool ack_received = false;
+    if (app->hmi_supports_navi_video_streaming()) {
+      LOG4CXX_DEBUG(logger_, "Going to end video service");
+      connection_handler_->SendEndService(navi_app_to_stop_, kMobileNav);
+      service_status_[kMobileNav] = std::make_pair(send_end_service, ack_received);
+    }
+    if (app->hmi_supports_navi_audio_streaming()) {
+      LOG4CXX_DEBUG(logger_, "Going to end audio service");
+      connection_handler_->SendEndService(navi_app_to_stop_, kAudio);
+      service_status_[kAudio] = std::make_pair(send_end_service, ack_received);
+    }
+  }
+  // this timer will check if appropriate acks from mobile were received.
+  // in case no acks, the application will be unregistered.
+  end_services_timer.start(wait_end_service_timeout_, this, &ApplicationManagerImpl::CloseNaviApp);
+  bool const allow_streaming = false;
+  ChangeStreamStatus(app_id, allow_streaming);
+}
+
+bool ApplicationManagerImpl::CanAppStream(uint32_t app_id) const {
+  LOG4CXX_AUTO_TRACE(logger_);
+
   ApplicationSharedPtr app = application(app_id);
   if (!(app && app->is_navi())) {
     LOG4CXX_DEBUG(logger_, " There is no application with id: " << app_id);
     return false;
   }
 
-  const bool can_stream = app->can_stream();
-
-  if (!can_stream) {
-    using namespace protocol_handler;
-    if (connection_handler_) {
-      const bool send_end_service = true;
-      const bool ack_received = false;
-      if (app->hmi_supports_navi_video_streaming()) {
-        LOG4CXX_DEBUG(logger_, "Going to end video service");
-        connection_handler_->SendEndService(navi_app_to_stop_, kMobileNav);
-        service_status_[kMobileNav] = std::make_pair(send_end_service, ack_received);
-      }
-      if (app->hmi_supports_navi_audio_streaming()) {
-        LOG4CXX_DEBUG(logger_, "Going to end audio service");
-        connection_handler_->SendEndService(navi_app_to_stop_, kAudio);
-        service_status_[kAudio] = std::make_pair(send_end_service, ack_received);
-      }
-    }
-    // this timer will check if appropriate acks from mobile were received.
-    // in case no acks, the application will be unregistered.
-    end_services_timer.start(wait_end_service_timeout, this, &ApplicationManagerImpl::CloseNaviApp);
-  }
-  ChangeStreamStatus(app_id, can_stream);
-  return can_stream;
+  return app->is_streaming_allowed();
 }
 
 void ApplicationManagerImpl::ChangeStreamStatus(uint32_t app_id, bool can_stream) {
-
   ApplicationSharedPtr app = application(app_id);
   if (!app) {
     LOG4CXX_DEBUG(logger_, " There is no application with id: " << app_id);
     return;
   }
 
+  // Change streaming status only in case incoming value is different.
   if (can_stream != app->streaming()) {
     NaviAppStreamStatus(can_stream);
     app->set_streaming(can_stream);
   }
+}
+
+void ApplicationManagerImpl::StreamingEnded(uint32_t app_id) {
+  LOG4CXX_DEBUG(logger_, "Streaming has been stoped.");
+  ChangeStreamStatus(app_id, false);
 }
 
 void ApplicationManagerImpl::OnHMILevelChanged(uint32_t app_id,
@@ -2431,7 +2444,7 @@ void ApplicationManagerImpl::OnHMILevelChanged(uint32_t app_id,
     NaviAppChangeLevel(to);
   } else if (Compare<eType, EQ, ONE>(to, HMI_FULL, HMI_LIMITED)) {
     LOG4CXX_DEBUG(logger_, "Restore streaming ability");
-    app->set_can_stream(true);
+    app->set_streaming_allowed(true);
   }
 }
 
@@ -2442,7 +2455,7 @@ void ApplicationManagerImpl::EndNaviServices() {
     LOG4CXX_DEBUG(logger_, "The application doesn't exists anymore.");
     return;
   }
-  app->set_can_stream(false);
+  app->set_streaming_allowed(false);
 }
 
 void ApplicationManagerImpl::CloseNaviApp() {
@@ -2475,11 +2488,11 @@ void ApplicationManagerImpl::NaviAppChangeLevel(mobile_apis::HMILevel::eType new
   LOG4CXX_AUTO_TRACE(logger_);
   using namespace mobile_apis;
   if (new_level == HMILevel::HMI_BACKGROUND) {
-    end_services_timer.start(wait_end_service_timeout, this, &ApplicationManagerImpl::EndNaviServices);
+    end_services_timer.start(wait_end_service_timeout_, this, &ApplicationManagerImpl::EndNaviServices);
   } else if (new_level == HMILevel::HMI_NONE) {
     EndNaviServices();
     LOG4CXX_DEBUG(logger_, "Send end services start close app timer");
-    end_services_timer.start(wait_end_service_timeout, this, &ApplicationManagerImpl::CloseNaviApp);
+    end_services_timer.start(wait_end_service_timeout_, this, &ApplicationManagerImpl::CloseNaviApp);
   } else {
     LOG4CXX_DEBUG(logger_, "There is no defined behavior for hmi " <<
                   "levels that are differen from NONE or BACKGROUND");

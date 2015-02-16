@@ -345,6 +345,13 @@ class ConnectionHandlerImpl : public ConnectionHandler,
   virtual void SendHeartBeat(ConnectionHandle connection_handle,
                              uint8_t session_id);
 
+  /**
+   * @brief SendEndService allows to end up specific service.
+   *
+   * @param key application identifier whose service should be closed.
+   *
+   * @param service_type the service that should be closed.
+   */
   virtual void SendEndService(uint32_t key,
                               uint8_t service_type);
 

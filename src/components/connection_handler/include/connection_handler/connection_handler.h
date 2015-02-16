@@ -115,6 +115,13 @@ class ConnectionHandler {
                             uint8_t session_id,
                             CloseSessionReason close_reason) = 0;
 
+    /**
+   * @brief SendEndService allows to end up specific service.
+   *
+   * @param key application identifier whose service should be closed.
+   *
+   * @param service_type the service that should be closed.
+   */
   virtual void SendEndService(uint32_t key, uint8_t service_type) = 0;
 
   /**

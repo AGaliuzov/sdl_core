@@ -206,7 +206,7 @@ const uint16_t kDefautTransportManagerTCPPort = 12345;
 const uint16_t kDefaultServerPort = 8087;
 const uint16_t kDefaultVideoStreamingPort = 5050;
 const uint16_t kDefaultAudioStreamingPort = 5080;
-const uint32_t kDefaultStopStreamingTimout = 1;
+const uint32_t kDefaultStopStreamingTimeout = 1;
 const uint16_t kDefaultTimeTestingPort = 5090;
 const uint32_t kDefaultMaxCmdId = 2000000000;
 const uint32_t kDefaultPutFileRequestInNone = 5;
@@ -825,10 +825,10 @@ void Profile::UpdateValues() {
                     kHmiSection);
 
   // Audio streaming port
-  ReadUIntValue(&stop_streaming_timeout_, kDefaultStopStreamingTimout,
+  ReadUIntValue(&stop_streaming_timeout_, kDefaultStopStreamingTimeout,
                 kHmiSection, kStopStreamingTimeout);
 
-  stop_streaming_timeout_ = std::max(kDefaultStopStreamingTimout, stop_streaming_timeout_);
+  stop_streaming_timeout_ = std::max(kDefaultStopStreamingTimeout, stop_streaming_timeout_);
 
   LOG_UPDATED_VALUE(stop_streaming_timeout_, kStopStreamingTimeout,
                     kHmiSection);

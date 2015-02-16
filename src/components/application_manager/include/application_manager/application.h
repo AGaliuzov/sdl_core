@@ -416,8 +416,8 @@ class Application : public virtual InitialApplicationData,
     virtual bool hmi_supports_navi_audio_streaming() const = 0;
     virtual void set_hmi_supports_navi_audio_streaming(bool supports) = 0;
 
-    bool can_stream() const { return can_stream_;}
-    void set_can_stream(bool can_stream) { can_stream_ = can_stream;}
+    bool is_streaming_allowed() const { return can_stream_;}
+    void set_streaming_allowed(bool can_stream) { can_stream_ = can_stream;}
     bool streaming() const {return streaming_;}
     void set_streaming(bool can_stream) { streaming_ = can_stream;}
 

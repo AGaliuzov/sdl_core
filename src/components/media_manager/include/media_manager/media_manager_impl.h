@@ -35,6 +35,7 @@
 
 #include <string>
 #include "utils/singleton.h"
+#include "utils/timer_thread.h"
 #include "protocol_handler/protocol_observer.h"
 #include "protocol_handler/protocol_handler.h"
 #include "protocol/service_type.h"
@@ -82,6 +83,9 @@ class MediaManagerImpl : public MediaManager,
     bool                               audio_stream_active_;
 
   private:
+    void OnStreamingEnded();
+    timer::TimerThread<MediaManagerImpl> streaming_timer;
+    uint32_t streaming_app_id;
     DISALLOW_COPY_AND_ASSIGN(MediaManagerImpl);
     FRIEND_BASE_SINGLETON_CLASS(MediaManagerImpl);
 };
