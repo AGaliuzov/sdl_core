@@ -59,8 +59,11 @@ ResumeCtrl::ResumeCtrl(ApplicationManagerImpl* app_mngr)
     app_mngr_(app_mngr),
     save_persistent_data_timer_("RsmCtrlPercist",
                                 this, &ResumeCtrl::SaveDataOnTimer, true),
+    restore_hmi_level_timer_("RsmCtrlRstore",
+                             this, &ResumeCtrl::ApplicationResumptiOnTimer),
     is_data_saved(true),
     launch_time_(time(NULL)) {
+  LoadResumeData();
   save_persistent_data_timer_.start(profile::Profile::instance()->app_resumption_save_persistent_data_timeout());
 }
 
@@ -100,6 +103,7 @@ void ResumeCtrl::SaveApplication(ApplicationConstSharedPtr application) {
   json_app[strings::grammar_id] = grammar_id;
   json_app[strings::connection_key] = application->app_id();
   json_app[strings::hmi_app_id] = application->hmi_app_id();
+  json_app[strings::is_media_application] = application->IsAudioApplication();
   json_app[strings::hmi_level] = static_cast<int32_t> (hmi_level);
   json_app[strings::ign_off_count] = 0;
   json_app[strings::suspend_count] = 0;
@@ -117,21 +121,7 @@ void ResumeCtrl::SaveApplication(ApplicationConstSharedPtr application) {
   json_app[strings::application_files] = GetApplicationFiles(application);
   json_app[strings::time_stamp] = time_stamp;
   LOG4CXX_DEBUG(logger_, "SaveApplication : " << json_app.toStyledString());
-  if (application->is_media_application()&&
-       (hmi_level == mobile_apis::HMILevel::HMI_FULL ||
-       hmi_level == mobile_apis::HMILevel::HMI_LIMITED)) {
-     LOG4CXX_DEBUG(logger_, "Delete HmiLevel for all saved apps");
-     for (Json::Value::iterator it = GetSavedApplications().begin();
-         it != GetSavedApplications().end(); ++it) {
-       Json::Value& json_app = *it;
-       if (json_app[strings::app_id].asString() == m_app_id) {
-          LOG4CXX_DEBUG(logger_, "pass self " << m_app_id);
-          continue;
-       }
-       json_app[strings::hmi_level] = static_cast<int32_t> (
-                                        mobile_apis::HMILevel::INVALID_ENUM);
-     }
-  }
+
   resumtion_lock_.Release();
 }
 
@@ -206,7 +196,7 @@ bool ResumeCtrl::SetAppHMIState(ApplicationSharedPtr application,
       (hmi_level != mobile_apis::HMILevel::HMI_NONE)) {
     LOG4CXX_DEBUG(logger_, "Hmi level " << hmi_level << " should not be set to "
                  << application->mobile_app_id()
-                 <<"curr hmi_level is " << application->hmi_level());
+                 <<" current hmi_level is " << application->hmi_level());
     return false;
   }
 
@@ -458,6 +448,9 @@ bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
     LOG4CXX_WARN(logger_, "Application not exist");
     return false;
   }
+
+  SetupDefaultHMILevel(application);
+
   LOG4CXX_DEBUG(logger_, " Resume app_id = " << application->app_id()
                         << " hmi_app_id = " << application->hmi_app_id()
                         << " mobile_id = " << application->mobile_app_id()
@@ -467,7 +460,6 @@ bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
   const int idx = GetObjectIndex(application->mobile_app_id());
   if (-1 == idx) {
     LOG4CXX_WARN(logger_, "Application not saved");
-    SetupDefaultHMILevel(application);
     return false;
   }
 
@@ -480,17 +472,26 @@ bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
       RestoreApplicationData(application);
     }
     application->UpdateHash();
-    StartAppHmiStateResumption(json_app[strings::time_stamp].asUInt(), application);
-    return true;
+    ApplicationManagerImpl::ApplicationListAccessor accessor;
+    if (!restore_hmi_level_timer_.isRunning() &&
+      accessor.applications().size() > 1) {
+      // if there is already registered app resume without delays
+      StartAppHmiStateResumption(application);
+    } else {
+      queue_lock_.Acquire();
+      waiting_for_timer_.push_back(application->app_id());
+      queue_lock_.Release();
+      restore_hmi_level_timer_.start(profile::Profile::instance()->app_resuming_timeout());
+    }
   } else {
     LOG4CXX_INFO(logger_, "There are some unknown keys in the dictionary.");
+    return false;
   }
 
-  return false;
+  return true;
 }
 
-void ResumeCtrl::StartAppHmiStateResumption(uint32_t time_stamp,
-                                            ApplicationSharedPtr application) {
+void ResumeCtrl::StartAppHmiStateResumption(ApplicationSharedPtr application) {
   LOG4CXX_AUTO_TRACE(logger_);
   using namespace profile;
   using namespace date_time;
@@ -499,14 +500,35 @@ void ResumeCtrl::StartAppHmiStateResumption(uint32_t time_stamp,
   DCHECK_OR_RETURN_VOID(idx != -1);
   const Json::Value& json_app = GetSavedApplications()[idx];
 
-  if (CheckIgnCycleRestrictions(json_app)
-      && CheckAppRestrictions(application, json_app)) {
-    RestoreAppHMIState(application);
-    RemoveApplicationFromSaved(application);
-  } else {
+  if (!json_app.isMember(strings::ign_off_count)) {
     LOG4CXX_INFO(logger_, "Do not need to resume application "
                  << application->app_id());
     SetupDefaultHMILevel(application);
+    return;
+  }
+
+  // check if if is resumption during one IGN cycle
+  const uint32_t ign_off_count = json_app[strings::ign_off_count].asUInt();
+
+  if (0 == ign_off_count) {
+    if (CheckAppRestrictions(application, json_app)) {
+      LOG4CXX_INFO(logger_, "Resume application after short IGN cycle");
+      RestoreAppHMIState(application);
+      RemoveApplicationFromSaved(application);
+    } else {
+      LOG4CXX_INFO(logger_, "Do not need to resume application "
+                   << application->app_id());
+    }
+  } else {
+    if (CheckIgnCycleRestrictions(json_app) &&
+        CheckAppRestrictions(application, json_app)) {
+      LOG4CXX_INFO(logger_, "Resume application after IGN cycle");
+      RestoreAppHMIState(application);
+      RemoveApplicationFromSaved(application);
+    } else {
+      LOG4CXX_INFO(logger_, "Do not need to resume application "
+                   << application->app_id());
+    }
   }
 }
 
@@ -522,6 +544,8 @@ bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
     return false;
   }
 
+  SetupDefaultHMILevel(application);
+
   LOG4CXX_DEBUG(logger_, "ENTER app_id = " << application->app_id()
                         << "mobile_id = "
                         << application->mobile_app_id());
@@ -530,24 +554,21 @@ bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
   const int idx = GetObjectIndex(application->mobile_app_id());
   if (-1 == idx) {
     LOG4CXX_WARN(logger_, "Application not saved");
-    SetupDefaultHMILevel(application);
     return false;
   }
 
-  const Json::Value& json = GetSavedApplications()[idx];
-  if (json.isMember(strings::time_stamp)) {
-    const uint32_t time_stamp = json[strings::time_stamp].asUInt();
-    StartAppHmiStateResumption(time_stamp, application);
-    return true;
+  ApplicationManagerImpl::ApplicationListAccessor accessor;
+  if (!restore_hmi_level_timer_.isRunning() &&
+       accessor.applications().size() > 1) {
+      StartAppHmiStateResumption(application);
   } else {
-    LOG4CXX_FATAL(logger_, "The key " << strings::time_stamp <<
-                  " doesn't exists among saved apps.");
+    queue_lock_.Acquire();
+    waiting_for_timer_.push_back(application->app_id());
+    queue_lock_.Release();
+    restore_hmi_level_timer_.start(profile::Profile::instance()->app_resuming_timeout());
   }
 
-  LOG4CXX_INFO(logger_, "ResumeCtrl::Application wasn't saved");
-  MessageHelper::SendHMIStatusNotification(*application);
-  LOG4CXX_TRACE(logger_, "EXIT false");
-  return false;
+  return true;
 }
 
 bool ResumeCtrl::CheckPersistenceFilesForResumption(ApplicationSharedPtr application) {
@@ -620,6 +641,11 @@ bool ResumeCtrl::CheckApplicationHash(ApplicationSharedPtr application,
 
 void ResumeCtrl::SaveDataOnTimer() {
   LOG4CXX_AUTO_TRACE(logger_);
+  if (restore_hmi_level_timer_.isRunning()) {
+    LOG4CXX_WARN(logger_, "Resumption timer is active skip saving");
+    return;
+  }
+
   if (false == is_data_saved) {
     SaveAllApplications();
     is_data_saved = true;
@@ -1066,7 +1092,7 @@ bool ResumeCtrl::CheckIgnCycleRestrictions(const Json::Value& json_app) {
     result = false;
   }
 
-  if (!DissconnectedJustBeforeIgnOff(json_app)) {
+  if (!DisconnectedJustBeforeIgnOff(json_app)) {
     LOG4CXX_INFO(logger_, "Application was dissconnected long before ign off");
     result = false;
   }
@@ -1081,7 +1107,7 @@ bool ResumeCtrl::DisconnectedInLastIgnCycle(const Json::Value& json_app) {
   return (1 == suspend_count);
 }
 
-bool ResumeCtrl::DissconnectedJustBeforeIgnOff(const Json::Value& json_app) {
+bool ResumeCtrl::DisconnectedJustBeforeIgnOff(const Json::Value& json_app) {
   using namespace date_time;
   using namespace profile;
   LOG4CXX_AUTO_TRACE(logger_);
@@ -1161,6 +1187,83 @@ void ResumeCtrl::ResetLaunchTime() {
   launch_time_ = time(NULL);
 }
 
+void ResumeCtrl::ApplicationResumptiOnTimer() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  sync_primitives::AutoLock auto_lock(queue_lock_);
+  std::vector<uint32_t>::iterator it = waiting_for_timer_.begin();
+
+  for (; it != waiting_for_timer_.end(); ++it) {
+    ApplicationSharedPtr app =
+        ApplicationManagerImpl::instance()->application(*it);
+    if (!app.get()) {
+      LOG4CXX_ERROR(logger_, "Invalid app_id = " << *it);
+      continue;
+    }
+
+    StartAppHmiStateResumption(app);
+   }
+
+  waiting_for_timer_.clear();
+}
+
+void ResumeCtrl::LoadResumeData() {
+  LOG4CXX_AUTO_TRACE(logger_);
+
+  sync_primitives::AutoLock lock(resumtion_lock_);
+
+  Json::Value& resume_app_list = GetSavedApplications();
+  Json::Value::iterator full_app = resume_app_list.end();
+  time_t time_stamp_full = 0;
+  Json::Value::iterator limited_app = resume_app_list.end();
+  time_t time_stamp_limited = 0;
+
+  Json::Value::iterator it = resume_app_list.begin();
+  for (; it != resume_app_list.end(); ++it) {
+    if ((*it).isMember(strings::ign_off_count) &&
+      (*it).isMember(strings::hmi_level)) {
+
+      // only apps with first IGN should be resumed
+      const int32_t first_ign = 1;
+      if (first_ign == (*it)[strings::ign_off_count].asInt()) {
+
+        const mobile_apis::HMILevel::eType saved_hmi_level =
+            static_cast<mobile_apis::HMILevel::eType>((*it)[strings::hmi_level].asInt());
+
+        const time_t saved_time_stamp =
+              static_cast<time_t>((*it)[strings::time_stamp].asUInt());
+
+        if (mobile_apis::HMILevel::HMI_FULL == saved_hmi_level) {
+          if (time_stamp_full < saved_time_stamp) {
+          time_stamp_full = saved_time_stamp;
+          full_app = it;
+          }
+      }
+
+        if (mobile_apis::HMILevel::HMI_LIMITED == saved_hmi_level) {
+          if (time_stamp_limited < saved_time_stamp) {
+          time_stamp_limited = saved_time_stamp;
+          limited_app = it;
+          }
+        }
+      }
+
+    // set invalid HMI level for all
+      (*it)[strings::hmi_level] =
+          static_cast<int32_t>(mobile_apis::HMILevel::INVALID_ENUM);
+    }
+  }
+
+  if (full_app != resume_app_list.end()) {
+    (*full_app)[strings::hmi_level] =
+        static_cast<int32_t>(mobile_apis::HMILevel::HMI_FULL);
+  }
+
+  if (limited_app != resume_app_list.end()) {
+    (*limited_app)[strings::hmi_level] =
+        static_cast<int32_t>(mobile_apis::HMILevel::HMI_LIMITED);
+  }
+  LOG4CXX_DEBUG(logger_, GetResumptionData().toStyledString());
+}
 
 void ResumeCtrl::SendHMIRequest(
     const hmi_apis::FunctionID::eType& function_id,

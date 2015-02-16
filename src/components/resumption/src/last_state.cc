@@ -29,6 +29,9 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#ifdef CUSTOMER_PASA
+#include <stdlib.h>
+#endif
 
 #include "resumption/last_state.h"
 #include "config_profile/profile.h"
@@ -54,6 +57,11 @@ void LastState::SaveToFileSystem() {
                << str);
 
   DCHECK(file_system::Write(file, char_vector_pdata));
+
+#ifdef CUSTOMER_PASA
+  system("sync");
+  system("sync");
+#endif
 }
 
 void LastState::LoadFromFileSystem() {

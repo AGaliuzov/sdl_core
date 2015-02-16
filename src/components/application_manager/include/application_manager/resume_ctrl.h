@@ -223,12 +223,10 @@ class ResumeCtrl: public event_engine::EventObserver {
 
     /**
      * @brief Resume HMI Level and audio streaming state if needed
-     * @param time_stamp - time when application was disconnected
      * @param application - application to restore hmi level
      * and audio streaming state
      */
-    void StartAppHmiStateResumption(uint32_t time_stamp,
-                                    ApplicationSharedPtr application);
+    void StartAppHmiStateResumption(ApplicationSharedPtr application);
     /**
      * @brief Update launch_time_ to current
      */
@@ -432,14 +430,14 @@ class ResumeCtrl: public event_engine::EventObserver {
     bool DisconnectedInLastIgnCycle(const Json::Value& json_app);
 
     /**
-     * @brief DissconnectedJustBeforeIgnOff should check if application
+     * @brief DisconnectedJustBeforeIgnOff should check if application
      * was dissconnected in N secconds delay before ign off.
      * N will be readed from profile
      * @param json_app - saved applicationa
      * @return was dissconnected in N secconds delay before ign off
      * otherwise return false
      */
-    bool DissconnectedJustBeforeIgnOff(const Json::Value& json_app);
+    bool DisconnectedJustBeforeIgnOff(const Json::Value& json_app);
 
     /**
      * @brief CheckDelayAfterIgnOn should check if SDL was started less
@@ -465,6 +463,17 @@ class ResumeCtrl: public event_engine::EventObserver {
      * @return application's index of or -1 if it doesn't exists
      */
     int GetObjectIndex(const std::string& mobile_app_id);
+
+    /**
+     * @brief Timer callback for  restoring HMI Level
+     *
+     */
+    void ApplicationResumptiOnTimer();
+
+    /*
+     * @brief Loads data on start up
+     */
+    void LoadResumeData();
 
     template<typename Iterator>
     Json::Value Append(Iterator first,
@@ -492,6 +501,8 @@ class ResumeCtrl: public event_engine::EventObserver {
     sync_primitives::Lock           resumtion_lock_;
     ApplicationManagerImpl*         app_mngr_;
     timer::TimerThread<ResumeCtrl>  save_persistent_data_timer_;
+    timer::TimerThread<ResumeCtrl>  restore_hmi_level_timer_;
+    std::vector<uint32_t>           waiting_for_timer_;
     bool is_data_saved;
     time_t launch_time_;
 };
