@@ -1081,12 +1081,6 @@ bool ResumeCtrl::CheckIgnCycleRestrictions(const Json::Value& json_app) {
   LOG4CXX_AUTO_TRACE(logger_);
   bool result = true;
 
-  if (!DisconnectedInLastIgnCycle(json_app)) {
-    LOG4CXX_INFO(logger_, "Do not need to resume application,"
-                 "connected not in last ign_sycle");
-    result = false;
-  }
-
   if (!CheckDelayAfterIgnOn()) {
     LOG4CXX_INFO(logger_, "Application was connected long after ign on");
     result = false;
