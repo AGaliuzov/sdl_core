@@ -1,4 +1,4 @@
-﻿/*
+/*
  Copyright (c) 2013, Ford Motor Company
  All rights reserved.
 
@@ -91,6 +91,13 @@ class PolicyListener {
    * @brief GetAvailableApps allows to obtain list of registered applications.
    */
   virtual void GetAvailableApps(std::queue<std::string>&) = 0;
+
+  /**
+   * @brief OnCertificateUpdated
+   *
+   * @param certificate_data
+   */
+  virtual void OnCertificateUpdated(const std::string& certificate_data) = 0;
 };
 }  //  namespace policy
 #endif  //  SRC_COMPONENTS_POLICY_INCLUDE_POLICY_LISTENER_H_

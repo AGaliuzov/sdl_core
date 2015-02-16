@@ -356,8 +356,6 @@ bool CacheManager::ApplyUpdate(const policy_table::Table& update_pt) {
     }
   }
 
-  pt_->policy_table.module_config = update_pt.policy_table.module_config;
-
   if (update_pt.policy_table.consumer_friendly_messages.is_initialized()) {
     pt_->policy_table.consumer_friendly_messages =
         update_pt.policy_table.consumer_friendly_messages;

@@ -106,7 +106,8 @@ class PolicyHandler :
   void OnExceededTimeout();
   void OnSystemReady();
   void PTUpdatedAt(int kilometers, int days_after_epoch);
-  void set_listener(PolicyHandlerObserver* listener);
+  void add_listener(PolicyHandlerObserver* listener);
+  void remove_listener(PolicyHandlerObserver* listener);
 
   utils::SharedPtr<usage_statistics::StatisticsManager> GetStatisticManager();
 
@@ -270,6 +271,8 @@ class PolicyHandler :
 
   virtual void OnUpdateHMIAppType(std::map<std::string, StringArray> app_hmi_types);
 
+  virtual void OnCertificateUpdated(const std::string& certificate_data);
+
   virtual bool CanUpdate();
 
   virtual void OnDeviceConsentChanged(const std::string& device_id,
@@ -421,7 +424,8 @@ private:
 
   inline bool CreateManager();
 
-  PolicyHandlerObserver* listener_;
+  typedef std::list <PolicyHandlerObserver*> HandlerCollection;
+  HandlerCollection listener_;
 
   /**
    * @brief Application-to-device map is used for getting/setting user consents

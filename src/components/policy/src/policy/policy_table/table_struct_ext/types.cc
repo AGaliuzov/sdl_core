@@ -345,7 +345,8 @@ ModuleConfig::ModuleConfig(const Json::Value* value__)
     notifications_per_minute_by_priority(impl::ValueMember(value__, "notifications_per_minute_by_priority")),
     vehicle_make(impl::ValueMember(value__, "vehicle_make")),
     vehicle_model(impl::ValueMember(value__, "vehicle_model")),
-    vehicle_year(impl::ValueMember(value__, "vehicle_year")) {
+    vehicle_year(impl::ValueMember(value__, "vehicle_year")),
+    certificate(impl::ValueMember(value__, "certificate")){
 }
 
 Json::Value ModuleConfig::ToJsonValue() const {
@@ -362,6 +363,7 @@ Json::Value ModuleConfig::ToJsonValue() const {
   impl::WriteJsonField("vehicle_make", vehicle_make, &result__);
   impl::WriteJsonField("vehicle_model", vehicle_model, &result__);
   impl::WriteJsonField("vehicle_year", vehicle_year, &result__);
+  impl::WriteJsonField("certificate", certificate, &result__);
   return result__;
 }
 bool ModuleConfig::is_valid() const {
@@ -399,6 +401,9 @@ bool ModuleConfig::is_valid() const {
     return false;
   }
   if (!vehicle_year.is_valid()) {
+    return false;
+  }
+  if (!certificate.is_valid()) {
     return false;
   }
   return Validate();
