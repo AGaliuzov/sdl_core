@@ -55,6 +55,7 @@ set(testSources
   stl_utils_test.cc
   timer_thread_test.cc
   rwlock_posix_test.cc
+  async_runner_test.cc
 )
 
 if (ENABLE_LOG)
