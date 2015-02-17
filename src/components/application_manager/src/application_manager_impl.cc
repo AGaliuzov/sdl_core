@@ -2162,15 +2162,8 @@ void ApplicationManagerImpl::UnregisterApplication(
 }
 
 
-void ApplicationManagerImpl::UnregisterRevokedApplication(
-    const uint32_t& app_id, mobile_apis::Result::eType reason) {
-  UnregisterApplication(app_id, reason);
-
+void ApplicationManagerImpl::OnAppUnauthorized(const uint32_t& app_id) {
   connection_handler_->CloseSession(app_id, connection_handler::kCommon);
-
-  if (ApplicationListAccessor().Empty()) {
-    connection_handler_->CloseRevokedConnection(app_id);
-  }
 }
 
 void ApplicationManagerImpl::Handle(const impl::MessageFromMobile message) {

@@ -698,11 +698,10 @@ void PolicyHandler::OnPendingPermissionChange(
     }
     MessageHelper::
         SendOnAppInterfaceUnregisteredNotificationToMobile(
-          app->app_id(), mobile_api::AppInterfaceUnregisteredReason::APP_UNAUTHORIZED);
+          app->app_id(),
+          mobile_api::AppInterfaceUnregisteredReason::APP_UNAUTHORIZED);
 
-    ApplicationManagerImpl::instance()->
-        UnregisterRevokedApplication(app->app_id(),
-                                     mobile_apis::Result::INVALID_ENUM);
+    ApplicationManagerImpl::instance()->OnAppUnauthorized(app->app_id());
 
     policy_manager_->RemovePendingPermissionChanges(policy_app_id);
   }

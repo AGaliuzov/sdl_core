@@ -297,12 +297,10 @@ class ApplicationManagerImpl : public ApplicationManager,
                                bool is_unexpected_disconnect = false);
 
     /**
-    * @brief Unregister application revoked by Policy
+    * @brief Handle sequence for unauthorized application
     * @param app_id Application id
-    * @param reason Reason of unregistering application
     */
-    void UnregisterRevokedApplication(const uint32_t& app_id,
-                                      mobile_apis::Result::eType reason);
+    void OnAppUnauthorized(const uint32_t& app_id);
 
     /*
      * @brief Sets unregister reason for closing all registered applications
