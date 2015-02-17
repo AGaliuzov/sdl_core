@@ -509,9 +509,14 @@ bool ApplicationManagerImpl::ActivateApplication(ApplicationSharedPtr app) {
 
   if (is_new_app_media) {
     ApplicationSharedPtr limited_app = get_limited_media_application();
-    if (limited_app && !limited_app->is_navi()) {
-      MakeAppNotAudible(limited_app->app_id());
-      MessageHelper::SendHMIStatusNotification(*limited_app);
+    if (limited_app ) {
+      if (!limited_app->is_navi()) {
+        MakeAppNotAudible(limited_app->app_id());
+        MessageHelper::SendHMIStatusNotification(*limited_app);
+      } else {
+        app->set_audio_streaming_state(mobile_apis::AudioStreamingState::ATTENUATED);
+        MessageHelper::SendHMIStatusNotification(*app);
+      }
     }
   }
 
