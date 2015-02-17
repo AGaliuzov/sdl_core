@@ -124,6 +124,8 @@ void MediaManagerImpl::Init() {
         profile::Profile::instance()->audio_stream_file());
   }
 
+  stop_streaming_timeout_ = profile::Profile::instance()->stop_streaming_timeout();
+
   video_streamer_listener_ = new StreamerListener();
   audio_streamer_listener_ = new StreamerListener();
 
@@ -285,14 +287,14 @@ void MediaManagerImpl::OnMessageReceived(
     if ((ApplicationManagerImpl::instance()-> IsVideoStreamingAllowed(streaming_app_id))) {
       if (video_streamer_) {
         video_streamer_->SendData(message->connection_key(), message);
-        streaming_timer.start(1);
+        streaming_timer.start(stop_streaming_timeout_);
       }
     }
   } else if (message->service_type() == kAudio) {
     if ((ApplicationManagerImpl::instance()-> IsAudioStreamingAllowed(streaming_app_id))) {
       if (audio_streamer_) {
         audio_streamer_->SendData(message->connection_key(), message);
-        streaming_timer.start(1);
+        streaming_timer.start(stop_streaming_timeout_);
       }
     }
   }

@@ -77,6 +77,7 @@ class MediaManagerImpl : public MediaManager,
     MediaListenerPtr                   from_mic_listener_;
     MediaAdapterImpl*                  video_streamer_;
     MediaAdapterImpl*                  audio_streamer_;
+    uint32_t                           stop_streaming_timeout_;
     MediaListenerPtr                   video_streamer_listener_;
     MediaListenerPtr                   audio_streamer_listener_;
     bool                               video_stream_active_;
