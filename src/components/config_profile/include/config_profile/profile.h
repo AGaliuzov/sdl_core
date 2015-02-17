@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
@@ -130,6 +130,11 @@ class Profile : public utils::Singleton<Profile> {
       * @brief Returns port for audio streaming
       */
     const uint16_t& audio_streaming_port() const;
+
+    /**
+     * @brief Returns streaming timeout
+     */
+    uint32_t stop_streaming_timeout() const;
 
     /**
       * @brief Returns port for time reports
@@ -650,6 +655,7 @@ class Profile : public utils::Singleton<Profile> {
     uint16_t                        server_port_;
     uint16_t                        video_streaming_port_;
     uint16_t                        audio_streaming_port_;
+    uint32_t                        stop_streaming_timeout_;
     uint16_t                        time_testing_port_;
     std::string                     hmi_capabilities_file_name_;
     std::vector<std::string>        help_prompt_;

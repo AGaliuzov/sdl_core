@@ -407,22 +407,27 @@ class Application : public virtual InitialApplicationData,
 
     virtual void CloseActiveMessage() = 0;
     virtual bool IsFullscreen() const = 0;
-    virtual bool MakeFullscreen() = 0;
     virtual void ChangeSupportingAppHMIType() = 0;
     virtual bool IsAudible() const = 0;
-    virtual void MakeNotAudible() = 0;
-    virtual bool allowed_support_navigation() const = 0;
-    virtual void set_allowed_support_navigation(bool allow) = 0;
+    virtual bool is_navi() const = 0;
+    virtual void set_is_navi(bool allow) = 0;
     virtual bool hmi_supports_navi_video_streaming() const = 0;
     virtual void set_hmi_supports_navi_video_streaming(bool supports) = 0;
     virtual bool hmi_supports_navi_audio_streaming() const = 0;
     virtual void set_hmi_supports_navi_audio_streaming(bool supports) = 0;
+
+    bool is_streaming_allowed() const { return can_stream_;}
+    void set_streaming_allowed(bool can_stream) { can_stream_ = can_stream;}
+    bool streaming() const {return streaming_;}
+    void set_streaming(bool can_stream) { streaming_ = can_stream;}
+
 
     virtual bool is_voice_communication_supported() const = 0;
     virtual void set_voice_communication_supported(
         bool is_voice_communication_supported) = 0;
     virtual bool app_allowed() const = 0;
     virtual bool has_been_activated() const = 0;
+    virtual bool set_activated(bool is_active) = 0;
 
     virtual const Version& version() const = 0;
     virtual void set_hmi_application_id(uint32_t hmi_app_id) = 0;
@@ -628,6 +633,8 @@ class Application : public virtual InitialApplicationData,
     std::string url_;
     std::string package_name_;
     std::string device_id_;
+    bool can_stream_;
+    bool streaming_;
 };
 
 typedef utils::SharedPtr<Application> ApplicationSharedPtr;

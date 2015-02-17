@@ -594,6 +594,33 @@ class ApplicationManagerImpl : public ApplicationManager,
      */
     bool IsVideoStreamingAllowed(uint32_t connection_key) const;
 
+    /**
+     * @brief CanAppStream allows to check whether application is permited for
+     * data streaming.
+     *
+     * In case streaming for app is disallowed the method will send EndService to mobile.
+     *
+     * @param app_id the application id which should be checked.
+     *
+     * @return true in case streaming is allowed, false otherwise.
+     */
+    bool CanAppStream(uint32_t app_id) const;
+
+    /**
+     * @brief StreamingEnded Callback called from MediaManager when it decide that
+     * streaming has been ended
+     *
+     * @param app_id the id of application that stops stream.
+     */
+    void StreamingEnded(uint32_t app_id);
+
+    /**
+     * @brief ForbidStreaming forbid the stream over the certain application.
+     *
+     * @param app_id the application's id which should stop streaming.
+     */
+    void ForbidStreaming(uint32_t app_id);
+
     mobile_api::HMILevel::eType GetDefaultHmiLevel(
         ApplicationSharedPtr application) const;
 
@@ -700,6 +727,33 @@ class ApplicationManagerImpl : public ApplicationManager,
      * Also OnHMIStateNotification with previous HMI state sent for these apps
      */
     void ResetPhoneCallAppList();
+
+    /**
+     * @brief ChangeAppsHMILevel the function that will change application's
+     * hmi level.
+     *
+     * @param app_id id of the application whose hmi level should be changed.
+     *
+     * @param level new hmi level for certain application.
+     */
+    void ChangeAppsHMILevel(uint32_t app_id, mobile_apis::HMILevel::eType level);
+
+    /**
+     * @brief MakeAppNotAudible allows to make certain application not audible.
+     *
+     * @param app_id applicatin's id whose audible state should be changed.
+     */
+    void MakeAppNotAudible(uint32_t app_id);
+
+    /**
+     * @brief MakeAppFullScreen allows ti change application's properties
+     * in order to make it full screen.
+     *
+     * @param app_id the id of application which should be in full screen  mode.
+     *
+     * @return true if operation was success, false otherwise.
+     */
+    bool MakeAppFullScreen(uint32_t app_id);
 
     /**
      * Function used only by HMI request/response/notification base classes
@@ -987,6 +1041,79 @@ class ApplicationManagerImpl : public ApplicationManager,
   private:
 
     /**
+     * @brief OnHMILevelChanged the callback that allows SDL to react when
+     * application's HMILeval has been changed.
+     *
+     * @param app_id application identifier for which HMILevel has been chaned.
+     *
+     * @param from previous HMILevel.
+     * @param to current HMILevel.
+     */
+    void OnHMILevelChanged(uint32_t app_id,
+                           mobile_apis::HMILevel::eType from,
+                           mobile_apis::HMILevel::eType to);
+
+    /**
+     * @brief EndNaviServices either send EndService to mobile or proceed
+     * unregister application procedure.
+     */
+    void EndNaviServices();
+
+    /**
+     * @brief CloseNaviApp allows to unregister application in case the EndServiceEndedAck
+     * didn't come for at least one of services(audio or video).
+     */
+    void CloseNaviApp();
+
+    /**
+     * @brief AckReceived allows to distinguish if ack for appropriate service
+     * has been received (means EndServiceAck).
+     *
+     * @param type service type.
+     *
+     * @return in case EndService has been sent and appropriate ack has been
+     * received it returns true. In case no EndService for appropriate serevice type
+     * has been sent and no ack has been received it returns true as well.
+     * Otherwise it will return false.
+     *
+     */
+    bool AckReceived(protocol_handler::ServiceType type);
+
+    /**
+     * @brief NaviAppChangeLevel the callback which reacts on case when applications
+     * hmi level has been changed.
+     */
+    void NaviAppChangeLevel(mobile_apis::HMILevel::eType new_level);
+
+    /**
+     * @brief ChangeStreamStatus allows to process streaming state.
+     *
+     * @param app_id id of application whose stream state has been changed.
+     *
+     * @param can_stream streaming state if true - streaming active, if false
+     * streaming is not active.
+     */
+    void ChangeStreamStatus(uint32_t app_id, bool can_stream);
+
+    /**
+     * @brief ProcessNaviService allows to start navi service
+     *
+     * @param type service type.
+     *
+     * @param connection_key the application id.
+     */
+    bool ProcessNaviService(protocol_handler::ServiceType type, uint32_t connection_key);
+
+    /**
+     * @brief NaviAppStreamStatus allows to handle case when navi streaming state
+     * has ben changed from streaming to non streaming and vise versa.
+     *
+     * @param stream_active the stream's state - is it streams or not.
+     */
+    void NaviAppStreamStatus(bool stream_active);
+
+
+    /**
      * @brief Function returns supported SDL Protocol Version
      * @return protocol version depends on parameters from smartDeviceLink.ini.
      */
@@ -1081,6 +1208,15 @@ class ApplicationManagerImpl : public ApplicationManager,
      * application in case INGITION_OFF or MASTER_RESSET
      */
     ResumeCtrl resume_ctrl_;
+
+    // The map contains service type as a key and pair as a value.
+    // The pair meaning is: first item shows if EndService has been sent and
+    // the second one shows if appropriate ACK has been received.
+    std::map<protocol_handler::ServiceType, std::pair<bool, bool> > service_status_;
+
+    timer::TimerThread<ApplicationManagerImpl> end_services_timer;
+    uint32_t wait_end_service_timeout_;
+    uint32_t navi_app_to_stop_;
 #ifdef CUSTOMER_PASA
     /**
      * @brief Contains TRUE if SDL has received onExitAllApplication notification with
