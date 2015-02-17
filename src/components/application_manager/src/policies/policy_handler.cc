@@ -103,8 +103,9 @@ struct DeactivateApplication {
 
     void operator()(const ApplicationSharedPtr& app) {
       if (device_id_ == app->device()) {
-        app->set_hmi_level(mobile_apis::HMILevel::HMI_NONE);
-        app->set_audio_streaming_state(mobile_api::AudioStreamingState::NOT_AUDIBLE);
+        ApplicationManagerImpl::instance()->ChangeAppsHMILevel(app->app_id(),
+                                                               mobile_apis::HMILevel::HMI_NONE);
+        app->set_audio_streaming_state(mobile_api::AudioStreamingState::NOT_AUDIBLE); 
         MessageHelper::SendActivateAppToHMI(
           app->app_id(), hmi_apis::Common_HMILevel::NONE);
         MessageHelper::SendHMIStatusNotification(*app.get());
@@ -148,7 +149,8 @@ struct SDLAlowedNotification {
         if (app->hmi_level() == default_mobile_hmi) {
           LOG4CXX_DEBUG(logger_, "Application already in default hmi state.");
         } else {
-          app->set_hmi_level(default_mobile_hmi);
+          ApplicationManagerImpl::instance()->ChangeAppsHMILevel(app->app_id(),
+                                                                 default_mobile_hmi);
           MessageHelper::SendHMIStatusNotification(*app);
         }
         MessageHelper::SendActivateAppToHMI(app->app_id(), default_hmi);
@@ -655,7 +657,9 @@ void PolicyHandler::OnPendingPermissionChange(
   if (permissions.appRevoked) {
     application_manager::MessageHelper::SendOnAppPermissionsChangedNotification(
       app_id, permissions);
-    app->set_hmi_level(eType::HMI_NONE);
+
+    ApplicationManagerImpl::instance()->ChangeAppsHMILevel(app->app_id(),
+                                                           eType::HMI_NONE);
     app->set_audio_streaming_state(mobile_apis::AudioStreamingState::NOT_AUDIBLE);
     application_manager::MessageHelper::SendActivateAppToHMI(
           app_id, hmi_apis::Common_HMILevel::NONE);
@@ -1030,7 +1034,8 @@ void PolicyHandler::OnPermissionsUpdated(const std::string& policy_app_id,
         MessageHelper::SendActivateAppToHMI(app->app_id());
       } else {
         // Set application hmi level
-        app->set_hmi_level(hmi_level);
+        ApplicationManagerImpl::instance()->ChangeAppsHMILevel(app->app_id(),
+                                                               hmi_level);
         // If hmi Level is full, it will be seted after ActivateApp response
         MessageHelper::SendHMIStatusNotification(*app.get());
       }
