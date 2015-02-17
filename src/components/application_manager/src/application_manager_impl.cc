@@ -2738,7 +2738,7 @@ void ApplicationManagerImpl::CreatePhoneCallAppList() {
                                     (*it)->audio_streaming_state(),
                                     (*it)->system_context())));
 
-      ChangeAppsHMILevel((*it)->app_id() , HMI_BACKGROUND);
+      ChangeAppsHMILevel((*it)->app_id() , (*it)->is_navi() ? HMI_LIMITED : HMI_BACKGROUND);
 
       // app state during phone call
       (*it)->set_audio_streaming_state(mobile_api::AudioStreamingState::NOT_AUDIBLE);
