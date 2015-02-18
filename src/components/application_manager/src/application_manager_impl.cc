@@ -2158,7 +2158,7 @@ void ApplicationManagerImpl::UnregisterApplication(
     }
 #endif
   } else {
-    resume_ctrl_.RemoveApplicationFromSaved(app_to_remove);
+    resume_ctrl_.RemoveApplicationFromSaved(app_to_remove->mobile_app_id());
   }
 
   if (audio_pass_thru_active_) {
