@@ -31,8 +31,8 @@ INCLUDES = \
 	$(CC_IFLAG).. \
 	$(CC_IFLAG)../include \
 	$(CC_IFLAG)../usage_statistics/include \
-	$(CC_IFLAG)../qdb_wrapper/include \
-	$(CC_IFLAG)../sqlite_wrapper/include \
+	$(CC_IFLAG)../../../../utils/include/utils \
+	$(CC_IFLAG)../../../../utils/include/utils \
 	$(CC_IFLAG)../policy_table/table_struct_ext \
 	$(CC_IFLAG)../../../../include \
 	$(CC_IFLAG)../../../../rpc_base/include \
@@ -86,7 +86,7 @@ COMPONENT_SRCS = \
 # here, you can define indivial files or wildcard from
 # a different folder.
 NON_LOCAL_SRCS = \
-	$(wildcard qdb_wrapper/src/*.c*)
+	$(wildcard ../utils/src/qdb_wrapper/*.c*)
 #	$(wildcard sqlite_wrapper/src/*.c*)
 
 # List of all sources to be built.  Can be assembled from the other defintitions.

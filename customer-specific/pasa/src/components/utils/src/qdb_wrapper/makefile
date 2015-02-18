@@ -3,10 +3,10 @@
 #
 
 # Name of the componet (team/domain prefix '_' component name)
-COMPONENT_NAME = policy/qdb_wrapper
+COMPONENT_NAME = utils/qdb_wrapper
 
 ifndef PRJ_ROOT
-export PRJ_ROOT = $(CURDIR)/../../../../
+export PRJ_ROOT = $(CURDIR)/../../../../../
 endif
 include $(PRJ_ROOT)cfg/depends.mk
 
@@ -14,8 +14,8 @@ OBJS_FILE=.objs.txt
 
 # Additive Compile Flags (Flags from initiating make process will still apply)
 DEFS += \
-	-DEXTENDED_POLICY \
-	-Wc,-Werror=return-type \
+        -DEXTENDED_POLICY \
+        -Wc,-Werror=return-type \
 	-Wc,-Wuninitialized
 
 # Set local includes and then the reference includes (priority order determines search path)
@@ -32,11 +32,10 @@ DEFS += \
 INCLUDES = \
 	$(CFG_INCS) \
 	$(CC_IFLAG)./ \
-	$(CC_IFLAG)../include \
-	$(CC_IFLAG)../../../../../include \
-	$(CC_IFLAG)../../../../../../3rd_party/log4cxx/include \
+	$(CC_IFLAG)../../../include/ \
+	$(CC_IFLAG)../../include/utils \
+	$(CC_IFLAG)../../../../3rd_party/log4cxx/include \
 	$(DEPENDS_INCLUDES)
-
 
 # Do the same if you need to include library paths as well
 #  Do an incremental in case additional library paths are defined
@@ -110,9 +109,8 @@ ALL_OBJECTS = \
 #  So this is not a huge deal when building on a component level.
 HEADERS = \
 	$(wildcard *.h*) \
-	$(wildcard ../include/*.h*) \
+	$(wildcard ../../include/utils/qdb_wrapper/*.h*) \
 
-	
 LIBRARIES = \
 	$(COMPONENT_LIB)
 
