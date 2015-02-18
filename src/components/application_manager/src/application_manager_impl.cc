@@ -2104,7 +2104,7 @@ void ApplicationManagerImpl::UnregisterApplication(
                << "; is_unexpected_disconnect = " << is_unexpected_disconnect);
   //remove appID from tts_global_properties_app_list_
 #ifdef CUSTOMER_PASA
-  if (!is_ignition_off) {
+  if (!is_resuming) {
 #endif // CUSTOMER_PASA
     MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
           app_id, unregister_reason_);
@@ -2441,7 +2441,9 @@ void ApplicationManagerImpl::OnHMILevelChanged(uint32_t app_id,
                                                mobile_apis::HMILevel::eType to) {
   using namespace mobile_apis::HMILevel;
   using namespace helpers;
-
+  if (from == to) {
+    LOG4CXX_WARN(logger_, "Redudant changing HMI level : " << from);
+  }
   ApplicationSharedPtr app = application(app_id);
   if (!(app && app->is_navi())) {
     return;
