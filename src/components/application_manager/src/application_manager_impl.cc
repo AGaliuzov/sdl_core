@@ -2441,9 +2441,7 @@ void ApplicationManagerImpl::OnHMILevelChanged(uint32_t app_id,
                                                mobile_apis::HMILevel::eType to) {
   using namespace mobile_apis::HMILevel;
   using namespace helpers;
-  if (from == to) {
-    LOG4CXX_WARN(logger_, "Redudant changing HMI level : " << from);
-  }
+
   ApplicationSharedPtr app = application(app_id);
   if (!(app && app->is_navi())) {
     return;
@@ -2776,6 +2774,7 @@ void ApplicationManagerImpl::ResetPhoneCallAppList() {
 
 void ApplicationManagerImpl::ChangeAppsHMILevel(uint32_t app_id,
                                                 mobile_apis::HMILevel::eType level) {
+  using namespace mobile_apis::HMILevel;
   LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_, "AppID to change: " << app_id << " -> "
                 << level);
@@ -2784,11 +2783,14 @@ void ApplicationManagerImpl::ChangeAppsHMILevel(uint32_t app_id,
     LOG4CXX_DEBUG(logger_, "There is no app with id: " << app_id);
     return;
   }
-  using namespace mobile_apis::HMILevel;
   eType old_level = app->hmi_level();
-  app->set_hmi_level(level);
+  if (old_level != level) {
+    app->set_hmi_level(level);
+    OnHMILevelChanged(app_id, old_level, level);
+  } else {
+    LOG4CXX_WARN(logger_, "Redudant changing HMI level : " << level);
+  }
 
-  OnHMILevelChanged(app_id, old_level, level);
 }
 
 void ApplicationManagerImpl::MakeAppNotAudible(uint32_t app_id) {
