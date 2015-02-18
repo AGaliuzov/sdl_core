@@ -87,22 +87,27 @@ class CryptoManagerImpl : public CryptoManager {
 
  public:
   CryptoManagerImpl();
+  ~CryptoManagerImpl();
   bool Init(Mode mode,
-                    Protocol protocol,
-                    const std::string &cert_filename,
-                    const std::string &key_filename,
-                    const std::string &ciphers_list,
-                    bool verify_peer) OVERRIDE;
-  void Finish() OVERRIDE;
-  void UpdateCertificate(const std::string& data) OVERRIDE;
+            Protocol protocol,
+            const std::string &cert_filename,
+            const std::string &key_filename,
+            const std::string &ciphers_list,
+            const bool verify_peer,
+            const std::string &storage_folder) OVERRIDE;
+  bool OnCertificateUpdated(const std::string &data) OVERRIDE;
   SSLContext *CreateSSLContext() OVERRIDE;
   void ReleaseSSLContext(SSLContext *context) OVERRIDE;
   std::string LastError() const OVERRIDE;
 
  private:
+  void SetVerification();
   SSL_CTX *context_;
   Mode mode_;
+  static sync_primitives::Lock instance_lock_;
   static uint32_t instance_count_;
+  std::string storage_folder_;
+  bool verify_peer_;
   DISALLOW_COPY_AND_ASSIGN(CryptoManagerImpl);
 };
 }  // namespace security_manager

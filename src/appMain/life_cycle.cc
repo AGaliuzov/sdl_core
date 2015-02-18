@@ -152,6 +152,11 @@ bool LifeCycle::StartComponents() {
   profile::Profile::instance()->ReadBoolValue(
         &verify_peer, false, security_manager::SecurityManagerImpl::ConfigSection(), "VerifyPeer");
 
+  std::string storage_folder;
+  profile::Profile::instance()->ReadStringValue(
+        &storage_folder, "/tmp", security_manager::SecurityManagerImpl::ConfigSection(),
+        "StorageFolder");
+
   std::string protocol_name;
   profile::Profile::instance()->ReadStringValue(
       &protocol_name, "TLSv1.2", security_manager::SecurityManagerImpl::ConfigSection(), "Protocol");
@@ -171,12 +176,13 @@ bool LifeCycle::StartComponents() {
   }
 
   if (!crypto_manager_->Init(
-      ssl_mode == "SERVER" ? security_manager::SERVER : security_manager::CLIENT,
-          protocol,
-          cert_filename,
-          key_filename,
-          ciphers_list,
-          verify_peer)) {
+        ssl_mode == "SERVER" ? security_manager::SERVER : security_manager::CLIENT,
+        protocol,
+        cert_filename,
+        key_filename,
+        ciphers_list,
+        verify_peer,
+        storage_folder)) {
     LOG4CXX_ERROR(logger_, "CryptoManager initialization fail.");
     return false;
   }
@@ -218,6 +224,7 @@ bool LifeCycle::StartComponents() {
   app_manager_->set_protocol_handler(protocol_handler_);
   app_manager_->set_connection_handler(connection_handler_);
   app_manager_->set_hmi_message_handler(hmi_handler_);
+  app_manager_->AddPolicyObserver(crypto_manager_);
 
   transport_manager_->Init();
 #ifndef CUSTOMER_PASA
@@ -467,7 +474,6 @@ void LifeCycle::StopComponents() {
 
 #ifdef ENABLE_SECURITY
   LOG4CXX_INFO(logger_, "Destroying Crypto Manager");
-  crypto_manager_->Finish();
   delete crypto_manager_;
 
   LOG4CXX_INFO(logger_, "Destroying Security Manager");

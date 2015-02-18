@@ -42,6 +42,8 @@
 
 namespace security_manager {
 
+CREATE_LOGGERPTR_GLOBAL(logger_, "CryptoManagerImpl")
+
 CryptoManagerImpl::SSLContextImpl::SSLContextImpl(SSL *conn, Mode mode)
   : connection_(conn),
     bioIn_(BIO_new(BIO_s_mem())),
@@ -167,10 +169,16 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
     SSL_clear(connection_);
     is_handshake_pending_ = false;
     return SSLContext::Handshake_Result_Fail;
-  } else if (SSL_get_error(connection_, handshake_result) != SSL_ERROR_WANT_READ) {
-    SSL_clear(connection_);
-    is_handshake_pending_ = false;
-    return SSLContext::Handshake_Result_AbnormalFail;
+  } else  {
+    const int error = SSL_get_error(connection_, handshake_result);
+    if (error != SSL_ERROR_WANT_READ) {
+      const long error = SSL_get_verify_result(connection_);
+      LOG4CXX_WARN(logger_, "Handshake failed with error 0x" << std::hex << error
+                   << " \"" << X509_verify_cert_error_string(error) << '"');
+      SSL_clear(connection_);
+      is_handshake_pending_ = false;
+      return SSLContext::Handshake_Result_AbnormalFail;
+    }
   }
 
   const size_t pend = BIO_ctrl_pending(bioOut_);

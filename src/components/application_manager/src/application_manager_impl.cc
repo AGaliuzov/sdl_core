@@ -1955,7 +1955,7 @@ void ApplicationManagerImpl::set_application_id(const int32_t correlation_id,
                      (correlation_id, app_id));
 }
 
-void ApplicationManagerImpl::AddPolicyObserver( policy::PolicyHandlerObserver* listener) {
+void ApplicationManagerImpl::AddPolicyObserver(policy::PolicyHandlerObserver* listener) {
   policy::PolicyHandler::instance()->add_listener(listener);
 }
 

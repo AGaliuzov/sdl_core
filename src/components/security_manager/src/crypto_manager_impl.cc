@@ -34,9 +34,11 @@
 #include <openssl/bio.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <fstream>
 #include "security_manager/security_manager.h"
 #include "utils/logger.h"
 #include "utils/atomic.h"
+#include "utils/file_system.h"
 
 #define TLS1_1_MINIMAL_VERSION            0x1000103fL
 #define CONST_SSL_METHOD_MINIMAL_VERSION  0x00909000L
@@ -46,9 +48,33 @@ namespace security_manager {
 CREATE_LOGGERPTR_GLOBAL(logger_, "CryptoManagerImpl")
 
 uint32_t CryptoManagerImpl::instance_count_ = 0;
+sync_primitives::Lock CryptoManagerImpl::instance_lock_;
+
+// Handshake verification callback
+// Used for debug outpute only
+int debug_callback(int preverify_ok, X509_STORE_CTX *ctx);
 
 CryptoManagerImpl::CryptoManagerImpl()
-    : context_(NULL), mode_(CLIENT) {
+    : context_(NULL),
+      mode_(CLIENT),
+      verify_peer_(false){
+}
+
+CryptoManagerImpl::~CryptoManagerImpl() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  sync_primitives::AutoLock lock(instance_lock_);
+  LOG4CXX_DEBUG(logger_, "Deinitilization");
+  if(!context_) {
+    LOG4CXX_WARN(logger_, "Manager is not initialized");
+    return;
+  }
+  SSL_CTX_free(context_);
+  context_ = NULL;
+  instance_count_--;
+  if (instance_count_ == 0) {
+    EVP_cleanup();
+    ERR_free_strings();
+  }
 }
 
 bool CryptoManagerImpl::Init(Mode mode,
@@ -56,15 +82,20 @@ bool CryptoManagerImpl::Init(Mode mode,
                              const std::string &cert_filename,
                              const std::string &key_filename,
                              const std::string &ciphers_list,
-                             bool verify_peer) {
-  if (atomic_post_inc(&instance_count_) == 0) {
+                             const bool verify_peer,
+                             const std::string &storage_folder) {
+  sync_primitives::AutoLock lock(instance_lock_);
+  instance_count_++;
+  if (instance_count_ == 1) {
     SSL_load_error_strings();
     ERR_load_BIO_strings();
     OpenSSL_add_all_algorithms();
     SSL_library_init();
   }
-
   mode_ = mode;
+  verify_peer_ = verify_peer;
+  storage_folder_ = storage_folder;
+
   const bool is_server = (mode == SERVER);
 #if OPENSSL_VERSION_NUMBER < CONST_SSL_METHOD_MINIMAL_VERSION
   SSL_METHOD *method;
@@ -112,7 +143,16 @@ bool CryptoManagerImpl::Init(Mode mode,
       LOG4CXX_ERROR(logger_, "Unknown protocol: " << protocol);
       return false;
   }
+  if(context_) {
+    SSL_CTX_free(context_);
+  }
   context_ = SSL_CTX_new(method);
+  if(!context_) {
+    const char *error = ERR_reason_error_string(ERR_get_error());
+    LOG4CXX_ERROR(logger_, "Could not create OpenSSLContext " <<
+                  (error ? error : ""));
+    return false;
+  }
 
   // Disable SSL2 as deprecated
   SSL_CTX_set_options(context_, SSL_OP_NO_SSLv2);
@@ -152,42 +192,63 @@ bool CryptoManagerImpl::Init(Mode mode,
       return false;
     }
   }
-
-  // TODO(EZamakhov): add loading SSL_VERIFY_FAIL_IF_NO_PEER_CERT from INI
-  const int verify_mode = verify_peer
-      ? SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT
-      : SSL_VERIFY_NONE;
-  SSL_CTX_set_verify(context_, verify_mode, NULL);
-
+  SetVerification();
   return true;
 }
 
-void CryptoManagerImpl::Finish() {
-  SSL_CTX_free(context_);
-  if (atomic_post_dec(&instance_count_) == 1) {
-    EVP_cleanup();
-    ERR_free_strings();
-  }
-}
-
-void CryptoManagerImpl::UpdateCertificate(const std::string& data) {
+bool CryptoManagerImpl::OnCertificateUpdated(const std::string &data) {
   LOG4CXX_AUTO_TRACE(logger_);
-  if(data.empty()) {
-    LOG4CXX_WARN(logger_, "Empty data for certificate");
-  } else  {
-    LOG4CXX_DEBUG(logger_, "New sertificate data : \"" << data << '"');
-    // FIXME(EZamakhov) : implement logic according to APPLINK-8310
+  if (!context_) {
+    LOG4CXX_WARN(logger_, "Not initialized");
+    return false;
   }
+  if (data.empty()) {
+    LOG4CXX_WARN(logger_, "Empty certificate data");
+    return false;
+  }
+  LOG4CXX_DEBUG(logger_, "New sertificate data : \"" << std::endl << data << '"');
+
+  const std::string file_name("ca_certificate.crt");
+  const std::string absolute_path(
+        (!storage_folder_.empty() ? storage_folder_ : ".")
+          + '/' + file_name);
+  if (!storage_folder_.empty()) {
+    file_system::CreateDirectoryRecursively(storage_folder_);
+  }
+
+  std::ofstream ca_certificate_file(absolute_path);
+  if (!ca_certificate_file.good()) {
+    LOG4CXX_WARN( logger_,
+                  "Couldn't write certificate file \""
+                  << ca_certificate_file << '"');
+  }
+  ca_certificate_file << data;
+  ca_certificate_file.close();
+  LOG4CXX_DEBUG(logger_, "CA certificate saved as '" << absolute_path << "' ");
+  const int result = SSL_CTX_load_verify_locations(
+        context_, absolute_path.c_str(), NULL );
+  if (!result) {
+    const unsigned long error = ERR_get_error();
+    LOG4CXX_WARN(logger_, "Wrong certificate, err 0x" <<
+                 std::hex << error <<
+                 " \"" << ERR_reason_error_string(error) << '"');
+    return false;
+  }
+  SetVerification();
+  return true;
 }
 
 SSLContext* CryptoManagerImpl::CreateSSLContext() {
   if (context_ == NULL) {
+    LOG4CXX_ERROR(logger_, "Not initialized");
     return NULL;
   }
 
   SSL *conn = SSL_new(context_);
-  if (conn == NULL)
+  if (conn == NULL) {
+    LOG4CXX_ERROR(logger_, "SSL context was not created");
     return NULL;
+  }
 
   if (mode_ == SERVER) {
     SSL_set_accept_state(conn);
@@ -209,4 +270,22 @@ std::string CryptoManagerImpl::LastError() const {
   return std::string(reason ? reason : "");
 }
 
+void CryptoManagerImpl::SetVerification() {
+  LOG4CXX_DEBUG(logger_, "Setting up peer verification, " << verify_peer_);
+  if (!verify_peer_) {
+    LOG4CXX_WARN(logger_, "Peer verification disabling according to init options");
+    SSL_CTX_set_verify(context_, SSL_VERIFY_NONE, &debug_callback);
+    return;
+  }
+  const int verify_mode = SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
+  SSL_CTX_set_verify(context_, verify_mode, &debug_callback);
+}
+int debug_callback(int preverify_ok, X509_STORE_CTX *ctx) {
+  if (!preverify_ok) {
+    const int error = X509_STORE_CTX_get_error(ctx);
+    LOG4CXX_WARN(logger_, "Handshake failed with error 0x" << std::hex << error
+                 << " \"" << X509_verify_cert_error_string(error) << '"');
+  }
+  return preverify_ok;
+}
 }  // namespace security_manager
