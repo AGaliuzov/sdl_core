@@ -117,7 +117,7 @@ ApplicationManagerImpl::ApplicationManagerImpl()
                                       true),
     is_low_voltage_(false) {
     std::srand(std::time(0));
-    policy::PolicyHandler::instance()->set_listener(this);
+    AddPolicyObserver(this);
 }
 
 ApplicationManagerImpl::~ApplicationManagerImpl() {
@@ -138,6 +138,7 @@ ApplicationManagerImpl::~ApplicationManagerImpl() {
   protocol_handler_ = NULL;
   media_manager_ = NULL;
   LOG4CXX_INFO(logger_, "Destroying Policy Handler");
+  RemovePolicyObserver(this);
   policy::PolicyHandler::destroy();
 }
 
@@ -1952,6 +1953,14 @@ void ApplicationManagerImpl::set_application_id(const int32_t correlation_id,
     const uint32_t app_id) {
   appID_list_.insert(std::pair<const int32_t, const uint32_t>
                      (correlation_id, app_id));
+}
+
+void ApplicationManagerImpl::AddPolicyObserver( policy::PolicyHandlerObserver* listener) {
+  policy::PolicyHandler::instance()->add_listener(listener);
+}
+
+void ApplicationManagerImpl::RemovePolicyObserver(policy::PolicyHandlerObserver* listener) {
+  policy::PolicyHandler::instance()->remove_listener(listener);
 }
 
 void ApplicationManagerImpl::SetUnregisterAllApplicationsReason(

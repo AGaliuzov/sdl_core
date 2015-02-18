@@ -238,7 +238,6 @@ PolicyHandler::PolicyHandler()
   : AsyncRunner("PolicyHandler async runner thread"),
     dl_handle_(0),
     last_activated_app_id_(0),
-    listener_(NULL),
     app_to_device_link_lock_(true),
     statistic_manager_impl_(new StatisticManagerImpl()) {
 }
@@ -1180,8 +1179,14 @@ void PolicyHandler::PTUpdatedAt(int kilometers, int days_after_epoch) {
   policy_manager_->PTUpdatedAt(kilometers, days_after_epoch);
 }
 
-void PolicyHandler::set_listener(PolicyHandlerObserver* listener) {
-  listener_ = listener;
+void PolicyHandler::add_listener(PolicyHandlerObserver* listener) {
+  sync_primitives::AutoLock lock(listeners_lock_);
+  listeners_.push_back(listener);
+}
+
+void PolicyHandler::remove_listener(PolicyHandlerObserver* listener) {
+  sync_primitives::AutoLock lock(listeners_lock_);
+  listeners_.remove(listener);
 }
 
 utils::SharedPtr<usage_statistics::StatisticsManager>
@@ -1241,8 +1246,19 @@ std::string PolicyHandler::GetAppName(const std::string& policy_app_id) {
 
 void PolicyHandler::OnUpdateHMIAppType(std::map<std::string, StringArray> app_hmi_types) {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (listener_) {
-    listener_->OnUpdateHMIAppType(app_hmi_types);
+  sync_primitives::AutoLock lock(listeners_lock_);
+  HandlersCollection::const_iterator it = listeners_.begin();
+  for (; it != listeners_.end(); ++it) {
+    (*it)->OnUpdateHMIAppType(app_hmi_types);
+  }
+}
+
+void PolicyHandler::OnCertificateUpdated(const std::string& certificate_data) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  sync_primitives::AutoLock lock(listeners_lock_);
+  HandlersCollection::const_iterator it = listeners_.begin();
+  for (; it != listeners_.end(); ++it) {
+    (*it)->OnCertificateUpdated(certificate_data);
   }
 }
 

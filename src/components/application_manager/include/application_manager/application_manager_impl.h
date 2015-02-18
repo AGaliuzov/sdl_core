@@ -565,6 +565,21 @@ class ApplicationManagerImpl : public ApplicationManager,
      */
     void set_application_id(const int32_t correlation_id, const uint32_t app_id);
 
+    /**
+     * @brief AddPolicyObserver allows to subscribe needed component to events
+     * from policy.
+     *
+     * @param listener the component to subscribe.
+     */
+    void AddPolicyObserver(PolicyHandlerObserver* listener);
+
+    /**
+     * @brief RemovePolicyObserver allows to remove observer from collection.
+     *
+     * @param listener observer to remove.
+     */
+    void RemovePolicyObserver(PolicyHandlerObserver* listener);
+
     /*
      * @brief Change AudioStreamingState for all application according to
      * system audio-mixing capabilities (NOT_AUDIBLE/ATTENUATED) and

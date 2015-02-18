@@ -282,6 +282,7 @@ class ApplicationManagerImpl : public ApplicationManager,
                                         bool));
   MOCK_METHOD4(UnregisterApplication, void(const uint32_t,mobile_apis::Result::eType,
                                         bool, bool));
+  MOCK_METHOD1(OnAppUnauthorized, void(const uint32_t&));
   MOCK_CONST_METHOD0(get_limited_media_application, ApplicationSharedPtr());
   MOCK_CONST_METHOD0(get_limited_navi_application, ApplicationSharedPtr());
   MOCK_CONST_METHOD0(get_limited_voice_application, ApplicationSharedPtr());
