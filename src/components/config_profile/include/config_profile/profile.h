@@ -395,6 +395,38 @@ class Profile : public utils::Singleton<Profile> {
      */
     uint16_t tts_global_properties_timeout() const;
 
+#ifdef ENABLE_SECURITY
+  /**
+   * @brief Returns name of Security Manager protocol
+   */
+  const std::string& protocol_name() const;
+
+  /**
+   * @brief Returns SSL mode
+   */
+  const std::string& ssl_mode() const;
+
+  /**
+   * @brief Returns key path to pem file
+   */
+  const std::string& key_path() const;
+
+  /**
+   * @brief Returns certificate path to pem file
+   */
+  const std::string& cert_path() const;
+
+  /**
+   * @brief Returns ciphers
+   */
+  const std::string& ciphers_list() const;
+
+  /**
+   * @brief Verifies Mobile app certificate
+   */
+  bool verify_peer() const;
+
+#endif
     /**
      * @brief Reads a string value from the profile
      *
@@ -686,6 +718,14 @@ class Profile : public utils::Singleton<Profile> {
     uint32_t                        list_files_in_none_;
     std::string                     app_info_storage_;
     uint32_t                        heart_beat_timeout_;
+#ifdef ENABLE_SECURITY
+  std::string                       cert_path_;
+  std::string                       ssl_mode_;
+  std::string                       key_path_;
+  std::string                       ciphers_list_;
+  bool                              verify_peer_;
+  std::string                       protocol_name_;
+#endif
     std::string                     preloaded_pt_file_;
     std::string                     policy_snapshot_file_name_;
     bool                            enable_policy_;

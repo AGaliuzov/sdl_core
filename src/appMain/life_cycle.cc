@@ -128,55 +128,29 @@ bool LifeCycle::StartComponents() {
 
 #ifdef ENABLE_SECURITY
   security_manager_ = new security_manager::SecurityManagerImpl();
-
-  // FIXME(EZamakhov): move to Config or in Sm initialization method
-  std::string cert_filename;
-  profile::Profile::instance()->ReadStringValue(
-        &cert_filename, "",
-        security_manager::SecurityManagerImpl::ConfigSection(), "CertificatePath");
-
-  std::string ssl_mode;
-  profile::Profile::instance()->ReadStringValue(
-          &ssl_mode, "CLIENT", security_manager::SecurityManagerImpl::ConfigSection(), "SSLMode");
   crypto_manager_ = new security_manager::CryptoManagerImpl();
 
-  std::string key_filename;
-  profile::Profile::instance()->ReadStringValue(
-        &key_filename, "", security_manager::SecurityManagerImpl::ConfigSection(), "KeyPath");
-
-  std::string ciphers_list;
-  profile::Profile::instance()->ReadStringValue(
-        &ciphers_list, SSL_TXT_ALL, security_manager::SecurityManagerImpl::ConfigSection(), "CipherList");
-
-  bool verify_peer;
-  profile::Profile::instance()->ReadBoolValue(
-        &verify_peer, false, security_manager::SecurityManagerImpl::ConfigSection(), "VerifyPeer");
-
-  std::string protocol_name;
-  profile::Profile::instance()->ReadStringValue(
-      &protocol_name, "TLSv1.2", security_manager::SecurityManagerImpl::ConfigSection(), "Protocol");
-
   security_manager::Protocol protocol;
-  if (protocol_name == "TLSv1.0") {
+  if (profile::Profile::instance()-> protocol_name() == "TLSv1.0") {
     protocol = security_manager::TLSv1;
-  } else if (protocol_name == "TLSv1.1") {
+  } else if (profile::Profile::instance()-> protocol_name() == "TLSv1.1") {
     protocol = security_manager::TLSv1_1;
-  } else if (protocol_name == "TLSv1.2") {
+  } else if (profile::Profile::instance()-> protocol_name() == "TLSv1.2") {
     protocol = security_manager::TLSv1_2;
-  } else if (protocol_name == "SSLv3") {
+  } else if (profile::Profile::instance()-> protocol_name() == "SSLv3") {
     protocol = security_manager::SSLv3;
   } else {
-    LOG4CXX_ERROR(logger_, "Unknown protocol: " << protocol_name);
+    LOG4CXX_ERROR(logger_, "Unknown protocol: " <<profile::Profile::instance()-> protocol_name());
     return false;
   }
 
   if (!crypto_manager_->Init(
-      ssl_mode == "SERVER" ? security_manager::SERVER : security_manager::CLIENT,
+      profile::Profile::instance()-> ssl_mode() == "SERVER" ? security_manager::SERVER : security_manager::CLIENT,
           protocol,
-          cert_filename,
-          key_filename,
-          ciphers_list,
-          verify_peer)) {
+      profile::Profile::instance()-> cert_path(),
+      profile::Profile::instance()-> key_path(),
+      profile::Profile::instance()-> ciphers_list(),
+      profile::Profile::instance()->verify_peer())) {
     LOG4CXX_ERROR(logger_, "CryptoManager initialization fail.");
     return false;
   }
