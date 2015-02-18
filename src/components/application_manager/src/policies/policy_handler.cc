@@ -103,12 +103,14 @@ struct DeactivateApplication {
 
     void operator()(const ApplicationSharedPtr& app) {
       if (device_id_ == app->device()) {
-        ApplicationManagerImpl::instance()->ChangeAppsHMILevel(app->app_id(),
-                                                               mobile_apis::HMILevel::HMI_NONE);
-        app->set_audio_streaming_state(mobile_api::AudioStreamingState::NOT_AUDIBLE); 
-        MessageHelper::SendActivateAppToHMI(
-          app->app_id(), hmi_apis::Common_HMILevel::NONE);
-        MessageHelper::SendHMIStatusNotification(*app.get());
+        if (hmi_apis::Common_HMILevel::NONE != app->hmi_level()) {
+          ApplicationManagerImpl::instance()->ChangeAppsHMILevel(app->app_id(),
+                                                                 mobile_apis::HMILevel::HMI_NONE);
+          app->set_audio_streaming_state(mobile_api::AudioStreamingState::NOT_AUDIBLE);
+          MessageHelper::SendActivateAppToHMI(
+                app->app_id(), hmi_apis::Common_HMILevel::NONE);
+          MessageHelper::SendHMIStatusNotification(*app.get());
+        }
       }
     }
 
