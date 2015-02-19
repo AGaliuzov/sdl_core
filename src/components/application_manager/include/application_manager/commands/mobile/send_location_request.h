@@ -77,7 +77,7 @@ class SendLocationRequest : public CommandRequestImpl {
    */
   bool IsWhiteSpaceExist();
 
-  bool CheckHMICapabilities(std::list<std::string>& fields_names);
+  bool CheckHMICapabilities(std::list<hmi_apis::Common_TextFieldName::eType>& fields_names);
   DISALLOW_COPY_AND_ASSIGN(SendLocationRequest);
 };
 
