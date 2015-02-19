@@ -67,6 +67,7 @@ class SendLocationRequest : public CommandRequestImpl {
    */
   virtual void on_event(const event_engine::Event& event);
 
+
  private:
 
   /**
@@ -76,7 +77,7 @@ class SendLocationRequest : public CommandRequestImpl {
    */
   bool IsWhiteSpaceExist();
 
-
+  bool CheckHMICapabilities(std::list<std::string>& fields_names);
   DISALLOW_COPY_AND_ASSIGN(SendLocationRequest);
 };
 
