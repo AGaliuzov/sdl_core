@@ -32,6 +32,7 @@
 
 #include <climits>
 #include <string>
+#include <algorithm>
 #include "gtest/gtest.h"
 #include "json/reader.h"
 #include "formatters/CFormatterJsonBase.hpp"
@@ -51,7 +52,7 @@ TEST(CFormatterJsonBaseTest, JSonStringValueToSmartObj) {
   SmartObject object;
   // Convert json to smart object
   CFormatterJsonBase::jsonValueToObj(string_value, object);
-  // Check conversion was successfull
+  // Check conversion was successful
   EXPECT_EQ(string_val, object.asString());
 }
 
@@ -62,8 +63,8 @@ TEST(CFormatterJsonBaseTest, JSonDoubleValueToSmartObj) {
   SmartObject object;
   // Convert json to smart object
   CFormatterJsonBase::jsonValueToObj(double_value, object);
-  // Check conversion was successfull
-  EXPECT_EQ(dval, object.asDouble());
+  // Check conversion was successful
+  EXPECT_DOUBLE_EQ(dval, object.asDouble());
 }
 
 TEST(CFormatterJsonBaseTest, JSonIntValueToSmartObj) {
@@ -73,7 +74,7 @@ TEST(CFormatterJsonBaseTest, JSonIntValueToSmartObj) {
   SmartObject object;
   // Convert json to smart object
   CFormatterJsonBase::jsonValueToObj(int_value, object);
-  // Check conversion was successfull
+  // Check conversion was successful
   EXPECT_EQ(ival, object.asInt());
 }
 
@@ -84,7 +85,7 @@ TEST(CFormatterJsonBaseTest, JSonUnsignedIntValueToSmartObj) {
   SmartObject object;
   // Convert json to smart object
   CFormatterJsonBase::jsonValueToObj(uint_value, object);
-  // Check conversion was successfull
+  // Check conversion was successful
   EXPECT_EQ(ui_val, object.asUInt());
 }
 
@@ -99,7 +100,7 @@ TEST(CFormatterJsonBaseTest, JSonBoolValueToSmartObj) {
   // Convert json to smart object
   CFormatterJsonBase::jsonValueToObj(boolean_value1, object1);
   CFormatterJsonBase::jsonValueToObj(boolean_value2, object2);
-  // Check conversion was successfull
+  // Check conversion was successful
   EXPECT_TRUE(object1.asBool());
   EXPECT_FALSE(object2.asBool());
 }
@@ -111,24 +112,24 @@ TEST(CFormatterJsonBaseTest, JSonCStringValueToSmartObj) {
   SmartObject object;
   // Convert json to smart object
   CFormatterJsonBase::jsonValueToObj(cstring_value, object);
-  // Check conversion was successfull
+  // Check conversion was successful
   EXPECT_STREQ(cstr_val, object.asCharArray());
 }
 
 TEST(CFormatterJsonBaseTest, JSonArrayValueToSmartObj) {
   // Arrange value
   const char* json_array = "[\"test1\", \"test2\", \"test3\"]";  // Array in json format
-  SmartArray *ptr = NULL;  // Smart Array pointer;
-  Json::Reader reader;  // Json reader - Needed for correct parsing
   Json::Value arr_value;  // Json value from array. Will be initialized later
   SmartObject object;
+  Json::Reader reader;  // Json reader - Needed for correct parsing
   // Parse array to json value
   ASSERT_TRUE(reader.parse(json_array, arr_value));
   // Convert json array to SmartObject
   CFormatterJsonBase::jsonValueToObj(arr_value, object);
-  // Check conversion was successfull
+  // Check conversion was successful
   EXPECT_TRUE(arr_value.isArray());
   EXPECT_EQ(3u, object.asArray()->size());
+  SmartArray *ptr = NULL;  // Smart Array pointer;
   EXPECT_NE(ptr, object.asArray());
 }
 
@@ -136,16 +137,30 @@ TEST(CFormatterJsonBaseTest, JSonObjectValueToSmartObj) {
   // Arrange value
   const char* json_object =
       "{ \"json_test_object\": [\"test1\", \"test2\", \"test3\"], \"json_test_object2\": [\"test11\", \"test12\", \"test13\" ]}";  // Json object
-  Json::Reader reader;  // Json reader - Needed for correct parsing
   Json::Value object_value;  // Json value from object. Will be initialized later
   SmartObject object;
-  ASSERT_TRUE(reader.parse(json_object, object_value));  // If parsing not successfull - no sense to continue
+  Json::Reader reader;  // Json reader - Needed for correct parsing
+  ASSERT_TRUE(reader.parse(json_object, object_value));  // If parsing not successful - no sense to continue
   CFormatterJsonBase::jsonValueToObj(object_value, object);
-  // Check conversion was successfull
+  // Check conversion was successful
   EXPECT_TRUE(object_value.isObject());
   EXPECT_TRUE(object_value.type() == Json::objectValue);
+  // Get keys collection from Smart Object
   std::set<std::string> keys = object.enumerate();
-  EXPECT_EQ(2u, keys.size());
+  std::set<std::string>::iterator it1 = keys.begin();
+  // Get membes names(keys) from Json object
+  Json::Value::Members mems = object_value.getMemberNames();
+  std::vector<std::string>::iterator it;
+  // Compare sizes
+  EXPECT_EQ(mems.size(), keys.size());
+  // Sort mems
+  std::sort(mems.begin(), mems.end());
+  // Full data compare
+  for (it = mems.begin(); it != mems.end(); ++it) {
+    EXPECT_EQ(*it, *it1);
+    ++it1;
+  }
+  ASSERT(it == mems.end() && it1 == keys.end());
 }
 
 TEST(CFormatterJsonBaseTest, StringSmartObjectToJSon) {
@@ -155,7 +170,7 @@ TEST(CFormatterJsonBaseTest, StringSmartObjectToJSon) {
   Json::Value string_value;  // Json value from string
   // Convert smart object to json
   CFormatterJsonBase::objToJsonValue(object, string_value);
-  // Check conversion was successfull
+  // Check conversion was successful
   EXPECT_EQ(string_val, string_value.asString());
 }
 
@@ -166,7 +181,7 @@ TEST(CFormatterJsonBaseTest, DoubleSmartObjectToJSon) {
   SmartObject object(dval);
   // Convert json to smart object
   CFormatterJsonBase::objToJsonValue(object, double_value);
-  // Check conversion was successfull
+  // Check conversion was successful
   EXPECT_EQ(dval, double_value.asDouble());
 }
 
@@ -177,7 +192,7 @@ TEST(CFormatterJsonBaseTest, IntSmartObjectToJSon) {
   SmartObject object(ival);
   // Convert json to smart object
   CFormatterJsonBase::objToJsonValue(object, int_value);
-  // Check conversion was successfull
+  // Check conversion was successful
   EXPECT_EQ(ival, int_value.asInt());
 }
 
@@ -188,7 +203,7 @@ TEST(CFormatterJsonBaseTest, UnsignedIntSmartObjectToJSon) {
   SmartObject object(ui_val);
   // Convert json to smart object
   CFormatterJsonBase::objToJsonValue(object, uint_value);
-  // Check conversion was successfull
+  // Check conversion was successful
   EXPECT_EQ(ui_val, uint_value.asUInt());
 }
 
@@ -203,7 +218,7 @@ TEST(CFormatterJsonBaseTest, BoolSmartObjectToJSon) {
   // Convert json to smart object
   CFormatterJsonBase::objToJsonValue(object1, boolean_value1);
   CFormatterJsonBase::objToJsonValue(object2, boolean_value2);
-  // Check conversion was successfull
+  // Check conversion was successful
   EXPECT_TRUE(boolean_value1.asBool());
   EXPECT_FALSE(boolean_value2.asBool());
 }
@@ -215,24 +230,24 @@ TEST(CFormatterJsonBaseTest, CStringSmartObjectToJSon) {
   SmartObject object(cstr_val);
   // Convert json to smart object
   CFormatterJsonBase::objToJsonValue(object, cstring_value);
-  // Check conversion was successfull
+  // Check conversion was successful
   EXPECT_STREQ(cstr_val, cstring_value.asCString());
 }
 
 TEST(CFormatterJsonBaseTest, ArraySmartObjectToJSon) {
   // Arrange value
   const char* json_array = "[\"test1\", \"test2\", \"test3\"]";  // Array in json format
-  Json::Reader reader;  // Json reader - Needed for correct parsing
   Json::Value arr_value;  // Json value from array. Will be initialized later
   Json::Value result;  // Json value from array. Will be initialized later
   SmartObject object;
+  Json::Reader reader;  // Json reader - Needed for correct parsing
   // Parse array to json value
   ASSERT_TRUE(reader.parse(json_array, arr_value));  // Convert json array to SmartObject
   // Convert json array to SmartObject
   CFormatterJsonBase::jsonValueToObj(arr_value, object);
   // Convert SmartObject to JSon
   CFormatterJsonBase::objToJsonValue(object, result);
-  // Check conversion was successfull
+  // Check conversion was successful
   EXPECT_TRUE(result.isArray());
   EXPECT_EQ(3u, result.size());
 }
@@ -241,20 +256,36 @@ TEST(CFormatterJsonBaseTest, JSonObjectValueToObj) {
   // Arrange value
   const char* json_object =
       "{ \"json_test_object\": [\"test1\", \"test2\", \"test3\"], \"json_test_object2\": [\"test11\", \"test12\", \"test13\" ]}";  // Json object
-  Json::Reader reader;  // Json reader - Needed for correct parsing
   Json::Value object_value;  // Json value from json object. Will be initialized later
-  Json::Value result;  // Json value from Smart obecj. Will keep conversion result
+  Json::Value result;  // Json value from Smart object. Will keep conversion result
   SmartObject object;
+  Json::Reader reader;  // Json reader - Needed for correct parsing
   // Parse json object to correct json value
-  ASSERT_TRUE(reader.parse(json_object, object_value));  // If parsing not successfull - no sense to continue
+  ASSERT_TRUE(reader.parse(json_object, object_value));  // If parsing not successful - no sense to continue
   // Convert json array to SmartObject
   CFormatterJsonBase::jsonValueToObj(object_value, object);
   // Convert SmartObject to JSon
   CFormatterJsonBase::objToJsonValue(object, result);
-  // Check conversion was successfull
+  // Check conversion was successful
   EXPECT_TRUE(result.isObject());
   EXPECT_TRUE(result.type() == Json::objectValue);
   EXPECT_TRUE(result == object_value);
+  // Get keys collection from Smart Object
+  std::set<std::string> keys = object.enumerate();
+  std::set<std::string>::iterator it1 = keys.begin();
+  // Get membes names(keys) from Json object
+  Json::Value::Members mems = result.getMemberNames();
+  std::vector<std::string>::iterator it;
+  // Compare sizes
+  EXPECT_EQ(mems.size(), keys.size());
+  // Sort mems
+  std::sort(mems.begin(), mems.end());
+  // Full data compare
+  for (it = mems.begin(); it != mems.end(); ++it) {
+    EXPECT_EQ(*it, *it1);
+    ++it1;
+  }
+  ASSERT(it == mems.end() && it1 == keys.end());
 }
 
 }  // namespace formatters
