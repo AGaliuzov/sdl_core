@@ -49,7 +49,6 @@ class ProfileTest : public ::testing::Test {
   }
   virtual void TearDown() {
     profile::Profile::destroy();
-    Profile::instance();
   }
 
 };
@@ -101,7 +100,6 @@ TEST_F(ProfileTest, SetConfigFileWithoutCallUpdate) {
   EXPECT_TRUE(profile::Profile::instance()->enable_policy());
   vr_help_title_ = "Available Vr Commands List";
   EXPECT_EQ(vr_help_title_, Profile::instance()->vr_help_title());
-
 }
 
 TEST_F(ProfileTest, SetConfigFileWithUpdate) {
@@ -226,8 +224,6 @@ TEST_F(ProfileTest, UpdateBoolValues) {
 }
 
 TEST_F(ProfileTest, UpdateStringValue) {
-  // Change values by default states
-  profile::Profile::destroy();
   // Default values
   std::string config_folder = "";
   std::string tts_delimiter_ = "";
@@ -261,8 +257,6 @@ TEST_F(ProfileTest, UpdateStringValue) {
   EXPECT_EQ(vr_help_title_, Profile::instance()->vr_help_title());
   EXPECT_EQ(server_address, profile::Profile::instance()->server_address());
   EXPECT_EQ(app_resourse_folder, Profile::instance()->app_resourse_folder());
-
-  profile::Profile::destroy();
 }
 
 TEST_F(ProfileTest, UpdateInt_ValueAppearsInFileTwice) {
@@ -277,7 +271,6 @@ TEST_F(ProfileTest, UpdateInt_ValueAppearsInFileTwice) {
   // First server_port = 8088
   server_port = 8088;
   EXPECT_EQ(server_port, Profile::instance()->server_port());
-
 }
 
 TEST_F(ProfileTest, UpdateBool_ValueAppearsInFileTwice) {
@@ -290,7 +283,6 @@ TEST_F(ProfileTest, UpdateBool_ValueAppearsInFileTwice) {
   // Update config file
   // First value is true
   EXPECT_TRUE(profile::Profile::instance()->enable_protocol_4());
-
 }
 
 TEST_F(ProfileTest, UpdateVectorOfString_ValueAppearsInFileTwice) {
@@ -419,7 +411,6 @@ TEST_F(ProfileTest, IntInsteadOfPair) {
 
 TEST_F(ProfileTest, WrongIntValue) {
   // Default value
-  profile::Profile::destroy();
   uint32_t heart_beat_timeout = 0;
   EXPECT_EQ(heart_beat_timeout, Profile::instance()->heart_beat_timeout());
 
@@ -439,7 +430,6 @@ TEST_F(ProfileTest, WrongIntValue) {
 
 TEST_F(ProfileTest, WrongMaxIntValue) {
   // Default value
-  profile::Profile::destroy();
   uint32_t maxvalue = 2000000000;
   EXPECT_EQ(maxvalue, Profile::instance()->max_cmd_id());
 
@@ -459,7 +449,6 @@ TEST_F(ProfileTest, WrongMaxIntValue) {
 
 TEST_F(ProfileTest, WrongMinIntValue) {
   // Default value
-  profile::Profile::destroy();
   uint32_t minvalue = threads::Thread::kMinStackSize;
   EXPECT_EQ(minvalue, Profile::instance()->thread_min_stack_size());
 
@@ -486,7 +475,6 @@ TEST_F(ProfileTest, WrongMinIntValue) {
 
 TEST_F(ProfileTest, CheckCorrectValueWhenOtherValueInvalid) {
   // Default value
-  profile::Profile::destroy();
   uint32_t maxvalue = 2000000000;
   EXPECT_EQ(maxvalue, Profile::instance()->max_cmd_id());
 
@@ -533,8 +521,6 @@ TEST_F(ProfileTest, PairsValueInsteadOfInt) {
 }
 
 TEST_F(ProfileTest, StringValueIncludeSlashesAndRussianLetters) {
-  // Change values by default states
-  profile::Profile::destroy();
   // Default values
   std::string config_folder = "";
   EXPECT_EQ(config_folder, Profile::instance()->app_resourse_folder());
@@ -566,13 +552,9 @@ TEST_F(ProfileTest, StringValueIncludeSlashesAndRussianLetters) {
   EXPECT_EQ(tts_delimiter_, Profile::instance()->tts_delimiter());
   EXPECT_EQ(server_address, profile::Profile::instance()->server_address());
   EXPECT_EQ(app_resourse_folder, Profile::instance()->app_resourse_folder());
-
-  profile::Profile::destroy();
 }
 
 TEST_F(ProfileTest, StringUpperBoundValue) {
-  // Change values by default states
-  profile::Profile::destroy();
   // Default values
   std::string vr_help_title = "";
   std::string recording_file_name = "record.wav";
@@ -596,7 +578,6 @@ TEST_F(ProfileTest, StringUpperBoundValue) {
   // Values are the same
   EXPECT_EQ(vr_help_title, Profile::instance()->vr_help_title());
   EXPECT_EQ(recording_file_name, Profile::instance()->recording_file_name());
-  profile::Profile::destroy();
 }
 
 TEST_F(ProfileTest, CapitalLetterInBoolValue) {
