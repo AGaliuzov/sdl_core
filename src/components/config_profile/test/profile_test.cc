@@ -112,7 +112,7 @@ TEST(ProfileTest, SetConfigFileWithUpdate) {
   EXPECT_EQ(thread_min_stack_size,
             Profile::instance()->thread_min_stack_size());
 
-  // Update config file againg
+  // Update config file again
   profile::Profile::instance()->UpdateValues();
 
   // Value should be the same

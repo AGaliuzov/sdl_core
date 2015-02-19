@@ -131,16 +131,16 @@ bool LifeCycle::StartComponents() {
   crypto_manager_ = new security_manager::CryptoManagerImpl();
 
   security_manager::Protocol protocol;
-  if (profile::Profile::instance()-> protocol_name() == "TLSv1.0") {
+  if (profile::Profile::instance()-> security_manager_protocol_name() == "TLSv1.0") {
     protocol = security_manager::TLSv1;
-  } else if (profile::Profile::instance()-> protocol_name() == "TLSv1.1") {
+  } else if (profile::Profile::instance()-> security_manager_protocol_name() == "TLSv1.1") {
     protocol = security_manager::TLSv1_1;
-  } else if (profile::Profile::instance()-> protocol_name() == "TLSv1.2") {
+  } else if (profile::Profile::instance()-> security_manager_protocol_name() == "TLSv1.2") {
     protocol = security_manager::TLSv1_2;
-  } else if (profile::Profile::instance()-> protocol_name() == "SSLv3") {
+  } else if (profile::Profile::instance()-> security_manager_protocol_name() == "SSLv3") {
     protocol = security_manager::SSLv3;
   } else {
-    LOG4CXX_ERROR(logger_, "Unknown protocol: " <<profile::Profile::instance()-> protocol_name());
+    LOG4CXX_ERROR(logger_, "Unknown protocol: " <<profile::Profile::instance()-> security_manager_protocol_name());
     return false;
   }
 

@@ -748,8 +748,8 @@ bool Profile::verify_peer() const {
   return verify_peer_;
 }
 
-const std::string& Profile::protocol_name() const {
-  return protocol_name_;
+const std::string& Profile::security_manager_protocol_name() const {
+  return security_manager_protocol_name_;
 }
 
 #endif // ENABLE_SECURITY
@@ -764,8 +764,7 @@ void Profile::UpdateValues() {
 
 #ifdef ENABLE_SECURITY
 
-  std::string protocol_name;
-  ReadStringValue(&protocol_name_, kDefaultSecurityProtocol, kSecuritySection,
+  ReadStringValue(&security_manager_protocol_name_, kDefaultSecurityProtocol, kSecuritySection,
       kSecurityProtocolKey);
 
   ReadStringValue(&cert_path_, "", kSecuritySection,

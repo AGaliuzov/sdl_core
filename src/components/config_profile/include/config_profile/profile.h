@@ -399,7 +399,7 @@ class Profile : public utils::Singleton<Profile> {
   /**
    * @brief Returns name of Security Manager protocol
    */
-  const std::string& protocol_name() const;
+  const std::string& security_manager_protocol_name() const;
 
   /**
    * @brief Returns SSL mode
@@ -422,7 +422,7 @@ class Profile : public utils::Singleton<Profile> {
   const std::string& ciphers_list() const;
 
   /**
-   * @brief Verifies Mobile app certificate
+   * @brief Returns true if Mobile app certificate is verified
    */
   bool verify_peer() const;
 
@@ -724,7 +724,7 @@ class Profile : public utils::Singleton<Profile> {
   std::string                       key_path_;
   std::string                       ciphers_list_;
   bool                              verify_peer_;
-  std::string                       protocol_name_;
+  std::string                       security_manager_protocol_name_;
 #endif
     std::string                     preloaded_pt_file_;
     std::string                     policy_snapshot_file_name_;
