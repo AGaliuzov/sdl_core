@@ -31,6 +31,7 @@
  */
 #include "transport_manager/mme/protocol_config.h"
 
+#include <algorithm>
 #include <fstream>
 
 #include "utils/logger.h"
@@ -100,10 +101,15 @@ const ProtocolConfig::ProtocolNameContainer ProtocolConfig::ReadIAPHubProtocolNa
       ->iap_hub_protocol_mask();
   ProtocolConfig::ProtocolNameContainer protocols = ReadProtocolNames(
       iap_system_config, iap_section_name, hub_protocol_mask);
-  ProtocolConfig::ProtocolNameContainer::iterator it = protocols.find(
-      profile::Profile::instance()->default_hub_protocol_index());
   ProtocolConfig::ProtocolNameContainer hub_protocols;
-  hub_protocols.insert(make_pair(it->first, it->second));
+  uint32_t default_hub_protocol_index = profile::Profile::instance()->default_hub_protocol_index();
+  ProtocolConfig::ProtocolNameContainer::iterator i = protocols.find(default_hub_protocol_index);
+  if (i != protocols.end()) {
+    hub_protocols.insert(*i);
+  }
+  else {
+    LOG4CXX_WARN(logger_, "iAP: cannot find default protocol index " << default_hub_protocol_index << " in system config file");
+  }
   return hub_protocols;
 }
 
@@ -114,10 +120,15 @@ const ProtocolConfig::ProtocolNameContainer ProtocolConfig::ReadIAP2HubProtocolN
       ->iap_hub_protocol_mask();
   ProtocolConfig::ProtocolNameContainer protocols = ReadProtocolNames(
       iap2_system_config, iap2_section_name, hub_protocol_mask);
-  ProtocolConfig::ProtocolNameContainer::iterator it = protocols.find(
-      profile::Profile::instance()->default_hub_protocol_index());
   ProtocolConfig::ProtocolNameContainer hub_protocols;
-  hub_protocols.insert(make_pair(it->first, it->second));
+  uint32_t default_hub_protocol_index = profile::Profile::instance()->default_hub_protocol_index();
+  ProtocolConfig::ProtocolNameContainer::iterator i = protocols.find(default_hub_protocol_index);
+  if (i != protocols.end()) {
+    hub_protocols.insert(*i);
+  }
+  else {
+    LOG4CXX_WARN(logger_, "iAP2: cannot find default protocol index " << default_hub_protocol_index << " in system config file");
+  }
   return hub_protocols;
 }
 
@@ -154,7 +165,9 @@ const ProtocolConfig::ProtocolNameContainer ProtocolConfig::ReadProtocolNames(
         "parsing system config file " << config_file_name << " (section " << section_name << ", protocol mask \"" << protocol_mask << "\")");
     std::string line;
     while (std::getline(config_file, line)) {
-      if (section_name == line) {  // start of specified section
+      std::string::iterator end = std::find_if(line.begin(), line.end(), ::isspace);
+      std::string line_trimmed(line.begin(), end);
+      if (section_name == line_trimmed) {  // start of specified section
         while (std::getline(config_file, line)) {
           if (line.empty()) {  // end of specified section
             break;
