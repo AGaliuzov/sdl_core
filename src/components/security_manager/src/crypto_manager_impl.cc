@@ -271,12 +271,13 @@ std::string CryptoManagerImpl::LastError() const {
 }
 
 void CryptoManagerImpl::SetVerification() {
-  LOG4CXX_DEBUG(logger_, "Setting up peer verification, " << verify_peer_);
+  LOG4CXX_AUTO_TRACE(logger_);
   if (!verify_peer_) {
     LOG4CXX_WARN(logger_, "Peer verification disabling according to init options");
     SSL_CTX_set_verify(context_, SSL_VERIFY_NONE, &debug_callback);
     return;
   }
+  LOG4CXX_DEBUG(logger_, "Setting up peer verification");
   const int verify_mode = SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
   SSL_CTX_set_verify(context_, verify_mode, &debug_callback);
 }

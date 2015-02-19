@@ -199,7 +199,6 @@ install(TARGETS ${PROJECT} DESTINATION bin)
 install(
   FILES log4cxx.properties audio.8bit.wav test.txt smartDeviceLink.ini
     hmi_capabilities.json sdl_preloaded_pt.json
-    ${CMAKE_SOURCE_DIR}/mycert.pem ${CMAKE_SOURCE_DIR}/mykey.pem
   DESTINATION bin
 )
 if (${WEB_HMI})
@@ -221,3 +220,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ
       GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 endif ()
+if(ENABLE_SECURITY)
+  install( FILES client_sign.crt client.key certificate_chain.crt
+           DESTINATION bin )
+endif()

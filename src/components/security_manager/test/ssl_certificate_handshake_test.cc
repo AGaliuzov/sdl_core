@@ -325,6 +325,8 @@ TEST_F(SSLHandshakeTest, CAVerification_BothSides) {
   }
 }
 
+// TODO(EZamakhov): add fail tests - wrong, unsign certificate, broken or not full ca certificate chain
+
 }  // namespace ssl_handshake_test
 }  // namespace components
 }  // namespace test

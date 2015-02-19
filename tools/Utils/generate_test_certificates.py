@@ -51,8 +51,7 @@ def gen_cert(out_cert_file, out_sign_cert_file, key_file, ca_cert_file, ca_key_f
 	openssl("x509 -req -in", out_cert_file, "-CA", ca_cert_file, "-CAkey", ca_key_file, \
 		"-CAcreateserial -out", out_sign_cert_file, "-days", days)
 
-def answers(name, country, state, locality, \
-			organization, unit, email) :
+def answers(name, country, state, locality, organization, unit, email) :
 	"""Answer string generator
 	Generate answer for certificate creation with openssl
 	Country argument need to be 2 symbol size
@@ -75,8 +74,8 @@ def main():
 	root_answer = answers("root", "US", "California", "Silicon Valley", "CAcert.org", "CAcert", "sample@cacert.org")
 	ford_answer = answers("FORD", "US", "Michigan", "Detroit", "FORD", "FORD_SDL" ,"sample@ford.com")
 	ford2_answer = answers("FORD", "US", "Michigan", "Detroit", "FORD2", "FORD_SDL2" ,"sample@ford.com")
-	client_answer  = answers("client", "RU", "Russia", "St.Petersburg", "Luxoft", "HeadUnit" ,"sample@luxoft.com")
-	server_answer  = answers("server", "RU", "Russia", "St.Petersburg", "Luxoft", "Mobile" ,"sample@luxoft.com")
+	client_answer  = answers("client", "RU", "Russia", "St. Petersburg", "Luxoft", "HeadUnit" ,"sample@luxoft.com")
+	server_answer  = answers("server", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile" ,"sample@luxoft.com")
 	days = 10000
 
 	print " --== Root certificate generating ==-- "

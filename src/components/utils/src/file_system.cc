@@ -353,7 +353,7 @@ bool file_system::ReadBinaryFile(const std::string& name,
   std::ifstream file(name.c_str(), std::ios_base::binary);
   std::ostringstream ss;
   ss << file.rdbuf();
-  const std::string& s = ss.str();
+  const std::string s = ss.str();
 
   result.resize(s.length());
   std::copy(s.begin(), s.end(), result.begin());

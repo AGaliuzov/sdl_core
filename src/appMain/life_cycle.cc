@@ -31,6 +31,7 @@
 */
 
 #include "./life_cycle.h"
+#include <fstream>
 #include "utils/signals.h"
 #include "config_profile/profile.h"
 #ifdef CUSTOMER_PASA
@@ -185,6 +186,25 @@ bool LifeCycle::StartComponents() {
         storage_folder)) {
     LOG4CXX_ERROR(logger_, "CryptoManager initialization fail.");
     return false;
+  }
+
+  std::string ca_cert_filename;
+  profile::Profile::instance()->ReadStringValue(
+        &ca_cert_filename, "", security_manager::SecurityManagerImpl::ConfigSection(),
+        "CACertificatePath");
+  if(!ca_cert_filename.empty()) {
+    std::ifstream file(ca_cert_filename);
+    if(!file.good()) {
+      LOG4CXX_ERROR(logger_, "CA certificate loading fail");
+      return false;
+    }
+    std::string ca_certificate_data;
+    std::copy( std::istreambuf_iterator<char>(file),
+               std::istreambuf_iterator<char>(),
+               std::back_inserter(ca_certificate_data));
+    crypto_manager_->OnCertificateUpdated(ca_certificate_data);
+  } else {
+    LOG4CXX_WARN(logger_, "Empty CA certificate");
   }
 #endif  // ENABLE_SECURITY
 
