@@ -59,10 +59,20 @@ void SendLocationRequest::Run() {
     return;
   }
   std::list<std::string> fields_to_check;
-  fields_to_check.push_back(strings::location_name);
-  fields_to_check.push_back(strings::location_description);
-  fields_to_check.push_back(strings::address_lines);
-  fields_to_check.push_back(strings::phone_number);
+  const smart_objects::SmartObject& msg_params = (*message_)[strings::msg_params];
+
+  if (msg_params.keyExists(strings::location_name)) {
+    fields_to_check.push_back(strings::location_description);
+  }
+  if (msg_params.keyExists(strings::location_description)) {
+    fields_to_check.push_back(strings::location_description);
+  }
+  if (msg_params.keyExists(strings::address_lines)) {
+    fields_to_check.push_back(strings::address_lines);
+  }
+  if (msg_params.keyExists(strings::phone_number)) {
+    fields_to_check.push_back(strings::phone_number);
+  }
 
   if (!CheckHMICapabilities(fields_to_check)) {
     SendResponse(false, mobile_apis::Result::UNSUPPORTED_RESOURCE);
@@ -184,9 +194,9 @@ bool SendLocationRequest::CheckHMICapabilities(std::list<std::string>& fields_na
     LOG4CXX_ERROR_EXT(logger_, "UI is not supported.");
     return false;
   }
-
+  const size_t size_before = fields_names.size();
   if (hmi_capabilities.display_capabilities()) {
-    const SmartObject& disp_cap = (*hmi_capabilities.display_capabilities());
+    const SmartObject disp_cap = (*hmi_capabilities.display_capabilities());
     const SmartObject& text_fields = disp_cap.getElement(hmi_response::text_fields);
     const size_t len = text_fields.length();
     for (size_t i = 0; i < len; ++i) {
@@ -199,7 +209,7 @@ bool SendLocationRequest::CheckHMICapabilities(std::list<std::string>& fields_na
       }
     }
   }
-  if (fields_names.size() > 0) {
+  if (fields_names.size() == size_before) {
     LOG4CXX_ERROR_EXT(logger_, "Some fields are not supported by capabilities");
     return false;
   }
