@@ -35,10 +35,12 @@ include_directories(
   ${GMOCK_INCLUDE_DIRECTORY}
   ${COMPONENTS_DIR}/smart_objects/include
   ${COMPONENTS_DIR}/formatters/include
+  ${CMAKE_BINARY_DIR}/src/components/interfaces
 )
 
 set(LIBRARIES
     gmock 
+    HMI_API
     SmartObjects
     formatters
     jsoncpp
@@ -46,9 +48,10 @@ set(LIBRARIES
 
 set(SOURCES
 ${COMPONENTS_DIR}/formatters/test/generic_json_formatter_test.cc
+${COMPONENTS_DIR}/formatters/test/formatter_json_rpc_test.cc
 ${COMPONENTS_DIR}/formatters/test/main.cc
 )
 
-create_test("generic_json_formatter_test" "${SOURCES}" "${LIBRARIES}")
+create_test("formatters_test" "${SOURCES}" "${LIBRARIES}")
 
 endif()
