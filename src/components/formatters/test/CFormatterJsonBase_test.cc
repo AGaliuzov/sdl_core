@@ -182,7 +182,7 @@ TEST(CFormatterJsonBaseTest, DoubleSmartObjectToJSon) {
   // Convert json to smart object
   CFormatterJsonBase::objToJsonValue(object, double_value);
   // Check conversion was successful
-  EXPECT_EQ(dval, double_value.asDouble());
+  EXPECT_DOUBLE_EQ(dval, double_value.asDouble());
 }
 
 TEST(CFormatterJsonBaseTest, IntSmartObjectToJSon) {
