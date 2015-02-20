@@ -595,6 +595,30 @@ FFW.UI = FFW.RPCObserver.create({
                                             "characterSet": "TYPE2SET",
                                             "width": 500,
                                             "rows": 1
+                                        },
+                                        {
+                                            "name": "locationName",
+                                            "characterSet": "TYPE2SET",
+                                            "width": 500,
+                                            "rows": 1
+                                        },
+                                        {
+                                            "name": "locationDescription",
+                                            "characterSet": "TYPE2SET",
+                                            "width": 500,
+                                            "rows": 1
+                                        },
+                                        {
+                                            "name": "addressLines",
+                                            "characterSet": "TYPE2SET",
+                                            "width": 500,
+                                            "rows": 1
+                                        },
+                                        {
+                                            "name": "phoneNumber",
+                                            "characterSet": "TYPE2SET",
+                                            "width": 500,
+                                            "rows": 1
                                         }
                                     ],
                                     "imageFields": [
@@ -1138,6 +1162,30 @@ FFW.UI = FFW.RPCObserver.create({
                                     },
                                     {
                                         "name": "menuTitle",
+                                        "characterSet": "TYPE2SET",
+                                        "width": 500,
+                                        "rows": 1
+                                    },
+                                    {
+                                        "name": "locationName",
+                                        "characterSet": "TYPE2SET",
+                                        "width": 500,
+                                        "rows": 1
+                                    },
+                                    {
+                                        "name": "locationDescription",
+                                        "characterSet": "TYPE2SET",
+                                        "width": 500,
+                                        "rows": 1
+                                    },
+                                    {
+                                        "name": "addressLines",
+                                        "characterSet": "TYPE2SET",
+                                        "width": 500,
+                                        "rows": 1
+                                    },
+                                    {
+                                        "name": "phoneNumber",
                                         "characterSet": "TYPE2SET",
                                         "width": 500,
                                         "rows": 1
