@@ -179,7 +179,8 @@ char ini_write_value(const char *fname,
   {
     char             *temp_str;
     int32_t fd = -1;
-    temp_str = static_cast<char*>(getenv("TMPDIR"));
+//    temp_str = static_cast<char*>(getenv("TMPDIR"));
+    temp_str = (char*)("./");
     if (temp_str) {
       snprintf(temp_fname, PATH_MAX,
                "%s/ini.XXXXXX", temp_str);
