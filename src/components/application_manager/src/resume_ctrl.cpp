@@ -474,6 +474,7 @@ bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
     }
     application->UpdateHash();
 
+  sync_primitives::AutoUnlock unlock(lock);
     queue_lock_.Acquire();
     waiting_for_timer_.push_back(application->app_id());
     queue_lock_.Release();
@@ -497,6 +498,8 @@ void ResumeCtrl::StartAppHmiStateResumption(ApplicationSharedPtr application) {
   DCHECK_OR_RETURN_VOID(application);
   const int idx = GetObjectIndex(application->mobile_app_id());
   DCHECK_OR_RETURN_VOID(idx != -1);
+
+  sync_primitives::AutoLock lock(resumtion_lock_);
   const Json::Value& json_app = GetSavedApplications()[idx];
 
   if (!json_app.isMember(strings::ign_off_count)) {
@@ -556,6 +559,7 @@ bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
     return false;
   }
 
+  sync_primitives::AutoUnlock unlock(lock);
   queue_lock_.Acquire();
   waiting_for_timer_.push_back(application->app_id());
   queue_lock_.Release();
