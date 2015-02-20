@@ -160,7 +160,7 @@ const ProtocolConfig::ProtocolNameContainer ProtocolConfig::ReadProtocolNames(
   ProtocolNameContainer protocol_names;
   std::ifstream config_file(config_file_name.c_str());
   if (!config_file.fail()) {
-    LOG4CXX_TRACE(
+    LOG4CXX_DEBUG(
         logger_,
         "parsing system config file " << config_file_name << " (section " << section_name << ", protocol mask \"" << protocol_mask << "\")");
     std::string line;
@@ -183,7 +183,7 @@ const ProtocolConfig::ProtocolNameContainer ProtocolConfig::ReadProtocolNames(
           bool valid = true;
           for (std::string::iterator it = digits_in_prot_name.begin();
               it != digits_in_prot_name.end(); it++) {
-            if (*it < '0' || *it > '9') {  // only digits are available
+            if (std::isdigit(*it)) { // only digits are available
               valid = false;
               break;
             }
