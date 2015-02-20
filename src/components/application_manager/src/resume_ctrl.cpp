@@ -1145,12 +1145,11 @@ bool ResumeCtrl::CheckAppRestrictions(ApplicationSharedPtr application,
   LOG4CXX_DEBUG(logger_, "is_media_app " << is_media_app
                << "; hmi_level " << hmi_level);
 
-  if (is_media_app) {
-    if (hmi_level == HMILevel::HMI_FULL ||
-        hmi_level == HMILevel::HMI_LIMITED) {
-      return true;
-    }
+  if (hmi_level == HMILevel::HMI_FULL ||
+      hmi_level == HMILevel::HMI_LIMITED) {
+    return true;
   }
+
   return false;
 }
 
