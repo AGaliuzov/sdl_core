@@ -114,12 +114,9 @@ TransportAdapter::Error MmeClientListener::Init() {
 void MmeClientListener::Terminate() {
   initialised_ = false;
 
-  if (notify_thread_) {
-    notify_thread_->join();
-    delete notify_thread_->delegate();
-    threads::DeleteThread(notify_thread_);
-    notify_thread_ = NULL;
-    notify_thread_delegate_ = NULL;
+  if (TransportAdapter::OK != StopListening()) {
+    LOG4CXX_DEBUG(logger_, "Stop client listening failed. "
+                           "Continue terminating.");
   }
 
   const std::string& event_mq_name =
