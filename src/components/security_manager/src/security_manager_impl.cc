@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -103,8 +103,8 @@ void SecurityManagerImpl::set_crypto_manager(CryptoManager *crypto_manager) {
 }
 
 void SecurityManagerImpl::Handle(const SecurityMessage message) {
+  LOG4CXX_AUTO_TRACE(logger_);
   DCHECK(message);
-  LOG4CXX_INFO(logger_, "Received Security message from Mobile side");
   if (!crypto_manager_)  {
     const std::string error_text("Invalid (NULL) CryptoManager.");
     LOG4CXX_ERROR(logger_, error_text);
@@ -137,7 +137,7 @@ void SecurityManagerImpl::Handle(const SecurityMessage message) {
 
 security_manager::SSLContext *SecurityManagerImpl::CreateSSLContext(
     const uint32_t &connection_key) {
-  LOG4CXX_INFO(logger_, "ProtectService processing");
+  LOG4CXX_AUTO_TRACE(logger_);
   DCHECK(session_observer_);
   DCHECK(crypto_manager_);
 
@@ -173,7 +173,7 @@ security_manager::SSLContext *SecurityManagerImpl::CreateSSLContext(
 
 void SecurityManagerImpl::StartHandshake(uint32_t connection_key) {
   DCHECK(session_observer_);
-  LOG4CXX_INFO(logger_, "StartHandshake: connection_key " << connection_key);
+  LOG4CXX_DEBUG(logger_, "StartHandshake: connection_key " << connection_key);
   security_manager::SSLContext *ssl_context =
       session_observer_->GetSSLContext(connection_key,
                                        protocol_handler::kControl);
@@ -222,7 +222,7 @@ void SecurityManagerImpl::RemoveListener(SecurityManagerListener *const listener
 }
 void SecurityManagerImpl::NotifyListenersOnHandshakeDone(const uint32_t &connection_key,
                                                      const bool success) {
-  LOG4CXX_TRACE(logger_, "NotifyListenersOnHandshakeDone");
+  LOG4CXX_AUTO_TRACE(logger_);
   std::list<SecurityManagerListener*>::iterator it = listeners_.begin();
   while (it != listeners_.end()) {
     if ((*it)->OnHandshakeDone(connection_key, success)) {
@@ -235,7 +235,7 @@ void SecurityManagerImpl::NotifyListenersOnHandshakeDone(const uint32_t &connect
 }
 
 bool SecurityManagerImpl::ProccessHandshakeData(const SecurityMessage &inMessage) {
-  LOG4CXX_INFO(logger_, "SendHandshakeData processing");
+  LOG4CXX_AUTO_TRACE(logger_);
   DCHECK(inMessage);
   DCHECK(inMessage->get_header().query_id == SecurityQuery::SEND_HANDSHAKE_DATA);
   const uint32_t seqNumber = inMessage->get_header().seq_number;
@@ -297,15 +297,14 @@ bool SecurityManagerImpl::ProccessHandshakeData(const SecurityMessage &inMessage
 }
 
 bool SecurityManagerImpl::ProccessInternalError(const SecurityMessage &inMessage) {
-  LOG4CXX_INFO(logger_, "Received InternalError with Json message"
+  LOG4CXX_DEBUG(logger_, "Received InternalError with Json message"
                 << inMessage->get_json_message());
   Json::Value root;
   Json::Reader reader;
-  const bool parsingSuccessful =
-      reader.parse(inMessage->get_json_message(), root);
+  const bool parsingSuccessful = reader.parse(inMessage->get_json_message(), root);
   if (!parsingSuccessful)
     return false;
-  LOG4CXX_DEBUG(logger_, "Received InternalError id " << root[kErrId].asString()
+  LOG4CXX_WARN(logger_, "Received InternalError id " << root[kErrId].asString()
                 << ", text: " << root[kErrText].asString());
   return true;
 }

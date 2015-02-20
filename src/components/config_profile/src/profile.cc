@@ -1466,12 +1466,14 @@ bool Profile::ReadValue(bool* value, const char* const pSection,
   *buf = '\0';
   if ((0 != ini_read_value(config_file_name_.c_str(), pSection, pKey, buf))
       && ('\0' != *buf)) {
+
     const int32_t tmpVal = atoi(buf);
-    if (0 == tmpVal) {
-      *value = false;
-    } else {
+    if ((0 == strcmp("true", buf)) || (0 != tmpVal)) {
       *value = true;
+    } else {
+      *value = false;
     }
+    ret = true;
 
     ret = true;
   }

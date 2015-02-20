@@ -63,7 +63,7 @@ class CryptoManager : public policy::PolicyHandlerObserver {
                     const std::string &key_filename,
                     const std::string &ciphers_list,
                     const bool verify_peer,
-                    const std::string &storage_folder
+                    const std::string &ca_certificate_file
       ) = 0;
   virtual bool OnCertificateUpdated(const std::string& data) = 0;
   virtual SSLContext *CreateSSLContext() = 0;

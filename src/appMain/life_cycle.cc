@@ -153,11 +153,6 @@ bool LifeCycle::StartComponents() {
   profile::Profile::instance()->ReadBoolValue(
         &verify_peer, false, security_manager::SecurityManagerImpl::ConfigSection(), "VerifyPeer");
 
-  std::string storage_folder;
-  profile::Profile::instance()->ReadStringValue(
-        &storage_folder, "/tmp", security_manager::SecurityManagerImpl::ConfigSection(),
-        "StorageFolder");
-
   std::string protocol_name;
   profile::Profile::instance()->ReadStringValue(
       &protocol_name, "TLSv1.2", security_manager::SecurityManagerImpl::ConfigSection(), "Protocol");
@@ -176,6 +171,11 @@ bool LifeCycle::StartComponents() {
     return false;
   }
 
+  std::string ca_cert_filename;
+  profile::Profile::instance()->ReadStringValue(
+        &ca_cert_filename, "", security_manager::SecurityManagerImpl::ConfigSection(),
+        "CACertificatePath");
+
   if (!crypto_manager_->Init(
         ssl_mode == "SERVER" ? security_manager::SERVER : security_manager::CLIENT,
         protocol,
@@ -183,29 +183,11 @@ bool LifeCycle::StartComponents() {
         key_filename,
         ciphers_list,
         verify_peer,
-        storage_folder)) {
+        ca_cert_filename)) {
     LOG4CXX_ERROR(logger_, "CryptoManager initialization fail.");
     return false;
   }
 
-  std::string ca_cert_filename;
-  profile::Profile::instance()->ReadStringValue(
-        &ca_cert_filename, "", security_manager::SecurityManagerImpl::ConfigSection(),
-        "CACertificatePath");
-  if(!ca_cert_filename.empty()) {
-    std::ifstream file(ca_cert_filename);
-    if(!file.good()) {
-      LOG4CXX_ERROR(logger_, "CA certificate loading fail");
-      return false;
-    }
-    std::string ca_certificate_data;
-    std::copy( std::istreambuf_iterator<char>(file),
-               std::istreambuf_iterator<char>(),
-               std::back_inserter(ca_certificate_data));
-    crypto_manager_->OnCertificateUpdated(ca_certificate_data);
-  } else {
-    LOG4CXX_WARN(logger_, "Empty CA certificate");
-  }
 #endif  // ENABLE_SECURITY
 
   transport_manager_->AddEventListener(protocol_handler_);

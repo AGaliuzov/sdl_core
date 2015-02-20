@@ -148,18 +148,18 @@ SocketStreamerAdapter::Streamer::~Streamer() {
 }
 
 void SocketStreamerAdapter::Streamer::threadMain() {
-  LOG4CXX_TRACE(logger,"enter " << this);
+  LOG4CXX_AUTO_TRACE(logger);
   sync_primitives::AutoLock auto_lock(thread_lock);
   start();
 
   while (!stop_flag_) {
     new_socket_fd_ = accept(server_->socket_fd_, NULL, NULL);
-    LOG4CXX_INFO(logger, "Client connectd " << new_socket_fd_);
     if (0 > new_socket_fd_) {
-      LOG4CXX_ERROR(logger, "Socket is closed " << strerror(errno));
+      LOG4CXX_WARN(logger, "Socket is closed " << strerror(errno));
       sleep(1);
       continue;
     }
+    LOG4CXX_DEBUG(logger, "Client connected " << new_socket_fd_);
 
     is_client_connected_ = true;
     is_first_loop_ = true;
@@ -175,7 +175,7 @@ void SocketStreamerAdapter::Streamer::threadMain() {
         static int32_t messages_for_session = 0;
         ++messages_for_session;
 
-        LOG4CXX_INFO(logger, "Handling map streaming message. This is "
+        LOG4CXX_DEBUG(logger, "Handling map streaming message. This is "
             << messages_for_session << " the message for "
             << server_->current_application_);
         std::set<MediaListenerPtr>::iterator it = server_->media_listeners_
@@ -194,7 +194,6 @@ void SocketStreamerAdapter::Streamer::threadMain() {
       server_->messages_.wait();
     }
   }
-  LOG4CXX_TRACE(logger,"exit " << this);
 }
 
 void SocketStreamerAdapter::Streamer::exitThreadMain() {

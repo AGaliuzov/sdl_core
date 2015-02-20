@@ -65,7 +65,7 @@ class CryptoManagerTest : public testing::Test {
   void InitSecurityManger() {
     const bool crypto_manager_initialization = crypto_manager->Init(
         security_manager::CLIENT, security_manager::TLSv1_2, "", "",
-          ALL_CIPHERS, false, "");
+          ALL_CIPHERS, false, "/tmp/ca_cert.crt");
     ASSERT_TRUE(crypto_manager_initialization);
   }
   std::string GenerateCertificateString() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,6 +58,14 @@ CryptoManagerImpl::CryptoManagerImpl()
     : context_(NULL),
       mode_(CLIENT),
       verify_peer_(false){
+  sync_primitives::AutoLock lock(instance_lock_);
+  instance_count_++;
+  if (instance_count_ == 1) {
+    SSL_load_error_strings();
+    ERR_load_BIO_strings();
+    OpenSSL_add_all_algorithms();
+    SSL_library_init();
+  }
 }
 
 CryptoManagerImpl::~CryptoManagerImpl() {
@@ -83,18 +91,10 @@ bool CryptoManagerImpl::Init(Mode mode,
                              const std::string &key_filename,
                              const std::string &ciphers_list,
                              const bool verify_peer,
-                             const std::string &storage_folder) {
-  sync_primitives::AutoLock lock(instance_lock_);
-  instance_count_++;
-  if (instance_count_ == 1) {
-    SSL_load_error_strings();
-    ERR_load_BIO_strings();
-    OpenSSL_add_all_algorithms();
-    SSL_library_init();
-  }
+                             const std::string &ca_certificate_file) {
   mode_ = mode;
   verify_peer_ = verify_peer;
-  storage_folder_ = storage_folder;
+  ca_certificate_file_ = ca_certificate_file;
 
   const bool is_server = (mode == SERVER);
 #if OPENSSL_VERSION_NUMBER < CONST_SSL_METHOD_MINIMAL_VERSION
@@ -206,27 +206,20 @@ bool CryptoManagerImpl::OnCertificateUpdated(const std::string &data) {
     LOG4CXX_WARN(logger_, "Empty certificate data");
     return false;
   }
-  LOG4CXX_DEBUG(logger_, "New sertificate data : \"" << std::endl << data << '"');
+  LOG4CXX_DEBUG(logger_, "New certificate data : \"" << std::endl << data << '"');
 
-  const std::string file_name("ca_certificate.crt");
-  const std::string absolute_path(
-        (!storage_folder_.empty() ? storage_folder_ : ".")
-          + '/' + file_name);
-  if (!storage_folder_.empty()) {
-    file_system::CreateDirectoryRecursively(storage_folder_);
-  }
-
-  std::ofstream ca_certificate_file(absolute_path);
+  std::ofstream ca_certificate_file(ca_certificate_file_);
   if (!ca_certificate_file.good()) {
-    LOG4CXX_WARN( logger_,
+    LOG4CXX_ERROR( logger_,
                   "Couldn't write certificate file \""
                   << ca_certificate_file << '"');
+    return false;
   }
   ca_certificate_file << data;
   ca_certificate_file.close();
-  LOG4CXX_DEBUG(logger_, "CA certificate saved as '" << absolute_path << "' ");
+  LOG4CXX_DEBUG(logger_, "CA certificate saved as '" << ca_certificate_file_ << "' ");
   const int result = SSL_CTX_load_verify_locations(
-        context_, absolute_path.c_str(), NULL );
+        context_, ca_certificate_file_.c_str(), NULL );
   if (!result) {
     const unsigned long error = ERR_get_error();
     LOG4CXX_WARN(logger_, "Wrong certificate, err 0x" <<
@@ -281,6 +274,7 @@ void CryptoManagerImpl::SetVerification() {
   const int verify_mode = SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
   SSL_CTX_set_verify(context_, verify_mode, &debug_callback);
 }
+
 int debug_callback(int preverify_ok, X509_STORE_CTX *ctx) {
   if (!preverify_ok) {
     const int error = X509_STORE_CTX_get_error(ctx);

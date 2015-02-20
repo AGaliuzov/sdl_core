@@ -94,7 +94,7 @@ class CryptoManagerImpl : public CryptoManager {
             const std::string &key_filename,
             const std::string &ciphers_list,
             const bool verify_peer,
-            const std::string &storage_folder) OVERRIDE;
+            const std::string &ca_certificate_file) OVERRIDE;
   bool OnCertificateUpdated(const std::string &data) OVERRIDE;
   SSLContext *CreateSSLContext() OVERRIDE;
   void ReleaseSSLContext(SSLContext *context) OVERRIDE;
@@ -106,7 +106,7 @@ class CryptoManagerImpl : public CryptoManager {
   Mode mode_;
   static sync_primitives::Lock instance_lock_;
   static uint32_t instance_count_;
-  std::string storage_folder_;
+  std::string ca_certificate_file_;
   bool verify_peer_;
   DISALLOW_COPY_AND_ASSIGN(CryptoManagerImpl);
 };
