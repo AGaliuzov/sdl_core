@@ -46,6 +46,7 @@ SendLocationRequest::~SendLocationRequest() {
 }
 
 void SendLocationRequest::Run() {
+  using namespace hmi_apis;
   LOG4CXX_AUTO_TRACE(logger_);
 
   ApplicationSharedPtr app = application_manager::ApplicationManagerImpl::instance()
@@ -58,11 +59,23 @@ void SendLocationRequest::Run() {
     SendResponse(false, mobile_apis::Result::APPLICATION_NOT_REGISTERED);
     return;
   }
+  const smart_objects::SmartObject& msg_params = (*message_)[strings::msg_params];
 
-  ApplicationManagerImpl* instance = ApplicationManagerImpl::instance();
-  const HMICapabilities& hmi_capabilities = instance->hmi_capabilities();
-  if (!hmi_capabilities.is_ui_cooperating()) {
-    LOG4CXX_ERROR_EXT(logger_, "UI is not supported.");
+  std::list<Common_TextFieldName::eType> fields_to_check;
+  if (msg_params.keyExists(strings::location_name)) {
+    fields_to_check.push_back(Common_TextFieldName::locationName);
+  }
+  if (msg_params.keyExists(strings::location_description)) {
+    fields_to_check.push_back(Common_TextFieldName::locationDescription);
+  }
+  if (msg_params.keyExists(strings::address_lines)) {
+    fields_to_check.push_back(Common_TextFieldName::addressLines);
+  }
+  if (msg_params.keyExists(strings::phone_number)) {
+    fields_to_check.push_back(Common_TextFieldName::phoneNumber);
+  }
+
+  if (!CheckHMICapabilities(fields_to_check)) {
     SendResponse(false, mobile_apis::Result::UNSUPPORTED_RESOURCE);
     return;
   }
@@ -171,6 +184,39 @@ bool SendLocationRequest::IsWhiteSpaceExist() {
   }
 
   return false;
+}
+
+bool SendLocationRequest::CheckHMICapabilities(std::list<hmi_apis::Common_TextFieldName::eType>& fields_names) {
+  using namespace smart_objects;
+  using namespace hmi_apis;
+
+  ApplicationManagerImpl* instance = ApplicationManagerImpl::instance();
+  const HMICapabilities& hmi_capabilities = instance->hmi_capabilities();
+  if (!hmi_capabilities.is_ui_cooperating()) {
+    LOG4CXX_ERROR_EXT(logger_, "UI is not supported.");
+    return false;
+  }
+  const size_t size_before = fields_names.size();
+  if (hmi_capabilities.display_capabilities()) {
+    const SmartObject disp_cap = (*hmi_capabilities.display_capabilities());
+    const SmartObject& text_fields = disp_cap.getElement(hmi_response::text_fields);
+    const size_t len = text_fields.length();
+    for (size_t i = 0; i < len; ++i) {
+      const SmartObject& text_field = text_fields[i];
+      const Common_TextFieldName::eType filed_name =
+          static_cast<Common_TextFieldName::eType>(text_field.getElement(strings::name).asInt());
+      const std::list<Common_TextFieldName::eType>::iterator it =
+          std::find(fields_names.begin(), fields_names.end(), filed_name);
+      if (it != fields_names.end()) {
+        fields_names.erase(it);
+      }
+    }
+  }
+  if (fields_names.size() == size_before) {
+    LOG4CXX_ERROR_EXT(logger_, "Some fields are not supported by capabilities");
+    return false;
+  }
+  return true;
 }
 
 }  // namespace commands

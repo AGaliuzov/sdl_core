@@ -63,6 +63,8 @@ class ProtocolHandlerMock : public protocol_handler::ProtocolHandler {
       void(int32_t connection_id, uint8_t session_id));
   MOCK_METHOD2(SendEndSession,
       void(int32_t connection_id, uint8_t session_id));
+  MOCK_METHOD3(SendEndService,
+      void(int32_t connection_id, uint8_t session_id, uint8_t service_type));
 };
 
 /*

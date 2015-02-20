@@ -103,11 +103,14 @@ struct DeactivateApplication {
 
     void operator()(const ApplicationSharedPtr& app) {
       if (device_id_ == app->device()) {
-        app->set_hmi_level(mobile_apis::HMILevel::HMI_NONE);
-        app->set_audio_streaming_state(mobile_api::AudioStreamingState::NOT_AUDIBLE);
-        MessageHelper::SendActivateAppToHMI(
-          app->app_id(), hmi_apis::Common_HMILevel::NONE);
-        MessageHelper::SendHMIStatusNotification(*app.get());
+        if (mobile_api::HMILevel::HMI_NONE != app->hmi_level()) {
+          ApplicationManagerImpl::instance()->ChangeAppsHMILevel(app->app_id(),
+                                                                 mobile_apis::HMILevel::HMI_NONE);
+          app->set_audio_streaming_state(mobile_api::AudioStreamingState::NOT_AUDIBLE);
+          MessageHelper::SendActivateAppToHMI(
+                app->app_id(), hmi_apis::Common_HMILevel::NONE);
+          MessageHelper::SendHMIStatusNotification(*app.get());
+        }
       }
     }
 
@@ -148,7 +151,8 @@ struct SDLAlowedNotification {
         if (app->hmi_level() == default_mobile_hmi) {
           LOG4CXX_DEBUG(logger_, "Application already in default hmi state.");
         } else {
-          app->set_hmi_level(default_mobile_hmi);
+          ApplicationManagerImpl::instance()->ChangeAppsHMILevel(app->app_id(),
+                                                                 default_mobile_hmi);
           MessageHelper::SendHMIStatusNotification(*app);
         }
         MessageHelper::SendActivateAppToHMI(app->app_id(), default_hmi);
@@ -236,7 +240,6 @@ PolicyHandler::PolicyHandler()
   : AsyncRunner("PolicyHandler async runner thread"),
     dl_handle_(0),
     last_activated_app_id_(0),
-    listener_(NULL),
     app_to_device_link_lock_(true),
     statistic_manager_impl_(new StatisticManagerImpl()) {
 }
@@ -655,7 +658,9 @@ void PolicyHandler::OnPendingPermissionChange(
   if (permissions.appRevoked) {
     application_manager::MessageHelper::SendOnAppPermissionsChangedNotification(
       app_id, permissions);
-    app->set_hmi_level(eType::HMI_NONE);
+
+    ApplicationManagerImpl::instance()->ChangeAppsHMILevel(app->app_id(),
+                                                           eType::HMI_NONE);
     app->set_audio_streaming_state(mobile_apis::AudioStreamingState::NOT_AUDIBLE);
     application_manager::MessageHelper::SendActivateAppToHMI(
           app_id, hmi_apis::Common_HMILevel::NONE);
@@ -698,11 +703,10 @@ void PolicyHandler::OnPendingPermissionChange(
     }
     MessageHelper::
         SendOnAppInterfaceUnregisteredNotificationToMobile(
-          app->app_id(), mobile_api::AppInterfaceUnregisteredReason::APP_UNAUTHORIZED);
+          app->app_id(),
+          mobile_api::AppInterfaceUnregisteredReason::APP_UNAUTHORIZED);
 
-    ApplicationManagerImpl::instance()->
-        UnregisterRevokedApplication(app->app_id(),
-                                     mobile_apis::Result::INVALID_ENUM);
+    ApplicationManagerImpl::instance()->OnAppUnauthorized(app->app_id());
 
     policy_manager_->RemovePendingPermissionChanges(policy_app_id);
   }
@@ -1030,7 +1034,8 @@ void PolicyHandler::OnPermissionsUpdated(const std::string& policy_app_id,
         MessageHelper::SendActivateAppToHMI(app->app_id());
       } else {
         // Set application hmi level
-        app->set_hmi_level(hmi_level);
+        ApplicationManagerImpl::instance()->ChangeAppsHMILevel(app->app_id(),
+                                                               hmi_level);
         // If hmi Level is full, it will be seted after ActivateApp response
         MessageHelper::SendHMIStatusNotification(*app.get());
       }
@@ -1176,8 +1181,14 @@ void PolicyHandler::PTUpdatedAt(int kilometers, int days_after_epoch) {
   policy_manager_->PTUpdatedAt(kilometers, days_after_epoch);
 }
 
-void PolicyHandler::set_listener(PolicyHandlerObserver* listener) {
-  listener_ = listener;
+void PolicyHandler::add_listener(PolicyHandlerObserver* listener) {
+  sync_primitives::AutoLock lock(listeners_lock_);
+  listeners_.push_back(listener);
+}
+
+void PolicyHandler::remove_listener(PolicyHandlerObserver* listener) {
+  sync_primitives::AutoLock lock(listeners_lock_);
+  listeners_.remove(listener);
 }
 
 utils::SharedPtr<usage_statistics::StatisticsManager>
@@ -1237,8 +1248,19 @@ std::string PolicyHandler::GetAppName(const std::string& policy_app_id) {
 
 void PolicyHandler::OnUpdateHMIAppType(std::map<std::string, StringArray> app_hmi_types) {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (listener_) {
-    listener_->OnUpdateHMIAppType(app_hmi_types);
+  sync_primitives::AutoLock lock(listeners_lock_);
+  HandlersCollection::const_iterator it = listeners_.begin();
+  for (; it != listeners_.end(); ++it) {
+    (*it)->OnUpdateHMIAppType(app_hmi_types);
+  }
+}
+
+void PolicyHandler::OnCertificateUpdated(const std::string& certificate_data) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  sync_primitives::AutoLock lock(listeners_lock_);
+  HandlersCollection::const_iterator it = listeners_.begin();
+  for (; it != listeners_.end(); ++it) {
+    (*it)->OnCertificateUpdated(certificate_data);
   }
 }
 

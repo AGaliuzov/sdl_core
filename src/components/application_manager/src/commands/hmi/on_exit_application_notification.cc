@@ -78,7 +78,10 @@ void OnExitApplicationNotification::Run() {
       break;
     }
   }
-  app_impl->set_hmi_level(mobile_apis::HMILevel::HMI_NONE);
+
+  ApplicationManagerImpl::instance()->ChangeAppsHMILevel(app_impl->app_id(),
+                                                         mobile_apis::HMILevel::HMI_NONE);
+
   app_impl->set_audio_streaming_state(mobile_apis::AudioStreamingState::NOT_AUDIBLE);
   app_impl->set_system_context(mobile_api::SystemContext::SYSCTXT_MAIN);
   MessageHelper::SendHMIStatusNotification(*app_impl);

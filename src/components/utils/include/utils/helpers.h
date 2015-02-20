@@ -66,11 +66,13 @@ namespace helpers {
     return !EQ<T>(what, to);
   }
 
-  bool ALL (bool what, bool to) {
+  template<class U = bool>
+  bool ALL (U what, U to) {
     return what && to;
   }
 
-  bool ONE (bool what, bool to) {
+  template<class U = bool>
+  bool ONE (U what, U to) {
     return what || to;
   }
 

@@ -82,7 +82,7 @@
     <element name="PRESET_8"/>
     <element name="PRESET_9"/>
     <element name="CUSTOM_BUTTON"/>
-	<element name="SEARCH"/>
+    <element name="SEARCH"/>
 </enum>
 
 <enum name="ButtonEventMode">
@@ -452,15 +452,27 @@
   <element name="menuTitle">
     <description> Optional text to label an app menu button (for certain touchscreen platforms).</description>
   </element>
-  <element name="timeToDestination"/>
   <element name="navigationText">
     <description>Navigation text for UpdateTurnList.</description>
   </element>
   <element name="notificationText">
     <description>Text of notification to be displayed on screen.</description>
   </element>
+  <element name="locationName">
+    <description> Optional name / title of intended location for SendLocation.</description>
+  </element>
+  <element name="locationDescription">
+    <description> Optional description of intended location / establishment (if applicable) for SendLocation.</description>
+  </element>
+  <element name="addressLines">
+    <description> Optional location address (if applicable) for SendLocation.</description>
+  </element>
+  <element name="phoneNumber">
+    <description> Optional hone number of intended location / establishment (if applicable) for SendLocation.</description>
+  </element>
+  <element name="timeToDestination"/>
     <!-- TO DO to be removed -->
-  <element name="turnText"/>
+    <element name="turnText"/>
 </enum>
 
 <enum name="ImageFieldName">
@@ -551,7 +563,7 @@
       1|sp : digit "1" or space
       c    : character out of following character set: sp|0-9|[letters
       :|sp : colon or space
-	Is used for CID and NGN head unit
+    Is used for CID and NGN head unit
     </description>
   </element>
   <element name="CLOCKTEXT3">
@@ -1496,8 +1508,8 @@
   </param>
   <param name="keypressMode" type="Common.KeypressMode" mandatory="false" >
     <description>
-    	Desired keypress mode.
-    	If omitted, this value will be set to RESEND_CURRENT_ENTRY.
+        Desired keypress mode.
+        If omitted, this value will be set to RESEND_CURRENT_ENTRY.
     </description>
   </param>
   <param name="limitedCharacterList" type="String" maxlength="1" minsize="1" maxsize="100" array="true" mandatory="false">
@@ -2176,8 +2188,8 @@
 
     <param name="fileSize" type="Integer" minvalue="0" maxvalue="100000000000" mandatory="false">
       <description>Full Size of file. sends in first OnPutFile notification if file is splited
-		     	   into many PutFiles
-	  </description>
+                   into many PutFiles
+      </description>
     </param>
 
     <param name="FileName" type="String" maxlength="255" mandatory="true">
@@ -2648,8 +2660,8 @@
     </param>
     <param name="manualTextEntry" type="String" minlength="0" maxlength="500" mandatory="false">
       <description>
-	       	Manually entered text selection, e.g. through keyboard
-        	Can be returned in lieu of choiceID, depending on trigger source
+            Manually entered text selection, e.g. through keyboard
+            Can be returned in lieu of choiceID, depending on trigger source
       </description>
     </param>
   </function>
@@ -2661,9 +2673,9 @@
     <param name="endTime" type="Common.TimeFormat" mandatory="false">
       <description>
           See TimeFormat.
-      	  endTime can be provided for "COUNTUP" and "COUNTDOWN"; to be used to calculate any visual progress bar (if not provided, this feature is ignored)
-      	  If endTime is greater then startTime for COUNTDOWN or less than startTime for COUNTUP, then the request will return an INVALID_DATA.
-      	  endTime will be ignored for "PAUSE", "RESUME", and "CLEAR"
+          endTime can be provided for "COUNTUP" and "COUNTDOWN"; to be used to calculate any visual progress bar (if not provided, this feature is ignored)
+          If endTime is greater then startTime for COUNTDOWN or less than startTime for COUNTUP, then the request will return an INVALID_DATA.
+          endTime will be ignored for "PAUSE", "RESUME", and "CLEAR"
       </description>
     </param>
     <param name="updateMode" type="Common.ClockUpdateMode" mandatory="true">
@@ -2755,7 +2767,7 @@
       <description>
        Sent when app's requested-during-registration AppHMIType is changed to different one due to Policies update. Contains the updated list of all allowed app's AppHMITypes.
       </description>
-    </param>    
+    </param>
     <param name="appID" type="Integer" mandatory="true">
       <description>ID of application that concerns this RPC.</description>
     </param>
@@ -2802,8 +2814,8 @@
   <function name="SetDisplayLayout" messagetype="request">
     <param name="displayLayout" type="String" maxlength="500" mandatory="true">
       <description>
-      	Predefined or dynamically created screen layout.
-      	Currently only predefined screen layouts are defined.
+        Predefined or dynamically created screen layout.
+        Currently only predefined screen layouts are defined.
       </description>
     </param>
     <param name="appID" type="Integer" mandatory="true">
@@ -2828,27 +2840,27 @@
     <description>Used to show a custom form; it can be a parent or child screen. If no parent screen is designated, it is set as a parent screen.</description>
     <param name="customFormID" type="String" maxlength="500" mandatory="true">
       <description>
-			Predefined or dynamically created screen layout.
-			Currently only predefined forms are defined.
-			Predefined layouts include:
-				"DEFAULT" - Default media / non-media screen
-				"ONSCREEN_PRESETS" - Custom root media screen containing app-defined onscreen presets.
-				"KEYBOARD_SEARCH" - Custom template containing app-configured on-screen keyboard with active search updating; user also can trigger voice search.
-				"NAV_FULLSCREEN_MAP" - Custom root template screen containing full screen map with navigation controls.
-				"NAV_POI_MENU" - Custom template containing app-defined POI options.
-				"NAV_SEARCH_RESULTS" - Custom template containing a list of app-defined search results
-				"NAV_POI_INFO" - Custom template containing app-defined POI information (and potentially map data).
+            Predefined or dynamically created screen layout.
+            Currently only predefined forms are defined.
+            Predefined layouts include:
+                "DEFAULT" - Default media / non-media screen
+                "ONSCREEN_PRESETS" - Custom root media screen containing app-defined onscreen presets.
+                "KEYBOARD_SEARCH" - Custom template containing app-configured on-screen keyboard with active search updating; user also can trigger voice search.
+                "NAV_FULLSCREEN_MAP" - Custom root template screen containing full screen map with navigation controls.
+                "NAV_POI_MENU" - Custom template containing app-defined POI options.
+                "NAV_SEARCH_RESULTS" - Custom template containing a list of app-defined search results
+                "NAV_POI_INFO" - Custom template containing app-defined POI information (and potentially map data).
       </description>
     </param>
     <param name="parentFormID" type="String" maxlength="500" defvalue="DEFAULT" mandatory="false">
       <description>
-			Parent screen of predefined form to display.
-			Currently only predefined forms are defined.
-			If not provided, then set to "DEFAULT".
-			Predefined layouts include:
-				"DEFAULT" - Default media / non-media screen
-				"ONSCREEN_PRESETS" - Custom root media screen containing app-defined onscreen presets.
-				"NAV_FULLSCREEN_MAP" - Custom template containing full screen map with navigation controls.
+            Parent screen of predefined form to display.
+            Currently only predefined forms are defined.
+            If not provided, then set to "DEFAULT".
+            Predefined layouts include:
+                "DEFAULT" - Default media / non-media screen
+                "ONSCREEN_PRESETS" - Custom root media screen containing app-defined onscreen presets.
+                "NAV_FULLSCREEN_MAP" - Custom template containing full screen map with navigation controls.
       </description>
     </param>
   </function>
@@ -3191,7 +3203,7 @@
     </param>
     <param name="messageData" type="Integer" minvalue="0" maxvalue="255" minsize="1" maxsize="65535" array="true" mandatory="true">
       <description>
-      	Array of bytes comprising CAN message.
+        Array of bytes comprising CAN message.
       </description>
     </param>
     <param name="appID" type="Integer" mandatory="true">
@@ -3201,16 +3213,16 @@
   <function name="DiagnosticMessage" messagetype="response">
     <param name="messageDataResult" type="Integer" minvalue="0" maxvalue="255" minsize="1" maxsize="65535" array="true" mandatory="true">
       <description>
-      	Array of bytes comprising CAN message result.
+        Array of bytes comprising CAN message result.
       </description>
     </param>
   </function>
   <function name="SubscribeVehicleData" messagetype="request">
     <description>
-    	Subscribes for specific published data items.
-    	The data will be only sent if it has changed.
-    	The application will be notified by the onVehicleData notification whenever new data is available.
-    	To unsubscribe the notifications, use unsubscribe with the same subscriptionType.
+        Subscribes for specific published data items.
+        The data will be only sent if it has changed.
+        The application will be notified by the onVehicleData notification whenever new data is available.
+        To unsubscribe the notifications, use unsubscribe with the same subscriptionType.
     </description>
     <param name="appID" type="Integer" mandatory="true">
       <description>ID of application that requested this RPC.</description>

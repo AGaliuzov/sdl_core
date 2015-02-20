@@ -126,10 +126,10 @@ class ResumeCtrl: public event_engine::EventObserver {
 
     /**
      * @brief Remove application from list of saved applications
-     * @param application is application witch need to be removed
+     * @param mobile_app_id application witch need to be removed
      * @return return true, if success, otherwise return false
      */
-    bool RemoveApplicationFromSaved(ApplicationConstSharedPtr application);
+    bool RemoveApplicationFromSaved(const std::string& mobile_app_id);
 
     /**
      * @brief Increments ignition counter for all registered applications
@@ -475,6 +475,14 @@ class ResumeCtrl: public event_engine::EventObserver {
      */
     void LoadResumeData();
 
+    /*
+     * @brief Return true if application resumption data is valid,
+     * otherwise false
+     *
+     * @param index application index in the resumption list
+     */
+    bool IsResumptionDataValid(uint32_t index);
+
     template<typename Iterator>
     Json::Value Append(Iterator first,
                        Iterator last,
@@ -503,8 +511,9 @@ class ResumeCtrl: public event_engine::EventObserver {
     timer::TimerThread<ResumeCtrl>  save_persistent_data_timer_;
     timer::TimerThread<ResumeCtrl>  restore_hmi_level_timer_;
     std::vector<uint32_t>           waiting_for_timer_;
-    bool is_data_saved;
-    time_t launch_time_;
+    bool                            is_resumption_active_;
+    bool                            is_data_saved;
+    time_t                          launch_time_;
 };
 
 }  // namespace application_manager
