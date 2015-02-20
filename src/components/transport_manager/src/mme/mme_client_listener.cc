@@ -415,6 +415,10 @@ void MmeClientListener::NotifyThreadDelegate::threadMain() {
   }
 }
 
+void MmeClientListener::NotifyThreadDelegate::exitThreadMain() {
+  run_ = false;
+}
+
 }  // namespace transport_adapter
 }  // namespace transport_manager
 
