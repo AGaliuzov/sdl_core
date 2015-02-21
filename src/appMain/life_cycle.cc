@@ -31,7 +31,6 @@
 */
 
 #include "./life_cycle.h"
-#include <fstream>
 #include "utils/signals.h"
 #include "config_profile/profile.h"
 #ifdef CUSTOMER_PASA
