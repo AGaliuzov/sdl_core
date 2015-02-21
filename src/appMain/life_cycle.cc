@@ -214,6 +214,7 @@ bool LifeCycle::StartComponents() {
   security_manager_->set_session_observer(connection_handler_);
   security_manager_->set_protocol_handler(protocol_handler_);
   security_manager_->set_crypto_manager(crypto_manager_);
+  app_manager_->AddPolicyObserver(crypto_manager_);
 #endif  // ENABLE_SECURITY
 
   // it is important to initialise TimeTester before TM to listen TM Adapters
@@ -226,7 +227,6 @@ bool LifeCycle::StartComponents() {
   app_manager_->set_protocol_handler(protocol_handler_);
   app_manager_->set_connection_handler(connection_handler_);
   app_manager_->set_hmi_message_handler(hmi_handler_);
-  app_manager_->AddPolicyObserver(crypto_manager_);
 
   transport_manager_->Init();
 #ifndef CUSTOMER_PASA
