@@ -220,7 +220,11 @@ if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ
       GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 endif ()
+
 if(ENABLE_SECURITY)
-  install( FILES client_sign.crt client.key certificate_chain.crt
-           DESTINATION bin )
+  install(FILES
+          ${COMPONENTS_DIR}/security_manager/resources/client.key
+          ${COMPONENTS_DIR}/security_manager/resources/client.crt
+          ${COMPONENTS_DIR}/security_manager/resources/server_verification_ca_cetrificates.crt
+          DESTINATION bin)
 endif()
