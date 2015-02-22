@@ -525,9 +525,9 @@ class CacheManager : public CacheManagerInterface {
   /**
    * @brief LoadFromFile allows to load policy cache from preloaded table.
    * @param file_name preloaded
-   * @return
+   * @return true in case file was successfuly loaded, false otherwise.
    */
-  bool LoadFromFile(const std::string& file_name);
+  bool LoadFromFile(const std::string& file_name, policy_table::Table& table);
 
   /**
    * @brief Backup allows to save cache onto hard drive.
@@ -602,6 +602,83 @@ private:
   typedef std::map<std::string, AppCalculatedPermissions> CalculatedPermissions;
   CalculatedPermissions calculated_permissions_;
   sync_primitives::Lock calculated_permissions_lock_;
+
+  /**
+   * @brief MergePreloadPT allows to load policy table from certain JSON file,
+   * and then decide if merge is needed. The merge is needed in case when preload
+   * JSON date is different than current database.
+   *
+   * @param file_name the preloaded policy table JSON file.
+   */
+  void MergePreloadPT(const std::string& file_name);
+
+  /**
+   * @brief MergeMC alllows to merge ModuleConfig section by definite rules.
+   * The rules are:
+   * 1. Add new fields (known to PoliciesManager) & sub-sections if such are
+   * present in the updated Preloaded PT
+   * 2. "vehicle_make", “model”, “year” – leave the fields & values as they were
+   * in the database
+   * 3. For all other fields – overwrite the values with the new ones from preloaded PT.
+   *
+   * @param new_pt the policy table loaded from updated preload JSON file.
+   *
+   * @param pt the exists database.
+   */
+  void MergeMC(const policy_table::PolicyTable& new_pt,
+               policy_table::PolicyTable& pt);
+
+  /**
+   * @brief MergeFC allows to merge FunctionalGroupings sections by definite rules.
+   *
+   * The rules are:
+   * 1. If functional_group_name exists in both database (LocalPT) and updated
+   * PreloadedPT -> PoliciesManager must overwrite it (that is, replace such
+   * functional_group_name in the database by the one from Pre-PT).
+   * 2. If functional_group_name exists in updated PreloadedPT and does not
+   * exist in database (LocalPT), PoliciesManager must add such group to the database.
+   * 3. If functional_group_name does not exist in updated PreloadedPT and
+   * exists in the database (LocalPT), PoliciesManager must leave such group in
+   * the database without changes.
+   *
+   * @param new_pt the policy table loaded from updated preload JSON file.
+   *
+   * @param pt the exists database.
+   */
+  void MergeFC(const policy_table::PolicyTable& new_pt,
+               policy_table::PolicyTable& pt);
+
+  /**
+   * @brief MergeAP Allows to merge ApplicationPolicies section by definite relues.
+   * The rules are:
+   * 1. Leave “<appID>” sub-sections as they were in the database (fields & their values).
+   * 2. Over-write "default", "device", "pre_DataConsent" subsections.
+   *
+   * @param new_pt the policy table loaded from updated preload JSON file.
+   *
+   * @param pt the exists database.
+   */
+  void MergeAP(policy_table::PolicyTable new_pt,
+               policy_table::PolicyTable& pt);
+
+  /**
+   * @brief MergeCFM
+   * The rules are:
+   * 1. If friendly_message_name exists in both database (LocalPT) and updated
+   * Preloaded PT -> PoliciesManager must overwrite it.
+   * 2. If friendly_message_name exists in updated Preloaded PT and does not
+   * exist in database (LocalPT), PoliciesManager must add such
+   * friendly_message_name to the database (LocalPT).
+   * 3. If friendly_message_name does not exist in updated Preloaded PT and
+   * exists in the database (LocalPT), PoliciesManager must leave such
+   * friendly_message_name in the database without changes.
+   *
+   * @param new_pt the policy table loaded from updated preload JSON file.
+   *
+   * @param pt the exists database
+   */
+  void MergeCFM(const policy_table::PolicyTable& new_pt,
+                policy_table::PolicyTable& pt);
 
   class BackgroundBackuper: public threads::ThreadDelegate {
       friend class CacheManager;
