@@ -41,7 +41,8 @@ BEGIN TRANSACTION;
     `timeout_after_x_seconds` INTEGER NOT NULL, 
     `vehicle_make` VARCHAR(45), 
     `vehicle_model` VARCHAR(45), 
-    `vehicle_year` VARCHAR(4)  
+    `vehicle_year` VARCHAR(4), 
+    `preloaded_pt` VARCHAR(10)
   ); 
   INSERT OR IGNORE INTO `module_config` (`preloaded_pt`, `is_first_run`,
     `exchange_after_x_ignition_cycles`, `exchange_after_x_kilometers`, 
