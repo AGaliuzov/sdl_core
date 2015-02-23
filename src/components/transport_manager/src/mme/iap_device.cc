@@ -120,6 +120,11 @@ ApplicationList IAPDevice::GetApplicationList() const {
   return app_list;
 }
 
+void IAPDevice::OnConnectionTimeout(const std::string& protocol_name) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  FreeProtocol(protocol_name);
+}
+
 const IAPDevice::AppRecord IAPDevice::RegisterConnection(
     ApplicationHandle app_id, IAPConnection* connection) {
   connections_lock_.Acquire();
@@ -534,38 +539,6 @@ void IAPDevice::IAPEventThreadDelegate::OpenSession(uint32_t protocol_id,
     LOG4CXX_ERROR(logger_,
                   "iAP: failed to open session on protocol " << protocol_name << ", errno = " << errno);
   }
-}
-
-IAPDevice::ProtocolConnectionTimer::ProtocolConnectionTimer(
-    const std::string& name, IAPDevice* parent)
-    : name_(name),
-      timer_(
-          new Timer("iAP proto releaser", this,
-                    &ProtocolConnectionTimer::Shoot)),
-      parent_(parent) {
-}
-
-IAPDevice::ProtocolConnectionTimer::~ProtocolConnectionTimer() {
-  Stop();
-  delete timer_;
-}
-
-void IAPDevice::ProtocolConnectionTimer::Start() {
-  int timeout = profile::Profile::instance()->iap_hub_connection_wait_timeout();
-  LOG4CXX_DEBUG(
-      logger_,
-      "iAP: start timer (protocol: " << name_ << ", timeout: " << timeout << ")");
-  timer_->start(timeout);
-}
-
-void IAPDevice::ProtocolConnectionTimer::Stop() {
-  LOG4CXX_DEBUG(logger_, "iAP: stop timer (protocol: " << name_ << ")");
-  timer_->stop();
-}
-
-void IAPDevice::ProtocolConnectionTimer::Shoot() {
-  LOG4CXX_DEBUG(logger_, "iAP: shoot timer (protocol: " << name_ << ")");
-  parent_->FreeProtocol(name_);
 }
 
 }  // namespace transport_adapter

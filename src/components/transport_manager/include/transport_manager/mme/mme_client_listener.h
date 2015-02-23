@@ -52,13 +52,44 @@
 namespace transport_manager {
 namespace transport_adapter {
 
+/**
+ * @brief Class for listener of MME client connection.
+ */
 class MmeClientListener : public ClientConnectionListener {
  public:
+  /**
+   * @brief Constructor
+   * @param controller TransportAdapterController observer (MME transport adapter in current implementation)
+   */
   MmeClientListener(TransportAdapterController *controller);
+
+  /**
+   * @brief Run client connection listener.
+   *
+   * @return Error information about possible reason of starting client listener failure.
+   */
   virtual TransportAdapter::Error Init();
+
+  /**
+   * @brief Stop client connection listener.
+   */
   virtual void Terminate();
+  /**
+   * @brief Check initialization.
+   *
+   * @return True if initialized.
+   * @return False if not initialized.
+   */
   virtual bool IsInitialised() const;
+
+  /**
+   * @brief Start to listen for connection from client.
+   */
   virtual TransportAdapter::Error StartListening();
+
+  /**
+   * @brief Stop to listen for connection from client.
+   */
   virtual TransportAdapter::Error StopListening();
 
  private:

@@ -39,6 +39,7 @@
 #include <iap2/iap2.h>
 
 #include "transport_manager/mme/mme_device.h"
+#include "transport_manager/mme/protocol_connection_timer.h"
 #include "transport_manager/transport_adapter/transport_adapter_controller.h"
 #include "utils/shared_ptr.h"
 #include "utils/threads/thread_delegate.h"
@@ -49,24 +50,48 @@
 namespace transport_manager {
 namespace transport_adapter {
 
+/**
+ * @brief Class representing device connected over iAP2 protocol
+ */
 class IAP2Device : public MmeDevice {
  public:
+  /**
+   * @brief Constructor
+   * @param mount_point Path device is mounted to
+   * @param name User-friendly device name.
+   * @param unique_device_id device unique identifier.
+   * @param controller TransportAdapterController observer (MME transport adapter in current implementation)
+   */
   IAP2Device(const std::string& mount_point, const std::string& name,
              const DeviceUID& unique_device_id,
              TransportAdapterController* controller);
 
+  /**
+   * Destructor
+   */
   ~IAP2Device();
 
+  /**
+   * @brief Initialize MME device
+   * @return \a true on success, \a false otherwise
+   */
   virtual bool Init();
 
+  /**
+   * @brief Protocol device is connected over, i.e. iAP2
+   */
   virtual Protocol protocol() const {
     return IAP2;
   }
 
+  /**
+   * @brief Stop iAP2 device's internal threads
+   */
   virtual void Stop();
 
  protected:
   virtual ApplicationList GetApplicationList() const;
+  virtual void OnConnectionTimeout(const std::string& protocol_name);
 
  private:
   typedef std::map<int, std::string> FreeProtocolNamePool;
@@ -75,8 +100,6 @@ class IAP2Device : public MmeDevice {
   typedef std::map<ApplicationHandle, AppRecord> AppContainer;
   typedef std::map<std::string, threads::Thread*> ThreadContainer;
 
-  class ProtocolConnectionTimer;
-  typedef utils::SharedPtr<ProtocolConnectionTimer> ProtocolConnectionTimerSPtr;
   typedef std::map<std::string, ProtocolConnectionTimerSPtr> TimerContainer;
 
   bool RecordByAppId(ApplicationHandle app_id, AppRecord& record) const;
@@ -149,38 +172,50 @@ class IAP2Device : public MmeDevice {
     bool to_remove;
   };
 
+  /**
+   * @brief Thread delegate to wait for connection on hub protocol
+   */
   class IAP2HubConnectThreadDelegate : public threads::ThreadDelegate {
    public:
+    /**
+     * @brief Constructor
+     * @param parent Corresponding iAP2 device
+     * @param protocol_name Hub protocol to connect
+     */
     IAP2HubConnectThreadDelegate(IAP2Device* parent,
                                  const std::string& protocol_name);
+    /**
+     * @brief Thread procedure.
+     * (endless loop blocking on waiting for connection on specified protocol
+     * and invoking parent's callback on connection)
+     */
     void threadMain();
    private:
     IAP2Device* parent_;
     std::string protocol_name_;
   };
 
+  /**
+   * @brief Thread delegate to wait for connection on pool protocol
+   */
   class IAP2ConnectThreadDelegate : public threads::ThreadDelegate {
    public:
+    /**
+     * @brief Constructor
+     * @param parent Corresponding iAP2 device
+     * @param protocol_name Pool protocol to connect
+     */
     IAP2ConnectThreadDelegate(IAP2Device* parent,
                               const std::string& protocol_name);
+    /**
+     * @brief Thread procedure.
+     * (blocking once on waiting for connection on specified protocol
+     * and invoking parent's callback on connection)
+     */
     void threadMain();
    private:
     IAP2Device* parent_;
     std::string protocol_name_;
-  };
-
-  class ProtocolConnectionTimer {
-   public:
-    ProtocolConnectionTimer(const std::string& name, IAP2Device* parent);
-    ~ProtocolConnectionTimer();
-    void Start();
-    void Stop();
-   private:
-    typedef timer::TimerThread<ProtocolConnectionTimer> Timer;
-    std::string name_;
-    Timer* timer_;
-    IAP2Device* parent_;
-    void Shoot();
   };
 
   friend class IAP2Connection;

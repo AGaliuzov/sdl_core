@@ -46,13 +46,31 @@ namespace transport_adapter {
 
 class IAP2Device;
 
+/**
+ * @brief Class representing connection over iAP2 protocol
+ */
+
 class IAP2Connection : public Connection {
  public:
+  /**
+   * @brief Constructor
+   * @param device_uid device unique identifier.
+   * @param app_handle Handle of application.
+   * @param controller TransportAdapterController observer (MME transport adapter in current implementation)
+   * @param parent Corresponding iAP2 device
+   */
   IAP2Connection(const DeviceUID& device_uid,
                  const ApplicationHandle& app_handle,
                  TransportAdapterController* controller, IAP2Device* parent);
+
+  /**
+   * Destructor
+   */
   ~IAP2Connection();
 
+  /**
+   * @brief Initialize iAP2 connection
+   */
   bool Init();
 
  protected:

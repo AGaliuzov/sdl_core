@@ -107,6 +107,7 @@ if (BUILD_MME_SUPPORT)
     ${TM_SRC_DIR}/mme/iap_connection.cc
     ${TM_SRC_DIR}/mme/iap2_connection.cc
     ${TM_SRC_DIR}/mme/protocol_config.cc
+    ${TM_SRC_DIR}/mme/protocol_connection_timer.cc
   )
 endif(BUILD_MME_SUPPORT)
 

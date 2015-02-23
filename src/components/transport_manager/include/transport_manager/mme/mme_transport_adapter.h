@@ -38,6 +38,9 @@
 namespace transport_manager {
 namespace transport_adapter {
 
+/**
+ * @brief TransportAdapter for MME-maintained devices and connections
+ */
 class MmeTransportAdapter : public TransportAdapterImpl {
  public:
   MmeTransportAdapter();
