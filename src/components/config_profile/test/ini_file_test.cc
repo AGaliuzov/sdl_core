@@ -47,7 +47,7 @@ TEST(IniFileTest, WriteItemReadItem) {
   const char * item = "Test_item";
   const char * value = "test_value";
   bool result = ini_write_value(fname, chapter, item, value,
-  INI_FLAG_ITEM_UP_CREA);
+                                INI_FLAG_ITEM_UP_CREA);
   EXPECT_TRUE(result);
 
   // Read value from file
@@ -66,7 +66,7 @@ TEST(IniFileTest, WriteItemWithoutValueReadItem) {
   const char * test_item = "Test_item";
   const char * value = "";
   bool result = ini_write_value(fname, chapter, test_item, value,
-  INI_FLAG_ITEM_UP_CREA);
+                                INI_FLAG_ITEM_UP_CREA);
   EXPECT_TRUE(result);
 
   // Read value from file
@@ -86,7 +86,7 @@ TEST(IniFileTest, WriteSameItemInDifferentChapters) {
   const char * test_item = "Test_item";
   const char * value = "test_value";
   bool result = ini_write_value(fname, chapter1, test_item, value,
-  INI_FLAG_ITEM_UP_CREA);
+                                INI_FLAG_ITEM_UP_CREA);
   EXPECT_TRUE(result);
 
   char search_value[INI_LINE_LEN] = "";
@@ -99,7 +99,7 @@ TEST(IniFileTest, WriteSameItemInDifferentChapters) {
   const char *chapter2 = "Chapter2";
 
   result = ini_write_value(fname, chapter2, test_item, value,
-  INI_FLAG_ITEM_UP_CREA);
+                           INI_FLAG_ITEM_UP_CREA);
 
   EXPECT_TRUE(result);
 
@@ -119,7 +119,7 @@ TEST(IniFileTest, RewriteItem) {
   const char * item = "Test_item";
   const char * value = "test_value";
   bool result = ini_write_value(fname, chapter, item, value,
-  INI_FLAG_ITEM_UP_CREA);
+                                INI_FLAG_ITEM_UP_CREA);
 
   EXPECT_TRUE(result);
 
@@ -132,7 +132,7 @@ TEST(IniFileTest, RewriteItem) {
   // Write item again
   const char * newvalue = "new_test_value";
   result = ini_write_value(fname, chapter, item, newvalue,
-  INI_FLAG_ITEM_UP_CREA);
+                           INI_FLAG_ITEM_UP_CREA);
 
   EXPECT_TRUE(result);
 
@@ -152,7 +152,7 @@ TEST(IniFileTest, WriteTwoItemsInOneChapter) {
   const char * value1 = "test_value";
 
   bool result = ini_write_value(fname, chapter, item, value1,
-  INI_FLAG_ITEM_UP_CREA);
+                                INI_FLAG_ITEM_UP_CREA);
   EXPECT_TRUE(result);
 
   // Write another line in the same chapter
@@ -160,7 +160,7 @@ TEST(IniFileTest, WriteTwoItemsInOneChapter) {
   const char * value2 = "test_value2";
 
   result = ini_write_value(fname, chapter, item2, value2,
-  INI_FLAG_ITEM_UP_CREA);
+                           INI_FLAG_ITEM_UP_CREA);
   EXPECT_TRUE(result);
 
   // Search both values
@@ -196,7 +196,7 @@ TEST(IniFileTest, WriteEmptyItemWithEmptyValue_ExpectFalse) {
   const char * test_item = "";
   const char * value = "";
   bool result = ini_write_value(fname, chapter, test_item, value,
-  INI_FLAG_ITEM_UP_CREA);
+                                INI_FLAG_ITEM_UP_CREA);
   EXPECT_FALSE(result);
 }
 
@@ -207,7 +207,7 @@ TEST(IniFileTest, WriteItemInEmptyChapter_ExpectFalse) {
   const char * test_item = "Test_item";
   const char * value = "test_value";
   bool result = ini_write_value(fname, chapter, test_item, value,
-  INI_FLAG_ITEM_UP_CREA);
+                                INI_FLAG_ITEM_UP_CREA);
   EXPECT_FALSE(result);
 }
 
