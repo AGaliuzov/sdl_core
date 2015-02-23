@@ -860,6 +860,16 @@ void ConnectionHandlerImpl::CloseConnectionSessions(
                 << " have been closed successfully");
 }
 
+void ConnectionHandlerImpl::SendEndService(uint32_t key,
+                                           uint8_t service_type) {
+  if (protocol_handler_) {
+    uint32_t connection_handle = 0;
+    uint8_t session_id = 0;
+    PairFromKey(key, &connection_handle, &session_id);
+    protocol_handler_->SendEndService(connection_handle, session_id, service_type);
+  }
+}
+
 void ConnectionHandlerImpl::StartSessionHeartBeat(uint32_t connection_key) {
   uint32_t connection_handle = 0;
   uint8_t session_id = 0;

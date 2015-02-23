@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
@@ -70,18 +70,16 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   const smart_objects::SmartObject* active_message() const;
   void CloseActiveMessage();
   bool IsFullscreen() const;
-  bool MakeFullscreen();
 
   /**
    * @brief change supporting COMMUNICATION NAVIGATION
    */
   virtual void ChangeSupportingAppHMIType();
   bool IsAudible() const;
-  void MakeNotAudible();
 
   // navi
-  bool allowed_support_navigation() const;
-  void set_allowed_support_navigation(bool allow);
+  inline bool is_navi() const { return is_navi_; }
+  void set_is_navi(bool allow);
   bool hmi_supports_navi_video_streaming() const;
   void set_hmi_supports_navi_video_streaming(bool supports);
   bool hmi_supports_navi_audio_streaming() const;
@@ -92,6 +90,7 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
       bool is_voice_communication_supported);
   inline bool app_allowed() const;
   bool has_been_activated() const;
+  bool set_activated(bool is_active);
 
   const Version& version() const;
   void set_hmi_application_id(uint32_t hmi_app_id);
@@ -215,7 +214,7 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   uint32_t                                 app_id_;
   smart_objects::SmartObject*              active_message_;
   bool                                     is_media_;
-  bool                                     allowed_support_navigation_;
+  bool                                     is_navi_;
   bool                                     hmi_supports_navi_video_streaming_;
   bool                                     hmi_supports_navi_audio_streaming_;
   bool                                     is_app_allowed_;

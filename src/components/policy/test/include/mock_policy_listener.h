@@ -79,6 +79,7 @@ class MockPolicyListener : public PolicyListener {
                     int timeout_exceed));
   MOCK_METHOD0(CanUpdate,
                bool());
+  MOCK_METHOD1(OnCertificateUpdated, void (const std::string&));
 };
 
 }  // namespace policy

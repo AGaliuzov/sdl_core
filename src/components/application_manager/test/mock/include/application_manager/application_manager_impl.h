@@ -271,6 +271,9 @@ class ApplicationManagerImpl : public ApplicationManager,
   MOCK_METHOD0(OnTimerSendTTSGlobalProperties, void());
   MOCK_METHOD0(CreatePhoneCallAppList, void());
   MOCK_METHOD0(ResetPhoneCallAppList, void());
+  MOCK_METHOD2(ChangeAppsHMILevel, void(uint32_t, mobile_apis::HMILevel::eType));
+  MOCK_METHOD1(MakeAppNotAudible, void(uint32_t app_id));
+  MOCK_METHOD1(MakeAppFullScreen, bool(uint32_t app_id));
   MOCK_METHOD1(AddAppToTTSGlobalPropertiesList, void(const uint32_t));
   MOCK_METHOD1(RemoveAppFromTTSGlobalPropertiesList, void(const uint32_t));
   MOCK_METHOD1(application_by_hmi_app, ApplicationSharedPtr(uint32_t));
@@ -279,6 +282,7 @@ class ApplicationManagerImpl : public ApplicationManager,
                                         bool));
   MOCK_METHOD4(UnregisterApplication, void(const uint32_t,mobile_apis::Result::eType,
                                         bool, bool));
+  MOCK_METHOD1(OnAppUnauthorized, void(const uint32_t&));
   MOCK_CONST_METHOD0(get_limited_media_application, ApplicationSharedPtr());
   MOCK_CONST_METHOD0(get_limited_navi_application, ApplicationSharedPtr());
   MOCK_CONST_METHOD0(get_limited_voice_application, ApplicationSharedPtr());
