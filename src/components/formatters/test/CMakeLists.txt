@@ -40,7 +40,9 @@ include_directories(
 
 set(LIBRARIES
     gmock 
+    gtest
     HMI_API
+    MOBILE_API
     SmartObjects
     formatters
     jsoncpp

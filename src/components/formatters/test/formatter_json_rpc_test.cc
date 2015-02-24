@@ -36,8 +36,7 @@
 #include "formatters/formatter_json_rpc.h"
 #include "formatters/CSmartFactory.hpp"
 #include "HMI_API_schema.h"
-
-#include <iostream>
+#include "MOBILE_API_schema.h"
 
 namespace test {
 namespace components {
@@ -47,7 +46,7 @@ using namespace NsSmartDeviceLink::NsSmartObjects;
 using namespace NsSmartDeviceLink::NsJSONHandler::Formatters;
 using namespace NsSmartDeviceLink::NsJSONHandler::strings;
 
-TEST(FormatterJsonRPCTest, CorrectRPC1_SmartObjectToString_EXPECT_SUCCESS) {
+TEST(FormatterJsonRPCTest, CorrectRPCv1_request_SmartObjectToString_EXPECT_SUCCESS) {
 
   std::string result;
 
@@ -68,11 +67,29 @@ TEST(FormatterJsonRPCTest, CorrectRPC1_SmartObjectToString_EXPECT_SUCCESS) {
       result);
 }
 
-TEST(FormatterJsonRPCTest, CorrectRPC2_SmartObjectToString_EXPECT_SUCCESS) {
+TEST(FormatterJsonRPCTest, CorrectRPCv2_request_SmartObjectToString_EXPECT_SUCCESS) {
+
+  std::string result;
+
+  SmartObject obj;
+  obj[S_PARAMS][S_FUNCTION_ID] = mobile_apis::FunctionID::AddCommandID;
+  obj[S_PARAMS][S_MESSAGE_TYPE] = mobile_apis::messageType::request;
+  obj[S_PARAMS][S_CORRELATION_ID] = 4444;
+
+  obj[S_MSG_PARAMS] = SmartObject(SmartType::SmartType_Map);
+  mobile_apis::MOBILE_API factory;
+  EXPECT_TRUE(factory.attachSchema(obj));
+  EXPECT_TRUE(FormatterJsonRpc::ToString(obj, result));
+  EXPECT_EQ(
+      std::string(
+          "{\n   \"id\" : 4444,\n   \"jsonrpc\" : \"2.0\",\n   \"method\" : \"AddCommandID\"\n}\n"),
+      result);
+}
+
+TEST(FormatterJsonRPCTest, CorrectRPCv1_notification_SmartObjectToString_EXPECT_SUCCESS) {
   SmartObject obj;
   std::string result;
-  obj[S_PARAMS][S_FUNCTION_ID] =
-      hmi_apis::FunctionID::BasicCommunication_OnReady;
+  obj[S_PARAMS][S_FUNCTION_ID] = hmi_apis::FunctionID::Buttons_OnButtonPress;
   obj[S_PARAMS][S_MESSAGE_TYPE] = hmi_apis::messageType::notification;
   obj[S_PARAMS][S_PROTOCOL_VERSION] = 2;
   obj[S_PARAMS][S_PROTOCOL_TYPE] = 1;
@@ -84,11 +101,11 @@ TEST(FormatterJsonRPCTest, CorrectRPC2_SmartObjectToString_EXPECT_SUCCESS) {
   EXPECT_TRUE(FormatterJsonRpc::ToString(obj, result));
   EXPECT_EQ(
       std::string(
-          "{\n   \"jsonrpc\" : \"2.0\",\n   \"method\" : \"BasicCommunication.OnReady\",\n   \"params\" : {}\n}\n"),
+          "{\n   \"jsonrpc\" : \"2.0\",\n   \"method\" : \"Buttons.OnButtonPress\",\n   \"params\" : {}\n}\n"),
       result);
 }
 
-TEST(FormatterJsonRPCTest, IncorrectRPC_SmartObjectToString_EXPECT_FALSE) {
+TEST(FormatterJsonRPCTest, InvalidRPC_SmartObjectToString_EXPECT_FALSE) {
   SmartObject obj;
   std::string result;
   obj[S_PARAMS][S_FUNCTION_ID] =
@@ -106,93 +123,60 @@ TEST(FormatterJsonRPCTest, IncorrectRPC_SmartObjectToString_EXPECT_FALSE) {
   EXPECT_EQ(std::string("{\n   \"jsonrpc\" : \"2.0\"\n}\n"), result);
 }
 
-TEST(FormatterJsonRPCTest, FromString) {
+TEST(FormatterJsonRPCTest, FromStringNotificationToSmartObj_ExpectSuccess) {
   const std::string json_string(
       "{\n   \"jsonrpc\" : \"2.0\",\n   \"method\" : \"BasicCommunication.OnReady\",\n   \"params\" : {}\n}\n");
   SmartObject obj;
-  Json::Value object_value;
-  // Get keys collection from Smart Object
-  std::set<std::string> keys = obj.enumerate();
-  std::set<std::string>::iterator it1 = keys.begin();
-  Json::Reader().parse(json_string, object_value);
   EXPECT_EQ(
       0,
       (FormatterJsonRpc::FromString<hmi_apis::FunctionID::eType,
           hmi_apis::messageType::eType>(json_string, obj)));
-  // Get membes names(keys) from Json object
-  Json::Value::Members mems = object_value.getMemberNames();
-  const std::string result = object_value.toStyledString();
-  EXPECT_EQ(3, mems.size());
-  EXPECT_EQ(json_string, result);
+  // Get keys collection from Smart Object
+  std::set<std::string> keys = obj["params"].enumerate();
+  EXPECT_EQ(4, keys.size());
 }
 
-//TEST(GenericJsonFormatter, FromString) {
-//  namespace smartobj = NsSmartDeviceLink::NsSmartObjects;
-//  namespace formatters = NsSmartDeviceLink::NsJSONHandler::Formatters;
-//
-//  smartobj::SmartObject result;
-//
-//  ASSERT_FALSE(formatters::GenericJsonFormatter::FromString("", result));
-//  ASSERT_FALSE(formatters::GenericJsonFormatter::FromString("\"str", result));
-//  ASSERT_FALSE(formatters::GenericJsonFormatter::FromString("[10", result));
-//  ASSERT_FALSE(formatters::GenericJsonFormatter::FromString("{10}", result));
-//
-//  ASSERT_TRUE(formatters::GenericJsonFormatter::FromString("null", result));
-//  ASSERT_EQ(smartobj::SmartType_Null, result.getType());
-//
-//  ASSERT_TRUE(formatters::GenericJsonFormatter::FromString("true", result));
-//  ASSERT_EQ(smartobj::SmartType_Boolean, result.getType());
-//  ASSERT_EQ(true, result.asBool());
-//
-//  ASSERT_TRUE(formatters::GenericJsonFormatter::FromString("1", result));
-//  ASSERT_EQ(smartobj::SmartType_Integer, result.getType());
-//  ASSERT_EQ(1, result.asInt());
-//
-//  ASSERT_TRUE(formatters::GenericJsonFormatter::FromString("0.5", result));
-//  ASSERT_EQ(smartobj::SmartType_Double, result.getType());
-//  ASSERT_DOUBLE_EQ(0.5, result.asDouble());
-//
-//  ASSERT_TRUE(formatters::GenericJsonFormatter::FromString("\"str\"", result));
-//  ASSERT_EQ(smartobj::SmartType_String, result.getType());
-//  ASSERT_STREQ("str", result.asString().c_str());
-//
-//  ASSERT_TRUE(formatters::GenericJsonFormatter::FromString("[true, null, 10]",
-//                                                           result));
-//  ASSERT_EQ(smartobj::SmartType_Array, result.getType());
-//  ASSERT_EQ(smartobj::SmartType_Boolean, result.getElement(0U).getType());
-//  ASSERT_EQ(true, result.getElement(0U).asBool());
-//  ASSERT_EQ(smartobj::SmartType_Null, result.getElement(1U).getType());
-//  ASSERT_EQ(smartobj::SmartType_Integer, result.getElement(2U).getType());
-//  ASSERT_EQ(10, result.getElement(2U).asInt());
-//
-//  ASSERT_TRUE(
-//    formatters::GenericJsonFormatter::FromString("{"
-//                                                 " \"intField\": 100500,"
-//                                                 " \"subobject\": {"
-//                                                 "  \"arrayField\": [1, null],"
-//                                                 "  \"strField\": \"str\""
-//                                                 " }"
-//                                                 "}",
-//                                                 result));
-//  ASSERT_EQ(smartobj::SmartType_Map, result.getType());
-//  ASSERT_EQ(smartobj::SmartType_Integer,
-//            result.getElement("intField").getType());
-//  ASSERT_EQ(100500, result.getElement("intField").asInt());
-//  ASSERT_EQ(smartobj::SmartType_Map, result.getElement("subobject").getType());
-//  ASSERT_EQ(smartobj::SmartType_Array,
-//            result.getElement("subobject").getElement("arrayField").getType());
-//  ASSERT_EQ(smartobj::SmartType_Integer,
-//            result.getElement("subobject").getElement("arrayField").getElement(0U).getType());
-//  ASSERT_EQ(1, result.getElement("subobject").getElement("arrayField").getElement(0U).asInt());
-//  ASSERT_EQ(smartobj::SmartType_Null,
-//            result.getElement("subobject").getElement("arrayField").getElement(1U).getType());
-//  ASSERT_EQ(smartobj::SmartType_String,
-//            result.getElement("subobject").getElement("strField").getType());
-//  ASSERT_STREQ(
-//    "str",
-//    result.getElement("subobject").getElement("strField").asString().c_str());
-//}
+TEST(FormatterJsonRPCTest, FromStringToSmartObjInvalidFormat_ExpectFalse) {
+  const std::string json_string(
+      "{\n   \"method\" : \"BasicCommunication.OnReady\",\n   \"params\" : {}\n}\n");
+  SmartObject obj;
+  EXPECT_EQ(
+      2,
+      (FormatterJsonRpc::FromString<hmi_apis::FunctionID::eType,
+          hmi_apis::messageType::eType>(json_string, obj)));
+  // Get keys collection from Smart Object
+  std::set<std::string> keys = obj["params"].enumerate();
+  EXPECT_EQ(4, keys.size());
+}
 
-}// formatters
-}  // components
-}  // test
+TEST(FormatterJsonRPCTest, FromStringRequestToSmartObj_ExpectSuccess) {
+  const std::string json_string(
+      "{\n   \"id\" : 4444,\n   \"jsonrpc\" : \"2.0\",\n   \"method\" : \"VR.IsReady\"\n}\n");
+  SmartObject obj;
+  EXPECT_EQ(
+      0,
+      (FormatterJsonRpc::FromString<hmi_apis::FunctionID::eType,
+          hmi_apis::messageType::eType>(json_string, obj)));
+  // Get keys collection from Smart Object
+  std::set<std::string> keys = obj["params"].enumerate();
+  std::set<std::string>::iterator it1 = keys.begin();
+  EXPECT_EQ(5, keys.size());
+}
+
+TEST(FormatterJsonRPCTest, FromStringResponseToSmartObj_ExpectSuccess) {
+  const std::string json_string(
+      "{\n   \"id\" : 4444,\n   \"jsonrpc\" : \"2.0\",\n   \"method\" : \"VR.IsReady\"\n}\n");
+  SmartObject obj;
+  EXPECT_EQ(
+      0,
+      (FormatterJsonRpc::FromString<hmi_apis::FunctionID::eType,
+          hmi_apis::messageType::eType>(json_string, obj)));
+  // Get keys collection from Smart Object
+  std::set<std::string> keys = obj["params"].enumerate();
+  std::set<std::string>::iterator it1 = keys.begin();
+  EXPECT_EQ(5, keys.size());
+}
+
+}  // namespace formatters
+}  // namespace components
+}  // namespace test
