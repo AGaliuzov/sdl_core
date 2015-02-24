@@ -37,6 +37,7 @@
 #include <stdlib.h>
 #include <sstream>
 #include <algorithm>
+#include <limits>
 
 #include "config_profile/ini_file.h"
 #include "utils/logger.h"
