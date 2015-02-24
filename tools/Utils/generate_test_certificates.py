@@ -82,9 +82,10 @@ def main():
 	arg_parser = ArgumentParser(description='Welcome to SDL test certificate generator.')
 	arg_parser.add_argument('-d', '--dir', help="directory for certificate generating")
 	args = arg_parser.parse_args()
-	if args.dir and not os.path.exists(args.dir) :
-		raise OSError("Input directory not exists")
-	dir = args.dir if args.dir else ""
+	if args.dir:
+		if not os.path.exists(args.dir):
+			raise OSError("Input directory not exists")
+		os.chdir(args.dir)
 
 	root_answer = answers("root", "US", "California", "Silicon Valley", "CAcert.org", "CAcert", "sample@cacert.org")
 	ford_server_answer = answers("FORD", "US", "Michigan", "Detroit", "FORD_SERVER", "FORD_SDL_SERVER" ,"sample@ford.com")
@@ -94,47 +95,47 @@ def main():
 	days = 10000
 
 	print " --== Root certificate generating ==-- "
-	root_key_file  = os.path.join(dir, "root.key")
-	root_cert_file = os.path.join(dir, "root.crt")
+	root_key_file  = "root.key"
+	root_cert_file = "root.crt"
 	gen_rsa_key(root_key_file, 2048)
 	gen_root_cert(root_cert_file, root_key_file, days, root_answer)
 
 	print
 	print " --== Ford server CA certificate generating ==-- "
-	ford_server_key_file  = os.path.join(dir, "ford_server.key")
-	ford_server_cert_file = os.path.join(dir, "ford_server.crt")
+	ford_server_key_file  = "ford_server.key"
+	ford_server_cert_file = "ford_server.crt"
 	gen_rsa_key(ford_server_key_file, 2048)
 	gen_cert(ford_server_cert_file, ford_server_key_file, root_cert_file, root_key_file, days, ford_server_answer)
 
 	print
 	print " --== Ford client CA certificate generating ==-- "
-	ford_client_key_file  = os.path.join(dir, "ford_client.key")
-	ford_client_cert_file = os.path.join(dir, "ford_client.crt")
+	ford_client_key_file  = "ford_client.key"
+	ford_client_cert_file = "ford_client.crt"
 	gen_rsa_key(ford_client_key_file, 2048)
 	gen_cert(ford_client_cert_file, ford_client_key_file, root_cert_file, root_key_file, days, ford_client_answer)
 
 	print
 	print " --== Server certificate generating ==-- "
-	server_key_file = os.path.join(dir, "server.key")
-	server_cert_file = os.path.join(dir, "server.crt")
+	server_key_file = "server.key"
+	server_cert_file = "server.crt"
 	gen_rsa_key(server_key_file, 2048)
 	gen_cert(server_cert_file, server_key_file, ford_server_cert_file, ford_server_key_file, days, client_answer)
 
 	print
 	print " --== Client certificate generating ==-- "
-	client_key_file  = os.path.join(dir, "client.key")
-	client_cert_file = os.path.join(dir, "client.crt")
+	client_key_file  = "client.key"
+	client_cert_file = "client.crt"
 	gen_rsa_key(client_key_file, 2048)
 	gen_cert(client_cert_file, client_key_file, ford_client_cert_file, ford_client_key_file, days, server_answer)
 
 	print
 	print " --== SDL and SPT adjustment  ==-- "
-	server_verification_ca_cert_file = os.path.join(dir, "server_verification_ca_cetrificates.crt")
-	client_verification_ca_cert_file = os.path.join(dir, "client_verification_ca_cetrificates.crt")
+	server_verification_ca_cert_file = "server_verification_ca_cetrificates.crt"
+	client_verification_ca_cert_file = "client_verification_ca_cetrificates.crt"
 	concat_files(server_verification_ca_cert_file, root_cert_file, ford_server_cert_file)
 	concat_files(client_verification_ca_cert_file, root_cert_file, ford_client_cert_file)
 
-	server_pkcs12_file = os.path.join(dir, "spt_credential.p12")
+	server_pkcs12_file = "spt_credential.p12"
 	gen_pkcs12(server_pkcs12_file, server_key_file, server_cert_file, server_verification_ca_cert_file)
 
 	print
