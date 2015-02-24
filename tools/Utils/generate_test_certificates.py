@@ -138,7 +138,7 @@ def main():
 	gen_pkcs12(server_pkcs12_file, server_key_file, server_cert_file, server_verification_ca_cert_file)
 
 	print
-	print "All certificate have generated"
+	print "All certificates have been generated"
 
 if __name__ == "__main__":
 	main()
