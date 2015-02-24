@@ -207,7 +207,9 @@ MessageWriter::~MessageWriter() {
 void MessageWriter::WriteAndCheck(
     MessageWriter::DataType value_type, const void* value) {
   assert(!has_opened_subcontainer_);
+#ifndef NDEBUG
   dbus_bool_t enough_memory =
+#endif
       dbus_message_iter_append_basic(&iterator_, value_type, value);
   assert(enough_memory);
 }
@@ -215,7 +217,9 @@ void MessageWriter::WriteAndCheck(
 void MessageWriter::CloseWriter() {
   assert(parent_writer_);
   assert(parent_writer_->has_opened_subcontainer_);
+#ifndef NDEBUG
   dbus_bool_t enough_memory =
+#endif
       dbus_message_iter_close_container(&parent_writer_->iterator_,
                                         &iterator_);
   assert(enough_memory);
