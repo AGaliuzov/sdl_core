@@ -346,7 +346,8 @@ ModuleConfig::ModuleConfig(const Json::Value* value__)
     vehicle_make(impl::ValueMember(value__, "vehicle_make")),
     vehicle_model(impl::ValueMember(value__, "vehicle_model")),
     vehicle_year(impl::ValueMember(value__, "vehicle_year")),
-    certificate(impl::ValueMember(value__, "certificate")){
+    certificate(impl::ValueMember(value__, "certificate")),
+    preloaded_date(impl::ValueMember(value__, "preloaded_date")){
 }
 
 Json::Value ModuleConfig::ToJsonValue() const {
@@ -364,6 +365,7 @@ Json::Value ModuleConfig::ToJsonValue() const {
   impl::WriteJsonField("vehicle_model", vehicle_model, &result__);
   impl::WriteJsonField("vehicle_year", vehicle_year, &result__);
   impl::WriteJsonField("certificate", certificate, &result__);
+  impl::WriteJsonField("preloaded_date", preloaded_date, &result__);
   return result__;
 }
 bool ModuleConfig::is_valid() const {
@@ -404,6 +406,9 @@ bool ModuleConfig::is_valid() const {
     return false;
   }
   if (!certificate.is_valid()) {
+    return false;
+  }
+  if (!preloaded_date.is_valid()) {
     return false;
   }
   return Validate();

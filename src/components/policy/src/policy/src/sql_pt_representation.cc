@@ -972,6 +972,8 @@ bool SQLPTRepresentation::SaveModuleConfig(
   query.Bind(6, *(config.vehicle_model)) : query.Bind(6);
   config.vehicle_year.is_initialized() ?
   query.Bind(7, *(config.vehicle_year)) : query.Bind(7);
+  config.preloaded_date.is_initialized() ?
+  query.Bind(8, *(config.preloaded_date)) : query.Bind(8);
 
   if (!query.Exec()) {
     LOG4CXX_WARN(logger_, "Incorrect update module config");

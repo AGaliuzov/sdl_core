@@ -74,7 +74,8 @@ const std::string kCreateSchema =
   "  `timeout_after_x_seconds` INTEGER NOT NULL, "
   "  `vehicle_make` VARCHAR(45), "
   "  `vehicle_model` VARCHAR(45), "
-  "  `vehicle_year` VARCHAR(4) "
+  "  `vehicle_year` VARCHAR(4), "
+  "  `preloaded_date` VARCHAR (10) "
   "); "
   "CREATE TABLE IF NOT EXISTS `functional_group`( "
   "  `id` INTEGER PRIMARY KEY NOT NULL, "
@@ -483,7 +484,7 @@ const std::string kUpdateModuleConfig =
   "  `exchange_after_x_ignition_cycles` = ?,"
   "  `exchange_after_x_kilometers` = ?, `exchange_after_x_days` = ?, "
   "  `timeout_after_x_seconds` = ?, `vehicle_make` = ?, "
-  "  `vehicle_model` = ?, `vehicle_year` = ?";
+  "  `vehicle_model` = ?, `vehicle_year` = ?, `preloaded_date` = ?";
 
 const std::string kInsertEndpoint =
   "INSERT INTO `endpoint` (`service`, `url`, `application_id`) "
