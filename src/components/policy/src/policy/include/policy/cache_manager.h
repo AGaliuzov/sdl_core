@@ -525,6 +525,7 @@ class CacheManager : public CacheManagerInterface {
   /**
    * @brief LoadFromFile allows to load policy cache from preloaded table.
    * @param file_name preloaded
+   * @param table object which will be filled during file parsing.
    * @return true in case file was successfuly loaded, false otherwise.
    */
   bool LoadFromFile(const std::string& file_name, policy_table::Table& table);
@@ -613,7 +614,8 @@ private:
   void MergePreloadPT(const std::string& file_name);
 
   /**
-   * @brief MergeMC alllows to merge ModuleConfig section by definite rules.
+   * @brief MergeMC allows to merge ModuleConfig section by definite rules.
+   *
    * The rules are:
    * 1. Add new fields (known to PoliciesManager) & sub-sections if such are
    * present in the updated Preloaded PT
@@ -629,7 +631,7 @@ private:
                policy_table::PolicyTable& pt);
 
   /**
-   * @brief MergeFC allows to merge FunctionalGroupings sections by definite rules.
+   * @brief MergeFG allows to merge FunctionalGroupings sections by definite rules.
    *
    * The rules are:
    * 1. If functional_group_name exists in both database (LocalPT) and updated
@@ -645,7 +647,7 @@ private:
    *
    * @param pt the exists database.
    */
-  void MergeFC(const policy_table::PolicyTable& new_pt,
+  void MergeFG(const policy_table::PolicyTable& new_pt,
                policy_table::PolicyTable& pt);
 
   /**
@@ -658,11 +660,12 @@ private:
    *
    * @param pt the exists database.
    */
-  void MergeAP(policy_table::PolicyTable new_pt,
+  void MergeAP(const policy_table::PolicyTable& new_pt,
                policy_table::PolicyTable& pt);
 
   /**
-   * @brief MergeCFM
+   * @brief MergeCFM allows to merge ConsumerFriendlyMessages section by definite rules.
+   *
    * The rules are:
    * 1. If friendly_message_name exists in both database (LocalPT) and updated
    * Preloaded PT -> PoliciesManager must overwrite it.

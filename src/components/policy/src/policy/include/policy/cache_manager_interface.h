@@ -519,6 +519,7 @@ class CacheManagerInterface {
   /**
    * @brief LoadFromFile allows to load policy cache from preloaded table.
    * @param file_name preloaded
+   * @param table object which will be filled during file parsing.
    * @return true in case file was successfuly loaded, false otherwise.
    */
   virtual bool LoadFromFile(const std::string& file_name, policy_table::Table& table) = 0;

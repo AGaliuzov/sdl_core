@@ -1679,6 +1679,7 @@ void CacheManager::MergePreloadPT(const std::string& file_name) {
   policy_table::Table table;
   if (!LoadFromFile(file_name, table)) {
     LOG4CXX_DEBUG(logger_, "Unable to load preloaded PT.");
+    return;
   }
 
   sync_primitives::AutoLock lock(cache_lock_);
@@ -1686,7 +1687,7 @@ void CacheManager::MergePreloadPT(const std::string& file_name) {
   policy_table::PolicyTable& new_table = table.policy_table;
   if (current.module_config.preloaded_date != new_table.module_config.preloaded_date) {
     MergeMC(new_table, current);
-    MergeFC(new_table, current);
+    MergeFG(new_table, current);
     MergeAP(new_table, current);
     MergeCFM(new_table, current);
     Backup();
@@ -1704,7 +1705,7 @@ void CacheManager::MergeMC(const policy_table::PolicyTable& new_pt,
   pt.module_config.vehicle_model = copy.vehicle_model;
 }
 
-void CacheManager::MergeFC(const policy_table::PolicyTable& new_pt,
+void CacheManager::MergeFG(const policy_table::PolicyTable& new_pt,
                            policy_table::PolicyTable& pt) {
   LOG4CXX_AUTO_TRACE(logger_);
   policy_table::FunctionalGroupings::const_iterator it = new_pt.functional_groupings.begin();
@@ -1715,7 +1716,7 @@ void CacheManager::MergeFC(const policy_table::PolicyTable& new_pt,
   }
 }
 
-void CacheManager::MergeAP(policy_table::PolicyTable new_pt,
+void CacheManager::MergeAP(const policy_table::PolicyTable& new_pt,
                            policy_table::PolicyTable& pt) {
   LOG4CXX_AUTO_TRACE(logger_);
   pt.app_policies[kDeviceId] = new_pt.app_policies[kDeviceId];
