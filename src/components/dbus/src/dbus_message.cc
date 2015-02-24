@@ -186,7 +186,9 @@ MessageWriter::MessageWriter(
   assert((container_type == kArray && array_signature != NULL)
          || (container_type != kArray && array_signature == NULL));
   assert(!parent_writer_->has_opened_subcontainer_);
+#ifndef NDEBUG
   bool enough_memory =
+#endif
       dbus_message_iter_open_container(&parent_writer_->iterator_,
                                        container_type,
                                        array_signature,
