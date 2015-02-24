@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,39 +30,49 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_MME_CONNECTION_FACTORY_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_MME_CONNECTION_FACTORY_H_
+#include "transport_manager/mme/protocol_connection_timer.h"
 
-#include "transport_manager/transport_adapter/server_connection_factory.h"
-#include "transport_manager/transport_adapter/transport_adapter_controller.h"
+#include "config_profile/profile.h"
 
 namespace transport_manager {
 namespace transport_adapter {
 
-/**
- * @brief Class for creating MME device connections
- */
-class MmeConnectionFactory : public ServerConnectionFactory {
- public:
-  /**
-   * @brief Constructor
-   * @param controller TransportAdapterController observer (MME transport adapter in current implementation)
-   */
-  MmeConnectionFactory(TransportAdapterController* controller);
+CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
 
- protected:
-  virtual TransportAdapter::Error Init();
-  virtual TransportAdapter::Error CreateConnection(
-      const DeviceUID& device_uid, const ApplicationHandle& app_handle);
-  virtual void Terminate();
-  virtual bool IsInitialised() const;
+ProtocolConnectionTimer::ProtocolConnectionTimer(
+        const std::string& protocol_name,
+        MmeDevice* parent) : timer_(
+                                 new Timer("proto releaser",
+                                           this,
+                                           &ProtocolConnectionTimer::Shoot)),
+                             protocol_name_(protocol_name),
+                             parent_(parent) {
+}
 
- private:
-  TransportAdapterController* controller_;
-  bool initialised_;
-};
+ProtocolConnectionTimer::~ProtocolConnectionTimer() {
+  Stop();
+  delete timer_;
+}
+
+void ProtocolConnectionTimer::Start() {
+  int timeout = profile::Profile::instance()->iap_hub_connection_wait_timeout();
+  LOG4CXX_DEBUG(logger_, "Starting timer for protocol " << protocol_name_ <<
+                         " (" << parent_->protocol() << ")"
+                         " with timeout " << timeout);
+  timer_->start(timeout);
+}
+
+void ProtocolConnectionTimer::Stop() {
+  LOG4CXX_DEBUG(logger_, "Stopping timer for protocol " << protocol_name_ <<
+                         " (" << parent_->protocol() << ")");
+  timer_->stop();
+}
+
+void ProtocolConnectionTimer::Shoot() {
+  LOG4CXX_INFO(logger_, "Connection timeout for protocol " << protocol_name_ <<
+                        " (" << parent_->protocol() << ")");
+  parent_->OnConnectionTimeout(protocol_name_);
+}
 
 }  // namespace transport_adapter
 }  // namespace transport_manager
-
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_MME_CONNECTION_FACTORY_H_

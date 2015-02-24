@@ -52,5 +52,8 @@ bool MmeDevice::IsSameAs(const Device* other_device) const {
   }
 }
 
+void MmeDevice::OnConnectionTimeout(const std::string& protocol_name) {
+}
+
 }  // namespace transport_adapter
 }  // namespace transport_manager

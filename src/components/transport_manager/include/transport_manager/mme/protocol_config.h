@@ -39,15 +39,45 @@
 namespace transport_manager {
 namespace transport_adapter {
 
+/**
+ * @brief Class for reading iAP/iAP2 protocol names from system config files
+ */
 class ProtocolConfig {
  public:
+  /**
+   * @typedef Container for protocol names
+   */
   typedef std::map<int, std::string> ProtocolNameContainer;
 
+  /**
+   * @brief Legacy protocol names for iAP
+   * (read once and stored statically)
+   */
   static const ProtocolNameContainer& IAPLegacyProtocolNames();
+  /**
+   * @brief Legacy protocol names for iAP2
+   * (read once and stored statically)
+   */
   static const ProtocolNameContainer& IAP2LegacyProtocolNames();
+  /**
+   * @brief Hub protocol names for iAP
+   * (read once and stored statically)
+   */
   static const ProtocolNameContainer& IAPHubProtocolNames();
+  /**
+   * @brief Hub protocol names for iAP2
+   * (read once and stored statically)
+   */
   static const ProtocolNameContainer& IAP2HubProtocolNames();
+  /**
+   * @brief Pool (i.e. non-legacy and non-hub) protocol names for iAP
+   * (read once and stored statically)
+   */
   static const ProtocolNameContainer& IAPPoolProtocolNames();
+  /**
+   * @brief Pool (i.e. non-legacy and non-hub) protocol names for iAP2
+   * (read once and stored statically)
+   */
   static const ProtocolNameContainer& IAP2PoolProtocolNames();
 
  private:

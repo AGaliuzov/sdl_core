@@ -366,6 +366,9 @@ void RequestController::onTimer() {
                  << probably_expired ->requestId()
                  << " connection_key: " <<
                  probably_expired ->app_id() << " is expired");
+    const uint32_t experied_request_id = probably_expired->requestId();
+    const uint32_t experied_app_id = probably_expired->app_id();
+
     probably_expired->request()->onTimeOut();
     if (RequestInfo::HmiConnectoinKey == probably_expired ->app_id()) {
       LOG4CXX_DEBUG(logger_, "Erase HMI request: "
@@ -373,6 +376,13 @@ void RequestController::onTimer() {
       waiting_for_response_.RemoveRequest(probably_expired);
     }
     probably_expired = waiting_for_response_.FrontWithNotNullTimeout();
+    if (probably_expired) {
+      if (experied_request_id == probably_expired->requestId() &&
+          experied_app_id == probably_expired->app_id()) {
+        LOG4CXX_DEBUG(logger_, "Expired request wasn't removed");
+        break;
+      }
+    }
   }
   UpdateTimer();
   LOG4CXX_DEBUG(logger_, "EXIT Waiting for response count : "

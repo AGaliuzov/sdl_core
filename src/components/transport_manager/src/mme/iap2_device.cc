@@ -136,6 +136,12 @@ ApplicationList IAP2Device::GetApplicationList() const {
   return app_list;
 }
 
+void IAP2Device::OnConnectionTimeout(const std::string& protocol_name) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  StopThread(protocol_name);
+  FreeProtocol(protocol_name);
+}
+
 bool IAP2Device::RecordByAppId(ApplicationHandle app_id,
                                AppRecord& record) const {
   sync_primitives::AutoLock auto_lock(apps_lock_);
@@ -414,39 +420,6 @@ void IAP2Device::IAP2ConnectThreadDelegate::threadMain() {
         "iAP2: could not connect to " << mount_point << " on protocol " << protocol_name_);
     parent_->OnConnectFailed(protocol_name_);
   }
-}
-
-IAP2Device::ProtocolConnectionTimer::ProtocolConnectionTimer(
-    const std::string& name, IAP2Device* parent)
-    : name_(name),
-      timer_(
-          new Timer("iAP2 proto releaser", this,
-                    &ProtocolConnectionTimer::Shoot)),
-      parent_(parent) {
-}
-
-IAP2Device::ProtocolConnectionTimer::~ProtocolConnectionTimer() {
-  Stop();
-  delete timer_;
-}
-
-void IAP2Device::ProtocolConnectionTimer::Start() {
-  int timeout = profile::Profile::instance()->iap_hub_connection_wait_timeout();
-  LOG4CXX_DEBUG(
-      logger_,
-      "iAP2: start timer (protocol: " << name_ << ", timeout: " << timeout << ")");
-  timer_->start(timeout);
-}
-
-void IAP2Device::ProtocolConnectionTimer::Stop() {
-  LOG4CXX_DEBUG(logger_, "iAP2: stop timer (protocol: " << name_ << ")");
-  timer_->stop();
-}
-
-void IAP2Device::ProtocolConnectionTimer::Shoot() {
-  LOG4CXX_DEBUG(logger_, "iAP2: shoot timer (protocol: " << name_ << ")");
-  parent_->StopThread(name_);
-  parent_->FreeProtocol(name_);
 }
 
 }  // namespace transport_adapter
