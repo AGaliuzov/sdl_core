@@ -46,15 +46,15 @@ TEST(IniFileTest, WriteItemReadItem) {
   const char *chapter = "Chapter";
   const char * item = "Test_item";
   const char * value = "test_value";
-  bool result = ini_write_value(fname, chapter, item, value,
-                                INI_FLAG_ITEM_UP_CREA);
-  EXPECT_TRUE(result);
+  const bool write_result = ini_write_value(fname, chapter, item, value,
+                                            INI_FLAG_ITEM_UP_CREA);
+  EXPECT_TRUE(write_result);
 
   // Read value from file
   char search_value[INI_LINE_LEN] = "";
-  result = ini_read_value(fname, chapter, item, search_value);
+  const bool read_result = ini_read_value(fname, chapter, item, search_value);
 
-  EXPECT_TRUE(result);
+  EXPECT_TRUE(read_result);
   EXPECT_EQ(*search_value, *value);
   EXPECT_TRUE(file_system::DeleteFile("./test_ini_file.ini"));
 }
@@ -65,15 +65,15 @@ TEST(IniFileTest, WriteItemWithoutValueReadItem) {
   const char *chapter = "Chapter";
   const char * test_item = "Test_item";
   const char * value = "";
-  bool result = ini_write_value(fname, chapter, test_item, value,
-                                INI_FLAG_ITEM_UP_CREA);
-  EXPECT_TRUE(result);
+  const bool write_result = ini_write_value(fname, chapter, test_item, value,
+                                            INI_FLAG_ITEM_UP_CREA);
+  EXPECT_TRUE(write_result);
 
   // Read value from file
   char search_value[INI_LINE_LEN] = "";
-  result = ini_read_value(fname, chapter, test_item, search_value);
+  const bool read_result = ini_read_value(fname, chapter, test_item, search_value);
 
-  EXPECT_TRUE(result);
+  EXPECT_TRUE(read_result);
   EXPECT_EQ(*search_value, *value);
 
   EXPECT_TRUE(file_system::DeleteFile("./test_ini_file.ini"));
@@ -85,28 +85,28 @@ TEST(IniFileTest, WriteSameItemInDifferentChapters) {
   const char *chapter1 = "Chapter1";
   const char * test_item = "Test_item";
   const char * value = "test_value";
-  bool result = ini_write_value(fname, chapter1, test_item, value,
-                                INI_FLAG_ITEM_UP_CREA);
-  EXPECT_TRUE(result);
+  const bool write_result = ini_write_value(fname, chapter1, test_item, value,
+                                            INI_FLAG_ITEM_UP_CREA);
+  EXPECT_TRUE(write_result);
 
   char search_value[INI_LINE_LEN] = "";
-  result = ini_read_value(fname, chapter1, test_item, search_value);
+  const bool read_result = ini_read_value(fname, chapter1, test_item, search_value);
 
-  EXPECT_TRUE(result);
+  EXPECT_TRUE(read_result);
   EXPECT_EQ(*search_value, *value);
 
   // Create new chapter and write the same value
   const char *chapter2 = "Chapter2";
 
-  result = ini_write_value(fname, chapter2, test_item, value,
-                           INI_FLAG_ITEM_UP_CREA);
+  const bool write_result2 = ini_write_value(fname, chapter2, test_item, value,
+                                             INI_FLAG_ITEM_UP_CREA);
 
-  EXPECT_TRUE(result);
+  EXPECT_TRUE(write_result2);
 
   char value2[INI_LINE_LEN] = "test_value";
-  result = ini_read_value(fname, chapter2, test_item, value2);
+  const bool read_result2 = ini_read_value(fname, chapter2, test_item, value2);
 
-  EXPECT_TRUE(result);
+  EXPECT_TRUE(read_result2);
   EXPECT_EQ(*value2, *value);
 
   EXPECT_TRUE(file_system::DeleteFile("./test_ini_file.ini"));
@@ -118,28 +118,28 @@ TEST(IniFileTest, RewriteItem) {
   const char *chapter = "Chapter";
   const char * item = "Test_item";
   const char * value = "test_value";
-  bool result = ini_write_value(fname, chapter, item, value,
-                                INI_FLAG_ITEM_UP_CREA);
+  bool write_result = ini_write_value(fname, chapter, item, value,
+                                      INI_FLAG_ITEM_UP_CREA);
 
-  EXPECT_TRUE(result);
+  EXPECT_TRUE(write_result);
 
   char search_value[INI_LINE_LEN] = "";
-  result = ini_read_value(fname, chapter, item, search_value);
+  bool read_result = ini_read_value(fname, chapter, item, search_value);
 
-  EXPECT_TRUE(result);
+  EXPECT_TRUE(read_result);
   EXPECT_EQ(*search_value, *value);
 
   // Write item again
   const char * newvalue = "new_test_value";
-  result = ini_write_value(fname, chapter, item, newvalue,
-                           INI_FLAG_ITEM_UP_CREA);
+  write_result = ini_write_value(fname, chapter, item, newvalue,
+                                 INI_FLAG_ITEM_UP_CREA);
 
-  EXPECT_TRUE(result);
+  EXPECT_TRUE(write_result);
 
   char new_search_value[INI_LINE_LEN] = "";
-  result = ini_read_value(fname, chapter, item, new_search_value);
+  read_result = ini_read_value(fname, chapter, item, new_search_value);
 
-  EXPECT_TRUE(result);
+  EXPECT_TRUE(read_result);
   EXPECT_EQ(*new_search_value, *newvalue);
   EXPECT_TRUE(file_system::DeleteFile("./test_ini_file.ini"));
 }
@@ -151,29 +151,29 @@ TEST(IniFileTest, WriteTwoItemsInOneChapter) {
   const char * item = "Test_item";
   const char * value1 = "test_value";
 
-  bool result = ini_write_value(fname, chapter, item, value1,
-                                INI_FLAG_ITEM_UP_CREA);
-  EXPECT_TRUE(result);
+  bool write_result = ini_write_value(fname, chapter, item, value1,
+                                      INI_FLAG_ITEM_UP_CREA);
+  EXPECT_TRUE(write_result);
 
   // Write another line in the same chapter
   const char * item2 = "Test_item2";
   const char * value2 = "test_value2";
 
-  result = ini_write_value(fname, chapter, item2, value2,
-                           INI_FLAG_ITEM_UP_CREA);
-  EXPECT_TRUE(result);
+  write_result = ini_write_value(fname, chapter, item2, value2,
+                                 INI_FLAG_ITEM_UP_CREA);
+  EXPECT_TRUE(write_result);
 
   // Search both values
   char search_value[INI_LINE_LEN] = "";
-  result = ini_read_value(fname, chapter, item, search_value);
+  bool read_result = ini_read_value(fname, chapter, item, search_value);
 
-  EXPECT_TRUE(result);
+  EXPECT_TRUE(read_result);
   EXPECT_EQ(*search_value, *value1);
 
   char search_value2[INI_LINE_LEN] = "";
-  result = ini_read_value(fname, chapter, item2, search_value2);
+  read_result = ini_read_value(fname, chapter, item2, search_value2);
 
-  EXPECT_TRUE(result);
+  EXPECT_TRUE(read_result);
   EXPECT_EQ(*search_value2, *value2);
 
   EXPECT_TRUE(file_system::DeleteFile("./test_ini_file.ini"));
@@ -185,7 +185,7 @@ TEST(IniFileTest, WriteEmptyItemWithValueReadItem) {
   const char * test_item = "";
   const char * value = "test_value";
   bool result = ini_write_value(fname, chapter, test_item, value,
-  INI_FLAG_ITEM_UP_CREA);
+                                INI_FLAG_ITEM_UP_CREA);
   EXPECT_FALSE(result);
 }
 
