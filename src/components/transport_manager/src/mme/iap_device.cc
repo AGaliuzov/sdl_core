@@ -29,7 +29,10 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 #include "transport_manager/mme/iap_device.h"
+
+#include <unistd.h>
 
 #include "utils/logger.h"
 #include "config_profile/profile.h"
@@ -427,6 +430,10 @@ bool IAPDevice::IAPEventThreadDelegate::ArmEvent(struct sigevent* event) {
     return true;
   } else {
     LOG4CXX_WARN(logger_, "Could not arm for iAP event notification, errno = " << errno);
+    int msec = profile::Profile::instance()->iap_arm_event_timeout();
+    useconds_t useconds = 1000 * msec;
+    LOG4CXX_TRACE(logger_, "iAP: sleeping for " << msec << " milliseconds");
+    usleep(useconds);
     return false;
   }
 }
