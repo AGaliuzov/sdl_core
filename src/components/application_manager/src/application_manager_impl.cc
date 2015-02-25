@@ -777,10 +777,6 @@ void ApplicationManagerImpl::OnMessageReceived(
   messages_from_hmi_.PostMessage(impl::MessageFromHmi(message));
 }
 
-void ApplicationManagerImpl::set_state(StateController::StateEventID state_id) {
-  state_ctrl_.ProcessStateEvent(state_id);
-}
-
 void ApplicationManagerImpl::set_state(
     ApplicationSharedPtr app,
     mobile_apis::HMILevel::eType hmi_level,
