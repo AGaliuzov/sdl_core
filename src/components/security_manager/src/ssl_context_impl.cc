@@ -151,9 +151,20 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
     const int ret = BIO_write(bioIn_, in_data, in_data_size);
     if (ret <= 0) {
       is_handshake_pending_ = false;
-      SSL_clear(connection_);
+      ResetConnection();
       return SSLContext::Handshake_Result_AbnormalFail;
     }
+  }
+
+  STACK_OF(X509) *peer_certs = SSL_get_peer_cert_chain(connection_);
+  LOG4CXX_WARN(logger_, "Peer certificate chain length : " << sk_X509_num(peer_certs));
+  while (sk_X509_num(peer_certs) > 0) {
+    X509* cert = sk_X509_pop(peer_certs);
+    char *subj = X509_NAME_oneline(X509_get_subject_name(cert), NULL, 0);
+    char *issuer = X509_NAME_oneline(X509_get_issuer_name(cert), NULL, 0);
+    LOG4CXX_WARN(logger_, subj << ", " << issuer);
+    OPENSSL_free(subj);
+    OPENSSL_free(issuer);
   }
 
   const int handshake_result = SSL_do_handshake(connection_);
@@ -166,16 +177,19 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
     max_block_size_ = max_block_sizes[SSL_CIPHER_get_name(cipher)];
     is_handshake_pending_ = false;
   } else if (handshake_result == 0) {
-    SSL_clear(connection_);
+    const int error = SSL_get_error(connection_, handshake_result);
+    LOG4CXX_WARN(logger_, "Handshake failed on the mobile side, error 0x" << std::hex
+                 << error << " \"" << X509_verify_cert_error_string(error) << '"');
+    ResetConnection();
     is_handshake_pending_ = false;
     return SSLContext::Handshake_Result_Fail;
-  } else  {
+  } else {
     const int error = SSL_get_error(connection_, handshake_result);
     if (error != SSL_ERROR_WANT_READ) {
       const long error = SSL_get_verify_result(connection_);
       LOG4CXX_WARN(logger_, "Handshake failed with error 0x" << std::hex << error
                    << " \"" << X509_verify_cert_error_string(error) << '"');
-      SSL_clear(connection_);
+      ResetConnection();
       is_handshake_pending_ = false;
       return SSLContext::Handshake_Result_AbnormalFail;
     }
@@ -192,7 +206,7 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
       *out_data =  buffer_;
     } else {
       is_handshake_pending_ = false;
-      SSL_clear(connection_);
+      ResetConnection();
       return SSLContext::Handshake_Result_AbnormalFail;
     }
   }
@@ -280,6 +294,15 @@ CryptoManagerImpl::SSLContextImpl::~SSLContextImpl() {
   SSL_shutdown(connection_);
   SSL_free(connection_);
   delete[] buffer_;
+}
+
+void CryptoManagerImpl::SSLContextImpl::ResetConnection() {
+  const int clear_result =  SSL_clear(connection_);
+  if(!clear_result) {
+    const char *reason = ERR_reason_error_string(ERR_get_error());
+    LOG4CXX_WARN(logger_, "Connection reset failed with \""
+                 << (reason ? reason : "") << '"');
+  }
 }
 
 void CryptoManagerImpl::SSLContextImpl::EnsureBufferSizeEnough(size_t size) {

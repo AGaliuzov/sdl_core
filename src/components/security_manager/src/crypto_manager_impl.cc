@@ -278,7 +278,7 @@ void CryptoManagerImpl::SetVerification() {
 int debug_callback(int preverify_ok, X509_STORE_CTX *ctx) {
   if (!preverify_ok) {
     const int error = X509_STORE_CTX_get_error(ctx);
-    LOG4CXX_WARN(logger_, "Handshake failed with error 0x" << std::hex << error
+    LOG4CXX_WARN(logger_, "Certificate verification failed with error 0x" << std::hex << error
                  << " \"" << X509_verify_cert_error_string(error) << '"');
   }
   return preverify_ok;

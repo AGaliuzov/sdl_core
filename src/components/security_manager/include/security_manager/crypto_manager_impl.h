@@ -68,6 +68,7 @@ class CryptoManagerImpl : public CryptoManager {
     ~SSLContextImpl();
 
    private:
+    void ResetConnection();
     typedef size_t(*BlockSizeGetter)(size_t);
     void EnsureBufferSizeEnough(size_t size);
     SSL *connection_;
