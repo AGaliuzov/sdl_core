@@ -781,7 +781,7 @@ void ApplicationManagerImpl::set_state(
     ApplicationSharedPtr app,
     mobile_apis::HMILevel::eType hmi_level,
     mobile_apis::AudioStreamingState::eType audio_state) {
-  state_ctrl_.SetDefaultState(app, hmi_level, audio_state);
+  state_ctrl_.SetRegularState(app, hmi_level, audio_state);
 }
 
 

@@ -193,7 +193,7 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
    *
    * @param state new hmi state for certain application.
    */
-  virtual void AddHMIState(utils::SharedPtr<HmiState> state);
+  virtual void AddHMIState(HmiStatePtr state);
 
   /**
    * @brief RemoveHMIState the function that will turn back hmi_level after end
@@ -204,6 +204,10 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
    * @param state_id that should be removed
    */
   virtual void RemoveHMIState(HmiState::StateID state_id);
+
+  virtual const HmiStatePtr CurrentHmiState() const;
+
+  virtual const HmiStatePtr RegularHmiState() const;
 
  protected:
 
