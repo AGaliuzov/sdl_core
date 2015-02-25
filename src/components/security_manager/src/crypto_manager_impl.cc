@@ -208,6 +208,15 @@ bool CryptoManagerImpl::OnCertificateUpdated(const std::string &data) {
   }
   LOG4CXX_DEBUG(logger_, "New certificate data : \"" << std::endl << data << '"');
 
+  BIO* bio = BIO_new(BIO_s_mem());
+  BIO_write(bio, data.c_str (), data.size());
+  X509 *certificate = PEM_read_bio_X509(bio, NULL, NULL, NULL);
+  BIO_free(bio);
+  if(!certificate) {
+    LOG4CXX_WARN( logger_, "New data is not a PEM X509 certificate");
+    return false;
+  }
+
   std::ofstream ca_certificate_file(ca_certificate_file_);
   if (!ca_certificate_file.good()) {
     LOG4CXX_ERROR( logger_,
@@ -218,15 +227,6 @@ bool CryptoManagerImpl::OnCertificateUpdated(const std::string &data) {
   ca_certificate_file << data;
   ca_certificate_file.close();
   LOG4CXX_DEBUG(logger_, "CA certificate saved as '" << ca_certificate_file_ << "' ");
-  const int result = SSL_CTX_load_verify_locations(
-        context_, ca_certificate_file_.c_str(), NULL );
-  if (!result) {
-    const unsigned long error = ERR_get_error();
-    LOG4CXX_WARN(logger_, "Wrong certificate, err 0x" <<
-                 std::hex << error <<
-                 " \"" << ERR_reason_error_string(error) << '"');
-    return false;
-  }
   SetVerification();
   return true;
 }
@@ -270,6 +270,13 @@ void CryptoManagerImpl::SetVerification() {
     SSL_CTX_set_verify(context_, SSL_VERIFY_NONE, &debug_callback);
     return;
   }
+  const int result = SSL_CTX_load_verify_locations(context_, ca_certificate_file_.c_str(), NULL);
+  if (!result) {
+    const unsigned long error = ERR_get_error();
+    LOG4CXX_WARN(logger_, "Wrong certificate file '" << ca_certificate_file_ <<
+                 "', err 0x" << std::hex << error << " \"" << ERR_reason_error_string(error) << '"');
+    return;
+  }
   LOG4CXX_DEBUG(logger_, "Setting up peer verification");
   const int verify_mode = SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
   SSL_CTX_set_verify(context_, verify_mode, &debug_callback);
@@ -278,7 +285,7 @@ void CryptoManagerImpl::SetVerification() {
 int debug_callback(int preverify_ok, X509_STORE_CTX *ctx) {
   if (!preverify_ok) {
     const int error = X509_STORE_CTX_get_error(ctx);
-    LOG4CXX_WARN(logger_, "Certificate verification failed with error 0x" << std::hex << error
+    LOG4CXX_WARN(logger_, "Certificate verification failed with error "<< error
                  << " \"" << X509_verify_cert_error_string(error) << '"');
   }
   return preverify_ok;

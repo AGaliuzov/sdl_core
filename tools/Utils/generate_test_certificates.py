@@ -136,7 +136,7 @@ def main():
     concat_files(client_verification_ca_cert_file, root_cert_file, ford_client_cert_file)
 
     server_pkcs12_file = "spt_credential.p12"
-    gen_pkcs12(server_pkcs12_file, server_key_file, server_cert_file, server_verification_ca_cert_file)
+    gen_pkcs12(server_pkcs12_file, server_key_file, server_cert_file, client_verification_ca_cert_file)
 
     print
     print "All certificates have been generated"

@@ -157,12 +157,11 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
   }
 
   STACK_OF(X509) *peer_certs = SSL_get_peer_cert_chain(connection_);
-  LOG4CXX_WARN(logger_, "Peer certificate chain length : " << sk_X509_num(peer_certs));
   while (sk_X509_num(peer_certs) > 0) {
     X509* cert = sk_X509_pop(peer_certs);
     char *subj = X509_NAME_oneline(X509_get_subject_name(cert), NULL, 0);
     char *issuer = X509_NAME_oneline(X509_get_issuer_name(cert), NULL, 0);
-    LOG4CXX_WARN(logger_, subj << ", " << issuer);
+    LOG4CXX_WARN(logger_, "Mobile cert - " << subj << ", " << issuer);
     OPENSSL_free(subj);
     OPENSSL_free(issuer);
   }
@@ -178,8 +177,8 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
     is_handshake_pending_ = false;
   } else if (handshake_result == 0) {
     const int error = SSL_get_error(connection_, handshake_result);
-    LOG4CXX_WARN(logger_, "Handshake failed on the mobile side, error 0x" << std::hex
-                 << error << " \"" << X509_verify_cert_error_string(error) << '"');
+    LOG4CXX_WARN(logger_, "Handshake failed on the mobile side with error " << error
+                 << " \"" << X509_verify_cert_error_string(error) << '"');
     ResetConnection();
     is_handshake_pending_ = false;
     return SSLContext::Handshake_Result_Fail;
@@ -187,7 +186,7 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
     const int error = SSL_get_error(connection_, handshake_result);
     if (error != SSL_ERROR_WANT_READ) {
       const long error = SSL_get_verify_result(connection_);
-      LOG4CXX_WARN(logger_, "Handshake failed with error 0x" << std::hex << error
+      LOG4CXX_WARN(logger_, "Handshake failed with error " << error
                    << " \"" << X509_verify_cert_error_string(error) << '"');
       ResetConnection();
       is_handshake_pending_ = false;
