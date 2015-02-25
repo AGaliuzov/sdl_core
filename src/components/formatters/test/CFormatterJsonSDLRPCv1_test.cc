@@ -80,8 +80,6 @@ enum eType {
 };
 }
 
-using namespace NsSmartDeviceLink::NsSmartObjects;
-
 template<>
 const EnumConversionHelper<TestType::eType>::EnumToCStringMap EnumConversionHelper<
     test::components::formatters::TestType::eType>::enum_to_cstring_map_ =
@@ -233,8 +231,7 @@ CSmartSchema initObjectSchema() {
   rootMembersMap[S_PARAMS] = CObjectSchemaItem::SMember(
       CObjectSchemaItem::create(paramsMembersMap), true);
   return CSmartSchema(CObjectSchemaItem::create(rootMembersMap));
-}
-;
+};
 
 TEST(CFormatterJsonSDLRPCv1Test, EmptySmartObjectToString) {
   SmartObject srcObj;
