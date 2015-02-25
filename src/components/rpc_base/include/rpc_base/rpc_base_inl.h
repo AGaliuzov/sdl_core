@@ -187,7 +187,10 @@ Integer<T, minval, maxval>& Integer<T, minval, maxval>::operator=(IntType new_va
 template<typename T, T minval, T maxval>
 Integer<T, minval, maxval>& Integer<T, minval, maxval>::operator=(const Integer& new_val) {
   this->value_ = new_val.value_;
-  this->value_state_= range_.Includes(new_val.value_) ? kValid : kInvalid;
+  if (new_val.is_initialized()) {
+    this->value_state_= range_.Includes(new_val.value_) ? kValid : kInvalid;
+  }
+
   return *this;
 }
 
