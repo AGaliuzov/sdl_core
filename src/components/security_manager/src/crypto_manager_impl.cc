@@ -72,7 +72,7 @@ CryptoManagerImpl::~CryptoManagerImpl() {
   LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(instance_lock_);
   LOG4CXX_DEBUG(logger_, "Deinitilization");
-  if(!context_) {
+  if (!context_) {
     LOG4CXX_WARN(logger_, "Manager is not initialized");
     return;
   }
@@ -143,11 +143,11 @@ bool CryptoManagerImpl::Init(Mode mode,
       LOG4CXX_ERROR(logger_, "Unknown protocol: " << protocol);
       return false;
   }
-  if(context_) {
+  if (context_) {
     SSL_CTX_free(context_);
   }
   context_ = SSL_CTX_new(method);
-  if(!context_) {
+  if (!context_) {
     const char *error = ERR_reason_error_string(ERR_get_error());
     LOG4CXX_ERROR(logger_, "Could not create OpenSSLContext " <<
                   (error ? error : ""));
@@ -212,7 +212,7 @@ bool CryptoManagerImpl::OnCertificateUpdated(const std::string &data) {
   BIO_write(bio, data.c_str (), data.size());
   X509 *certificate = PEM_read_bio_X509(bio, NULL, NULL, NULL);
   BIO_free(bio);
-  if(!certificate) {
+  if (!certificate) {
     LOG4CXX_WARN( logger_, "New data is not a PEM X509 certificate");
     return false;
   }

@@ -60,11 +60,17 @@ CryptoManagerImpl::SSLContextImpl::SSLContextImpl(SSL *conn, Mode mode)
 }
 
 std::string CryptoManagerImpl::SSLContextImpl::LastError() const {
-  if (!IsInitCompleted()) {
-    return std::string("Initialization is not completed");
+  if (last_error_.empty()) {
+    const char *reason = ERR_reason_error_string(ERR_get_error());
+    if (reason) {
+      last_error_ = std::string(reason ? reason : "");
+    } else {
+      if (!IsInitCompleted()) {
+        last_error_ = "Initialization is not completed";
+      }
+    }
   }
-  const char *reason = ERR_reason_error_string(ERR_get_error());
-  return std::string(reason ? reason : "");
+  return last_error_;
 }
 
 bool CryptoManagerImpl::SSLContextImpl::IsInitCompleted() const {
@@ -161,13 +167,13 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
   while (sk_X509_num(peer_certs) > 0) {
     X509* cert = sk_X509_pop(peer_certs);
     char *subj = X509_NAME_oneline(X509_get_subject_name(cert), NULL, 0);
-    if(subj) {
+    if (subj) {
       std::replace(subj, subj + strlen(subj), '/', ' ');
       LOG4CXX_DEBUG(logger_, "Mobile cert subject:" << subj);
       OPENSSL_free(subj);
     }
     char *issuer = X509_NAME_oneline(X509_get_issuer_name(cert), NULL, 0);
-    if(issuer) {
+    if (issuer) {
       std::replace(issuer, issuer + strlen(issuer), '/', ' ');
       LOG4CXX_DEBUG(logger_, "Mobile cert issuer:" << issuer);
       OPENSSL_free(issuer);
@@ -185,8 +191,9 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
     is_handshake_pending_ = false;
   } else if (handshake_result == 0) {
     const int error = SSL_get_error(connection_, handshake_result);
+    SetHandshakeError(error);
     LOG4CXX_WARN(logger_, "Handshake failed on the mobile side with error " << error
-                 << " \"" << X509_verify_cert_error_string(error) << '"');
+                 << " \"" << LastError() << '"');
     ResetConnection();
     is_handshake_pending_ = false;
     return SSLContext::Handshake_Result_Fail;
@@ -194,8 +201,9 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
     const int error = SSL_get_error(connection_, handshake_result);
     if (error != SSL_ERROR_WANT_READ) {
       const long error = SSL_get_verify_result(connection_);
+      SetHandshakeError(error);
       LOG4CXX_WARN(logger_, "Handshake failed with error " << error
-                   << " \"" << X509_verify_cert_error_string(error) << '"');
+                   << " \"" << LastError() << '"');
       ResetConnection();
       is_handshake_pending_ = false;
       return SSLContext::Handshake_Result_AbnormalFail;
@@ -303,9 +311,19 @@ CryptoManagerImpl::SSLContextImpl::~SSLContextImpl() {
   delete[] buffer_;
 }
 
+void CryptoManagerImpl::SSLContextImpl::SetHandshakeError(const int error) {
+  const char* error_str = X509_verify_cert_error_string(error);
+  if (error_str) {
+    last_error_ = error_str;
+  } else {
+    // Error will be updated with the next LastError call
+    last_error_.clear();
+  }
+}
+
 void CryptoManagerImpl::SSLContextImpl::ResetConnection() {
-  const int clear_result =  SSL_clear(connection_);
-  if(!clear_result) {
+  const int clear_result = SSL_clear(connection_);
+  if (!clear_result) {
     const char *reason = ERR_reason_error_string(ERR_get_error());
     LOG4CXX_WARN(logger_, "Connection reset failed with \""
                  << (reason ? reason : "") << '"');

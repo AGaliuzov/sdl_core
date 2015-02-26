@@ -68,6 +68,7 @@ class CryptoManagerImpl : public CryptoManager {
     ~SSLContextImpl();
 
    private:
+    void SetHandshakeError(const int error);
     void ResetConnection();
     typedef size_t(*BlockSizeGetter)(size_t);
     void EnsureBufferSizeEnough(size_t size);
@@ -81,6 +82,7 @@ class CryptoManagerImpl : public CryptoManager {
     bool is_handshake_pending_;
     Mode mode_;
     BlockSizeGetter max_block_size_;
+    mutable std::string last_error_;
     static std::map<std::string, BlockSizeGetter> max_block_sizes;
     static std::map<std::string, BlockSizeGetter> create_max_block_sizes();
     DISALLOW_COPY_AND_ASSIGN(SSLContextImpl);

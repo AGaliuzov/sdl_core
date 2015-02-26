@@ -84,17 +84,17 @@ class SSLHandshakeTest : public testing::Test {
     const bool initialized = server_manager->Init(
           security_manager::SERVER, protocol, cert_filename,
           key_filename, ciphers_list, verify_peer, server_ca_cert_filename);
-    if(!initialized) {
+    if (!initialized) {
       return false;
     }
-    if(!certificate_path.empty()) {
+    if (!certificate_path.empty()) {
       const std::string cert = LoadCertificate(certificate_path);
-      if(!server_manager->OnCertificateUpdated(cert)) {
+      if (!server_manager->OnCertificateUpdated(cert)) {
         return false;
       }
     }
     server_ctx = server_manager->CreateSSLContext();
-    if(!server_ctx) {
+    if (!server_ctx) {
       return false;
     }
     return true;
@@ -108,17 +108,17 @@ class SSLHandshakeTest : public testing::Test {
     const bool initialized = client_manager->Init(
           security_manager::CLIENT, protocol, cert_filename,
           key_filename, ciphers_list, verify_peer, client_ca_cert_filename);
-    if(!initialized) {
+    if (!initialized) {
       return false;
     }
-    if(!certificate_path.empty()) {
+    if (!certificate_path.empty()) {
       const std::string cert = LoadCertificate(certificate_path);
-      if(!client_manager->OnCertificateUpdated(cert)) {
+      if (!client_manager->OnCertificateUpdated(cert)) {
         return false;
       }
     }
     client_ctx = client_manager->CreateSSLContext();
-    if(!client_ctx) {
+    if (!client_ctx) {
       return false;
     }
     return true;
