@@ -1112,6 +1112,9 @@
       <param name="policyAppId" type="String" mandatory="false">
         <description>Used if URL needed are specific for application.</description>
       </param>
+      <param name="appID" type="Integer" mandatory="false">
+        <description>Internal ID of the application that requested this RPC.</description>
+      </param>
     </struct>
     <!-- End of Policies -->
     <struct name="TextField">
@@ -2021,8 +2024,11 @@
       <param name="fileName" type="String" maxlength="255" minlength="1" mandatory="true">
         <description>File reference name.</description>
       </param>
-      <param name="appID" type="String" maxlength="50" minlength="1" mandatory="false">
-        <description>ID of application that requested this RPC.</description>
+      <param name="policyAppID" type="String" maxlength="50" minlength="1" mandatory="false">
+        <description>Policy ID of application that requested this RPC.</description>
+      </param>
+      <param name="appID" type="Integer" mandatory="false">
+        <description>Internal ID of the application that requested this RPC.</description>
       </param>
     </function>
     <function name="SystemRequest" messagetype="request" provider="hmi">
@@ -2033,8 +2039,11 @@
       <param name="fileName" type="String" maxlength="255" minlength="1" mandatory="true">
         <description>The path to file.</description>
       </param>
-      <param name="appID" type="String" maxlength="50" minlength="1" mandatory="false">
-        <description>ID of application that requested this RPC.</description>
+      <param name="policyAppID" type="String" maxlength="50" minlength="1" mandatory="false">
+        <description>Policy ID of application that requested this RPC.</description>
+      </param>
+      <param name="appID" type="Integer" mandatory="false">
+        <description>Internal ID of the application that requested this RPC.</description>
       </param>
     </function>
     <function name="SystemRequest" messagetype="response">
