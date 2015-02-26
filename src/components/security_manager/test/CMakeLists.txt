@@ -63,6 +63,10 @@ add_custom_target(generate_certificates
           -d=${CMAKE_CURRENT_BINARY_DIR}
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
+add_custom_command(
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/client.crt
+  DEPENDS generate_certificates
+)
 
 foreach( file_i ${CERT_LIST})
   file(COPY ${file_i} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
@@ -71,6 +75,5 @@ endforeach( file_i )
 add_library (test_security_manager ${SOURCES})
 target_link_libraries (test_security_manager ${LIBRARIES} )
 create_test (security_manager_test "${SOURCES}" "${LIBRARIES}")
-add_dependencies(security_manager_test generate_certificates)
 
 endif ()

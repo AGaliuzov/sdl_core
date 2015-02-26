@@ -37,6 +37,7 @@
 #include <openssl/err.h>
 #include <memory.h>
 #include <map>
+#include <algorithm>
 
 #include "utils/macro.h"
 
@@ -160,10 +161,17 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
   while (sk_X509_num(peer_certs) > 0) {
     X509* cert = sk_X509_pop(peer_certs);
     char *subj = X509_NAME_oneline(X509_get_subject_name(cert), NULL, 0);
+    if(subj) {
+      std::replace(subj, subj + strlen(subj), '/', ' ');
+      LOG4CXX_DEBUG(logger_, "Mobile cert subject:" << subj);
+      OPENSSL_free(subj);
+    }
     char *issuer = X509_NAME_oneline(X509_get_issuer_name(cert), NULL, 0);
-    LOG4CXX_WARN(logger_, "Mobile cert - " << subj << ", " << issuer);
-    OPENSSL_free(subj);
-    OPENSSL_free(issuer);
+    if(issuer) {
+      std::replace(issuer, issuer + strlen(issuer), '/', ' ');
+      LOG4CXX_DEBUG(logger_, "Mobile cert issuer:" << issuer);
+      OPENSSL_free(issuer);
+    }
   }
 
   const int handshake_result = SSL_do_handshake(connection_);
