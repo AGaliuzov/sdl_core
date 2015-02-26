@@ -540,6 +540,8 @@ bool ApplicationManagerImpl::ActivateApplication(ApplicationSharedPtr app) {
     MessageHelper::SendHMIStatusNotification(*limited_navi_app);
   }
 
+  // remove from resumption if app was activated by user
+  resume_controller().OnAppActivated(app);
   return true;
 }
 
