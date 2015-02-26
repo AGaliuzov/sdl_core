@@ -54,7 +54,7 @@ set(testSources
   main.cc
   usage_statistics_test.cc    
   shared_library_test.cc    
-  generated_code_test.cc #APPLINK-10657
+  generated_code_test.cc 
   policy_manager_impl_test.cc
 )
 
@@ -91,8 +91,7 @@ else ()
     sqlite_wrapper/sql_query_test.cc   
     generated_code_with_sqlite_test.cc   
 
-    # TODO{ALeshin} APPLINK-11132 AssertTrue in SetUpTestCase() return false
-    #policy_manager_impl_stress_test.cc
+    policy_manager_impl_stress_test.cc
   )
   list (APPEND testLibraries sqlite3)
 endif()
