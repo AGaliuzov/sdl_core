@@ -60,10 +60,11 @@ void OnSystemRequestNotification::Run() {
   params[strings::function_id] =
     static_cast<int32_t>(mobile_apis::FunctionID::eType::OnSystemRequestID);
 
-  const std::string app_id = msg_params[strings::app_id].asString();
-  LOG4CXX_DEBUG(logger_, "Received OnSystemRequest for " << app_id );
+  const std::string policy_app_id = msg_params[strings::policy_app_id].asString();
+  const uint32_t app_id = msg_params[strings::app_id].asUInt();
+  LOG4CXX_DEBUG(logger_, "Received OnSystemRequest for " << policy_app_id );
 
-  if (strings::default_app_id == app_id) {
+  if (strings::default_app_id == policy_app_id) {
     PolicyHandler* policy_handler = PolicyHandler::instance();
     uint32_t selected_app_id = policy_handler->GetAppIdForSending();
     if (0 == selected_app_id) {
@@ -79,10 +80,12 @@ void OnSystemRequestNotification::Run() {
     }
     params[strings::connection_key] = selected_app_id;
   } else {
-    ApplicationSharedPtr app =
-      ApplicationManagerImpl::instance()->application_by_policy_id(app_id);
+
+    ApplicationSharedPtr app = policy_app_id.empty() ?
+          ApplicationManagerImpl::instance()->application(app_id) :
+      ApplicationManagerImpl::instance()->application_by_policy_id(policy_app_id);
     if (!app.valid()) {
-      LOG4CXX_WARN(logger_, "Application with id " << app_id
+      LOG4CXX_WARN(logger_, "Application with id " << policy_app_id
                    << " is not registered.");
       return;
     }

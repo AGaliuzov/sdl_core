@@ -53,6 +53,7 @@ const char msg_params[] = "msg_params";
 const char method_name[] = "methodName";
 const char info[] = "info";
 const char app_id[] = "appID";
+const char policy_app_id[] = "policyAppID";
 const char hmi_app_id[] = "hmiAppID";
 const char device_mac[] = "deviceMAC";
 const char url[] = "url";
