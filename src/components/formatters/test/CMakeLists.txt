@@ -48,6 +48,7 @@ set(SOURCES
 ${COMPONENTS_DIR}/formatters/test/generic_json_formatter_test.cc
 ${COMPONENTS_DIR}/formatters/test/create_smartSchema.cc 
 ${COMPONENTS_DIR}/formatters/test/CFormatterJsonSDLRPCv1_test.cc
+${COMPONENTS_DIR}/formatters/test/cFormatterJsonSDLRPCv2_test.cc
 ${COMPONENTS_DIR}/formatters/test/main.cc
 )
 
