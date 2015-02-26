@@ -60,6 +60,12 @@ class SSLHandshakeTest : public testing::Test {
     ASSERT_TRUE(client_manager);
     server_ctx = NULL;
     client_ctx = NULL;
+
+    // Clear ca certificate files
+    std::ofstream server_ca_file(server_ca_cert_filename);
+    server_ca_file.close();
+    std::ofstream client_ca_file(client_ca_cert_filename);
+    client_ca_file.close();
   }
 
   void TearDown() OVERRIDE {
@@ -67,12 +73,6 @@ class SSLHandshakeTest : public testing::Test {
     delete server_manager;
     client_manager->ReleaseSSLContext(client_ctx);
     delete client_manager;
-
-    // Clear ca certificate files
-    std::ofstream server_ca_file(server_ca_cert_filename);
-    server_ca_file.close();
-    std::ofstream client_ca_file(client_ca_cert_filename);
-    client_ca_file.close();
   }
 
   bool InitServerManagers(security_manager::Protocol protocol,
