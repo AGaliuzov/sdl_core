@@ -101,7 +101,7 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   const std::string& name() const;
   const std::string folder_name() const;
   bool is_media_application() const;
-  const mobile_api::HMILevel::eType& hmi_level() const;
+  const mobile_apis::HMILevel::eType hmi_level() const;
   const uint32_t put_file_in_none_count() const;
   const uint32_t delete_file_in_none_count() const;
   const uint32_t list_files_in_none_count() const;
@@ -119,7 +119,6 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   void set_version(const Version& ver);
   void set_name(const std::string& name);
   void set_is_media_application(bool is_media);
-  void set_hmi_level(const mobile_api::HMILevel::eType& hmi_level);
   void increment_put_file_in_none_count();
   void increment_delete_file_in_none_count();
   void increment_list_files_in_none_count();
@@ -205,8 +204,16 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
    */
   virtual void RemoveHMIState(HmiState::StateID state_id);
 
+  /**
+   * @brief HmiState of application within active events PhoneCall, TTS< etc ...
+   * @return Active HmiState of application
+   */
   virtual const HmiStatePtr CurrentHmiState() const;
 
+  /**
+   * @brief HmiState of application without active events PhoneCall, TTS< etc ...
+   * @return HmiState of application
+   */
   virtual const HmiStatePtr RegularHmiState() const;
 
  protected:
