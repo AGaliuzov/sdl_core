@@ -39,7 +39,6 @@
 #include "smart_objects/smart_schema.h"
 #include <map>
 #include <string>
-#include <iostream>
 
 namespace NsSmartDeviceLink
 {

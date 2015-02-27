@@ -494,8 +494,6 @@ utils::SharedPtr<ISchemaItem> CSmartFactoryTest::ProvideObjectSchemaItemForStruc
   const TStructsSchemaItems::const_iterator it = struct_schema_items.find(
       struct_id);
   if (it != struct_schema_items.end()) {
-    std::cout << "\nStruct ID: " << struct_id << std::endl;
-    fflush(stdout);
     return it->second;
   }
   return NsSmartDeviceLink::NsSmartObjects::CAlwaysFalseSchemaItem::create();
