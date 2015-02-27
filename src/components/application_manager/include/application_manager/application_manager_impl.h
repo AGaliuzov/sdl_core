@@ -319,13 +319,6 @@ class ApplicationManagerImpl : public ApplicationManager,
      */
     void HeadUnitReset(
         mobile_api::AppInterfaceUnregisteredReason::eType reason);
-#ifdef CUSTOMER_PASA
-    /*
-     * @brief Called by HMI on SUSPEND.
-     * SDL must save all persistence data(Resume, Policy)
-     */
-    void HeadUnitSuspend();
-#endif // CUSTOMER_PASA
 
     /*
      * @brief Closes all registered applications

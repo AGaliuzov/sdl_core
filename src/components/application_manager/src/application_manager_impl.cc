@@ -1960,16 +1960,6 @@ void ApplicationManagerImpl::HeadUnitReset(
   }
 }
 
-#ifdef CUSTOMER_PASA
-void ApplicationManagerImpl::HeadUnitSuspend() {
-  LOG4CXX_AUTO_TRACE(logger_);
-
-  resume_controller().StopSavePersistentDataTimer();
-  resume_controller().SaveAllApplications();
-  resumption::LastState::instance()->SaveToFileSystem();
-}
-#endif // CUSTOMER_PASA
-
 void ApplicationManagerImpl::SendOnSDLClose() {
   LOG4CXX_AUTO_TRACE(logger_);
 
