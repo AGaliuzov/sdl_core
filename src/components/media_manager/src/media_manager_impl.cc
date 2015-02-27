@@ -65,7 +65,10 @@ MediaManagerImpl::MediaManagerImpl()
   , audio_streamer_(NULL)
   , video_stream_active_(false)
   , audio_stream_active_(false)
-  , streaming_timer_("Streaming timer", this, &MediaManagerImpl::OnStreamingEnded)
+  , audio_streaming_timer_("Audio streaming timer", this,
+                           &MediaManagerImpl::OnAudioStreamingTimeout)
+  , video_streaming_timer_("Video streaming timer", this,
+                           &MediaManagerImpl::OnVideoStreamingTimeout)
   , streaming_app_id_(0) {
   Init();
 }
@@ -124,7 +127,12 @@ void MediaManagerImpl::Init() {
         profile::Profile::instance()->audio_stream_file());
   }
 
-  stop_streaming_timeout_ = profile::Profile::instance()->stop_streaming_timeout();
+  // Currently timer does not support ms, so we have to convert value to sec
+  audio_data_stopped_timeout_ =
+      profile::Profile::instance()->audio_data_stopped_timeout() / 1000;
+
+  video_data_stopped_timeout_ =
+      profile::Profile::instance()->video_data_stopped_timeout() / 1000;
 
   video_streamer_listener_ = new StreamerListener();
   audio_streamer_listener_ = new StreamerListener();
@@ -138,8 +146,22 @@ void MediaManagerImpl::Init() {
   }
 }
 
-void MediaManagerImpl::OnStreamingEnded() {
-  application_manager::ApplicationManagerImpl::instance()->StreamingEnded(streaming_app_id_);
+void MediaManagerImpl::OnAudioStreamingTimeout() {
+  using namespace application_manager;
+  using namespace protocol_handler;
+  LOG4CXX_DEBUG(logger_, "Data is not available for service type "
+                << ServiceType::kAudio);
+  MessageHelper::SendOnDataStreaming(ServiceType::kAudio, false);
+  ApplicationManagerImpl::instance()->StreamingEnded(streaming_app_id_);
+}
+
+void media_manager::MediaManagerImpl::OnVideoStreamingTimeout() {
+  using namespace application_manager;
+  using namespace protocol_handler;
+  LOG4CXX_DEBUG(logger_, "Data is not available for service type "
+                << ServiceType::kMobileNav);
+  MessageHelper::SendOnDataStreaming(ServiceType::kMobileNav, false);
+  ApplicationManagerImpl::instance()->StreamingEnded(streaming_app_id_);
 }
 
 void MediaManagerImpl::PlayA2DPSource(int32_t application_key) {
@@ -280,23 +302,39 @@ void MediaManagerImpl::OnMessageReceived(
   ServiceType streaming_app_service_type = message->service_type();
 
   MediaAdapterImpl* streamer = NULL;
+  timer::TimerThread<MediaManagerImpl>* streamer_timer = NULL;
+  uint32_t timeout = 0;
   if (streaming_app_service_type == kMobileNav) {
-    if ((ApplicationManagerImpl::instance()-> IsVideoStreamingAllowed(streaming_app_id_))) {
+    if ((ApplicationManagerImpl::instance()->
+         IsVideoStreamingAllowed(streaming_app_id_))) {
       streamer = video_streamer_;
+      streamer_timer = &video_streaming_timer_;
+      timeout = video_data_stopped_timeout_;
     }
   } else if (streaming_app_service_type == kAudio) {
-    if ((ApplicationManagerImpl::instance()-> IsAudioStreamingAllowed(streaming_app_id_))) {
+    if ((ApplicationManagerImpl::instance()->
+         IsAudioStreamingAllowed(streaming_app_id_))) {
       streamer = audio_streamer_;
+      streamer_timer = &audio_streaming_timer_;
+      timeout = audio_data_stopped_timeout_;
     }
   }
 
   if (streamer) {
     if (ApplicationManagerImpl::instance()->CanAppStream(streaming_app_id_)) {
+      if (streamer_timer && !streamer_timer->isRunning()) {
+        LOG4CXX_DEBUG(logger_, "Data is available for service type "
+                      << streaming_app_service_type);
+        MessageHelper::SendOnDataStreaming(streaming_app_service_type, true);
+      }
       streamer->SendData(streaming_app_id_, message);
-      streaming_timer_.start(stop_streaming_timeout_);
+      if (streamer_timer) {
+        streamer_timer->start(timeout);
+      }
     } else {
       ApplicationManagerImpl::instance()->ForbidStreaming(streaming_app_id_);
-      LOG4CXX_ERROR(logger_, "The application trying to stream when it should not.");
+      LOG4CXX_ERROR(logger_,
+                    "The application trying to stream when it should not.");
     }
   }
 }

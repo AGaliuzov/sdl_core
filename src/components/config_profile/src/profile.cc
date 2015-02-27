@@ -125,6 +125,8 @@ const char* kTargetBootCountFileKey = "TargetBootCountFile";
 const char* kTargetTmpDirKey = "TargetTmpDir";
 const char* kLogFileMaxSizeKey = "LogFileMaxSize";
 #endif
+const char* kAudioDataStoppedTimeoutKey = "AudioDataStoppedTimeout";
+const char* kVideoDataStoppedTimeoutKey = "VideoDataStoppedTimeout";
 
 const char* kMixingAudioSupportedKey = "MixingAudioSupported";
 const char* kHelpPromptKey = "HelpPromt";
@@ -204,6 +206,8 @@ const char* kDefaultTargetBootCountFile = "/fs/rwdata/.flags/boot_count";
 const char* kDefaultTargetTmpDir = "/fs/tmpfs";
 const char* kDefaultLogFileMaxSize = "1024K";
 #endif
+const uint32_t kDefaultAudioDataStoppedTimeout = 1000;
+const uint32_t kDefaultVideoDataStoppedTimeout = 1000;
 const char* kDefaultMmeDatabaseName = "/dev/qdb/mediaservice_db";
 const char* kDefaultEventMQ = "/dev/mqueue/ToSDLCoreUSBAdapter";
 const char* kDefaultAckMQ = "/dev/mqueue/FromSDLCoreUSBAdapter";
@@ -329,6 +333,8 @@ Profile::Profile()
       target_boot_count_file_(kDefaultTargetBootCountFile),
       target_tmp_dir_(kDefaultTargetTmpDir),
 #endif
+    audio_data_stopped_timeout_(kDefaultAudioDataStoppedTimeout),
+    video_data_stopped_timeout_(kDefaultVideoDataStoppedTimeout),
     mme_db_name_(kDefaultMmeDatabaseName),
     event_mq_name_(kDefaultEventMQ),
     ack_mq_name_(kDefaultAckMQ),
@@ -544,7 +550,16 @@ const std::string& Profile::target_tmp_dir() const {
 const std::string& Profile::log_file_max_size() const {
   return log_file_max_size_;
 }
+
 #endif
+
+const std::uint32_t Profile::audio_data_stopped_timeout() const {
+  return audio_data_stopped_timeout_;
+}
+
+const std::uint32_t Profile::video_data_stopped_timeout() const {
+  return video_data_stopped_timeout_;
+}
 
 const uint32_t& Profile::app_time_scale() const {
   return app_requests_time_scale_;
@@ -1027,7 +1042,19 @@ void Profile::UpdateValues() {
 
   LOG_UPDATED_VALUE(log_file_max_size_, kLogFileMaxSizeKey, kLoggerSection);
 
+
 #endif
+  ReadUIntValue(&audio_data_stopped_timeout_, kDefaultAudioDataStoppedTimeout,
+                kMediaManagerSection, kAudioDataStoppedTimeoutKey);
+
+  LOG_UPDATED_VALUE(audio_data_stopped_timeout_, kAudioDataStoppedTimeoutKey,
+                    kMediaManagerSection);
+
+  ReadUIntValue(&video_data_stopped_timeout_, kDefaultVideoDataStoppedTimeout,
+                kMediaManagerSection, kVideoDataStoppedTimeoutKey);
+
+  LOG_UPDATED_VALUE(video_data_stopped_timeout_, kVideoDataStoppedTimeoutKey,
+                    kMediaManagerSection);
 
   // Mixing audio parameter
   ReadBoolValue(&is_mixing_audio_supported_, false, kMainSection,
