@@ -1738,8 +1738,11 @@ void CacheManager::MergeCFM(const policy_table::PolicyTable& new_pt,
 
       pt.consumer_friendly_messages->version =
           new_pt.consumer_friendly_messages->version;
-      for (; it != pt.consumer_friendly_messages->messages->end(); ++it) {
+      for (; it != new_pt.consumer_friendly_messages->messages->end(); ++it) {
         LOG4CXX_DEBUG(logger_, "Merge CFM: " << it->first);
+        if (!(pt.consumer_friendly_messages->messages.is_initialized())) {
+          LOG4CXX_DEBUG(logger_, "CFM not initialized.");
+        }
         (*pt.consumer_friendly_messages->messages)[it->first] = it->second;
       }
 
