@@ -62,7 +62,9 @@ namespace {
 const char* kDefaultConfigFileName = "smartDeviceLink.ini";
 
 const char* kMainSection = "MAIN";
+#ifdef ENABLE_SECURITY
 const char* kSecuritySection = "Security Manager";
+#endif
 const char* kPolicySection = "Policy";
 const char* kHmiSection = "HMI";
 const char* kAppInfoSection = "AppInfo";
