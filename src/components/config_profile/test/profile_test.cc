@@ -42,15 +42,25 @@ namespace profile {
 
 using namespace ::profile;
 
-TEST(ProfileTest, SingletonProfile) {
+class ProfileTest : public ::testing::Test {
+ protected:
+  virtual void SetUp() {
+    profile::Profile::destroy();
+  }
+  virtual void TearDown() {
+    profile::Profile::destroy();
+  }
+
+};
+
+TEST_F(ProfileTest, SingletonProfile) {
   Profile::instance();
   EXPECT_TRUE(Profile::exists());
   profile::Profile::destroy();
   EXPECT_FALSE(Profile::exists());
 }
 
-TEST(ProfileTest, UpdateConfigWithDefaultFile) {
-  profile::Profile::destroy();
+TEST_F(ProfileTest, UpdateConfigWithDefaultFile) {
   // Default value
   uint32_t thread_min_stack_size = threads::Thread::kMinStackSize;
   EXPECT_EQ(thread_min_stack_size,
@@ -68,13 +78,9 @@ TEST(ProfileTest, UpdateConfigWithDefaultFile) {
   EXPECT_TRUE(profile::Profile::instance()->enable_policy());
   vr_help_title_ = "Available Vr Commands List";
   EXPECT_EQ(vr_help_title_, Profile::instance()->vr_help_title());
-
-  // Change config back
-  profile::Profile::destroy();
 }
 
-TEST(ProfileTest, SetConfigFileWithoutCallUpdate) {
-  profile::Profile::destroy();
+TEST_F(ProfileTest, SetConfigFileWithoutCallUpdate) {
   // Default value
   uint32_t thread_min_stack_size = threads::Thread::kMinStackSize;
   EXPECT_EQ(thread_min_stack_size,
@@ -94,12 +100,9 @@ TEST(ProfileTest, SetConfigFileWithoutCallUpdate) {
   EXPECT_TRUE(profile::Profile::instance()->enable_policy());
   vr_help_title_ = "Available Vr Commands List";
   EXPECT_EQ(vr_help_title_, Profile::instance()->vr_help_title());
-  // Change config back
-  profile::Profile::destroy();
 }
 
-TEST(ProfileTest, SetConfigFileWithUpdate) {
-  profile::Profile::destroy();
+TEST_F(ProfileTest, SetConfigFileWithUpdate) {
   // Default value
   uint32_t thread_min_stack_size = threads::Thread::kMinStackSize;
   EXPECT_EQ(thread_min_stack_size,
@@ -118,12 +121,9 @@ TEST(ProfileTest, SetConfigFileWithUpdate) {
   // Value should be the same
   EXPECT_EQ(thread_min_stack_size,
             Profile::instance()->thread_min_stack_size());
-  // Change config back
-  profile::Profile::destroy();
-
 }
 
-TEST(ProfileTest, UpdateManyTimesDefaultFile) {
+TEST_F(ProfileTest, UpdateManyTimesDefaultFile) {
   //using for check logger's work - core dump when this test was started and log4cxx exists in test derictory
   Profile::instance()->config_file_name("smartDeviceLink.ini");
   EXPECT_EQ("smartDeviceLink.ini", Profile::instance()->config_file_name());
@@ -133,8 +133,7 @@ TEST(ProfileTest, UpdateManyTimesDefaultFile) {
   }
 }
 
-TEST(ProfileTest, UpdateIntValues) {
-  profile::Profile::destroy();
+TEST_F(ProfileTest, UpdateIntValues) {
   // Default value
   EXPECT_EQ("smartDeviceLink.ini", Profile::instance()->config_file_name());
   uint32_t thread_min_stack_size = threads::Thread::kMinStackSize;
@@ -183,13 +182,9 @@ TEST(ProfileTest, UpdateIntValues) {
   thread_min_stack_size = 20480;
   EXPECT_EQ(thread_min_stack_size,
             Profile::instance()->thread_min_stack_size());
-  // Change config back
-  profile::Profile::destroy();
-
 }
 
-TEST(ProfileTest, UpdateBoolValues) {
-  profile::Profile::destroy();
+TEST_F(ProfileTest, UpdateBoolValues) {
   // Default values
   EXPECT_EQ("smartDeviceLink.ini", Profile::instance()->config_file_name());
   EXPECT_TRUE(profile::Profile::instance()->launch_hmi());
@@ -226,14 +221,9 @@ TEST(ProfileTest, UpdateBoolValues) {
   EXPECT_FALSE(profile::Profile::instance()->launch_hmi());
   EXPECT_FALSE(profile::Profile::instance()->enable_policy());
   EXPECT_TRUE(profile::Profile::instance()->is_redecoding_enabled());
-
-  // Change config back
-  profile::Profile::destroy();
 }
 
-TEST(ProfileTest, UpdateStringValue) {
-  // Change values by default states
-  profile::Profile::destroy();
+TEST_F(ProfileTest, UpdateStringValue) {
   // Default values
   std::string config_folder = "";
   std::string tts_delimiter_ = "";
@@ -267,12 +257,9 @@ TEST(ProfileTest, UpdateStringValue) {
   EXPECT_EQ(vr_help_title_, Profile::instance()->vr_help_title());
   EXPECT_EQ(server_address, profile::Profile::instance()->server_address());
   EXPECT_EQ(app_resourse_folder, Profile::instance()->app_resourse_folder());
-
-  profile::Profile::destroy();
 }
 
-TEST(ProfileTest, UpdateInt_ValueAppearsInFileTwice) {
-  profile::Profile::destroy();
+TEST_F(ProfileTest, UpdateInt_ValueAppearsInFileTwice) {
   // Default values
   uint32_t server_port = 8087;
   EXPECT_EQ(server_port, Profile::instance()->server_port());
@@ -284,12 +271,9 @@ TEST(ProfileTest, UpdateInt_ValueAppearsInFileTwice) {
   // First server_port = 8088
   server_port = 8088;
   EXPECT_EQ(server_port, Profile::instance()->server_port());
-  // Change config back
-  profile::Profile::destroy();
 }
 
-TEST(ProfileTest, UpdateBool_ValueAppearsInFileTwice) {
-  profile::Profile::destroy();
+TEST_F(ProfileTest, UpdateBool_ValueAppearsInFileTwice) {
   // Default values
   EXPECT_FALSE(Profile::instance()->enable_protocol_4());
   // Change config file
@@ -299,12 +283,9 @@ TEST(ProfileTest, UpdateBool_ValueAppearsInFileTwice) {
   // Update config file
   // First value is true
   EXPECT_TRUE(profile::Profile::instance()->enable_protocol_4());
-  // Change config back
-  profile::Profile::destroy();
 }
 
-TEST(ProfileTest, UpdateVectorOfString_ValueAppearsInFileTwice) {
-  profile::Profile::destroy();
+TEST_F(ProfileTest, UpdateVectorOfString_ValueAppearsInFileTwice) {
   // Default values
   std::vector < std::string > time_out_promt;
   EXPECT_EQ(time_out_promt, Profile::instance()->time_out_promt());
@@ -315,13 +296,9 @@ TEST(ProfileTest, UpdateVectorOfString_ValueAppearsInFileTwice) {
   // Update config file
   time_out_promt.push_back("Please say a command,");
   EXPECT_EQ(time_out_promt, Profile::instance()->time_out_promt());
-
-  // Change config back
-  profile::Profile::destroy();
 }
 
-TEST(ProfileTest, UpdateString_ValueAppearsInFileTwice) {
-  profile::Profile::destroy();
+TEST_F(ProfileTest, UpdateString_ValueAppearsInFileTwice) {
   // Default values
   std::string recording_file_name = "record.wav";
   EXPECT_EQ(recording_file_name, Profile::instance()->recording_file_name());
@@ -332,13 +309,9 @@ TEST(ProfileTest, UpdateString_ValueAppearsInFileTwice) {
   // Update config file
   recording_file_name = "video.wav";
   EXPECT_EQ(recording_file_name, Profile::instance()->recording_file_name());
-
-  // Change config back
-  profile::Profile::destroy();
 }
 
-TEST(ProfileTest, UpdatePairsValue) {
-  profile::Profile::destroy();
+TEST_F(ProfileTest, UpdatePairsValue) {
   // Default values
   std::pair < uint32_t, int32_t > value;
   value.first = 0;
@@ -355,15 +328,11 @@ TEST(ProfileTest, UpdatePairsValue) {
   // Update config file
   profile::Profile::instance()->UpdateValues();
   EXPECT_EQ(value, Profile::instance()->get_vehicle_data_frequency());
-
-  // Change config back
-  profile::Profile::destroy();
 }
 
 // Section with negative tests
 
-TEST(ProfileTest, PairsValueEmpty) {
-  profile::Profile::destroy();
+TEST_F(ProfileTest, PairsValueEmpty) {
   // Default values
   std::pair < uint32_t, int32_t > value;
   value.first = 0;
@@ -383,13 +352,9 @@ TEST(ProfileTest, PairsValueEmpty) {
   profile::Profile::instance()->UpdateValues();
   // Values are same
   EXPECT_EQ(value, Profile::instance()->read_did_frequency());
-
-  // Change config back
-  profile::Profile::destroy();
 }
 
-TEST(ProfileTest, CharValueInPairInsteadOfInt) {
-  profile::Profile::destroy();
+TEST_F(ProfileTest, CharValueInPairInsteadOfInt) {
   std::pair < uint32_t, int32_t > value;
   value.first = 0;
   value.second = 0;
@@ -407,8 +372,7 @@ TEST(ProfileTest, CharValueInPairInsteadOfInt) {
   EXPECT_EQ(value, Profile::instance()->get_vehicle_data_frequency());
 }
 
-TEST(ProfileTest, EmptyValuesInPair) {
-  profile::Profile::destroy();
+TEST_F(ProfileTest, EmptyValuesInPair) {
   Profile::instance()->config_file_name("smartDeviceLink_invalid_pairs.ini");
   EXPECT_EQ("smartDeviceLink_invalid_pairs.ini",
             Profile::instance()->config_file_name());
@@ -424,8 +388,7 @@ TEST(ProfileTest, EmptyValuesInPair) {
   EXPECT_EQ(value, Profile::instance()->get_vehicle_data_frequency());
 }
 
-TEST(ProfileTest, IntInsteadOfPair) {
-  profile::Profile::destroy();
+TEST_F(ProfileTest, IntInsteadOfPair) {
   // Default values
   std::pair < uint32_t, int32_t > value;
   value.first = 0;
@@ -446,9 +409,8 @@ TEST(ProfileTest, IntInsteadOfPair) {
   EXPECT_EQ(value, Profile::instance()->start_stream_retry_amount());
 }
 
-TEST(ProfileTest, WrongIntValue) {
+TEST_F(ProfileTest, WrongIntValue) {
   // Default value
-  profile::Profile::destroy();
   uint32_t heart_beat_timeout = 0;
   EXPECT_EQ(heart_beat_timeout, Profile::instance()->heart_beat_timeout());
 
@@ -464,14 +426,10 @@ TEST(ProfileTest, WrongIntValue) {
   // Update config file
   profile::Profile::instance()->UpdateValues();
   EXPECT_EQ(heart_beat_timeout, Profile::instance()->heart_beat_timeout());
-
-  // Change config back
-  profile::Profile::destroy();
 }
 
-TEST(ProfileTest, WrongMaxIntValue) {
+TEST_F(ProfileTest, WrongMaxIntValue) {
   // Default value
-  profile::Profile::destroy();
   uint32_t maxvalue = 2000000000;
   EXPECT_EQ(maxvalue, Profile::instance()->max_cmd_id());
 
@@ -489,9 +447,8 @@ TEST(ProfileTest, WrongMaxIntValue) {
   EXPECT_EQ(maxvalue, Profile::instance()->max_cmd_id());
 }
 
-TEST(ProfileTest, WrongMinIntValue) {
+TEST_F(ProfileTest, WrongMinIntValue) {
   // Default value
-  profile::Profile::destroy();
   uint32_t minvalue = threads::Thread::kMinStackSize;
   EXPECT_EQ(minvalue, Profile::instance()->thread_min_stack_size());
 
@@ -514,14 +471,10 @@ TEST(ProfileTest, WrongMinIntValue) {
   // Default value should be lefted
   EXPECT_EQ(minvalue, Profile::instance()->thread_min_stack_size());
   EXPECT_EQ(server_port, Profile::instance()->server_port());
-
-  // Change config back
-  profile::Profile::destroy();
 }
 
-TEST(ProfileTest, CheckCorrectValueWhenOtherValueInvalid) {
+TEST_F(ProfileTest, CheckCorrectValueWhenOtherValueInvalid) {
   // Default value
-  profile::Profile::destroy();
   uint32_t maxvalue = 2000000000;
   EXPECT_EQ(maxvalue, Profile::instance()->max_cmd_id());
 
@@ -552,7 +505,7 @@ TEST(ProfileTest, CheckCorrectValueWhenOtherValueInvalid) {
             Profile::instance()->thread_min_stack_size());
 }
 
-TEST(ProfileTest, PairsValueInsteadOfInt) {
+TEST_F(ProfileTest, PairsValueInsteadOfInt) {
   // Set new config file
   Profile::instance()->config_file_name("smartDeviceLink_invalid_int.ini");
   EXPECT_EQ("smartDeviceLink_invalid_int.ini",
@@ -567,9 +520,7 @@ TEST(ProfileTest, PairsValueInsteadOfInt) {
   EXPECT_EQ(list_files_in_none, Profile::instance()->list_files_in_none());
 }
 
-TEST(ProfileTest, StringValueIncludeSlashesAndRussianLetters) {
-  // Change values by default states
-  profile::Profile::destroy();
+TEST_F(ProfileTest, StringValueIncludeSlashesAndRussianLetters) {
   // Default values
   std::string config_folder = "";
   EXPECT_EQ(config_folder, Profile::instance()->app_resourse_folder());
@@ -601,13 +552,9 @@ TEST(ProfileTest, StringValueIncludeSlashesAndRussianLetters) {
   EXPECT_EQ(tts_delimiter_, Profile::instance()->tts_delimiter());
   EXPECT_EQ(server_address, profile::Profile::instance()->server_address());
   EXPECT_EQ(app_resourse_folder, Profile::instance()->app_resourse_folder());
-
-  profile::Profile::destroy();
 }
 
-TEST(ProfileTest, StringUpperBoundValue) {
-  // Change values by default states
-  profile::Profile::destroy();
+TEST_F(ProfileTest, StringUpperBoundValue) {
   // Default values
   std::string vr_help_title = "";
   std::string recording_file_name = "record.wav";
@@ -631,11 +578,9 @@ TEST(ProfileTest, StringUpperBoundValue) {
   // Values are the same
   EXPECT_EQ(vr_help_title, Profile::instance()->vr_help_title());
   EXPECT_EQ(recording_file_name, Profile::instance()->recording_file_name());
-  profile::Profile::destroy();
 }
 
-TEST(ProfileTest, CapitalLetterInBoolValue) {
-  profile::Profile::destroy();
+TEST_F(ProfileTest, CapitalLetterInBoolValue) {
   // Default values
   EXPECT_EQ("smartDeviceLink.ini", Profile::instance()->config_file_name());
   EXPECT_TRUE(profile::Profile::instance()->launch_hmi());
@@ -660,11 +605,9 @@ TEST(ProfileTest, CapitalLetterInBoolValue) {
   EXPECT_FALSE(profile::Profile::instance()->enable_policy());
   // EnableRedecoding = FALSE
   EXPECT_FALSE(profile::Profile::instance()->is_redecoding_enabled());
-  // Change config back
-  profile::Profile::destroy();
 }
 
-TEST(ProfileTest, CheckReadStringValue) {
+TEST_F(ProfileTest, CheckReadStringValue) {
   // Set new config file
   Profile::instance()->config_file_name("smartDeviceLink_test.ini");
   EXPECT_EQ("smartDeviceLink_test.ini",
@@ -682,11 +625,9 @@ TEST(ProfileTest, CheckReadStringValue) {
   profile::Profile::instance()->ReadStringValue(&server_address, "", "HMI",
                                                 "ServerAddress");
   EXPECT_EQ("127.0.0.1", server_address);
-  // Change config back
-  profile::Profile::destroy();
 }
 
-TEST(ProfileTest, CheckReadBoolValue) {
+TEST_F(ProfileTest, CheckReadBoolValue) {
   // Set new config file
   Profile::instance()->config_file_name("smartDeviceLink_test.ini");
   EXPECT_EQ("smartDeviceLink_test.ini",
@@ -699,7 +640,6 @@ TEST(ProfileTest, CheckReadBoolValue) {
 
   // Change config back
   profile::Profile::destroy();
-
   EXPECT_EQ("smartDeviceLink.ini", Profile::instance()->config_file_name());
 
   //get default value
@@ -709,7 +649,7 @@ TEST(ProfileTest, CheckReadBoolValue) {
   EXPECT_TRUE(launch_hmi);
 }
 
-TEST(ProfileTest, CheckReadIntValue) {
+TEST_F(ProfileTest, CheckReadIntValue) {
   // Set new config file
   Profile::instance()->config_file_name("smartDeviceLink_test.ini");
   EXPECT_EQ("smartDeviceLink_test.ini",
@@ -720,11 +660,9 @@ TEST(ProfileTest, CheckReadIntValue) {
                                              "ServerPort");
 
   EXPECT_EQ(8088, server_port);
-  // Change config back
-  profile::Profile::destroy();
 }
 
-TEST(ProfileTest, CheckIntContainer) {
+TEST_F(ProfileTest, CheckIntContainer) {
   // Set new config file
   Profile::instance()->config_file_name("smartDeviceLink_test.ini");
   EXPECT_EQ("smartDeviceLink_test.ini",
@@ -754,13 +692,9 @@ TEST(ProfileTest, CheckIntContainer) {
 
   diag_mode = std::find(diagmodes_list.begin(), diagmodes_list.end(), 0x03);
   EXPECT_EQ(diag_mode, element_mode);
-
-  // Change config back
-  profile::Profile::destroy();
-  Profile::instance();
 }
 
-TEST(ProfileTest, CheckVectorContainer) {
+TEST_F(ProfileTest, CheckVectorContainer) {
   Profile::instance()->config_file_name("smartDeviceLink_test.ini");
   EXPECT_EQ("smartDeviceLink_test.ini",
             Profile::instance()->config_file_name());
@@ -790,13 +724,9 @@ TEST(ProfileTest, CheckVectorContainer) {
     iter++;
   }
   EXPECT_TRUE(isEqual);
-
-  // Change config back
-  profile::Profile::destroy();
-  Profile::instance();
 }
 
-TEST(ProfileTest, CheckStringContainer) {
+TEST_F(ProfileTest, CheckStringContainer) {
   // Set new config file
   Profile::instance()->config_file_name("smartDeviceLink_test.ini");
   EXPECT_EQ("smartDeviceLink_test.ini",
@@ -824,14 +754,10 @@ TEST(ProfileTest, CheckStringContainer) {
   element_mode++;
   diag_mode = std::find(diagmodes_list.begin(), diagmodes_list.end(), " 0x03");
   EXPECT_EQ(diag_mode, element_mode);
-
-  // Change config back
-  profile::Profile::destroy();
-  Profile::instance();
 }
 
 #ifdef ENABLE_SECURITY
-TEST(ProfileTest, CheckIntContainerInSecurityData) {
+TEST_F(ProfileTest, CheckIntContainerInSecurityData) {
   // Set new config file
   Profile::instance()->config_file_name("smartDeviceLink_test.ini");
   EXPECT_EQ("smartDeviceLink_test.ini",
@@ -856,9 +782,6 @@ TEST(ProfileTest, CheckIntContainerInSecurityData) {
   res_protect = std::find(force_protected_list.begin(), force_protected_list.end(), 0);
   EXPECT_EQ(res_unprotect, force_unprotected_list.begin() );
   EXPECT_EQ(res_protect, force_protected_list.begin() );
-
-  // Change config back
-  profile::Profile::destroy();
 }
 #endif
 

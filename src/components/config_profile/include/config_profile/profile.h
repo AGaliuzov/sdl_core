@@ -564,6 +564,8 @@ class Profile : public utils::Singleton<Profile> {
      */
     int iap_hub_connection_wait_timeout() const;
 
+    int iap_arm_event_timeout() const;
+
     /*
      * ProtocolHandler section
      */
@@ -786,6 +788,8 @@ class Profile : public utils::Singleton<Profile> {
     std::string                     iap2_system_config_;
     int                             iap2_hub_connect_attempts_;
     int                             iap_hub_connection_wait_timeout_;
+    int                             iap_arm_event_timeout_;
+
     uint16_t                        tts_global_properties_timeout_;
     uint16_t                        attempts_to_open_policy_db_;
     uint16_t                        open_attempt_timeout_ms_;

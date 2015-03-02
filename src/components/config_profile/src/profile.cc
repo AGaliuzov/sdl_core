@@ -179,6 +179,7 @@ const char* kIAPSystemConfigKey = "IAPSystemConfig";
 const char* kIAP2SystemConfigKey = "IAP2SystemConfig";
 const char* kIAP2HubConnectAttemptskey = "IAP2HubConnectAttempts";
 const char* kIAPHubConnectionWaitTimeoutKey = "ConnectionWaitTimeout";
+const char* kIAPArmEventTimeoutKey = "ArmEventTimeout";
 const char* kDefaultHubProtocolIndexKey = "DefaultHubProtocolIndex";
 const char* kTTSGlobalPropertiesTimeoutKey = "TTSGlobalPropertiesTimeout";
 const char* kMaximumPayloadSizeKey = "MaximumPayloadSize";
@@ -256,6 +257,7 @@ const std::pair<uint32_t, uint32_t> kStartStreamRetryAmount = { 3, 1 };
 const uint32_t kDefaultMaxThreadPoolSize = 2;
 const int kDefaultIAP2HubConnectAttempts = 0;
 const int kDefaultIAPHubConnectionWaitTimeout = 10;
+const int kDefaultIAPArmEventTimeout = 500;
 const uint16_t kDefaultTTSGlobalPropertiesTimeout = 20;
 // TCP MTU - header size = 1500 - 12
 const size_t kDefaultMaximumPayloadSize = 1500 - 12;
@@ -329,23 +331,24 @@ Profile::Profile()
       target_boot_count_file_(kDefaultTargetBootCountFile),
       target_tmp_dir_(kDefaultTargetTmpDir),
 #endif
-      mme_db_name_(kDefaultMmeDatabaseName),
-      event_mq_name_(kDefaultEventMQ),
-      ack_mq_name_(kDefaultAckMQ),
-      recording_file_source_(kDefaultRecordingFileSourceName),
-      recording_file_name_(kDefaultRecordingFileName),
-      application_list_update_timeout_(kDefaultApplicationListUpdateTimeout),
-      iap_legacy_protocol_mask_(kDefaultLegacyProtocolMask),
-      iap_hub_protocol_mask_(kDefaultHubProtocolMask),
-      iap_pool_protocol_mask_(kDefaultPoolProtocolMask),
-      iap_system_config_(kDefaultIAPSystemConfig),
-      iap2_system_config_(kDefaultIAP2SystemConfig),
-      iap2_hub_connect_attempts_(kDefaultIAP2HubConnectAttempts),
-      iap_hub_connection_wait_timeout_(kDefaultIAPHubConnectionWaitTimeout),
-      tts_global_properties_timeout_(kDefaultTTSGlobalPropertiesTimeout),
-      attempts_to_open_policy_db_(kDefaultAttemptsToOpenPolicyDB),
-      open_attempt_timeout_ms_(kDefaultAttemptsToOpenPolicyDB),
-      hash_string_size_(kDefaultHashStringSize) {
+    mme_db_name_(kDefaultMmeDatabaseName),
+    event_mq_name_(kDefaultEventMQ),
+    ack_mq_name_(kDefaultAckMQ),
+    recording_file_source_(kDefaultRecordingFileSourceName),
+    recording_file_name_(kDefaultRecordingFileName),
+    application_list_update_timeout_(kDefaultApplicationListUpdateTimeout),
+    iap_legacy_protocol_mask_(kDefaultLegacyProtocolMask),
+    iap_hub_protocol_mask_(kDefaultHubProtocolMask),
+    iap_pool_protocol_mask_(kDefaultPoolProtocolMask),
+    iap_system_config_(kDefaultIAPSystemConfig),
+    iap2_system_config_(kDefaultIAP2SystemConfig),
+    iap2_hub_connect_attempts_(kDefaultIAP2HubConnectAttempts),
+    iap_hub_connection_wait_timeout_(kDefaultIAPHubConnectionWaitTimeout),
+    iap_arm_event_timeout_(kDefaultIAPArmEventTimeout),
+    tts_global_properties_timeout_(kDefaultTTSGlobalPropertiesTimeout),
+    attempts_to_open_policy_db_(kDefaultAttemptsToOpenPolicyDB),
+    open_attempt_timeout_ms_(kDefaultAttemptsToOpenPolicyDB),
+    hash_string_size_(kDefaultHashStringSize) {
 }
 
 Profile::~Profile() {
@@ -683,6 +686,10 @@ int Profile::iap2_hub_connect_attempts() const {
 
 int Profile::iap_hub_connection_wait_timeout() const {
   return iap_hub_connection_wait_timeout_;
+}
+
+int Profile::iap_arm_event_timeout() const {
+  return iap_arm_event_timeout_;
 }
 
 size_t Profile::maximum_payload_size() const {
@@ -1431,8 +1438,14 @@ void Profile::UpdateValues() {
   LOG_UPDATED_VALUE(iap_hub_connection_wait_timeout_,
                     kIAPHubConnectionWaitTimeoutKey, kIAPSection);
 
-  ReadUIntValue(&default_hub_protocol_index_, kDefaultHubProtocolIndex,
-                kIAPSection, kDefaultHubProtocolIndexKey);
+  ReadIntValue(&iap_arm_event_timeout_,
+               kDefaultIAPArmEventTimeout,
+               kIAPSection,
+               kIAPArmEventTimeoutKey);
+
+  LOG_UPDATED_VALUE(iap_arm_event_timeout_, kDefaultIAPArmEventTimeout, kIAPSection);
+
+  ReadUIntValue(&default_hub_protocol_index_, kDefaultHubProtocolIndex, kIAPSection, kDefaultHubProtocolIndexKey);
 
   LOG_UPDATED_VALUE(default_hub_protocol_index_, kDefaultHubProtocolIndexKey,
                     kIAPSection);

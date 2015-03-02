@@ -139,7 +139,6 @@ bool ResumeCtrl::RestoreAppHMIState(ApplicationSharedPtr application) {
   }
   LOG4CXX_DEBUG(logger_, "ENTER app_id : " << application->app_id());
 
-  sync_primitives::AutoLock lock(resumtion_lock_);
   const int idx = GetObjectIndex(application->mobile_app_id());
   if (-1 != idx) {
     const Json::Value& json_app = GetSavedApplications()[idx];
@@ -424,7 +423,11 @@ void ResumeCtrl::OnAwake() {
   StartSavePersistentDataTimer();
 }
 
-
+void ResumeCtrl::OnAppActivated(ApplicationSharedPtr application) {
+  if (is_resumption_active_) {
+    RemoveFromResumption(application->app_id());
+  }
+}
 
 void ResumeCtrl::StartSavePersistentDataTimer() {
   LOG4CXX_AUTO_TRACE(logger_);
@@ -474,15 +477,8 @@ bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
     }
     application->UpdateHash();
 
-  sync_primitives::AutoUnlock unlock(lock);
-    queue_lock_.Acquire();
-    waiting_for_timer_.push_back(application->app_id());
-    queue_lock_.Release();
-    if (!is_resumption_active_) {
-      is_resumption_active_ = true;
-      restore_hmi_level_timer_.start(
-          profile::Profile::instance()->app_resuming_timeout());
-    }
+    sync_primitives::AutoUnlock unlock(lock);
+    AddToResumption(application->app_id());
   } else {
     LOG4CXX_INFO(logger_, "There are some unknown keys in the dictionary.");
     return false;
@@ -560,14 +556,7 @@ bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
   }
 
   sync_primitives::AutoUnlock unlock(lock);
-  queue_lock_.Acquire();
-  waiting_for_timer_.push_back(application->app_id());
-  queue_lock_.Release();
-  if (!is_resumption_active_) {
-  is_resumption_active_ = true;
-  restore_hmi_level_timer_.start(
-      profile::Profile::instance()->app_resuming_timeout());
-  }
+  AddToResumption(application->app_id());
 
   return true;
 }
@@ -1094,14 +1083,6 @@ bool ResumeCtrl::CheckIgnCycleRestrictions(const Json::Value& json_app) {
   return result;
 }
 
-bool ResumeCtrl::DisconnectedInLastIgnCycle(const Json::Value& json_app) {
-  LOG4CXX_AUTO_TRACE(logger_);
-  DCHECK_OR_RETURN(json_app.isMember(strings::suspend_count), false);
-  const uint32_t suspend_count = json_app[strings::suspend_count].asUInt();
-  LOG4CXX_DEBUG(logger_, " suspend_count " << suspend_count);
-  return (1 == suspend_count);
-}
-
 bool ResumeCtrl::DisconnectedJustBeforeIgnOff(const Json::Value& json_app) {
   using namespace date_time;
   using namespace profile;
@@ -1184,7 +1165,6 @@ void ResumeCtrl::ResetLaunchTime() {
 void ResumeCtrl::ApplicationResumptiOnTimer() {
   LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock auto_lock(queue_lock_);
-  is_resumption_active_ = false;
   std::vector<uint32_t>::iterator it = waiting_for_timer_.begin();
 
   for (; it != waiting_for_timer_.end(); ++it) {
@@ -1198,6 +1178,7 @@ void ResumeCtrl::ApplicationResumptiOnTimer() {
     StartAppHmiStateResumption(app);
    }
 
+  is_resumption_active_ = false;
   waiting_for_timer_.clear();
 }
 
@@ -1215,7 +1196,7 @@ void ResumeCtrl::LoadResumeData() {
   Json::Value::iterator it = resume_app_list.begin();
   for (; it != resume_app_list.end(); ++it) {
     if ((*it).isMember(strings::ign_off_count) &&
-      (*it).isMember(strings::hmi_level)) {
+        (*it).isMember(strings::hmi_level)) {
 
       // only apps with first IGN should be resumed
       const int32_t first_ign = 1;
@@ -1229,20 +1210,20 @@ void ResumeCtrl::LoadResumeData() {
 
         if (mobile_apis::HMILevel::HMI_FULL == saved_hmi_level) {
           if (time_stamp_full < saved_time_stamp) {
-          time_stamp_full = saved_time_stamp;
-          full_app = it;
+            time_stamp_full = saved_time_stamp;
+            full_app = it;
           }
       }
 
         if (mobile_apis::HMILevel::HMI_LIMITED == saved_hmi_level) {
           if (time_stamp_limited < saved_time_stamp) {
-          time_stamp_limited = saved_time_stamp;
-          limited_app = it;
+            time_stamp_limited = saved_time_stamp;
+            limited_app = it;
           }
         }
       }
 
-    // set invalid HMI level for all
+      // set invalid HMI level for all
       (*it)[strings::hmi_level] =
           static_cast<int32_t>(mobile_apis::HMILevel::INVALID_ENUM);
     }
@@ -1278,6 +1259,27 @@ bool ResumeCtrl::IsResumptionDataValid(uint32_t index) {
   }
 
   return true;
+}
+
+void ResumeCtrl::AddToResumption(uint32_t app_id) {
+  queue_lock_.Acquire();
+  waiting_for_timer_.push_back(app_id);
+  queue_lock_.Release();
+  if (!is_resumption_active_) {
+    is_resumption_active_ = true;
+    restore_hmi_level_timer_.start(
+        profile::Profile::instance()->app_resuming_timeout());
+  }
+}
+
+void ResumeCtrl::RemoveFromResumption(uint32_t app_id) {
+  queue_lock_.Acquire();
+  std::vector<uint32_t>::iterator pos =
+    std::find(waiting_for_timer_.begin(), waiting_for_timer_.end(), app_id);
+  if (pos != waiting_for_timer_.end()) {
+    waiting_for_timer_.erase(pos);
+  }
+  queue_lock_.Release();
 }
 
 void ResumeCtrl::SendHMIRequest(

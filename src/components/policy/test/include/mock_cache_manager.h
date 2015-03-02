@@ -168,8 +168,8 @@ class MockCacheManagerInterface : public CacheManagerInterface {
       bool(const std::string& file_name));
   MOCK_METHOD0(LoadFromBackup,
       bool());
-  MOCK_METHOD1(LoadFromFile,
-      bool(const std::string& file_name));
+  MOCK_METHOD2(LoadFromFile,
+      bool(const std::string& file_name, policy_table::Table&));
   MOCK_METHOD0(Backup,
       void());
   MOCK_CONST_METHOD1(HeartBeatTimeout,

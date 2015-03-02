@@ -76,6 +76,11 @@ void GetUrls::Run() {
           if (policy::kDefaultId != endpoints[i].app_id) {
             service_info[hmi_response::policy_app_id] =
               endpoints[i].app_id;
+             ApplicationSharedPtr app = ApplicationManagerImpl::instance()->
+                 application_by_policy_id(endpoints[i].app_id);
+             if (app) {
+               service_info[strings::app_id] = app->app_id();
+             }
           }
         }
       }

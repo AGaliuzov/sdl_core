@@ -144,6 +144,13 @@ class ResumeCtrl: public event_engine::EventObserver {
     void OnAwake();
 
     /**
+     * @brief Removes activated application from resumption list
+     *
+     * @param application application witch need to be removed from resumption
+     */
+    void OnAppActivated(ApplicationSharedPtr application);
+
+    /**
      * @brief Method starts timer "RsmCtrlPercist" when SDL receives onAwakeSDL notification
      */
     void StartSavePersistentDataTimer();
@@ -423,13 +430,6 @@ class ResumeCtrl: public event_engine::EventObserver {
     bool CheckIgnCycleRestrictions(const Json::Value& json_app);
 
     /**
-     * @brief DisconnectedInLastIgnCycle should check if was connected in prev ign cycle
-     * @param json_app - saved applicationa
-     * @return true if app connected in frep ign_cycle otherwise return false
-     */
-    bool DisconnectedInLastIgnCycle(const Json::Value& json_app);
-
-    /**
      * @brief DisconnectedJustBeforeIgnOff should check if application
      * was dissconnected in N secconds delay before ign off.
      * N will be readed from profile
@@ -482,6 +482,20 @@ class ResumeCtrl: public event_engine::EventObserver {
      * @param index application index in the resumption list
      */
     bool IsResumptionDataValid(uint32_t index);
+
+    /**
+     * @brief Adds app to resumption list
+     *
+     * app_id Application to resume
+     */
+    void AddToResumption(uint32_t app_id);
+
+    /**
+     * @brief Removes app from resumption list
+     *
+     * app_id Application to remove
+     */
+    void RemoveFromResumption(uint32_t app_id);
 
     template<typename Iterator>
     Json::Value Append(Iterator first,

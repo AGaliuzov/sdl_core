@@ -183,7 +183,7 @@ const ProtocolConfig::ProtocolNameContainer ProtocolConfig::ReadProtocolNames(
           bool valid = true;
           for (std::string::iterator it = digits_in_prot_name.begin();
               it != digits_in_prot_name.end(); it++) {
-            if (std::isdigit(*it)) { // only digits are available
+            if (!std::isdigit(*it)) { // only digits are available
               valid = false;
               break;
             }

@@ -31,9 +31,11 @@
  */
 #include "transport_manager/mme/iap2_connection.h"
 
+#include <unistd.h>
 #include <errno.h>
 
 #include "utils/logger.h"
+#include "config_profile/profile.h"
 
 #include "transport_manager/mme/iap2_device.h"
 #include "transport_manager/transport_adapter/transport_adapter_impl.h"
@@ -195,9 +197,14 @@ bool IAP2Connection::ReceiverThreadDelegate::ArmEvent(struct sigevent* event) {
   LOG4CXX_TRACE(logger_, "iAP2: arming for input notification");
   int arm_result = iap2_eap_event_arm(iap2ea_hdl_, event);
   switch (arm_result) {
-    case -1:  // failure
+    case -1:  { // failure
       LOG4CXX_WARN(logger_, "iAP2: could not arm for input notification");
+      int msec = profile::Profile::instance()->iap_arm_event_timeout();
+      useconds_t useconds = 1000 * msec;
+      LOG4CXX_TRACE(logger_, "iAP2: sleeping for " << msec << " milliseconds");
+      usleep(useconds);
       return false;
+    }
     case 0:  // successfully armed
       LOG4CXX_DEBUG(logger_, "iAP2: successfully armed for input notification");
       return true;
