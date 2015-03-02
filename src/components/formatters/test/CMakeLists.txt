@@ -1,4 +1,4 @@
-# Copyright (c) 2014, Ford Motor Company
+# Copyright (c) 2015, Ford Motor Company
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@ include_directories(
   ${GMOCK_INCLUDE_DIRECTORY}
   ${COMPONENTS_DIR}/smart_objects/include
   ${COMPONENTS_DIR}/formatters/include
+  ${CMAKE_SOURCE_DIR}/src/3rd_party-static/jsoncpp/include
 )
 
 set(LIBRARIES
