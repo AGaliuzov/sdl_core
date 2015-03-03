@@ -40,6 +40,7 @@
 #include "utils/threads/pulse_thread_delegate.h"
 #include "utils/lock.h"
 #include "utils/timer_thread.h"
+#include "utils/conditional_variable.h"
 
 #include "transport_manager/mme/mme_device.h"
 #include "transport_manager/mme/protocol_connection_timer.h"
@@ -196,6 +197,9 @@ class IAPDevice : public MmeDevice {
     IAPDevice* parent_;
     ipod_hdl_t* ipod_hdl_;
     ipod_eaf_event_t events_[kEventsBufferSize];
+
+    sync_primitives::ConditionalVariable sleep_cond_var_;
+    sync_primitives::Lock sleep_lock_;
   };
 
   friend class IAPConnection;

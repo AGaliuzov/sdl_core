@@ -32,8 +32,6 @@
 
 #include "transport_manager/mme/iap_device.h"
 
-#include <unistd.h>
-
 #include "utils/logger.h"
 #include "config_profile/profile.h"
 
@@ -431,9 +429,9 @@ bool IAPDevice::IAPEventThreadDelegate::ArmEvent(struct sigevent* event) {
   } else {
     LOG4CXX_WARN(logger_, "Could not arm for iAP event notification, errno = " << errno);
     int msec = profile::Profile::instance()->iap_arm_event_timeout();
-    useconds_t useconds = 1000 * msec;
+    sync_primitives::AutoLock auto_lock(sleep_lock_);
     LOG4CXX_TRACE(logger_, "iAP: sleeping for " << msec << " milliseconds");
-    usleep(useconds);
+    sleep_cond_var_.WaitFor(auto_lock, msec);
     return false;
   }
 }
