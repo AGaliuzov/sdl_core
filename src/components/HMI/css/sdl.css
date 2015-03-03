@@ -546,7 +546,8 @@
 	line-height: 48px;
 }
 
-#exitAppView,#tbtClientStateView,#VehicleInfo,#systemRequestView {
+#exitAppView,#tbtClientStateView,
+#VehicleInfo,#systemRequestView {
 	opacity: 0;
 	left: 50px;
 	width: 700px;
@@ -560,8 +561,10 @@
 	border: 1px solid white;
 }
 
-#exitAppView .exitAppViewLabel,#systemRequestView .systemRequestViewLabel, #tbtClientStateView .tbtClientStateLabel,#VehicleInfo .vehicleInfoLabel
-	{
+#exitAppView .exitAppViewLabel,
+#systemRequestView .systemRequestViewLabel,
+#tbtClientStateView .tbtClientStateLabel,
+#VehicleInfo .vehicleInfoLabel {
 	top: 10px;
 	width: 600px;
 	left: 35px;
@@ -570,13 +573,18 @@
 	background: #393939;
 }
 
-#exitAppView.active,#systemRequestView.active,#tbtClientStateView.active,#VehicleInfo.active {
+#exitAppView.active,
+#systemRequestView.active,
+#tbtClientStateView.active,
+#VehicleInfo.active {
 	opacity: 1;
 	display: block;
 }
 
-#exitAppView .exitAppViewTitle, #systemRequestView .systemRequestViewTitle, #tbtClientStateView .tbtClientState,#VehicleInfo .prndl
-	{
+#exitAppView .exitAppViewTitle,
+#systemRequestView .systemRequestViewTitle,
+#tbtClientStateView .tbtClientState,
+#VehicleInfo .prndl	{
 	top: 70px;
 	width: 600px;
 	left: 40px;
@@ -585,8 +593,11 @@
 	background: #535353;
 }
 
-#exitAppView .exitAppViewSelect, #systemRequestView .systemRequestViewSelect, #tbtClientStateView .tbtClientStateSelect,#VehicleInfo .prndlSelect
-	{
+#exitAppView .exitAppViewSelect,
+#systemRequestView .systemRequestViewSelect,
+#tbtClientStateView .tbtClientStateSelect,
+#VehicleInfo .prndlSelect,
+#systemRequestView .appIDSelect	{
 	top: 125px;
 	position: absolute;
 	width: 150px;
@@ -596,8 +607,13 @@
 	background: #393939;
 }
 
-#exitAppView .exitAppViewSelect option,#tbtClientStateView .tbtClientStateSelect option,#VehicleInfo .prndlSelect option
-	{
+#systemRequestView .appIDSelect{
+    top: 255px;
+}
+
+#exitAppView .exitAppViewSelect option,
+#tbtClientStateView .tbtClientStateSelect option,
+#VehicleInfo .prndlSelect option {
 	background: #393939;
 }
 
@@ -629,7 +645,9 @@
     background: #535353;
 }
 
-#VehicleInfo .odometrInput{
+#VehicleInfo .odometrInput,
+#systemRequestView .urlsInput,
+#systemRequestView .policyAppIdInput{
     width: 265px;
     position: absolute;
     top: 242px;
@@ -645,7 +663,34 @@
     padding-right: 10px;
 }
 
-#VehicleInfo .onEmergencyEvent{
+#systemRequestView .urlsInput,
+#systemRequestView .policyAppIdInput{
+    height: 30px;
+    left: 140px;
+    width: 500px;
+    line-height: 30px;
+    font-size: 16px;
+}
+
+#systemRequestView .urlsLabel{
+    top: 188px;
+    left: 60px;
+}
+
+#systemRequestView .policyAppIdLabel{
+    top: 223px;
+    left: 30px;
+}
+
+#systemRequestView .urlsInput{
+    top: 180px;
+}
+#systemRequestView .policyAppIdInput{
+    top: 217px;
+}
+
+#VehicleInfo .onEmergencyEvent,
+#systemRequestView .sendButton{
 	width: 265px;
 	position: absolute;
 	top: 301px;
@@ -659,6 +704,7 @@
 	padding-left: 10px;
 	padding-right: 10px;
 	line-height: 28px;
+    text-align: center;
 }
 
 #VehicleInfo .ecu1Title {

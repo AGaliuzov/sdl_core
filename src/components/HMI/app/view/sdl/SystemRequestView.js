@@ -47,7 +47,13 @@ SDL.SystemRequest = Em.ContainerView.create( {
         [
             'systemRequestViewLabel',
             'systemRequestViewTitle',
-            'systemRequestViewSelect'
+            'systemRequestViewSelect',
+            'urlsLabel',
+            'urlsInput',
+            'policyAppIdLabel',
+            'policyAppIdInput',
+            'appIDSelect',
+            'sendButton'
         ],
 
     /**
@@ -92,17 +98,110 @@ SDL.SystemRequest = Em.ContainerView.create( {
 
         optionValuePath: 'content.id',
 
-        optionLabelPath: 'content.name',
-
-        /**
-         * Selected data sent on model for further processing
-         */
-        click: function() {
-
-            SDL.SDLController.systemRequestViewSelected( this.selection.name );
-
-        }
+        optionLabelPath: 'content.name'
     } ),
+
+    /**
+     * Title of VehicleInfo PopUp view
+     */
+    urlsLabel: SDL.Label.extend( {
+
+        elementId: 'urlsLabel',
+
+        classNames: 'urlsLabel',
+
+        content: 'URL'
+    } ),
+
+    /**
+     * Input for urls value changes
+     */
+    urlsInput: Ember.TextField.extend({
+        elementId: "urlsInput",
+        classNames: "urlsInput",
+        value: document.location.pathname.replace("index.html", "IVSU/PROPRIETARY_REQUEST")
+    }),
+
+    /**
+     * Title of VehicleInfo PopUp view
+     */
+    policyAppIdLabel: SDL.Label.extend( {
+
+        elementId: 'policyAppIdLabel',
+
+        classNames: 'policyAppIdLabel',
+
+        content: 'policyAppId'
+    } ),
+
+    /**
+     * Input for urls value changes
+     */
+    policyAppIdInput: Ember.TextField.extend({
+        elementId: "policyAppIdInput",
+        classNames: "policyAppIdInput",
+        value: "default"
+    }),
+
+    /**
+     * HMI element Select with parameters of transmission state from VehicleInfo
+     * Model
+     */
+    appIDSelect: Em.Select.extend( {
+
+        elementId: 'appIDSelect',
+
+        classNames: 'appIDSelect',
+
+        contentBinding: 'this.appIDList',
+
+        appIDList: function() {
+
+            var list = [];
+
+            for (var i = 0; i < SDL.SDLModel.registeredApps.length; i++) {
+
+                list.addObject(SDL.SDLModel.registeredApps[i].appID);
+                this.selection = list[0];
+            }
+
+            list.addObject("");
+
+            return list;
+
+        }.property('SDL.SDLModel.registeredApps.@each'),
+
+        valueBinding: 'SDL.SDLVehicleInfoModel.prndlSelectState'
+    } ),
+
+    /**
+     * Button to send OnEmergencyEvent to SDL
+     */
+    sendButton: SDL.Button.extend( {
+        classNames: 'button sendButton',
+        text: 'Send OnSystemRequest',
+        action: function (element) {
+
+            var container = [];
+
+            container[0] = {
+                "url": element._parentView.urlsInput.value
+            };
+
+            if (element._parentView.appIDSelect.selection) {
+
+                container[0].appID = element._parentView.appIDSelect.selection;
+            }
+
+            if (element._parentView.policyAppIdInput.value) {
+
+                container[0].policyAppID = element._parentView.policyAppIdInput.value;
+            }
+
+            SDL.SettingsController.GetUrlsHandler(container);
+        },
+        onDown: false
+    }),
 
     /**
      * Trigger function that activates and deactivates tbtClientStateView

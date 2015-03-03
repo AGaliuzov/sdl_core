@@ -294,6 +294,44 @@ SDL.SettingsController = Em.Object.create( {
         SDL.SettingsController.currentDeviceAllowance = null;
     },
 
+    GetUrlsHandler: function(urls) {
+
+        var url;
+
+        for (i in urls) {
+
+            if (urls.hasOwnProperty(i)) {
+
+
+                url = urls[i];
+
+                if ("policyAppID" in url && "appID" in url) {
+
+                    FFW.BasicCommunication.OnSystemRequest(
+                        "PROPRIETARY",
+                        SDL.SettingsController.policyUpdateFile,
+                        url.url,
+                        url.appID,
+                        url.policyAppID
+                    );
+                } else if ( (!("appID" in url) && ("policyAppID" in url) )
+                    || ( ("appID" in url) && !("policyAppID" in url) ) ) {
+
+                    console.error("WARNING! No appID or policyAppID in GetURLs response");
+                } else {
+
+                    FFW.BasicCommunication.OnSystemRequest(
+                        "PROPRIETARY",
+                        SDL.SettingsController.policyUpdateFile,
+                        url.url,
+                        null,
+                        "default"
+                    );
+                }
+            }
+        }
+    },
+
     /**
      * Method responsible for PolicyUpdate retry sequence
      * abort parameter if set to true means that retry sequence if finished
@@ -315,9 +353,10 @@ SDL.SettingsController = Em.Object.create( {
                 function(){
                     FFW.BasicCommunication.OnSystemRequest(
                         "PROPRIETARY",
-                        SDL.SDLModel.policyURLs[0].policyAppId,
                         SDL.SettingsController.policyUpdateFile,
-                        SDL.SDLModel.policyURLs[0].url
+                        SDL.SDLModel.policyURLs[0].url,
+                        SDL.SDLModel.policyURLs[0].appID,
+                        SDL.SDLModel.policyURLs[0].policyAppId
                     );
                     SDL.SettingsController.policyUpdateRetry();
                 }, SDL.SDLModel.policyUpdateRetry.oldTimer
