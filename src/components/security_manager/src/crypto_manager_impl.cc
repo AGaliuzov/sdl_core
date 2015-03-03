@@ -76,10 +76,9 @@ CryptoManagerImpl::~CryptoManagerImpl() {
   LOG4CXX_DEBUG(logger_, "Deinitilization");
   if (!context_) {
     LOG4CXX_WARN(logger_, "Manager is not initialized");
-    return;
+  } else {
+    SSL_CTX_free(context_);
   }
-  SSL_CTX_free(context_);
-  context_ = NULL;
   instance_count_--;
   if (instance_count_ == 0) {
     LOG4CXX_DEBUG(logger_, "Openssl engine deinitialization");
@@ -99,7 +98,7 @@ bool CryptoManagerImpl::Init(Mode mode,
   mode_ = mode;
   verify_peer_ = verify_peer;
   ca_certificate_file_ = ca_certificate_file;
-  LOG4CXX_DEBUG(logger_, (mode_ == SERVER ? "Server" : "Client") << "mode");
+  LOG4CXX_DEBUG(logger_, (mode_ == SERVER ? "Server" : "Client") << " mode");
   LOG4CXX_DEBUG(logger_, "Peer verification " << (verify_peer_? "enabled" : "disabled"));
   LOG4CXX_DEBUG(logger_, "CA certificate file is \"" << ca_certificate_file_ << '"');
 
@@ -228,7 +227,7 @@ bool CryptoManagerImpl::OnCertificateUpdated(const std::string &data) {
   if (!ca_certificate_file.good()) {
     LOG4CXX_ERROR( logger_,
                   "Couldn't write certificate file \""
-                  << ca_certificate_file << '"');
+                  << ca_certificate_file_ << '"');
     return false;
   }
   ca_certificate_file << data;

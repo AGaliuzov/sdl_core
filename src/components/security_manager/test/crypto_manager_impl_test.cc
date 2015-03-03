@@ -56,7 +56,7 @@ namespace crypto_manager_test {
 
 class CryptoManagerTest : public testing::Test {
  protected:
-  void SetUp() OVERRIDE{
+  void SetUp() OVERRIDE {
     crypto_manager = new security_manager::CryptoManagerImpl();
   }
   void TearDown() OVERRIDE {
