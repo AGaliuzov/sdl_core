@@ -294,6 +294,12 @@ SDL.SettingsController = Em.Object.create( {
         SDL.SettingsController.currentDeviceAllowance = null;
     },
 
+    /**
+     * Method to check Array of ServiceInfo structure from HMI_API.xml
+     * And verify what OnSystemRequest should be sent
+     *
+     * @param {Object} urls
+     */
     GetUrlsHandler: function(urls) {
 
         var url;
@@ -305,7 +311,7 @@ SDL.SettingsController = Em.Object.create( {
 
                 url = urls[i];
 
-                if ("policyAppID" in url && "appID" in url) {
+                if ("policyAppID" in url && "appID" in url) { //If policyAppID and appID presented in arguments than all datashould be sent
 
                     FFW.BasicCommunication.OnSystemRequest(
                         "PROPRIETARY",
@@ -315,11 +321,14 @@ SDL.SettingsController = Em.Object.create( {
                         url.policyAppID
                     );
                 } else if ( (!("appID" in url) && ("policyAppID" in url) )
-                    || ( ("appID" in url) && !("policyAppID" in url) ) ) {
+                    || ( ("appID" in url) && !("policyAppID" in url) ) ) {  //If policyAppID or appID in not presented
+                                                                            // than error message should appear and
+                                                                            // no notification should be sent
 
                     console.error("WARNING! No appID or policyAppID in GetURLs response");
                 } else {
-
+                                                                            //if there is only url in arguments than default
+                                                                            //data should be sent to SDL Core
                     FFW.BasicCommunication.OnSystemRequest(
                         "PROPRIETARY",
                         SDL.SettingsController.policyUpdateFile,

@@ -102,7 +102,7 @@ SDL.SystemRequest = Em.ContainerView.create( {
     } ),
 
     /**
-     * Title of VehicleInfo PopUp view
+     * Label for URLs Input
      */
     urlsLabel: SDL.Label.extend( {
 
@@ -123,7 +123,7 @@ SDL.SystemRequest = Em.ContainerView.create( {
     }),
 
     /**
-     * Title of VehicleInfo PopUp view
+     * Label for policyAppId Input
      */
     policyAppIdLabel: SDL.Label.extend( {
 
@@ -135,7 +135,7 @@ SDL.SystemRequest = Em.ContainerView.create( {
     } ),
 
     /**
-     * Input for urls value changes
+     * Input for policyAppId value changes
      */
     policyAppIdInput: Ember.TextField.extend({
         elementId: "policyAppIdInput",
@@ -144,8 +144,7 @@ SDL.SystemRequest = Em.ContainerView.create( {
     }),
 
     /**
-     * HMI element Select with parameters of transmission state from VehicleInfo
-     * Model
+     * HMI element Select with parameters of registered applications id's
      */
     appIDSelect: Em.Select.extend( {
 
@@ -175,7 +174,7 @@ SDL.SystemRequest = Em.ContainerView.create( {
     } ),
 
     /**
-     * Button to send OnEmergencyEvent to SDL
+     * Button to send OnSystemRequest notification to SDL
      */
     sendButton: SDL.Button.extend( {
         classNames: 'button sendButton',
