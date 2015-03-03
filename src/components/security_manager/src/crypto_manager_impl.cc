@@ -58,9 +58,11 @@ CryptoManagerImpl::CryptoManagerImpl()
     : context_(NULL),
       mode_(CLIENT),
       verify_peer_(false){
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(instance_lock_);
   instance_count_++;
   if (instance_count_ == 1) {
+    LOG4CXX_DEBUG(logger_, "Openssl engine initialization");
     SSL_load_error_strings();
     ERR_load_BIO_strings();
     OpenSSL_add_all_algorithms();
@@ -80,6 +82,7 @@ CryptoManagerImpl::~CryptoManagerImpl() {
   context_ = NULL;
   instance_count_--;
   if (instance_count_ == 0) {
+    LOG4CXX_DEBUG(logger_, "Openssl engine deinitialization");
     EVP_cleanup();
     ERR_free_strings();
   }
@@ -92,9 +95,13 @@ bool CryptoManagerImpl::Init(Mode mode,
                              const std::string &ciphers_list,
                              const bool verify_peer,
                              const std::string &ca_certificate_file) {
+  LOG4CXX_AUTO_TRACE(logger_);
   mode_ = mode;
   verify_peer_ = verify_peer;
   ca_certificate_file_ = ca_certificate_file;
+  LOG4CXX_DEBUG(logger_, (mode_ == SERVER ? "Server" : "Client") << "mode");
+  LOG4CXX_DEBUG(logger_, "Peer verification " << (verify_peer_? "enabled" : "disabled"));
+  LOG4CXX_DEBUG(logger_, "CA certificate file is \"" << ca_certificate_file_ << '"');
 
   const bool is_server = (mode == SERVER);
 #if OPENSSL_VERSION_NUMBER < CONST_SSL_METHOD_MINIMAL_VERSION
