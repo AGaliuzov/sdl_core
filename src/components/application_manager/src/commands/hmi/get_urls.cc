@@ -79,7 +79,7 @@ void GetUrls::Run() {
              ApplicationSharedPtr app = ApplicationManagerImpl::instance()->
                  application_by_policy_id(endpoints[i].app_id);
              if (app) {
-               service_info[strings::app_id] = app->app_id();
+               service_info[strings::app_id] = app->hmi_app_id();
              }
           }
         }

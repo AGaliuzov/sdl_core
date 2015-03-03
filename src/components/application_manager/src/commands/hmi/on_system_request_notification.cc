@@ -60,16 +60,27 @@ void OnSystemRequestNotification::Run() {
   params[strings::function_id] =
     static_cast<int32_t>(mobile_apis::FunctionID::eType::OnSystemRequestID);
 
-  const std::string policy_app_id = msg_params[strings::policy_app_id].asString();
-  const uint32_t app_id = msg_params[strings::app_id].asUInt();
+  std::string policy_app_id = strings::default_app_id;
+  if (msg_params.keyExists(strings::policy_app_id)) {
+    policy_app_id = msg_params[strings::policy_app_id].asString();
+  }
+
+  // According to HMI API, this should be HMI unique id, but during processing
+  // messages from HMI this param is replaced by connection key, so below it
+  // will be treated as connection key
+  uint32_t app_id = 0;
+  if (msg_params.keyExists(strings::app_id)) {
+    app_id = msg_params[strings::app_id].asUInt();
+  }
+
   LOG4CXX_DEBUG(logger_, "Received OnSystemRequest for " << policy_app_id );
 
-  if (strings::default_app_id == policy_app_id) {
+  if (strings::default_app_id == policy_app_id && !app_id) {
     PolicyHandler* policy_handler = PolicyHandler::instance();
     uint32_t selected_app_id = policy_handler->GetAppIdForSending();
     if (0 == selected_app_id) {
       LOG4CXX_WARN(logger_,
-                   "Can't select application to forward OnSystemRequestNotification");
+                   "Can't select application to forward OnSystemRequest");
       return;
     }
     ApplicationManagerImpl* app_mgr = ApplicationManagerImpl::instance();
@@ -80,13 +91,16 @@ void OnSystemRequestNotification::Run() {
     }
     params[strings::connection_key] = selected_app_id;
   } else {
+    ApplicationSharedPtr app =
+        policy_app_id == strings::default_app_id
+        ? ApplicationManagerImpl::instance()->application(app_id)
+        : ApplicationManagerImpl::instance()->
+          application_by_policy_id(policy_app_id);
 
-    ApplicationSharedPtr app = policy_app_id.empty() ?
-          ApplicationManagerImpl::instance()->application(app_id) :
-      ApplicationManagerImpl::instance()->application_by_policy_id(policy_app_id);
     if (!app.valid()) {
-      LOG4CXX_WARN(logger_, "Application with id " << policy_app_id
-                   << " is not registered.");
+      LOG4CXX_WARN(logger_, "Application with policy id " << policy_app_id
+                   << " and connection key " << app_id <<
+                   "is not registered.");
       return;
     }
     params[strings::connection_key] = app->app_id();

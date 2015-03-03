@@ -2042,7 +2042,7 @@
       <param name="policyAppID" type="String" maxlength="50" minlength="1" mandatory="false">
         <description>Internal ID of the application that corresponds to the policyAppID</description>
       </param>
-      <param name="appID" type="Integer" mandatory="false">
+      <param name="appID" type="Integer" mandatory="true">
         <description>Internal ID of the application that requested this RPC.</description>
       </param>
     </function>
