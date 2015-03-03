@@ -89,7 +89,7 @@ void OnAppDeactivatedNotification::Run() {
   }
 
   if (Common_DeactivateReason::AUDIO == deactivate_reason) {
-    if (app->is_media_application()) {
+    if (app->is_media_application() && !(app->is_navi())) {
       if (profile::Profile::instance()->is_mixing_audio_supported() &&
           (ApplicationManagerImpl::instance()->vr_session_started() ||
           app->tts_speak_state())) {
@@ -97,6 +97,10 @@ void OnAppDeactivatedNotification::Run() {
       } else {
         app->set_audio_streaming_state(AudioStreamingState::NOT_AUDIBLE);
       }
+      ApplicationManagerImpl::instance()->
+          ChangeAppsHMILevel(app->app_id(), HMILevel::HMI_BACKGROUND);
+      MessageHelper::SendHMIStatusNotification(*app);
+      return;
     }
   }
   ApplicationManagerImpl::instance()->DeactivateApplication(app);

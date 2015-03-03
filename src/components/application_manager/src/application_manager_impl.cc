@@ -551,8 +551,7 @@ void ApplicationManagerImpl::DeactivateApplication(ApplicationSharedPtr app) {
 
   using namespace mobile_apis::HMILevel;
 
-  if (app->IsAudioApplication() && !(ApplicationManagerImpl::instance()->
-          IsAppTypeExistsInFullOrLimited(app))) {
+  if (app->IsAudioApplication() && !IsAppTypeExistsInFullOrLimited(app)) {
     ChangeAppsHMILevel(app->app_id(), HMI_LIMITED);
   } else {
     ChangeAppsHMILevel(app->app_id(), HMI_BACKGROUND);
