@@ -496,10 +496,6 @@ bool ApplicationManagerImpl::ActivateApplication(ApplicationSharedPtr app) {
   bool is_new_app_voice = app->is_voice_communication_supported();
   bool is_new_app_navi = app->is_navi();
 
-  ApplicationSharedPtr limited_media_app = get_limited_media_application();
-  ApplicationSharedPtr limited_voice_app = get_limited_voice_application();
-  ApplicationSharedPtr limited_navi_app = get_limited_navi_application();
-
   ApplicationSharedPtr current_active_app = active_application();
   if (current_active_app.valid()) {
     if (is_new_app_media && current_active_app->is_media_application()) {
@@ -512,15 +508,20 @@ bool ApplicationManagerImpl::ActivateApplication(ApplicationSharedPtr app) {
 
   MakeAppFullScreen(app->app_id());
 
-  if (is_new_app_media) {
-    if (limited_media_app.valid()) {
-      if (!limited_media_app->is_navi()) {
-        MakeAppNotAudible(limited_media_app->app_id());
-        MessageHelper::SendHMIStatusNotification(*limited_media_app);
-      } else {
-        app->set_audio_streaming_state(AudioStreamingState::ATTENUATED);
-        MessageHelper::SendHMIStatusNotification(*app);
-      }
+  ApplicationSharedPtr limited_media_app = get_limited_media_application();
+  ApplicationSharedPtr limited_voice_app = get_limited_voice_application();
+  ApplicationSharedPtr limited_navi_app = get_limited_navi_application();
+
+  if (app->IsAudioApplication() && limited_media_app.valid()) {
+    if (limited_media_app->is_navi()) {
+      app->set_audio_streaming_state(AudioStreamingState::ATTENUATED);
+    }
+  }
+
+  if (is_new_app_media && limited_media_app.valid()) {
+    if (!limited_media_app->is_navi()) {
+      MakeAppNotAudible(limited_media_app->app_id());
+      MessageHelper::SendHMIStatusNotification(*limited_media_app);
     }
   }
 
