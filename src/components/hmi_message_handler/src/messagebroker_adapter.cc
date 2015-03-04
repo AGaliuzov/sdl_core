@@ -124,6 +124,7 @@ void MessageBrokerAdapter::SubscribeTo() {
   MessageBrokerController::subscribeTo("BasicCommunication.OnExitAllApplications");
   MessageBrokerController::subscribeTo("BasicCommunication.OnDeviceChosen");
   MessageBrokerController::subscribeTo("BasicCommunication.OnPhoneCall");
+  MessageBrokerController::subscribeTo("BasicCommunication.OnEmergencyEvent");
 #ifdef CUSTOMER_PASA
   MessageBrokerController::subscribeTo("BasicCommunication.OnAwakeSDL");
 #endif // CUSTOMER_PASA
