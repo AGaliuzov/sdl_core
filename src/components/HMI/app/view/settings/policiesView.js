@@ -87,9 +87,11 @@ SDL.PoliciesView = Em.ContainerView.create( {
             {
                 type: SDL.Button,
                 params: {
-                    text: 'Send request GetURLS',
-                    action: 'getURLS',
+                    text: 'Request GetURLS',
+                    action: 'onState',
                     target: 'SDL.SettingsController',
+                    templateName: 'arrow',
+                    goToState: 'policies.getUrls',
                     onDown: false
                 }
             },

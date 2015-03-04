@@ -647,7 +647,8 @@
 
 #VehicleInfo .odometrInput,
 #systemRequestView .urlsInput,
-#systemRequestView .policyAppIdInput{
+#systemRequestView .policyAppIdInput,
+#policies_settings_get_urls .listInput{
     width: 265px;
     position: absolute;
     top: 242px;
@@ -661,6 +662,11 @@
     color: #FFF;
     padding-left: 10px;
     padding-right: 10px;
+}
+
+#policies_settings_get_urls .listInput{
+    top: 175px;
+    left: 260px;
 }
 
 #systemRequestView .urlsInput,
@@ -690,7 +696,8 @@
 }
 
 #VehicleInfo .onEmergencyEvent,
-#systemRequestView .sendButton{
+#systemRequestView .sendButton,
+#policies_settings_get_urls .sendButton{
 	width: 265px;
 	position: absolute;
 	top: 301px;
@@ -705,6 +712,10 @@
 	padding-right: 10px;
 	line-height: 28px;
     text-align: center;
+}
+
+#policies_settings_get_urls .sendButton{
+    left: 260px;
 }
 
 #VehicleInfo .ecu1Title {

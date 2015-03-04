@@ -219,10 +219,6 @@ SDL.SettingsController = Em.Object.create( {
         FFW.BasicCommunication.UpdateSDL();
     },
 
-    getURLS: function() {
-        FFW.BasicCommunication.GetURLS();
-    },
-
     AllowSDLFunctionality: function(messages) {
 
         if (messages.length > 0) {

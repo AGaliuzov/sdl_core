@@ -580,9 +580,13 @@ FFW.BasicCommunication = FFW.RPCObserver
                 "id": this.client.generateId(),
                 "method": "SDL.GetURLS",
                 "params": {
-                    "service": type
                 }
             };
+
+            if (type) {
+                JSONMessage.params.service = type;
+            }
+
             this.client.send(JSONMessage);
         },
 

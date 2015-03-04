@@ -181,23 +181,13 @@ SDL.SystemRequest = Em.ContainerView.create( {
         text: 'Send OnSystemRequest',
         action: function (element) {
 
-            var container = [];
-
-            container[0] = {
-                "url": element._parentView.urlsInput.value
-            };
-
-            if (element._parentView.appIDSelect.selection) {
-
-                container[0].appID = element._parentView.appIDSelect.selection;
-            }
-
-            if (element._parentView.policyAppIdInput.value) {
-
-                container[0].policyAppID = element._parentView.policyAppIdInput.value;
-            }
-
-            SDL.SettingsController.GetUrlsHandler(container);
+            FFW.BasicCommunication.OnSystemRequest(
+                "PROPRIETARY",
+                SDL.SettingsController.policyUpdateFile,
+                element._parentView.urlsInput.value,
+                element._parentView.appIDSelect.selection,
+                element._parentView.policyAppIdInput.value
+            );
         },
         onDown: false
     }),
