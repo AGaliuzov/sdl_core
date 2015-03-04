@@ -185,6 +185,7 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
   }
 
   const int handshake_result = SSL_do_handshake(connection_);
+  LOG4CXX_DEBUG(logger_, "Do handshake result is " << handshake_result);
   if (handshake_result == 1) {
     LOG4CXX_DEBUG(logger_, "SSL handshake successfully finished");
     // Handshake is successful
@@ -216,8 +217,9 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
   }
 
   const size_t pend = BIO_ctrl_pending(bioOut_);
+  LOG4CXX_DEBUG(logger_, "Available " << pend << " bytes for handshake");
 
-  if (pend) {
+  if (pend > 0) {
     LOG4CXX_DEBUG(logger_, "Reading handshake data");
     EnsureBufferSizeEnough(pend);
 
