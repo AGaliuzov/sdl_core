@@ -123,6 +123,7 @@ class MmeClientListener : public ClientConnectionListener {
     NotifyThreadDelegate(mqd_t event_mqd, mqd_t ack_mqd,
                          MmeClientListener* parent);
     virtual void threadMain();
+    virtual void exitThreadMain();
 
    private:
     static const int kBufferSize = MAX_QUEUE_MSG_SIZE;
