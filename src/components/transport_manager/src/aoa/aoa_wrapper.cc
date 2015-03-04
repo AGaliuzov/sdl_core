@@ -53,6 +53,22 @@ static void OnConnectedDevice(aoa_hdl_t *hdl, const void *udata) {
 static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
                            uint32_t status, const void *udata) {
   LOG4CXX_AUTO_TRACE(logger_);
+
+  int ret = aoa_bulk_arx(hdl,
+                         OnReceivedData,
+                         udata,
+                         AOA_EPT_ACCESSORY_BULKIN,
+                         AOA_TIMEOUT_INFINITY,
+                         data,
+                         AOAWrapper::kBufferSize,
+                         AOA_FLAG_MANAGED_BUF);
+  if (AOA_EOK == ret) {
+    LOG4CXX_DEBUG(logger_, "AOA: data receive callback reregistered");
+  }
+  else {
+    LOG4CXX_ERROR(logger_, "AOA: could not reregister data receive callback, error = " << ret);
+  }
+
   LOG4CXX_DEBUG(logger_, "AOA: received data from device " << hdl);
   bool error = AOAWrapper::IsError(status);
   if (error) {
@@ -280,7 +296,7 @@ AOAVersion AOAWrapper::GetProtocolVesrion() const {
   return Version(version);
 }
 
-uint32_t AOAWrapper::BitEndpoint(AOAEndpoint endpoint) const {
+uint32_t AOAWrapper::BitEndpoint(AOAEndpoint endpoint) {
   const uint32_t kUndefined = 0;
   switch (endpoint) {
     case AOA_Ept_Accessory_BulkIn:
@@ -399,7 +415,7 @@ bool AOAWrapper::SendControlMessage(uint16_t request, uint16_t value,
 }
 
 ::protocol_handler::RawMessagePtr AOAWrapper::ReceiveMessage() const {
-  LOG4CXX_TRACE(logger_, "AOA: receive from endpoint");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   if (!IsHandleValid()) {
     OnDied(hdl_);
@@ -407,13 +423,17 @@ bool AOAWrapper::SendControlMessage(uint16_t request, uint16_t value,
     return ::protocol_handler::RawMessagePtr();
   }
 
-  uint8_t *data;
+  uint8_t* data;
   uint32_t size;
-  int ret = aoa_bulk_rx(hdl_, AOA_EPT_ACCESSORY_BULKIN, timeout_, &data, &size, AOA_FLAG_MANAGED_BUF);
+  LOG4CXX_TRACE(logger_, "AOA: receiving bulk data");
+  int ret = aoa_bulk_rx(hdl_, AOA_EPT_ACCESSORY_BULKIN, timeout_, &data, &size, 0);
   if (IsError(ret)) {
     PrintError(ret);
-  } else if (data) {
-    return ::protocol_handler::RawMessagePtr(new ::protocol_handler::RawMessage(0, 0, data, size));
+  } else {
+      LOG4CXX_DEBUG(logger_, "AOA: bulk data received");
+      if (data) {
+        return ::protocol_handler::RawMessagePtr(new ::protocol_handler::RawMessage(0, 0, data, size));
+      }
   }
   return ::protocol_handler::RawMessagePtr();
 }

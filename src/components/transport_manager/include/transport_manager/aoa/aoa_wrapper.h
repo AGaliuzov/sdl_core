@@ -108,9 +108,11 @@ class AOAWrapper {
   ::protocol_handler::RawMessagePtr ReceiveControlMessage(uint16_t request, uint16_t value,
                                       uint16_t index) const;
 
- private:
   static const uint32_t kBufferSize = 32768;
+
+ private:
   static AOADeviceLife* life_;
+
   AOAHandle hdl_;
   uint8_t* buffer_;
   uint32_t timeout_;
@@ -122,7 +124,7 @@ class AOAWrapper {
                              usb_info_s* usb_info);
 
   inline AOAVersion Version(uint16_t version) const;
-  inline uint32_t BitEndpoint(AOAEndpoint endpoint) const;
+  inline static uint32_t BitEndpoint(AOAEndpoint endpoint);
   inline bool IsValueInMask(uint32_t bitmask, uint32_t value) const;
   std::vector<AOAMode> CreateModesList(uint32_t modes_mask) const;
   std::vector<AOAEndpoint> CreateEndpointsList(uint32_t endpoints_mask) const;
