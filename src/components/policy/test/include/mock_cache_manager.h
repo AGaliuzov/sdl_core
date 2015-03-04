@@ -55,7 +55,7 @@ class MockCacheManagerInterface : public CacheManagerInterface {
   MOCK_METHOD1(KilometersBeforeExchange,
       int(int current));
   MOCK_METHOD2(SetCountersPassedForSuccessfulUpdate,
-      bool(int kilometers, int days_after_epoch));
+      bool(Counters counter, int value));
   MOCK_METHOD1(DaysBeforeExchange,
       int(int current));
   MOCK_METHOD0(IncrementIgnitionCycles,

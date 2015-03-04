@@ -105,7 +105,7 @@ class PolicyHandler :
   int TimeoutExchange();
   void OnExceededTimeout();
   void OnSystemReady();
-  void PTUpdatedAt(int kilometers, int days_after_epoch);
+  void PTUpdatedAt(Counters counter, int value);
   void add_listener(PolicyHandlerObserver* listener);
   void remove_listener(PolicyHandlerObserver* listener);
 
@@ -371,6 +371,12 @@ protected:
    */
   void OnAppPermissionConsentInternal(const uint32_t connection_key,
                                       PermissionConsent& permissions);
+
+  /**
+   * @brief Sets days after epoch on successful policy update
+   */
+  void SetDaysAfterEpoch();
+
 private:
   class StatisticManagerImpl: public usage_statistics::StatisticsManager {
       //TODO(AKutsan) REMOVE THIS UGLY HOTFIX

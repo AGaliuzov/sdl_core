@@ -1116,12 +1116,10 @@ void PolicyManagerImpl::OnUpdateStarted() {
   cache_->SaveUpdateRequired(true);
 }
 
-void PolicyManagerImpl::PTUpdatedAt(int kilometers, int days_after_epoch) {
+void PolicyManagerImpl::PTUpdatedAt(Counters counter, int value) {
   LOG4CXX_INFO(logger_, "PTUpdatedAt");
-  LOG4CXX_INFO(logger_,
-               "Kilometers: " << kilometers << " Days: " << days_after_epoch);
   cache_->SetCountersPassedForSuccessfulUpdate(
-    kilometers, days_after_epoch);
+    counter, value);
   cache_->ResetIgnitionCycles();
 }
 

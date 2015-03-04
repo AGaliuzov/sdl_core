@@ -307,6 +307,15 @@ typedef std::map<uint32_t, std::pair<std::string, std::string> > FunctionalGroup
  */
 typedef std::vector<std::string> DeviceIds;
 
+/**
+ * @brief Counters that calculated on receiving of succesfull update
+ */
+enum Counters {
+  KILOMETERS,
+  DAYS_AFTER_EPOCH
+};
+
+
 }  //  namespace policy
 
 #endif  //  SRC_COMPONENTS_POLICY_INCLUDE_POLICY_POLICY_TYPES_H_
