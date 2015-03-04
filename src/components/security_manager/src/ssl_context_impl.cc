@@ -143,6 +143,7 @@ CryptoManagerImpl::SSLContextImpl::max_block_sizes =
 SSLContext::HandshakeResult CryptoManagerImpl::SSLContextImpl::
 DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
                 const uint8_t** const out_data, size_t* out_data_size) {
+  LOG4CXX_AUTO_TRACE(logger_);
   DCHECK(out_data);
   DCHECK(out_data_size);
   *out_data = NULL;
@@ -150,13 +151,16 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
   // TODO(Ezamakhov): add test - hanshake fail -> restart StartHandshake
   sync_primitives::AutoLock locker(bio_locker);
   if (SSL_is_init_finished(connection_)) {
+    LOG4CXX_DEBUG(logger_, "SSL initilization is finished");
     is_handshake_pending_ = false;
     return SSLContext::Handshake_Result_Success;
   }
 
   if (in_data && in_data_size) {
+    LOG4CXX_DEBUG(logger_, "Handling " << in_data_size << " bytes");
     const int ret = BIO_write(bioIn_, in_data, in_data_size);
     if (ret <= 0) {
+      LOG4CXX_WARN(logger_, "BIO write fail");
       is_handshake_pending_ = false;
       ResetConnection();
       return SSLContext::Handshake_Result_AbnormalFail;
@@ -182,6 +186,7 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
 
   const int handshake_result = SSL_do_handshake(connection_);
   if (handshake_result == 1) {
+    LOG4CXX_DEBUG(logger_, "SSL handshake successfully finished");
     // Handshake is successful
     bioFilter_ = BIO_new(BIO_f_ssl());
     BIO_set_ssl(bioFilter_, connection_, BIO_NOCLOSE);
@@ -213,6 +218,7 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
   const size_t pend = BIO_ctrl_pending(bioOut_);
 
   if (pend) {
+    LOG4CXX_DEBUG(logger_, "Reading handshake data");
     EnsureBufferSizeEnough(pend);
 
     const int read_count = BIO_read(bioOut_, buffer_, pend);
@@ -220,6 +226,7 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
       *out_data_size = read_count;
       *out_data =  buffer_;
     } else {
+      LOG4CXX_WARN(logger_, "BIO read fail");
       is_handshake_pending_ = false;
       ResetConnection();
       return SSLContext::Handshake_Result_AbnormalFail;
