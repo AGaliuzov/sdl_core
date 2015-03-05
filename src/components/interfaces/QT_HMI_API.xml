@@ -1109,7 +1109,7 @@
       <param name="url" type="String" mandatory="true">
         <description>Get URL based on service type.</description>
       </param>
-      <param name="policyAppId" type="String" mandatory="false">
+      <param name="policyAppID" type="String" mandatory="false">
         <description>Used if URL needed are specific for application.</description>
       </param>
       <param name="appID" type="Integer" mandatory="false">
