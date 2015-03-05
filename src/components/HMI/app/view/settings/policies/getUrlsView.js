@@ -77,7 +77,14 @@ SDL.GetUrlsView = Em.ContainerView.create( {
         text: 'Send GetURLs request',
         action: function (element) {
 
-            FFW.BasicCommunication.GetURLS(element._parentView.listInput.value);
+            var temp = parseInt(element._parentView.listInput.value);
+
+            if (!isNaN(temp) && element._parentView.listInput.value.match(/^[0-9]+$/) != null) {
+                FFW.BasicCommunication.GetURLS(temp);
+            } else {
+                FFW.BasicCommunication.GetURLS(element._parentView.listInput.value);
+            }
+
         },
         onDown: false
     }),
