@@ -293,7 +293,7 @@ void CacheManager::GetUnconsentedGroups(const std::string& device_id,
           pt_->policy_table.functional_groupings.find(*iter_groups);
       // Try to find app-specific group in common groups list;
       if (pt_->policy_table.functional_groupings.end() != func_groups) {
-        // Check if groups has user consents field.
+        // Check if groups have user consents field.
         if (func_groups->second.user_consent_prompt.is_initialized()) {
           // Try to find certain group among already consented groups.
           policy_table::DeviceData::const_iterator device_iter =
