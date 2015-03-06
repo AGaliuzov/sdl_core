@@ -37,7 +37,6 @@ include_directories(
   ${COMPONENTS_DIR}/formatters/include
   ${COMPONENTS_DIR}/formatters/test/include
   ${CMAKE_BINARY_DIR}/src/components/interfaces
-  ${CMAKE_BINARY_DIR}/src/components/smart_objects/include
 )
 
 set(LIBRARIES
