@@ -137,7 +137,6 @@ bool RequestInfoSet::Add(RequestInfoPtr request_info) {
   }
   LOG4CXX_DEBUG(logger_, "Add request app_id = " << request_info->app_id()
                 << "; corr_id = " << request_info->requestId());
-
   sync_primitives::AutoLock lock(this_lock_);
   CheckSetSizes();
   const std::pair<HashSortedRequestInfoSet::iterator, bool>& insert_resilt =
