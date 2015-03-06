@@ -1,4 +1,4 @@
-# Copyright (c) 2014, Ford Motor Company
+# Copyright (c) 2015, Ford Motor Company
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -37,23 +37,25 @@ include_directories(
   ${COMPONENTS_DIR}/formatters/include
   ${COMPONENTS_DIR}/formatters/test/include
   ${CMAKE_BINARY_DIR}/src/components/interfaces
+  ${CMAKE_SOURCE_DIR}/src/3rd_party-static/jsoncpp/include
 )
 
 set(LIBRARIES
-    gmock 
-    HMI_API
-    MOBILE_API
-    SmartObjects
-    formatters
-    jsoncpp
+  gmock 
+  HMI_API
+  MOBILE_API
+  SmartObjects
+  formatters
+  jsoncpp
 )
 
 set(SOURCES
-${COMPONENTS_DIR}/formatters/test/src/SmartFactoryTestHelper.cc
-${COMPONENTS_DIR}/formatters/test/CSmartFactory_test.cc
-${COMPONENTS_DIR}/formatters/test/generic_json_formatter_test.cc
-${COMPONENTS_DIR}/formatters/test/formatter_json_rpc_test.cc
-${COMPONENTS_DIR}/formatters/test/main.cc
+  ${COMPONENTS_DIR}/formatters/test/src/SmartFactoryTestHelper.cc
+  ${COMPONENTS_DIR}/formatters/test/CSmartFactory_test.cc
+  ${COMPONENTS_DIR}/formatters/test/CFormatterJsonBase_test.cc
+  ${COMPONENTS_DIR}/formatters/test/generic_json_formatter_test.cc
+  ${COMPONENTS_DIR}/formatters/test/formatter_json_rpc_test.cc
+  ${COMPONENTS_DIR}/formatters/test/main.cc
 )
 
 create_test("formatters_test" "${SOURCES}" "${LIBRARIES}")
