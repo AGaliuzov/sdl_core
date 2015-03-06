@@ -41,6 +41,8 @@ include_directories(
 
 set(LIBRARIES
     gmock 
+    HMI_API
+    MOBILE_API
     SmartObjects
     formatters
     jsoncpp
@@ -50,6 +52,7 @@ set(SOURCES
 ${COMPONENTS_DIR}/formatters/test/src/SmartFactoryTestHelper.cc
 ${COMPONENTS_DIR}/formatters/test/CSmartFactory_test.cc
 ${COMPONENTS_DIR}/formatters/test/generic_json_formatter_test.cc
+${COMPONENTS_DIR}/formatters/test/formatter_json_rpc_test.cc
 ${COMPONENTS_DIR}/formatters/test/main.cc
 )
 
