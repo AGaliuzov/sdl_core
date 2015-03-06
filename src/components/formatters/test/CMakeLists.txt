@@ -35,6 +35,8 @@ include_directories(
   ${GMOCK_INCLUDE_DIRECTORY}
   ${COMPONENTS_DIR}/smart_objects/include
   ${COMPONENTS_DIR}/formatters/include
+  ${COMPONENTS_DIR}/formatters/test/include
+  ${CMAKE_BINARY_DIR}/src/components/interfaces
 )
 
 set(LIBRARIES
@@ -45,10 +47,12 @@ set(LIBRARIES
 )
 
 set(SOURCES
+${COMPONENTS_DIR}/formatters/test/src/SmartFactoryTestHelper.cc
+${COMPONENTS_DIR}/formatters/test/CSmartFactory_test.cc
 ${COMPONENTS_DIR}/formatters/test/generic_json_formatter_test.cc
 ${COMPONENTS_DIR}/formatters/test/main.cc
 )
 
-create_test("generic_json_formatter_test" "${SOURCES}" "${LIBRARIES}")
+create_test("formatters_test" "${SOURCES}" "${LIBRARIES}")
 
 endif()
