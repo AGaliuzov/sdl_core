@@ -32,8 +32,6 @@
 
 #include "transport_manager/aoa/aoa_wrapper.h"
 
-#include <aoa/aoa.h>
-
 #include "utils/macro.h"
 #include "utils/logger.h"
 
@@ -54,21 +52,6 @@ static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
                            uint32_t status, const void *udata) {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  int ret = aoa_bulk_arx(hdl,
-                         OnReceivedData,
-                         udata,
-                         AOA_EPT_ACCESSORY_BULKIN,
-                         AOA_TIMEOUT_INFINITY,
-                         data,
-                         AOAWrapper::kBufferSize,
-                         AOA_FLAG_MANAGED_BUF);
-  if (AOA_EOK == ret) {
-    LOG4CXX_DEBUG(logger_, "AOA: data receive callback reregistered");
-  }
-  else {
-    LOG4CXX_ERROR(logger_, "AOA: could not reregister data receive callback, error = " << ret);
-  }
-
   LOG4CXX_DEBUG(logger_, "AOA: received data from device " << hdl);
   bool error = AOAWrapper::IsError(status);
   if (error) {
@@ -82,7 +65,7 @@ static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
   if (!AOAWrapper::IsHandleValid(hdl) || (status == AOA_EINVALIDHDL)) {
     AOAWrapper::OnDied(hdl);
     observer->OnDisconnected();
-    return;
+    return;  // TODO(nvaganov@luxoft.com) need to move reregister before this return
   }
 
   bool success = !error;
@@ -94,37 +77,13 @@ static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
     success = false;
   }
   observer->OnMessageReceived(success, message);
-}
 
-static void OnTransmittedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
-                              uint32_t status, const void *udata) {
-  LOG4CXX_AUTO_TRACE(logger_);
-  LOG4CXX_DEBUG(
-      logger_,
-      "AOA: transmitted data to device " << hdl << ", size=" << sz << ", data=" << data);
-  bool error = AOAWrapper::IsError(status);
-  if (error) {
-    AOAWrapper::PrintError(status);
+  aoa_buffer_free(hdl, data);
+  if (AOAWrapper::SetCallback(hdl, udata, AOA_TIMEOUT_INFINITY, AOA_Ept_Accessory_BulkIn)) {
+    LOG4CXX_DEBUG(logger_, "AOA: data receive callback reregistered");
   }
-
-  bool success = !error;
-  ::protocol_handler::RawMessagePtr message;
-  if (data) {
-    message = new ::protocol_handler::RawMessage(0, 0, data, sz);
-  } else {
-    // TODO(KKolodiy): data is allways null now
-    LOG4CXX_ERROR(logger_, "AOA: data is null");
-    success = false;
-  }
-
-  AOAConnectionObserver* const * p =
-      static_cast<AOAConnectionObserver* const *>(udata);
-  AOAConnectionObserver* observer = *p;
-  observer->OnMessageTransmitted(success, message);
-
-  if (!AOAWrapper::IsHandleValid(hdl) || (status == AOA_EINVALIDHDL)) {
-    AOAWrapper::OnDied(hdl);
-    observer->OnDisconnected();
+  else {
+    LOG4CXX_ERROR(logger_, "AOA: could not reregister data receive callback, error = " << ret);
   }
 }
 
@@ -134,18 +93,12 @@ AOAWrapper::AOAWrapper(AOAHandle hdl)
     : hdl_(hdl),
       timeout_(AOA_TIMEOUT_INFINITY),
       connection_observer_(0) {
-  aoa_buffer_alloc(hdl_, &buffer_, kBufferSize);
 }
 
 AOAWrapper::AOAWrapper(AOAHandle hdl, uint32_t timeout)
     : hdl_(hdl),
       timeout_(timeout),
       connection_observer_(0) {
-  aoa_buffer_alloc(hdl_, &buffer_, kBufferSize);
-}
-
-AOAWrapper::~AOAWrapper() {
-  aoa_buffer_free(hdl_, buffer_);
 }
 
 bool AOAWrapper::Init(AOADeviceLife *life) {
@@ -183,29 +136,23 @@ bool AOAWrapper::Init(AOADeviceLife* life, const char* config_path,
 }
 
 bool AOAWrapper::SetCallback(AOAEndpoint endpoint) const {
+  return SetCallback(hdl_, &connection_observer_, timeout_, endpoint);
+}
+
+bool AOAWrapper::SetCallback(aoa_hdl_t* hdl, const void* udata, uint32_t timeout, AOAEndpoint endpoint) {
   LOG4CXX_TRACE(logger_,
-                "AOA: set callback " << hdl_ << ", endpoint " << endpoint);
+                "AOA: set callback " << hdl << ", endpoint " << endpoint);
   int ret;
   switch (endpoint) {
     case AOA_Ept_Accessory_BulkIn:
-      ret = aoa_bulk_arx(hdl_,
+      ret = aoa_bulk_arx(hdl,
                          OnReceivedData,
-                         &connection_observer_,
+                         udata,
                          BitEndpoint(AOA_Ept_Accessory_BulkIn),
-                         timeout_,
-                         buffer_,
+                         timeout,
+                         0,
                          kBufferSize,
-                         AOA_FLAG_MANAGED_BUF);
-      break;
-    case AOA_Ept_Accessory_BulkOut:
-      ret = aoa_bulk_atx(hdl_,
-                         OnTransmittedData,
-                         &connection_observer_,
-                         BitEndpoint(AOA_Ept_Accessory_BulkOut),
-                         timeout_,
-                         buffer_,
-                         kBufferSize,
-                         AOA_FLAG_MANAGED_BUF);
+                         0);
       break;
     default:
       LOG4CXX_ERROR(
@@ -227,13 +174,6 @@ bool AOAWrapper::Subscribe(AOAConnectionObserver *observer) {
     return false;
   }
   ReceiveMessage();
-
-  // TODO(KKolodiy): these lines have been committed because
-  // callback return "data" is null now
-  //  LOG4CXX_TRACE(logger_, "AOA: subscribe on transmit data " << hdl_);
-  //  if (!SetCallback(AOA_Ept_Accessory_BulkOut)) {
-  //    return false;
-  //  }
   return true;
 }
 

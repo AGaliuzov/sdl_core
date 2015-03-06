@@ -37,10 +37,9 @@
 #include <vector>
 #include <string>
 
-#include "protocol/common.h"
+#include <aoa/aoa.h>
 
-struct aoa_hdl_s;
-struct usb_info_s;
+#include "protocol/common.h"
 
 namespace transport_manager {
 namespace transport_adapter {
@@ -92,7 +91,6 @@ class AOAWrapper {
 
   explicit AOAWrapper(AOAHandle hdl);
   AOAWrapper(AOAHandle hdl, uint32_t timeout);
-  ~AOAWrapper();
 
   bool IsHandleValid() const;
   AOAVersion GetProtocolVesrion() const;
@@ -109,12 +107,12 @@ class AOAWrapper {
                                       uint16_t index) const;
 
   static const uint32_t kBufferSize = 32768;
+  static bool SetCallback(aoa_hdl_t* hdl, const void* udata, uint32_t timeout, AOAEndpoint endpoint);
 
  private:
   static AOADeviceLife* life_;
 
   AOAHandle hdl_;
-  uint8_t* buffer_;
   uint32_t timeout_;
   AOAConnectionObserver* connection_observer_;
 
