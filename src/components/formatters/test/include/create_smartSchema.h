@@ -30,11 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "smart_objects/bool_schema_item.h"
-#include "smart_objects/object_schema_item.h"
-#include "smart_objects/string_schema_item.h"
-#include "smart_objects/number_schema_item.h"
 #include "formatters/CFormatterJsonSDLRPCv1.hpp"
+#include "SmartFactoryTestHelper.h"
 
 namespace test {
 namespace components {
@@ -44,23 +41,7 @@ using namespace NsSmartDeviceLink::NsJSONHandler::strings;
 using namespace NsSmartDeviceLink::NsJSONHandler::Formatters;
 using namespace NsSmartDeviceLink::NsSmartObjects;
 
-namespace TestType {
-enum eType {
-  INVALID_ENUM = -1,
-  APPLICATION_NOT_REGISTERED = 0,
-  SUCCESS,
-  TOO_MANY_PENDING_REQUESTS,
-  REJECTED,
-  INVALID_DATA,
-  OUT_OF_MEMORY,
-  ABORTED,
-  USER_DISALLOWED,
-  GENERIC_ERROR,
-  DISALLOWED
-};
-}
-
-namespace FunctionIdTest {
+namespace FunctionIDTest {
 enum eType {
   INVALID_ENUM = -1,
   RegisterAppInterface,
@@ -69,14 +50,6 @@ enum eType {
 };
 }
 
-namespace MessageTypeTest {
-enum eType {
-  INVALID_ENUM = -1,
-  request,
-  response,
-  notification
-};
-}
 CSmartSchema initObjectSchema();
 
 } // namespace formatters

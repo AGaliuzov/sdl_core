@@ -59,7 +59,7 @@ TEST(CFormatterJsonSDLRPCv2Test, SmObjWithRequestWithoutMsgNotValid_ToString) {
   srcObj.setSchema(schema);
 
   srcObj[S_PARAMS][S_MESSAGE_TYPE] = MessageTypeTest::request;
-  srcObj[S_PARAMS][S_FUNCTION_ID] = FunctionIdTest::RegisterAppInterface;
+  srcObj[S_PARAMS][S_FUNCTION_ID] = FunctionIDTest::RegisterAppInterface;
   srcObj[S_PARAMS][S_CORRELATION_ID] = 13;
   srcObj[S_PARAMS][S_PROTOCOL_TYPE] = 0;
   srcObj[S_PARAMS][S_PROTOCOL_VERSION] = 2;
@@ -81,7 +81,7 @@ TEST(CFormatterJsonSDLRPCv2Test, SmObjWithRequestWithEmptyMsgWithTestSchemaToStr
   srcObj.setSchema(schema);
 
   srcObj[S_PARAMS][S_MESSAGE_TYPE] = MessageTypeTest::request;
-  srcObj[S_PARAMS][S_FUNCTION_ID] = FunctionIdTest::RegisterAppInterface;
+  srcObj[S_PARAMS][S_FUNCTION_ID] = FunctionIDTest::RegisterAppInterface;
   srcObj[S_PARAMS][S_CORRELATION_ID] = 13;
   srcObj[S_PARAMS][S_PROTOCOL_TYPE] = 0;
   srcObj[S_PARAMS][S_PROTOCOL_VERSION] = 2;
@@ -106,7 +106,7 @@ TEST(CFormatterJsonSDLRPCv2Test, SmObjWithRequestWithNonemptyMsgWithTestSchemaTo
   srcObj.setSchema(schema);
 
   srcObj[S_PARAMS][S_MESSAGE_TYPE] = MessageTypeTest::request;
-  srcObj[S_PARAMS][S_FUNCTION_ID] = FunctionIdTest::RegisterAppInterface;
+  srcObj[S_PARAMS][S_FUNCTION_ID] = FunctionIDTest::RegisterAppInterface;
   srcObj[S_PARAMS][S_CORRELATION_ID] = 13;
   srcObj[S_PARAMS][S_PROTOCOL_TYPE] = 0;
   srcObj[S_PARAMS][S_PROTOCOL_VERSION] = 2;
@@ -172,7 +172,7 @@ TEST(CFormatterJsonSDLRPCv2Test, SmObjWithNotificationToString) {
   srcObj.setSchema(schema);
 
   srcObj[S_PARAMS][S_MESSAGE_TYPE] = MessageTypeTest::notification;
-  srcObj[S_PARAMS][S_FUNCTION_ID] = FunctionIdTest::SetGlobalProperties;
+  srcObj[S_PARAMS][S_FUNCTION_ID] = FunctionIDTest::SetGlobalProperties;
   srcObj[S_PARAMS][S_CORRELATION_ID] = 13;
   srcObj[S_PARAMS][S_PROTOCOL_TYPE] = 0;
   srcObj[S_PARAMS][S_PROTOCOL_VERSION] = 2;
@@ -196,7 +196,7 @@ TEST(CFormatterJsonSDLRPCv2Test, SmObjWithResponseToString) {
   srcObj.setSchema(schema);
 
   srcObj[S_PARAMS][S_MESSAGE_TYPE] = MessageTypeTest::response;
-  srcObj[S_PARAMS][S_FUNCTION_ID] = FunctionIdTest::RegisterAppInterface;
+  srcObj[S_PARAMS][S_FUNCTION_ID] = FunctionIDTest::RegisterAppInterface;
   srcObj[S_PARAMS][S_CORRELATION_ID] = 13;
   srcObj[S_PARAMS][S_PROTOCOL_TYPE] = 0;
   srcObj[S_PARAMS][S_PROTOCOL_VERSION] = 2;
@@ -251,15 +251,15 @@ TEST(CFormatterJsonSDLRPCv2Test, StringRequestWithoutCorIdToSmObj) {
   CSmartSchema schema = initObjectSchema();
   obj.setSchema(schema);
 
-  bool result = CFormatterJsonSDLRPCv2::fromString<FunctionIdTest::eType,
+  bool result = CFormatterJsonSDLRPCv2::fromString<FunctionIDTest::eType,
       MessageTypeTest::eType>(inputJsonString, obj,
-                              FunctionIdTest::RegisterAppInterface,
+                              FunctionIDTest::RegisterAppInterface,
                               MessageTypeTest::request);
 
   EXPECT_EQ(true, result);
   EXPECT_EQ(Errors::eType::MISSING_MANDATORY_PARAMETER, obj.validate());
   EXPECT_EQ(obj[S_PARAMS][S_MESSAGE_TYPE], MessageTypeTest::request);
-  EXPECT_EQ(obj[S_PARAMS][S_FUNCTION_ID], FunctionIdTest::RegisterAppInterface);
+  EXPECT_EQ(obj[S_PARAMS][S_FUNCTION_ID], FunctionIDTest::RegisterAppInterface);
   EXPECT_EQ(obj[S_PARAMS][S_PROTOCOL_TYPE], 0);
   EXPECT_EQ(obj[S_PARAMS][S_PROTOCOL_VERSION], 2);
   EXPECT_EQ(obj[S_MSG_PARAMS]["appName"], "some app name");
@@ -293,15 +293,15 @@ TEST(CFormatterJsonSDLRPCv2Test, StringRequestWithCorIdToSmObj) {
   CSmartSchema schema = initObjectSchema();
   obj.setSchema(schema);
   int32_t corId = 10;
-  bool result = CFormatterJsonSDLRPCv2::fromString<FunctionIdTest::eType,
+  bool result = CFormatterJsonSDLRPCv2::fromString<FunctionIDTest::eType,
       MessageTypeTest::eType>(inputJsonString, obj,
-                              FunctionIdTest::RegisterAppInterface,
+                              FunctionIDTest::RegisterAppInterface,
                               MessageTypeTest::request, corId);
 
   EXPECT_EQ(true, result);
   EXPECT_EQ(Errors::eType::OK, obj.validate());
   EXPECT_EQ(obj[S_PARAMS][S_MESSAGE_TYPE], MessageTypeTest::request);
-  EXPECT_EQ(obj[S_PARAMS][S_FUNCTION_ID], FunctionIdTest::RegisterAppInterface);
+  EXPECT_EQ(obj[S_PARAMS][S_FUNCTION_ID], FunctionIDTest::RegisterAppInterface);
   EXPECT_EQ(obj[S_PARAMS][S_CORRELATION_ID], corId);
   EXPECT_EQ(obj[S_PARAMS][S_PROTOCOL_TYPE], 0);
   EXPECT_EQ(obj[S_PARAMS][S_PROTOCOL_VERSION], 2);
@@ -327,9 +327,9 @@ TEST(CFormatterJsonSDLRPCv2Test, StringResponceWithCorIdToSmartObject) {
   CSmartSchema schema = initObjectSchema();
   obj.setSchema(schema);
   int32_t corId = 10;
-  bool result = CFormatterJsonSDLRPCv2::fromString<FunctionIdTest::eType,
+  bool result = CFormatterJsonSDLRPCv2::fromString<FunctionIDTest::eType,
       MessageTypeTest::eType>(inputJsonString, obj,
-                              FunctionIdTest::RegisterAppInterface,
+                              FunctionIDTest::RegisterAppInterface,
                               MessageTypeTest::response, corId);
   EXPECT_EQ(true, result);
 
@@ -353,14 +353,14 @@ TEST(CFormatterJsonSDLRPCv2Test, StringNotificationToSmartObject) {
   CSmartSchema schema = initObjectSchema();
   obj.setSchema(schema);
   int32_t corId = 10;
-  bool result = CFormatterJsonSDLRPCv2::fromString<FunctionIdTest::eType,
+  bool result = CFormatterJsonSDLRPCv2::fromString<FunctionIDTest::eType,
       MessageTypeTest::eType>(inputJsonString, obj,
-                              FunctionIdTest::SetGlobalProperties,
+                              FunctionIDTest::SetGlobalProperties,
                               MessageTypeTest::notification, corId);
   EXPECT_EQ(true, result);
   EXPECT_EQ(Errors::eType::OK, obj.validate());
   EXPECT_EQ(obj[S_PARAMS][S_MESSAGE_TYPE], MessageTypeTest::notification);
-  EXPECT_EQ(obj[S_PARAMS][S_FUNCTION_ID], FunctionIdTest::SetGlobalProperties);
+  EXPECT_EQ(obj[S_PARAMS][S_FUNCTION_ID], FunctionIDTest::SetGlobalProperties);
   EXPECT_EQ(obj[S_PARAMS][S_CORRELATION_ID], corId);
   EXPECT_EQ(obj[S_PARAMS][S_PROTOCOL_TYPE], 0);
   EXPECT_EQ(obj[S_PARAMS][S_PROTOCOL_VERSION], 2);
@@ -371,7 +371,7 @@ TEST(CFormatterJsonSDLRPCv2Test, MetaFormatToString) {
   SmartObject srcObj;
 
   srcObj[S_PARAMS][S_MESSAGE_TYPE] = MessageTypeTest::request;
-  srcObj[S_PARAMS][S_FUNCTION_ID] = FunctionIdTest::RegisterAppInterface;
+  srcObj[S_PARAMS][S_FUNCTION_ID] = FunctionIDTest::RegisterAppInterface;
   srcObj[S_PARAMS][S_CORRELATION_ID] = 13;
   srcObj[S_PARAMS][S_PROTOCOL_TYPE] = 0;
   srcObj[S_PARAMS][S_PROTOCOL_VERSION] = 2;

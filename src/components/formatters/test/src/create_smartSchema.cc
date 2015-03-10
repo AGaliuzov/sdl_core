@@ -40,74 +40,24 @@ using namespace NsSmartDeviceLink::NsJSONHandler::Formatters;
 using namespace NsSmartDeviceLink::NsSmartObjects;
 
 template<>
-const EnumConversionHelper<TestType::eType>::EnumToCStringMap EnumConversionHelper<
-    test::components::formatters::TestType::eType>::enum_to_cstring_map_ =
-    EnumConversionHelper<test::components::formatters::TestType::eType>::InitEnumToCStringMap();
+const EnumConversionHelper<FunctionIDTest::eType>::EnumToCStringMap EnumConversionHelper<
+    test::components::formatters::FunctionIDTest::eType>::enum_to_cstring_map_ =
+    EnumConversionHelper<test::components::formatters::FunctionIDTest::eType>::InitEnumToCStringMap();
 
 template<>
-const EnumConversionHelper<TestType::eType>::CStringToEnumMap EnumConversionHelper<
-    test::components::formatters::TestType::eType>::cstring_to_enum_map_ =
-    EnumConversionHelper<test::components::formatters::TestType::eType>::InitCStringToEnumMap();
+const EnumConversionHelper<FunctionIDTest::eType>::CStringToEnumMap EnumConversionHelper<
+    test::components::formatters::FunctionIDTest::eType>::cstring_to_enum_map_ =
+    EnumConversionHelper<test::components::formatters::FunctionIDTest::eType>::InitCStringToEnumMap();
 
 template<>
-const char* const EnumConversionHelper<TestType::eType>::cstring_values_[] = {
-    "APPLICATION_NOT_REGISTERED", "SUCCESS", "TOO_MANY_PENDING_REQUESTS",
-    "REJECTED", "INVALID_DATA", "OUT_OF_MEMORY", "ABORTED", "USER_DISALLOWED",
-    "GENERIC_ERROR", "DISALLOWED" };
-
-template<>
-const TestType::eType EnumConversionHelper<TestType::eType>::enum_values_[] = {
-    test::components::formatters::TestType::APPLICATION_NOT_REGISTERED,
-    test::components::formatters::TestType::SUCCESS,
-    test::components::formatters::TestType::TOO_MANY_PENDING_REQUESTS,
-    test::components::formatters::TestType::REJECTED,
-    test::components::formatters::TestType::INVALID_DATA,
-    test::components::formatters::TestType::OUT_OF_MEMORY,
-    test::components::formatters::TestType::ABORTED,
-    test::components::formatters::TestType::USER_DISALLOWED,
-    test::components::formatters::TestType::GENERIC_ERROR,
-    test::components::formatters::TestType::DISALLOWED };
-
-template<>
-const EnumConversionHelper<FunctionIdTest::eType>::EnumToCStringMap EnumConversionHelper<
-    test::components::formatters::FunctionIdTest::eType>::enum_to_cstring_map_ =
-    EnumConversionHelper<test::components::formatters::FunctionIdTest::eType>::InitEnumToCStringMap();
-
-template<>
-const EnumConversionHelper<FunctionIdTest::eType>::CStringToEnumMap EnumConversionHelper<
-    test::components::formatters::FunctionIdTest::eType>::cstring_to_enum_map_ =
-    EnumConversionHelper<test::components::formatters::FunctionIdTest::eType>::InitCStringToEnumMap();
-
-template<>
-const char* const EnumConversionHelper<FunctionIdTest::eType>::cstring_values_[] =
+const char* const EnumConversionHelper<FunctionIDTest::eType>::cstring_values_[] =
     { "RegisterAppInterface", "UnregisterAppInterface", "SetGlobalProperties" };
 
 template<>
-const FunctionIdTest::eType EnumConversionHelper<FunctionIdTest::eType>::enum_values_[] =
-    { test::components::formatters::FunctionIdTest::RegisterAppInterface,
-        test::components::formatters::FunctionIdTest::UnregisterAppInterface,
-        test::components::formatters::FunctionIdTest::SetGlobalProperties };
-
-template<>
-const EnumConversionHelper<MessageTypeTest::eType>::EnumToCStringMap EnumConversionHelper<
-    test::components::formatters::MessageTypeTest::eType>::enum_to_cstring_map_ =
-    EnumConversionHelper<test::components::formatters::MessageTypeTest::eType>::InitEnumToCStringMap();
-
-template<>
-const EnumConversionHelper<MessageTypeTest::eType>::CStringToEnumMap EnumConversionHelper<
-    test::components::formatters::MessageTypeTest::eType>::cstring_to_enum_map_ =
-    EnumConversionHelper<test::components::formatters::MessageTypeTest::eType>::InitCStringToEnumMap();
-
-template<>
-const char* const EnumConversionHelper<MessageTypeTest::eType>::cstring_values_[] =
-    { "request", "response", "notification" };
-
-template<>
-const MessageTypeTest::eType EnumConversionHelper<MessageTypeTest::eType>::enum_values_[] =
-    { test::components::formatters::MessageTypeTest::request,
-        test::components::formatters::MessageTypeTest::response,
-        test::components::formatters::MessageTypeTest::notification };
-
+const FunctionIDTest::eType EnumConversionHelper<FunctionIDTest::eType>::enum_values_[] =
+    { test::components::formatters::FunctionIDTest::RegisterAppInterface,
+        test::components::formatters::FunctionIDTest::UnregisterAppInterface,
+        test::components::formatters::FunctionIDTest::SetGlobalProperties };
 
 CSmartSchema initObjectSchema() {
   std::set<TestType::eType> resultCode_allowedEnumSubsetValues;
@@ -125,13 +75,13 @@ CSmartSchema initObjectSchema() {
   resultCode_allowedEnumSubsetValues.insert(TestType::DISALLOWED);
 
   // Possible functions in this test scheme
-  std::set<FunctionIdTest::eType> functionId_allowedEnumSubsetValues;
+  std::set<FunctionIDTest::eType> functionId_allowedEnumSubsetValues;
   functionId_allowedEnumSubsetValues.insert(
-      FunctionIdTest::RegisterAppInterface);
+      FunctionIDTest::RegisterAppInterface);
   functionId_allowedEnumSubsetValues.insert(
-      FunctionIdTest::UnregisterAppInterface);
+      FunctionIDTest::UnregisterAppInterface);
   functionId_allowedEnumSubsetValues.insert(
-      FunctionIdTest::SetGlobalProperties);
+      FunctionIDTest::SetGlobalProperties);
 
   // Possible message types
   std::set<MessageTypeTest::eType> messageType_allowedEnumSubsetValues;
@@ -169,7 +119,7 @@ CSmartSchema initObjectSchema() {
 
   std::map<std::string, CObjectSchemaItem::SMember> paramsMembersMap;
   paramsMembersMap[S_FUNCTION_ID] = CObjectSchemaItem::SMember(
-      TEnumSchemaItem<FunctionIdTest::eType>::create(
+      TEnumSchemaItem<FunctionIDTest::eType>::create(
           functionId_allowedEnumSubsetValues),
       true);
   paramsMembersMap[S_MESSAGE_TYPE] = CObjectSchemaItem::SMember(
