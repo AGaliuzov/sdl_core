@@ -51,6 +51,7 @@ set(LIBRARIES
 
 set(SOURCES
 <<<<<<< HEAD
+<<<<<<< HEAD
   ${COMPONENTS_DIR}/formatters/test/src/SmartFactoryTestHelper.cc
   ${COMPONENTS_DIR}/formatters/test/CSmartFactory_test.cc
   ${COMPONENTS_DIR}/formatters/test/CFormatterJsonBase_test.cc
@@ -59,6 +60,7 @@ set(SOURCES
   ${COMPONENTS_DIR}/formatters/test/main.cc
   ${COMPONENTS_DIR}/formatters/test/create_smartSchema.cc 
   ${COMPONENTS_DIR}/formatters/test/CFormatterJsonSDLRPCv1_test.cc
+  ${COMPONENTS_DIR}/formatters/test/cFormatterJsonSDLRPCv2_test.cc
 )
 
 create_test("formatters_test" "${SOURCES}" "${LIBRARIES}")
