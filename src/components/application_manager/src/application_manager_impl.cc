@@ -1354,6 +1354,10 @@ bool ApplicationManagerImpl::ManageMobileCommand(
                                                 static_cast<int32_t>(function_id),
                                                 correlation_id,
                                                 static_cast<int32_t>(mobile_apis::Result::TOO_MANY_PENDING_REQUESTS));
+      ApplicationSharedPtr app_ptr = application(connection_key);
+      if(app_ptr) {
+        app_ptr->usage_report().RecordRemovalsForBadBehavior();
+      }
 
       SendMessageToMobile(response);
       return false;
@@ -1369,6 +1373,10 @@ bool ApplicationManagerImpl::ManageMobileCommand(
       UnregisterApplication(connection_key,
                             mobile_apis::Result::TOO_MANY_PENDING_REQUESTS,
                             false);
+      ApplicationSharedPtr app_ptr = application(connection_key);
+      if(app_ptr) {
+        app_ptr->usage_report().RecordRemovalsForBadBehavior();
+      }
       return false;
     } else if (result ==
                request_controller::RequestController::
