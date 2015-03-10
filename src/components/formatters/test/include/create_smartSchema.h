@@ -30,6 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef SRC_COMPONENTS_FORMATTERS_TEST_INCLUDE_CREATESMARTSCHEMA_H_
+#define SRC_COMPONENTS_FORMATTERS_TEST_INCLUDE_CREATESMARTSCHEMA_H_
+
 #include "formatters/CFormatterJsonSDLRPCv1.hpp"
 #include "SmartFactoryTestHelper.h"
 
@@ -55,3 +58,5 @@ CSmartSchema initObjectSchema();
 } // namespace formatters
 } // namespace components
 } // namespace test
+
+#endif  // SRC_COMPONENTS_FORMATTERS_TEST_INCLUDE_CREATESMARTSCHEMA_H_
