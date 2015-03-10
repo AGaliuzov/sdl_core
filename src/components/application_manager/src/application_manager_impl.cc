@@ -1111,6 +1111,7 @@ void ApplicationManagerImpl::OnMalformedMessageCallback(const uint32_t &connecti
   LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_, "Unregister malformed messaging application " << connection_key);
 
+
   MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
       connection_key,
       mobile_apis::AppInterfaceUnregisteredReason::PROTOCOL_VIOLATION);
@@ -2343,9 +2344,7 @@ mobile_apis::Result::eType ApplicationManagerImpl::CheckPolicyPermissions(
       LOG4CXX_ERROR(logger_, "No application for policy id " << policy_app_id);
       return mobile_apis::Result::GENERIC_ERROR;
     }
-    if (result.hmi_level_permitted != policy::kRpcAllowed) {
-      app->usage_report().RecordRpcSentInHMINone();
-    }
+    app->usage_report().RecordRpcSentInHMINone();
   }
 
   const std::string log_msg = "Application: "+ policy_app_id+
