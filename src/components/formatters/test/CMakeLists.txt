@@ -57,7 +57,7 @@ set(SOURCES
   ${COMPONENTS_DIR}/formatters/test/formatter_json_rpc_test.cc
   ${COMPONENTS_DIR}/formatters/test/main.cc
   ${COMPONENTS_DIR}/formatters/test/src/create_smartSchema.cc 
-  ${COMPONENTS_DIR}/formatters/test/CFormatterJsonSDLRPCv1_test.cc
+  ${COMPONENTS_DIR}/formatters/test/cFormatterJsonSDLRPCv1_test.cc
   ${COMPONENTS_DIR}/formatters/test/cFormatterJsonSDLRPCv2_test.cc
 )
 
