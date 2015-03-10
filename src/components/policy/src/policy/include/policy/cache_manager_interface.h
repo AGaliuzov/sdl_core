@@ -82,11 +82,10 @@ class CacheManagerInterface {
   virtual int KilometersBeforeExchange(int current) = 0;
 
   /**
-   * @brief Sets kilometers and days after epoch, that passed for recieved
-   * successful PT UPdate
+   * @brief Sets counter value that passed for recieved successful PT UPdate
    */
-  virtual bool SetCountersPassedForSuccessfulUpdate(int kilometers,
-                                                    int days_after_epoch) = 0;
+  virtual bool SetCountersPassedForSuccessfulUpdate(Counters counter,
+                                                    int value) = 0;
 
   /**
    * Gets value in days before next update policy table

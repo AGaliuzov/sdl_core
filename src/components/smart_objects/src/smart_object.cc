@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,6 @@
 #include <sstream>
 #include <iomanip>
 #include <iterator>
-#include <limits>
 
 namespace NsSmartDeviceLink {
 namespace NsSmartObjects {
@@ -72,6 +71,9 @@ SmartObject::SmartObject(SmartType Type)
     case SmartType_Integer:
       set_value_integer(0);
       break;
+    case SmartType_UInteger:
+      set_value_integer(0);
+      break;
     case SmartType_Double:
       set_value_double(0);
       break;
@@ -99,7 +101,8 @@ SmartObject::SmartObject(SmartType Type)
       m_type = SmartType_Invalid;
       break;
     default:
-      DCHECK(!"Unhandled smart object type");
+      DCHECK(!"Unhandled smart object type")
+      ;
       break;
   }
 }
@@ -121,6 +124,8 @@ bool SmartObject::operator==(const SmartObject& Other) const {
   switch (m_type) {
     case SmartType_Integer:
       return m_data.int_value == Other.m_data.int_value;
+    case SmartType_UInteger:
+      return m_data.int_value == Other.m_data.int_value;
     case SmartType_Double:
       return m_data.double_value == Other.m_data.double_value;
     case SmartType_Boolean:
@@ -136,7 +141,7 @@ bool SmartObject::operator==(const SmartObject& Other) const {
         return false;
       return std::equal(m_data.map_value->begin(), m_data.map_value->end(),
                         Other.m_data.map_value->begin());
-      }
+    }
     case SmartType_Array: {
       if (m_data.array_value == Other.m_data.array_value)
         return true;
@@ -144,7 +149,7 @@ bool SmartObject::operator==(const SmartObject& Other) const {
         return false;
       return std::equal(m_data.array_value->begin(), m_data.array_value->end(),
                         Other.m_data.array_value->begin());
-      }
+    }
     case SmartType_Binary: {
       if (m_data.binary_value == Other.m_data.binary_value)
         return true;
@@ -153,13 +158,14 @@ bool SmartObject::operator==(const SmartObject& Other) const {
       return std::equal(m_data.binary_value->begin(),
                         m_data.binary_value->end(),
                         Other.m_data.binary_value->begin());
-      }
+    }
     case SmartType_Null:
       return true;
     case SmartType_Invalid:
       return true;
     default:
-      DCHECK(!"Unhandled smart object type");
+      DCHECK(!"Unhandled smart object type")
+      ;
       break;
   }
   return false;
@@ -201,7 +207,12 @@ bool SmartObject::operator==(const int32_t Value) const {
 }
 
 void SmartObject::set_value_integer(int64_t NewValue) {
-  set_new_type(SmartType_Integer);
+  if (NewValue > std::numeric_limits<int32_t>::max()
+      && NewValue <= std::numeric_limits<uint32_t>::max()) {
+    set_new_type(SmartType_UInteger);
+  } else {
+    set_new_type(SmartType_Integer);
+  }
   m_data.int_value = NewValue;
 }
 
@@ -212,6 +223,8 @@ int64_t SmartObject::convert_int() const {
     case SmartType_Boolean:
       return (m_data.bool_value == true) ? 1 : 0;
     case SmartType_Integer:
+      return m_data.int_value;
+    case SmartType_UInteger:
       return m_data.int_value;
     case SmartType_Double:
       return static_cast<int64_t>(m_data.double_value);
@@ -423,7 +436,7 @@ void SmartObject::set_value_char(char NewValue) {
 char SmartObject::convert_char() const {
   switch (m_type) {
     case SmartType_String:
-     return
+      return
           (m_data.str_value->length() == 1) ?
               m_data.str_value->at(0) : invalid_char_value;
     case SmartType_Character:
@@ -481,10 +494,10 @@ std::string SmartObject::convert_string() const {
     case SmartType_String:
       return *(m_data.str_value);
     case SmartType_Integer: {
-        std::stringstream stream;
-        stream << m_data.int_value;
-        return stream.str();
-      }
+      std::stringstream stream;
+      stream << m_data.int_value;
+      return stream.str();
+    }
     case SmartType_Character:
       return std::string(1, m_data.char_value);
     case SmartType_Double:
@@ -622,7 +635,7 @@ SmartObject& SmartObject::operator[](const std::string& Key) {
   return handle_map_access(Key);
 }
 
-const SmartObject& SmartObject::operator[] (const std::string& Key) const {
+const SmartObject& SmartObject::operator[](const std::string& Key) const {
   return getElement(Key);
 }
 
@@ -683,7 +696,7 @@ void SmartObject::duplicate(const SmartObject& OtherObject) {
   SmartData newData;
   const SmartType newType = OtherObject.m_type;
   switch (newType) {
-    case SmartType_Null: // on duplicate empty SmartObject
+    case SmartType_Null:  // on duplicate empty SmartObject
       return;
     case SmartType_Map:
       newData.map_value = new SmartMap(*OtherObject.m_data.map_value);
@@ -710,7 +723,8 @@ void SmartObject::duplicate(const SmartObject& OtherObject) {
       newData.binary_value = new SmartBinary(*OtherObject.m_data.binary_value);
       break;
     default:
-      DCHECK(!"Unhandled smart object type");
+      DCHECK(!"Unhandled smart object type")
+      ;
       return;
   }
   m_schema = OtherObject.m_schema;
@@ -829,19 +843,16 @@ SmartType SmartObject::getType() const {
 }
 
 std::string SmartObject::OperatorToTransform(const SmartMap::value_type &pair) {
-    return pair.first;
+  return pair.first;
 }
 
 std::set<std::string> SmartObject::enumerate() const {
   std::set<std::string> keys;
 
   if (m_type == SmartType_Map) {
-        std::transform(
-            m_data.map_value->begin(),
-            m_data.map_value->end(),
-            std::inserter(keys, keys.end()),
-            &SmartObject::OperatorToTransform
-        );
+    std::transform(m_data.map_value->begin(), m_data.map_value->end(),
+                   std::inserter(keys, keys.end()),
+                   &SmartObject::OperatorToTransform);
   }
   return keys;
 }

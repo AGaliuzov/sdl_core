@@ -77,15 +77,19 @@ class MediaManagerImpl : public MediaManager,
     MediaListenerPtr                   from_mic_listener_;
     MediaAdapterImpl*                  video_streamer_;
     MediaAdapterImpl*                  audio_streamer_;
-    uint32_t                           stop_streaming_timeout_;
+    uint32_t                           audio_data_stopped_timeout_;
+    uint32_t                           video_data_stopped_timeout_;
     MediaListenerPtr                   video_streamer_listener_;
     MediaListenerPtr                   audio_streamer_listener_;
     bool                               video_stream_active_;
     bool                               audio_stream_active_;
 
   private:
-    void OnStreamingEnded();
-    timer::TimerThread<MediaManagerImpl> streaming_timer_;
+    void OnAudioStreamingTimeout();
+    void OnVideoStreamingTimeout();
+  private:
+    timer::TimerThread<MediaManagerImpl> audio_streaming_timer_;
+    timer::TimerThread<MediaManagerImpl> video_streaming_timer_;
     uint32_t streaming_app_id_;
     DISALLOW_COPY_AND_ASSIGN(MediaManagerImpl);
     FRIEND_BASE_SINGLETON_CLASS(MediaManagerImpl);

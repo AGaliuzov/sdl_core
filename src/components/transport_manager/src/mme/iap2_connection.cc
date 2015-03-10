@@ -31,7 +31,6 @@
  */
 #include "transport_manager/mme/iap2_connection.h"
 
-#include <unistd.h>
 #include <errno.h>
 
 #include "utils/logger.h"
@@ -200,9 +199,9 @@ bool IAP2Connection::ReceiverThreadDelegate::ArmEvent(struct sigevent* event) {
     case -1:  { // failure
       LOG4CXX_WARN(logger_, "iAP2: could not arm for input notification");
       int msec = profile::Profile::instance()->iap_arm_event_timeout();
-      useconds_t useconds = 1000 * msec;
+      sync_primitives::AutoLock auto_lock(sleep_lock_);
       LOG4CXX_TRACE(logger_, "iAP2: sleeping for " << msec << " milliseconds");
-      usleep(useconds);
+      sleep_cond_var_.WaitFor(auto_lock, msec);
       return false;
     }
     case 0:  // successfully armed

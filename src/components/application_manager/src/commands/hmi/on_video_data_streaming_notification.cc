@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
@@ -30,32 +31,25 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "formatters/generic_json_formatter.h"
+#include "application_manager/commands/hmi/on_video_data_streaming_notification.h"
 
-namespace NsSmartDeviceLink {
-namespace NsJSONHandler {
-namespace Formatters {
+namespace application_manager {
 
-void GenericJsonFormatter::ToString(const NsSmartObjects::SmartObject& obj,
-                                    std::string& out_str) {
-  Json::Value json_root;
-  objToJsonValue(obj, json_root);
-  out_str = json_root.toStyledString();
+namespace commands {
+
+OnVideoDataStreamingNotification::OnVideoDataStreamingNotification(
+    const MessageSharedPtr& message)
+    : NotificationToHMI(message) {
 }
 
-bool GenericJsonFormatter::FromString(const std::string& str,
-                                      NsSmartObjects::SmartObject& out) {
-  Json::Value json_root;
-  Json::Reader reader;
-  bool result = reader.parse(str, json_root);
-
-  if (true == result) {
-    jsonValueToObj(json_root, out);
-  }
-
-  return result;
+OnVideoDataStreamingNotification::~OnVideoDataStreamingNotification() {
 }
 
-} // namespace Formatters
-} // namespace NsJSONHandler
-} // namespace NsSmartDeviceLink
+void OnVideoDataStreamingNotification::Run() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  SendNotification();
+}
+
+}  // namespace commands
+
+}  // namespace application_manager

@@ -40,6 +40,7 @@
 #include "usage_statistics/statistics_manager.h"
 
 namespace policy {
+
 class PolicyManager : public usage_statistics::StatisticsManager {
   public:
     virtual ~PolicyManager() {
@@ -203,10 +204,9 @@ class PolicyManager : public usage_statistics::StatisticsManager {
     virtual bool ReactOnUserDevConsentForApp(const std::string app_id,
         bool is_device_allowed) = 0;
     /**
-     * Sets number of kilometers and days after epoch, that passed for
-     * receiving PT UPdate.
+     * Sets counter value that passed for receiving PT UPdate.
      */
-    virtual void PTUpdatedAt(int kilometers, int days_after_epoch) = 0;
+    virtual void PTUpdatedAt(Counters counter, int value) = 0;
 
     /**
      * @brief Retrieves data from app_policies about app on its registration:

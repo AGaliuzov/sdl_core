@@ -688,14 +688,27 @@ int CacheManager::KilometersBeforeExchange(int current) {
   return std::max(limit - actual, 0);
 }
 
-bool CacheManager::SetCountersPassedForSuccessfulUpdate(int kilometers,
-                                                        int days_after_epoch) {
+bool CacheManager::SetCountersPassedForSuccessfulUpdate(policy::Counters counter,
+                                                        int value) {
   CACHE_MANAGER_CHECK(false);
 #ifdef EXTENDED_POLICY
-  *pt_->policy_table.module_meta->pt_exchanged_at_odometer_x = kilometers;
-  *pt_->policy_table.module_meta->pt_exchanged_x_days_after_epoch = days_after_epoch;
-  LOG4CXX_DEBUG(logger_, "SetCountersPassedForSuccessfulUpdate km:" << kilometers);
-  LOG4CXX_DEBUG(logger_, "SetCountersPassedForSuccessfulUpdate days epoh:" << days_after_epoch);
+  switch (counter) {
+  case KILOMETERS:
+    *pt_->policy_table.module_meta->pt_exchanged_at_odometer_x = value;
+    LOG4CXX_DEBUG(logger_, "SetCountersPassedForSuccessfulUpdate km:" << value);
+    break;
+  case DAYS_AFTER_EPOCH:
+    *pt_->policy_table.module_meta->pt_exchanged_x_days_after_epoch = value;
+    LOG4CXX_DEBUG(logger_,
+                  "SetCountersPassedForSuccessfulUpdate days after epoch:"
+                  << value);
+    break;
+  default:
+    LOG4CXX_ERROR(logger_, "Unknown counter was requested to set: "
+                  << counter);
+    return false;
+  }
+
 #endif
   Backup();
   return true;
@@ -1287,7 +1300,7 @@ bool CacheManager::CleanupUnpairedDevices() {
   UnpairedDevices::iterator iter = is_unpaired_.begin();
   UnpairedDevices::const_iterator iter_end = is_unpaired_.end();
   LOG4CXX_DEBUG(logger_, "Is_unpaired size is: " << is_unpaired_.size());
-  for (; iter != iter_end; ++iter) {    
+  for (; iter != iter_end; ++iter) {
     // Delete device
     if (!pt_->policy_table.device_data.is_initialized()) {
       LOG4CXX_ERROR(logger_, "Device_data section is not initialized.");

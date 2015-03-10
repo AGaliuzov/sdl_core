@@ -77,7 +77,7 @@ class PolicyManagerImpl : public PolicyManager {
     virtual const std::vector<int> RetrySequenceDelaysSeconds();
     virtual void OnExceededTimeout();
     virtual void OnUpdateStarted();
-    virtual void PTUpdatedAt(int kilometers, int days_after_epoch);
+    virtual void PTUpdatedAt(Counters counter, int value);
 
     /**
      * Refresh data about retry sequence from policy table

@@ -30,32 +30,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "formatters/generic_json_formatter.h"
+#include "formatters/CSmartFactory.hpp"
 
-namespace NsSmartDeviceLink {
-namespace NsJSONHandler {
-namespace Formatters {
-
-void GenericJsonFormatter::ToString(const NsSmartObjects::SmartObject& obj,
-                                    std::string& out_str) {
-  Json::Value json_root;
-  objToJsonValue(obj, json_root);
-  out_str = json_root.toStyledString();
-}
-
-bool GenericJsonFormatter::FromString(const std::string& str,
-                                      NsSmartObjects::SmartObject& out) {
-  Json::Value json_root;
-  Json::Reader reader;
-  bool result = reader.parse(str, json_root);
-
-  if (true == result) {
-    jsonValueToObj(json_root, out);
-  }
-
-  return result;
-}
-
-} // namespace Formatters
-} // namespace NsJSONHandler
-} // namespace NsSmartDeviceLink
+const std::string NsSmartDeviceLink::NsJSONHandler::strings::S_MSG_PARAMS("msg_params");
+const std::string NsSmartDeviceLink::NsJSONHandler::strings::S_PARAMS("params");
+const std::string NsSmartDeviceLink::NsJSONHandler::strings::S_FUNCTION_ID("function_id");
+const std::string NsSmartDeviceLink::NsJSONHandler::strings::S_MESSAGE_TYPE("message_type");
+const std::string NsSmartDeviceLink::NsJSONHandler::strings::S_PROTOCOL_VERSION("protocol_version");
+const std::string NsSmartDeviceLink::NsJSONHandler::strings::S_PROTOCOL_TYPE("protocol_type");
+const std::string NsSmartDeviceLink::NsJSONHandler::strings::S_CORRELATION_ID("correlation_id");
+const std::string NsSmartDeviceLink::NsJSONHandler::strings::kCode("code");
+const std::string NsSmartDeviceLink::NsJSONHandler::strings::kMessage(
+    "message");

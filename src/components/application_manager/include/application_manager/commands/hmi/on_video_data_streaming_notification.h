@@ -30,32 +30,44 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "formatters/generic_json_formatter.h"
+#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_ON_VIDEO_DATA_STREAMING_NOTIFICATION_H_
+#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_ON_VIDEO_DATA_STREAMING_NOTIFICATION_H_
 
-namespace NsSmartDeviceLink {
-namespace NsJSONHandler {
-namespace Formatters {
+#include "application_manager/commands/hmi/notification_to_hmi.h"
 
-void GenericJsonFormatter::ToString(const NsSmartObjects::SmartObject& obj,
-                                    std::string& out_str) {
-  Json::Value json_root;
-  objToJsonValue(obj, json_root);
-  out_str = json_root.toStyledString();
-}
+namespace application_manager {
 
-bool GenericJsonFormatter::FromString(const std::string& str,
-                                      NsSmartObjects::SmartObject& out) {
-  Json::Value json_root;
-  Json::Reader reader;
-  bool result = reader.parse(str, json_root);
+namespace commands {
 
-  if (true == result) {
-    jsonValueToObj(json_root, out);
-  }
+/**
+ * @brief OnVideoDataStreamingNotification command class
+ **/
+class OnVideoDataStreamingNotification : public NotificationToHMI {
+  public:
+    /**
+     * @brief OnVideoDataStreamingNotification class constructor
+     *
+     * @param message Incoming SmartObject message
+     **/
+    explicit OnVideoDataStreamingNotification(const MessageSharedPtr& message);
 
-  return result;
-}
+    /**
+     * @brief OnVideoDataStreamingNotification class destructor
+     **/
+    virtual ~OnVideoDataStreamingNotification();
 
-} // namespace Formatters
-} // namespace NsJSONHandler
-} // namespace NsSmartDeviceLink
+    /**
+     * @brief Execute command
+     **/
+    virtual void Run();
+
+  private:
+    DISALLOW_COPY_AND_ASSIGN(OnVideoDataStreamingNotification);
+};
+
+}  // namespace commands
+
+}  // namespace application_manager
+
+#endif  //  SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_ON_VIDEO_DATA_STREAMING_NOTIFICATION_H_
+

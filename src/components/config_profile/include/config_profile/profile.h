@@ -238,6 +238,19 @@ class Profile : public utils::Singleton<Profile> {
       * @brief Returns path to testing file to which redirects audio stream
       */
     const std::string& audio_stream_file() const;
+
+    /**
+     * @brief Returns timeout for SDL to wait for the next package of raw data
+     * over audio service
+     */
+    const std::uint32_t audio_data_stopped_timeout() const;
+
+    /**
+     * @brief Returns timeout for SDL to wait for the next package of raw data
+     * over video service
+     */
+    const std::uint32_t video_data_stopped_timeout() const;
+
 #ifdef CUSTOMER_PASA
     /**
      * @brief Allows to obtain timeout value for HMI's heart beat.
@@ -295,7 +308,9 @@ class Profile : public utils::Singleton<Profile> {
      * @brief Returns max size limit of log file
      */
     const std::string& log_file_max_size() const;
+
 #endif
+
     /**
      * @brief Returns allowable max amount of requests per time scale for
      * application in hmi level none
@@ -673,14 +688,14 @@ class Profile : public utils::Singleton<Profile> {
                        const char* const pKey) const;
 
     /**
-     * @brief Write to log content of container
-     * @param array Source array
-     * @param log Log string
+     * @brief Converts input string to number
+     * @param input Input string
+     * @param output Output number
+     * @return true, if successfully converted, otherwise - false
      */
-    void LogContainer(const std::vector<std::string>& container,
-                      std::string* log);
+    bool StringToNumber(const std::string& input, uint64_t& output) const;
 
-    // Members section
+private:
     bool                            launch_hmi_;
     std::string                     app_config_folder_;
     std::string                     app_storage_folder_;
@@ -755,6 +770,8 @@ class Profile : public utils::Singleton<Profile> {
     std::string                     target_tmp_dir_;
     std::string                     log_file_max_size_;
 #endif
+    std::uint32_t                   audio_data_stopped_timeout_;
+    std::uint32_t                   video_data_stopped_timeout_;
     std::string                     mme_db_name_;
     std::string                     event_mq_name_;
     std::string                     ack_mq_name_;

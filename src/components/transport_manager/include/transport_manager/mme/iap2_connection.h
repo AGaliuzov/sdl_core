@@ -37,6 +37,7 @@
 
 #include "utils/threads/thread.h"
 #include "utils/threads/pulse_thread_delegate.h"
+#include "utils/conditional_variable.h"
 
 #include "transport_manager/transport_adapter/connection.h"
 #include "transport_manager/transport_adapter/transport_adapter_controller.h"
@@ -106,6 +107,9 @@ class IAP2Connection : public Connection {
    private:
     IAP2Connection* parent_;
     iap2ea_hdl_t* iap2ea_hdl_;
+
+    sync_primitives::ConditionalVariable sleep_cond_var_;
+    sync_primitives::Lock sleep_lock_;
   };
 };
 
