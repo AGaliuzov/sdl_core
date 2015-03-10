@@ -79,6 +79,7 @@ Errors::eType CObjectSchemaItem::validate(const SmartObject& object) {
     }
     const SmartObject& field = object.getElement(key);
     const Errors::eType result = member.mSchemaItem->validate(field);
+
     if (Errors::OK != result) {
       return result;
     }

@@ -32,6 +32,7 @@
 
 #include "config_profile/profile.h"
 #include "utils/logger.h"
+#include "utils/helpers.h"
 
 #include "transport_manager/transport_adapter/transport_adapter_impl.h"
 #include "transport_manager/transport_adapter/transport_adapter_listener.h"
@@ -758,8 +759,12 @@ std::string TransportAdapterImpl::DeviceName(const DeviceUID& device_id) const {
 
 std::string TransportAdapterImpl::GetConnectionType() const {
   const std::string deviceType = GetDeviceType();
+  using namespace helpers;
   std::string result("USB_serial_number");
-  if ("sdl-tcp" == deviceType || "sdl-bluetooth" == deviceType) {
+  if(Compare<std::string, EQ, ONE>(deviceType,
+                                   "sdl-tcp",
+                                   "pasa-bluetooth",
+                                   "sdl-bluetooth")) {
     result.assign("BTMAC");
   }
   return result;
