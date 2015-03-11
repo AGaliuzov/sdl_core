@@ -1617,7 +1617,7 @@ bool Profile::ReadUIntValue(uint16_t* value, uint16_t default_value,
       *value = default_value;
       return false;
     }
-    if (user_value > std::numeric_limits < uint16_t > ::max())
+    if (user_value > (std::numeric_limits < uint16_t > ::max)())
     {
       *value = default_value;
       return false;
@@ -1640,7 +1640,7 @@ bool Profile::ReadUIntValue(uint32_t* value, uint32_t default_value,
       *value = default_value;
       return false;
     }
-    if (user_value > std::numeric_limits < uint32_t > ::max())
+    if (user_value > (std::numeric_limits < uint32_t > ::max)())
     {
       *value = default_value;
       return false;
