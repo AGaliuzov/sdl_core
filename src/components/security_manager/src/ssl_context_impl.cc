@@ -185,7 +185,7 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
   }
 
   const int handshake_result = SSL_do_handshake(connection_);
-  LOG4CXX_DEBUG(logger_, "Do handshake result is " << handshake_result);
+  LOG4CXX_TRACE(logger_, "Do handshake result is " << handshake_result);
   if (handshake_result == 1) {
     LOG4CXX_DEBUG(logger_, "SSL handshake successfully finished");
     // Handshake is successful

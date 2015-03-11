@@ -276,6 +276,11 @@ void CryptoManagerImpl::SetVerification() {
     SSL_CTX_set_verify(context_, SSL_VERIFY_NONE, &debug_callback);
     return;
   }
+  LOG4CXX_DEBUG(logger_, "Setting up peer verification");
+  const int verify_mode = SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
+  SSL_CTX_set_verify(context_, verify_mode, &debug_callback);
+
+  LOG4CXX_DEBUG(logger_, "Setting up ca certificate location");
   const int result = SSL_CTX_load_verify_locations(context_, ca_certificate_file_.c_str(), NULL);
   if (!result) {
     const unsigned long error = ERR_get_error();
@@ -283,9 +288,6 @@ void CryptoManagerImpl::SetVerification() {
                  "', err 0x" << std::hex << error << " \"" << ERR_reason_error_string(error) << '"');
     return;
   }
-  LOG4CXX_DEBUG(logger_, "Setting up peer verification");
-  const int verify_mode = SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
-  SSL_CTX_set_verify(context_, verify_mode, &debug_callback);
 }
 
 int debug_callback(int preverify_ok, X509_STORE_CTX *ctx) {
