@@ -72,6 +72,7 @@
 #include "application_manager/commands/hmi/on_resume_audio_source_notification.h"
 #include "application_manager/commands/hmi/on_ignition_cycle_over_notification.h"
 #include "application_manager/commands/hmi/on_system_info_changed_notification.h"
+#include "application_manager/commands/hmi/on_emergency_event_notification.h"
 #include "application_manager/commands/hmi/get_system_info_request.h"
 #include "application_manager/commands/hmi/get_system_info_response.h"
 #include "application_manager/commands/hmi/close_popup_request.h"
@@ -1088,6 +1089,10 @@ CommandSharedPtr HMICommandFactory::CreateCommand(
     }
     case hmi_apis::FunctionID::BasicCommunication_OnSystemInfoChanged: {
       command.reset(new commands::OnSystemInfoChangedNotification(message));
+      break;
+    }
+    case hmi_apis::FunctionID::BasicCommunication_OnEmergencyEvent: {
+      command.reset(new commands::OnEmergencyEventNotification(message));
       break;
     }
     case hmi_apis::FunctionID::BasicCommunication_PlayTone: {

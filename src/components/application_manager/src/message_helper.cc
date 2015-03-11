@@ -59,24 +59,6 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "ApplicationManager")
 
 namespace {
 
-hmi_apis::Common_Language::eType ToCommonLanguage(
-  mobile_apis::Language::eType mobile_language) {
-  // Update this check if mobile_api::Language
-  // or hmi_apis::Common_Language changes.
-  // Or, better, generate functions like this from XML
-  long lang_val = long(mobile_language);
-  long max_common_lang_val = long(hmi_apis::Common_Language::NO_NO);
-  long max_mobile_lang = long(mobile_apis::Language::NO_NO);
-  if (max_common_lang_val != max_mobile_lang) {
-    LOG4CXX_ERROR(logger_, "Mapping between Common_Language and Language"
-                  " has changed! Please update converter function");
-  }
-  if (lang_val > max_common_lang_val) {
-    LOG4CXX_ERROR(logger_, "Non-convertable language ID");
-  }
-  return hmi_apis::Common_Language::eType(lang_val);
-}
-
 typedef
 std::map<std::string, hmi_apis::Common_AppPriority::eType> CommonAppPriorityMap;
 
@@ -1298,25 +1280,26 @@ void MessageHelper::SendOnAppUnregNotificationToHMI(
   ApplicationManagerImpl::instance()->ManageHMICommand(notification);
 }
 
-void MessageHelper::SendActivateAppToHMI(uint32_t const app_id,
+uint32_t MessageHelper::SendActivateAppToHMI(uint32_t const app_id,
     hmi_apis::Common_HMILevel::eType level,
     bool send_policy_priority) {
+  uint32_t correlation_id = 0;
   application_manager::ApplicationConstSharedPtr app =
     application_manager::ApplicationManagerImpl::instance()
     ->application(app_id);
   if (!app) {
     LOG4CXX_WARN(logger_, "Invalid app_id: " << app_id);
-    return;
+    return correlation_id;
   }
 
+  correlation_id =
+      ApplicationManagerImpl::instance()->GetNextHMICorrelationID();
   utils::SharedPtr<smart_objects::SmartObject> message = new smart_objects::SmartObject(
     smart_objects::SmartType_Map);
-
   (*message)[strings::params][strings::function_id] =
     hmi_apis::FunctionID::BasicCommunication_ActivateApp;
   (*message)[strings::params][strings::message_type] = MessageType::kRequest;
-  (*message)[strings::params][strings::correlation_id] =
-    ApplicationManagerImpl::instance()->GetNextHMICorrelationID();
+  (*message)[strings::params][strings::correlation_id] = correlation_id;
   (*message)[strings::msg_params][strings::app_id] = app_id;
 
   if (send_policy_priority) {
@@ -1347,6 +1330,7 @@ void MessageHelper::SendActivateAppToHMI(uint32_t const app_id,
   }
 
   ApplicationManagerImpl::instance()->ManageHMICommand(message);
+  return correlation_id;
 }
 
 void MessageHelper::SendOnResumeAudioSourceToHMI(const uint32_t app_id) {
