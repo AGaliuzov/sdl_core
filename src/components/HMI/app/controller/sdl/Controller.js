@@ -609,6 +609,7 @@ SDL.SDLController = Em.Object
                     appID: params.appID,
                     appName: params.appName,
                     deviceName: params.deviceName,
+                    appType: params.appType,
                     isMedia: 0,
                     disabledToActivate: params.disabled ? true : false
                 }));
