@@ -39,7 +39,6 @@ include_directories (
   
 
 set(testSources
-  main.cc
   profile_test.cc
   ini_file_test.cc
 )
