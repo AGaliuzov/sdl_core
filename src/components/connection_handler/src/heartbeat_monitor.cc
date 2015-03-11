@@ -36,6 +36,7 @@
 
 #include "utils/logger.h"
 #include "connection_handler/connection.h"
+#include "config_profile/profile.h"
 
 namespace connection_handler {
 
@@ -96,7 +97,7 @@ void HeartBeatMonitor::AddSession(uint8_t session_id) {
     return;
   }
   sessions_.insert(std::make_pair(session_id,
-                                  SessionState(default_heartbeat_timeout_)));
+                                  SessionState(profile::Profile::instance()->heart_beat_timeout())));
   LOG4CXX_INFO(logger_, "Start heartbeat for session " << session_id);
 }
 
