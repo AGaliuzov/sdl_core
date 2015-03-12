@@ -144,16 +144,19 @@ bool LifeCycle::StartComponents() {
     return false;
   }
 
+  const std::string& mode = profile::Profile::instance()->ssl_mode() ;
   if (!crypto_manager_->Init(
-      profile::Profile::instance()-> ssl_mode() == "SERVER" ? security_manager::SERVER : security_manager::CLIENT,
-          protocol,
-      profile::Profile::instance()-> cert_path(),
-      profile::Profile::instance()-> key_path(),
-      profile::Profile::instance()-> ciphers_list(),
-      profile::Profile::instance()->verify_peer())) {
+        mode == "SERVER" ? security_manager::SERVER : security_manager::CLIENT,
+        protocol,
+        profile::Profile::instance()->cert_path(),
+        profile::Profile::instance()->key_path(),
+        profile::Profile::instance()->ciphers_list(),
+        profile::Profile::instance()->verify_peer(),
+        profile::Profile::instance()->ca_cert_path())) {
     LOG4CXX_ERROR(logger_, "CryptoManager initialization fail.");
     return false;
   }
+
 #endif  // ENABLE_SECURITY
 
   transport_manager_->AddEventListener(protocol_handler_);
@@ -180,6 +183,7 @@ bool LifeCycle::StartComponents() {
   security_manager_->set_session_observer(connection_handler_);
   security_manager_->set_protocol_handler(protocol_handler_);
   security_manager_->set_crypto_manager(crypto_manager_);
+  app_manager_->AddPolicyObserver(crypto_manager_);
 #endif  // ENABLE_SECURITY
 
   // it is important to initialise TimeTester before TM to listen TM Adapters
@@ -441,7 +445,6 @@ void LifeCycle::StopComponents() {
 
 #ifdef ENABLE_SECURITY
   LOG4CXX_INFO(logger_, "Destroying Crypto Manager");
-  crypto_manager_->Finish();
   delete crypto_manager_;
 
   LOG4CXX_INFO(logger_, "Destroying Security Manager");

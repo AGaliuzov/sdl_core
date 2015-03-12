@@ -432,6 +432,11 @@ class Profile : public utils::Singleton<Profile> {
   const std::string& cert_path() const;
 
   /**
+   * @brief Returns ca certificate path to pem file
+   */
+  const std::string& ca_cert_path() const;
+
+  /**
    * @brief Returns ciphers
    */
   const std::string& ciphers_list() const;
@@ -737,6 +742,7 @@ private:
     uint32_t                        heart_beat_timeout_;
 #ifdef ENABLE_SECURITY
   std::string                       cert_path_;
+  std::string                       ca_cert_path_;
   std::string                       ssl_mode_;
   std::string                       key_path_;
   std::string                       ciphers_list_;

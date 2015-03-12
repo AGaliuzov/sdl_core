@@ -37,10 +37,13 @@
 #include <openssl/err.h>
 #include <memory.h>
 #include <map>
+#include <algorithm>
 
 #include "utils/macro.h"
 
 namespace security_manager {
+
+CREATE_LOGGERPTR_GLOBAL(logger_, "CryptoManagerImpl")
 
 CryptoManagerImpl::SSLContextImpl::SSLContextImpl(SSL *conn, Mode mode)
   : connection_(conn),
@@ -57,11 +60,17 @@ CryptoManagerImpl::SSLContextImpl::SSLContextImpl(SSL *conn, Mode mode)
 }
 
 std::string CryptoManagerImpl::SSLContextImpl::LastError() const {
-  if (!IsInitCompleted()) {
-    return std::string("Initialization is not completed");
+  if (last_error_.empty()) {
+    const char *reason = ERR_reason_error_string(ERR_get_error());
+    if (reason) {
+      last_error_ = std::string(reason ? reason : "");
+    } else {
+      if (!IsInitCompleted()) {
+        last_error_ = "Initialization is not completed";
+      }
+    }
   }
-  const char *reason = ERR_reason_error_string(ERR_get_error());
-  return std::string(reason ? reason : "");
+  return last_error_;
 }
 
 bool CryptoManagerImpl::SSLContextImpl::IsInitCompleted() const {
@@ -134,6 +143,7 @@ CryptoManagerImpl::SSLContextImpl::max_block_sizes =
 SSLContext::HandshakeResult CryptoManagerImpl::SSLContextImpl::
 DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
                 const uint8_t** const out_data, size_t* out_data_size) {
+  LOG4CXX_AUTO_TRACE(logger_);
   DCHECK(out_data);
   DCHECK(out_data_size);
   *out_data = NULL;
@@ -141,21 +151,43 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
   // TODO(Ezamakhov): add test - hanshake fail -> restart StartHandshake
   sync_primitives::AutoLock locker(bio_locker);
   if (SSL_is_init_finished(connection_)) {
+    LOG4CXX_DEBUG(logger_, "SSL initilization is finished");
     is_handshake_pending_ = false;
     return SSLContext::Handshake_Result_Success;
   }
 
   if (in_data && in_data_size) {
+    LOG4CXX_DEBUG(logger_, "Handling " << in_data_size << " bytes");
     const int ret = BIO_write(bioIn_, in_data, in_data_size);
     if (ret <= 0) {
+      LOG4CXX_WARN(logger_, "BIO write fail");
       is_handshake_pending_ = false;
-      SSL_clear(connection_);
+      ResetConnection();
       return SSLContext::Handshake_Result_AbnormalFail;
     }
   }
 
+  STACK_OF(X509) *peer_certs = SSL_get_peer_cert_chain(connection_);
+  while (sk_X509_num(peer_certs) > 0) {
+    X509* cert = sk_X509_pop(peer_certs);
+    char *subj = X509_NAME_oneline(X509_get_subject_name(cert), NULL, 0);
+    if (subj) {
+      std::replace(subj, subj + strlen(subj), '/', ' ');
+      LOG4CXX_DEBUG(logger_, "Mobile cert subject:" << subj);
+      OPENSSL_free(subj);
+    }
+    char *issuer = X509_NAME_oneline(X509_get_issuer_name(cert), NULL, 0);
+    if (issuer) {
+      std::replace(issuer, issuer + strlen(issuer), '/', ' ');
+      LOG4CXX_DEBUG(logger_, "Mobile cert issuer:" << issuer);
+      OPENSSL_free(issuer);
+    }
+  }
+
   const int handshake_result = SSL_do_handshake(connection_);
+  LOG4CXX_TRACE(logger_, "Do handshake result is " << handshake_result);
   if (handshake_result == 1) {
+    LOG4CXX_DEBUG(logger_, "SSL handshake successfully finished");
     // Handshake is successful
     bioFilter_ = BIO_new(BIO_f_ssl());
     BIO_set_ssl(bioFilter_, connection_, BIO_NOCLOSE);
@@ -164,18 +196,31 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
     max_block_size_ = max_block_sizes[SSL_CIPHER_get_name(cipher)];
     is_handshake_pending_ = false;
   } else if (handshake_result == 0) {
-    SSL_clear(connection_);
+    const int error = SSL_get_error(connection_, handshake_result);
+    SetHandshakeError(error);
+    LOG4CXX_WARN(logger_, "Handshake failed on the mobile side with error " << error
+                 << " \"" << LastError() << '"');
+    ResetConnection();
     is_handshake_pending_ = false;
     return SSLContext::Handshake_Result_Fail;
-  } else if (SSL_get_error(connection_, handshake_result) != SSL_ERROR_WANT_READ) {
-    SSL_clear(connection_);
-    is_handshake_pending_ = false;
-    return SSLContext::Handshake_Result_AbnormalFail;
+  } else {
+    const int error = SSL_get_error(connection_, handshake_result);
+    if (error != SSL_ERROR_WANT_READ) {
+      const long error = SSL_get_verify_result(connection_);
+      SetHandshakeError(error);
+      LOG4CXX_WARN(logger_, "Handshake failed with error " << error
+                   << " \"" << LastError() << '"');
+      ResetConnection();
+      is_handshake_pending_ = false;
+      return SSLContext::Handshake_Result_AbnormalFail;
+    }
   }
 
   const size_t pend = BIO_ctrl_pending(bioOut_);
+  LOG4CXX_DEBUG(logger_, "Available " << pend << " bytes for handshake");
 
-  if (pend) {
+  if (pend > 0) {
+    LOG4CXX_DEBUG(logger_, "Reading handshake data");
     EnsureBufferSizeEnough(pend);
 
     const int read_count = BIO_read(bioOut_, buffer_, pend);
@@ -183,8 +228,9 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
       *out_data_size = read_count;
       *out_data =  buffer_;
     } else {
+      LOG4CXX_WARN(logger_, "BIO read fail");
       is_handshake_pending_ = false;
-      SSL_clear(connection_);
+      ResetConnection();
       return SSLContext::Handshake_Result_AbnormalFail;
     }
   }
@@ -272,6 +318,25 @@ CryptoManagerImpl::SSLContextImpl::~SSLContextImpl() {
   SSL_shutdown(connection_);
   SSL_free(connection_);
   delete[] buffer_;
+}
+
+void CryptoManagerImpl::SSLContextImpl::SetHandshakeError(const int error) {
+  const char* error_str = X509_verify_cert_error_string(error);
+  if (error_str) {
+    last_error_ = error_str;
+  } else {
+    // Error will be updated with the next LastError call
+    last_error_.clear();
+  }
+}
+
+void CryptoManagerImpl::SSLContextImpl::ResetConnection() {
+  const int clear_result = SSL_clear(connection_);
+  if (!clear_result) {
+    const char *reason = ERR_reason_error_string(ERR_get_error());
+    LOG4CXX_WARN(logger_, "Connection reset failed with \""
+                 << (reason ? reason : "") << '"');
+  }
 }
 
 void CryptoManagerImpl::SSLContextImpl::EnsureBufferSizeEnough(size_t size) {

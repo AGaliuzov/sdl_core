@@ -39,7 +39,7 @@ include_directories(
   ${APR_INCLUDE_DIRECTORY}
 )
 
-set (SOURCES
+set(SOURCES
   ${COMPONENTS_DIR}/security_manager/src/security_manager_impl.cc
   ${COMPONENTS_DIR}/security_manager/src/security_query.cc
   ${COMPONENTS_DIR}/security_manager/src/crypto_manager_impl.cc

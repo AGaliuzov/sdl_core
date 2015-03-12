@@ -37,6 +37,7 @@
 #include <stdlib.h>
 #include <sstream>
 #include <algorithm>
+#include <limits>
 
 #include "config_profile/ini_file.h"
 #include "utils/logger.h"
@@ -106,6 +107,7 @@ const char* kAudioStreamFileKey = "AudioStreamFile";
 #ifdef ENABLE_SECURITY
 const char* kSecurityProtocolKey = "Protocol";
 const char* kSecurityCertificatePathKey = "CertificatePath";
+const char* kSecurityCACertificatePathKey = "CACertificatePath";
 const char* kSecuritySSLModeKey = "SSLMode";
 const char* kSecurityKeyPathKey = "KeyPath";
 const char* kSecurityCipherListKey = "CipherList";
@@ -756,6 +758,10 @@ const std::string& Profile::cert_path() const {
   return cert_path_;
 }
 
+const std::string& Profile::ca_cert_path() const {
+  return ca_cert_path_;
+}
+
 const std::string& Profile::ssl_mode() const {
   return ssl_mode_;
 }
@@ -791,8 +797,8 @@ void Profile::UpdateValues() {
   ReadStringValue(&security_manager_protocol_name_, kDefaultSecurityProtocol, kSecuritySection,
       kSecurityProtocolKey);
 
-  ReadStringValue(&cert_path_, "", kSecuritySection,
-      kSecurityCertificatePathKey);
+  ReadStringValue(&cert_path_,   "", kSecuritySection, kSecurityCertificatePathKey);
+  ReadStringValue(&ca_cert_path_, "", kSecuritySection, kSecurityCACertificatePathKey);
 
   ReadStringValue(&ssl_mode_, kDefaultSSLMode, kSecuritySection,
       kSecuritySSLModeKey);

@@ -174,22 +174,23 @@ class ProtocoloObserverMock : public protocol_handler::ProtocolHandler {
  * MOCK implementation of security_manager::SSLContext interface
  */
 class CryptoManagerMock : public security_manager::CryptoManager {
- public:
-  MOCK_METHOD6(Init,
-      bool (security_manager::Mode mode,
-          security_manager::Protocol protocol,
-          const std::string& cert_filename,
-          const std::string& key_filename,
-          const std::string& ciphers_list,
-          bool verify_peer));
-  MOCK_METHOD0(Finish,
-      void ());
+public:
+  MOCK_METHOD7(Init,
+               bool (security_manager::Mode mode,
+                     security_manager::Protocol protocol,
+                     const std::string& cert_filename,
+                     const std::string& key_filename,
+                     const std::string& ciphers_list,
+                     const bool,
+                     const std::string&));
+  MOCK_METHOD1(OnCertificateUpdated,
+               bool (const std::string&));
   MOCK_METHOD0(CreateSSLContext,
-      security_manager::SSLContext* ());
+               security_manager::SSLContext* ());
   MOCK_METHOD1(ReleaseSSLContext,
-      void(security_manager::SSLContext*));
+               void(security_manager::SSLContext*));
   MOCK_CONST_METHOD0(LastError,
-      std::string());
+                     std::string());
 };
 /*
  * MOCK implementation of security_manager::SSLContext interface

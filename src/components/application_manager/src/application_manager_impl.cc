@@ -968,10 +968,10 @@ bool ApplicationManagerImpl::OnServiceStartedCallback(
   using namespace protocol_handler;
   using namespace helpers;
 
-  LOG4CXX_INFO(logger_,
+  LOG4CXX_DEBUG(logger_,
                "OnServiceStartedCallback " << type << " in session " << session_key);
   if (type == kRpc) {
-    LOG4CXX_INFO(logger_, "RPC service is about to be started.");
+    LOG4CXX_DEBUG(logger_, "RPC service is about to be started.");
     return true;
   }
   ApplicationSharedPtr app = application(session_key);
@@ -980,14 +980,17 @@ bool ApplicationManagerImpl::OnServiceStartedCallback(
                   " doesn't exists.");
     return false;
   }
-  bool result = false;
   if (Compare<ServiceType, EQ, ONE>(type, kMobileNav, kAudio)) {
     if (app->is_navi()) {
-      result = ProcessNaviService(type, session_key);
-      app->set_streaming_allowed(result);
+      const bool success = ProcessNaviService(type, session_key);
+      app->set_streaming_allowed(success);
+      if(!success) {
+        LOG4CXX_WARN(logger_, "New service creation disallowed by NAVI");
+      }
+      return success;
     }
   }
-  return result;
+  return false;
 }
 
 void ApplicationManagerImpl::OnServiceEndedCallback(const int32_t& session_key,
@@ -1923,7 +1926,7 @@ void ApplicationManagerImpl::set_application_id(const int32_t correlation_id,
                      (correlation_id, app_id));
 }
 
-void ApplicationManagerImpl::AddPolicyObserver( policy::PolicyHandlerObserver* listener) {
+void ApplicationManagerImpl::AddPolicyObserver(policy::PolicyHandlerObserver* listener) {
   policy::PolicyHandler::instance()->add_listener(listener);
 }
 

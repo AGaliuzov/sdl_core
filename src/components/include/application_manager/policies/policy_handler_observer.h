@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2013, Ford Motor Company
+ Copyright (c) 2015, Ford Motor Company
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -33,12 +33,16 @@
 #ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_POLICY_HANDLER_OBSERVER_H_
 #define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_POLICY_HANDLER_OBSERVER_H_
 
+#include <map>
+#include <vector>
+#include <string>
+
 namespace policy {
 
-class PolicyHandlerObserver{
+class PolicyHandlerObserver {
   public:
-  virtual void OnUpdateHMIAppType(std::map<std::string, std::vector<std::string> > app_hmi_types) = 0;
-  virtual void OnCertificateUpdated(const std::string& certificate_data) {}
+  virtual void OnUpdateHMIAppType(std::map<std::string, std::vector<std::string> > app_hmi_types) {}
+  virtual bool OnCertificateUpdated(const std::string& certificate_data) { return false; }
   virtual ~PolicyHandlerObserver() {}
 };
 }  //  namespace policy

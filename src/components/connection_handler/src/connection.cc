@@ -211,8 +211,8 @@ bool Connection::RemoveService(
   ServiceList::iterator service_it =
       find(service_list.begin(), service_list.end(), service_type);
   if (service_list.end() == service_it) {
-    LOG4CXX_WARN(logger_, "Session " << session_id << " didn't established"
-                  " service " << service_type);
+    LOG4CXX_WARN(logger_, "Session " << static_cast<int>(session_id)
+                 << " has not established service " << service_type);
     return false;
   }
   service_list.erase(service_it);
