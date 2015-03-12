@@ -30,9 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "application_manager/application_impl.h"
 #include <string>
 #include <strings.h>
-#include "application_manager/application_impl.h"
 #include "application_manager/message_helper.h"
 #include "application_manager/application_manager_impl.h"
 #include "config_profile/profile.h"
@@ -717,8 +717,7 @@ void ApplicationImpl::set_is_application_data_changed(
 void ApplicationImpl::UpdateHash() {
   LOG4CXX_AUTO_TRACE(logger_);
   hash_val_ = utils::gen_hash(profile::Profile::instance()->hash_string_size());
-  is_application_data_changed_ =
-      StateApplicationData::kNotSaveDataForResumption;
+  is_application_data_changed_ = kNotSavedDataForResumption;
 #ifndef CUSTOMER_PASA
   MessageHelper::SendHashUpdateNotification(app_id());
 #endif //!CUSTOMER_PASA

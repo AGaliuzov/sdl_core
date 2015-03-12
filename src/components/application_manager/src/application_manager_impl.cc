@@ -101,7 +101,6 @@ ApplicationManagerImpl::ApplicationManagerImpl()
     audio_pass_thru_messages_("AudioPassThru", this),
     hmi_capabilities_(this),
     unregister_reason_(mobile_api::AppInterfaceUnregisteredReason::INVALID_ENUM),
-    resume_ctrl_(this),
     end_services_timer("EndServiceTimer", this, &ApplicationManagerImpl::EndNaviServices),
     wait_end_service_timeout_(profile::Profile::instance()->stop_streaming_timeout()),
 #ifdef CUSTOMER_PASA
@@ -477,7 +476,7 @@ bool ApplicationManagerImpl::ActivateApplication(ApplicationSharedPtr app) {
   DCHECK_OR_RETURN(app, false);
 
   // remove from resumption if app was activated by user
-  resume_controller().OnAppActivated(app);
+  esume_controller().OnAppActivated(app);
   HMILevel::eType hmi_level = HMILevel::HMI_FULL;
   AudioStreamingState::eType audio_state;
   app->IsAudioApplication() ? audio_state = AudioStreamingState::AUDIBLE :
@@ -568,7 +567,7 @@ void ApplicationManagerImpl::OnHMIStartedCooperation() {
     connection_handler_->StartTransportManager();
   }
 #endif // CUSTOMER_PASA
-  resume_controller().ResetLaunchTime();
+//  resume_controller().ResetLaunchTime();
 }
 
 uint32_t ApplicationManagerImpl::GetNextHMICorrelationID() {
@@ -2047,7 +2046,7 @@ void ApplicationManagerImpl::UnregisterAllApplications() {
   }
 #ifndef CUSTOMER_PASA
   if (is_ignition_off) {
-    resume_controller().Suspend();
+    resume_controller().OnSuspend();
   }
 #endif // CUSTOMER_PASA
   request_ctrl_.terminateAllHMIRequests();
@@ -2116,7 +2115,7 @@ void ApplicationManagerImpl::UnregisterApplication(
     }
 #endif
   } else {
-    resume_ctrl_.RemoveApplicationFromSaved(app_to_remove->mobile_app_id());
+//    resume_ctrl_.RemoveApplicationFromSaved(app_to_remove->mobile_app_id());
   }
 
   if (audio_pass_thru_active_) {
