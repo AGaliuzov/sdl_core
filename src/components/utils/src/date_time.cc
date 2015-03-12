@@ -114,14 +114,13 @@ TimeCompare date_time::DateTime::compareTime(const TimevalStruct &time1, const T
 }
 
 TimevalStruct date_time::DateTime::ConvertionUsecs(const TimevalStruct &time){
-  TimevalStruct time1 = time;
-
   if (time.tv_usec >=MICROSECONDS_IN_SECOND) {
-    time1.tv_sec= static_cast<int64_t>(time.tv_sec)+ (time.tv_usec/MICROSECONDS_IN_SECOND);
-    time1.tv_usec=static_cast<int64_t>(time.tv_usec)%MICROSECONDS_IN_SECOND;
+    TimevalStruct time1;
+    time1.tv_sec= static_cast<int64_t>(time.tv_sec) + (time.tv_usec/MICROSECONDS_IN_SECOND);
+    time1.tv_usec=static_cast<int64_t>(time.tv_usec) % MICROSECONDS_IN_SECOND;
+    return time1;
   }
-
-  return time1;
+  return time;
 }
 
 }  // namespace date_time
