@@ -187,6 +187,9 @@ const char* kTTSGlobalPropertiesTimeoutKey = "TTSGlobalPropertiesTimeout";
 const char* kMaximumPayloadSizeKey = "MaximumPayloadSize";
 const char* kFrequencyCount = "FrequencyCount";
 const char* kFrequencyTime = "FrequencyTime";
+const char* kMalformedMessageFiltering = "MalformedMessageFiltering";
+const char* kMalformedFrequencyCount = "MalformedFrequencyCount";
+const char* kMalformedFrequencyTime = "MalformedFrequencyTime";
 const char* kHashStringSizeKey = "HashStringSize";
 
 const char* kDefaultPoliciesSnapshotFileName = "sdl_snapshot.json";
@@ -267,6 +270,9 @@ const uint16_t kDefaultTTSGlobalPropertiesTimeout = 20;
 const size_t kDefaultMaximumPayloadSize = 1500 - 12;
 const size_t kDefaultFrequencyCount = 1000;
 const size_t kDefaultFrequencyTime = 1000;
+const bool kDefaulMalformedMessageFiltering = true;
+const size_t kDefaultMalformedFrequencyCount = 10;
+const size_t kDefaultMalformedFrequencyTime = 1000;
 const uint16_t kDefaultAttemptsToOpenPolicyDB = 5;
 const uint16_t kDefaultOpenAttemptTimeoutMsKey = 500;
 const uint32_t kDefaultAppIconsFolderMaxSize = 104857600;
@@ -726,6 +732,27 @@ size_t Profile::message_frequency_time() const {
   ReadUIntValue(&message_frequency_time, kDefaultFrequencyTime,
                 kProtocolHandlerSection, kFrequencyTime);
   return message_frequency_time;
+}
+
+bool Profile::malformed_message_filtering() const {
+  bool malformed_message_filtering = 0;
+  ReadBoolValue(&malformed_message_filtering, kDefaulMalformedMessageFiltering,
+                kProtocolHandlerSection, kMalformedMessageFiltering);
+  return malformed_message_filtering;
+}
+
+size_t Profile::malformed_frequency_count() const {
+  size_t malformed_frequency_count = 0;
+  ReadUIntValue(&malformed_frequency_count, kDefaultMalformedFrequencyCount,
+                kProtocolHandlerSection, kMalformedFrequencyCount);
+  return malformed_frequency_count;
+}
+
+size_t Profile::malformed_frequency_time() const {
+  size_t malformed_frequency_time = 0;
+  ReadUIntValue(&malformed_frequency_time, kDefaultMalformedFrequencyTime,
+                kProtocolHandlerSection, kMalformedFrequencyTime);
+  return malformed_frequency_time;
 }
 
 uint16_t Profile::attempts_to_open_policy_db() const {
