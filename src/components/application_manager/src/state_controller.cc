@@ -99,6 +99,11 @@ void StateController::HmiLevelConflictResolver::operator ()
 
 void StateController::SetupRegularHmiState(ApplicationSharedPtr app,
                                            HmiStatePtr state) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  DCHECK_OR_RETURN_VOID(state);
+  LOG4CXX_DEBUG(logger_, "hmi_level " << state->hmi_level() <<
+                ", audio_state " << state->audio_streaming_state() <<
+                ", system_context " << state->system_context());
   HmiStatePtr curr_state = app->CurrentHmiState();
   HmiStatePtr old_state = CreateHmiState(app->app_id(),
                                          HmiState::StateID::STATE_ID_REGULAR);
@@ -206,9 +211,16 @@ void StateController::on_event(const event_engine::Event& event) {
 void StateController::OnStateChanged(ApplicationSharedPtr app,
                                      HmiStatePtr old_state,
                                      HmiStatePtr new_state) {
+  LOG4CXX_AUTO_TRACE(logger_);
   DCHECK_OR_RETURN_VOID(app);
   DCHECK_OR_RETURN_VOID(old_state);
   DCHECK_OR_RETURN_VOID(new_state);
+  LOG4CXX_DEBUG(logger_, "old: hmi_level " << old_state->hmi_level() <<
+                ", audio_state " << old_state->audio_streaming_state() <<
+                ", system_context " << old_state->system_context());
+  LOG4CXX_DEBUG(logger_, "new: hmi_level " << new_state->hmi_level() <<
+                ", audio_state " << new_state->audio_streaming_state() <<
+                ", system_context " << new_state->system_context());
   if (IsStatusChanged(old_state, new_state)) {
     MessageHelper::SendHMIStatusNotification(*app);
     if (new_state->hmi_level() == mobile_apis::HMILevel::HMI_NONE) {
