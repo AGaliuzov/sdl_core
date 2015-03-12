@@ -2228,7 +2228,12 @@
       <param name="cmdID" type="Integer" mandatory="true" minvalue="0" maxvalue="2000000000">
         <description>ID of of the command (list of strings)</description>
       </param>
-      <param name="appID" type="Integer" mandatory="true">
+      <param name="grammarID" type="Integer" minvalue="0" maxvalue="2000000000" mandatory="true">
+      <description>
+        ID of the specific grammar that the command relates to. Previously provided by SDL via corresponding VR.AddCommand request.
+      </description>
+      </param>
+      <param name="appID" type="Integer" mandatory="false">
         <description>ID of application related to this RPC.</description>
       </param>
     </function>
