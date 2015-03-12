@@ -263,6 +263,8 @@
 #include "application_manager/commands/hmi/navi_send_location_response.h"
 #include "application_manager/commands/hmi/on_tts_reset_timeout_notification.h"
 #include "application_manager/commands/hmi/on_phone_call_notification.h"
+#include "application_manager/commands/hmi/dial_number_request.h"
+#include "application_manager/commands/hmi/dial_number_response.h"
 #ifdef CUSTOMER_PASA
 #include "application_manager/commands/hmi/basic_communication_on_awake_sdl.h"
 #endif // CUSTOMER_PASA
@@ -2057,6 +2059,14 @@ CommandSharedPtr HMICommandFactory::CreateCommand(
     case hmi_apis::FunctionID::BasicCommunication_OnPhoneCall: {
       command.reset(new commands::hmi::OnPhoneCallNotification(message));
       break;
+    }
+    case hmi_apis::FunctionID::BasicCommunication_DialNumber: {
+	if (is_response) {
+	  command.reset(new commands::DialNumberResponse(message));
+	} else {
+	  command.reset(new commands::DialNumberRequest(message));
+	}
+	break;
     }
 #ifdef CUSTOMER_PASA
     case hmi_apis::FunctionID::BasicCommunication_OnAwakeSDL: {
