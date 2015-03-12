@@ -618,11 +618,14 @@ void PolicyHandler::OnVehicleDataUpdated(
     const smart_objects::SmartObject& message) {
   POLICY_LIB_CHECK_VOID();
 #ifdef EXTENDED_POLICY
-  if (message[strings::msg_params].
-      keyExists(strings::vin)) {
-    policy_manager_->SetVINValue(
-          message[strings::msg_params]
-          [strings::vin].asString());
+  if (!message.keyExists(strings::msg_params)) {
+    LOG4CXX_ERROR(logger_, "Message does not contains mandatory section "
+                  << strings::msg_params);
+    return;
+  }
+  if (message[strings::msg_params].keyExists(strings::vin)) {
+    policy_manager_->
+        SetVINValue(message[strings::msg_params][strings::vin].asString());
   }
 #endif // EXTENDED_POLICY
 }
