@@ -224,7 +224,8 @@ FFW.BasicCommunication = FFW.RPCObserver
 
                     popUp.deactivate();
 
-                    if (response.error && response.error.code === SDL.SDLModel.resultCode["APPLICATION_NOT_REGISTERED"]) {
+                    if (response.error
+                        && response.error.code === SDL.SDLModel.resultCode["APPLICATION_NOT_REGISTERED"]) {
 
                         SDL.PopUp.create().appendTo('body').popupActivate("Activation FAILED!");
                         return;
@@ -234,7 +235,11 @@ FFW.BasicCommunication = FFW.RPCObserver
 
                         SDL.SettingsController.currentDeviceAllowance = response.result.device;
 
-                        FFW.BasicCommunication.GetUserFriendlyMessage(SDL.SettingsController.AllowSDLFunctionality, appID, ["DataConsent"]);
+                        FFW.BasicCommunication.GetUserFriendlyMessage(
+                            SDL.SettingsController.AllowSDLFunctionality,
+                            appID,
+                            ["DataConsent"]
+                        );
                     }
 
                     if (response.result.isPermissionsConsentNeeded) {
@@ -249,10 +254,15 @@ FFW.BasicCommunication = FFW.RPCObserver
 
                     if (response.result.isAppRevoked) {
 
-                        FFW.BasicCommunication.GetUserFriendlyMessage(SDL.SettingsController.simpleParseUserFriendlyMessageData, appID, ["AppUnsupported"]);
+                        FFW.BasicCommunication.GetUserFriendlyMessage(
+                            SDL.SettingsController.simpleParseUserFriendlyMessageData,
+                            appID,
+                            ["AppUnsupported"]
+                        );
                     } else {
 
-                        SDL.SDLController.getApplicationModel(appID).deviceID = response.result.device ? response.result.device.id : null;
+                        SDL.SDLController.getApplicationModel(appID)
+                            .deviceID = response.result.device ? response.result.device.id : null;
 
                         if ( SDL.SDLAppController.model && SDL.SDLAppController.model.appID != appID) {
                             SDL.States.goToStates('info.apps');
@@ -291,7 +301,7 @@ FFW.BasicCommunication = FFW.RPCObserver
                 SDL.SDLModel.set('policyURLs', response.result.urls);
 
                 if (response.result.urls.length) {
-                    this.OnSystemRequest("PROPRIETARY", response.result.urls[0].policyAppId, SDL.SettingsController.policyUpdateFile, response.result.urls[0].url);
+                    SDL.SettingsController.GetUrlsHandler(response.result.urls);
                 } else {
                     this.OnSystemRequest("PROPRIETARY");
                 }
@@ -342,7 +352,11 @@ FFW.BasicCommunication = FFW.RPCObserver
                     }
                 }
 
-                FFW.BasicCommunication.GetUserFriendlyMessage(SDL.SettingsController.simpleParseUserFriendlyMessageData, SDL.SDLAppController.model?SDL.SDLAppController.model.appID:null, [messageCode]);
+                FFW.BasicCommunication.GetUserFriendlyMessage(
+                    SDL.SettingsController.simpleParseUserFriendlyMessageData,
+                    SDL.SDLAppController.model ? SDL.SDLAppController.model.appID : null,
+                    [messageCode]
+                );
             }
 
             if (notification.method == this.onAppPermissionChangedNotification) {
@@ -354,17 +368,28 @@ FFW.BasicCommunication = FFW.RPCObserver
 
                 if (notification.params.isAppPermissionsRevoked) {
 
-                    SDL.SDLModel.setAppPermissions(notification.params.appID, notification.params.appRevokedPermissions);
+                    SDL.SDLModel.setAppPermissions(
+                        notification.params.appID,
+                        notification.params.appRevokedPermissions
+                    );
                 }
 
                 if (notification.params.appRevoked) {
 
-                    FFW.BasicCommunication.GetUserFriendlyMessage(SDL.SettingsController.simpleParseUserFriendlyMessageData, notification.params.appID, ["AppUnsupported"]);
+                    FFW.BasicCommunication.GetUserFriendlyMessage(
+                        SDL.SettingsController.simpleParseUserFriendlyMessageData,
+                        notification.params.appID,
+                        ["AppUnsupported"]
+                    );
                 }
 
                 if (notification.params.appUnauthorized) {
 
-                    FFW.BasicCommunication.GetUserFriendlyMessage(SDL.SettingsController.simpleParseUserFriendlyMessageData, notification.params.appID, ["AppUnauthorized"]);
+                    FFW.BasicCommunication.GetUserFriendlyMessage(
+                        SDL.SettingsController.simpleParseUserFriendlyMessageData,
+                        notification.params.appID,
+                        ["AppUnauthorized"]
+                    );
                 }
             }
 
@@ -388,7 +413,11 @@ FFW.BasicCommunication = FFW.RPCObserver
             if (notification.method == this.onSDLConsentNeededNotification) {
 
                 SDL.SettingsController.currentDeviceAllowance = notification.params.device;
-                FFW.BasicCommunication.GetUserFriendlyMessage(SDL.SettingsController.AllowSDLFunctionality, null, ["DataConsent"]);
+                FFW.BasicCommunication.GetUserFriendlyMessage(
+                    SDL.SettingsController.AllowSDLFunctionality,
+                    null,
+                    ["DataConsent"]
+                );
             }
             if (notification.method == this.onResumeAudioSourceNotification) {
 
@@ -436,7 +465,6 @@ FFW.BasicCommunication = FFW.RPCObserver
                         if (request.params.applications.hasOwnProperty(app)) {
                             SDL.SDLModel.onAppRegistered(request.params.applications[app]);
                         }
-                        //SDL.SDLController.registerApplication(request.params.applications[app], request.params.applications[app].isMediaApplication !== undefined ? request.params.applications[app].isMediaApplication : null);
                     }
 
                     this.sendBCResult(SDL.SDLModel.resultCode["SUCCESS"],
@@ -460,7 +488,8 @@ FFW.BasicCommunication = FFW.RPCObserver
                 if (request.method == "BasicCommunication.ActivateApp") {
 
                     if (!request.params.level || request.params.level == "FULL") {
-                        if ((SDL.SDLAppController.model && SDL.SDLAppController.model.appID != request.params.appID) || (request.params.level == "NONE" || request.params.level == "BACKGROUND")) {
+                        if ((SDL.SDLAppController.model && SDL.SDLAppController.model.appID != request.params.appID)
+                            || (request.params.level == "NONE" || request.params.level == "BACKGROUND")) {
                             SDL.States.goToStates('info.apps');
                         }
 
@@ -551,9 +580,13 @@ FFW.BasicCommunication = FFW.RPCObserver
                 "id": this.client.generateId(),
                 "method": "SDL.GetURLS",
                 "params": {
-                    "service": type
                 }
             };
+
+            if (type) {
+                JSONMessage.params.service = type;
+            }
+
             this.client.send(JSONMessage);
         },
 
@@ -1248,7 +1281,7 @@ FFW.BasicCommunication = FFW.RPCObserver
         /**
          * Initiated by HMI.
          */
-        OnSystemRequest: function(type, appID, fileName, url) {
+        OnSystemRequest: function(type, fileName, url, appID, policyAppID) {
 
             Em.Logger.log("FFW.BasicCommunication.OnSystemRequest");
 
@@ -1259,16 +1292,26 @@ FFW.BasicCommunication = FFW.RPCObserver
                 "method": "BasicCommunication.OnSystemRequest",
                 "params":{
                     "requestType": type,
-                    "url": url,
                     "fileType": "JSON",
                     "offset": 1000,
                     "length": 10000,
                     "timeout": 500,
-                    "fileName": fileName ? fileName : document.location.pathname.replace("index.html", "IVSU/PROPRIETARY_REQUEST"),
-                    "appID": appID ? appID : "default"
+                    "fileName": fileName ? fileName : document.location.pathname
+                        .replace("index.html", "IVSU/PROPRIETARY_REQUEST")
                 }
             };
+
+            if (url) {
+                JSONMessage.params.url = url;
+            }
+            if (policyAppID) {
+                JSONMessage.params.policyAppID = policyAppID;
+            }
+            if (appID) {
+                JSONMessage.params.appID = appID;
+            }
+
             this.client.send(JSONMessage);
         }
 
-    })
+    });

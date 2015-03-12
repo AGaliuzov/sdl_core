@@ -173,6 +173,10 @@ var StateManager = Em.StateManager.extend({
 
             }),
 
+            getUrls: Em.State.create({
+
+            }),
+
             deviceConfig: Em.State.create({
 
                 enter: function () {
