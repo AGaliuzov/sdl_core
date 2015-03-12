@@ -55,6 +55,15 @@ FFW.Navigation = FFW.RPCObserver.create( {
         componentName: "Navigation"
     }),
 
+    onAudioDataStreamingSubscribeRequestID: -1,
+    onVideoDataStreamingSubscribeRequestID: -1,
+
+    onAudioDataStreamingUnsubscribeRequestID: -1,
+    onVideoDataStreamingUnsubscribeRequestID: -1,
+
+    onAudioDataStreamingNotification: "Navigation.OnAudioDataStreaming",
+    onVideoDataStreamingNotification: "Navigation.OnVideoDataStreaming",
+
     // temp var for debug
     appID: 1,
 
@@ -86,6 +95,10 @@ FFW.Navigation = FFW.RPCObserver.create( {
         this._super();
 
         // subscribe to notifications
+        this.onAudioDataStreamingSubscribeRequestID = this.client
+            .subscribeToNotification(this.onAudioDataStreamingNotification);
+        this.onVideoDataStreamingSubscribeRequestID = this.client
+            .subscribeToNotification(this.onVideoDataStreamingNotification);
     },
 
     /**
@@ -97,6 +110,10 @@ FFW.Navigation = FFW.RPCObserver.create( {
         this._super();
 
         // unsubscribe from notifications
+        this.onAudioDataStreamingUnsubscribeRequestID = this.client
+            .unsubscribeFromNotification(this.onAudioDataStreamingNotification);
+        this.onVideoDataStreamingUnsubscribeRequestID = this.client
+            .unsubscribeFromNotification(this.onVideoDataStreamingNotification);
     },
 
     /**
@@ -135,8 +152,22 @@ FFW.Navigation = FFW.RPCObserver.create( {
         Em.Logger.log("FFW.Navigation.onRPCNotification");
         this._super();
 
-        if (notification.method == this.onStopStreamNotification) {
-            SDL.SDLModel.onStopStream(notification.params.appID);
+        if (notification.method == this.onVideoDataStreamingNotification) {
+
+            if (notification.params.available) {
+                SDL.SDLModel.startStream();
+            } else {
+                SDL.SDLModel.stopStream();
+            }
+        }
+
+        if (notification.method == this.onAudioDataStreamingNotification) {
+
+            if (notification.params.available) {
+                SDL.SDLModel.startAudioStream();
+            } else {
+                SDL.SDLModel.stoptAudioStream();
+            }
         }
     },
 
@@ -240,13 +271,35 @@ FFW.Navigation = FFW.RPCObserver.create( {
                 }
                 case "Navigation.StartAudioStream": {
 
-                    SDL.SDLModel.startAudioStream(request);
+                    var text = "Would you like to start Audio stream?";
+
+                    SDL.PopUp.create().appendTo('body').popupActivate(text, function(result){
+                        if (result) {
+
+                            FFW.Navigation.sendNavigationResult(
+                                SDL.SDLModel.resultCode["SUCCESS"],
+                                request.id,
+                                request.method
+                            );
+
+                        } else if (result === false) {
+
+                            FFW.Navigation.sendError(
+                                SDL.SDLModel.resultCode["REJECTED"],
+                                request.id,
+                                request.method,
+                                "Ignored by USER!"
+                            );
+                        }
+                    });
+
+                    SDL.SDLController.getApplicationModel(request.params.appID).navigationAudioStream = request.params.url;
 
                     break;
                 }
                 case "Navigation.StopAudioStream": {
 
-                    SDL.SDLModel.stoptAudioStream(request.params.appID);
+                    SDL.SDLController.getApplicationModel(request.params.appID).navigationAudioStream = null;
 
                     this.sendNavigationResult(SDL.SDLModel.resultCode["SUCCESS"],
                         request.id,
@@ -256,13 +309,39 @@ FFW.Navigation = FFW.RPCObserver.create( {
                 }
                 case "Navigation.StartStream": {
 
-                    SDL.SDLModel.startStream(request);
+
+                    var text = "Would you like to start Video stream?";
+
+                    SDL.PopUp.create().appendTo('body').popupActivate(text, function(result){
+                        if (result) {
+
+                            SDL.SDLController.getApplicationModel(request.params.appID).set('navigationStream', request.params.url);
+
+
+                            FFW.Navigation.sendNavigationResult(
+                                SDL.SDLModel.resultCode["SUCCESS"],
+                                request.id,
+                                request.method
+                            );
+
+                        } else if (result === false) {
+
+                            FFW.Navigation.sendError(
+                                SDL.SDLModel.resultCode["REJECTED"],
+                                request.id,
+                                request.method,
+                                "Ignored by USER!"
+                            );
+                        }
+                    });
+
+                    SDL.SDLController.getApplicationModel(request.params.appID).navigationStream = request.params.url;
 
                     break;
                 }
                 case "Navigation.StopStream": {
 
-                    SDL.SDLModel.stopStream(request.params.appID);
+                    SDL.SDLController.getApplicationModel(request.params.appID).navigationStream = null;
 
                     this.sendNavigationResult(SDL.SDLModel.resultCode["SUCCESS"],
                         request.id,
