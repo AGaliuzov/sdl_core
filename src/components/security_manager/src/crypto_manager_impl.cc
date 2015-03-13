@@ -217,7 +217,8 @@ bool CryptoManagerImpl::OnCertificateUpdated(const std::string &data) {
     return false;
   }
 
-  if (!(ca_certificate_file << data << std::endl)) {
+  ca_certificate_file << data << std::endl;
+  if (!ca_certificate_file) {
     // Writing failed
     LOG4CXX_ERROR(
         logger_,
@@ -279,7 +280,9 @@ void CryptoManagerImpl::SetVerification() {
     const unsigned long error = ERR_get_error();
     LOG4CXX_WARN(
         logger_,
-        "Wrong certificate file '" << ca_certificate_file_ << "', err 0x" << std::hex << error << " \"" << ERR_reason_error_string(error) << '"');
+        "Wrong certificate file '" << ca_certificate_file_
+        << "', err 0x" << std::hex << error
+        << " \"" << ERR_reason_error_string(error) << '"');
     return;
   }
   LOG4CXX_DEBUG(logger_, "Setting up peer verification");
@@ -292,7 +295,8 @@ int debug_callback(int preverify_ok, X509_STORE_CTX *ctx) {
     const int error = X509_STORE_CTX_get_error(ctx);
     LOG4CXX_WARN(
         logger_,
-        "Certificate verification failed with error " << error << " \"" << X509_verify_cert_error_string(error) << '"');
+        "Certificate verification failed with error " << error
+        << " \"" << X509_verify_cert_error_string(error) << '"');
   }
   return preverify_ok;
 }

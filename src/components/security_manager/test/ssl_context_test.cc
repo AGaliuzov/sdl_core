@@ -106,6 +106,8 @@ class SSLTest : public testing::Test {
 security_manager::CryptoManager* SSLTest::crypto_manager;
 security_manager::CryptoManager* SSLTest::client_manager;
 
+//TODO(EZAMAKHOV): Split to SSL/TLS1/TLS1_1/TLS1_2 tests
+
 TEST_F(SSLTest, BrokenHandshake) {
   const uint8_t *server_buf;
   const uint8_t *client_buf;
