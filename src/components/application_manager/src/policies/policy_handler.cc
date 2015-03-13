@@ -877,7 +877,8 @@ void PolicyHandler::OnAllowSDLFunctionalityNotification(bool is_allowed,
         // Send HMI status notification to mobile
         // Put application in full
         ApplicationManagerImpl::instance()->SetState<true>(app->app_id(),
-                                                     mobile_apis::HMILevel::HMI_FULL
+                                                     mobile_apis::HMILevel::HMI_FULL,
+                                                     mobile_apis::AudioStreamingState::AUDIBLE
                                                      );
         last_activated_app_id_ = 0;
       }

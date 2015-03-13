@@ -219,10 +219,6 @@ SDL.SettingsController = Em.Object.create( {
         FFW.BasicCommunication.UpdateSDL();
     },
 
-    getURLS: function() {
-        FFW.BasicCommunication.GetURLS();
-    },
-
     AllowSDLFunctionality: function(messages) {
 
         if (messages.length > 0) {
@@ -295,6 +291,53 @@ SDL.SettingsController = Em.Object.create( {
     },
 
     /**
+     * Method to check Array of ServiceInfo structure from HMI_API.xml
+     * And verify what OnSystemRequest should be sent
+     *
+     * @param {Object} urls
+     */
+    GetUrlsHandler: function(urls) {
+
+        var url;
+
+        for (i in urls) {
+
+            if (urls.hasOwnProperty(i)) {
+
+
+                url = urls[i];
+
+                if ("policyAppID" in url && "appID" in url) { //If policyAppID and appID presented in arguments than all datashould be sent
+
+                    FFW.BasicCommunication.OnSystemRequest(
+                        "PROPRIETARY",
+                        SDL.SettingsController.policyUpdateFile,
+                        url.url,
+                        url.appID,
+                        url.policyAppID
+                    );
+                } else if ( (!("appID" in url) && ("policyAppID" in url) )
+                    || ( ("appID" in url) && !("policyAppID" in url) ) ) {  //If policyAppID or appID in not presented
+                                                                            // than error message should appear and
+                                                                            // no notification should be sent
+
+                    console.error("WARNING! No appID or policyAppID in GetURLs response");
+                } else {
+                                                                            //if there is only url in arguments than default
+                                                                            //data should be sent to SDL Core
+                    FFW.BasicCommunication.OnSystemRequest(
+                        "PROPRIETARY",
+                        SDL.SettingsController.policyUpdateFile,
+                        url.url,
+                        null,
+                        "default"
+                    );
+                }
+            }
+        }
+    },
+
+    /**
      * Method responsible for PolicyUpdate retry sequence
      * abort parameter if set to true means that retry sequence if finished
      *
@@ -315,9 +358,10 @@ SDL.SettingsController = Em.Object.create( {
                 function(){
                     FFW.BasicCommunication.OnSystemRequest(
                         "PROPRIETARY",
-                        SDL.SDLModel.policyURLs[0].policyAppId,
                         SDL.SettingsController.policyUpdateFile,
-                        SDL.SDLModel.policyURLs[0].url
+                        SDL.SDLModel.policyURLs[0].url,
+                        SDL.SDLModel.policyURLs[0].appID,
+                        SDL.SDLModel.policyURLs[0].policyAppId
                     );
                     SDL.SettingsController.policyUpdateRetry();
                 }, SDL.SDLModel.policyUpdateRetry.oldTimer

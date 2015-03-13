@@ -63,7 +63,8 @@ class StateController : public event_engine::EventObserver {
       DCHECK_OR_RETURN_VOID(state->state_id() == HmiState::STATE_ID_REGULAR);
 
       if (SendActivateApp) {
-        uint32_t corr_id = MessageHelper::SendActivateAppToHMI(app->app_id());
+        uint32_t corr_id = MessageHelper::SendActivateAppToHMI(app->app_id(),
+             static_cast<hmi_apis::Common_HMILevel::eType>(state->hmi_level()));
         subscribe_on_event(hmi_apis::FunctionID::BasicCommunication_ActivateApp,
                            corr_id);
         waiting_for_activate[app->app_id()] = state;

@@ -129,25 +129,6 @@ FFW.VR = FFW.RPCObserver.create( {
     },
 
     /*
-     * send notification when command was triggered
-     */
-    onCommand: function(element) {
-
-        Em.Logger.log("FFW.VR.onCommand");
-
-        var JSONMessage = {
-            "jsonrpc": "2.0",
-            "method": "VR.OnCommand",
-            "params": {
-                "commandID": element.commandID
-            }
-        };
-        this.client.send(JSONMessage);
-
-        SDL.VRPopUp.set('VRActive', false);
-    },
-
-    /*
      * handle RPC requests here
      */
     onRPCRequest: function(request) {
@@ -485,7 +466,7 @@ FFW.VR = FFW.RPCObserver.create( {
     /**
      * send notification when command was triggered
      */
-    onCommand: function(commandID, appID) {
+    onCommand: function(commandID, appID, grammarID) {
 
         Em.Logger.log("FFW.VR.onCommand");
 
@@ -494,9 +475,14 @@ FFW.VR = FFW.RPCObserver.create( {
             "method": "VR.OnCommand",
             "params": {
                 "cmdID": commandID,
-                "appID": appID
+                "grammarID": grammarID
             }
         };
+
+        if (appID) {
+            JSONMessage.params.appID = appID;
+        }
+
         this.client.send(JSONMessage);
     },
 

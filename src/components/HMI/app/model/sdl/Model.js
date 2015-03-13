@@ -828,31 +828,39 @@ SDL.SDLModel = Em.Object.create({
      */
     startStream: function(request) {
 
-        var text = "Would you like to start Video stream?";
+        var appID = null;
 
-        SDL.PopUp.create().appendTo('body').popupActivate(text, function(result){
-            if (result) {
+        if (SDL.SDLAppController.model
+            && this.appTypeComparison(SDL.SDLAppController.model, "NAVIGATION")) {
 
-                SDL.SDLController.getApplicationModel(request.params.appID).set('navigationStream', request.params.url);
-                SDL.SDLModel.playVideo(request.params.appID);
+            appID = SDL.SDLAppController.model.appID;
+        } else if (SDL.SDLModel.stateLimited
+            && this.appTypeComparison(SDL.SDLController.getApplicationModel(SDL.SDLModel.stateLimited), "NAVIGATION")) {
 
-                FFW.Navigation.sendNavigationResult(
-                    SDL.SDLModel.resultCode["SUCCESS"],
-                    request.id,
-                    request.method
-                );
+            appID = SDL.SDLModel.stateLimited;
+        }
 
-            } else if (result === false) {
+        SDL.SDLModel.playVideo(appID);
+    },
 
-                FFW.Navigation.sendError(
-                    SDL.SDLModel.resultCode["REJECTED"],
-                    request.id,
-                    request.method,
-                    "Ignored by USER!"
-                );
+    /**
+     * Function to verify if application hasrequested type
+     *
+     * @param model
+     * @param type
+     * @returns {boolean}
+     */
+    appTypeComparison: function(model, type){
+
+        var result = false;
+
+        model.appType.forEach(function(item){
+            if (item == type) {
+                result = true;
             }
         });
 
+        return result;
     },
 
     /**
@@ -871,10 +879,6 @@ SDL.SDLModel = Em.Object.create({
         SDL.NavigationAppView.videoView.remove();
         SDL.NavigationAppView.videoView.destroy();
 
-        SDL.SDLController.getApplicationModel(appID).set('navigationStream', null);
-
-        //this.pauseVideo();
-
         videoChild = SDL.NavigationAppView.createChildView(createVideoView);
 
         SDL.NavigationAppView.get('childViews').pushObject(videoChild);
@@ -887,32 +891,21 @@ SDL.SDLModel = Em.Object.create({
      *
      * @param {Object}
      */
-    startAudioStream: function(params) {
+    startAudioStream: function() {
 
-        var text = "Would you like to start Audio stream?";
+        var appID = null;
 
-        SDL.PopUp.create().appendTo('body').popupActivate(text, function(result){
-            if (result) {
+        if (SDL.SDLAppController.model
+            && this.appTypeComparison(SDL.SDLAppController.model, "NAVIGATION")) {
 
-                SDL.SDLController.getApplicationModel(params.appID).set('navigationAudioStream', params.url);
-                SDL.StreamAudio.play(params.url);
+            appID = SDL.SDLAppController.model.appID;
+        } else if (SDL.SDLModel.stateLimited
+            && this.appTypeComparison(SDL.SDLController.getApplicationModel(SDL.SDLModel.stateLimited), "NAVIGATION")) {
 
-                FFW.Navigation.sendNavigationResult(
-                    SDL.SDLModel.resultCode["SUCCESS"],
-                    request.id,
-                    request.method
-                );
+            appID = SDL.SDLModel.stateLimited;
+        }
 
-            } else if (result === false) {
-
-                FFW.Navigation.sendError(
-                    SDL.SDLModel.resultCode["REJECTED"],
-                    request.id,
-                    request.method,
-                    "Ignored by USER!"
-                );
-            }
-        });
+        SDL.StreamAudio.play(SDL.SDLController.getApplicationModel(appID).navigationAudioStream);
     },
 
     /**
@@ -920,9 +913,20 @@ SDL.SDLModel = Em.Object.create({
      *
      * @param {Number}
      */
-    stoptAudioStream: function(appID) {
+    stoptAudioStream: function() {
 
-        SDL.SDLController.getApplicationModel(appID).set('navigationAudioStream', null);
+        var appID = null;
+
+        if (SDL.SDLAppController.model
+            && SDL.SDLAppController.model.appType == "NAVIGATION") {
+
+            appID = SDL.SDLAppController.model.appID;
+        } else if (SDL.SDLModel.stateLimited
+            && SDL.SDLController.getApplicationModel(SDL.SDLModel.stateLimited).appType == "NAVIGATION") {
+
+            appID = SDL.SDLModel.stateLimited;
+        }
+
         SDL.StreamAudio.stop();
     },
 

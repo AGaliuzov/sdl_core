@@ -431,21 +431,6 @@ SDL.SDLController = Em.Object
         onAwakeSDLNotificationSend: function() {
             FFW.BasicCommunication.OnAwakeSDL();
         },
-
-        /**
-         * Method to sent notification with selected reason of OnSystemRequest
-         *
-         * @param {String}
-         */
-        systemRequestViewSelected: function(state) {
-
-            if (SDL.SDLModel.policyURLs.length) {
-                FFW.BasicCommunication.OnSystemRequest(state, SDL.SDLModel.policyURLs[0].policyAppId, null, SDL.SDLModel.policyURLs[0].url);
-            } else {
-                FFW.BasicCommunication.OnSystemRequest(state);
-            }
-
-        },
         /**
          * Method to sent notification ABORTED for PerformInteractionChoise
          */
@@ -609,6 +594,7 @@ SDL.SDLController = Em.Object
                     appID: params.appID,
                     appName: params.appName,
                     deviceName: params.deviceName,
+                    appType: params.appType,
                     isMedia: 0,
                     disabledToActivate: params.disabled ? true : false
                 }));
