@@ -30,63 +30,56 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_FORMATTERS_TEST_INCLUDE_CREATESMARTSCHEMA_H_
-#define SRC_COMPONENTS_FORMATTERS_TEST_INCLUDE_CREATESMARTSCHEMA_H_
+#ifndef SRC_COMPONENTS_FORMATTERS_TEST_INCLUDE_METAFORMATTERTESTHELPER_H_
+#define SRC_COMPONENTS_FORMATTERS_TEST_INCLUDE_METAFORMATTERTESTHELPER_H_
 
+#include "gtest/gtest.h"
+
+#include "smart_objects/smart_object.h"
 #include "formatters/CFormatterJsonSDLRPCv1.hpp"
-#include "SmartFactoryTestHelper.h"
+#include "formatters/CSmartFactory.hpp"
+#include "create_smartSchema.h"
 
 namespace test {
 namespace components {
 namespace formatters {
 
-using namespace NsSmartDeviceLink::NsJSONHandler::strings;
-using namespace NsSmartDeviceLink::NsJSONHandler::Formatters;
-using namespace NsSmartDeviceLink::NsSmartObjects;
+class CMetaFormatterTestHelper : public ::testing::Test {
+ protected:
 
-namespace FunctionIDTest {
-enum eType {
-  INVALID_ENUM = -1,
-  RegisterAppInterface,
-  UnregisterAppInterface,
-  SetGlobalProperties,
+  virtual void SetUp();
+
+  virtual void TearDown();
+
+  void AnyObjectToJsonString(
+      const NsSmartDeviceLink::NsSmartObjects::SmartObject& obj,
+      std::string& result_string);
+
+  void FillObjectIdenticalToSchema(
+      NsSmartDeviceLink::NsSmartObjects::SmartObject& obj);
+
+  void FillObjectIdenticalToSchemaWithoutNoMandatoriesParams(
+      NsSmartDeviceLink::NsSmartObjects::SmartObject& obj);
+
+  void CompareObjects(
+      const NsSmartDeviceLink::NsSmartObjects::SmartObject& first,
+      const NsSmartDeviceLink::NsSmartObjects::SmartObject& second);
+
+  void FillObjectWithDefaultValues(
+      NsSmartDeviceLink::NsSmartObjects::SmartObject& obj);
+
+  void FillObjectWithoutSomeMandatoryFields(
+      NsSmartDeviceLink::NsSmartObjects::SmartObject& obj);
+
+  // members
+  std::set<FunctionIDTest::eType> function_id_items_;
+  std::set<MessageTypeTest::eType> message_type_items_;
+
+  static const bool kIsPrintOut = false;
 };
-}
 
-namespace Language {
-enum eType {
-  INVALID_ENUM = -1,
-  EN_EU,
-  RU_RU
-};
-}
-namespace AppTypeTest {
-enum eType {
-  INVALID_ENUM = -1,
-  SYSTEM,
-  MEDIA
-};
-}
-namespace SpeechCapabilities {
-enum eType {
-  INVALID_ENUM = -1,
-  SC_TEXT,
-};
-}
+}  // namespace formatters
+}  // namespace components
+}  // namespace test
 
-namespace StructIdentifiers {
-enum eType {
-  INVALID_ENUM = -1,
-  Struct1,
-  Struct2
-};
-}
-
-CSmartSchema initObjectSchema();
-CSmartSchema initSchemaForMetaFormatter();
-
-} // namespace formatters
-} // namespace components
-} // namespace test
-
-#endif  // SRC_COMPONENTS_FORMATTERS_TEST_INCLUDE_CREATESMARTSCHEMA_H_
+#endif // SRC_COMPONENTS_FORMATTERS_TEST_INCLUDE_METAFORMATTERTESTHELPER_H_

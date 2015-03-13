@@ -59,6 +59,8 @@ set(SOURCES
   ${COMPONENTS_DIR}/formatters/test/src/create_smartSchema.cc 
   ${COMPONENTS_DIR}/formatters/test/cFormatterJsonSDLRPCv1_test.cc
   ${COMPONENTS_DIR}/formatters/test/cFormatterJsonSDLRPCv2_test.cc
+  ${COMPONENTS_DIR}/formatters/test/src/meta_formatter_test_helper.cc
+  ${COMPONENTS_DIR}/formatters/test/meta_formatter_test.cc
 )
 
 create_test("formatters_test" "${SOURCES}" "${LIBRARIES}")
