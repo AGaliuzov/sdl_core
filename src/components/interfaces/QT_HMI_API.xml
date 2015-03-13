@@ -2110,6 +2110,17 @@
       </description>
       </param>
     </function>
+    <function name="DialNumber" messagetype="request">
+      <description>Request from SDL to call a specific number.</description>
+      <param name="number" type="String" maxlength="40">
+        <description>The number to dial. Only the character “+” and numbers are allowed.</description>
+      </param>
+      <param name="appID" type="Integer" mandatory="true">
+        <description>ID of application that concerns this RPC.</description>
+      </param>
+    </function>
+    <function name="DialNumber" messagetype="response">
+    </function>
     <!-- Policies -->
     <function name="GetSystemInfo" messagetype="request" provider="hmi">
       <description>Request from SDL to HMI to obtain information about head unit system.</description>
@@ -2924,19 +2935,6 @@
     </function>
     <function name="SendLocation" messagetype="response" >
     </function>
-
-    <function name="DialNumber" messagetype="request">
-      <description>Request from SDL to call a specific number.</description>
-      <param name="number" type="string" maxlength="40">
-        <description>The number to dial. Only the character “+” and numbers are allowed.</description>
-      </param>
-      <param name="appID" type="Integer" mandatory="true">
-        <description>ID of application that concerns this RPC.</description>
-      </param>
-    </function>
-    <function name="DialNumber" messagetype="response">
-    </function>
-
     <function name="ShowConstantTBT" messagetype="request" provider="hmi">
       <description>Request from SmartDeviceLinkCore to HMI to show info about navigation.</description>
       <param name="navigationTexts" type="Common.TextFieldStruct" mandatory="true" array="true" minsize="0" maxsize="5">
