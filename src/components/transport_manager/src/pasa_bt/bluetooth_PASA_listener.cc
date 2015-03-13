@@ -150,13 +150,17 @@ void BluetoothPASAListener::ConnectDevice(void *data) {
     LOG4CXX_DEBUG(logger_,
                   "Bluetooth device exists: " << pDeviceInfo->cDeviceName);
   }
-  const BluetoothPASADevice::SCOMMChannel tChannel(pDeviceInfo->cSppQueName);
-  BluetoothPASADevicePtr bt_device = DeviceSptr::static_pointer_cast<
-      BluetoothPASADevice>(device);
-  bt_device->AddChannel(tChannel);
-  LOG4CXX_INFO(
-      logger_,
-      "Bluetooth channel " << pDeviceInfo->cSppQueName << " added to " << pDeviceInfo->cDeviceName);
+  if (pDeviceInfo->cSppQueName[0] != '\0') {
+      const BluetoothPASADevice::SCOMMChannel tChannel(pDeviceInfo->cSppQueName);
+      BluetoothPASADevicePtr bt_device = DeviceSptr::static_pointer_cast<
+          BluetoothPASADevice>(device);
+      bt_device->AddChannel(tChannel);
+      LOG4CXX_INFO(
+          logger_,
+          "Bluetooth channel " << pDeviceInfo->cSppQueName << " added to " << pDeviceInfo->cDeviceName);
+  } else {
+      LOG4CXX_INFO(logger_, "pDeviceInfo->cSppQueName is NULL");
+  }
   SendMsgQ(mq_from_sdl_, SDL_MSG_BT_DEVICE_CONNECT_ACK, 0, NULL);
 }
 
