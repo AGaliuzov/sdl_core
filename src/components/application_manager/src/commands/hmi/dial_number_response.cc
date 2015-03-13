@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,8 @@ namespace application_manager {
 
 namespace commands {
 
+namespace hmi {
+
 DialNumberResponse::DialNumberResponse(const MessageSharedPtr& message)
     : ResponseFromHMI(message) {
 }
@@ -49,6 +51,8 @@ void DialNumberResponse::Run() {
   event.set_smart_object(*message_);
   event.raise();
 }
+
+}  // namespace hmi
 
 }  // namespace commands
 

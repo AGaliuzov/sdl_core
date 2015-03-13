@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,8 @@ namespace application_manager {
 
 namespace commands {
 
+namespace hmi {
+
 /**
  * @brief DialNumberRequest command class
  **/
@@ -64,6 +66,8 @@ class DialNumberRequest : public RequestToHMI {
  private:
   DISALLOW_COPY_AND_ASSIGN(DialNumberRequest);
 };
+
+}  // namespace hmi
 
 }  // namespace commands
 
