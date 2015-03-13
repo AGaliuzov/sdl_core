@@ -125,7 +125,7 @@ class SSLHandshakeTest : public testing::Test {
   }
 
   std::string LoadCertificate(const std::string& ca_file) {
-    std::ifstream file(ca_file);
+    std::ifstream file(ca_file.c_str());
     EXPECT_TRUE(file.good());
     std::string ca_cetrificate((std::istreambuf_iterator<char>(file)),
                                 std::istreambuf_iterator<char>() );
