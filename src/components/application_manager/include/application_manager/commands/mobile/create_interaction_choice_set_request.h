@@ -36,6 +36,7 @@
 
 #include "application_manager/application.h"
 #include "application_manager/commands/command_request_impl.h"
+#include "application_manager/event_engine/event_observer.h"
 #include "interfaces/MOBILE_API.h"
 #include "utils/macro.h"
 
@@ -68,7 +69,30 @@ class CreateInteractionChoiceSetRequest : public CommandRequestImpl {
   virtual void Run();
 
  private:
+    /**
+     * @brief Interface method that is called whenever new event received
+     *
+     * @param event The received event
+     */
+    virtual void on_event(const event_engine::Event& event);
 
+    /**
+     * @brief Function is called by RequestController when request execution time
+     * has exceed it's limit
+     */
+    virtual void onTimeOut();
+
+    /**
+     * @brief DeleteChoices allows to walk through the sent commands collection
+     * in order to sent appropriate DeleteCommand request.
+     */
+    void DeleteChoices();
+
+    std::set<uint32_t> sent_cmd_ids_;
+    int32_t choice_set_id_;
+    size_t expected_chs_count_;
+    volatile bool stop_sending_;
+    sync_primitives::Lock cmd_ids_lock;
     /*
      * @brief Sends VR AddCommand request to HMI
      *
