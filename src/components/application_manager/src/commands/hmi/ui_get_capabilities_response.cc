@@ -50,23 +50,42 @@ void UIGetCapabilitiesResponse::Run() {
   HMICapabilities& hmi_capabilities =
       ApplicationManagerImpl::instance()->hmi_capabilities();
 
+  const smart_objects::SmartObject& msg_params =
+      (*message_)[strings::msg_params];
+
   hmi_capabilities.set_display_capabilities(
-      (*message_)[strings::msg_params][hmi_response::display_capabilities]);
+      msg_params[hmi_response::display_capabilities]);
 
   hmi_capabilities.set_hmi_zone_capabilities(
-      (*message_)[strings::msg_params][hmi_response::hmi_zone_capabilities]);
+      msg_params[hmi_response::hmi_zone_capabilities]);
 
-  if ((*message_)[strings::msg_params].keyExists(
-                                      hmi_response::soft_button_capabilities)) {
-    hmi_capabilities.set_soft_button_capabilities(
-      (*message_)[strings::msg_params][hmi_response::soft_button_capabilities]);
+  // Current HMI API for UI.GetCapabilities has soft button capabilities
+  // as single item, but MOBILE API expects an array of items, therefore here is
+  // convertion to array. Also check for array still present to avoid errors
+  // in case HMI API will be changed
+  if (msg_params.keyExists(hmi_response::soft_button_capabilities)) {
+    if (msg_params[hmi_response::soft_button_capabilities].getType() ==
+        smart_objects::SmartType_Array) {
+      LOG4CXX_DEBUG(logger_, "HMI API changed, please remove odd convertion.");
+
+      hmi_capabilities.set_soft_button_capabilities(
+        msg_params[hmi_response::soft_button_capabilities]);
+    } else {
+      smart_objects::SmartObject soft_buttons_capabilities_array =
+          smart_objects::SmartObject(smart_objects::SmartType_Array);
+
+      soft_buttons_capabilities_array[0] =
+          msg_params[hmi_response::soft_button_capabilities];
+
+      hmi_capabilities.set_soft_button_capabilities(
+            soft_buttons_capabilities_array);
+    }
   }
 
-  if ((*message_)[strings::msg_params].keyExists(
-                                      strings::audio_pass_thru_capabilities)) {
+  if (msg_params.keyExists(strings::audio_pass_thru_capabilities)) {
 
     hmi_capabilities.set_audio_pass_thru_capabilities(
-      (*message_)[strings::msg_params][strings::audio_pass_thru_capabilities]);
+      msg_params[strings::audio_pass_thru_capabilities]);
   }
 }
 
