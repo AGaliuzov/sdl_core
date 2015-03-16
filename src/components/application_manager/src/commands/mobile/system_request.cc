@@ -146,6 +146,10 @@ void SystemRequest::Run() {
   }
   msg_params[strings::request_type] =
       (*message_)[strings::msg_params][strings::request_type];
+
+  msg_params[strings::policy_app_id] = application->mobile_app_id();
+  msg_params[strings::app_id] = application->hmi_app_id();
+
   SendHMIRequest(hmi_apis::FunctionID::BasicCommunication_SystemRequest,
                  &msg_params, true);
 

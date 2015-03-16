@@ -51,7 +51,6 @@
 #include "application_manager/commands/mobile/delete_interaction_choice_set_response.h"
 #include "application_manager/commands/mobile/delete_sub_menu_request.h"
 #include "application_manager/commands/mobile/delete_sub_menu_response.h"
-#include "application_manager/commands/mobile/dial_number_request.h"
 #include "application_manager/commands/mobile/end_audio_pass_thru_request.h"
 #include "application_manager/commands/mobile/end_audio_pass_thru_response.h"
 #include "application_manager/commands/mobile/generic_response.h"

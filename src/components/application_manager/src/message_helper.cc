@@ -1859,17 +1859,6 @@ void MessageHelper::SendSystemRequestNotification (uint32_t connection_key,
   content[strings::params][strings::protocol_version] = CommandImpl::protocol_version_;
 
   content[strings::params][strings::connection_key] = connection_key;
-
-  ApplicationSharedPtr app =
-      ApplicationManagerImpl::instance()->application(connection_key);
-  std::string policy_app_id;
-  if (app) {
-    policy_app_id.assign(app->mobile_app_id());
-  }
-
-  content[strings::msg_params][strings::app_id] = connection_key;
-  content[strings::msg_params][strings::policy_app_id] = policy_app_id;
-
   ApplicationManagerImpl::instance()->ManageMobileCommand(new SmartObject(content));
 }
 
