@@ -2090,44 +2090,36 @@ void ApplicationManagerImpl::UnregisterApplication(
     }
   }
 
-  ApplicationSharedPtr app_to_remove;
-  {
-    ApplicationListAccessor accessor;
-    ApplictionSetConstIt it = accessor.begin();
-    for (; it != accessor.end(); ++it) {
-      if ((*it)->app_id() == app_id) {
-        app_to_remove = *it;
-        break;
+  ApplicationSharedPtr app_to_remove = application(app_id);
+
+  if (app_to_remove) {
+    if (is_resuming) {
+  #ifdef CUSTOMER_PASA
+      if (false == is_state_suspended_) {
+  #endif
+        resume_ctrl_.SaveApplication(app_to_remove);
+  #ifdef CUSTOMER_PASA
       }
+  #endif
+    } else {
+      resume_ctrl_.RemoveApplicationFromSaved(app_to_remove);
     }
-    if (!app_to_remove) {
-      LOG4CXX_ERROR(logger_, "Cant find application with app_id = " << app_id);
-      return;
+
+    if (audio_pass_thru_active_) {
+      // May be better to put this code in MessageHelper?
+      end_audio_pass_thru();
+      StopAudioPassThru(app_id);
+      MessageHelper::SendStopAudioPathThru();
     }
+    MessageHelper::SendOnAppUnregNotificationToHMI(app_to_remove,
+                                                   is_unexpected_disconnect);
+
+    request_ctrl_.terminateAppRequests(app_id);
+    ApplicationListAccessor accessor;
     accessor.Erase(app_to_remove);
-  }
-  if (is_resuming) {
-#ifdef CUSTOMER_PASA
-    if (false == is_state_suspended_) {
-#endif
-      resume_ctrl_.SaveApplication(app_to_remove);
-#ifdef CUSTOMER_PASA
-    }
-#endif
   } else {
-//    resume_ctrl_.RemoveApplicationFromSaved(app_to_remove->mobile_app_id());
+    LOG4CXX_ERROR(logger_, "Cant find application with app_id = " << app_id);
   }
-
-  if (audio_pass_thru_active_) {
-    // May be better to put this code in MessageHelper?
-    end_audio_pass_thru();
-    StopAudioPassThru(app_id);
-    MessageHelper::SendStopAudioPathThru();
-  }
-  MessageHelper::SendOnAppUnregNotificationToHMI(app_to_remove,
-                                                 is_unexpected_disconnect);
-
-  request_ctrl_.terminateAppRequests(app_id);
   return;
 }
 
