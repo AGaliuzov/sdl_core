@@ -42,6 +42,7 @@
 #include "utils/logger.h"
 #include "utils/threads/thread.h"
 #include "utils/file_system.h"
+#include <limits>
 #ifdef ENABLE_SECURITY
 #include <openssl/ssl.h>
 #endif  // ENABLE_SECURITY
@@ -1616,7 +1617,11 @@ bool Profile::ReadUIntValue(uint16_t* value, uint16_t default_value,
       *value = default_value;
       return false;
     }
-
+    if (user_value > (std::numeric_limits < uint16_t > ::max)())
+    {
+      *value = default_value;
+      return false;
+    }
     *value = static_cast<uint16_t>(user_value);
     return true;
   }
@@ -1632,6 +1637,11 @@ bool Profile::ReadUIntValue(uint32_t* value, uint32_t default_value,
   } else {
     uint64_t user_value;
     if (!StringToNumber(string_value, user_value)) {
+      *value = default_value;
+      return false;
+    }
+    if (user_value > (std::numeric_limits < uint32_t > ::max)())
+    {
       *value = default_value;
       return false;
     }
