@@ -441,8 +441,8 @@ class MessageHelper {
      * @return verification result
      *
      */
-    static mobile_apis::Result::eType VerifyImageFiles(
-      smart_objects::SmartObject& message, ApplicationConstSharedPtr app);
+    static mobile_apis::Result::eType VerifyImageFiles(smart_objects::SmartObject& message,
+                                                       ApplicationConstSharedPtr app);
 
     static mobile_apis::Result::eType VerifyImageVrHelpItems(
       smart_objects::SmartObject& message, ApplicationConstSharedPtr app);

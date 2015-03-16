@@ -476,7 +476,7 @@ bool ApplicationManagerImpl::ActivateApplication(ApplicationSharedPtr app) {
   DCHECK_OR_RETURN(app, false);
 
   // remove from resumption if app was activated by user
-  esume_controller().OnAppActivated(app);
+  resume_controller().OnAppActivated(app);
   HMILevel::eType hmi_level = HMILevel::HMI_FULL;
   AudioStreamingState::eType audio_state;
   app->IsAudioApplication() ? audio_state = AudioStreamingState::AUDIBLE :

@@ -176,10 +176,10 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
 
   virtual void UnsubscribeFromSoftButtons(int32_t cmd_id);
 
-  virtual StateApplicationData is_application_data_changed() const;
+  virtual bool is_application_data_changed() const;
 
   virtual void set_is_application_data_changed(
-      StateApplicationData state_application_data);
+      bool state_application_data);
 
   /**
    * @brief Check's if it is media, voice communication or navigation application
@@ -265,7 +265,7 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   bool                                     has_been_activated_;
   bool                                     tts_properties_in_none_;
   bool                                     tts_properties_in_full_;
-  StateApplicationData                     is_application_data_changed_;
+  bool                     is_application_data_changed_;
   uint32_t                                 put_file_in_none_count_;
   uint32_t                                 delete_file_in_none_count_;
   uint32_t                                 list_files_in_none_count_;
