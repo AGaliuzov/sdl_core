@@ -90,6 +90,10 @@ class MediaManagerImpl : public MediaManager,
   private:
     timer::TimerThread<MediaManagerImpl> audio_streaming_timer_;
     timer::TimerThread<MediaManagerImpl> video_streaming_timer_;
+    bool                                 audio_streaming_suspended_;
+    bool                                 video_streaming_suspended_;
+    sync_primitives::Lock                audio_streaming_suspended_lock_;
+    sync_primitives::Lock                video_streaming_suspended_lock_;
     uint32_t streaming_app_id_;
     DISALLOW_COPY_AND_ASSIGN(MediaManagerImpl);
     FRIEND_BASE_SINGLETON_CLASS(MediaManagerImpl);
