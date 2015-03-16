@@ -234,6 +234,7 @@ bool ResumeCtrl::SetAppHMIState(ApplicationSharedPtr application,
     ApplicationManagerImpl::instance()->SetState<true>(application->app_id(),
                                                        restored_hmi_level,
                                                        restored_audio_state);
+    application->usage_report().RecordAppUserSelection();
   } else {
     ApplicationManagerImpl::instance()->SetState<false>(application->app_id(),
                                                         restored_hmi_level,
