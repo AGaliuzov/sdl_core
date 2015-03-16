@@ -1,7 +1,4 @@
 /**
-* \file json_reader_test.h
-* \brief JSONReaderTest test header file.
-*
 * Copyright (c) 2013, Ford Motor Company
 * All rights reserved.
 *
@@ -33,16 +30,14 @@
 * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef TEST_THIRDPARTYLIBS_JSONCPP_INCLUDE_JSONCPP_JSON_READER_TEST_H_
-#define TEST_THIRDPARTYLIBS_JSONCPP_INCLUDE_JSONCPP_JSON_READER_TEST_H_
 
 #include "gtest/gtest.h"
-#include "gmock/gmock.h"
 #include "json/reader.h"
 
 namespace test {
 namespace third_party_libs {
 namespace json_reader_test {
+
 
 class JSONReaderTest : public ::testing::Test {
  protected:
@@ -164,5 +159,3 @@ TEST_F(JSONReaderTest, ParseClosingbracketString) {
 }  //  namespace json_reader_test
 }  //  namespace components
 }  //  namespace test
-
-#endif  // TEST_THIRDPARTYLIBS_JSONCPP_INCLUDE_JSONCPP_JSON_READER_TEST_H_

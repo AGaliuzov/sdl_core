@@ -29,26 +29,9 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include "gmock/gmock.h"
 
-#ifndef TEST_COMPONENTS_INCLUDE_SECURITY_MANAGER_SECURITY_MANAGER_LISTENER_MOCK_H_
-#define TEST_COMPONENTS_INCLUDE_SECURITY_MANAGER_SECURITY_MANAGER_LISTENER_MOCK_H_
-
-#include <gmock/gmock.h>
-#include "security_manager/security_manager_listener.h"
-
-namespace test {
-namespace components {
-namespace security_manager_test {
-/*
- * MOCK implementation of ::security_manager::SecurityManagerListener
- */
-class SMListenerMock: public ::security_manager::SecurityManagerListener {
- public:
-  MOCK_METHOD2(OnHandshakeDone,
-               bool(uint32_t connection_key,
-                    bool success));
-};
-}  // namespace security_manager_test
-}  // namespace components
-}  // namespace test
-#endif  // TEST_COMPONENTS_INCLUDE_SECURITY_MANAGER_SECURITY_MANAGER_LISTENER_MOCK_H_
+int main(int argc, char** argv) {
+   testing::InitGoogleMock(&argc, argv);
+   return RUN_ALL_TESTS();
+}

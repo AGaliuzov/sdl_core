@@ -20,3 +20,5 @@ ExternalProject_Add_Step(intergen forcebuild
                          COMMAND ${CMAKE_COMMAND} -E echo "Force intergen build"
                          DEPENDEES update DEPENDERS build
                          ALWAYS 1)
+add_subdirectory(intergen/test)
+add_subdirectory(policy_table_validator)
