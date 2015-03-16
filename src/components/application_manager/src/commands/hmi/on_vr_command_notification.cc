@@ -73,13 +73,22 @@ void OnVRCommandNotification::Run() {
   if (cmd_id == max_cmd_id + 1) {
     return;
   }
-  const uint32_t app_id = (*message_)[strings::msg_params][strings::app_id]
-      .asUInt();
-  ApplicationSharedPtr app = ApplicationManagerImpl::instance()->application(app_id);
+
+  const uint32_t grammar_id =
+      (*message_)[strings::msg_params][strings::grammar_id].asUInt();
+
+  ApplicationManagerImpl::GrammarIdPredicate finder(grammar_id);
+  ApplicationManagerImpl::ApplicationListAccessor accessor;
+  ApplicationSharedPtr app = accessor.Find(finder);
+
   if (!app) {
-    LOG4CXX_ERROR(logger_, "NULL pointer");
+    LOG4CXX_ERROR(logger_, "Grammar id " << grammar_id << " was not found.");
     return;
   }
+
+  LOG4CXX_DEBUG(logger_, "Grammar id << " << grammar_id
+                << " is found for app:" << app->mobile_app_id());
+
   /* check if perform interaction is active
    * if it is active we should sent to HMI DeleteCommand request
    * and PerformInterActionResponse to mobile

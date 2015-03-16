@@ -239,7 +239,7 @@ class ApplicationManagerImpl : public ApplicationManager,
     ApplicationSharedPtr get_limited_voice_application() const;
 
     /**
-     * @brief Checks if application with the same HMI type 
+     * @brief Checks if application with the same HMI type
      *        (media, voice communication or navi) exists
      *        in HMI_FULL or HMI_LIMITED level.
      *
@@ -995,6 +995,15 @@ class ApplicationManagerImpl : public ApplicationManager,
       }
     };
 
+    struct GrammarIdPredicate {
+      uint32_t grammar_id_;
+      GrammarIdPredicate(uint32_t grammar_id):
+        grammar_id_(grammar_id) {}
+      bool operator () (const ApplicationSharedPtr app) const {
+        return app ? grammar_id_ == app->get_grammar_id() : false;
+      }
+    };
+
   private:
     ApplicationManagerImpl();
 
@@ -1258,7 +1267,7 @@ class ApplicationManagerImpl : public ApplicationManager,
     timer::TimerThread<ApplicationManagerImpl> end_services_timer;
     uint32_t wait_end_service_timeout_;
     uint32_t navi_app_to_stop_;
-    
+
     StateController state_ctrl_;
 
 #ifdef CUSTOMER_PASA
