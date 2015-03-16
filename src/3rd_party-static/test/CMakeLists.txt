@@ -1,3 +1,4 @@
+if(BUILD_TESTS)
 include_directories (
   ${GMOCK_INCLUDE_DIRECTORY}
   ${JSONCPP_INCLUDE_DIRECTORY}
@@ -15,3 +16,4 @@ set (SOURCES
 
 add_library("test_JSONCPPTest" ${SOURCES})
 create_test("test_JSONCPP" "${SOURCES}" "${LIBRARIES}")
+endif()  

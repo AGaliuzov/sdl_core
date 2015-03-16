@@ -1,3 +1,4 @@
+if(BUILD_TESTS)
 include(${CMAKE_SOURCE_DIR}/tools/intergen/GenerateInterfaceLibrary.cmake)
 
 if (${HMI_DBUS_API})
@@ -52,3 +53,4 @@ endif ()
 
 
 create_test(test_generated_interface "${SOURCES}" "${LIBRARIES}")
+endif()  
