@@ -43,6 +43,8 @@ const std::string server_ca_cert_filename = "ca_server.crt";
 const std::string client_ca_cert_filename = "ca_client.crt";
 const std::string client_certificate = "client.crt";
 const std::string server_certificate = "server.crt";
+const std::string server_unsigned_cert_file = "server_unsigned.crt";
+const std::string server_expired_cert_file = "server_expired.crt";
 const std::string client_key = "client.key";
 const std::string server_key = "server.key";
 // Client needs server_verification certificate for server verification
@@ -417,6 +419,92 @@ TEST_F(SSLHandshakeTest, CAVerification_BothSides) {
     ASSERT_FALSE(client_buf == NULL);
     ASSERT_GT(client_buf_len, 0u);
   }
+}
+
+TEST_F(SSLHandshakeTest, Handshake_UnsignedCert) {
+  using security_manager::SSLContext;
+  ASSERT_TRUE(InitServerManagers(security_manager::TLSv1_2, server_unsigned_cert_file,
+                                 server_key, "ALL", false, "", ""))
+      << server_manager->LastError();
+  ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
+                                 client_key, "ALL", true,
+                                 client_ca_cert_filename, server_verification_ca))
+      << client_manager->LastError();
+
+  ASSERT_EQ(client_ctx->StartHandshake(&client_buf, &client_buf_len),
+            SSLContext::Handshake_Result_Success);
+  ASSERT_FALSE(client_buf == NULL);
+  ASSERT_GT(client_buf_len, 0u);
+
+  while (true) {
+    const SSLContext::HandshakeResult server_result =
+        server_ctx->DoHandshakeStep(client_buf,
+                                          client_buf_len,
+                                          &server_buf,
+                                          &server_buf_len);
+    if(server_result != SSLContext::Handshake_Result_Success) {
+      return;
+    }
+    ASSERT_FALSE(server_ctx->IsInitCompleted());
+    ASSERT_FALSE(server_buf == NULL);
+    ASSERT_GT(server_buf_len, 0u);
+
+    const SSLContext::HandshakeResult client_result =
+        client_ctx->DoHandshakeStep(server_buf,
+                                    server_buf_len,
+                                    &client_buf,
+                                    &client_buf_len);
+    if(client_result != SSLContext::Handshake_Result_Success) {
+      return;
+    }
+    ASSERT_FALSE(server_ctx->IsInitCompleted());
+    ASSERT_FALSE(client_buf == NULL);
+    ASSERT_GT(client_buf_len, 0u);
+  }
+  FAIL() << "Expected handshake fail";
+}
+
+TEST_F(SSLHandshakeTest, Handshake_ExpiredCert) {
+  using security_manager::SSLContext;
+  ASSERT_TRUE(InitServerManagers(security_manager::TLSv1_2, server_expired_cert_file,
+                                 server_key, "ALL", false, "", ""))
+      << server_manager->LastError();
+  ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
+                                 client_key, "ALL", true,
+                                 client_ca_cert_filename, server_verification_ca))
+      << client_manager->LastError();
+
+  ASSERT_EQ(client_ctx->StartHandshake(&client_buf, &client_buf_len),
+            SSLContext::Handshake_Result_Success);
+  ASSERT_FALSE(client_buf == NULL);
+  ASSERT_GT(client_buf_len, 0u);
+
+  while (true) {
+    const SSLContext::HandshakeResult server_result =
+        server_ctx->DoHandshakeStep(client_buf,
+                                          client_buf_len,
+                                          &server_buf,
+                                          &server_buf_len);
+    if(server_result != SSLContext::Handshake_Result_Success) {
+      return;
+    }
+    ASSERT_FALSE(server_ctx->IsInitCompleted());
+    ASSERT_FALSE(server_buf == NULL);
+    ASSERT_GT(server_buf_len, 0u);
+
+    const SSLContext::HandshakeResult client_result =
+        client_ctx->DoHandshakeStep(server_buf,
+                                    server_buf_len,
+                                    &client_buf,
+                                    &client_buf_len);
+    if(client_result != SSLContext::Handshake_Result_Success) {
+      return;
+    }
+    ASSERT_FALSE(server_ctx->IsInitCompleted());
+    ASSERT_FALSE(client_buf == NULL);
+    ASSERT_GT(client_buf_len, 0u);
+  }
+  FAIL() << "Expected handshake fail";
 }
 
 // TODO(EZamakhov): add fail tests - wrong, unsign certificate, broken or not full ca certificate chain

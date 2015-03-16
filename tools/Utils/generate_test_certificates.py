@@ -7,6 +7,7 @@
 """
 
 import os
+import tempfile
 from argparse import ArgumentParser
 from subprocess import check_call
 
@@ -51,6 +52,61 @@ def gen_cert(out_cert_file, key_file, ca_cert_file, ca_key_file, days, answer):
     openssl("x509 -req -in", out_cert_file, "-CA", ca_cert_file, "-CAkey", ca_key_file, \
         "-CAcreateserial -out", out_cert_file, "-days", days)
 
+def gen_expire_cert(out_cert_file, key_file, ca_cert_file, ca_key_file, days, answer):
+    """Expired certificate generator
+    wrap console call
+    'openssl req -new -key $key_file -days $days -out $out_cert_file -subj $answer'
+    'openssl ca -batch -config $config_file_path -in $request_file -out $out_cert_file, 
+        "-cert",  ca_cert_file, "-keyfile", ca_key_file, "-startdate 150101000000Z -enddate 150314092653Z'
+    """
+    request_file = "req.crt"
+    openssl("req -new -key", key_file, "-days", days, "-out", request_file, "-subj", answer)
+
+    # Create temporary files needed for expired certificate generation
+    temp_dir = tempfile.mkdtemp()
+    config_file_path = os.path.join(temp_dir, "database.conf")
+    database_file_path = os.path.join(temp_dir, "database")
+    serial_file_path = os.path.join(temp_dir, "serial")
+    # create file
+    open(database_file_path, 'w').close()
+
+    serial_file = open(serial_file_path, 'w')
+    serial_file.write("01")
+    serial_file.close();
+
+    current_dir = os.getcwd()
+    config_file = open(config_file_path, 'w')
+    config_file.write(
+        """[ ca ]
+        default_ca = ca_default
+
+        [ ca_default ]
+        dir = %s""" % (temp_dir, ) + """ 
+        certs = %s""" % (current_dir, ) + """
+        new_certs_dir =  %s""" % (current_dir, ) + """
+        database = %s""" % (database_file_path, ) + """
+        serial = %s""" % (serial_file_path, ) + """
+        RANDFILE = $dir/ca.db.rand
+        certificate =  %s""" % (os.path.abspath(ca_cert_file), ) + """
+        private_key =  %s""" % (os.path.abspath(ca_key_file), ) + """
+        default_days = 365
+        default_crl_days = 30
+        default_md = md5
+        preserve = no
+        policy = generic_policy
+        [ generic_policy ]
+        countryName = optional
+        stateOrProvinceName = optional
+        localityName = optional
+        organizationName = optional
+        organizationalUnitName = optional
+        commonName = supplied
+        emailAddress = optional\n""")
+    config_file.close();
+
+    openssl("ca -batch -config", config_file_path, "-in", request_file, "-out", out_cert_file,
+        "-startdate 150101000000Z -enddate 150314092653Z")
+
 def gen_pkcs12(out, key_file, cert_file, verification_certificate) :
     """Pem to PKCS#12 standard
     wrap console call
@@ -92,6 +148,8 @@ def main():
     ford_client_answer = answers("FORD", "US", "Michigan", "Detroit", "FORD_CLIENT", "FORD_SDL_CLIENT" ,"sample@ford.com")
     client_answer  = answers("client", "RU", "Russia", "St. Petersburg", "Luxoft", "HeadUnit" ,"sample@luxoft.com")
     server_answer  = answers("server", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile" ,"sample@luxoft.com")
+    server_unsigned_answer  = answers("server", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile_unsigned" ,"sample@luxoft.com")
+    server_expired_answer  = answers("server", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile_expired" ,"sample@luxoft.com")
     days = 10000
 
     print " --== Root certificate generating ==-- "
@@ -115,25 +173,38 @@ def main():
     gen_cert(ford_client_cert_file, ford_client_key_file, root_cert_file, root_key_file, days, ford_client_answer)
 
     print
+    print " --== SDL and SPT adjustment  ==-- "
+    server_verification_ca_cert_file = "server_verification_ca_cetrificates.crt"
+    client_verification_ca_cert_file = "client_verification_ca_cetrificates.crt"
+    concat_files(server_verification_ca_cert_file, root_cert_file, ford_server_cert_file)
+    concat_files(client_verification_ca_cert_file, root_cert_file, ford_client_cert_file)
+
+
+    print
     print " --== Server certificate generating ==-- "
     server_key_file = "server.key"
     server_cert_file = "server.crt"
     gen_rsa_key(server_key_file, 2048)
-    gen_cert(server_cert_file, server_key_file, ford_server_cert_file, ford_server_key_file, days, client_answer)
+    gen_cert(server_cert_file, server_key_file, ford_server_cert_file, ford_server_key_file, days, server_answer)
+
+    print
+    print " --== Server unsigned certificate generating ==-- "
+    server_unsigned_cert_file = "server_unsigned.crt"
+    gen_root_cert(server_unsigned_cert_file, server_key_file, days, server_unsigned_answer)
+
+    print
+    print " --== Server expired certificate generating ==-- "
+    server_expired_cert_file = "server_expired.crt"
+    gen_expire_cert(server_expired_cert_file, server_key_file, ford_server_cert_file, ford_server_key_file, days, server_expired_answer)
+
 
     print
     print " --== Client certificate generating ==-- "
     client_key_file  = "client.key"
     client_cert_file = "client.crt"
     gen_rsa_key(client_key_file, 2048)
-    gen_cert(client_cert_file, client_key_file, ford_client_cert_file, ford_client_key_file, days, server_answer)
+    gen_cert(client_cert_file, client_key_file, ford_client_cert_file, ford_client_key_file, days, client_answer)
 
-    print
-    print " --== SDL and SPT adjustment  ==-- "
-    server_verification_ca_cert_file = "server_verification_ca_cetrificates.crt"
-    client_verification_ca_cert_file = "client_verification_ca_cetrificates.crt"
-    concat_files(server_verification_ca_cert_file, root_cert_file, ford_server_cert_file)
-    concat_files(client_verification_ca_cert_file, root_cert_file, ford_client_cert_file)
 
     server_pkcs12_file = "spt_credential.p12"
     gen_pkcs12(server_pkcs12_file, server_key_file, server_cert_file, client_verification_ca_cert_file)
