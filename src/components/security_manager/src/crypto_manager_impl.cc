@@ -57,7 +57,7 @@ int debug_callback(int preverify_ok, X509_STORE_CTX *ctx);
 CryptoManagerImpl::CryptoManagerImpl()
     : context_(NULL),
       mode_(CLIENT),
-      verify_peer_(false){
+      verify_peer_(false) {
   LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(instance_lock_);
   instance_count_++;
@@ -87,8 +87,7 @@ CryptoManagerImpl::~CryptoManagerImpl() {
   }
 }
 
-bool CryptoManagerImpl::Init(Mode mode,
-                             Protocol protocol,
+bool CryptoManagerImpl::Init(Mode mode, Protocol protocol,
                              const std::string &cert_filename,
                              const std::string &key_filename,
                              const std::string &ciphers_list,
@@ -110,39 +109,31 @@ bool CryptoManagerImpl::Init(Mode mode,
 #endif
   switch (protocol) {
     case SSLv3:
-      method = is_server ?
-          SSLv3_server_method() :
-          SSLv3_client_method();
+      method = is_server ? SSLv3_server_method() : SSLv3_client_method();
       break;
     case TLSv1:
-      method = is_server ?
-          TLSv1_server_method() :
-          TLSv1_client_method();
+      method = is_server ? TLSv1_server_method() : TLSv1_client_method();
       break;
     case TLSv1_1:
 #if OPENSSL_VERSION_NUMBER < TLS1_1_MINIMAL_VERSION
       LOG4CXX_WARN(logger_,
-                   "OpenSSL has no TLSv1.1 with version lower 1.0.1, set TLSv1.0");
+          "OpenSSL has no TLSv1.1 with version lower 1.0.1, set TLSv1.0");
       method = is_server ?
-          TLSv1_server_method() :
-          TLSv1_client_method();
+      TLSv1_server_method() :
+      TLSv1_client_method();
 #else
-      method = is_server ?
-          TLSv1_1_server_method() :
-          TLSv1_1_client_method();
+      method = is_server ? TLSv1_1_server_method() : TLSv1_1_client_method();
 #endif
       break;
     case TLSv1_2:
 #if OPENSSL_VERSION_NUMBER < TLS1_1_MINIMAL_VERSION
       LOG4CXX_WARN(logger_,
-                   "OpenSSL has no TLSv1.2 with version lower 1.0.1, set TLSv1.0");
+          "OpenSSL has no TLSv1.2 with version lower 1.0.1, set TLSv1.0");
       method = is_server ?
-          TLSv1_server_method() :
-          TLSv1_client_method();
+      TLSv1_server_method() :
+      TLSv1_client_method();
 #else
-      method = is_server ?
-          TLSv1_2_server_method() :
-          TLSv1_2_client_method();
+      method = is_server ? TLSv1_2_server_method() : TLSv1_2_client_method();
 #endif
       break;
     default:
@@ -155,8 +146,8 @@ bool CryptoManagerImpl::Init(Mode mode,
   context_ = SSL_CTX_new(method);
   if (!context_) {
     const char *error = ERR_reason_error_string(ERR_get_error());
-    LOG4CXX_ERROR(logger_, "Could not create OpenSSLContext " <<
-                  (error ? error : ""));
+    LOG4CXX_ERROR(logger_,
+                  "Could not create OpenSSLContext " << (error ? error : ""));
     return false;
   }
 
@@ -168,7 +159,7 @@ bool CryptoManagerImpl::Init(Mode mode,
   } else {
     LOG4CXX_DEBUG(logger_, "Certificate path: " << cert_filename);
     if (!SSL_CTX_use_certificate_file(context_, cert_filename.c_str(),
-                                      SSL_FILETYPE_PEM)) {
+    SSL_FILETYPE_PEM)) {
       LOG4CXX_ERROR(logger_, "Could not use certificate " << cert_filename);
       return false;
     }
@@ -179,7 +170,7 @@ bool CryptoManagerImpl::Init(Mode mode,
   } else {
     LOG4CXX_DEBUG(logger_, "Key path: " << key_filename);
     if (!SSL_CTX_use_PrivateKey_file(context_, key_filename.c_str(),
-                                     SSL_FILETYPE_PEM)) {
+    SSL_FILETYPE_PEM)) {
       LOG4CXX_ERROR(logger_, "Could not use key " << key_filename);
       return false;
     }
@@ -212,27 +203,38 @@ bool CryptoManagerImpl::OnCertificateUpdated(const std::string &data) {
     LOG4CXX_WARN(logger_, "Empty certificate data");
     return false;
   }
-  LOG4CXX_DEBUG(logger_, "New certificate data : \"" << std::endl << data << '"');
+  LOG4CXX_DEBUG(logger_,
+                "New certificate data : \"" << std::endl << data << '"');
 
   BIO* bio = BIO_new(BIO_s_mem());
-  BIO_write(bio, data.c_str (), data.size());
+  BIO_write(bio, data.c_str(), data.size());
   X509 *certificate = PEM_read_bio_X509(bio, NULL, NULL, NULL);
   BIO_free(bio);
   if (!certificate) {
-    LOG4CXX_WARN( logger_, "New data is not a PEM X509 certificate");
+    LOG4CXX_WARN(logger_, "New data is not a PEM X509 certificate");
     return false;
   }
 
-  std::ofstream ca_certificate_file(ca_certificate_file_);
-  if (!ca_certificate_file.good()) {
-    LOG4CXX_ERROR( logger_,
-                  "Couldn't write certificate file \""
-                  << ca_certificate_file_ << '"');
+  std::ofstream ca_certificate_file(ca_certificate_file_.c_str());
+  if (!ca_certificate_file.is_open()) {
+    LOG4CXX_ERROR(
+        logger_,
+        "Couldn't open certificate file \"" << ca_certificate_file << '"');
     return false;
   }
-  ca_certificate_file << data;
+
+  ca_certificate_file << data << std::endl;
+  if (!ca_certificate_file) {
+    // Writing failed
+    LOG4CXX_ERROR(
+        logger_,
+        "Couldn't write data to certificate file \"" << ca_certificate_file << '"');
+    return false;
+  }
+
   ca_certificate_file.close();
-  LOG4CXX_DEBUG(logger_, "CA certificate saved as '" << ca_certificate_file_ << "' ");
+  LOG4CXX_DEBUG(logger_,
+                "CA certificate saved as '" << ca_certificate_file_ << "' ");
   SetVerification();
   return true;
 }
@@ -272,7 +274,8 @@ std::string CryptoManagerImpl::LastError() const {
 void CryptoManagerImpl::SetVerification() {
   LOG4CXX_AUTO_TRACE(logger_);
   if (!verify_peer_) {
-    LOG4CXX_WARN(logger_, "Peer verification disabling according to init options");
+    LOG4CXX_WARN(logger_,
+                 "Peer verification disabling according to init options");
     SSL_CTX_set_verify(context_, SSL_VERIFY_NONE, &debug_callback);
     return;
   }
@@ -281,11 +284,16 @@ void CryptoManagerImpl::SetVerification() {
   SSL_CTX_set_verify(context_, verify_mode, &debug_callback);
 
   LOG4CXX_DEBUG(logger_, "Setting up ca certificate location");
-  const int result = SSL_CTX_load_verify_locations(context_, ca_certificate_file_.c_str(), NULL);
+  const int result = SSL_CTX_load_verify_locations(context_,
+                                                   ca_certificate_file_.c_str(),
+                                                   NULL);
   if (!result) {
     const unsigned long error = ERR_get_error();
-    LOG4CXX_WARN(logger_, "Wrong certificate file '" << ca_certificate_file_ <<
-                 "', err 0x" << std::hex << error << " \"" << ERR_reason_error_string(error) << '"');
+    LOG4CXX_WARN(
+        logger_,
+        "Wrong certificate file '" << ca_certificate_file_
+        << "', err 0x" << std::hex << error
+        << " \"" << ERR_reason_error_string(error) << '"');
     return;
   }
 }
@@ -293,8 +301,10 @@ void CryptoManagerImpl::SetVerification() {
 int debug_callback(int preverify_ok, X509_STORE_CTX *ctx) {
   if (!preverify_ok) {
     const int error = X509_STORE_CTX_get_error(ctx);
-    LOG4CXX_WARN(logger_, "Certificate verification failed with error " << error
-                 << " \"" << X509_verify_cert_error_string(error) << '"');
+    LOG4CXX_WARN(
+        logger_,
+        "Certificate verification failed with error " << error
+        << " \"" << X509_verify_cert_error_string(error) << '"');
   }
   return preverify_ok;
 }
