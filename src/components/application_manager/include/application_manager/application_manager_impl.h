@@ -247,7 +247,7 @@ class ApplicationManagerImpl : public ApplicationManager,
      *
      * @return true if exist otherwise false
      */
-    bool IsAppTypeExistsInFullOrLimited(ApplicationSharedPtr app) const;
+    bool IsAppTypeExistsInFullOrLimited(ApplicationConstSharedPtr app) const;
 
     /**
      * @brief Notifies all components interested in Vehicle Data update
@@ -704,7 +704,7 @@ class ApplicationManagerImpl : public ApplicationManager,
     void ForbidStreaming(uint32_t app_id);
 
     mobile_api::HMILevel::eType GetDefaultHmiLevel(
-        ApplicationSharedPtr application) const;
+        ApplicationConstSharedPtr application) const;
 
     /**
       * Getter for resume_controller
