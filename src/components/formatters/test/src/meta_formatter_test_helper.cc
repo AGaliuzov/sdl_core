@@ -106,30 +106,38 @@ void CMetaFormatterTestHelper::FillObjectIdenticalToSchemaWithoutNoMandatoriesPa
   obj[S_MSG_PARAMS]["syncMsgVersion"]["majorVersion"] = 2;
   obj[S_MSG_PARAMS]["syncMsgVersion"]["minorVersion"] = 10;
   obj[S_MSG_PARAMS]["appName"] = "APP NAME";
-//   obj[S_MSG_PARAMS]["ttsName"][0]["text"] = "ABC"; // not mandatory
-//   obj[S_MSG_PARAMS]["ttsName"][0]["type"] =
-//       SpeechCapabilities::SC_TEXT;
   obj[S_MSG_PARAMS]["ngnMediaScreenAppName"] = "SCREEN NAME";
-//   obj[S_MSG_PARAMS]["vrSynonyms"][0] = "Synonym1"; // not mandatory
-//   obj[S_MSG_PARAMS]["vrSynonyms"][1] = "Synonym2";
   obj[S_MSG_PARAMS]["isMediaApplication"] = true;
   obj[S_MSG_PARAMS]["languageDesired"] = Language::EN_EU;
   obj[S_MSG_PARAMS]["hmiDisplayLanguageDesired"] = Language::RU_RU;
+  obj[S_MSG_PARAMS]["appID"] = "APP ID";
+
+  // Commented not mandatory params for check creation object without them
+//   obj[S_MSG_PARAMS]["ttsName"][0]["text"] = "ABC";
+//   obj[S_MSG_PARAMS]["ttsName"][0]["type"] =
+//       SpeechCapabilities::SC_TEXT;
+
+//   obj[S_MSG_PARAMS]["vrSynonyms"][0] = "Synonym1";
+//   obj[S_MSG_PARAMS]["vrSynonyms"][1] = "Synonym2";
+
 //   obj[S_MSG_PARAMS]["appType"][0] = AppTypeTest::SYSTEM; // not mandatory
 //   obj[S_MSG_PARAMS]["appType"][1] = AppTypeTest::MEDIA;
-  obj[S_MSG_PARAMS]["appID"] = "APP ID";
+
 }
 
 void CMetaFormatterTestHelper::FillObjectWithoutSomeMandatoryFields(
     SmartObject& obj) {
   obj[S_PARAMS][S_MESSAGE_TYPE] = MessageTypeTest::request;
   obj[S_PARAMS][S_FUNCTION_ID] = FunctionIDTest::RegisterAppInterface;
-//   obj[S_PARAMS][S_CORRELATION_ID] = 12;
+
   obj[S_PARAMS][S_PROTOCOL_VERSION] = 1;
   obj[S_PARAMS][S_PROTOCOL_TYPE] = 0;
 
+// Commented mandatory params for check creation object without them
+//   obj[S_PARAMS][S_CORRELATION_ID] = 12;
 //   obj[S_MSG_PARAMS]["syncMsgVersion"]["majorVersion"] = 2;
 //   obj[S_MSG_PARAMS]["syncMsgVersion"]["minorVersion"] = 10;
+
   obj[S_MSG_PARAMS]["appName"] = "APP NAME";
   obj[S_MSG_PARAMS]["ttsName"][0]["text"] = "ABC";
   obj[S_MSG_PARAMS]["ttsName"][0]["type"] = SpeechCapabilities::SC_TEXT;
@@ -190,18 +198,23 @@ void CMetaFormatterTestHelper::FillObjectWithDefaultValues(SmartObject& obj) {
   obj[S_MSG_PARAMS]["syncMsgVersion"]["majorVersion"] = 0;
   obj[S_MSG_PARAMS]["syncMsgVersion"]["minorVersion"] = 0;
   obj[S_MSG_PARAMS]["appName"] = "";
-//   obj[S_MSG_PARAMS]["ttsName"][0]["text"] = "ABC"; // not mandatory
-//   obj[S_MSG_PARAMS]["ttsName"][0]["type"] =
-//       SpeechCapabilities::SC_TEXT;
   obj[S_MSG_PARAMS]["ngnMediaScreenAppName"] = "";
-//   obj[S_MSG_PARAMS]["vrSynonyms"][0] = "Synonym1"; // not mandatory
-//   obj[S_MSG_PARAMS]["vrSynonyms"][1] = "Synonym2";
   obj[S_MSG_PARAMS]["isMediaApplication"] = false;
   obj[S_MSG_PARAMS]["languageDesired"] = -1;
   obj[S_MSG_PARAMS]["hmiDisplayLanguageDesired"] = -1;
-//   obj[S_MSG_PARAMS]["appType"][0] = AppTypeTest::SYSTEM; // not mandatory
-//   obj[S_MSG_PARAMS]["appType"][1] = AppTypeTest::MEDIA;
   obj[S_MSG_PARAMS]["appID"] = "";
+
+// Commented params for check creation object with only default values
+//   obj[S_MSG_PARAMS]["ttsName"][0]["text"] = "ABC";
+//   obj[S_MSG_PARAMS]["ttsName"][0]["type"] =
+//       SpeechCapabilities::SC_TEXT;
+
+//   obj[S_MSG_PARAMS]["vrSynonyms"][0] = "Synonym1";
+//   obj[S_MSG_PARAMS]["vrSynonyms"][1] = "Synonym2";
+
+//   obj[S_MSG_PARAMS]["appType"][0] = AppTypeTest::SYSTEM;
+//   obj[S_MSG_PARAMS]["appType"][1] = AppTypeTest::MEDIA;
+
 }
 
 }  // namespace formatters

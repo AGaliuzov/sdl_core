@@ -85,8 +85,8 @@ enum eType {
 CSmartSchema initObjectSchema();
 CSmartSchema initSchemaForMetaFormatter();
 
-} // namespace formatters
-} // namespace components
-} // namespace test
+}  // namespace formatters
+}  // namespace components
+}  // namespace test
 
 #endif  // SRC_COMPONENTS_FORMATTERS_TEST_INCLUDE_CREATESMARTSCHEMA_H_

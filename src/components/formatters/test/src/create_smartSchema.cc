@@ -78,7 +78,6 @@ const Language::eType EnumConversionHelper<Language::eType>::enum_values_[] =
     { test::components::formatters::Language::EN_EU,
         test::components::formatters::Language::RU_RU};
 
-
 template<>
 const EnumConversionHelper<SpeechCapabilities::eType>::EnumToCStringMap EnumConversionHelper<
     test::components::formatters::SpeechCapabilities::eType>::enum_to_cstring_map_ =
@@ -95,8 +94,7 @@ const char* const EnumConversionHelper<SpeechCapabilities::eType>::cstring_value
 
 template<>
 const SpeechCapabilities::eType EnumConversionHelper<SpeechCapabilities::eType>::enum_values_[] =
-    { test::components::formatters::SpeechCapabilities::SC_TEXT,
-    };
+    { test::components::formatters::SpeechCapabilities::SC_TEXT};
 
 template<>
 const EnumConversionHelper<AppTypeTest::eType>::EnumToCStringMap EnumConversionHelper<
@@ -258,7 +256,6 @@ CSmartSchema initSchemaForMetaFormatter() {
        TSchemaItemParameter<size_t>(0), TSchemaItemParameter<size_t>(1000),
        TSchemaItemParameter<std::string>());
 
-  //!!!!!!!!!!!!!!
   ISchemaItemPtr ttsNameItem_SchemaItem = CStringSchemaItem::create(
         TSchemaItemParameter<size_t>(0), TSchemaItemParameter<size_t>(1000),
         TSchemaItemParameter<std::string>());
@@ -319,7 +316,7 @@ CSmartSchema initSchemaForMetaFormatter() {
       CArraySchemaItem::create(syncMsg_SchemaItem,
                                TSchemaItemParameter<size_t>(0), TSchemaItemParameter<size_t>(1000));
 
-  //creation map for syncMsgVersion
+  // Creation map for syncMsgVersion
   std::map<std::string, CObjectSchemaItem::SMember> schemaSyncMsgVersionMap;
   schemaSyncMsgVersionMap["majorVersion"]=CObjectSchemaItem::SMember(majorVersion_SchemaItem,
                                                               false);
@@ -377,6 +374,6 @@ CSmartSchema initSchemaForMetaFormatter() {
 
 
 
-} // namespace formatters
-} // namespace components
-} // namespace test
+}  // namespace formatters
+}  // namespace components
+}  // namespace test

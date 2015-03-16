@@ -71,11 +71,9 @@ class CMetaFormatterTestHelper : public ::testing::Test {
   void FillObjectWithoutSomeMandatoryFields(
       NsSmartDeviceLink::NsSmartObjects::SmartObject& obj);
 
-  // members
+  // Members
   std::set<FunctionIDTest::eType> function_id_items_;
   std::set<MessageTypeTest::eType> message_type_items_;
-
-  static const bool kIsPrintOut = false;
 };
 
 }  // namespace formatters
