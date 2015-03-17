@@ -47,9 +47,10 @@ def gen_cert(out_cert_file, key_file, ca_cert_file, ca_key_file, days, answer):
     'openssl req -new -key $key_file -days $days -out $out_cert_file -subj $answer'
     'openssl x509 -req -in $out_cert_file -CA $ca_cert_file -CAkey ca_key_file -CAcreateserial -out $out_cert_file -days 5000'
     """
-    openssl("req -new -key", key_file, "-days", days, "-out", out_cert_file, "-subj", answer)
+    request_file = out_cert_file + ".req"
+    openssl("req -new -key", key_file, "-days", days, "-out", request_file, "-subj", answer)
 
-    openssl("x509 -req -in", out_cert_file, "-CA", ca_cert_file, "-CAkey", ca_key_file, \
+    openssl("x509 -req -in", request_file, "-CA", ca_cert_file, "-CAkey", ca_key_file, \
         "-CAcreateserial -out", out_cert_file, "-days", days)
 
 def gen_expire_cert(out_cert_file, key_file, ca_cert_file, ca_key_file, days, answer):
@@ -59,7 +60,7 @@ def gen_expire_cert(out_cert_file, key_file, ca_cert_file, ca_key_file, days, an
     'openssl ca -batch -config $config_file_path -in $request_file -out $out_cert_file, 
         "-cert",  ca_cert_file, "-keyfile", ca_key_file, "-startdate 150101000000Z -enddate 150314092653Z'
     """
-    request_file = "req.crt"
+    request_file = out_cert_file + ".req"
     openssl("req -new -key", key_file, "-days", days, "-out", request_file, "-subj", answer)
 
     # Create temporary files needed for expired certificate generation
@@ -181,24 +182,6 @@ def main():
 
 
     print
-    print " --== Server certificate generating ==-- "
-    server_key_file = "server.key"
-    server_cert_file = "server.crt"
-    gen_rsa_key(server_key_file, 2048)
-    gen_cert(server_cert_file, server_key_file, ford_server_cert_file, ford_server_key_file, days, server_answer)
-
-    print
-    print " --== Server unsigned certificate generating ==-- "
-    server_unsigned_cert_file = "server_unsigned.crt"
-    gen_root_cert(server_unsigned_cert_file, server_key_file, days, server_unsigned_answer)
-
-    print
-    print " --== Server expired certificate generating ==-- "
-    server_expired_cert_file = "server_expired.crt"
-    gen_expire_cert(server_expired_cert_file, server_key_file, ford_server_cert_file, ford_server_key_file, days, server_expired_answer)
-
-
-    print
     print " --== Client certificate generating ==-- "
     client_key_file  = "client.key"
     client_cert_file = "client.crt"
@@ -206,8 +189,28 @@ def main():
     gen_cert(client_cert_file, client_key_file, ford_client_cert_file, ford_client_key_file, days, client_answer)
 
 
+    print
+    print " --== Server certificate generating ==-- "
+    server_key_file = "server.key"
+    server_cert_file = "server.crt"
     server_pkcs12_file = "spt_credential.p12"
+    gen_rsa_key(server_key_file, 2048)
+    gen_cert(server_cert_file, server_key_file, ford_server_cert_file, ford_server_key_file, days, server_answer)
     gen_pkcs12(server_pkcs12_file, server_key_file, server_cert_file, client_verification_ca_cert_file)
+
+    print
+    print " --== Server unsigned certificate generating ==-- "
+    server_unsigned_cert_file = "server_unsigned.crt"
+    server_pkcs12_unsigned_file = "spt_credential_unsigned.p12"
+    gen_root_cert(server_unsigned_cert_file, server_key_file, days, server_unsigned_answer)
+    gen_pkcs12(server_pkcs12_unsigned_file, server_key_file, server_unsigned_cert_file, client_verification_ca_cert_file)
+
+    print
+    print " --== Server expired certificate generating ==-- "
+    server_expired_cert_file = "server_expired.crt"
+    server_pkcs12_expired_file = "spt_credential_expired.p12"
+    gen_expire_cert(server_expired_cert_file, server_key_file, ford_server_cert_file, ford_server_key_file, days, server_expired_answer)
+    gen_pkcs12(server_pkcs12_expired_file, server_key_file, server_expired_cert_file, client_verification_ca_cert_file)
 
     print
     print "All certificates have been generated"
