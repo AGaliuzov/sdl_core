@@ -34,6 +34,7 @@
 #ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_SYSTEM_REQUEST_H_
 #define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_SYSTEM_REQUEST_H_
 
+#include <string>
 #include "application_manager/commands/command_request_impl.h"
 
 namespace application_manager {
@@ -71,6 +72,7 @@ class SystemRequest : public CommandRequestImpl {
  private:
 
   static uint32_t index;
+  std::string     processing_file_;
   DISALLOW_COPY_AND_ASSIGN(SystemRequest);
 };
 
