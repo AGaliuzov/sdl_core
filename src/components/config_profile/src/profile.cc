@@ -1173,7 +1173,7 @@ void Profile::UpdateValues() {
   ReadUIntValue(&resumption_delay_before_ign_, kDefaultResumptionDelayBeforeIgn,
                 kResumptionSection, kResumptionDelayBeforeIgnKey);
 
-  LOG_UPDATED_VALUE(resumption_delay_after_ign_, kResumptionDelayBeforeIgnKey,
+  LOG_UPDATED_VALUE(resumption_delay_before_ign_, kResumptionDelayBeforeIgnKey,
                     kResumptionSection);
 
   // Open attempt timeout in ms
