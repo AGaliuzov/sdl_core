@@ -319,11 +319,30 @@ void MessageHelper::SendOnAppRegisteredNotificationToHMI(
     application_impl.is_media_application();
 
   const smart_objects::SmartObject* app_type = application_impl.app_types();
-
   if (app_type) {
     message[strings::msg_params][strings::application][strings::app_type] =
       *app_type;
   }
+
+  if (application_impl.IsRegistered()) {
+    std::vector<std::string> request_types =
+        policy::PolicyHandler::instance()->GetAppRequestTypes(
+            application_impl.mobile_app_id());
+
+    message[strings::msg_params][strings::application][strings::request_type] =
+        smart_objects::SmartObject(smart_objects::SmartType_Array);
+
+    smart_objects::SmartObject& request_array =
+        message[strings::msg_params][strings::application][strings::request_type];
+
+    uint32_t index = 0;
+    std::vector<std::string>::const_iterator it = request_types.begin();
+    for (; request_types.end() != it; ++it) {
+      request_array[index] = *it;
+      ++index;
+    }
+  }
+
   if (application_impl.vr_synonyms()) {
     message[strings::msg_params][strings::vr_synonyms] = *(application_impl
         .vr_synonyms());
@@ -332,8 +351,8 @@ void MessageHelper::SendOnAppRegisteredNotificationToHMI(
     message[strings::msg_params][strings::tts_name] = *(application_impl
         .tts_name());
   }
-  std::string priority;
 
+  std::string priority;
   policy::PolicyHandler::instance()->GetPriority(
         application_impl.mobile_app_id(), &priority);
   if (!priority.empty()) {
