@@ -255,7 +255,9 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   bool                                     is_media_;
   bool                                     is_navi_;
   bool                                     hmi_supports_navi_video_streaming_;
+  mutable sync_primitives::Lock            hmi_supports_navi_video_streaming_lock_;
   bool                                     hmi_supports_navi_audio_streaming_;
+  mutable sync_primitives::Lock            hmi_supports_navi_audio_streaming_lock_;
   bool                                     is_app_allowed_;
   bool                                     has_been_activated_;
   bool                                     tts_properties_in_none_;
@@ -277,7 +279,9 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
 #endif // CUSTOMER_PASA
   // NAVI retry stream
   volatile bool                            is_video_stream_retry_active_;
+  mutable sync_primitives::Lock            is_video_stream_retry_active_lock_;
   volatile bool                            is_audio_stream_retry_active_;
+  mutable sync_primitives::Lock            is_audio_stream_retry_active_lock_;
   uint32_t                                 video_stream_retry_number_;
   uint32_t                                 audio_stream_retry_number_;
   utils::SharedPtr<timer::TimerThread<ApplicationImpl>> video_stream_retry_timer_;

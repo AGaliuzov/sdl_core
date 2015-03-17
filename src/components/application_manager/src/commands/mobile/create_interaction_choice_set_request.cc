@@ -90,10 +90,10 @@ void CreateInteractionChoiceSetRequest::Run() {
     }
   }
 
-  const int32_t choice_set_id = (*message_)[strings::msg_params]
+  choice_set_id_ = (*message_)[strings::msg_params]
       [strings::interaction_choice_set_id].asInt();
 
-  if (app->FindChoiceSet(choice_set_id)) {
+  if (app->FindChoiceSet(choice_set_id_)) {
     LOG4CXX_ERROR(logger_, "Invalid ID");
     SendResponse(false, mobile_apis::Result::INVALID_ID);
     return;
@@ -106,10 +106,8 @@ void CreateInteractionChoiceSetRequest::Run() {
   }
   uint32_t grammar_id = ApplicationManagerImpl::instance()->GenerateGrammarID();
   (*message_)[strings::msg_params][strings::grammar_id] = grammar_id;
-  app->AddChoiceSet(choice_set_id, (*message_)[strings::msg_params]);
+  app->AddChoiceSet(choice_set_id_, (*message_)[strings::msg_params]);
   SendVRAddCommandRequest(app);
-  SendResponse(true, mobile_apis::Result::SUCCESS);
-  app->UpdateHash();
 }
 
 mobile_apis::Result::eType CreateInteractionChoiceSetRequest::CheckChoiceSet(
@@ -318,26 +316,81 @@ void CreateInteractionChoiceSetRequest::SendVRAddCommandRequest(
     application_manager::ApplicationSharedPtr const app) {
 
   smart_objects::SmartObject& choice_set = (*message_)[strings::msg_params];
+  expected_chs_count_ = choice_set[strings::choice_set].length();
+  smart_objects::SmartObject msg_params = smart_objects::SmartObject(
+                                            smart_objects::SmartType_Map);
+  msg_params[strings::type] = hmi_apis::Common_VRCommandType::Choice;
+  msg_params[strings::app_id] = app->app_id();
+  msg_params[strings::grammar_id] =  choice_set[strings::grammar_id];
 
-  for (size_t j = 0; j < choice_set[strings::choice_set].length(); ++j) {
-    smart_objects::SmartObject msg_params = smart_objects::SmartObject(
-                                              smart_objects::SmartType_Map);
-    msg_params[strings::app_id] = app->app_id();
+  for (size_t chs_num = 0; chs_num < expected_chs_count_ && !stop_sending_; ++chs_num) {
     msg_params[strings::cmd_id] =
-        choice_set[strings::choice_set][j][strings::choice_id];
+        choice_set[strings::choice_set][chs_num][strings::choice_id];
     msg_params[strings::vr_commands] = smart_objects::SmartObject(
                                          smart_objects::SmartType_Array);
     msg_params[strings::vr_commands] =
-        choice_set[strings::choice_set][j][strings::vr_commands];
+        choice_set[strings::choice_set][chs_num][strings::vr_commands];
 
-    msg_params[strings::type] = hmi_apis::Common_VRCommandType::Choice;
-    msg_params[strings::grammar_id] =  choice_set[strings::grammar_id];
-
+    sync_primitives::AutoLock lock(cmd_ids_lock);
+    sent_cmd_ids_.insert(msg_params[strings::cmd_id].asUInt());
     SendHMIRequest(hmi_apis::FunctionID::VR_AddCommand, &msg_params);
   }
 
 }
 
+void
+CreateInteractionChoiceSetRequest::on_event(const event_engine::Event& event) {
+  using namespace hmi_apis;
+  const smart_objects::SmartObject& message = event.smart_object();
+  if (event.id() == hmi_apis::FunctionID::VR_AddCommand) {
+    Common_Result::eType  vr_result_ = static_cast<Common_Result::eType>(
+        message[strings::params][hmi_response::code].asInt());
+
+    if (Common_Result::SUCCESS != vr_result_) {
+      DeleteChoices();
+      SendResponse(false, GetMobileResultCode(vr_result_));
+      return;
+    } else {
+      if (sent_cmd_ids_.size() == expected_chs_count_) {
+        ApplicationSharedPtr app =
+            ApplicationManagerImpl::instance()->application(connection_key());
+        if (app) {
+          app->UpdateHash();
+        }
+        SendResponse(true, mobile_apis::Result::SUCCESS);
+      }
+    }
+  }
+}
+
+void CreateInteractionChoiceSetRequest::onTimeOut() {
+  DeleteChoices();
+  SendResponse(false, mobile_apis::Result::GENERIC_ERROR);
+}
+
+void CreateInteractionChoiceSetRequest::DeleteChoices() {
+  stop_sending_ = true; // need to stop sending VR_AddCommand if one.
+  // last cmd_id should be removed since SDL has to send VR_DELETE command
+  // for successfuly added commands only, but the last id is unsuccessful.
+  sync_primitives::AutoLock lock(cmd_ids_lock);
+  sent_cmd_ids_.erase((*message_)[strings::msg_params][strings::cmd_id].asUInt());
+
+  ApplicationSharedPtr application =
+      ApplicationManagerImpl::instance()->application(connection_key());
+  if (!application) {
+    return;
+  }
+  application->RemoveChoiceSet(choice_set_id_);
+  smart_objects::SmartObject msg_param(smart_objects::SmartType_Map);
+
+  msg_param[strings::app_id] = application->app_id();
+  std::set<uint32_t>::const_iterator it = sent_cmd_ids_.begin();
+
+  for (; it != sent_cmd_ids_.end(); ++it) {
+    msg_param[strings::cmd_id] = *it;
+    SendHMIRequest(hmi_apis::FunctionID::VR_DeleteCommand, &msg_param);
+  }
+}
 
 }  // namespace commands
 
