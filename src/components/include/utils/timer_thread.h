@@ -134,9 +134,9 @@ class TimerThread {
   virtual bool isRunning();
 
   /**
-   * @brief method suspends timer execution
+   * @brief Suspends timer execution after next loop.
    */
-  virtual void pause();
+  virtual void suspend();
 
   /**
    * @brief Stop timer update timeout and start timer again
@@ -186,6 +186,11 @@ class TimerThread {
      * @param timeout_seconds New timeout to be set
      */
     virtual void setTimeOut(const uint32_t timeout_seconds);
+
+    /**
+     * @brief Quits threadMain function after next loop.
+     */
+    virtual void shouldBeStoped();
 
    protected:
     TimerThread* timer_thread_;
@@ -291,10 +296,9 @@ bool TimerThread<T>::isRunning() {
 }
 
 template<class T>
-void TimerThread<T>::pause() {
-  LOG4CXX_DEBUG(logger_, "Suspension of timer " << name_);
-  const uint32_t wait_seconds = std::numeric_limits<uint32_t>::max();
-  updateTimeOut(wait_seconds);
+void TimerThread<T>::suspend() {
+  LOG4CXX_DEBUG(logger_, "Suspend timer " << name_ << " after next loop");
+  delegate_->shouldBeStoped();
 }
 
 template<class T>
@@ -387,6 +391,12 @@ template<class T>
 void TimerThread<T>::TimerDelegate::setTimeOut(const uint32_t timeout_seconds) {
   timeout_seconds_ = timeout_seconds;
   termination_condition_.NotifyOne();
+}
+
+template<class T>
+void TimerThread<T>::TimerDelegate::shouldBeStoped() {
+  sync_primitives::AutoLock auto_lock(state_lock_);
+  stop_flag_ = true;
 }
 
 template<class T>
