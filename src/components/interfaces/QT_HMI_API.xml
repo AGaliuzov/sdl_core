@@ -4120,6 +4120,12 @@
       <param name="priority" type="Common.AppPriority" mandatory="false">
         <description>Send to HMI so that it can coordinate order of requests/notifications correspondingly.</description>
       </param>
+      <param name="requestType" type="Common.RequestType" minsize="0" maxsize="100" array="true" mandatory="false">*
+        <description>The list of SystemRequest's RequestTypes allowed by policies for the named application (the app's SystemRequest sent with RequestType           out of this list will get 'disallowed' response from SDL).
+        If SDL sends an empty array - any RequestType is allowed for this app.
+        If SDL omits this parameter - nothing is changed for RequestType in the policies
+        </description>
+      </param>
     </function>
     <function name="OnSDLConsentNeeded" messagetype="notification" provider="sdl">
       <description>Send from SDL to HMI to notify that data consent is needed for device either because PT update or Retry strategy.</description>

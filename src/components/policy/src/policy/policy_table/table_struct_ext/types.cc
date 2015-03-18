@@ -42,6 +42,7 @@ ApplicationParams::ApplicationParams(const Json::Value* value__)
     nicknames(impl::ValueMember(value__, "nicknames")),
     preconsented_groups(impl::ValueMember(value__, "preconsented_groups")),
     AppHMIType(impl::ValueMember(value__, "AppHMIType")),
+    RequestType(impl::ValueMember(value__, "RequestType")),
     priority(impl::ValueMember(value__, "priority")),
     default_hmi(impl::ValueMember(value__, "default_hmi")),
     keep_context(impl::ValueMember(value__, "keep_context")),
@@ -56,6 +57,7 @@ Json::Value ApplicationParams::ToJsonValue() const {
   impl::WriteJsonField("nicknames", nicknames, &result__);
   impl::WriteJsonField("preconsented_groups", preconsented_groups, &result__);
   impl::WriteJsonField("AppHMIType", AppHMIType, &result__);
+  impl::WriteJsonField("RequestType", RequestType, &result__);
   impl::WriteJsonField("priority", priority, &result__);
   impl::WriteJsonField("default_hmi", default_hmi, &result__);
   impl::WriteJsonField("keep_context", keep_context, &result__);
@@ -76,6 +78,9 @@ bool ApplicationParams::is_valid() const {
     return false;
   }
   if (!AppHMIType.is_valid()) {
+    return false;
+  }
+  if (!RequestType.is_valid()) {
     return false;
   }
   if (!priority.is_valid()) {
@@ -116,6 +121,9 @@ bool ApplicationParams::struct_empty() const {
     return false;
   }
   if (AppHMIType.is_initialized()) {
+    return false;
+  }
+  if (RequestType.is_initialized()) {
     return false;
   }
 
@@ -161,6 +169,9 @@ void ApplicationParams::ReportErrors(rpc::ValidationReport* report__) const {
   if (!AppHMIType.is_valid()) {
     AppHMIType.ReportErrors(&report__->ReportSubobject("AppHMIType"));
   }
+  if (!RequestType.is_valid()) {
+    RequestType.ReportErrors(&report__->ReportSubobject("RequestType"));
+  }
   if (!priority.is_valid()) {
     priority.ReportErrors(&report__->ReportSubobject("priority"));
   }
@@ -187,6 +198,7 @@ void ApplicationParams::ReportErrors(rpc::ValidationReport* report__) const {
 void ApplicationParams::SetPolicyTableType(PolicyTableType pt_type) {
   CompositeType::SetPolicyTableType(pt_type);
   AppHMIType.SetPolicyTableType(pt_type);
+  RequestType.SetPolicyTableType(pt_type);
   groups.SetPolicyTableType(pt_type);
   priority.SetPolicyTableType(pt_type);
   memory_kb.SetPolicyTableType(pt_type);

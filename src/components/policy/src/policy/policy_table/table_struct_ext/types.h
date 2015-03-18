@@ -62,12 +62,15 @@ typedef Map< Rpcs, 1, 255 > FunctionalGroupings;
 
 typedef Map< DeviceParams, 0, 255 > DeviceData;
 
+typedef Array< Enum<RequestType>, 0, 255 > RequestTypes;
+
 struct ApplicationParams : CompositeType {
   public:
     Strings groups;
     Optional< Strings > nicknames;
     Optional< Strings > preconsented_groups;
     Optional< AppHMITypes > AppHMIType;
+    Optional< RequestTypes > RequestType;
     Enum<Priority> priority;
     Enum<HmiLevel> default_hmi;
     Boolean keep_context;

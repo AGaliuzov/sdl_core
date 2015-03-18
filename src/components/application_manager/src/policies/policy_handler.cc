@@ -700,6 +700,12 @@ void PolicyHandler::OnPendingPermissionChange(
 
     policy_manager_->RemovePendingPermissionChanges(policy_app_id);
   }
+
+  if (permissions.requestTypeChanged) {
+    MessageHelper::
+        SendOnAppPermissionsChangedNotification(app->app_id(), permissions);
+    policy_manager_->RemovePendingPermissionChanges(policy_app_id);
+  }
 }
 
 bool PolicyHandler::SendMessageToSDK(const BinaryMessage& pt_string,
@@ -1325,14 +1331,106 @@ const std::string PolicyHandler::RemoteAppsUrl() const {
   return policy_manager_->RemoteAppsUrl();
 }
 
-void policy::PolicyHandler::OnAppsSearchStarted() {
+void PolicyHandler::OnAppsSearchStarted() {
   POLICY_LIB_CHECK();
   policy_manager_->OnAppsSearchStarted();
 }
 
-void policy::PolicyHandler::OnAppsSearchCompleted() {
+void PolicyHandler::OnAppsSearchCompleted() {
   POLICY_LIB_CHECK();
   policy_manager_->OnAppsSearchCompleted();
+}
+
+bool PolicyHandler::IsRequestTypeAllowed(
+    const std::string& policy_app_id,
+    mobile_apis::RequestType::eType type) const {
+  POLICY_LIB_CHECK(false);
+  using namespace mobile_apis;
+
+  std::vector<std::string> request_types =
+      policy_manager_->GetAppRequestTypes(policy_app_id);
+
+  std::string stringified_type;
+  switch (type) {
+  case RequestType::INVALID_ENUM:
+    stringified_type = "INVALID_ENUM";
+    break;
+  case RequestType::HTTP :
+    stringified_type = "HTTP";
+    break;
+  case RequestType::FILE_RESUME :
+    stringified_type = "FILE_RESUME";
+    break;
+  case RequestType::AUTH_REQUEST:
+    stringified_type = "AUTH_REQUEST";
+    break;
+  case RequestType::AUTH_CHALLENGE:
+    stringified_type = "AUTH_CHALLENGE";
+    break;
+  case RequestType::AUTH_ACK:
+    stringified_type = "AUTH_ACK";
+    break;
+  case RequestType::PROPRIETARY:
+    stringified_type = "PROPRIETARY";
+    break;
+  case RequestType::QUERY_APPS:
+    stringified_type = "QUERY_APPS";
+    break;
+  case RequestType::LAUNCH_APP:
+    stringified_type = "LAUNCH_APP";
+    break;
+
+    // TODO(AOleynik): uncomment after updating of MOBILE_API
+
+//  case RequestType::LOCK_SCREEN_ICON_URL:
+//    stringified_type = "LOCK_SCREEN_ICON_URL";
+//    break;
+//  case RequestType::TRAFFIC_MESSAGE_CHANNEL:
+//    stringified_type = "TRAFFIC_MESSAGE_CHANNEL";
+//    break;
+//  case RequestType::DRIVER_PROFILE:
+//    stringified_type = "DRIVER_PROFILE";
+//    break;
+//  case RequestType::VOICE_SEARCH:
+//    stringified_type = "VOICE_SEARCH";
+//    break;
+//  case RequestType::NAVIGATION:
+//    stringified_type = "NAVIGATION";
+//    break;
+//  case RequestType::PHONE:
+//    stringified_type = "PHONE";
+//    break;
+//  case RequestType::CLIMATE:
+//    stringified_type = "CLIMATE";
+//    break;
+//  case RequestType::SETTINGS:
+//    stringified_type = "SETTINGS";
+//    break;
+//  case RequestType::VEHICLE_DIAGNOSTICS:
+//    stringified_type = "VEHICLE_DIAGNOSTICS";
+//    break;
+//  case RequestType::EMERGENCY:
+//    stringified_type = "EMERGENCY";
+//    break;
+//  case RequestType::MEDIA:
+//    stringified_type = "MEDIA";
+//    break;
+//  case RequestType::FOTA:
+//    stringified_type = "FOTA";
+//    break;
+  default:
+    LOG4CXX_ERROR(logger_, "Unknown request type.");
+    return false;
+  }
+  std::vector<std::string>::const_iterator it =
+      std::find(request_types.begin(), request_types.end(), stringified_type);
+  return request_types.end() != it;
+}
+
+std::vector<std::string> PolicyHandler::GetAppRequestTypes(
+    const std::string& policy_app_id) const {
+  POLICY_LIB_CHECK(std::vector<std::string>());
+  return policy_manager_->GetAppRequestTypes(policy_app_id);
 }
 
 void PolicyHandler::Increment(usage_statistics::GlobalCounterId type) {

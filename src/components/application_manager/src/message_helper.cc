@@ -2054,7 +2054,6 @@ void MessageHelper::SendOnAppPermissionsChangedNotification(
   message[strings::params][strings::message_type] = MessageType::kNotification;
   message[strings::msg_params][strings::app_id] = connection_key;
 
-  // TODO(AOleynik): Add other parameters processing from incoming struct
   if (permissions.appRevoked) {
     message[strings::msg_params]["appRevoked"] = permissions.appRevoked;
   }
@@ -2076,6 +2075,15 @@ void MessageHelper::SendOnAppPermissionsChangedNotification(
   if (!permissions.priority.empty()) {
     message[strings::msg_params]["priority"] = GetPriorityCode(
           permissions.priority);
+  }
+  if (permissions.requestTypeChanged) {
+    smart_objects::SmartObject request_types_array =
+        smart_objects::SmartObject(smart_objects::SmartType_Array);
+    for (uint16_t index = 0; index < permissions.requestType.size(); ++index) {
+      request_types_array[index] = permissions.requestType[index];
+    }
+    message[strings::msg_params][strings::request_type] =
+        request_types_array;
   }
 
   ApplicationManagerImpl::instance()->ManageHMICommand(notification);
