@@ -466,8 +466,13 @@ bool CheckAppPolicy::IsRequestTypeChanged(
   if (it->second.RequestType->size() != app_policy.second.RequestType->size()) {
     return true;
   }
-  // TODO(AOleynik): add comparing of same-size arrays
-  return false;
+  policy_table::RequestTypes diff;
+  std::set_difference(it->second.RequestType->begin(),
+                      it->second.RequestType->end(),
+                      app_policy.second.RequestType->begin(),
+                      app_policy.second.RequestType->end(),
+                      std::back_inserter(diff));
+  return diff.size();
 }
 
 FillNotificationData::FillNotificationData(Permissions& data,
