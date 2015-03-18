@@ -710,6 +710,19 @@ class ApplicationManagerImpl : public ApplicationManager,
      */
     void ForbidStreaming(uint32_t app_id);
 
+    /**
+     * @brief OnHMILevelChanged the callback that allows SDL to react when
+     * application's HMILeval has been changed.
+     *
+     * @param app_id application identifier for which HMILevel has been chaned.
+     *
+     * @param from previous HMILevel.
+     * @param to current HMILevel.
+     */
+    void OnHMILevelChanged(uint32_t app_id,
+                           mobile_apis::HMILevel::eType from,
+                           mobile_apis::HMILevel::eType to);
+
     mobile_api::HMILevel::eType GetDefaultHmiLevel(
         ApplicationSharedPtr application) const;
 
@@ -1110,19 +1123,6 @@ class ApplicationManagerImpl : public ApplicationManager,
     bool IsLowVoltage();
 
   private:
-
-    /**
-     * @brief OnHMILevelChanged the callback that allows SDL to react when
-     * application's HMILeval has been changed.
-     *
-     * @param app_id application identifier for which HMILevel has been chaned.
-     *
-     * @param from previous HMILevel.
-     * @param to current HMILevel.
-     */
-    void OnHMILevelChanged(uint32_t app_id,
-                           mobile_apis::HMILevel::eType from,
-                           mobile_apis::HMILevel::eType to);
 
     /**
      * @brief EndNaviServices either send EndService to mobile or proceed
