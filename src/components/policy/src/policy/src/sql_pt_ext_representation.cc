@@ -472,7 +472,7 @@ bool SQLPTExtRepresentation::SetUserPermissionsForApp(
 }
 
 std::vector<UserFriendlyMessage> SQLPTExtRepresentation::GetUserFriendlyMsg(
-  const std::vector<std::string>& msg_codes, const std::string& language) {  
+  const std::vector<std::string>& msg_codes, const std::string& language) {
   dbms::SQLQuery query(db());
   std::vector<UserFriendlyMessage> result;
   if (!query.Prepare(sql_pt_ext::kSelectFriendlyMsg)) {
@@ -659,7 +659,7 @@ bool SQLPTExtRepresentation::SaveApplicationPolicies(
     }
   }
 
-  policy_table::ApplicationPolicies::const_iterator it;  
+  policy_table::ApplicationPolicies::const_iterator it;
   for (it = apps.begin(); it != apps.end(); ++it) {
     // Skip saving of predefined app, since they should be saved before
     if (IsPredefinedApp(*it)) {
@@ -721,16 +721,17 @@ bool SQLPTExtRepresentation::SaveSpecificAppPolicy(
   if (!SaveAppGroup(app.first, app.second.groups)) {
     return false;
   }
-  // TODO(IKozyrenko): Check logic if optional container is missing
   if (!SaveNickname(app.first, *app.second.nicknames)) {
     return false;
   }
-  // TODO(IKozyrenko): Check logic if optional container is missing
   if (!SaveAppType(app.first, *app.second.AppHMIType)) {
     return false;
   }
-  // TODO(IKozyrenko): Check logic if optional container is missing
   if (!SavePreconsentedGroup(app.first, *app.second.preconsented_groups)) {
+    return false;
+  }
+
+  if (!SaveRequestType(app.first, *app.second.RequestType)) {
     return false;
   }
 
@@ -936,8 +937,8 @@ const policy_table::DeviceData& devices) {
   dbms::SQLQuery drop_device_query(db());
   const std::string drop_device = "DELETE FROM `device`";
   if (!drop_device_query.Exec(drop_device)) {
-	LOG4CXX_WARN(logger_, "Could not clear device table.");
-	return false;
+    LOG4CXX_WARN(logger_, "Could not clear device table.");
+    return false;
   }
 
   dbms::SQLQuery drop_device_consents_query(db());
