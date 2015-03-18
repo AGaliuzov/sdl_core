@@ -336,6 +336,62 @@ SDL.SDLModel = Em.Object.create({
         {
             name: "PROPRIETARY",
             id  : 5
+        },
+        {
+            name: "QUERY_APPS",
+            id  : 6
+        },
+        {
+            name: "LAUNCH_APP",
+            id  : 7
+        },
+        {
+            name: "LOCK_SCREEN_ICON_URL",
+            id  : 8
+        },
+        {
+            name: "TRAFFIC_MESSAGE_CHANNEL",
+            id  : 9
+        },
+        {
+            name: "DRIVER_PROFILE",
+            id  : 10
+        },
+        {
+            name: "VOICE_SEARCH",
+            id  : 11
+        },
+        {
+            name: "NAVIGATION",
+            id  : 12
+        },
+        {
+            name: "PHONE",
+            id  : 13
+        },
+        {
+            name: "CLIMATE",
+            id  : 14
+        },
+        {
+            name: "SETTINGS",
+            id  : 15
+        },
+        {
+            name: "VEHICLE_DIAGNOSTICS",
+            id  : 16
+        },
+        {
+            name: "EMERGENCY",
+            id  : 17
+        },
+        {
+            name: "MEDIA",
+            id  : 18
+        },
+        {
+            name: "FOTA",
+            id  : 19
         }
     ],
 

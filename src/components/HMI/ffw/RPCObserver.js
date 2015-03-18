@@ -70,7 +70,6 @@ FFW.RPCObserver = Em.Object
 
             // parse JSON string and set necessary properties
         },
-
         onRPCRequest: function(request, error) {
 
             // parse JSON string and send back necessary data
