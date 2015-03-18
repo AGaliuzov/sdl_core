@@ -32,6 +32,8 @@
 
 #include "transport_manager/aoa/aoa_wrapper.h"
 
+#include <string>
+
 #include "utils/macro.h"
 #include "utils/logger.h"
 
@@ -65,7 +67,7 @@ static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
   if (!AOAWrapper::IsHandleValid(hdl) || (status == AOA_EINVALIDHDL)) {
     AOAWrapper::OnDied(hdl);
     observer->OnDisconnected();
-    return;  // TODO(nvaganov@luxoft.com) need to move reregister before this return
+    return;
   }
 
   bool success = !error;
@@ -83,7 +85,7 @@ static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
     LOG4CXX_DEBUG(logger_, "AOA: data receive callback reregistered");
   }
   else {
-    LOG4CXX_ERROR(logger_, "AOA: could not reregister data receive callback, error = " << ret);
+    LOG4CXX_ERROR(logger_, "AOA: could not reregister data receive callback, error = ");
   }
 }
 
@@ -146,7 +148,7 @@ bool AOAWrapper::SetCallback(aoa_hdl_t* hdl, const void* udata, uint32_t timeout
   switch (endpoint) {
     case AOA_Ept_Accessory_BulkIn:
       ret = aoa_bulk_arx(hdl,
-                         OnReceivedData,
+                         &OnReceivedData,
                          udata,
                          BitEndpoint(AOA_Ept_Accessory_BulkIn),
                          timeout,
@@ -170,15 +172,10 @@ bool AOAWrapper::SetCallback(aoa_hdl_t* hdl, const void* udata, uint32_t timeout
 bool AOAWrapper::Subscribe(AOAConnectionObserver *observer) {
   LOG4CXX_TRACE(logger_, "AOA: subscribe on receive data " << hdl_);
   connection_observer_ = observer;
-  if (!SetCallback(AOA_Ept_Accessory_BulkIn)) {
-    return false;
-  }
-  ReceiveMessage();
-  return true;
+  return SetCallback(AOA_Ept_Accessory_BulkIn);
 }
 
 bool AOAWrapper::UnsetCallback(AOAEndpoint endpoint) const {
-//int ret_r = aoa_set_callback(hdl_, NULL, NULL, BitEndpoint(endpoint));
   int ret_r = AOA_EOK;
   if (IsError(ret_r)) {
     PrintError(ret_r);
@@ -320,14 +317,26 @@ bool AOAWrapper::SendMessage(::protocol_handler::RawMessagePtr message) const {
     return false;
   }
 
-  uint8_t *data = message->data();
+  uint8_t *data = NULL;
+  if (AOA_EOK != aoa_buffer_alloc(hdl_, &data, message->data_size())) {
+    LOG4CXX_ERROR(logger_, "AOA: unable to allocate buffer.");
+    return false;
+  }
+
   size_t length = message->data_size();
+  ::memcpy(data, message->data(), length);
   int ret = aoa_bulk_tx(hdl_, AOA_EPT_ACCESSORY_BULKOUT, timeout_, data,
                         &length, AOA_FLAG_MANAGED_BUF);
+
+  if (AOA_EOK != aoa_buffer_free(hdl_, data)) {
+    LOG4CXX_ERROR(logger_, "AOA: unable to deallocate buffer.");
+  }
+
   if (IsError(ret)) {
     PrintError(ret);
     return false;
   }
+
   return true;
 }
 
