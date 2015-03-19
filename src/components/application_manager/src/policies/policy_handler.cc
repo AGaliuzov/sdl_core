@@ -1379,45 +1379,42 @@ bool PolicyHandler::IsRequestTypeAllowed(
   case RequestType::LAUNCH_APP:
     stringified_type = "LAUNCH_APP";
     break;
-
-    // TODO(AOleynik): uncomment after updating of MOBILE_API
-
-//  case RequestType::LOCK_SCREEN_ICON_URL:
-//    stringified_type = "LOCK_SCREEN_ICON_URL";
-//    break;
-//  case RequestType::TRAFFIC_MESSAGE_CHANNEL:
-//    stringified_type = "TRAFFIC_MESSAGE_CHANNEL";
-//    break;
-//  case RequestType::DRIVER_PROFILE:
-//    stringified_type = "DRIVER_PROFILE";
-//    break;
-//  case RequestType::VOICE_SEARCH:
-//    stringified_type = "VOICE_SEARCH";
-//    break;
-//  case RequestType::NAVIGATION:
-//    stringified_type = "NAVIGATION";
-//    break;
-//  case RequestType::PHONE:
-//    stringified_type = "PHONE";
-//    break;
-//  case RequestType::CLIMATE:
-//    stringified_type = "CLIMATE";
-//    break;
-//  case RequestType::SETTINGS:
-//    stringified_type = "SETTINGS";
-//    break;
-//  case RequestType::VEHICLE_DIAGNOSTICS:
-//    stringified_type = "VEHICLE_DIAGNOSTICS";
-//    break;
-//  case RequestType::EMERGENCY:
-//    stringified_type = "EMERGENCY";
-//    break;
-//  case RequestType::MEDIA:
-//    stringified_type = "MEDIA";
-//    break;
-//  case RequestType::FOTA:
-//    stringified_type = "FOTA";
-//    break;
+  case RequestType::LOCK_SCREEN_ICON_URL:
+    stringified_type = "LOCK_SCREEN_ICON_URL";
+    break;
+  case RequestType::TRAFFIC_MESSAGE_CHANNEL:
+    stringified_type = "TRAFFIC_MESSAGE_CHANNEL";
+    break;
+  case RequestType::DRIVER_PROFILE:
+    stringified_type = "DRIVER_PROFILE";
+    break;
+  case RequestType::VOICE_SEARCH:
+    stringified_type = "VOICE_SEARCH";
+    break;
+  case RequestType::NAVIGATION:
+    stringified_type = "NAVIGATION";
+    break;
+  case RequestType::PHONE:
+    stringified_type = "PHONE";
+    break;
+  case RequestType::CLIMATE:
+    stringified_type = "CLIMATE";
+    break;
+  case RequestType::SETTINGS:
+    stringified_type = "SETTINGS";
+    break;
+  case RequestType::VEHICLE_DIAGNOSTICS:
+    stringified_type = "VEHICLE_DIAGNOSTICS";
+    break;
+  case RequestType::EMERGENCY:
+    stringified_type = "EMERGENCY";
+    break;
+  case RequestType::MEDIA:
+    stringified_type = "MEDIA";
+    break;
+  case RequestType::FOTA:
+    stringified_type = "FOTA";
+    break;
   default:
     LOG4CXX_ERROR(logger_, "Unknown request type.");
     return false;
