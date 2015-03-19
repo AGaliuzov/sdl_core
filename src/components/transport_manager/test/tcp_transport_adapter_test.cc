@@ -149,7 +149,6 @@ class ClientTcpSocket {
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     addr.sin_port = htons(server_port);
-
     if (::connect(socket_, (struct sockaddr*) &addr, sizeof(addr)) < 0)
       return false;
     else
@@ -364,47 +363,28 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_Send_Message) {
   EXPECT_EQ("efgh", client_.receive(4));
 }
 
-TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_DisconnectFromClient) {
+TEST_F(TcpAdapterTestWithListenerAutoStart, UnexpectedDisconnectFromClient) {
   {
     ::testing::InSequence seq;
 
     EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _));
     EXPECT_CALL(mock_dal_, OnUnexpectedDisconnect(transport_adapter_, _, _, _));
-    EXPECT_CALL(mock_dal_, OnDisconnectDone(transport_adapter_, _, _)).WillOnce(
-        InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp));
   }
   EXPECT_TRUE(client_.Connect(port()));
   client_.Disconnect();
 }
 
-TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_DisconnectFromServer) {
+TEST_F(TcpAdapterTestWithListenerAutoStart, ConnectFromServer) {
   {
     ::testing::InSequence seq;
 
     EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).WillOnce(
         Invoke(Disconnect));
-    EXPECT_CALL(mock_dal_, OnDisconnectDone(transport_adapter_, _, _)).WillOnce(
-        InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp));
-  }
-  EXPECT_TRUE(client_.Connect(port()));
-
-}
-
-TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_SendToDisconnected) {
-  SendHelper* helper = new SendHelper(TransportAdapter::BAD_PARAM);
-  {
-    ::testing::InSequence seq;
-
-    EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).WillOnce(
-        Invoke(Disconnect));
-    EXPECT_CALL(mock_dal_, OnDisconnectDone(transport_adapter_, _, _)).WillOnce(
-        ::testing::DoAll(Invoke(helper, &SendHelper::sendMessage),
-                         InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp)));
   }
   EXPECT_TRUE(client_.Connect(port()));
 }
 
-TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_SendFailed) {
+TEST_F(TcpAdapterTestWithListenerAutoStart, SendFailed) {
 //  static unsigned char zzz[2000000];  //message will send without fail because socket buffer can contain it
   //this test works correctly starting with number 2539009
   static unsigned char zzz[2600000];
@@ -417,8 +397,7 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_SendFailed) {
     EXPECT_CALL(
         mock_dal_,
         OnDataSendFailed(transport_adapter_, _, _, helper->message_, _));
-    EXPECT_CALL(mock_dal_, OnDisconnectDone(transport_adapter_, _, _)).WillOnce(
-        InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp));
+    EXPECT_CALL(mock_dal_, OnUnexpectedDisconnect(transport_adapter_, _, _, _));
   }
   EXPECT_TRUE(client_.Connect(port()));
   client_.receive(2);
