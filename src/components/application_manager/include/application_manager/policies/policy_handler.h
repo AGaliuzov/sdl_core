@@ -338,7 +338,7 @@ class PolicyHandler :
    * @param policy_app_id Unique application id
    * @return request types
    */
-  std::vector<std::string> GetAppRequestTypes(
+  const std::vector<std::string> GetAppRequestTypes(
       const std::string& policy_app_id) const;
 
 //TODO(AKutsan) REMOVE THIS UGLY HOTFIX

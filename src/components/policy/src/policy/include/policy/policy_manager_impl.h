@@ -168,7 +168,7 @@ class PolicyManagerImpl : public PolicyManager {
 
     virtual void OnAppsSearchCompleted();
 
-    virtual std::vector<std::string> GetAppRequestTypes(
+    virtual const std::vector<std::string> GetAppRequestTypes(
       const std::string policy_app_id) const;
 
   protected:

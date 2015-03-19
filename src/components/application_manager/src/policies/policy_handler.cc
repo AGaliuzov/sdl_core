@@ -58,6 +58,42 @@ namespace policy {
 
 using namespace application_manager;
 
+namespace {
+using namespace mobile_apis;
+typedef std::map<RequestType::eType, std::string> RequestTypeMap;
+RequestTypeMap TypeToString = {
+  {RequestType::INVALID_ENUM, "INVALID_ENUM"},
+  {RequestType::HTTP, "HTTP"},
+  {RequestType::FILE_RESUME, "FILE_RESUME"},
+  {RequestType::AUTH_REQUEST, "AUTH_REQUEST"},
+  {RequestType::AUTH_CHALLENGE, "AUTH_CHALLENGE"},
+  {RequestType::AUTH_ACK, "AUTH_ACK"},
+  {RequestType::PROPRIETARY, "PROPRIETARY"},
+  {RequestType::QUERY_APPS, "QUERY_APPS"},
+  {RequestType::LAUNCH_APP, "LAUNCH_APP"},
+  {RequestType::LOCK_SCREEN_ICON_URL, "LOCK_SCREEN_ICON_URL"},
+  {RequestType::TRAFFIC_MESSAGE_CHANNEL, "TRAFFIC_MESSAGE_CHANNEL"},
+  {RequestType::DRIVER_PROFILE, "DRIVER_PROFILE"},
+  {RequestType::VOICE_SEARCH, "VOICE_SEARCH"},
+  {RequestType::NAVIGATION, "NAVIGATION"},
+  {RequestType::PHONE,"PHONE"},
+  {RequestType::CLIMATE, "CLIMATE"},
+  {RequestType::SETTINGS, "SETTINGS"},
+  {RequestType::VEHICLE_DIAGNOSTICS, "VEHICLE_DIAGNOSTICS"},
+  {RequestType::EMERGENCY, "EMERGENCY"},
+  {RequestType::MEDIA, "MEDIA"},
+  {RequestType::FOTA, "FOTA"}
+};
+
+const std::string RequestTypeToString(RequestType::eType type) {
+  RequestTypeMap::const_iterator it = TypeToString.find(type);
+  if (TypeToString.end() != it) {
+    return (*it).second;
+  }
+  return "";
+}
+}
+
 #define POLICY_LIB_CHECK(return_value) {\
   sync_primitives::AutoReadLock lock(policy_manager_lock_); \
   if (!policy_manager_) {\
@@ -1350,81 +1386,18 @@ bool PolicyHandler::IsRequestTypeAllowed(
   std::vector<std::string> request_types =
       policy_manager_->GetAppRequestTypes(policy_app_id);
 
-  std::string stringified_type;
-  switch (type) {
-  case RequestType::INVALID_ENUM:
-    stringified_type = "INVALID_ENUM";
-    break;
-  case RequestType::HTTP :
-    stringified_type = "HTTP";
-    break;
-  case RequestType::FILE_RESUME :
-    stringified_type = "FILE_RESUME";
-    break;
-  case RequestType::AUTH_REQUEST:
-    stringified_type = "AUTH_REQUEST";
-    break;
-  case RequestType::AUTH_CHALLENGE:
-    stringified_type = "AUTH_CHALLENGE";
-    break;
-  case RequestType::AUTH_ACK:
-    stringified_type = "AUTH_ACK";
-    break;
-  case RequestType::PROPRIETARY:
-    stringified_type = "PROPRIETARY";
-    break;
-  case RequestType::QUERY_APPS:
-    stringified_type = "QUERY_APPS";
-    break;
-  case RequestType::LAUNCH_APP:
-    stringified_type = "LAUNCH_APP";
-    break;
-  case RequestType::LOCK_SCREEN_ICON_URL:
-    stringified_type = "LOCK_SCREEN_ICON_URL";
-    break;
-  case RequestType::TRAFFIC_MESSAGE_CHANNEL:
-    stringified_type = "TRAFFIC_MESSAGE_CHANNEL";
-    break;
-  case RequestType::DRIVER_PROFILE:
-    stringified_type = "DRIVER_PROFILE";
-    break;
-  case RequestType::VOICE_SEARCH:
-    stringified_type = "VOICE_SEARCH";
-    break;
-  case RequestType::NAVIGATION:
-    stringified_type = "NAVIGATION";
-    break;
-  case RequestType::PHONE:
-    stringified_type = "PHONE";
-    break;
-  case RequestType::CLIMATE:
-    stringified_type = "CLIMATE";
-    break;
-  case RequestType::SETTINGS:
-    stringified_type = "SETTINGS";
-    break;
-  case RequestType::VEHICLE_DIAGNOSTICS:
-    stringified_type = "VEHICLE_DIAGNOSTICS";
-    break;
-  case RequestType::EMERGENCY:
-    stringified_type = "EMERGENCY";
-    break;
-  case RequestType::MEDIA:
-    stringified_type = "MEDIA";
-    break;
-  case RequestType::FOTA:
-    stringified_type = "FOTA";
-    break;
-  default:
+  std::string stringified_type = RequestTypeToString(type);
+  if (stringified_type.empty()) {
     LOG4CXX_ERROR(logger_, "Unknown request type.");
     return false;
   }
+
   std::vector<std::string>::const_iterator it =
       std::find(request_types.begin(), request_types.end(), stringified_type);
   return request_types.end() != it;
 }
 
-std::vector<std::string> PolicyHandler::GetAppRequestTypes(
+const std::vector<std::string> PolicyHandler::GetAppRequestTypes(
     const std::string& policy_app_id) const {
   POLICY_LIB_CHECK(std::vector<std::string>());
   return policy_manager_->GetAppRequestTypes(policy_app_id);
@@ -1435,7 +1408,8 @@ void PolicyHandler::Increment(usage_statistics::GlobalCounterId type) {
   policy_manager_->Increment(type);
 }
 
-void PolicyHandler::Increment(const std::string& app_id, usage_statistics::AppCounterId type) {
+void PolicyHandler::Increment(const std::string& app_id,
+                              usage_statistics::AppCounterId type) {
   POLICY_LIB_CHECK();
   policy_manager_->Increment(app_id, type);
 }

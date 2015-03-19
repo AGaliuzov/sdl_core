@@ -2059,13 +2059,13 @@ void MessageHelper::FillAppRevokedPermissions(
 
 void MessageHelper::SendOnAppPermissionsChangedNotification(
   uint32_t connection_key, const policy::AppPermissions& permissions) {
-  smart_objects::SmartObjectSPtr notification = new smart_objects::SmartObject(
-      smart_objects::SmartType_Map);
+  using namespace smart_objects;
+  SmartObjectSPtr notification = new SmartObject(SmartType_Map);
   if (!notification) {
     return;
   }
 
-  smart_objects::SmartObject& message = *notification;
+  SmartObject& message = *notification;
 
   message[strings::params][strings::function_id] =
     hmi_apis::FunctionID::SDL_OnAppPermissionChanged;
@@ -2096,8 +2096,7 @@ void MessageHelper::SendOnAppPermissionsChangedNotification(
           permissions.priority);
   }
   if (permissions.requestTypeChanged) {
-    smart_objects::SmartObject request_types_array =
-        smart_objects::SmartObject(smart_objects::SmartType_Array);
+    SmartObject request_types_array = SmartObject(SmartType_Array);
     for (uint16_t index = 0; index < permissions.requestType.size(); ++index) {
       request_types_array[index] = permissions.requestType[index];
     }

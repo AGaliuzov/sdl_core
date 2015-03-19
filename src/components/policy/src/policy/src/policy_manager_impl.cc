@@ -295,7 +295,7 @@ void PolicyManagerImpl::OnAppsSearchCompleted() {
   }
 }
 
-std::vector<std::string> PolicyManagerImpl::GetAppRequestTypes(
+const std::vector<std::string> PolicyManagerImpl::GetAppRequestTypes(
     const std::string policy_app_id) const {
   std::vector<std::string> request_types;
   cache_->GetAppRequestTypes(policy_app_id, request_types);
