@@ -67,7 +67,7 @@ set (LIBRARIES
 )
 
 set (SOURCES
-  src/generated_interface_json_tests.cc
+  generated_interface_json_tests.cc
 )
 
 if (${HMI_DBUS_API})
@@ -77,7 +77,7 @@ if (${HMI_DBUS_API})
       ${DBUS_INCLUDE_DIRS}
   )
   set (LIBRARIES ${LIBRARIES} DBus)
-  set (SOURCES ${SOURCES} src/generated_interface_dbus_tests.cc)
+  set (SOURCES ${SOURCES} generated_interface_dbus_tests.cc)
 endif ()
 
 
