@@ -1383,13 +1383,19 @@ bool PolicyHandler::IsRequestTypeAllowed(
   POLICY_LIB_CHECK(false);
   using namespace mobile_apis;
 
-  std::vector<std::string> request_types =
-      policy_manager_->GetAppRequestTypes(policy_app_id);
 
   std::string stringified_type = RequestTypeToString(type);
   if (stringified_type.empty()) {
     LOG4CXX_ERROR(logger_, "Unknown request type.");
     return false;
+  }
+
+  std::vector<std::string> request_types =
+      policy_manager_->GetAppRequestTypes(policy_app_id);
+
+  // If no request types are assigned to app - any is allowed
+  if (request_types.empty()) {
+    return true;
   }
 
   std::vector<std::string>::const_iterator it =
