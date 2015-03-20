@@ -106,7 +106,7 @@ void DialNumberRequest::StripNumberParam() {
   if ((*message_)[strings::msg_params].keyExists(strings::number)) {
     std::string number = (*message_)[strings::msg_params][strings::number].asString();
     std::size_t found = 0;
-    while (std::string::npos != (found = number.find_first_not_of("+0123456789"))) {
+    while (std::string::npos != (found = number.find_first_not_of("0123456789*#,;"))) {
       number.erase(number.begin() + found);
     }
     (*message_)[strings::msg_params][strings::number] = number;

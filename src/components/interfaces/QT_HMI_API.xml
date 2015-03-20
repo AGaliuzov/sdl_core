@@ -2134,7 +2134,7 @@
     <function name="DialNumber" messagetype="request">
       <description>Request from SDL to call a specific number.</description>
       <param name="number" type="String" maxlength="40">
-        <description>The number to dial. Only the character “+” and numbers are allowed.</description>
+        <description>The number to dial. All characters shall be stripped from string except digits 0-9 and * # , ;</description>
       </param>
       <param name="appID" type="Integer" mandatory="true">
         <description>ID of application that concerns this RPC.</description>
