@@ -27,27 +27,38 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
+#set( CMAKE_VERBOSE_MAKEFILE on )
 
-# --- jsoncpp
-add_subdirectory(./jsoncpp)
-set(JSONCPP_INCLUDE_DIRECTORY ${JSONCPP_INCLUDE_DIRECTORY} PARENT_SCOPE)
+include_directories(
+	${CMAKE_SOURCE_DIR}/src/components/policy/src/policy/
+        ${CMAKE_SOURCE_DIR}/src/components/rpc_base/include/
+        ${CMAKE_SOURCE_DIR}/src/components/utils/include/
+	${JSONCPP_INCLUDE_DIRECTORY}
+)
 
-# --- MessageBroker
-add_subdirectory(./MessageBroker)
-set(MESSAGE_BROKER_INCLUDE_DIRECTORY ${MESSAGE_BROKER_INCLUDE_DIRECTORY} PARENT_SCOPE)
 
-# --- encryption
-add_subdirectory(./encryption)
-set(ENCRYPTION_INCLUDE_DIRECTORY ${ENCRYPTION_INCLUDE_DIRECTORY} PARENT_SCOPE)
+if (EXTENDED_POLICY_FLAG)
+add_definitions(-DEXTENDED_POLICY)
+link_directories (
+    ${CMAKE_BINARY_DIR}/src/components/policy/src/policy/policy_table/table_struct_ext/
+    ${CMAKE_BINARY_DIR}/src/components/rpc_base/
+)
+else ()
+link_directories (
+    ${CMAKE_BINARY_DIR}/src/components/policy/src/policy/policy_table/table_struct/
+    ${CMAKE_BINARY_DIR}/src/components/rpc_base/
+)
+endif ()
 
-if (BUILD_USB_SUPPORT)
-  if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    add_subdirectory(./libusbx-1.0.16)
-    set(LIBUSB_INCLUDE_DIRECTORY ${LIBUSB_INCLUDE_DIRECTORY} PARENT_SCOPE)
-    set(LIBUSB_LIBS_DIRECTORY ${LIBUSB_LIBS_DIRECTORY} PARENT_SCOPE)
-  endif()
-endif()
 
-if(BUILD_TESTS)
-  add_subdirectory(test)
-endif()
+set(LIBRARIES
+  policy_struct
+  rpc_base
+)
+
+set (SOURCES
+  main.cc
+)
+
+add_executable(policyValidator ${SOURCES})
+target_link_libraries(policyValidator ${LIBRARIES})
