@@ -140,7 +140,7 @@ class ClientTcpSocket {
   bool Connect(uint16_t server_port) {
 
     socket_ = socket(AF_INET, SOCK_STREAM, 0);
-    std::cout << "socket is " << socket_ << "\n\n";
+    std::cout << "socket is " << socket_ << "\n";
     if (socket_ < 0)
       return false;
 
@@ -285,7 +285,7 @@ class TcpAdapterTestWithListenerAutoStart : public TcpAdapterTest {
 
 MATCHER_P(ContainsMessage, str, ""){ return strlen(str) == arg->data_size() && 0 == memcmp(str, arg->data(), arg->data_size());}
 
-// TODO{ALeshin} APPLINK-11090 - transport_adapter_->IsInitialised() doesn't return true as expected
+// TODO{ALeshin} APPLINK-11090 - OnConnectDone sometimes is not called
 TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_Connect_Return_True) {
   {
     ::testing::InSequence seq;
@@ -296,8 +296,8 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_Connect_Return_True) {
   EXPECT_TRUE(client_.Connect(port()));
 }
 
-// TODO{ALeshin} APPLINK-11090 - transport_adapter_->IsInitialised() doesn't return true as expected
-TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_SecondConnect_Return_True) {
+// TODO{ALeshin} APPLINK-11090 - OnConnectDone sometimes is not called
+TEST_F(TcpAdapterTestWithListenerAutoStart, SecondConnect_Return_True) {
   {
     ::testing::InSequence seq;
     EXPECT_CALL(mock_dal_, OnDeviceListUpdated(_));
@@ -307,8 +307,8 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_SecondConnect_Return_True) 
   EXPECT_TRUE(client_.Connect(port()));
 }
 
-// TODO{ALeshin} APPLINK-11090 - transport_adapter_->IsInitialised() doesn't return true as expected
-TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_Receive_Return_True) {
+// TODO{ALeshin} APPLINK-11090 - OnConnectDone sometimes is not called
+TEST_F(TcpAdapterTestWithListenerAutoStart, Receive_Return_True) {
   {
     ::testing::InSequence seq;
 
@@ -346,12 +346,12 @@ struct SendHelper {
   RawMessagePtr message_;
 };
 
-// TODO{ALeshin} APPLINK-11090 - transport_adapter_->IsInitialised() doesn't return true as expected
-TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_Send_Message) {
+TEST_F(TcpAdapterTestWithListenerAutoStart, Send_Message) {
   SendHelper helper(TransportAdapter::OK);
   {
     ::testing::InSequence seq;
 
+    EXPECT_CALL(mock_dal_, OnDeviceListUpdated(_));
     EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).WillOnce(
         Invoke(&helper, &SendHelper::sendMessage));
     EXPECT_CALL(mock_dal_,
@@ -367,6 +367,7 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, UnexpectedDisconnectFromClient) {
   {
     ::testing::InSequence seq;
 
+    EXPECT_CALL(mock_dal_, OnDeviceListUpdated(_));
     EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _));
     EXPECT_CALL(mock_dal_, OnUnexpectedDisconnect(transport_adapter_, _, _, _));
   }
@@ -378,6 +379,7 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, ConnectFromServer) {
   {
     ::testing::InSequence seq;
 
+    EXPECT_CALL(mock_dal_, OnDeviceListUpdated(_));
     EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).WillOnce(
         Invoke(Disconnect));
   }
@@ -392,6 +394,7 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, SendFailed) {
   helper->message_ = new RawMessage(1, 1, zzz, sizeof(zzz));
   {
     ::testing::InSequence seq;
+    EXPECT_CALL(mock_dal_, OnDeviceListUpdated(_));
     EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).WillOnce(
         Invoke(helper, &SendHelper::sendMessage));
     EXPECT_CALL(
