@@ -61,7 +61,7 @@ namespace NsMessageBroker
      std::string rep = data;
      int retVal = 0;
      const char* ptrBuffer = rep.c_str();
-     std::string shm_data="SHARED_MEMORY";
+     static int i=1;
 
      if (rep.empty())
      {
@@ -70,13 +70,29 @@ namespace NsMessageBroker
 
      if (rep.length() > MAX_QUEUE_MSG_SIZE)
      {
-       int len = rep.length();
-       ptr2->size = len;
-       memset(ptr2->text, 0, sizeof(ptr2->size));
-       memcpy(ptr2->text, rep.c_str(), len); /* write to the shared memory */
+       int retVal = 0;
+       std::string shm_data="";
 
-       int retVal = ::mq_send(m_sndHandle, &shm_data[0], shm_data.length(), 0);
-       DBG_MSG(("Sending length %d", len));
+       if(i%2)
+       {
+         i = 0;
+         shm_data="SDL_TO_APPLINK_SHM_1";
+         int len = rep.length();
+         ptr2->size = len;
+         memset(ptr2->text, 0, sizeof(ptr2->size));
+         memcpy(ptr2->text, rep.c_str(), len); /* write to the shared memory */
+       }
+       else
+       {
+         i = 1;
+         shm_data="SDL_TO_APPLINK_SHM_2";
+         int len = rep.length();
+         ptr3->size = len;
+         memset(ptr3->text, 0, sizeof(ptr3->size));
+         memcpy(ptr3->text, rep.c_str(), len); /* write to the shared memory */
+       }
+
+     retVal = ::mq_send(m_sndHandle, &shm_data[0], shm_data.length(), 0);
        return (retVal == -1) ? retVal :(shm_data.length());
      }
      else

@@ -55,6 +55,13 @@ namespace NsMessageBroker
      /* Get a pointer to the shared memory object */
      ptr2 =(shmem_t *) mmap(0, sizeof(shmem_t),
      PROT_WRITE, MAP_SHARED, fd2, 0);
+
+     fd3 = shm_open("/SHNAME_SDLQUEUE3",  O_RDWR | O_CREAT, 0777);
+     DBG_MSG(("A\n"));
+     ftruncate(fd3, sizeof(shmem_t));
+     /* Get a pointer to the shared memory object */
+     ptr3 =(shmem_t *) mmap(0, sizeof(shmem_t),
+     PROT_WRITE, MAP_SHARED, fd3, 0);
    }
 #endif
 
