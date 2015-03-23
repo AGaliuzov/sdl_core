@@ -39,6 +39,7 @@
 #include "utils/logger.h"
 #include "utils/atomic.h"
 #include "utils/file_system.h"
+#include "utils/macro.h"
 
 #define TLS1_1_MINIMAL_VERSION            0x1000103fL
 #define CONST_SSL_METHOD_MINIMAL_VERSION  0x00909000L
@@ -146,6 +147,7 @@ bool CryptoManagerImpl::Init(Mode mode, Protocol protocol,
   context_ = SSL_CTX_new(method);
   if (!context_) {
     const char *error = ERR_reason_error_string(ERR_get_error());
+    UNUSED(error);
     LOG4CXX_ERROR(logger_,
                   "Could not create OpenSSLContext " << (error ? error : ""));
     return false;
@@ -289,6 +291,7 @@ void CryptoManagerImpl::SetVerification() {
                                                    NULL);
   if (!result) {
     const unsigned long error = ERR_get_error();
+    UNUSED(error);
     LOG4CXX_WARN(
         logger_,
         "Wrong certificate file '" << ca_certificate_file_
@@ -301,6 +304,7 @@ void CryptoManagerImpl::SetVerification() {
 int debug_callback(int preverify_ok, X509_STORE_CTX *ctx) {
   if (!preverify_ok) {
     const int error = X509_STORE_CTX_get_error(ctx);
+    UNUSED(error);
     LOG4CXX_WARN(
         logger_,
         "Certificate verification failed with error " << error

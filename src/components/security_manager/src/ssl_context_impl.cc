@@ -334,6 +334,7 @@ void CryptoManagerImpl::SSLContextImpl::ResetConnection() {
   const int clear_result = SSL_clear(connection_);
   if (!clear_result) {
     const char *reason = ERR_reason_error_string(ERR_get_error());
+    UNUSED(reason);
     LOG4CXX_WARN(logger_, "Connection reset failed with \""
                  << (reason ? reason : "") << '"');
   }
