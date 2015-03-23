@@ -40,7 +40,6 @@ set(LIBRARIES
 )
 
 set (SOURCES
-  main.cc
   json_reader_test.cc
 )
 
