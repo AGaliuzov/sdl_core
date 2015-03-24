@@ -394,8 +394,14 @@ bool SQLPTRepresentation::Close() {
   return db_->LastError().number() == dbms::OK;
 }
 
-VehicleData SQLPTRepresentation::GetVehicleData() {
-  return VehicleData();
+const VehicleInfo SQLPTRepresentation::GetVehicleInfo() const {
+  policy_table::ModuleConfig module_config;
+  GatherModuleConfig(&module_config);
+  VehicleInfo vehicle_info;
+  vehicle_info.vehicle_make = *module_config.vehicle_make;
+  vehicle_info.vehicle_model = *module_config.vehicle_model;
+  vehicle_info.vehicle_year = *module_config.vehicle_year;
+  return vehicle_info;
 }
 
 bool SQLPTRepresentation::Drop() {

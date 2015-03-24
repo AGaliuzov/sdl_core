@@ -137,6 +137,7 @@ class RegisterAppInterfaceRequest : public CommandRequestImpl {
    */
   bool IsWhiteSpaceExist();
 
+private:
   std::string response_info_;
   mobile_apis::Result::eType result_checking_app_hmi_type_;
 

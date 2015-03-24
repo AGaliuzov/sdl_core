@@ -777,9 +777,19 @@ bool CacheManager::SecondsBetweenRetries(std::vector<int>& seconds) {
   return true;
 }
 
-VehicleData CacheManager::GetVehicleData() {
-  // TODO(AGaliuzov): maybe should be removed.
-  return VehicleData();
+const policy::VehicleInfo CacheManager::GetVehicleInfo() const {
+  CACHE_MANAGER_CHECK(VehicleInfo());
+  policy_table::ModuleConfig& module_config =
+      pt_->policy_table.module_config;
+  VehicleInfo vehicle_info;
+  vehicle_info.vehicle_make = *module_config.vehicle_make;
+  vehicle_info.vehicle_model = *module_config.vehicle_model;
+  vehicle_info.vehicle_year = *module_config.vehicle_year;
+  LOG4CXX_DEBUG(logger_, "Vehicle info (make, model, year):"
+                << vehicle_info.vehicle_make << ","
+                << vehicle_info.vehicle_model << ","
+                << vehicle_info.vehicle_year );
+  return vehicle_info;
 }
 
 std::vector<UserFriendlyMessage> CacheManager::GetUserFriendlyMsg(

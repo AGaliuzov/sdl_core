@@ -417,6 +417,11 @@ class PolicyManager : public usage_statistics::StatisticsManager {
     virtual const std::vector<std::string> GetAppRequestTypes(
       const std::string policy_app_id) const = 0;
 
+    /**
+     * @brief Get information about vehicle
+     */
+    virtual const VehicleInfo GetVehicleInfo() const = 0;
+
   protected:
     /**
      * Checks is PT exceeded IgnitionCycles
