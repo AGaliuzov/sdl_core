@@ -85,7 +85,9 @@ void OnSystemRequestNotification::Run() {
       return;
     }
     ApplicationManagerImpl* app_mgr = ApplicationManagerImpl::instance();
-    app = app_mgr->application(selected_app_id);
+    if (app_mgr) {
+      app = app_mgr->application(selected_app_id);
+    }
   } else {
     ApplicationSharedPtr app =
         policy_app_id == strings::default_app_id

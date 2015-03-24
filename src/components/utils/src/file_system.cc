@@ -43,6 +43,7 @@
 // TODO(VS): lint error: Streams are highly discouraged.
 #include <fstream>
 #include <cstddef>
+#include <cstdio>
 #include <algorithm>
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "Utils")
@@ -438,12 +439,8 @@ bool file_system::CopyFile(const std::string& src,
 
 bool file_system::MoveFile(const std::string& src,
                            const std::string& dst) {
-  if (!CopyFile(src, dst)) {
-    return false;
+  if (std::rename(src.c_str(), dst.c_str()) == 0) {
+    return true;
   }
-  if (!DeleteFile(src)) {
-    DeleteFile(dst);
-    return false;
-  }
-  return true;
+  return false;
 }
