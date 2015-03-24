@@ -44,6 +44,19 @@
 #include "media_manager/media_adapter_listener.h"
 
 namespace media_manager {
+using protocol_handler::ServiceType;
+using timer::TimerThread;
+
+template <typename T>
+class AutoCleanable: public T {
+  public:
+    ~AutoCleanable() {
+      typename T::iterator Iter;
+      for (Iter = T::begin(); Iter != T::end(); ++Iter ) {
+        delete Iter->second;
+      }
+    }
+};
 
 class MediaManagerImpl : public MediaManager,
   public protocol_handler::ProtocolObserver,
@@ -75,8 +88,9 @@ class MediaManagerImpl : public MediaManager,
     MediaAdapter*                      a2dp_player_;
     MediaAdapterImpl*                  from_mic_recorder_;
     MediaListenerPtr                   from_mic_listener_;
-    MediaAdapterImpl*                  video_streamer_;
-    MediaAdapterImpl*                  audio_streamer_;
+
+    AutoCleanable<std::map<ServiceType, MediaAdapterImpl*> > streamer_;
+
     uint32_t                           audio_data_stopped_timeout_;
     uint32_t                           video_data_stopped_timeout_;
     MediaListenerPtr                   video_streamer_listener_;
@@ -88,8 +102,26 @@ class MediaManagerImpl : public MediaManager,
     void OnAudioStreamingTimeout();
     void OnVideoStreamingTimeout();
   private:
-    timer::TimerThread<MediaManagerImpl> audio_streaming_timer_;
-    timer::TimerThread<MediaManagerImpl> video_streaming_timer_;
+    /**
+     * @brief WakeUpStreaming allows to send notification in case application
+     * have begun streaming again for appropriate service type.
+     *
+     * @param service_type the type of service that starts streaming activity.
+     */
+    void WakeUpStreaming(ServiceType service_type);
+
+    /**
+     * @brief CanStream allows to distinguish whether app is allowed to stream.
+     *
+     * @param service_type streaming service type.
+     *
+     * @return true in case streaming is allowed, false otherwise.
+     */
+    bool CanStream(ServiceType service_type);
+
+    TimerThread<MediaManagerImpl> audio_streaming_timer_;
+    std::map<ServiceType, TimerThread<MediaManagerImpl> > streaming_timer_;
+    TimerThread<MediaManagerImpl> video_streaming_timer_;
     bool                                 audio_streaming_suspended_;
     bool                                 video_streaming_suspended_;
     sync_primitives::Lock                audio_streaming_suspended_lock_;

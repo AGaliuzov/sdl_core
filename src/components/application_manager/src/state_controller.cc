@@ -87,6 +87,8 @@ void StateController::HmiLevelConflictResolver::operator ()
     if (Compare<HMILevel::eType, EQ, ONE>(cur_state->hmi_level(),
                                           HMILevel::HMI_FULL,
                                           HMILevel::HMI_LIMITED)) {
+      LOG4CXX_DEBUG(logger_, "DATA: " << applied_->IsAudioApplication() << " AND "
+                    << state_ctrl_->IsSameAppType(applied_, to_resolve));
       if (applied_->IsAudioApplication() && state_ctrl_->IsSameAppType(applied_, to_resolve)) {
         state_ctrl_->SetupRegularHmiState(to_resolve, HMILevel::HMI_BACKGROUND,
                      AudioStreamingState::NOT_AUDIBLE);
@@ -150,8 +152,8 @@ void StateController::ApplyRegularState(ApplicationSharedPtr app,
 
 bool StateController::IsSameAppType(ApplicationConstSharedPtr app1,
                                   ApplicationConstSharedPtr app2) {
-    return app1->is_media_application() == app2->is_media_application() ||
-           app1->is_navi() == app2->is_navi() ||
+    return app1->is_media_application() == app2->is_media_application() &&
+           app1->is_navi() == app2->is_navi() &&
            app1->is_voice_communication_supported() == app2->is_voice_communication_supported();
 }
 

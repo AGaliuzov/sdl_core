@@ -174,7 +174,6 @@ void ApplicationImpl::ChangeSupportingAppHMIType() {
   }
 }
 
-
 void ApplicationImpl::set_is_navi(bool allow) {
   is_navi_ = allow;
 }

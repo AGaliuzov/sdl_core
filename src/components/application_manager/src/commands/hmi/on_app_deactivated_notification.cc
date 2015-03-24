@@ -93,8 +93,12 @@ void OnAppDeactivatedNotification::Run() {
 
   switch ((*message_)[strings::msg_params][hmi_request::reason].asInt()) {
     case hmi_apis::Common_DeactivateReason::AUDIO: {
-      new_regular->set_audio_streaming_state(mobile_api::AudioStreamingState::NOT_AUDIBLE);
-      new_regular->set_hmi_level(mobile_api::HMILevel::HMI_BACKGROUND);
+      if (app->is_navi()) {
+        new_regular->set_hmi_level(mobile_api::HMILevel::HMI_LIMITED);
+      } else {
+        new_regular->set_audio_streaming_state(mobile_api::AudioStreamingState::NOT_AUDIBLE);
+        new_regular->set_hmi_level(mobile_api::HMILevel::HMI_BACKGROUND);
+      }
       break;
     }
     case hmi_apis::Common_DeactivateReason::NAVIGATIONMAP:

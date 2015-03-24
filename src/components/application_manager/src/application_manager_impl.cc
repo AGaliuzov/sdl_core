@@ -689,6 +689,7 @@ void ApplicationManagerImpl::OnMessageReceived(
     return;
   }
 
+
   utils::SharedPtr<Message> outgoing_message = ConvertRawMsgToMessage(message);
 
   if (outgoing_message) {
@@ -786,7 +787,7 @@ bool ApplicationManagerImpl::IsAudioStreamingAllowed(uint32_t application_key) c
   }
 
   return Compare<eType, EQ, ONE>(
-        app->hmi_level(), HMI_FULL, HMI_LIMITED);
+        app->hmi_level(), HMI_FULL, HMI_LIMITED) && app->is_streaming_allowed();
 }
 
 bool ApplicationManagerImpl::IsVideoStreamingAllowed(uint32_t application_key) const {
@@ -800,7 +801,8 @@ bool ApplicationManagerImpl::IsVideoStreamingAllowed(uint32_t application_key) c
   }
 
   LOG4CXX_DEBUG(logger_, "HMILevel: " << app->hmi_level());
-  return Compare<eType, EQ, ONE>(app->hmi_level(), HMI_FULL, HMI_LIMITED);
+  return Compare<eType, EQ, ONE>(
+        app->hmi_level(), HMI_FULL, HMI_LIMITED) && app->is_streaming_allowed();
 }
 
 mobile_apis::HMILevel::eType ApplicationManagerImpl::GetDefaultHmiLevel(
@@ -1724,8 +1726,7 @@ utils::SharedPtr<Message> ApplicationManagerImpl::ConvertRawMsgToMessage(
 
   LOG4CXX_INFO(logger_, "Service type." << message->service_type());
 
-  if (message->service_type() != protocol_handler::kRpc
-      &&
+  if (message->service_type() != protocol_handler::kRpc &&
       message->service_type() != protocol_handler::kBulk) {
     // skip this message, not under handling of ApplicationManager
     LOG4CXX_TRACE(logger_, "Skipping message; not the under AM handling.");
@@ -2370,18 +2371,6 @@ void ApplicationManagerImpl::ForbidStreaming(uint32_t app_id) {
   end_services_timer.start(wait_end_service_timeout_, this, &ApplicationManagerImpl::CloseNaviApp);
   bool const allow_streaming = false;
   ChangeStreamStatus(app_id, allow_streaming);
-}
-
-bool ApplicationManagerImpl::CanAppStream(uint32_t app_id) const {
-  LOG4CXX_AUTO_TRACE(logger_);
-
-  ApplicationSharedPtr app = application(app_id);
-  if (!(app && app->is_navi())) {
-    LOG4CXX_DEBUG(logger_, " There is no application with id: " << app_id);
-    return false;
-  }
-
-  return app->is_streaming_allowed();
 }
 
 void ApplicationManagerImpl::ChangeStreamStatus(uint32_t app_id, bool can_stream) {

@@ -683,17 +683,7 @@ class ApplicationManagerImpl : public ApplicationManager,
      */
     bool IsVideoStreamingAllowed(uint32_t connection_key) const;
 
-    /**
-     * @brief CanAppStream allows to check whether application is permited for
-     * data streaming.
-     *
-     * In case streaming for app is disallowed the method will send EndService to mobile.
-     *
-     * @param app_id the application id which should be checked.
-     *
-     * @return true in case streaming is allowed, false otherwise.
-     */
-    bool CanAppStream(uint32_t app_id) const;
+
 
     /**
      * @brief StreamingEnded Callback called from MediaManager when it decide that
