@@ -45,7 +45,6 @@ namespace transport_manager {
 namespace transport_adapter {
 
 using namespace ::protocol_handler;
-
 TEST(TcpAdapterBasicTest, GetDeviceType_Return_sdltcp) {
 
   //arrange
@@ -224,9 +223,6 @@ class TcpAdapterTest : public ::testing::Test {
     ASSERT_TRUE(transport_adapter_->IsInitialised());
   }
 
-  virtual void TearDown() {
-    transport_adapter_->StopClientListening();
-  }
 
   virtual ~TcpAdapterTest() {
     pthread_mutex_lock(&suspend_mutex_);
@@ -281,40 +277,39 @@ class TcpAdapterTestWithListenerAutoStart : public TcpAdapterTest {
     transport_adapter_->StartClientListening();
   }
 
+  virtual void TearDown() {
+    usleep(300000);
+    client_.Disconnect();
+    transport_adapter_->StopClientListening();
+  }
+
 };
 
 MATCHER_P(ContainsMessage, str, ""){ return strlen(str) == arg->data_size() && 0 == memcmp(str, arg->data(), arg->data_size());}
 
-// TODO{ALeshin} APPLINK-11090 - OnConnectDone sometimes is not called.
-// It happens because connection finished after TcpClientListener thread is started
-// and OnConnectDone is not called because connection has been closed already.
-TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_Connect_Return_True) {
+TEST_F(TcpAdapterTestWithListenerAutoStart, Connect_Return_True) {
   {
     ::testing::InSequence seq;
     EXPECT_CALL(mock_dal_, OnDeviceListUpdated(_));
     EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).WillOnce(
         InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp));
+    EXPECT_CALL(mock_dal_, OnUnexpectedDisconnect(transport_adapter_, _, _, _));
   }
   EXPECT_TRUE(client_.Connect(port()));
 }
 
-// TODO{ALeshin} APPLINK-11090 - OnConnectDone sometimes is not called.
-// It happens because connection finished after TcpClientListener thread is started
-// and OnConnectDone is not called because connection has been closed already.
-TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_SecondConnect_Return_True) {
+TEST_F(TcpAdapterTestWithListenerAutoStart, SecondConnect_Return_True) {
   {
     ::testing::InSequence seq;
     EXPECT_CALL(mock_dal_, OnDeviceListUpdated(_));
     EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).WillOnce(
         InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp));
+    EXPECT_CALL(mock_dal_, OnUnexpectedDisconnect(transport_adapter_, _, _, _));
   }
   EXPECT_TRUE(client_.Connect(port()));
 }
 
-// TODO{ALeshin} APPLINK-11090 - OnConnectDone sometimes is not called.
-// It happens because connection finished after TcpClientListener thread is started
-// and OnConnectDone is not called because connection has been closed already.
-TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_Receive_Return_True) {
+TEST_F(TcpAdapterTestWithListenerAutoStart, Receive_Return_True) {
   {
     ::testing::InSequence seq;
 
@@ -325,6 +320,7 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_Receive_Return_True) {
         mock_dal_,
         OnDataReceiveDone(transport_adapter_, _, _, ContainsMessage("abcd"))).
         WillOnce(InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp));
+    EXPECT_CALL(mock_dal_, OnUnexpectedDisconnect(transport_adapter_, _, _, _));
   }
   EXPECT_TRUE(client_.Connect(port()));
   EXPECT_TRUE(client_.Send("abcd"));
@@ -363,6 +359,7 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, Send_Message) {
     EXPECT_CALL(mock_dal_,
         OnDataSendDone(transport_adapter_, _, _, helper.message_)).WillOnce(
         InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp));
+    EXPECT_CALL(mock_dal_, OnUnexpectedDisconnect(transport_adapter_, _, _, _));
   }
 
   EXPECT_TRUE(client_.Connect(port()));
@@ -378,7 +375,6 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, UnexpectedDisconnectFromClient) {
     EXPECT_CALL(mock_dal_, OnUnexpectedDisconnect(transport_adapter_, _, _, _));
   }
   EXPECT_TRUE(client_.Connect(port()));
-  client_.Disconnect();
 }
 
 TEST_F(TcpAdapterTestWithListenerAutoStart, ConnectFromServer) {
@@ -392,10 +388,7 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, ConnectFromServer) {
   EXPECT_TRUE(client_.Connect(port()));
 }
 
-// TODO{ALeshin} APPLINK-11090 - OnConnectDone sometimes is not called.
-// It happens because connection finished after TcpClientListener thread is started
-// and OnConnectDone is not called because connection has been closed already.
-TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_SendFailed) {
+TEST_F(TcpAdapterTestWithListenerAutoStart, SendFailed) {
 //  static unsigned char zzz[2000000];  //message will send without fail because socket buffer can contain it
   //this test works correctly starting with number 2539009
   static unsigned char zzz[2600000];
