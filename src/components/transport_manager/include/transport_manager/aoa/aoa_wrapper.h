@@ -37,10 +37,9 @@
 #include <vector>
 #include <string>
 
-#include "protocol/common.h"
+#include <aoa/aoa.h>
 
-struct aoa_hdl_s;
-struct usb_info_s;
+#include "protocol/common.h"
 
 namespace transport_manager {
 namespace transport_adapter {
@@ -107,8 +106,12 @@ class AOAWrapper {
   ::protocol_handler::RawMessagePtr ReceiveControlMessage(uint16_t request, uint16_t value,
                                       uint16_t index) const;
 
+  static const uint32_t kBufferSize = 32768;
+  static bool SetCallback(aoa_hdl_t* hdl, const void* udata, uint32_t timeout, AOAEndpoint endpoint);
+
  private:
   static AOADeviceLife* life_;
+
   AOAHandle hdl_;
   uint32_t timeout_;
   AOAConnectionObserver* connection_observer_;
@@ -119,7 +122,7 @@ class AOAWrapper {
                              usb_info_s* usb_info);
 
   inline AOAVersion Version(uint16_t version) const;
-  inline uint32_t BitEndpoint(AOAEndpoint endpoint) const;
+  inline static uint32_t BitEndpoint(AOAEndpoint endpoint);
   inline bool IsValueInMask(uint32_t bitmask, uint32_t value) const;
   std::vector<AOAMode> CreateModesList(uint32_t modes_mask) const;
   std::vector<AOAEndpoint> CreateEndpointsList(uint32_t endpoints_mask) const;
