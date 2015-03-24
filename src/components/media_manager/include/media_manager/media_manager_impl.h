@@ -36,6 +36,7 @@
 #include <string>
 #include "utils/singleton.h"
 #include "utils/timer_thread.h"
+#include "utils/SharedPtr.h"
 #include "protocol_handler/protocol_observer.h"
 #include "protocol_handler/protocol_handler.h"
 #include "protocol/service_type.h"
@@ -46,17 +47,7 @@
 namespace media_manager {
 using protocol_handler::ServiceType;
 using timer::TimerThread;
-
-template <typename T>
-class AutoCleanable: public T {
-  public:
-    ~AutoCleanable() {
-      typename T::iterator Iter;
-      for (Iter = T::begin(); Iter != T::end(); ++Iter ) {
-        delete Iter->second;
-      }
-    }
-};
+using utils::SharedPtr;
 
 class MediaManagerImpl : public MediaManager,
   public protocol_handler::ProtocolObserver,
@@ -89,7 +80,7 @@ class MediaManagerImpl : public MediaManager,
     MediaAdapterImpl*                  from_mic_recorder_;
     MediaListenerPtr                   from_mic_listener_;
 
-    AutoCleanable<std::map<ServiceType, MediaAdapterImpl*> > streamer_;
+    std::map<ServiceType, SharedPtr<MediaAdapterImpl> > streamer_;
 
     uint32_t                           audio_data_stopped_timeout_;
     uint32_t                           video_data_stopped_timeout_;
