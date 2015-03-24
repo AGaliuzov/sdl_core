@@ -69,6 +69,7 @@ class PPSListener : public ClientConnectionListener {
   TransportAdapterController* controller_;
   int fd_;
   threads::Thread* thread_;
+  std::vector<DeviceUID>  m_device_handle;
 
   bool OpenPps();
   void ClosePps();
