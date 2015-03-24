@@ -30,6 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <vector>
+#include <map>
 #include "gtest/gtest.h"
 #include "utils/stl_utils.h"
 

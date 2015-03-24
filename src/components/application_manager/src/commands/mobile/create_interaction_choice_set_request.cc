@@ -46,7 +46,8 @@ namespace commands {
 
 CreateInteractionChoiceSetRequest::CreateInteractionChoiceSetRequest(
     const MessageSharedPtr& message)
-    : CommandRequestImpl(message) {
+    : CommandRequestImpl(message),
+      stop_adding_vr_commands_(false) {
 }
 
 CreateInteractionChoiceSetRequest::~CreateInteractionChoiceSetRequest() {
@@ -332,8 +333,11 @@ void CreateInteractionChoiceSetRequest::SendVRAddCommandRequest(
         choice_set[strings::choice_set][chs_num][strings::vr_commands];
 
     sync_primitives::AutoLock lock(cmd_ids_lock);
+    if (stop_adding_vr_commands_) {
+      return;
+    }
     sent_cmd_ids_.insert(msg_params[strings::cmd_id].asUInt());
-    SendHMIRequest(hmi_apis::FunctionID::VR_AddCommand, &msg_params);
+    SendHMIRequest(hmi_apis::FunctionID::VR_AddCommand, &msg_params, true);
   }
 
 }
@@ -347,16 +351,17 @@ CreateInteractionChoiceSetRequest::on_event(const event_engine::Event& event) {
         message[strings::params][hmi_response::code].asInt());
 
     if (Common_Result::SUCCESS != vr_result_) {
+      LOG4CXX_DEBUG(logger_, "Got VR.AddCommand response error. Removing all "
+                             "previously send commands.");
+      stop_adding_vr_commands_ = true;
       DeleteChoices();
       SendResponse(false, GetMobileResultCode(vr_result_));
       return;
     } else {
-      if (sent_cmd_ids_.size() == expected_chs_count_) {
-        ApplicationSharedPtr app =
-            ApplicationManagerImpl::instance()->application(connection_key());
-        if (app) {
-          app->UpdateHash();
-        }
+      --expected_chs_count_;
+      LOG4CXX_DEBUG(logger_, "Got VR.AddCommand response, there are "
+                    << expected_chs_count_ << " more to wait.");
+      if (!expected_chs_count_) {
         SendResponse(true, mobile_apis::Result::SUCCESS);
       }
     }

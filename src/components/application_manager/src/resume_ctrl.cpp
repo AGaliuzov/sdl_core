@@ -33,6 +33,9 @@
 
 #include <fstream>
 #include <algorithm>
+#include <set>
+#include <vector>
+#include <string>
 
 #include "config_profile/profile.h"
 #include "utils/file_system.h"
@@ -75,7 +78,7 @@ void ResumeCtrl::SaveAllApplications() {
     std::for_each(apps.begin(),
                   apps.end(),
                   std::bind1st(std::mem_fun(&ResumeCtrl::SaveApplication), this));
-    // remove old
+    // Remove old
 }
 
 void ResumeCtrl::SaveApplication(ApplicationConstSharedPtr application) {
@@ -90,7 +93,7 @@ void ResumeCtrl::SaveApplication(ApplicationConstSharedPtr application) {
   LOG4CXX_TRACE(logger_, "ENTER app_id : " << application->app_id()
                 << " mobile app_id : " << m_app_id);
 
-  const std::string hash = application->curHash(); // let's make a copy not to depend on application
+  const std::string hash = application->curHash();  // Let's make a copy not to depend on application
   const uint32_t grammar_id = application->get_grammar_id();
   const uint32_t time_stamp = (uint32_t)time(NULL);
 
@@ -135,7 +138,7 @@ bool ResumeCtrl::RestoreAppHMIState(ApplicationSharedPtr application) {
   LOG4CXX_AUTO_TRACE(logger_);
   using namespace mobile_apis;
   if (!application) {
-    LOG4CXX_ERROR(logger_, " RestoreApplicationHMILevel() application pointer in invalid");
+    LOG4CXX_ERROR(logger_, " RestoreApplicationHMILevel() application pointer is invalid");
     return false;
   }
   LOG4CXX_DEBUG(logger_, "ENTER app_id : " << application->app_id());
@@ -144,7 +147,6 @@ bool ResumeCtrl::RestoreAppHMIState(ApplicationSharedPtr application) {
   if (-1 != idx) {
     const Json::Value& json_app = GetSavedApplications()[idx];
     if (json_app.isMember(strings::hmi_level)) {
-
       const HMILevel::eType saved_hmi_level =
           static_cast<mobile_apis::HMILevel::eType>(
             json_app[strings::hmi_level].asInt());
@@ -173,7 +175,7 @@ bool ResumeCtrl::SetAppHMIState(ApplicationSharedPtr application,
   using namespace mobile_apis;
   LOG4CXX_AUTO_TRACE(logger_);
   if (false == application.valid()) {
-    LOG4CXX_ERROR(logger_, "Application pointer in invalid");
+    LOG4CXX_ERROR(logger_, "Application pointer is invalid");
     return false;
   }
   LOG4CXX_TRACE(logger_, " app_id : ( " << application->app_id()
@@ -263,7 +265,7 @@ bool ResumeCtrl::RestoreApplicationData(ApplicationSharedPtr application) {
   }
 
   const Json::Value& saved_app = GetSavedApplications()[idx];
-  if(saved_app.isMember(strings::grammar_id)) {
+  if (saved_app.isMember(strings::grammar_id)) {
     const uint32_t app_grammar_id = saved_app[strings::grammar_id].asUInt();
     application->set_grammar_id(app_grammar_id);
 
@@ -293,7 +295,7 @@ bool ResumeCtrl::IsHMIApplicationIdExist(uint32_t hmi_app_id) {
   ApplicationManagerImpl::ApplictionSetIt it = apps.begin();
   ApplicationManagerImpl::ApplictionSetIt it_end = apps.end();
 
-  for (;it != it_end; ++it) {
+  for (; it != it_end; ++it) {
     if (hmi_app_id == (*it)->hmi_app_id()) {
       LOG4CXX_TRACE(logger_, "EXIT result = true");
       return true;
@@ -506,7 +508,7 @@ void ResumeCtrl::StartAppHmiStateResumption(ApplicationSharedPtr application) {
     return;
   }
 
-  // check if if is resumption during one IGN cycle
+  // Check if if is resumption during one IGN cycle
   const uint32_t ign_off_count = json_app[strings::ign_off_count].asUInt();
 
   if (0 == ign_off_count) {
@@ -726,7 +728,7 @@ Json::Value ResumeCtrl::GetApplicationCommands(
   const DataAccessor<CommandsMap> accessor = application->commands_map();
   const CommandsMap& commands = accessor.GetData();
   CommandsMap::const_iterator it = commands.begin();
-  for (;it != commands.end(); ++it) {
+  for (; it != commands.end(); ++it) {
     smart_objects::SmartObject* so = it->second;
     Json::Value curr;
     Formatters::CFormatterJsonBase::objToJsonValue(*so, curr);
@@ -747,7 +749,7 @@ Json::Value ResumeCtrl::GetApplicationSubMenus(
   const DataAccessor<SubMenuMap> accessor = application->sub_menu_map();
   const SubMenuMap& sub_menus = accessor.GetData();
   SubMenuMap::const_iterator it = sub_menus.begin();
-  for (;it != sub_menus.end(); ++it) {
+  for (; it != sub_menus.end(); ++it) {
     smart_objects::SmartObject* so = it->second;
     Json::Value curr;
     Formatters::CFormatterJsonBase::objToJsonValue(*so, curr);
@@ -766,7 +768,7 @@ Json::Value ResumeCtrl::GetApplicationInteractionChoiseSets(
   const DataAccessor<ChoiceSetMap> accessor = application->choice_set_map();
   const ChoiceSetMap& choices = accessor.GetData();
   ChoiceSetMap::const_iterator it = choices.begin();
-  for ( ;it != choices.end(); ++it) {
+  for (; it != choices.end(); ++it) {
     smart_objects::SmartObject* so = it->second;
     Json::Value curr;
     Formatters::CFormatterJsonBase::objToJsonValue(*so, curr);
@@ -834,7 +836,7 @@ Json::Value ResumeCtrl::GetApplicationFiles(
 
   Json::Value result;
   const AppFilesMap& app_files = application->getAppFiles();
-  for(AppFilesMap::const_iterator file_it = app_files.begin();
+  for (AppFilesMap::const_iterator file_it = app_files.begin();
       file_it != app_files.end(); file_it++) {
     const AppFile& file = file_it->second;
     if (file.is_persistent) {
@@ -948,12 +950,12 @@ void ResumeCtrl::AddCommands(ApplicationSharedPtr application, const Json::Value
 
     ProcessHMIRequests(MessageHelper::CreateAddCommandRequestToHMI(application));
   } else {
-     LOG4CXX_FATAL(logger_, "application_commands section is not exists");
-   }
+    LOG4CXX_FATAL(logger_, "application_commands section is not exists");
+  }
 }
 
 void ResumeCtrl::AddChoicesets(ApplicationSharedPtr application, const Json::Value& saved_app) {
-  if(saved_app.isMember(strings::application_choise_sets)) {
+  if (saved_app.isMember(strings::application_choise_sets)) {
     const Json::Value& app_choise_sets = saved_app[strings::application_choise_sets];
     for (Json::Value::iterator json_it = app_choise_sets.begin();
         json_it != app_choise_sets.end(); ++json_it)  {
@@ -1037,7 +1039,7 @@ bool ResumeCtrl::CheckIcons(ApplicationSharedPtr application,
   bool result = true;
   if (!json_object.isNull()) {
     Json::Value::const_iterator json_it = json_object.begin();
-    for (;json_it != json_object.end() && result; ++json_it) {
+    for (; json_it != json_object.end() && result; ++json_it) {
       const Json::Value& json_command = *json_it;
       if (!json_command.isNull()) {
         smart_objects::SmartObject message(smart_objects::SmartType::SmartType_Map);
@@ -1094,7 +1096,7 @@ bool ResumeCtrl::DisconnectedJustBeforeIgnOff(const Json::Value& json_app) {
       static_cast<time_t>(json_app[strings::time_stamp].asUInt());
   time_t ign_off_time  = GetIgnOffTime();
   const uint32_t sec_spent_before_ign = labs(ign_off_time - time_stamp);
-  LOG4CXX_DEBUG(logger_,"ign_off_time " << ign_off_time
+  LOG4CXX_DEBUG(logger_, "ign_off_time " << ign_off_time
                 << "; app_disconnect_time " << time_stamp
                 << "; sec_spent_before_ign " << sec_spent_before_ign
                 << "; resumption_delay_before_ign " <<
@@ -1124,15 +1126,15 @@ bool ResumeCtrl::CheckAppRestrictions(ApplicationSharedPtr application,
   using namespace mobile_apis;
   LOG4CXX_AUTO_TRACE(logger_);
   DCHECK_OR_RETURN(json_app.isMember(strings::hmi_level), false);
-
-  const bool is_media_app = application->is_media_application();
   const HMILevel::eType hmi_level =
       static_cast<HMILevel::eType>(json_app[strings::hmi_level].asInt());
-  LOG4CXX_DEBUG(logger_, "is_media_app " << is_media_app
-               << "; hmi_level " << hmi_level);
-
-  if (hmi_level == HMILevel::HMI_FULL ||
-      hmi_level == HMILevel::HMI_LIMITED) {
+  if (application) {
+    LOG4CXX_DEBUG(
+        logger_,
+        "is_media_app " << application->is_media_application() <<
+        "; hmi_level " << hmi_level);
+  }
+  if (hmi_level == HMILevel::HMI_FULL || hmi_level == HMILevel::HMI_LIMITED) {
     return true;
   }
 
@@ -1169,15 +1171,14 @@ void ResumeCtrl::ApplicationResumptiOnTimer() {
   std::vector<uint32_t>::iterator it = waiting_for_timer_.begin();
 
   for (; it != waiting_for_timer_.end(); ++it) {
-    ApplicationSharedPtr app =
-        ApplicationManagerImpl::instance()->application(*it);
+    ApplicationSharedPtr app = ApplicationManagerImpl::instance()->application(*it);
     if (!app.get()) {
       LOG4CXX_ERROR(logger_, "Invalid app_id = " << *it);
       continue;
     }
 
     StartAppHmiStateResumption(app);
-   }
+  }
 
   is_resumption_active_ = false;
   waiting_for_timer_.clear();
@@ -1198,11 +1199,9 @@ void ResumeCtrl::LoadResumeData() {
   for (; it != resume_app_list.end(); ++it) {
     if ((*it).isMember(strings::ign_off_count) &&
         (*it).isMember(strings::hmi_level)) {
-
-      // only apps with first IGN should be resumed
+      // Only apps with first IGN should be resumed
       const int32_t first_ign = 1;
       if (first_ign == (*it)[strings::ign_off_count].asInt()) {
-
         const mobile_apis::HMILevel::eType saved_hmi_level =
             static_cast<mobile_apis::HMILevel::eType>((*it)[strings::hmi_level].asInt());
 
@@ -1224,7 +1223,7 @@ void ResumeCtrl::LoadResumeData() {
         }
       }
 
-      // set invalid HMI level for all
+      // Set invalid HMI level for all
       (*it)[strings::hmi_level] =
           static_cast<int32_t>(mobile_apis::HMILevel::INVALID_ENUM);
     }

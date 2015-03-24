@@ -128,7 +128,6 @@ void AOAConnection::OnMessageReceived(bool success, ::protocol_handler::RawMessa
   } else {
     ReceiveFailed();
   }
-  wrapper_->ReceiveMessage();
 }
 
 void AOAConnection::OnMessageTransmitted(bool success, ::protocol_handler::RawMessagePtr message) {

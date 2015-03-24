@@ -32,7 +32,7 @@
 
 #include "transport_manager/aoa/aoa_wrapper.h"
 
-#include <aoa/aoa.h>
+#include <string>
 
 #include "utils/macro.h"
 #include "utils/logger.h"
@@ -53,6 +53,7 @@ static void OnConnectedDevice(aoa_hdl_t *hdl, const void *udata) {
 static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
                            uint32_t status, const void *udata) {
   LOG4CXX_AUTO_TRACE(logger_);
+
   LOG4CXX_DEBUG(logger_, "AOA: received data from device " << hdl);
   bool error = AOAWrapper::IsError(status);
   if (error) {
@@ -78,37 +79,13 @@ static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
     success = false;
   }
   observer->OnMessageReceived(success, message);
-}
 
-static void OnTransmittedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
-                              uint32_t status, const void *udata) {
-  LOG4CXX_AUTO_TRACE(logger_);
-  LOG4CXX_DEBUG(
-      logger_,
-      "AOA: transmitted data to device " << hdl << ", size=" << sz << ", data=" << data);
-  bool error = AOAWrapper::IsError(status);
-  if (error) {
-    AOAWrapper::PrintError(status);
+  aoa_buffer_free(hdl, data);
+  if (AOAWrapper::SetCallback(hdl, udata, AOA_TIMEOUT_INFINITY, AOA_Ept_Accessory_BulkIn)) {
+    LOG4CXX_DEBUG(logger_, "AOA: data receive callback reregistered");
   }
-
-  bool success = !error;
-  ::protocol_handler::RawMessagePtr message;
-  if (data) {
-    message = new ::protocol_handler::RawMessage(0, 0, data, sz);
-  } else {
-    // TODO(KKolodiy): data is allways null now
-    LOG4CXX_ERROR(logger_, "AOA: data is null");
-    success = false;
-  }
-
-  AOAConnectionObserver* const * p =
-      static_cast<AOAConnectionObserver* const *>(udata);
-  AOAConnectionObserver* observer = *p;
-  observer->OnMessageTransmitted(success, message);
-
-  if (!AOAWrapper::IsHandleValid(hdl) || (status == AOA_EINVALIDHDL)) {
-    AOAWrapper::OnDied(hdl);
-    observer->OnDisconnected();
+  else {
+    LOG4CXX_ERROR(logger_, "AOA: could not reregister data receive callback, error = ");
   }
 }
 
@@ -161,15 +138,23 @@ bool AOAWrapper::Init(AOADeviceLife* life, const char* config_path,
 }
 
 bool AOAWrapper::SetCallback(AOAEndpoint endpoint) const {
+  return SetCallback(hdl_, &connection_observer_, timeout_, endpoint);
+}
+
+bool AOAWrapper::SetCallback(aoa_hdl_t* hdl, const void* udata, uint32_t timeout, AOAEndpoint endpoint) {
   LOG4CXX_TRACE(logger_,
-                "AOA: set callback " << hdl_ << ", endpoint " << endpoint);
-  data_clbk_t callback;
+                "AOA: set callback " << hdl << ", endpoint " << endpoint);
+  int ret;
   switch (endpoint) {
     case AOA_Ept_Accessory_BulkIn:
-      callback = &OnReceivedData;
-      break;
-    case AOA_Ept_Accessory_BulkOut:
-      callback = &OnTransmittedData;
+      ret = aoa_bulk_arx(hdl,
+                         &OnReceivedData,
+                         udata,
+                         BitEndpoint(AOA_Ept_Accessory_BulkIn),
+                         timeout,
+                         0,
+                         kBufferSize,
+                         0);
       break;
     default:
       LOG4CXX_ERROR(
@@ -177,8 +162,6 @@ bool AOAWrapper::SetCallback(AOAEndpoint endpoint) const {
       ;
       return false;
   }
-  int ret = aoa_set_callback(hdl_, callback, &connection_observer_,
-                             BitEndpoint(endpoint));
   if (IsError(ret)) {
     PrintError(ret);
     return false;
@@ -189,22 +172,11 @@ bool AOAWrapper::SetCallback(AOAEndpoint endpoint) const {
 bool AOAWrapper::Subscribe(AOAConnectionObserver *observer) {
   LOG4CXX_TRACE(logger_, "AOA: subscribe on receive data " << hdl_);
   connection_observer_ = observer;
-  if (!SetCallback(AOA_Ept_Accessory_BulkIn)) {
-    return false;
-  }
-  ReceiveMessage();
-
-  // TODO(KKolodiy): these lines have been committed because
-  // callback return "data" is null now
-  //  LOG4CXX_TRACE(logger_, "AOA: subscribe on transmit data " << hdl_);
-  //  if (!SetCallback(AOA_Ept_Accessory_BulkOut)) {
-  //    return false;
-  //  }
-  return true;
+  return SetCallback(AOA_Ept_Accessory_BulkIn);
 }
 
 bool AOAWrapper::UnsetCallback(AOAEndpoint endpoint) const {
-  int ret_r = aoa_set_callback(hdl_, NULL, NULL, BitEndpoint(endpoint));
+  int ret_r = AOA_EOK;
   if (IsError(ret_r)) {
     PrintError(ret_r);
     return false;
@@ -261,7 +233,7 @@ AOAVersion AOAWrapper::GetProtocolVesrion() const {
   return Version(version);
 }
 
-uint32_t AOAWrapper::BitEndpoint(AOAEndpoint endpoint) const {
+uint32_t AOAWrapper::BitEndpoint(AOAEndpoint endpoint) {
   const uint32_t kUndefined = 0;
   switch (endpoint) {
     case AOA_Ept_Accessory_BulkIn:
@@ -277,7 +249,7 @@ uint32_t AOAWrapper::BitEndpoint(AOAEndpoint endpoint) const {
 
 uint32_t AOAWrapper::GetBufferMaximumSize(AOAEndpoint endpoint) const {
   uint32_t size;
-  int ret = aoa_get_endpoint_bufsz(hdl_, BitEndpoint(endpoint), &size);
+  int ret = aoa_get_bufsz(hdl_, BitEndpoint(endpoint), &size);
   if (IsError(ret)) {
     PrintError(ret);
   }
@@ -345,14 +317,26 @@ bool AOAWrapper::SendMessage(::protocol_handler::RawMessagePtr message) const {
     return false;
   }
 
-  uint8_t *data = message->data();
+  uint8_t *data = NULL;
+  if (AOA_EOK != aoa_buffer_alloc(hdl_, &data, message->data_size())) {
+    LOG4CXX_ERROR(logger_, "AOA: unable to allocate buffer.");
+    return false;
+  }
+
   size_t length = message->data_size();
+  ::memcpy(data, message->data(), length);
   int ret = aoa_bulk_tx(hdl_, AOA_EPT_ACCESSORY_BULKOUT, timeout_, data,
-                        &length);
+                        &length, AOA_FLAG_MANAGED_BUF);
+
+  if (AOA_EOK != aoa_buffer_free(hdl_, data)) {
+    LOG4CXX_ERROR(logger_, "AOA: unable to deallocate buffer.");
+  }
+
   if (IsError(ret)) {
     PrintError(ret);
     return false;
   }
+
   return true;
 }
 
@@ -371,7 +355,7 @@ bool AOAWrapper::SendControlMessage(uint16_t request, uint16_t value,
   uint8_t *data = message->data();
   size_t length = message->data_size();
   int ret = aoa_control_tx(hdl_, AOA_EPT_ACCESSORY_CONTROL, timeout_, request,
-                           value, index, data, &length);
+                           value, index, data, &length, AOA_FLAG_MANAGED_BUF);
   if (IsError(ret)) {
     PrintError(ret);
     return false;
@@ -380,7 +364,7 @@ bool AOAWrapper::SendControlMessage(uint16_t request, uint16_t value,
 }
 
 ::protocol_handler::RawMessagePtr AOAWrapper::ReceiveMessage() const {
-  LOG4CXX_TRACE(logger_, "AOA: receive from endpoint");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   if (!IsHandleValid()) {
     OnDied(hdl_);
@@ -388,13 +372,17 @@ bool AOAWrapper::SendControlMessage(uint16_t request, uint16_t value,
     return ::protocol_handler::RawMessagePtr();
   }
 
-  uint8_t *data;
+  uint8_t* data;
   uint32_t size;
-  int ret = aoa_bulk_rx(hdl_, AOA_EPT_ACCESSORY_BULKIN, timeout_, &data, &size);
+  LOG4CXX_TRACE(logger_, "AOA: receiving bulk data");
+  int ret = aoa_bulk_rx(hdl_, AOA_EPT_ACCESSORY_BULKIN, timeout_, &data, &size, 0);
   if (IsError(ret)) {
     PrintError(ret);
-  } else if (data) {
-    return ::protocol_handler::RawMessagePtr(new ::protocol_handler::RawMessage(0, 0, data, size));
+  } else {
+      LOG4CXX_DEBUG(logger_, "AOA: bulk data received");
+      if (data) {
+        return ::protocol_handler::RawMessagePtr(new ::protocol_handler::RawMessage(0, 0, data, size));
+      }
   }
   return ::protocol_handler::RawMessagePtr();
 }
@@ -413,7 +401,7 @@ bool AOAWrapper::SendControlMessage(uint16_t request, uint16_t value,
   uint8_t *data;
   uint32_t size;
   int ret = aoa_control_rx(hdl_, AOA_EPT_ACCESSORY_CONTROL, timeout_, request,
-                           value, index, &data, &size);
+                           value, index, &data, &size, AOA_FLAG_MANAGED_BUF);
   if (IsError(ret)) {
     PrintError(ret);
   } else if (data) {

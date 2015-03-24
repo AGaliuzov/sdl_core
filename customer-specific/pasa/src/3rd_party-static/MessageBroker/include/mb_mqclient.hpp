@@ -76,6 +76,8 @@ namespace NsMessageBroker
          shmem_t *ptr;
          int     fd2;
          shmem_t *ptr2;
+         int     fd3;
+         shmem_t *ptr3;
 
       private:
 

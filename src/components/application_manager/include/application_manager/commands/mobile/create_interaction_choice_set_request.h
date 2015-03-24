@@ -68,20 +68,20 @@ class CreateInteractionChoiceSetRequest : public CommandRequestImpl {
    **/
   virtual void Run();
 
- private:
-    /**
-     * @brief Interface method that is called whenever new event received
-     *
-     * @param event The received event
-     */
-    virtual void on_event(const event_engine::Event& event);
 
-    /**
-     * @brief Function is called by RequestController when request execution time
-     * has exceed it's limit
-     */
-    virtual void onTimeOut();
+private:
+  /**
+   * @brief Interface method that is called whenever new event received
+   *
+   * @param event The received event
+   */
+  virtual void on_event(const event_engine::Event& event);
 
+  /**
+   * @brief Function is called by RequestController when request execution time
+   * has exceed it's limit
+   */
+  virtual void onTimeOut();
     /**
      * @brief DeleteChoices allows to walk through the sent commands collection
      * in order to sent appropriate DeleteCommand request.
@@ -193,6 +193,12 @@ class CreateInteractionChoiceSetRequest : public CommandRequestImpl {
    * @return if choice_set contains \t\n \\t \\n return TRUE, FALSE otherwise
    */
   bool IsWhiteSpaceExist(const smart_objects::SmartObject& choice_set);
+
+  /**
+   * @brief Flag for stop sending VR commands to HMI, in case one of responses
+   * failed
+   */
+  bool stop_adding_vr_commands_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateInteractionChoiceSetRequest);
 };
