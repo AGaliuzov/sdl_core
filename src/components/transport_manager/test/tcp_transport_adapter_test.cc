@@ -137,24 +137,34 @@ TEST(TcpAdapterBasicTest, NotInitialised_Return_BAD_STATE_in_DisconnectDevice) {
 
 class ClientTcpSocket {
  public:
-  bool Connect(uint16_t server_port) {
-
-    socket_ = socket(AF_INET, SOCK_STREAM, 0);
-    std::cout << "socket is " << socket_ << "\n\n";
-    if (socket_ < 0)
-      return false;
-
-    struct sockaddr_in addr;
-    memset((char*) &addr, 0, sizeof(addr));
-    addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    addr.sin_port = htons(server_port);
-
-    if (::connect(socket_, (struct sockaddr*) &addr, sizeof(addr)) < 0)
-      return false;
-    else
-      return true;
+  ClientTcpSocket()
+        : port_(0),
+          socket_(0) {
   }
+bool Connect(uint16_t server_port) {
+   int connect_result = 0;
+   if (!socket_) {
+   socket_ = socket(AF_INET, SOCK_STREAM, 0);
+   std::cout << "socket is " << socket_ << "\n\n";
+   }
+   if (socket_ < 0) {
+     return false;
+   }
+   else {
+   struct sockaddr_in addr;
+   memset((char*) &addr, 0, sizeof(addr));
+   addr.sin_family = AF_INET;
+   addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+   addr.sin_port = htons(server_port);
+   connect_result = ::connect(socket_, (struct sockaddr*) &addr,
+                                 sizeof(addr));
+   if (connect_result < 0) {
+     return false;
+   } else {
+     return true;
+   }
+ }
+ }
 
   bool Send(const std::string& str) {
     size_t size = str.size();
@@ -179,6 +189,7 @@ class ClientTcpSocket {
 
   void Disconnect() {
     close(socket_);
+    socket_ = 0;
   }
 
  private:
@@ -425,33 +436,36 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_SendFailed) {
   client_.Disconnect();
 }
 
-// TODO{ALeshin} APPLINK-11090 - transport_adapter_->IsInitialised() doesn't return true as expected
-TEST_F(TcpAdapterTest, DISABLED_StartStop) {
+TEST_F(TcpAdapterTest, StartStop) {
+  // Assert
+EXPECT_EQ(TransportAdapter::BAD_STATE,
+  transport_adapter_->StopClientListening());
+EXPECT_TRUE(client_.Connect(port()));
+EXPECT_FALSE(client_.Connect(port()));
+EXPECT_EQ(TransportAdapter::OK, transport_adapter_->StartClientListening());
+client_.Disconnect();
 
-  //assert
-  EXPECT_EQ(TransportAdapter::BAD_STATE,
-            transport_adapter_->StopClientListening());
-  EXPECT_TRUE(client_.Connect(port()));
-  EXPECT_EQ(TransportAdapter::OK, transport_adapter_->StartClientListening());
-  EXPECT_TRUE(client_.Connect(port()));
+EXPECT_TRUE(client_.Connect(port()));
 
-  //act
-  client_.Disconnect();
+// Act
+client_.Disconnect();
 
-  //assert
-  EXPECT_EQ(TransportAdapter::BAD_STATE,
-            transport_adapter_->StartClientListening());
-  EXPECT_TRUE(client_.Connect(port()));
+// Assert
+EXPECT_EQ(TransportAdapter::BAD_STATE,
+  transport_adapter_->StartClientListening());
 
-  //act
-  client_.Disconnect();
+EXPECT_TRUE(client_.Connect(port()));
 
-  //assert
-  EXPECT_EQ(TransportAdapter::OK, transport_adapter_->StopClientListening());
-  EXPECT_TRUE(client_.Connect(port()));
+//act
+client_.Disconnect();
 
-  //act
-  wakeUp();
+//assert
+EXPECT_EQ(TransportAdapter::OK, transport_adapter_->StopClientListening());
+EXPECT_TRUE(client_.Connect(port()));
+
+client_.Disconnect();
+//act
+ wakeUp();
 }
 
 }  // namespace
