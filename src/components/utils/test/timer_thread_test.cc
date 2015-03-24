@@ -76,11 +76,11 @@ TEST_F(TimerThreadTest, StartTimerThreadWithTimeoutOneSec_ExpectSuccessfullInvok
   TimerThread<TimerThreadTest> timer("Test", this, &TimerThreadTest::function,
                                      false);
   AutoLock alock(lock_);
-  EXPECT_EQ(0, check_val);
+  EXPECT_EQ(0u, check_val);
   // Start timer with 1 second timeout
   timer.start(1);
   condvar_.WaitFor(alock, wait_val);
-  EXPECT_EQ(1, check_val);
+  EXPECT_EQ(1u, check_val);
 }
 
 TEST_F(TimerThreadTest, StartTimerThreadWithTimeoutOneSecInLoop_ExpectSuccessfullInvokeCallbackFuncOnEveryTimeout) {
@@ -88,7 +88,7 @@ TEST_F(TimerThreadTest, StartTimerThreadWithTimeoutOneSecInLoop_ExpectSuccessful
   TimerThread<TimerThreadTest> timer("Test", this, &TimerThreadTest::function,
                                      true);
   AutoLock alock(lock_);
-  EXPECT_EQ(0, check_val);
+  EXPECT_EQ(0u, check_val);
   // Start timer with 1 second timeout
   timer.start(1);
   while (check_val < val2) {
@@ -103,7 +103,7 @@ TEST_F(TimerThreadTest, StopStartedTimerThreadWithTimeoutOneSecInLoop_ExpectSucc
   TimerThread<TimerThreadTest> timer("Test", this, &TimerThreadTest::function,
                                      true);
   AutoLock alock(lock_);
-  EXPECT_EQ(0, check_val);
+  EXPECT_EQ(0u, check_val);
   // Start timer with 1 second timeout
   timer.start(1);
   // Stop timer on 3rd second
@@ -122,7 +122,7 @@ TEST_F(TimerThreadTest, ChangeTimeoutForStartedTimerThreadWithTimeoutOneSecInLoo
   TimerThread<TimerThreadTest> timer("Test", this, &TimerThreadTest::function,
                                      true);
   AutoLock alock(lock_);
-  EXPECT_EQ(0, check_val);
+  EXPECT_EQ(0u, check_val);
   // Start timer with 1 second timeout
   timer.start(1);
   // Change timer timeout on 3rd second
@@ -140,7 +140,7 @@ TEST_F(TimerThreadTest, CheckStartedTimerIsRunning_ExpectTrue) {
   TimerThread<TimerThreadTest> timer("Test", this, &TimerThreadTest::function,
                                      true);
   AutoLock alock(lock_);
-  EXPECT_EQ(0, check_val);
+  EXPECT_EQ(0u, check_val);
   // Start timer with 1 second timeout
   timer.start(1);
   // Change timer timeout on 3rd second

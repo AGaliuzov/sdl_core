@@ -141,7 +141,7 @@ TEST(FormatterJsonRPCTest, FromStringNotificationToSmartObj_ExpectSuccess) {
           hmi_apis::messageType::eType>(json_string, obj)));
   // Get keys collection from Smart Object
   std::set<std::string> keys = obj["params"].enumerate();
-  EXPECT_EQ(4, keys.size());
+  EXPECT_EQ(4u, keys.size());
 }
 
 TEST(FormatterJsonRPCTest, FromStringToSmartObjInvalidFormat_ExpectFalse) {
@@ -157,7 +157,7 @@ TEST(FormatterJsonRPCTest, FromStringToSmartObjInvalidFormat_ExpectFalse) {
           hmi_apis::messageType::eType>(json_string, obj)));
   // Get keys collection from Smart Object
   std::set<std::string> keys = obj["params"].enumerate();
-  EXPECT_EQ(4, keys.size());
+  EXPECT_EQ(4u, keys.size());
 }
 
 TEST(FormatterJsonRPCTest, FromStringRequestToSmartObj_ExpectSuccess) {
@@ -174,7 +174,7 @@ TEST(FormatterJsonRPCTest, FromStringRequestToSmartObj_ExpectSuccess) {
   // Get keys collection from Smart Object
   std::set<std::string> keys = obj["params"].enumerate();
   std::set<std::string>::iterator it1 = keys.begin();
-  EXPECT_EQ(5, keys.size());
+  EXPECT_EQ(5u, keys.size());
 }
 
 TEST(FormatterJsonRPCTest, FromStringResponseToSmartObj_ExpectSuccess) {
@@ -191,7 +191,7 @@ TEST(FormatterJsonRPCTest, FromStringResponseToSmartObj_ExpectSuccess) {
   // Get keys collection from Smart Object
   std::set<std::string> keys = obj["params"].enumerate();
   std::set<std::string>::iterator it1 = keys.begin();
-  EXPECT_EQ(5, keys.size());
+  EXPECT_EQ(5u, keys.size());
 }
 
 }  // namespace formatters

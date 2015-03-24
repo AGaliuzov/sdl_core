@@ -59,10 +59,10 @@ namespace components {
 namespace ssl_context_test {
 
 namespace {
-bool isErrorFatal(SSL *connection, int res) {
+/*bool isErrorFatal(SSL *connection, int res) {
   const int error = SSL_get_error(connection, res);
   return (error != SSL_ERROR_WANT_READ && error != SSL_ERROR_WANT_WRITE);
-}
+}*/
 }  // namespace
 
 class SSLTest : public testing::Test {

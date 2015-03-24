@@ -47,8 +47,8 @@ TEST(CSmartFactoryTest, CreateSmartSchemaKey_ExpectCreated) {
 
 TEST(CSmartFactoryTest, CreateSmartFactory_ExpectCreated) {
   CSmartFactoryTest test_factory;
-  EXPECT_EQ(9, test_factory.function_schemes().size());
-  EXPECT_EQ(2, test_factory.structs_schemes().size());
+  EXPECT_EQ(9u, test_factory.function_schemes().size());
+  EXPECT_EQ(2u, test_factory.structs_schemes().size());
 }
 
 TEST(CSmartFactoryTest, CreateSmartObjWithSchema1_ExpectCreatedObjectToCorrespondSmSchema1) {
