@@ -433,7 +433,7 @@ void ApplicationImpl::OnVideoStartStreamRetry() {
     --video_stream_retry_number_;
   } else {
     video_stream_retry_timer_->suspend();
-    LOG4CXX_INFO(logger_, "Video start stream retry timer stoped");
+    LOG4CXX_INFO(logger_, "Video start stream retry timer stopped");
   }
 }
 
@@ -447,7 +447,7 @@ void ApplicationImpl::OnAudioStartStreamRetry() {
     --audio_stream_retry_number_;
   } else {
     audio_stream_retry_timer_->suspend();
-    LOG4CXX_INFO(logger_, "Audio start stream retry timer stoped");
+    LOG4CXX_INFO(logger_, "Audio start stream retry timer stopped");
   }
 }
 
