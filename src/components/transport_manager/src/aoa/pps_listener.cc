@@ -98,8 +98,7 @@ PPSListener::PPSListener(TransportAdapterController* controller)
     : initialised_(false),
       controller_(controller),
       fd_(-1),
-      thread_(0),
-      m_device_handle(){
+      thread_(0){
   LOG4CXX_AUTO_TRACE(logger_);
 }
 
@@ -303,7 +302,6 @@ void PPSListener::AddDevice(const AOAWrapper::AOAUsbInfo& aoa_usb_info) {
       aoa_usb_info.product, aoa_usb_info.serial_number, aoa_usb_info,
       controller_));
   controller_->AddDevice(aoa_device);
-  m_device_handle.push_back(aoa_device.get()->unique_device_id());
   if (!aoa_device->Init()) {
     LOG4CXX_WARN(logger_, "Can not initialize device");
   }
@@ -323,10 +321,6 @@ TransportAdapter::Error PPSListener::StopListening() {
   delete thread_->delegate();
   threads::DeleteThread(thread_);
   thread_ = NULL;
-   for (std::vector<DeviceUID>::iterator it = m_device_handle.begin();
-        it != m_device_handle.end(); ++it){
-       controller_->DeviceDisconnected(*it, DisconnectDeviceError());
-   }
   return TransportAdapter::OK;
 }
 
