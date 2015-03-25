@@ -352,6 +352,9 @@ bool CacheManager::ApplyUpdate(const policy_table::Table& update_pt) {
     if (iter->second.is_null()) {
       pt_->policy_table.app_policies[iter->first].set_to_null();
       pt_->policy_table.app_policies[iter->first].set_to_string("");
+    } else if (policy::kDefaultId == (iter->second).get_string()) {
+      pt_->policy_table.app_policies[iter->first] =
+          pt_->policy_table.app_policies[kDefaultId];
     } else {
       pt_->policy_table.app_policies[iter->first] = iter->second;
     }
