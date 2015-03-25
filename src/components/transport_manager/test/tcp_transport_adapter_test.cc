@@ -109,7 +109,7 @@ TEST(TcpAdapterBasicTest, DISABLED_NotInitialised_Return_OK_InConnect) {
 
   //assert
   EXPECT_EQ(TransportAdapter::OK,
-            transport_adapter->Connect(DeviceUID("xxx"), 2));
+      transport_adapter->Connect(DeviceUID("xxx"), 2));
   delete transport_adapter;
 }
 
@@ -120,7 +120,7 @@ TEST(TcpAdapterBasicTest, NotInitialised_Return_BAD_STATE_inDisconnect) {
 
   //assert
   EXPECT_EQ(TransportAdapter::BAD_STATE,
-            transport_adapter->Disconnect(DeviceUID("xxx"), 2));
+      transport_adapter->Disconnect(DeviceUID("xxx"), 2));
   delete transport_adapter;
 }
 
@@ -131,40 +131,36 @@ TEST(TcpAdapterBasicTest, NotInitialised_Return_BAD_STATE_in_DisconnectDevice) {
 
   //assert
   EXPECT_EQ(TransportAdapter::BAD_STATE,
-            transport_adapter->DisconnectDevice(DeviceUID("xxx")));
+      transport_adapter->DisconnectDevice(DeviceUID("xxx")));
   delete transport_adapter;
 }
 
 class ClientTcpSocket {
  public:
   ClientTcpSocket()
-        : port_(0),
-          socket_(0) {
+      : port_(0),
+        socket_(0) {
   }
-bool Connect(uint16_t server_port) {
-   int connect_result = 0;
-   if (!socket_) {
-   socket_ = socket(AF_INET, SOCK_STREAM, 0);
-   std::cout << "socket is " << socket_ << "\n\n";
-   }
-   if (socket_ < 0) {
-     return false;
-   }
-   else {
-   struct sockaddr_in addr;
-   memset((char*) &addr, 0, sizeof(addr));
-   addr.sin_family = AF_INET;
-   addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-   addr.sin_port = htons(server_port);
-   connect_result = ::connect(socket_, (struct sockaddr*) &addr,
-                                 sizeof(addr));
-   if (connect_result < 0) {
-     return false;
-   } else {
-     return true;
-   }
- }
- }
+  bool Connect(uint16_t server_port) {
+    if (!socket_) {
+      socket_ = socket(AF_INET, SOCK_STREAM, 0);
+      std::cout << "socket is " << socket_ << "\n\n";
+    }
+    if (socket_ < 0) {
+      return false;
+    } else {
+      struct sockaddr_in addr;
+      memset((char*) &addr, 0, sizeof(addr));
+      addr.sin_family = AF_INET;
+      addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+      addr.sin_port = htons(server_port);
+      if (::connect(socket_, (struct sockaddr*) &addr, sizeof(addr)) < 0) {
+        return false;
+      } else {
+        return true;
+      }
+    }
+  }
 
   bool Send(const std::string& str) {
     size_t size = str.size();
@@ -301,8 +297,9 @@ MATCHER_P(ContainsMessage, str, ""){ return strlen(str) == arg->data_size() && 0
 TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_Connect_Return_True) {
   {
     ::testing::InSequence seq;
-    EXPECT_CALL(mock_dal_, OnDeviceListUpdated(_));
-    EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).WillOnce(
+    EXPECT_CALL(mock_dal_, OnDeviceListUpdated(_));EXPECT_CALL(
+    mock_dal_, OnConnectDone(transport_adapter_, _, _))
+.WillOnce(
         InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp));
   }
   EXPECT_TRUE(client_.Connect(port()));
@@ -312,8 +309,9 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_Connect_Return_True) {
 TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_SecondConnect_Return_True) {
   {
     ::testing::InSequence seq;
-    EXPECT_CALL(mock_dal_, OnDeviceListUpdated(_));
-    EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).WillOnce(
+    EXPECT_CALL(mock_dal_, OnDeviceListUpdated(_));EXPECT_CALL(
+    mock_dal_, OnConnectDone(transport_adapter_, _, _))
+.WillOnce(
         InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp));
   }
   EXPECT_TRUE(client_.Connect(port()));
@@ -324,38 +322,39 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_Receive_Return_True) {
   {
     ::testing::InSequence seq;
 
-    EXPECT_CALL(mock_dal_, OnDeviceListUpdated(_));
-    EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _));
+    EXPECT_CALL(mock_dal_, OnDeviceListUpdated(_));EXPECT_CALL(
+    mock_dal_, OnConnectDone(transport_adapter_, _, _));
 
-    EXPECT_CALL(
-        mock_dal_,
-        OnDataReceiveDone(transport_adapter_, _, _, ContainsMessage("abcd"))).
-        WillOnce(InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp));
-  }
-  EXPECT_TRUE(client_.Connect(port()));
-  EXPECT_TRUE(client_.Send("abcd"));
+EXPECT_CALL(
+    mock_dal_,
+    OnDataReceiveDone(transport_adapter_, _, _, ContainsMessage("abcd"))).
+WillOnce(InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp));
+}
+EXPECT_TRUE(client_.Connect(port()));
+EXPECT_TRUE(client_.Send("abcd"));
 }
 
 struct SendHelper {
-  explicit SendHelper(TransportAdapter::Error expected_error)
-      : expected_error_(expected_error),
-        message_(
-            new RawMessage(
-                1,
-                1,
-                const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>("efgh")),
-                4)) {
-  }
-  void sendMessage(const TransportAdapter* transport_adapter,
-                   const DeviceUID device_handle,
-                   const ApplicationHandle app_handle) {
-    EXPECT_EQ(
-        expected_error_,
-        const_cast<TransportAdapter*>(transport_adapter)->SendData(
-            device_handle, app_handle, message_));
-  }
-  TransportAdapter::Error expected_error_;
-  RawMessagePtr message_;
+explicit SendHelper(TransportAdapter::Error expected_error)
+  : expected_error_(expected_error),
+    message_(
+        new RawMessage(
+            1,
+            1,
+            const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>("efgh")),
+            4)) {
+}
+void sendMessage(const TransportAdapter* transport_adapter,
+                 const DeviceUID device_handle,
+                 const ApplicationHandle app_handle) {
+EXPECT_EQ(
+    expected_error_,
+    const_cast<TransportAdapter*>(transport_adapter)->SendData(device_handle,
+                                                               app_handle,
+                                                               message_));
+}
+TransportAdapter::Error expected_error_;
+RawMessagePtr message_;
 };
 
 // TODO{ALeshin} APPLINK-11090 - transport_adapter_->IsInitialised() doesn't return true as expected
@@ -366,8 +365,9 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_Send_Message) {
 
     EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).WillOnce(
         Invoke(&helper, &SendHelper::sendMessage));
-    EXPECT_CALL(mock_dal_,
-        OnDataSendDone(transport_adapter_, _, _, helper.message_)).WillOnce(
+    EXPECT_CALL(
+mock_dal_, OnDataSendDone(transport_adapter_, _, _, helper.message_))
+.WillOnce(
         InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp));
   }
 
@@ -379,9 +379,10 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_DisconnectFromClient) {
   {
     ::testing::InSequence seq;
 
-    EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _));
-    EXPECT_CALL(mock_dal_, OnUnexpectedDisconnect(transport_adapter_, _, _, _));
-    EXPECT_CALL(mock_dal_, OnDisconnectDone(transport_adapter_, _, _)).WillOnce(
+    EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _));EXPECT_CALL(
+mock_dal_, OnUnexpectedDisconnect(transport_adapter_, _, _, _));EXPECT_CALL(
+mock_dal_, OnDisconnectDone(transport_adapter_, _, _))
+.WillOnce(
         InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp));
   }
   EXPECT_TRUE(client_.Connect(port()));
@@ -394,7 +395,9 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_DisconnectFromServer) {
 
     EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).WillOnce(
         Invoke(Disconnect));
-    EXPECT_CALL(mock_dal_, OnDisconnectDone(transport_adapter_, _, _)).WillOnce(
+    EXPECT_CALL(
+mock_dal_, OnDisconnectDone(transport_adapter_, _, _))
+.WillOnce(
         InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp));
   }
   EXPECT_TRUE(client_.Connect(port()));
@@ -408,7 +411,9 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_SendToDisconnected) {
 
     EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).WillOnce(
         Invoke(Disconnect));
-    EXPECT_CALL(mock_dal_, OnDisconnectDone(transport_adapter_, _, _)).WillOnce(
+    EXPECT_CALL(
+mock_dal_, OnDisconnectDone(transport_adapter_, _, _))
+.WillOnce(
         ::testing::DoAll(Invoke(helper, &SendHelper::sendMessage),
                          InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp)));
   }
@@ -426,20 +431,20 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_SendFailed) {
     EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).WillOnce(
         Invoke(helper, &SendHelper::sendMessage));
     EXPECT_CALL(
-        mock_dal_,
-        OnDataSendFailed(transport_adapter_, _, _, helper->message_, _));
-    EXPECT_CALL(mock_dal_, OnDisconnectDone(transport_adapter_, _, _)).WillOnce(
-        InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp));
-  }
-  EXPECT_TRUE(client_.Connect(port()));
-  client_.receive(2);
-  client_.Disconnect();
+mock_dal_, OnDataSendFailed(transport_adapter_, _, _, helper->message_, _));EXPECT_CALL(
+mock_dal_, OnDisconnectDone(transport_adapter_, _, _))
+.WillOnce(
+InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp));
+}
+EXPECT_TRUE(client_.Connect(port()));
+client_.receive(2);
+client_.Disconnect();
 }
 
 TEST_F(TcpAdapterTest, StartStop) {
   // Assert
 EXPECT_EQ(TransportAdapter::BAD_STATE,
-  transport_adapter_->StopClientListening());
+transport_adapter_->StopClientListening());
 EXPECT_TRUE(client_.Connect(port()));
 EXPECT_FALSE(client_.Connect(port()));
 EXPECT_EQ(TransportAdapter::OK, transport_adapter_->StartClientListening());
@@ -452,7 +457,7 @@ client_.Disconnect();
 
 // Assert
 EXPECT_EQ(TransportAdapter::BAD_STATE,
-  transport_adapter_->StartClientListening());
+transport_adapter_->StartClientListening());
 
 EXPECT_TRUE(client_.Connect(port()));
 
@@ -465,9 +470,10 @@ EXPECT_TRUE(client_.Connect(port()));
 
 client_.Disconnect();
 //act
- wakeUp();
+wakeUp();
 }
 
-}  // namespace
-}  // namespace
+}
+  // namespace
+} // namespace
 
