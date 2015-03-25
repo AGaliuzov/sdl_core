@@ -34,6 +34,7 @@
 #define SRC_COMPONENTS_MEDIA_MANAGER_INCLUDE_MEDIA_MANAGER_MEDIA_MANAGER_IMPL_H_
 
 #include <string>
+#include <map>
 #include "utils/singleton.h"
 #include "utils/timer_thread.h"
 #include "utils/shared_ptr.h"

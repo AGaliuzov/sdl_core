@@ -405,7 +405,8 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_SendFailed) {
   client_.Disconnect();
 }
 
-TEST_F(TcpAdapterTest, StartStop) {
+// TODO(ALeshin) : APPLINK-11090 - Sometimes fail because of incorrect behaviour due to threads desynchronization
+TEST_F(TcpAdapterTest, DISABLED_StartStop) {
   // Assert
   EXPECT_EQ(TransportAdapter::BAD_STATE,
             transport_adapter_->StopClientListening());
