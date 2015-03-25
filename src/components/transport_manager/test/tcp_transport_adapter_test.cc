@@ -45,7 +45,6 @@ namespace transport_manager {
 namespace transport_adapter {
 
 using namespace ::protocol_handler;
-
 TEST(TcpAdapterBasicTest, GetDeviceType_Return_sdltcp) {
   // Arrange
   TransportAdapter* transport_adapter = new TcpTransportAdapter(12345);
@@ -224,9 +223,6 @@ class TcpAdapterTest : public ::testing::Test {
     ASSERT_TRUE(transport_adapter_->IsInitialised());
   }
 
-  virtual void TearDown() {
-    transport_adapter_->StopClientListening();
-  }
 
   virtual ~TcpAdapterTest() {
     pthread_mutex_lock(&suspend_mutex_);
@@ -279,33 +275,42 @@ class TcpAdapterTestWithListenerAutoStart : public TcpAdapterTest {
     TcpAdapterTest::SetUp();
     transport_adapter_->StartClientListening();
   }
+
+  virtual void TearDown() {
+    client_.Disconnect();
+    transport_adapter_->StopClientListening();
+  }
+
 };
 
 MATCHER_P(ContainsMessage, str, "") { return strlen(str) == arg->data_size() && 0 == memcmp(str, arg->data(), arg->data_size()); }
 
-// TODO(ALeshin) : APPLINK-11090 - transport_adapter_->IsInitialised() doesn't return true as expected
+// TODO(VVeremjova) : APPLINK-11090 - Destructor called before client is connected
 TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_Connect_Return_True) {
   {
     ::testing::InSequence seq;
     EXPECT_CALL(mock_dal_, OnDeviceListUpdated(_));
     EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).
         WillOnce(InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp));
+    EXPECT_CALL(mock_dal_, OnUnexpectedDisconnect(transport_adapter_, _, _, _));
   }
   EXPECT_TRUE(client_.Connect(port()));
 }
 
-// TODO(ALeshin) : APPLINK-11090 - transport_adapter_->IsInitialised() doesn't return true as expected
+// TODO(VVeremjova) : APPLINK-11090 - Destructor called before client is connected
 TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_SecondConnect_Return_True) {
   {
     ::testing::InSequence seq;
     EXPECT_CALL(mock_dal_, OnDeviceListUpdated(_));
     EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).
         WillOnce(InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp));
+
+    EXPECT_CALL(mock_dal_, OnUnexpectedDisconnect(transport_adapter_, _, _, _));
   }
   EXPECT_TRUE(client_.Connect(port()));
 }
 
-// TODO(ALeshin) : APPLINK-11090 - transport_adapter_->IsInitialised() doesn't return true as expected
+// TODO(VVeremjova) : APPLINK-11090 - Destructor called before client is connected
 TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_Receive_Return_True) {
   {
     ::testing::InSequence seq;
@@ -313,6 +318,7 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_Receive_Return_True) {
     EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _));
     EXPECT_CALL(mock_dal_, OnDataReceiveDone(transport_adapter_, _, _, ContainsMessage("abcd"))).
         WillOnce(InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp));
+    EXPECT_CALL(mock_dal_, OnUnexpectedDisconnect(transport_adapter_, _, _, _));
   }
   EXPECT_TRUE(client_.Connect(port()));
   EXPECT_TRUE(client_.Send("abcd"));
@@ -336,56 +342,46 @@ struct SendHelper {
   RawMessagePtr message_;
 };
 
-// TODO(ALeshin) : APPLINK-11090 - transport_adapter_->IsInitialised() doesn't return true as expected
+// TODO(VVeremjova) : APPLINK-11090 - Destructor called before client is connected
 TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_Send_Message) {
   SendHelper helper(TransportAdapter::OK);
   {
     ::testing::InSequence seq;
+    EXPECT_CALL(mock_dal_, OnDeviceListUpdated(_));
     EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).
         WillOnce(Invoke(&helper, &SendHelper::sendMessage));
     EXPECT_CALL(mock_dal_, OnDataSendDone(transport_adapter_, _, _, helper.message_)).
         WillOnce(InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp));
+    EXPECT_CALL(mock_dal_, OnUnexpectedDisconnect(transport_adapter_, _, _, _));
   }
   EXPECT_TRUE(client_.Connect(port()));
   EXPECT_EQ("efgh", client_.receive(4));
 }
 
-TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_DisconnectFromClient) {
+// TODO(VVeremjova) : APPLINK-11090 - Destructor called before client is connected
+TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_UnexpectedDisconnectFromClient) {
   {
     ::testing::InSequence seq;
+    EXPECT_CALL(mock_dal_, OnDeviceListUpdated(_));
     EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _));
     EXPECT_CALL(mock_dal_, OnUnexpectedDisconnect(transport_adapter_, _, _, _));
-    EXPECT_CALL(mock_dal_, OnDisconnectDone(transport_adapter_, _, _)).
-        WillOnce(InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp));
   }
   EXPECT_TRUE(client_.Connect(port()));
-  client_.Disconnect();
 }
 
-TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_DisconnectFromServer) {
+// TODO(VVeremjova) : APPLINK-11090 - Destructor called before client is connected
+TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_ConnectFromServer) {
   {
     ::testing::InSequence seq;
-    EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).
-        WillOnce(Invoke(Disconnect));
-    EXPECT_CALL(mock_dal_, OnDisconnectDone(transport_adapter_, _, _)).
-        WillOnce(InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp));
+
+    EXPECT_CALL(mock_dal_, OnDeviceListUpdated(_));
+    EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).WillOnce(
+        Invoke(Disconnect));
   }
   EXPECT_TRUE(client_.Connect(port()));
 }
 
-TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_SendToDisconnected) {
-  SendHelper* helper = new SendHelper(TransportAdapter::BAD_PARAM);
-  {
-    ::testing::InSequence seq;
-    EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).
-        WillOnce(Invoke(Disconnect));
-    EXPECT_CALL(mock_dal_, OnDisconnectDone(transport_adapter_, _, _)).
-        WillOnce(::testing::DoAll(Invoke(helper, &SendHelper::sendMessage),
-                                  InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp)));
-  }
-  EXPECT_TRUE(client_.Connect(port()));
-}
-
+// TODO(VVeremjova) : APPLINK-11090 - Destructor called before client is connected
 TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_SendFailed) {
   // Static unsigned char zzz[2000000];  // message will send without fail because socket buffer can contain it
   // this test works correctly starting with number 2539009
@@ -394,11 +390,12 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_SendFailed) {
   helper->message_ = new RawMessage(1, 1, zzz, sizeof(zzz));
   {
     ::testing::InSequence seq;
+
+    EXPECT_CALL(mock_dal_, OnDeviceListUpdated(_));
     EXPECT_CALL(mock_dal_, OnConnectDone(transport_adapter_, _, _)).
         WillOnce(Invoke(helper, &SendHelper::sendMessage));
-    EXPECT_CALL(mock_dal_, OnDataSendFailed(transport_adapter_, _, _, helper->message_, _));
-    EXPECT_CALL(mock_dal_, OnDisconnectDone(transport_adapter_, _, _)).
-        WillOnce(InvokeWithoutArgs(this, &TcpAdapterTest::wakeUp));
+    EXPECT_CALL(mock_dal_,OnDataSendFailed(transport_adapter_, _, _, helper->message_, _));
+    EXPECT_CALL(mock_dal_, OnUnexpectedDisconnect(transport_adapter_, _, _, _));
   }
   EXPECT_TRUE(client_.Connect(port()));
   client_.receive(2);
