@@ -75,7 +75,7 @@ ProtocolPacket::ProtocolHeader::ProtocolHeader(
 
 uint32_t read_be_uint32(const uint8_t* const data) {
   // Int value read byte per byte
-  // reintercast usage lead to UB on arm
+  // reintercast for non-4 byte address alignment lead to UB on arm platform
   uint32_t value = data[3];
   value += (data[2] <<  8);
   value += (data[1] << 16);
