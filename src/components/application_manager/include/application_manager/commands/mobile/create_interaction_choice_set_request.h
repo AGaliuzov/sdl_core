@@ -91,6 +91,11 @@ private:
     std::set<uint32_t> sent_cmd_ids_;
     int32_t choice_set_id_;
     size_t expected_chs_count_;
+
+    /**
+     * @brief Flag for stop sending VR commands to HMI, in case one of responses
+     * failed
+     */
     volatile bool stop_sending_;
     sync_primitives::Lock cmd_ids_lock;
     /*
@@ -193,12 +198,6 @@ private:
    * @return if choice_set contains \t\n \\t \\n return TRUE, FALSE otherwise
    */
   bool IsWhiteSpaceExist(const smart_objects::SmartObject& choice_set);
-
-  /**
-   * @brief Flag for stop sending VR commands to HMI, in case one of responses
-   * failed
-   */
-  bool stop_adding_vr_commands_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateInteractionChoiceSetRequest);
 };

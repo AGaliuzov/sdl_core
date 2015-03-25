@@ -47,7 +47,7 @@ namespace commands {
 CreateInteractionChoiceSetRequest::CreateInteractionChoiceSetRequest(
     const MessageSharedPtr& message)
     : CommandRequestImpl(message),
-      stop_adding_vr_commands_(false) {
+      stop_sending_(false) {
 }
 
 CreateInteractionChoiceSetRequest::~CreateInteractionChoiceSetRequest() {
@@ -324,7 +324,7 @@ void CreateInteractionChoiceSetRequest::SendVRAddCommandRequest(
   msg_params[strings::app_id] = app->app_id();
   msg_params[strings::grammar_id] =  choice_set[strings::grammar_id];
 
-  for (size_t chs_num = 0; chs_num < expected_chs_count_ && !stop_sending_; ++chs_num) {
+  for (size_t chs_num = 0; chs_num < expected_chs_count_; ++chs_num) {
     msg_params[strings::cmd_id] =
         choice_set[strings::choice_set][chs_num][strings::choice_id];
     msg_params[strings::vr_commands] = smart_objects::SmartObject(
@@ -333,7 +333,7 @@ void CreateInteractionChoiceSetRequest::SendVRAddCommandRequest(
         choice_set[strings::choice_set][chs_num][strings::vr_commands];
 
     sync_primitives::AutoLock lock(cmd_ids_lock);
-    if (stop_adding_vr_commands_) {
+    if (stop_sending_) {
       return;
     }
     sent_cmd_ids_.insert(msg_params[strings::cmd_id].asUInt());
@@ -353,7 +353,6 @@ CreateInteractionChoiceSetRequest::on_event(const event_engine::Event& event) {
     if (Common_Result::SUCCESS != vr_result_) {
       LOG4CXX_DEBUG(logger_, "Got VR.AddCommand response error. Removing all "
                              "previously send commands.");
-      stop_adding_vr_commands_ = true;
       DeleteChoices();
       SendResponse(false, GetMobileResultCode(vr_result_));
       return;
@@ -362,7 +361,16 @@ CreateInteractionChoiceSetRequest::on_event(const event_engine::Event& event) {
       LOG4CXX_DEBUG(logger_, "Got VR.AddCommand response, there are "
                     << expected_chs_count_ << " more to wait.");
       if (!expected_chs_count_) {
+        ApplicationSharedPtr application =
+            ApplicationManagerImpl::instance()->application(connection_key());
+
         SendResponse(true, mobile_apis::Result::SUCCESS);
+
+        if (!application) {
+          LOG4CXX_DEBUG(logger_, "NULL pointer for application.");
+        }
+
+        application->UpdateHash();
       }
     }
   }
@@ -374,10 +382,10 @@ void CreateInteractionChoiceSetRequest::onTimeOut() {
 }
 
 void CreateInteractionChoiceSetRequest::DeleteChoices() {
+  sync_primitives::AutoLock lock(cmd_ids_lock);
   stop_sending_ = true; // need to stop sending VR_AddCommand if one.
   // last cmd_id should be removed since SDL has to send VR_DELETE command
   // for successfuly added commands only, but the last id is unsuccessful.
-  sync_primitives::AutoLock lock(cmd_ids_lock);
   sent_cmd_ids_.erase((*message_)[strings::msg_params][strings::cmd_id].asUInt());
 
   ApplicationSharedPtr application =
