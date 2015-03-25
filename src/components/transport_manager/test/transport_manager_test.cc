@@ -389,6 +389,5 @@ TEST(testTransportManager, CreateOnlyInstance)
 {
   transport_manager::TransportManager *Instance = transport_manager::TransportManagerDefault::instance();
   ASSERT_EQ(Instance, transport_manager::TransportManagerDefault::instance());
-  delete Instance;
 }
 }}
