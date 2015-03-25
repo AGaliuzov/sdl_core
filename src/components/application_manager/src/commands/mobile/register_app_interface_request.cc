@@ -404,7 +404,10 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile(
       *hmi_capabilities.button_capabilities();
   }
   if (hmi_capabilities.soft_button_capabilities()) {
-    response_params[hmi_response::soft_button_capabilities] =
+    /* HMI softButtonCapabilities has type object,
+       but in Mobile API it is vector
+    */
+    response_params[hmi_response::soft_button_capabilities][0] =
       *hmi_capabilities.soft_button_capabilities();
   }
   if (hmi_capabilities.preset_bank_capabilities()) {
