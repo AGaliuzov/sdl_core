@@ -319,23 +319,21 @@ TEST_F(TcpAdapterTestWithListenerAutoStart, DISABLED_Receive_Return_True) {
 }
 
 struct SendHelper {
-explicit SendHelper(TransportAdapter::Error expected_error)
-  : expected_error_(expected_error),
-    message_(
-        new RawMessage(
-            1,
-            1,
-            const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>("efgh")),
-            4)) {
+  explicit SendHelper(TransportAdapter::Error expected_error):
+      expected_error_(expected_error),
+      message_(new RawMessage(1,
+                              1,
+                              const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>("efgh")),
+                              4)) {
 }
-void sendMessage(const TransportAdapter* transport_adapter,
+  void sendMessage(const TransportAdapter* transport_adapter,
                  const DeviceUID device_handle,
                  const ApplicationHandle app_handle) {
-  EXPECT_EQ(expected_error_,
-          const_cast<TransportAdapter*>(transport_adapter)->SendData(device_handle, app_handle, message_));
+    EXPECT_EQ(expected_error_,
+              const_cast<TransportAdapter*>(transport_adapter)->SendData(device_handle, app_handle, message_));
 }
-TransportAdapter::Error expected_error_;
-RawMessagePtr message_;
+  TransportAdapter::Error expected_error_;
+  RawMessagePtr message_;
 };
 
 // TODO(ALeshin) : APPLINK-11090 - transport_adapter_->IsInitialised() doesn't return true as expected
