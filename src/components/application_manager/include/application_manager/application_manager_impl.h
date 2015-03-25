@@ -683,17 +683,7 @@ class ApplicationManagerImpl : public ApplicationManager,
      */
     bool IsVideoStreamingAllowed(uint32_t connection_key) const;
 
-    /**
-     * @brief CanAppStream allows to check whether application is permited for
-     * data streaming.
-     *
-     * In case streaming for app is disallowed the method will send EndService to mobile.
-     *
-     * @param app_id the application id which should be checked.
-     *
-     * @return true in case streaming is allowed, false otherwise.
-     */
-    bool CanAppStream(uint32_t app_id) const;
+
 
     /**
      * @brief StreamingEnded Callback called from MediaManager when it decide that
@@ -709,6 +699,19 @@ class ApplicationManagerImpl : public ApplicationManager,
      * @param app_id the application's id which should stop streaming.
      */
     void ForbidStreaming(uint32_t app_id);
+
+    /**
+     * @brief OnHMILevelChanged the callback that allows SDL to react when
+     * application's HMILeval has been changed.
+     *
+     * @param app_id application identifier for which HMILevel has been chaned.
+     *
+     * @param from previous HMILevel.
+     * @param to current HMILevel.
+     */
+    void OnHMILevelChanged(uint32_t app_id,
+                           mobile_apis::HMILevel::eType from,
+                           mobile_apis::HMILevel::eType to);
 
     mobile_api::HMILevel::eType GetDefaultHmiLevel(
         ApplicationSharedPtr application) const;
@@ -1110,19 +1113,6 @@ class ApplicationManagerImpl : public ApplicationManager,
     bool IsLowVoltage();
 
   private:
-
-    /**
-     * @brief OnHMILevelChanged the callback that allows SDL to react when
-     * application's HMILeval has been changed.
-     *
-     * @param app_id application identifier for which HMILevel has been chaned.
-     *
-     * @param from previous HMILevel.
-     * @param to current HMILevel.
-     */
-    void OnHMILevelChanged(uint32_t app_id,
-                           mobile_apis::HMILevel::eType from,
-                           mobile_apis::HMILevel::eType to);
 
     /**
      * @brief EndNaviServices either send EndService to mobile or proceed

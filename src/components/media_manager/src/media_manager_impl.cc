@@ -40,6 +40,7 @@
 #include "application_manager/application_impl.h"
 #include "utils/file_system.h"
 #include "utils/logger.h"
+#include "utils/helpers.h"
 #if defined(EXTENDED_MEDIA_MODE)
 #include "media_manager/audio/a2dp_source_player_adapter.h"
 #include "media_manager/audio/from_mic_recorder_adapter.h"
@@ -54,6 +55,8 @@
 namespace media_manager {
 
 using profile::Profile;
+using protocol_handler::ServiceType;
+using timer::TimerThread;
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "MediaManagerImpl")
 
@@ -61,8 +64,6 @@ MediaManagerImpl::MediaManagerImpl()
   : protocol_handler_(NULL)
   , a2dp_player_(NULL)
   , from_mic_recorder_(NULL)
-  , video_streamer_(NULL)
-  , audio_streamer_(NULL)
   , video_stream_active_(false)
   , audio_stream_active_(false)
   , audio_streaming_timer_("Audio streaming timer", this,
@@ -76,6 +77,7 @@ MediaManagerImpl::MediaManagerImpl()
 }
 
 MediaManagerImpl::~MediaManagerImpl() {
+
   if (a2dp_player_) {
     delete a2dp_player_;
     a2dp_player_ = NULL;
@@ -86,15 +88,6 @@ MediaManagerImpl::~MediaManagerImpl() {
     from_mic_recorder_ = NULL;
   }
 
-  if (video_streamer_) {
-    delete video_streamer_;
-    video_streamer_ = NULL;
-  }
-
-  if (audio_streamer_) {
-    delete audio_streamer_;
-    audio_streamer_ = NULL;
-  }
 }
 
 void MediaManagerImpl::SetProtocolHandler(
@@ -112,20 +105,20 @@ void MediaManagerImpl::Init() {
 #endif
 
   if ("socket" == profile::Profile::instance()->video_server_type()) {
-    video_streamer_ = new SocketVideoStreamerAdapter();
+    streamer_[ServiceType::kMobileNav] = new SocketVideoStreamerAdapter();
   } else if ("pipe" == profile::Profile::instance()->video_server_type()) {
-    video_streamer_ = new PipeVideoStreamerAdapter();
+    streamer_[ServiceType::kMobileNav]= new PipeVideoStreamerAdapter();
   } else if ("file" == profile::Profile::instance()->video_server_type()) {
-    video_streamer_ = new VideoStreamToFileAdapter(
+    streamer_[ServiceType::kMobileNav] = new VideoStreamToFileAdapter(
         profile::Profile::instance()->video_stream_file());
   }
 
   if ("socket" == profile::Profile::instance()->audio_server_type()) {
-    audio_streamer_ = new SocketAudioStreamerAdapter();
+    streamer_[ServiceType::kAudio] = new SocketAudioStreamerAdapter();
   } else if ("pipe" == profile::Profile::instance()->audio_server_type()) {
-    audio_streamer_ = new PipeAudioStreamerAdapter();
+    streamer_[ServiceType::kAudio] = new PipeAudioStreamerAdapter();
   } else if ("file" == profile::Profile::instance()->audio_server_type()) {
-    audio_streamer_ = new VideoStreamToFileAdapter(
+    streamer_[ServiceType::kAudio] = new VideoStreamToFileAdapter(
         profile::Profile::instance()->audio_stream_file());
   }
 
@@ -139,12 +132,12 @@ void MediaManagerImpl::Init() {
   video_streamer_listener_ = new StreamerListener();
   audio_streamer_listener_ = new StreamerListener();
 
-  if (NULL != video_streamer_) {
-    video_streamer_->AddListener(video_streamer_listener_);
+  if (streamer_[ServiceType::kMobileNav]) {
+    streamer_[ServiceType::kMobileNav]->AddListener(video_streamer_listener_);
   }
 
-  if (NULL != audio_streamer_) {
-    audio_streamer_->AddListener(audio_streamer_listener_);
+  if (streamer_[ServiceType::kAudio]) {
+    streamer_[ServiceType::kAudio]->AddListener(audio_streamer_listener_);
   }
 }
 
@@ -265,10 +258,10 @@ void MediaManagerImpl::StopMicrophoneRecording(int32_t application_key) {
 void MediaManagerImpl::StartVideoStreaming(int32_t application_key) {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  if (video_streamer_) {
+  if (streamer_[ServiceType::kMobileNav]) {
     if (!video_stream_active_) {
       video_stream_active_ = true;
-      video_streamer_->StartActivity(application_key);
+      streamer_[ServiceType::kMobileNav]->StartActivity(application_key);
       application_manager::MessageHelper::SendNaviStartStream(application_key);
     }
   }
@@ -276,20 +269,20 @@ void MediaManagerImpl::StartVideoStreaming(int32_t application_key) {
 
 void MediaManagerImpl::StopVideoStreaming(int32_t application_key) {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (video_streamer_) {
+  if (streamer_[ServiceType::kMobileNav]) {
     video_stream_active_ = false;
     application_manager::MessageHelper::SendNaviStopStream(application_key);
-    video_streamer_->StopActivity(application_key);
+    streamer_[ServiceType::kMobileNav]->StopActivity(application_key);
   }
 }
 
 void MediaManagerImpl::StartAudioStreaming(int32_t application_key) {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  if (audio_streamer_) {
+  if (streamer_[ServiceType::kAudio]) {
     if (!audio_stream_active_) {
       audio_stream_active_ = true;
-      audio_streamer_->StartActivity(application_key);
+      streamer_[ServiceType::kAudio]->StartActivity(application_key);
       application_manager::MessageHelper::SendAudioStartStream(application_key);
     }
   }
@@ -297,61 +290,41 @@ void MediaManagerImpl::StartAudioStreaming(int32_t application_key) {
 
 void MediaManagerImpl::StopAudioStreaming(int32_t application_key) {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (audio_streamer_) {
+  if (streamer_[ServiceType::kAudio]) {
     audio_stream_active_ = false;
     application_manager::MessageHelper::SendAudioStopStream(application_key);
-    audio_streamer_->StopActivity(application_key);
+    streamer_[ServiceType::kAudio]->StopActivity(application_key);
   }
 }
 
 void MediaManagerImpl::OnMessageReceived(
     const ::protocol_handler::RawMessagePtr message) {
   LOG4CXX_AUTO_TRACE(logger_);
-
   using namespace application_manager;
-  using namespace protocol_handler;
-
+  using namespace helpers;
   streaming_app_id_ = message->connection_key();
-  ServiceType streaming_app_service_type = message->service_type();
+  const ServiceType service_type = message->service_type();
 
-  if (streaming_app_service_type == kMobileNav) {
-    if ((ApplicationManagerImpl::instance()->
-         IsVideoStreamingAllowed(streaming_app_id_))) {
-      if (ApplicationManagerImpl::instance()->CanAppStream(streaming_app_id_)) {
-        sync_primitives::AutoLock lock(video_streaming_suspended_lock_);
-        if (video_streaming_suspended_) {
-          LOG4CXX_DEBUG(logger_, "Data is available for service type "
-                        << streaming_app_service_type);
-          MessageHelper::SendOnDataStreaming(streaming_app_service_type, true);
-          video_streaming_suspended_ = false;
-        }
-        video_streamer_->SendData(streaming_app_id_, message);
-        video_streaming_timer_.start(video_data_stopped_timeout_);
-      } else {
-        ApplicationManagerImpl::instance()->ForbidStreaming(streaming_app_id_);
-        LOG4CXX_ERROR(logger_,
-                      "The application trying to stream when it should not.");
-      }
-    }
-  } else if (streaming_app_service_type == kAudio) {
-    if ((ApplicationManagerImpl::instance()->
-         IsAudioStreamingAllowed(streaming_app_id_))) {
-      if (ApplicationManagerImpl::instance()->CanAppStream(streaming_app_id_)) {
-        sync_primitives::AutoLock lock(audio_streaming_suspended_lock_);
-        if (audio_streaming_suspended_) {
-          LOG4CXX_DEBUG(logger_, "Data is available for service type "
-                        << streaming_app_service_type);
-          MessageHelper::SendOnDataStreaming(streaming_app_service_type, true);
-          audio_streaming_suspended_ = false;
-        }
-        audio_streamer_->SendData(streaming_app_id_, message);
-        audio_streaming_timer_.start(audio_data_stopped_timeout_);
-      } else {
-        ApplicationManagerImpl::instance()->ForbidStreaming(streaming_app_id_);
-        LOG4CXX_ERROR(logger_,
-                      "The application trying to stream when it should not.");
-      }
-    }
+  if (Compare<ServiceType, NEQ, ALL>(
+        service_type, ServiceType::kMobileNav, ServiceType::kAudio)) {
+    LOG4CXX_DEBUG(logger_, "Unsupported service type in MediaManager");
+    return;
+  }
+
+  if (!CanStream(service_type)) {
+    ApplicationManagerImpl::instance()->ForbidStreaming(streaming_app_id_);
+    LOG4CXX_ERROR(logger_, "The application trying to stream when it should not.");
+    return;
+  }
+
+  WakeUpStreaming(service_type);
+
+  streamer_[service_type]->SendData(streaming_app_id_, message);
+
+  if (service_type == ServiceType::kMobileNav) {
+    video_streaming_timer_.start(video_data_stopped_timeout_);
+  } else {
+    audio_streaming_timer_.start(audio_data_stopped_timeout_);
   }
 }
 
@@ -365,6 +338,47 @@ void MediaManagerImpl::FramesProcessed(int32_t application_key,
     protocol_handler_->SendFramesNumber(application_key,
                                         frame_number);
   }
+}
+
+void MediaManagerImpl::WakeUpStreaming(ServiceType service_type) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  using namespace application_manager;
+  bool stream_woke_up = false;
+  if (service_type == ServiceType::kMobileNav) {
+    sync_primitives::AutoLock lock(video_streaming_suspended_lock_);
+    if (video_streaming_suspended_) {
+      video_streaming_suspended_ = false;
+      stream_woke_up = true;
+    }
+  } else {
+    sync_primitives::AutoLock lock(audio_streaming_suspended_lock_);
+    if (audio_streaming_suspended_) {
+      audio_streaming_suspended_ = false;
+      stream_woke_up = true;
+    }
+  }
+  if (stream_woke_up) {
+    LOG4CXX_DEBUG(logger_, "Data is available for service type " << service_type);
+    MessageHelper::SendOnDataStreaming(service_type, true);
+  }
+}
+
+bool MediaManagerImpl::CanStream(ServiceType service_type) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  using namespace application_manager;
+
+  if (!streamer_[service_type]) {
+    LOG4CXX_DEBUG(logger_, "There is no appropriate streamer");
+    return false;
+  }
+
+  const bool is_navi = (service_type == ServiceType::kMobileNav);
+  const bool is_allowed =
+      is_navi ? ApplicationManagerImpl::instance()-> IsVideoStreamingAllowed(
+                  streaming_app_id_) :
+                ApplicationManagerImpl::instance()-> IsAudioStreamingAllowed(
+                  streaming_app_id_);
+  return is_allowed;
 }
 
 }  //  namespace media_manager

@@ -87,9 +87,16 @@ void StateController::HmiLevelConflictResolver::operator ()
     if (Compare<HMILevel::eType, EQ, ONE>(cur_state->hmi_level(),
                                           HMILevel::HMI_FULL,
                                           HMILevel::HMI_LIMITED)) {
+      LOG4CXX_DEBUG(logger_, "DATA: " << applied_->IsAudioApplication() << " AND "
+                    << state_ctrl_->IsSameAppType(applied_, to_resolve));
       if (applied_->IsAudioApplication() && state_ctrl_->IsSameAppType(applied_, to_resolve)) {
-        state_ctrl_->SetupRegularHmiState(to_resolve, HMILevel::HMI_BACKGROUND,
-                     AudioStreamingState::NOT_AUDIBLE);
+        if (applied_->is_media_application() && to_resolve->is_navi()) {
+          state_ctrl_->SetupRegularHmiState(to_resolve, HMILevel::HMI_LIMITED,
+                       AudioStreamingState::AUDIBLE);
+        } else {
+          state_ctrl_->SetupRegularHmiState(to_resolve, HMILevel::HMI_BACKGROUND,
+                       AudioStreamingState::NOT_AUDIBLE);
+        }
       } else {
         state_ctrl_->SetupRegularHmiState(to_resolve, HMILevel::HMI_LIMITED,
                      AudioStreamingState::AUDIBLE);
@@ -227,6 +234,8 @@ void StateController::OnStateChanged(ApplicationSharedPtr app,
     if (new_state->hmi_level() == mobile_apis::HMILevel::HMI_NONE) {
       app->ResetDataInNone();
     }
+    ApplicationManagerImpl::instance()->OnHMILevelChanged(app->app_id(),
+        old_state->hmi_level(), new_state->hmi_level());
     app->usage_report().RecordHmiStateChanged(new_state->hmi_level());
   } else {
     LOG4CXX_ERROR(logger_, "Status not changed");
