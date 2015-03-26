@@ -98,7 +98,7 @@ PPSListener::PPSListener(TransportAdapterController* controller)
     : initialised_(false),
       controller_(controller),
       fd_(-1),
-      thread_(0) {
+      thread_(0){
   LOG4CXX_AUTO_TRACE(logger_);
 }
 
@@ -317,6 +317,7 @@ TransportAdapter::Error PPSListener::StartListening() {
 TransportAdapter::Error PPSListener::StopListening() {
   LOG4CXX_AUTO_TRACE(logger_);
   thread_->join();
+  AOAWrapper::Shutdown();
   delete thread_->delegate();
   threads::DeleteThread(thread_);
   thread_ = NULL;
