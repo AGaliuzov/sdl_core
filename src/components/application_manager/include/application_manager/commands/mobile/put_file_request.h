@@ -65,13 +65,18 @@ class PutFileRequest : public CommandRequestImpl {
   virtual void Run();
 
  private:
-    int64_t                     offset_;
-    std::string                  sync_file_name_;
-    int64_t                     length_;
-    mobile_apis::FileType::eType file_type_;
-    bool                         is_persistent_file_;
+  void SendOnPutFileNotification();
 
-    void SendOnPutFileNotification();
+  bool IsSyncFileNameValid(const std::string& sync_file_name);
+
+ private:
+  int64_t                     offset_;
+  std::string                  sync_file_name_;
+  int64_t                     length_;
+  mobile_apis::FileType::eType file_type_;
+  bool                         is_persistent_file_;
+
+
   DISALLOW_COPY_AND_ASSIGN(PutFileRequest);
 };
 
