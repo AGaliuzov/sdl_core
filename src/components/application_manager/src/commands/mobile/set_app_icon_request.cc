@@ -31,6 +31,7 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <algorithm>
 #include "application_manager/commands/mobile/set_app_icon_request.h"
 #include "application_manager/application_manager_impl.h"
 #include "application_manager/application_impl.h"
@@ -64,6 +65,14 @@ void SetAppIconRequest::Run() {
 
   const std::string& sync_file_name =
       (*message_)[strings::msg_params][strings::sync_file_name].asString();
+
+  if (!IsSyncFileNameValid(sync_file_name)) {
+    const std::string err_msg = "Sync file name contains forbidded symbols.";
+    LOG4CXX_ERROR(logger_, err_msg);
+    SendResponse(false, mobile_apis::Result::REJECTED,
+                 err_msg.c_str());
+    return;
+  }
 
   std::string full_file_path =
 #ifndef CUSTOMER_PASA
@@ -234,6 +243,12 @@ void SetAppIconRequest::on_event(const event_engine::Event& event) {
       return;
     }
   }
+}
+
+bool SetAppIconRequest::IsSyncFileNameValid(const std::string& sync_file_name) {
+  return sync_file_name.end() == std::find(sync_file_name.begin(),
+                                           sync_file_name.end(),
+                                           '/');
 }
 
 }  // namespace commands

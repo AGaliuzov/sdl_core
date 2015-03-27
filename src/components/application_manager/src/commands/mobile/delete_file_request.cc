@@ -31,6 +31,7 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <algorithm>
 #include "application_manager/commands/mobile/delete_file_request.h"
 #include "application_manager/application_manager_impl.h"
 #include "application_manager/application_impl.h"
@@ -73,6 +74,14 @@ void DeleteFileRequest::Run() {
   const std::string& sync_file_name =
       (*message_)[strings::msg_params][strings::sync_file_name].asString();
 
+  if (!IsSyncFileNameValid(sync_file_name)) {
+    const std::string err_msg = "Sync file name contains forbidded symbols.";
+    LOG4CXX_ERROR(logger_, err_msg);
+    SendResponse(false, mobile_apis::Result::REJECTED,
+                 err_msg.c_str());
+    return;
+  }
+
   std::string full_file_path =
       profile::Profile::instance()->app_storage_folder() + "/";
   full_file_path += application->folder_name();
@@ -108,6 +117,12 @@ void DeleteFileRequest::SendFileRemovedNotification(
 
     CreateHMINotification(
             hmi_apis::FunctionID::BasicCommunication_OnFileRemoved, msg_params);
+}
+
+bool DeleteFileRequest::IsSyncFileNameValid(const std::string& sync_file_name) {
+  return sync_file_name.end() == std::find(sync_file_name.begin(),
+                                           sync_file_name.end(),
+                                           '/');
 }
 
 }  // namespace commands

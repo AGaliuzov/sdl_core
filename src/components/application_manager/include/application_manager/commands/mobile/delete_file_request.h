@@ -66,6 +66,7 @@ class DeleteFileRequest : public CommandRequestImpl {
   virtual void Run();
 
  private:
+  bool IsSyncFileNameValid(const std::string& sync_file_name);
   DISALLOW_COPY_AND_ASSIGN(DeleteFileRequest);
 
   void SendFileRemovedNotification(const AppFile* file) const;

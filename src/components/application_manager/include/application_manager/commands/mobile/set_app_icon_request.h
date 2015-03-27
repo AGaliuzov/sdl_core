@@ -92,6 +92,14 @@ class SetAppIconRequest : public CommandRequestImpl {
    */
   void RemoveOldestIcons(const std::string& storage,
                          const uint32_t icons_amount) const;
+
+  /**
+   * @brief Checks, if sync_file_name parameter is conforms to certain rules
+   * @param sync_file_name parameter value
+   * @return true, if ok, otherwise - false
+   */
+  bool IsSyncFileNameValid(const std::string& sync_file_name);
+
   DISALLOW_COPY_AND_ASSIGN(SetAppIconRequest);
 };
 
