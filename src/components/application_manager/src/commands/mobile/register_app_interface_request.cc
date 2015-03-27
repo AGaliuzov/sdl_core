@@ -415,7 +415,7 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile(
       *hmi_capabilities.preset_bank_capabilities();
   }
   if (hmi_capabilities.hmi_zone_capabilities()) {
-    response_params[hmi_response::hmi_zone_capabilities] =
+    response_params[hmi_response::hmi_zone_capabilities][0] =
       *hmi_capabilities.hmi_zone_capabilities();
   }
   if (hmi_capabilities.speech_capabilities()) {
@@ -427,7 +427,7 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile(
       *hmi_capabilities.vr_capabilities();
   }
   if (hmi_capabilities.audio_pass_thru_capabilities()) {
-    response_params[strings::audio_pass_thru_capabilities] =
+    response_params[strings::audio_pass_thru_capabilities][0] =
       *hmi_capabilities.audio_pass_thru_capabilities();
   }
   if (hmi_capabilities.vehicle_type()) {
