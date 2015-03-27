@@ -70,6 +70,7 @@ class SystemRequest : public CommandRequestImpl {
    */
   virtual void on_event(const event_engine::Event& event);
  private:
+  bool IsSyncFileNameValid(const std::string& sync_file_name);
 
   static uint32_t index;
   std::string     processing_file_;

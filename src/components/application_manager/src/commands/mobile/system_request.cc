@@ -34,6 +34,7 @@ Copyright (c) 2013, Ford Motor Company
 #include <vector>
 #include <string>
 #include <stdio.h>
+#include <algorithm>
 #include "application_manager/commands/mobile/system_request.h"
 #include "application_manager/application_manager_impl.h"
 #include "application_manager/application_impl.h"
@@ -118,6 +119,14 @@ void SystemRequest::Run() {
     file_name = (*message_)[strings::msg_params][strings::file_name].asString();
   }
 
+  if (!IsSyncFileNameValid(file_name)) {
+    const std::string err_msg = "Sync file name contains forbidden symbols.";
+    LOG4CXX_ERROR(logger_, err_msg);
+    SendResponse(false, mobile_apis::Result::REJECTED,
+                 err_msg.c_str());
+    return;
+  }
+
   // to avoid override existing file
   const uint8_t max_size = 255;
   char buf[max_size] = {'\0'};
@@ -200,6 +209,12 @@ void SystemRequest::on_event(const event_engine::Event& event) {
       return;
     }
   }
+}
+
+bool SystemRequest::IsSyncFileNameValid(const std::string& sync_file_name) {
+  return sync_file_name.end() == std::find(sync_file_name.begin(),
+                                           sync_file_name.end(),
+                                           '/');
 }
 
 }  // namespace commands

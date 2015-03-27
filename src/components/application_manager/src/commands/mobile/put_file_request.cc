@@ -109,7 +109,7 @@ void PutFileRequest::Run() {
     (*message_)[strings::msg_params][strings::sync_file_name].asString();
 
   if (!IsSyncFileNameValid(sync_file_name_)) {
-    const std::string err_msg = "Sync file name contains forbidded symbols.";
+    const std::string err_msg = "Sync file name contains forbidden symbols.";
     LOG4CXX_ERROR(logger_, err_msg);
     SendResponse(false, mobile_apis::Result::REJECTED,
                  err_msg.c_str(),
