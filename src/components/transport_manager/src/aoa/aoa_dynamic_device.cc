@@ -58,6 +58,9 @@ AOADynamicDevice::~AOADynamicDevice() {
   LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_, "AOA: device " << unique_device_id());
   life_cond_.NotifyOne();
+  if (!life_cond_.Wait(locker)) {
+      break;
+  }
   delete life_;
 }
 
