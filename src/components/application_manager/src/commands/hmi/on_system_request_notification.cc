@@ -97,20 +97,9 @@ void OnSystemRequestNotification::Run() {
   }
 
   if (!app.valid()) {
-    LOG4CXX_WARN(logger_, "Application with policy id " << policy_app_id
+    LOG4CXX_ERROR(logger_, "Application with policy id " << policy_app_id
                  << " and connection key " << app_id <<
                  "is not registered.");
-    return;
-  }
-
-  const mobile_apis::RequestType::eType request_type =
-      static_cast<mobile_apis::RequestType::eType>(
-          (*message_)[strings::msg_params][strings::request_type].asInt());
-
-  if (!policy::PolicyHandler::instance()->IsRequestTypeAllowed(
-           app->mobile_app_id(), request_type)) {
-    LOG4CXX_WARN(logger_, "Request type "  << request_type
-                 <<" is not allowed by policies");
     return;
   }
 
