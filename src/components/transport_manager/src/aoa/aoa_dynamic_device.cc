@@ -57,6 +57,9 @@ AOADynamicDevice::AOADynamicDevice(const std::string& name,
 AOADynamicDevice::~AOADynamicDevice() {
   LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_, "AOA: device " << unique_device_id());
+  life_cond_.NotifyOne();
+  sync_primitives::AutoLock locker(life_lock_);
+  life_cond_.Wait(locker);
   delete life_;
 }
 
@@ -66,8 +69,12 @@ bool AOADynamicDevice::Init() {
 
 void AOADynamicDevice::AddDevice(AOAWrapper::AOAHandle handle) {
   LOG4CXX_AUTO_TRACE(logger_);
+  if (lastDevice_.size()) {
+      controller_->DeviceDisconnected(lastDevice_, DisconnectDeviceError());
+  }
   set_handle(handle);
   controller_->ApplicationListUpdated(unique_device_id());
+  lastDevice_= unique_device_id();  
 }
 
 void AOADynamicDevice::LoopDevice(AOAWrapper::AOAHandle handle) {

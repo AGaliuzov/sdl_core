@@ -60,6 +60,7 @@ class AOADynamicDevice : public AOADevice {
   AOAWrapper::AOAUsbInfo aoa_usb_info_;
   sync_primitives::Lock life_lock_;
   sync_primitives::ConditionalVariable life_cond_;
+  DeviceUID lastDevice_;
 
   void AddDevice(AOAWrapper::AOAHandle handle);
   void LoopDevice(AOAWrapper::AOAHandle handle);
