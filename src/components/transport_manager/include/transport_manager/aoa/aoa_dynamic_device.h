@@ -59,6 +59,7 @@ class AOADynamicDevice : public AOADevice {
   TransportAdapterController* controller_;
   AOAWrapper::AOAUsbInfo aoa_usb_info_;
   sync_primitives::Lock life_lock_;
+  sync_primitives::Lock last_life_lock_;
   sync_primitives::ConditionalVariable life_cond_;
   DeviceUID lastDevice_;
 
