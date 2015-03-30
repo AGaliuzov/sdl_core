@@ -156,15 +156,14 @@ void RegisterAppInterfaceRequest::Run() {
   // Flag conditional compilation specific to customer is used in order to exclude hit code
   // to RTC
   // FIXME(EZamakhov): on shutdown - get freez
-  if (true == profile::Profile::instance()->launch_hmi()) {
-    // wait till HMI started
-    while (!ApplicationManagerImpl::instance()->IsHMICooperating()) {
-      sleep(1);
-      // TODO(DK): timer_->StartWait(1);
-      ApplicationManagerImpl::instance()->updateRequestTimeout(connection_key(),
-                                                               correlation_id(),
-                                                               default_timeout());
-    }
+
+  // wait till HMI started
+  while (!ApplicationManagerImpl::instance()->IsHMICooperating()) {
+    sleep(1);
+    // TODO(DK): timer_->StartWait(1);
+    ApplicationManagerImpl::instance()->updateRequestTimeout(connection_key(),
+                                                             correlation_id(),
+                                                             default_timeout());
   }
 #endif
 
