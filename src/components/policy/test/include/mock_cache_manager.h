@@ -66,8 +66,8 @@ class MockCacheManagerInterface : public CacheManagerInterface {
       int());
   MOCK_METHOD1(SecondsBetweenRetries,
       bool(std::vector<int> &seconds));
-  MOCK_METHOD0(GetVehicleData,
-      VehicleData());
+  MOCK_CONST_METHOD0(GetVehicleInfo,
+      const VehicleInfo());
   MOCK_METHOD1(SetVINValue,
       bool(const std::string& value));
   MOCK_METHOD2(GetUserFriendlyMsg,

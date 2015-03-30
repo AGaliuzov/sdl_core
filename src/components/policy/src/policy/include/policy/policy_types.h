@@ -318,6 +318,15 @@ enum Counters {
   DAYS_AFTER_EPOCH
 };
 
+/**
+ * @struct Vehicle information
+ */
+struct VehicleInfo {
+  std::string vehicle_make;
+  std::string vehicle_model;
+  std::string vehicle_year;
+};
+
 
 }  //  namespace policy
 

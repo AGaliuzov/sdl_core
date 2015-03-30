@@ -31,6 +31,7 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <algorithm>
 #include "application_manager/commands/mobile/put_file_request.h"
 #include "application_manager/application_manager_impl.h"
 #include "application_manager/policies/policy_handler.h"
@@ -106,6 +107,16 @@ void PutFileRequest::Run() {
   }
   sync_file_name_ =
     (*message_)[strings::msg_params][strings::sync_file_name].asString();
+
+  if (!IsSyncFileNameValid(sync_file_name_)) {
+    const std::string err_msg = "Sync file name contains forbidded symbols.";
+    LOG4CXX_ERROR(logger_, err_msg);
+    SendResponse(false, mobile_apis::Result::REJECTED,
+                 err_msg.c_str(),
+                 &response_params);
+    return;
+  }
+
   file_type_ =
     static_cast<mobile_apis::FileType::eType>(
       (*message_)[strings::msg_params][strings::file_type].asInt());
@@ -251,6 +262,12 @@ void PutFileRequest::SendOnPutFileNotification() {
   message[strings::msg_params][strings::persistent_file] = is_persistent_file_;
   message[strings::msg_params][strings::file_type] = file_type_;
   ApplicationManagerImpl::instance()->ManageHMICommand(notification);
+}
+
+bool PutFileRequest::IsSyncFileNameValid(const std::string& sync_file_name) {
+  return sync_file_name.end() == std::find(sync_file_name.begin(),
+                                           sync_file_name.end(),
+                                           '/');
 }
 
 }  // namespace commands

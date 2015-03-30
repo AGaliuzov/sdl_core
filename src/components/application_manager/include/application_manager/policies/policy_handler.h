@@ -341,6 +341,12 @@ class PolicyHandler :
   const std::vector<std::string> GetAppRequestTypes(
       const std::string& policy_app_id) const;
 
+  /**
+   * @brief Gets vehicle information
+   * @return Structure with vehicle information
+   */
+  const VehicleInfo GetVehicleInfo() const;
+
 //TODO(AKutsan) REMOVE THIS UGLY HOTFIX
   virtual void Increment(usage_statistics::GlobalCounterId type);
   virtual void Increment(const std::string& app_id,

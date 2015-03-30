@@ -415,7 +415,7 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile(
       *hmi_capabilities.preset_bank_capabilities();
   }
   if (hmi_capabilities.hmi_zone_capabilities()) {
-    response_params[hmi_response::hmi_zone_capabilities] =
+    response_params[hmi_response::hmi_zone_capabilities][0] =
       *hmi_capabilities.hmi_zone_capabilities();
   }
   if (hmi_capabilities.speech_capabilities()) {
@@ -427,12 +427,49 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile(
       *hmi_capabilities.vr_capabilities();
   }
   if (hmi_capabilities.audio_pass_thru_capabilities()) {
-    response_params[strings::audio_pass_thru_capabilities] =
+    response_params[strings::audio_pass_thru_capabilities][0] =
       *hmi_capabilities.audio_pass_thru_capabilities();
   }
   if (hmi_capabilities.vehicle_type()) {
-    response_params[hmi_response::vehicle_type] =
-      *hmi_capabilities.vehicle_type();
+    using namespace hmi_response;
+    smart_objects::SmartObject& vehicle_type_so = response_params[vehicle_type];
+
+    vehicle_type_so = *hmi_capabilities.vehicle_type();
+
+    policy::VehicleInfo vehicle_info =
+        policy::PolicyHandler::instance()->GetVehicleInfo();
+
+    CheckResponseVehicleTypeParam(vehicle_type_so, vehicle_make,
+                                  vehicle_info.vehicle_make);
+
+    CheckResponseVehicleTypeParam(vehicle_type_so, vehicle_model,
+                                  vehicle_info.vehicle_model);
+
+    CheckResponseVehicleTypeParam(vehicle_type_so, vehicle_year,
+                                  vehicle_info.vehicle_year);
+
+    if (!vehicle_type_so.keyExists(vehicle_make) &&
+        !vehicle_type_so.keyExists(vehicle_model) &&
+        !vehicle_type_so.keyExists(vehicle_year)) {
+      response_params.erase(vehicle_type);
+    }
+  } else {
+    using namespace hmi_response;
+    LOG4CXX_DEBUG(logger_, vehicle_type << " is missing. "
+                  "Will try to replace with policy table values, if present.");
+
+    policy::VehicleInfo vehicle_info =
+        policy::PolicyHandler::instance()->GetVehicleInfo();
+
+    if (!vehicle_info.vehicle_make.empty()) {
+      response_params[vehicle_type][vehicle_make] = vehicle_info.vehicle_make;
+    }
+    if (!vehicle_info.vehicle_model.empty()) {
+      response_params[vehicle_type][vehicle_model] = vehicle_info.vehicle_model;
+    }
+    if (!vehicle_info.vehicle_year.empty()) {
+      response_params[vehicle_type][vehicle_year] = vehicle_info.vehicle_year;
+    }
   }
   if (hmi_capabilities.prerecorded_speech()) {
     response_params[strings::prerecorded_speech] =
@@ -815,7 +852,25 @@ bool RegisterAppInterfaceRequest::IsWhiteSpaceExist() {
       return true;
     }
   }
+
   return false;
+}
+
+void RegisterAppInterfaceRequest::CheckResponseVehicleTypeParam(
+    smart_objects::SmartObject& vehicle_type,
+    const std::string& param,
+    const std::string& backup_value) {
+  using namespace hmi_response;
+  if (!vehicle_type.keyExists(param) ||
+      vehicle_type[param].empty()) {
+    if (!backup_value.empty()) {
+      LOG4CXX_DEBUG(logger_, param << " is missing."
+                    "Will be replaced with policy table value.");
+      vehicle_type[param] = backup_value;
+    } else {
+      vehicle_type.erase(param);
+    }
+  }
 }
 
 }  // namespace commands

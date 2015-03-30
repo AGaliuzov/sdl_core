@@ -1409,6 +1409,11 @@ const std::vector<std::string> PolicyHandler::GetAppRequestTypes(
   return policy_manager_->GetAppRequestTypes(policy_app_id);
 }
 
+const VehicleInfo policy::PolicyHandler::GetVehicleInfo() const {
+  POLICY_LIB_CHECK(VehicleInfo());
+  return policy_manager_->GetVehicleInfo();
+}
+
 void PolicyHandler::Increment(usage_statistics::GlobalCounterId type) {
   POLICY_LIB_CHECK();
   policy_manager_->Increment(type);

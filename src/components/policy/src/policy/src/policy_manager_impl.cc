@@ -302,6 +302,10 @@ const std::vector<std::string> PolicyManagerImpl::GetAppRequestTypes(
   return request_types;
 }
 
+const VehicleInfo PolicyManagerImpl::GetVehicleInfo() const {
+  return cache_->GetVehicleInfo();
+}
+
 void PolicyManagerImpl::CheckPermissions(const PTString& app_id,
                                          const PTString& hmi_level,
                                           const PTString& rpc,

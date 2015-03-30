@@ -125,7 +125,7 @@ class CacheManager : public CacheManagerInterface {
   /**
    * @brief Get information about vehicle
    */
-  virtual VehicleData GetVehicleData();
+  virtual const VehicleInfo GetVehicleInfo() const;
 
   /**
    * @brief Allows to update 'vin' field in module_meta table.
