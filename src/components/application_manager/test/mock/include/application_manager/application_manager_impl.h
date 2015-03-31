@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -158,7 +158,7 @@ class ApplicationManagerImpl : public ApplicationManager,
 
  public:
     ApplicationManagerImpl() {
-        std::cout << "ApplicationManagerImpl Mock created " << std::endl;
+        std::cout << "ApplicationManagerImpl Mock created \n";
     }
 
   MOCK_METHOD0(Init, bool());
@@ -203,7 +203,6 @@ class ApplicationManagerImpl : public ApplicationManager,
                                           bool));
   MOCK_METHOD1(SendMessageToMobile, bool (const utils::SharedPtr<smart_objects::SmartObject>&));
   MOCK_METHOD1(GetDeviceName, std::string (connection_handler::DeviceHandle));
-  MOCK_METHOD1(application, ApplicationSharedPtr (uint32_t));
   MOCK_METHOD1(application_by_policy_id, ApplicationSharedPtr (const std::string&));
   MOCK_METHOD1(RemoveAppDataFromHMI, bool(ApplicationSharedPtr));
   MOCK_METHOD1(HeadUnitReset, void(mobile_api::AppInterfaceUnregisteredReason::eType));
@@ -288,7 +287,6 @@ class ApplicationManagerImpl : public ApplicationManager,
   MOCK_METHOD1(ConnectToDevice, void(uint32_t));
   MOCK_METHOD0(OnHMIStartedCooperation, void());
   MOCK_METHOD0(GetNextHMICorrelationID, uint32_t ());
-  MOCK_CONST_METHOD0(IsHMICooperating, bool());
   MOCK_METHOD0(OnTimerSendTTSGlobalProperties, void());
   MOCK_METHOD0(CreatePhoneCallAppList, void());
   MOCK_METHOD0(ResetPhoneCallAppList, void());
@@ -314,6 +312,11 @@ class ApplicationManagerImpl : public ApplicationManager,
   MOCK_METHOD3(set_state, void(ApplicationSharedPtr app,
                                mobile_apis::HMILevel::eType,
                                mobile_apis::AudioStreamingState::eType));
+  bool IsHMICooperating() const {return true; };
+
+  ApplicationSharedPtr application(uint32_t) const {
+    return ApplicationSharedPtr();
+  }
 
   struct ApplicationsAppIdSorter {
     bool operator() (const ApplicationSharedPtr lhs,

@@ -46,9 +46,9 @@ set(LIBRARIES
     gmock 
     ConfigProfile 
     transport_manager
-    ApplicationManagerTest 
     Utils    
     ConfigProfile
+    ProtocolLibrary
     Resumption
     jsoncpp     
 )
