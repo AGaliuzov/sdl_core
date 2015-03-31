@@ -37,6 +37,7 @@
 #include "application_manager/request_controller.h"
 #include "application_manager/commands/command_request_impl.h"
 #include "application_manager/application_manager_impl.h"
+#include "application_manager/message_helper.h"
 #include "application_manager/commands/mobile/put_file_request.h"
 #include "application_manager/commands/mobile/register_app_interface_request.h"
 #include "application_manager/commands/mobile/unregister_app_interface_request.h"
@@ -53,30 +54,19 @@ using namespace application_manager;
 using namespace NsSmartDeviceLink::NsSmartObjects;
 
 commands::Command* RegisterApplication() {
-  SmartObjectSPtr resultsmart = new SmartObject;
+
+  SmartObjectSPtr resultsmart = application_manager::MessageHelper::CreateModuleInfoSO(1);
   SmartObject& test_message = *resultsmart;
   uint32_t connection_key = 0;
-  test_message[strings::params][strings::message_type] = 0;
-  test_message[strings::params][strings::correlation_id] = 1;
-  test_message[strings::params][strings::protocol_type] = 0;
-  test_message[strings::params][strings::protocol_version] = 3;
   test_message[strings::params][strings::connection_key] = connection_key;
-  test_message[strings::params][strings::function_id] = 1;
   test_message[strings::msg_params][strings::language_desired] = 0;
   test_message[strings::msg_params][strings::hmi_display_language_desired] = 0;
-
-  commands::Command *testregCommand = NULL;
-  testregCommand = new commands::RegisterAppInterfaceRequest(resultsmart);
+  commands::Command* testregCommand = new commands::RegisterAppInterfaceRequest(resultsmart);
   return testregCommand;
 }
 
 commands::Command* UnregisterApplication() {
-  SmartObjectSPtr resultsmart = new SmartObject;
-  SmartObject& test_message = *resultsmart;
-  uint32_t connection_key = 0;
-  test_message[strings::params][strings::message_type] = 0;
-  test_message[strings::params][strings::connection_key] = connection_key;
-  test_message[strings::params][strings::function_id] = 2;
+  SmartObjectSPtr resultsmart = application_manager::MessageHelper::CreateModuleInfoSO(2);
   commands::Command *testregCommand =
       new commands::UnregisterAppInterfaceRequest(resultsmart);
   return testregCommand;
@@ -84,15 +74,11 @@ commands::Command* UnregisterApplication() {
 
 commands::Command* PutFileCommand(uint32_t &correlation_id,
                                   uint32_t &connection_key) {
-  SmartObjectSPtr resultsmart = new SmartObject;
-  SmartObject& test_message = *resultsmart;
 
-  test_message[strings::params][strings::message_type] = 0;
+  SmartObjectSPtr resultsmart = application_manager::MessageHelper::CreateModuleInfoSO(32);
+  SmartObject& test_message = *resultsmart;
   test_message[strings::params][strings::correlation_id] = correlation_id;
-  test_message[strings::params][strings::protocol_type] = 0;
-  test_message[strings::params][strings::protocol_version] = 3;
   test_message[strings::params][strings::connection_key] = connection_key;
-  test_message[strings::params][strings::function_id] = 32;
   test_message[strings::msg_params][strings::sync_file_name] = "file.png";
   test_message[strings::msg_params][strings::file_type] =
       mobile_apis::FileType::GRAPHIC_PNG;
