@@ -1,16 +1,12 @@
-#line 232 "qtlua.nw"
 #include "marshal.h"
-#line 5 "main.nw"
 extern "C" {
 #include <lua5.2/lua.h>
 #include <lua5.2/lualib.h>
 #include <lua5.2/lauxlib.h>
 }
-#line 234 "qtlua.nw"
 #include <QMap>
 #include <QList>
 #include <QString>
-#line 241 "qtlua.nw"
 QList<Marshaller*> get_marshalling_list(const char* signature)
 {
   QList<Marshaller*> retval;
@@ -29,7 +25,6 @@ QList<Marshaller*> get_marshalling_list(const char* signature)
   }
   return retval;
 }
-#line 262 "qtlua.nw"
 namespace {
   // int Marshaller
   class : public Marshaller {
@@ -65,7 +60,6 @@ namespace {
       lua_pushinteger(L, *static_cast<qint64*>(obj));
     }
   } qint64Marshaller;
-#line 299 "qtlua.nw"
   // QString Marshaller
   class : public Marshaller {
    public:
@@ -114,7 +108,6 @@ namespace {
       lua_pushboolean(L, *static_cast<bool*>(obj));
     }
   } boolMarshaller;
-#line 348 "qtlua.nw"
   QMap<QString, Marshaller*> marshallers = {
     { "int", &intMarshaller },
     { "qint64", &qint64Marshaller },

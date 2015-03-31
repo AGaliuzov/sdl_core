@@ -1,10 +1,8 @@
-#line 5 "main.nw"
 extern "C" {
 #include <lua5.2/lua.h>
 #include <lua5.2/lualib.h>
 #include <lua5.2/lauxlib.h>
 }
-#line 16 "main.nw"
 #include <QObject>
 #include <QCoreApplication>
 #include <assert.h>

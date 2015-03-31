@@ -1,17 +1,13 @@
-#line 16 "dynamic_object.nw"
 #include <QObject>
 #include <QMetaObject>
 #include <QHash>
 #include <QByteArray>
-#line 5 "main.nw"
 extern "C" {
 #include <lua5.2/lua.h>
 #include <lua5.2/lualib.h>
 #include <lua5.2/lauxlib.h>
 }
-#line 21 "dynamic_object.nw"
 #include "marshal.h"
-#line 26 "dynamic_object.nw"
 class DynamicSlot
 {
  public:
@@ -23,7 +19,6 @@ class DynamicSlot
   int objidx_;
   QString slot_;
 };
-#line 44 "dynamic_object.nw"
 class DynamicObject : public QObject {
  public:
   DynamicObject(QObject *parent);

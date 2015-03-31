@@ -1,4 +1,3 @@
-#line 12 "timers.nw"
 #include "timers.h"
 #include <QTimer>
 

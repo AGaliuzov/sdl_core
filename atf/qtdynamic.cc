@@ -1,14 +1,11 @@
-#line 66 "dynamic_object.nw"
 #include "qtdynamic.h"
 #include <QObject>
 #include <QDebug>
-#line 5 "main.nw"
 extern "C" {
 #include <lua5.2/lua.h>
 #include <lua5.2/lualib.h>
 #include <lua5.2/lauxlib.h>
 }
-#line 70 "dynamic_object.nw"
 DynamicObject::DynamicObject(QObject *parent)
   : QObject(parent) { }
 
@@ -54,16 +51,13 @@ static int *queuedConnectionTypes(const QList<QByteArray> &typeNames)
 bool DynamicObject::connectDynamicSlot(QObject *obj, const char *signal, const char *slot,
     DynamicSlot *s)
 {
-  
-#line 189 "dynamic_object.nw"
-QByteArray theSignal = QMetaObject::normalizedSignature(signal);
-QByteArray theSlot   = QMetaObject::normalizedSignature(slot);
-if (!QMetaObject::checkConnectArgs(theSignal, theSlot)) {
-  qWarning() << "Cannot connect signal" << theSignal << "to slot" << theSlot;
-  return false;
-}
+  QByteArray theSignal = QMetaObject::normalizedSignature(signal);
+  QByteArray theSlot   = QMetaObject::normalizedSignature(slot);
+  if (!QMetaObject::checkConnectArgs(theSignal, theSlot)) {
+    qWarning() << "Cannot connect signal" << theSignal << "to slot" << theSlot;
+    return false;
+  }
 
-#line 117 "dynamic_object.nw"
   int signalId = obj->metaObject()->indexOfSignal(theSignal);
   if (signalId < 0) {
     qWarning() << "No such signal " << theSignal;
@@ -86,16 +80,13 @@ if (!QMetaObject::checkConnectArgs(theSignal, theSlot)) {
 
 bool DynamicObject::connectDynamicSignal(const char *signal, QObject *obj, const char *slot)
 {
-  
-#line 189 "dynamic_object.nw"
-QByteArray theSignal = QMetaObject::normalizedSignature(signal);
-QByteArray theSlot   = QMetaObject::normalizedSignature(slot);
-if (!QMetaObject::checkConnectArgs(theSignal, theSlot)) {
-  qWarning() << "Cannot connect signal" << theSignal << "to slot" << theSlot;
-  return false;
-}
+  QByteArray theSignal = QMetaObject::normalizedSignature(signal);
+  QByteArray theSlot   = QMetaObject::normalizedSignature(slot);
+  if (!QMetaObject::checkConnectArgs(theSignal, theSlot)) {
+    qWarning() << "Cannot connect signal" << theSignal << "to slot" << theSlot;
+    return false;
+  }
 
-#line 141 "dynamic_object.nw"
   int slotId = obj->metaObject()->indexOfSlot(theSlot);
   if (slotId < 0) {
     qWarning() << "Cannot find slot " << theSlot;
@@ -120,16 +111,13 @@ bool DynamicObject::connectDynamicSignalToDynamicSlot(
   const char *slot,
   DynamicSlot *s)
 {
-  
-#line 189 "dynamic_object.nw"
-QByteArray theSignal = QMetaObject::normalizedSignature(signal);
-QByteArray theSlot   = QMetaObject::normalizedSignature(slot);
-if (!QMetaObject::checkConnectArgs(theSignal, theSlot)) {
-  qWarning() << "Cannot connect signal" << theSignal << "to slot" << theSlot;
-  return false;
-}
+  QByteArray theSignal = QMetaObject::normalizedSignature(signal);
+  QByteArray theSlot   = QMetaObject::normalizedSignature(slot);
+  if (!QMetaObject::checkConnectArgs(theSignal, theSlot)) {
+    qWarning() << "Cannot connect signal" << theSignal << "to slot" << theSlot;
+    return false;
+  }
 
-#line 167 "dynamic_object.nw"
   int signalId = sender->signalIndices.value(theSignal, -1);
   if (signalId < 0) {
       signalId = sender->signalIndices.size();
@@ -151,7 +139,6 @@ if (!QMetaObject::checkConnectArgs(theSignal, theSlot)) {
     queuedConnectionTypes(typesFromString(theSignal.constData() + theSignal.indexOf('(') + 1,
                                           theSignal.constData() + theSignal.indexOf(')'))));
 }
-#line 196 "dynamic_object.nw"
 int DynamicObject::qt_metacall(QMetaObject::Call c, int id, void **arguments)
 {
   id = QObject::qt_metacall(c, id, arguments);
