@@ -1,0 +1,10 @@
+q = require("qttest")
+function test()
+  local obj1 = q.Object1()
+  dyn = qt.dynamic()
+  qt.connect(dyn, "Sig()", obj1, "SlotWithoutArgs()")
+  dyn:Sig()
+end
+test()
+collectgarbage()
+dyn:Sig()
