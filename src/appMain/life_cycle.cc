@@ -477,7 +477,6 @@ void LifeCycle::StopComponents() {
 #endif  // DBUS_HMIADAPTER
 #ifdef MESSAGEBROKER_HMIADAPTER
   hmi_handler_->RemoveHMIMessageAdapter(mb_adapter_);
-  hmi_message_handler::HMIMessageHandlerImpl::destroy();
   if (mb_adapter_) {
     mb_adapter_->unregisterController();
     mb_adapter_->Close();
@@ -487,6 +486,7 @@ void LifeCycle::StopComponents() {
     }
     delete mb_adapter_;
   }
+  hmi_message_handler::HMIMessageHandlerImpl::destroy();
   if (mb_adapter_thread_) {
     mb_adapter_thread_->Stop();
     delete mb_adapter_thread_;

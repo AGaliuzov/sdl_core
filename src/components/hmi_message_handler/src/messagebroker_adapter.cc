@@ -186,7 +186,7 @@ void MessageBrokerAdapter::ProcessRecievedFromMB(Json::Value& root) {
   message->set_protocol_version(application_manager::ProtocolVersion::kHMI);
 
   if (!handler()) {
-    // WARNING
+    LOG4CXX_WARN(logger_, "handler is NULL");
     return;
   }
 
