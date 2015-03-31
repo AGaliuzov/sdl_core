@@ -49,10 +49,10 @@ include_directories(
 )
 
 set(testSources
-#  ${AM_TEST_DIR}/command_impl_test.cc  
+  ${AM_TEST_DIR}/command_impl_test.cc  
   ${COMPONENTS_DIR}/application_manager/test/mobile_message_handler_test.cc
   ${AM_TEST_DIR}/request_info_test.cc
-  zero_request_amount_test.cc
+  ${AM_TEST_DIR}/zero_request_amount_test.cc
 )
 
 set(mockedSources
@@ -132,9 +132,6 @@ if(ENABLE_LOG)
 endif()
 
 add_library("ApplicationManagerTest" ${testSources} ${AM_SOURCES})
-
-file(COPY smartDeviceLink.ini DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-
 
 create_test("application_manager_test" "${testSources}" "${testLibraries}" "${AM_SOURCES}" ) 
 
