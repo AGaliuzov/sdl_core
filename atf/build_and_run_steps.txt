@@ -1,0 +1,6 @@
+1. To build ATF, target machine must have:
+     Lua 5.2 (run apt-get install liblua5.2-dev)
+     Qt 5.3 or 5.4 (verified to work with these versions)
+2. Edit Makefile, set QMAKE variable to correct path to your qmake
+3. Run `make'
+4. (optional) Run `make test' to run regression tests
