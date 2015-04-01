@@ -1377,6 +1377,11 @@ void PolicyHandler::OnAppsSearchCompleted() {
   policy_manager_->OnAppsSearchCompleted();
 }
 
+void PolicyHandler::OnAppRegisteredOnMobile(const std::string& application_id) {
+  POLICY_LIB_CHECK_VOID();
+  policy_manager_->OnAppRegisteredOnMobile(application_id);
+}
+
 bool PolicyHandler::IsRequestTypeAllowed(
     const std::string& policy_app_id,
     mobile_apis::RequestType::eType type) const {

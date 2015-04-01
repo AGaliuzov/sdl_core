@@ -519,15 +519,6 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile(
     resumption = resumer.IsApplicationSaved(application->mobile_app_id());
   }
 
-  /*
-   * Lock application list until application will be resumed.
-   * Do not move lock up to avoid deadlock with connection handler.
-   *
-   * TODO (Artem Nosach APPLINK-11905): Rework application default state setup
-   * (resume controller shouldn't do that). It will make this lock unneeded.
-   */
-  ApplicationManagerImpl::ApplicationListAccessor accessor;
-
   MessageHelper::SendChangeRegistrationRequestToHMI(application);
   SendResponse(true, result, add_info.c_str(), &response_params);
 

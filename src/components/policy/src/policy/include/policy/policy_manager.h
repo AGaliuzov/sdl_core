@@ -410,6 +410,15 @@ class PolicyManager : public usage_statistics::StatisticsManager {
     virtual void OnAppsSearchCompleted() = 0;
 
     /**
+     * @brief OnAppRegisteredOnMobile alows to handle event when application were
+     * succesfully registered on mobile device.
+     * It will send OnAppPermissionSend notification and will try to start PTU.
+     *
+     * @param application_id registered application.
+     */
+    virtual void OnAppRegisteredOnMobile(const std::string& application_id) = 0;
+
+    /**
      * @brief Gets request types for application
      * @param policy_app_id Unique application id
      * @return request_types Request types of application
