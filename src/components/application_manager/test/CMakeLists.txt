@@ -1,4 +1,4 @@
-# Copyright (c) 2014, Ford Motor Company
+# Copyright (c) 2015, Ford Motor Company
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -45,12 +45,14 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
   ${COMPONENTS_DIR}/application_manager/include/application_manager/policies
   ${COMPONENTS_DIR}/application_manager/include/
+  ${JSONCPP_INCLUDE_DIRECTORY}
 )
 
 set(testSources
   ${AM_TEST_DIR}/command_impl_test.cc  
   ${COMPONENTS_DIR}/application_manager/test/mobile_message_handler_test.cc
   ${AM_TEST_DIR}/request_info_test.cc
+  ${AM_TEST_DIR}/zero_request_amount_test.cc
 )
 
 set(mockedSources
@@ -80,7 +82,12 @@ set(AM_SOURCES
   ${AM_SOURCE_DIR}/src/application_data_impl.cc
   ${AM_SOURCE_DIR}/src/request_controller.cc
   ${AM_SOURCE_DIR}/src/resume_ctrl.cpp
+  ${AM_SOURCE_DIR}/src/commands/mobile/register_app_interface_request.cc
+  ${AM_SOURCE_DIR}/src/commands/mobile/unregister_app_interface_request.cc
   ${AM_SOURCE_DIR}/src/mobile_message_handler.cc
+  ${AM_SOURCE_DIR}/src/commands/mobile/put_file_request.cc
+  ${AM_SOURCE_DIR}/src/commands/command_request_impl.cc
+
 )
 
 if (EXTENDED_POLICY_FLAG)
@@ -94,27 +101,23 @@ else ()
 endif ()
 
 set(testLibraries
-  gmock
+  HMI_API
+  MOBILE_API
+  Utils
+  MediaManager
+  ProtocolHandler   
+  v4_protocol_v1_2_no_extra
+  SmartObjects  
+  formatters
   gmock_main
   UsageStatistics
   dl
   ProtocolLibrary
-)
-
-set(test_exec_libraries
-  HMI_API
-  MOBILE_API
-  v4_protocol_v1_2_no_extra
-  SmartObjects
-  formatters
-  ProtocolHandler
-  connectionHandler
-  HMIMessageHandler
-  Utils
-  jsoncpp
   ConfigProfile
-  MediaManager
+  connectionHandler
+  ApplicationManager
   Resumption
+  jsoncpp
 )
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "QNX")
@@ -128,15 +131,8 @@ if(ENABLE_LOG)
   list(APPEND LIBRARIES expat -L${EXPAT_LIBS_DIRECTORY})
 endif()
 
-add_library("ApplicationManagerTest" ${mockedSources} ${testSources} ${AM_SOURCES})
+add_library("ApplicationManagerTest" ${testSources} ${AM_SOURCES})
 
-target_link_libraries("ApplicationManagerTest" ${testLibraries} AMHMICommandsLibrary
-                                                                AMMobileCommandsLibrary
-                                                                AMEventEngine
-                                                                AMPolicyLibrary)
+create_test("application_manager_test" "${testSources}" "${testLibraries}" "${AM_SOURCES}" ) 
 
-create_test("application_manager_test" "${testSources}" "${ApplicationManagerTest}")
-target_link_libraries("application_manager_test" ApplicationManagerTest ${test_exec_libraries})
-
-#add_executable(application_manager_test ${testSources})
-#target_link_libraries(application_manager_test ApplicationManagerTest ${test_exec_libraries})
+target_link_libraries("application_manager_test" ApplicationManagerTest ${testLibraries})
