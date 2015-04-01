@@ -1735,7 +1735,9 @@ void CacheManager::MergePreloadPT(const std::string& file_name) {
   sync_primitives::AutoLock lock(cache_lock_);
   policy_table::PolicyTable& current = pt_->policy_table;
   policy_table::PolicyTable& new_table = table.policy_table;
-  if (current.module_config.preloaded_date != new_table.module_config.preloaded_date) {
+  const std::string date_current = *current.module_config.preloaded_date;
+  const std::string date_new = *new_table.module_config.preloaded_date;
+  if (date_current != date_new) {
     MergeMC(new_table, current);
     MergeFG(new_table, current);
     MergeAP(new_table, current);

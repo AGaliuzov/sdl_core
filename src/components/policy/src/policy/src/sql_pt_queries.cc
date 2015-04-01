@@ -541,7 +541,7 @@ const std::string kSelectModuleConfig =
   "SELECT `preloaded_pt`, `exchange_after_x_ignition_cycles`, "
   " `exchange_after_x_kilometers`, `exchange_after_x_days`, "
   " `timeout_after_x_seconds`, `vehicle_make`,"
-  " `vehicle_model`, `vehicle_year` "
+  " `vehicle_model`, `vehicle_year`, `preloaded_date`"
   " FROM `module_config`";
 
 const std::string kSelectEndpoints =
@@ -583,7 +583,7 @@ const std::string kSelectAppTypes = "SELECT DISTINCT `name` FROM `app_type` "
                                     "WHERE `application_id` = ?";
 
 const std::string kSelectRequestTypes =
-    "SELECT DISTINCT `name` FROM `request_type` WHERE `application_id` = ?";
+    "SELECT DISTINCT `request_type` FROM `request_type` WHERE `application_id` = ?";
 
 const std::string kSelectSecondsBetweenRetries =
   "SELECT `value` FROM `seconds_between_retry` ORDER BY `index`";

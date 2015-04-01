@@ -493,6 +493,7 @@ void SQLPTRepresentation::GatherModuleConfig(
     *config->vehicle_make = query.GetString(5);
     *config->vehicle_model = query.GetString(6);
     *config->vehicle_year = query.GetString(7);
+    *config->preloaded_date = query.GetString(8);
   }
 
   dbms::SQLQuery endpoints(db());
