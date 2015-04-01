@@ -108,8 +108,8 @@ TEST(RequestControlTest, ZeroValuePendingRequestsAmount) {
                                                      connection_key);
     result = request_ctrl_.addMobileRequest(testCommand,
                                             mobile_apis::HMILevel::HMI_FULL);
+    EXPECT_EQ(RequestController::SUCCESS, result);
   }
-  EXPECT_EQ(RequestController::SUCCESS, result);
 
   commands::Command * unreg = UnregisterApplication();
   request_ctrl_.addMobileRequest(unreg, mobile_apis::HMILevel::HMI_FULL);
@@ -135,8 +135,9 @@ TEST(RequestControlTest, ZeroValueAppRequestsTimeScale) {
                                                      connection_key);
     result = request_ctrl_.addMobileRequest(testCommand,
                                             mobile_apis::HMILevel::HMI_FULL);
+    EXPECT_EQ(RequestController::SUCCESS, result);
   }
-  EXPECT_EQ(RequestController::SUCCESS, result);
+
 
   commands::Command* unreg = UnregisterApplication();
   request_ctrl_.addMobileRequest(unreg, mobile_apis::HMILevel::HMI_FULL);
@@ -163,8 +164,8 @@ TEST(RequestControlTest, ZeroValueAppTimeScaleMaxRequests) {
                                                      connection_key);
     result = request_ctrl_.addMobileRequest(testCommand,
                                             mobile_apis::HMILevel::HMI_FULL);
+    EXPECT_EQ(RequestController::SUCCESS, result);
   }
-  EXPECT_EQ(RequestController::SUCCESS, result);
 
   commands::Command* unreg = UnregisterApplication();
   request_ctrl_.addMobileRequest(unreg, mobile_apis::HMILevel::HMI_FULL);
