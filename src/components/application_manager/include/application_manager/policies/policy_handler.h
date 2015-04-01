@@ -325,6 +325,15 @@ class PolicyHandler :
   void OnAppsSearchCompleted();
 
   /**
+   * @brief OnAppRegisteredOnMobile allows to handle event when application were
+   * succesfully registered on mobile device.
+   * It will send OnAppPermissionSend notification and will try to start PTU.
+   *
+   * @param application_id registered application.
+   */
+  void OnAppRegisteredOnMobile(const std::string& application_id);
+
+  /**
    * @brief Checks if certain request type is allowed for application
    * @param policy_app_id Unique applicaion id
    * @param type Request type

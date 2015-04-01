@@ -173,6 +173,7 @@ class PolicyManagerImpl : public PolicyManager {
 
     virtual const VehicleInfo GetVehicleInfo() const;
 
+    virtual void OnAppRegisteredOnMobile(const std::string& application_id);
   protected:
     virtual utils::SharedPtr<policy_table::Table> Parse(
         const BinaryMessage& pt_content);
