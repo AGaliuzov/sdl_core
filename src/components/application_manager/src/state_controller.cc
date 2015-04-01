@@ -156,10 +156,10 @@ void StateController::ApplyRegularState(ApplicationSharedPtr app,
 }
 
 bool StateController::IsSameAppType(ApplicationConstSharedPtr app1,
-                                  ApplicationConstSharedPtr app2) {
-    return app1->is_media_application() == app2->is_media_application() ||
-           app1->is_navi() == app2->is_navi() ||
-           app1->is_voice_communication_supported() == app2->is_voice_communication_supported();
+                                    ApplicationConstSharedPtr app2) {
+  return (app1->is_media_application() && app2->is_media_application()) ||
+         (app1->is_navi() && app2->is_navi()) ||
+         (app1->is_voice_communication_supported() && app2->is_voice_communication_supported());
 }
 
 void StateController::on_event(const event_engine::Event& event) {
