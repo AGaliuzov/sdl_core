@@ -104,10 +104,14 @@ PPSListener::PPSListener(TransportAdapterController* controller)
 
 PPSListener::~PPSListener() {
   LOG4CXX_AUTO_TRACE(logger_);
-  Terminate();
-  thread_->join();
-  delete thread_->delegate();
-  threads::DeleteThread(thread_);
+  if (initialised_) {
+        Terminate();
+  }
+  if (thread_) {
+      thread_->join();
+      delete thread_->delegate();
+      threads::DeleteThread(thread_);
+  }
 }
 
 TransportAdapter::Error PPSListener::Init() {
@@ -292,8 +296,10 @@ void PPSListener::SwitchMode(const char* objname, const char** attrs) {
 
 void PPSListener::ClosePps() {
   LOG4CXX_AUTO_TRACE(logger_);
-  close(fd_);
-  fd_ = -1;
+  if (fd_) {
+      close(fd_);
+      fd_ = -1;
+  }
 }
 
 void PPSListener::AddDevice(const AOAWrapper::AOAUsbInfo& aoa_usb_info) {
@@ -316,11 +322,13 @@ TransportAdapter::Error PPSListener::StartListening() {
 
 TransportAdapter::Error PPSListener::StopListening() {
   LOG4CXX_AUTO_TRACE(logger_);
-  thread_->join();
-  AOAWrapper::Shutdown();
-  delete thread_->delegate();
-  threads::DeleteThread(thread_);
-  thread_ = NULL;
+  if (thread_) {
+     thread_->join();
+     AOAWrapper::Shutdown();
+     delete thread_->delegate();
+     threads::DeleteThread(thread_);
+     thread_ = NULL;
+  }
   return TransportAdapter::OK;
 }
 

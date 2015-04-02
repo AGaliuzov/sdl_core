@@ -132,7 +132,7 @@ class MmeClientListener : public ClientConnectionListener {
     MmeClientListener* parent_;
     mqd_t event_mqd_;
     mqd_t ack_mqd_;
-    bool run_;
+    volatile bool run_;
     char buffer_[kBufferSize];
     char ack_buffer_[kAckBufferSize];
   };

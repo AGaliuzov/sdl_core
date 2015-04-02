@@ -80,8 +80,9 @@ TransportAdapter::Error MmeClientListener::Init() {
   attributes.mq_flags = 0;
   event_mqd_ = mq_open(event_mq_name.c_str(), flags, mode, &attributes);
 #else
-  int flags = O_RDONLY;
-  event_mqd_ = mq_open(event_mq_name.c_str(), flags);
+  mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+  int flags = O_RDWR;
+  event_mqd_ = mq_open(event_mq_name.c_str(), flags, mode);
 #endif
   if (event_mqd_ != -1) {
     LOG4CXX_DEBUG(logger_, "Opened " << event_mq_name);
@@ -406,6 +407,11 @@ void MmeClientListener::NotifyThreadDelegate::threadMain() {
           }
           break;
         }
+        case SDL_MSG_SDL_STOP: {
+            run_ = false;
+            LOG4CXX_DEBUG(logger_,"SDL_MSG_SDL_STOP");
+          break;
+        }
       }
     } else {
       LOG4CXX_WARN(
@@ -416,7 +422,14 @@ void MmeClientListener::NotifyThreadDelegate::threadMain() {
 }
 
 void MmeClientListener::NotifyThreadDelegate::exitThreadMain() {
-  run_ = false;
+    LOG4CXX_AUTO_TRACE(logger_);
+    const std::string& ack_mq_name = profile::Profile::instance()->ack_mq_name();
+    ack_buffer_[0] = SDL_MSG_SDL_STOP;
+    if (mq_send(event_mqd_, ack_buffer_, kAckBufferSize, 0) != -1) {
+        LOG4CXX_DEBUG(logger_,"Send 'SDL_MSG_SDL_STOP' to " << ack_mq_name);
+    } else {
+        LOG4CXX_WARN(logger_,"Error occurred while sending message," <<  " errorno = " << errno);
+    }
 }
 
 }  // namespace transport_adapter
