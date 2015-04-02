@@ -1618,7 +1618,8 @@ bool CacheManager::IsPredataPolicy(const std::string &app_id) {
                         std::back_inserter(res));
 
   bool is_marked_as_predata =
-      kPreDataConsentId == pt_->policy_table.app_policies[app_id].get_string();
+      kPreDataConsentId ==
+      pt_->policy_table.app_policies_section.apps[app_id].get_string();
 
   return !res.empty() && is_marked_as_predata;
 }
