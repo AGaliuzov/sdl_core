@@ -296,7 +296,7 @@ void PPSListener::SwitchMode(const char* objname, const char** attrs) {
 
 void PPSListener::ClosePps() {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (fd_) {
+  if (fd_ != -1) {
       close(fd_);
       fd_ = -1;
   }

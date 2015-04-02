@@ -428,7 +428,7 @@ void MmeClientListener::NotifyThreadDelegate::exitThreadMain() {
     if (mq_send(event_mqd_, ack_buffer_, kAckBufferSize, 0) != -1) {
         LOG4CXX_DEBUG(logger_,"Send 'SDL_MSG_SDL_STOP' to " << ack_mq_name);
     } else {
-        LOG4CXX_WARN(logger_,"Error occurred while sending message," <<  " errorno = " << errno);
+        LOG4CXX_WARN(logger_,"Error occurred while sending message," <<  " errorno = " << strerror(errno));
     }
 }
 
