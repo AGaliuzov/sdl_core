@@ -118,6 +118,15 @@ class CommandImpl : public Command {
    */
   virtual void onTimeOut();
 
+  /**
+ * @brief AllowedToTermitate by default RequestCtrl should terminate all request
+ * If request need to terminate it self, it should override this function false
+ * @return true
+ */
+  virtual bool AllowedToTermitate() {
+    return true;
+  }
+
   // members
   static const int32_t hmi_protocol_type_;
   static const int32_t mobile_protocol_type_;

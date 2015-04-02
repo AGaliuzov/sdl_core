@@ -107,6 +107,14 @@ class Command {
    */
   virtual void onTimeOut() = 0;
 
+  /**
+ * @brief AllowedToTermitate tells if request_ctrl is allowet
+ * to terminate this command
+ * @return
+ */
+  virtual bool AllowedToTermitate() = 0;
+
+
   enum CommandOrigin {
     ORIGIN_SDL,
     ORIGIN_MOBILE
