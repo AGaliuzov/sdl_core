@@ -231,7 +231,7 @@ void RequestController::terminateRequest(
                                                       correlation_id);
   if (request) {
     if (force_terminate ||
-        request->request()->AllowedToTermitate()) {
+        request->request()->AllowedToTerminate()) {
       waiting_for_response_.RemoveRequest(request);
     } else {
       LOG4CXX_WARN(logger_, "Request was not terminated");

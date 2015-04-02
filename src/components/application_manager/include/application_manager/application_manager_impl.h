@@ -587,8 +587,8 @@ class ApplicationManagerImpl : public ApplicationManager,
                              bool final_message = false);
 
     /**
-     * @brief TerminateRequest force terminate request
-     * @param connection_key application id of request
+     * @brief TerminateRequest forces termination of request
+     * @param connection_key - application id of request
      * @param corr_id correlation id of request
      */
     void TerminateRequest(uint32_t connection_key, uint32_t corr_id);

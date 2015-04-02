@@ -239,7 +239,7 @@ void ApplicationImpl::RemoveHMIState(HmiState::StateID state_id) {
     }
     hmi_states_.erase(it);
   } else {
-    LOG4CXX_ERROR(logger_, "Unsuccesfull remove HmiState: " << state_id);
+    LOG4CXX_ERROR(logger_, "Unsuccesful remove HmiState: " << state_id);
   }
 }
 
