@@ -1,4 +1,5 @@
-﻿/* Copyright (c) 2014, Ford Motor Company
+/*
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,13 +31,33 @@
  */
 
 #include <vector>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <ctime>
+#include <sstream>
 
+#include "json/reader.h"
+#include "json/writer.h"
+#include "json/value.h"
 #include "gtest/gtest.h"
 #include "mock_policy_listener.h"
 #include "mock_pt_ext_representation.h"
 #include "mock_cache_manager.h"
 #include "mock_update_status_manager.h"
 #include "policy/policy_manager_impl.h"
+#include "policy/cache_manager_interface.h"
+#include "config_profile/profile.h"
+#include "sqlite_wrapper/sql_error.h"
+#include "sqlite_wrapper/sql_database.h"
+#include "sqlite_wrapper/sql_query.h"
+#include "types.h"
+#include "utils/macro.h"
+#include "utils/file_system.h"
+
+using ::policy::dbms::SQLError;
+using ::policy::dbms::SQLDatabase;
+using ::policy::dbms::SQLQuery;
 
 using ::testing::_;
 using ::testing::Return;
@@ -63,6 +84,48 @@ namespace test {
 namespace components {
 namespace policy {
 
+template<typename T>
+std::string NumberToString(T Number) {
+  std::ostringstream ss;
+  ss << Number;
+  return ss.str();
+}
+
+struct StringsForUpdate {
+  std::string new_field_value_;
+  std::string new_field_name_;
+  std::string new_date_;
+};
+
+char GenRandomString(const char* alphanum) {
+  const int stringLength = sizeof(alphanum) - 1;
+  return alphanum[rand() % stringLength];
+}
+
+struct StringsForUpdate CreateNewRandomData(StringsForUpdate &str) {
+  // Generate random date
+  srand(time(NULL));
+  unsigned int day = 1 + rand() % 31;  // Day from 1 - 31
+  unsigned int month = 1 + rand() % 12;  // Month from 1 - 12
+  unsigned int year = 1985 + rand() % 31;  // Year from 1985 - 2015
+
+  // Convert date to string
+  str.new_date_ = NumberToString(year) + '-' + NumberToString(month) + '-'
+      + NumberToString(day);
+
+  // Create new field
+  unsigned int number = 1 + rand() % 100;  // Number from 1 - 100
+  str.new_field_name_ += NumberToString(number);
+
+  // Create new field random value
+  const char alphanum[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  for (unsigned int i = 0; i < 5; ++i) {
+    str.new_field_value_ += GenRandomString(alphanum);
+  }
+  return str;
+}
+
 class PolicyManagerImplTest : public ::testing::Test {
  protected:
   PolicyManagerImpl* manager;
@@ -72,7 +135,6 @@ class PolicyManagerImplTest : public ::testing::Test {
 
   void SetUp() {
     manager = new PolicyManagerImpl();
-
     cache_manager = new MockCacheManagerInterface();
     manager->set_cache_manager(cache_manager);
 
@@ -96,23 +158,44 @@ class PolicyManagerImplTest : public ::testing::Test {
   }
 };
 
-TEST_F(PolicyManagerImplTest, RefreshRetrySequence_SetSecondsBetweenRetries_ExpectRetryTimeoutSequenceWithSameSeconds) {
+class PolicyManagerImplTest2 : public ::testing::Test {
+ protected:
+  PolicyManagerImpl* manager;
+  std::vector <std::string> hmi_level;
+  unsigned int index;
 
-  //arrange
+  void SetUp() {
+    file_system::CreateDirectory("storage1");
+    profile::Profile::instance()->config_file_name("smartDeviceLink2.ini");
+    manager = new PolicyManagerImpl();
+    const char *levels[] = {"BACKGROUND", "FULL", "LIMITED", "NONE"};
+    hmi_level.assign(levels, levels + sizeof(levels)/sizeof(levels[0]));
+    srand(time(NULL));
+    index = rand() % 3;
+  }
+
+  void TearDown() {
+    profile::Profile::instance()->config_file_name("smartDeviceLink.ini");
+    delete manager;
+  }
+};
+
+TEST_F(PolicyManagerImplTest, RefreshRetrySequence_SetSecondsBetweenRetries_ExpectRetryTimeoutSequenceWithSameSeconds) {
+  // Arrange
   std::vector<int> seconds;
   seconds.push_back(50);
   seconds.push_back(100);
   seconds.push_back(200);
 
-  //assert
+  // Assert
   EXPECT_CALL(*cache_manager, TimeoutResponse()).WillOnce(Return(60));
   EXPECT_CALL(*cache_manager, SecondsBetweenRetries(_)).WillOnce(
       DoAll(SetArgReferee<0>(seconds), Return(true)));
 
-  //act
+  // Act
   manager->RefreshRetrySequence();
 
-  //assert
+  // Assert
   EXPECT_EQ(50, manager->NextRetryTimeout());
   EXPECT_EQ(100, manager->NextRetryTimeout());
   EXPECT_EQ(200, manager->NextRetryTimeout());
@@ -120,39 +203,37 @@ TEST_F(PolicyManagerImplTest, RefreshRetrySequence_SetSecondsBetweenRetries_Expe
 }
 
 TEST_F(PolicyManagerImplTest, DISABLED_GetUpdateUrl) {
-
-  EXPECT_CALL(*cache_manager, GetUpdateUrls(7,_));
-  EXPECT_CALL(*cache_manager, GetUpdateUrls(4,_));
+  EXPECT_CALL(*cache_manager, GetUpdateUrls(7, _));
+  EXPECT_CALL(*cache_manager, GetUpdateUrls(4, _));
 
   EXPECT_EQ("http://policies.telematics.ford.com/api/policies",
             manager->GetUpdateUrl(7));
   EXPECT_EQ("http://policies.ford.com/api/policies", manager->GetUpdateUrl(4));
-
 }
 
 #ifdef EXTENDED_POLICY
 TEST_F(PolicyManagerImplTest, IncrementGlobalCounter) {
-  //assert
+  // Assert
   EXPECT_CALL(*cache_manager, Increment(usage_statistics::SYNC_REBOOTS));
   manager->Increment(usage_statistics::SYNC_REBOOTS);
 }
 
 TEST_F(PolicyManagerImplTest, IncrementAppCounter) {
-  //assert
+  // Assert
   EXPECT_CALL(*cache_manager, Increment("12345",
           usage_statistics::USER_SELECTIONS));
   manager->Increment("12345", usage_statistics::USER_SELECTIONS);
 }
 
 TEST_F(PolicyManagerImplTest, SetAppInfo) {
-  //assert
+  // Assert
   EXPECT_CALL(*cache_manager, Set("12345", usage_statistics::LANGUAGE_GUI,
           "de-de"));
   manager->Set("12345", usage_statistics::LANGUAGE_GUI, "de-de");
 }
 
 TEST_F(PolicyManagerImplTest, AddAppStopwatch) {
-  //assert
+  // Assert
   EXPECT_CALL(*cache_manager, Add("12345", usage_statistics::SECONDS_HMI_FULL,
           30));
   manager->Add("12345", usage_statistics::SECONDS_HMI_FULL, 30);
@@ -164,7 +245,7 @@ TEST_F(PolicyManagerImplTest, ResetPT) {
       .WillOnce(Return(false));
 #ifdef EXTENDED_POLICY
   EXPECT_CALL(*cache_manager, ResetCalculatedPermissions()).Times(AtLeast(1));
-#endif
+#endif  // EXTENDED_POLICY
   EXPECT_CALL(*cache_manager, TimeoutResponse());
   EXPECT_CALL(*cache_manager, SecondsBetweenRetries(_));
 
@@ -174,8 +255,7 @@ TEST_F(PolicyManagerImplTest, ResetPT) {
 
 #ifdef EXTENDED_POLICY
 TEST_F(PolicyManagerImplTest, DISABLED_CheckPermissions) {
-
-  //arrange
+  // Arrange
   policy_table::RpcParameters rpc_parameters;
   rpc_parameters.hmi_levels.push_back(policy_table::HL_FULL);
   rpc_parameters.parameters->push_back(policy_table::P_SPEED);
@@ -195,9 +275,9 @@ TEST_F(PolicyManagerImplTest, DISABLED_CheckPermissions) {
   group_types[::policy::kTypeAllowed].push_back(1);
 
   ::policy::FunctionalGroupNames group_names;
-  group_names[1] = std::make_pair<std::string, std::string>("", "AlertGroup");
+  group_names[1] = std::make_pair<>(std::string(""), std::string("AlertGroup"));
 
-  //assert
+  // Assert
   EXPECT_CALL(*listener, OnCurrentDeviceIdUpdateRequired("12345678"));
   EXPECT_CALL(*cache_manager, GetFunctionalGroupings(_)).WillOnce(
       DoAll(SetArgReferee<0>(groups), Return(true)));
@@ -210,12 +290,12 @@ TEST_F(PolicyManagerImplTest, DISABLED_CheckPermissions) {
   EXPECT_CALL(*cache_manager, GetFunctionalGroupNames(_)).WillOnce(
       DoAll(SetArgReferee<0>(group_names), Return(true)));
 
-  //act
+  // Act
   ::policy::RPCParams input_params;
   ::policy::CheckPermissionResult output;
   manager->CheckPermissions("12345678", "FULL", "Alert", input_params, output);
 
-  //assert
+  // Assert
   EXPECT_EQ(::policy::kRpcAllowed, output.hmi_level_permitted);
   ASSERT_TRUE(!output.list_of_allowed_params.empty());
   ASSERT_EQ(3u, output.list_of_allowed_params.size());
@@ -225,23 +305,22 @@ TEST_F(PolicyManagerImplTest, DISABLED_CheckPermissions) {
 }
 #else  // EXTENDED_POLICY
 TEST_F(PolicyManagerImplTest, CheckPermissions_SetHmiLevelFullForAlert_ExpectAllowedPermissions) {
-
-  //arrange
+  // Arrange
   ::policy::CheckPermissionResult expected;
   expected.hmi_level_permitted = ::policy::kRpcAllowed;
   expected.list_of_allowed_params.push_back("speed");
   expected.list_of_allowed_params.push_back("gps");
 
-  //assert
+  // Assert
   EXPECT_CALL(*cache_manager, CheckPermissions("12345678", "FULL", "Alert", _)).
       WillOnce(SetArgReferee<3>(expected));
 
-  //act
+  // Act
   ::policy::RPCParams input_params;
   ::policy::CheckPermissionResult output;
   manager->CheckPermissions("12345678", "FULL", "Alert", input_params, output);
 
-  //assert
+  // Assert
   EXPECT_EQ(::policy::kRpcAllowed, output.hmi_level_permitted);
 
   ASSERT_TRUE(!output.list_of_allowed_params.empty());
@@ -252,8 +331,7 @@ TEST_F(PolicyManagerImplTest, CheckPermissions_SetHmiLevelFullForAlert_ExpectAll
 #endif  // EXTENDED_POLICY
 
 TEST_F(PolicyManagerImplTest, LoadPT_SetPT_PTIsLoaded) {
-
-  //arrange
+  // Arrange
   Json::Value table(Json::objectValue);
   table["policy_table"] = Json::Value(Json::objectValue);
 
@@ -351,21 +429,21 @@ TEST_F(PolicyManagerImplTest, LoadPT_SetPT_PTIsLoaded) {
   policy_table::Table update(&table);
   update.SetPolicyTableType(rpc::policy_table_interface_base::PT_UPDATE);
 
-  //assert
+  // Assert
   ASSERT_TRUE(IsValid(update));
 
 #ifdef EXTENDED_POLICY
   EXPECT_CALL(*cache_manager, GetHMIAppTypeAfterUpdate(_)).Times(AtLeast(1));
 #endif
 
-  //act
+  // Act
   std::string json = table.toStyledString();
   ::policy::BinaryMessage msg(json.begin(), json.end());
 
   utils::SharedPtr<policy_table::Table> snapshot = new policy_table::Table(
       update.policy_table);
 
-  //assert
+  // Assert
   EXPECT_CALL(*cache_manager, GenerateSnapshot()).WillOnce(Return(snapshot));
   EXPECT_CALL(*cache_manager, ApplyUpdate(_)).WillOnce(Return(true));
   EXPECT_CALL(*listener, GetAppName("1234")).WillOnce(Return(""));
@@ -377,26 +455,86 @@ TEST_F(PolicyManagerImplTest, LoadPT_SetPT_PTIsLoaded) {
   EXPECT_TRUE(manager->LoadPT("file_pt_update.json", msg));
 }
 
-TEST_F(PolicyManagerImplTest, RequestPTUpdate_SetPT_GeneratedSnapshotAndPTUpdate) {
+TEST_F(PolicyManagerImplTest2, UpdatedPreloadedPT_ExpectLPT_IsUpdated) {
+  // Arrange necessary pre-conditions
+  StringsForUpdate new_data;
+  new_data.new_field_name_ = "Notifications-";
+  CreateNewRandomData(new_data);
+  // Create Initial LocalPT from preloadedPT
+  ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
+  // Update preloadedPT
+  std::ifstream ifile("sdl_preloaded_pt.json");
+  Json::Reader reader;
+  Json::Value root(Json::objectValue);
 
-  //arrange
+  if (ifile != NULL && reader.parse(ifile, root, true)) {
+    root["policy_table"]["module_config"]["preloaded_date"] = new_data.new_date_;
+    Json::Value val(Json::objectValue);
+    Json::Value val2(Json::arrayValue);
+    val2[0] = hmi_level[index];
+    val[new_data.new_field_value_]["hmi_levels"] = val2;
+    root["policy_table"]["functional_groupings"][new_data.new_field_name_]["rpcs"] = val;
+    root["policy_table"]["functional_groupings"][new_data.new_field_name_]["user_consent_prompt"] = new_data.new_field_name_;
+  }
+  ifile.close();
+
+  Json::StyledStreamWriter writer;
+  std::ofstream ofile("sdl_preloaded_pt.json");
+  writer.write(ofile, root);
+  ofile.flush();
+  ofile.close();
+
+  //  Make PolicyManager to update LocalPT
+  EXPECT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
+
+  // Arrange
+  ::policy::CacheManagerInterfaceSPtr cache = manager->GetCache();
+  utils::SharedPtr<policy_table::Table> table = cache->GenerateSnapshot();
+  // Get FunctionalGroupings
+  policy_table::FunctionalGroupings& fc = table->policy_table.functional_groupings;
+  // Get RPCs for new added field in functional_group
+  policy_table::Rpcs& rpcs = fc[new_data.new_field_name_];
+  // Get user consent prompt
+  const std::string& ucp = *(rpcs.user_consent_prompt);
+  // Get Rpcs
+  policy_table::Rpc& rpc = rpcs.rpcs;
+  // Get RPC's parameters
+  policy_table::RpcParameters &rpc_param = rpc[new_data.new_field_value_];
+
+  // Check preloaded date
+  EXPECT_EQ(std::string(*(table->policy_table.module_config.preloaded_date)), new_data.new_date_);
+  // Check if new field exists in Local PT
+  EXPECT_TRUE(fc.find(new_data.new_field_name_) != fc.end());
+  // Check if user_consent_propmp is correct
+  EXPECT_EQ(new_data.new_field_name_, ucp);
+  // Check if new RPC exists
+  EXPECT_TRUE(rpc.find(new_data.new_field_value_) != rpc.end());
+  // Check HMI level of new RPC
+  EXPECT_EQ(index, static_cast<int>(rpc_param.hmi_levels[0]));
+  // Check if new field matches field added to preloaded PT
+  EXPECT_EQ(std::string((*(fc.find(new_data.new_field_name_))).first), new_data.new_field_name_);
+}
+
+TEST_F(PolicyManagerImplTest, RequestPTUpdate_SetPT_GeneratedSnapshotAndPTUpdate) {
+  // Arrange
   ::utils::SharedPtr< ::policy_table::Table > p_table =
       new ::policy_table::Table();
 
-  //assert
+  // Assert
 #ifdef EXTENDED_POLICY
-  EXPECT_CALL(*listener, OnSnapshotCreated(_,_,_));
+  EXPECT_CALL(*listener, OnSnapshotCreated(_, _, _));
 #endif
   EXPECT_CALL(*cache_manager, GenerateSnapshot()).WillOnce(Return(p_table));
 
-  //act
+  // Act
   manager->RequestPTUpdate();
 }
 
 #ifdef EXTENDED_POLICY
 TEST_F(PolicyManagerImplTest, ResetUserConsent_ResetOnlyOnce) {
-  EXPECT_CALL(*cache_manager, ResetUserConsent()).WillOnce(Return(true))
-  .WillOnce(Return(false));
+  EXPECT_CALL(*cache_manager, ResetUserConsent()).
+      WillOnce(Return(true)).
+      WillOnce(Return(false));
 
   EXPECT_TRUE(manager->ResetUserConsent());
   EXPECT_FALSE(manager->ResetUserConsent());
@@ -406,28 +544,26 @@ TEST_F(PolicyManagerImplTest, ResetUserConsent_ResetOnlyOnce) {
 TEST_F(PolicyManagerImplTest, DISABLED_AddApplication) {
   // TODO(AOleynik): Implementation of method should be changed to avoid
   // using of snapshot
-  //manager->AddApplication("12345678");
+  // manager->AddApplication("12345678");
 }
 
 TEST_F(PolicyManagerImplTest, DISABLED_GetPolicyTableStatus) {
   // TODO(AOleynik): Test is not finished, to be continued
-  //manager->GetPolicyTableStatus();
+  // manager->GetPolicyTableStatus();
 }
 
 #ifdef EXTENDED_POLICY
 TEST_F(PolicyManagerImplTest, MarkUnpairedDevice) {
-
-  //assert
-  EXPECT_CALL(*cache_manager, SetUnpairedDevice("12345", true)).WillOnce(
-      Return(true));
+  // Assert
+  EXPECT_CALL(*cache_manager, SetUnpairedDevice("12345", true)).
+      WillOnce(Return(true));
   EXPECT_CALL(*cache_manager, GetDeviceGroupsFromPolicies(_, _));
 
-  //act
+  // Act
   manager->MarkUnpairedDevice("12345");
 }
 #endif  // EXTENDED_POLICY
 
-}
-// namespace policy
-}// namespace components
+}  // namespace policy
+}  // namespace components
 }  // namespace test
