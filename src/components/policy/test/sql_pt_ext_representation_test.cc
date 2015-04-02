@@ -93,6 +93,7 @@ TEST_F(SQLPTExtRepresentationTest, GenerateSnapshot_SetPolicyTable_SnapshotIsPre
   policy_table["app_policies"] = Json::Value(Json::objectValue);
 
   Json::Value& module_config = policy_table["module_config"];
+  module_config["preloaded_date"] = Json::Value("");
   module_config["preloaded_pt"] = Json::Value(true);
   module_config["exchange_after_x_ignition_cycles"] = Json::Value(10);
   module_config["exchange_after_x_kilometers"] = Json::Value(100);
@@ -153,7 +154,7 @@ TEST_F(SQLPTExtRepresentationTest, GenerateSnapshot_SetPolicyTable_SnapshotIsPre
   Json::Value& app_policies = policy_table["app_policies"];
   app_policies["default"] = Json::Value(Json::objectValue);
   app_policies["default"]["memory_kb"] = Json::Value(50);
-  app_policies["default"]["heart_beat_timeout_ms"] = Json::Value(10);
+  app_policies["default"]["heart_beat_timeout_ms"] = Json::Value(100);
   app_policies["default"]["groups"] = Json::Value(Json::arrayValue);
   app_policies["default"]["groups"][0] = Json::Value("default");
   app_policies["default"]["priority"] = Json::Value("EMERGENCY");
@@ -161,6 +162,33 @@ TEST_F(SQLPTExtRepresentationTest, GenerateSnapshot_SetPolicyTable_SnapshotIsPre
   app_policies["default"]["keep_context"] = Json::Value(true);
   app_policies["default"]["steal_focus"] = Json::Value(true);
   app_policies["default"]["certificate"] = Json::Value("sign");
+  app_policies["pre_DataConsent"] = Json::Value(Json::objectValue);
+  app_policies["pre_DataConsent"]["memory_kb"] = Json::Value(50);
+  app_policies["pre_DataConsent"]["heart_beat_timeout_ms"] = Json::Value(100);
+  app_policies["pre_DataConsent"]["groups"] = Json::Value(Json::arrayValue);
+  app_policies["pre_DataConsent"]["groups"][0] = Json::Value("default");
+  app_policies["pre_DataConsent"]["priority"] = Json::Value("EMERGENCY");
+  app_policies["pre_DataConsent"]["default_hmi"] = Json::Value("FULL");
+  app_policies["pre_DataConsent"]["keep_context"] = Json::Value(true);
+  app_policies["pre_DataConsent"]["steal_focus"] = Json::Value(true);
+  app_policies["pre_DataConsent"]["certificate"] = Json::Value("sign");
+  app_policies["1234"] = Json::Value(Json::objectValue);
+  app_policies["1234"]["memory_kb"] = Json::Value(50);
+  app_policies["1234"]["heart_beat_timeout_ms"] = Json::Value(100);
+  app_policies["1234"]["groups"] = Json::Value(Json::arrayValue);
+  app_policies["1234"]["groups"][0] = Json::Value("default");
+  app_policies["1234"]["priority"] = Json::Value("EMERGENCY");
+  app_policies["1234"]["default_hmi"] = Json::Value("FULL");
+  app_policies["1234"]["keep_context"] = Json::Value(true);
+  app_policies["1234"]["steal_focus"] = Json::Value(true);
+  app_policies["1234"]["certificate"] = Json::Value("sign");
+  app_policies["device"] = Json::Value(Json::objectValue);
+  app_policies["device"]["groups"] = Json::Value(Json::arrayValue);
+  app_policies["device"]["groups"][0] = Json::Value("default");
+  app_policies["device"]["priority"] = Json::Value("EMERGENCY");
+  app_policies["device"]["default_hmi"] = Json::Value("FULL");
+  app_policies["device"]["keep_context"] = Json::Value(true);
+  app_policies["device"]["steal_focus"] = Json::Value(true);
 
   policy_table::Table update(&table);
   update.SetPolicyTableType(rpc::policy_table_interface_base::PT_UPDATE);
