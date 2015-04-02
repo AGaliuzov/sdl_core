@@ -140,7 +140,6 @@ bool PolicyManagerImpl::LoadPT(const std::string& file,
     listener_->OnCertificateUpdated(*(pt_update->policy_table.module_config.certificate));
   }
 
-
   // Check permissions for applications, send notifications
   CheckPermissionsChanges(pt_update, policy_table_snapshot);
 

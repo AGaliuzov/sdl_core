@@ -1,4 +1,4 @@
-﻿/*
+/*
  Copyright (c) 2013, Ford Motor Company
  All rights reserved.
 
@@ -493,6 +493,7 @@ void SQLPTRepresentation::GatherModuleConfig(
     *config->vehicle_make = query.GetString(5);
     *config->vehicle_model = query.GetString(6);
     *config->vehicle_year = query.GetString(7);
+    *config->certificate = query.GetString(8);
   }
 
   dbms::SQLQuery endpoints(db());
@@ -1011,6 +1012,8 @@ bool SQLPTRepresentation::SaveModuleConfig(
   query.Bind(7, *(config.vehicle_year)) : query.Bind(7);
   config.preloaded_date.is_initialized() ?
   query.Bind(8, *(config.preloaded_date)) : query.Bind(8);
+  config.certificate.is_initialized() ?
+  query.Bind(9, *(config.certificate)) : query.Bind(9);
 
   if (!query.Exec()) {
     LOG4CXX_WARN(logger_, "Incorrect update module config");

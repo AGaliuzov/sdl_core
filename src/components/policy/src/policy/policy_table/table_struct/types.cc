@@ -284,7 +284,7 @@ ModuleConfig::~ModuleConfig() {
 }
 ModuleConfig::ModuleConfig(const Json::Value* value__)
   : CompositeType(InitHelper(value__, &Json::Value::isObject)),
-    device_certificates(impl::ValueMember(value__, "device_certificates")),
+    certificate(impl::ValueMember(value__, "certificate")),
     preloaded_pt(impl::ValueMember(value__, "preloaded_pt")),
     exchange_after_x_ignition_cycles(impl::ValueMember(value__, "exchange_after_x_ignition_cycles")),
     exchange_after_x_kilometers(impl::ValueMember(value__, "exchange_after_x_kilometers")),
@@ -302,7 +302,7 @@ ModuleConfig::ModuleConfig(const Json::Value* value__)
 
 Json::Value ModuleConfig::ToJsonValue() const {
   Json::Value result__(Json::objectValue);
-  impl::WriteJsonField("device_certificates", device_certificates, &result__);
+  impl::WriteJsonField("certificate", certificate, &result__);
   impl::WriteJsonField("preloaded_pt", preloaded_pt, &result__);
   impl::WriteJsonField("exchange_after_x_ignition_cycles", exchange_after_x_ignition_cycles, &result__);
   impl::WriteJsonField("exchange_after_x_kilometers", exchange_after_x_kilometers, &result__);
@@ -319,7 +319,7 @@ Json::Value ModuleConfig::ToJsonValue() const {
   return result__;
 }
 bool ModuleConfig::is_valid() const {
-  if (!device_certificates.is_valid()) {
+  if (!certificate.is_valid()) {
     return false;
   }
   if (!preloaded_pt.is_valid()) {
@@ -367,7 +367,7 @@ bool ModuleConfig::is_initialized() const {
   return (initialization_state__ != kUninitialized) || (!struct_empty());
 }
 bool ModuleConfig::struct_empty() const {
-  if (device_certificates.is_initialized()) {
+  if (certificate.is_initialized()) {
     return false;
   }
   if (preloaded_pt.is_initialized()) {
@@ -415,8 +415,8 @@ void ModuleConfig::ReportErrors(rpc::ValidationReport* report__) const {
   if (struct_empty()) {
     rpc::CompositeType::ReportErrors(report__);
   }
-  if (!device_certificates.is_valid()) {
-    device_certificates.ReportErrors(&report__->ReportSubobject("device_certificates"));
+  if (!certificate.is_valid()) {
+    certificate.ReportErrors(&report__->ReportSubobject("certificate"));
   }
   if (!preloaded_pt.is_valid()) {
     preloaded_pt.ReportErrors(&report__->ReportSubobject("preloaded_pt"));
@@ -472,7 +472,7 @@ void ModuleConfig::ReportErrors(rpc::ValidationReport* report__) const {
 
 void ModuleConfig::SetPolicyTableType(PolicyTableType pt_type) {
   CompositeType::SetPolicyTableType(pt_type);
-  device_certificates.SetPolicyTableType(pt_type);
+  certificate.SetPolicyTableType(pt_type);
   preloaded_pt.SetPolicyTableType(pt_type);
   exchange_after_x_ignition_cycles.SetPolicyTableType(pt_type);
   exchange_after_x_kilometers.SetPolicyTableType(pt_type);

@@ -42,7 +42,8 @@ BEGIN TRANSACTION;
     `vehicle_make` VARCHAR(45),
     `vehicle_model` VARCHAR(45),
     `vehicle_year` VARCHAR(4),
-    `preloaded_date` VARCHAR(10)
+    `preloaded_date` VARCHAR(10),
+    `certificate` VARCHAR (45)
   );
   INSERT OR IGNORE INTO `module_config` (`preloaded_pt`, `is_first_run`,
     `exchange_after_x_ignition_cycles`, `exchange_after_x_kilometers`,
