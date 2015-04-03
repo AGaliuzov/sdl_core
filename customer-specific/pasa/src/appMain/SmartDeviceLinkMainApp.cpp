@@ -300,9 +300,9 @@ void ApplinkNotificationThreadDelegate::threadMain() {
           startUSBLogging();
           break;
         case SDL_MSG_SDL_STOP:
+          DEINIT_LOGGER();
           stopSmartDeviceLink();
           LOG4CXX_INFO(logger_, "Application stopped due to SDL_MSG_SDL_STOP");
-          DEINIT_LOGGER();
           exit(EXIT_SUCCESS);
           break;
         case SDL_MSG_LOW_VOLTAGE:
