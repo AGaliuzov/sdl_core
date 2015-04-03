@@ -611,7 +611,9 @@ void PolicyManagerImpl::SetUserConsentForDevice(const std::string& device_id,
 bool PolicyManagerImpl::ReactOnUserDevConsentForApp(const std::string app_id,
     bool is_device_allowed) {
 #ifdef EXTENDED_POLICY
-  return cache_->ReactOnUserDevConsentForApp(app_id, is_device_allowed);
+  const utils::SharedPtr<policy_table::Table> current = cache_->GenerateSnapshot();
+  cache_->ReactOnUserDevConsentForApp(app_id, is_device_allowed);
+  CheckPermissionsChanges(cache_->GenerateSnapshot(), current);
 #endif
   return true;
 }
