@@ -78,8 +78,9 @@ void StateController::HmiLevelConflictResolver::operator ()
   using namespace mobile_apis;
   using namespace helpers;
   DCHECK_OR_RETURN_VOID(state_ctrl_);
-  if (to_resolve == applied_)
+  if (to_resolve == applied_) {
     return;
+  }
   if (Compare<HMILevel::eType, EQ, ONE>(state_->hmi_level(),
                                         HMILevel::HMI_FULL,
                                         HMILevel::HMI_LIMITED)) {
@@ -90,13 +91,8 @@ void StateController::HmiLevelConflictResolver::operator ()
       LOG4CXX_DEBUG(logger_, "DATA: " << applied_->IsAudioApplication() << " AND "
                     << state_ctrl_->IsSameAppType(applied_, to_resolve));
       if (applied_->IsAudioApplication() && state_ctrl_->IsSameAppType(applied_, to_resolve)) {
-        if (applied_->is_media_application() && to_resolve->is_navi()) {
-          state_ctrl_->SetupRegularHmiState(to_resolve, HMILevel::HMI_LIMITED,
-                       AudioStreamingState::AUDIBLE);
-        } else {
-          state_ctrl_->SetupRegularHmiState(to_resolve, HMILevel::HMI_BACKGROUND,
-                       AudioStreamingState::NOT_AUDIBLE);
-        }
+        state_ctrl_->SetupRegularHmiState(to_resolve, HMILevel::HMI_BACKGROUND,
+                     AudioStreamingState::NOT_AUDIBLE);
       } else {
         state_ctrl_->SetupRegularHmiState(to_resolve, HMILevel::HMI_LIMITED,
                      AudioStreamingState::AUDIBLE);
@@ -156,10 +152,10 @@ void StateController::ApplyRegularState(ApplicationSharedPtr app,
 }
 
 bool StateController::IsSameAppType(ApplicationConstSharedPtr app1,
-                                  ApplicationConstSharedPtr app2) {
-    return app1->is_media_application() == app2->is_media_application() ||
-           app1->is_navi() == app2->is_navi() ||
-           app1->is_voice_communication_supported() == app2->is_voice_communication_supported();
+                                    ApplicationConstSharedPtr app2) {
+  return (app1->is_media_application() && app2->is_media_application()) ||
+         (app1->is_navi() && app2->is_navi()) ||
+         (app1->is_voice_communication_supported() && app2->is_voice_communication_supported());
 }
 
 void StateController::on_event(const event_engine::Event& event) {
