@@ -420,7 +420,7 @@ void MmeClientListener::NotifyThreadDelegate::threadMain() {
     }
   }
 }
-
+//ToDo: Fix me see datail APPLINK-12215
 void MmeClientListener::NotifyThreadDelegate::exitThreadMain() {
     LOG4CXX_AUTO_TRACE(logger_);
     const std::string& ack_mq_name = profile::Profile::instance()->ack_mq_name();
