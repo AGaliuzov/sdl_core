@@ -177,8 +177,6 @@ struct Rpcs : CompositeType {
 
 struct ModuleConfig : CompositeType {
   public:
-    Optional< Map< String<1, 100>, 1, 255 > > device_certificates;
-    Optional< Boolean > preloaded_pt;
     Integer<uint8_t, 0, 255> exchange_after_x_ignition_cycles;
     Integer<int64_t, 0, 4294967296ll> exchange_after_x_kilometers;
     Integer<uint8_t, 0, 255> exchange_after_x_days;
@@ -189,13 +187,15 @@ struct ModuleConfig : CompositeType {
     Optional< String<0, 100> > vehicle_make;
     Optional< String<0, 100> > vehicle_model;
     Optional< String<0, 4> > vehicle_year;
-    Optional< String<0, 65535> > certificate;
     Optional< String<0, 10> > preloaded_date;
+    Optional< String<0, 65535> > certificate;
+    Optional< Boolean > preloaded_pt;
   public:
     ModuleConfig();
     ModuleConfig(uint8_t exchange_after_x_ignition_cycles, int64_t exchange_after_x_kilometers, uint8_t exchange_after_x_days, uint16_t timeout_after_x_seconds, const SecondsBetweenRetries& seconds_between_retries, const ServiceEndpoints& endpoints, const NumberOfNotificationsPerMinute& notifications_per_minute_by_priority);
     ~ModuleConfig();
     explicit ModuleConfig(const Json::Value* value__);
+    void SafeCopyFrom(const ModuleConfig& from);
     Json::Value ToJsonValue() const;
     bool is_valid() const;
     bool is_initialized() const;

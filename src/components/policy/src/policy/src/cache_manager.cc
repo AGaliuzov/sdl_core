@@ -413,13 +413,11 @@ bool CacheManager::ApplyUpdate(const policy_table::Table& update_pt) {
     }
   }
 
-  pt_->policy_table.app_policies_section.device =
-      update_pt.policy_table.app_policies_section.device;
+  pt_->policy_table.module_config.SafeCopyFrom(update_pt.policy_table.module_config);
 
-  if (update_pt.policy_table.consumer_friendly_messages.is_initialized()) {
-    pt_->policy_table.consumer_friendly_messages =
-        update_pt.policy_table.consumer_friendly_messages;
-  }
+  pt_->policy_table.consumer_friendly_messages.assign_if_valid(
+        update_pt.policy_table.consumer_friendly_messages);
+
   ResetCalculatedPermissions();
   Backup();
   return true;

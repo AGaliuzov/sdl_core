@@ -478,8 +478,6 @@ ModuleConfig::~ModuleConfig() {
 }
 ModuleConfig::ModuleConfig(const Json::Value* value__)
   : CompositeType(InitHelper(value__, &Json::Value::isObject)),
-    device_certificates(impl::ValueMember(value__, "device_certificates")),
-    preloaded_pt(impl::ValueMember(value__, "preloaded_pt")),
     exchange_after_x_ignition_cycles(impl::ValueMember(value__, "exchange_after_x_ignition_cycles")),
     exchange_after_x_kilometers(impl::ValueMember(value__, "exchange_after_x_kilometers")),
     exchange_after_x_days(impl::ValueMember(value__, "exchange_after_x_days")),
@@ -490,13 +488,31 @@ ModuleConfig::ModuleConfig(const Json::Value* value__)
     vehicle_make(impl::ValueMember(value__, "vehicle_make")),
     vehicle_model(impl::ValueMember(value__, "vehicle_model")),
     vehicle_year(impl::ValueMember(value__, "vehicle_year")),
+    preloaded_date(impl::ValueMember(value__, "preloaded_date")),
     certificate(impl::ValueMember(value__, "certificate")),
-    preloaded_date(impl::ValueMember(value__, "preloaded_date")){
+    preloaded_pt(impl::ValueMember(value__, "preloaded_pt")) {
+}
+
+void ModuleConfig::SafeCopyFrom(const ModuleConfig& from) {
+  exchange_after_x_days = from.exchange_after_x_days;
+  exchange_after_x_kilometers = from.exchange_after_x_kilometers;
+  exchange_after_x_days = from.exchange_after_x_days;
+  timeout_after_x_seconds = from.timeout_after_x_seconds;
+  seconds_between_retries = from.seconds_between_retries;
+  endpoints = from.endpoints;
+  notifications_per_minute_by_priority = from.notifications_per_minute_by_priority;
+
+
+  certificate .assign_if_valid(from.certificate);
+  vehicle_make.assign_if_valid(from.vehicle_make);
+  vehicle_model.assign_if_valid(from.vehicle_model);
+  vehicle_year.assign_if_valid(from.vehicle_year);
+
 }
 
 Json::Value ModuleConfig::ToJsonValue() const {
   Json::Value result__(Json::objectValue);
-  impl::WriteJsonField("device_certificates", device_certificates, &result__);
+  impl::WriteJsonField("certificate", certificate, &result__);
   impl::WriteJsonField("preloaded_pt", preloaded_pt, &result__);
   impl::WriteJsonField("exchange_after_x_ignition_cycles", exchange_after_x_ignition_cycles, &result__);
   impl::WriteJsonField("exchange_after_x_kilometers", exchange_after_x_kilometers, &result__);
@@ -513,7 +529,7 @@ Json::Value ModuleConfig::ToJsonValue() const {
   return result__;
 }
 bool ModuleConfig::is_valid() const {
-  if (!device_certificates.is_valid()) {
+  if (!certificate.is_valid()) {
     return false;
   }
   if (!preloaded_pt.is_valid()) {
@@ -561,7 +577,7 @@ bool ModuleConfig::is_initialized() const {
   return (initialization_state__ != kUninitialized) || (!struct_empty());
 }
 bool ModuleConfig::struct_empty() const {
-  if (device_certificates.is_initialized()) {
+  if (certificate.is_initialized()) {
     return false;
   }
   if (preloaded_pt.is_initialized()) {
@@ -609,8 +625,8 @@ void ModuleConfig::ReportErrors(rpc::ValidationReport* report__) const {
   if (struct_empty()) {
     rpc::CompositeType::ReportErrors(report__);
   }
-  if (!device_certificates.is_valid()) {
-    device_certificates.ReportErrors(&report__->ReportSubobject("device_certificates"));
+  if (!certificate.is_valid()) {
+    certificate.ReportErrors(&report__->ReportSubobject("certificate"));
   }
   if (!preloaded_pt.is_valid()) {
     preloaded_pt.ReportErrors(&report__->ReportSubobject("preloaded_pt"));
@@ -666,7 +682,7 @@ void ModuleConfig::ReportErrors(rpc::ValidationReport* report__) const {
 
 void ModuleConfig::SetPolicyTableType(PolicyTableType pt_type) {
   CompositeType::SetPolicyTableType(pt_type);
-  device_certificates.SetPolicyTableType(pt_type);
+  certificate.SetPolicyTableType(pt_type);
   preloaded_pt.SetPolicyTableType(pt_type);
   exchange_after_x_ignition_cycles.SetPolicyTableType(pt_type);
   exchange_after_x_kilometers.SetPolicyTableType(pt_type);
