@@ -972,7 +972,8 @@ bool ApplicationManagerImpl::OnServiceStartedCallback(
   using namespace helpers;
 
   LOG4CXX_DEBUG(logger_,
-               "OnServiceStartedCallback " << type << " in session " << session_key);
+               "OnServiceStartedCallback " << type
+                << " in session 0x" << std::hex << session_key);
   if (type == kRpc) {
     LOG4CXX_DEBUG(logger_, "RPC service is about to be started.");
     return true;
@@ -999,9 +1000,10 @@ bool ApplicationManagerImpl::OnServiceStartedCallback(
 void ApplicationManagerImpl::OnServiceEndedCallback(const int32_t& session_key,
     const protocol_handler::ServiceType& type) {
   using namespace protocol_handler;
-  LOG4CXX_INFO_EXT(
+  LOG4CXX_DEBUG(
     logger_,
-    "OnServiceEndedCallback " << type  << " in session " << session_key);
+    "OnServiceEndedCallback " << type  << " in session 0x"
+        << std::hex << session_key);
 
   if (type == kRpc) {
     LOG4CXX_INFO(logger_, "Remove application.");
