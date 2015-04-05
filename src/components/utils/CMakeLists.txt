@@ -80,7 +80,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
     )
 endif()
 
-add_library("Utils" SHARED ${SOURCES})
+add_library("Utils" ${SOURCES})
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
  list(APPEND LIBRARIES dl) 
@@ -99,6 +99,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 target_link_libraries("Utils" ${LIBRARIES})
+
 
 if(BUILD_TESTS)
   add_subdirectory(test)
