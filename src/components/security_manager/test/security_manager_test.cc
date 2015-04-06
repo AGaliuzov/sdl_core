@@ -130,7 +130,7 @@ class SecurityManagerTest : public ::testing::Test {
   /*
    * Wrapper for fast emulate recieve Handshake
    */
-  void EmulateMobileMessageHandShake(const uint8_t* const data,
+  void EmulateMobileMessageHandshake(const uint8_t* const data,
                                      const uint32_t data_size,
                                      const int repeat_count = 1) {
     const SecurityQuery::QueryHeader header(SecurityQuery::NOTIFICATION,
@@ -552,7 +552,7 @@ TEST_F(SecurityManagerTest, ProccessHandshakeData_WrongDataSize) {
   EXPECT_CALL(
     mock_protocol_handler,
     SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_INVALID_QUERY_SIZE), is_final));
-  EmulateMobileMessageHandShake(NULL, 0);
+  EmulateMobileMessageHandshake(NULL, 0);
 }
 /*
  * Shall send InternallError on
@@ -581,7 +581,7 @@ TEST_F(SecurityManagerTest, ProccessHandshakeData_ServiceNotProtected) {
       WillOnce(ReturnNull());
 
   const uint8_t data[] = {0x1, 0x2};
-  EmulateMobileMessageHandShake(data, sizeof(data)/sizeof(data[0]));
+  EmulateMobileMessageHandshake(data, sizeof(data)/sizeof(data[0]));
 }
 /*
  * Shall send InternallError on getting
@@ -642,7 +642,7 @@ TEST_F(SecurityManagerTest, ProccessHandshakeData_InvalidData) {
       Times(handshake_emulates);
 
   // Emulate handshare #handshake_emulates times for 5 cases
-  EmulateMobileMessageHandShake(handshake_data, handshake_data_size,
+  EmulateMobileMessageHandshake(handshake_data, handshake_data_size,
                                 handshake_emulates);
 }
 /*
@@ -693,7 +693,7 @@ TEST_F(SecurityManagerTest, ProccessHandshakeData_Answer) {
                        Return(security_manager::SSLContext::
                               Handshake_Result_Fail)));
 
-  EmulateMobileMessageHandShake(handshake_data, handshake_data_size,
+  EmulateMobileMessageHandshake(handshake_data, handshake_data_size,
                                 handshake_emulates);
 }
 /*
@@ -701,7 +701,7 @@ TEST_F(SecurityManagerTest, ProccessHandshakeData_Answer) {
  * and return handshake data
  * Check Fail and sussecc states
  */
-TEST_F(SecurityManagerTest, ProccessHandshakeData_HandShakeFinished) {
+TEST_F(SecurityManagerTest, ProccessHandshakeData_HandshakeFinished) {
   SetMockCryptoManger();
   // Count handshake calls
   const int handshake_emulates = 6;
@@ -766,7 +766,7 @@ TEST_F(SecurityManagerTest, ProccessHandshakeData_HandShakeFinished) {
         Times(2);
 
   // Expect NO InternalError with ERROR_ID
-  EmulateMobileMessageHandShake(handshake_data, handshake_data_size, handshake_emulates);
+  EmulateMobileMessageHandshake(handshake_data, handshake_data_size, handshake_emulates);
 }
 /*
  * Shall not any query on getting empty SEND_INTERNAL_ERROR

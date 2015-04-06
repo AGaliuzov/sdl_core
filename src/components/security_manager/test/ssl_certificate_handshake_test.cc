@@ -38,6 +38,14 @@ namespace test {
 namespace components {
 namespace ssl_handshake_test {
 
+// Use this macro for correct line printing
+// in case of fail insize of the #method
+#define GTEST_TRACE(method) \
+  do { \
+    SCOPED_TRACE(""); \
+    method; \
+  } while (false)
+
 namespace {
 const std::string server_ca_cert_filename = "ca_server.crt";
 const std::string client_ca_cert_filename = "ca_client.crt";
@@ -137,6 +145,120 @@ class SSLHandshakeTest : public testing::Test {
     return ca_cetrificate;
   }
 
+  void ResetConnections() {
+    ASSERT_NO_THROW(server_ctx->ResetConnection());
+    ASSERT_NO_THROW(client_ctx->ResetConnection());
+  }
+
+  void StartHandshake() {
+    using security_manager::SSLContext;
+
+    ASSERT_EQ(client_ctx->StartHandshake(&client_buf, &client_buf_len),
+              SSLContext::Handshake_Result_Success);
+    ASSERT_FALSE(client_buf == NULL);
+    ASSERT_GT(client_buf_len, 0u);
+  }
+
+  void HandshakeProcedure_Success() {
+    using security_manager::SSLContext;
+    StartHandshake();
+
+    while (true) {
+      ASSERT_EQ(server_ctx->DoHandshakeStep(client_buf,
+                                            client_buf_len,
+                                            &server_buf,
+                                            &server_buf_len),
+                SSLContext::Handshake_Result_Success)
+          << ERR_reason_error_string(ERR_get_error());
+      ASSERT_FALSE(server_buf == NULL);
+      ASSERT_GT(server_buf_len, 0u);
+
+      ASSERT_EQ(client_ctx->DoHandshakeStep(server_buf,
+                                            server_buf_len,
+                                            &client_buf,
+                                            &client_buf_len),
+                SSLContext::Handshake_Result_Success)
+          << ERR_reason_error_string(ERR_get_error());
+      if (server_ctx->IsInitCompleted()) {
+        break;
+      }
+
+      ASSERT_FALSE(client_buf == NULL);
+      ASSERT_GT(client_buf_len, 0u);
+    }
+  }
+
+  void HandshakeProcedure_ServerSideFail() {
+    using security_manager::SSLContext;
+
+    StartHandshake();
+
+    while (true) {
+      const SSLContext::HandshakeResult result =
+          server_ctx->DoHandshakeStep(client_buf,
+                                      client_buf_len,
+                                      &server_buf,
+                                      &server_buf_len);
+      ASSERT_FALSE(server_ctx->IsInitCompleted()) << "Expected server side handshake fail";
+
+      // First few handsahke will be successful
+      if(result != SSLContext::Handshake_Result_Success) {
+        // Test successfully passed with handshake fail
+        return;
+      }
+      ASSERT_FALSE(server_buf == NULL);
+      ASSERT_GT(server_buf_len, 0u);
+
+      ASSERT_EQ(client_ctx->DoHandshakeStep(server_buf,
+                                            server_buf_len,
+                                            &client_buf,
+                                            &client_buf_len),
+                SSLContext::Handshake_Result_Success)
+          << ERR_reason_error_string(ERR_get_error());
+      ASSERT_FALSE(client_ctx->IsInitCompleted()) << "Expected server side handshake fail";
+
+      ASSERT_FALSE(client_buf == NULL);
+      ASSERT_GT(client_buf_len, 0u);
+    }
+    FAIL() << "Expected server side handshake fail";
+  }
+
+  void HandshakeProcedure_ClientSideFail() {
+    using security_manager::SSLContext;
+
+    StartHandshake();
+
+    while (true) {
+      ASSERT_EQ(server_ctx->DoHandshakeStep(client_buf,
+                                            client_buf_len,
+                                            &server_buf,
+                                            &server_buf_len),
+                SSLContext::Handshake_Result_Success)
+          << ERR_reason_error_string(ERR_get_error());
+      ASSERT_FALSE(server_ctx->IsInitCompleted()) << "Expected client side handshake fail";
+
+      ASSERT_FALSE(server_buf == NULL);
+      ASSERT_GT(server_buf_len, 0u);
+
+      const SSLContext::HandshakeResult result =
+          client_ctx->DoHandshakeStep(server_buf,
+                                      server_buf_len,
+                                      &client_buf,
+                                      &client_buf_len);
+      ASSERT_FALSE(client_ctx->IsInitCompleted()) << "Expected client side handshake fail";
+
+      // First few handsahke will be successful
+      if(result != SSLContext::Handshake_Result_Success) {
+        // Test successfully passed with handshake fail
+        return;
+      }
+
+      ASSERT_FALSE(client_buf == NULL);
+      ASSERT_GT(client_buf_len, 0u);
+    }
+    FAIL() << "Expected client side handshake fail";
+  }
+
   security_manager::CryptoManager* server_manager;
   security_manager::CryptoManager* client_manager;
   security_manager::SSLContext *server_ctx;
@@ -149,365 +271,168 @@ class SSLHandshakeTest : public testing::Test {
 };
 
 
-TEST_F(SSLHandshakeTest, Handshake_NoVerification) {
-  using security_manager::SSLContext;
+TEST_F(SSLHandshakeTest, NoVerification) {
   ASSERT_TRUE(InitServerManagers(security_manager::TLSv1_2, server_certificate,
-                                 server_key, "ALL", false, "", ""))
+                                 server_key, "ALL", false,
+                                 "", ""))
       << server_manager->LastError();
   ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
-                                 client_key, "ALL", false, "", ""))
+                                 client_key, "ALL", false,
+                                 "", ""))
       << client_manager->LastError();
 
-  ASSERT_EQ(client_ctx->StartHandshake(&client_buf, &client_buf_len),
-            SSLContext::Handshake_Result_Success);
-  ASSERT_FALSE(client_buf == NULL);
-  ASSERT_GT(client_buf_len, 0u);
-
-  while (true) {
-    ASSERT_EQ(server_ctx->DoHandshakeStep(client_buf,
-                                          client_buf_len,
-                                          &server_buf,
-                                          &server_buf_len),
-              SSLContext::Handshake_Result_Success)
-        << ERR_reason_error_string(ERR_get_error());
-    ASSERT_FALSE(server_buf == NULL);
-    ASSERT_GT(server_buf_len, 0u);
-
-    ASSERT_EQ(client_ctx->DoHandshakeStep(server_buf,
-                                          server_buf_len,
-                                          &client_buf,
-                                          &client_buf_len),
-              SSLContext::Handshake_Result_Success)
-        << ERR_reason_error_string(ERR_get_error());
-    if (server_ctx->IsInitCompleted()) {
-      break;
-    }
-
-    ASSERT_FALSE(client_buf == NULL);
-    ASSERT_GT(client_buf_len, 0u);
-  }
+  GTEST_TRACE(HandshakeProcedure_Success());
 }
 
 TEST_F(SSLHandshakeTest, CAVerification_ServerSide) {
-  using security_manager::SSLContext;
   ASSERT_TRUE(InitServerManagers(security_manager::TLSv1_2, server_certificate,
-                                 server_key, "ALL", true, server_ca_cert_filename,
+                                 server_key, "ALL", true,
+                                 server_ca_cert_filename,
                                  client_verification_ca))
       << server_manager->LastError();
   ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
-                                 client_key, "ALL", false, "", ""))
+                                 client_key, "ALL", false,
+                                 "", ""))
       << client_manager->LastError();
 
-  const uint8_t *server_buf;
-  const uint8_t *client_buf;
-  size_t server_buf_len;
-  size_t client_buf_len;
-
-  ASSERT_EQ(client_ctx->StartHandshake(&client_buf, &client_buf_len),
-            SSLContext::Handshake_Result_Success);
-  ASSERT_FALSE(client_buf == NULL);
-  ASSERT_GT(client_buf_len, 0u);
-
-  while (true) {
-    ASSERT_EQ(server_ctx->DoHandshakeStep(client_buf,
-                                          client_buf_len,
-                                          &server_buf,
-                                          &server_buf_len),
-              SSLContext::Handshake_Result_Success)
-        << ERR_reason_error_string(ERR_get_error());
-    ASSERT_FALSE(server_buf == NULL);
-    ASSERT_GT(server_buf_len, 0u);
-
-    ASSERT_EQ(client_ctx->DoHandshakeStep(server_buf,
-                                          server_buf_len,
-                                          &client_buf,
-                                          &client_buf_len),
-              SSLContext::Handshake_Result_Success)
-        << ERR_reason_error_string(ERR_get_error());
-    if (server_ctx->IsInitCompleted()) {
-      break;
-    }
-
-    ASSERT_FALSE(client_buf == NULL);
-    ASSERT_GT(client_buf_len, 0u);
-  }
+  GTEST_TRACE(HandshakeProcedure_Success());
 }
 
 TEST_F(SSLHandshakeTest, CAVerification_ServerSide_NoCACertificate) {
-  using security_manager::SSLContext;
   ASSERT_TRUE(InitServerManagers(security_manager::TLSv1_2, server_certificate,
-                                 server_key, "ALL", true, "", ""))
+                                 server_key, "ALL", true,
+                                 server_ca_cert_filename, ""))
       << server_manager->LastError();
   ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
-                                 client_key, "ALL", false, "", ""))
+                                 client_key, "ALL", false,
+                                 "", ""))
       << client_manager->LastError();
 
-  const uint8_t *server_buf;
-  const uint8_t *client_buf;
-  size_t server_buf_len;
-  size_t client_buf_len;
+  GTEST_TRACE(HandshakeProcedure_ServerSideFail());
 
-  ASSERT_EQ(client_ctx->StartHandshake(&client_buf, &client_buf_len),
-            SSLContext::Handshake_Result_Success);
-  ASSERT_FALSE(client_buf == NULL);
-  ASSERT_GT(client_buf_len, 0u);
+  const std::string cert = LoadCertificate(client_verification_ca);
+  ASSERT_TRUE(server_manager->OnCertificateUpdated(cert));
 
-  while (true) {
-    const SSLContext::HandshakeResult result =
-        server_ctx->DoHandshakeStep(client_buf,
-                                    client_buf_len,
-                                    &server_buf,
-                                    &server_buf_len);
-    ASSERT_FALSE(server_ctx->IsInitCompleted()) << "Expected handshake fail";
+  GTEST_TRACE(ResetConnections());
 
-    // First few handsahke will be successful
-    if(result != SSLContext::Handshake_Result_Success) {
-      // Test successfully passed with handshake fail
-      break;
-    }
-    ASSERT_FALSE(server_buf == NULL);
-    ASSERT_GT(server_buf_len, 0u);
-
-    ASSERT_EQ(client_ctx->DoHandshakeStep(server_buf,
-                                          server_buf_len,
-                                          &client_buf,
-                                          &client_buf_len),
-              SSLContext::Handshake_Result_Success)
-        << ERR_reason_error_string(ERR_get_error());
-    ASSERT_FALSE(client_ctx->IsInitCompleted()) << "Expected handshake fail";
-
-    ASSERT_FALSE(client_buf == NULL);
-    ASSERT_GT(client_buf_len, 0u);
-  }
+  GTEST_TRACE(HandshakeProcedure_Success());
 }
 
 TEST_F(SSLHandshakeTest, CAVerification_ClientSide) {
-  using security_manager::SSLContext;
   ASSERT_TRUE(InitServerManagers(security_manager::TLSv1_2, server_certificate,
-                                 server_key, "ALL", false, "", ""))
+                                 server_key, "ALL", false,
+                                 "", ""))
       << server_manager->LastError();
   ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
                                  client_key, "ALL", true,
                                  client_ca_cert_filename, server_verification_ca))
       << client_manager->LastError();
 
-  const uint8_t *server_buf;
-  const uint8_t *client_buf;
-  size_t server_buf_len;
-  size_t client_buf_len;
-
-  ASSERT_EQ(client_ctx->StartHandshake(&client_buf, &client_buf_len),
-            SSLContext::Handshake_Result_Success);
-  ASSERT_FALSE(client_buf == NULL);
-  ASSERT_GT(client_buf_len, 0u);
-
-  while (true) {
-    ASSERT_EQ(server_ctx->DoHandshakeStep(client_buf,
-                                          client_buf_len,
-                                          &server_buf,
-                                          &server_buf_len),
-              SSLContext::Handshake_Result_Success)
-        << ERR_reason_error_string(ERR_get_error());
-    ASSERT_FALSE(server_buf == NULL);
-    ASSERT_GT(server_buf_len, 0u);
-
-    ASSERT_EQ(client_ctx->DoHandshakeStep(server_buf,
-                                          server_buf_len,
-                                          &client_buf,
-                                          &client_buf_len),
-              SSLContext::Handshake_Result_Success)
-        << ERR_reason_error_string(ERR_get_error());
-    if (server_ctx->IsInitCompleted()) {
-      break;
-    }
-
-    ASSERT_FALSE(client_buf == NULL);
-    ASSERT_GT(client_buf_len, 0u);
-  }
+  GTEST_TRACE(HandshakeProcedure_Success());
 }
 
 TEST_F(SSLHandshakeTest, CAVerification_ClientSide_NoCACertificate) {
-  using security_manager::SSLContext;
   ASSERT_TRUE(InitServerManagers(security_manager::TLSv1_2, server_certificate,
-                                 server_key, "ALL", false, "", ""))
+                                 server_key, "ALL", false,
+                                 "", ""))
       << server_manager->LastError();
   ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
-                                 client_key, "ALL", true, "", ""))
+                                 client_key, "ALL", true,
+                                 client_ca_cert_filename, ""))
       << client_manager->LastError();
 
-  const uint8_t *server_buf;
-  const uint8_t *client_buf;
-  size_t server_buf_len;
-  size_t client_buf_len;
+  GTEST_TRACE(HandshakeProcedure_ClientSideFail());
 
-  ASSERT_EQ(client_ctx->StartHandshake(&client_buf, &client_buf_len),
-            SSLContext::Handshake_Result_Success);
-  ASSERT_FALSE(client_buf == NULL);
-  ASSERT_GT(client_buf_len, 0u);
+  const std::string cert = LoadCertificate(server_verification_ca);
+  ASSERT_TRUE(client_manager->OnCertificateUpdated(cert));
 
-  while (true) {
-    ASSERT_EQ(server_ctx->DoHandshakeStep(client_buf,
-                                          client_buf_len,
-                                          &server_buf,
-                                          &server_buf_len),
-              SSLContext::Handshake_Result_Success)
-        << ERR_reason_error_string(ERR_get_error());
-    ASSERT_FALSE(server_ctx->IsInitCompleted()) << "Expected handshake fail";
+  GTEST_TRACE(ResetConnections());
 
-    ASSERT_FALSE(server_buf == NULL);
-    ASSERT_GT(server_buf_len, 0u);
-
-    const SSLContext::HandshakeResult result =
-        client_ctx->DoHandshakeStep(server_buf,
-                                    server_buf_len,
-                                    &client_buf,
-                                    &client_buf_len);
-    ASSERT_FALSE(client_ctx->IsInitCompleted()) << "Expected handshake fail";
-
-    // First few handsahke will be successful
-    if(result != SSLContext::Handshake_Result_Success) {
-      // Test successfully passed with handshake fail
-      break;
-    }
-
-    ASSERT_FALSE(client_buf == NULL);
-    ASSERT_GT(client_buf_len, 0u);
-  }
+  GTEST_TRACE(HandshakeProcedure_Success());
 }
 
 TEST_F(SSLHandshakeTest, CAVerification_BothSides) {
-  using security_manager::SSLContext;
   ASSERT_TRUE(InitServerManagers(security_manager::TLSv1_2, server_certificate,
-                                 server_key, "ALL", true, server_ca_cert_filename,
-                                 client_verification_ca))
+                                 server_key, "ALL", true,
+                                 server_ca_cert_filename, client_verification_ca))
       << server_manager->LastError();
   ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
                                  client_key, "ALL", true,
                                  client_ca_cert_filename, server_verification_ca))
       << client_manager->LastError();
 
-  const uint8_t *server_buf;
-  const uint8_t *client_buf;
-  size_t server_buf_len;
-  size_t client_buf_len;
-
-  ASSERT_EQ(client_ctx->StartHandshake(&client_buf, &client_buf_len),
-            SSLContext::Handshake_Result_Success);
-  ASSERT_FALSE(client_buf == NULL);
-  ASSERT_GT(client_buf_len, 0u);
-
-  while (true) {
-    ASSERT_EQ(server_ctx->DoHandshakeStep(client_buf,
-                                          client_buf_len,
-                                          &server_buf,
-                                          &server_buf_len),
-              SSLContext::Handshake_Result_Success)
-        << ERR_reason_error_string(ERR_get_error());
-    ASSERT_FALSE(server_buf == NULL);
-    ASSERT_GT(server_buf_len, 0u);
-
-    ASSERT_EQ(client_ctx->DoHandshakeStep(server_buf,
-                                          server_buf_len,
-                                          &client_buf,
-                                          &client_buf_len),
-              SSLContext::Handshake_Result_Success)
-        << ERR_reason_error_string(ERR_get_error());
-    if (server_ctx->IsInitCompleted()) {
-      break;
-    }
-
-    ASSERT_FALSE(client_buf == NULL);
-    ASSERT_GT(client_buf_len, 0u);
-  }
+  GTEST_TRACE(HandshakeProcedure_Success());
 }
 
-TEST_F(SSLHandshakeTest, Handshake_UnsignedCert) {
-  using security_manager::SSLContext;
+TEST_F(SSLHandshakeTest, UnsignedCert) {
   ASSERT_TRUE(InitServerManagers(security_manager::TLSv1_2, server_unsigned_cert_file,
-                                 server_key, "ALL", false, "", ""))
+                                 server_key, "ALL", false,
+                                 "", ""))
       << server_manager->LastError();
   ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
                                  client_key, "ALL", true,
                                  client_ca_cert_filename, server_verification_ca))
       << client_manager->LastError();
 
-  ASSERT_EQ(client_ctx->StartHandshake(&client_buf, &client_buf_len),
-            SSLContext::Handshake_Result_Success);
-  ASSERT_FALSE(client_buf == NULL);
-  ASSERT_GT(client_buf_len, 0u);
-
-  while (true) {
-    const SSLContext::HandshakeResult server_result =
-        server_ctx->DoHandshakeStep(client_buf,
-                                          client_buf_len,
-                                          &server_buf,
-                                          &server_buf_len);
-    if(server_result != SSLContext::Handshake_Result_Success) {
-      return;
-    }
-    ASSERT_FALSE(server_ctx->IsInitCompleted());
-    ASSERT_FALSE(server_buf == NULL);
-    ASSERT_GT(server_buf_len, 0u);
-
-    const SSLContext::HandshakeResult client_result =
-        client_ctx->DoHandshakeStep(server_buf,
-                                    server_buf_len,
-                                    &client_buf,
-                                    &client_buf_len);
-    if(client_result != SSLContext::Handshake_Result_Success) {
-      return;
-    }
-    ASSERT_FALSE(server_ctx->IsInitCompleted());
-    ASSERT_FALSE(client_buf == NULL);
-    ASSERT_GT(client_buf_len, 0u);
-  }
-  FAIL() << "Expected handshake fail";
+  GTEST_TRACE(HandshakeProcedure_ClientSideFail());
 }
 
-TEST_F(SSLHandshakeTest, Handshake_ExpiredCert) {
-  using security_manager::SSLContext;
+TEST_F(SSLHandshakeTest, ExpiredCert) {
   ASSERT_TRUE(InitServerManagers(security_manager::TLSv1_2, server_expired_cert_file,
-                                 server_key, "ALL", false, "", ""))
+                                 server_key, "ALL", false,
+                                 "", ""))
       << server_manager->LastError();
   ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
                                  client_key, "ALL", true,
                                  client_ca_cert_filename, server_verification_ca))
       << client_manager->LastError();
 
-  ASSERT_EQ(client_ctx->StartHandshake(&client_buf, &client_buf_len),
-            SSLContext::Handshake_Result_Success);
-  ASSERT_FALSE(client_buf == NULL);
-  ASSERT_GT(client_buf_len, 0u);
-
-  while (true) {
-    const SSLContext::HandshakeResult server_result =
-        server_ctx->DoHandshakeStep(client_buf,
-                                          client_buf_len,
-                                          &server_buf,
-                                          &server_buf_len);
-    if(server_result != SSLContext::Handshake_Result_Success) {
-      return;
-    }
-    ASSERT_FALSE(server_ctx->IsInitCompleted());
-    ASSERT_FALSE(server_buf == NULL);
-    ASSERT_GT(server_buf_len, 0u);
-
-    const SSLContext::HandshakeResult client_result =
-        client_ctx->DoHandshakeStep(server_buf,
-                                    server_buf_len,
-                                    &client_buf,
-                                    &client_buf_len);
-    if(client_result != SSLContext::Handshake_Result_Success) {
-      return;
-    }
-    ASSERT_FALSE(server_ctx->IsInitCompleted());
-    ASSERT_FALSE(client_buf == NULL);
-    ASSERT_GT(client_buf_len, 0u);
-  }
-  FAIL() << "Expected handshake fail";
+  GTEST_TRACE(HandshakeProcedure_ClientSideFail());
 }
 
-// TODO(EZamakhov): add fail tests - wrong, unsign certificate, broken or not full ca certificate chain
+
+TEST_F(SSLHandshakeTest, NoVerification_ResetConnection) {
+  ASSERT_TRUE(InitServerManagers(security_manager::TLSv1_2, server_certificate,
+                                 server_key, "ALL", false,
+                                 "", ""))
+      << server_manager->LastError();
+  ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
+                                 client_key, "ALL", false,
+                                 "", ""))
+      << client_manager->LastError();
+
+  const int times = 100;
+  for (int i = 0; i < times; ++i) {
+    // Expect success  handshake
+    GTEST_TRACE(HandshakeProcedure_Success());
+
+    // Reset SSl connections
+    GTEST_TRACE(ResetConnections());
+  }
+}
+
+TEST_F(SSLHandshakeTest, CAVerification_BothSides_ResetConnection) {
+  ASSERT_TRUE(InitServerManagers(security_manager::TLSv1_2, server_certificate,
+                                 server_key, "ALL", true,
+                                 server_ca_cert_filename, client_verification_ca))
+      << server_manager->LastError();
+  ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
+                                 client_key, "ALL", true,
+                                 client_ca_cert_filename, server_verification_ca))
+      << client_manager->LastError();
+
+
+  const int times = 100;
+  for (int i = 0; i < times; ++i) {
+    // Expect success  handshake
+    GTEST_TRACE(HandshakeProcedure_Success());
+
+    // Reset SSl connections
+    GTEST_TRACE(ResetConnections());
+  }
+}
+
+// TODO(EZamakhov): add fail tests -broken or not full ca certificate chain
 
 }  // namespace ssl_handshake_test
 }  // namespace components

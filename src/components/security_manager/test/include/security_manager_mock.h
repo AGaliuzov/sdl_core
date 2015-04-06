@@ -215,7 +215,9 @@ class SSLContextMock : public security_manager::SSLContext {
   MOCK_CONST_METHOD0(IsInitCompleted, bool());
   MOCK_CONST_METHOD0(IsHandshakePending, bool());
   MOCK_CONST_METHOD0(LastError,
-      std::string());
+                     std::string());
+  MOCK_METHOD0(ResetConnection,
+               void());
 };
 /*
  * MOCK implementation of security_manager::SecurityManagerListener

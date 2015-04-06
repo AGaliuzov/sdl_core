@@ -39,6 +39,8 @@
 
 namespace threads {
 
+CREATE_LOGGERPTR_GLOBAL(logger_, "Utils")
+
 ThreadDelegate::~ThreadDelegate() {
   if (thread_) {
     thread_->set_delegate(NULL);
@@ -46,6 +48,7 @@ ThreadDelegate::~ThreadDelegate() {
 }
 
 void ThreadDelegate::exitThreadMain() {
+  LOG4CXX_AUTO_TRACE(logger_);
   if (thread_) {
     if (thread_->thread_handle() == pthread_self()) {
       pthread_exit(NULL);

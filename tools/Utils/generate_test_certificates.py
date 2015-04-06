@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
 """Generate certificates for testing
@@ -138,11 +138,17 @@ def concat_files(out_file_name, *args) :
 def main():
     arg_parser = ArgumentParser(description='Welcome to SDL test certificate generator.')
     arg_parser.add_argument('-d', '--dir', help="directory for certificate generating")
+    arg_parser.add_argument('-s', '--soft', help="do not override existing certificates if root.key exists", action='store_true')
     args = arg_parser.parse_args()
     if args.dir:
         if not os.path.exists(args.dir):
             raise OSError("Input directory does not exist")
         os.chdir(args.dir)
+    if args.soft:
+        root_key_file  = "root.key"
+        if os.path.exists(root_key_file):
+            print "Root key file '%s' exists. Generation aborted according to soft mode." % (root_key_file, )
+            return
 
     root_answer = answers("root", "US", "California", "Silicon Valley", "CAcert.org", "CAcert", "sample@cacert.org")
     ford_server_answer = answers("FORD", "US", "Michigan", "Detroit", "FORD_SERVER", "FORD_SDL_SERVER" ,"sample@ford.com")

@@ -198,7 +198,7 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
   } else if (handshake_result == 0) {
     const int error = SSL_get_error(connection_, handshake_result);
     SetHandshakeError(error);
-    LOG4CXX_WARN(logger_, "Handshake failed on the mobile side with error " << error
+    LOG4CXX_WARN(logger_, "Handshake failed on the other side with error " << error
                  << " \"" << LastError() << '"');
     ResetConnection();
     is_handshake_pending_ = false;
@@ -331,13 +331,30 @@ void CryptoManagerImpl::SSLContextImpl::SetHandshakeError(const int error) {
 }
 
 void CryptoManagerImpl::SSLContextImpl::ResetConnection() {
-  const int clear_result = SSL_clear(connection_);
-  if (!clear_result) {
-    const char *reason = ERR_reason_error_string(ERR_get_error());
-    UNUSED(reason);
-    LOG4CXX_WARN(logger_, "Connection reset failed with \""
-                 << (reason ? reason : "") << '"');
+  LOG4CXX_AUTO_TRACE(logger_);
+  const int shutdown_result = SSL_shutdown(connection_);
+  if(shutdown_result != 1) {
+    const size_t pend = BIO_ctrl_pending(bioOut_);
+    LOG4CXX_DEBUG(logger_, "Available " << pend << " bytes for shutdown");
+    if (pend > 0) {
+      LOG4CXX_DEBUG(logger_, "Reading shutdown data");
+      EnsureBufferSizeEnough(pend);
+      BIO_read(bioOut_, buffer_, pend);
+    }
+    SSL_shutdown(connection_);
   }
+  LOG4CXX_DEBUG(logger_, "SSL connection recreation");
+  SSL_free(connection_);
+  SSL_CTX * ssl_context = connection_->ctx;
+  connection_ = SSL_new(ssl_context);
+  if (mode_ == SERVER) {
+    SSL_set_accept_state(connection_);
+  } else {
+    SSL_set_connect_state(connection_);
+  }
+  bioIn_ = BIO_new(BIO_s_mem());
+  bioOut_ = BIO_new(BIO_s_mem());
+  SSL_set_bio(connection_, bioIn_, bioOut_);
 }
 
 void CryptoManagerImpl::SSLContextImpl::EnsureBufferSizeEnough(size_t size) {
@@ -346,6 +363,9 @@ void CryptoManagerImpl::SSLContextImpl::EnsureBufferSizeEnough(size_t size) {
     buffer_ = new(std::nothrow) uint8_t[size];
     if (buffer_) {
       buffer_size_ = size;
+    } else {
+      buffer_ = NULL;
+      buffer_size_ = 0;
     }
   }
 }
