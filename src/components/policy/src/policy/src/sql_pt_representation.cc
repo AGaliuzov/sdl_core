@@ -302,10 +302,10 @@ bool SQLPTRepresentation::GetPriority(const std::string& policy_app_id,
 
 InitResult SQLPTRepresentation::Init() {
   LOG4CXX_AUTO_TRACE(logger_);
-
+  open_counter_ = 0;
   if (!db_->Open()) {
     LOG4CXX_ERROR(logger_, "Failed opening database.");
-    LOG4CXX_INFO(logger_, "Starting opening retries.");
+    LOG4CXX_WARN(logger_, "Starting opening retries.");
     const uint16_t attempts =
         profile::Profile::instance()->attempts_to_open_policy_db();
     LOG4CXX_DEBUG(logger_, "Total attempts number is: " << attempts);
@@ -318,6 +318,7 @@ InitResult SQLPTRepresentation::Init() {
     for (int i = 0; i < attempts; ++i) {
       usleep(sleep_interval_mcsec);
       LOG4CXX_INFO(logger_, "Attempt: " << i+1);
+      open_counter_ = i + 1;
       if (db_->Open()){
         LOG4CXX_INFO(logger_, "Database opened.");
         is_opened = true;

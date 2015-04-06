@@ -57,18 +57,14 @@ set(testSources
   policy_manager_impl_test.cc
 )
 
-if(EXTENDED_POLICY_FLAG)
-  add_definitions(-DEXTENDED_POLICY)
   include_directories(${COMPONENTS_DIR}/policy/src/policy/policy_table/table_struct_ext)
   list (APPEND testSources
     sql_pt_ext_representation_test.cc
 )
-else()
   include_directories(${COMPONENTS_DIR}/policy/src/policy/policy_table/table_struct)
   list (APPEND testSources
     sql_pt_representation_test.cc
-  )
-endif()
+)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
   list(REMOVE_ITEM testLibraries dl)
