@@ -36,8 +36,6 @@
 #include <string>
 #include <map>
 #include "utils/singleton.h"
-#include "utils/timer_thread.h"
-#include "utils/shared_ptr.h"
 #include "protocol_handler/protocol_observer.h"
 #include "protocol_handler/protocol_handler.h"
 #include "protocol/service_type.h"
@@ -47,26 +45,28 @@
 
 namespace media_manager {
 using protocol_handler::ServiceType;
-using timer::TimerThread;
-using utils::SharedPtr;
 
 class MediaManagerImpl : public MediaManager,
   public protocol_handler::ProtocolObserver,
   public utils::Singleton<MediaManagerImpl> {
   public:
     virtual ~MediaManagerImpl();
-    virtual void SetProtocolHandler(
-      protocol_handler::ProtocolHandler* protocol_handler);
+
     virtual void PlayA2DPSource(int32_t application_key);
     virtual void StopA2DPSource(int32_t application_key);
+
     virtual void StartMicrophoneRecording(int32_t application_key,
                                           const std::string& outputFileName,
                                           int32_t duration);
     virtual void StopMicrophoneRecording(int32_t application_key);
-    virtual void StartVideoStreaming(int32_t application_key);
-    virtual void StopVideoStreaming(int32_t application_key);
-    virtual void StartAudioStreaming(int32_t application_key);
-    virtual void StopAudioStreaming(int32_t application_key);
+
+    virtual void StartStreaming(int32_t application_key,
+                                ServiceType service_type);
+    virtual void StopStreaming(int32_t application_key,
+                               ServiceType service_type);
+
+    virtual void SetProtocolHandler(
+      protocol_handler::ProtocolHandler* protocol_handler);
     virtual void OnMessageReceived(
       const ::protocol_handler::RawMessagePtr message);
     virtual void OnMobileMessageSent(
@@ -76,52 +76,21 @@ class MediaManagerImpl : public MediaManager,
   protected:
     MediaManagerImpl();
     virtual void Init();
+
     protocol_handler::ProtocolHandler* protocol_handler_;
     MediaAdapter*                      a2dp_player_;
+
     MediaAdapterImpl*                  from_mic_recorder_;
     MediaListenerPtr                   from_mic_listener_;
 
-    std::map<ServiceType, SharedPtr<MediaAdapterImpl> > streamer_;
-
-    uint32_t                           audio_data_stopped_timeout_;
-    uint32_t                           video_data_stopped_timeout_;
-    MediaListenerPtr                   video_streamer_listener_;
-    MediaListenerPtr                   audio_streamer_listener_;
-    bool                               video_stream_active_;
-    bool                               audio_stream_active_;
+    std::map<ServiceType, MediaAdapterImplPtr> streamer_;
+    std::map<ServiceType, MediaListenerPtr>    streamer_listener_;
 
   private:
-    void OnAudioStreamingTimeout();
-    void OnVideoStreamingTimeout();
-  private:
-    /**
-     * @brief WakeUpStreaming allows to send notification in case application
-     * have begun streaming again for appropriate service type.
-     *
-     * @param service_type the type of service that starts streaming activity.
-     */
-    void WakeUpStreaming(ServiceType service_type);
-
-    /**
-     * @brief CanStream allows to distinguish whether app is allowed to stream.
-     *
-     * @param service_type streaming service type.
-     *
-     * @return true in case streaming is allowed, false otherwise.
-     */
-    bool CanStream(ServiceType service_type);
-
-    TimerThread<MediaManagerImpl> audio_streaming_timer_;
-    std::map<ServiceType, TimerThread<MediaManagerImpl> > streaming_timer_;
-    TimerThread<MediaManagerImpl> video_streaming_timer_;
-    bool                                 audio_streaming_suspended_;
-    bool                                 video_streaming_suspended_;
-    sync_primitives::Lock                audio_streaming_suspended_lock_;
-    sync_primitives::Lock                video_streaming_suspended_lock_;
-    uint32_t streaming_app_id_;
     DISALLOW_COPY_AND_ASSIGN(MediaManagerImpl);
     FRIEND_BASE_SINGLETON_CLASS(MediaManagerImpl);
 };
 
 }  //  namespace media_manager
+
 #endif  // SRC_COMPONENTS_MEDIA_MANAGER_INCLUDE_MEDIA_MANAGER_MEDIA_MANAGER_IMPL_H_
