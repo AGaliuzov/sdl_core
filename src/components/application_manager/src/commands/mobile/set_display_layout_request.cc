@@ -94,7 +94,7 @@ void SetDisplayLayoutRequest::on_event(const event_engine::Event& event) {
 
         if (msg_params.keyExists(hmi_response::soft_button_capabilities)) {
             hmi_capabilities.set_soft_button_capabilities(
-              msg_params[hmi_response::soft_button_capabilities]);
+              msg_params[hmi_response::soft_button_capabilities][0]);
         }
 
         if (msg_params.keyExists(hmi_response::button_capabilities)) {
