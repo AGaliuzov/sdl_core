@@ -90,6 +90,7 @@ const char* kServerAddressKey = "ServerAddress";
 const char* kAppInfoStorageKey = "AppInfoStorage";
 const char* kAppStorageFolderKey = "AppStorageFolder";
 const char* kAppResourseFolderKey = "AppResourceFolder";
+const char* kLogsEnabledKey = "LogsEnabled";
 const char* kAppConfigFolderKey = "AppConfigFolder";
 const char* kEnableProtocol4Key = "EnableProtocol4";
 const char* kAppIconsFolderKey = "AppIconsFolder";
@@ -361,7 +362,8 @@ Profile::Profile()
     tts_global_properties_timeout_(kDefaultTTSGlobalPropertiesTimeout),
     attempts_to_open_policy_db_(kDefaultAttemptsToOpenPolicyDB),
     open_attempt_timeout_ms_(kDefaultAttemptsToOpenPolicyDB),
-    hash_string_size_(kDefaultHashStringSize) {
+    hash_string_size_(kDefaultHashStringSize),
+    logs_enabled_(false) {
 }
 
 Profile::~Profile() {
@@ -780,6 +782,10 @@ uint16_t Profile::tts_global_properties_timeout() const {
   return tts_global_properties_timeout_;
 }
 
+bool Profile::logs_enabled() const {
+  return logs_enabled_;
+}
+
 #ifdef ENABLE_SECURITY
 
 const std::string& Profile::cert_path() const {
@@ -840,6 +846,11 @@ void Profile::UpdateValues() {
       kSecurityVerifyPeerKey);
 
 #endif  // ENABLE_SECURITY
+
+  // Logs enabled
+  ReadBoolValue(&logs_enabled_, false, kMainSection, kLogsEnabledKey);
+
+  LOG_UPDATED_BOOL_VALUE(logs_enabled_, kLogsEnabledKey, kMainSection);
 
   // Application config folder
   ReadStringValue(&app_config_folder_,
