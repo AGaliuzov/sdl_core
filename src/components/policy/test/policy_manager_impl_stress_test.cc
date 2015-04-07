@@ -80,7 +80,6 @@ void PolicyManagerImplStressTest::SetUpTestCase() {
   mock_listener = new MockPolicyListener();
   manager->set_listener(mock_listener);
 
-  //TODO(AGaliuzov) APPLINK-10657
   ASSERT_TRUE(manager->InitPT(kNameFile));
 }
 
