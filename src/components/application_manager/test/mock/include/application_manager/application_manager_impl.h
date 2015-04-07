@@ -308,6 +308,7 @@ class ApplicationManagerImpl : public ApplicationManager,
   MOCK_METHOD0(OnApplicationListUpdateTimer, void());
   MOCK_METHOD0(OnLowVoltage, void());
   MOCK_METHOD0(OnWakeUp, void());
+  MOCK_CONST_METHOD2(IsApplicationForbidden,  bool (uint32_t, const std::string&));
   MOCK_METHOD1(OnUpdateHMIAppType, void(std::map<std::string, std::vector<std::string> >));
   MOCK_METHOD3(set_state, void(ApplicationSharedPtr app,
                                mobile_apis::HMILevel::eType,

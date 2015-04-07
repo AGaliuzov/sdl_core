@@ -2103,6 +2103,7 @@ void ApplicationManagerImpl::UnregisterApplication(
         ApplicationSharedPtr app_ptr = application(app_id);
         if(app_ptr) {
           app_ptr->usage_report().RecordRemovalsForBadBehavior();
+          forbidden_applications.insert(GetHashedAppID(app_id, app_ptr->mobile_app_id()));
         }
       break;
     }
@@ -2339,6 +2340,17 @@ bool ApplicationManagerImpl::IsLowVoltage() {
   return is_low_voltage_;
 }
 
+std::string ApplicationManagerImpl::GetHashedAppID(uint32_t connection_key,
+                                             const std::string& mobile_app_id) const {
+  using namespace connection_handler;
+  uint32_t device_id = 0;
+  ConnectionHandlerImpl::instance()-> GetDataOnSessionKey(connection_key, 0, NULL, &device_id);
+  std::string device_name;
+  ConnectionHandlerImpl::instance()->GetDataOnDeviceID(device_id, &device_name);
+
+  return mobile_app_id + device_name;
+}
+
 void ApplicationManagerImpl::NaviAppStreamStatus(bool stream_active) {
   ApplicationSharedPtr active_app = active_application();
   using namespace mobile_apis;
@@ -2480,6 +2492,12 @@ void ApplicationManagerImpl::OnWakeUp() {
     LOG4CXX_AUTO_TRACE(logger_);
     is_low_voltage_ = false;
     request_ctrl_.OnWakeUp();
+}
+
+bool ApplicationManagerImpl::IsApplicationForbidden(uint32_t connection_key,
+                                                    const std::string& mobile_app_id) const {
+  const std::string name = GetHashedAppID(connection_key, mobile_app_id);
+  return forbidden_applications.find(name) != forbidden_applications.end();
 }
 
 mobile_apis::Result::eType ApplicationManagerImpl::SaveBinary(
