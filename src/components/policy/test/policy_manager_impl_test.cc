@@ -304,6 +304,8 @@ TEST_F(PolicyManagerImplTest, DISABLED_CheckPermissions) {
   EXPECT_EQ("speed", output.list_of_allowed_params[2]);
 }
 #else  // EXTENDED_POLICY
+
+// TODO(AByzhynar) : APPLINK-12292
 TEST_F(PolicyManagerImplTest, DISABLED_CheckPermissions_SetHmiLevelFullForAlert_ExpectAllowedPermissions) {
   // Arrange
   ::policy::CheckPermissionResult expected;
