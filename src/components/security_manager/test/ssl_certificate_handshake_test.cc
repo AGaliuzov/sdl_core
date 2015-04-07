@@ -202,7 +202,7 @@ class SSLHandshakeTest : public testing::Test {
       ASSERT_FALSE(server_ctx->IsInitCompleted()) << "Expected server side handshake fail";
 
       // First few handsahke will be successful
-      if(result != SSLContext::Handshake_Result_Success) {
+      if (result != SSLContext::Handshake_Result_Success) {
         // Test successfully passed with handshake fail
         return;
       }
@@ -248,7 +248,7 @@ class SSLHandshakeTest : public testing::Test {
       ASSERT_FALSE(client_ctx->IsInitCompleted()) << "Expected client side handshake fail";
 
       // First few handsahke will be successful
-      if(result != SSLContext::Handshake_Result_Success) {
+      if (result != SSLContext::Handshake_Result_Success) {
         // Test successfully passed with handshake fail
         return;
       }

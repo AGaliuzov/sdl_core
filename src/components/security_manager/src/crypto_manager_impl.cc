@@ -285,7 +285,7 @@ void CryptoManagerImpl::SetVerification() {
   const int verify_mode = SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
   SSL_CTX_set_verify(context_, verify_mode, &debug_callback);
 
-  if(ca_certificate_file_.empty()) {
+  if (ca_certificate_file_.empty()) {
     LOG4CXX_WARN(logger_, "Setting up empty CA certificate location");
     return;
   }

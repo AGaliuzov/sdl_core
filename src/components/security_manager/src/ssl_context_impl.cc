@@ -333,7 +333,7 @@ void CryptoManagerImpl::SSLContextImpl::SetHandshakeError(const int error) {
 void CryptoManagerImpl::SSLContextImpl::ResetConnection() {
   LOG4CXX_AUTO_TRACE(logger_);
   const int shutdown_result = SSL_shutdown(connection_);
-  if(shutdown_result != 1) {
+  if (shutdown_result != 1) {
     const size_t pend = BIO_ctrl_pending(bioOut_);
     LOG4CXX_DEBUG(logger_, "Available " << pend << " bytes for shutdown");
     if (pend > 0) {
@@ -344,8 +344,8 @@ void CryptoManagerImpl::SSLContextImpl::ResetConnection() {
     SSL_shutdown(connection_);
   }
   LOG4CXX_DEBUG(logger_, "SSL connection recreation");
-  SSL_free(connection_);
   SSL_CTX * ssl_context = connection_->ctx;
+  SSL_free(connection_);
   connection_ = SSL_new(ssl_context);
   if (mode_ == SERVER) {
     SSL_set_accept_state(connection_);
