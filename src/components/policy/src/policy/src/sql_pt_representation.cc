@@ -321,7 +321,7 @@ InitResult SQLPTRepresentation::Init() {
       usleep(sleep_interval_mcsec);
       LOG4CXX_INFO(logger_, "Attempt: " << i+1);
 #ifdef BUILD_TESTS
-      open_counter_ = i + 1;
+      ++open_counter_;
 #endif // BUILD_TESTS
       if (db_->Open()){
         LOG4CXX_INFO(logger_, "Database opened.");
