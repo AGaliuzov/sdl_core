@@ -59,7 +59,7 @@ set(CERT_LIST
 
 add_custom_target(generate_certificates
   COMMAND ${CMAKE_SOURCE_DIR}/tools/Utils/generate_test_certificates.py
-          -d=${CMAKE_CURRENT_BINARY_DIR}
+          -d=${CMAKE_CURRENT_BINARY_DIR} -s
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 

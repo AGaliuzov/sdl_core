@@ -68,6 +68,7 @@ void SecurityManagerImpl::OnMessageReceived(
   }
   securityMessagePtr->set_connection_key(message->connection_key());
 
+  LOG4CXX_DEBUG(logger_, "Posting security message to message query.");
   // Post message to message query for next processing in thread
   security_messages_.PostMessage(securityMessagePtr);
 }
@@ -354,10 +355,10 @@ void SecurityManagerImpl::SendQuery(const SecurityQuery& query,
   session_observer_->PairFromKey(connection_key, &connection_handle,
                                    &sessionID);
   if (session_observer_->ProtocolVersionUsed(connection_handle, sessionID,
-		  protocol_version)) {
+                                             protocol_version)) {
     const ::protocol_handler::RawMessagePtr rawMessagePtr(
       new protocol_handler::RawMessage(connection_key,
-    		                           protocol_version,
+                                       protocol_version,
                                        &data_sending[0], data_sending.size(),
                                        protocol_handler::kControl));
     DCHECK(protocol_handler_);

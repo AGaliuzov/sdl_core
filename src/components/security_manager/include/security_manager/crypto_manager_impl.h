@@ -65,11 +65,10 @@ class CryptoManagerImpl : public CryptoManager {
     bool IsHandshakePending() const OVERRIDE;
     size_t get_max_block_size(size_t mtu) const OVERRIDE;
     std::string LastError() const OVERRIDE;
+    void ResetConnection() OVERRIDE;
     ~SSLContextImpl();
-
    private:
     void SetHandshakeError(const int error);
-    void ResetConnection();
     typedef size_t(*BlockSizeGetter)(size_t);
     void EnsureBufferSizeEnough(size_t size);
     SSL *connection_;
