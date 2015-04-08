@@ -1065,8 +1065,7 @@ void PolicyHandler::OnPermissionsUpdated(const std::string& policy_app_id,
                    << policy_app_id
                    << " to default hmi level " << default_hmi);
       ApplicationManagerImpl::instance()->SetState<true>(app->app_id(),
-                                                   mobile_apis::HMILevel::HMI_FULL
-                                                   );
+                                                         hmi_level);
       break;
     }
     default:
