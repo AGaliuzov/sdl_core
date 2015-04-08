@@ -1282,14 +1282,14 @@ void ResumeCtrl::RemoveFromResumption(uint32_t app_id) {
   queue_lock_.Release();
 }
 
-void ResumeCtrl::SendHMIRequest(
+uint32_t ResumeCtrl::SendHMIRequest(
     const hmi_apis::FunctionID::eType& function_id,
     const smart_objects::SmartObject* msg_params, bool use_events) {
   LOG4CXX_AUTO_TRACE(logger_);
   smart_objects::SmartObjectSPtr result =
       MessageHelper::CreateModuleInfoSO(function_id);
-  int32_t hmi_correlation_id =
-      (*result)[strings::params][strings::correlation_id].asInt();
+  uint32_t hmi_correlation_id =
+      (*result)[strings::params][strings::correlation_id].asUInt();
   if (use_events) {
     subscribe_on_event(function_id, hmi_correlation_id);
   }
@@ -1301,6 +1301,7 @@ void ResumeCtrl::SendHMIRequest(
   if (!ApplicationManagerImpl::instance()->ManageHMICommand(result)) {
     LOG4CXX_ERROR(logger_, "Unable to send request");
   }
+  return hmi_correlation_id;
 }
 
 }  // namespace application_manager

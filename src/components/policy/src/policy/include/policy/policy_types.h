@@ -311,7 +311,7 @@ typedef std::map<uint32_t, std::pair<std::string, std::string> > FunctionalGroup
 typedef std::vector<std::string> DeviceIds;
 
 /**
- * @brief Counters that calculated on receiving of succesfull update
+ * @brief Counters that calculated on receiving of succesful update
  */
 enum Counters {
   KILOMETERS,
