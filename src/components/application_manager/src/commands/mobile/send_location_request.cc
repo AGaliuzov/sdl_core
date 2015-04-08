@@ -189,37 +189,38 @@ bool SendLocationRequest::IsWhiteSpaceExist() {
 bool SendLocationRequest::CheckHMICapabilities(std::list<hmi_apis::Common_TextFieldName::eType>& fields_names) {
   using namespace smart_objects;
   using namespace hmi_apis;
-
-  if (fields_names.empty()) {
-    return true;
-  }
-
+  LOG4CXX_AUTO_TRACE(logger_);
   ApplicationManagerImpl* instance = ApplicationManagerImpl::instance();
+  DCHECK_OR_RETURN(instance, false);
   const HMICapabilities& hmi_capabilities = instance->hmi_capabilities();
   if (!hmi_capabilities.is_ui_cooperating()) {
     LOG4CXX_ERROR_EXT(logger_, "UI is not supported.");
     return false;
   }
-
-  if (hmi_capabilities.display_capabilities()) {
-    const SmartObject disp_cap = (*hmi_capabilities.display_capabilities());
-    const SmartObject& text_fields = disp_cap.getElement(hmi_response::text_fields);
-    const size_t len = text_fields.length();
-    for (size_t i = 0; i < len; ++i) {
-      const SmartObject& text_field = text_fields[i];
-      const Common_TextFieldName::eType filed_name =
-          static_cast<Common_TextFieldName::eType>(text_field.getElement(strings::name).asInt());
-      const std::list<Common_TextFieldName::eType>::iterator it =
-          std::find(fields_names.begin(), fields_names.end(), filed_name);
-      if (it != fields_names.end()) {
-        fields_names.erase(it);
+  if (!hmi_capabilities.is_navi_cooperating()) {
+    LOG4CXX_ERROR_EXT(logger_, "NAVI is not supported.");
+    return false;
+  }
+  if (!fields_names.empty()) {
+    if (hmi_capabilities.display_capabilities()) {
+      const SmartObject disp_cap = (*hmi_capabilities.display_capabilities());
+      const SmartObject& text_fields = disp_cap.getElement(hmi_response::text_fields);
+      const size_t len = text_fields.length();
+      for (size_t i = 0; i < len; ++i) {
+        const SmartObject& text_field = text_fields[i];
+        const Common_TextFieldName::eType filed_name =
+            static_cast<Common_TextFieldName::eType>(text_field.getElement(strings::name).asInt());
+        const std::list<Common_TextFieldName::eType>::iterator it =
+            std::find(fields_names.begin(), fields_names.end(), filed_name);
+        if (it != fields_names.end()) {
+          fields_names.erase(it);
+        }
       }
     }
-  }
-
-  if (!fields_names.empty()) {
-    LOG4CXX_ERROR_EXT(logger_, "Some fields are not supported by capabilities");
-    return false;
+    if (!fields_names.empty()) {
+      LOG4CXX_ERROR_EXT(logger_, "Some fields are not supported by capabilities");
+      return false;
+    }
   }
   return true;
 }
