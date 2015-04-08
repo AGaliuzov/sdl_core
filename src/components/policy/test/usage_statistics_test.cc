@@ -136,7 +136,9 @@ TEST(StatisticsManagerAddMethod, AppStopwatchStartMethod_CallONCE_StatisticsMana
   hmi_full_stopwatch.WriteTime();
 }
 
-TEST(StatisticsManagerAddMethod, AppStopwatchStartMethod_Call_StatisticsManagerAddMethodCalledTwice) {
+
+// TODO(AByzhynar) :  APPLINK-12333
+TEST(StatisticsManagerAddMethod, DISABLED_AppStopwatchStartMethod_Call_StatisticsManagerAddMethodCalledTwice) {
   // Arrange
   MockStatisticsManager* msm = new StrictMock<MockStatisticsManager>();
   const std::uint32_t time_out = 1;
@@ -179,8 +181,8 @@ TEST(StatisticsManagerAddMethod, AppStopwatchStartMethod_CallAnd1SecSleepAfter_S
   sleep(1);
 }
 
-
-TEST(StatisticsManagerAddMethod, AppStopwatchSwitchMethod_CallAnd1SecSleepAfter_StatisticsManagerAddMethodCalledWith1SecTimespan) {
+// TODO(AByzhynar) : APPLINK-12267
+TEST(StatisticsManagerAddMethod, DISABLED_AppStopwatchSwitchMethod_CallAnd1SecSleepAfter_StatisticsManagerAddMethodCalledWith1SecTimespan) {
   // Arrange
   MockStatisticsManager* msm = new StrictMock<MockStatisticsManager>();
   const std::uint32_t time_out = 1;

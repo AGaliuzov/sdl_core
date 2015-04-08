@@ -89,6 +89,12 @@ class SQLPTRepresentation : public virtual PTRepresentation {
                            StringArray* app_hmi_types = NULL);
     bool GetFunctionalGroupings(policy_table::FunctionalGroupings& groups);
 
+
+#ifdef BUILD_TESTS
+    uint32_t open_counter() {
+    return open_counter_;
+    }
+#endif // BUILD_TESTS
   protected:
     virtual void GatherModuleMeta(policy_table::ModuleMeta* meta) const;
     virtual void GatherModuleConfig(policy_table::ModuleConfig* config) const;
@@ -166,6 +172,10 @@ class SQLPTRepresentation : public virtual PTRepresentation {
   private:
     static const std::string kDatabaseName;
     dbms::SQLDatabase* db_;
+
+#ifdef BUILD_TESTS
+    uint32_t open_counter_;
+#endif // BUILD_TESTS
 
     bool SaveRpcs(int64_t group_id, const policy_table::Rpc& rpcs);
     bool SaveServiceEndpoints(const policy_table::ServiceEndpoints& endpoints);
