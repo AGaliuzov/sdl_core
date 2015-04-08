@@ -60,12 +60,18 @@ void DialNumberRequest::Run() {
     return;
   }
 
-  StripNumberParam();
+  std::string number = (*message_)[strings::msg_params][strings::number].asString();
+  if (!CheckSyntax(number)) {
+    LOG4CXX_ERROR(logger_, "Invalid incoming data");
+    SendResponse(false, mobile_apis::Result::INVALID_DATA);
+    return;
+  }
+
+  StripNumberParam(number);
 
   smart_objects::SmartObject msg_params = smart_objects::SmartObject(
       smart_objects::SmartType_Map);
-  msg_params[strings::number] =
-    (*message_)[strings::msg_params][strings::number].asString();
+  msg_params[strings::number] = number;
   msg_params[strings::app_id] = application->hmi_app_id();
 
   SendHMIRequest(hmi_apis::FunctionID::BasicCommunication_DialNumber,
@@ -102,14 +108,10 @@ void DialNumberRequest::on_event(const event_engine::Event& event) {
   SendResponse((mobile_apis::Result::SUCCESS == result_code), result_code);
 }
 
-void DialNumberRequest::StripNumberParam() {
-  if ((*message_)[strings::msg_params].keyExists(strings::number)) {
-    std::string number = (*message_)[strings::msg_params][strings::number].asString();
-    std::size_t found = 0;
-    while (std::string::npos != (found = number.find_first_not_of("0123456789*#,;"))) {
-      number.erase(number.begin() + found);
-    }
-    (*message_)[strings::msg_params][strings::number] = number;
+void DialNumberRequest::StripNumberParam(std::string& number) {
+  std::size_t found = 0;
+  while (std::string::npos != (found = number.find_first_not_of("0123456789*#,;"))) {
+    number.erase(number.begin() + found);
   }
 }
 

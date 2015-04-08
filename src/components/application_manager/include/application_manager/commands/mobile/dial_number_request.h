@@ -72,10 +72,11 @@ class DialNumberRequest : public CommandRequestImpl {
 
   /**
    * @brief Removes from number param all characters
-   * except the + character and digits.
+   * except the * # , ; characters and digits.
    *
+   * @param number String representing number param which should be modified
    */
-  void StripNumberParam();
+  void StripNumberParam(std::string& number);
 
   DISALLOW_COPY_AND_ASSIGN(DialNumberRequest);
 };
