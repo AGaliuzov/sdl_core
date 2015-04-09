@@ -85,8 +85,7 @@ STATIC_LIBS += \
 	usage_statistics$(DEBUG_EXT) \
 	application_manager$(DEBUG_EXT) \
 	media_manager$(DEBUG_EXT) \
-	crypto \
-	ssl
+	crypto
 
 
 # This only defines the dynamic libs
@@ -99,6 +98,7 @@ DYNAMIC_LIBS += \
 	apr-1$(DEBUG_EXT) \
 	expat$(DEBUG_EXT) \
 	aprutil-1$(DEBUG_EXT) \
+	ssl \
 	log4cxx$(DEBUG_EXT)
 
 ifdef BUILD_AOA_SUPPORT
