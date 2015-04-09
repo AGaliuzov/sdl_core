@@ -839,6 +839,7 @@ void PolicyHandler::OnAllowSDLFunctionalityNotification(bool is_allowed,
     uint32_t device_id) {
   LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK_VOID();
+  using namespace mobile_apis;
   // Device ids, need to be changed
   std::set<uint32_t> device_ids;
   bool device_specific = device_id != 0;
@@ -918,10 +919,12 @@ void PolicyHandler::OnAllowSDLFunctionalityNotification(bool is_allowed,
       if (app) {
         // Send HMI status notification to mobile
         // Put application in full
-        ApplicationManagerImpl::instance()->SetState<true>(app->app_id(),
-                                                     mobile_apis::HMILevel::HMI_FULL,
-                                                     mobile_apis::AudioStreamingState::AUDIBLE
-                                                     );
+        AudioStreamingState state = app->is_media_application()
+                                        ? AudioStreamingState::AUDIBLE
+                                        : AudioStreamingState::NOT_AUDIBLE;
+
+        ApplicationManagerImpl::instance()->SetState<true>(
+            app->app_id(), HMILevel::HMI_FULL, state);
         last_activated_app_id_ = 0;
       }
   }
