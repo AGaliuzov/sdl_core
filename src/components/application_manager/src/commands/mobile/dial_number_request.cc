@@ -68,6 +68,11 @@ void DialNumberRequest::Run() {
   }
 
   StripNumberParam(number);
+  if (number.empty()) {
+    LOG4CXX_ERROR(logger_, "After strip number param is empty. Invalid incoming data");
+    SendResponse(false, mobile_apis::Result::INVALID_DATA);
+    return;
+  }
 
   smart_objects::SmartObject msg_params = smart_objects::SmartObject(
       smart_objects::SmartType_Map);
@@ -110,7 +115,7 @@ void DialNumberRequest::on_event(const event_engine::Event& event) {
 
 void DialNumberRequest::StripNumberParam(std::string& number) {
   std::size_t found = 0;
-  while (std::string::npos != (found = number.find_first_not_of("0123456789*#,;"))) {
+  while (std::string::npos != (found = number.find_first_not_of("0123456789*#,;+"))) {
     number.erase(number.begin() + found);
   }
 }

@@ -72,7 +72,7 @@ class DialNumberRequest : public CommandRequestImpl {
 
   /**
    * @brief Removes from number param all characters
-   * except the * # , ; characters and digits.
+   * except the + * # , ; characters and digits.
    *
    * @param number String representing number param which should be modified
    */
