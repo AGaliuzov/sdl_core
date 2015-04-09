@@ -41,6 +41,7 @@
 #include "interfaces/MOBILE_API.h"
 #include "application_manager/state_context.h"
 #include "utils/lock.h"
+#include "utils/helpers.h"
 
 namespace application_manager {
 class ApplicationManagerImpl;
@@ -108,19 +109,30 @@ class StateController : public event_engine::EventObserver {
      * @brief SetRegularState Change regular hmi level
      * @param app appication to setup regular State
      * @param hmi_level of new regular state
-     * @param SendActivateApp: if true, ActivateAppRequest will be sent on HMI    */
+     * @param SendActivateApp: if true, ActivateAppRequest will be sent on HMI
+     */
     template <bool SendActivateApp>
     void SetRegularState(ApplicationSharedPtr app,
                          const mobile_apis::HMILevel::eType hmi_level) {
+      using namespace mobile_apis;
+      using namespace helpers;
       DCHECK_OR_RETURN_VOID(app);
-      HmiStatePtr prev_regular = app->RegularHmiState();
-      DCHECK_OR_RETURN_VOID(prev_regular);
-      HmiStatePtr hmi_state = CreateHmiState(app->app_id(),
-                                             HmiState::StateID::STATE_ID_REGULAR);
+
+      const HmiStatePtr hmi_state =
+          CreateHmiState(app->app_id(), HmiState::StateID::STATE_ID_REGULAR);
+
+      AudioStreamingState::eType sstate = AudioStreamingState::NOT_AUDIBLE;
+      if (Compare<HMILevel::eType, EQ, ONE>(hmi_level, HMILevel::HMI_FULL,
+                                            HMILevel::HMI_BACKGROUND)) {
+        if (app->IsAudioApplication()) {
+          sstate = AudioStreamingState::AUDIBLE;
+        }
+      }
+
       DCHECK_OR_RETURN_VOID(hmi_state);
       hmi_state->set_hmi_level(hmi_level);
-      hmi_state->set_audio_streaming_state(prev_regular->audio_streaming_state());
-      hmi_state->set_system_context(prev_regular->system_context());
+      hmi_state->set_audio_streaming_state(sstate);
+      hmi_state->set_system_context(SystemContext::SYSCTXT_MAIN);
       SetRegularState<SendActivateApp>(app, hmi_state);
     }
 
