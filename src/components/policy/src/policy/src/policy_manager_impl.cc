@@ -610,9 +610,33 @@ void PolicyManagerImpl::SetUserConsentForDevice(const std::string& device_id,
 bool PolicyManagerImpl::ReactOnUserDevConsentForApp(const std::string app_id,
     bool is_device_allowed) {
 #ifdef EXTENDED_POLICY
-  const utils::SharedPtr<policy_table::Table> current = cache_->GenerateSnapshot();
-  cache_->ReactOnUserDevConsentForApp(app_id, is_device_allowed);
-  CheckPermissionsChanges(cache_->GenerateSnapshot(), current);
+  std::vector<std::string> current_request_types = GetAppRequestTypes(app_id);
+  bool result = cache_->ReactOnUserDevConsentForApp(app_id, is_device_allowed);
+  std::vector<std::string> new_request_types = GetAppRequestTypes(app_id);
+
+  std::sort(current_request_types.begin(), current_request_types.end());
+  std::sort(new_request_types.begin(), new_request_types.end());
+
+  std::vector<std::string> diff;
+  std::set_symmetric_difference(current_request_types.begin(),
+                      current_request_types.end(),
+                      new_request_types.begin(),
+                      new_request_types.end(),
+                      std::back_inserter(diff));
+
+  if (!diff.empty()) {
+    AppPermissions permissions(app_id);
+    permissions.requestType = new_request_types;
+    permissions.requestTypeChanged = true;
+
+    app_permissions_diff_lock_.Acquire();
+    app_permissions_diff_.insert(std::make_pair(app_id, permissions));
+    app_permissions_diff_lock_.Release();
+
+    listener()->OnPendingPermissionChange(app_id);
+  }
+
+  return result;
 #endif
   return true;
 }
