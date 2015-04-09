@@ -421,6 +421,12 @@ class ConnectionHandlerImpl : public ConnectionHandler,
     const transport_manager::ConnectionUID &connection_id);
 
   /**
+   * \brief Return vector of session ids specified connection
+   * \param connection_handle - connectio identifier 
+   */
+  std::vector<uint8_t> GetConnectionSessionsIds(ConnectionHandle connection_handle);
+
+  /**
    * \brief Pointer to observer
    */
   ConnectionHandlerObserver *connection_handler_observer_;
