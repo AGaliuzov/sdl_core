@@ -60,7 +60,7 @@ void OnSystemRequestNotification::Run() {
   params[strings::function_id] =
     static_cast<int32_t>(mobile_apis::FunctionID::eType::OnSystemRequestID);
 
-  std::string policy_app_id = strings::default_app_id;
+  std::string policy_app_id;
   if (msg_params.keyExists(strings::policy_app_id)) {
     policy_app_id = msg_params[strings::policy_app_id].asString();
   }
@@ -73,33 +73,34 @@ void OnSystemRequestNotification::Run() {
     app_id = msg_params[strings::app_id].asUInt();
   }
 
-  LOG4CXX_DEBUG(logger_, "Received OnSystemRequest for " << policy_app_id );
+  LOG4CXX_DEBUG(logger_, "Received OnSystemRequest for '" << policy_app_id
+                << "' and appID " << app_id);
 
   ApplicationSharedPtr app;
-  if (strings::default_app_id == policy_app_id && !app_id) {
+  ApplicationManagerImpl* app_mgr = ApplicationManagerImpl::instance();
+
+  if (app_id && policy_app_id.empty()) {
+    LOG4CXX_DEBUG(logger_, "Searching app to send OnSystemRequest by appID.");
+    app = app_mgr->application(app_id);
+  } else if (!policy_app_id.empty() &&
+             strings::default_app_id != policy_app_id) {
+    LOG4CXX_DEBUG(logger_,
+                  "Searching app to send OnSystemRequest by policyappID.");
+    app = app_mgr->application_by_policy_id(policy_app_id);
+  } else {
+    LOG4CXX_DEBUG(logger_, "Searching registered app to send OnSystemRequest.");
     PolicyHandler* policy_handler = PolicyHandler::instance();
     uint32_t selected_app_id = policy_handler->GetAppIdForSending();
     if (0 == selected_app_id) {
       LOG4CXX_WARN(logger_,
-                   "Can't select application to forward OnSystemRequest");
+                   "Can't select application to forward OnSystemRequest.");
       return;
     }
-    ApplicationManagerImpl* app_mgr = ApplicationManagerImpl::instance();
-    if (app_mgr) {
-      app = app_mgr->application(selected_app_id);
-    }
-  } else {
-    ApplicationSharedPtr app =
-        policy_app_id == strings::default_app_id
-        ? ApplicationManagerImpl::instance()->application(app_id)
-        : ApplicationManagerImpl::instance()->
-          application_by_policy_id(policy_app_id);
+    app = app_mgr->application(selected_app_id);
   }
 
   if (!app.valid()) {
-    LOG4CXX_ERROR(logger_, "Application with policy id " << policy_app_id
-                 << " and connection key " << app_id <<
-                 "is not registered.");
+    LOG4CXX_ERROR(logger_, "Can't find app to send OnSystemRequest.");
     return;
   }
 
