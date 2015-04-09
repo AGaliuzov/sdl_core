@@ -1437,6 +1437,11 @@ bool ApplicationManagerImpl::Init() {
       return false;
     }
   }
+  if(!resume_ctrl_.Init()) {
+    LOG4CXX_ERROR(logger_, "Problem with initialization resume controller");
+    return false;
+  }
+
   if (!(file_system::IsWritingAllowed(app_storage_folder) &&
         file_system::IsReadingAllowed(app_storage_folder))) {
     LOG4CXX_ERROR(logger_,

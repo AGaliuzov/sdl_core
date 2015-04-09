@@ -72,6 +72,7 @@ void UnsubscribeButtonRequest::Run() {
 
   app->UnsubscribeFromButton(static_cast<mobile_apis::ButtonName::eType>(btn_id));
   SendResponse(true, mobile_apis::Result::SUCCESS);
+  app->UpdateHash();
 }
 
 }  // namespace commands
