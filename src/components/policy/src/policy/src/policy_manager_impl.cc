@@ -1235,7 +1235,13 @@ void PolicyManagerImpl::MarkUnpairedDevice(const std::string& device_id) {
 
 void PolicyManagerImpl::OnAppRegisteredOnMobile(
     const std::string& application_id) {
-  StartPTExchange();
+  // Update required in case new application has been added into policy database.
+  // The appropriate flag will be set in AddApplication method.
+  // This fix is workaround that happens because of conflicts between
+  // IsAppsSearchInProgress and update scheduling.
+  if (update_status_manager_.IsUpdateRequired()) {
+    StartPTExchange();
+  }
   SendNotificationOnPermissionsUpdated(application_id);
 }
 

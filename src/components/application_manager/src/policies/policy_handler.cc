@@ -1065,15 +1065,22 @@ void PolicyHandler::OnPermissionsUpdated(const std::string& policy_app_id,
   switch (current_hmi_level) {
     case mobile_apis::HMILevel::HMI_NONE: {
       LOG4CXX_INFO(logger_, "Changing hmi level of application "
-                   << policy_app_id
-                   << " to default hmi level " << default_hmi);
-      ApplicationManagerImpl::instance()->SetState<true>(app->app_id(),
-                                                         hmi_level);
+                                << policy_app_id << " to default hmi level "
+                                << default_hmi);
+
+      if (hmi_level == mobile_apis::HMILevel::HMI_FULL) {
+        ApplicationManagerImpl::instance()->SetState<true>(app->app_id(),
+                                                           hmi_level);
+      } else {
+        ApplicationManagerImpl::instance()->SetState<false>(app->app_id(),
+                                                            hmi_level);
+      }
       break;
     }
     default:
-      LOG4CXX_WARN(logger_, "Application " << policy_app_id << " is running."
-                   "HMI level won't be changed.");
+      LOG4CXX_WARN(logger_, "Application " << policy_app_id
+                                           << " is running."
+                                              "HMI level won't be changed.");
       break;
   }
 }
