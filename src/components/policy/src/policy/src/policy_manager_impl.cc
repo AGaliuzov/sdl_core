@@ -248,8 +248,13 @@ void PolicyManagerImpl::RequestPTUpdate() {
 void PolicyManagerImpl::StartPTExchange() {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  if (update_status_manager_.IsAppsSearchInProgress()) {
-    update_status_manager_.ScheduleUpdate();
+  if (ignition_check) {
+    CheckTriggers();
+    ignition_check = false;
+  }
+
+  if (update_status_manager_.IsAppsSearchInProgress() &&
+      update_status_manager_.IsUpdateRequired()) {
     LOG4CXX_INFO(logger_, "Starting exchange skipped, since applications "
                  "search is in progress.");
     return;
@@ -263,11 +268,6 @@ void PolicyManagerImpl::StartPTExchange() {
   }
 
   if (listener_ && listener_->CanUpdate()) {
-    if (ignition_check) {
-      CheckTriggers();
-      ignition_check = false;
-    }
-
     if (update_status_manager_.IsUpdateRequired()) {
       RequestPTUpdate();
     }
@@ -1067,6 +1067,7 @@ void PolicyManagerImpl::KmsChanged(int kilometers) {
   LOG4CXX_AUTO_TRACE(logger_);
   if (0 == cache_->KilometersBeforeExchange(kilometers)) {
     LOG4CXX_INFO(logger_, "Enough kilometers passed to send for PT update.");
+    update_status_manager_.ScheduleUpdate();
     StartPTExchange();
   }
 }
@@ -1235,13 +1236,7 @@ void PolicyManagerImpl::MarkUnpairedDevice(const std::string& device_id) {
 
 void PolicyManagerImpl::OnAppRegisteredOnMobile(
     const std::string& application_id) {
-  // Update required in case new application has been added into policy database.
-  // The appropriate flag will be set in AddApplication method.
-  // This fix is workaround that happens because of conflicts between
-  // IsAppsSearchInProgress and update scheduling.
-  if (update_status_manager_.IsUpdateRequired()) {
-    StartPTExchange();
-  }
+  StartPTExchange();
   SendNotificationOnPermissionsUpdated(application_id);
 }
 
