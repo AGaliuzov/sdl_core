@@ -43,15 +43,17 @@ namespace commands {
 
 void RegisterAppInterfaceResponse::Run() {
   LOG4CXX_AUTO_TRACE(logger_);
-
+  using namespace application_manager;
   mobile_apis::Result::eType result_code = mobile_apis::Result::INVALID_ENUM;
   bool success = (*message_)[strings::msg_params][strings::success].asBool();
   bool last_message = !success;
-  // Do not close connection in case of APPLICATION_NOT_REGISTERED despite it is an error
-  if (!success && (*message_)[strings::msg_params].keyExists(strings::result_code)) {
+  // Do not close connection in case of APPLICATION_NOT_REGISTERED despite it is
+  // an error
+  if (!success &&
+      (*message_)[strings::msg_params].keyExists(strings::result_code)) {
     result_code = static_cast<mobile_apis::Result::eType>(
         (*message_)[strings::msg_params][strings::result_code].asInt());
-    if (result_code ==  mobile_apis::Result::APPLICATION_REGISTERED_ALREADY) {
+    if (result_code == mobile_apis::Result::APPLICATION_REGISTERED_ALREADY) {
       last_message = false;
     }
   }
@@ -62,13 +64,18 @@ void RegisterAppInterfaceResponse::Run() {
   // mobile to be able to check all other API according to app permissions
   uint32_t connection_key =
       (*message_)[strings::params][strings::connection_key].asUInt();
-  application_manager::ApplicationConstSharedPtr app =
-      application_manager::ApplicationManagerImpl::instance()->
-      application(connection_key);
+  application_manager::ApplicationSharedPtr app =
+      application_manager::ApplicationManagerImpl::instance()->application(
+          connection_key);
   if (app.valid()) {
     policy::PolicyHandler *policy_handler = policy::PolicyHandler::instance();
     std::string mobile_app_id = app->mobile_app_id();
     policy_handler->OnAppRegisteredOnMobile(mobile_app_id);
+
+    ApplicationManagerImpl::instance()->SetState<false>(
+        app->app_id(),
+        ApplicationManagerImpl::instance()->GetDefaultHmiLevel(app));
+
     SetHeartBeatTimeout(connection_key, mobile_app_id);
   }
 }
