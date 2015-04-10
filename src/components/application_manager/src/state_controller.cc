@@ -407,4 +407,18 @@ HmiStatePtr StateController::CreateHmiState(uint32_t app_id, HmiState::StateID s
   return new_state;
 }
 
+mobile_apis::AudioStreamingState::eType StateController::CalcAudioState(
+    ApplicationSharedPtr app, const mobile_apis::HMILevel::eType hmi_level) {
+  using namespace mobile_apis;
+  using namespace helpers;
+
+  AudioStreamingState::eType audio_state = AudioStreamingState::NOT_AUDIBLE;
+  if (Compare<HMILevel::eType, EQ, ONE>(hmi_level, HMILevel::HMI_FULL,
+                                        HMILevel::HMI_LIMITED)) {
+    if (app->IsAudioApplication()) {
+      audio_state = AudioStreamingState::AUDIBLE;
+    }
+  }
+  return audio_state;
+}
 }
