@@ -147,6 +147,11 @@ class RegisterAppInterfaceRequest : public CommandRequestImpl {
   void CheckResponseVehicleTypeParam(smart_objects::SmartObject& vehicle_type,
                                      const std::string& param,
                                      const std::string& backup_value);
+  /**
+   * @brief Sends ButtonSubscription notification at start up
+   * to notify HMI that app subscribed on the custom button by default.
+   */
+  void SendSubscribeCustomButtonNotification();
 
 private:
   std::string response_info_;
