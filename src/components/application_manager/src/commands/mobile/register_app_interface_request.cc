@@ -529,7 +529,13 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile(
   MessageHelper::SendOnAppRegisteredNotificationToHMI(*(application.get()),
                                                       resumption,
                                                       need_restore_vr);
+
+  // By default app subscribed to CUSTOM_BUTTON
+  // Need to send notification to HMI
+  SendSubscribeCustomButtonNotification();
+
   MessageHelper::SendChangeRegistrationRequestToHMI(application);
+
   SendResponse(true, result, add_info.c_str(), &response_params);
 
 
@@ -868,6 +874,18 @@ void RegisterAppInterfaceRequest::CheckResponseVehicleTypeParam(
       vehicle_type.erase(param);
     }
   }
+}
+
+void RegisterAppInterfaceRequest::SendSubscribeCustomButtonNotification() {
+  using namespace smart_objects;
+  using namespace hmi_apis;
+
+  SmartObject msg_params = SmartObject(SmartType_Map);
+  msg_params[strings::app_id] = connection_key();
+  msg_params[strings::name] = Common_ButtonName::CUSTOM_BUTTON;
+  msg_params[strings::is_suscribed] = true;
+  CreateHMINotification(FunctionID::Buttons_OnButtonSubscription,
+                        msg_params);
 }
 
 }  // namespace commands
