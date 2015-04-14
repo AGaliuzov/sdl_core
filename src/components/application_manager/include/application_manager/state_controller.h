@@ -104,7 +104,6 @@ class StateController : public event_engine::EventObserver {
       SetRegularState<SendActivateApp>(app, hmi_state);
     }
 
-
     /**
      * @brief SetRegularState Change regular hmi level
      * @param app appication to setup regular State
@@ -121,17 +120,9 @@ class StateController : public event_engine::EventObserver {
       const HmiStatePtr hmi_state =
           CreateHmiState(app->app_id(), HmiState::StateID::STATE_ID_REGULAR);
 
-      AudioStreamingState::eType sstate = AudioStreamingState::NOT_AUDIBLE;
-      if (Compare<HMILevel::eType, EQ, ONE>(hmi_level, HMILevel::HMI_FULL,
-                                            HMILevel::HMI_BACKGROUND)) {
-        if (app->IsAudioApplication()) {
-          sstate = AudioStreamingState::AUDIBLE;
-        }
-      }
-
       DCHECK_OR_RETURN_VOID(hmi_state);
       hmi_state->set_hmi_level(hmi_level);
-      hmi_state->set_audio_streaming_state(sstate);
+      hmi_state->set_audio_streaming_state(CalcAudioState(app, hmi_level));
       hmi_state->set_system_context(SystemContext::SYSCTXT_MAIN);
       SetRegularState<SendActivateApp>(app, hmi_state);
     }
@@ -172,7 +163,7 @@ class StateController : public event_engine::EventObserver {
                                              HmiState::StateID::STATE_ID_REGULAR);
       DCHECK_OR_RETURN_VOID(hmi_state);
       hmi_state->set_hmi_level(prev_regular->hmi_level());
-      hmi_state->set_audio_streaming_state(prev_regular->audio_streaming_state());
+      hmi_state->set_audio_streaming_state(CalcAudioState(app, prev_regular->hmi_level()));
       hmi_state->set_system_context(system_context);
       SetRegularState<false>(app, hmi_state);
     }
@@ -385,6 +376,9 @@ class StateController : public event_engine::EventObserver {
      * @return
      */
     HmiStatePtr CreateHmiState(uint32_t app_id, HmiState::StateID state_id);
+
+    mobile_apis::AudioStreamingState::eType CalcAudioState(
+        ApplicationSharedPtr app, const mobile_apis::HMILevel::eType hmi_level);
 
     typedef std::list<HmiState::StateID> StateIDList;
     StateIDList active_states_;
