@@ -43,11 +43,7 @@
 #include "json/writer.h"
 #include "utils/logger.h"
 
-#ifdef EXTENDED_POLICY
-#  include "policy/sql_pt_ext_representation.h"
-#else  // EXTENDED_POLICY
-#  include "policy/sql_pt_representation.h"
-#endif  // EXTENDED_POLICY
+#include "policy/sql_pt_ext_representation.h"
 
 namespace policy_table = rpc::policy_table_interface_base;
 
@@ -73,13 +69,7 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "CacheManager")
 CacheManager::CacheManager()
   : CacheManagerInterface(),
     pt_(new policy_table::Table),
-    backup_(
-      #ifdef EXTENDED_POLICY
-                     new SQLPTExtRepresentation()
-      #else  // EXTENDED_POLICY
-                     new SQLPTRepresentation()
-      #endif  // EXTENDED_POLICY
-    ),
+    backup_( new SQLPTExtRepresentation()),
     update_required(false) {
 
   LOG4CXX_AUTO_TRACE(logger_);
@@ -99,13 +89,11 @@ CacheManager::~CacheManager() {
 bool CacheManager::CanAppKeepContext(const std::string &app_id) {
   CACHE_MANAGER_CHECK(false);
   bool result = true;
-#ifdef EXTENDED_POLICY
   if (kDeviceId == app_id) {
     result = pt_->policy_table.app_policies_section.device.keep_context;
   } else if (AppExists(app_id)) {
     result = pt_->policy_table.app_policies_section.apps[app_id].keep_context;
   }
-#endif // EXTENDED_POLICY
   return result;
 }
 
@@ -123,22 +111,19 @@ uint16_t CacheManager::HeartBeatTimeout(const std::string &app_id) const {
 
 bool CacheManager::CanAppStealFocus(const std::string &app_id) {
   CACHE_MANAGER_CHECK(false);
-  bool result = true;
-#ifdef EXTENDED_POLICY
+  bool result = false;
   if (kDeviceId == app_id) {
     result = pt_->policy_table.app_policies_section.device.steal_focus;
   } else if (AppExists(app_id)) {
     result = pt_->policy_table.app_policies_section.apps[app_id].steal_focus;
   }
-#endif // EXTENDED_POLICY
   return result;
 }
 
 bool CacheManager::GetDefaultHMI(const std::string &app_id,
                                  std::string& default_hmi) {
   CACHE_MANAGER_CHECK(false);
-  bool result = true;
-#ifdef EXTENDED_POLICY
+  bool result = false;
   default_hmi.clear();
   if (kDeviceId == app_id) {
     default_hmi = EnumToJsonString(pt_->policy_table.
@@ -148,7 +133,6 @@ bool CacheManager::GetDefaultHMI(const std::string &app_id,
                          app_policies_section.apps[app_id].default_hmi);
   }
   result = !default_hmi.empty();
-#endif // EXTENDED_POLICY
 
   return result;
 }
@@ -156,7 +140,6 @@ bool CacheManager::GetDefaultHMI(const std::string &app_id,
 bool CacheManager::ResetUserConsent() {
   CACHE_MANAGER_CHECK(false);
   sync_primitives::AutoLock lock (cache_lock_);
-#ifdef EXTENDED_POLICY
   policy_table::DeviceData::iterator iter =
       pt_->policy_table.device_data->begin();
   policy_table::DeviceData::iterator iter_end =
@@ -165,7 +148,6 @@ bool CacheManager::ResetUserConsent() {
   for (; iter != iter_end; ++iter) {
     iter->second.user_consent_records->clear();
   }
-#endif // EXTENDED_POLICY
   return true;
 }
 
@@ -176,7 +158,6 @@ bool CacheManager::GetUserPermissionsForDevice(const std::string &device_id,
 
   LOG4CXX_AUTO_TRACE(logger_);
   CACHE_MANAGER_CHECK(false);
-#ifdef EXTENDED_POLICY
   policy_table::DeviceData& device_data = *pt_->policy_table.device_data;
   if (device_data.end() == device_data.find(device_id)) {
     return true;
@@ -200,7 +181,6 @@ bool CacheManager::GetUserPermissionsForDevice(const std::string &device_id,
       }
     }
   }
-#endif // EXTENDED_POLICY
   return true;
 }
 
@@ -247,7 +227,6 @@ void CacheManager::GetPreConsentedGroups(const std::string &app_id,
 
   LOG4CXX_AUTO_TRACE(logger_);
   CACHE_MANAGER_CHECK_VOID();
-#ifdef EXTENDED_POLICY
   if (kDeviceId == app_id) {
     policy_table::DevicePolicy& device =
         pt_->policy_table.app_policies_section.device;
@@ -280,7 +259,6 @@ void CacheManager::GetPreConsentedGroups(const std::string &app_id,
       preconsented_groups.push_back(group_id);
     }
   }
-#endif // EXTENDED_POLICY
 }
 
 void CacheManager::GetConsentedGroups(const std::string &device_id,
@@ -290,7 +268,6 @@ void CacheManager::GetConsentedGroups(const std::string &device_id,
 
   LOG4CXX_AUTO_TRACE(logger_);
   CACHE_MANAGER_CHECK_VOID();
-#ifdef EXTENDED_POLICY
   policy_table::DeviceData::iterator dev_params_iter =
       pt_->policy_table.device_data->find(device_id);
 
@@ -317,7 +294,6 @@ void CacheManager::GetConsentedGroups(const std::string &device_id,
       }
     }
   }
-#endif // EXTENDED_POLICY
 }
 
 void CacheManager::GetUnconsentedGroups(const std::string& device_id,
@@ -325,7 +301,6 @@ void CacheManager::GetUnconsentedGroups(const std::string& device_id,
                                         FunctionalGroupIDs& unconsented_groups) {
   LOG4CXX_AUTO_TRACE(logger_);
   CACHE_MANAGER_CHECK_VOID();
-#ifdef EXTENDED_POLICY
   policy_table::Strings::iterator iter_groups;
   policy_table::Strings::iterator iter_groups_end = iter_groups;
   if (kDeviceId == policy_app_id) {
@@ -367,13 +342,11 @@ void CacheManager::GetUnconsentedGroups(const std::string& device_id,
       }
     }
   }
-#endif // EXTENDED_POLICY
 }
 
 void CacheManager::RemoveAppConsentForGroup(const std::string& app_id,
                                             const std::string& group_name) {
   CACHE_MANAGER_CHECK_VOID();
-#ifdef EXTENDED_POLICY
   policy_table::DeviceData::iterator device_iter =
       pt_->policy_table.device_data->begin();
   policy_table::DeviceData::iterator device_iter_end =
@@ -386,7 +359,6 @@ void CacheManager::RemoveAppConsentForGroup(const std::string& app_id,
       device_iter->second.user_consent_records->erase(app_id);
     }
   }
-#endif // EXTENDED_POLICY
 }
 
 bool CacheManager::ApplyUpdate(const policy_table::Table& update_pt) {
@@ -468,7 +440,6 @@ bool CacheManager::GetPermissionsForApp(const std::string &device_id,
   GetAllAppGroups(app_id, group_types[kTypeGeneral]);
   GetAllAppGroups(kDefaultId, group_types[kTypeDefault]);
   GetAllAppGroups(kPreDataConsentId, group_types[kTypePreDataConsented]);
-#ifdef EXTENDED_POLICY
   GetPreConsentedGroups(app_id, group_types[kTypePreconsented]);
 
   GetConsentedGroups(device_id, app_id,
@@ -477,7 +448,6 @@ bool CacheManager::GetPermissionsForApp(const std::string &device_id,
   GetUnconsentedGroups(device_id, app_id, group_types[kTypeUnconsented]);
 
   GetAllAppGroups(kDeviceId, group_types[kTypeDevice]);
-#endif // EXTENDED_POLICY
   return true;
 }
 
@@ -486,11 +456,9 @@ bool CacheManager::GetDeviceGroupsFromPolicies(
   policy_table::Strings& preconsented_groups) {
   LOG4CXX_AUTO_TRACE(logger_);
   CACHE_MANAGER_CHECK(false);
-#ifdef EXTENDED_POLICY
   groups = pt_->policy_table.app_policies_section.device.groups;
   preconsented_groups =
       *(pt_->policy_table.app_policies_section.device).preconsented_groups;
-#endif // EXTENDED_POLICY
   return true;
 }
 
@@ -506,7 +474,6 @@ bool CacheManager::SetDeviceData(const std::string &device_id,
 
   sync_primitives::AutoLock auto_lock(cache_lock_);
   CACHE_MANAGER_CHECK(false);
-#ifdef EXTENDED_POLICY
   policy_table::DeviceParams& params =
       (*(pt_->policy_table.device_data))[device_id];
   *params.hardware = hardware;
@@ -517,7 +484,6 @@ bool CacheManager::SetDeviceData(const std::string &device_id,
   *params.max_number_rfcom_ports = number_of_ports;
   *params.connection_type = connection_type;
 
-#endif // EXTENDED_POLICY
   Backup();
   return true;
 }
@@ -529,7 +495,6 @@ bool CacheManager::SetUserPermissionsForDevice(
   LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock auto_lock(cache_lock_);
   CACHE_MANAGER_CHECK(false);
-#ifdef EXTENDED_POLICY
   policy_table::DeviceParams& params = (*pt_->policy_table.device_data)[device_id];
   policy_table::UserConsentRecords& ucr = *(params.user_consent_records);
 
@@ -553,7 +518,6 @@ bool CacheManager::SetUserPermissionsForDevice(
     *ucr_iter->second.input = policy_table::Input::I_GUI;
     *ucr_iter->second.time_stamp = currentDateTime();
   }
-#endif // EXTENDED_POLICY
   Backup();
   return true;
 }
@@ -563,7 +527,6 @@ bool CacheManager::ReactOnUserDevConsentForApp(const std::string &app_id,
   LOG4CXX_AUTO_TRACE(logger_);
   CACHE_MANAGER_CHECK(false);
   bool result = true;
-#ifdef EXTENDED_POLICY
   cache_lock_.Acquire();
   if (is_device_allowed) {
     // If app has pre_DataConsented groups it should be 'promoted' to default
@@ -572,7 +535,6 @@ bool CacheManager::ReactOnUserDevConsentForApp(const std::string &app_id,
     }
   }
   cache_lock_.Release();
-#endif // EXTENDED_POLICY
   Backup();
   return result;
 }
@@ -599,7 +561,6 @@ bool CacheManager::SetUserPermissionsForApp(
   LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock auto_lock(cache_lock_);
   CACHE_MANAGER_CHECK(false);
-#ifdef EXTENDED_POLICY
   std::vector<FunctionalGroupPermission>::const_iterator iter =
       permissions.group_permissions.begin();
   std::vector<FunctionalGroupPermission>::const_iterator iter_end =
@@ -619,7 +580,6 @@ bool CacheManager::SetUserPermissionsForApp(
       *ucr.time_stamp = currentDateTime();
     }
   }
-#endif // EXTENDED_POLICY
   Backup();
   return true;
 }
@@ -713,12 +673,10 @@ int CacheManager::IgnitionCyclesBeforeExchange() {
   LOG4CXX_DEBUG(logger_, "IgnitionCyclesBeforeExchange limit:" << limit);
   uint8_t current = 0;
 
-#ifdef EXTENDED_POLICY
   const int last_exch = static_cast<int>
       (*pt_->policy_table.module_meta->ignition_cycles_since_last_exchange);
   current = std::max(last_exch, 0);
   LOG4CXX_DEBUG(logger_, "IgnitionCyclesBeforeExchange current:" << current);
-#endif // EXTENDED_POLICY
 
   return std::max(limit - current, 0);
 }
@@ -731,12 +689,10 @@ int CacheManager::KilometersBeforeExchange(int current) {
   LOG4CXX_DEBUG(logger_, "KilometersBeforeExchange limit:" << limit);
   int last = 0;
 
-#ifdef EXTENDED_POLICY
   const int odo_val = static_cast<int>
       (*pt_->policy_table.module_meta->pt_exchanged_at_odometer_x);
   last = std::max(odo_val, 0);
   LOG4CXX_DEBUG(logger_, "KilometersBeforeExchange last:" << last);
-#endif // EXTENDED_POLICY
 
   const int actual = std::max((current - last), 0);
   LOG4CXX_DEBUG(logger_, "KilometersBeforeExchange actual:" << actual);
@@ -746,7 +702,6 @@ int CacheManager::KilometersBeforeExchange(int current) {
 bool CacheManager::SetCountersPassedForSuccessfulUpdate(policy::Counters counter,
                                                         int value) {
   CACHE_MANAGER_CHECK(false);
-#ifdef EXTENDED_POLICY
   switch (counter) {
   case KILOMETERS:
     *pt_->policy_table.module_meta->pt_exchanged_at_odometer_x = value;
@@ -764,7 +719,6 @@ bool CacheManager::SetCountersPassedForSuccessfulUpdate(policy::Counters counter
     return false;
   }
 
-#endif
   Backup();
   return true;
 }
@@ -777,12 +731,10 @@ int CacheManager::DaysBeforeExchange(int current) {
   LOG4CXX_DEBUG(logger_, "DaysBeforeExchange limit:" << limit);
   uint8_t last = 0;
 
-#ifdef EXTENDED_POLICY
   const int odo_val = static_cast<int>
       (*pt_->policy_table.module_meta->pt_exchanged_x_days_after_epoch);
   last = std::max(odo_val, 0);
   LOG4CXX_DEBUG(logger_, "DaysBeforeExchange last:" << last);
-#endif // EXTENDED_POLICY
 
   const uint8_t actaul = std::max((current - last), 0);
   LOG4CXX_DEBUG(logger_, "DaysBeforeExchange actual:" << actaul);
@@ -791,20 +743,16 @@ int CacheManager::DaysBeforeExchange(int current) {
 
 void CacheManager::IncrementIgnitionCycles() {
   CACHE_MANAGER_CHECK_VOID();
-#ifdef EXTENDED_POLICY
   const int ign_val = static_cast<int>
       (*pt_->policy_table.module_meta->ignition_cycles_since_last_exchange);
   (*pt_->policy_table.module_meta->ignition_cycles_since_last_exchange) = ign_val + 1;
   LOG4CXX_DEBUG(logger_, "IncrementIgnitionCycles ignitions:" << ign_val);
-#endif // EXTENDED_POLICY
   Backup();
 }
 
 void CacheManager::ResetIgnitionCycles() {
   CACHE_MANAGER_CHECK_VOID();
-#ifdef EXTENDED_POLICY
   (*pt_->policy_table.module_meta->ignition_cycles_since_last_exchange) = 0;
-#endif // EXTENDED_POLICY
   Backup();
 }
 
@@ -856,7 +804,6 @@ std::vector<UserFriendlyMessage> CacheManager::GetUserFriendlyMsg(
   std::vector<std::string>::const_iterator it_end = msg_codes.end();
   for (; it != it_end; ++it) {
 
-#ifdef EXTENDED_POLICY
     std::string msg_language = language;
 
     rpc::policy_table_interface_base::MessageLanguages msg_languages =
@@ -881,11 +828,6 @@ std::vector<UserFriendlyMessage> CacheManager::GetUserFriendlyMsg(
     msg.text_body = *message_string.textBody;
 
     result.push_back(msg);
-#else
-    UserFriendlyMessage msg;
-    msg.message_code = *it;
-    result.push_back(msg);
-#endif // EXTENDED_POLICY
   }
   return result;
 }
@@ -966,7 +908,6 @@ void CacheManager::CheckSnapshotInitialization() {
   }
 
   *(snapshot_->policy_table.module_config.preloaded_pt) = false;
-#ifdef EXTENDED_POLICY
 
   snapshot_->policy_table.consumer_friendly_messages->messages =
       rpc::Optional<policy_table::Messages>();
@@ -1058,7 +999,6 @@ void CacheManager::CheckSnapshotInitialization() {
       }
     }
   }
-#endif
 }
 
 void CacheManager::PersistData() {
@@ -1110,7 +1050,6 @@ void CacheManager::PersistData() {
       }
 
   // In case of extended policy the meta info should be backuped as well.
-#ifdef EXTENDED_POLICY
       if (ex_backup_.valid()) {
 
         ex_backup_->SetMetaInfo(*(*copy_pt.policy_table.module_meta).ccpu_version,
@@ -1137,7 +1076,6 @@ void CacheManager::PersistData() {
         }
         LOG4CXX_DEBUG(logger_, "Device_data size is: " << device_data.size());
       }
-#endif // EXTENDED_POLICY
       backup_->WriteDb();
     }
   }
@@ -1236,7 +1174,6 @@ int CacheManager::CountUnconsentedGroups(const std::string& policy_app_id,
   CACHE_MANAGER_CHECK(false);
   LOG4CXX_DEBUG(logger_, "Application id: " << policy_app_id);
   int result = 0;
-#ifdef EXTENDED_POLICY
   if (kDeviceId != policy_app_id && !AppExists(policy_app_id)) {
     return 0;
   } else if (IsDefaultPolicy(policy_app_id)) {
@@ -1332,7 +1269,6 @@ int CacheManager::CountUnconsentedGroups(const std::string& policy_app_id,
     }
   }
 
-#endif // EXTENDED_POLICY
   return result;
 }
 
@@ -1340,11 +1276,9 @@ bool CacheManager::SetMetaInfo(const std::string &ccpu_version,
                                const std::string &wers_country_code,
                                const std::string &language) {
   CACHE_MANAGER_CHECK(false);
-#ifdef EXTENDED_POLICY
   *pt_->policy_table.module_meta->ccpu_version = ccpu_version;
   *pt_->policy_table.module_meta->wers_country_code = wers_country_code;
   *pt_->policy_table.module_meta->language = language;
-#endif // EXTENDED_POLICY
   Backup();
   return true;
 }
@@ -1352,19 +1286,15 @@ bool CacheManager::SetMetaInfo(const std::string &ccpu_version,
 bool CacheManager::IsMetaInfoPresent() const {
   CACHE_MANAGER_CHECK(false);
   bool result = true;
-#ifdef EXTENDED_POLICY
   result = NULL != pt_->policy_table.module_meta->ccpu_version &&
       NULL != pt_->policy_table.module_meta->wers_country_code &&
       NULL != pt_->policy_table.module_meta->language;
-#endif // EXTENDED_POLICY
   return result;
 }
 
 bool CacheManager::SetSystemLanguage(const std::string &language) {
   CACHE_MANAGER_CHECK(false);
-#ifdef EXTENDED_POLICY
   *pt_->policy_table.module_meta->language = language;
-#endif // EXTENDED_POLICY
   Backup();
   return true;
 }
@@ -1389,7 +1319,6 @@ bool CacheManager::GetFunctionalGroupNames(FunctionalGroupNames &names) {
 
 bool CacheManager::CleanupUnpairedDevices() {
   CACHE_MANAGER_CHECK(false);
-#ifdef EXTENDED_POLICY
   sync_primitives::AutoLock lock(cache_lock_);
   sync_primitives::AutoLock lock_unpaired(unpaired_lock_);
   UnpairedDevices::iterator iter = is_unpaired_.begin();
@@ -1416,14 +1345,12 @@ bool CacheManager::CleanupUnpairedDevices() {
     LOG4CXX_DEBUG(logger_, "Device_data size is: " << device_data.size());
   }
   is_unpaired_.clear();
-#endif // EXTENDED_POLICY
   Backup();
   return true;
 }
 
 void CacheManager::Increment(usage_statistics::GlobalCounterId type) {
   CACHE_MANAGER_CHECK_VOID();
-#ifdef EXTENDED_POLICY
   switch (type) {
     case usage_statistics::IAP_BUFFER_FULL:
       ++(*pt_->policy_table.usage_and_error_counts->count_of_iap_buffer_full);
@@ -1438,14 +1365,12 @@ void CacheManager::Increment(usage_statistics::GlobalCounterId type) {
       LOG4CXX_WARN(logger_, "Type global counter is unknown");
       return;
   }
-#endif // EXTENDED_POLICY
   Backup();
 }
 
 void CacheManager::Increment(const std::string &app_id,
                              usage_statistics::AppCounterId type) {
   CACHE_MANAGER_CHECK_VOID();
-#ifdef EXTENDED_POLICY
   switch (type) {
     case usage_statistics::USER_SELECTIONS:
       ++(*pt_->policy_table.usage_and_error_counts->app_level)[app_id].
@@ -1483,7 +1408,6 @@ void CacheManager::Increment(const std::string &app_id,
       LOG4CXX_WARN(logger_, "Type app counter is unknown");
       return;
   }
-#endif
   Backup();
 }
 
@@ -1491,7 +1415,6 @@ void CacheManager::Set(const std::string &app_id,
                        usage_statistics::AppInfoId type,
                        const std::string &value) {
   CACHE_MANAGER_CHECK_VOID();
-#ifdef EXTENDED_POLICY
   switch (type) {
     case usage_statistics::LANGUAGE_GUI:
       (*pt_->policy_table.usage_and_error_counts->app_level)[app_id].
@@ -1505,7 +1428,6 @@ void CacheManager::Set(const std::string &app_id,
       LOG4CXX_WARN(logger_, "Type app info is unknown");
       return;
   }
-#endif
   Backup();
 }
 
@@ -1513,7 +1435,6 @@ void CacheManager::Add(const std::string &app_id,
                        usage_statistics::AppStopwatchId type,
                        int seconds) {
   CACHE_MANAGER_CHECK_VOID();
-#ifdef EXTENDED_POLICY
   const int minutes = ConvertSecondsToMinute(seconds);
   switch (type) {
     case usage_statistics::SECONDS_HMI_FULL:
@@ -1536,7 +1457,6 @@ void CacheManager::Add(const std::string &app_id,
       LOG4CXX_WARN(logger_, "Type app stopwatch is unknown");
       return;
   }
-#endif
   Backup();
 }
 
@@ -1646,11 +1566,9 @@ bool CacheManager::SetUnpairedDevice(const std::string &device_id,
 
 bool CacheManager::SetVINValue(const std::string& value) {
   CACHE_MANAGER_CHECK(false);
-#ifdef EXTENDED_POLICY
    cache_lock_.Acquire();
   *pt_->policy_table.module_meta->vin = value;
    cache_lock_.Release();
-#endif // EXTENDED_POLICY
   Backup();
   return true;
 }
@@ -1669,10 +1587,8 @@ bool CacheManager::Init(const std::string& file_name) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   InitResult init_result = backup_->Init();
-#ifdef EXTENDED_POLICY
   ex_backup_ = utils::SharedPtr<PTRepresentation>::
       dynamic_pointer_cast<PTExtRepresentation >(backup_);
-#endif // EXTENDED_POLICY
 
   bool result = true;
   switch (init_result) {
@@ -1700,7 +1616,6 @@ bool CacheManager::Init(const std::string& file_name) {
 }
 
 void CacheManager::FillDeviceSpecificData() {
-#ifdef EXTENDED_POLICY
   DeviceIds unpaired_ids;
   ex_backup_->UnpairedDevicesList(&unpaired_ids);
   sync_primitives::AutoLock lock(unpaired_lock_);
@@ -1709,7 +1624,6 @@ void CacheManager::FillDeviceSpecificData() {
        ids_iter!= unpaired_ids.end(); ++ids_iter) {
     is_unpaired_.insert(*ids_iter);
   }
-#endif
 }
 
 bool CacheManager::LoadFromBackup() {
@@ -1762,11 +1676,9 @@ bool CacheManager::LoadFromFile(const std::string& file_name,
 
 bool CacheManager::ResetPT(const std::string& file_name) {
   bool result = true;
-#ifdef EXTENDED_POLICY
   is_unpaired_.clear();
   backup_->RefreshDB();
   result = LoadFromFile(file_name, *pt_);
-#endif // EXTENDE_POLICY
   Backup();
   return result;
 }

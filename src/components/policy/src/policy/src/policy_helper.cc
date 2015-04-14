@@ -1,4 +1,4 @@
-﻿/*
+/*
  Copyright (c) 2013, Ford Motor Company
  All rights reserved.
 
@@ -273,15 +273,9 @@ void CheckAppPolicy::SendPermissionsToApp(
                                group_permissons, notification_data);
 
   LOG4CXX_INFO(logger_, "Send notification for application_id: " << app_id);
-#ifdef EXTENDED_POLICY
   pm_->listener()->OnPermissionsUpdated(app_id, notification_data,
                                         policy_table::EnumToJsonString(
                                           app_policy.second.default_hmi));
-#else
-  // Default_hmi is Ford-specific and should not be used with basic policy
-  const std::string default_hmi;
-  pm_->listener()->OnPermissionsUpdated(app_id, notification_data, default_hmi);
-#endif
 }
 
 bool CheckAppPolicy::IsAppRevoked(
@@ -438,7 +432,6 @@ bool CheckAppPolicy::IsConsentRequired(const std::string& app_id,
   }
 
   bool is_preconsented = false;
-#ifdef EXTENDED_POLICY
   policy_table::Strings::value_type str(group_name);
   policy_table::Strings::iterator pre_begin =
       update_->policy_table.app_policies_section.apps[app_id].preconsented_groups->begin();
@@ -448,7 +441,6 @@ bool CheckAppPolicy::IsConsentRequired(const std::string& app_id,
   policy_table::Strings::iterator it2 = std::find(pre_begin, pre_end, str);
 
   is_preconsented = pre_end != it2;
-#endif // EXTENDED_POLICY
 
   return it->second.user_consent_prompt.is_initialized() && !is_preconsented;
 }

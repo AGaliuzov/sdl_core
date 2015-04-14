@@ -211,7 +211,6 @@ TEST_F(PolicyManagerImplTest, DISABLED_GetUpdateUrl) {
   EXPECT_EQ("http://policies.ford.com/api/policies", manager->GetUpdateUrl(4));
 }
 
-#ifdef EXTENDED_POLICY
 TEST_F(PolicyManagerImplTest, IncrementGlobalCounter) {
   // Assert
   EXPECT_CALL(*cache_manager, Increment(usage_statistics::SYNC_REBOOTS));
@@ -238,14 +237,11 @@ TEST_F(PolicyManagerImplTest, AddAppStopwatch) {
           30));
   manager->Add("12345", usage_statistics::SECONDS_HMI_FULL, 30);
 }
-#endif  // EXTENDED_POLICY
 
 TEST_F(PolicyManagerImplTest, ResetPT) {
   EXPECT_CALL(*cache_manager, ResetPT("filename")).WillOnce(Return(true))
       .WillOnce(Return(false));
-#ifdef EXTENDED_POLICY
   EXPECT_CALL(*cache_manager, ResetCalculatedPermissions()).Times(AtLeast(1));
-#endif  // EXTENDED_POLICY
   EXPECT_CALL(*cache_manager, TimeoutResponse());
   EXPECT_CALL(*cache_manager, SecondsBetweenRetries(_));
 
@@ -253,7 +249,6 @@ TEST_F(PolicyManagerImplTest, ResetPT) {
   EXPECT_FALSE(manager->ResetPT("filename"));
 }
 
-#ifdef EXTENDED_POLICY
 TEST_F(PolicyManagerImplTest, DISABLED_CheckPermissions) {
   // Arrange
   policy_table::RpcParameters rpc_parameters;
@@ -303,34 +298,6 @@ TEST_F(PolicyManagerImplTest, DISABLED_CheckPermissions) {
   EXPECT_EQ("odometer", output.list_of_allowed_params[1]);
   EXPECT_EQ("speed", output.list_of_allowed_params[2]);
 }
-#else  // EXTENDED_POLICY
-
-// TODO(AByzhynar) : APPLINK-12292
-TEST_F(PolicyManagerImplTest, DISABLED_CheckPermissions_SetHmiLevelFullForAlert_ExpectAllowedPermissions) {
-  // Arrange
-  ::policy::CheckPermissionResult expected;
-  expected.hmi_level_permitted = ::policy::kRpcAllowed;
-  expected.list_of_allowed_params.push_back("speed");
-  expected.list_of_allowed_params.push_back("gps");
-
-  // Assert
-  EXPECT_CALL(*cache_manager, CheckPermissions("12345678", "FULL", "Alert", _)).
-      WillOnce(SetArgReferee<3>(expected));
-
-  // Act
-  ::policy::RPCParams input_params;
-  ::policy::CheckPermissionResult output;
-  manager->CheckPermissions("12345678", "FULL", "Alert", input_params, output);
-
-  // Assert
-  EXPECT_EQ(::policy::kRpcAllowed, output.hmi_level_permitted);
-
-  ASSERT_TRUE(!output.list_of_allowed_params.empty());
-  ASSERT_EQ(2u, output.list_of_allowed_params.size());
-  EXPECT_EQ("speed", output.list_of_allowed_params[0]);
-  EXPECT_EQ("gps", output.list_of_allowed_params[1]);
-}
-#endif  // EXTENDED_POLICY
 
 TEST_F(PolicyManagerImplTest, LoadPT_SetPT_PTIsLoaded) {
   // Arrange
@@ -434,9 +401,7 @@ TEST_F(PolicyManagerImplTest, LoadPT_SetPT_PTIsLoaded) {
   // Assert
   ASSERT_TRUE(IsValid(update));
 
-#ifdef EXTENDED_POLICY
   EXPECT_CALL(*cache_manager, GetHMIAppTypeAfterUpdate(_)).Times(AtLeast(1));
-#endif
 
   // Act
   std::string json = table.toStyledString();
@@ -523,16 +488,13 @@ TEST_F(PolicyManagerImplTest, RequestPTUpdate_SetPT_GeneratedSnapshotAndPTUpdate
       new ::policy_table::Table();
 
   // Assert
-#ifdef EXTENDED_POLICY
   EXPECT_CALL(*listener, OnSnapshotCreated(_, _, _));
-#endif
   EXPECT_CALL(*cache_manager, GenerateSnapshot()).WillOnce(Return(p_table));
 
   // Act
   manager->RequestPTUpdate();
 }
 
-#ifdef EXTENDED_POLICY
 TEST_F(PolicyManagerImplTest, ResetUserConsent_ResetOnlyOnce) {
   EXPECT_CALL(*cache_manager, ResetUserConsent()).
       WillOnce(Return(true)).
@@ -541,7 +503,6 @@ TEST_F(PolicyManagerImplTest, ResetUserConsent_ResetOnlyOnce) {
   EXPECT_TRUE(manager->ResetUserConsent());
   EXPECT_FALSE(manager->ResetUserConsent());
 }
-#endif  // EXTENDED_POLICY
 
 TEST_F(PolicyManagerImplTest, DISABLED_AddApplication) {
   // TODO(AOleynik): Implementation of method should be changed to avoid
@@ -554,7 +515,6 @@ TEST_F(PolicyManagerImplTest, DISABLED_GetPolicyTableStatus) {
   // manager->GetPolicyTableStatus();
 }
 
-#ifdef EXTENDED_POLICY
 TEST_F(PolicyManagerImplTest, MarkUnpairedDevice) {
   // Assert
   EXPECT_CALL(*cache_manager, SetUnpairedDevice("12345", true)).
@@ -564,7 +524,6 @@ TEST_F(PolicyManagerImplTest, MarkUnpairedDevice) {
   // Act
   manager->MarkUnpairedDevice("12345");
 }
-#endif  // EXTENDED_POLICY
 
 }  // namespace policy
 }  // namespace components

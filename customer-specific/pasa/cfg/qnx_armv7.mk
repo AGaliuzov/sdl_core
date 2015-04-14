@@ -55,7 +55,7 @@ endif
 # Compiler Options
 CC_OFLAG = -o
 CC_IFLAG = -I
-CC_FLAGS = $(TARGET_FLG) -w9 -Wc,-Wall -shared $(CC_OPT_FLG) $(CC_PROFILING_FLG) $(CC_DEBUG_FLG) -DOS_POSIX -DEXTENDED_POLICY
+CC_FLAGS = $(TARGET_FLG) -w9 -Wc,-Wall -shared $(CC_OPT_FLG) $(CC_PROFILING_FLG) $(CC_DEBUG_FLG) -DOS_POSIX
 # To build aoa support need to uncomment next line
 export BUILD_AOA_SUPPORT := TRUE
 ifdef BUILD_AOA_SUPPORT

@@ -33,10 +33,6 @@ set (AM_SOURCE_DIR ${COMPONENTS_DIR}/application_manager)
 set (AM_TEST_DIR ${AM_SOURCE_DIR}/test)
 set (AM_MOCK_DIR ${AM_TEST_DIR}/mock)
 
-if (EXTENDED_POLICY_FLAG)
-  add_definitions(-DEXTENDED_POLICY)
-endif()
-
 include_directories (
   include/
   ${COMPONENTS_DIR}/utils/include/
@@ -72,15 +68,9 @@ ${AM_SOURCE_DIR}/src/policies/delegates/app_permission_delegate.cc
 ${AM_SOURCE_DIR}/src/policies/delegates/statistics_delegate.cc
 )
 
-if (EXTENDED_POLICY_FLAG)
-  include_directories(
-    ${COMPONENTS_DIR}/policy/src/policy/policy_table/table_struct_ext
-  )
-else ()
-  include_directories(
-    ${COMPONENTS_DIR}/policy/src/policy/policy_table/table_struct
-  )
-endif ()
+include_directories(
+  ${COMPONENTS_DIR}/policy/src/policy/policy_table/table_struct_ext
+)
 
 file (GLOB EVENT_ENGINE
   ${AM_SOURCE_DIR}/src/event_engine/*

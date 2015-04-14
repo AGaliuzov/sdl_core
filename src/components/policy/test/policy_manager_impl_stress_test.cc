@@ -235,9 +235,7 @@ void PolicyManagerImplStressTest::CreateTable(std::ofstream& ofs) {
 }
 
 TEST_F(PolicyManagerImplStressTest, OneCheck_AppAndFunctuionExisting_RpcAllowed) {
-#ifdef EXTENDED_POLICY
   EXPECT_CALL(*mock_listener, OnCurrentDeviceIdUpdateRequired(_));
-#endif  // EXTENDED_POLICY
   ::policy::RPCParams input_params;
   ::policy::CheckPermissionResult output;
   manager->CheckPermissions("2", "FULL", "Func-1", input_params, output);
@@ -245,9 +243,7 @@ TEST_F(PolicyManagerImplStressTest, OneCheck_AppAndFunctuionExisting_RpcAllowed)
 }
 
 TEST_F(PolicyManagerImplStressTest, NoApp_AppDoesNotExisted_RpcDissallowed) {
-#ifdef EXTENDED_POLICY
   EXPECT_CALL(*mock_listener, OnCurrentDeviceIdUpdateRequired(_));
-#endif  // EXTENDED_POLICY
   ::policy::RPCParams input_params;
   ::policy::CheckPermissionResult output;
   manager->CheckPermissions("150", "FULL", "Func-88", input_params, output);
@@ -255,9 +251,7 @@ TEST_F(PolicyManagerImplStressTest, NoApp_AppDoesNotExisted_RpcDissallowed) {
 }
 
 TEST_F(PolicyManagerImplStressTest, NoFunc_FuncDoesNotExisted_RpcDissallowed) {
-#ifdef EXTENDED_POLICY
   EXPECT_CALL(*mock_listener, OnCurrentDeviceIdUpdateRequired(_)).Times(1);
-#endif  // EXTENDED_POLICY
   ::policy::RPCParams input_params;
   ::policy::CheckPermissionResult output;
   manager->CheckPermissions("2", "FULL", "Func-400", input_params, output);
@@ -265,9 +259,7 @@ TEST_F(PolicyManagerImplStressTest, NoFunc_FuncDoesNotExisted_RpcDissallowed) {
 }
 
 TEST_F(PolicyManagerImplStressTest, NoHmi_HMIInLevelNone_RpcDissallowed) {
-#ifdef EXTENDED_POLICY
   EXPECT_CALL(*mock_listener, OnCurrentDeviceIdUpdateRequired(_));
-#endif  // EXTENDED_POLICY
   ::policy::RPCParams input_params;
   ::policy::CheckPermissionResult output;
   manager->CheckPermissions("2", "NONE", "Func-88", input_params, output);
@@ -275,9 +267,7 @@ TEST_F(PolicyManagerImplStressTest, NoHmi_HMIInLevelNone_RpcDissallowed) {
 }
 
 TEST_F(PolicyManagerImplStressTest, FewChecks_CheckSeveralFunctions_RpcAllowed) {
-#ifdef EXTENDED_POLICY
   EXPECT_CALL(*mock_listener, OnCurrentDeviceIdUpdateRequired(_)).Times(kNumberFuncs);
-#endif  // EXTENDED_POLICY
   const int kNumberOfCheckings = kNumberFuncs;  //100;
   std::stringstream ss;
   int app, func;
