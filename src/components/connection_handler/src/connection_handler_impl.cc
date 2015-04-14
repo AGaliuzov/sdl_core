@@ -381,16 +381,19 @@ void ConnectionHandlerImpl::OnApplicationFloodCallBack(const uint32_t &connectio
 
 void ConnectionHandlerImpl::OnMalformedMessageCallback(const uint32_t &connection_key) {
   LOG4CXX_AUTO_TRACE(logger_);
-  {
-    sync_primitives::AutoLock lock(connection_handler_observer_lock_);
-    if(connection_handler_observer_) {
-      connection_handler_observer_->OnMalformedMessageCallback(connection_key);
+  if(connection_handler_observer_) {
+    typedef std::vector<uint8_t> SessionIdVector;
+    SessionIdVector session_ids = GetConnectionSessionsIds(connection_key);
+    SessionIdVector::iterator it = session_ids.begin();
+    for(;it != session_ids.end(); ++it) {
+      const uint32_t app_id = KeyFromPair(connection_key, *it);
+      sync_primitives::AutoLock lock(connection_handler_observer_lock_);
+      connection_handler_observer_->OnMalformedMessageCallback(app_id);
     }
   }
   transport_manager::ConnectionUID connection_handle = 0;
   uint8_t session_id = 0;
   PairFromKey(connection_key, &connection_handle, &session_id);
-
   LOG4CXX_INFO(logger_, "Disconnect malformed messaging application");
   CloseConnectionSessions(connection_handle, kMalformed);
   CloseConnection(connection_handle);
@@ -827,25 +830,7 @@ void ConnectionHandlerImpl::CloseConnectionSessions(
                 << connection_id);
 
   typedef std::vector<uint8_t> SessionIdVector;
-  SessionIdVector session_id_vector;
-  {
-    sync_primitives::AutoLock connection_list_lock(connection_list_lock_);
-
-    ConnectionList::iterator connection_list_itr =
-        connection_list_.find(connection_id);
-    if (connection_list_.end() != connection_list_itr) {
-      const SessionMap session_map = connection_list_itr->second->session_map();
-
-      SessionMap::const_iterator session_map_itr = session_map.begin();
-      for (;session_map_itr != session_map.end(); ++session_map_itr) {
-        session_id_vector.push_back(session_map_itr->first);
-      }
-    } else {
-      LOG4CXX_ERROR(logger_, "Connection with id: " << connection_id
-                    << " not found");
-      return;
-    }
-  }
+  SessionIdVector session_id_vector = GetConnectionSessionsIds(connection_id);
   SessionIdVector::const_iterator session_id_itr = session_id_vector.begin();
   for(;session_id_itr != session_id_vector.end(); ++session_id_itr) {
     CloseSession(connection_handle, *session_id_itr, close_reason);
@@ -940,6 +925,28 @@ void ConnectionHandlerImpl::OnConnectionEnded(
       }
     }
   }
+}
+
+std::vector<uint8_t>
+ConnectionHandlerImpl::GetConnectionSessionsIds(
+    ConnectionHandle connection_handle) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  typedef std::vector<uint8_t> SessionIdVector;
+  SessionIdVector session_id_vector;
+  sync_primitives::AutoLock connection_list_lock(connection_list_lock_);
+  ConnectionList::iterator connection_list_itr =
+      connection_list_.find(connection_handle);
+  if (connection_list_.end() != connection_list_itr) {
+    const SessionMap session_map = connection_list_itr->second->session_map();
+    SessionMap::const_iterator session_map_itr = session_map.begin();
+    for (;session_map_itr != session_map.end(); ++session_map_itr) {
+      session_id_vector.push_back(session_map_itr->first);
+    }
+  } else {
+    LOG4CXX_ERROR(logger_, "Connection with id: " << connection_handle
+                  << " not found");
+  }
+  return session_id_vector;
 }
 
 void ConnectionHandlerImpl::BindProtocolVersionWithSession(

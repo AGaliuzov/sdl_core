@@ -1054,12 +1054,6 @@ void ApplicationManagerImpl::OnApplicationFloodCallBack(const uint32_t &connecti
 
 void ApplicationManagerImpl::OnMalformedMessageCallback(const uint32_t &connection_key) {
   LOG4CXX_AUTO_TRACE(logger_);
-  LOG4CXX_DEBUG(logger_, "Unregister malformed messaging application " << connection_key);
-
-
-  MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
-      connection_key,
-      mobile_apis::AppInterfaceUnregisteredReason::PROTOCOL_VIOLATION);
 }
 
 void ApplicationManagerImpl::set_hmi_message_handler(
