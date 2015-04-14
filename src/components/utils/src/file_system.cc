@@ -442,6 +442,24 @@ bool file_system::MoveFile(const std::string& src,
                            const std::string& dst) {
   if (std::rename(src.c_str(), dst.c_str()) == 0) {
     return true;
+  } else {
+    // In case of src and dst on different file systems std::rename returns
+    // an error (at least on QNX).
+    // TODO(APPLINK-12417): Seems, streams are not recommended for use, so have
+    // to find another way to do this.
+    std::ifstream s_src(src, std::ios::binary);
+    if (!s_src.good()) {
+      return false;
+    }
+    std::ofstream s_dst(dst, std::ios::binary);
+    if (!s_dst.good()) {
+      return false;
+    }
+    s_dst << s_src.rdbuf();
+    s_dst.close();
+    s_src.close();
+    DeleteFile(src);
+    return true;
   }
   return false;
 }
