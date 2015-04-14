@@ -78,7 +78,7 @@ void SystemRequest::Run() {
           (*message_)[strings::msg_params][strings::request_type].asInt());
 
   if (!policy::PolicyHandler::instance()->IsRequestTypeAllowed(
-           application->mobile_app_id(), request_type)) {
+           application->policy_app_id(), request_type)) {
     SendResponse(false, mobile_apis::Result::DISALLOWED);
     return;
   }
@@ -177,13 +177,13 @@ void SystemRequest::Run() {
   }
 
   if (mobile_apis::RequestType::PROPRIETARY != request_type) {
-    msg_params[strings::policy_app_id] = application->mobile_app_id();
+    msg_params[strings::policy_app_id] = application->policy_app_id();
     msg_params[strings::app_id] = application->app_id();
   }
   msg_params[strings::request_type] =
       (*message_)[strings::msg_params][strings::request_type];
 
-  msg_params[strings::policy_app_id] = application->mobile_app_id();
+  msg_params[strings::policy_app_id] = application->policy_app_id();
   msg_params[strings::app_id] = application->hmi_app_id();
 
   SendHMIRequest(hmi_apis::FunctionID::BasicCommunication_SystemRequest,

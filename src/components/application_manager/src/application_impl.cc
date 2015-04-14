@@ -76,7 +76,7 @@ namespace application_manager {
 CREATE_LOGGERPTR_GLOBAL(logger_, "ApplicationManager")
 
 ApplicationImpl::ApplicationImpl(uint32_t application_id,
-    const std::string& mobile_app_id,
+    const std::string& policy_app_id,
     const std::string& app_name,
     utils::SharedPtr<usage_statistics::StatisticsManager> statistics_manager)
     : grammar_id_(0),
@@ -94,7 +94,7 @@ ApplicationImpl::ApplicationImpl(uint32_t application_id,
       delete_file_in_none_count_(0),
       list_files_in_none_count_(0),
       device_(0),
-      usage_report_(mobile_app_id, statistics_manager),
+      usage_report_(policy_app_id, statistics_manager),
       protocol_version_(ProtocolVersion::kV3),
       is_voice_communication_application_(false),
 #ifdef CUSTOMER_PASA
@@ -109,7 +109,7 @@ ApplicationImpl::ApplicationImpl(uint32_t application_id,
       {date_time::DateTime::getCurrentTime(), 0};
 
 
-  set_mobile_app_id(mobile_app_id);
+  set_policy_app_id(policy_app_id);
   set_name(app_name);
 
   MarkUnregistered();
@@ -273,7 +273,7 @@ const std::string& ApplicationImpl::name() const {
 }
 
 const std::string ApplicationImpl::folder_name() const {
-  return name() + mobile_app_id();
+  return name() + policy_app_id();
 }
 
 bool ApplicationImpl::is_media_application() const {
@@ -649,7 +649,7 @@ bool ApplicationImpl::IsCommandLimitsExceeded(
   // commands per minute, e.g. 10 command per minute i.e. 1 command per 6 sec
   case POLICY_TABLE: {
     uint32_t cmd_limit = application_manager::MessageHelper::GetAppCommandLimit(
-          mobile_app_id_);
+          policy_app_id_);
 
     if (0 == cmd_limit) {
       return true;

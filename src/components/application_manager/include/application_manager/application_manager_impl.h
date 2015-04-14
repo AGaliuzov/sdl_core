@@ -869,12 +869,12 @@ class ApplicationManagerImpl : public ApplicationManager,
      *
      * @param connection_key the connection key ofthe required application
      *
-     * @param mobile_app_id application's mobile(policy) identifier.
+     * @param policy_app_id application's mobile(policy) identifier.
      *
      * @return true in case application is allowed to register, false otherwise.
      */
     bool IsApplicationForbidden(uint32_t connection_key,
-                                const std::string& mobile_app_id) const;
+                                const std::string& policy_app_id) const;
 
     struct ApplicationsAppIdSorter {
       bool operator() (const ApplicationSharedPtr lhs,
@@ -886,7 +886,7 @@ class ApplicationManagerImpl : public ApplicationManager,
     struct ApplicationsMobileAppIdSorter {
       bool operator() (const ApplicationSharedPtr lhs,
                        const ApplicationSharedPtr rhs) {
-        return lhs->mobile_app_id() < rhs->mobile_app_id();
+        return lhs->policy_app_id() < rhs->policy_app_id();
       }
     };
 
@@ -998,7 +998,7 @@ class ApplicationManagerImpl : public ApplicationManager,
       MobileAppIdPredicate(const std::string& policy_app_id):
         policy_app_id_(policy_app_id) {}
       bool operator () (const ApplicationSharedPtr app) const {
-        return app ? policy_app_id_ == app->mobile_app_id() : false;
+        return app ? policy_app_id_ == app->policy_app_id() : false;
       }
     };
 
@@ -1142,12 +1142,12 @@ class ApplicationManagerImpl : public ApplicationManager,
      *
      * @param connection_key connection key for which need to obtain device mac;
      *
-     * @param mobile_app_id mobile(policy) application id on particular device.
+     * @param policy_app_id mobile(policy) application id on particular device.
      * This parameter will be concatenated with device id.
      *
      * @return unique aplication identifier.
      */
-    std::string GetHashedAppID(uint32_t connection_key, const std::string& mobile_app_id) const;
+    std::string GetHashedAppID(uint32_t connection_key, const std::string& policy_app_id) const;
 
     /**
      * @brief EndNaviServices either send EndService to mobile or proceed

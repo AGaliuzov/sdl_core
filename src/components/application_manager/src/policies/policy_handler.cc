@@ -162,7 +162,7 @@ struct SDLAlowedNotification {
     if (device_id_ == app->device()) {
         std::string hmi_level;
         mobile_apis::HMILevel::eType default_mobile_hmi;
-        policy_manager_->GetDefaultHmi(app->mobile_app_id(), &hmi_level);
+        policy_manager_->GetDefaultHmi(app->policy_app_id(), &hmi_level);
         if ("BACKGROUND" == hmi_level) {
           default_mobile_hmi = mobile_apis::HMILevel::HMI_BACKGROUND;
         } else if ("FULL" == hmi_level) {
@@ -201,7 +201,7 @@ struct LinkAppToDevice {
     MessageHelper::GetDeviceInfoForApp(
           app->app_id(),
           &device_params);
-    const std::string app_id = app->mobile_app_id();
+    const std::string app_id = app->policy_app_id();
     if (device_params.device_mac_address.empty()) {
       LOG4CXX_WARN(logger_, "Couldn't find device, which hosts application "
                    << app_id);
@@ -391,7 +391,7 @@ void PolicyHandler::OnDeviceConsentChanged(const std::string& device_id,
     if (device_handle == (*it_app_list).get()->device()) {
 
       const std::string policy_app_id =
-          (*it_app_list)->mobile_app_id();
+          (*it_app_list)->policy_app_id();
 
       // If app has predata policy, which is assigned without device consent or
       // with negative data consent, there no necessity to change smth and send
@@ -422,7 +422,7 @@ void PolicyHandler::GetAvailableApps(std::queue<std::string>& apps) {
 
   for (;app_list.end() != iter; ++iter) {
     LOG4CXX_INFO(logger_, "one more app");
-    apps.push((*iter)->mobile_app_id());
+    apps.push((*iter)->policy_app_id());
   }
 }
 
@@ -448,7 +448,7 @@ void PolicyHandler::OnAppPermissionConsentInternal(
         ->application(connection_key);
 
     if (app.valid()) {
-      permissions.policy_app_id = app->mobile_app_id();
+      permissions.policy_app_id = app->policy_app_id();
       policy::DeviceParams device_params;
       MessageHelper::GetDeviceInfoForHandle(
         app->device(),
@@ -580,7 +580,7 @@ void PolicyHandler::OnGetListOfPermissions(const uint32_t connection_key,
     LOG4CXX_WARN(logger_, "Couldn't find application to get permissions.");
   } else {
     policy_manager_->GetUserConsentForApp(device_params.device_mac_address,
-                                          app->mobile_app_id(),
+                                          app->policy_app_id(),
                                           group_permissions);
 
     MessageHelper::SendGetListOfPermissionsResponse(
@@ -764,8 +764,8 @@ bool PolicyHandler::SendMessageToSDK(const BinaryMessage& pt_string,
     return false;
   }
 
-  const std::string& mobile_app_id = app->mobile_app_id();
-  if (mobile_app_id.empty()) {
+  const std::string& policy_app_id = app->policy_app_id();
+  if (policy_app_id.empty()) {
     LOG4CXX_WARN(logger_, "Application with connection key '" << app_id << "'"
                  " has no application id.");
     return false;
@@ -948,7 +948,7 @@ void PolicyHandler::OnActivateApp(uint32_t connection_key,
     LOG4CXX_WARN(logger_, "Activated App failed: no app found.");
     return;
   }
-  std::string policy_app_id = app->mobile_app_id();
+  std::string policy_app_id = app->policy_app_id();
 
   AppPermissions permissions(policy_app_id);
 

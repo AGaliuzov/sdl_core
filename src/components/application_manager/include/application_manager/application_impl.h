@@ -59,7 +59,7 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
     public virtual DynamicApplicationDataImpl {
  public:
   ApplicationImpl(uint32_t application_id,
-                  const std::string& mobile_app_id,
+                  const std::string& policy_app_id,
                   const std::string& app_name,
                   utils::SharedPtr<usage_statistics::StatisticsManager> statistics_manager);
 

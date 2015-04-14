@@ -80,8 +80,8 @@ InitialApplicationDataImpl::vr_synonyms() const {
   return vr_synonyms_;
 }
 
-std::string InitialApplicationDataImpl::mobile_app_id() const {
-  return mobile_app_id_;
+std::string InitialApplicationDataImpl::policy_app_id() const {
+  return policy_app_id_;
 }
 
 const smart_objects::SmartObject* InitialApplicationDataImpl::tts_name() const {
@@ -120,9 +120,9 @@ void InitialApplicationDataImpl::set_vr_synonyms(
   vr_synonyms_ = new smart_objects::SmartObject(vr_synonyms);
 }
 
-void InitialApplicationDataImpl::set_mobile_app_id(
-    const std::string& mobile_app_id) {
-  mobile_app_id_ = mobile_app_id;
+void InitialApplicationDataImpl::set_policy_app_id(
+    const std::string& policy_app_id) {
+  policy_app_id_ = policy_app_id;
 }
 
 void InitialApplicationDataImpl::set_tts_name(

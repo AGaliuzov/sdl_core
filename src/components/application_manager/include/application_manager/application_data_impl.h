@@ -50,14 +50,14 @@ class InitialApplicationDataImpl : public virtual Application {
 
     const smart_objects::SmartObject* app_types() const;
     const smart_objects::SmartObject* vr_synonyms() const;
-    virtual std::string mobile_app_id() const;
+    virtual std::string policy_app_id() const;
     const smart_objects::SmartObject* tts_name() const;
     const smart_objects::SmartObject* ngn_media_screen_name() const;
     const mobile_api::Language::eType& language() const;
     const mobile_api::Language::eType& ui_language() const;
     void set_app_types(const smart_objects::SmartObject& app_types);
     void set_vr_synonyms(const smart_objects::SmartObject& vr_synonyms);
-    void set_mobile_app_id(const std::string& mobile_app_id);
+    void set_policy_app_id(const std::string& policy_app_id);
     void set_tts_name(const smart_objects::SmartObject& tts_name);
     void set_ngn_media_screen_name(const smart_objects::SmartObject& ngn_name);
     void set_language(const mobile_api::Language::eType& language);
@@ -66,7 +66,7 @@ class InitialApplicationDataImpl : public virtual Application {
   protected:
     smart_objects::SmartObject* app_types_;
     smart_objects::SmartObject* vr_synonyms_;
-    std::string mobile_app_id_;
+    std::string policy_app_id_;
     smart_objects::SmartObject* tts_name_;
     smart_objects::SmartObject* ngn_media_screen_name_;
     mobile_api::Language::eType language_;
