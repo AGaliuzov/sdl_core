@@ -817,7 +817,9 @@ void Profile::UpdateValues() {
 
   // Launch HMI parameter
   ReadBoolValue(&launch_hmi_, true, kHmiSection, kLaunchHMIKey);
-
+#ifdef WEB_HMI
+  launch_hmi_ = false;
+#endif // WEB_HMI
   LOG_UPDATED_BOOL_VALUE(launch_hmi_, kLaunchHMIKey, kHmiSection);
 
 #ifdef ENABLE_SECURITY
