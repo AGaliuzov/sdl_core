@@ -50,8 +50,8 @@ SetDisplayLayoutRequest::~SetDisplayLayoutRequest() {
 
 void SetDisplayLayoutRequest::Run() {
   LOG4CXX_AUTO_TRACE(logger_);
-  ApplicationConstSharedPtr app = ApplicationManagerImpl::instance()
-  ->application(connection_key());
+  ApplicationConstSharedPtr app =
+      ApplicationManagerImpl::instance()->application(connection_key());
 
   if (!app) {
     LOG4CXX_ERROR(logger_, "Application is not registered");
@@ -79,36 +79,21 @@ void SetDisplayLayoutRequest::on_event(const event_engine::Event& event) {
                 message[strings::params][hmi_response::code].asInt());
       bool response_success = mobile_apis::Result::SUCCESS == result_code;
 
-      const smart_objects::SmartObject& msg_params =
-          message[strings::msg_params];
+      smart_objects::SmartObject msg_params = message[strings::msg_params];
 
       if (response_success) {
-
         HMICapabilities& hmi_capabilities =
             ApplicationManagerImpl::instance()->hmi_capabilities();
 
+        // in case templates_available is empty copy from hmi capabilities
         if (msg_params.keyExists(hmi_response::display_capabilities)) {
-          hmi_capabilities.set_display_capabilities(
-                msg_params[hmi_response::display_capabilities]);
-        }
-
-        if (msg_params.keyExists(hmi_response::soft_button_capabilities)) {
-            hmi_capabilities.set_soft_button_capabilities(
-              msg_params[hmi_response::soft_button_capabilities][0]);
-        }
-
-        if (msg_params.keyExists(hmi_response::button_capabilities)) {
-          hmi_capabilities.set_button_capabilities(
-              msg_params[hmi_response::button_capabilities]);
-        }
-
-        if (msg_params.keyExists(hmi_response::preset_bank_capabilities)) {
-          hmi_capabilities.set_preset_bank_capabilities(
-              msg_params[hmi_response::preset_bank_capabilities]);
+          if (0 == msg_params[hmi_response::display_capabilities][hmi_response::templates_available].length()) {
+            msg_params[hmi_response::display_capabilities][hmi_response::templates_available] =
+                hmi_capabilities.display_capabilities()->getElement(hmi_response::templates_available);
+          }
         }
       }
-      SendResponse(response_success, result_code, NULL,
-                   &message[strings::msg_params]);
+      SendResponse(response_success, result_code, NULL, &msg_params);
       break;
     }
     default: {
