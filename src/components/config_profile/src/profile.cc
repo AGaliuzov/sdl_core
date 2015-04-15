@@ -97,6 +97,9 @@ const char* kAppIconsFolderKey = "AppIconsFolder";
 const char* kAppIconsFolderMaxSizeKey = "AppIconsFolderMaxSize";
 const char* kAppIconsAmountToRemoveKey = "AppIconsAmountToRemove";
 const char* kLaunchHMIKey = "LaunchHMI";
+#ifdef WEB_HMI
+const char* kLinkToWebHMI = "LinkToWebHMI";
+#endif // WEB_HMI
 const char* kStartStreamRetry = "StartStreamRetry";
 const char* kEnableRedecodingKey = "EnableRedecoding";
 const char* kVideoStreamConsumerKey = "VideoStreamConsumer";
@@ -194,6 +197,9 @@ const char* kMalformedFrequencyCount = "MalformedFrequencyCount";
 const char* kMalformedFrequencyTime = "MalformedFrequencyTime";
 const char* kHashStringSizeKey = "HashStringSize";
 
+#ifdef WEB_HMI
+const char* kDefaultLinkToWebHMI = "HMI/index.html";
+#endif // WEB_HMI
 const char* kDefaultPoliciesSnapshotFileName = "sdl_snapshot.json";
 const char* kDefaultHmiCapabilitiesFileName = "hmi_capabilities.json";
 const char* kDefaultPreloadedPTFileName = "sdl_preloaded_pt.json";
@@ -288,6 +294,9 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "Profile")
 
 Profile::Profile()
     : launch_hmi_(true),
+#ifdef WEB_HMI
+      link_to_web_hmi_(kDefaultLinkToWebHMI),
+#endif // WEB_HMI
       app_config_folder_(),
       app_storage_folder_(),
       app_resourse_folder_(),
@@ -383,6 +392,12 @@ const std::string& Profile::config_file_name() const {
 bool Profile::launch_hmi() const {
   return launch_hmi_;
 }
+
+#ifdef WEB_HMI
+std::string Profile::link_to_web_hmi() const {
+  return link_to_web_hmi_;
+}
+#endif // WEB_HMI
 
 const std::string& Profile::app_config_folder() const {
   return app_config_folder_;
@@ -823,8 +838,14 @@ void Profile::UpdateValues() {
 
   // Launch HMI parameter
   ReadBoolValue(&launch_hmi_, true, kHmiSection, kLaunchHMIKey);
-
   LOG_UPDATED_BOOL_VALUE(launch_hmi_, kLaunchHMIKey, kHmiSection);
+
+#ifdef WEB_HMI
+  // Link to web HMI parameter
+  ReadStringValue(&link_to_web_hmi_, kDefaultLinkToWebHMI,
+                  kHmiSection, kLinkToWebHMI);
+  LOG_UPDATED_BOOL_VALUE(link_to_web_hmi_, kLinkToWebHMI, kHmiSection);
+#endif // WEB_HMI
 
 #ifdef ENABLE_SECURITY
 
