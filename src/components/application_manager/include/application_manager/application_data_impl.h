@@ -165,7 +165,7 @@ class DynamicApplicationDataImpl : public virtual Application {
     /*
      * @brief Adds perform interaction choice set to the application
      *
-     * @param corelation_id Unique ID of the request that added this choice set
+     * @param correlation_id Unique ID of the request that added this choice set
      * @param choice_set_id Unique ID used for this interaction choice set
      * @param choice_set SmartObject that represents choice set
      */
