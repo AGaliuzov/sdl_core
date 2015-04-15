@@ -840,16 +840,20 @@ bool PerformInteractionRequest::CheckChoiceIDFromResponse(
   const DataAccessor<PerformChoiceSetMap> accessor =
       app->performinteraction_choice_set_map();
   const PerformChoiceSetMap& choice_set_map = accessor.GetData();
-  const PerformChoice& choice =  choice_set_map.at(correlation_id());
 
-  PerformChoice::const_iterator it = choice.begin();
-  for (; choice.end() != it; ++it) {
-    const smart_objects::SmartObject& choice_set = (*it->second).getElement(
-        strings::choice_set);
-    for (size_t j = 0; j < choice_set.length(); ++j) {
-      if (choice_id ==
-          choice_set.getElement(j).getElement(strings::choice_id).asInt()) {
-        return true;
+  PerformChoiceSetMap::const_iterator choice_set_map_it =
+      choice_set_map.find(correlation_id());
+  if (choice_set_map.end() != choice_set_map_it) {
+    const PerformChoice& choice = choice_set_map_it->second;
+    PerformChoice::const_iterator it = choice.begin();
+    for (; choice.end() != it; ++it) {
+      const smart_objects::SmartObject& choice_set = (*it->second).getElement(
+          strings::choice_set);
+      for (size_t j = 0; j < choice_set.length(); ++j) {
+        if (choice_id ==
+            choice_set.getElement(j).getElement(strings::choice_id).asInt()) {
+          return true;
+        }
       }
     }
   }

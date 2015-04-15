@@ -174,10 +174,10 @@ class DynamicApplicationDataImpl : public virtual Application {
 
     /*
      * @brief Deletes entirely perform interaction choice set map
-     * @param corelation_id Unique ID of the request that added this choice set
+     * @param correlation_id Unique ID of the request that added this choice set
      *
      */
-    void DeletePerformInteractionChoiceSet(uint32_t corelation_id);
+    void DeletePerformInteractionChoiceSet(uint32_t correlation_id);
 
     /*
      * @brief Retrieves entirely ChoiceSet - VR commands map

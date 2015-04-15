@@ -263,7 +263,7 @@ class DynamicApplicationData {
     /*
      * @brief Adds perform interaction choice set to the application
      *
-     * @param corelation_id Unique ID of the request that added this choice set
+     * @param correlation_id Unique ID of the request that added this choice set
      * @param choice_set_id  Unique ID used for this interaction choice set
      * @param choice_set SmartObject that represents choice set
      */
@@ -273,10 +273,10 @@ class DynamicApplicationData {
 
     /*
      * @brief Deletes entirely perform interaction choice set for request
-     * @param corelation_id Unique ID of the request that added this choice set
+     * @param correlation_id Unique ID of the request that added this choice set
      *
      */
-    virtual void DeletePerformInteractionChoiceSet(uint32_t corelation_id) = 0;
+    virtual void DeletePerformInteractionChoiceSet(uint32_t correlation_id) = 0;
 
     /*
      * @brief Retrieves entirely ChoiceSet - VR commands map

@@ -34,7 +34,6 @@
 #ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_PERFORM_INTERACTION_REQUEST_H_
 #define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_PERFORM_INTERACTION_REQUEST_H_
 
-#include <set>
 #include "application_manager/commands/command_request_impl.h"
 #include "application_manager/application.h"
 #include "utils/timer_thread.h"
