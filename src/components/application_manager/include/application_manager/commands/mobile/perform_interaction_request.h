@@ -34,6 +34,7 @@
 #ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_PERFORM_INTERACTION_REQUEST_H_
 #define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_PERFORM_INTERACTION_REQUEST_H_
 
+#include <set>
 #include "application_manager/commands/command_request_impl.h"
 #include "application_manager/application.h"
 #include "utils/timer_thread.h"
@@ -198,11 +199,12 @@ class PerformInteractionRequest : public CommandRequestImpl  {
   bool CheckChoiceIDFromResponse(ApplicationSharedPtr app, int32_t choice_id);
 
   // members
-  mobile_apis::Result::eType vr_perform_interaction_code_;
+  mobile_apis::Result::eType          vr_perform_interaction_code_;
   mobile_apis::InteractionMode::eType interaction_mode_;
-  bool ui_response_recived_;
-  bool vr_response_recived_;
-  bool app_pi_was_active_before_;
+  bool                                ui_response_recived_;
+  bool                                vr_response_recived_;
+  bool                                app_pi_was_active_before_;
+  static uint32_t                     pi_requests_count_;
 
   DISALLOW_COPY_AND_ASSIGN(PerformInteractionRequest);
 };
