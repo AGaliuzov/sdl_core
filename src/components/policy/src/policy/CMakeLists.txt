@@ -35,10 +35,6 @@ set(library_name ${CMAKE_SHARED_LIBRARY_PREFIX}${target}${CMAKE_SHARED_LIBRARY_S
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
-if (EXTENDED_POLICY_FLAG)
-  add_definitions(-DEXTENDED_POLICY)
-endif()
-
 #Generation of policy table interface...
 #include(${CMAKE_SOURCE_DIR}/tools/intergen/GenerateInterfaceLibrary.cmake)
 
@@ -65,22 +61,15 @@ set(SOURCES
   ${CMAKE_SOURCE_DIR}/src/components/rpc_base/src/rpc_base/rpc_base.cc
 )
 
-if (EXTENDED_POLICY_FLAG)
-  list(APPEND SOURCES
-    ./src/sql_pt_ext_queries.cc
-    ./src/sql_pt_ext_representation.cc
-  )
-endif ()
+list(APPEND SOURCES
+  ./src/sql_pt_ext_queries.cc
+  ./src/sql_pt_ext_representation.cc
+)
 
 add_subdirectory(usage_statistics)
 
-if (EXTENDED_POLICY_FLAG)
 add_subdirectory(policy_table/table_struct_ext)
 include_directories(./policy_table/table_struct_ext)
-else ()
-include_directories(./policy_table/table_struct)
-add_subdirectory(policy_table/table_struct)
-endif()
 
 set(LIBRARIES ConfigProfile policy_struct dbms jsoncpp Utils)
 if (CMAKE_SYSTEM_NAME STREQUAL "QNX")

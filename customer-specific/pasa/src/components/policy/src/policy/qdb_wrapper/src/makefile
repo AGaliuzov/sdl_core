@@ -14,7 +14,6 @@ OBJS_FILE=.objs.txt
 
 # Additive Compile Flags (Flags from initiating make process will still apply)
 DEFS += \
-	-DEXTENDED_POLICY \
 	-Wc,-Werror=return-type \
 	-Wc,-Wuninitialized
 

@@ -32,11 +32,7 @@
 
 #include "policy/policy_table.h"
 
-#ifdef EXTENDED_POLICY
 #  include "policy/sql_pt_ext_representation.h"
-#else  // EXTENDED_POLICY
-#  include "policy/sql_pt_representation.h"
-#endif  // EXTENDED_POLICY
 
 #include "utils/logger.h"
 
@@ -45,13 +41,7 @@ namespace policy {
 CREATE_LOGGERPTR_GLOBAL(logger_, "PolicyTable")
 
 PolicyTable::PolicyTable()
-    : pt_data_(
-#ifdef EXTENDED_POLICY
-               new SQLPTExtRepresentation()
-#else  // EXTENDED_POLICY
-               new SQLPTRepresentation()
-#endif  // EXTENDED_POLICY
-               ) {
+    : pt_data_(new SQLPTExtRepresentation()) {
 }
 
 PolicyTable::PolicyTable(utils::SharedPtr<PTRepresentation> pt_data)

@@ -90,15 +90,9 @@ set(AM_SOURCES
 
 )
 
-if (EXTENDED_POLICY_FLAG)
-  include_directories(
-    ${COMPONENTS_DIR}/policy/src/policy/policy_table/table_struct_ext
-  )
-else ()
-  include_directories(
-    ${AM_SOURCE_DIR}/policy/src/policy/policy_table/table_struct
-  )
-endif ()
+include_directories(
+  ${COMPONENTS_DIR}/policy/src/policy/policy_table/table_struct_ext
+)
 
 set(testLibraries
   HMI_API

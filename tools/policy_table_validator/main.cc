@@ -32,12 +32,7 @@
 
 #include <iostream>
 #include <cstdlib>
-#ifdef EXTENDED_POLICY
 #include "policy_table/table_struct_ext/types.h"
-#else
-#include "policy_table/table_struct/types.h"
-#endif
-
 #include "json/reader.h"
 #include "utils/file_system.h"
 
@@ -102,11 +97,7 @@ int main(int argc, char** argv) {
     std::cout << "Json parce fails" << std::endl;
     exit(PARSE_ERROR);
   }
-#ifdef EXTENDED_POLICY
   std::cout << "EXTENDED_POLICY" << std::endl;
-#else
-  std::cout << "DEFAULT_POLICY" << std::endl;
-#endif
   policy_table::Table table(&value);
   table.SetPolicyTableType(pt_type);
   bool is_valid = table.is_valid();

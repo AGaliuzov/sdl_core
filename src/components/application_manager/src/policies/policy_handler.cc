@@ -653,7 +653,6 @@ void PolicyHandler::OnVIIsReady() {
 void PolicyHandler::OnVehicleDataUpdated(
     const smart_objects::SmartObject& message) {
   POLICY_LIB_CHECK_VOID();
-#ifdef EXTENDED_POLICY
   if (!message.keyExists(strings::msg_params)) {
     LOG4CXX_ERROR(logger_, "Message does not contains mandatory section "
                   << strings::msg_params);
@@ -663,7 +662,6 @@ void PolicyHandler::OnVehicleDataUpdated(
     policy_manager_->
         SetVINValue(message[strings::msg_params][strings::vin].asString());
   }
-#endif // EXTENDED_POLICY
 }
 
 void PolicyHandler::OnPendingPermissionChange(
@@ -808,12 +806,7 @@ bool PolicyHandler::ReceiveMessageFromSDK(const std::string& file,
     MessageHelper::CreateGetVehicleDataRequest(
           correlation_id, vehicle_data_args);
   } else  {
-#ifdef EXTENDED_POLICY
     LOG4CXX_WARN(logger_, "Exchange wasn't successful.");
-#else
-    LOG4CXX_WARN(logger_, "Exchange wasn't successful, trying another one.");
-    OnPTExchangeNeeded();
-#endif
   }
   return ret;
 }
@@ -878,7 +871,6 @@ void PolicyHandler::OnAllowSDLFunctionalityNotification(bool is_allowed,
     policy_manager_->SetUserConsentForDevice(device_params.device_mac_address,
         is_allowed);
 
-#ifdef EXTENDED_POLICY
     ApplicationManagerImpl::ApplicationListAccessor accessor;
     if (!is_allowed) {
       std::for_each(accessor.begin(), accessor.end(),
@@ -887,7 +879,6 @@ void PolicyHandler::OnAllowSDLFunctionalityNotification(bool is_allowed,
       std::for_each(accessor.begin(), accessor.end(),
                     SDLAlowedNotification(device_id, policy_manager_.get()));
     }
-#endif
   }
 
   // Case, when specific device was changed
@@ -903,7 +894,6 @@ void PolicyHandler::OnAllowSDLFunctionalityNotification(bool is_allowed,
     pending_device_handles_.erase(it);
   }
 
-#ifdef EXTENDED_POLICY
   if (is_allowed && last_activated_app_id_) {
     ApplicationManagerImpl* app_manager =
         ApplicationManagerImpl::instance();
@@ -928,7 +918,6 @@ void PolicyHandler::OnAllowSDLFunctionalityNotification(bool is_allowed,
         last_activated_app_id_ = 0;
       }
   }
-#endif // EXTENDED_POLICY
 }
 
 void PolicyHandler::OnIgnitionCycleOver() {
@@ -962,7 +951,6 @@ void PolicyHandler::OnActivateApp(uint32_t connection_key,
     permissions = policy_manager_->GetAppPermissionsChanges(
                     policy_app_id);
 
-#ifdef EXTENDED_POLICY
     UsageStatistics& usage = app->usage_report();
 
     usage.RecordAppUserSelection();
@@ -998,9 +986,6 @@ void PolicyHandler::OnActivateApp(uint32_t connection_key,
       MessageHelper::SendOnAppPermissionsChangedNotification(
             app->app_id(), permissions);
     }
-#else
-    permissions.isSDLAllowed = true;
-#endif
     policy_manager_->RemovePendingPermissionChanges(policy_app_id);
   }
   // If application is revoked it should not be activated
@@ -1130,7 +1115,6 @@ bool PolicyHandler::SaveSnapshot(const BinaryMessage& pt_string,
 void PolicyHandler::OnSnapshotCreated(const BinaryMessage& pt_string,
                                       const std::vector<int>& retry_delay_seconds,
                                       int timeout_exchange) {
-#ifdef EXTENDED_POLICY
   POLICY_LIB_CHECK_VOID()
 
   std::string policy_snapshot_full_path;
@@ -1139,9 +1123,6 @@ void PolicyHandler::OnSnapshotCreated(const BinaryMessage& pt_string,
                                     timeout_exchange,
                                     retry_delay_seconds);
   }
-#else
-  SendMessageToSDK(pt_string, policy_manager_->GetUpdateUrl(POLICY));
-#endif // EXTENDED_POLICY
 }
 
 bool PolicyHandler::GetPriority(const std::string& policy_app_id,
@@ -1311,7 +1292,6 @@ void PolicyHandler::RemoveDevice(const std::string& device_id) {
 
   policy_manager_->MarkUnpairedDevice(device_id);
 
-#ifdef EXTENDED_POLICY
   connection_handler::DeviceHandle device_uid;
   ApplicationManagerImpl* app_manager =
     ApplicationManagerImpl::instance();
@@ -1320,7 +1300,6 @@ void PolicyHandler::RemoveDevice(const std::string& device_id) {
     std::for_each(accessor.begin(), accessor.end(),
                   DeactivateApplication(device_uid));
   }
-#endif  // EXTENDED_POLICY
 }
 
 bool PolicyHandler::IsApplicationRevoked(const std::string& app_id) {
