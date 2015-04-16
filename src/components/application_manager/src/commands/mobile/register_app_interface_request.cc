@@ -167,7 +167,7 @@ void RegisterAppInterfaceRequest::Run() {
   }
 #endif
 
-  const std::string mobile_app_id = (*message_)[strings::msg_params][strings::app_id]
+  const std::string policy_app_id = (*message_)[strings::msg_params][strings::app_id]
                                                                .asString();
 
   ApplicationSharedPtr application =
@@ -180,7 +180,7 @@ void RegisterAppInterfaceRequest::Run() {
 
 
   if (ApplicationManagerImpl::instance()->IsApplicationForbidden(connection_key(),
-                                                                 mobile_app_id)) {
+                                                                 policy_app_id)) {
     SendResponse(false, mobile_apis::Result::TOO_MANY_PENDING_REQUESTS);
     return;
   }
@@ -203,7 +203,7 @@ void RegisterAppInterfaceRequest::Run() {
     LOG4CXX_ERROR_EXT(logger_, "Coincidence check failed.");
     if (mobile_apis::Result::DUPLICATE_NAME == coincidence_result) {
       usage_statistics::AppCounter count_of_rejections_duplicate_name(
-        policy::PolicyHandler::instance()->GetStatisticManager(), mobile_app_id,
+        policy::PolicyHandler::instance()->GetStatisticManager(), policy_app_id,
         usage_statistics::REJECTIONS_DUPLICATE_NAME);
       ++count_of_rejections_duplicate_name;
     }
@@ -231,12 +231,12 @@ void RegisterAppInterfaceRequest::Run() {
   } else {
 
     // For resuming application need to restore hmi_app_id from resumeCtrl
-    const std::string mobile_app_id = msg_params[strings::app_id].asString();
+    const std::string policy_app_id = msg_params[strings::app_id].asString();
     ResumeCtrl& resumer = ApplicationManagerImpl::instance()->resume_controller();
 
     // there is side affect with 2 mobile app with the same mobile app_id
-    if (resumer.IsApplicationSaved(mobile_app_id)) {
-      app->set_hmi_application_id(resumer.GetHMIApplicationID(mobile_app_id));
+    if (resumer.IsApplicationSaved(policy_app_id)) {
+      app->set_hmi_application_id(resumer.GetHMIApplicationID(policy_app_id));
     } else {
       app->set_hmi_application_id(
         ApplicationManagerImpl::instance()->GenerateNewHMIAppID());
@@ -523,7 +523,7 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile(
 
   // in case application exist in resumption we need to send resumeVrgrammars
   if (false == resumption) {
-    resumption = resumer.IsApplicationSaved(application->mobile_app_id());
+    resumption = resumer.IsApplicationSaved(application->policy_app_id());
   }
 
   MessageHelper::SendOnAppRegisteredNotificationToHMI(*(application.get()),
@@ -609,9 +609,9 @@ mobile_apis::Result::eType RegisterAppInterfaceRequest::CheckWithPolicyData() {
   policy::StringArray app_nicknames;
   policy::StringArray app_hmi_types;
 
-  std::string mobile_app_id = message[strings::msg_params][strings::app_id].asString();
+  std::string policy_app_id = message[strings::msg_params][strings::app_id].asString();
   const bool init_result = policy::PolicyHandler::instance()->GetInitialAppData(
-        mobile_app_id, &app_nicknames, &app_hmi_types);
+        policy_app_id, &app_nicknames, &app_hmi_types);
 
   if (!init_result) {
     LOG4CXX_ERROR(logger_, "Error during initial application data check.");
@@ -628,7 +628,7 @@ mobile_apis::Result::eType RegisterAppInterfaceRequest::CheckWithPolicyData() {
                    "Application name was not found in nicknames list.");
       //App should be unregistered, if its name is not present in nicknames list
       usage_statistics::AppCounter count_of_rejections_nickname_mismatch(
-        policy::PolicyHandler::instance()->GetStatisticManager(), mobile_app_id,
+        policy::PolicyHandler::instance()->GetStatisticManager(), policy_app_id,
         usage_statistics::REJECTIONS_NICKNAME_MISMATCH);
       ++count_of_rejections_nickname_mismatch;
       return mobile_apis::Result::DISALLOWED;
@@ -709,7 +709,7 @@ bool RegisterAppInterfaceRequest::IsApplicationWithSameAppIdRegistered() {
   LOG4CXX_INFO(logger_, "RegisterAppInterfaceRequest::"
                "IsApplicationWithSameAppIdRegistered");
 
-  const std::string mobile_app_id = (*message_)[strings::msg_params]
+  const std::string policy_app_id = (*message_)[strings::msg_params]
                                          [strings::app_id].asString();
 
   ApplicationManagerImpl::ApplicationListAccessor accessor;
@@ -719,7 +719,7 @@ bool RegisterAppInterfaceRequest::IsApplicationWithSameAppIdRegistered() {
  ApplicationManagerImpl::ApplictionSetConstIt it_end = applications.end();
 
   for (; it != it_end; ++it) {
-    if (!strcasecmp(mobile_app_id.c_str(),(*it)->mobile_app_id().c_str())) {
+    if (!strcasecmp(policy_app_id.c_str(),(*it)->policy_app_id().c_str())) {
       return true;
     }
   }

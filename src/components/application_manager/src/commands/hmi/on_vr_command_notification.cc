@@ -87,7 +87,7 @@ void OnVRCommandNotification::Run() {
   }
 
   LOG4CXX_DEBUG(logger_, "Grammar id << " << grammar_id
-                << " is found for app:" << app->mobile_app_id());
+                << " is found for app:" << app->policy_app_id());
 
   /* check if perform interaction is active
    * if it is active we should sent to HMI DeleteCommand request

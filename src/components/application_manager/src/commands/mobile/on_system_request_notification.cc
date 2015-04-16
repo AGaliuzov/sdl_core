@@ -69,7 +69,7 @@ void OnSystemRequestNotification::Run() {
       ((*message_)[strings::msg_params][strings::request_type].asInt());
 
   if (!policy::PolicyHandler::instance()->IsRequestTypeAllowed(
-           app->mobile_app_id(), request_type)) {
+           app->policy_app_id(), request_type)) {
     LOG4CXX_WARN(logger_, "Request type "  << request_type
                  <<" is not allowed by policies");
     return;

@@ -126,10 +126,10 @@ class ResumeCtrl: public event_engine::EventObserver {
 
     /**
      * @brief Remove application from list of saved applications
-     * @param mobile_app_id application witch need to be removed
+     * @param policy_app_id application witch need to be removed
      * @return return true, if success, otherwise return false
      */
-    bool RemoveApplicationFromSaved(const std::string& mobile_app_id);
+    bool RemoveApplicationFromSaved(const std::string& policy_app_id);
 
     /**
      * @brief Increments ignition counter for all registered applications
@@ -200,20 +200,20 @@ class ResumeCtrl: public event_engine::EventObserver {
 
     /**
      * @brief Check if Resume controller have saved instance of application
-     * @param mobile_app_id - mobile application id
+     * @param policy_app_id - mobile application id
      * @return true if exist, false otherwise
      */
-    bool IsApplicationSaved(const std::string& mobile_app_id);
+    bool IsApplicationSaved(const std::string& policy_app_id);
 
     /**
      * @brief Function is used for application resume. HMI app ID must be
      * the same(PASA VCA module use it for stored app info).
      * Retrieves HMI app ID for the given mobile app ID from stored information.
      *
-     * @param mobile_app_id - mobile application id
+     * @param policy_app_id - mobile application id
      * @return HMI app ID
      */
-    uint32_t GetHMIApplicationID(const std::string& mobile_app_id);
+    uint32_t GetHMIApplicationID(const std::string& policy_app_id);
 
     /**
      * @brief SaveDataOnTimer :
@@ -415,11 +415,11 @@ class ResumeCtrl: public event_engine::EventObserver {
      * @brief GetFromSavedOrAppend allows to get existed record about application
      * or adds the new one.
      *
-     * @param mobile_app_id application id.
+     * @param policy_app_id application id.
      *
      * @return the reference to the record in applications array.
      */
-    Json::Value& GetFromSavedOrAppend(const std::string& mobile_app_id);
+    Json::Value& GetFromSavedOrAppend(const std::string& policy_app_id);
 
     /**
      * @brief CheckIgnCycleRestrictions checks if is needed to resume HMI state
@@ -458,11 +458,11 @@ class ResumeCtrl: public event_engine::EventObserver {
      * @brief GetObjectIndex allows to obtain specified obbject index from
      * applications arrays.
      *
-     * @param mobile_app_id application id that should be found.
+     * @param policy_app_id application id that should be found.
      *
      * @return application's index of or -1 if it doesn't exists
      */
-    int GetObjectIndex(const std::string& mobile_app_id);
+    int GetObjectIndex(const std::string& policy_app_id);
 
     /**
      * @brief Timer callback for  restoring HMI Level

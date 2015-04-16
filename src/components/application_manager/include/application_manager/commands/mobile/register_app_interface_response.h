@@ -64,7 +64,7 @@ class RegisterAppInterfaceResponse : public CommandResponseImpl {
 
  private:
   void SetHeartBeatTimeout(uint32_t connection_key,
-                           const std::string& mobile_app_id);
+                           const std::string& policy_app_id);
 
   DISALLOW_COPY_AND_ASSIGN(RegisterAppInterfaceResponse);
 };

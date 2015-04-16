@@ -179,7 +179,7 @@ ApplicationSharedPtr ApplicationManagerImpl::application_by_hmi_app(
 
 ApplicationSharedPtr ApplicationManagerImpl::application_by_policy_id(
   const std::string& policy_app_id) const {
-  MobileAppIdPredicate finder(policy_app_id);
+  PolicyAppIdPredicate finder(policy_app_id);
   ApplicationListAccessor accessor;
   ApplicationSharedPtr app = accessor.Find(finder);
   LOG4CXX_DEBUG(logger_, " policy_app_id << " << policy_app_id << "Found = " << app);
@@ -359,7 +359,7 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
   }
 
   // app_id is SDL "internal" ID
-  // original app_id can be gotten via ApplicationImpl::mobile_app_id()
+  // original app_id can be gotten via ApplicationImpl::policy_app_id()
   uint32_t app_id = 0;
   std::list<int32_t> sessions_list;
   uint32_t device_id = 0;
@@ -386,17 +386,17 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
 
   smart_objects::SmartObject& params = message[strings::msg_params];
 
-  const std::string& mobile_app_id = params[strings::app_id].asString();
+  const std::string& policy_app_id = params[strings::app_id].asString();
   const std::string& app_name =
     message[strings::msg_params][strings::app_name].asString();
 
   ApplicationSharedPtr application(
     new ApplicationImpl(app_id,
-                        mobile_app_id, app_name,
+                        policy_app_id, app_name,
                         policy::PolicyHandler::instance()->GetStatisticManager()));
   if (!application) {
     usage_statistics::AppCounter count_of_rejections_sync_out_of_memory(
-      policy::PolicyHandler::instance()->GetStatisticManager(), mobile_app_id,
+      policy::PolicyHandler::instance()->GetStatisticManager(), policy_app_id,
       usage_statistics::REJECTIONS_SYNC_OUT_OF_MEMORY);
     ++count_of_rejections_sync_out_of_memory;
 
@@ -458,7 +458,7 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
   ApplicationListAccessor app_list_accesor;
   application->MarkRegistered();
   app_list_accesor.Insert(application);
-  policy::PolicyHandler::instance()->AddApplication(application->mobile_app_id());
+  policy::PolicyHandler::instance()->AddApplication(application->policy_app_id());
 
   return application;
 }
@@ -812,7 +812,7 @@ mobile_apis::HMILevel::eType ApplicationManagerImpl::GetDefaultHmiLevel(
   HMILevel::eType default_hmi = HMILevel::HMI_NONE;
 
   if (policy::PolicyHandler::instance()->PolicyEnabled()) {
-    const std::string policy_app_id = application->mobile_app_id();
+    const std::string policy_app_id = application->policy_app_id();
     std::string default_hmi_string = "";
     if (policy::PolicyHandler::instance()->GetDefaultHmi(
           policy_app_id, &default_hmi_string)) {
@@ -1154,7 +1154,7 @@ void ApplicationManagerImpl::SendMessageToMobile(
       }
     }
     const mobile_apis::Result::eType check_result =
-        CheckPolicyPermissions( app->mobile_app_id(),
+        CheckPolicyPermissions( app->policy_app_id(),
                                 app->hmi_level(), function_id, params);
     if (mobile_apis::Result::SUCCESS != check_result) {
       const std::string string_functionID =
@@ -1839,14 +1839,14 @@ void ApplicationManagerImpl::CreateApplications(SmartArray& obj_array) {
     if (app_data.isValid()) {
       const std::string url_schema(app_data[strings::urlSchema].asString());
       const std::string package_name(app_data[strings::packageName].asString());
-      const std::string mobile_app_id(app_data[strings::app_id].asString());
+      const std::string policy_app_id(app_data[strings::app_id].asString());
       const std::string appName(app_data[strings::app_name].asString());
 
       const uint32_t hmi_app_id(GenerateNewHMIAppID());
 
       ApplicationSharedPtr app(
             new ApplicationImpl(0,
-                                mobile_app_id,
+                                policy_app_id,
                                 appName,
                                 PolicyHandler::instance()->GetStatisticManager()));
       if (app) {
@@ -1876,7 +1876,7 @@ void ApplicationManagerImpl::ProcessQueryApp(
       AppsWaitRegistrationSet::const_iterator it = apps_to_register_.begin();
       for (; it != apps_to_register_.end(); ++it) {
 
-        const std::string full_icon_path(app_icon_dir + "/" + (*it)->mobile_app_id());
+        const std::string full_icon_path(app_icon_dir + "/" + (*it)->policy_app_id());
         if (file_system::FileExists(full_icon_path)) {
           MessageHelper::SendSetAppIcon((*it)->hmi_app_id(), full_icon_path);
         }
@@ -2096,7 +2096,7 @@ void ApplicationManagerImpl::UnregisterApplication(
         ApplicationSharedPtr app_ptr = application(app_id);
         if(app_ptr) {
           app_ptr->usage_report().RecordRemovalsForBadBehavior();
-          forbidden_applications.insert(GetHashedAppID(app_id, app_ptr->mobile_app_id()));
+          forbidden_applications.insert(GetHashedAppID(app_id, app_ptr->policy_app_id()));
         }
       break;
     }
@@ -2131,7 +2131,7 @@ void ApplicationManagerImpl::UnregisterApplication(
     }
 #endif
   } else {
-    resume_ctrl_.RemoveApplicationFromSaved(app_to_remove->mobile_app_id());
+    resume_ctrl_.RemoveApplicationFromSaved(app_to_remove->policy_app_id());
   }
 
   if (audio_pass_thru_active_) {
@@ -2334,14 +2334,14 @@ bool ApplicationManagerImpl::IsLowVoltage() {
 }
 
 std::string ApplicationManagerImpl::GetHashedAppID(uint32_t connection_key,
-                                             const std::string& mobile_app_id) const {
+                                             const std::string& policy_app_id) const {
   using namespace connection_handler;
   uint32_t device_id = 0;
   ConnectionHandlerImpl::instance()-> GetDataOnSessionKey(connection_key, 0, NULL, &device_id);
   std::string device_name;
   ConnectionHandlerImpl::instance()->GetDataOnDeviceID(device_id, &device_name);
 
-  return mobile_app_id + device_name;
+  return policy_app_id + device_name;
 }
 
 void ApplicationManagerImpl::NaviAppStreamStatus(bool stream_active) {
@@ -2488,8 +2488,8 @@ void ApplicationManagerImpl::OnWakeUp() {
 }
 
 bool ApplicationManagerImpl::IsApplicationForbidden(uint32_t connection_key,
-                                                    const std::string& mobile_app_id) const {
-  const std::string name = GetHashedAppID(connection_key, mobile_app_id);
+                                                    const std::string& policy_app_id) const {
+  const std::string name = GetHashedAppID(connection_key, policy_app_id);
   return forbidden_applications.find(name) != forbidden_applications.end();
 }
 
@@ -2714,7 +2714,7 @@ void ApplicationManagerImpl::OnUpdateHMIAppType(
       it != accessor.end(); ++it) {
 
     it_app_hmi_types_from_policy =
-        app_hmi_types.find(((*it)->mobile_app_id()));
+        app_hmi_types.find(((*it)->policy_app_id()));
 
     if (it_app_hmi_types_from_policy != app_hmi_types.end() &&
         ((it_app_hmi_types_from_policy->second).size())) {
