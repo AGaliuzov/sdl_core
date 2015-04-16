@@ -829,63 +829,51 @@ bool PolicyHandler::UnloadPolicyLibrary() {
 }
 
 void PolicyHandler::OnAllowSDLFunctionalityNotification(bool is_allowed,
-    uint32_t device_id) {
+                                                        uint32_t device_id) {
   LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK_VOID();
   using namespace mobile_apis;
   // Device ids, need to be changed
-  std::set<uint32_t> device_ids;
-  bool device_specific = device_id != 0;
+  std::vector<std::string> device_macs;
+  const bool device_specific = device_id != 0;
   // Common devices consents change
   if (!device_specific) {
-    ApplicationManagerImpl::ApplicationListAccessor accessor;
-    const ApplicationManagerImpl::ApplictionSet app_list = accessor.applications();
-
-    ApplicationManagerImpl::ApplictionSetConstIt it_app_list = app_list.begin();
-    ApplicationManagerImpl::ApplictionSetConstIt it_app_end = app_list.end();
-
-    for (;it_app_list != it_app_end; ++it_app_list) {
-      if (!(*it_app_list).valid()) {
-        continue;
-      }
-      device_ids.insert(it_app_list->get()->device());
-    }
+    MessageHelper::GetConnectedDevicesMAC(device_macs);
   } else {
-    device_ids.insert(device_id);
+    DeviceParams device_params;
+    MessageHelper::GetDeviceInfoForHandle(device_id, &device_params);
+    device_macs.push_back(device_params.device_mac_address);
   }
 
-  std::set<uint32_t>::const_iterator it_ids = device_ids.begin();
-  std::set<uint32_t>::const_iterator it_ids_end = device_ids.end();
-  for (;it_ids != it_ids_end; ++it_ids) {
-    const uint32_t device_id = *it_ids;
+  std::vector<std::string>::const_iterator it_macs = device_macs.begin();
+  std::vector<std::string>::const_iterator it_macs_end = device_macs.end();
+  for (; it_macs != it_macs_end; ++it_macs) {
+    const std::string device_mac = *it_macs;
 
-    DeviceParams device_params;
-    MessageHelper::GetDeviceInfoForHandle(device_id,
-        &device_params);
-    device_params.device_handle = device_id;
-    if (kDefaultDeviceMacAddress == device_params.device_mac_address) {
-      LOG4CXX_WARN(logger_, "Device with handle " << device_id
-                   << " wasn't found.");
-      return;
+    if (kDefaultDeviceMacAddress == device_mac) {
+      LOG4CXX_WARN(logger_, "Device with mac " << device_mac
+                                               << " wasn't found.");
+      continue;
     }
-    policy_manager_->SetUserConsentForDevice(device_params.device_mac_address,
-        is_allowed);
+    policy_manager_->SetUserConsentForDevice(device_mac, is_allowed);
 
     ApplicationManagerImpl::ApplicationListAccessor accessor;
     if (!is_allowed) {
       std::for_each(accessor.begin(), accessor.end(),
-                    DeactivateApplication(device_id));
+                    DeactivateApplication(
+                        MessageHelper::GetDeviceHandleForMac(device_mac)));
     } else {
       std::for_each(accessor.begin(), accessor.end(),
-                    SDLAlowedNotification(device_id, policy_manager_.get()));
+                    SDLAlowedNotification(MessageHelper::GetDeviceHandleForMac(
+                        device_mac), policy_manager_.get()));
     }
   }
 
   // Case, when specific device was changed
   if (device_id) {
-    DeviceHandles::iterator it = std::find(pending_device_handles_.begin(),
-                                           pending_device_handles_.end(),
-                                           device_id);
+    DeviceHandles::iterator it =
+        std::find(pending_device_handles_.begin(),
+                  pending_device_handles_.end(), device_id);
     // If consent done from HMI menu
     if (it == pending_device_handles_.end()) {
       return;
@@ -895,28 +883,28 @@ void PolicyHandler::OnAllowSDLFunctionalityNotification(bool is_allowed,
   }
 
   if (is_allowed && last_activated_app_id_) {
-    ApplicationManagerImpl* app_manager =
-        ApplicationManagerImpl::instance();
+    ApplicationManagerImpl* app_manager = ApplicationManagerImpl::instance();
 
-      ApplicationSharedPtr app =
-        app_manager->application(last_activated_app_id_);
+    ApplicationSharedPtr app = app_manager->application(last_activated_app_id_);
 
-      if (!app.valid()) {
-        LOG4CXX_WARN(logger_, "Application with id '" << last_activated_app_id_
-                     << "' not found within registered applications.");
-        return;
-      }
-      if (app) {
-        // Send HMI status notification to mobile
-        // Put application in full
-        AudioStreamingState::eType state = app->is_media_application()
-                                        ? AudioStreamingState::AUDIBLE
-                                        : AudioStreamingState::NOT_AUDIBLE;
+    if (!app) {
+      LOG4CXX_WARN(logger_,
+                   "Application with id '"
+                       << last_activated_app_id_
+                       << "' not found within registered applications.");
+      return;
+    }
+    if (app) {
+      // Send HMI status notification to mobile
+      // Put application in full
+      AudioStreamingState::eType state = app->is_media_application()
+                                             ? AudioStreamingState::AUDIBLE
+                                             : AudioStreamingState::NOT_AUDIBLE;
 
-        ApplicationManagerImpl::instance()->SetState<true>(
-            app->app_id(), mobile_apis::HMILevel::HMI_FULL, state);
-        last_activated_app_id_ = 0;
-      }
+      ApplicationManagerImpl::instance()->SetState<true>(
+          app->app_id(), mobile_apis::HMILevel::HMI_FULL, state);
+      last_activated_app_id_ = 0;
+    }
   }
 }
 

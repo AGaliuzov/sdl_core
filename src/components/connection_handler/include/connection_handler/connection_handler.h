@@ -105,6 +105,14 @@ class ConnectionHandler {
                            DeviceHandle *device_handle) = 0;
 
   /**
+   * @brief GetConnectedDevicesMAC allows to obtain MAC adresses for all
+   * currently connected devices.
+   *
+   * @param device_macs collection of MAC adresses for connected devices.
+   */
+  virtual void GetConnectedDevicesMAC(std::vector<std::string> &device_macs) const = 0;
+
+  /**
    * Close session associated with the key
    */
   virtual void CloseSession(uint32_t key, CloseSessionReason close_reason) = 0;

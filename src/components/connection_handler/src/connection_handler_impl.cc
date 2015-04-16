@@ -603,6 +603,18 @@ int32_t ConnectionHandlerImpl::GetDataOnDeviceID(
 
   return result;
 }
+
+void ConnectionHandlerImpl::GetConnectedDevicesMAC(
+    std::vector<std::string> &device_macs) const {
+  DeviceMap::const_iterator first = device_list_.begin();
+  DeviceMap::const_iterator last = device_list_.end();
+
+  while(first != last) {
+    device_macs.push_back((*first).second.mac_address());
+    ++first;
+  }
+}
+
 #ifdef ENABLE_SECURITY
 int ConnectionHandlerImpl::SetSSLContext(
     const uint32_t &key, security_manager::SSLContext *context) {

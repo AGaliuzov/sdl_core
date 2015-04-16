@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2013, Ford Motor Company
+ Copyright (c) 2015, Ford Motor Company
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,9 @@
 #define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_MESSAGE_HELPER_H_
 
 #include <map>
+#include <vector>
 #include <string>
-#include <string.h>
+
 #include "interfaces/MOBILE_API.h"
 #include "interfaces/HMI_API.h"
 #include "utils/macro.h"
@@ -234,10 +235,27 @@ class MessageHelper {
     static std::string GetDeviceMacAddressForHandle(
       const uint32_t device_handle);
 
+    /**
+     * @brief GetDeviceHandleForMac allows to obtain device handle by device mac
+     *
+     * @param device_mac devices mac address.
+     *
+     * @return device handle if appropriate devcice exists, 0 otherwise.
+     */
+    static uint32_t GetDeviceHandleForMac(const std::string& device_mac);
+
     static void GetDeviceInfoForHandle(const uint32_t device_handle,
                                        policy::DeviceParams* device_info);
     static void GetDeviceInfoForApp(uint32_t connection_key,
                                     policy::DeviceParams* device_info);
+
+    /**
+     * @brief GetConnectedDevicesMAC allows to obtain MAC adresses for all
+     * currently connected devices.
+     *
+     * @param device_macs collection of MAC adresses for connected devices.
+     */
+    static void GetConnectedDevicesMAC(std::vector<std::string>& device_macs);
 
     /**
     * @brief Send SDL_ActivateApp response to HMI
