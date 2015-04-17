@@ -993,6 +993,10 @@ ConnectionList &ConnectionHandlerImpl::getConnectionList() {
   return connection_list_;
 }
 
+DeviceMap &ConnectionHandlerImpl::getDeviceList() {
+  return device_list_;
+}
+
 void ConnectionHandlerImpl::addDeviceConnection(
     const transport_manager::DeviceInfo &device_info,
     const transport_manager::ConnectionUID &connection_id) {

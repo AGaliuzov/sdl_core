@@ -36,18 +36,21 @@ include_directories(
     ${GMOCK_INCLUDE_DIRECTORY}
     ${COMPONENTS_DIR}/connection_handler/include
     ${COMPONENTS_DIR}/security_manager/test/include
+    ${COMPONENTS_DIR}/protocol_handler/test/include
     ${COMPONENTS_DIR}/security_manager/include
+    ${COMPONENTS_DIR}/connection_handler/test/include
 )
 
 set(LIBRARIES
     gmock
     connectionHandler
     ConfigProfile
+    ProtocolHandler
 )
 
 set(SOURCES
     connection_handler_impl_test.cc
-    connection_test.cc
+#    connection_test.cc
 # Disabled test untill fix APPLINK-11724
 #    heart_beat_monitor_test.cc
 )
