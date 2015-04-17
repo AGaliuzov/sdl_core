@@ -68,13 +68,13 @@ void RegisterAppInterfaceResponse::Run() {
       application_manager::ApplicationManagerImpl::instance()->application(
           connection_key);
   if (app.valid()) {
-    policy::PolicyHandler *policy_handler = policy::PolicyHandler::instance();
-    std::string policy_app_id = app->policy_app_id();
-    policy_handler->OnAppRegisteredOnMobile(policy_app_id);
 
     ApplicationManagerImpl::instance()->SetState<false>(
         app->app_id(),
         ApplicationManagerImpl::instance()->GetDefaultHmiLevel(app));
+
+    std::string policy_app_id = app->policy_app_id();
+    policy::PolicyHandler::instance()->OnAppRegisteredOnMobile(policy_app_id);
 
     SetHeartBeatTimeout(connection_key, policy_app_id);
   }
