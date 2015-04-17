@@ -38,6 +38,7 @@
 #include "application_manager/application.h"
 #include "application_manager/application_manager_impl.h"
 #include "application_manager/application_impl.h"
+#include "protocol_handler/protocol_handler.h"
 #include "utils/file_system.h"
 #include "utils/logger.h"
 #include "utils/helpers.h"
@@ -51,11 +52,9 @@
 #include "media_manager/audio/pipe_audio_streamer_adapter.h"
 #include "media_manager/video/video_stream_to_file_adapter.h"
 
-
 namespace media_manager {
 
 using profile::Profile;
-using protocol_handler::ServiceType;
 using timer::TimerThread;
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "MediaManagerImpl")
@@ -63,21 +62,11 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "MediaManagerImpl")
 MediaManagerImpl::MediaManagerImpl()
   : protocol_handler_(NULL)
   , a2dp_player_(NULL)
-  , from_mic_recorder_(NULL)
-  , video_stream_active_(false)
-  , audio_stream_active_(false)
-  , audio_streaming_timer_("Audio streaming timer", this,
-                           &MediaManagerImpl::OnAudioStreamingTimeout)
-  , video_streaming_timer_("Video streaming timer", this,
-                           &MediaManagerImpl::OnVideoStreamingTimeout)
-  , audio_streaming_suspended_(true)
-  , video_streaming_suspended_(true)
-  , streaming_app_id_(0) {
+  , from_mic_recorder_(NULL) {
   Init();
 }
 
 MediaManagerImpl::~MediaManagerImpl() {
-
   if (a2dp_player_) {
     delete a2dp_player_;
     a2dp_player_ = NULL;
@@ -87,15 +76,10 @@ MediaManagerImpl::~MediaManagerImpl() {
     delete from_mic_recorder_;
     from_mic_recorder_ = NULL;
   }
-
-}
-
-void MediaManagerImpl::SetProtocolHandler(
-  protocol_handler::ProtocolHandler* protocol_handler) {
-  protocol_handler_ = protocol_handler;
 }
 
 void MediaManagerImpl::Init() {
+  using namespace protocol_handler;
   LOG4CXX_INFO(logger_, "MediaManagerImpl::Init()");
 
 #if defined(EXTENDED_MEDIA_MODE)
@@ -122,47 +106,18 @@ void MediaManagerImpl::Init() {
         profile::Profile::instance()->audio_stream_file());
   }
 
-  // Currently timer does not support ms, so we have to convert value to sec
-  audio_data_stopped_timeout_ =
-      profile::Profile::instance()->audio_data_stopped_timeout() / 1000;
-
-  video_data_stopped_timeout_ =
-      profile::Profile::instance()->video_data_stopped_timeout() / 1000;
-
-  video_streamer_listener_ = new StreamerListener();
-  audio_streamer_listener_ = new StreamerListener();
+  streamer_listener_[ServiceType::kMobileNav] = new StreamerListener();
+  streamer_listener_[ServiceType::kAudio] = new StreamerListener();
 
   if (streamer_[ServiceType::kMobileNav]) {
-    streamer_[ServiceType::kMobileNav]->AddListener(video_streamer_listener_);
+    streamer_[ServiceType::kMobileNav]->AddListener(
+        streamer_listener_[ServiceType::kMobileNav]);
   }
 
   if (streamer_[ServiceType::kAudio]) {
-    streamer_[ServiceType::kAudio]->AddListener(audio_streamer_listener_);
+    streamer_[ServiceType::kAudio]->AddListener(
+        streamer_listener_[ServiceType::kAudio]);
   }
-}
-
-void MediaManagerImpl::OnAudioStreamingTimeout() {
-  using namespace application_manager;
-  using namespace protocol_handler;
-  LOG4CXX_DEBUG(logger_, "Data is not available for service type "
-                << ServiceType::kAudio);
-  MessageHelper::SendOnDataStreaming(ServiceType::kAudio, false);
-  ApplicationManagerImpl::instance()->StreamingEnded(streaming_app_id_);
-
-  sync_primitives::AutoLock lock(audio_streaming_suspended_lock_);
-  audio_streaming_suspended_ = true;
-}
-
-void media_manager::MediaManagerImpl::OnVideoStreamingTimeout() {
-  using namespace application_manager;
-  using namespace protocol_handler;
-  LOG4CXX_DEBUG(logger_, "Data is not available for service type "
-                << ServiceType::kMobileNav);
-  MessageHelper::SendOnDataStreaming(ServiceType::kMobileNav, false);
-  ApplicationManagerImpl::instance()->StreamingEnded(streaming_app_id_);
-
-  sync_primitives::AutoLock lock(video_streaming_suspended_lock_);
-  video_streaming_suspended_ = true;
 }
 
 void MediaManagerImpl::PlayA2DPSource(int32_t application_key) {
@@ -255,54 +210,41 @@ void MediaManagerImpl::StopMicrophoneRecording(int32_t application_key) {
 #endif
 }
 
-void MediaManagerImpl::StartVideoStreaming(int32_t application_key) {
+void MediaManagerImpl::StartStreaming(
+    int32_t application_key, protocol_handler::ServiceType service_type) {
   LOG4CXX_AUTO_TRACE(logger_);
-
-  if (streamer_[ServiceType::kMobileNav]) {
-    if (!video_stream_active_) {
-      video_stream_active_ = true;
-      streamer_[ServiceType::kMobileNav]->StartActivity(application_key);
-      application_manager::MessageHelper::SendNaviStartStream(application_key);
-    }
+  if (streamer_[service_type]) {
+    streamer_[service_type]->StartActivity(application_key);
+  }
+  if (streamer_listener_[service_type]) {
+    streamer_listener_[service_type]->OnActivityStarted(application_key);
   }
 }
 
-void MediaManagerImpl::StopVideoStreaming(int32_t application_key) {
+void MediaManagerImpl::StopStreaming(
+    int32_t application_key, protocol_handler::ServiceType service_type) {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (streamer_[ServiceType::kMobileNav]) {
-    video_stream_active_ = false;
-    application_manager::MessageHelper::SendNaviStopStream(application_key);
-    streamer_[ServiceType::kMobileNav]->StopActivity(application_key);
+  if (streamer_listener_[service_type]) {
+    streamer_listener_[service_type]->OnActivityEnded(application_key);
+  }
+  if (streamer_[service_type]) {
+    streamer_[service_type]->StopActivity(application_key);
   }
 }
 
-void MediaManagerImpl::StartAudioStreaming(int32_t application_key) {
-  LOG4CXX_AUTO_TRACE(logger_);
-
-  if (streamer_[ServiceType::kAudio]) {
-    if (!audio_stream_active_) {
-      audio_stream_active_ = true;
-      streamer_[ServiceType::kAudio]->StartActivity(application_key);
-      application_manager::MessageHelper::SendAudioStartStream(application_key);
-    }
-  }
-}
-
-void MediaManagerImpl::StopAudioStreaming(int32_t application_key) {
-  LOG4CXX_AUTO_TRACE(logger_);
-  if (streamer_[ServiceType::kAudio]) {
-    audio_stream_active_ = false;
-    application_manager::MessageHelper::SendAudioStopStream(application_key);
-    streamer_[ServiceType::kAudio]->StopActivity(application_key);
-  }
+void MediaManagerImpl::SetProtocolHandler(
+  protocol_handler::ProtocolHandler* protocol_handler) {
+  protocol_handler_ = protocol_handler;
 }
 
 void MediaManagerImpl::OnMessageReceived(
     const ::protocol_handler::RawMessagePtr message) {
-  LOG4CXX_AUTO_TRACE(logger_);
+  using namespace protocol_handler;
   using namespace application_manager;
   using namespace helpers;
-  streaming_app_id_ = message->connection_key();
+  LOG4CXX_AUTO_TRACE(logger_);
+
+  const uint32_t streaming_app_id = message->connection_key();
   const ServiceType service_type = message->service_type();
 
   if (Compare<ServiceType, NEQ, ALL>(
@@ -311,20 +253,19 @@ void MediaManagerImpl::OnMessageReceived(
     return;
   }
 
-  if (!CanStream(service_type)) {
-    ApplicationManagerImpl::instance()->ForbidStreaming(streaming_app_id_);
+  ApplicationManagerImpl* app_mgr = ApplicationManagerImpl::instance();
+  DCHECK_OR_RETURN_VOID(app_mgr);
+
+  if (!app_mgr->CanAppStream(streaming_app_id, service_type)) {
+    app_mgr->ForbidStreaming(streaming_app_id);
     LOG4CXX_ERROR(logger_, "The application trying to stream when it should not.");
     return;
   }
 
-  WakeUpStreaming(service_type);
-
-  streamer_[service_type]->SendData(streaming_app_id_, message);
-
-  if (service_type == ServiceType::kMobileNav) {
-    video_streaming_timer_.start(video_data_stopped_timeout_);
-  } else {
-    audio_streaming_timer_.start(audio_data_stopped_timeout_);
+  ApplicationSharedPtr app = app_mgr->application(streaming_app_id);
+  if (app) {
+    app->WakeUpStreaming(service_type);
+    streamer_[service_type]->SendData(streaming_app_id, message);
   }
 }
 
@@ -338,47 +279,6 @@ void MediaManagerImpl::FramesProcessed(int32_t application_key,
     protocol_handler_->SendFramesNumber(application_key,
                                         frame_number);
   }
-}
-
-void MediaManagerImpl::WakeUpStreaming(ServiceType service_type) {
-  LOG4CXX_AUTO_TRACE(logger_);
-  using namespace application_manager;
-  bool stream_woke_up = false;
-  if (service_type == ServiceType::kMobileNav) {
-    sync_primitives::AutoLock lock(video_streaming_suspended_lock_);
-    if (video_streaming_suspended_) {
-      video_streaming_suspended_ = false;
-      stream_woke_up = true;
-    }
-  } else {
-    sync_primitives::AutoLock lock(audio_streaming_suspended_lock_);
-    if (audio_streaming_suspended_) {
-      audio_streaming_suspended_ = false;
-      stream_woke_up = true;
-    }
-  }
-  if (stream_woke_up) {
-    LOG4CXX_DEBUG(logger_, "Data is available for service type " << service_type);
-    MessageHelper::SendOnDataStreaming(service_type, true);
-  }
-}
-
-bool MediaManagerImpl::CanStream(ServiceType service_type) {
-  LOG4CXX_AUTO_TRACE(logger_);
-  using namespace application_manager;
-
-  if (!streamer_[service_type]) {
-    LOG4CXX_DEBUG(logger_, "There is no appropriate streamer");
-    return false;
-  }
-
-  const bool is_navi = (service_type == ServiceType::kMobileNav);
-  const bool is_allowed =
-      is_navi ? ApplicationManagerImpl::instance()-> IsVideoStreamingAllowed(
-                  streaming_app_id_) :
-                ApplicationManagerImpl::instance()-> IsAudioStreamingAllowed(
-                  streaming_app_id_);
-  return is_allowed;
 }
 
 }  //  namespace media_manager
