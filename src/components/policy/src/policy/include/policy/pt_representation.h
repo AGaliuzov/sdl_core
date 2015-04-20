@@ -1,5 +1,5 @@
-﻿/*
- Copyright (c) 2013, Ford Motor Company
+/*
+ Copyright (c) 2015, Ford Motor Company
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -287,6 +287,13 @@ class PTRepresentation {
                                            bool is_predata) = 0;
 
     virtual void WriteDb() = 0;
+
+    /**
+     * @brief RemoveDB allows to remove the datavabe.
+     * It will either remove or do nothing in case file not exists or any other
+     * troubles are happens during this operation.
+     */
+    virtual void RemoveDB() const = 0;
 };
 
 }  //  namespace policy
