@@ -39,6 +39,7 @@ include_directories(
     ${COMPONENTS_DIR}/protocol_handler/test/include
     ${COMPONENTS_DIR}/security_manager/include
     ${COMPONENTS_DIR}/connection_handler/test/include
+    ${COMPONENTS_DIR}/transport_manager/test/include
 )
 
 set(LIBRARIES
@@ -46,11 +47,12 @@ set(LIBRARIES
     connectionHandler
     ConfigProfile
     ProtocolHandler
+    TransportManager
 )
 
 set(SOURCES
     connection_handler_impl_test.cc
-#    connection_test.cc
+    connection_test.cc
 # Disabled test untill fix APPLINK-11724
 #    heart_beat_monitor_test.cc
 )
