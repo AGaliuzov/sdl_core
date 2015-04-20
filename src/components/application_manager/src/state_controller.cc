@@ -288,6 +288,8 @@ void StateController::OnActivateAppResponse(
     if (code != hmi_apis::Common_Result::SUCCESS) {
       const HmiStatePtr cur = application->RegularHmiState();
       pending_state->set_hmi_level(cur->hmi_level());
+      pending_state->set_audio_streaming_state(CalcAudioState(application,
+                                                             cur->hmi_level()));
     }
     ApplyRegularState(application, pending_state);
   }
