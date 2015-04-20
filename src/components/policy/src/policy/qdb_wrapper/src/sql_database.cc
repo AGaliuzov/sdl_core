@@ -100,6 +100,11 @@ qdb_hdl_t* SQLDatabase::conn() const {
   return conn_;
 }
 
+
+std::string SQLDatabase::get_path() const {
+  return db_name_;
+}
+
 bool SQLDatabase::Backup() {
   if (qdb_backup(conn_, QDB_ATTACH_DEFAULT) == -1) {
 	error_ = Error::ERROR;

@@ -1604,6 +1604,8 @@ bool CacheManager::Init(const std::string& file_name) {
       result = LoadFromFile(file_name, *pt_);
       if (result) {
         Backup();
+      } else {
+        ex_backup_->RemoveDB();
       }
     } break;
     default: {

@@ -97,6 +97,13 @@ class SQLDatabase {
    */
   qdb_hdl_t* conn() const;
 
+  /**
+   * @brief get_path databse location path.
+   *
+   * @return the path to the database location
+   */
+  std::string get_path() const;
+
  private:
   /**
    * The connection to the SQLite database

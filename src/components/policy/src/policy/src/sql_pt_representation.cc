@@ -37,6 +37,7 @@
 #include <unistd.h>
 
 #include "utils/logger.h"
+#include "utils/file_system.h"
 #include "policy/sql_pt_representation.h"
 #include "policy/sql_wrapper.h"
 #include "policy/sql_pt_queries.h"
@@ -342,6 +343,7 @@ InitResult SQLPTRepresentation::Init() {
     LOG4CXX_ERROR(logger_, "There are no read/write permissions for database");
     return InitResult::FAIL;
   }
+
 #endif  // __QNX__
   dbms::SQLQuery check_pages(db());
   if (!check_pages.Prepare(sql_pt::kCheckPgNumber) || !check_pages.Next()) {
@@ -1552,6 +1554,10 @@ bool SQLPTRepresentation::SetIsDefault(const std::string& app_id,
     return false;
   }
   return true;
+}
+
+void SQLPTRepresentation::RemoveDB() const {
+  file_system::DeleteFile(db_->get_path());
 }
 
 dbms::SQLDatabase* SQLPTRepresentation::db() const {
