@@ -50,7 +50,7 @@ library:
 	$(MAKE) -C components/protocol/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/protocol_handler/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/transport_manager/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/policy/src/policy/qdb_wrapper/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
+	$(MAKE) -C components/utils/src/qdb_wrapper OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/policy/src/policy/policy_table/table_struct_ext OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/policy/src/policy/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/application_manager/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
@@ -93,7 +93,7 @@ clean lint metrics:
 	$(MAKE) -C components/protocol_handler/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/protocol/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/transport_manager/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
-	$(MAKE) -C components/policy/src/policy/qdb_wrapper/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
+	$(MAKE) -C components/utils/src/qdb_wrapper OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/policy/src/policy/policy_table/table_struct_ext OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/policy/src/policy/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/application_manager/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@

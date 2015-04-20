@@ -76,6 +76,10 @@ file (GLOB EVENT_ENGINE
   ${AM_SOURCE_DIR}/src/event_engine/*
 )
 
+file (GLOB RESUMPTION
+  ${AM_SOURCE_DIR}/src/resumption/*
+)
+
 file (GLOB MOBILE_COMMANDS_SOURCES
   ${AM_SOURCE_DIR}/src/commands/*
   ${AM_SOURCE_DIR}/src/commands/mobile/*
@@ -332,7 +336,12 @@ SET (LIBRARIES
   UsageStatistics
   dl
   formatters
+  dbms
 )
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  list(APPEND LIBRARIES sqlite3)
+endif ()
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "QNX")
   list(REMOVE_ITEM LIBRARIES dl)
@@ -340,6 +349,7 @@ endif()
 
 add_library("AMEventEngine" ${EVENT_ENGINE})
 target_link_libraries("AMEventEngine" ${LIBRARIES})
+
 
 add_library("AMPolicyLibrary" ${POLICIES_MANAGER} )
 target_link_libraries("AMPolicyLibrary" ${LIBRARIES} AMEventEngine)
@@ -350,7 +360,7 @@ target_link_libraries("AMHMICommandsLibrary" ${LIBRARIES} AMEventEngine)
 add_library("AMMobileCommandsLibrary" ${MOBILE_COMMANDS_SOURCES} )
 target_link_libraries("AMMobileCommandsLibrary" ${LIBRARIES} AMEventEngine)
 
-add_library("ApplicationManager" ${SOURCES})
+add_library("ApplicationManager" ${SOURCES} ${RESUMPTION})
 target_link_libraries("ApplicationManager" ${LIBRARIES} AMHMICommandsLibrary
                                                         AMMobileCommandsLibrary
                                                         AMEventEngine

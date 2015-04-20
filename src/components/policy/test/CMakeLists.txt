@@ -33,8 +33,6 @@ include_directories(
   ${GMOCK_INCLUDE_DIRECTORY}
   ${JSONCPP_INCLUDE_DIRECTORY}
   ${COMPONENTS_DIR}/policy/src/policy/include/
-  ${COMPONENTS_DIR}/policy/src/policy/sqlite_wrapper/include
-  ${COMPONENTS_DIR}/policy/src/policy/qdb_wrapper/include
   ${COMPONENTS_DIR}/policy/src/policy/usage_statistics/include
   ${COMPONENTS_DIR}/rpc_base/include
   ${COMPONENTS_DIR}/config_profile/include
@@ -69,7 +67,7 @@ set(testSources
 if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
   list(REMOVE_ITEM testLibraries dl)
   # --- Tests for QDB Wrapper
-  include_directories(../src/policy/qdb_wrapper/include)
+  include_directories(../../components/utils/include/utils/qdb_wrapper)
   list (APPEND testSources
     qdb_wrapper/sql_database_test.cc
     qdb_wrapper/sql_query_test.cc
@@ -80,7 +78,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
 else ()
   # --- Tests for SQLite Wrapper
   find_package(Sqlite3 REQUIRED)
-  include_directories(../src/policy/sqlite_wrapper/include)
+  include_directories(../../components/utils/include/utils/sqlite_wrapper)
   list (APPEND testSources
     sqlite_wrapper/sql_database_test.cc 
     sqlite_wrapper/sql_query_test.cc   
