@@ -300,6 +300,7 @@ void ApplinkNotificationThreadDelegate::threadMain() {
           startUSBLogging();
           break;
         case SDL_MSG_SDL_STOP:
+	  // TODO(AKutsan) APPLINK-12701 : Move DEINIT_LOGGER() after stopSmartDeviceLink()
           DEINIT_LOGGER();
           stopSmartDeviceLink();
           LOG4CXX_INFO(logger_, "Application stopped due to SDL_MSG_SDL_STOP");
