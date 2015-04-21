@@ -1,6 +1,6 @@
 /*
 
- Copyright (c) 2013, Ford Motor Company
+ Copyright (c) 2015, Ford Motor Company
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,14 @@ DialNumberRequest::DialNumberRequest(const MessageSharedPtr& message)
 }
 
 DialNumberRequest::~DialNumberRequest() {
+}
+
+bool DialNumberRequest::Init() {
+  // SDL doesn't track this request 
+  // HMI is responsible to respond to BC.DialNumber request
+  default_timeout_ = 0;
+
+  return true;
 }
 
 void DialNumberRequest::Run() {

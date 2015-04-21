@@ -1,6 +1,6 @@
 /*
 
- Copyright (c) 2013, Ford Motor Company
+ Copyright (c) 2015, Ford Motor Company
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -47,14 +47,19 @@ namespace commands {
 class DialNumberRequest : public CommandRequestImpl {
  public:
   /**
-   * \brief DialNumberRequest class constructor
+   * @brief DialNumberRequest class constructor
    **/
   explicit DialNumberRequest(const MessageSharedPtr& message);
 
   /**
-   * \brief DialNumberRequest class destructor
+   * @brief DialNumberRequest class destructor
    **/
   virtual ~DialNumberRequest();
+
+  /**
+   * @brief Initialize request params
+   **/
+  virtual bool Init();
 
   /**
    * @brief Execute command
