@@ -352,11 +352,11 @@ void CacheManager::RemoveAppConsentForGroup(const std::string& app_id,
   policy_table::DeviceData::iterator device_iter_end =
       pt_->policy_table.device_data->end();
 
-  policy_table::UserConsentRecords::const_iterator ucr_iter;
+  policy_table::UserConsentRecords::iterator ucr_iter;
   for (; device_iter != device_iter_end; ++device_iter) {
     ucr_iter = device_iter->second.user_consent_records->find(app_id);
     if (device_iter->second.user_consent_records->end() != ucr_iter) {
-      device_iter->second.user_consent_records->erase(app_id);
+      ucr_iter->second.consent_groups->erase(group_name);
     }
   }
 }
