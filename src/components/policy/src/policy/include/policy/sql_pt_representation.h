@@ -170,7 +170,7 @@ class SQLPTRepresentation : public virtual PTRepresentation {
     virtual bool SetIsDefault(const std::string& app_id, bool is_default) const;
 
     /**
-     * @brief RemoveDB allows to remove the datavabe.
+     * @brief RemoveDB allows to remove the database.
      * It will either remove or do nothing in case file not exists or any other
      * troubles are happens during this operation.
      */

@@ -289,7 +289,7 @@ class PTRepresentation {
     virtual void WriteDb() = 0;
 
     /**
-     * @brief RemoveDB allows to remove the datavabe.
+     * @brief RemoveDB allows to remove the database.
      * It will either remove or do nothing in case file not exists or any other
      * troubles are happens during this operation.
      */

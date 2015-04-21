@@ -95,8 +95,9 @@ class SQLDatabase {
   void set_path(const std::string& path);
 
   /**
-   * @brief get_path
-   * @return
+   * @brief get_path databse location path.
+   *
+   * @return the path to the database location
    */
   std::string get_path() const;
 
