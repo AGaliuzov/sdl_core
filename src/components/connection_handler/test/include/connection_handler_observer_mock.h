@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,7 @@ namespace connection_handler_test {
 class ConnectionHandlerObserverMock : public ::connection_handler::ConnectionHandlerObserver {
  public:
   MOCK_METHOD1(OnDeviceListUpdated,
-      void(const  connection_handler::DeviceMap &device_list));
+      void(const connection_handler::DeviceMap &device_list));
   MOCK_METHOD0(OnFindNewApplicationsRequest,void());
   MOCK_METHOD1(RemoveDevice,
       void(const connection_handler::DeviceHandle &device_handle));

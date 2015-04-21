@@ -146,6 +146,7 @@ TEST_F(ConnectionTest, Session_UpdateProtocolVersion) {
   StartSession();
   uint8_t protocol_version = ::protocol_handler::PROTOCOL_VERSION_3;
   connection_->UpdateProtocolVersionSession(session_id, protocol_version);
+  EXPECT_TRUE(connection_->ProtocolVersion(session_id, protocol_version));
   EXPECT_EQ(protocol_version, ::protocol_handler::PROTOCOL_VERSION_3);
 }
 
