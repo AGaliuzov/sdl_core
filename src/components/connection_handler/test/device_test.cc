@@ -46,23 +46,20 @@ TEST(ConnectionDevice, CompareDevicesWithDifferentMacAddresses) {
   std::string device_name = "test_name";
   std::string mac_address = "test_address";
 
-  Device test_device(device_handle, device_name, mac_address,
-                                                  connection_type);
+  Device test_device(device_handle, device_name, mac_address, connection_type);
 
-  EXPECT_EQ(device_handle,test_device.device_handle());
-  EXPECT_EQ(device_name,test_device.user_friendly_name());
-  EXPECT_NE(mac_address,test_device.mac_address());
-  EXPECT_EQ(connection_type,test_device.connection_type());
+  EXPECT_EQ(device_handle, test_device.device_handle());
+  EXPECT_EQ(device_name, test_device.user_friendly_name());
+  EXPECT_NE(mac_address, test_device.mac_address());
+  EXPECT_EQ(connection_type, test_device.connection_type());
   std::string hash_mac_address = test_device.mac_address();
 
-
   std::string test_next_mac_address = "test_address_";
-  Device next_test_device(device_handle, device_name, test_next_mac_address,
-                                                  connection_type);
-  EXPECT_NE(test_next_mac_address,next_test_device.mac_address());
+  Device next_test_device(device_handle, device_name, test_next_mac_address, connection_type);
+  EXPECT_NE(test_next_mac_address, next_test_device.mac_address());
   std::string hash_next_mac_address = next_test_device.mac_address();
 
-  EXPECT_NE(hash_mac_address,hash_next_mac_address);
+  EXPECT_NE(hash_mac_address, hash_next_mac_address);
 }
 
 TEST(ConnectionDevice, MacAddressHash) {
@@ -71,11 +68,10 @@ TEST(ConnectionDevice, MacAddressHash) {
   std::string device_name = "test_name";
   std::string mac_address = "test_address";
 
-  Device test_device(device_handle, device_name, mac_address,
-                                                  connection_type);
+  Device test_device(device_handle, device_name, mac_address, connection_type);
 
   std::string hashed_mac_address = encryption::MakeHash(mac_address);
-  EXPECT_EQ(hashed_mac_address,test_device.mac_address());
+  EXPECT_EQ(hashed_mac_address, test_device.mac_address());
 }
 
 }  // namespace connection_handle
