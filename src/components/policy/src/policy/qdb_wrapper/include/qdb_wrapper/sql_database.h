@@ -90,19 +90,20 @@ class SQLDatabase {
    * Call backup for opened DB
    */
   bool Backup();
- protected:
-  /**
-   * Gets connection to the SQLite database
-   * @return pointer to connection
-   */
-  qdb_hdl_t* conn() const;
-
+  
   /**
    * @brief get_path databse location path.
    *
    * @return the path to the database location
    */
   std::string get_path() const;
+
+ protected:
+  /**
+   * Gets connection to the SQLite database
+   * @return pointer to connection
+   */
+  qdb_hdl_t* conn() const;
 
  private:
   /**
