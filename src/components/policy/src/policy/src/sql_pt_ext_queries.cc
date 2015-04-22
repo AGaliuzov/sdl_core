@@ -1,4 +1,4 @@
-﻿/*
+/*
  Copyright (c) 2013, " Ford Motor Company
  All rights reserved.
 
@@ -184,7 +184,7 @@ const std::string kUpdateGroupPermissions =
 const std::string kInsertApplication =
   "INSERT OR IGNORE INTO `application`(`id`, `keep_context`, `steal_focus`, "
   " `default_hmi`, `priority_value`, `is_revoked`, `memory_kb`, "
-  " `heart_beat_timeout_ms`, `certificate`) VALUES( ?, ?, ?, ?, ?, ?, ?, ?, ?) ";
+  " `heart_beat_timeout_ms`) VALUES( ?, ?, ?, ?, ?, ?, ?, ?) ";
 
 const std::string kCollectFriendlyMsg = "SELECT * FROM `message`";
 
@@ -208,7 +208,7 @@ const std::string kSelectPreconsentedGroupsId = "SELECT `functional_group_id` "
 
 const std::string kSelectAppPolicies =
   "SELECT `id`, `priority_value`, `default_hmi`, `keep_context`, `steal_focus`, "
-  " `memory_kb`, `heart_beat_timeout_ms`, `certificate` FROM `application`";
+  " `memory_kb`, `heart_beat_timeout_ms` FROM `application`";
 
 const std::string kSelectFunctionalGroupNames = "SELECT `id`, `user_consent_prompt`, `name`"
     " FROM `functional_group`";

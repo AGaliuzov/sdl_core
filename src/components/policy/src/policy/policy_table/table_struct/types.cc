@@ -39,8 +39,7 @@ ApplicationParams::ApplicationParams(const Json::Value* value__)
     AppHMIType(impl::ValueMember(value__, "AppHMIType")),
     priority(impl::ValueMember(value__, "priority")),
     memory_kb(impl::ValueMember(value__, "memory_kb")),
-    heart_beat_timeout_ms(impl::ValueMember(value__, "heart_beat_timeout_ms")),
-    certificate(impl::ValueMember(value__, "certificate")) {
+    heart_beat_timeout_ms(impl::ValueMember(value__, "heart_beat_timeout_ms")) {
 }
 Json::Value ApplicationParams::ToJsonValue() const {
   Json::Value result__(Json::objectValue);
@@ -50,7 +49,6 @@ Json::Value ApplicationParams::ToJsonValue() const {
   impl::WriteJsonField("priority", priority, &result__);
   impl::WriteJsonField("memory_kb", memory_kb, &result__);
   impl::WriteJsonField("heart_beat_timeout_ms", heart_beat_timeout_ms, &result__);
-  impl::WriteJsonField("certificate", certificate, &result__);
   return result__;
 }
 bool ApplicationParams::is_valid() const {
@@ -70,9 +68,6 @@ bool ApplicationParams::is_valid() const {
     return false;
   }
   if (!heart_beat_timeout_ms.is_valid()) {
-    return false;
-  }
-  if (!certificate.is_valid()) {
     return false;
   }
   return Validate();
@@ -101,9 +96,6 @@ bool ApplicationParams::struct_empty() const {
   if (heart_beat_timeout_ms.is_initialized()) {
     return false;
   }
-  if (certificate.is_initialized()) {
-    return false;
-  }
 
   return true;
 }
@@ -129,9 +121,6 @@ void ApplicationParams::ReportErrors(rpc::ValidationReport* report__) const {
   if (!heart_beat_timeout_ms.is_valid()) {
     heart_beat_timeout_ms.ReportErrors(&report__->ReportSubobject("heart_beat_timeout_ms"));
   }
-  if (!certificate.is_valid()) {
-    certificate.ReportErrors(&report__->ReportSubobject("certificate"));
-  }
 }
 
 void ApplicationParams::SetPolicyTableType(PolicyTableType pt_type) {
@@ -141,7 +130,6 @@ void ApplicationParams::SetPolicyTableType(PolicyTableType pt_type) {
   priority.SetPolicyTableType(pt_type);
   memory_kb.SetPolicyTableType(pt_type);
   heart_beat_timeout_ms.SetPolicyTableType(pt_type);
-  certificate.SetPolicyTableType(pt_type);
 }
 
 // RpcParameters methods

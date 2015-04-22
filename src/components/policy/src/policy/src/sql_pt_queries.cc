@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2013, " Ford Motor Company
+ Copyright (c) 2015, " Ford Motor Company
  All rights reserved.
 
  Redistribution and use in source and binary forms, " with or without
@@ -138,7 +138,6 @@ const std::string kCreateSchema =
   "  `is_predata` BOOLEAN, "
   "  `memory_kb` INTEGER NOT NULL, "
   "  `heart_beat_timeout_ms` INTEGER NOT NULL, "
-  "  `certificate` VARCHAR(45), "
   "  CONSTRAINT `fk_application_hmi_level1` "
   "    FOREIGN KEY(`default_hmi`) "
   "    REFERENCES `hmi_level`(`value`), "
@@ -464,7 +463,7 @@ const std::string kInsertRpcWithParameter =
 
 const std::string kInsertApplication =
   "INSERT OR IGNORE INTO `application` (`id`, `priority_value`, `is_revoked`, `memory_kb`,"
-  " `heart_beat_timeout_ms`, `certificate`) VALUES (?,?,?,?,?,?)";
+  " `heart_beat_timeout_ms`) VALUES (?,?,?,?,?)";
 
 const std::string kInsertAppGroup =
   "INSERT INTO `app_group` (`application_id`, `functional_group_id`)"
@@ -570,7 +569,7 @@ const std::string kSelectUserMsgsVersion =
   "SELECT DISTINCT `number` FROM `version`";
 
 const std::string kSelectAppPolicies = "SELECT `id`, `priority_value`, `memory_kb`, "
-                                       " `heart_beat_timeout_ms`, `certificate` FROM `application`";
+                                       " `heart_beat_timeout_ms` FROM `application`";
 
 const std::string kSelectAppGroups = "SELECT `f`.`name` FROM `app_group` AS `a`"
                                      "  LEFT JOIN `functional_group` AS `f` "
@@ -654,13 +653,13 @@ const std::string kDeleteAppGroupByApplicationId =
 const std::string kInsertApplicationFull =
   "INSERT OR IGNORE INTO `application` (`id`, `keep_context`, `steal_focus`, "
   "  `default_hmi`, `priority_value`, `is_revoked`, `is_default`, `is_predata`, "
-  " `memory_kb`, `heart_beat_timeout_ms`, `certificate`) "
-  "  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+  " `memory_kb`, `heart_beat_timeout_ms`) "
+  "  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 const std::string kSelectApplicationFull =
   "SELECT `keep_context`, `steal_focus`, `default_hmi`, `priority_value`, "
   "  `is_revoked`, `is_default`, `is_predata`, `memory_kb`,"
-  "  `heart_beat_timeout_ms`, `certificate` FROM `application` WHERE `id` = ?";
+  "  `heart_beat_timeout_ms` FROM `application` WHERE `id` = ?";
 
 }  // namespace sql_pt
 }  // namespace policy

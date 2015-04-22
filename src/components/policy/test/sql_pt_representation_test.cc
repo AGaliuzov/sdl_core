@@ -532,7 +532,6 @@ TEST_F(SQLPTRepresentationTest, DISABLED_GenerateSnapshot_SetPolicyTable_Snapsho
   app_policies["default"]["default_hmi"] = Json::Value("FULL");
   app_policies["default"]["keep_context"] = Json::Value(true);
   app_policies["default"]["steal_focus"] = Json::Value(true);
-  app_policies["default"]["certificate"] = Json::Value("sign");
 
   app_policies["pre_DataConsent"] = Json::Value(Json::objectValue);
   app_policies["pre_DataConsent"]["memory_kb"] = Json::Value(50);
@@ -543,7 +542,6 @@ TEST_F(SQLPTRepresentationTest, DISABLED_GenerateSnapshot_SetPolicyTable_Snapsho
   app_policies["pre_DataConsent"]["default_hmi"] = Json::Value("FULL");
   app_policies["pre_DataConsent"]["keep_context"] = Json::Value(true);
   app_policies["pre_DataConsent"]["steal_focus"] = Json::Value(true);
-  app_policies["pre_DataConsent"]["certificate"] = Json::Value("sign");
   app_policies["1234"] = Json::Value(Json::objectValue);
   app_policies["1234"]["memory_kb"] = Json::Value(50);
   app_policies["1234"]["heart_beat_timeout_ms"] = Json::Value(100);
@@ -553,7 +551,6 @@ TEST_F(SQLPTRepresentationTest, DISABLED_GenerateSnapshot_SetPolicyTable_Snapsho
   app_policies["1234"]["default_hmi"] = Json::Value("FULL");
   app_policies["1234"]["keep_context"] = Json::Value(true);
   app_policies["1234"]["steal_focus"] = Json::Value(true);
-  app_policies["1234"]["certificate"] = Json::Value("sign");
   app_policies["device"] = Json::Value(Json::objectValue);
   app_policies["device"]["groups"] = Json::Value(Json::arrayValue);
   app_policies["device"]["groups"][0] = Json::Value("default");
