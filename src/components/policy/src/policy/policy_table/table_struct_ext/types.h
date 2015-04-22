@@ -102,7 +102,6 @@ struct ApplicationParams : PolicyBase {
     Optional< RequestTypes > RequestType;
     Optional< Integer<uint16_t, 0, 65225> > memory_kb;
     Optional< Integer<uint16_t, 0, 65225> > heart_beat_timeout_ms;
-    Optional< String<0, 255> > certificate;
   public:
     ApplicationParams();
     ApplicationParams(const Strings& groups, Priority priority, HmiLevel default_hmi, bool keep_context, bool steal_focus);

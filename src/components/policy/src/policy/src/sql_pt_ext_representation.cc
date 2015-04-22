@@ -1,5 +1,5 @@
-﻿/*
- Copyright (c) 2013, Ford Motor Company
+/*
+ Copyright (c) 2015, Ford Motor Company
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -718,8 +718,6 @@ bool SQLPTExtRepresentation::SaveSpecificAppPolicy(
     5, app.second.is_null());
   app_query.Bind(6, *app.second.memory_kb);
   app_query.Bind(7, *app.second.heart_beat_timeout_ms);
-  app.second.certificate.is_initialized() ?
-  app_query.Bind(8, *app.second.certificate) : app_query.Bind(8, std::string());
 
   if (!app_query.Exec() || !app_query.Reset()) {
     LOG4CXX_WARN(logger_, "Incorrect insert into application.");
@@ -830,9 +828,7 @@ bool SQLPTExtRepresentation::GatherApplicationPoliciesSection(
     params.steal_focus = query.GetBoolean(4);
     *params.memory_kb = query.GetInteger(5);
     *params.heart_beat_timeout_ms = query.GetInteger(6);
-    if (!query.IsNull(7)) {
-      *params.certificate = query.GetString(7);
-    }
+
     if (!GatherAppGroup(app_id, &params.groups)) {
       return false;
     }

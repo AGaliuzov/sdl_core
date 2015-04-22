@@ -223,8 +223,7 @@ ApplicationParams::ApplicationParams(const Json::Value* value__)
     AppHMIType(impl::ValueMember(value__, "AppHMIType")),
     RequestType(impl::ValueMember(value__, "RequestType")),
     memory_kb(impl::ValueMember(value__, "memory_kb"), 0),
-    heart_beat_timeout_ms(impl::ValueMember(value__, "heart_beat_timeout_ms")),
-    certificate(impl::ValueMember(value__, "certificate"), "not_specified") {
+    heart_beat_timeout_ms(impl::ValueMember(value__, "heart_beat_timeout_ms")) {
 }
 Json::Value ApplicationParams::ToJsonValue() const {
   Json::Value result__(PolicyBase::ToJsonValue());
@@ -233,7 +232,6 @@ Json::Value ApplicationParams::ToJsonValue() const {
   impl::WriteJsonField("RequestType", RequestType, &result__);
   impl::WriteJsonField("memory_kb", memory_kb, &result__);
   impl::WriteJsonField("heart_beat_timeout_ms", heart_beat_timeout_ms, &result__);
-  impl::WriteJsonField("certificate", certificate, &result__);
   return result__;
 }
 bool ApplicationParams::is_valid() const {
@@ -255,9 +253,7 @@ bool ApplicationParams::is_valid() const {
   if (!heart_beat_timeout_ms.is_valid()) {
     return false;
   }
-  if (!certificate.is_valid()) {
-    return false;
-  }
+
   return Validate();
 }
 bool ApplicationParams::is_initialized() const {
@@ -280,9 +276,6 @@ bool ApplicationParams::struct_empty() const {
     return false;
   }
   if (heart_beat_timeout_ms.is_initialized()) {
-    return false;
-  }
-  if (certificate.is_initialized()) {
     return false;
   }
   return true;
@@ -324,9 +317,6 @@ void ApplicationParams::ReportErrors(rpc::ValidationReport* report__) const {
   if (!heart_beat_timeout_ms.is_valid()) {
     heart_beat_timeout_ms.ReportErrors(&report__->ReportSubobject("heart_beat_timeout_ms"));
   }
-  if (!certificate.is_valid()) {
-    certificate.ReportErrors(&report__->ReportSubobject("certificate"));
-  }
 }
 
 void ApplicationParams::SetPolicyTableType(PolicyTableType pt_type) {
@@ -335,7 +325,6 @@ void ApplicationParams::SetPolicyTableType(PolicyTableType pt_type) {
   RequestType.SetPolicyTableType(pt_type);
   memory_kb.SetPolicyTableType(pt_type);
   heart_beat_timeout_ms.SetPolicyTableType(pt_type);
-  certificate.SetPolicyTableType(pt_type);
 }
 
 // RpcParameters methods
