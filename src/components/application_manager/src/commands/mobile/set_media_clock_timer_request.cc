@@ -103,13 +103,15 @@ void SetMediaClockRequest::on_event(const event_engine::Event& event) {
 }
 
 bool SetMediaClockRequest::isDataValid() {
-  smart_objects::SmartObject msg_params = (*message_)[strings::msg_params];
-  mobile_apis::UpdateMode::eType update_mode =
-      static_cast<mobile_apis::UpdateMode::eType>(
-          msg_params[strings::update_mode].asUInt());
+  using namespace mobile_apis;
 
-  if (update_mode == mobile_apis::UpdateMode::COUNTUP ||
-      update_mode == mobile_apis::UpdateMode::COUNTDOWN) {
+  const smart_objects::SmartObject& msg_params = (*message_)[strings::msg_params];
+  UpdateMode::eType update_mode = static_cast<UpdateMode::eType>(
+      msg_params[strings::update_mode].asUInt());
+
+  if (UpdateMode::COUNTUP   == update_mode ||
+      UpdateMode::COUNTDOWN == update_mode ||
+      UpdateMode::PAUSE     == update_mode) {
 
     if (!msg_params.keyExists(strings::start_time)) {
       LOG4CXX_INFO(logger_, "Invalid data");
@@ -117,7 +119,7 @@ bool SetMediaClockRequest::isDataValid() {
     }
 
     if (msg_params.keyExists(strings::end_time)) {
-      unsigned int start_time_in_seconds = 0;
+      uint32_t start_time_in_seconds = 0;
       start_time_in_seconds =
           (msg_params[strings::start_time][strings::hours].asUInt()) * 3600;
       start_time_in_seconds +=
@@ -125,7 +127,7 @@ bool SetMediaClockRequest::isDataValid() {
       start_time_in_seconds +=
           (msg_params[strings::start_time][strings::seconds].asUInt());
 
-      unsigned int end_time_in_seconds = 0;
+      uint32_t end_time_in_seconds = 0;
       end_time_in_seconds =
           (msg_params[strings::end_time][strings::hours].asUInt()) * 3600;
       end_time_in_seconds +=
@@ -134,9 +136,9 @@ bool SetMediaClockRequest::isDataValid() {
           (msg_params[strings::end_time][strings::seconds].asUInt());
 
       if (((end_time_in_seconds > start_time_in_seconds) &&
-          (update_mode == mobile_apis::UpdateMode::COUNTDOWN)) ||
+          (UpdateMode::COUNTDOWN == update_mode)) ||
           ((end_time_in_seconds < start_time_in_seconds) &&
-          (update_mode == mobile_apis::UpdateMode::COUNTUP))) {
+          (UpdateMode::COUNTUP == update_mode))) {
         LOG4CXX_INFO(logger_, "Invalid data");
         return false;
       }
