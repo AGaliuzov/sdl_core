@@ -899,7 +899,7 @@ void PolicyHandler::OnAllowSDLFunctionalityNotification(bool is_allowed,
     if (app) {
       // Send HMI status notification to mobile
       // Put application in full
-      AudioStreamingState::eType state = app->is_media_application()
+      AudioStreamingState::eType state = app->IsAudioApplication()
                                              ? AudioStreamingState::AUDIBLE
                                              : AudioStreamingState::NOT_AUDIBLE;
 
