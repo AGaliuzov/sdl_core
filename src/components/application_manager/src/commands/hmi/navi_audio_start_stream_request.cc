@@ -58,8 +58,8 @@ void AudioStartStreamRequest::Run() {
     app->set_audio_streaming_allowed(true);
     SendRequest();
   } else {
-    LOG4CXX_ERROR(logger_, "Applcation with hhi_app_id "
-                 << application_id() << "does not exist");
+    LOG4CXX_ERROR(logger_, "Applcation with hmi_app_id "
+                 << application_id() << " does not exist");
   }
 }
 

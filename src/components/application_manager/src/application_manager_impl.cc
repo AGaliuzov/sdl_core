@@ -2386,6 +2386,8 @@ bool ApplicationManagerImpl::CanAppStream(
     is_allowed = app->video_streaming_allowed();
   } else if (ServiceType::kAudio == service_type) {
     is_allowed = app->audio_streaming_allowed();
+  } else {
+    LOG4CXX_WARN(logger_, "Unsupported service_type " << service_type);
   }
   return IsStreamingAllowed(app_id, service_type) && is_allowed;
 }
