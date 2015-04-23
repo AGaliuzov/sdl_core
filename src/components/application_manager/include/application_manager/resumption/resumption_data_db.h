@@ -714,6 +714,10 @@ class ResumptionDataDB : public ResumptionData {
    */
   bool PrepareSelectQuery(utils::dbms::SQLQuery& query, const std::string& policy_app_id,
                            const std::string& device_id, const std::string& text_query);
+  /**
+   * @brief Writes data to DB after update
+   */
+  void WriteDb();
 
   /**
    * @brief returns pointer to data base
