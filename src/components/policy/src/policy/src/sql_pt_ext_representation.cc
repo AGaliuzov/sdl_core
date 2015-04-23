@@ -761,7 +761,6 @@ bool policy::SQLPTExtRepresentation::SaveDevicePolicy(
   app_query.Bind(5, false);
   app_query.Bind(6, 0);
   app_query.Bind(7, 0);
-  app_query.Bind(8, std::string());
 
   if (!app_query.Exec() || !app_query.Reset()) {
     LOG4CXX_WARN(logger_, "Incorrect insert into application.");
