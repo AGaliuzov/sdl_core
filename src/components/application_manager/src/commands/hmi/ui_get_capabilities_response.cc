@@ -47,7 +47,6 @@ UIGetCapabilitiesResponse::~UIGetCapabilitiesResponse() {
 void UIGetCapabilitiesResponse::Run() {
   LOG4CXX_AUTO_TRACE(logger_);
 
-
   HMICapabilities& hmi_capabilities =
       ApplicationManagerImpl::instance()->hmi_capabilities();
 
