@@ -149,7 +149,8 @@ TEST_F(RequestInfoTest, RequestInfoSetInsertErazeTest) {
   EXPECT_EQ(0u, request_info_set_.Size());
 }
 
-TEST_F(RequestInfoTest, RequestInfoSetFrontTest) {
+//TODO(VVeremjova) APPLINK-12833
+TEST_F(RequestInfoTest, DISABLED_RequestInfoSetFrontTest) {
 
   for (uint32_t i = 0; i < count_of_requests_for_test_; ++i) {
       utils::SharedPtr<TestRequestInfo> request =
@@ -201,7 +202,8 @@ TEST_F(RequestInfoTest, RequestInfoSetFindTest) {
   EXPECT_EQ(0u, request_info_set_.Size());
 }
 
-TEST_F(RequestInfoTest, RequestInfoSetEqualHashTest) {
+//TODO(VVeremjova) APPLINK-12833
+TEST_F(RequestInfoTest, DISABLED_RequestInfoSetEqualHashTest) {
   request_info::RequestInfoSet request_info_set;
   const uint32_t connection_key = 65483;
   const uint32_t corr_id = 65483;

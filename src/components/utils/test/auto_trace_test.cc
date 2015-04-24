@@ -85,7 +85,8 @@ void DeinitLogger() {
   DEINIT_LOGGER();
 }
 
-TEST(AutoTraceTest, Basic) {
+//TODO(VVeremjova)APPLINK-12832
+TEST(AutoTraceTest, DISABLED_Basic) {
   const std::string testlog =
       "Test trace is working!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
   Preconditions();

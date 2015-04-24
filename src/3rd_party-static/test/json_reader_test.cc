@@ -118,7 +118,7 @@ TEST_F(JSONReaderTest, ParseBellString) {
 }
 
 TEST_F(JSONReaderTest, ParseQuoteString) {
-  ASSERT_TRUE(reader.parse(quoteString_, json));
+  ASSERT_FALSE(reader.parse(quoteString_, json));
 }
 
 TEST_F(JSONReaderTest, ParseSlashString) {
@@ -126,7 +126,7 @@ TEST_F(JSONReaderTest, ParseSlashString) {
 }
 
 TEST_F(JSONReaderTest, ParseBackslashString) {
-  ASSERT_TRUE(reader.parse(backslashString_, json));
+  ASSERT_FALSE(reader.parse(backslashString_, json));
 }
 
 TEST_F(JSONReaderTest, ParseSinglequoteString) {
@@ -134,26 +134,26 @@ TEST_F(JSONReaderTest, ParseSinglequoteString) {
 }
 
 TEST_F(JSONReaderTest, ParseColonString) {
-  ASSERT_FALSE(reader.parse(colonString_, json));
+  ASSERT_TRUE(reader.parse(colonString_, json));
 }
 
 TEST_F(JSONReaderTest, ParseComaString) {
-  ASSERT_FALSE(reader.parse(comaString_, json));
+  ASSERT_TRUE(reader.parse(comaString_, json));
 }
 
 TEST_F(JSONReaderTest, ParseOpeningbraceString) {
-  ASSERT_FALSE(reader.parse(openingbraceString_, json));
+  ASSERT_TRUE(reader.parse(openingbraceString_, json));
 }
 
 TEST_F(JSONReaderTest, ParseClosingbraceString) {
-  ASSERT_FALSE(reader.parse(closingbraceString_, json));
+  ASSERT_TRUE(reader.parse(closingbraceString_, json));
 }
 
 TEST_F(JSONReaderTest, ParseOpeningbracketString) {
-  ASSERT_FALSE(reader.parse(openingbracketString_, json));
+  ASSERT_TRUE(reader.parse(openingbracketString_, json));
 }
 TEST_F(JSONReaderTest, ParseClosingbracketString) {
-  ASSERT_FALSE(reader.parse(closingbracketString_, json));
+  ASSERT_TRUE(reader.parse(closingbracketString_, json));
 }
 
 }  //  namespace json_reader_test
