@@ -47,17 +47,22 @@ UIGetCapabilitiesResponse::~UIGetCapabilitiesResponse() {
 void UIGetCapabilitiesResponse::Run() {
   LOG4CXX_AUTO_TRACE(logger_);
 
+
   HMICapabilities& hmi_capabilities =
       ApplicationManagerImpl::instance()->hmi_capabilities();
 
   const smart_objects::SmartObject& msg_params =
       (*message_)[strings::msg_params];
 
-  hmi_capabilities.set_display_capabilities(
-      msg_params[hmi_response::display_capabilities]);
+  if (msg_params.keyExists(hmi_response::display_capabilities)) {
+    hmi_capabilities.set_display_capabilities(
+        msg_params[hmi_response::display_capabilities]);
+  }
 
-  hmi_capabilities.set_hmi_zone_capabilities(
-      msg_params[hmi_response::hmi_zone_capabilities]);
+  if (msg_params.keyExists(hmi_response::hmi_zone_capabilities)) {
+    hmi_capabilities.set_hmi_zone_capabilities(
+        msg_params[hmi_response::hmi_zone_capabilities]);
+  }
 
   // Current HMI API for UI.GetCapabilities has soft button capabilities
   // as single item, but MOBILE API expects an array of items,
