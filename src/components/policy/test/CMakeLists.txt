@@ -51,19 +51,19 @@ set(testLibraries
 )
 
 set(testSources
-  usage_statistics_test.cc    
-  shared_library_test.cc    
-  generated_code_test.cc 
+#  usage_statistics_test.cc
+#  shared_library_test.cc
+#  generated_code_test.cc
   policy_manager_impl_test.cc
 )
 
   include_directories(${COMPONENTS_DIR}/policy/src/policy/policy_table/table_struct_ext)
   list (APPEND testSources
-    sql_pt_ext_representation_test.cc
+    #sql_pt_ext_representation_test.cc
 )
   include_directories(${COMPONENTS_DIR}/policy/src/policy/policy_table/table_struct)
   list (APPEND testSources
-    sql_pt_representation_test.cc
+    #sql_pt_representation_test.cc
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
@@ -71,8 +71,8 @@ if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
   # --- Tests for QDB Wrapper
   include_directories(../src/policy/qdb_wrapper/include)
   list (APPEND testSources
-    qdb_wrapper/sql_database_test.cc
-    qdb_wrapper/sql_query_test.cc
+    #qdb_wrapper/sql_database_test.cc
+    #qdb_wrapper/sql_query_test.cc
   )
   file(COPY qdbserver.sh DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
   file(COPY test-qdb.ini DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
@@ -82,9 +82,9 @@ else ()
   find_package(Sqlite3 REQUIRED)
   include_directories(../src/policy/sqlite_wrapper/include)
   list (APPEND testSources
-    sqlite_wrapper/sql_database_test.cc 
-    sqlite_wrapper/sql_query_test.cc   
-    generated_code_with_sqlite_test.cc  
+    #sqlite_wrapper/sql_database_test.cc
+    #sqlite_wrapper/sql_query_test.cc
+    #generated_code_with_sqlite_test.cc
     
     # TODO{ALeshin} APPLINK-11132 AssertTrue in SetUpTestCase() return false
     #policy_manager_impl_stress_test.cc

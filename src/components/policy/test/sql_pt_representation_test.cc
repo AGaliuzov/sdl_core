@@ -107,7 +107,7 @@ class SQLPTRepresentationTest2 : public ::testing::Test {
   }
 };
 
-TEST_F(SQLPTRepresentationTest2, MyTest) {
+TEST_F(SQLPTRepresentationTest2, CheckActualAttemptsToOpenDB_ExpectCorrectNumber) {
   EXPECT_EQ(::policy::FAIL, reps->Init());
   // Check  Actual attempts number made to try to open DB
   EXPECT_EQ(profile::Profile::instance()->attempts_to_open_policy_db(), reps->open_counter());
