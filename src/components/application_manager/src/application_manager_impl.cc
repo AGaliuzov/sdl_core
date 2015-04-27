@@ -1010,24 +1010,36 @@ bool ApplicationManagerImpl::OnServiceStartedCallback(
   return false;
 }
 
-void ApplicationManagerImpl::OnServiceEndedCallback(const int32_t& session_key,
-    const protocol_handler::ServiceType& type) {
+void ApplicationManagerImpl::OnServiceEndedCallback(
+    const int32_t& session_key,
+    const protocol_handler::ServiceType& type,
+    const connection_handler::CloseSessionReason& close_reason) {
   using namespace helpers;
   using namespace protocol_handler;
+  using namespace connection_handler;
 
-  LOG4CXX_DEBUG(
-    logger_,
-    "OnServiceEndedCallback " << type  << " in session 0x"
-        << std::hex << session_key);
+  LOG4CXX_DEBUG(logger_, "OnServiceEndedCallback for service "
+                << type << " with reason " << close_reason
+                << " in session 0x" << std::hex << session_key);
 
   if (type == kRpc) {
     LOG4CXX_INFO(logger_, "Remove application.");
-    /* in case it was unexpected disconnect application will be removed
-     and we will notify HMI that it was unexpected disconnect,
-     but in case it was closed by mobile we will be unable to find it in the list
+    /* In case it was unexpected disconnect or some special case
+     (malformed message, flood) application will be removed
+     and we will unregister application correctly, but in case it was
+     closed by mobile and already unregistered we will be unable
+     to find it in the list
     */
-    UnregisterApplication(session_key, mobile_apis::Result::INVALID_ENUM,
-                          true, true);
+    mobile_apis::Result::eType reason = mobile_apis::Result::INVALID_ENUM;
+    bool is_resuming = true;
+    bool is_unexpected_disconnect = true;
+
+    if (CloseSessionReason::kMalformed == close_reason) {
+      is_unexpected_disconnect = false;
+    }
+    UnregisterApplication(
+        session_key, reason, is_resuming, is_unexpected_disconnect);
+
     return;
   }
 
@@ -1050,10 +1062,6 @@ void ApplicationManagerImpl::OnApplicationFloodCallBack(const uint32_t &connecti
   UnregisterApplication(connection_key, mobile_apis::Result::TOO_MANY_PENDING_REQUESTS,
                         resuming, unexpected_disconnect);
   // TODO(EZamakhov): increment "removals_for_bad_behaviour" field in policy table
-}
-
-void ApplicationManagerImpl::OnMalformedMessageCallback(const uint32_t &connection_key) {
-  LOG4CXX_AUTO_TRACE(logger_);
 }
 
 void ApplicationManagerImpl::set_hmi_message_handler(
