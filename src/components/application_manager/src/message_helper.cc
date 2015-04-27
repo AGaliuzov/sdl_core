@@ -702,7 +702,7 @@ void MessageHelper::SendOnButtonSubscriptionNotification(
   using namespace hmi_apis;
   LOG4CXX_AUTO_TRACE(logger_);
 
-  SmartObjectSPtr notification_ptr = MakeShared<SmartObject>(SmartType_Map);
+  SmartObjectSPtr notification_ptr = utils::MakeShared<SmartObject>(SmartType_Map);
   if (!notification_ptr) {
     LOG4CXX_ERROR(logger_, "Memory allocation failed.");
     return;
