@@ -55,10 +55,10 @@ using ::utils::MessageQueue;
 class TimeManager {
  public:
   TimeManager();
-  ~TimeManager();
-  void Init(protocol_handler::ProtocolHandlerImpl* ph);
-  void Stop();
-  void SendMetric(utils::SharedPtr<MetricWrapper> metric);
+  virtual ~TimeManager();
+  virtual void Init(protocol_handler::ProtocolHandlerImpl* ph);
+  virtual void Stop();
+  virtual void SendMetric(utils::SharedPtr<MetricWrapper> metric);
  private:
 
   class Streamer : public threads::ThreadDelegate {

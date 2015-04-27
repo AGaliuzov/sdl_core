@@ -30,43 +30,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "protocol_handler_observer.h"
-#include "utils/date_time.h"
-#include "protocol_handler_metric.h"
+#ifndef TEST_COMPONENTS_TIME_MANAGER_INCLUDE_TIME_MANAGER_MOCK_H_
+#define TEST_COMPONENTS_TIME_MANAGER_INCLUDE_TIME_MANAGER_MOCK_H_
+
+#include <gmock/gmock.h>
 #include "time_manager.h"
-#include <iostream>
-namespace time_tester {
+#include "metric_wrapper.h"
+namespace test {
+namespace components {
+namespace time_tester_test {
 
-CREATE_LOGGERPTR_GLOBAL(logger_, "Utils")
-
-ProtocolHandlerObserver::ProtocolHandlerObserver(TimeManager *time_manager):
-  time_manager_(time_manager) {
-}
-
-void ProtocolHandlerObserver::StartMessageProcess(uint32_t message_id,
-                                                  const TimevalStruct &start_time) {
-  if (message_id == 0) {
-    return;
-  }
-  if (time_starts.find(message_id) != time_starts.end()) {
-    LOG4CXX_INFO(logger_, "Message ID already wait for stop processing" << message_id);
-    return;
-  }
-  time_starts[message_id] = start_time;
-}
-
-void ProtocolHandlerObserver::EndMessageProcess(utils::SharedPtr<MessageMetric> m) {
-  uint32_t message_id = m->message_id;
-  std::map<uint32_t, TimevalStruct>::const_iterator it = time_starts.find(message_id);
-  if (it == time_starts.end()) {
-    LOG4CXX_WARN(logger_, "Cant find start time for message" << message_id);
-    return;
-  }
-  m->begin= time_starts[message_id];
-  m->end = date_time::DateTime::getCurrentTime();
-  ProtocolHandlerMecticWrapper* metric = new ProtocolHandlerMecticWrapper();
-  metric->message_metric = m;
-  metric->grabResources();
-  time_manager_->SendMetric(metric);
-}
-}  //namespace time_tester
+using namespace time_tester;
+/*
+ * MOCK implementation of ::security_manager::SecurityManager
+ */
+class TimeManagerMock : public time_tester::TimeManager {
+ public:
+  MOCK_METHOD1(Init, void(protocol_handler::ProtocolHandlerImpl* ph));
+  MOCK_METHOD0(Stop, void());
+  MOCK_METHOD1(SendMetric, void(utils::SharedPtr<MetricWrapper> metric));
+};
+}  // time_tester_test
+}  // components
+}  // test
+#endif  // TEST_COMPONENTS_TIME_MANAGER_INCLUDE_TIME_MANAGER_MOCK_H_

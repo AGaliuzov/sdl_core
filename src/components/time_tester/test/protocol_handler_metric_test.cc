@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,43 +30,37 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "protocol_handler_observer.h"
-#include "utils/date_time.h"
-#include "protocol_handler_metric.h"
+#include "gtest/gtest.h"
+#include "metric_wrapper.h"
 #include "time_manager.h"
-#include <iostream>
-namespace time_tester {
+#include "include/time_manager_mock.h"
+#include "protocol_handler/time_metric_observer.h"
 
-CREATE_LOGGERPTR_GLOBAL(logger_, "Utils")
+namespace test {
+namespace components {
+namespace time_tester_test {
 
-ProtocolHandlerObserver::ProtocolHandlerObserver(TimeManager *time_manager):
-  time_manager_(time_manager) {
+using namespace protocol_handler;
+using namespace time_tester;
+using ::testing::_;
+
+TEST(ProtocolHandlerObserverTest, MessageProcess) {
+  TimeManagerMock time_manager_mock;
+
+  ProtocolHandlerObserver pr_handler(&time_manager_mock);
+  uint32_t message_id = 1;
+  TimevalStruct start_time;
+  start_time.tv_sec = 1;
+  start_time.tv_usec = 0;
+  pr_handler.StartMessageProcess(message_id, start_time);
+
+  utils::SharedPtr<PHMetricObserver::MessageMetric> message_metric = new PHMetricObserver::MessageMetric();
+  message_metric->message_id = 1;
+  EXPECT_CALL(time_manager_mock, SendMetric(_));
+  pr_handler.EndMessageProcess(message_metric);
+
 }
 
-void ProtocolHandlerObserver::StartMessageProcess(uint32_t message_id,
-                                                  const TimevalStruct &start_time) {
-  if (message_id == 0) {
-    return;
-  }
-  if (time_starts.find(message_id) != time_starts.end()) {
-    LOG4CXX_INFO(logger_, "Message ID already wait for stop processing" << message_id);
-    return;
-  }
-  time_starts[message_id] = start_time;
-}
-
-void ProtocolHandlerObserver::EndMessageProcess(utils::SharedPtr<MessageMetric> m) {
-  uint32_t message_id = m->message_id;
-  std::map<uint32_t, TimevalStruct>::const_iterator it = time_starts.find(message_id);
-  if (it == time_starts.end()) {
-    LOG4CXX_WARN(logger_, "Cant find start time for message" << message_id);
-    return;
-  }
-  m->begin= time_starts[message_id];
-  m->end = date_time::DateTime::getCurrentTime();
-  ProtocolHandlerMecticWrapper* metric = new ProtocolHandlerMecticWrapper();
-  metric->message_metric = m;
-  metric->grabResources();
-  time_manager_->SendMetric(metric);
-}
-}  //namespace time_tester
+}  // namespace time_tester
+}  // namespace components
+}  // namespace test
