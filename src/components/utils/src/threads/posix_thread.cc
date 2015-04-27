@@ -255,20 +255,18 @@ void Thread::stop() {
 
 void Thread::join() {
   LOG4CXX_AUTO_TRACE(logger_);
-  DCHECK(!pthread_equal(pthread_self(), handle_));
-
+  DCHECK_OR_RETURN_VOID(!pthread_equal(pthread_self(), handle_));
   stop();
-
   sync_primitives::AutoLock auto_lock(state_lock_);
   run_cond_.NotifyOne();
   if (isThreadRunning_) {
-    if (!pthread_equal(pthread_self(), handle_)) {
-      state_cond_.Wait(auto_lock);
-    }
+    LOG4CXX_DEBUG(logger_, "Waiting for #"<< handle_ << " finished iteration in thread #"<< pthread_self());
+    state_cond_.Wait(auto_lock);
   }
 }
 
 Thread::~Thread() {
+  LOG4CXX_AUTO_TRACE(logger_);
   finalized_ = true;
   stopped_ = true;
   join();

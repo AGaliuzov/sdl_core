@@ -133,7 +133,6 @@ MessageLoopThread<Q>::MessageLoopThread(const std::string&   name,
 template<class Q>
 MessageLoopThread<Q>::~MessageLoopThread() {
   Shutdown();
-  thread_->join();
   delete thread_delegate_;
   threads::DeleteThread(thread_);
 }
@@ -145,7 +144,9 @@ void MessageLoopThread<Q>::PostMessage(const Message& message) {
 
 template <class Q>
 void MessageLoopThread<Q>::Shutdown() {
-  thread_->stop();
+  CREATE_LOGGERPTR_LOCAL(logger_, "Utils")
+  LOG4CXX_AUTO_TRACE(logger_);
+  thread_->join();
 }
 
 //////////
