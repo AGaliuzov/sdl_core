@@ -245,6 +245,10 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
 
   void set_audio_stream_retry_number(const uint32_t& audio_stream_retry_number);
 
+  uint32_t video_stream_retry_number() const;
+
+  void set_video_stream_retry_number(const uint32_t& video_stream_retry_number);
+
   protected:
 
   /**
@@ -259,12 +263,6 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
 
  private:
   typedef SharedPtr<TimerThread<ApplicationImpl>> ApplicationTimerPtr;
-
-  /**
-   * @brief Callback for video start stream retry timer.
-   * Sends start video stream request to HMI
-   */
-  void OnVideoStartStreamRetry();
 
   /**
    * @brief Callback for video streaming suspend timer.
@@ -322,7 +320,6 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   uint32_t                                 audio_stream_retry_number_;
   uint32_t                                 video_stream_suspend_timeout_;
   uint32_t                                 audio_stream_suspend_timeout_;
-  ApplicationTimerPtr                      video_stream_retry_timer_;
   ApplicationTimerPtr                      video_stream_suspend_timer_;
   ApplicationTimerPtr                      audio_stream_suspend_timer_;
 
