@@ -149,7 +149,7 @@ TEST_F(RequestInfoTest, RequestInfoSetInsertErazeTest) {
   EXPECT_EQ(0u, request_info_set_.Size());
 }
 
-//TODO(VVeremjova) APPLINK-12833
+//TODO(VVeremjova) APPLINK-12833 Fix core dump after check request_info.valid()
 TEST_F(RequestInfoTest, DISABLED_RequestInfoSetFrontTest) {
 
   for (uint32_t i = 0; i < count_of_requests_for_test_; ++i) {
@@ -202,8 +202,7 @@ TEST_F(RequestInfoTest, RequestInfoSetFindTest) {
   EXPECT_EQ(0u, request_info_set_.Size());
 }
 
-//TODO(VVeremjova) APPLINK-12833
-TEST_F(RequestInfoTest, DISABLED_RequestInfoSetEqualHashTest) {
+//TODO(VVeremjova) APPLINK-12833 APPLINK-12833 Fix core dump after check request_info.valid()
   request_info::RequestInfoSet request_info_set;
   const uint32_t connection_key = 65483;
   const uint32_t corr_id = 65483;

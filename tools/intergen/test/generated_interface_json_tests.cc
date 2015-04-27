@@ -127,7 +127,7 @@ TEST_F(GeneratedInterfaceTests, TypedefTest) {
   ASSERT_EQ(expected_json, serialized);
 }
 
-//TODO(VVeremjova) APPLINK-12831
+//TODO(VVeremjova) APPLINK-12831 Fix constructors' work in case invalid values
 TEST_F(GeneratedInterfaceTests, DISABLED_OverflowedDiagnosticMessageTest) {
   const char* input_json =
       "{\"messageData\":[300, 20],\"messageLength\":2,\"targetID\":5}";
@@ -137,7 +137,7 @@ TEST_F(GeneratedInterfaceTests, DISABLED_OverflowedDiagnosticMessageTest) {
   ASSERT_FALSE(dm.is_valid());
 }
 
-//TODO(VVeremjova) APPLINK-12831
+//TODO(VVeremjova) APPLINK-12831 Fix constructors' work in case invalid values
 TEST_F(GeneratedInterfaceTests, DISABLED_OverflowedDiagnosticMessageTest64) {
   const char* input_json =
       "{\"messageData\":[10, 123456789123],\"messageLength\":2,\"targetID\":5}";

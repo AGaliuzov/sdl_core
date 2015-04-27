@@ -111,7 +111,7 @@ TEST_F(AsyncRunnerTest, ASyncRunManyDelegates_ExpectSuccessfulAllDelegatesRun) {
   EXPECT_EQ(kDelegatesNum_, check_value);
 }
 
-//TODO(VVeremjova) APPLINK-12834
+//TODO(VVeremjova) APPLINK-12834 Sometimes delegates do not run
 TEST_F(AsyncRunnerTest, DISABLED_RunManyDelegatesAndStop_ExpectSuccessfulDelegatesStop) {
   AutoLock lock(test_lock_);
   // Clear global value before test
