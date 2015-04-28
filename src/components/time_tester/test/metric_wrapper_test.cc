@@ -51,11 +51,11 @@ TEST(MetricWrapper, grabResources) {
 
 TEST(MetricWrapper, GetJsonMetricWithoutGrab) {
   MetricWrapper * metric_test = new MetricWrapper();
-  Json::Value jvalue =  metric_test->GetJsonMetric();
+  Json::Value jvalue = metric_test->GetJsonMetric();
 
-  EXPECT_EQ("null\n",jvalue[strings::stime].toStyledString());
-  EXPECT_EQ("null\n",jvalue[strings::utime].toStyledString());
-  EXPECT_EQ("null\n",jvalue[strings::memory].toStyledString());
+  EXPECT_EQ("null\n", jvalue[strings::stime].toStyledString());
+  EXPECT_EQ("null\n", jvalue[strings::utime].toStyledString());
+  EXPECT_EQ("null\n", jvalue[strings::memory].toStyledString());
   delete metric_test;
 }
 
@@ -63,26 +63,26 @@ TEST(MetricWrapper, GetJsonMetricWithGrabResources) {
   MetricWrapper * metric_test = new MetricWrapper();
   ResourseUsage* resources = Resources::getCurrentResourseUsage();
   EXPECT_TRUE(metric_test->grabResources());
-  Json::Value jvalue =  metric_test->GetJsonMetric();
+  Json::Value jvalue = metric_test->GetJsonMetric();
 
   EXPECT_TRUE(jvalue[strings::stime].isInt());
   EXPECT_TRUE(jvalue[strings::utime].isInt());
   EXPECT_TRUE(jvalue[strings::memory].isInt());
-  EXPECT_NE("null/n",jvalue[strings::stime].toStyledString());
-  EXPECT_NE("null/n",jvalue[strings::utime].toStyledString());
-  EXPECT_NE("null/n",jvalue[strings::memory].toStyledString());
+  EXPECT_NE("null/n", jvalue[strings::stime].toStyledString());
+  EXPECT_NE("null/n", jvalue[strings::utime].toStyledString());
+  EXPECT_NE("null/n", jvalue[strings::memory].toStyledString());
 
-  EXPECT_EQ(0,jvalue[strings::stime].asInt());
-  EXPECT_NE(0,jvalue[strings::memory].asInt());
+  EXPECT_EQ(0, jvalue[strings::stime].asInt());
+  EXPECT_NE(0, jvalue[strings::memory].asInt());
 
-  EXPECT_EQ(resources->stime,jvalue[strings::stime].asInt());
-  EXPECT_EQ(resources->utime,jvalue[strings::utime].asInt());
-  EXPECT_EQ(resources->memory,jvalue[strings::memory].asInt());
+  EXPECT_EQ(resources->stime, jvalue[strings::stime].asInt());
+  EXPECT_EQ(resources->utime, jvalue[strings::utime].asInt());
+  EXPECT_EQ(resources->memory, jvalue[strings::memory].asInt());
 
   delete resources;
   delete metric_test;
 }
 
-} // namespace time_tester
-} // namespace components
-} // namespace test
+}  // namespace time_tester
+}  // namespace components
+}  // namespace test

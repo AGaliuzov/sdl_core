@@ -48,6 +48,7 @@ class TimeManagerMock : public time_tester::TimeManager {
  public:
   MOCK_METHOD1(Init, void(protocol_handler::ProtocolHandlerImpl* ph));
   MOCK_METHOD0(Stop, void());
+  MOCK_METHOD0(Start, void());
   MOCK_METHOD1(SendMetric, void(utils::SharedPtr<MetricWrapper> metric));
 };
 }  // time_tester_test

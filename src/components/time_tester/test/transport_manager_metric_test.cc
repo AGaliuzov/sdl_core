@@ -35,8 +35,9 @@
 #include "json_keys.h"
 #include "json/json.h"
 #include "utils/resource_usage.h"
-#include "protocol_handler_metric.h"
+#include "transport_manager_metric.h"
 #include "protocol_handler/time_metric_observer.h"
+#include "application_manager/smart_object_keys.h"
 
 namespace test {
 namespace components {
@@ -46,14 +47,14 @@ using namespace ::time_tester;
 using namespace ::utils;
 using namespace protocol_handler;
 
-TEST(ProtocolHandlerMetricTest, grabResources) {
-  ProtocolHandlerMecticWrapper * metric_test = new ProtocolHandlerMecticWrapper();
+TEST(TransportManagerMetricWrapper, grabResources) {
+  TransportManagerMecticWrapper * metric_test = new TransportManagerMecticWrapper();
   EXPECT_TRUE(metric_test->grabResources());
   delete metric_test;
 }
 
-TEST(ProtocolHandlerMetricTest, GetJsonMetric) {
-  ProtocolHandlerMecticWrapper * metric_test = new ProtocolHandlerMecticWrapper();
+TEST(TransportManagerMetricWrapper, GetJsonMetric) {
+  TransportManagerMecticWrapper * metric_test = new TransportManagerMecticWrapper();
 
   TimevalStruct start_time;
   start_time.tv_sec = 1;
@@ -62,27 +63,25 @@ TEST(ProtocolHandlerMetricTest, GetJsonMetric) {
   TimevalStruct end_time;
   end_time.tv_sec = 10;
   end_time.tv_usec = 0;
-  metric_test->message_metric = new PHMetricObserver::MessageMetric();
+  metric_test->message_metric = new transport_manager::TMMetricObserver::MessageMetric();
   metric_test->message_metric->begin = start_time;
   metric_test->message_metric->end = end_time;
-  metric_test->message_metric->message_id = 5;
-  metric_test->message_metric->connection_key = 2;
+  metric_test->message_metric->data_size = 1000;
   Json::Value jvalue = metric_test->GetJsonMetric();
 
-  EXPECT_EQ("\"ProtocolHandler\"\n", jvalue[strings::logger].toStyledString());
   EXPECT_EQ("null\n", jvalue[strings::stime].toStyledString());
   EXPECT_EQ("null\n", jvalue[strings::utime].toStyledString());
   EXPECT_EQ("null\n", jvalue[strings::memory].toStyledString());
 
   EXPECT_EQ(date_time::DateTime::getuSecs(start_time), jvalue[strings::begin].asInt64());
   EXPECT_EQ(date_time::DateTime::getuSecs(end_time), jvalue[strings::end].asInt64());
-  EXPECT_EQ(5, jvalue[strings::message_id].asInt64());
-  EXPECT_EQ(2, jvalue[strings::connection_key].asInt());
+  EXPECT_EQ(1000, jvalue[strings::data_size].asInt());
+
   delete metric_test;
 }
 
-TEST(ProtocolHandlerMetricTest, GetJsonMetricWithGrabResources) {
-  ProtocolHandlerMecticWrapper * metric_test = new ProtocolHandlerMecticWrapper();
+TEST(TransportManagerMetricWrapper, GetJsonMetricWithGrabResources) {
+  TransportManagerMecticWrapper * metric_test = new TransportManagerMecticWrapper();
   ResourseUsage* resources = Resources::getCurrentResourseUsage();
   EXPECT_TRUE(metric_test->grabResources());
 
@@ -93,24 +92,17 @@ TEST(ProtocolHandlerMetricTest, GetJsonMetricWithGrabResources) {
   TimevalStruct end_time;
   end_time.tv_sec = 10;
   end_time.tv_usec = 0;
-  metric_test->message_metric = new PHMetricObserver::MessageMetric();
+  metric_test->message_metric = new transport_manager::TMMetricObserver::MessageMetric();
   metric_test->message_metric->begin = start_time;
   metric_test->message_metric->end = end_time;
-  metric_test->message_metric->message_id = 5;
-  metric_test->message_metric->connection_key = 2;
+
+  metric_test->message_metric->data_size = 1000;
   Json::Value jvalue = metric_test->GetJsonMetric();
 
-  EXPECT_TRUE(jvalue[strings::stime].isInt());
-  EXPECT_TRUE(jvalue[strings::utime].isInt());
-  EXPECT_TRUE(jvalue[strings::memory].isInt());
-  EXPECT_NE("null/n", jvalue[strings::stime].toStyledString());
-  EXPECT_NE("null/n", jvalue[strings::utime].toStyledString());
-  EXPECT_NE("null/n", jvalue[strings::memory].toStyledString());
-
+  EXPECT_EQ("\"TransportManager\"\n", jvalue[strings::logger].toStyledString());
   EXPECT_EQ(date_time::DateTime::getuSecs(start_time), jvalue[strings::begin].asInt64());
   EXPECT_EQ(date_time::DateTime::getuSecs(end_time), jvalue[strings::end].asInt64());
-  EXPECT_EQ(5, jvalue[strings::message_id].asInt64());
-  EXPECT_EQ(2, jvalue[strings::connection_key].asInt());
+  EXPECT_EQ(1000, jvalue[strings::data_size].asInt());
 
   EXPECT_EQ(resources->stime, jvalue[strings::stime].asInt());
   EXPECT_EQ(resources->utime, jvalue[strings::utime].asInt());

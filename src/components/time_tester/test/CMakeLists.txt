@@ -38,15 +38,20 @@ include_directories (
   ${COMPONENTS_DIR}/time_tester/include
   ${COMPONENTS_DIR}/utils/include
   ${COMPONENTS_DIR}/protocol_handler/include
-   ${COMPONENTS_DIR}/protocol_handler/test
+  ${COMPONENTS_DIR}/application_manager/include
+  ${COMPONENTS_DIR}/protocol_handler/test
   )
   
 
 set(testSources
   metric_wrapper_test.cc
+  time_manager_test.cc
   protocol_handler_metric_test.cc
-#  time_manager_test.cc
-transport_manager_observer_test.cc
+  protocol_handler_observer_test.cc
+  transport_manager_metric_test.cc
+  transport_manager_observer_test.cc
+  application_manager_metric_test.cc
+  application_manager_observer_test.cc
 )
 
 set(testLibraries
@@ -80,6 +85,8 @@ endif()
 if (BUILD_AVAHI_SUPPORT)
   list(APPEND testLibraries avahi-client avahi-common)
 endif()
+
+file(COPY log4cxx.properties DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 create_test("time_tester_test" "${testSources}" "${testLibraries}")
 

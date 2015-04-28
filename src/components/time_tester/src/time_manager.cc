@@ -57,10 +57,18 @@ TimeManager::TimeManager():
   app_observer(this),
   tm_observer(this),
   ph_observer(this) {
-    ip_ = profile::Profile::instance()->server_address();
-    port_ = profile::Profile::instance()->time_testing_port();
-    streamer_ = new Streamer(this);
-    thread_ = threads::CreateThread("TimeManager", streamer_ );
+
+}
+
+void TimeManager::Start() {
+  ip_ = profile::Profile::instance()->server_address();
+  port_ = profile::Profile::instance()->time_testing_port();
+  streamer_ = new Streamer(this);
+  thread_ = threads::CreateThread("TimeManager", streamer_ );
+}
+
+void TimeManager::SetStreamer(Streamer* streamer) {
+  streamer_ = streamer;
 }
 
 TimeManager::~TimeManager() {
@@ -69,21 +77,22 @@ TimeManager::~TimeManager() {
 
 void TimeManager::Init(protocol_handler::ProtocolHandlerImpl* ph) {
   LOG4CXX_AUTO_TRACE(logger_);
-  DCHECK(ph);
-  if (!ph) {
-    LOG4CXX_DEBUG(logger_, "ProtocolHandler poiner is NULL");
-    return;
-  }
+  DCHECK_OR_RETURN_VOID(ph);
+  DCHECK_OR_RETURN_VOID(streamer_);
 
   application_manager::ApplicationManagerImpl::instance()->SetTimeMetricObserver(&app_observer);
   transport_manager::TransportManagerDefault::instance()->SetTimeMetricObserver(&tm_observer);
   ph->SetTimeMetricObserver(&ph_observer);
-  thread_->start(threads::ThreadOptions());
+  if (thread_) {
+    thread_->start(threads::ThreadOptions());
+  }
 }
 
 void TimeManager::Stop() {
   LOG4CXX_AUTO_TRACE(logger_);
-  threads::DeleteThread(thread_);
+  if (!thread_) {
+    threads::DeleteThread(thread_);
+  }
   thread_ = NULL;
 }
 
@@ -92,8 +101,14 @@ void TimeManager::SendMetric(utils::SharedPtr<MetricWrapper> metric) {
     streamer_->PushMessage(metric);
   }
 }
+std::string TimeManager::ip(){
+  return ip_;
+}
+int16_t TimeManager::port(){
+  return port_;
+}
 
-TimeManager::Streamer::Streamer(
+Streamer::Streamer(
   TimeManager* const server)
   : is_client_connected_(false),
     server_(server),
@@ -102,11 +117,11 @@ TimeManager::Streamer::Streamer(
     stop_flag_(false) {
 }
 
-TimeManager::Streamer::~Streamer() {
+Streamer::~Streamer() {
   Stop();
 }
 
-void TimeManager::Streamer::threadMain() {
+void Streamer::threadMain() {
   LOG4CXX_AUTO_TRACE(logger_);
 
   Start();
@@ -137,13 +152,13 @@ void TimeManager::Streamer::threadMain() {
   }
 }
 
-void TimeManager::Streamer::exitThreadMain() {
+void Streamer::exitThreadMain() {
   LOG4CXX_AUTO_TRACE(logger_);
   Stop();
   messages_.Shutdown();
 }
 
-void TimeManager::Streamer::Start() {
+void Streamer::Start() {
   LOG4CXX_AUTO_TRACE(logger_);
   server_socket_fd_ = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -162,15 +177,15 @@ void TimeManager::Streamer::Start() {
   }
 
   sockaddr_in serv_addr_ = { 0 };
-  serv_addr_.sin_addr.s_addr = inet_addr(server_->ip_.c_str());
+  serv_addr_.sin_addr.s_addr = inet_addr(server_->ip().c_str());
   serv_addr_.sin_family = AF_INET;
-  serv_addr_.sin_port = htons(server_->port_);
+  serv_addr_.sin_port = htons(server_->port());
 
   if (-1 == bind(server_socket_fd_,
                  reinterpret_cast<struct sockaddr*>(&serv_addr_),
                  sizeof(serv_addr_))) {
     LOG4CXX_ERROR(logger_, "Unable to bind server "
-                  << server_->ip_.c_str() << ':' << server_->port_);
+                  << server_->ip().c_str() << ':' << server_->port());
     return;
   }
   if (-1 == listen(server_socket_fd_, 1)) {
@@ -179,7 +194,7 @@ void TimeManager::Streamer::Start() {
   }
 }
 
-void TimeManager::Streamer::ShutDownAndCloseSocket(int32_t socket_fd) {
+void Streamer::ShutDownAndCloseSocket(int32_t socket_fd) {
   LOG4CXX_AUTO_TRACE(logger_);
   if (0 < socket_fd){
     LOG4CXX_INFO(logger_, "Shutdown socket");
@@ -194,7 +209,7 @@ void TimeManager::Streamer::ShutDownAndCloseSocket(int32_t socket_fd) {
   }
 }
 
-void TimeManager::Streamer::Stop() {
+void Streamer::Stop() {
   LOG4CXX_AUTO_TRACE(logger_);
   if (stop_flag_) {
     LOG4CXX_WARN(logger_, "Already Stopped");
@@ -212,7 +227,7 @@ void TimeManager::Streamer::Stop() {
   is_client_connected_ = false;
 }
 
-bool TimeManager::Streamer::IsReady() const {
+bool Streamer::IsReady() const {
   bool result = true;
   fd_set fds;
   FD_ZERO(&fds);
@@ -234,7 +249,7 @@ bool TimeManager::Streamer::IsReady() const {
   return result;
 }
 
-bool TimeManager::Streamer::Send(const std::string& msg) {
+bool Streamer::Send(const std::string& msg) {
   LOG4CXX_AUTO_TRACE(logger_);
   if (!IsReady()) {
     LOG4CXX_ERROR_EXT(logger_, " Socket is not ready");
@@ -249,7 +264,7 @@ bool TimeManager::Streamer::Send(const std::string& msg) {
   return true;
 }
 
-void TimeManager::Streamer::PushMessage(utils::SharedPtr<MetricWrapper> metric) {
+void Streamer::PushMessage(utils::SharedPtr<MetricWrapper> metric) {
   messages_.push(metric);
 }
 }  // namespace time_tester
