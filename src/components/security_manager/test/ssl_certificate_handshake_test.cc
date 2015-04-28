@@ -47,14 +47,14 @@ namespace ssl_handshake_test {
   } while (false)
 
 namespace {
-const std::string server_ca_cert_filename = "ca_server.crt";
-const std::string client_ca_cert_filename = "ca_client.crt";
-const std::string client_certificate = "client.crt";
-const std::string server_certificate = "server.crt";
-const std::string server_unsigned_cert_file = "server_unsigned.crt";
-const std::string server_expired_cert_file = "server_expired.crt";
-const std::string client_key = "client.key";
-const std::string server_key = "server.key";
+const std::string server_ca_cert_filename = "server";
+const std::string client_ca_cert_filename = "client";
+const std::string client_certificate = "client/client.crt";
+const std::string server_certificate = "server/server.crt";
+const std::string server_unsigned_cert_file = "server/server_unsigned.crt";
+const std::string server_expired_cert_file = "server/server_expired.crt";
+const std::string client_key = "client/client.key";
+const std::string server_key = "server/server.key";
 // Client needs server_verification certificate for server verification
 const std::string server_verification_ca = "server_verification_ca_cetrificates.crt";
 // Server needs client_verification certificate for client verification
@@ -72,10 +72,10 @@ class SSLHandshakeTest : public testing::Test {
     client_ctx = NULL;
 
     // Clear ca certificate files
-    std::ofstream server_ca_file(server_ca_cert_filename);
+   /* std::ofstream server_ca_file(server_ca_cert_filename);
     server_ca_file.close();
     std::ofstream client_ca_file(client_ca_cert_filename);
-    client_ca_file.close();
+    client_ca_file.close();*/
   }
 
   void TearDown() OVERRIDE {
@@ -90,20 +90,14 @@ class SSLHandshakeTest : public testing::Test {
                           const std::string &key_filename,
                           const std::string &ciphers_list,
                           const bool verify_peer,
-                          const std::string& cacertificate_path,
-                          const std::string& cacertificate_update_path) {
+                          const std::string& cacertificate_path) {
     const bool initialized = server_manager->Init(
           security_manager::SERVER, protocol, cert_filename,
           key_filename, ciphers_list, verify_peer, cacertificate_path);
     if (!initialized) {
       return false;
     }
-    if (!cacertificate_update_path.empty()) {
-      const std::string cert = LoadCertificate(cacertificate_update_path);
-      if (!server_manager->OnCertificateUpdated(cert)) {
-        return false;
-      }
-    }
+
     server_ctx = server_manager->CreateSSLContext();
     if (!server_ctx) {
       return false;
@@ -115,34 +109,19 @@ class SSLHandshakeTest : public testing::Test {
                           const std::string &key_filename,
                           const std::string &ciphers_list,
                           const bool verify_peer,
-                          const std::string& cacertificate_path,
-                          const std::string& cacertificate_update_path) {
+                          const std::string& cacertificate_path) {
     const bool initialized = client_manager->Init(
           security_manager::CLIENT, protocol, cert_filename,
           key_filename, ciphers_list, verify_peer, cacertificate_path);
     if (!initialized) {
       return false;
     }
-    if (!cacertificate_update_path.empty()) {
-      const std::string cert = LoadCertificate(cacertificate_update_path);
-      if (!client_manager->OnCertificateUpdated(cert)) {
-        return false;
-      }
-    }
+
     client_ctx = client_manager->CreateSSLContext();
     if (!client_ctx) {
       return false;
     }
     return true;
-  }
-
-  std::string LoadCertificate(const std::string& ca_file) {
-    std::ifstream file(ca_file.c_str());
-    EXPECT_TRUE(file.good());
-    std::string ca_cetrificate((std::istreambuf_iterator<char>(file)),
-                                std::istreambuf_iterator<char>() );
-    EXPECT_FALSE(ca_cetrificate.empty());
-    return ca_cetrificate;
   }
 
   void ResetConnections() {
@@ -273,12 +252,10 @@ class SSLHandshakeTest : public testing::Test {
 
 TEST_F(SSLHandshakeTest, NoVerification) {
   ASSERT_TRUE(InitServerManagers(security_manager::TLSv1_2, server_certificate,
-                                 server_key, "ALL", false,
-                                 "", ""))
+                                 server_key, "ALL", false, ""))
       << server_manager->LastError();
   ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
-                                 client_key, "ALL", false,
-                                 "", ""))
+                                 client_key, "ALL", false, ""))
       << client_manager->LastError();
 
   GTEST_TRACE(HandshakeProcedure_Success());
@@ -287,12 +264,10 @@ TEST_F(SSLHandshakeTest, NoVerification) {
 TEST_F(SSLHandshakeTest, CAVerification_ServerSide) {
   ASSERT_TRUE(InitServerManagers(security_manager::TLSv1_2, server_certificate,
                                  server_key, "ALL", true,
-                                 server_ca_cert_filename,
-                                 client_verification_ca))
+                                 client_ca_cert_filename))
       << server_manager->LastError();
   ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
-                                 client_key, "ALL", false,
-                                 "", ""))
+                                 client_key, "ALL", false, ""))
       << client_manager->LastError();
 
   GTEST_TRACE(HandshakeProcedure_Success());
@@ -301,17 +276,17 @@ TEST_F(SSLHandshakeTest, CAVerification_ServerSide) {
 TEST_F(SSLHandshakeTest, CAVerification_ServerSide_NoCACertificate) {
   ASSERT_TRUE(InitServerManagers(security_manager::TLSv1_2, server_certificate,
                                  server_key, "ALL", true,
-                                 server_ca_cert_filename, ""))
+                                 server_ca_cert_filename))
       << server_manager->LastError();
   ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
-                                 client_key, "ALL", false,
-                                 "", ""))
+                                 client_key, "ALL", false, ""))
       << client_manager->LastError();
 
   GTEST_TRACE(HandshakeProcedure_ServerSideFail());
-
-  const std::string cert = LoadCertificate(client_verification_ca);
-  ASSERT_TRUE(server_manager->OnCertificateUpdated(cert));
+  ASSERT_TRUE(InitServerManagers(security_manager::TLSv1_2, server_certificate,
+                                 server_key, "ALL", true,
+                                 client_ca_cert_filename))
+      << server_manager->LastError();
 
   GTEST_TRACE(ResetConnections());
 
@@ -320,12 +295,11 @@ TEST_F(SSLHandshakeTest, CAVerification_ServerSide_NoCACertificate) {
 
 TEST_F(SSLHandshakeTest, CAVerification_ClientSide) {
   ASSERT_TRUE(InitServerManagers(security_manager::TLSv1_2, server_certificate,
-                                 server_key, "ALL", false,
-                                 "", ""))
+                                 server_key, "ALL", false, ""))
       << server_manager->LastError();
   ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
                                  client_key, "ALL", true,
-                                 client_ca_cert_filename, server_verification_ca))
+                                 server_ca_cert_filename))
       << client_manager->LastError();
 
   GTEST_TRACE(HandshakeProcedure_Success());
@@ -333,18 +307,19 @@ TEST_F(SSLHandshakeTest, CAVerification_ClientSide) {
 
 TEST_F(SSLHandshakeTest, CAVerification_ClientSide_NoCACertificate) {
   ASSERT_TRUE(InitServerManagers(security_manager::TLSv1_2, server_certificate,
-                                 server_key, "ALL", false,
-                                 "", ""))
+                                 server_key, "ALL", false, ""))
       << server_manager->LastError();
   ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
                                  client_key, "ALL", true,
-                                 client_ca_cert_filename, ""))
+                                 client_ca_cert_filename))
       << client_manager->LastError();
 
   GTEST_TRACE(HandshakeProcedure_ClientSideFail());
 
-  const std::string cert = LoadCertificate(server_verification_ca);
-  ASSERT_TRUE(client_manager->OnCertificateUpdated(cert));
+  ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
+                                 client_key, "ALL", true,
+                                 server_ca_cert_filename))
+      << client_manager->LastError();
 
   GTEST_TRACE(ResetConnections());
 
@@ -354,11 +329,11 @@ TEST_F(SSLHandshakeTest, CAVerification_ClientSide_NoCACertificate) {
 TEST_F(SSLHandshakeTest, CAVerification_BothSides) {
   ASSERT_TRUE(InitServerManagers(security_manager::TLSv1_2, server_certificate,
                                  server_key, "ALL", true,
-                                 server_ca_cert_filename, client_verification_ca))
+                                 client_ca_cert_filename))
       << server_manager->LastError();
   ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
                                  client_key, "ALL", true,
-                                 client_ca_cert_filename, server_verification_ca))
+                                 server_ca_cert_filename))
       << client_manager->LastError();
 
   GTEST_TRACE(HandshakeProcedure_Success());
@@ -366,12 +341,11 @@ TEST_F(SSLHandshakeTest, CAVerification_BothSides) {
 
 TEST_F(SSLHandshakeTest, UnsignedCert) {
   ASSERT_TRUE(InitServerManagers(security_manager::TLSv1_2, server_unsigned_cert_file,
-                                 server_key, "ALL", false,
-                                 "", ""))
+                                 server_key, "ALL", false, ""))
       << server_manager->LastError();
   ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
                                  client_key, "ALL", true,
-                                 client_ca_cert_filename, server_verification_ca))
+                                 client_ca_cert_filename))
       << client_manager->LastError();
 
   GTEST_TRACE(HandshakeProcedure_ClientSideFail());
@@ -379,12 +353,11 @@ TEST_F(SSLHandshakeTest, UnsignedCert) {
 
 TEST_F(SSLHandshakeTest, ExpiredCert) {
   ASSERT_TRUE(InitServerManagers(security_manager::TLSv1_2, server_expired_cert_file,
-                                 server_key, "ALL", false,
-                                 "", ""))
+                                 server_key, "ALL", false, ""))
       << server_manager->LastError();
   ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
                                  client_key, "ALL", true,
-                                 client_ca_cert_filename, server_verification_ca))
+                                 client_ca_cert_filename))
       << client_manager->LastError();
 
   GTEST_TRACE(HandshakeProcedure_ClientSideFail());
@@ -393,12 +366,10 @@ TEST_F(SSLHandshakeTest, ExpiredCert) {
 
 TEST_F(SSLHandshakeTest, NoVerification_ResetConnection) {
   ASSERT_TRUE(InitServerManagers(security_manager::TLSv1_2, server_certificate,
-                                 server_key, "ALL", false,
-                                 "", ""))
+                                 server_key, "ALL", false, ""))
       << server_manager->LastError();
   ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
-                                 client_key, "ALL", false,
-                                 "", ""))
+                                 client_key, "ALL", false, ""))
       << client_manager->LastError();
 
   const int times = 100;
@@ -414,11 +385,11 @@ TEST_F(SSLHandshakeTest, NoVerification_ResetConnection) {
 TEST_F(SSLHandshakeTest, CAVerification_BothSides_ResetConnection) {
   ASSERT_TRUE(InitServerManagers(security_manager::TLSv1_2, server_certificate,
                                  server_key, "ALL", true,
-                                 server_ca_cert_filename, client_verification_ca))
+                                 client_ca_cert_filename))
       << server_manager->LastError();
   ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
                                  client_key, "ALL", true,
-                                 client_ca_cert_filename, server_verification_ca))
+                                 server_ca_cert_filename))
       << client_manager->LastError();
 
 

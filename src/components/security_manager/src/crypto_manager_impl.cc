@@ -291,8 +291,8 @@ void CryptoManagerImpl::SetVerification() {
   }
   LOG4CXX_DEBUG(logger_, "Setting up CA certificate location");
   const int result = SSL_CTX_load_verify_locations(context_,
-                                                   ca_certificate_file_.c_str(),
-                                                   NULL);
+                                                   NULL,
+                                                   ca_certificate_file_.c_str());
   if (!result) {
     const unsigned long error = ERR_get_error();
     UNUSED(error);

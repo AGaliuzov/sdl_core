@@ -7,6 +7,7 @@
 """
 
 import os
+import subprocess
 import tempfile
 from argparse import ArgumentParser
 from subprocess import check_call
@@ -45,12 +46,12 @@ def gen_cert(out_cert_file, key_file, ca_cert_file, ca_key_file, days, answer):
     """Certificate generator
     wrap console call
     'openssl req -new -key $key_file -days $days -out $out_cert_file -subj $answer'
-    'openssl x509 -req -in $out_cert_file -CA $ca_cert_file -CAkey ca_key_file -CAcreateserial -out $out_cert_file -days 5000'
+    'openssl x509 -hash -req -in $out_cert_file -CA $ca_cert_file -CAkey ca_key_file -CAcreateserial -out $out_cert_file -days 5000'
     """
     request_file = out_cert_file + ".req"
     openssl("req -new -key", key_file, "-days", days, "-out", request_file, "-subj", answer)
 
-    openssl("x509 -req -in", request_file, "-CA", ca_cert_file, "-CAkey", ca_key_file, \
+    openssl("x509 -hash -req -in", request_file, "-CA", ca_cert_file, "-CAkey", ca_key_file, \
         "-CAcreateserial -out", out_cert_file, "-days", days)
 
 def gen_expire_cert(out_cert_file, key_file, ca_cert_file, ca_key_file, days, answer):
@@ -159,65 +160,80 @@ def main():
     server_expired_answer  = answers("server", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile_expired" ,"sample@luxoft.com")
     days = 10000
 
-    print " --== Root certificate generating ==-- "
-    root_key_file  = "root.key"
-    root_cert_file = "root.crt"
-    gen_rsa_key(root_key_file, 2048)
-    gen_root_cert(root_cert_file, root_key_file, days, root_answer)
+    server_dir = "server"
+    client_dir = "client"
+    if not os.path.exists(server_dir):
+        os.mkdir(server_dir)
+    if not os.path.exists(client_dir):
+        os.mkdir(client_dir)
+
+    print " --== Root certificate generating SERVER==-- "
+    server_root_key_file  = os.path.join(server_dir, "root.key")
+    server_root_cert_file = os.path.join(server_dir, "root.crt")
+    gen_rsa_key(server_root_key_file, 2048)
+    gen_root_cert(server_root_cert_file, server_root_key_file, days, root_answer)
+
+    print " --== Root certificate generating CLIENT==-- "
+    client_root_key_file  = os.path.join(client_dir, "root.key")
+    client_root_cert_file = os.path.join(client_dir, "root.crt")
+    gen_rsa_key(client_root_key_file, 2048)
+    gen_root_cert(client_root_cert_file, client_root_key_file, days, root_answer)
 
     print
     print " --== Ford server CA certificate generating ==-- "
-    ford_server_key_file  = "ford_server.key"
-    ford_server_cert_file = "ford_server.crt"
+    ford_server_key_file  = os.path.join(server_dir, "ford_server.key")
+    ford_server_cert_file = os.path.join(server_dir, "ford_server.crt")
     gen_rsa_key(ford_server_key_file, 2048)
-    gen_cert(ford_server_cert_file, ford_server_key_file, root_cert_file, root_key_file, days, ford_server_answer)
+    gen_cert(ford_server_cert_file, ford_server_key_file, server_root_cert_file, server_root_key_file, days, ford_server_answer)
 
     print
     print " --== Ford client CA certificate generating ==-- "
-    ford_client_key_file  = "ford_client.key"
-    ford_client_cert_file = "ford_client.crt"
+    ford_client_key_file  = os.path.join(client_dir, "ford_client.key")
+    ford_client_cert_file = os.path.join(client_dir, "ford_client.crt")
     gen_rsa_key(ford_client_key_file, 2048)
-    gen_cert(ford_client_cert_file, ford_client_key_file, root_cert_file, root_key_file, days, ford_client_answer)
+    gen_cert(ford_client_cert_file, ford_client_key_file, client_root_cert_file, client_root_key_file, days, ford_client_answer)
 
     print
     print " --== SDL and SPT adjustment  ==-- "
-    server_verification_ca_cert_file = "server_verification_ca_cetrificates.crt"
-    client_verification_ca_cert_file = "client_verification_ca_cetrificates.crt"
-    concat_files(server_verification_ca_cert_file, root_cert_file, ford_server_cert_file)
-    concat_files(client_verification_ca_cert_file, root_cert_file, ford_client_cert_file)
+    server_verification_ca_cert_file = os.path.join(server_dir, "server_verification_ca_cetrificates.crt")
+    client_verification_ca_cert_file = os.path.join(client_dir,  "client_verification_ca_cetrificates.crt")
+    concat_files(server_verification_ca_cert_file, server_root_cert_file, ford_server_cert_file)
+    concat_files(client_verification_ca_cert_file, client_root_cert_file, ford_client_cert_file)
 
 
     print
     print " --== Client certificate generating ==-- "
-    client_key_file  = "client.key"
-    client_cert_file = "client.crt"
+    client_key_file  = os.path.join(client_dir, "client.key")
+    client_cert_file = os.path.join(client_dir, "client.crt")
     gen_rsa_key(client_key_file, 2048)
     gen_cert(client_cert_file, client_key_file, ford_client_cert_file, ford_client_key_file, days, client_answer)
 
 
     print
     print " --== Server certificate generating ==-- "
-    server_key_file = "server.key"
-    server_cert_file = "server.crt"
-    server_pkcs12_file = "spt_credential.p12"
+    server_key_file = os.path.join(server_dir, "server.key")
+    server_cert_file = os.path.join(server_dir, "server.crt")
+    server_pkcs12_file = os.path.join(server_dir, "spt_credential.p12")
     gen_rsa_key(server_key_file, 2048)
     gen_cert(server_cert_file, server_key_file, ford_server_cert_file, ford_server_key_file, days, server_answer)
     gen_pkcs12(server_pkcs12_file, server_key_file, server_cert_file, client_verification_ca_cert_file)
 
     print
     print " --== Server unsigned certificate generating ==-- "
-    server_unsigned_cert_file = "server_unsigned.crt"
-    server_pkcs12_unsigned_file = "spt_credential_unsigned.p12"
+    server_unsigned_cert_file = os.path.join(server_dir, "server_unsigned.crt")
+    server_pkcs12_unsigned_file = os.path.join(server_dir, "spt_credential_unsigned.p12")
     gen_root_cert(server_unsigned_cert_file, server_key_file, days, server_unsigned_answer)
     gen_pkcs12(server_pkcs12_unsigned_file, server_key_file, server_unsigned_cert_file, client_verification_ca_cert_file)
 
     print
     print " --== Server expired certificate generating ==-- "
-    server_expired_cert_file = "server_expired.crt"
-    server_pkcs12_expired_file = "spt_credential_expired.p12"
+    server_expired_cert_file = os.path.join(server_dir, "server_expired.crt")
+    server_pkcs12_expired_file = os.path.join(server_dir, "spt_credential_expired.p12")
     gen_expire_cert(server_expired_cert_file, server_key_file, ford_server_cert_file, ford_server_key_file, days, server_expired_answer)
     gen_pkcs12(server_pkcs12_expired_file, server_key_file, server_expired_cert_file, client_verification_ca_cert_file)
 
+    subprocess.call(["c_rehash", server_dir])
+    subprocess.call(["c_rehash", client_dir])
     print
     print "All certificates have been generated"
 
