@@ -41,7 +41,6 @@
 #include <unistd.h>
 #include <string.h>
 
-#include <iostream>
 
 #include "transport_manager/transport_manager_default.h"
 #include "config_profile/profile.h"
