@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,23 +33,42 @@
 #ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_RESUMPTION_RESUMPTION_DATA_DB_H_
 #define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_RESUMPTION_RESUMPTION_DATA_DB_H_
 #include "application_manager/resumption/resumption_data.h"
-#if __QNX__
-#  include "qdb_wrapper/sql_database.h"
-#  include "qdb_wrapper/sql_query.h"
-#else  // __QNX__
-#include "utils/sqlite_wrapper/sql_database.h"
-#include "utils/sqlite_wrapper/sql_query.h"
-#endif  // __QNX__
+#include "sql_database.h"
+#include "sql_query.h"
 
 namespace resumption {
 
+/**
+ * @brief Points what structure contains vr commands
+ */
 enum AccessoryVRCommand {
   kVRCommandFromChoice = 0,
   kVRCommandFromCommand
 };
 
+/**
+ * @brief class contains logic for representation application data in
+ * data base
+ */
 class ResumptionDataDB : public ResumptionData {
-  public:
+ public:
+
+  /**
+   * @brief Constructor of ResumptionDataDB
+   */
+  ResumptionDataDB();
+
+  /**
+   * @brief allows to destroy ResumptionDataDB object
+   */
+  virtual ~ResumptionDataDB();
+
+  /**
+   * @brief Creates or opens DB and initialize it
+   * @return false if DB doesn't initialize
+   * otherwise returns true
+   */
+  virtual bool Init();
 
   /**
    * @brief Save application persistent info for future resuming to db
@@ -61,18 +80,18 @@ class ResumptionDataDB : public ResumptionData {
    * @brief Returns HMI level of application from saved data
    * @param policy_app_id contains mobile application id of application
    * @param device_id contains id of device on which is running application
-   * @return HMI level if saved data does not contain HMI level method
+   * @return HMI level, if saved data does not contain HMI level method
    * returns -1
    */
-  virtual int GetStoredHMILevel(const std::string& policy_app_id,
-                                const std::string& device_id);
+  virtual int32_t GetStoredHMILevel(const std::string& policy_app_id,
+                                const std::string& device_id) const;
 
   /**
    * @brief Checks if saved data of applications have hmi app id
    * @param hmi_app_id - hmi application id
    * @return true if exist, otherwise false
    */
-  virtual bool IsHMIApplicationIdExist(uint32_t hmi_app_id);
+  virtual bool IsHMIApplicationIdExist(uint32_t hmi_app_id) const;
 
   /**
    * @brief Checks if saved data have application
@@ -91,7 +110,7 @@ class ResumptionDataDB : public ResumptionData {
    * @return HMI app ID
    */
   virtual uint32_t GetHMIApplicationID(const std::string& policy_app_id,
-                                       const std::string& device_id);
+                                       const std::string& device_id) const;
 
   /**
    * @brief Increments ignition counter for all registered applications
@@ -110,7 +129,7 @@ class ResumptionDataDB : public ResumptionData {
    */
   virtual bool GetHashId(const std::string& policy_app_id,
                          const std::string& device_id,
-                         std::string& hash_id);
+                         std::string& hash_id) const;
 
   /**
    * @brief Decrements ignition counter for all registered applications
@@ -129,7 +148,7 @@ class ResumptionDataDB : public ResumptionData {
    */
   virtual bool GetSavedApplication(const std::string& policy_app_id,
                                    const std::string& device_id,
-                                   smart_objects::SmartObject& saved_app);
+                                   smart_objects::SmartObject& saved_app) const;
 
   /**
    * @brief Remove application from list of saved applications
@@ -144,7 +163,7 @@ class ResumptionDataDB : public ResumptionData {
    * @brief Get the last ignition off time from LastState
    * @return the last ignition off time from LastState
    */
-  virtual uint32_t GetIgnOffTime();
+  virtual uint32_t GetIgnOffTime() const;
 
   /**
    * @brief Checks if saved data have application
@@ -152,14 +171,14 @@ class ResumptionDataDB : public ResumptionData {
    * @param device_id - contains id of device on which is running application
    * @return 0 if saved data contains application otherwise returns -1
    */
-  virtual int IsApplicationSaved(const std::string& policy_app_id,
-                                 const std::string& device_id);
+  virtual ssize_t IsApplicationSaved(const std::string& policy_app_id,
+                                 const std::string& device_id) const;
 
   /**
    * @brief Retrieves data from saved application
    * @param  will contain data for resume_ctrl
    */
-  virtual void GetDataForLoadResumeData(smart_objects::SmartObject& saved_data);
+  virtual void GetDataForLoadResumeData(smart_objects::SmartObject& saved_data) const;
 
   /**
    * @brief Updates HMI level of saved application
@@ -170,19 +189,8 @@ class ResumptionDataDB : public ResumptionData {
   virtual void UpdateHmiLevel(const std::string& policy_app_id,
                               const std::string& device_id,
                               int32_t hmi_level);
-  /**
-   * @brief Creates or opens DB and initialize it
-   * @return false if DB doesn't initialize
-   * otherwise returns true
-   */
-  virtual bool Init();
 
-  virtual ~ResumptionDataDB();
-  ResumptionDataDB();
-
-
-
-  private:
+ private:
 
   /**
    * @brief Retrieves hmi level from db
@@ -193,13 +201,13 @@ class ResumptionDataDB : public ResumptionData {
    * otherwise returns false
    */
   bool SelectHMILevel(const std::string& policy_app_id, const std::string& device_id,
-                      int& hmi_level);
+                      int& hmi_level) const;
   /**
    * @brief Checks existence HMI id in DB
    * @param hmi_app_id - HMI id
    * return true if hmiID is same with saved hmiID otherwise returns false
    */
-  bool CheckExistenceHMIId(uint32_t hmi_app_id);
+  bool CheckExistenceHMIId(uint32_t hmi_app_id) const;
 
   /**
    * @brief Select HMI id from saved application
@@ -208,7 +216,7 @@ class ResumptionDataDB : public ResumptionData {
    * @param hmi_id - will contains hmi id from saved application
    */
   void SelectHMIId(const std::string& policy_app_id, const std::string& device_id,
-                   uint32_t& hmi_id);
+                   uint32_t& hmi_id) const;
 
   /**
    * @brief Select hash id from saved application
@@ -218,13 +226,13 @@ class ResumptionDataDB : public ResumptionData {
    */
   bool SelectHashId(const std::string& policy_app_id,
                     const std::string& device_id,
-                    std::string& hash_id);
+                    std::string& hash_id) const;
 
   /**
    * @brief Select Ign off time
    * @return Ign off time from saved data
    */
-  uint32_t SelectIgnOffTime();
+  uint32_t SelectIgnOffTime() const;
 
   /**
    * @brief Checks existence application in DB
@@ -237,15 +245,13 @@ class ResumptionDataDB : public ResumptionData {
    */
   bool CheckExistenceApplication(const std::string& policy_app_id,
                                  const std::string& device_id,
-                                 bool& application_exist);
+                                 bool& application_exist) const;
 
   /**
    * @brief Retrieves data from saved application
    * @param will contain data for resume_ctrl
    */
-  void SelectDataForLoadResumeData(smart_objects::SmartObject& saved_data);
-
-
+  void SelectDataForLoadResumeData(smart_objects::SmartObject& saved_data) const;
 
   /**
    * @brief Deletes saved application from db
@@ -266,7 +272,6 @@ class ResumptionDataDB : public ResumptionData {
    */
   bool DeleteSavedFiles(const std::string& policy_app_id,
                         const std::string& device_id);
-
 
   /**
    * @brief Deletes submenu from saved application
@@ -389,9 +394,10 @@ class ResumptionDataDB : public ResumptionData {
    * otherwise returns false
    */
   bool SaveApplicationToDB(app_mngr::ApplicationConstSharedPtr application,
-      const std::string& policy_app_id,
-      const std::string& device_id,
-      bool application_exist);
+                           const std::string& policy_app_id,
+                           const std::string& device_id,
+                           bool application_exist);
+
   /**
    * @brief Updates ignition of count on saved applications after onAwake
    * notification
@@ -432,7 +438,7 @@ class ResumptionDataDB : public ResumptionData {
    */
   bool ExecSelectPrimaryKeyFromApplication(
       const std::string& policy_app_id, const std::string& device_id,
-      int64_t& primary_key);
+      int64_t& primary_key) const;
 
   /**
    * @brief Execute query in order to insert image to DB
@@ -479,7 +485,6 @@ class ResumptionDataDB : public ResumptionData {
   bool ExecInsertApplicationChoiceSet(int64_t& choice_set_primary_key,
                                       const smart_objects::SmartObject& choiceset);
 
-
   /**
    * @brief combines primary key from several table to new table
    * @param first_primary_key - will contain primary key from first DB table
@@ -511,7 +516,6 @@ class ResumptionDataDB : public ResumptionData {
    */
   bool ExecInsertVRHelpItem(int64_t global_properties_key,
                             const smart_objects::SmartObject& vrhelp_array);
-
 
   /**
    * @brief Execute query in order to insert data to ttsChunk table
@@ -552,14 +556,13 @@ class ResumptionDataDB : public ResumptionData {
                              int64_t global_properties_key,
                              bool application_exist);
 
-
   /**
    * @brief Delete application data where ign_off_count >= application_lifes
    * @param application_lifes contains amount ign off
    * @return true if query was run successfully otherwise returns
    * false
    */
-  bool DeleteAppWithIgnCount(int application_lifes);
+  bool DeleteAppWithIgnCount(const int application_lifes);
 
   /**
    * @brief Selects data from file table
@@ -570,7 +573,7 @@ class ResumptionDataDB : public ResumptionData {
    * false
    */
   bool SelectFilesData(const std::string& policy_app_id, const std::string& device_id,
-                        smart_objects::SmartObject& saved_app);
+                       smart_objects::SmartObject& saved_app) const;
 
   /**
    * @brief Selects data from subMenu table
@@ -581,7 +584,7 @@ class ResumptionDataDB : public ResumptionData {
    * false
    */
   bool SelectSubmenuData(const std::string& policy_app_id, const std::string& device_id,
-                         smart_objects::SmartObject& saved_app);
+                         smart_objects::SmartObject& saved_app) const;
 
   /**
    * @brief Selects data from commands table
@@ -592,7 +595,7 @@ class ResumptionDataDB : public ResumptionData {
    * false
    */
   bool SelectCommandData(const std::string& policy_app_id, const std::string& device_id,
-                         smart_objects::SmartObject& saved_app);
+                         smart_objects::SmartObject& saved_app) const;
 
   /**
    * @brief Selects data from applicationSubscribtionsArray table
@@ -603,7 +606,7 @@ class ResumptionDataDB : public ResumptionData {
    * false
    */
   bool SelectSubscriptionsData(const  std::string& policy_app_id, const std::string& device_id,
-                               smart_objects::SmartObject& saved_app);
+                               smart_objects::SmartObject& saved_app) const;
 
   /**
    * @brief Selects choice set data from DB
@@ -614,7 +617,7 @@ class ResumptionDataDB : public ResumptionData {
    * false
    */
   bool SelectChoiceSetData(const std::string& policy_app_id, const std::string& device_id,
-                           smart_objects::SmartObject& saved_app);
+                           smart_objects::SmartObject& saved_app) const;
 
   /**
    * @brief Selects global properties data from DB
@@ -625,7 +628,7 @@ class ResumptionDataDB : public ResumptionData {
    * false
    */
   bool SelectGlobalPropertiesData(const std::string& policy_app_id, const std::string& device_id,
-                                  smart_objects::SmartObject& saved_app);
+                                  smart_objects::SmartObject& saved_app) const;
 
   /**
    * @brief Selects image data from DB
@@ -634,7 +637,7 @@ class ResumptionDataDB : public ResumptionData {
    * @return true if query was run successfully otherwise returns
    * false
    */
-  bool SelectImageData(int64_t image_key, smart_objects::SmartObject& image);
+  bool SelectImageData(int64_t image_key, smart_objects::SmartObject& image) const;
 
   /**
    * @brief Selects ttsChunk data from DB
@@ -643,7 +646,7 @@ class ResumptionDataDB : public ResumptionData {
    * @return true if query was run successfully otherwise returns
    * false
    */
-  bool SelectTTSChunkData(int64_t tts_chunk_key, smart_objects::SmartObject& tts_chunk);
+  bool SelectTTSChunkData(int64_t tts_chunk_key, smart_objects::SmartObject& tts_chunk) const;
 
   /**
    * @brief Selects VR help items data from DB
@@ -653,7 +656,7 @@ class ResumptionDataDB : public ResumptionData {
    * false
    */
   bool SelectVrHelpItemsData(int64_t global_properties_key,
-                             smart_objects::SmartObject& global_properties);
+                             smart_objects::SmartObject& global_properties) const;
 
   /**
    * @brief Selects table limited character data from DB
@@ -663,8 +666,7 @@ class ResumptionDataDB : public ResumptionData {
    * false
    */
   bool SelectCharactersData(int64_t global_properties_key,
-                            smart_objects::SmartObject& keyboard_properties);
-
+                            smart_objects::SmartObject& keyboard_properties) const;
 
   /**
    * @brief Selects data from application table of DB
@@ -675,8 +677,7 @@ class ResumptionDataDB : public ResumptionData {
    * false
    */
   bool SelectDataFromAppTable(const std::string& policy_app_id, const std::string& device_id,
-                              smart_objects::SmartObject& saved_app);
-
+                              smart_objects::SmartObject& saved_app) const;
 
   /**
    * @brief Selects count from array table
@@ -689,9 +690,7 @@ class ResumptionDataDB : public ResumptionData {
    */
   bool SelectCountFromArray(uint32_t& count_item, const std::string& text_query,
                             const std::string& policy_app_id,
-                            const std::string& device_id);
-
-
+                            const std::string& device_id) const;
 
   /**
    * @brief Binds data from smart object with query
@@ -701,7 +700,7 @@ class ResumptionDataDB : public ResumptionData {
    * @param pos contains position for binding query
    */
   void CustomBind(const std::string& key, const smart_objects::SmartObject& so,
-                  utils::dbms::SQLQuery& query, const int pos);
+                  utils::dbms::SQLQuery& query, const int pos) const;
 
   /**
    * @brief prepare and bind the same type query
@@ -713,7 +712,8 @@ class ResumptionDataDB : public ResumptionData {
    * false
    */
   bool PrepareSelectQuery(utils::dbms::SQLQuery& query, const std::string& policy_app_id,
-                           const std::string& device_id, const std::string& text_query);
+                          const std::string& device_id, const std::string& text_query) const;
+
   /**
    * @brief Writes data to DB after update
    */

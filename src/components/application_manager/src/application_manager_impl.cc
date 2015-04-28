@@ -1441,8 +1441,8 @@ bool ApplicationManagerImpl::Init() {
       return false;
     }
   }
-  if(!resume_ctrl_.Init()) {
-    LOG4CXX_ERROR(logger_, "Problem with initialization resume controller");
+  if (!resume_ctrl_.Init()) {
+    LOG4CXX_ERROR(logger_, "Problem with initialization of resume controller");
     return false;
   }
 
@@ -2123,13 +2123,13 @@ void ApplicationManagerImpl::UnregisterApplication(
   }
 
   if (is_resuming) {
-  #ifdef CUSTOMER_PASA
-      if (false == is_state_suspended_) {
-  #endif
-        resume_ctrl_.SaveApplication(app_to_remove);
-  #ifdef CUSTOMER_PASA
-      }
-  #endif
+#ifdef CUSTOMER_PASA
+    if (false == is_state_suspended_) {
+#endif
+      resume_ctrl_.SaveApplication(app_to_remove);
+#ifdef CUSTOMER_PASA
+    }
+#endif
     } else {
       resume_ctrl_.RemoveApplicationFromSaved(app_to_remove);
     }
