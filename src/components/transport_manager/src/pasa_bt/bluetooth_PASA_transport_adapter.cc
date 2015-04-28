@@ -57,7 +57,7 @@ BluetoothPASATransportAdapter::BluetoothPASATransportAdapter()
 }
 
 DeviceType BluetoothPASATransportAdapter::GetDeviceType() const {
-  return "pasa-bluetooth";
+  return PASA_BLUETOOTH;
 }
 
 }  // namespace transport_adapter

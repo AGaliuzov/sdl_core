@@ -44,7 +44,7 @@ MmeTransportAdapter::MmeTransportAdapter()
 }
 
 DeviceType MmeTransportAdapter::GetDeviceType() const {
-  return "sdl-mme";
+  return MME;
 }
 
 bool MmeTransportAdapter::IsInitialised() const {

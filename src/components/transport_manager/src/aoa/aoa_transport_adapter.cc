@@ -99,7 +99,7 @@ TransportAdapter::Error AOATransportAdapter::Init() {
 }
 
 DeviceType AOATransportAdapter::GetDeviceType() const {
-  return "pasa-aoa";
+  return PASA_AOA;
 }
 
 bool AOATransportAdapter::IsInitialised() const {
