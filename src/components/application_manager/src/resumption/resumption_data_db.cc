@@ -156,7 +156,7 @@ void ResumptionDataDB::SaveApplication(
     }
   }
 
-  if (!SaveApplicationToDB(application, policy_app_id, device_id, application_exist)) {
+  if (!SaveApplicationToDB(application, policy_app_id, device_id)) {
     LOG4CXX_ERROR(logger_, "Saving of application data is not finished");
     return;
   }
@@ -1221,6 +1221,10 @@ bool ResumptionDataDB::DeleteSavedApplication(const std::string& policy_app_id,
     db_->RollbackTransaction();
     return false;
   }
+  if (!DeleteDataFromApplicationTable(policy_app_id, device_id)) {
+    db_->RollbackTransaction();
+    return false;
+  }
   db_->CommitTransaction();
   return true;
 }
@@ -1411,6 +1415,20 @@ bool ResumptionDataDB::DeleteSavedGlobalProperties(const std::string& policy_app
   return true;
 }
 
+bool ResumptionDataDB::DeleteDataFromApplicationTable(const std::string& policy_app_id,
+                                                      const std::string& device_id) {
+  LOG4CXX_AUTO_TRACE(logger_);
+
+  if (!ExecQueryToDeleteData(
+      policy_app_id, device_id, kDeleteFromApplicationTable)) {
+    LOG4CXX_WARN(logger_,
+                 "Incorrect delete data from application table");
+    return false;
+  }
+
+  return true;
+}
+
 bool ResumptionDataDB::ExecQueryToDeleteData(const std::string& policy_app_id,
                                              const std::string& device_id,
                                              const std::string& text_query) {
@@ -1437,23 +1455,6 @@ bool ResumptionDataDB::ExecUnionQueryToDeleteData(const std::string& policy_app_
     query.Bind(2, policy_app_id);
     query.Bind(3, device_id);
     result = query.Exec();
-  }
-  return result;
-}
-
-bool ResumptionDataDB::ExecSelectPrimaryKeyFromApplication(
-    const std::string& policy_app_id, const std::string& device_id,
-    int64_t& primary_key) const {
-  LOG4CXX_AUTO_TRACE(logger_);
-  utils::dbms::SQLQuery query(db());
-  bool result =  query.Prepare(kSelectPrimaryKeyFromApplication);
-  if (result) {
-    query.Bind(0, policy_app_id);
-    query.Bind(1, device_id);
-    result = query.Exec();
-    if (result) {
-      primary_key = query.GetUInteger(0);
-    }
   }
   return result;
 }
@@ -1632,8 +1633,7 @@ bool ResumptionDataDB::ExecInsertDataToArray(
 bool ResumptionDataDB::SaveApplicationToDB(
       app_mngr::ApplicationConstSharedPtr application,
       const std::string& policy_app_id,
-      const std::string& device_id,
-      bool application_exist) {
+      const std::string& device_id) {
 
   LOG4CXX_AUTO_TRACE(logger_);
   int64_t application_primary_key = 0;
@@ -1645,8 +1645,7 @@ bool ResumptionDataDB::SaveApplicationToDB(
     return false;
   }
   if (!InsertApplicationData(application, policy_app_id, device_id,
-                             application_primary_key, global_properties_key,
-                             application_exist)) {
+                             application_primary_key, global_properties_key)) {
     LOG4CXX_WARN(logger_, "Incorrect insert application data to DB.");
     db_->RollbackTransaction();
     return false;
@@ -2235,8 +2234,7 @@ bool ResumptionDataDB::InsertApplicationData(app_mngr::ApplicationConstSharedPtr
                                              const std::string& policy_app_id,
                                              const std::string& device_id,
                                              int64_t& application_primary_key,
-                                             int64_t global_properties_key,
-                                             bool application_exist) {
+                                             int64_t global_properties_key) {
   LOG4CXX_AUTO_TRACE(logger_);
   using namespace app_mngr;
   utils::dbms::SQLQuery query(db());
@@ -2249,19 +2247,12 @@ bool ResumptionDataDB::InsertApplicationData(app_mngr::ApplicationConstSharedPtr
   const mobile_apis::HMILevel::eType hmi_level = application->hmi_level();
   bool is_media_application = application->IsAudioApplication();
 
-  if (application_exist) {
-    if (!query.Prepare(kUpdateApplication)){
-      LOG4CXX_WARN(logger_, "Problem with verification query "
-                   "for update table application");
-      return false;
-    }
-  } else {
-    if (!query.Prepare(kInsertApplication)){
-      LOG4CXX_WARN(logger_, "Problem with verification query "
-                   "for insert to table application");
-      return false;
-    }
+  if (!query.Prepare(kInsertApplication)) {
+    LOG4CXX_WARN(logger_, "Problem with verification query "
+                 "for insert to table application");
+    return false;
   }
+
   /* Positions of binding data for "query":
      field "connection_key" from table "application" = 0
      field "grammarID" from table "application" = 1
@@ -2292,18 +2283,8 @@ bool ResumptionDataDB::InsertApplicationData(app_mngr::ApplicationConstSharedPtr
     LOG4CXX_WARN(logger_, "Problem with execution query");
     return false;
   }
-
-  if (application_exist) {
-    if (!ExecSelectPrimaryKeyFromApplication(policy_app_id, device_id,
-                                            application_primary_key)) {
-      LOG4CXX_INFO(logger_, "Problem with receiving application primary key");
-      return false;
-    }
-  } else {
-    application_primary_key = query.LastInsertId();
-  }
-
-  LOG4CXX_INFO(logger_, "Application data were saved successfully");
+  application_primary_key = query.LastInsertId();
+  LOG4CXX_INFO(logger_, "Data were saved successfully to application table");
   return true;
 }
 
