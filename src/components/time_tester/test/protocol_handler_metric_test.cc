@@ -31,7 +31,6 @@
  */
 
 #include "gtest/gtest.h"
-#include "metric_wrapper.h"
 #include "json_keys.h"
 #include "json/json.h"
 #include "utils/resource_usage.h"
@@ -43,17 +42,14 @@ namespace components {
 namespace time_tester_test {
 
 using namespace ::time_tester;
-using namespace ::utils;
-using namespace protocol_handler;
 
 TEST(ProtocolHandlerMetricTest, grabResources) {
-  ProtocolHandlerMecticWrapper * metric_test = new ProtocolHandlerMecticWrapper();
-  EXPECT_TRUE(metric_test->grabResources());
-  delete metric_test;
+  ProtocolHandlerMecticWrapper metric_test;
+  EXPECT_TRUE(metric_test.grabResources());
 }
 
 TEST(ProtocolHandlerMetricTest, GetJsonMetric) {
-  ProtocolHandlerMecticWrapper * metric_test = new ProtocolHandlerMecticWrapper();
+  ProtocolHandlerMecticWrapper metric_test;
 
   TimevalStruct start_time;
   start_time.tv_sec = 1;
@@ -62,12 +58,12 @@ TEST(ProtocolHandlerMetricTest, GetJsonMetric) {
   TimevalStruct end_time;
   end_time.tv_sec = 10;
   end_time.tv_usec = 0;
-  metric_test->message_metric = new PHMetricObserver::MessageMetric();
-  metric_test->message_metric->begin = start_time;
-  metric_test->message_metric->end = end_time;
-  metric_test->message_metric->message_id = 5;
-  metric_test->message_metric->connection_key = 2;
-  Json::Value jvalue = metric_test->GetJsonMetric();
+  metric_test.message_metric = new protocol_handler::PHMetricObserver::MessageMetric();
+  metric_test.message_metric->begin = start_time;
+  metric_test.message_metric->end = end_time;
+  metric_test.message_metric->message_id = 5;
+  metric_test.message_metric->connection_key = 2;
+  Json::Value jvalue = metric_test.GetJsonMetric();
 
   EXPECT_EQ("\"ProtocolHandler\"\n", jvalue[strings::logger].toStyledString());
   EXPECT_EQ("null\n", jvalue[strings::stime].toStyledString());
@@ -78,13 +74,12 @@ TEST(ProtocolHandlerMetricTest, GetJsonMetric) {
   EXPECT_EQ(date_time::DateTime::getuSecs(end_time), jvalue[strings::end].asInt64());
   EXPECT_EQ(5, jvalue[strings::message_id].asInt64());
   EXPECT_EQ(2, jvalue[strings::connection_key].asInt());
-  delete metric_test;
 }
 
 TEST(ProtocolHandlerMetricTest, GetJsonMetricWithGrabResources) {
-  ProtocolHandlerMecticWrapper * metric_test = new ProtocolHandlerMecticWrapper();
-  ResourseUsage* resources = Resources::getCurrentResourseUsage();
-  EXPECT_TRUE(metric_test->grabResources());
+  ProtocolHandlerMecticWrapper metric_test;
+  utils::ResourseUsage* resources = utils::Resources::getCurrentResourseUsage();
+  EXPECT_TRUE(metric_test.grabResources());
 
   TimevalStruct start_time;
   start_time.tv_sec = 1;
@@ -93,12 +88,12 @@ TEST(ProtocolHandlerMetricTest, GetJsonMetricWithGrabResources) {
   TimevalStruct end_time;
   end_time.tv_sec = 10;
   end_time.tv_usec = 0;
-  metric_test->message_metric = new PHMetricObserver::MessageMetric();
-  metric_test->message_metric->begin = start_time;
-  metric_test->message_metric->end = end_time;
-  metric_test->message_metric->message_id = 5;
-  metric_test->message_metric->connection_key = 2;
-  Json::Value jvalue = metric_test->GetJsonMetric();
+  metric_test.message_metric = new protocol_handler::PHMetricObserver::MessageMetric();
+  metric_test.message_metric->begin = start_time;
+  metric_test.message_metric->end = end_time;
+  metric_test.message_metric->message_id = 5;
+  metric_test.message_metric->connection_key = 2;
+  Json::Value jvalue = metric_test.GetJsonMetric();
 
   EXPECT_TRUE(jvalue[strings::stime].isInt());
   EXPECT_TRUE(jvalue[strings::utime].isInt());
@@ -115,9 +110,7 @@ TEST(ProtocolHandlerMetricTest, GetJsonMetricWithGrabResources) {
   EXPECT_EQ(resources->stime, jvalue[strings::stime].asInt());
   EXPECT_EQ(resources->utime, jvalue[strings::utime].asInt());
   EXPECT_EQ(resources->memory, jvalue[strings::memory].asInt());
-
   delete resources;
-  delete metric_test;
 }
 
 }  // namespace time_tester

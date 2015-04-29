@@ -31,30 +31,25 @@
  */
 
 #include "gtest/gtest.h"
-#include "metric_wrapper.h"
 #include "json_keys.h"
 #include "json/json.h"
 #include "utils/resource_usage.h"
 #include "transport_manager_metric.h"
 #include "protocol_handler/time_metric_observer.h"
-#include "application_manager/smart_object_keys.h"
 
 namespace test {
 namespace components {
 namespace time_tester_test {
 
 using namespace ::time_tester;
-using namespace ::utils;
-using namespace protocol_handler;
 
 TEST(TransportManagerMetricWrapper, grabResources) {
-  TransportManagerMecticWrapper * metric_test = new TransportManagerMecticWrapper();
-  EXPECT_TRUE(metric_test->grabResources());
-  delete metric_test;
+  TransportManagerMecticWrapper metric_test;
+  EXPECT_TRUE(metric_test.grabResources());
 }
 
 TEST(TransportManagerMetricWrapper, GetJsonMetric) {
-  TransportManagerMecticWrapper * metric_test = new TransportManagerMecticWrapper();
+  TransportManagerMecticWrapper metric_test;
 
   TimevalStruct start_time;
   start_time.tv_sec = 1;
@@ -63,11 +58,11 @@ TEST(TransportManagerMetricWrapper, GetJsonMetric) {
   TimevalStruct end_time;
   end_time.tv_sec = 10;
   end_time.tv_usec = 0;
-  metric_test->message_metric = new transport_manager::TMMetricObserver::MessageMetric();
-  metric_test->message_metric->begin = start_time;
-  metric_test->message_metric->end = end_time;
-  metric_test->message_metric->data_size = 1000;
-  Json::Value jvalue = metric_test->GetJsonMetric();
+  metric_test.message_metric = new transport_manager::TMMetricObserver::MessageMetric();
+  metric_test.message_metric->begin = start_time;
+  metric_test.message_metric->end = end_time;
+  metric_test.message_metric->data_size = 1000;
+  Json::Value jvalue = metric_test.GetJsonMetric();
 
   EXPECT_EQ("null\n", jvalue[strings::stime].toStyledString());
   EXPECT_EQ("null\n", jvalue[strings::utime].toStyledString());
@@ -76,14 +71,12 @@ TEST(TransportManagerMetricWrapper, GetJsonMetric) {
   EXPECT_EQ(date_time::DateTime::getuSecs(start_time), jvalue[strings::begin].asInt64());
   EXPECT_EQ(date_time::DateTime::getuSecs(end_time), jvalue[strings::end].asInt64());
   EXPECT_EQ(1000, jvalue[strings::data_size].asInt());
-
-  delete metric_test;
 }
 
 TEST(TransportManagerMetricWrapper, GetJsonMetricWithGrabResources) {
-  TransportManagerMecticWrapper * metric_test = new TransportManagerMecticWrapper();
-  ResourseUsage* resources = Resources::getCurrentResourseUsage();
-  EXPECT_TRUE(metric_test->grabResources());
+  TransportManagerMecticWrapper metric_test;
+  utils::ResourseUsage* resources = utils::Resources::getCurrentResourseUsage();
+  EXPECT_TRUE(metric_test.grabResources());
 
   TimevalStruct start_time;
   start_time.tv_sec = 1;
@@ -92,12 +85,12 @@ TEST(TransportManagerMetricWrapper, GetJsonMetricWithGrabResources) {
   TimevalStruct end_time;
   end_time.tv_sec = 10;
   end_time.tv_usec = 0;
-  metric_test->message_metric = new transport_manager::TMMetricObserver::MessageMetric();
-  metric_test->message_metric->begin = start_time;
-  metric_test->message_metric->end = end_time;
+  metric_test.message_metric = new transport_manager::TMMetricObserver::MessageMetric();
+  metric_test.message_metric->begin = start_time;
+  metric_test.message_metric->end = end_time;
 
-  metric_test->message_metric->data_size = 1000;
-  Json::Value jvalue = metric_test->GetJsonMetric();
+  metric_test.message_metric->data_size = 1000;
+  Json::Value jvalue = metric_test.GetJsonMetric();
 
   EXPECT_EQ("\"TransportManager\"\n", jvalue[strings::logger].toStyledString());
   EXPECT_EQ(date_time::DateTime::getuSecs(start_time), jvalue[strings::begin].asInt64());
@@ -109,7 +102,6 @@ TEST(TransportManagerMetricWrapper, GetJsonMetricWithGrabResources) {
   EXPECT_EQ(resources->memory, jvalue[strings::memory].asInt());
 
   delete resources;
-  delete metric_test;
 }
 
 }  // namespace time_tester

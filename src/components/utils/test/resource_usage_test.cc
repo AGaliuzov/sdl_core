@@ -86,13 +86,11 @@ TEST_F(ResourceUsagePrivateTest, GetProcPathTest) {
 namespace test {
 namespace components {
 namespace utils {
-using namespace ::utils;
 
 TEST(ResourceUsageTest, SuccesfulGrabResources) {
-  ResourseUsage* resources = Resources::getCurrentResourseUsage();
+  ::utils::ResourseUsage* resources = ::utils::Resources::getCurrentResourseUsage();
   EXPECT_TRUE(resources != NULL);
   delete resources;
-
 }
 
 }  // namespace utils

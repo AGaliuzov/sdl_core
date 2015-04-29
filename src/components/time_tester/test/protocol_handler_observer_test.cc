@@ -31,7 +31,6 @@
  */
 
 #include "gtest/gtest.h"
-#include "metric_wrapper.h"
 #include "time_manager.h"
 #include "include/time_manager_mock.h"
 #include "protocol_handler/time_metric_observer.h"
@@ -40,7 +39,6 @@ namespace test {
 namespace components {
 namespace time_tester_test {
 
-using namespace protocol_handler;
 using namespace time_tester;
 using ::testing::_;
 
@@ -54,7 +52,7 @@ TEST(ProtocolHandlerObserverTest, MessageProcess) {
   start_time.tv_usec = 0;
   pr_handler.StartMessageProcess(message_id, start_time);
 
-  utils::SharedPtr<PHMetricObserver::MessageMetric> message_metric = new PHMetricObserver::MessageMetric();
+  utils::SharedPtr<protocol_handler::PHMetricObserver::MessageMetric> message_metric = new protocol_handler::PHMetricObserver::MessageMetric();
   message_metric->message_id = 1;
   EXPECT_CALL(time_manager_mock, SendMetric(_));
   pr_handler.EndMessageProcess(message_metric);
@@ -70,7 +68,7 @@ TEST(ProtocolHandlerObserverTest, MessageProcessWithZeroMessageId) {
   start_time.tv_usec = 0;
   pr_handler.StartMessageProcess(message_id, start_time);
 
-  utils::SharedPtr<PHMetricObserver::MessageMetric> message_metric = new PHMetricObserver::MessageMetric();
+  utils::SharedPtr<protocol_handler::PHMetricObserver::MessageMetric> message_metric = new protocol_handler::PHMetricObserver::MessageMetric();
   message_metric->message_id = 0;
   EXPECT_CALL(time_manager_mock, SendMetric(_)).Times(0);
   pr_handler.EndMessageProcess(message_metric);

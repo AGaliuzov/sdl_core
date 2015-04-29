@@ -67,7 +67,7 @@ class Streamer : public threads::ThreadDelegate {
   bool IsReady() const;
   bool Send(const std::string &msg);
   void ShutDownAndCloseSocket(int32_t socket_fd);
-  TimeManager* const server_;
+  TimeManager* const kserver_;
   int32_t server_socket_fd_;
   int32_t client_socket_fd_;
   volatile bool stop_flag_;
@@ -83,7 +83,7 @@ class TimeManager {
   virtual void Stop();
   virtual void Start();
   virtual void SendMetric(utils::SharedPtr<MetricWrapper> metric);
-  void SetStreamer(Streamer* streamer);
+  void set_streamer(Streamer* streamer);
   std::string ip();
   int16_t port();
  private:

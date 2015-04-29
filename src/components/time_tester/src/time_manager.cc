@@ -66,7 +66,7 @@ void TimeManager::Start() {
   thread_ = threads::CreateThread("TimeManager", streamer_ );
 }
 
-void TimeManager::SetStreamer(Streamer* streamer) {
+void TimeManager::set_streamer(Streamer* streamer) {
   streamer_ = streamer;
 }
 
@@ -110,7 +110,7 @@ int16_t TimeManager::port(){
 Streamer::Streamer(
   TimeManager* const server)
   : is_client_connected_(false),
-    server_(server),
+    kserver_(server),
     server_socket_fd_(0),
     client_socket_fd_(0),
     stop_flag_(false) {
@@ -176,15 +176,15 @@ void Streamer::Start() {
   }
 
   sockaddr_in serv_addr_ = { 0 };
-  serv_addr_.sin_addr.s_addr = inet_addr(server_->ip().c_str());
+  serv_addr_.sin_addr.s_addr = inet_addr(kserver_->ip().c_str());
   serv_addr_.sin_family = AF_INET;
-  serv_addr_.sin_port = htons(server_->port());
+  serv_addr_.sin_port = htons(kserver_->port());
 
   if (-1 == bind(server_socket_fd_,
                  reinterpret_cast<struct sockaddr*>(&serv_addr_),
                  sizeof(serv_addr_))) {
     LOG4CXX_ERROR(logger_, "Unable to bind server "
-                  << server_->ip().c_str() << ':' << server_->port());
+                  << kserver_->ip().c_str() << ':' << kserver_->port());
     return;
   }
   if (-1 == listen(server_socket_fd_, 1)) {

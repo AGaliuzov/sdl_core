@@ -31,7 +31,6 @@
  */
 
 #include "gtest/gtest.h"
-#include "metric_wrapper.h"
 #include "include/time_manager_mock.h"
 #include "application_manager/time_metric_observer.h"
 #include "application_manager_metric.h"
@@ -44,13 +43,12 @@ namespace components {
 namespace time_tester_test {
 
 using namespace time_tester;
-using namespace application_manager;
 using ::testing::_;
 
 TEST(ApplicationManagerObserver, CallOnMessage) {
   TimeManagerMock time_manager_mock;
   ApplicationManagerObserver app_observer(&time_manager_mock);
-  utils::SharedPtr<AMMetricObserver::MessageMetric> ptr = AMMetricObserver::MessageMetricSharedPtr();
+  utils::SharedPtr<application_manager::AMMetricObserver::MessageMetric> ptr = application_manager::AMMetricObserver::MessageMetricSharedPtr();
   EXPECT_CALL(time_manager_mock, SendMetric(_));
   app_observer.OnMessage(ptr);
 }

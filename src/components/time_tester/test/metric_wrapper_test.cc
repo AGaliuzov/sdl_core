@@ -41,29 +41,26 @@ namespace components {
 namespace time_tester_test {
 
 using namespace ::time_tester;
-using namespace ::utils;
 
 TEST(MetricWrapper, grabResources) {
-  MetricWrapper * metric_test = new MetricWrapper();
-  EXPECT_TRUE(metric_test->grabResources());
-  delete metric_test;
+  MetricWrapper metric_test;
+  EXPECT_TRUE(metric_test.grabResources());
 }
 
 TEST(MetricWrapper, GetJsonMetricWithoutGrab) {
-  MetricWrapper * metric_test = new MetricWrapper();
-  Json::Value jvalue = metric_test->GetJsonMetric();
+  MetricWrapper metric_test;
+  Json::Value jvalue = metric_test.GetJsonMetric();
 
   EXPECT_EQ("null\n", jvalue[strings::stime].toStyledString());
   EXPECT_EQ("null\n", jvalue[strings::utime].toStyledString());
   EXPECT_EQ("null\n", jvalue[strings::memory].toStyledString());
-  delete metric_test;
 }
 
 TEST(MetricWrapper, GetJsonMetricWithGrabResources) {
-  MetricWrapper * metric_test = new MetricWrapper();
-  ResourseUsage* resources = Resources::getCurrentResourseUsage();
-  EXPECT_TRUE(metric_test->grabResources());
-  Json::Value jvalue = metric_test->GetJsonMetric();
+  MetricWrapper metric_test;
+  utils::ResourseUsage* resources = utils::Resources::getCurrentResourseUsage();
+  EXPECT_TRUE(metric_test.grabResources());
+  Json::Value jvalue = metric_test.GetJsonMetric();
 
   EXPECT_TRUE(jvalue[strings::stime].isInt());
   EXPECT_TRUE(jvalue[strings::utime].isInt());
@@ -72,15 +69,11 @@ TEST(MetricWrapper, GetJsonMetricWithGrabResources) {
   EXPECT_NE("null/n", jvalue[strings::utime].toStyledString());
   EXPECT_NE("null/n", jvalue[strings::memory].toStyledString());
 
-  EXPECT_EQ(0, jvalue[strings::stime].asInt());
-  EXPECT_NE(0, jvalue[strings::memory].asInt());
-
   EXPECT_EQ(resources->stime, jvalue[strings::stime].asInt());
   EXPECT_EQ(resources->utime, jvalue[strings::utime].asInt());
   EXPECT_EQ(resources->memory, jvalue[strings::memory].asInt());
 
   delete resources;
-  delete metric_test;
 }
 
 }  // namespace time_tester

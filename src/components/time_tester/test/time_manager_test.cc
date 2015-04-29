@@ -32,7 +32,6 @@
 
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
-//#include "metric_wrapper.h"
 #include "time_manager.h"
 #include "protocol_handler/time_metric_observer.h"
 #include "protocol_handler.h"
@@ -42,7 +41,6 @@ namespace test {
 namespace components {
 namespace time_tester_test {
 
-using namespace protocol_handler;
 using namespace time_tester;
 
 class StreamerMock : public Streamer {
@@ -56,10 +54,10 @@ class StreamerMock : public Streamer {
 
 TEST(TimeManagerTest, MessageProcess) {
   protocol_handler_test::TransportManagerMock transport_manager_mock;
-  ProtocolHandlerImpl protocol_handler_mock(&transport_manager_mock, 0, 0, 0, 0, 0);
+  protocol_handler::ProtocolHandlerImpl protocol_handler_mock(&transport_manager_mock, 0, 0, 0, 0, 0);
   TimeManager * time_manager = new TimeManager();
   StreamerMock streamer_mock(time_manager);
-  time_manager->SetStreamer(&streamer_mock);
+  time_manager->set_streamer(&streamer_mock);
   time_manager->Init(&protocol_handler_mock);
   utils::SharedPtr<MetricWrapper> test_metric;
   EXPECT_CALL(streamer_mock, PushMessage(test_metric));

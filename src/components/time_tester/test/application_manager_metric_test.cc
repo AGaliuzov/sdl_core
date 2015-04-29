@@ -31,33 +31,24 @@
  */
 
 #include "gtest/gtest.h"
-#include "metric_wrapper.h"
 #include "json_keys.h"
-//#include "json/json.h"
 #include "utils/resource_usage.h"
-//#include "transport_manager_metric.h"
-//#include "protocol_handler/time_metric_observer.h"
 #include "application_manager/smart_object_keys.h"
-
 #include "application_manager_metric.h"
-//#include "application_manager_observer.h"
 
 namespace test {
 namespace components {
 namespace time_tester_test {
 
 using namespace ::time_tester;
-using namespace ::utils;
-using namespace application_manager;
 
 TEST(ApplicationManagerMetricWrapper, grabResources) {
-  ApplicationManagerMetricWrapper * metric_test = new ApplicationManagerMetricWrapper();
-  EXPECT_TRUE(metric_test->grabResources());
-  delete metric_test;
+  ApplicationManagerMetricWrapper metric_test;
+  EXPECT_TRUE(metric_test.grabResources());
 }
 
 TEST(ApplicationManagerMetricWrapper, GetJsonMetric) {
-  ApplicationManagerMetricWrapper * metric_test = new ApplicationManagerMetricWrapper();
+  ApplicationManagerMetricWrapper metric_test;
 
   TimevalStruct start_time;
   start_time.tv_sec = 1;
@@ -66,14 +57,14 @@ TEST(ApplicationManagerMetricWrapper, GetJsonMetric) {
   TimevalStruct end_time;
   end_time.tv_sec = 10;
   end_time.tv_usec = 0;
-  metric_test->message_metric = new application_manager::AMMetricObserver::MessageMetric();
-  metric_test->message_metric->begin = start_time;
-  metric_test->message_metric->end = end_time;
+  metric_test.message_metric = new application_manager::AMMetricObserver::MessageMetric();
+  metric_test.message_metric->begin = start_time;
+  metric_test.message_metric->end = end_time;
   NsSmartDeviceLink::NsSmartObjects::SmartObject obj;
   obj["params"][application_manager::strings::correlation_id] = 11;
   obj["params"][application_manager::strings::connection_key] = 12;
-  metric_test->message_metric->message = new NsSmartDeviceLink::NsSmartObjects::SmartObject(obj);
-  Json::Value jvalue = metric_test->GetJsonMetric();
+  metric_test.message_metric->message = new NsSmartDeviceLink::NsSmartObjects::SmartObject(obj);
+  Json::Value jvalue = metric_test.GetJsonMetric();
 
   EXPECT_EQ("null\n", jvalue[time_tester::strings::stime].toStyledString());
   EXPECT_EQ("null\n", jvalue[time_tester::strings::utime].toStyledString());
@@ -83,14 +74,12 @@ TEST(ApplicationManagerMetricWrapper, GetJsonMetric) {
   EXPECT_EQ(date_time::DateTime::getuSecs(end_time), jvalue[time_tester::strings::end].asInt64());
   EXPECT_EQ(obj["params"][application_manager::strings::correlation_id].asInt(), jvalue[time_tester::strings::correlation_id].asInt64());
   EXPECT_EQ(obj["params"][application_manager::strings::connection_key].asInt(), jvalue[time_tester::strings::connection_key].asInt());
-
-  delete metric_test;
 }
 
 TEST(ApplicationManagerMetricWrapper, GetJsonMetricWithGrabResources) {
-  ApplicationManagerMetricWrapper * metric_test = new ApplicationManagerMetricWrapper();
-  ResourseUsage* resources = Resources::getCurrentResourseUsage();
-  EXPECT_TRUE(metric_test->grabResources());
+  ApplicationManagerMetricWrapper metric_test;
+  utils::ResourseUsage* resources = utils::Resources::getCurrentResourseUsage();
+  EXPECT_TRUE(metric_test.grabResources());
 
   TimevalStruct start_time;
   start_time.tv_sec = 1;
@@ -100,14 +89,14 @@ TEST(ApplicationManagerMetricWrapper, GetJsonMetricWithGrabResources) {
   end_time.tv_sec = 10;
   end_time.tv_usec = 0;
 
-  metric_test->message_metric = new application_manager::AMMetricObserver::MessageMetric();
-  metric_test->message_metric->begin = start_time;
-  metric_test->message_metric->end = end_time;
+  metric_test.message_metric = new application_manager::AMMetricObserver::MessageMetric();
+  metric_test.message_metric->begin = start_time;
+  metric_test.message_metric->end = end_time;
   NsSmartDeviceLink::NsSmartObjects::SmartObject obj;
   obj["params"][application_manager::strings::correlation_id] = 11;
   obj["params"][application_manager::strings::connection_key] = 12;
-  metric_test->message_metric->message = new NsSmartDeviceLink::NsSmartObjects::SmartObject(obj);
-  Json::Value jvalue = metric_test->GetJsonMetric();
+  metric_test.message_metric->message = new NsSmartDeviceLink::NsSmartObjects::SmartObject(obj);
+  Json::Value jvalue = metric_test.GetJsonMetric();
 
   EXPECT_EQ(date_time::DateTime::getuSecs(start_time), jvalue[time_tester::strings::begin].asInt64());
   EXPECT_EQ(date_time::DateTime::getuSecs(end_time), jvalue[time_tester::strings::end].asInt64());
@@ -122,7 +111,6 @@ TEST(ApplicationManagerMetricWrapper, GetJsonMetricWithGrabResources) {
   EXPECT_EQ(resources->memory, jvalue[time_tester::strings::memory].asInt());
 
   delete resources;
-  delete metric_test;
 }
 
 }  // namespace time_tester

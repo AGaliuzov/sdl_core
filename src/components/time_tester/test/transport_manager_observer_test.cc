@@ -31,7 +31,6 @@
  */
 
 #include "gtest/gtest.h"
-#include "metric_wrapper.h"
 #include "include/time_manager_mock.h"
 #include "protocol_handler/time_metric_observer.h"
 #include "transport_manager_metric.h"
@@ -41,9 +40,7 @@ namespace test {
 namespace components {
 namespace time_tester_test {
 
-using namespace protocol_handler;
 using namespace time_tester;
-
 using ::testing::_;
 
 TEST(TransportManagerObserverTest, MessageProcess) {
