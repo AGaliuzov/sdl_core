@@ -1031,23 +1031,35 @@ void ApplicationManagerImpl::OnServiceEndedCallback(
      closed by mobile and already unregistered we will be unable
      to find it in the list
     */
-    Result::eType reason = Result::INVALID_ENUM;
-    bool is_resuming = true;
-    bool is_unexpected_disconnect = true;
 
-    if (CloseSessionReason::kMalformed == close_reason) {
-      is_unexpected_disconnect = false;
-    } else if (CloseSessionReason::kFlood == close_reason) {
-      reason = Result::TOO_MANY_PENDING_REQUESTS;
-      is_unexpected_disconnect = false;
+    Result::eType reason;
+    bool is_resuming;
+    bool is_unexpected_disconnect;
+    switch (close_reason) {
+      case CloseSessionReason::kFlood: {
+        reason = Result::TOO_MANY_PENDING_REQUESTS;
+        is_resuming = true;
+        is_unexpected_disconnect = false;
 
-      MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
-          session_key, AppInterfaceUnregisteredReason::TOO_MANY_REQUESTS);
-      // TODO(EZamakhov): increment "removals_for_bad_behaviour" field in policy table
+        MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
+            session_key, AppInterfaceUnregisteredReason::TOO_MANY_REQUESTS);
+        break;
+      }
+      case CloseSessionReason::kMalformed: {
+        reason = Result::INVALID_ENUM;
+        is_resuming = true;
+        is_unexpected_disconnect = false;
+        break;
+      }
+      default: {
+        reason = Result::INVALID_ENUM;
+        is_resuming = true;
+        is_unexpected_disconnect = true;
+        break;
+      }
     }
     UnregisterApplication(
         session_key, reason, is_resuming, is_unexpected_disconnect);
-
     return;
   }
 

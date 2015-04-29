@@ -397,7 +397,8 @@ TEST_F(ConnectionHandlerTest, OnMalformedMessageCallback) {
   connection_handler_test::ConnectionHandlerObserverMock mock_connection_handler_observer;
   connection_handler_->set_connection_handler_observer(&mock_connection_handler_observer);
 
-  EXPECT_CALL(mock_connection_handler_observer, OnMalformedMessageCallback(connection_key_));
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,_, kMalformed)).Times(2);
   connection_handler_->OnMalformedMessageCallback(uid_);
 }
 
@@ -407,8 +408,12 @@ TEST_F(ConnectionHandlerTest, OnApplicationFloodCallBack) {
   connection_handler_test::ConnectionHandlerObserverMock mock_connection_handler_observer;
   connection_handler_->set_connection_handler_observer(&mock_connection_handler_observer);
 
-  EXPECT_CALL(mock_connection_handler_observer, OnApplicationFloodCallBack(uid_));
-  EXPECT_CALL(mock_connection_handler_observer, OnServiceEndedCallback(connection_key_,_)).Times(2);
+  protocol_handler_test::ProtocolHandlerMock mock_protocol_handler;
+  connection_handler_->set_protocol_handler(&mock_protocol_handler);
+
+  EXPECT_CALL(mock_protocol_handler, SendEndSession(uid_,start_session_id_));
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,_, kCommon)).Times(2);
   connection_handler_->OnApplicationFloodCallBack(uid_);
 }
 
@@ -463,7 +468,8 @@ TEST_F(ConnectionHandlerTest, CloseSessionWithCommonReason) {
   connection_handler_->set_protocol_handler(&mock_protocol_handler);
 
   EXPECT_CALL(mock_protocol_handler, SendEndSession(uid_,start_session_id_));
-  EXPECT_CALL(mock_connection_handler_observer, OnServiceEndedCallback(connection_key_,_)).Times(2);
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,_, kCommon)).Times(2);
 
   connection_handler_->CloseSession(connection_key_, kCommon);
 }
@@ -479,7 +485,8 @@ TEST_F(ConnectionHandlerTest, CloseSessionWithFloodReason) {
   connection_handler_->set_protocol_handler(&mock_protocol_handler);
 
   EXPECT_CALL(mock_protocol_handler, SendEndSession(uid_,start_session_id_));
-  EXPECT_CALL(mock_connection_handler_observer, OnServiceEndedCallback(connection_key_,_)).Times(0);
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,_, kFlood)).Times(2);
 
   connection_handler_->CloseSession(connection_key_, kFlood);
 }
@@ -495,7 +502,8 @@ TEST_F(ConnectionHandlerTest, CloseSessionWithMalformedMessage) {
   connection_handler_->set_protocol_handler(&mock_protocol_handler);
 
   EXPECT_CALL(mock_protocol_handler, SendEndSession(uid_,start_session_id_)).Times(0);
-  EXPECT_CALL(mock_connection_handler_observer, OnServiceEndedCallback(connection_key_,_)).Times(0);
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,_, kMalformed)).Times(2);
 
   connection_handler_->CloseSession(connection_key_, kMalformed);
 }
@@ -511,7 +519,8 @@ TEST_F(ConnectionHandlerTest, CloseConnectionSessionsWithMalformedMessage) {
   connection_handler_->set_protocol_handler(&mock_protocol_handler);
 
   EXPECT_CALL(mock_protocol_handler, SendEndSession(uid_,start_session_id_)).Times(0);
-  EXPECT_CALL(mock_connection_handler_observer, OnServiceEndedCallback(connection_key_,_)).Times(0);
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,_, kMalformed)).Times(2);
 
   connection_handler_->CloseConnectionSessions(uid_, kMalformed);
 }
@@ -527,7 +536,8 @@ TEST_F(ConnectionHandlerTest, CloseConnectionSessionsWithCommonReason) {
   connection_handler_->set_protocol_handler(&mock_protocol_handler);
 
   EXPECT_CALL(mock_protocol_handler, SendEndSession(uid_,start_session_id_));
-  EXPECT_CALL(mock_connection_handler_observer, OnServiceEndedCallback(connection_key_,_)).Times(2);
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,_, kCommon)).Times(2);
 
   connection_handler_->CloseConnectionSessions(uid_, kCommon);
 }
