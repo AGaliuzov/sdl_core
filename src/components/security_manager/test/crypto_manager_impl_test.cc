@@ -153,7 +153,7 @@ TEST_F(CryptoManagerTest, CreateReleaseSSLContext) {
   EXPECT_NO_THROW(crypto_manager->ReleaseSSLContext(context));
 }
 
-TEST_F(CryptoManagerTest, OnCertificateUpdated) {
+TEST_F(CryptoManagerTest, DISABLED_OnCertificateUpdated) {
   InitSecurityManger();
 
   const std::string ca_cetrificate = GenerateCertificateString();
@@ -162,19 +162,19 @@ TEST_F(CryptoManagerTest, OnCertificateUpdated) {
   EXPECT_TRUE(crypto_manager->OnCertificateUpdated(ca_cetrificate));
 }
 
-TEST_F(CryptoManagerTest, OnCertificateUpdated_NotInitialized) {
+TEST_F(CryptoManagerTest, DISABLED_OnCertificateUpdated_NotInitialized) {
   const std::string ca_cetrificate = GenerateCertificateString();
   ASSERT_FALSE(ca_cetrificate.empty());
 
   EXPECT_FALSE(crypto_manager->OnCertificateUpdated(ca_cetrificate));
 }
 
-TEST_F(CryptoManagerTest, OnCertificateUpdated_NullString) {
+TEST_F(CryptoManagerTest, DISABLED_OnCertificateUpdated_NullString) {
   InitSecurityManger();
   EXPECT_FALSE(crypto_manager->OnCertificateUpdated(std::string()));
 }
 
-TEST_F(CryptoManagerTest, OnCertificateUpdated_MalformedSign) {
+TEST_F(CryptoManagerTest, DISABLED_OnCertificateUpdated_MalformedSign) {
   InitSecurityManger();
 
   std::string ca_cetrificate = GenerateCertificateString();
@@ -185,7 +185,7 @@ TEST_F(CryptoManagerTest, OnCertificateUpdated_MalformedSign) {
   EXPECT_FALSE(crypto_manager->OnCertificateUpdated(ca_cetrificate));
 }
 
-TEST_F(CryptoManagerTest, OnCertificateUpdated_WrongInitFolder) {
+TEST_F(CryptoManagerTest, DISABLED_OnCertificateUpdated_WrongInitFolder) {
   const bool crypto_manager_initialization = crypto_manager->Init(
         ::security_manager::CLIENT, security_manager::TLSv1_2, "", "",
         ALL_CIPHERS, true, "/wrong_folder");
