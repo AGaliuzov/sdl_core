@@ -97,13 +97,9 @@ void ResumeCtrl::SaveAllApplications() {
 void ResumeCtrl::SaveApplication(ApplicationSharedPtr application) {
   LOG4CXX_AUTO_TRACE(logger_);
   DCHECK_OR_RETURN_VOID(application);
-
-  if (application->is_application_data_changed()) {
-    LOG4CXX_INFO(logger_,"application with appID "<<application->app_id()
-                 <<" will be saved");
-    resumption_storage_->SaveApplication(application);
-    application->set_is_application_data_changed(false);
-  }
+  LOG4CXX_INFO(logger_,"application with appID "<<application->app_id()
+               <<" will be saved");
+  resumption_storage_->SaveApplication(application);
 }
 
 void ResumeCtrl::on_event(const event_engine::Event& event) {
@@ -766,19 +762,19 @@ void ResumeCtrl::LoadResumeData() {
       }
     }
     // set invalid HMI level for all
-    resumption_storage_->UpdateHmiLevel (
+    resumption_storage_->UpdateHmiLevel(
           so_applications_data[i][strings::app_id].asString(),
         so_applications_data[i][strings::device_id].asString(),
         static_cast<int32_t>(mobile_apis::HMILevel::INVALID_ENUM));
   }
   if (full_app != NULL) {
-    resumption_storage_->UpdateHmiLevel (
+    resumption_storage_->UpdateHmiLevel(
           (*full_app)[strings::app_id].asString(),
         (*full_app)[strings::device_id].asString(),
         static_cast<int32_t>(mobile_apis::HMILevel::HMI_FULL));
   }
   if (limited_app != NULL) {
-    resumption_storage_->UpdateHmiLevel (
+    resumption_storage_->UpdateHmiLevel(
           (*limited_app)[strings::app_id].asString(),
         (*limited_app)[strings::device_id].asString(),
         static_cast<int32_t>(mobile_apis::HMILevel::HMI_LIMITED));
