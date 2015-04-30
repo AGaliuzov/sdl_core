@@ -44,6 +44,16 @@ namespace transport_manager {
 namespace transport_adapter {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
+namespace {
+DeviceTypes devicesType = {
+  std::make_pair(AOA, std::string("USB")),
+  std::make_pair(PASA_AOA, std::string("USB")),
+  std::make_pair(MME, std::string("USB")),
+  std::make_pair(BLUETOOTH, std::string("BLUETOOTH")),
+  std::make_pair(PASA_BLUETOOTH, std::string("BLUETOOTH")),
+  std::make_pair(TCP, std::string("WIFI"))
+};
+}
 
 TransportAdapterImpl::TransportAdapterImpl(
   DeviceScanner* device_scanner,
@@ -758,16 +768,7 @@ std::string TransportAdapterImpl::DeviceName(const DeviceUID& device_id) const {
 }
 
 std::string TransportAdapterImpl::GetConnectionType() const {
-  const std::string deviceType = GetDeviceType();
-  using namespace helpers;
-  std::string result("USB_serial_number");
-  if(Compare<std::string, EQ, ONE>(deviceType,
-                                   "sdl-tcp",
-                                   "pasa-bluetooth",
-                                   "sdl-bluetooth")) {
-    result.assign("BTMAC");
-  }
-  return result;
+  return devicesType[GetDeviceType()];
 }
 
 #ifdef TIME_TESTER
