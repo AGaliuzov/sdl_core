@@ -119,7 +119,7 @@ void AlertManeuverRequest::Run() {
   if (tts_is_ok) {
     smart_objects::SmartObject msg_params = smart_objects::SmartObject(
         smart_objects::SmartType_Map);
-
+    msg_params[strings::app_id] = app->app_id();
     msg_params[hmi_request::tts_chunks] =
         (*message_)[strings::msg_params][strings::tts_chunks];
     msg_params[hmi_request::speak_type] =
