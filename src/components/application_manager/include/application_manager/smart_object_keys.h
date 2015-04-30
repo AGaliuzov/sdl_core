@@ -186,6 +186,7 @@ const char device_info[] = "deviceInfo";
 const char name[] = "name";
 const char id[] = "id";
 const char isSDLAllowed[] = "isSDLAllowed";
+const char transport_type[] = "transportType";
 const char application[] = "application";
 const char applications[] = "applications";
 const char icon[] = "icon";

@@ -273,56 +273,66 @@ void MessageHelper::SendHMIStatusNotification(
 
 void MessageHelper::SendOnAppRegisteredNotificationToHMI(
   const Application& application_impl, bool resumption, bool need_restore_vr) {
-  smart_objects::SmartObjectSPtr notification = new smart_objects::SmartObject;
+  using namespace smart_objects;
+
+  SmartObjectSPtr notification = utils::MakeShared<SmartObject>(SmartType_Map);
   if (!notification) {
     LOG4CXX_ERROR(logger_, "Failed to create smart object");
     return;
   }
-  smart_objects::SmartObject& message = *notification;
 
-  message[strings::params][strings::function_id] =
-    static_cast<int32_t>(hmi_apis::FunctionID::BasicCommunication_OnAppRegistered);
+  (*notification)[strings::params] = SmartObject(SmartType_Map);
+  smart_objects::SmartObject& params = (*notification)[strings::params];
+  params[strings::function_id] =
+      static_cast<int32_t>(hmi_apis::FunctionID::BasicCommunication_OnAppRegistered);
+  params[strings::message_type] = static_cast<int32_t>(kNotification);
+  params[strings::protocol_version] = commands::CommandImpl::protocol_version_;
+  params[strings::protocol_type] = commands::CommandImpl::hmi_protocol_type_;
 
-  message[strings::params][strings::message_type] =
-    static_cast<int32_t>(application_manager::MessageType::kNotification);
-  message[strings::msg_params][strings::application][strings::app_name] =
-    application_impl.name();
-
-  const smart_objects::SmartObject* ngn_media_screen_name = application_impl
-      .ngn_media_screen_name();
-
+  (*notification)[strings::msg_params] = SmartObject(SmartType_Map);
+  smart_objects::SmartObject& msg_params = (*notification)[strings::msg_params];
   // Due to current requirements in case when we're in resumption mode
   // we have to always send resumeVRGrammar field.
   if (resumption) {
-    message[strings::msg_params][strings::resume_vr_grammars] = need_restore_vr;
+    msg_params[strings::resume_vr_grammars] = need_restore_vr;
   }
 
+  if (application_impl.vr_synonyms()) {
+    msg_params[strings::vr_synonyms] = *(application_impl.vr_synonyms());
+  }
+
+  if (application_impl.tts_name()) {
+    msg_params[strings::tts_name] = *(application_impl.tts_name());
+  }
+
+  std::string priority;
+  policy::PolicyHandler::instance()->GetPriority(
+        application_impl.policy_app_id(), &priority);
+  if (!priority.empty()) {
+    msg_params[strings::priority] = GetPriorityCode(priority);
+  }
+
+  msg_params[strings::msg_params] = SmartObject(SmartType_Map);
+  smart_objects::SmartObject& application = msg_params[strings::application];
+  application[strings::app_name] = application_impl.name();
+  application[strings::app_id] = application_impl.app_id();
+  application[strings::policy_app_id] = application_impl.policy_app_id();
+  application[strings::icon] = application_impl.app_icon_path();
+
+  const smart_objects::SmartObject* ngn_media_screen_name =
+      application_impl.ngn_media_screen_name();
   if (ngn_media_screen_name) {
-    message[strings::msg_params][strings::application][strings::ngn_media_screen_app_name] =
-      *ngn_media_screen_name;
+    application[strings::ngn_media_screen_app_name] = *ngn_media_screen_name;
   }
 
-  message[strings::msg_params][strings::application][strings::icon] =
-    application_impl.app_icon_path();
+  application[strings::hmi_display_language_desired] =
+      static_cast<int32_t>(application_impl.ui_language());
 
-  std::string dev_name = ApplicationManagerImpl::instance()->GetDeviceName(
-                           application_impl.device());
-  message[strings::msg_params][strings::application][strings::device_name] =
-    dev_name;
-
-  message[strings::msg_params][strings::application][strings::app_id] =
-    application_impl.app_id();
-
-  message[strings::msg_params][strings::application][strings::hmi_display_language_desired] =
-    static_cast<int32_t>(application_impl.ui_language());
-
-  message[strings::msg_params][strings::application][strings::is_media_application] =
-    application_impl.is_media_application();
+  application[strings::is_media_application] = application_impl.is_media_application();
 
   const smart_objects::SmartObject* app_type = application_impl.app_types();
   if (app_type) {
-    message[strings::msg_params][strings::application][strings::app_type] =
-      *app_type;
+    application[strings::app_type] = *app_type;
   }
 
   if (application_impl.IsRegistered()) {
@@ -330,11 +340,8 @@ void MessageHelper::SendOnAppRegisteredNotificationToHMI(
         policy::PolicyHandler::instance()->GetAppRequestTypes(
             application_impl.policy_app_id());
 
-    message[strings::msg_params][strings::application][strings::request_type] =
-        smart_objects::SmartObject(smart_objects::SmartType_Array);
-
-    smart_objects::SmartObject& request_array =
-        message[strings::msg_params][strings::application][strings::request_type];
+    application[strings::request_type] = SmartObject(SmartType_Array);
+    smart_objects::SmartObject& request_array = application[strings::request_type];
 
     uint32_t index = 0;
     std::vector<std::string>::const_iterator it = request_types.begin();
@@ -344,21 +351,27 @@ void MessageHelper::SendOnAppRegisteredNotificationToHMI(
     }
   }
 
-  if (application_impl.vr_synonyms()) {
-    message[strings::msg_params][strings::vr_synonyms] = *(application_impl
-        .vr_synonyms());
+  application[strings::device_info] = SmartObject(SmartType_Map);
+  smart_objects::SmartObject& device_info = application[strings::device_info];
+  std::string device_name;
+  std::string mac_address;
+  std::string transport_type;
+  if (-1 == connection_handler::ConnectionHandlerImpl::instance()->
+      GetDataOnDeviceID(application_impl.device(), &device_name,
+                        NULL, &mac_address, &transport_type)) {
+    LOG4CXX_ERROR(logger_, "Failed to extract information for device "
+                  << application_impl.device());
   }
-  if (application_impl.tts_name()) {
-    message[strings::msg_params][strings::tts_name] = *(application_impl
-        .tts_name());
-  }
+  device_info[strings::name] = device_name;
+  device_info[strings::id] = application_impl.device();
 
-  std::string priority;
-  policy::PolicyHandler::instance()->GetPriority(
-        application_impl.policy_app_id(), &priority);
-  if (!priority.empty()) {
-    message[strings::msg_params][strings::priority] = GetPriorityCode(priority);
-  }
+  const policy::DeviceConsent device_consent =
+      policy::PolicyHandler::instance()->GetUserConsentForDevice(mac_address);
+  device_info[strings::isSDLAllowed] =
+      policy::DeviceConsent::kDeviceAllowed == device_consent;
+
+  device_info[strings::transport_type] =
+      ApplicationManagerImpl::instance()->GetDeviceTransportType(transport_type);
 
   DCHECK(ApplicationManagerImpl::instance()->ManageHMICommand(notification));
 }
@@ -587,6 +600,8 @@ smart_objects::SmartObjectSPtr MessageHelper::CreateDeviceListSO(
         policy::PolicyHandler::instance()->GetUserConsentForDevice(it->second.mac_address());
     list_so[index][strings::isSDLAllowed] =
         policy::DeviceConsent::kDeviceAllowed == device_consent;
+    list_so[index][strings::transport_type] =
+      ApplicationManagerImpl::instance()->GetDeviceTransportType(d.connection_type());
     ++index;
   }
   return device_list_so;
@@ -1252,16 +1267,23 @@ bool MessageHelper::CreateHMIApplicationStruct(ApplicationConstSharedPtr app,
 
   const smart_objects::SmartObject* app_types = app->app_types();
   const smart_objects::SmartObject* ngn_media_screen_name = app->ngn_media_screen_name();
-  const connection_handler::DeviceHandle handle = app->device();
-  std::string device_name = ApplicationManagerImpl::instance()->GetDeviceName(handle);
+  std::string device_name;
+  std::string mac_address;
+  std::string transport_type;
+  if (-1 == connection_handler::ConnectionHandlerImpl::instance()->
+      GetDataOnDeviceID(app->device(), &device_name,
+                        NULL, &mac_address, &transport_type)) {
+    LOG4CXX_ERROR(logger_, "Failed to extract information for device "
+                  << app->device());
+  }
 
   output = smart_objects::SmartObject(smart_objects::SmartType_Map);
   output[strings::app_name] = app->name();
   output[strings::icon] = app->app_icon_path();
-  output[strings::device_name] = device_name;
   output[strings::app_id] = app->hmi_app_id();
   output[strings::hmi_display_language_desired] = app->ui_language();
   output[strings::is_media_application] = app->is_media_application();
+  output[strings::policy_app_id] = app->policy_app_id();
 
   if (ngn_media_screen_name) {
     output[strings::ngn_media_screen_app_name] = ngn_media_screen_name->asString();
@@ -1269,6 +1291,17 @@ bool MessageHelper::CreateHMIApplicationStruct(ApplicationConstSharedPtr app,
   if (app_types) {
     output[strings::app_type] = *app_types;
   }
+
+  output[strings::device_info] = smart_objects::SmartObject(smart_objects::SmartType_Map);
+  output[strings::device_info][strings::name] = device_name;
+  output[strings::device_info][strings::id] = app->device();
+  const policy::DeviceConsent device_consent =
+      policy::PolicyHandler::instance()->GetUserConsentForDevice(mac_address);
+  output[strings::device_info][strings::isSDLAllowed] =
+      policy::DeviceConsent::kDeviceAllowed == device_consent;
+
+  output[strings::device_info][strings::transport_type] =
+      ApplicationManagerImpl::instance()->GetDeviceTransportType(transport_type);
   return true;
 }
 

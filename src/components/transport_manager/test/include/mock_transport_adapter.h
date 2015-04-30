@@ -51,7 +51,7 @@ class MockTransportAdapter : public TransportAdapterImpl {
  public:
   MockTransportAdapter();
   MockDeviceScanner* get_device_scanner() const;
-  DeviceType GetDeviceType() const { return UNKNOWN; }
+  DeviceType GetDeviceType() const { return DeviceType::UNKNOWN; }
   void reset();
 };
 

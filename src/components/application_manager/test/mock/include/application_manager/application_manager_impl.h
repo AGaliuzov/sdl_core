@@ -204,6 +204,7 @@ class ApplicationManagerImpl : public ApplicationManager,
                                           bool));
   MOCK_METHOD1(SendMessageToMobile, bool (const utils::SharedPtr<smart_objects::SmartObject>&));
   MOCK_METHOD1(GetDeviceName, std::string (connection_handler::DeviceHandle));
+  MOCK_METHOD1(GetDeviceTransportType, hmi_apis::Common_TransportType::eType (const std::string&));
   MOCK_METHOD1(application_by_policy_id, ApplicationSharedPtr (const std::string&));
   MOCK_METHOD1(RemoveAppDataFromHMI, bool(ApplicationSharedPtr));
   MOCK_METHOD1(HeadUnitReset, void(mobile_api::AppInterfaceUnregisteredReason::eType));
