@@ -58,6 +58,14 @@
       <element name="USER_DISALLOWED" value="23"/>
       <element name="TRUNCATED_DATA" value="24"/>
     </enum>
+
+    <enum name="TransportType">
+      <description>Lists of the transport types used for device connection to HU.</description>
+      <element name="BLUETOOTH"/>
+      <element name="USB"/>
+      <element name="WIFI"/>
+    </enum>
+    
     <enum name="ButtonName">
       <description>Defines the hard (physical) and soft (touchscreen) buttons available from SYNC</description>
       <element name="OK"/>
