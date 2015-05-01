@@ -144,8 +144,6 @@ void MessageLoopThread<Q>::PostMessage(const Message& message) {
 
 template <class Q>
 void MessageLoopThread<Q>::Shutdown() {
-  CREATE_LOGGERPTR_LOCAL(logger_, "Utils")
-  LOG4CXX_AUTO_TRACE(logger_);
   thread_->join();
 }
 
@@ -173,8 +171,6 @@ void MessageLoopThread<Q>::LoopThreadDelegate::threadMain() {
 
 template<class Q>
 void MessageLoopThread<Q>::LoopThreadDelegate::exitThreadMain() {
-  CREATE_LOGGERPTR_LOCAL(logger_, "Utils")
-  LOG4CXX_AUTO_TRACE(logger_);
   message_queue_.Shutdown();
 }
 
