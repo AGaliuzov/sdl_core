@@ -426,6 +426,15 @@
     <element name="PCM" />
   </enum>
 
+  <struct name="HMICapabilities">
+    <param name="navigation" type="Boolean" mandatory="false">
+      <description>Availability of build in Nav. True: Available, False: Not Available</description>
+    </param>
+    <param name="phoneCall" type="Boolean" mandatory="false">
+      <description>Availability of build in phone. True: Available, False: Not Available</description>
+    </param>
+  </struct>
+
   <struct name="AudioPassThruCapabilities">
     <description>Describes different audio type configurations for PerformAudioPassThru.</description>
     <description>e.g. {8kHz,8-bit,PCM}</description>
@@ -2424,7 +2433,9 @@
       	If a mode outside this list is requested, it will be rejected.
       </description>
     </param>
-
+    <param name="hmiCapabilities" type="HMICapabilities" mandatory="false">
+      <description>Specifies the HMI’s capabilities. See HMICapabilities.</description>
+    </param>
   </function>
 
   <function name="UnregisterAppInterface" functionID="UnregisterAppInterfaceID" messagetype="request">
