@@ -59,6 +59,7 @@ TEST(MetricWrapper, GetJsonMetricWithoutGrab) {
 TEST(MetricWrapper, GetJsonMetricWithGrabResources) {
   MetricWrapper metric_test;
   utils::ResourseUsage* resources = utils::Resources::getCurrentResourseUsage();
+  EXPECT_TRUE(resources != NULL);
   EXPECT_TRUE(metric_test.grabResources());
   Json::Value jvalue = metric_test.GetJsonMetric();
 

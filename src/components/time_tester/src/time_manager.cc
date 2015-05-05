@@ -85,6 +85,10 @@ void TimeManager::Init(protocol_handler::ProtocolHandlerImpl* ph) {
   if (thread_) {
     thread_->start(threads::ThreadOptions());
   }
+  else
+  {
+    LOG4CXX_WARN(logger_,"Thread does not initialized");
+  }
 }
 
 void TimeManager::Stop() {
@@ -100,10 +104,10 @@ void TimeManager::SendMetric(utils::SharedPtr<MetricWrapper> metric) {
     streamer_->PushMessage(metric);
   }
 }
-std::string TimeManager::ip(){
+const std::string TimeManager::ip() {
   return ip_;
 }
-int16_t TimeManager::port(){
+const int16_t TimeManager::port() {
   return port_;
 }
 

@@ -76,6 +76,7 @@ TEST(TransportManagerMetricWrapper, GetJsonMetric) {
 TEST(TransportManagerMetricWrapper, GetJsonMetricWithGrabResources) {
   TransportManagerMecticWrapper metric_test;
   utils::ResourseUsage* resources = utils::Resources::getCurrentResourseUsage();
+  EXPECT_TRUE(resources != NULL);
   EXPECT_TRUE(metric_test.grabResources());
 
   TimevalStruct start_time;

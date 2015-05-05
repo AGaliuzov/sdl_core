@@ -79,6 +79,7 @@ TEST(ProtocolHandlerMetricTest, GetJsonMetric) {
 TEST(ProtocolHandlerMetricTest, GetJsonMetricWithGrabResources) {
   ProtocolHandlerMecticWrapper metric_test;
   utils::ResourseUsage* resources = utils::Resources::getCurrentResourseUsage();
+  EXPECT_TRUE(resources != NULL);
   EXPECT_TRUE(metric_test.grabResources());
 
   TimevalStruct start_time;

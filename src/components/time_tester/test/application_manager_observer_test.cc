@@ -48,7 +48,8 @@ using ::testing::_;
 TEST(ApplicationManagerObserver, CallOnMessage) {
   TimeManagerMock time_manager_mock;
   ApplicationManagerObserver app_observer(&time_manager_mock);
-  utils::SharedPtr<application_manager::AMMetricObserver::MessageMetric> ptr = application_manager::AMMetricObserver::MessageMetricSharedPtr();
+  typedef application_manager::AMMetricObserver::MessageMetric AMMetric;
+  utils::SharedPtr<AMMetric> ptr = application_manager::AMMetricObserver::MessageMetricSharedPtr();
   EXPECT_CALL(time_manager_mock, SendMetric(_));
   app_observer.OnMessage(ptr);
 }
