@@ -55,13 +55,10 @@ class ConnectionHandlerObserverMock : public ::connection_handler::ConnectionHan
       bool(const connection_handler::DeviceHandle &device_handle,
            const int32_t &session_key,
            const protocol_handler::ServiceType &type));
-  MOCK_METHOD2(OnServiceEndedCallback,
+  MOCK_METHOD3(OnServiceEndedCallback,
       void(const int32_t &session_key,
-           const protocol_handler::ServiceType &type));
-  MOCK_METHOD1(OnApplicationFloodCallBack,
-       void(const uint32_t &connection_key));
-  MOCK_METHOD1(OnMalformedMessageCallback,
-        void(const uint32_t &connection_key));
+           const protocol_handler::ServiceType &type,
+           const connection_handler::CloseSessionReason& close_reason));
 
 };
 } // namespace connection_handler_test

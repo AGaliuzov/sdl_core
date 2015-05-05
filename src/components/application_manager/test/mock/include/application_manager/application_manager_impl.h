@@ -174,10 +174,9 @@ class ApplicationManagerImpl : public ApplicationManager,
   MOCK_METHOD3(OnServiceStartedCallback, bool (const connection_handler::DeviceHandle&,
                                             const int32_t&,
                                             const protocol_handler::ServiceType&));
-  MOCK_METHOD2(OnServiceEndedCallback, void (const int32_t&,
-                                             const protocol_handler::ServiceType&));
-  MOCK_METHOD1(OnApplicationFloodCallBack, void(const uint32_t&));
-  MOCK_METHOD1(OnMalformedMessageCallback, void(const uint32_t&));
+  MOCK_METHOD3(OnServiceEndedCallback, void (const int32_t&,
+                                             const protocol_handler::ServiceType&,
+                                             const connection_handler::CloseSessionReason&));
   MOCK_METHOD1(Handle, void (const impl::MessageFromMobile));
   MOCK_METHOD1(Handle, void (const impl::MessageToMobile));
   MOCK_METHOD1(Handle, void (const impl::MessageFromHmi));

@@ -1028,24 +1028,56 @@ bool ApplicationManagerImpl::OnServiceStartedCallback(
   return false;
 }
 
-void ApplicationManagerImpl::OnServiceEndedCallback(const int32_t& session_key,
-    const protocol_handler::ServiceType& type) {
+void ApplicationManagerImpl::OnServiceEndedCallback(
+    const int32_t& session_key,
+    const protocol_handler::ServiceType& type,
+    const connection_handler::CloseSessionReason& close_reason) {
   using namespace helpers;
   using namespace protocol_handler;
+  using namespace connection_handler;
+  using namespace mobile_apis;
 
-  LOG4CXX_DEBUG(
-    logger_,
-    "OnServiceEndedCallback " << type  << " in session 0x"
-        << std::hex << session_key);
+  LOG4CXX_DEBUG(logger_, "OnServiceEndedCallback for service "
+                << type << " with reason " << close_reason
+                << " in session 0x" << std::hex << session_key);
 
   if (type == kRpc) {
     LOG4CXX_INFO(logger_, "Remove application.");
-    /* in case it was unexpected disconnect application will be removed
-     and we will notify HMI that it was unexpected disconnect,
-     but in case it was closed by mobile we will be unable to find it in the list
+    /* In case it was unexpected disconnect or some special case
+     (malformed message, flood) application will be removed
+     and we will unregister application correctly, but in case it was
+     closed by mobile and already unregistered we will be unable
+     to find it in the list
     */
-    UnregisterApplication(session_key, mobile_apis::Result::INVALID_ENUM,
-                          true, true);
+
+    Result::eType reason;
+    bool is_resuming;
+    bool is_unexpected_disconnect;
+    switch (close_reason) {
+      case CloseSessionReason::kFlood: {
+        reason = Result::TOO_MANY_PENDING_REQUESTS;
+        is_resuming = true;
+        is_unexpected_disconnect = false;
+
+        MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
+            session_key, AppInterfaceUnregisteredReason::TOO_MANY_REQUESTS);
+        break;
+      }
+      case CloseSessionReason::kMalformed: {
+        reason = Result::INVALID_ENUM;
+        is_resuming = true;
+        is_unexpected_disconnect = false;
+        break;
+      }
+      default: {
+        reason = Result::INVALID_ENUM;
+        is_resuming = true;
+        is_unexpected_disconnect = true;
+        break;
+      }
+    }
+    UnregisterApplication(
+        session_key, reason, is_resuming, is_unexpected_disconnect);
     return;
   }
 
@@ -1053,25 +1085,6 @@ void ApplicationManagerImpl::OnServiceEndedCallback(const int32_t& session_key,
           ServiceType::kMobileNav, ServiceType::kAudio)) {
     StopNaviService(session_key, type);
   }
-}
-
-void ApplicationManagerImpl::OnApplicationFloodCallBack(const uint32_t &connection_key) {
-  LOG4CXX_AUTO_TRACE(logger_);
-  LOG4CXX_DEBUG(logger_, "Unregister flooding application " << connection_key);
-
-  MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
-      connection_key,
-      mobile_apis::AppInterfaceUnregisteredReason::TOO_MANY_REQUESTS);
-
-  const bool resuming = true;
-  const bool unexpected_disconnect = false;
-  UnregisterApplication(connection_key, mobile_apis::Result::TOO_MANY_PENDING_REQUESTS,
-                        resuming, unexpected_disconnect);
-  // TODO(EZamakhov): increment "removals_for_bad_behaviour" field in policy table
-}
-
-void ApplicationManagerImpl::OnMalformedMessageCallback(const uint32_t &connection_key) {
-  LOG4CXX_AUTO_TRACE(logger_);
 }
 
 void ApplicationManagerImpl::set_hmi_message_handler(
@@ -2070,6 +2083,15 @@ void ApplicationManagerImpl::UnregisterAllApplications() {
   while (it != accessor.end()) {
     ApplicationSharedPtr app_to_remove = *it;
 
+#ifdef CUSTOMER_PASA
+    if (!is_ignition_off) {
+#endif // CUSTOMER_PASA
+      MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
+            app_to_remove->app_id(), unregister_reason_);
+#ifdef CUSTOMER_PASA
+    }
+#endif // CUSTOMER_PASA
+
     UnregisterApplication(app_to_remove->app_id(),
                           mobile_apis::Result::INVALID_ENUM, is_ignition_off,
                           is_unexpected_disconnect);
@@ -2100,15 +2122,6 @@ void ApplicationManagerImpl::UnregisterApplication(
   }
 
   //remove appID from tts_global_properties_app_list_
-#ifdef CUSTOMER_PASA
-  if (!is_resuming) {
-#endif // CUSTOMER_PASA
-    MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
-          app_id, unregister_reason_);
-#ifdef CUSTOMER_PASA
-  }
-#endif // CUSTOMER_PASA
-
   RemoveAppFromTTSGlobalPropertiesList(app_id);
 
   switch (reason) {
@@ -2171,7 +2184,6 @@ void ApplicationManagerImpl::UnregisterApplication(
   request_ctrl_.terminateAppRequests(app_id);
   return;
 }
-
 
 void ApplicationManagerImpl::OnAppUnauthorized(const uint32_t& app_id) {
   connection_handler_->CloseSession(app_id, connection_handler::kCommon);
@@ -2433,7 +2445,8 @@ void ApplicationManagerImpl::ForbidStreaming(uint32_t app_id) {
       navi_service_status_.find(app_id);
   if (navi_service_status_.end() == it ||
       (!it->second.first && !it->second.second)) {
-    SetUnregisterAllApplicationsReason(PROTOCOL_VIOLATION);
+    MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
+        app_id, PROTOCOL_VIOLATION);
     UnregisterApplication(app_id, ABORTED);
     return;
   }
@@ -2561,7 +2574,8 @@ void ApplicationManagerImpl::CloseNaviApp() {
       navi_service_status_.find(app_id);
   if (navi_service_status_.end() != it) {
     if (it->second.first || it->second.second) {
-      SetUnregisterAllApplicationsReason(PROTOCOL_VIOLATION);
+      MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
+          app_id, PROTOCOL_VIOLATION);
       UnregisterApplication(app_id, ABORTED);
     }
   }
