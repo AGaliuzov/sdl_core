@@ -34,7 +34,6 @@
 #include "utils/date_time.h"
 #include "protocol_handler_metric.h"
 #include "time_manager.h"
-
 namespace time_tester {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "Utils")
