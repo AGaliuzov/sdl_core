@@ -233,6 +233,16 @@ class SMListenerMock : public security_manager::SecurityManagerListener {
  * Matcher for RawMessages
  * Check binary data of RawMessages
  */
+MATCHER_P(RawMessageEqSize, exp_data_size,
+    std::string(negation ? "is not" : "is") + " RawMessages "){
+  const size_t arg_data_size = arg->data_size();
+  if (arg_data_size != exp_data_size) {
+    *result_listener << "Got " << arg_data_size << " bytes "
+    << " expected " << exp_data_size << " bytes";
+    return false;
+  }
+  return true;
+}
 MATCHER_P2(RawMessageEq, exp_data, exp_data_size,
     std::string(negation ? "is not" : "is") + " RawMessages "){
   const size_t arg_data_size = arg->data_size();
@@ -249,6 +259,21 @@ MATCHER_P2(RawMessageEq, exp_data, exp_data_size,
     }
   }
   return true;
+}
+
+/*
+ * Matcher for Handshake data
+ */
+MATCHER_P2(HandshakeStepEq, exp_data,exp_data_size,
+    std::string(negation ? "is not" : "is") + " Handshake "){
+    const uint8_t *arg_data = arg;
+    for (int i = 0; i < exp_data_size; ++i) {
+      if (arg_data[i] != exp_data[i]) {
+        *result_listener << "Fail in " << i << " byte";
+        return false;
+      }
+    }
+    return true;
 }
 
 /*

@@ -42,10 +42,6 @@
 #include "include/security_manager_mock.h"
 #include "transport_manager_mock.h"
 
-// TODO(EZamakhov): add test on get correct/wrong InternalError
-// TODO(EZamakhov): check connection_key the same and seq_number
-// TODO(EZamakhov): check ::SendData with correct query_id and query_type
-
 namespace test {
 namespace components {
 namespace security_manager_test {
@@ -91,10 +87,10 @@ class SecurityManagerTest : public ::testing::Test {
   }
   void TearDown() OVERRIDE {
     // Wait call methods in thread
-    usleep(100000);
+    usleep(10000);
   }
 
-  void SetMockCryptoManger() {
+  void SetMockCryptoManager() {
     security_manager_->set_crypto_manager(&mock_crypto_manager);
   }
   /*
@@ -291,7 +287,7 @@ TEST_F(SecurityManagerTest, GetEmptyQuery) {
  * Shall send InternallError on null data recieved
  */
 TEST_F(SecurityManagerTest, GetWrongJSONSize) {
-  SetMockCryptoManger();
+  SetMockCryptoManager();
   uint32_t connection_id = 0;
   uint8_t session_id = 0;
   //uint8_t protocol_version = 0;
@@ -312,7 +308,7 @@ TEST_F(SecurityManagerTest, GetWrongJSONSize) {
  * Shall send InternallError on INVALID_QUERY_ID
  */
 TEST_F(SecurityManagerTest, GetInvalidQueryId) {
-  SetMockCryptoManger();
+  SetMockCryptoManager();
   uint32_t connection_id = 0;
   uint8_t session_id = 0;
   //uint8_t protocol_version = 0;
@@ -334,7 +330,7 @@ TEST_F(SecurityManagerTest, GetInvalidQueryId) {
  * CreateSSLContext for already protected connections
  */
 TEST_F(SecurityManagerTest, CreateSSLContext_ServiceAlreadyProtected) {
-  SetMockCryptoManger();
+  SetMockCryptoManager();
 
   // Return mock SSLContext
   EXPECT_CALL(mock_session_observer, GetSSLContext(key, kControl)).
@@ -347,7 +343,7 @@ TEST_F(SecurityManagerTest, CreateSSLContext_ServiceAlreadyProtected) {
  * Shall send Internall Error on error create SSL
  */
 TEST_F(SecurityManagerTest, CreateSSLContext_ErrorCreateSSL) {
-  SetMockCryptoManger();
+  SetMockCryptoManager();
   // Expect InternalError with ERROR_ID
   uint32_t connection_id = 0;
   uint8_t session_id = 0;
@@ -365,15 +361,15 @@ TEST_F(SecurityManagerTest, CreateSSLContext_ErrorCreateSSL) {
   EXPECT_CALL(mock_crypto_manager, CreateSSLContext()).
       WillOnce(ReturnNull());
 
-  const bool rezult = security_manager_->CreateSSLContext(key);
-  EXPECT_FALSE(rezult);
+  const security_manager::SSLContext* rezult = security_manager_->CreateSSLContext(key);
+  EXPECT_EQ(NULL,rezult);
 }
 /*
  * Shall send InternalError with SERVICE_NOT_FOUND
  * on getting any Error with call SetSSLContext
  */
 TEST_F(SecurityManagerTest, CreateSSLContext_SetSSLContextError) {
-  SetMockCryptoManger();
+  SetMockCryptoManager();
   // Expect InternalError with ERROR_ID
   uint32_t connection_id = 0;
   uint8_t session_id = 0;
@@ -395,14 +391,14 @@ TEST_F(SecurityManagerTest, CreateSSLContext_SetSSLContextError) {
   EXPECT_CALL(mock_session_observer, SetSSLContext(key, &mock_ssl_context_new)).
       WillOnce(Return(SecurityManager::ERROR_UNKWOWN_INTERNAL_ERROR));
 
-  const bool rezult = security_manager_->CreateSSLContext(key);
-  EXPECT_FALSE(rezult);
+  const security_manager::SSLContext* rezult = security_manager_->CreateSSLContext(key);
+  EXPECT_EQ(NULL,rezult);
 }
 /*
  * Shall protect connection on correct call CreateSSLContext
  */
 TEST_F(SecurityManagerTest, CreateSSLContext_Success) {
-  SetMockCryptoManger();
+  SetMockCryptoManager();
   // Expect no Errors
   // Expect no notifying listeners - it will be done after handshake
 
@@ -416,14 +412,14 @@ TEST_F(SecurityManagerTest, CreateSSLContext_Success) {
   EXPECT_CALL(mock_session_observer, SetSSLContext(key, &mock_ssl_context_new)).
       WillOnce(Return(SecurityManager::ERROR_SUCCESS));
 
-  const bool rezult = security_manager_->CreateSSLContext(key);
-  EXPECT_TRUE(rezult);
+  const security_manager::SSLContext* rezult = security_manager_->CreateSSLContext(key);
+  EXPECT_EQ(rezult, &mock_ssl_context_new);
 }
 /*
  * Shall send InternallError on call StartHandshake for uprotected service
  */
 TEST_F(SecurityManagerTest, StartHandshake_ServiceStillUnprotected) {
-  SetMockCryptoManger();
+  SetMockCryptoManager();
   uint32_t connection_id = 0;
   uint8_t session_id = 0;
   //uint8_t protocol_version = 0;
@@ -446,7 +442,7 @@ TEST_F(SecurityManagerTest, StartHandshake_ServiceStillUnprotected) {
  * Shall send InternallError on SSL error and notify listeners
  */
 TEST_F(SecurityManagerTest, StartHandshake_SSLInternalError) {
-  SetMockCryptoManger();
+  SetMockCryptoManager();
 
   uint32_t connection_id = 0;
   uint8_t session_id = 0;
@@ -479,7 +475,7 @@ TEST_F(SecurityManagerTest, StartHandshake_SSLInternalError) {
  * Shall send data on call StartHandshake
  */
 TEST_F(SecurityManagerTest, StartHandshake_SSLInitIsNotComplete) {
-  SetMockCryptoManger();
+  SetMockCryptoManager();
   uint32_t connection_id = 0;
   uint8_t session_id = 0;
   //uint8_t protocol_version = 0;
@@ -521,7 +517,7 @@ TEST_F(SecurityManagerTest, StartHandshake_SSLInitIsNotComplete) {
  * Shall notify listeners on call StartHandshake after SSLContext initialization complete
  */
 TEST_F(SecurityManagerTest, StartHandshake_SSLInitIsComplete) {
-  SetMockCryptoManger();
+  SetMockCryptoManager();
   // Expect no message send
   // Expect notifying listeners (success)
   EXPECT_CALL(mock_sm_listener, OnHandshakeDone(key, true)).
@@ -540,7 +536,7 @@ TEST_F(SecurityManagerTest, StartHandshake_SSLInitIsComplete) {
  * getting SEND_HANDSHAKE_DATA with NULL data
  */
 TEST_F(SecurityManagerTest, ProccessHandshakeData_WrongDataSize) {
-  SetMockCryptoManger();
+  SetMockCryptoManager();
   uint32_t connection_id = 0;
   uint8_t session_id = 0;
   //uint8_t protocol_version = 0;
@@ -560,7 +556,7 @@ TEST_F(SecurityManagerTest, ProccessHandshakeData_WrongDataSize) {
  * for service which is not protected
  */
 TEST_F(SecurityManagerTest, ProccessHandshakeData_ServiceNotProtected) {
-  SetMockCryptoManger();
+  SetMockCryptoManager();
   // Expect InternalError with ERROR_ID
   uint32_t connection_id = 0;
   uint8_t session_id = 0;
@@ -589,7 +585,7 @@ TEST_F(SecurityManagerTest, ProccessHandshakeData_ServiceNotProtected) {
  * data (DoHandshakeStep return NULL pointer)
  */
 TEST_F(SecurityManagerTest, ProccessHandshakeData_InvalidData) {
-  SetMockCryptoManger();
+  SetMockCryptoManager();
 
   // Count handshake calls
   const int handshake_emulates = 4;
@@ -618,7 +614,8 @@ TEST_F(SecurityManagerTest, ProccessHandshakeData_InvalidData) {
       WillRepeatedly(Return(&mock_ssl_context_exists));
   // Emulate DoHandshakeStep fail logics
   EXPECT_CALL(
-    mock_ssl_context_exists, DoHandshakeStep(_, handshake_data_size, _, _)).
+    mock_ssl_context_exists, DoHandshakeStep(HandshakeStepEq(handshake_data,handshake_data_size),
+                                             handshake_data_size, _, _)).
         WillOnce(DoAll(SetArgPointee<2>(handshake_data_out_pointer),
                        SetArgPointee<3>(handshake_data_out_size),
                        Return(security_manager::SSLContext::
@@ -650,7 +647,7 @@ TEST_F(SecurityManagerTest, ProccessHandshakeData_InvalidData) {
  * with correct handshake data Check Fail and sussecc states
  */
 TEST_F(SecurityManagerTest, ProccessHandshakeData_Answer) {
-  SetMockCryptoManger();
+  SetMockCryptoManager();
   // Count handshake calls
   const int handshake_emulates = 2;
 
@@ -663,10 +660,10 @@ TEST_F(SecurityManagerTest, ProccessHandshakeData_Answer) {
     Times(handshake_emulates).
     WillRepeatedly(Return(true));
 
-  // Expect InternalError with ERROR_ID
+  // Get size of raw message after
+  const size_t raw_message_size = 15;
   EXPECT_CALL(mock_protocol_handler, SendMessageToMobileApp(
-  // FIXME : !!!
-            _, is_final)).
+      RawMessageEqSize(raw_message_size), is_final)).
       Times(handshake_emulates);
   // Expect notifying listeners (unsuccess)
   EXPECT_CALL(mock_sm_listener, OnHandshakeDone(key, false)).
@@ -683,7 +680,8 @@ TEST_F(SecurityManagerTest, ProccessHandshakeData_Answer) {
 
   // Emulate DoHandshakeStep correct logics
   EXPECT_CALL(
-    mock_ssl_context_exists, DoHandshakeStep(_, handshake_data_size, _, _)).
+    mock_ssl_context_exists, DoHandshakeStep(HandshakeStepEq(handshake_data,handshake_data_size),
+                                             handshake_data_size, _, _)).
         WillOnce(DoAll(SetArgPointee<2>(handshake_data_out_pointer),
                        SetArgPointee<3>(handshake_data_out_size),
                        Return(security_manager::SSLContext::
@@ -702,7 +700,7 @@ TEST_F(SecurityManagerTest, ProccessHandshakeData_Answer) {
  * Check Fail and sussecc states
  */
 TEST_F(SecurityManagerTest, ProccessHandshakeData_HandshakeFinished) {
-  SetMockCryptoManger();
+  SetMockCryptoManager();
   // Count handshake calls
   const int handshake_emulates = 6;
   // Expect no errors
@@ -719,9 +717,10 @@ TEST_F(SecurityManagerTest, ProccessHandshakeData_HandshakeFinished) {
     mock_ssl_context_exists, IsInitCompleted()).
         Times(handshake_emulates).
         WillRepeatedly(Return(true));
-  // FIXME(EZamakhov): add DoHandshakeStep matcher for compare handshake data
+
   EXPECT_CALL(
-    mock_ssl_context_exists, DoHandshakeStep(_, handshake_data_size, _, _)).
+    mock_ssl_context_exists, DoHandshakeStep(HandshakeStepEq(handshake_data,handshake_data_size),
+                                             handshake_data_size, _, _)).
         // two states with correct out data
         WillOnce(DoAll(SetArgPointee<2>(handshake_data_out_pointer),
                        SetArgPointee<3>(handshake_data_out_size),
@@ -772,7 +771,7 @@ TEST_F(SecurityManagerTest, ProccessHandshakeData_HandshakeFinished) {
  * Shall not any query on getting empty SEND_INTERNAL_ERROR
  */
 TEST_F(SecurityManagerTest, GetInternalError_NullData) {
-  SetMockCryptoManger();
+  SetMockCryptoManager();
 
   const SecurityQuery::QueryHeader header( SecurityQuery::NOTIFICATION,
                                            SecurityQuery::SEND_INTERNAL_ERROR, 0);
@@ -782,7 +781,7 @@ TEST_F(SecurityManagerTest, GetInternalError_NullData) {
  * Shall not send any query on getting SEND_INTERNAL_ERROR
  */
 TEST_F(SecurityManagerTest, GetInternalError) {
-  SetMockCryptoManger();
+  SetMockCryptoManager();
 
   const SecurityQuery::QueryHeader header( SecurityQuery::NOTIFICATION,
                                            SecurityQuery::SEND_INTERNAL_ERROR, 0);
@@ -793,7 +792,7 @@ TEST_F(SecurityManagerTest, GetInternalError) {
  * Shall not send any query on getting SEND_INTERNAL_ERROR with error string
  */
 TEST_F(SecurityManagerTest, GetInternalError_WithErrText) {
-  SetMockCryptoManger();
+  SetMockCryptoManager();
 
   SecurityQuery::QueryHeader header( SecurityQuery::NOTIFICATION,
                                      SecurityQuery::SEND_INTERNAL_ERROR, 0);
@@ -807,7 +806,7 @@ TEST_F(SecurityManagerTest, GetInternalError_WithErrText) {
  * Shall not send any query on getting SEND_INTERNAL_ERROR with error string
  */
 TEST_F(SecurityManagerTest, GetInternalError_WithErrJSONText) {
-  SetMockCryptoManger();
+  SetMockCryptoManager();
 
   SecurityQuery::QueryHeader header( SecurityQuery::NOTIFICATION,
                                      SecurityQuery::SEND_INTERNAL_ERROR, 0);
