@@ -580,6 +580,16 @@ class CacheManagerInterface {
   virtual void GetAppRequestTypes(
       const std::string& policy_app_id,
       std::vector<std::string>& request_types) const = 0;
+
+#ifdef BUILD_TESTS
+  /**
+   * @brief GetPT allows to obtain SharedPtr to PT.
+   * Used ONLY in Unit tests
+   * @return SharedPTR to PT
+   *
+   */
+  virtual utils::SharedPtr<policy_table::Table> GetPT() const  = 0;
+#endif
 };
 
 typedef utils::SharedPtr<CacheManagerInterface> CacheManagerInterfaceSPtr;

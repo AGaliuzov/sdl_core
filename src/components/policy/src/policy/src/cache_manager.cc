@@ -88,7 +88,7 @@ CacheManager::~CacheManager() {
 
 bool CacheManager::CanAppKeepContext(const std::string &app_id) {
   CACHE_MANAGER_CHECK(false);
-  bool result = true;
+  bool result = false;
   if (kDeviceId == app_id) {
     result = pt_->policy_table.app_policies_section.device.keep_context;
   } else if (AppExists(app_id)) {
@@ -434,7 +434,7 @@ std::string CacheManager::currentDateTime() {
 
 bool CacheManager::GetPermissionsForApp(const std::string &device_id,
                                         const std::string &app_id,
-                                        FunctionalIdType& group_types) {
+                                        FunctionalIdType &group_types) {
 
   LOG4CXX_AUTO_TRACE(logger_);
   GetAllAppGroups(app_id, group_types[kTypeGeneral]);
@@ -1723,11 +1723,13 @@ void CacheManager::GetAppRequestTypes(
                   << policy_app_id);
     return;
   }
-  policy_table::RequestTypes::iterator it_request_type =
-      policy_iter->second.RequestType->begin();
-  for (;it_request_type != policy_iter->second.RequestType->end();
-       ++it_request_type) {
-    request_types.push_back(EnumToJsonString(*it_request_type));
+  if (policy_iter->second.RequestType.is_initialized()) {
+    policy_table::RequestTypes::iterator it_request_type =
+        policy_iter->second.RequestType->begin();
+    for (;it_request_type != policy_iter->second.RequestType->end();
+         ++it_request_type) {
+      request_types.push_back(EnumToJsonString(*it_request_type));
+    }
   }
   return;
 }

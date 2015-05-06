@@ -981,13 +981,7 @@ void PolicyManagerImpl::SetSystemInfo(const std::string& ccpu_version,
 
 void PolicyManagerImpl::OnSystemReady() {
   // Update policy table for the first time with system information
-  if (cache_->IsPTPreloaded()) {
-    listener()->OnSystemInfoUpdateRequired();
-    return;
-  }
-  if (cache_->IsMetaInfoPresent()) {
-    listener()->OnSystemInfoUpdateRequired();
-  }
+     listener()->OnSystemInfoUpdateRequired();
 }
 
 uint32_t PolicyManagerImpl::GetNotificationsNumber(
