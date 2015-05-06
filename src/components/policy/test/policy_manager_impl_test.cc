@@ -1840,7 +1840,7 @@ manager->SendNotificationOnPermissionsUpdated("1766825573");
 }
 
 
-TEST_F(PolicyManagerImplTest2, RemoveAppConsentForGropup_SetUserConsentForApp_ExpectAppConsentDeleted) {
+TEST_F(PolicyManagerImplTest2, RemoveAppConsentForGroup_SetUserConsentForApp_ExpectAppConsentDeleted) {
   // Arrange
   file_system::remove_directory_content("storage1");
   ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
