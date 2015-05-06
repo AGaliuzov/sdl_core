@@ -244,7 +244,6 @@ TEST_F(PolicyManagerImplTest2, IsAppRevoked_SetRevokedAppID_ExpectAppRevoked) {
   EXPECT_TRUE(manager->IsApplicationRevoked("123456789"));
 }
 
-
 TEST_F(PolicyManagerImplTest2, CheckPermissions_SetRevokedAppID_ExpectRPCDisallowed) {
   // Arrange
   std::ifstream ifile("sdl_preloaded_pt.json");
@@ -341,7 +340,6 @@ TEST_F(PolicyManagerImplTest2, CheckPermissions_SetAppIDwithPolicies_ExpectRPCAl
   // Check list of parameters empty
   ASSERT_TRUE(output.list_of_allowed_params.empty());
 }
-
 
 TEST_F(PolicyManagerImplTest, IncrementGlobalCounter) {
   // Assert
@@ -563,7 +561,6 @@ TEST_F(PolicyManagerImplTest2, ReactOnUserDevConsentForApp_AddNewApplicationFrom
   EXPECT_TRUE((manager->GetCache())->IsDefaultPolicy("123456789"));
 }
 
-
 TEST_F(PolicyManagerImplTest2, AddApplication_AddExistingApplicationFromDeviceWithoutConsent_ExpectNoUpdateRequired) {
   // Arrange
   file_system::remove_directory_content("storage1");
@@ -653,7 +650,6 @@ TEST_F(PolicyManagerImplTest2, PTUpdatedAt_DaysExceedLimit_ExpectUpdateRequired)
   manager->OnAppRegisteredOnMobile("1766825573");
   EXPECT_EQ("UPDATE_NEEDED", manager->GetPolicyTableStatus());
 }
-
 
 TEST_F(PolicyManagerImplTest2, OnIgnitionCyclesExceeded_SetExceededIgnitionCycles_ExpectUpdateScheduled) {
   // Arrange
@@ -846,7 +842,6 @@ TEST_F(PolicyManagerImplTest, SetUpdateStarted_GetPolicyTableStatus_Expect_Updat
   EXPECT_EQ("UPDATING", manager->GetPolicyTableStatus());
 }
 
-
 TEST_F(PolicyManagerImplTest2, RetrySequenceDelaysSeconds_Expect_CorrectValues) {
   // Arrange
   std::ifstream ifile("sdl_preloaded_pt.json");
@@ -875,7 +870,6 @@ TEST_F(PolicyManagerImplTest2, OnExceededTimeout_GetPolicyTableStatus_ExpectUpda
   // Check
   EXPECT_EQ("UPDATE_NEEDED", manager->GetPolicyTableStatus());
 }
-
 
 TEST_F(PolicyManagerImplTest2, GetUserConsentForDevice_SetDeviceWithoutConcent_ExpectReceivedConsentCorrect) {
   // Arrange
@@ -936,8 +930,6 @@ TEST_F(PolicyManagerImplTest2, GetUserConsentForDevice_SetDeviceDisallowed_Expec
   EXPECT_EQ(::policy::DeviceConsent::kDeviceDisallowed, consent);
 }
 
-
-
 TEST_F(PolicyManagerImplTest2, GetDefaultHmi_SetDeviceDisallowed_ExpectReceivedHmiCorrect) {
   // Arrange
   file_system::remove_directory_content("storage1");
@@ -991,7 +983,6 @@ std::string default_hmi2;
 manager->GetDefaultHmi("1766825573", &default_hmi2);
 EXPECT_EQ("LIMITED", default_hmi2);
 }
-
 
 TEST_F(PolicyManagerImplTest2, GetDefaultPriority_SetDeviceAllowed_ExpectReceivedPriorityCorrect) {
   // Arrange
@@ -1082,7 +1073,6 @@ TEST_F(PolicyManagerImplTest2, GetUserFirendlyMessages_ExpectReceivedCorrectMess
   }
 }
 
-
 TEST_F(PolicyManagerImplTest2, SetDeviceInfo_ExpectDevInfoAddedToPT) {
   // Arrange
   ::policy::DeviceInfo dev_info;
@@ -1109,7 +1099,6 @@ TEST_F(PolicyManagerImplTest2, SetDeviceInfo_ExpectDevInfoAddedToPT) {
   EXPECT_EQ(static_cast<std::string>(*(*iter).second.connection_type), dev_info.connection_type);
   EXPECT_EQ(static_cast<uint8_t>(*(*iter).second.max_number_rfcom_ports), dev_info.max_number_rfcom_ports);
 }
-
 
 TEST_F(PolicyManagerImplTest2, GetUserConsentForApp_SetUserConsentForApp_ExpectReceivedConsentCorrect) {
   // Arrange
@@ -1273,7 +1262,6 @@ TEST_F(PolicyManagerImplTest2, SetSystemInfo_ExpectSystemInfoSetSuccessfully) {
   EXPECT_EQ("WAEGB", static_cast<std::string>(*(ModuleMeta.wers_country_code)));
 }
 
-
 TEST_F(PolicyManagerImplTest2, CanAppKeepContext_AddAppFromUnconsentedDevice_ExpectAppCannotKeepContext) {
   // Arrange
   file_system::remove_directory_content("storage1");
@@ -1308,7 +1296,6 @@ TEST_F(PolicyManagerImplTest2, CanAppKeepContext_AddAppFromConsentedDevice_Expec
   EXPECT_FALSE(manager->CanAppKeepContext("1766825573"));
 }
 
-
 TEST_F(PolicyManagerImplTest2, CanAppKeepContext_SetPoliciesForAppUpdated_ExpectAppCanKeepContext) {
   // Arrange
   file_system::remove_directory_content("storage1");
@@ -1329,7 +1316,6 @@ TEST_F(PolicyManagerImplTest2, CanAppKeepContext_SetPoliciesForAppUpdated_Expect
   // Check keep context in updated policies for app
   EXPECT_TRUE(manager->CanAppKeepContext("1766825573"));
 }
-
 
 TEST_F(PolicyManagerImplTest2, CanAppStealFocus_AddAppFromUnconsentedDevice_ExpectAppCannotStealFocus) {
   // Arrange
@@ -1364,7 +1350,6 @@ TEST_F(PolicyManagerImplTest2, CanAppStealFocus_AddAppFromConsentedDevice_Expect
   // Check keep context in default policy
   EXPECT_FALSE(manager->CanAppStealFocus("1766825573"));
 }
-
 
 TEST_F(PolicyManagerImplTest2, CanAppStealFocus_SetPoliciesForAppUpdated_ExpectAppCanStealFocus) {
   // Arrange
@@ -1401,7 +1386,6 @@ TEST_F(PolicyManagerImplTest2, IsPredataPolicy_SetAppWIthPredataPolicy_ExpectPre
   // Check if app has preData policy
   EXPECT_TRUE(manager->IsPredataPolicy("1766825573"));
 }
-
 
 TEST_F(PolicyManagerImplTest2, CleanUnpairedDevice_ExpectDevicesDeleted) {
   // Arrange
@@ -1478,7 +1462,6 @@ TEST_F(PolicyManagerImplTest2, CleanUnpairedDevice_ExpectDevicesDeleted) {
   // Check third device successfully deleted from PT
   ASSERT_TRUE(iter == (*(pt->policy_table.device_data)).end());
 }
-
 
 TEST_F(PolicyManagerImplTest2, GetVehicleInfo_SetVehicleInfo_ExpectReceivedInfoCorrect) {
   // Arrange
@@ -1573,7 +1556,6 @@ TEST_F(PolicyManagerImplTest2, GetPermissionsForApp_SetUserConsentForApp_ExpectR
   EXPECT_EQ(group1_perm.group_id, actual_groups_permissions[index].group_id);
   EXPECT_EQ(group1_perm.state, actual_groups_permissions[index].state);
 }
-
 
 TEST_F(PolicyManagerImplTest2, GetAppRequestTypes_AddApp_UpdateAppPolicies_ExpectReceivedRequestTypesCorrect) {
   // Arrange
@@ -1839,7 +1821,6 @@ EXPECT_CALL(listener, OnPermissionsUpdated("1766825573", _ , default_hmi2));
 manager->SendNotificationOnPermissionsUpdated("1766825573");
 }
 
-
 TEST_F(PolicyManagerImplTest2, RemoveAppConsentForGroup_SetUserConsentForApp_ExpectAppConsentDeleted) {
   // Arrange
   file_system::remove_directory_content("storage1");
@@ -1908,7 +1889,6 @@ TEST_F(PolicyManagerImplTest2, RemoveAppConsentForGroup_SetUserConsentForApp_Exp
   EXPECT_EQ(group1_perm.state, actual_groups_permissions[index].state);
   utils::SharedPtr<policy_table::Table> pt = (manager->GetCache())->GetPT();
   uint32_t ucr_size = 0;
-  uint32_t new_ucr_size = 0;
   ::policy_table::DeviceData &device_data = *pt->policy_table.device_data;
   ::policy_table::DeviceData::const_iterator dev_data_iter = device_data.find("08-00-27-CE-76-FE");
   if (dev_data_iter != device_data.end()) {
@@ -1918,10 +1898,10 @@ TEST_F(PolicyManagerImplTest2, RemoveAppConsentForGroup_SetUserConsentForApp_Exp
     ASSERT_GT(ucr_size, 0u);
     ::policy_table::UserConsentRecords::const_iterator ucr_iter = ucr.find("1766825573");
     if (ucr_iter != ucr.end()) {
-      manager->RemoveAppConsentForGroup("1766825573", "group");
-      new_ucr_size = ucr.size();
+      EXPECT_TRUE((*(ucr_iter->second.consent_groups)).find("Notifications") != (*(ucr_iter->second.consent_groups)).end());
+      manager->RemoveAppConsentForGroup("1766825573", "Notifications");
+      EXPECT_TRUE((*(ucr_iter->second.consent_groups)).find("Notifications") == (*(ucr_iter->second.consent_groups)).end());
     }
-   EXPECT_EQ(new_ucr_size , ucr_size - 1);
   }
 }
 
