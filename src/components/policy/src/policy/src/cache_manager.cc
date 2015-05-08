@@ -462,6 +462,20 @@ bool CacheManager::GetDeviceGroupsFromPolicies(
   return true;
 }
 
+bool CacheManager::AddDevice(const std::string &device_id,
+                             const std::string &connection_type) {
+  LOG4CXX_AUTO_TRACE(logger_);
+
+  sync_primitives::AutoLock auto_lock(cache_lock_);
+  CACHE_MANAGER_CHECK(false);
+  policy_table::DeviceParams& params =
+      (*(pt_->policy_table.device_data))[device_id];
+  *params.connection_type = connection_type;
+
+  Backup();
+  return true;
+}
+
 bool CacheManager::SetDeviceData(const std::string &device_id,
                                  const std::string &hardware,
                                  const std::string &firmware,
@@ -474,6 +488,14 @@ bool CacheManager::SetDeviceData(const std::string &device_id,
 
   sync_primitives::AutoLock auto_lock(cache_lock_);
   CACHE_MANAGER_CHECK(false);
+
+  if (pt_->policy_table.device_data->end() ==
+      pt_->policy_table.device_data->find(device_id)) {
+    LOG4CXX_ERROR(logger_, "Unable to find mobile device: "
+                    << device_id);
+    return false;
+  }
+
   policy_table::DeviceParams& params =
       (*(pt_->policy_table.device_data))[device_id];
   *params.hardware = hardware;

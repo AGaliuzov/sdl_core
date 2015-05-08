@@ -188,7 +188,6 @@ void BluetoothPASAListener::DisconnectSPP(void *data) {
     if (found) {
       controller_->ConnectionAborted(device->unique_device_id(),
                                      disconnected_app, CommunicationError());
-      controller_->DisconnectDone(device->unique_device_id(), disconnected_app);
     }
   }
 }
