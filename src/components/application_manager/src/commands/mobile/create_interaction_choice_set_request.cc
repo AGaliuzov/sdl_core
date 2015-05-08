@@ -114,136 +114,106 @@ void CreateInteractionChoiceSetRequest::Run() {
 
 mobile_apis::Result::eType CreateInteractionChoiceSetRequest::CheckChoiceSet(
   ApplicationConstSharedPtr app) {
+  using namespace smart_objects;
   LOG4CXX_AUTO_TRACE(logger_);
 
-  const smart_objects::SmartArray* new_choice_set_array =
-    (*message_)[strings::msg_params][strings::choice_set].asArray();
+  std::set<uint32_t> choice_id_set;
+  std::set<uint32_t> menu_name_set;
+  std::set<uint32_t> vr_command_set;
 
-  smart_objects::SmartArray::const_iterator it_array =
-    new_choice_set_array->begin();
+  const DataAccessor<ChoiceSetMap> accessor = app->choice_set_map();
+  const ChoiceSetMap& app_choice_set_map = accessor.GetData();
+  ChoiceSetMap::const_iterator app_choice_set_map_it =
+      app_choice_set_map.begin();
 
-  smart_objects::SmartArray::const_iterator it_array_end =
-    new_choice_set_array->end();
+  for (; app_choice_set_map.end() != app_choice_set_map_it;
+           ++app_choice_set_map_it) {
+    if (app_choice_set_map_it->second) {
+      const SmartArray* app_choice_set =
+          (*(app_choice_set_map_it->second))[strings::choice_set].asArray();
 
-  // Self check of new choice set for params coincidence
-  for (; it_array != it_array_end; ++it_array) {
-    const smart_objects::SmartArray* vr_array =
-      (*it_array)[strings::vr_commands].asArray();
+      SmartArray::const_iterator app_choice_set_it = app_choice_set->begin();
+      for (; app_choice_set->end() != app_choice_set_it;
+               ++app_choice_set_it) {
+        choice_id_set.insert(
+            (*app_choice_set_it)[strings::choice_id].asInt());
+        menu_name_set.insert(StringFaq6Hash(
+            (*app_choice_set_it)[strings::menu_name].asString()));
 
-    CoincidencePredicateChoiceID c((*it_array)[strings::choice_id].asInt());
-    if (1 != std::count_if(
-          new_choice_set_array->begin(),
-          new_choice_set_array->end(), c)) {
-      LOG4CXX_ERROR(logger_, "Incoming choice set has duplicate IDs.");
-      return mobile_apis::Result::INVALID_ID;
-    }
+        const SmartArray* vr_commands =
+            (*app_choice_set_it)[strings::vr_commands].asArray();
 
-    // Check new choice set params along with already registered choice sets
-    const DataAccessor<ChoiceSetMap> accessor = app->choice_set_map();
-    const ChoiceSetMap& app_choice_set_map = accessor.GetData();
-    ChoiceSetMap::const_iterator it = app_choice_set_map.begin();
-    ChoiceSetMap::const_iterator itEnd = app_choice_set_map.end();
-    for (; it != itEnd; ++it) {
-      const smart_objects::SmartObject* app_choice_set = it->second;
-      if (NULL != app_choice_set) {
-        const smart_objects::SmartArray* curr_choice_set =
-          (*app_choice_set)[strings::choice_set].asArray();
-
-        if (0 != std::count_if(
-              curr_choice_set->begin(),
-              curr_choice_set->end(),
-              c)) {
-          LOG4CXX_ERROR(logger_, "Incoming choice ID already exists.");
-          return mobile_apis::Result::INVALID_ID;
+        SmartArray::const_iterator vr_commands_it = vr_commands->begin();
+        for (; vr_commands->end() != vr_commands_it; ++vr_commands_it) {
+          vr_command_set.insert(StringFaq6Hash(
+              (*vr_commands_it).asString()));
         }
       }
     }
+  }
 
-    CoincidencePredicateMenuName m((*it_array)[strings::menu_name].asString());
-    if (1 != std::count_if(
-          new_choice_set_array->begin(),
-          new_choice_set_array->end(),
-          m)) {
-      LOG4CXX_ERROR(logger_, "Incoming choice set has duplicate menu names.");
+  const SmartArray* choice_set =
+      (*message_)[strings::msg_params][strings::choice_set].asArray();
+
+  SmartArray::const_iterator choice_set_it = choice_set->begin();
+  for (; choice_set->end() != choice_set_it; ++choice_set_it) {
+    std::pair<std::set<uint32_t>::iterator, bool> ins_res =
+        choice_id_set.insert((*choice_set_it)[strings::choice_id].asInt());
+    if (!ins_res.second) {
+      LOG4CXX_ERROR(logger_, "Choise with ID "
+                    << (*choice_set_it)[strings::choice_id].asInt()
+                    << " already exists");
+      return mobile_apis::Result::INVALID_ID;
+    }
+
+    ins_res = menu_name_set.insert(
+        StringFaq6Hash((*choice_set_it)[strings::menu_name].asString()));
+    if (!ins_res.second) {
+      LOG4CXX_ERROR(logger_, "Choise with menu name "
+                    << (*choice_set_it)[strings::menu_name].asString()
+                    << " already exists");
       return mobile_apis::Result::DUPLICATE_NAME;
     }
 
-    // Check coincidence inside the current choice
+    SmartArray* vr_commands =
+        (*choice_set_it)[strings::vr_commands].asArray();
 
-    smart_objects::SmartArray::const_iterator it_vr = vr_array->begin();
-    smart_objects::SmartArray::const_iterator it_vr_end = vr_array->end();
-
-    for (; it_vr != it_vr_end; ++it_vr) {
-      CoincidencePredicateVRCommands v((*it_vr));
-      if (1 != std::count_if(vr_array->begin(), vr_array->end(), v)) {
-        LOG4CXX_ERROR(logger_,
-                      "Incoming choice set has duplicate VR command(s)");
-
+    SmartArray::const_iterator vr_commands_it = vr_commands->begin();
+    for (; vr_commands->end() != vr_commands_it; ++vr_commands_it) {
+      ins_res = vr_command_set.insert(
+          StringFaq6Hash((*vr_commands_it).asString()));
+      if (!ins_res.second) {
+        LOG4CXX_ERROR(logger_, "Choise with vr command name "
+                      << (*vr_commands_it).asString()
+                      << " already exists");
         return mobile_apis::Result::DUPLICATE_NAME;
       }
     }
 
-    // Check along with VR commands in other choices in the new set
-    smart_objects::SmartArray::const_iterator it_same_array =
-      new_choice_set_array->begin();
-
-    smart_objects::SmartArray::const_iterator it_same_array_end =
-      new_choice_set_array->end();
-
-    for (; it_same_array != it_same_array_end; ++it_same_array) {
-      // Skip check for itself
-      if ((*it_array)[strings::choice_id] ==
-          (*it_same_array)[strings::choice_id]) {
-        continue;
-      }
-
-      if (compareSynonyms((*it_array), (*it_same_array))) {
-        LOG4CXX_ERROR(logger_,
-                      "Incoming choice set has duplicate VR command(s).");
-
-        return mobile_apis::Result::DUPLICATE_NAME;
-      }
-    }
-
-    if (IsWhiteSpaceExist((*it_array))) {
+    if (IsWhiteSpaceExist(*choice_set_it)) {
       LOG4CXX_ERROR(logger_,
                     "Incoming choice set has contains \t\n \\t \\n");
       return mobile_apis::Result::INVALID_DATA;
     }
   }
-
   return mobile_apis::Result::SUCCESS;
 }
 
-bool CreateInteractionChoiceSetRequest::compareSynonyms(
-  const NsSmartDeviceLink::NsSmartObjects::SmartObject& choice1,
-  const NsSmartDeviceLink::NsSmartObjects::SmartObject& choice2) {
-  smart_objects::SmartArray* vr_cmds_1 =
-    choice1[strings::vr_commands].asArray();
-  DCHECK(vr_cmds_1 != NULL);
-  smart_objects::SmartArray* vr_cmds_2 =
-    choice2[strings::vr_commands].asArray();
-  DCHECK(vr_cmds_2 != NULL);
+uint32_t CreateInteractionChoiceSetRequest::StringFaq6Hash(
+    const std::string& str) const {
+  uint32_t hash = 0;
+  const char* cstr = str.c_str();
 
-  smart_objects::SmartArray::iterator it;
-  it = std::find_first_of(vr_cmds_1->begin(), vr_cmds_1->end(),
-                          vr_cmds_2->begin(), vr_cmds_2->end(),
-                          CreateInteractionChoiceSetRequest::compareStr);
-
-
-  if (it != vr_cmds_1->end()) {
-    LOG4CXX_INFO(logger_, "Incoming choice set has duplicated VR synonyms "
-                 << it->asString());
-    return true;
+  for (; *cstr; cstr++) {
+    hash += (uint32_t)(*cstr);
+    hash += (hash << 10);
+    hash ^= (hash >> 6);
   }
+  hash += (hash << 3);
+  hash ^= (hash >> 11);
+  hash += (hash << 15);
 
-  return false;
-}
-
-bool CreateInteractionChoiceSetRequest::compareStr(
-  const NsSmartDeviceLink::NsSmartObjects::SmartObject& str1,
-  const NsSmartDeviceLink::NsSmartObjects::SmartObject& str2) {
-  return 0 == strcasecmp(str1.asCharArray(), str2.asCharArray());
+  return hash;
 }
 
 bool CreateInteractionChoiceSetRequest::IsWhiteSpaceExist(
