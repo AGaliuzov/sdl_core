@@ -52,6 +52,12 @@ class BluetoothPASATransportAdapter : public TransportAdapterImpl {
    * @brief Return type of device.
    */
   virtual DeviceType GetDeviceType() const;
+
+  /**
+   * @brief Always returns false if device must be disconnected automatically when
+   * all applications have been closed
+   */
+  virtual bool ToBeAutoDisconnected(DeviceSptr device) const;
 };
 
 }  // namespace transport_adapter
