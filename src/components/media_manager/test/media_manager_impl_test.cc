@@ -121,9 +121,8 @@ TEST(MediaManagerImplTest, CheckFramesProcessed) {
   int32_t application_key = 1;
   int32_t frame_number = 10;
 
-  EXPECT_CALL(mock_protocol_handler, SendFramesNumber(application_key,frame_number));
+  EXPECT_CALL(mock_protocol_handler, SendFramesNumber(application_key, frame_number));
   mediaManagerImpl->FramesProcessed(application_key, frame_number);
-
 }
 
 }  // namespace media_manager_test
