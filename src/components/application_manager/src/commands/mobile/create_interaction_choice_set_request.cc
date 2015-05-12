@@ -33,7 +33,6 @@
 
 #include <string.h>
 #include <string>
-#include <algorithm>
 #include <vector>
 #include "application_manager/commands/mobile/create_interaction_choice_set_request.h"
 #include "application_manager/application_manager_impl.h"
@@ -138,7 +137,7 @@ mobile_apis::Result::eType CreateInteractionChoiceSetRequest::CheckChoiceSet(
                ++app_choice_set_it) {
         choice_id_set.insert(
             (*app_choice_set_it)[strings::choice_id].asInt());
-        menu_name_set.insert(utils::Faq6HashFromString(
+        menu_name_set.insert(utils::CaseInsensitiveFaq6HashFromString(
             (*app_choice_set_it)[strings::menu_name].asString()));
 
         const SmartArray* vr_commands =
@@ -146,7 +145,7 @@ mobile_apis::Result::eType CreateInteractionChoiceSetRequest::CheckChoiceSet(
 
         SmartArray::const_iterator vr_commands_it = vr_commands->begin();
         for (; vr_commands->end() != vr_commands_it; ++vr_commands_it) {
-          vr_command_set.insert(utils::Faq6HashFromString(
+          vr_command_set.insert(utils::CaseInsensitiveFaq6HashFromString(
               (*vr_commands_it).asString()));
         }
       }
@@ -168,7 +167,7 @@ mobile_apis::Result::eType CreateInteractionChoiceSetRequest::CheckChoiceSet(
     }
 
     ins_res = menu_name_set.insert(
-        utils::Faq6HashFromString(
+        utils::CaseInsensitiveFaq6HashFromString(
             (*choice_set_it)[strings::menu_name].asString()));
     if (!ins_res.second) {
       LOG4CXX_ERROR(logger_, "Choise with menu name "
@@ -183,7 +182,8 @@ mobile_apis::Result::eType CreateInteractionChoiceSetRequest::CheckChoiceSet(
     SmartArray::const_iterator vr_commands_it = vr_commands->begin();
     for (; vr_commands->end() != vr_commands_it; ++vr_commands_it) {
       ins_res = vr_command_set.insert(
-          utils::Faq6HashFromString((*vr_commands_it).asString()));
+          utils::CaseInsensitiveFaq6HashFromString(
+              (*vr_commands_it).asString()));
       if (!ins_res.second) {
         LOG4CXX_ERROR(logger_, "Choise with vr command name "
                       << (*vr_commands_it).asString()
