@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,99 +44,89 @@ using namespace ::media_manager;
 using ::testing::_;
 
 TEST(MediaManagerImplTest, PlayA2DPSource) {
-    media_manager::MediaManagerImpl* mediaManagerImpl =
-       media_manager::MediaManagerImpl::instance();
-    EXPECT_TRUE(mediaManagerImpl->exists());
-    int32_t application_key =1;
+  media_manager::MediaManagerImpl* mediaManagerImpl = media_manager::MediaManagerImpl::instance();
+  EXPECT_TRUE(mediaManagerImpl->exists());
+  int32_t application_key = 1;
 
-    MediaAdapterMock media_mock;
-    mediaManagerImpl->set_mock_a2dp_player(&media_mock);
-    EXPECT_CALL(media_mock,StartActivity(application_key));
-    mediaManagerImpl->PlayA2DPSource(application_key);
+  MediaAdapterMock media_mock;
+  mediaManagerImpl->set_mock_a2dp_player(&media_mock);
+  EXPECT_CALL(media_mock, StartActivity(application_key));
+  mediaManagerImpl->PlayA2DPSource(application_key);
 }
 
 TEST(MediaManagerImplTest, StopA2DPSource) {
-    media_manager::MediaManagerImpl* mediaManagerImpl =
-       media_manager::MediaManagerImpl::instance();
-    EXPECT_TRUE(mediaManagerImpl->exists());
-    int32_t application_key =1;
+  media_manager::MediaManagerImpl* mediaManagerImpl = media_manager::MediaManagerImpl::instance();
+  EXPECT_TRUE(mediaManagerImpl->exists());
+  int32_t application_key = 1;
 
-    MediaAdapterMock media_mock;
-    mediaManagerImpl->set_mock_a2dp_player(&media_mock);
-    EXPECT_CALL(media_mock,StopActivity(application_key));
-    mediaManagerImpl->StopA2DPSource(application_key);
+  MediaAdapterMock media_mock;
+  mediaManagerImpl->set_mock_a2dp_player(&media_mock);
+  EXPECT_CALL(media_mock, StopActivity(application_key));
+  mediaManagerImpl->StopA2DPSource(application_key);
 }
 
 TEST(MediaManagerImplTest, StopMicrophoneRecording) {
-    media_manager::MediaManagerImpl* mediaManagerImpl =
-       media_manager::MediaManagerImpl::instance();
-    int32_t application_key =1;
+  media_manager::MediaManagerImpl* mediaManagerImpl = media_manager::MediaManagerImpl::instance();
+  int32_t application_key = 1;
+  MediaAdapterListenerMock media_adapter_listener_mock;
 
-    MediaAdapterListenerMock media_adapter_listener_mock;
-
-    mediaManagerImpl->set_mock_mic_listener(&media_adapter_listener_mock);
+  mediaManagerImpl->set_mock_mic_listener(&media_adapter_listener_mock);
 #ifdef EXTENDED_MEDIA_MODE
-    MediaAdapterImplMock media_adapter_recorder_mock;
-    mediaManagerImpl->set_mock_mic_recorder(&media_adapter_recorder_mock);
-    EXPECT_CALL(media_adapter_recorder_mock,StopActivity(application_key));
+  MediaAdapterImplMock media_adapter_recorder_mock;
+  mediaManagerImpl->set_mock_mic_recorder(&media_adapter_recorder_mock);
+  EXPECT_CALL(media_adapter_recorder_mock,StopActivity(application_key));
 #endif
-    EXPECT_CALL(media_adapter_listener_mock,OnActivityEnded(application_key));
+  EXPECT_CALL(media_adapter_listener_mock, OnActivityEnded(application_key));
 #ifdef EXTENDED_MEDIA_MODE
-   EXPECT_CALL(media_adapter_recorder_mock,RemoveListener(_));
+  EXPECT_CALL(media_adapter_recorder_mock,RemoveListener(_));
 #endif
-    mediaManagerImpl->StopMicrophoneRecording(application_key);
+  mediaManagerImpl->StopMicrophoneRecording(application_key);
 }
 
-
-//TODO check streamers using set_mock_streamer and set_mock_streamer_listener
-
 TEST(MediaManagerImplTest, StartStopStreaming) {
-    media_manager::MediaManagerImpl* mediaManagerImpl =
-       media_manager::MediaManagerImpl::instance();
+  media_manager::MediaManagerImpl* mediaManagerImpl = media_manager::MediaManagerImpl::instance();
 
-    int32_t application_key =1;
-    MediaAdapterImplMock mock_audio_media_streamer;
-    mediaManagerImpl->set_mock_streamer(ServiceType::kAudio,&mock_audio_media_streamer);
-    MediaAdapterImplMock mock_nav_media_streamer;
-    mediaManagerImpl->set_mock_streamer(ServiceType::kMobileNav,&mock_nav_media_streamer);
+  int32_t application_key = 1;
+  MediaAdapterImplMock mock_audio_media_streamer;
+  mediaManagerImpl->set_mock_streamer(ServiceType::kAudio, &mock_audio_media_streamer);
+  MediaAdapterImplMock mock_nav_media_streamer;
+  mediaManagerImpl->set_mock_streamer(ServiceType::kMobileNav, &mock_nav_media_streamer);
 
-    MediaAdapterListenerMock mock_audio_media_streamer_listener;
-    mediaManagerImpl->set_mock_streamer_listener(ServiceType::kAudio,&mock_audio_media_streamer_listener);
-    MediaAdapterListenerMock mock_nav_media_streamer_listener;
-    mediaManagerImpl->set_mock_streamer_listener(ServiceType::kMobileNav,&mock_nav_media_streamer_listener);
+  MediaAdapterListenerMock mock_audio_media_streamer_listener;
+  mediaManagerImpl->set_mock_streamer_listener(ServiceType::kAudio, &mock_audio_media_streamer_listener);
+  MediaAdapterListenerMock mock_nav_media_streamer_listener;
+  mediaManagerImpl->set_mock_streamer_listener(ServiceType::kMobileNav, &mock_nav_media_streamer_listener);
 
-    EXPECT_CALL(mock_audio_media_streamer,StartActivity(application_key));
-    EXPECT_CALL(mock_audio_media_streamer_listener,OnActivityStarted(application_key));
-    mediaManagerImpl->StartStreaming(application_key,ServiceType::kAudio);
+  EXPECT_CALL(mock_audio_media_streamer, StartActivity(application_key));
+  EXPECT_CALL(mock_audio_media_streamer_listener, OnActivityStarted(application_key));
+  mediaManagerImpl->StartStreaming(application_key, ServiceType::kAudio);
 
-    EXPECT_CALL(mock_nav_media_streamer,StartActivity(application_key));
-    EXPECT_CALL(mock_nav_media_streamer_listener,OnActivityStarted(application_key));
-    mediaManagerImpl->StartStreaming(application_key,ServiceType::kMobileNav);
+  EXPECT_CALL(mock_nav_media_streamer, StartActivity(application_key));
+  EXPECT_CALL(mock_nav_media_streamer_listener, OnActivityStarted(application_key));
+  mediaManagerImpl->StartStreaming(application_key, ServiceType::kMobileNav);
 
-    EXPECT_CALL(mock_audio_media_streamer,StopActivity(application_key));
-    EXPECT_CALL(mock_audio_media_streamer_listener,OnActivityEnded(application_key));
-    mediaManagerImpl->StopStreaming(application_key,ServiceType::kAudio);
+  EXPECT_CALL(mock_audio_media_streamer, StopActivity(application_key));
+  EXPECT_CALL(mock_audio_media_streamer_listener, OnActivityEnded(application_key));
+  mediaManagerImpl->StopStreaming(application_key, ServiceType::kAudio);
 
-    EXPECT_CALL(mock_nav_media_streamer,StopActivity(application_key));
-    EXPECT_CALL(mock_nav_media_streamer_listener,OnActivityEnded(application_key));
-    mediaManagerImpl->StopStreaming(application_key,ServiceType::kMobileNav);
+  EXPECT_CALL(mock_nav_media_streamer, StopActivity(application_key));
+  EXPECT_CALL(mock_nav_media_streamer_listener, OnActivityEnded(application_key));
+  mediaManagerImpl->StopStreaming(application_key, ServiceType::kMobileNav);
 }
 
 TEST(MediaManagerImplTest, CheckFramesProcessed) {
-    media_manager::MediaManagerImpl* mediaManagerImpl =
-       media_manager::MediaManagerImpl::instance();
-    ProtocolHandlerMock mock_protocol_handler;
-    mediaManagerImpl->SetProtocolHandler(&mock_protocol_handler);
-    int32_t application_key =1;
-    int32_t frame_number =10;
+  media_manager::MediaManagerImpl* mediaManagerImpl = media_manager::MediaManagerImpl::instance();
+  ProtocolHandlerMock mock_protocol_handler;
+  mediaManagerImpl->SetProtocolHandler(&mock_protocol_handler);
+  int32_t application_key = 1;
+  int32_t frame_number = 10;
 
-    EXPECT_CALL(mock_protocol_handler,SendFramesNumber(application_key,frame_number));
-    mediaManagerImpl->FramesProcessed(application_key,frame_number);
+  EXPECT_CALL(mock_protocol_handler, SendFramesNumber(application_key,frame_number));
+  mediaManagerImpl->FramesProcessed(application_key, frame_number);
 
 }
 
 }  //  namespace media_manager_test
 }  //  namespace components
 }  //  namespace test
-
 
