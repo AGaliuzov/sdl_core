@@ -319,6 +319,8 @@ void RequestController::updateRequestTimeout(
   LOG4CXX_DEBUG(logger_, "app_id : " << app_id
                 << " mobile_correlation_id : " << correlation_id
                 << " new_timeout : " << new_timeout);
+  LOG4CXX_DEBUG(logger_, "new_timeout IS null. RequestCtrl will "
+                         "not manage this request any more: " << new_timeout);
   RequestInfoPtr request_info =
       waiting_for_response_.Find(app_id, correlation_id);
   if (request_info) {
