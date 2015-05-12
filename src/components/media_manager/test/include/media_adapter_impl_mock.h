@@ -67,6 +67,9 @@ class MediaAdapterImplMock : public ::media_manager::MediaAdapterImpl {
       bool(int32_t application_key));
 };
 
+/*
+ * MOCK implementation of ::protocol_handler::ProtocolHandler
+ */
 using namespace protocol_handler;
 class ProtocolHandlerMock : public protocol_handler::ProtocolHandler {
  public:
@@ -88,8 +91,8 @@ class ProtocolHandlerMock : public protocol_handler::ProtocolHandler {
 };
 
 
-} // namespace media_manager_test
-} // namespace components
-} // namespace test
+}  // namespace media_manager_test
+}  // namespace components
+}  // namespace test
 
 #endif  // TEST_COMPONENTS_MEDIA_MANAGER_INCLUDE_MEDIA_MANAGER_MEDIA_ADAPTER_IMPL_MOCK_H_

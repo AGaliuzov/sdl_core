@@ -41,7 +41,7 @@ namespace components {
 namespace media_manager_test {
 
 /*
- * MOCK implementation of ::media_manager::SecurityManager
+ * MOCK implementation of ::media_manager::MediaAdapterListener
  */
 class MediaAdapterListenerMock : public ::media_manager::MediaAdapterListener {
  public:
@@ -58,8 +58,8 @@ class MediaAdapterListenerMock : public ::media_manager::MediaAdapterListener {
 };
 
 
-} // namespace media_manager_test
-} // namespace components
-} // namespace test
+}  // namespace media_manager_test
+}  // namespace components
+}  // namespace test
 
 #endif  // TEST_COMPONENTS_MEDIA_MANAGER_INCLUDE_MEDIA_MANAGER_MEDIA_ADAPTER_LISTENER_MOCK_H_

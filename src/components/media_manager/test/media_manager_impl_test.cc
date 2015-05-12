@@ -75,11 +75,11 @@ TEST(MediaManagerImplTest, StopMicrophoneRecording) {
   MediaAdapterImplMock media_adapter_recorder_mock;
   mediaManagerImpl->set_mock_mic_recorder(&media_adapter_recorder_mock);
   EXPECT_CALL(media_adapter_recorder_mock,StopActivity(application_key));
-#endif
+#endif // EXTENDED_MEDIA_MODE
   EXPECT_CALL(media_adapter_listener_mock, OnActivityEnded(application_key));
 #ifdef EXTENDED_MEDIA_MODE
   EXPECT_CALL(media_adapter_recorder_mock,RemoveListener(_));
-#endif
+#endif // EXTENDED_MEDIA_MODE
   mediaManagerImpl->StopMicrophoneRecording(application_key);
 }
 
@@ -126,7 +126,7 @@ TEST(MediaManagerImplTest, CheckFramesProcessed) {
 
 }
 
-}  //  namespace media_manager_test
-}  //  namespace components
-}  //  namespace test
+}  // namespace media_manager_test
+}  // namespace components
+}  // namespace test
 
