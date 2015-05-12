@@ -71,6 +71,14 @@ class MediaManagerImpl : public MediaManager,
       const ::protocol_handler::RawMessagePtr message);
     virtual void FramesProcessed(int32_t application_key, int32_t frame_number);
 
+#ifdef BUILD_TESTS
+    void set_mock_a2dp_player(MediaAdapter*);
+    void set_mock_mic_listener(MediaListenerPtr);
+    void set_mock_mic_recorder(MediaAdapterImpl*);
+    void set_mock_streamer(protocol_handler::ServiceType,MediaAdapterImpl*);
+    void set_mock_streamer_listener(protocol_handler::ServiceType,MediaAdapterListener*);
+#endif //BUILD_TESTS
+
   protected:
     MediaManagerImpl();
     virtual void Init();

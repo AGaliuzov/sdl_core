@@ -33,6 +33,7 @@ if(BUILD_TESTS)
 include_directories(
     ${GMOCK_INCLUDE_DIRECTORY}
     ${COMPONENTS_DIR}/media_manager/include
+    ${COMPONENTS_DIR}/include/
 )
 
 if(EXTENDED_MEDIA_MODE)

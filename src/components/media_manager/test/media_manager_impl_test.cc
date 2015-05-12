@@ -32,57 +32,107 @@
 
 #include "gmock/gmock.h"
 #include "media_manager/media_manager_impl.h"
+#include "include/media_adapter_mock.h"
+#include "include/media_adapter_listener_mock.h"
+#include "include/media_adapter_impl_mock.h"
 
 namespace test {
 namespace components {
 namespace media_manager_test {
 
-CREATE_LOGGERPTR_GLOBAL(logger_, "MediaManagerImplTest")
+using namespace ::media_manager;
+using ::testing::_;
 
-class MediaManagerTest : public ::testing::Test {
-  protected:
-    virtual void SetUp();
-    virtual void TearDown();
-};
+TEST(MediaManagerImplTest, PlayA2DPSource) {
+    media_manager::MediaManagerImpl* mediaManagerImpl =
+       media_manager::MediaManagerImpl::instance();
+    EXPECT_TRUE(mediaManagerImpl->exists());
+    int32_t application_key =1;
 
-void MediaManagerTest::SetUp() {
+    MediaAdapterMock media_mock;
+    mediaManagerImpl->set_mock_a2dp_player(&media_mock);
+    EXPECT_CALL(media_mock,StartActivity(application_key));
+    mediaManagerImpl->PlayA2DPSource(application_key);
 }
 
-void MediaManagerTest::TearDown() {
+TEST(MediaManagerImplTest, StopA2DPSource) {
+    media_manager::MediaManagerImpl* mediaManagerImpl =
+       media_manager::MediaManagerImpl::instance();
+    EXPECT_TRUE(mediaManagerImpl->exists());
+    int32_t application_key =1;
+
+    MediaAdapterMock media_mock;
+    mediaManagerImpl->set_mock_a2dp_player(&media_mock);
+    EXPECT_CALL(media_mock,StopActivity(application_key));
+    mediaManagerImpl->StopA2DPSource(application_key);
 }
 
-TEST_F(MediaManagerTest, AddAndPlayStream) {
-  media_manager::MediaManager* mediaManager =
-    media_manager::MediaManagerImpl::instance();
+TEST(MediaManagerImplTest, StopMicrophoneRecording) {
+    media_manager::MediaManagerImpl* mediaManagerImpl =
+       media_manager::MediaManagerImpl::instance();
+    int32_t application_key =1;
 
-  const useconds_t sleeptime = 100;
+    MediaAdapterListenerMock media_adapter_listener_mock;
 
-  mediaManager->PlayA2DPSource(1);
-  LOG4CXX_INFO(logger_, ".Playing stream");
+    mediaManagerImpl->set_mock_mic_listener(&media_adapter_listener_mock);
+#ifdef EXTENDED_MEDIA_MODE
+    MediaAdapterImplMock media_adapter_recorder_mock;
+    mediaManagerImpl->set_mock_mic_recorder(&media_adapter_recorder_mock);
+    EXPECT_CALL(media_adapter_recorder_mock,StopActivity(application_key));
+#endif
+    EXPECT_CALL(media_adapter_listener_mock,OnActivityEnded(application_key));
+#ifdef EXTENDED_MEDIA_MODE
+   EXPECT_CALL(media_adapter_recorder_mock,RemoveListener(_));
+#endif
+    mediaManagerImpl->StopMicrophoneRecording(application_key);
+}
 
-  usleep(sleeptime);
 
-  mediaManager->StopA2DPSource(1);
+//TODO check streamers using set_mock_streamer and set_mock_streamer_listener
 
-  usleep(sleeptime);
+TEST(MediaManagerImplTest, StartStopStreaming) {
+    media_manager::MediaManagerImpl* mediaManagerImpl =
+       media_manager::MediaManagerImpl::instance();
 
-  mediaManager->PlayA2DPSource(1);
+    int32_t application_key =1;
+    MediaAdapterImplMock mock_audio_media_streamer;
+    mediaManagerImpl->set_mock_streamer(ServiceType::kAudio,&mock_audio_media_streamer);
+    MediaAdapterImplMock mock_nav_media_streamer;
+    mediaManagerImpl->set_mock_streamer(ServiceType::kMobileNav,&mock_nav_media_streamer);
 
-  usleep(sleeptime);
+    MediaAdapterListenerMock mock_audio_media_streamer_listener;
+    mediaManagerImpl->set_mock_streamer_listener(ServiceType::kAudio,&mock_audio_media_streamer_listener);
+    MediaAdapterListenerMock mock_nav_media_streamer_listener;
+    mediaManagerImpl->set_mock_streamer_listener(ServiceType::kMobileNav,&mock_nav_media_streamer_listener);
 
-  mediaManager->StopA2DPSource(1);
+    EXPECT_CALL(mock_audio_media_streamer,StartActivity(application_key));
+    EXPECT_CALL(mock_audio_media_streamer_listener,OnActivityStarted(application_key));
+    mediaManagerImpl->StartStreaming(application_key,ServiceType::kAudio);
 
-  usleep(sleeptime);
+    EXPECT_CALL(mock_nav_media_streamer,StartActivity(application_key));
+    EXPECT_CALL(mock_nav_media_streamer_listener,OnActivityStarted(application_key));
+    mediaManagerImpl->StartStreaming(application_key,ServiceType::kMobileNav);
 
-  mediaManager->PlayA2DPSource(1);
+    EXPECT_CALL(mock_audio_media_streamer,StopActivity(application_key));
+    EXPECT_CALL(mock_audio_media_streamer_listener,OnActivityEnded(application_key));
+    mediaManagerImpl->StopStreaming(application_key,ServiceType::kAudio);
 
-  usleep(sleeptime);
+    EXPECT_CALL(mock_nav_media_streamer,StopActivity(application_key));
+    EXPECT_CALL(mock_nav_media_streamer_listener,OnActivityEnded(application_key));
+    mediaManagerImpl->StopStreaming(application_key,ServiceType::kMobileNav);
+}
 
-  mediaManager->StopA2DPSource(1);
+TEST(MediaManagerImplTest, CheckFramesProcessed) {
+    media_manager::MediaManagerImpl* mediaManagerImpl =
+       media_manager::MediaManagerImpl::instance();
+    ProtocolHandlerMock mock_protocol_handler;
+    mediaManagerImpl->SetProtocolHandler(&mock_protocol_handler);
+    int32_t application_key =1;
+    int32_t frame_number =10;
 
-  usleep(sleeptime);
+    EXPECT_CALL(mock_protocol_handler,SendFramesNumber(application_key,frame_number));
+    mediaManagerImpl->FramesProcessed(application_key,frame_number);
 
-  mediaManager->StopA2DPSource(1);
 }
 
 }  //  namespace media_manager_test
