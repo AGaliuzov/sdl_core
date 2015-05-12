@@ -981,11 +981,7 @@ void PolicyManagerImpl::SetSystemInfo(const std::string& ccpu_version,
 
 void PolicyManagerImpl::OnSystemReady() {
   // Update policy table for the first time with system information
-  if (cache_->IsPTPreloaded()) {
-    listener()->OnSystemInfoUpdateRequired();
-    return;
-  }
-  if (cache_->IsMetaInfoPresent()) {
+  if (!cache_->IsMetaInfoPresent()) {
     listener()->OnSystemInfoUpdateRequired();
   }
 }
@@ -1206,7 +1202,7 @@ void PolicyManagerImpl::RemoveAppConsentForGroup(const std::string& app_id,
     cache_->RemoveAppConsentForGroup(app_id, group_name);
 }
 
-bool PolicyManagerImpl::IsPredataPolicy(const std::string &policy_app_id) {
+bool PolicyManagerImpl::IsPredataPolicy(const std::string& policy_app_id) {
     LOG4CXX_INFO(logger_, "IsPredataApp");
     return cache_->IsPredataPolicy(policy_app_id);
 }

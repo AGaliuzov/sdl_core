@@ -207,7 +207,6 @@ struct ConsumerFriendlyMessages : CompositeType {
 
 struct ModuleMeta : CompositeType {
   public:
-  public:
     ModuleMeta();
     ~ModuleMeta();
     explicit ModuleMeta(const Json::Value* value__);

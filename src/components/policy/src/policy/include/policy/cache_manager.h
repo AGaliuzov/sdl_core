@@ -559,6 +559,12 @@ class CacheManager : public CacheManagerInterface {
   void GetAppRequestTypes(const std::string& policy_app_id,
                           std::vector<std::string>& request_types) const;
 
+#ifdef BUILD_TESTS
+ utils::SharedPtr<policy_table::Table> GetPT() const {
+     return pt_;
+ }
+#endif
+
 private:
   std::string currentDateTime();
   struct AppHMITypeToString {
