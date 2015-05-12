@@ -107,7 +107,7 @@ char GenRandomString(const char* alphanum) {
   return alphanum[rand() % stringLength];
 }
 
-struct StringsForUpdate CreateNewRandomData(StringsForUpdate &str) {
+struct StringsForUpdate CreateNewRandomData(StringsForUpdate& str) {
   // Generate random date
   srand(time(NULL));
   unsigned int day = 1 + rand() % 31;  // Day from 1 - 31
@@ -172,7 +172,7 @@ class PolicyManagerImplTest2 : public ::testing::Test {
       profile::Profile::instance()->config_file_name("smartDeviceLink2.ini");
       manager = new PolicyManagerImpl();
       manager->set_listener(&listener);
-      const char *levels[] = { "BACKGROUND", "FULL", "LIMITED", "NONE" };
+      const char* levels[] = {"BACKGROUND", "FULL", "LIMITED", "NONE"};
       hmi_level.assign(levels, levels + sizeof(levels) / sizeof(levels[0]));
       srand(time(NULL));
       index = rand() % 3;
@@ -789,7 +789,7 @@ TEST_F(PolicyManagerImplTest2, UpdatedPreloadedPT_ExpectLPT_IsUpdated) {
   // Get Rpcs
   policy_table::Rpc& rpc = rpcs.rpcs;
   // Get RPC's parameters
-  policy_table::RpcParameters &rpc_param = rpc[new_data.new_field_value_];
+  policy_table::RpcParameters& rpc_param = rpc[new_data.new_field_value_];
 
   // Check preloaded date
   EXPECT_EQ(static_cast<std::string>(*(table->policy_table.module_config.preloaded_date)), new_data.new_date_);
@@ -1679,10 +1679,10 @@ TEST_F(PolicyManagerImplTest2, GetAppPermissionsChanges_SetAppPermissionChanges_
   EXPECT_EQ(3u, app_perm2.requestType.size());
   utils::SharedPtr<policy_table::Table> pt = (manager->GetCache())->GetPT();
 
-  ::policy_table::ApplicationPolicies &app_policies = pt->policy_table.app_policies_section.apps;
+  ::policy_table::ApplicationPolicies& app_policies = pt->policy_table.app_policies_section.apps;
   ::policy_table::ApplicationPolicies::const_iterator app_policies_iter = app_policies.find("584421907");
   if (app_policies_iter != app_policies.end()) {
-    const rpc::Stringifyable < rpc::Nullable<::policy_table::ApplicationParams> > &strf = app_policies_iter->second;
+    const rpc::Stringifyable < rpc::Nullable<::policy_table::ApplicationParams> >& strf = app_policies_iter->second;
     const ::policy_table::ApplicationParams& app_params = strf;
     ::policy_table::RequestTypes request_types = *(app_params.RequestType);
     ASSERT_EQ(request_types.size(), app_perm2.requestType.size());
@@ -1751,10 +1751,10 @@ TEST_F(PolicyManagerImplTest2, RemovePendingPermissionsChanges_SetAppPermissionC
   EXPECT_EQ(3u, app_perm2.requestType.size());
   utils::SharedPtr<policy_table::Table> pt = (manager->GetCache())->GetPT();
 
-  ::policy_table::ApplicationPolicies &app_policies = pt->policy_table.app_policies_section.apps;
+  ::policy_table::ApplicationPolicies& app_policies = pt->policy_table.app_policies_section.apps;
   ::policy_table::ApplicationPolicies::const_iterator app_policies_iter = app_policies.find("584421907");
   if (app_policies_iter != app_policies.end()) {
-    const rpc::Stringifyable < rpc::Nullable<::policy_table::ApplicationParams> > &strf = app_policies_iter->second;
+    const rpc::Stringifyable < rpc::Nullable<::policy_table::ApplicationParams> >& strf = app_policies_iter->second;
     const ::policy_table::ApplicationParams& app_params = strf;
     ::policy_table::RequestTypes request_types = *(app_params.RequestType);
     ASSERT_EQ(request_types.size(), app_perm2.requestType.size());
@@ -1889,11 +1889,11 @@ TEST_F(PolicyManagerImplTest2, RemoveAppConsentForGroup_SetUserConsentForApp_Exp
   EXPECT_EQ(group1_perm.state, actual_groups_permissions[index].state);
   utils::SharedPtr<policy_table::Table> pt = (manager->GetCache())->GetPT();
   uint32_t ucr_size = 0;
-  ::policy_table::DeviceData &device_data = *pt->policy_table.device_data;
+  ::policy_table::DeviceData& device_data = *pt->policy_table.device_data;
   ::policy_table::DeviceData::const_iterator dev_data_iter = device_data.find("08-00-27-CE-76-FE");
   if (dev_data_iter != device_data.end()) {
-    const ::policy_table::DeviceParams &dev_params = dev_data_iter->second;
-    const ::policy_table::UserConsentRecords &ucr = *(dev_params.user_consent_records);
+    const ::policy_table::DeviceParams& dev_params = dev_data_iter->second;
+    const ::policy_table::UserConsentRecords& ucr = *(dev_params.user_consent_records);
     ucr_size = ucr.size();
     ASSERT_GT(ucr_size, 0u);
     ::policy_table::UserConsentRecords::const_iterator ucr_iter = ucr.find("1766825573");
