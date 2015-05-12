@@ -60,6 +60,11 @@ DeviceType BluetoothPASATransportAdapter::GetDeviceType() const {
   return PASA_BLUETOOTH;
 }
 
+bool BluetoothPASATransportAdapter::ToBeAutoDisconnected(
+    DeviceSptr device) const {
+  return false;
+}
+
 }  // namespace transport_adapter
 }  // namespace transport_manager
 
