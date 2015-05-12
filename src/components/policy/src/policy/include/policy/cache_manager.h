@@ -544,14 +544,6 @@ class CacheManager : public CacheManagerInterface {
   uint16_t HeartBeatTimeout(const std::string& app_id) const;
 
   /**
-   * @brief Allows to generate hash from the specified string.
-   * The djb2 algorithm uses for hash generation.
-   * @param str_to_hash - the string from which hash should be generated.
-   * @return integer hash for the specified string.
-   */
-  static int32_t GenerateHash(const std::string& str_to_hash);
-
-  /**
    * @brief Gets request types for application
    * @param policy_app_id Unique application id
    * @param request_types Request types of application

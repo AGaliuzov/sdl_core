@@ -141,14 +141,6 @@ class CreateInteractionChoiceSetRequest : public CommandRequestImpl {
      */
     mobile_apis::Result::eType CheckChoiceSet(ApplicationConstSharedPtr app);
 
-    /*
-     * @brief Calculates hash for string
-     * @param str String to be processed
-     *
-     * @return 32bit hash for string
-     */
-    uint32_t StringFaq6Hash(const std::string& str) const;
-
     /**
      * @brief Checks choice set params(menuName, tertiaryText, ...)
      * When type is String there is a check on the contents \t\n \\t \\n
