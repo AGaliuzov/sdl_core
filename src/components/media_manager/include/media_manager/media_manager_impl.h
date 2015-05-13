@@ -45,8 +45,8 @@
 namespace media_manager {
 
 class MediaManagerImpl : public MediaManager,
-  public protocol_handler::ProtocolObserver,
-  public utils::Singleton<MediaManagerImpl> {
+                         public protocol_handler::ProtocolObserver,
+                         public utils::Singleton<MediaManagerImpl> {
  public:
   virtual ~MediaManagerImpl();
 
@@ -89,7 +89,8 @@ class MediaManagerImpl : public MediaManager,
 
  private:
   DISALLOW_COPY_AND_ASSIGN(MediaManagerImpl);
-  FRIEND_BASE_SINGLETON_CLASS(MediaManagerImpl);};
+  FRIEND_BASE_SINGLETON_CLASS(MediaManagerImpl);
+};
 
 }  // namespace media_manager
 
