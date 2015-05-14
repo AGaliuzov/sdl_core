@@ -272,6 +272,10 @@ TEST_F(PolicyManagerImplTest2, CheckPermissions_SetRevokedAppID_ExpectRPCDisallo
 
   EXPECT_CALL(listener, OnCurrentDeviceIdUpdateRequired("123456789")).WillOnce(Return("XXX123456789ZZZ"));
 
+  (manager->GetCache())->AddDevice("XXX123456789ZZZ",
+                                   "Bluetooth");
+
+
   (manager->GetCache())->SetDeviceData("XXX123456789ZZZ",
                                        "hardware IPX",
                                        "v.8.0.1",
@@ -325,6 +329,9 @@ TEST_F(PolicyManagerImplTest2, CheckPermissions_SetAppIDwithPolicies_ExpectRPCAl
   ::policy::CheckPermissionResult output;
 
   EXPECT_CALL(listener, OnCurrentDeviceIdUpdateRequired("1234")).WillOnce(Return("XXX123456789ZZZ"));
+
+  (manager->GetCache())->AddDevice("XXX123456789ZZZ",
+                                   "Bluetooth");
 
   (manager->GetCache())->SetDeviceData("XXX123456789ZZZ",
                                        "hardware IPX",
@@ -897,6 +904,10 @@ TEST_F(PolicyManagerImplTest2, GetUserConsentForDevice_SetDeviceAllowed_ExpectRe
   // Arrange
   file_system::remove_directory_content("storage1");
   ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
+
+  ASSERT_TRUE((manager->GetCache())->AddDevice("08-00-27-CE-76-FE",
+                                               "Bluetooth"));
+
   ASSERT_TRUE((manager->GetCache())->SetDeviceData("08-00-27-CE-76-FE",
                                                    "hardware IPX",
                                                    "v.8.0.1",
@@ -916,6 +927,9 @@ TEST_F(PolicyManagerImplTest2, GetUserConsentForDevice_SetDeviceDisallowed_Expec
   // Arrange
   file_system::remove_directory_content("storage1");
   ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
+
+  ASSERT_TRUE((manager->GetCache())->AddDevice("08-00-27-CE-76-FE",
+                                               "Bluetooth"));
   ASSERT_TRUE((manager->GetCache())->SetDeviceData("08-00-27-CE-76-FE",
                                                    "hardware IPX",
                                                    "v.8.0.1",
@@ -935,6 +949,8 @@ TEST_F(PolicyManagerImplTest2, GetDefaultHmi_SetDeviceDisallowed_ExpectReceivedH
   // Arrange
   file_system::remove_directory_content("storage1");
   ASSERT_TRUE(manager->InitPT("ptu2_requestType.json"));
+  ASSERT_TRUE((manager->GetCache())->AddDevice("08-00-27-CE-76-FE",
+                                               "Bluetooth"));
   ASSERT_TRUE((manager->GetCache())->SetDeviceData("08-00-27-CE-76-FE",
                                                    "hardware IPX",
                                                    "v.8.0.1",
@@ -965,6 +981,8 @@ EXPECT_TRUE(manager->IsPredataPolicy("1766825573"));
 std::string default_hmi1;
 manager->GetDefaultHmi("1766825573", &default_hmi1);
 EXPECT_EQ("NONE", default_hmi1);
+ASSERT_TRUE((manager->GetCache())->AddDevice("08-00-27-CE-76-FE",
+                                             "Bluetooth"));
 ASSERT_TRUE((manager->GetCache())->SetDeviceData("08-00-27-CE-76-FE",
                                                  "hardware IPX",
                                                  "v.8.0.1",
@@ -995,6 +1013,8 @@ TEST_F(PolicyManagerImplTest2, GetDefaultPriority_SetDeviceAllowed_ExpectReceive
   std::string priority1;
   manager->GetPriority("1766825573", &priority1);
   EXPECT_EQ("NONE", priority1);
+  ASSERT_TRUE((manager->GetCache())->AddDevice("08-00-27-CE-76-FE",
+                                               "Bluetooth"));
   ASSERT_TRUE((manager->GetCache())->SetDeviceData("08-00-27-CE-76-FE",
                                                    "hardware IPX",
                                                    "v.8.0.1",
@@ -1085,7 +1105,7 @@ TEST_F(PolicyManagerImplTest2, SetDeviceInfo_ExpectDevInfoAddedToPT) {
   dev_info.carrier = "Life";
   dev_info.max_number_rfcom_ports = 2;
   dev_info.connection_type = "Bluetooth";
-
+  manager->AddDevice("XXX123456789ZZZ", "Bluetooth");
   manager->SetDeviceInfo("XXX123456789ZZZ", dev_info);
   // Find device in PT
   policy_table::DeviceData::const_iterator iter =
@@ -1105,6 +1125,8 @@ TEST_F(PolicyManagerImplTest2, GetUserConsentForApp_SetUserConsentForApp_ExpectR
   // Arrange
   file_system::remove_directory_content("storage1");
   ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
+  ASSERT_TRUE((manager->GetCache())->AddDevice("08-00-27-CE-76-FE",
+                                               "Bluetooth"));
   ASSERT_TRUE((manager->GetCache())->SetDeviceData("08-00-27-CE-76-FE",
                                                    "hardware IPX",
                                                    "v.8.0.1",
@@ -1278,6 +1300,8 @@ TEST_F(PolicyManagerImplTest2, CanAppKeepContext_AddAppFromConsentedDevice_Expec
   // Arrange
   file_system::remove_directory_content("storage1");
   ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
+  ASSERT_TRUE((manager->GetCache())->AddDevice("08-00-27-CE-76-FE",
+                                               "Bluetooth"));
   manager->AddApplication("1766825573");
   ASSERT_TRUE((manager->GetCache())->SetDeviceData("08-00-27-CE-76-FE",
                                                    "hardware IPX",
@@ -1333,6 +1357,8 @@ TEST_F(PolicyManagerImplTest2, CanAppStealFocus_AddAppFromConsentedDevice_Expect
   // Arrange
   file_system::remove_directory_content("storage1");
   ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
+  ASSERT_TRUE((manager->GetCache())->AddDevice("08-00-27-CE-76-FE",
+                                               "Bluetooth"));
   manager->AddApplication("1766825573");
   ASSERT_TRUE((manager->GetCache())->SetDeviceData("08-00-27-CE-76-FE",
                                                    "hardware IPX",
@@ -1402,6 +1428,7 @@ TEST_F(PolicyManagerImplTest2, CleanUnpairedDevice_ExpectDevicesDeleted) {
   dev_info1.carrier = "Life";
   dev_info1.max_number_rfcom_ports = 2;
   dev_info1.connection_type = "Bluetooth";
+  manager->AddDevice("XXX123456789ZZZ", "Bluetooth");
   manager->SetDeviceInfo("XXX123456789ZZZ", dev_info1);
 
   // Add second device
@@ -1413,6 +1440,7 @@ TEST_F(PolicyManagerImplTest2, CleanUnpairedDevice_ExpectDevicesDeleted) {
   dev_info2.carrier = "MTS";
   dev_info2.max_number_rfcom_ports = 2;
   dev_info2.connection_type = "Bluetooth";
+  manager->AddDevice("ZZZ123456789YYY", "Bluetooth");
   manager->SetDeviceInfo("ZZZ123456789YYY", dev_info2);
 
   // Add third device
@@ -1424,6 +1452,7 @@ TEST_F(PolicyManagerImplTest2, CleanUnpairedDevice_ExpectDevicesDeleted) {
   dev_info3.carrier = "Kyivstar";
   dev_info3.max_number_rfcom_ports = 2;
   dev_info3.connection_type = "Bluetooth";
+  manager->AddDevice("AAA123456789RRR", "Bluetooth");
   manager->SetDeviceInfo("AAA123456789RRR", dev_info3);
 
   utils::SharedPtr<policy_table::Table> pt = (manager->GetCache())->GetPT();
@@ -1494,6 +1523,8 @@ TEST_F(PolicyManagerImplTest2, GetPermissionsForApp_SetUserConsentForApp_ExpectR
   // Arrange
   file_system::remove_directory_content("storage1");
   ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
+  ASSERT_TRUE((manager->GetCache())->AddDevice("08-00-27-CE-76-FE",
+                                               "Bluetooth"));
   ASSERT_TRUE((manager->GetCache())->SetDeviceData("08-00-27-CE-76-FE",
                                                    "hardware IPX",
                                                    "v.8.0.1",
@@ -1650,6 +1681,8 @@ TEST_F(PolicyManagerImplTest2, GetAppPermissionsChanges_SetAppPermissionChanges_
   EXPECT_FALSE(app_perm1.requestTypeChanged);
   EXPECT_EQ(0u, app_perm1.requestType.size());
 
+  ASSERT_TRUE((manager->GetCache())->AddDevice("08-00-27-CE-76-FE",
+                                               "Bluetooth"));
   ASSERT_TRUE((manager->GetCache())->SetDeviceData("08-00-27-CE-76-FE",
                                                    "hardware IPX",
                                                    "v.8.0.1",
@@ -1722,6 +1755,8 @@ TEST_F(PolicyManagerImplTest2, RemovePendingPermissionsChanges_SetAppPermissionC
   EXPECT_FALSE(app_perm1.requestTypeChanged);
   EXPECT_EQ(0u, app_perm1.requestType.size());
 
+  ASSERT_TRUE((manager->GetCache())->AddDevice("08-00-27-CE-76-FE",
+                                               "Bluetooth"));
   ASSERT_TRUE((manager->GetCache())->SetDeviceData("08-00-27-CE-76-FE",
                                                    "hardware IPX",
                                                    "v.8.0.1",
@@ -1799,7 +1834,8 @@ EXPECT_CALL(listener, OnCurrentDeviceIdUpdateRequired("1766825573")).WillOnce(Re
 EXPECT_CALL(listener, OnPermissionsUpdated("1766825573", _ , default_hmi1)).Times(0);
 manager->SendNotificationOnPermissionsUpdated("1766825573");
 
-
+ASSERT_TRUE((manager->GetCache())->AddDevice("08-00-27-CE-76-FE",
+                                             "Bluetooth"));
 ASSERT_TRUE((manager->GetCache())->SetDeviceData("08-00-27-CE-76-FE",
                                                  "hardware IPX",
                                                  "v.8.0.1",
@@ -1826,6 +1862,8 @@ TEST_F(PolicyManagerImplTest2, RemoveAppConsentForGroup_SetUserConsentForApp_Exp
   // Arrange
   file_system::remove_directory_content("storage1");
   ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
+  ASSERT_TRUE((manager->GetCache())->AddDevice("08-00-27-CE-76-FE",
+                                               "Bluetooth"));
   ASSERT_TRUE((manager->GetCache())->SetDeviceData("08-00-27-CE-76-FE",
                                                    "hardware IPX",
                                                    "v.8.0.1",
