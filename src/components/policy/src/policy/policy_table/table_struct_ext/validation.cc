@@ -1,13 +1,101 @@
-// This file is generated, do not edit
+#include <iostream>
 #include "./types.h"
 
 namespace rpc {
 namespace policy_table_interface_base {
 
+void RemoveInvalidTypes(RequestTypes& types) {
+  RequestTypes::iterator it_types = types.begin();
+  for (;types.end() != it_types;) {
+    if (!it_types->is_valid()) {
+      types.erase(it_types);
+      it_types = types.begin();
+    } else {
+      ++it_types;
+    }
+  }
+}
+
 bool PolicyBase::Validate() const {
   return true;
 }
 bool ApplicationPoliciesSection::Validate() const {
+  ApplicationPolicies::iterator it_default_policy =
+      apps.find(kDefaultApp);
+  ApplicationPolicies::iterator it_pre_data_policy =
+      apps.find(kPreDataConsentApp);
+
+  // Default and PreData policies are mandatory
+  if (apps.end() == it_default_policy || apps.end() == it_pre_data_policy) {
+    std::cout << "Default or preData policy is not present." << std::endl;
+    return false;
+  }
+
+  // Device policy is mandatory
+  if (!device.is_initialized()) {
+    std::cout << "Device policy is not present." << std::endl;
+    return false;
+  }
+
+  PolicyTableType pt_type = GetPolicyTableType();
+  if (PT_PRELOADED != pt_type && PT_UPDATE != pt_type) {
+    return true;
+  }
+
+  if (!it_default_policy->second.RequestType.is_valid()) {
+    std::cout << "Default policy RequestTypes are not valid. Will be cleaned." << std::endl;
+    RemoveInvalidTypes(*it_default_policy->second.RequestType);
+    // If preloaded does not have valid default types - validation fails
+    // Otherwise default will be empty, i.e. all types allowed
+    if (PT_PRELOADED == pt_type) {
+      if (it_default_policy->second.RequestType->empty()) {
+        std::cout << "Default policy RequestTypes empty after clean-up. Exiting." << std::endl;
+        return false;
+      }
+    }
+  }
+
+  ApplicationPolicies::iterator iter = apps.begin();
+  ApplicationPolicies::iterator end_iter = apps.end();
+
+
+  while(iter != end_iter) {
+    ApplicationParams& app_params = (*iter).second;
+    bool is_request_type_ommited = !app_params.RequestType.is_initialized();
+    bool is_request_type_valid = app_params.RequestType.is_valid();
+    bool is_request_type_empty = app_params.RequestType->empty();
+
+    if (PT_PRELOADED == pt_type) {
+      if (!is_request_type_valid) {
+        std::cout << "App policy RequestTypes are not valid. Will be cleaned." << std::endl;
+        RemoveInvalidTypes(*app_params.RequestType);
+        if (app_params.RequestType->empty()) {
+          std::cout << "App policy RequestTypes empty after clean-up. Exiting." << std::endl;
+          return false;
+        }
+      }
+    } else {
+      if (is_request_type_ommited) {
+        std::cout << "App policy RequestTypes ommited. Will be replaced with default." << std::endl;
+        app_params.RequestType = apps[kDefaultApp].RequestType;
+        continue;
+      }
+      if (!is_request_type_valid) {
+        std::cout << "App policy RequestTypes are invalid. Will be cleaned." << std::endl;
+        RemoveInvalidTypes(*app_params.RequestType);
+        if (app_params.RequestType->empty()) {
+          std::cout << "App policy RequestTypes empty after clean-up. Will be replaced with default." << std::endl;
+          app_params.RequestType = apps[kDefaultApp].RequestType;
+          continue;
+        }
+      }
+      if (is_request_type_empty) {
+        std::cout << "App policy RequestTypes empty." << std::endl;
+      }
+    }
+   ++iter;
+ }
+
   return true;
 }
 bool ApplicationParams::Validate() const {
