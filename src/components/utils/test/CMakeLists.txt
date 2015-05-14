@@ -56,6 +56,7 @@ set(testSources
   timer_thread_test.cc
   rwlock_posix_test.cc
   async_runner_test.cc
+  shared_ptr_test.cc
 )
 
 if (ENABLE_LOG)
