@@ -38,6 +38,7 @@
 
 #include "utils/logger.h"
 #include "utils/file_system.h"
+#include "utils/gen_hash.h"
 #include "policy/sql_pt_representation.h"
 #include "policy/sql_wrapper.h"
 #include "policy/sql_pt_queries.h"
@@ -738,7 +739,7 @@ bool SQLPTRepresentation::SaveFunctionalGroupings(
     // we drop records from the table and add them again.
     // That's why we use hash as a primary key insted of
     // simple auto incremental index.
-    const long int id = abs(CacheManager::GenerateHash(it->first));
+    const long int id = abs(utils::Djb2HashFromString(it->first));
     // SQLite's Bind doesn support 'long' type
     // So we need to explicitly cast it to int64_t
     // to avoid ambiguity.
