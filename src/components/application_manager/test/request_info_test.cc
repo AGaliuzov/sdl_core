@@ -150,7 +150,7 @@ TEST_F(RequestInfoTest, RequestInfoSetInsertErazeTest) {
 }
 
 //TODO(VVeremjova) APPLINK-12833 Fix core dump after check request_info.valid()
-TEST_F(RequestInfoTest, DISABLED_RequestInfoSetFrontTest) {
+TEST_F(RequestInfoTest, RequestInfoSetFrontTest) {
 
   for (uint32_t i = 0; i < count_of_requests_for_test_; ++i) {
       utils::SharedPtr<TestRequestInfo> request =
@@ -203,7 +203,7 @@ TEST_F(RequestInfoTest, RequestInfoSetFindTest) {
 }
 
 //TODO(VVeremjova) APPLINK-12833 APPLINK-12833 Fix core dump after check request_info.valid()
-TEST_F(RequestInfoTest, DISABLED_RequestInfoSetEqualHashTest) {
+TEST_F(RequestInfoTest, RequestInfoSetEqualHashTest) {
   request_info::RequestInfoSet request_info_set;
   const uint32_t connection_key = 65483;
   const uint32_t corr_id = 65483;

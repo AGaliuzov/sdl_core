@@ -385,7 +385,8 @@ void CreateInteractionChoiceSetRequest::onTimeOut() {
   OnAllHMIResponsesReceived();
   // If timeout occured, and request is alive is should not be managed by
   // request controller timer any_more
-  default_timeout_ = 0;
+  ApplicationManagerImpl::instance()->updateRequestTimeout(connection_key(),
+                                               correlation_id(), 0);
 }
 
 void CreateInteractionChoiceSetRequest::DeleteChoices() {
