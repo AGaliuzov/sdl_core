@@ -58,6 +58,7 @@
 #include "utils/macro.h"
 #include "utils/file_system.h"
 #include "utils/date_time.h"
+#include "utils/gen_hash.h"
 #include "enums.h"
 
 using ::policy::dbms::SQLError;
@@ -1144,7 +1145,7 @@ TEST_F(PolicyManagerImplTest2, GetUserConsentForApp_SetUserConsentForApp_ExpectR
   ::policy::FunctionalGroupPermission group1_perm;
   group1_perm.group_alias = "Notifications";
   group1_perm.group_name = "Notifications";
-  group1_perm.group_id = ::policy::CacheManager::GenerateHash("Notifications");
+  group1_perm.group_id = ::utils::Djb2HashFromString("Notifications");
   group1_perm.state = ::policy::GroupConsent::kGroupAllowed;
 
   std::vector<::policy::FunctionalGroupPermission> groups_permissions;
@@ -1532,7 +1533,7 @@ TEST_F(PolicyManagerImplTest2, GetPermissionsForApp_SetUserConsentForApp_ExpectR
   ::policy::FunctionalGroupPermission group1_perm;
   group1_perm.group_alias = "Notifications";
   group1_perm.group_name = "Notifications";
-  group1_perm.group_id = ::policy::CacheManager::GenerateHash("Notifications");
+  group1_perm.group_id = ::utils::Djb2HashFromString("Notifications");
   group1_perm.state = ::policy::GroupConsent::kGroupAllowed;
 
   std::vector<::policy::FunctionalGroupPermission> groups_permissions;
@@ -1864,7 +1865,7 @@ TEST_F(PolicyManagerImplTest2, RemoveAppConsentForGroup_SetUserConsentForApp_Exp
   ::policy::FunctionalGroupPermission group1_perm;
   group1_perm.group_alias = "Notifications";
   group1_perm.group_name = "Notifications";
-  group1_perm.group_id = ::policy::CacheManager::GenerateHash("Notifications");
+  group1_perm.group_id = ::utils::Djb2HashFromString("Notifications");
   group1_perm.state = ::policy::GroupConsent::kGroupAllowed;
 
   std::vector<::policy::FunctionalGroupPermission> groups_permissions;
