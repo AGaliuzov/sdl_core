@@ -950,11 +950,6 @@ bool ApplicationManagerImpl::StartNaviService(
   using namespace protocol_handler;
   LOG4CXX_AUTO_TRACE(logger_);
 
-  if (!media_manager_) {
-    LOG4CXX_DEBUG(logger_, "The media manager is not initialized.");
-    return false;
-  }
-
   if (HMILevelAllowsStreaming(app_id, service_type)) {
     NaviServiceStatusMap::iterator it =
         navi_service_status_.find(app_id);
@@ -974,8 +969,6 @@ bool ApplicationManagerImpl::StartNaviService(
         true : it->second.second = true;
 
     application(app_id)->StartStreaming(service_type);
-    media_manager_->StartStreaming(app_id, service_type);
-
     return true;
   }
   return false;
@@ -998,12 +991,6 @@ void ApplicationManagerImpl::StopNaviService(
     service_type == ServiceType::kMobileNav ? it->second.first =
         false : it->second.second = false;
   }
-
-  if (!media_manager_) {
-    LOG4CXX_DEBUG(logger_, "The media manager is not initialized.");
-    return;
-  }
-  media_manager_->StopStreaming(app_id, service_type);
 
   ApplicationSharedPtr app = application(app_id);
   if (!app) {
@@ -2468,7 +2455,9 @@ void ApplicationManagerImpl::ForbidStreaming(uint32_t app_id) {
   EndNaviServices(app_id);
 }
 
-void ApplicationManagerImpl::OnAppStreaming(uint32_t app_id, bool state) {
+void ApplicationManagerImpl::OnAppStreaming(
+    uint32_t app_id, protocol_handler::ServiceType service_type, bool state) {
+  using namespace protocol_handler;
   LOG4CXX_AUTO_TRACE(logger_);
 
   ApplicationSharedPtr app = application(app_id);
@@ -2476,8 +2465,15 @@ void ApplicationManagerImpl::OnAppStreaming(uint32_t app_id, bool state) {
     LOG4CXX_DEBUG(logger_, " There is no navi application with id: " << app_id);
     return;
   }
-  state ? state_ctrl_.OnNaviStreamingStarted() :
-          state_ctrl_.OnNaviStreamingStopped();
+  DCHECK_OR_RETURN_VOID(media_manager_);
+
+  if (state) {
+    state_ctrl_.OnNaviStreamingStarted();
+    media_manager_->StartStreaming(app_id, service_type);
+  } else {
+    media_manager_->StopStreaming(app_id, service_type);
+    state_ctrl_.OnNaviStreamingStopped();
+  }
 }
 
 void ApplicationManagerImpl::EndNaviServices(uint32_t app_id) {
@@ -2624,15 +2620,9 @@ void ApplicationManagerImpl::DisallowStreaming(uint32_t app_id) {
       navi_service_status_.find(app_id);
   if (navi_service_status_.end() != it) {
     if (it->second.first) {
-      if (media_manager_) {
-        media_manager_->StopStreaming(app_id, ServiceType::kMobileNav);
-      }
       app->set_video_streaming_allowed(false);
     }
     if (it->second.second) {
-      if (media_manager_) {
-        media_manager_->StopStreaming(app_id, ServiceType::kAudio);
-      }
       app->set_audio_streaming_allowed(false);
     }
   }
@@ -2652,15 +2642,9 @@ void ApplicationManagerImpl::AllowStreaming(uint32_t app_id) {
       navi_service_status_.find(app_id);
   if (navi_service_status_.end() != it) {
     if (it->second.first) {
-      if (media_manager_) {
-        media_manager_->StartStreaming(app_id, ServiceType::kMobileNav);
-      }
       app->set_video_streaming_allowed(true);
     }
     if (it->second.second) {
-      if (media_manager_) {
-        media_manager_->StartStreaming(app_id, ServiceType::kAudio);
-      }
       app->set_audio_streaming_allowed(true);
     }
   }
