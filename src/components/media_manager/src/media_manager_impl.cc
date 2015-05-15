@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,10 +42,10 @@
 #include "utils/file_system.h"
 #include "utils/logger.h"
 #include "utils/helpers.h"
-#if defined(EXTENDED_MEDIA_MODE)
+#ifdef EXTENDED_MEDIA_MODE
 #include "media_manager/audio/a2dp_source_player_adapter.h"
 #include "media_manager/audio/from_mic_recorder_adapter.h"
-#endif
+#endif // EXTENDED_MEDIA_MODE
 #include "media_manager/video/socket_video_streamer_adapter.h"
 #include "media_manager/audio/socket_audio_streamer_adapter.h"
 #include "media_manager/video/pipe_video_streamer_adapter.h"
@@ -78,15 +78,43 @@ MediaManagerImpl::~MediaManagerImpl() {
   }
 }
 
+#ifdef BUILD_TESTS
+  void MediaManagerImpl::set_mock_a2dp_player(MediaAdapter* media_adapter) {
+    a2dp_player_= media_adapter;
+  }
+
+  void MediaManagerImpl::set_mock_mic_listener(MediaListenerPtr media_listener) {
+    from_mic_listener_ = media_listener;
+  }
+
+#ifdef EXTENDED_MEDIA_MODE
+  void MediaManagerImpl::set_mock_mic_recorder(MediaAdapterImpl* media_adapter) {
+    from_mic_recorder_ = media_adapter;
+  }
+
+#endif // EXTENDED_MEDIA_MODE
+
+  void MediaManagerImpl::set_mock_streamer(protocol_handler::ServiceType stype,
+                                           MediaAdapterImpl* mock_stream) {
+    streamer_[stype]=  mock_stream;
+  }
+
+  void MediaManagerImpl::set_mock_streamer_listener(protocol_handler::ServiceType stype,
+                                                    MediaAdapterListener* mock_stream) {
+    streamer_listener_[stype]=  mock_stream;
+  }
+
+#endif // BUILD_TESTS
+
 void MediaManagerImpl::Init() {
   using namespace protocol_handler;
   LOG4CXX_INFO(logger_, "MediaManagerImpl::Init()");
 
-#if defined(EXTENDED_MEDIA_MODE)
+#ifdef EXTENDED_MEDIA_MODE
   LOG4CXX_INFO(logger_, "Called Init with default configuration.");
   a2dp_player_ = new A2DPSourcePlayerAdapter();
   from_mic_recorder_ = new FromMicRecorderAdapter();
-#endif
+#endif // EXTENDED_MEDIA_MODE
 
   if ("socket" == profile::Profile::instance()->video_server_type()) {
     streamer_[ServiceType::kMobileNav] = new SocketVideoStreamerAdapter();
@@ -152,7 +180,7 @@ void MediaManagerImpl::StartMicrophoneRecording(
   file_path += output_file;
 #endif // CUSTOMER_PASA
   from_mic_listener_ = new FromMicRecorderListener(file_path);
-#if defined(EXTENDED_MEDIA_MODE)
+#ifdef EXTENDED_MEDIA_MODE
   if (from_mic_recorder_) {
     from_mic_recorder_->AddListener(from_mic_listener_);
     (static_cast<FromMicRecorderAdapter*>(from_mic_recorder_))
@@ -188,14 +216,14 @@ void MediaManagerImpl::StartMicrophoneRecording(
   else {
     LOG4CXX_WARN(logger_, "Could not read file " << record_file_source);
   }
-#endif
-#endif
+#endif // CUSTOMER_PASA
+#endif // EXTENDED_MEDIA_MODE
   from_mic_listener_->OnActivityStarted(application_key);
 }
 
 void MediaManagerImpl::StopMicrophoneRecording(int32_t application_key) {
   LOG4CXX_AUTO_TRACE(logger_);
-#if defined(EXTENDED_MEDIA_MODE)
+#ifdef EXTENDED_MEDIA_MODE
   if (from_mic_recorder_) {
     from_mic_recorder_->StopActivity(application_key);
   }
@@ -203,11 +231,11 @@ void MediaManagerImpl::StopMicrophoneRecording(int32_t application_key) {
   if (from_mic_listener_) {
     from_mic_listener_->OnActivityEnded(application_key);
   }
-#if defined(EXTENDED_MEDIA_MODE)
+#ifdef EXTENDED_MEDIA_MODE
   if (from_mic_recorder_) {
     from_mic_recorder_->RemoveListener(from_mic_listener_);
   }
-#endif
+#endif // EXTENDED_MEDIA_MODE
 }
 
 void MediaManagerImpl::StartStreaming(
@@ -275,4 +303,4 @@ void MediaManagerImpl::FramesProcessed(int32_t application_key,
   }
 }
 
-}  //  namespace media_manager
+}  // namespace media_manager
