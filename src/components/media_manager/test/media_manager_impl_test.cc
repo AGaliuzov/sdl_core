@@ -92,25 +92,16 @@ TEST(MediaManagerImplTest, StartStopStreaming) {
   MediaAdapterImplMock mock_nav_media_streamer;
   mediaManagerImpl->set_mock_streamer(ServiceType::kMobileNav, &mock_nav_media_streamer);
 
-  MediaAdapterListenerMock mock_audio_media_streamer_listener;
-  mediaManagerImpl->set_mock_streamer_listener(ServiceType::kAudio, &mock_audio_media_streamer_listener);
-  MediaAdapterListenerMock mock_nav_media_streamer_listener;
-  mediaManagerImpl->set_mock_streamer_listener(ServiceType::kMobileNav, &mock_nav_media_streamer_listener);
-
   EXPECT_CALL(mock_audio_media_streamer, StartActivity(application_key));
-  EXPECT_CALL(mock_audio_media_streamer_listener, OnActivityStarted(application_key));
   mediaManagerImpl->StartStreaming(application_key, ServiceType::kAudio);
 
   EXPECT_CALL(mock_nav_media_streamer, StartActivity(application_key));
-  EXPECT_CALL(mock_nav_media_streamer_listener, OnActivityStarted(application_key));
   mediaManagerImpl->StartStreaming(application_key, ServiceType::kMobileNav);
 
   EXPECT_CALL(mock_audio_media_streamer, StopActivity(application_key));
-  EXPECT_CALL(mock_audio_media_streamer_listener, OnActivityEnded(application_key));
   mediaManagerImpl->StopStreaming(application_key, ServiceType::kAudio);
 
   EXPECT_CALL(mock_nav_media_streamer, StopActivity(application_key));
-  EXPECT_CALL(mock_nav_media_streamer_listener, OnActivityEnded(application_key));
   mediaManagerImpl->StopStreaming(application_key, ServiceType::kMobileNav);
 }
 
