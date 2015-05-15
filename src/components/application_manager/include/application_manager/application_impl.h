@@ -249,17 +249,17 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
 
   void set_video_stream_retry_number(const uint32_t& video_stream_retry_number);
 
-  protected:
+  /**
+   * @brief Load persistent files from application folder.
+   */
+  virtual void LoadPersistentFiles();
 
+  protected:
   /**
    * @brief Clean up application folder. Persistent files will stay
    */
   void CleanupFiles();
 
-  /**
-   * @brief Load persistent files from application folder.
-   */
-  void LoadPersistentFiles();
 
  private:
   typedef SharedPtr<TimerThread<ApplicationImpl>> ApplicationTimerPtr;

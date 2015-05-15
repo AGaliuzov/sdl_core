@@ -691,6 +691,11 @@ class Application : public virtual InitialApplicationData,
      */
     std::string GetDeviceId() const {return device_id_;}
 
+    /**
+     * @brief Load persistent files from application folder.
+     */
+    virtual void LoadPersistentFiles() = 0;
+
   protected:
 
     /**
