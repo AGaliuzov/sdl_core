@@ -1,19 +1,21 @@
 #include <iostream>
+#include <algorithm>
 #include "./types.h"
+#include "utils/logger.h"
+
+namespace {
+bool IsTypeInvalid(rpc::Enum<rpc::policy_table_interface_base::RequestType> request) { return !request.is_valid(); }
+}
 
 namespace rpc {
 namespace policy_table_interface_base {
 
+CREATE_LOGGERPTR_GLOBAL(logger_, "PolicyTableValidation")
+
 void RemoveInvalidTypes(RequestTypes& types) {
-  RequestTypes::iterator it_types = types.begin();
-  for (;types.end() != it_types;) {
-    if (!it_types->is_valid()) {
-      types.erase(it_types);
-      it_types = types.begin();
-    } else {
-      ++it_types;
-    }
-  }
+  types.erase(
+        std::remove_if(types.begin(), types.end(), &IsTypeInvalid),
+        types.end());
 }
 
 bool PolicyBase::Validate() const {
@@ -27,13 +29,13 @@ bool ApplicationPoliciesSection::Validate() const {
 
   // Default and PreData policies are mandatory
   if (apps.end() == it_default_policy || apps.end() == it_pre_data_policy) {
-    std::cout << "Default or preData policy is not present." << std::endl;
+    LOG4CXX_ERROR(logger_, "Default or preData policy is not present.");
     return false;
   }
 
   // Device policy is mandatory
   if (!device.is_initialized()) {
-    std::cout << "Device policy is not present." << std::endl;
+    LOG4CXX_ERROR(logger_, "Device policy is not present.");
     return false;
   }
 
@@ -43,13 +45,16 @@ bool ApplicationPoliciesSection::Validate() const {
   }
 
   if (!it_default_policy->second.RequestType.is_valid()) {
-    std::cout << "Default policy RequestTypes are not valid. Will be cleaned." << std::endl;
+    LOG4CXX_WARN(logger_,
+                 "Default policy RequestTypes are not valid. Will be cleaned.");
     RemoveInvalidTypes(*it_default_policy->second.RequestType);
     // If preloaded does not have valid default types - validation fails
     // Otherwise default will be empty, i.e. all types allowed
     if (PT_PRELOADED == pt_type) {
       if (it_default_policy->second.RequestType->empty()) {
-        std::cout << "Default policy RequestTypes empty after clean-up. Exiting." << std::endl;
+        LOG4CXX_ERROR(
+              logger_,
+              "Default policy RequestTypes empty after clean-up. Exiting.");
         return false;
       }
     }
@@ -67,30 +72,38 @@ bool ApplicationPoliciesSection::Validate() const {
 
     if (PT_PRELOADED == pt_type) {
       if (!is_request_type_valid) {
-        std::cout << "App policy RequestTypes are not valid. Will be cleaned." << std::endl;
+        LOG4CXX_WARN(
+              logger_,
+              "App policy RequestTypes are not valid. Will be cleaned.");
         RemoveInvalidTypes(*app_params.RequestType);
         if (app_params.RequestType->empty()) {
-          std::cout << "App policy RequestTypes empty after clean-up. Exiting." << std::endl;
+          LOG4CXX_ERROR(
+                logger_,
+                "App policy RequestTypes empty after clean-up. Exiting.");
           return false;
         }
       }
     } else {
       if (is_request_type_ommited) {
-        std::cout << "App policy RequestTypes ommited. Will be replaced with default." << std::endl;
+        LOG4CXX_WARN(logger_, "App policy RequestTypes ommited."
+                              " Will be replaced with default.");
         app_params.RequestType = apps[kDefaultApp].RequestType;
         continue;
       }
       if (!is_request_type_valid) {
-        std::cout << "App policy RequestTypes are invalid. Will be cleaned." << std::endl;
+        LOG4CXX_WARN(
+              logger_,
+              "App policy RequestTypes are invalid. Will be cleaned.");
         RemoveInvalidTypes(*app_params.RequestType);
         if (app_params.RequestType->empty()) {
-          std::cout << "App policy RequestTypes empty after clean-up. Will be replaced with default." << std::endl;
+          LOG4CXX_WARN(logger_, "App policy RequestTypes empty after clean-up."
+                                " Will be replaced with default.");
           app_params.RequestType = apps[kDefaultApp].RequestType;
           continue;
         }
       }
       if (is_request_type_empty) {
-        std::cout << "App policy RequestTypes empty." << std::endl;
+        LOG4CXX_WARN(logger_, "App policy RequestTypes empty.");
       }
     }
    ++iter;
