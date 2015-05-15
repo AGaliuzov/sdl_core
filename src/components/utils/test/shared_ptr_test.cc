@@ -45,12 +45,12 @@ class CMockObject {
   public:
     CMockObject(int id);
     virtual ~CMockObject();
-    virtual int getId(void) const;
+    int getId() const;
 
     MOCK_METHOD0(destructor, void ());
 
   private:
-    int mId;
+    int mId_;
 };
 
 class CExtendedMockObject : public CMockObject {
@@ -67,15 +67,15 @@ using namespace test::components::utils::SharedPtrTest;
 using ::testing::NiceMock;
 
 CMockObject::CMockObject(int id)
-    : mId(id) {
+    : mId_(id) {
 }
 
 CMockObject::~CMockObject() {
   destructor();
 }
 
-int CMockObject::getId(void) const {
-  return mId;
+int CMockObject::getId() const {
+  return mId_;
 }
 
 CExtendedMockObject::CExtendedMockObject(int id)
@@ -93,8 +93,8 @@ TEST(SharedPtrTest, DefaultConstructorTest) {
 }
 
 TEST(SharedPtrTest, ConstructorWithOneParameterTest) {
+  // Arrange
   CMockObject* object1 = new CMockObject(1);
-
   EXPECT_CALL(*object1, destructor()).Times(1);
 
   // Constructor checks
@@ -104,8 +104,8 @@ TEST(SharedPtrTest, ConstructorWithOneParameterTest) {
 }
 
 TEST(SharedPtrTest, CopyConstructorTest) {
+  // Arrange
   CMockObject* object1 = new CMockObject(1);
-
   EXPECT_CALL(*object1, destructor()).Times(1);
 
   // Constructor checks
@@ -128,11 +128,9 @@ TEST(SharedPtrTest, CopyConstructorTest) {
   ASSERT_EQ(3u, *(p3.get_ReferenceCounter()));
 }
 
-
 TEST(SharedPtrTest, SecondConstructorWithOneParameterTest) {
   // Arrange
   CExtendedMockObject* object1 = new CExtendedMockObject(2);
-
   EXPECT_CALL(*object1, destructor()).Times(0);
 
   // Constructors checks
@@ -215,7 +213,7 @@ TEST(SharedPtrTest, SecondAssignmentOperatorTest) {
   tMockObjectPtr p5(p4);
   ASSERT_EQ(1, p5->getId());
   ASSERT_EQ(4u, *(p5.get_ReferenceCounter()));
-
+  // Use assignment operator
   p5 = p2;
 
   // Check reference counter for new SharedPtr increased
@@ -283,7 +281,7 @@ TEST(SharedPtrTest, LessThanOperatorTest) {
   ASSERT_EQ(2, p2->getId());
   ASSERT_EQ(1u, *(p2.get_ReferenceCounter()));
 
-    // Checks
+  // Checks
   if (object1 < object2) {
       ASSERT_TRUE(p1 < p2);
   }
@@ -398,6 +396,7 @@ TEST(SharedPtrTest, DynamicPointerCastTest_BaseToDerived_ExpectNullPtr) {
 }
 
 TEST(SharedPtrTest, ArrowOperatorTest) {
+  // Arrange
   CExtendedMockObject* object1 = new CExtendedMockObject(1);
   CExtendedMockObject* object2 = new CExtendedMockObject(2);
 
@@ -418,6 +417,7 @@ TEST(SharedPtrTest, ArrowOperatorTest) {
 }
 
 TEST(SharedPtrTest, DereferenceOperatorTest) {
+  // Arrange
   CExtendedMockObject* object1 = new CExtendedMockObject(1);
   CExtendedMockObject* object2 = new CExtendedMockObject(2);
 
@@ -490,7 +490,6 @@ TEST(SharedPtrTest, ResetWithArgumentTest) {
   tMockObjectPtr p4(p3);
   ASSERT_EQ(1, p4->getId());
   ASSERT_EQ(3u, *(p4.get_ReferenceCounter()));
-
   // Act
   p4.reset(object2);
   // Check
@@ -502,7 +501,6 @@ TEST(SharedPtrTest, GetMethodTest_ExpectObjPointer) {
   // Arrange
   CMockObject* object1 = new CMockObject(1);
   EXPECT_CALL(*object1, destructor()).Times(1);
-
   tMockObjectPtr p1(object1);
   // Check
   ASSERT_EQ(object1, p1.get());
@@ -521,27 +519,24 @@ TEST(SharedPtrTest, ValidMethodTest_ExpectCorrectValidation) {
 }
 
 TEST(SharedPtrTest, StressTest) {
-  const size_t cNumIterations = 1024U * 1024U;
+  // Arrange
+  const size_t kNumIterations = 1024U * 1024U;
 
   size_t objectCreated = 0U;
   size_t pointersCopied = 0U;
-
   std::vector<tMockObjectPtr> objects;
 
-  for (size_t i = 0U; i < cNumIterations; ++i) {
+  for (size_t i = 0U; i < kNumIterations; ++i) {
     if ((true == objects.empty()) || (0 == rand() % 256)) {
       CMockObject* object = new CMockObject(0);
       EXPECT_CALL(*object, destructor());
-
       objects.push_back(object);
-
       ++objectCreated;
     } else {
       size_t objectIndex = static_cast<size_t>(rand()) % objects.size();
 
       if (rand() % 2) {
         objects.push_back(objects[objectIndex]);
-
         ++pointersCopied;
       } else {
         objects.erase(objects.begin() + objectIndex);

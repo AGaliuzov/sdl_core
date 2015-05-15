@@ -167,7 +167,7 @@ class SharedPtr {
     ObjectType* get() const;
 
 #ifdef BUILD_TESTS
-   inline uint32_t* get_ReferenceCounter() const {
+   inline const uint32_t* get_ReferenceCounter() const {
      return mReferenceCounter;
    }
 #endif // BUILD_TESTS
