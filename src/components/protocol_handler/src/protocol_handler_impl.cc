@@ -42,7 +42,10 @@
 #include "security_manager/ssl_context.h"
 #include "security_manager/security_manager.h"
 #endif  // ENABLE_SECURITY
-
+#ifdef ENABLE_LOG
+#include <iostream>
+#include <iomanip>
+#endif
 namespace protocol_handler {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "ProtocolHandler")
@@ -1282,6 +1285,14 @@ RESULT_CODE ProtocolHandlerImpl::DecryptFrame(ProtocolFramePtr packet) {
                        &out_data, &out_data_size)) {
     const std::string error_text(context->LastError());
     LOG4CXX_ERROR(logger_, "Decryption failed: " << error_text);
+#ifdef ENABLE_LOG
+    std::stringstream ss;
+    for (size_t i = 0; i < packet->data_size(); ++i) {
+        ss << std::showbase << std::hex << std::setw(2) << std::setfill('0')
+           << (int)packet->data()[i];
+    }
+    LOG4CXX_ERROR(logger_, "Failed to decrypt data : " << ss.str());
+#endif
     security_manager_->SendInternalError(connection_key,
           security_manager::SecurityManager::ERROR_DECRYPTION_FAILED, error_text);
     // Close session to prevent usage unprotected service/session
