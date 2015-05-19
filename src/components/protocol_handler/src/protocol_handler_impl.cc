@@ -1287,9 +1287,10 @@ RESULT_CODE ProtocolHandlerImpl::DecryptFrame(ProtocolFramePtr packet) {
     LOG4CXX_ERROR(logger_, "Decryption failed: " << error_text);
 #ifdef ENABLE_LOG
     std::stringstream ss;
+    const uint8_t* data = packet->data();
+    ss << std::showbase << std::hex << std::setw(2) << std::setfill('0');
     for (size_t i = 0; i < packet->data_size(); ++i) {
-        ss << std::showbase << std::hex << std::setw(2) << std::setfill('0')
-           << (int)packet->data()[i];
+        ss << " " << static_cast<int>(data[i]);
     }
     LOG4CXX_ERROR(logger_, "Failed to decrypt data : " << ss.str());
 #endif
