@@ -53,7 +53,7 @@ class ProtocolHeaderValidatorTest : public ::testing::Test {
   uint32_t some_session_id;
 };
 
-// Protocol version shall be from 1 to 3
+// Protocol version shall be from 1 to 4
 TEST_F(ProtocolHeaderValidatorTest, MaxPayloadSizeSetGet) {
   EXPECT_EQ(std::numeric_limits<size_t>::max(),
             header_validator.max_payload_size());
@@ -63,7 +63,7 @@ TEST_F(ProtocolHeaderValidatorTest, MaxPayloadSizeSetGet) {
   }
 }
 
-// Protocol version shall be from 1 to 3
+// Protocol version shall be from 1 to 4
 TEST_F(ProtocolHeaderValidatorTest, Malformed_Version) {
   std::vector<uint8_t> malformed_versions;
   malformed_versions.push_back(0);
