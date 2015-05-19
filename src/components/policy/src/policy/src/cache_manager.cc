@@ -386,7 +386,6 @@ bool CacheManager::ApplyUpdate(const policy_table::Table& update_pt) {
             continue;
           }
       pt_->policy_table.app_policies_section.apps[iter->first] = iter_default->second;
-          //update_pt.policy_table.app_policies_section.apps[kDefaultId];
     } else {
       pt_->policy_table.app_policies_section.apps[iter->first] = iter->second;
     }
