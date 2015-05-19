@@ -1595,7 +1595,7 @@ TEST_F(PolicyManagerImplTest2, GetAppRequestTypes_AddApp_UpdateAppPolicies_Expec
   ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
   manager->AddApplication("584421907");
   std::vector<std::string> app_requests = manager->GetAppRequestTypes("584421907");
-  EXPECT_EQ(0u, app_requests.size());
+  EXPECT_EQ(1u, app_requests.size());
   std::ifstream ifile("ptu_requestType.json");
   Json::Reader reader;
   std::string json;
@@ -1670,7 +1670,7 @@ TEST_F(PolicyManagerImplTest2, GetAppPermissionsChanges_SetAppPermissionChanges_
   manager->AddApplication("584421907");
   EXPECT_TRUE(manager->IsPredataPolicy("584421907"));
   std::vector<std::string> app_requests = manager->GetAppRequestTypes("584421907");
-  EXPECT_EQ(0u, app_requests.size());
+  EXPECT_EQ(1u, app_requests.size());
   // Get app permissions from pre_DataConsent policy
   ::policy::AppPermissions app_perm1 = manager->GetAppPermissionsChanges("584421907");
   EXPECT_EQ(app_perm1.application_id, "584421907");
@@ -1744,7 +1744,7 @@ TEST_F(PolicyManagerImplTest2, RemovePendingPermissionsChanges_SetAppPermissionC
   manager->AddApplication("584421907");
   EXPECT_TRUE(manager->IsPredataPolicy("584421907"));
   std::vector<std::string> app_requests = manager->GetAppRequestTypes("584421907");
-  EXPECT_EQ(0u, app_requests.size());
+  EXPECT_EQ(1u, app_requests.size());
   // Get app permissions from pre_DataConsent policy
   ::policy::AppPermissions app_perm1 = manager->GetAppPermissionsChanges("584421907");
   EXPECT_EQ(app_perm1.application_id, "584421907");
@@ -1821,41 +1821,41 @@ TEST_F(PolicyManagerImplTest2, RemovePendingPermissionsChanges_SetAppPermissionC
 }
 
 TEST_F(PolicyManagerImplTest2, SendNotificationOnPermissionsUpdated_SetDeviceAllowed_ExpectNotificationSent) {
-// Arrange
-file_system::remove_directory_content("storage1");
-ASSERT_TRUE(manager->InitPT("ptu2_requestType.json"));
-manager->AddApplication("1766825573");
-// Check if app has preData policy
-EXPECT_TRUE(manager->IsPredataPolicy("1766825573"));
-std::string default_hmi1;
-manager->GetDefaultHmi("1766825573", &default_hmi1);
-EXPECT_EQ("NONE", default_hmi1);
-EXPECT_CALL(listener, OnCurrentDeviceIdUpdateRequired("1766825573")).WillOnce(Return(""));
-EXPECT_CALL(listener, OnPermissionsUpdated("1766825573", _ , default_hmi1)).Times(0);
-manager->SendNotificationOnPermissionsUpdated("1766825573");
+  // Arrange
+  file_system::remove_directory_content("storage1");
+  ASSERT_TRUE(manager->InitPT("ptu2_requestType.json"));
+  manager->AddApplication("1766825573");
+  // Check if app has preData policy
+  EXPECT_TRUE(manager->IsPredataPolicy("1766825573"));
+  std::string default_hmi1;
+  manager->GetDefaultHmi("1766825573", &default_hmi1);
+  EXPECT_EQ("NONE", default_hmi1);
+  EXPECT_CALL(listener, OnCurrentDeviceIdUpdateRequired("1766825573")).WillOnce(Return(""));
+  EXPECT_CALL(listener, OnPermissionsUpdated("1766825573", _ , default_hmi1)).Times(0);
+  manager->SendNotificationOnPermissionsUpdated("1766825573");
 
-ASSERT_TRUE((manager->GetCache())->AddDevice("08-00-27-CE-76-FE",
+  ASSERT_TRUE((manager->GetCache())->AddDevice("08-00-27-CE-76-FE",
                                              "Bluetooth"));
-ASSERT_TRUE((manager->GetCache())->SetDeviceData("08-00-27-CE-76-FE",
-                                                 "hardware IPX",
-                                                 "v.8.0.1",
-                                                 "Android",
-                                                 "4.4.2",
-                                                 "Life",
-                                                 2,
-                                                 "Bluetooth"));
-manager->SetUserConsentForDevice("08-00-27-CE-76-FE", true);
-::policy::DeviceConsent consent = manager->GetUserConsentForDevice("08-00-27-CE-76-FE");
-// Check
-EXPECT_EQ(::policy::DeviceConsent::kDeviceAllowed, consent);
-EXPECT_CALL(listener, OnCurrentDeviceIdUpdateRequired("1766825573")).WillRepeatedly(Return("08-00-27-CE-76-FE"));
-manager->AddApplication("1766825573");
-EXPECT_TRUE((manager->GetCache())->IsDefaultPolicy("1766825573"));
-std::string default_hmi2;
-manager->GetDefaultHmi("1766825573", &default_hmi2);
-EXPECT_EQ("LIMITED", default_hmi2);
-EXPECT_CALL(listener, OnPermissionsUpdated("1766825573", _ , default_hmi2));
-manager->SendNotificationOnPermissionsUpdated("1766825573");
+  ASSERT_TRUE((manager->GetCache())->SetDeviceData("08-00-27-CE-76-FE",
+                                                   "hardware IPX",
+                                                   "v.8.0.1",
+                                                   "Android",
+                                                   "4.4.2",
+                                                   "Life",
+                                                   2,
+                                                   "Bluetooth"));
+  manager->SetUserConsentForDevice("08-00-27-CE-76-FE", true);
+  ::policy::DeviceConsent consent = manager->GetUserConsentForDevice("08-00-27-CE-76-FE");
+  // Check
+  EXPECT_EQ(::policy::DeviceConsent::kDeviceAllowed, consent);
+  EXPECT_CALL(listener, OnCurrentDeviceIdUpdateRequired("1766825573")).WillRepeatedly(Return("08-00-27-CE-76-FE"));
+  manager->AddApplication("1766825573");
+  EXPECT_TRUE((manager->GetCache())->IsDefaultPolicy("1766825573"));
+  std::string default_hmi2;
+  manager->GetDefaultHmi("1766825573", &default_hmi2);
+  EXPECT_EQ("LIMITED", default_hmi2);
+  EXPECT_CALL(listener, OnPermissionsUpdated("1766825573", _ , default_hmi2));
+  manager->SendNotificationOnPermissionsUpdated("1766825573");
 }
 
 TEST_F(PolicyManagerImplTest2, RemoveAppConsentForGroup_SetUserConsentForApp_ExpectAppConsentDeleted) {
@@ -1940,6 +1940,318 @@ TEST_F(PolicyManagerImplTest2, RemoveAppConsentForGroup_SetUserConsentForApp_Exp
       EXPECT_TRUE((*(ucr_iter->second.consent_groups)).find("Notifications") != (*(ucr_iter->second.consent_groups)).end());
       manager->RemoveAppConsentForGroup("1766825573", "Notifications");
       EXPECT_TRUE((*(ucr_iter->second.consent_groups)).find("Notifications") == (*(ucr_iter->second.consent_groups)).end());
+    }
+  }
+}
+
+TEST_F(PolicyManagerImplTest2, AddRequestTypeToPT_default_preDataConsentSections_ExpectRTAdded) {
+  // Arrange
+  file_system::remove_directory_content("storage1");
+  ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
+  // Get RequestTypes from pre_DataConsent section of app policies
+  std::vector<std::string> preDataConsent_requests = manager->GetAppRequestTypes("pre_DataConsent");
+  EXPECT_EQ(1u, preDataConsent_requests.size());
+  // Get RequestTypes from pre_DataConsent section of app policies
+  std::vector<std::string> default_section_requests = manager->GetAppRequestTypes("default");
+  EXPECT_EQ(3u, default_section_requests.size());
+  manager->AddApplication("1234");
+  // App received pre_DataConsent policy
+  ASSERT_TRUE(manager->IsPredataPolicy("1234"));
+  // Check app now has RequestTypes from pre_DataConsent section
+  std::vector<std::string> app_requests_types = manager->GetAppRequestTypes("1234");
+  EXPECT_EQ(1u, app_requests_types.size());
+  // Add device
+  ASSERT_TRUE((manager->GetCache())->AddDevice("08-00-27-CE-76-FE",
+                                               "Bluetooth"));
+  // Set consent for added device
+  manager->SetUserConsentForDevice("08-00-27-CE-76-FE", true);
+  ::policy::DeviceConsent consent = manager->GetUserConsentForDevice("08-00-27-CE-76-FE");
+  // Check devoce is allowed
+  EXPECT_EQ(::policy::DeviceConsent::kDeviceAllowed, consent);
+  EXPECT_CALL(listener, OnCurrentDeviceIdUpdateRequired("1234")).WillRepeatedly(Return("08-00-27-CE-76-FE"));
+  // Make app get default policies
+  manager->AddApplication("1234");
+  EXPECT_TRUE((manager->GetCache())->IsDefaultPolicy("1234"));
+  // Check app gets RequestTypes from default policies section
+  app_requests_types = manager->GetAppRequestTypes("1234");
+  EXPECT_EQ(3u, app_requests_types.size());
+
+  // Get PTU with updated default & pre_DataConsent sections
+  std::ifstream ifile("PTU.json");
+  Json::Reader reader;
+  std::string json;
+  Json::Value root(Json::objectValue);
+  if (ifile != NULL && reader.parse(ifile, root, true)) {
+      json = root.toStyledString();
+    }
+  ifile.close();
+
+  ::policy::BinaryMessage msg(json.begin(), json.end());
+  // Load Json to cache
+  EXPECT_TRUE(manager->LoadPT("file_pt_update.json", msg));
+
+  Json::Value RequestTypesDefault  = Json::Value(Json::arrayValue);
+  RequestTypesDefault = root["policy_table"]["app_policies"]["default"]["RequestType"];
+  uint32_t RequestTypesDefault_size = RequestTypesDefault.size();
+  // Get Request Types from JSON (PTU)
+  Json::Value RequestTypesPreDataConsent  = Json::Value(Json::arrayValue);
+  // Get Request Types from JSON (PTU)
+  RequestTypesPreDataConsent = root["policy_table"]["app_policies"]["pre_DataConsent"]["RequestType"];
+  uint32_t RequestTypesPreDataConsent_size = RequestTypesPreDataConsent.size();
+
+  // Get RequestTypes from pre_DataConsent section of app policies after PTU
+  preDataConsent_requests = manager->GetAppRequestTypes("pre_DataConsent");
+  EXPECT_EQ(RequestTypesPreDataConsent_size, preDataConsent_requests.size());
+  // Get RequestTypes from pre_DataConsent section of app policies after PTU
+  default_section_requests = manager->GetAppRequestTypes("default");
+  EXPECT_EQ(RequestTypesDefault_size, default_section_requests.size());
+  app_requests_types = manager->GetAppRequestTypes("1234");
+  EXPECT_EQ(RequestTypesDefault_size, app_requests_types.size());
+
+  utils::SharedPtr<policy_table::Table> pt = (manager->GetCache())->GetPT();
+
+  ::policy_table::ApplicationPolicies& app_policies = pt->policy_table.app_policies_section.apps;
+
+  // Check default section RequestTypes were changed
+  ::policy_table::ApplicationPolicies::const_iterator app_policies_iter1 = app_policies.find("default");
+  if (app_policies_iter1 != app_policies.end()) {
+    const rpc::Stringifyable < rpc::Nullable<::policy_table::ApplicationParams> >& strf = app_policies_iter1->second;
+    const ::policy_table::ApplicationParams& app_params = strf;
+    ::policy_table::RequestTypes request_types = *(app_params.RequestType);
+    ASSERT_EQ(request_types.size(), RequestTypesDefault_size);
+    std::sort(request_types.begin(), request_types.end());
+    policy_table::RequestType temp_res;
+    std::vector<policy_table::RequestType> result;
+    for (uint32_t i = 0 ; i < request_types.size(); ++i) {
+      EXPECT_TRUE(::rpc::policy_table_interface_base::EnumFromJsonString(RequestTypesDefault[i].asString(), &temp_res));
+      result.push_back(temp_res);
+      }
+
+    std::sort(result.begin(), result.end());
+    ASSERT_EQ(request_types.size(), result.size());
+
+    for (uint32_t i = 0 ; i < request_types.size(); ++i) {
+      EXPECT_EQ(request_types[i], result[i]);
+    }
+  }
+
+  // Check pre_DataConsent section RequestTypes were changed
+  ::policy_table::ApplicationPolicies::const_iterator app_policies_iter2 = app_policies.find("pre_DataConsent");
+  if (app_policies_iter2 != app_policies.end()) {
+    const rpc::Stringifyable < rpc::Nullable<::policy_table::ApplicationParams> >& strf = app_policies_iter2->second;
+    const ::policy_table::ApplicationParams& app_params = strf;
+    ::policy_table::RequestTypes request_types = *(app_params.RequestType);
+    ASSERT_EQ(request_types.size(), RequestTypesPreDataConsent_size);
+    std::sort(request_types.begin(), request_types.end());
+    policy_table::RequestType temp_res;
+    std::vector<policy_table::RequestType> result;
+    for (uint32_t i = 0 ; i < request_types.size(); ++i) {
+      EXPECT_TRUE(::rpc::policy_table_interface_base::EnumFromJsonString(RequestTypesPreDataConsent[i].asString(), &temp_res));
+      result.push_back(temp_res);
+      }
+
+    std::sort(result.begin(), result.end());
+    ASSERT_EQ(request_types.size(), result.size());
+
+    for (uint32_t i = 0 ; i < request_types.size(); ++i) {
+      EXPECT_EQ(request_types[i], result[i]);
+    }
+  }
+}
+
+TEST_F(PolicyManagerImplTest2, AddInvalidRequestTypeToPT_default_preDataConsentSections_ExpectIgnored) {
+  // Arrange
+  file_system::remove_directory_content("storage1");
+  ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
+  // Get RequestTypes from pre_DataConsent section of app policies
+  std::vector<std::string> preDataConsent_requests = manager->GetAppRequestTypes("pre_DataConsent");
+  EXPECT_EQ(1u, preDataConsent_requests.size());
+  // Get RequestTypes from pre_DataConsent section of app policies
+  std::vector<std::string> default_section_requests = manager->GetAppRequestTypes("default");
+  EXPECT_EQ(3u, default_section_requests.size());
+  manager->AddApplication("1234");
+  // App received pre_DataConsent policy
+  ASSERT_TRUE(manager->IsPredataPolicy("1234"));
+  // Check app now has RequestTypes from pre_DataConsent section
+  std::vector<std::string> app_requests_types = manager->GetAppRequestTypes("1234");
+  EXPECT_EQ(1u, app_requests_types.size());
+  // Add device
+  ASSERT_TRUE((manager->GetCache())->AddDevice("08-00-27-CE-76-FE",
+                                               "Bluetooth"));
+  // Set consent for added device
+  manager->SetUserConsentForDevice("08-00-27-CE-76-FE", true);
+  ::policy::DeviceConsent consent = manager->GetUserConsentForDevice("08-00-27-CE-76-FE");
+  // Check devoce is allowed
+  EXPECT_EQ(::policy::DeviceConsent::kDeviceAllowed, consent);
+  EXPECT_CALL(listener, OnCurrentDeviceIdUpdateRequired("1234")).WillRepeatedly(Return("08-00-27-CE-76-FE"));
+  // Make app get default policies
+  manager->AddApplication("1234");
+  EXPECT_TRUE((manager->GetCache())->IsDefaultPolicy("1234"));
+  // Check app gets RequestTypes from default policies section
+  app_requests_types = manager->GetAppRequestTypes("1234");
+  EXPECT_EQ(3u, app_requests_types.size());
+
+  // Get PTU with updated default & pre_DataConsent sections with a few invalid RequestTypes
+  std::ifstream ifile("PTU3.json");
+  Json::Reader reader;
+  std::string json;
+  Json::Value root(Json::objectValue);
+  if (ifile != NULL && reader.parse(ifile, root, true)) {
+      json = root.toStyledString();
+    }
+  ifile.close();
+
+  ::policy::BinaryMessage msg(json.begin(), json.end());
+  // Load Json to cache
+  EXPECT_TRUE(manager->LoadPT("file_pt_update.json", msg));
+
+  Json::Value RequestTypesDefault  = Json::Value(Json::arrayValue);
+  RequestTypesDefault = root["policy_table"]["app_policies"]["default"]["RequestType"];
+  uint32_t RequestTypesDefault_size = RequestTypesDefault.size();
+  // Get Request Types from JSON (PTU)
+  Json::Value RequestTypesPreDataConsent  = Json::Value(Json::arrayValue);
+  // Get Request Types from JSON (PTU)
+  RequestTypesPreDataConsent = root["policy_table"]["app_policies"]["pre_DataConsent"]["RequestType"];
+  uint32_t RequestTypesPreDataConsent_size = RequestTypesPreDataConsent.size();
+
+  // Get RequestTypes from pre_DataConsent section of app policies after PTU
+  preDataConsent_requests = manager->GetAppRequestTypes("pre_DataConsent");
+  // One RT in PTU pre_DataConsent section was invalid
+  EXPECT_EQ(RequestTypesPreDataConsent_size - 1, preDataConsent_requests.size());
+  // Get RequestTypes from pre_DataConsent section of app policies after PTU
+  default_section_requests = manager->GetAppRequestTypes("default");
+  // Two RT in PTU pre_DataConsent section was invalid
+  EXPECT_EQ(RequestTypesDefault_size - 2, default_section_requests.size());
+  app_requests_types = manager->GetAppRequestTypes("1234");
+  // Two RT in PTU pre_DataConsent section was invalid
+  EXPECT_EQ(RequestTypesDefault_size - 2, app_requests_types.size());
+
+  utils::SharedPtr<policy_table::Table> pt = (manager->GetCache())->GetPT();
+
+  ::policy_table::ApplicationPolicies& app_policies = pt->policy_table.app_policies_section.apps;
+
+  // Check default section RequestTypes were changed
+  ::policy_table::ApplicationPolicies::const_iterator app_policies_iter1 = app_policies.find("default");
+  if (app_policies_iter1 != app_policies.end()) {
+    const rpc::Stringifyable < rpc::Nullable<::policy_table::ApplicationParams> >& strf = app_policies_iter1->second;
+    const ::policy_table::ApplicationParams& app_params = strf;
+    ::policy_table::RequestTypes request_types = *(app_params.RequestType);
+    ASSERT_EQ(request_types.size(), RequestTypesDefault_size - 2);
+    std::sort(request_types.begin(), request_types.end());
+    policy_table::RequestType temp_res;
+    std::vector<policy_table::RequestType> result;
+    for (uint32_t i = 0 ; i < request_types.size(); ++i) {
+      EXPECT_TRUE(::rpc::policy_table_interface_base::EnumFromJsonString(RequestTypesDefault[i].asString(), &temp_res));
+      result.push_back(temp_res);
+      }
+    std::sort(result.begin(), result.end());
+    ASSERT_EQ(request_types.size(), result.size());
+
+    for (uint32_t i = 0 ; i < request_types.size(); ++i) {
+      EXPECT_EQ(request_types[i], result[i]);
+    }
+  }
+
+  // Check pre_DataConsent section RequestTypes were changed
+  ::policy_table::ApplicationPolicies::const_iterator app_policies_iter2 = app_policies.find("pre_DataConsent");
+  if (app_policies_iter2 != app_policies.end()) {
+    const rpc::Stringifyable < rpc::Nullable<::policy_table::ApplicationParams> >& strf = app_policies_iter2->second;
+    const ::policy_table::ApplicationParams& app_params = strf;
+    ::policy_table::RequestTypes request_types = *(app_params.RequestType);
+    ASSERT_EQ(request_types.size(), RequestTypesPreDataConsent_size - 1);
+    std::sort(request_types.begin(), request_types.end());
+    policy_table::RequestType temp_res;
+    std::vector<policy_table::RequestType> result;
+    for (uint32_t i = 0 ; i < request_types.size(); ++i) {
+      EXPECT_TRUE(::rpc::policy_table_interface_base::EnumFromJsonString(RequestTypesPreDataConsent[i].asString(), &temp_res));
+      result.push_back(temp_res);
+      }
+
+    std::sort(result.begin(), result.end());
+    ASSERT_EQ(request_types.size(), result.size());
+
+    for (uint32_t i = 0 ; i < request_types.size(); ++i) {
+      EXPECT_EQ(request_types[i], result[i]);
+    }
+  }
+}
+
+TEST_F(PolicyManagerImplTest2, AddRequestTypeToPT_GetNewAppWithSpecificPliciesViaPTU_ExpectRTAdded) {
+  // Arrange
+  file_system::remove_directory_content("storage1");
+  ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
+  // Add device
+  ASSERT_TRUE((manager->GetCache())->AddDevice("08-00-27-CE-76-FE",
+                                               "Bluetooth"));
+  // Set consent for added device
+  manager->SetUserConsentForDevice("08-00-27-CE-76-FE", true);
+  ::policy::DeviceConsent consent = manager->GetUserConsentForDevice("08-00-27-CE-76-FE");
+  // Check devoce is allowed
+  EXPECT_EQ(::policy::DeviceConsent::kDeviceAllowed, consent);
+  EXPECT_CALL(listener, OnCurrentDeviceIdUpdateRequired("1234")).WillRepeatedly(Return("08-00-27-CE-76-FE"));
+  // Make app get default policies
+  manager->AddApplication("1234");
+  EXPECT_TRUE((manager->GetCache())->IsDefaultPolicy("1234"));
+  // Check app gets RequestTypes from default policies section
+  std::vector<std::string> app_requests_types = manager->GetAppRequestTypes("1234");
+  EXPECT_EQ(3u, app_requests_types.size());
+
+  // Get PTU with updated app specific policies
+  std::ifstream ifile("PTU2.json");
+  Json::Reader reader;
+  std::string json;
+  Json::Value root(Json::objectValue);
+  if (ifile != NULL && reader.parse(ifile, root, true)) {
+      json = root.toStyledString();
+    }
+  ifile.close();
+
+  ::policy::BinaryMessage msg(json.begin(), json.end());
+
+  EXPECT_CALL(listener, OnPendingPermissionChange("1234")).Times(1);
+
+  // Load Json to cache
+  EXPECT_TRUE(manager->LoadPT("file_pt_update.json", msg));
+  // Get App Request Types from PTU
+  Json::Value appRequestTypes  = Json::Value(Json::arrayValue);
+  appRequestTypes = root["policy_table"]["app_policies"]["1234"]["RequestType"];
+  uint32_t appRequestTypes_size = appRequestTypes.size();
+
+  ::policy::AppPermissions permissions = manager->GetAppPermissionsChanges("1234");
+  EXPECT_TRUE(permissions.requestTypeChanged);
+  EXPECT_EQ(permissions.requestType.size(), appRequestTypes_size);
+  for (uint32_t i = 0 ; i < permissions.requestType.size(); ++i) {
+  EXPECT_EQ(permissions.requestType[i], appRequestTypes[i].asString());
+  }
+  // Get RequestTypes from <app_id> section of app policies after PTU
+  std::vector<std::string> app_request_types = manager->GetAppRequestTypes("1234");
+  // Check sizes of Request types of PT and PTU are equal
+  EXPECT_EQ(appRequestTypes_size, app_request_types.size());
+
+  utils::SharedPtr<policy_table::Table> pt = (manager->GetCache())->GetPT();
+
+  ::policy_table::ApplicationPolicies& app_policies = pt->policy_table.app_policies_section.apps;
+
+  // Check RequestTypes of <app_id> section were changed
+  ::policy_table::ApplicationPolicies::const_iterator app_policies_iter = app_policies.find("1234");
+  if (app_policies_iter != app_policies.end()) {
+    const rpc::Stringifyable < rpc::Nullable<::policy_table::ApplicationParams> >& strf = app_policies_iter->second;
+    const ::policy_table::ApplicationParams& app_params = strf;
+    ::policy_table::RequestTypes request_types = *(app_params.RequestType);
+    ASSERT_EQ(request_types.size(), appRequestTypes_size);
+    std::sort(request_types.begin(), request_types.end());
+    policy_table::RequestType temp_res;
+    std::vector<policy_table::RequestType> result;
+    for (uint32_t i = 0 ; i < request_types.size(); ++i) {
+      EXPECT_TRUE(::rpc::policy_table_interface_base::EnumFromJsonString(appRequestTypes[i].asString(), &temp_res));
+      result.push_back(temp_res);
+    }
+
+    std::sort(result.begin(), result.end());
+    ASSERT_EQ(request_types.size(), result.size());
+
+    for (uint32_t i = 0 ; i < request_types.size(); ++i) {
+      EXPECT_EQ(request_types[i], result[i]);
     }
   }
 }
