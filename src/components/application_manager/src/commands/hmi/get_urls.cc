@@ -47,40 +47,51 @@ GetUrls::~GetUrls() {
 
 void GetUrls::Run() {
   LOG4CXX_AUTO_TRACE(logger_);
-  smart_objects::SmartObject& object = *message_;
+  using namespace smart_objects;
+  using namespace policy;
+  SmartObject& object = *message_;
   object[strings::params][strings::message_type] = MessageType::kResponse;
-  if (policy::PolicyHandler::instance()->PolicyEnabled()) {
-    policy::EndpointUrls endpoints;
-    policy::PolicyHandler::instance()->GetUpdateUrls(
+  if (PolicyHandler::instance()->PolicyEnabled()) {
+    EndpointUrls endpoints;
+    PolicyHandler::instance()->GetUpdateUrls(
         object[strings::msg_params][hmi_request::service].asInt(), endpoints);
     if (!endpoints.empty()) {
       object[strings::msg_params].erase(hmi_request::service);
 
       object[strings::msg_params][hmi_response::urls] =
-        smart_objects::SmartObject(smart_objects::SmartType_Array);
+          SmartObject(SmartType_Array);
 
-      smart_objects::SmartObject& urls =
-          object[strings::msg_params][hmi_response::urls];
+      SmartObject& urls = object[strings::msg_params][hmi_response::urls];
 
       size_t index = 0;
 
       for (size_t i = 0; i < endpoints.size(); ++i) {
         for (size_t k = 0; k < endpoints[i].url.size(); ++k, ++index) {
           const std::string url = endpoints[i].url[k];
+          const std::string policy_app_id = endpoints[i].app_id;
+          if (kDefaultId != policy_app_id) {
 
-          urls[index] = smart_objects::SmartObject(
-                smart_objects::SmartType_Map);
-          smart_objects::SmartObject& service_info = urls[index];
+            ApplicationSharedPtr app = ApplicationManagerImpl::instance()->
+                 application_by_policy_id(policy_app_id);
 
-          service_info[strings::url] = url;
-          if (policy::kDefaultId != endpoints[i].app_id) {
-            service_info[hmi_response::policy_app_id] =
-              endpoints[i].app_id;
-             ApplicationSharedPtr app = ApplicationManagerImpl::instance()->
-                 application_by_policy_id(endpoints[i].app_id);
              if (app) {
+               urls[index] = SmartObject(SmartType_Map);
+
+               SmartObject& service_info = urls[index];
+
                service_info[strings::app_id] = app->hmi_app_id();
+               service_info[strings::url] = url;
+             } else {
+               LOG4CXX_ERROR(logger_, "Can't find application with policy id "
+                             << policy_app_id
+                             << " URLs adding for this appliation is skipped.");
              }
+          } else {
+            urls[index] = SmartObject(SmartType_Map);
+
+            SmartObject& service_info = urls[index];
+
+            service_info[strings::url] = url;
           }
         }
       }

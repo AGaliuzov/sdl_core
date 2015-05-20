@@ -60,33 +60,24 @@ void OnSystemRequestNotification::Run() {
   params[strings::function_id] =
     static_cast<int32_t>(mobile_apis::FunctionID::eType::OnSystemRequestID);
 
-  std::string policy_app_id;
-  if (msg_params.keyExists(strings::policy_app_id)) {
-    policy_app_id = msg_params[strings::policy_app_id].asString();
-  }
-
   // According to HMI API, this should be HMI unique id, but during processing
   // messages from HMI this param is replaced by connection key, so below it
   // will be treated as connection key
   uint32_t app_id = 0;
   if (msg_params.keyExists(strings::app_id)) {
     app_id = msg_params[strings::app_id].asUInt();
+    LOG4CXX_DEBUG(logger_, "Received OnSystemRequest for appID " << app_id);
+  } else {
+    LOG4CXX_DEBUG(logger_, "Received OnSystemRequest without appID."
+                  " One of registered apps will be used.");
   }
-
-  LOG4CXX_DEBUG(logger_, "Received OnSystemRequest for '" << policy_app_id
-                << "' and appID " << app_id);
 
   ApplicationSharedPtr app;
   ApplicationManagerImpl* app_mgr = ApplicationManagerImpl::instance();
 
-  if (app_id && policy_app_id.empty()) {
+  if (app_id) {
     LOG4CXX_DEBUG(logger_, "Searching app to send OnSystemRequest by appID.");
     app = app_mgr->application(app_id);
-  } else if (!policy_app_id.empty() &&
-             strings::default_app_id != policy_app_id) {
-    LOG4CXX_DEBUG(logger_,
-                  "Searching app to send OnSystemRequest by policyappID.");
-    app = app_mgr->application_by_policy_id(policy_app_id);
   } else {
     LOG4CXX_DEBUG(logger_, "Searching registered app to send OnSystemRequest.");
     PolicyHandler* policy_handler = PolicyHandler::instance();
