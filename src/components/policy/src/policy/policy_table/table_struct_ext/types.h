@@ -119,7 +119,7 @@ struct ApplicationParams : PolicyBase {
 
 struct ApplicationPoliciesSection : CompositeType {
   public:
-    ApplicationPolicies apps;
+    mutable ApplicationPolicies apps;
     DevicePolicy device;
   public:
     ApplicationPoliciesSection();
