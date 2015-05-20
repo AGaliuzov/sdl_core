@@ -54,87 +54,62 @@ class ProtocolPacketTest : public ::testing::Test {
   ConnectionID some_connection_id;
 };
 
-TEST_F(ProtocolPacketTest, SerializePacketWithDiffMalformedVersion) {
-  std::vector < uint8_t > malformed_versions;
-  for (uint8_t version = PROTOCOL_VERSION_1; version <= PROTOCOL_VERSION_4; ++version) {
-    malformed_versions.push_back(version);
-  }
-
+TEST_F(ProtocolPacketTest, SerializePacketWithDiffVersions) {
   RawMessagePtr res;
-  ProtocolPacket prot_packet(some_connection_id, malformed_versions[0], PROTECTION_OFF,
-                             FRAME_TYPE_CONTROL, kControl, FRAME_DATA_HEART_BEAT,
-                             some_session_id, 0u, some_message_id);
-  res = prot_packet.serializePacket();
-  EXPECT_EQ(res->protocol_version(), PROTOCOL_VERSION_1);
-  EXPECT_EQ(res->service_type(), kControl);
-  EXPECT_EQ(res->connection_key(), some_connection_id);
-  EXPECT_EQ(res->data_size(), 8u);
-
-  for (size_t i = 1; i < malformed_versions.size(); ++i) {
-    ProtocolPacket prot_packet_next(some_connection_id, malformed_versions[i], PROTECTION_OFF,
+  uint8_t version = PROTOCOL_VERSION_1;
+  for (version = PROTOCOL_VERSION_1; version <= PROTOCOL_VERSION_MAX; ++version) {
+    ProtocolPacket prot_packet(some_connection_id, version, PROTECTION_OFF,
                                     FRAME_TYPE_CONTROL, kControl, FRAME_DATA_HEART_BEAT,
                                     some_session_id, 0u, some_message_id);
-    res = prot_packet_next.serializePacket();
-    EXPECT_EQ(res->protocol_version(), malformed_versions[i]);
+    res = prot_packet.serializePacket();
+    EXPECT_EQ(res->protocol_version(), version);
     EXPECT_EQ(res->service_type(), kControl);
     EXPECT_EQ(res->connection_key(), some_connection_id);
+    if (res->protocol_version() == PROTOCOL_VERSION_1) {
+      EXPECT_EQ(res->data_size(), 8u);
+    }
+    else {
     EXPECT_EQ(res->data_size(), 12u);
-  }
-}
-
-TEST_F(ProtocolPacketTest, SerializePacketWithWrongMalformedVersion) {
-  std::vector < uint8_t > malformed_versions;
-  malformed_versions.push_back(0);
-  for (uint8_t version = PROTOCOL_VERSION_4 + 1; version <= PROTOCOL_VERSION_MAX; ++version) {
-    malformed_versions.push_back(version);
-  }
-  RawMessagePtr res;
-  for (size_t i = 0; i < malformed_versions.size(); ++i) {
-    const ProtocolPacket prot_packet(some_connection_id, malformed_versions[i], PROTECTION_OFF,
-                                     FRAME_TYPE_CONTROL, kControl, FRAME_DATA_HEART_BEAT,
-                                     some_session_id, 0u, some_message_id);
-    res = prot_packet.serializePacket();
-    EXPECT_EQ(res->protocol_version(), malformed_versions[i]);
-    EXPECT_EQ(res->data_size(), 12u);
+    }
   }
 }
 
 // ServiceType should be equal 0x0 (Control), 0x07 (RPC), 0x0A (PCM), 0x0B (Video), 0x0F (Bulk)
-TEST_F(ProtocolPacketTest, SerializePacketWithDiffMalformedServiceType) {
-  std::vector < uint8_t > malformed_serv_types;
-  malformed_serv_types.push_back(0x0);
-  malformed_serv_types.push_back(0x07);
-  malformed_serv_types.push_back(0x0A);
-  malformed_serv_types.push_back(0x0B);
-  malformed_serv_types.push_back(0x0F);
+TEST_F(ProtocolPacketTest, SerializePacketWithDiffServiceType) {
+  std::vector < uint8_t > serv_types;
+  serv_types.push_back(0x0);
+  serv_types.push_back(0x07);
+  serv_types.push_back(0x0A);
+  serv_types.push_back(0x0B);
+  serv_types.push_back(0x0F);
 
   RawMessagePtr res;
-  for (size_t i = 0; i < malformed_serv_types.size(); ++i) {
+  for (size_t i = 0; i < serv_types.size(); ++i) {
     ProtocolPacket prot_packet(some_connection_id, PROTOCOL_VERSION_3, PROTECTION_OFF,
-                               FRAME_TYPE_CONTROL, malformed_serv_types[i],FRAME_DATA_HEART_BEAT,
+                               FRAME_TYPE_CONTROL, serv_types[i],FRAME_DATA_HEART_BEAT,
                                some_session_id, 0u, some_message_id);
     res = prot_packet.serializePacket();
     EXPECT_EQ(res->protocol_version(), PROTOCOL_VERSION_3);
-    EXPECT_EQ(res->service_type(), malformed_serv_types[i]);
+    EXPECT_EQ(res->service_type(), serv_types[i]);
     EXPECT_EQ(res->data_size(), 12u);
   }
 }
 
 TEST_F(ProtocolPacketTest, SerializePacketWithWrongServiceType) {
-  std::vector < uint8_t > malformed_serv_types;
+  std::vector < uint8_t > serv_types;
   for (uint8_t service_type = kControl + 1; service_type < kRpc; ++service_type) {
-    malformed_serv_types.push_back(service_type);
+    serv_types.push_back(service_type);
   }
-  malformed_serv_types.push_back(0x08);
-  malformed_serv_types.push_back(0x09);
-  malformed_serv_types.push_back(0x0C);
-  malformed_serv_types.push_back(0x0D);
-  malformed_serv_types.push_back(0x0E);
+  serv_types.push_back(0x08);
+  serv_types.push_back(0x09);
+  serv_types.push_back(0x0C);
+  serv_types.push_back(0x0D);
+  serv_types.push_back(0x0E);
 
   RawMessagePtr res;
-  for (size_t i = 0; i < malformed_serv_types.size(); ++i) {
+  for (size_t i = 0; i < serv_types.size(); ++i) {
     ProtocolPacket prot_packet(some_connection_id, PROTOCOL_VERSION_3, PROTECTION_OFF,
-                               FRAME_TYPE_CONTROL, malformed_serv_types[i], FRAME_DATA_HEART_BEAT,
+                               FRAME_TYPE_CONTROL, serv_types[i], FRAME_DATA_HEART_BEAT,
                                some_session_id, 0u, some_message_id);
     res = prot_packet.serializePacket();
     EXPECT_EQ(res->protocol_version(), PROTOCOL_VERSION_3);
@@ -142,23 +117,18 @@ TEST_F(ProtocolPacketTest, SerializePacketWithWrongServiceType) {
   }
 }
 
-TEST_F(ProtocolPacketTest, SetPacketWithWrongFrameType) {
-  // Frame type shall be 0x00 (Control), 0x01 (Single), 0x02 (First), 0x03 (Consecutive)
-  std::vector < uint8_t > malformed_frame_types;
-  for (uint8_t frame_type = FRAME_TYPE_CONSECUTIVE + 1;
-       frame_type <= FRAME_TYPE_MAX_VALUE; ++frame_type) {
-    malformed_frame_types.push_back(frame_type);
-  }
-
+TEST_F(ProtocolPacketTest, SetPacketWithDiffFrameType) {
   RawMessagePtr res;
-  for (size_t i = 0; i < malformed_frame_types.size(); ++i) {
+  uint8_t frame_type;
+  for (frame_type = FRAME_TYPE_CONTROL + 1;
+       frame_type <= FRAME_TYPE_MAX_VALUE; ++frame_type) {
     ProtocolPacket prot_packet(some_connection_id, PROTOCOL_VERSION_4, PROTECTION_OFF,
-                               malformed_frame_types[i], kControl, FRAME_DATA_HEART_BEAT,
+                               frame_type, kControl, FRAME_DATA_HEART_BEAT,
                                some_session_id, 0u, some_message_id);
     res = prot_packet.serializePacket();
     EXPECT_EQ(res->protocol_version(), PROTOCOL_VERSION_4);
     EXPECT_EQ(res->service_type(), kControl);
-    EXPECT_EQ(prot_packet.frame_type(), malformed_frame_types[i]);
+    EXPECT_EQ(prot_packet.frame_type(), frame_type);
   }
 }
 
