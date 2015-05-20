@@ -44,7 +44,7 @@ namespace protocol_handler_test {
 using namespace ::protocol_handler;
 using ::utils::BitStream;
 
-void prepare_data(uint8_t* dataForSending, ProtocolPayloadV2& message ){
+void prepare_data(uint8_t* dataForSending, ProtocolPayloadV2& message) {
   uint8_t rpcTypeFlag = message.header.rpc_type;
   uint8_t offset = 0;
 
@@ -66,11 +66,11 @@ void prepare_data(uint8_t* dataForSending, ProtocolPayloadV2& message ){
   dataForSending[offset++] = jsonSize >> 8;
   dataForSending[offset++] = jsonSize;
 
-  if (message.json.length()!=0){
+  if (message.json.length() != 0) {
     memcpy(dataForSending + offset, message.json.c_str(), message.json.size());
   }
 
-  if (message.data.size()!=0) {
+  if (message.data.size() != 0) {
     uint8_t* currentPointer = dataForSending + offset + message.json.length();
     u_int32_t binarySize = message.data.size();
     for (uint32_t i = 0; i < binarySize; ++i) {
@@ -82,174 +82,172 @@ void prepare_data(uint8_t* dataForSending, ProtocolPayloadV2& message ){
 TEST(ProtocolPayloadTest, ExtractProtocolWithOnlyHeader) {
   ProtocolPayloadV2 prot_payload_test;
 
-  prot_payload_test.header.correlation_id=1;
-  prot_payload_test.header.rpc_function_id=2;
-  prot_payload_test.header.json_size=0;
+  prot_payload_test.header.correlation_id = 1;
+  prot_payload_test.header.rpc_function_id = 2;
+  prot_payload_test.header.json_size = 0;
   prot_payload_test.header.rpc_type = kRpcTypeRequest;
 
   const size_t dataForSendingSize = PROTOCOL_HEADER_V2_SIZE;
   uint8_t* dataForSending = new uint8_t[dataForSendingSize];
 
-  prepare_data(dataForSending,prot_payload_test);
+  prepare_data(dataForSending, prot_payload_test);
 
   BitStream bs(dataForSending, dataForSendingSize);
 
   ProtocolPayloadV2 prot_payload;
-  Extract(&bs, &prot_payload,dataForSendingSize);
+  Extract(&bs, &prot_payload, dataForSendingSize);
 
   EXPECT_TRUE(bs.IsGood());
 
-  EXPECT_EQ(prot_payload_test.header.correlation_id,prot_payload.header.correlation_id);
-  EXPECT_EQ(prot_payload_test.header.json_size,prot_payload.header.json_size);
-  EXPECT_EQ(prot_payload_test.header.rpc_function_id,prot_payload.header.rpc_function_id);
-  EXPECT_EQ(prot_payload_test.header.rpc_type,prot_payload.header.rpc_type);
-  delete [] dataForSending;
+  EXPECT_EQ(prot_payload_test.header.correlation_id, prot_payload.header.correlation_id);
+  EXPECT_EQ(prot_payload_test.header.json_size, prot_payload.header.json_size);
+  EXPECT_EQ(prot_payload_test.header.rpc_function_id, prot_payload.header.rpc_function_id);
+  EXPECT_EQ(prot_payload_test.header.rpc_type, prot_payload.header.rpc_type);
+  delete[] dataForSending;
 }
-
 
 TEST(ProtocolPayloadTest, ExtractCorrectProtocolWithDataWithoutJSON) {
   ProtocolPayloadV2 prot_payload_test;
 
-  prot_payload_test.header.correlation_id=1;
-  prot_payload_test.header.rpc_function_id=2;
-  prot_payload_test.header.json_size=0;
+  prot_payload_test.header.correlation_id = 1;
+  prot_payload_test.header.rpc_function_id = 2;
+  prot_payload_test.header.json_size = 0;
   prot_payload_test.header.rpc_type = kRpcTypeNotification;
   prot_payload_test.data = {1,2,3};
 
-  const size_t dataForSendingSize = PROTOCOL_HEADER_V2_SIZE+prot_payload_test.data.size()+prot_payload_test.json.length() ;
+  const size_t dataForSendingSize = PROTOCOL_HEADER_V2_SIZE + prot_payload_test.data.size() +
+                                    prot_payload_test.json.length();
   uint8_t* dataForSending = new uint8_t[dataForSendingSize];
 
-  prepare_data(dataForSending,prot_payload_test);
+  prepare_data(dataForSending, prot_payload_test);
 
   BitStream bs(dataForSending, dataForSendingSize);
 
   ProtocolPayloadV2 prot_payload;
-  Extract(&bs, &prot_payload,dataForSendingSize);
+  Extract(&bs, &prot_payload, dataForSendingSize);
 
   EXPECT_TRUE(bs.IsGood());
 
-  EXPECT_EQ(prot_payload_test.header.correlation_id,prot_payload.header.correlation_id);
-  EXPECT_EQ(prot_payload_test.header.json_size,prot_payload.header.json_size);
-  EXPECT_EQ(prot_payload_test.header.rpc_function_id,prot_payload.header.rpc_function_id);
-  EXPECT_EQ(prot_payload_test.header.rpc_type,prot_payload.header.rpc_type);
-  EXPECT_EQ(prot_payload_test.data.size(),prot_payload.data.size());
-  EXPECT_EQ(prot_payload_test.data[0],prot_payload.data[0]);
-  EXPECT_EQ(prot_payload_test.data[1],prot_payload.data[1]);
-  EXPECT_EQ(prot_payload_test.data[2],prot_payload.data[2]);
+  EXPECT_EQ(prot_payload_test.header.correlation_id, prot_payload.header.correlation_id);
+  EXPECT_EQ(prot_payload_test.header.json_size, prot_payload.header.json_size);
+  EXPECT_EQ(prot_payload_test.header.rpc_function_id, prot_payload.header.rpc_function_id);
+  EXPECT_EQ(prot_payload_test.header.rpc_type, prot_payload.header.rpc_type);
+  EXPECT_EQ(prot_payload_test.data.size(), prot_payload.data.size());
+  EXPECT_EQ(prot_payload_test.data[0], prot_payload.data[0]);
+  EXPECT_EQ(prot_payload_test.data[1], prot_payload.data[1]);
+  EXPECT_EQ(prot_payload_test.data[2], prot_payload.data[2]);
 
-  delete [] dataForSending;
+  delete[] dataForSending;
 }
-
 
 TEST(ProtocolPayloadTest, ExtractCorrectProtocolWithoutDataWithJSON) {
   ProtocolPayloadV2 prot_payload_test;
 
-  prot_payload_test.header.correlation_id=1;
-  prot_payload_test.header.rpc_function_id=2;
+  prot_payload_test.header.correlation_id = 1;
+  prot_payload_test.header.rpc_function_id = 2;
 
   prot_payload_test.header.rpc_type = kRpcTypeResponse;
 
   std::string expectOutputJsonString =
-      "{\n \" : {\n \"name\" : \"\",\n\"parameters\" : \"\"\n}\n}\n";
+        "{\n \" : {\n \"name\" : \"\",\n\"parameters\" : \"\"\n}\n}\n";
 
-  prot_payload_test.json =expectOutputJsonString;
-  prot_payload_test.header.json_size=prot_payload_test.json.length();
+  prot_payload_test.json = expectOutputJsonString;
+  prot_payload_test.header.json_size = prot_payload_test.json.length();
 
-  const size_t dataForSendingSize = PROTOCOL_HEADER_V2_SIZE+prot_payload_test.data.size()+
-                                    prot_payload_test.json.length() ;
+  const size_t dataForSendingSize = PROTOCOL_HEADER_V2_SIZE + prot_payload_test.data.size() +
+                                    prot_payload_test.json.length();
   uint8_t* dataForSending = new uint8_t[dataForSendingSize];
-  prepare_data(dataForSending,prot_payload_test);
+  prepare_data(dataForSending, prot_payload_test);
 
   BitStream bs(dataForSending, dataForSendingSize);
   ProtocolPayloadV2 prot_payload;
-  Extract(&bs, &prot_payload,dataForSendingSize);
+  Extract(&bs, &prot_payload, dataForSendingSize);
 
   EXPECT_TRUE(bs.IsGood());
 
-  EXPECT_EQ(prot_payload_test.header.correlation_id,prot_payload.header.correlation_id);
-  EXPECT_EQ(prot_payload_test.header.json_size,prot_payload.header.json_size);
-  EXPECT_EQ(prot_payload_test.header.rpc_function_id,prot_payload.header.rpc_function_id);
-  EXPECT_EQ(prot_payload_test.header.rpc_type,prot_payload.header.rpc_type);
-  EXPECT_EQ(prot_payload_test.json.length(),prot_payload.json.length());
-  EXPECT_EQ(prot_payload_test.json,prot_payload.json);
-  delete [] dataForSending;
+  EXPECT_EQ(prot_payload_test.header.correlation_id, prot_payload.header.correlation_id);
+  EXPECT_EQ(prot_payload_test.header.json_size, prot_payload.header.json_size);
+  EXPECT_EQ(prot_payload_test.header.rpc_function_id, prot_payload.header.rpc_function_id);
+  EXPECT_EQ(prot_payload_test.header.rpc_type, prot_payload.header.rpc_type);
+  EXPECT_EQ(prot_payload_test.json.length(), prot_payload.json.length());
+  EXPECT_EQ(prot_payload_test.json, prot_payload.json);
+  delete[] dataForSending;
 }
-
 
 TEST(ProtocolPayloadTest, ExtractCorrectProtocolWithDataWithJSON) {
   ProtocolPayloadV2 prot_payload_test;
 
-  prot_payload_test.header.correlation_id=1;
-  prot_payload_test.header.rpc_function_id=2;
+  prot_payload_test.header.correlation_id = 1;
+  prot_payload_test.header.rpc_function_id = 2;
   prot_payload_test.header.rpc_type = kRpcTypeRequest;
   prot_payload_test.data = {1,2,3};
 
   std::string expectOutputJsonString =
-      "{\n \" : {\n \"name\" : \"\",\n\"parameters\" : \"\"\n}\n}\n";
+        "{\n \" : {\n \"name\" : \"\",\n\"parameters\" : \"\"\n}\n}\n";
 
-  prot_payload_test.json =expectOutputJsonString;
-  prot_payload_test.header.json_size=prot_payload_test.json.length();
+  prot_payload_test.json = expectOutputJsonString;
+  prot_payload_test.header.json_size = prot_payload_test.json.length();
 
-  const size_t dataForSendingSize = PROTOCOL_HEADER_V2_SIZE+prot_payload_test.data.size()+
-                                    prot_payload_test.json.length() ;
+  const size_t dataForSendingSize = PROTOCOL_HEADER_V2_SIZE + prot_payload_test.data.size() +
+                                    prot_payload_test.json.length();
   uint8_t* dataForSending = new uint8_t[dataForSendingSize];
-  prepare_data(dataForSending,prot_payload_test);
+  prepare_data(dataForSending, prot_payload_test);
 
   BitStream bs(dataForSending, dataForSendingSize);
   ProtocolPayloadV2 prot_payload;
-  Extract(&bs, &prot_payload,dataForSendingSize);
+  Extract(&bs, &prot_payload, dataForSendingSize);
 
   EXPECT_TRUE(bs.IsGood());
 
-  EXPECT_EQ(prot_payload_test.header.correlation_id,prot_payload.header.correlation_id);
-  EXPECT_EQ(prot_payload_test.header.json_size,prot_payload.header.json_size);
-  EXPECT_EQ(prot_payload_test.header.rpc_function_id,prot_payload.header.rpc_function_id);
-  EXPECT_EQ(prot_payload_test.header.rpc_type,prot_payload.header.rpc_type);
-  EXPECT_EQ(prot_payload_test.json.length(),prot_payload.json.length());
-  EXPECT_EQ(prot_payload_test.json,prot_payload.json);
-  EXPECT_EQ(prot_payload_test.data.size(),prot_payload.data.size());
-  EXPECT_EQ(prot_payload_test.data[0],prot_payload.data[0]);
-  EXPECT_EQ(prot_payload_test.data[1],prot_payload.data[1]);
-  EXPECT_EQ(prot_payload_test.data[2],prot_payload.data[2]);
+  EXPECT_EQ(prot_payload_test.header.correlation_id, prot_payload.header.correlation_id);
+  EXPECT_EQ(prot_payload_test.header.json_size, prot_payload.header.json_size);
+  EXPECT_EQ(prot_payload_test.header.rpc_function_id, prot_payload.header.rpc_function_id);
+  EXPECT_EQ(prot_payload_test.header.rpc_type, prot_payload.header.rpc_type);
+  EXPECT_EQ(prot_payload_test.json.length(), prot_payload.json.length());
+  EXPECT_EQ(prot_payload_test.json, prot_payload.json);
+  EXPECT_EQ(prot_payload_test.data.size(), prot_payload.data.size());
+  EXPECT_EQ(prot_payload_test.data[0], prot_payload.data[0]);
+  EXPECT_EQ(prot_payload_test.data[1], prot_payload.data[1]);
+  EXPECT_EQ(prot_payload_test.data[2], prot_payload.data[2]);
 
-  delete [] dataForSending;
+  delete[] dataForSending;
 }
 
 TEST(ProtocolPayloadTest, ExtractProtocolWithJSONWithDataWithWrongPayloadSize) {
   ProtocolPayloadV2 prot_payload_test;
 
-  prot_payload_test.header.correlation_id=1;
-  prot_payload_test.header.rpc_function_id=2;
+  prot_payload_test.header.correlation_id = 1;
+  prot_payload_test.header.rpc_function_id = 2;
 
   prot_payload_test.header.rpc_type = kRpcTypeResponse;
   prot_payload_test.data = {1,2,3};
 
   std::string expectOutputJsonString =
-      "{\n \" : {\n \"name\" : \"\",\n\"parameters\" : \"\"\n}\n}\n";
+        "{\n \" : {\n \"name\" : \"\",\n\"parameters\" : \"\"\n}\n}\n";
 
-  prot_payload_test.json =expectOutputJsonString;
-  prot_payload_test.header.json_size=prot_payload_test.json.length();
+  prot_payload_test.json = expectOutputJsonString;
+  prot_payload_test.header.json_size = prot_payload_test.json.length();
 
-  const size_t dataForSendingSize = PROTOCOL_HEADER_V2_SIZE+prot_payload_test.json.length() ;
+  const size_t dataForSendingSize = PROTOCOL_HEADER_V2_SIZE + prot_payload_test.json.length();
   uint8_t* dataForSending = new uint8_t[dataForSendingSize];
-  prepare_data(dataForSending,prot_payload_test);
+  prepare_data(dataForSending, prot_payload_test);
 
   BitStream bs(dataForSending, dataForSendingSize);
   ProtocolPayloadV2 prot_payload;
 
   // Try extract with payload size less than size of data
-  Extract(&bs, &prot_payload,PROTOCOL_HEADER_V2_SIZE);
+  Extract(&bs, &prot_payload, PROTOCOL_HEADER_V2_SIZE);
 
   EXPECT_TRUE(bs.IsBad());
 
-  EXPECT_EQ(prot_payload_test.header.correlation_id,prot_payload.header.correlation_id);
-  EXPECT_EQ(prot_payload_test.header.json_size,prot_payload.header.json_size);
-  EXPECT_EQ(prot_payload_test.header.rpc_function_id,prot_payload.header.rpc_function_id);
-  EXPECT_EQ(prot_payload_test.header.rpc_type,prot_payload.header.rpc_type);
-  EXPECT_EQ(prot_payload_test.json.length(),prot_payload.json.length());
-  EXPECT_EQ(prot_payload_test.json,prot_payload.json);
-  EXPECT_EQ(0u,prot_payload.data.size());
-  delete [] dataForSending;
+  EXPECT_EQ(prot_payload_test.header.correlation_id, prot_payload.header.correlation_id);
+  EXPECT_EQ(prot_payload_test.header.json_size, prot_payload.header.json_size);
+  EXPECT_EQ(prot_payload_test.header.rpc_function_id, prot_payload.header.rpc_function_id);
+  EXPECT_EQ(prot_payload_test.header.rpc_type, prot_payload.header.rpc_type);
+  EXPECT_EQ(prot_payload_test.json.length(), prot_payload.json.length());
+  EXPECT_EQ(prot_payload_test.json, prot_payload.json);
+  EXPECT_EQ(0u, prot_payload.data.size());
+  delete[] dataForSending;
 }
 
 }  // namespace protocol_handler_test
