@@ -335,6 +335,7 @@ void MessageHelper::SendOnAppRegisteredNotificationToHMI(
   smart_objects::SmartObject& application = msg_params[strings::application];
   application[strings::app_name] = application_impl.name();
   application[strings::app_id] = application_impl.app_id();
+  application[strings::policy_app_id] = application_impl.policy_app_id();
   application[strings::icon] = application_impl.app_icon_path();
 
   const smart_objects::SmartObject* ngn_media_screen_name =
@@ -1259,6 +1260,7 @@ bool MessageHelper::CreateHMIApplicationStruct(ApplicationConstSharedPtr app,
   output[strings::app_id] = app->hmi_app_id();
   output[strings::hmi_display_language_desired] = app->ui_language();
   output[strings::is_media_application] = app->is_media_application();
+  output[strings::policy_app_id] = app->policy_app_id();
 
   if (ngn_media_screen_name) {
     output[strings::ngn_media_screen_app_name] = ngn_media_screen_name->asString();

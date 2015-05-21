@@ -1282,6 +1282,9 @@
       <param name="deviceInfo" type="Common.DeviceInfo" mandatory="true">
         <description>The ID, serial number, transport type the named-app's-device is connected over to HU.</description>
       </param>
+      <param name="policyAppID" type="String" maxlength="50" minlength="1" mandatory="true">
+        <description>Policy ID(=the appID the application registers with) of registered application.</description>
+      </param>
       <param name="appID" type="Integer" mandatory="true">
         <description>Unique (during ignition cycle) id of the application. To be used in all RPCs sent by both HU system and SDL</description>
       </param>
