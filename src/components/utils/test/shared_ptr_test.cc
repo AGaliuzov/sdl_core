@@ -45,7 +45,7 @@ class CMockObject {
   public:
     CMockObject(int id);
     virtual ~CMockObject();
-    int getId() const;
+    virtual int getId() const;
 
     MOCK_METHOD0(destructor, void ());
 
@@ -315,7 +315,6 @@ TEST(SharedPtrTest, StaticPointerCastTest_DerivedToBase_ExpectCastOk) {
   ASSERT_EQ(2u, *(p1.get_ReferenceCounter()));
   ASSERT_TRUE(p1 == ep1);
 
-  EXPECT_CALL(*object1, destructor()).Times(0);
   EXPECT_CALL(*object2, destructor());
 }
 
@@ -342,7 +341,6 @@ TEST(SharedPtrTest, StaticPointerCastTest_BaseToDerived_ExpectCastOk) {
   ASSERT_TRUE(p1 == ep1);
 
   EXPECT_CALL(*object1, destructor());
-  EXPECT_CALL(*object2, destructor()).Times(0);
 }
 
 TEST(SharedPtrTest, DynamicPointerCastTest_DerivedToBase_ExpectCastOk) {
@@ -367,7 +365,6 @@ TEST(SharedPtrTest, DynamicPointerCastTest_DerivedToBase_ExpectCastOk) {
   ASSERT_EQ(2u, *(p1.get_ReferenceCounter()));
   ASSERT_TRUE(p1 == ep1);
 
-  EXPECT_CALL(*object1, destructor()).Times(0);
   EXPECT_CALL(*object2, destructor());
 }
 
@@ -392,7 +389,6 @@ TEST(SharedPtrTest, DynamicPointerCastTest_BaseToDerived_ExpectNullPtr) {
   ASSERT_EQ(NULL, ep1);
 
   EXPECT_CALL(*object1, destructor());
-  EXPECT_CALL(*object2, destructor()).Times(0);
 }
 
 TEST(SharedPtrTest, ArrowOperatorTest) {
