@@ -51,29 +51,7 @@ OnHMIStatusNotificationFromMobile::~OnHMIStatusNotificationFromMobile() {
 }
 
 void OnHMIStatusNotificationFromMobile::Run() {
-  LOG4CXX_AUTO_TRACE(logger_);
-
-  (*message_)[strings::params][strings::message_type] = static_cast<int32_t> (
-      application_manager::MessageType::kNotification);
-  ApplicationSharedPtr app = ApplicationManagerImpl::instance()->application(
-        connection_key());
-  if (!app.valid()) {
-    LOG4CXX_ERROR(logger_,
-                  "OnHMIStatusNotificationFromMobile application doesn't exist");
-    return;
-  }
-
-  // In case if this notification will be received from mobile side, it will
-  // mean, that app is in foreground on mobile. This should trigger remote
-  // apps list query for SDL 4.0 app
-  if (is_apps_requested_) {
-    LOG4CXX_DEBUG(logger_, "Remote apps list had been requested already.");
-    return;
-  }
-  if (ProtocolVersion::kV4 == app->protocol_version()) {
-    MessageHelper::SendQueryApps(connection_key());
-    is_apps_requested_ = true;
-  }
+  LOG4CXX_ERROR(logger_,"Incoming OnHMIStatus is not yet supported for this customer implementation.");
 }
 
 }  // namespace commands
