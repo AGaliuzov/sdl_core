@@ -474,12 +474,20 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
     }
   }
 
+  // Trying to remove application from list of apps waiting to be registered
+  // (part of SDL4 feature)
   apps_to_register_list_lock_.Acquire();
   apps_to_register_.erase(application);
   apps_to_register_list_lock_.Release();
-  ApplicationListAccessor app_list_accesor;
+
+  // Adding application to registered app list and set appropriate mark
+  // Lock has to be released before adding app to policy DB to avoid possible
+  // deadlock with simultaneous PTU processing
+  applications_list_lock_.Acquire();
+  applications_.insert(application);
   application->MarkRegistered();
-  app_list_accesor.Insert(application);
+  applications_list_lock_.Release();
+
   policy::PolicyHandler::instance()->AddApplication(application->policy_app_id());
 
   return application;
