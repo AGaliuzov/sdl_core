@@ -40,6 +40,7 @@
 #include "utils/atomic.h"
 #include "utils/file_system.h"
 #include "utils/macro.h"
+#include "utils/scope_guard.h"
 
 #define TLS1_1_MINIMAL_VERSION            0x1000103fL
 #define CONST_SSL_METHOD_MINIMAL_VERSION  0x00909000L
@@ -55,6 +56,14 @@ sync_primitives::Lock CryptoManagerImpl::instance_lock_;
 // Used for debug outpute only
 int debug_callback(int preverify_ok, X509_STORE_CTX *ctx);
 
+namespace {
+  void free_ctx(SSL_CTX** ctx) {
+    if (ctx) {
+      SSL_CTX_free(*ctx);
+      *ctx = NULL;
+    }
+  }
+}
 CryptoManagerImpl::CryptoManagerImpl()
     : context_(NULL),
       mode_(CLIENT),
@@ -142,16 +151,17 @@ bool CryptoManagerImpl::Init(Mode mode, Protocol protocol,
       return false;
   }
   if (context_) {
-    SSL_CTX_free(context_);
+    free_ctx(&context_);
   }
+
   context_ = SSL_CTX_new(method);
   if (!context_) {
     const char *error = ERR_reason_error_string(ERR_get_error());
     UNUSED(error);
     LOG4CXX_ERROR(logger_,
                   "Could not create OpenSSLContext " << (error ? error : ""));
-    return false;
   }
+  utils::ScopeGuard guard = utils::MakeGuard(free_ctx, &context_);
 
   // Disable SSL2 as deprecated
   SSL_CTX_set_options(context_, SSL_OP_NO_SSLv2);
@@ -163,7 +173,6 @@ bool CryptoManagerImpl::Init(Mode mode, Protocol protocol,
     if (!SSL_CTX_use_certificate_file(context_, cert_filename.c_str(),
     SSL_FILETYPE_PEM)) {
       LOG4CXX_ERROR(logger_, "Could not use certificate " << cert_filename);
-      return false;
     }
   }
 
@@ -174,11 +183,9 @@ bool CryptoManagerImpl::Init(Mode mode, Protocol protocol,
     if (!SSL_CTX_use_PrivateKey_file(context_, key_filename.c_str(),
     SSL_FILETYPE_PEM)) {
       LOG4CXX_ERROR(logger_, "Could not use key " << key_filename);
-      return false;
     }
     if (!SSL_CTX_check_private_key(context_)) {
       LOG4CXX_ERROR(logger_, "Could not use certificate " << cert_filename);
-      return false;
     }
   }
 
@@ -188,9 +195,10 @@ bool CryptoManagerImpl::Init(Mode mode, Protocol protocol,
     LOG4CXX_DEBUG(logger_, "Cipher list: " << ciphers_list);
     if (!SSL_CTX_set_cipher_list(context_, ciphers_list.c_str())) {
       LOG4CXX_ERROR(logger_, "Could not set cipher list: " << ciphers_list);
-      return false;
     }
   }
+
+  guard.Dismiss();
   SetVerification();
   return true;
 }
