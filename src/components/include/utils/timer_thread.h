@@ -418,6 +418,7 @@ void TimerThread<T>::TimerDelegate::exitThreadMain() {
 template<class T>
 void TimerThread<T>::TimerDelegate::setTimeOut(
     const uint32_t timeout_milliseconds) {
+  DCHECK_OR_RETURN_VOID(timeout_milliseconds != 0);
   timeout_milliseconds_ = timeout_milliseconds;
   termination_condition_.NotifyOne();
 }
