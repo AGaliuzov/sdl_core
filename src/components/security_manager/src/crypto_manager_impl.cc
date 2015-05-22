@@ -150,7 +150,6 @@ bool CryptoManagerImpl::Init(Mode mode, Protocol protocol,
     UNUSED(error);
     LOG4CXX_ERROR(logger_,
                   "Could not create OpenSSLContext " << (error ? error : ""));
-    return false;
   }
 
   // Disable SSL2 as deprecated
@@ -163,7 +162,6 @@ bool CryptoManagerImpl::Init(Mode mode, Protocol protocol,
     if (!SSL_CTX_use_certificate_file(context_, cert_filename.c_str(),
     SSL_FILETYPE_PEM)) {
       LOG4CXX_ERROR(logger_, "Could not use certificate " << cert_filename);
-      return false;
     }
   }
 
@@ -174,11 +172,9 @@ bool CryptoManagerImpl::Init(Mode mode, Protocol protocol,
     if (!SSL_CTX_use_PrivateKey_file(context_, key_filename.c_str(),
     SSL_FILETYPE_PEM)) {
       LOG4CXX_ERROR(logger_, "Could not use key " << key_filename);
-      return false;
     }
     if (!SSL_CTX_check_private_key(context_)) {
       LOG4CXX_ERROR(logger_, "Could not use certificate " << cert_filename);
-      return false;
     }
   }
 
@@ -188,7 +184,6 @@ bool CryptoManagerImpl::Init(Mode mode, Protocol protocol,
     LOG4CXX_DEBUG(logger_, "Cipher list: " << ciphers_list);
     if (!SSL_CTX_set_cipher_list(context_, ciphers_list.c_str())) {
       LOG4CXX_ERROR(logger_, "Could not set cipher list: " << ciphers_list);
-      return false;
     }
   }
   SetVerification();
