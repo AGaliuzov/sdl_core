@@ -188,7 +188,7 @@ void ResumeCtrl::ApplicationResumptiOnTimer() {
   for (; it != waiting_for_timer_.end(); ++it) {
     ApplicationSharedPtr app =
         ApplicationManagerImpl::instance()->application(*it);
-    if (!app.get()) {
+    if (!app) {
       LOG4CXX_ERROR(logger_, "Invalid app_id = " << *it);
       continue;
     }
