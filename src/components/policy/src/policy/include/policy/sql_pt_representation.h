@@ -41,11 +41,14 @@
 
 namespace policy_table = rpc::policy_table_interface_base;
 
-namespace policy {
-
+namespace utils {
 namespace dbms {
 class SQLDatabase;
-}  // namespace dbms
+} // dbms
+} // utils
+
+
+namespace policy {
 
 class SQLPTRepresentation : public virtual PTRepresentation {
   public:
@@ -166,7 +169,7 @@ class SQLPTRepresentation : public virtual PTRepresentation {
 
     virtual bool SetVINValue(const std::string& value);
 
-    dbms::SQLDatabase* db() const;
+    utils::dbms::SQLDatabase* db() const;
     virtual bool SetIsDefault(const std::string& app_id, bool is_default) const;
 
     /**
@@ -178,7 +181,7 @@ class SQLPTRepresentation : public virtual PTRepresentation {
 
   private:
     static const std::string kDatabaseName;
-    dbms::SQLDatabase* db_;
+    utils::dbms::SQLDatabase* db_;
 
 #ifdef BUILD_TESTS
     uint32_t open_counter_;

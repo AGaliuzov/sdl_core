@@ -102,7 +102,6 @@ ApplicationManagerImpl::ApplicationManagerImpl()
     audio_pass_thru_messages_("AudioPassThru", this),
     hmi_capabilities_(this),
     unregister_reason_(mobile_api::AppInterfaceUnregisteredReason::INVALID_ENUM),
-    resume_ctrl_(this),
     navi_close_app_timeout_(profile::Profile::instance()->stop_streaming_timeout()),
     navi_end_stream_timeout_(profile::Profile::instance()->stop_streaming_timeout()),
 #ifdef CUSTOMER_PASA
@@ -294,7 +293,7 @@ std::vector<ApplicationSharedPtr> ApplicationManagerImpl::IviInfoUpdated(
 }
 
 bool ApplicationManagerImpl::IsAppTypeExistsInFullOrLimited(
-    ApplicationSharedPtr app) const {
+    ApplicationConstSharedPtr app) const {
   bool voice_state = app->is_voice_communication_supported();
   bool media_state = app->is_media_application();
   bool navi_state = app->is_navi();
@@ -832,7 +831,7 @@ void ApplicationManagerImpl::RemoveDevice(
 }
 
 mobile_apis::HMILevel::eType ApplicationManagerImpl::GetDefaultHmiLevel(
-    ApplicationSharedPtr application) const {
+    ApplicationConstSharedPtr application) const {
   using namespace mobile_apis;
   LOG4CXX_AUTO_TRACE(logger_);
   HMILevel::eType default_hmi = HMILevel::HMI_NONE;
@@ -1486,6 +1485,11 @@ bool ApplicationManagerImpl::Init() {
       return false;
     }
   }
+  if (!resume_ctrl_.Init()) {
+    LOG4CXX_ERROR(logger_, "Problem with initialization of resume controller");
+    return false;
+  }
+
   if (!(file_system::IsWritingAllowed(app_storage_folder) &&
         file_system::IsReadingAllowed(app_storage_folder))) {
     LOG4CXX_ERROR(logger_,
@@ -2007,16 +2011,6 @@ void ApplicationManagerImpl::HeadUnitReset(
   }
 }
 
-#ifdef CUSTOMER_PASA
-void ApplicationManagerImpl::HeadUnitSuspend() {
-  LOG4CXX_AUTO_TRACE(logger_);
-
-  resume_controller().StopSavePersistentDataTimer();
-  resume_controller().SaveAllApplications();
-  resumption::LastState::instance()->SaveToFileSystem();
-}
-#endif // CUSTOMER_PASA
-
 void ApplicationManagerImpl::SendOnSDLClose() {
   LOG4CXX_AUTO_TRACE(logger_);
 
@@ -2113,7 +2107,7 @@ void ApplicationManagerImpl::UnregisterAllApplications() {
   }
 #ifndef CUSTOMER_PASA
   if (is_ignition_off) {
-    resume_controller().Suspend();
+    resume_controller().OnSuspend();
   }
 #endif // CUSTOMER_PASA
   request_ctrl_.terminateAllHMIRequests();
@@ -2155,7 +2149,6 @@ void ApplicationManagerImpl::UnregisterApplication(
       break;
     }
   }
-
   ApplicationSharedPtr app_to_remove;
   {
     ApplicationListAccessor accessor;
@@ -2172,6 +2165,7 @@ void ApplicationManagerImpl::UnregisterApplication(
     }
     accessor.Erase(app_to_remove);
   }
+
   if (is_resuming) {
 #ifdef CUSTOMER_PASA
     if (false == is_state_suspended_) {
@@ -2180,19 +2174,19 @@ void ApplicationManagerImpl::UnregisterApplication(
 #ifdef CUSTOMER_PASA
     }
 #endif
-  } else {
-    resume_ctrl_.RemoveApplicationFromSaved(app_to_remove->policy_app_id());
-  }
+    } else {
+      resume_ctrl_.RemoveApplicationFromSaved(app_to_remove);
+    }
 
   if (audio_pass_thru_active_) {
-    // May be better to put this code in MessageHelper?
-    end_audio_pass_thru();
-    StopAudioPassThru(app_id);
-    MessageHelper::SendStopAudioPathThru();
-  }
+      // May be better to put this code in MessageHelper?
+      end_audio_pass_thru();
+      StopAudioPassThru(app_id);
+      MessageHelper::SendStopAudioPathThru();
+    }
+
   MessageHelper::SendOnAppUnregNotificationToHMI(app_to_remove,
                                                  is_unexpected_disconnect);
-
   request_ctrl_.terminateAppRequests(app_id);
   return;
 }

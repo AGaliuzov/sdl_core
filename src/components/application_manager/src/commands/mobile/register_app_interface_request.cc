@@ -165,6 +165,7 @@ void RegisterAppInterfaceRequest::Run() {
                                                              correlation_id(),
                                                              default_timeout());
   }
+
 #endif
 
   const std::string policy_app_id = (*message_)[strings::msg_params][strings::app_id]
@@ -221,45 +222,49 @@ void RegisterAppInterfaceRequest::Run() {
   const smart_objects::SmartObject& msg_params =
     (*message_)[strings::msg_params];
 
-  ApplicationSharedPtr app =
+  application =
     ApplicationManagerImpl::instance()->RegisterApplication(message_);
 
-  if (!app) {
+  if (!application) {
     LOG4CXX_ERROR_EXT(logger_, "Application " <<
                       msg_params[strings::app_name].asString() <<
                       "  hasn't been registered!");
   } else {
 
     // For resuming application need to restore hmi_app_id from resumeCtrl
+
     const std::string policy_app_id = msg_params[strings::app_id].asString();
-    ResumeCtrl& resumer = ApplicationManagerImpl::instance()->resume_controller();
+    resumption::ResumeCtrl& resumer = ApplicationManagerImpl::instance()->resume_controller();
+    const std::string device_id =
+        MessageHelper::GetDeviceMacAddressForHandle(application->device());
 
     // there is side affect with 2 mobile app with the same mobile app_id
-    if (resumer.IsApplicationSaved(policy_app_id)) {
-      app->set_hmi_application_id(resumer.GetHMIApplicationID(policy_app_id));
+    if (resumer.IsApplicationSaved(policy_app_id, device_id)) {
+      application->set_hmi_application_id(
+          resumer.GetHMIApplicationID(policy_app_id, device_id));
     } else {
-      app->set_hmi_application_id(
+      application->set_hmi_application_id(
         ApplicationManagerImpl::instance()->GenerateNewHMIAppID());
     }
 
-    app->set_is_media_application(
+    application->set_is_media_application(
       msg_params[strings::is_media_application].asBool());
 
     if (msg_params.keyExists(strings::vr_synonyms)) {
-      app->set_vr_synonyms(msg_params[strings::vr_synonyms]);
+      application->set_vr_synonyms(msg_params[strings::vr_synonyms]);
     }
 
     if (msg_params.keyExists(strings::ngn_media_screen_app_name)) {
-      app->set_ngn_media_screen_name(
+      application->set_ngn_media_screen_name(
         msg_params[strings::ngn_media_screen_app_name]);
     }
 
     if (msg_params.keyExists(strings::tts_name)) {
-      app->set_tts_name(msg_params[strings::tts_name]);
+      application->set_tts_name(msg_params[strings::tts_name]);
     }
 
     if (msg_params.keyExists(strings::app_hmi_type)) {
-      app->set_app_types(msg_params[strings::app_hmi_type]);
+      application->set_app_types(msg_params[strings::app_hmi_type]);
 
       // check app type
       const smart_objects::SmartObject& app_type =
@@ -269,17 +274,17 @@ void RegisterAppInterfaceRequest::Run() {
         if (mobile_apis::AppHMIType::NAVIGATION ==
             static_cast<mobile_apis::AppHMIType::eType>(
                 app_type.getElement(i).asUInt())) {
-          app->set_is_navi(true);
+          application->set_is_navi(true);
         }
         if (mobile_apis::AppHMIType::COMMUNICATION ==
             static_cast<mobile_apis::AppHMIType::eType>(
             app_type.getElement(i).asUInt())) {
-          app->set_voice_communication_supported(true);
+          application->set_voice_communication_supported(true);
         }
       }
     }
 
-    const connection_handler::DeviceHandle handle = app->device();
+    const connection_handler::DeviceHandle handle = application->device();
     // Add device to policy table and set device info, if any
     std::string device_mac_address =
       application_manager::MessageHelper::GetDeviceMacAddressForHandle(handle);
@@ -511,7 +516,7 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile(
   response_params[strings::hmi_capabilities][strings::phone_call] =
       hmi_capabilities.phone_call_supported();
 
-  ResumeCtrl& resumer = ApplicationManagerImpl::instance()->resume_controller();
+  resumption::ResumeCtrl& resumer = ApplicationManagerImpl::instance()->resume_controller();
   std::string hash_id = "";
 
   std::string add_info("");
@@ -541,7 +546,9 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile(
 
   // in case application exist in resumption we need to send resumeVrgrammars
   if (false == resumption) {
-    resumption = resumer.IsApplicationSaved(application->policy_app_id());
+    resumption = resumer.IsApplicationSaved(
+        application->policy_app_id(),
+        MessageHelper::GetDeviceMacAddressForHandle(application->device()));
   }
 
   MessageHelper::SendOnAppRegisteredNotificationToHMI(*(application.get()),
