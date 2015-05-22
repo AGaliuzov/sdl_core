@@ -1089,6 +1089,12 @@ void ApplicationManagerImpl::OnServiceEndedCallback(
         is_unexpected_disconnect = false;
         break;
       }
+      case CloseSessionReason::kUnauthorizedApp: {
+        reason = Result::INVALID_ENUM;
+        is_resuming = true;
+        is_unexpected_disconnect = false;
+        break;
+      }
       default: {
         reason = Result::INVALID_ENUM;
         is_resuming = true;
@@ -2201,7 +2207,7 @@ void ApplicationManagerImpl::UnregisterApplication(
 }
 
 void ApplicationManagerImpl::OnAppUnauthorized(const uint32_t& app_id) {
-  connection_handler_->CloseSession(app_id, connection_handler::kCommon);
+  connection_handler_->CloseSession(app_id, connection_handler::kUnauthorizedApp);
 }
 
 void ApplicationManagerImpl::Handle(const impl::MessageFromMobile message) {
