@@ -43,7 +43,7 @@ namespace protocol_handler_test {
 using namespace ::protocol_handler;
 
 class ProtocolPacketTest : public ::testing::Test {
-protected:
+ protected:
   void SetUp() OVERRIDE {
     some_message_id = 0xABCDEF0;
     some_session_id = 0xFEDCBA0;
@@ -139,50 +139,50 @@ TEST_F(ProtocolPacketTest, AppendDataToEmptyPacket) {
   // Set version, serviceType, frameData, sessionId
   uint8_t session_id = 1u;
   uint8_t some_data[] = {0x0, 0x07, 0x02, session_id};
-  ProtocolPacket protocol_packet_;
-  RESULT_CODE res = protocol_packet_.appendData(some_data, sizeof(some_data));
+  ProtocolPacket protocol_packet;
+  RESULT_CODE res = protocol_packet.appendData(some_data, sizeof(some_data));
   EXPECT_EQ(RESULT_FAIL, res);
 }
 
 TEST_F(ProtocolPacketTest, SetTotalDataBytes) {
   uint8_t new_data_size = 10u;
-  ProtocolPacket protocol_packet_;
-  protocol_packet_.set_total_data_bytes(new_data_size);
+  ProtocolPacket protocol_packet;
+  protocol_packet.set_total_data_bytes(new_data_size);
 
-  EXPECT_EQ(new_data_size, protocol_packet_.total_data_bytes());
+  EXPECT_EQ(new_data_size, protocol_packet.total_data_bytes());
 }
 
 TEST_F(ProtocolPacketTest, AppendDataToPacketWithNonZeroSize) {
   // Set version, serviceType, frameData, sessionId
   uint8_t session_id = 1u;
   uint8_t some_data[] = {0x0, 0x07, FRAME_TYPE_CONTROL, session_id};
-  ProtocolPacket protocol_packet_;
-  protocol_packet_.set_total_data_bytes(sizeof(some_data) + 1);
-  RESULT_CODE res = protocol_packet_.appendData(some_data, sizeof(some_data));
+  ProtocolPacket protocol_packet;
+  protocol_packet.set_total_data_bytes(sizeof(some_data) + 1);
+  RESULT_CODE res = protocol_packet.appendData(some_data, sizeof(some_data));
   EXPECT_EQ(RESULT_OK, res);
 
-  EXPECT_EQ(0x0, protocol_packet_.data()[0]);
-  EXPECT_EQ(0x07, protocol_packet_.data()[1]);
-  EXPECT_EQ(FRAME_TYPE_CONTROL, protocol_packet_.data()[2]);
-  EXPECT_EQ(session_id, protocol_packet_.data()[3]);
+  EXPECT_EQ(0x0, protocol_packet.data()[0]);
+  EXPECT_EQ(0x07, protocol_packet.data()[1]);
+  EXPECT_EQ(FRAME_TYPE_CONTROL, protocol_packet.data()[2]);
+  EXPECT_EQ(session_id, protocol_packet.data()[3]);
 }
 
 TEST_F(ProtocolPacketTest, SetData) {
   uint8_t session_id = 1u;
   uint8_t some_data[] = {0x0, 0x07, FRAME_TYPE_CONTROL, session_id};
-  ProtocolPacket protocol_packet_;
-  protocol_packet_.set_data(some_data, sizeof(some_data));
+  ProtocolPacket protocol_packet;
+  protocol_packet.set_data(some_data, sizeof(some_data));
 
-  EXPECT_EQ(0x0, protocol_packet_.data()[0]);
-  EXPECT_EQ(0x07, protocol_packet_.data()[1]);
-  EXPECT_EQ(FRAME_TYPE_CONTROL, protocol_packet_.data()[2]);
-  EXPECT_EQ(session_id, protocol_packet_.data()[3]);
+  EXPECT_EQ(0x0, protocol_packet.data()[0]);
+  EXPECT_EQ(0x07, protocol_packet.data()[1]);
+  EXPECT_EQ(FRAME_TYPE_CONTROL, protocol_packet.data()[2]);
+  EXPECT_EQ(session_id, protocol_packet.data()[3]);
 }
 
 TEST_F(ProtocolPacketTest, DeserializeZeroPacket) {
   uint8_t message[] = {};
-  ProtocolPacket protocol_packet_;
-  RESULT_CODE res = protocol_packet_.deserializePacket(message, 0);
+  ProtocolPacket protocol_packet;
+  RESULT_CODE res = protocol_packet.deserializePacket(message, 0);
   EXPECT_EQ(RESULT_OK, res);
 }
 
@@ -190,12 +190,12 @@ TEST_F(ProtocolPacketTest, DeserializeNonZeroPacket) {
   // Set header, serviceType, frameData, sessionId
   uint8_t session_id = 1u;
   uint8_t some_message[] = {0x21, 0x07, 0x02, session_id};
-  ProtocolPacket protocol_packet_;
+  ProtocolPacket protocol_packet;
   RESULT_CODE res =
-      protocol_packet_.deserializePacket(some_message, PROTOCOL_HEADER_V2_SIZE);
+      protocol_packet.deserializePacket(some_message, PROTOCOL_HEADER_V2_SIZE);
   EXPECT_EQ(RESULT_OK, res);
 }
 
-} // namespace protocol_handler_test
-} // namespace components
-} // namespace test
+}  // namespace protocol_handler_test
+}  // namespace components
+}  // namespace test
