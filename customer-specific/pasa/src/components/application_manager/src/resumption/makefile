@@ -3,14 +3,12 @@
 #
 
 # Name of the componet (team/domain prefix '_' component name)
-COMPONENT_NAME = application_manager
+COMPONENT_NAME = resum
 
 ifndef PRJ_ROOT
-export PRJ_ROOT = $(CURDIR)/../../../../
+export PRJ_ROOT = $(CURDIR)/../../../../../
 endif
 include $(PRJ_ROOT)cfg/depends.mk
-
-OBJS_FILE=.objs.txt
 
 # Additive Compile Flags (Flags from initiating make process will still apply)
 DEFS += \
@@ -31,28 +29,27 @@ DEFS += \
 INCLUDES = \
 	$(CFG_INCS) \
 	$(CC_IFLAG)./ \
-	$(CC_IFLAG)../include \
 	$(CC_IFLAG)../../include \
-	$(CC_IFLAG)../../transport_manager/include \
-	$(CC_IFLAG)../../protocol_handler/include \
-	$(CC_IFLAG)../../connection_handler/include \
-	$(CC_IFLAG)../../config_profile/include \
-	$(CC_IFLAG)../../policy/src/policy/include \
-	$(CC_IFLAG)../../smart_objects/include \
-	$(CC_IFLAG)../../hmi_message_handler/include \
-	$(CC_IFLAG)../../formatters/include \
-	$(CC_IFLAG)../../utils/include \
-	$(CC_IFLAG)../../media_manager/include \
-	$(CC_IFLAG)../../resumption/include \
-	$(CC_IFLAG)../../components/interfaces \
-	$(CC_IFLAG)../../policy/src/policy/usage_statistics/include \
-	$(CC_IFLAG)../../policy/src/policy/policy_table/table_struct_ext \
-	$(CC_IFLAG)../../rpc_base/include \
-	$(CC_IFLAG)../../ \
-	$(CC_IFLAG)../../../3rd_party-static/jsoncpp/include \
-	$(CC_IFLAG)../../../3rd_party-static/encryption/include \
-	$(CC_IFLAG)../../../3rd_party-static/MessageBroker/include \
-	$(CC_IFLAG)../../../3rd_party/log4cxx/include \
+	$(CC_IFLAG)../../../include \
+	$(CC_IFLAG)../../../protocol_handler/include \
+	$(CC_IFLAG)../../../connection_handler/include \
+	$(CC_IFLAG)../../../config_profile/include \
+	$(CC_IFLAG)../../../smart_objects/include \
+	$(CC_IFLAG)../../../hmi_message_handler/include \
+	$(CC_IFLAG)../../../formatters/include \
+	$(CC_IFLAG)../../../utils/include \
+	$(CC_IFLAG)../../../media_manager/include \
+	$(CC_IFLAG)../../../rpc_base/include \
+	$(CC_IFLAG)../../../policy/src/policy \
+	$(CC_IFLAG)../../../policy/src/policy/include \
+	$(CC_IFLAG)../../../policy/src/policy/policy_table/table_struct_ext \
+	$(CC_IFLAG)../../../policy/src/policy/usage_statistics/include \
+	$(CC_IFLAG)../../../interfaces \
+	$(CC_IFLAG)../../../resumption/include \
+	$(CC_IFLAG)../../../../3rd_party-static/jsoncpp/include \
+	$(CC_IFLAG)../../../../3rd_party/log4cxx/include \
+	$(CC_IFLAG)../../../utils/include/utils \
+	$(CC_IFLAG)../../../ \
 	$(DEPENDS_INCLUDES)
 
 
@@ -63,7 +60,13 @@ INCLUDES = \
 #  $(TEAM_ROOT)NS_MessageCenter/lib/NS_MessageCenter/
 LIB_PATHS += \
   $(DEPENDS_LIB_PATHS)
-  
+
+# Define your libs here addtional to the DEPENDS_DYNAMIC_LIBS or DEPENDS_STATIC_LIBS
+# - see depends.mk  
+# This only defines the static libs
+STATIC_LIBS += \
+	dbms$(DEBUG_EXT) \
+	jsoncpp$(DEBUG_EXT)
 
 # Define binary outputs.  These can be libraries or executables.
 #  Name a variable for each deliverable.  Suffixes should be
@@ -76,7 +79,7 @@ LIB_PATHS += \
 #  LIB - Define the static library for Message Queue
 #
 #
-COMPONENT_LIB = $(LIB_PATH)$(LIB_PREFIX)$(COMPONENT_NAME)$(DEBUG_EXT).$(LIB_EXT)
+COMPONENT_LIB = $(LIB_PATH)$(LIB_PREFIX)$(COMPONENT_NAME)$(DEBUG_EXT).$(LIB_EXT) 
 
 ## Sources Section
 
@@ -91,15 +94,8 @@ COMPONENT_SRCS = \
 # Define sources that my not be local to your component
 # here, you can define indivial files or wildcard from 
 # a different folder.
-NON_LOCAL_SRCS = \
-	$(wildcard policies/*.c*) \
-	$(wildcard policies/delegates/*.c*) \
-	$(wildcard event_engine/*.c*) \
-	$(wildcard commands/*.c*) \
-	$(wildcard commands/hmi/*.c*) \
-	$(wildcard commands/mobile/*.c*) \
-	
- .NOTPARALLEL:
+NON_LOCAL_SRCS =
+  
 
 # List of all sources to be built.  Can be assembled from the other defintitions.
 #  This only defines sources for the current directory, so if there are subdirectories
@@ -107,6 +103,7 @@ NON_LOCAL_SRCS = \
 #  direct the building of sources, but no linking into a binary)
 SOURCES = \
 	$(COMPONENT_SRCS) \
+	$(NON_LOCAL_SRCS)
 
 
 
@@ -116,7 +113,7 @@ SOURCES = \
 #
 C_LANG_OBJECTS = $(addprefix $(BLD_PATH),$(addsuffix .$(OBJ_EXT),$(basename $(filter %.c ,$(SOURCES) ) ) ) )
 CPP_LANG_OBJECTS = $(addprefix $(BLD_PATH),$(addsuffix .$(OBJ_EXT),$(basename $(filter %.cpp %.cxx,$(SOURCES) ) ) ) )
-CC_LANG_OBJECTS = $(addprefix $(abspath $(BLD_PATH))/,$(addsuffix .$(OBJ_EXT),$(basename $(filter %.cc,$(SOURCES) ) ) ) )
+CC_LANG_OBJECTS = $(addprefix $(BLD_PATH),$(addsuffix .$(OBJ_EXT),$(basename $(filter %.cc,$(SOURCES) ) ) ) )
 
 
 # List of all sources to be generated.  Can be assembled from the other defintitions.
@@ -126,31 +123,12 @@ OBJECTS = \
 	$(CC_LANG_OBJECTS)
 
 
-# assuming all objects should be included in the executable.
-ALL_OBJECTS = \
-	$(addprefix $(abspath $(BLD_PATH))/,$(addsuffix .$(OBJ_EXT),$(basename $(NON_LOCAL_SRCS) ) ) ) \
-				$(OBJECTS)
-
-
+	
 # All headers that are dependencies.  Wildcard is easy to pickup local headers.
 #  This is only to automate the rebuilding, all builds on the servers are cleans
 #  So this is not a huge deal when building on a component level.
 HEADERS = \
-	$(wildcard *.h*) \
-	$(wildcard ../include/$(COMPONENT_NAME)/*.h*) \
-	$(wildcard ../include/$(COMPONENT_NAME)/commands/*.h*) \
-	$(wildcard ../include/$(COMPONENT_NAME)/commands/hmi/*.h*) \
-	$(wildcard ../include/$(COMPONENT_NAME)/commands/mobile/*.h*) \
-	$(wildcard ../include/$(COMPONENT_NAME)/event_engine/*.h*) \
-	$(wildcard ../include/$(COMPONENT_NAME)/policies/*.h*) \
-	$(wildcard ../include/$(COMPONENT_NAME)/policies/delegates/*.h*) \
-	$(wildcard ../include/$(COMPONENT_NAME)/resumption/*.h*) \
-	$(wildcard ../../protocol_handler/include/protocol_handler/*.h*) \
-	$(wildcard ../../connection_handler/include/connection_handler/*.h*) \
-	$(wildcard ../../policy/src/policy/include/policy/*.h*) \
-	$(wildcard ../../utils/include/utils/*.h*) \
-	$(wildcard ../../utils/include/utils/threads/*.h*) \
-
+	
 	
 LIBRARIES = \
 	$(COMPONENT_LIB)
@@ -180,10 +158,10 @@ local: $(OBJECTS)
 # Defines specific for each deliverable
 
 # For a static library
-$(COMPONENT_LIB): $(ALL_OBJECTS)
-	@echo $^ | tr " " "\n" > $(OBJS_FILE)
-	xargs -n 100 --arg-file=$(OBJS_FILE) $(AR) $(AR_FLAGS) $(AR_OFLAG) $(@)
-
+$(COMPONENT_LIB): $(OBJECTS) 
+	$(AR_CMD)
+	$(addprefix -L, $(SLIB_PATH)) \
+	-Bstatic -Wl,"-start-group" $(addprefix -l , $(STATIC_LIBS)) -Wl,"-end-group"
 
 # Standard set of derived targets
 library: base \
@@ -197,19 +175,11 @@ binary: base \
 #  standard form is of
 #  $(MAKE) -C subdirectory_name $(MAKECMDGOALS) 
 subdirs:
-	$(MAKE) -C commands $(MAKECMDGOALS)
-	$(MAKE) -C commands/hmi $(MAKECMDGOALS)
-	$(MAKE) -C commands/mobile $(MAKECMDGOALS)
-	$(MAKE) -C event_engine $(MAKECMDGOALS) 
-	$(MAKE) -C policies $(MAKECMDGOALS) 
-	$(MAKE) -C policies/delegates $(MAKECMDGOALS)
-	$(MAKE) -C resumption $(MAKECMDGOALS)  
 	
 clean:
 	-rm -f $(BINARIES)
 	-rm -f $(LIBRARIES)
 	-rm -f $(OBJECTS)
-	-rm -f $(OBJS_FILE)
 	@echo "objs: --> $(OBJECTS)"
 	@echo "sources: --> $(SOURCES)"
 	@echo "headers: --> $(HEADERS)"
