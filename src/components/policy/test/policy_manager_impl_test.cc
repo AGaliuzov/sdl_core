@@ -61,9 +61,9 @@
 #include "utils/gen_hash.h"
 #include "enums.h"
 
-using ::policy::dbms::SQLError;
-using ::policy::dbms::SQLDatabase;
-using ::policy::dbms::SQLQuery;
+using ::utils::dbms::SQLError;
+using ::utils::dbms::SQLDatabase;
+using ::utils::dbms::SQLQuery;
 
 using ::testing::_;
 using ::testing::Return;

@@ -38,7 +38,7 @@ INCLUDES = \
 	$(CC_IFLAG)../../connection_handler/include \
 	$(CC_IFLAG)../../config_profile/include \
 	$(CC_IFLAG)../../policy/src/policy/include \
-        $(CC_IFLAG)../../smart_objects/include \
+	$(CC_IFLAG)../../smart_objects/include \
 	$(CC_IFLAG)../../hmi_message_handler/include \
 	$(CC_IFLAG)../../formatters/include \
 	$(CC_IFLAG)../../utils/include \
@@ -98,7 +98,7 @@ NON_LOCAL_SRCS = \
 	$(wildcard commands/*.c*) \
 	$(wildcard commands/hmi/*.c*) \
 	$(wildcard commands/mobile/*.c*) \
- 
+	
  .NOTPARALLEL:
 
 # List of all sources to be built.  Can be assembled from the other defintitions.
@@ -144,6 +144,7 @@ HEADERS = \
 	$(wildcard ../include/$(COMPONENT_NAME)/event_engine/*.h*) \
 	$(wildcard ../include/$(COMPONENT_NAME)/policies/*.h*) \
 	$(wildcard ../include/$(COMPONENT_NAME)/policies/delegates/*.h*) \
+	$(wildcard ../include/$(COMPONENT_NAME)/resumption/*.h*) \
 	$(wildcard ../../protocol_handler/include/protocol_handler/*.h*) \
 	$(wildcard ../../connection_handler/include/connection_handler/*.h*) \
 	$(wildcard ../../policy/src/policy/include/policy/*.h*) \
@@ -201,7 +202,8 @@ subdirs:
 	$(MAKE) -C commands/mobile $(MAKECMDGOALS)
 	$(MAKE) -C event_engine $(MAKECMDGOALS) 
 	$(MAKE) -C policies $(MAKECMDGOALS) 
-	$(MAKE) -C policies/delegates $(MAKECMDGOALS) 
+	$(MAKE) -C policies/delegates $(MAKECMDGOALS)
+	$(MAKE) -C resumption $(MAKECMDGOALS)  
 	
 clean:
 	-rm -f $(BINARIES)

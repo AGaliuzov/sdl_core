@@ -45,8 +45,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
   ${COMPONENTS_DIR}/application_manager/include/application_manager/policies
   ${COMPONENTS_DIR}/application_manager/include/
-  ${JSONCPP_INCLUDE_DIRECTORY}
-)
+  )
 
 set(testSources
   ${AM_TEST_DIR}/command_impl_test.cc  
@@ -82,9 +81,9 @@ set(AM_SOURCES
   ${AM_SOURCE_DIR}/src/hmi_capabilities.cc
   ${AM_SOURCE_DIR}/src/application_data_impl.cc
   ${AM_SOURCE_DIR}/src/request_controller.cc
-  ${AM_SOURCE_DIR}/src/resume_ctrl.cpp
   ${AM_SOURCE_DIR}/src/commands/mobile/register_app_interface_request.cc
   ${AM_SOURCE_DIR}/src/commands/mobile/unregister_app_interface_request.cc
+
   ${AM_SOURCE_DIR}/src/mobile_message_handler.cc
   ${AM_SOURCE_DIR}/src/commands/mobile/put_file_request.cc
   ${AM_SOURCE_DIR}/src/commands/command_request_impl.cc

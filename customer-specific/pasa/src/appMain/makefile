@@ -76,7 +76,9 @@ STATIC_LIBS += \
 	connection_handler$(DEBUG_EXT) \
 	protocol_handler$(DEBUG_EXT) \
 	protocol$(DEBUG_EXT) \
+	dbms$(DEBUG_EXT) \
 	transport_manager$(DEBUG_EXT) \
+	resum$(DEBUG_EXT) \
 	resumption$(DEBUG_EXT) \
 	usage_statistics$(DEBUG_EXT) \
 	application_manager$(DEBUG_EXT) \

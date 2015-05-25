@@ -33,8 +33,6 @@ include_directories(
   ${GMOCK_INCLUDE_DIRECTORY}
   ${JSONCPP_INCLUDE_DIRECTORY}
   ${COMPONENTS_DIR}/policy/src/policy/include/
-  ${COMPONENTS_DIR}/policy/src/policy/sqlite_wrapper/include
-  ${COMPONENTS_DIR}/policy/src/policy/qdb_wrapper/include
   ${COMPONENTS_DIR}/policy/src/policy/usage_statistics/include
   ${COMPONENTS_DIR}/rpc_base/include
   ${COMPONENTS_DIR}/config_profile/include
@@ -72,10 +70,10 @@ list (APPEND testSources
 if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
   list(REMOVE_ITEM testLibraries dl)
   # --- Tests for QDB Wrapper
-  include_directories(../src/policy/qdb_wrapper/include)
+  include_directories(../../utils/include/utils)
   list (APPEND testSources
-    qdb_wrapper/sql_database_test.cc
-    qdb_wrapper/sql_query_test.cc
+        ../../utils/test/qdb_wrapper/sql_database_test.cc
+        ../../utils/test/qdb_wrapper/sql_query_test.cc
   )
   file(COPY qdbserver.sh DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
   file(COPY test-qdb.ini DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
@@ -83,11 +81,12 @@ if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
 else ()
   # --- Tests for SQLite Wrapper
   find_package(Sqlite3 REQUIRED)
-  include_directories(../src/policy/sqlite_wrapper/include)
+  include_directories(../../utils/include/utils
+                      ../../utils/test/include )
   list (APPEND testSources
-    sqlite_wrapper/sql_database_test.cc
-    sqlite_wrapper/sql_query_test.cc
-    generated_code_with_sqlite_test.cc
+    ../../utils/test/sqlite_wrapper/sql_database_test.cc
+    ../../utils/test/sqlite_wrapper/sql_query_test.cc
+    ../../utils/test/generated_code_with_sqlite_test.cc
     
     # TODO{ALeshin} APPLINK-11132 AssertTrue in SetUpTestCase() return false
     #policy_manager_impl_stress_test.cc
