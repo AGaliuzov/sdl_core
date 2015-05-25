@@ -1180,7 +1180,7 @@ void Profile::UpdateValues() {
   ReadUIntValue(&app_resumption_save_persistent_data_timeout_,
                 kDefaultAppSavePersistentDataTimeout, kResumptionSection,
                 kAppSavePersistentDataTimeoutKey);
-  if (app_resumption_save_persistent_data_timeout_ <= 0) {
+  if (app_resumption_save_persistent_data_timeout_ == 0) {
     app_resumption_save_persistent_data_timeout_ =
             kDefaultAppSavePersistentDataTimeout;
   }
