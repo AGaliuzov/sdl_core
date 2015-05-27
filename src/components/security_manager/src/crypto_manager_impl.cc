@@ -40,6 +40,7 @@
 #include "utils/atomic.h"
 #include "utils/file_system.h"
 #include "utils/macro.h"
+#include "utils/scope_guard.h"
 
 #define TLS1_1_MINIMAL_VERSION            0x1000103fL
 #define CONST_SSL_METHOD_MINIMAL_VERSION  0x00909000L
@@ -55,6 +56,14 @@ sync_primitives::Lock CryptoManagerImpl::instance_lock_;
 // Used for debug outpute only
 int debug_callback(int preverify_ok, X509_STORE_CTX *ctx);
 
+namespace {
+  void free_ctx(SSL_CTX** ctx) {
+    if (ctx) {
+      SSL_CTX_free(*ctx);
+      *ctx = NULL;
+    }
+  }
+}
 CryptoManagerImpl::CryptoManagerImpl()
     : context_(NULL),
       mode_(CLIENT),
@@ -142,8 +151,9 @@ bool CryptoManagerImpl::Init(Mode mode, Protocol protocol,
       return false;
   }
   if (context_) {
-    SSL_CTX_free(context_);
+    free_ctx(&context_);
   }
+
   context_ = SSL_CTX_new(method);
   if (!context_) {
     const char *error = ERR_reason_error_string(ERR_get_error());
@@ -152,6 +162,7 @@ bool CryptoManagerImpl::Init(Mode mode, Protocol protocol,
                   "Could not create OpenSSLContext " << (error ? error : ""));
     return false;
   }
+  utils::ScopeGuard guard = utils::MakeGuard(free_ctx, &context_);
 
   // Disable SSL2 as deprecated
   SSL_CTX_set_options(context_, SSL_OP_NO_SSLv2);
@@ -191,6 +202,8 @@ bool CryptoManagerImpl::Init(Mode mode, Protocol protocol,
       return false;
     }
   }
+
+  guard.Dismiss();
   SetVerification();
   return true;
 }

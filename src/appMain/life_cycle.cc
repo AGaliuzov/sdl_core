@@ -157,7 +157,6 @@ bool LifeCycle::StartComponents() {
         profile::Profile::instance()->verify_peer(),
         profile::Profile::instance()->ca_cert_path())) {
     LOG4CXX_ERROR(logger_, "CryptoManager initialization fail.");
-    return false;
   }
 
 #endif  // ENABLE_SECURITY

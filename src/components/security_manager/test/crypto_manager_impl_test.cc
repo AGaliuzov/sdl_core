@@ -89,8 +89,6 @@ TEST_F(CryptoManagerTest, UsingBeforeInit) {
 }
 
 TEST_F(CryptoManagerTest, WrongInit) {
-  security_manager::CryptoManager *crypto_manager = new security_manager::CryptoManagerImpl();
-
   //We have to cast (-1) to security_manager::Protocol Enum to be accepted by crypto_manager->Init(...)
   security_manager::Protocol UNKNOWN = static_cast<security_manager::Protocol>(-1);
 
@@ -119,7 +117,7 @@ TEST_F(CryptoManagerTest, WrongInit) {
 TEST_F(CryptoManagerTest, CorrectInit) {
   // Empty cert and key values for SERVER
   EXPECT_TRUE(crypto_manager->Init(security_manager::SERVER, security_manager::TLSv1_2,
-          "", "", FORD_CIPHER, false, ""));
+          "mycert.pem", "mykey.pem", FORD_CIPHER, false, ""));
   EXPECT_TRUE(crypto_manager->LastError().empty());
   // Recall init
   EXPECT_TRUE(crypto_manager->Init(security_manager::CLIENT, security_manager::TLSv1_2,
