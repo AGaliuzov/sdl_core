@@ -35,6 +35,7 @@
 #define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_MOBILE_UNSUBSCRIBE_VEHICLE_DATA_REQUEST_H_
 
 #include "application_manager/commands/command_request_impl.h"
+#include "application_manager/application.h"
 #include "utils/macro.h"
 
 namespace application_manager {
@@ -85,12 +86,18 @@ class UnsubscribeVehicleDataRequest : public CommandRequestImpl {
 #endif // #ifdef HMI_DBUS_API
 
  private:
-  bool IsAnythingAlreadyUnsubscribed(
-      const smart_objects::SmartObject& msg_params) const;
+  bool IsSomeoneSubscribedFor(const uint32_t param_id) const;
+
+  void AddAlreadyUnsubscribedVI(smart_objects::SmartObject& response) const;
+
   /**
    * @brief Allows to update hash after sending response to mobile.
    */
   void UpdateHash() const;
+
+  VehicleInfoSubscriptions vi_still_subscribed_by_another_apps_;
+  VehicleInfoSubscriptions vi_already_unsubscribed_by_this_app_;
+
   DISALLOW_COPY_AND_ASSIGN(UnsubscribeVehicleDataRequest);
 };
 
