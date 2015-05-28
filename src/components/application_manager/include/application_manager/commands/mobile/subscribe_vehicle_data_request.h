@@ -35,6 +35,7 @@
 #define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_MOBILE_SUBSCRIBE_VEHICLE_DATA_REQUEST_H_
 
 #include "application_manager/commands/command_request_impl.h"
+#include "application_manager/application.h"
 #include "utils/macro.h"
 
 namespace application_manager {
@@ -85,8 +86,16 @@ class SubscribeVehicleDataRequest : public CommandRequestImpl {
 #endif // #ifdef HMI_DBUS_API
 
  private:
-  bool IsAnythingAlreadySubscribed(
+  bool IsSomeoneSubscribedFor(const uint32_t param_id) const;
+
+  void AddAlreadySubscribedVI(smart_objects::SmartObject& response) const;
+
+  void UnsubscribeFailedSubscriptions(
+      ApplicationSharedPtr app,
       const smart_objects::SmartObject& msg_params) const;
+
+  VehicleInfoSubscriptions vi_already_subscribed_by_another_apps_;
+  VehicleInfoSubscriptions vi_already_subscribed_by_this_app_;
 
   DISALLOW_COPY_AND_ASSIGN(SubscribeVehicleDataRequest);
 };

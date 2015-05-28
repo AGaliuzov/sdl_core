@@ -698,7 +698,7 @@ smart_objects::SmartObjectList MessageHelper::GetIVISubscriptionRequests(
   msg_params[strings::app_id] = app->app_id();
   const VehicleData& vehicle_data = MessageHelper::vehicle_data_;
   VehicleData::const_iterator ivi_it = vehicle_data.begin();
-  const std::set<uint32_t>& subscribes = app->SubscribesIVI();
+  const VehicleInfoSubscriptions& subscribes = app->SubscribedIVI();
 
   for (; vehicle_data.end() != ivi_it; ++ivi_it) {
     uint32_t type_id = static_cast<int>(ivi_it->second);
