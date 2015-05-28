@@ -323,6 +323,7 @@ Profile::Profile()
       max_cmd_id_(kDefaultMaxCmdId),
       default_timeout_(kDefaultTimeout),
       app_resuming_timeout_(kDefaultAppResumingTimeout),
+      app_resumption_save_persistent_data_timeout_(kDefaultAppSavePersistentDataTimeout),
       app_dir_quota_(kDefaultDirQuota),
       app_hmi_level_none_time_scale_max_requests_(
           kDefaultAppHmiLevelNoneTimeScaleMaxRequests),
@@ -1198,8 +1199,9 @@ void Profile::UpdateValues() {
   ReadUIntValue(&app_resumption_save_persistent_data_timeout_,
                 kDefaultAppSavePersistentDataTimeout, kResumptionSection,
                 kAppSavePersistentDataTimeoutKey);
-  if (app_resuming_timeout_ == 0) {
-    app_resuming_timeout_ = kDefaultAppSavePersistentDataTimeout;
+  if (app_resumption_save_persistent_data_timeout_ == 0) {
+    app_resumption_save_persistent_data_timeout_ =
+            kDefaultAppSavePersistentDataTimeout;
   }
 
   LOG_UPDATED_VALUE(app_resuming_timeout_, kAppResumingTimeoutKey,

@@ -67,7 +67,16 @@ void TimeManager::Start() {
 }
 
 void TimeManager::set_streamer(Streamer* streamer) {
-  streamer_ = streamer;
+  LOG4CXX_AUTO_TRACE(logger_);
+  if (thread_ && !thread_->is_running()) {
+    thread_->set_delegate(streamer);
+    if (streamer_) {
+      delete streamer_;
+    }
+    streamer_ = streamer;
+  } else {
+    LOG4CXX_ERROR(logger_, "Unable to replace streamer if it is active");
+  }
 }
 
 TimeManager::~TimeManager() {
