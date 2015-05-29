@@ -478,6 +478,10 @@ bool CacheManager::AddDevice(const std::string &device_id,
       (*(pt_->policy_table.device_data))[device_id];
   *params.connection_type = connection_type;
 
+  // We have to set preloaded flag as false in policy table on adding new
+  // information (SDLAQ-CRS-2365). It can happens only after device addition.
+  *pt_->policy_table.module_config.preloaded_pt = false;
+
   Backup();
   return true;
 }
@@ -1307,6 +1311,11 @@ bool CacheManager::SetMetaInfo(const std::string& ccpu_version,
   *pt_->policy_table.module_meta->ccpu_version = ccpu_version;
   *pt_->policy_table.module_meta->wers_country_code = wers_country_code;
   *pt_->policy_table.module_meta->language = language;
+
+  // We have to set preloaded flag as false in policy table on any response
+  // of GetSystemInfo (SDLAQ-CRS-2365)
+  *pt_->policy_table.module_config.preloaded_pt = false;
+
   Backup();
   return true;
 }
