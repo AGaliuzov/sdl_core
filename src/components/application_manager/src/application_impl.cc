@@ -646,21 +646,21 @@ bool ApplicationImpl::UnsubscribeFromButton(mobile_apis::ButtonName::eType btn_n
   return (subscribed_buttons_.size() == old_size - 1);
 }
 
-bool ApplicationImpl::SubscribeToIVI(uint32_t vehicle_info_type) {
+bool ApplicationImpl::SubscribeToIVI(uint32_t vehicle_info_type_) {
   size_t old_size = subscribed_vehicle_info_.size();
-  subscribed_vehicle_info_.insert(vehicle_info_type);
+  subscribed_vehicle_info_.insert(vehicle_info_type_);
   return (subscribed_vehicle_info_.size() == old_size + 1);
 }
 
-bool ApplicationImpl::IsSubscribedToIVI(uint32_t vehicle_info_type) const {
-  VehicleInfoSubscriptions::const_iterator it = subscribed_vehicle_info_.find(
-      vehicle_info_type);
+bool ApplicationImpl::IsSubscribedToIVI(uint32_t vehicle_info_type_) {
+  std::set<uint32_t>::iterator it = subscribed_vehicle_info_.find(
+      vehicle_info_type_);
   return (subscribed_vehicle_info_.end() != it);
 }
 
-bool ApplicationImpl::UnsubscribeFromIVI(uint32_t vehicle_info_type) {
+bool ApplicationImpl::UnsubscribeFromIVI(uint32_t vehicle_info_type_) {
   size_t old_size = subscribed_vehicle_info_.size();
-  subscribed_vehicle_info_.erase(vehicle_info_type);
+  subscribed_vehicle_info_.erase(vehicle_info_type_);
   return (subscribed_vehicle_info_.size() == old_size - 1);
 }
 
@@ -768,7 +768,7 @@ const std::set<mobile_apis::ButtonName::eType>& ApplicationImpl::SubscribedButto
   return subscribed_buttons_;
 }
 
-const VehicleInfoSubscriptions& ApplicationImpl::SubscribedIVI() const {
+const std::set<uint32_t>& ApplicationImpl::SubscribesIVI() const {
   return subscribed_vehicle_info_;
 }
 

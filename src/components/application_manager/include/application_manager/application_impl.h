@@ -163,10 +163,9 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   bool IsSubscribedToButton(mobile_apis::ButtonName::eType btn_name);
   bool UnsubscribeFromButton(mobile_apis::ButtonName::eType btn_name);
 
-  bool SubscribeToIVI(uint32_t vehicle_info_type) OVERRIDE;
-  bool IsSubscribedToIVI(uint32_t vehicle_info_type) const OVERRIDE;
-  bool UnsubscribeFromIVI(uint32_t vehicle_info_type) OVERRIDE;
-  const VehicleInfoSubscriptions& SubscribedIVI() const OVERRIDE;
+  bool SubscribeToIVI(uint32_t vehicle_info_type_);
+  bool IsSubscribedToIVI(uint32_t vehicle_info_type_);
+  bool UnsubscribeFromIVI(uint32_t vehicle_info_type_);
 
   /**
    * @brief ResetDataInNone reset data counters in NONE
@@ -174,6 +173,7 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   virtual void ResetDataInNone();
 
   virtual const std::set<mobile_apis::ButtonName::eType>& SubscribedButtons() const;
+  virtual const  std::set<uint32_t>& SubscribesIVI() const;
 
   virtual const std::string& curHash() const;
 #ifdef CUSTOMER_PASA
@@ -266,6 +266,7 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
    */
   void CleanupFiles();
 
+
  private:
   typedef SharedPtr<TimerThread<ApplicationImpl>> ApplicationTimerPtr;
 
@@ -314,7 +315,7 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
 
   AppFilesMap                              app_files_;
   std::set<mobile_apis::ButtonName::eType> subscribed_buttons_;
-  VehicleInfoSubscriptions                 subscribed_vehicle_info_;
+  std::set<uint32_t>                       subscribed_vehicle_info_;
   UsageStatistics                          usage_report_;
   ProtocolVersion                          protocol_version_;
   bool                                     is_voice_communication_application_;

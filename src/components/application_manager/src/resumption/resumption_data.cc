@@ -112,7 +112,7 @@ smart_objects::SmartObject ResumptionData::GetApplicationInteractionChoiseSets(
 
 smart_objects::SmartObject ResumptionData::GetApplicationGlobalProperties(
       app_mngr::ApplicationConstSharedPtr application) const {
-  using namespace app_mngr;
+  using namespace app_mngr; 
   LOG4CXX_AUTO_TRACE(logger_);
 
   DCHECK(application.get());
@@ -144,7 +144,7 @@ smart_objects::SmartObject ResumptionData::GetApplicationGlobalProperties(
 
 smart_objects::SmartObject ResumptionData::GetApplicationSubscriptions(
         app_mngr::ApplicationConstSharedPtr application) const {
-  using namespace app_mngr;
+  using namespace app_mngr; 
   LOG4CXX_AUTO_TRACE(logger_);
   DCHECK(application.get());
   smart_objects::SmartObject subscriptions =
@@ -159,17 +159,17 @@ smart_objects::SmartObject ResumptionData::GetApplicationSubscriptions(
   Append(application->SubscribedButtons().begin(),
          application->SubscribedButtons().end(),
          strings::application_buttons, subscriptions);
-  LOG4CXX_DEBUG(logger_, "SubscribedIVI:"
-                << application->SubscribedIVI().size());
-  Append(application->SubscribedIVI().begin(),
-         application->SubscribedIVI().end(),
+  LOG4CXX_DEBUG(logger_, "SubscribesIVI:"
+                << application->SubscribesIVI().size());
+  Append(application->SubscribesIVI().begin(),
+         application->SubscribesIVI().end(),
          strings::application_vehicle_info, subscriptions);
   return subscriptions;
 }
 
 smart_objects::SmartObject ResumptionData::GetApplicationFiles(
     app_mngr::ApplicationConstSharedPtr application) const {
-  using namespace app_mngr;
+  using namespace app_mngr; 
   LOG4CXX_AUTO_TRACE(logger_);
   DCHECK(application.get());
   LOG4CXX_TRACE(logger_, "ENTER app_id:"
