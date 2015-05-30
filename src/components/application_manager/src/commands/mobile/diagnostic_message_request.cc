@@ -76,6 +76,7 @@ void DiagnosticMessageRequest::Run() {
                              " not supported");
       SendResponse(false, mobile_apis::Result::INVALID_DATA,
                    "Received message data not supported");
+      return;
     }
   }
 
