@@ -74,7 +74,7 @@ void DiagnosticMessageRequest::Run() {
                                                 message_data)) {
       LOG4CXX_ERROR(logger_, "Received message data " << message_data <<
                              " not supported");
-      SendResponse(false, mobile_apis::Result::INVALID_DATA,
+      SendResponse(false, mobile_apis::Result::REJECTED,
                    "Received message data not supported");
       return;
     }
