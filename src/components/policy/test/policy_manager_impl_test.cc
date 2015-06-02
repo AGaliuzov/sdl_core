@@ -97,6 +97,18 @@ std::string NumberToString(T Number) {
   return ss.str();
 }
 
+template<typename T>
+void SortAndCheckEquality(std::vector<T> first,
+                          std::vector<T> second) {
+  ASSERT_EQ(first.size(), second.size());
+  std::sort(first.begin(), first.end());
+  std::sort(second.begin(), second.end());
+  // Checks
+  for (uint32_t i = 0; i < first.size(); ++i) {
+    EXPECT_EQ(first[i], second[i]);
+  }
+}
+
 struct StringsForUpdate {
   std::string new_field_value_;
   std::string new_field_name_;
@@ -168,21 +180,22 @@ class PolicyManagerImplTest2 : public ::testing::Test {
         app_id2("1766825573"),
         app_id3("584421907"),
         dev_id1("XXX123456789ZZZ"),
-        dev_id2("08-00-27-CE-76-FE") {}
+        dev_id2("08-00-27-CE-76-FE"),
+        PTU_request_types(Json::arrayValue) {}
 
   protected:
     PolicyManagerImpl* manager;
     NiceMock<MockPolicyListener> listener;
     std::vector<std::string> hmi_level;
-    std::vector<std::string> request_types_from_PT;
-    Json::Value request_types_from_PTU = Json::Value(Json::arrayValue);
-    uint32_t request_types_from_PTU_size;
+    std::vector<std::string> PT_request_types;
+    uint32_t PTU_request_types_size;
     unsigned int index;
     const std::string app_id1;
     const std::string app_id2;
     const std::string app_id3;
     const std::string dev_id1;
     const std::string dev_id2;
+    Json::Value PTU_request_types;
 
     void SetUp() {
       file_system::CreateDirectory("storage1");
@@ -194,6 +207,14 @@ class PolicyManagerImplTest2 : public ::testing::Test {
       hmi_level.assign(levels, levels + sizeof(levels) / sizeof(levels[0]));
       srand(time(NULL));
       index = rand() % 3;
+    }
+
+    std::vector<std::string> JsonToVectorString(const Json::Value& PTU_request_types) {
+      std::vector<std::string> result;
+      for (uint32_t i = 0; i < PTU_request_types.size(); ++i) {
+        result.push_back(PTU_request_types[i].asString());
+      }
+      return result;
     }
 
     const Json::Value GetPTU(std::string file_name) {
@@ -224,20 +245,19 @@ class PolicyManagerImplTest2 : public ::testing::Test {
       // Arrange
       CreateLocalPT("sdl_preloaded_pt.json");
       // Get RequestTypes from section of preloaded_pt app_policies
-      request_types_from_PT = manager->GetAppRequestTypes(section_name);
-      EXPECT_EQ(rt_number, request_types_from_PT.size());
+      PT_request_types = manager->GetAppRequestTypes(section_name);
+      EXPECT_EQ(rt_number, PT_request_types.size());
       Json::Value root = GetPTU(update_file_name);
       // Get Request Types from JSON (PTU)
-      request_types_from_PTU = Json::Value(Json::arrayValue);
-      request_types_from_PTU =
+      PTU_request_types =
           root["policy_table"]["app_policies"][section_name]["RequestType"];
-      request_types_from_PTU_size = request_types_from_PTU.size();
-      request_types_from_PT.clear();
+      PTU_request_types_size = PTU_request_types.size();
+      PT_request_types.clear();
       // Get RequestTypes from section of PT app policies after update
-      request_types_from_PT = manager->GetAppRequestTypes(section_name);
+      PT_request_types = manager->GetAppRequestTypes(section_name);
       // Check number of RT in PTU and PT now are equal
-      ASSERT_EQ(request_types_from_PTU_size - invalid_rt_number,
-                request_types_from_PT.size());
+      ASSERT_EQ(PTU_request_types_size - invalid_rt_number,
+                PT_request_types.size());
     }
 
     void AddRTtoAppSectionPT(const std::string& update_file_name,
@@ -250,67 +270,55 @@ class PolicyManagerImplTest2 : public ::testing::Test {
       manager->AddApplication(section_name);
       // Check app gets RequestTypes from pre_DataConsent of app_policies
       // section
-      request_types_from_PT = manager->GetAppRequestTypes(section_name);
-      EXPECT_EQ(rt_number, request_types_from_PT.size());
+      PT_request_types = manager->GetAppRequestTypes(section_name);
+      EXPECT_EQ(rt_number, PT_request_types.size());
       EXPECT_CALL(listener, OnPendingPermissionChange(section_name)).Times(1);
       Json::Value root = GetPTU(update_file_name);
 
       // Get App Request Types from PTU
-      request_types_from_PTU = Json::Value(Json::arrayValue);
-      request_types_from_PTU =
+      PTU_request_types =
           root["policy_table"]["app_policies"][section_name]["RequestType"];
-      request_types_from_PTU_size = request_types_from_PTU.size();
+      PTU_request_types_size = PTU_request_types.size();
 
-      request_types_from_PT.clear();
+      PT_request_types.clear();
       // Get RequestTypes from <app_id> section of app policies after PT update
-      request_types_from_PT = manager->GetAppRequestTypes(section_name);
+      PT_request_types = manager->GetAppRequestTypes(section_name);
       // Check sizes of Request types of PT and PTU
-      ASSERT_EQ(request_types_from_PTU_size - invalid_rt_number,
-                request_types_from_PT.size());
+      ASSERT_EQ(PTU_request_types_size - invalid_rt_number,
+                PT_request_types.size());
 
       ::policy::AppPermissions permissions =
           manager->GetAppPermissionsChanges(section_name);
       EXPECT_TRUE(permissions.requestTypeChanged);
     }
 
+    std::vector<policy_table::RequestType> PushRequestTypesToContainer(
+        const std::vector<std::string>& temp_result) {
+      policy_table::RequestType filtered_result;
+      std::vector<policy_table::RequestType> final_result;
+      for (uint32_t i = 0; i < temp_result.size(); ++i) {
+        if (policy_table::EnumFromJsonString(temp_result[i],
+                                             &filtered_result)) {
+          final_result.push_back(filtered_result);
+        }
+      }
+      return final_result;
+    }
+
     void CheckResultForValidRT() {
-      std::vector<std::string> result;
-      for (uint32_t i = 0; i < request_types_from_PTU_size; ++i) {
-        result.push_back(request_types_from_PTU[i].asString());
-      }
-      std::sort(request_types_from_PT.begin(), request_types_from_PT.end());
-      std::sort(result.begin(), result.end());
+      // Convert Json Array to std::vector<std::string>
+      const std::vector<std::string>& result = JsonToVectorString(PTU_request_types);
       // Checks
-      for (uint32_t i = 0; i < request_types_from_PT.size(); ++i) {
-        EXPECT_EQ(request_types_from_PT[i], result[i]);
-      }
+      SortAndCheckEquality(PT_request_types, result);
     }
 
     void CheckResultForInvalidRT() {
-      policy_table::RequestType temp_res1;
-      std::vector<policy_table::RequestType> result1;
-      for (uint32_t i = 0; i < request_types_from_PTU_size; ++i) {
-        if (::rpc::policy_table_interface_base::EnumFromJsonString(
-              request_types_from_PTU[i].asString(), &temp_res1)) {
-          result1.push_back(temp_res1);
-        }
-      }
-
-      policy_table::RequestType temp_res2;
-      std::vector<policy_table::RequestType> result2;
-      for (uint32_t i = 0; i < request_types_from_PT.size(); ++i) {
-        if (::rpc::policy_table_interface_base::EnumFromJsonString(
-              request_types_from_PT[i], &temp_res2)) {
-          result2.push_back(temp_res2);
-        }
-      }
-      ASSERT_EQ(result1.size(), result2.size());
-      std::sort(result1.begin(), result1.end());
-      std::sort(result2.begin(), result2.end());
+      // Convert Json Array to std::vector<std::string>
+      const std::vector<std::string>& temp_result = JsonToVectorString(PTU_request_types);
+      std::vector<policy_table::RequestType> result1 = PushRequestTypesToContainer(temp_result);
+      std::vector<policy_table::RequestType> result2 = PushRequestTypesToContainer(PT_request_types);
       // Checks
-      for (uint32_t i = 0; i < request_types_from_PT.size(); ++i) {
-        EXPECT_EQ(result1[i], result2[i]);
-      }
+      SortAndCheckEquality(result1, result2);
     }
 
     void TearDown() {
@@ -1886,15 +1894,15 @@ TEST_F(PolicyManagerImplTest2, AddValidRequestTypeToPT_GetNewAppWithSpecificPoli
   // Arrange
   AddRTtoAppSectionPT("PTU2.json", "1234", 1u, 0u);
   std::vector<std::string> result;
-  for (uint32_t i = 0; i < request_types_from_PTU_size; ++i) {
-     result.push_back(request_types_from_PTU[i].asString());
+  for (uint32_t i = 0; i < PTU_request_types_size; ++i) {
+     result.push_back(PTU_request_types[i].asString());
   }
-  std::sort(request_types_from_PT.begin(), request_types_from_PT.end());
+  std::sort(PT_request_types.begin(), PT_request_types.end());
   std::sort(result.begin(), result.end());
   // Checks
-  ASSERT_EQ(request_types_from_PT.size(), result.size());
-  for (uint32_t i = 0 ; i < request_types_from_PT.size(); ++i) {
-    EXPECT_EQ(request_types_from_PT[i], result[i]);
+  ASSERT_EQ(PT_request_types.size(), result.size());
+  for (uint32_t i = 0 ; i < PT_request_types.size(); ++i) {
+    EXPECT_EQ(PT_request_types[i], result[i]);
   }
 }
 
@@ -1903,15 +1911,15 @@ TEST_F(PolicyManagerImplTest2, AddInvalidRequestTypeToPT_GetNewAppWithSpecificPo
   AddRTtoAppSectionPT("PTU4.json", "1234", 1u, 1u);
   policy_table::RequestType temp_res1;
   std::vector<policy_table::RequestType> result1;
-  for (uint32_t i = 0 ; i < request_types_from_PTU_size; ++i) {
-    if (::rpc::policy_table_interface_base::EnumFromJsonString(request_types_from_PTU[i].asString(), &temp_res1)) {
+  for (uint32_t i = 0 ; i < PTU_request_types_size; ++i) {
+    if (::rpc::policy_table_interface_base::EnumFromJsonString(PTU_request_types[i].asString(), &temp_res1)) {
       result1.push_back(temp_res1);
     }
   }
   policy_table::RequestType temp_res2;
   std::vector<policy_table::RequestType> result2;
-  for (uint32_t i = 0; i < request_types_from_PT.size(); ++i) {
-    if(::rpc::policy_table_interface_base::EnumFromJsonString(request_types_from_PT[i], &temp_res2)) {
+  for (uint32_t i = 0; i < PT_request_types.size(); ++i) {
+    if(::rpc::policy_table_interface_base::EnumFromJsonString(PT_request_types[i], &temp_res2)) {
       result2.push_back(temp_res2);
     }
   }
@@ -1919,7 +1927,7 @@ TEST_F(PolicyManagerImplTest2, AddInvalidRequestTypeToPT_GetNewAppWithSpecificPo
   std::sort(result1.begin(), result1.end());
   std::sort(result2.begin(), result2.end());
   // Checks
-  for (uint32_t i = 0 ; i < request_types_from_PT.size(); ++i) {
+  for (uint32_t i = 0 ; i < PT_request_types.size(); ++i) {
     EXPECT_EQ(result1[i], result2[i]);
   }
 }
