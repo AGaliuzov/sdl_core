@@ -110,7 +110,7 @@ void SubscribeVehicleDataRequest::Run() {
       smart_objects::SmartType_Map);
 
   for (; vehicle_data.end() != it; ++it) {
-    std::string key_name = it->first;
+    const std::string& key_name = it->first;
     if ((*message_)[strings::msg_params].keyExists(key_name)) {
       bool is_key_enabled = (*message_)[strings::msg_params][key_name].asBool();
       if (is_key_enabled) {
@@ -130,7 +130,7 @@ void SubscribeVehicleDataRequest::Run() {
         }
 
         if (IsSomeoneSubscribedFor(key_type)) {
-          LOG4CXX_INFO(logger_, "There are apps subscribed already for "
+          LOG4CXX_DEBUG(logger_, "There are apps subscribed already for "
                        "VehicleDataType: " << key_type);
           if (!app->SubscribeToIVI(static_cast<uint32_t>(key_type))) {
             LOG4CXX_ERROR(logger_, "Unable to subscribe for VehicleDataType: "
@@ -173,13 +173,17 @@ void SubscribeVehicleDataRequest::Run() {
                    "No data in the request");
     }
     return;
-  } else if (0 == subscribed_items) {
+  }
+
+  if (0 == subscribed_items) {
     SendResponse(false,
                  mobile_apis::Result::IGNORED,
                  "Already subscribed on provided VehicleData.",
                  &response_params);
     return;
-  } else if (is_everything_already_subscribed) {
+  }
+
+  if (is_everything_already_subscribed) {
     mobile_apis::Result::eType result_code =
         vi_already_subscribed_by_this_app_.size()
         ? mobile_apis::Result::IGNORED
@@ -274,7 +278,7 @@ void SubscribeVehicleDataRequest::on_event(const event_engine::Event& event) {
         response_params[it->str] = it->value;
       }
     }
-    LOG4CXX_INFO(logger_, "All HMI requests are complete");
+    LOG4CXX_DEBUG(logger_, "All HMI requests are complete");
     SendResponse(any_arg_success, status, NULL, &response_params);
     app->UpdateHash();
   }
@@ -283,7 +287,7 @@ void SubscribeVehicleDataRequest::on_event(const event_engine::Event& event) {
       static_cast<hmi_apis::Common_Result::eType>(
           message[strings::params][hmi_response::code].asInt());
 
-  bool result =
+  bool is_succeeded =
       hmi_result == hmi_apis::Common_Result::SUCCESS ||
       !vi_already_subscribed_by_another_apps_.empty();
 
@@ -294,11 +298,10 @@ void SubscribeVehicleDataRequest::on_event(const event_engine::Event& event) {
           message[strings::params][hmi_response::code].asInt());
 
   const char* return_info = NULL;
-  if (result) {
+  if (is_succeeded) {
     if (!vi_already_subscribed_by_this_app_.empty()) {
       result_code = mobile_apis::Result::IGNORED;
-      return_info =
-        std::string("Already subscribed on some provided VehicleData.").c_str();
+      return_info = "Already subscribed on some provided VehicleData.";
     }
   }
 
@@ -310,7 +313,7 @@ void SubscribeVehicleDataRequest::on_event(const event_engine::Event& event) {
                              message[strings::msg_params]));
   }
 
-  SendResponse(result,
+  SendResponse(is_succeeded,
                result_code,
                return_info,
                &(message[strings::msg_params]));
@@ -320,14 +323,14 @@ void SubscribeVehicleDataRequest::on_event(const event_engine::Event& event) {
 }
 
 void SubscribeVehicleDataRequest::AddAlreadySubscribedVI(
-    smart_objects::SmartObject& response) const {
+    smart_objects::SmartObject& msg_params) const {
   LOG4CXX_AUTO_TRACE(logger_);
   using namespace mobile_apis;
   VehicleInfoSubscriptions::const_iterator it_same_app =
       vi_already_subscribed_by_this_app_.begin();
   for (;vi_already_subscribed_by_this_app_.end() != it_same_app;
        ++it_same_app) {
-    response[*it_same_app][strings::result_code] =
+    msg_params[*it_same_app][strings::result_code] =
         VehicleDataResultCode::VDRC_DATA_ALREADY_SUBSCRIBED;
   }
 
@@ -335,7 +338,7 @@ void SubscribeVehicleDataRequest::AddAlreadySubscribedVI(
       vi_already_subscribed_by_another_apps_.begin();
   for (;vi_already_subscribed_by_another_apps_.end() != it_another_app;
        ++it_another_app) {
-    response[*it_another_app][strings::result_code] =
+    msg_params[*it_another_app][strings::result_code] =
         VehicleDataResultCode::VDRC_SUCCESS;
   }
 }

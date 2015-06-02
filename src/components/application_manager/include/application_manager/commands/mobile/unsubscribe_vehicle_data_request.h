@@ -86,8 +86,19 @@ class UnsubscribeVehicleDataRequest : public CommandRequestImpl {
 #endif // #ifdef HMI_DBUS_API
 
  private:
+  /**
+   * @brief Checks, if any app is subscribed for particular VI parameter
+   * @param param_id VI parameter id
+   * @return true, if there are registered apps subscribed for VI parameter,
+   * otherwise - false
+   */
   bool IsSomeoneSubscribedFor(const uint32_t param_id) const;
 
+  /**
+   * @brief Adds VI parameters being unsubscribed by another or the same app to
+   * response with appropriate results
+   * @param msg_params 'message_params' response section reference
+   */
   void AddAlreadyUnsubscribedVI(smart_objects::SmartObject& response) const;
 
   /**
@@ -95,7 +106,15 @@ class UnsubscribeVehicleDataRequest : public CommandRequestImpl {
    */
   void UpdateHash() const;
 
+  /**
+   * @brief VI parameters which still being subscribed by another apps after
+   * particular app had been unsubscribed from these parameters
+   */
   VehicleInfoSubscriptions vi_still_subscribed_by_another_apps_;
+
+  /**
+   * @brief VI parameters which had been unsubscribed already by particular app
+   */
   VehicleInfoSubscriptions vi_already_unsubscribed_by_this_app_;
 
   DISALLOW_COPY_AND_ASSIGN(UnsubscribeVehicleDataRequest);

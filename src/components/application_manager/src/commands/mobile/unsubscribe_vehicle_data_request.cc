@@ -114,7 +114,7 @@ void UnsubscribeVehicleDataRequest::Run() {
       smart_objects::SmartType_Map);
 
   for (; vehicle_data.end() != it; ++it) {
-    std::string key_name = it->first;
+    const std::string& key_name = it->first;
     if ((*message_)[strings::msg_params].keyExists(key_name)) {
       bool is_key_enabled = (*message_)[strings::msg_params][key_name].asBool();
       if (is_key_enabled) {
@@ -144,8 +144,8 @@ void UnsubscribeVehicleDataRequest::Run() {
         ++unsubscribed_items;
 
         if (IsSomeoneSubscribedFor(key_type)) {
-          LOG4CXX_INFO(logger_, "There are another apps still subscribed for "
-                       "VehicleDataType: " << key_type);
+          LOG4CXX_DEBUG(logger_, "There are another apps still subscribed for "
+                                 "VehicleDataType: " << key_type);
 
           vi_still_subscribed_by_another_apps_.insert(key_type);
           response_params[key_name][strings::data_type] = key_type;
@@ -172,11 +172,15 @@ void UnsubscribeVehicleDataRequest::Run() {
                    "No data in the request.");
     }
     return;
-  } else if (0 == unsubscribed_items) {
+  }
+
+  if (0 == unsubscribed_items) {
     SendResponse(false, mobile_apis::Result::IGNORED,
                  "Was not subscribed on any VehicleData.", &response_params);
     return;
-  } else if (is_everything_already_unsubscribed) {
+  }
+
+  if (is_everything_already_unsubscribed) {
     mobile_apis::Result::eType result_code =
         vi_already_unsubscribed_by_this_app_.size()
         ? mobile_apis::Result::IGNORED
@@ -283,7 +287,7 @@ void UnsubscribeVehicleDataRequest::on_event(const event_engine::Event& event) {
       static_cast<hmi_apis::Common_Result::eType>(
           message[strings::params][hmi_response::code].asInt());
 
-  bool result =
+  bool is_succeeded =
       hmi_result == hmi_apis::Common_Result::SUCCESS;
 
   mobile_apis::Result::eType result_code =
@@ -294,11 +298,10 @@ void UnsubscribeVehicleDataRequest::on_event(const event_engine::Event& event) {
 
   const char* return_info = NULL;
 
-  if (result) {
+  if (is_succeeded) {
     if (vi_already_unsubscribed_by_this_app_.size()) {
       result_code = mobile_apis::Result::IGNORED;
-      return_info =
-          std::string("Some provided VehicleData was not subscribed.").c_str();
+      return_info = "Some provided VehicleData was not subscribed.";
     }
   }
 
@@ -308,12 +311,12 @@ void UnsubscribeVehicleDataRequest::on_event(const event_engine::Event& event) {
                              message[strings::msg_params]));
   }
 
-  if (result) {
+  if (is_succeeded) {
     SetAllowedToTerminate(false);
   }
-  SendResponse(result, result_code, return_info,
+  SendResponse(is_succeeded, result_code, return_info,
                &(message[strings::msg_params]));
-  if (true == result) {
+  if (is_succeeded) {
     UpdateHash();
   }
 #endif // #ifdef HMI_DBUS_API
@@ -355,8 +358,8 @@ void UnsubscribeVehicleDataRequest::UpdateHash() const {
   if (application) {
     application->UpdateHash();
   } else {
-    LOG4CXX_ERROR(logger_, "Application with connection_key = "<<connection_key()
-                  <<"doesn't exists");
+    LOG4CXX_ERROR(logger_, "Application with connection_key = "
+                  << connection_key() <<" doesn't exist.");
   }
   ApplicationManagerImpl::instance()->TerminateRequest(connection_key(),
                                                        correlation_id());

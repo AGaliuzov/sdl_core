@@ -349,6 +349,8 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   CommandSoftButtonID cmd_softbuttonid_;
   // Lock for command soft button id
   sync_primitives::Lock cmd_softbuttonid_lock_;
+  mutable sync_primitives::Lock vi_lock_;
+  sync_primitives::Lock button_lock_;
   std::string folder_name_;
   DISALLOW_COPY_AND_ASSIGN(ApplicationImpl);
 };
