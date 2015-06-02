@@ -154,15 +154,23 @@ smart_objects::SmartObject ResumptionData::GetApplicationSubscriptions(
     return subscriptions;
   }
   LOG4CXX_DEBUG(logger_, "app_id:" << application->app_id());
-  LOG4CXX_DEBUG(logger_, "SubscribedButtons:"
-                << application->SubscribedButtons().size());
-  Append(application->SubscribedButtons().begin(),
-         application->SubscribedButtons().end(),
+
+  DataAccessor<ButtonSubscriptions> button_accessor =
+      application->SubscribedButtons();
+
+  const ButtonSubscriptions& button_subscriptions = button_accessor.GetData();
+
+  LOG4CXX_DEBUG(logger_, "SubscribedButtons:" << button_subscriptions.size());
+  Append(button_subscriptions.begin(), button_subscriptions.end(),
          strings::application_buttons, subscriptions);
-  LOG4CXX_DEBUG(logger_, "SubscribedIVI:"
-                << application->SubscribedIVI().size());
-  Append(application->SubscribedIVI().begin(),
-         application->SubscribedIVI().end(),
+
+  DataAccessor<VehicleInfoSubscriptions> vi_accessor =
+      application->SubscribedIVI();
+
+  const VehicleInfoSubscriptions& vi_subscription = vi_accessor.GetData();
+
+  LOG4CXX_DEBUG(logger_, "SubscribedIVI:" << vi_subscription.size());
+  Append(vi_subscription.begin(), vi_subscription.end(),
          strings::application_vehicle_info, subscriptions);
   return subscriptions;
 }

@@ -766,13 +766,14 @@ bool ApplicationImpl::IsCommandLimitsExceeded(
   return true;
 }
 
-const std::set<mobile_apis::ButtonName::eType>& ApplicationImpl::SubscribedButtons() const {
-  return subscribed_buttons_;
+DataAccessor<ButtonSubscriptions> ApplicationImpl::SubscribedButtons() const {
+  return DataAccessor<ButtonSubscriptions>(subscribed_buttons_,
+                                           button_lock_);
 }
 
-const VehicleInfoSubscriptions& ApplicationImpl::SubscribedIVI() const {
-  sync_primitives::AutoLock lock(vi_lock_);
-  return subscribed_vehicle_info_;
+DataAccessor<VehicleInfoSubscriptions> ApplicationImpl::SubscribedIVI() const {
+  return DataAccessor<VehicleInfoSubscriptions>(subscribed_vehicle_info_,
+                                                vi_lock_);
 }
 
 const std::string& ApplicationImpl::curHash() const {

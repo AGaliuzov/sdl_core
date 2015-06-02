@@ -166,14 +166,14 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   bool SubscribeToIVI(uint32_t vehicle_info_type) OVERRIDE;
   bool IsSubscribedToIVI(uint32_t vehicle_info_type) const OVERRIDE;
   bool UnsubscribeFromIVI(uint32_t vehicle_info_type) OVERRIDE;
-  const VehicleInfoSubscriptions& SubscribedIVI() const OVERRIDE;
+  DataAccessor<VehicleInfoSubscriptions> SubscribedIVI() const OVERRIDE;
 
   /**
    * @brief ResetDataInNone reset data counters in NONE
    */
   virtual void ResetDataInNone();
 
-  virtual const std::set<mobile_apis::ButtonName::eType>& SubscribedButtons() const;
+  virtual DataAccessor<ButtonSubscriptions> SubscribedButtons() const OVERRIDE;
 
   virtual const std::string& curHash() const;
 #ifdef CUSTOMER_PASA

@@ -166,6 +166,11 @@ typedef std::set<uint32_t> SoftButtonID;
  */
 typedef std::set<uint32_t> VehicleInfoSubscriptions;
 
+/**
+ * @brief Defines set of buttons subscription
+ */
+typedef std::set<mobile_apis::ButtonName::eType> ButtonSubscriptions;
+
 class DynamicApplicationData {
   public:
     virtual ~DynamicApplicationData() {
@@ -177,8 +182,8 @@ class DynamicApplicationData {
     virtual const mobile_api::TBTState::eType& tbt_state() const = 0;
     virtual const smart_objects::SmartObject* show_command() const = 0;
     virtual const smart_objects::SmartObject* tbt_show_command() const = 0;
-    virtual const std::set<mobile_apis::ButtonName::eType>& SubscribedButtons() const = 0;
-    virtual const VehicleInfoSubscriptions& SubscribedIVI() const = 0;
+    virtual DataAccessor<ButtonSubscriptions> SubscribedButtons() const = 0;
+    virtual DataAccessor<VehicleInfoSubscriptions> SubscribedIVI() const = 0;
     virtual const smart_objects::SmartObject* keyboard_props() const = 0;
     virtual const smart_objects::SmartObject* menu_title() const = 0;
     virtual const smart_objects::SmartObject* menu_icon() const = 0;
