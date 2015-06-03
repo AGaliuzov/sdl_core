@@ -33,18 +33,15 @@
 
 #ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_MOBILE_CREATE_INTERACTION_CHOICE_SET_REQUEST_H_
 #define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_MOBILE_CREATE_INTERACTION_CHOICE_SET_REQUEST_H_
+
 #include <map>
-#include <string>
 
 #include "application_manager/application.h"
 #include "application_manager/commands/command_request_impl.h"
 #include "application_manager/event_engine/event_observer.h"
 #include "interfaces/MOBILE_API.h"
-#include "utils/macro.h"
 
 namespace application_manager {
-
-class Application;
 
 namespace commands {
 
@@ -70,7 +67,6 @@ class CreateInteractionChoiceSetRequest : public CommandRequestImpl {
      **/
     virtual void Run();
 
-
  private:
     /**
      * @brief Interface method that is called whenever new event received
@@ -84,8 +80,36 @@ class CreateInteractionChoiceSetRequest : public CommandRequestImpl {
      * has exceed it's limit
      */
     virtual void onTimeOut();
+
     /**
-     * @brief DeleteChoices allows to walk through the sent commands collection
+     * @brief Sends VR.AddCommand requests to HMI
+     *
+     * @param app Application pointer
+     *
+     */
+    void SendVRAddCommandRequests(ApplicationConstSharedPtr app);
+
+    /**
+     * @brief Checks incoming choiseSet params.
+     *
+     * @param app Registered mobile application
+     *
+     * @return Mobile result code
+     */
+    mobile_apis::Result::eType CheckChoiceSet(ApplicationConstSharedPtr app);
+
+    /**
+     * @brief Checks choice set params(menuName, tertiaryText, ...)
+     * When type is String there is a check on the contents \t\n \\t \\n
+     *
+     * @param choice_set which must check
+     *
+     * @return if choice_set contains \t\n \\t \\n return TRUE, FALSE otherwise
+     */
+    bool IsWhiteSpaceExist(const smart_objects::SmartObject& choice_set);
+
+    /**
+     * @brief DeleteChoices allows to walk through the sent commands map
      * in order to sent appropriate DeleteCommand request.
      */
     void DeleteChoices();
@@ -96,6 +120,41 @@ class CreateInteractionChoiceSetRequest : public CommandRequestImpl {
      * if all responses were SUCCESS or calls DeleteChoices in other case.
      */
     void OnAllHMIResponsesReceived();
+
+    void set_expected_chs_count(size_t count) {
+      sync_primitives::AutoLock lock(expected_chs_count_lock_);
+      expected_chs_count_ = count;
+    }
+
+    size_t expected_chs_count() const {
+      sync_primitives::AutoLock lock(expected_chs_count_lock_);
+      return expected_chs_count_;
+    }
+
+    void set_response_from_hmi(bool state) {
+      sync_primitives::AutoLock lock(response_from_hmi_lock_);
+      response_from_hmi_ = state;
+    }
+
+    bool response_from_hmi() const {
+      sync_primitives::AutoLock lock(response_from_hmi_lock_);
+      return response_from_hmi_;
+    }
+
+    void set_error_from_hmi(bool state) {
+      sync_primitives::AutoLock lock(error_from_hmi_lock_);
+      error_from_hmi_ = state;
+    }
+
+    bool error_from_hmi() const {
+      sync_primitives::AutoLock lock(error_from_hmi_lock_);
+      return error_from_hmi_;
+    }
+
+    /**
+     * @brief Id of currently processing choice set
+     */
+    int32_t choice_set_id_;
 
     /**
      * @brief The VRCommand struct
@@ -111,55 +170,43 @@ class CreateInteractionChoiceSetRequest : public CommandRequestImpl {
       bool succesful_response_received_;
     };
 
+    /**
+     * @brief Map of sent VR.AddCommands
+     */
     typedef std::map<uint32_t, VRCommandInfo> SentCommandsMap;
     SentCommandsMap sent_commands_map_;
+    sync_primitives::Lock vr_commands_lock_;
 
-    int32_t choice_set_id_;
-    size_t expected_chs_count_;
+    /**
+     * @brief Count of VR.AddCommand requests for those
+     * we've got response
+     */
     size_t received_chs_count_;
 
     /**
-     * @brief Flag for stop sending VR commands to HMI, in case one of responses
-     * failed
+     * @brief Count of VR.AddCommand requests for those
+     * we are waiting for response
+     */
+    volatile size_t expected_chs_count_;
+    mutable sync_primitives::Lock expected_chs_count_lock_;
+
+    /**
+     * @brief Flag shows if there was some response from HMI
+     * during timeout
+     */
+    volatile bool response_from_hmi_;
+    mutable sync_primitives::Lock response_from_hmi_lock_;
+
+    /**
+     * @brief Flag shows if one of VR.AddCommand requests was
+     * unsuccessful
      */
     volatile bool error_from_hmi_;
-    sync_primitives::Lock error_from_hmi_lock_;
-
-    /**
-     * @brief Flag shows if request already was expired by timeout
-     */
-    volatile bool is_timed_out_;
-    sync_primitives::Lock is_timed_out_lock_;
-
-    sync_primitives::Lock vr_commands_lock_;
-    /*
-     * @brief Sends VR AddCommand request to HMI
-     *
-     * @param app_id Application ID
-     *
-     */
-    void SendVRAddCommandRequests(ApplicationSharedPtr const app);
-
-    /*
-     * @brief Checks incoming choiseSet params.
-     * @param app Registred mobile application
-     *
-     * @return Mobile result code
-     */
-    mobile_apis::Result::eType CheckChoiceSet(ApplicationConstSharedPtr app);
-
-    /**
-     * @brief Checks choice set params(menuName, tertiaryText, ...)
-     * When type is String there is a check on the contents \t\n \\t \\n
-     * @param choice_set which must check
-     * @return if choice_set contains \t\n \\t \\n return TRUE, FALSE otherwise
-     */
-    bool IsWhiteSpaceExist(const smart_objects::SmartObject& choice_set);
-
-    DISALLOW_COPY_AND_ASSIGN(CreateInteractionChoiceSetRequest);
+    mutable sync_primitives::Lock error_from_hmi_lock_;
 };
 
 }  // namespace commands
+
 }  // namespace application_manager
 
 #endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_MOBILE_CREATE_INTERACTION_CHOICE_SET_REQUEST_H_
