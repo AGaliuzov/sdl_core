@@ -53,6 +53,7 @@ set(testSources
   shared_library_test.cc
   generated_code_test.cc
   policy_manager_impl_test.cc
+  update_status_manager_test.cc
 )
 
 include_directories(
@@ -60,11 +61,11 @@ include_directories(
   ${COMPONENTS_DIR}/policy/src/policy/policy_table/
 )
 list (APPEND testSources
-  sql_pt_ext_representation_test.cc
+  #sql_pt_ext_representation_test.cc
 )
 include_directories(${COMPONENTS_DIR}/policy/src/policy/policy_table/table_struct)
 list (APPEND testSources
-  sql_pt_representation_test.cc
+  #sql_pt_representation_test.cc
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "QNX")

@@ -121,6 +121,12 @@ class UpdateStatusManager {
    */
   bool IsAppsSearchInProgress();
 
+#ifdef BUILD_TESTS
+  PolicyTableStatus GetLastUpdateStatus() const {
+      return last_update_status_;
+  }
+#endif // BUILD_TESTS
+
 private:
   /*
    * @brief Sets flag for update progress

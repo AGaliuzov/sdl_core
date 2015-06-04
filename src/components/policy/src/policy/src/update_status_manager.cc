@@ -245,7 +245,7 @@ void UpdateStatusManager::UpdateThreadDelegate::threadMain() {
         }
       }
     } else {
-      // Time is not active, wait, while timeout will be seted,
+      // Time is not active, wait until timeout will be set,
       // or UpdateStatusManager will be deleted
       termination_condition_.Wait(auto_lock);
     }
