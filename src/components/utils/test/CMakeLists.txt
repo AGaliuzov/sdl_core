@@ -62,6 +62,7 @@ set(testSources
   async_runner_test.cc
   shared_ptr_test.cc
   scope_guard_test.cc
+  atomic_object_test.cc
 )
 
 set(testLibraries
