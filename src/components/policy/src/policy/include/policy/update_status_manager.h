@@ -123,7 +123,7 @@ class UpdateStatusManager {
 
 #ifdef BUILD_TESTS
   PolicyTableStatus GetLastUpdateStatus() const {
-      return last_update_status_;
+      return GetUpdateStatus();
   }
 #endif // BUILD_TESTS
 
