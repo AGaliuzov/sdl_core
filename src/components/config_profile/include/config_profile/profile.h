@@ -61,6 +61,12 @@ class Profile : public utils::Singleton<Profile> {
     virtual ~Profile();
 
     /**
+     * @brief Returns sdl version represented
+     * by git commit or value specified by user
+     */
+    const std::string& sdl_version() const;
+
+    /**
       * @brief Returns true if HMI should be started, otherwise false
       */
     bool launch_hmi() const;
@@ -619,7 +625,7 @@ class Profile : public utils::Singleton<Profile> {
      */
     bool use_db_for_resumption() const;
 
-    /**
+    /**;
      * @brief Returns amount of attempts for opening resumption db
      */
     uint16_t attempts_to_open_resumption_db() const;
@@ -724,6 +730,7 @@ class Profile : public utils::Singleton<Profile> {
     bool StringToNumber(const std::string& input, uint64_t& output) const;
 
 private:
+    std::string                     sdl_version_;
     bool                            launch_hmi_;
 #ifdef WEB_HMI
     std::string                     link_to_web_hmi_;
@@ -849,7 +856,6 @@ private:
     bool                            use_db_for_resumption_;
     uint16_t                        attempts_to_open_resumption_db_;
     uint16_t                        open_attempt_timeout_ms_resumption_db_;
-
 
     FRIEND_BASE_SINGLETON_CLASS(Profile);
     DISALLOW_COPY_AND_ASSIGN(Profile);

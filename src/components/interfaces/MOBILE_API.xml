@@ -2436,6 +2436,12 @@
     <param name="hmiCapabilities" type="HMICapabilities" mandatory="false">
       <description>Specifies the HMI’s capabilities. See HMICapabilities.</description>
     </param>
+    <param name="sdlVersion" type="String" maxlength="100" mandatory="false" platform="documentation">
+      <description>The SmartDeviceLink version.</description> 
+    </param>
+    <param name="systemSoftwareVersion" type="String" maxlength="100" mandatory="false" platform="documentation">
+      <description>The software version of the system that implements the SmartDeviceLink core.</description>
+    </param>
   </function>
 
   <function name="UnregisterAppInterface" functionID="UnregisterAppInterfaceID" messagetype="request">

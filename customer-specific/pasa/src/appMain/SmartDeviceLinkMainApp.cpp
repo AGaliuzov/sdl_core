@@ -508,9 +508,10 @@ int main(int argc, char** argv) {
   INIT_LOGGER(profile::Profile::instance()->log4cxx_config_file());
   configureLogging();
 
-  LOG4CXX_INFO(logger_, "Snapshot: {TAG}");
-  LOG4CXX_INFO(logger_, "Git commit: {GIT_COMMIT}");
   LOG4CXX_INFO(logger_, "Application main()");
+  LOG4CXX_INFO(logger_, "Snapshot: {TAG}");
+  LOG4CXX_INFO(logger_, "SDL version: "
+                         << profile::Profile::instance()->sdl_version());
 
   if (!utils::appenders_loader.Loaded()) {
     LOG4CXX_ERROR(logger_, "Appenders plugin not loaded, file logging disabled");

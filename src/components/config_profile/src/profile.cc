@@ -81,6 +81,7 @@ const char* kProtocolHandlerSection = "ProtocolHandler";
 const char* kSDL4Section = "SDL4";
 const char* kResumptionSection = "Resumption";
 
+const char* kSDLVersionKey = "SDLVersion";
 const char* kHmiCapabilitiesKey = "HMICapabilities";
 const char* kPathToSnapshotKey = "PathToSnapshot";
 const char* kPreloadedPTKey = "PreloadedPT";
@@ -200,6 +201,7 @@ const char* kUseDBForResumptionKey = "UseDBForResumption";
 const char* kAttemptsToOpenResumptionDBKey = "AttemptsToOpenResumptionDB";
 const char* kOpenAttemptTimeoutMsResumptionDBKey = "OpenAttemptTimeoutMsResumptionDB";
 
+const char* kDefaultSDLVersion = "";
 #ifdef WEB_HMI
 const char* kDefaultLinkToWebHMI = "HMI/index.html";
 #endif // WEB_HMI
@@ -297,7 +299,8 @@ namespace profile {
 CREATE_LOGGERPTR_GLOBAL(logger_, "Profile")
 
 Profile::Profile()
-    : launch_hmi_(true),
+    : sdl_version_(kDefaultSDLVersion), 
+      launch_hmi_(true),
 #ifdef WEB_HMI
       link_to_web_hmi_(kDefaultLinkToWebHMI),
 #endif // WEB_HMI
@@ -381,7 +384,9 @@ Profile::Profile()
     use_db_for_resumption_(false),
     attempts_to_open_resumption_db_(kDefaultAttemptsToOpenResumptionDB),
     open_attempt_timeout_ms_resumption_db_(kDefaultOpenAttemptTimeoutMsResumptionDB) {
-
+  // SDL version
+  ReadStringValue(&sdl_version_, kDefaultSDLVersion,
+                  kMainSection, kSDLVersionKey);
 }
 
 Profile::~Profile() {
@@ -396,6 +401,10 @@ void Profile::config_file_name(const std::string& fileName) {
 
 const std::string& Profile::config_file_name() const {
   return config_file_name_;
+}
+
+const std::string& Profile::sdl_version() const {
+  return sdl_version_;
 }
 
 bool Profile::launch_hmi() const {
@@ -855,6 +864,12 @@ uint16_t Profile::open_attempt_timeout_ms_resumption_db() const {
 
 void Profile::UpdateValues() {
   LOG4CXX_AUTO_TRACE(logger_);
+
+  // SDL version
+  ReadStringValue(&sdl_version_, kDefaultSDLVersion,
+                  kMainSection, kSDLVersionKey);
+
+  LOG_UPDATED_VALUE(sdl_version_, kSDLVersionKey, kMainSection);
 
   // Launch HMI parameter
   ReadBoolValue(&launch_hmi_, true, kHmiSection, kLaunchHMIKey);
