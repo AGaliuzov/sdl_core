@@ -625,7 +625,7 @@ class Profile : public utils::Singleton<Profile> {
      */
     bool use_db_for_resumption() const;
 
-    /**;
+    /**
      * @brief Returns amount of attempts for opening resumption db
      */
     uint16_t attempts_to_open_resumption_db() const;

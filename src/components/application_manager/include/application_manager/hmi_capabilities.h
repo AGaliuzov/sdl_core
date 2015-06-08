@@ -397,14 +397,14 @@ class HMICapabilities {
    *
    * @param ccpu_version Received system/hmi software version 
    */
-  void set_ccpu_version(std::string& ccpu_version);
+  void set_ccpu_version(const std::string& ccpu_version);
   
   /*
    * @brief Returns software version of the target
    *
    * @return TRUE if it supported, otherwise FALSE
    */
-  inline std::string ccpu_version() const;
+  inline const std::string& ccpu_version() const;
 
  protected:
 
@@ -588,7 +588,7 @@ bool HMICapabilities::phone_call_supported() const {
   return is_phone_call_supported_;
 }
 
-std::string HMICapabilities::ccpu_version() const {
+const std::string& HMICapabilities::ccpu_version() const {
   return ccpu_version_;
 }
 

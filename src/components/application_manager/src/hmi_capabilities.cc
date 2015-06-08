@@ -567,7 +567,7 @@ void HMICapabilities::set_phone_call_supported(bool supported) {
   is_phone_call_supported_ = supported;
 }
 
-void HMICapabilities::set_ccpu_version(std::string& ccpu_version) {
+void HMICapabilities::set_ccpu_version(const std::string& ccpu_version) {
   ccpu_version_ = ccpu_version;
 }
 
