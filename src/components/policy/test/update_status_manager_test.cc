@@ -41,188 +41,208 @@ namespace test {
 namespace components {
 namespace policy {
 
+using namespace ::policy;
+
 class UpdateStatusManagerTest : public ::testing::Test {
-  protected:
-    ::policy::UpdateStatusManager* manager;
-    ::policy::PolicyTableStatus status;
+ protected:
+  UpdateStatusManager* manager_;
+  PolicyTableStatus status_;
+  const uint32_t k_timeout_;
 
-    void SetUp() {
-      manager = new ::policy::UpdateStatusManager();
-    }
+ public:
+  UpdateStatusManagerTest() : k_timeout_(1) {}
 
-    void TearDown() {
-      delete manager;
-    }
+  void SetUp() { manager_ = new UpdateStatusManager(); }
+
+  void TearDown() { delete manager_; }
 };
 
 TEST_F(UpdateStatusManagerTest,
        OnUpdateSentOut_WaitForTimeoutExpired_ExpectStatusUpdateNeeded) {
   // Arrange
-  manager->OnUpdateSentOut(1);
-  status = manager->GetLastUpdateStatus();
-  EXPECT_EQ(::policy::PolicyTableStatus::StatusUpdatePending, status);
-  sleep(2);
-  status = manager->GetLastUpdateStatus();
-  EXPECT_EQ(::policy::PolicyTableStatus::StatusUpdateRequired, status);
+  manager_->OnUpdateSentOut(k_timeout_);
+  status_ = manager_->GetLastUpdateStatus();
+  EXPECT_EQ(StatusUpdatePending, status_);
+  // Wait until timeout expired
+  sleep(k_timeout_ + 1);
+  status_ = manager_->GetLastUpdateStatus();
+  // Check
+  EXPECT_EQ(StatusUpdateRequired, status_);
 }
 
 TEST_F(UpdateStatusManagerTest,
-       OnUpdateTimeOutOccurs_SetTimeoutExpired_ExpectStatusUpdateNeeded) {
+       OnUpdateTimeOutOccurs_ExpectStatusUpdateNeeded) {
   // Arrange
-  status = manager->GetLastUpdateStatus();
-  EXPECT_EQ(::policy::PolicyTableStatus::StatusUpToDate, status);
-  manager->OnUpdateTimeoutOccurs();
-  status = manager->GetLastUpdateStatus();
-  EXPECT_EQ(::policy::PolicyTableStatus::StatusUpdateRequired, status);
+  status_ = manager_->GetLastUpdateStatus();
+  EXPECT_EQ(StatusUpToDate, status_);
+  manager_->OnUpdateTimeoutOccurs();
+  status_ = manager_->GetLastUpdateStatus();
+  // Check
+  EXPECT_EQ(StatusUpdateRequired, status_);
 }
 
 TEST_F(UpdateStatusManagerTest,
        OnValidUpdateReceived_SetValidUpdateReceived_ExpectStatusUpToDate) {
   // Arrange
-  manager->OnUpdateSentOut(1);
-  status = manager->GetLastUpdateStatus();
-  EXPECT_EQ(::policy::PolicyTableStatus::StatusUpdatePending, status);
-  manager->OnValidUpdateReceived();
-  status = manager->GetLastUpdateStatus();
-  EXPECT_EQ(::policy::PolicyTableStatus::StatusUpToDate, status);
+  manager_->OnUpdateSentOut(k_timeout_);
+  status_ = manager_->GetLastUpdateStatus();
+  EXPECT_EQ(StatusUpdatePending, status_);
+  manager_->OnValidUpdateReceived();
+  status_ = manager_->GetLastUpdateStatus();
+  // Check
+  EXPECT_EQ(StatusUpToDate, status_);
 }
 
 TEST_F(UpdateStatusManagerTest,
        OnWrongUpdateReceived_SetWrongUpdateReceived_ExpectStatusUpdateNeeded) {
   // Arrange
-  manager->OnUpdateSentOut(1);
-  status = manager->GetLastUpdateStatus();
-  EXPECT_EQ(::policy::PolicyTableStatus::StatusUpdatePending, status);
-  manager->OnWrongUpdateReceived();
-  status = manager->GetLastUpdateStatus();
-  EXPECT_EQ(::policy::PolicyTableStatus::StatusUpdateRequired, status);
+  manager_->OnUpdateSentOut(k_timeout_);
+  status_ = manager_->GetLastUpdateStatus();
+  EXPECT_EQ(StatusUpdatePending, status_);
+  manager_->OnWrongUpdateReceived();
+  status_ = manager_->GetLastUpdateStatus();
+  // Check
+  EXPECT_EQ(StatusUpdateRequired, status_);
 }
 
 TEST_F(UpdateStatusManagerTest,
        OnResetDefaulPT_ResetPTtoDefaultState_ExpectPTinDefaultState) {
   // Arrange
-  manager->OnUpdateSentOut(1);
-  status = manager->GetLastUpdateStatus();
-  EXPECT_EQ(::policy::PolicyTableStatus::StatusUpdatePending, status);
+  manager_->OnUpdateSentOut(k_timeout_);
+  status_ = manager_->GetLastUpdateStatus();
+  EXPECT_EQ(StatusUpdatePending, status_);
   // Reset PT to default state with flag update required
-  manager->OnResetDefaultPT(true);
-  status = manager->GetLastUpdateStatus();
-  EXPECT_EQ(::policy::PolicyTableStatus::StatusUpdateRequired, status);
+  manager_->OnResetDefaultPT(true);
+  status_ = manager_->GetLastUpdateStatus();
+  // Check
+  EXPECT_EQ(StatusUpdateRequired, status_);
 }
 
 TEST_F(UpdateStatusManagerTest,
        OnResetDefaulPT2_ResetPTtoDefaultState_ExpectPTinDefaultState) {
   // Arrange
-  manager->OnUpdateSentOut(1);
-  status = manager->GetLastUpdateStatus();
-  EXPECT_EQ(::policy::PolicyTableStatus::StatusUpdatePending, status);
+  manager_->OnUpdateSentOut(k_timeout_);
+  status_ = manager_->GetLastUpdateStatus();
+  EXPECT_EQ(StatusUpdatePending, status_);
   // Reset PT to default state with flag update not needed
-  manager->OnResetDefaultPT(false);
-  status = manager->GetLastUpdateStatus();
-  EXPECT_EQ(::policy::PolicyTableStatus::StatusUpToDate, status);
+  manager_->OnResetDefaultPT(false);
+  status_ = manager_->GetLastUpdateStatus();
+  // Check
+  EXPECT_EQ(StatusUpToDate, status_);
 }
 
 TEST_F(UpdateStatusManagerTest, OnResetRetrySequence_ExpectStatusUpToDate) {
   // Arrange
-  manager->OnUpdateSentOut(1);
-  status = manager->GetLastUpdateStatus();
-  EXPECT_EQ(::policy::PolicyTableStatus::StatusUpdatePending, status);
-  manager->OnResetRetrySequence();
-  status = manager->GetLastUpdateStatus();
-  EXPECT_EQ(::policy::PolicyTableStatus::StatusUpdatePending, status);
+  manager_->OnUpdateSentOut(k_timeout_);
+  status_ = manager_->GetLastUpdateStatus();
+  EXPECT_EQ(StatusUpdatePending, status_);
+  manager_->OnResetRetrySequence();
+  status_ = manager_->GetLastUpdateStatus();
+  // Check
+  EXPECT_EQ(StatusUpdatePending, status_);
 }
 
 TEST_F(UpdateStatusManagerTest,
        OnNewApplicationAdded_ExpectStatusUpdateNeeded) {
   // Arrange
-  manager->OnUpdateSentOut(1);
-  status = manager->GetLastUpdateStatus();
-  EXPECT_EQ(::policy::PolicyTableStatus::StatusUpdatePending, status);
-  manager->OnNewApplicationAdded();
-  status = manager->GetLastUpdateStatus();
-  EXPECT_EQ(::policy::PolicyTableStatus::StatusUpdatePending, status);
-  EXPECT_TRUE(manager->IsUpdatePending());
-  EXPECT_TRUE(manager->IsUpdateRequired());
+  manager_->OnUpdateSentOut(k_timeout_);
+  status_ = manager_->GetLastUpdateStatus();
+  EXPECT_EQ(StatusUpdatePending, status_);
+  manager_->OnNewApplicationAdded();
+  status_ = manager_->GetLastUpdateStatus();
+  // Checks
+  EXPECT_EQ(StatusUpdatePending, status_);
+  EXPECT_TRUE(manager_->IsUpdatePending());
+  EXPECT_TRUE(manager_->IsUpdateRequired());
 }
 
 TEST_F(UpdateStatusManagerTest, ScheduleUpdate_ExpectStatusUpdateNeeded) {
   // Arrange
-  manager->OnUpdateSentOut(1);
-  status = manager->GetLastUpdateStatus();
-  EXPECT_EQ(::policy::PolicyTableStatus::StatusUpdatePending, status);
-  manager->OnValidUpdateReceived();
-  status = manager->GetLastUpdateStatus();
-  EXPECT_EQ(::policy::PolicyTableStatus::StatusUpToDate, status);
-  EXPECT_FALSE(manager->IsUpdatePending());
-  EXPECT_FALSE(manager->IsUpdateRequired());
-  manager->ScheduleUpdate();
-  status = manager->GetLastUpdateStatus();
-  EXPECT_EQ(::policy::PolicyTableStatus::StatusUpdateRequired, status);
-  EXPECT_FALSE(manager->IsUpdatePending());
-  EXPECT_TRUE(manager->IsUpdateRequired());
+  manager_->OnUpdateSentOut(k_timeout_);
+  status_ = manager_->GetLastUpdateStatus();
+  EXPECT_EQ(StatusUpdatePending, status_);
+  manager_->OnValidUpdateReceived();
+  status_ = manager_->GetLastUpdateStatus();
+  EXPECT_EQ(StatusUpToDate, status_);
+  EXPECT_FALSE(manager_->IsUpdatePending());
+  EXPECT_FALSE(manager_->IsUpdateRequired());
+  manager_->ScheduleUpdate();
+  status_ = manager_->GetLastUpdateStatus();
+  // Checks
+  EXPECT_EQ(StatusUpdateRequired, status_);
+  EXPECT_FALSE(manager_->IsUpdatePending());
+  EXPECT_TRUE(manager_->IsUpdateRequired());
 }
 
 TEST_F(UpdateStatusManagerTest,
        ResetUpdateSchedule_SetUpdateScheduleThenReset_ExpectStatusUpToDate) {
   // Arrange
-  status = manager->GetLastUpdateStatus();
-  EXPECT_EQ(::policy::PolicyTableStatus::StatusUpToDate, status);
-  EXPECT_FALSE(manager->IsUpdatePending());
-  EXPECT_FALSE(manager->IsUpdateRequired());
-  manager->ScheduleUpdate();
-  EXPECT_TRUE(manager->IsUpdateRequired());
-  manager->OnPolicyInit(false);
-  EXPECT_TRUE(manager->IsUpdateRequired());
-  manager->ResetUpdateSchedule();
-  EXPECT_FALSE(manager->IsUpdateRequired());
-  status = manager->GetLastUpdateStatus();
-  EXPECT_EQ(::policy::PolicyTableStatus::StatusUpToDate, status);
+  status_ = manager_->GetLastUpdateStatus();
+  EXPECT_EQ(StatusUpToDate, status_);
+  EXPECT_FALSE(manager_->IsUpdatePending());
+  EXPECT_FALSE(manager_->IsUpdateRequired());
+  manager_->ScheduleUpdate();
+  // Check
+  EXPECT_TRUE(manager_->IsUpdateRequired());
+  // Act
+  manager_->OnPolicyInit(false);
+  // Check
+  EXPECT_TRUE(manager_->IsUpdateRequired());
+  // Act
+  manager_->ResetUpdateSchedule();
+  // Check
+  EXPECT_FALSE(manager_->IsUpdateRequired());
+  status_ = manager_->GetLastUpdateStatus();
+  // Check
+  EXPECT_EQ(StatusUpToDate, status_);
 }
 
 TEST_F(UpdateStatusManagerTest,
        OnPolicyInit_SetUpdateRequired_ExpectStatusUpdateNeeded) {
   // Arrange
-  manager->OnPolicyInit(true);
-  status = manager->GetLastUpdateStatus();
-  EXPECT_EQ(::policy::PolicyTableStatus::StatusUpdateRequired, status);
-  EXPECT_FALSE(manager->IsUpdatePending());
-  EXPECT_TRUE(manager->IsUpdateRequired());
+  manager_->OnPolicyInit(true);
+  status_ = manager_->GetLastUpdateStatus();
+  // Checks
+  EXPECT_EQ(StatusUpdateRequired, status_);
+  EXPECT_FALSE(manager_->IsUpdatePending());
+  EXPECT_TRUE(manager_->IsUpdateRequired());
 }
 
 TEST_F(UpdateStatusManagerTest,
        OnPolicyInit_SetUpdateNotRequired_ExpectStatusUpToDate) {
   // Arrange
-  manager->OnPolicyInit(false);
-  status = manager->GetLastUpdateStatus();
-  EXPECT_EQ(::policy::PolicyTableStatus::StatusUpToDate, status);
-  EXPECT_FALSE(manager->IsUpdatePending());
-  EXPECT_FALSE(manager->IsUpdateRequired());
+  manager_->OnPolicyInit(false);
+  status_ = manager_->GetLastUpdateStatus();
+  // Checks
+  EXPECT_EQ(StatusUpToDate, status_);
+  EXPECT_FALSE(manager_->IsUpdatePending());
+  EXPECT_FALSE(manager_->IsUpdateRequired());
 }
 
 TEST_F(UpdateStatusManagerTest,
        StringifiedUpdateStatus_SetStatuses_ExpectCorrectStringifiedStatuses) {
   // Arrange
-  manager->OnPolicyInit(false);
+  manager_->OnPolicyInit(false);
   // Check
-  EXPECT_EQ("UP_TO_DATE", manager->StringifiedUpdateStatus());
-  manager->OnPolicyInit(true);
+  EXPECT_EQ("UP_TO_DATE", manager_->StringifiedUpdateStatus());
+  manager_->OnPolicyInit(true);
   // Check
-  EXPECT_EQ("UPDATE_NEEDED", manager->StringifiedUpdateStatus());
-  manager->OnUpdateSentOut(1);
+  EXPECT_EQ("UPDATE_NEEDED", manager_->StringifiedUpdateStatus());
+  manager_->OnUpdateSentOut(k_timeout_);
   // Check
-  EXPECT_EQ("UPDATING", manager->StringifiedUpdateStatus());
+  EXPECT_EQ("UPDATING", manager_->StringifiedUpdateStatus());
 }
 
 TEST_F(UpdateStatusManagerTest,
        OnAppSearchStartedCompleted_ExpectAppSearchCorrectStatus) {
   // Arrange
-  manager->OnAppsSearchStarted();
+  manager_->OnAppsSearchStarted();
   // Check
-  EXPECT_TRUE(manager->IsAppsSearchInProgress());
+  EXPECT_TRUE(manager_->IsAppsSearchInProgress());
   // Arrange
-  manager->OnAppsSearchCompleted();
+  manager_->OnAppsSearchCompleted();
   // Check
-  EXPECT_FALSE(manager->IsAppsSearchInProgress());
+  EXPECT_FALSE(manager_->IsAppsSearchInProgress());
 }
 
 }  // namespace policy
