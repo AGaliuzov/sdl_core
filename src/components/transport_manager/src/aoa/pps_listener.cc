@@ -89,7 +89,7 @@ NULL };
 static const uint32_t kProductList[] = { 0x2d00, 0x2d01, 0x2d02, 0x2d03, 0x2d04,
     0x2d05 };
 
-const std::string PPSListener::kUSBStackPath = "/dev/otg/io-usb";
+const std::string PPSListener::kUSBStackPath = "/dev/otg/io-usb-otg";
 const std::string PPSListener::kPpsPathRoot = "/pps/qnx/device/";
 const std::string PPSListener::kPpsPathAll = ".all";
 const std::string PPSListener::kPpsPathCtrl = "usb_ctrl";
