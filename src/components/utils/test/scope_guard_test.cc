@@ -41,16 +41,20 @@ namespace utils {
 using ::utils::ScopeGuard;
 using ::utils::MakeGuard;
 using ::utils::MakeObjGuard;
+using ::testing::Mock;
 
 class TestObject {
  public:
-  MOCK_METHOD0(function_to_call, void ());
-  MOCK_METHOD1(function_to_call_with_param, void (void*));
+  MOCK_METHOD0(function_to_call, void());
+  MOCK_METHOD1(function_to_call_with_param, void(void*));
 };
 
 namespace {
 static int call_with_param_count;
-void dealloc(char* ptr) { delete ptr; ++call_with_param_count;}
+void dealloc(char* ptr) {
+  delete ptr;
+  ++call_with_param_count;
+}
 }
 
 TEST(ScopeGuardTest, CallFreeFunctionWithParam) {
@@ -65,8 +69,7 @@ TEST(ScopeGuardTest, CallFreeFunctionWithParam) {
 
 TEST(ScopeGuardTest, CallObjectFunction) {
   TestObject obj;
-  using ::testing::Mock;
-  Mock::AllowLeak(&obj); // Google tests bug
+  Mock::AllowLeak(&obj);  // Google tests bug
   EXPECT_CALL(obj, function_to_call()).Times(1);
   {
     ScopeGuard guard = MakeObjGuard(obj, &TestObject::function_to_call);
@@ -113,6 +116,6 @@ TEST(ScopeGuardTest, DismissCallObjectFunctionWithParam) {
   }
 }
 
-} // namespace utils
-} // components
-} // namesapce test
+}  // namespace utils
+}  // components
+}  // namesapce test
