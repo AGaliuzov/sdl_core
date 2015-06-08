@@ -275,16 +275,17 @@ bool ResumptionDataJson::RemoveApplicationFromSaved(const std::string& policy_ap
         (*it).isMember(strings::device_id)) {
       const std::string& saved_m_app_id = (*it)[strings::app_id].asString();
       const std::string& saved_device_id = (*it)[strings::device_id].asString();
-      if (saved_m_app_id != policy_app_id && saved_device_id != device_id) {
-        temp.push_back((*it));
-      } else {
+      if (saved_m_app_id == policy_app_id && saved_device_id == device_id) {
         result = true;
+      } else {
+        temp.push_back((*it));
       }
     }
   }
 
   if (false == result) {
-    LOG4CXX_TRACE(logger_, "EXIT result: " << (result ? "true" : "false"));
+    LOG4CXX_DEBUG(logger_, "There is no saved appication " << policy_app_id
+                  << " with device id " << device_id);
     return result;
   }
 
@@ -293,7 +294,10 @@ bool ResumptionDataJson::RemoveApplicationFromSaved(const std::string& policy_ap
       it != temp.end(); ++it) {
     GetSavedApplications().append((*it));
   }
-  LOG4CXX_TRACE(logger_, "EXIT result: " << (result ? "true" : "false"));
+
+  LOG4CXX_DEBUG(logger_, "Appication " << policy_app_id
+                << " with device id " << device_id
+                << " have been removed from saved apps.");
   return result;
 }
 
@@ -426,11 +430,16 @@ ssize_t ResumptionDataJson::GetObjectIndex(const std::string& policy_app_id,
       const std::string& saved_device_id = apps[idx][strings::device_id].asString();
       if (device_id == saved_device_id &&
           policy_app_id == saved_app_id) {
-        LOG4CXX_DEBUG(logger_, "Found " << idx);
+        LOG4CXX_DEBUG(logger_, "Application with policy id " << policy_app_id
+                      << " and device id " << device_id
+                      << " have been found in saved apps at index " << idx);
         return idx;
       }
     }
   }
+  LOG4CXX_DEBUG(logger_, "Application with policy id " << policy_app_id
+                << " and device id " << device_id
+                << " have not been found in saved apps.");
   return -1;
 }
 
