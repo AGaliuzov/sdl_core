@@ -286,29 +286,13 @@ bool RequestInfoSet::CheckTimeScaleMaxRequest(
     uint32_t app_time_scale,
     uint32_t max_request_per_time_scale) {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (max_request_per_time_scale > 0
-      && app_time_scale > 0) {
-    TimevalStruct end = date_time::DateTime::getCurrentTime();
-    TimevalStruct start = {0, 0};
-    start.tv_sec = end.tv_sec - app_time_scale;
-
-    sync_primitives::AutoLock lock(this_lock_);
-    TimeScale scale(start, end, app_id);
-    const uint32_t count = std::count_if(time_sorted_pending_requests_.begin(),
-                                         time_sorted_pending_requests_.end(), scale);
-    if (count >= max_request_per_time_scale) {
-      LOG4CXX_WARN(logger_, "Processing requests count " << count <<
-                   " exceed application limit " << max_request_per_time_scale);
-      return false;
-    }
-    LOG4CXX_DEBUG(logger_, "Requests count " << count);
-  } else {
-    LOG4CXX_DEBUG(logger_, "CheckTimeScaleMaxRequest disabled");
-  }
-  return true;
+  return CheckHMILevelTimeScaleMaxRequest(mobile_apis::HMILevel::INVALID_ENUM,
+                                          app_id, app_time_scale,
+                                          max_request_per_time_scale);
 }
 
-bool RequestInfoSet::CheckHMILevelTimeScaleMaxRequest(mobile_apis::HMILevel::eType hmi_level,
+bool RequestInfoSet::CheckHMILevelTimeScaleMaxRequest(
+    mobile_apis::HMILevel::eType hmi_level,
     uint32_t app_id,
     uint32_t app_time_scale,
     uint32_t max_request_per_time_scale) {
@@ -320,7 +304,7 @@ bool RequestInfoSet::CheckHMILevelTimeScaleMaxRequest(mobile_apis::HMILevel::eTy
     start.tv_sec = end.tv_sec - app_time_scale;
 
     sync_primitives::AutoLock lock(this_lock_);
-    HMILevelTimeScale scale(start, end, app_id, hmi_level);
+    TimeScale scale(start, end, app_id, hmi_level);
     const uint32_t count = std::count_if(time_sorted_pending_requests_.begin(),
                                          time_sorted_pending_requests_.end(), scale);
     if (count >= max_request_per_time_scale) {
