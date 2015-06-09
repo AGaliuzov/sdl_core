@@ -273,10 +273,10 @@ void CreateInteractionChoiceSetRequest::SendVRAddCommandRequests(
   const uint32_t choice_count = choice_set[strings::choice_set].length();
   SetAllowedToTerminate(false);
 
-  set_expected_chs_count(choice_count);
+  expected_chs_count_ = choice_count;
   size_t chs_num = 0;
   for (; chs_num < choice_count; ++chs_num) {
-    if (error_from_hmi()) {
+    if (error_from_hmi_) {
       LOG4CXX_WARN(logger_, "Error from HMI received. Stop sending VRCommands");
       break;
     }
@@ -298,7 +298,7 @@ void CreateInteractionChoiceSetRequest::SendVRAddCommandRequests(
     LOG4CXX_DEBUG(logger_, "VR_command sent corr_id "
                   << vr_corr_id << " cmd_id " << vr_corr_id);
   }
-  set_expected_chs_count(chs_num);
+  expected_chs_count_ = chs_num;
   LOG4CXX_DEBUG(logger_, "expected_chs_count_ = " << chs_num);
 }
 
@@ -310,7 +310,7 @@ void CreateInteractionChoiceSetRequest::on_event(
   const smart_objects::SmartObject& message = event.smart_object();
   if (event.id() == hmi_apis::FunctionID::VR_AddCommand) {
     received_chs_count_++;
-    set_response_from_hmi(true);
+    response_from_hmi_ = true;
 
     uint32_t corr_id = static_cast<uint32_t>(message[strings::params]
         [strings::correlation_id].asUInt());
@@ -331,13 +331,13 @@ void CreateInteractionChoiceSetRequest::on_event(
       } else {
         LOG4CXX_DEBUG(logger_, "Hmi response is not Success: " << vr_result
                       << ". Stop sending VRAddCommand requests");
-        if (!error_from_hmi()) {
-          set_error_from_hmi(true);
+        if (!error_from_hmi_) {
+          error_from_hmi_ = true;
           SendResponse(false, GetMobileResultCode(vr_result));
         }
       }
     }
-    if (received_chs_count_ >= expected_chs_count()) {
+    if (received_chs_count_ >= expected_chs_count_) {
       OnAllHMIResponsesReceived();
     }
   }
@@ -346,14 +346,14 @@ void CreateInteractionChoiceSetRequest::on_event(
 void CreateInteractionChoiceSetRequest::onTimeOut() {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  if (response_from_hmi()) {
-    set_response_from_hmi(false);
+  if (response_from_hmi_) {
+    response_from_hmi_ = false;
     ApplicationManagerImpl::instance()->updateRequestTimeout(
         connection_key(), correlation_id(), default_timeout());
     LOG4CXX_DEBUG(logger_, "Timeout for request was updated");
   } else {
     LOG4CXX_DEBUG(logger_, "No answer from HMI. Terminating");
-    if (!error_from_hmi()) {
+    if (!error_from_hmi_) {
       SendResponse(false, mobile_apis::Result::GENERIC_ERROR);
     }
     OnAllHMIResponsesReceived();
@@ -394,7 +394,7 @@ void CreateInteractionChoiceSetRequest::OnAllHMIResponsesReceived() {
 
   unsubscribe_from_event(hmi_apis::FunctionID::VR_AddCommand);
 
-  if (!error_from_hmi()) {
+  if (!error_from_hmi_) {
     SendResponse(true, mobile_apis::Result::SUCCESS);
 
     ApplicationSharedPtr application =

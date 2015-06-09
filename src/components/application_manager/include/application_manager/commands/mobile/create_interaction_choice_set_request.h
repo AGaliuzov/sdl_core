@@ -40,6 +40,7 @@
 #include "application_manager/commands/command_request_impl.h"
 #include "application_manager/event_engine/event_observer.h"
 #include "interfaces/MOBILE_API.h"
+#include "utils/atomic_object.h"
 
 namespace application_manager {
 
@@ -121,36 +122,6 @@ class CreateInteractionChoiceSetRequest : public CommandRequestImpl {
      */
     void OnAllHMIResponsesReceived();
 
-    void set_expected_chs_count(size_t count) {
-      sync_primitives::AutoLock lock(expected_chs_count_lock_);
-      expected_chs_count_ = count;
-    }
-
-    size_t expected_chs_count() const {
-      sync_primitives::AutoLock lock(expected_chs_count_lock_);
-      return expected_chs_count_;
-    }
-
-    void set_response_from_hmi(bool state) {
-      sync_primitives::AutoLock lock(response_from_hmi_lock_);
-      response_from_hmi_ = state;
-    }
-
-    bool response_from_hmi() const {
-      sync_primitives::AutoLock lock(response_from_hmi_lock_);
-      return response_from_hmi_;
-    }
-
-    void set_error_from_hmi(bool state) {
-      sync_primitives::AutoLock lock(error_from_hmi_lock_);
-      error_from_hmi_ = state;
-    }
-
-    bool error_from_hmi() const {
-      sync_primitives::AutoLock lock(error_from_hmi_lock_);
-      return error_from_hmi_;
-    }
-
     /**
      * @brief Id of currently processing choice set
      */
@@ -187,22 +158,19 @@ class CreateInteractionChoiceSetRequest : public CommandRequestImpl {
      * @brief Count of VR.AddCommand requests for those
      * we are waiting for response
      */
-    volatile size_t expected_chs_count_;
-    mutable sync_primitives::Lock expected_chs_count_lock_;
+    sync_primitives::atomic_size_t expected_chs_count_;
 
     /**
      * @brief Flag shows if there was some response from HMI
      * during timeout
      */
-    volatile bool response_from_hmi_;
-    mutable sync_primitives::Lock response_from_hmi_lock_;
+    sync_primitives::atomic_bool response_from_hmi_;
 
     /**
      * @brief Flag shows if one of VR.AddCommand requests was
      * unsuccessful
      */
-    volatile bool error_from_hmi_;
-    mutable sync_primitives::Lock error_from_hmi_lock_;
+    sync_primitives::atomic_bool error_from_hmi_;
 };
 
 }  // namespace commands
