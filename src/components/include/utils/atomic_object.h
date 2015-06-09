@@ -70,6 +70,7 @@ class Atomic {
   T& operator=(const T& val) {
     sync_primitives::AutoWriteLock lock(rw_lock_);
     value_ = val;
+    return value_;
   }
 
   /**
