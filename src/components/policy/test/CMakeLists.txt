@@ -53,6 +53,7 @@ set(testSources
   shared_library_test.cc
   generated_code_test.cc
   policy_manager_impl_test.cc
+  update_status_manager_test.cc
 )
 
 include_directories(
