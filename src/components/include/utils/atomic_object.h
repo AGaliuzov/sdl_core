@@ -30,8 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_INCLUDE_UTILS_ATOMIC_H_
-#define SRC_COMPONENTS_INCLUDE_UTILS_ATOMIC_H_
+#ifndef SRC_COMPONENTS_INCLUDE_UTILS_ATOMIC_OBJECT_H_
+#define SRC_COMPONENTS_INCLUDE_UTILS_ATOMIC_OBJECT_H_
 
 #include "utils/rwlock.h"
 #include "utils/conditional_variable.h"
@@ -106,5 +106,7 @@ typedef Atomic<int64_t> atomic_int64;
 typedef Atomic<uint64_t> atomic_uint64;
 typedef Atomic<size_t> atomic_size_t;
 typedef Atomic<bool> atomic_bool;
+
 }  // namespace sync_primitives
-#endif  // SRC_COMPONENTS_INCLUDE_UTILS_ATOMIC_H_
+
+#endif  // SRC_COMPONENTS_INCLUDE_UTILS_ATOMIC_OBJECT_H_
