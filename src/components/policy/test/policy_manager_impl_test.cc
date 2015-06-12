@@ -1580,7 +1580,7 @@ TEST_F(PolicyManagerImplTest2, HertBeatTimeout_AddApp_UpdateAppPolicies_ExpectRe
   }
   // Add new app
   manager->AddApplication(app_id2);
-  uint16_t result = manager->HeartBeatTimeout(app_id2);
+  uint32_t result = manager->HeartBeatTimeout(app_id2);
   // By default hertbeat timeout is 0
   EXPECT_EQ(0u, result);
   Json::Value root = GetPTU("valid_sdl_pt_update.json");

@@ -550,7 +550,7 @@ class CacheManager : public CacheManagerInterface {
    * @return if timeout was set then value in milliseconds greater zero
    * otherwise heart beat for specific application isn't set
    */
-  uint16_t HeartBeatTimeout(const std::string& app_id) const;
+  uint32_t HeartBeatTimeout(const std::string& app_id) const;
 
   /**
    * @brief Gets request types for application

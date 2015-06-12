@@ -411,7 +411,7 @@ TEST_F(ProfileTest, IntInsteadOfPair) {
 
 TEST_F(ProfileTest, WrongIntValue) {
   // Default value
-  int32_t heart_beat_timeout = 0;
+  uint32_t heart_beat_timeout = 0;
   EXPECT_EQ(heart_beat_timeout, Profile::instance()->heart_beat_timeout());
 
   // Change config file

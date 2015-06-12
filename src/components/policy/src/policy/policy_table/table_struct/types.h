@@ -61,7 +61,7 @@ struct ApplicationParams : CompositeType {
     Optional< AppHMITypes > AppHMIType;
     Enum<Priority> priority;
     Optional< Integer<uint16_t, 0, 65225> > memory_kb;
-    Optional< Integer<uint16_t, 0, 65225> > heart_beat_timeout_ms;
+    Optional< Integer<uint32_t, 0, 65225> > heart_beat_timeout_ms;
     Optional< String<0, 255> > certificate;
   public:
     ApplicationParams();
