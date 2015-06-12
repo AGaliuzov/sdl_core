@@ -321,7 +321,7 @@ TEST(DateTimeTest, CalculateEqualTimeSub_UsecConvertedInSec) {
   ASSERT_EQ(EQUAL, date_time::DateTime::compareTime(time_expected, time4));
 }
 
-TEST(DateTimeTest, AddMilliseconds) {
+TEST(DateTimeTest, AddMilliseconds_SetMillisecondMultiplesSecond_ExpectChangeTime) {
   TimevalStruct time1;
   time1.tv_sec = 3;
   time1.tv_usec = 0;
@@ -329,19 +329,31 @@ TEST(DateTimeTest, AddMilliseconds) {
   date_time::DateTime::AddMilliseconds(time1, milliseconds);
   ASSERT_EQ(10, time1.tv_sec);
   ASSERT_EQ(0, time1.tv_usec);
-  milliseconds = 7500;
+}
+
+TEST(DateTimeTest, AddMilliseconds_SetMillisecondNotMultiplesSecond_ExpectChangeTime) {
+  TimevalStruct time1;
+  uint32_t milliseconds = 7500;
   time1.tv_sec = 3;
   time1.tv_usec = 0;
   date_time::DateTime::AddMilliseconds(time1, milliseconds);
   ASSERT_EQ(10, time1.tv_sec);
   ASSERT_EQ(500000, time1.tv_usec);
-  milliseconds = 500;
+}
+
+TEST(DateTimeTest, AddMilliseconds_SetMilliSecondLessThenSeconds_ExpectChangeTime) {
+  TimevalStruct time1;
+  uint32_t milliseconds = 500;
   time1.tv_sec = 3;
   time1.tv_usec = 0;
   date_time::DateTime::AddMilliseconds(time1, milliseconds);
   ASSERT_EQ(3, time1.tv_sec);
   ASSERT_EQ(500000, time1.tv_usec);
-  milliseconds = 0;
+}
+
+TEST(DateTimeTest, AddMilliseconds_SetMillisecondEqualNull_ExpectNotChangeTime) {
+  TimevalStruct time1;
+  uint32_t milliseconds = 0;
   time1.tv_sec = 3;
   time1.tv_usec = 0;
   date_time::DateTime::AddMilliseconds(time1, milliseconds);

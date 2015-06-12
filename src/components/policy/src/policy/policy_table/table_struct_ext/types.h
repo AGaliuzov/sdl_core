@@ -1,6 +1,8 @@
 // This file is generated, do not edit
 #ifndef POLICY_TABLE_INTERFACE_BASE_POLICY_TABLE_INTERFACE_BASE_TYPES_H_
 #define POLICY_TABLE_INTERFACE_BASE_POLICY_TABLE_INTERFACE_BASE_TYPES_H_
+#include <climits>
+
 #include "./enums.h"
 #include "rpc_base/rpc_message.h"
 namespace Json {
@@ -101,7 +103,7 @@ struct ApplicationParams : PolicyBase {
     Optional< AppHMITypes > AppHMIType;
     Optional< RequestTypes > RequestType;
     Optional< Integer<uint16_t, 0, 65225> > memory_kb;
-    Optional< Integer<uint32_t, 0, 65225> > heart_beat_timeout_ms;
+    Optional< Integer<uint32_t, 0, UINT_MAX> > heart_beat_timeout_ms;
   public:
     ApplicationParams();
     ApplicationParams(const Strings& groups, Priority priority, HmiLevel default_hmi, bool keep_context, bool steal_focus);
