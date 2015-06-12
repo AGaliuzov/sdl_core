@@ -76,6 +76,7 @@ set(SOURCES
   ${COMPONENTS_DIR}/transport_manager/test/raw_message_matcher.cc
   ${COMPONENTS_DIR}/transport_manager/test/dnssd_service_browser_test.cc
   ${COMPONENTS_DIR}/transport_manager/test/transport_adapter_test.cc
+  ${COMPONENTS_DIR}/transport_manager/test/transport_adapter_listener_test.cc
   ${COMPONENTS_DIR}/transport_manager/test/tcp_transport_adapter_test.cc
   ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter.cc
 )          
