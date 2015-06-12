@@ -30,8 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef APPLINK_TEST_COMPONENTS_TRANSPORTMANAGER_INCLUDE_CLIENTCONNECTIONLISTENERMOCK_H_
-#define APPLINK_TEST_COMPONENTS_TRANSPORTMANAGER_INCLUDE_CLIENTCONNECTIONLISTENERMOCK_H_
+#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_CLIENT_CONNECTION_LISTENER_MOCK_H_
+#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_CLIENT_CONNECTION_LISTENER_MOCK_H_
 
 #include "gmock/gmock.h"
 #include "transport_manager/transport_adapter/client_connection_listener.h"
@@ -40,19 +40,23 @@ namespace test {
 namespace components {
 namespace transport_manager {
 
-using namespace ::transport_manager::transport_adapter;
-
-class ClientConnectionListenerMock : public ClientConnectionListener {
+class ClientConnectionListenerMock
+    : public ::transport_manager::transport_adapter::ClientConnectionListener {
  public:
-  MOCK_METHOD0(Init, TransportAdapter::Error());
+  MOCK_METHOD0(
+      Init, ::transport_manager::transport_adapter::TransportAdapter::Error());
   MOCK_METHOD0(Terminate, void());
   MOCK_CONST_METHOD0(IsInitialised, bool());
-  MOCK_METHOD0(StartListening, TransportAdapter::Error());
-  MOCK_METHOD0(StopListening, TransportAdapter::Error());
+  MOCK_METHOD0(
+      StartListening,
+      ::transport_manager::transport_adapter::TransportAdapter::Error());
+  MOCK_METHOD0(
+      StopListening,
+      ::transport_manager::transport_adapter::TransportAdapter::Error());
 };
 
 }  // namespace transport_manager
 }  // namespace components
 }  // namespace test
 
-#endif //* APPLINK_TEST_COMPONENTS_TRANSPORTMANAGER_INCLUDE_CLIENTCONNECTIONLISTENERMOCK_H_
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_CLIENT_CONNECTION_LISTENER_MOCK_H_

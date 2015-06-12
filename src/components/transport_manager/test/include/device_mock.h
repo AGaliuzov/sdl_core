@@ -40,9 +40,7 @@ namespace test {
 namespace components {
 namespace transport_manager {
 
-using namespace ::transport_manager::transport_adapter;
-
-class DeviceMock : public Device {
+class DeviceMock : public ::transport_manager::transport_adapter::Device {
  public:
   DeviceMock(const std::string& name, const std::string& unique_device_id)
       : Device(name, unique_device_id) {}

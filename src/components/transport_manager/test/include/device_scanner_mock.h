@@ -30,8 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef APPLINK_TEST_COMPONENTS_TRANSPORTMANAGER_INCLUDE_MOCKDEVICESCANNER_H_
-#define APPLINK_TEST_COMPONENTS_TRANSPORTMANAGER_INCLUDE_MOCKDEVICESCANNER_H_
+#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_DEVICE_SCANNER_MOCK_H_
+#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_DEVICE_SCANNER_MOCK_H_
 
 #include "gmock/gmock.h"
 #include "transport_manager/transport_adapter/device_scanner.h"
@@ -40,12 +40,10 @@ namespace test {
 namespace components {
 namespace transport_manager {
 
-using namespace ::transport_manager::transport_adapter;
-
-class DeviceScannerMock : public DeviceScanner {
+class DeviceScannerMock : public ::transport_manager::transport_adapter::DeviceScanner {
  public:
-  MOCK_METHOD0(Init, TransportAdapter::Error());
-  MOCK_METHOD0(Scan, TransportAdapter::Error());
+  MOCK_METHOD0(Init, ::transport_manager::transport_adapter::TransportAdapter::Error());
+  MOCK_METHOD0(Scan, ::transport_manager::transport_adapter::TransportAdapter::Error());
   MOCK_METHOD0(Terminate, void());
   MOCK_CONST_METHOD0(IsInitialised, bool());
 };
@@ -54,4 +52,4 @@ class DeviceScannerMock : public DeviceScanner {
 }  // namespace components
 }  // namespace test
 
-#endif  // APPLINK_TEST_COMPONENTS_TRANSPORTMANAGER_INCLUDE_MOCKDEVICESCANNER_H_
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_DEVICE_SCANNER_MOCK_H_

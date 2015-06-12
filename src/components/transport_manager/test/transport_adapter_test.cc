@@ -49,8 +49,11 @@ namespace components {
 namespace transport_manager {
 
 using ::testing::Return;
-using ::testing::SetArgReferee;
 using ::testing::_;
+
+using namespace ::transport_manager;
+using namespace ::protocol_handler;
+
 
 class TestTransportAdapter : public TransportAdapterImpl {
  public:
@@ -60,7 +63,7 @@ class TestTransportAdapter : public TransportAdapterImpl {
       : TransportAdapterImpl(device_scanner, server_connection_factory,
                              client_connection_listener) {}
 
-  ConnectionSPtr FindEstabledConnection(const DeviceUID& device_handle,
+  ConnectionSPtr FindStatedConnection(const DeviceUID& device_handle,
                                         const ApplicationHandle& app_handle) {
     return this->FindEstablishedConnection(device_handle, app_handle);
   }
@@ -85,6 +88,8 @@ TEST(TransportAdapterTest, Init) {
   EXPECT_CALL(*serverMock, Init()).WillOnce(Return(TransportAdapter::OK));
   EXPECT_EQ(TransportAdapter::OK, transport_adapter.Init());
 
+  // Expect terminate because at the end of test transport_adapter will be
+  // destroyed. That will call Terminate() for connections and device scanner.
   EXPECT_CALL(*dev_mock, Terminate());
   EXPECT_CALL(*clientMock, Terminate());
   EXPECT_CALL(*serverMock, Terminate());
@@ -264,10 +269,8 @@ TEST(TransportAdapterTest, ConnectDevice_ServerNotAdded_DeviceAdded) {
   transport_adapter.AddDevice(mockdev);
 
   std::vector<std::string> devList = transport_adapter.GetDeviceList();
-  EXPECT_EQ(1, devList.size());
-  if (devList.size() == 1) {
-    EXPECT_EQ(uniq_id, devList[0]);
-  }
+  ASSERT_EQ(1u, devList.size());
+  EXPECT_EQ(uniq_id, devList[0]);
 
   int app_handle = 1;
   std::vector<int> intList = {app_handle};
@@ -308,10 +311,9 @@ TEST(TransportAdapterTest, ConnectDevice_DeviceAdded) {
   transport_adapter.AddDevice(mockdev);
 
   std::vector<std::string> devList = transport_adapter.GetDeviceList();
-  EXPECT_EQ(1, devList.size());
-  if (devList.size() == 1) {
-    EXPECT_EQ(uniq_id, devList[0]);
-  }
+  ASSERT_EQ(1u, devList.size());
+  EXPECT_EQ(uniq_id, devList[0]);
+
 
   int app_handle = 1;
   std::vector<int> intList = {app_handle};
@@ -335,16 +337,14 @@ TEST(TransportAdapterTest, ConnectDevice_DeviceAddedTwice) {
 
   std::string dev_id = "device_id";
   std::string uniq_id = "unique_device_id";
-  ;
 
   DeviceMock* mockdev = new DeviceMock(dev_id, uniq_id);
   transport_adapter.AddDevice(mockdev);
 
   std::vector<std::string> devList = transport_adapter.GetDeviceList();
-  EXPECT_EQ(1, devList.size());
-  if (devList.size() == 1) {
-    EXPECT_EQ(uniq_id, devList[0]);
-  }
+  ASSERT_EQ(1u, devList.size());
+  EXPECT_EQ(uniq_id, devList[0]);
+
 
   int app_handle = 1;
   std::vector<int> intList = {app_handle};
@@ -407,16 +407,14 @@ TEST(TransportAdapterTest, DisconnectDevice_DeviceAddedConnectionCreated) {
 
   std::string dev_id = "device_id";
   std::string uniq_id = "unique_device_id";
-  ;
 
   DeviceMock* mockdev = new DeviceMock(dev_id, uniq_id);
   transport_adapter.AddDevice(mockdev);
 
   std::vector<std::string> devList = transport_adapter.GetDeviceList();
-  EXPECT_EQ(1, devList.size());
-  if (devList.size() == 1) {
-    EXPECT_EQ(uniq_id, devList[0]);
-  }
+  ASSERT_EQ(1u, devList.size());
+  EXPECT_EQ(uniq_id, devList[0]);
+
 
   int app_handle = 1;
   std::vector<int> intList = {app_handle};
@@ -458,10 +456,9 @@ TEST(TransportAdapterTest, DeviceDisconnected) {
   transport_adapter.AddDevice(mockdev);
 
   std::vector<std::string> devList = transport_adapter.GetDeviceList();
-  EXPECT_EQ(1, devList.size());
-  if (devList.size() == 1) {
-    EXPECT_EQ(uniq_id, devList[0]);
-  }
+  ASSERT_EQ(1u, devList.size());
+  EXPECT_EQ(uniq_id, devList[0]);
+
 
   int app_handle = 1;
   std::vector<int> intList = {app_handle};
@@ -693,19 +690,16 @@ TEST(TransportAdapterTest, GetDeviceAndApplicationLists) {
   transport_adapter.AddDevice(mockdev);
 
   std::vector<std::string> devList = transport_adapter.GetDeviceList();
-  EXPECT_EQ(1, devList.size());
-  if (devList.size() == 1) {
-    EXPECT_EQ(uniq_id, devList[0]);
-  }
+  ASSERT_EQ(1u, devList.size());
+  EXPECT_EQ(uniq_id, devList[0]);
 
   int app_handle = 1;
   std::vector<int> intList = {app_handle};
   EXPECT_CALL(*mockdev, GetApplicationList()).WillOnce(Return(intList));
   std::vector<int> res = transport_adapter.GetApplicationList(uniq_id);
-  EXPECT_EQ(1, res.size());
-  if (res.size() == 1) {
-    EXPECT_EQ(intList[0], res[0]);
-  }
+  ASSERT_EQ(1u, res.size());
+  EXPECT_EQ(intList[0], res[0]);
+
 }
 
 TEST(TransportAdapterTest, FindEstablishedConnection) {
@@ -730,7 +724,7 @@ TEST(TransportAdapterTest, FindEstablishedConnection) {
   transport_adapter.ConnectDone(dev_id, app_handle);
 
   ConnectionSPtr conn =
-      transport_adapter.FindEstabledConnection(dev_id, app_handle);
+      transport_adapter.FindStatedConnection(dev_id, app_handle);
   EXPECT_EQ(mock_connection, conn);
 
   EXPECT_CALL(*serverMock, Terminate());
