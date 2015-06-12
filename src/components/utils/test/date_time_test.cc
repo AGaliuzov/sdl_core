@@ -321,6 +321,34 @@ TEST(DateTimeTest, CalculateEqualTimeSub_UsecConvertedInSec) {
   ASSERT_EQ(EQUAL, date_time::DateTime::compareTime(time_expected, time4));
 }
 
+TEST(DateTimeTest, AddMilliseconds) {
+  TimevalStruct time1;
+  time1.tv_sec = 3;
+  time1.tv_usec = 0;
+  uint32_t milliseconds = 7000;
+  date_time::DateTime::AddMilliseconds(time1, milliseconds);
+  ASSERT_EQ(10, time1.tv_sec);
+  ASSERT_EQ(0, time1.tv_usec);
+  milliseconds = 7500;
+  time1.tv_sec = 3;
+  time1.tv_usec = 0;
+  date_time::DateTime::AddMilliseconds(time1, milliseconds);
+  ASSERT_EQ(10, time1.tv_sec);
+  ASSERT_EQ(500000, time1.tv_usec);
+  milliseconds = 500;
+  time1.tv_sec = 3;
+  time1.tv_usec = 0;
+  date_time::DateTime::AddMilliseconds(time1, milliseconds);
+  ASSERT_EQ(3, time1.tv_sec);
+  ASSERT_EQ(500000, time1.tv_usec);
+  milliseconds = 0;
+  time1.tv_sec = 3;
+  time1.tv_usec = 0;
+  date_time::DateTime::AddMilliseconds(time1, milliseconds);
+  ASSERT_EQ(3, time1.tv_sec);
+  ASSERT_EQ(0, time1.tv_usec);
+}
+
 }  // namespace utils
 }  // namespace components
 }  // namespace test
