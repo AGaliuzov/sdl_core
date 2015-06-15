@@ -41,19 +41,20 @@ namespace transport_manager_test {
 
 using ::testing::Return;
 using namespace ::transport_manager;
+
 class TransportAdapterListenerTest : public ::testing::Test {
  public:
-  virtual void SetUp() {
-    app_handle = 1;
-    dev_id = "device_id";
-  }
+  TransportAdapterListenerTest()
+      : app_handle(1),
+        dev_id("device_id"),
+        transport_listener(&tr_mock, &adapter_mock) {}
 
-  virtual void TearDown() {}
-
-  int app_handle;
-  std::string dev_id;
+ protected:
+  const int app_handle;
+  const std::string dev_id;
   TransportManagerMock tr_mock;
   TransportAdapterMock adapter_mock;
+  TransportAdapterListenerImpl transport_listener;
 };
 
 MATCHER_P4(IsEvent, eventType, adapter, dev_id, app_id, "") {
@@ -70,8 +71,6 @@ MATCHER_P5(IsEvent, eventType, adapter, dev_id, app_id, data, "") {
 }
 
 TEST_F(TransportAdapterListenerTest, OnCommunicationError) {
-  TransportAdapterListenerImpl transport_listener(&tr_mock, &adapter_mock);
-
   EXPECT_CALL(
       tr_mock,
       ReceiveEventFromDevice(IsEvent(
@@ -81,8 +80,6 @@ TEST_F(TransportAdapterListenerTest, OnCommunicationError) {
 }
 
 TEST_F(TransportAdapterListenerTest, OnConnectDone) {
-  TransportAdapterListenerImpl transport_listener(&tr_mock, &adapter_mock);
-
   EXPECT_CALL(tr_mock,
               ReceiveEventFromDevice(IsEvent(
                   TransportAdapterListenerImpl::EventTypeEnum::ON_CONNECT_DONE,
@@ -92,7 +89,6 @@ TEST_F(TransportAdapterListenerTest, OnConnectDone) {
 }
 
 TEST_F(TransportAdapterListenerTest, OnConnectFailed) {
-  TransportAdapterListenerImpl transport_listener(&tr_mock, &adapter_mock);
   ConnectError er;
 
   EXPECT_CALL(tr_mock,
@@ -104,8 +100,6 @@ TEST_F(TransportAdapterListenerTest, OnConnectFailed) {
 }
 
 TEST_F(TransportAdapterListenerTest, OnDataReceiveDone) {
-  TransportAdapterListenerImpl transport_listener(&tr_mock, &adapter_mock);
-
   ::protocol_handler::RawMessagePtr data_container;
 
   EXPECT_CALL(tr_mock,
@@ -118,7 +112,6 @@ TEST_F(TransportAdapterListenerTest, OnDataReceiveDone) {
 }
 
 TEST_F(TransportAdapterListenerTest, OnDataReceiveFailed) {
-  TransportAdapterListenerImpl transport_listener(&tr_mock, &adapter_mock);
   DataReceiveError err;
 
   EXPECT_CALL(tr_mock,
@@ -131,8 +124,6 @@ TEST_F(TransportAdapterListenerTest, OnDataReceiveFailed) {
 }
 
 TEST_F(TransportAdapterListenerTest, OnDataSendDone) {
-  TransportAdapterListenerImpl transport_listener(&tr_mock, &adapter_mock);
-
   unsigned char data[3] = {0x20, 0x07, 0x01};
   ::protocol_handler::RawMessagePtr data_container =
       new ::protocol_handler::RawMessage(1, 1, data, 3);
@@ -147,8 +138,6 @@ TEST_F(TransportAdapterListenerTest, OnDataSendDone) {
 }
 
 TEST_F(TransportAdapterListenerTest, OnDataSendFailed) {
-  TransportAdapterListenerImpl transport_listener(&tr_mock, &adapter_mock);
-
   unsigned char data[3] = {0x20, 0x07, 0x01};
   ::protocol_handler::RawMessagePtr data_container =
       new ::protocol_handler::RawMessage(1, 1, data, 3);
@@ -164,8 +153,6 @@ TEST_F(TransportAdapterListenerTest, OnDataSendFailed) {
 }
 
 TEST_F(TransportAdapterListenerTest, OnDeviceListUpdated) {
-  TransportAdapterListenerImpl transport_listener(&tr_mock, &adapter_mock);
-
   EXPECT_CALL(
       tr_mock,
       ReceiveEventFromDevice(IsEvent(
@@ -175,8 +162,6 @@ TEST_F(TransportAdapterListenerTest, OnDeviceListUpdated) {
 }
 
 TEST_F(TransportAdapterListenerTest, OnDisconnectDeviceDone) {
-  TransportAdapterListenerImpl transport_listener(&tr_mock, &adapter_mock);
-
   EXPECT_CALL(
       tr_mock,
       ReceiveEventFromDevice(IsEvent(
@@ -186,7 +171,6 @@ TEST_F(TransportAdapterListenerTest, OnDisconnectDeviceDone) {
 }
 
 TEST_F(TransportAdapterListenerTest, OnDisconnectFailed) {
-  TransportAdapterListenerImpl transport_listener(&tr_mock, &adapter_mock);
   DisconnectError err;
 
   EXPECT_CALL(
@@ -198,8 +182,6 @@ TEST_F(TransportAdapterListenerTest, OnDisconnectFailed) {
 }
 
 TEST_F(TransportAdapterListenerTest, OnFindNewApplicationsRequest) {
-  TransportAdapterListenerImpl transport_listener(&tr_mock, &adapter_mock);
-
   EXPECT_CALL(tr_mock, ReceiveEventFromDevice(IsEvent(
                            TransportAdapterListenerImpl::EventTypeEnum::
                                ON_FIND_NEW_APPLICATIONS_REQUEST,
@@ -208,8 +190,6 @@ TEST_F(TransportAdapterListenerTest, OnFindNewApplicationsRequest) {
 }
 
 TEST_F(TransportAdapterListenerTest, OnSearchDeviceDone) {
-  TransportAdapterListenerImpl transport_listener(&tr_mock, &adapter_mock);
-
   EXPECT_CALL(tr_mock,
               ReceiveEventFromDevice(IsEvent(
                   TransportAdapterListenerImpl::EventTypeEnum::ON_SEARCH_DONE,
@@ -218,7 +198,6 @@ TEST_F(TransportAdapterListenerTest, OnSearchDeviceDone) {
 }
 
 TEST_F(TransportAdapterListenerTest, OnSearchDeviceFailed) {
-  TransportAdapterListenerImpl transport_listener(&tr_mock, &adapter_mock);
   SearchDeviceError er;
 
   EXPECT_CALL(tr_mock,
@@ -229,7 +208,6 @@ TEST_F(TransportAdapterListenerTest, OnSearchDeviceFailed) {
 }
 
 TEST_F(TransportAdapterListenerTest, OnUnexpectedDisconnect) {
-  TransportAdapterListenerImpl transport_listener(&tr_mock, &adapter_mock);
   CommunicationError err;
 
   EXPECT_CALL(
