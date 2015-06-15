@@ -361,6 +361,16 @@ TEST(DateTimeTest, AddMilliseconds_SetMillisecondEqualNull_ExpectNotChangeTime) 
   ASSERT_EQ(0, time1.tv_usec);
 }
 
+TEST(DateTimeTest, AddMilliseconds_SetOverlowMicrosecond_ExpectChangeTime) {
+  TimevalStruct time1;
+  uint32_t milliseconds = 7600;
+  time1.tv_sec = 3;
+  time1.tv_usec = 500000;
+  date_time::DateTime::AddMilliseconds(time1, milliseconds);
+  ASSERT_EQ(11, time1.tv_sec);
+  ASSERT_EQ(100000, time1.tv_usec);
+}
+
 }  // namespace utils
 }  // namespace components
 }  // namespace test
