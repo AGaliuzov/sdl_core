@@ -38,7 +38,7 @@
 
 namespace test {
 namespace components {
-namespace transport_manager {
+namespace transport_manager_test {
 
 class DeviceMock : public ::transport_manager::transport_adapter::Device {
  public:
@@ -49,7 +49,7 @@ class DeviceMock : public ::transport_manager::transport_adapter::Device {
   MOCK_METHOD0(Stop, void());
 };
 
-}  // namespace transport_manager
+}  // namespace transport_manager_test
 }  // namespace components
 }  // namespace test
 

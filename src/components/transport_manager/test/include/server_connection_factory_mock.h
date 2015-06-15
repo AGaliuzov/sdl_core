@@ -38,7 +38,7 @@
 
 namespace test {
 namespace components {
-namespace transport_manager {
+namespace transport_manager_test {
 
 class ServerConnectionFactoryMock : public ::transport_manager::transport_adapter::ServerConnectionFactory {
  public:
@@ -50,7 +50,7 @@ class ServerConnectionFactoryMock : public ::transport_manager::transport_adapte
                                        const int& app_handle));
 };
 
-}  // namespace transport_manager
+}  // namespace transport_manager_test
 }  // namespace components
 }  // namespace test
 

@@ -31,17 +31,16 @@
  */
 
 #include "gtest/gtest.h"
-
-#include "include/transport_manager_impl_mock.h"
 #include "include/transport_adapter_mock.h"
 #include "transport_manager/transport_adapter/transport_adapter_listener_impl.h"
+#include "include/transport_manager_mock.h"
 
 namespace test {
 namespace components {
-namespace transport_manager {
+namespace transport_manager_test {
 
 using ::testing::Return;
-
+using namespace ::transport_manager;
 class TransportAdapterListenerTest : public ::testing::Test {
  public:
   virtual void SetUp() {
@@ -53,7 +52,7 @@ class TransportAdapterListenerTest : public ::testing::Test {
 
   int app_handle;
   std::string dev_id;
-  TransportManagerImplMock tr_mock;
+  TransportManagerMock tr_mock;
   TransportAdapterMock adapter_mock;
 };
 
@@ -242,6 +241,6 @@ TEST_F(TransportAdapterListenerTest, OnUnexpectedDisconnect) {
                                             err);
 }
 
-}  // namespace transport_manager
+}  // namespace transport_manager_test
 }  // namespace components
 }  // namespace test

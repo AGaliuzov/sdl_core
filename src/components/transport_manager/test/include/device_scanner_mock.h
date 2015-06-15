@@ -38,7 +38,7 @@
 
 namespace test {
 namespace components {
-namespace transport_manager {
+namespace transport_manager_test {
 
 class DeviceScannerMock : public ::transport_manager::transport_adapter::DeviceScanner {
  public:
@@ -48,7 +48,7 @@ class DeviceScannerMock : public ::transport_manager::transport_adapter::DeviceS
   MOCK_CONST_METHOD0(IsInitialised, bool());
 };
 
-}  // namespace transport_manager
+}  // namespace transport_manager_test
 }  // namespace components
 }  // namespace test
 

@@ -46,7 +46,7 @@
 
 namespace test {
 namespace components {
-namespace transport_manager {
+namespace transport_manager_test {
 
 using ::testing::Return;
 using ::testing::_;
@@ -730,6 +730,6 @@ TEST(TransportAdapterTest, FindEstablishedConnection) {
   EXPECT_CALL(*serverMock, Terminate());
 }
 
-}  // namespace transport_manager
+}  // namespace transport_manager_test
 }  // namespace components
 }  // namespace test

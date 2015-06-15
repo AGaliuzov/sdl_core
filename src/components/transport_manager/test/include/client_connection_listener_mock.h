@@ -38,7 +38,7 @@
 
 namespace test {
 namespace components {
-namespace transport_manager {
+namespace transport_manager_test {
 
 class ClientConnectionListenerMock
     : public ::transport_manager::transport_adapter::ClientConnectionListener {
@@ -55,7 +55,7 @@ class ClientConnectionListenerMock
       ::transport_manager::transport_adapter::TransportAdapter::Error());
 };
 
-}  // namespace transport_manager
+}  // namespace transport_manager_test
 }  // namespace components
 }  // namespace test
 

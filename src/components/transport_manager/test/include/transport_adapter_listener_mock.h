@@ -38,7 +38,7 @@
 
 namespace test {
 namespace components {
-namespace transport_manager {
+namespace transport_manager_test {
 
 using ::transport_manager::transport_adapter::TransportAdapter;
 using ::transport_manager::transport_adapter::TransportAdapterListener;
@@ -127,7 +127,7 @@ class TransportAdapterListenerMock : public TransportAdapterListener {
                     const ::transport_manager::ApplicationHandle& app_handle));
 };
 
-}  // namespace transport_manager
+}  // namespace transport_manager_test
 }  // namespace components
 }  // namespace test
 
