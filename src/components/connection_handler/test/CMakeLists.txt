@@ -54,8 +54,7 @@ set(SOURCES
     connection_handler_impl_test.cc
     connection_test.cc
     device_test.cc
-# Disabled test untill fix APPLINK-11724
-#    heart_beat_monitor_test.cc
+    heart_beat_monitor_test.cc
 )
 
 file(COPY ${appMain_DIR}/smartDeviceLink.ini DESTINATION "./")
