@@ -46,6 +46,19 @@ enum AccessoryVRCommand {
   kVRCommandFromCommand
 };
 
+struct ApplicationParams {
+    ApplicationParams(const smart_objects::SmartObject& application);
+    ApplicationParams(app_mngr::ApplicationConstSharedPtr application);
+
+    std::string m_hash;
+    int64_t m_grammar_id;
+    int64_t m_connection_key;
+    int64_t m_hmi_app_id;
+    mobile_apis::HMILevel::eType m_hmi_level;
+    bool m_is_media_application;
+    bool m_is_valid;
+};
+
 /**
  * @brief class contains logic for representation application data in
  * data base
@@ -339,7 +352,7 @@ class ResumptionDataDB : public ResumptionData {
    * @return true if data was saved successfully otherwise returns
    * false
    */
-  bool InsertFilesData(app_mngr::ApplicationConstSharedPtr application,
+  bool InsertFilesData(const smart_objects::SmartObject& files_array,
                        int64_t application_primary_key);
 
   /**
@@ -349,7 +362,7 @@ class ResumptionDataDB : public ResumptionData {
    * @return true if data was saved successfully otherwise returns
    * false
    */
-  bool InsertSubMenuData(app_mngr::ApplicationConstSharedPtr application,
+  bool InsertSubMenuData(const smart_objects::SmartObject& submenu_array,
                          int64_t application_primary_key);
 
   /**
@@ -359,7 +372,7 @@ class ResumptionDataDB : public ResumptionData {
    * @return true if data was saved successfully otherwise returns
    * false
    */
-  bool InsertCommandsData(app_mngr::ApplicationConstSharedPtr application,
+  bool InsertCommandsData(const smart_objects::SmartObject& command_array,
                           int64_t application_primary_key);
 
   /**
@@ -369,7 +382,7 @@ class ResumptionDataDB : public ResumptionData {
    * @return true if data was saved successfully otherwise returns
    * false
    */
-  bool InsertSubscriptionsData(app_mngr::ApplicationConstSharedPtr application,
+  bool InsertSubscriptionsData(const smart_objects::SmartObject& subscriptions,
                                int64_t application_primary_key);
 
   /**
@@ -379,18 +392,20 @@ class ResumptionDataDB : public ResumptionData {
    * @return true if data was saved successfully otherwise returns
    * false
    */
-  bool InsertChoiceSetData(app_mngr::ApplicationConstSharedPtr application,
+  bool InsertChoiceSetData(const smart_objects::SmartObject& choiceset_array,
                            int64_t application_primary_key);
 
   /**
    * @brief Saves globalProperties data to DB
+   * TOFIX
    * @param application contains data for saving
    * @param global_properties_key - will contain primary key from global properties table
    * @return true if data was saved successfully otherwise returns
    * false
    */
-  bool InsertGlobalPropertiesData(app_mngr::ApplicationConstSharedPtr application,
-                                  int64_t& global_properties_key);
+  bool InsertGlobalPropertiesData(
+      const smart_objects::SmartObject& global_properties,
+      int64_t& global_properties_key);
 
   /**
    * @brief Saves application data to DB
@@ -541,7 +556,7 @@ class ResumptionDataDB : public ResumptionData {
    * @return true if query was run successfully otherwise returns
    * false
    */
-  bool InsertApplicationData(app_mngr::ApplicationConstSharedPtr application,
+  bool InsertApplicationData(const ApplicationParams& application ,
                              const std::string& policy_app_id,
                              const std::string& device_id,
                              int64_t* application_primary_key,
