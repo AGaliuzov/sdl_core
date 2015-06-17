@@ -613,7 +613,7 @@ smart_objects::SmartObjectSPtr MessageHelper::CreateDeviceListSO(
     const connection_handler::Device& d =
       static_cast<connection_handler::Device>(it->second);
     list_so[index][strings::name] = d.user_friendly_name();
-    list_so[index][strings::id] = it->second.mac_address();
+    list_so[index][strings::id] = it->second.device_handle();
 
     const policy::DeviceConsent device_consent =
         policy::PolicyHandler::instance()->GetUserConsentForDevice(it->second.mac_address());
