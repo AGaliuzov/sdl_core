@@ -60,6 +60,8 @@ static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
     AOAWrapper::PrintError(status);
   }
 
+  if (NULL == udata) { return; }
+
   AOAConnectionObserver* const * p =
       static_cast<AOAConnectionObserver* const *>(udata);
   AOAConnectionObserver* observer = *p;
@@ -176,12 +178,7 @@ bool AOAWrapper::Subscribe(AOAConnectionObserver *observer) {
 }
 
 bool AOAWrapper::UnsetCallback(AOAEndpoint endpoint) const {
-  int ret_r = AOA_EOK;
-  if (IsError(ret_r)) {
-    PrintError(ret_r);
-    return false;
-  }
-  return true;
+  SetCallback(hdl_, NULL, timeout_, endpoint);
 }
 
 bool AOAWrapper::Unsubscribe() {
