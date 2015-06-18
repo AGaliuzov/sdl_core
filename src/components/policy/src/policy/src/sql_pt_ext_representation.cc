@@ -38,6 +38,7 @@
 #include "policy/sql_pt_ext_queries.h"
 #include "policy/policy_helper.h"
 #include "policy/cache_manager.h"
+#include "utils/sqlite_wrapper/sql_query.h"
 
 namespace policy {
 
@@ -493,7 +494,7 @@ std::vector<UserFriendlyMessage> SQLPTExtRepresentation::GetUserFriendlyMsg(
     query.Bind(0, *it);
     query.Bind(1, msg_language);
 
-    if (!query.Exec() || !query.Reset()) {
+    if (!query.Exec()) {
       LOG4CXX_WARN(logger_, "Incorrect select from friendly messages.");
       return result;
     }
