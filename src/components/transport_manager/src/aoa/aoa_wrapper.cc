@@ -178,7 +178,7 @@ bool AOAWrapper::Subscribe(AOAConnectionObserver *observer) {
 }
 
 bool AOAWrapper::UnsetCallback(AOAEndpoint endpoint) const {
-  SetCallback(hdl_, NULL, timeout_, endpoint);
+  return SetCallback(hdl_, NULL, timeout_, endpoint);
 }
 
 bool AOAWrapper::Unsubscribe() {
