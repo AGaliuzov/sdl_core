@@ -43,6 +43,7 @@ ObjectOutputStream::ObjectOutputStream(OutputStreamPtr outputStream, Pool& p)
 
 ObjectOutputStream::~ObjectOutputStream() {
     delete classDescriptions;
+    classDescriptions = NULL;
 }
 
 void ObjectOutputStream::close(Pool& p) {
@@ -172,6 +173,7 @@ void ObjectOutputStream::writeProlog(const char* className,
                         char* classDesc,
                         size_t len,
                         Pool& p) {
+    if (!classDescriptions) return;
     ClassDescriptionMap::const_iterator match = classDescriptions->find(className);
     if (match != classDescriptions->end()) {
         char bytes[6];
