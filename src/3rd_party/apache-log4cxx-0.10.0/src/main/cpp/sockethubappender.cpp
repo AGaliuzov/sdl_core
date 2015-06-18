@@ -139,7 +139,6 @@ void SocketHubAppender::append(const spi::LoggingEventPtr& event, Pool& p)
 
         // loop through the current set of open connections, appending the event to each
         std::vector<ObjectOutputStreamPtr>::iterator it = streams.begin();
-//        std::vector<ObjectOutputStreamPtr>::iterator itEnd = streams.end();
         while( it != streams.end() )
         {
                 // list size changed unexpectedly? Just exit the append.
