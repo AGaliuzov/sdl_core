@@ -294,6 +294,10 @@ class PTRepresentation {
      * troubles are happens during this operation.
      */
     virtual void RemoveDB() const = 0;
+
+    virtual bool IsDBVersionActual() const = 0;
+
+    virtual bool UpdateDBVersion() const = 0;
 };
 
 }  //  namespace policy

@@ -1633,12 +1633,20 @@ bool CacheManager::Init(const std::string& file_name) {
       LOG4CXX_INFO(logger_, "Policy Table exists, was loaded correctly.");
       result = LoadFromBackup();
       if (result) {
+        if (!backup_->IsDBVersionActual()) {
+          if (!backup_->RefreshDB()) {
+            return false;
+          }
+          backup_->UpdateDBVersion();
+          Backup();
+        }
         MergePreloadPT(file_name);
       }
     } break;
     case InitResult::SUCCESS: {
       LOG4CXX_INFO(logger_, "Policy Table was inited successfully");
       result = LoadFromFile(file_name, *pt_);
+      backup_->UpdateDBVersion();
       if (result) {
         Backup();
       } else {

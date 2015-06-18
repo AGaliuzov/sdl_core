@@ -179,6 +179,10 @@ class SQLPTRepresentation : public virtual PTRepresentation {
      */
     void RemoveDB() const;
 
+    virtual bool IsDBVersionActual() const;
+
+    virtual bool UpdateDBVersion() const;
+
   private:
     static const std::string kDatabaseName;
     utils::dbms::SQLDatabase* db_;
@@ -187,6 +191,7 @@ class SQLPTRepresentation : public virtual PTRepresentation {
     uint32_t open_counter_;
 #endif // BUILD_TESTS
 
+    const int32_t GetDBVersion() const;
     bool SaveRpcs(int64_t group_id, const policy_table::Rpc& rpcs);
     bool SaveServiceEndpoints(const policy_table::ServiceEndpoints& endpoints);
     bool SaveSecondsBetweenRetries(
