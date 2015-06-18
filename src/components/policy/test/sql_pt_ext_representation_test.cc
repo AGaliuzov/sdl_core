@@ -57,7 +57,9 @@ namespace policy {
 
 class SQLPTExtRepresentationTest : public ::testing::Test {
  public:
-  typedef vector<pair<string, string>> groups_alias_name_collection;
+  // Collection of pairs of group alias and corresponding group name
+  typedef vector<pair<string, string>> Groups_alias_name_collection;
+
   SQLPTExtRepresentationTest() : dbms(0), reps(0) {}
 
  protected:
@@ -85,22 +87,24 @@ class SQLPTExtRepresentationTest : public ::testing::Test {
 
   void FillGroupPermission(
       vector<FunctionalGroupPermission>& groups_permissions,
-      FunctionalGroupPermission group, const groups_alias_name_collection& groups_names,
-      GroupConsent state) {
-    groups_alias_name_collection::const_iterator it = groups_names.begin();
-    for (; it != groups_names.end(); ++it) {
-      group.group_alias = it->first;
-      group.group_name = it->second;
-      group.group_id = ::utils::Djb2HashFromString(it->second);
+      FunctionalGroupPermission group,
+      const Groups_alias_name_collection& groups_names, GroupConsent state) {
+    Groups_alias_name_collection::const_iterator groups_names_it =
+        groups_names.begin();
+    while (groups_names_it != groups_names.end()) {
+      group.group_alias = groups_names_it->first;
+      group.group_name = groups_names_it->second;
+      group.group_id = ::utils::Djb2HashFromString(groups_names_it->second);
       group.state = state;
       groups_permissions.push_back(group);
+      ++groups_names_it;
     }
   }
 
-  void FillPermissionStruct(const string& dev_id, const string& app_id,
-                            const string& consent_source,
-                            const groups_alias_name_collection& allowed_groups_names,
-                            const groups_alias_name_collection& disallowed_groups_names) {
+  void FillPermissionStruct(
+      const string& dev_id, const string& app_id, const string& consent_source,
+      const Groups_alias_name_collection& allowed_groups_names,
+      const Groups_alias_name_collection& disallowed_groups_names) {
     // Arrange
     vector<FunctionalGroupPermission> groups_permissions;
     perm_consent.device_id = dev_id;
@@ -109,47 +113,24 @@ class SQLPTExtRepresentationTest : public ::testing::Test {
     // Fill groups
     FillGroupPermission(groups_permissions, group1_perm, allowed_groups_names,
                         GroupConsent::kGroupAllowed);
-    FillGroupPermission(groups_permissions, group2_perm, disallowed_groups_names,
+    FillGroupPermission(groups_permissions, group2_perm,
+                        disallowed_groups_names,
                         GroupConsent::kGroupDisallowed);
     perm_consent.group_permissions = groups_permissions;
   }
 
-  bool GroupCheck(const FunctionalIdType& group_types,
-                  const groups_alias_name_collection& groups_names, GroupType state) {
-    bool result = false;
-    map<GroupType, FunctionalGroupIDs>::const_iterator functional_id_type_it =
-        group_types.find(state);
-    const vector<int32_t>& group_IDs = functional_id_type_it->second;
-    vector<int32_t>::const_iterator group_Ids_it = group_IDs.begin();
-    if (functional_id_type_it != group_types.end() && group_IDs.size()) {
-      EXPECT_EQ(groups_names.size(), group_IDs.size());
-      while (group_Ids_it != group_IDs.end()) {
-        groups_alias_name_collection::const_iterator group_alias_name_it = groups_names.begin();
-        while (group_alias_name_it != groups_names.end()) {
-          EXPECT_NE(group_IDs.end(),
-                    std::find(group_IDs.begin(), group_IDs.end(),
-                              ::utils::Djb2HashFromString(group_alias_name_it->second)));
-          ++group_alias_name_it;
-        }
-        ++group_Ids_it;
-      }
-      result = true;
-    } else if (functional_id_type_it != group_types.end() && !group_IDs.size()) {
-      result = true;
-    }
-    return result;
-  }
-
-  bool Check(const groups_alias_name_collection& groups_names,
+  bool Check(const Groups_alias_name_collection& groups_names,
              const vector<int32_t>& group_Ids) {
     vector<int32_t>::const_iterator group_Ids_it = group_Ids.begin();
-    groups_alias_name_collection::const_iterator group_alias_name_it = groups_names.begin();
+    Groups_alias_name_collection::const_iterator group_alias_name_it =
+        groups_names.begin();
 
     EXPECT_EQ(groups_names.size(), group_Ids.size());
     while (group_Ids_it != group_Ids.end()) {
       while (group_alias_name_it != groups_names.end()) {
         if (group_Ids.end() != std::find(group_Ids.begin(), group_Ids.end(),
-                                   ::utils::Djb2HashFromString(group_alias_name_it->second))) {
+                                         ::utils::Djb2HashFromString(
+                                             group_alias_name_it->second))) {
           return true;
         }
         ++group_alias_name_it;
@@ -159,29 +140,36 @@ class SQLPTExtRepresentationTest : public ::testing::Test {
     return false;
   }
 
-  bool CheckGroupTypesExist(const FunctionalIdType& group_types,
-                            const groups_alias_name_collection& allowed_groups_names,
-                            const groups_alias_name_collection& disallowed_groups_names) {
-    bool result = false;
+  bool CheckGroupTypesExist(
+      const FunctionalIdType& group_types,
+      const Groups_alias_name_collection& allowed_groups_names,
+      const Groups_alias_name_collection& disallowed_groups_names) {
+    bool result = true;
     map<GroupType, FunctionalGroupIDs>::const_iterator functional_id_type_it1 =
         group_types.find(GroupType::kTypeAllowed);
     map<GroupType, FunctionalGroupIDs>::const_iterator functional_id_type_it2 =
         group_types.find(GroupType::kTypeDisallowed);
 
-    const std::vector<int32_t>& allowedGroupIDs = functional_id_type_it1->second;
-    const std::vector<int32_t>& disallowedGroupIDs = functional_id_type_it2->second;
+    if (functional_id_type_it1 == group_types.end() ||
+        functional_id_type_it2 == group_types.end()) {
+      return false;
+    }
 
-    if (functional_id_type_it1 != group_types.end() && functional_id_type_it2 != group_types.end()) {
-      if (!allowedGroupIDs.size() && !disallowedGroupIDs.size()) {
-        return result;
-      } else if (allowedGroupIDs.size() && !disallowedGroupIDs.size()) {
-        result = Check(allowed_groups_names, allowedGroupIDs);
-      } else if (disallowedGroupIDs.size() && !allowedGroupIDs.size()) {
-        result = Check(disallowed_groups_names, disallowedGroupIDs);
-      } else if (allowedGroupIDs.size() && disallowedGroupIDs.size()) {
-        result = Check(allowed_groups_names, allowedGroupIDs) &&
-                 Check(disallowed_groups_names, disallowedGroupIDs);
-      }
+    const std::vector<int32_t>& allowedGroupIDs =
+        functional_id_type_it1->second;
+    const std::vector<int32_t>& disallowedGroupIDs =
+        functional_id_type_it2->second;
+    if (0u == allowedGroupIDs.size() && 0u == disallowedGroupIDs.size()) {
+      result = false;
+    } else if (0u != allowedGroupIDs.size() && 0u == disallowedGroupIDs.size()) {
+      result = Check(allowed_groups_names, allowedGroupIDs);
+    } else if (0u != disallowedGroupIDs.size() && 0u == allowedGroupIDs.size()) {
+      result = Check(disallowed_groups_names, disallowedGroupIDs);
+    } else if (0u != allowedGroupIDs.size() && 0u != disallowedGroupIDs.size()) {
+      result = Check(allowed_groups_names, allowedGroupIDs) &&
+               Check(disallowed_groups_names, disallowedGroupIDs);
+    } else {
+      result = false;
     }
     return result;
   }
@@ -500,7 +488,7 @@ TEST_F(SQLPTExtRepresentationTest,
 
   allowed_groups.clear();
   disallowed_groups.clear();
-  // Act.
+  // Act
   EXPECT_TRUE(reps->GetUserPermissionsForDevice("XXX12345ZZZ", &allowed_groups,
                                                 &disallowed_groups));
   // Checks
@@ -539,10 +527,10 @@ TEST_F(SQLPTExtRepresentationTest,
       "'2014-01-01T00:00:52Z')";
   // Assert
   ASSERT_TRUE(dbms->Exec(query_insert));
-  groups_alias_name_collection allowed_groups;
+  Groups_alias_name_collection allowed_groups;
   allowed_groups.push_back(std::make_pair("DataConsent", "DataConsent-2"));
 
-  groups_alias_name_collection disallowed_groups;
+  Groups_alias_name_collection disallowed_groups;
   disallowed_groups.push_back(std::make_pair("", "Base-4"));
   FillPermissionStruct("", "", "", allowed_groups, disallowed_groups);
   FunctionalIdType group_types;
@@ -554,10 +542,10 @@ TEST_F(SQLPTExtRepresentationTest,
 TEST_F(SQLPTExtRepresentationTest,
        SetUserPermissionsForApp_SetPermissions_ExpectValuesThatSetInParams) {
   // Arrange
-  groups_alias_name_collection allowed_groups;
+  Groups_alias_name_collection allowed_groups;
   allowed_groups.push_back(std::make_pair("Notifications", "Notifications"));
 
-  groups_alias_name_collection disallowed_groups;
+  Groups_alias_name_collection disallowed_groups;
   disallowed_groups.push_back(std::make_pair("DataConsent", "DataConsent-2"));
   FillPermissionStruct("XXX12345ZZZ", "12345", "VR", allowed_groups,
                        disallowed_groups);
@@ -572,10 +560,10 @@ TEST_F(SQLPTExtRepresentationTest,
 TEST_F(SQLPTExtRepresentationTest,
        ResetAppConsents_SetPermissionsThenReset_ExpectValuesReset) {
   // Arrange
-  groups_alias_name_collection allowed_groups;
+  Groups_alias_name_collection allowed_groups;
   allowed_groups.push_back(std::make_pair("Notifications", "Notifications"));
 
-  groups_alias_name_collection disallowed_groups;
+  Groups_alias_name_collection disallowed_groups;
   disallowed_groups.push_back(std::make_pair("DataConsent", "DataConsent-2"));
   FillPermissionStruct("XXX12345ZZZ", "12345", "VR", allowed_groups,
                        disallowed_groups);
@@ -595,11 +583,11 @@ TEST_F(SQLPTExtRepresentationTest,
 TEST_F(SQLPTExtRepresentationTest,
        ResetUserConsent_SetConsentThenReset_ExpectValuesReset) {
   // Arrange
-  groups_alias_name_collection perm_allowed_groups;
+  Groups_alias_name_collection perm_allowed_groups;
   perm_allowed_groups.push_back(
       std::make_pair("Notifications", "Notifications"));
 
-  groups_alias_name_collection perm_disallowed_groups;
+  Groups_alias_name_collection perm_disallowed_groups;
   perm_disallowed_groups.push_back(
       std::make_pair("DataConsent", "DataConsent-2"));
   FillPermissionStruct("XXX12345ZZZ", "12345", "VR", perm_allowed_groups,
@@ -673,9 +661,12 @@ TEST_F(SQLPTExtRepresentationTest,
   EXPECT_EQ(2u, groups.size());
   EXPECT_EQ(1u, preconsented_groups.size());
 
-  rpc::String<1u, 255u> temp1("DataConsent-2");
-  rpc::String<1u, 255u> temp2("Notifications");
-  rpc::String<1u, 255u> temp3("Base-4");
+  const uint32_t min_size = 1u;
+  const uint32_t max_size = 255u;
+
+  rpc::String<min_size, max_size> temp1("DataConsent-2");
+  rpc::String<min_size, max_size> temp2("Notifications");
+  rpc::String<min_size, max_size> temp3("Base-4");
 
   EXPECT_NE(groups.end(), std::find(groups.begin(), groups.end(), temp1));
   EXPECT_NE(groups.end(), std::find(groups.begin(), groups.end(), temp2));
@@ -1111,11 +1102,11 @@ TEST_F(
       "('XXX12345ZZZ', '1234', 156072572, 1,'GUI', "
       "'2015-01-01T00:00:52Z')";
   ASSERT_TRUE(dbms->Exec(query_insert));
-  groups_alias_name_collection allowed_groups;
+  Groups_alias_name_collection allowed_groups;
   allowed_groups.push_back(std::make_pair("Location", "Location-1"));
   allowed_groups.push_back(std::make_pair("Notifications", "Notifications"));
 
-  groups_alias_name_collection disallowed_groups;
+  Groups_alias_name_collection disallowed_groups;
 
   FillPermissionStruct("XXX12345ZZZ", "1234", "VR", allowed_groups,
                        disallowed_groups);
@@ -1148,11 +1139,11 @@ TEST_F(SQLPTExtRepresentationTest,
   EXPECT_TRUE(reps->SetUserPermissionsForDevice("XXX12345ZZZ", allowed_groups,
                                                 disallowed_groups));
 
-  groups_alias_name_collection perm_allowed_groups;
+  Groups_alias_name_collection perm_allowed_groups;
   perm_allowed_groups.push_back(
       std::make_pair("Notifications", "Notifications"));
 
-  groups_alias_name_collection perm_disallowed_groups;
+  Groups_alias_name_collection perm_disallowed_groups;
   perm_disallowed_groups.push_back(std::make_pair("Location", "Location-1"));
   FillPermissionStruct("XXX12345ZZZ", "12345", "VR", perm_allowed_groups,
                        perm_disallowed_groups);
@@ -1195,10 +1186,10 @@ TEST_F(
       "0, 64, 10) ";
 
   ASSERT_TRUE(dbms->Exec(query_insert_app));
-  groups_alias_name_collection allowed_groups;
+  Groups_alias_name_collection allowed_groups;
   allowed_groups.push_back(std::make_pair("Notifications", "Notifications"));
 
-  groups_alias_name_collection disallowed_groups;
+  Groups_alias_name_collection disallowed_groups;
   disallowed_groups.push_back(std::make_pair("DataConsent", "DataConsent-2"));
   FillPermissionStruct("XXX12345ZZZ", "12345", "VR", allowed_groups,
                        disallowed_groups);
@@ -1225,10 +1216,10 @@ TEST_F(SQLPTExtRepresentationTest,
       "0, 64, 10) ";
 
   ASSERT_TRUE(dbms->Exec(query_insert_app));
-  groups_alias_name_collection allowed_groups;
+  Groups_alias_name_collection allowed_groups;
   allowed_groups.push_back(std::make_pair("Notifications", "Notifications"));
 
-  groups_alias_name_collection disallowed_groups;
+  Groups_alias_name_collection disallowed_groups;
   disallowed_groups.push_back(std::make_pair("DataConsent", "DataConsent-2"));
   FillPermissionStruct("XXX12345ZZZ", "12345", "VR", allowed_groups,
                        disallowed_groups);
@@ -1257,10 +1248,10 @@ TEST_F(
       "0, 64, 10) ";
 
   ASSERT_TRUE(dbms->Exec(query_insert_app));
-  groups_alias_name_collection allowed_groups;
+  Groups_alias_name_collection allowed_groups;
   allowed_groups.push_back(std::make_pair("Notifications", "Notifications"));
 
-  groups_alias_name_collection disallowed_groups;
+  Groups_alias_name_collection disallowed_groups;
   disallowed_groups.push_back(std::make_pair("DataConsent", "DataConsent-2"));
   FillPermissionStruct("XXX12345ZZZ", "12345", "VR", allowed_groups,
                        disallowed_groups);

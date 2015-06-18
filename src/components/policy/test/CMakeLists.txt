@@ -41,7 +41,7 @@ include_directories(
 )
 
 set(testLibraries
-  gtest
+#  gtest
   gmock
   Utils
   Policy
