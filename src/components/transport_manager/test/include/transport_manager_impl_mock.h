@@ -30,33 +30,25 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_CLIENT_CONNECTION_LISTENER_MOCK_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_CLIENT_CONNECTION_LISTENER_MOCK_H_
+#ifndef APPLINK_TEST_COMPONENTS_TRANSPORTMANAGER_INCLUDE_TRANSPORT_MANAGER_IMPL_MOCK_H_
+#define APPLINK_TEST_COMPONENTS_TRANSPORTMANAGER_INCLUDE_TRANSPORT_MANAGER_IMPL_MOCK_H_
 
 #include "gmock/gmock.h"
-#include "transport_manager/transport_adapter/client_connection_listener.h"
+#include "transport_manager/transport_manager_impl.h"
 
 namespace test {
 namespace components {
-namespace transport_manager_test {
+namespace transport_manager {
 
-class ClientConnectionListenerMock
-    : public ::transport_manager::transport_adapter::ClientConnectionListener {
+using namespace ::transport_manager;
+
+class TransportManagerImplMock : public TransportManagerImpl {
  public:
-  MOCK_METHOD0(
-      Init, ::transport_manager::transport_adapter::TransportAdapter::Error());
-  MOCK_METHOD0(Terminate, void());
-  MOCK_CONST_METHOD0(IsInitialised, bool());
-  MOCK_METHOD0(
-      StartListening,
-      ::transport_manager::transport_adapter::TransportAdapter::Error());
-  MOCK_METHOD0(
-      StopListening,
-      ::transport_manager::transport_adapter::TransportAdapter::Error());
+  MOCK_METHOD1(ReceiveEventFromDevice, int(const TransportAdapterEvent& event));
 };
 
-}  // namespace transport_manager_test
+}  // namespace transport_manager
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_CLIENT_CONNECTION_LISTENER_MOCK_H_
+#endif // APPLINK_TEST_COMPONENTS_TRANSPORTMANAGER_INCLUDE_TRANSPORT_MANAGER_IMPL_MOCK_H_

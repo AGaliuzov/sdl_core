@@ -38,7 +38,7 @@
 
 namespace test {
 namespace components {
-namespace transport_manager {
+namespace transport_manager_test {
 
 using namespace ::transport_manager::transport_adapter;
 
@@ -49,7 +49,7 @@ class ConnectionMock : public Connection {
   MOCK_METHOD0(Disconnect, TransportAdapter::Error());
 };
 
-}  // namespace transport_manager
+}  // namespace transport_manager_test
 }  // namespace components
 }  // namespace test
 
