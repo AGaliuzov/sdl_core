@@ -38,7 +38,6 @@
 #include "policy/sql_pt_ext_queries.h"
 #include "policy/policy_helper.h"
 #include "policy/cache_manager.h"
-#include "utils/sqlite_wrapper/sql_query.h"
 
 namespace policy {
 
