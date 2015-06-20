@@ -52,8 +52,8 @@ void OnAwakeSDLNotification::Run() {
   if (app_manager->state_suspended()) {
     app_manager->set_state_suspended(false);
     ApplicationManagerImpl::ApplicationListAccessor accessor;
-    ApplicationManagerImpl::ApplictionSetIt it = accessor.begin();
-    ApplicationManagerImpl::ApplictionSetIt itEnd = accessor.end();
+    ApplicationSetIt it = accessor.begin();
+    ApplicationSetIt itEnd = accessor.end();
     for (; it != itEnd; ++it) {
       if ((*it).valid()) {
         if ((*it)->flag_sending_hash_change_after_awake()) {

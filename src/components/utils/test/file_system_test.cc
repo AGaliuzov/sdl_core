@@ -1005,17 +1005,16 @@ TEST(FileSystemTest, GetFileModificationTime) {
   EXPECT_TRUE(CreateFile("./test file"));
 
   uint64_t modif_time = GetFileModificationTime("./test file");
-  EXPECT_LE(0u, modif_time);
+  EXPECT_LE(0ul, modif_time);
 
   std::vector < uint8_t > data(1, 1);
   EXPECT_TRUE(WriteBinaryFile("./test file", data));
 
-  EXPECT_LE(0u, GetFileModificationTime("./test file"));
+  EXPECT_LE(0ul, GetFileModificationTime("./test file"));
   EXPECT_LE(modif_time, GetFileModificationTime("./test file"));
 
   EXPECT_TRUE(DeleteFile("./test file"));
   EXPECT_FALSE(FileExists("./test file"));
-
 }
 
 TEST(FileSystemTest, ListFiles) {

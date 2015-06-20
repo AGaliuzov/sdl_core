@@ -36,7 +36,6 @@
 #include <list>
 #include "interfaces/MOBILE_API.h"
 #include "utils/shared_ptr.h"
-#include "application_manager/state_context.h"
 
 namespace application_manager {
 
@@ -44,7 +43,7 @@ class HmiState;
 typedef utils::SharedPtr<HmiState> HmiStatePtr;
 typedef std::list<HmiStatePtr> HmiStateList;
 
-/**
+ /**
  * @brief The HmiState class
  * Handles Hmi state of application
  * (hmi level, audio streaming state, system context)

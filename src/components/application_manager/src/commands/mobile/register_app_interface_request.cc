@@ -591,7 +591,7 @@ RegisterAppInterfaceRequest::CheckCoincidence() {
 
   ApplicationManagerImpl::ApplicationListAccessor accessor;
 
- ApplicationManagerImpl::ApplictionSetConstIt it =
+ ApplicationSetConstIt it =
      accessor.begin();
   const std::string app_name = msg_params[strings::app_name].asString();
 
@@ -750,10 +750,10 @@ bool RegisterAppInterfaceRequest::IsApplicationWithSameAppIdRegistered() {
                                          [strings::app_id].asString();
 
   ApplicationManagerImpl::ApplicationListAccessor accessor;
-  const ApplicationManagerImpl::ApplictionSet applications = accessor.applications();
+  const ApplicationSet applications = accessor.applications();
 
- ApplicationManagerImpl::ApplictionSetConstIt it = applications.begin();
- ApplicationManagerImpl::ApplictionSetConstIt it_end = applications.end();
+ ApplicationSetConstIt it = applications.begin();
+ ApplicationSetConstIt it_end = applications.end();
 
   for (; it != it_end; ++it) {
     if (!strcasecmp(policy_app_id.c_str(),(*it)->policy_app_id().c_str())) {

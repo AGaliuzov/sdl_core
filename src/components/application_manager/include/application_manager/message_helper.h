@@ -76,14 +76,6 @@ class MessageHelper {
     static void CreateGetVehicleDataRequest(uint32_t correlation_id, const std::vector<std::string>& params);
 
     /**
-     * @brief Sends HMI status notification to mobile
-     *
-     *@param application_impl application with changed HMI status
-     *
-     **/
-    static void SendHMIStatusNotification(const Application& application_impl);
-
-    /**
      * @brief Sends OnAppRegistered notification to HMI
      *
      *@param application_impl application with changed HMI status

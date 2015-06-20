@@ -369,9 +369,8 @@ class DynamicApplicationData {
 class Application : public virtual InitialApplicationData,
   public virtual DynamicApplicationData {
 
-   public:
-    virtual ~Application() {
-    }
+  public:
+    virtual ~Application() {}
 
     /**
      * @brief Returns message belonging to the application
@@ -553,7 +552,7 @@ class Application : public virtual InitialApplicationData,
     virtual void set_is_resuming(bool is_resuming) = 0;
     virtual bool is_resuming() const = 0;
 
-    virtual bool AddFile(AppFile& file) = 0;
+    virtual bool AddFile(const AppFile& file) = 0;
     virtual const AppFilesMap& getAppFiles() const = 0;
 
     /**
@@ -563,7 +562,7 @@ class Application : public virtual InitialApplicationData,
      * @param is_download_complete Bollean describes is file downloaded fully on need to finish downloading?
      * @return TRUE if file exist and updated sucsesfuly, othervise return false
      */
-    virtual bool UpdateFile(AppFile& file) = 0;
+    virtual bool UpdateFile(const AppFile& file) = 0;
     virtual bool DeleteFile(const std::string& file_name) = 0;
     virtual const AppFile* GetFile(const std::string& file_name) = 0;
 

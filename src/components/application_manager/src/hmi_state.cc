@@ -31,6 +31,7 @@
  */
 
 #include "application_manager/hmi_state.h"
+#include "application_manager/state_context.h"
 #include "utils/helpers.h"
 
 namespace application_manager {

@@ -639,7 +639,7 @@ bool ApplicationImpl::is_resuming() const {
   return is_resuming_;
 }
 
-bool ApplicationImpl::AddFile(AppFile& file) {
+bool ApplicationImpl::AddFile(const AppFile& file) {
   if (app_files_.count(file.file_name) == 0) {
     LOG4CXX_INFO(logger_, "AddFile file " << file.file_name
                            << " File type is " << file.file_type);
@@ -649,7 +649,7 @@ bool ApplicationImpl::AddFile(AppFile& file) {
   return false;
 }
 
-bool ApplicationImpl::UpdateFile(AppFile& file) {
+bool ApplicationImpl::UpdateFile(const AppFile& file) {
   if (app_files_.count(file.file_name) != 0) {
     LOG4CXX_INFO(logger_, "UpdateFile file " << file.file_name
                            << " File type is " << file.file_type);

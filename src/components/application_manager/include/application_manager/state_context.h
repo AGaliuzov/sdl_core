@@ -34,42 +34,103 @@
 #define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_STATE_CONTEXT_H_
 
 #include <inttypes.h>
+#include "application_manager/application_manager.h"
+#include "utils/data_accessor.h"
 
 namespace application_manager {
 /**
-* @brief The StateContext implement acessing to data, that is required by HmiState
+* @brief The StateContext implements access to data, which is required by
+* HmiState
 */
 class StateContext {
-  public:
+ public:
+  explicit StateContext(ApplicationManager* app_mngr);
+  virtual ~StateContext();
 
-    /**
-     * @brief is_navi_app check if app is navi
-     * @param app_id application id
-     * @return true if app is navi, otherwise return false
-     */
-    bool is_navi_app(const uint32_t app_id) const;
+  /**
+   * Executes unary function for each application
+   */
+  template <typename UnaryFunction>
+  void ForEachApplication(UnaryFunction func) const {
+    DataAccessor<ApplicationSet> accessor = app_mngr_->applications();
+    ApplicationSet::iterator it = accessor.GetData().begin();
+    for (; it != accessor.GetData().end(); ++it) {
+      ApplicationConstSharedPtr const_app = *it;
+      if (const_app) {
+        func(app_mngr_->application(const_app->app_id()));
+      }
+    }
+  }
 
-    /**
-     * @brief is_meida_app check if app is is meida
-     * @param app_id application id
-     * @return @return true if meida_app, otherwise return false
-     */
-    bool is_meida_app(const uint32_t app_id) const;
+  /**
+   * @brief is_navi_app check if app is navi
+   * @param app_id application id
+   * @return true if app is navi, otherwise return false
+   */
+  virtual bool is_navi_app(const uint32_t app_id) const;
 
-    /**
-     * @brief is_voice_comunication_app check if app is voice comunication
-     * @param app_id application id
-     * @return @return true if voice_comunication_app, otherwise return false
-     */
-    bool is_voice_comunication_app(const uint32_t app_id) const;
+  /**
+   * @brief is_media_app check if app is media
+   * @param app_id application id
+   * @return true if media_app, otherwise return false
+   */
+  virtual bool is_media_app(const uint32_t app_id) const;
 
-    /**
-     * @brief is_attenuated_supported check if HMI support attenuated mode
-     * @return true if supported, otherwise return false
-     */
-    bool is_attenuated_supported() const;
+  /**
+   * @brief is_voice_communicationn_app check if app is voice comunication
+   * @param app_id application id
+   * @return true if voice_communicationn_app, otherwise return false
+   */
+  virtual bool is_voice_communication_app(const uint32_t app_id) const;
+
+  /**
+   * @brief is_attenuated_supported check if HMI support attenuated mode
+   * @return true if attenuated supported, otherwise return false
+   */
+  virtual bool is_attenuated_supported() const;
+
+  /**
+   * @brief setApp_mngr setter for application_manager mamber
+   * @param app_mngr ApplicationManager instance
+   */
+  virtual void set_app_mngr(ApplicationManager* app_mngr);
+
+  /**
+   * @brief OnHMILevelChanged is proxy for aplication manager OnHMILevelChanged
+   * @param app_id id of application, whose hmi level was changed
+   * @param from old hmi_level
+   * @param to new hmi level
+   */
+  virtual void OnHMILevelChanged(uint32_t app_id, mobile_apis::HMILevel::eType from,
+                         mobile_apis::HMILevel::eType to) const;
+
+  /**
+   * @brief Sends HMI status notification to mobile
+   *
+   *@param application_impl application with changed HMI status
+   *
+   **/
+  virtual void SendHMIStatusNotification(const utils::SharedPtr<Application> app) const;
+
+  /**
+   * @brief application_id return application id of request with correlation id
+   * @param correlation_id correlation id of request
+   * @return application id
+   */
+  virtual const uint32_t application_id(const int32_t correlation_id) const;
+
+  /**
+   * @brief application_by_hmi_app application by hmi applicatin id
+   * @param hmi_app_id hmi application id
+   * @return application if exist or empty SharedPointer
+   */
+  virtual ApplicationSharedPtr application_by_hmi_app(const uint32_t hmi_app_id) const;
+
+  virtual mobile_api::HMILevel::eType GetDefaultHmiLevel(
+      ApplicationConstSharedPtr application) const;
+
+ private:
+  ApplicationManager* app_mngr_;
 };
-
-}
-#endif // STATE_CONTEXT_H
-
+}  // namespace application_manager
+#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_STATE_CONTEXT_H_
