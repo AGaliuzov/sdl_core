@@ -45,42 +45,42 @@
 
 namespace application_manager {
 class StateController : public event_engine::EventObserver {
-  public:
-    explicit StateController(ApplicationManager* app_mngr);
+ public:
+  explicit StateController(ApplicationManager* app_mngr);
 
-    /**
-     * @brief SetRegularState setup regular hmi state, that will appear if no
-     * specific events are active
-     * @param app appication to setup regular State
-     * @param state state of new regular state
-     */
-    template <bool SendActivateApp>
-    void SetRegularState(ApplicationSharedPtr app,
-                         HmiStatePtr state) {
-      if (!app) {
-        return;
-      }
-      DCHECK_OR_RETURN_VOID(state);
-      DCHECK_OR_RETURN_VOID(state->state_id() == HmiState::STATE_ID_REGULAR);
-
-      HmiStatePtr resolved_state = ResolveHmiState(app, state);
-      if (!resolved_state) {
-        state->set_state_id(HmiState::STATE_ID_POSTPONED);
-        app->SetPostponedState(state);
-        return;
-      }
-
-      if (SendActivateApp) {
-        uint32_t corr_id = MessageHelper::SendActivateAppToHMI(app->app_id(),
-            static_cast<hmi_apis::Common_HMILevel::eType>(
-                resolved_state->hmi_level()));
-        subscribe_on_event(
-            hmi_apis::FunctionID::BasicCommunication_ActivateApp, corr_id);
-        waiting_for_activate[app->app_id()] = resolved_state;
-      } else {
-        ApplyRegularState(app, resolved_state);
-      }
+  /**
+   * @brief SetRegularState setup regular hmi state, that will appear if no
+   * specific events are active
+   * @param app appication to setup regular State
+   * @param state state of new regular state
+   */
+  template <bool SendActivateApp>
+  void SetRegularState(ApplicationSharedPtr app,
+                       HmiStatePtr state) {
+    if (!app) {
+      return;
     }
+    DCHECK_OR_RETURN_VOID(state);
+    DCHECK_OR_RETURN_VOID(state->state_id() == HmiState::STATE_ID_REGULAR);
+
+    HmiStatePtr resolved_state = ResolveHmiState(app, state);
+    if (!resolved_state) {
+      state->set_state_id(HmiState::STATE_ID_POSTPONED);
+      app->SetPostponedState(state);
+      return;
+    }
+
+    if (SendActivateApp) {
+      uint32_t corr_id = MessageHelper::SendActivateAppToHMI(app->app_id(),
+          static_cast<hmi_apis::Common_HMILevel::eType>(
+              resolved_state->hmi_level()));
+      subscribe_on_event(
+          hmi_apis::FunctionID::BasicCommunication_ActivateApp, corr_id);
+      waiting_for_activate[app->app_id()] = resolved_state;
+    } else {
+      ApplyRegularState(app, resolved_state);
+    }
+  }
 
   /**
    * @brief SetRegularState Change regular audio state
@@ -514,6 +514,14 @@ private:
    */
   HmiStatePtr CreateHmiState(uint32_t app_id, HmiState::StateID state_id);
 
+  /**
+   * @brief Tels if it is possible to setup regular state
+   * @param app applicatoin to check possibility to setup state
+   * @param state - State to setup
+   *
+   **/
+  bool IsHmiStateAllowed(const ApplicationSharedPtr app,
+                         const HmiStatePtr state) const;
 
   mobile_apis::AudioStreamingState::eType CalcAudioState(
       ApplicationSharedPtr app, const mobile_apis::HMILevel::eType hmi_level);
