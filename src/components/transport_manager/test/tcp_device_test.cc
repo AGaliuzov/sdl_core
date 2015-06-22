@@ -41,14 +41,34 @@ namespace transport_manager_test {
 using namespace ::transport_manager;
 using namespace ::transport_manager::transport_adapter;
 
+class TestDevice : public Device {
+ public:
+  TestDevice(const uint32_t& in_addr, const std::string& name)
+      : Device(name, name), in_addr_(in_addr) {}
+  bool IsSameAs(const Device* other_device) const { return true; }
+  ApplicationList GetApplicationList() const {
+    ApplicationList app_list;
+    return app_list;
+  }
+  const uint32_t in_addr_;
+};
+
 TEST(TcpDeviceTest, CompareWithOtherTCPDevice) {
   uint32_t in_addr = 10;
   std::string name = "tcp_device";
   TcpDevice test_tcp_device(in_addr, name);
-
   TcpDevice other(in_addr, "other");
 
   EXPECT_TRUE(test_tcp_device.IsSameAs(&other));
+}
+
+TEST(TcpDeviceTest, CompareWithOtherNotTCPDevice) {
+  uint32_t in_addr = 10;
+  std::string name = "tcp_device";
+  TcpDevice test_tcp_device(in_addr, name);
+  TestDevice other(in_addr, "other");
+
+  EXPECT_FALSE(test_tcp_device.IsSameAs(&other));
 }
 
 TEST(TcpDeviceTest, AddApplications) {
@@ -63,21 +83,20 @@ TEST(TcpDeviceTest, AddApplications) {
   EXPECT_EQ(1, test_tcp_device.AddDiscoveredApplication(port));
 
   // App.incoming = true; app.port = 0;
-  int socket=10;
+  int socket = 10;
   EXPECT_EQ(2, test_tcp_device.AddIncomingApplication(socket));
 
   ApplicationList applist = test_tcp_device.GetApplicationList();
   ASSERT_EQ(2u, applist.size());
-  EXPECT_EQ(1u,applist[0]);
-  EXPECT_EQ(2u,applist[1]);
+  EXPECT_EQ(1u, applist[0]);
+  EXPECT_EQ(2u, applist[1]);
 
   // Because incoming = false
   EXPECT_EQ(-1, test_tcp_device.GetApplicationSocket(applist[0]));
   EXPECT_EQ(10, test_tcp_device.GetApplicationSocket(applist[1]));
 
-
   EXPECT_EQ(port, test_tcp_device.GetApplicationPort(applist[0]));
-   // Because incoming = true
+  // Because incoming = true
   EXPECT_EQ(-1, test_tcp_device.GetApplicationPort(applist[1]));
 }
 
