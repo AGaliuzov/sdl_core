@@ -302,4 +302,7 @@ BEGIN TRANSACTION;
     ON `message`(`language_code`);
   CREATE INDEX IF NOT EXISTS `message.fk_message_consumer_friendly_messages1_idx`
     ON `message`(`message_type_name`);
+  CREATE TABLE IF NOT EXISTS `_internal_data`(
+    `db_version_hash` INTEGER
+  );
 COMMIT;
