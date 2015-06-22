@@ -36,10 +36,10 @@
 
 #include "application_manager/hmi_state.h"
 #include "application_manager/application.h"
+#include "application_manager/application_manager.h"
 #include "event_engine/event_observer.h"
 #include "application_manager/message_helper.h"
 #include "interfaces/MOBILE_API.h"
-#include "application_manager/state_context.h"
 #include "utils/lock.h"
 #include "utils/helpers.h"
 
@@ -247,7 +247,7 @@ class StateController : public event_engine::EventObserver {
    */
   virtual void OnNaviStreamingStopped();
 
-private:
+ private:
   /**
    * @brief The HmiLevelConflictResolver struct
    * Move other application to HmiStates if applied moved to FULL or LIMITED
@@ -261,6 +261,18 @@ private:
         : applied_(app), state_(state), state_ctrl_(state_ctrl) {}
     void operator()(ApplicationSharedPtr to_resolve);
   };
+
+  template <typename UnaryFunction>
+  void ForEachApplication(UnaryFunction func) const {
+    DataAccessor<ApplicationSet> accessor = app_mngr_->applications();
+    ApplicationSet::iterator it = accessor.GetData().begin();
+    for (; it != accessor.GetData().end(); ++it) {
+      ApplicationConstSharedPtr const_app = *it;
+      if (const_app) {
+        func(app_mngr_->application(const_app->app_id()));
+      }
+    }
+  }
 
   /**
    * @brief ResolveHmiState Checks if requested hmi state is
@@ -530,6 +542,7 @@ private:
   StateIDList active_states_;
   sync_primitives::Lock active_states_lock_;
   std::map<uint32_t, HmiStatePtr> waiting_for_activate;
+  ApplicationManager* app_mngr_;
 };
 }
 

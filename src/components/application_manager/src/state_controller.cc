@@ -51,7 +51,7 @@ bool IsStatusChanged(HmiStatePtr old_state, HmiStatePtr new_state) {
 }
 
 StateController::StateController(ApplicationManager* app_mngr)
-    : EventObserver(), state_context_(app_mngr) {
+    : EventObserver(), app_mngr_(app_mngr) {
   subscribe_on_event(hmi_apis::FunctionID::BasicCommunication_OnAppActivated);
   subscribe_on_event(hmi_apis::FunctionID::BasicCommunication_OnAppDeactivated);
   subscribe_on_event(hmi_apis::FunctionID::BasicCommunication_OnEmergencyEvent);
@@ -123,15 +123,15 @@ void StateController::HmiLevelConflictResolver::operator()(
 
   if (cur_state->hmi_level() != result_hmi_level) {
     LOG4CXX_DEBUG(logger_, "Application " << to_resolve->app_id()
-                  << " will change HMI level to " << result_hmi_level);
+                                          << " will change HMI level to "
+                                          << result_hmi_level);
     state_ctrl_->SetupRegularHmiState(to_resolve, result_hmi_level,
                                       result_hmi_level == HMILevel::HMI_LIMITED
                                           ? AudioStreamingState::AUDIBLE
                                           : AudioStreamingState::NOT_AUDIBLE);
   } else {
-
     LOG4CXX_DEBUG(logger_, "Application " << to_resolve->app_id()
-                  << " will not change HMI level");
+                                          << " will not change HMI level");
   }
 }
 
@@ -291,7 +291,7 @@ void StateController::ApplyRegularState(ApplicationSharedPtr app,
   DCHECK_OR_RETURN_VOID(state);
   DCHECK_OR_RETURN_VOID(state->state_id() == HmiState::STATE_ID_REGULAR);
   SetupRegularHmiState(app, state);
-  state_context().ForEachApplication<HmiLevelConflictResolver>(
+  ForEachApplication<HmiLevelConflictResolver>(
       HmiLevelConflictResolver(app, state, this));
 }
 
@@ -387,12 +387,12 @@ void StateController::OnStateChanged(ApplicationSharedPtr app,
                                            << ", system_context "
                                            << new_state->system_context());
   if (IsStatusChanged(old_state, new_state)) {
-    state_context().SendHMIStatusNotification(app);
+    app_mngr_->SendHMIStatusNotification(app);
     if (new_state->hmi_level() == mobile_apis::HMILevel::HMI_NONE) {
       app->ResetDataInNone();
     }
-    state_context().OnHMILevelChanged(app->app_id(), old_state->hmi_level(),
-                                      new_state->hmi_level());
+    app_mngr_->OnHMILevelChanged(app->app_id(), old_state->hmi_level(),
+                                 new_state->hmi_level());
     app->usage_report().RecordHmiStateChanged(new_state->hmi_level());
   } else {
     LOG4CXX_ERROR(logger_, "Status not changed");
@@ -597,7 +597,7 @@ void StateController::OnAppDeactivated(
 
 void StateController::OnPhoneCallStarted() {
   LOG4CXX_AUTO_TRACE(logger_);
-  state_context().ForEachApplication(std::bind1st(
+  ForEachApplication(std::bind1st(
       std::mem_fun(
           &StateController::HMIStateStarted<HmiState::STATE_ID_PHONE_CALL>),
       this));
@@ -606,7 +606,7 @@ void StateController::OnPhoneCallStarted() {
 
 void StateController::OnPhoneCallEnded() {
   LOG4CXX_AUTO_TRACE(logger_);
-  state_context().ForEachApplication(std::bind1st(
+  ForEachApplication(std::bind1st(
       std::mem_fun(
           &StateController::HMIStateStopped<HmiState::STATE_ID_PHONE_CALL>),
       this));
@@ -615,7 +615,7 @@ void StateController::OnPhoneCallEnded() {
 
 void StateController::OnSafetyModeEnabled() {
   LOG4CXX_AUTO_TRACE(logger_);
-  state_context().ForEachApplication(std::bind1st(
+  ForEachApplication(std::bind1st(
       std::mem_fun(
           &StateController::HMIStateStarted<HmiState::STATE_ID_SAFETY_MODE>),
       this));
@@ -625,7 +625,7 @@ void StateController::OnSafetyModeEnabled() {
 void StateController::OnSafetyModeDisabled() {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  state_context().ForEachApplication(std::bind1st(
+  ForEachApplication(std::bind1st(
       std::mem_fun(
           &StateController::HMIStateStopped<HmiState::STATE_ID_SAFETY_MODE>),
       this));
@@ -634,7 +634,7 @@ void StateController::OnSafetyModeDisabled() {
 
 void StateController::OnVRStarted() {
   LOG4CXX_AUTO_TRACE(logger_);
-  state_context().ForEachApplication(std::bind1st(
+  ForEachApplication(std::bind1st(
       std::mem_fun(
           &StateController::HMIStateStarted<HmiState::STATE_ID_VR_SESSION>),
       this));
@@ -643,7 +643,7 @@ void StateController::OnVRStarted() {
 
 void StateController::OnVREnded() {
   LOG4CXX_AUTO_TRACE(logger_);
-  state_context().ForEachApplication(std::bind1st(
+  ForEachApplication(std::bind1st(
       std::mem_fun(
           &StateController::HMIStateStopped<HmiState::STATE_ID_VR_SESSION>),
       this));
@@ -652,7 +652,7 @@ void StateController::OnVREnded() {
 
 void StateController::OnTTSStarted() {
   LOG4CXX_AUTO_TRACE(logger_);
-  state_context().ForEachApplication(std::bind1st(
+  ForEachApplication(std::bind1st(
       std::mem_fun(
           &StateController::HMIStateStarted<HmiState::STATE_ID_TTS_SESSION>),
       this));
@@ -661,7 +661,7 @@ void StateController::OnTTSStarted() {
 
 void StateController::OnTTSStopped() {
   LOG4CXX_AUTO_TRACE(logger_);
-  state_context().ForEachApplication(std::bind1st(
+  ForEachApplication(std::bind1st(
       std::mem_fun(
           &StateController::HMIStateStopped<HmiState::STATE_ID_TTS_SESSION>),
       this));
@@ -669,12 +669,12 @@ void StateController::OnTTSStopped() {
 }
 
 void StateController::SetAplicationManager(ApplicationManager* app_mngr) {
-  state_context_.set_app_mngr(app_mngr);
+  app_mngr_ = app_mngr;
 }
 
 void StateController::OnNaviStreamingStarted() {
   LOG4CXX_AUTO_TRACE(logger_);
-  state_context().ForEachApplication(std::bind1st(
+  ForEachApplication(std::bind1st(
       std::mem_fun(
           &StateController::HMIStateStarted<HmiState::STATE_ID_NAVI_STREAMING>),
       this));
@@ -683,7 +683,7 @@ void StateController::OnNaviStreamingStarted() {
 
 void StateController::OnNaviStreamingStopped() {
   LOG4CXX_AUTO_TRACE(logger_);
-  state_context().ForEachApplication(std::bind1st(
+  ForEachApplication(std::bind1st(
       std::mem_fun(
           &StateController::HMIStateStopped<HmiState::STATE_ID_NAVI_STREAMING>),
       this));
@@ -796,10 +796,5 @@ mobile_apis::AudioStreamingState::eType StateController::CalcAudioState(
   }
   return audio_state;
 }
-
-void StateController::set_state_context(const StateContext& state_context) {
-  state_context_ = state_context;
-}
-
 
 }  // namespace application_manager

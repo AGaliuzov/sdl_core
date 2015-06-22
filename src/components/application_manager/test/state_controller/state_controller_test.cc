@@ -37,7 +37,6 @@
 #include "application_manager_mock.h"
 #include "application_mock.h"
 #include "statistics_manager_mock.h"
-#include "state_context_mock.h"
 #include "utils/lock.h"
 #include "utils/data_accessor.h"
 #include "utils/make_shared.h"
@@ -169,8 +168,8 @@ class StateControllerTest : public ::testing::Test {
     namespace AudioStreamingState = mobile_apis::AudioStreamingState;
     namespace SystemContext = mobile_apis::SystemContext;
 
-    am::HmiStatePtr state = utils::MakeShared<am::HmiState>(
-        simple_app_id_, state_ctrl_.state_context());
+    am::HmiStatePtr state =
+        utils::MakeShared<am::HmiState>(simple_app_id_, &app_manager_mock_);
     state->set_hmi_level(hmi_level);
     state->set_audio_streaming_state(aidio_ss);
     state->set_system_context(system_context);
@@ -465,7 +464,6 @@ class StateControllerTest : public ::testing::Test {
   }
 };
 
-
 TEST_F(StateControllerTest, OnStateChangedWithDifferentStates) {
   using am::HmiState;
   using am::HmiStatePtr;
@@ -476,38 +474,32 @@ TEST_F(StateControllerTest, OnStateChangedWithDifferentStates) {
 
   application_set_.insert(simple_app_);
 
-  HmiStatePtr old_state1(
-      new HmiState(simple_app_id_, state_ctrl_.state_context()));
+  HmiStatePtr old_state1(new HmiState(simple_app_id_, &app_manager_mock_));
   old_state1->set_hmi_level(HMILevel::HMI_BACKGROUND);
   old_state1->set_audio_streaming_state(AudioStreamingState::NOT_AUDIBLE);
   old_state1->set_system_context(SystemContext::SYSCTXT_MAIN);
 
-  HmiStatePtr new_state1(
-      new HmiState(simple_app_id_, state_ctrl_.state_context()));
+  HmiStatePtr new_state1(new HmiState(simple_app_id_, &app_manager_mock_));
   new_state1->set_hmi_level(HMILevel::HMI_BACKGROUND);
   new_state1->set_audio_streaming_state(AudioStreamingState::AUDIBLE);
   new_state1->set_system_context(SystemContext::SYSCTXT_MAIN);
 
-  HmiStatePtr old_state2(
-      new HmiState(simple_app_id_, state_ctrl_.state_context()));
+  HmiStatePtr old_state2(new HmiState(simple_app_id_, &app_manager_mock_));
   old_state2->set_hmi_level(HMILevel::HMI_LIMITED);
   old_state2->set_audio_streaming_state(AudioStreamingState::AUDIBLE);
   old_state2->set_system_context(SystemContext::SYSCTXT_MAIN);
 
-  HmiStatePtr new_state2(
-      new HmiState(simple_app_id_, state_ctrl_.state_context()));
+  HmiStatePtr new_state2(new HmiState(simple_app_id_, &app_manager_mock_));
   new_state2->set_hmi_level(HMILevel::HMI_LIMITED);
   new_state2->set_audio_streaming_state(AudioStreamingState::AUDIBLE);
   new_state2->set_system_context(SystemContext::SYSCTXT_VRSESSION);
 
-  HmiStatePtr old_state3(
-      new HmiState(simple_app_id_, state_ctrl_.state_context()));
+  HmiStatePtr old_state3(new HmiState(simple_app_id_, &app_manager_mock_));
   old_state3->set_hmi_level(HMILevel::HMI_LIMITED);
   old_state3->set_audio_streaming_state(AudioStreamingState::AUDIBLE);
   old_state3->set_system_context(SystemContext::SYSCTXT_MAIN);
 
-  HmiStatePtr new_state3(
-      new HmiState(simple_app_id_, state_ctrl_.state_context()));
+  HmiStatePtr new_state3(new HmiState(simple_app_id_, &app_manager_mock_));
   new_state3->set_hmi_level(HMILevel::HMI_FULL);
   new_state3->set_audio_streaming_state(AudioStreamingState::AUDIBLE);
   new_state3->set_system_context(SystemContext::SYSCTXT_VRSESSION);
@@ -548,26 +540,22 @@ TEST_F(StateControllerTest, OnStateChangedToNone) {
 
   application_set_.insert(simple_app_);
 
-  HmiStatePtr old_state1(
-      new HmiState(simple_app_id_, state_ctrl_.state_context()));
+  HmiStatePtr old_state1(new HmiState(simple_app_id_, &app_manager_mock_));
   old_state1->set_hmi_level(HMILevel::HMI_NONE);
   old_state1->set_audio_streaming_state(AudioStreamingState::NOT_AUDIBLE);
   old_state1->set_system_context(SystemContext::SYSCTXT_MAIN);
 
-  HmiStatePtr new_state1(
-      new HmiState(simple_app_id_, state_ctrl_.state_context()));
+  HmiStatePtr new_state1(new HmiState(simple_app_id_, &app_manager_mock_));
   new_state1->set_hmi_level(HMILevel::HMI_FULL);
   new_state1->set_audio_streaming_state(AudioStreamingState::NOT_AUDIBLE);
   new_state1->set_system_context(SystemContext::SYSCTXT_MAIN);
 
-  HmiStatePtr old_state2(
-      new HmiState(simple_app_id_, state_ctrl_.state_context()));
+  HmiStatePtr old_state2(new HmiState(simple_app_id_, &app_manager_mock_));
   old_state2->set_hmi_level(HMILevel::HMI_LIMITED);
   old_state2->set_audio_streaming_state(AudioStreamingState::AUDIBLE);
   old_state2->set_system_context(SystemContext::SYSCTXT_MAIN);
 
-  HmiStatePtr new_state2(
-      new HmiState(simple_app_id_, state_ctrl_.state_context()));
+  HmiStatePtr new_state2(new HmiState(simple_app_id_, &app_manager_mock_));
   new_state2->set_hmi_level(HMILevel::HMI_NONE);
   new_state2->set_audio_streaming_state(AudioStreamingState::AUDIBLE);
   new_state2->set_system_context(SystemContext::SYSCTXT_MAIN);
@@ -1254,38 +1242,38 @@ TEST_F(StateControllerTest, ActivateAppSuccessReceivedFromHMI) {
       StateLevelPair(LimitedState(), Common_HMILevel::LIMITED));
   hmi_states.push_back(
       StateLevelPair(BackgroundState(), Common_HMILevel::BACKGROUND));
-    hmi_states.push_back(StateLevelPair(createHmiState(HMILevel::HMI_NONE,
-                                        AudioStreamingState::NOT_AUDIBLE,
-                                        SystemContext::SYSCTXT_MAIN),
-                         Common_HMILevel::NONE));
+  hmi_states.push_back(StateLevelPair(
+      createHmiState(HMILevel::HMI_NONE, AudioStreamingState::NOT_AUDIBLE,
+                     SystemContext::SYSCTXT_MAIN),
+      Common_HMILevel::NONE));
   std::vector<StateLevelPair> initial_hmi_states = hmi_states;
   std::vector<StateLevelPair>::iterator it = hmi_states.begin();
   std::vector<StateLevelPair>::iterator it2 = initial_hmi_states.begin();
   for (; it != hmi_states.end(); ++it) {
     for (; it2 != initial_hmi_states.end(); ++it2) {
-    am::HmiStatePtr hmi_state = it->first;
-    am::HmiStatePtr initial_hmi_state = it->first;
-    Common_HMILevel::eType hmi_level = it->second;
+      am::HmiStatePtr hmi_state = it->first;
+      am::HmiStatePtr initial_hmi_state = it->first;
+      Common_HMILevel::eType hmi_level = it->second;
 
-    EXPECT_CALL(*message_helper_mock_,
-                SendActivateAppToHMI(media_app_->app_id(), hmi_level, _))
-        .WillOnce(Return(corr_id));
-    EXPECT_CALL(app_manager_mock_, application_id(corr_id))
-        .WillOnce(Return(hmi_app_id));
-    EXPECT_CALL(app_manager_mock_, application_by_hmi_app(hmi_app_id))
-        .WillOnce(Return(media_app_));
-    ExpectSuccesfullSetHmiState(media_app_, media_app_ptr_, initial_hmi_state,
-                                hmi_state);
-    state_ctrl_.SetRegularState<true>(media_app_, hmi_state);
-    smart_objects::SmartObject message;
-    message[am::strings::params][am::hmi_response::code] =
-        Common_Result::SUCCESS;
-    message[am::strings::params][am::strings::correlation_id] = corr_id;
-    am::event_engine::Event event(
-        hmi_apis::FunctionID::BasicCommunication_ActivateApp);
-    event.set_smart_object(message);
-    state_ctrl_.on_event(event);
-  }
+      EXPECT_CALL(*message_helper_mock_,
+                  SendActivateAppToHMI(media_app_->app_id(), hmi_level, _))
+          .WillOnce(Return(corr_id));
+      EXPECT_CALL(app_manager_mock_, application_id(corr_id))
+          .WillOnce(Return(hmi_app_id));
+      EXPECT_CALL(app_manager_mock_, application_by_hmi_app(hmi_app_id))
+          .WillOnce(Return(media_app_));
+      ExpectSuccesfullSetHmiState(media_app_, media_app_ptr_, initial_hmi_state,
+                                  hmi_state);
+      state_ctrl_.SetRegularState<true>(media_app_, hmi_state);
+      smart_objects::SmartObject message;
+      message[am::strings::params][am::hmi_response::code] =
+          Common_Result::SUCCESS;
+      message[am::strings::params][am::strings::correlation_id] = corr_id;
+      am::event_engine::Event event(
+          hmi_apis::FunctionID::BasicCommunication_ActivateApp);
+      event.set_smart_object(message);
+      state_ctrl_.on_event(event);
+    }
   }
 }
 

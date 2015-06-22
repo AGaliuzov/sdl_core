@@ -203,6 +203,9 @@ class ApplicationManagerImpl
                ApplicationSharedPtr(
                    const utils::SharedPtr<smart_objects::SmartObject>&));
   MOCK_METHOD0(hmi_capabilities, HMICapabilities&());
+  MOCK_METHOD0(is_attenuated_supported, bool());
+  MOCK_METHOD1(ProcessQueryApp,
+               void(const smart_objects::SmartObject& sm_object));
   MOCK_METHOD1(ManageHMICommand,
                bool(const utils::SharedPtr<smart_objects::SmartObject>&));
   MOCK_METHOD2(ManageMobileCommand,
@@ -352,8 +355,8 @@ class ApplicationManagerImpl
   MOCK_METHOD3(set_state,
                void(ApplicationSharedPtr app, mobile_apis::HMILevel::eType,
                     mobile_apis::AudioStreamingState::eType));
-  MOCK_CONST_METHOD1(GetDefaultHmiLevel, mobile_apis::HMILevel::eType(
-                                       ApplicationConstSharedPtr));
+  MOCK_CONST_METHOD1(GetDefaultHmiLevel,
+                     mobile_apis::HMILevel::eType(ApplicationConstSharedPtr));
   bool IsHMICooperating() const { return true; };
 
   ApplicationSharedPtr application(uint32_t) const {

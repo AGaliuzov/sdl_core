@@ -71,8 +71,9 @@ class ApplicationManagerMock : public application_manager::ApplicationManager {
                                        mobile_apis::HMILevel::eType));
   MOCK_METHOD1(SendHMIStatusNotification, void(const am::ApplicationSharedPtr));
   MOCK_CONST_METHOD1(GetDefaultHmiLevel, mobile_apis::HMILevel::eType(
-                                       am::ApplicationConstSharedPtr));
+                                             am::ApplicationConstSharedPtr));
   MOCK_METHOD0(hmi_capabilities, am::HMICapabilities&());
+  MOCK_METHOD0(is_attenuated_supported, bool());
 };
 }  // namespace state_controller_test
 #endif  // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_STATE_CONTROLLER_INCLUDE_APPLICATION_MANAGER_MOCK_H_

@@ -186,6 +186,8 @@ class ApplicationManager {
    * @return capabilities of hmi
    */
   virtual HMICapabilities& hmi_capabilities() = 0;
+
+  virtual bool is_attenuated_supported() = 0;
 };
 
 }  // namespace application_manager

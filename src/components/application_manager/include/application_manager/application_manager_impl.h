@@ -257,6 +257,8 @@ class ApplicationManagerImpl :
 
   HMICapabilities& hmi_capabilities();
 
+  virtual bool is_attenuated_supported();
+
   /**
    * @brief ProcessQueryApp executes logic related to QUERY_APP system request.
    *
