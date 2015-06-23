@@ -362,7 +362,7 @@ TEST_F(ConnectionTest, Session_AddAllOtherService_DelayProtected2) {
 TEST_F(ConnectionTest, RemoveSession) {
   StartSession();
   EXPECT_EQ(session_id, connection_->RemoveSession(session_id));
-  EXPECT_EQ(0, connection_->RemoveSession(session_id));
+  EXPECT_EQ(0u, connection_->RemoveSession(session_id));
 }
 
 #ifdef ENABLE_SECURITY
