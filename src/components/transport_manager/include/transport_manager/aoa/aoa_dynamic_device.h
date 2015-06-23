@@ -52,7 +52,7 @@ class AOADynamicDevice : public AOADevice {
                    TransportAdapterController* controller);
   ~AOADynamicDevice();
 
-  bool Init();
+  bool StartHandling();
 
  private:
   AOADeviceLife* life_;
