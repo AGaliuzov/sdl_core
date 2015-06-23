@@ -394,7 +394,7 @@ void CreateInteractionChoiceSetRequest::OnAllHMIResponsesReceived() {
 
   unsubscribe_from_event(hmi_apis::FunctionID::VR_AddCommand);
 
-  if (!error_from_hmi_) {
+  if (response_from_hmi_ && !error_from_hmi_) {
     SendResponse(true, mobile_apis::Result::SUCCESS);
 
     ApplicationSharedPtr application =
