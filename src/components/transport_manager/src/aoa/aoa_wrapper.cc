@@ -58,7 +58,7 @@ static void OnConnectedDevice(aoa_hdl_t *hdl, const void *udata) {
   LifeKeeper* life_keeper = (LifeKeeper*)udata;
   if (NULL == life_keeper) { return; }
 
-  AOADeviceLife* life = life_keeper->Bind2HandleLife(hdl);
+  AOADeviceLife* life = life_keeper->BindHandle2Life(hdl);
   if (life) {
     life->Loop(hdl);
   }
@@ -250,7 +250,7 @@ bool AOAWrapper::Shutdown() {
     PrintError(ret);
     return false;
   }
-  life_keeper_ = 0;
+  delete life_keeper_;
   active_handle = NULL;
   return true;
 }
