@@ -695,7 +695,7 @@ void PolicyHandler::OnPendingPermissionChange(
       app_id, permissions);
     ApplicationManagerImpl::instance()->SetState<true>(app->app_id(),
                                                  mobile_apis::HMILevel::HMI_NONE,
-                                                 mobile_apis::AudioStreamingState::NOT_AUDIBLE);    
+                                                 mobile_apis::AudioStreamingState::NOT_AUDIBLE);
     policy_manager_->RemovePendingPermissionChanges(policy_app_id);
     return;
   }
@@ -1402,6 +1402,11 @@ const std::vector<std::string> PolicyHandler::GetAppRequestTypes(
 const VehicleInfo policy::PolicyHandler::GetVehicleInfo() const {
   POLICY_LIB_CHECK(VehicleInfo());
   return policy_manager_->GetVehicleInfo();
+}
+
+const MetaInfo PolicyHandler::GetMetaInfo() const {
+  POLICY_LIB_CHECK(MetaInfo());
+  return policy_manager_->GetMetaInfo();
 }
 
 void PolicyHandler::Increment(usage_statistics::GlobalCounterId type) {

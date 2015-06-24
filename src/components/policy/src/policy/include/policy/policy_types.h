@@ -337,6 +337,16 @@ struct VehicleInfo {
   std::string vehicle_year;
 };
 
+/**
+ * @brief The MetaInfo information
+ */
+struct MetaInfo {
+    std::string ccpu_version;
+    std::string wers_country_code;
+    std::string language;
+};
+
+
 
 }  //  namespace policy
 

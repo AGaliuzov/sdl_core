@@ -64,12 +64,13 @@ void GetSystemInfoResponse::Run() {
     uint32_t lang_code = (*message_)[strings::msg_params]["language"].asUInt();
     language = application_manager::MessageHelper::CommonLanguageToString(
         static_cast<hmi_apis::Common_Language::eType>(lang_code));
-    
-    HMICapabilities& hmi_capabilities =
-      ApplicationManagerImpl::instance()->hmi_capabilities();
-    hmi_capabilities.set_ccpu_version(ccpu_version);
   } else {
     LOG4CXX_WARN(logger_, "GetSystemError returns an error code " << code);
+    policy::MetaInfo meta_info =
+        policy::PolicyHandler::instance()->GetMetaInfo();
+    ccpu_version = meta_info.ccpu_version;
+    wers_country_code = meta_info.wers_country_code;
+    language = meta_info.language;
   }
 
   // We have to set preloaded flag as false in policy table on any response

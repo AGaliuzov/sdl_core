@@ -440,6 +440,12 @@ class PolicyManager : public usage_statistics::StatisticsManager {
      */
     virtual const VehicleInfo GetVehicleInfo() const = 0;
 
+    /**
+     * @brief Gets meta information
+     * @return meta information
+     */
+    virtual const MetaInfo GetMetaInfo() const = 0;
+
   protected:
     /**
      * Checks is PT exceeded IgnitionCycles

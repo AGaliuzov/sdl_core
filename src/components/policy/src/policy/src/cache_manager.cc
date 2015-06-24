@@ -1763,6 +1763,15 @@ void CacheManager::GetAppRequestTypes(
   return;
 }
 
+const MetaInfo CacheManager::GetMetaInfo() const {
+  LOG4CXX_AUTO_TRACE(logger_);
+  MetaInfo meta_info;
+  meta_info.ccpu_version = *pt_->policy_table.module_meta->ccpu_version;
+  meta_info.wers_country_code = *pt_->policy_table.module_meta->wers_country_code;
+  meta_info.language = *pt_->policy_table.module_meta->language;
+  return meta_info;
+}
+
 void CacheManager::MergePreloadPT(const std::string& file_name) {
   LOG4CXX_AUTO_TRACE(logger_);
   policy_table::Table table;

@@ -189,6 +189,7 @@ class MockCacheManagerInterface : public CacheManagerInterface {
                bool(const std::string& device_id, const std::string& policy_app_id, policy::Permissions& permission));
   MOCK_CONST_METHOD0(RemoteAppsUrl, std::string());
   MOCK_CONST_METHOD0(GetPT, utils::SharedPtr<policy_table::Table>());
+  MOCK_CONST_METHOD0(GetMetaInfo, const MetaInfo());
 };
 
 }  // namespace policy

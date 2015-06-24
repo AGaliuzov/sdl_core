@@ -363,6 +363,12 @@ class PolicyHandler :
    */
   const VehicleInfo GetVehicleInfo() const;
 
+  /**
+   * @brief Gets meta information
+   * @return meta information
+   */
+  const policy::MetaInfo GetMetaInfo() const;
+
 //TODO(AKutsan) REMOVE THIS UGLY HOTFIX
   virtual void Increment(usage_statistics::GlobalCounterId type);
   virtual void Increment(const std::string& app_id,

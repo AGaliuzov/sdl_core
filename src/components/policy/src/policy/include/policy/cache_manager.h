@@ -560,6 +560,8 @@ class CacheManager : public CacheManagerInterface {
   void GetAppRequestTypes(const std::string& policy_app_id,
                           std::vector<std::string>& request_types) const;
 
+  virtual const MetaInfo GetMetaInfo() const OVERRIDE;
+
 #ifdef BUILD_TESTS
  utils::SharedPtr<policy_table::Table> GetPT() const {
      return pt_;

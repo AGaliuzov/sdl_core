@@ -38,6 +38,7 @@
 
 #include "utils/shared_ptr.h"
 #include "usage_statistics/counter.h"
+#include "policy/policy_types.h"
 
 namespace policy_table = rpc::policy_table_interface_base;
 
@@ -589,6 +590,12 @@ class CacheManagerInterface {
   virtual void GetAppRequestTypes(
       const std::string& policy_app_id,
       std::vector<std::string>& request_types) const = 0;
+
+   /**
+    * @brief Gets meta information
+    * @return meta information
+    */
+    virtual const MetaInfo GetMetaInfo() const = 0;
 
 #ifdef BUILD_TESTS
   /**
