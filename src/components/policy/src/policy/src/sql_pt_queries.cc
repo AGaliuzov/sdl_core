@@ -361,6 +361,7 @@ const std::string kDropSchema =
   "DROP TABLE IF EXISTS `consent_group`; "
   "DROP INDEX IF EXISTS `app_type.fk_app_type_application1_idx`; "
   "DROP TABLE IF EXISTS `app_type`; "
+  "DROP TABLE IF EXISTS `request_type`; "
   "DROP INDEX IF EXISTS `nickname.fk_nickname_application1_idx`; "
   "DROP TABLE IF EXISTS `nickname`; "
   "DROP INDEX IF EXISTS `app_level.fk_app_level_language2_idx`; "
@@ -425,6 +426,7 @@ const std::string kDeleteData =
   "DELETE FROM `module_meta`; "
   "DELETE FROM `usage_and_error_count`; "
   "DELETE FROM `device`; "
+  "DELETE FROM `request_type`; "
   "COMMIT; "
   "VACUUM;";
 
