@@ -64,9 +64,6 @@ AOATransportAdapter::~AOATransportAdapter() {
 
 void AOATransportAdapter::DisconnectDone(const DeviceUID& device_handle, const ApplicationHandle& app_handle) {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (aoa_shutdown_thread_delegate_) {
-    aoa_shutdown_thread_delegate_->Shutdown();
-  }
   TransportAdapterImpl::DisconnectDone(device_handle, app_handle);
 }
 
