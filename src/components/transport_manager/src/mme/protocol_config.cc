@@ -81,8 +81,10 @@ const ProtocolConfig::ProtocolNameContainer ProtocolConfig::ReadIAPLegacyProtoco
       ->iap_system_config();
   const std::string& legacy_protocol_mask = profile::Profile::instance()
       ->iap_legacy_protocol_mask();
-  return ReadProtocolNames(iap_system_config, iap_section_name,
-                           legacy_protocol_mask);
+  ProtocolNameContainer protocol_names;
+  ReadProtocolNames(iap_system_config, iap_section_name,
+                    legacy_protocol_mask, protocol_names);
+  return protocol_names;
 }
 
 const ProtocolConfig::ProtocolNameContainer ProtocolConfig::ReadIAP2LegacyProtocolNames() {
@@ -90,8 +92,20 @@ const ProtocolConfig::ProtocolNameContainer ProtocolConfig::ReadIAP2LegacyProtoc
       ->iap2_system_config();
   const std::string& legacy_protocol_mask = profile::Profile::instance()
       ->iap_legacy_protocol_mask();
-  return ReadProtocolNames(iap2_system_config, iap2_section_name,
-                           legacy_protocol_mask);
+
+  const std::vector<std::string>& dedicated_protocol_names =
+      profile::Profile::instance()->iap_dedicated_protocols_mask();
+
+  ProtocolNameContainer protocol_names;
+
+  ReadProtocolNames(iap2_system_config, iap2_section_name, legacy_protocol_mask, protocol_names);
+
+  for (size_t idx = 0; idx < dedicated_protocol_names.size(); ++idx) {
+    ReadProtocolNames(iap2_system_config, iap2_section_name,
+                      dedicated_protocol_names[idx], protocol_names);
+  }
+
+  return protocol_names;
 }
 
 const ProtocolConfig::ProtocolNameContainer ProtocolConfig::ReadIAPHubProtocolNames() {
@@ -99,8 +113,10 @@ const ProtocolConfig::ProtocolNameContainer ProtocolConfig::ReadIAPHubProtocolNa
       ->iap_system_config();
   const std::string& hub_protocol_mask = profile::Profile::instance()
       ->iap_hub_protocol_mask();
-  ProtocolConfig::ProtocolNameContainer protocols = ReadProtocolNames(
-      iap_system_config, iap_section_name, hub_protocol_mask);
+  ProtocolConfig::ProtocolNameContainer protocols;
+   ReadProtocolNames(iap_system_config, iap_section_name,
+                     hub_protocol_mask, protocols);
+
   ProtocolConfig::ProtocolNameContainer hub_protocols;
   uint32_t default_hub_protocol_index = profile::Profile::instance()->default_hub_protocol_index();
   ProtocolConfig::ProtocolNameContainer::iterator i = protocols.find(default_hub_protocol_index);
@@ -118,8 +134,10 @@ const ProtocolConfig::ProtocolNameContainer ProtocolConfig::ReadIAP2HubProtocolN
       ->iap2_system_config();
   const std::string& hub_protocol_mask = profile::Profile::instance()
       ->iap_hub_protocol_mask();
-  ProtocolConfig::ProtocolNameContainer protocols = ReadProtocolNames(
-      iap2_system_config, iap2_section_name, hub_protocol_mask);
+  ProtocolConfig::ProtocolNameContainer protocols;
+  ReadProtocolNames(iap2_system_config, iap2_section_name, hub_protocol_mask,
+                    protocols);
+
   ProtocolConfig::ProtocolNameContainer hub_protocols;
   uint32_t default_hub_protocol_index = profile::Profile::instance()->default_hub_protocol_index();
   ProtocolConfig::ProtocolNameContainer::iterator i = protocols.find(default_hub_protocol_index);
@@ -137,8 +155,9 @@ const ProtocolConfig::ProtocolNameContainer ProtocolConfig::ReadIAPPoolProtocolN
       ->iap_system_config();
   const std::string& pool_protocol_mask = profile::Profile::instance()
       ->iap_pool_protocol_mask();
-  ProtocolConfig::ProtocolNameContainer protocols = ReadProtocolNames(
-      iap_system_config, iap_section_name, pool_protocol_mask);
+  ProtocolConfig::ProtocolNameContainer protocols;
+  ReadProtocolNames(iap_system_config, iap_section_name, pool_protocol_mask,
+                    protocols);
   protocols.erase(profile::Profile::instance()->default_hub_protocol_index());
   return protocols;
 }
@@ -148,16 +167,17 @@ const ProtocolConfig::ProtocolNameContainer ProtocolConfig::ReadIAP2PoolProtocol
       ->iap2_system_config();
   const std::string& pool_protocol_mask = profile::Profile::instance()
       ->iap_pool_protocol_mask();
-  ProtocolConfig::ProtocolNameContainer protocols = ReadProtocolNames(
-      iap2_system_config, iap2_section_name, pool_protocol_mask);
+  ProtocolConfig::ProtocolNameContainer protocols;
+  ReadProtocolNames(iap2_system_config, iap2_section_name, pool_protocol_mask,
+                    protocols);
   protocols.erase(profile::Profile::instance()->default_hub_protocol_index());
   return protocols;
 }
 
 const ProtocolConfig::ProtocolNameContainer ProtocolConfig::ReadProtocolNames(
     const std::string& config_file_name, const std::string& section_name,
-    const std::string& protocol_mask) {
-  ProtocolNameContainer protocol_names;
+    const std::string& protocol_mask, ProtocolNameContainer& protocol_names) {
+
   std::ifstream config_file(config_file_name.c_str());
   if (!config_file.fail()) {
     LOG4CXX_DEBUG(

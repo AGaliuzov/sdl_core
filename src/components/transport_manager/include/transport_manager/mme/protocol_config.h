@@ -93,7 +93,7 @@ class ProtocolConfig {
 
   static const ProtocolNameContainer ReadProtocolNames(
       const std::string& config_file_name, const std::string& section_name,
-      const std::string& protocol_mask);
+      const std::string& protocol_mask, ProtocolNameContainer& protocol_names);
 };
 
 }  // namespace transport_adapter

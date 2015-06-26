@@ -575,6 +575,8 @@ class Profile : public utils::Singleton<Profile> {
 
     const std::string& iap_legacy_protocol_mask() const;
 
+    const std::vector<std::string>& iap_dedicated_protocols_mask() const;
+
     const std::string& iap_hub_protocol_mask() const;
 
     const std::string& iap_pool_protocol_mask() const;
@@ -838,6 +840,7 @@ private:
     std::pair<uint32_t, int32_t>    start_stream_retry_amount_;
 
     std::string                     iap_legacy_protocol_mask_;
+    std::vector<std::string>        iap_dedicated_protocols_;
     std::string                     iap_hub_protocol_mask_;
     std::string                     iap_pool_protocol_mask_;
     std::string                     iap_system_config_;

@@ -38,6 +38,7 @@
 #include <sstream>
 #include <algorithm>
 #include <limits>
+#include <vector>
 
 #include "config_profile/ini_file.h"
 #include "utils/logger.h"
@@ -181,6 +182,7 @@ const char* kApplicationListUpdateTimeoutKey = "ApplicationListUpdateTimeout";
 const char* kReadDIDFrequencykey = "ReadDIDRequest";
 const char* kGetVehicleDataFrequencyKey = "GetVehicleDataRequest";
 const char* kLegacyProtocolMaskKey = "LegacyProtocol";
+const char* kDedicatedProtocolsKey = "DedicatedProtocols";
 const char* kHubProtocolMaskKey = "HubProtocol";
 const char* kPoolProtocolMaskKey = "PoolProtocol";
 const char* kIAPSystemConfigKey = "IAPSystemConfig";
@@ -719,6 +721,10 @@ uint32_t Profile::default_hub_protocol_index() const {
 
 const std::string& Profile::iap_legacy_protocol_mask() const {
   return iap_legacy_protocol_mask_;
+}
+
+const std::vector<std::string>& Profile::iap_dedicated_protocols_mask() const {
+  return iap_dedicated_protocols_;
 }
 
 const std::string& Profile::iap_hub_protocol_mask() const {
@@ -1512,6 +1518,20 @@ void Profile::UpdateValues() {
 
   LOG_UPDATED_VALUE(iap_legacy_protocol_mask_, kLegacyProtocolMaskKey,
                     kIAPSection);
+
+  iap_dedicated_protocols_.clear();
+  std::string protocol_value;
+  if (ReadStringValue(&protocol_value, "", kIAPSection,
+                      kDedicatedProtocolsKey)) {
+    char* str = NULL;
+    str = strtok(const_cast<char*>(protocol_value.c_str()), " ,");
+    while (str != NULL) {
+      iap_dedicated_protocols_.push_back(str);
+      str = strtok(NULL, " ,");
+    }
+  }
+
+  LOG_UPDATED_VALUE(protocol_value, kDedicatedProtocolsKey, kIAPSection);
 
   ReadStringValue(&iap_hub_protocol_mask_, kDefaultHubProtocolMask, kIAPSection,
                   kHubProtocolMaskKey);
