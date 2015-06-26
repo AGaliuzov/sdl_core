@@ -52,32 +52,29 @@ void GetSystemInfoResponse::Run() {
       static_cast<hmi_apis::Common_Result::eType>(
           (*message_)[strings::params][hmi_response::code].asInt());
 
-  std::string ccpu_version;
-  std::string wers_country_code;
-  std::string language;
+  policy::MetaInfo meta_info =
+      policy::PolicyHandler::instance()->GetMetaInfo();
+  meta_info.ccpu_version = meta_info.ccpu_version;
+  meta_info.wers_country_code = meta_info.wers_country_code;
+  meta_info.language = meta_info.language;
 
   if (hmi_apis::Common_Result::SUCCESS == code) {
-    ccpu_version =
+    meta_info.ccpu_version =
         (*message_)[strings::msg_params]["ccpu_version"].asString();
-    wers_country_code =
+    meta_info.wers_country_code =
         (*message_)[strings::msg_params]["wersCountryCode"].asString();
     uint32_t lang_code = (*message_)[strings::msg_params]["language"].asUInt();
-    language = application_manager::MessageHelper::CommonLanguageToString(
+    meta_info.language = application_manager::MessageHelper::CommonLanguageToString(
         static_cast<hmi_apis::Common_Language::eType>(lang_code));
   } else {
     LOG4CXX_WARN(logger_, "GetSystemError returns an error code " << code);
-    policy::MetaInfo meta_info =
-        policy::PolicyHandler::instance()->GetMetaInfo();
-    ccpu_version = meta_info.ccpu_version;
-    wers_country_code = meta_info.wers_country_code;
-    language = meta_info.language;
   }
 
   // We have to set preloaded flag as false in policy table on any response
   // of GetSystemInfo (SDLAQ-CRS-2365)
-  policy::PolicyHandler::instance()->OnGetSystemInfo(ccpu_version,
-                                                     wers_country_code,
-                                                     language);
+  policy::PolicyHandler::instance()->OnGetSystemInfo(meta_info.ccpu_version,
+                                                     meta_info.wers_country_code,
+                                                     meta_info.language);
 }
 
 }  // namespace commands
