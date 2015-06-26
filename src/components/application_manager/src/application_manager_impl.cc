@@ -590,6 +590,7 @@ void ApplicationManagerImpl::OnHMIStartedCooperation() {
       MessageHelper::CreateModuleInfoSO(
           hmi_apis::FunctionID::BasicCommunication_MixingAudioSupported));
   ManageHMICommand(mixing_audio_supported_request);
+  MessageHelper::SendGetSystemInfoRequest();
 #ifdef CUSTOMER_PASA
   //Line start of transportManager component was left for panasonic
   if (!connection_handler_) {

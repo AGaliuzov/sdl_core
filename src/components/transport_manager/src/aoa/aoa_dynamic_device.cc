@@ -58,23 +58,17 @@ AOADynamicDevice::~AOADynamicDevice() {
   LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_, "AOA: device " << unique_device_id());
   life_cond_.NotifyOne();
-  sync_primitives::AutoLock locker(life_lock_);
-  life_cond_.Wait(locker);
   delete life_;
 }
 
-bool AOADynamicDevice::Init() {
-  return AOAWrapper::Init(life_, aoa_usb_info_);
+bool AOADynamicDevice::StartHandling() {
+  return AOAWrapper::HandleDevice(life_, aoa_usb_info_);
 }
 
 void AOADynamicDevice::AddDevice(AOAWrapper::AOAHandle handle) {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (lastDevice_.size()) {
-      controller_->DeviceDisconnected(lastDevice_, DisconnectDeviceError());
-  }
   set_handle(handle);
   controller_->ApplicationListUpdated(unique_device_id());
-  lastDevice_= unique_device_id();  
 }
 
 void AOADynamicDevice::LoopDevice(AOAWrapper::AOAHandle handle) {

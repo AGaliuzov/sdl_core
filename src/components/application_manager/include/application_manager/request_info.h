@@ -285,56 +285,19 @@ namespace request_controller {
 
   /**
   * @brief Structure used in std algorithms to determine amount of request
-  * during time scale
+  * during time scale for application in defined hmi level
   */
   struct TimeScale {
     TimeScale(const TimevalStruct& start,
               const TimevalStruct& end,
-              const uint32_t& app_id)
-      : start_(start),
-        end_(end),
-        app_id_(app_id) {}
-
-    bool operator()(RequestInfoPtr setEntry) {
-      if (!setEntry.valid()) {
-        return false;
-      }
-
-      if (setEntry->app_id() != app_id_) {
-        return false;
-      }
-
-      if (date_time::DateTime::getmSecs(setEntry->start_time())
-          < date_time::DateTime::getmSecs(start_) ||
-          date_time::DateTime::getmSecs(setEntry->start_time())
-          > date_time::DateTime::getmSecs(end_)) {
-        return false;
-      }
-
-      return true;
-    }
-
-  private:
-    TimevalStruct  start_;
-    TimevalStruct  end_;
-    uint32_t       app_id_;
-  };
-
-  /**
-  * @brief Structure used in std algorithms to determine amount of request
-  * during time scale for application in defined hmi level
-  */
-  struct HMILevelTimeScale {
-    HMILevelTimeScale(const TimevalStruct& start,
-                      const TimevalStruct& end,
-                      const uint32_t& app_id,
-                      const mobile_apis::HMILevel::eType& hmi_level)
+              const uint32_t& app_id,
+              const mobile_apis::HMILevel::eType& hmi_level)
       : start_(start),
         end_(end),
         app_id_(app_id),
         hmi_level_(hmi_level) {}
 
-    bool operator()(RequestInfoPtr setEntry) {
+    bool operator()(RequestInfoPtr setEntry) const {
       if (!setEntry.valid()) {
         return false;
       }
@@ -343,8 +306,10 @@ namespace request_controller {
         return false;
       }
 
-      if (setEntry->hmi_level() != hmi_level_) {
-        return false;
+      if(mobile_apis::HMILevel::INVALID_ENUM != hmi_level_) {
+        if (setEntry->hmi_level() != hmi_level_) {
+          return false;
+        }
       }
 
       if (date_time::DateTime::getSecs(setEntry->start_time())

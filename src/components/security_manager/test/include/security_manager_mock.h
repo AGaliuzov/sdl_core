@@ -252,7 +252,7 @@ MATCHER_P2(RawMessageEq, exp_data, exp_data_size,
     return false;
   }
   const uint8_t *arg_data = arg->data();
-  for (int i = 0; i < arg_data_size; ++i) {
+  for (uint32_t i = 0; i < arg_data_size; ++i) {
     if (arg_data[i] != exp_data[i]) {
       *result_listener << "Fail in " << i << " byte";
       return false;
@@ -267,7 +267,7 @@ MATCHER_P2(RawMessageEq, exp_data, exp_data_size,
 MATCHER_P2(HandshakeStepEq, exp_data,exp_data_size,
     std::string(negation ? "is not" : "is") + " Handshake "){
     const uint8_t *arg_data = arg;
-    for (int i = 0; i < exp_data_size; ++i) {
+    for (uint32_t i = 0; i < exp_data_size; ++i) {
       if (arg_data[i] != exp_data[i]) {
         *result_listener << "Fail in " << i << " byte";
         return false;

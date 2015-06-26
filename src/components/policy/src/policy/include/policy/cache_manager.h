@@ -547,10 +547,10 @@ class CacheManager : public CacheManagerInterface {
   /**
    * Returns heart beat timeout
    * @param app_id application id
-   * @return if timeout was set then value in seconds greater zero
+   * @return if timeout was set then value in milliseconds greater zero
    * otherwise heart beat for specific application isn't set
    */
-  uint16_t HeartBeatTimeout(const std::string& app_id) const;
+  uint32_t HeartBeatTimeout(const std::string& app_id) const;
 
   /**
    * @brief Gets request types for application
@@ -559,6 +559,8 @@ class CacheManager : public CacheManagerInterface {
    */
   void GetAppRequestTypes(const std::string& policy_app_id,
                           std::vector<std::string>& request_types) const;
+
+  virtual const MetaInfo GetMetaInfo() const OVERRIDE;
 
 #ifdef BUILD_TESTS
  utils::SharedPtr<policy_table::Table> GetPT() const {

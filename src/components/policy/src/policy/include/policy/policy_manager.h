@@ -391,10 +391,10 @@ class PolicyManager : public usage_statistics::StatisticsManager {
     /**
      * Returns heart beat timeout
      * @param app_id application id
-     * @return if timeout was set then value in seconds greater zero
+     * @return if timeout was set then value in milliseconds greater zero
      * otherwise heart beat for specific application isn't set
      */
-    virtual uint16_t HeartBeatTimeout(const std::string& app_id) const = 0;
+    virtual uint32_t HeartBeatTimeout(const std::string& app_id) const = 0;
 
     /**
      * @brief SaveUpdateStatusRequired alows to save update status.
@@ -439,6 +439,12 @@ class PolicyManager : public usage_statistics::StatisticsManager {
      * @brief Get information about vehicle
      */
     virtual const VehicleInfo GetVehicleInfo() const = 0;
+
+    /**
+     * @brief Gets meta information
+     * @return meta information
+     */
+    virtual const MetaInfo GetMetaInfo() const = 0;
 
   protected:
     /**

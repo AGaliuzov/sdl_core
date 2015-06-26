@@ -38,6 +38,7 @@
 
 #include "utils/shared_ptr.h"
 #include "usage_statistics/counter.h"
+#include "policy/policy_types.h"
 
 namespace policy_table = rpc::policy_table_interface_base;
 
@@ -540,10 +541,10 @@ class CacheManagerInterface {
   /**
    * Returns heart beat timeout
    * @param app_id application id
-   * @return if timeout was set then value in seconds greater zero
+   * @return if timeout was set then value in milliseconds greater zero
    * otherwise heart beat for specific application isn't set
    */
-  virtual uint16_t HeartBeatTimeout(const std::string& app_id) const = 0;
+  virtual uint32_t HeartBeatTimeout(const std::string& app_id) const = 0;
 
   /**
    * @brief Resets all calculated permissions in cache
@@ -589,6 +590,12 @@ class CacheManagerInterface {
   virtual void GetAppRequestTypes(
       const std::string& policy_app_id,
       std::vector<std::string>& request_types) const = 0;
+
+   /**
+    * @brief Gets meta information
+    * @return meta information
+    */
+    virtual const MetaInfo GetMetaInfo() const = 0;
 
 #ifdef BUILD_TESTS
   /**

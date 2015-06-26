@@ -98,9 +98,9 @@ bool CacheManager::CanAppKeepContext(const std::string& app_id) {
   return result;
 }
 
-uint16_t CacheManager::HeartBeatTimeout(const std::string& app_id) const {
+uint32_t CacheManager::HeartBeatTimeout(const std::string& app_id) const {
   CACHE_MANAGER_CHECK(0);
-  uint16_t result = 0;
+  uint32_t result = 0;
   if (AppExists(app_id)) {
     if (pt_->policy_table.app_policies_section.apps[app_id].heart_beat_timeout_ms
         .is_initialized()) {
@@ -1633,12 +1633,20 @@ bool CacheManager::Init(const std::string& file_name) {
       LOG4CXX_INFO(logger_, "Policy Table exists, was loaded correctly.");
       result = LoadFromBackup();
       if (result) {
+        if (!backup_->IsDBVersionActual()) {
+          if (!backup_->RefreshDB()) {
+            return false;
+          }
+          backup_->UpdateDBVersion();
+          Backup();
+        }
         MergePreloadPT(file_name);
       }
     } break;
     case InitResult::SUCCESS: {
       LOG4CXX_INFO(logger_, "Policy Table was inited successfully");
       result = LoadFromFile(file_name, *pt_);
+      backup_->UpdateDBVersion();
       if (result) {
         Backup();
       } else {
@@ -1753,6 +1761,15 @@ void CacheManager::GetAppRequestTypes(
     }
   }
   return;
+}
+
+const MetaInfo CacheManager::GetMetaInfo() const {
+  LOG4CXX_AUTO_TRACE(logger_);
+  MetaInfo meta_info;
+  meta_info.ccpu_version = *pt_->policy_table.module_meta->ccpu_version;
+  meta_info.wers_country_code = *pt_->policy_table.module_meta->wers_country_code;
+  meta_info.language = *pt_->policy_table.module_meta->language;
+  return meta_info;
 }
 
 void CacheManager::MergePreloadPT(const std::string& file_name) {

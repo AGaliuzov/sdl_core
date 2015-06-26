@@ -117,7 +117,7 @@ PPSListener::~PPSListener() {
 TransportAdapter::Error PPSListener::Init() {
   LOG4CXX_AUTO_TRACE(logger_);
   initialised_ = OpenPps();
-  return (initialised_) ? TransportAdapter::OK : TransportAdapter::FAIL;
+  return (initialised_ && AOAWrapper::Init(NULL)) ? TransportAdapter::OK : TransportAdapter::FAIL;
 }
 
 void PPSListener::Terminate() {
@@ -308,7 +308,7 @@ void PPSListener::AddDevice(const AOAWrapper::AOAUsbInfo& aoa_usb_info) {
       aoa_usb_info.product, aoa_usb_info.serial_number, aoa_usb_info,
       controller_));
   controller_->AddDevice(aoa_device);
-  if (!aoa_device->Init()) {
+  if (!aoa_device->StartHandling()) {
     LOG4CXX_WARN(logger_, "Can not initialize device");
   }
 }

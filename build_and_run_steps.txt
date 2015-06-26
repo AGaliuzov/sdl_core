@@ -58,6 +58,8 @@ For some extra build optionsi or in case of some Troubleshooting, look into doc/
                 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<PATH_TO_POLICY_LIBRARY>
     2.2.4. Run SDL "$ ./smartDeviceLinkCore".
            Note: HMI shall be started automatically.
+    2.2.5. In case SDL has been built with enabled SECURITY flag it is need to perform "c_rehash ." utility from within working directory
+           or directory where certificate files are located
 
 3) Build and run on Linux with Qt HMI.
   3.1: Build step:

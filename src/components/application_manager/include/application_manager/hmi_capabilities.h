@@ -392,20 +392,6 @@ class HMICapabilities {
    */
   inline bool phone_call_supported() const;
 
-  /*
-   * @brief Interface used to store information about software version of the target
-   *
-   * @param ccpu_version Received system/hmi software version 
-   */
-  void set_ccpu_version(const std::string& ccpu_version);
-  
-  /*
-   * @brief Returns software version of the target
-   *
-   * @return TRUE if it supported, otherwise FALSE
-   */
-  inline const std::string& ccpu_version() const;
-
  protected:
 
   /*
@@ -472,7 +458,6 @@ class HMICapabilities {
   smart_objects::SmartObject*      prerecorded_speech_;
   bool                             is_navigation_supported_;
   bool                             is_phone_call_supported_;
-  std::string                      ccpu_version_;
 
   ApplicationManagerImpl*          app_mngr_;
 
@@ -586,10 +571,6 @@ bool HMICapabilities::navigation_supported() const {
 
 bool HMICapabilities::phone_call_supported() const {
   return is_phone_call_supported_;
-}
-
-const std::string& HMICapabilities::ccpu_version() const {
-  return ccpu_version_;
 }
 
 }  //  namespace application_manager

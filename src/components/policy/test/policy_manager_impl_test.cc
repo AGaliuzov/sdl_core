@@ -811,7 +811,7 @@ TEST_F(PolicyManagerImplTest2, TimeOutExchange) {
   // Arrange
   CreateLocalPT("sdl_preloaded_pt.json");
   // Check value taken from PT
-  EXPECT_EQ(70u, manager->TimeoutExchange());
+  EXPECT_EQ(70, manager->TimeoutExchange());
 }
 
 TEST_F(PolicyManagerImplTest2, UpdatedPreloadedPT_ExpectLPT_IsUpdated) {
@@ -869,7 +869,7 @@ TEST_F(PolicyManagerImplTest2, UpdatedPreloadedPT_ExpectLPT_IsUpdated) {
   // Check if new RPC exists
   EXPECT_TRUE(rpc.find(new_data.new_field_value_) != rpc.end());
   // Check HMI level of new RPC
-  EXPECT_EQ(index, static_cast<int>(rpc_param.hmi_levels[0]));
+  EXPECT_EQ(index, static_cast<unsigned int>(rpc_param.hmi_levels[0]));
   // Check if new field matches field added to preloaded PT
   EXPECT_EQ(std::string((*(fc.find(new_data.new_field_name_))).first), new_data.new_field_name_);
 }
@@ -1084,7 +1084,7 @@ TEST_F(PolicyManagerImplTest2, GetUserFirendlyMessages_ExpectReceivedCorrectMess
   std::string language = "en-us";
   std::vector<::policy::UserFriendlyMessage> result = manager->GetUserFriendlyMessages(message_code, language);
   uint32_t size = result.size();
-  EXPECT_GT(size, 0);
+  EXPECT_GT(size, 0u);
   std::vector<::policy::UserFriendlyMessage>::iterator result_iter;
 
   utils::SharedPtr<policy_table::Table> pt = (manager->GetCache())->GetPT();
@@ -1580,7 +1580,7 @@ TEST_F(PolicyManagerImplTest2, HertBeatTimeout_AddApp_UpdateAppPolicies_ExpectRe
   }
   // Add new app
   manager->AddApplication(app_id2);
-  uint16_t result = manager->HeartBeatTimeout(app_id2);
+  uint32_t result = manager->HeartBeatTimeout(app_id2);
   // By default hertbeat timeout is 0
   EXPECT_EQ(0u, result);
   Json::Value root = GetPTU("valid_sdl_pt_update.json");

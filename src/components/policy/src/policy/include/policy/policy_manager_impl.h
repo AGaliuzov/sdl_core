@@ -158,7 +158,7 @@ class PolicyManagerImpl : public PolicyManager {
     virtual void RemoveAppConsentForGroup(const std::string& app_id,
                                           const std::string& group_name);
 
-    virtual uint16_t HeartBeatTimeout(const std::string& app_id) const;
+    virtual uint32_t HeartBeatTimeout(const std::string& app_id) const;
 
     virtual void SaveUpdateStatusRequired(bool is_update_needed);
 
@@ -181,6 +181,9 @@ class PolicyManagerImpl : public PolicyManager {
     virtual const VehicleInfo GetVehicleInfo() const;
 
     virtual void OnAppRegisteredOnMobile(const std::string& application_id);
+
+    virtual const MetaInfo GetMetaInfo() const OVERRIDE;
+
   protected:
     virtual utils::SharedPtr<policy_table::Table> Parse(
         const BinaryMessage& pt_content);

@@ -493,7 +493,7 @@ std::vector<UserFriendlyMessage> SQLPTExtRepresentation::GetUserFriendlyMsg(
     query.Bind(0, *it);
     query.Bind(1, msg_language);
 
-    if (!query.Exec() || !query.Reset()) {
+    if (!query.Exec()) {
       LOG4CXX_WARN(logger_, "Incorrect select from friendly messages.");
       return result;
     }
@@ -717,7 +717,7 @@ bool SQLPTExtRepresentation::SaveSpecificAppPolicy(
   app_query.Bind(
     5, app.second.is_null());
   app_query.Bind(6, *app.second.memory_kb);
-  app_query.Bind(7, *app.second.heart_beat_timeout_ms);
+  app_query.Bind(7, static_cast<int64_t>(*app.second.heart_beat_timeout_ms));
 
   if (!app_query.Exec() || !app_query.Reset()) {
     LOG4CXX_WARN(logger_, "Incorrect insert into application.");
@@ -826,7 +826,7 @@ bool SQLPTExtRepresentation::GatherApplicationPoliciesSection(
     params.keep_context = query.GetBoolean(3);
     params.steal_focus = query.GetBoolean(4);
     *params.memory_kb = query.GetInteger(5);
-    *params.heart_beat_timeout_ms = query.GetInteger(6);
+    *params.heart_beat_timeout_ms = query.GetUInteger(6);
 
     if (!GatherAppGroup(app_id, &params.groups)) {
       return false;

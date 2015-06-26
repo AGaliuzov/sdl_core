@@ -36,6 +36,7 @@
 #include <stdint.h>
 #include <vector>
 #include <string>
+#include <queue>
 
 #include <aoa/aoa.h>
 
@@ -62,6 +63,7 @@ enum AOAEndpoint {
 
 class AOADeviceLife;
 class AOAConnectionObserver;
+class LifeKeeper;
 
 class AOAWrapper {
  public:
@@ -83,6 +85,8 @@ class AOAWrapper {
   static bool Init(AOADeviceLife* life);
   static bool Init(AOADeviceLife* life, const std::string& config_path);
   static bool Init(AOADeviceLife* life, const AOAWrapper::AOAUsbInfo& aoa_usb_info);
+  static bool HandleDevice(AOADeviceLife* life,
+                           const AOAWrapper::AOAUsbInfo& aoa_usb_info);
   static bool Shutdown();
   static bool IsHandleValid(AOAWrapper::AOAHandle hdl);
   static void OnDied(AOAWrapper::AOAHandle hdl);
@@ -110,7 +114,7 @@ class AOAWrapper {
   static bool SetCallback(aoa_hdl_t* hdl, const void* udata, uint32_t timeout, AOAEndpoint endpoint);
 
  private:
-  static AOADeviceLife* life_;
+  static LifeKeeper* life_keeper_;
 
   AOAHandle hdl_;
   uint32_t timeout_;
@@ -145,6 +149,20 @@ class AOAConnectionObserver {
   virtual void OnDisconnected() = 0;
   virtual ~AOAConnectionObserver() {
   }
+};
+
+class LifeKeeper {
+ public:
+    void AddLife(AOADeviceLife* life);
+    AOADeviceLife* BindHandle2Life(aoa_hdl_t* hdl);
+    AOADeviceLife* GetLife(aoa_hdl_t* hdl);
+    AOADeviceLife* ReleaseLife(aoa_hdl_t* hdl);
+
+ private:
+    bool life_exists(aoa_hdl_t* hdl);
+
+    std::queue<AOADeviceLife*> free_life_pool;
+    std::map<aoa_hdl_t*, AOADeviceLife*> live_devices;
 };
 
 }  // namespace transport_adapter
