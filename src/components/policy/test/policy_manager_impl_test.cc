@@ -877,7 +877,7 @@ TEST_F(PolicyManagerImplTest2, UpdatedPreloadedPT_ExpectLPT_IsUpdated) {
 TEST_F(PolicyManagerImplTest,
        RequestPTUpdate_SetPT_GeneratedSnapshotAndPTUpdate) {
   // Arrange
-  ::utils::SharedPtr<::policy_table::Table> p_table =
+  ::utils::SharedPtr< ::policy_table::Table > p_table =
       new ::policy_table::Table();
 
   // Assert
@@ -1082,10 +1082,10 @@ TEST_F(PolicyManagerImplTest2, GetUserFirendlyMessages_ExpectReceivedCorrectMess
   message_code.push_back("SettingEnableUpdates");
   message_code.push_back("AppPermissions");
   std::string language = "en-us";
-  std::vector<::policy::UserFriendlyMessage> result = manager->GetUserFriendlyMessages(message_code, language);
+  std::vector< ::policy::UserFriendlyMessage > result = manager->GetUserFriendlyMessages(message_code, language);
   uint32_t size = result.size();
   EXPECT_GT(size, 0u);
-  std::vector<::policy::UserFriendlyMessage>::iterator result_iter;
+  std::vector< ::policy::UserFriendlyMessage >::iterator result_iter;
 
   utils::SharedPtr<policy_table::Table> pt = (manager->GetCache())->GetPT();
 
@@ -1197,14 +1197,14 @@ TEST_F(PolicyManagerImplTest2, GetUserConsentForApp_SetUserConsentForApp_ExpectR
   group1_perm.group_id = ::utils::Djb2HashFromString("Notifications");
   group1_perm.state = ::policy::GroupConsent::kGroupAllowed;
 
-  std::vector<::policy::FunctionalGroupPermission> groups_permissions;
+  std::vector< ::policy::FunctionalGroupPermission > groups_permissions;
   groups_permissions.push_back(group1_perm);
   perm_consent.group_permissions = groups_permissions;
 
   manager->SetUserConsentForApp(perm_consent);
   manager->SendNotificationOnPermissionsUpdated(app_id2);
-  std::vector<::policy::FunctionalGroupPermission> actual_groups_permissions;
-  std::vector<::policy::FunctionalGroupPermission>::iterator it;
+  std::vector< ::policy::FunctionalGroupPermission > actual_groups_permissions;
+  std::vector< ::policy::FunctionalGroupPermission >::iterator it;
   manager->GetUserConsentForApp(dev_id2, app_id2, actual_groups_permissions);
   uint32_t index = 0;
   for (; index < actual_groups_permissions.size(); ++index) {
@@ -1526,14 +1526,14 @@ TEST_F(PolicyManagerImplTest2, GetPermissionsForApp_SetUserConsentForApp_ExpectR
   group1_perm.group_id = ::utils::Djb2HashFromString("Notifications");
   group1_perm.state = ::policy::GroupConsent::kGroupAllowed;
 
-  std::vector<::policy::FunctionalGroupPermission> groups_permissions;
+  std::vector< ::policy::FunctionalGroupPermission > groups_permissions;
   groups_permissions.push_back(group1_perm);
   perm_consent.group_permissions = groups_permissions;
 
   manager->SetUserConsentForApp(perm_consent);
   manager->SendNotificationOnPermissionsUpdated(app_id2);
-  std::vector<::policy::FunctionalGroupPermission> actual_groups_permissions;
-  std::vector<::policy::FunctionalGroupPermission>::iterator it;
+  std::vector< ::policy::FunctionalGroupPermission > actual_groups_permissions;
+  std::vector< ::policy::FunctionalGroupPermission >::iterator it;
   manager->GetPermissionsForApp(dev_id2, app_id2, actual_groups_permissions);
   uint32_t index = 0;
   for (; index < actual_groups_permissions.size(); ++index) {
@@ -1651,7 +1651,7 @@ TEST_F(PolicyManagerImplTest2, GetAppPermissionsChanges_SetAppPermissionChanges_
   ::policy_table::ApplicationPolicies& app_policies = pt->policy_table.app_policies_section.apps;
   ::policy_table::ApplicationPolicies::const_iterator app_policies_iter = app_policies.find(app_id3);
   if (app_policies_iter != app_policies.end()) {
-    const rpc::Stringifyable < rpc::Nullable<::policy_table::ApplicationParams> >& strf = app_policies_iter->second;
+    const rpc::Stringifyable < rpc::Nullable< ::policy_table::ApplicationParams > >& strf = app_policies_iter->second;
     const ::policy_table::ApplicationParams& app_params = strf;
     ::policy_table::RequestTypes request_types = *(app_params.RequestType);
     ASSERT_EQ(request_types.size(), app_perm2.requestType.size());
@@ -1724,7 +1724,7 @@ TEST_F(PolicyManagerImplTest2, RemovePendingPermissionsChanges_SetAppPermissionC
   ::policy_table::ApplicationPolicies& app_policies = pt->policy_table.app_policies_section.apps;
   ::policy_table::ApplicationPolicies::const_iterator app_policies_iter = app_policies.find(app_id3);
   if (app_policies_iter != app_policies.end()) {
-    const rpc::Stringifyable < rpc::Nullable<::policy_table::ApplicationParams> >& strf = app_policies_iter->second;
+    const rpc::Stringifyable < rpc::Nullable< ::policy_table::ApplicationParams > >& strf = app_policies_iter->second;
     const ::policy_table::ApplicationParams& app_params = strf;
     ::policy_table::RequestTypes request_types = *(app_params.RequestType);
     ASSERT_EQ(request_types.size(), app_perm2.requestType.size());
@@ -1827,14 +1827,14 @@ TEST_F(PolicyManagerImplTest2, RemoveAppConsentForGroup_SetUserConsentForApp_Exp
   group1_perm.group_id = ::utils::Djb2HashFromString("Notifications");
   group1_perm.state = ::policy::GroupConsent::kGroupAllowed;
 
-  std::vector<::policy::FunctionalGroupPermission> groups_permissions;
+  std::vector< ::policy::FunctionalGroupPermission > groups_permissions;
   groups_permissions.push_back(group1_perm);
   perm_consent.group_permissions = groups_permissions;
 
   manager->SetUserConsentForApp(perm_consent);
   manager->SendNotificationOnPermissionsUpdated(app_id2);
-  std::vector<::policy::FunctionalGroupPermission> actual_groups_permissions;
-  std::vector<::policy::FunctionalGroupPermission>::iterator it;
+  std::vector< ::policy::FunctionalGroupPermission > actual_groups_permissions;
+  std::vector< ::policy::FunctionalGroupPermission >::iterator it;
   manager->GetPermissionsForApp(dev_id2, app_id2, actual_groups_permissions);
   uint32_t index = 0;
   for (; index < actual_groups_permissions.size(); ++index) {

@@ -88,8 +88,8 @@ TEST(TcpDeviceTest, AddApplications) {
 
   ApplicationList applist = test_tcp_device.GetApplicationList();
   ASSERT_EQ(2u, applist.size());
-  EXPECT_EQ(1u, applist[0]);
-  EXPECT_EQ(2u, applist[1]);
+  EXPECT_EQ(1, applist[0]);
+  EXPECT_EQ(2, applist[1]);
 
   // Because incoming = false
   EXPECT_EQ(-1, test_tcp_device.GetApplicationSocket(applist[0]));
