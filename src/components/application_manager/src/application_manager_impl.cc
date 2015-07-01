@@ -479,10 +479,12 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
   apps_to_register_.erase(application);
   apps_to_register_list_lock_.Release();
 
-  // Adding application to registered app list and set appropriate mark
+  // Apply active states to application, add application to registered app list
+  // and set appropriate mark.
   // Lock has to be released before adding app to policy DB to avoid possible
   // deadlock with simultaneous PTU processing
   applications_list_lock_.Acquire();
+  state_ctrl_.ApplyStatesForApp(application);
   applications_.insert(application);
   application->MarkRegistered();
   applications_list_lock_.Release();
@@ -511,7 +513,6 @@ bool ApplicationManagerImpl::ActivateApplication(ApplicationSharedPtr app) {
   AudioStreamingState::eType audio_state;
   app->IsAudioApplication() ? audio_state = AudioStreamingState::AUDIBLE :
                               audio_state = AudioStreamingState::NOT_AUDIBLE;
-  state_ctrl_.ApplyStatesForApp(app);
   state_ctrl_.SetRegularState<false>(app, hmi_level, audio_state);
   return true;
 }

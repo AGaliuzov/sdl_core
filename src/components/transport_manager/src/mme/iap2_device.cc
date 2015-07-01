@@ -87,6 +87,7 @@ void IAP2Device::Stop() {
 bool IAP2Device::Init() {
   const ProtocolConfig::ProtocolNameContainer& legacy_protocol_names =
       ProtocolConfig::IAP2LegacyProtocolNames();
+  LOG4CXX_INFO(logger_, "PROTOCOLS size: " << legacy_protocol_names.size());
   for (ProtocolConfig::ProtocolNameContainer::const_iterator i =
       legacy_protocol_names.begin(); i != legacy_protocol_names.end(); ++i) {
     std::string protocol_name = i->second;
