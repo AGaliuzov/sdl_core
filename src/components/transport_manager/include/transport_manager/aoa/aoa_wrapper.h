@@ -113,8 +113,8 @@ class AOAWrapper {
   static const uint32_t kBufferSize = 32768;
   static bool SetCallback(aoa_hdl_t* hdl, const void* udata, uint32_t timeout, AOAEndpoint endpoint);
 
+  static LifeKeeper life_keeper_;
  private:
-  static LifeKeeper* life_keeper_;
 
   AOAHandle hdl_;
   uint32_t timeout_;
