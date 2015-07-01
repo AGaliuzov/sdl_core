@@ -53,6 +53,10 @@
 
 #define REQUEST_MASK    (AOA_MODE_ACCESSORY | AOA_MODE_AUDIO)
 
+#define MAX_QUEUE_NAME_SIZE 24
+#define MAX_QUEUE_MSG_SIZE 4095
+#define MAX_MESSAGES 128
+
 namespace transport_manager {
 namespace transport_adapter {
 
@@ -98,7 +102,9 @@ PPSListener::PPSListener(TransportAdapterController* controller)
     : initialised_(false),
       controller_(controller),
       fd_(-1),
-      thread_(0){
+      pps_thread_(NULL),
+      mq_thread_(NULL),
+      is_aoa_available_(false) {
   LOG4CXX_AUTO_TRACE(logger_);
 }
 
@@ -107,17 +113,17 @@ PPSListener::~PPSListener() {
   if (initialised_) {
         Terminate();
   }
-  if (thread_) {
-      thread_->join();
-      delete thread_->delegate();
-      threads::DeleteThread(thread_);
+  if (pps_thread_) {
+      pps_thread_->join();
+      delete pps_thread_->delegate();
+      threads::DeleteThread(pps_thread_);
   }
 }
 
 TransportAdapter::Error PPSListener::Init() {
   LOG4CXX_AUTO_TRACE(logger_);
   initialised_ = OpenPps();
-  return (initialised_ && AOAWrapper::Init(NULL)) ? TransportAdapter::OK : TransportAdapter::FAIL;
+  return (initialised_) ? TransportAdapter::OK : TransportAdapter::FAIL;
 }
 
 void PPSListener::Terminate() {
@@ -150,7 +156,10 @@ bool PPSListener::ArmEvent(struct sigevent* event) {
     int size = read(fd_, buf, sizeof(buf));
     if (size > 0) {
       buf[size] = '\0';
-      Process(buf, size);
+      // In case AOA is not vailable don't need to process any messages from PPS.
+      if (is_aoa_available_) {
+        Process(buf, size);
+      }
     }
   }
   return true;
@@ -313,23 +322,107 @@ void PPSListener::AddDevice(const AOAWrapper::AOAUsbInfo& aoa_usb_info) {
   }
 }
 
+bool PPSListener::init_aoa() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  is_aoa_available_ = AOAWrapper::Init(NULL);
+  return is_aoa_available_;
+}
+
+bool PPSListener::release_aoa() const {
+  is_aoa_available_ = !AOAWrapper::Shutdown();
+  return is_aoa_available_;
+}
+
+void PPSListener::release_thread(threads::Thread** thread) {
+  if(thread && *thread) {
+    (*thread)->join();
+    delete (*thread)->delegate();
+    threads::DeleteThread(thread);
+    *thread = NULL;
+  }
+}
+
 TransportAdapter::Error PPSListener::StartListening() {
   LOG4CXX_AUTO_TRACE(logger_);
-  thread_ = threads::CreateThread("PPS listener", new PpsThreadDelegate(this));
-  thread_->start();
+  pps_thread_ = threads::CreateThread("PPS listener", new PpsThreadDelegate(this));
+  mq_thread_ = threads::CreateThread("PPS MQ Listener", new PpsMQListener(this));
+  pps_thread_->start();
+  mq_thread_->start();
   return TransportAdapter::OK;
 }
 
 TransportAdapter::Error PPSListener::StopListening() {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (thread_) {
-     thread_->join();
-     AOAWrapper::Shutdown();
-     delete thread_->delegate();
-     threads::DeleteThread(thread_);
-     thread_ = NULL;
-  }
+  release_thread(&mq_thread_);
+  release_thread(&pps_thread_);
+  AOAWrapper::Shutdown();
   return TransportAdapter::OK;
+}
+
+PPSListener::PpsMQListener::PpsMQListener(PPSListener* parent)
+  : parent_(parent) {
+
+  init_mq(PREFIX_STR_TOSDL_QUEUE, O_CREAT|O_RDONLY, mq_to_handle_);
+  init_mq(PREFIX_STR_FROMSDL_QUEUE, O_CREAT|O_WRONLY, mq_from_handle_);
+}
+
+void PPSListener::PpsMQListener::threadMain() {
+  if (mq_from_handle_ != -1) {
+    char msg[MAX_QUEUE_MSG_SIZE];
+    ssize_t size = mq_receive(mq_from_handle_, &msg, MAX_QUEUE_MSG_SIZE, NULL);
+    if (-1 != size) {
+      switch (msg[0]) {
+        case TAKE_AOA:
+          take_aoa();
+          break;
+        case RELEASE_AOA:
+          release_aoa();
+          break;
+        default:
+          break;
+      }
+    }
+  }
+}
+
+void PPSListener::PpsMQListener::take_aoa() {
+  const bool is_inited = parent_->init_aoa(true);
+  if (-1 != mq_to_handle_) {
+    char buf[MAX_QUEUE_MSG_SIZE];
+    char buf[0] = AOA_TAKEN;
+    char buf[1] = AOA_INACCESSIBLE;
+    if (- 1 == mq_send(mq_to_handle_, is_inited ? &buf[0] : &buf[1], 4096, NULL)) {
+      LOG4CXX_ERROR(logger_, "Unable to send over mq " <<
+                    " : " << strerror(errno));
+    }
+  }
+}
+
+void PPSListener::PpsMQListener::release_aoa() {
+  parent_->release_aoa();
+  if (-1 != mq_to_handle_) {
+    char buf[MAX_QUEUE_MSG_SIZE];
+    char buf[0] = AOA_RELEASED;
+    if (- 1 == mq_send(mq_to_handle_, &buf[0], 4096, NULL)) {
+      LOG4CXX_ERROR(logger_, "Unable to send over mq " <<
+                    " : " << strerror(errno));
+    }
+  }
+}
+
+mqd_t PPSListener::PpsMQListener::init_mq(const std::string& name,
+                                          int flags, int& descriptor) {
+  struct mq_attr attributes;
+  attributes.mq_maxmsg = MAX_MESSAGES;
+  attributes.mq_msgsize = MAX_QUEUE_MSG_SIZE;
+  attributes.mq_flags = 0;
+
+  descriptor = mq_open(PREFIX_STR_TOSDL_QUEUE, flags, 0666, &attributes);
+
+  if (-1 == descriptor) {
+    LOG4CXX_ERROR(logger_, "Unable to open mq " << name.c_str() <<
+                  " : " << strerror(errno));
+  }
 }
 
 PPSListener::PpsThreadDelegate::PpsThreadDelegate(PPSListener* parent)
