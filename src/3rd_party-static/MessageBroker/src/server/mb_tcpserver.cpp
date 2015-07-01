@@ -228,9 +228,9 @@ void TcpServer::WaitMessage(uint32_t ms) {
       itr = m_receivingBuffers.find((*it));
       if (itr != m_receivingBuffers.end())
       { // delete receiving buffer of disconnected client
+        mpMessageBroker->OnSocketClosed(itr->first);
         delete itr->second;
         m_receivingBuffers.erase(itr);
-        mpMessageBroker->OnSocketClosed(itr->first);
       }
     }
 
