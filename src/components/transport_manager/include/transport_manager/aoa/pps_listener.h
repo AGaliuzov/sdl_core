@@ -73,7 +73,7 @@ class PPSListener : public ClientConnectionListener {
   int fd_;
   threads::Thread* pps_thread_;
   threads::Thread* mq_thread_;
-  sync_primitives::atomic_bool is_aoa_available_;
+  mutable sync_primitives::atomic_bool is_aoa_available_;
 
   bool OpenPps();
   void ClosePps();
@@ -95,13 +95,18 @@ class PPSListener : public ClientConnectionListener {
    public:
       explicit PpsMQListener(PPSListener* parent);
       virtual void threadMain();
+      virtual void exitThreadMain();
    private:
       void take_aoa();
       void release_aoa();
-      mqd_t init_mq(const std::string& name, int flags, int& descriptor);
+      void init_mq(const std::string& name, int flags, int& descriptor);
+      void deinit_mq(mqd_t descriptor);
+
       PPSListener* parent_;
-      mqd_t mq_to_handle_;
-      mqd_t mq_from_handle_;
+      mqd_t mq_from_applink_handle_;
+      mqd_t mq_to_applink_handle_;
+
+      sync_primitives::atomic_bool run_;
   };
 
   class PpsThreadDelegate : public threads::PulseThreadDelegate {

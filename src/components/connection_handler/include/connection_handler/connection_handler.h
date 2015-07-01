@@ -49,7 +49,8 @@ namespace connection_handler {
     kCommon = 0,
     kFlood,
     kMalformed,
-    kUnauthorizedApp
+    kUnauthorizedApp,
+    kUsbDisconnected
   };
 
 class ConnectionHandlerObserver;

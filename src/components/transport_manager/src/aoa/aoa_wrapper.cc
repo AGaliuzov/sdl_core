@@ -114,17 +114,16 @@ static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
 }
 
 LifeKeeper AOAWrapper::life_keeper_;
+AOAConnectionObserver* AOAWrapper::connection_observer_ = NULL;
 
 AOAWrapper::AOAWrapper(AOAHandle hdl)
     : hdl_(hdl),
-      timeout_(AOA_TIMEOUT_INFINITY),
-      connection_observer_(0) {
+      timeout_(AOA_TIMEOUT_INFINITY) {
 }
 
 AOAWrapper::AOAWrapper(AOAHandle hdl, uint32_t timeout)
     : hdl_(hdl),
-      timeout_(timeout),
-      connection_observer_(0) {
+      timeout_(timeout) {
 }
 
 bool AOAWrapper::Init(AOADeviceLife *life) {
@@ -157,6 +156,11 @@ bool AOAWrapper::HandleDevice(AOADeviceLife* life,
     return false;
   }
   return true;
+}
+
+void AOAWrapper::Disconnect(bool forced) {
+  Shutdown();
+  connection_observer_->OnDisconnected(forced);
 }
 
 bool AOAWrapper::Init(AOADeviceLife* life, const char* config_path,

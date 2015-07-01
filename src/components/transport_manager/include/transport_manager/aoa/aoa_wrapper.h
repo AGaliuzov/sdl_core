@@ -87,6 +87,8 @@ class AOAWrapper {
   static bool Init(AOADeviceLife* life, const AOAWrapper::AOAUsbInfo& aoa_usb_info);
   static bool HandleDevice(AOADeviceLife* life,
                            const AOAWrapper::AOAUsbInfo& aoa_usb_info);
+
+  static void Disconnect(bool forced);
   static bool Shutdown();
   static bool IsHandleValid(AOAWrapper::AOAHandle hdl);
   static void OnDied(AOAWrapper::AOAHandle hdl);
@@ -118,7 +120,7 @@ class AOAWrapper {
 
   AOAHandle hdl_;
   uint32_t timeout_;
-  AOAConnectionObserver* connection_observer_;
+  static AOAConnectionObserver* connection_observer_;
 
   static bool Init(AOADeviceLife* life, const char* config_path,
                    usb_info_s* usb_info);
@@ -146,7 +148,7 @@ class AOAConnectionObserver {
  public:
   virtual void OnMessageReceived(bool success, ::protocol_handler::RawMessagePtr message) = 0;
   virtual void OnMessageTransmitted(bool success, ::protocol_handler::RawMessagePtr message) = 0;
-  virtual void OnDisconnected() = 0;
+  virtual void OnDisconnected(bool forced = false) = 0;
   virtual ~AOAConnectionObserver() {
   }
 };

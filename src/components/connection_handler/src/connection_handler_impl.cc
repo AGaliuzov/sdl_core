@@ -35,6 +35,7 @@
 #include <list>
 #include <algorithm>
 #include <memory>
+#include <map>
 
 #include "connection_handler/connection_handler_impl.h"
 #include "transport_manager/info.h"
@@ -48,6 +49,19 @@ namespace {
 uint32_t HeartBeatTimeout() {
   return profile::Profile::instance()->heart_beat_timeout();
 }
+
+typedef
+std::map<transport_manager::ErrorType,connection_handler::CloseSessionReason>
+Error2CloseReason;
+
+Error2CloseReason Err2CloseReason = {
+  std::make_pair(
+    transport_manager::ErrorType::kUnexpectedDisconnect,
+    connection_handler::CloseSessionReason::kCommon),
+  std::make_pair(
+    transport_manager::ErrorType::kResourceBusy,
+    connection_handler::CloseSessionReason::kUsbDisconnected)
+};
 }  // namespace
 
 /**
@@ -223,7 +237,7 @@ void ConnectionHandlerImpl::OnConnectionClosed(
     transport_manager::ConnectionUID connection_id) {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  OnConnectionEnded(connection_id);
+  OnConnectionEnded(connection_id, CloseSessionReason::kCommon);
 }
 
 void ConnectionHandlerImpl::OnConnectionClosedFailure(
@@ -238,7 +252,7 @@ void ConnectionHandlerImpl::OnUnexpectedDisconnect(
     const transport_manager::CommunicationError &error) {
   LOG4CXX_ERROR(logger_, "ConnectionHandlerImpl::OnUnexpectedDisconnect");
 
-  OnConnectionEnded(connection_id);
+  OnConnectionEnded(connection_id, Err2CloseReason[error.error_type()]);
 }
 
 void ConnectionHandlerImpl::OnDeviceConnectionLost(
@@ -259,7 +273,7 @@ void ConnectionHandlerImpl::RemoveConnection(
     const ConnectionHandle connection_handle) {
   LOG4CXX_INFO(logger_, "ConnectionHandlerImpl::RemoveConnection()");
 
-  OnConnectionEnded(connection_handle);
+  OnConnectionEnded(connection_handle, CloseSessionReason::kCommon);
 }
 
 #ifdef ENABLE_SECURITY
@@ -898,7 +912,8 @@ void ConnectionHandlerImpl::KeepConnectionAlive(uint32_t connection_key,
 }
 
 void ConnectionHandlerImpl::OnConnectionEnded(
-    const transport_manager::ConnectionUID &connection_id) {
+    const transport_manager::ConnectionUID &connection_id,
+    CloseSessionReason reason) {
   LOG4CXX_INFO(logger_, "Delete Connection: " << static_cast<int32_t>(connection_id)
                << " from the list.");
 
@@ -924,7 +939,7 @@ void ConnectionHandlerImpl::OnConnectionEnded(
       for (ServiceList::const_iterator service_it = service_list.begin(), end =
            service_list.end(); service_it != end; ++service_it) {
         connection_handler_observer_->OnServiceEndedCallback(
-            session_key, service_it->service_type, CloseSessionReason::kCommon);
+            session_key, service_it->service_type, reason);
       }
     }
   }
