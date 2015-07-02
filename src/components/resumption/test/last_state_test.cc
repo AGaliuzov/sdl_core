@@ -40,11 +40,13 @@ namespace components {
 namespace resumption {
 
 using namespace ::resumption;
+using namespace ::Json;
 
 class LastStateTest : public ::testing::Test {
  public:
   virtual void SetUp() {
-    EXPECT_TRUE(::file_system::CreateFile("./app_info.dat"));
+    ASSERT_TRUE(::file_system::CreateFile("./app_info.dat"));
+    ::profile::Profile::instance()->UpdateValues();
   }
 
   virtual void TearDown() {
@@ -53,46 +55,41 @@ class LastStateTest : public ::testing::Test {
 };
 
 TEST_F(LastStateTest, Basic) {
-  ::profile::Profile::instance()->UpdateValues();
-
-  Json::Value& dictionary = LastState::instance()->dictionary;
+  Value& dictionary = LastState::instance()->dictionary;
   EXPECT_EQ("null\n", dictionary.toStyledString());
 }
 
 TEST_F(LastStateTest, SetGetData) {
-  ::profile::Profile::instance()->UpdateValues();
   {
-    Json::Value& dictionary = LastState::instance()->dictionary;
-    Json::Value bluetooth_info =
-        dictionary["TransportManager"]["BluetoothAdapter"];
+    Value& dictionary = LastState::instance()->dictionary;
+    Value bluetooth_info = dictionary["TransportManager"]["BluetoothAdapter"];
     EXPECT_EQ("null\n", bluetooth_info.toStyledString());
 
-    Json::Value tcp_adapter_info =
+    Value tcp_adapter_info =
         dictionary["TransportManager"]["TcpAdapter"]["devices"];
     EXPECT_EQ("null\n", tcp_adapter_info.toStyledString());
 
-    Json::Value resumption_time = dictionary["resumption"]["last_ign_off_time"];
+    Value resumption_time = dictionary["resumption"]["last_ign_off_time"];
     EXPECT_EQ("null\n", resumption_time.toStyledString());
 
-    Json::Value resumption_list = dictionary["resumption"]["resume_app_list"];
+    Value resumption_list = dictionary["resumption"]["resume_app_list"];
     EXPECT_EQ("null\n", resumption_list.toStyledString());
 
-    Json::Value test_value;
+    Value test_value;
     test_value["name"] = "test_device";
 
-    resumption::LastState::instance()
+    LastState::instance()
         ->dictionary["TransportManager"]["TcpAdapter"]["devices"] = test_value;
-    resumption::LastState::instance()
+    LastState::instance()
         ->dictionary["TransportManager"]["BluetoothAdapter"]["devices"] =
         "bluetooth_device";
     LastState::instance()->SaveToFileSystem();
   }
 
-  Json::Value& dictionary = LastState::instance()->dictionary;
+  Value& dictionary = LastState::instance()->dictionary;
 
-  Json::Value bluetooth_info =
-      dictionary["TransportManager"]["BluetoothAdapter"];
-  Json::Value tcp_adapter_info = dictionary["TransportManager"]["TcpAdapter"];
+  Value bluetooth_info = dictionary["TransportManager"]["BluetoothAdapter"];
+  Value tcp_adapter_info = dictionary["TransportManager"]["TcpAdapter"];
   EXPECT_EQ("{\n   \"devices\" : \"bluetooth_device\"\n}\n",
             bluetooth_info.toStyledString());
   EXPECT_EQ(
