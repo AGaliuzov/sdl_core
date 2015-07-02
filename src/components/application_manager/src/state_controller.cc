@@ -35,6 +35,7 @@
 #include "application_manager/message_helper.h"
 #include "application_manager/usage_statistics.h"
 #include "utils/helpers.h"
+#include "utils/make_shared.h"
 
 namespace application_manager {
 
@@ -307,9 +308,10 @@ void StateController::DeactivateAppWithGeneralReason(ApplicationSharedPtr app) {
   using namespace mobile_apis;
   LOG4CXX_AUTO_TRACE(logger_);
 
+  DCHECK_OR_RETURN_VOID(app);
   HmiStatePtr regular = app->RegularHmiState();
   DCHECK_OR_RETURN_VOID(regular);
-  HmiStatePtr new_regular(new HmiState(*regular));
+  HmiStatePtr new_regular = utils::MakeShared<HmiState>(*regular);
 
   if (app->IsAudioApplication()) {
     new_regular->set_hmi_level(mobile_api::HMILevel::HMI_LIMITED);
@@ -324,9 +326,10 @@ void StateController::DeactivateAppWithAudioReason(ApplicationSharedPtr app) {
   using namespace mobile_apis;
   LOG4CXX_AUTO_TRACE(logger_);
 
+  DCHECK_OR_RETURN_VOID(app);
   HmiStatePtr regular = app->RegularHmiState();
   DCHECK_OR_RETURN_VOID(regular);
-  HmiStatePtr new_regular(new HmiState(*regular));
+  HmiStatePtr new_regular = utils::MakeShared<HmiState>(*regular);
 
   if (app->is_navi()) {
     new_regular->set_hmi_level(HMILevel::HMI_LIMITED);
@@ -372,7 +375,7 @@ void StateController::OnAppActivated(
   ApplicationSharedPtr app =
       ApplicationManagerImpl::instance()->application(app_id);
 
-  if (!app.valid()) {
+  if (!app) {
     LOG4CXX_ERROR(logger_, "Application with id " << app_id << " not found");
     return;
   }
@@ -391,7 +394,7 @@ void StateController::OnAppDeactivated(
   ApplicationSharedPtr app =
       ApplicationManagerImpl::instance()->application(app_id);
 
-  if (!app.valid()) {
+  if (!app) {
     LOG4CXX_ERROR(logger_, "Application with id " << app_id << " not found");
     return;
   }
