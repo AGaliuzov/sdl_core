@@ -67,9 +67,20 @@ namespace {
   int get_rand_from_range(uint32_t from = 0, int to = RAND_MAX) {
     return std::rand() % to + from;
   }
+
+
 }
 
 namespace application_manager {
+
+namespace {
+  DeviceTypes devicesType = {
+    std::make_pair(std::string("USB_AOA"), hmi_apis::Common_TransportType::USB_AOA),
+    std::make_pair(std::string("USB_IOS"), hmi_apis::Common_TransportType::USB_IOS),
+    std::make_pair(std::string("BLUETOOTH"), hmi_apis::Common_TransportType::BLUETOOTH),
+    std::make_pair(std::string("WIFI"), hmi_apis::Common_TransportType::WIFI)
+  };
+}
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "ApplicationManager")
 
@@ -545,14 +556,20 @@ mobile_api::HMILevel::eType ApplicationManagerImpl::IsHmiLevelFullAllowed(
   return result;
 }
 
-void ApplicationManagerImpl::ConnectToDevice(uint32_t id) {
+void ApplicationManagerImpl::ConnectToDevice(const std::string& device_mac) {
   // TODO(VS): Call function from ConnectionHandler
   if (!connection_handler_) {
     LOG4CXX_WARN(logger_, "Connection handler is not set.");
     return;
   }
 
-  connection_handler_->ConnectToDevice(id);
+  connection_handler::DeviceHandle handle;
+  if (!connection_handler_->GetDeviceID(device_mac, &handle) ) {
+    LOG4CXX_ERROR(logger_, "Attempt to connect to invalid device with mac:"
+                  << device_mac );
+    return;
+  }
+  connection_handler_->ConnectToDevice(handle);
 }
 
 void ApplicationManagerImpl::OnHMIStartedCooperation() {
@@ -711,17 +728,15 @@ std::string ApplicationManagerImpl::GetDeviceName(
   return device_name;
 }
 
-hmi_apis::Common_TransportType::eType ApplicationManagerImpl::GetDeviceTransportType(
+hmi_apis::Common_TransportType::eType
+ApplicationManagerImpl::GetDeviceTransportType(
     const std::string& transport_type) {
   hmi_apis::Common_TransportType::eType result =
       hmi_apis::Common_TransportType::INVALID_ENUM;
 
-  if ("BLUETOOTH" == transport_type) {
-    result = hmi_apis::Common_TransportType::BLUETOOTH;
-  } else if ("WIFI" == transport_type) {
-    result = hmi_apis::Common_TransportType::WIFI;
-  } else if ("USB" == transport_type) {
-    result = hmi_apis::Common_TransportType::USB;
+  DeviceTypes::const_iterator it = devicesType.find(transport_type);
+  if (it != devicesType.end()) {
+    return devicesType[transport_type];
   } else {
     LOG4CXX_ERROR(logger_, "Unknown transport type " << transport_type);
   }
