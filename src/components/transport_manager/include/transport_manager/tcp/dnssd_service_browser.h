@@ -78,7 +78,7 @@ class DnssdServiceBrowser : public DeviceScanner {
   explicit DnssdServiceBrowser(class TransportAdapterController* controller);
   virtual ~DnssdServiceBrowser();
 
- protected:
+ public:
   virtual TransportAdapter::Error Init();
   virtual TransportAdapter::Error Scan();
   virtual void Terminate();

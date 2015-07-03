@@ -272,6 +272,12 @@ TransportAdapter::Error DnssdServiceBrowser::CreateAvahiClientAndBrowser() {
       avahi_client_, AVAHI_IF_UNSPEC, /* TODO use only required iface */
       AVAHI_PROTO_INET, DNSSD_DEFAULT_SERVICE_TYPE, NULL, /* use default domain */
       static_cast<AvahiLookupFlags>(0), AvahiServiceBrowserCallback, this);
+  if (0 == avahi_service_browser_) {
+    LOG4CXX_ERROR(
+        logger_,
+        "Failed to create AvahiServiceBrowser: " << avahi_strerror(avahi_error));
+    return TransportAdapter::FAIL;
+  }
   return TransportAdapter::OK;
 }
 

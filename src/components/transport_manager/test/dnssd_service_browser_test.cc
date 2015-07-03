@@ -99,8 +99,7 @@ for(DeviceVector::const_iterator it = arg.begin(); it != arg.end(); ++it) {
 return false;
 }
 
-// TODO{ALeshin} APPLINK-11090 - Infinite loop
-TEST(DnssdServiceBrowser, DISABLED_Basic) {
+TEST(DnssdServiceBrowser, Basic) {
   MockTransportAdapterController controller;
 
   DnssdServiceBrowser dnssd_service_browser(&controller);
@@ -113,9 +112,8 @@ TEST(DnssdServiceBrowser, DISABLED_Basic) {
     sleep(0);
   }
   ASSERT_TRUE(device_scanner.IsInitialised());
-
-  EXPECT_EQ(TransportAdapter::NOT_SUPPORTED, device_scanner.Scan());  //method Scan now returns only NOT_SUPPORTED value
-
+  //method Scan now returns only NOT_SUPPORTED value
+  EXPECT_EQ(TransportAdapter::NOT_SUPPORTED, device_scanner.Scan());
 }
 
 }  // namespace transport_adapter
