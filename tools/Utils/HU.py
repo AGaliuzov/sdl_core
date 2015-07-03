@@ -208,9 +208,10 @@ class Target:
 
 def main():
 	(options, args) = parser.parse_args()
-	target = Target(options.ip, options.bin_path, options.rtc_path)
 	if not(options.to_target ^ options.collect_rtc ^ options.rtc_to_target):
 		print(usage)
+		return -1
+	target = Target(options.ip, options.bin_path, options.rtc_path)
 	if (options.to_target):
 		target.load_binaries_on_target()
 	if (options.collect_rtc):
@@ -220,5 +221,6 @@ def main():
 	return 0
 	
 if __name__ == "__main__":
-	main()
+	return main()
+
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
