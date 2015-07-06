@@ -71,12 +71,12 @@ class TcpClientListenerTest : public ::testing::Test {
   TcpClientListenerTest()
       : port_(0),
         enable_keep_alive_(false),
-        tcp_client_listener_(&adapter_controller_mock, port_, enable_keep_alive_) {}
+        tcp_client_listener_(&adapter_controller_mock_, port_, enable_keep_alive_) {}
 
  protected:
   uint16_t port_;
   bool enable_keep_alive_;
-  MockTransportAdapterController adapter_controller_mock;
+  MockTransportAdapterController adapter_controller_mock_;
   TcpClientListener tcp_client_listener_;
 };
 
