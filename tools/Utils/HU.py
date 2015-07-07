@@ -4,10 +4,7 @@ from optparse import OptionParser
 from ftplib import FTP
 import telnetlib
 import time
-import os
-from os import listdir
-from os import walk
-from os import makedirs
+from os import listdir, walk, makedirs
 from os.path import isdir, isfile, join
 import errno
 import shutil
@@ -17,7 +14,6 @@ DEFAULT_PASSWD = b"#Pasa3Ford"
 rtc_bin_folder = "bin/armle-v7/release/"
 rtc_dll_folder = "dll/armle-v7/release/"
 rtc_etc_folder = "src/appMain/"
-
 
 def find_recursively(file_name, directory):
     list_dir = listdir(directory)
@@ -32,7 +28,6 @@ def find_recursively(file_name, directory):
                 return full_path
     return None
 
-
 def validate_ip(ip):
     if not ip:
         return False
@@ -42,13 +37,42 @@ def validate_ip(ip):
     for ip_block in blocks:
         try:
             ip_block = int(ip_block)
-            if ip_block not in range (0, 255):
+            if ip_block not in range(0, 255):
                 return False
         except(ValueError):
             return False
     return True
 
-rtc_to_fs = {
+def telnet_login(ip, user, passwd):
+    telnetConnection = None
+    while telnetConnection == None:
+        try:
+            print("Connection to : ", ip)
+            telnetConnection = telnetlib.Telnet(ip)
+            print("Connection is established successfully")
+        except:
+            print("Connection failure occurs. Try Again")
+            time.sleep(1)
+    telnetConnection.read_until(b"login: ")
+    telnetConnection.write(user + b"\n")
+    telnetConnection.read_until(b"Password:")
+    telnetConnection.write(passwd + b"\n")
+    print("Login Success")
+    return telnetConnection
+
+def create_path(filename, base=""):
+    """
+    create path for filename if it not exits
+    """
+    index = filename.rfind("/")
+    path = filename[:index]
+    try:
+        makedirs(base + path)
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise exception
+
+HU_files_path = {
     # binaries
     "SmartDeviceLink": "/fs/mp/apps/SmartDeviceLink",
     "libPolicy.so": "/fs/mp/apps/usr/lib/libPolicy.so",
@@ -74,24 +98,10 @@ rtc_to_fs = {
     "policy.sql": "/fs/mp/sql/policy.sql"
 }
 
-
-def create_path(filename, base=""):
-    """
-    create path for filename if it not exits
-    """
-    index = filename.rfind("/")
-    path = filename[:index]
-    try:
-        os.makedirs(base + path)
-    except OSError as exception:
-        if exception.errno != errno.EEXIST:
-            raise exception
-
-
 file_list = []
 # path on HU file system
-for x in rtc_to_fs:
-    file_list.append(rtc_to_fs[x])
+for x in HU_files_path:
+    file_list.append(HU_files_path[x])
 
 usage = "--to_target or --collect_rtc option must be used. \n use -h fo help"
 parser = OptionParser()
@@ -106,12 +116,10 @@ parser.add_option("--to_target", dest="to_target", action="store_true", default=
 parser.add_option("--collect_rtc", dest="collect_rtc", action="store_true", default=False,
                   help="Collect binaries from RTC workspace to copy of target file system. --rtc and --bin options required")
 
-
 class Target:
     """
     Connection to target via telnet and ftp
     """
-
     def __init__(self, ip, bin_path=None, rtc_path=None, zipped=False, user=DEFAULT_USER, passwd=DEFAULT_PASSWD):
         self.ip = ip
         self.bin_path = bin_path
@@ -122,26 +130,9 @@ class Target:
         self.telnet_ = None
         self.ftp_ = None
 
-    def login(self):
-        telnetConnection = None
-        while telnetConnection == None:
-            try:
-                print("Connection to : ", self.ip)
-                telnetConnection = telnetlib.Telnet(self.ip)
-                print("Connection is established successfully")
-            except:
-                print("Connection failure occurs. Try Again")
-                time.sleep(1)
-        telnetConnection.read_until(b"login: ")
-        telnetConnection.write(self.user + b"\n")
-        telnetConnection.read_until(b"Password:")
-        telnetConnection.write(self.passwd + b"\n")
-        print("Login Success")
-        return telnetConnection
-
     def telnet(self):
         if not self.telnet_:
-            self.telnet_ = self.login()
+            self.telnet_ = telnet_login(self.ip, self.user, self.passwd)
         return self.telnet_
 
     def ftp(self):
@@ -165,8 +156,6 @@ class Target:
     def kill_sdl(self):
         command = b"ps -A | grep -e Sma -e SD| awk '{print $1}' | xargs kill -9 \n"
         self.telnet().write(command)
-        # self.telnet().read_until(b'#')
-        #res = self.telnet().read_eager()
         time.sleep(0.5)
         print("kill sdl success")
 
@@ -174,7 +163,7 @@ class Target:
         try:
             src_path = find_recursively(src_file, self.bin_path)
             f = open(src_path, "rb")
-            hu_path = rtc_to_fs[src_file]
+            hu_path = HU_files_path[src_file]
             print("Copy ", src_path, " --> ", self.ip + ":" + hu_path, end="")
             self.ftp().storbinary("STOR " + hu_path, f)
             print(" OK.")
@@ -195,7 +184,7 @@ class Target:
         print(" Binaries path: ", self.bin_path)
         self.mount()
         self.kill_sdl()
-        for filename in rtc_to_fs:
+        for filename in HU_files_path:
             self.load_file_on_hu(filename)
         self.sync()
 
@@ -209,9 +198,9 @@ class Target:
             return False
         print(" RTC workspace path: ", self.rtc_path)
         print(" Binaries path: ", self.bin_path)
-        for file_name in rtc_to_fs:
+        for file_name in HU_files_path:
             src_path = find_recursively(file_name, self.rtc_path)
-            dest_path = self.bin_path + rtc_to_fs[file_name]
+            dest_path = self.bin_path + HU_files_path[file_name]
             print("copy : ", src_path, " --> ", dest_path)
             create_path(dest_path)
             shutil.copyfile(src_path, dest_path)
