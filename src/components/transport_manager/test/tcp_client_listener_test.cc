@@ -92,7 +92,6 @@ TEST_F(TcpClientListenerTest, IsInitialised) {
 
 TEST_F(TcpClientListenerTest, Init) {
   EXPECT_EQ(TransportAdapter::OK, tcp_client_listener_.Init());
-  EXPECT_NE(tcp_client_listener_.get_socket(), -1);
 }
 
 }  // namespace transport_manager_test
