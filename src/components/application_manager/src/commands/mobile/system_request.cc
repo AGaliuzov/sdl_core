@@ -78,6 +78,12 @@ void SystemRequest::Run() {
       static_cast<mobile_apis::RequestType::eType>(
           (*message_)[strings::msg_params][strings::request_type].asInt());
 
+  if (mobile_apis::RequestType::QUERY_APPS == request_type) {
+    LOG4CXX_ERROR(logger_, "SDL does not support functionality SDL4.0");
+    SendResponse(false, mobile_apis::Result::UNSUPPORTED_RESOURCE);
+    return;
+  }
+
   if (!policy::PolicyHandler::instance()->IsRequestTypeAllowed(
            application->policy_app_id(), request_type)) {
     SendResponse(false, mobile_apis::Result::DISALLOWED);
@@ -154,18 +160,6 @@ void SystemRequest::Run() {
       LOG4CXX_DEBUG(logger_, "IVSU does not require binary data. Continue");
     }
     processing_file_ = file_dst_path;
-  }
-
-  if (mobile_apis::RequestType::QUERY_APPS == request_type) {
-    using namespace NsSmartDeviceLink::NsJSONHandler::Formatters;
-
-    smart_objects::SmartObject sm_object;
-    CFormatterJsonBase::jsonValueToObj(Json::Value(
-                                         std::string(binary_data.begin(),
-                                                     binary_data.end())),
-                                         sm_object);
-    ApplicationManagerImpl::instance()->ProcessQueryApp(sm_object);
-    return;
   }
 
   smart_objects::SmartObject msg_params = smart_objects::SmartObject(
