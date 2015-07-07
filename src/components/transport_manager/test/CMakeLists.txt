@@ -80,6 +80,7 @@ set(SOURCES
   ${COMPONENTS_DIR}/transport_manager/test/tcp_transport_adapter_test.cc
   ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter.cc
   ${COMPONENTS_DIR}/transport_manager/test/tcp_device_test.cc
+  ${COMPONENTS_DIR}/transport_manager/test/tcp_client_listener_test.cc
 )          
 
 create_test("transport_manager_test" "${SOURCES}" "${LIBRARIES}")
