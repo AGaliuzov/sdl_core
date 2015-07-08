@@ -496,11 +496,13 @@ void LifeCycle::StopComponents() {
 
 #ifdef CUSTOMER_PASA
 #ifdef PASA_HMI
-  hmi_handler_->RemoveHMIMessageAdapter(instance()->mb_pasa_adapter_);
-  mb_pasa_adapter_thread_->Stop();
-  mb_pasa_adapter_thread_->Join();
-  delete instance()->mb_pasa_adapter_;
-  hmi_handler_->~HMIMessageHandlerImpl();
+  // TODO(AOleynik): Workaround to avoid SDL crashes on ignition off.
+  // Will be investigated further.
+//  hmi_handler_->RemoveHMIMessageAdapter(instance()->mb_pasa_adapter_);
+//  mb_pasa_adapter_thread_->Stop();
+//  mb_pasa_adapter_thread_->Join();
+//  delete instance()->mb_pasa_adapter_;
+//  hmi_handler_->~HMIMessageHandlerImpl();
 #endif  // PASA_HMI
 #endif  // CUSTOMER_PASA
 
@@ -523,8 +525,13 @@ void LifeCycle::StopComponents() {
   networking::cleanup();
 #endif  // MESSAGEBROKER_HMIADAPTER
 
+#ifndef CUSTOMER_PASA
+  // TODO(AOleynik): Workaround to avoid SDL crashes on ignition off.
+  // Will be investigated further. Then define should be removed.
   delete hmi_message_adapter_;
   hmi_message_adapter_ = NULL;
+#endif // CUSTOMER_PASA
+
 
 #ifdef TIME_TESTER
   // It's important to delete tester Obcervers after TM adapters destruction
