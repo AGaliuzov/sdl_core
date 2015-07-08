@@ -122,7 +122,7 @@ struct HmiStatesIDComparator {
 #define NAVI true
 #define NOT_NAVI false
 
-enum application_type {
+enum ApplicationType {
   kNonMediaApp,
   kNaviApp,
   kMediaApp,
@@ -202,8 +202,11 @@ class StateControllerTest : public ::testing::Test {
     return state;
   }
 
+  /**
+   * @brief Prepare list of resultant HMI states for testing HMIState
+   * @param result_hmi state will contain resultant HMI states.
+   */
   void PrepareCommonStateResults(std::vector<am::HmiStatePtr>& result_hmi_state) {
-
     namespace HMILevel = mobile_apis::HMILevel;
     namespace AudioStreamingState = mobile_apis::AudioStreamingState;
     namespace SystemContext = mobile_apis::SystemContext;
@@ -221,7 +224,12 @@ class StateControllerTest : public ::testing::Test {
         HMILevel::HMI_BACKGROUND, AudioStreamingState::NOT_AUDIBLE, SystemContext::SYSCTXT_MAIN));
   }
 
-  void PrepareStateResultsForAttenuted(std::vector<am::HmiStatePtr>& result_hmi_state) {
+  /**
+   * @brief Prepare list of resultant HMI states for testing HMIState, for
+   * case when SDL supports attenuated mode
+   * @param result_hmi state will contain resultant HMI states.
+   */
+  void PrepareStateResultsForAttenuated(std::vector<am::HmiStatePtr>& result_hmi_state) {
     namespace HMILevel = mobile_apis::HMILevel;
     namespace AudioStreamingState = mobile_apis::AudioStreamingState;
     namespace SystemContext = mobile_apis::SystemContext;
@@ -236,8 +244,13 @@ class StateControllerTest : public ::testing::Test {
         HMILevel::HMI_FULL, AudioStreamingState::ATTENUATED, SystemContext::SYSCTXT_MAIN));
   }
 
+  /**
+   * @brief Prepare list of resultant HMI states for testing HMIState, for
+   * case if phone call mode is active
+   * @param result_hmi state will contain resultant HMI states.
+   */
   void PreparePhoneCallHMIStateResults(std::vector<am::HmiStatePtr>& result_hmi_state,
-                                       application_type app_t) {
+                                       ApplicationType app_t) {
     namespace HMILevel = mobile_apis::HMILevel;
     namespace AudioStreamingState = mobile_apis::AudioStreamingState;
     namespace SystemContext = mobile_apis::SystemContext;
@@ -279,8 +292,13 @@ class StateControllerTest : public ::testing::Test {
     }
   }
 
+  /**
+   * @brief Prepare list of resultant HMI states for testing HMIState, for
+   * case if VR or TTS mode is active
+   * @param result_hmi state will contain resultant HMI states.
+   */
   void PrepareVRTTSHMIStateResults(std::vector<am::HmiStatePtr>& result_hmi_state,
-                                         application_type app_t) {
+                                         ApplicationType app_t) {
     namespace HMILevel = mobile_apis::HMILevel;
     namespace AudioStreamingState = mobile_apis::AudioStreamingState;
     namespace SystemContext = mobile_apis::SystemContext;
@@ -305,7 +323,7 @@ class StateControllerTest : public ::testing::Test {
         break;
       }
       case kMediaAttenuatedApp: {
-        PrepareStateResultsForAttenuted(result_hmi_state);
+        PrepareStateResultsForAttenuated(result_hmi_state);
         break;
       }
       default: {
@@ -314,8 +332,13 @@ class StateControllerTest : public ::testing::Test {
     }
   }
 
+  /**
+   * @brief Prepare list of resultant HMI states for testing HMIState, for
+   * case if navi streaming mode is active
+   * @param result_hmi state will contain resultant HMI states.
+   */
   void PrepareNaviStreamingHMIStateResults(std::vector<am::HmiStatePtr>& result_hmi_state,
-                                           application_type app_t) {
+                                           ApplicationType app_t) {
     namespace HMILevel = mobile_apis::HMILevel;
     namespace AudioStreamingState = mobile_apis::AudioStreamingState;
     namespace SystemContext = mobile_apis::SystemContext;
@@ -348,8 +371,14 @@ class StateControllerTest : public ::testing::Test {
     }
   }
 
+  /**
+   * @brief Prepare list of resultant HMI states for testing HMIState, for
+   * case if navi streaming mode and TTS mode are active and SDL supports
+   * attenuated mode
+   * @param result_hmi state will contain resultant HMI states.
+   */
   void PrepareNaviStreamTTSStateResult(std::vector<am::HmiStatePtr>& result_hmi_state,
-                                 application_type app_t) {
+                                 ApplicationType app_t) {
     namespace HMILevel = mobile_apis::HMILevel;
     namespace AudioStreamingState = mobile_apis::AudioStreamingState;
     namespace SystemContext = mobile_apis::SystemContext;
@@ -362,7 +391,7 @@ class StateControllerTest : public ::testing::Test {
       }
       case kMediaApp:
       case kNaviApp: {
-        PrepareStateResultsForAttenuted(result_hmi_state);
+        PrepareStateResultsForAttenuated(result_hmi_state);
         break;
       }
       default: {
@@ -371,10 +400,8 @@ class StateControllerTest : public ::testing::Test {
     }
   }
 
-
-
-  application_type AppType(uint32_t app_id) {
-    application_type app_type;
+  ApplicationType AppType(uint32_t app_id) {
+    ApplicationType app_type;
     if (simple_app_id_ == app_id) {
       app_type = kNonMediaApp;
     } else if (media_app_id_ == app_id ||
@@ -389,9 +416,9 @@ class StateControllerTest : public ::testing::Test {
 
   void TestSetState(am::ApplicationSharedPtr app,
                     am::HmiStatePtr hmi_state,
-                    application_type app_t,
+                    ApplicationType app_t,
                     void (StateControllerTest::*call_back)(
-                        std::vector<am::HmiStatePtr>&, application_type)) {
+                        std::vector<am::HmiStatePtr>&, ApplicationType)) {
     InsertApplication(app);
     std::vector<am::HmiStatePtr> result_hmi_state;
     (this->*call_back)(result_hmi_state, app_t);
@@ -400,9 +427,13 @@ class StateControllerTest : public ::testing::Test {
     if (kNonMediaApp == app_t) {
       it_begin = valid_states_for_not_audio_app_.begin();
       it_end = valid_states_for_not_audio_app_.end();
+      ASSERT_TRUE(result_hmi_state.size() ==
+          valid_states_for_not_audio_app_.size());
     } else {
       it_begin = valid_states_for_audio_app_.begin();
       it_end = valid_states_for_audio_app_.end();
+      ASSERT_TRUE(result_hmi_state.size() ==
+          valid_states_for_audio_app_.size());
     }
     std::vector<am::HmiStatePtr>::iterator it_result_begin =
         result_hmi_state.begin();
@@ -416,9 +447,9 @@ class StateControllerTest : public ::testing::Test {
   void TestSetSeveralState(am::ApplicationSharedPtr app,
                            am::HmiStatePtr first_hmi_state,
                            am::HmiStatePtr second_hmi_state,
-                           application_type app_t,
+                           ApplicationType app_t,
                            void (StateControllerTest::*call_back)(
-                               std::vector<am::HmiStatePtr>&, application_type)) {
+                               std::vector<am::HmiStatePtr>&, ApplicationType)) {
       InsertApplication(app);
       std::vector<am::HmiStatePtr> result_hmi_state;
       (this->*call_back)(result_hmi_state, app_t);
@@ -427,9 +458,13 @@ class StateControllerTest : public ::testing::Test {
       if (kNonMediaApp == app_t) {
         it_begin = valid_states_for_not_audio_app_.begin();
         it_end = valid_states_for_not_audio_app_.end();
+        ASSERT_TRUE(result_hmi_state.size() ==
+            valid_states_for_not_audio_app_.size());
       } else {
         it_begin = valid_states_for_audio_app_.begin();
         it_end = valid_states_for_audio_app_.end();
+        ASSERT_TRUE(result_hmi_state.size() ==
+            valid_states_for_audio_app_.size());
       }
       std::vector<am::HmiStatePtr>::iterator it_result_begin =
           result_hmi_state.begin();
@@ -443,10 +478,10 @@ class StateControllerTest : public ::testing::Test {
 
   template<typename T, typename Q> void TestMixState (
       void (StateControllerTest::*call_back_result)(
-          std::vector<am::HmiStatePtr>&, application_type)) {
+          std::vector<am::HmiStatePtr>&, ApplicationType)) {
     std::vector<am::ApplicationSharedPtr>::iterator it_begin = applications_list_.begin();
     std::vector<am::ApplicationSharedPtr>::iterator it_end = applications_list_.end();
-    application_type app_type;
+    ApplicationType app_type;
     uint32_t app_id;
     am::ApplicationSharedPtr app;
     for (; it_begin != it_end; ++it_begin) {
