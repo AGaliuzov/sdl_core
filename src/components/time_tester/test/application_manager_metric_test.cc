@@ -106,8 +106,8 @@ TEST(ApplicationManagerMetricWrapper, GetJsonMetricWithGrabResources) {
   EXPECT_EQ(date_time::DateTime::getuSecs(start_time), jvalue[time_tester::strings::begin].asInt64());
   EXPECT_EQ(date_time::DateTime::getuSecs(end_time), jvalue[time_tester::strings::end].asInt64());
 
-  EXPECT_EQ(resources->stime, jvalue[time_tester::strings::stime].asInt());
-  EXPECT_EQ(resources->utime, jvalue[time_tester::strings::utime].asInt());
+  EXPECT_NEAR(resources->stime, jvalue[time_tester::strings::stime].asInt(),1);
+  EXPECT_NEAR(resources->utime, jvalue[time_tester::strings::utime].asInt(),1);
   EXPECT_EQ(resources->memory, jvalue[time_tester::strings::memory].asInt());
 
   delete resources;

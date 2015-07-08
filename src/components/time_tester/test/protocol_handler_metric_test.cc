@@ -108,8 +108,8 @@ TEST(ProtocolHandlerMetricTest, GetJsonMetricWithGrabResources) {
   EXPECT_EQ(5, jvalue[strings::message_id].asInt64());
   EXPECT_EQ(2, jvalue[strings::connection_key].asInt());
 
-  EXPECT_EQ(resources->stime, jvalue[strings::stime].asInt());
-  EXPECT_EQ(resources->utime, jvalue[strings::utime].asInt());
+  EXPECT_NEAR(resources->stime, jvalue[strings::stime].asInt(),1);
+  EXPECT_NEAR(resources->utime, jvalue[strings::utime].asInt(),1);
   EXPECT_EQ(resources->memory, jvalue[strings::memory].asInt());
   delete resources;
 }
