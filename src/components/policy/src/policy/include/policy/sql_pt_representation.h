@@ -92,8 +92,6 @@ class SQLPTRepresentation : public virtual PTRepresentation {
                            StringArray* app_hmi_types = NULL);
     bool GetFunctionalGroupings(policy_table::FunctionalGroupings& groups);
 
-//    virtual void GatherModuleConfig(policy_table::ModuleConfig* config) const;
-
 #ifdef BUILD_TESTS
     uint32_t open_counter() {
     return open_counter_;
