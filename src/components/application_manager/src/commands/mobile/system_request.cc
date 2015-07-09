@@ -67,8 +67,9 @@ void SystemRequest::Run() {
   ApplicationSharedPtr application =
       ApplicationManagerImpl::instance()->application(connection_key());
 
-  if (!(application.valid())) {
-    LOG4CXX_ERROR(logger_, "NULL pointer");
+  if (!application) {
+    LOG4CXX_ERROR(logger_, "Application with connection key: "
+                  << connection_key() << " not found");
     SendResponse(false, mobile_apis::Result::APPLICATION_NOT_REGISTERED);
     return;
   }
@@ -93,8 +94,7 @@ void SystemRequest::Run() {
   if (!IsSyncFileNameValid(file_name)) {
     const std::string err_msg = "Sync file name contains forbidden symbols.";
     LOG4CXX_ERROR(logger_, err_msg);
-    SendResponse(false, mobile_apis::Result::INVALID_DATA,
-                 err_msg.c_str());
+    SendResponse(false, mobile_apis::Result::INVALID_DATA, err_msg.c_str());
     return;
   }
 
@@ -110,26 +110,19 @@ void SystemRequest::Run() {
     file_name = buf;
   }
 
-  std::vector<uint8_t> binary_data;
-  std::string binary_data_folder;
-  if ((*message_)[strings::params].keyExists(strings::binary_data)) {
-    binary_data = (*message_)[strings::params][strings::binary_data].asBinary();
-    binary_data_folder = profile::Profile::instance()->system_files_path();
-  } else {
-    binary_data_folder = profile::Profile::instance()->app_storage_folder();
-    binary_data_folder += "/";
-    binary_data_folder += application->folder_name();
-    binary_data_folder += "/";
-  }
-
   std::string file_dst_path = profile::Profile::instance()->system_files_path();
   file_dst_path += "/";
   file_dst_path += file_name;
 
+  std::vector<uint8_t> binary_data;
   if ((*message_)[strings::params].keyExists(strings::binary_data)) {
+    std::string binary_data_folder =
+        profile::Profile::instance()->system_files_path();
     LOG4CXX_DEBUG(logger_, "Binary data is present. Trying to save it to: "
                   << binary_data_folder);
-    if (mobile_apis::Result::SUCCESS  !=
+
+    binary_data = (*message_)[strings::params][strings::binary_data].asBinary();
+    if (mobile_apis::Result::SUCCESS !=
         (ApplicationManagerImpl::instance()->SaveBinary(
             binary_data, binary_data_folder, file_name, 0))) {
       LOG4CXX_DEBUG(logger_, "Binary data can't be saved.");
@@ -137,24 +130,31 @@ void SystemRequest::Run() {
       return;
     }
   } else {
-    std::string app_full_file_path = binary_data_folder;
-    app_full_file_path += file_name;
-
+    std::string binary_data_folder =
+        profile::Profile::instance()->app_storage_folder();
+    binary_data_folder += "/";
+    binary_data_folder += application->folder_name();
+    binary_data_folder += "/";
     LOG4CXX_DEBUG(logger_, "Binary data is not present. Trying to find file "
                   << file_name << " within previously saved app file in "
                   << binary_data_folder);
 
+    std::string app_full_file_path = binary_data_folder + file_name;
     const AppFile* file = application->GetFile(app_full_file_path);
     if (!file || !file->is_download_complete ||
         !file_system::MoveFile(app_full_file_path, file_dst_path)) {
       LOG4CXX_DEBUG(logger_, "Binary data not found.");
-      SendResponse(false, mobile_apis::Result::REJECTED);
-      return;
+
+      if (!(mobile_apis::RequestType::HTTP == request_type &&
+          std::string::npos != file_name.find(kIVSU))) {
+        LOG4CXX_DEBUG(logger_, "Binary data required. Reject");
+        SendResponse(false, mobile_apis::Result::REJECTED);
+        return;
+      }
+      LOG4CXX_DEBUG(logger_, "IVSU does not require binary data. Continue");
     }
     processing_file_ = file_dst_path;
   }
-
-  LOG4CXX_DEBUG(logger_, "Binary data ok.");
 
   if (mobile_apis::RequestType::QUERY_APPS == request_type) {
     using namespace NsSmartDeviceLink::NsJSONHandler::Formatters;
@@ -163,7 +163,7 @@ void SystemRequest::Run() {
     CFormatterJsonBase::jsonValueToObj(Json::Value(
                                          std::string(binary_data.begin(),
                                                      binary_data.end())),
-                                       sm_object);
+                                         sm_object);
     ApplicationManagerImpl::instance()->ProcessQueryApp(sm_object);
     return;
   }
@@ -189,7 +189,8 @@ void SystemRequest::Run() {
 }
 
 void SystemRequest::on_event(const event_engine::Event& event) {
-  LOG4CXX_INFO(logger_, "AddSubMenuRequest::on_event");
+  LOG4CXX_AUTO_TRACE(logger_);
+
   const smart_objects::SmartObject& message = event.smart_object();
 
   switch (event.id()) {
@@ -202,8 +203,9 @@ void SystemRequest::on_event(const event_engine::Event& event) {
       ApplicationSharedPtr application =
              ApplicationManagerImpl::instance()->application(connection_key());
 
-      if (!(application.valid())) {
-        LOG4CXX_ERROR(logger_, "NULL pointer");
+      if (!application) {
+        LOG4CXX_ERROR(logger_, "Application with connection key: "
+                      << connection_key() << " not found");
         return;
       }
 
