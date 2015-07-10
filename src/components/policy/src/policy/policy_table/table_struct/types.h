@@ -223,7 +223,6 @@ struct ModuleMeta : CompositeType {
 
 struct AppLevel : CompositeType {
   public:
-  public:
     AppLevel();
     ~AppLevel();
     explicit AppLevel(const Json::Value* value__);
