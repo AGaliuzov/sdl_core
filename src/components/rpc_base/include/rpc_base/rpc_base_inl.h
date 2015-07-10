@@ -282,7 +282,7 @@ String<minlen, maxlen>& String<minlen, maxlen>::operator=(const std::string& new
 
 template<size_t minlen, size_t maxlen>
 String<minlen, maxlen>& String<minlen, maxlen>::operator=(const String& new_val) {
-  if(this == &new_val) {
+  if(*this == new_val) {
     return *this;
   }
   value_.assign(new_val.value_);
