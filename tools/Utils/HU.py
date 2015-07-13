@@ -57,6 +57,7 @@ def telnet_login(ip, user, passwd):
     telnetConnection.write(user + b"\n")
     telnetConnection.read_until(b"Password:")
     telnetConnection.write(passwd + b"\n")
+    telnetConnection.read_until(b'#')
     print("Login Success")
     return telnetConnection
 
@@ -150,12 +151,14 @@ class Target:
     def sync(self):
         command = b"sync; sync; sync\n"
         self.telnet().write(command)
-        self.telnet().read_until(b'#')
+        res = self.telnet().read_until(b'#')
+        print (res)
         print("FS synced")
 
     def kill_sdl(self):
         command = b"ps -A | grep -e Sma -e SD| awk '{print $1}' | xargs kill -9 \n"
         self.telnet().write(command)
+        self.telnet().read_until(b'#')
         time.sleep(0.5)
         print("kill sdl success")
 
