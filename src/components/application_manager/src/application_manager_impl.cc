@@ -378,7 +378,7 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
   uint32_t timeout = profile::Profile::instance()->application_list_update_timeout();
   application_list_update_timer_->start(timeout);
 
-  if (false == is_all_apps_allowed_) {
+  if (!is_all_apps_allowed_) {
     LOG4CXX_WARN(logger_,
                  "RegisterApplication: access to app's disabled by user");
     utils::SharedPtr<smart_objects::SmartObject> response(
@@ -2393,7 +2393,7 @@ std::string ApplicationManagerImpl::GetHashedAppID(uint32_t connection_key,
                                              const std::string& policy_app_id) const {
   using namespace connection_handler;
   uint32_t device_id = 0;
-  ConnectionHandlerImpl::instance()-> GetDataOnSessionKey(connection_key, 0, NULL, &device_id);
+  ConnectionHandlerImpl::instance()-> GetDataOnSessionKey(connection_key, NULL, NULL, &device_id);
   std::string device_name;
   ConnectionHandlerImpl::instance()->GetDataOnDeviceID(device_id, &device_name);
 
