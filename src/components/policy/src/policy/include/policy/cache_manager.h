@@ -601,8 +601,6 @@ private:
                                const std::string& policy_app_id,
                                policy::Permissions& permission);
 
-  virtual std::string RemoteAppsUrl() const;
-
 private:
   utils::SharedPtr<policy_table::Table> pt_;
   utils::SharedPtr<policy_table::Table> snapshot_;

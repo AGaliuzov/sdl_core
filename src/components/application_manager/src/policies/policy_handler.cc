@@ -351,17 +351,14 @@ uint32_t PolicyHandler::GetAppIdForSending() {
 
   DeviceParams device_param;
   for (HmiLevelOrderedApplicationList::const_iterator first = app_list.begin();
-       first != app_list.end(); ++first) {
-    if ((*first)->IsRegistered()) {
-      const uint32_t app_id = (*first)->app_id();
-      MessageHelper::GetDeviceInfoForApp(app_id, &device_param);
-      if (kDeviceAllowed ==
-          policy_manager_->GetUserConsentForDevice(device_param.device_mac_address)) {
-        return app_id;
-      }
+      first != app_list.end(); ++first) {
+    const uint32_t app_id = (*first)->app_id();
+    MessageHelper::GetDeviceInfoForApp(app_id, &device_param);
+    if (kDeviceAllowed ==
+        policy_manager_->GetUserConsentForDevice(device_param.device_mac_address)) {
+      return app_id;
     }
   }
-
   return 0;
 }
 
@@ -1344,12 +1341,6 @@ bool PolicyHandler::CheckSystemAction(
 uint32_t PolicyHandler::HeartBeatTimeout(const std::string& app_id) const {
   POLICY_LIB_CHECK(0);
   return policy_manager_->HeartBeatTimeout(app_id);
-}
-
-const std::string PolicyHandler::RemoteAppsUrl() const {
-  const std::string default_url = "";
-  POLICY_LIB_CHECK(default_url);
-  return policy_manager_->RemoteAppsUrl();
 }
 
 void PolicyHandler::OnAppsSearchStarted() {

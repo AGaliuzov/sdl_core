@@ -61,18 +61,6 @@ class SDLActivateAppRequest : public RequestFromHMI {
      **/
     virtual void Run();
 
-    /**
-     * @brief onTimeOut allows to process case when timeout has appeared
-     * during request execution.
-     */
-    virtual void onTimeOut();
-
-    /**
-     * @brief on_event allows to handle events
-     *
-     * @param event event type that current request subscribed on.
-     */
-    virtual void on_event(const event_engine::Event& event);
   private:
     uint32_t app_id() const;
     DISALLOW_COPY_AND_ASSIGN(SDLActivateAppRequest);

@@ -267,14 +267,6 @@ class ApplicationManagerImpl : public ApplicationManager,
 
     HMICapabilities& hmi_capabilities();
 
-    /**
-     * @brief ProcessQueryApp executes logic related to QUERY_APP system request.
-     *
-     * @param sm_object smart object wich is actually parsed json obtained within
-     * system request.
-     */
-    void ProcessQueryApp(const smart_objects::SmartObject& sm_object);
-
 #ifdef TIME_TESTER
     /**
      * @brief Setup observer for time metric.
@@ -626,9 +618,7 @@ class ApplicationManagerImpl : public ApplicationManager,
     void TerminateRequest(uint32_t connection_key, uint32_t corr_id);
 
     bool ManageMobileCommand(
-            const commands::MessageSharedPtr message,
-            commands::Command::CommandOrigin origin =
-            commands::Command::ORIGIN_SDL);
+            const commands::MessageSharedPtr message);
     void SendMessageToHMI(const commands::MessageSharedPtr message);
     bool ManageHMICommand(const commands::MessageSharedPtr message);
 
@@ -929,19 +919,9 @@ class ApplicationManagerImpl : public ApplicationManager,
       }
     };
 
-    struct ApplicationsPolicyAppIdSorter {
-      bool operator() (const ApplicationSharedPtr lhs,
-                       const ApplicationSharedPtr rhs) {
-        return lhs->policy_app_id() < rhs->policy_app_id();
-      }
-    };
-
     // typedef for Applications list
     typedef std::set<ApplicationSharedPtr,
                      ApplicationsAppIdSorter> ApplictionSet;
-
-    typedef std::set<ApplicationSharedPtr,
-                     ApplicationsPolicyAppIdSorter> AppsWaitRegistrationSet;
 
     typedef std::set<std::string> ForbiddenApps;
 
@@ -1157,18 +1137,6 @@ class ApplicationManagerImpl : public ApplicationManager,
 
     void OnApplicationListUpdateTimer();
 
-    /**
-     * @brief CreateApplications creates aplpication adds it to application list
-     * and prepare data for sending AppIcon request.
-     *
-     * @param obj_array applications array.
-     *
-     * @param app_icon_dir application icons directory
-     *
-     * @param apps_with_icon container which store application and it's icon path.
-     */
-    void CreateApplications(smart_objects::SmartArray& obj_array);
-
     /*
      * @brief Function is called on IGN_OFF, Master_reset or Factory_defaults
      * to notify HMI that SDL is shutting down.
@@ -1262,12 +1230,10 @@ class ApplicationManagerImpl : public ApplicationManager,
      * @brief List of applications
      */
     ApplictionSet applications_;
-    AppsWaitRegistrationSet apps_to_register_;
     ForbiddenApps forbidden_applications;
 
     // Lock for applications list
     mutable sync_primitives::Lock applications_list_lock_;
-    mutable sync_primitives::Lock apps_to_register_list_lock_;
 
     /**
      * @brief Map of correlation id  and associated application id.

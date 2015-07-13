@@ -79,19 +79,6 @@ class SetAppIconRequest : public CommandRequestImpl {
   virtual void Run();
 
  private:  
-  /**
-   * @brief Copies file to icon storage
-   * @param path_to_file Path to icon
-   */
-  void CopyToIconStorage(const std::string& path_to_file) const;
-
-  /**
-   * @brief Remove oldest icons
-   * @param storage Path to icons storage
-   * @param icons_amount Amount of icons to be deleted
-   */
-  void RemoveOldestIcons(const std::string& storage,
-                         const uint32_t icons_amount) const;
 
   /**
    * @brief Checks, if sync_file_name parameter is conforms to certain rules

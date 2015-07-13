@@ -402,13 +402,6 @@ class PolicyManager : public usage_statistics::StatisticsManager {
     virtual void SaveUpdateStatusRequired(bool is_update_needed) = 0;
 
     /**
-     * @brief RemoteAppsUrl allows to obtain url for QUERY_APP system request.
-     *
-     * @return url.
-     */
-    virtual std::string RemoteAppsUrl() const = 0;
-
-    /**
      * @brief Handler on applications search started
      */
     virtual void OnAppsSearchStarted() = 0;

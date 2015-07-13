@@ -275,14 +275,14 @@ TEST_F(ProfileTest, UpdateInt_ValueAppearsInFileTwice) {
 
 TEST_F(ProfileTest, UpdateBool_ValueAppearsInFileTwice) {
   // Default values
-  EXPECT_FALSE(Profile::instance()->enable_protocol_4());
+  EXPECT_TRUE(Profile::instance()->is_mixing_audio_supported());
   // Change config file
   Profile::instance()->config_file_name("smartDeviceLink_test.ini");
   EXPECT_EQ("smartDeviceLink_test.ini",
             Profile::instance()->config_file_name());
   // Update config file
-  // First value is true
-  EXPECT_TRUE(profile::Profile::instance()->enable_protocol_4());
+  // First value is false
+  EXPECT_FALSE(profile::Profile::instance()->is_mixing_audio_supported());
 }
 
 TEST_F(ProfileTest, UpdateVectorOfString_ValueAppearsInFileTwice) {

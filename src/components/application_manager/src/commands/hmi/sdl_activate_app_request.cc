@@ -32,7 +32,6 @@
 
 #include "application_manager/commands/hmi/sdl_activate_app_request.h"
 #include "application_manager/policies/policy_handler.h"
-#include "application_manager/message_helper.h"
 
 namespace application_manager {
 
@@ -50,37 +49,7 @@ void SDLActivateAppRequest::Run() {
   using namespace hmi_apis::FunctionID;
 
   const uint32_t application_id = app_id();
-  ApplicationConstSharedPtr app =
-      ApplicationManagerImpl::instance()->application(application_id);
-
-  if (app && !app->IsRegistered()) {
-    MessageHelper::SendLaunchApp(application_id,
-                                 app->SchemaUrl(),
-                                 app->PackageName());
-    subscribe_on_event(BasicCommunication_OnAppRegistered);
-  } else {
-    policy::PolicyHandler::instance()->OnActivateApp(application_id,
-                                                     correlation_id());
-  }
-}
-
-void SDLActivateAppRequest::onTimeOut() {
-  using namespace hmi_apis::FunctionID;
-  using namespace hmi_apis::Common_Result;
-  using namespace application_manager;
-  unsubscribe_from_event(BasicCommunication_OnAppRegistered);
-  const bool is_success = false;
-  SendResponse(is_success, correlation_id(),
-               BasicCommunication_ActivateApp, APPLICATION_NOT_REGISTERED);
-}
-
-void SDLActivateAppRequest::on_event(const event_engine::Event& event) {
-  using namespace hmi_apis::FunctionID;
-  if (event.id() != BasicCommunication_OnAppRegistered) {
-    return;
-  }
-  unsubscribe_from_event(BasicCommunication_OnAppRegistered);
-  policy::PolicyHandler::instance()->OnActivateApp(app_id(),
+  policy::PolicyHandler::instance()->OnActivateApp(application_id,
                                                    correlation_id());
 }
 

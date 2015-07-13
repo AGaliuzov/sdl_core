@@ -354,21 +354,20 @@ void MessageHelper::SendOnAppRegisteredNotificationToHMI(
     application[strings::app_type] = *app_type;
   }
 
-  if (application_impl.IsRegistered()) {
-    std::vector<std::string> request_types =
-        policy::PolicyHandler::instance()->GetAppRequestTypes(
-            application_impl.policy_app_id());
+  std::vector<std::string> request_types =
+      policy::PolicyHandler::instance()->GetAppRequestTypes(
+          application_impl.policy_app_id());
 
-    application[strings::request_type] = SmartObject(SmartType_Array);
-    smart_objects::SmartObject& request_array = application[strings::request_type];
+  application[strings::request_type] = SmartObject(SmartType_Array);
+  smart_objects::SmartObject& request_array = application[strings::request_type];
 
-    uint32_t index = 0;
-    std::vector<std::string>::const_iterator it = request_types.begin();
-    for (; request_types.end() != it; ++it) {
-      request_array[index] = *it;
-      ++index;
-    }
+  uint32_t index = 0;
+  std::vector<std::string>::const_iterator it = request_types.begin();
+  for (; request_types.end() != it; ++it) {
+    request_array[index] = *it;
+    ++index;
   }
+
 
   application[strings::device_info] = SmartObject(SmartType_Map);
   smart_objects::SmartObject& device_info = application[strings::device_info];
@@ -783,35 +782,6 @@ void MessageHelper::SendAllOnButtonSubscriptionNotificationsForApp(
   for (; subscriptions.end() != it; ++it) {
     SendOnButtonSubscriptionNotification(
         app->hmi_app_id(), static_cast<Common_ButtonName::eType>(*it), true);
-  }
-}
-
-void MessageHelper::SendSetAppIcon(uint32_t app_id,
-                                   const std::string& icon_path) {
-  using namespace smart_objects;
-  SmartObjectSPtr set_app_icon = CreateRequestObject();
-  if (set_app_icon) {
-    SmartObject& so_to_send = *set_app_icon;
-    so_to_send[strings::params][strings::function_id] =
-      static_cast<int>(hmi_apis::FunctionID::UI_SetAppIcon);
-
-    so_to_send[strings::msg_params] = smart_objects::SmartObject(
-                                        smart_objects::SmartType_Map);
-    SmartObjectSPtr msg_params(MessageHelper::CreateSetAppIcon(icon_path, app_id));
-
-    if (msg_params) {
-      so_to_send[strings::msg_params] = *msg_params;
-    }
-    ApplicationManagerImpl::instance()->ManageHMICommand(set_app_icon);
-  }
-}
-
-void MessageHelper::SendAppDataToHMI(ApplicationConstSharedPtr app) {
-  LOG4CXX_AUTO_TRACE(logger_);
-  if (app) {
-    SendSetAppIcon(app, app->app_icon_path());
-    SendGlobalPropertiesToHMI(app);
-    SendShowRequestToHMI(app);
   }
 }
 
@@ -1889,40 +1859,6 @@ void MessageHelper::SendSystemRequestNotification (uint32_t connection_key,
 
   content[strings::params][strings::connection_key] = connection_key;
   ApplicationManagerImpl::instance()->ManageMobileCommand(new SmartObject(content));
-}
-
-void MessageHelper::SendLaunchApp(uint32_t connection_key,
-                                  const std::string& urlSchema,
-                                  const std::string& packageName) {
-
-  using namespace mobile_apis;
-  using namespace smart_objects;
-
-  SmartObject content (SmartType_Map);
-  content[strings::msg_params][strings::request_type] = RequestType::LAUNCH_APP;
-  if (!urlSchema.empty()) {
-    content[strings::msg_params][strings::urlSchema] = urlSchema;
-  } else if (!packageName.empty()) {
-    content[strings::msg_params][strings::packageName] = packageName;
-  }
-
-  SendSystemRequestNotification(connection_key, content);
-}
-
-void application_manager::MessageHelper::SendQueryApps(
-    uint32_t connection_key) {
-  using namespace mobile_apis;
-  using namespace smart_objects;
-
-  policy::PolicyHandler* policy_handler = policy::PolicyHandler::instance();
-
-  SmartObject content (SmartType_Map);
-  content[strings::msg_params][strings::request_type] = RequestType::QUERY_APPS;
-  content[strings::msg_params][strings::url] = policy_handler->RemoteAppsUrl();
-  content[strings::msg_params][strings::timeout] =
-      policy_handler->TimeoutExchange();
-
-  SendSystemRequestNotification(connection_key, content);
 }
 
 void MessageHelper::SendOnPermissionsChangeNotification(

@@ -103,8 +103,7 @@ void ProtocolPacket::ProtocolHeader::deserialize(
   dataSize = read_be_uint32(message + 4);
   switch (version) {
     case PROTOCOL_VERSION_2:
-    case PROTOCOL_VERSION_3:
-    case PROTOCOL_VERSION_4:{
+    case PROTOCOL_VERSION_3:{
         if (messageSize < PROTOCOL_HEADER_V2_SIZE) {
           return;
         }
@@ -130,12 +129,11 @@ size_t ProtocolPacket::ProtocolHeaderValidator::max_payload_size() const {
 }
 
 RESULT_CODE ProtocolPacket::ProtocolHeaderValidator::validate(const ProtocolHeader& header) const {
-  // Protocol version shall be from 1 to 4
+  // Protocol version shall be from 1 to 3
   switch (header.version) {
     case PROTOCOL_VERSION_1:
     case PROTOCOL_VERSION_2:
     case PROTOCOL_VERSION_3:
-    case PROTOCOL_VERSION_4:
       break;
     default:
       return RESULT_FAIL;

@@ -342,8 +342,7 @@ bool Connection::SupportHeartBeat(uint8_t session_id) {
     return false;
   }
   Session &session = session_it->second;
-  return (::protocol_handler::PROTOCOL_VERSION_3 == session.protocol_version ||
-		  ::protocol_handler::PROTOCOL_VERSION_4 == session.protocol_version);
+  return ::protocol_handler::PROTOCOL_VERSION_3 == session.protocol_version;
 }
 
 bool Connection::ProtocolVersion(uint8_t session_id, uint8_t& protocol_version) {

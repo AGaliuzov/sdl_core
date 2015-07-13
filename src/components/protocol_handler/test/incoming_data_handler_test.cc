@@ -193,7 +193,7 @@ TEST_F(IncomingDataHandlerTest, MixedPayloadData_TwoConnections) {
   // consecutive packet Bulk
   mobile_packets.push_back(
         new ProtocolPacket(
-          uid1, PROTOCOL_VERSION_4, PROTECTION_ON, FRAME_TYPE_CONSECUTIVE,
+          uid1, PROTOCOL_VERSION_3, PROTECTION_ON, FRAME_TYPE_CONSECUTIVE,
           kBulk, FRAME_DATA_LAST_CONSECUTIVE, ++some_session_id, some_data2_size,
           ++some_message_id, some_data2));
   for (FrameList::iterator it = mobile_packets.begin(); it != mobile_packets.end(); ++it) {
@@ -219,7 +219,7 @@ TEST_F(IncomingDataHandlerTest, MalformedPacket_Version) {
   FrameList malformed_packets;
   std::vector<uint8_t> malformed_versions;
   malformed_versions.push_back(0);
-  for (uint8_t version = PROTOCOL_VERSION_4 + 1; version <= PROTOCOL_VERSION_MAX; ++version) {
+  for (uint8_t version = PROTOCOL_VERSION_3 + 1; version <= PROTOCOL_VERSION_MAX; ++version) {
     malformed_versions.push_back(version);
   }
   for (size_t i = 0; i < malformed_versions.size(); ++i) {
@@ -555,7 +555,7 @@ TEST_F(IncomingDataHandlerTest, MalformedPacket_Mix) {
   // Malformed packet 2
   const uint8_t malformed_type = FRAME_TYPE_MAX_VALUE;
   ProtocolPacket malformed_packet2(
-          uid1, PROTOCOL_VERSION_4, PROTECTION_OFF, malformed_type,
+          uid1, PROTOCOL_VERSION_3, PROTECTION_OFF, malformed_type,
           kRpc, FRAME_DATA_HEART_BEAT, some_session_id, some_data_size,
           protov1_message_id, some_data);
   AppendPacketToTMData(malformed_packet2);
@@ -563,7 +563,7 @@ TEST_F(IncomingDataHandlerTest, MalformedPacket_Mix) {
   // Audio packet
   mobile_packets.push_back(
         new ProtocolPacket(
-          uid1, PROTOCOL_VERSION_4, PROTECTION_OFF, FRAME_TYPE_CONTROL,
+          uid1, PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
           kAudio, FRAME_DATA_HEART_BEAT, some_session_id, some_data_size,
           protov1_message_id, some_data));
   AppendPacketToTMData(*mobile_packets.back());

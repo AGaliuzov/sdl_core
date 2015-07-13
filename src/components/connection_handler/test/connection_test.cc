@@ -172,14 +172,6 @@ TEST_F(ConnectionTest, HeartBeat_Supported) {
 
   // Assert
   EXPECT_TRUE(connection_->SupportHeartBeat(session_id));
-
-  // Check if protocol version is 4sw
-  protocol_version = ::protocol_handler::PROTOCOL_VERSION_4;
-  connection_->UpdateProtocolVersionSession(session_id, protocol_version);
-  EXPECT_EQ(protocol_version, ::protocol_handler::PROTOCOL_VERSION_4);
-
-  // Assert
-  EXPECT_TRUE(connection_->SupportHeartBeat(session_id));
 }
 
 // Try to add service without session

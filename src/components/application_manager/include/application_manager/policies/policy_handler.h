@@ -317,11 +317,6 @@ class PolicyHandler :
   uint32_t HeartBeatTimeout(const std::string& app_id) const;
 
   /**
-   * @brief Returns URL for querying list of remote apps
-   */
-  const std::string RemoteAppsUrl() const;
-
-  /**
    * @brief Handler on applications search started
    */
   void OnAppsSearchStarted();

@@ -79,7 +79,6 @@ const char* kApplicationManagerSection = "ApplicationManager";
 const char* kFilesystemRestrictionsSection = "FILESYSTEM RESTRICTIONS";
 const char* kIAPSection = "IAP";
 const char* kProtocolHandlerSection = "ProtocolHandler";
-const char* kSDL4Section = "SDL4";
 const char* kResumptionSection = "Resumption";
 
 const char* kSDLVersionKey = "SDLVersion";
@@ -94,10 +93,6 @@ const char* kAppStorageFolderKey = "AppStorageFolder";
 const char* kAppResourseFolderKey = "AppResourceFolder";
 const char* kLogsEnabledKey = "LogsEnabled";
 const char* kAppConfigFolderKey = "AppConfigFolder";
-const char* kEnableProtocol4Key = "EnableProtocol4";
-const char* kAppIconsFolderKey = "AppIconsFolder";
-const char* kAppIconsFolderMaxSizeKey = "AppIconsFolderMaxSize";
-const char* kAppIconsAmountToRemoveKey = "AppIconsAmountToRemove";
 const char* kLaunchHMIKey = "LaunchHMI";
 #ifdef WEB_HMI
 const char* kLinkToWebHMI = "LinkToWebHMI";
@@ -290,8 +285,6 @@ const size_t kDefaultMalformedFrequencyCount = 10;
 const size_t kDefaultMalformedFrequencyTime = 1000;
 const uint16_t kDefaultAttemptsToOpenPolicyDB = 5;
 const uint16_t kDefaultOpenAttemptTimeoutMs = 500;
-const uint32_t kDefaultAppIconsFolderMaxSize = 104857600;
-const uint32_t kDefaultAppIconsAmountToRemove = 1;
 const uint16_t kDefaultAttemptsToOpenResumptionDB = 5;
 const uint16_t kDefaultOpenAttemptTimeoutMsResumptionDB = 500;
 }  // namespace
@@ -309,10 +302,6 @@ Profile::Profile()
       app_config_folder_(),
       app_storage_folder_(),
       app_resourse_folder_(),
-      enable_protocol_4_(false),
-      app_icons_folder_(),
-      app_icons_folder_max_size_(kDefaultAppIconsFolderMaxSize),
-      app_icons_amount_to_remove_(kDefaultAppIconsAmountToRemove),
       config_file_name_(kDefaultConfigFileName),
       server_address_(kDefaultServerAddress),
       server_port_(kDefaultServerPort),
@@ -429,22 +418,6 @@ const std::string& Profile::app_storage_folder() const {
 
 const std::string& Profile::app_resourse_folder() const {
   return app_resourse_folder_;
-}
-
-bool Profile::enable_protocol_4() const {
-  return enable_protocol_4_;
-}
-
-const std::string&Profile::app_icons_folder() const {
-  return app_icons_folder_;
-}
-
-const uint32_t&Profile::app_icons_folder_max_size() const {
-  return app_icons_folder_max_size_;
-}
-
-const uint32_t&Profile::app_icons_amount_to_remove() const {
-  return app_icons_amount_to_remove_;
 }
 
 const std::string& Profile::hmi_capabilities_file_name() const {
@@ -934,32 +907,6 @@ void Profile::UpdateValues() {
                   kAppResourseFolderKey);
 
   LOG_UPDATED_VALUE(app_resourse_folder_, kAppResourseFolderKey, kMainSection);
-
-  // Enable protocol ver.4 parameter
-  ReadBoolValue(&enable_protocol_4_, false, kSDL4Section, kEnableProtocol4Key);
-
-  LOG_UPDATED_BOOL_VALUE(enable_protocol_4_, kEnableProtocol4Key, kSDL4Section);
-
-  // Application icon folder
-  ReadStringValue(&app_icons_folder_,
-                  file_system::CurrentWorkingDirectory().c_str(), kSDL4Section,
-                  kAppIconsFolderKey);
-
-  LOG_UPDATED_VALUE(app_icons_folder_, kAppIconsFolderKey, kSDL4Section);
-
-  // Application icon folder maximum size
-  ReadUIntValue(&app_icons_folder_max_size_, kDefaultAppIconsFolderMaxSize,
-                kSDL4Section, kAppIconsFolderMaxSizeKey);
-
-  LOG_UPDATED_VALUE(app_icons_folder_max_size_, kAppIconsFolderMaxSizeKey,
-                    kSDL4Section);
-
-  // Application icon folder maximum size
-  ReadUIntValue(&app_icons_amount_to_remove_, kDefaultAppIconsAmountToRemove,
-                kSDL4Section, kAppIconsAmountToRemoveKey);
-
-  LOG_UPDATED_VALUE(app_icons_amount_to_remove_, kAppIconsAmountToRemoveKey,
-                    kSDL4Section);
 
   // Application info file name
   ReadStringValue(&app_info_storage_, kDefaultAppInfoFileName, kAppInfoSection,

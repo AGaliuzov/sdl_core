@@ -191,7 +191,6 @@ class MessageHelper {
     static void SendAllOnButtonSubscriptionNotificationsForApp(
         ApplicationConstSharedPtr app);
 
-    static void SendAppDataToHMI(ApplicationConstSharedPtr app);
     static void SendGlobalPropertiesToHMI(ApplicationConstSharedPtr app);
     static smart_objects::SmartObjectList CreateGlobalPropertiesRequestsToHMI(ApplicationConstSharedPtr app);
 
@@ -346,25 +345,6 @@ class MessageHelper {
     static void SendSystemRequestNotification(
         uint32_t connection_key,
         NsSmartDeviceLink::NsSmartObjects::SmartObject& content);
-
-    /**
-     * @brief SendLaunchApp allows to send OnSystemRequest with LAUNCH_UP.
-     *
-     * @param connection_key application id.
-     *
-     * @param urlSchema application's url schema.
-     *
-     * @param packageName application's package name.
-     */
-    static void SendLaunchApp(uint32_t connection_key,
-                              const std::string& urlSchema,
-                              const std::string& packageName);
-
-    /**
-     * @brief Sends OnSystemRequest which queries remote apps list
-     * @param connection_key application id, which is used for sending out
-     */
-    static void SendQueryApps(uint32_t connection_key);
 
     /*
     * @brief Send notification to mobile on application permissions update
@@ -545,15 +525,6 @@ class MessageHelper {
     static void SendTTSGlobalProperties(
         ApplicationSharedPtr app, bool default_help_prompt);
 
-    /**
-     * @brief SendSetAppIcon allows to send SetAppIcon request.
-     *
-     * @param app_id application for which icon request should be sent.
-     *
-     * @param icon_path path to the icon.
-     */
-    static void SendSetAppIcon(uint32_t app_id,
-                               const std::string& icon_path);
   private:
     /**
      * @brief Creates new request object and fill its header

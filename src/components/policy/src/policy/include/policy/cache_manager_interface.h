@@ -577,12 +577,6 @@ class CacheManagerInterface {
       policy::Permissions& permission) = 0;
 
   /**
-   * @brief RemoteAppsUrl allows to obtain url for QUERY_APP system request.
-   * @return url.
-   */
-  virtual std::string RemoteAppsUrl() const = 0;
-
-  /**
    * @brief Gets request types for application
    * @param policy_app_id Unique application id
    * @param request_types Request types of application

@@ -471,16 +471,9 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
     connection_handler_->BindProtocolVersionWithSession(
         connection_key, static_cast<uint8_t>(protocol_version));
   }
-  if (protocol_version >= ProtocolVersion::kV3 &&
-          profile::Profile::instance()->heart_beat_timeout() > 0) {
+  if (protocol_version == ProtocolVersion::kV3 ) {
     connection_handler_->StartSessionHeartBeat(connection_key);
   }
-
-  // Trying to remove application from list of apps waiting to be registered
-  // (part of SDL4 feature)
-  apps_to_register_list_lock_.Acquire();
-  apps_to_register_.erase(application);
-  apps_to_register_list_lock_.Release();
 
   // Apply active states to application, add application to registered app list
   // and set appropriate mark.
@@ -489,7 +482,6 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
   applications_list_lock_.Acquire();
   state_ctrl_.ApplyStatesForApp(application);
   applications_.insert(application);
-  application->MarkRegistered();
   applications_list_lock_.Release();
 
   policy::PolicyHandler::instance()->AddApplication(application->policy_app_id());
@@ -838,7 +830,6 @@ void ApplicationManagerImpl::SendUpdateAppList() {
   SmartObject& applications = (*request)[strings::msg_params][strings::applications];
 
   PrepareApplicationListSO(applications_, applications);
-  PrepareApplicationListSO(apps_to_register_, applications);
 
   ManageHMICommand(request);
 }
@@ -1250,8 +1241,7 @@ void ApplicationManagerImpl::TerminateRequest(uint32_t connection_key, uint32_t 
 }
 
 bool ApplicationManagerImpl::ManageMobileCommand(
-    const commands::MessageSharedPtr message,
-    commands::Command::CommandOrigin origin) {
+    const commands::MessageSharedPtr message) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (!message) {
@@ -1269,7 +1259,7 @@ bool ApplicationManagerImpl::ManageMobileCommand(
 
   LOG4CXX_INFO(logger_, "Trying to create message in mobile factory.");
   utils::SharedPtr<commands::Command> command(
-          MobileCommandFactory::CreateCommand(message, origin));
+          MobileCommandFactory::CreateCommand(message));
 
   if (!command) {
     LOG4CXX_WARN(logger_, "RET  Failed to create mobile command from smart object");
@@ -1563,7 +1553,6 @@ bool ApplicationManagerImpl::ConvertMessageToSO(
     << "; json " << message.json_message());
 
   switch (message.protocol_version()) {
-    case ProtocolVersion::kV4:
     case ProtocolVersion::kV3:
     case ProtocolVersion::kV2: {
         const bool conversion_result =
@@ -1836,8 +1825,7 @@ void ApplicationManagerImpl::ProcessMessageFromMobile(
   metric->message = so_from_mobile;
 #endif  // TIME_TESTER
 
-  if (!ManageMobileCommand(so_from_mobile,
-                           commands::Command::ORIGIN_MOBILE)) {
+  if (!ManageMobileCommand(so_from_mobile)) {
     LOG4CXX_ERROR(logger_, "Received command didn't run successfully");
   }
 #ifdef TIME_TESTER
@@ -1897,63 +1885,6 @@ mobile_apis::MOBILE_API& ApplicationManagerImpl::mobile_so_factory() {
 
 HMICapabilities& ApplicationManagerImpl::hmi_capabilities() {
   return hmi_capabilities_;
-}
-
-void ApplicationManagerImpl::CreateApplications(SmartArray& obj_array) {
-
-  using namespace policy;
-
-  const std::size_t arr_size(obj_array.size());
-  for (std::size_t idx = 0; idx < arr_size; ++idx) {
-
-    const SmartObject& app_data = obj_array[idx];
-    if (app_data.isValid()) {
-      const std::string url_schema(app_data[strings::urlSchema].asString());
-      const std::string package_name(app_data[strings::packageName].asString());
-      const std::string policy_app_id(app_data[strings::app_id].asString());
-      const std::string appName(app_data[strings::app_name].asString());
-
-      const uint32_t hmi_app_id(GenerateNewHMIAppID());
-
-      ApplicationSharedPtr app(
-            new ApplicationImpl(0,
-                                policy_app_id,
-                                appName,
-                                PolicyHandler::instance()->GetStatisticManager()));
-      if (app) {
-        app->SetShemaUrl(url_schema);
-        app->SetPackageName(package_name);
-        app->set_hmi_application_id(hmi_app_id);
-
-        sync_primitives::AutoLock lock(apps_to_register_list_lock_);
-        apps_to_register_.insert(app);
-      }
-    }
-  }
-}
-
-void ApplicationManagerImpl::ProcessQueryApp(
-    const smart_objects::SmartObject& sm_object) {
-  using namespace policy;
-  using namespace profile;
-
-  if (sm_object.keyExists(strings::application)) {
-    SmartArray* obj_array = sm_object[strings::application].asArray();
-    if (NULL != obj_array) {
-      const std::string app_icon_dir(Profile::instance()->app_icons_folder());
-      CreateApplications(*obj_array);
-      SendUpdateAppList();
-
-      AppsWaitRegistrationSet::const_iterator it = apps_to_register_.begin();
-      for (; it != apps_to_register_.end(); ++it) {
-
-        const std::string full_icon_path(app_icon_dir + "/" + (*it)->policy_app_id());
-        if (file_system::FileExists(full_icon_path)) {
-          MessageHelper::SendSetAppIcon((*it)->hmi_app_id(), full_icon_path);
-        }
-      }
-    }
-  }
 }
 
 #ifdef TIME_TESTER
@@ -2312,8 +2243,7 @@ void ApplicationManagerImpl::Handle(const impl::AudioData message) {
 
    LOG4CXX_INFO_EXT(logger_, "Send data");
    CommandSharedPtr command (
-       MobileCommandFactory::CreateCommand(on_audio_pass,
-                                           commands::Command::ORIGIN_SDL));
+       MobileCommandFactory::CreateCommand(on_audio_pass));
    command->Init();
    command->Run();
    command->CleanUp();
@@ -2962,12 +2892,7 @@ ProtocolVersion ApplicationManagerImpl::SupportedSDLVersion() const {
   LOG4CXX_AUTO_TRACE(logger_);
   bool heart_beat_support =
     profile::Profile::instance()->heart_beat_timeout();
-  bool sdl4_support = profile::Profile::instance()->enable_protocol_4();
 
-  if (sdl4_support) {
-    LOG4CXX_DEBUG(logger_, "SDL Supported protocol version "<<ProtocolVersion::kV4);
-    return ProtocolVersion::kV4;
-  }
   if (heart_beat_support) {
     LOG4CXX_DEBUG(logger_, "SDL Supported protocol version "<<ProtocolVersion::kV3);
     return ProtocolVersion::kV3;

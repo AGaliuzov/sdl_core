@@ -80,10 +80,6 @@ application_manager::Message* MobileMessageHandler::HandleIncomingMessageProtoco
     LOG4CXX_DEBUG(logger_, "Protocol version - V3");
     out_message = MobileMessageHandler::HandleIncomingMessageProtocolV2(message);
     break;
-  case ProtocolVersion::kV4:
-    LOG4CXX_DEBUG(logger_, "Protocol version - V4");
-    out_message = MobileMessageHandler::HandleIncomingMessageProtocolV2(message);
-    break;
   default:
     LOG4CXX_WARN(logger_, "Can't recognise protocol version");
     out_message = NULL;
@@ -116,8 +112,7 @@ protocol_handler::RawMessage* MobileMessageHandler::HandleOutgoingMessageProtoco
     return MobileMessageHandler::HandleOutgoingMessageProtocolV1(message);
   }
   if ((message->protocol_version() == application_manager::kV2) ||
-	  (message->protocol_version() == application_manager::kV3) ||
-	  (message->protocol_version() == application_manager::kV4)) {
+	  (message->protocol_version() == application_manager::kV3)) {
     return MobileMessageHandler::HandleOutgoingMessageProtocolV2(message);
   }
   return NULL;

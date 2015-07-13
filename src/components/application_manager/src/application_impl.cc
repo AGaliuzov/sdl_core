@@ -117,7 +117,6 @@ ApplicationImpl::ApplicationImpl(uint32_t application_id,
   set_policy_app_id(policy_app_id);
   set_name(app_name);
 
-  MarkUnregistered();
   // subscribe application to custom button by default
   SubscribeToButton(mobile_apis::ButtonName::CUSTOM_BUTTON);
 

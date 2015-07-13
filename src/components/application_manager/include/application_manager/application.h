@@ -66,8 +66,7 @@ enum APIVersion {
   kAPIV0 = 0,
   kAPIV1 = 1,
   kAPIV2 = 2,
-  kAPIV3 = 3,
-  kAPIV4 = 4
+  kAPIV3 = 3
 };
 
 enum TLimitSource {
@@ -369,13 +368,8 @@ class DynamicApplicationData {
 
 class Application : public virtual InitialApplicationData,
   public virtual DynamicApplicationData {
-  public:
-    enum ApplicationState {
-      kRegistered = 0,
-      kWaitingForRegistration
-    };
 
-  public:
+   public:
     virtual ~Application() {
     }
 
@@ -666,54 +660,6 @@ class Application : public virtual InitialApplicationData,
     virtual bool IsAudioApplication() const = 0;
 
     /**
-     * @brief IsRegistered allows to distinguish if this
-     * application has been registered.
-     *
-     * @return true if registered, false otherwise.
-     */
-    bool IsRegistered() const { return app_state_ == kRegistered;}
-
-    /**
-     * @brief MarkRegistered allows to mark application as registered.
-     */
-    void MarkRegistered() {app_state_ = kRegistered;}
-
-    /**
-     * @brief MarkUnregistered allows to mark application as unregistered.
-     */
-    void MarkUnregistered() {app_state_ = kWaitingForRegistration;}
-
-    /**
-     * @brief schemaUrl contains application's url (for 4th protocol version)
-     *
-     * @return application's url.
-     */
-    std::string SchemaUrl() const {return url_;}
-
-    /**
-     * @brief SetShemaUrl allows to store schema url for application.
-     *
-     * @param url url to store.
-     */
-    void SetShemaUrl(const std::string& url) {url_ = url;}
-
-    /**
-     * @brief packagName allows to obtain application's package name.
-     *
-     * @return pakage name.
-     */
-    std::string PackageName() const {return package_name_;}
-
-    /**
-     * @brief SetPackageName allows to store package name for application.
-     *
-     * @param packageName package name to store.
-     */
-    void SetPackageName(const std::string& packageName) {
-      package_name_ = packageName;
-    }
-
-    /**
      * @brief GetDeviceId allows to obtain device id which posseses
      * by this application.
      *
@@ -734,9 +680,6 @@ class Application : public virtual InitialApplicationData,
     HmiStateList hmi_states_;
     mutable sync_primitives::Lock hmi_states_lock_;
 
-    ApplicationState app_state_;
-    std::string url_;
-    std::string package_name_;
     std::string device_id_;
 };
 

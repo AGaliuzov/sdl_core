@@ -76,14 +76,6 @@ enum {
    */
   PROTOCOL_VERSION_3 = 0x03,
   /**
-   *@brief Constant: number of protocol version (4).
-   * This protocol is compatibility with version 3
-   * Support SSL with Encryption, Video and Audio services
-   * Support ControlFrame, End Service to/from mobile support, HeartBeat feature,
-   * SDL4.0 feature.
-   */
-  PROTOCOL_VERSION_4 = 0x04,
-  /**
    *\brief Maximum value of packet version field (size 4-bit) specified AppLink Protocol v.7
    */
   PROTOCOL_VERSION_MAX = 0x0F

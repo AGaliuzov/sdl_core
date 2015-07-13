@@ -126,10 +126,10 @@ TEST_F(ProtocolPacketTest, SetPacketWithDiffFrameType) {
   for (frame_type = FRAME_TYPE_CONTROL + 1; frame_type <= FRAME_TYPE_MAX_VALUE;
        ++frame_type) {
     ProtocolPacket prot_packet(
-        some_connection_id, PROTOCOL_VERSION_4, PROTECTION_OFF, frame_type,
+        some_connection_id, PROTOCOL_VERSION_3, PROTECTION_OFF, frame_type,
         kControl, FRAME_DATA_HEART_BEAT, some_session_id, 0u, some_message_id);
     res = prot_packet.serializePacket();
-    EXPECT_EQ(PROTOCOL_VERSION_4, res->protocol_version());
+    EXPECT_EQ(PROTOCOL_VERSION_3, res->protocol_version());
     EXPECT_EQ(kControl, res->service_type());
     EXPECT_EQ(frame_type, prot_packet.frame_type());
   }

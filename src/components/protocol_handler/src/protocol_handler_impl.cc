@@ -1372,11 +1372,7 @@ uint8_t SupportedSDLProtocolVersion() {
 
   bool heart_beat_support =
     (0 != profile::Profile::instance()->heart_beat_timeout());
-  bool sdl4_support = profile::Profile::instance()->enable_protocol_4();
 
-  if (sdl4_support) {
-    return PROTOCOL_VERSION_4;
-  }
   if (heart_beat_support) {
     return PROTOCOL_VERSION_3;
   }

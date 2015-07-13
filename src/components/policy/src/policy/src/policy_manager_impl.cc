@@ -276,13 +276,6 @@ void PolicyManagerImpl::StartPTExchange() {
   }
 }
 
-std::string PolicyManagerImpl::RemoteAppsUrl() const {
-  // TODO(AOleynik): Will be used after implementation of necessary section
-  // support in policy table
-  //return cache_->RemoteAppsUrl();
-  return GetUpdateUrl(7);
-}
-
 void PolicyManagerImpl::OnAppsSearchStarted() {
   LOG4CXX_AUTO_TRACE(logger_);
   update_status_manager_.OnAppsSearchStarted();

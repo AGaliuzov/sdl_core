@@ -165,8 +165,6 @@ class PolicyManagerImpl : public PolicyManager {
     virtual bool IsPredataPolicy(const std::string& policy_app_id);
     void set_cache_manager(CacheManagerInterface* cache_manager);
 
-    virtual std::string RemoteAppsUrl() const;
-
     virtual void OnAppsSearchStarted();
 
     virtual void OnAppsSearchCompleted();
