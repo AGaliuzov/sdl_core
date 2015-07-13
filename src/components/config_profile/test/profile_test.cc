@@ -275,7 +275,7 @@ TEST_F(ProfileTest, UpdateInt_ValueAppearsInFileTwice) {
 
 TEST_F(ProfileTest, UpdateBool_ValueAppearsInFileTwice) {
   // Default values
-  EXPECT_TRUE(Profile::instance()->is_mixing_audio_supported());
+  EXPECT_FALSE(Profile::instance()->is_mixing_audio_supported());
   // Change config file
   Profile::instance()->config_file_name("smartDeviceLink_test.ini");
   EXPECT_EQ("smartDeviceLink_test.ini",
