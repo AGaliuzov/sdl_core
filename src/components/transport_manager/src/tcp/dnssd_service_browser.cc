@@ -1,5 +1,4 @@
 /*
- *
  * Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
@@ -45,10 +44,9 @@ namespace transport_adapter {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
 
-
 bool operator==(const DnssdServiceRecord& a, const DnssdServiceRecord& b) {
-  return a.name == b.name && a.type == b.type && a.interface == b.interface
-      && a.protocol == b.protocol && a.domain_name == b.domain_name;
+  return a.name == b.name && a.type == b.type && a.interface == b.interface &&
+         a.protocol == b.protocol && a.domain_name == b.domain_name;
 }
 
 void DnssdServiceBrowser::Terminate() {
@@ -107,9 +105,9 @@ void DnssdServiceBrowser::OnClientFailure() {
 void AvahiClientCallback(AvahiClient* avahi_client,
                          AvahiClientState avahi_client_state, void* data) {
   LOG4CXX_AUTO_TRACE(logger_);
-  LOG4CXX_DEBUG(
-      logger_,
-      "avahi_client " << avahi_client << ", avahi_client_state " << avahi_client_state << ", data " << data);
+  LOG4CXX_DEBUG(logger_, "avahi_client "
+                             << avahi_client << ", avahi_client_state "
+                             << avahi_client_state << ", data " << data);
   DnssdServiceBrowser* dnssd_service_browser =
       static_cast<DnssdServiceBrowser*>(data);
 
@@ -311,9 +309,9 @@ void DnssdServiceBrowser::AddService(AvahiIfIndex interface,
                                      AvahiProtocol protocol, const char* name,
                                      const char* type, const char* domain) {
   LOG4CXX_AUTO_TRACE(logger_);
-  LOG4CXX_DEBUG(
-      logger_,
-      "interface " << interface << " protocol " << protocol << " name " << name << " type " << type << " domain " << domain);
+  LOG4CXX_DEBUG(logger_, "interface " << interface << " protocol " << protocol
+                                      << " name " << name << " type " << type
+                                      << " domain " << domain);
   DnssdServiceRecord record;
   record.interface = interface;
   record.protocol = protocol;
@@ -322,8 +320,8 @@ void DnssdServiceBrowser::AddService(AvahiIfIndex interface,
   record.type = type;
 
   sync_primitives::AutoLock locker(mutex_);
-  if (service_records_.end()
-      == std::find(service_records_.begin(), service_records_.end(), record)) {
+  if (service_records_.end() ==
+      std::find(service_records_.begin(), service_records_.end(), record)) {
     service_records_.push_back(record);
     avahi_service_resolver_new(avahi_client_, interface, protocol, name, type,
                                domain, AVAHI_PROTO_INET,
@@ -337,9 +335,9 @@ void DnssdServiceBrowser::RemoveService(AvahiIfIndex interface,
                                         const char* name, const char* type,
                                         const char* domain) {
   LOG4CXX_AUTO_TRACE(logger_);
-  LOG4CXX_DEBUG(
-      logger_,
-      "interface " << interface << " protocol " << protocol << " name " << name << " type " << type << " domain " << domain);
+  LOG4CXX_DEBUG(logger_, "interface " << interface << " protocol " << protocol
+                                      << " name " << name << " type " << type
+                                      << " domain " << domain);
   DnssdServiceRecord record;
   record.interface = interface;
   record.protocol = protocol;
