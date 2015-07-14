@@ -262,18 +262,7 @@ class StateControllerTest : public ::testing::Test {
             HMILevel::HMI_BACKGROUND, AudioStreamingState::NOT_AUDIBLE, SystemContext::SYSCTXT_MAIN));
         break;
       }
-      case kMediaApp: {
-        PrepareCommonStateResults(result_hmi_state);
-        result_hmi_state.push_back(createHmiState(
-            HMILevel::HMI_BACKGROUND, AudioStreamingState::NOT_AUDIBLE, SystemContext::SYSCTXT_MAIN));
-        result_hmi_state.push_back(createHmiState(
-            HMILevel::HMI_BACKGROUND, AudioStreamingState::NOT_AUDIBLE, SystemContext::SYSCTXT_MAIN));
-        result_hmi_state.push_back(createHmiState(
-            HMILevel::HMI_BACKGROUND, AudioStreamingState::NOT_AUDIBLE, SystemContext::SYSCTXT_MAIN));
-        result_hmi_state.push_back(createHmiState(
-            HMILevel::HMI_BACKGROUND, AudioStreamingState::NOT_AUDIBLE, SystemContext::SYSCTXT_MAIN));
-        break;
-      }
+      case kMediaApp:
       case kNaviApp: {
         PrepareCommonStateResults(result_hmi_state);
         result_hmi_state.push_back(createHmiState(
@@ -281,9 +270,9 @@ class StateControllerTest : public ::testing::Test {
         result_hmi_state.push_back(createHmiState(
             HMILevel::HMI_BACKGROUND, AudioStreamingState::NOT_AUDIBLE, SystemContext::SYSCTXT_MAIN));
         result_hmi_state.push_back(createHmiState(
-            HMILevel::HMI_LIMITED, AudioStreamingState::NOT_AUDIBLE, SystemContext::SYSCTXT_MAIN));
+            HMILevel::HMI_BACKGROUND, AudioStreamingState::NOT_AUDIBLE, SystemContext::SYSCTXT_MAIN));
         result_hmi_state.push_back(createHmiState(
-            HMILevel::HMI_LIMITED, AudioStreamingState::NOT_AUDIBLE, SystemContext::SYSCTXT_MAIN));
+            HMILevel::HMI_BACKGROUND, AudioStreamingState::NOT_AUDIBLE, SystemContext::SYSCTXT_MAIN));
         break;
       }
       default: {
