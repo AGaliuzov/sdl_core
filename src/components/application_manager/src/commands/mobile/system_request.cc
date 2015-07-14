@@ -151,8 +151,13 @@ void SystemRequest::Run() {
         !file_system::MoveFile(app_full_file_path, file_dst_path)) {
       LOG4CXX_DEBUG(logger_, "Binary data not found.");
 
+      std::string origin_file_name;
+      if ((*message_)[strings::msg_params].keyExists(strings::file_name)) {
+        origin_file_name =
+            (*message_)[strings::msg_params][strings::file_name].asString();
+      }
       if (!(mobile_apis::RequestType::HTTP == request_type &&
-          std::string::npos != file_name.find(kIVSU))) {
+          0 == origin_file_name.compare(kIVSU))) {
         LOG4CXX_DEBUG(logger_, "Binary data required. Reject");
         SendResponse(false, mobile_apis::Result::REJECTED);
         return;
