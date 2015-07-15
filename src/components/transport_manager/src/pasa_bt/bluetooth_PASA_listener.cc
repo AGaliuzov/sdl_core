@@ -73,8 +73,10 @@ BluetoothPASAListener::BluetoothPASAListener(
 }
 
 BluetoothPASAListener::~BluetoothPASAListener() {
-  StopListening();
-  Terminate();
+  if (thread_) {
+    StopListening();
+    Terminate();
+  }
 }
 
 void BluetoothPASAListener::ListeningThreadDelegate::threadMain() {
