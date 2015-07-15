@@ -314,7 +314,6 @@ const std::string kDropSchema =
   "BEGIN; "
   "DROP INDEX IF EXISTS `message.fk_message_consumer_friendly_messages1_idx`; "
   "DROP TABLE IF EXISTS `resumption`; "
-  "DROP TABLE IF EXISTS `resumption`; "
   "DROP TABLE IF EXISTS `image`; "
   "DROP TABLE IF EXISTS `applicationChoiceSet`; "
   "DROP TABLE IF EXISTS `file`; "

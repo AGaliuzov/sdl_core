@@ -70,13 +70,10 @@ bool ResumeCtrl::Init() {
   using namespace profile;
   bool use_db = Profile::instance()->use_db_for_resumption();
   if (use_db) {
-    resumption_storage_.reset(new ResumptionDataDB());
-    if (!resumption_storage_->Init()) {
+    utils::SharedPtr<ResumptionDataDB> db(new ResumptionDataDB);
+    if (!db->Init()) {
       return false;
     }
-
-    ResumptionDataDB* db =
-        dynamic_cast<ResumptionDataDB*>(resumption_storage_.get());
 
     if (!db->IsDBVersionActual()) {
       LOG4CXX_INFO(logger_, "DB version had been changed. "
@@ -92,6 +89,7 @@ bool ResumeCtrl::Init() {
       db->SaveAllData(data);
       db->UpdateDBVersion();
     }
+    resumption_storage_ = db;
   } else {
     resumption_storage_.reset(new ResumptionDataJson());
   }

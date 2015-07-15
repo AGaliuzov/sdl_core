@@ -632,6 +632,31 @@ TEST_F(PolicyManagerImplTest, LoadPT_SetPT_PTIsLoaded) {
   EXPECT_TRUE(manager->LoadPT("file_pt_update.json", msg));
 }
 
+TEST_F(PolicyManagerImplTest, LoadPT_SetInvalidUpdatePT_PTIsNotLoaded) {
+  // Arrange
+  Json::Value table(Json::objectValue);
+
+  policy_table::Table update(&table);
+  update.SetPolicyTableType(rpc::policy_table_interface_base::PT_UPDATE);
+
+  // Assert update is invalid
+  ASSERT_FALSE(IsValid(update));
+
+  // Act
+  std::string json = table.toStyledString();
+  ::policy::BinaryMessage msg(json.begin(), json.end());
+
+  // Assert
+  EXPECT_CALL(*cache_manager, GenerateSnapshot()).Times(0);
+  EXPECT_CALL(*cache_manager, ApplyUpdate(_)).Times(0);
+  EXPECT_CALL(listener, GetAppName(_)).Times(0);
+  EXPECT_CALL(listener, OnUpdateStatusChanged(_)).Times(1);
+  EXPECT_CALL(*cache_manager, SaveUpdateRequired(false)).Times(0);
+  EXPECT_CALL(*cache_manager, TimeoutResponse()).Times(0);
+  EXPECT_CALL(*cache_manager, SecondsBetweenRetries(_)).Times(0);
+  EXPECT_FALSE(manager->LoadPT("file_pt_update.json", msg));
+}
+
 TEST_F(PolicyManagerImplTest2, KmsChanged_SetExceededKms_ExpectCorrectSchedule) {
   // Arrange
   CreateLocalPT("sdl_preloaded_pt.json");

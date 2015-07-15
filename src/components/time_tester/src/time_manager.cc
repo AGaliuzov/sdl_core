@@ -102,7 +102,9 @@ void TimeManager::Init(protocol_handler::ProtocolHandlerImpl* ph) {
 
 void TimeManager::Stop() {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (!thread_) {
+  if (thread_) {
+    thread_->stop();
+    thread_->join();
     threads::DeleteThread(thread_);
   }
   thread_ = NULL;

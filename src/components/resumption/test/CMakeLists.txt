@@ -1,4 +1,4 @@
-# Copyright (c) 2014, Ford Motor Company
+# Copyright (c) 2015, Ford Motor Company
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -33,11 +33,10 @@ if(BUILD_TESTS)
 include_directories(
   ${LOG4CXX_INCLUDE_DIRECTORY}
   ${GMOCK_INCLUDE_DIRECTORY}
-  ${COMPONENTS_DIR}/smart_objects/include
-  ${COMPONENTS_DIR}/transport_manager/include
   ${COMPONENTS_DIR}/utils/include
+  ${COMPONENTS_DIR}/resumption/include
+  ${COMPONENTS_DIR}/config_profile/include
   ${COMPONENTS_DIR}/include
-  ${COMPONENTS_DIR}/connection_handler/include
   ${JSONCPP_INCLUDE_DIRECTORY}
   ${CMAKE_BINARY_DIR}
 )
@@ -45,44 +44,18 @@ include_directories(
 set(LIBRARIES
     gmock 
     ConfigProfile 
-    transport_manager
     Utils    
-    ConfigProfile
-    ProtocolLibrary
-    Resumption
-    jsoncpp     
+    Resumption  
+    jsoncpp
 )
 
-if (BUILD_USB_SUPPORT)
-  list(APPEND LIBRARIES Libusb-1.0.16)
-endif()
-
-if (BUILD_BT_SUPPORT)
-  list(APPEND LIBRARIES bluetooth)
-endif()
-
-if (BUILD_AVAHI_SUPPORT)
-  list(APPEND LIBRARIES avahi-client avahi-common)
-endif()
-
-
 set(SOURCES
-  ${COMPONENTS_DIR}/transport_manager/test/mock_application.cc
-  ${COMPONENTS_DIR}/transport_manager/test/transport_manager_test.cc
-  ${COMPONENTS_DIR}/transport_manager/test/mock_connection_factory.cc
-  ${COMPONENTS_DIR}/transport_manager/test/mock_connection.cc
-  ${COMPONENTS_DIR}/transport_manager/test/mock_device.cc
-  ${COMPONENTS_DIR}/transport_manager/test/mock_device_scanner.cc
-  ${COMPONENTS_DIR}/transport_manager/test/raw_message_matcher.cc
-  ${COMPONENTS_DIR}/transport_manager/test/dnssd_service_browser_test.cc
-  ${COMPONENTS_DIR}/transport_manager/test/transport_adapter_test.cc
-  ${COMPONENTS_DIR}/transport_manager/test/transport_adapter_listener_test.cc
-  ${COMPONENTS_DIR}/transport_manager/test/tcp_transport_adapter_test.cc
-  ${COMPONENTS_DIR}/transport_manager/test/mock_transport_adapter.cc
-  ${COMPONENTS_DIR}/transport_manager/test/tcp_device_test.cc
-  ${COMPONENTS_DIR}/transport_manager/test/tcp_client_listener_test.cc
+  ${COMPONENTS_DIR}/resumption/test/last_state_test.cc
 )          
 
-create_test("transport_manager_test" "${SOURCES}" "${LIBRARIES}")
+#file(COPY smartDeviceLink_test.ini DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+#file(COPY app_info.dat DESTINATION ${CMAKE_CURRENT_BINARY_DIR}) 
+
+create_test("resumption_test" "${SOURCES}" "${LIBRARIES}")
 
 endif()

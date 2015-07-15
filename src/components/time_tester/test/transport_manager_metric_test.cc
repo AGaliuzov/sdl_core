@@ -98,8 +98,8 @@ TEST(TransportManagerMetricWrapper, GetJsonMetricWithGrabResources) {
   EXPECT_EQ(date_time::DateTime::getuSecs(end_time), jvalue[strings::end].asInt64());
   EXPECT_EQ(1000, jvalue[strings::data_size].asInt());
 
-  EXPECT_EQ(resources->stime, jvalue[strings::stime].asInt());
-  EXPECT_EQ(resources->utime, jvalue[strings::utime].asInt());
+  EXPECT_NEAR(resources->stime, jvalue[strings::stime].asInt(),1);
+  EXPECT_NEAR(resources->utime, jvalue[strings::utime].asInt(),1);
   EXPECT_EQ(resources->memory, jvalue[strings::memory].asInt());
 
   delete resources;

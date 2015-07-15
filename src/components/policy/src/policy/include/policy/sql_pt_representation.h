@@ -44,8 +44,8 @@ namespace policy_table = rpc::policy_table_interface_base;
 namespace utils {
 namespace dbms {
 class SQLDatabase;
-} // dbms
-} // utils
+} // namespace dbms
+} // namespace utils
 
 
 namespace policy {
@@ -91,7 +91,6 @@ class SQLPTRepresentation : public virtual PTRepresentation {
                              NULL,
                            StringArray* app_hmi_types = NULL);
     bool GetFunctionalGroupings(policy_table::FunctionalGroupings& groups);
-
 
 #ifdef BUILD_TESTS
     uint32_t open_counter() {
@@ -169,7 +168,7 @@ class SQLPTRepresentation : public virtual PTRepresentation {
 
     virtual bool SetVINValue(const std::string& value);
 
-    utils::dbms::SQLDatabase* db() const;
+    virtual utils::dbms::SQLDatabase* db() const;
     virtual bool SetIsDefault(const std::string& app_id, bool is_default) const;
 
 

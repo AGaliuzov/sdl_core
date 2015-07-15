@@ -269,7 +269,7 @@ String<minlen, maxlen>::String(const char* value)
 }
 
 template<size_t minlen, size_t maxlen>
-bool String<minlen, maxlen>::operator<(String new_val) {
+bool String<minlen, maxlen>::operator<(const String& new_val) const {
   return value_ < new_val.value_;
 }
 
@@ -282,13 +282,16 @@ String<minlen, maxlen>& String<minlen, maxlen>::operator=(const std::string& new
 
 template<size_t minlen, size_t maxlen>
 String<minlen, maxlen>& String<minlen, maxlen>::operator=(const String& new_val) {
+  if(*this == new_val) {
+    return *this;
+  }
   value_.assign(new_val.value_);
   value_state_ = new_val.value_state_;
   return *this;
 }
 
 template<size_t minlen, size_t maxlen>
-bool String<minlen, maxlen>::operator==(const String& rhs) {
+bool String<minlen, maxlen>::operator==(const String& rhs) const {
   return value_ == rhs.value_;
 }
 
@@ -313,7 +316,7 @@ Enum<T>::Enum(EnumType value)
 }
 
 template<typename T>
-Enum<T>& Enum<T>::operator=(EnumType new_val) {
+Enum<T>& Enum<T>::operator=(const EnumType& new_val) {
   value_ = new_val;
   value_state_ = IsValidEnum(value_) ? kValid : kInvalid;
   return *this;

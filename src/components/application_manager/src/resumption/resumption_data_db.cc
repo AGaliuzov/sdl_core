@@ -639,18 +639,21 @@ bool ResumptionDataDB::RefreshDB() const {
 
 bool ResumptionDataDB::GetAllData(smart_objects::SmartObject& data) const {
   LOG4CXX_AUTO_TRACE(logger_);
+  using namespace smart_objects;
   utils::dbms::SQLQuery query(db());
   if (!query.Prepare(resumption::kSelectAllApps)) {
     LOG4CXX_ERROR(logger_, "Can't get applications data from DB.");
     return false;
   }
 
-  data = smart_objects::SmartObject(smart_objects::SmartType_Array);
+  data = SmartObject(SmartType_Array);
 
   uint32_t index = 0;
+  std::string app_id;
+  std::string device_id;
   while (query.Next()) {
-    const std::string app_id = query.GetString(0);
-    const std::string device_id = query.GetString(1);
+    app_id = query.GetString(0);
+    device_id = query.GetString(1);
     if (GetSavedApplication(app_id, device_id, data[index])) {
       ++index;
     }
@@ -661,12 +664,13 @@ bool ResumptionDataDB::GetAllData(smart_objects::SmartObject& data) const {
 bool ResumptionDataDB::SaveAllData(
     const smart_objects::SmartObject& data)  {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (smart_objects::SmartType_Array != data.getType()) {
+  using namespace smart_objects;
+  if (SmartType_Array != data.getType()) {
     LOG4CXX_ERROR(logger_, "Unexpected type for resumption data.");
     return false;
   }
-  const smart_objects::SmartArray* apps = data.asArray();
-  smart_objects::SmartArray::const_iterator it_apps =
+  const SmartArray* apps = data.asArray();
+  SmartArray::const_iterator it_apps =
       apps->begin();
   for (;apps->end() != it_apps; ++it_apps) {
     if (!SaveApplicationToDB((*it_apps),

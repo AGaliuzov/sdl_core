@@ -411,8 +411,9 @@ void LifeCycle::WakeUp() {
 #endif
 
 void LifeCycle::StopComponents() {
+  LOG4CXX_AUTO_TRACE(logger_);
+
   if (!components_started_) {
-    LOG4CXX_TRACE(logger_, "exit");
     LOG4CXX_ERROR(logger_, "Components wasn't started");
     return;
   }
@@ -461,20 +462,18 @@ void LifeCycle::StopComponents() {
   application_manager::ApplicationManagerImpl::destroy();
 
   LOG4CXX_INFO(logger_, "Destroying HMI Message Handler and MB adapter.");
-#ifdef DBUS_HMIADAPTER
-  if (dbus_adapter_) {
-    if (hmi_handler_) {
-      hmi_handler_->RemoveHMIMessageAdapter(dbus_adapter_);
-      hmi_message_handler::HMIMessageHandlerImpl::destroy();
+
+#ifdef CUSTOMER_PASA
+  if (mb_pasa_adapter_) {
+    hmi_handler_->RemoveHMIMessageAdapter(mb_pasa_adapter_);
+    if (mb_pasa_adapter_thread_) {
+      mb_pasa_adapter_thread_->Stop();
+      mb_pasa_adapter_thread_->Join();
     }
-    if (dbus_adapter_thread_) {
-      dbus_adapter_thread_->Stop();
-      dbus_adapter_thread_->Join();
-      delete dbus_adapter_thread_;
-    }
-    delete dbus_adapter_;
+    delete mb_pasa_adapter_;
   }
-#endif  // DBUS_HMIADAPTER
+  hmi_message_handler::HMIMessageHandlerImpl::destroy();
+#else
 #ifdef MESSAGEBROKER_HMIADAPTER
   hmi_handler_->RemoveHMIMessageAdapter(mb_adapter_);
   if (mb_adapter_) {
@@ -492,19 +491,6 @@ void LifeCycle::StopComponents() {
     delete mb_adapter_thread_;
   }
 
-#endif  // MESSAGEBROKER_HMIADAPTER
-
-#ifdef CUSTOMER_PASA
-#ifdef PASA_HMI
-  hmi_handler_->RemoveHMIMessageAdapter(instance()->mb_pasa_adapter_);
-  mb_pasa_adapter_thread_->Stop();
-  mb_pasa_adapter_thread_->Join();
-  delete instance()->mb_pasa_adapter_;
-  hmi_handler_->~HMIMessageHandlerImpl();
-#endif  // PASA_HMI
-#endif  // CUSTOMER_PASA
-
-#ifdef MESSAGEBROKER_HMIADAPTER
   LOG4CXX_INFO(logger_, "Destroying Message Broker");
   if (mb_server_thread_) {
     mb_server_thread_->Stop();
@@ -523,8 +509,26 @@ void LifeCycle::StopComponents() {
   networking::cleanup();
 #endif  // MESSAGEBROKER_HMIADAPTER
 
+#ifdef DBUS_HMIADAPTER
+  if (dbus_adapter_) {
+    if (hmi_handler_) {
+      hmi_handler_->RemoveHMIMessageAdapter(dbus_adapter_);
+      hmi_message_handler::HMIMessageHandlerImpl::destroy();
+    }
+    if (dbus_adapter_thread_) {
+      dbus_adapter_thread_->Stop();
+      dbus_adapter_thread_->Join();
+      delete dbus_adapter_thread_;
+    }
+    delete dbus_adapter_;
+  }
+#endif  // DBUS_HMIADAPTER
+
+#ifdef MQUEUE_HMIADAPTER
   delete hmi_message_adapter_;
   hmi_message_adapter_ = NULL;
+#endif  // MQUEUE_HMIADAPTER
+#endif  // CUSTOMER_PASA
 
 #ifdef TIME_TESTER
   // It's important to delete tester Obcervers after TM adapters destruction
@@ -535,7 +539,6 @@ void LifeCycle::StopComponents() {
   }
 #endif  // TIME_TESTER
   components_started_ = false;
-  LOG4CXX_TRACE(logger_, "exit");
 }
 
 }  //  namespace main_namespace

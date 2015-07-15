@@ -110,8 +110,7 @@ bool SetMediaClockRequest::isDataValid() {
       msg_params[strings::update_mode].asUInt());
 
   if (UpdateMode::COUNTUP   == update_mode ||
-      UpdateMode::COUNTDOWN == update_mode ||
-      UpdateMode::PAUSE     == update_mode) {
+      UpdateMode::COUNTDOWN == update_mode) {
 
     if (!msg_params.keyExists(strings::start_time)) {
       LOG4CXX_INFO(logger_, "Invalid data");

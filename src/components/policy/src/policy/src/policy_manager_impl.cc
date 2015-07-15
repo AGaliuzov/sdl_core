@@ -568,9 +568,9 @@ void PolicyManagerImpl::SetUserConsentForDevice(const std::string& device_id,
 
   // Supposed only one group for device date consent
   if (is_allowed) {
-    consented_groups.push_back(list_of_permissions[0]);
+    consented_groups = list_of_permissions;
   } else {
-    disallowed_groups.push_back(list_of_permissions[0]);
+    disallowed_groups = list_of_permissions;
   }
 
   if (!cache_->SetUserPermissionsForDevice(device_id, consented_groups,
