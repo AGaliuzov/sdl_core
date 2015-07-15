@@ -32,13 +32,8 @@
 
 #include "gmock/gmock.h"
 
-#include <netinet/in.h>
-#include <sys/types.h>
-#include <ifaddrs.h>
-
 #include "transport_manager/transport_adapter/transport_adapter_controller.h"
 #include "transport_manager/tcp/dnssd_service_browser.h"
-#include "transport_manager/tcp/tcp_device.h"
 
 namespace transport_manager {
 namespace transport_adapter {
@@ -86,49 +81,14 @@ class MockTransportAdapterController : public TransportAdapterController {
                                         const DisconnectDeviceError& error));
 };
 
-in_addr_t GetIfaceAddress() {
-  in_addr_t result = 0;
-  ifaddrs* if_addrs = NULL;
-  //  void * tmpAddrPtr = NULL;
-
-  getifaddrs(&if_addrs);
-  for (ifaddrs* ifa = if_addrs; ifa != NULL; ifa = ifa->ifa_next) {
-    if (ifa->ifa_addr->sa_family == AF_INET) {
-      result = ((struct sockaddr_in*)ifa->ifa_addr)->sin_addr.s_addr;
-      if (result != htonl(INADDR_LOOPBACK)) {
-        break;
-      }
-    }
-  }
-  if (if_addrs) freeifaddrs(if_addrs);
-  return result;
-}
-static in_addr_t iface_address = GetIfaceAddress();
-
-MATCHER_P(HasService, service_port, "") {
-  for (DeviceVector::const_iterator it = arg.begin(); it != arg.end(); ++it) {
-    TcpDevice* tcp_device = dynamic_cast<TcpDevice*>(it->get());
-    if (tcp_device && tcp_device->in_addr() == iface_address) {
-      ApplicationList app_list = tcp_device->GetApplicationList();
-      for (ApplicationList::const_iterator it = app_list.begin();
-           it != app_list.end(); ++it) {
-        if (tcp_device->GetApplicationPort(*it) == service_port) {
-          return true;
-        }
-      }
-    }
-  }
-  return false;
-}
-
 TEST(DnssdServiceBrowser, Init) {
   // Arrange
   MockTransportAdapterController controller;
   DnssdServiceBrowser dnssd_service_browser(&controller);
   // Check values after creation. Nothing is initialized
-  EXPECT_TRUE(0 == dnssd_service_browser.avahi_service_browser());
-  EXPECT_TRUE(0 == dnssd_service_browser.avahi_threaded_poll());
-  EXPECT_TRUE(0 == dnssd_service_browser.avahi_client());
+  EXPECT_TRUE(NULL == dnssd_service_browser.avahi_service_browser());
+  EXPECT_TRUE(NULL == dnssd_service_browser.avahi_threaded_poll());
+  EXPECT_TRUE(NULL == dnssd_service_browser.avahi_client());
   // Act
   const TransportAdapter::Error error = dnssd_service_browser.Init();
   ASSERT_EQ(TransportAdapter::OK, error);
@@ -138,9 +98,9 @@ TEST(DnssdServiceBrowser, Init) {
   }
   ASSERT_TRUE(dnssd_service_browser.IsInitialised());
   // Check values are initialized and threaded poll started
-  EXPECT_FALSE(0 == dnssd_service_browser.avahi_service_browser());
-  EXPECT_FALSE(0 == dnssd_service_browser.avahi_threaded_poll());
-  EXPECT_FALSE(0 == dnssd_service_browser.avahi_client());
+  EXPECT_FALSE(NULL == dnssd_service_browser.avahi_service_browser());
+  EXPECT_FALSE(NULL == dnssd_service_browser.avahi_threaded_poll());
+  EXPECT_FALSE(NULL == dnssd_service_browser.avahi_client());
 }
 
 TEST(DnssdServiceBrowser, IsInitialized_ExpectFalse) {
@@ -164,14 +124,14 @@ TEST(DnssdServiceBrowser, Terminate_ExpectTerminated) {
   }
   ASSERT_TRUE(dnssd_service_browser.IsInitialised());
   // Client & browser are initialized and successfully started
-  EXPECT_FALSE(0 == dnssd_service_browser.avahi_service_browser());
-  EXPECT_FALSE(0 == dnssd_service_browser.avahi_threaded_poll());
-  EXPECT_FALSE(0 == dnssd_service_browser.avahi_client());
+  EXPECT_FALSE(NULL == dnssd_service_browser.avahi_service_browser());
+  EXPECT_FALSE(NULL == dnssd_service_browser.avahi_threaded_poll());
+  EXPECT_FALSE(NULL == dnssd_service_browser.avahi_client());
   dnssd_service_browser.Terminate();
   // Checks everything successfully terminated
-  EXPECT_TRUE(0 == dnssd_service_browser.avahi_service_browser());
-  EXPECT_TRUE(0 == dnssd_service_browser.avahi_threaded_poll());
-  EXPECT_TRUE(0 == dnssd_service_browser.avahi_client());
+  EXPECT_TRUE(NULL == dnssd_service_browser.avahi_service_browser());
+  EXPECT_TRUE(NULL == dnssd_service_browser.avahi_threaded_poll());
+  EXPECT_TRUE(NULL == dnssd_service_browser.avahi_client());
 }
 
 TEST(DnssdServiceBrowser, Scan_ExpectNotSupported) {

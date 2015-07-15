@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -74,9 +74,9 @@ bool DnssdServiceBrowser::IsInitialised() const {
 
 DnssdServiceBrowser::DnssdServiceBrowser(TransportAdapterController* controller)
     : controller_(controller),
-      avahi_service_browser_(0),
-      avahi_threaded_poll_(0),
-      avahi_client_(0),
+      avahi_service_browser_(NULL),
+      avahi_threaded_poll_(NULL),
+      avahi_client_(NULL),
       service_records_(),
       mutex_(),
       initialised_(false) {
