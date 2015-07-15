@@ -229,7 +229,7 @@ TEST_F(IncomingDataHandlerTest, MalformedPacket_Version) {
             FRAME_DATA_HEART_BEAT, some_session_id, 0u, some_message_id, NULL));
   }
 
-  // We count malformed only first time when it occures after correct message
+  // We count malformed only first time when it occurs after correct message
   FrameList::iterator it = malformed_packets.begin();
   ProcessPacket(**it);
   EXPECT_EQ(RESULT_MALFORMED_OCCURS, result_code);
@@ -269,7 +269,7 @@ TEST_F(IncomingDataHandlerTest, MalformedPacket_ServiceType) {
             some_message_id, NULL));
   }
 
-  // We count malformed only first time when it occures after correct message
+  // We count malformed only first time when it occurs after correct message
   FrameList::iterator it = malformed_packets.begin();
   ProcessPacket(**it);
   EXPECT_EQ(RESULT_MALFORMED_OCCURS, result_code);
@@ -304,7 +304,7 @@ TEST_F(IncomingDataHandlerTest, MalformedPacket_FrameType) {
             kControl, FRAME_DATA_HEART_BEAT, some_session_id, 0u, some_message_id, NULL));
   }
 
-  // We count malformed only first time when it occures after correct message
+  // We count malformed only first time when it occurs after correct message
   FrameList::iterator it = malformed_packets.begin();
   ProcessPacket(**it);
   EXPECT_EQ(RESULT_MALFORMED_OCCURS, result_code);
@@ -339,7 +339,7 @@ TEST_F(IncomingDataHandlerTest, MalformedPacket_ControlFrame) {
             malformed_frame_data[i], some_session_id, 0u, some_message_id, NULL));
   }
 
-  // We count malformed only first time when it occures after correct message
+  // We count malformed only first time when it occurs after correct message
   FrameList::iterator it = malformed_packets.begin();
   ProcessPacket(**it);
   EXPECT_EQ(RESULT_MALFORMED_OCCURS, result_code);
@@ -375,7 +375,7 @@ TEST_F(IncomingDataHandlerTest, MalformedPacket_SingleFrame) {
             malformed_frame_data[i], some_session_id, 0u, some_message_id, NULL));
   }
 
-  // We count malformed only first time when it occures after correct message
+  // We count malformed only first time when it occurs after correct message
   FrameList::iterator it = malformed_packets.begin();
   ProcessPacket(**it);
   EXPECT_EQ(RESULT_MALFORMED_OCCURS, result_code);
@@ -411,7 +411,7 @@ TEST_F(IncomingDataHandlerTest, MalformedPacket_FirstFrame) {
             malformed_frame_data[i], some_session_id, 0u, some_message_id, NULL));
   }
 
-  // We count malformed only first time when it occures after correct message
+  // We count malformed only first time when it occurs after correct message
   FrameList::iterator it = malformed_packets.begin();
   ProcessPacket(**it);
   EXPECT_EQ(RESULT_MALFORMED_OCCURS, result_code);
@@ -582,171 +582,210 @@ TEST_F(IncomingDataHandlerTest, MalformedPacket_Mix) {
 }
 
 TEST_F(IncomingDataHandlerTest, OnePortionOfData_CorrectAndMalformed_OneMalformedCounted) {
+  // Arrange
   ProtocolPacket correct_hb_packet_(uid1, PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
                                     kControl, FRAME_DATA_HEART_BEAT, some_session_id, 0u,
                                     some_message_id);
   AppendPacketToTMData(correct_hb_packet_);
-  tm_data.insert(tm_data.end(), 12, 0xFF);
+  tm_data.insert(tm_data.end(), 12, 0xFF); // 12 bytes of malformed data
 
+  // Act
   ProcessData(uid1, &tm_data[0], tm_data.size());
 
+  // Assert
   EXPECT_EQ(RESULT_MALFORMED_OCCURS, result_code);
   EXPECT_EQ(1u, malformed_occurs);
   EXPECT_EQ(1u, actual_frames.size());
 }
 
 TEST_F(IncomingDataHandlerTest, FirstPortionOfData_MalformedAndCorrect_OneMalformedCounted) {
+  // Arrange
   ProtocolPacket correct_hb_packet_(uid1, PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
                                     kControl, FRAME_DATA_HEART_BEAT, some_session_id, 0u,
                                     some_message_id);
-  tm_data.insert(tm_data.end(), 12, 0xFF);
+  tm_data.insert(tm_data.end(), 12, 0xFF); // 12 bytes of malformed data
   AppendPacketToTMData(correct_hb_packet_);
 
+  // Act
   ProcessData(uid1, &tm_data[0], tm_data.size());
 
+  // Assert
   EXPECT_EQ(RESULT_MALFORMED_OCCURS, result_code);
   EXPECT_EQ(1u, malformed_occurs);
   EXPECT_EQ(1u, actual_frames.size());
 }
 
 TEST_F(IncomingDataHandlerTest, OnePortionOfData_CorrectMalformedCorrect_OneMalformedCounted) {
+  // Arrange
   ProtocolPacket correct_hb_packet_(uid1, PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
                                     kControl, FRAME_DATA_HEART_BEAT, some_session_id, 0u,
                                     some_message_id);
   AppendPacketToTMData(correct_hb_packet_);
-  tm_data.insert(tm_data.end(), 12, 0xFF);
+  tm_data.insert(tm_data.end(), 12, 0xFF); // 12 bytes of malformed data
   AppendPacketToTMData(correct_hb_packet_);
 
+  // Act
   ProcessData(uid1, &tm_data[0], tm_data.size());
 
+  // Assert
   EXPECT_EQ(RESULT_MALFORMED_OCCURS, result_code);
   EXPECT_EQ(1u, malformed_occurs);
   EXPECT_EQ(2u, actual_frames.size());
 }
 
 TEST_F(IncomingDataHandlerTest, OnePortionOfData_CorrectMalformedCorrectMalformed_TwoMalformedCounted) {
+  // Arrange
   ProtocolPacket correct_hb_packet_(uid1, PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
                                     kControl, FRAME_DATA_HEART_BEAT, some_session_id, 0u,
                                     some_message_id);
   AppendPacketToTMData(correct_hb_packet_);
-  tm_data.insert(tm_data.end(), 12, 0xFF);
+  tm_data.insert(tm_data.end(), 12, 0xFF); // 12 bytes of malformed data
   AppendPacketToTMData(correct_hb_packet_);
-  tm_data.insert(tm_data.end(), 12, 0xFF);
+  tm_data.insert(tm_data.end(), 12, 0xFF); // 12 bytes of malformed data
 
+  // Act
   ProcessData(uid1, &tm_data[0], tm_data.size());
 
+  // Assert
   EXPECT_EQ(RESULT_MALFORMED_OCCURS, result_code);
   EXPECT_EQ(2u, malformed_occurs);
   EXPECT_EQ(2u, actual_frames.size());
 }
 
 TEST_F(IncomingDataHandlerTest, OnePortionOfData_MalformedCorrectMalformedCorrect_TwoMalformedCounted) {
+  // Arrange
   ProtocolPacket correct_hb_packet_(uid1, PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
                                     kControl, FRAME_DATA_HEART_BEAT, some_session_id, 0u,
                                     some_message_id);
-  tm_data.insert(tm_data.end(), 12, 0xFF);
+  tm_data.insert(tm_data.end(), 12, 0xFF); // 12 bytes of malformed data
   AppendPacketToTMData(correct_hb_packet_);
-  tm_data.insert(tm_data.end(), 12, 0xFF);
+  tm_data.insert(tm_data.end(), 12, 0xFF); // 12 bytes of malformed data
   AppendPacketToTMData(correct_hb_packet_);
 
+  // Act
   ProcessData(uid1, &tm_data[0], tm_data.size());
 
+  // Assert
   EXPECT_EQ(RESULT_MALFORMED_OCCURS, result_code);
   EXPECT_EQ(2u, malformed_occurs);
   EXPECT_EQ(2u, actual_frames.size());
 }
 
 TEST_F(IncomingDataHandlerTest, TwoPortionsOfData_CorrectMalformedANDCorrectMalformed_TwoMalformedCounted) {
+  // Arrange
   ProtocolPacket correct_hb_packet_(uid1, PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
                                     kControl, FRAME_DATA_HEART_BEAT, some_session_id, 0u,
                                     some_message_id);
   AppendPacketToTMData(correct_hb_packet_);
-  tm_data.insert(tm_data.end(), 12, 0xFF);
+  tm_data.insert(tm_data.end(), 12, 0xFF); // 12 bytes of malformed data
 
+  // Act
   ProcessData(uid1, &tm_data[0], tm_data.size());
 
+  // Assert
   EXPECT_EQ(RESULT_MALFORMED_OCCURS, result_code);
   EXPECT_EQ(1u, malformed_occurs);
   EXPECT_EQ(1u, actual_frames.size());
 
+  // Arrange
   tm_data.clear();
   AppendPacketToTMData(correct_hb_packet_);
-  tm_data.insert(tm_data.end(), 12, 0xFF);
+  tm_data.insert(tm_data.end(), 12, 0xFF); // 12 bytes of malformed data
 
+  // Act
   ProcessData(uid1, &tm_data[0], tm_data.size());
 
+  // Assert
   EXPECT_EQ(RESULT_MALFORMED_OCCURS, result_code);
   EXPECT_EQ(1u, malformed_occurs);
   EXPECT_EQ(1u, actual_frames.size());
 }
 
 TEST_F(IncomingDataHandlerTest, TwoPortionsOfData_CorrectMalformedANDMalformedCorrect_OneMalformedCounted) {
+  // Arrange
   ProtocolPacket correct_hb_packet_(uid1, PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
                                     kControl, FRAME_DATA_HEART_BEAT, some_session_id, 0u,
                                     some_message_id);
   AppendPacketToTMData(correct_hb_packet_);
-  tm_data.insert(tm_data.end(), 12, 0xFF);
+  tm_data.insert(tm_data.end(), 12, 0xFF); // 12 bytes of malformed data
 
+  // Act
   ProcessData(uid1, &tm_data[0], tm_data.size());
 
+  // Assert
   EXPECT_EQ(RESULT_MALFORMED_OCCURS, result_code);
   EXPECT_EQ(1u, malformed_occurs);
   EXPECT_EQ(1u, actual_frames.size());
 
+  // Arrange
   tm_data.clear();
-  tm_data.insert(tm_data.end(), 12, 0xFF);
+  tm_data.insert(tm_data.end(), 12, 0xFF); // 12 bytes of malformed data
   AppendPacketToTMData(correct_hb_packet_);
 
+  // Act
   ProcessData(uid1, &tm_data[0], tm_data.size());
 
+  // Assert
   EXPECT_EQ(RESULT_OK, result_code);
   EXPECT_EQ(0u, malformed_occurs);
   EXPECT_EQ(1u, actual_frames.size());
 }
 
 TEST_F(IncomingDataHandlerTest, TwoPortionsOfData_MalformedCorrectANDMalformedCorrect_TwoMalformedCounted) {
+  // Arrange
   ProtocolPacket correct_hb_packet_(uid1, PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
                                     kControl, FRAME_DATA_HEART_BEAT, some_session_id, 0u,
                                     some_message_id);
-  tm_data.insert(tm_data.end(), 12, 0xFF);
+  tm_data.insert(tm_data.end(), 12, 0xFF); // 12 bytes of malformed data
   AppendPacketToTMData(correct_hb_packet_);
 
+  // Act
   ProcessData(uid1, &tm_data[0], tm_data.size());
 
+  // Assert
   EXPECT_EQ(RESULT_MALFORMED_OCCURS, result_code);
   EXPECT_EQ(1u, malformed_occurs);
   EXPECT_EQ(1u, actual_frames.size());
 
+  // Arrange
   tm_data.clear();
-  tm_data.insert(tm_data.end(), 12, 0xFF);
+  tm_data.insert(tm_data.end(), 12, 0xFF); // 12 bytes of malformed data
   AppendPacketToTMData(correct_hb_packet_);
 
+  // Act
   ProcessData(uid1, &tm_data[0], tm_data.size());
 
+  // Assert
   EXPECT_EQ(RESULT_MALFORMED_OCCURS, result_code);
   EXPECT_EQ(1u, malformed_occurs);
   EXPECT_EQ(1u, actual_frames.size());
 }
 
 TEST_F(IncomingDataHandlerTest, TwoPortionsOfData_MalformedCorrectANDCorrectMalformed_TwoMalformedCounted) {
+  // Arrange
   ProtocolPacket correct_hb_packet_(uid1, PROTOCOL_VERSION_3, PROTECTION_OFF, FRAME_TYPE_CONTROL,
                                     kControl, FRAME_DATA_HEART_BEAT, some_session_id, 0u,
                                     some_message_id);
-  tm_data.insert(tm_data.end(), 12, 0xFF);
+  tm_data.insert(tm_data.end(), 12, 0xFF); // 12 bytes of malformed data
   AppendPacketToTMData(correct_hb_packet_);
 
+  // Act
   ProcessData(uid1, &tm_data[0], tm_data.size());
 
+  // Assert
   EXPECT_EQ(RESULT_MALFORMED_OCCURS, result_code);
   EXPECT_EQ(1u, malformed_occurs);
   EXPECT_EQ(1u, actual_frames.size());
 
+  // Arrange
   tm_data.clear();
   AppendPacketToTMData(correct_hb_packet_);
-  tm_data.insert(tm_data.end(), 12, 0xFF);
+  tm_data.insert(tm_data.end(), 12, 0xFF); // 12 bytes of malformed data
 
+  // Act
   ProcessData(uid1, &tm_data[0], tm_data.size());
 
+  // Assert
   EXPECT_EQ(RESULT_MALFORMED_OCCURS, result_code);
   EXPECT_EQ(1u, malformed_occurs);
   EXPECT_EQ(1u, actual_frames.size());
