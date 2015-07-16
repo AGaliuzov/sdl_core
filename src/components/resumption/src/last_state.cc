@@ -83,7 +83,9 @@ LastState::LastState() {
 }
 
 LastState::~LastState() {
+#ifndef CUSTOMER_PASA
   SaveToFileSystem();
+#endif
 }
 
 }
