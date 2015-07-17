@@ -200,11 +200,8 @@ int32_t main(int32_t argc, char** argv) {
   LOG4CXX_INFO(logger_, "Application successfully stopped");
   DEINIT_LOGGER();
 
-#if defined(__linux__)
   /* Do not execute atexit handlers. Workaround for core crash after main() -
-   * APPLINK-13464 and APPLINK-12881. */
-  ::_exit(EXIT_SUCCESS);
-#else
-  return EXIT_SUCCESS;
-#endif // __linux__
+   * APPLINK-13464, APPLINK-12881, APPLINK-14239, APPLINK-14304, APPLINK-14305,
+   * APPLINK-14242, APPLINK-13852, APPLINK-13521, APPLINK-14612 */
+  _exit(EXIT_SUCCESS);
 }

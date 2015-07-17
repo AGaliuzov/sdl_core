@@ -304,7 +304,11 @@ void ApplinkNotificationThreadDelegate::threadMain() {
           DEINIT_LOGGER();
           stopSmartDeviceLink();
           LOG4CXX_INFO(logger_, "Application stopped due to SDL_MSG_SDL_STOP");
-          exit(EXIT_SUCCESS);
+
+          /* Do not execute atexit handlers. Workaround for core crash after main() -
+           * APPLINK-13464, APPLINK-12881, APPLINK-14239, APPLINK-14304, APPLINK-14305,
+           * APPLINK-14242, APPLINK-13852, APPLINK-13521, APPLINK-14612 */
+          _exit(EXIT_SUCCESS);
           break;
         case SDL_MSG_LOW_VOLTAGE:
           main_namespace::LifeCycle::instance()->LowVoltage();
