@@ -34,6 +34,7 @@
 #define SRC_COMPONENTS_INCLUDE_UTILS_MESSAGE_QUEUE_H_
 
 #include <queue>
+#include <algorithm>
 
 #include "utils/conditional_variable.h"
 #include "utils/lock.h"
@@ -182,6 +183,10 @@ template<typename T, class Q> T MessageQueue<T, Q>::pop() {
 template<typename T, class Q> void MessageQueue<T, Q>::Shutdown() {
   sync_primitives::AutoLock auto_lock(queue_lock_);
   shutting_down_ = true;
+  if (!queue_.empty()) {
+    Queue empty_queue;
+    std::swap(queue_, empty_queue);
+  }
   queue_new_items_.Broadcast();
 }
 
@@ -190,7 +195,7 @@ template<typename T, class Q> void MessageQueue<T, Q>::Reset() {
   shutting_down_ = false;
   if (!queue_.empty()) {
     Queue empty_queue;
-    queue_.swap(empty_queue);
+    std::swap(queue_, empty_queue);
   }
 }
 
