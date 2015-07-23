@@ -48,7 +48,6 @@ CreateInteractionChoiceSetRequest::CreateInteractionChoiceSetRequest(
     choice_set_id_(0),
     received_chs_count_(0),
     expected_chs_count_(0),
-    response_from_hmi_(false),
     error_from_hmi_(false) {
 }
 
@@ -310,7 +309,6 @@ void CreateInteractionChoiceSetRequest::on_event(
   const smart_objects::SmartObject& message = event.smart_object();
   if (event.id() == hmi_apis::FunctionID::VR_AddCommand) {
     received_chs_count_++;
-    response_from_hmi_ = true;
 
     uint32_t corr_id = static_cast<uint32_t>(message[strings::params]
         [strings::correlation_id].asUInt());
@@ -339,6 +337,10 @@ void CreateInteractionChoiceSetRequest::on_event(
     }
     if (received_chs_count_ >= expected_chs_count_) {
       OnAllHMIResponsesReceived();
+    } else {
+      ApplicationManagerImpl::instance()->updateRequestTimeout(
+          connection_key(), correlation_id(), default_timeout());
+      LOG4CXX_DEBUG(logger_, "Timeout for request was updated");
     }
   }
 }
@@ -346,18 +348,10 @@ void CreateInteractionChoiceSetRequest::on_event(
 void CreateInteractionChoiceSetRequest::onTimeOut() {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  if (response_from_hmi_) {
-    response_from_hmi_ = false;
-    ApplicationManagerImpl::instance()->updateRequestTimeout(
-        connection_key(), correlation_id(), default_timeout());
-    LOG4CXX_DEBUG(logger_, "Timeout for request was updated");
-  } else {
-    LOG4CXX_DEBUG(logger_, "No answer from HMI. Terminating");
-    if (!error_from_hmi_) {
-      SendResponse(false, mobile_apis::Result::GENERIC_ERROR);
-    }
-    OnAllHMIResponsesReceived();
+  if (!error_from_hmi_) {
+    SendResponse(false, mobile_apis::Result::GENERIC_ERROR);
   }
+  DeleteChoices();
 }
 
 void CreateInteractionChoiceSetRequest::DeleteChoices() {
@@ -394,7 +388,7 @@ void CreateInteractionChoiceSetRequest::OnAllHMIResponsesReceived() {
 
   unsubscribe_from_event(hmi_apis::FunctionID::VR_AddCommand);
 
-  if (response_from_hmi_ && !error_from_hmi_) {
+  if (!error_from_hmi_) {
     SendResponse(true, mobile_apis::Result::SUCCESS);
 
     ApplicationSharedPtr application =
