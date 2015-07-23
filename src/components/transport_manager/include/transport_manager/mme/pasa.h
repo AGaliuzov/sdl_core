@@ -50,10 +50,12 @@ namespace transport_adapter {
 
 #pragma pack(push, 1)
 typedef struct {
-  uint64_t msid;
-  char name[256];
-  bool iAP2;
+  char mount_path[255];
+  char fs_type[8];
+  char serial[255];
+  char device_name[255];
 } MmeDeviceInfo;
+
 #pragma pack(pop)
 
 }  // namespace transport_adapter

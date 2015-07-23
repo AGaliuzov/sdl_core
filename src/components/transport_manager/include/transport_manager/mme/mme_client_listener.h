@@ -101,10 +101,8 @@ class MmeClientListener : public ClientConnectionListener {
   void OnDeviceArrived(const MmeDeviceInfo* mme_device_info);
   void OnDeviceLeft(const MmeDeviceInfo* mme_device_info);
   void NotifyDevicesUpdated();
-  bool GetMmeList(MsidContainer& msids);
-  bool GetMmeInfo(msid_t msid, std::string& mount_point,
-                  MmeDevice::Protocol& protocol, std::string& unique_device_id,
-                  std::string& vendor, std::string& product, bool& attached);
+  MmeDevice::Protocol get_protocol_type(
+      const MmeDeviceInfo *mme_device_info) const;
 
   static const char* event_mq_name;
   static const char* ack_mq_name;
