@@ -33,8 +33,11 @@
 #include "transport_manager/mme/mme_client_listener.h"
 
 #include <string.h>
+#include <string>
 
 #include "utils/logger.h"
+#include "utils/make_shared.h"
+
 #include "config_profile/profile.h"
 
 #include "transport_manager/mme/iap_device.h"
@@ -176,174 +179,71 @@ TransportAdapter::Error MmeClientListener::StopListening() {
 }
 
 void MmeClientListener::OnDeviceArrived(const MmeDeviceInfo* mme_device_info) {
-  msid_t msid = mme_device_info->msid;
-  std::string mount_point;
-  MmeDevice::Protocol protocol;
-  std::string unique_device_id;
-  std::string vendor;
-  std::string product;
-  bool attached;  // not used
-  if (GetMmeInfo(msid, mount_point, protocol, unique_device_id, vendor, product,
-                 attached)) {
-#define CONSTRUCT_DEVICE_NAME 0
-#if CONSTRUCT_DEVICE_NAME
-    std::string device_name = vendor + " " + product;
-#else
-    std::string device_name = std::string(mme_device_info->name);
-#endif
-    switch (protocol) {
-      case MmeDevice::IAP: {
-        MmeDevicePtr mme_device(
-            new IAPDevice(mount_point, device_name, unique_device_id,
-                          controller_));
-        controller_->AddDevice(mme_device);
-// new device must be initialized
-// after ON_SEARCH_DEVICE_DONE notification
-// because ON_APPLICATION_LIST_UPDATED event can occur immediately
-// which doesn't make sense until device list is updated
-        mme_device->Init();
-        break;
-      }
-      case MmeDevice::IAP2: {
-        MmeDevicePtr mme_device(
-            new IAP2Device(mount_point, device_name, unique_device_id,
-                           controller_));
-        controller_->AddDevice(mme_device);
-// new device must be initialized
-// after ON_SEARCH_DEVICE_DONE notification
-// because ON_APPLICATION_LIST_UPDATED event can occur immediately
-// which doesn't make sense until device list is updated
-        mme_device->Init();
-        break;
-      }
-      case MmeDevice::UnknownProtocol:
-        LOG4CXX_WARN(logger_,
-                     "Unsupported protocol for device " << device_name);
-        break;
-    }
+  if (mme_device_info == NULL) {
+    LOG4CXX_ERROR(logger_, "Can't parse device info.");
+    return;
   }
+
+  const MmeDevice::Protocol protocol = get_protocol_type(mme_device_info);
+  const std::string device_name(mme_device_info->device_name);
+  const std::string unique_device_id(mme_device_info->serial);
+  const std::string mount_point(mme_device_info->mount_path);
+  MmeDevicePtr mme_device;
+  switch (protocol) {
+    case MmeDevice::IAP: {
+      mme_device = utils::MakeShared<IAPDevice>(
+            mount_point, device_name, unique_device_id, controller_);
+      break;
+    }
+    case MmeDevice::IAP2: {
+      mme_device = utils::MakeShared<IAP2Device>(
+            mount_point, device_name, unique_device_id, controller_);
+      break;
+    }
+    case MmeDevice::UnknownProtocol:
+    default:
+      LOG4CXX_WARN(logger_,
+                   "Unsupported protocol for device " << device_name);
+      return;
+  }
+  controller_->AddDevice(mme_device);
+// new device must be initialized
+// after ON_SEARCH_DEVICE_DONE notification
+// because ON_APPLICATION_LIST_UPDATED event can occur immediately
+// which doesn't make sense until device list is updated
+  mme_device->Init();
 }
 
 void MmeClientListener::OnDeviceLeft(const MmeDeviceInfo* mme_device_info) {
-  msid_t msid = mme_device_info->msid;
-  std::string mount_point;
-  MmeDevice::Protocol protocol;
-  std::string unique_device_id;
-  std::string vendor;
-  std::string product;
-  bool attached;  // not used
-  if (GetMmeInfo(msid, mount_point, protocol, unique_device_id, vendor, product,
-                 attached)) {
-    controller_->DeviceDisconnected(unique_device_id, DisconnectDeviceError());
+  if (mme_device_info == NULL) {
+    LOG4CXX_ERROR(logger_, "Can't parse device info.");
+    return;
+  }
+
+  const std::string unique_device_id(mme_device_info->serial);
+  controller_->DeviceDisconnected(unique_device_id, DisconnectDeviceError());
+}
+
+MmeDevice::Protocol MmeClientListener::get_protocol_type(
+    const MmeDeviceInfo* mme_device_info) const {
+  if (mme_device_info == NULL) {
+    LOG4CXX_ERROR(logger_, "Can't parse device info.");
+    return MmeDevice::UnknownProtocol;
+  }
+
+  const std::string fs_type(mme_device_info->fs_type);
+  if (0 == fs_type.compare("ipod")) {
+    LOG4CXX_DEBUG(logger_, "Protocol iAP");
+    return MmeDevice::IAP;
+  } else if (0 == fs_type.compare("iap2")) {
+    LOG4CXX_DEBUG(logger_, "Protocol iAP2");
+    return MmeDevice::IAP2;
   } else {
-    LOG4CXX_ERROR(logger_, "Cannot find mme device info for " << msid);
+    LOG4CXX_WARN(logger_, "Unsupported protocol " << fs_type);
+    return MmeDevice::UnknownProtocol;
   }
 }
 
-bool MmeClientListener::GetMmeList(MsidContainer& msids) {
-  const char query[] = "SELECT msid FROM mediastores";
-  const std::string& mme_db_name = profile::Profile::instance()->mme_db_name();
-  LOG4CXX_TRACE(logger_, "Querying " << mme_db_name);
-  qdb_result_t* res = qdb_query(qdb_hdl_, 0, query);
-  if (res != 0) {
-    LOG4CXX_DEBUG(logger_, "Parsing result");
-    msids.clear();
-    int count = qdb_rows(res);
-    for (int i = 0; i < count; ++i) {
-      msid_t* data = (msid_t*) qdb_cell(res, i, 0);
-      msid_t msid = *data;
-      msids.push_back(msid);
-    }
-    qdb_freeresult(res);
-    return true;
-  } else {
-    LOG4CXX_ERROR(logger_, "Error querying " << mme_db_name);
-    return false;
-  }
-}
-
-bool MmeClientListener::GetMmeInfo(msid_t msid, std::string& mount_point,
-                                  MmeDevice::Protocol& protocol,
-                                  std::string& unique_device_id,
-                                  std::string& vendor, std::string& product,
-                                  bool& attached) {
-
-  const char query[] =
-      "SELECT mountpath, fs_type, serial, manufacturer, device_name, attached FROM mediastores WHERE msid=%lld";
-  const std::string& mme_db_name = profile::Profile::instance()->mme_db_name();
-  LOG4CXX_TRACE(logger_, "Querying " << mme_db_name);
-  qdb_result_t* res = qdb_query(qdb_hdl_, 0, query, msid);
-  if (res != 0) {
-    LOG4CXX_DEBUG(logger_, "Parsing result");
-    bool errors_occurred = false;
-    char* data = (char*) qdb_cell(res, 0, 0);  // mountpath
-    if (data != 0) {
-      mount_point = std::string(data);
-      LOG4CXX_DEBUG(logger_, "Mount point " << mount_point);
-    } else {
-      LOG4CXX_ERROR(logger_, "Error parsing column mountpath");
-      errors_occurred = true;
-    }
-    data = (char*) qdb_cell(res, 0, 1);  // fs_type
-    if (data != 0) {
-      if (0 == strcmp(data, "ipod")) {
-        protocol = MmeDevice::IAP;
-        LOG4CXX_DEBUG(logger_, "Protocol iAP");
-      } else if (0 == strcmp(data, "iap2")) {
-        protocol = MmeDevice::IAP2;
-        LOG4CXX_DEBUG(logger_, "Protocol iAP2");
-      } else {
-        protocol = MmeDevice::UnknownProtocol;
-        LOG4CXX_WARN(logger_, "Unsupported protocol " << data);
-      }
-    } else {
-      LOG4CXX_ERROR(logger_, "Error parsing column fs_type");
-      errors_occurred = true;
-    }
-    data = (char*) qdb_cell(res, 0, 2);  // serial
-    if (data != 0) {
-      unique_device_id = std::string(data);
-      LOG4CXX_DEBUG(logger_, "Device ID " << unique_device_id);
-    } else {
-      LOG4CXX_ERROR(logger_, "Error parsing column serial");
-      errors_occurred = true;
-    }
-    data = (char*) qdb_cell(res, 0, 3);  // manufacturer
-    if (data != 0) {
-      vendor = std::string(data);
-      LOG4CXX_DEBUG(logger_, "Vendor " << vendor);
-    } else {
-      LOG4CXX_ERROR(logger_, "Error parsing column manufacturer");
-      errors_occurred = true;
-    }
-    data = (char*) qdb_cell(res, 0, 4);  // device_name
-    if (data != 0) {
-      product = std::string(data);
-      LOG4CXX_DEBUG(logger_, "Product " << product);
-    } else {
-      LOG4CXX_ERROR(logger_, "Error parsing column device_name");
-      errors_occurred = true;
-    }
-    qdb_int* attached_data = (qdb_int*) qdb_cell(res, 0, 5);  // attached
-    if (attached_data != 0) {
-      qdb_int attached_int = *attached_data;
-      attached = (attached_int != 0);
-      if (attached) {
-        LOG4CXX_DEBUG(logger_, "Device is attached");
-      } else {
-        LOG4CXX_DEBUG(logger_, "Device isn\'t attached");
-      }
-    } else {
-      LOG4CXX_ERROR(logger_, "Error parsing column attached");
-      errors_occurred = true;
-    }
-    qdb_freeresult(res);
-    return !errors_occurred;
-  } else {
-    LOG4CXX_ERROR(logger_, "Error querying " << mme_db_name);
-    return false;
-  }
-}
 MmeClientListener::NotifyThreadDelegate::NotifyThreadDelegate(
     mqd_t event_mqd, mqd_t ack_mqd, MmeClientListener* parent)
     : parent_(parent),
@@ -367,12 +267,10 @@ void MmeClientListener::NotifyThreadDelegate::threadMain() {
       switch (code) {
         case SDL_MSG_IPOD_DEVICE_CONNECT: {
           MmeDeviceInfo* mme_device_info = (MmeDeviceInfo*) (&buffer_[1]);
-          msid_t msid = mme_device_info->msid;
-          const char* name = mme_device_info->name;
-          const char* protocol = mme_device_info->iAP2 ? "iAP2" : "iAP";
+          const char* name = mme_device_info->device_name;
           LOG4CXX_DEBUG(
               logger_,
-              "SDL_MSG_IPOD_DEVICE_CONNECT: msid = " << msid << ", name = " << name << ", protocol = " << protocol);
+              "SDL_MSG_IPOD_DEVICE_CONNECT: " << " name = " << name );
           parent_->OnDeviceArrived(mme_device_info);
           LOG4CXX_DEBUG(logger_, "Sending SDL_MSG_IPOD_DEVICE_CONNECT_ACK");
           ack_buffer_[0] = SDL_MSG_IPOD_DEVICE_CONNECT_ACK;
@@ -388,12 +286,10 @@ void MmeClientListener::NotifyThreadDelegate::threadMain() {
         }
         case SDL_MSG_IPOD_DEVICE_DISCONNECT: {
           MmeDeviceInfo* mme_device_info = (MmeDeviceInfo*) (&buffer_[1]);
-          msid_t msid = mme_device_info->msid;
-          const char* name = mme_device_info->name;
-          const char* protocol = mme_device_info->iAP2 ? "iAP2" : "iAP";
+          const char* name = mme_device_info->device_name;
           LOG4CXX_DEBUG(
               logger_,
-              "SDL_MSG_IPOD_DEVICE_DISCONNECT: msid = " << msid << ", name = " << name << ", protocol = " << protocol);
+              "SDL_MSG_IPOD_DEVICE_DISCONNECT: " << " name = " << name);
           parent_->OnDeviceLeft(mme_device_info);
           LOG4CXX_DEBUG(logger_, "Sending SDL_MSG_IPOD_DEVICE_DISCONNECT_ACK");
           ack_buffer_[0] = SDL_MSG_IPOD_DEVICE_DISCONNECT_ACK;
