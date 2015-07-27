@@ -731,6 +731,13 @@ class Profile : public utils::Singleton<Profile> {
      */
     bool StringToNumber(const std::string& input, uint64_t& output) const;
 
+    /**
+     * @brief Checks if path is present in file name
+     * @param filename file name
+     * @return true, if present, otherwise - false
+     */
+    bool IsContainDirectoryPath(const std::string& filename) const;
+
 private:
     std::string                     sdl_version_;
     bool                            launch_hmi_;
