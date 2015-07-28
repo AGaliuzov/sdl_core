@@ -282,6 +282,13 @@ class StateController : public event_engine::EventObserver {
     void DeactivateAppWithGeneralReason(ApplicationSharedPtr app);
 
     /**
+     * @brief Sets BACKGROUND navi application
+     * @param app Navi application to deactivate
+     */
+    void DeactivateNaviAppWithNaviReason(ApplicationSharedPtr app);
+
+
+    /**
      * @brief Sets BACKGROUND or LIMITED hmi level to application
      * depends on application type
      * @param app Application to deactivate

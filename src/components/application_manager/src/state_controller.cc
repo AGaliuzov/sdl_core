@@ -322,6 +322,20 @@ void StateController::DeactivateAppWithGeneralReason(ApplicationSharedPtr app) {
   SetRegularState<false>(app, new_regular);
 }
 
+void StateController::DeactivateNaviAppWithNaviReason(ApplicationSharedPtr app) {
+  using namespace mobile_apis;
+  LOG4CXX_AUTO_TRACE(logger_);
+
+  DCHECK_OR_RETURN_VOID(app);
+  HmiStatePtr regular = app->RegularHmiState();
+  DCHECK_OR_RETURN_VOID(regular);
+  HmiStatePtr new_regular = utils::MakeShared<HmiState>(*regular);
+  new_regular->set_hmi_level(mobile_api::HMILevel::HMI_BACKGROUND);
+  new_regular->set_audio_streaming_state(AudioStreamingState::NOT_AUDIBLE);
+  SetRegularState<false>(app, new_regular);
+}
+
+
 void StateController::DeactivateAppWithAudioReason(ApplicationSharedPtr app) {
   using namespace mobile_apis;
   LOG4CXX_AUTO_TRACE(logger_);
@@ -417,7 +431,14 @@ void StateController::OnAppDeactivated(
                          );
       break;
     }
-    case Common_DeactivateReason::NAVIGATIONMAP:
+    case Common_DeactivateReason::NAVIGATIONMAP: {
+      if (app->is_navi()) {
+        DeactivateNaviAppWithNaviReason(app);
+      } else {
+        DeactivateAppWithGeneralReason(app);
+      }
+      break;
+    }
     case Common_DeactivateReason::PHONEMENU:
     case Common_DeactivateReason::SYNCSETTINGS:
     case Common_DeactivateReason::GENERAL: {
