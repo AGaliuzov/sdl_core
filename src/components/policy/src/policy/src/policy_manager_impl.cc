@@ -400,7 +400,13 @@ void PolicyManagerImpl::CheckPermissions(const PTString& app_id,
             std::back_inserter(result.list_of_undefined_params));
 
   if (cache_->IsApplicationRevoked(app_id)) {
-    result.hmi_level_permitted = kRpcDisallowed;
+    // SDL must be able to notify mobile side with its status after app have
+    // been revoked by backend
+    if ("OnHMIStatus" == rpc && "NONE" == hmi_level) {
+      result.hmi_level_permitted = kRpcAllowed;
+    } else {
+      result.hmi_level_permitted = kRpcDisallowed;
+    }
     return;
   }
 
