@@ -51,7 +51,7 @@ BEGIN TRANSACTION;
     VALUES(1, 1, 0, 0, 0, 0);
   CREATE TABLE IF NOT EXISTS `functional_group`(
     `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    `user_consent_prompt` TEXT UNIQUE ON CONFLICT REPLACE,
+    `user_consent_prompt` TEXT,
     `name` VARCHAR(100) NOT NULL
   );
   CREATE TABLE IF NOT EXISTS `priority`(
