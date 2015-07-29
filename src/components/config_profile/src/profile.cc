@@ -294,7 +294,7 @@ namespace profile {
 CREATE_LOGGERPTR_GLOBAL(logger_, "Profile")
 
 Profile::Profile()
-    : sdl_version_(kDefaultSDLVersion), 
+    : sdl_version_(kDefaultSDLVersion),
       launch_hmi_(true),
 #ifdef WEB_HMI
       link_to_web_hmi_(kDefaultLinkToWebHMI),
@@ -1003,7 +1003,9 @@ void Profile::UpdateValues() {
   ReadStringValue(&named_video_pipe_path_, "", kMediaManagerSection,
                   kNamedVideoPipePathKey);
 
-  named_video_pipe_path_ = app_storage_folder_ + "/" + named_video_pipe_path_;
+  named_video_pipe_path_ = IsContainDirectoryPath(named_video_pipe_path_)
+      ? named_video_pipe_path_
+      : app_storage_folder_ + "/" + named_video_pipe_path_;
 
   LOG_UPDATED_VALUE(named_video_pipe_path_, kNamedVideoPipePathKey,
                     kMediaManagerSection);
@@ -1012,7 +1014,9 @@ void Profile::UpdateValues() {
   ReadStringValue(&named_audio_pipe_path_, "", kMediaManagerSection,
                   kNamedAudioPipePathKey);
 
-  named_audio_pipe_path_ = app_storage_folder_ + "/" + named_audio_pipe_path_;
+  named_audio_pipe_path_ = IsContainDirectoryPath(named_audio_pipe_path_)
+      ? named_audio_pipe_path_
+      : app_storage_folder_ + "/" + named_audio_pipe_path_;
 
   LOG_UPDATED_VALUE(named_audio_pipe_path_, kNamedAudioPipePathKey,
                     kMediaManagerSection);
@@ -1755,5 +1759,9 @@ bool Profile::StringToNumber(const std::string& input, uint64_t& output) const {
   }
   output = user_value;
   return true;
+}
+
+bool Profile::IsContainDirectoryPath(const std::string& filename) const {
+  return std::string::npos != filename.find('/');
 }
 }//  namespace profile
