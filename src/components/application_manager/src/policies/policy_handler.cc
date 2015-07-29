@@ -834,21 +834,20 @@ bool PolicyHandler::UnloadPolicyLibrary() {
   return ret;
 }
 
-void PolicyHandler::OnAllowSDLFunctionalityNotification(bool is_allowed,
-                                                        uint32_t device_id) {
+void PolicyHandler::OnAllowSDLFunctionalityNotification(
+    bool is_allowed,
+    const std::string& device_id) {
   LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK_VOID();
   using namespace mobile_apis;
   // Device ids, need to be changed
   std::vector<std::string> device_macs;
-  const bool device_specific = device_id != 0;
+  const bool device_specific = !device_id.empty();
   // Common devices consents change
   if (!device_specific) {
     MessageHelper::GetConnectedDevicesMAC(device_macs);
   } else {
-    DeviceParams device_params;
-    MessageHelper::GetDeviceInfoForHandle(device_id, &device_params);
-    device_macs.push_back(device_params.device_mac_address);
+    device_macs.push_back(device_id);
   }
 
   std::vector<std::string>::const_iterator it_macs = device_macs.begin();
@@ -876,10 +875,12 @@ void PolicyHandler::OnAllowSDLFunctionalityNotification(bool is_allowed,
   }
 
   // Case, when specific device was changed
-  if (device_id) {
+  if (device_specific) {
+    const uint32_t device_handle =
+        MessageHelper::GetDeviceHandleForMac(device_id);
     DeviceHandles::iterator it =
         std::find(pending_device_handles_.begin(),
-                  pending_device_handles_.end(), device_id);
+                  pending_device_handles_.end(), device_handle);
     // If consent done from HMI menu
     if (it == pending_device_handles_.end()) {
       return;
