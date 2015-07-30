@@ -60,7 +60,7 @@ void RegisterAppInterfaceResponse::Run() {
  
   SendResponse(success, result_code, last_message);
 
-  if (mobile_apis::Result::APPLICATION_REGISTERED_ALREADY != result_code) {
+  if (mobile_apis::Result::APPLICATION_REGISTERED_ALREADY == result_code) {
     return;
   }
 
