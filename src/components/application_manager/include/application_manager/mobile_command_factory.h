@@ -49,10 +49,12 @@ class MobileCommandFactory {
    * @brief Create command object and return pointer to it
    *
    * @param  smartObject SmartObject shared pointer.
+   * @origin parameter determine accessory of command
    * @return Pointer to created command object.
    **/
-  static commands::Command* CreateCommand(
-          const commands::MessageSharedPtr& message);
+  static CommandSharedPtr CreateCommand(
+          const commands::MessageSharedPtr& message,
+          commands::Command::CommandOrigin origin);
 
  private:
   MobileCommandFactory();

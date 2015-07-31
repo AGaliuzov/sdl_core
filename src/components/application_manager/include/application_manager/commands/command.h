@@ -114,11 +114,19 @@ class Command {
  */
   virtual bool AllowedToTerminate() = 0;
 
-    /**
+  /**
    * @brief SetAllowedToTerminate set up allowed to terminate flag.
    * If true, request controller will terminate request on response
    */
   virtual void SetAllowedToTerminate(bool allowed) = 0;
+
+  /**
+   * @brief Allows to determine accessory of commands.
+   */
+  enum CommandOrigin {
+    ORIGIN_SDL,
+    ORIGIN_MOBILE
+  };
 };
 
 typedef smart_objects::SmartObjectSPtr MessageSharedPtr;
