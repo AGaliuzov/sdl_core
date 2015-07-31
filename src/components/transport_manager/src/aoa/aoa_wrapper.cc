@@ -160,7 +160,9 @@ bool AOAWrapper::HandleDevice(AOADeviceLife* life,
 
 void AOAWrapper::Disconnect(bool forced) {
   Shutdown();
-  connection_observer_->OnDisconnected(forced);
+  if (connection_observer_) {
+    connection_observer_->OnDisconnected(forced);
+  }
 }
 
 bool AOAWrapper::Init(AOADeviceLife* life, const char* config_path,
@@ -487,7 +489,13 @@ void AOAWrapper::PrepareUsbInfo(const AOAUsbInfo& aoa_usb_info,
 }
 
 void LifeKeeper::AddLife(AOADeviceLife *life) {
+  if (NULL == life) {
+    LOG4CXX_DEBUG(logger_,"Life object is NULL shouldn't be added to the pool");
+    return;
+  }
+
   free_life_pool.push(life);
+
 }
 
 AOADeviceLife* LifeKeeper::BindHandle2Life(aoa_hdl_t *hdl) {

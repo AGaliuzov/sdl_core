@@ -9,6 +9,8 @@
 #include "SmartDeviceLinkMainApp.h"
 #include "signal_handlers.h"
 
+#include <applink_types.h>
+
 #include "utils/macro.h"
 #include "utils/logger.h"
 #include "utils/system.h"
@@ -238,6 +240,7 @@ class ApplinkNotificationThreadDelegate : public threads::ThreadDelegate {
   int readfd_;
   utils::SharedPtr<timer::TimerThread<ApplinkNotificationThreadDelegate> > heart_beat_sender_;
   mqd_t mq_from_sdl_;
+  mqd_t aoa_mq_;
   struct mq_attr attributes_;
   size_t heart_beat_timeout_;
 };
@@ -256,10 +259,12 @@ ApplinkNotificationThreadDelegate::ApplinkNotificationThreadDelegate(int fd)
   attributes_.mq_flags = 0;
 
   init_mq(PREFIX_STR_FROMSDLHEARTBEAT_QUEUE, O_RDWR | O_CREAT, mq_from_sdl_);
+  init_mq("/dev/mqueue/aoa", O_CREAT | O_WRONLY, aoa_mq_);
 }
 
 ApplinkNotificationThreadDelegate::~ApplinkNotificationThreadDelegate() {
   close_mq(mq_from_sdl_);
+  close_mq(aoa_mq_);
 }
 
 void ApplinkNotificationThreadDelegate::threadMain() {
@@ -281,6 +286,13 @@ void ApplinkNotificationThreadDelegate::threadMain() {
   while (true) {
     if ( (length = read(readfd_, buffer, sizeof(buffer))) != -1) {
       switch (buffer[0]) {
+        case TAKE_AOA:
+        case RELEASE_AOA:
+          if (-1 == mq_send(aoa_mq_, &buffer[0], sizeof(char), 0)) {
+            LOG4CXX_ERROR(logger_, "Unable to re-send signal to AOA: "
+                          << strerror(errno));
+          }
+          break;
         case SDL_MSG_SDL_START:
           startSmartDeviceLink();
           if (0 < heart_beat_timeout_) {
@@ -339,6 +351,8 @@ void ApplinkNotificationThreadDelegate::sendHeartBeat() {
     }
   }
 }
+
+
 
 class Dispatcher {
  public:
@@ -434,12 +448,14 @@ class MQueue {
   ~MQueue() {
     mq_close(mq_);
   }
+
   std::string Receive() {
     ssize_t length = mq_receive(mq_, buffer_, sizeof(buffer_), 0);
     if (length == -1) {
       fprintf(stderr, "Error receiving message: %s\n", strerror(errno));
       return "";
     }
+
     return std::string(buffer_, length);
   }
 

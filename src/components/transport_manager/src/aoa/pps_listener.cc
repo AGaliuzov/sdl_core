@@ -92,7 +92,7 @@ NULL };
 static const uint32_t kProductList[] = { 0x2d00, 0x2d01, 0x2d02, 0x2d03, 0x2d04,
     0x2d05 };
 
-const std::string PPSListener::kUSBStackPath = "/dev/otg/io-usb-otg";
+const std::string PPSListener::kUSBStackPath = "/dev/otg/io-usb";
 const std::string PPSListener::kPpsPathRoot = "/pps/qnx/device/";
 const std::string PPSListener::kPpsPathAll = ".all";
 const std::string PPSListener::kPpsPathCtrl = "usb_ctrl";
@@ -195,6 +195,7 @@ void PPSListener::Process(uint8_t* buf, size_t size) {
   const char* vals[ATTR_COUNT] = { 0 };
 
   std::string object_name = ParsePpsData(ppsdata, vals);
+
   if (IsAOADevice(vals)) {
     AOAWrapper::AOAUsbInfo aoa_usb_info;
     FillUsbInfo(object_name, vals, &aoa_usb_info);
@@ -203,6 +204,8 @@ void PPSListener::Process(uint8_t* buf, size_t size) {
     } else {
       SwitchMode(object_name.c_str(), vals);
     }
+  } else {
+    controller_->AckDevices();
   }
 }
 
@@ -360,7 +363,7 @@ PPSListener::PpsMQListener::PpsMQListener(PPSListener* parent)
   : parent_(parent),
     run_(false) {
 
-  init_mq(PREFIX_STR_SDL_PROXY_QUEUE, O_CREAT|O_RDONLY, mq_from_applink_handle_);
+  init_mq("/dev/mqueue/aoa", O_CREAT|O_RDONLY, mq_from_applink_handle_);
   init_mq(PREFIX_STR_FROMSDL_QUEUE, O_CREAT|O_WRONLY, mq_to_applink_handle_);
 
   run_ = true;
@@ -402,9 +405,8 @@ void PPSListener::PpsMQListener::take_aoa() {
   const bool is_inited = parent_->init_aoa();
   if (-1 != mq_from_applink_handle_) {
     char buf[MAX_QUEUE_MSG_SIZE];
-    buf[0] = AOA_TAKEN;
-    buf[1] = AOA_INACCESSIBLE;
-    if (- 1 == mq_send(mq_to_applink_handle_, is_inited ? &buf[0] : &buf[1], MAX_QUEUE_MSG_SIZE, NULL)) {
+    buf[0] = is_inited ? AOA_TAKEN : AOA_INACCESSIBLE;
+    if (- 1 == mq_send(mq_to_applink_handle_, &buf[0], MAX_QUEUE_MSG_SIZE, NULL)) {
       LOG4CXX_ERROR(logger_, "Unable to send over mq " <<
                     " : " << strerror(errno));
     }
