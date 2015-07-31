@@ -35,6 +35,7 @@ INCLUDES = \
 	$(CC_IFLAG)../components/protocol_handler/include \
 	$(CC_IFLAG)../components/transport_manager/include \
 	$(CC_IFLAG)../components/smart_objects/include \
+	$(CC_IFLAG)../components/security_manager/include \
 	$(CC_IFLAG)../components/formatters/include \
 	$(CC_IFLAG)../components/config_profile/include \
 	$(CC_IFLAG)../components/policy/src/policy/include \
@@ -74,6 +75,7 @@ STATIC_LIBS += \
 	interfaces$(DEBUG_EXT) \
 	hmi_message_handler$(DEBUG_EXT) \
 	connection_handler$(DEBUG_EXT) \
+	security_manager$(DEBUG_EXT) \
 	protocol_handler$(DEBUG_EXT) \
 	protocol$(DEBUG_EXT) \
 	dbms$(DEBUG_EXT) \
@@ -96,6 +98,7 @@ DYNAMIC_LIBS += \
 	apr-1$(DEBUG_EXT) \
 	expat$(DEBUG_EXT) \
 	aprutil-1$(DEBUG_EXT) \
+	ssl \
 	log4cxx$(DEBUG_EXT)
 
 ifdef BUILD_AOA_SUPPORT

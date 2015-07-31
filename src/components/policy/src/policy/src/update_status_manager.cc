@@ -198,6 +198,7 @@ void UpdateStatusManager::CheckUpdateStatus() {
 }
 
 void UpdateStatusManager::set_exchange_in_progress(bool value) {
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(exchange_in_progress_lock_);
   LOG4CXX_INFO(logger_,
                "Exchange in progress value is:" << std::boolalpha << value);
@@ -206,6 +207,7 @@ void UpdateStatusManager::set_exchange_in_progress(bool value) {
 }
 
 void UpdateStatusManager::set_exchange_pending(bool value) {
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(exchange_pending_lock_);
   LOG4CXX_INFO(logger_,
                "Exchange pending value is:" << std::boolalpha << value);
@@ -214,6 +216,7 @@ void UpdateStatusManager::set_exchange_pending(bool value) {
 }
 
 void UpdateStatusManager::set_update_required(bool value) {
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(update_required_lock_);
   LOG4CXX_INFO(logger_, "Update required value is:" << std::boolalpha << value);
   update_required_ = value;
@@ -225,14 +228,17 @@ UpdateStatusManager::UpdateThreadDelegate::UpdateThreadDelegate(UpdateStatusMana
                       stop_flag_(false),
                       state_lock_(true),
                       update_status_manager_(update_status_manager) {
+  LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_INFO(logger_, "Create UpdateThreadDelegate");
 }
 
 UpdateStatusManager::UpdateThreadDelegate::~UpdateThreadDelegate() {
+  LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_INFO(logger_, "Delete UpdateThreadDelegate");
 }
 
 void UpdateStatusManager::UpdateThreadDelegate::threadMain() {
+  LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_, "UpdateStatusManager thread started (started normal)");
   sync_primitives::AutoLock auto_lock(state_lock_);
   while (false == stop_flag_) {
@@ -254,6 +260,7 @@ void UpdateStatusManager::UpdateThreadDelegate::threadMain() {
 }
 
 void UpdateStatusManager::UpdateThreadDelegate::exitThreadMain() {
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock auto_lock(state_lock_);
   stop_flag_ = true;
   LOG4CXX_INFO(logger_, "before notify");
@@ -261,6 +268,7 @@ void UpdateStatusManager::UpdateThreadDelegate::exitThreadMain() {
 }
 
 void UpdateStatusManager::UpdateThreadDelegate::updateTimeOut(const uint32_t timeout_ms) {
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock auto_lock(state_lock_);
   timeout_ = timeout_ms;
   termination_condition_.NotifyOne();
