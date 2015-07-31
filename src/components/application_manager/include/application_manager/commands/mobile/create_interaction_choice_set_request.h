@@ -161,12 +161,6 @@ class CreateInteractionChoiceSetRequest : public CommandRequestImpl {
     sync_primitives::atomic_size_t expected_chs_count_;
 
     /**
-     * @brief Flag shows if there was some response from HMI
-     * during timeout
-     */
-    sync_primitives::atomic_bool response_from_hmi_;
-
-    /**
      * @brief Flag shows if one of VR.AddCommand requests was
      * unsuccessful
      */
