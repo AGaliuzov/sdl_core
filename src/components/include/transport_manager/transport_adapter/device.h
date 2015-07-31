@@ -82,6 +82,8 @@ class Device {
     return unique_device_id_;
   }
 
+  virtual bool Ack() { return true; }
+
   /**
    * @brief Return name of device.
    */
