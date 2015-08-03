@@ -121,11 +121,10 @@ bool ResumptionDataDB::Init() {
   }
   if (0 == query_checks_resumption.GetInteger(0)) {
     utils::dbms::SQLQuery query_insert_resumption(db());
-    if (!query_insert_resumption.Prepare(kInsertInitData) ||
-        !query_insert_resumption.Exec()){
-      LOG4CXX_ERROR(logger_,
-                    "Failed insert init data to database: "
-                    << query_insert_resumption.LastError().text());
+    if (!query_insert_resumption.Exec(kInsertInitData)){
+        LOG4CXX_ERROR(logger_,
+                      "Failed insert init data to database: "
+                      << query_insert_resumption.LastError().text());
       return false;
     }
   }
