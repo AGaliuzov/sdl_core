@@ -144,7 +144,7 @@ void PerformAudioPassThruRequest::on_event(const event_engine::Event& event) {
         return_info = "Unsupported phoneme type sent in a prompt";
       }
 
-      SendResponse(result, mobile_code, return_info.c_str(),
+      SendResponse(result, mobile_code, return_info.empty() ? NULL : return_info.c_str(),
                    &(message[strings::msg_params]));
       break;
     }
