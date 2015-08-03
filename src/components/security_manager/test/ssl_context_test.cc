@@ -35,6 +35,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <fstream>
 #ifdef __QNXNTO__
 #include <openssl/ssl3.h>
 #else
@@ -58,25 +59,21 @@ namespace test {
 namespace components {
 namespace ssl_context_test {
 
-namespace {
-/*bool isErrorFatal(SSL *connection, int res) {
-  const int error = SSL_get_error(connection, res);
-  return (error != SSL_ERROR_WANT_READ && error != SSL_ERROR_WANT_WRITE);
-}*/
-}  // namespace
-
 class SSLTest : public testing::Test {
  protected:
   static void SetUpTestCase() {
+    std::ifstream file("server/spt_credential.p12.enc");
+    std::stringstream ss;
+    ss << file.rdbuf();
+    file.close();
     crypto_manager = new security_manager::CryptoManagerImpl();
     const bool crypto_manager_initialization = crypto_manager->Init(
-        security_manager::SERVER, security_manager::TLSv1_2, "mycert.pem",
-        "mykey.pem", FORD_CIPHER, false, "");
+        security_manager::SERVER, security_manager::TLSv1_2, ss.str(), FORD_CIPHER, false, "");
     EXPECT_TRUE(crypto_manager_initialization);
 
     client_manager = new security_manager::CryptoManagerImpl();
     const bool client_manager_initialization = client_manager->Init(
-        security_manager::CLIENT, security_manager::TLSv1_2, "", "",
+        security_manager::CLIENT, security_manager::TLSv1_2, "",
         FORD_CIPHER,
         false, "");
     EXPECT_TRUE(client_manager_initialization);
@@ -141,19 +138,19 @@ TEST_F(SSLTest, Positive) {
   ASSERT_GT(client_buf_len, 0u);
 
   for (;;) {
-    ASSERT_EQ(server_ctx->DoHandshakeStep(client_buf,
-            client_buf_len,
-            &server_buf,
-            &server_buf_len),
-        security_manager::SSLContext::Handshake_Result_Success);
+    ASSERT_EQ(security_manager::SSLContext::Handshake_Result_Success,
+              server_ctx->DoHandshakeStep(client_buf,
+              client_buf_len,
+              &server_buf,
+              &server_buf_len));
     ASSERT_FALSE(server_buf == NULL);
     ASSERT_GT(server_buf_len, 0u);
 
-    ASSERT_EQ(client_ctx->DoHandshakeStep(server_buf,
-            server_buf_len,
-            &client_buf,
-            &client_buf_len),
-        security_manager::SSLContext::Handshake_Result_Success);
+    ASSERT_EQ(security_manager::SSLContext::Handshake_Result_Success,
+              client_ctx->DoHandshakeStep(server_buf,
+              server_buf_len,
+              &client_buf,
+              &client_buf_len));
     if (server_ctx->IsInitCompleted()) {
       break;
     }
@@ -193,22 +190,22 @@ TEST_F(SSLTest, EcncryptionFail) {
   const uint8_t *client_buf;
   size_t server_buf_len;
   size_t client_buf_len;
-  ASSERT_EQ(client_ctx->StartHandshake(&client_buf,
-          &client_buf_len),
-      security_manager::SSLContext::Handshake_Result_Success);
+  ASSERT_EQ(security_manager::SSLContext::Handshake_Result_Success,
+            client_ctx->StartHandshake(&client_buf,
+            &client_buf_len));
 
   while (!server_ctx->IsInitCompleted()) {
     ASSERT_FALSE(client_buf == NULL);
     ASSERT_GT(client_buf_len, 0u);
-    ASSERT_EQ(server_ctx->DoHandshakeStep(client_buf, client_buf_len,
-            &server_buf, &server_buf_len),
-        security_manager::SSLContext::Handshake_Result_Success);
+    ASSERT_EQ(security_manager::SSLContext::Handshake_Result_Success,
+              server_ctx->DoHandshakeStep(client_buf, client_buf_len,
+              &server_buf, &server_buf_len));
     ASSERT_FALSE(server_buf == NULL);
     ASSERT_GT(server_buf_len, 0u);
 
-    ASSERT_EQ(client_ctx->DoHandshakeStep(server_buf, server_buf_len,
-            &client_buf, &client_buf_len),
-        security_manager::SSLContext::Handshake_Result_Success);
+    ASSERT_EQ(security_manager::SSLContext::Handshake_Result_Success,
+              client_ctx->DoHandshakeStep(server_buf, server_buf_len,
+              &client_buf, &client_buf_len));
   }
   // expect empty buffers after init complete
   ASSERT_TRUE(client_buf == NULL);

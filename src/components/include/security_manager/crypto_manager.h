@@ -60,7 +60,6 @@ class CryptoManager : public policy::PolicyHandlerObserver {
   virtual bool Init(Mode mode,
                     Protocol protocol,
                     const std::string &cert_filename,
-                    const std::string &key_filename,
                     const std::string &ciphers_list,
                     const bool verify_peer,
                     const std::string &ca_certificate_file

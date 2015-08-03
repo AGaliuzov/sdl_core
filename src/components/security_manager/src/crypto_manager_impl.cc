@@ -31,11 +31,17 @@
  */
 
 #include "security_manager/crypto_manager_impl.h"
+
 #include <openssl/bio.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <openssl/pkcs12.h>
+
 #include <fstream>
+#include <iostream>
+#include <stdio.h>
 #include "security_manager/security_manager.h"
+
 #include "utils/logger.h"
 #include "utils/atomic.h"
 #include "utils/file_system.h"
@@ -98,18 +104,17 @@ CryptoManagerImpl::~CryptoManagerImpl() {
 }
 
 bool CryptoManagerImpl::Init(Mode mode, Protocol protocol,
-                             const std::string &cert_filename,
-                             const std::string &key_filename,
+                             const std::string &cert_data,
                              const std::string &ciphers_list,
                              const bool verify_peer,
                              const std::string &ca_certificate_file) {
   LOG4CXX_AUTO_TRACE(logger_);
   mode_ = mode;
   verify_peer_ = verify_peer;
-  ca_certificate_file_ = ca_certificate_file;
+  certificate_data_ = cert_data;
   LOG4CXX_DEBUG(logger_, (mode_ == SERVER ? "Server" : "Client") << " mode");
   LOG4CXX_DEBUG(logger_, "Peer verification " << (verify_peer_? "enabled" : "disabled"));
-  LOG4CXX_DEBUG(logger_, "CA certificate file is \"" << ca_certificate_file_ << '"');
+  LOG4CXX_DEBUG(logger_, "CA certificate file is \"" << ca_certificate_file << '"');
 
   const bool is_server = (mode == SERVER);
 #if OPENSSL_VERSION_NUMBER < CONST_SSL_METHOD_MINIMAL_VERSION
@@ -167,31 +172,7 @@ bool CryptoManagerImpl::Init(Mode mode, Protocol protocol,
   // Disable SSL2 as deprecated
   SSL_CTX_set_options(context_, SSL_OP_NO_SSLv2);
 
-  if (cert_filename.empty()) {
-    LOG4CXX_WARN(logger_, "Empty certificate path");
-  } else {
-    LOG4CXX_DEBUG(logger_, "Certificate path: " << cert_filename);
-    if (!SSL_CTX_use_certificate_file(context_, cert_filename.c_str(),
-    SSL_FILETYPE_PEM)) {
-      LOG4CXX_ERROR(logger_, "Could not use certificate " << cert_filename);
-      return false;
-    }
-  }
-
-  if (key_filename.empty()) {
-    LOG4CXX_WARN(logger_, "Empty key path");
-  } else {
-    LOG4CXX_DEBUG(logger_, "Key path: " << key_filename);
-    if (!SSL_CTX_use_PrivateKey_file(context_, key_filename.c_str(),
-    SSL_FILETYPE_PEM)) {
-      LOG4CXX_ERROR(logger_, "Could not use key " << key_filename);
-      return false;
-    }
-    if (!SSL_CTX_check_private_key(context_)) {
-      LOG4CXX_ERROR(logger_, "Could not use certificate " << cert_filename);
-      return false;
-    }
-  }
+  set_certificate(cert_data);
 
   if (ciphers_list.empty()) {
     LOG4CXX_WARN(logger_, "Empty ciphers list");
@@ -203,8 +184,31 @@ bool CryptoManagerImpl::Init(Mode mode, Protocol protocol,
     }
   }
 
+  if (ca_certificate_file.empty()) {
+    LOG4CXX_WARN(logger_, "Setting up empty CA certificate location");
+  }
+  LOG4CXX_DEBUG(logger_, "Setting up CA certificate location");
+  const int result = SSL_CTX_load_verify_locations(context_,
+                                                   NULL,
+                                                   ca_certificate_file.c_str());
+  if (!result) {
+    const unsigned long error = ERR_get_error();
+    UNUSED(error);
+    LOG4CXX_WARN(
+        logger_,
+        "Wrong certificate file '" << ca_certificate_file
+        << "', err 0x" << std::hex << error
+        << " \"" << ERR_reason_error_string(error) << '"');
+  }
+
   guard.Dismiss();
-  SetVerification();
+
+  const int verify_mode = verify_peer_ ? SSL_VERIFY_PEER |
+                                         SSL_VERIFY_FAIL_IF_NO_PEER_CERT
+                                       : SSL_VERIFY_NONE;
+  LOG4CXX_DEBUG(logger_, "Setting up peer verification in mode: " << verify_mode);
+  SSL_CTX_set_verify(context_, verify_mode, &debug_callback);
+
   return true;
 }
 
@@ -214,44 +218,8 @@ bool CryptoManagerImpl::OnCertificateUpdated(const std::string &data) {
     LOG4CXX_WARN(logger_, "Not initialized");
     return false;
   }
-  if (data.empty()) {
-    LOG4CXX_WARN(logger_, "Empty certificate data");
-    return false;
-  }
-  LOG4CXX_DEBUG(logger_,
-                "New certificate data : \"" << std::endl << data << '"');
 
-  BIO* bio = BIO_new(BIO_s_mem());
-  BIO_write(bio, data.c_str(), data.size());
-  X509 *certificate = PEM_read_bio_X509(bio, NULL, NULL, NULL);
-  BIO_free(bio);
-  if (!certificate) {
-    LOG4CXX_WARN(logger_, "New data is not a PEM X509 certificate");
-    return false;
-  }
-
-  std::ofstream ca_certificate_file(ca_certificate_file_.c_str());
-  if (!ca_certificate_file.is_open()) {
-    LOG4CXX_ERROR(
-        logger_,
-        "Couldn't open certificate file \"" << ca_certificate_file << '"');
-    return false;
-  }
-
-  ca_certificate_file << data << std::endl;
-  if (!ca_certificate_file) {
-    // Writing failed
-    LOG4CXX_ERROR(
-        logger_,
-        "Couldn't write data to certificate file \"" << ca_certificate_file << '"');
-    return false;
-  }
-
-  ca_certificate_file.close();
-  LOG4CXX_DEBUG(logger_,
-                "CA certificate saved as '" << ca_certificate_file_ << "' ");
-  SetVerification();
-  return true;
+  return set_certificate(data);
 }
 
 SSLContext* CryptoManagerImpl::CreateSSLContext() {
@@ -286,38 +254,6 @@ std::string CryptoManagerImpl::LastError() const {
   return std::string(reason ? reason : "");
 }
 
-void CryptoManagerImpl::SetVerification() {
-  LOG4CXX_AUTO_TRACE(logger_);
-  if (!verify_peer_) {
-    LOG4CXX_WARN(logger_,
-                 "Peer verification disabling according to init options");
-    SSL_CTX_set_verify(context_, SSL_VERIFY_NONE, &debug_callback);
-    return;
-  }
-  LOG4CXX_DEBUG(logger_, "Setting up peer verification");
-  const int verify_mode = SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
-  SSL_CTX_set_verify(context_, verify_mode, &debug_callback);
-
-  if (ca_certificate_file_.empty()) {
-    LOG4CXX_WARN(logger_, "Setting up empty CA certificate location");
-    return;
-  }
-  LOG4CXX_DEBUG(logger_, "Setting up CA certificate location");
-  const int result = SSL_CTX_load_verify_locations(context_,
-                                                   NULL,
-                                                   ca_certificate_file_.c_str());
-  if (!result) {
-    const unsigned long error = ERR_get_error();
-    UNUSED(error);
-    LOG4CXX_WARN(
-        logger_,
-        "Wrong certificate file '" << ca_certificate_file_
-        << "', err 0x" << std::hex << error
-        << " \"" << ERR_reason_error_string(error) << '"');
-    return;
-  }
-}
-
 int debug_callback(int preverify_ok, X509_STORE_CTX *ctx) {
   if (!preverify_ok) {
     const int error = X509_STORE_CTX_get_error(ctx);
@@ -329,4 +265,64 @@ int debug_callback(int preverify_ok, X509_STORE_CTX *ctx) {
   }
   return preverify_ok;
 }
+
+bool CryptoManagerImpl::set_certificate(const std::string &cert_data) {
+  if (cert_data.empty()) {
+    LOG4CXX_WARN(logger_, "Empty certificate");
+    return false;
+  }
+
+  BIO* bio = BIO_new(BIO_f_base64());
+  BIO* bmem = BIO_new_mem_buf((char*)cert_data.c_str(), cert_data.length());
+  bmem = BIO_push(bio, bmem);
+
+  char* buf = new char[cert_data.length()];
+  int len = BIO_read(bmem, buf, cert_data.length());
+
+
+  BIO* bio_cert = BIO_new(BIO_s_mem());
+  if (NULL == bio_cert) {
+    LOG4CXX_WARN(logger_, "Unable to update certificate. BIO not created");
+    return false;
+  }
+
+  utils::ScopeGuard bio_guard = utils::MakeGuard(BIO_free, bio_cert);
+  UNUSED(bio_guard)
+  int k = 0;
+  if ((k = BIO_write(bio_cert, buf, len)) <= 0) {
+    LOG4CXX_WARN(logger_, "Unable to write into BIO");
+    return false;
+  }
+
+  PKCS12* p12 = d2i_PKCS12_bio(bio_cert, NULL);
+  if(NULL == p12) {
+    LOG4CXX_ERROR(logger_, "Unable to parse certificate");
+    return false;
+  }
+
+  EVP_PKEY* pkey = NULL;
+  X509* cert = NULL;
+  PKCS12_parse(p12, NULL, &pkey, &cert, NULL);
+
+  if (NULL == cert || NULL == pkey){
+    LOG4CXX_WARN(logger_, "Either certificate or key not valid.");
+    return false;
+  }
+
+  if (!SSL_CTX_use_certificate(context_, cert)) {
+    LOG4CXX_WARN(logger_, "Could not use certificate");
+    return false;
+  }
+
+  if (!SSL_CTX_use_PrivateKey(context_, pkey)) {
+    LOG4CXX_ERROR(logger_, "Could not use key");
+    return false;
+  }
+  if (!SSL_CTX_check_private_key(context_)) {
+    LOG4CXX_ERROR(logger_, "Could not use certificate ");
+    return false;
+  }
+  return true;
+}
+
 }  // namespace security_manager

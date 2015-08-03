@@ -138,6 +138,7 @@ class MockPolicyManager : public PolicyManager {
                                              const std::string policy_app_id));
   MOCK_CONST_METHOD0(GetVehicleInfo, const policy::VehicleInfo());
   MOCK_CONST_METHOD0(GetMetaInfo, const policy::MetaInfo());
+  MOCK_CONST_METHOD0(RetrieveCertificate, std::string());
   MOCK_METHOD0(ExceededIgnitionCycles, bool());
   MOCK_METHOD0(ExceededDays, bool());
   MOCK_METHOD0(StartPTExchange, void());

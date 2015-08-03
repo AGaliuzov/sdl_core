@@ -591,6 +591,14 @@ class CacheManagerInterface {
     */
     virtual const MetaInfo GetMetaInfo() const = 0;
 
+    /**
+     * @brief GetCertificate allows to obtain certificate in order to
+     * make secure connection
+     *
+     * @return The certificate in PKCS#7.
+     */
+    virtual std::string GetCertificate() const = 0;
+
 #ifdef BUILD_TESTS
   /**
    * @brief GetPT allows to obtain SharedPtr to PT.

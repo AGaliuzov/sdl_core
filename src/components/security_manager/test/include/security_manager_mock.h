@@ -175,11 +175,10 @@ class ProtocoloObserverMock : public protocol_handler::ProtocolHandler {
  */
 class CryptoManagerMock : public security_manager::CryptoManager {
 public:
-  MOCK_METHOD7(Init,
+  MOCK_METHOD6(Init,
                bool (security_manager::Mode mode,
                      security_manager::Protocol protocol,
                      const std::string& cert_filename,
-                     const std::string& key_filename,
                      const std::string& ciphers_list,
                      const bool,
                      const std::string&));

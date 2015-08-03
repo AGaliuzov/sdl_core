@@ -562,6 +562,14 @@ class CacheManager : public CacheManagerInterface {
 
   virtual const MetaInfo GetMetaInfo() const OVERRIDE;
 
+  /**
+   * @brief GetCertificate allows to obtain certificate in order to
+   * make secure connection
+   *
+   * @return The certificate in PKCS#7.
+   */
+  virtual std::string GetCertificate() const OVERRIDE;
+
 #ifdef BUILD_TESTS
  utils::SharedPtr<policy_table::Table> GetPT() const {
      return pt_;
