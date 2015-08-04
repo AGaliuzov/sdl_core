@@ -30,19 +30,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_MEDIA_MANAGER_INCLUDE_MEDIA_MANAGER_AUDIO_SOCKET_AUDIO_STREAMER_ADAPTER_H_
-#define SRC_COMPONENTS_MEDIA_MANAGER_INCLUDE_MEDIA_MANAGER_AUDIO_SOCKET_AUDIO_STREAMER_ADAPTER_H_
+#ifndef SRC_COMPONENTS_MEDIA_MANAGER_INCLUDE_MEDIA_MANAGER_AUDIO_FILE_AUDIO_STREAMER_ADAPTER_H_
+#define SRC_COMPONENTS_MEDIA_MANAGER_INCLUDE_MEDIA_MANAGER_AUDIO_FILE_AUDIO_STREAMER_ADAPTER_H_
 
-#include "media_manager/socket_streamer_adapter.h"
+#include "media_manager/file_streamer_adapter.h"
 
 namespace media_manager {
 
-class SocketAudioStreamerAdapter : public SocketStreamerAdapter {
+class FileAudioStreamerAdapter : public FileStreamerAdapter {
  public:
-  SocketAudioStreamerAdapter();
-  virtual ~SocketAudioStreamerAdapter();
+  FileAudioStreamerAdapter();
+  ~FileAudioStreamerAdapter();
 };
 
 }  //  namespace media_manager
 
-#endif  // SRC_COMPONENTS_MEDIA_MANAGER_INCLUDE_MEDIA_MANAGER_AUDIO_SOCKET_AUDIO_STREAMER_ADAPTER_H_
+#endif  // SRC_COMPONENTS_MEDIA_MANAGER_INCLUDE_MEDIA_MANAGER_AUDIO_FILE_AUDIO_STREAMER_ADAPTER_H_

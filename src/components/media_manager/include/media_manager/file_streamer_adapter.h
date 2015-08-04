@@ -30,19 +30,39 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_MEDIA_MANAGER_INCLUDE_MEDIA_MANAGER_AUDIO_SOCKET_AUDIO_STREAMER_ADAPTER_H_
-#define SRC_COMPONENTS_MEDIA_MANAGER_INCLUDE_MEDIA_MANAGER_AUDIO_SOCKET_AUDIO_STREAMER_ADAPTER_H_
+#ifndef SRC_COMPONENTS_MEDIA_MANAGER_INCLUDE_MEDIA_MANAGER_FILE_STREAMER_ADAPTER_H_
+#define SRC_COMPONENTS_MEDIA_MANAGER_INCLUDE_MEDIA_MANAGER_FILE_STREAMER_ADAPTER_H_
 
-#include "media_manager/socket_streamer_adapter.h"
+#include <string>
+#include <fstream>
+#include "media_manager/streamer_adapter.h"
+#include "utils/threads/thread_delegate.h"
 
 namespace media_manager {
 
-class SocketAudioStreamerAdapter : public SocketStreamerAdapter {
+class FileStreamerAdapter : public StreamerAdapter {
  public:
-  SocketAudioStreamerAdapter();
-  virtual ~SocketAudioStreamerAdapter();
+  explicit FileStreamerAdapter(const std::string& file_name);
+  virtual ~FileStreamerAdapter();
+
+ protected:
+  class FileStreamer : public StreamerAdapter::Streamer {
+   public:
+    FileStreamer(FileStreamerAdapter* const adapter,
+                 const std::string& file_name);
+    virtual ~FileStreamer();
+
+   protected:
+    virtual bool Connect();
+    virtual void Disconnect();
+    virtual bool Send(protocol_handler::RawMessagePtr msg);
+
+   private:
+    std::string    file_name_;
+    std::ofstream* file_stream_;
+  };
 };
 
 }  //  namespace media_manager
 
-#endif  // SRC_COMPONENTS_MEDIA_MANAGER_INCLUDE_MEDIA_MANAGER_AUDIO_SOCKET_AUDIO_STREAMER_ADAPTER_H_
+#endif  // SRC_COMPONENTS_MEDIA_MANAGER_INCLUDE_MEDIA_MANAGER_FILE_STREAMER_ADAPTER_H_

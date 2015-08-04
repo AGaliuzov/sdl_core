@@ -63,7 +63,7 @@ class MediaAdapterImplMock : public ::media_manager::MediaAdapterImpl {
       void(int32_t application_key));
   MOCK_METHOD1(StopActivity,
       void(int32_t application_key));
-  MOCK_METHOD1(is_app_performing_activity,
+  MOCK_CONST_METHOD1(is_app_performing_activity,
       bool(int32_t application_key));
 };
 

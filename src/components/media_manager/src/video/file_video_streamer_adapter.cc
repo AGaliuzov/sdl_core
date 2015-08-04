@@ -30,19 +30,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_MEDIA_MANAGER_INCLUDE_MEDIA_MANAGER_AUDIO_SOCKET_AUDIO_STREAMER_ADAPTER_H_
-#define SRC_COMPONENTS_MEDIA_MANAGER_INCLUDE_MEDIA_MANAGER_AUDIO_SOCKET_AUDIO_STREAMER_ADAPTER_H_
-
-#include "media_manager/socket_streamer_adapter.h"
+#include "media_manager/video/file_video_streamer_adapter.h"
+#include "config_profile/profile.h"
 
 namespace media_manager {
 
-class SocketAudioStreamerAdapter : public SocketStreamerAdapter {
- public:
-  SocketAudioStreamerAdapter();
-  virtual ~SocketAudioStreamerAdapter();
-};
+FileVideoStreamerAdapter::FileVideoStreamerAdapter()
+  : FileStreamerAdapter(profile::Profile::instance()->video_stream_file()) {
+}
 
-}  //  namespace media_manager
+FileVideoStreamerAdapter::~FileVideoStreamerAdapter() {
+}
 
-#endif  // SRC_COMPONENTS_MEDIA_MANAGER_INCLUDE_MEDIA_MANAGER_AUDIO_SOCKET_AUDIO_STREAMER_ADAPTER_H_
+}  // namespace media_manager
