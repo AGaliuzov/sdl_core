@@ -323,7 +323,8 @@ void CreateInteractionChoiceSetRequest::on_event(
 
       Common_Result::eType  vr_result = static_cast<Common_Result::eType>(
           message[strings::params][hmi_response::code].asInt());
-      if (Common_Result::SUCCESS == vr_result) {
+      if (Common_Result::SUCCESS == vr_result ||
+          Common_Result::WARNINGS == vr_result) {
         VRCommandInfo& vr_command = it->second;
         vr_command.succesful_response_received_ = true;
       } else {
