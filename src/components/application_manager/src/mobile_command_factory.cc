@@ -126,6 +126,7 @@
 #include "application_manager/commands/mobile/dial_number_request.h"
 #include "application_manager/commands/mobile/dial_number_response.h"
 #include "interfaces/MOBILE_API.h"
+#include "utils/make_shared.h"
 
 namespace application_manager {
 
@@ -139,424 +140,427 @@ namespace application_manager {
     case mobile_apis::FunctionID::RegisterAppInterfaceID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kRequest)) {
-        command.reset(new commands::RegisterAppInterfaceRequest(message));
+        command = utils::MakeShared<commands::RegisterAppInterfaceRequest>(message);
+
       } else {
-        command.reset(new commands::RegisterAppInterfaceResponse(message));
+        command = utils::MakeShared<commands::RegisterAppInterfaceResponse>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::UnregisterAppInterfaceID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kRequest)) {
-        command.reset(new commands::UnregisterAppInterfaceRequest(message));
+        command = utils::MakeShared<commands::UnregisterAppInterfaceRequest>(message);
       } else {
-        command.reset(new commands::UnregisterAppInterfaceResponse(message));
+        command = utils::MakeShared<commands::UnregisterAppInterfaceResponse>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::SetGlobalPropertiesID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::SetGlobalPropertiesResponse(message));
+        command = utils::MakeShared<commands::SetGlobalPropertiesResponse>(message);
       } else {
-        command.reset(new commands::SetGlobalPropertiesRequest(message));
+        command = utils::MakeShared<commands::SetGlobalPropertiesRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::ResetGlobalPropertiesID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::ResetGlobalPropertiesResponse(message));
+        command = utils::MakeShared<commands::ResetGlobalPropertiesResponse>(message);
       } else {
-        command.reset(new commands::ResetGlobalPropertiesRequest(message));
+        command = utils::MakeShared<commands::ResetGlobalPropertiesRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::AddCommandID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::AddCommandResponse(message));
+        command = utils::MakeShared<commands::AddCommandResponse>(message);
       } else {
-        command.reset(new commands::AddCommandRequest(message));
+        command = utils::MakeShared<commands::AddCommandRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::DeleteCommandID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::DeleteCommandResponse(message));
+        command = utils::MakeShared<commands::DeleteCommandResponse>(message);
       } else {
-        command.reset(new commands::DeleteCommandRequest(message));
+        command = utils::MakeShared<commands::DeleteCommandRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::AddSubMenuID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::AddSubMenuResponse(message));
+        command = utils::MakeShared<commands::AddSubMenuResponse>(message);
       } else {
-        command.reset(new commands::AddSubMenuRequest(message));
+        command = utils::MakeShared<commands::AddSubMenuRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::DeleteSubMenuID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::DeleteSubMenuResponse(message));
+        command = utils::MakeShared<commands::DeleteSubMenuResponse>(message);
       } else {
-        command.reset(new commands::DeleteSubMenuRequest(message));
+        command = utils::MakeShared<commands::DeleteSubMenuRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::DeleteInteractionChoiceSetID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(
-            new commands::DeleteInteractionChoiceSetResponse(message));
+        command =
+            utils::MakeShared<commands::DeleteInteractionChoiceSetResponse>(message);
       } else {
-        command.reset(new commands::DeleteInteractionChoiceSetRequest(message));
+        command =
+            utils::MakeShared<commands::DeleteInteractionChoiceSetRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::AlertID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::AlertResponse(message));
+        command = utils::MakeShared<commands::AlertResponse>(message);
       } else {
-        command.reset(new commands::AlertRequest(message));
+        command = utils::MakeShared<commands::AlertRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::SpeakID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::SpeakResponse(message));
+        command = utils::MakeShared<commands::SpeakResponse>(message);
       } else {
-        command.reset(new commands::SpeakRequest(message));
+        command = utils::MakeShared<commands::SpeakRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::SliderID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::SliderResponse(message));
+        command = utils::MakeShared<commands::SliderResponse>(message);
       } else {
-        command.reset(new commands::SliderRequest(message));
+        command = utils::MakeShared<commands::SliderRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::PerformAudioPassThruID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::PerformAudioPassThruResponse(message));
+        command = utils::MakeShared<commands::PerformAudioPassThruResponse>(message);
       } else {
-        command.reset(new commands::PerformAudioPassThruRequest(message));
+        command = utils::MakeShared<commands::PerformAudioPassThruRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::CreateInteractionChoiceSetID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(
-            new commands::CreateInteractionChoiceSetResponse(message));
+        command =
+            utils::MakeShared<commands::CreateInteractionChoiceSetResponse>(message);
       } else {
-        command.reset(new commands::CreateInteractionChoiceSetRequest(message));
+        command =
+            utils::MakeShared<commands::CreateInteractionChoiceSetRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::PerformInteractionID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::PerformInteractionResponse(message));
+        command = utils::MakeShared<commands::PerformInteractionResponse>(message);
       } else {
-        command.reset(new commands::PerformInteractionRequest(message));
+        command = utils::MakeShared<commands::PerformInteractionRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::EndAudioPassThruID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::EndAudioPassThruResponse(message));
+        command = utils::MakeShared<commands::EndAudioPassThruResponse>(message);
       } else {
-        command.reset(new commands::EndAudioPassThruRequest(message));
+        command = utils::MakeShared<commands::EndAudioPassThruRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::PutFileID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::PutFileResponse(message));
+        command = utils::MakeShared<commands::PutFileResponse>(message);
       } else {
-        command.reset(new commands::PutFileRequest(message));
+        command = utils::MakeShared<commands::PutFileRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::DeleteFileID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::DeleteFileResponse(message));
+        command = utils::MakeShared<commands::DeleteFileResponse>(message);
       } else {
-        command.reset(new commands::DeleteFileRequest(message));
+        command = utils::MakeShared<commands::DeleteFileRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::ListFilesID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::ListFilesResponse(message));
+        command = utils::MakeShared<commands::ListFilesResponse>(message);
       } else {
-        command.reset(new commands::ListFilesRequest(message));
+        command = utils::MakeShared<commands::ListFilesRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::SubscribeButtonID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::SubscribeButtonResponse(message));
+        command = utils::MakeShared<commands::SubscribeButtonResponse>(message);
       } else {
-        command.reset(new commands::SubscribeButtonRequest(message));
+        command = utils::MakeShared<commands::SubscribeButtonRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::UnsubscribeButtonID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::UnsubscribeButtonResponse(message));
+        command = utils::MakeShared<commands::UnsubscribeButtonResponse>(message);
       } else {
-        command.reset(new commands::UnsubscribeButtonRequest(message));
+        command = utils::MakeShared<commands::UnsubscribeButtonRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::ShowConstantTBTID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::ShowConstantTBTResponse(message));
+        command = utils::MakeShared<commands::ShowConstantTBTResponse>(message);
       } else {
-        command.reset(new commands::ShowConstantTBTRequest(message));
+        command = utils::MakeShared<commands::ShowConstantTBTRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::ShowID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::ShowResponse(message));
+        command = utils::MakeShared<commands::ShowResponse>(message);
       } else {
-        command.reset(new commands::ShowRequest(message));
+        command = utils::MakeShared<commands::ShowRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::SubscribeVehicleDataID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::SubscribeVehicleDataResponse(message));
+        command = utils::MakeShared<commands::SubscribeVehicleDataResponse>(message);
       } else {
-        command.reset(new commands::SubscribeVehicleDataRequest(message));
+        command = utils::MakeShared<commands::SubscribeVehicleDataRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::UnsubscribeVehicleDataID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::UnsubscribeVehicleDataResponse(message));
+        command = utils::MakeShared<commands::UnsubscribeVehicleDataResponse>(message);
       } else {
-        command.reset(new commands::UnsubscribeVehicleDataRequest(message));
+        command = utils::MakeShared<commands::UnsubscribeVehicleDataRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::ReadDIDID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::ReadDIDResponse(message));
+        command = utils::MakeShared<commands::ReadDIDResponse>(message);
       } else {
-        command.reset(new commands::ReadDIDRequest(message));
+        command = utils::MakeShared<commands::ReadDIDRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::GetVehicleDataID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::GetVehicleDataResponse(message));
+        command = utils::MakeShared<commands::GetVehicleDataResponse>(message);
       } else {
-        command.reset(new commands::GetVehicleDataRequest(message));
+        command = utils::MakeShared<commands::GetVehicleDataRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::ScrollableMessageID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::ScrollableMessageResponse(message));
+        command = utils::MakeShared<commands::ScrollableMessageResponse>(message);
       } else {
-        command.reset(new commands::ScrollableMessageRequest(message));
+        command = utils::MakeShared<commands::ScrollableMessageRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::AlertManeuverID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::AlertManeuverResponse(message));
+        command = utils::MakeShared<commands::AlertManeuverResponse>(message);
       } else {
-        command.reset(new commands::AlertManeuverRequest(message));
+        command = utils::MakeShared<commands::AlertManeuverRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::SetAppIconID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::SetAppIconResponse(message));
+        command = utils::MakeShared<commands::SetAppIconResponse>(message);
       } else {
-        command.reset(new commands::SetAppIconRequest(message));
+        command = utils::MakeShared<commands::SetAppIconRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::SetDisplayLayoutID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::SetDisplayLayoutResponse(message));
+        command = utils::MakeShared<commands::SetDisplayLayoutResponse>(message);
       } else {
-        command.reset(new commands::SetDisplayLayoutRequest(message));
+        command = utils::MakeShared<commands::SetDisplayLayoutRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::UpdateTurnListID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::UpdateTurnListResponse(message));
+        command = utils::MakeShared<commands::UpdateTurnListResponse>(message);
       } else {
-        command.reset(new commands::UpdateTurnListRequest(message));
+        command = utils::MakeShared<commands::UpdateTurnListRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::ChangeRegistrationID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::ChangeRegistrationResponse(message));
+        command = utils::MakeShared<commands::ChangeRegistrationResponse>(message);
       } else {
-        command.reset(new commands::ChangeRegistrationRequest(message));
+        command = utils::MakeShared<commands::ChangeRegistrationRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::GetDTCsID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::GetDTCsResponse(message));
+        command = utils::MakeShared<commands::GetDTCsResponse>(message);
       } else {
-        command.reset(new commands::GetDTCsRequest(message));
+        command = utils::MakeShared<commands::GetDTCsRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::DiagnosticMessageID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::DiagnosticMessageResponse(message));
+        command = utils::MakeShared<commands::DiagnosticMessageResponse>(message);
       } else {
-        command.reset(new commands::DiagnosticMessageRequest(message));
+        command = utils::MakeShared<commands::DiagnosticMessageRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::SetMediaClockTimerID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::SetMediaClockTimerResponse(message));
+        command = utils::MakeShared<commands::SetMediaClockTimerResponse>(message);
       } else {
-        command.reset(new commands::SetMediaClockRequest(message));
+        command = utils::MakeShared<commands::SetMediaClockRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::SystemRequestID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::SystemResponse(message));
+        command = utils::MakeShared<commands::SystemResponse>(message);
       } else {
-        command.reset(new commands::SystemRequest(message));
+        command = utils::MakeShared<commands::SystemRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::SendLocationID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::SendLocationResponse(message));
+        command = utils::MakeShared<commands::SendLocationResponse>(message);
       } else {
-        command.reset(new commands::SendLocationRequest(message));
+        command = utils::MakeShared<commands::SendLocationRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::DialNumberID: {
       if ((*message)[strings::params][strings::message_type]
           == static_cast<int>(application_manager::MessageType::kResponse)) {
-        command.reset(new commands::DialNumberResponse(message));
+        command = utils::MakeShared<commands::DialNumberResponse>(message);
       } else {
-        command.reset(new commands::DialNumberRequest(message));
+        command = utils::MakeShared<commands::DialNumberRequest>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::OnButtonEventID: {
-      command.reset(new commands::mobile::OnButtonEventNotification(message));
+      command = utils::MakeShared<commands::mobile::OnButtonEventNotification>(message);
       break;
     }
     case mobile_apis::FunctionID::OnButtonPressID: {
-      command.reset(new commands::mobile::OnButtonPressNotification(message));
+      command = utils::MakeShared<commands::mobile::OnButtonPressNotification>(message);
       break;
     }
     case mobile_apis::FunctionID::OnAudioPassThruID: {
-      command.reset(new commands::OnAudioPassThruNotification(message));
+      command = utils::MakeShared<commands::OnAudioPassThruNotification>(message);
       break;
     }
     case mobile_apis::FunctionID::OnVehicleDataID: {
-      command.reset(new commands::OnVehicleDataNotification(message));
+      command = utils::MakeShared<commands::OnVehicleDataNotification>(message);
       break;
     }
     case mobile_apis::FunctionID::OnAppInterfaceUnregisteredID: {
-      command.reset(
-          new commands::OnAppInterfaceUnregisteredNotification(message));
+      command =
+          utils::MakeShared<commands::OnAppInterfaceUnregisteredNotification>(message);
       break;
     }
     case mobile_apis::FunctionID::OnCommandID: {
-      command.reset(new commands::OnCommandNotification(message));
+      command = utils::MakeShared<commands::OnCommandNotification>(message);
       break;
     }
     case mobile_apis::FunctionID::OnTBTClientStateID: {
-      command.reset(new commands::OnTBTClientStateNotification(message));
+      command = utils::MakeShared<commands::OnTBTClientStateNotification>(message);
       break;
     }
     case mobile_apis::FunctionID::OnDriverDistractionID: {
-      command.reset(
-          new commands::mobile::OnDriverDistractionNotification(message));
+      command =
+          utils::MakeShared<commands::mobile::OnDriverDistractionNotification>(message);
       break;
     }
     case mobile_apis::FunctionID::OnLanguageChangeID: {
-      command.reset(new commands::OnLanguageChangeNotification(message));
+      command = utils::MakeShared<commands::OnLanguageChangeNotification>(message);
       break;
     }
     case mobile_apis::FunctionID::OnPermissionsChangeID: {
-      command.reset(new commands::OnPermissionsChangeNotification(message));
+      command = utils::MakeShared<commands::OnPermissionsChangeNotification>(message);
       break;
     }
     case mobile_apis::FunctionID::OnHMIStatusID: {
       if (commands::Command::ORIGIN_SDL == origin) {
-        command.reset(new commands::OnHMIStatusNotification(message));
+        command = utils::MakeShared<commands::OnHMIStatusNotification>(message);
       }
       break;
     }
     case mobile_apis::FunctionID::OnKeyboardInputID: {
-      command.reset(new commands::mobile::OnKeyBoardInputNotification(message));
+      command = utils::MakeShared<commands::mobile::OnKeyBoardInputNotification>(message);
       break;
     }
     case mobile_apis::FunctionID::OnTouchEventID: {
-      command.reset(new commands::mobile::OnTouchEventNotification(message));
+      command = utils::MakeShared<commands::mobile::OnTouchEventNotification>(message);
       break;
     }
     case mobile_apis::FunctionID::OnSystemRequestID: {
-      command.reset(new commands::mobile::OnSystemRequestNotification(message));
+      command = utils::MakeShared<commands::mobile::OnSystemRequestNotification>(message);
       break;
     }
     case mobile_apis::FunctionID::OnHashChangeID: {
-      command.reset(new commands::mobile::OnHashChangeNotification(message));
+      command = utils::MakeShared<commands::mobile::OnHashChangeNotification>(message);
       break;
     }
     default: {
       (*message)[strings::params][strings::function_id] =
           static_cast<int32_t>(mobile_apis::FunctionID::GenericResponseID);
-      command.reset(new commands::GenericResponse(message));
+      command = utils::MakeShared<commands::GenericResponse>(message);
     }
   }
   return command;

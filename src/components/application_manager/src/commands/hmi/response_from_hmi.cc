@@ -67,7 +67,7 @@ void ResponseFromHMI::Run() {
 void ResponseFromHMI::SendResponseToMobile(const MessageSharedPtr& message) {
   (*message)[strings::params][strings::message_type] = MessageType::kResponse;
 
-  ApplicationManagerImpl::instance()->ManageMobileCommand(message);
+  ApplicationManagerImpl::instance()->ManageMobileCommand(message, ORIGIN_SDL);
 }
 
 void ResponseFromHMI::CreateHMIRequest(

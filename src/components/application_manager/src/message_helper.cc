@@ -287,7 +287,8 @@ void MessageHelper::SendHMIStatusNotification(
   message[strings::msg_params][strings::system_context] =
     static_cast<int32_t>(application_impl.system_context());
 
-  ApplicationManagerImpl::instance()->ManageMobileCommand(notification);
+  ApplicationManagerImpl::instance()->ManageMobileCommand(notification,
+                                                          commands::Command::ORIGIN_SDL);
 }
 
 void MessageHelper::SendOnAppRegisteredNotificationToHMI(
@@ -422,7 +423,8 @@ void MessageHelper::SendHashUpdateNotification(const uint32_t app_id) {
   smart_objects::SmartObjectSPtr so = GetHashUpdateNotification(app_id);
   if (so) {
     PrintSmartObject(*so);
-    if (!ApplicationManagerImpl::instance()->ManageMobileCommand(so)) {
+    if (!ApplicationManagerImpl::instance()->ManageMobileCommand(
+        so, commands::Command::ORIGIN_SDL)) {
       LOG4CXX_ERROR_EXT(logger_, "Failed to send HashUpdate notification.");
     } else {
       ApplicationManagerImpl::instance()->resume_controller().ApplicationsDataUpdated();
@@ -450,7 +452,8 @@ void MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
 
   message[strings::msg_params][strings::reason] = static_cast<int32_t>(reason);
 
-  if (ApplicationManagerImpl::instance()->ManageMobileCommand(notification)) {
+  if (ApplicationManagerImpl::instance()->ManageMobileCommand(
+      notification, commands::Command::ORIGIN_SDL)) {
     LOG4CXX_DEBUG(logger_, "Mobile command sent");
   }
   else {
@@ -1858,7 +1861,8 @@ void MessageHelper::SendSystemRequestNotification (uint32_t connection_key,
   content[strings::params][strings::protocol_version] = CommandImpl::protocol_version_;
 
   content[strings::params][strings::connection_key] = connection_key;
-  ApplicationManagerImpl::instance()->ManageMobileCommand(new SmartObject(content));
+  ApplicationManagerImpl::instance()->ManageMobileCommand(
+      new SmartObject(content), commands::Command::ORIGIN_SDL);
 }
 
 void MessageHelper::SendOnPermissionsChangeNotification(
@@ -1974,7 +1978,8 @@ void MessageHelper::SendOnPermissionsChangeNotification(
     }
   }
 
-  ApplicationManagerImpl::instance()->ManageMobileCommand(notification);
+  ApplicationManagerImpl::instance()->ManageMobileCommand(
+      notification, commands::Command::ORIGIN_SDL);
 }
 
 void MessageHelper::FillAppRevokedPermissions(

@@ -619,8 +619,7 @@ class ApplicationManagerImpl : public ApplicationManager,
 
     bool ManageMobileCommand(
             const commands::MessageSharedPtr message,
-            commands::Command::CommandOrigin origin =
-                          commands::Command::ORIGIN_SDL);
+            commands::Command::CommandOrigin origin);
 
     void SendMessageToHMI(const commands::MessageSharedPtr message);
     bool ManageHMICommand(const commands::MessageSharedPtr message);

@@ -121,7 +121,7 @@ class Command {
   virtual void SetAllowedToTerminate(bool allowed) = 0;
 
   /**
-   * @brief Allows to determine accessory of commands.
+   * @brief Allows to determine origin of commands.
    */
   enum CommandOrigin {
     ORIGIN_SDL,

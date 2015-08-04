@@ -380,7 +380,7 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
         connection_key, mobile_apis::FunctionID::RegisterAppInterfaceID,
         message[strings::params][strings::correlation_id].asUInt(),
         mobile_apis::Result::GENERIC_ERROR));
-    ManageMobileCommand(response);
+    ManageMobileCommand(response, commands::Command::ORIGIN_SDL);
     return ApplicationSharedPtr();
   }
 
@@ -397,7 +397,7 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
         connection_key, mobile_apis::FunctionID::RegisterAppInterfaceID,
         message[strings::params][strings::correlation_id].asUInt(),
         mobile_apis::Result::DISALLOWED));
-    ManageMobileCommand(response);
+    ManageMobileCommand(response, commands::Command::ORIGIN_SDL);
     return ApplicationSharedPtr();
   }
 
@@ -422,7 +422,7 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
         connection_key, mobile_apis::FunctionID::RegisterAppInterfaceID,
         message[strings::params][strings::correlation_id].asUInt(),
         mobile_apis::Result::OUT_OF_MEMORY));
-    ManageMobileCommand(response);
+    ManageMobileCommand(response, commands::Command::ORIGIN_SDL);
     return ApplicationSharedPtr();
   }
 
@@ -1246,7 +1246,7 @@ bool ApplicationManagerImpl::ManageMobileCommand(
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (!message) {
-    LOG4CXX_WARN(logger_, "RET Null-pointer message received.");
+    LOG4CXX_WARN(logger_, "Null-pointer message received.");
     return false;
   }
 
@@ -1569,7 +1569,7 @@ bool ApplicationManagerImpl::ConvertMessageToSO(
                 MessageHelper::CreateNegativeResponse(
                   message.connection_key(), message.function_id(),
                   message.correlation_id(), mobile_apis::Result::INVALID_DATA));
-          ManageMobileCommand(response);
+          ManageMobileCommand(response, commands::Command::ORIGIN_SDL);
           return false;
         }
       LOG4CXX_INFO(
@@ -1589,7 +1589,7 @@ bool ApplicationManagerImpl::ConvertMessageToSO(
                             MessageHelper::CreateNegativeResponse(
                             message.connection_key(), message.function_id(),
                             message.correlation_id(), mobile_apis::Result::INVALID_DATA));
-          ManageMobileCommand(response);
+          ManageMobileCommand(response, commands::Command::ORIGIN_SDL);
           return false;
         }
         output[strings::params][strings::binary_data] =
@@ -2248,7 +2248,7 @@ void ApplicationManagerImpl::Handle(const impl::AudioData message) {
        MobileCommandFactory::CreateCommand(on_audio_pass,
                                            commands::Command::ORIGIN_SDL));
    if (!command) {
-     LOG4CXX_WARN(logger_, "RET  Failed to create mobile command from smart object");
+     LOG4CXX_WARN(logger_, "Failed to create mobile command from smart object");
      return;
    }
 
