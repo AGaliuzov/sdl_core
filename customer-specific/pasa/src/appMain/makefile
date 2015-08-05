@@ -75,7 +75,6 @@ STATIC_LIBS += \
 	interfaces$(DEBUG_EXT) \
 	hmi_message_handler$(DEBUG_EXT) \
 	connection_handler$(DEBUG_EXT) \
-	security_manager$(DEBUG_EXT) \
 	protocol_handler$(DEBUG_EXT) \
 	protocol$(DEBUG_EXT) \
 	dbms$(DEBUG_EXT) \
@@ -85,7 +84,6 @@ STATIC_LIBS += \
 	usage_statistics$(DEBUG_EXT) \
 	application_manager$(DEBUG_EXT) \
 	media_manager$(DEBUG_EXT) \
-	crypto
 
 
 # This only defines the dynamic libs
