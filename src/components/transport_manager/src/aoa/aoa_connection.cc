@@ -107,10 +107,13 @@ void AOAConnection::TransmitFailed(::protocol_handler::RawMessagePtr message) {
                               DataSendError());
 }
 
-void AOAConnection::Abort() {
+void AOAConnection::Abort(bool forced) {
   LOG4CXX_TRACE(logger_, "AOA: aborted " << device_uid_ << " " << app_handle_);
-  controller_->ConnectionAborted(device_uid_, app_handle_,
-                                 CommunicationError());
+  CommunicationError error;
+  if (forced) {
+    error.set_error(kResourceBusy);
+  }
+  controller_->ConnectionAborted(device_uid_, app_handle_, error);
 }
 
 TransportAdapter::Error AOAConnection::Disconnect() {
@@ -140,11 +143,11 @@ void AOAConnection::OnMessageTransmitted(bool success, ::protocol_handler::RawMe
   }
 }
 
-void AOAConnection::OnDisconnected() {
+void AOAConnection::OnDisconnected(bool forced) {
   LOG4CXX_TRACE(
       logger_,
       "AOA: connection disconnected " << device_uid_ << " " << app_handle_);
-  Abort();
+  Abort(forced);
   Disconnect();
 }
 
@@ -163,8 +166,8 @@ void AOAConnection::ConnectionObserver::OnMessageTransmitted(
   parent_->OnMessageTransmitted(success, message);
 }
 
-void AOAConnection::ConnectionObserver::OnDisconnected() {
-  parent_->OnDisconnected();
+void AOAConnection::ConnectionObserver::OnDisconnected(bool forced) {
+  parent_->OnDisconnected(forced);
 }
 
 }  // namespace transport_adapter

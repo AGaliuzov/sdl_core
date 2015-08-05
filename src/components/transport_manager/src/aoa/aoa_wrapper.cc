@@ -55,10 +55,7 @@ static void OnConnectedDevice(aoa_hdl_t *hdl, const void *udata) {
     active_handle = hdl;
   }
 
-  LifeKeeper* life_keeper = (LifeKeeper*)udata;
-  if (NULL == life_keeper) { return; }
-
-  AOADeviceLife* life = life_keeper->BindHandle2Life(hdl);
+  AOADeviceLife* life = AOAWrapper::life_keeper_.BindHandle2Life(hdl);
   if (life) {
     life->Loop(hdl);
   }
@@ -116,18 +113,17 @@ static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
   }
 }
 
-LifeKeeper* AOAWrapper::life_keeper_ = 0;
+LifeKeeper AOAWrapper::life_keeper_;
+AOAConnectionObserver* AOAWrapper::connection_observer_ = NULL;
 
 AOAWrapper::AOAWrapper(AOAHandle hdl)
     : hdl_(hdl),
-      timeout_(AOA_TIMEOUT_INFINITY),
-      connection_observer_(0) {
+      timeout_(AOA_TIMEOUT_INFINITY) {
 }
 
 AOAWrapper::AOAWrapper(AOAHandle hdl, uint32_t timeout)
     : hdl_(hdl),
-      timeout_(timeout),
-      connection_observer_(0) {
+      timeout_(timeout) {
 }
 
 bool AOAWrapper::Init(AOADeviceLife *life) {
@@ -152,7 +148,7 @@ bool AOAWrapper::HandleDevice(AOADeviceLife* life,
                               const AOAWrapper::AOAUsbInfo& aoa_usb_info) {
   LOG4CXX_AUTO_TRACE(logger_);
   usb_info_t usb_info;
-  life_keeper_->AddLife(life);
+  life_keeper_.AddLife(life);
   PrepareUsbInfo(aoa_usb_info, &usb_info);
   const int ret = aoa_usbinfo_add(&usb_info, AOA_FLAG_UNIQUE_DEVICE);
   if (IsError(ret)) {
@@ -162,16 +158,15 @@ bool AOAWrapper::HandleDevice(AOADeviceLife* life,
   return true;
 }
 
+void AOAWrapper::Disconnect(bool forced) {
+  Shutdown();
+  connection_observer_->OnDisconnected(forced);
+}
+
 bool AOAWrapper::Init(AOADeviceLife* life, const char* config_path,
                       usb_info_s* usb_info) {
 
-  if (NULL == life_keeper_) {
-    life_keeper_ = new LifeKeeper;
-  }
-
-  if (NULL != life) {
-    life_keeper_->AddLife(life);
-  }
+  life_keeper_.AddLife(life);
 
   uint32_t flags = 0;
   if (usb_info) {
@@ -180,7 +175,7 @@ bool AOAWrapper::Init(AOADeviceLife* life, const char* config_path,
     flags = AOA_FLAG_NO_USB_STACK;
   }
 
-  int ret = aoa_init(config_path, usb_info, &OnConnectedDevice, life_keeper_, flags);
+  int ret = aoa_init(config_path, usb_info, &OnConnectedDevice, &life_keeper_, flags);
   if (IsError(ret)) {
     PrintError(ret);
     return false;
@@ -250,7 +245,6 @@ bool AOAWrapper::Shutdown() {
     PrintError(ret);
     return false;
   }
-  delete life_keeper_;
   active_handle = NULL;
   return true;
 }
@@ -477,7 +471,7 @@ bool AOAWrapper::IsHandleValid(AOAWrapper::AOAHandle hdl) {
 }
 
 void AOAWrapper::OnDied(AOAWrapper::AOAHandle hdl) {
-  AOADeviceLife* life = life_keeper_->ReleaseLife(hdl);
+  AOADeviceLife* life = life_keeper_.ReleaseLife(hdl);
 
   if (NULL != life) {
     life->OnDied(hdl);
