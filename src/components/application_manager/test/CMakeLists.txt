@@ -127,6 +127,12 @@ endif()
 
 add_library("ApplicationManagerTest" ${testSources} ${AM_SOURCES})
 
-create_test("application_manager_test" "${testSources}" "${testLibraries}" "${AM_SOURCES}" ) 
+set(ResumptionData_SOURCES
+  ${AM_TEST_DIR}/resumption/resumption_data_json_test.cc
+)
 
-target_link_libraries("application_manager_test" ApplicationManagerTest ${testLibraries})
+file(COPY resumption/smartDeviceLink_test.ini DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/resumption)
+create_test("resumption/resumption_test" "${Resumption_SOURCES}" "${testLibraries}" "${AM_SOURCES_MOCK}")
+create_test("resumption/data_resumption_test" "${ResumptionData_SOURCES}" "${testLibraries}" "${AM_SOURCES_MOCK}")
