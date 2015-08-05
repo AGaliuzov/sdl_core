@@ -618,7 +618,9 @@ class ApplicationManagerImpl : public ApplicationManager,
     void TerminateRequest(uint32_t connection_key, uint32_t corr_id);
 
     bool ManageMobileCommand(
-            const commands::MessageSharedPtr message);
+            const commands::MessageSharedPtr message,
+            commands::Command::CommandOrigin origin);
+
     void SendMessageToHMI(const commands::MessageSharedPtr message);
     bool ManageHMICommand(const commands::MessageSharedPtr message);
 

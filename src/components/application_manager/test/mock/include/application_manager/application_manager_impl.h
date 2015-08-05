@@ -196,7 +196,8 @@ class ApplicationManagerImpl : public ApplicationManager,
                 ApplicationSharedPtr(const utils::SharedPtr<smart_objects::SmartObject>&));
   MOCK_METHOD0(hmi_capabilities, HMICapabilities& ());
   MOCK_METHOD1(ManageHMICommand, bool (const utils::SharedPtr<smart_objects::SmartObject>&));
-  MOCK_METHOD1(ManageMobileCommand, bool (const utils::SharedPtr<smart_objects::SmartObject>& message));
+  MOCK_METHOD2(ManageMobileCommand, bool (const utils::SharedPtr<smart_objects::SmartObject>& message,
+                                          commands::Command::CommandOrigin origin));
   MOCK_METHOD1(SendMessageToHMI, bool (const utils::SharedPtr<smart_objects::SmartObject>&));
   MOCK_METHOD2(SendMessageToMobile, bool (const utils::SharedPtr<smart_objects::SmartObject>&,
                                           bool));

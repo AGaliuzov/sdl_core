@@ -64,7 +64,7 @@ void NotificationFromHMI::SendNotificationToMobile(
 
   (*message)[strings::params][strings::message_type] =
       static_cast<int32_t>(application_manager::MessageType::kNotification);
-  ApplicationManagerImpl::instance()->ManageMobileCommand(message);
+  ApplicationManagerImpl::instance()->ManageMobileCommand(message, ORIGIN_SDL);
 }
 
 void NotificationFromHMI::CreateHMIRequest(

@@ -110,7 +110,7 @@ void CommandRequestImpl::onTimeOut() {
     MessageHelper::CreateNegativeResponse(connection_key(), function_id(),
     correlation_id(), mobile_api::Result::GENERIC_ERROR);
 
-  ApplicationManagerImpl::instance()->ManageMobileCommand(response);
+  ApplicationManagerImpl::instance()->ManageMobileCommand(response, ORIGIN_SDL);
 }
 
 void CommandRequestImpl::on_event(const event_engine::Event& event) {
@@ -171,7 +171,7 @@ void CommandRequestImpl::SendResponse(
   response[strings::msg_params][strings::success] = success;
   response[strings::msg_params][strings::result_code] = result_code;
 
-  ApplicationManagerImpl::instance()->ManageMobileCommand(result);
+  ApplicationManagerImpl::instance()->ManageMobileCommand(result, ORIGIN_SDL);
 }
 
 bool CommandRequestImpl::CheckSyntax(std::string str, bool allow_empty_line) {

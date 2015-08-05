@@ -380,7 +380,7 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
         connection_key, mobile_apis::FunctionID::RegisterAppInterfaceID,
         message[strings::params][strings::correlation_id].asUInt(),
         mobile_apis::Result::GENERIC_ERROR));
-    ManageMobileCommand(response);
+    ManageMobileCommand(response, commands::Command::ORIGIN_SDL);
     return ApplicationSharedPtr();
   }
 
@@ -397,7 +397,7 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
         connection_key, mobile_apis::FunctionID::RegisterAppInterfaceID,
         message[strings::params][strings::correlation_id].asUInt(),
         mobile_apis::Result::DISALLOWED));
-    ManageMobileCommand(response);
+    ManageMobileCommand(response, commands::Command::ORIGIN_SDL);
     return ApplicationSharedPtr();
   }
 
@@ -422,7 +422,7 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
         connection_key, mobile_apis::FunctionID::RegisterAppInterfaceID,
         message[strings::params][strings::correlation_id].asUInt(),
         mobile_apis::Result::OUT_OF_MEMORY));
-    ManageMobileCommand(response);
+    ManageMobileCommand(response, commands::Command::ORIGIN_SDL);
     return ApplicationSharedPtr();
   }
 
@@ -1241,11 +1241,12 @@ void ApplicationManagerImpl::TerminateRequest(uint32_t connection_key, uint32_t 
 }
 
 bool ApplicationManagerImpl::ManageMobileCommand(
-    const commands::MessageSharedPtr message) {
+    const commands::MessageSharedPtr message,
+    commands::Command::CommandOrigin origin) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (!message) {
-    LOG4CXX_WARN(logger_, "RET Null-pointer message received.");
+    LOG4CXX_WARN(logger_, "Null-pointer message received.");
     return false;
   }
 
@@ -1259,7 +1260,7 @@ bool ApplicationManagerImpl::ManageMobileCommand(
 
   LOG4CXX_INFO(logger_, "Trying to create message in mobile factory.");
   utils::SharedPtr<commands::Command> command(
-          MobileCommandFactory::CreateCommand(message));
+          MobileCommandFactory::CreateCommand(message, origin));
 
   if (!command) {
     LOG4CXX_WARN(logger_, "RET  Failed to create mobile command from smart object");
@@ -1568,7 +1569,7 @@ bool ApplicationManagerImpl::ConvertMessageToSO(
                 MessageHelper::CreateNegativeResponse(
                   message.connection_key(), message.function_id(),
                   message.correlation_id(), mobile_apis::Result::INVALID_DATA));
-          ManageMobileCommand(response);
+          ManageMobileCommand(response, commands::Command::ORIGIN_SDL);
           return false;
         }
       LOG4CXX_INFO(
@@ -1588,7 +1589,7 @@ bool ApplicationManagerImpl::ConvertMessageToSO(
                             MessageHelper::CreateNegativeResponse(
                             message.connection_key(), message.function_id(),
                             message.correlation_id(), mobile_apis::Result::INVALID_DATA));
-          ManageMobileCommand(response);
+          ManageMobileCommand(response, commands::Command::ORIGIN_SDL);
           return false;
         }
         output[strings::params][strings::binary_data] =
@@ -1825,7 +1826,8 @@ void ApplicationManagerImpl::ProcessMessageFromMobile(
   metric->message = so_from_mobile;
 #endif  // TIME_TESTER
 
-  if (!ManageMobileCommand(so_from_mobile)) {
+  if (!ManageMobileCommand(so_from_mobile,
+                           commands::Command::ORIGIN_MOBILE)) {
     LOG4CXX_ERROR(logger_, "Received command didn't run successfully");
   }
 #ifdef TIME_TESTER
@@ -2243,7 +2245,13 @@ void ApplicationManagerImpl::Handle(const impl::AudioData message) {
 
    LOG4CXX_INFO_EXT(logger_, "Send data");
    CommandSharedPtr command (
-       MobileCommandFactory::CreateCommand(on_audio_pass));
+       MobileCommandFactory::CreateCommand(on_audio_pass,
+                                           commands::Command::ORIGIN_SDL));
+   if (!command) {
+     LOG4CXX_WARN(logger_, "Failed to create mobile command from smart object");
+     return;
+   }
+
    command->Init();
    command->Run();
    command->CleanUp();
