@@ -49,7 +49,7 @@ class MobileCommandFactory {
    * @brief Create command object and return pointer to it
    *
    * @param  smartObject SmartObject shared pointer.
-   * @param origin determine accessory of command.
+   * @param origin determine origin of command.
    * @return Pointer to created command object.
    **/
   static CommandSharedPtr CreateCommand(
