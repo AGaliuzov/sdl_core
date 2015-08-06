@@ -370,8 +370,11 @@ void PPSListener::PpsMQListener::threadMain() {
   if (mq_to_applink_handle_ != -1) {
     while (run_) {
       char msg[MAX_QUEUE_MSG_SIZE];
-      ssize_t size = mq_receive(mq_from_applink_handle_, &msg, MAX_QUEUE_MSG_SIZE, NULL);
-      LOG4CXX_DEBUG(logger_, "Receive message from Applink with size: " << size);
+      ssize_t size = mq_receive(mq_from_applink_handle_, msg, MAX_QUEUE_MSG_SIZE, NULL);
+      LOG4CXX_DEBUG(logger_, "Receive message from Applink with size: " << size
+                    << ". Message signal: " << static_cast<int32_t>(msg[0])
+                    << ". TAKE_AOA signal is: " << static_cast<int32_t>(TAKE_AOA)
+                    << ". RELEASE_AOA signal is: " << static_cast<int32_t>(RELEASE_AOA));
       if (-1 != size) {
         switch (msg[0]) {
           case TAKE_AOA:
