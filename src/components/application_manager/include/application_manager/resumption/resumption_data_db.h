@@ -60,16 +60,24 @@ struct ApplicationParams {
 };
 
 /**
+ * @brief Show should database be saved in a disk file or in memory
+ */
+enum DbStorage {
+  In_Memory_Storage = 0,
+  In_File_Storage
+};
+
+/**
  * @brief class contains logic for representation application data in
  * data base
  */
 class ResumptionDataDB : public ResumptionData {
  public:
-
   /**
    * @brief Constructor of ResumptionDataDB
+   * @param db_storage show database should be saved in a disk file or in memory
    */
-  ResumptionDataDB();
+  ResumptionDataDB(DbStorage db_storage);
 
   /**
    * @brief allows to destroy ResumptionDataDB object
@@ -90,30 +98,11 @@ class ResumptionDataDB : public ResumptionData {
   virtual void SaveApplication(app_mngr::ApplicationSharedPtr application);
 
   /**
-   * @brief Returns HMI level of application from saved data
-   * @param policy_app_id contains mobile application id of application
-   * @param device_id contains id of device on which is running application
-   * @return HMI level, if saved data does not contain HMI level method
-   * returns -1
-   */
-  virtual int32_t GetStoredHMILevel(const std::string& policy_app_id,
-                                const std::string& device_id) const;
-
-  /**
    * @brief Checks if saved data of applications have hmi app id
    * @param hmi_app_id - hmi application id
    * @return true if exist, otherwise false
    */
   virtual bool IsHMIApplicationIdExist(uint32_t hmi_app_id) const;
-
-  /**
-   * @brief Checks if saved data have application
-   * @param policy_app_id - mobile application id
-   * @param device_id - contains id of device on which is running application
-   * @return true if application exists, false otherwise
-   */
-  virtual bool CheckSavedApplication(const std::string& policy_app_id,
-                                     const std::string& device_id);
 
   /**
    * @brief Retrieves HMI app ID for the given mobile app ID
@@ -201,7 +190,7 @@ class ResumptionDataDB : public ResumptionData {
    */
   virtual void UpdateHmiLevel(const std::string& policy_app_id,
                               const std::string& device_id,
-                              int32_t hmi_level);
+                              mobile_apis::HMILevel::eType hmi_level);
 
   /**
    * @brief Re-creates and re-init DB
@@ -234,6 +223,12 @@ class ResumptionDataDB : public ResumptionData {
    * @return true if success, otherwise - false
    */
   bool UpdateDBVersion() const;
+
+protected:
+  /**
+   * @brief returns pointer to data base
+   */
+  utils::dbms::SQLDatabase* db() const;
 
  private:
 
@@ -794,11 +789,6 @@ class ResumptionDataDB : public ResumptionData {
    * @brief Writes data to DB after update
    */
   void WriteDb();
-
-  /**
-   * @brief returns pointer to data base
-   */
-  utils::dbms::SQLDatabase* db() const;
 
   DISALLOW_COPY_AND_ASSIGN(ResumptionDataDB);
 
