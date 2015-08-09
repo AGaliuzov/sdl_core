@@ -38,10 +38,13 @@
 #include "utils/lock.h"
 #include "utils/threads/thread.h"
 #include "utils/threads/pulse_thread_delegate.h"
+#include "utils/atomic_object.h"
 
 #include "transport_manager/transport_adapter/client_connection_listener.h"
 #include "transport_manager/aoa/aoa_dynamic_device.h"
 #include "transport_manager/aoa/aoa_wrapper.h"
+
+#include <mqueue.h>
 
 namespace transport_manager {
 namespace transport_adapter {
@@ -68,7 +71,9 @@ class PPSListener : public ClientConnectionListener {
   bool initialised_;
   TransportAdapterController* controller_;
   int fd_;
-  threads::Thread* thread_;
+  threads::Thread* pps_thread_;
+  threads::Thread* mq_thread_;
+  mutable sync_primitives::atomic_bool is_aoa_available_;
 
   bool OpenPps();
   void ClosePps();
@@ -81,6 +86,28 @@ class PPSListener : public ClientConnectionListener {
                    AOAWrapper::AOAUsbInfo* info);
   bool IsAOAMode(const AOAWrapper::AOAUsbInfo& aoa_usb_info);
   void AddDevice(const AOAWrapper::AOAUsbInfo& aoa_usb_info);
+  bool init_aoa();
+  bool release_aoa() const;
+
+  void release_thread(threads::Thread** thread);
+
+  class PpsMQListener: public threads::ThreadDelegate {
+   public:
+      explicit PpsMQListener(PPSListener* parent);
+      virtual void threadMain();
+      virtual void exitThreadMain();
+   private:
+      void take_aoa();
+      void release_aoa();
+      void init_mq(const std::string& name, int flags, int& descriptor);
+      void deinit_mq(mqd_t descriptor);
+
+      PPSListener* parent_;
+      mqd_t mq_from_applink_handle_;
+      mqd_t mq_to_applink_handle_;
+
+      sync_primitives::atomic_bool run_;
+  };
 
   class PpsThreadDelegate : public threads::PulseThreadDelegate {
    public:
