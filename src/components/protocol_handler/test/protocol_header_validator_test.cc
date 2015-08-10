@@ -38,7 +38,7 @@
 #include "protocol_handler/protocol_packet.h"
 
 namespace {
-  const size_t MAXIMUM_FRAME_DATA_SIZE = 131072;
+  const size_t MAXIMUM_FRAME_DATA_V3_SIZE = 131072;
 }
 
 namespace test {
@@ -61,7 +61,7 @@ class ProtocolHeaderValidatorTest : public ::testing::Test {
 TEST_F(ProtocolHeaderValidatorTest, MaxPayloadSizeSetGet) {
   EXPECT_EQ(std::numeric_limits<size_t>::max(),
             header_validator.max_payload_size());
-  for (size_t value = 0; value < MAXIMUM_FRAME_DATA_SIZE * 2; ++value) {
+  for (size_t value = 0; value < MAXIMUM_FRAME_DATA_V3_SIZE * 2; ++value) {
     header_validator.set_max_payload_size(value);
     EXPECT_EQ(value, header_validator.max_payload_size());
   }
@@ -184,9 +184,9 @@ TEST_F(ProtocolHeaderValidatorTest, Malformed_ControlFrame_EmptyPayload) {
         PROTOCOL_VERSION_3, PROTECTION_ON, FRAME_TYPE_CONSECUTIVE, kControl,
         FRAME_DATA_LAST_CONSECUTIVE, some_session_id, payload_size, some_message_id);
 
-  for (size_t max_payload_size = 0; max_payload_size < MAXIMUM_FRAME_DATA_SIZE * 2;
+  for (size_t max_payload_size = 0; max_payload_size < MAXIMUM_FRAME_DATA_V3_SIZE * 2;
        ++max_payload_size) {
-    header_validator.set_max_payload_size(MAXIMUM_FRAME_DATA_SIZE + max_payload_size);
+    header_validator.set_max_payload_size(MAXIMUM_FRAME_DATA_V3_SIZE + max_payload_size);
 
     // For Control frames Data Size value could be zero
     EXPECT_EQ(RESULT_OK, header_validator.validate(control_message_header));
@@ -198,7 +198,7 @@ TEST_F(ProtocolHeaderValidatorTest, Malformed_ControlFrame_EmptyPayload) {
 
 // For Control frames Data Size value should be less than MTU header
 TEST_F(ProtocolHeaderValidatorTest, Malformed_Payload_V2) {
-  const size_t payload_size = DEFAULT_FRAME_DATA_SIZE;
+  const size_t payload_size = MAXIMUM_FRAME_DATA_V2_SIZE;
   const ProtocolPacket::ProtocolHeader control_message_header(
         PROTOCOL_VERSION_2, PROTECTION_ON, FRAME_TYPE_CONTROL, kControl,
         FRAME_DATA_HEART_BEAT, some_session_id, payload_size, some_message_id);
@@ -210,7 +210,7 @@ TEST_F(ProtocolHeaderValidatorTest, Malformed_Payload_V2) {
         FRAME_DATA_LAST_CONSECUTIVE, some_session_id, payload_size, some_message_id);
 
   for (size_t max_payload_size = 0;
-       max_payload_size < MAXIMUM_FRAME_DATA_SIZE * 2;
+       max_payload_size < MAXIMUM_FRAME_DATA_V3_SIZE * 2;
        ++max_payload_size) {
     header_validator.set_max_payload_size(max_payload_size);
     EXPECT_EQ(RESULT_OK, header_validator.validate(control_message_header));
@@ -220,7 +220,7 @@ TEST_F(ProtocolHeaderValidatorTest, Malformed_Payload_V2) {
 }
 
 TEST_F(ProtocolHeaderValidatorTest, Malformed_Payload_V3) {
-  const size_t payload_size = MAXIMUM_FRAME_DATA_SIZE;
+  const size_t payload_size = MAXIMUM_FRAME_DATA_V3_SIZE;
   const ProtocolPacket::ProtocolHeader control_message_header(
         PROTOCOL_VERSION_3, PROTECTION_ON, FRAME_TYPE_CONTROL, kControl,
         FRAME_DATA_HEART_BEAT, some_session_id, payload_size, some_message_id);
@@ -232,7 +232,7 @@ TEST_F(ProtocolHeaderValidatorTest, Malformed_Payload_V3) {
         FRAME_DATA_LAST_CONSECUTIVE, some_session_id, payload_size, some_message_id);
 
   for (size_t max_payload_size = 0;
-       max_payload_size < MAXIMUM_FRAME_DATA_SIZE;
+       max_payload_size < MAXIMUM_FRAME_DATA_V3_SIZE;
        ++max_payload_size) {
     header_validator.set_max_payload_size(max_payload_size);
     EXPECT_EQ(RESULT_FAIL, header_validator.validate(control_message_header));
@@ -240,8 +240,8 @@ TEST_F(ProtocolHeaderValidatorTest, Malformed_Payload_V3) {
     EXPECT_EQ(RESULT_FAIL, header_validator.validate(consecutive_message_header));
   }
 
-  for (size_t max_payload_size = MAXIMUM_FRAME_DATA_SIZE;
-       max_payload_size < MAXIMUM_FRAME_DATA_SIZE * 2;
+  for (size_t max_payload_size = MAXIMUM_FRAME_DATA_V3_SIZE;
+       max_payload_size < MAXIMUM_FRAME_DATA_V3_SIZE * 2;
        ++max_payload_size) {
     header_validator.set_max_payload_size(max_payload_size);
     EXPECT_EQ(RESULT_OK, header_validator.validate(control_message_header));
@@ -251,7 +251,7 @@ TEST_F(ProtocolHeaderValidatorTest, Malformed_Payload_V3) {
 }
 
 TEST_F(ProtocolHeaderValidatorTest, Malformed_Payload_V3_with_V2_size) {
-  const size_t payload_size = DEFAULT_FRAME_DATA_SIZE;
+  const size_t payload_size = MAXIMUM_FRAME_DATA_V2_SIZE;
   const ProtocolPacket::ProtocolHeader control_message_header(
         PROTOCOL_VERSION_3, PROTECTION_ON, FRAME_TYPE_CONTROL, kControl,
         FRAME_DATA_HEART_BEAT, some_session_id, payload_size, some_message_id);
@@ -263,7 +263,7 @@ TEST_F(ProtocolHeaderValidatorTest, Malformed_Payload_V3_with_V2_size) {
         FRAME_DATA_LAST_CONSECUTIVE, some_session_id, payload_size, some_message_id);
 
   for (size_t max_payload_size = 0;
-       max_payload_size < MAXIMUM_FRAME_DATA_SIZE * 2;
+       max_payload_size < MAXIMUM_FRAME_DATA_V3_SIZE * 2;
        ++max_payload_size) {
     header_validator.set_max_payload_size(max_payload_size);
     EXPECT_EQ(RESULT_OK, header_validator.validate(control_message_header));
