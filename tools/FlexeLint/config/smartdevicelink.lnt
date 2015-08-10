@@ -3,6 +3,9 @@
 +cpp(cc)
 
 +fce
+-wlib(1)
++libclass(angle)
++libdir(../../../src/3rd_party-static/jsoncpp/include)
 
 --i../../../src/3rd_party
 --i../../../src/3rd_party-static/gmock-1.7.0
