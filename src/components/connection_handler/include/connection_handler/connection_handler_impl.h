@@ -420,7 +420,8 @@ class ConnectionHandlerImpl : public ConnectionHandler,
   void RemoveConnection(const ConnectionHandle connection_handle);
 
   void OnConnectionEnded(
-    const transport_manager::ConnectionUID &connection_id);
+    const transport_manager::ConnectionUID &connection_id,
+    CloseSessionReason reason);
 
   /**
    * \brief Return vector of session ids specified connection

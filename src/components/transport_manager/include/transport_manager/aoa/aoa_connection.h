@@ -64,19 +64,19 @@ class AOAConnection : public Connection {
 
   void OnMessageReceived(bool success, ::protocol_handler::RawMessagePtr message);
   void OnMessageTransmitted(bool success, ::protocol_handler::RawMessagePtr message);
-  void OnDisconnected();
+  void OnDisconnected(bool forced);
   void ReceiveDone(::protocol_handler::RawMessagePtr message);
   void ReceiveFailed();
   void TransmitDone(::protocol_handler::RawMessagePtr message);
   void TransmitFailed(::protocol_handler::RawMessagePtr message);
-  void Abort();
+  void Abort(bool forced);
 
   class ConnectionObserver : public AOAConnectionObserver {
    public:
     explicit ConnectionObserver(AOAConnection* const parent);
     void OnMessageReceived(bool success, ::protocol_handler::RawMessagePtr message);
     void OnMessageTransmitted(bool success, ::protocol_handler::RawMessagePtr message);
-    void OnDisconnected();
+    void OnDisconnected(bool forced = false);
    private:
     AOAConnection* parent_;
   };

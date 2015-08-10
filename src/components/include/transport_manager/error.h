@@ -38,6 +38,11 @@
 
 namespace transport_manager {
 
+enum ErrorType {
+  kUnexpectedDisconnect,
+  kResourceBusy
+};
+
 /**
  * @brief Class that hold information about error.
  */
@@ -105,6 +110,7 @@ class DisconnectError : public BaseError {
 class DisconnectDeviceError : public BaseError {
 };
 
+
 /**
  * @brief Error that originates during data receive..
  */
@@ -140,6 +146,20 @@ class DataSendTimeoutError : public DataSendError {
  * @brief Error that originates during communication.
  */
 class CommunicationError : public BaseError {
+  public:
+    CommunicationError()
+      : err_type_(kUnexpectedDisconnect) {}
+
+  virtual void set_error(ErrorType error) {
+    err_type_ = error;
+  }
+
+  virtual ErrorType error_type() const {
+    return err_type_;
+  }
+
+ private:
+  ErrorType err_type_;
 };
 
 }  // namespace transport_manager

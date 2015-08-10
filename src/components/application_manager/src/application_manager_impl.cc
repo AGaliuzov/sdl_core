@@ -1095,6 +1095,14 @@ void ApplicationManagerImpl::OnServiceEndedCallback(
         is_unexpected_disconnect = false;
         break;
       }
+      case CloseSessionReason::kUsbDisconnected: {
+        reason = Result::INVALID_ENUM;
+        is_resuming = true;
+        is_unexpected_disconnect = false;
+        MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
+            session_key, AppInterfaceUnregisteredReason::USB_DISCONNECTED);
+        break;
+      }
       default: {
         reason = Result::INVALID_ENUM;
         is_resuming = true;
