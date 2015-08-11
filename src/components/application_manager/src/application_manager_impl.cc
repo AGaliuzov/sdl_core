@@ -1618,7 +1618,7 @@ bool ApplicationManagerImpl::ConvertMessageToSO(
             MessageHelper::CreateNegativeResponse(
                 message.connection_key(), message.function_id(),
                 message.correlation_id(), mobile_apis::Result::INVALID_DATA));
-        ManageMobileCommand(response);
+        ManageMobileCommand(response, commands::Command::ORIGIN_SDL);
         return false;
       }
       LOG4CXX_INFO(logger_,
@@ -1950,59 +1950,6 @@ HMICapabilities& ApplicationManagerImpl::hmi_capabilities() {
 bool ApplicationManagerImpl::is_attenuated_supported() {
   return hmi_capabilities().attenuated_supported() &&
          profile::Profile::instance()->is_mixing_audio_supported();
-}
-
-void ApplicationManagerImpl::CreateApplications(SmartArray& obj_array) {
-  using namespace policy;
-
-  const std::size_t arr_size(obj_array.size());
-  for (std::size_t idx = 0; idx < arr_size; ++idx) {
-    const SmartObject& app_data = obj_array[idx];
-    if (app_data.isValid()) {
-      const std::string url_schema(app_data[strings::urlSchema].asString());
-      const std::string package_name(app_data[strings::packageName].asString());
-      const std::string policy_app_id(app_data[strings::app_id].asString());
-      const std::string appName(app_data[strings::app_name].asString());
-
-      const uint32_t hmi_app_id(GenerateNewHMIAppID());
-
-      ApplicationSharedPtr app(new ApplicationImpl(
-          0, policy_app_id, appName,
-          PolicyHandler::instance()->GetStatisticManager()));
-      if (app) {
-        app->SetShemaUrl(url_schema);
-        app->SetPackageName(package_name);
-        app->set_hmi_application_id(hmi_app_id);
-
-        sync_primitives::AutoLock lock(apps_to_register_list_lock_);
-        apps_to_register_.insert(app);
-      }
-    }
-  }
-}
-
-void ApplicationManagerImpl::ProcessQueryApp(
-    const smart_objects::SmartObject& sm_object) {
-  using namespace policy;
-  using namespace profile;
-
-  if (sm_object.keyExists(strings::application)) {
-    SmartArray* obj_array = sm_object[strings::application].asArray();
-    if (NULL != obj_array) {
-      const std::string app_icon_dir(Profile::instance()->app_icons_folder());
-      CreateApplications(*obj_array);
-      SendUpdateAppList();
-
-      AppsWaitRegistrationSet::const_iterator it = apps_to_register_.begin();
-      for (; it != apps_to_register_.end(); ++it) {
-        const std::string full_icon_path(app_icon_dir + "/" +
-                                         (*it)->policy_app_id());
-        if (file_system::FileExists(full_icon_path)) {
-          MessageHelper::SendSetAppIcon((*it)->hmi_app_id(), full_icon_path);
-        }
-      }
-    }
-  }
 }
 
 #ifdef TIME_TESTER
@@ -2667,7 +2614,7 @@ void ApplicationManagerImpl::SendHMIStatusNotification(
   message[strings::msg_params][strings::system_context] =
       static_cast<int32_t>(app->system_context());
 
-  ManageMobileCommand(notification);
+  ManageMobileCommand(notification, commands::Command::ORIGIN_SDL);
 }
 
 void ApplicationManagerImpl::ClearTimerPool() {

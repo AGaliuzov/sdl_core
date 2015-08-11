@@ -31,7 +31,6 @@
  */
 
 #include "application_manager/state_controller.h"
-#include "application_manager/application_manager_impl.h"
 #include "application_manager/usage_statistics.h"
 #include "utils/helpers.h"
 #include "utils/make_shared.h"
@@ -535,9 +534,7 @@ void StateController::OnAppActivated(
   LOG4CXX_AUTO_TRACE(logger_);
 
   uint32_t app_id = message[strings::msg_params][strings::app_id].asUInt();
-  ApplicationSharedPtr app =
-      ApplicationManagerImpl::instance()->application(app_id);
-
+  ApplicationSharedPtr app = app_mngr_->application(app_id);
   if (!app) {
     LOG4CXX_ERROR(logger_, "Application with id " << app_id << " not found");
     return;
@@ -554,9 +551,7 @@ void StateController::OnAppDeactivated(
   LOG4CXX_AUTO_TRACE(logger_);
 
   uint32_t app_id = message[strings::msg_params][strings::app_id].asUInt();
-  ApplicationSharedPtr app =
-      ApplicationManagerImpl::instance()->application(app_id);
-
+  ApplicationSharedPtr app = app_mngr_->application(app_id);
   if (!app) {
     LOG4CXX_ERROR(logger_, "Application with id " << app_id << " not found");
     return;

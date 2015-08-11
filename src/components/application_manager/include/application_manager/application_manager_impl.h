@@ -259,14 +259,6 @@ class ApplicationManagerImpl :
 
   virtual bool is_attenuated_supported();
 
-  /**
-   * @brief ProcessQueryApp executes logic related to QUERY_APP system request.
-   *
-   * @param sm_object smart object wich is actually parsed json obtained within
-   * system request.
-   */
-  void ProcessQueryApp(const smart_objects::SmartObject& sm_object);
-
 #ifdef TIME_TESTER
   /**
    * @brief Setup observer for time metric.
@@ -334,7 +326,7 @@ class ApplicationManagerImpl :
    */
   mobile_api::HMILevel::eType IsHmiLevelFullAllowed(ApplicationSharedPtr app);
 
-  void ConnectToDevice(uint32_t id);
+  void ConnectToDevice(const std::string& device_mac);
   void OnHMIStartedCooperation();
 
   /*
@@ -620,7 +612,7 @@ class ApplicationManagerImpl :
 
   bool ManageMobileCommand(
       const commands::MessageSharedPtr message,
-      commands::Command::CommandOrigin origin = commands::Command::ORIGIN_SDL);
+      commands::Command::CommandOrigin origin);
   void SendMessageToHMI(const commands::MessageSharedPtr message);
   bool ManageHMICommand(const commands::MessageSharedPtr message);
 
@@ -887,6 +879,13 @@ class ApplicationManagerImpl :
   bool IsApplicationForbidden(uint32_t connection_key,
                               const std::string& policy_app_id) const;
 
+  struct ApplicationsAppIdSorter {
+    bool operator() (const ApplicationSharedPtr lhs,
+                     const ApplicationSharedPtr rhs) {
+      return lhs->app_id() < rhs->app_id();
+    }
+  };
+
   struct ApplicationsPolicyAppIdSorter {
     bool operator()(const ApplicationSharedPtr lhs,
                     const ApplicationSharedPtr rhs) {
@@ -919,153 +918,107 @@ class ApplicationManagerImpl :
      * @brief thread-safe getter for applications
      * @return applications list
      */
-    const ApplicationSet& applications() const { return GetData(); }
+    const ApplicationSet& applications() const {
+      return GetData();
+    }
 
-    ApplicationSetConstIt begin() { return applications().begin(); }
+    ApplicationSetConstIt begin() {
+      return applications().begin();
+    }
 
-    ApplicationSetConstIt end() { return applications().end(); }
+    ApplicationSetConstIt end() {
+      return applications().end();
+    }
 
-    struct ApplicationsAppIdSorter {
-      bool operator() (const ApplicationSharedPtr lhs,
-                       const ApplicationSharedPtr rhs) {
-        return lhs->app_id() < rhs->app_id();
+    template<class UnaryPredicate>
+    ApplicationSharedPtr Find(UnaryPredicate finder) {
+      ApplicationSharedPtr result;
+      ApplicationSetConstIt it = std::find_if(begin(), end(), finder);
+      if (it != end()) {
+        result = *it;
       }
-    };
+      return result;
+    }
 
-    // typedef for Applications list
-    typedef std::set<ApplicationSharedPtr,
-                     ApplicationsAppIdSorter> ApplictionSet;
-
-    typedef std::set<std::string> ForbiddenApps;
-
-    // typedef for Applications list iterator
-    typedef ApplictionSet::iterator ApplictionSetIt;
-
-    // typedef for Applications list const iterator
-    typedef ApplictionSet::const_iterator ApplictionSetConstIt;
-
-
-    /**
-     * Class for thread-safe access to applications list
-     */
-    class ApplicationListAccessor: public DataAccessor<ApplictionSet> {
-     public:
-
-      /**
-       * @brief ApplicationListAccessor class constructor
-       */
-      ApplicationListAccessor() :
-        DataAccessor<ApplictionSet>(ApplicationManagerImpl::instance()->applications_,
-                     ApplicationManagerImpl::instance()->applications_list_lock_) {
+    template <class UnaryPredicate>
+    std::vector<ApplicationSharedPtr> FindAll(UnaryPredicate finder) {
+      std::vector<ApplicationSharedPtr> result;
+      ApplicationSetConstIt it = std::find_if(begin(), end(), finder);
+      while (it != end()) {
+        result.push_back(*it);
+        it = std::find_if(++it, end(), finder);
       }
+      return result;
+    }
 
-      ~ApplicationListAccessor();
+    void Erase(ApplicationSharedPtr app_to_remove) {
+      ApplicationManagerImpl::instance()->applications_.erase(app_to_remove);
+    }
 
-      /**
-       * @brief thread-safe getter for applications
-       * @return applications list
-       */
-      const ApplictionSet& applications() const {
-        return GetData();
-      }
+    void Insert(ApplicationSharedPtr app_to_insert) {
+      ApplicationManagerImpl::instance()->applications_.insert(app_to_insert);
+    }
 
-      ApplictionSetConstIt begin() {
-        return applications().begin();
-      }
+    bool Empty() {
+      return ApplicationManagerImpl::instance()->applications_.empty();
+    }
 
-      ApplictionSetConstIt end() {
-        return applications().end();
-      }
+   private:
+    DISALLOW_COPY_AND_ASSIGN(ApplicationListAccessor);
+  };
 
-      template<class UnaryPredicate>
-      ApplicationSharedPtr Find(UnaryPredicate finder) {
-        ApplicationSharedPtr result;
-        ApplictionSetConstIt it = std::find_if(begin(), end(), finder);
-        if (it != end()) {
-          result = *it;
-        }
-        return result;
-      }
+  friend class ApplicationListAccessor;
 
-      template <class UnaryPredicate>
-      std::vector<ApplicationSharedPtr> FindAll(UnaryPredicate finder) {
-        std::vector<ApplicationSharedPtr> result;
-        ApplicationSetConstIt it = std::find_if(begin(), end(), finder);
-        while (it != end()) {
-          result.push_back(*it);
-          it = std::find_if(++it, end(), finder);
-        }
-        return result;
-      }
-
-      void Erase(ApplicationSharedPtr app_to_remove) {
-        ApplicationManagerImpl::instance()->applications_.erase(app_to_remove);
-      }
-
-      void Insert(ApplicationSharedPtr app_to_insert) {
-        ApplicationManagerImpl::instance()->applications_.insert(app_to_insert);
-      }
-
-      bool Empty() {
-        return ApplicationManagerImpl::instance()->applications_.empty();
-      }
-
-     private:
-      DISALLOW_COPY_AND_ASSIGN(ApplicationListAccessor);
-    };
-
-    friend class ApplicationListAccessor;
-
-    struct AppIdPredicate {
+  struct AppIdPredicate {
       uint32_t app_id_;
       AppIdPredicate(uint32_t app_id) : app_id_(app_id) {}
       bool operator()(const ApplicationSharedPtr app) const {
         return app ? app_id_ == app->app_id() : false;
       }
-    };
+  };
 
-    struct HmiAppIdPredicate {
-      uint32_t hmi_app_id_;
-      HmiAppIdPredicate(uint32_t hmi_app_id) : hmi_app_id_(hmi_app_id) {}
-      bool operator()(const ApplicationSharedPtr app) const {
-        return app ? hmi_app_id_ == app->hmi_app_id() : false;
-      }
-    };
+  struct HmiAppIdPredicate {
+    uint32_t hmi_app_id_;
+    HmiAppIdPredicate(uint32_t hmi_app_id) : hmi_app_id_(hmi_app_id) {}
+    bool operator()(const ApplicationSharedPtr app) const {
+      return app ? hmi_app_id_ == app->hmi_app_id() : false;
+    }
+  };
 
-    struct PolicyAppIdPredicate {
-      std::string policy_app_id_;
-      PolicyAppIdPredicate(const std::string& policy_app_id)
-          : policy_app_id_(policy_app_id) {}
-      bool operator()(const ApplicationSharedPtr app) const {
-        return app ? policy_app_id_ == app->policy_app_id() : false;
-      }
-    };
+  struct PolicyAppIdPredicate {
+    std::string policy_app_id_;
+    PolicyAppIdPredicate(const std::string& policy_app_id)
+        : policy_app_id_(policy_app_id) {}
+    bool operator()(const ApplicationSharedPtr app) const {
+      return app ? policy_app_id_ == app->policy_app_id() : false;
+    }
+  };
 
-    struct SubscribedToButtonPredicate {
-      mobile_apis::ButtonName::eType button_;
-      SubscribedToButtonPredicate(mobile_apis::ButtonName::eType button)
-          : button_(button) {}
-      bool operator()(const ApplicationSharedPtr app) const {
-        return app ? app->IsSubscribedToButton(button_) : false;
-      }
-    };
+  struct SubscribedToButtonPredicate {
+    mobile_apis::ButtonName::eType button_;
+    SubscribedToButtonPredicate(mobile_apis::ButtonName::eType button)
+        : button_(button) {}
+    bool operator()(const ApplicationSharedPtr app) const {
+      return app ? app->IsSubscribedToButton(button_) : false;
+    }
+  };
 
-    struct SubscribedToIVIPredicate {
-      int32_t vehicle_info_;
-      SubscribedToIVIPredicate(int32_t vehicle_info)
-          : vehicle_info_(vehicle_info) {}
-      bool operator()(const ApplicationSharedPtr app) const {
-        return app ? app->IsSubscribedToIVI(vehicle_info_) : false;
-      }
-    };
+  struct SubscribedToIVIPredicate {
+    int32_t vehicle_info_;
+    SubscribedToIVIPredicate(int32_t vehicle_info)
+        : vehicle_info_(vehicle_info) {}
+    bool operator()(const ApplicationSharedPtr app) const {
+      return app ? app->IsSubscribedToIVI(vehicle_info_) : false;
+    }
+  };
 
-    struct GrammarIdPredicate {
-      uint32_t grammar_id_;
-      GrammarIdPredicate(uint32_t grammar_id) : grammar_id_(grammar_id) {}
-      bool operator()(const ApplicationSharedPtr app) const {
-        return app ? grammar_id_ == app->get_grammar_id() : false;
-      }
-    };
+  struct GrammarIdPredicate {
+    uint32_t grammar_id_;
+    GrammarIdPredicate(uint32_t grammar_id) : grammar_id_(grammar_id) {}
+    bool operator()(const ApplicationSharedPtr app) const {
+      return app ? grammar_id_ == app->get_grammar_id() : false;
+    }
+  };
 
  private:
   ApplicationManagerImpl();
@@ -1148,18 +1101,6 @@ class ApplicationManagerImpl :
   }
 
   void OnApplicationListUpdateTimer();
-
-  /**
-   * @brief CreateApplications creates aplpication adds it to application list
-   * and prepare data for sending AppIcon request.
-   *
-   * @param obj_array applications array.
-   *
-   * @param app_icon_dir application icons directory
-   *
-   * @param apps_with_icon container which store application and it's icon path.
-   */
-  void CreateApplications(smart_objects::SmartArray& obj_array);
 
   /*
    * @brief Function is called on IGN_OFF, Master_reset or Factory_defaults

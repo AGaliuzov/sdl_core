@@ -49,8 +49,8 @@ class StateController : public event_engine::EventObserver {
   explicit StateController(ApplicationManager* app_mngr);
 
   /**
-   * @brief SetRegularState setup regular hmi state, that will appear if no
-   * specific events are active
+   * @brief SetRegularState setup regular hmi state, that  will appear if
+   * no specific events are active
    * @param app appication to setup regular State
    * @param state state of new regular state
    */
