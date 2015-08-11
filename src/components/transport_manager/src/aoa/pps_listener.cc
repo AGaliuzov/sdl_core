@@ -360,7 +360,7 @@ PPSListener::PpsMQListener::PpsMQListener(PPSListener* parent)
   : parent_(parent),
     run_(false) {
 
-  init_mq(PREFIX_STR_SDLPROXY_QUEUE, O_CREAT|O_RDONLY, mq_from_applink_handle_);
+  init_mq(PREFIX_STR_SDL_PROXY_QUEUE, O_CREAT|O_RDONLY, mq_from_applink_handle_);
   init_mq(PREFIX_STR_FROMSDL_QUEUE, O_CREAT|O_WRONLY, mq_to_applink_handle_);
 
   run_ = true;
