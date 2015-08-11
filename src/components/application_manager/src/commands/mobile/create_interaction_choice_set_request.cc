@@ -352,6 +352,9 @@ void CreateInteractionChoiceSetRequest::onTimeOut() {
     SendResponse(false, mobile_apis::Result::GENERIC_ERROR);
   }
   DeleteChoices();
+
+  ApplicationManagerImpl::instance()->TerminateRequest(
+      connection_key(), correlation_id());
 }
 
 void CreateInteractionChoiceSetRequest::DeleteChoices() {
