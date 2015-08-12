@@ -3,7 +3,7 @@
 GIT_REPO=$1
 if [ "$GIT_REPO" = "" ]
 then
-    echo "You should setup your git folder with first paraameter"
+    echo "You should setup your git folder with first parameter"
     echo "Example:"
     echo -e "\t ./initialise_git.sh /home/{USER_NAME}/applink"
     exit

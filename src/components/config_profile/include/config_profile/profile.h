@@ -531,8 +531,6 @@ class Profile : public utils::Singleton<Profile> {
      */
     const std::string& recording_file_name() const;
 
-    const std::string& mme_db_name() const;
-
     const std::string& event_mq_name() const;
 
     const std::string& ack_mq_name() const;
