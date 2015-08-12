@@ -4,6 +4,7 @@
  * \author AKara
  */
 
+#include <cassert>
 #include <stdio.h>
 #include <vector>
 
@@ -292,30 +293,68 @@ void CMessageBroker::onMessageReceived(int fd, std::string& aJSONData) {
   DBG_MSG(("CMessageBroker::onMessageReceived()\n"));
   while (!aJSONData.empty()) {
     Json::Value root;
+
     if (!p->m_reader.parse(aJSONData, root)) {
-      DBG_MSG(("Received not JSON string! %s\n", aJSONData.c_str()));
+      DBG_MSG_ERROR(("Invalid JSON string: '%s'\n", aJSONData.c_str()));
+      return;
+    } else if (root.isNull() || (!root.isObject())) {
+      /* JSON RPC 2.0 messages are objects. Batch calls must be pre-rpocessed,
+       * so no need for "and !root.isArray()" */
+      DBG_MSG_ERROR(("Parsed JSON is not an object!\n"));
+      return;
+    } else if ((!root.isMember("jsonrpc")) || (root["jsonrpc"]!="2.0")) {
+      DBG_MSG_ERROR(("Json::Reader::parse didn't set 'jsonrpc' correctly!\n"));
       return;
     }
-    if(root["jsonrpc"]!="2.0") {
-      DBG_MSG(("\t Json::Reader::parce didn't set up jsonrpc!  jsonrpc = '%s'\n", root["jsonrpc"].asString().c_str()));
-      return;
-    }
+
     std::string wmes = p->m_recieverWriter.write(root);
-    DBG_MSG(("Parsed JSON string %d : %s\n", wmes.length(),
-             wmes.c_str()));
-    DBG_MSG(("Buffer is:%s\n", aJSONData.c_str()));
-    if (aJSONData.length() > wmes.length()) {
-      // wmes string length can differ from buffer substr length
-      size_t offset = wmes.length();
-      char msg_begin = '{';
-      if (aJSONData.at(offset) != msg_begin) {
-        offset -= 1; // wmes can contain redudant \n in the tail.
+    DBG_MSG(("Buffer is: '%s'\n", aJSONData.c_str()));
+    DBG_MSG(("Parsed JSON string: '%s'\n", wmes.c_str()));
+
+    size_t position = aJSONData.find('{');  // Find the beginning of the object
+    assert(position != std::string::npos);  // There must be at least one object
+
+    int num_brackets(1);  // A "stack" of opening brackets
+    while (num_brackets > 0) {
+      position = aJSONData.find_first_of("{}\"", position+1);
+      if (std::string::npos == position) {
+        break;
       }
-      aJSONData.erase(aJSONData.begin(), aJSONData.begin() + offset);
-      DBG_MSG(("Buffer after cut is:%s\n", aJSONData.c_str()));
-    } else {
-      aJSONData = "";
+
+      if ('"' == aJSONData[position]) {
+        // Ignore string interior, which might contain brackets and escaped "-s
+        do {
+          position = aJSONData.find('"', position+1);  // Find the closing quote
+        } while ((std::string::npos != position) && ('\\' == aJSONData[position-1]));
+      } else if ('{' == aJSONData[position]) {
+        ++num_brackets;
+      } else if ('}' == aJSONData[position]) {
+        --num_brackets;
+      }
     }
+    if ((0 != num_brackets) || (std::string::npos == position)) {
+      DBG_MSG_ERROR(("Error finding JSON object boundaries!\n"));
+      /* This should not happen, because the string is already parsed as a
+       * valid JSON. If this happens then above code is wrong. It is better
+       * to assert() than just return here, because otherwise we may enter an
+       * endless cycle - fail to process one and the same message again and
+       * again. Or we may clear the buffer and return, but in this way we will
+       * loose the next messages, miss a bug here, and create another bug. */
+      assert((0 == num_brackets) && (std::string::npos != position));
+      return;  // For release version
+    }
+
+    ++position;  // Move after the closing bracket
+    if ((position >= aJSONData.length()) ||
+        ((position == aJSONData.length()-1) && ('\n' == aJSONData[position]))) {
+      // No next object. Clear entire aJSONData.
+      aJSONData = "";
+    } else {
+      // There is another object. Clear the current one.
+      aJSONData.erase(0, position);
+    }
+    DBG_MSG(("Buffer after cut is: '%s'\n", aJSONData.c_str()));
+
     p->pushMessage(new CMessage(fd, root));
   }
 }
