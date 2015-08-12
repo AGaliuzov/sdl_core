@@ -145,9 +145,11 @@ int TransportManagerImpl::DisconnectDevice(const DeviceHandle& device_handle) {
     return E_INVALID_HANDLE;
   }
   transport_adapter::TransportAdapter* ta = it->second;
-  ta->DisconnectDevice(device_id);
-  LOG4CXX_TRACE(logger_, "exit with E_SUCCESS");
-  return E_SUCCESS;
+
+  TransportAdapter::Error ta_error = ta->DisconnectDevice(device_id);
+  int err = (TransportAdapter::OK == ta_error) ? E_SUCCESS : E_INTERNAL_ERROR;
+  LOG4CXX_TRACE(logger_, "exit with error: " << err);
+  return err;
 }
 
 int TransportManagerImpl::Disconnect(const ConnectionUID& cid) {
@@ -167,7 +169,7 @@ int TransportManagerImpl::Disconnect(const ConnectionUID& cid) {
     return E_INVALID_HANDLE;
   }
 
-  connection->transport_adapter->Disconnect(connection->device,
+  TransportAdapter::Error ta_error = connection->transport_adapter->Disconnect(connection->device,
       connection->application);
   // TODO(dchmerev@luxoft.com): Return disconnect timeout
   /*
@@ -194,8 +196,10 @@ int TransportManagerImpl::Disconnect(const ConnectionUID& cid) {
         connection->application);
   }
   */
-  LOG4CXX_TRACE(logger_, "exit with E_SUCCESS");
-  return E_SUCCESS;
+
+  int err = (TransportAdapter::OK == ta_error) ? E_SUCCESS : E_INTERNAL_ERROR;
+  LOG4CXX_TRACE(logger_, "exit with error: " << err);
+  return err;
 }
 
 int TransportManagerImpl::DisconnectForce(const ConnectionUID& cid) {
@@ -215,10 +219,12 @@ int TransportManagerImpl::DisconnectForce(const ConnectionUID& cid) {
     LOG4CXX_TRACE(logger_, "exit with E_INVALID_HANDLE. Condition: NULL == connection");
     return E_INVALID_HANDLE;
   }
-  connection->transport_adapter->Disconnect(connection->device,
+  TransportAdapter::Error ta_error = connection->transport_adapter->Disconnect(connection->device,
       connection->application);
-  LOG4CXX_TRACE(logger_, "exit with E_SUCCESS");
-  return E_SUCCESS;
+
+  int err = (TransportAdapter::OK == ta_error) ? E_SUCCESS : E_INTERNAL_ERROR;
+  LOG4CXX_TRACE(logger_, "exit with error: " << err);
+  return err;
 }
 
 int TransportManagerImpl::AddEventListener(TransportManagerListener* listener) {
