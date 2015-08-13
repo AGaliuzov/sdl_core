@@ -81,7 +81,7 @@ class MockTransportAdapterController : public TransportAdapterController {
                                         const DisconnectDeviceError& error));
 };
 
-TEST(DnssdServiceBrowser, Init) {
+TEST(DnssdServiceBrowser, DISABLED_Init) {
   // Arrange
   MockTransportAdapterController controller;
   DnssdServiceBrowser dnssd_service_browser(&controller);
@@ -103,7 +103,7 @@ TEST(DnssdServiceBrowser, Init) {
   EXPECT_FALSE(NULL == dnssd_service_browser.avahi_client());
 }
 
-TEST(DnssdServiceBrowser, IsInitialized_ExpectFalse) {
+TEST(DnssdServiceBrowser, DISABLED_IsInitialized_ExpectFalse) {
   // Arrange
   MockTransportAdapterController controller;
   DnssdServiceBrowser dnssd_service_browser(&controller);
@@ -111,7 +111,7 @@ TEST(DnssdServiceBrowser, IsInitialized_ExpectFalse) {
   EXPECT_FALSE(dnssd_service_browser.IsInitialised());
 }
 
-TEST(DnssdServiceBrowser, Terminate_ExpectTerminated) {
+TEST(DnssdServiceBrowser, DISABLED_Terminate_ExpectTerminated) {
   // Arrange
   MockTransportAdapterController controller;
   DnssdServiceBrowser dnssd_service_browser(&controller);
@@ -134,7 +134,7 @@ TEST(DnssdServiceBrowser, Terminate_ExpectTerminated) {
   EXPECT_TRUE(NULL == dnssd_service_browser.avahi_client());
 }
 
-TEST(DnssdServiceBrowser, Scan_ExpectNotSupported) {
+TEST(DnssdServiceBrowser, DISABLED_Scan_ExpectNotSupported) {
   // Arrange
   MockTransportAdapterController controller;
   DnssdServiceBrowser dnssd_service_browser(&controller);
