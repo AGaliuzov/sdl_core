@@ -78,13 +78,17 @@ if (BUILD_TESTS)
     ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
     ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
     ${COMPONENTS_DIR}/application_manager/include/application_manager/policies
+    ${COMPONENTS_DIR}/application_manager/include/application_manager
     ${COMPONENTS_DIR}/application_manager/include/
+    ${COMPONENTS_DIR}/utils/include/utils
+    ${COMPONENTS_DIR}/policy/include/policy
     )
 
   set(testSources
     ${AM_TEST_DIR}/command_impl_test.cc
     ${COMPONENTS_DIR}/application_manager/test/mobile_message_handler_test.cc
     ${AM_TEST_DIR}/request_info_test.cc
+    ${AM_TEST_DIR}/resumption_sql_queries_test.cc
     # TODO(VVeremjova) APPLINK-12835
     #${AM_TEST_DIR}/zero_request_amount_test.cc
   )
