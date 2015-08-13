@@ -54,7 +54,7 @@ using utils::dbms::SQLQuery;
 
 enum AccessoryVRCommand { kVRCommandFromChoice = 0, kVRCommandFromCommand };
 
-const std::string kDeleteData =
+const string kDeleteData =
     "BEGIN; "
     "DELETE FROM `resumption`; "
     "DELETE FROM `image`; "
