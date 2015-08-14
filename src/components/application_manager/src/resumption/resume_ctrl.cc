@@ -352,7 +352,7 @@ bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
 
 bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (!application.valid()) {
+  if (!application) {
     LOG4CXX_WARN(logger_, "Application does not exist.");
     return false;
   }
