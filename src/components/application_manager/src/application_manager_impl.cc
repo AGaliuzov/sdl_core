@@ -1085,7 +1085,7 @@ void ApplicationManagerImpl::OnServiceEndedCallback(
       }
       case CloseSessionReason::kMalformed: {
         reason = Result::INVALID_ENUM;
-        is_resuming = true;
+        is_resuming = false;
         is_unexpected_disconnect = false;
         break;
       }
