@@ -562,6 +562,8 @@ class CacheManager : public CacheManagerInterface {
 
   virtual const MetaInfo GetMetaInfo() const OVERRIDE;
 
+  virtual void SetDecryptedCertificate(const std::string& certificate) OVERRIDE;
+
 #ifdef BUILD_TESTS
  utils::SharedPtr<policy_table::Table> GetPT() const {
      return pt_;

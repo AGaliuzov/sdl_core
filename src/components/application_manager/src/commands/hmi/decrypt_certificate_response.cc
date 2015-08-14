@@ -30,6 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include "application_manager/commands/hmi/decrypt_certificate_response.h"
+#include "application_manager/policies/policy_handler.h"
 
 namespace application_manager {
 
@@ -44,6 +45,16 @@ DecryptCertificateResponse::~DecryptCertificateResponse() {
 
 void DecryptCertificateResponse::Run() {
   LOG4CXX_AUTO_TRACE(logger_);
+  const hmi_apis::Common_Result::eType code =
+      static_cast<hmi_apis::Common_Result::eType>(
+          (*message_)[strings::params][hmi_response::code].asInt());
+
+  bool is_succeeded = false;
+  if (hmi_apis::Common_Result::SUCCESS == code) {
+     is_succeeded = true;
+  }
+
+  policy::PolicyHandler::instance()->OnCertificateDecrypted(is_succeeded);
 }
 
 }  // namespace commands

@@ -75,6 +75,8 @@
 #include "application_manager/commands/hmi/on_emergency_event_notification.h"
 #include "application_manager/commands/hmi/get_system_info_request.h"
 #include "application_manager/commands/hmi/get_system_info_response.h"
+#include "application_manager/commands/hmi/decrypt_certificate_request.h"
+#include "application_manager/commands/hmi/decrypt_certificate_response.h"
 #include "application_manager/commands/hmi/close_popup_request.h"
 #include "application_manager/commands/hmi/close_popup_response.h"
 #include "application_manager/commands/hmi/button_get_capabilities_request.h"
@@ -323,6 +325,14 @@ CommandSharedPtr HMICommandFactory::CreateCommand(
         command.reset(new commands::GetSystemInfoResponse(message));
       } else {
         command.reset(new commands::GetSystemInfoRequest(message));
+      }
+      break;
+    }
+    case hmi_apis::FunctionID::BasicCommunication_DecryptCertificate: {
+      if (is_response) {
+        command.reset(new commands::DecryptCertificateResponse(message));
+      } else {
+        command.reset(new commands::DecryptCertificateRequest(message));
       }
       break;
     }
@@ -2066,12 +2076,12 @@ CommandSharedPtr HMICommandFactory::CreateCommand(
       break;
     }
     case hmi_apis::FunctionID::BasicCommunication_DialNumber: {
-	if (is_response) {
-	  command.reset(new commands::hmi::DialNumberResponse(message));
-	} else {
-	  command.reset(new commands::hmi::DialNumberRequest(message));
-	}
-	break;
+        if (is_response) {
+          command.reset(new commands::hmi::DialNumberResponse(message));
+        } else {
+          command.reset(new commands::hmi::DialNumberRequest(message));
+        }
+        break;
     }
 #ifdef CUSTOMER_PASA
     case hmi_apis::FunctionID::BasicCommunication_OnAwakeSDL: {

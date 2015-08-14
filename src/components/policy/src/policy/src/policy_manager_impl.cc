@@ -1197,6 +1197,12 @@ const MetaInfo PolicyManagerImpl::GetMetaInfo() const {
   return cache_->GetMetaInfo();
 }
 
+const void PolicyManagerImpl::SetDecryptedCertificate(
+    const std::string& certificate) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  cache_->SetDecryptedCertificate(certificate);
+}
+
 void PolicyManagerImpl::AddApplication(const std::string& application_id) {
   LOG4CXX_INFO(logger_, "AddApplication");
   const std::string device_id = GetCurrentDeviceId(application_id);

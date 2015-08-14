@@ -525,6 +525,12 @@ class MessageHelper {
     static void SendTTSGlobalProperties(
         ApplicationSharedPtr app, bool default_help_prompt);
 
+    /**
+     * @brief Sends DecryptCertificate request to HMI
+     * @param file_name path to file containing encrypted certificate
+     */
+    static void SendDecryptCertificateToHMI(const std::string& file_name);
+
   private:
     /**
      * @brief Creates new request object and fill its header

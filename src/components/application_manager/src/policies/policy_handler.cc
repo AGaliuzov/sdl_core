@@ -110,6 +110,8 @@ const std::string RequestTypeToString(RequestType::eType type) {
   }\
 }
 
+static const std::string kCerficateFileName = "certificate";
+
 CREATE_LOGGERPTR_GLOBAL(logger_, "PolicyHandler")
 
 
@@ -1270,11 +1272,54 @@ void PolicyHandler::OnUpdateHMIAppType(std::map<std::string, StringArray> app_hm
 
 void PolicyHandler::OnCertificateUpdated(const std::string& certificate_data) {
   LOG4CXX_AUTO_TRACE(logger_);
+  const std::string file_name =
+      profile::Profile::instance()->app_storage_folder() +
+      + "/"
+      + kCerficateFileName;
+  const bool is_written =
+      file_system::Write(file_name,
+                         std::vector<uint8_t>(certificate_data.begin(),
+                                              certificate_data.end()));
+  if (!is_written) {
+    LOG4CXX_ERROR(logger_, "Unable to save encrypted certificate to file "
+                  << file_name);
+    return;
+  }
+
+  MessageHelper::SendDecryptCertificateToHMI(file_name);
+}
+
+void PolicyHandler::OnCertificateDecrypted(bool is_succeeded) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  POLICY_LIB_CHECK_VOID();
+
+  const std::string file_name =
+      profile::Profile::instance()->app_storage_folder() +
+      + "/"
+      + kCerficateFileName;
+
+  if (!is_succeeded) {
+    file_system::DeleteFile(file_name);
+    return;
+  }
+
+  std::string certificate_data;
+  if (!file_system::ReadFile(file_name, certificate_data)) {
+    LOG4CXX_ERROR(logger_, "Unable to read certificate from file "
+                  << file_name);
+    file_system::DeleteFile(file_name);
+    return;
+  }
+
+  policy_manager_->SetDecryptedCertificate(certificate_data);
+
   sync_primitives::AutoLock lock(listeners_lock_);
   HandlersCollection::const_iterator it = listeners_.begin();
   for (; it != listeners_.end(); ++it) {
     (*it)->OnCertificateUpdated(certificate_data);
   }
+
+  file_system::DeleteFile(file_name);
 }
 
 bool PolicyHandler::CanUpdate() {
