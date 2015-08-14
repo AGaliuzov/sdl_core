@@ -88,6 +88,14 @@ class PolicyListener {
                                       bool is_allowed) = 0;
 
   /**
+   * @brief Sends OnAppPermissionsChanged notification to HMI
+   * @param permissions contains parameter for OnAppPermisionChanged
+   * @param policy_app_id contains policy application id
+   */
+  virtual void SendOnAppPermissionsChanged(const AppPermissions& permissions,
+                                         const std::string& policy_app_id) const = 0;
+
+  /**
    * @brief GetAvailableApps allows to obtain list of registered applications.
    */
   virtual void GetAvailableApps(std::queue<std::string>&) = 0;

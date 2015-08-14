@@ -406,6 +406,19 @@ void PolicyHandler::OnDeviceConsentChanged(const std::string& device_id,
   }
 }
 
+void PolicyHandler::SendOnAppPermissionsChanged(const AppPermissions& permissions,
+                               const std::string& policy_app_id) const {
+  LOG4CXX_DEBUG(logger_, "PolicyHandler::SendOnAppPermissionsChanged for "
+                 << policy_app_id);
+  ApplicationSharedPtr app = ApplicationManagerImpl::instance()
+  ->application_by_policy_id(policy_app_id);
+  if (!app.valid()) {
+    LOG4CXX_WARN(logger_, "No app found for policy app id = " << policy_app_id);
+    return;
+  }
+  MessageHelper::SendOnAppPermissionsChangedNotification(app->app_id(), permissions);
+}
+
 void PolicyHandler::OnPTExchangeNeeded() {
   POLICY_LIB_CHECK_VOID();
   policy_manager_->ForcePTExchange();

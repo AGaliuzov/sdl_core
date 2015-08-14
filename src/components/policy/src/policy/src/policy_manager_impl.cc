@@ -590,9 +590,13 @@ void PolicyManagerImpl::SetUserConsentForDevice(const std::string& device_id,
 bool PolicyManagerImpl::ReactOnUserDevConsentForApp(const std::string app_id,
     bool is_device_allowed) {
   std::vector<std::string> current_request_types = GetAppRequestTypes(app_id);
-  bool result = cache_->ReactOnUserDevConsentForApp(app_id, is_device_allowed);
-  std::vector<std::string> new_request_types = GetAppRequestTypes(app_id);
+  std::string current_priority, new_priority;
+  GetPriority(app_id, &current_priority);
 
+  bool result = cache_->ReactOnUserDevConsentForApp(app_id, is_device_allowed);
+
+  std::vector<std::string> new_request_types = GetAppRequestTypes(app_id);
+  GetPriority(app_id, &new_priority);
   std::sort(current_request_types.begin(), current_request_types.end());
   std::sort(new_request_types.begin(), new_request_types.end());
 
@@ -603,18 +607,21 @@ bool PolicyManagerImpl::ReactOnUserDevConsentForApp(const std::string app_id,
                       new_request_types.end(),
                       std::back_inserter(diff));
 
+  AppPermissions permissions(app_id);
+
   if (!diff.empty()) {
-    AppPermissions permissions(app_id);
     permissions.requestType = new_request_types;
     permissions.requestTypeChanged = true;
-
-    app_permissions_diff_lock_.Acquire();
-    app_permissions_diff_.insert(std::make_pair(app_id, permissions));
-    app_permissions_diff_lock_.Release();
-
-    listener()->OnPendingPermissionChange(app_id);
   }
 
+  if ((!current_priority.empty()) && (!new_priority.empty())
+      && (current_priority != new_priority)) {
+    permissions.priority = new_priority;
+  }
+
+  if (permissions.requestTypeChanged || (!permissions.priority.empty())) {
+    listener_->SendOnAppPermissionsChanged(permissions, app_id);
+  }
   return result;
 }
 

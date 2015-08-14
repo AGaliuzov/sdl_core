@@ -285,6 +285,9 @@ class PolicyHandler :
   virtual void OnDeviceConsentChanged(const std::string& device_id,
                                       bool is_allowed);
 
+  virtual void SendOnAppPermissionsChanged(const AppPermissions& permissions,
+                                         const std::string& policy_app_id) const;
+
   virtual void OnPTExchangeNeeded();
 
   virtual void GetAvailableApps(std::queue<std::string>& apps);
