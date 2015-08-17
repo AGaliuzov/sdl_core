@@ -1121,13 +1121,16 @@ smart_objects::SmartObjectSPtr MessageHelper::CreateChangeRegistration(
 }
 
 void MessageHelper::SendDecryptCertificateToHMI(const std::string& file_name) {
-  smart_objects::SmartObjectSPtr message = CreateRequestObject();
-  smart_objects::SmartObject& object = *message;
+  using namespace smart_objects;
+  SmartObjectSPtr message = CreateRequestObject();
+  DCHECK(message);
+
+  SmartObject& object = *message;
   object[strings::params][strings::function_id] =
     hmi_apis::FunctionID::BasicCommunication_DecryptCertificate;
 
-  smart_objects::SmartObject msg_params = smart_objects::SmartObject(
-      smart_objects::SmartType_Map);
+  SmartObject msg_params = SmartObject(SmartType_Map);
+
   msg_params[hmi_request::file_name] = file_name;
   object[strings::msg_params] = msg_params;
 

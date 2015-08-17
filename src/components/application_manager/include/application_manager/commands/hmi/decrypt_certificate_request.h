@@ -52,14 +52,9 @@ class DecryptCertificateRequest : public RequestToHMI {
     explicit DecryptCertificateRequest(const MessageSharedPtr& message);
 
     /**
-     * @brief DecryptCertificateRequest class destructor
-     **/
-    virtual ~DecryptCertificateRequest();
-
-    /**
      * @brief Execute command
      **/
-    virtual void Run();
+    void Run() OVERRIDE;
 
   private:
     DISALLOW_COPY_AND_ASSIGN(DecryptCertificateRequest);

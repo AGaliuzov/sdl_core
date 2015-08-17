@@ -41,13 +41,10 @@ DecryptCertificateRequest::DecryptCertificateRequest(
   const MessageSharedPtr& message): RequestToHMI(message) {
 }
 
-DecryptCertificateRequest::~DecryptCertificateRequest() {
-}
-
 void DecryptCertificateRequest::Run() {
   LOG4CXX_AUTO_TRACE(logger_);
-  uint32_t correlation_id = RequestToHMI::correlation_id();
-  uint32_t app_id = RequestToHMI::application_id();
+  const uint32_t correlation_id = RequestToHMI::correlation_id();
+  const uint32_t app_id = RequestToHMI::application_id();
   ApplicationManagerImpl::instance()->set_application_id(correlation_id,
                                                          app_id);
   SendRequest();
