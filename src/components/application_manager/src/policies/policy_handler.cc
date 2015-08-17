@@ -53,6 +53,7 @@
 #include "policy/policy_types.h"
 #include "interfaces/MOBILE_API.h"
 #include "utils/file_system.h"
+#include "utils/scope_guard.h"
 
 namespace policy {
 
@@ -1298,8 +1299,11 @@ void PolicyHandler::OnCertificateDecrypted(bool is_succeeded) {
       + "/"
       + kCerficateFileName;
 
+  utils::ScopeGuard file_deleter = MakeGuard(file_system::DeleteFile,
+                                             file_name);
+  UNUSED(file_deleter);
+
   if (!is_succeeded) {
-    file_system::DeleteFile(file_name);
     return;
   }
 
@@ -1307,7 +1311,6 @@ void PolicyHandler::OnCertificateDecrypted(bool is_succeeded) {
   if (!file_system::ReadFile(file_name, certificate_data)) {
     LOG4CXX_ERROR(logger_, "Unable to read certificate from file "
                   << file_name);
-    file_system::DeleteFile(file_name);
     return;
   }
 
@@ -1318,8 +1321,6 @@ void PolicyHandler::OnCertificateDecrypted(bool is_succeeded) {
   for (; it != listeners_.end(); ++it) {
     (*it)->OnCertificateUpdated(certificate_data);
   }
-
-  file_system::DeleteFile(file_name);
 }
 
 bool PolicyHandler::CanUpdate() {
