@@ -39,6 +39,7 @@
 #include "interfaces/MOBILE_API.h"
 #include "interfaces/HMI_API.h"
 #include "utils/file_system.h"
+#include "utils/helpers.h"
 
 namespace application_manager {
 
@@ -119,6 +120,7 @@ void SetAppIconRequest::Run() {
 
 void SetAppIconRequest::on_event(const event_engine::Event& event) {
   LOG4CXX_AUTO_TRACE(logger_);
+  using namespace helpers;
   const smart_objects::SmartObject& message = event.smart_object();
 
   switch (event.id()) {
@@ -127,7 +129,11 @@ void SetAppIconRequest::on_event(const event_engine::Event& event) {
           static_cast<mobile_apis::Result::eType>(
               message[strings::params][hmi_response::code].asInt());
 
-      bool result = mobile_apis::Result::SUCCESS == result_code;
+     const bool result =
+         Compare<mobile_api::Result::eType, EQ, ONE>(
+           result_code,
+           mobile_api::Result::SUCCESS,
+           mobile_api::Result::WARNINGS);
 
       if (result) {
         ApplicationSharedPtr app =
@@ -158,6 +164,7 @@ void SetAppIconRequest::on_event(const event_engine::Event& event) {
 }
 
 bool SetAppIconRequest::IsSyncFileNameValid(const std::string& sync_file_name) {
+  LOG4CXX_AUTO_TRACE(logger_);
   return sync_file_name.end() == std::find(sync_file_name.begin(),
                                            sync_file_name.end(),
                                            '/');
