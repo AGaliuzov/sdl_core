@@ -87,7 +87,7 @@ class SecurityManagerTest : public ::testing::Test {
   }
   void TearDown() OVERRIDE {
     // Wait call methods in thread
-    usleep(10000);
+    testing::Mock::AsyncVerifyAndClearExpectations(10000);
   }
 
   void SetMockCryptoManager() {

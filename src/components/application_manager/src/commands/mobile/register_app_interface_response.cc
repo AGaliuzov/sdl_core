@@ -71,12 +71,7 @@ void RegisterAppInterfaceResponse::Run() {
   application_manager::ApplicationSharedPtr app =
       application_manager::ApplicationManagerImpl::instance()->application(
           connection_key);
-  if (app.valid()) {
-
-    ApplicationManagerImpl::instance()->SetState<false>(
-        app->app_id(),
-        ApplicationManagerImpl::instance()->GetDefaultHmiLevel(app));
-
+  if (app) {
     std::string policy_app_id = app->policy_app_id();
     policy::PolicyHandler::instance()->OnAppRegisteredOnMobile(policy_app_id);
 
