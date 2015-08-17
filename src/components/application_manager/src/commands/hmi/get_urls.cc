@@ -66,7 +66,7 @@ void GetUrls::Run() {
       size_t index = 0;
 
       for (size_t i = 0; i < endpoints.size(); ++i) {
-        for (size_t k = 0; k < endpoints[i].url.size(); ++k, ++index) {
+        for (size_t k = 0; k < endpoints[i].url.size(); ++k) {
           const std::string url = endpoints[i].url[k];
           const std::string policy_app_id = endpoints[i].app_id;
           if (kDefaultId != policy_app_id) {
@@ -81,6 +81,7 @@ void GetUrls::Run() {
 
                service_info[strings::app_id] = app->hmi_app_id();
                service_info[strings::url] = url;
+               ++index;
              } else {
                LOG4CXX_ERROR(logger_, "Can't find application with policy id "
                              << policy_app_id
@@ -92,6 +93,7 @@ void GetUrls::Run() {
             SmartObject& service_info = urls[index];
 
             service_info[strings::url] = url;
+            ++index;
           }
         }
       }
