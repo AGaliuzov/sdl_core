@@ -408,6 +408,7 @@ void PolicyHandler::OnDeviceConsentChanged(const std::string& device_id,
 
 void PolicyHandler::SendOnAppPermissionsChanged(const AppPermissions& permissions,
                                const std::string& policy_app_id) const {
+  LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_, "PolicyHandler::SendOnAppPermissionsChanged for "
                  << policy_app_id);
   ApplicationSharedPtr app = ApplicationManagerImpl::instance()
