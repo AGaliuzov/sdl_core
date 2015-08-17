@@ -40,10 +40,13 @@ namespace test {
 namespace components {
 namespace transport_manager_test {
 
-class DeviceScannerMock : public ::transport_manager::transport_adapter::DeviceScanner {
+class DeviceScannerMock
+    : public ::transport_manager::transport_adapter::DeviceScanner {
  public:
-  MOCK_METHOD0(Init, ::transport_manager::transport_adapter::TransportAdapter::Error());
-  MOCK_METHOD0(Scan, ::transport_manager::transport_adapter::TransportAdapter::Error());
+  MOCK_METHOD0(
+      Init, ::transport_manager::transport_adapter::TransportAdapter::Error());
+  MOCK_METHOD0(
+      Scan, ::transport_manager::transport_adapter::TransportAdapter::Error());
   MOCK_METHOD0(Terminate, void());
   MOCK_CONST_METHOD0(IsInitialised, bool());
 };

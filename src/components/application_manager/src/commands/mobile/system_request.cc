@@ -175,9 +175,6 @@ void SystemRequest::Run() {
     msg_params[strings::file_name] = file_dst_path;
   }
 
-  if (mobile_apis::RequestType::PROPRIETARY != request_type) {
-    msg_params[strings::app_id] = application->app_id();
-  }
   msg_params[strings::request_type] =
       (*message_)[strings::msg_params][strings::request_type];
 
