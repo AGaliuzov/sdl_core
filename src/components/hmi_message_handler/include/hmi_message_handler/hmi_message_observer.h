@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,11 +43,13 @@ namespace hmi_message_handler {
 
 class HMIMessageObserver {
  public:
+  virtual ~HMIMessageObserver() {}
   virtual void OnMessageReceived(
       utils::SharedPtr<application_manager::Message> message) = 0;
   virtual void OnErrorSending(
       utils::SharedPtr<application_manager::Message> message) = 0;
 };
-}
+
+}  // namespace hmi_message_handler
 
 #endif  // SRC_COMPONENTS_HMI_MESSAGE_HANDLER_INCLUDE_HMI_MESSAGE_HANDLER_HMI_MESSAGE_OBSERVER_H_
