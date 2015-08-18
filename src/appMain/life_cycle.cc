@@ -464,7 +464,7 @@ void LifeCycle::StopComponents() {
   LOG4CXX_INFO(logger_, "Destroying HMI Message Handler and MB adapter.");
 
 #ifdef CUSTOMER_PASA
-  if (mb_pasa_adapter_) {
+  /*if (mb_pasa_adapter_) {
     hmi_handler_->RemoveHMIMessageAdapter(mb_pasa_adapter_);
     if (mb_pasa_adapter_thread_) {
       mb_pasa_adapter_thread_->Stop();
@@ -472,7 +472,7 @@ void LifeCycle::StopComponents() {
     }
     delete mb_pasa_adapter_;
   }
-  hmi_message_handler::HMIMessageHandlerImpl::destroy();
+  hmi_message_handler::HMIMessageHandlerImpl::destroy();*/
 #else
 #ifdef MESSAGEBROKER_HMIADAPTER
   hmi_handler_->RemoveHMIMessageAdapter(mb_adapter_);
