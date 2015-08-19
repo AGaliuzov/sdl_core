@@ -92,7 +92,9 @@ void HMIMessageHandlerImpl::AddHMIMessageAdapter(HMIMessageAdapter* adapter) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   sync_primitives::AutoLock lock(adapters_lock_);
-  message_adapters_.insert(adapter);
+  if (adapter != NULL) {
+    message_adapters_.insert(adapter);
+  }
 }
 
 void HMIMessageHandlerImpl::RemoveHMIMessageAdapter(

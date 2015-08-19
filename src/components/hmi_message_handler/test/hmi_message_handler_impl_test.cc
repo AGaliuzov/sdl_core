@@ -42,68 +42,88 @@ namespace components {
 namespace hmi_message_handler_test {
 
 class HMIMessageHandlerImplTest : public ::testing::Test {
-  protected:
-    static hmi_message_handler::MessageBrokerAdapter* mb_adapter_;
-    static hmi_message_handler::HMIMessageHandlerImpl* hmi_handler_;
-    static hmi_message_handler::MockHMIMessageObserver*
-      mock_hmi_message_observer_;
+ public:
+  HMIMessageHandlerImplTest()
+      : mb_adapter_(NULL),
+        hmi_handler_(NULL),
+        mock_hmi_message_observer_(NULL) {}
 
-    static void SetUpTestCase() {
-      hmi_handler_ = hmi_message_handler::HMIMessageHandlerImpl::instance();
-      ASSERT_TRUE(NULL != hmi_handler_);
-      mb_adapter_ = new hmi_message_handler::MessageBrokerAdapter(
-          hmi_handler_, "localhost", 22);
-      ASSERT_TRUE(NULL != mb_adapter_);
-      mock_hmi_message_observer_ =
-          hmi_message_handler::MockHMIMessageObserver::instance();
-      ASSERT_TRUE(NULL != mock_hmi_message_observer_);
-      hmi_handler_->set_message_observer(mock_hmi_message_observer_);
-      EXPECT_TRUE(NULL != hmi_handler_->observer());
-    }
+ protected:
+  hmi_message_handler::MessageBrokerAdapter* mb_adapter_;
+  hmi_message_handler::HMIMessageHandlerImpl* hmi_handler_;
+  hmi_message_handler::MockHMIMessageObserver* mock_hmi_message_observer_;
 
-    static void TearDownTestCase() {
-      hmi_handler_->set_message_observer(NULL);
-      hmi_message_handler::MockHMIMessageObserver::destroy();
-      hmi_message_handler::HMIMessageHandlerImpl::destroy();
-      delete mb_adapter_;
-    }
+  virtual void SetUp() {
+    hmi_handler_ = hmi_message_handler::HMIMessageHandlerImpl::instance();
+    ASSERT_TRUE(NULL != hmi_handler_);
+    mb_adapter_ = new hmi_message_handler::MessageBrokerAdapter(
+        hmi_handler_, "localhost", 22);
+    ASSERT_TRUE(NULL != mb_adapter_);
+    mock_hmi_message_observer_ =
+        hmi_message_handler::MockHMIMessageObserver::instance();
+    ASSERT_TRUE(NULL != mock_hmi_message_observer_);
+    hmi_handler_->set_message_observer(mock_hmi_message_observer_);
+    EXPECT_TRUE(NULL != hmi_handler_->observer());
+  }
+
+  virtual void TearDown() {
+    hmi_handler_->set_message_observer(NULL);
+    hmi_message_handler::MockHMIMessageObserver::destroy();
+    hmi_message_handler::HMIMessageHandlerImpl::destroy();
+    delete mb_adapter_;
+  }
 };
 
-hmi_message_handler::HMIMessageHandlerImpl*
-    HMIMessageHandlerImplTest::hmi_handler_ = NULL;
-hmi_message_handler::MessageBrokerAdapter*
-    HMIMessageHandlerImplTest::mb_adapter_ = NULL;
-hmi_message_handler::MockHMIMessageObserver*
-    HMIMessageHandlerImplTest::mock_hmi_message_observer_ = NULL;
-
-TEST_F(HMIMessageHandlerImplTest, OnErrorSending_ExpectCallProceeded) {
+TEST_F(HMIMessageHandlerImplTest,
+       OnErrorSending_EmptyMessage_ExpectOnErrorSendingProceeded) {
   // Arrange
-  hmi_message_handler::MessageSharedPointer message;
+  hmi_message_handler::MessageSharedPointer empty_message;
+  EXPECT_CALL(*mock_hmi_message_observer_, OnErrorSending(empty_message));
+  // Act
+  hmi_handler_->OnErrorSending(empty_message);
+}
+
+TEST_F(HMIMessageHandlerImplTest,
+       OnErrorSending_NotEmptyMessage_ExpectOnErrorSendingProceeded) {
+  // Arrange
+  utils::SharedPtr<application_manager::Message> message(
+      new application_manager::Message(
+          protocol_handler::MessagePriority::FromServiceType(
+              protocol_handler::ServiceType::kControl)));
+
   EXPECT_CALL(*mock_hmi_message_observer_, OnErrorSending(message));
   // Act
   hmi_handler_->OnErrorSending(message);
 }
 
-TEST_F(HMIMessageHandlerImplTest, AddHMIMessageAdapter_ExpectAdded) {
+TEST_F(HMIMessageHandlerImplTest,
+       AddHMIMessageAdapter_AddExistedAdapter_ExpectAdded) {
   // Check before action
-  EXPECT_EQ(0u, hmi_handler_->message_adapters().size());
+  EXPECT_TRUE(hmi_handler_->message_adapters().empty());
   // Act
   hmi_handler_->AddHMIMessageAdapter(mb_adapter_);
   // Check after action
   EXPECT_EQ(1u, hmi_handler_->message_adapters().size());
-  hmi_handler_->RemoveHMIMessageAdapter(mb_adapter_);
-  EXPECT_EQ(0u, hmi_handler_->message_adapters().size());
+}
+
+TEST_F(HMIMessageHandlerImplTest,
+       AddHMIMessageAdapter_AddUnexistedAdapter_ExpectNotAdded) {
+  // Check before action
+  EXPECT_TRUE(hmi_handler_->message_adapters().empty());
+  // Act
+  mb_adapter_ = NULL;
+  hmi_handler_->AddHMIMessageAdapter(mb_adapter_);
+  // Check adapter not added
+  EXPECT_TRUE(hmi_handler_->message_adapters().empty());
 }
 
 TEST_F(HMIMessageHandlerImplTest, RemoveHMIMessageAdapter_ExpectRemoved) {
   // Arrange
   hmi_handler_->AddHMIMessageAdapter(mb_adapter_);
-  // Check before action
-  EXPECT_EQ(1u, hmi_handler_->message_adapters().size());
   // Act
   hmi_handler_->RemoveHMIMessageAdapter(mb_adapter_);
   // Check after action
-  EXPECT_EQ(0u, hmi_handler_->message_adapters().size());
+  EXPECT_TRUE(hmi_handler_->message_adapters().empty());
 }
 
 }  // namespace hmi_message_handler_test
