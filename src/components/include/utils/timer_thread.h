@@ -368,7 +368,7 @@ void TimerThread<T>::TimerDelegate::threadMain() {
     if (ConditionalVariable::kTimeout == wait_status
         || wait_milliseconds_left <= 0) {
       LOG4CXX_TRACE(logger_,
-                    "Timer timeout (ms): " << wait_milliseconds_left);
+                    "Timer has finished counting. Timeout(ms): " << wait_milliseconds_left);
       timer_thread_->onTimeOut();
     } else {
       LOG4CXX_DEBUG(logger_, "Timeout reset force (ms): "
