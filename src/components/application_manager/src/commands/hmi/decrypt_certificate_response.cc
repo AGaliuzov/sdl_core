@@ -49,9 +49,7 @@ void DecryptCertificateResponse::Run() {
       static_cast<hmi_apis::Common_Result::eType>(
           (*message_)[strings::params][hmi_response::code].asInt());
 
-  const bool is_succeeded = hmi_apis::Common_Result::SUCCESS == code
-                            ? true
-                            : false;
+  const bool is_succeeded = hmi_apis::Common_Result::SUCCESS == code;
 
   policy::PolicyHandler::instance()->OnCertificateDecrypted(is_succeeded);
 }
