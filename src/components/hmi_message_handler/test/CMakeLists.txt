@@ -1,4 +1,4 @@
-# Copyright (c) 2014, Ford Motor Company
+# Copyright (c) 2015, Ford Motor Company
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,29 +28,35 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-if(BUILD_TESTS)
-
-include_directories (
+if (BUILD_TESTS)
+  include_directories (
     ${GMOCK_INCLUDE_DIRECTORY}
+    ${MESSAGE_BROKER_INCLUDE_DIRECTORY}
     ${COMPONENTS_DIR}/hmi_message_handler/include
-)
+    ${COMPONENTS_DIR}/hmi_message_handler/test/include
+  )
 
-set(LIBRARIES    
+  set(LIBRARIES
     gmock
     ApplicationManager
     HMIMessageHandler
-)
+    jsoncpp
+    MessageBrokerClient
+    MessageBrokerServer
+  )
 
-set(SOURCES
-    ${COMPONENTS_DIR}/hmi_message_handler/test/mqueue_adapter_test.cc 
-)          
+  set(SOURCES 
+   #${COMPONENTS_DIR}/hmi_message_handler/test/mqueue_adapter_test.cc
+   ${COMPONENTS_DIR}/hmi_message_handler/test/hmi_message_handler_impl_test.cc
+  )
 
-if(${QT_HMI})
-    list (APPEND SOURCES  
-    ${COMPONENTS_DIR}/hmi_message_handler/test/mock_subscriber.cc 
+  if (${QT_HMI})
+    list (APPEND SOURCES
+    ${COMPONENTS_DIR}/hmi_message_handler/test/mock_subscriber.cc
     ${COMPONENTS_DIR}/hmi_message_handler/test/dbus_message_adapter_test.cc
   )
-endif()
-create_test("hmi_message_handler_test" "${SOURCES}" "${LIBRARIES}")
+  endif()
+
+  create_test("hmi_message_handler_test" "${SOURCES}" "${LIBRARIES}")
 
 endif()
