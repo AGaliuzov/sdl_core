@@ -51,23 +51,12 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
 
 MmeClientListener::MmeClientListener(TransportAdapterController* controller)
   : controller_(controller),
-    qdb_hdl_(NULL),
     notify_thread_(NULL),
     notify_thread_delegate_(NULL) {
 }
 
 TransportAdapter::Error MmeClientListener::Init() {
   TransportAdapter::Error error = TransportAdapter::OK;
-
-  const std::string& mme_db_name = profile::Profile::instance()->mme_db_name();
-  LOG4CXX_TRACE(logger_, "Connecting to " << mme_db_name);
-  qdb_hdl_ = qdb_connect(mme_db_name.c_str(), 0);
-  if (qdb_hdl_ != 0) {
-    LOG4CXX_DEBUG(logger_, "Connected to " << mme_db_name);
-  } else {
-    LOG4CXX_ERROR(logger_, "Could not connect to " << mme_db_name);
-    error = TransportAdapter::FAIL;
-  }
 
   const std::string& event_mq_name = profile::Profile::instance()->event_mq_name();
   const std::string& ack_mq_name = profile::Profile::instance()->ack_mq_name();
@@ -137,14 +126,6 @@ void MmeClientListener::Terminate() {
     LOG4CXX_DEBUG(logger_, "Closed " << ack_mq_name);
   } else {
     LOG4CXX_WARN(logger_, "Could not close " << ack_mq_name);
-  }
-
-  const std::string& mme_db_name = profile::Profile::instance()->mme_db_name();
-  LOG4CXX_TRACE(logger_, "Disconnecting from " << mme_db_name);
-  if (qdb_disconnect(qdb_hdl_) != -1) {
-    LOG4CXX_DEBUG(logger_, "Disconnected from " << mme_db_name);
-  } else {
-    LOG4CXX_WARN(logger_, "Could not disconnect from " << mme_db_name);
   }
 }
 
