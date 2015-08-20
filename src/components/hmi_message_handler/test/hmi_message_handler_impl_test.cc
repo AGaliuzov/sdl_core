@@ -53,7 +53,7 @@ class HMIMessageHandlerImplTest : public ::testing::Test {
   hmi_message_handler::HMIMessageHandlerImpl* hmi_handler_;
   hmi_message_handler::MockHMIMessageObserver* mock_hmi_message_observer_;
 
-  virtual void SetUp() {
+  virtual void SetUp() OVERRIDE {
     hmi_handler_ = hmi_message_handler::HMIMessageHandlerImpl::instance();
     ASSERT_TRUE(NULL != hmi_handler_);
     mb_adapter_ = new hmi_message_handler::MessageBrokerAdapter(
@@ -66,7 +66,7 @@ class HMIMessageHandlerImplTest : public ::testing::Test {
     EXPECT_TRUE(NULL != hmi_handler_->observer());
   }
 
-  virtual void TearDown() {
+  virtual void TearDown() OVERRIDE {
     hmi_handler_->set_message_observer(NULL);
     hmi_message_handler::MockHMIMessageObserver::destroy();
     hmi_message_handler::HMIMessageHandlerImpl::destroy();
