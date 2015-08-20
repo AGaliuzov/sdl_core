@@ -559,25 +559,19 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile() {
         MessageHelper::GetDeviceMacAddressForHandle(application->device()));
   }
 
-  MessageHelper::SendOnAppRegisteredNotificationToHMI(*(application.get()),
-                                                      resumption,
-                                                      need_restore_vr);
-
-  // By default app subscribed to CUSTOM_BUTTON
-  // Need to send notification to HMI
-  SendSubscribeCustomButtonNotification();
-
-  MessageHelper::SendChangeRegistrationRequestToHMI(application);
-
-  bool is_success = true;
-  SendResponse(is_success, result_code, add_info.c_str(), &response_params);
-
+  MessageHelper::SendOnAppRegisteredNotificationToHMI(
+      *(application.get()), resumption, need_restore_vr);
+  SendResponse(true, result_code, add_info.c_str(), &response_params);
 
   if (result_code != mobile_apis::Result::RESUME_FAILED) {
     resumer.StartResumption(application, hash_id);
   } else {
     resumer.StartResumptionOnlyHMILevel(application);
   }
+
+  // By default app subscribed to CUSTOM_BUTTON
+  SendSubscribeCustomButtonNotification();
+  MessageHelper::SendChangeRegistrationRequestToHMI(application);
 }
 
 mobile_apis::Result::eType
