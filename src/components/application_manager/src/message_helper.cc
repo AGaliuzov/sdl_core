@@ -425,7 +425,7 @@ void MessageHelper::SendHashUpdateNotification(const uint32_t app_id) {
     PrintSmartObject(*so);
     if (!ApplicationManagerImpl::instance()->ManageMobileCommand(
         so, commands::Command::ORIGIN_SDL)) {
-      LOG4CXX_ERROR_EXT(logger_, "Failed to send HashUpdate notification.");
+      LOG4CXX_ERROR(logger_, "Failed to send HashUpdate notification.");
     } else {
       ApplicationManagerImpl::instance()->resume_controller().ApplicationsDataUpdated();
     }

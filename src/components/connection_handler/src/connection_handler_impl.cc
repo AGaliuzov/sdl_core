@@ -250,7 +250,7 @@ void ConnectionHandlerImpl::OnConnectionClosedFailure(
 void ConnectionHandlerImpl::OnUnexpectedDisconnect(
     transport_manager::ConnectionUID connection_id,
     const transport_manager::CommunicationError &error) {
-  LOG4CXX_ERROR(logger_, "ConnectionHandlerImpl::OnUnexpectedDisconnect");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   OnConnectionEnded(connection_id, Err2CloseReason[error.error_type()]);
 }
@@ -271,7 +271,7 @@ void ConnectionHandlerImpl::OnDisconnectFailed(
 
 void ConnectionHandlerImpl::RemoveConnection(
     const ConnectionHandle connection_handle) {
-  LOG4CXX_INFO(logger_, "ConnectionHandlerImpl::RemoveConnection()");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   OnConnectionEnded(connection_handle, CloseSessionReason::kCommon);
 }
@@ -679,7 +679,7 @@ void ConnectionHandlerImpl::ConnectToDevice(
   connection_handler::DeviceMap::const_iterator it_in;
   it_in = device_list_.find(device_handle);
   if (device_list_.end() != it_in) {
-    LOG4CXX_INFO_EXT(logger_,
+    LOG4CXX_INFO(logger_,
                      "Connecting to device with handle " << device_handle);
     if (transport_manager_) {
       if (transport_manager::E_SUCCESS
@@ -703,7 +703,7 @@ void ConnectionHandlerImpl::ConnectToAllDevices() {
 }
 
 void ConnectionHandlerImpl::StartTransportManager() {
-  LOG4CXX_INFO(logger_, "ConnectionHandlerImpl::StartTransportManager()");
+  LOG4CXX_AUTO_TRACE(logger_);
   if (NULL == transport_manager_) {
     LOG4CXX_ERROR(logger_, "Null pointer to TransportManager.");
     return;

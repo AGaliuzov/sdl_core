@@ -480,7 +480,7 @@ bool TransportAdapterImpl::IsServerOriginatedConnectSupported() const {
 }
 
 bool TransportAdapterImpl::IsClientOriginatedConnectSupported() const {
-  LOG4CXX_TRACE(logger_, "IsClientOriginatedConnectSupported");
+  LOG4CXX_AUTO_TRACE(logger_);
   return client_connection_listener_ != 0;
 }
 
