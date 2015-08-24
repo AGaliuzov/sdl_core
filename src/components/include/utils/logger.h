@@ -82,44 +82,27 @@
       } \
     } while (false)
 
-    #undef LOG4CXX_INFO
-    #define LOG4CXX_INFO(loggerPtr, logEvent) LOG_WITH_LEVEL(loggerPtr, ::log4cxx::Level::getInfo(), logEvent)
+    #undef LOG4CXX_TRACE
+    #define LOG4CXX_TRACE(loggerPtr, logEvent) LOG_WITH_LEVEL(loggerPtr, ::log4cxx::Level::getTrace(), logEvent)
 
-    #define LOG4CXX_INFO_EXT(logger, logEvent) LOG4CXX_INFO(logger, __PRETTY_FUNCTION__ << ": " << logEvent)
-    #define LOG4CXX_INFO_STR_EXT(logger, logEvent) LOG4CXX_INFO_STR(logger, __PRETTY_FUNCTION__ << ": " << logEvent)
-
-    #define LOG4CXX_TRACE_EXT(logger, logEvent) LOG4CXX_TRACE(logger, __PRETTY_FUNCTION__ << ": " << logEvent)
-    #define LOG4CXX_TRACE_STR_EXT(logger, logEvent) LOG4CXX_TRACE_STR(logger, __PRETTY_FUNCTION__ << ": " << logEvent)
+    #define LOG4CXX_AUTO_TRACE_WITH_NAME_SPECIFIED(loggerPtr, auto_trace) \
+      logger::AutoTrace auto_trace(loggerPtr, LOG4CXX_LOCATION)
+    #define LOG4CXX_AUTO_TRACE(loggerPtr) LOG4CXX_AUTO_TRACE_WITH_NAME_SPECIFIED(loggerPtr, SDL_local_auto_trace_object)
 
     #undef LOG4CXX_DEBUG
     #define LOG4CXX_DEBUG(loggerPtr, logEvent) LOG_WITH_LEVEL(loggerPtr, ::log4cxx::Level::getDebug(), logEvent)
 
-    #define LOG4CXX_DEBUG_EXT(logger, logEvent) LOG4CXX_DEBUG(logger, __PRETTY_FUNCTION__ << ": " << logEvent)
-    #define LOG4CXX_DEBUG_STR_EXT(logger, logEvent) LOG4CXX_DEBUG_STR(logger, __PRETTY_FUNCTION__ << ": " << logEvent)
+    #undef LOG4CXX_INFO
+    #define LOG4CXX_INFO(loggerPtr, logEvent) LOG_WITH_LEVEL(loggerPtr, ::log4cxx::Level::getInfo(), logEvent)
 
     #undef LOG4CXX_WARN
     #define LOG4CXX_WARN(loggerPtr, logEvent) LOG_WITH_LEVEL(loggerPtr, ::log4cxx::Level::getWarn(), logEvent)
 
-    #define LOG4CXX_WARN_EXT(logger, logEvent) LOG4CXX_WARN(logger, __PRETTY_FUNCTION__ << ": " << logEvent)
-    #define LOG4CXX_WARN_STR_EXT(logger, logEvent) LOG4CXX_WARN_STR(logger, __PRETTY_FUNCTION__ << ": " << logEvent)
-
     #undef LOG4CXX_ERROR
     #define LOG4CXX_ERROR(loggerPtr, logEvent) LOG_WITH_LEVEL(loggerPtr, ::log4cxx::Level::getError(), logEvent)
 
-    #define LOG4CXX_ERROR_EXT(logger, logEvent) LOG4CXX_ERROR(logger, __PRETTY_FUNCTION__ << ": " << logEvent)
-    #define LOG4CXX_ERROR_STR_EXT(logger, logEvent) LOG4CXX_ERROR_STR(logger, __PRETTY_FUNCTION__ << ": " << logEvent)
-
     #undef LOG4CXX_FATAL
     #define LOG4CXX_FATAL(loggerPtr, logEvent) LOG_WITH_LEVEL(loggerPtr, ::log4cxx::Level::getFatal(), logEvent)
-
-    #define LOG4CXX_FATAL_EXT(logger, logEvent) LOG4CXX_FATAL(logger, __PRETTY_FUNCTION__ << ": " << logEvent)
-    #define LOG4CXX_FATAL_STR_EXT(logger, logEvent) LOG4CXX_FATAL_STR(logger, __PRETTY_FUNCTION__ << ": " << logEvent)
-
-    #undef LOG4CXX_TRACE
-    #define LOG4CXX_TRACE(loggerPtr, logEvent) LOG_WITH_LEVEL(loggerPtr, ::log4cxx::Level::getTrace(), logEvent)
-
-    #define LOG4CXX_AUTO_TRACE_WITH_NAME_SPECIFIED(loggerPtr, auto_trace) logger::AutoTrace auto_trace(loggerPtr, LOG4CXX_LOCATION)
-    #define LOG4CXX_AUTO_TRACE(loggerPtr) LOG4CXX_AUTO_TRACE_WITH_NAME_SPECIFIED(loggerPtr, SDL_local_auto_trace_object)
 
     #define LOG4CXX_ERROR_WITH_ERRNO(logger, message) \
       LOG4CXX_ERROR(logger, message << ", error code " << errno << " (" << strerror(errno) << ")")
@@ -139,6 +122,15 @@
 
     #define LOG4CXX_IS_TRACE_ENABLED(logger) false
 
+    #undef LOG4CXX_TRACE
+    #define LOG4CXX_TRACE(x,y)
+
+    #define LOG4CXX_AUTO_TRACE_WITH_NAME_SPECIFIED(loggerPtr, auto_trace)
+    #define LOG4CXX_AUTO_TRACE(loggerPtr)
+
+    #undef LOG4CXX_DEBUG
+    #define LOG4CXX_DEBUG(x,y)
+
     #undef LOG4CXX_INFO
     #define LOG4CXX_INFO(x,y)
 
@@ -154,35 +146,8 @@
     #undef LOG4CXX_WARN_WITH_ERRNO
     #define LOG4CXX_WARN_WITH_ERRNO(x,y)
 
-    #undef LOG4CXX_TRACE
-    #define LOG4CXX_TRACE(x,y)
-
-    #undef LOG4CXX_DEBUG
-    #define LOG4CXX_DEBUG(x,y)
-
     #undef LOG4CXX_FATAL
     #define LOG4CXX_FATAL(x,y)
-
-    #define LOG4CXX_INFO_EXT(logger, logEvent)
-    #define LOG4CXX_INFO_STR_EXT(logger, logEvent)
-
-    #define LOG4CXX_TRACE_EXT(logger, logEvent)
-    #define LOG4CXX_TRACE_STR_EXT(logger, logEvent)
-
-    #define LOG4CXX_DEBUG_EXT(logger, logEvent)
-    #define LOG4CXX_DEBUG_STR_EXT(logger, logEvent)
-
-    #define LOG4CXX_WARN_EXT(logger, logEvent)
-    #define LOG4CXX_WARN_STR_EXT(logger, logEvent)
-
-    #define LOG4CXX_ERROR_EXT(logger, logEvent)
-    #define LOG4CXX_ERROR_STR_EXT(logger, logEvent)
-
-    #define LOG4CXX_FATAL_EXT(logger, logEvent)
-    #define LOG4CXX_FATAL_STR_EXT(logger, logEvent)
-
-    #define LOG4CXX_AUTO_TRACE_WITH_NAME_SPECIFIED(loggerPtr, auto_trace)
-    #define LOG4CXX_AUTO_TRACE(loggerPtr)
 #endif  // ENABLE_LOG
 
 #endif  // SRC_COMPONENTS_UTILS_INCLUDE_UTILS_LOGGER_H_
