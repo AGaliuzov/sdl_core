@@ -44,7 +44,7 @@
 #include "utils/lock.h"
 #include "utils/threads/thread.h"
 
-#define MAX_SPP_PACKET_SIZE 6144
+#define MAX_SPP_PACKET_SIZE 6139
 
 namespace transport_manager {
 namespace transport_adapter {
