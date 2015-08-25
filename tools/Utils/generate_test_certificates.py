@@ -146,7 +146,7 @@ def main():
             raise OSError("Input directory does not exist")
         os.chdir(args.dir)
     if args.soft:
-        root_key_file  = "root.key"
+        root_key_file  = os.path.join("server", "root.key")
         if os.path.exists(root_key_file):
             print "Root key file '%s' exists. Generation aborted according to soft mode." % (root_key_file, )
             return
