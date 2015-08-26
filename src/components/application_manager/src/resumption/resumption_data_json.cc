@@ -167,8 +167,8 @@ void ResumptionDataJson::OnSuspend() {
 
 void ResumptionDataJson::OnAwake() {
   using namespace app_mngr;
-  sync_primitives::AutoLock autolock(resumption_lock_);
   LOG4CXX_AUTO_TRACE(logger_);
+  sync_primitives::AutoLock autolock(resumption_lock_);
 
   for (Json::Value::iterator it = GetSavedApplications().begin();
       it != GetSavedApplications().end(); ++it) {
@@ -436,8 +436,8 @@ void ResumptionDataJson::SetSavedApplication(Json::Value& apps_json) {
 
 void ResumptionDataJson::SetLastIgnOffTime(time_t ign_off_time) {
   using namespace app_mngr;
-  sync_primitives::AutoLock autolock(resumption_lock_);
   LOG4CXX_AUTO_TRACE(logger_);
+  sync_primitives::AutoLock autolock(resumption_lock_);
   LOG4CXX_WARN(logger_, "ign_off_time = " << ign_off_time);
   Json::Value& resumption = GetResumptionData();
   resumption[strings::last_ign_off_time] = static_cast<uint32_t>(ign_off_time);
