@@ -38,6 +38,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <fstream>
 
 namespace file_system {
 
@@ -108,9 +109,20 @@ bool FileExists(const std::string& name);
   * @param data data to write
   * @return returns true if the operation is successfully.
   */
+template<typename T>
 bool Write(const std::string& file_name,
-           const std::vector<uint8_t>& data,
-           std::ios_base::openmode mode = std::ios_base::out);
+           const std::vector<T>& data,
+           std::ios_base::openmode mode = std::ios_base::out) {
+  std::ofstream file(file_name.c_str(), mode);
+  if (file.is_open()) {
+    for (T i = 0; i < data.size(); ++i) {
+      file << data[i];
+    }
+    file.close();
+    return true;
+  }
+  return false;
+}
 
 /**
   * @brief Opens file stream for writing

@@ -65,7 +65,8 @@ class TransportAdapterListenerImpl
     ON_RECEIVED_DONE,
     ON_RECEIVED_FAIL,
     ON_COMMUNICATION_ERROR,
-    ON_UNEXPECTED_DISCONNECT
+    ON_UNEXPECTED_DISCONNECT,
+    ON_EXPECTED_DISCONNECT
   };
 
   /**
@@ -161,6 +162,11 @@ class TransportAdapterListenerImpl
                                       const DeviceUID& device,
                                       const ApplicationHandle& app_id,
                                       const CommunicationError& error);
+
+  virtual void OnExpectedDisconnect(const TransportAdapter* adapter,
+                                    const DeviceUID& device,
+                                    const ApplicationHandle& application,
+                                    const CommunicationError& error);
 
   /**
    * @brief Search specified device adapter in the container of shared pointers

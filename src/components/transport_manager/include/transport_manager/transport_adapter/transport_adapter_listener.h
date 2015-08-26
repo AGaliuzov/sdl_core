@@ -138,6 +138,11 @@ class TransportAdapterListener {
                                       const DeviceUID& device_handle,
                                       const ApplicationHandle& app_handle,
                                       const CommunicationError& error) = 0;
+
+  virtual void OnExpectedDisconnect(const TransportAdapter* transport_adapter,
+                                    const DeviceUID& device_handle,
+                                    const ApplicationHandle& app_handle,
+                                    const CommunicationError& error) = 0;
   /**
    * @brief Search specified device adapter in the container of shared pointers to device adapters to be sure it is available,
    * launch event ON_DISCONNECT_DONE in transport manager.

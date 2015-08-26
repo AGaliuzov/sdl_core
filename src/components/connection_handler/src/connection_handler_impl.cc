@@ -256,6 +256,13 @@ void ConnectionHandlerImpl::OnUnexpectedDisconnect(
   OnConnectionEnded(connection_id, Err2CloseReason[error.error_type()]);
 }
 
+void ConnectionHandlerImpl::OnExpectedDisconnect(
+    transport_manager::ConnectionUID connection_id,
+    const transport_manager::CommunicationError &error) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  OnConnectionEnded(connection_id, Err2CloseReason[error.error_type()]);
+}
+
 void ConnectionHandlerImpl::OnDeviceConnectionLost(
     const transport_manager::DeviceHandle &device,
     const transport_manager::DisconnectDeviceError &error) {

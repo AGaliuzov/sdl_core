@@ -38,6 +38,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <stdint.h>
+#include <utility>
 
 #include <aoa/aoa.h>
 #include <sys/pps.h>
@@ -48,9 +49,12 @@
 #include <algorithm>
 
 #include "utils/logger.h"
+#include "utils/file_system.h"
+#include "utils/make_shared.h"
 
-#include "transport_manager/transport_adapter/transport_adapter_controller.h"
+#include "transport_manager/aoa/aoa_transport_adapter.h"
 #include "transport_manager/aoa/aoa_dynamic_device.h"
+#include "transport_manager/error.h"
 
 #define REQUEST_MASK    (AOA_MODE_ACCESSORY | AOA_MODE_AUDIO)
 
@@ -71,9 +75,13 @@ enum {
   ATTR_PRODUCT_ID,
   ATTR_SERIAL_NUMBER,
   ATTR_STACKNO,
+  ATTR_UPSTREAM_PORT,
+  ATTR_UPSTREAM_DEVICE_ADDRESS,
+  ATTR_UPSTREAM_HOST_CONTROLLER,
 
   ATTR_COUNT
 };
+
 
 /* The keys required by usblauncher to send to the device */
 static const char *kKeys[] = { "manufacturer", "model", "version",
@@ -81,7 +89,7 @@ static const char *kKeys[] = { "manufacturer", "model", "version",
 NULL };
 
 /* The values used to switch the phone into AOA mode */
-static const char *kValues[] = { "Ford", "HMI", "1.0",
+static const char *kValues[] = { "SDL", "Core", "1.0",
 
 NULL };
 
@@ -97,7 +105,7 @@ const std::string PPSListener::kPpsPathRoot = "/pps/qnx/device/";
 const std::string PPSListener::kPpsPathAll = ".all";
 const std::string PPSListener::kPpsPathCtrl = "usb_ctrl";
 
-PPSListener::PPSListener(TransportAdapterController* controller)
+PPSListener::PPSListener(AOATransportAdapter* controller)
     : initialised_(false),
       controller_(controller),
       fd_(-1),
@@ -153,9 +161,7 @@ bool PPSListener::ArmEvent(struct sigevent* event) {
     if (size > 0) {
       buf[size] = '\0';
       // In case AOA is not vailable don't need to process any messages from PPS.
-      if (is_aoa_available_) {
         Process(buf, size);
-      }
     }
   }
   return true;
@@ -164,7 +170,10 @@ bool PPSListener::ArmEvent(struct sigevent* event) {
 std::string PPSListener::ParsePpsData(char* ppsdata, const char** vals) {
   LOG4CXX_AUTO_TRACE(logger_);
   static const char* attrs[] = { "aoa", "busno", "devno", "manufacturer",
-      "vendor_id", "product", "product_id", "serial_number", "stackno", NULL };
+      "vendor_id", "product", "product_id", "serial_number", "stackno",
+      "upstream_port", "upstream_device_address", "upstream_host_controller",
+      NULL };
+
   int rc;
   std::string object_name;
   pps_attrib_t info = { 0 };
@@ -187,6 +196,15 @@ std::string PPSListener::ParsePpsData(char* ppsdata, const char** vals) {
   return object_name;
 }
 
+void PPSListener::ProcessAOADevice(
+    const std::pair< const AOAWrapper::AOAUsbInfo, DeviceUID> device) {
+  if (IsAOAMode(device.first)) {
+    AddDevice(device.first);
+  } else {
+    SwitchMode(device.first);
+  }
+}
+
 void PPSListener::Process(uint8_t* buf, size_t size) {
   LOG4CXX_AUTO_TRACE(logger_);
   DCHECK(buf);
@@ -194,18 +212,27 @@ void PPSListener::Process(uint8_t* buf, size_t size) {
   char* ppsdata = reinterpret_cast<char*>(buf);
   const char* vals[ATTR_COUNT] = { 0 };
 
-  std::string object_name = ParsePpsData(ppsdata, vals);
+  AOAWrapper::AOAUsbInfo aoa_usb_info;
+  aoa_usb_info.object_name = ParsePpsData(ppsdata, vals);
 
   if (IsAOADevice(vals)) {
-    AOAWrapper::AOAUsbInfo aoa_usb_info;
-    FillUsbInfo(object_name, vals, &aoa_usb_info);
-    if (IsAOAMode(aoa_usb_info)) {
-      AddDevice(aoa_usb_info);
-    } else {
-      SwitchMode(object_name.c_str(), vals);
+    FillUsbInfo(vals, &aoa_usb_info);
+    std::pair<const AOAWrapper::AOAUsbInfo, std::string> el =
+        std::make_pair(aoa_usb_info, std::string());
+    devices.insert(el);
+
+    if (!is_aoa_available_) {
+      LOG4CXX_DEBUG(logger_, "AOA is not available yet. Devices queue size: "
+                    << devices.size());
+      return;
     }
+
+    ProcessAOADevice(el);
   } else {
-    controller_->AckDevices();
+    controller_->RemoveDevice(devices[aoa_usb_info]);
+    const size_t removed_count = devices.erase(aoa_usb_info);
+    LOG4CXX_DEBUG(logger_, "The " << removed_count
+                  << " elements has been removed from devices list");
   }
 }
 
@@ -243,8 +270,7 @@ bool PPSListener::IsAOADevice(const char** attrs) {
   return true;
 }
 
-void PPSListener::FillUsbInfo(const std::string& object_name,
-                              const char** attrs,
+void PPSListener::FillUsbInfo(const char** attrs,
                               AOAWrapper::AOAUsbInfo* info) {
   LOG4CXX_AUTO_TRACE(logger_);
   info->path = kUSBStackPath;
@@ -257,49 +283,33 @@ void PPSListener::FillUsbInfo(const std::string& object_name,
   info->product_id = strtoul(attrs[ATTR_PRODUCT_ID], NULL, 0);
   info->serial_number = attrs[ATTR_SERIAL_NUMBER];
   info->stackno = attrs[ATTR_STACKNO];
+  info->upstream_port = attrs[ATTR_UPSTREAM_PORT];
+  info->upstream_device_address = attrs[ATTR_UPSTREAM_DEVICE_ADDRESS];
+  info->upstream_host_controller = attrs[ATTR_UPSTREAM_HOST_CONTROLLER];
   info->iface = 0;
 }
 
-void PPSListener::SwitchMode(const char* objname, const char** attrs) {
+void PPSListener::SwitchMode(const AOAWrapper::AOAUsbInfo& usb_info) {
   LOG4CXX_AUTO_TRACE(logger_);
-  int i, rc, fd;
-  char cmd[PATH_MAX];
-  size_t sz;
 
-  /* Do we have an object name? */
-  DCHECK(objname);
+  char cmd[PATH_MAX];
 
   /* Create the PPS request string (start_aoa::busno,devno,request_mask,key=value,key=value,...) */
-  sz = snprintf(cmd, sizeof(cmd), "start_aoa::busno=%s,devno=%s,modes=%u",
-                attrs[ATTR_BUSNO], attrs[ATTR_DEVNO], REQUEST_MASK);
+  size_t sz = snprintf(cmd, sizeof(cmd), "start_aoa::busno=%u,devno=%u,modes=%u",
+                usb_info.busno, usb_info.devno, REQUEST_MASK);
 
-  i = 0;
+  int i = 0;
   while (kKeys[i]) {
     /* Add all the key/value pairs to the request */
-    sz += snprintf(cmd + sz, sizeof(cmd) - sz, ",%s=%s", kKeys[i], kValues[i]);
+    sz += snprintf(cmd +sz, sizeof(cmd) - sz, ",%s=%s", kKeys[i], kValues[i]);
     i++;
   }
 
   /* Open the object we want to write to */
-  std::string ctrl = kPpsPathRoot + kPpsPathCtrl + attrs[ATTR_STACKNO];
-  fd = open(ctrl.c_str(), O_WRONLY);
-  if (fd == -1) {
-    LOG4CXX_ERROR(
-        logger_,
-        "AOA: Error opening file '" << ctrl << "': " << strerror(errno) << "'");
-    return;
-  }
-
-  /* Write to the PPS object */
-  rc = write(fd, cmd, sz);
-  if (rc == -1) {
-    LOG4CXX_ERROR(
-        logger_,
-        "AOA: Error writing to file '" << ctrl << "': " << strerror(errno) << "' " << cmd);
-    return;
-  }
-
-  close(fd);
+  const std::string ctrl = kPpsPathRoot + kPpsPathCtrl + usb_info.stackno;
+  std::vector<char> data(cmd, cmd + sz);
+  LOG4CXX_DEBUG(logger_, "Message to write: " << &data[0]);
+  file_system::Write(ctrl, data);
 }
 
 void PPSListener::ClosePps() {
@@ -312,25 +322,50 @@ void PPSListener::ClosePps() {
 
 void PPSListener::AddDevice(const AOAWrapper::AOAUsbInfo& aoa_usb_info) {
   LOG4CXX_AUTO_TRACE(logger_);
-  AOADynamicDeviceSPtr aoa_device(new AOADynamicDevice(
-      aoa_usb_info.product, aoa_usb_info.serial_number, aoa_usb_info,
-      controller_));
+  AOADynamicDeviceSPtr aoa_device =
+      utils::MakeShared<AOADynamicDevice>(
+        aoa_usb_info.product, aoa_usb_info.serial_number,
+        aoa_usb_info, controller_);
+
+  devices[aoa_usb_info] = aoa_device->unique_device_id();
   controller_->AddDevice(aoa_device);
-  if (!aoa_device->StartHandling()) {
-    LOG4CXX_WARN(logger_, "Can not initialize device");
+}
+
+void PPSListener::DisconnectDevice(const std::pair<const AOAWrapper::AOAUsbInfo, DeviceUID> device) {
+  ApplicationList app_list = controller_->GetApplicationList(device.second);
+  ApplicationList::const_iterator it = app_list.begin();
+  ApplicationList::const_iterator end = app_list.end();
+  CommunicationError error;
+  error.set_error(kResourceBusy);
+  while (it != end) {
+    controller_->ConnectionAborted(device.second, *it, error);
+    ++it;
   }
+
+  sleep(2);
+  controller_->RemoveDevice(device.second);
 }
 
 bool PPSListener::init_aoa() {
   LOG4CXX_AUTO_TRACE(logger_);
-  is_aoa_available_ = AOAWrapper::Init(NULL);
+  is_aoa_available_ = true;
+  std::for_each(devices.begin(), devices.end(),
+                std::bind1st(
+                  std::mem_fun(&PPSListener::ProcessAOADevice), this)
+               );
+
   return is_aoa_available_;
 }
 
-bool PPSListener::release_aoa() const {
-  AOAWrapper::Disconnect(true);
+void PPSListener::release_aoa() const {
+  LOG4CXX_AUTO_TRACE(logger_);
   is_aoa_available_ = false;
-  return is_aoa_available_;
+
+  std::for_each(devices.begin(), devices.end(),
+                  std::bind1st(
+                    std::mem_fun(&PPSListener::DisconnectDevice),
+                  this)
+               );
 }
 
 void PPSListener::release_thread(threads::Thread** thread) {
@@ -355,7 +390,6 @@ TransportAdapter::Error PPSListener::StopListening() {
   LOG4CXX_AUTO_TRACE(logger_);
   release_thread(&mq_thread_);
   release_thread(&pps_thread_);
-  AOAWrapper::Shutdown();
   return TransportAdapter::OK;
 }
 

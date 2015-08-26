@@ -34,11 +34,7 @@
 
 #include "utils/logger.h"
 #include "transport_manager/aoa/aoa_connection_factory.h"
-#ifdef CUSTOMER_PASA
 #  include "transport_manager/aoa/pps_listener.h"
-#else
-#  include "transport_manager/aoa/aoa_listener.h"
-#endif
 
 namespace transport_manager {
 namespace transport_adapter {
@@ -47,15 +43,10 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
 
 AOATransportAdapter::AOATransportAdapter()
     : TransportAdapterImpl(0, new AOAConnectionFactory(this),
-#ifdef CUSTOMER_PASA
                            new PPSListener(this)),
-#else
-                           new AOAListener(this)),
-#endif  // CUSTOMER_PASA
-      initialised_(false),
-      aoa_shutdown_thread_delegate_(0),
-      aoa_shutdown_thread_(0) {
+      initialised_(false) {
 }
+
 
 AOATransportAdapter::~AOATransportAdapter() {
   LOG4CXX_AUTO_TRACE(logger_);
@@ -81,10 +72,6 @@ TransportAdapter::Error AOATransportAdapter::Init() {
     return BAD_STATE;
   }
 
-  aoa_shutdown_thread_delegate_ = new AOAShutdownThreadDelegate();
-  aoa_shutdown_thread_ = threads::CreateThread("AOA shutdown thread", aoa_shutdown_thread_delegate_);
-  aoa_shutdown_thread_->start();
-
   TransportAdapter::Error error = TransportAdapterImpl::Init();
   if (error != TransportAdapter::OK) {
     LOG4CXX_WARN(logger_, "AOA: Init error " << error);
@@ -93,6 +80,11 @@ TransportAdapter::Error AOATransportAdapter::Init() {
   initialised_ = true;
   LOG4CXX_DEBUG(logger_, "AOA: Init success");
   return TransportAdapter::OK;
+}
+
+void AOATransportAdapter::RemoveDevice(const DeviceUID &device_handle) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  TransportAdapterImpl::DeviceDisconnected(device_handle, DisconnectDeviceError());
 }
 
 DeviceType AOATransportAdapter::GetDeviceType() const {
@@ -108,19 +100,13 @@ void AOATransportAdapter::ApplicationListUpdated(
   ConnectDevice(device_handle);
 }
 
+bool AOATransportAdapter::ToBeAutoConnected(DeviceSptr device) const {
+  UNUSED(device);
+  return true;
+}
+
 void AOATransportAdapter::TerminateInternal() {
   LOG4CXX_AUTO_TRACE(logger_);
-
-  if (aoa_shutdown_thread_) {
-    aoa_shutdown_thread_->join();
-    if (aoa_shutdown_thread_delegate_) {
-      delete aoa_shutdown_thread_delegate_;
-      aoa_shutdown_thread_delegate_ = 0;
-    }
-    threads::DeleteThread(aoa_shutdown_thread_);
-    aoa_shutdown_thread_ = 0;
-  }
-
   initialised_ = false;
 }
 

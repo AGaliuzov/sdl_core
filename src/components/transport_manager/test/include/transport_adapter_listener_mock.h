@@ -73,6 +73,11 @@ class TransportAdapterListenerMock : public TransportAdapterListener {
                     const DeviceUID& device_handle,
                     const ApplicationHandle& app_handle,
                     const CommunicationError& error));
+  MOCK_METHOD4(OnExpectedDisconnect,
+               void(const TransportAdapter* transport_adapter,
+                    const DeviceUID& device_handle,
+                    const ApplicationHandle& app_handle,
+                    const CommunicationError& error));
   MOCK_METHOD3(OnDisconnectDone,
                void(const TransportAdapter* transport_adapter,
                     const DeviceUID& device_handle,

@@ -68,6 +68,8 @@ class TransportManagerListenerMock : public TransportManagerListener {
                void(ConnectionUID connection_id, const DisconnectError& error));
   MOCK_METHOD2(OnUnexpectedDisconnect, void(ConnectionUID connection_id,
                                             const CommunicationError& error));
+  MOCK_METHOD2(OnExpectedDisconnect, void(ConnectionUID connection_id,
+                                            const CommunicationError& error));
   MOCK_METHOD2(OnDeviceConnectionLost,
                void(const DeviceHandle& device,
                     const DisconnectDeviceError& error));

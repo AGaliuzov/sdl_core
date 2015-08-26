@@ -45,8 +45,7 @@ class AOAConnection : public Connection {
  public:
   AOAConnection(const DeviceUID& device_uid,
                 const ApplicationHandle& app_handle,
-                TransportAdapterController* controller,
-                AOAWrapper::AOAHandle aoa_handle);
+                TransportAdapterController* controller);
   virtual ~AOAConnection();
   bool Init();
 
@@ -64,19 +63,21 @@ class AOAConnection : public Connection {
 
   void OnMessageReceived(bool success, ::protocol_handler::RawMessagePtr message);
   void OnMessageTransmitted(bool success, ::protocol_handler::RawMessagePtr message);
-  void OnDisconnected(bool forced);
+  void OnDisconnected();
   void ReceiveDone(::protocol_handler::RawMessagePtr message);
   void ReceiveFailed();
   void TransmitDone(::protocol_handler::RawMessagePtr message);
   void TransmitFailed(::protocol_handler::RawMessagePtr message);
-  void Abort(bool forced);
+  void Abort();
+  void Stop();
 
   class ConnectionObserver : public AOAConnectionObserver {
    public:
     explicit ConnectionObserver(AOAConnection* const parent);
-    void OnMessageReceived(bool success, ::protocol_handler::RawMessagePtr message);
-    void OnMessageTransmitted(bool success, ::protocol_handler::RawMessagePtr message);
-    void OnDisconnected(bool forced = false);
+    void OnMessageReceived(bool success, ::protocol_handler::RawMessagePtr message) OVERRIDE FINAL;
+    void OnMessageTransmitted(bool success, ::protocol_handler::RawMessagePtr message) OVERRIDE FINAL;
+    void OnDisconnected() OVERRIDE FINAL;
+    void OnStop() OVERRIDE FINAL;
    private:
     AOAConnection* parent_;
   };

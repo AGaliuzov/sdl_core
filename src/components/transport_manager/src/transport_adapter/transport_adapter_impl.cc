@@ -580,9 +580,9 @@ void TransportAdapterImpl::DisconnectDone(
       listener->OnDisconnectDeviceDone(this, device_uid);
     }
   }
-  connections_lock_.AcquireForWriting();
+  //connections_lock_.AcquireForWriting();
   connections_.erase(std::make_pair(device_uid, app_uid));
-  connections_lock_.Release();
+  //connections_lock_.Release();
 
   if (device_disconnected) {
     RemoveDevice(device_uid);
@@ -734,10 +734,16 @@ void TransportAdapterImpl::ConnectionFinished(
 void TransportAdapterImpl::ConnectionAborted(
   const DeviceUID& device_id, const ApplicationHandle& app_handle,
   const CommunicationError& error) {
-  ConnectionFinished(device_id, app_handle);
+  if (kResourceBusy != error.error_type()) {
+    ConnectionFinished(device_id, app_handle);
+  }
   for (TransportAdapterListenerList::iterator it = listeners_.begin();
        it != listeners_.end(); ++it) {
-    (*it)->OnUnexpectedDisconnect(this, device_id, app_handle, error);
+    if (kResourceBusy == error.error_type()) {
+      (*it)->OnExpectedDisconnect(this, device_id, app_handle, error);
+    } else {
+      (*it)->OnUnexpectedDisconnect(this, device_id, app_handle, error);
+    }
   }
 }
 
