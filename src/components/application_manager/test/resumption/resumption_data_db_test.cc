@@ -223,7 +223,7 @@ void ResumptionDataDBTest::CheckAppData() {
   EXPECT_EQ(hmi_app_id_, query.GetUInteger(4));
   EXPECT_EQ(hmi_level_, query.GetInteger(5));
 
-  EXPECT_EQ(ign_off_count_, query.GetInteger(6));
+  EXPECT_EQ(ign_off_count_, query.GetUInteger(6));
 
   EXPECT_EQ(device_id_, query.GetString(8));
   EXPECT_EQ(is_audio_, query.GetBoolean(9));
@@ -348,7 +348,7 @@ void ResumptionDataDBTest::CheckSubmenuData() {
   EXPECT_TRUE(select_submenu.Prepare(kSelectCountSubMenu));
   BindId(select_submenu);
   EXPECT_TRUE(select_submenu.Exec());
-  EXPECT_EQ(count_of_submenues, select_submenu.GetInteger(0));
+  EXPECT_EQ(count_of_submenues, select_submenu.GetUInteger(0));
 
   EXPECT_TRUE(select_submenu.Prepare(kSelectSubMenu));
   BindId(select_submenu);
@@ -358,7 +358,7 @@ void ResumptionDataDBTest::CheckSubmenuData() {
     std::string name =
         (*test_submenu_map[i])[am::strings::menu_name].asString();
     int position = (*test_submenu_map[i])[am::strings::position].asInt();
-    EXPECT_EQ(test_id, select_submenu.GetInteger(0));
+    EXPECT_EQ(test_id, select_submenu.GetUInteger(0));
     EXPECT_EQ(name, select_submenu.GetString(1));
     EXPECT_EQ(position, select_submenu.GetInteger(2));
     i++;
@@ -371,7 +371,7 @@ void ResumptionDataDBTest::CheckCommandsData() {
   EXPECT_TRUE(select_commands.Prepare(kSelectCountCommands));
   BindId(select_commands);
   EXPECT_TRUE(select_commands.Exec());
-  EXPECT_EQ(count_of_commands, select_commands.GetInteger(0));
+  EXPECT_EQ(count_of_commands, select_commands.GetUInteger(0));
 
   EXPECT_TRUE(select_commands.Prepare(kSelectCommands));
   BindId(select_commands);
@@ -383,7 +383,7 @@ void ResumptionDataDBTest::CheckCommandsData() {
     if (command_key != select_commands.GetLongInt(0)) {
       ++i;
       uint cmd = (*test_commands_map[i])[am::strings::cmd_id].asUInt();
-      EXPECT_EQ(cmd, select_commands.GetInteger(1));
+      EXPECT_EQ(cmd, select_commands.GetUInteger(1));
       std::string name =
           (*test_commands_map[i])[am::strings::menu_params]
                                  [am::strings::menu_name].asString();
@@ -419,7 +419,7 @@ void ResumptionDataDBTest::CheckChoiceSetData() {
   EXPECT_TRUE(select_choice_set.Prepare(kSelectCountChoiceSet));
   BindId(select_choice_set);
   EXPECT_TRUE(select_choice_set.Exec());
-  EXPECT_EQ(count_of_choice_sets, select_choice_set.GetInteger(0));
+  EXPECT_EQ(count_of_choice_sets, select_choice_set.GetUInteger(0));
 
   EXPECT_TRUE(select_choice_set.Prepare(kSelectChoiceSets));
   int64_t app_set_key = 0;
@@ -460,7 +460,7 @@ void ResumptionDataDBTest::CheckChoiceSetData() {
           command[am::strings::choice_set][choice_idx]
                  [am::strings::tertiary_text].asString();
 
-      EXPECT_EQ(choice_id, select_choice_set.GetUInteger(4));
+      EXPECT_EQ(choice_id, select_choice_set.GetInteger(4));
       EXPECT_EQ(menu_name, select_choice_set.GetString(5));
       EXPECT_EQ(secondary_text, select_choice_set.GetString(6));
       EXPECT_EQ(tertiary_text, select_choice_set.GetString(7));
@@ -507,7 +507,7 @@ void ResumptionDataDBTest::CheckAppFilesData() {
   EXPECT_TRUE(query.Prepare(kSelectCountFiles));
   BindId(query);
   EXPECT_TRUE(query.Exec());
-  EXPECT_EQ(count_of_files, query.GetInteger(0));
+  EXPECT_EQ(count_of_files, query.GetUInteger(0));
 
   EXPECT_TRUE(query.Prepare(kSelectFiles));
   BindId(query);
@@ -711,7 +711,7 @@ TEST_F(ResumptionDataDBTest, GetHMIApplicationID_AppNotSaved) {
   EXPECT_TRUE(res_db()->Init());
   res_db()->SaveApplication(app_mock);
   CheckSavedDB();
-  EXPECT_EQ(0, res_db()->GetHMIApplicationID(policy_app_id_, "other_dev_id"));
+  EXPECT_EQ(0u, res_db()->GetHMIApplicationID(policy_app_id_, "other_dev_id"));
 }
 
 TEST_F(ResumptionDataDBTest, OnSuspend) {
@@ -817,7 +817,7 @@ TEST_F(ResumptionDataDBTest, GetIgnOffTime_AfterSuspendAndAwake) {
   res_db()->SaveApplication(app_mock);
 
   last_ign_off_time = res_db()->GetIgnOffTime();
-  EXPECT_EQ(0, last_ign_off_time);
+  EXPECT_EQ(0u, last_ign_off_time);
 
   res_db()->OnSuspend();
 

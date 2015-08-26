@@ -253,7 +253,7 @@ TEST_F(ResumptionDataJsonTest, GetHMIApplicationID_AppNotSaved) {
   ResumptionDataJson res_json;
   PrepareData();
   res_json.SaveApplication(app_mock);
-  EXPECT_EQ(0, res_json.GetHMIApplicationID(policy_app_id_, "other_dev_id"));
+  EXPECT_EQ(0u, res_json.GetHMIApplicationID(policy_app_id_, "other_dev_id"));
 }
 
 TEST_F(ResumptionDataJsonTest, OnSuspend) {
@@ -370,7 +370,7 @@ TEST_F(ResumptionDataJsonTest, GetIgnOffTime_AfterSuspendAndAwake) {
   res_json.SaveApplication(app_mock);
   CheckSavedJson();
   last_ign_off_time = res_json.GetIgnOffTime();
-  EXPECT_EQ(0, last_ign_off_time);
+  EXPECT_EQ(0u, last_ign_off_time);
 
   res_json.OnSuspend();
 

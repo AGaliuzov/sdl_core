@@ -141,11 +141,11 @@ void ResumptionDataTest::CheckSubmenues(sm::SmartObject& res_list) {
 
 void ResumptionDataTest::CheckSubscriptions(sm::SmartObject& res_list) {
   EXPECT_EQ(ButtonName::eType::OK,
-            res_list[am::strings::application_buttons][0].asUInt());
+            res_list[am::strings::application_buttons][0].asInt());
   EXPECT_EQ(ButtonName::eType::CUSTOM_BUTTON,
-            res_list[am::strings::application_buttons][1].asUInt());
-  EXPECT_EQ(0, res_list[am::strings::application_vehicle_info][0].asUInt());
-  EXPECT_EQ(5, res_list[am::strings::application_vehicle_info][1].asUInt());
+            res_list[am::strings::application_buttons][1].asInt());
+  EXPECT_EQ(0u, res_list[am::strings::application_vehicle_info][0].asUInt());
+  EXPECT_EQ(5, res_list[am::strings::application_vehicle_info][1].asInt());
 }
 
 void ResumptionDataTest::CheckChoiceSet(sm::SmartObject& res_list) {
@@ -205,10 +205,10 @@ void ResumptionDataTest::CheckChoiceSet(sm::SmartObject& res_list) {
         (*test_choiceset_map[i])[am::strings::interaction_choice_set_id]
             .asUInt();
     EXPECT_EQ(choice_set_id,
-              res_list[i][am::strings::interaction_choice_set_id].asUInt());
+              res_list[i][am::strings::interaction_choice_set_id].asInt());
 
     int grammar_id = (*test_choiceset_map[i])[am::strings::grammar_id].asUInt();
-    EXPECT_EQ(grammar_id, res_list[i][am::strings::grammar_id].asUInt());
+    EXPECT_EQ(grammar_id, res_list[i][am::strings::grammar_id].asInt());
   }
 }
 
