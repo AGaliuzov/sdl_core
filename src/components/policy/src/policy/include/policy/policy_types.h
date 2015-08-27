@@ -191,10 +191,11 @@ struct DeviceInfo {
     void AdoptDeviceType(const std::string& deviceType) {
       connection_type = "USB_serial_number";
       using namespace helpers;
-      if (Compare<std::string, EQ, ONE> (deviceType,
-                                         "BLUETOOTH",
-                                         "WIFI")) {
-          connection_type.assign("BTMAC");
+      static const std::string bluetooth("BLUETOOTH");
+      static const std::string wifi("WIFI");
+      if (deviceType == bluetooth ||
+          deviceType == wifi) {
+        connection_type.assign("BTMAC");
       }
     }
 };
