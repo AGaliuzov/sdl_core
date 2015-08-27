@@ -44,6 +44,10 @@
 #include "utils/lock.h"
 #include "utils/threads/thread.h"
 
+/**
+ * Maximum packet size could be sent via PASA bluetooth connection.
+ * Depends on QNX system value
+ */
 #define MAX_SPP_PACKET_SIZE 6139
 
 namespace transport_manager {
