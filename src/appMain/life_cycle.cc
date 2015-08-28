@@ -217,10 +217,13 @@ bool LifeCycle::InitMessageSystem() {
     hmi_message_handler::HMIMessageHandlerImpl::instance(),
     std::string(PREFIX_STR_FROMSDL_QUEUE),
     std::string(PREFIX_STR_TOSDL_QUEUE));
+
     hmi_message_handler::HMIMessageHandlerImpl::instance()->AddHMIMessageAdapter(
     mb_pasa_adapter_);
+
   if (!mb_pasa_adapter_->MqOpen()) {
     LOG4CXX_FATAL(logger_, "Cannot connect to remote peer!");
+    // TODO free memory mb_pasa_adapter_
     return false;
   }
 
@@ -284,6 +287,7 @@ bool LifeCycle::InitMessageSystem() {
     mb_adapter_);
     if (!mb_adapter_->Connect()) {
       LOG4CXX_FATAL(logger_, "Cannot connect to remote peer!");
+      // TODO free memory mb_adapter_
       return false;
     }
 
