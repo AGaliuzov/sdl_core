@@ -59,6 +59,7 @@ static void OnConnectedDevice(aoa_hdl_t *hdl, const void *udata) {
   if (life) {
     life->Loop(hdl);
   }
+  AOAWrapper::life_keeper_.ReleaseLife(hdl);
 }
 
 static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
@@ -82,8 +83,10 @@ static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
       LOG4CXX_DEBUG(logger_, "AOA: reset active_handle to NULL");
       active_handle = NULL;
     }
-    AOAWrapper::OnDied(hdl);
-    observer->OnDisconnected();
+    if (AOAWrapper::life_keeper_.LifeExists(hdl)) {
+      AOAWrapper::OnDied(hdl);
+      observer->OnDisconnected();
+    }
     return;
   }
 
@@ -508,7 +511,7 @@ AOADeviceLife* LifeKeeper::BindHandle2Life(aoa_hdl_t *hdl) {
 }
 
 AOADeviceLife* LifeKeeper::GetLife(aoa_hdl_t *hdl){
-  if (!life_exists(hdl)) { return NULL; }
+  if (!LifeExists(hdl)) { return NULL; }
 
   return live_devices[hdl];
 }
@@ -522,7 +525,7 @@ AOADeviceLife* LifeKeeper::ReleaseLife(aoa_hdl_t *hdl) {
   return life;
 }
 
-bool LifeKeeper::life_exists(aoa_hdl_t* hdl) {
+bool LifeKeeper::LifeExists(aoa_hdl_t* hdl) {
   return live_devices.find(hdl) != live_devices.end();
 }
 
