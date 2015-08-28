@@ -43,6 +43,9 @@ inline void memory_barrier() {
 #if defined(__QNXNTO__)
   __cpu_membarrier();
 #elif defined(__GNUG__)
+  // Comment below add exception for lint error
+  // Reason: FlexeLint doesn't know about compiler's built-in instructions
+  /*lint -e1055*/
   __sync_synchronize();
 #else
 #warning "memory_barrier() implementation does nothing"
