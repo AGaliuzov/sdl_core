@@ -159,10 +159,9 @@ class LifeKeeper {
     AOADeviceLife* BindHandle2Life(aoa_hdl_t* hdl);
     AOADeviceLife* GetLife(aoa_hdl_t* hdl);
     AOADeviceLife* ReleaseLife(aoa_hdl_t* hdl);
+    bool LifeExists(aoa_hdl_t* hdl);
 
  private:
-    bool life_exists(aoa_hdl_t* hdl);
-
     std::queue<AOADeviceLife*> free_life_pool;
     std::map<aoa_hdl_t*, AOADeviceLife*> live_devices;
 };
