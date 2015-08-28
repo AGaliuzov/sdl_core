@@ -275,13 +275,13 @@ bool PolicyHandler::LoadPolicyLibrary() {
   if (!PolicyEnabled()) {
     LOG4CXX_WARN(logger_, "System is configured to work without policy "
                  "functionality.");
-    policy_manager_ = NULL;
+    policy_manager_.reset();
     return NULL;
   }
   dl_handle_ = dlopen(kLibrary.c_str(), RTLD_LAZY);
 
   char* error_string = dlerror();
-  if (error_string == NULL) {
+  if (NULL == error_string) {
     if (CreateManager()) {
       policy_manager_->set_listener(this);
       event_observer_= new PolicyEventObserver(this);
@@ -291,6 +291,7 @@ bool PolicyHandler::LoadPolicyLibrary() {
   }
 
   return policy_manager_.valid();
+
 }
 
 bool PolicyHandler::PolicyEnabled() {
@@ -301,7 +302,7 @@ bool PolicyHandler::CreateManager() {
   typedef PolicyManager* (*CreateManager)();
   CreateManager create_manager = reinterpret_cast<CreateManager>(dlsym(dl_handle_, "CreateManager"));
   char* error_string = dlerror();
-  if (error_string == NULL) {
+  if (NULL == error_string) {
     policy_manager_ = create_manager();
   } else {
     LOG4CXX_WARN(logger_, error_string);
@@ -657,15 +658,14 @@ void PolicyHandler::OnSystemInfoUpdateRequired() {
 }
 
 void PolicyHandler::OnVIIsReady() {
+  LOG4CXX_AUTO_TRACE(logger_);
   const uint32_t correlation_id =
       ApplicationManagerImpl::instance()->GetNextHMICorrelationID();
 
   std::vector<std::string> params;
   params.push_back(strings::vin);
 
-  MessageHelper::CreateGetVehicleDataRequest(
-        correlation_id, params);
-
+  MessageHelper::CreateGetVehicleDataRequest(correlation_id, params);
 }
 
 void PolicyHandler::OnVehicleDataUpdated(
@@ -1021,8 +1021,7 @@ void PolicyHandler::PTExchangeAtUserRequest(uint32_t correlation_id) {
   LOG4CXX_TRACE(logger_, "PT exchange at user request");
   POLICY_LIB_CHECK_VOID();
   std::string update_status = policy_manager_->ForcePTExchange();
-  MessageHelper::SendUpdateSDLResponse(update_status,
-                                                            correlation_id);
+  MessageHelper::SendUpdateSDLResponse(update_status, correlation_id);
 }
 
 void PolicyHandler::OnPermissionsUpdated(const std::string& policy_app_id,
@@ -1209,11 +1208,17 @@ void PolicyHandler::PTUpdatedAt(Counters counter, int value) {
 }
 
 void PolicyHandler::add_listener(PolicyHandlerObserver* listener) {
+  if (NULL == listener) {
+    return;
+  }
   sync_primitives::AutoLock lock(listeners_lock_);
   listeners_.push_back(listener);
 }
 
 void PolicyHandler::remove_listener(PolicyHandlerObserver* listener) {
+  if (NULL == listener) {
+    return;
+  }
   sync_primitives::AutoLock lock(listeners_lock_);
   listeners_.remove(listener);
 }
