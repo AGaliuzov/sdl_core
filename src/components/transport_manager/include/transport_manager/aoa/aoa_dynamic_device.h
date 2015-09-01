@@ -66,6 +66,8 @@ class AOADynamicDevice : public AOADevice {
   void LoopDevice(AOAWrapper::AOAHandle handle);
   void StopDevice(AOAWrapper::AOAHandle handle);
 
+  virtual bool Ack();
+
   class DeviceLife : public AOADeviceLife {
    public:
     explicit DeviceLife(AOADynamicDevice* parent);
