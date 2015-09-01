@@ -50,12 +50,9 @@ HMIMessageHandlerImpl::HMIMessageHandlerImpl()
 
 HMIMessageHandlerImpl::~HMIMessageHandlerImpl() {
   LOG4CXX_AUTO_TRACE(logger_);
-  sync_primitives::AutoLock lock(observer_locker_);
-  observer_ = NULL;
-  if (!message_adapters_.empty()) {
-    LOG4CXX_WARN(logger_, "Not all HMIMessageAdapter have unsubscribed from"
-                         " HMIMessageHandlerImpl");
-  }
+  messages_to_hmi_.Shutdown();
+  messages_from_hmi_.Shutdown();
+  set_message_observer(NULL);
 }
 
 void HMIMessageHandlerImpl::OnMessageReceived(MessageSharedPointer message) {
@@ -75,6 +72,7 @@ void HMIMessageHandlerImpl::SendMessageToHMI(MessageSharedPointer message) {
 
 void HMIMessageHandlerImpl::set_message_observer(HMIMessageObserver* observer) {
   LOG4CXX_AUTO_TRACE(logger_);
+  sync_primitives::AutoLock lock(observer_locker_);
   observer_ = observer;
 }
 
@@ -88,7 +86,8 @@ void HMIMessageHandlerImpl::OnErrorSending(MessageSharedPointer message) {
   observer_->OnErrorSending(message);
 }
 
-void HMIMessageHandlerImpl::AddHMIMessageAdapter(HMIMessageAdapter* adapter) {
+void HMIMessageHandlerImpl::AddHMIMessageAdapter(
+    HMIMessageAdapter* adapter) {
   LOG4CXX_AUTO_TRACE(logger_);
   if (!adapter) {
     return;
