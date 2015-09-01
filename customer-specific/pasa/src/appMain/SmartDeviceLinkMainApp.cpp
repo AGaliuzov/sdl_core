@@ -230,7 +230,9 @@ class ApplinkNotificationThreadDelegate : public threads::ThreadDelegate {
  public:
   ApplinkNotificationThreadDelegate(int fd);
   ~ApplinkNotificationThreadDelegate();
+
   virtual void threadMain();
+  virtual void exitThreadMain() {}
 
  private:
   void init_mq(const std::string& name, int flags, mqd_t& mq_desc);
@@ -377,7 +379,6 @@ class Dispatcher {
           Signal(SIGSTOP);
           state_ = kSleep;
         } else if (code == SDL_MSG_SDL_STOP) {
-          Send(msg);
           Signal(SIGTERM);
           state_ = kStop;
         } else if (code == SDL_MSG_WAKE_UP) {
@@ -395,7 +396,6 @@ class Dispatcher {
           state_ = kRun;
         } else if (code == SDL_MSG_SDL_STOP) {
           Signal(SIGCONT);
-          Send(msg);
           Signal(SIGTERM);
           state_ = kStop;
         }
@@ -506,7 +506,6 @@ int main(int argc, char** argv) {
     close(pipefd[1]);
     exit(EXIT_SUCCESS);
   }
-  close(pipefd[1]);
 
   profile::Profile::instance()->config_file_name(SDL_INIFILE_PATH);
   INIT_LOGGER(profile::Profile::instance()->log4cxx_config_file());
@@ -529,22 +528,25 @@ int main(int argc, char** argv) {
   applink_notification_thread->start();
 
   main_namespace::LifeCycle::instance()->Run();
+  LOG4CXX_INFO(logger_, "Stop SDL due to caught signal");
+
+  LOG4CXX_INFO(logger_, "Send SDL_MSG_SDL_STOP to SDL");
+  _ESDLMsgType msg = SDL_MSG_SDL_STOP;
+  write(pipefd[1], static_cast<const void*>(&msg), sizeof(char));
 
   applink_notification_thread->join();
   threads::DeleteThread(applink_notification_thread);
   delete applink_notification_thread_delegate;
 
   close(pipefd[0]);
+  close(pipefd[1]);
 
-  DEINIT_LOGGER();
-  stopSmartDeviceLink();
-
-  //LOG4CXX_INFO(logger_, "Waiting for SDL controller to be finished.");
+  LOG4CXX_INFO(logger_, "Waiting for SDL dispatcher");
   int result;
   waitpid(cpid, &result, 0);
 
-  //LOG4CXX_INFO(logger_, "Application successfully stopped");
-  //DEINIT_LOGGER();
+  stopSmartDeviceLink();
+  DEINIT_LOGGER();
 
   return EXIT_SUCCESS;
 }
