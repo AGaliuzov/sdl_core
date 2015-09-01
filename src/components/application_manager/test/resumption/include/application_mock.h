@@ -121,9 +121,9 @@ class ApplicationMock : public ::application_manager::Application {
                      ::application_manager::ProtocolVersion());
   MOCK_METHOD1(set_is_resuming, void(bool));
   MOCK_CONST_METHOD0(is_resuming, bool());
-  MOCK_METHOD1(AddFile, bool(::application_manager::AppFile& file));
+  MOCK_METHOD1(AddFile, bool(const ::application_manager::AppFile& file));
   MOCK_CONST_METHOD0(getAppFiles, const ::application_manager::AppFilesMap&());
-  MOCK_METHOD1(UpdateFile, bool(::application_manager::AppFile& file));
+  MOCK_METHOD1(UpdateFile, bool(const ::application_manager::AppFile& file));
   MOCK_METHOD1(DeleteFile, bool(const std::string& file_name));
   MOCK_METHOD1(GetFile, const ::application_manager::AppFile*(
                             const std::string& file_name));
