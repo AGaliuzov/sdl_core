@@ -39,6 +39,8 @@ TEST(TestTransportManagerDefault, CreateOnlyInstance) {
   transport_manager::TransportManager* instance =
       transport_manager::TransportManagerDefault::instance();
   ASSERT_EQ(instance, transport_manager::TransportManagerDefault::instance());
+  transport_manager::TransportManagerDefault::destroy();
 }
+
 }  // namespace test
 }  // namespace test_transport_manager_instance
