@@ -18,7 +18,8 @@ namespace NsMessageBroker
 #endif
    m_receivingBuffer(""),
    mControllersIdStart(-1),
-   mControllersIdCurrent(0)
+   mControllersIdCurrent(0),
+   stop(false)
    {
       mControllersName = name;
 #ifdef CUSTOMER_PASA
@@ -32,7 +33,8 @@ namespace NsMessageBroker
    MqClient(send_queue, receive_queue),
    m_receivingBuffer(""),
    mControllersIdStart(-1),
-   mControllersIdCurrent(0)
+   mControllersIdCurrent(0),
+   stop(false)
    {
      mControllersName = name;
      mClientType = MQUEUE;
@@ -359,7 +361,6 @@ namespace NsMessageBroker
 
    void* CMessageBrokerController::MethodForReceiverThread(void * arg)
    {
-      sync_primitives::AutoLock auto_lock(receiving_thread_lock_);
       stop = false;
       arg = arg; // to avoid compiler warnings
       while(!stop)
