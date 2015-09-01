@@ -193,11 +193,12 @@ int32_t main(int32_t argc, char** argv) {
   // --------------------------------------------------------------------------
 
   main_namespace::LifeCycle::instance()->Run();
-  LOG4CXX_INFO(logger_, "Stopping application due to signal caught");
+  LOG4CXX_INFO(logger_, "Stop SDL due to caught signal");
 
+  LOG4CXX_INFO(logger_, "LifeCycle stopping!");
   main_namespace::LifeCycle::instance()->StopComponents();
+  LOG4CXX_INFO(logger_, "LifeCycle stopped!");
 
-  LOG4CXX_INFO(logger_, "Application successfully stopped");
   DEINIT_LOGGER();
 
   /* Do not execute atexit handlers. Workaround for core crash after main() -
