@@ -54,12 +54,11 @@
 #include "sqlite_wrapper/sql_database.h"
 #include "sqlite_wrapper/sql_query.h"
 #include "table_struct_ext/types.h"
-#include "table_struct/types.h"
+#include "table_struct_ext/enums.h"
 #include "utils/macro.h"
 #include "utils/file_system.h"
 #include "utils/date_time.h"
 #include "utils/gen_hash.h"
-#include "enums.h"
 
 using ::utils::dbms::SQLError;
 using ::utils::dbms::SQLDatabase;

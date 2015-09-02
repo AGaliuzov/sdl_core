@@ -42,7 +42,7 @@
 #include "utils/gen_hash.h"
 #include "utils/file_system.h"
 #include "rpc_base/rpc_base.h"
-#include "./types.h"
+#include "table_struct_ext/types.h"
 
 using namespace ::policy;
 namespace policy_table = rpc::policy_table_interface_base;

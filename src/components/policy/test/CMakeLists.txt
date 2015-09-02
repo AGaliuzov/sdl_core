@@ -30,6 +30,7 @@
 
 include_directories(
   include
+  ${COMPONENTS_DIR}
   ${GMOCK_INCLUDE_DIRECTORY}
   ${JSONCPP_INCLUDE_DIRECTORY}
   ${COMPONENTS_DIR}/policy/src/policy/include/
@@ -37,7 +38,7 @@ include_directories(
   ${COMPONENTS_DIR}/rpc_base/include
   ${COMPONENTS_DIR}/config_profile/include
   ${COMPONENTS_DIR}/utils/include/
-
+  ${COMPONENTS_DIR}/policy/src/policy/policy_table/
 )
 
 set(testLibraries
@@ -55,14 +56,10 @@ set(testSources
   update_status_manager_test.cc
 )
 
-include_directories(
-  ${COMPONENTS_DIR}/policy/src/policy/policy_table/table_struct_ext
-  ${COMPONENTS_DIR}/policy/src/policy/policy_table/
-)
 list (APPEND testSources
   sql_pt_ext_representation_test.cc
 )
-include_directories(${COMPONENTS_DIR}/policy/src/policy/policy_table/table_struct)
+
 list (APPEND testSources
   sql_pt_representation_test.cc
 )

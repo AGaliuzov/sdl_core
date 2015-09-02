@@ -48,8 +48,7 @@
 #include "utils/file_system.h"
 #include "utils/system.h"
 #include "table_struct_ext/types.h"
-#include "./types.h"
-#include "enums.h"
+#include "table_struct_ext/enums.h"
 #include "rpc_base/rpc_base.h"
 
 namespace policy_table = rpc::policy_table_interface_base;

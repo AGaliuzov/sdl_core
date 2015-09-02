@@ -35,6 +35,7 @@ set (AM_MOCK_DIR ${AM_TEST_DIR}/mock)
 
 include_directories (
   include/
+  ${COMPONENTS_DIR}
   ${COMPONENTS_DIR}/utils/include/
   ${COMPONENTS_DIR}/formatters/include/
   ${COMPONENTS_DIR}/protocol_handler/include/
@@ -78,10 +79,6 @@ ${AM_SOURCE_DIR}/src/policies/policy_handler.cc
 ${AM_SOURCE_DIR}/src/policies/policy_event_observer.cc
 ${AM_SOURCE_DIR}/src/policies/delegates/app_permission_delegate.cc
 ${AM_SOURCE_DIR}/src/policies/delegates/statistics_delegate.cc
-)
-
-include_directories(
-  ${COMPONENTS_DIR}/policy/src/policy/policy_table/table_struct_ext
 )
 
 file (GLOB EVENT_ENGINE
