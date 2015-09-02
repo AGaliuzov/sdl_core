@@ -235,11 +235,10 @@ echo
 cd ./tools/FlexeLint/bin
 
 if $VERBOSE; then
-	./${FLINT_BINARY} -$WARNING_LEVEL $SUPPRESS -zero -u --i../../../$BUILD_PATH/src/components/ $OTHER_PARAMS $WORDSIZE ../config/smartdevicelink.lnt | tee ../results/raw_flexelint_report.txt
+	./${FLINT_BINARY} -$WARNING_LEVEL $SUPPRESS -zero -u --i../../../$BUILD_PATH/src/components/ --i../../../src/components/ $OTHER_PARAMS $WORDSIZE ../config/smartdevicelink.lnt | tee ../results/raw_flexelint_report.txt
 else
-	./${FLINT_BINARY} -$WARNING_LEVEL $SUPPRESS -zero -u --i../../../$BUILD_PATH/src/components/ -os ../results/raw_flexelint_report.txt $OTHER_PARAMS $WORDSIZE ../config/smartdevicelink.lnt
+	./${FLINT_BINARY} -$WARNING_LEVEL $SUPPRESS -zero -u --i../../../$BUILD_PATH/src/components/ --i../../../src/components/ -os ../results/raw_flexelint_report.txt $OTHER_PARAMS $WORDSIZE ../config/smartdevicelink.lnt
 fi
-
 
 ########################################################################
 ##### Preparing detailed report ########################################

@@ -40,7 +40,7 @@
 #include "policy/policy_table.h"
 #include "policy/cache_manager_interface.h"
 #include "policy/update_status_manager.h"
-#include "./functions.h"
+#include "policy/src/policy/policy_table/table_struct_ext/functions.h"
 #include "usage_statistics/statistics_manager.h"
 
 namespace policy_table = rpc::policy_table_interface_base;
