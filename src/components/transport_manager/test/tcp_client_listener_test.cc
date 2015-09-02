@@ -62,6 +62,7 @@ public:
  MOCK_METHOD3(DataSendDone, void(const DeviceUID& device_handle, const ApplicationHandle& app_handle, const ::protocol_handler::RawMessagePtr message));
  MOCK_METHOD4(DataSendFailed, void(const DeviceUID& device_handle, const ApplicationHandle& app_handle, const ::protocol_handler::RawMessagePtr message, const DataSendError& error));
  MOCK_METHOD0(FindNewApplicationsRequest, void());
+ MOCK_METHOD0(AckDevices, void());
  MOCK_METHOD1(ApplicationListUpdated, void(const DeviceUID& device_handle));
  MOCK_METHOD2(DeviceDisconnected, void (const DeviceUID& device_handle,const DisconnectDeviceError& error));
 };

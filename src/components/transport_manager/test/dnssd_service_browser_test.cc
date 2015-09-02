@@ -76,6 +76,7 @@ class MockTransportAdapterController : public TransportAdapterController {
                     const ::protocol_handler::RawMessagePtr message,
                     const DataSendError& error));
   MOCK_METHOD0(FindNewApplicationsRequest, void());
+  MOCK_METHOD0(AckDevices, void());
   MOCK_METHOD1(ApplicationListUpdated, void(const DeviceUID& device_handle));
   MOCK_METHOD2(DeviceDisconnected, void(const DeviceUID& device_handle,
                                         const DisconnectDeviceError& error));

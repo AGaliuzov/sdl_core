@@ -80,6 +80,7 @@ if (BUILD_TESTS)
     ${COMPONENTS_DIR}/application_manager/include/application_manager
     ${COMPONENTS_DIR}/application_manager/include/
     ${COMPONENTS_DIR}/utils/include/utils
+    ${COMPONENTS_DIR}/include/utils
     ${COMPONENTS_DIR}/policy/include/policy
     ${COMPONENTS_DIR}/policy/test/include
     ${COMPONENTS_DIR}/media_manager/include/

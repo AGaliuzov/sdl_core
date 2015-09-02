@@ -280,14 +280,14 @@ bool PolicyHandler::LoadPolicyLibrary() {
   }
   dl_handle_ = dlopen(kLibrary.c_str(), RTLD_LAZY);
 
-  char* error_string = dlerror();
-  if (NULL == error_string) {
+  char* error = dlerror();
+  if (!error) {
     if (CreateManager()) {
       policy_manager_->set_listener(this);
       event_observer_= new PolicyEventObserver(this);
     }
   } else {
-    LOG4CXX_ERROR(logger_, error_string);
+    LOG4CXX_ERROR(logger_, error);
   }
 
   return policy_manager_.valid();
@@ -1005,7 +1005,7 @@ void PolicyHandler::OnActivateApp(uint32_t connection_key,
           last_activated_app_id_ = 0;
         }
   } else {
-    LOG4CXX_INFO(logger_, "Application should not be activated");
+    LOG4CXX_WARN(logger_, "Application should not be activated");
   }
 
   MessageHelper::SendSDLActivateAppResponse(permissions, correlation_id);

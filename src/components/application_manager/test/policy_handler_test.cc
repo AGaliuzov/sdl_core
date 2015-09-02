@@ -47,6 +47,7 @@
 #include "json/value.h"
 #include "smart_objects/smart_object.h"
 #include "utils/file_system.h"
+#include "utils/make_shared.h"
 #include "usage_statistics/counter.h"
 #include "usage_statistics/statistics_manager.h"
 #include "interfaces/MOBILE_API.h"
@@ -90,7 +91,7 @@ class PolicyHandlerTest : public ::testing::Test {
     ASSERT_TRUE(instance_);
     ASSERT_TRUE(app_manager_);
     file_system::CreateDirectory("storage");
-    pm_ = new policy_manager::MockPolicyManager;
+    pm_ = utils::MakeShared<policy_manager::MockPolicyManager>();
     ASSERT_TRUE(pm_.valid());
   }
 
@@ -102,11 +103,12 @@ class PolicyHandlerTest : public ::testing::Test {
 
   void ChangePolicyManagerToMock() { instance_->SetPolicyManager(pm_); }
 
-  void EnablePolicy() const {
+  void EnablePolicy() {
     // Change default ini file to test ini file with policy enabled value
     profile::Profile::instance()->config_file_name("smartDeviceLink_test2.ini");
     EXPECT_TRUE(instance_->PolicyEnabled());
   }
+
   void EnablePolicyAndPolicyManagerMock() {
     EnablePolicy();
     ChangePolicyManagerToMock();
