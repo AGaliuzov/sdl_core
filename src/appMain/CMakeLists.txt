@@ -110,7 +110,6 @@ include_directories (
   ${COMPONENTS_DIR}/application_manager/include
   ${COMPONENTS_DIR}/formatters/include
   ${COMPONENTS_DIR}/transport_manager/include
-  ${COMPONENTS_DIR}/security_manager/include
   ${SecurityManagerIncludeDir}
   ${COMPONENTS_DIR}/security_manager/include
   ${COMPONENTS_DIR}/config_profile/include

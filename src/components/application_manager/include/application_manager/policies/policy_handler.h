@@ -378,6 +378,13 @@ class PolicyHandler :
                    usage_statistics::AppStopwatchId type,
                    int32_t timespan_seconds);
 
+
+#ifdef BUILD_TESTS
+  void SetPolicyManager(utils::SharedPtr<PolicyManager> pm) {
+    policy_manager_ = pm;
+  }
+#endif // BUILD_TESTS
+
 protected:
 
   /**
@@ -452,7 +459,7 @@ private:
                                               app_id, type, timespan_seconds));
       }
   };
-  //TODO(AKutsan) REMOVE THIS UGLY HOTFIX
+  // TODO(AKutsan) REMOVE THIS UGLY HOTFIX
 
 
   PolicyHandler();
