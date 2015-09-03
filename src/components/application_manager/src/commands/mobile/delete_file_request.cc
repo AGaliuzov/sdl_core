@@ -111,8 +111,10 @@ void DeleteFileRequest::SendFileRemovedNotification(
   smart_objects::SmartObject msg_params = smart_objects::SmartObject(
         smart_objects::SmartType_Map);
 
+  std::string absolute_file_path = file_system::CurrentWorkingDirectory() + "/";
+          absolute_file_path += file->file_name;
     msg_params[strings::app_id] = connection_key();
-    msg_params[strings::file_name] = file->file_name;
+    msg_params[strings::file_name] = absolute_file_path;
     msg_params[strings::file_type] = file->file_type;
 
     CreateHMINotification(
