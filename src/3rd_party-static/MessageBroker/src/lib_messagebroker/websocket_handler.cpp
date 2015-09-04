@@ -25,6 +25,11 @@ namespace NsMessageBroker
    unsigned int CWebSocketHandler::parseWebSocketDataLength(
        const char* Buffer, unsigned int& b_size) {
 
+     /* ToDo: Make b_size parameter const ref or just pass it by value.
+      * Or change it, if this was the intention.
+      * Then make sure that Buffer index is less than b_size.
+      * Currently it is possible to read unallocated memory! */
+
      unsigned char payload =
          (unsigned char)((Buffer[1] & 0x40) | (Buffer[1] & 0x20) |
          (Buffer[1] & 0x10) | (Buffer[1] & 0x08) | (Buffer[1] & 0x04) |
@@ -82,6 +87,8 @@ namespace NsMessageBroker
      static uint32_t minimum_heade_size = 4;
      while (minimum_heade_size < size) {
 
+       /* ToDo: Fix FIN flag determination. FIN is only the highest bit (0x80).
+        * The first bit is for the opcode (opcode 1 is for text frame) */
        bool fin = ((recBuffer[0] & 0x80) | (recBuffer[0] & 0x01)) == 0x81;
        bool rsv1 = (recBuffer[0] & 0x40) == 0x40;
        bool rsv2 = (recBuffer[0] & 0x20) == 0x20;
@@ -98,7 +105,7 @@ namespace NsMessageBroker
                size, parsedBufferPosition, rsv1, rsv2, rsv3, opCode));
 
        if ((rsv1)|(rsv2)|(rsv3)) {
-         DBG_MSG(("rsv1 or rsv2 or rsv3 is 0 \n"));
+         DBG_MSG(("rsv1 or rsv2 or rsv3 is not 0 \n"));
          break;
        }
 
@@ -109,10 +116,14 @@ namespace NsMessageBroker
          case 0x8: break; //Connection close Frame
          case 0x9: break; //ping Frame
          case 0xA: break; //Pong Frame
-         default: break; //Unknown frame
+         default: break; //Unknown frame ToDo: Exit the function in this case?
        }
 
        if (false == fin) {
+         /* ToDo: Fix this. First, currently 'fin' is not only for FIN bit, but
+          * also for text frame type. If we break here we ignore all other
+          * types of websocket frames (without FIN or not text). Is this what
+          * we want? Espacially connection close need to be handled. */
          break;
        }
 
@@ -160,6 +171,10 @@ namespace NsMessageBroker
        DBG_MSG(("CWebSocketHandler::parseWebSocketData()length:%d; size:%d;"
                 " position:%d\n", (int)length, size, position));
 
+       /* ToDo: Fix this cycle! 'size' at first is the whole buffer size
+        * (parseWebSocketDataLength() does NOT change 'size'). When we
+        * add position to it we will be reading unallocated memory!
+        * Must be 'length', not 'size' probably. */
        for (unsigned long i = 0; (i < size); i++) {
          Buffer[parsedBufferPosition + i] = recBuffer[i+position];
        }
@@ -168,7 +183,7 @@ namespace NsMessageBroker
        recBuffer += length;
        size -= length+position;
      }
-     return b_size;
+     return b_size;  // ToDo: Fix this. Why change parameter AND return it?
    }
 
    int CWebSocketHandler::prepareWebSocketDataHeader(unsigned char* Buffer,
