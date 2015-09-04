@@ -70,7 +70,7 @@ bool TcpServer::Recv(int fd) {
              pReceivingBuffer->c_str() + pReceivingBuffer->size());
   buf.resize(RECV_BUFFER_LENGTH + pReceivingBuffer->size());
 
-  ssize_t received_bytes = recv(fd, &buf[pReceivingBuffer->size()], MAX_RECV_DATA, 0);
+  int received_bytes = recv(fd, &buf[pReceivingBuffer->size()], MAX_RECV_DATA, 0);
   if (received_bytes <= 0) {
     DBG_MSG(("Received %d bytes from %d; error = %d\n",
              received_bytes, fd, errno));
@@ -78,11 +78,11 @@ bool TcpServer::Recv(int fd) {
     return false;
   }
 
-  size_t nb = received_bytes;
+  unsigned int nb = received_bytes;
   std::vector<char> last_msg_buf(buf.begin()+pReceivingBuffer->size(),
                                  buf.begin()+pReceivingBuffer->size()+nb);
   DBG_MSG(("Recieved %d from %d\n", nb, fd));
-  nb += pReceivingBuffer->size();
+  nb += static_cast<unsigned int>(pReceivingBuffer->size());
   DBG_MSG(("Recieved with buffer %d from %d\n", nb, fd));
 
   if (nb > 0) {  // This is redundant
@@ -117,7 +117,7 @@ bool TcpServer::Recv(int fd) {
            * Try to parse ONLY the last message */
           DBG_MSG_ERROR(("Couldn't parse the whole buffer! Try only the last message.\n"));
 
-          nb = last_msg_buf.size();
+          nb = static_cast<unsigned int>(last_msg_buf.size());
           if (isWebSocket(fd)) {
             const unsigned int data_length =
                 mWebSocketHandler.parseWebSocketDataLength(&last_msg_buf[0], nb);
