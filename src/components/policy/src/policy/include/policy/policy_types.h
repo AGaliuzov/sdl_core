@@ -193,8 +193,7 @@ struct DeviceInfo {
       using namespace helpers;
       static const std::string bluetooth("BLUETOOTH");
       static const std::string wifi("WIFI");
-      if (deviceType == bluetooth ||
-          deviceType == wifi) {
+      if (Compare<std::string, EQ, ONE>(deviceType, bluetooth, wifi)) {
         connection_type.assign("BTMAC");
       }
     }
