@@ -472,7 +472,7 @@ void PolicyManagerImpl::SendNotificationOnPermissionsUpdated(
 }
 
 bool PolicyManagerImpl::CleanupUnpairedDevices() {
-  LOG4CXX_INFO(logger_, "CleanupUnpairedDevices");
+  LOG4CXX_AUTO_TRACE(logger_);
   return cache_->CleanupUnpairedDevices();
 }
 
@@ -528,7 +528,7 @@ DeviceConsent PolicyManagerImpl::GetUserConsentForDevice(
 
 void PolicyManagerImpl::SetUserConsentForDevice(const std::string& device_id,
     bool is_allowed) {
-  LOG4CXX_INFO(logger_, "SetUserConsentForDevice");
+  LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_, "Device :" << device_id);
   DeviceConsent current_consent = GetUserConsentForDevice(device_id);
   bool is_current_device_allowed =
@@ -590,9 +590,13 @@ void PolicyManagerImpl::SetUserConsentForDevice(const std::string& device_id,
 bool PolicyManagerImpl::ReactOnUserDevConsentForApp(const std::string app_id,
     bool is_device_allowed) {
   std::vector<std::string> current_request_types = GetAppRequestTypes(app_id);
-  bool result = cache_->ReactOnUserDevConsentForApp(app_id, is_device_allowed);
-  std::vector<std::string> new_request_types = GetAppRequestTypes(app_id);
+  std::string current_priority, new_priority;
+  GetPriority(app_id, &current_priority);
 
+  bool result = cache_->ReactOnUserDevConsentForApp(app_id, is_device_allowed);
+
+  std::vector<std::string> new_request_types = GetAppRequestTypes(app_id);
+  GetPriority(app_id, &new_priority);
   std::sort(current_request_types.begin(), current_request_types.end());
   std::sort(new_request_types.begin(), new_request_types.end());
 
@@ -603,25 +607,28 @@ bool PolicyManagerImpl::ReactOnUserDevConsentForApp(const std::string app_id,
                       new_request_types.end(),
                       std::back_inserter(diff));
 
+  AppPermissions permissions(app_id);
+
   if (!diff.empty()) {
-    AppPermissions permissions(app_id);
     permissions.requestType = new_request_types;
     permissions.requestTypeChanged = true;
-
-    app_permissions_diff_lock_.Acquire();
-    app_permissions_diff_.insert(std::make_pair(app_id, permissions));
-    app_permissions_diff_lock_.Release();
-
-    listener()->OnPendingPermissionChange(app_id);
   }
 
+  if ((!current_priority.empty()) && (!new_priority.empty())
+      && (current_priority != new_priority)) {
+    permissions.priority = new_priority;
+  }
+
+  if (permissions.requestTypeChanged || (!permissions.priority.empty())) {
+    listener_->SendOnAppPermissionsChanged(permissions, app_id);
+  }
   return result;
 }
 
 bool PolicyManagerImpl::GetInitialAppData(const std::string& application_id,
     StringArray* nicknames,
     StringArray* app_hmi_types) {
-  LOG4CXX_INFO(logger_, "GetInitialAppData");
+  LOG4CXX_AUTO_TRACE(logger_);
   const bool result = nicknames && app_hmi_types;
   if (result) {
     cache_->GetInitialAppData(application_id, *nicknames, *app_hmi_types);
@@ -640,7 +647,7 @@ void PolicyManagerImpl::AddDevice(const std::string& device_id,
 
 void PolicyManagerImpl::SetDeviceInfo(const std::string& device_id,
                                       const DeviceInfo& device_info) {
-  LOG4CXX_INFO(logger_, "SetDeviceInfo");
+  LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_, "Device :" << device_id);
   if (!cache_->SetDeviceData(device_id, device_info.hardware,
                              device_info.firmware_rev, device_info.os,
@@ -688,7 +695,7 @@ PermissionConsent PolicyManagerImpl::EnsureCorrectPermissionConsent(
 void PolicyManagerImpl::CheckPendingPermissionsChanges(
     const std::string& policy_app_id,
     const std::vector<FunctionalGroupPermission>& current_permissions) {
-  LOG4CXX_INFO(logger_, "CheckPendingPermissionsChanges");
+  LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(app_permissions_diff_lock_);
   std::map<std::string, AppPermissions>::iterator it_pending =
       app_permissions_diff_.find(policy_app_id);
@@ -729,7 +736,7 @@ void PolicyManagerImpl::CheckPendingPermissionsChanges(
 
 void PolicyManagerImpl::SetUserConsentForApp(
     const PermissionConsent& permissions) {
-  LOG4CXX_INFO(logger_, "SetUserConsentForApp");
+  LOG4CXX_AUTO_TRACE(logger_);
   cache_->ResetCalculatedPermissions();
   PermissionConsent verified_permissions =
       EnsureCorrectPermissionConsent(permissions);
@@ -774,7 +781,7 @@ void PolicyManagerImpl::SetUserConsentForApp(
 
 bool PolicyManagerImpl::GetDefaultHmi(const std::string& policy_app_id,
                                       std::string* default_hmi) {
-  LOG4CXX_INFO(logger_, "GetDefaultHmi");
+  LOG4CXX_AUTO_TRACE(logger_);
   const std::string device_id = GetCurrentDeviceId(policy_app_id);
   DeviceConsent device_consent = GetUserConsentForDevice(device_id);
   const std::string app_id =
@@ -785,7 +792,7 @@ bool PolicyManagerImpl::GetDefaultHmi(const std::string& policy_app_id,
 
 bool PolicyManagerImpl::GetPriority(const std::string& policy_app_id,
                                     std::string* priority) {
-  LOG4CXX_INFO(logger_, "GetPriority");
+  LOG4CXX_AUTO_TRACE(logger_);
   if (!priority) {
     LOG4CXX_WARN(logger_, "Input priority parameter is null.");
     return false;
@@ -802,7 +809,7 @@ std::vector<UserFriendlyMessage> PolicyManagerImpl::GetUserFriendlyMessages(
 void PolicyManagerImpl::GetUserConsentForApp(
   const std::string& device_id, const std::string& policy_app_id,
   std::vector<FunctionalGroupPermission>& permissions) {
-  LOG4CXX_INFO(logger_, "GetUserConsentForApp");
+  LOG4CXX_AUTO_TRACE(logger_);
 
   FunctionalIdType group_types;
   if (!cache_->GetPermissionsForApp(device_id, policy_app_id,
@@ -878,7 +885,7 @@ void PolicyManagerImpl::GetUserConsentForApp(
 void PolicyManagerImpl::GetPermissionsForApp(
   const std::string& device_id, const std::string& policy_app_id,
   std::vector<FunctionalGroupPermission>& permissions) {
-  LOG4CXX_INFO(logger_, "GetPermissionsForApp");
+  LOG4CXX_AUTO_TRACE(logger_);
   std::string app_id_to_check = policy_app_id;
 
   bool allowed_by_default = false;
@@ -983,7 +990,7 @@ void PolicyManagerImpl::SetSystemLanguage(const std::string& language) {
 void PolicyManagerImpl::SetSystemInfo(const std::string& ccpu_version,
                                       const std::string& wers_country_code,
                                       const std::string& language) {
-  LOG4CXX_INFO(logger_, "SetSystemInfo");
+  LOG4CXX_AUTO_TRACE(logger_);
   cache_->SetMetaInfo(ccpu_version, wers_country_code, language);
 }
 
@@ -996,7 +1003,7 @@ void PolicyManagerImpl::OnSystemReady() {
 
 uint32_t PolicyManagerImpl::GetNotificationsNumber(
     const std::string& priority) {
-  LOG4CXX_INFO(logger_, "GetNotificationsNumber");
+  LOG4CXX_AUTO_TRACE(logger_);
   return cache_->GetNotificationsNumber(priority);
 }
 
@@ -1099,7 +1106,7 @@ void PolicyManagerImpl::OnUpdateStarted() {
 }
 
 void PolicyManagerImpl::PTUpdatedAt(Counters counter, int value) {
-  LOG4CXX_INFO(logger_, "PTUpdatedAt");
+  LOG4CXX_AUTO_TRACE(logger_);
   cache_->SetCountersPassedForSuccessfulUpdate(
     counter, value);
   cache_->ResetIgnitionCycles();
@@ -1198,7 +1205,7 @@ const MetaInfo PolicyManagerImpl::GetMetaInfo() const {
 }
 
 void PolicyManagerImpl::AddApplication(const std::string& application_id) {
-  LOG4CXX_INFO(logger_, "AddApplication");
+  LOG4CXX_AUTO_TRACE(logger_);
   const std::string device_id = GetCurrentDeviceId(application_id);
   DeviceConsent device_consent = GetUserConsentForDevice(device_id);
   sync_primitives::AutoLock lock(apps_registration_lock_);

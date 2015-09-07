@@ -9,6 +9,8 @@
 #include "SmartDeviceLinkMainApp.h"
 #include "signal_handlers.h"
 
+#include <applink_types.h>
+
 #include "utils/macro.h"
 #include "utils/logger.h"
 #include "utils/system.h"
@@ -38,8 +40,6 @@
 #include "networking.h"  // cpplint: Include the directory when naming .h files
 #include "system.h"      // cpplint: Include the directory when naming .h files
 // ----------------------------------------------------------------------------
-
-bool g_bTerminate = false;
 
 namespace {
   const char kShellInterpreter[] = "sh";
@@ -71,7 +71,6 @@ int getBootCount() {
 
   file_system::ReadFile(profile::Profile::instance()->target_boot_count_file(),
                         fileContent);
-
   std::stringstream(fileContent) >> bootCount;
 
   return bootCount;
@@ -155,9 +154,7 @@ void startUSBLogging() {
      LOG4CXX_INFO(logger_, "Copy existing log info to USB from " << currentLogFilePath);
 
      std::vector<uint8_t> targetLogFileContent;
-
      file_system::ReadBinaryFile(currentLogFilePath, targetLogFileContent);
-
      file_system::WriteBinaryFile(usbLogFilePath, targetLogFileContent);
   }
 
@@ -170,7 +167,6 @@ void startUSBLogging() {
   LOG4CXX_DECODE_CHAR(logFileName, paramFileName );
 
   log4cxx::LoggerPtr rootLogger = logger_->getLoggerRepository()->getRootLogger();
-
   log4cxx::FileAppenderPtr fileAppender = rootLogger->getAppender(logFileAppender);
 
   if(fileAppender != NULL) {
@@ -182,7 +178,7 @@ void startUSBLogging() {
 
 void startSmartDeviceLink()
 {
-  LOG4CXX_INFO(logger_, " Application started!");
+  LOG4CXX_INFO(logger_, "Application started!");
   LOG4CXX_INFO(logger_, "Boot count: " << getBootCount());
 
   // --------------------------------------------------------------------------
@@ -194,9 +190,7 @@ void startSmartDeviceLink()
           profile::Profile::instance()->remote_logging_flag_file_path() +
           profile::Profile::instance()->remote_logging_flag_file()) &&
           remoteLoggingFlagFileValid()) {
-
     startUSBLogging();
-
   }
   // End section
 
@@ -227,11 +221,9 @@ void startSmartDeviceLink()
 
 void stopSmartDeviceLink()
 {
-  LOG4CXX_INFO(logger_, " LifeCycle stopping!");
+  LOG4CXX_INFO(logger_, "LifeCycle stopping!");
   main_namespace::LifeCycle::instance()->StopComponents();
-  LOG4CXX_INFO(logger_, " LifeCycle stopped!");
-
-  g_bTerminate = true;
+  LOG4CXX_INFO(logger_, "LifeCycle stopped!");
 }
 
 class ApplinkNotificationThreadDelegate : public threads::ThreadDelegate {
@@ -239,13 +231,16 @@ class ApplinkNotificationThreadDelegate : public threads::ThreadDelegate {
   ApplinkNotificationThreadDelegate(int fd);
   ~ApplinkNotificationThreadDelegate();
   virtual void threadMain();
+
  private:
-  int readfd_;
   void init_mq(const std::string& name, int flags, mqd_t& mq_desc);
   void close_mq(mqd_t mq_to_close);
   void sendHeartBeat();
+
+  int readfd_;
   utils::SharedPtr<timer::TimerThread<ApplinkNotificationThreadDelegate> > heart_beat_sender_;
   mqd_t mq_from_sdl_;
+  mqd_t aoa_mq_;
   struct mq_attr attributes_;
   size_t heart_beat_timeout_;
 };
@@ -254,24 +249,25 @@ ApplinkNotificationThreadDelegate::ApplinkNotificationThreadDelegate(int fd)
   : readfd_(fd),
     heart_beat_sender_(
       new timer::TimerThread<ApplinkNotificationThreadDelegate>(
-        "AppLinkHearBeat",
+        "AppLinkHeartBeat",
         this,
         &ApplinkNotificationThreadDelegate::sendHeartBeat, true)),
-      heart_beat_timeout_(profile::Profile::instance()->hmi_heart_beat_timeout()) {
+        heart_beat_timeout_(profile::Profile::instance()->hmi_heart_beat_timeout()) {
 
   attributes_.mq_maxmsg = MSGQ_MAX_MESSAGES;
   attributes_.mq_msgsize = MAX_QUEUE_MSG_SIZE;
   attributes_.mq_flags = 0;
 
   init_mq(PREFIX_STR_FROMSDLHEARTBEAT_QUEUE, O_RDWR | O_CREAT, mq_from_sdl_);
+  init_mq("/dev/mqueue/aoa", O_CREAT | O_WRONLY, aoa_mq_);
 }
 
 ApplinkNotificationThreadDelegate::~ApplinkNotificationThreadDelegate() {
   close_mq(mq_from_sdl_);
+  close_mq(aoa_mq_);
 }
 
 void ApplinkNotificationThreadDelegate::threadMain() {
-
   char buffer[MAX_QUEUE_MSG_SIZE];
   ssize_t length = 0;
 
@@ -286,10 +282,17 @@ void ApplinkNotificationThreadDelegate::threadMain() {
   }
 #endif
 
-  sem_t *sem;
-  while (!g_bTerminate) {
+  sem_t* sem;
+  while (true) {
     if ( (length = read(readfd_, buffer, sizeof(buffer))) != -1) {
       switch (buffer[0]) {
+        case TAKE_AOA:
+        case RELEASE_AOA:
+          if (-1 == mq_send(aoa_mq_, &buffer[0], sizeof(char), 0)) {
+            LOG4CXX_ERROR(logger_, "Unable to re-send signal to AOA: "
+                          << strerror(errno));
+          }
+          break;
         case SDL_MSG_SDL_START:
           startSmartDeviceLink();
           if (0 < heart_beat_timeout_) {
@@ -300,16 +303,7 @@ void ApplinkNotificationThreadDelegate::threadMain() {
           startUSBLogging();
           break;
         case SDL_MSG_SDL_STOP:
-	  // TODO(AKutsan) APPLINK-12701 : Move DEINIT_LOGGER() after stopSmartDeviceLink()
-          DEINIT_LOGGER();
-          stopSmartDeviceLink();
-          LOG4CXX_INFO(logger_, "Application stopped due to SDL_MSG_SDL_STOP");
-
-          /* Do not execute atexit handlers. Workaround for core crash after main() -
-           * APPLINK-13464, APPLINK-12881, APPLINK-14239, APPLINK-14304, APPLINK-14305,
-           * APPLINK-14242, APPLINK-13852, APPLINK-13521, APPLINK-14612 */
-          _exit(EXIT_SUCCESS);
-          break;
+          return;
         case SDL_MSG_LOW_VOLTAGE:
           main_namespace::LifeCycle::instance()->LowVoltage();
           sem = sem_open("/SDLSleep", O_RDWR);
@@ -358,6 +352,8 @@ void ApplinkNotificationThreadDelegate::sendHeartBeat() {
   }
 }
 
+
+
 class Dispatcher {
  public:
   Dispatcher(int pipefd, int pid)
@@ -382,6 +378,7 @@ class Dispatcher {
           state_ = kSleep;
         } else if (code == SDL_MSG_SDL_STOP) {
           Send(msg);
+          Signal(SIGTERM);
           state_ = kStop;
         } else if (code == SDL_MSG_WAKE_UP) {
           // Do nothing
@@ -399,6 +396,7 @@ class Dispatcher {
         } else if (code == SDL_MSG_SDL_STOP) {
           Signal(SIGCONT);
           Send(msg);
+          Signal(SIGTERM);
           state_ = kStop;
         }
         break;
@@ -450,12 +448,14 @@ class MQueue {
   ~MQueue() {
     mq_close(mq_);
   }
+
   std::string Receive() {
     ssize_t length = mq_receive(mq_, buffer_, sizeof(buffer_), 0);
     if (length == -1) {
       fprintf(stderr, "Error receiving message: %s\n", strerror(errno));
       return "";
     }
+
     return std::string(buffer_, length);
   }
 
@@ -521,22 +521,31 @@ int main(int argc, char** argv) {
     LOG4CXX_ERROR(logger_, "Appenders plugin not loaded, file logging disabled");
   }
   profile::Profile::instance()->UpdateValues();
+
+  ApplinkNotificationThreadDelegate* applink_notification_thread_delegate =
+      new ApplinkNotificationThreadDelegate(pipefd[0]);
   threads::Thread* applink_notification_thread =
-      threads::CreateThread("ApplinkNotify", new ApplinkNotificationThreadDelegate(pipefd[0]));
+      threads::CreateThread("ApplinkNotify", applink_notification_thread_delegate);
   applink_notification_thread->start();
 
   main_namespace::LifeCycle::instance()->Run();
 
-  //LOG4CXX_INFO(logger_, "Stopping application due to signal caught");
+  applink_notification_thread->join();
+  threads::DeleteThread(applink_notification_thread);
+  delete applink_notification_thread_delegate;
+
+  close(pipefd[0]);
+
+  DEINIT_LOGGER();
   stopSmartDeviceLink();
 
   //LOG4CXX_INFO(logger_, "Waiting for SDL controller to be finished.");
-  close(pipefd[0]);
   int result;
   waitpid(cpid, &result, 0);
 
   //LOG4CXX_INFO(logger_, "Application successfully stopped");
   //DEINIT_LOGGER();
+
   return EXIT_SUCCESS;
 }
 

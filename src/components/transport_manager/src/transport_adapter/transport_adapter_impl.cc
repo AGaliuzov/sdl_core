@@ -151,6 +151,15 @@ TransportAdapter::Error TransportAdapterImpl::Init() {
   return error;
 }
 
+void TransportAdapterImpl::AckDevices() {
+  sync_primitives::AutoLock lock(devices_mutex_);
+  for(DeviceMap::iterator it = devices_.begin(); it != devices_.end(); ++it) {
+    if (!it->second->Ack()) {
+      DeviceDisconnected(it->second->unique_device_id(), DisconnectDeviceError());
+    }
+  }
+}
+
 TransportAdapter::Error TransportAdapterImpl::SearchDevices() {
   LOG4CXX_TRACE(logger_, "enter");
   if (device_scanner_ == NULL) {
@@ -480,7 +489,7 @@ bool TransportAdapterImpl::IsServerOriginatedConnectSupported() const {
 }
 
 bool TransportAdapterImpl::IsClientOriginatedConnectSupported() const {
-  LOG4CXX_TRACE(logger_, "IsClientOriginatedConnectSupported");
+  LOG4CXX_AUTO_TRACE(logger_);
   return client_connection_listener_ != 0;
 }
 

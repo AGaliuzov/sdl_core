@@ -506,14 +506,12 @@ void ApplicationImpl::WakeUpStreaming(
 void ApplicationImpl::OnVideoStreamSuspend() {
   using namespace protocol_handler;
   LOG4CXX_AUTO_TRACE(logger_);
-  LOG4CXX_INFO(logger_, "Suspend video streaming by timer");
   SuspendStreaming(ServiceType::kMobileNav);
 }
 
 void ApplicationImpl::OnAudioStreamSuspend() {
   using namespace protocol_handler;
   LOG4CXX_AUTO_TRACE(logger_);
-  LOG4CXX_INFO(logger_, "Suspend audio streaming by timer");
   SuspendStreaming(ServiceType::kAudio);
 }
 

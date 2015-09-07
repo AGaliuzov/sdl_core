@@ -88,6 +88,8 @@ class TransportAdapterController {
    */
   virtual DeviceSptr FindDevice(const DeviceUID& device_handle) const = 0;
 
+  virtual void AckDevices() = 0;
+
   /**
    * @brief Create connection and fill its parameters.
    *

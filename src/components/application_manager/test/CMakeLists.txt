@@ -64,12 +64,11 @@ if (BUILD_TESTS)
   )
   ENDFOREACH(infileName)
 
-
   ## Replace include for mocking singltone
   get_property(the_include_dirs DIRECTORY "" PROPERTY INCLUDE_DIRECTORIES)
   set(class_to_mock ${CMAKE_SOURCE_DIR}/src/components/application_manager/include)
   list(FIND the_include_dirs ${class_to_mock} find_idx)
-  if(find_idx GREATER -1)
+  if (find_idx GREATER -1)
     LIST_REPLACE(the_include_dirs ${find_idx} ${AM_MOCK_DIR}/include)
   endif()
   set_property(DIRECTORY "" PROPERTY INCLUDE_DIRECTORIES ${the_include_dirs})
@@ -81,7 +80,13 @@ if (BUILD_TESTS)
     ${COMPONENTS_DIR}/application_manager/include/application_manager
     ${COMPONENTS_DIR}/application_manager/include/
     ${COMPONENTS_DIR}/utils/include/utils
+    ${COMPONENTS_DIR}/include/utils
     ${COMPONENTS_DIR}/policy/include/policy
+    ${COMPONENTS_DIR}/policy/test/include
+    ${COMPONENTS_DIR}/media_manager/include/
+    ${SecurityManagerIncludeDir}
+    ${COMPONENTS_DIR}/security_manager/include
+    ${COMPONENTS_DIR}/security_manager/test/include
     )
 
   set(testSources
@@ -89,17 +94,22 @@ if (BUILD_TESTS)
     ${COMPONENTS_DIR}/application_manager/test/mobile_message_handler_test.cc
     ${AM_TEST_DIR}/request_info_test.cc
     ${AM_TEST_DIR}/resumption_sql_queries_test.cc
+    ${AM_TEST_DIR}/policy_handler_test.cc
     # TODO(VVeremjova) APPLINK-12835
     #${AM_TEST_DIR}/zero_request_amount_test.cc
   )
 
-  set(mockedSources
-    ${AM_MOCK_DIR}/src/application_manager_impl.cc
-  )
+  set(mockedSources ${AM_MOCK_DIR}/src/application_manager_impl.cc)
 
   set(AM_SOURCES
     ${AM_SOURCE_DIR}/src/policies/policy_handler.cc
     ${AM_SOURCE_DIR}/src/policies/policy_event_observer.cc
+    ${AM_SOURCE_DIR}/src/policies/delegates/app_permission_delegate.cc
+    ${AM_SOURCE_DIR}/src/policies/delegates/statistics_delegate.cc
+
+    ${AM_SOURCE_DIR}/src/event_engine/event_dispatcher.cc
+    ${AM_SOURCE_DIR}/src/event_engine/event_observer.cc
+    ${AM_SOURCE_DIR}/src/event_engine/event.cc
 
     ${AM_SOURCE_DIR}/src/commands/command_impl.cc
     ${AM_SOURCE_DIR}/src/commands/command_request_impl.cc
@@ -107,6 +117,11 @@ if (BUILD_TESTS)
     ${AM_SOURCE_DIR}/src/commands/command_notification_impl.cc
     ${AM_SOURCE_DIR}/src/commands/command_notification_from_mobile_impl.cc
     ${AM_SOURCE_DIR}/src/commands/pending.cc
+
+    ${AM_SOURCE_DIR}/src/resumption/resumption_data_db.cc
+    ${AM_SOURCE_DIR}/src/resumption/resumption_data_json.cc
+    ${AM_SOURCE_DIR}/src/resumption/resumption_data.cc
+    ${AM_SOURCE_DIR}/src/resumption/resumption_sql_queries.cc
 
     ${AM_SOURCE_DIR}/src/usage_statistics.cc
     ${AM_SOURCE_DIR}/src/request_info.cc
@@ -116,16 +131,18 @@ if (BUILD_TESTS)
     ${AM_SOURCE_DIR}/src/mobile_command_factory.cc
     ${AM_SOURCE_DIR}/src/message_helper.cc
     ${AM_SOURCE_DIR}/src/hmi_command_factory.cc
+    ${AM_SOURCE_DIR}/src/hmi_state.cc
     ${AM_SOURCE_DIR}/src/hmi_capabilities.cc
     ${AM_SOURCE_DIR}/src/application_data_impl.cc
     ${AM_SOURCE_DIR}/src/request_controller.cc
+    ${AM_SOURCE_DIR}/src/state_context.cc
+
     ${AM_SOURCE_DIR}/src/commands/mobile/register_app_interface_request.cc
     ${AM_SOURCE_DIR}/src/commands/mobile/unregister_app_interface_request.cc
 
     ${AM_SOURCE_DIR}/src/mobile_message_handler.cc
     ${AM_SOURCE_DIR}/src/commands/mobile/put_file_request.cc
     ${AM_SOURCE_DIR}/src/commands/command_request_impl.cc
-
   )
 
   include_directories(
@@ -133,11 +150,13 @@ if (BUILD_TESTS)
   )
 
   set(testLibraries
+    ApplicationManagerTest
+    jsoncpp
+    Policy
+    connectionHandler
     HMI_API
     MOBILE_API
     Utils
-    MediaManager
-    ProtocolHandler
     v4_protocol_v1_2_no_extra
     SmartObjects
     formatters
@@ -146,24 +165,31 @@ if (BUILD_TESTS)
     dl
     ProtocolLibrary
     ConfigProfile
-    connectionHandler
-    ApplicationManager
+    MediaManager
     Resumption
-    jsoncpp
+    ProtocolHandler
+    SecurityManager
   )
 
-  IF(${CMAKE_SYSTEM_NAME} MATCHES "QNX")
+  if (${CMAKE_SYSTEM_NAME} MATCHES "QNX")
     list(REMOVE_ITEM test_exec_libraries dl)
   endif()
 
-  if(ENABLE_LOG)
+  if (ENABLE_LOG)
     list(APPEND LIBRARIES log4cxx -L${LOG4CXX_LIBS_DIRECTORY})
     list(APPEND LIBRARIES apr-1 -L${APR_LIBS_DIRECTORY})
     list(APPEND LIBRARIES aprutil-1 -L${APR_UTIL_LIBS_DIRECTORY})
     list(APPEND LIBRARIES expat -L${EXPAT_LIBS_DIRECTORY})
   endif()
 
-  add_library("ApplicationManagerTest" ${testSources} ${AM_SOURCES})
+  file(COPY smartDeviceLink_test2.ini DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+  file(COPY sdl_preloaded_pt.json DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+  file(COPY sdl_pt_update.json DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+  file(COPY libPolicy.so DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
+  set(CMAKE_EXE_LINKER_FLAGS
+    "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath=${CMAKE_CURRENT_BINARY_DIR}")
+  add_library("ApplicationManagerTest" ${AM_SOURCES})
   create_test("application_manager_test" "${testSources}" "${testLibraries}" "${AM_SOURCES_MOCK}" )
 
   set(ResumptionData_SOURCES
@@ -175,6 +201,7 @@ if (BUILD_TESTS)
   file(COPY resumption/smartDeviceLink_test.ini DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/resumption)
+  file(COPY resumption/smartDeviceLink_test.ini DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/resumption)
   create_test("resumption/resumption_test" "${Resumption_SOURCES}" "${testLibraries}" "${AM_SOURCES_MOCK}")
   create_test("resumption/data_resumption_test" "${ResumptionData_SOURCES}" "${testLibraries}" "${AM_SOURCES_MOCK}")
 endif()

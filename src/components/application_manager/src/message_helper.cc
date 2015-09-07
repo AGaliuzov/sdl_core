@@ -179,58 +179,24 @@ static VehicleInfo_Requests ivi_subrequests[] = {
 
 std::string MessageHelper::CommonLanguageToString(
   hmi_apis::Common_Language::eType language) {
-  switch (language) {
-    case hmi_apis::Common_Language::EN_US:
-      return "en-us";
-    case hmi_apis::Common_Language::ES_MX:
-      return "es-mx";
-    case hmi_apis::Common_Language::FR_CA:
-      return "fr-ca";
-    case hmi_apis::Common_Language::DE_DE:
-      return "de-de";
-    case hmi_apis::Common_Language::ES_ES:
-      return "es-es";
-    case hmi_apis::Common_Language::EN_GB:
-      return "en-gb";
-    case hmi_apis::Common_Language::RU_RU:
-      return "ru-ru";
-    case hmi_apis::Common_Language::TR_TR:
-      return "tr-tr";
-    case hmi_apis::Common_Language::PL_PL:
-      return "pl-pl";
-    case hmi_apis::Common_Language::FR_FR:
-      return "fr-fr";
-    case hmi_apis::Common_Language::IT_IT:
-      return "it-it";
-    case hmi_apis::Common_Language::SV_SE:
-      return "sv-se";
-    case hmi_apis::Common_Language::PT_PT:
-      return "pt-pt";
-    case hmi_apis::Common_Language::NL_NL:
-      return "nl-nl";
-    case hmi_apis::Common_Language::EN_AU:
-      return "en-au";
-    case hmi_apis::Common_Language::ZH_CN:
-      return "zh-cn";
-    case hmi_apis::Common_Language::ZH_TW:
-      return "zh-tw";
-    case hmi_apis::Common_Language::JA_JP:
-      return "ja-jp";
-    case hmi_apis::Common_Language::AR_SA:
-      return "as-sa";
-    case hmi_apis::Common_Language::KO_KR:
-      return "ko-kr";
-    case hmi_apis::Common_Language::PT_BR:
-      return "pt-br";
-    case hmi_apis::Common_Language::CS_CZ:
-      return "cs-cz";
-    case hmi_apis::Common_Language::DA_DK:
-      return "da-dk";
-    case hmi_apis::Common_Language::NO_NO:
-      return "no-no";
-    default:
-      return "";
+  using namespace NsSmartDeviceLink::NsSmartObjects;
+  const char* str = 0;
+  if (EnumConversionHelper<hmi_apis::Common_Language::eType>::EnumToCString(
+        language, &str)) {
+    return str ? str : "";
   }
+  return std::string();
+}
+
+hmi_apis::Common_Language::eType MessageHelper::CommonLanguageFromString(
+    const std::string& language) {
+  using namespace NsSmartDeviceLink::NsSmartObjects;
+  hmi_apis::Common_Language::eType value;
+  if (EnumConversionHelper<hmi_apis::Common_Language::eType>::StringToEnum(
+        language, &value)) {
+    return value;
+  }
+  return hmi_apis::Common_Language::INVALID_ENUM;
 }
 
 uint32_t MessageHelper::GetAppCommandLimit(const std::string& policy_app_id) {
@@ -425,7 +391,7 @@ void MessageHelper::SendHashUpdateNotification(const uint32_t app_id) {
     PrintSmartObject(*so);
     if (!ApplicationManagerImpl::instance()->ManageMobileCommand(
         so, commands::Command::ORIGIN_SDL)) {
-      LOG4CXX_ERROR_EXT(logger_, "Failed to send HashUpdate notification.");
+      LOG4CXX_ERROR(logger_, "Failed to send HashUpdate notification.");
     } else {
       ApplicationManagerImpl::instance()->resume_controller().ApplicationsDataUpdated();
     }
@@ -463,6 +429,68 @@ void MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
 
 const VehicleData& MessageHelper::vehicle_data() {
   return vehicle_data_;
+}
+
+std::string MessageHelper::HMIResultToString(
+    hmi_apis::Common_Result::eType hmi_result) {
+  using namespace NsSmartDeviceLink::NsSmartObjects;
+  const char* str = 0;
+  if (EnumConversionHelper<hmi_apis::Common_Result::eType>::EnumToCString(
+        hmi_result, &str)) {
+    return str;
+  }
+  return std::string();
+}
+
+hmi_apis::Common_Result::eType MessageHelper::HMIResultFromString(
+    const std::string &hmi_result) {
+  using namespace NsSmartDeviceLink::NsSmartObjects;
+  hmi_apis::Common_Result::eType value;
+  if (EnumConversionHelper<hmi_apis::Common_Result::eType>::StringToEnum(
+        hmi_result, &value)) {
+    return value;
+  }
+  return hmi_apis::Common_Result::INVALID_ENUM;
+}
+
+std::string MessageHelper::MobileResultToString(
+    mobile_apis::Result::eType mobile_result) {
+  using namespace NsSmartDeviceLink::NsSmartObjects;
+  const char* str = 0;
+  if (EnumConversionHelper<mobile_apis::Result::eType>::EnumToCString(
+        mobile_result, &str)) {
+    return str;
+  }
+  return std::string();
+}
+
+mobile_apis::Result::eType MessageHelper::MobileResultFromString(
+    const std::string &mobile_result) {
+  using namespace NsSmartDeviceLink::NsSmartObjects;
+  mobile_apis::Result::eType value;
+  if (EnumConversionHelper<mobile_apis::Result::eType>::StringToEnum(
+        mobile_result, &value)) {
+    return value;
+  }
+  return mobile_apis::Result::INVALID_ENUM;
+}
+
+mobile_apis::Result::eType MessageHelper::HMIToMobileResult(
+    const hmi_apis::Common_Result::eType hmi_result) {
+  const std::string result = HMIResultToString(hmi_result);
+  if (result.empty()) {
+    return mobile_api::Result::INVALID_ENUM;
+  }
+  return MobileResultFromString(result);
+}
+
+hmi_apis::Common_Result::eType MessageHelper::MobileToHMIResult(
+    const mobile_apis::Result::eType mobile_result) {
+  const std::string result = MobileResultToString(mobile_result);
+  if (result.empty()) {
+    return hmi_apis::Common_Result::INVALID_ENUM;
+  }
+  return HMIResultFromString(result);
 }
 
 mobile_apis::HMILevel::eType MessageHelper::StringToHMILevel(
@@ -1036,11 +1064,11 @@ smart_objects::SmartObjectList MessageHelper::CreateAddCommandRequestToHMI(
       msg_params[strings::menu_params] = (*i->second)[strings::menu_params];
       msg_params[strings::app_id] = app->app_id();
 
-      if (((*i->second)[strings::cmd_icon].keyExists(strings::value))
+      if (((*i->second).keyExists(strings::cmd_icon))
           && (0 < (*i->second)[strings::cmd_icon][strings::value].length())) {
         msg_params[strings::cmd_icon] = (*i->second)[strings::cmd_icon];
         msg_params[strings::cmd_icon][strings::value] =
-          (*i->second)[strings::cmd_icon][strings::value].asString();
+            (*i->second)[strings::cmd_icon][strings::value].asString();
       }
       (*ui_command)[strings::msg_params] = msg_params;
       requests.push_back(ui_command);

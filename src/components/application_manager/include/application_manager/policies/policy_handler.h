@@ -285,6 +285,9 @@ class PolicyHandler :
   virtual void OnDeviceConsentChanged(const std::string& device_id,
                                       bool is_allowed);
 
+  virtual void SendOnAppPermissionsChanged(const AppPermissions& permissions,
+                                         const std::string& policy_app_id) const;
+
   virtual void OnPTExchangeNeeded();
 
   virtual void GetAvailableApps(std::queue<std::string>& apps);
@@ -375,6 +378,13 @@ class PolicyHandler :
                    usage_statistics::AppStopwatchId type,
                    int32_t timespan_seconds);
 
+
+#ifdef BUILD_TESTS
+  void SetPolicyManager(utils::SharedPtr<PolicyManager> pm) {
+    policy_manager_ = pm;
+  }
+#endif // BUILD_TESTS
+
 protected:
 
   /**
@@ -449,7 +459,7 @@ private:
                                               app_id, type, timespan_seconds));
       }
   };
-  //TODO(AKutsan) REMOVE THIS UGLY HOTFIX
+  // TODO(AKutsan) REMOVE THIS UGLY HOTFIX
 
 
   PolicyHandler();

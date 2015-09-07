@@ -59,6 +59,7 @@ static void OnConnectedDevice(aoa_hdl_t *hdl, const void *udata) {
   if (life) {
     life->Loop(hdl);
   }
+  AOAWrapper::life_keeper_.ReleaseLife(hdl);
 }
 
 static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
@@ -82,8 +83,10 @@ static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
       LOG4CXX_DEBUG(logger_, "AOA: reset active_handle to NULL");
       active_handle = NULL;
     }
-    AOAWrapper::OnDied(hdl);
-    observer->OnDisconnected();
+    if (AOAWrapper::life_keeper_.LifeExists(hdl)) {
+      AOAWrapper::OnDied(hdl);
+      observer->OnDisconnected();
+    }
     return;
   }
 
@@ -160,7 +163,9 @@ bool AOAWrapper::HandleDevice(AOADeviceLife* life,
 
 void AOAWrapper::Disconnect(bool forced) {
   Shutdown();
-  connection_observer_->OnDisconnected(forced);
+  if (connection_observer_) {
+    connection_observer_->OnDisconnected(forced);
+  }
 }
 
 bool AOAWrapper::Init(AOADeviceLife* life, const char* config_path,
@@ -487,7 +492,13 @@ void AOAWrapper::PrepareUsbInfo(const AOAUsbInfo& aoa_usb_info,
 }
 
 void LifeKeeper::AddLife(AOADeviceLife *life) {
+  if (NULL == life) {
+    LOG4CXX_DEBUG(logger_,"Life object is NULL shouldn't be added to the pool");
+    return;
+  }
+
   free_life_pool.push(life);
+
 }
 
 AOADeviceLife* LifeKeeper::BindHandle2Life(aoa_hdl_t *hdl) {
@@ -500,7 +511,7 @@ AOADeviceLife* LifeKeeper::BindHandle2Life(aoa_hdl_t *hdl) {
 }
 
 AOADeviceLife* LifeKeeper::GetLife(aoa_hdl_t *hdl){
-  if (!life_exists(hdl)) { return NULL; }
+  if (!LifeExists(hdl)) { return NULL; }
 
   return live_devices[hdl];
 }
@@ -514,7 +525,7 @@ AOADeviceLife* LifeKeeper::ReleaseLife(aoa_hdl_t *hdl) {
   return life;
 }
 
-bool LifeKeeper::life_exists(aoa_hdl_t* hdl) {
+bool LifeKeeper::LifeExists(aoa_hdl_t* hdl) {
   return live_devices.find(hdl) != live_devices.end();
 }
 

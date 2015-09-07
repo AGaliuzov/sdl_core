@@ -90,6 +90,16 @@ void AOADynamicDevice::StopDevice(AOAWrapper::AOAHandle handle) {
   life_cond_.Broadcast();
 }
 
+bool AOADynamicDevice::Ack() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  if (!AOAWrapper::IsHandleValid(handle())) {
+    LOG4CXX_DEBUG(logger_, "Device is about to be die.");
+    life_->OnDied(handle());
+    return false;
+  }
+  return true;
+}
+
 AOADynamicDevice::DeviceLife::DeviceLife(AOADynamicDevice* parent)
     : parent_(parent) {
 }

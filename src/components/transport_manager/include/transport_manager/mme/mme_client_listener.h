@@ -36,7 +36,6 @@
 #include <map>
 
 #include <mqueue.h>
-#include <qdb/qdb.h>
 
 #include "utils/threads/thread.h"
 #include "utils/threads/thread_delegate.h"
@@ -93,11 +92,6 @@ class MmeClientListener : public ClientConnectionListener {
   virtual TransportAdapter::Error StopListening();
 
  private:
-  typedef uint64_t qdb_int;
-  typedef qdb_int msid_t;
-  typedef std::vector<msid_t> MsidContainer;
-  typedef std::map<msid_t, MmeDevicePtr> DeviceContainer;
-
   void OnDeviceArrived(const MmeDeviceInfo* mme_device_info);
   void OnDeviceLeft(const MmeDeviceInfo* mme_device_info);
   void NotifyDevicesUpdated();
@@ -111,7 +105,6 @@ class MmeClientListener : public ClientConnectionListener {
   bool initialised_;
   mqd_t event_mqd_;
   mqd_t ack_mqd_;
-  qdb_hdl_t* qdb_hdl_;
   threads::Thread* notify_thread_;
   threads::ThreadDelegate* notify_thread_delegate_;
   sync_primitives::Lock devices_lock_;

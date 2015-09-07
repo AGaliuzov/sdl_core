@@ -336,7 +336,6 @@ bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
                 << "with hmi_app_id " << application->hmi_app_id()
                 << ", policy_app_id " << application->policy_app_id()
                 << " and received hash is " << hash);
-  SetupDefaultHMILevel(application);
   smart_objects::SmartObject saved_app;
   bool result = resumption_storage_->GetSavedApplication(application->policy_app_id(),
       MessageHelper::GetDeviceMacAddressForHandle(application->device()),
@@ -352,7 +351,7 @@ bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
 
 bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (!application.valid()) {
+  if (!application) {
     LOG4CXX_WARN(logger_, "Application does not exist.");
     return false;
   }
@@ -360,7 +359,6 @@ bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
                 << application->app_id()
                 << "with hmi_app_id " << application->hmi_app_id()
                 << ", policy_app_id " << application->policy_app_id());
-  SetupDefaultHMILevel(application);
   smart_objects::SmartObject saved_app;
   bool result = resumption_storage_->GetSavedApplication(application->policy_app_id(),
       MessageHelper::GetDeviceMacAddressForHandle(application->device()),

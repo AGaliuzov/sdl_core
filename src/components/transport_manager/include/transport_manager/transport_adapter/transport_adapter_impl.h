@@ -100,6 +100,8 @@ class TransportAdapterImpl : public TransportAdapter,
    **/
   virtual TransportAdapter::Error Init();
 
+  virtual void AckDevices();
+
   /**
    * @brief Stops device adapter
    * Called from transport manager to stop device adapter
@@ -446,7 +448,7 @@ class TransportAdapterImpl : public TransportAdapter,
    *
    * @return pointer to the connection.
    */
-  ConnectionSPtr FindEstablishedConnection(const DeviceUID& device_handle,
+  virtual ConnectionSPtr FindEstablishedConnection(const DeviceUID& device_handle,
                                            const ApplicationHandle& app_handle) const;
 
  private:

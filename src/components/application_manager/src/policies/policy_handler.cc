@@ -275,22 +275,23 @@ bool PolicyHandler::LoadPolicyLibrary() {
   if (!PolicyEnabled()) {
     LOG4CXX_WARN(logger_, "System is configured to work without policy "
                  "functionality.");
-    policy_manager_ = NULL;
+    policy_manager_.reset();
     return NULL;
   }
   dl_handle_ = dlopen(kLibrary.c_str(), RTLD_LAZY);
 
-  char* error_string = dlerror();
-  if (error_string == NULL) {
+  char* error = dlerror();
+  if (!error) {
     if (CreateManager()) {
       policy_manager_->set_listener(this);
       event_observer_= new PolicyEventObserver(this);
     }
   } else {
-    LOG4CXX_ERROR(logger_, error_string);
+    LOG4CXX_ERROR(logger_, error);
   }
 
   return policy_manager_.valid();
+
 }
 
 bool PolicyHandler::PolicyEnabled() {
@@ -301,7 +302,7 @@ bool PolicyHandler::CreateManager() {
   typedef PolicyManager* (*CreateManager)();
   CreateManager create_manager = reinterpret_cast<CreateManager>(dlsym(dl_handle_, "CreateManager"));
   char* error_string = dlerror();
-  if (error_string == NULL) {
+  if (NULL == error_string) {
     policy_manager_ = create_manager();
   } else {
     LOG4CXX_WARN(logger_, error_string);
@@ -404,6 +405,20 @@ void PolicyHandler::OnDeviceConsentChanged(const std::string& device_id,
       policy_manager_->SendNotificationOnPermissionsUpdated(policy_app_id);
     }
   }
+}
+
+void PolicyHandler::SendOnAppPermissionsChanged(const AppPermissions& permissions,
+                               const std::string& policy_app_id) const {
+  LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(logger_, "PolicyHandler::SendOnAppPermissionsChanged for "
+                 << policy_app_id);
+  ApplicationSharedPtr app = ApplicationManagerImpl::instance()
+  ->application_by_policy_id(policy_app_id);
+  if (!app.valid()) {
+    LOG4CXX_WARN(logger_, "No app found for policy app id = " << policy_app_id);
+    return;
+  }
+  MessageHelper::SendOnAppPermissionsChangedNotification(app->app_id(), permissions);
 }
 
 void PolicyHandler::OnPTExchangeNeeded() {
@@ -643,15 +658,14 @@ void PolicyHandler::OnSystemInfoUpdateRequired() {
 }
 
 void PolicyHandler::OnVIIsReady() {
+  LOG4CXX_AUTO_TRACE(logger_);
   const uint32_t correlation_id =
       ApplicationManagerImpl::instance()->GetNextHMICorrelationID();
 
   std::vector<std::string> params;
   params.push_back(strings::vin);
 
-  MessageHelper::CreateGetVehicleDataRequest(
-        correlation_id, params);
-
+  MessageHelper::CreateGetVehicleDataRequest(correlation_id, params);
 }
 
 void PolicyHandler::OnVehicleDataUpdated(
@@ -991,7 +1005,7 @@ void PolicyHandler::OnActivateApp(uint32_t connection_key,
           last_activated_app_id_ = 0;
         }
   } else {
-    LOG4CXX_INFO(logger_, "Application should not be activated");
+    LOG4CXX_WARN(logger_, "Application should not be activated");
   }
 
   MessageHelper::SendSDLActivateAppResponse(permissions, correlation_id);
@@ -1007,8 +1021,7 @@ void PolicyHandler::PTExchangeAtUserRequest(uint32_t correlation_id) {
   LOG4CXX_TRACE(logger_, "PT exchange at user request");
   POLICY_LIB_CHECK_VOID();
   std::string update_status = policy_manager_->ForcePTExchange();
-  MessageHelper::SendUpdateSDLResponse(update_status,
-                                                            correlation_id);
+  MessageHelper::SendUpdateSDLResponse(update_status, correlation_id);
 }
 
 void PolicyHandler::OnPermissionsUpdated(const std::string& policy_app_id,
@@ -1195,11 +1208,17 @@ void PolicyHandler::PTUpdatedAt(Counters counter, int value) {
 }
 
 void PolicyHandler::add_listener(PolicyHandlerObserver* listener) {
+  if (NULL == listener) {
+    return;
+  }
   sync_primitives::AutoLock lock(listeners_lock_);
   listeners_.push_back(listener);
 }
 
 void PolicyHandler::remove_listener(PolicyHandlerObserver* listener) {
+  if (NULL == listener) {
+    return;
+  }
   sync_primitives::AutoLock lock(listeners_lock_);
   listeners_.remove(listener);
 }
@@ -1298,7 +1317,7 @@ void PolicyHandler::RemoveDevice(const std::string& device_id) {
 }
 
 bool PolicyHandler::IsApplicationRevoked(const std::string& app_id) {
-  LOG4CXX_TRACE(logger_, "PolicyHandler::IsApplicationRevoked");
+  LOG4CXX_AUTO_TRACE(logger_);
   POLICY_LIB_CHECK(false);
 
   return policy_manager_->IsApplicationRevoked(app_id);
