@@ -32,7 +32,7 @@ INCLUDES = \
 	$(CC_IFLAG)../usage_statistics/include \
 	$(CC_IFLAG)../../../../utils/include/utils \
 	$(CC_IFLAG)../../../../utils/include/utils \
-	$(CC_IFLAG)../policy_table/table_struct_ext \
+ $(CC_IFLAG)../../../../../components \
 	$(CC_IFLAG)../../../../include \
 	$(CC_IFLAG)../../../../rpc_base/include \
 	$(CC_IFLAG)../../../../utils/include \
