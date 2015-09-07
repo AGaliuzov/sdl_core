@@ -29,19 +29,19 @@ DEFS += \
 # Global (non-team) references should be only to other's public includes such 
 #  these are found in the depends include file and captured in the (DEPENDS_INCLUDES) variable
 INCLUDES = \
-	$(CFG_INCS) \
-	$(CC_IFLAG)./ \
-	$(CC_IFLAG)../include \
-	$(CC_IFLAG)../../include \
-	$(CC_IFLAG)../../protocol_handler/include \
-	$(CC_IFLAG)../../connection_handler/include \
-	$(CC_IFLAG)../../config_profile/include \
+ $(CFG_INCS) \
+ $(CC_IFLAG)./ \
+ $(CC_IFLAG)../include \
+ $(CC_IFLAG)../../include \
+ $(CC_IFLAG)../../protocol_handler/include \
+ $(CC_IFLAG)../../connection_handler/include \
+ $(CC_IFLAG)../../config_profile/include \
  $(CC_IFLAG)../../transport_manager/include \
  $(CC_IFLAG)../../resumption/include \
-	$(CC_IFLAG)../../utils/include \
-	$(CC_IFLAG)../../../3rd_party-static/jsoncpp/include/json \
-	$(CC_IFLAG)../../../3rd_party/log4cxx/include \
-	$(DEPENDS_INCLUDES)
+ $(CC_IFLAG)../../utils/include \
+ $(CC_IFLAG)../../../3rd_party-static/jsoncpp/include/json \
+ $(CC_IFLAG)../../../3rd_party/log4cxx/include \
+ $(DEPENDS_INCLUDES)
 
 
 # Do the same if you need to include library paths as well
