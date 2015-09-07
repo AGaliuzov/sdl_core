@@ -81,6 +81,7 @@ if (BUILD_TESTS)
     ${COMPONENTS_DIR}/application_manager/include/
     ${COMPONENTS_DIR}/utils/include/utils
     ${COMPONENTS_DIR}/include/utils
+    ${COMPONENTS_DIR}/include/
     ${COMPONENTS_DIR}/policy/include/policy
     ${COMPONENTS_DIR}/policy/test/include
     ${COMPONENTS_DIR}/media_manager/include/
@@ -91,7 +92,7 @@ if (BUILD_TESTS)
 
   set(testSources
     ${AM_TEST_DIR}/command_impl_test.cc
-    ${COMPONENTS_DIR}/application_manager/test/mobile_message_handler_test.cc
+    ${AM_TEST_DIR}/mobile_message_handler_test.cc
     ${AM_TEST_DIR}/request_info_test.cc
     ${AM_TEST_DIR}/resumption_sql_queries_test.cc
     ${AM_TEST_DIR}/policy_handler_test.cc

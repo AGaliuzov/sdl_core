@@ -114,15 +114,15 @@ Message::~Message() {
   }
 }
 
-int32_t Message::function_id() const {
+uint32_t Message::function_id() const {
   return function_id_;
 }
 
-int32_t Message::correlation_id() const {
+uint32_t Message::correlation_id() const {
   return correlation_id_;
 }
 
-int32_t Message::connection_key() const {
+uint32_t Message::connection_key() const {
   return connection_key_;
 }
 
@@ -154,15 +154,15 @@ size_t Message::payload_size() const {
   return payload_size_;
 }
 
-void Message::set_function_id(int32_t id) {
+void Message::set_function_id(uint32_t id) {
   function_id_ = id;
 }
 
-void Message::set_correlation_id(int32_t id) {
+void Message::set_correlation_id(uint32_t id) {
   correlation_id_ = id;
 }
 
-void Message::set_connection_key(int32_t key) {
+void Message::set_connection_key(uint32_t key) {
   connection_key_ = key;
 }
 

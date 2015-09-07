@@ -30,18 +30,17 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <string.h>
+#include "application_manager/mobile_message_handler.h"
+#include <stdint.h>
+#include <memory>
+#include <string>
 
 #include "utils/macro.h"
-#include "application_manager/mobile_message_handler.h"
 #include "protocol_handler/protocol_payload.h"
 #include "protocol_handler/protocol_packet.h"
 #include "utils/bitstream.h"
 #include "utils/logger.h"
 
-#include <stdint.h>
-#include <memory>
-#include <string>
 
 namespace {
 const uint8_t kRequest = 0x0;
@@ -67,7 +66,7 @@ application_manager::Message* MobileMessageHandler::HandleIncomingMessageProtoco
   const protocol_handler::RawMessagePtr message) {
   DCHECK_OR_RETURN(message, NULL);
   application_manager::Message* out_message = NULL;
-  switch (message->protocol_version()) {
+  switch (static_cast<ProtocolVersion> (message->protocol_version())) {
   case ProtocolVersion::kV1:
     LOG4CXX_DEBUG(logger_, "Protocol version - V1");
     out_message = MobileMessageHandler::HandleIncomingMessageProtocolV1(message);
@@ -108,16 +107,18 @@ protocol_handler::RawMessage* MobileMessageHandler::HandleOutgoingMessageProtoco
                 message->correlation_id() << ", " <<
                 message->json_message());
 
-  if (message->protocol_version() == application_manager::kV1) {
+  application_manager::ProtocolVersion current_protocol_version =
+      static_cast<ProtocolVersion>(message->protocol_version());
+
+  if (current_protocol_version == application_manager::kV1) {
     return MobileMessageHandler::HandleOutgoingMessageProtocolV1(message);
   }
-  if ((message->protocol_version() == application_manager::kV2) ||
-	  (message->protocol_version() == application_manager::kV3)) {
+  if ((current_protocol_version == application_manager::kV2) ||
+      (current_protocol_version == application_manager::kV3)) {
     return MobileMessageHandler::HandleOutgoingMessageProtocolV2(message);
   }
   return NULL;
 }
-
 
 application_manager::Message*
 MobileMessageHandler::HandleIncomingMessageProtocolV1(
