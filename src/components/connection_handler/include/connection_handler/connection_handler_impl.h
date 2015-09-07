@@ -321,13 +321,24 @@ class ConnectionHandlerImpl : public ConnectionHandler,
                             CloseSessionReason close_reason);
 
   /**
+   * \brief Closes all services related to specified session
+   * in reverse order of creating
+   * \param session_key Key of session to be processed
+   * \param session Session to be processed
+   * \param close_reason The reason of services closing
+   */
+  void CloseSessionServices(
+      uint32_t session_key, const Session& session,
+      CloseSessionReason close_reason);
+
+  /**
    * \brief Function used by OnApplicationFloodCallback and
    * OnMalformedMessageCallback to close all connection sessions before
    * connection closing
    * \param connection_handle Connection identifier within which session exists
    * \param close_reason The reason of connection closing
    */
-  virtual void CloseConnectionSessions(
+  void CloseConnectionSessions(
       ConnectionHandle connection_handle, CloseSessionReason close_reason);
 
   /**

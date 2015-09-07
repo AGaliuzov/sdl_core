@@ -432,6 +432,13 @@ uint32_t ConnectionHandlerImpl::OnSessionEndedCallback(
         return 0;
       }
     }
+    const SessionMap& session_map = connection->session_map();
+    SessionMap::const_iterator session_itr =
+        session_map.find(session_id);
+    if (session_map.end() != session_itr) {
+      const Session& session = session_itr->second;
+      CloseSessionServices(session_key, session, CloseSessionReason::kCommon);
+    }
     if (!connection->RemoveSession(session_id)) {
       LOG4CXX_WARN(logger_, "Couldn't remove session "
                    << static_cast<uint32_t>(session_id));
@@ -440,6 +447,11 @@ uint32_t ConnectionHandlerImpl::OnSessionEndedCallback(
   } else {
     LOG4CXX_INFO(logger_, "Service "  << static_cast<uint32_t>(service_type)
                  << " to be removed");
+    sync_primitives::AutoLock lock(connection_handler_observer_lock_);
+    if (connection_handler_observer_) {
+      connection_handler_observer_->OnServiceEndedCallback(
+          session_key, service_type, CloseSessionReason::kCommon);
+    }
     if (!connection->RemoveService(session_id, service_type)) {
       LOG4CXX_WARN(logger_, "Couldn't remove service "
                    << static_cast<uint32_t>(service_type));
@@ -447,11 +459,6 @@ uint32_t ConnectionHandlerImpl::OnSessionEndedCallback(
     }
   }
 
-  sync_primitives::AutoLock lock2(connection_handler_observer_lock_);
-  if (connection_handler_observer_) {
-    connection_handler_observer_->OnServiceEndedCallback(
-        session_key, service_type, CloseSessionReason::kCommon);
-  }
   return session_key;
 }
 
@@ -798,24 +805,11 @@ void ConnectionHandlerImpl::CloseSession(ConnectionHandle connection_handle,
     }
   }
 
-  if (!connection_handler_observer_) {
-    LOG4CXX_ERROR(logger_, "Connection handler observer not found");
-    return;
-  }
-
   SessionMap::const_iterator session_map_itr = session_map.find(session_id);
   if (session_map_itr != session_map.end()) {
     const uint32_t session_key = KeyFromPair(connection_id, session_id);
-    const Session &session = session_map_itr->second;
-    const ServiceList &service_list = session.service_list;
-
-    ServiceList::const_iterator service_list_itr = service_list.begin();
-    for (;service_list_itr != service_list.end(); ++service_list_itr) {
-      const protocol_handler::ServiceType service_type =
-          service_list_itr->service_type;
-      connection_handler_observer_->OnServiceEndedCallback(
-          session_key, service_type, close_reason);
-    }
+    const Session& session = session_map_itr->second;
+    CloseSessionServices(session_key, session, close_reason);
   } else {
     LOG4CXX_ERROR(logger_, "Session with id: "
                   << session_id << " not found");
@@ -823,6 +817,29 @@ void ConnectionHandlerImpl::CloseSession(ConnectionHandle connection_handle,
   }
   LOG4CXX_DEBUG(logger_, "Session with id: " << session_id
                 << " has been closed successfully");
+}
+
+void ConnectionHandlerImpl::CloseSessionServices(
+    uint32_t session_key, const Session& session,
+    CloseSessionReason close_reason) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(logger_, "Closing all services for session with key: "
+                << session_key);
+
+  sync_primitives::AutoLock lock(connection_handler_observer_lock_);
+  DCHECK_OR_RETURN_VOID(connection_handler_observer_);
+
+  const ServiceList& service_list = session.service_list;
+  ServiceList::const_reverse_iterator service_list_ritr =
+      service_list.rbegin();
+  for (;service_list_ritr != service_list.rend(); ++service_list_ritr) {
+    const protocol_handler::ServiceType service_type =
+        service_list_ritr->service_type;
+    connection_handler_observer_->OnServiceEndedCallback(
+        session_key, service_type, close_reason);
+  }
+  LOG4CXX_DEBUG(logger_, "All services for session with key: " << session_key
+                << " have been closed successfully");
 }
 
 void ConnectionHandlerImpl::CloseConnectionSessions(
@@ -918,19 +935,13 @@ void ConnectionHandlerImpl::OnConnectionEnded(
   connection_list_.erase(itr);
   connection_list_lock_.Release();
 
-  sync_primitives::AutoLock lock2(connection_handler_observer_lock_);
-  if (connection_handler_observer_ && connection.get() != NULL) {
+  if (connection.get() != NULL) {
     const SessionMap session_map = connection->session_map();
-
     for (SessionMap::const_iterator session_it = session_map.begin();
          session_map.end() != session_it; ++session_it) {
       const uint32_t session_key = KeyFromPair(connection_id, session_it->first);
-      const ServiceList &service_list = session_it->second.service_list;
-      for (ServiceList::const_iterator service_it = service_list.begin(), end =
-           service_list.end(); service_it != end; ++service_it) {
-        connection_handler_observer_->OnServiceEndedCallback(
-            session_key, service_it->service_type, reason);
-      }
+      const Session& session = session_it->second;
+      CloseSessionServices(session_key, session, reason);
     }
   }
 }
