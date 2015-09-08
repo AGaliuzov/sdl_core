@@ -8,12 +8,15 @@ from os import listdir, walk, makedirs
 from os.path import isdir, isfile, join
 import errno
 import shutil
+import sys
+import os
 
 DEFAULT_USER = b"root"
 DEFAULT_PASSWD = b"#Pasa3Ford"
 rtc_bin_folder = "bin/armle-v7/release/"
 rtc_dll_folder = "dll/armle-v7/release/"
 rtc_etc_folder = "src/appMain/"
+
 
 def find_recursively(file_name, directory):
     list_dir = listdir(directory)
@@ -27,6 +30,7 @@ def find_recursively(file_name, directory):
             if entry == file_name:
                 return full_path
     return None
+
 
 def validate_ip(ip):
     if not ip:
@@ -42,6 +46,7 @@ def validate_ip(ip):
         except(ValueError):
             return False
     return True
+
 
 def telnet_login(ip, user, passwd):
     telnetConnection = None
@@ -61,6 +66,7 @@ def telnet_login(ip, user, passwd):
     print("Login Success")
     return telnetConnection
 
+
 def create_path(filename, base=""):
     """
     create path for filename if it not exits
@@ -72,6 +78,7 @@ def create_path(filename, base=""):
     except OSError as exception:
         if exception.errno != errno.EEXIST:
             raise exception
+
 
 HU_files_path = {
     # binaries
@@ -115,12 +122,16 @@ parser.add_option("--bin", dest="bin_path", metavar="BIN PATH",
 parser.add_option("--to_target", dest="to_target", action="store_true", default=False,
                   help="Load binaries to target, --ip and --bin options required")
 parser.add_option("--collect_rtc", dest="collect_rtc", action="store_true", default=False,
-                  help="Collect binaries from RTC workspace to copy of target file system. --rtc and --bin options required")
+                  help="Cllect binaries from RTC workspace to copy of target file system. --rtc and --bin options required")
+parser.add_option("--login", dest="login", action="store_true", default=False,
+                  help="Automaticaly login on HU via telnet")
+
 
 class Target:
     """
     Connection to target via telnet and ftp
     """
+
     def __init__(self, ip, bin_path=None, rtc_path=None, zipped=False, user=DEFAULT_USER, passwd=DEFAULT_PASSWD):
         self.ip = ip
         self.bin_path = bin_path
@@ -152,7 +163,7 @@ class Target:
         command = b"sync; sync; sync\n"
         self.telnet().write(command)
         res = self.telnet().read_until(b'#')
-        print (res)
+        print(res)
         print("FS synced")
 
     def kill_sdl(self):
@@ -162,18 +173,42 @@ class Target:
         time.sleep(0.5)
         print("kill sdl success")
 
+    def get_local_size(self, local_path):
+        command = "wc -c %s" % local_path
+        tmp = os.popen(command).read()
+        size = tmp.split(" ")[0]
+        return int(size)
+
+    def get_remote_size(self, hu_path):
+        command = "wc -c %s \n" % hu_path
+        command = command.encode("ascii")
+        self.telnet().write(command)
+        tmp = self.telnet().read_until(b'#')
+        tmp = tmp.decode("ascii")
+        size = tmp.split()[3]
+        return int(size)
+
     def load_file_on_hu(self, src_file):
         try:
             src_path = find_recursively(src_file, self.bin_path)
+            local_size = self.get_local_size(src_path)
             f = open(src_path, "rb")
             hu_path = HU_files_path[src_file]
-            print("Copy ", src_path, " --> ", self.ip + ":" + hu_path, end="")
+            print("Copy ", src_path, " (" + str(local_size) + ") --> \n\t", self.ip + ":" + hu_path, end="")
+            sys.stdout.flush()
             self.ftp().storbinary("STOR " + hu_path, f)
-            print(" OK.")
+            hu_size = self.get_remote_size(hu_path)
+            end_str = " (%s) .%s"
+            if hu_size == local_size:
+                end_str %= (hu_size, "OK")
+            else:
+                end_str %= (hu_size, "Error. Sizes does not match: local = %s, remote = %s"%(local_size, hu_size))
+            print(end_str)
+
         except(FileNotFoundError):
             print(src_file + " Not found;")
-        except:
-            print(src_file + " Process error")
+        except Exception as e:
+            print(src_file + " Process error : ", e)
 
     def load_binaries_on_target(self):
         print("Load binaries to target")
@@ -208,6 +243,10 @@ class Target:
             create_path(dest_path)
             shutil.copyfile(src_path, dest_path)
 
+    def interact(self):
+        print("Interaction mode")
+        self.telnet().interact()
+
 
 def main():
     (options, args) = parser.parse_args()
@@ -219,6 +258,8 @@ def main():
         target.load_binaries_on_target()
     if (options.collect_rtc):
         target.collect_rtc_binaries()
+    if (options.login):
+        target.interact()
     return 0
 
 
