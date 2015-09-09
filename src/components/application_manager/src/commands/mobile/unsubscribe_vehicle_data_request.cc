@@ -180,19 +180,17 @@ void UnsubscribeVehicleDataRequest::Run() {
   }
 
   if (is_everything_already_unsubscribed) {
-    mobile_apis::Result::eType result_code =
-        vi_already_unsubscribed_by_this_app_.size()
-        ? mobile_apis::Result::IGNORED
-        : mobile_apis::Result::SUCCESS;
+    const bool already_unsubscribed_params =
+        vi_already_unsubscribed_by_this_app_.size() > 0;
+    mobile_apis::Result::eType result_code = already_unsubscribed_params
+                                                 ? mobile_apis::Result::IGNORED
+                                                 : mobile_apis::Result::SUCCESS;
 
-    const char* info =
-        vi_already_unsubscribed_by_this_app_.size()
-        ? "Already subscribed on some provided VehicleData."
-        : NULL;
+    const char* info = already_unsubscribed_params
+                           ? "Already subscribed on some provided VehicleData."
+                           : NULL;
 
-    SendResponse(true,
-                 result_code,
-                 info,
+    SendResponse(already_unsubscribed_params ? false : true, result_code, info,
                  &response_params);
     return;
   }
