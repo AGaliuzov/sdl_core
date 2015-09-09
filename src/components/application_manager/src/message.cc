@@ -109,9 +109,7 @@ bool Message::operator==(const Message& message) {
 }
 
 Message::~Message() {
-  if (binary_data_) {
-    delete binary_data_;
-  }
+  delete binary_data_;
 }
 
 uint32_t Message::function_id() const {
@@ -171,15 +169,8 @@ void Message::set_message_type(MessageType type) {
 }
 
 void Message::set_binary_data(BinaryData* data) {
-  if (NULL == data) {
-    NOTREACHED();
-    return;
-  }
-
-  if (binary_data_) {
-    delete binary_data_;
-  }
-
+  DCHECK_OR_RETURN_VOID(data);
+  delete binary_data_;
   binary_data_ = data;
 }
 

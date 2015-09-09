@@ -81,13 +81,9 @@ application_manager::Message* MobileMessageHandler::HandleIncomingMessageProtoco
     break;
   default:
     LOG4CXX_WARN(logger_, "Can't recognise protocol version");
-    out_message = NULL;
-    break;
+    return NULL;
   }
-  if (out_message == NULL) {
-      LOG4CXX_WARN(logger_, "Message is NULL");
-      return NULL;
-  }
+
   LOG4CXX_DEBUG(logger_, "Incoming RPC_INFO: " <<
                          (out_message->connection_key() >> 16) <<", "<<
                          messageTypes[out_message->type()] <<", "<<

@@ -80,7 +80,7 @@ class MobileMessageHandlerTest : public testing::Test {
   Message* HandleIncomingMessage(uint32_t protocol_version,
                                  unsigned char* data,
                                  uint32_t payload_size) {
-    unsigned int data_size = size(data);
+    size_t data_size = size(data);
     unsigned char* full_data =
         new unsigned char[PROTOCOL_HEADER_V2_SIZE + data_size];
     uint32_t full_size = PROTOCOL_HEADER_V2_SIZE + data_size;
@@ -130,7 +130,7 @@ class MobileMessageHandlerTest : public testing::Test {
     EXPECT_EQ(full_data_size, message->data_size());
     EXPECT_EQ(payload_size, message->payload_size());
     EXPECT_TRUE(message->has_binary_data());
-    EXPECT_EQ(2, message->type());
+    EXPECT_EQ(MessageType::kNotification, message->type());
     delete[] json_plus_binary_data;
   }
 
