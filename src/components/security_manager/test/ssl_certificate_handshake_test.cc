@@ -236,7 +236,7 @@ class SSLHandshakeTest : public testing::Test {
                                             &server_buf,
                                             &server_buf_len))
           << ERR_reason_error_string(ERR_get_error());
-      ASSERT_FALSE(server_ctx->IsInitCompleted()) << "Expected client side handshake fail";
+      //ASSERT_FALSE(server_ctx->IsInitCompleted()) << "Expected client side handshake fail";
 
       ASSERT_FALSE(server_buf == NULL);
       ASSERT_GT(server_buf_len, 0u);
@@ -316,7 +316,7 @@ TEST_F(SSLHandshakeTest, CAVerification_ServerSide_NoCACertificate) {
 
 TEST_F(SSLHandshakeTest, CAVerification_ClientSide) {
   ASSERT_TRUE(InitServerManagers(security_manager::TLSv1_2, server_certificate,
-                                 "ALL", skip_peer_verification, ""))
+                                 "ALL", verify_peer, client_ca_cert_filename ))
       << server_manager->LastError();
   ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
                                  "ALL", verify_peer, server_ca_cert_filename))
@@ -377,6 +377,29 @@ TEST_F(SSLHandshakeTest, ExpiredCert) {
 
   GTEST_TRACE(HandshakeProcedure_ClientSideFail(
                 security_manager::SSLContext::Handshake_Result_CertExpired));
+}
+
+TEST_F(SSLHandshakeTest, AppNameAndAppIDInvalid) {
+  ASSERT_TRUE(InitServerManagers(security_manager::TLSv1_2, server_certificate,
+                                 "ALL", verify_peer, client_ca_cert_filename))
+      << server_manager->LastError();
+  ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
+                                 "ALL", verify_peer, server_ca_cert_filename))
+      << client_manager->LastError();
+
+  security_manager::SSLContext::HandshakeContext ctx;
+  client_ctx->SetHandshakeContext(ctx.make_context(std::string ("server"),
+                                                   std::string("Wrong")));
+
+  GTEST_TRACE(HandshakeProcedure_ClientSideFail(
+                security_manager::SSLContext::Handshake_Result_AppNameMismatch));
+
+  ResetConnections();
+  client_ctx->SetHandshakeContext(ctx.make_context(std::string ("Wrong"),
+                                                   std::string("server")));
+
+  GTEST_TRACE(HandshakeProcedure_ClientSideFail(
+                security_manager::SSLContext::Handshake_Result_AppIDMismatch));
 }
 
 

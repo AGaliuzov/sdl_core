@@ -41,6 +41,7 @@
 #include <iostream>
 #include <stdio.h>
 #include "security_manager/security_manager.h"
+#include "config_profile/profile.h"
 
 #include "utils/logger.h"
 #include "utils/atomic.h"
@@ -254,6 +255,13 @@ std::string CryptoManagerImpl::LastError() const {
   return std::string(reason ? reason : "");
 }
 
+bool CryptoManagerImpl::IsCertificateUpdateRequired() const {
+  const double seconds = difftime(time(NULL), mktime(&expiration_time_));
+
+  return (seconds <= (
+            profile::Profile::instance()->update_before_hours() * 60 * 60));
+}
+
 int debug_callback(int preverify_ok, X509_STORE_CTX *ctx) {
   if (!preverify_ok) {
     const int error = X509_STORE_CTX_get_error(ctx);
@@ -309,6 +317,8 @@ bool CryptoManagerImpl::set_certificate(const std::string &cert_data) {
     return false;
   }
 
+  asn1_time_to_tm(X509_get_notAfter(cert));
+
   if (!SSL_CTX_use_certificate(context_, cert)) {
     LOG4CXX_WARN(logger_, "Could not use certificate");
     return false;
@@ -323,6 +333,46 @@ bool CryptoManagerImpl::set_certificate(const std::string &cert_data) {
     return false;
   }
   return true;
+}
+
+int CryptoManagerImpl::pull_number_from_buf(char *buf, int *idx) {
+  if (!idx) { return 0; }
+  const int val = ((buf[*idx] - '0') * 10) + buf[(*idx) + 1] - '0';
+  *idx = *idx + 2;
+  return val;
+}
+
+void CryptoManagerImpl::asn1_time_to_tm(ASN1_TIME *time) {
+  char* buf = (char *)time->data;
+  int index = 0;
+  const int year = pull_number_from_buf(buf, &index);
+  if (V_ASN1_GENERALIZEDTIME == time->type) {
+    expiration_time_.tm_year = (year * 100 -1900) + pull_number_from_buf(buf, &index);
+  } else {
+    expiration_time_.tm_year = year < 50 ? year + 100 : year;
+  }
+
+  const int mon = pull_number_from_buf(buf, &index);
+  const int day = pull_number_from_buf(buf, &index);
+  const int hour = pull_number_from_buf(buf, &index);
+  const int mn = pull_number_from_buf(buf, &index);
+
+  expiration_time_.tm_mon = mon -1;
+  expiration_time_.tm_mday = day;
+  expiration_time_.tm_hour = hour;
+  expiration_time_.tm_min = mn;
+
+  if (buf[index] == 'Z') {
+    expiration_time_.tm_sec = 0;
+  }
+  if ((buf[index] == '+') || (buf[index] == '-')) {
+    const int mn = pull_number_from_buf(buf, &index);
+    const int mn1 = pull_number_from_buf(buf, &index);
+    expiration_time_.tm_sec = (mn * 3600) + (mn1 * 60);
+  } else {
+    const int sec =  pull_number_from_buf(buf, &index);
+    expiration_time_.tm_sec = sec;
+  }
 }
 
 }  // namespace security_manager

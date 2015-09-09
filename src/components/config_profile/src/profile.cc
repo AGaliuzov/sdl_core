@@ -114,6 +114,7 @@ const char* kSecuritySSLModeKey = "SSLMode";
 const char* kSecurityKeyPathKey = "KeyPath";
 const char* kSecurityCipherListKey = "CipherList";
 const char* kSecurityVerifyPeerKey = "VerifyPeer";
+const char* kBeforeUpdateHours = "UpdateBeforeHours";
 #endif
 
 #ifdef CUSTOMER_PASA
@@ -237,6 +238,7 @@ const char* kDefaultIAP2SystemConfig = "/fs/mp/etc/mm/iap2.cfg";
 const char* kDefaultSecurityProtocol = "TLSv1.2";
 const char* kDefaultSSLMode = "CLIENT";
 const bool kDefaultVerifyPeer = false;
+const uint32_t kDefaultBeforeUpdateHours = 24;
 #endif // ENABLE_SECURITY
 
 const uint32_t kDefaultHubProtocolIndex = 0;
@@ -817,6 +819,10 @@ bool Profile::verify_peer() const {
   return verify_peer_;
 }
 
+uint32_t Profile::update_before_hours() const {
+  return update_before_hours_;
+}
+
 const std::string& Profile::security_manager_protocol_name() const {
   return security_manager_protocol_name_;
 }
@@ -872,6 +878,9 @@ void Profile::UpdateValues() {
 
   ReadBoolValue(&verify_peer_, kDefaultVerifyPeer, kSecuritySection,
       kSecurityVerifyPeerKey);
+
+  ReadUIntValue(&update_before_hours_, kDefaultBeforeUpdateHours,
+                kSecuritySection, kBeforeUpdateHours);
 
 #endif  // ENABLE_SECURITY
 

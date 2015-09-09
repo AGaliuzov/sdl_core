@@ -39,6 +39,7 @@
 #include <openssl/err.h>
 #include <string>
 #include <map>
+#include <ctime>
 
 #include "security_manager/crypto_manager.h"
 #include "security_manager/ssl_context.h"
@@ -68,7 +69,8 @@ class CryptoManagerImpl : public CryptoManager {
     void ResetConnection() OVERRIDE;
     void SetHandshakeContext(const HandshakeContext& hsh_ctx) OVERRIDE;
     ~SSLContextImpl();
-   private:
+    void PrintCertData(X509* cert);
+    private:
     void SetHandshakeError(const int error);
     typedef size_t(*BlockSizeGetter)(size_t);
     void EnsureBufferSizeEnough(size_t size);
@@ -106,10 +108,16 @@ class CryptoManagerImpl : public CryptoManager {
   SSLContext *CreateSSLContext() OVERRIDE;
   void ReleaseSSLContext(SSLContext *context) OVERRIDE;
   std::string LastError() const OVERRIDE;
+  bool IsCertificateUpdateRequired() const OVERRIDE;
 
 private:
   bool set_certificate(const std::string &cert_data);
+
+  int pull_number_from_buf(char* buf, int* idx);
+  void asn1_time_to_tm(ASN1_TIME* time);
+
   SSL_CTX *context_;
+  mutable struct tm expiration_time_;
   Mode mode_;
   static sync_primitives::Lock instance_lock_;
   static uint32_t instance_count_;

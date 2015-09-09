@@ -38,6 +38,7 @@
 #include <list>
 #include "utils/byte_order.h"
 #include "security_manager/security_manager.h"
+#include "security_manager/crypto_manager.h"
 #include "security_manager/ssl_context.h"
 #include "security_manager/security_query.h"
 
@@ -193,6 +194,7 @@ public:
                void(security_manager::SSLContext*));
   MOCK_CONST_METHOD0(LastError,
                      std::string());
+  MOCK_CONST_METHOD0(IsCertificateUpdateRequired, bool());
 };
 /*
  * MOCK implementation of security_manager::SSLContext interface
@@ -230,6 +232,7 @@ class SMListenerMock : public security_manager::SecurityManagerListener {
   MOCK_METHOD2(OnHandshakeDone,
       bool(uint32_t connection_key,
           security_manager::SSLContext::HandshakeResult result));
+  MOCK_METHOD0(OnCertificateUpdateRequired, void());
 };
 
 /*

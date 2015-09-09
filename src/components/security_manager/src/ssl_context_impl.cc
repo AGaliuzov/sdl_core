@@ -139,6 +139,26 @@ std::map<std::string, CryptoManagerImpl::SSLContextImpl::BlockSizeGetter>
 CryptoManagerImpl::SSLContextImpl::max_block_sizes =
     CryptoManagerImpl::SSLContextImpl::create_max_block_sizes();
 
+void CryptoManagerImpl::SSLContextImpl::PrintCertData(X509* cert) {
+  if (cert) {
+    X509_NAME* subj_name = X509_get_subject_name(cert);
+    const std::string& cn = GetTextBy(subj_name, NID_commonName);
+    const std::string& sn = GetTextBy(subj_name, NID_serialNumber);
+
+    LOG4CXX_DEBUG(logger_, "CN: " << cn << ". SERIALNUMBER: " << sn);
+
+    ASN1_TIME* notBefore = X509_get_notBefore(cert);
+    ASN1_TIME* notAfter = X509_get_notAfter(cert);
+
+    if (notBefore) {
+      LOG4CXX_DEBUG(logger_, " Start date: " << (char*)notBefore->data);
+    }
+    if (notAfter) {
+      LOG4CXX_DEBUG(logger_, " End date: " << (char*)notAfter->data);
+    }
+  }
+}
+
 SSLContext::HandshakeResult CryptoManagerImpl::SSLContextImpl::
 DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
                 const uint8_t** const out_data, size_t* out_data_size) {
@@ -167,8 +187,9 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
     }
   }
 
-  bool cn_found;
-  bool sn_found;
+  bool cn_found = false;
+  bool sn_found = false;
+
   STACK_OF(X509 ) *peer_certs = SSL_get_peer_cert_chain(connection_);
   while (sk_X509_num(peer_certs) > 0) {
     X509* cert = sk_X509_pop(peer_certs);
@@ -190,18 +211,23 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
     const std::string& cn = GetTextBy(subj_name, NID_commonName);
     const std::string& sn = GetTextBy(subj_name, NID_serialNumber);
 
-    cn_found = cn_found || (hsh_context_.expected_cn == cn);
-    sn_found = sn_found || (hsh_context_.expected_sn == sn);
+    cn_found = cn_found || (hsh_context_.expected_cn.compare(cn) == 0);
+    sn_found = sn_found || (hsh_context_.expected_sn.compare(sn) == 0);
 
     if (!cn_found && last_step) {
-      LOG4CXX_ERROR(logger_,"Trying to run handshake with wrong app name");
+      LOG4CXX_ERROR(logger_,"Trying to run handshake with wrong app name: " << cn
+                    << ". Expected app name: " << hsh_context_.expected_cn);
       return Handshake_Result_AppNameMismatch;
     }
 
     if (!sn_found && last_step) {
-      LOG4CXX_ERROR(logger_,"Trying to run handshake with wrong app id");
+      LOG4CXX_ERROR(logger_,"Trying to run handshake with wrong app id: " << sn
+                    << ". Expected app id: " << hsh_context_.expected_sn);
       return Handshake_Result_AppIDMismatch;
     }
+
+    PrintCertData(SSL_get_certificate(connection_));
+    PrintCertData(SSL_get_peer_certificate(connection_));
   }
 
   const int handshake_result = SSL_do_handshake(connection_);

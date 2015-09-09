@@ -211,6 +211,10 @@ TEST_F(SecurityManagerTest, Listeners_Notifying) {
         // Emulate true (accept) result
         WillOnce(Return(true));
 
+  // First listener was not removed from listener list
+  // So this callback wil lbe either call.
+  EXPECT_CALL(mock_listener1, OnCertificateUpdateRequired());
+
   const SSLContext::HandshakeResult second_call_value =
       SSLContext::Handshake_Result_Fail;
   // Expect call last listener on 2d call
@@ -224,12 +228,16 @@ TEST_F(SecurityManagerTest, Listeners_Notifying) {
   security_manager_->AddListener(&mock_listener2);
   // 1st call
   security_manager_->NotifyListenersOnHandshakeDone(key, first_call_value);
+  security_manager_->NotifyOnCertififcateUpdateRequired();
   // 2nd call
   security_manager_->NotifyListenersOnHandshakeDone(key, second_call_value);
+  security_manager_->NotifyOnCertififcateUpdateRequired();
   // 3nd call
   security_manager_->NotifyListenersOnHandshakeDone(key,
                                                     SSLContext::Handshake_Result_Fail);
+  security_manager_->NotifyOnCertififcateUpdateRequired();
 }
+
 /*
  * SecurityManager with NULL CryptoManager shall send
  * InternallError (ERROR_NOT_SUPPORTED) on any Query
@@ -385,7 +393,7 @@ TEST_F(SecurityManagerTest, CreateSSLContext_SetSSLContextError) {
 
   EXPECT_CALL(
     mock_protocol_handler,
-    SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_UNKWOWN_INTERNAL_ERROR), is_final));
+    SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_UNKNOWN_INTERNAL_ERROR), is_final));
 
   // Emulate SessionObserver and CryptoManager result
   EXPECT_CALL(mock_session_observer, GetSSLContext(key, kControl)).
@@ -394,7 +402,7 @@ TEST_F(SecurityManagerTest, CreateSSLContext_SetSSLContextError) {
       WillOnce(Return(&mock_ssl_context_new));
   EXPECT_CALL(mock_crypto_manager, ReleaseSSLContext(&mock_ssl_context_new));
   EXPECT_CALL(mock_session_observer, SetSSLContext(key, &mock_ssl_context_new)).
-      WillOnce(Return(SecurityManager::ERROR_UNKWOWN_INTERNAL_ERROR));
+      WillOnce(Return(SecurityManager::ERROR_UNKNOWN_INTERNAL_ERROR));
 
   const security_manager::SSLContext* rezult = security_manager_->CreateSSLContext(key);
   EXPECT_EQ(NULL,rezult);
@@ -544,6 +552,8 @@ TEST_F(SecurityManagerTest, StartHandshake_SSLInitIsComplete) {
       WillOnce(Return(&mock_ssl_context_exists));
   EXPECT_CALL(mock_ssl_context_exists, IsInitCompleted()).
       WillOnce(Return(true));
+  EXPECT_CALL(mock_crypto_manager, IsCertificateUpdateRequired()).
+      WillOnce(Return(false));
 
   security_manager_->StartHandshake(key);
 }

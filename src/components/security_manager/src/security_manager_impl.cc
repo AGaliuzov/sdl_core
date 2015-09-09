@@ -101,6 +101,9 @@ void SecurityManagerImpl::set_crypto_manager(CryptoManager *crypto_manager) {
     return;
   }
   crypto_manager_ = crypto_manager;
+  if (crypto_manager_->IsCertificateUpdateRequired()) {
+    NotifyOnCertififcateUpdateRequired();
+  }
 }
 
 void SecurityManagerImpl::Handle(const SecurityMessage message) {
@@ -173,7 +176,8 @@ security_manager::SSLContext *SecurityManagerImpl::CreateSSLContext(
 }
 
 void SecurityManagerImpl::StartHandshake(uint32_t connection_key) {
-  DCHECK(session_observer_);
+  DCHECK_OR_RETURN_VOID(session_observer_);
+  DCHECK_OR_RETURN_VOID(crypto_manager_);
   LOG4CXX_DEBUG(logger_, "StartHandshake: connection_key " << connection_key);
   security_manager::SSLContext *ssl_context =
       session_observer_->GetSSLContext(connection_key,
@@ -191,6 +195,9 @@ void SecurityManagerImpl::StartHandshake(uint32_t connection_key) {
   if (ssl_context->IsInitCompleted()) {
     NotifyListenersOnHandshakeDone(connection_key,
                                    SSLContext::Handshake_Result_Success);
+    if(crypto_manager_->IsCertificateUpdateRequired()) {
+      NotifyOnCertififcateUpdateRequired();
+    }
     return;
   }
 
@@ -241,6 +248,15 @@ void SecurityManagerImpl::NotifyListenersOnHandshakeDone(
     } else {
       ++it;
     }
+  }
+}
+
+void SecurityManagerImpl::NotifyOnCertififcateUpdateRequired() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  std::list<SecurityManagerListener*>::iterator it = listeners_.begin();
+  while (it != listeners_.end()) {
+    (*it)->OnCertificateUpdateRequired();
+    ++it;
   }
 }
 
@@ -295,10 +311,11 @@ bool SecurityManagerImpl::ProccessHandshakeData(const SecurityMessage &inMessage
     LOG4CXX_DEBUG(logger_, "SSL initialization finished success.");
     NotifyListenersOnHandshakeDone(connection_key,
                                    SSLContext::Handshake_Result_Success);
-  } else if (handshake_result != SSLContext::Handshake_Result_Success){
+  } else if (handshake_result != SSLContext::Handshake_Result_Success) {
     // On handshake fail
     LOG4CXX_WARN(logger_, "SSL initialization finished with fail.");
-    NotifyListenersOnHandshakeDone(connection_key, handshake_result);
+    NotifyListenersOnHandshakeDone(connection_key,
+                                   handshake_result);
   }
 
   if (out_data && out_data_size) {
