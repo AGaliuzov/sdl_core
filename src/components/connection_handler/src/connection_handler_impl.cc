@@ -827,8 +827,9 @@ void ConnectionHandlerImpl::CloseSessionServices(
                 << session_key);
 
   sync_primitives::AutoLock lock(connection_handler_observer_lock_);
-  DCHECK_OR_RETURN_VOID(connection_handler_observer_);
-
+  if(!connection_handler_observer_) {
+    return;
+  }
   const ServiceList& service_list = session.service_list;
   ServiceList::const_reverse_iterator service_list_ritr =
       service_list.rbegin();

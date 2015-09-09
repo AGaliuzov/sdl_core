@@ -50,6 +50,7 @@ using namespace ::connection_handler;
 using ::protocol_handler::ServiceType;
 using namespace ::protocol_handler;
 using ::testing::_;
+using ::testing::InSequence;
 // For service types and PROTECTION_ON/OFF
 
 class ConnectionHandlerTest : public ::testing::Test {
@@ -90,6 +91,15 @@ class ConnectionHandlerTest : public ::testing::Test {
   }
   uint32_t SessionHash(const uint32_t connection, const uint32_t session) {
     return connection_handler_->KeyFromPair(connection, session);
+  }
+  void AddTestService(ServiceType service_type) {
+    EXPECT_NE(0u, start_session_id_);
+    EXPECT_EQ(SessionHash(uid_, start_session_id_), out_hash_id_);
+    connection_key_ = connection_handler_->KeyFromPair(uid_, start_session_id_);
+    CheckSessionExists(uid_, start_session_id_);
+    uint32_t session_id = connection_handler_->OnSessionStartedCallback(
+        uid_, start_session_id_, service_type, PROTECTION_OFF, 0);
+    EXPECT_EQ(session_id, start_session_id_);
   }
 
   // Additional SetUp
@@ -394,17 +404,28 @@ TEST_F(ConnectionHandlerTest,OnFindNewApplicationsRequestWithoutSession) {
 TEST_F(ConnectionHandlerTest, OnMalformedMessageCallback) {
   AddTestDeviceConnection();
   AddTestSession();
+  AddTestService(kAudio);
+  AddTestService(kMobileNav);
   connection_handler_test::ConnectionHandlerObserverMock mock_connection_handler_observer;
   connection_handler_->set_connection_handler_observer(&mock_connection_handler_observer);
 
+  InSequence seq;
   EXPECT_CALL(mock_connection_handler_observer,
-              OnServiceEndedCallback(connection_key_,_, kMalformed)).Times(2);
+              OnServiceEndedCallback(connection_key_,kMobileNav, kMalformed)).Times(1);
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,kAudio, kMalformed)).Times(1);
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,kBulk, kMalformed)).Times(1);
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,kRpc, kMalformed)).Times(1);
   connection_handler_->OnMalformedMessageCallback(uid_);
 }
 
 TEST_F(ConnectionHandlerTest, OnApplicationFloodCallBack) {
   AddTestDeviceConnection();
   AddTestSession();
+  AddTestService(kAudio);
+  AddTestService(kMobileNav);
   connection_handler_test::ConnectionHandlerObserverMock mock_connection_handler_observer;
   connection_handler_->set_connection_handler_observer(&mock_connection_handler_observer);
 
@@ -412,8 +433,16 @@ TEST_F(ConnectionHandlerTest, OnApplicationFloodCallBack) {
   connection_handler_->set_protocol_handler(&mock_protocol_handler);
 
   EXPECT_CALL(mock_protocol_handler, SendEndSession(uid_,start_session_id_));
+
+  InSequence seq;
   EXPECT_CALL(mock_connection_handler_observer,
-              OnServiceEndedCallback(connection_key_,_, kCommon)).Times(2);
+              OnServiceEndedCallback(connection_key_,kMobileNav, kCommon)).Times(1);
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,kAudio, kCommon)).Times(1);
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,kBulk, kCommon)).Times(1);
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,kRpc, kCommon)).Times(1);
   connection_handler_->OnApplicationFloodCallBack(uid_);
 }
 
@@ -460,7 +489,8 @@ TEST_F(ConnectionHandlerTest, CloseRevokedConnection) {
 TEST_F(ConnectionHandlerTest, CloseSessionWithCommonReason) {
   AddTestDeviceConnection();
   AddTestSession();
-
+  AddTestService(kAudio);
+  AddTestService(kMobileNav);
   connection_handler_test::ConnectionHandlerObserverMock mock_connection_handler_observer;
   connection_handler_->set_connection_handler_observer(&mock_connection_handler_observer);
 
@@ -468,16 +498,24 @@ TEST_F(ConnectionHandlerTest, CloseSessionWithCommonReason) {
   connection_handler_->set_protocol_handler(&mock_protocol_handler);
 
   EXPECT_CALL(mock_protocol_handler, SendEndSession(uid_,start_session_id_));
-  EXPECT_CALL(mock_connection_handler_observer,
-              OnServiceEndedCallback(connection_key_,_, kCommon)).Times(2);
 
+  InSequence seq;
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,kMobileNav, kCommon)).Times(1);
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,kAudio, kCommon)).Times(1);
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,kBulk, kCommon)).Times(1);
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,kRpc, kCommon)).Times(1);
   connection_handler_->CloseSession(connection_key_, kCommon);
 }
 
 TEST_F(ConnectionHandlerTest, CloseSessionWithFloodReason) {
   AddTestDeviceConnection();
   AddTestSession();
-
+  AddTestService(kAudio);
+  AddTestService(kMobileNav);
   connection_handler_test::ConnectionHandlerObserverMock mock_connection_handler_observer;
   connection_handler_->set_connection_handler_observer(&mock_connection_handler_observer);
 
@@ -485,16 +523,24 @@ TEST_F(ConnectionHandlerTest, CloseSessionWithFloodReason) {
   connection_handler_->set_protocol_handler(&mock_protocol_handler);
 
   EXPECT_CALL(mock_protocol_handler, SendEndSession(uid_,start_session_id_));
-  EXPECT_CALL(mock_connection_handler_observer,
-              OnServiceEndedCallback(connection_key_,_, kFlood)).Times(2);
 
+  InSequence seq;
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,kMobileNav, kFlood)).Times(1);
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,kAudio, kFlood)).Times(1);
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,kBulk, kFlood)).Times(1);
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,kRpc, kFlood)).Times(1);
   connection_handler_->CloseSession(connection_key_, kFlood);
 }
 
 TEST_F(ConnectionHandlerTest, CloseSessionWithMalformedMessage) {
   AddTestDeviceConnection();
   AddTestSession();
-
+  AddTestService(kAudio);
+  AddTestService(kMobileNav);
   connection_handler_test::ConnectionHandlerObserverMock mock_connection_handler_observer;
   connection_handler_->set_connection_handler_observer(&mock_connection_handler_observer);
 
@@ -502,16 +548,24 @@ TEST_F(ConnectionHandlerTest, CloseSessionWithMalformedMessage) {
   connection_handler_->set_protocol_handler(&mock_protocol_handler);
 
   EXPECT_CALL(mock_protocol_handler, SendEndSession(uid_,start_session_id_)).Times(0);
-  EXPECT_CALL(mock_connection_handler_observer,
-              OnServiceEndedCallback(connection_key_,_, kMalformed)).Times(2);
 
+  InSequence seq;
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,kMobileNav, kMalformed)).Times(1);
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,kAudio, kMalformed)).Times(1);
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,kBulk, kMalformed)).Times(1);
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,kRpc, kMalformed)).Times(1);
   connection_handler_->CloseSession(connection_key_, kMalformed);
 }
 
 TEST_F(ConnectionHandlerTest, CloseConnectionSessionsWithMalformedMessage) {
   AddTestDeviceConnection();
   AddTestSession();
-
+  AddTestService(kAudio);
+  AddTestService(kMobileNav);
   connection_handler_test::ConnectionHandlerObserverMock mock_connection_handler_observer;
   connection_handler_->set_connection_handler_observer(&mock_connection_handler_observer);
 
@@ -519,16 +573,24 @@ TEST_F(ConnectionHandlerTest, CloseConnectionSessionsWithMalformedMessage) {
   connection_handler_->set_protocol_handler(&mock_protocol_handler);
 
   EXPECT_CALL(mock_protocol_handler, SendEndSession(uid_,start_session_id_)).Times(0);
-  EXPECT_CALL(mock_connection_handler_observer,
-              OnServiceEndedCallback(connection_key_,_, kMalformed)).Times(2);
 
+  InSequence seq;
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,kMobileNav, kMalformed)).Times(1);
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,kAudio, kMalformed)).Times(1);
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,kBulk, kMalformed)).Times(1);
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,kRpc, kMalformed)).Times(1);
   connection_handler_->CloseConnectionSessions(uid_, kMalformed);
 }
 
 TEST_F(ConnectionHandlerTest, CloseConnectionSessionsWithCommonReason) {
   AddTestDeviceConnection();
   AddTestSession();
-
+  AddTestService(kAudio);
+  AddTestService(kMobileNav);
   connection_handler_test::ConnectionHandlerObserverMock mock_connection_handler_observer;
   connection_handler_->set_connection_handler_observer(&mock_connection_handler_observer);
 
@@ -536,9 +598,16 @@ TEST_F(ConnectionHandlerTest, CloseConnectionSessionsWithCommonReason) {
   connection_handler_->set_protocol_handler(&mock_protocol_handler);
 
   EXPECT_CALL(mock_protocol_handler, SendEndSession(uid_,start_session_id_));
-  EXPECT_CALL(mock_connection_handler_observer,
-              OnServiceEndedCallback(connection_key_,_, kCommon)).Times(2);
 
+  InSequence seq;
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,kMobileNav, kCommon)).Times(1);
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,kAudio, kCommon)).Times(1);
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,kBulk, kCommon)).Times(1);
+  EXPECT_CALL(mock_connection_handler_observer,
+              OnServiceEndedCallback(connection_key_,kRpc, kCommon)).Times(1);
   connection_handler_->CloseConnectionSessions(uid_, kCommon);
 }
 

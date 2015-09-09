@@ -140,12 +140,12 @@ void ResumptionDataTest::CheckSubmenues(sm::SmartObject& res_list) {
 }
 
 void ResumptionDataTest::CheckSubscriptions(sm::SmartObject& res_list) {
-  EXPECT_EQ(ButtonName::eType::OK,
-            res_list[am::strings::application_buttons][0].asInt());
-  EXPECT_EQ(ButtonName::eType::CUSTOM_BUTTON,
-            res_list[am::strings::application_buttons][1].asInt());
+  EXPECT_EQ(static_cast<uint32_t>(ButtonName::eType::OK),
+            res_list[am::strings::application_buttons][0].asUInt());
+  EXPECT_EQ(static_cast<uint32_t>(ButtonName::eType::CUSTOM_BUTTON),
+            res_list[am::strings::application_buttons][1].asUInt());
   EXPECT_EQ(0u, res_list[am::strings::application_vehicle_info][0].asUInt());
-  EXPECT_EQ(5, res_list[am::strings::application_vehicle_info][1].asInt());
+  EXPECT_EQ(5u, res_list[am::strings::application_vehicle_info][1].asUInt());
 }
 
 void ResumptionDataTest::CheckChoiceSet(sm::SmartObject& res_list) {
