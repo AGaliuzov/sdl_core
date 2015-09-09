@@ -363,7 +363,6 @@ bool LifeCycle::InitMessageSystem() {
 #endif  // CUSTOMER_PASA
 
 namespace {
-  pthread_t main_thread;
   void sig_handler(int sig) {
     switch(sig) {
       case SIGINT:
@@ -374,32 +373,25 @@ namespace {
         break;
       case SIGSEGV:
         LOG4CXX_DEBUG(logger_, "SIGSEGV signal has been caught");
+#ifdef ENABLE_LOG
+        logger::LogMessageLoopThread::destroy();
+#endif
         break;
       default:
         LOG4CXX_DEBUG(logger_, "Unexpected signal has been caught");
         break;
-    }
-    /*
-     * Resend signal to the main thread in case it was
-     * caught by another thread
-     */
-    if(pthread_equal(pthread_self(), main_thread) == 0) {
-      LOG4CXX_DEBUG(logger_, "Resend signal to the main thread");
-      if(pthread_kill(main_thread, sig) != 0) {
-        LOG4CXX_FATAL(logger_, "Send signal to thread error");
-      }
     }
   }
 }  //  namespace
 
 void LifeCycle::Run() {
   LOG4CXX_AUTO_TRACE(logger_);
-  main_thread = pthread_self();
   // First, register signal handlers
   if(!::utils::SubscribeToInterruptSignal(&sig_handler) ||
      !::utils::SubscribeToTerminateSignal(&sig_handler) ||
      !::utils::SubscribeToFaultSignal(&sig_handler)) {
     LOG4CXX_FATAL(logger_, "Subscribe to system signals error");
+    return;
   }
   // Now wait for any signal
   pause();

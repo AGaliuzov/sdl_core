@@ -221,18 +221,16 @@ void startSmartDeviceLink()
 
 void stopSmartDeviceLink()
 {
-  LOG4CXX_INFO(logger_, "LifeCycle stopping!");
   main_namespace::LifeCycle::instance()->StopComponents();
-  LOG4CXX_INFO(logger_, "LifeCycle stopped!");
 }
 
 class ApplinkNotificationThreadDelegate : public threads::ThreadDelegate {
  public:
-  ApplinkNotificationThreadDelegate(int fd);
+  ApplinkNotificationThreadDelegate(int readfd, int writefd);
   ~ApplinkNotificationThreadDelegate();
 
   virtual void threadMain();
-  virtual void exitThreadMain() {}
+  virtual void exitThreadMain();
 
  private:
   void init_mq(const std::string& name, int flags, mqd_t& mq_desc);
@@ -240,6 +238,7 @@ class ApplinkNotificationThreadDelegate : public threads::ThreadDelegate {
   void sendHeartBeat();
 
   int readfd_;
+  int writefd_;
   utils::SharedPtr<timer::TimerThread<ApplinkNotificationThreadDelegate> > heart_beat_sender_;
   mqd_t mq_from_sdl_;
   mqd_t aoa_mq_;
@@ -247,8 +246,10 @@ class ApplinkNotificationThreadDelegate : public threads::ThreadDelegate {
   size_t heart_beat_timeout_;
 };
 
-ApplinkNotificationThreadDelegate::ApplinkNotificationThreadDelegate(int fd)
-  : readfd_(fd),
+ApplinkNotificationThreadDelegate::ApplinkNotificationThreadDelegate(
+    int readfd, int writefd)
+  : readfd_(readfd),
+    writefd_(writefd),
     heart_beat_sender_(
       new timer::TimerThread<ApplinkNotificationThreadDelegate>(
         "AppLinkHeartBeat",
@@ -324,6 +325,12 @@ void ApplinkNotificationThreadDelegate::threadMain() {
       }
     }
   } //while-end
+}
+
+void ApplinkNotificationThreadDelegate::exitThreadMain() {
+  LOG4CXX_INFO(logger_, "Send SDL_MSG_SDL_STOP to SDL");
+  _ESDLMsgType msg = SDL_MSG_SDL_STOP;
+  write(writefd_, static_cast<const void*>(&msg), sizeof(char));
 }
 
 void ApplinkNotificationThreadDelegate::init_mq(const std::string& name,
@@ -522,17 +529,13 @@ int main(int argc, char** argv) {
   profile::Profile::instance()->UpdateValues();
 
   ApplinkNotificationThreadDelegate* applink_notification_thread_delegate =
-      new ApplinkNotificationThreadDelegate(pipefd[0]);
+      new ApplinkNotificationThreadDelegate(pipefd[0], pipefd[1]);
   threads::Thread* applink_notification_thread =
       threads::CreateThread("ApplinkNotify", applink_notification_thread_delegate);
   applink_notification_thread->start();
 
   main_namespace::LifeCycle::instance()->Run();
   LOG4CXX_INFO(logger_, "Stop SDL due to caught signal");
-
-  LOG4CXX_INFO(logger_, "Send SDL_MSG_SDL_STOP to SDL");
-  _ESDLMsgType msg = SDL_MSG_SDL_STOP;
-  write(pipefd[1], static_cast<const void*>(&msg), sizeof(char));
 
   applink_notification_thread->join();
   threads::DeleteThread(applink_notification_thread);
@@ -546,8 +549,9 @@ int main(int argc, char** argv) {
   waitpid(cpid, &result, 0);
 
   stopSmartDeviceLink();
-  DEINIT_LOGGER();
+  LOG4CXX_INFO(logger_, "Application has been stopped successfuly");
 
+  DEINIT_LOGGER();
   return EXIT_SUCCESS;
 }
 

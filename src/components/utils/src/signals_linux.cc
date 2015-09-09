@@ -41,7 +41,7 @@ bool SubscribeToInterruptSignal(sighandler_t func) {
   struct sigaction act;
   act.sa_handler = func;
   sigemptyset(&act.sa_mask);
-  act.sa_flags = 0;
+  act.sa_flags = SA_RESETHAND;
 
   return sigaction(SIGINT, &act, NULL) == 0;
 }
@@ -50,7 +50,7 @@ bool SubscribeToTerminateSignal(sighandler_t func) {
   struct sigaction act;
   act.sa_handler = func;
   sigemptyset(&act.sa_mask);
-  act.sa_flags = 0;
+  act.sa_flags = SA_RESETHAND;
 
   return sigaction(SIGTERM, &act, NULL) == 0;
 }
@@ -59,7 +59,7 @@ bool SubscribeToFaultSignal(sighandler_t func) {
   struct sigaction act;
   act.sa_handler = func;
   sigemptyset(&act.sa_mask);
-  act.sa_flags = 0;
+  act.sa_flags = SA_RESETHAND;
 
   return sigaction(SIGSEGV, &act, NULL) == 0;
 }

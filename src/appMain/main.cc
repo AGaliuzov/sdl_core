@@ -195,9 +195,8 @@ int32_t main(int32_t argc, char** argv) {
   main_namespace::LifeCycle::instance()->Run();
   LOG4CXX_INFO(logger_, "Stop SDL due to caught signal");
 
-  LOG4CXX_INFO(logger_, "LifeCycle stopping!");
   main_namespace::LifeCycle::instance()->StopComponents();
-  LOG4CXX_INFO(logger_, "LifeCycle stopped!");
+  LOG4CXX_INFO(logger_, "Application has been stopped successfuly");
 
   DEINIT_LOGGER();
 
