@@ -34,13 +34,12 @@
 
 #include <string>
 #include <ctime>
+#include <algorithm>
+#include <iterator>
+#include <vector>
 
 #include "application_manager/message.h"
 #include "protocol/raw_message.h"
-#include "protocol/message_priority.h"
-#include "json/reader.h"
-#include "json/writer.h"
-#include "json/value.h"
 #include "utils/make_shared.h"
 
 #include "gmock/gmock.h"
@@ -63,9 +62,9 @@ unsigned char binary_header[PROTOCOL_HEADER_V2_SIZE] = {
     0x20, 0x00, 0x00, 0xf7, 0x00, 0x00,
     0x00, 0x5c, 0x00, 0x00, 0x00, json_size};
 
-unsigned char data[] =
+std::string data(
     "{\n   \"audioStreamingState\" : \"AUDIBLE\",\n   \"hmiLevel\" : "
-    "\"FULL\",\n   \"systemContext\" : \"MAIN\"\n}\n";
+    "\"FULL\",\n   \"systemContext\" : \"MAIN\"\n}\n");
 
 }  // namespace
 
@@ -77,52 +76,35 @@ class MobileMessageHandlerTest : public testing::Test {
   RawMessagePtr message_ptr_;
   const uint32_t connection_key_;
 
-  Message* HandleIncomingMessage(uint32_t protocol_version,
-                                 unsigned char* data,
-                                 uint32_t payload_size) {
-    size_t data_size = size(data);
-    unsigned char* full_data =
-        new unsigned char[PROTOCOL_HEADER_V2_SIZE + data_size];
-    uint32_t full_size = PROTOCOL_HEADER_V2_SIZE + data_size;
-    memcpy(full_data, binary_header, PROTOCOL_HEADER_V2_SIZE);
-    memcpy(full_data + PROTOCOL_HEADER_V2_SIZE, data, data_size);
+  Message* HandleIncomingMessage(const uint32_t protocol_version,
+                                 const std::string data,
+                                 const uint32_t payload_size) {
+    std::vector<uint8_t> full_data(binary_header, binary_header + PROTOCOL_HEADER_V2_SIZE);
+    std::copy(data.begin(), data.end(), std::back_inserter(full_data));
+    uint32_t full_size = sizeof(uint8_t) * full_data.size();
 
-    message_ptr_ = new RawMessage(connection_key_, protocol_version, full_data,
+    message_ptr_ = utils::MakeShared<RawMessage>(connection_key_, protocol_version, &full_data[0],
                                   full_size, ServiceType::kRpc, payload_size);
 
-    delete [] full_data;
     return MobileMessageHandler::HandleIncomingMessageProtocol(message_ptr_);
-  }
-
-  size_t size(unsigned char* data) {
-    return strlen(reinterpret_cast<char*>(data));
   }
 
   void TestHandlingIncomingMessageWithBinaryDataProtocol(
       uint32_t protocol_version) {
     // Arrange
     // Add binary data to json message
-    unsigned char binary_data[] = "\a\a\a\a";
-    uint32_t data_size = size(data);
-    uint32_t binary_data_size = size(binary_data);
+    std::string binary_data("\a\a\a\a");
+    std::string json_plus_binary_data(data.begin(), data.end());
+    std::copy(binary_data.begin(), binary_data.end(), std::back_inserter(json_plus_binary_data));
+    size_t full_data_size = json_plus_binary_data.size() * sizeof(uint8_t) + PROTOCOL_HEADER_V2_SIZE;
 
-    unsigned char* json_plus_binary_data =
-        new unsigned char[data_size + binary_data_size + 1];
-
-    memcpy(json_plus_binary_data, data, data_size);
-    memcpy(json_plus_binary_data + data_size, binary_data,
-           binary_data_size + 1);
-
-    uint32_t full_data_size =
-        size(data) + PROTOCOL_HEADER_V2_SIZE + binary_data_size;
     // Act
-    uint32_t payload_size = size(data);
+    size_t payload_size = data.size();
     Message* message = HandleIncomingMessage(
         protocol_version, json_plus_binary_data, payload_size);
 
     // Checks
-    std::string check_value(data, data + json_size);
-    EXPECT_EQ(check_value, message->json_message());
+    EXPECT_EQ(data, message->json_message());
     EXPECT_EQ(1u, message->connection_key());
     EXPECT_EQ(247u, message->function_id());
     EXPECT_EQ(protocol_version, message->protocol_version());
@@ -131,21 +113,18 @@ class MobileMessageHandlerTest : public testing::Test {
     EXPECT_EQ(payload_size, message->payload_size());
     EXPECT_TRUE(message->has_binary_data());
     EXPECT_EQ(MessageType::kNotification, message->type());
-    delete[] json_plus_binary_data;
   }
 
   void TestHandlingIncomingMessageWithoutBinaryDataProtocol(
       uint32_t protocol_version) {
     // Arrange
-    uint32_t data_size = size(data);
-    uint32_t payload_size = data_size;
-    uint32_t full_data_size = data_size + PROTOCOL_HEADER_V2_SIZE;
+    uint32_t payload_size = data.size();
+    uint32_t full_data_size = data.size() + PROTOCOL_HEADER_V2_SIZE;
     Message* message =
         HandleIncomingMessage(protocol_version, data, payload_size);
 
     // Checks
-    std::string check_value(data, data + data_size);
-    EXPECT_EQ(check_value, message->json_message());
+    EXPECT_EQ(data, message->json_message());
     EXPECT_EQ(1u, message->connection_key());
     EXPECT_EQ(247u, message->function_id());
     EXPECT_EQ(protocol_version, message->protocol_version());
@@ -153,7 +132,7 @@ class MobileMessageHandlerTest : public testing::Test {
     EXPECT_EQ(full_data_size, message->data_size());
     EXPECT_EQ(payload_size, message->payload_size());
     EXPECT_FALSE(message->has_binary_data());
-    EXPECT_EQ(2, message->type());
+    EXPECT_EQ(MessageType::kNotification, message->type());
   }
 
   MobileMessage CreateMessageForSending(uint32_t protocol_version,
@@ -182,33 +161,27 @@ class MobileMessageHandlerTest : public testing::Test {
   void TestHandlingOutgoingMessageProtocolWithoutBinaryData(
       const uint32_t protocol_version) {
     // Arrange
-    std::string json_msg(data, data + size(data));
     const uint32_t function_id = 247u;
     const uint32_t correlation_id = 92u;
     const uint32_t connection_key = 1u;
 
     MobileMessage message_to_send =
         CreateMessageForSending(protocol_version, function_id, correlation_id,
-                                connection_key, json_msg);
+                                connection_key, data);
     // Act
     RawMessage* result_message =
         MobileMessageHandler::HandleOutgoingMessageProtocol(message_to_send);
-    uint32_t data_size = PROTOCOL_HEADER_V2_SIZE + json_msg.length();
-    uint8_t* data = new uint8_t[data_size];
-    memcpy(data, binary_header, PROTOCOL_HEADER_V2_SIZE);
-    // Convert json message from string to binary
-    std::vector<uint8_t> json_data(json_msg.begin(), json_msg.end());
-    uint8_t* json_msg_in_binary = &json_data[0];
-    // Create full message
-    memcpy(data + PROTOCOL_HEADER_V2_SIZE, json_msg_in_binary,
-           json_data.size());
+
+    std::vector<uint8_t> full_data(binary_header, binary_header + PROTOCOL_HEADER_V2_SIZE);
+    std::copy(data.begin(), data.end(), std::back_inserter(full_data));
+    uint32_t full_size = sizeof(uint8_t) * full_data.size();
 
     // Checks
     EXPECT_EQ(protocol_version, result_message->protocol_version());
     EXPECT_EQ(connection_key, result_message->connection_key());
-    EXPECT_EQ(data_size, result_message->data_size());
-    for (uint8_t i = 0; i < data_size; ++i) {
-      EXPECT_EQ(data[i], result_message->data()[i]);
+    EXPECT_EQ(full_size, result_message->data_size());
+    for (uint8_t i = 0; i < full_data.size(); ++i) {
+      EXPECT_EQ(full_data[i], result_message->data()[i]);
     }
     EXPECT_EQ(ServiceType::kRpc, result_message->service_type());
   }
@@ -216,7 +189,6 @@ class MobileMessageHandlerTest : public testing::Test {
   void TestHandlingOutgoingMessageProtocolWithBinaryData(
       const uint32_t protocol_version) {
     // Arrange
-    std::string json_msg(data, data + size(data));
     BinaryData* bin_dat = new BinaryData;
     bin_dat->push_back('\a');
 
@@ -226,26 +198,20 @@ class MobileMessageHandlerTest : public testing::Test {
 
     MobileMessage message_to_send =
         CreateMessageForSending(protocol_version, function_id, correlation_id,
-                                connection_key, json_msg, bin_dat);
+                                connection_key, data, bin_dat);
     // Act
     RawMessage* result_message =
         MobileMessageHandler::HandleOutgoingMessageProtocol(message_to_send);
-    uint32_t data_size =
-        PROTOCOL_HEADER_V2_SIZE + json_msg.length() + bin_dat->size();
-    uint8_t* data = new uint8_t[data_size];
-    memcpy(data, binary_header, PROTOCOL_HEADER_V2_SIZE);
-
-    std::vector<uint8_t> json_data(json_msg.begin(), json_msg.end());
-    uint8_t* json_msg_in_binary = &json_data[0];
-    memcpy(data + PROTOCOL_HEADER_V2_SIZE, json_msg_in_binary,
-           json_data.size());
+    std::vector<uint8_t> full_data(binary_header, binary_header + PROTOCOL_HEADER_V2_SIZE);
+    std::copy(data.begin(), data.end(), std::back_inserter(full_data));
+    uint32_t full_size = sizeof(uint8_t) * full_data.size() + bin_dat->size() * sizeof(uint8_t);
 
     // Checks
     EXPECT_EQ(protocol_version, result_message->protocol_version());
     EXPECT_EQ(connection_key, result_message->connection_key());
-    EXPECT_EQ(data_size, result_message->data_size());
-    for (uint8_t i = 0; i < data_size; ++i) {
-      EXPECT_EQ(data[i], result_message->data()[i]);
+    EXPECT_EQ(full_size, result_message->data_size());
+    for (uint8_t i = 0; i < full_data.size(); ++i) {
+      EXPECT_EQ(full_data[i], result_message->data()[i]);
     }
     EXPECT_EQ(ServiceType::kRpc, result_message->service_type());
   }
@@ -266,8 +232,7 @@ TEST_F(
     MobileMessageHandlerTest,
     Test_HandleIncomingMessageProtocol_MessageWithUnknownProtocolVersion_ExpectNull) {
   // Arrange
-  uint32_t data_size = size(data);
-  uint32_t payload_size = data_size;
+  uint32_t payload_size = data.size();
   std::srand(time(0));
   // Generate unknown random protocol version except 1-3
   uint32_t protocol_version = 4 + rand() % UINT32_MAX;
@@ -282,7 +247,6 @@ TEST_F(
     MobileMessageHandlerTest,
     Test_HandleOutgoingMessageProtocol_MessageWithUnknownProtocolVersion_ExpectNull) {
   // Arrange
-  uint32_t data_size = size(data);
   std::srand(time(0));
 
   const uint32_t function_id = 247u;
@@ -290,10 +254,9 @@ TEST_F(
   const uint32_t connection_key = 1u;
   // Generate unknown random protocol version except 1-3
   uint32_t protocol_version = 4 + rand() % UINT32_MAX;
-  std::string json_msg(data, data + data_size);
 
   MobileMessage message_to_send = CreateMessageForSending(
-      protocol_version, function_id, correlation_id, connection_key, json_msg);
+      protocol_version, function_id, correlation_id, connection_key, data);
   // Act
   RawMessage* result_message =
       MobileMessageHandler::HandleOutgoingMessageProtocol(message_to_send);
