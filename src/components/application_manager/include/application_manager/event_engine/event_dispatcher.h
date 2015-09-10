@@ -48,6 +48,10 @@ class EventObserver;
 
 class EventDispatcher : public utils::Singleton<EventDispatcher> {
  public:
+  // Data types section
+  typedef std::list<EventObserver*>                 ObserverList;
+  typedef std::map<int32_t, ObserverList>           ObserversMap;
+  typedef std::map<Event::EventID, ObserversMap>    EventObserverMap;
 
   /*
    * @brief Delivers the event to all subscribers
@@ -63,8 +67,7 @@ class EventDispatcher : public utils::Singleton<EventDispatcher> {
    * @param hmi_correlation_id  The event HMI correlation ID
    * @param observer    The observer to subscribe for event
    */
-  void add_observer(const Event::EventID& event_id,
-                    int32_t hmi_correlation_id,
+  void add_observer(const Event::EventID& event_id, int32_t hmi_correlation_id,
                     EventObserver* const observer);
 
   /*
@@ -83,10 +86,13 @@ class EventDispatcher : public utils::Singleton<EventDispatcher> {
    */
   void remove_observer(EventObserver* const observer);
 
+#ifdef BUILD_TESTS
+  EventObserverMap get_observers() const { return observers_; }
+  ObserverList get_observers_list() const { return observers_list_; }
+#endif  // BUILD_TESTS
+
  protected:
-
  private:
-
   /*
    * @brief Default constructor
    */
@@ -108,19 +114,12 @@ class EventDispatcher : public utils::Singleton<EventDispatcher> {
 
   FRIEND_BASE_SINGLETON_CLASS(EventDispatcher);
 
-  // Data types section
-  typedef std::list<EventObserver*>                   ObserverList;
-  typedef std::map<int32_t, ObserverList>             ObserversMap;
-  typedef std::map<Event::EventID, ObserversMap>      EventObserverMap;
-
   // Members section
-  sync_primitives::Lock                               state_lock_;
-  sync_primitives::Lock                               observer_list_lock_;
-  EventObserverMap                                    observers_;
-  ObserverList                                        observers_list_;
-
+  sync_primitives::Lock         state_lock_;
+  sync_primitives::Lock         observer_list_lock_;
+  EventObserverMap              observers_;
+  ObserverList                  observers_list_;
 };
-
 }
 }
 
