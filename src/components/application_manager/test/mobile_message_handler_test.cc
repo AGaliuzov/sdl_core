@@ -68,6 +68,13 @@ std::string data(
 
 }  // namespace
 
+template <class T, class T2, class T3>
+T joiner(T2 begin, T2 end, const T3& data) {
+  T cont(begin, end);
+  std::copy(data.begin(), data.end(), std::back_inserter(cont));
+  return cont;
+}
+
 class MobileMessageHandlerTest : public testing::Test {
  public:
   MobileMessageHandlerTest() : connection_key_(1) {}
@@ -79,12 +86,14 @@ class MobileMessageHandlerTest : public testing::Test {
   Message* HandleIncomingMessage(const uint32_t protocol_version,
                                  const std::string data,
                                  const uint32_t payload_size) {
-    std::vector<uint8_t> full_data(binary_header, binary_header + PROTOCOL_HEADER_V2_SIZE);
-    std::copy(data.begin(), data.end(), std::back_inserter(full_data));
-    uint32_t full_size = sizeof(uint8_t) * full_data.size();
+    std::vector<uint8_t> full_data = joiner<std::vector<uint8_t> >(
+        binary_header, binary_header + PROTOCOL_HEADER_V2_SIZE, data);
 
-    message_ptr_ = utils::MakeShared<RawMessage>(connection_key_, protocol_version, &full_data[0],
-                                  full_size, ServiceType::kRpc, payload_size);
+    size_t full_size = sizeof(uint8_t) * full_data.size();
+
+    message_ptr_ = utils::MakeShared<RawMessage>(
+        connection_key_, protocol_version, &full_data[0], full_size,
+        ServiceType::kRpc, payload_size);
 
     return MobileMessageHandler::HandleIncomingMessageProtocol(message_ptr_);
   }
@@ -94,9 +103,10 @@ class MobileMessageHandlerTest : public testing::Test {
     // Arrange
     // Add binary data to json message
     std::string binary_data("\a\a\a\a");
-    std::string json_plus_binary_data(data.begin(), data.end());
-    std::copy(binary_data.begin(), binary_data.end(), std::back_inserter(json_plus_binary_data));
-    size_t full_data_size = json_plus_binary_data.size() * sizeof(uint8_t) + PROTOCOL_HEADER_V2_SIZE;
+    std::string json_plus_binary_data =
+        joiner<std::string>(data.begin(), data.end(), binary_data);
+    size_t full_data_size = json_plus_binary_data.size() * sizeof(uint8_t) +
+                            PROTOCOL_HEADER_V2_SIZE;
 
     // Act
     size_t payload_size = data.size();
@@ -118,8 +128,8 @@ class MobileMessageHandlerTest : public testing::Test {
   void TestHandlingIncomingMessageWithoutBinaryDataProtocol(
       uint32_t protocol_version) {
     // Arrange
-    uint32_t payload_size = data.size();
-    uint32_t full_data_size = data.size() + PROTOCOL_HEADER_V2_SIZE;
+    size_t payload_size = data.size();
+    size_t full_data_size = data.size() + PROTOCOL_HEADER_V2_SIZE;
     Message* message =
         HandleIncomingMessage(protocol_version, data, payload_size);
 
@@ -165,16 +175,16 @@ class MobileMessageHandlerTest : public testing::Test {
     const uint32_t correlation_id = 92u;
     const uint32_t connection_key = 1u;
 
-    MobileMessage message_to_send =
-        CreateMessageForSending(protocol_version, function_id, correlation_id,
-                                connection_key, data);
+    MobileMessage message_to_send = CreateMessageForSending(
+        protocol_version, function_id, correlation_id, connection_key, data);
     // Act
     RawMessage* result_message =
         MobileMessageHandler::HandleOutgoingMessageProtocol(message_to_send);
 
-    std::vector<uint8_t> full_data(binary_header, binary_header + PROTOCOL_HEADER_V2_SIZE);
-    std::copy(data.begin(), data.end(), std::back_inserter(full_data));
-    uint32_t full_size = sizeof(uint8_t) * full_data.size();
+    std::vector<uint8_t> full_data = joiner<std::vector<uint8_t> >(
+        binary_header, binary_header + PROTOCOL_HEADER_V2_SIZE, data);
+
+    size_t full_size = sizeof(uint8_t) * full_data.size();
 
     // Checks
     EXPECT_EQ(protocol_version, result_message->protocol_version());
@@ -202,9 +212,10 @@ class MobileMessageHandlerTest : public testing::Test {
     // Act
     RawMessage* result_message =
         MobileMessageHandler::HandleOutgoingMessageProtocol(message_to_send);
-    std::vector<uint8_t> full_data(binary_header, binary_header + PROTOCOL_HEADER_V2_SIZE);
-    std::copy(data.begin(), data.end(), std::back_inserter(full_data));
-    uint32_t full_size = sizeof(uint8_t) * full_data.size() + bin_dat->size() * sizeof(uint8_t);
+    std::vector<uint8_t> full_data = joiner<std::vector<uint8_t> >(
+        binary_header, binary_header + PROTOCOL_HEADER_V2_SIZE, data);
+    size_t full_size =
+        sizeof(uint8_t) * full_data.size() + bin_dat->size() * sizeof(uint8_t);
 
     // Checks
     EXPECT_EQ(protocol_version, result_message->protocol_version());
@@ -232,7 +243,7 @@ TEST_F(
     MobileMessageHandlerTest,
     Test_HandleIncomingMessageProtocol_MessageWithUnknownProtocolVersion_ExpectNull) {
   // Arrange
-  uint32_t payload_size = data.size();
+  size_t payload_size = data.size();
   std::srand(time(0));
   // Generate unknown random protocol version except 1-3
   uint32_t protocol_version = 4 + rand() % UINT32_MAX;
