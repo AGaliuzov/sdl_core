@@ -1798,6 +1798,14 @@ const MetaInfo CacheManager::GetMetaInfo() const {
   return meta_info;
 }
 
+std::string CacheManager::GetCertificate() const {
+  CACHE_MANAGER_CHECK(std::string(""));
+  if (pt_->policy_table.module_config.certificate.is_initialized()) {
+    return *pt_->policy_table.module_config.certificate;
+  }
+  return std::string("");
+}
+
 void CacheManager::MergePreloadPT(const std::string& file_name) {
   LOG4CXX_AUTO_TRACE(logger_);
   policy_table::Table table;

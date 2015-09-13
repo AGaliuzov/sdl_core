@@ -41,6 +41,7 @@
 #ifdef ENABLE_SECURITY
 #include "security_manager/security_manager_impl.h"
 #include "security_manager/crypto_manager_impl.h"
+#include "application_manager/policies/policy_handler.h"
 #endif  // ENABLE_SECURITY
 
 #ifdef ENABLE_LOG
@@ -151,8 +152,7 @@ bool LifeCycle::StartComponents() {
   if (!crypto_manager_->Init(
         mode == "SERVER" ? security_manager::SERVER : security_manager::CLIENT,
         protocol,
-        profile::Profile::instance()->cert_path(),
-        profile::Profile::instance()->key_path(),
+        policy::PolicyHandler::instance()->RetrieveCertificate(),
         profile::Profile::instance()->ciphers_list(),
         profile::Profile::instance()->verify_peer(),
         profile::Profile::instance()->ca_cert_path())) {

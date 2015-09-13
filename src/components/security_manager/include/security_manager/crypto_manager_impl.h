@@ -92,8 +92,7 @@ class CryptoManagerImpl : public CryptoManager {
   ~CryptoManagerImpl();
   bool Init(Mode mode,
             Protocol protocol,
-            const std::string &cert_filename,
-            const std::string &key_filename,
+            const std::string &cert_data,
             const std::string &ciphers_list,
             const bool verify_peer,
             const std::string &ca_certificate_file) OVERRIDE;
@@ -102,13 +101,13 @@ class CryptoManagerImpl : public CryptoManager {
   void ReleaseSSLContext(SSLContext *context) OVERRIDE;
   std::string LastError() const OVERRIDE;
 
- private:
-  void SetVerification();
+private:
+  bool set_certificate(const std::string &cert_data);
   SSL_CTX *context_;
   Mode mode_;
   static sync_primitives::Lock instance_lock_;
   static uint32_t instance_count_;
-  std::string ca_certificate_file_;
+  std::string certificate_data_;
   bool verify_peer_;
   DISALLOW_COPY_AND_ASSIGN(CryptoManagerImpl);
 };

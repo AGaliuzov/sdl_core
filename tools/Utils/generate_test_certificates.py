@@ -115,7 +115,14 @@ def gen_pkcs12(out, key_file, cert_file, verification_certificate) :
     'openssl pkcs12 -export -out $out -inkey $key_file -in $cert_file -name 'SPT key and certificates' -certfile $certs'
     """
     openssl("pkcs12 -export -out", out, "-inkey", key_file, "-in", cert_file, \
-        "-certfile", verification_certificate, "-name 'SPT key and certificates' -passout pass:")
+       "-name 'SPT key and certificates' -passout pass:")
+
+    """
+    Encode certificate $out to base 64
+    """
+    with open(out, "rb") as cert:
+        with open(out + ".enc", "wb") as enc_cert:
+            enc_cert.write(cert.read().encode("base64"))
 
 def answers(name, country, state, locality, organization, unit, email) :
     """Answer string generator
@@ -158,6 +165,8 @@ def main():
     server_answer  = answers("server", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile" ,"sample@luxoft.com")
     server_unsigned_answer  = answers("server", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile_unsigned" ,"sample@luxoft.com")
     server_expired_answer  = answers("server", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile_expired" ,"sample@luxoft.com")
+    client_unsigned_answer  = answers("server", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile_unsigned" ,"sample@luxoft.com")
+    client_expired_answer  = answers("server", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile_expired" ,"sample@luxoft.com")
     days = 10000
 
     server_dir = "server"
@@ -231,6 +240,30 @@ def main():
     server_pkcs12_expired_file = os.path.join(server_dir, "spt_credential_expired.p12")
     gen_expire_cert(server_expired_cert_file, server_key_file, ford_server_cert_file, ford_server_key_file, days, server_expired_answer)
     gen_pkcs12(server_pkcs12_expired_file, server_key_file, server_expired_cert_file, client_verification_ca_cert_file)
+
+
+    print
+    print " --== Client pkcs12 certificate generating ==-- "
+    client_key_file = os.path.join(client_dir, "client.key")
+    client_cert_file = os.path.join(client_dir, "client.crt")
+    client_pkcs12_file = os.path.join(client_dir, "client_credential.p12")
+    gen_rsa_key(client_key_file, 2048)
+    gen_cert(client_cert_file, client_key_file, ford_client_cert_file, ford_client_key_file, days, client_answer)
+    gen_pkcs12(client_pkcs12_file, client_key_file, client_cert_file, server_verification_ca_cert_file)
+
+    print
+    print " --== Client pkcs12 unsigned certificate generating ==-- "
+    client_unsigned_cert_file = os.path.join(client_dir, "client_unsigned.crt")
+    client_pkcs12_unsigned_file = os.path.join(client_dir, "client_credential_unsigned.p12")
+    gen_root_cert(client_unsigned_cert_file, client_key_file, days, client_unsigned_answer)
+    gen_pkcs12(client_pkcs12_unsigned_file, client_key_file, client_unsigned_cert_file, server_verification_ca_cert_file)
+
+    print
+    print " --== Client pkcs12 expired certificate generating ==-- "
+    client_expired_cert_file = os.path.join(client_dir, "client_expired.crt")
+    client_pkcs12_expired_file = os.path.join(client_dir, "client_credential_expired.p12")
+    gen_expire_cert(client_expired_cert_file, client_key_file, ford_client_cert_file, ford_client_key_file, days, client_expired_answer)
+    gen_pkcs12(client_pkcs12_expired_file, client_key_file, client_expired_cert_file, server_verification_ca_cert_file)
 
     subprocess.call(["c_rehash", server_dir])
     subprocess.call(["c_rehash", client_dir])
