@@ -97,7 +97,7 @@ class MessageHelper {
     /**
      * @brief Create mobile HashUpdateNotification
      */
-    static smart_objects::SmartObjectSPtr GetHashUpdateNotification(const uint32_t app_id);
+    static smart_objects::SmartObjectSPtr CreateHashUpdateNotification(const uint32_t app_id);
 
     /**
      * @brief Sends to mobile HashUpdateNotification
