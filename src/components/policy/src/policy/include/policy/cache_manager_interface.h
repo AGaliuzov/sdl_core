@@ -599,6 +599,12 @@ class CacheManagerInterface {
      */
     virtual std::string GetCertificate() const = 0;
 
+   /**
+     * @brief Sets decrypted certificate in policy table
+     * @param certificate content of certificate
+     */
+    virtual void SetDecryptedCertificate(const std::string& certificate) = 0;
+
 #ifdef BUILD_TESTS
   /**
    * @brief GetPT allows to obtain SharedPtr to PT.

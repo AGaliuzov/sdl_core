@@ -280,6 +280,8 @@ class PolicyHandler :
 
   virtual void OnCertificateUpdated(const std::string& certificate_data);
 
+  void  OnCertificateDecrypted(bool is_succeeded);
+
   virtual bool CanUpdate();
 
   virtual void OnDeviceConsentChanged(const std::string& device_id,
