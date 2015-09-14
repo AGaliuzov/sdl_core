@@ -57,10 +57,12 @@ using ::testing::_;
 
 namespace {
 
-const unsigned char json_size = 0x5e;
+const unsigned char kJjson_size = 0x5e;
+const unsigned char kCorrelation_id = 0x5c;
 unsigned char binary_header[PROTOCOL_HEADER_V2_SIZE] = {
-    0x20, 0x00, 0x00, 0xf7, 0x00, 0x00,
-    0x00, 0x5c, 0x00, 0x00, 0x00, json_size};
+    0x20, 0x00, 0x00, 0xf7,
+    0x00, 0x00, 0x00, kCorrelation_id,
+    0x00, 0x00, 0x00, kJjson_size};
 
 std::string data(
     "{\n   \"audioStreamingState\" : \"AUDIBLE\",\n   \"hmiLevel\" : "
@@ -118,7 +120,7 @@ class MobileMessageHandlerTest : public testing::Test {
     EXPECT_EQ(1u, message->connection_key());
     EXPECT_EQ(247u, message->function_id());
     EXPECT_EQ(protocol_version, message->protocol_version());
-    EXPECT_EQ(0x5c, message->correlation_id());
+    EXPECT_EQ(kCorrelation_id, message->correlation_id());
     EXPECT_EQ(full_data_size, message->data_size());
     EXPECT_EQ(payload_size, message->payload_size());
     EXPECT_TRUE(message->has_binary_data());
@@ -138,7 +140,7 @@ class MobileMessageHandlerTest : public testing::Test {
     EXPECT_EQ(1u, message->connection_key());
     EXPECT_EQ(247u, message->function_id());
     EXPECT_EQ(protocol_version, message->protocol_version());
-    EXPECT_EQ(0x5c, message->correlation_id());
+    EXPECT_EQ(kCorrelation_id, message->correlation_id());
     EXPECT_EQ(full_data_size, message->data_size());
     EXPECT_EQ(payload_size, message->payload_size());
     EXPECT_FALSE(message->has_binary_data());
