@@ -53,6 +53,7 @@ using protocol_handler::ServiceType;
 using protocol_handler::MessagePriority;
 using protocol_handler::PROTOCOL_HEADER_V2_SIZE;
 using application_manager::MobileMessageHandler;
+using application_manager::ProtocolVersion;
 using ::testing::_;
 
 namespace {
@@ -119,7 +120,8 @@ class MobileMessageHandlerTest : public testing::Test {
     EXPECT_EQ(data, message->json_message());
     EXPECT_EQ(1u, message->connection_key());
     EXPECT_EQ(247u, message->function_id());
-    EXPECT_EQ(protocol_version, message->protocol_version());
+    EXPECT_EQ(static_cast<ProtocolVersion>(protocol_version),
+              message->protocol_version());
     EXPECT_EQ(kCorrelation_id, message->correlation_id());
     EXPECT_EQ(full_data_size, message->data_size());
     EXPECT_EQ(payload_size, message->payload_size());
@@ -139,7 +141,8 @@ class MobileMessageHandlerTest : public testing::Test {
     EXPECT_EQ(data, message->json_message());
     EXPECT_EQ(1u, message->connection_key());
     EXPECT_EQ(247u, message->function_id());
-    EXPECT_EQ(protocol_version, message->protocol_version());
+    EXPECT_EQ(static_cast<ProtocolVersion>(protocol_version),
+              message->protocol_version());
     EXPECT_EQ(kCorrelation_id, message->correlation_id());
     EXPECT_EQ(full_data_size, message->data_size());
     EXPECT_EQ(payload_size, message->payload_size());
