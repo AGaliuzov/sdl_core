@@ -363,9 +363,9 @@ void MessageHelper::SendOnAppRegisteredNotificationToHMI(
 
 smart_objects::SmartObjectSPtr MessageHelper::CreateHashUpdateNotification(
   const uint32_t app_id) {
-  LOG4CXX_TRACE(logger_, "GetHashUpdateNotification" << app_id);
-  smart_objects::SmartObjectSPtr message = new smart_objects::SmartObject(
-      smart_objects::SmartType_Map);
+  LOG4CXX_AUTO_TRACE(logger_);
+  smart_objects::SmartObjectSPtr message =
+      utils::MakeShared<smart_objects::SmartObject>(smart_objects::SmartType_Map);
   (*message)[strings::params][strings::function_id] =
       mobile_apis::FunctionID::OnHashChangeID;
   (*message)[strings::params][strings::connection_key] = app_id;
@@ -378,17 +378,16 @@ void MessageHelper::SendHashUpdateNotification(const uint32_t app_id) {
   LOG4CXX_AUTO_TRACE(logger_);
   ApplicationSharedPtr app = ApplicationManagerImpl::instance()->application(app_id);
   if (!app){
-    LOG4CXX_DEBUG(logger_, "Application not found by appID");
+    LOG4CXX_ERROR(logger_, "Application not found by appID");
     return;
+  }
+  smart_objects::SmartObjectSPtr so = CreateHashUpdateNotification(app_id);
+  PrintSmartObject(*so);
+  if (!ApplicationManagerImpl::instance()->ManageMobileCommand(
+      so, commands::Command::ORIGIN_SDL)) {
+    LOG4CXX_ERROR(logger_, "Failed to send HashUpdate notification.");
   } else {
-    smart_objects::SmartObjectSPtr so = CreateHashUpdateNotification(app_id);
-    PrintSmartObject(*so);
-    if (!ApplicationManagerImpl::instance()->ManageMobileCommand(
-        so, commands::Command::ORIGIN_SDL)) {
-      LOG4CXX_ERROR(logger_, "Failed to send HashUpdate notification.");
-    } else {
-      ApplicationManagerImpl::instance()->resume_controller().ApplicationsDataUpdated();
-    }
+    ApplicationManagerImpl::instance()->resume_controller().ApplicationsDataUpdated();
   }
 }
 
