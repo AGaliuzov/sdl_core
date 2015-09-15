@@ -1209,7 +1209,7 @@ std::string PolicyManagerImpl::RetrieveCertificate() const {
   return cache_->GetCertificate();
 }
 
-const void PolicyManagerImpl::SetDecryptedCertificate(
+void PolicyManagerImpl::SetDecryptedCertificate(
     const std::string& certificate) {
   LOG4CXX_AUTO_TRACE(logger_);
   cache_->SetDecryptedCertificate(certificate);

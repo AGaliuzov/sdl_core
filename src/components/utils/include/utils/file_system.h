@@ -146,6 +146,8 @@ void Close(std::ofstream* file_stream);
   */
 std::string CurrentWorkingDirectory();
 
+std::string GetAbsolutePath(const std::string& path);
+
 /**
   * @brief Removes file
   *

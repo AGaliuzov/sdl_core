@@ -90,7 +90,8 @@ class PolicyHandlerTest : public ::testing::Test {
     app_manager_ = ApplicationManagerImpl::instance();
     ASSERT_TRUE(instance_);
     ASSERT_TRUE(app_manager_);
-    file_system::CreateDirectory("storage");
+    std::string path = file_system::CreateDirectory("storage");
+    file_system::CreateFile(path + "/" + "certificate");
     pm_ = utils::MakeShared<policy_manager::MockPolicyManager>();
     ASSERT_TRUE(pm_.valid());
   }
@@ -706,17 +707,22 @@ TEST_F(PolicyHandlerTest, Test_OnUpdateHMIAppType_method) {
   instance_->OnUpdateHMIAppType(app_hmi_types);
 }
 
-TEST_F(PolicyHandlerTest, Test_OnCertificateUpdated_method) {
+TEST_F(PolicyHandlerTest, Test_OnCertificateDecrypted_method) {
   // Arrange
-  EnablePolicy();
+  EnablePolicyAndPolicyManagerMock();
+
   ::test::components::security_manager_test::CryptoManagerMock crypto_manager;
   // security_manager::CryptoManagerImpl crypto_manager;
   instance_->add_listener(&crypto_manager);
-  const std::string certificate("test_cert");
   // Check expectations
-  EXPECT_CALL(crypto_manager, OnCertificateUpdated(certificate));
+  EXPECT_CALL(crypto_manager, OnCertificateUpdated(_)).Times(0);
+  EXPECT_CALL(crypto_manager, OnCertificateUpdated(_)).Times(1);
+  // Check expectations
+  EXPECT_CALL(*pm_, SetDecryptedCertificate(_)).Times(0);
+  EXPECT_CALL(*pm_, SetDecryptedCertificate(_)).Times(1);
   // Act
-  instance_->OnCertificateUpdated(certificate);
+  instance_->OnCertificateDecrypted(true);
+  instance_->OnCertificateDecrypted(false);
 }
 
 TEST_F(PolicyHandlerTest, Test_SendOnAppPermissionsChanged_method) {

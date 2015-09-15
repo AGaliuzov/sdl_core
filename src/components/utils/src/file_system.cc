@@ -217,6 +217,15 @@ std::string file_system::CurrentWorkingDirectory() {
   return std::string(path);
 }
 
+std::string file_system::GetAbsolutePath(const std::string &path) {
+  char abs_path[PATH_MAX];
+  if (NULL == realpath(path.c_str(), abs_path)) {
+    return std::string();
+  }
+
+  return std::string(abs_path);
+}
+
 bool file_system::DeleteFile(const std::string& name) {
   if (FileExists(name) && IsAccessible(name, W_OK)) {
     return !remove(name.c_str());
@@ -463,3 +472,4 @@ bool file_system::MoveFile(const std::string& src,
   }
   return false;
 }
+

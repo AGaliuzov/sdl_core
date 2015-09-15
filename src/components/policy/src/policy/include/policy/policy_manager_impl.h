@@ -184,7 +184,7 @@ class PolicyManagerImpl : public PolicyManager {
 
     virtual std::string RetrieveCertificate() const OVERRIDE;
 
-    virtual const void SetDecryptedCertificate(
+    virtual void SetDecryptedCertificate(
             const std::string& certificate) OVERRIDE;
 
   protected:

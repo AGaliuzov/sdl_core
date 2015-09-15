@@ -1300,7 +1300,8 @@ void PolicyHandler::OnUpdateHMIAppType(std::map<std::string, StringArray> app_hm
 void PolicyHandler::OnCertificateUpdated(const std::string& certificate_data) {
   LOG4CXX_AUTO_TRACE(logger_);
   const std::string file_name =
-      profile::Profile::instance()->app_storage_folder() +
+      file_system::GetAbsolutePath(
+        profile::Profile::instance()->app_storage_folder())
       + "/"
       + kCerficateFileName;
   const bool is_written =
@@ -1321,11 +1322,12 @@ void PolicyHandler::OnCertificateDecrypted(bool is_succeeded) {
   POLICY_LIB_CHECK_VOID();
 
   const std::string file_name =
-      profile::Profile::instance()->app_storage_folder() +
+      file_system::GetAbsolutePath(
+        profile::Profile::instance()->app_storage_folder()) +
       + "/"
       + kCerficateFileName;
 
-  utils::ScopeGuard file_deleter = MakeGuard(file_system::DeleteFile,
+  utils::ScopeGuard file_deleter = utils::MakeGuard(file_system::DeleteFile,
                                              file_name);
   UNUSED(file_deleter);
 
