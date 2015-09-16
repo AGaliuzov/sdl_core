@@ -16,10 +16,10 @@ namespace NsMessageBroker
 #ifdef CUSTOMER_PASA
    MqClient(std::string(""), std::string("")),
 #endif
+   stop(false),
    m_receivingBuffer(""),
    mControllersIdStart(-1),
-   mControllersIdCurrent(0),
-   stop(false)
+   mControllersIdCurrent(0)
    {
       mControllersName = name;
 #ifdef CUSTOMER_PASA
@@ -31,10 +31,10 @@ namespace NsMessageBroker
    CMessageBrokerController::CMessageBrokerController(const std::string& send_queue, const std::string& receive_queue, std::string name):
    TcpClient(std::string(""), 0),
    MqClient(send_queue, receive_queue),
+   stop(false),
    m_receivingBuffer(""),
    mControllersIdStart(-1),
-   mControllersIdCurrent(0),
-   stop(false)
+   mControllersIdCurrent(0)
    {
      mControllersName = name;
      mClientType = MQUEUE;
