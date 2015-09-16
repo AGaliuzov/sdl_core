@@ -96,7 +96,6 @@ LifeCycle::LifeCycle()
   , low_voltage_(false)
 #endif  // PASA_HMI
 #endif  // CUSTOMER_PASA
-  , components_started_(false)
 { }
 
 bool LifeCycle::StartComponents() {
@@ -206,7 +205,6 @@ bool LifeCycle::StartComponents() {
   transport_manager_->Visibility(true);
 #endif
 
-  components_started_ = true;
   return true;
 }
 
@@ -365,30 +363,36 @@ bool LifeCycle::InitMessageSystem() {
 #endif  // CUSTOMER_PASA
 
 namespace {
-
   void sig_handler(int sig) {
-    // Do nothing
-  }
-
-  void agony(int sig) {
-// these actions are not signal safe
-// (in case logger is on)
-// but they cannot be moved to a separate thread
-// because the application most probably will crash as soon as this handler returns
-//
-// the application is anyway about to crash
-    LOG4CXX_FATAL(logger_, "Stopping application due to segmentation fault");
+    switch(sig) {
+      case SIGINT:
+        LOG4CXX_DEBUG(logger_, "SIGINT signal has been caught");
+        break;
+      case SIGTERM:
+        LOG4CXX_DEBUG(logger_, "SIGTERM signal has been caught");
+        break;
+      case SIGSEGV:
+        LOG4CXX_DEBUG(logger_, "SIGSEGV signal has been caught");
 #ifdef ENABLE_LOG
-    logger::LogMessageLoopThread::destroy();
+        logger::LogMessageLoopThread::destroy();
 #endif
+        break;
+      default:
+        LOG4CXX_DEBUG(logger_, "Unexpected signal has been caught");
+        break;
+    }
   }
-
 }  //  namespace
 
 void LifeCycle::Run() {
+  LOG4CXX_AUTO_TRACE(logger_);
   // First, register signal handlers
-  ::utils::SubscribeToTerminateSignal(&sig_handler);
-  ::utils::SubscribeToFaultSignal(&agony);
+  if(!::utils::SubscribeToInterruptSignal(&sig_handler) ||
+     !::utils::SubscribeToTerminateSignal(&sig_handler) ||
+     !::utils::SubscribeToFaultSignal(&sig_handler)) {
+    LOG4CXX_FATAL(logger_, "Subscribe to system signals error");
+    return;
+  }
   // Now wait for any signal
   pause();
 }
@@ -417,10 +421,6 @@ void LifeCycle::WakeUp() {
 void LifeCycle::StopComponents() {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  if (!components_started_) {
-    LOG4CXX_ERROR(logger_, "Components wasn't started");
-    return;
-  }
   hmi_handler_->set_message_observer(NULL);
   connection_handler_->set_connection_handler_observer(NULL);
   protocol_handler_->RemoveProtocolObserver(app_manager_);
@@ -468,32 +468,31 @@ void LifeCycle::StopComponents() {
   LOG4CXX_INFO(logger_, "Destroying HMI Message Handler and MB adapter.");
 
 #ifdef CUSTOMER_PASA
-  /*if (mb_pasa_adapter_) {
+  if (mb_pasa_adapter_) {
     hmi_handler_->RemoveHMIMessageAdapter(mb_pasa_adapter_);
+    mb_pasa_adapter_->exitReceivingThread();
     if (mb_pasa_adapter_thread_) {
       mb_pasa_adapter_thread_->Stop();
       mb_pasa_adapter_thread_->Join();
+      delete mb_pasa_adapter_thread_;
     }
     delete mb_pasa_adapter_;
   }
-  hmi_message_handler::HMIMessageHandlerImpl::destroy();*/
+  hmi_message_handler::HMIMessageHandlerImpl::destroy();
 #else
 #ifdef MESSAGEBROKER_HMIADAPTER
-  hmi_handler_->RemoveHMIMessageAdapter(mb_adapter_);
   if (mb_adapter_) {
+    hmi_handler_->RemoveHMIMessageAdapter(mb_adapter_);
     mb_adapter_->unregisterController();
-    mb_adapter_->Close();
     mb_adapter_->exitReceivingThread();
     if (mb_adapter_thread_) {
+      mb_adapter_thread_->Stop();
       mb_adapter_thread_->Join();
+      delete mb_adapter_thread_;
     }
     delete mb_adapter_;
   }
   hmi_message_handler::HMIMessageHandlerImpl::destroy();
-  if (mb_adapter_thread_) {
-    mb_adapter_thread_->Stop();
-    delete mb_adapter_thread_;
-  }
 
   LOG4CXX_INFO(logger_, "Destroying Message Broker");
   if (mb_server_thread_) {
@@ -542,7 +541,6 @@ void LifeCycle::StopComponents() {
     time_tester_ = NULL;
   }
 #endif  // TIME_TESTER
-  components_started_ = false;
 }
 
 }  //  namespace main_namespace

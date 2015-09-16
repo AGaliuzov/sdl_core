@@ -59,7 +59,7 @@ void ThreadDelegate::exitThreadMain() {
 }
 
 void ThreadDelegate::set_thread(Thread *thread) {
-  DCHECK(thread && !thread->is_running());
+  DCHECK_OR_RETURN_VOID(thread && !thread->is_running());
   thread_ = thread;
 }
 
