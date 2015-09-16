@@ -37,6 +37,7 @@
 #include <map>
 #include <set>
 #include <vector>
+#include "application_manager/policies/policy_handler_interface.h"
 #include "policy/policy_manager.h"
 #include "application_manager/policies/policy_event_observer.h"
 #include "application_manager/policies/delegates/statistics_delegate.h"
@@ -61,6 +62,7 @@ typedef std::vector<uint32_t> DeviceHandles;
 
 class PolicyHandler :
     public utils::Singleton<PolicyHandler, utils::deleters::Deleter<PolicyHandler> >,
+    public PolicyHandlerInterface,
     public PolicyListener,
     public threads::AsyncRunner {
  public:
