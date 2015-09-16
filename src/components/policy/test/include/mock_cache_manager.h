@@ -190,6 +190,7 @@ class MockCacheManagerInterface : public CacheManagerInterface {
   MOCK_CONST_METHOD0(GetPT, utils::SharedPtr<policy_table::Table>());
   MOCK_CONST_METHOD0(GetMetaInfo, const MetaInfo());
   MOCK_CONST_METHOD0(GetCertificate, std::string());
+  MOCK_METHOD1(SetDecryptedCertificate, void(const std::string&));
 };
 
 }  // namespace policy

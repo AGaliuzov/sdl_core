@@ -39,9 +39,9 @@ INCLUDES = \
 	$(CC_IFLAG)../components/formatters/include \
 	$(CC_IFLAG)../components/config_profile/include \
 	$(CC_IFLAG)../components/policy/src/policy/include \
-	$(CC_IFLAG)../components/hmi_message_handler/include \
+	$(CC_IFLAG)../components/policy/src/policy/usage_statistics/include \
+        $(CC_IFLAG)../components/hmi_message_handler/include \
 	$(CC_IFLAG)../components/utils/include \
-	$(CC_IFLAG)../components/policies/include \
 	$(CC_IFLAG)../components/resumption/include \
 	$(CC_IFLAG)../components \
 	$(CC_IFLAG)../components/include \
