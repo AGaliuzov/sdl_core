@@ -158,7 +158,7 @@ class EventEngineTest : public testing::Test {
 TEST_F(EventEngineTest, EventObserverTest_ExpectObserversEmpty) {
   // Arrange
   EventObserver* event_observer_ptr =
-      dynamic_cast<EventObserver*>(&event_observer_mock_);
+      static_cast<EventObserver*>(&event_observer_mock_);
   // Check
   EXPECT_EQ(reinterpret_cast<unsigned long>(event_observer_ptr),
             event_observer_mock_.id());
@@ -249,8 +249,8 @@ TEST_F(
 TEST_F(EventEngineTest, Event_set_smart_object_ExpectObjectSet) {
   // Act
   event_->set_smart_object(smart_object_with_type_notification);
-  int32_t obj_type = static_cast<int32_t>(hmi_apis::messageType::notification);
-  int32_t function_id =
+  const int32_t obj_type = static_cast<int32_t>(hmi_apis::messageType::notification);
+  const int32_t function_id =
       static_cast<int32_t>(hmi_apis::FunctionID::eType::VR_IsReady);
   // Checks
   EXPECT_EQ(obj_type, event_->smart_object_type());
