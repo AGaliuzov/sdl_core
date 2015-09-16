@@ -136,7 +136,7 @@ class EventEngineTest : public testing::Test {
     EventDispatcher::ObserverList observers_list;
     ExtractObserversListFromObservers(event_id, observers_list);
     EXPECT_EQ(observers_number, observers_list.size());
-    if (observers_list.size()) {
+    if (!observers_list.empty()) {
       EventDispatcher::ObserverList::const_iterator observer_list_iter =
           std::find(observers_list.begin(), observers_list.end(), observer);
       EXPECT_TRUE(observer_list_iter != observers_list.end());
