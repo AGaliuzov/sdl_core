@@ -16,6 +16,7 @@ namespace NsMessageBroker
 #ifdef CUSTOMER_PASA
    MqClient(std::string(""), std::string("")),
 #endif
+   stop(false),
    m_receivingBuffer(""),
    mControllersIdStart(-1),
    mControllersIdCurrent(0)
@@ -30,6 +31,7 @@ namespace NsMessageBroker
    CMessageBrokerController::CMessageBrokerController(const std::string& send_queue, const std::string& receive_queue, std::string name):
    TcpClient(std::string(""), 0),
    MqClient(send_queue, receive_queue),
+   stop(false),
    m_receivingBuffer(""),
    mControllersIdStart(-1),
    mControllersIdCurrent(0)
@@ -359,7 +361,6 @@ namespace NsMessageBroker
 
    void* CMessageBrokerController::MethodForReceiverThread(void * arg)
    {
-      sync_primitives::AutoLock auto_lock(receiving_thread_lock_);
       stop = false;
       arg = arg; // to avoid compiler warnings
       while(!stop)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,25 +29,31 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include "application_manager/commands/hmi/decrypt_certificate_response.h"
+#include "application_manager/policies/policy_handler.h"
 
-#include "utils/logger.h"
-#include "utils/log_message_loop_thread.h"
-#include <apr_time.h>
+namespace application_manager {
 
-void deinit_logger () {
-  CREATE_LOGGERPTR_LOCAL(logger_, "Logger");
-  LOG4CXX_DEBUG(logger_, "Logger deinitialization");
-  logger::LogMessageLoopThread::destroy();
-  log4cxx::LoggerPtr rootLogger = log4cxx::Logger::getRootLogger();
-  log4cxx::spi::LoggerRepositoryPtr repository = rootLogger->getLoggerRepository();
-  log4cxx::LoggerList loggers = repository->getCurrentLoggers();
-  for (log4cxx::LoggerList::iterator i = loggers.begin(); i != loggers.end(); ++i) {
-    log4cxx::LoggerPtr logger = *i;
-    logger->removeAllAppenders();
-  }
-  rootLogger->removeAllAppenders();
+namespace commands {
+
+DecryptCertificateResponse::DecryptCertificateResponse(
+  const MessageSharedPtr& message): ResponseFromHMI(message) {
 }
 
-log4cxx_time_t time_now() {
-  return apr_time_now();
+DecryptCertificateResponse::~DecryptCertificateResponse() {
 }
+
+void DecryptCertificateResponse::Run() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  const hmi_apis::Common_Result::eType code =
+      static_cast<hmi_apis::Common_Result::eType>(
+          (*message_)[strings::params][hmi_response::code].asInt());
+
+  const bool is_succeeded = hmi_apis::Common_Result::SUCCESS == code;
+
+  policy::PolicyHandler::instance()->OnCertificateDecrypted(is_succeeded);
+}
+
+}  // namespace commands
+
+}  // namespace application_manager

@@ -447,6 +447,11 @@ class PolicyManager : public usage_statistics::StatisticsManager {
      */
     virtual std::string RetrieveCertificate() const = 0;
 
+    /**
+     * @brief Sets decrypted certificate in policy table
+     * @param certificate content of certificate
+     */
+    virtual void SetDecryptedCertificate(const std::string& certificate) = 0;
   protected:
     /**
      * Checks is PT exceeded IgnitionCycles

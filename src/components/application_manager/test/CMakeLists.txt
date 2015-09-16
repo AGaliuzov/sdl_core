@@ -151,13 +151,13 @@ if (BUILD_TESTS)
   )
 
   set(testLibraries
+    Utils
     ApplicationManagerTest
     jsoncpp
     Policy
     connectionHandler
     HMI_API
     MOBILE_API
-    Utils
     v4_protocol_v1_2_no_extra
     SmartObjects
     formatters

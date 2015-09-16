@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,24 +30,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "utils/logger.h"
-#include "utils/log_message_loop_thread.h"
-#include <apr_time.h>
+#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_DECRYPT_CERTIFICATE_REQUEST_H_
+#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_DECRYPT_CERTIFICATE_REQUEST_H_
 
-void deinit_logger () {
-  CREATE_LOGGERPTR_LOCAL(logger_, "Logger");
-  LOG4CXX_DEBUG(logger_, "Logger deinitialization");
-  logger::LogMessageLoopThread::destroy();
-  log4cxx::LoggerPtr rootLogger = log4cxx::Logger::getRootLogger();
-  log4cxx::spi::LoggerRepositoryPtr repository = rootLogger->getLoggerRepository();
-  log4cxx::LoggerList loggers = repository->getCurrentLoggers();
-  for (log4cxx::LoggerList::iterator i = loggers.begin(); i != loggers.end(); ++i) {
-    log4cxx::LoggerPtr logger = *i;
-    logger->removeAllAppenders();
-  }
-  rootLogger->removeAllAppenders();
-}
+#include "application_manager/commands/hmi/request_to_hmi.h"
 
-log4cxx_time_t time_now() {
-  return apr_time_now();
-}
+namespace application_manager {
+
+namespace commands {
+
+/**
+ * @brief DecryptCertificateRequest command class
+ **/
+class DecryptCertificateRequest : public RequestToHMI {
+  public:
+    /**
+     * @brief DecryptCertificateRequest class constructor
+     *
+     * @param message Incoming SmartObject message
+     **/
+    explicit DecryptCertificateRequest(const MessageSharedPtr& message);
+
+    /**
+     * @brief Execute command
+     **/
+    void Run() OVERRIDE;
+
+  private:
+    DISALLOW_COPY_AND_ASSIGN(DecryptCertificateRequest);
+};
+
+}  // namespace commands
+
+}  // namespace application_manager
+
+#endif  //  SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_DECRYPT_CERTIFICATE_REQUEST_H_

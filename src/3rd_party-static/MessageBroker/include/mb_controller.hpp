@@ -18,6 +18,7 @@
 #include <sys/stat.h>
 #endif
 #include "utils/lock.h"
+#include "utils/atomic_object.h"
 
 #include <cstring> 
 
@@ -209,7 +210,7 @@ namespace NsMessageBroker
       /**
        * @brief flag top stop thread
        */
-      volatile bool stop;
+      sync_primitives::atomic_bool stop;
 
    private:
       /**
@@ -269,12 +270,6 @@ namespace NsMessageBroker
       * @brief mutex for mWaitResponseQueue
       */
      sync_primitives::Lock       queue_lock_;
-
-     /*
-      * @brief mutex for Mutex for correct finishing of receiving thread
-      */
-     sync_primitives::Lock       receiving_thread_lock_;
-      
    };
 } /* namespace NsMessageBroker */
 #endif /* MB_CONTROLLER_H */

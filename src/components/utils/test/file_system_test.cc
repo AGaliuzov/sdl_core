@@ -1170,6 +1170,11 @@ TEST(FileSystemTest, DeleteAllContentInDirectory) {
   EXPECT_FALSE(DirectoryExists("./Test directory"));
 }
 
+TEST(FileSystemTest, GetAbsolutePath) {
+  const std::string& abs_path = GetAbsolutePath(".");
+  EXPECT_EQ(*abs_path.begin(), '/');
+}
+
 }  // namespace utils
 }  // namespace components
 }  // namespace test

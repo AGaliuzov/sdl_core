@@ -184,6 +184,9 @@ class PolicyManagerImpl : public PolicyManager {
 
     virtual std::string RetrieveCertificate() const OVERRIDE;
 
+    virtual void SetDecryptedCertificate(
+            const std::string& certificate) OVERRIDE;
+
   protected:
     virtual utils::SharedPtr<policy_table::Table> Parse(
         const BinaryMessage& pt_content);

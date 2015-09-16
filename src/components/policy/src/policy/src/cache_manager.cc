@@ -971,6 +971,10 @@ void CacheManager::CheckSnapshotInitialization() {
 
   *(snapshot_->policy_table.module_config.preloaded_pt) = false;
 
+  // SDL must not send certificate in snapshot
+  snapshot_->policy_table.module_config.certificate =
+      rpc::Optional<rpc::String<0, 65535> >();
+
   snapshot_->policy_table.consumer_friendly_messages->messages =
       rpc::Optional<policy_table::Messages>();
 
@@ -1804,6 +1808,14 @@ std::string CacheManager::GetCertificate() const {
     return *pt_->policy_table.module_config.certificate;
   }
   return std::string("");
+}
+
+void CacheManager::SetDecryptedCertificate(const std::string &certificate) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  CACHE_MANAGER_CHECK_VOID();
+  sync_primitives::AutoLock auto_lock(cache_lock_);
+  *pt_->policy_table.module_config.certificate = certificate;
+  Backup();
 }
 
 void CacheManager::MergePreloadPT(const std::string& file_name) {

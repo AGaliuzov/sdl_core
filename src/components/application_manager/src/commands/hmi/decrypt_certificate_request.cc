@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2014, Ford Motor Company
+﻿/*
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,24 +30,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "utils/logger.h"
-#include "utils/log_message_loop_thread.h"
-#include <apr_time.h>
+#include "application_manager/commands/hmi/decrypt_certificate_request.h"
+#include "application_manager/application_manager_impl.h"
 
-void deinit_logger () {
-  CREATE_LOGGERPTR_LOCAL(logger_, "Logger");
-  LOG4CXX_DEBUG(logger_, "Logger deinitialization");
-  logger::LogMessageLoopThread::destroy();
-  log4cxx::LoggerPtr rootLogger = log4cxx::Logger::getRootLogger();
-  log4cxx::spi::LoggerRepositoryPtr repository = rootLogger->getLoggerRepository();
-  log4cxx::LoggerList loggers = repository->getCurrentLoggers();
-  for (log4cxx::LoggerList::iterator i = loggers.begin(); i != loggers.end(); ++i) {
-    log4cxx::LoggerPtr logger = *i;
-    logger->removeAllAppenders();
-  }
-  rootLogger->removeAllAppenders();
+namespace application_manager {
+
+namespace commands {
+
+DecryptCertificateRequest::DecryptCertificateRequest(
+  const MessageSharedPtr& message): RequestToHMI(message) {
 }
 
-log4cxx_time_t time_now() {
-  return apr_time_now();
+void DecryptCertificateRequest::Run() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  const uint32_t correlation_id = RequestToHMI::correlation_id();
+  const uint32_t app_id = RequestToHMI::application_id();
+  ApplicationManagerImpl::instance()->set_application_id(correlation_id,
+                                                         app_id);
+  SendRequest();
 }
+
+}  // namespace commands
+
+}  // namespace application_manager
+
+
