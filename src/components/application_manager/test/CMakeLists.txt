@@ -96,6 +96,7 @@ if (BUILD_TESTS)
     ${AM_TEST_DIR}/request_info_test.cc
     ${AM_TEST_DIR}/resumption_sql_queries_test.cc
     ${AM_TEST_DIR}/policy_handler_test.cc
+    ${AM_TEST_DIR}/event_engine_test.cc
     # TODO(VVeremjova) APPLINK-12835
     #${AM_TEST_DIR}/zero_request_amount_test.cc
   )
