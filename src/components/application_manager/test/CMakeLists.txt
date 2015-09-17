@@ -97,6 +97,7 @@ if (BUILD_TESTS)
     ${AM_TEST_DIR}/resumption_sql_queries_test.cc
     ${AM_TEST_DIR}/policy_handler_test.cc
     ${AM_TEST_DIR}/event_engine_test.cc
+    ${AM_TEST_DIR}/application_impl_test.cc
     # TODO(VVeremjova) APPLINK-12835
     #${AM_TEST_DIR}/zero_request_amount_test.cc
   )
@@ -131,7 +132,7 @@ if (BUILD_TESTS)
     ${AM_SOURCE_DIR}/src/application_impl.cc
     ${AM_SOURCE_DIR}/src/state_controller.cc
     ${AM_SOURCE_DIR}/src/mobile_command_factory.cc
-    ${AM_SOURCE_DIR}/src/message_helper.cc
+
     ${AM_SOURCE_DIR}/src/hmi_command_factory.cc
     ${AM_SOURCE_DIR}/src/hmi_state.cc
     ${AM_SOURCE_DIR}/src/hmi_capabilities.cc
@@ -145,6 +146,8 @@ if (BUILD_TESTS)
     ${AM_SOURCE_DIR}/src/mobile_message_handler.cc
     ${AM_SOURCE_DIR}/src/commands/mobile/put_file_request.cc
     ${AM_SOURCE_DIR}/src/commands/command_request_impl.cc
+
+    ${AM_SOURCE_DIR}/test/mock_message_helper.cc
   )
 
   include_directories(
@@ -200,10 +203,9 @@ if (BUILD_TESTS)
     ${AM_TEST_DIR}/resumption/resumption_data_json_test.cc
   )
 
-  file(COPY resumption/smartDeviceLink_test.ini DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+  file(COPY smartDeviceLink_test.ini DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/resumption)
-  file(COPY resumption/smartDeviceLink_test.ini DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/resumption)
-  create_test("resumption/resumption_test" "${Resumption_SOURCES}" "${testLibraries}" "${AM_SOURCES_MOCK}")
+  file(COPY smartDeviceLink_test.ini DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/resumption)
   create_test("resumption/data_resumption_test" "${ResumptionData_SOURCES}" "${testLibraries}" "${AM_SOURCES_MOCK}")
 endif()
