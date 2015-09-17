@@ -37,6 +37,10 @@
 
 namespace policy {
 
+// Current interface created just to be able make unit-testing
+// It should be refactored in task pointed below
+// TODO(AByzhynar) : APPLINK-16112 Create PolicyHandler interface
+
 class PolicyHandlerInterface {
  public:
   virtual ~PolicyHandlerInterface() {}
