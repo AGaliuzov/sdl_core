@@ -55,10 +55,10 @@ void PolicyEventObserver::set_policy_handler(PolicyHandlerInterface* const polic
 }
 
 void PolicyEventObserver::on_event(const event_engine::Event& event) {
-  sync_primitives::AutoLock auto_lock(policy_handler_lock_);
   if (!policy_handler_) {
     return;
   }
+  sync_primitives::AutoLock auto_lock(policy_handler_lock_);
   const smart_objects::SmartObject& message = event.smart_object();
 
   switch (event.id()) {
