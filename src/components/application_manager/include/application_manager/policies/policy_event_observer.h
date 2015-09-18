@@ -38,20 +38,20 @@
 namespace policy {
 namespace smart_objects = NsSmartDeviceLink::NsSmartObjects;
 
-class PolicyHandler;
+class PolicyHandlerInterface;
 
 class PolicyEventObserver :
     public application_manager::event_engine::EventObserver {
  public:
-  explicit PolicyEventObserver(policy::PolicyHandler* const policy_handler);
-  void set_policy_handler(policy::PolicyHandler* const policy_handler);
+  explicit PolicyEventObserver(policy::PolicyHandlerInterface* const policy_handler);
+  void set_policy_handler(policy::PolicyHandlerInterface* const policy_handler);
   void on_event(const application_manager::event_engine::Event& event);
   void subscribe_on_event(
       const application_manager::event_engine::Event::EventID& event_id,
       int32_t hmi_correlation_id = 0);
  private:
   sync_primitives::Lock policy_handler_lock_;
-  PolicyHandler* policy_handler_;
+  PolicyHandlerInterface* policy_handler_;
   void ProcessOdometerEvent(const smart_objects::SmartObject& message);
 };
 
