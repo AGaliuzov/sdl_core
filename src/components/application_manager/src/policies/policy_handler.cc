@@ -30,13 +30,12 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "application_manager/policies/policy_handler.h"
 #include <unistd.h>
 #include <dlfcn.h>
 #include <algorithm>
 #include <vector>
 #include "application_manager/smart_object_keys.h"
-
-#include "application_manager/policies/policy_handler.h"
 
 #include "application_manager/policies/delegates/app_permission_delegate.h"
 
@@ -54,6 +53,7 @@
 #include "interfaces/MOBILE_API.h"
 #include "utils/file_system.h"
 #include "utils/scope_guard.h"
+#include "utils/make_shared.h"
 
 namespace policy {
 
@@ -265,7 +265,7 @@ PolicyHandler::PolicyHandler()
     dl_handle_(0),
     last_activated_app_id_(0),
     app_to_device_link_lock_(true),
-    statistic_manager_impl_(new StatisticManagerImpl()) {
+    statistic_manager_impl_(utils::MakeShared<StatisticManagerImpl>()) {
 }
 
 PolicyHandler::~PolicyHandler() {
@@ -287,7 +287,7 @@ bool PolicyHandler::LoadPolicyLibrary() {
   if (!error) {
     if (CreateManager()) {
       policy_manager_->set_listener(this);
-      event_observer_= new PolicyEventObserver(this);
+      event_observer_= utils::MakeShared<PolicyEventObserver>(this);
     }
   } else {
     LOG4CXX_ERROR(logger_, error);
