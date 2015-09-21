@@ -53,7 +53,7 @@ const std::string client_ca_cert_filename = "client";
 const std::string client_certificate = "client/client_credential.p12.enc";
 const std::string server_certificate = "server/spt_credential.p12.enc";
 const std::string server_unsigned_cert_file = "server/spt_credential_unsigned.p12.enc";
-const std::string server_expired_cert_file = "server/spt_credential_expired.crt.enc";
+const std::string server_expired_cert_file = "server/spt_credential_expired.p12.enc";
 const std::string client_key = "client/client.key";
 const std::string server_key = "client/server.key";
 // Client needs server_verification certificate for server verification
@@ -103,11 +103,19 @@ class SSLHandshakeTest : public testing::Test {
     }
 
     server_ctx = server_manager->CreateSSLContext();
+
     if (!server_ctx) {
       return false;
     }
+
+    security_manager::SSLContext::HandshakeContext ctx;
+    ctx.expected_cn = "client";
+    ctx.expected_sn = "SPT";
+    server_ctx->SetHandshakeContext(ctx);
+
     return true;
   }
+
   bool InitClientManagers(security_manager::Protocol protocol,
                           const std::string &cert_filename,
                           const std::string &ciphers_list,
@@ -128,6 +136,12 @@ class SSLHandshakeTest : public testing::Test {
     if (!client_ctx) {
       return false;
     }
+
+    security_manager::SSLContext::HandshakeContext ctx;
+    ctx.expected_cn = "server";
+    ctx.expected_sn = "SPT";
+    client_ctx->SetHandshakeContext(ctx);
+
     return true;
   }
 
@@ -209,7 +223,8 @@ class SSLHandshakeTest : public testing::Test {
     FAIL() << "Expected server side handshake fail";
   }
 
-  void HandshakeProcedure_ClientSideFail() {
+  void HandshakeProcedure_ClientSideFail(
+      security_manager::SSLContext::HandshakeResult expected_result) {
     using security_manager::SSLContext;
 
     StartHandshake();
@@ -236,6 +251,7 @@ class SSLHandshakeTest : public testing::Test {
       // First few handsahke will be successful
       if (result != SSLContext::Handshake_Result_Success) {
         // Test successfully passed with handshake fail
+        ASSERT_EQ(expected_result, result);
         return;
       }
 
@@ -317,7 +333,8 @@ TEST_F(SSLHandshakeTest, CAVerification_ClientSide_NoCACertificate) {
                                  "ALL", verify_peer, "client_ca_cert_filename"))
       << client_manager->LastError();
 
-  GTEST_TRACE(HandshakeProcedure_ClientSideFail());
+  GTEST_TRACE(HandshakeProcedure_ClientSideFail(
+                security_manager::SSLContext::Handshake_Result_Fail));
 
   ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
                                  "ALL", verify_peer, server_ca_cert_filename))
@@ -346,19 +363,20 @@ TEST_F(SSLHandshakeTest, UnsignedCert) {
   ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
                                  "ALL", verify_peer, client_ca_cert_filename))
       << client_manager->LastError();
-
-  GTEST_TRACE(HandshakeProcedure_ClientSideFail());
+  GTEST_TRACE(HandshakeProcedure_ClientSideFail(
+                security_manager::SSLContext::Handshake_Result_CertNotSigned));
 }
 
-TEST_F(SSLHandshakeTest, DISABLED_ExpiredCert) {
+TEST_F(SSLHandshakeTest, ExpiredCert) {
   ASSERT_TRUE(InitServerManagers(security_manager::TLSv1_2, server_expired_cert_file,
-                                 "ALL", skip_peer_verification, ""))
+                                 "ALL", verify_peer, client_ca_cert_filename))
       << server_manager->LastError();
   ASSERT_TRUE(InitClientManagers(security_manager::TLSv1_2, client_certificate,
-                                 "ALL", verify_peer, client_ca_cert_filename))
+                                 "ALL", verify_peer, server_ca_cert_filename))
       << client_manager->LastError();
 
-  GTEST_TRACE(HandshakeProcedure_ClientSideFail());
+  GTEST_TRACE(HandshakeProcedure_ClientSideFail(
+                security_manager::SSLContext::Handshake_Result_CertExpired));
 }
 
 

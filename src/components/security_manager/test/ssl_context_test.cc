@@ -87,6 +87,14 @@ class SSLTest : public testing::Test {
   virtual void SetUp() {
     server_ctx = crypto_manager->CreateSSLContext();
     client_ctx = client_manager->CreateSSLContext();
+
+    security_manager::SSLContext::HandshakeContext ctx;
+    ctx.expected_cn = "client";
+    ctx.expected_sn = "SPT";
+    server_ctx->SetHandshakeContext(ctx);
+
+    ctx.expected_cn = "server";
+    client_ctx->SetHandshakeContext(ctx);
   }
 
   virtual void TearDown() {
@@ -131,6 +139,7 @@ TEST_F(SSLTest, Positive) {
   const uint8_t *client_buf;
   size_t server_buf_len;
   size_t client_buf_len;
+
   ASSERT_EQ(client_ctx->StartHandshake(&client_buf,
           &client_buf_len),
       security_manager::SSLContext::Handshake_Result_Success);

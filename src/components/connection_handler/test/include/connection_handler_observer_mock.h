@@ -59,6 +59,9 @@ class ConnectionHandlerObserverMock : public ::connection_handler::ConnectionHan
       void(const int32_t &session_key,
            const protocol_handler::ServiceType &type,
            const connection_handler::CloseSessionReason& close_reason));
+  MOCK_CONST_METHOD1(GetHandshakeContext,
+                     security_manager::SSLContext::HandshakeContext(
+                       uint32_t key));
 
 };
 } // namespace connection_handler_test

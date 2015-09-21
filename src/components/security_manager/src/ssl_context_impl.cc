@@ -147,12 +147,13 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
   DCHECK(out_data_size);
   *out_data = NULL;
   *out_data_size = 0;
+
   // TODO(Ezamakhov): add test - hanshake fail -> restart StartHandshake
   sync_primitives::AutoLock locker(bio_locker);
   if (SSL_is_init_finished(connection_)) {
     LOG4CXX_DEBUG(logger_, "SSL initilization is finished");
     is_handshake_pending_ = false;
-    return SSLContext::Handshake_Result_Success;
+    return Handshake_Result_Success;
   }
 
   if (in_data && in_data_size) {
@@ -162,14 +163,18 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
       LOG4CXX_WARN(logger_, "BIO write fail");
       is_handshake_pending_ = false;
       ResetConnection();
-      return SSLContext::Handshake_Result_AbnormalFail;
+      return Handshake_Result_AbnormalFail;
     }
   }
 
-  STACK_OF(X509) *peer_certs = SSL_get_peer_cert_chain(connection_);
+  bool cn_found;
+  bool sn_found;
+  STACK_OF(X509 ) *peer_certs = SSL_get_peer_cert_chain(connection_);
   while (sk_X509_num(peer_certs) > 0) {
     X509* cert = sk_X509_pop(peer_certs);
-    char *subj = X509_NAME_oneline(X509_get_subject_name(cert), NULL, 0);
+    const bool last_step = (sk_X509_num(peer_certs) == 0);
+    X509_NAME* subj_name = X509_get_subject_name(cert);
+    char *subj = X509_NAME_oneline(subj_name, NULL, 0);
     if (subj) {
       std::replace(subj, subj + strlen(subj), '/', ' ');
       LOG4CXX_DEBUG(logger_, "Mobile cert subject:" << subj);
@@ -180,6 +185,22 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
       std::replace(issuer, issuer + strlen(issuer), '/', ' ');
       LOG4CXX_DEBUG(logger_, "Mobile cert issuer:" << issuer);
       OPENSSL_free(issuer);
+    }
+
+    const std::string& cn = GetTextBy(subj_name, NID_commonName);
+    const std::string& sn = GetTextBy(subj_name, NID_serialNumber);
+
+    cn_found = cn_found || (hsh_context_.expected_cn == cn);
+    sn_found = sn_found || (hsh_context_.expected_sn == sn);
+
+    if (!cn_found && last_step) {
+      LOG4CXX_ERROR(logger_,"Trying to run handshake with wrong app name");
+      return Handshake_Result_AppNameMismatch;
+    }
+
+    if (!sn_found && last_step) {
+      LOG4CXX_ERROR(logger_,"Trying to run handshake with wrong app id");
+      return Handshake_Result_AppIDMismatch;
     }
   }
 
@@ -201,17 +222,22 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
                  << " \"" << LastError() << '"');
     ResetConnection();
     is_handshake_pending_ = false;
-    return SSLContext::Handshake_Result_Fail;
+    return Handshake_Result_Fail;
   } else {
     const int error = SSL_get_error(connection_, handshake_result);
     if (error != SSL_ERROR_WANT_READ) {
       const long error = SSL_get_verify_result(connection_);
       SetHandshakeError(error);
-      LOG4CXX_WARN(logger_, "Handshake failed with error " << " -> " << SSL_get_error(connection_, error) << error
+      LOG4CXX_WARN(logger_, "Handshake failed with error " << " -> " << SSL_get_error(connection_, error)
                    << " \"" << LastError() << '"');
       ResetConnection();
       is_handshake_pending_ = false;
-      return SSLContext::Handshake_Result_AbnormalFail;
+      // In case error happened but ssl verification shows OK
+      // method will return AbnormalFail.
+      if (X509_V_OK == error) {
+        return Handshake_Result_AbnormalFail;
+      }
+      return openssl_error_convert_to_internal(error);
     }
   }
 
@@ -230,11 +256,11 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
       LOG4CXX_WARN(logger_, "BIO read fail");
       is_handshake_pending_ = false;
       ResetConnection();
-      return SSLContext::Handshake_Result_AbnormalFail;
+      return Handshake_Result_AbnormalFail;
     }
   }
 
-  return SSLContext::Handshake_Result_Success;
+  return Handshake_Result_Success;
 }
 
 bool CryptoManagerImpl::SSLContextImpl::Encrypt(
@@ -356,6 +382,11 @@ void CryptoManagerImpl::SSLContextImpl::ResetConnection() {
   SSL_set_bio(connection_, bioIn_, bioOut_);
 }
 
+void CryptoManagerImpl::SSLContextImpl::SetHandshakeContext(
+    const SSLContext::HandshakeContext& hsh_ctx) {
+  hsh_context_ = hsh_ctx;
+}
+
 void CryptoManagerImpl::SSLContextImpl::EnsureBufferSizeEnough(size_t size) {
   if (buffer_size_ < size) {
     delete[] buffer_;
@@ -366,7 +397,38 @@ void CryptoManagerImpl::SSLContextImpl::EnsureBufferSizeEnough(size_t size) {
       buffer_ = NULL;
       buffer_size_ = 0;
     }
+    }
+}
+
+SSLContext::HandshakeResult
+CryptoManagerImpl::SSLContextImpl::openssl_error_convert_to_internal(
+    const long error) {
+  switch(error) {
+    case X509_V_ERR_CERT_HAS_EXPIRED: return Handshake_Result_CertExpired;
+    case X509_V_ERR_CERT_NOT_YET_VALID: return Handshake_Result_NotYetValid;
+    case X509_V_ERR_SUBJECT_ISSUER_MISMATCH:
+    case X509_V_ERR_CERT_SIGNATURE_FAILURE:
+    case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT:
+    case X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT:
+      return Handshake_Result_CertNotSigned;
+    default: return Handshake_Result_Fail;
   }
 }
+
+std::string CryptoManagerImpl::SSLContextImpl::GetTextBy(
+    X509_NAME* name, int object) const {
+  const int req_len = X509_NAME_get_text_by_NID(name, object, NULL, 0);
+
+  if (-1 == req_len) {
+    return std::string();
+  }
+
+  std::vector<char> data;
+  data.resize(req_len + 1);
+  X509_NAME_get_text_by_NID(name, object, &data.front(), data.size());
+
+  return std::string(data.begin(), data.end() - 1);
+}
+
 
 }  // namespace security_manager

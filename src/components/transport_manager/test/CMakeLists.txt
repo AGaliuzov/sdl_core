@@ -69,7 +69,7 @@ endif()
 set(SOURCES
   ${TM_TEST_DIR}/transport_manager_default_test.cc
   ${TM_TEST_DIR}/transport_manager_impl_test.cc
-  ${TM_TEST_DIR}/dnssd_service_browser_test.cc
+  #${TM_TEST_DIR}/dnssd_service_browser_test.cc
   ${TM_TEST_DIR}/transport_adapter_test.cc
   ${TM_TEST_DIR}/transport_adapter_listener_test.cc
   ${TM_TEST_DIR}/tcp_transport_adapter_test.cc

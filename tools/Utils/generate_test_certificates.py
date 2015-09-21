@@ -124,7 +124,7 @@ def gen_pkcs12(out, key_file, cert_file, verification_certificate) :
         with open(out + ".enc", "wb") as enc_cert:
             enc_cert.write(cert.read().encode("base64"))
 
-def answers(name, country, state, locality, organization, unit, email) :
+def answers(name, app_id, country, state, locality, organization, unit, email) :
     """Answer string generator
     Generate answer for certificate creation with openssl
     Country argument need to be 2 symbol size
@@ -132,7 +132,7 @@ def answers(name, country, state, locality, organization, unit, email) :
     if len(country) != 2 :
         raise ValueError("Country argument need to be 2 symbol size")
     answer ="'/C={0}/ST={1}/L={2}/O={3}".format(country, state, locality, organization)
-    answer +="/OU={0}/CN={1}/emailAddress={2}'".format(unit, name, email)
+    answer +="/OU={0}/CN={1}/emailAddress={2}/serialNumber={3}'".format(unit, name, email, app_id)
     return answer
 
 def concat_files(out_file_name, *args) :
@@ -158,15 +158,15 @@ def main():
             print "Root key file '%s' exists. Generation aborted according to soft mode." % (root_key_file, )
             return
 
-    root_answer = answers("root", "US", "California", "Silicon Valley", "CAcert.org", "CAcert", "sample@cacert.org")
-    ford_server_answer = answers("FORD", "US", "Michigan", "Detroit", "FORD_SERVER", "FORD_SDL_SERVER" ,"sample@ford.com")
-    ford_client_answer = answers("FORD", "US", "Michigan", "Detroit", "FORD_CLIENT", "FORD_SDL_CLIENT" ,"sample@ford.com")
-    client_answer  = answers("client", "RU", "Russia", "St. Petersburg", "Luxoft", "HeadUnit" ,"sample@luxoft.com")
-    server_answer  = answers("server", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile" ,"sample@luxoft.com")
-    server_unsigned_answer  = answers("server", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile_unsigned" ,"sample@luxoft.com")
-    server_expired_answer  = answers("server", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile_expired" ,"sample@luxoft.com")
-    client_unsigned_answer  = answers("server", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile_unsigned" ,"sample@luxoft.com")
-    client_expired_answer  = answers("server", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile_expired" ,"sample@luxoft.com")
+    root_answer = answers("root", "SPT", "US", "California", "Silicon Valley", "CAcert.org", "CAcert", "sample@cacert.org")
+    ford_server_answer = answers("FORD", "SPT", "US", "Michigan", "Detroit", "FORD_SERVER", "FORD_SDL_SERVER" ,"sample@ford.com")
+    ford_client_answer = answers("FORD", "SPT", "US", "Michigan", "Detroit", "FORD_CLIENT", "FORD_SDL_CLIENT" ,"sample@ford.com")
+    client_answer  = answers("client", "SPT", "RU", "Russia", "St. Petersburg", "Luxoft", "HeadUnit" ,"sample@luxoft.com")
+    server_answer  = answers("server", "SPT", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile" ,"sample@luxoft.com")
+    server_unsigned_answer  = answers("server", "SPT", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile_unsigned" ,"sample@luxoft.com")
+    server_expired_answer  = answers("server", "SPT", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile_expired" ,"sample@luxoft.com")
+    client_unsigned_answer  = answers("client", "SPT", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile_unsigned" ,"sample@luxoft.com")
+    client_expired_answer  = answers("client", "SPT", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile_expired" ,"sample@luxoft.com")
     days = 10000
 
     server_dir = "server"

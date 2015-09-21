@@ -66,11 +66,16 @@ class CryptoManagerImpl : public CryptoManager {
     size_t get_max_block_size(size_t mtu) const OVERRIDE;
     std::string LastError() const OVERRIDE;
     void ResetConnection() OVERRIDE;
+    void SetHandshakeContext(const HandshakeContext& hsh_ctx) OVERRIDE;
     ~SSLContextImpl();
    private:
     void SetHandshakeError(const int error);
     typedef size_t(*BlockSizeGetter)(size_t);
     void EnsureBufferSizeEnough(size_t size);
+    HandshakeResult openssl_error_convert_to_internal(const long error);
+
+    std::string GetTextBy(X509_NAME* name, int object) const;
+
     SSL *connection_;
     BIO *bioIn_;
     BIO *bioOut_;
@@ -84,6 +89,7 @@ class CryptoManagerImpl : public CryptoManager {
     mutable std::string last_error_;
     static std::map<std::string, BlockSizeGetter> max_block_sizes;
     static std::map<std::string, BlockSizeGetter> create_max_block_sizes();
+    HandshakeContext hsh_context_;
     DISALLOW_COPY_AND_ASSIGN(SSLContextImpl);
   };
 

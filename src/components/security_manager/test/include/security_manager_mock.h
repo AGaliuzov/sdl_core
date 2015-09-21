@@ -150,6 +150,9 @@ class SessionObserverMock : public protocol_handler::SessionObserver {
   MOCK_METHOD3(ProtocolVersionUsed,
       bool(uint32_t connection_id, uint8_t session_id,
     		  uint8_t& protocol_version));
+  MOCK_CONST_METHOD1(GetHandshakeContext,
+               security_manager::SSLContext::HandshakeContext (uint32_t key) );
+
 };
 /*
  * MOCK implementation of protocol_handler::ProtocolObserver interface
@@ -217,6 +220,7 @@ class SSLContextMock : public security_manager::SSLContext {
                      std::string());
   MOCK_METHOD0(ResetConnection,
                void());
+  MOCK_METHOD1(SetHandshakeContext, void (const HandshakeContext& hsh_ctx));
 };
 /*
  * MOCK implementation of security_manager::SecurityManagerListener
@@ -225,7 +229,7 @@ class SMListenerMock : public security_manager::SecurityManagerListener {
  public:
   MOCK_METHOD2(OnHandshakeDone,
       bool(uint32_t connection_key,
-          bool success));
+          security_manager::SSLContext::HandshakeResult result));
 };
 
 /*
