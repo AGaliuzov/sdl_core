@@ -400,7 +400,7 @@ TEST_F(ProfileTest, IntInsteadOfPair) {
             Profile::instance()->config_file_name());
   // Ini file includes only one element
   value.first = 9;
-  value.second = 0;
+  value.second = 1000;
   EXPECT_EQ(value, Profile::instance()->start_stream_retry_amount());
 
   // Update config file
