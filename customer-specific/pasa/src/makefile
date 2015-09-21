@@ -13,6 +13,7 @@ COMPONENT_NAME = SmartDeviceLink
 
 DEFS += \
 	-Wc,-std=gnu++0x \
+	-DENABLE_SECURITY \
 	-DENABLE_LOG
 
 all:
@@ -56,6 +57,7 @@ library:
 	$(MAKE) -C components/application_manager/src/resumption OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/application_manager/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C components/resumption/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
+	$(MAKE) -C components/security_manager/src OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	$(MAKE) -C plugins/appenders OPTIMIZATION=NONE TARGET_FLG=-Vgcc_ntoarmv7le_gpp $@
 	@echo "***************************************************************************"
 	@echo "Make $@ $(COMPONENT_NAME) finished."
