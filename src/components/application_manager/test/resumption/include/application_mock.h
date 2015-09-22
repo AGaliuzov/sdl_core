@@ -96,6 +96,8 @@ class ApplicationMock : public ::application_manager::Application {
                      const ::application_manager::HmiStatePtr());
   MOCK_CONST_METHOD0(RegularHmiState,
                      const ::application_manager::HmiStatePtr());
+  MOCK_CONST_METHOD0(PostponedHmiState,
+                     const ::application_manager::HmiStatePtr());
   MOCK_METHOD1(set_tts_properties_in_none, void(bool active));
   MOCK_METHOD0(tts_properties_in_none, bool());
   MOCK_METHOD1(set_tts_properties_in_full, void(bool active));
@@ -117,6 +119,8 @@ class ApplicationMock : public ::application_manager::Application {
       void(const ::application_manager::ProtocolVersion& protocol_version));
   MOCK_CONST_METHOD0(protocol_version,
                      ::application_manager::ProtocolVersion());
+  MOCK_METHOD1(set_is_resuming, void(bool));
+  MOCK_CONST_METHOD0(is_resuming, bool());
   MOCK_METHOD1(AddFile, bool(::application_manager::AppFile& file));
   MOCK_CONST_METHOD0(getAppFiles, const ::application_manager::AppFilesMap&());
   MOCK_METHOD1(UpdateFile, bool(::application_manager::AppFile& file));
@@ -138,6 +142,7 @@ class ApplicationMock : public ::application_manager::Application {
                     ::application_manager::TLimitSource source));
   MOCK_METHOD0(usage_report, ::application_manager::UsageStatistics&());
   MOCK_METHOD1(SetRegularState, void(::application_manager::HmiStatePtr state));
+  MOCK_METHOD1(SetPostponedState, void(::application_manager::HmiStatePtr state));
   MOCK_METHOD1(AddHMIState, void(::application_manager::HmiStatePtr state));
   MOCK_METHOD1(RemoveHMIState,
                void(::application_manager::HmiState::StateID state_id));
