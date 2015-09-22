@@ -1493,7 +1493,7 @@ bool SQLPTExtRepresentation::SaveAppCounters(
     query.Bind(12, it->second.count_of_run_attempts_while_revoked);
     query.Bind(13, it->second.app_registration_language_gui);
     query.Bind(14, it->second.app_registration_language_vui);
-    query.Bind(15, it->second.count_of_tls_error);
+    query.Bind(15, it->second.count_of_tls_errors);
     if (!query.Exec() || !query.Reset()) {
       LOG4CXX_WARN(logger_, "Incorrect insert into app level.");
       return false;
