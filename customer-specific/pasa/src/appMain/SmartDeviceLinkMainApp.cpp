@@ -538,8 +538,8 @@ int main(int argc, char** argv) {
   LOG4CXX_INFO(logger_, "Stop SDL due to caught signal");
 
   applink_notification_thread->join();
-  threads::DeleteThread(applink_notification_thread);
   delete applink_notification_thread_delegate;
+  threads::DeleteThread(applink_notification_thread);
 
   close(pipefd[0]);
   close(pipefd[1]);
