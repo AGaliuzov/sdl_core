@@ -239,23 +239,23 @@ class ApplinkNotificationThreadDelegate : public threads::ThreadDelegate {
 
   int readfd_;
   int writefd_;
-  utils::SharedPtr<timer::TimerThread<ApplinkNotificationThreadDelegate> > heart_beat_sender_;
   mqd_t mq_from_sdl_;
   mqd_t aoa_mq_;
   struct mq_attr attributes_;
   size_t heart_beat_timeout_;
+  timer::TimerThread<ApplinkNotificationThreadDelegate>* heart_beat_sender_;
 };
 
 ApplinkNotificationThreadDelegate::ApplinkNotificationThreadDelegate(
     int readfd, int writefd)
   : readfd_(readfd),
     writefd_(writefd),
+    heart_beat_timeout_(profile::Profile::instance()->hmi_heart_beat_timeout()),
     heart_beat_sender_(
       new timer::TimerThread<ApplinkNotificationThreadDelegate>(
         "AppLinkHeartBeat",
         this,
-        &ApplinkNotificationThreadDelegate::sendHeartBeat, true)),
-        heart_beat_timeout_(profile::Profile::instance()->hmi_heart_beat_timeout()) {
+        &ApplinkNotificationThreadDelegate::sendHeartBeat, true)) {
 
   attributes_.mq_maxmsg = MSGQ_MAX_MESSAGES;
   attributes_.mq_msgsize = MAX_QUEUE_MSG_SIZE;
@@ -266,6 +266,7 @@ ApplinkNotificationThreadDelegate::ApplinkNotificationThreadDelegate(
 }
 
 ApplinkNotificationThreadDelegate::~ApplinkNotificationThreadDelegate() {
+  delete heart_beat_sender_;
   close_mq(mq_from_sdl_);
   close_mq(aoa_mq_);
 }
