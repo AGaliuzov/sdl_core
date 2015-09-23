@@ -41,6 +41,7 @@
 #include "application_manager/application_manager_impl.h"
 #include "application_impl.h"
 #include "security_manager_mock.h"
+#include "mock_message_helper.h"
 #include "policy/policy_types.h"
 #include "json/reader.h"
 #include "json/writer.h"
@@ -193,7 +194,8 @@ TEST_F(PolicyHandlerTest, Test_ReceiveMessageFromSDK_method) {
   BinaryMessage msg(json.begin(), json.end());
   // Checks
   EXPECT_CALL(*app_manager_, GetNextHMICorrelationID());
-  EXPECT_CALL(*app_manager_, ManageHMICommand(_));
+  EXPECT_CALL(*MockMessageHelper::message_helper_mock(),
+              CreateGetVehicleDataRequest(_, _));
   EXPECT_CALL(*pm_, PTUpdatedAt(_, _));
   EXPECT_CALL(*pm_, LoadPT("", msg)).WillOnce(Return(true));
   EXPECT_CALL(*pm_, CleanupUnpairedDevices());
@@ -440,17 +442,20 @@ TEST_F(PolicyHandlerTest, Test_OnActivateApp_method) {
       app_id, policy_app_id, app_name, instance_->GetStatisticManager()));
 
   EXPECT_CALL(*app_manager_, application(connection_key))
-      .Times(2)
+      .Times(1)
       .WillRepeatedly(Return(application1));
+  EXPECT_CALL(*MockMessageHelper::message_helper_mock(),
+              GetDeviceInfoForApp(_, _));
 
   AppPermissions permissions(policy_app_id);
   // Check expectations
   EXPECT_CALL(*pm_, GetAppPermissionsChanges(_)).WillOnce(Return(permissions));
   EXPECT_CALL(*pm_, GetUserConsentForDevice(_))
       .WillOnce(Return(DeviceConsent::kDeviceHasNoConsent));
-  EXPECT_CALL(*pm_, Increment(_, _));
+  ON_CALL(*pm_, Increment(_, _)).WillByDefault(Return());
   EXPECT_CALL(*pm_, RemovePendingPermissionChanges(_));
-  EXPECT_CALL(*app_manager_, ManageHMICommand(_)).WillOnce(Return(false));
+  EXPECT_CALL(*MockMessageHelper::message_helper_mock(),
+              SendSDLActivateAppResponse(_, _));
   // Act
   instance_->OnActivateApp(connection_key, correlation_id);
 }
@@ -492,7 +497,8 @@ TEST_F(PolicyHandlerTest, Test_PTExchangeAtUserRequest_method) {
   ChangePolicyManagerToMock();
   // Check expectations
   EXPECT_CALL(*pm_, ForcePTExchange());
-  EXPECT_CALL(*app_manager_, ManageHMICommand(_));
+  EXPECT_CALL(*MockMessageHelper::message_helper_mock(),
+              SendUpdateSDLResponse(_, _));
   // Act
   const uint32_t correlation_id = 2;
   instance_->PTExchangeAtUserRequest(correlation_id);
@@ -528,8 +534,8 @@ TEST_F(PolicyHandlerTest, Test_OnGetUserFriendlyMessage_method) {
   const uint32_t correlation_id = 2;
   EXPECT_CALL(*pm_, GetUserFriendlyMessages(message_codes, language))
       .WillOnce(Return(std::vector<UserFriendlyMessage>()));
-  EXPECT_CALL(*app_manager_, ManageHMICommand(_)).Times(2)
-      .WillRepeatedly(Return(false));
+  EXPECT_CALL(*MockMessageHelper::message_helper_mock(),
+              SendGetUserFriendlyMessageResponse(_, _));
   // Act
   instance_->OnGetUserFriendlyMessage(message_codes, language, correlation_id);
 }
@@ -537,19 +543,21 @@ TEST_F(PolicyHandlerTest, Test_OnGetUserFriendlyMessage_method) {
 TEST_F(PolicyHandlerTest, Test_OnGetStatusUpdate_method) {
   // Arrange
   ChangePolicyManagerToMock();
+  const uint32_t correlation_id = 2;
   // Check expectations
   EXPECT_CALL(*pm_, GetPolicyTableStatus());
-  EXPECT_CALL(*app_manager_, ManageHMICommand(_)).WillOnce(Return(false));
+  EXPECT_CALL(*MockMessageHelper::message_helper_mock(),
+              SendGetStatusUpdateResponse(_, correlation_id));
   // Act
-  const uint32_t correlation_id = 2;
   instance_->OnGetStatusUpdate(correlation_id);
 }
 
 TEST_F(PolicyHandlerTest, Test_OnUpdateStatusChanged_method) {
   // Check expectations
-  EXPECT_CALL(*app_manager_, ManageHMICommand(_)).WillOnce(Return(false));
-  // Act
   const std::string& status("new status");
+  EXPECT_CALL(*MockMessageHelper::message_helper_mock(),
+              SendOnStatusUpdate(status));
+  // Act
   instance_->OnUpdateStatusChanged(status);
 }
 
@@ -569,9 +577,8 @@ TEST_F(PolicyHandlerTest, Test_OnCurrentDeviceIdUpdateRequired_method) {
 
   EXPECT_CALL(*app_manager_, application_by_policy_id(policy_app_id))
       .WillOnce(Return(application));
-  EXPECT_CALL(*app_manager_, application(_))
-      .WillOnce(Return(application));
-
+  EXPECT_CALL(*MockMessageHelper::message_helper_mock(),
+              GetDeviceInfoForApp(_, _));
   // Act
   instance_->OnCurrentDeviceIdUpdateRequired(policy_app_id);
 }
@@ -613,8 +620,8 @@ TEST_F(PolicyHandlerTest, Test_OnSystemInfoUpdateRequired_method) {
   // Arrange
   ChangePolicyManagerToMock();
   // Check expectations
-  EXPECT_CALL(*app_manager_, GetNextHMICorrelationID());
-  EXPECT_CALL(*app_manager_, ManageHMICommand(_));
+  EXPECT_CALL(*MockMessageHelper::message_helper_mock(),
+              SendGetSystemInfoRequest());
   // Act
   instance_->OnSystemInfoUpdateRequired();
 }
@@ -636,7 +643,8 @@ TEST_F(PolicyHandlerTest, Test_OnVIIsReady_method) {
   ChangePolicyManagerToMock();
   // Check expectations
   EXPECT_CALL(*app_manager_, GetNextHMICorrelationID());
-  EXPECT_CALL(*app_manager_, ManageHMICommand(_));
+  EXPECT_CALL(*MockMessageHelper::message_helper_mock(),
+              CreateGetVehicleDataRequest(_, _));
   // Act
   instance_->OnVIIsReady();
 }
@@ -740,7 +748,8 @@ TEST_F(PolicyHandlerTest, Test_SendOnAppPermissionsChanged_method) {
   // Check expectations
   EXPECT_CALL(*app_manager_, application_by_policy_id(policy_app_id))
       .WillOnce(Return(application));
-  EXPECT_CALL(*app_manager_, ManageHMICommand(_));
+  EXPECT_CALL(*MockMessageHelper::message_helper_mock(),
+              SendOnAppPermissionsChangedNotification(_, _));
   AppPermissions permissions(policy_app_id);
   // Act
   instance_->SendOnAppPermissionsChanged(permissions, policy_app_id);
