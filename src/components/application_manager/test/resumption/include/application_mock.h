@@ -93,11 +93,11 @@ class ApplicationMock : public ::application_manager::Application {
   MOCK_CONST_METHOD0(device, connection_handler::DeviceHandle());
   MOCK_METHOD0(tts_speak_state, bool());
   MOCK_CONST_METHOD0(CurrentHmiState,
-                     const ::application_manager::HmiStatePtr());
+                     ::application_manager::HmiStatePtr());
   MOCK_CONST_METHOD0(RegularHmiState,
-                     const ::application_manager::HmiStatePtr());
+                     ::application_manager::HmiStatePtr());
   MOCK_CONST_METHOD0(PostponedHmiState,
-                     const ::application_manager::HmiStatePtr());
+                     ::application_manager::HmiStatePtr());
   MOCK_METHOD1(set_tts_properties_in_none, void(bool active));
   MOCK_METHOD0(tts_properties_in_none, bool());
   MOCK_METHOD1(set_tts_properties_in_full, void(bool active));

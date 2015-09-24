@@ -106,6 +106,7 @@ ApplicationImpl::ApplicationImpl(uint32_t application_id,
 #ifdef CUSTOMER_PASA
       flag_sending_hash_change_after_awake_(false),
 #endif //CUSTOMER_PASA
+      is_resuming_(false),
       video_stream_retry_number_(0),
       audio_stream_retry_number_(0) {
 
@@ -207,6 +208,7 @@ bool ApplicationImpl::IsAudioApplication() const {
 }
 
 void ApplicationImpl::SetRegularState(HmiStatePtr state) {
+  LOG4CXX_AUTO_TRACE(logger_);
   DCHECK_OR_RETURN_VOID(state);
   DCHECK_OR_RETURN_VOID(state->state_id() ==
       HmiState::StateID::STATE_ID_REGULAR);
@@ -227,6 +229,7 @@ void ApplicationImpl::SetRegularState(HmiStatePtr state) {
 }
 
 void ApplicationImpl::SetPostponedState(HmiStatePtr state) {
+  LOG4CXX_AUTO_TRACE(logger_);
   DCHECK_OR_RETURN_VOID(state);
   DCHECK_OR_RETURN_VOID(state->state_id() ==
       HmiState::StateID::STATE_ID_POSTPONED);
@@ -287,7 +290,7 @@ void ApplicationImpl::RemoveHMIState(HmiState::StateID state_id) {
   }
 }
 
-const HmiStatePtr ApplicationImpl::CurrentHmiState() const {
+HmiStatePtr ApplicationImpl::CurrentHmiState() const {
   sync_primitives::AutoLock auto_lock(hmi_states_lock_);
   DCHECK_OR_RETURN(!hmi_states_.empty(), HmiStatePtr());
   HmiStatePtr back_state = hmi_states_.back();
@@ -297,7 +300,7 @@ const HmiStatePtr ApplicationImpl::CurrentHmiState() const {
   return back_state;
 }
 
-const HmiStatePtr ApplicationImpl::RegularHmiState() const {
+HmiStatePtr ApplicationImpl::RegularHmiState() const {
   sync_primitives::AutoLock auto_lock(hmi_states_lock_);
   DCHECK_OR_RETURN(!hmi_states_.empty(), HmiStatePtr());
   HmiStateList::const_iterator front_itr = hmi_states_.begin();
@@ -307,7 +310,7 @@ const HmiStatePtr ApplicationImpl::RegularHmiState() const {
   return *front_itr;
 }
 
-const HmiStatePtr ApplicationImpl::PostponedHmiState() const {
+HmiStatePtr ApplicationImpl::PostponedHmiState() const {
   sync_primitives::AutoLock auto_lock(hmi_states_lock_);
   DCHECK_OR_RETURN(!hmi_states_.empty(), HmiStatePtr());
   HmiStatePtr front_state = hmi_states_.front();
@@ -629,12 +632,10 @@ ProtocolVersion ApplicationImpl::protocol_version() const {
 }
 
 void ApplicationImpl::set_is_resuming(bool is_resuming) {
-  sync_primitives::AutoLock lock(is_resuming_lock);
   is_resuming_ = is_resuming;
 }
 
 bool ApplicationImpl::is_resuming() const {
-  sync_primitives::AutoLock lock(is_resuming_lock);
   return is_resuming_;
 }
 
