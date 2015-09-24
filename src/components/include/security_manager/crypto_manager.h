@@ -57,13 +57,33 @@ enum Protocol { SSLv3, TLSv1, TLSv1_1, TLSv1_2};
 
 class CryptoManager : public policy::PolicyHandlerObserver {
  public:
+  /**
+   * @brief Init allows to initialize cryptomanager with certain values.
+   *
+   * @param mode defines the cryptomanager mode: server or client.
+   *
+   * @param protocol set the appropriate number of ssl protocol to use.
+   *
+   * @param cert_data the stringified certificate data (certificate in PKCS12 format).
+   *
+   * @param ciphers_list the cipher list which will be used during secure connectin.
+   *
+   * @param verify_peer allows to distinguish if we need to verify the peers certificates
+   *
+   * @param ca_certificate_file location of CA file.
+   *
+   * @param hours_before_update when the certificate expiration date less then
+   * this value, the certificate update will be generated
+   *
+   * @return true in case initialization was succesfull, false otherwise.
+   */
   virtual bool Init(Mode mode,
                     Protocol protocol,
-                    const std::string &cert_filename,
+                    const std::string &cert_data,
                     const std::string &ciphers_list,
                     const bool verify_peer,
-                    const std::string &ca_certificate_file
-      ) = 0;
+                    const std::string &ca_certificate_file,
+                    const size_t hours_before_update) = 0;
   virtual bool OnCertificateUpdated(const std::string& data) = 0;
   virtual SSLContext *CreateSSLContext() = 0;
   virtual void ReleaseSSLContext(SSLContext *context) = 0;

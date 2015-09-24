@@ -54,15 +54,11 @@ const std::string client_certificate = "client/client_credential.p12.enc";
 const std::string server_certificate = "server/spt_credential.p12.enc";
 const std::string server_unsigned_cert_file = "server/spt_credential_unsigned.p12.enc";
 const std::string server_expired_cert_file = "server/spt_credential_expired.p12.enc";
-const std::string client_key = "client/client.key";
-const std::string server_key = "client/server.key";
-// Client needs server_verification certificate for server verification
-const std::string server_verification_ca = "server_verification_ca_cetrificates.crt";
-// Server needs client_verification certificate for client verification
-const std::string client_verification_ca = "client_verification_ca_cetrificates.crt";
 
 const bool verify_peer = true;
 const bool skip_peer_verification = false;
+
+const size_t updates_before_hour = 24;
 
 }  // namespace
 
@@ -97,7 +93,7 @@ class SSLHandshakeTest : public testing::Test {
     cert.close();
     const bool initialized = server_manager->Init(
           security_manager::SERVER, protocol, ss.str(),
-          ciphers_list, verify_peer, cacertificate_path);
+          ciphers_list, verify_peer, cacertificate_path, updates_before_hour);
     if (!initialized) {
       return false;
     }
@@ -109,9 +105,8 @@ class SSLHandshakeTest : public testing::Test {
     }
 
     security_manager::SSLContext::HandshakeContext ctx;
-    ctx.expected_cn = "client";
-    ctx.expected_sn = "SPT";
-    server_ctx->SetHandshakeContext(ctx);
+    server_ctx->SetHandshakeContext(ctx.make_context(std::string("SPT"),
+                                                     std::string("client")));
 
     return true;
   }
@@ -127,7 +122,7 @@ class SSLHandshakeTest : public testing::Test {
     cert.close();
     const bool initialized = client_manager->Init(
           security_manager::CLIENT, protocol, ss.str(),
-          ciphers_list, verify_peer, cacertificate_path);
+          ciphers_list, verify_peer, cacertificate_path, updates_before_hour);
     if (!initialized) {
       return false;
     }
@@ -138,9 +133,8 @@ class SSLHandshakeTest : public testing::Test {
     }
 
     security_manager::SSLContext::HandshakeContext ctx;
-    ctx.expected_cn = "server";
-    ctx.expected_sn = "SPT";
-    client_ctx->SetHandshakeContext(ctx);
+    client_ctx->SetHandshakeContext(ctx.make_context(std::string("SPT"),
+                                                     std::string("server")));
 
     return true;
   }

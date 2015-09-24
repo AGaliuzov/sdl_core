@@ -426,7 +426,7 @@ void PolicyHandler::SendOnAppPermissionsChanged(const AppPermissions& permission
 
 void PolicyHandler::OnPTExchangeNeeded() {
   POLICY_LIB_CHECK_VOID();
-  policy_manager_->ForcePTExchange();
+  MessageHelper::SendOnStatusUpdate(policy_manager_->ForcePTExchange());
 }
 
 void PolicyHandler::GetAvailableApps(std::queue<std::string>& apps) {

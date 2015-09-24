@@ -55,6 +55,10 @@
 
 #define ALL_CIPHERS   "ALL"
 
+namespace {
+  const size_t updates_before_hour = 24;
+}
+
 namespace test {
 namespace components {
 namespace ssl_context_test {
@@ -68,14 +72,14 @@ class SSLTest : public testing::Test {
     file.close();
     crypto_manager = new security_manager::CryptoManagerImpl();
     const bool crypto_manager_initialization = crypto_manager->Init(
-        security_manager::SERVER, security_manager::TLSv1_2, ss.str(), FORD_CIPHER, false, "");
+        security_manager::SERVER, security_manager::TLSv1_2,
+          ss.str(), FORD_CIPHER, false, "", updates_before_hour);
     EXPECT_TRUE(crypto_manager_initialization);
 
     client_manager = new security_manager::CryptoManagerImpl();
     const bool client_manager_initialization = client_manager->Init(
         security_manager::CLIENT, security_manager::TLSv1_2, "",
-        FORD_CIPHER,
-        false, "");
+        FORD_CIPHER, false, "", updates_before_hour);
     EXPECT_TRUE(client_manager_initialization);
   }
 
@@ -89,8 +93,7 @@ class SSLTest : public testing::Test {
     client_ctx = client_manager->CreateSSLContext();
 
     security_manager::SSLContext::HandshakeContext ctx;
-    ctx.expected_cn = "client";
-    ctx.expected_sn = "SPT";
+    ctx.make_context("SPT", "client");
     server_ctx->SetHandshakeContext(ctx);
 
     ctx.expected_cn = "server";

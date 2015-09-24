@@ -51,6 +51,10 @@
 
 #define ALL_CIPHERS   "ALL"
 
+namespace {
+  const size_t updates_before_hour = 24;
+}
+
 namespace test {
 namespace components {
 namespace crypto_manager_test {
@@ -66,7 +70,7 @@ class CryptoManagerTest : public testing::Test {
   void InitSecurityManger() {
     const bool crypto_manager_initialization = crypto_manager->Init(
         security_manager::CLIENT, security_manager::TLSv1_2, "",
-          ALL_CIPHERS, false, "/tmp/ca_cert.crt");
+          ALL_CIPHERS, false, "/tmp/ca_cert.crt", updates_before_hour);
     ASSERT_TRUE(crypto_manager_initialization);
   }
   std::string GenerateCertificateString() {
@@ -100,12 +104,12 @@ TEST_F(CryptoManagerTest, WrongInit) {
   // Unknown protocol version
   EXPECT_FALSE(crypto_manager->Init(security_manager::SERVER, UNKNOWN,
                                     ss.str(), FORD_CIPHER,
-                                    false, ""));
+                                    false, "", updates_before_hour));
 
   EXPECT_FALSE(crypto_manager->LastError().empty());
   // Unexistent cipher value
   EXPECT_FALSE(crypto_manager->Init(security_manager::SERVER, security_manager::TLSv1_2,
-          ss.str(),  "INVALID_UNKNOWN_CIPHER", false, ""));
+          ss.str(),  "INVALID_UNKNOWN_CIPHER", false, "", updates_before_hour));
   EXPECT_FALSE(crypto_manager->LastError().empty());
 
 }
@@ -118,23 +122,23 @@ TEST_F(CryptoManagerTest, CorrectInit) {
 
   // Empty cert and key values for SERVER
   EXPECT_TRUE(crypto_manager->Init(security_manager::SERVER, security_manager::TLSv1_2,
-          ss.str(),  FORD_CIPHER, false, ""));
+          ss.str(),  FORD_CIPHER, false, "", updates_before_hour));
   EXPECT_TRUE(crypto_manager->LastError().empty());
   // Recall init
   EXPECT_TRUE(crypto_manager->Init(security_manager::CLIENT, security_manager::TLSv1_2,
-          "",  FORD_CIPHER, false, ""));
+          "",  FORD_CIPHER, false, "", updates_before_hour));
   EXPECT_TRUE(crypto_manager->LastError().empty());
   // Recall init with other protocols
   EXPECT_TRUE(crypto_manager->Init(security_manager::CLIENT, security_manager::TLSv1_1,
-          "",  FORD_CIPHER, false, ""));
+          "",  FORD_CIPHER, false, "", updates_before_hour));
   EXPECT_TRUE(crypto_manager->LastError().empty());
   EXPECT_TRUE(crypto_manager->Init(security_manager::CLIENT, security_manager::TLSv1,
-          "", FORD_CIPHER, false, ""));
+          "", FORD_CIPHER, false, "", updates_before_hour));
   EXPECT_TRUE(crypto_manager->LastError().empty());
 
   // Cipher value
   EXPECT_TRUE(crypto_manager->Init(security_manager::SERVER, security_manager::TLSv1_2,
-          ss.str(),  ALL_CIPHERS, false, ""));
+          ss.str(),  ALL_CIPHERS, false, "", updates_before_hour));
   EXPECT_TRUE(crypto_manager->LastError().empty());
 }
 //#endif  // __QNX__
@@ -146,7 +150,7 @@ TEST_F(CryptoManagerTest, ReleaseSSLContext_Null) {
 TEST_F(CryptoManagerTest, CreateReleaseSSLContext) {
   EXPECT_TRUE(crypto_manager->Init(
                 security_manager::CLIENT, security_manager::TLSv1_2,
-                 "", ALL_CIPHERS, false, ""));
+                 "", ALL_CIPHERS, false, "", updates_before_hour));
   security_manager::SSLContext *context = crypto_manager->CreateSSLContext();
   EXPECT_TRUE(context);
   EXPECT_NO_THROW(crypto_manager->ReleaseSSLContext(context));
@@ -187,7 +191,7 @@ TEST_F(CryptoManagerTest, OnCertificateUpdated_MalformedSign) {
 TEST_F(CryptoManagerTest, OnCertificateUpdated_WrongInitFolder) {
   const bool crypto_manager_initialization = crypto_manager->Init(
         ::security_manager::CLIENT, security_manager::TLSv1_2, "wrong_name",
-        ALL_CIPHERS, true, "");
+        ALL_CIPHERS, true, "", updates_before_hour);
   ASSERT_TRUE(crypto_manager_initialization);
 
   std::string cetrificate = "wrong_data";

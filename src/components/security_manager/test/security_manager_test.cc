@@ -91,6 +91,8 @@ class SecurityManagerTest : public ::testing::Test {
   }
 
   void SetMockCryptoManager() {
+    EXPECT_CALL(mock_crypto_manager, IsCertificateUpdateRequired()).
+        WillOnce(Return(false));
     security_manager_->set_crypto_manager(&mock_crypto_manager);
   }
   /*
