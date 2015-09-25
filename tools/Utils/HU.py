@@ -1,5 +1,5 @@
 #! /usr/bin/env python3
-from optparse import OptionParser
+from argparse import ArgumentParser
 from ftplib import FTP
 import telnetlib
 import time
@@ -111,18 +111,18 @@ for x in HU_files_path:
     file_list.append(HU_files_path[x])
 
 usage = "--to_target or --collect_rtc option must be used. \n use -h fo help"
-parser = OptionParser("v1.0")
-parser.add_option("--ip", dest="ip", metavar="IP",
+parser = ArgumentParser(description='v1.0')
+parser.add_argument("--ip", dest="ip", metavar="IP",
                   help="IP Address of target")
-parser.add_option("--rtc", dest="rtc_path", metavar="RTC PATH",
+parser.add_argument("--rtc", dest="rtc_path", metavar="RTC PATH",
                   help="Path to SmasrDeviceLink RTC workspace")
-parser.add_option("--bin", dest="bin_path", metavar="BIN PATH",
+parser.add_argument("--bin", dest="bin_path", metavar="BIN PATH",
                   help="Binaries folder path")
-parser.add_option("--to_target", dest="to_target", action="store_true", default=False,
+parser.add_argument("--to_target", dest="to_target", action="store_true", default=False,
                   help="Load binaries to target, --ip and --bin options required")
-parser.add_option("--collect_rtc", dest="collect_rtc", action="store_true", default=False,
+parser.add_argument("--collect_rtc", dest="collect_rtc", action="store_true", default=False,
                   help="Cllect binaries from RTC workspace to copy of target file system. --rtc and --bin options required")
-parser.add_option("--login", dest="login", action="store_true", default=False,
+parser.add_argument("--login", dest="login", action="store_true", default=False,
                   help="Automaticaly login on HU via telnet")
 
 
@@ -213,7 +213,6 @@ class Target:
             sys.stdout.flush()
             self.ftp().storbinary("STOR " + hu_path, f)
             hu_hash, hu_size = self.get_remote_hash_and_size(hu_path)
-
             if hu_size == local_size and local_hash == hu_hash:
                 end_str = "  size : %s == %s &&  hash : %s == %s : OK"  % (local_size, hu_size, local_hash, hu_hash)
                 self.sync()
@@ -269,16 +268,17 @@ class Target:
 
 
 def main():
-    (options, args) = parser.parse_args()
-    if not (options.to_target ^ options.collect_rtc):
+    print(parser.description)
+    args = parser.parse_args()
+    if not (args.to_target ^ args.collect_rtc):
         print(usage)
         return -1
-    target = Target(options.ip, options.bin_path, options.rtc_path)
-    if (options.to_target):
+    target = Target(args.ip, args.bin_path, args.rtc_path)
+    if (args.to_target):
         target.load_binaries_on_target()
-    if (options.collect_rtc):
+    if (args.collect_rtc):
         target.collect_rtc_binaries()
-    if (options.login):
+    if (args.login):
         target.interact()
     return 0
 
