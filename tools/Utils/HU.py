@@ -1,5 +1,4 @@
 #! /usr/bin/env python3
-
 from optparse import OptionParser
 from ftplib import FTP
 import telnetlib
@@ -98,7 +97,7 @@ HU_files_path = {
     "hmi_capabilities.json": "/fs/mp/etc/AppLink/hmi_capabilities.json",
     "init_policy.sh": "/fs/mp/etc/AppLink/init_policy.sh",
     "init_policy_pasa.sh": "/fs/mp/etc/AppLink/init_policy_pasa.sh",
-    "policy.cfg": "/fs/mp/etc/AppLink/policy.cfg",
+    "policy.cfg": "/fs/mp/sql/policy.cfg",
     "policy.ini": "/fs/mp/etc/AppLink/policy.ini",
     "policy_usb.cfg": "/fs/mp/etc/AppLink/policy_usb.cfg",
     "sdl_preloaded_pt.json": "/fs/mp/etc/AppLink/sdl_preloaded_pt.json",
@@ -112,7 +111,7 @@ for x in HU_files_path:
     file_list.append(HU_files_path[x])
 
 usage = "--to_target or --collect_rtc option must be used. \n use -h fo help"
-parser = OptionParser()
+parser = OptionParser("v1.0")
 parser.add_option("--ip", dest="ip", metavar="IP",
                   help="IP Address of target")
 parser.add_option("--rtc", dest="rtc_path", metavar="RTC PATH",
@@ -163,7 +162,6 @@ class Target:
         command = b"sync; sync; sync\n"
         self.telnet().write(command)
         res = self.telnet().read_until(b'#')
-        print(res)
         print("FS synced")
 
     def kill_sdl(self):
@@ -172,6 +170,23 @@ class Target:
         self.telnet().read_until(b'#')
         time.sleep(0.5)
         print("kill sdl success")
+
+    def get_remote_hash_and_size(self, hu_path):
+        command = "cksum %s \n" % hu_path
+        command = command.encode("ascii")
+        self.telnet().write(command)
+        tmp = self.telnet().read_until(b'#')
+        tmp = tmp.decode("ascii")
+        hash = tmp.split()[2]
+        size = tmp.split()[3]
+        return hash, int(size)
+
+    def get_local_hash_and_size(self, local_path):
+        command = "cksum %s" % local_path
+        tmp = os.popen(command).read()
+        hash = tmp.split(" ")[0]
+        size= tmp.split(" ")[1]
+        return hash, int(size)
 
     def get_local_size(self, local_path):
         command = "wc -c %s" % local_path
@@ -191,19 +206,24 @@ class Target:
     def load_file_on_hu(self, src_file):
         try:
             src_path = find_recursively(src_file, self.bin_path)
-            local_size = self.get_local_size(src_path)
+            local_hash, local_size = self.get_local_hash_and_size(src_path)
             f = open(src_path, "rb")
             hu_path = HU_files_path[src_file]
-            print("Copy ", src_path, " (" + str(local_size) + ") --> \n\t", self.ip + ":" + hu_path, end="")
+            print("Copy \n", src_path, "\n", self.ip + ":" + hu_path)
             sys.stdout.flush()
             self.ftp().storbinary("STOR " + hu_path, f)
-            hu_size = self.get_remote_size(hu_path)
-            end_str = " (%s) .%s"
-            if hu_size == local_size:
-                end_str %= (hu_size, "OK")
+            hu_hash, hu_size = self.get_remote_hash_and_size(hu_path)
+
+            if hu_size == local_size and local_hash == hu_hash:
+                end_str = "  size : %s == %s &&  hash : %s == %s : OK"  % (local_size, hu_size, local_hash, hu_hash)
+                self.sync()
             else:
-                end_str %= (hu_size, "Error. Sizes does not match: local = %s, remote = %s"%(local_size, hu_size))
+                end_str = " \t ERROR : " \
+                          "\n \t Files does not match:" \
+                          "\n\t\t local size= %s, remote size = %s" \
+                          "\n\t\t local hash = %s remote hash = %s" % (local_size, hu_size, local_hash, hu_hash)
             print(end_str)
+            return src_path, hu_path
 
         except(FileNotFoundError):
             print(src_file + " Not found;")
