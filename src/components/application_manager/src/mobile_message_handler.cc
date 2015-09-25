@@ -84,6 +84,8 @@ application_manager::Message* MobileMessageHandler::HandleIncomingMessageProtoco
     return NULL;
   }
 
+  DCHECK_OR_RETURN(out_message, NULL);
+
   LOG4CXX_DEBUG(logger_, "Incoming RPC_INFO: " <<
                          (out_message->connection_key() >> 16) <<", "<<
                          messageTypes[out_message->type()] <<", "<<
