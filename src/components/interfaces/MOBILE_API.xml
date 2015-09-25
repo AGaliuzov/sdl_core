@@ -3739,7 +3739,7 @@
     <param name="eCallInfo" type="VehicleDataResult" mandatory="false">
       <description>Emergency Call notification and confirmation data</description>
     </param>
-    <param name="airbagStatus" type="Boolean" mandatory="false">
+    <param name="airbagStatus" type="VehicleDataResult" mandatory="false">
       <description>The status of the air bags</description>
     </param>
     <param name="emergencyEvent" type="VehicleDataResult" mandatory="false">
