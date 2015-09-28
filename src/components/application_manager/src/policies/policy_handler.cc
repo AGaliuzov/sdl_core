@@ -687,8 +687,8 @@ void PolicyHandler::OnVehicleDataUpdated(
     return;
   }
   if (message[strings::msg_params].keyExists(strings::vin)) {
-    policy_manager_->
-        SetVINValue(message[strings::msg_params][strings::vin].asString());
+    policy_manager_-> SetVINValue(
+        (message[strings::msg_params][strings::vin].asString()).AsMBString());
   }
 }
 
@@ -800,8 +800,7 @@ bool PolicyHandler::SendMessageToSDK(const BinaryMessage& pt_string,
   }
 
   LOG4CXX_DEBUG(logger_, "Update url is " << url << " for application "
-               << ApplicationManagerImpl::instance()
-               ->application(app_id)->name());
+                "with connection key "<<app_id);
 
   MessageHelper::SendPolicySnapshotNotification(
         app_id, pt_string, url, 0);
@@ -1274,7 +1273,7 @@ void PolicyHandler::OnSystemError(int code) {
   }
 }
 
-std::string PolicyHandler::GetAppName(const std::string& policy_app_id) {
+custom_str::CustomString PolicyHandler::GetAppName(const std::string& policy_app_id) {
   ApplicationSharedPtr app =
     ApplicationManagerImpl::instance()
     ->application_by_policy_id(policy_app_id);
@@ -1283,7 +1282,7 @@ std::string PolicyHandler::GetAppName(const std::string& policy_app_id) {
     LOG4CXX_WARN(
       logger_,
       "Connection_key not found for application_id:" << policy_app_id);
-    return "";
+    return custom_str::CustomString("");
   }
   return  app->name();
 }

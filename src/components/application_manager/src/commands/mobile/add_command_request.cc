@@ -38,6 +38,9 @@
 #include "application_manager/message_helper.h"
 #include "utils/file_system.h"
 #include "utils/helpers.h"
+#include "utils/custom_string.h"
+
+namespace custom_str = utils::custom_string;
 
 namespace application_manager {
 
@@ -251,13 +254,13 @@ bool AddCommandRequest::CheckCommandVRSynonym(ApplicationConstSharedPtr app) {
       for (size_t j = 0;
           j < (*message_)[strings::msg_params][strings::vr_commands].length();
           ++j) {
-        std::string vr_cmd_i =
+        const custom_str::CustomString& vr_cmd_i =
             (*it->second)[strings::vr_commands][i].asString();
-        std::string vr_cmd_j =
+        const custom_str::CustomString& vr_cmd_j =
             (*message_)[strings::msg_params]
                         [strings::vr_commands][j].asString();
 
-        if (0 == strcasecmp(vr_cmd_i.c_str(), vr_cmd_j.c_str())) {
+        if (vr_cmd_i.CompareIgnoreCase(vr_cmd_j)) {
           LOG4CXX_INFO(logger_, "AddCommandRequest::CheckCommandVRSynonym"
                        " received command vr synonym already exist");
           return false;

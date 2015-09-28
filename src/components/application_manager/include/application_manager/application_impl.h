@@ -49,6 +49,7 @@
 #include "utils/timer_thread.h"
 #include "utils/lock.h"
 #include "utils/atomic_object.h"
+#include "utils/custom_string.h"
 
 namespace usage_statistics {
 
@@ -60,13 +61,14 @@ using namespace utils;
 using namespace timer;
 
 namespace mobile_api = mobile_apis;
+namespace custom_str = custom_string;
 
 class ApplicationImpl : public virtual InitialApplicationDataImpl,
     public virtual DynamicApplicationDataImpl {
  public:
   ApplicationImpl(uint32_t application_id,
                   const std::string& policy_app_id,
-                  const std::string& app_name,
+                  const custom_str::CustomString& app_name,
                   utils::SharedPtr<usage_statistics::StatisticsManager> statistics_manager);
 
   ~ApplicationImpl();
@@ -119,7 +121,7 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   void set_hmi_application_id(uint32_t hmi_app_id);
   inline uint32_t hmi_app_id() const;
   inline uint32_t app_id() const;
-  const std::string& name() const;
+  const custom_str::CustomString& name() const;
   void set_folder_name(const std::string& folder_name) OVERRIDE;
   const std::string folder_name() const;
   bool is_media_application() const;
@@ -137,7 +139,7 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   void set_tts_properties_in_full(bool active);
   bool tts_properties_in_full();
   void set_version(const Version& ver);
-  void set_name(const std::string& name);
+  void set_name(const custom_str::CustomString& name);
   void set_is_media_application(bool is_media);
   void increment_put_file_in_none_count();
   void increment_delete_file_in_none_count();
@@ -304,7 +306,7 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   uint32_t                                 grammar_id_;
 
   Version version_;
-  std::string                              app_name_;
+  custom_str::CustomString                 app_name_;
   uint32_t                                 hmi_app_id_;
   uint32_t                                 app_id_;
   smart_objects::SmartObject*              active_message_;

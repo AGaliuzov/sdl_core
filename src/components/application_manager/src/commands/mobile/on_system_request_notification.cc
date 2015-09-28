@@ -77,7 +77,7 @@ void OnSystemRequestNotification::Run() {
 
   if (RequestType::PROPRIETARY == request_type) {
   std::string filename =
-      (*message_)[strings::msg_params][strings::file_name].asString();
+      ((*message_)[strings::msg_params][strings::file_name].asString()).AsMBString();
 
   std::vector<uint8_t> binary_data;
   file_system::ReadBinaryFile(filename, binary_data);

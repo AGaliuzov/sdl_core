@@ -51,6 +51,7 @@
 #include "application_manager/policies/policy_handler_observer.h"
 #include "utils/threads/async_runner.h"
 #include "application_manager/application_manager_impl.h"
+#include "utils/custom_string.h"
 
 namespace Json {
 class Value;
@@ -59,6 +60,7 @@ class Value;
 namespace policy {
 typedef std::vector<uint32_t> AppIds;
 typedef std::vector<uint32_t> DeviceHandles;
+namespace custom_str = utils::custom_string;
 
 class PolicyHandler :
     public utils::Singleton<PolicyHandler, utils::deleters::Deleter<PolicyHandler> >,
@@ -276,7 +278,7 @@ class PolicyHandler :
    */
   uint32_t GetAppIdForSending();
 
-  std::string GetAppName(const std::string& policy_app_id);
+  custom_str::CustomString GetAppName(const std::string& policy_app_id);
 
   virtual void OnUpdateHMIAppType(std::map<std::string, StringArray> app_hmi_types);
 

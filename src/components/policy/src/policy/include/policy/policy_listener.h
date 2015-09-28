@@ -36,7 +36,8 @@
 #include <queue>
 
 #include "policy/policy_types.h"
-
+#include "utils/custom_string.h"
+namespace custom_str = utils::custom_string;
 namespace policy {
 class PolicyListener {
  public:
@@ -52,7 +53,7 @@ class PolicyListener {
   virtual std::string OnCurrentDeviceIdUpdateRequired(
       const std::string& policy_app_id) = 0;
   virtual void OnSystemInfoUpdateRequired() = 0;
-  virtual std::string GetAppName(const std::string& policy_app_id) = 0;
+  virtual custom_str::CustomString GetAppName(const std::string& policy_app_id) = 0;
   virtual void OnUpdateHMIAppType(std::map<std::string, StringArray> app_hmi_types) = 0;
 
     /**

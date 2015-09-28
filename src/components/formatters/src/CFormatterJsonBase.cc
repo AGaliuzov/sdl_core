@@ -113,7 +113,7 @@ void NsSmartDeviceLink::NsJSONHandler::Formatters::CFormatterJsonBase::objToJson
         == obj.getType()) {
       item = Json::nullValue;
     } else {
-      item = obj.asString();
+      item = (obj.asString()).AsMBString();
     }
   } catch (...) {
   }

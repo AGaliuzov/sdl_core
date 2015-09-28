@@ -37,6 +37,9 @@
 #include <string.h>
 #include "application_manager/commands/command_request_impl.h"
 #include "utils/macro.h"
+#include "utils/custom_string.h"
+
+namespace custom_str = utils::custom_string;
 
 namespace policy {
 struct DeviceInfo;
@@ -104,16 +107,15 @@ class RegisterAppInterfaceRequest : public CommandRequestImpl {
   * return TRUE if there is coincidence of VR, otherwise FALSE
   */
   struct CoincidencePredicateVR {
-      explicit CoincidencePredicateVR(const std::string &newItem)
+      explicit CoincidencePredicateVR(const custom_str::CustomString& newItem)
       :newItem_(newItem)
       {};
 
       bool operator()(smart_objects::SmartObject obj) {
-        const std::string vr_synonym = obj.asString();
-        return !(strcasecmp(vr_synonym.c_str(), newItem_.c_str()));
+        const custom_str::CustomString& vr_synonym = obj.asString();
+        return newItem_.CompareIgnoreCase(vr_synonym);
       };
-
-      const std::string &newItem_;
+      const custom_str::CustomString& newItem_;
     };
 
   /**

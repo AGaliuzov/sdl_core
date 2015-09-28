@@ -238,7 +238,7 @@ void ShowRequest::on_event(const event_engine::Event& event) {
       if (mobile_apis::Result::WARNINGS == result_code &&
           message[strings::params].keyExists(hmi_response::message)) {
         response_info =
-            message[strings::params][hmi_response::message].asString();
+            (message[strings::params][hmi_response::message].asString()).AsMBString();
       }
 
       SendResponse(result, result_code,

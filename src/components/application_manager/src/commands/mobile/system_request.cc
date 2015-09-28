@@ -35,6 +35,7 @@ Copyright (c) 2013, Ford Motor Company
 #include <string>
 #include <stdio.h>
 #include <algorithm>
+#include <sstream>
 #include "application_manager/commands/mobile/system_request.h"
 #include "application_manager/application_manager_impl.h"
 #include "application_manager/application_impl.h"
@@ -45,7 +46,9 @@ Copyright (c) 2013, Ford Motor Company
 #include "formatters/CFormatterJsonBase.hpp"
 #include "json/json.h"
 #include "utils/helpers.h"
+#include "utils/custom_string.h"
 
+namespace custom_str = utils::custom_string;
 namespace application_manager {
 
 namespace commands {
@@ -93,7 +96,7 @@ void SystemRequest::Run() {
 
   std::string file_name;
   if ((*message_)[strings::msg_params].keyExists(strings::file_name)) {
-    file_name = (*message_)[strings::msg_params][strings::file_name].asString();
+    file_name = ((*message_)[strings::msg_params][strings::file_name].asString()).AsMBString();
   } else {
     file_name = kSYNC;
   }
@@ -111,10 +114,9 @@ void SystemRequest::Run() {
 
   // to avoid override existing file
   if (is_system_file) {
-    const uint8_t max_size = 255;
-    char buf[max_size] = {'\0'};
-    snprintf(buf, sizeof(buf)/sizeof(buf[0]), "%d%s", index++, file_name.c_str());
-    file_name = buf;
+    std::stringstream stream;
+    stream << index++ << file_name;
+    file_name = stream.str();
   }
 
   std::string file_dst_path = profile::Profile::instance()->system_files_path();
@@ -152,7 +154,7 @@ void SystemRequest::Run() {
         !file_system::MoveFile(app_full_file_path, file_dst_path)) {
       LOG4CXX_DEBUG(logger_, "Binary data not found.");
 
-      std::string origin_file_name;
+      custom_str::CustomString origin_file_name;
       if ((*message_)[strings::msg_params].keyExists(strings::file_name)) {
         origin_file_name =
             (*message_)[strings::msg_params][strings::file_name].asString();
@@ -171,7 +173,7 @@ void SystemRequest::Run() {
   smart_objects::SmartObject msg_params = smart_objects::SmartObject(
       smart_objects::SmartType_Map);
   if (std::string::npos != file_name.find(kIVSU)) {
-    msg_params[strings::file_name] = file_name.c_str();
+    msg_params[strings::file_name] = file_name;
   } else {
     msg_params[strings::file_name] = file_dst_path;
   }

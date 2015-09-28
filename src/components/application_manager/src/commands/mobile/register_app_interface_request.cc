@@ -97,7 +97,7 @@ struct CheckMissedTypes {
     }
 
     bool operator()(const smart_objects::SmartArray::value_type& value) {
-      std::string app_type_str = value.asString();
+      const std::string app_type_str = (value.asString()).AsMBString();
       policy::StringArray::const_iterator it = policy_app_types_.begin();
       policy::StringArray::const_iterator it_end = policy_app_types_.end();
       for (; it != it_end; ++it) {
@@ -118,15 +118,15 @@ struct CheckMissedTypes {
 };
 
 struct IsSameNickname {
-  IsSameNickname(const std::string& app_id):
+  IsSameNickname(const custom_str::CustomString& app_id):
     app_id_(app_id) {
   }
-  bool operator()(const policy::StringArray::value_type nickname) const {
-    return !strcasecmp(app_id_.c_str(), nickname.c_str());
+  bool operator()(const policy::StringArray::value_type& nickname) const {
+    return app_id_.CompareIgnoreCase(nickname.c_str());
   }
 
 private:
-  const std::string& app_id_;
+  const custom_str::CustomString& app_id_;
 };
 }
 
@@ -181,8 +181,8 @@ void RegisterAppInterfaceRequest::Run() {
   }
 #endif
 
-  const std::string policy_app_id = (*message_)[strings::msg_params][strings::app_id]
-                                                               .asString();
+  const std::string& policy_app_id = ((*message_)[strings::msg_params][strings::app_id]
+                                     .asString()).AsMBString();
 
   ApplicationSharedPtr application =
     ApplicationManagerImpl::instance()->application(connection_key());
@@ -239,14 +239,12 @@ void RegisterAppInterfaceRequest::Run() {
     ApplicationManagerImpl::instance()->RegisterApplication(message_);
 
   if (!application) {
-    LOG4CXX_ERROR(logger_, "Application " <<
-                      msg_params[strings::app_name].asString() <<
-                      "  hasn't been registered!");
+    LOG4CXX_ERROR(logger_, "Application hasn't been registered!");
   } else {
 
     // For resuming application need to restore hmi_app_id from resumeCtrl
 
-    const std::string policy_app_id = msg_params[strings::app_id].asString();
+    const std::string& policy_app_id = (msg_params[strings::app_id].asString()).AsMBString();
     resumption::ResumeCtrl& resumer = ApplicationManagerImpl::instance()->resume_controller();
     const std::string device_id =
         MessageHelper::GetDeviceMacAddressForHandle(application->device());
@@ -353,7 +351,8 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile() {
 
     LOG4CXX_WARN(
       logger_,
-      "Wrong language on registering application " << application->name());
+      "Wrong language on registering application "
+      << application->name().AsMBString());
 
     LOG4CXX_ERROR(
       logger_,
@@ -544,7 +543,7 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile() {
   bool resumption = (*message_)[strings::msg_params].keyExists(strings::hash_id);
   bool need_restore_vr = resumption;
   if (resumption) {
-    hash_id = (*message_)[strings::msg_params][strings::hash_id].asString();
+    hash_id = ((*message_)[strings::msg_params][strings::hash_id].asString()).AsMBString();
     if (!resumer.CheckApplicationHash(application, hash_id)) {
       LOG4CXX_WARN(logger_, "Hash does not match");
       result_code = mobile_apis::Result::RESUME_FAILED;
@@ -606,13 +605,14 @@ RegisterAppInterfaceRequest::CheckCoincidence() {
 
  ApplicationSetConstIt it =
      accessor.begin();
-  const std::string app_name = msg_params[strings::app_name].asString();
+  const custom_str::CustomString& app_name =
+      msg_params[strings::app_name].asString();
 
   for (; accessor.end() != it; ++it) {
 
     // name check
-    const std::string& cur_name = (*it)->name();
-    if (!strcasecmp(app_name.c_str(), cur_name.c_str())) {
+    const custom_str::CustomString& cur_name = (*it)->name();
+    if (app_name.CompareIgnoreCase(cur_name)) {
       LOG4CXX_ERROR(logger_, "Application name is known already.");
       return mobile_apis::Result::DUPLICATE_NAME;
     }
@@ -659,7 +659,8 @@ mobile_apis::Result::eType RegisterAppInterfaceRequest::CheckWithPolicyData() {
   policy::StringArray app_nicknames;
   policy::StringArray app_hmi_types;
 
-  std::string policy_app_id = message[strings::msg_params][strings::app_id].asString();
+  const std::string& policy_app_id =
+      (message[strings::msg_params][strings::app_id].asString()).AsMBString();
   const bool init_result = policy::PolicyHandler::instance()->GetInitialAppData(
         policy_app_id, &app_nicknames, &app_hmi_types);
 
@@ -734,19 +735,19 @@ void RegisterAppInterfaceRequest::FillDeviceInfo(
     msg_params[strings::device_info];
 
   if (device_info_so.keyExists(hardware)) {
-    device_info->hardware = msg_params[strings::device_info][hardware].asString();
+    device_info->hardware = (device_info_so[hardware].asString()).AsMBString();
   }
   if (device_info_so.keyExists(firmware_rev)) {
-    device_info->firmware_rev = msg_params[strings::device_info][firmware_rev].asString();
+    device_info->firmware_rev = (device_info_so[firmware_rev].asString()).AsMBString();
   }
   if (device_info_so.keyExists(os)) {
-    device_info->os = device_info_so[os].asString();
+    device_info->os = (device_info_so[os].asString()).AsMBString();
   }
   if (device_info_so.keyExists(os_ver)) {
-    device_info->os_ver = device_info_so[os_ver].asString();
+    device_info->os_ver = (device_info_so[os_ver].asString()).AsMBString();
   }
   if (device_info_so.keyExists(carrier)) {
-    device_info->carrier = device_info_so[carrier].asString();
+    device_info->carrier = (device_info_so[carrier].asString()).AsMBString();
   }
   if (device_info_so.keyExists(max_number_rfcom_ports)) {
     device_info->max_number_rfcom_ports =
@@ -759,7 +760,7 @@ bool RegisterAppInterfaceRequest::IsApplicationWithSameAppIdRegistered() {
   LOG4CXX_INFO(logger_, "RegisterAppInterfaceRequest::"
                "IsApplicationWithSameAppIdRegistered");
 
-  const std::string policy_app_id = (*message_)[strings::msg_params]
+  const custom_str::CustomString& policy_app_id = (*message_)[strings::msg_params]
                                          [strings::app_id].asString();
 
   ApplicationManagerImpl::ApplicationListAccessor accessor;
@@ -769,7 +770,7 @@ bool RegisterAppInterfaceRequest::IsApplicationWithSameAppIdRegistered() {
  ApplicationSetConstIt it_end = applications.end();
 
   for (; it != it_end; ++it) {
-    if (!strcasecmp(policy_app_id.c_str(),(*it)->policy_app_id().c_str())) {
+    if (policy_app_id.CompareIgnoreCase((*it)->policy_app_id().c_str())) {
       return true;
     }
   }

@@ -38,6 +38,9 @@
 #include "application_manager/message_helper.h"
 #include "interfaces/MOBILE_API.h"
 #include "interfaces/HMI_API.h"
+#include "utils/custom_string.h"
+
+namespace custom_str = utils::custom_string;
 
 namespace application_manager {
 
@@ -109,7 +112,7 @@ void UpdateTurnListRequest::Run() {
 
     for (uint32_t i = 0; i < msg_params[strings::turn_list].length(); ++i) {
       if (msg_params[strings::turn_list][i].keyExists(hmi_request::navi_text)) {
-        std::string navigation_text =
+        const custom_str::CustomString& navigation_text =
             msg_params[strings::turn_list][i][hmi_request::navi_text].asString();
         msg_params[strings::turn_list][i].erase(hmi_request::navi_text);
         msg_params[strings::turn_list]

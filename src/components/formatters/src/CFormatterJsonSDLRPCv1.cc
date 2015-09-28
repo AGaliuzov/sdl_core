@@ -55,8 +55,8 @@ const int32_t CFormatterJsonSDLRPCv1::kCorrelationIdNotFound = 1 << 3;
 
 const std::string CFormatterJsonSDLRPCv1::getMessageType(
     const smart_objects_ns::SmartObject& obj) {
-  return obj.getElement(strings::S_PARAMS).getElement(strings::S_MESSAGE_TYPE)
-      .asString();
+  return (obj.getElement(strings::S_PARAMS).getElement(strings::S_MESSAGE_TYPE)
+      .asString()).AsMBString();
 }
 
 // ----------------------------------------------------------------------------
@@ -100,8 +100,8 @@ bool CFormatterJsonSDLRPCv1::toString(const smart_objects_ns::SmartObject& obj,
           formattedObj[strings::S_PARAMS][strings::S_CORRELATION_ID].asInt();
     }
 
-    root[type][S_NAME] = formattedObj[strings::S_PARAMS][strings::S_FUNCTION_ID]
-        .asString();
+    root[type][S_NAME] = (formattedObj[strings::S_PARAMS][strings::S_FUNCTION_ID]
+        .asString()).AsMBString();
 
     outStr = root.toStyledString();
 

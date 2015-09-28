@@ -65,7 +65,7 @@ void SetAppIconRequest::Run() {
   }
 
   const std::string& sync_file_name =
-      (*message_)[strings::msg_params][strings::sync_file_name].asString();
+      ((*message_)[strings::msg_params][strings::sync_file_name].asString()).AsMBString();
 
   if (!IsSyncFileNameValid(sync_file_name)) {
     const std::string err_msg = "Sync file name contains forbidden symbols.";
@@ -144,9 +144,9 @@ void SetAppIconRequest::on_event(const event_engine::Event& event) {
            return;
         }
 
-        const std::string path = (*message_)[strings::msg_params]
-                                            [strings::sync_file_name]
-                                            [strings::value].asString();
+        const std::string& path = ((*message_)[strings::msg_params]
+                                              [strings::sync_file_name]
+                                               [strings::value].asString()).AsMBString();
         app->set_app_icon_path(path);
 
         LOG4CXX_INFO(logger_,

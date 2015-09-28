@@ -477,7 +477,7 @@ class Application : public virtual InitialApplicationData,
     virtual void set_hmi_application_id(uint32_t hmi_app_id) = 0;
     virtual uint32_t hmi_app_id() const = 0;
     virtual uint32_t app_id() const = 0;
-    virtual const std::string& name() const = 0;
+    virtual const custom_str::CustomString& name() const = 0;
     /**
      * @brief Sets application folder name, which is used for storing of related
      * files, e.g. icons
@@ -534,7 +534,7 @@ class Application : public virtual InitialApplicationData,
      */
     virtual bool tts_properties_in_full() = 0;
     virtual void set_version(const Version& version) = 0;
-    virtual void set_name(const std::string& name) = 0;
+    virtual void set_name(const custom_str::CustomString& name) = 0;
     virtual void set_is_media_application(bool is_media) = 0;
     virtual void increment_put_file_in_none_count() = 0;
     virtual void increment_delete_file_in_none_count() = 0;
@@ -679,14 +679,6 @@ class Application : public virtual InitialApplicationData,
     virtual bool IsAudioApplication() const = 0;
 
     /**
-     * @brief GetDeviceId allows to obtain device id which posseses
-     * by this application.
-     *
-     * @return device the device id.
-     */
-    std::string GetDeviceId() const {return device_id_;}
-
-    /**
      * @brief Load persistent files from application folder.
      */
     virtual void LoadPersistentFiles() = 0;
@@ -698,8 +690,6 @@ class Application : public virtual InitialApplicationData,
      */
     HmiStateList hmi_states_;
     mutable sync_primitives::Lock hmi_states_lock_;
-
-    std::string device_id_;
 };
 
 typedef utils::SharedPtr<Application> ApplicationSharedPtr;

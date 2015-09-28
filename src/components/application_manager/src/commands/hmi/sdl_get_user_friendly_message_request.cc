@@ -63,7 +63,7 @@ void SDLGetUserFriendlyMessageRequest::Run() {
   smart_objects::SmartArray::const_iterator it = msg->begin();
   smart_objects::SmartArray::const_iterator it_end = msg->end();
   for (; it != it_end; ++it) {
-    msg_codes.push_back((*it).asString());
+    msg_codes.push_back(((*it).asString()).AsMBString());
   }
 
   std::string required_language;

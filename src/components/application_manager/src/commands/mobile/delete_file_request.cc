@@ -72,7 +72,7 @@ void DeleteFileRequest::Run() {
   }
 
   const std::string& sync_file_name =
-      (*message_)[strings::msg_params][strings::sync_file_name].asString();
+      ((*message_)[strings::msg_params][strings::sync_file_name].asString()).AsMBString();
 
   if (!IsSyncFileNameValid(sync_file_name)) {
     const std::string err_msg = "Sync file name contains forbidden symbols.";
