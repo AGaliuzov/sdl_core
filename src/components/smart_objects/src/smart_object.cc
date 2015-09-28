@@ -437,7 +437,7 @@ char SmartObject::convert_char() const {
   switch (m_type) {
     case SmartType_String:
       return
-          (m_data.str_value->length() == 1) ?
+          (m_data.str_value->length() == 1 && m_data.str_value->is_ascii_string()) ?
               m_data.str_value->at(0) : invalid_char_value;
     case SmartType_Character:
       return m_data.char_value;
@@ -451,6 +451,13 @@ char SmartObject::convert_char() const {
 // STD::STRING TYPE SUPPORT
 // =============================================================
 
+SmartObject::SmartObject(const custom_str::CustomString& InitialValue)
+    : m_type(SmartType_Null),
+      m_schema() {
+  m_data.str_value = NULL;
+  set_value_string(InitialValue.AsMBString());
+}
+
 SmartObject::SmartObject(const std::string& InitialValue)
     : m_type(SmartType_Null),
       m_schema() {
@@ -458,7 +465,7 @@ SmartObject::SmartObject(const std::string& InitialValue)
   set_value_string(InitialValue);
 }
 
-std::string SmartObject::asString() const {
+custom_str::CustomString SmartObject::asString() const {
   return convert_string();
 }
 
@@ -476,8 +483,15 @@ SmartObject& SmartObject::operator=(const std::string& NewValue) {
   return *this;
 }
 
+SmartObject& SmartObject::operator=(const custom_str::CustomString& NewValue) {
+  if (m_type != SmartType_Invalid) {
+    set_value_string(NewValue.AsMBString());
+  }
+  return *this;
+}
+
 bool SmartObject::operator==(const std::string& Value) const {
-  const std::string comp = convert_string();
+  const custom_str::CustomString& comp(convert_string());
   if (comp == invalid_string_value) {
     return false;
   }
@@ -486,26 +500,26 @@ bool SmartObject::operator==(const std::string& Value) const {
 
 void SmartObject::set_value_string(const std::string& NewValue) {
   set_new_type(SmartType_String);
-  m_data.str_value = new std::string(NewValue);
+  m_data.str_value = new custom_str::CustomString(NewValue);
 }
 
-std::string SmartObject::convert_string() const {
+custom_str::CustomString SmartObject::convert_string() const {
   switch (m_type) {
     case SmartType_String:
       return *(m_data.str_value);
     case SmartType_Integer: {
       std::stringstream stream;
       stream << m_data.int_value;
-      return stream.str();
+      return custom_str::CustomString(stream.str());
     }
     case SmartType_Character:
-      return std::string(1, m_data.char_value);
+      return custom_str::CustomString(1, m_data.char_value);
     case SmartType_Double:
-      return convert_double_to_string(m_data.double_value);
+      return custom_str::CustomString(convert_double_to_string(m_data.double_value));
     default:
       break;
   }
-  return NsSmartDeviceLink::NsSmartObjects::invalid_cstr_value;
+  return custom_str::CustomString(NsSmartDeviceLink::NsSmartObjects::invalid_cstr_value);
 }
 
 // =============================================================
@@ -528,7 +542,7 @@ SmartObject& SmartObject::operator=(const char* NewValue) {
 }
 
 bool SmartObject::operator==(const char* Value) const {
-  const std::string comp = convert_string();
+  const custom_str::CustomString comp = convert_string();
   if (comp == invalid_string_value) {
     return false;
   }
@@ -717,7 +731,7 @@ void SmartObject::duplicate(const SmartObject& OtherObject) {
       newData.char_value = OtherObject.m_data.char_value;
       break;
     case SmartType_String:
-      newData.str_value = new std::string(*OtherObject.m_data.str_value);
+      newData.str_value = new custom_str::CustomString(*OtherObject.m_data.str_value);
       break;
     case SmartType_Binary:
       newData.binary_value = new SmartBinary(*OtherObject.m_data.binary_value);
@@ -791,8 +805,8 @@ void SmartObject::set_new_type(SmartType NewType) {
   m_type = NewType;
 }
 
-double SmartObject::convert_string_to_double(const std::string* Value) {
-  if (!Value || Value->empty()) {
+double SmartObject::convert_string_to_double(const custom_str::CustomString* Value) {
+  if (!Value || Value->empty() || !(Value->is_ascii_string())) {
     return invalid_double_value;
   }
 
@@ -825,12 +839,12 @@ std::string SmartObject::convert_double_to_string(const double& Value) {
   return s;
 }
 
-uint64_t SmartObject::convert_string_to_integer(const std::string* Value) {
-  if (!Value || Value->empty()) {
+uint64_t SmartObject::convert_string_to_integer(const custom_str::CustomString* Value) {
+  if (!Value || Value->empty() || !(Value->is_ascii_string())) {
     return invalid_int64_value;
   }
   int64_t result;
-  std::stringstream stream(*Value);
+  std::stringstream stream(Value->AsMBString());
   stream >> result;
   if (stream.eof()) {
     return result;

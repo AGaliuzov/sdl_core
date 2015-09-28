@@ -217,7 +217,7 @@ template<typename EnumType>
 void TEnumSchemaItem<EnumType>::applySchema(SmartObject& Object) {
   if (SmartType_String == Object.getType()) {
     EnumType enum_val = static_cast<EnumType>(-1);
-    if (ConversionHelper::StringToEnum(Object.asString(), &enum_val)) {
+    if (ConversionHelper::StringToEnum(Object.asString().AsMBString(), &enum_val)) {
       Object = enum_val;
     }
   }
