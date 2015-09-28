@@ -99,6 +99,7 @@ if (BUILD_TESTS)
     ${AM_TEST_DIR}/event_engine_test.cc
     ${AM_TEST_DIR}/policy_event_observer_test.cc
     ${AM_TEST_DIR}/application_impl_test.cc
+    ${AM_TEST_DIR}/hmi_capabilities_test.cc
     # TODO(VVeremjova) APPLINK-12835
     #${AM_TEST_DIR}/zero_request_amount_test.cc
   )
@@ -106,6 +107,7 @@ if (BUILD_TESTS)
   set(mockedSources ${AM_MOCK_DIR}/src/application_manager_impl.cc)
 
   set(AM_SOURCES
+
     ${AM_SOURCE_DIR}/src/policies/policy_handler.cc
     ${AM_SOURCE_DIR}/src/policies/policy_event_observer.cc
     ${AM_SOURCE_DIR}/src/policies/delegates/app_permission_delegate.cc
@@ -133,9 +135,11 @@ if (BUILD_TESTS)
     ${AM_SOURCE_DIR}/src/application_impl.cc
     ${AM_SOURCE_DIR}/src/state_controller.cc
     ${AM_SOURCE_DIR}/src/mobile_command_factory.cc
+    ${AM_SOURCE_DIR}/test/mock_message_helper.cc
 
     ${AM_SOURCE_DIR}/src/hmi_command_factory.cc
     ${AM_SOURCE_DIR}/src/hmi_state.cc
+
     ${AM_SOURCE_DIR}/src/hmi_capabilities.cc
     ${AM_SOURCE_DIR}/src/application_data_impl.cc
     ${AM_SOURCE_DIR}/src/request_controller.cc
@@ -147,8 +151,6 @@ if (BUILD_TESTS)
     ${AM_SOURCE_DIR}/src/mobile_message_handler.cc
     ${AM_SOURCE_DIR}/src/commands/mobile/put_file_request.cc
     ${AM_SOURCE_DIR}/src/commands/command_request_impl.cc
-
-    ${AM_SOURCE_DIR}/test/mock_message_helper.cc
   )
 
   include_directories(
@@ -196,7 +198,7 @@ if (BUILD_TESTS)
   set(CMAKE_EXE_LINKER_FLAGS
     "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath=${CMAKE_CURRENT_BINARY_DIR}")
   add_library("ApplicationManagerTest" ${AM_SOURCES})
-  create_test("application_manager_test" "${testSources}" "${testLibraries}" "${AM_SOURCES_MOCK}" )
+  create_test("application_manager_test" "${testSources}" "${testLibraries}" )
 
   set(ResumptionData_SOURCES
     ${AM_TEST_DIR}/resumption/resumption_data_test.cc
@@ -204,6 +206,7 @@ if (BUILD_TESTS)
     ${AM_TEST_DIR}/resumption/resumption_data_json_test.cc
   )
 
+  file(COPY hmi_capabilities.json DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
   file(COPY smartDeviceLink_test.ini DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/resumption)

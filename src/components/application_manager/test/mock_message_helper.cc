@@ -219,6 +219,16 @@ void MessageHelper::SendDecryptCertificateToHMI(const std::string& file_name) {
       file_name);
 }
 
+hmi_apis::Common_Language::eType MessageHelper::CommonLanguageFromString(const std::string& language) {
+   return MockMessageHelper::message_helper_mock()->CommonLanguageFromString(
+        language);
+}
+
+smart_objects::SmartObjectSPtr MessageHelper::CreateModuleInfoSO (uint32_t function_id) {
+    return  MockMessageHelper::message_helper_mock()->CreateModuleInfoSO(
+                function_id);
+}
+
 MockMessageHelper* MockMessageHelper::message_helper_mock() {
   static MockMessageHelper message_helper_mock;
   return &message_helper_mock;
