@@ -33,9 +33,13 @@
 #ifndef SRC_COMPONENTS_APPLICATION_MANAGER_TEST_MOCK_MESSAGE_HELPER_H_
 #define SRC_COMPONENTS_APPLICATION_MANAGER_TEST_MOCK_MESSAGE_HELPER_H_
 #include "gmock/gmock.h"
+#include "application_manager/application.h"
+#include "interfaces/HMI_API.h"
+#include "policy/policy_types.h"
 
 namespace application_manager {
 
+namespace smart_objects = NsSmartDeviceLink::NsSmartObjects;
 class MockMessageHelper {
  public:
   MOCK_METHOD1(GetHashUpdateNotification,
@@ -109,6 +113,12 @@ class MockMessageHelper {
   MOCK_METHOD2(SendOnAppInterfaceUnregisteredNotificationToMobile,
                void(int32_t connection_key,
                     mobile_apis::AppInterfaceUnregisteredReason::eType reason));
+
+  MOCK_METHOD1(CommonLanguageFromString, hmi_apis::Common_Language::eType(
+          const std::string& language)) ;
+
+  MOCK_METHOD1(CreateModuleInfoSO, smart_objects::SmartObjectSPtr(uint32_t function_id));
+
   static MockMessageHelper* message_helper_mock();
 };
 
