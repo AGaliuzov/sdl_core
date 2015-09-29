@@ -119,6 +119,14 @@ bool InitHmi() {
 int32_t main(int32_t argc, char** argv) {
 
   // --------------------------------------------------------------------------
+  // Components initialization
+  if ((argc > 1)&&(0 != argv)) {
+      profile::Profile::instance()->config_file_name(argv[1]);
+  } else {
+      profile::Profile::instance()->config_file_name("smartDeviceLink.ini");
+  }
+
+  // --------------------------------------------------------------------------
   // Logger initialization
   INIT_LOGGER("log4cxx.properties");
 #if defined(__QNXNTO__) and defined(GCOV_ENABLED)
@@ -142,13 +150,6 @@ int32_t main(int32_t argc, char** argv) {
   gst_init(&argc, &argv);
 #endif
 
-  // --------------------------------------------------------------------------
-  // Components initialization
-  if ((argc > 1)&&(0 != argv)) {
-      profile::Profile::instance()->config_file_name(argv[1]);
-  } else {
-      profile::Profile::instance()->config_file_name("smartDeviceLink.ini");
-  }
 
 #ifdef __QNX__
   if (profile::Profile::instance()->enable_policy()) {

@@ -134,7 +134,6 @@ class Lock {
   void AssertTakenAndMarkFree() {}
 #endif
 
-
   friend class ConditionalVariable;
   DISALLOW_COPY_AND_ASSIGN(Lock);
 };
