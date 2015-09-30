@@ -516,6 +516,7 @@ int main(int argc, char** argv) {
   }
 
   profile::Profile::instance()->config_file_name(SDL_INIFILE_PATH);
+  profile::Profile::instance()->UpdateValues();
   INIT_LOGGER(profile::Profile::instance()->log4cxx_config_file());
   configureLogging();
 
@@ -527,7 +528,6 @@ int main(int argc, char** argv) {
   if (!utils::appenders_loader.Loaded()) {
     LOG4CXX_ERROR(logger_, "Appenders plugin not loaded, file logging disabled");
   }
-  profile::Profile::instance()->UpdateValues();
 
   ApplinkNotificationThreadDelegate* applink_notification_thread_delegate =
       new ApplinkNotificationThreadDelegate(pipefd[0], pipefd[1]);
