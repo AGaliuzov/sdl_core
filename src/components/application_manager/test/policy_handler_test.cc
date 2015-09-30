@@ -760,6 +760,7 @@ TEST_F(PolicyHandlerTest, Test_OnPTExchangeNeeded_method) {
   EnablePolicyAndPolicyManagerMock();
   // Check expectations
   EXPECT_CALL(*pm_, ForcePTExchange());
+  EXPECT_CALL(*MockMessageHelper::message_helper_mock(), SendOnStatusUpdate(_));
   // Act
   instance_->OnPTExchangeNeeded();
 }
