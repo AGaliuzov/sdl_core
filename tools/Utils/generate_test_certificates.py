@@ -46,7 +46,7 @@ def gen_cert(out_cert_file, key_file, ca_cert_file, ca_key_file, days, answer):
     """Certificate generator
     wrap console call
     'openssl req -new -key $key_file -days $days -out $out_cert_file -subj $answer'
-    'openssl x509 -hash -req -in $out_cert_file -CA $ca_cert_file -CAkey ca_key_file -CAcreateserial -out $out_cert_file -days 5000'
+    'openssl x509 -req -in $out_cert_file -CA $ca_cert_file -CAkey ca_key_file -CAcreateserial -out $out_cert_file -days 5000'
     """
     request_file = out_cert_file + ".req"
     openssl("req -new -key", key_file, "-days", days, "-out", request_file, "-subj", answer)
@@ -115,7 +115,8 @@ def gen_pkcs12(out, key_file, cert_file, verification_certificate) :
     'openssl pkcs12 -export -out $out -inkey $key_file -in $cert_file -name 'SPT key and certificates' -certfile $certs'
     """
     openssl("pkcs12 -export -out", out, "-inkey", key_file, "-in", cert_file, \
-       "-name 'SPT key and certificates' -passout pass:")
+       "-name 'SPT key and certificates'", "-CAfile ", verification_certificate, \
+       " -passout pass:")
 
     """
     Encode certificate $out to base 64
@@ -124,7 +125,7 @@ def gen_pkcs12(out, key_file, cert_file, verification_certificate) :
         with open(out + ".enc", "wb") as enc_cert:
             enc_cert.write(cert.read().encode("base64"))
 
-def answers(name, country, state, locality, organization, unit, email) :
+def answers(name, app_id, country, state, locality, organization, unit, email) :
     """Answer string generator
     Generate answer for certificate creation with openssl
     Country argument need to be 2 symbol size
@@ -133,6 +134,8 @@ def answers(name, country, state, locality, organization, unit, email) :
         raise ValueError("Country argument need to be 2 symbol size")
     answer ="'/C={0}/ST={1}/L={2}/O={3}".format(country, state, locality, organization)
     answer +="/OU={0}/CN={1}/emailAddress={2}'".format(unit, name, email)
+    if len(app_id) > 0:
+        answer += "/serialNumber={0}".format(app_id)
     return answer
 
 def concat_files(out_file_name, *args) :
@@ -158,15 +161,16 @@ def main():
             print "Root key file '%s' exists. Generation aborted according to soft mode." % (root_key_file, )
             return
 
-    root_answer = answers("root", "US", "California", "Silicon Valley", "CAcert.org", "CAcert", "sample@cacert.org")
-    ford_server_answer = answers("FORD", "US", "Michigan", "Detroit", "FORD_SERVER", "FORD_SDL_SERVER" ,"sample@ford.com")
-    ford_client_answer = answers("FORD", "US", "Michigan", "Detroit", "FORD_CLIENT", "FORD_SDL_CLIENT" ,"sample@ford.com")
-    client_answer  = answers("client", "RU", "Russia", "St. Petersburg", "Luxoft", "HeadUnit" ,"sample@luxoft.com")
-    server_answer  = answers("server", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile" ,"sample@luxoft.com")
-    server_unsigned_answer  = answers("server", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile_unsigned" ,"sample@luxoft.com")
-    server_expired_answer  = answers("server", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile_expired" ,"sample@luxoft.com")
-    client_unsigned_answer  = answers("server", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile_unsigned" ,"sample@luxoft.com")
-    client_expired_answer  = answers("server", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile_expired" ,"sample@luxoft.com")
+    server_root_answer = answers("server_root", "", "US", "California", "Silicon Valley", "CAcert.org", "CAcert", "sample@cacert.org")
+    client_root_answer = answers("client_root", "", "US", "California", "Silicon Valley", "CAcert.org", "CAcert", "sample@cacert.org")
+    ford_server_answer = answers("FORD", "", "US", "Michigan", "Detroit", "FORD_SERVER", "FORD_SDL_SERVER" ,"sample@ford.com")
+    ford_client_answer = answers("FORD_CLIENT", "", "US", "Michigan", "Detroit", "FORD_CLIENT", "FORD_SDL_CLIENT" ,"sample@ford.com")
+    client_answer  = answers("client", "SPT", "RU", "Russia", "St. Petersburg", "Luxoft", "HeadUnit" ,"sample@luxoft.com")
+    server_answer  = answers("server", "SPT", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile" ,"sample@luxoft.com")
+    server_unsigned_answer  = answers("server", "SPT", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile_unsigned" ,"sample@luxoft.com")
+    server_expired_answer  = answers("server", "SPT", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile_expired" ,"sample@luxoft.com")
+    client_unsigned_answer  = answers("client", "SPT", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile_unsigned" ,"sample@luxoft.com")
+    client_expired_answer  = answers("client", "SPT", "RU", "Russia", "St. Petersburg", "Luxoft", "Mobile_expired" ,"sample@luxoft.com")
     days = 10000
 
     server_dir = "server"
@@ -177,16 +181,16 @@ def main():
         os.mkdir(client_dir)
 
     print " --== Root certificate generating SERVER==-- "
-    server_root_key_file  = os.path.join(server_dir, "root.key")
-    server_root_cert_file = os.path.join(server_dir, "root.crt")
+    server_root_key_file  = os.path.join(server_dir, "server_root.key")
+    server_root_cert_file = os.path.join(server_dir, "server_root.crt")
     gen_rsa_key(server_root_key_file, 2048)
-    gen_root_cert(server_root_cert_file, server_root_key_file, days, root_answer)
+    gen_root_cert(server_root_cert_file, server_root_key_file, days, server_root_answer)
 
     print " --== Root certificate generating CLIENT==-- "
-    client_root_key_file  = os.path.join(client_dir, "root.key")
-    client_root_cert_file = os.path.join(client_dir, "root.crt")
+    client_root_key_file  = os.path.join(client_dir, "client_root.key")
+    client_root_cert_file = os.path.join(client_dir, "client_root.crt")
     gen_rsa_key(client_root_key_file, 2048)
-    gen_root_cert(client_root_cert_file, client_root_key_file, days, root_answer)
+    gen_root_cert(client_root_cert_file, client_root_key_file, days, client_root_answer)
 
     print
     print " --== Ford server CA certificate generating ==-- "

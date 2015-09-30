@@ -174,6 +174,12 @@ class ApplicationManagerImpl
   MOCK_METHOD3(OnServiceEndedCallback,
                void(const int32_t&, const protocol_handler::ServiceType&,
                     const connection_handler::CloseSessionReason&));
+#ifdef ENABLE_SECURITY
+  MOCK_CONST_METHOD1(GetHandshakeContext,
+                     security_manager::SSLContext::HandshakeContext(uint32_t key));
+  MOCK_METHOD2(OnHandshakeDone, bool(uint32_t connection_key,
+                                     security_manager::SSLContext::HandshakeResult result));
+#endif // ENABLE_SECURITY
   MOCK_METHOD1(Handle, void(const impl::MessageFromMobile));
   MOCK_METHOD1(Handle, void(const impl::MessageToMobile));
   MOCK_METHOD1(Handle, void(const impl::MessageFromHmi));

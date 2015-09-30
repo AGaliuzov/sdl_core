@@ -102,7 +102,7 @@ class MobileMessageHandlerTest : public testing::Test {
   }
 
   void TestHandlingIncomingMessageWithBinaryDataProtocol(
-      uint32_t protocol_version) {
+      int32_t protocol_version) {
     // Arrange
     // Add binary data to json message
     std::string binary_data("\a\a\a\a");
@@ -120,9 +120,8 @@ class MobileMessageHandlerTest : public testing::Test {
     EXPECT_EQ(data, message->json_message());
     EXPECT_EQ(1u, message->connection_key());
     EXPECT_EQ(247u, message->function_id());
-    EXPECT_EQ(static_cast<ProtocolVersion>(protocol_version),
-              message->protocol_version());
-    EXPECT_EQ(kCorrelation_id, message->correlation_id());
+    EXPECT_EQ(protocol_version, message->protocol_version());
+    EXPECT_EQ((uint32_t)0x5c, message->correlation_id());
     EXPECT_EQ(full_data_size, message->data_size());
     EXPECT_EQ(payload_size, message->payload_size());
     EXPECT_TRUE(message->has_binary_data());
@@ -141,9 +140,8 @@ class MobileMessageHandlerTest : public testing::Test {
     EXPECT_EQ(data, message->json_message());
     EXPECT_EQ(1u, message->connection_key());
     EXPECT_EQ(247u, message->function_id());
-    EXPECT_EQ(static_cast<ProtocolVersion>(protocol_version),
-              message->protocol_version());
-    EXPECT_EQ(kCorrelation_id, message->correlation_id());
+    EXPECT_EQ(protocol_version, (uint32_t)message->protocol_version());
+    EXPECT_EQ((uint32_t)0x5c, message->correlation_id());
     EXPECT_EQ(full_data_size, message->data_size());
     EXPECT_EQ(payload_size, message->payload_size());
     EXPECT_FALSE(message->has_binary_data());

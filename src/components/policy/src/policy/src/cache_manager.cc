@@ -1471,6 +1471,10 @@ void CacheManager::Increment(const std::string& app_id,
       ++(*pt_->policy_table.usage_and_error_counts->app_level)[app_id].
           count_of_run_attempts_while_revoked;
       break;
+    case usage_statistics::COUNT_OF_TLS_ERRORS:
+      ++(*pt_->policy_table.usage_and_error_counts->app_level)[app_id].
+          count_of_tls_errors;
+      break;
     default:
       LOG4CXX_WARN(logger_, "Type app counter is unknown");
       return;

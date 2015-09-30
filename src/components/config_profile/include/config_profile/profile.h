@@ -436,7 +436,12 @@ class Profile : public utils::Singleton<Profile> {
    */
   bool verify_peer() const;
 
-#endif
+  /**
+   * @brief Return hours amount when PTU should be triggered
+   */
+  uint32_t update_before_hours() const;
+
+#endif //ENABLE_SECURITY
     /**
      * @brief Reads a string value from the profile
      *
@@ -767,6 +772,7 @@ private:
   std::string                       key_path_;
   std::string                       ciphers_list_;
   bool                              verify_peer_;
+  uint32_t                          update_before_hours_;
   std::string                       security_manager_protocol_name_;
 #endif
     std::string                     preloaded_pt_file_;

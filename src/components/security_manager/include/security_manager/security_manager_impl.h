@@ -46,6 +46,7 @@
 #include "protocol/common.h"
 
 namespace security_manager {
+class CryptoManager;
 /**
  * \brief SecurityMessage is wrapper for SecurityQuery with priority
  * \brief SecurityMessageQueue and SecurityMessageLoop are support typedefs
@@ -149,7 +150,13 @@ class SecurityManagerImpl
    * \param success result of connection protection
    */
   void NotifyListenersOnHandshakeDone(const uint32_t &connection_key,
-                                      const bool success);
+                                      SSLContext::HandshakeResult error);
+
+  /**
+   * @brief Notifiers for listeners.
+   * Allows to notify that certificate should be updated
+   */
+  void NotifyOnCertififcateUpdateRequired();
   /**
    * @brief SecurityConfigSection
    * @return Session name in config file

@@ -55,6 +55,10 @@
 
 #define ALL_CIPHERS   "ALL"
 
+namespace {
+  const size_t updates_before_hour = 24;
+}
+
 namespace test {
 namespace components {
 namespace ssl_context_test {
@@ -68,14 +72,14 @@ class SSLTest : public testing::Test {
     file.close();
     crypto_manager = new security_manager::CryptoManagerImpl();
     const bool crypto_manager_initialization = crypto_manager->Init(
-        security_manager::SERVER, security_manager::TLSv1_2, ss.str(), FORD_CIPHER, false, "");
+        security_manager::SERVER, security_manager::TLSv1_2,
+          ss.str(), FORD_CIPHER, false, "", updates_before_hour);
     EXPECT_TRUE(crypto_manager_initialization);
 
     client_manager = new security_manager::CryptoManagerImpl();
     const bool client_manager_initialization = client_manager->Init(
         security_manager::CLIENT, security_manager::TLSv1_2, "",
-        FORD_CIPHER,
-        false, "");
+        FORD_CIPHER, false, "", updates_before_hour);
     EXPECT_TRUE(client_manager_initialization);
   }
 
@@ -87,6 +91,13 @@ class SSLTest : public testing::Test {
   virtual void SetUp() {
     server_ctx = crypto_manager->CreateSSLContext();
     client_ctx = client_manager->CreateSSLContext();
+
+    security_manager::SSLContext::HandshakeContext ctx;
+    ctx.make_context("SPT", "client");
+    server_ctx->SetHandshakeContext(ctx);
+
+    ctx.expected_cn = "server";
+    client_ctx->SetHandshakeContext(ctx);
   }
 
   virtual void TearDown() {
@@ -131,6 +142,7 @@ TEST_F(SSLTest, Positive) {
   const uint8_t *client_buf;
   size_t server_buf_len;
   size_t client_buf_len;
+
   ASSERT_EQ(client_ctx->StartHandshake(&client_buf,
           &client_buf_len),
       security_manager::SSLContext::Handshake_Result_Success);

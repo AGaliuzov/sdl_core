@@ -111,14 +111,14 @@ void AOATransportAdapter::ApplicationListUpdated(
 void AOATransportAdapter::TerminateInternal() {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  if (aoa_shutdown_thread_ != 0) {
+  if (aoa_shutdown_thread_) {
     aoa_shutdown_thread_->join();
+    if (aoa_shutdown_thread_delegate_) {
+      delete aoa_shutdown_thread_delegate_;
+      aoa_shutdown_thread_delegate_ = 0;
+    }
     threads::DeleteThread(aoa_shutdown_thread_);
     aoa_shutdown_thread_ = 0;
-  }
-  if (aoa_shutdown_thread_delegate_ != 0) {
-    delete aoa_shutdown_thread_delegate_;
-    aoa_shutdown_thread_delegate_ = 0;
   }
 
   initialised_ = false;
