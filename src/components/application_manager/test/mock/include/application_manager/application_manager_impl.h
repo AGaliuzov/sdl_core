@@ -136,6 +136,7 @@ typedef std::queue<AudioData> RawAudioDataQueue;
 typedef threads::MessageLoopThread<RawAudioDataQueue> AudioPassThruQueue;
 }
 typedef std::vector<std::string> RPCParams;
+typedef utils::SharedPtr<HmiState> HmiStatePtr;
 
 class ApplicationManagerImpl
     : public ApplicationManager,
@@ -155,8 +156,22 @@ class ApplicationManagerImpl
  public:
   ApplicationManagerImpl() {}
 
+  struct GrammarIdPredicate {
+    uint32_t grammar_id_;
+    GrammarIdPredicate(uint32_t grammar_id) : grammar_id_(grammar_id) {}
+    bool operator()(const ApplicationSharedPtr app) const { return true; }
+  };
+  struct SubscribedToIVIPredicate {
+    int32_t vehicle_info_;
+    SubscribedToIVIPredicate(int32_t vehicle_info)
+        : vehicle_info_(vehicle_info) {}
+    bool operator()(const ApplicationSharedPtr app) const { return true; }
+  };
+
   MOCK_METHOD0(Init, bool());
   MOCK_METHOD0(Stop, bool());
+  MOCK_METHOD1(GetUserConsentForDevice,
+               policy::DeviceConsent(const std::string& device_id));
   MOCK_METHOD1(OnMessageReceived,
                void(utils::SharedPtr<application_manager::Message>));
   MOCK_METHOD1(OnErrorSending,
@@ -272,8 +287,8 @@ class ApplicationManagerImpl
   MOCK_METHOD1(ReplaceHMIByMobileAppId, void(smart_objects::SmartObject&));
   MOCK_METHOD1(ReplaceMobileByHMIAppId, void(smart_objects::SmartObject&));
   MOCK_METHOD0(resume_controller, resumption::ResumeCtrl&());
-  MOCK_METHOD1(GetDefaultHmiLevel,
-               mobile_api::HMILevel::eType(ApplicationSharedPtr));
+  MOCK_CONST_METHOD1(GetDefaultHmiLevel,
+                     mobile_api::HMILevel::eType(ApplicationConstSharedPtr));
 
   MOCK_METHOD2(HMILevelAllowsStreaming,
                bool(uint32_t, protocol_handler::ServiceType));
@@ -305,12 +320,21 @@ class ApplicationManagerImpl
   template <bool SendActivateApp>
   MOCK_METHOD3(SetState, void(uint32_t, mobile_api::HMILevel::eType,
                               mobile_apis::AudioStreamingState::eType));
+
   template <bool SendActivateApp>
   MOCK_METHOD4(SetState, void(uint32_t, mobile_api::HMILevel::eType,
                               mobile_apis::AudioStreamingState::eType,
                               mobile_apis::SystemContext::eType));
   MOCK_METHOD2(SetState,
-               void(uint32_t, mobile_apis::AudioStreamingState::eType));
+               void(uint32_t app_id,
+                    mobile_apis::SystemContext::eType system_context));
+  MOCK_METHOD2(SetState,
+               void(uint32_t app_id, mobile_apis::AudioStreamingState::eType));
+  template <bool SendActivateApp>
+  MOCK_METHOD2(SetState, void(uint32_t app_id, HmiStatePtr new_state));
+
+  MOCK_METHOD2(TerminateRequest,
+               void(uint32_t connection_key, uint32_t corr_id));
 
   MOCK_CONST_METHOD0(all_apps_allowed, bool());
   MOCK_METHOD1(set_vr_session_started, void(const bool));
@@ -372,6 +396,7 @@ class ApplicationManagerImpl
   /**
    * Class for thread-safe access to applications list
    */
+
   class ApplicationListAccessor : public DataAccessor<ApplictionSet> {
    public:
     ApplicationListAccessor()
@@ -406,4 +431,5 @@ class ApplicationManagerImpl
 };
 
 }  // application_manager
+
 #endif  // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_MOCK_INCLUDE_APPLICATION_MANAGER_APPLICATION_MANAGER_H_

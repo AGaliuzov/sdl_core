@@ -49,6 +49,7 @@
 #include "resumption_data.h"
 
 namespace application_manager {
+class ApplicationManagerImpl;
 class Application;
 }
 
@@ -115,13 +116,6 @@ class ResumeCtrl: public app_mngr::event_engine::EventObserver {
   bool SetAppHMIState(app_mngr::ApplicationSharedPtr application,
                       const mobile_apis::HMILevel::eType hmi_level,
                       bool check_policy = true);
-
-  /**
-   * @brief Check if Resume controller have saved instance of application
-   * @param application is application witch need to be checked
-   * @return true if exist, false otherwise
-   */
-  bool ApplicationIsSaved(app_mngr::ApplicationConstSharedPtr application);
 
   /**
    * @brief Remove application from list of saved applications
@@ -216,12 +210,6 @@ class ResumeCtrl: public app_mngr::event_engine::EventObserver {
    */
   uint32_t GetHMIApplicationID(const std::string& policy_app_id,
                                const std::string& device_id) const;
-  /**
-   * @brief SaveDataOnTimer :
-   *  Timer callback for persisting ResumptionData each N seconds
-   *  N gets from property
-   */
-  void SaveDataOnTimer();
 
   /**
    * @brief Updates flag for saving application data
@@ -268,6 +256,9 @@ class ResumeCtrl: public app_mngr::event_engine::EventObserver {
    * returns false
    */
   bool Init();
+#ifdef BUILD_TESTS
+  void set_resumption_storage(ResumptionData *mock_storage);
+#endif // BUILD_TESTS
  private:
 
   /**
@@ -276,6 +267,13 @@ class ResumeCtrl: public app_mngr::event_engine::EventObserver {
    * @return true if success, otherwise return false
    */
   bool RestoreApplicationData(app_mngr::ApplicationSharedPtr application);
+
+  /**
+   * @brief SaveDataOnTimer :
+   *  Timer callback for persisting ResumptionData each N seconds
+   *  N gets from property
+   */
+  void SaveDataOnTimer();
 
   /**
    * @brief AddFiles allows to add files for the application
@@ -421,6 +419,8 @@ class ResumeCtrl: public app_mngr::event_engine::EventObserver {
   void AddToResumptionTimerQueue(uint32_t app_id);
 
   void LoadResumeData();
+
+  application_manager::ApplicationManagerImpl* app_mngr();
 
   /**
    *@brief Mapping applications to time_stamps

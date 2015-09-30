@@ -46,7 +46,12 @@ class ResumptionDataMock : public ::resumption::ResumptionData {
  public:
   MOCK_METHOD1(SaveApplication,
                void(app_mngr::ApplicationSharedPtr application));
+  MOCK_CONST_METHOD2(GetStoredHMILevel,
+                     int32_t(const std::string& policy_app_id,
+                             const std::string& device_id));
   MOCK_CONST_METHOD1(IsHMIApplicationIdExist, bool(uint32_t hmi_app_id));
+  MOCK_METHOD2(CheckSavedApplication, bool(const std::string& policy_app_id,
+                                           const std::string& device_id));
   MOCK_CONST_METHOD2(GetHMIApplicationID,
                      uint32_t(const std::string& policy_app_id,
                               const std::string& device_id));

@@ -65,6 +65,11 @@ ResumeCtrl::ResumeCtrl():
   launch_time_(time(NULL)) {
 
 }
+#ifdef BUILD_TESTS
+void ResumeCtrl::set_resumption_storage(ResumptionData* mock_storage){
+    resumption_storage_.reset(mock_storage);
+}
+#endif // BUILD_TESTS
 
 bool ResumeCtrl::Init() {
   using namespace profile;
@@ -159,7 +164,7 @@ bool ResumeCtrl::SetupDefaultHMILevel(ApplicationSharedPtr application) {
   DCHECK_OR_RETURN(application, false);
   LOG4CXX_AUTO_TRACE(logger_);
   mobile_apis::HMILevel::eType default_hmi =
-      ApplicationManagerImpl::instance()-> GetDefaultHmiLevel(application);
+      app_mngr()-> GetDefaultHmiLevel(application);
   return SetAppHMIState(application, default_hmi, false);
 }
 
@@ -170,7 +175,7 @@ void ResumeCtrl::ApplicationResumptiOnTimer() {
 
   for (; it != waiting_for_timer_.end(); ++it) {
     ApplicationSharedPtr app =
-        ApplicationManagerImpl::instance()->application(*it);
+        app_mngr()->application(*it);
     if (!app) {
       LOG4CXX_ERROR(logger_, "Invalid app_id = " << *it);
       continue;
@@ -210,7 +215,7 @@ bool ResumeCtrl::SetAppHMIState(ApplicationSharedPtr application,
   const std::string device_id =
       MessageHelper::GetDeviceMacAddressForHandle(application->device());
   if (check_policy &&
-      policy::PolicyHandler::instance()->GetUserConsentForDevice(device_id)
+      app_mngr()->GetUserConsentForDevice(device_id)
       != policy::DeviceConsent::kDeviceAllowed) {
     LOG4CXX_ERROR(logger_, "Resumption abort. Data consent wasn't allowed.");
     SetupDefaultHMILevel(application);
@@ -277,25 +282,16 @@ void ResumeCtrl::StopSavePersistentDataTimer() {
 
 bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
                                  const std::string& hash) {
-  LOG4CXX_AUTO_TRACE(logger_);
-  if (!application) {
-    LOG4CXX_WARN(logger_, "Application does not exist.");
-    return false;
-  }
-  LOG4CXX_DEBUG(logger_, "Full resumption requested for application id "
-                << application->app_id()
-                << "with hmi_app_id " << application->hmi_app_id()
-                << ", policy_app_id " << application->policy_app_id()
-                << " and received hash is " << hash);
-  smart_objects::SmartObject saved_app;
-  bool result = resumption_storage_->GetSavedApplication(application->policy_app_id(),
-      MessageHelper::GetDeviceMacAddressForHandle(application->device()),
-      saved_app);
+  bool result = StartResumptionOnlyHMILevel(application);
   if (result) {
+    smart_objects::SmartObject saved_app;
+    resumption_storage_->GetSavedApplication(
+        application->policy_app_id(),
+        MessageHelper::GetDeviceMacAddressForHandle(application->device()),
+        saved_app);
     const std::string saved_hash = saved_app[strings::hash_id].asString();
     result = saved_hash == hash ? RestoreApplicationData(application) : false;
     application->UpdateHash();
-    AddToResumptionTimerQueue(application->app_id());
   }
   return result;
 }
@@ -348,6 +344,8 @@ void ResumeCtrl::StartAppHmiStateResumption(ApplicationSharedPtr application) {
 std::set<ApplicationSharedPtr> ResumeCtrl::retrieve_application() {
   ApplicationManagerImpl::ApplicationListAccessor accessor;
   return std::set<ApplicationSharedPtr>(accessor.begin(), accessor.end());
+//  DataAccessor<ApplicationManagerImpl::ApplictionSet> accessor = app_mngr()->applications();
+//  return std::set<ApplicationSharedPtr>(accessor.GetData().begin(), accessor.GetData().end());
 }
 
 void ResumeCtrl::ResetLaunchTime() {
@@ -586,8 +584,8 @@ void ResumeCtrl::AddSubscriptions(ApplicationSharedPtr application,
         ivi = static_cast<VehicleDataType>((subscribtions_ivi[i]).asInt());
         application->SubscribeToIVI(ivi);
       }
+       ProcessHMIRequests(MessageHelper::GetIVISubscriptionRequests(application));
     }
-    ProcessHMIRequests(MessageHelper::GetIVISubscriptionRequests(application));
   }
 }
 
@@ -698,7 +696,7 @@ bool ResumeCtrl::ProcessHMIRequest(smart_objects::SmartObjectSPtr request,
         (*request)[strings::correlation_id].asInt();
     subscribe_on_event(function_id, hmi_correlation_id);
   }
-  if (!ApplicationManagerImpl::instance()->ManageHMICommand(request)) {
+  if (!app_mngr()->ManageHMICommand(request)) {
     LOG4CXX_ERROR(logger_,
                   "Unable to send HMI request during resumption.");
     return false;
@@ -777,6 +775,10 @@ void ResumeCtrl::LoadResumeData() {
         (*limited_app)[strings::device_id].asString(),
         mobile_apis::HMILevel::HMI_LIMITED);
   }
+}
+
+ApplicationManagerImpl* ResumeCtrl::app_mngr() {
+  return ::application_manager::ApplicationManagerImpl::instance();
 }
 
 }  // namespce resumption

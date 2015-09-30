@@ -78,6 +78,7 @@ if (BUILD_TESTS)
     ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
     ${COMPONENTS_DIR}/application_manager/include/application_manager/policies
     ${COMPONENTS_DIR}/application_manager/include/application_manager
+    ${COMPONENTS_DIR}/application_manager/include/application_manager/resumption
     ${COMPONENTS_DIR}/application_manager/include/
     ${COMPONENTS_DIR}/utils/include/utils
     ${COMPONENTS_DIR}/include/utils
@@ -124,6 +125,7 @@ if (BUILD_TESTS)
     ${AM_SOURCE_DIR}/src/commands/command_notification_from_mobile_impl.cc
     ${AM_SOURCE_DIR}/src/commands/pending.cc
 
+    ${AM_SOURCE_DIR}/src/resumption/resume_ctrl.cc
     ${AM_SOURCE_DIR}/src/resumption/resumption_data_db.cc
     ${AM_SOURCE_DIR}/src/resumption/resumption_data_json.cc
     ${AM_SOURCE_DIR}/src/resumption/resumption_data.cc
@@ -204,6 +206,7 @@ if (BUILD_TESTS)
     ${AM_TEST_DIR}/resumption/resumption_data_test.cc
     ${AM_TEST_DIR}/resumption/resumption_data_db_test.cc
     ${AM_TEST_DIR}/resumption/resumption_data_json_test.cc
+    ${AM_TEST_DIR}/resumption/resume_ctrl_test.cc
   )
 
   file(COPY hmi_capabilities.json DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

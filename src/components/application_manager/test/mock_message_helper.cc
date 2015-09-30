@@ -233,5 +233,51 @@ MockMessageHelper* MockMessageHelper::message_helper_mock() {
   static MockMessageHelper message_helper_mock;
   return &message_helper_mock;
 }
+void MessageHelper::SendAllOnButtonSubscriptionNotificationsForApp(
+    ApplicationConstSharedPtr app) {
+  MockMessageHelper::message_helper_mock()
+      ->SendAllOnButtonSubscriptionNotificationsForApp(app);
+}
+
+void MessageHelper::SendOnResumeAudioSourceToHMI(const uint32_t app_id) {
+  MockMessageHelper::message_helper_mock()->SendOnResumeAudioSourceToHMI(
+      app_id);
+}
+
+smart_objects::SmartObjectList MessageHelper::CreateAddSubMenuRequestToHMI(
+    ApplicationConstSharedPtr app) {
+  return MockMessageHelper::message_helper_mock()->CreateAddSubMenuRequestToHMI(
+      app);
+}
+
+smart_objects::SmartObjectList MessageHelper::CreateAddCommandRequestToHMI(
+    ApplicationConstSharedPtr app) {
+  return MockMessageHelper::message_helper_mock()->CreateAddCommandRequestToHMI(
+      app);
+}
+
+smart_objects::SmartObjectList
+MessageHelper::CreateAddVRCommandRequestFromChoiceToHMI(
+    ApplicationConstSharedPtr app) {
+  return MockMessageHelper::message_helper_mock()
+      ->CreateAddVRCommandRequestFromChoiceToHMI(app);
+}
+
+void MessageHelper::SendGlobalPropertiesToHMI(ApplicationConstSharedPtr app) {
+  return MockMessageHelper::message_helper_mock()->SendGlobalPropertiesToHMI(
+      app);
+}
+
+smart_objects::SmartObjectList MessageHelper::GetIVISubscriptionRequests(
+    ApplicationSharedPtr app) {
+  return MockMessageHelper::message_helper_mock()->GetIVISubscriptionRequests(
+      app);
+}
+
+mobile_apis::Result::eType MessageHelper::VerifyImageFiles(
+    smart_objects::SmartObject& message, ApplicationConstSharedPtr app) {
+  return MockMessageHelper::message_helper_mock()->VerifyImageFiles(message,
+                                                                    app);
+}
 
 }  // namespace application_manager

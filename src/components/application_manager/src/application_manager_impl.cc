@@ -2956,6 +2956,10 @@ ProtocolVersion ApplicationManagerImpl::SupportedSDLVersion() const {
   return ProtocolVersion::kV2;
 }
 
+policy::DeviceConsent ApplicationManagerImpl::GetUserConsentForDevice(
+        const std::string& device_id) {
+  return policy::PolicyHandler::instance()->GetUserConsentForDevice(device_id);
+}
 
 ApplicationManagerImpl::ApplicationListAccessor::~ApplicationListAccessor() {
 }

@@ -349,6 +349,7 @@ class ApplicationManagerImpl : public ApplicationManager,
     void ConnectToDevice(const std::string& device_mac);
     void OnHMIStartedCooperation();
 
+    policy::DeviceConsent GetUserConsentForDevice(const std::string& device_id);
     /*
      * @brief Returns unique correlation ID for HMI request
      *
