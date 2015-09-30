@@ -143,6 +143,5 @@ bool operator==(const TimevalStruct& time1, const TimevalStruct& time2) {
 }
 
 const TimevalStruct operator-(const TimevalStruct& time1, const TimevalStruct& time2) {
-//     return (date_time::DateTime::getuSecs(time1) -  date_time::DateTime::getuSecs(time2));
     return date_time::DateTime::Sub(time1, time2);
 }
