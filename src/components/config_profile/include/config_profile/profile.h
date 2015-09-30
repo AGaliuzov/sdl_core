@@ -500,7 +500,7 @@ class Profile : public utils::Singleton<Profile> {
      * @return container of values or empty continer
      * if could not read the value out of the profile
      */
-    std::list<std::string> ReadStringContainer(
+    std::vector<std::string> ReadStringContainer(
         const char * const pSection,
         const char * const pKey,
         bool* out_result) const;
@@ -516,9 +516,9 @@ class Profile : public utils::Singleton<Profile> {
      * @return container of values or empty continer
      * if could not read the value out of the profile
      */
-    std::list<int> ReadIntContainer(const char * const pSection,
-                                    const char * const pKey,
-                                    bool* out_result) const;
+    std::vector<int> ReadIntContainer(const char * const pSection,
+                                      const char * const pKey,
+                                      bool* out_result) const;
 
     /**
      * @brief Returns delimiter for SDL-generated TTS chunks

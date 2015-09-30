@@ -40,6 +40,7 @@
 #include "connection_handler/connection_handler_impl.h"
 #include "transport_manager/info.h"
 #include "config_profile/profile.h"
+#include "utils/helpers.h"
 
 #ifdef ENABLE_SECURITY
 #include "security_manager/security_manager.h"
@@ -280,29 +281,19 @@ void ConnectionHandlerImpl::RemoveConnection(
 namespace {
 bool AllowProtection(const protocol_handler::ServiceType &service_type,
                           const bool is_protected) {
-  if (is_protected) {
-    // Check deliver-specific services (which shall not be protected)
-    const std::list<int> force_unprotected_list =
-        profile::Profile::instance()->ReadIntContainer(
-          "Security Manager", "ForceUnprotectedService", NULL);
-    if (std::find(force_unprotected_list.begin(), force_unprotected_list.end(), service_type) !=
-        force_unprotected_list.end()) {
-      LOG4CXX_ERROR(logger_, "Service " << static_cast<int>(service_type)
-                    << " is forbidden to be protected");
-      return false;
-    }
-  } else {
-    // Check deliver-specific services (which shall be protected)
-    const std::list<int> force_protected_list =
-        profile::Profile::instance()->ReadIntContainer(
-          "Security Manager", "ForceProtectedService", NULL);
-    if (std::find(force_protected_list.begin(), force_protected_list.end(), service_type) !=
-        force_protected_list.end()) {
-      LOG4CXX_ERROR(logger_, "Service " << static_cast<int>(service_type)
-                    << " shall be protected");
-      return false;
-    }
+  using profile::Profile;
+  const char* key =
+      is_protected ? "ForceUnprotectedService" : "ForceProtectedService";
+
+  const std::vector<int>& service_list =
+      Profile::instance()->ReadIntContainer("Security Manager", key, NULL);
+
+  if (helpers::in_range(service_list, service_type)) {
+    LOG4CXX_ERROR(logger_, "Service " << static_cast<int>(service_type)
+                  << " shall be protected");
+    return false;
   }
+
   return true;
 }
 }  // namespace

@@ -1640,31 +1640,33 @@ bool Profile::ReadBoolValue(bool* value, const bool default_value,
   return result;
 }
 namespace {
-int32_t hex_to_int(const std::string& value) {
-  return static_cast<int32_t>(strtol(value.c_str(), NULL, 16));
+int hex_to_int(const std::string& value) {
+  return static_cast<int>(strtol(value.c_str(), NULL, 16));
 }
 }
 
-std::list<int> Profile::ReadIntContainer(const char * const pSection,
+std::vector<int> Profile::ReadIntContainer(const char * const pSection,
                                          const char * const pKey,
                                          bool *out_result) const {
-  const std::list<std::string> string_list = ReadStringContainer(pSection, pKey,
-                                                                 out_result);
-  std::list<int> value_list;
+  const std::vector<std::string> string_list = ReadStringContainer(
+        pSection, pKey, out_result);
+
+  std::vector<int> value_list;
   value_list.resize(string_list.size());
-  std::transform(string_list.begin(), string_list.end(), value_list.begin(),
-                 hex_to_int);
+  std::transform(
+        string_list.begin(), string_list.end(), value_list.begin(), hex_to_int);
+
   return value_list;
 }
 
-std::list<std::string> Profile::ReadStringContainer(const char * const pSection,
+std::vector<std::string> Profile::ReadStringContainer(const char * const pSection,
                                                     const char * const pKey,
                                                     bool *out_result) const {
   std::string string;
   const bool result = ReadValue(&string, pSection, pKey);
   if (out_result)
     *out_result = result;
-  std::list < std::string > value_container;
+  std::vector < std::string > value_container;
   if (result) {
     std::istringstream iss(string);
     std::string temp_str;

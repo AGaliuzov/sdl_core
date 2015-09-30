@@ -38,7 +38,7 @@
 #include "config_profile/profile.h"
 #include "utils/byte_order.h"
 #include "protocol/common.h"
-
+#include "utils/helpers.h"
 #ifdef ENABLE_SECURITY
 #include "security_manager/ssl_context.h"
 #include "security_manager/security_manager.h"
@@ -964,18 +964,19 @@ class StartSessionHandler : public security_manager::SecurityManagerListener {
   bool OnHandshakeDone(
       const uint32_t connection_key,
       security_manager::SSLContext::HandshakeResult result) OVERRIDE {
+    using security_manager::SSLContext;
+    using profile::Profile;
+
     if (connection_key != connection_key_) {
       return false;
     }
+
+    const bool success = result == SSLContext::Handshake_Result_Success;
     // check current service protection
     const bool was_service_protection_enabled =
         session_observer_->GetSSLContext(connection_key_, service_type_) != NULL;
     if (was_service_protection_enabled) {
-      if (result != security_manager::SSLContext::Handshake_Result_Success) {
-//        const std::string error_text("Connection is already protected");
-//        LOG4CXX_WARN(logger_, error_text << ", key " << connection_key);
-//        security_manager_->SendInternalError(
-//              connection_key, security_manager::SecurityManager::ERROR_SERVICE_ALREADY_PROTECTED, error_text);
+      if (!success) {
         protocol_handler_->SendStartSessionNAck(connection_id_, session_id_,
                                                 protocol_version_, service_type_);
       } else {
@@ -983,15 +984,26 @@ class StartSessionHandler : public security_manager::SecurityManagerListener {
         NOTREACHED();
       }
     } else {
-      if (result == security_manager::SSLContext::Handshake_Result_Success) {
+      if (success) {
         session_observer_->SetProtectionFlag(connection_key_, service_type_);
       }
-      protocol_handler_->SendStartSessionAck(
-            connection_id_, session_id_,
-            protocol_version_, hash_id_,
-            service_type_,
-            security_manager::SSLContext::Handshake_Result_Success == result);
+
+      const std::vector<int>& force_protected_list =
+          Profile::instance()->ReadIntContainer(
+            "Security Manager", "ForceProtectedService", NULL);
+
+      if (helpers::in_range(force_protected_list, service_type_)) {
+        protocol_handler_->SendStartSessionNAck(connection_id_, session_id_,
+                                                protocol_version_, service_type_);
+      } else {
+        protocol_handler_->SendStartSessionAck(
+              connection_id_, session_id_,
+              protocol_version_, hash_id_,
+              service_type_,
+              success);
+      }
     }
+
     delete this;
     return true;
   }
