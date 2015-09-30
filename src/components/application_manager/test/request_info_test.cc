@@ -80,7 +80,7 @@ class RequestInfoTest : public ::testing::Test {
       hmi_connection_key_ = 0;
       mobile_connection_key1_ = 65431;
       mobile_connection_key2_ = 65123;
-      default_timeout_ = 10000;
+      default_timeout_ = 10;
       srand(42);
     }
     virtual void TearDown() {

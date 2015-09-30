@@ -371,6 +371,17 @@ TEST(DateTimeTest, AddMilliseconds_SetOverlowMicrosecond_ExpectChangeTime) {
   ASSERT_EQ(100000, time1.tv_usec);
 }
 
+TEST(DateTimeTest, Operator_minus_TimevalStruct){
+    TimevalStruct time1;
+    TimevalStruct time2;
+    time1.tv_sec = 3;
+    time1.tv_usec = 2;
+    time2.tv_sec = 3;
+    time2.tv_usec = 2;
+    ASSERT_EQ(0, date_time::DateTime::getSecs(time1 - time2));
+    ASSERT_EQ(0, date_time::DateTime::getuSecs(time1 - time2));
+}
+
 }  // namespace utils
 }  // namespace components
 }  // namespace test

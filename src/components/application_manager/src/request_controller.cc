@@ -482,7 +482,7 @@ void RequestController::UpdateTimer() {
     const TimevalStruct current_time = date_time::DateTime::getCurrentTime();
     const TimevalStruct end_time = front->end_time();
     if (current_time < end_time) {
-      const uint32_t msecs =static_cast<uint32_t>((end_time - current_time) / date_time::DateTime::MICROSECONDS_IN_MILLISECONDS);
+      const uint32_t msecs =static_cast<uint32_t>(date_time::DateTime::getmSecs(end_time - current_time) );
       LOG4CXX_DEBUG(logger_, "Sleep for " << msecs << " millisecs");
       // Timeout for bigger than 5 minutes is a mistake
       timer_.updateTimeOut(msecs);
@@ -495,7 +495,7 @@ void RequestController::UpdateTimer() {
                    << " Current time (ms): "
                    << date_time::DateTime::getmSecs(current_time)
                    << " Diff (current - end): "
-                   << (current_time - end_time)/date_time::DateTime::MICROSECONDS_IN_MILLISECONDS
+                   << date_time::DateTime::getmSecs(current_time - end_time)
                    << " Request timeout (sec): "
                    << front->timeout_msec()/date_time::DateTime::MILLISECONDS_IN_SECOND);
       timer_.updateTimeOut(0);
