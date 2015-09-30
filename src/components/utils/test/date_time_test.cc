@@ -371,16 +371,31 @@ TEST(DateTimeTest, AddMilliseconds_SetOverlowMicrosecond_ExpectChangeTime) {
   ASSERT_EQ(100000, time1.tv_usec);
 }
 
-TEST(DateTimeTest, Operator_minus_TimevalStruct){
+TEST(DateTimeTest, Operator_minus_TimevalStruct_positive){
+    TimevalStruct time1;
+    TimevalStruct time2;
+    TimevalStruct time3;
+    time1.tv_sec = 3;
+    time1.tv_usec = 0;
+    time2.tv_sec = 3;
+    time2.tv_usec = 0;
+    time3.tv_sec = 2;
+    time3.tv_usec = 9000000;
+    ASSERT_EQ(0, date_time::DateTime::getSecs(time1 - time2));
+    ASSERT_EQ(8000000, date_time::DateTime::getuSecs(time3 - time1));
+}
+
+TEST(DateTimeTest, Operator_minus_TimevalStruct_negative){
     TimevalStruct time1;
     TimevalStruct time2;
     time1.tv_sec = 3;
-    time1.tv_usec = 2;
-    time2.tv_sec = 3;
-    time2.tv_usec = 2;
-    ASSERT_EQ(0, date_time::DateTime::getSecs(time1 - time2));
-    ASSERT_EQ(0, date_time::DateTime::getuSecs(time1 - time2));
+    time1.tv_usec = 0;
+    time2.tv_sec = 2;
+    time2.tv_usec = 9000000;
+    ASSERT_NE(1, date_time::DateTime::getSecs(time1 - time2));
+    ASSERT_NE(-8000000, date_time::DateTime::getSecs(time2 - time1));
 }
+
 
 }  // namespace utils
 }  // namespace components
