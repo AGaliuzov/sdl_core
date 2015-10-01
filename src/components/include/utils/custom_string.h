@@ -30,8 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_UTILS_INCLUDE_UTILS_CUSTOM_STRING_H_
-#define SRC_COMPONENTS_UTILS_INCLUDE_UTILS_CUSTOM_STRING_H_
+#ifndef SRC_COMPONENTS_INCLUDE_UTILS_CUSTOM_STRING_H_
+#define SRC_COMPONENTS_INCLUDE_UTILS_CUSTOM_STRING_H_
 
 #include <string>
 
@@ -47,7 +47,7 @@ namespace custom_string {
  * UTF8 4 bytes consists from four-byte sequence
  * bit representation of one character: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
  */
-enum FormatOfUTF {
+enum UTFFormat {
   kByteOfUTF8 = 0x80, //10xxxxxx
   kHigestByteOfUTF8Byte2 = 0xc0, //110xxxxx
   kHigestByteOfUTF8Byte3 = 0xe0, //1110xxxx
@@ -56,9 +56,28 @@ enum FormatOfUTF {
 
 class CustomString {
  public:
+  /**
+   * @brief Constructs empty object.
+   */
   CustomString();
+
+  /**
+   * @brief Constructs object with copy of str.
+   * @param Contains string for new object.
+   */
   explicit CustomString(const std::string& str);
+
+  /**
+   * @brief Constructs object with copy of str.
+   * @param Contains pointer to string for new object.
+   */
   explicit CustomString(const char* str);
+
+  /**
+   * @brief Constructs object with n consecutive copies of character c.
+   * @param Contains amount of copies of character for new object.
+   * @param Contains character for new object.
+   */
   CustomString(size_t n, char c);
 
   /**
@@ -103,6 +122,13 @@ class CustomString {
   bool operator==(const std::string& str) const;
 
   /**
+   * @brief Assigns a new value to the string
+   * @param Contains string for assignment
+   * @return Returns result of assignment
+   */
+  CustomString& operator=(const char* str);
+
+  /**
    * @brief Concatenates string from CustomString with string from argument.
    * @param Contains string for concatenation.
    * @return Returns result of concatenation.
@@ -117,22 +143,25 @@ class CustomString {
   CustomString operator+(const std::string& str) const;
 
   /**
-   * @brief Returns a reference to the character at position pos in the string.
+   * @brief Returns the character at position pos in the string.
+   * Need to use with ASCII string.
    * @param pos value with the position of a character within the string.
    */
-  char& at(size_t pos);
+  char at(size_t pos);
 
   /**
    * @brief Compares the value of the string (case sensitive).
    * @param Contains string for comparing
-   * @return Returns TRUE if strings is equal otherwise returns FALSE.
+   * @return Returns 0 if strings is equal otherwise
+   * returns "<0" or ">0".
    */
   int compare(const char* str) const;
 
   /**
    * @brief Compares the value of the string (case sensitive).
    * @param Contains string for comparing
-   * @return Returns TRUE if strings is equal otherwise returns FALSE.
+   * @return Returns 0 if strings is equal otherwise
+   * returns "<0" or ">0".
    */
   int compare(const std::string& str) const;
 
@@ -156,10 +185,10 @@ class CustomString {
   const char* c_str() const;
 
   /**
-   * @brief Convert string to unicode string.
+   * @brief Converts string to unicode string.
    * @return Returns unicode string.
    */
-  std::wstring AsWString() const;
+  std::wstring ToWString() const;
 
   /**
    * @brief Returns copy of string as multibyte string.
@@ -167,43 +196,24 @@ class CustomString {
   std::string AsMBString() const;
 
   /**
-   * @brief Convert string to lower case unicode string.
+   * @brief Converts string to lower case unicode string.
    * @return Returns unicode string.
    */
-  std::wstring AsWStringLowerCase() const;
-private:
+  std::wstring ToWStringLowerCase() const;
+
+ private:
 
   /**
-   * @brief Convert string to lower case unicode string.
-   * @param Will contain converted string.
-   */
-  void ConvertWStringToLowerCase(std::wstring& str) const;
-
-  /**
-   * @brief Convert string to unicode string.
-   * @param Contains string for converting.
-   * @return Returns unicode string.
-   */
-  std::wstring AsWString(const char* str) const;
-
-  /**
-   * @brief Convert string to unicode string.
-   * @param Contains string for converting.
-   * @return Returns unicode string.
-   */
-  size_t CalculateLengthOfString(const char* str) const;
-
-  /**
-   * @brief Initiate members of CustomString
+   * @brief Initiates members of CustomString
    */
   void InitData();
 
   std::string mb_string_;
-  size_t size_;
+  size_t amount_characters_;
   bool is_ascii_string_;
 };
 
 }  // namespace custom_string
 }  // namespace utils
 
-#endif  // SRC_COMPONENTS_UTILS_INCLUDE_UTILS_CUSTOM_STRING_H_
+#endif  // SRC_COMPONENTS_INCLUDE_UTILS_CUSTOM_STRING_H_
