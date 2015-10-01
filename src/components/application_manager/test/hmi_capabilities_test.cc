@@ -399,9 +399,9 @@ TEST_F(HMICapabilitiesTest, VerifyImageType) {
 
 void HMICapabilitiesTest::SetCooperating() {
   smart_objects::SmartObjectSPtr test_so;
-  ON_CALL(*(MockMessageHelper::message_helper_mock()), CreateModuleInfoSO(_))
-      .WillByDefault(Return(test_so));
-  ON_CALL(*app_mngr_, ManageHMICommand(_)).WillByDefault(Return(true));
+  EXPECT_CALL(*(MockMessageHelper::message_helper_mock()), CreateModuleInfoSO(_))
+      .WillRepeatedly(Return(test_so));
+  EXPECT_CALL(*app_mngr_, ManageHMICommand(_)).WillRepeatedly(Return(true));
 }
 
 TEST_F(HMICapabilitiesTest, SetVRCooperating) {
