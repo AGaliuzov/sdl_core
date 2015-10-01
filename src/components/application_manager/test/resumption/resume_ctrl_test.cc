@@ -60,7 +60,7 @@ using namespace mobile_apis::HMILevel;
 
 class ResumeCtrlTest : public ::testing::Test {
  public:
-  virtual void SetUp() {
+  virtual void SetUp() OVERRIDE {
     app_mngr = application_manager::ApplicationManagerImpl::instance();
     // Singleton should not be destroyed
     Mock::AllowLeak(app_mngr);
@@ -72,7 +72,6 @@ class ResumeCtrlTest : public ::testing::Test {
     default_testType = eType::HMI_NONE;
     test_dev_id = 5;
     test_policy_app_id = "test_policy_app_id";
-    cor_id = 5;
     test_grammar_id = 10;
     hash = "saved_hash";
   }
@@ -90,7 +89,6 @@ class ResumeCtrlTest : public ::testing::Test {
 
   // app_mock.Device() will return this value
   uint32_t test_dev_id;
-  int cor_id;
   uint32_t test_grammar_id;
   std::string hash;
 };
@@ -104,10 +102,7 @@ TEST_F(ResumeCtrlTest, StartResumption_AppWithGrammarId) {
   saved_app[application_manager::strings::hash_id] = hash;
   saved_app[application_manager::strings::grammar_id] = test_grammar_id;
 
-  // Check set HMI level
-
   // Check RestoreApplicationData
-
   EXPECT_CALL(*mock_storage, GetSavedApplication(_, _, _))
       .Times(3)
       .WillRepeatedly(DoAll(SetArgReferee<2>(saved_app), Return(true)));
@@ -143,12 +138,12 @@ TEST_F(ResumeCtrlTest, StartResumption_WithoutGrammarId) {
 TEST_F(ResumeCtrlTest, StartResumption_AppWithFiles) {
   smart_objects::SmartObject test_application_files;
   smart_objects::SmartObject test_file;
-  const size_t count_of_files = 8;
+  const uint32_t count_of_files = 8;
 
   int file_types[count_of_files];
   std::string file_names[count_of_files];
 
-  for (size_t i = 0; i < count_of_files; i++) {
+  for (uint32_t i = 0; i < count_of_files; i++) {
     file_types[i] = i;
     file_names[i] = "test_file" + std::to_string(i);
   }
@@ -157,7 +152,7 @@ TEST_F(ResumeCtrlTest, StartResumption_AppWithFiles) {
   test_file[application_manager::strings::persistent_file] = false;
   test_application_files[0] = test_file;
 
-  for (size_t i = 0; i < count_of_files; ++i) {
+  for (uint32_t i = 0; i < count_of_files; ++i) {
     test_file[application_manager::strings::persistent_file] = true;
     test_file[application_manager::strings::is_download_complete] = true;
     test_file[application_manager::strings::file_type] = file_types[i];
@@ -177,7 +172,7 @@ TEST_F(ResumeCtrlTest, StartResumption_AppWithFiles) {
       .WillRepeatedly(DoAll(SetArgReferee<2>(saved_app), Return(true)));
   EXPECT_CALL(*app_mock, UpdateHash());
   EXPECT_CALL(*app_mock, set_grammar_id(test_grammar_id));
-  for (size_t i = 0; i < count_of_files; ++i) {
+  for (uint32_t i = 0; i < count_of_files; ++i) {
     EXPECT_CALL(*app_mock,
                 AddFile(CheckAppFile(
                     true, true, file_names[i],
@@ -192,8 +187,8 @@ TEST_F(ResumeCtrlTest, StartResumption_AppWithSubmenues) {
   smart_objects::SmartObject test_application_submenues;
   smart_objects::SmartObject test_submenu;
 
-  const size_t count_of_submenues = 20;
-  for (u_int32_t i = 0; i < count_of_submenues; ++i) {
+  const uint32_t count_of_submenues = 20;
+  for (uint32_t i = 0; i < count_of_submenues; ++i) {
     test_submenu[application_manager::strings::menu_id] = i;
     test_application_submenues[i] = test_submenu;
   }
@@ -211,7 +206,7 @@ TEST_F(ResumeCtrlTest, StartResumption_AppWithSubmenues) {
 
   EXPECT_CALL(*app_mock, set_grammar_id(test_grammar_id));
 
-  for (size_t i = 0; i < count_of_submenues; ++i) {
+  for (uint32_t i = 0; i < count_of_submenues; ++i) {
     EXPECT_CALL(*app_mock, AddSubMenu(i, test_application_submenues[i]));
   }
   smart_objects::SmartObjectList requests;
@@ -227,9 +222,9 @@ TEST_F(ResumeCtrlTest, StartResumption_AppWithSubmenues) {
 TEST_F(ResumeCtrlTest, StartResumption_AppWithCommands) {
   smart_objects::SmartObject test_application_commands;
   smart_objects::SmartObject test_commands;
-  const size_t count_of_commands = 20;
+  const uint32_t count_of_commands = 20;
 
-  for (u_int32_t i = 0; i < count_of_commands; ++i) {
+  for (uint32_t i = 0; i < count_of_commands; ++i) {
     test_commands[application_manager::strings::cmd_id] = i;
     test_application_commands[i] = test_commands;
   }
@@ -247,7 +242,7 @@ TEST_F(ResumeCtrlTest, StartResumption_AppWithCommands) {
   EXPECT_CALL(*app_mock, UpdateHash());
   EXPECT_CALL(*app_mock, set_grammar_id(test_grammar_id));
 
-  for (size_t i = 0; i < count_of_commands; ++i) {
+  for (uint32_t i = 0; i < count_of_commands; ++i) {
     EXPECT_CALL(*app_mock, AddCommand(i, test_application_commands[i]));
   }
 
@@ -264,18 +259,18 @@ TEST_F(ResumeCtrlTest, StartResumption_AppWithChoiceSet) {
   smart_objects::SmartObject application_choice_sets;
   smart_objects::SmartObject app_choice_set;
 
-  const size_t count_of_choice = 10;
+  const uint32_t count_of_choice = 10;
   smart_objects::SmartObject choice_vector;
   smart_objects::SmartObject choice;
 
-  for (u_int32_t i = 0; i < count_of_choice; ++i) {
+  for (uint32_t i = 0; i < count_of_choice; ++i) {
     choice[application_manager::strings::vr_commands] =
         "VrCommand" + std::to_string(i);
     choice[application_manager::strings::choice_id] = i;
     choice_vector[i] = choice;
   }
-  const size_t count_of_choice_sets = 5;
-  for (u_int32_t i = 0; i < count_of_choice_sets; ++i) {
+  const uint32_t count_of_choice_sets = 5;
+  for (uint32_t i = 0; i < count_of_choice_sets; ++i) {
     app_choice_set[application_manager::strings::interaction_choice_set_id] = i;
     app_choice_set[application_manager::strings::choice_set] = choice_vector;
     application_choice_sets[i] = app_choice_set;
@@ -295,7 +290,7 @@ TEST_F(ResumeCtrlTest, StartResumption_AppWithChoiceSet) {
   EXPECT_CALL(*app_mock, UpdateHash());
   EXPECT_CALL(*app_mock, set_grammar_id(test_grammar_id));
 
-  for (size_t i = 0; i < count_of_choice_sets; ++i) {
+  for (uint32_t i = 0; i < count_of_choice_sets; ++i) {
     EXPECT_CALL(*app_mock, AddChoiceSet(i, application_choice_sets[i]));
   }
 
@@ -322,7 +317,6 @@ TEST_F(ResumeCtrlTest, StartResumption_AppWithGlobalProperties) {
       .Times(3)
       .WillRepeatedly(DoAll(SetArgReferee<2>(saved_app), Return(true)));
 
-//  ::testing::InSequence seq;
   EXPECT_CALL(*app_mock, set_grammar_id(test_grammar_id));
 
   EXPECT_CALL(*application_manager::MockMessageHelper::message_helper_mock(),
@@ -341,8 +335,8 @@ TEST_F(ResumeCtrlTest, StartResumption_AppWithSubscribeOnButtons) {
   smart_objects::SmartObject test_subscriptions;
   smart_objects::SmartObject app_buttons;
 
-  ssize_t count_of_buttons = 17;
-  for (u_int32_t i = 0; i < count_of_buttons; ++i) {
+  uint32_t count_of_buttons = 17;
+  for (uint32_t i = 0; i < count_of_buttons; ++i) {
     app_buttons[i] = i;
   }
 
@@ -362,7 +356,7 @@ TEST_F(ResumeCtrlTest, StartResumption_AppWithSubscribeOnButtons) {
 
   EXPECT_CALL(*app_mock, set_grammar_id(test_grammar_id));
 
-  for (u_int32_t i = 0; i < count_of_buttons; ++i) {
+  for (uint32_t i = 0; i < count_of_buttons; ++i) {
     EXPECT_CALL(*app_mock, SubscribeToButton(
                                static_cast<mobile_apis::ButtonName::eType>(i)));
   }
@@ -520,7 +514,7 @@ TEST_F(ResumeCtrlTest, RestoreAppHMIState_RestoreHMILevelFull) {
       .WillOnce(DoAll(SetArgReferee<2>(saved_app), Return(true)));
   ON_CALL(*app_mock, device()).WillByDefault(Return(test_dev_id));
 
-  EXPECT_CALL(*application_manager::ApplicationManagerImpl::instance(),
+  EXPECT_CALL(*app_mngr,
               GetUserConsentForDevice(""))
       .WillOnce(Return(policy::kDeviceAllowed));
   EXPECT_CALL(*app_mock, IsAudioApplication()).WillOnce(Return(true));
@@ -665,7 +659,6 @@ TEST_F(ResumeCtrlTest,
 
   // In case application is media, audio state will be AUDIBLE
   test_audio_state = mobile_apis::AudioStreamingState::AUDIBLE;
-//  ::testing::InSequence seq;
   ON_CALL(*app_mock, device()).WillByDefault(Return(test_dev_id));
 
   // Application is audio
@@ -809,7 +802,6 @@ TEST_F(ResumeCtrlTest, OnAppActivated_ResumptionHasStarted) {
   ::profile::Profile::instance()->config_file_name("smartDeviceLink_test.ini");
 
   smart_objects::SmartObject saved_app;
-//  ::testing::InSequence seq;
   EXPECT_CALL(*app_mngr, GetDefaultHmiLevel(_))
       .WillOnce(Return(default_testType));
   ON_CALL(*app_mock, device()).WillByDefault(Return(test_dev_id));

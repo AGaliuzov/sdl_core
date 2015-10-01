@@ -416,7 +416,7 @@ class ResumeCtrl: public app_mngr::event_engine::EventObserver {
 
   void InsertToTimerQueue(uint32_t app_id, uint32_t time_stamp);
 
-  void AddToResumptionTimerQueue(uint32_t app_id);
+  void AddToResumptionTimerQueue(const uint32_t app_id);
 
   void LoadResumeData();
 

@@ -2957,7 +2957,7 @@ ProtocolVersion ApplicationManagerImpl::SupportedSDLVersion() const {
 }
 
 policy::DeviceConsent ApplicationManagerImpl::GetUserConsentForDevice(
-        const std::string& device_id) {
+        const std::string& device_id) const {
   return policy::PolicyHandler::instance()->GetUserConsentForDevice(device_id);
 }
 

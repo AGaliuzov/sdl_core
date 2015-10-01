@@ -237,7 +237,7 @@ bool ResumeCtrl::IsHMIApplicationIdExist(uint32_t hmi_app_id) {
 
 bool ResumeCtrl::IsApplicationSaved(const std::string& policy_app_id,
                                     const std::string& device_id) {
-  return -1 != resumption_storage_->IsApplicationSaved(policy_app_id, device_id);
+  return (-1 != resumption_storage_->IsApplicationSaved(policy_app_id, device_id));
 }
 
 uint32_t ResumeCtrl::GetHMIApplicationID(const std::string& policy_app_id,
@@ -344,8 +344,6 @@ void ResumeCtrl::StartAppHmiStateResumption(ApplicationSharedPtr application) {
 std::set<ApplicationSharedPtr> ResumeCtrl::retrieve_application() {
   ApplicationManagerImpl::ApplicationListAccessor accessor;
   return std::set<ApplicationSharedPtr>(accessor.begin(), accessor.end());
-//  DataAccessor<ApplicationManagerImpl::ApplictionSet> accessor = app_mngr()->applications();
-//  return std::set<ApplicationSharedPtr>(accessor.GetData().begin(), accessor.GetData().end());
 }
 
 void ResumeCtrl::ResetLaunchTime() {
@@ -619,7 +617,7 @@ bool ResumeCtrl::DisconnectedJustBeforeIgnOff(
       static_cast<time_t>(saved_app[strings::time_stamp].asUInt());
   time_t ign_off_time =
       static_cast<time_t>(resumption_storage_->GetIgnOffTime());
-  const uint32_t sec_spent_before_ign = labs(ign_off_time - time_stamp);
+  const double sec_spent_before_ign = difftime(ign_off_time, time_stamp);
   LOG4CXX_DEBUG(logger_,"ign_off_time " << ign_off_time
                 << "; app_disconnect_time " << time_stamp
                 << "; sec_spent_before_ign " << sec_spent_before_ign
@@ -666,7 +664,7 @@ bool ResumeCtrl::CheckDelayAfterIgnOn() {
   LOG4CXX_AUTO_TRACE(logger_);
   const time_t curr_time = time(NULL);
   const time_t sdl_launch_time = launch_time();
-  const uint32_t seconds_from_sdl_start = labs(curr_time - sdl_launch_time);
+  const double seconds_from_sdl_start = difftime(curr_time, sdl_launch_time);
   const uint32_t wait_time =
       Profile::instance()->resumption_delay_after_ign();
   LOG4CXX_DEBUG(logger_, "curr_time " << curr_time
@@ -712,7 +710,7 @@ void ResumeCtrl::ProcessHMIRequests(const smart_objects::SmartObjectList& reques
   }
 }
 
-void ResumeCtrl::AddToResumptionTimerQueue(uint32_t app_id) {
+void ResumeCtrl::AddToResumptionTimerQueue(const uint32_t app_id) {
   LOG4CXX_AUTO_TRACE(logger_);
   queue_lock_.Acquire();
   waiting_for_timer_.push_back(app_id);
