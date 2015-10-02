@@ -435,8 +435,10 @@ TEST_F(PolicyHandlerTest, Test_OnActivateApp_method) {
   const uint32_t connection_key = 1;
   const uint32_t correlation_id = 2;
 
+  StateContext state_context;
   EXPECT_CALL(*app_manager_, CreateRegularState(app_id, _, _, _))
-      .WillOnce(Return(HmiStatePtr()));
+      .WillOnce(Return(HmiStatePtr(
+          new HmiState(app_id, state_context, HmiState::STATE_ID_REGULAR))));
 
   ApplicationSharedPtr application1(new ApplicationImpl(
       app_id, policy_app_id, app_name, instance_->GetStatisticManager()));
@@ -477,8 +479,10 @@ TEST_F(PolicyHandlerTest, Test_OnPendingPermissionChange_method) {
   std::string policy_app_id("mobile_app_id");
   std::string app_name("my_mobile_app");
 
+  StateContext state_context;
   EXPECT_CALL(*app_manager_, CreateRegularState(app_id, _, _, _))
-      .WillOnce(Return(HmiStatePtr()));
+      .WillOnce(Return(HmiStatePtr(
+          new HmiState(app_id, state_context, HmiState::STATE_ID_REGULAR))));
 
   ApplicationSharedPtr application(new ApplicationImpl(
       app_id, policy_app_id, app_name, instance_->GetStatisticManager()));
@@ -569,8 +573,10 @@ TEST_F(PolicyHandlerTest, Test_OnCurrentDeviceIdUpdateRequired_method) {
   std::string policy_app_id("mobile_app_id");
   std::string app_name("my_mobile_app");
 
+  StateContext state_context;
   EXPECT_CALL(*app_manager_, CreateRegularState(app_id, _, _, _))
-      .WillOnce(Return(HmiStatePtr()));
+      .WillOnce(Return(HmiStatePtr(
+          new HmiState(app_id, state_context, HmiState::STATE_ID_REGULAR))));
 
   ApplicationSharedPtr application(new ApplicationImpl(
       app_id, policy_app_id, app_name, instance_->GetStatisticManager()));
@@ -680,8 +686,11 @@ TEST_F(PolicyHandlerTest, Test_GetAppName_method) {
   uint32_t app_id = 123;
   std::string policy_app_id("mobile_app_id");
   std::string app_name("my_mobile_app");
+
+  StateContext state_context;
   EXPECT_CALL(*app_manager_, CreateRegularState(app_id, _, _, _))
-      .WillOnce(Return(HmiStatePtr()));
+      .WillOnce(Return(HmiStatePtr(
+          new HmiState(app_id, state_context, HmiState::STATE_ID_REGULAR))));
 
   ApplicationSharedPtr application(new ApplicationImpl(
       app_id, policy_app_id, app_name, instance_->GetStatisticManager()));
@@ -739,8 +748,11 @@ TEST_F(PolicyHandlerTest, Test_SendOnAppPermissionsChanged_method) {
   uint32_t app_id = 123;
   std::string policy_app_id("mobile_app_id");
   std::string app_name("my_mobile_app");
+
+  StateContext state_context;
   EXPECT_CALL(*app_manager_, CreateRegularState(app_id, _, _, _))
-      .WillOnce(Return(HmiStatePtr()));
+      .WillOnce(Return(HmiStatePtr(
+          new HmiState(app_id, state_context, HmiState::STATE_ID_REGULAR))));
 
   ApplicationSharedPtr application(new ApplicationImpl(
       app_id, policy_app_id, app_name,
