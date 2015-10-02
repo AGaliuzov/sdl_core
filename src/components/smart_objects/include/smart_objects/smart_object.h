@@ -41,9 +41,10 @@
 #include "smart_objects/smart_schema.h"
 #include "utils/custom_string.h"
 
-namespace custom_str = utils::custom_string;
 namespace NsSmartDeviceLink {
 namespace NsSmartObjects {
+
+namespace custom_str = utils::custom_string;
 
 class SmartObject;
 
@@ -424,11 +425,18 @@ FINAL {
     explicit SmartObject(const char* InitialValue);
 
     /**
+     * @brief Returns current object converted to CustomString
+     *
+     * @return custom_str::CustomString
+     **/
+    custom_str::CustomString asCustomString() const;
+
+    /**
      * @brief Returns current object converted to string
      *
      * @return std::string
      **/
-    custom_str::CustomString asString() const;
+    std::string asString() const;
 
     /**
      * @brief Returns char array from SmartObject data if exist. Otherwise returns
@@ -797,14 +805,14 @@ FINAL {
      * @{
      */
     /**
-     * @brief Sets new string value to the object.
+     * @brief Sets new CustomString value to the object.
      *
      * This method changes also internal object type
      *
      * @param  NewValue New object value
      * @return void
      **/
-    inline void set_value_string(const std::string& NewValue);
+    inline void set_value_string(const custom_str::CustomString& NewValue);
 
     /**
      * @brief Sets new string value to the object.
@@ -819,9 +827,19 @@ FINAL {
     /**
      * @brief Converts object to string type
      *
-     * @return int32_t Converted value or invalid_string_value if conversion not possible
+     * @return string Converted value or
+     * invalid_string_value if conversion not possible
      **/
-    inline custom_str::CustomString convert_string() const;
+    inline std::string convert_string() const;
+
+    /**
+     * @brief Converts object to CustomString type
+     *
+     * @return CustomString Converted value or
+     * invalid_string_value if conversion not possible
+     **/
+    inline custom_str::CustomString convert_custom_string() const;
+
     /** @} */
 
     /**
