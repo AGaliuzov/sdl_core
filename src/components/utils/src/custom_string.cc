@@ -38,29 +38,11 @@
 #include <new>
 #include <algorithm>
 #include "utils/logger.h"
+#include "utils/macro.h"
+
 
 namespace {
 namespace custom_str = utils::custom_string;
-
-//Converts string to unicode string.
-std::wstring ConvertUTFToWString(const char* str) {
-  std::wstring wstr;
-  size_t size = CalculateLengthOfString(str);
-  std::vector<wchar_t> wchar_array(size+1, L'\0');
-  std::string current_locale = setlocale(LC_ALL, NULL);
-  setlocale(LC_ALL, "");//system locale
-  mbstowcs(&(wchar_array.front()), str, size);
-  setlocale(LC_ALL, current_locale.c_str());
-  return std::wstring(&(wchar_array.front()));
-}
-
-//Converts string to lower case unicode string.
-void ConvertWStringToLowerCase(std::wstring& str) {
-  std::string current_locale = setlocale(LC_ALL, NULL);
-  setlocale(LC_ALL, "");
-  std::transform(str.begin(), str.end(), str.begin(), towlower);
-  setlocale(LC_ALL, current_locale.c_str());
-}
 
 //Calculates amount of characters in UTF string
 size_t CalculateLengthOfString(const char* str) {
@@ -71,6 +53,26 @@ size_t CalculateLengthOfString(const char* str) {
     }
   }
   return length_of_string;
+}
+
+//Converts string to unicode string.
+std::wstring ConvertUTFToWString(const char* str) {
+  size_t size = CalculateLengthOfString(str);
+  std::vector<wchar_t> wchar_array(size+1, L'\0');
+
+  std::string current_locale = setlocale(LC_ALL, NULL);
+  setlocale(LC_ALL, "");//system locale
+  mbstowcs(&(wchar_array.front()), str, size);
+  setlocale(LC_ALL, current_locale.c_str());
+  return std::wstring(&(wchar_array.front()));
+}
+
+//Converts string to lower case unicode string.
+void ConvertWStringToLowerCase(std::wstring& str) {
+  const std::string current_locale = setlocale(LC_ALL, NULL);
+  setlocale(LC_ALL, "");
+  std::transform(str.begin(), str.end(), str.begin(), towlower);
+  setlocale(LC_ALL, current_locale.c_str());
 }
 }
 
@@ -92,7 +94,7 @@ CustomString::CustomString(const char* str): mb_string_(str), amount_characters_
 }
 
 CustomString::CustomString(size_t n, char c): mb_string_(n, c),
-    size_(0), is_ascii_string_(true) {
+    amount_characters_(0), is_ascii_string_(true) {
   InitData();
 }
 
@@ -142,8 +144,8 @@ CustomString CustomString::operator+(const std::string& str) const {
   return *this;
 }
 
-char CustomString::at(size_t pos) {
-  DCHECK_OR_RETURN((is_ascii_string_ && pos <  size), '\0');
+char CustomString::at(size_t pos) const {
+  DCHECK_OR_RETURN((is_ascii_string_ && pos < amount_characters_), '\0');
   return mb_string_.at(pos);
 }
 

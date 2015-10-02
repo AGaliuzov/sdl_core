@@ -147,7 +147,7 @@ class CustomString {
    * Need to use with ASCII string.
    * @param pos value with the position of a character within the string.
    */
-  char at(size_t pos);
+  char at(size_t pos) const;
 
   /**
    * @brief Compares the value of the string (case sensitive).
