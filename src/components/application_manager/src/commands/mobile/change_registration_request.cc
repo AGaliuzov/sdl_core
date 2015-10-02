@@ -41,7 +41,8 @@
 #include "interfaces/HMI_API.h"
 
 namespace {
-  struct IsSameNickname {
+namespace custom_str = utils::custom_string;
+struct IsSameNickname {
     IsSameNickname(const custom_str::CustomString& app_id):
       app_id_(app_id) {
     }
@@ -124,7 +125,7 @@ void ChangeRegistrationRequest::Run() {
   }
 
   if (msg_params.keyExists(strings::app_name) &&
-      !IsNicknameAllowed(msg_params[strings::app_name].asString())) {
+      !IsNicknameAllowed(msg_params[strings::app_name].asCustomString())) {
     LOG4CXX_ERROR(logger_, "Nickname is not allowed.");
     SendResponse(false, mobile_apis::Result::DISALLOWED);
     return;
@@ -141,7 +142,7 @@ void ChangeRegistrationRequest::Run() {
   ui_params[strings::app_id] = app->app_id();
   if (msg_params.keyExists(strings::app_name)) {
     ui_params[strings::app_name] = msg_params[strings::app_name];
-    app->set_name(msg_params[strings::app_name].asString());
+    app->set_name(msg_params[strings::app_name].asCustomString());
   }
   if (msg_params.keyExists(strings::ngn_media_screen_app_name)) {
     ui_params[strings::ngn_media_screen_app_name] =
@@ -398,7 +399,7 @@ mobile_apis::Result::eType ChangeRegistrationRequest::CheckCoincidence() {
   custom_str::CustomString app_name;
   uint32_t app_id = connection_key();
   if (msg_params.keyExists(strings::app_name)) {
-    app_name = msg_params[strings::app_name].asString();
+    app_name = msg_params[strings::app_name].asCustomString();
   }
 
   ApplicationSetConstIt it = accessor.begin();

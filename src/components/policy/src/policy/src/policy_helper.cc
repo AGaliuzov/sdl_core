@@ -38,8 +38,10 @@
 #include "policy/policy_helper.h"
 #include "policy/policy_manager_impl.h"
 
-namespace custom_str =  utils::custom_string;
+
 namespace policy {
+
+namespace custom_str =  utils::custom_string;
 
 namespace {
 

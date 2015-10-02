@@ -48,10 +48,11 @@ Copyright (c) 2013, Ford Motor Company
 #include "utils/helpers.h"
 #include "utils/custom_string.h"
 
-namespace custom_str = utils::custom_string;
 namespace application_manager {
 
 namespace commands {
+
+namespace custom_str = utils::custom_string;
 
 uint32_t SystemRequest::index = 0;
 
@@ -96,7 +97,7 @@ void SystemRequest::Run() {
 
   std::string file_name;
   if ((*message_)[strings::msg_params].keyExists(strings::file_name)) {
-    file_name = ((*message_)[strings::msg_params][strings::file_name].asString()).AsMBString();
+    file_name = (*message_)[strings::msg_params][strings::file_name].asString();
   } else {
     file_name = kSYNC;
   }
@@ -114,9 +115,10 @@ void SystemRequest::Run() {
 
   // to avoid override existing file
   if (is_system_file) {
-    std::stringstream stream;
-    stream << index++ << file_name;
-    file_name = stream.str();
+    const uint8_t max_size = 255;
+    char buf[max_size] = {'\0'};
+    snprintf(buf, max_size - 1, "%d%s", index++, file_name.c_str());
+    file_name = buf;
   }
 
   std::string file_dst_path = profile::Profile::instance()->system_files_path();
@@ -154,7 +156,7 @@ void SystemRequest::Run() {
         !file_system::MoveFile(app_full_file_path, file_dst_path)) {
       LOG4CXX_DEBUG(logger_, "Binary data not found.");
 
-      custom_str::CustomString origin_file_name;
+      std::string origin_file_name;
       if ((*message_)[strings::msg_params].keyExists(strings::file_name)) {
         origin_file_name =
             (*message_)[strings::msg_params][strings::file_name].asString();

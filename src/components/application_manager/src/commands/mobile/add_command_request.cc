@@ -40,11 +40,11 @@
 #include "utils/helpers.h"
 #include "utils/custom_string.h"
 
-namespace custom_str = utils::custom_string;
-
 namespace application_manager {
 
 namespace commands {
+
+namespace custom_str = utils::custom_string;
 
 AddCommandRequest::AddCommandRequest(const MessageSharedPtr& message)
     : CommandRequestImpl(message),
@@ -255,10 +255,10 @@ bool AddCommandRequest::CheckCommandVRSynonym(ApplicationConstSharedPtr app) {
           j < (*message_)[strings::msg_params][strings::vr_commands].length();
           ++j) {
         const custom_str::CustomString& vr_cmd_i =
-            (*it->second)[strings::vr_commands][i].asString();
+            (*it->second)[strings::vr_commands][i].asCustomString();
         const custom_str::CustomString& vr_cmd_j =
             (*message_)[strings::msg_params]
-                        [strings::vr_commands][j].asString();
+                        [strings::vr_commands][j].asCustomString();
 
         if (vr_cmd_i.CompareIgnoreCase(vr_cmd_j)) {
           LOG4CXX_INFO(logger_, "AddCommandRequest::CheckCommandVRSynonym"

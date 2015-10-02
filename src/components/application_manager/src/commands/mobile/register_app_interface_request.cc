@@ -46,6 +46,8 @@
 
 namespace {
 
+namespace custom_str = utils::custom_string;
+
 mobile_apis::AppHMIType::eType StringToAppHMIType(const std::string& str) {
   if ("DEFAULT" == str) {
     return mobile_apis::AppHMIType::DEFAULT;
@@ -97,7 +99,7 @@ struct CheckMissedTypes {
     }
 
     bool operator()(const smart_objects::SmartArray::value_type& value) {
-      const std::string app_type_str = (value.asString()).AsMBString();
+      const std::string app_type_str = value.asString();
       policy::StringArray::const_iterator it = policy_app_types_.begin();
       policy::StringArray::const_iterator it_end = policy_app_types_.end();
       for (; it != it_end; ++it) {
@@ -181,8 +183,8 @@ void RegisterAppInterfaceRequest::Run() {
   }
 #endif
 
-  const std::string& policy_app_id = ((*message_)[strings::msg_params][strings::app_id]
-                                     .asString()).AsMBString();
+  const std::string& policy_app_id = (*message_)[strings::msg_params][strings::app_id]
+                                     .asString();
 
   ApplicationSharedPtr application =
     ApplicationManagerImpl::instance()->application(connection_key());
@@ -244,7 +246,7 @@ void RegisterAppInterfaceRequest::Run() {
 
     // For resuming application need to restore hmi_app_id from resumeCtrl
 
-    const std::string& policy_app_id = (msg_params[strings::app_id].asString()).AsMBString();
+    const std::string& policy_app_id = msg_params[strings::app_id].asString();
     resumption::ResumeCtrl& resumer = ApplicationManagerImpl::instance()->resume_controller();
     const std::string device_id =
         MessageHelper::GetDeviceMacAddressForHandle(application->device());
@@ -543,7 +545,7 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile() {
   bool resumption = (*message_)[strings::msg_params].keyExists(strings::hash_id);
   bool need_restore_vr = resumption;
   if (resumption) {
-    hash_id = ((*message_)[strings::msg_params][strings::hash_id].asString()).AsMBString();
+    hash_id = (*message_)[strings::msg_params][strings::hash_id].asString();
     if (!resumer.CheckApplicationHash(application, hash_id)) {
       LOG4CXX_WARN(logger_, "Hash does not match");
       result_code = mobile_apis::Result::RESUME_FAILED;
@@ -606,7 +608,7 @@ RegisterAppInterfaceRequest::CheckCoincidence() {
  ApplicationSetConstIt it =
      accessor.begin();
   const custom_str::CustomString& app_name =
-      msg_params[strings::app_name].asString();
+      msg_params[strings::app_name].asCustomString();
 
   for (; accessor.end() != it; ++it) {
 
@@ -660,7 +662,7 @@ mobile_apis::Result::eType RegisterAppInterfaceRequest::CheckWithPolicyData() {
   policy::StringArray app_hmi_types;
 
   const std::string& policy_app_id =
-      (message[strings::msg_params][strings::app_id].asString()).AsMBString();
+      message[strings::msg_params][strings::app_id].asString();
   const bool init_result = policy::PolicyHandler::instance()->GetInitialAppData(
         policy_app_id, &app_nicknames, &app_hmi_types);
 
@@ -671,7 +673,7 @@ mobile_apis::Result::eType RegisterAppInterfaceRequest::CheckWithPolicyData() {
 
   if (!app_nicknames.empty()) {
     IsSameNickname compare(
-          message[strings::msg_params][strings::app_name].asString());
+          message[strings::msg_params][strings::app_name].asCustomString());
     policy::StringArray::const_iterator it = std::find_if(
           app_nicknames.begin(), app_nicknames.end(), compare);
     if (app_nicknames.end() == it) {
@@ -735,19 +737,19 @@ void RegisterAppInterfaceRequest::FillDeviceInfo(
     msg_params[strings::device_info];
 
   if (device_info_so.keyExists(hardware)) {
-    device_info->hardware = (device_info_so[hardware].asString()).AsMBString();
+    device_info->hardware = device_info_so[hardware].asString();
   }
   if (device_info_so.keyExists(firmware_rev)) {
-    device_info->firmware_rev = (device_info_so[firmware_rev].asString()).AsMBString();
+    device_info->firmware_rev = device_info_so[firmware_rev].asString();
   }
   if (device_info_so.keyExists(os)) {
-    device_info->os = (device_info_so[os].asString()).AsMBString();
+    device_info->os = device_info_so[os].asString();
   }
   if (device_info_so.keyExists(os_ver)) {
-    device_info->os_ver = (device_info_so[os_ver].asString()).AsMBString();
+    device_info->os_ver = device_info_so[os_ver].asString();
   }
   if (device_info_so.keyExists(carrier)) {
-    device_info->carrier = (device_info_so[carrier].asString()).AsMBString();
+    device_info->carrier = device_info_so[carrier].asString();
   }
   if (device_info_so.keyExists(max_number_rfcom_ports)) {
     device_info->max_number_rfcom_ports =
@@ -761,7 +763,7 @@ bool RegisterAppInterfaceRequest::IsApplicationWithSameAppIdRegistered() {
                "IsApplicationWithSameAppIdRegistered");
 
   const custom_str::CustomString& policy_app_id = (*message_)[strings::msg_params]
-                                         [strings::app_id].asString();
+                                         [strings::app_id].asCustomString();
 
   ApplicationManagerImpl::ApplicationListAccessor accessor;
   const ApplicationSet applications = accessor.applications();

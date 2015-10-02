@@ -68,7 +68,7 @@ void AddSubMenuRequest::Run() {
   }
 
   const std::string& menu_name =
-      ((*message_)[strings::msg_params][strings::menu_name].asString()).AsMBString();
+      (*message_)[strings::msg_params][strings::menu_name].asString();
 
   if (app->IsSubMenuNameAlreadyExist(menu_name)) {
     LOG4CXX_ERROR(logger_, "Menu name " << menu_name << " is duplicated.");

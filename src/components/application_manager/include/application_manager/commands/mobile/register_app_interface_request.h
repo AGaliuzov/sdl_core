@@ -39,8 +39,6 @@
 #include "utils/macro.h"
 #include "utils/custom_string.h"
 
-namespace custom_str = utils::custom_string;
-
 namespace policy {
 struct DeviceInfo;
 }
@@ -50,6 +48,8 @@ namespace application_manager {
 class Application;
 
 namespace commands {
+
+namespace custom_str = utils::custom_string;
 
 /**
  * @brief Register app interface request  command class
@@ -111,8 +111,8 @@ class RegisterAppInterfaceRequest : public CommandRequestImpl {
       :newItem_(newItem)
       {};
 
-      bool operator()(smart_objects::SmartObject obj) {
-        const custom_str::CustomString& vr_synonym = obj.asString();
+      bool operator()(const smart_objects::SmartObject& obj) {
+        const custom_str::CustomString& vr_synonym = obj.asCustomString();
         return newItem_.CompareIgnoreCase(vr_synonym);
       };
       const custom_str::CustomString& newItem_;

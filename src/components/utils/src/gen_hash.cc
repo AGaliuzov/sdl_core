@@ -89,7 +89,7 @@ uint32_t CaseInsensitiveFaq6HashFromString(
   if (str_to_hash.is_ascii_string()) {
     hash  = CaseInsensitiveFaq6HashFromString(str_to_hash.c_str());
   } else {
-    const std::wstring& wstr = str_to_hash.AsWStringLowerCase();
+    const std::wstring& wstr = str_to_hash.ToWStringLowerCase();
     size_t size = wstr.size();
     for (size_t i = 0; i < size; ++i) {
       hash += static_cast<uint32_t>(wstr[i]);

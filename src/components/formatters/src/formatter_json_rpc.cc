@@ -95,7 +95,7 @@ bool FormatterJsonRpc::ToString(const NsSmartObjects::SmartObject &obj,
           result = false;
         } else {
           const std::string message_type =
-              (message_type_object.asString()).AsMBString();
+              message_type_object.asString();
 
           if (kRequest == message_type) {
             if (false == empty_message_params) {
@@ -156,7 +156,7 @@ bool FormatterJsonRpc::SetMethod(const NsSmartObjects::SmartObject &params,
         params.getElement(strings::S_FUNCTION_ID);
 
     if (NsSmartObjects::SmartType_String == function_id.getType()) {
-      method_container[kMethod] = (function_id.asString()).AsMBString();
+      method_container[kMethod] = function_id.asString();
       result = true;
     }
   }
@@ -190,7 +190,7 @@ bool FormatterJsonRpc::SetMessage(const NsSmartObjects::SmartObject &params,
         strings::kMessage);
 
     if (NsSmartObjects::SmartType_String == message.getType()) {
-       message_container[kMessage] = (message.asString()).AsMBString();
+       message_container[kMessage] = message.asString();
       result = true;
     }
   }

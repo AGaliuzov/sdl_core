@@ -688,7 +688,7 @@ void PolicyHandler::OnVehicleDataUpdated(
   }
   if (message[strings::msg_params].keyExists(strings::vin)) {
     policy_manager_-> SetVINValue(
-        (message[strings::msg_params][strings::vin].asString()).AsMBString());
+        message[strings::msg_params][strings::vin].asString());
   }
 }
 

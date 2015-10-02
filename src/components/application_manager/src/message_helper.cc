@@ -93,7 +93,7 @@ bool ValidateSoftButtons(smart_objects::SmartObject& soft_buttons) {
       // Image name must not be empty and must not contain incorrect
       //character
       if (false == MessageHelper::VerifySoftButtonString(
-          (buttonImage[strings::value].asString()).AsMBString())) {
+          buttonImage[strings::value].asString())) {
         return false;
       }
     }
@@ -2182,7 +2182,7 @@ mobile_apis::Result::eType MessageHelper::VerifyImage(
     return mobile_apis::Result::SUCCESS;
   }
 
-  const std::string& file_name = (image[strings::value].asString()).AsMBString();
+  const std::string& file_name = image[strings::value].asString();
   LOG4CXX_DEBUG(logger_, "MessageHelper::VerifyImage file_name =" << file_name);
 
   std::string str = file_name;
@@ -2314,7 +2314,7 @@ mobile_apis::Result::eType MessageHelper::ProcessSoftButtons(
         }
         if ((!request_soft_buttons[i].keyExists(strings::text)) ||
             (!VerifySoftButtonString(
-                (request_soft_buttons[i][strings::text].asString()).AsMBString()))) {
+                request_soft_buttons[i][strings::text].asString()))) {
           return Result::INVALID_DATA;
         }
         break;
@@ -2323,7 +2323,7 @@ mobile_apis::Result::eType MessageHelper::ProcessSoftButtons(
         if ((!request_soft_buttons[i].keyExists(strings::text)) ||
             ((request_soft_buttons[i][strings::text].length())
                 && (!VerifySoftButtonString(
-                    (request_soft_buttons[i][strings::text].asString()).AsMBString())))) {
+                    request_soft_buttons[i][strings::text].asString())))) {
           return Result::INVALID_DATA;
         }
 

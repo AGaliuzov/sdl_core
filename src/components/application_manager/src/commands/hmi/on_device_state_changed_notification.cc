@@ -91,12 +91,12 @@ void OnDeviceStateChangedNotification::Run() {
       == hmi_apis::Common_DeviceState::UNPAIRED) {
         // It is expected, that "deviceInternalId" is the device MAC address in
         // form XXXXXXXXXX
-    std::string device_id = ((*message_)[strings::msg_params]["deviceInternalId"]
-                            .asString()).AsMBString();
+    std::string device_id = (*message_)[strings::msg_params]["deviceInternalId"]
+                            .asString();
     if (device_id.empty()) {
       if ((*message_)[strings::msg_params].keyExists("deviceId")) {
         device_id =
-            ((*message_)[strings::msg_params]["deviceId"]["id"].asString()).AsMBString();
+            (*message_)[strings::msg_params]["deviceId"]["id"].asString();
       }
     } else {
      // Policy uses hashed MAC address as device_id

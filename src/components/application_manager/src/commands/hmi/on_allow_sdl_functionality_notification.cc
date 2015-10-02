@@ -50,7 +50,7 @@ void OnAllowSDLFunctionalityNotification::Run() {
   std::string device_id;
   if ((*message_)[strings::msg_params].keyExists("device")) {
     device_id =
-    ((*message_)[strings::msg_params]["device"]["id"].asString()).AsMBString();
+    (*message_)[strings::msg_params]["device"]["id"].asString();
   }
   policy::PolicyHandler::instance()->OnAllowSDLFunctionalityNotification(
       (*message_)[strings::msg_params][hmi_response::allowed].asBool(),

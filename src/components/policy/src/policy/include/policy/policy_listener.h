@@ -37,8 +37,11 @@
 
 #include "policy/policy_types.h"
 #include "utils/custom_string.h"
-namespace custom_str = utils::custom_string;
+
 namespace policy {
+
+namespace custom_str = utils::custom_string;
+
 class PolicyListener {
  public:
   virtual ~PolicyListener() {

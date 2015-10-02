@@ -69,7 +69,7 @@ void DialNumberRequest::Run() {
   }
 
   std::string number =
-      ((*message_)[strings::msg_params][strings::number].asString()).AsMBString();
+      (*message_)[strings::msg_params][strings::number].asString();
   if (!CheckSyntax(number)) {
     LOG4CXX_ERROR(logger_, "Invalid incoming data");
     SendResponse(false, mobile_apis::Result::INVALID_DATA);

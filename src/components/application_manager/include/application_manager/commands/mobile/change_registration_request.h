@@ -41,11 +41,11 @@
 #include "utils/macro.h"
 #include "utils/custom_string.h"
 
-namespace custom_str = utils::custom_string;
 namespace application_manager {
 
 namespace commands {
 
+namespace custom_str = utils::custom_string;
 
 
 /**
@@ -150,8 +150,8 @@ class ChangeRegistrationRequest : public CommandRequestImpl  {
      :newItem_(newItem)
      {};
 
-     bool operator()(smart_objects::SmartObject obj) {
-       const custom_str::CustomString& vr_synonym = obj.asString();
+     bool operator()(const smart_objects::SmartObject& obj) const {
+       const custom_str::CustomString& vr_synonym = obj.asCustomString();
        return newItem_.CompareIgnoreCase(vr_synonym);
      };
 

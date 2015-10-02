@@ -193,7 +193,7 @@ void GetVehicleDataRequest::on_event(const event_engine::Event& event) {
     std::string error_message;
     if (true == message[strings::params].keyExists(strings::error_msg)) {
       error_message =
-          (message[strings::params][strings::error_msg].asString()).AsMBString();
+          message[strings::params][strings::error_msg].asString();
       info = error_message.c_str();
     }
     SendResponse( any_arg_success, status, info, &response_params);
@@ -273,7 +273,7 @@ void GetVehicleDataRequest::on_event(const event_engine::Event& event) {
       }
       if (true == message[strings::params].keyExists(strings::error_msg)) {
         error_message =
-            (message[strings::params][strings::error_msg].asString()).AsMBString();
+            message[strings::params][strings::error_msg].asString();
         info = error_message.c_str();
       }
       SendResponse(result, result_code, info, &(message[strings::msg_params]));

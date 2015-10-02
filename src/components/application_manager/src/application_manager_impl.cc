@@ -421,7 +421,6 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
   const std::string& policy_app_id = params[strings::app_id].asString();
   const custom_str::CustomString& app_name =
       message[strings::msg_params][strings::app_name].asCustomString();
-
   ApplicationSharedPtr application(new ApplicationImpl(
       app_id, policy_app_id, app_name,
       policy::PolicyHandler::instance()->GetStatisticManager()));

@@ -47,11 +47,12 @@
 #include "utils/threads/thread_delegate.h"
 #include "utils/conditional_variable.h"
 #include "utils/rwlock.h"
+#include "utils/custom_string.h"
 #include "usage_statistics/statistics_manager.h"
 #include "application_manager/policies/policy_handler_observer.h"
 #include "utils/threads/async_runner.h"
 #include "application_manager/application_manager_impl.h"
-#include "utils/custom_string.h"
+
 
 namespace Json {
 class Value;

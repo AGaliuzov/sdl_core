@@ -69,7 +69,7 @@ void OnAppPermissionConsentNotification::Run() {
   for (; it != it_end; ++it) {
     policy::FunctionalGroupPermission permissions;
     permissions.group_id = (*it)["id"].asInt();
-    permissions.group_alias = ((*it)["name"].asString()).AsMBString();
+    permissions.group_alias = (*it)["name"].asString();
     if ((*it).keyExists("allowed")) {
       permissions.state = (*it)["allowed"].asBool() ? policy::kGroupAllowed :
                                                       policy::kGroupDisallowed;
@@ -81,7 +81,7 @@ void OnAppPermissionConsentNotification::Run() {
     }
 
     permission_consent.consent_source =
-        (msg_params["source"].asString()).AsMBString();
+        msg_params["source"].asString();
 
     policy::PolicyHandler::instance()->OnAppPermissionConsent(connection_key,
       permission_consent);

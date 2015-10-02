@@ -57,6 +57,9 @@ namespace application_manager {
 namespace mobile_api = mobile_apis;
 
 namespace smart_objects = NsSmartDeviceLink::NsSmartObjects;
+
+namespace custom_str = utils::custom_string;
+
 typedef int32_t ErrorCode;
 
 class UsageStatistics;

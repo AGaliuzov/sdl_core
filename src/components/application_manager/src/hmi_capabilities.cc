@@ -590,7 +590,7 @@ bool HMICapabilities::load_capabilities_from_file() {
         if (display_capabilities_so.keyExists(hmi_response::display_type)) {
           std::map<std::string, hmi_apis::Common_DisplayType::eType>
           ::const_iterator it = display_type_enum.find(
-          ((display_capabilities_so[hmi_response::display_type]).asString()).AsMBString());
+          (display_capabilities_so[hmi_response::display_type]).asString());
           display_capabilities_so.erase(hmi_response::display_type);
           if (display_type_enum.end() != it) {
             display_capabilities_so[hmi_response::display_type] = it->second;
@@ -605,8 +605,8 @@ bool HMICapabilities::load_capabilities_from_file() {
                 [hmi_response::text_fields][i]).keyExists(strings::name)) {
               std::map<std::string, hmi_apis::Common_TextFieldName::eType>
               ::const_iterator it_text_field_name = text_fields_enum_name.find(
-                  (display_capabilities_so[hmi_response::text_fields]
-                  [i][strings::name].asString()).AsMBString());
+                  display_capabilities_so[hmi_response::text_fields]
+                  [i][strings::name].asString());
               display_capabilities_so[hmi_response::text_fields][i].erase(strings::name);
               if (text_fields_enum_name.end() != it_text_field_name) {
                 display_capabilities_so[hmi_response::text_fields]
@@ -617,8 +617,8 @@ bool HMICapabilities::load_capabilities_from_file() {
                 [hmi_response::text_fields][i]).keyExists(strings::character_set)) {
               std::map<std::string, hmi_apis::Common_CharacterSet::eType>
               ::const_iterator it_characte_set = character_set_enum.find(
-                  (display_capabilities_so[hmi_response::text_fields]
-                  [i][strings::character_set].asString()).AsMBString());
+                  display_capabilities_so[hmi_response::text_fields]
+                  [i][strings::character_set].asString());
               display_capabilities_so
               [hmi_response::text_fields][i].erase(strings::character_set);
               if (character_set_enum.end() != it_characte_set) {
@@ -637,7 +637,7 @@ bool HMICapabilities::load_capabilities_from_file() {
             if (array_image_fields[i].keyExists(strings::name)) {
               std::map<std::string, hmi_apis::Common_ImageFieldName::eType>
               ::const_iterator it = image_field_name_enum.find(
-              ((array_image_fields[i][strings::name]).asString()).AsMBString());
+              (array_image_fields[i][strings::name]).asString());
               array_image_fields[i].erase(strings::name);
               if (image_field_name_enum.end() != it) {
                 array_image_fields[i][strings::name] = it->second;
@@ -651,7 +651,7 @@ bool HMICapabilities::load_capabilities_from_file() {
               for (uint32_t k = 0, j = 0; k < image_type_supported_array.length(); ++k) {
                 std::map<std::string, hmi_apis::Common_FileType::eType>
                 ::const_iterator it = file_type_enum.find(
-                    ((image_type_supported_array[k]).asString()).AsMBString());
+                    (image_type_supported_array[k]).asString());
                 if (file_type_enum.end() != it) {
                   image_type_supported_enum[j++] = it->second;
                 }
@@ -670,7 +670,7 @@ bool HMICapabilities::load_capabilities_from_file() {
           for (uint32_t i = 0, j = 0; i < media_clock_formats_array.length(); ++i) {
             std::map<std::string, hmi_apis::Common_MediaClockFormat::eType>
             ::const_iterator it = media_clock_enum_name.find(
-                ((media_clock_formats_array[i]).asString()).AsMBString());
+                (media_clock_formats_array[i]).asString());
             if (media_clock_enum_name.end() != it) {
               media_clock_formats_enum[j++] = it->second;
             }
@@ -688,7 +688,7 @@ bool HMICapabilities::load_capabilities_from_file() {
           for (uint32_t i = 0, j = 0; i < image_capabilities_array.length(); ++i) {
             std::map<std::string, hmi_apis::Common_ImageType::eType>
             ::const_iterator it = image_type_enum.find(
-                ((image_capabilities_array[i]).asString()).AsMBString());
+                (image_capabilities_array[i]).asString());
             if (image_type_enum.end() != it) {
               image_capabilities_enum[j++] = it->second;
             }
@@ -806,7 +806,7 @@ bool HMICapabilities::load_capabilities_from_file() {
           if ((buttons_capabilities_so[i]).keyExists(strings::name)) {
             std::map<std::string, hmi_apis::Common_ButtonName::eType>
             ::const_iterator it = button_enum_name.find(
-             ((buttons_capabilities_so[i][strings::name]).asString()).AsMBString());
+             (buttons_capabilities_so[i][strings::name]).asString());
             buttons_capabilities_so[i].erase(strings::name);
             if (button_enum_name.end() != it) {
               buttons_capabilities_so[i][strings::name] = it->second;

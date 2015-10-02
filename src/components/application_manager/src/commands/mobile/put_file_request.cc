@@ -105,8 +105,8 @@ void PutFileRequest::Run() {
                  &response_params);
     return;
   }
-  sync_file_name_ = ((*message_)[strings::msg_params]
-                                 [strings::sync_file_name].asString()).AsMBString();
+  sync_file_name_ = (*message_)[strings::msg_params]
+                                 [strings::sync_file_name].asString();
 
   if (!IsSyncFileNameValid(sync_file_name_)) {
     const std::string err_msg = "Sync file name contains forbidden symbols.";
