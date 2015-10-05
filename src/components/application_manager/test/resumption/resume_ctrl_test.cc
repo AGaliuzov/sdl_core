@@ -54,6 +54,7 @@ using ::testing::DoAll;
 using ::testing::SetArgReferee;
 using ::testing::Mock;
 using ::testing::NiceMock;
+using ::testing::AtLeast;
 
 using namespace resumption;
 using namespace mobile_apis::HMILevel;
@@ -142,10 +143,12 @@ TEST_F(ResumeCtrlTest, StartResumption_AppWithFiles) {
 
   int file_types[count_of_files];
   std::string file_names[count_of_files];
-
+  const size_t max_size = 12;
+  char numb[max_size];
   for (uint32_t i = 0; i < count_of_files; i++) {
     file_types[i] = i;
-    file_names[i] = "test_file" + std::to_string(i);
+    std::snprintf(numb, max_size, "%d", i);
+    file_names[i] = "test_file" + std::string(numb);
   }
 
   // Should not been added
@@ -211,8 +214,7 @@ TEST_F(ResumeCtrlTest, StartResumption_AppWithSubmenues) {
   }
   smart_objects::SmartObjectList requests;
   EXPECT_CALL(*application_manager::MockMessageHelper::message_helper_mock(),
-              CreateAddSubMenuRequestToHMI(_))
-      .WillRepeatedly(Return(requests));
+              CreateAddSubMenuRequestToHMI(_)).WillRepeatedly(Return(requests));
 
   EXPECT_CALL(*app_mock, UpdateHash());
   bool res = res_ctrl.StartResumption(app_mock, hash);
@@ -248,8 +250,7 @@ TEST_F(ResumeCtrlTest, StartResumption_AppWithCommands) {
 
   smart_objects::SmartObjectList requests;
   EXPECT_CALL(*application_manager::MockMessageHelper::message_helper_mock(),
-              CreateAddCommandRequestToHMI(_))
-      .WillRepeatedly(Return(requests));
+              CreateAddCommandRequestToHMI(_)).WillRepeatedly(Return(requests));
 
   bool res = res_ctrl.StartResumption(app_mock, hash);
   EXPECT_TRUE(res);
@@ -262,10 +263,12 @@ TEST_F(ResumeCtrlTest, StartResumption_AppWithChoiceSet) {
   const uint32_t count_of_choice = 10;
   smart_objects::SmartObject choice_vector;
   smart_objects::SmartObject choice;
-
+  const size_t max_size = 12;
+  char numb[max_size];
   for (uint32_t i = 0; i < count_of_choice; ++i) {
+    std::snprintf(numb, max_size, "%d", i);
     choice[application_manager::strings::vr_commands] =
-        "VrCommand" + std::to_string(i);
+        "VrCommand" + std::string(numb);
     choice[application_manager::strings::choice_id] = i;
     choice_vector[i] = choice;
   }
@@ -274,7 +277,6 @@ TEST_F(ResumeCtrlTest, StartResumption_AppWithChoiceSet) {
     app_choice_set[application_manager::strings::interaction_choice_set_id] = i;
     app_choice_set[application_manager::strings::choice_set] = choice_vector;
     application_choice_sets[i] = app_choice_set;
-
   }
 
   smart_objects::SmartObject saved_app;
@@ -321,7 +323,6 @@ TEST_F(ResumeCtrlTest, StartResumption_AppWithGlobalProperties) {
 
   EXPECT_CALL(*application_manager::MockMessageHelper::message_helper_mock(),
               SendGlobalPropertiesToHMI(_));
-
 
   EXPECT_CALL(*app_mock, load_global_properties(test_global_properties));
 
@@ -407,8 +408,7 @@ TEST_F(ResumeCtrlTest, StartResumption_AppWithSubscriptionToIVI) {
 
   smart_objects::SmartObjectList requests;
   EXPECT_CALL(*application_manager::MockMessageHelper::message_helper_mock(),
-              GetIVISubscriptionRequests(_))
-      .WillRepeatedly(Return(requests));
+              GetIVISubscriptionRequests(_)).WillRepeatedly(Return(requests));
 
   EXPECT_CALL(*app_mock, UpdateHash());
   bool res = res_ctrl.StartResumption(app_mock, hash);
@@ -446,7 +446,8 @@ TEST_F(ResumeCtrlTest, StartAppHmiStateResumption_AppInFull) {
 
   ON_CALL(*app_mock, policy_app_id()).WillByDefault(Return(test_policy_app_id));
   ON_CALL(*app_mock, device()).WillByDefault(Return(test_dev_id));
-  EXPECT_CALL(*app_mock, IsAudioApplication()).WillOnce(Return(true));
+  EXPECT_CALL(*app_mngr,
+              SetHmiState(test_app_id, restored_testType)).Times(AtLeast(1));
   ON_CALL(*app_mock, app_id()).WillByDefault(Return(test_app_id));
   EXPECT_CALL(*mock_storage, GetSavedApplication(test_policy_app_id, _, _))
       .Times(2)
@@ -514,10 +515,8 @@ TEST_F(ResumeCtrlTest, RestoreAppHMIState_RestoreHMILevelFull) {
       .WillOnce(DoAll(SetArgReferee<2>(saved_app), Return(true)));
   ON_CALL(*app_mock, device()).WillByDefault(Return(test_dev_id));
 
-  EXPECT_CALL(*app_mngr,
-              GetUserConsentForDevice(""))
+  EXPECT_CALL(*app_mngr, GetUserConsentForDevice(""))
       .WillOnce(Return(policy::kDeviceAllowed));
-  EXPECT_CALL(*app_mock, IsAudioApplication()).WillOnce(Return(true));
   EXPECT_CALL(*app_mngr, IsAppTypeExistsInFullOrLimited(_))
       .WillRepeatedly(Return(false));
 
@@ -544,12 +543,13 @@ TEST_F(ResumeCtrlTest, SetupDefaultHMILevel) {
 
   ON_CALL(*app_mock, device()).WillByDefault(Return(test_dev_id));
   EXPECT_CALL(*app_mngr, GetUserConsentForDevice("")).Times(0);
-  EXPECT_CALL(*app_mock, IsAudioApplication()).Times(0);
   EXPECT_CALL(*app_mngr, IsAppTypeExistsInFullOrLimited(_))
       .WillOnce(Return(true));
   EXPECT_CALL(*app_mngr, active_application()).WillOnce(Return(app_mock));
   EXPECT_CALL(*app_mngr, GetDefaultHmiLevel(_))
       .WillOnce(Return(default_testType));
+  EXPECT_CALL(*app_mngr,
+              SetHmiState(test_app_id, default_testType)).Times(AtLeast(1));
 
   ON_CALL(*app_mock, is_media_application()).WillByDefault(Return(false));
 
@@ -567,7 +567,6 @@ TEST_F(ResumeCtrlTest, SetupDefaultHMILevel) {
 TEST_F(ResumeCtrlTest, SetAppHMIState_HMINone_NotMedia_WithoutCheckPolicy) {
   ON_CALL(*app_mock, device()).WillByDefault(Return(test_dev_id));
   EXPECT_CALL(*app_mngr, GetUserConsentForDevice("")).Times(0);
-  EXPECT_CALL(*app_mock, IsAudioApplication()).Times(0);
   EXPECT_CALL(*app_mngr, IsAppTypeExistsInFullOrLimited(_))
       .WillOnce(Return(true));
   EXPECT_CALL(*app_mngr, active_application()).WillOnce(Return(app_mock));
@@ -585,7 +584,8 @@ TEST_F(ResumeCtrlTest, SetAppHMIState_HMINone_NotMedia_WithoutCheckPolicy) {
 }
 
 // TODO(VVeremjova) APPLINK-16718
-TEST_F(ResumeCtrlTest, DISABLED_SetAppHMIState_HMILimited_NotMedia_WithoutCheckPolicy) {
+TEST_F(ResumeCtrlTest,
+       DISABLED_SetAppHMIState_HMILimited_NotMedia_WithoutCheckPolicy) {
   mobile_apis::HMILevel::eType testType = eType::HMI_LIMITED;
 
   ON_CALL(*app_mock, device()).WillByDefault(Return(test_dev_id));
@@ -594,7 +594,8 @@ TEST_F(ResumeCtrlTest, DISABLED_SetAppHMIState_HMILimited_NotMedia_WithoutCheckP
   ON_CALL(*app_mock, is_media_application()).WillByDefault(Return(false));
   ON_CALL(*app_mock, app_id()).WillByDefault(Return(test_app_id));
 
-  EXPECT_CALL(*app_mngr, GetUserConsentForDevice("")).WillRepeatedly(Return(policy::DeviceConsent::kDeviceAllowed));
+  EXPECT_CALL(*app_mngr, GetUserConsentForDevice(""))
+      .WillRepeatedly(Return(policy::DeviceConsent::kDeviceAllowed));
   EXPECT_CALL(*app_mngr, SetState(test_app_id, testType, test_audio_state));
 
   bool res = res_ctrl.SetAppHMIState(app_mock, testType, false);
@@ -605,7 +606,6 @@ TEST_F(ResumeCtrlTest, SetAppHMIState_HMIFull_NotMedia_WithoutCheckPolicy) {
   mobile_apis::HMILevel::eType testType = eType::HMI_FULL;
   ::testing::InSequence seq;
   ON_CALL(*app_mock, device()).WillByDefault(Return(test_dev_id));
-  EXPECT_CALL(*app_mock, IsAudioApplication()).WillOnce(Return(false));
   EXPECT_CALL(*app_mngr, IsAppTypeExistsInFullOrLimited(_))
       .WillOnce(Return(false));
 
@@ -619,7 +619,6 @@ TEST_F(ResumeCtrlTest, SetAppHMIState_HMIFull_NotMedia_WithoutCheckPolicy) {
   EXPECT_CALL(*app_mngr, GetDefaultHmiLevel(_)).Times(0);
   ON_CALL(*app_mock, app_id()).WillByDefault(Return(test_app_id));
 
-  // Expect set state = HMI_FULL
   EXPECT_CALL(*app_mngr, SetState(test_app_id, testType, test_audio_state));
 
   EXPECT_CALL(*app_mngr, GetUserConsentForDevice("")).Times(0);
@@ -632,7 +631,6 @@ TEST_F(ResumeCtrlTest,
   mobile_apis::HMILevel::eType testType = eType::HMI_FULL;
   ::testing::InSequence seq;
   ON_CALL(*app_mock, device()).WillByDefault(Return(test_dev_id));
-  EXPECT_CALL(*app_mock, IsAudioApplication()).WillOnce(Return(false));
   EXPECT_CALL(*app_mngr, IsAppTypeExistsInFullOrLimited(_))
       .WillOnce(Return(false));
 
@@ -661,9 +659,6 @@ TEST_F(ResumeCtrlTest,
   test_audio_state = mobile_apis::AudioStreamingState::AUDIBLE;
   ON_CALL(*app_mock, device()).WillByDefault(Return(test_dev_id));
 
-  // Application is audio
-  EXPECT_CALL(*app_mock, IsAudioApplication()).WillOnce(Return(true));
-
   // Only our app in FULL
   EXPECT_CALL(*app_mngr, IsAppTypeExistsInFullOrLimited(_))
       .WillOnce(Return(false));
@@ -681,9 +676,6 @@ TEST_F(ResumeCtrlTest,
   EXPECT_CALL(*app_mngr,
               SetState(test_app_id, expected_testType, test_audio_state));
 
-  EXPECT_CALL(*application_manager::MockMessageHelper::message_helper_mock(),
-              SendOnResumeAudioSourceToHMI(_)).Times(2);
-
   EXPECT_CALL(*app_mngr, GetUserConsentForDevice("")).Times(0);
   bool res = res_ctrl.SetAppHMIState(app_mock, testType, false);
   EXPECT_TRUE(res);
@@ -696,7 +688,6 @@ TEST_F(ResumeCtrlTest, SetAppHMIState_HMIFull_Media_WithoutPolicy_FullExists) {
   test_audio_state = mobile_apis::AudioStreamingState::AUDIBLE;
   ::testing::InSequence seq;
   ON_CALL(*app_mock, device()).WillByDefault(Return(test_dev_id));
-  EXPECT_CALL(*app_mock, IsAudioApplication()).WillOnce(Return(false));
   EXPECT_CALL(*app_mngr, IsAppTypeExistsInFullOrLimited(_))
       .WillOnce(Return(true));
   EXPECT_CALL(*app_mngr, active_application()).WillOnce(Return(app_mock));
@@ -724,7 +715,6 @@ TEST_F(ResumeCtrlTest, SetAppHMIState_HMIFull_NotMedia_WithPolicy_DevAllowed) {
 
   EXPECT_CALL(*app_mngr, IsAppTypeExistsInFullOrLimited(_))
       .WillOnce(Return(true));
-  EXPECT_CALL(*app_mock, IsAudioApplication()).WillOnce(Return(false));
   EXPECT_CALL(*app_mngr, active_application()).WillOnce(Return(app_mock));
   EXPECT_CALL(*app_mngr, GetDefaultHmiLevel(_))
       .WillOnce(Return(default_testType));
@@ -750,7 +740,6 @@ TEST_F(ResumeCtrlTest, SetAppHMIState_HMIFull_Media_WithCheckPolicy) {
   // App is allowed
   EXPECT_CALL(*app_mngr, GetUserConsentForDevice("12345"))
       .WillOnce(Return(policy::kDeviceAllowed));
-  EXPECT_CALL(*app_mock, IsAudioApplication()).WillOnce(Return(true));
   EXPECT_CALL(*app_mngr, IsAppTypeExistsInFullOrLimited(_))
       .WillOnce(Return(false));
   EXPECT_CALL(*app_mngr, active_application()).WillOnce(Return(app_mock));
@@ -772,7 +761,6 @@ TEST_F(ResumeCtrlTest, SetAppHMIState_HMIFull_Media_WithCheckPolicy) {
 TEST_F(ResumeCtrlTest, SetAppHMIState_HMIFull_Media_WithPolicy_DevDisallowed) {
   mobile_apis::HMILevel::eType testType = eType::HMI_FULL;
 
-  // Audio state will be NOT_AUDIBLE if hmi state if NONE or Background
   ::testing::InSequence seq;
   ON_CALL(*app_mock, device()).WillByDefault(Return(test_dev_id));
   EXPECT_CALL(*app_mngr, GetUserConsentForDevice("12345"))
@@ -888,7 +876,7 @@ TEST_F(ResumeCtrlTest, CheckPersistenceFilesForResumption_WithCommands) {
       .WillOnce(DoAll(SetArgReferee<2>(saved_app), Return(true)));
 
   EXPECT_CALL(*application_manager::MockMessageHelper::message_helper_mock(),
-              VerifyImageFiles(_,_))
+              VerifyImageFiles(_, _))
       .WillRepeatedly(Return(mobile_apis::Result::SUCCESS));
 
   EXPECT_TRUE(res_ctrl.CheckPersistenceFilesForResumption(app_mock));
@@ -912,8 +900,7 @@ TEST_F(ResumeCtrlTest, CheckPersistenceFilesForResumption_WithChoiceSet) {
   EXPECT_TRUE(res_ctrl.CheckPersistenceFilesForResumption(app_mock));
 }
 
-
-//todo (VVeremjova) APPLINK-16718
+// TODO (VVeremjova) APPLINK-16718
 TEST_F(ResumeCtrlTest, DISABLED_OnSuspend) {
   EXPECT_CALL(*mock_storage, OnSuspend());
   res_ctrl.OnSuspend();

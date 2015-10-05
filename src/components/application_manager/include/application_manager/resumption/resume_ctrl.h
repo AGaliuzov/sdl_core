@@ -420,8 +420,6 @@ class ResumeCtrl: public app_mngr::event_engine::EventObserver {
 
   void LoadResumeData();
 
-  application_manager::ApplicationManagerImpl* app_mngr();
-
   /**
    *@brief Mapping applications to time_stamps
    *       wait for timer to resume HMI Level

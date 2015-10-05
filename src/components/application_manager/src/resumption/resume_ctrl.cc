@@ -164,7 +164,7 @@ bool ResumeCtrl::SetupDefaultHMILevel(ApplicationSharedPtr application) {
   DCHECK_OR_RETURN(application, false);
   LOG4CXX_AUTO_TRACE(logger_);
   mobile_apis::HMILevel::eType default_hmi =
-      app_mngr()-> GetDefaultHmiLevel(application);
+      ApplicationManagerImpl::instance()->GetDefaultHmiLevel(application);
   return SetAppHMIState(application, default_hmi, false);
 }
 
@@ -175,7 +175,7 @@ void ResumeCtrl::ApplicationResumptiOnTimer() {
 
   for (; it != waiting_for_timer_.end(); ++it) {
     ApplicationSharedPtr app =
-        app_mngr()->application(*it);
+        ApplicationManagerImpl::instance()->application(*it);
     if (!app) {
       LOG4CXX_ERROR(logger_, "Invalid app_id = " << *it);
       continue;
@@ -215,14 +215,14 @@ bool ResumeCtrl::SetAppHMIState(ApplicationSharedPtr application,
   const std::string device_id =
       MessageHelper::GetDeviceMacAddressForHandle(application->device());
   if (check_policy &&
-      app_mngr()->GetUserConsentForDevice(device_id)
+      ApplicationManagerImpl::instance()->GetUserConsentForDevice(device_id)
       != policy::DeviceConsent::kDeviceAllowed) {
     LOG4CXX_ERROR(logger_, "Resumption abort. Data consent wasn't allowed.");
     SetupDefaultHMILevel(application);
     return false;
   }
   application->set_is_resuming(true);
-  ApplicationManagerImpl::instance()->SetState(
+  ApplicationManagerImpl::instance()->SetHmiState(
       application->app_id(), hmi_level);
   LOG4CXX_INFO(logger_, "Application with policy id "
                << application->policy_app_id()
@@ -694,7 +694,7 @@ bool ResumeCtrl::ProcessHMIRequest(smart_objects::SmartObjectSPtr request,
         (*request)[strings::correlation_id].asInt();
     subscribe_on_event(function_id, hmi_correlation_id);
   }
-  if (!app_mngr()->ManageHMICommand(request)) {
+  if (!ApplicationManagerImpl::instance()->ManageHMICommand(request)) {
     LOG4CXX_ERROR(logger_,
                   "Unable to send HMI request during resumption.");
     return false;
@@ -773,10 +773,6 @@ void ResumeCtrl::LoadResumeData() {
         (*limited_app)[strings::device_id].asString(),
         mobile_apis::HMILevel::HMI_LIMITED);
   }
-}
-
-ApplicationManagerImpl* ResumeCtrl::app_mngr() {
-  return ::application_manager::ApplicationManagerImpl::instance();
 }
 
 }  // namespce resumption

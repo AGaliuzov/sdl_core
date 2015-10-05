@@ -214,5 +214,5 @@ if (BUILD_TESTS)
 
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/resumption)
   file(COPY smartDeviceLink_test.ini DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/resumption)
-  create_test("resumption/data_resumption_test" "${ResumptionData_SOURCES}" "${testLibraries}" "${AM_SOURCES_MOCK}")
+  create_test("resumption/data_resumption_test" "${ResumptionData_SOURCES}" "${testLibraries}")
 endif()

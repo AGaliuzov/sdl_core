@@ -156,18 +156,6 @@ class ApplicationManagerImpl
  public:
   ApplicationManagerImpl() {}
 
-  struct GrammarIdPredicate {
-    uint32_t grammar_id_;
-    GrammarIdPredicate(uint32_t grammar_id) : grammar_id_(grammar_id) {}
-    bool operator()(const ApplicationSharedPtr app) const { return true; }
-  };
-  struct SubscribedToIVIPredicate {
-    int32_t vehicle_info_;
-    SubscribedToIVIPredicate(int32_t vehicle_info)
-        : vehicle_info_(vehicle_info) {}
-    bool operator()(const ApplicationSharedPtr app) const { return true; }
-  };
-
   MOCK_METHOD0(Init, bool());
   MOCK_METHOD0(Stop, bool());
   MOCK_METHOD1(GetUserConsentForDevice,
@@ -332,6 +320,7 @@ class ApplicationManagerImpl
                void(uint32_t app_id, mobile_apis::AudioStreamingState::eType));
   template <bool SendActivateApp>
   MOCK_METHOD2(SetState, void(uint32_t app_id, HmiStatePtr new_state));
+  MOCK_METHOD2(SetHmiState, void(uint32_t app_id, mobile_api::HMILevel::eType hmi_level));
 
   MOCK_METHOD2(TerminateRequest,
                void(uint32_t connection_key, uint32_t corr_id));
