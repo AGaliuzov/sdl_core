@@ -1569,6 +1569,14 @@
             },
             "user_consent_prompt" : "Notifications"
          },
+         "Notifications2" : {
+            "rpcs" : {
+               "Alert" : {
+                  "hmi_levels" : [ "BACKGROUND" ]
+               }
+            },
+            "user_consent_prompt" : "Notifications"
+         },
          "PropriataryData-1" : {
             "rpcs" : {
                "DiagnosticMessage" : {

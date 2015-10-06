@@ -1800,6 +1800,69 @@ TEST_F(PolicyManagerImplTest2, AddInvalidRequestTypeToPT_GetNewAppWithSpecificPo
   }
 }
 
+TEST_F(PolicyManagerImplTest2, InitPT_LoadPT_ExpectIncrementedCountOfSamePrompts){
+
+
+    // initializating policy_table
+    CreateLocalPT("sdl_preloaded_pt.json");
+
+    ::policy::CacheManagerInterfaceSPtr cache = manager->GetCache();
+    utils::SharedPtr<policy_table::Table> table = cache->GenerateSnapshot();
+    policy_table::FunctionalGroupings& fc = table->policy_table.functional_groupings;
+
+    std::multimap<std::string, policy_table::Rpcs&>  initialPTMap;
+    std::multimap<std::string, policy_table::Rpcs&>  updatedPTMap;
+
+
+    // filling initial map
+    for(policy_table::FunctionalGroupings::iterator functionalGroupingstItt = fc.begin(); functionalGroupingstItt != fc.end(); ++functionalGroupingstItt){
+
+        // RPCS getting
+        policy_table::Rpcs & rpcsRef = functionalGroupingstItt->second;
+
+        // U_C_P getting
+        rpc::Optional<rpc::String<1,255>> & optionalRef = rpcsRef.user_consent_prompt;
+        rpc::String<1,255> & ucpString = *optionalRef;
+        const std::string& ucpStdString = static_cast<const std::string&>(ucpString);
+
+        // multimap inserting
+        initialPTMap.insert(std::pair<std::string, policy_table::Rpcs&>(ucpStdString,rpcsRef));
+    }
+
+    // updating policy_table
+
+
+    GetPTU("sdl_pt_update.json");
+
+    cache = manager->GetCache();
+    table = cache->GenerateSnapshot();
+    policy_table::FunctionalGroupings& fcUpdated = table->policy_table.functional_groupings;
+
+    // filling updated map
+    for(policy_table::FunctionalGroupings::iterator functionalGroupingstItt = fcUpdated.begin(); functionalGroupingstItt != fcUpdated.end(); ++functionalGroupingstItt){
+
+        // RPCS getting
+        policy_table::Rpcs & rpcsRef = functionalGroupingstItt->second;
+
+        // U_C_P getting
+        rpc::Optional<rpc::String<1,255>> & optionalRef = rpcsRef.user_consent_prompt;
+        rpc::String<1,255> & ucpString = *optionalRef;
+        const std::string& ucpStdString = static_cast<const std::string&>(ucpString);
+
+        // multimap inserting
+        updatedPTMap.insert(std::pair<std::string, policy_table::Rpcs&>(ucpStdString,rpcsRef));
+    }
+
+    // comparing two multimaps (EXPECT INCREMENT COUNT fg in under same u_c_p)
+    uint32_t countBeforeUpdate = initialPTMap.count("Notifications");
+    uint32_t countAfterUpdate = updatedPTMap.count("Notifications");
+
+    EXPECT_EQ(1u, countBeforeUpdate);
+    EXPECT_EQ(2u, countAfterUpdate);
+
+}
+
+
 }  // namespace policy
 }  // namespace components
 }  // namespace test
