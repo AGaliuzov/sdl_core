@@ -76,8 +76,11 @@ Lock::~Lock() {
 void Lock::Acquire() {
   const int32_t status = pthread_mutex_lock(&mutex_);
   if (status != 0) {
-    LOG4CXX_ERROR(logger_, "Failed to acquire mutex " << &mutex_ << ": "
+    LOG4CXX_FATAL(logger_, "Failed to acquire mutex " << &mutex_ << ": "
                   << strerror(status));
+#ifndef NDEBUG
+    DCHECK(status != 0);
+#endif // NDEBUG
   } else {
     AssertFreeAndMarkTaken();
   }
