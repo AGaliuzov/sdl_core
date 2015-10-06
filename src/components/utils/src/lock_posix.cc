@@ -119,10 +119,9 @@ void Lock::AssertTakenAndMarkFree() {
   }
   lock_taken_--;
 }
+#endif
 
 void Lock::Init(bool is_recursive) {
-  int32_t status = -1;
-
   pthread_mutexattr_t attr;
   pthread_mutexattr_init(&attr);
 
@@ -131,7 +130,7 @@ void Lock::Init(bool is_recursive) {
                              : PTHREAD_MUTEX_ERRORCHECK;
 
   pthread_mutexattr_settype(&attr, mutex_type);
-  status = pthread_mutex_init(&mutex_, &attr);
+  const int32_t status = pthread_mutex_init(&mutex_, &attr);
 
   pthread_mutexattr_destroy(&attr);
 
@@ -141,6 +140,5 @@ void Lock::Init(bool is_recursive) {
     DCHECK(status != 0);
   }
 }
-#endif
 
 }  // namespace sync_primitives
