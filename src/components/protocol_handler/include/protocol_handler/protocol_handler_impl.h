@@ -48,7 +48,6 @@
 
 #include "protocol_handler/protocol_handler.h"
 #include "protocol_handler/protocol_packet.h"
-#include "protocol_handler/session_observer.h"
 #include "protocol_handler/protocol_observer.h"
 #include "protocol_handler/incoming_data_handler.h"
 #include "protocol_handler/multiframe_builder.h"
@@ -299,6 +298,8 @@ class ProtocolHandlerImpl
   virtual const ProtocolHandlerSettings& get_settings() const OVERRIDE {
     return settings_;
   }
+
+  SessionObserver &get_session_observer() OVERRIDE;
 
  private:
   void SendEndServicePrivate(int32_t connection_id,
@@ -562,6 +563,7 @@ class ProtocolHandlerImpl
 #ifdef TELEMETRY_MONITOR
   PHTelemetryObserver* metric_observer_;
 #endif  // TELEMETRY_MONITOR
+
 };
 }  // namespace protocol_handler
 #endif  // SRC_COMPONENTS_PROTOCOL_HANDLER_INCLUDE_PROTOCOL_HANDLER_PROTOCOL_HANDLER_IMPL_H_

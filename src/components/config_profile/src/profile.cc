@@ -319,7 +319,7 @@ Profile::Profile()
 #endif  // WEB_HMI
     app_config_folder_()
     , app_storage_folder_()
-    , app_resourse_folder_()
+    , app_resource_folder_()
     , config_file_name_(kDefaultConfigFileName)
     , server_address_(kDefaultServerAddress)
     , server_port_(kDefaultServerPort)
@@ -438,8 +438,8 @@ const std::string& Profile::app_storage_folder() const {
   return app_storage_folder_;
 }
 
-const std::string& Profile::app_resourse_folder() const {
-  return app_resourse_folder_;
+const std::string& Profile::app_resource_folder() const {
+  return app_resource_folder_;
 }
 
 const std::string& Profile::hmi_capabilities_file_name() const {
@@ -486,11 +486,11 @@ const uint16_t& Profile::server_port() const {
   return server_port_;
 }
 
-const uint16_t& Profile::video_streaming_port() const {
+const uint16_t Profile::video_streaming_port() const {
   return video_streaming_port_;
 }
 
-const uint16_t& Profile::audio_streaming_port() const {
+const uint16_t Profile::audio_streaming_port() const {
   return audio_streaming_port_;
 }
 
@@ -676,11 +676,11 @@ uint16_t Profile::transport_manager_tcp_adapter_port() const {
 const std::string& Profile::tts_delimiter() const {
   return tts_delimiter_;
 }
-
+#ifndef CUSTOMER_PASA
 const std::string& Profile::recording_file_source() const {
   return recording_file_source_;
 }
-
+#endif  // CUSTOMER_PASA
 const std::string& Profile::recording_file_name() const {
   return recording_file_name_;
 }
@@ -988,12 +988,12 @@ void Profile::UpdateValues() {
   LOG_UPDATED_VALUE(app_storage_folder_, kAppStorageFolderKey, kMainSection);
 
   // Application resourse folder
-  ReadStringValue(&app_resourse_folder_,
+  ReadStringValue(&app_resource_folder_,
                   file_system::CurrentWorkingDirectory().c_str(),
                   kMainSection,
                   kAppResourseFolderKey);
 
-  LOG_UPDATED_VALUE(app_resourse_folder_, kAppResourseFolderKey, kMainSection);
+  LOG_UPDATED_VALUE(app_resource_folder_, kAppResourseFolderKey, kMainSection);
 
   // Application info file name
   ReadStringValue(&app_info_storage_,

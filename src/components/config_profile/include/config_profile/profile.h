@@ -42,6 +42,7 @@
 #include "protocol_handler/protocol_handler_settings.h"
 #include "connection_handler/connection_handler_settings.h"
 #include "hmi_message_handler/hmi_message_handler_settings.h"
+#include "media_manager/media_manager_settings.h"
 #ifdef CUSTOMER_PASA
 #define SDL_INIFILE_PATH "/fs/mp/etc/AppLink/smartDeviceLink.ini"
 #endif
@@ -54,6 +55,7 @@ namespace profile {
 class Profile : public protocol_handler::ProtocolHandlerSettings,
                 public connection_handler::ConnectionHandlerSettings,
                 public hmi_message_handler::HMIMessageHandlerSettings,
+                public media_manager::MediaManagerSettings,
                 public utils::Singleton<Profile> {
  public:
   // Methods section
@@ -88,16 +90,6 @@ class Profile : public protocol_handler::ProtocolHandlerSettings,
   const std::string& app_config_folder() const;
 
   /**
-    * @brief Returns application storage path
-    */
-  const std::string& app_storage_folder() const;
-
-  /**
-   * @brief Return application resourse folder
-   */
-  const std::string& app_resourse_folder() const;
-
-  /**
    * @brief Returns the path to the config file
    */
   const std::string& config_file_name() const;
@@ -108,24 +100,9 @@ class Profile : public protocol_handler::ProtocolHandlerSettings,
   void config_file_name(const std::string& fileName);
 
   /**
-   * @brief Returns server address
-   */
-  const std::string& server_address() const;
-
-  /**
    * @brief Returns server port
    */
   const uint16_t& server_port() const;
-
-  /**
-   * @brief Returns port for video streaming
-   */
-  const uint16_t& video_streaming_port() const;
-
-  /**
-    * @brief Returns port for audio streaming
-    */
-  const uint16_t& audio_streaming_port() const;
 
   /**
    * @brief Returns streaming timeout
@@ -199,41 +176,83 @@ class Profile : public protocol_handler::ProtocolHandlerSettings,
     */
   const uint32_t& app_dir_quota() const;
 
+// MediaManagerSettings interface
   /**
     * @brief Returns the video server type
     */
-  const std::string& video_server_type() const;
+  const std::string& video_server_type() const OVERRIDE;
 
   /**
     * @brief Returns the audio server type
     */
-  const std::string& audio_server_type() const;
+  const std::string& audio_server_type() const OVERRIDE;
+
+  /**
+   * @brief Returns server address
+   */
+  const std::string& server_address() const OVERRIDE;
+
+  /**
+   * @brief Returns port for video streaming
+   */
+  const uint16_t video_streaming_port() const OVERRIDE;
+
+  /**
+    * @brief Returns port for audio streaming
+    */
+  const uint16_t audio_streaming_port() const OVERRIDE;
 
   /**
     * @brief Returns the video pipe path
     */
-  const std::string& named_video_pipe_path() const;
+  const std::string& named_video_pipe_path() const OVERRIDE;
 
   /**
    * @brief Returns the audio pipe path
    */
-  const std::string& named_audio_pipe_path() const;
+  const std::string& named_audio_pipe_path() const OVERRIDE;
+
+  /**
+    * @brief Returns path to testing file to which redirects video stream
+    */
+  const std::string& video_stream_file() const OVERRIDE;
+
+  /**
+    * @brief Returns path to testing file to which redirects audio stream
+    */
+  const std::string& audio_stream_file() const OVERRIDE;
+
+  /**
+    * @brief Returns application storage path
+    */
+  const std::string& app_storage_folder() const OVERRIDE;
+
+  /**
+   * @brief Return application resourse folder
+   */
+  const std::string& app_resource_folder() const OVERRIDE;
+
+#ifdef CUSTOMER_PASA
+  /**
+   * @brief Returns name for mqueue from which SDL
+   * will be able to obtain data.
+   */
+  const std::string& audio_mq_path() const;
+#else  //  CUSTOMER_PASA
+
+  /**
+   * @brief Returns recording file source name
+   */
+  const std::string& recording_file_source() const OVERRIDE;
+#endif  //  CUSTOMER_PASA
+
+// MediaManagerSettings interface end
 
   /**
    * @brief Returns time scale for max amount of requests for application
    * in hmi level none.
    */
   const uint32_t& app_hmi_level_none_time_scale() const;
-
-  /**
-    * @brief Returns path to testing file to which redirects video stream
-    */
-  const std::string& video_stream_file() const;
-
-  /**
-    * @brief Returns path to testing file to which redirects audio stream
-    */
-  const std::string& audio_stream_file() const;
 
   /**
    * @brief Returns timeout for SDL to wait for the next package of raw data
@@ -255,11 +274,6 @@ class Profile : public protocol_handler::ProtocolHandlerSettings,
    */
   const uint32_t& hmi_heart_beat_timeout();
 
-  /**
-   * @brief Returns name for mqueue from which SDL
-   * will be able to obtain data.
-   */
-  const std::string& audio_mq_path() const;
 
   /**
     * @brief Returns path to log4cxx configuration file
@@ -542,11 +556,6 @@ class Profile : public protocol_handler::ProtocolHandlerSettings,
   const std::string& tts_delimiter() const;
 
   /**
-   * @brief Returns recording file source name
-   */
-  const std::string& recording_file_source() const;
-
-  /**
    * @brief Returns recording file name
    */
   const std::string& recording_file_name() const;
@@ -754,7 +763,7 @@ class Profile : public protocol_handler::ProtocolHandlerSettings,
 #endif  // WEB_HMI
   std::string app_config_folder_;
   std::string app_storage_folder_;
-  std::string app_resourse_folder_;
+  std::string app_resource_folder_;
   std::string config_file_name_;
   std::string server_address_;
   uint16_t server_port_;

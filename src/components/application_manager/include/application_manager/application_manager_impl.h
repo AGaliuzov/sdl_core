@@ -54,7 +54,6 @@
 #include "hmi_message_handler/hmi_message_observer.h"
 #include "hmi_message_handler/hmi_message_sender.h"
 #include "application_manager/policies/policy_handler_observer.h"
-#include "media_manager/media_manager_impl.h"
 #include "connection_handler/connection_handler.h"
 #include "connection_handler/connection_handler_observer.h"
 #include "connection_handler/device.h"
@@ -216,7 +215,8 @@ class ApplicationManagerImpl
  public:
   ~ApplicationManagerImpl();
 
-  bool Init(resumption::LastState& last_state) OVERRIDE;
+  bool Init(resumption::LastState& last_state,
+            media_manager::MediaManager* media_manager) OVERRIDE;
   bool Stop() OVERRIDE;
 
   DataAccessor<ApplicationSet> applications() const OVERRIDE;
@@ -779,7 +779,7 @@ class ApplicationManagerImpl
   void EndNaviServices(uint32_t app_id);
 
   /**
-   * @brief ForbidStreaming forbid the stream over the certain application.
+   * @brief ForbidStreaming forbids the stream over the certain application.
    * @param app_id the application's id which should stop streaming.
    */
   void ForbidStreaming(uint32_t app_id);
@@ -1088,7 +1088,7 @@ class ApplicationManagerImpl
     return is_stopping_;
   }
 
- private:
+private:
   ApplicationManagerImpl();
 
   /**

@@ -35,19 +35,27 @@
 
 #include <string>
 #include <map>
-#include "utils/singleton.h"
 #include "protocol_handler/protocol_observer.h"
 #include "protocol_handler/protocol_handler.h"
 #include "media_manager/media_manager.h"
 #include "media_manager/media_adapter_impl.h"
 #include "media_manager/media_adapter_listener.h"
 
+namespace application_manager {
+  class ApplicationManager;
+}
+
+namespace connection_handler {
+  class ConnectionHandlerImpl;
+}
+
 namespace media_manager {
 
 class MediaManagerImpl : public MediaManager,
-                         public protocol_handler::ProtocolObserver,
-                         public utils::Singleton<MediaManagerImpl> {
+                         public protocol_handler::ProtocolObserver {
  public:
+   MediaManagerImpl(application_manager::ApplicationManager& application_manager,
+            const MediaManagerSettings& settings);
   virtual ~MediaManagerImpl();
 
   virtual void PlayA2DPSource(int32_t application_key);
@@ -62,7 +70,11 @@ class MediaManagerImpl : public MediaManager,
   virtual void SetProtocolHandler(protocol_handler::ProtocolHandler* protocol_handler);
   virtual void OnMessageReceived(const ::protocol_handler::RawMessagePtr message);
   virtual void OnMobileMessageSent(const ::protocol_handler::RawMessagePtr message);
-  virtual void FramesProcessed(int32_t application_key, int32_t frame_number);
+  void FramesProcessed(int32_t application_key, int32_t frame_number) OVERRIDE;
+
+  virtual const MediaManagerSettings& settings() const {
+    return settings_;
+  }
 
 #ifdef BUILD_TESTS
   void set_mock_a2dp_player(MediaAdapter* media_adapter);
@@ -75,8 +87,9 @@ class MediaManagerImpl : public MediaManager,
 #endif // BUILD_TESTS
 
  protected:
-  MediaManagerImpl();
   virtual void Init();
+
+  const MediaManagerSettings& settings_;
 
   protocol_handler::ProtocolHandler* protocol_handler_;
   MediaAdapter* a2dp_player_;
@@ -87,9 +100,10 @@ class MediaManagerImpl : public MediaManager,
   std::map<protocol_handler::ServiceType, MediaAdapterImplPtr> streamer_;
   std::map<protocol_handler::ServiceType, MediaListenerPtr> streamer_listener_;
 
+  application_manager::ApplicationManager& application_manager_;
+
  private:
   DISALLOW_COPY_AND_ASSIGN(MediaManagerImpl);
-  FRIEND_BASE_SINGLETON_CLASS(MediaManagerImpl);
 };
 
 }  // namespace media_manager

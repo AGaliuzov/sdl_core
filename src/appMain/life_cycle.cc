@@ -139,8 +139,8 @@ bool LifeCycle::StartComponents() {
   hmi_handler_ = new hmi_message_handler::HMIMessageHandlerImpl(
       *(profile::Profile::instance()));
 
-  media_manager_ = media_manager::MediaManagerImpl::instance();
-  if (!app_manager_->Init(*last_state_)) {
+  media_manager_ = new media_manager::MediaManagerImpl(*app_manager_, *profile);
+  if (!app_manager_->Init(*last_state_, media_manager_)) {
     LOG4CXX_ERROR(logger_, "Application manager init failed.");
     return false;
   }
@@ -426,7 +426,7 @@ void LifeCycle::StopComponents() {
   LOG4CXX_INFO(logger_, "Destroying Media Manager");
   DCHECK_OR_RETURN_VOID(media_manager_);
   media_manager_->SetProtocolHandler(NULL);
-  media_manager::MediaManagerImpl::destroy();
+  delete media_manager_;
 
   LOG4CXX_INFO(logger_, "Destroying Transport Manager.");
   DCHECK_OR_RETURN_VOID(transport_manager_);

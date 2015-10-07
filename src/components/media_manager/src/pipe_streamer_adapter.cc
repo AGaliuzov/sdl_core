@@ -36,7 +36,6 @@
 #include <unistd.h>
 #include "utils/logger.h"
 #include "utils/file_system.h"
-#include "config_profile/profile.h"
 #include "media_manager/pipe_streamer_adapter.h"
 
 namespace media_manager {
@@ -44,8 +43,8 @@ namespace media_manager {
 CREATE_LOGGERPTR_GLOBAL(logger_, "MediaManager")
 
 PipeStreamerAdapter::PipeStreamerAdapter(
-    const std::string& named_pipe_path)
-  : StreamerAdapter(new PipeStreamer(this, named_pipe_path)) {
+    const std::string& named_pipe_path, const std::string& app_storage_folder)
+  : StreamerAdapter(new PipeStreamer(this, named_pipe_path, app_storage_folder)) {
 }
 
 PipeStreamerAdapter::~PipeStreamerAdapter() {
@@ -53,27 +52,26 @@ PipeStreamerAdapter::~PipeStreamerAdapter() {
 
 PipeStreamerAdapter::PipeStreamer::PipeStreamer(
     PipeStreamerAdapter* const adapter,
-    const std::string& named_pipe_path)
+    const std::string& named_pipe_path,
+    const std::string& app_storage_folder)
   : Streamer(adapter),
     named_pipe_path_(named_pipe_path),
+    app_storage_folder_(app_storage_folder),
     pipe_fd_(0) {
-  if (!file_system::CreateDirectoryRecursively(
-      profile::Profile::instance()->app_storage_folder())) {
-    LOG4CXX_ERROR(logger_, "Cannot create app storage folder "
-                  << profile::Profile::instance()->app_storage_folder() );
-    return;
-  }
-
-  if ((mkfifo(named_pipe_path_.c_str(),
-              S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) < 0)
-      && (errno != EEXIST)) {
-    LOG4CXX_ERROR(logger_, "Cannot create pipe " << named_pipe_path_);
-  } else {
-    LOG4CXX_INFO(logger_, "Pipe " << named_pipe_path_
-                 << " was successfully created");
-  }
+    if (!file_system::CreateDirectoryRecursively(app_storage_folder_)) {
+      LOG4CXX_ERROR(logger_, "Cannot create app storage folder "
+                    << app_storage_folder_ );
+      return;
+    }
+    if ((mkfifo(named_pipe_path_.c_str(),
+                S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) < 0)
+        && (errno != EEXIST)) {
+      LOG4CXX_ERROR(logger_, "Cannot create pipe " << named_pipe_path_);
+    } else {
+      LOG4CXX_INFO(logger_, "Pipe " << named_pipe_path_
+                   << " was successfully created");
+    }
 }
-
 PipeStreamerAdapter::PipeStreamer::~PipeStreamer() {
   if (0 == unlink(named_pipe_path_.c_str()) ) {
     LOG4CXX_INFO(logger_, "Pipe " << named_pipe_path_ << " was removed");
@@ -81,6 +79,7 @@ PipeStreamerAdapter::PipeStreamer::~PipeStreamer() {
     LOG4CXX_ERROR(logger_, "Error removing pipe " << named_pipe_path_);
   }
 }
+
 
 bool PipeStreamerAdapter::PipeStreamer::Connect() {
   LOG4CXX_AUTO_TRACE(logger_);

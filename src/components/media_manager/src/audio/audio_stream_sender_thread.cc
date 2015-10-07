@@ -46,7 +46,7 @@
 #include "interfaces/MOBILE_API.h"
 #include "utils/file_system.h"
 #include "utils/logger.h"
-
+#include "media_manager/media_manager_settings.h"
 #include "media_manager/audio/audio_stream_sender_thread.h"
 #include "application_manager/smart_object_keys.h"
 #include "application_manager/message.h"
@@ -59,17 +59,21 @@ const uint32_t kMqueueMessageSize = 4095;
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "MediaManager")
 
-AudioStreamSenderThread::AudioStreamSenderThread(
-  const std::string fileName, uint32_t session_key)
-  : session_key_(session_key),
-    fileName_(fileName),
-    shouldBeStoped_(false),
-    shouldBeStoped_lock_(),
+AudioStreamSenderThread::AudioStreamSenderThread(const std::string fileName,
+    uint32_t session_key,
+    application_manager::ApplicationManager &app_mngr)
+    : session_key_(session_key)
+    , fileName_(fileName)
+    , shouldBeStoped_(false)
+    , shouldBeStoped_lock_()
+    , shouldBeStoped_cv_()
+    ,
 #ifdef CUSTOMER_PASA
-    mq_apt_handle_(-1),
-    total_bytes_from_mq_(0),
-#endif //CUSTOMER PASA
-    shouldBeStoped_cv_() {
+    mq_apt_handle_(-1)
+    , total_bytes_from_mq_(0)
+    ,
+#endif  // CUSTOMER PASA
+  application_manager_(app_mngr) {
   LOG4CXX_AUTO_TRACE(logger_);
 }
 
@@ -167,8 +171,7 @@ void AudioStreamSenderThread::sendAudioChunkToMobile() {
     offset_ = offset_ + to - from;
     std::vector<uint8_t> data(from, to);
 
-    application_manager::ApplicationManagerImpl::instance()->
-    SendAudioPassThroughNotification(session_key_, data);
+    application_manager_.SendAudioPassThroughNotification(session_key_, data);
     binaryData.clear();
   }
 #if !defined(EXTENDED_MEDIA_MODE)
@@ -197,8 +200,7 @@ void AudioStreamSenderThread::mqSendAudioChunkToMobile(
   std::vector<uint8_t> data(buffer, buffer + dataSize);
   total_bytes_from_mq_ += data.size();
 
-  application_manager::ApplicationManagerImpl::instance()->
-  SendAudioPassThroughNotification(session_key_, data);
+  application_manager_.SendAudioPassThroughNotification(session_key_, data);
 }
 #endif
 bool AudioStreamSenderThread::getShouldBeStopped() {

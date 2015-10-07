@@ -59,6 +59,7 @@
 #include "smart_objects/enum_schema_item.h"
 #include "interfaces/HMI_API_schema.h"
 #include "application_manager/application_impl.h"
+#include "media_manager/media_manager.h"
 #include "policy/usage_statistics/counter.h"
 #include "utils/custom_string.h"
 #ifdef CUSTOMER_PASA
@@ -168,7 +169,6 @@ ApplicationManagerImpl::~ApplicationManagerImpl() {
     mobile_so_factory_ = NULL;
   }
   protocol_handler_ = NULL;
-  media_manager_ = NULL;
   LOG4CXX_DEBUG(logger_, "Destroying Policy Handler");
   RemovePolicyObserver(this);
   policy::PolicyHandler::destroy();
@@ -183,27 +183,6 @@ ApplicationManagerImpl::~ApplicationManagerImpl() {
 DataAccessor<ApplicationSet> ApplicationManagerImpl::applications() const {
   ApplicationListAccessor accessor;
   return accessor;
-}
-
-bool ApplicationManagerImpl::Stop() {
-  LOG4CXX_AUTO_TRACE(logger_);
-  stopping_application_mng_lock_.Acquire();
-  is_stopping_ = true;
-  stopping_application_mng_lock_.Release();
-  application_list_update_timer_.Stop();
-  try {
-    UnregisterAllApplications();
-  } catch (...) {
-    LOG4CXX_ERROR(logger_,
-                  "An error occurred during unregistering applications.");
-  }
-  request_ctrl_.DestroyThreadpool();
-
-  // for PASA customer policy backup should happen :AllApp(SUSPEND)
-  LOG4CXX_DEBUG(logger_, "Unloading policy library.");
-  policy::PolicyHandler::instance()->UnloadPolicyLibrary();
-
-  return true;
 }
 
 ApplicationSharedPtr ApplicationManagerImpl::application(
@@ -735,12 +714,11 @@ void ApplicationManagerImpl::StartAudioPassThruThread(int32_t session_key,
                                                       int32_t audio_type) {
   LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_INFO(logger_, "START MICROPHONE RECORDER");
-  if (NULL != media_manager_) {
-    media_manager_->StartMicrophoneRecording(
-        session_key,
-        profile::Profile::instance()->recording_file_name(),
-        max_duration);
-  }
+  DCHECK_OR_RETURN_VOID(media_manager_);
+  media_manager_->StartMicrophoneRecording(
+      session_key,
+      profile::Profile::instance()->recording_file_name(),
+      max_duration);
 }
 
 void ApplicationManagerImpl::SendAudioPassThroughNotification(
@@ -763,9 +741,8 @@ void ApplicationManagerImpl::SendAudioPassThroughNotification(
 void ApplicationManagerImpl::StopAudioPassThru(int32_t application_key) {
   LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(audio_pass_thru_lock_);
-  if (NULL != media_manager_) {
-    media_manager_->StopMicrophoneRecording(application_key);
-  }
+  DCHECK_OR_RETURN_VOID(media_manager_);
+  media_manager_->StopMicrophoneRecording(application_key);
 }
 
 std::string ApplicationManagerImpl::GetDeviceName(
@@ -1629,7 +1606,8 @@ bool ApplicationManagerImpl::ManageHMICommand(
   return false;
 }
 
-bool ApplicationManagerImpl::Init(resumption::LastState& last_state) {
+bool ApplicationManagerImpl::Init(resumption::LastState& last_state,
+                                  media_manager::MediaManager* media_manager) {
   LOG4CXX_TRACE(logger_, "Init application manager");
   const std::string app_storage_folder =
       profile::Profile::instance()->app_storage_folder();
@@ -1688,7 +1666,28 @@ bool ApplicationManagerImpl::Init(resumption::LastState& last_state) {
     LOG4CXX_WARN(logger_,
                  "System is configured to work without policy functionality.");
   }
-  media_manager_ = media_manager::MediaManagerImpl::instance();
+  media_manager_ = media_manager;
+  return true;
+}
+
+bool ApplicationManagerImpl::Stop() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  stopping_application_mng_lock_.Acquire();
+  is_stopping_ = true;
+  stopping_application_mng_lock_.Release();
+  application_list_update_timer_.Stop();
+  try {
+    UnregisterAllApplications();
+  } catch (...) {
+    LOG4CXX_ERROR(logger_,
+                  "An error occurred during unregistering applications.");
+  }
+  request_ctrl_.DestroyThreadpool();
+
+  // for PASA customer policy backup should happen :AllApp(SUSPEND)
+  LOG4CXX_DEBUG(logger_, "Unloading policy library.");
+  policy::PolicyHandler::instance()->UnloadPolicyLibrary();
+
   return true;
 }
 
@@ -3184,8 +3183,8 @@ void ApplicationManagerImpl::ClearTTSGlobalPropertiesList() {
 }
 
 policy::DeviceConsent ApplicationManagerImpl::GetUserConsentForDevice(
-    const std::string& device_id) const {
-  return policy::PolicyHandler::instance()->GetUserConsentForDevice(device_id);
+        const std::string& device_id) const {
+    return policy::PolicyHandler::instance()->GetUserConsentForDevice(device_id);
 }
 
 ApplicationManagerImpl::ApplicationListAccessor::~ApplicationListAccessor() {}
