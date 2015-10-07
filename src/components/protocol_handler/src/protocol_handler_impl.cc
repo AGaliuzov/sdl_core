@@ -80,9 +80,9 @@ ProtocolHandlerImpl::ProtocolHandlerImpl(
         "PH FromMobile", this, threads::ThreadOptions(kStackSize))
     , raw_ford_messages_to_mobile_(
           "PH ToMobile", this, threads::ThreadOptions(kStackSize))
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
     , metric_observer_(NULL)
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
 
 {
   LOG4CXX_AUTO_TRACE(logger_);
@@ -387,9 +387,9 @@ void ProtocolHandlerImpl::SendHeartBeat(int32_t connection_id,
 
 void ProtocolHandlerImpl::SendMessageToMobileApp(const RawMessagePtr message,
                                                  bool final_message) {
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
   const TimevalStruct start_time = date_time::DateTime::getCurrentTime();
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
   LOG4CXX_AUTO_TRACE(logger_);
   if (!message) {
     LOG4CXX_ERROR(logger_,
@@ -400,12 +400,12 @@ void ProtocolHandlerImpl::SendMessageToMobileApp(const RawMessagePtr message,
   uint8_t sessionID = 0;
   session_observer_.PairFromKey(
       message->connection_key(), &connection_handle, &sessionID);
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
   uint32_t message_id = message_counters_[sessionID];
   if (metric_observer_) {
     metric_observer_->StartMessageProcess(message_id, start_time);
   }
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
   const size_t max_frame_size = get_settings().maximum_payload_size();
   size_t frame_size = MAXIMUM_FRAME_DATA_V2_SIZE;
   switch (message->protocol_version()) {
@@ -467,10 +467,10 @@ void ProtocolHandlerImpl::SendMessageToMobileApp(const RawMessagePtr message,
                     "ProtocolHandler failed to send multiframe messages.");
     }
   }
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
   if (metric_observer_) {
-    PHMetricObserver::MessageMetric* metric =
-        new PHMetricObserver::MessageMetric();
+    PHTelemetryObserver::MessageMetric* metric =
+        new PHTelemetryObserver::MessageMetric();
     metric->message_id = message_id;
     metric->connection_key = message->connection_key();
     metric->raw_msg = message;
@@ -524,9 +524,9 @@ void ProtocolHandlerImpl::OnTMMessageReceived(const RawMessagePtr tm_message) {
   for (std::list<ProtocolFramePtr>::const_iterator it = protocol_frames.begin();
        it != protocol_frames.end();
        ++it) {
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
     const TimevalStruct start_time = date_time::DateTime::getCurrentTime();
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
     ProtocolFramePtr frame = *it;
 #ifdef ENABLE_SECURITY
     const RESULT_CODE result = DecryptFrame(frame);
@@ -536,11 +536,11 @@ void ProtocolHandlerImpl::OnTMMessageReceived(const RawMessagePtr tm_message) {
     }
 #endif  // ENABLE_SECURITY
     impl::RawFordMessageFromMobile msg(frame);
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
     if (metric_observer_) {
       metric_observer_->StartMessageProcess(msg->message_id(), start_time);
     }
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
 
     raw_ford_messages_from_mobile_.PostMessage(msg);
   }
@@ -839,10 +839,10 @@ ProtocolHandlerImpl::HandleSingleFrameMessage(const ProtocolFramePtr packet) {
   if (!rawMessage) {
     return RESULT_FAIL;
   }
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
   if (metric_observer_) {
-    PHMetricObserver::MessageMetric* metric =
-        new PHMetricObserver::MessageMetric();
+    PHTelemetryObserver::MessageMetric* metric =
+        new PHTelemetryObserver::MessageMetric();
     metric->message_id = packet->message_id();
     metric->connection_key = connection_key;
     metric->raw_msg = rawMessage;
@@ -1214,14 +1214,14 @@ void ProtocolHandlerImpl::PopValideAndExpirateMultiframes() {
                                                   frame->payload_size()));
     DCHECK(rawMessage);
 
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
     if (metric_observer_) {
-      PHMetricObserver::MessageMetric* metric =
-          new PHMetricObserver::MessageMetric();
+      PHTelemetryObserver::MessageMetric* metric =
+          new PHTelemetryObserver::MessageMetric();
       metric->raw_msg = rawMessage;
       metric_observer_->EndMessageProcess(metric);
     }
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
     NotifySubscribers(rawMessage);
   }
 }
@@ -1486,11 +1486,11 @@ void ProtocolHandlerImpl::SendFramesNumber(uint32_t connection_key,
   }
 }
 
-#ifdef TIME_TESTER
-void ProtocolHandlerImpl::SetTimeMetricObserver(PHMetricObserver* observer) {
+#ifdef TELEMETRY_MONITOR
+void ProtocolHandlerImpl::SetTelemetryObserver(PHTelemetryObserver* observer) {
   metric_observer_ = observer;
 }
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
 
 std::string ConvertPacketDataToString(const uint8_t* data,
                                       const size_t data_size) {

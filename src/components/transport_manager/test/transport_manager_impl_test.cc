@@ -39,7 +39,7 @@
 
 #include "transport_manager/mock_transport_manager_listener.h"
 #include "transport_manager/transport_adapter/mock_transport_adapter_listener.h"
-#include "transport_manager/mock_time_metric_observer.h"
+#include "transport_manager/mock_telemetry_observer.h"
 #include "transport_manager/transport_adapter/mock_transport_adapter.h"
 #include "transport_manager/mock_transport_manager_impl.h"
 #include "utils/make_shared.h"
@@ -70,9 +70,9 @@ class TransportManagerImplTest : public ::testing::Test {
     mock_adapter_ = new MockTransportAdapter();
     tm_listener_ = MakeShared<MockTransportManagerListener>();
 
-#ifdef TIME_TESTER
-    tm_.SetTimeMetricObserver(&mock_metric_observer_);
-#endif  // TIME_TESTER
+#ifdef TELEMETRY_MONITOR
+    tm_.SetTelemetryObserver(&mock_metric_observer_);
+#endif  // TELEMETRY_MONITOR
     EXPECT_EQ(E_SUCCESS, tm_.AddEventListener(tm_listener_.get()));
     EXPECT_CALL(*mock_adapter_, AddListener(_));
     EXPECT_CALL(*mock_adapter_, IsInitialised()).WillOnce(Return(true));
@@ -173,9 +173,9 @@ class TransportManagerImplTest : public ::testing::Test {
                                      application_id_,
                                      test_message_,
                                      error_);
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
     EXPECT_CALL(mock_metric_observer_, StopRawMsg(_));
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
     EXPECT_CALL(*tm_listener_, OnTMMessageSend(test_message_));
 
     tm_.TestHandle(test_event);
@@ -190,9 +190,9 @@ class TransportManagerImplTest : public ::testing::Test {
                                      application_id_,
                                      test_message_,
                                      error_);
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
     EXPECT_CALL(mock_metric_observer_, StopRawMsg(_));
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
     EXPECT_CALL(*tm_listener_, OnTMMessageReceived(test_message_));
 
     tm_.TestHandle(test_event);
@@ -208,9 +208,9 @@ class TransportManagerImplTest : public ::testing::Test {
                                      application_id_,
                                      test_message_,
                                      error_);
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
     EXPECT_CALL(mock_metric_observer_, StopRawMsg(_));
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
     tm_.TestHandle(test_event);
   }
 
@@ -301,9 +301,9 @@ class TransportManagerImplTest : public ::testing::Test {
   }
 
   MockTransportManagerImpl tm_;
-#ifdef TIME_TESTER
-  TMMetricObserverMock mock_metric_observer_;
-#endif  // TIME_TESTER
+#ifdef TELEMETRY_MONITOR
+  TMTelemetryObserverMock mock_metric_observer_;
+#endif  // TELEMETRY_MONITOR
   MockTransportAdapter* mock_adapter_;
 
   utils::SharedPtr<MockTransportManagerListener> tm_listener_;
@@ -486,9 +486,9 @@ TEST_F(TransportManagerImplTest, SendMessageToDevice) {
   EXPECT_CALL(*mock_adapter_,
               SendData(mac_address_, application_id_, test_message_))
       .WillOnce(Return(TransportAdapter::OK));
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
   EXPECT_CALL(mock_metric_observer_, StartRawMsg(_));
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
   EXPECT_EQ(E_SUCCESS, tm_.SendMessageToDevice(test_message_));
   testing::Mock::AsyncVerifyAndClearExpectations(10000);
 }
@@ -496,18 +496,18 @@ TEST_F(TransportManagerImplTest, SendMessageToDevice) {
 TEST_F(TransportManagerImplTest, SendMessageToDevice_SendingFailed) {
   // Arrange
   HandleConnection();
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
   EXPECT_CALL(mock_metric_observer_, StartRawMsg(_));
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
   EXPECT_CALL(*mock_adapter_,
               SendData(mac_address_, application_id_, test_message_))
       .WillOnce(Return(TransportAdapter::FAIL));
 
   EXPECT_CALL(*tm_listener_, OnTMMessageSendFailed(_, test_message_));
   EXPECT_EQ(E_SUCCESS, tm_.SendMessageToDevice(test_message_));
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
   EXPECT_CALL(mock_metric_observer_, StopRawMsg(_)).Times(0);
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
   testing::Mock::AsyncVerifyAndClearExpectations(10000);
 }
 
@@ -518,9 +518,9 @@ TEST_F(TransportManagerImplTest, SendMessageToDevice_StartTimeObserver) {
   EXPECT_CALL(*mock_adapter_,
               SendData(mac_address_, application_id_, test_message_))
       .WillOnce(Return(TransportAdapter::OK));
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
   EXPECT_CALL(mock_metric_observer_, StartRawMsg(_));
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
   EXPECT_EQ(E_SUCCESS, tm_.SendMessageToDevice(test_message_));
   testing::Mock::AsyncVerifyAndClearExpectations(10000);
 }
@@ -532,9 +532,9 @@ TEST_F(TransportManagerImplTest, SendMessageToDevice_SendDone) {
   EXPECT_CALL(*mock_adapter_,
               SendData(mac_address_, application_id_, test_message_))
       .WillOnce(Return(TransportAdapter::OK));
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
   EXPECT_CALL(mock_metric_observer_, StartRawMsg(_));
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
   EXPECT_EQ(E_SUCCESS, tm_.SendMessageToDevice(test_message_));
 
   HandleSendDone();
@@ -545,9 +545,9 @@ TEST_F(TransportManagerImplTest, SendMessageToDevice_SendDone) {
 TEST_F(TransportManagerImplTest, SendMessageFailed_GetHandleSendFailed) {
   // Arrange
   HandleConnection();
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
   EXPECT_CALL(mock_metric_observer_, StartRawMsg(_));
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
   EXPECT_CALL(*mock_adapter_,
               SendData(mac_address_, application_id_, test_message_))
       .WillOnce(Return(TransportAdapter::FAIL));
@@ -1011,10 +1011,10 @@ TEST_F(TransportManagerImplTest, CheckEventOnSendDone_ConnectionNotExist) {
                                    application_id_,
                                    test_message_,
                                    error_);
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
   // Act and Assert
   EXPECT_CALL(mock_metric_observer_, StopRawMsg(_));
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
   EXPECT_CALL(*tm_listener_, OnTMMessageSend(_)).Times(0);
 
   tm_.TestHandle(test_event);
@@ -1031,10 +1031,10 @@ TEST_F(TransportManagerImplTest, CheckEventOnReceivedDone_ConnectionNotExist) {
                                    application_id_,
                                    test_message_,
                                    error_);
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
   // Act and Assert
   EXPECT_CALL(mock_metric_observer_, StopRawMsg(_)).Times(0);
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
   EXPECT_CALL(*tm_listener_, OnTMMessageReceived(_)).Times(0);
   tm_.TestHandle(test_event);
 }

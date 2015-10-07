@@ -69,9 +69,9 @@
 
 #include "interfaces/v4_protocol_v1_2_no_extra.h"
 #include "interfaces/v4_protocol_v1_2_no_extra_schema.h"
-#ifdef TIME_TESTER
-#include "application_manager/time_metric_observer.h"
-#endif  // TIME_TESTER
+#ifdef TELEMETRY_MONITOR
+#include "application_manager/telemetry_observer.h"
+#endif  // TELEMETRY_MONITOR
 
 #include "utils/macro.h"
 #include "utils/shared_ptr.h"
@@ -213,8 +213,8 @@ class ApplicationManagerImpl
   MOCK_CONST_METHOD0(connection_handler,
                      connection_handler::ConnectionHandler&());
 // ApplicationManagerImpl methods:
-#ifdef TIME_TESTER
-  MOCK_METHOD1(SetTimeMetricObserver, void(AMMetricObserver*));
+#ifdef TELEMETRY_MONITOR
+  MOCK_METHOD1(SetTelemetryObserver, void(AMTelemetryObserver*));
 #endif
   MOCK_METHOD1(RegisterApplication,
                ApplicationSharedPtr(
