@@ -133,7 +133,7 @@ int32_t main(int32_t argc, char** argv) {
 
   // --------------------------------------------------------------------------
   // Logger initialization
-  INIT_LOGGER("log4cxx.properties");
+  INIT_LOGGER("log4cxx.properties", profile::Profile::instance()->logs_enabled());
 #if defined(__QNXNTO__) and defined(GCOV_ENABLED)
   LOG4CXX_WARN(logger_,
                 "Attention! This application was built with unsupported "
