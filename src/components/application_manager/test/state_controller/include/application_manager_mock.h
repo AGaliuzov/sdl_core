@@ -54,7 +54,7 @@ class ApplicationManagerMock : public application_manager::ApplicationManager {
   MOCK_CONST_METHOD0(applications, DataAccessor<am::ApplicationSet>());
   MOCK_CONST_METHOD1(application_by_hmi_app,
                      am::ApplicationSharedPtr(uint32_t));
-  MOCK_CONST_METHOD1(application, am::ApplicationSharedPtr(uint32_t app_id));
+  MOCK_CONST_METHOD1(application, am::ApplicationSharedPtr(uint32_t));
 
   MOCK_CONST_METHOD0(active_application, am::ApplicationSharedPtr());
   MOCK_CONST_METHOD1(application_by_policy_id,
@@ -74,6 +74,7 @@ class ApplicationManagerMock : public application_manager::ApplicationManager {
                                              am::ApplicationConstSharedPtr));
   MOCK_METHOD0(hmi_capabilities, am::HMICapabilities&());
   MOCK_METHOD0(is_attenuated_supported, bool());
+  MOCK_CONST_METHOD1(IsAppTypeExistsInFullOrLimited, bool(am::ApplicationConstSharedPtr));
 };
 }  // namespace state_controller_test
 #endif  // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_STATE_CONTROLLER_INCLUDE_APPLICATION_MANAGER_MOCK_H_

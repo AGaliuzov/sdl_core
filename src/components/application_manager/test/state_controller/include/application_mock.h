@@ -94,8 +94,9 @@ class ApplicationMock : public am::Application {
   MOCK_CONST_METHOD0(app_icon_path, const std::string&());
   MOCK_CONST_METHOD0(device, connection_handler::DeviceHandle());
   MOCK_METHOD0(tts_speak_state, bool());
-  MOCK_CONST_METHOD0(CurrentHmiState, const am::HmiStatePtr());
-  MOCK_CONST_METHOD0(RegularHmiState, const am::HmiStatePtr());
+  MOCK_CONST_METHOD0(CurrentHmiState, am::HmiStatePtr());
+  MOCK_CONST_METHOD0(RegularHmiState, am::HmiStatePtr());
+  MOCK_CONST_METHOD0(PostponedHmiState, am::HmiStatePtr());
   MOCK_METHOD1(set_tts_properties_in_none, void(bool active));
   MOCK_METHOD0(tts_properties_in_none, bool());
   MOCK_METHOD1(set_tts_properties_in_full, void(bool active));
@@ -114,6 +115,8 @@ class ApplicationMock : public am::Application {
   MOCK_METHOD1(set_protocol_version,
                void(const am::ProtocolVersion& protocol_version));
   MOCK_CONST_METHOD0(protocol_version, am::ProtocolVersion());
+  MOCK_METHOD1(set_is_resuming, void(bool));
+  MOCK_CONST_METHOD0(is_resuming, bool());
   MOCK_METHOD1(AddFile, bool(const am::AppFile& file));
   MOCK_CONST_METHOD0(getAppFiles, const am::AppFilesMap&());
   MOCK_METHOD1(UpdateFile, bool(const am::AppFile& file));
@@ -134,6 +137,7 @@ class ApplicationMock : public am::Application {
                     am::TLimitSource source));
   MOCK_METHOD0(usage_report, am::UsageStatistics&());
   MOCK_METHOD1(SetRegularState, void(am::HmiStatePtr state));
+  MOCK_METHOD1(SetPostponedState, void(am::HmiStatePtr state));
   MOCK_METHOD1(AddHMIState, void(am::HmiStatePtr state));
   MOCK_METHOD1(RemoveHMIState, void(am::HmiState::StateID state_id));
   MOCK_METHOD2(SubscribeToSoftButtons,

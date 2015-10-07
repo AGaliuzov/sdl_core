@@ -60,6 +60,7 @@ class MessageHelperMock {
                uint32_t(uint32_t const app_id,
                         hmi_apis::Common_HMILevel::eType level,
                         bool send_policy_priority));
+  MOCK_METHOD1(SendOnResumeAudioSourceToHMI, void(const uint32_t app_id));
 };
 
 static MessageHelperMock* message_helper_mock_;
@@ -69,6 +70,11 @@ uint32_t application_manager::MessageHelper::SendActivateAppToHMI(
     bool send_policy_priority) {
   return message_helper_mock_->SendActivateAppToHMI(app_id, level,
                                                     send_policy_priority);
+}
+
+void application_manager::MessageHelper::SendOnResumeAudioSourceToHMI(
+    const uint32_t app_id) {
+  message_helper_mock_->SendOnResumeAudioSourceToHMI(app_id);
 }
 
 namespace state_controller_test {

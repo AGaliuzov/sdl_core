@@ -157,12 +157,13 @@ class ProtocoloObserverMock : public protocol_handler::ProtocolHandler {
  */
 class CryptoManagerMock : public security_manager::CryptoManager {
  public:
-  MOCK_METHOD7(Init, bool(security_manager::Mode mode,
-                          security_manager::Protocol protocol,
-                          const std::string& cert_filename,
-                          const std::string& key_filename,
-                          const std::string& ciphers_list, const bool,
-                          const std::string&));
+  MOCK_METHOD7(Init, bool(security_manager::Mode,
+                          security_manager::Protocol,
+                          const std::string&,
+                          const std::string&,
+                          const bool,
+                          const std::string&,
+                          const size_t));
   MOCK_METHOD1(OnCertificateUpdated, bool(const std::string&));
   MOCK_METHOD0(CreateSSLContext, security_manager::SSLContext*());
   MOCK_METHOD1(ReleaseSSLContext, void(security_manager::SSLContext*));

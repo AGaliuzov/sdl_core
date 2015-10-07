@@ -88,7 +88,7 @@ namespace request_controller {
     }
 
     void set_timeout_sec(uint64_t timeout) {
-      timeout_sec_ = timeout;
+      timeout_msec_ = timeout;
     }
 
     TimevalStruct end_time() {

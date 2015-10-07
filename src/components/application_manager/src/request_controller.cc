@@ -436,13 +436,12 @@ void RequestController::Worker::threadMain() {
 
     RequestInfoPtr request_info_ptr(
         request_controller_->mobile_request_info_list_.front());
-    request_controller_->mobile_request_info_list_.pop_front();
+        request_controller_->mobile_request_info_list_.pop_front();
     bool init_res = request_info_ptr->request()->Init();  // to setup specific
                                                           // default timeout
 
-    const uint32_t timeout_in_mseconds = request->default_timeout();
-    RequestInfoPtr request_info_ptr(new MobileRequestInfo(request,
-                                                          timeout_in_mseconds));
+    const uint32_t timeout_in_mseconds =
+        request_info_ptr->request()->default_timeout();
 
     request_controller_->waiting_for_response_.Add(request_info_ptr);
     if (0 != timeout_in_mseconds) {
@@ -463,7 +462,7 @@ void RequestController::Worker::threadMain() {
         request_info_ptr->request()->CheckPermissions() && init_res) {
       LOG4CXX_DEBUG(logger_, "Execute MobileRequest corr_id = "
                              << request_info_ptr->requestId()
-                             << " with timeout: " << timeout_in_seconds);
+                             << " with timeout: " << timeout_in_mseconds);
       request_info_ptr->request()->Run();
     }
   }

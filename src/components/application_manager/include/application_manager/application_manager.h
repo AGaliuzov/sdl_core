@@ -188,6 +188,18 @@ class ApplicationManager {
   virtual HMICapabilities& hmi_capabilities() = 0;
 
   virtual bool is_attenuated_supported() = 0;
+
+  /**
+   * @brief Checks if application with the same HMI type
+   *        (media, voice communication or navi) exists
+   *        in HMI_FULL or HMI_LIMITED level.
+   *
+   * @param app Pointer to application to compare with
+   *
+   * @return true if exist otherwise false
+   */
+  virtual bool IsAppTypeExistsInFullOrLimited(
+      ApplicationConstSharedPtr app) const = 0;
 };
 
 }  // namespace application_manager

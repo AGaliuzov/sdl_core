@@ -205,7 +205,7 @@ class ApplicationManagerImpl
   MOCK_METHOD0(hmi_capabilities, HMICapabilities&());
   MOCK_METHOD0(is_attenuated_supported, bool());
   MOCK_METHOD1(ManageHMICommand,
-               bool(const utils::SharedPtr<smart_objects::SmartObject>&));
+               bool(const utils::SharedPtr<smart_objects::SmartObject>));
   MOCK_METHOD2(
       ManageMobileCommand,
       bool(const utils::SharedPtr<smart_objects::SmartObject>& message,
@@ -222,6 +222,7 @@ class ApplicationManagerImpl
   MOCK_CONST_METHOD1(application_by_policy_id,
                      ApplicationSharedPtr(const std::string&));
   MOCK_CONST_METHOD0(applications, DataAccessor<ApplicationSet>());
+  MOCK_CONST_METHOD1(application, ApplicationSharedPtr(uint32_t));
   MOCK_METHOD1(RemoveAppDataFromHMI, bool(ApplicationSharedPtr));
   MOCK_METHOD1(HeadUnitReset,
                void(mobile_api::AppInterfaceUnregisteredReason::eType));
@@ -357,10 +358,6 @@ class ApplicationManagerImpl
   MOCK_CONST_METHOD1(GetDefaultHmiLevel,
                      mobile_apis::HMILevel::eType(ApplicationConstSharedPtr));
   bool IsHMICooperating() const { return true; };
-
-  ApplicationSharedPtr application(uint32_t) const {
-    return ApplicationSharedPtr();
-  }
 
   /**
    * Class for thread-safe access to applications list

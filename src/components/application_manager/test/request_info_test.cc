@@ -93,16 +93,17 @@ class RequestInfoTest : public ::testing::Test {
     uint32_t mobile_connection_key1_;
     uint32_t mobile_connection_key2_;
     uint32_t default_timeout_;
+    uint32_t mobile_correlation_id;
 
-    utils::SharedPtr<TestRequestInfo> create_test_info(uint32_t connection_key,
-                                                       uint32_t correlation_id,
-                                                       request_info::RequestInfo::RequestType requst_type,
-                                                       const TimevalStruct& start_time,
-                                                       uint64_t timeout_sec) {
-      utils::SharedPtr<MockRequest> mock_request(new MockRequest(connection_key,correlation_id));
-      TestRequestInfo* test_request_raw = new TestRequestInfo(mock_request,requst_type,
-                                    start_time, timeout_sec);
-      utils::SharedPtr<TestRequestInfo> request(test_request_raw);
+    utils::SharedPtr<TestRequestInfo> CreateTestInfo(
+        uint32_t connection_key, uint32_t correlation_id,
+        request_info::RequestInfo::RequestType requst_type,
+        const TimevalStruct& start_time, uint64_t timeout_sec) {
+      utils::SharedPtr<MockRequest> mock_request =
+          utils::MakeShared<MockRequest>(connection_key, correlation_id);
+      utils::SharedPtr<TestRequestInfo> request =
+          utils::MakeShared<TestRequestInfo>(mock_request, requst_type,
+                                             start_time, timeout_sec);
       return request;
     }
 };
