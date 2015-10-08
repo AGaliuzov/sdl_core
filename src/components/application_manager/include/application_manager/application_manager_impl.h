@@ -349,6 +349,7 @@ class ApplicationManagerImpl : public ApplicationManager,
     void ConnectToDevice(const std::string& device_mac);
     void OnHMIStartedCooperation();
 
+    policy::DeviceConsent GetUserConsentForDevice(const std::string& device_id) const;
     /*
      * @brief Returns unique correlation ID for HMI request
      *
@@ -531,7 +532,7 @@ class ApplicationManagerImpl : public ApplicationManager,
      * @param app appication to setup regular State
      * @param hmi_level hmi level of new regular state
      */
-    void SetState(uint32_t app_id,
+    void SetHmiState(uint32_t app_id,
                   mobile_apis::HMILevel::eType hmi_level) {
       ApplicationSharedPtr app  = application(app_id);
       if (!app) {

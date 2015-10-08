@@ -113,12 +113,25 @@ class MockMessageHelper {
   MOCK_METHOD2(SendOnAppInterfaceUnregisteredNotificationToMobile,
                void(int32_t connection_key,
                     mobile_apis::AppInterfaceUnregisteredReason::eType reason));
-
   MOCK_METHOD1(CommonLanguageFromString, hmi_apis::Common_Language::eType(
           const std::string& language)) ;
 
   MOCK_METHOD1(CreateModuleInfoSO, smart_objects::SmartObjectSPtr(uint32_t function_id));
-
+  MOCK_METHOD1(SendAllOnButtonSubscriptionNotificationsForApp,
+               void(ApplicationConstSharedPtr app));
+  MOCK_METHOD1(SendOnResumeAudioSourceToHMI, void(uint32_t app_id));
+  MOCK_METHOD1(CreateAddSubMenuRequestToHMI,
+               smart_objects::SmartObjectList(ApplicationConstSharedPtr app));
+  MOCK_METHOD1(CreateAddCommandRequestToHMI,
+               smart_objects::SmartObjectList(ApplicationConstSharedPtr app));
+  MOCK_METHOD1(CreateAddVRCommandRequestFromChoiceToHMI,
+               smart_objects::SmartObjectList(ApplicationConstSharedPtr app));
+  MOCK_METHOD1(SendGlobalPropertiesToHMI, void(ApplicationConstSharedPtr app));
+  MOCK_METHOD1(GetIVISubscriptionRequests,
+               smart_objects::SmartObjectList(ApplicationSharedPtr app));
+  MOCK_METHOD2(VerifyImageFiles,
+               mobile_apis::Result::eType(smart_objects::SmartObject& message,
+                                          ApplicationConstSharedPtr app));
   static MockMessageHelper* message_helper_mock();
 };
 
