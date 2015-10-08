@@ -89,7 +89,7 @@ namespace test {
 namespace components {
 namespace policy {
 
-typedef std::multimap< std::string, policy_table::Rpcs& > \
+typedef std::multimap< std::string, policy_table::Rpcs& >
           UserConsentPromptToRpcsConnections;
 
 template<typename T>
