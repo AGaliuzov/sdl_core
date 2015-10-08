@@ -89,7 +89,8 @@ namespace test {
 namespace components {
 namespace policy {
 
-typedef std::multimap< std::string, policy_table::Rpcs& > UserConsentPromptToRpcsConnections;
+typedef std::multimap< std::string, policy_table::Rpcs& > \
+          UserConsentPromptToRpcsConnections;
 
 template<typename T>
 std::string NumberToString(T Number) {
@@ -323,19 +324,21 @@ class PolicyManagerImplTest2 : public ::testing::Test {
     }
 
     void FillMultimapFromFunctionalGroupings(
-        UserConsentPromptToRpcsConnections& inputMultimap,
-        policy_table::FunctionalGroupings& fgTable){
-      policy_table::FunctionalGroupings::iterator fgItter = fgTable.begin();
-      const policy_table::FunctionalGroupings::iterator fgItterEnd = fgTable.end();
-      for(; fgItter != fgItterEnd; ++fgItter){
+        UserConsentPromptToRpcsConnections& input_multimap,
+        policy_table::FunctionalGroupings& fg_table){
+      policy_table::FunctionalGroupings::iterator fg_itter = fg_table.begin();
+      const policy_table::FunctionalGroupings::iterator fg_itter_end = fg_table.end();
+      for(; fg_itter != fg_itter_end; ++fg_itter){
         // RPCS getting
-        policy_table::Rpcs& rpcsRef = fgItter->second;
+        policy_table::Rpcs& rpcs_ref = fg_itter->second;
         // User_consent_prompt getting
-        rpc::Optional<rpc::String<1,255> >& optionalRef = rpcsRef.user_consent_prompt;
-        rpc::String<1,255>& ucpString = *optionalRef;
-        const std::string& ucpStdString = static_cast<const std::string&>(ucpString);
+        rpc::Optional<rpc::String<1,255> >& optional_ref =
+            rpcs_ref.user_consent_prompt;
+        rpc::String<1,255>& ucp_string = *optional_ref;
+        const std::string& ucp_std_string =
+            static_cast<const std::string&>(ucp_string);
         // Multimap inserting
-        inputMultimap.insert(std::pair<std::string, policy_table::Rpcs&>(ucpStdString,rpcsRef));
+        input_multimap.insert(std::pair<std::string, policy_table::Rpcs&>(ucp_std_string, rpcs_ref));
       }
     }
 
@@ -1794,7 +1797,7 @@ TEST_F(PolicyManagerImplTest2, AddValidRequestTypeToPT_GetNewAppWithSpecificPoli
 }
 
 TEST_F(PolicyManagerImplTest2, AddInvalidRequestTypeToPT_GetNewAppWithSpecificPoliciesViaPTU_ExpectRTAdded) {
- // Arrange
+  // Arrange
   AddRTtoAppSectionPT("PTU4.json", "1234", 1u, 1u);
   policy_table::RequestType temp_res1;
   std::vector<policy_table::RequestType> result1;
@@ -1806,7 +1809,7 @@ TEST_F(PolicyManagerImplTest2, AddInvalidRequestTypeToPT_GetNewAppWithSpecificPo
   policy_table::RequestType temp_res2;
   std::vector<policy_table::RequestType> result2;
   for (uint32_t i = 0; i < PT_request_types.size(); ++i) {
-    if(::rpc::policy_table_interface_base::EnumFromJsonString(PT_request_types[i], &temp_res2)) {
+    if (::rpc::policy_table_interface_base::EnumFromJsonString(PT_request_types[i], &temp_res2)) {
       result2.push_back(temp_res2);
     }
   }
@@ -1819,33 +1822,40 @@ TEST_F(PolicyManagerImplTest2, AddInvalidRequestTypeToPT_GetNewAppWithSpecificPo
   }
 }
 
-TEST_F(PolicyManagerImplTest2, InitPT_LoadPT_ExpectIncrementedCountOfSamePrompts){
-  // Initializating policy_table
+TEST_F(PolicyManagerImplTest2,
+       InitPT_LoadPT_ExpectIncrementedCountOfSamePrompts) {
+  // Initializing policy_table
   CreateLocalPT("sdl_preloaded_pt.json");
   ::policy::CacheManagerInterfaceSPtr cache = manager->GetCache();
   utils::SharedPtr<policy_table::Table> table = cache->GenerateSnapshot();
-  policy_table::FunctionalGroupings& fc = table->policy_table.functional_groupings;
-  UserConsentPromptToRpcsConnections  initialPTMap;
-  UserConsentPromptToRpcsConnections  updatedPTMap;
+  policy_table::FunctionalGroupings& functional_groupings =
+      table->policy_table.functional_groupings;
+  UserConsentPromptToRpcsConnections initial_functional_groupings_map;
+  UserConsentPromptToRpcsConnections updated_functional_groupings_map;
   // Filling initial map
-  FillMultimapFromFunctionalGroupings(initialPTMap,fc);
+  FillMultimapFromFunctionalGroupings(initial_functional_groupings_map,
+                                      functional_groupings);
 
   // Updating policy_table
   GetPTU("sdl_pt_update.json");
   cache = manager->GetCache();
   table = cache->GenerateSnapshot();
-  policy_table::FunctionalGroupings& fcUpdated = table->policy_table.functional_groupings;
+  policy_table::FunctionalGroupings& updated_functional_groupings =
+      table->policy_table.functional_groupings;
   // Filling updated map
-   FillMultimapFromFunctionalGroupings(updatedPTMap,fcUpdated);
+  FillMultimapFromFunctionalGroupings(updated_functional_groupings_map,
+                                      updated_functional_groupings);
 
   // Comparing two multimaps
-  // (EXPECT increment count of functionalgroups under key : user_consent_prompt)
-  uint32_t countBeforeUpdate = initialPTMap.count("Notifications");
-  uint32_t countAfterUpdate = updatedPTMap.count("Notifications");
-  EXPECT_EQ(1u, countBeforeUpdate);
-  EXPECT_EQ(2u, countAfterUpdate);
+  // (EXPECT increment count of functionalgroups
+  // under key : user_consent_prompt)
+  uint32_t count_before_update =
+      initial_functional_groupings_map.count("Notifications");
+  uint32_t count_after_update =
+      updated_functional_groupings_map.count("Notifications");
+  EXPECT_EQ(1u, count_before_update);
+  EXPECT_EQ(2u, count_after_update);
 }
-
 
 }  // namespace policy
 }  // namespace components
