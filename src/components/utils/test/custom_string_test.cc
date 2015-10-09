@@ -42,27 +42,25 @@ namespace components {
 namespace utils {
 
 std::string CreateMultibyteString(uint8_t* array, size_t array_size) {
-  std::string mbstring(array_size, '\0');
-  std::copy(array, array + array_size, mbstring.begin());
-  return mbstring;
+  return std::string(array, array + array_size);
 }
 
 class CustomStringTest: public ::testing::TestWithParam<std::string> {
  protected:
   static void SetUpTestCase() {
     const size_t kSizeStr = 8;
-    uint8_t array[] = {0xD0, 0xA2, 0xD0, 0xB5, 0xD1, 0x81, 0xD1, 0x82}; //Тест
+    uint8_t array[] = {0xD0, 0xA2, 0xD0, 0xB5, 0xD1, 0x81, 0xD1, 0x82};  //Array contains russian word "Тест"
     mbstring1_ = CreateMultibyteString(array, kSizeStr);
     mbstring2_ = mbstring1_ + "abc";
-    amount_symbols_mbstring1_ = 4; //amount of symbols from string mbstring1_
-    amount_symbols_mbstring2_ = 7; //amount of symbols from string mbstring2_
+    amount_symbols_mbstring1_ = 4;  //amount of symbols from string mbstring1_
+    amount_symbols_mbstring2_ = 7;  //amount of symbols from string mbstring2_
     amount_bytes_mbstring1_ = mbstring1_.size();
     amount_bytes_mbstring2_ = mbstring2_.size();
     }
 
  public:
-  static std::string mbstring1_; //Тест
-  static std::string mbstring2_; //Тестabc
+  static std::string mbstring1_;  //String contains russian word "Тест"
+  static std::string mbstring2_;  //String contains russian word with ASCII symbols "Тестabc"
   static size_t amount_symbols_mbstring1_;
   static size_t amount_symbols_mbstring2_;
   static size_t amount_bytes_mbstring1_;
@@ -269,7 +267,7 @@ TEST_F(CustomStringTest, AddDiferenceMultiByteStringsToCustomString_ExpectCorrec
 
 TEST_F(CustomStringTest, AddSameMultiByteStringsToCustomString_ExpectCorrectCaseInsensitiveComparing) {
   const size_t kSizeStr = 8;
-  uint8_t array[] = {0xD1, 0x82, 0xD0, 0xB5, 0xD1, 0x81, 0xD0, 0xA2}; //тесТ
+  uint8_t array[] = {0xD1, 0x82, 0xD0, 0xB5, 0xD1, 0x81, 0xD0, 0xA2};  //String contains russian word "тесТ"
   std::string mbstring = CreateMultibyteString(array, kSizeStr);
   custom_str::CustomString obj(CustomStringTest::mbstring1_);
   custom_str::CustomString obj1(mbstring);

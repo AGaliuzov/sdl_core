@@ -158,7 +158,6 @@ class PolicyManagerImplTest : public ::testing::Test {
     manager = new PolicyManagerImpl();
     cache_manager = new MockCacheManagerInterface();
     manager->set_cache_manager(cache_manager);
-    ::testing::DefaultValue<custom_str::CustomString>::Set(custom_str::CustomString(""));
     manager->set_listener(&listener);
   }
 
