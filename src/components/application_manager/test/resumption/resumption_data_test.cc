@@ -37,7 +37,7 @@
 #include "application_manager/usage_statistics.h"
 #include "include/application_mock.h"
 #include "include/resumption_data_mock.h"
-
+#include "utils/custom_string.h"
 #include "application_manager/application_manager_impl.h"
 #include "application_manager/application.h"
 #include "utils/data_accessor.h"
@@ -54,7 +54,7 @@ std::string application_manager::MessageHelper::GetDeviceMacAddressForHandle(
 namespace test {
 namespace components {
 namespace resumption_test {
-
+namespace custom_str = utils::custom_string;
 using ::testing::Return;
 using ::testing::ReturnRef;
 using ::testing::ReturnPointee;
@@ -379,6 +379,7 @@ void ResumptionDataTest::SetGlobalProporties() {
 }
 
 void ResumptionDataTest::SetMenuTitleAndIcon() {
+  custom_str::CustomString icon_name("test icon");
   sm::SmartObject sm_icon;
   sm_icon[am::strings::value] = "test icon";
   sm_icon[am::strings::image_type] = ImageType::STATIC;

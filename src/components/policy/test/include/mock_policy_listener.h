@@ -40,10 +40,13 @@
 #include "policy/policy_listener.h"
 #include "rpc_base/rpc_base.h"
 #include "table_struct_ext/types.h"
+#include "utils/custom_string.h"
 
 namespace policy_table = ::rpc::policy_table_interface_base;
 
 namespace policy {
+
+namespace custom_str = utils::custom_string;
 
 class MockPolicyListener : public PolicyListener {
  public:
@@ -63,7 +66,7 @@ class MockPolicyListener : public PolicyListener {
   MOCK_METHOD0(OnSystemInfoUpdateRequired,
                void());
   MOCK_METHOD1(GetAppName,
-               std::string(const std::string& policy_app_id));
+               custom_str::CustomString(const std::string& policy_app_id));
   MOCK_METHOD0(OnUserRequestedUpdateCheckRequired,
                void());
   MOCK_METHOD2(OnDeviceConsentChanged,

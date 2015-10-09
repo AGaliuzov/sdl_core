@@ -49,6 +49,7 @@
 #include "smart_objects/smart_object.h"
 #include "utils/file_system.h"
 #include "utils/make_shared.h"
+#include "custom_string.h"
 #include "usage_statistics/counter.h"
 #include "usage_statistics/statistics_manager.h"
 #include "interfaces/MOBILE_API.h"
@@ -56,12 +57,12 @@
 namespace test {
 namespace components {
 namespace policy_handler {
-
 using namespace application_manager;
 using namespace policy;
-
+using namespace utils::custom_string;
 using testing::_;
 using ::testing::Return;
+
 
 class PolicyHandlerTest : public ::testing::Test {
  public:
@@ -431,7 +432,7 @@ TEST_F(PolicyHandlerTest, Test_OnActivateApp_method) {
   EnablePolicyAndPolicyManagerMock();
   uint32_t app_id = 123;
   std::string policy_app_id("mobile_app_id");
-  std::string app_name("my_mobile_app");
+  CustomString app_name("my_mobile_app");
   const uint32_t connection_key = 1;
   const uint32_t correlation_id = 2;
 
@@ -476,7 +477,7 @@ TEST_F(PolicyHandlerTest, Test_OnPendingPermissionChange_method) {
   // Check expectations
   uint32_t app_id = 123;
   std::string policy_app_id("mobile_app_id");
-  std::string app_name("my_mobile_app");
+  CustomString app_name("my_mobile_app");
 
   EXPECT_CALL(*app_manager_, CreateRegularState(app_id, _, _, _))
       .WillOnce(Return(HmiStatePtr(
@@ -569,7 +570,7 @@ TEST_F(PolicyHandlerTest, Test_OnCurrentDeviceIdUpdateRequired_method) {
   // Check expectations
   uint32_t app_id = 123;
   std::string policy_app_id("mobile_app_id");
-  std::string app_name("my_mobile_app");
+  CustomString app_name("my_mobile_app");
 
   EXPECT_CALL(*app_manager_, CreateRegularState(app_id, _, _, _))
       .WillOnce(Return(HmiStatePtr(
@@ -682,7 +683,7 @@ TEST_F(PolicyHandlerTest, Test_GetAppName_method) {
   // Check expectations
   uint32_t app_id = 123;
   std::string policy_app_id("mobile_app_id");
-  std::string app_name("my_mobile_app");
+  CustomString app_name("my_mobile_app");
 
   EXPECT_CALL(*app_manager_, CreateRegularState(app_id, _, _, _))
       .WillOnce(Return(HmiStatePtr(
@@ -743,7 +744,7 @@ TEST_F(PolicyHandlerTest, Test_SendOnAppPermissionsChanged_method) {
   EnablePolicyAndPolicyManagerMock();
   uint32_t app_id = 123;
   std::string policy_app_id("mobile_app_id");
-  std::string app_name("my_mobile_app");
+  CustomString app_name("my_mobile_app");
 
   EXPECT_CALL(*app_manager_, CreateRegularState(app_id, _, _, _))
       .WillOnce(Return(HmiStatePtr(
