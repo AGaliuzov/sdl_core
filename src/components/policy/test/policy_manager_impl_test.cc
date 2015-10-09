@@ -339,7 +339,17 @@ class PolicyManagerImplTest2 : public ::testing::Test {
             static_cast<const std::string&>(ucp_string);
         // Multimap inserting
         input_multimap.insert(std::pair<std::string, policy_table::Rpcs&>(ucp_std_string, rpcs_ref));
-      }
+      } 
+    }
+
+    void GetFunctionalGroupingsFromManager(
+        policy_table::FunctionalGroupings& input_functional_groupings){
+      // Get cache
+      ::policy::CacheManagerInterfaceSPtr cache = manager->GetCache();
+      // Get table_snapshot
+      utils::SharedPtr<policy_table::Table> table = cache->GenerateSnapshot();
+      // Set functional groupings from policy table
+      input_functional_groupings = table->policy_table.functional_groupings;
     }
 
     void TearDown() OVERRIDE {
@@ -1826,10 +1836,10 @@ TEST_F(PolicyManagerImplTest2,
        InitPT_LoadPT_ExpectIncrementedCountOfSamePrompts) {
   // Initializing policy_table
   CreateLocalPT("sdl_preloaded_pt.json");
-  ::policy::CacheManagerInterfaceSPtr cache = manager->GetCache();
-  utils::SharedPtr<policy_table::Table> table = cache->GenerateSnapshot();
-  policy_table::FunctionalGroupings& functional_groupings =
-      table->policy_table.functional_groupings;
+
+  policy_table::FunctionalGroupings functional_groupings;
+  GetFunctionalGroupingsFromManager(functional_groupings);
+
   UserConsentPromptToRpcsConnections initial_functional_groupings_map;
   UserConsentPromptToRpcsConnections updated_functional_groupings_map;
   // Filling initial map
@@ -1838,10 +1848,8 @@ TEST_F(PolicyManagerImplTest2,
 
   // Updating policy_table
   GetPTU("sdl_pt_update.json");
-  cache = manager->GetCache();
-  table = cache->GenerateSnapshot();
-  policy_table::FunctionalGroupings& updated_functional_groupings =
-      table->policy_table.functional_groupings;
+  policy_table::FunctionalGroupings updated_functional_groupings;
+  GetFunctionalGroupingsFromManager(updated_functional_groupings);
   // Filling updated map
   FillMultimapFromFunctionalGroupings(updated_functional_groupings_map,
                                       updated_functional_groupings);
@@ -1855,6 +1863,54 @@ TEST_F(PolicyManagerImplTest2,
       updated_functional_groupings_map.count("Notifications");
   EXPECT_EQ(1u, count_before_update);
   EXPECT_EQ(2u, count_after_update);
+}
+
+TEST_F(PolicyManagerImplTest2,
+      LoadPT_UpdatePT_ChangingCountsOfDifferentUserConsentPrompts){
+  // Initializing policy_table
+  CreateLocalPT("sdl_preloaded_pt.json");
+
+  // First update of policy table
+  GetPTU("sdl_pt_first_update.json");
+  // Geting functional groupings first time
+  policy_table::FunctionalGroupings first_functional_groupings;
+  GetFunctionalGroupingsFromManager(first_functional_groupings);
+  // Filling map first time
+  UserConsentPromptToRpcsConnections first_update_functional_groupings_map;
+  FillMultimapFromFunctionalGroupings(
+      first_update_functional_groupings_map,
+      first_functional_groupings);
+
+  // Second update of policy table
+  GetPTU("sdl_pt_second_update.json");
+  // Geting functional groupings second time
+  policy_table::FunctionalGroupings second_functional_groupings;
+  GetFunctionalGroupingsFromManager(second_functional_groupings);
+  // Filling map second time
+  UserConsentPromptToRpcsConnections second_update_functional_groupings_map;
+  FillMultimapFromFunctionalGroupings(
+      second_update_functional_groupings_map,
+      second_functional_groupings);
+
+  // Getting counts before second update
+  uint32_t first_count_of_old_user_consent_prompt =
+      first_update_functional_groupings_map.count("Old_Notifications");
+  uint32_t first_count_of_new_user_consent_prompt =
+      first_update_functional_groupings_map.count("New_Notifications");
+
+  // Getting counts after second update
+  uint32_t second_count_of_old_user_consent_prompt =
+      second_update_functional_groupings_map.count("Old_Notifications");
+  uint32_t second_count_of_new_user_consent_prompt =
+      second_update_functional_groupings_map.count("New_Notifications");
+
+  // Expect decrement count of old user_consent_prormpt
+  EXPECT_GT(first_count_of_old_user_consent_prompt,
+      second_count_of_old_user_consent_prompt);
+  // Expect increment count of new user_consent_prormpt
+  EXPECT_LT(first_count_of_new_user_consent_prompt,
+      second_count_of_new_user_consent_prompt);
+
 }
 
 }  // namespace policy
