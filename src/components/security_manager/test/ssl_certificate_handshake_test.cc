@@ -106,7 +106,7 @@ class SSLHandshakeTest : public testing::Test {
     }
 
     security_manager::SSLContext::HandshakeContext ctx;
-    server_ctx->SetHandshakeContext(ctx.make_context(std::string("SPT"),
+    server_ctx->SetHandshakeContext(ctx.make_context(custom_str::CustomString("SPT"),
                                                      custom_str::CustomString("client")));
 
     return true;
@@ -134,7 +134,7 @@ class SSLHandshakeTest : public testing::Test {
     }
 
     security_manager::SSLContext::HandshakeContext ctx;
-    client_ctx->SetHandshakeContext(ctx.make_context(std::string("SPT"),
+    client_ctx->SetHandshakeContext(ctx.make_context(custom_str::CustomString("SPT"),
                                                      custom_str::CustomString("server")));
 
     return true;
@@ -383,14 +383,14 @@ TEST_F(SSLHandshakeTest, AppNameAndAppIDInvalid) {
       << client_manager->LastError();
 
   security_manager::SSLContext::HandshakeContext ctx;
-  client_ctx->SetHandshakeContext(ctx.make_context(std::string ("server"),
+  client_ctx->SetHandshakeContext(ctx.make_context(custom_str::CustomString("server"),
                                                    custom_str::CustomString("Wrong")));
 
   GTEST_TRACE(HandshakeProcedure_ClientSideFail(
                 security_manager::SSLContext::Handshake_Result_AppNameMismatch));
 
   ResetConnections();
-  client_ctx->SetHandshakeContext(ctx.make_context(std::string ("Wrong"),
+  client_ctx->SetHandshakeContext(ctx.make_context(custom_str::CustomString("Wrong"),
                                                    custom_str::CustomString("server")));
 
   GTEST_TRACE(HandshakeProcedure_ClientSideFail(

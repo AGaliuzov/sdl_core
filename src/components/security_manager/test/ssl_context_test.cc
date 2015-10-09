@@ -95,7 +95,7 @@ class SSLTest : public testing::Test {
     client_ctx = client_manager->CreateSSLContext();
 
     security_manager::SSLContext::HandshakeContext ctx;
-    ctx.make_context("SPT", custom_str::CustomString("client"));
+    ctx.make_context(custom_str::CustomString("SPT"), custom_str::CustomString("client"));
     server_ctx->SetHandshakeContext(ctx);
 
     ctx.expected_cn = "server";

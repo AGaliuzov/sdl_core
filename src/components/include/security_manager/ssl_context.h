@@ -79,9 +79,9 @@ class SSLContext {
     custom_str::CustomString expected_sn;
     custom_str::CustomString expected_cn;
 
-    HandshakeContext& make_context(const std::string& sn,
+    HandshakeContext& make_context(const custom_str::CustomString& sn,
                                   const custom_str::CustomString& cn) {
-      expected_sn = sn.c_str();
+      expected_sn = sn;
       expected_cn = cn;
       return *this;
     }
