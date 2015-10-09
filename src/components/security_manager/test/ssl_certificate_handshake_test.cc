@@ -34,11 +34,12 @@
 #include <fstream>
 #include <sstream>
 #include "security_manager/crypto_manager_impl.h"
+#include "utils/custom_string.h"
 
 namespace test {
 namespace components {
 namespace ssl_handshake_test {
-
+namespace custom_str = utils::custom_string;
 // Use this macro for correct line printing
 // in case of fail insize of the #method
 #define GTEST_TRACE(method) \
@@ -106,7 +107,7 @@ class SSLHandshakeTest : public testing::Test {
 
     security_manager::SSLContext::HandshakeContext ctx;
     server_ctx->SetHandshakeContext(ctx.make_context(std::string("SPT"),
-                                                     std::string("client")));
+                                                     custom_str::CustomString("client")));
 
     return true;
   }
@@ -134,7 +135,7 @@ class SSLHandshakeTest : public testing::Test {
 
     security_manager::SSLContext::HandshakeContext ctx;
     client_ctx->SetHandshakeContext(ctx.make_context(std::string("SPT"),
-                                                     std::string("server")));
+                                                     custom_str::CustomString("server")));
 
     return true;
   }
@@ -383,14 +384,14 @@ TEST_F(SSLHandshakeTest, AppNameAndAppIDInvalid) {
 
   security_manager::SSLContext::HandshakeContext ctx;
   client_ctx->SetHandshakeContext(ctx.make_context(std::string ("server"),
-                                                   std::string("Wrong")));
+                                                   custom_str::CustomString("Wrong")));
 
   GTEST_TRACE(HandshakeProcedure_ClientSideFail(
                 security_manager::SSLContext::Handshake_Result_AppNameMismatch));
 
   ResetConnections();
   client_ctx->SetHandshakeContext(ctx.make_context(std::string ("Wrong"),
-                                                   std::string("server")));
+                                                   custom_str::CustomString("server")));
 
   GTEST_TRACE(HandshakeProcedure_ClientSideFail(
                 security_manager::SSLContext::Handshake_Result_AppIDMismatch));

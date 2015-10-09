@@ -37,6 +37,7 @@
 #include <string>
 #include <ctype.h>
 #include <algorithm>
+#include "utils/custom_string.h"
 
 // TODO(EZamakhov): update brief info
 /**
@@ -60,6 +61,7 @@
  */
 
 namespace security_manager {
+namespace custom_str = utils::custom_string;
 class SSLContext {
  public:
   enum HandshakeResult {
@@ -74,19 +76,13 @@ class SSLContext {
   };
 
   struct HandshakeContext {
-    std::string expected_sn;
-    std::string expected_cn;
+    custom_str::CustomString expected_sn;
+    custom_str::CustomString expected_cn;
 
     HandshakeContext& make_context(const std::string& sn,
-                                  const std::string& cn) {
-      expected_sn = sn;
+                                  const custom_str::CustomString& cn) {
+      expected_sn = sn.c_str();
       expected_cn = cn;
-
-      std::transform(expected_sn.begin(), expected_sn.end(),
-                     expected_sn.begin(), ::tolower);
-
-      std::transform(expected_cn.begin(), expected_cn.end(),
-                     expected_cn.begin(), ::tolower);
       return *this;
     }
   };
