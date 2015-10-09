@@ -1162,7 +1162,8 @@ ApplicationManagerImpl::GetHandshakeContext(uint32_t key) const {
   ApplicationConstSharedPtr app = application(key);
   security_manager::SSLContext::HandshakeContext res;
   DCHECK_OR_RETURN(app.valid(), res);
-  return res.make_context(app->policy_app_id(), app->name());
+  return res.make_context(custom_str::CustomString(app->policy_app_id()),
+                          app->name());
 }
 #endif // ENABLE_SECURITY
 
