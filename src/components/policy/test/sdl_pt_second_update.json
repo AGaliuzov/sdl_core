@@ -1593,8 +1593,6 @@
             },
             "user_consent_prompt" : "New_Notifications"
          },
-            "user_consent_prompt" : "Notifications"
-         },
          "PropriataryData-1" : {
             "rpcs" : {
                "DiagnosticMessage" : {
