@@ -1567,13 +1567,29 @@
             },
             "user_consent_prompt" : "Notifications"
          },
-         "Notifications2" : {
+         "Notifications-2" : {
             "rpcs" : {
                "Alert" : {
                   "hmi_levels" : [ "FULL" ]
                }
             },
-            "user_consent_prompt" : "Notifications"
+            "user_consent_prompt" : "Old_Notifications"
+         },
+         "Notifications-3" : {
+            "rpcs" : {
+               "Alert" : {
+                  "hmi_levels" : [ "LIMITED" ]
+               }
+            },
+            "user_consent_prompt" : "New_Notifications"
+         },
+         "Notifications-4" : {
+            "rpcs" : {
+               "Alert" : {
+                  "hmi_levels" : [ "NONE" ]
+               }
+            },
+            "user_consent_prompt" : "New_Notifications"
          },
          "PropriataryData-1" : {
             "rpcs" : {

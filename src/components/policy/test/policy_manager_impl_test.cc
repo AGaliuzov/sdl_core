@@ -89,6 +89,9 @@ namespace test {
 namespace components {
 namespace policy {
 
+typedef std::multimap< std::string, policy_table::Rpcs& >
+          UserConsentPromptToRpcsConnections;
+
 template<typename T>
 std::string NumberToString(T Number) {
   std::ostringstream ss;
@@ -150,14 +153,14 @@ class PolicyManagerImplTest : public ::testing::Test {
   MockUpdateStatusManager update_manager;
   NiceMock<MockPolicyListener> listener;
 
-  void SetUp() {
+  void SetUp() OVERRIDE {
     manager = new PolicyManagerImpl();
     cache_manager = new MockCacheManagerInterface();
     manager->set_cache_manager(cache_manager);
     manager->set_listener(&listener);
   }
 
-  void TearDown() {
+  void TearDown() OVERRIDE {
     delete manager;
   }
 
@@ -196,7 +199,7 @@ class PolicyManagerImplTest2 : public ::testing::Test {
     const std::string dev_id2;
     Json::Value PTU_request_types;
 
-    void SetUp() {
+    void SetUp() OVERRIDE {
       file_system::CreateDirectory("storage1");
 
       profile::Profile::instance()->config_file_name("smartDeviceLink2.ini");
@@ -320,7 +323,36 @@ class PolicyManagerImplTest2 : public ::testing::Test {
       SortAndCheckEquality(result1, result2);
     }
 
-    void TearDown() {
+    void FillMultimapFromFunctionalGroupings(
+        UserConsentPromptToRpcsConnections& input_multimap,
+        policy_table::FunctionalGroupings& fg_table){
+      policy_table::FunctionalGroupings::iterator fg_itter = fg_table.begin();
+      const policy_table::FunctionalGroupings::iterator fg_itter_end = fg_table.end();
+      for(; fg_itter != fg_itter_end; ++fg_itter){
+        // RPCS getting
+        policy_table::Rpcs& rpcs_ref = fg_itter->second;
+        // User_consent_prompt getting
+        rpc::Optional<rpc::String<1,255> >& optional_ref =
+            rpcs_ref.user_consent_prompt;
+        rpc::String<1,255>& ucp_string = *optional_ref;
+        const std::string& ucp_std_string =
+            static_cast<const std::string&>(ucp_string);
+        // Multimap inserting
+        input_multimap.insert(std::pair<std::string, policy_table::Rpcs&>(ucp_std_string, rpcs_ref));
+      } 
+    }
+
+    void GetFunctionalGroupingsFromManager(
+        policy_table::FunctionalGroupings& input_functional_groupings){
+      // Get cache
+      ::policy::CacheManagerInterfaceSPtr cache = manager->GetCache();
+      // Get table_snapshot
+      utils::SharedPtr<policy_table::Table> table = cache->GenerateSnapshot();
+      // Set functional groupings from policy table
+      input_functional_groupings = table->policy_table.functional_groupings;
+    }
+
+    void TearDown() OVERRIDE {
       profile::Profile::instance()->config_file_name("smartDeviceLink.ini");
       delete manager;
     }
@@ -1775,7 +1807,7 @@ TEST_F(PolicyManagerImplTest2, AddValidRequestTypeToPT_GetNewAppWithSpecificPoli
 }
 
 TEST_F(PolicyManagerImplTest2, AddInvalidRequestTypeToPT_GetNewAppWithSpecificPoliciesViaPTU_ExpectRTAdded) {
- // Arrange
+  // Arrange
   AddRTtoAppSectionPT("PTU4.json", "1234", 1u, 1u);
   policy_table::RequestType temp_res1;
   std::vector<policy_table::RequestType> result1;
@@ -1787,7 +1819,7 @@ TEST_F(PolicyManagerImplTest2, AddInvalidRequestTypeToPT_GetNewAppWithSpecificPo
   policy_table::RequestType temp_res2;
   std::vector<policy_table::RequestType> result2;
   for (uint32_t i = 0; i < PT_request_types.size(); ++i) {
-    if(::rpc::policy_table_interface_base::EnumFromJsonString(PT_request_types[i], &temp_res2)) {
+    if (::rpc::policy_table_interface_base::EnumFromJsonString(PT_request_types[i], &temp_res2)) {
       result2.push_back(temp_res2);
     }
   }
@@ -1798,6 +1830,87 @@ TEST_F(PolicyManagerImplTest2, AddInvalidRequestTypeToPT_GetNewAppWithSpecificPo
   for (uint32_t i = 0 ; i < PT_request_types.size(); ++i) {
     EXPECT_EQ(result1[i], result2[i]);
   }
+}
+
+TEST_F(PolicyManagerImplTest2,
+       InitPT_LoadPT_ExpectIncrementedCountOfSamePrompts) {
+  // Initializing policy_table
+  CreateLocalPT("sdl_preloaded_pt.json");
+
+  policy_table::FunctionalGroupings functional_groupings;
+  GetFunctionalGroupingsFromManager(functional_groupings);
+
+  UserConsentPromptToRpcsConnections initial_functional_groupings_map;
+  UserConsentPromptToRpcsConnections updated_functional_groupings_map;
+  // Filling initial map
+  FillMultimapFromFunctionalGroupings(initial_functional_groupings_map,
+                                      functional_groupings);
+
+  // Updating policy_table
+  GetPTU("sdl_pt_update.json");
+  policy_table::FunctionalGroupings updated_functional_groupings;
+  GetFunctionalGroupingsFromManager(updated_functional_groupings);
+  // Filling updated map
+  FillMultimapFromFunctionalGroupings(updated_functional_groupings_map,
+                                      updated_functional_groupings);
+
+  // Comparing two multimaps
+  // (EXPECT increment count of functionalgroups
+  // under key : user_consent_prompt)
+  uint32_t count_before_update =
+      initial_functional_groupings_map.count("Notifications");
+  uint32_t count_after_update =
+      updated_functional_groupings_map.count("Notifications");
+  EXPECT_EQ(1u, count_before_update);
+  EXPECT_EQ(2u, count_after_update);
+}
+
+TEST_F(PolicyManagerImplTest2,
+      LoadPT_UpdatePT_ChangingCountsOfDifferentUserConsentPrompts){
+  // Initializing policy_table
+  CreateLocalPT("sdl_preloaded_pt.json");
+
+  // First update of policy table
+  GetPTU("sdl_pt_first_update.json");
+  // Geting functional groupings first time
+  policy_table::FunctionalGroupings first_functional_groupings;
+  GetFunctionalGroupingsFromManager(first_functional_groupings);
+  // Filling map first time
+  UserConsentPromptToRpcsConnections first_update_functional_groupings_map;
+  FillMultimapFromFunctionalGroupings(
+      first_update_functional_groupings_map,
+      first_functional_groupings);
+
+  // Second update of policy table
+  GetPTU("sdl_pt_second_update.json");
+  // Geting functional groupings second time
+  policy_table::FunctionalGroupings second_functional_groupings;
+  GetFunctionalGroupingsFromManager(second_functional_groupings);
+  // Filling map second time
+  UserConsentPromptToRpcsConnections second_update_functional_groupings_map;
+  FillMultimapFromFunctionalGroupings(
+      second_update_functional_groupings_map,
+      second_functional_groupings);
+
+  // Getting counts before second update
+  uint32_t first_count_of_old_user_consent_prompt =
+      first_update_functional_groupings_map.count("Old_Notifications");
+  uint32_t first_count_of_new_user_consent_prompt =
+      first_update_functional_groupings_map.count("New_Notifications");
+
+  // Getting counts after second update
+  uint32_t second_count_of_old_user_consent_prompt =
+      second_update_functional_groupings_map.count("Old_Notifications");
+  uint32_t second_count_of_new_user_consent_prompt =
+      second_update_functional_groupings_map.count("New_Notifications");
+
+  // Expect decrement count of old user_consent_prormpt
+  EXPECT_GT(first_count_of_old_user_consent_prompt,
+      second_count_of_old_user_consent_prompt);
+  // Expect increment count of new user_consent_prormpt
+  EXPECT_LT(first_count_of_new_user_consent_prompt,
+      second_count_of_new_user_consent_prompt);
+
 }
 
 }  // namespace policy
