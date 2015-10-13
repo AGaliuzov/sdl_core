@@ -1570,7 +1570,7 @@
          "Notifications-2" : {
             "rpcs" : {
                "Alert" : {
-                  "hmi_levels" : [ "BACKGROUND" ]
+                  "hmi_levels" : [ "FULL" ]
                }
             },
             "user_consent_prompt" : "Old_Notifications"
@@ -1578,7 +1578,7 @@
          "Notifications-3" : {
             "rpcs" : {
                "Alert" : {
-                  "hmi_levels" : [ "BACKGROUND" ]
+                  "hmi_levels" : [ "LIMITED" ]
                }
             },
             "user_consent_prompt" : "New_Notifications"
@@ -1586,7 +1586,7 @@
          "Notifications-4" : {
             "rpcs" : {
                "Alert" : {
-                  "hmi_levels" : [ "BACKGROUND" ]
+                  "hmi_levels" : [ "NONE" ]
                }
             },
             "user_consent_prompt" : "New_Notifications"

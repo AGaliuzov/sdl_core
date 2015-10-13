@@ -20,7 +20,7 @@
             "nicknames" : [ "SyncProxyTester" ],
             "priority" : "EMERGENCY",
             "steal_focus" : true,
-            "watchdog_timer_ms" : 20000
+            "heart_beat_timeout_ms": 5000
          },
          "default" : {
             "default_hmi" : "NONE",
@@ -28,8 +28,7 @@
             "keep_context" : false,
             "memory_kb" : 1000,
             "priority" : "NONE",
-            "steal_focus" : false,
-            "watchdog_timer_ms" : 20000
+            "steal_focus" : false
          },
          "device" : {
             "default_hmi" : "NONE",
@@ -46,8 +45,7 @@
             "keep_context" : false,
             "memory_kb" : 1000,
             "priority" : "NONE",
-            "steal_focus" : false,
-            "watchdog_timer_ms" : 20000
+            "steal_focus" : false
          }
       },
       "consumer_friendly_messages" : {
@@ -1572,7 +1570,7 @@
          "Notifications2" : {
             "rpcs" : {
                "Alert" : {
-                  "hmi_levels" : [ "BACKGROUND" ]
+                  "hmi_levels" : [ "FULL" ]
                }
             },
             "user_consent_prompt" : "Notifications"
