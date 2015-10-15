@@ -924,7 +924,7 @@ TEST_F(PolicyManagerImplTest2, UpdatedPreloadedPT_ExpectLPT_IsUpdated) {
   // Check if new RPC exists
   EXPECT_TRUE(rpc.find(new_data.new_field_value_) != rpc.end());
   // Check HMI level of new RPC
-  EXPECT_EQ(index, static_cast<unsigned int>(rpc_param.hmi_levels[0]));
+  EXPECT_EQ(index, static_cast<uint32_t>(rpc_param.hmi_levels[0]));
   // Check if new field matches field added to preloaded PT
   EXPECT_EQ(std::string((*(fc.find(new_data.new_field_name_))).first), new_data.new_field_name_);
 }
@@ -1140,8 +1140,7 @@ TEST_F(PolicyManagerImplTest2, GetUserFirendlyMessages_ExpectReceivedCorrectMess
   std::vector< ::policy::UserFriendlyMessage > result = manager->GetUserFriendlyMessages(message_code, language);
   uint32_t size = result.size();
   EXPECT_GT(size, 0u);
-  std::vector< ::policy::UserFriendlyMessage >::iterator result_iter;
-
+  std::vector< ::policy::UserFriendlyMessage>::iterator result_iter;
   utils::SharedPtr<policy_table::Table> pt = (manager->GetCache())->GetPT();
 
   policy_table::ConsumerFriendlyMessages& consumer_friendly_messages = *(pt->policy_table.consumer_friendly_messages);

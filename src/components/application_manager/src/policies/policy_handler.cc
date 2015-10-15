@@ -384,9 +384,9 @@ void PolicyHandler::OnDeviceConsentChanged(const std::string& device_id,
   // notified about these changes
 
   ApplicationManagerImpl::ApplicationListAccessor accessor;
-  ApplicationManagerImpl::ApplictionSetConstIt it_app_list =
+  ApplicationSetConstIt it_app_list =
       accessor.begin();
-  ApplicationManagerImpl::ApplictionSetConstIt it_app_list_end =
+  ApplicationSetConstIt it_app_list_end =
       accessor.end();
   for (; it_app_list != it_app_list_end; ++it_app_list) {
     if (device_handle == (*it_app_list).get()->device()) {
@@ -432,8 +432,8 @@ void PolicyHandler::OnPTExchangeNeeded() {
 void PolicyHandler::GetAvailableApps(std::queue<std::string>& apps) {
   LOG4CXX_INFO(logger_, "GetAvailable apps");
   ApplicationManagerImpl::ApplicationListAccessor accessor;
-  const ApplicationManagerImpl::ApplictionSet app_list = accessor.applications();
-  ApplicationManagerImpl::ApplictionSetConstIt iter = app_list.begin();
+  const ApplicationSet app_list = accessor.applications();
+  ApplicationSetConstIt iter = app_list.begin();
 
   for (;app_list.end() != iter; ++iter) {
     LOG4CXX_INFO(logger_, "one more app");
@@ -564,9 +564,9 @@ void PolicyHandler::OnGetListOfPermissions(const uint32_t connection_key,
     sync_primitives::AutoLock lock(app_to_device_link_lock_);
     LinkAppToDevice linker(app_to_device_link_);
     ApplicationManagerImpl::ApplicationListAccessor accessor;
-    ApplicationManagerImpl::ApplictionSetConstIt it_app
+    ApplicationSetConstIt it_app
         = accessor.begin();
-    ApplicationManagerImpl::ApplictionSetConstIt it_app_end
+    ApplicationSetConstIt it_app_end
         = accessor.end();
 
     // Add all currently registered applications

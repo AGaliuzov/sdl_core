@@ -980,6 +980,11 @@ void Profile::UpdateValues() {
   ReadUintIntPairValue(&start_stream_retry_amount_, kStartStreamRetryAmount,
                        kMediaManagerSection, kStartStreamRetry);
 
+  int32_t temp_default_timeout = static_cast<int32_t>( video_data_stopped_timeout_ );
+   if( start_stream_retry_amount_.second < temp_default_timeout) {
+        start_stream_retry_amount_.second = temp_default_timeout;
+   }
+
   // Redecoding parameter
   ReadBoolValue(&is_redecoding_enabled_, false, kMediaManagerSection,
                 kEnableRedecodingKey);

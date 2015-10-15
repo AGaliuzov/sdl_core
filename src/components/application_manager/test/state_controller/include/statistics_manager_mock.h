@@ -30,46 +30,23 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_STATE_CONTEXT_H_
-#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_STATE_CONTEXT_H_
+#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_TEST_STATE_CONTROLLER_INCLUDE_STATISTICS_MANAGER_MOCK_H_
+#define SRC_COMPONENTS_APPLICATION_MANAGER_TEST_STATE_CONTROLLER_INCLUDE_STATISTICS_MANAGER_MOCK_H_
 
-#include <inttypes.h>
+#include <string>
+#include "gmock/gmock.h"
+#include "usage_statistics/statistics_manager.h"
 
-namespace application_manager {
-/**
-* @brief The StateContext implement acessing to data, that is required by HmiState
-*/
-class StateContext {
-  public:
+namespace state_controller_test {
+namespace us = usage_statistics;
 
-    /**
-     * @brief is_navi_app check if app is navi
-     * @param app_id application id
-     * @return true if app is navi, otherwise return false
-     */
-    bool is_navi_app(const uint32_t app_id) const;
-
-    /**
-     * @brief is_meida_app check if app is is meida
-     * @param app_id application id
-     * @return @return true if meida_app, otherwise return false
-     */
-    bool is_meida_app(const uint32_t app_id) const;
-
-    /**
-     * @brief is_voice_comunication_app check if app is voice comunication
-     * @param app_id application id
-     * @return @return true if voice_comunication_app, otherwise return false
-     */
-    bool is_voice_comunication_app(const uint32_t app_id) const;
-
-    /**
-     * @brief is_attenuated_supported check if HMI support attenuated mode
-     * @return true if supported, otherwise return false
-     */
-    bool is_attenuated_supported() const;
+class StatisticsManagerMock : public us::StatisticsManager {
+ public:
+  MOCK_METHOD1(Increment, void (us::GlobalCounterId));
+  MOCK_METHOD2(Increment, void (const std::string&, us::AppCounterId));
+  MOCK_METHOD3(Set, void (const std::string&, us::AppInfoId, const std::string&));
+  MOCK_METHOD3(Add, void (const std::string&, us::AppStopwatchId, int32_t));
 };
 
-}
-#endif // STATE_CONTEXT_H
-
+}  // namespace state_controller_test
+#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_STATE_CONTROLLER_INCLUDE_STATISTICS_MANAGER_MOCK_H_

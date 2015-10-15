@@ -154,9 +154,8 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   virtual void set_is_resuming(bool is_resuming);
   virtual bool is_resuming() const;
 
-  bool AddFile(AppFile& file);
-  bool UpdateFile(AppFile& file);
-
+  bool AddFile(const AppFile& file);
+  bool UpdateFile(const AppFile& file);
   bool DeleteFile(const std::string& file_name);
   virtual const AppFilesMap& getAppFiles() const;
 

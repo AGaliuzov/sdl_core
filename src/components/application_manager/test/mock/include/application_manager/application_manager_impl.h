@@ -154,7 +154,9 @@ class ApplicationManagerImpl
   friend class CommandImpl;
 
  public:
-  ApplicationManagerImpl() {}
+  ApplicationManagerImpl() {
+    std::cout << "ApplicationManagerImpl Mock created \n";
+  }
 
   MOCK_METHOD0(Init, bool());
   MOCK_METHOD0(Stop, bool());
@@ -204,11 +206,13 @@ class ApplicationManagerImpl
                ApplicationSharedPtr(
                    const utils::SharedPtr<smart_objects::SmartObject>&));
   MOCK_METHOD0(hmi_capabilities, HMICapabilities&());
+  MOCK_METHOD0(is_attenuated_supported, bool());
   MOCK_METHOD1(ManageHMICommand,
-               bool(const utils::SharedPtr<smart_objects::SmartObject>&));
-  MOCK_METHOD2(ManageMobileCommand,
-               bool(const utils::SharedPtr<smart_objects::SmartObject>& message,
-                    commands::Command::CommandOrigin origin));
+               bool(const utils::SharedPtr<smart_objects::SmartObject>));
+  MOCK_METHOD2(
+      ManageMobileCommand,
+      bool(const utils::SharedPtr<smart_objects::SmartObject>& message,
+           commands::Command::CommandOrigin));
   MOCK_METHOD1(SendMessageToHMI,
                bool(const utils::SharedPtr<smart_objects::SmartObject>&));
   MOCK_METHOD2(SendMessageToMobile,
@@ -218,10 +222,10 @@ class ApplicationManagerImpl
   MOCK_METHOD1(GetDeviceName, std::string(connection_handler::DeviceHandle));
   MOCK_METHOD1(GetDeviceTransportType,
                hmi_apis::Common_TransportType::eType(const std::string&));
-  MOCK_METHOD1(application_by_policy_id,
-               ApplicationSharedPtr(const std::string&));
+  MOCK_CONST_METHOD1(application_by_policy_id,
+                     ApplicationSharedPtr(const std::string&));
+  MOCK_CONST_METHOD0(applications, DataAccessor<ApplicationSet>());
   MOCK_CONST_METHOD1(application, ApplicationSharedPtr(uint32_t));
-
   MOCK_METHOD1(RemoveAppDataFromHMI, bool(ApplicationSharedPtr));
   MOCK_METHOD1(HeadUnitReset,
                void(mobile_api::AppInterfaceUnregisteredReason::eType));
@@ -236,6 +240,8 @@ class ApplicationManagerImpl
                mobile_api::HMILevel::eType(ApplicationSharedPtr));
   MOCK_METHOD3(OnHMILevelChanged, void(uint32_t, mobile_apis::HMILevel::eType,
                                        mobile_apis::HMILevel::eType));
+  MOCK_METHOD1(SendHMIStatusNotification,
+               void(const utils::SharedPtr<Application>));
 
   MOCK_METHOD2(UnregisterRevokedApplication,
                void(uint32_t, mobile_apis::Result::eType));
@@ -261,8 +267,6 @@ class ApplicationManagerImpl
   MOCK_METHOD1(applications_by_button,
                std::vector<ApplicationSharedPtr>(uint32_t));
   MOCK_METHOD0(applications_with_navi, std::vector<ApplicationSharedPtr>());
-  MOCK_METHOD1(applications_by_ivi,
-               std::vector<ApplicationSharedPtr>(uint32_t));
   MOCK_METHOD2(IviInfoUpdated,
                std::vector<utils::SharedPtr<Application>>(VehicleDataType,
                                                           int));
@@ -340,7 +344,7 @@ class ApplicationManagerImpl
                void(uint32_t, mobile_apis::HMILevel::eType));
   MOCK_METHOD1(AddAppToTTSGlobalPropertiesList, void(const uint32_t));
   MOCK_METHOD1(RemoveAppFromTTSGlobalPropertiesList, void(const uint32_t));
-  MOCK_METHOD1(application_by_hmi_app, ApplicationSharedPtr(uint32_t));
+  MOCK_CONST_METHOD1(application_by_hmi_app, ApplicationSharedPtr(uint32_t));
   MOCK_METHOD2(UnregisterApplication,
                void(const uint32_t, mobile_apis::Result::eType));
   MOCK_METHOD3(UnregisterApplication,
@@ -366,34 +370,17 @@ class ApplicationManagerImpl
                     mobile_apis::AudioStreamingState::eType));
   bool IsHMICooperating() const { return true; };
 
-  struct ApplicationsAppIdSorter {
-    bool operator()(const ApplicationSharedPtr lhs,
-                    const ApplicationSharedPtr rhs) {
-      return lhs->app_id() < rhs->app_id();
-    }
-  };
-
-  // typedef for Applications list
-  typedef std::set<ApplicationSharedPtr, ApplicationsAppIdSorter> ApplictionSet;
-
-  // typedef for Applications list iterator
-  typedef ApplictionSet::iterator ApplictionSetIt;
-
-  // typedef for Applications list const iterator
-  typedef ApplictionSet::const_iterator ApplictionSetConstIt;
-
   /**
    * Class for thread-safe access to applications list
    */
-
-  class ApplicationListAccessor : public DataAccessor<ApplictionSet> {
+  class ApplicationListAccessor : public DataAccessor<ApplicationSet> {
    public:
     ApplicationListAccessor()
-        : DataAccessor<ApplictionSet>(ApplictionSet(),
-                                      sync_primitives::Lock()) {}
-    MOCK_CONST_METHOD0(applications, const ApplictionSet());
-    MOCK_METHOD0(begin, ApplictionSetConstIt());
-    MOCK_METHOD0(end, ApplictionSetConstIt());
+        : DataAccessor<ApplicationSet>(ApplicationSet(),
+                                       sync_primitives::Lock()) {}
+    MOCK_CONST_METHOD0(applications, const ApplicationSet());
+    MOCK_METHOD0(begin, ApplicationSetConstIt());
+    MOCK_METHOD0(end, ApplicationSetConstIt());
     MOCK_METHOD1(Erase, void(ApplicationSharedPtr));
     MOCK_METHOD1(Insert, void(ApplicationSharedPtr));
     MOCK_METHOD0(Empty, bool());
@@ -415,7 +402,7 @@ class ApplicationManagerImpl
  private:
   // FIXME(AKutsan) In resume_controller is is nessesery to change realisation
   // for remove using application_list_
-  ApplictionSet application_list_;
+  ApplicationSet application_list_;
   FRIEND_BASE_SINGLETON_CLASS(ApplicationManagerImpl);
 };
 

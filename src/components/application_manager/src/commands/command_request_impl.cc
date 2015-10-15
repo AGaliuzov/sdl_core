@@ -370,9 +370,9 @@ bool CommandRequestImpl::CheckAllowedParameters() {
   }
 
   ApplicationManagerImpl::ApplicationListAccessor accessor;
-  ApplicationManagerImpl::ApplictionSetConstIt it_app_list =
+  ApplicationSetConstIt it_app_list =
       accessor.begin();
-  ApplicationManagerImpl::ApplictionSetConstIt it_app_list_end =
+  ApplicationSetConstIt it_app_list_end =
       accessor.end();
   for (; it_app_list != it_app_list_end; ++it_app_list) {
     if (connection_key() == (*it_app_list).get()->app_id()) {

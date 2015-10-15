@@ -109,7 +109,7 @@ class ResumptionData {
   virtual void OnAwake() = 0;
 
   /**
-   * @brief Retrieves data of saved appliction for the given mobile app ID
+   * @brief Retrieves data of saved application for the given mobile app ID
    * and device ID
    * @param policy_app_id - mobile application id
    * @param device_id - contains id of device on which is running application
@@ -155,7 +155,7 @@ class ResumptionData {
    * @brief Updates HMI level of saved application
    * @param policy_app_id - mobile application id
    * @param device_id - contains id of device on which is running application
-   * @param hmi_level - contains hmi level for saved appliction
+   * @param hmi_level - contains hmi level for saved application
    */
   virtual void UpdateHmiLevel(const std::string& policy_app_id,
                               const std::string& device_id,

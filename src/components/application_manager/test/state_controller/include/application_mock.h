@@ -1,45 +1,46 @@
 /*
-* Copyright (c) 2015, Ford Motor Company
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-*
-* Redistributions of source code must retain the above copyright notice, this
-* list of conditions and the following disclaimer.
-*
-* Redistributions in binary form must reproduce the above copyright notice,
-* this list of conditions and the following
-* disclaimer in the documentation and/or other materials provided with the
-* distribution.
-*
-* Neither the name of the Ford Motor Company nor the names of its contributors
-* may be used to endorse or promote products derived from this software
-* without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*/
-#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_TEST_RESUMPTION_INCLUDE_APPLICATION_MOCK_H_
-#define SRC_COMPONENTS_APPLICATION_MANAGER_TEST_RESUMPTION_INCLUDE_APPLICATION_MOCK_H_
+ * Copyright (c) 2015, Ford Motor Company
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following
+ * disclaimer in the documentation and/or other materials provided with the
+ * distribution.
+ *
+ * Neither the name of the Ford Motor Company nor the names of its contributors
+ * may be used to endorse or promote products derived from this software
+ * without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_TEST_STATE_CONTROLLER_INCLUDE_APPLICATION_MOCK_H_
+#define SRC_COMPONENTS_APPLICATION_MANAGER_TEST_STATE_CONTROLLER_INCLUDE_APPLICATION_MOCK_H_
+
 #include <string>
+
 #include "gmock/gmock.h"
 #include "application_manager/application.h"
+namespace state_controller_test {
+namespace am = application_manager;
 
-namespace test {
-namespace components {
-namespace resumption_test {
-
-class ApplicationMock : public ::application_manager::Application {
+class ApplicationMock : public am::Application {
  public:
   MOCK_CONST_METHOD0(active_message, const smart_objects::SmartObject*());
   MOCK_CONST_METHOD0(curHash, const std::string&());
@@ -75,8 +76,9 @@ class ApplicationMock : public ::application_manager::Application {
   MOCK_CONST_METHOD0(app_allowed, bool());
   MOCK_CONST_METHOD0(has_been_activated, bool());
   MOCK_METHOD1(set_activated, bool(bool is_active));
-  MOCK_CONST_METHOD0(version, const ::application_manager::Version&());
+  MOCK_CONST_METHOD0(version, const am::Version&());
   MOCK_METHOD1(set_hmi_application_id, void(uint32_t hmi_app_id));
+
   MOCK_CONST_METHOD0(hmi_app_id, uint32_t());
   MOCK_CONST_METHOD0(name, const std::string&());
   MOCK_METHOD1(set_folder_name, void(const std::string& folder_name));
@@ -92,18 +94,14 @@ class ApplicationMock : public ::application_manager::Application {
   MOCK_CONST_METHOD0(app_icon_path, const std::string&());
   MOCK_CONST_METHOD0(device, connection_handler::DeviceHandle());
   MOCK_METHOD0(tts_speak_state, bool());
-  MOCK_CONST_METHOD0(CurrentHmiState,
-                     ::application_manager::HmiStatePtr());
-  MOCK_CONST_METHOD0(RegularHmiState,
-                     ::application_manager::HmiStatePtr());
-  MOCK_CONST_METHOD0(PostponedHmiState,
-                     ::application_manager::HmiStatePtr());
+  MOCK_CONST_METHOD0(CurrentHmiState, am::HmiStatePtr());
+  MOCK_CONST_METHOD0(RegularHmiState, am::HmiStatePtr());
+  MOCK_CONST_METHOD0(PostponedHmiState, am::HmiStatePtr());
   MOCK_METHOD1(set_tts_properties_in_none, void(bool active));
   MOCK_METHOD0(tts_properties_in_none, bool());
   MOCK_METHOD1(set_tts_properties_in_full, void(bool active));
   MOCK_METHOD0(tts_properties_in_full, bool());
-  MOCK_METHOD1(set_version,
-               void(const ::application_manager::Version& version));
+  MOCK_METHOD1(set_version, void(const am::Version& version));
   MOCK_METHOD1(set_name, void(const std::string& name));
   MOCK_METHOD1(set_is_media_application, void(bool is_media));
   MOCK_METHOD0(increment_put_file_in_none_count, void());
@@ -114,19 +112,16 @@ class ApplicationMock : public ::application_manager::Application {
   MOCK_METHOD1(set_device, void(connection_handler::DeviceHandle device));
   MOCK_CONST_METHOD0(get_grammar_id, uint32_t());
   MOCK_METHOD1(set_grammar_id, void(uint32_t value));
-  MOCK_METHOD1(
-      set_protocol_version,
-      void(const ::application_manager::ProtocolVersion& protocol_version));
-  MOCK_CONST_METHOD0(protocol_version,
-                     ::application_manager::ProtocolVersion());
+  MOCK_METHOD1(set_protocol_version,
+               void(const am::ProtocolVersion& protocol_version));
+  MOCK_CONST_METHOD0(protocol_version, am::ProtocolVersion());
   MOCK_METHOD1(set_is_resuming, void(bool));
   MOCK_CONST_METHOD0(is_resuming, bool());
-  MOCK_METHOD1(AddFile, bool(const ::application_manager::AppFile& file));
-  MOCK_CONST_METHOD0(getAppFiles, const ::application_manager::AppFilesMap&());
-  MOCK_METHOD1(UpdateFile, bool(const ::application_manager::AppFile& file));
+  MOCK_METHOD1(AddFile, bool(const am::AppFile& file));
+  MOCK_CONST_METHOD0(getAppFiles, const am::AppFilesMap&());
+  MOCK_METHOD1(UpdateFile, bool(const am::AppFile& file));
   MOCK_METHOD1(DeleteFile, bool(const std::string& file_name));
-  MOCK_METHOD1(GetFile, const ::application_manager::AppFile*(
-                            const std::string& file_name));
+  MOCK_METHOD1(GetFile, const am::AppFile*(const std::string& file_name));
   MOCK_METHOD1(SubscribeToButton,
                bool(mobile_apis::ButtonName::eType btn_name));
   MOCK_METHOD1(IsSubscribedToButton,
@@ -139,20 +134,19 @@ class ApplicationMock : public ::application_manager::Application {
   MOCK_METHOD0(ResetDataInNone, void());
   MOCK_METHOD2(IsCommandLimitsExceeded,
                bool(mobile_apis::FunctionID::eType cmd_id,
-                    ::application_manager::TLimitSource source));
-  MOCK_METHOD0(usage_report, ::application_manager::UsageStatistics&());
-  MOCK_METHOD1(SetRegularState, void(::application_manager::HmiStatePtr state));
-  MOCK_METHOD1(SetPostponedState, void(::application_manager::HmiStatePtr state));
-  MOCK_METHOD1(AddHMIState, void(::application_manager::HmiStatePtr state));
-  MOCK_METHOD1(RemoveHMIState,
-               void(::application_manager::HmiState::StateID state_id));
+                    am::TLimitSource source));
+  MOCK_METHOD0(usage_report, am::UsageStatistics&());
+  MOCK_METHOD1(SetRegularState, void(am::HmiStatePtr state));
+  MOCK_METHOD1(SetPostponedState, void(am::HmiStatePtr state));
+  MOCK_METHOD1(AddHMIState, void(am::HmiStatePtr state));
+  MOCK_METHOD1(RemoveHMIState, void(am::HmiState::StateID state_id));
   MOCK_METHOD2(SubscribeToSoftButtons,
-               void(int32_t cmd_id,
-                    const ::application_manager::SoftButtonID& softbuttons_id));
+               void(int32_t cmd_id, const am::SoftButtonID& softbuttons_id));
   MOCK_METHOD1(IsSubscribedToSoftButton, bool(const uint32_t softbutton_id));
   MOCK_METHOD1(UnsubscribeFromSoftButtons, void(int32_t cmd_id));
   MOCK_CONST_METHOD0(IsAudioApplication, bool());
   MOCK_METHOD0(LoadPersistentFiles, void());
+
   // InitialApplicationData methods
   MOCK_CONST_METHOD0(app_types, const smart_objects::SmartObject*());
   MOCK_CONST_METHOD0(vr_synonyms, const smart_objects::SmartObject*());
@@ -174,6 +168,7 @@ class ApplicationMock : public ::application_manager::Application {
                void(const mobile_apis::Language::eType& language));
   MOCK_METHOD1(set_ui_language,
                void(const mobile_apis::Language::eType& ui_language));
+
   // DynamicApplicationData methods
   MOCK_CONST_METHOD0(help_prompt, const smart_objects::SmartObject*());
   MOCK_CONST_METHOD0(timeout_prompt, const smart_objects::SmartObject*());
@@ -182,12 +177,10 @@ class ApplicationMock : public ::application_manager::Application {
   MOCK_CONST_METHOD0(tbt_state, const mobile_apis::TBTState::eType&());
   MOCK_CONST_METHOD0(show_command, const smart_objects::SmartObject*());
   MOCK_CONST_METHOD0(tbt_show_command, const smart_objects::SmartObject*());
-  MOCK_CONST_METHOD0(
-      SubscribedButtons,
-      DataAccessor<  ::application_manager::ButtonSubscriptions >());
-  MOCK_CONST_METHOD0(
-      SubscribedIVI,
-      DataAccessor< ::application_manager::VehicleInfoSubscriptions >());
+  MOCK_CONST_METHOD0(SubscribedButtons,
+                     DataAccessor<am::ButtonSubscriptions>());
+  MOCK_CONST_METHOD0(SubscribedIVI,
+                     DataAccessor<am::VehicleInfoSubscriptions>());
   MOCK_CONST_METHOD0(keyboard_props, const smart_objects::SmartObject*());
   MOCK_CONST_METHOD0(menu_title, const smart_objects::SmartObject*());
   MOCK_CONST_METHOD0(menu_icon, const smart_objects::SmartObject*());
@@ -241,15 +234,11 @@ class ApplicationMock : public ::application_manager::Application {
                     const smart_objects::SmartObject& choice_set));
   MOCK_METHOD1(DeletePerformInteractionChoiceSet,
                void(uint32_t correlation_id));
-  MOCK_CONST_METHOD0(
-      performinteraction_choice_set_map,
-      DataAccessor< ::application_manager::PerformChoiceSetMap >());
-  MOCK_CONST_METHOD0(commands_map,
-                     DataAccessor< ::application_manager::CommandsMap >());
-  MOCK_CONST_METHOD0(sub_menu_map,
-                     DataAccessor< ::application_manager::SubMenuMap >());
-  MOCK_CONST_METHOD0(choice_set_map,
-                     DataAccessor< ::application_manager::ChoiceSetMap >());
+  MOCK_CONST_METHOD0(performinteraction_choice_set_map,
+                     DataAccessor<am::PerformChoiceSetMap>());
+  MOCK_CONST_METHOD0(commands_map, DataAccessor<am::CommandsMap>());
+  MOCK_CONST_METHOD0(sub_menu_map, DataAccessor<am::SubMenuMap>());
+  MOCK_CONST_METHOD0(choice_set_map, DataAccessor<am::ChoiceSetMap>());
   MOCK_METHOD1(set_perform_interaction_active, void(uint32_t active));
   MOCK_CONST_METHOD0(is_perform_interaction_active, uint32_t());
   MOCK_METHOD1(set_perform_interaction_mode, void(int32_t mode));
@@ -259,8 +248,5 @@ class ApplicationMock : public ::application_manager::Application {
   MOCK_CONST_METHOD0(app_id, uint32_t());
 };
 
-}  // namespace resumption_test
-}  // namespace components
-}  // namespace test
-
-#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_RESUMPTION_INCLUDE_APPLICATION_MOCK_H_
+}  // namespace state_controller_test
+#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_STATE_CONTROLLER_INCLUDE_APPLICATION_MOCK_H_

@@ -145,7 +145,6 @@ if (BUILD_TESTS)
     ${AM_SOURCE_DIR}/src/hmi_capabilities.cc
     ${AM_SOURCE_DIR}/src/application_data_impl.cc
     ${AM_SOURCE_DIR}/src/request_controller.cc
-    ${AM_SOURCE_DIR}/src/state_context.cc
 
     ${AM_SOURCE_DIR}/src/commands/mobile/register_app_interface_request.cc
     ${AM_SOURCE_DIR}/src/commands/mobile/unregister_app_interface_request.cc

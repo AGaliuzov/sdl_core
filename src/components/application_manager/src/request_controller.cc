@@ -187,12 +187,11 @@ RequestController::TResult RequestController::addHMIRequest(
   }
   LOG4CXX_DEBUG(logger_, " correlation_id : " << request->correlation_id());
 
-  const uint32_t timeout_in_seconds =
-      request->default_timeout() / date_time::DateTime::MILLISECONDS_IN_SECOND;
+  const uint64_t timeout_in_mseconds = static_cast<uint64_t>(request->default_timeout());
   RequestInfoPtr request_info_ptr(new HMIRequestInfo(request,
-                                                     timeout_in_seconds));
+                                                     timeout_in_mseconds));
 
-  if (0 == timeout_in_seconds) {
+  if (0 == timeout_in_mseconds) {
     LOG4CXX_DEBUG(logger_, "Default timeout was set to 0."
                   "RequestController will not track timeout of this request.");
   }
@@ -331,10 +330,8 @@ void RequestController::updateRequestTimeout(
   RequestInfoPtr request_info =
       waiting_for_response_.Find(app_id, correlation_id);
   if (request_info) {
-    uint32_t timeout_in_seconds =
-        new_timeout/date_time::DateTime::MILLISECONDS_IN_SECOND;
     waiting_for_response_.RemoveRequest(request_info);
-    request_info->updateTimeOut(timeout_in_seconds);
+    request_info->updateTimeOut(new_timeout);
     waiting_for_response_.Add(request_info);
     UpdateTimer();
     LOG4CXX_INFO(logger_, "Timeout updated for "
@@ -439,19 +436,18 @@ void RequestController::Worker::threadMain() {
 
     RequestInfoPtr request_info_ptr(
         request_controller_->mobile_request_info_list_.front());
-    request_controller_->mobile_request_info_list_.pop_front();
+        request_controller_->mobile_request_info_list_.pop_front();
     bool init_res = request_info_ptr->request()->Init();  // to setup specific
                                                           // default timeout
 
-    const uint32_t timeout_in_seconds =
-        request_info_ptr->request()->default_timeout() /
-        date_time::DateTime::MILLISECONDS_IN_SECOND;
-    // Start time, end time and timeout need to be updated to appropriate values
-    request_info_ptr->update_start_time(date_time::DateTime::getCurrentTime());
-    request_info_ptr->updateTimeOut(timeout_in_seconds);
+    const uint32_t timeout_in_mseconds =
+        request_info_ptr->request()->default_timeout();
 
     request_controller_->waiting_for_response_.Add(request_info_ptr);
-    if (0 != timeout_in_seconds) {
+    if (0 != timeout_in_mseconds) {
+      LOG4CXX_INFO(logger_, "Execute MobileRequest corr_id = "
+                   << request_info_ptr->requestId() <<
+                            " with timeout: " << timeout_in_mseconds);
       request_controller_->UpdateTimer();
     } else {
       LOG4CXX_DEBUG(logger_, "Default timeout was set to 0. "
@@ -466,7 +462,7 @@ void RequestController::Worker::threadMain() {
         request_info_ptr->request()->CheckPermissions() && init_res) {
       LOG4CXX_DEBUG(logger_, "Execute MobileRequest corr_id = "
                              << request_info_ptr->requestId()
-                             << " with timeout: " << timeout_in_seconds);
+                             << " with timeout: " << timeout_in_mseconds);
       request_info_ptr->request()->Run();
     }
   }
@@ -485,26 +481,22 @@ void RequestController::UpdateTimer() {
     const TimevalStruct current_time = date_time::DateTime::getCurrentTime();
     const TimevalStruct end_time = front->end_time();
     if (current_time < end_time) {
-      const uint64_t secs = end_time.tv_sec - current_time.tv_sec;
-      LOG4CXX_DEBUG(logger_, "Sleep for " << secs << " secs");
+      const uint32_t msecs =static_cast<uint32_t>(date_time::DateTime::getmSecs(end_time - current_time) );
+      LOG4CXX_DEBUG(logger_, "Sleep for " << msecs << " millisecs");
       // Timeout for bigger than 5 minutes is a mistake
-
-      const uint32_t timeout_ms =
-          secs * date_time::DateTime::MILLISECONDS_IN_SECOND;
-
-      timer_.updateTimeOut(timeout_ms);
+      timer_.updateTimeOut(msecs);
     } else {
       LOG4CXX_WARN(logger_, "Request app_id: " << front->app_id()
                    << " correlation_id: " << front->requestId()
                    << " is expired. "
-                   << "End time: "
-                   << end_time.tv_sec
-                   << " Current time: "
-                   << current_time.tv_sec
+                   << "End time(ms): "
+                   << date_time::DateTime::getmSecs(end_time)
+                   << " Current time (ms): "
+                   << date_time::DateTime::getmSecs(current_time)
                    << " Diff (current - end): "
-                   << current_time.tv_sec - end_time.tv_sec
+                   << date_time::DateTime::getmSecs(current_time - end_time)
                    << " Request timeout (sec): "
-                   << front->timeout_sec());
+                   << front->timeout_msec()/date_time::DateTime::MILLISECONDS_IN_SECOND);
       timer_.updateTimeOut(0);
     }
   } else {

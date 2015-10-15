@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,34 +29,32 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include "application_manager/state_context.h"
-#include "application_manager/application_manager_impl.h"
-#include "config_profile/profile.h"
 
-namespace application_manager {
+#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_TEST_STATE_CONTROLLER_INCLUDE_STATE_CONTROLLER_MOCK
+#define SRC_COMPONENTS_APPLICATION_MANAGER_TEST_STATE_CONTROLLER_INCLUDE_STATE_CONTROLLER_MOCK
 
+#include "gmock/gmock.h"
+#include "application_manager/application.h"
+#include "application_manager/hmi_state.h"
+#include "application_manager/state_controller.h"
+#include "application_manager/application_manager.h"
+#include "interfaces/MOBILE_API.h"
 
-bool StateContext::is_navi_app(const uint32_t app_id) const {
-  ApplicationSharedPtr app = ApplicationManagerImpl::instance()->application(app_id);
-  DCHECK_OR_RETURN(app, false);
-  return app ? app->is_navi() : false;
-}
+namespace state_controller_test {
+namespace am = application_manager;
 
-bool StateContext::is_meida_app(const uint32_t app_id) const {
-  ApplicationSharedPtr app = ApplicationManagerImpl::instance()->application(app_id);
-  return app ? app->is_media_application() : false;
-}
-
-bool StateContext::is_voice_comunication_app(const uint32_t app_id) const {
-  ApplicationSharedPtr app = ApplicationManagerImpl::instance()->application(app_id);
-  return app ? app->is_voice_communication_supported() : false;
-}
-
-bool StateContext::is_attenuated_supported() const{
-  const HMICapabilities& hmi_capabilities =
-      ApplicationManagerImpl::instance()->hmi_capabilities();
-  return hmi_capabilities.attenuated_supported() &&
-         profile::Profile::instance()->is_mixing_audio_supported();
-}
+class StateControllerMock :public am::StateController {
+ public:
+  MOCK_METHOD2(SetRegularState, void (
+      am::ApplicationSharedPtr, const mobile_apis::AudioStreamingState::eType));
+  MOCK_METHOD2(SetRegularState, void (
+      am::ApplicationSharedPtr, const mobile_apis::SystemContext::eType));
+  MOCK_METHOD3(OnStateChanged, void (
+      am::ApplicationSharedPtr, am::HmiStatePtr, am::HmiStatePtr));
+  MOCK_METHOD1(ApplyStatesForApp, void (am::ApplicationSharedPtr));
+  MOCK_METHOD0(OnNaviStreamingStarted, void ());
+  MOCK_METHOD0(OnNaviStreamingStopped, void ());
+};
 
 }
+#endif // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_STATE_CONTROLLER_INCLUDE_STATE_CONTROLLER_MOCK

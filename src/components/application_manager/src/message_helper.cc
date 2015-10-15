@@ -225,38 +225,6 @@ smart_objects::SmartObjectSPtr MessageHelper::CreateRequestObject() {
   return request;
 }
 
-void MessageHelper::SendHMIStatusNotification(
-  const Application& application_impl) {
-  LOG4CXX_AUTO_TRACE(logger_);
-  smart_objects::SmartObjectSPtr notification = new smart_objects::SmartObject;
-  if (!notification) {
-    // TODO(VS): please add logger.
-    return;
-  }
-  smart_objects::SmartObject& message = *notification;
-
-  message[strings::params][strings::function_id] =
-    static_cast<int32_t>(mobile_api::FunctionID::OnHMIStatusID);
-
-  message[strings::params][strings::message_type] =
-    static_cast<int32_t>(application_manager::MessageType::kNotification);
-
-  message[strings::params][strings::connection_key] =
-    static_cast<int32_t>(application_impl.app_id());
-
-  message[strings::msg_params][strings::hmi_level] =
-    static_cast<int32_t>(application_impl.hmi_level());
-
-  message[strings::msg_params][strings::audio_streaming_state] =
-    static_cast<int32_t>(application_impl.audio_streaming_state());
-
-  message[strings::msg_params][strings::system_context] =
-    static_cast<int32_t>(application_impl.system_context());
-
-  ApplicationManagerImpl::instance()->ManageMobileCommand(notification,
-                                                          commands::Command::ORIGIN_SDL);
-}
-
 void MessageHelper::SendOnAppRegisteredNotificationToHMI(
   const Application& application_impl, bool resumption, bool need_restore_vr) {
   using namespace smart_objects;
@@ -1346,7 +1314,6 @@ void MessageHelper::SendOnAppUnregNotificationToHMI(
   if (!notification) {
     return;
   }
-
   smart_objects::SmartObject& message = *notification;
 
   message[strings::params][strings::function_id] =

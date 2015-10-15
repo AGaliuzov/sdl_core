@@ -102,7 +102,6 @@ class ApplicationImplTest : public ::testing::Test {
   std::string directory_name;
   static ApplicationManagerImpl* app_mngr_;
   MockStatisticsManager* mock_stat_mngr_;
-  StateContext st_context;
   HmiState::StateID state_id;
   HmiStatePtr testHmiState;
   HMILevel::eType test_lvl;
@@ -113,7 +112,7 @@ ApplicationManagerImpl* ApplicationImplTest::app_mngr_;
 
 HmiStatePtr ApplicationImplTest::CreateTestHmiState() {
   HmiStatePtr testState =
-      utils::MakeShared<HmiState>(app_id, st_context, state_id);
+      utils::MakeShared<HmiState>(app_id, app_mngr_, state_id);
   testState->set_hmi_level(test_lvl);
   testState->set_audio_streaming_state(audiostate);
   testState->set_system_context(syst_context);
