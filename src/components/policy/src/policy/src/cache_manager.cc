@@ -1419,6 +1419,7 @@ bool CacheManager::CleanupUnpairedDevices() {
 
 void CacheManager::Increment(usage_statistics::GlobalCounterId type) {
   CACHE_MANAGER_CHECK_VOID();
+  sync_primitives::AutoLock lock (cache_lock_);
   switch (type) {
     case usage_statistics::IAP_BUFFER_FULL:
       ++(*pt_->policy_table.usage_and_error_counts->count_of_iap_buffer_full);
@@ -1439,6 +1440,7 @@ void CacheManager::Increment(usage_statistics::GlobalCounterId type) {
 void CacheManager::Increment(const std::string& app_id,
                              usage_statistics::AppCounterId type) {
   CACHE_MANAGER_CHECK_VOID();
+  sync_primitives::AutoLock lock (cache_lock_);
   switch (type) {
     case usage_statistics::USER_SELECTIONS:
       ++(*pt_->policy_table.usage_and_error_counts->app_level)[app_id].
@@ -1487,6 +1489,7 @@ void CacheManager::Set(const std::string& app_id,
                        usage_statistics::AppInfoId type,
                        const std::string& value) {
   CACHE_MANAGER_CHECK_VOID();
+  sync_primitives::AutoLock lock (cache_lock_);
   switch (type) {
     case usage_statistics::LANGUAGE_GUI:
       (*pt_->policy_table.usage_and_error_counts->app_level)[app_id].
@@ -1507,6 +1510,7 @@ void CacheManager::Add(const std::string& app_id,
                        usage_statistics::AppStopwatchId type,
                        int seconds) {
   CACHE_MANAGER_CHECK_VOID();
+  sync_primitives::AutoLock lock (cache_lock_);
   const int minutes = ConvertSecondsToMinute(seconds);
   switch (type) {
     case usage_statistics::SECONDS_HMI_FULL:

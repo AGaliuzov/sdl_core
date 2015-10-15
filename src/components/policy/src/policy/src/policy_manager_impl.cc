@@ -1114,14 +1114,12 @@ void PolicyManagerImpl::PTUpdatedAt(Counters counter, int value) {
 
 void PolicyManagerImpl::Increment(usage_statistics::GlobalCounterId type) {
   LOG4CXX_INFO(logger_, "Increment without app id" );
-  sync_primitives::AutoLock locker(statistics_lock_);
   cache_->Increment(type);
 }
 
 void PolicyManagerImpl::Increment(const std::string& app_id,
                                   usage_statistics::AppCounterId type){
   LOG4CXX_DEBUG(logger_, "Increment " << app_id << " AppCounter: " << type);
-  sync_primitives::AutoLock locker(statistics_lock_);
   cache_->Increment(app_id, type);
 }
 
@@ -1129,7 +1127,6 @@ void PolicyManagerImpl::Set(const std::string& app_id,
                             usage_statistics::AppInfoId type,
                             const std::string& value) {
   LOG4CXX_INFO(logger_, "Set " << app_id);
-  sync_primitives::AutoLock locker(statistics_lock_);
   cache_->Set(app_id, type, value);
 }
 
@@ -1137,7 +1134,6 @@ void PolicyManagerImpl::Add(const std::string& app_id,
                             usage_statistics::AppStopwatchId type,
                             int32_t timespan_seconds) {
   LOG4CXX_INFO(logger_, "Add " << app_id);
-  sync_primitives::AutoLock locker(statistics_lock_);
   cache_->Add(app_id, type, timespan_seconds);
 }
 

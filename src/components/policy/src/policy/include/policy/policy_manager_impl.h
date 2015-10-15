@@ -308,11 +308,6 @@ class PolicyManagerImpl : public PolicyManager {
     sync_primitives::Lock retry_sequence_lock_;
 
     /**
-     * Lock for guarding recording statistics
-     */
-    sync_primitives::Lock statistics_lock_;
-
-    /**
      * @brief Device id, which is used during PTU handling for specific
      * application
      */
