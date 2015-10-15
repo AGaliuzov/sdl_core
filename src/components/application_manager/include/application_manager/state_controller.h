@@ -241,13 +241,6 @@ class StateController : public event_engine::EventObserver {
     }
   }
 
-  /**
-   * @brief Checks activity of Deactivate HMI state.
-   * @return Returns TRUE if deactivate HMI state is active, otherwise returns
-   * FALSE.
-   */
-  bool IsActiveDiactivateHMI() const;
-
   // EventObserver interface
   void on_event(const event_engine::Event& event);
 
@@ -276,6 +269,13 @@ class StateController : public event_engine::EventObserver {
    */
   void OnStateChanged(ApplicationSharedPtr app, HmiStatePtr old_state,
                       HmiStatePtr new_state);
+
+  /**
+   * @brief Checks activity of Deactivate HMI state.
+   * @return Returns TRUE if deactivate HMI state is active, otherwise returns
+   * FALSE.
+   */
+  bool IsDeactivateHMIStateActive() const;
 
  private:
   /**
@@ -551,7 +551,6 @@ class StateController : public event_engine::EventObserver {
   mutable sync_primitives::Lock active_states_lock_;
   std::map<uint32_t, HmiStatePtr> waiting_for_activate;
   ApplicationManager* app_mngr_;
-
 };
 }
 

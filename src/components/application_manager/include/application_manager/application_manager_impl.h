@@ -546,8 +546,8 @@ class ApplicationManagerImpl :
      * @return Returns TRUE if deactivate HMI state is active, otherwise returns
      * FALSE.
      */
-    bool IsActiveDiactivateHMI() const {
-      return state_ctrl_.IsActiveDiactivateHMI();
+    bool IsDeactivateHMIStateActive() const {
+      return state_ctrl_.IsDeactivateHMIStateActive();
     }
 
 #ifdef CUSTOMER_PASA

@@ -603,7 +603,7 @@ void StateController::OnNaviStreamingStopped() {
   CancelTempState<HmiState::STATE_ID_NAVI_STREAMING>();
 }
 
-bool StateController::IsActiveDiactivateHMI() const {
+bool StateController::IsDeactivateHMIStateActive() const {
   return IsTempStateActive(HmiState::StateID::STATE_ID_DEACTIVATE_HMI);
 }
 
