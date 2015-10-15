@@ -541,6 +541,15 @@ class ApplicationManagerImpl :
     state_ctrl_.SetRegularState(app, state);
   }
 
+    /**
+     * @brief Checks activity of Deactivate HMI state.
+     * @return Returns TRUE if deactivate HMI state is active, otherwise returns
+     * FALSE.
+     */
+    bool IsActiveDiactivateHMI() const {
+      return state_ctrl_.IsActiveDiactivateHMI();
+    }
+
 #ifdef CUSTOMER_PASA
   /**
    * @brief Retrieves value of is_state_suspended_

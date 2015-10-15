@@ -56,22 +56,42 @@
     virtual bool CleanUp();
     virtual void Run();
     virtual void on_event(const event_engine::Event& event);
+
     /**
      * @brief SendResponse allows to send response to hmi
-     *
      * @param success the response result.
-     *
-     * @param correlation_id the correlation id for the rfesponse.
-     *
+     * @param correlation_id the correlation id for the response.
      * @param function_id the function id for which response will be sent
-     *
      * @param result_code the result code.
      */
     void SendResponse(bool success,
                       uint32_t correlation_id,
                       hmi_apis::FunctionID::eType function_id,
                       hmi_apis::Common_Result::eType result_code);
+
+
+    /**
+     * @brief SendResponse allows to send error response to hmi
+     * @param correlation_id the correlation id for the response.
+     * @param function_id the function id for which response will be sent
+     * @param result_code the result code.
+     */
+    void SendErrorResponse(uint32_t correlation_id,
+                      hmi_apis::FunctionID::eType function_id,
+                      hmi_apis::Common_Result::eType result_code);
+
    private:
+
+    /**
+     * @brief Fills common parameters for SO
+     * @param Contains SO for filling
+     * @param correlation_id the correlation id for the response.
+     * @param function_id the function id for which response will be sent
+     */
+    void FillCommonParametersOfSO(smart_objects::SmartObject* message,
+                                  uint32_t correlation_id,
+                                  hmi_apis::FunctionID::eType function_id);
+
     DISALLOW_COPY_AND_ASSIGN(RequestFromHMI);
   };
 

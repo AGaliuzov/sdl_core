@@ -65,6 +65,7 @@ class HmiState {
     STATE_ID_VR_SESSION,
     STATE_ID_TTS_SESSION,
     STATE_ID_NAVI_STREAMING,
+    STATE_ID_DEACTIVATE_HMI
   };
 
   HmiState(uint32_t app_id, ApplicationManager* app_mngr);
@@ -245,5 +246,19 @@ class SafetyModeHmiState : public HmiState {
     return mobile_apis::AudioStreamingState::NOT_AUDIBLE;
   }
 };
+
+/**
+ * @brief The DeactivateHMI class impement logic of DeactivateHMI temporary state
+ */
+class DeactivateHMI : public HmiState {
+ public:
+  DeactivateHMI(uint32_t app_id, const StateContext& state_context);
+  virtual mobile_apis::HMILevel::eType hmi_level() const;
+  virtual  mobile_apis::AudioStreamingState::eType audio_streaming_state() const {
+    return mobile_apis::AudioStreamingState::NOT_AUDIBLE;
+  }
+
+};
+
 }
 #endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_HMISTATE_H

@@ -241,6 +241,13 @@ class StateController : public event_engine::EventObserver {
     }
   }
 
+  /**
+   * @brief Checks activity of Deactivate HMI state.
+   * @return Returns TRUE if deactivate HMI state is active, otherwise returns
+   * FALSE.
+   */
+  bool IsActiveDiactivateHMI() const;
+
   // EventObserver interface
   void on_event(const event_engine::Event& event);
 
@@ -488,43 +495,30 @@ class StateController : public event_engine::EventObserver {
   void OnAppActivated(const smart_objects::SmartObject& message);
 
   /**
-   * @brief OnPhoneCallStarted process Phone Call Started event
+   * @brief Apply temporary state
    */
-  void OnPhoneCallStarted();
+  template <HmiState::StateID ID>
+  void ApplyTempState() {
+    ForEachApplication(std::bind1st(
+        std::mem_fun(
+            &StateController::HMIStateStarted<ID>),
+            this)
+    );
+    TempStateStarted(ID);
+  }
 
   /**
-   * @brief OnPhoneCallEnded process Phone Call Ended event
+   * @brief Cancel temporary state
    */
-  void OnPhoneCallEnded();
-
-  /**
-   * @brief OnSafetyModeEnabled process Safety Mode Enable event
-   */
-  void OnSafetyModeEnabled();
-
-  /**
-   * @brief OnSafetyModeDisabled process Safety Mode Disable event
-   */
-  void OnSafetyModeDisabled();
-
-  /**
-   * @brief OnVRStarted process VR session started
-   */
-  void OnVRStarted();
-
-  /**
-   * @brief OnVREnded process VR session ended
-   */
-  void OnVREnded();
-  /**
-   * @brief OnTTSStarted process TTS session started
-   */
-  void OnTTSStarted();
-
-  /**
-   * @brief OnTTSEnded process TTS session ended
-   */
-  void OnTTSStopped();
+  template <HmiState::StateID ID>
+  void CancelTempState() {
+    ForEachApplication(std::bind1st(
+        std::mem_fun(
+            &StateController::HMIStateStopped<ID>),
+            this)
+    );
+    TempStateStopped(ID);
+  }
 
   /**
    * @brief SetAplicationManager setter got app_mngr
@@ -557,6 +551,7 @@ class StateController : public event_engine::EventObserver {
   mutable sync_primitives::Lock active_states_lock_;
   std::map<uint32_t, HmiStatePtr> waiting_for_activate;
   ApplicationManager* app_mngr_;
+
 };
 }
 

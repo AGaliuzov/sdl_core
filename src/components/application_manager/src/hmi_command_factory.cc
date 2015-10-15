@@ -271,6 +271,8 @@
 #ifdef CUSTOMER_PASA
 #include "application_manager/commands/hmi/basic_communication_on_awake_sdl.h"
 #endif // CUSTOMER_PASA
+#include "application_manager/commands/hmi/basic_communication_on_deactivate_hmi.h"
+#include "utils/make_shared.h"
 
 namespace application_manager {
 
@@ -2089,8 +2091,11 @@ CommandSharedPtr HMICommandFactory::CreateCommand(
       break;
     }
 #endif // CUSTOMER_PASA
+    case hmi_apis::FunctionID::BasicCommunication_OnDeactivateHMI: {
+      command = utils::MakeShared<commands::OnDeactivateHMINotification>(message);
+      break;
+    }
   }
-
   return command;
 }
 

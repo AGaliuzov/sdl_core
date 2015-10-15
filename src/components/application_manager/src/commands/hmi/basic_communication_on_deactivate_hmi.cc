@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,47 +30,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "application_manager/commands/hmi/sdl_activate_app_request.h"
-#include "application_manager/policies/policy_handler.h"
+#include "application_manager/commands/hmi/basic_communication_on_deactivate_hmi.h"
+
 
 namespace application_manager {
 
 namespace commands {
 
-SDLActivateAppRequest::SDLActivateAppRequest(const MessageSharedPtr& message)
-    : RequestFromHMI(message) {
+OnDeactivateHMINotification::OnDeactivateHMINotification(
+    const MessageSharedPtr& message) : NotificationFromHMI(message) {
 }
 
-SDLActivateAppRequest::~SDLActivateAppRequest() {
+OnDeactivateHMINotification::~OnDeactivateHMINotification() {
 }
 
-void SDLActivateAppRequest::Run() {
+void OnDeactivateHMINotification::Run() {
   LOG4CXX_AUTO_TRACE(logger_);
-  using namespace hmi_apis::FunctionID;
-
-  if (ApplicationManagerImpl::instance()->IsActiveDiactivateHMI()) {
-    LOG4CXX_DEBUG(logger_, "DeactivateHmi state is active. Sends response with result code REJECTED");
-    SendErrorResponse(correlation_id(),
-                      static_cast<eType>(function_id()),
-                      hmi_apis::Common_Result::REJECTED);
-  } else {
-    const uint32_t application_id = app_id();
-    policy::PolicyHandler::instance()->OnActivateApp(application_id,
-                                                     correlation_id());
-  }
-}
-
-uint32_t SDLActivateAppRequest::app_id() const {
-
-  if ((*message_).keyExists(strings::msg_params)) {
-    if ((*message_)[strings::msg_params].keyExists(strings::app_id)){
-        return (*message_)[strings::msg_params][strings::app_id].asUInt();
-    }
-  }
-  LOG4CXX_DEBUG(logger_, "app_id section is absent in the message.");
-  return 0;
+  event_engine::Event event(hmi_apis::FunctionID::BasicCommunication_OnDeactivateHMI);
+  event.set_smart_object(*message_);
+  event.raise();
 }
 
 }  // namespace commands
+
 }  // namespace application_manager
 

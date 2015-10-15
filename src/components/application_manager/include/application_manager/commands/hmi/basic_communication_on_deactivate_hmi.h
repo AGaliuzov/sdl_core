@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,47 +30,45 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "application_manager/commands/hmi/sdl_activate_app_request.h"
-#include "application_manager/policies/policy_handler.h"
+#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_BASIC_COMMUNICATION_ON_DEACTIVATE_HMI_H_
+#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_BASIC_COMMUNICATION_ON_DEACTIVATE_HMI_H_
+
+#include "application_manager/commands/hmi/notification_from_hmi.h"
 
 namespace application_manager {
 
 namespace commands {
 
-SDLActivateAppRequest::SDLActivateAppRequest(const MessageSharedPtr& message)
-    : RequestFromHMI(message) {
-}
+/**
+ * @brief OnDeactivateHMINotification command class
+ **/
+class OnDeactivateHMINotification : public NotificationFromHMI {
+ public:
+  /**
+   * @brief OnDeactivateHMINotification class constructor
+   *
+   * @param message Incoming SmartObject message
+   **/
+  explicit OnDeactivateHMINotification(const MessageSharedPtr& message);
 
-SDLActivateAppRequest::~SDLActivateAppRequest() {
-}
+  /**
+   * @brief OnDeactivateHMINotification class destructor
+   **/
+  virtual ~OnDeactivateHMINotification();
 
-void SDLActivateAppRequest::Run() {
-  LOG4CXX_AUTO_TRACE(logger_);
-  using namespace hmi_apis::FunctionID;
+  /**
+   * @brief Execute command
+   **/
+  virtual void Run();
 
-  if (ApplicationManagerImpl::instance()->IsActiveDiactivateHMI()) {
-    LOG4CXX_DEBUG(logger_, "DeactivateHmi state is active. Sends response with result code REJECTED");
-    SendErrorResponse(correlation_id(),
-                      static_cast<eType>(function_id()),
-                      hmi_apis::Common_Result::REJECTED);
-  } else {
-    const uint32_t application_id = app_id();
-    policy::PolicyHandler::instance()->OnActivateApp(application_id,
-                                                     correlation_id());
-  }
-}
+ private:
 
-uint32_t SDLActivateAppRequest::app_id() const {
-
-  if ((*message_).keyExists(strings::msg_params)) {
-    if ((*message_)[strings::msg_params].keyExists(strings::app_id)){
-        return (*message_)[strings::msg_params][strings::app_id].asUInt();
-    }
-  }
-  LOG4CXX_DEBUG(logger_, "app_id section is absent in the message.");
-  return 0;
-}
+  DISALLOW_COPY_AND_ASSIGN(OnDeactivateHMINotification);
+};
 
 }  // namespace commands
+
 }  // namespace application_manager
+
+#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_BASIC_COMMUNICATION_ON_DEACTIVATE_HMI_H_
 
