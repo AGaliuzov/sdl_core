@@ -40,8 +40,7 @@ include_directories (
   ${COMPONENTS_DIR}/protocol_handler/include
   ${COMPONENTS_DIR}/application_manager/include
   ${COMPONENTS_DIR}/protocol_handler/test
-  )
-  
+)
 
 set(testSources
   metric_wrapper_test.cc

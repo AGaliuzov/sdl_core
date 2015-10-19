@@ -31,10 +31,10 @@
  */
 
 #include "gtest/gtest.h"
-#include "json_keys.h"
+#include "time_tester/json_keys.h"
 #include "utils/resource_usage.h"
 #include "application_manager/smart_object_keys.h"
-#include "application_manager_metric.h"
+#include "time_tester/application_manager_metric.h"
 
 namespace test {
 namespace components {
