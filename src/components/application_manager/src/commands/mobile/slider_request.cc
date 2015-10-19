@@ -147,7 +147,7 @@ void SliderRequest::on_event(const event_engine::Event& event) {
         Common_Result::ABORTED);
 
   if (is_timeout_aborted) {
-    if (response_msg_params[strings::data]
+    if (message[strings::params][strings::data]
         .keyExists(strings::slider_position)) {
       //Copy slider_position info to msg_params section
       response_msg_params[strings::slider_position] =
