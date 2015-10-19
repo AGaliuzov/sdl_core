@@ -108,7 +108,7 @@ void ProtocolPacket::ProtocolHeader::deserialize(
   dataSize = read_be_uint32(message + 4);
   switch (version) {
     case PROTOCOL_VERSION_2:
-    case PROTOCOL_VERSION_3:{
+    case PROTOCOL_VERSION_3: {
         if (messageSize < PROTOCOL_HEADER_V2_SIZE) {
           LOG4CXX_DEBUG(logger_, "Message size less " << PROTOCOL_HEADER_V2_SIZE << " bytes");
           return;
@@ -231,7 +231,7 @@ RESULT_CODE ProtocolPacket::ProtocolHeaderValidator::validate(
       break;
   }
   // Message ID be equal or greater than 0x01 (not actual for 1 protocol version and Control frames)
-  if(header.messageId <= 0) {
+  if (header.messageId <= 0) {
     if (FRAME_TYPE_CONTROL != header.frameType &&
         PROTOCOL_VERSION_1 != header.version) {
       LOG4CXX_WARN(logger_, "Message ID shall be greater than 0x00");
@@ -297,7 +297,7 @@ RawMessagePtr ProtocolPacket::serializePacket() const {
     header[offset++] = packet_header_.messageId >> 16;
     header[offset++] = packet_header_.messageId >> 8;
     header[offset++] = packet_header_.messageId;
-  };
+  }
 
   size_t total_packet_size = offset + (packet_data_.data ? packet_data_.totalDataBytes : 0);
 

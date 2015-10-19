@@ -43,7 +43,7 @@
 // Todd: PASA support
 #define PASA_HMI
 #define BLUETOOTH_SUPPORT
-//#define IPOD_SUPPORT
+// #define IPOD_SUPPORT
 #define MME_SUPPORT
 #define MME_MQ
 #endif  // CUSTOMER_PASA
@@ -95,7 +95,7 @@
   if (!(condition)) { \
     CREATE_LOGGERPTR_LOCAL(logger_, "Utils"); \
     LOG4CXX_FATAL(logger_,  "DCHECK failed with \"" << #condition \
-       << "\" [" << __FUNCTION__ << "][" << __FILE__ << ':' << __LINE__ << ']' ); \
+       << "\" [" << __FUNCTION__ << "][" << __FILE__ << ':' << __LINE__ << ']'); \
     ASSERT((condition)); \
     return (return_value); \
   }
@@ -107,7 +107,7 @@
   if (!(condition)) { \
     CREATE_LOGGERPTR_LOCAL(logger_, "Utils"); \
     LOG4CXX_FATAL(logger_,  "DCHECK failed with \"" << #condition \
-       << "\" [" << __FUNCTION__ << "][" << __FILE__ << ':' << __LINE__ << ']' ); \
+       << "\" [" << __FUNCTION__ << "][" << __FILE__ << ':' << __LINE__ << ']'); \
     ASSERT((condition)); \
     return ; \
   }

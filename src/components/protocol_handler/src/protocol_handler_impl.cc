@@ -33,7 +33,7 @@
 #include "protocol_handler/protocol_handler_impl.h"
 #include <memory.h>
 #include <algorithm>    // std::find
-#include <utility>      //std::pair
+#include <utility>      // std::pair
 
 #include "connection_handler/connection_handler_impl.h"
 #include "config_profile/profile.h"
@@ -94,7 +94,8 @@ ProtocolHandlerImpl::ProtocolHandlerImpl(
 
 {
   LOG4CXX_AUTO_TRACE(logger_);
-  protocol_header_validator_.set_max_payload_size(profile::Profile::instance()->maximum_payload_size());
+  protocol_header_validator_.set_max_payload_size(
+        profile::Profile::instance()->maximum_payload_size());
   incoming_data_handler_.set_validator(&protocol_header_validator_);
 
   if (message_frequency_time_ > 0u &&
@@ -107,11 +108,12 @@ ProtocolHandlerImpl::ProtocolHandlerImpl(
   }
 
   if (malformed_message_filtering_) {
-    if(malformed_message_frequency_time_ > 0u &&
-       malformed_message_max_frequency_ > 0u) {
+    if (malformed_message_frequency_time_ > 0u &&
+        malformed_message_max_frequency_ > 0u) {
       malformed_message_meter_.set_time_range(malformed_message_frequency_time_);
-      LOG4CXX_DEBUG(logger_, "Malformed frequency meter is enabled ( " << malformed_message_max_frequency_
-                    << " per " << malformed_message_frequency_time_ << " mSecond)");
+      LOG4CXX_DEBUG(logger_, "Malformed frequency meter is enabled ( "
+                    << malformed_message_max_frequency_ << " per "
+                    << malformed_message_frequency_time_ << " mSecond)");
     } else {
       LOG4CXX_WARN(logger_, "Malformed frequency meter is disabled");
     }
@@ -300,15 +302,15 @@ RESULT_CODE ProtocolHandlerImpl::SendHeartBeatAck(ConnectionID connection_id,
 
   uint8_t protocol_version;
   if (session_observer_->ProtocolVersionUsed(connection_id,
-	session_id, protocol_version)) {
-	ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
+  session_id, protocol_version)) {
+  ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
         protocol_version, PROTECTION_OFF, FRAME_TYPE_CONTROL,
-	    SERVICE_TYPE_CONTROL, FRAME_DATA_HEART_BEAT_ACK, session_id,
-	    0u, message_id));
+      SERVICE_TYPE_CONTROL, FRAME_DATA_HEART_BEAT_ACK, session_id,
+      0u, message_id));
 
-	raw_ford_messages_to_mobile_.PostMessage(
-	    impl::RawFordMessageToMobile(ptr, false));
-	return RESULT_OK;
+  raw_ford_messages_to_mobile_.PostMessage(
+      impl::RawFordMessageToMobile(ptr, false));
+  return RESULT_OK;
   }
   LOG4CXX_WARN(logger_, "SendHeartBeatAck is failed connection or session does not exist");
   return RESULT_FAIL;
@@ -319,9 +321,9 @@ void ProtocolHandlerImpl::SendHeartBeat(int32_t connection_id,
   LOG4CXX_AUTO_TRACE(logger_);
   uint8_t protocol_version;
   if (session_observer_->ProtocolVersionUsed(connection_id,
-			session_id, protocol_version)) {
+      session_id, protocol_version)) {
     ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
-	    protocol_version, PROTECTION_OFF, FRAME_TYPE_CONTROL,
+      protocol_version, PROTECTION_OFF, FRAME_TYPE_CONTROL,
         SERVICE_TYPE_CONTROL, FRAME_DATA_HEART_BEAT, session_id,
         0u, message_counters_[session_id]++));
 
@@ -600,7 +602,7 @@ RESULT_CODE ProtocolHandlerImpl::SendFrame(const ProtocolFramePtr packet) {
   if (!message_to_send) {
     LOG4CXX_ERROR(logger_, "Serialization error");
         return RESULT_FAIL;
-  };
+  }
   LOG4CXX_DEBUG(logger_,
                "Message to send with connection id " <<
                static_cast<int>(packet->connection_id()));
@@ -613,7 +615,7 @@ RESULT_CODE ProtocolHandlerImpl::SendFrame(const ProtocolFramePtr packet) {
       transport_manager_->SendMessageToDevice(message_to_send)) {
     LOG4CXX_WARN(logger_, "Can't send message to device");
     return RESULT_FAIL;
-  };
+  }
   return RESULT_OK;
 }
 
@@ -707,20 +709,20 @@ RESULT_CODE ProtocolHandlerImpl::SendMultiFrameMessage(
 RESULT_CODE ProtocolHandlerImpl::HandleMessage(ConnectionID connection_id,
                                                const ProtocolFramePtr packet) {
   DCHECK_OR_RETURN(packet, RESULT_UNKNOWN);
-  LOG4CXX_DEBUG( logger_, "Handling message " << packet);
+  LOG4CXX_DEBUG(logger_, "Handling message " << packet);
   switch (packet->frame_type()) {
     case FRAME_TYPE_CONTROL:
-      LOG4CXX_TRACE(logger_, "handleMessage() - case FRAME_TYPE_CONTROL");
+      LOG4CXX_TRACE(logger_, "FRAME_TYPE_CONTROL");
       return HandleControlMessage(connection_id, packet);
     case FRAME_TYPE_SINGLE:
-      LOG4CXX_TRACE(logger_, "handleMessage() - case FRAME_TYPE_SINGLE");
+      LOG4CXX_TRACE(logger_, "FRAME_TYPE_SINGLE");
       return HandleSingleFrameMessage(connection_id, packet);
     case FRAME_TYPE_FIRST:
     case FRAME_TYPE_CONSECUTIVE:
-      LOG4CXX_TRACE(logger_, "handleMessage() - case FRAME_TYPE_FIRST or FRAME_TYPE_CONSECUTIVE");
+      LOG4CXX_TRACE(logger_, "FRAME_TYPE_FIRST or FRAME_TYPE_CONSECUTIVE");
       return HandleMultiFrameMessage(connection_id, packet);
     default: {
-      LOG4CXX_WARN(logger_, "handleMessage() - case unknown frame type"
+      LOG4CXX_WARN(logger_, "Unknown frame type"
                    << packet->frame_type());
       return RESULT_FAIL;
     }
@@ -931,8 +933,8 @@ RESULT_CODE ProtocolHandlerImpl::HandleControlMessageEndSession(
 
   // TODO(EZamakhov): add clean up output queue (for removed service)
   if (session_key != 0) {
-    SendEndSessionAck( connection_id, current_session_id,
-                       packet.protocol_version(), service_type);
+    SendEndSessionAck(connection_id, current_session_id,
+                      packet.protocol_version(), service_type);
     message_counters_.erase(current_session_id);
   } else {
     LOG4CXX_WARN(
@@ -1276,7 +1278,7 @@ RESULT_CODE ProtocolHandlerImpl::EncryptFrame(ProtocolFramePtr packet) {
           packet->connection_id(), packet->session_id(),
           packet->message_id(),    kRpc);
     return RESULT_OK;
-  };
+  }
   LOG4CXX_DEBUG(logger_, "Encrypted " << packet->data_size() << " bytes to "
                 << out_data_size << " bytes");
   DCHECK(out_data);
@@ -1335,7 +1337,7 @@ RESULT_CODE ProtocolHandlerImpl::DecryptFrame(ProtocolFramePtr packet) {
           packet->connection_id(), packet->session_id(),
           packet->message_id(),    kRpc);
     return RESULT_ENCRYPTION_FAILED;
-  };
+  }
   LOG4CXX_DEBUG(logger_, "Decrypted " << packet->data_size() << " bytes to "
                 << out_data_size << " bytes");
   DCHECK(out_data);
@@ -1356,24 +1358,23 @@ void ProtocolHandlerImpl::SendFramesNumber(uint32_t connection_key,
   session_observer_->PairFromKey(connection_key, &connection_id, &session_id);
   uint8_t protocol_version;
   if (session_observer_->ProtocolVersionUsed(connection_id, session_id,
-		  protocol_version)) {
+      protocol_version)) {
     ProtocolFramePtr ptr(new protocol_handler::ProtocolPacket(connection_id,
-	  	  protocol_version, PROTECTION_OFF, FRAME_TYPE_CONTROL,
-	        SERVICE_TYPE_NAVI, FRAME_DATA_SERVICE_DATA_ACK,
-	        session_id, 0, message_counters_[session_id]++));
+        protocol_version, PROTECTION_OFF, FRAME_TYPE_CONTROL,
+          SERVICE_TYPE_NAVI, FRAME_DATA_SERVICE_DATA_ACK,
+          session_id, 0, message_counters_[session_id]++));
 
     // Flow control data shall be 4 bytes according Ford Protocol
     DCHECK(sizeof(number_of_frames) == 4);
     number_of_frames = LE_TO_BE32(number_of_frames);
     ptr->set_data(reinterpret_cast<const uint8_t*>(&number_of_frames),
-	                  sizeof(number_of_frames));
-	raw_ford_messages_to_mobile_.PostMessage(
-	     impl::RawFordMessageToMobile(ptr, false));
-	LOG4CXX_DEBUG(logger_, "SendFramesNumber finished successfully");
+                    sizeof(number_of_frames));
+  raw_ford_messages_to_mobile_.PostMessage(
+       impl::RawFordMessageToMobile(ptr, false));
+  LOG4CXX_DEBUG(logger_, "SendFramesNumber finished successfully");
   } else {
-	  LOG4CXX_WARN(logger_, "SendFramesNumber is failed connection or session does not exist");
+    LOG4CXX_WARN(logger_, "SendFramesNumber is failed connection or session does not exist");
   }
-
 }
 
 #ifdef TIME_TESTER
