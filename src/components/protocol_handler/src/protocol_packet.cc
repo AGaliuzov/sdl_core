@@ -117,7 +117,8 @@ void ProtocolPacket::ProtocolHeader::deserialize(
       }
       break;
     default:
-      LOG4CXX_WARN(logger_, "Unknown version");
+      LOG4CXX_WARN(logger_, "Unknown version:" <<
+                   static_cast<int>(version));
       messageId = 0;
       break;
   }
@@ -139,7 +140,7 @@ size_t ProtocolPacket::ProtocolHeaderValidator::max_payload_size() const {
 
 RESULT_CODE ProtocolPacket::ProtocolHeaderValidator::validate(
     const ProtocolHeader& header) const {
-  LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(logger_, "Validating header - " << header);
   // expected payload size will be calculated depending
   // on used protocol version
   size_t payload_size = MAXIMUM_FRAME_DATA_V2_SIZE;
@@ -152,7 +153,7 @@ RESULT_CODE ProtocolPacket::ProtocolHeaderValidator::validate(
       payload_size = std::max(max_payload_size_, MAXIMUM_FRAME_DATA_V2_SIZE);
       break;
     default:
-      LOG4CXX_WARN(logger_, "Unknown version " <<
+      LOG4CXX_WARN(logger_, "Unknown version:" <<
                    static_cast<int>(header.version));
       return RESULT_FAIL;
   }
@@ -214,8 +215,7 @@ RESULT_CODE ProtocolPacket::ProtocolHeaderValidator::validate(
   // and shall be less than payload size
   if (header.dataSize > payload_size) {
     LOG4CXX_WARN(logger_, "Packet data size is " << header.dataSize <<
-                 "and biger than allowed payload size " <<
-                 payload_size << " bytes");
+                 " and bigger than allowed payload size " << payload_size << " bytes");
     return RESULT_FAIL;
   }
   switch (header.frameType) {
@@ -239,7 +239,7 @@ RESULT_CODE ProtocolPacket::ProtocolHeaderValidator::validate(
       return RESULT_FAIL;
     }
   }
-  LOG4CXX_DEBUG(logger_, "Message is completely correct.");
+  LOG4CXX_DEBUG(logger_, "Message header is completely correct.");
   return RESULT_OK;
 }
 
@@ -481,6 +481,10 @@ uint8_t ProtocolPacket::connection_id() const {
 
 uint32_t ProtocolPacket::payload_size() const {
   return payload_size_;
+}
+
+const ProtocolPacket::ProtocolHeader &ProtocolPacket::packet_header() const {
+  return packet_header_;
 }
 
 }  // namespace protocol_handler

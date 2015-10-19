@@ -48,7 +48,7 @@ void ProtocolHandlerObserver::StartMessageProcess(uint32_t message_id,
     return;
   }
   if (time_starts.find(message_id) != time_starts.end()) {
-    LOG4CXX_INFO(logger_, "Message ID already wait for stop processing" << message_id);
+    LOG4CXX_DEBUG(logger_, "Message ID already wait for stop processing " << message_id);
     return;
   }
   time_starts[message_id] = start_time;

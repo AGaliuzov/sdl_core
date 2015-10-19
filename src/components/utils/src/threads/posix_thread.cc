@@ -251,7 +251,7 @@ void Thread::stop() {
   stopped_ = true;
 
   LOG4CXX_DEBUG(logger_, "Stopping thread #" << handle_
-                << " \"" << name_ << " \"");
+                << " \"" << name_ << "\"");
 
   if (delegate_ && isThreadRunning_) {
     delegate_->exitThreadMain();
