@@ -128,7 +128,8 @@ ApplicationManagerImpl::ApplicationManagerImpl()
       tts_global_properties_timer_(
           "TTSGLPRTimer", this,
           &ApplicationManagerImpl::OnTimerSendTTSGlobalProperties, true),
-      is_low_voltage_(false) {
+      is_low_voltage_(false),
+      is_stopping_(false) {
   std::srand(std::time(0));
   AddPolicyObserver(this);
 
@@ -144,6 +145,7 @@ ApplicationManagerImpl::ApplicationManagerImpl()
 ApplicationManagerImpl::~ApplicationManagerImpl() {
   LOG4CXX_AUTO_TRACE(logger_);
 
+  is_stopping_ = true;
   SendOnSDLClose();
   media_manager_ = NULL;
   hmi_handler_ = NULL;
@@ -176,6 +178,7 @@ DataAccessor<ApplicationSet> ApplicationManagerImpl::applications() const {
 
 bool ApplicationManagerImpl::Stop() {
   LOG4CXX_AUTO_TRACE(logger_);
+  is_stopping_ = true;
   application_list_update_timer_->stop();
   try {
     UnregisterAllApplications();
@@ -183,6 +186,7 @@ bool ApplicationManagerImpl::Stop() {
     LOG4CXX_ERROR(logger_,
                   "An error occurred during unregistering applications.");
   }
+  request_ctrl_.DestroyThreadpool();
 
   // for PASA customer policy backup should happen :AllApp(SUSPEND)
   LOG4CXX_DEBUG(logger_, "Unloading policy library.");

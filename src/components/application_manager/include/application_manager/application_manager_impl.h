@@ -1053,6 +1053,10 @@ class ApplicationManagerImpl :
     }
   };
 
+    bool IsStopping() const {
+      return is_stopping_;
+    }
+
  private:
   ApplicationManagerImpl();
 
@@ -1333,6 +1337,8 @@ class ApplicationManagerImpl :
   timer::TimerThread<ApplicationManagerImpl> tts_global_properties_timer_;
 
   bool is_low_voltage_;
+
+  bool is_stopping_;
 
   DISALLOW_COPY_AND_ASSIGN(ApplicationManagerImpl);
 
