@@ -561,7 +561,8 @@ void ProtocolHandlerImpl::OnTMMessageSendFailed(
     const RawMessagePtr message) {
   // TODO(PV): implement
   LOG4CXX_ERROR(logger_, "Sending message " << message->data_size()
-                << " bytes failed: " << error.text());
+                << "bytes failed, connection_key " << message->connection_key()
+                << "Error_text: " << error.text());
 }
 
 void ProtocolHandlerImpl::OnConnectionEstablished(

@@ -73,6 +73,7 @@ BluetoothPASAListener::BluetoothPASAListener(
 }
 
 BluetoothPASAListener::~BluetoothPASAListener() {
+  LOG4CXX_AUTO_TRACE(logger_);
   if (thread_) {
     StopListening();
     Terminate();
