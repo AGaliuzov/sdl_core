@@ -288,27 +288,35 @@ void ApplinkNotificationThreadDelegate::threadMain() {
 
   sem_t* sem;
   while (true) {
+    LOG4CXX_AUTO_TRACE(logger_);
     if ( (length = read(readfd_, buffer, sizeof(buffer))) != -1) {
-      switch (buffer[0]) {
+      const char applink_signal = buffer[0];
+      LOG4CXX_DEBUG(logger_, "Get Applink HMI signal: " << static_cast<int>(applink_signal));
+      switch (applink_signal) {
         case TAKE_AOA:
         case RELEASE_AOA:
+          LOG4CXX_TRACE(logger_, "TAKE_AOA or RELEASE_AOA");
           if (-1 == mq_send(aoa_mq_, &buffer[0], sizeof(char), 0)) {
             LOG4CXX_ERROR(logger_, "Unable to re-send signal to AOA: "
                           << strerror(errno));
           }
           break;
         case SDL_MSG_SDL_START:
+          LOG4CXX_TRACE(logger_, "SDL_MSG_SDL_START");
           startSmartDeviceLink();
           if (0 < heart_beat_timeout_) {
             heart_beat_sender_->start(heart_beat_timeout_);
           }
           break;
         case SDL_MSG_START_USB_LOGGING:
+          LOG4CXX_TRACE(logger_, "SDL_MSG_START_USB_LOGGING");
           startUSBLogging();
           break;
         case SDL_MSG_SDL_STOP:
+          LOG4CXX_TRACE(logger_, "SDL_MSG_SDL_STOP");
           return;
         case SDL_MSG_LOW_VOLTAGE:
+          LOG4CXX_TRACE(logger_, "SDL_MSG_LOW_VOLTAGE");
           main_namespace::LifeCycle::instance()->LowVoltage();
           sem = sem_open("/SDLSleep", O_RDWR);
           if (!sem) {
@@ -319,9 +327,12 @@ void ApplinkNotificationThreadDelegate::threadMain() {
           sem_close(sem);
           break;
         case SDL_MSG_WAKE_UP:
+          LOG4CXX_TRACE(logger_, "SDL_MSG_WAKE_UP");
           main_namespace::LifeCycle::instance()->WakeUp();
           break;
         default:
+          LOG4CXX_WARN(logger_, "Unknown Applink HMI signal: "
+                        << static_cast<int>(applink_signal));
           break;
       }
     }
