@@ -226,6 +226,8 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   */
   virtual void SetPostponedState(HmiStatePtr state);
 
+  virtual void RemovePostponedState();
+
   /**
    * @brief AddHMIState the function that will change application's
    * hmi state.

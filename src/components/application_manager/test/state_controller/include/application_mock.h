@@ -138,6 +138,7 @@ class ApplicationMock : public am::Application {
   MOCK_METHOD0(usage_report, am::UsageStatistics&());
   MOCK_METHOD1(SetRegularState, void(am::HmiStatePtr state));
   MOCK_METHOD1(SetPostponedState, void(am::HmiStatePtr state));
+  MOCK_METHOD0(RemovePostponedState, void());
   MOCK_METHOD1(AddHMIState, void(am::HmiStatePtr state));
   MOCK_METHOD1(RemoveHMIState, void(am::HmiState::StateID state_id));
   MOCK_METHOD2(SubscribeToSoftButtons,

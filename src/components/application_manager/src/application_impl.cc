@@ -70,6 +70,17 @@ mobile_apis::FileType::eType StringToFileType(const char* str) {
     return mobile_apis::FileType::BINARY;
   }
 }
+
+
+struct StateIdFindPredicate {
+    application_manager::HmiState::StateID state_id_;
+    StateIdFindPredicate(application_manager::HmiState::StateID state_id):
+      state_id_(state_id) {}
+    bool operator ()(const application_manager::HmiStatePtr cur) {
+      return cur->state_id() == state_id_;
+    }
+};
+
 }
 
 namespace application_manager {
@@ -214,18 +225,18 @@ void ApplicationImpl::SetRegularState(HmiStatePtr state) {
       HmiState::StateID::STATE_ID_REGULAR);
   sync_primitives::AutoLock auto_lock(hmi_states_lock_);
   DCHECK_OR_RETURN_VOID(!hmi_states_.empty());
-  hmi_states_.pop_front();
-  if (!hmi_states_.empty()) {
-    HmiStatePtr front_state = hmi_states_.front();
-    if (front_state->state_id() == HmiState::StateID::STATE_ID_REGULAR) {
-      hmi_states_.pop_front();
-    }
+
+  StateIdFindPredicate finder(HmiState::StateID::STATE_ID_REGULAR);
+  HmiStateList::iterator regular_state =
+      std::find_if(hmi_states_.begin(), hmi_states_.end(), finder);
+  if (hmi_states_.end() == regular_state) {
+    LOG4CXX_FATAL(logger_, "No regular state is set for app.");
+    return;
   }
-  if (!hmi_states_.empty()) {
-    HmiStatePtr front_state = hmi_states_.front();
-    front_state->set_parent(state);
-  }
-  hmi_states_.push_front(state);
+
+  regular_state->get()->set_audio_streaming_state(state->audio_streaming_state());
+  regular_state->get()->set_hmi_level(state->hmi_level());
+  regular_state->get()->set_system_context(state->system_context());
 }
 
 void ApplicationImpl::SetPostponedState(HmiStatePtr state) {
@@ -242,14 +253,22 @@ void ApplicationImpl::SetPostponedState(HmiStatePtr state) {
   hmi_states_.push_front(state);
 }
 
-struct StateIdFindPredicate {
-    HmiState::StateID state_id_;
-    StateIdFindPredicate(HmiState::StateID state_id):
-      state_id_(state_id) {}
-    bool operator ()(const HmiStatePtr cur) {
-      return cur->state_id() == state_id_;
-    }
-};
+void ApplicationImpl::RemovePostponedState() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  sync_primitives::AutoLock auto_lock(hmi_states_lock_);
+  DCHECK_OR_RETURN_VOID(!hmi_states_.empty());
+
+  StateIdFindPredicate finder(HmiState::StateID::STATE_ID_POSTPONED);
+
+  HmiStateList::iterator postponed_state =
+      std::find_if(hmi_states_.begin(), hmi_states_.end(), finder);
+
+  if (hmi_states_.end() == postponed_state) {
+    LOG4CXX_ERROR(logger_, "No postponed state is set for app.");
+    return;
+  }
+  hmi_states_.erase(postponed_state);
+}
 
 void ApplicationImpl::AddHMIState(HmiStatePtr state) {
   LOG4CXX_AUTO_TRACE(logger_);

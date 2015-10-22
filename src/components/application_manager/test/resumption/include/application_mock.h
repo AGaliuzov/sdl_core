@@ -143,6 +143,7 @@ class ApplicationMock : public ::application_manager::Application {
   MOCK_METHOD0(usage_report, ::application_manager::UsageStatistics&());
   MOCK_METHOD1(SetRegularState, void(::application_manager::HmiStatePtr state));
   MOCK_METHOD1(SetPostponedState, void(::application_manager::HmiStatePtr state));
+  MOCK_METHOD0(RemovePostponedState, void());
   MOCK_METHOD1(AddHMIState, void(::application_manager::HmiStatePtr state));
   MOCK_METHOD1(RemoveHMIState,
                void(::application_manager::HmiState::StateID state_id));
