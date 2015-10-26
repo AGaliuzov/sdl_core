@@ -31,8 +31,8 @@
  */
 
 #include "gtest/gtest.h"
-#include "metric_wrapper.h"
-#include "json_keys.h"
+#include "time_tester/metric_wrapper.h"
+#include "time_tester/json_keys.h"
 #include "json/json.h"
 #include "utils/resource_usage.h"
 

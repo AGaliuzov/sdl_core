@@ -31,10 +31,10 @@
  */
 
 #include "gtest/gtest.h"
-#include "json_keys.h"
 #include "json/json.h"
 #include "utils/resource_usage.h"
-#include "transport_manager_metric.h"
+#include "time_tester/json_keys.h"
+#include "time_tester/transport_manager_metric.h"
 #include "protocol_handler/time_metric_observer.h"
 
 namespace test {

@@ -33,8 +33,8 @@
 #include "gtest/gtest.h"
 #include "include/time_manager_mock.h"
 #include "protocol_handler/time_metric_observer.h"
-#include "transport_manager_metric.h"
-#include "transport_manager_observer.h"
+#include "time_tester/transport_manager_metric.h"
+#include "time_tester/transport_manager_observer.h"
 
 namespace test {
 namespace components {

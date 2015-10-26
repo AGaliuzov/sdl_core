@@ -125,7 +125,8 @@ uint32_t IncomingDataHandler::GetPacketSize(
     case PROTOCOL_VERSION_3:
       return header.dataSize + PROTOCOL_HEADER_V2_SIZE;
     default:
-      LOG4CXX_WARN(logger_, "Unknown version");
+      LOG4CXX_WARN(logger_, "Unknown version: " <<
+                   static_cast<int>(header.version));
       break;
   }
   return 0u;
@@ -176,6 +177,8 @@ RESULT_CODE IncomingDataHandler::CreateFrame(
     ProtocolFramePtr frame(new protocol_handler::ProtocolPacket(connection_id));
     const RESULT_CODE deserialize_result =
       frame->deserializePacket(&*data_it, packet_size);
+    LOG4CXX_DEBUG(
+          logger_, "Deserialized frame " << frame);
     if (deserialize_result != RESULT_OK) {
       LOG4CXX_WARN(logger_, "Packet deserialization failed");
       incoming_data.erase(incoming_data.begin(), data_it);

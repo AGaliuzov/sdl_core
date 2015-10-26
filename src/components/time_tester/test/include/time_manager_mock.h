@@ -34,8 +34,8 @@
 #define TEST_COMPONENTS_TIME_MANAGER_INCLUDE_TIME_MANAGER_MOCK_H_
 
 #include <gmock/gmock.h>
-#include "time_manager.h"
-#include "metric_wrapper.h"
+#include "time_tester/time_manager.h"
+#include "time_tester/metric_wrapper.h"
 namespace test {
 namespace components {
 namespace time_tester_test {
