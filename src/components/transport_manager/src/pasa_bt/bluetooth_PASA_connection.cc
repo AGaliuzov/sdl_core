@@ -62,10 +62,11 @@ BluetoothPASAConnection::BluetoothPASAConnection(
       device_uid_(device_uid),
       app_handle_(app_handle),
       sppDeviceFd(-1) {
-  const std::string thread_name = std::string("BT Con") + device_handle();
+  const std::string thread_name = std::string("BT Con:") + device_handle();
   thread_ = threads::CreateThread(thread_name.c_str(),
                                   new BluetoothPASAConnectionDelegate(this));
 }
+
 BluetoothPASAConnection::~BluetoothPASAConnection() {
   LOG4CXX_AUTO_TRACE(logger_);
   terminate_flag_ = true;
@@ -141,8 +142,7 @@ TransportAdapter::Error BluetoothPASAConnection::SendData(
 
 TransportAdapter::Error BluetoothPASAConnection::Disconnect() {
   LOG4CXX_AUTO_TRACE(logger_);
-  terminate_flag_ = true;
-  controller_->ConnectionFinished(device_handle(), application_handle());
+  Abort();
   return Notify();
 }
 
