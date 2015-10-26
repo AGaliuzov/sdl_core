@@ -135,6 +135,7 @@ if (BUILD_TESTS)
     ${AM_SOURCE_DIR}/src/request_info.cc
     ${AM_SOURCE_DIR}/src/message.cc
     ${AM_SOURCE_DIR}/src/application_impl.cc
+    ${AM_SOURCE_DIR}/src/application_state.cc
     ${AM_SOURCE_DIR}/src/state_controller.cc
     ${AM_SOURCE_DIR}/src/mobile_command_factory.cc
     ${AM_SOURCE_DIR}/test/mock_message_helper.cc

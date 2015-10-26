@@ -43,7 +43,6 @@ class HmiState;
 class ApplicationManager;
 
 typedef utils::SharedPtr<HmiState> HmiStatePtr;
-typedef std::list<HmiStatePtr> HmiStateList;
 
 /**
 * @brief The HmiState class
@@ -58,6 +57,7 @@ class HmiState {
    * If no events occured STATE_ID_DEFAULT shuld be presented
    */
   enum StateID {
+    STATE_ID_CURRENT,
     STATE_ID_REGULAR,
     STATE_ID_POSTPONED,
     STATE_ID_PHONE_CALL,

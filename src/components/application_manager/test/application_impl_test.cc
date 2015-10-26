@@ -282,30 +282,6 @@ TEST_F(ApplicationImplTest, AddStateAddRegularState_GetHmiLvlAudioSystemState) {
   EXPECT_EQ(syst_context, app_impl->system_context());
 }
 
-TEST_F(ApplicationImplTest, AddStates_IsAppTtsSpeak) {
-  TestAddHmiState(HMILevel::HMI_FULL, HmiState::STATE_ID_PHONE_CALL,
-                  &ApplicationImpl::AddHMIState);
-  EXPECT_FALSE(app_impl->tts_speak_state());
-
-  HmiStatePtr state2 =
-      TestAddHmiState(HMILevel::HMI_NONE, HmiState::STATE_ID_TTS_SESSION,
-                      &ApplicationImpl::AddHMIState);
-  HmiStatePtr state3 =
-      TestAddHmiState(HMILevel::HMI_LIMITED, HmiState::STATE_ID_NAVI_STREAMING,
-                      &ApplicationImpl::AddHMIState);
-
-  HmiStatePtr current_state = app_impl->CurrentHmiState();
-  EXPECT_EQ(HmiState::STATE_ID_NAVI_STREAMING, current_state->state_id());
-  EXPECT_TRUE(app_impl->tts_speak_state());
-
-  // Remove state without tts session
-  app_impl->RemoveHMIState(state3->state_id());
-  EXPECT_TRUE(app_impl->tts_speak_state());
-
-  app_impl->RemoveHMIState(state2->state_id());
-  EXPECT_FALSE(app_impl->tts_speak_state());
-}
-
 TEST_F(ApplicationImplTest, IsAudioApplication) {
   EXPECT_FALSE(app_impl->IsAudioApplication());
   app_impl->set_is_navi(true);
