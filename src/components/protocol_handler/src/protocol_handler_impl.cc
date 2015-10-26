@@ -559,6 +559,7 @@ void ProtocolHandlerImpl::OnTMMessageSend(const RawMessagePtr message) {
 void ProtocolHandlerImpl::OnTMMessageSendFailed(
     const transport_manager::DataSendError &error,
     const RawMessagePtr message) {
+  DCHECK_OR_RETURN_VOID(message);
   // TODO(PV): implement
   LOG4CXX_ERROR(logger_, "Sending message " << message->data_size()
                 << "bytes failed, connection_key " << message->connection_key()
