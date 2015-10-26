@@ -199,9 +199,11 @@ class ProtocolPacket {
   uint8_t service_type() const;
 
   /**
-   *\brief Getter of frame data (start/end session, number of frame etc)
+   *\brief Getter and setter of frame data (start/end session, number of frame etc)
    */
   uint8_t frame_data() const;
+
+  void set_frame_data(const uint8_t frame_data);
 
   /**
    *\brief Getter of session number
@@ -302,7 +304,8 @@ template<typename _CharT>
 std::basic_ostream<_CharT>& operator<<(std::basic_ostream<_CharT>& stream,
                                        const protocol_handler::ProtocolPacket& packet) {
   stream << packet.packet_header() <<
-            ", TotalDataBytes: " << (packet.total_data_bytes ()) <<
+            ", ConnectionID: "   << (packet.connection_id()) <<
+            ", TotalDataBytes: " << (packet.total_data_bytes()) <<
             ", Data: "           << static_cast<void*>(packet.data());
   return stream;
 }

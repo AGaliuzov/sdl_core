@@ -447,7 +447,7 @@ void ProtocolHandlerImpl::OnTMMessageReceived(const RawMessagePtr tm_message) {
     " msg data_size "      << tm_message->data_size());
 
   RESULT_CODE result;
-  size_t malformed_occurs = false;
+  size_t malformed_occurs = 0u;
   const std::list<ProtocolFramePtr> protocol_frames =
       incoming_data_handler_.ProcessData(*tm_message, &result, &malformed_occurs);
   LOG4CXX_DEBUG(logger_, "Proccessed " << protocol_frames.size() << " frames");
@@ -791,37 +791,40 @@ RESULT_CODE ProtocolHandlerImpl::HandleMultiFrameMessage(
 
   if (packet->frame_type() == FRAME_TYPE_FIRST) {
     LOG4CXX_TRACE(logger_, "FRAME_TYPE_FIRST");
+    // First frame has no data
     DCHECK_OR_RETURN(packet->frame_data() == 0u, RESULT_FAIL);
-    incomplete_multi_frame_messages_[key] = std::make_pair(packet, 0u);
+    // We can not handle more than one multifram with the same
+    DCHECK_OR_RETURN(incomplete_multi_frame_messages_.count(key) == 0,
+                     RESULT_FAIL);
+    incomplete_multi_frame_messages_[key] = packet;
     return RESULT_OK;
   }
   DCHECK_OR_RETURN(packet->frame_type() == FRAME_TYPE_CONSECUTIVE, RESULT_FAIL)
 
-  MultiFramePairMap::iterator it = incomplete_multi_frame_messages_.find(key);
+  MultiFrameMap::iterator it = incomplete_multi_frame_messages_.find(key);
   if (it == incomplete_multi_frame_messages_.end()) {
     LOG4CXX_ERROR(logger_,
        "Frame of multiframe message for non-existing session id " << key);
     return RESULT_FAIL;
   }
+
+  ProtocolFramePtr& assembling_frame = it->second;
+  const uint8_t previous_frame_data = assembling_frame->frame_data();
   const uint8_t new_frame_data = packet->frame_data();
 
-  MultiFramePair& incomplete_multi_frame_pair  = it->second;
-  const uint8_t previous_frame_data = incomplete_multi_frame_pair.second;
-
   const bool is_last_consecutive = (new_frame_data == FRAME_DATA_LAST_CONSECUTIVE);
-  // The each next packet is begger at 1
+  // The next frame data is bigger at 1
   DCHECK_OR_RETURN((new_frame_data == (previous_frame_data + 1)) ||
   // except the last consecutive frame
                    is_last_consecutive, RESULT_FAIL);
 
-  incomplete_multi_frame_pair.second = previous_frame_data + 1;
+  assembling_frame->set_frame_data(new_frame_data);
 
   LOG4CXX_DEBUG(logger_,
                 "Appending " << packet->data_size() << " bytes "
                 << "; frame_data " << static_cast<int>(new_frame_data)
                 << "; connection key " << key);
 
-  ProtocolFramePtr assembling_frame = incomplete_multi_frame_pair.first;
   DCHECK_OR_RETURN(packet->message_id() == assembling_frame->message_id(), RESULT_FAIL);
   if (assembling_frame->appendData(packet->data(), packet->data_size()) != RESULT_OK) {
     LOG4CXX_ERROR(logger_, "Failed to append frame for multiframe message.");

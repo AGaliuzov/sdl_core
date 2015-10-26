@@ -432,6 +432,10 @@ uint8_t ProtocolPacket::frame_data() const {
   return packet_header_.frameData;
 }
 
+void ProtocolPacket::set_frame_data(const uint8_t frame_data) {
+  packet_header_.frameData = frame_data;
+}
+
 uint8_t ProtocolPacket::session_id() const {
   return packet_header_.sessionId;
 }
@@ -483,7 +487,7 @@ uint32_t ProtocolPacket::payload_size() const {
   return payload_size_;
 }
 
-const ProtocolPacket::ProtocolHeader &ProtocolPacket::packet_header() const {
+const ProtocolPacket::ProtocolHeader& ProtocolPacket::packet_header() const {
   return packet_header_;
 }
 

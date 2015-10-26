@@ -125,7 +125,7 @@ uint32_t IncomingDataHandler::GetPacketSize(
     case PROTOCOL_VERSION_3:
       return header.dataSize + PROTOCOL_HEADER_V2_SIZE;
     default:
-      LOG4CXX_WARN(logger_, "Unknown version:" <<
+      LOG4CXX_WARN(logger_, "Unknown version: " <<
                    static_cast<int>(header.version));
       break;
   }

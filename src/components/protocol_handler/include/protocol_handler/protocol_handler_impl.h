@@ -497,9 +497,8 @@ class ProtocolHandlerImpl
   /**
    *\brief Map of frames with last frame data for messages received in multiple frames.
    */
-  typedef std::pair<ProtocolFramePtr, uint8_t> MultiFramePair;
-  typedef std::map<int32_t, MultiFramePair> MultiFramePairMap;
-  MultiFramePairMap incomplete_multi_frame_messages_;
+  typedef std::map<int32_t, ProtocolFramePtr> MultiFrameMap;
+  MultiFrameMap incomplete_multi_frame_messages_;
 
   /**
    * \brief Map of messages (frames) received over mobile nave session
