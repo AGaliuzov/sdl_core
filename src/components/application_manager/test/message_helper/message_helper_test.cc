@@ -41,7 +41,7 @@
 #include "policy/policy_manager_impl.h"
 #include "connection_handler/connection_handler_impl.h"
 #include "encryption/hashing.h"
-
+#include "application_manager/test/resumption/include/application_mock.h"
 
 namespace application_manager {
 namespace test {
@@ -49,11 +49,15 @@ namespace test {
 namespace HmiLanguage = hmi_apis::Common_Language;
 namespace HmiResults = hmi_apis::Common_Result;
 namespace MobileResults = mobile_apis::Result;
+
+typedef ::test::components::resumption_test::ApplicationMock AppMock;
+typedef utils::SharedPtr<AppMock> ApplicationMockSharedPtr;
+using testing::Return;
+
 class MessageHelperTest : public ::testing::Test {
   public:
     MessageHelperTest(){}
   protected:
-    policy::PolicyHandler* handler_;
 
     const policy::StringArray language_strings = {
       "EN-US", "ES-MX", "FR-CA", "DE-DE", "ES-ES", "EN-GB", "RU-RU", "TR-TR",
@@ -89,77 +93,11 @@ class MessageHelperTest : public ::testing::Test {
     };
 
     virtual void SetUp() OVERRIDE {
-
     }
     virtual void TearDown() OVERRIDE {}
-
-    void EnablePolicy() {
-      handler_ = policy::PolicyHandler::instance();
-      ASSERT_TRUE(NULL != handler_);
-      // Change default ini file to test ini file with policy enabled value
-      profile::Profile::instance()->
-          config_file_name("smartDeviceLink_test2.ini");
-      ASSERT_TRUE(handler_->PolicyEnabled());
-    }
-
-    void FillPolicytable() {
-      utils::SharedPtr<policy::PolicyManager> shared_pm =
-          utils::MakeShared<policy::PolicyManagerImpl>();
-      (*shared_pm).set_listener(handler_);
-
-      const std::string file_name = "sdl_pt_update.json";
-      LoadPolicyTableToPolicyManager(file_name, *shared_pm);
-
-      handler_->SetPolicyManager(shared_pm);
-    }
-
-    void LoadPolicyTableToPolicyManager(const std::string& file_name,
-        policy::PolicyManager& pm){
-      // Get PTU
-      std::ifstream ifile(file_name);
-      Json::Reader reader;
-      std::string json;
-      Json::Value root(Json::objectValue);
-      if (ifile != NULL && reader.parse(ifile, root, true)) {
-        json = root.toStyledString();
-      }
-      ifile.close();
-
-      ::policy::BinaryMessage msg(json.begin(), json.end());
-      // Load Json to cache
-      EXPECT_TRUE(pm.LoadPT("file_pt_update.json", msg));
-    }
-
-    void AddDeviceToConnectionHandler(const std::string& mac,
-        const u_int32_t handle = 1,
-        const std::string& name = "Device1",
-        const std::string& connection_type = "ConnType") {
-      transport_manager::DeviceInfo
-          fake_device1( handle, mac, name, connection_type );
-      connection_handler::ConnectionHandlerImpl::instance()->
-          OnDeviceAdded(fake_device1);
-    }
 };
-
-TEST_F(MessageHelperTest, CheckWithPolicy) {
-  // Enabling and filling policy table
-  EnablePolicy();
-  FillPolicytable();
-
-  // Always true
-  EXPECT_TRUE(MessageHelper::CheckWithPolicy(
-      mobile_apis::SystemAction::DEFAULT_ACTION,"AnyAppId"));
-  // Always false
-  EXPECT_FALSE(MessageHelper::CheckWithPolicy(
-      mobile_apis::SystemAction::INVALID_ENUM,"AnyAppId"));
-
-  EXPECT_TRUE(MessageHelper::CheckWithPolicy(
-      mobile_apis::SystemAction::KEEP_CONTEXT,"1766825573"));
-  EXPECT_TRUE(MessageHelper::CheckWithPolicy(
-      mobile_apis::SystemAction::STEAL_FOCUS,"1766825573"));
-}
-
-TEST_F(MessageHelperTest, CommonLanguageFromString) {
+TEST_F(MessageHelperTest,
+    CommonLanguageFromString_SendStringValueOfEnum_ExpectCorrectEType) {
   for(u_int32_t array_index = 0;
       array_index < language_strings.size();
       ++array_index) {
@@ -171,7 +109,8 @@ TEST_F(MessageHelperTest, CommonLanguageFromString) {
       MessageHelper::CommonLanguageFromString(""));
 }
 
-TEST_F(MessageHelperTest, CommonLanguageToString) {
+TEST_F(MessageHelperTest,
+    CommonLanguageToString_SendETypeValueOfEnum_ExpectCorrectString) {
   for(u_int32_t array_index = 0;
       array_index < language_strings.size();
       ++array_index) {
@@ -183,7 +122,8 @@ TEST_F(MessageHelperTest, CommonLanguageToString) {
       HmiLanguage::INVALID_ENUM));
 }
 
-TEST_F(MessageHelperTest,ConvertEnumAPINoCheck) {
+TEST_F(MessageHelperTest,
+    ConvertEnumAPINoCheck_AnyEnumType_ExpectAnotherEnumType) {
   hmi_apis::Common_AppHMIType::eType converted =
       MessageHelper::ConvertEnumAPINoCheck <hmi_apis::Common_LayoutMode::eType,
           hmi_apis::Common_AppHMIType::eType>(
@@ -191,70 +131,8 @@ TEST_F(MessageHelperTest,ConvertEnumAPINoCheck) {
   EXPECT_EQ(hmi_apis::Common_AppHMIType::DEFAULT, converted);
 }
 
-TEST_F( MessageHelperTest, GetAppCommandLimit ) {
-  // Enabling and filling policy table
-  EnablePolicy();
-  FillPolicytable();
-
-  const std::string app_id = "1766825573";
-  EXPECT_EQ(60u, MessageHelper::GetAppCommandLimit(app_id));
-  EXPECT_EQ(0u, MessageHelper::GetAppCommandLimit("default"));
-}
-
-TEST_F( MessageHelperTest, GetConnectedDevicesMAC ) {
-  // Adding some device to connectionHandler
-  const std::string device_mac = "50:46:5d:4d:96:c1";
-  AddDeviceToConnectionHandler(device_mac);
-
-  // Device macs check
-  std::vector<std::string> device_macs;
-  MessageHelper::GetConnectedDevicesMAC(device_macs);
-
-  EXPECT_EQ(encryption::MakeHash(device_mac),device_macs[0]);
-}
-
-TEST_F( MessageHelperTest, GetDeviceHandleForMac) {
-  // Adding some device to connectionHandler
-  const std::string device_mac = "50:46:5d:4d:96:c1";
-  AddDeviceToConnectionHandler(device_mac);
-
-  // Check handle
-  const u_int32_t received_handle =
-      MessageHelper::GetDeviceHandleForMac(encryption::MakeHash(device_mac));
-  EXPECT_EQ(1u,received_handle);
-}
-
-TEST_F( MessageHelperTest, GetDeviceInfoForHandle) {
-  // Adding some device to connectionHandler
-  const u_int32_t device_handle = 1;
-  const std::string device_mac = "50:46:5d:4d:96:c1";
-  const std::string device_name = "Device1";
-  const std::string connection_type = "ConnType";
-  AddDeviceToConnectionHandler( device_mac, device_handle,
-      device_name, connection_type);
-
-  // Check received data
-  policy::DeviceParams device_info;
-  MessageHelper::GetDeviceInfoForHandle(device_handle, &device_info);
-
-  EXPECT_EQ(encryption::MakeHash(device_mac), device_info.device_mac_address);
-  EXPECT_EQ(device_name, device_info.device_name);
-  EXPECT_EQ(connection_type, device_info.device_connection_type);
-}
-
-TEST_F( MessageHelperTest, GetDeviceMacAddressForHandle) {
-  // Adding some device to connectionHandler
-  const u_int32_t device_handle =  1;
-  const std::string device_mac = "50:46:5d:4d:96:c1";
-  AddDeviceToConnectionHandler(device_mac,device_handle);
-
-  // Check handle
-  const std::string received_mac =
-      MessageHelper::GetDeviceMacAddressForHandle(device_handle);
-  EXPECT_EQ(encryption::MakeHash(device_mac),received_mac);
-}
-
-TEST_F( MessageHelperTest, HMIResultFromString) {
+TEST_F( MessageHelperTest,
+    HMIResultFromString_SendStringValueOfEnum_ExpectCorrectEType) {
   for(u_int32_t array_index = 0;
       array_index < hmi_result_strings.size();
       ++array_index) {
@@ -265,7 +143,8 @@ TEST_F( MessageHelperTest, HMIResultFromString) {
       MessageHelper::HMIResultFromString(""));
 }
 
-TEST_F( MessageHelperTest, HMIResultToString) {
+TEST_F( MessageHelperTest,
+    HMIResultToString_SendETypeValueOfEnum_ExpectCorrectString) {
   for(u_int32_t array_index = 0;
       array_index < hmi_result_strings.size();
       ++array_index) {
@@ -277,7 +156,8 @@ TEST_F( MessageHelperTest, HMIResultToString) {
       HmiResults::INVALID_ENUM));
 }
 
-TEST_F( MessageHelperTest, HMIToMobileResult) {
+TEST_F( MessageHelperTest,
+    HMIToMobileResult_SendHmiResultEType_ExpectGetCorrectMobileResultEType) {
   for(u_int32_t enum_index = 0;
       enum_index < hmi_result_strings.size();
       ++enum_index) {
@@ -290,7 +170,8 @@ TEST_F( MessageHelperTest, HMIToMobileResult) {
       HmiResults::INVALID_ENUM));
 }
 
-TEST_F( MessageHelperTest, MobileResultFromString) {
+TEST_F( MessageHelperTest,
+    MobileResultFromString_SendStringValueOfEnum_ExpectCorrectEType) {
   for(u_int32_t array_index = 0;
       array_index < mobile_result_strings.size();
       ++array_index) {
@@ -302,7 +183,8 @@ TEST_F( MessageHelperTest, MobileResultFromString) {
       MessageHelper::MobileResultFromString(""));
 }
 
-TEST_F( MessageHelperTest, MobileResultToString) {
+TEST_F( MessageHelperTest,
+    MobileResultToString_SendETypeValueOfEnum_ExpectCorrectString) {
   for(u_int32_t array_index = 0;
       array_index < mobile_result_strings.size();
       ++array_index) {
@@ -314,7 +196,8 @@ TEST_F( MessageHelperTest, MobileResultToString) {
       MobileResults::INVALID_ENUM));
 }
 
-TEST_F( MessageHelperTest, MobileToHMIResult) {
+TEST_F( MessageHelperTest,
+    MobileToHMIResult_SendMobileResultEType_ExpectGetCorrectHmiResultEType) {
   for(u_int32_t enum_index = 0;
       enum_index < mobile_result_strings.size();
       ++enum_index) {
@@ -346,13 +229,162 @@ TEST_F( MessageHelperTest, VerifySoftButtonString_CorrectStrings_ExpectTrue) {
   const policy::StringArray wrong_strings = {
     "soft_button1.text",
     "soft_button1?text",
-    " asd asdasd    ",
+    " asd asdasd    .././/",
     "soft_button1??....asd",
     "soft_button12313fcvzxc./.,"
   };
   for(u_int32_t i = 0; i < wrong_strings.size(); ++i) {
     EXPECT_TRUE( MessageHelper::VerifySoftButtonString( wrong_strings[i] ) );
   }
+}
+
+TEST_F( MessageHelperTest,
+    GetIVISubscriptionRequests_SendValidApplication_ExpectHmiRequestNotEmpty) {
+  // Creating sharedPtr to ApplicationMock
+  ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
+  // Creating data acessor
+  application_manager::VehicleInfoSubscriptions vis;
+  DataAccessor<application_manager::VehicleInfoSubscriptions>
+      data_accessor( vis, true );
+  // Calls for ApplicationManager
+  EXPECT_CALL( *appSharedMock, app_id() )
+      .WillOnce(Return(1u));
+  EXPECT_CALL( *appSharedMock, SubscribedIVI())
+      .WillOnce(Return(data_accessor));
+  smart_objects::SmartObjectList outList =
+      MessageHelper::GetIVISubscriptionRequests(appSharedMock);
+  // Expect not empty request
+  EXPECT_FALSE(outList.empty());
+}
+
+TEST_F( MessageHelperTest,
+    ProcessSoftButtons_SendSmartObjectWithoutButtonsKey_ExpectSuccess) {
+  // Creating sharedPtr to ApplicationMock
+  ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
+  // Creating input data for method
+  smart_objects::SmartObject object;
+  // Method call
+  mobile_apis::Result::eType result =
+      MessageHelper::ProcessSoftButtons( object, appSharedMock );
+  // Expect
+  EXPECT_EQ(mobile_apis::Result::SUCCESS, result);
+}
+
+TEST_F( MessageHelperTest,
+    ProcessSoftButtons_SendIncorectSoftButonValue_ExpectInvalidData) {
+  // Creating sharedPtr to ApplicationMock
+  ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
+  // Creating input data for method
+  smart_objects::SmartObject object;
+  smart_objects::SmartObject& buttons = object[strings::soft_buttons];
+  // Setting invalid image string to button
+  buttons[0][strings::image][strings::value] = "invalid\\nvalue";
+  // Method call
+  mobile_apis::Result::eType result =
+      MessageHelper::ProcessSoftButtons( object, appSharedMock );
+  // Expect
+  EXPECT_EQ(mobile_apis::Result::INVALID_DATA, result);
+}
+
+TEST_F( MessageHelperTest,
+    VerifyImage_ImageTypeIsStatic_ExpectSuccess) {
+  // Creating sharedPtr to ApplicationMock
+  ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
+  // Creating input data for method
+  smart_objects::SmartObject image;
+  image[strings::image_type] = mobile_apis::ImageType::STATIC;
+  // Method call
+  mobile_apis::Result::eType result =
+      MessageHelper::VerifyImage( image, appSharedMock );
+  //EXPECT
+  EXPECT_EQ(mobile_apis::Result::SUCCESS, result);
+}
+
+TEST_F( MessageHelperTest,
+    VerifyImage_ImageValueNotValid_ExpectInvalidData) {
+  // Creating sharedPtr to ApplicationMock
+  ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
+  // Creating input data for method
+  smart_objects::SmartObject image;
+  image[strings::image_type] = mobile_apis::ImageType::DYNAMIC;
+  // Invalid value
+  image[strings::value] = "   ";
+  // Method call
+  mobile_apis::Result::eType result =
+      MessageHelper::VerifyImage( image, appSharedMock );
+  //EXPECT
+  EXPECT_EQ(mobile_apis::Result::INVALID_DATA, result);
+}
+
+
+TEST_F ( MessageHelperTest,
+    VerifyImageFiles_SmartObjectWithValidData_ExpectSuccess) {
+  // Creating sharedPtr to ApplicationMock
+  ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
+  // Creating input data for method
+  smart_objects::SmartObject images;
+  images[0][strings::image_type] = mobile_apis::ImageType::STATIC;
+  images[1][strings::image_type] = mobile_apis::ImageType::STATIC;
+  // Method call
+  mobile_apis::Result::eType result =
+      MessageHelper::VerifyImageFiles( images, appSharedMock );
+  //EXPECT
+  EXPECT_EQ(mobile_apis::Result::SUCCESS, result);
+}
+
+TEST_F ( MessageHelperTest,
+    VerifyImageFiles_SmartObjectWithInvalidData_ExpectNotSuccsess) {
+  // Creating sharedPtr to ApplicationMock
+  ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
+  // Creating input data for method
+  smart_objects::SmartObject images;
+  images[0][strings::image_type] = mobile_apis::ImageType::DYNAMIC;
+  images[1][strings::image_type] = mobile_apis::ImageType::DYNAMIC;
+  // Invalid values
+  images[0][strings::value] = "   ";
+  images[1][strings::value] = "image\\n";
+  // Method call
+  mobile_apis::Result::eType result =
+      MessageHelper::VerifyImageFiles( images, appSharedMock );
+  //EXPECT
+  EXPECT_EQ(mobile_apis::Result::INVALID_DATA, result);
+}
+
+TEST_F ( MessageHelperTest,
+    VerifyImageVrHelpItems_SmartObjectWithSeveralValidImages_ExpectSuccsess) {
+  // Creating sharedPtr to ApplicationMock
+  ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
+  // Creating input data for method
+  smart_objects::SmartObject message;
+  message[0][strings::image][strings::image_type] =
+      mobile_apis::ImageType::STATIC;
+  message[1][strings::image][strings::image_type] =
+      mobile_apis::ImageType::STATIC;
+  // Method call
+  mobile_apis::Result::eType result =
+      MessageHelper::VerifyImageVrHelpItems( message, appSharedMock );
+  //EXPECT
+  EXPECT_EQ(mobile_apis::Result::SUCCESS, result);
+}
+
+TEST_F ( MessageHelperTest,
+    VerifyImageVrHelpItems_SmartObjectWithSeveralInvalidImages_ExpectNotSuccsess) {
+  // Creating sharedPtr to ApplicationMock
+  ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
+  // Creating input data for method
+  smart_objects::SmartObject message;
+  message[0][strings::image][strings::image_type] =
+      mobile_apis::ImageType::DYNAMIC;
+  message[1][strings::image][strings::image_type] =
+      mobile_apis::ImageType::DYNAMIC;
+  // Invalid values
+  message[0][strings::image][strings::value] = "   ";
+  message[1][strings::image][strings::value] = "image\\n";
+  // Method call
+  mobile_apis::Result::eType result =
+      MessageHelper::VerifyImageVrHelpItems(message, appSharedMock );
+  //EXPECT
+  EXPECT_EQ(mobile_apis::Result::INVALID_DATA, result);
 }
 
 } // namespace test

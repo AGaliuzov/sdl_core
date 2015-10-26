@@ -35,6 +35,7 @@ set(appMain_DIR ${CMAKE_SOURCE_DIR}/src/appMain)
 include_directories(
     ${GMOCK_INCLUDE_DIRECTORY}
     ${COMPONENTS_DIR}/application_manager/test/message_helper/include
+    ${COMPONENTS_DIR}/application_manager/test/state_controller/include
 )
 
 set(LIBRARIES
@@ -47,7 +48,6 @@ set(LIBRARIES
     ProtocolHandler
     Policy
     transport_manager
-
 )
 
 set(SOURCES
