@@ -793,7 +793,7 @@ RESULT_CODE ProtocolHandlerImpl::HandleMultiFrameMessage(
     LOG4CXX_TRACE(logger_, "FRAME_TYPE_FIRST");
     // First frame has no data
     DCHECK_OR_RETURN(packet->frame_data() == 0u, RESULT_FAIL);
-    // We can not handle more than one multifram with the same
+    // We can not handle more than one multiframe with the same key
     DCHECK_OR_RETURN(incomplete_multi_frame_messages_.count(key) == 0,
                      RESULT_FAIL);
     incomplete_multi_frame_messages_[key] = packet;
