@@ -94,8 +94,7 @@ void OnVehicleDataNotification::Run() {
   for (size_t idx = 0; idx < appNotification.size() ; idx++) {
     LOG4CXX_INFO(
       logger_,
-      "Send OnVehicleData PRNDL notification to " << appNotification[idx]->name()
-      << " application id " << appNotification[idx]->app_id());
+      "Send OnVehicleData PRNDL notification to application with id " << appNotification[idx]->app_id());
     (*message_)[strings::params][strings::connection_key] =
       appNotification[idx]->app_id();
     (*message_)[strings::msg_params] = appSO[idx];
