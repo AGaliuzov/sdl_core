@@ -388,29 +388,20 @@ const std::string file_system::ConvertPathForURL(const std::string& path) {
   std::string::const_iterator it_path_end = path.end();
 
   const std::string reserved_symbols = "!#$&'()*+,:;=?@[] ";
-  std::string::const_iterator it_sym = reserved_symbols.begin();
-  std::string::const_iterator it_sym_end = reserved_symbols.end();
-
+  size_t pos = std::string::npos;
   std::string converted_path;
-  while (it_path != it_path_end) {
 
-    it_sym = reserved_symbols.begin();
-    for (; it_sym != it_sym_end; ++it_sym) {
-
-      if (*it_path == *it_sym) {
-        const size_t size = 100;
-        char percent_value[size];
-        snprintf(percent_value, size, "%%%x", *it_path);
-        converted_path += percent_value;
-        ++it_path;
-        continue;
-      }
+  for (;it_path != it_path_end; ++it_path) {
+    pos = reserved_symbols.find_first_of(*it_path);
+    if (pos != std::string::npos) {
+      const size_t size = 100;
+      char percent_value[size];
+      snprintf(percent_value, size, "%%%x", *it_path);
+      converted_path += percent_value;
+    } else {
+      converted_path += *it_path;
     }
-
-    converted_path += *it_path;
-    ++it_path;
   }
-
   return converted_path;
 }
 

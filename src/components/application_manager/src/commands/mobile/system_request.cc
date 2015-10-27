@@ -35,6 +35,7 @@ Copyright (c) 2013, Ford Motor Company
 #include <string>
 #include <stdio.h>
 #include <algorithm>
+#include <sstream>
 #include "application_manager/commands/mobile/system_request.h"
 #include "application_manager/application_manager_impl.h"
 #include "application_manager/application_impl.h"
@@ -45,10 +46,13 @@ Copyright (c) 2013, Ford Motor Company
 #include "formatters/CFormatterJsonBase.hpp"
 #include "json/json.h"
 #include "utils/helpers.h"
+#include "utils/custom_string.h"
 
 namespace application_manager {
 
 namespace commands {
+
+namespace custom_str = utils::custom_string;
 
 uint32_t SystemRequest::index = 0;
 
@@ -113,7 +117,7 @@ void SystemRequest::Run() {
   if (is_system_file) {
     const uint8_t max_size = 255;
     char buf[max_size] = {'\0'};
-    snprintf(buf, sizeof(buf)/sizeof(buf[0]), "%d%s", index++, file_name.c_str());
+    snprintf(buf, max_size - 1, "%d%s", index++, file_name.c_str());
     file_name = buf;
   }
 
@@ -171,7 +175,7 @@ void SystemRequest::Run() {
   smart_objects::SmartObject msg_params = smart_objects::SmartObject(
       smart_objects::SmartType_Map);
   if (std::string::npos != file_name.find(kIVSU)) {
-    msg_params[strings::file_name] = file_name.c_str();
+    msg_params[strings::file_name] = file_name;
   } else {
     msg_params[strings::file_name] = file_dst_path;
   }

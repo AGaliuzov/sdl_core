@@ -78,7 +78,7 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "ApplicationManager")
 
 ApplicationImpl::ApplicationImpl(uint32_t application_id,
     const std::string& policy_app_id,
-    const std::string& app_name,
+    const custom_str::CustomString& app_name,
     utils::SharedPtr<usage_statistics::StatisticsManager> statistics_manager)
     : grammar_id_(0),
       app_id_(application_id),
@@ -330,7 +330,7 @@ void ApplicationImpl::set_hmi_application_id(uint32_t hmi_app_id) {
   hmi_app_id_ = hmi_app_id;
 }
 
-const std::string& ApplicationImpl::name() const {
+const custom_str::CustomString& ApplicationImpl::name() const {
   return app_name_;
 }
 
@@ -385,7 +385,7 @@ void ApplicationImpl::set_version(const Version& ver) {
   version_ = ver;
 }
 
-void ApplicationImpl::set_name(const std::string& name) {
+void ApplicationImpl::set_name(const custom_str::CustomString& name) {
   app_name_ = name;
 }
 

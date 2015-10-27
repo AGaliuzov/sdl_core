@@ -94,7 +94,8 @@ bool FormatterJsonRpc::ToString(const NsSmartObjects::SmartObject &obj,
         if (NsSmartObjects::SmartType_String != message_type_object.getType()) {
           result = false;
         } else {
-          const std::string message_type = message_type_object.asString();
+          const std::string message_type =
+              message_type_object.asString();
 
           if (kRequest == message_type) {
             if (false == empty_message_params) {

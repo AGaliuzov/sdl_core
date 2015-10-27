@@ -45,6 +45,7 @@
 #include "security_manager/crypto_manager.h"
 #include "security_manager/crypto_manager_impl.h"
 #include "security_manager/ssl_context.h"
+#include "utils/custom_string.h"
 
 #ifdef __QNXNTO__
 #define FORD_CIPHER   SSL3_TXT_RSA_DES_192_CBC3_SHA
@@ -62,6 +63,7 @@ namespace {
 namespace test {
 namespace components {
 namespace ssl_context_test {
+namespace custom_str = utils::custom_string;
 
 class SSLTest : public testing::Test {
  protected:
@@ -93,7 +95,7 @@ class SSLTest : public testing::Test {
     client_ctx = client_manager->CreateSSLContext();
 
     security_manager::SSLContext::HandshakeContext ctx;
-    ctx.make_context("SPT", "client");
+    ctx.make_context(custom_str::CustomString("SPT"), custom_str::CustomString("client"));
     server_ctx->SetHandshakeContext(ctx);
 
     ctx.expected_cn = "server";

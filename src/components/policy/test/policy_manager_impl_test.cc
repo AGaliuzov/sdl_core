@@ -84,6 +84,7 @@ using ::policy::PolicyTable;
 using ::policy::EndpointUrls;
 
 namespace policy_table = rpc::policy_table_interface_base;
+namespace custom_str = utils::custom_string;
 
 namespace test {
 namespace components {
@@ -650,11 +651,10 @@ TEST_F(PolicyManagerImplTest, LoadPT_SetPT_PTIsLoaded) {
 
   utils::SharedPtr<policy_table::Table> snapshot = new policy_table::Table(
       update.policy_table);
-
   // Assert
   EXPECT_CALL(*cache_manager, GenerateSnapshot()).WillOnce(Return(snapshot));
   EXPECT_CALL(*cache_manager, ApplyUpdate(_)).WillOnce(Return(true));
-  EXPECT_CALL(listener, GetAppName("1234")).WillOnce(Return(""));
+  EXPECT_CALL(listener, GetAppName("1234")).WillOnce(Return(custom_str::CustomString("")));
   EXPECT_CALL(listener, OnUpdateStatusChanged(_));
   EXPECT_CALL(*cache_manager, SaveUpdateRequired(false));
   EXPECT_CALL(*cache_manager, TimeoutResponse());

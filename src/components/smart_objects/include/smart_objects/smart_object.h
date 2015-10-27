@@ -39,9 +39,13 @@
 #include <map>
 
 #include "smart_objects/smart_schema.h"
+#include "utils/custom_string.h"
 
 namespace NsSmartDeviceLink {
 namespace NsSmartObjects {
+
+namespace custom_str = utils::custom_string;
+
 class SmartObject;
 
 /**
@@ -407,11 +411,25 @@ FINAL {
     explicit SmartObject(const std::string& InitialValue);
 
     /**
+     * @brief Constructor for creating object of type: CustomString
+     *
+     * @param InitialValue Initial object value
+     **/
+    explicit SmartObject(const custom_str::CustomString& InitialValue);
+
+    /**
      * @brief Constructor for creating object of type: string
      *
      * @param InitialValue Initial object value
      **/
     explicit SmartObject(const char* InitialValue);
+
+    /**
+     * @brief Returns current object converted to CustomString
+     *
+     * @return custom_str::CustomString
+     **/
+    custom_str::CustomString asCustomString() const;
 
     /**
      * @brief Returns current object converted to string
@@ -435,6 +453,14 @@ FINAL {
      * @return SmartObject&
      **/
     SmartObject& operator=(const std::string& NewValue);
+
+    /**
+     * @brief Assignment operator for type: CustomString
+     *
+     * @param  NewValue New object value
+     * @return SmartObject&
+     **/
+    SmartObject& operator=(const custom_str::CustomString& NewValue);
 
     /**
      * @brief Assignment operator for type: string
@@ -779,14 +805,14 @@ FINAL {
      * @{
      */
     /**
-     * @brief Sets new string value to the object.
+     * @brief Sets new CustomString value to the object.
      *
      * This method changes also internal object type
      *
      * @param  NewValue New object value
      * @return void
      **/
-    inline void set_value_string(const std::string& NewValue);
+    inline void set_value_string(const custom_str::CustomString& NewValue);
 
     /**
      * @brief Sets new string value to the object.
@@ -801,9 +827,19 @@ FINAL {
     /**
      * @brief Converts object to string type
      *
-     * @return int32_t Converted value or invalid_string_value if conversion not possible
+     * @return string Converted value or
+     * invalid_string_value if conversion not possible
      **/
     inline std::string convert_string() const;
+
+    /**
+     * @brief Converts object to CustomString type
+     *
+     * @return CustomString Converted value or
+     * invalid_string_value if conversion not possible
+     **/
+    inline custom_str::CustomString convert_custom_string() const;
+
     /** @} */
 
     /**
@@ -849,7 +885,7 @@ FINAL {
      * @param Value Pointer to string to convert
      * @return double
      **/
-    static double convert_string_to_double(const std::string* Value);
+    static double convert_string_to_double(const custom_str::CustomString* Value);
 
     /**
      * @brief Converts string to int64_t
@@ -857,7 +893,7 @@ FINAL {
      * @param Value Pointer to string to convert
      * @return int64_t int64_t
      **/
-    static uint64_t convert_string_to_integer(const std::string* Value);
+    static uint64_t convert_string_to_integer(const custom_str::CustomString* Value);
 
     /**
      * @brief Converts double value to string
@@ -907,7 +943,7 @@ FINAL {
       bool bool_value;
       char char_value;
       int64_t int_value;
-      std::string* str_value;
+      custom_str::CustomString* str_value;
       SmartArray* array_value;
       SmartMap* map_value;
       SmartBinary* binary_value;

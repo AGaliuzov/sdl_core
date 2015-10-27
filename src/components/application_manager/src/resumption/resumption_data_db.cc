@@ -661,7 +661,7 @@ bool ResumptionDataDB::SaveAllData(const smart_objects::SmartObject& data) {
   SmartArray::const_iterator it_apps = apps->begin();
   for (; apps->end() != it_apps; ++it_apps) {
     if (!SaveApplicationToDB((*it_apps), (*it_apps)["appID"].asString(),
-                             (*it_apps)["deviceID"].asString())) {
+                            (*it_apps)["deviceID"].asString())) {
       return false;
     }
   }
@@ -1665,7 +1665,7 @@ bool ResumptionDataDB::ExecInsertChoice(
   size_t length_choice_array = choice_array.length();
   for (size_t i = 0; i < length_choice_array; ++i) {
     insert_choice.Bind(0, (choice_array[i][strings::choice_id]).asInt());
-    insert_choice.Bind(1, (choice_array[i][strings::menu_name]).asString());
+    insert_choice.Bind(1,(choice_array[i][strings::menu_name]).asString());
 
     CustomBind(strings::secondary_text, choice_array[i], insert_choice, 2);
     CustomBind(strings::tertiary_text, choice_array[i], insert_choice, 3);
@@ -1903,7 +1903,8 @@ bool ResumptionDataDB::InsertFilesData(const smart_objects::SmartObject& files,
     query_insert_file.Bind(1,
                            (files[i][strings::is_download_complete]).asBool());
     query_insert_file.Bind(2, (files[i][strings::persistent_file]).asBool());
-    query_insert_file.Bind(3, (files[i][strings::sync_file_name]).asString());
+    query_insert_file.Bind(
+        3, (files[i][strings::sync_file_name]).asString());
 
     if (!query_insert_file.Exec()) {
       LOG4CXX_WARN(logger_, "Incorrect insertion of files data");
@@ -1947,7 +1948,8 @@ bool ResumptionDataDB::InsertSubMenuData(
   //  field "position" from table "submenu" = 2
   for (size_t i = 0; i < length_submenu_array; ++i) {
     query_insert_submenu.Bind(0, (submenus[i][strings::menu_id]).asInt());
-    query_insert_submenu.Bind(1, (submenus[i][strings::menu_name]).asString());
+    query_insert_submenu.Bind(
+        1, (submenus[i][strings::menu_name]).asString());
     CustomBind(strings::position, submenus[i], query_insert_submenu, 2);
 
     if (!query_insert_submenu.Exec()) {
@@ -2008,7 +2010,8 @@ bool ResumptionDataDB::InsertCommandsData(
 
     if (commands[i].keyExists(strings::menu_params)) {
       const SmartObject& menu_params = commands[i][strings::menu_params];
-      query_insert_command.Bind(2, menu_params[strings::menu_name].asString());
+      query_insert_command.Bind(
+          2, menu_params[strings::menu_name].asString());
 
       CustomBind(hmi_request::parent_id, menu_params, query_insert_command, 3);
       CustomBind(strings::position, menu_params, query_insert_command, 4);
@@ -2356,7 +2359,8 @@ bool ResumptionDataDB::ExecInsertTTSChunks(
   //     field "type" from table "TTSChunk" = 0
   //     field "text" from table "TTSChunk" = 1
   insert_tts_chunk.Bind(0, tts_chunk[strings::type].asInt());
-  insert_tts_chunk.Bind(1, tts_chunk[strings::text].asString());
+  insert_tts_chunk.Bind(
+      1, tts_chunk[strings::text].asString());
   if (!insert_tts_chunk.Exec()) {
     LOG4CXX_WARN(logger_, "Problem with execution insert_tts_chunk query");
     return false;
@@ -2382,7 +2386,8 @@ bool ResumptionDataDB::ExecInsertLimitedCharacters(
   //     Positions of binding data for "insert_characters":
   //     field "limitedCharacterList" from table "tableLimitedCharacterList" = 0
   for (size_t i = 0; i < length_characters_array; ++i) {
-    insert_characters.Bind(0, characters_array[i].asString());
+    insert_characters.Bind(
+        0, characters_array[i].asString());
 
     if (!insert_characters.Exec()) {
       LOG4CXX_WARN(logger_,
@@ -2419,7 +2424,8 @@ bool ResumptionDataDB::ExecInsertVRHelpItem(
   //  field "position" from table "vrHelpItem" = 1
   //  field "idimage" from table "vrHelpItem" = 2
   for (size_t i = 0; i < length_vrhelp_array; ++i) {
-    insert_vrhelp_item.Bind(0, vrhelp_array[i][strings::text].asString());
+    insert_vrhelp_item.Bind(
+        0, vrhelp_array[i][strings::text].asString());
     insert_vrhelp_item.Bind(1, vrhelp_array[i][strings::position].asInt());
     if (vrhelp_array[i].keyExists(strings::image)) {
       if (!ExecInsertImage(image_primary_key,

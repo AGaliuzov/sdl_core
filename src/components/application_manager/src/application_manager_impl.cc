@@ -59,6 +59,7 @@
 #include "interfaces/HMI_API_schema.h"
 #include "application_manager/application_impl.h"
 #include "usage_statistics/counter.h"
+#include "utils/custom_string.h"
 #ifdef CUSTOMER_PASA
 #include "resumption/last_state.h"
 #endif
@@ -418,9 +419,8 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
 
   smart_objects::SmartObject& params = message[strings::msg_params];
   const std::string& policy_app_id = params[strings::app_id].asString();
-  const std::string& app_name =
-      message[strings::msg_params][strings::app_name].asString();
-
+  const custom_str::CustomString& app_name =
+      message[strings::msg_params][strings::app_name].asCustomString();
   ApplicationSharedPtr application(new ApplicationImpl(
       app_id, policy_app_id, app_name,
       policy::PolicyHandler::instance()->GetStatisticManager()));
@@ -1162,7 +1162,8 @@ ApplicationManagerImpl::GetHandshakeContext(uint32_t key) const {
   ApplicationConstSharedPtr app = application(key);
   security_manager::SSLContext::HandshakeContext res;
   DCHECK_OR_RETURN(app.valid(), res);
-  return res.make_context(app->policy_app_id(), app->name());
+  return res.make_context(custom_str::CustomString(app->policy_app_id()),
+                          app->name());
 }
 #endif // ENABLE_SECURITY
 
@@ -1614,10 +1615,11 @@ bool ApplicationManagerImpl::ConvertMessageToSO(
           formatters::CFormatterJsonSDLRPCv2::fromString(
               message.json_message(), output, message.function_id(),
               message.type(), message.correlation_id());
-      if (!conversion_result || !mobile_so_factory().attachSchema(output) ||
-          ((output.validate() != smart_objects::Errors::OK))) {
+      if (!conversion_result
+          || !mobile_so_factory().attachSchema(output)
+          || ((output.validate() != smart_objects::Errors::OK))) {
         LOG4CXX_WARN(logger_, "Failed to parse string to smart object :"
-                                  << message.json_message());
+                     << message.json_message());
         utils::SharedPtr<smart_objects::SmartObject> response(
             MessageHelper::CreateNegativeResponse(
                 message.connection_key(), message.function_id(),
@@ -1625,10 +1627,11 @@ bool ApplicationManagerImpl::ConvertMessageToSO(
         ManageMobileCommand(response, commands::Command::ORIGIN_SDL);
         return false;
       }
-      LOG4CXX_INFO(logger_,
-                   "Convertion result for sdl object is true"
-                   << " function_id "
-                   << output[jhs::S_PARAMS][jhs::S_FUNCTION_ID].asInt());
+      LOG4CXX_INFO(
+          logger_,
+          "Convertion result for sdl object is true function_id "
+          << output[jhs::S_PARAMS][jhs::S_FUNCTION_ID].asInt());
+
       output[strings::params][strings::connection_key] =
           message.connection_key();
       output[strings::params][strings::protocol_version] =
@@ -2748,11 +2751,13 @@ mobile_apis::Result::eType ApplicationManagerImpl::SaveBinary(
       return mobile_apis::Result::INVALID_DATA;
     }
     file_stream = file_system::Open(full_file_path, std::ios_base::app);
+
   } else {
     LOG4CXX_DEBUG(
       logger_,
       "ApplicationManagerImpl::SaveBinaryWithOffset offset is 0, rewrite");
     // if offset == 0: rewrite file
+
     file_stream = file_system::Open(full_file_path, std::ios_base::out);
   }
 

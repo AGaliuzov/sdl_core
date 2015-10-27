@@ -2183,6 +2183,7 @@ mobile_apis::Result::eType MessageHelper::VerifyImage(
   }
 
   const std::string& file_name = image[strings::value].asString();
+  LOG4CXX_DEBUG(logger_, "MessageHelper::VerifyImage file_name =" << file_name);
 
   std::string str = file_name;
   str.erase(remove(str.begin(), str.end(), ' '), str.end());
@@ -2214,7 +2215,7 @@ mobile_apis::Result::eType MessageHelper::VerifyImage(
     full_file_path += "/";
     full_file_path += file_name;
   }
-
+  LOG4CXX_DEBUG(logger_, "MessageHelper::VerifyImage full_file_path =" << full_file_path);
   if (!file_system::FileExists(full_file_path)) {
     return mobile_apis::Result::INVALID_DATA;
   }
@@ -2322,7 +2323,7 @@ mobile_apis::Result::eType MessageHelper::ProcessSoftButtons(
         if ((!request_soft_buttons[i].keyExists(strings::text)) ||
             ((request_soft_buttons[i][strings::text].length())
                 && (!VerifySoftButtonString(
-                request_soft_buttons[i][strings::text].asString())))) {
+                    request_soft_buttons[i][strings::text].asString())))) {
           return Result::INVALID_DATA;
         }
 

@@ -39,10 +39,14 @@
 #include "application_manager/commands/command_request_impl.h"
 #include "application_manager/commands/pending.h"
 #include "utils/macro.h"
+#include "utils/custom_string.h"
 
 namespace application_manager {
 
 namespace commands {
+
+namespace custom_str = utils::custom_string;
+
 
 /**
  * @brief ChangeRegistrationRequest command class
@@ -134,7 +138,7 @@ class ChangeRegistrationRequest : public CommandRequestImpl  {
     * @param app_name Application name
     * @return true, if allowed, otherwise - false
     */
-   bool IsNicknameAllowed(const std::string& app_name) const;
+   bool IsNicknameAllowed(const custom_str::CustomString& app_name) const;
 
    /**
     * @brief Predicate for using with CheckCoincidence method to compare with VR synonym SO
@@ -142,16 +146,16 @@ class ChangeRegistrationRequest : public CommandRequestImpl  {
     * @return TRUE if there is coincidence of VR, otherwise FALSE
     */
    struct CoincidencePredicateVR {
-     explicit CoincidencePredicateVR(const std::string &newItem)
+     explicit CoincidencePredicateVR(const custom_str::CustomString &newItem)
      :newItem_(newItem)
      {};
 
-     bool operator()(smart_objects::SmartObject obj) {
-       const std::string vr_synonym = obj.asString();
-       return !(strcasecmp(vr_synonym.c_str(), newItem_.c_str()));
+     bool operator()(const smart_objects::SmartObject& obj) const {
+       const custom_str::CustomString& vr_synonym = obj.asCustomString();
+       return newItem_.CompareIgnoreCase(vr_synonym);
      };
 
-     const std::string &newItem_;
+     const custom_str::CustomString &newItem_;
    };
 
    Pending pending_requests_;

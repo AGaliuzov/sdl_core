@@ -174,7 +174,7 @@ void CommandRequestImpl::SendResponse(
   ApplicationManagerImpl::instance()->ManageMobileCommand(result, ORIGIN_SDL);
 }
 
-bool CommandRequestImpl::CheckSyntax(std::string str, bool allow_empty_line) {
+bool CommandRequestImpl::CheckSyntax(const std::string& str, bool allow_empty_line) {
   if (std::string::npos != str.find_first_of("\t\n")) {
     LOG4CXX_ERROR(logger_, "CheckSyntax failed! :" << str);
     return false;

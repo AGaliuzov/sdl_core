@@ -289,7 +289,7 @@ bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
         application->policy_app_id(),
         MessageHelper::GetDeviceMacAddressForHandle(application->device()),
         saved_app);
-    const std::string saved_hash = saved_app[strings::hash_id].asString();
+    const std::string& saved_hash = saved_app[strings::hash_id].asString();
     result = saved_hash == hash ? RestoreApplicationData(application) : false;
     application->UpdateHash();
   }
@@ -471,7 +471,8 @@ void ResumeCtrl::AddFiles(ApplicationSharedPtr application,
         file.is_persistent = is_persistent;
         file.is_download_complete =
             file_data[strings::is_download_complete].asBool();
-        file.file_name = file_data[strings::sync_file_name].asString();
+        file.file_name =
+            file_data[strings::sync_file_name].asString();
         file.file_type = static_cast<mobile_apis::FileType::eType> (
             file_data[strings::file_type].asInt());
         application->AddFile(file);
@@ -757,19 +758,19 @@ void ResumeCtrl::LoadResumeData() {
     }
     // set invalid HMI level for all
     resumption_storage_->UpdateHmiLevel(
-          so_applications_data[i][strings::app_id].asString(),
+        so_applications_data[i][strings::app_id].asString(),
         so_applications_data[i][strings::device_id].asString(),
         mobile_apis::HMILevel::INVALID_ENUM);
   }
   if (full_app != NULL) {
     resumption_storage_->UpdateHmiLevel(
-          (*full_app)[strings::app_id].asString(),
+        (*full_app)[strings::app_id].asString(),
         (*full_app)[strings::device_id].asString(),
         mobile_apis::HMILevel::HMI_FULL);
   }
   if (limited_app != NULL) {
     resumption_storage_->UpdateHmiLevel(
-          (*limited_app)[strings::app_id].asString(),
+        (*limited_app)[strings::app_id].asString(),
         (*limited_app)[strings::device_id].asString(),
         mobile_apis::HMILevel::HMI_LIMITED);
   }

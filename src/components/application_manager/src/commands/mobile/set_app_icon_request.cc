@@ -144,9 +144,9 @@ void SetAppIconRequest::on_event(const event_engine::Event& event) {
            return;
         }
 
-        const std::string path = (*message_)[strings::msg_params]
-                                            [strings::sync_file_name]
-                                            [strings::value].asString();
+        const std::string& path = (*message_)[strings::msg_params]
+                                              [strings::sync_file_name]
+                                               [strings::value].asString();
         app->set_app_icon_path(path);
 
         LOG4CXX_INFO(logger_,

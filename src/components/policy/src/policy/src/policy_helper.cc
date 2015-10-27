@@ -34,10 +34,14 @@
 #include <sstream>
 #include <string.h>
 #include "utils/logger.h"
+#include "utils/custom_string.h"
 #include "policy/policy_helper.h"
 #include "policy/policy_manager_impl.h"
 
+
 namespace policy {
+
+namespace custom_str =  utils::custom_string;
 
 namespace {
 
@@ -301,7 +305,8 @@ bool CheckAppPolicy::IsAppRevoked(
 bool CheckAppPolicy::NicknamesMatch(
     const AppPoliciesValueType& app_policy) const {
   const std::string& app_id = app_policy.first;
-  std::string app_name = pm_->listener()->GetAppName(app_id);
+  const custom_str::CustomString app_name =
+      pm_->listener()->GetAppName(app_id);
   if (!app_name.empty() &&
       app_policy.second.nicknames &&
       !app_policy.second.nicknames->empty()) {
@@ -309,7 +314,7 @@ bool CheckAppPolicy::NicknamesMatch(
          app_policy.second.nicknames->begin();
          app_policy.second.nicknames->end() != it; ++it) {
       std::string temp = *it;
-      if (!strcasecmp(temp.c_str(), app_name.c_str())) {
+      if (app_name.CompareIgnoreCase(temp.c_str())) {
         return true;
       }
     }

@@ -80,7 +80,8 @@ void OnAppPermissionConsentNotification::Run() {
       permission_consent.group_permissions.push_back(permissions);
     }
 
-    permission_consent.consent_source = msg_params["source"].asString();
+    permission_consent.consent_source =
+        msg_params["source"].asString();
 
     policy::PolicyHandler::instance()->OnAppPermissionConsent(connection_key,
       permission_consent);

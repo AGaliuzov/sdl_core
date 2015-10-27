@@ -40,6 +40,7 @@
 #include "config_profile/profile.h"
 #include "utils/make_shared.h"
 #include "mock_message_helper.h"
+#include "utils/custom_string.h"
 
 namespace test {
 namespace components {
@@ -49,6 +50,8 @@ using namespace application_manager;
 
 using namespace mobile_apis;
 namespace smart_objects = NsSmartDeviceLink::NsSmartObjects;
+namespace custom_str = utils::custom_string;
+
 
 using ::testing::_;
 using ::testing::Return;
@@ -98,7 +101,7 @@ class ApplicationImplTest : public ::testing::Test {
   ApplicationImpl* app_impl;
   uint32_t app_id;
   std::string policy_app_id;
-  std::string app_name;
+  custom_str::CustomString app_name;
   std::string directory_name;
   static ApplicationManagerImpl* app_mngr_;
   MockStatisticsManager* mock_stat_mngr_;

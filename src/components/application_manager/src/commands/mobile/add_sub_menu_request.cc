@@ -67,7 +67,7 @@ void AddSubMenuRequest::Run() {
     return;
   }
 
-  const std::string menu_name =
+  const std::string& menu_name =
       (*message_)[strings::msg_params][strings::menu_name].asString();
 
   if (app->IsSubMenuNameAlreadyExist(menu_name)) {

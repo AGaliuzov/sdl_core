@@ -42,10 +42,15 @@
 #include "interfaces/HMI_API.h"
 #include "utils/file_system.h"
 #include "utils/helpers.h"
+#include "utils/custom_string.h"
+
+
 
 namespace application_manager {
 
 namespace commands {
+
+namespace custom_str = utils::custom_string;
 
 uint32_t PerformInteractionRequest::pi_requests_count_ = 0;
 
@@ -646,10 +651,10 @@ bool PerformInteractionRequest::CheckChoiceSetMenuNames(
       size_t jj = 0;
       for (; ii < (*i_choice_set)[strings::choice_set].length(); ++ii) {
         for (; jj < (*j_choice_set)[strings::choice_set].length(); ++jj) {
-          std::string ii_menu_name =
+          const std::string& ii_menu_name =
               (*i_choice_set)[strings::choice_set][ii][strings::menu_name]
                   .asString();
-          std::string jj_menu_name =
+          const std::string& jj_menu_name =
               (*j_choice_set)[strings::choice_set][jj][strings::menu_name]
                   .asString();
 
@@ -707,9 +712,9 @@ bool PerformInteractionRequest::CheckChoiceSetVRSynonyms(
 
           for (size_t iii = 0; iii < ii_vr_commands.length(); ++iii) {
             for (size_t jjj = 0; jjj < jj_vr_commands.length(); ++jjj) {
-              std::string vr_cmd_i = ii_vr_commands[iii].asString();
-              std::string vr_cmd_j = jj_vr_commands[jjj].asString();
-              if (0 == strcasecmp(vr_cmd_i.c_str(), vr_cmd_j.c_str())) {
+              const custom_str::CustomString& vr_cmd_i = ii_vr_commands[iii].asCustomString();
+              const custom_str::CustomString& vr_cmd_j = jj_vr_commands[jjj].asCustomString();
+              if (vr_cmd_i.CompareIgnoreCase(vr_cmd_j)) {
                 LOG4CXX_ERROR(logger_, "Choice set has duplicated VR synonym");
                 SendResponse(false, mobile_apis::Result::DUPLICATE_NAME,
                              "Choice set has duplicated VR synonym");

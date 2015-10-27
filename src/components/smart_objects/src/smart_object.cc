@@ -84,7 +84,7 @@ SmartObject::SmartObject(SmartType Type)
       set_value_char(' ');
       break;
     case SmartType_String:
-      set_value_string("");
+      set_value_string(custom_str::CustomString());
       break;
     case SmartType_Map:
       m_data.map_value = new SmartMap();
@@ -437,7 +437,7 @@ char SmartObject::convert_char() const {
   switch (m_type) {
     case SmartType_String:
       return
-          (m_data.str_value->length() == 1) ?
+          (m_data.str_value->length() == 1 && m_data.str_value->is_ascii_string()) ?
               m_data.str_value->at(0) : invalid_char_value;
     case SmartType_Character:
       return m_data.char_value;
@@ -451,15 +451,26 @@ char SmartObject::convert_char() const {
 // STD::STRING TYPE SUPPORT
 // =============================================================
 
-SmartObject::SmartObject(const std::string& InitialValue)
+SmartObject::SmartObject(const custom_str::CustomString& InitialValue)
     : m_type(SmartType_Null),
       m_schema() {
   m_data.str_value = NULL;
   set_value_string(InitialValue);
 }
 
+SmartObject::SmartObject(const std::string& InitialValue)
+    : m_type(SmartType_Null),
+      m_schema() {
+  m_data.str_value = NULL;
+  set_value_string(custom_str::CustomString(InitialValue));
+}
+
 std::string SmartObject::asString() const {
   return convert_string();
+}
+
+custom_str::CustomString SmartObject::asCustomString() const {
+  return convert_custom_string();
 }
 
 const char* SmartObject::asCharArray() const {
@@ -471,28 +482,33 @@ const char* SmartObject::asCharArray() const {
 
 SmartObject& SmartObject::operator=(const std::string& NewValue) {
   if (m_type != SmartType_Invalid) {
+    set_value_string(custom_str::CustomString(NewValue));
+  }
+  return *this;
+}
+
+SmartObject& SmartObject::operator=(const custom_str::CustomString& NewValue) {
+  if (m_type != SmartType_Invalid) {
     set_value_string(NewValue);
   }
   return *this;
 }
 
 bool SmartObject::operator==(const std::string& Value) const {
-  const std::string comp = convert_string();
+  const custom_str::CustomString& comp(convert_custom_string());
   if (comp == invalid_string_value) {
     return false;
   }
   return comp == Value;
 }
 
-void SmartObject::set_value_string(const std::string& NewValue) {
+void SmartObject::set_value_string(const custom_str::CustomString& NewValue) {
   set_new_type(SmartType_String);
-  m_data.str_value = new std::string(NewValue);
+  m_data.str_value = new custom_str::CustomString(NewValue);
 }
 
 std::string SmartObject::convert_string() const {
   switch (m_type) {
-    case SmartType_String:
-      return *(m_data.str_value);
     case SmartType_Integer: {
       std::stringstream stream;
       stream << m_data.int_value;
@@ -502,10 +518,21 @@ std::string SmartObject::convert_string() const {
       return std::string(1, m_data.char_value);
     case SmartType_Double:
       return convert_double_to_string(m_data.double_value);
+    case SmartType_String:
+      return (m_data.str_value)->AsMBString();
     default:
       break;
   }
   return NsSmartDeviceLink::NsSmartObjects::invalid_cstr_value;
+}
+
+custom_str::CustomString SmartObject::convert_custom_string() const {
+  switch (m_type) {
+    case SmartType_String:
+      return *(m_data.str_value);
+    default:
+      return custom_str::CustomString(convert_string());
+  }
 }
 
 // =============================================================
@@ -528,7 +555,7 @@ SmartObject& SmartObject::operator=(const char* NewValue) {
 }
 
 bool SmartObject::operator==(const char* Value) const {
-  const std::string comp = convert_string();
+  const custom_str::CustomString& comp(convert_custom_string());
   if (comp == invalid_string_value) {
     return false;
   }
@@ -536,7 +563,7 @@ bool SmartObject::operator==(const char* Value) const {
 }
 
 void SmartObject::set_value_cstr(const char* NewValue) {
-  set_value_string(NewValue ? std::string(NewValue) : std::string());
+  set_value_string(NewValue ? custom_str::CustomString(NewValue) : custom_str::CustomString());
 }
 
 // =============================================================
@@ -717,7 +744,7 @@ void SmartObject::duplicate(const SmartObject& OtherObject) {
       newData.char_value = OtherObject.m_data.char_value;
       break;
     case SmartType_String:
-      newData.str_value = new std::string(*OtherObject.m_data.str_value);
+      newData.str_value = new custom_str::CustomString(*OtherObject.m_data.str_value);
       break;
     case SmartType_Binary:
       newData.binary_value = new SmartBinary(*OtherObject.m_data.binary_value);
@@ -791,8 +818,8 @@ void SmartObject::set_new_type(SmartType NewType) {
   m_type = NewType;
 }
 
-double SmartObject::convert_string_to_double(const std::string* Value) {
-  if (!Value || Value->empty()) {
+double SmartObject::convert_string_to_double(const custom_str::CustomString* Value) {
+  if (!Value || Value->empty() || !(Value->is_ascii_string())) {
     return invalid_double_value;
   }
 
@@ -825,12 +852,12 @@ std::string SmartObject::convert_double_to_string(const double& Value) {
   return s;
 }
 
-uint64_t SmartObject::convert_string_to_integer(const std::string* Value) {
-  if (!Value || Value->empty()) {
+uint64_t SmartObject::convert_string_to_integer(const custom_str::CustomString* Value) {
+  if (!Value || Value->empty() || !(Value->is_ascii_string())) {
     return invalid_int64_value;
   }
   int64_t result;
-  std::stringstream stream(*Value);
+  std::stringstream stream(Value->AsMBString());
   stream >> result;
   if (stream.eof()) {
     return result;
