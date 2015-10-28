@@ -642,7 +642,7 @@ HmiStatePtr StateController::CreateHmiState(
       break;
     }
     case HmiState::STATE_ID_DEACTIVATE_HMI: {
-      new_state = MakeShared<DeactivateHMI>(app_id, state_context_);
+      new_state = MakeShared<DeactivateHMI>(app_id, app_mngr_);
       break;
     }
     default:

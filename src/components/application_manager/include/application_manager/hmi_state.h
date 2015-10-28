@@ -249,7 +249,7 @@ class SafetyModeHmiState : public HmiState {
  */
 class DeactivateHMI : public HmiState {
  public:
-  DeactivateHMI(uint32_t app_id, const StateContext& state_context);
+  DeactivateHMI(uint32_t app_id, ApplicationManager* app_mngr);
   virtual mobile_apis::HMILevel::eType hmi_level() const;
   virtual  mobile_apis::AudioStreamingState::eType audio_streaming_state() const {
     return mobile_apis::AudioStreamingState::NOT_AUDIBLE;
