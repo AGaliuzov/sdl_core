@@ -36,11 +36,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <fstream>
-#ifdef __QNXNTO__
-#include <openssl/ssl3.h>
-#else
-#include <openssl/tls1.h>
-#endif
+#include <openssl/ssl.h>
 
 #include "security_manager/crypto_manager.h"
 #include "security_manager/crypto_manager_impl.h"
