@@ -65,6 +65,7 @@ class HmiState {
     STATE_ID_VR_SESSION,
     STATE_ID_TTS_SESSION,
     STATE_ID_NAVI_STREAMING,
+    STATE_ID_DEACTIVATE_HMI
   };
 
   HmiState(uint32_t app_id, ApplicationManager* app_mngr);
@@ -192,7 +193,7 @@ class HmiState {
 };
 
 /**
- * @brief The VRHmiState class impement logic of VR temporary state
+ * @brief The VRHmiState class implements logic of VR temporary state
  */
 class VRHmiState : public HmiState {
  public:
@@ -201,7 +202,7 @@ class VRHmiState : public HmiState {
 };
 
 /**
- * @brief The TTSHmiState class impement logic of TTS temporary state
+ * @brief The TTSHmiState class implements logic of TTS temporary state
  */
 class TTSHmiState : public HmiState {
  public:
@@ -210,8 +211,7 @@ class TTSHmiState : public HmiState {
 };
 
 /**
- * @brief The NaviStreamingState class impement logic of NaviStreaming temporary
- * state
+ * @brief The NaviStreamingState class implements logic of NaviStreaming temporary state
  */
 class NaviStreamingHmiState : public HmiState {
  public:
@@ -220,8 +220,7 @@ class NaviStreamingHmiState : public HmiState {
 };
 
 /**
- * @brief The PhoneCallHmiState class impement logic of PhoneCall temporary
- * state
+ * @brief The PhoneCallHmiState class implements logic of PhoneCall temporary state
  */
 class PhoneCallHmiState : public HmiState {
  public:
@@ -234,8 +233,7 @@ class PhoneCallHmiState : public HmiState {
 };
 
 /**
- * @brief The SafetyModeHmiState class impement logic of SafetyMode temporary
- * state
+ * @brief The SafetyModeHmiState class implements logic of SafetyMode temporary state
  */
 class SafetyModeHmiState : public HmiState {
  public:
@@ -245,5 +243,19 @@ class SafetyModeHmiState : public HmiState {
     return mobile_apis::AudioStreamingState::NOT_AUDIBLE;
   }
 };
+
+/**
+ * @brief The DeactivateHMI class implements logic of DeactivateHMI temporary state
+ */
+class DeactivateHMI : public HmiState {
+ public:
+  DeactivateHMI(uint32_t app_id, ApplicationManager* app_mngr);
+  virtual mobile_apis::HMILevel::eType hmi_level() const;
+  virtual  mobile_apis::AudioStreamingState::eType audio_streaming_state() const {
+    return mobile_apis::AudioStreamingState::NOT_AUDIBLE;
+  }
+
+};
+
 }
 #endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_HMISTATE_H

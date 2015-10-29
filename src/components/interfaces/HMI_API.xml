@@ -1999,7 +1999,7 @@
           The ID of application that relates to this button-subscription status change.
         </description>
       </param>
-    </function>
+    </function>    
 </interface>
 
 <interface name="BasicCommunication" version="1.0" date="2013-04-12">
@@ -2351,6 +2351,16 @@
          <description>SUCCESS - in case the certificate is decrypted and placed to the same file from request.</description>
    </function>
   <!-- End of Policies -->
+   <function name="OnDeactivateHMI" messagetype="notification">
+        <description>
+          Sender: HMI->SDL. When: in case GAL/DIO is active or disabling
+        </description>
+     <param name="isDeactivated" type="Boolean" mandatory="true">
+        <description>
+          Must be 'true' - GAL/DIO is active. Must be 'false' when GAL/DIO is disabling
+        </description>
+     </param>
+   </function>
 </interface>
 
 <interface name="VR" version="1.0" date="2013-04-17">
