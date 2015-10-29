@@ -349,18 +349,34 @@ void SubscribeVehicleDataRequest::AddAlreadySubscribedVI(
   using namespace mobile_apis;
   VehicleInfoSubscriptions::const_iterator it_same_app =
       vi_already_subscribed_by_this_app_.begin();
-  for (;vi_already_subscribed_by_this_app_.end() != it_same_app;
+  const VehicleData& vehicle_data = MessageHelper::vehicle_data();
+
+  for (; vi_already_subscribed_by_this_app_.end() != it_same_app;
        ++it_same_app) {
-    msg_params[*it_same_app][strings::result_code] =
-        VehicleDataResultCode::VDRC_DATA_ALREADY_SUBSCRIBED;
+    for (VehicleData::const_iterator vd_it = vehicle_data.begin();
+         vd_it != vehicle_data.end(); ++vd_it) {
+      if (vd_it->second == *it_same_app) {
+        msg_params[vd_it->first][strings::data_type] = vd_it->second;
+        msg_params[vd_it->first][strings::result_code] =
+            VehicleDataResultCode::VDRC_DATA_ALREADY_SUBSCRIBED;
+        break;
+      }
+    }
   }
 
   VehicleInfoSubscriptions::const_iterator it_another_app =
       vi_already_subscribed_by_another_apps_.begin();
-  for (;vi_already_subscribed_by_another_apps_.end() != it_another_app;
+  for (; vi_already_subscribed_by_another_apps_.end() != it_another_app;
        ++it_another_app) {
-    msg_params[*it_another_app][strings::result_code] =
-        VehicleDataResultCode::VDRC_SUCCESS;
+    for (VehicleData::const_iterator vd_it = vehicle_data.begin();
+         vd_it != vehicle_data.end(); ++vd_it) {
+      if (vd_it->second == *it_another_app) {
+        msg_params[vd_it->first][strings::data_type] = vd_it->second;
+        msg_params[vd_it->first][strings::result_code] =
+            VehicleDataResultCode::VDRC_SUCCESS;
+        break;
+      }
+    }
   }
 }
 
