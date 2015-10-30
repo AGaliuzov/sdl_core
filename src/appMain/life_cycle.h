@@ -37,13 +37,13 @@
 
 #include "hmi_message_handler/hmi_message_handler_impl.h"
 #ifdef DBUS_HMIADAPTER
-#  include "hmi_message_handler/dbus_message_adapter.h"
+#include "hmi_message_handler/dbus_message_adapter.h"
 #endif  // DBUS_HMIADAPTER
-#if ( defined (MESSAGEBROKER_HMIADAPTER) || defined(PASA_HMI)  )
+#if (defined(MESSAGEBROKER_HMIADAPTER) || defined(PASA_HMI))
 #include "hmi_message_handler/messagebroker_adapter.h"
 #endif  // #if ( defined (MESSAGEBROKER_HMIADAPTER) || defined(PASA_HMI)  )
 #ifdef MQUEUE_HMIADAPTER
-#  include "hmi_message_handler/mqueue_adapter.h"
+#include "hmi_message_handler/mqueue_adapter.h"
 #endif  // MQUEUE_HMIADAPTER
 #include "application_manager/application_manager_impl.h"
 #include "connection_handler/connection_handler_impl.h"
@@ -60,8 +60,8 @@
 #ifdef MESSAGEBROKER_HMIADAPTER
 #include "CMessageBroker.hpp"
 #include "mb_tcpserver.hpp"
-#  include "networking.h"  // cpplint: Include the directory when naming .h files
-#endif  // MESSAGEBROKER_HMIADAPTER
+#include "networking.h"  // cpplint: Include the directory when naming .h files
+#endif                   // MESSAGEBROKER_HMIADAPTER
 #include "system.h"      // cpplint: Include the directory when naming .h files
 
 #ifdef ENABLE_SECURITY
@@ -73,60 +73,60 @@ class SecurityManagerImpl;
 
 namespace main_namespace {
 class LifeCycle : public utils::Singleton<LifeCycle> {
-  public:
-    bool StartComponents();
+ public:
+  bool StartComponents();
 
-    /**
-    * Initialize MessageBroker component
-    * @return true if success otherwise false.
-    */
-    bool InitMessageSystem();
-    /**
-     * \brief Main loop
-     */
-    void Run();
-    void StopComponents();
+  /**
+  * Initialize MessageBroker component
+  * @return true if success otherwise false.
+  */
+  bool InitMessageSystem();
+  /**
+   * \brief Main loop
+   */
+  void Run();
+  void StopComponents();
 
 #ifdef CUSTOMER_PASA
-    void LowVoltage();
-    void WakeUp();
+  void LowVoltage();
+  void WakeUp();
 #endif
 
-  private:
-    LifeCycle();
-    transport_manager::TransportManager* transport_manager_;
-    protocol_handler::ProtocolHandlerImpl* protocol_handler_;
+ private:
+  LifeCycle();
+  transport_manager::TransportManager* transport_manager_;
+  protocol_handler::ProtocolHandlerImpl* protocol_handler_;
 #ifdef ENABLE_SECURITY
-    security_manager::CryptoManager* crypto_manager_;
-    security_manager::SecurityManager* security_manager_;
+  security_manager::CryptoManager* crypto_manager_;
+  security_manager::SecurityManager* security_manager_;
 #endif  // ENABLE_SECURITY
-    hmi_message_handler::HMIMessageAdapter* hmi_message_adapter_;
+  hmi_message_handler::HMIMessageAdapter* hmi_message_adapter_;
 #ifdef TIME_TESTER
-    time_tester::TimeManager* time_tester_;
+  time_tester::TimeManager* time_tester_;
 #endif  // TIME_TESTER
 #ifdef DBUS_HMIADAPTER
-    hmi_message_handler::DBusMessageAdapter* dbus_adapter_;
-    System::Thread* dbus_adapter_thread_;
+  hmi_message_handler::DBusMessageAdapter* dbus_adapter_;
+  System::Thread* dbus_adapter_thread_;
 #endif  // DBUS_HMIADAPTER
 
 #ifdef MESSAGEBROKER_HMIADAPTER
-    hmi_message_handler::MessageBrokerAdapter* mb_adapter_;
-    NsMessageBroker::TcpServer* message_broker_server_;
-    System::Thread* mb_thread_;
-    System::Thread* mb_server_thread_;
-    System::Thread* mb_adapter_thread_;
+  hmi_message_handler::MessageBrokerAdapter* mb_adapter_;
+  NsMessageBroker::TcpServer* message_broker_server_;
+  System::Thread* mb_thread_;
+  System::Thread* mb_server_thread_;
+  System::Thread* mb_adapter_thread_;
 #endif  // MESSAGEBROKER_HMIADAPTER
 
 #ifdef CUSTOMER_PASA
 #ifdef PASA_HMI
-    hmi_message_handler::MessageBrokerAdapter* mb_pasa_adapter_;
-    System::Thread* mb_pasa_adapter_thread_;
-    bool low_voltage_;
+  hmi_message_handler::MessageBrokerAdapter* mb_pasa_adapter_;
+  System::Thread* mb_pasa_adapter_thread_;
+  bool low_voltage_;
 #endif  // PASA_HMI
 #endif  // CUSTOMER_PASA
 
-    FRIEND_BASE_SINGLETON_CLASS(LifeCycle);
-    DISALLOW_COPY_AND_ASSIGN(LifeCycle);
+  FRIEND_BASE_SINGLETON_CLASS(LifeCycle);
+  DISALLOW_COPY_AND_ASSIGN(LifeCycle);
 };
 }  //  namespace main_namespace
 
