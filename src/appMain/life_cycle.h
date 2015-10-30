@@ -96,15 +96,11 @@ class LifeCycle : public utils::Singleton<LifeCycle> {
     LifeCycle();
     transport_manager::TransportManager* transport_manager_;
     protocol_handler::ProtocolHandlerImpl* protocol_handler_;
-    connection_handler::ConnectionHandlerImpl* connection_handler_;
-    application_manager::ApplicationManagerImpl* app_manager_;
 #ifdef ENABLE_SECURITY
     security_manager::CryptoManager* crypto_manager_;
     security_manager::SecurityManager* security_manager_;
 #endif  // ENABLE_SECURITY
-    hmi_message_handler::HMIMessageHandlerImpl* hmi_handler_;
     hmi_message_handler::HMIMessageAdapter* hmi_message_adapter_;
-    media_manager::MediaManagerImpl* media_manager_;
 #ifdef TIME_TESTER
     time_tester::TimeManager* time_tester_;
 #endif  // TIME_TESTER
@@ -115,7 +111,6 @@ class LifeCycle : public utils::Singleton<LifeCycle> {
 
 #ifdef MESSAGEBROKER_HMIADAPTER
     hmi_message_handler::MessageBrokerAdapter* mb_adapter_;
-    NsMessageBroker::CMessageBroker* message_broker_;
     NsMessageBroker::TcpServer* message_broker_server_;
     System::Thread* mb_thread_;
     System::Thread* mb_server_thread_;
