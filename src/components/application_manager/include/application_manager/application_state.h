@@ -33,13 +33,13 @@
 #ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_APPLICATION_STATE_H_
 #define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_APPLICATION_STATE_H_
 
-#include "application_manager/hmi_state.h"
 #include "utils/lock.h"
 #include "utils/macro.h"
+#include "application_manager/hmi_state.h"
 
 namespace application_manager {
 
-typedef std::list<HmiStatePtr> HmiStateList;
+typedef std::vector<HmiStatePtr> HmiStates;
 
 /*
  * Class represents application state, i.e. current HMI level, audio streaming
@@ -57,7 +57,6 @@ typedef std::list<HmiStatePtr> HmiStateList;
 class ApplicationState
 {
   public:
-
     /**
      * @brief ApplicationState constructor
      */
@@ -152,7 +151,7 @@ class ApplicationState
     /**
      * @brief Active states of application
      */
-    HmiStateList hmi_states_;
+    HmiStates hmi_states_;
     mutable sync_primitives::Lock hmi_states_lock_;
 
     DISALLOW_COPY_AND_ASSIGN(ApplicationState);

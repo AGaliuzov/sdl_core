@@ -71,16 +71,6 @@ mobile_apis::FileType::eType StringToFileType(const char* str) {
   }
 }
 
-
-struct StateIdFindPredicate {
-    application_manager::HmiState::StateID state_id_;
-    StateIdFindPredicate(application_manager::HmiState::StateID state_id):
-      state_id_(state_id) {}
-    bool operator ()(const application_manager::HmiStatePtr cur) {
-      return cur->state_id() == state_id_;
-    }
-};
-
 }
 
 namespace application_manager {

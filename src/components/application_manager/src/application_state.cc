@@ -38,12 +38,12 @@
 namespace {
 
 struct StateIdFindPredicate {
-    application_manager::HmiState::StateID state_id_;
-    StateIdFindPredicate(application_manager::HmiState::StateID state_id):
-      state_id_(state_id) {}
-    bool operator ()(const application_manager::HmiStatePtr cur) {
-      return cur->state_id() == state_id_;
-    }
+  application_manager::HmiState::StateID state_id_;
+  StateIdFindPredicate(application_manager::HmiState::StateID state_id):
+    state_id_(state_id) {}
+  bool operator()(const application_manager::HmiStatePtr cur) const {
+    return cur->state_id() == state_id_;
+  }
 };
 
 }
@@ -78,7 +78,7 @@ void ApplicationState::AddState(HmiStatePtr state) {
     return;
   default:
     AddHMIState(state);
-    return;
+    break;
   }
 
   return;
@@ -120,39 +120,41 @@ void ApplicationState::AddHMIState(HmiStatePtr state) {
   LOG4CXX_AUTO_TRACE(logger_);
   DCHECK_OR_RETURN_VOID(state);
   sync_primitives::AutoLock auto_lock(hmi_states_lock_);
-  HmiStateList::iterator it =
+  HmiStates::iterator it =
       std::find_if(hmi_states_.begin(), hmi_states_.end(),
                    StateIdFindPredicate(state->state_id()));
-  if (hmi_states_.end() == it) {
-    hmi_states_.push_back(state);
-  } else {
+  if (hmi_states_.end() != it) {
     LOG4CXX_WARN(logger_, "Hmi state with ID " << state->state_id()
                  << "has been already applied to this application. Ignoring");
+    return;
   }
+
+  hmi_states_.push_back(state);
 }
 
 void ApplicationState::RemoveHMIState(HmiState::StateID state_id) {
   LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock auto_lock(hmi_states_lock_);
-  HmiStateList::iterator it =
+  HmiStates::iterator it =
       std::find_if(hmi_states_.begin(), hmi_states_.end(),
                    StateIdFindPredicate(state_id));
-  if (it != hmi_states_.end()) {
-    // unable to remove regular state
-    DCHECK_OR_RETURN_VOID(it != hmi_states_.begin());
-    HmiStateList::iterator next = it;
-    HmiStateList::iterator prev = it;
-    next++;
-    prev--;
-    if (next != hmi_states_.end()) {
-      HmiStatePtr next_state = *next;
-      HmiStatePtr prev_state = *prev;
-      next_state->set_parent(prev_state);
-    }
-    hmi_states_.erase(it);
-  } else {
+  if (it == hmi_states_.end()) {
     LOG4CXX_ERROR(logger_, "Unsuccesful remove HmiState: " << state_id);
+    return;
   }
+
+  // unable to remove regular state
+  DCHECK_OR_RETURN_VOID(it != hmi_states_.begin());
+  HmiStates::iterator next = it;
+  HmiStates::iterator prev = it;
+  next++;
+  prev--;
+  if (next != hmi_states_.end()) {
+    HmiStatePtr next_state = *next;
+    HmiStatePtr prev_state = *prev;
+    next_state->set_parent(prev_state);
+  }
+  hmi_states_.erase(it);
 }
 
 void ApplicationState::RemovePostponedState() {
@@ -162,7 +164,7 @@ void ApplicationState::RemovePostponedState() {
 
   StateIdFindPredicate finder(HmiState::StateID::STATE_ID_POSTPONED);
 
-  HmiStateList::iterator postponed_state =
+  HmiStates::iterator postponed_state =
       std::find_if(hmi_states_.begin(), hmi_states_.end(), finder);
 
   if (hmi_states_.end() == postponed_state) {
@@ -184,19 +186,19 @@ void ApplicationState::SetRegularState(HmiStatePtr state) {
   HmiState::StateID front_state_id = front_state->state_id();
   if (HmiState::StateID::STATE_ID_POSTPONED == front_state_id) {
     // Drop postponed state
-    hmi_states_.pop_front();
+    hmi_states_.erase(hmi_states_.begin());
   }
 
   // Drop regular state
-  hmi_states_.pop_front();
+  hmi_states_.erase(hmi_states_.begin());
 
   if (!hmi_states_.empty()) {
     HmiStatePtr front_state = hmi_states_.front();
     front_state->set_parent(state);
   }
-  hmi_states_.push_front(state);
+  hmi_states_.insert(hmi_states_.begin(),state);
   if (HmiState::StateID::STATE_ID_POSTPONED == front_state_id) {
-    hmi_states_.push_front(front_state);
+    hmi_states_.insert(hmi_states_.begin(),front_state);
   }
 }
 
@@ -209,9 +211,9 @@ void ApplicationState::SetPostponedState(HmiStatePtr state) {
   DCHECK_OR_RETURN_VOID(!hmi_states_.empty());
   HmiStatePtr front_state = hmi_states_.front();
   if (front_state->state_id() == HmiState::StateID::STATE_ID_POSTPONED) {
-    hmi_states_.pop_front();
+    hmi_states_.erase(hmi_states_.begin());
   }
-  hmi_states_.push_front(state);
+  hmi_states_.insert(hmi_states_.begin(),state);
 }
 
 HmiStatePtr ApplicationState::CurrentHmiState() const {
@@ -227,7 +229,7 @@ HmiStatePtr ApplicationState::CurrentHmiState() const {
 HmiStatePtr ApplicationState::RegularHmiState() const {
   sync_primitives::AutoLock auto_lock(hmi_states_lock_);
   DCHECK_OR_RETURN(!hmi_states_.empty(), HmiStatePtr());
-  HmiStateList::const_iterator front_itr = hmi_states_.begin();
+  HmiStates::const_iterator front_itr = hmi_states_.begin();
   if ((*front_itr)->state_id() == HmiState::StateID::STATE_ID_POSTPONED) {
     ++front_itr;
   }
@@ -242,4 +244,4 @@ HmiStatePtr ApplicationState::PostponedHmiState() const {
          front_state : HmiStatePtr();
 }
 
-}
+} // namespace application_manager
