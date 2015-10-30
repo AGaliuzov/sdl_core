@@ -118,6 +118,7 @@ ApplicationManagerImpl::ApplicationManagerImpl()
           profile::Profile::instance()->stop_streaming_timeout()),
       navi_end_stream_timeout_(
           profile::Profile::instance()->stop_streaming_timeout()),
+      stopping_flag_lock_(true),
       state_ctrl_(this),
 #ifdef CUSTOMER_PASA
       is_state_suspended_(false),
@@ -179,7 +180,9 @@ DataAccessor<ApplicationSet> ApplicationManagerImpl::applications() const {
 
 bool ApplicationManagerImpl::Stop() {
   LOG4CXX_AUTO_TRACE(logger_);
+  stopping_flag_lock_.Acquire();
   is_stopping_ = true;
+  stopping_flag_lock_.Release();
   application_list_update_timer_->stop();
   try {
     UnregisterAllApplications();
@@ -2019,6 +2022,9 @@ void ApplicationManagerImpl::SetUnregisterAllApplicationsReason(
 
 void ApplicationManagerImpl::HeadUnitReset(
     mobile_api::AppInterfaceUnregisteredReason::eType reason) {
+  stopping_flag_lock_.Acquire();
+  is_stopping_ = true;
+  stopping_flag_lock_.Release();
   switch (reason) {
     case mobile_api::AppInterfaceUnregisteredReason::MASTER_RESET: {
       UnregisterAllApplications();
@@ -2234,6 +2240,13 @@ void ApplicationManagerImpl::Handle(const impl::MessageFromMobile message) {
   if (!message) {
     LOG4CXX_ERROR(logger_, "Null-pointer message received.");
     return;
+  }
+  {
+    sync_primitives::AutoLock lock(stopping_flag_lock_);
+    if (is_stopping_) {
+      LOG4CXX_INFO(logger_, "Application manager is stopping");
+      return;
+    }
   }
   ProcessMessageFromMobile(message);
 }
