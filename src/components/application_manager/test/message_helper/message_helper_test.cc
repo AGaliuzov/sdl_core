@@ -91,6 +91,34 @@ class MessageHelperTest : public ::testing::Test {
       "FILE_NOT_FOUND", "CANCEL_ROUTE", "TRUNCATED_DATA",
       "SAVED", "INVALID_CERT", "EXPIRED_CERT", "RESUME_FAILED"
     };
+    const policy::StringArray function_id_strings = {
+          "RESERVED", "RegisterAppInterface", "UnregisterAppInterface",
+          "SetGlobalProperties", "ResetGlobalProperties", "AddCommand",
+          "DeleteCommand", "AddSubMenu", "DeleteSubMenu",
+          "CreateInteractionChoiceSet", "PerformInteraction", "DeleteInteractionChoiceSet",
+          "Alert", "Show", "Speak",
+          "SetMediaClockTimer", "PerformAudioPassThru", "EndAudioPassThru",
+          "SubscribeButton", "UnsubscribeButton", "SubscribeVehicleData",
+          "UnsubscribeVehicleData", "GetVehicleData", "ReadDID",
+          "GetDTCs", "ScrollableMessage", "Slider",
+          "ShowConstantTBT", "AlertManeuver", "UpdateTurnList",
+          "ChangeRegistration", "GenericResponse", "PutFile",
+          "DeleteFile", "ListFiles", "SetAppIcon",
+          "SetDisplayLayout", "DiagnosticMessage", "SystemRequest",
+          "SendLocation", "DialNumber"
+        };
+    const u_int32_t delta_from_functions_id = 32768;
+    const policy::StringArray events_id_strings = {
+      "OnHMIStatus", "OnAppInterfaceUnregistered", "OnButtonEvent",
+      "OnButtonPress", "OnVehicleData", "OnCommand",
+      "OnTBTClientState", "OnDriverDistraction", "OnPermissionsChange",
+      "OnAudioPassThru", "OnLanguageChange", "OnKeyboardInput",
+      "OnTouchEvent", "OnSystemRequest", "OnHashChange"
+    };
+    const policy::StringArray hmi_level_strings = {
+      "FULL", "LIMITED",
+      "BACKGROUND", "NONE"
+    };
 
     virtual void SetUp() OVERRIDE {
     }
@@ -385,6 +413,57 @@ TEST_F ( MessageHelperTest,
       MessageHelper::VerifyImageVrHelpItems(message, appSharedMock );
   //EXPECT
   EXPECT_EQ(mobile_apis::Result::INVALID_DATA, result);
+}
+
+TEST_F( MessageHelperTest,
+    StringifiedFunctionID_FinctionId_ExpectEqualsWithStringsInArray) {
+  // Start from 1 because 1 == RESERVED and haven`t ID in last 2 characters
+  // if FUNCTION ID == 1 inner DCHECK is false
+  for (u_int32_t i = 1; i < function_id_strings.size(); ++i) {
+    EXPECT_EQ( function_id_strings[i],
+        MessageHelper::StringifiedFunctionID(
+            static_cast<mobile_apis::FunctionID::eType>(i) ) );
+  }
+  // EventIDs emum strarts from delta_from_functions_id = 32768
+  for (u_int32_t i = delta_from_functions_id;
+      i < events_id_strings.size()+delta_from_functions_id;
+      ++i) {
+    EXPECT_EQ( events_id_strings[i-delta_from_functions_id],
+        MessageHelper::StringifiedFunctionID(
+            static_cast<mobile_apis::FunctionID::eType>(i) )
+    );
+  }
+}
+
+TEST_F( MessageHelperTest,
+    StringifiedHmiLevel_LevelEnum_ExpectEqualsWithStringsInArray) {
+  for (u_int32_t i = 0; i < hmi_level_strings.size(); ++i) {
+    EXPECT_EQ (hmi_level_strings[i],
+        MessageHelper::StringifiedHMILevel(
+            static_cast<mobile_apis::HMILevel::eType>(i)));
+  }
+}
+
+TEST_F( MessageHelperTest,
+    StringToHmiLevel_LevelString_ExpectEqEType) {
+  for (u_int32_t i = 0; i < hmi_level_strings.size(); ++i) {
+    EXPECT_EQ ( static_cast<mobile_apis::HMILevel::eType>(i),
+        MessageHelper::StringToHMILevel( hmi_level_strings[i] ) );
+  }
+}
+
+TEST_F( MessageHelperTest,
+    SubscribeApplicationToSoftButton_ExpectCallFromApp) {
+  // Create application mock
+  ApplicationMockSharedPtr appSharedPtr = utils::MakeShared<AppMock>();
+  // Prepare data for method
+  smart_objects::SmartObject message_params;
+  u_int32_t function_id = 1;
+  //
+  EXPECT_CALL(*appSharedPtr , SubscribeToSoftButtons(function_id,SoftButtonID()))
+      .Times(1);
+  MessageHelper::SubscribeApplicationToSoftButton(
+      message_params, appSharedPtr, function_id );
 }
 
 } // namespace test
