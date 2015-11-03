@@ -46,16 +46,11 @@ set(LIBRARIES
     MediaManager
     Resumption
     ProtocolHandler
-    Policy
-    transport_manager
 )
 
 set(SOURCES
     message_helper_test.cc
 )
-
-file(COPY smartDeviceLink_test2.ini DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-file(COPY sdl_pt_update.json DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 create_test("message_helper_test" "${SOURCES}" "${LIBRARIES}")
 

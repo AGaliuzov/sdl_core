@@ -30,17 +30,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <fstream>
 #include <string>
+#include <vector>
 
 #include "gmock/gmock.h"
 #include "utils/macro.h"
 #include "utils/make_shared.h"
 #include "application_manager/policies/policy_handler.h"
-#include "config_profile/profile.h"
-#include "policy/policy_manager_impl.h"
-#include "connection_handler/connection_handler_impl.h"
-#include "encryption/hashing.h"
 #include "application_manager/test/resumption/include/application_mock.h"
 
 namespace application_manager {
@@ -52,51 +48,50 @@ namespace MobileResults = mobile_apis::Result;
 
 typedef ::test::components::resumption_test::ApplicationMock AppMock;
 typedef utils::SharedPtr<AppMock> ApplicationMockSharedPtr;
+typedef std::vector<std::string> StringArray;
+
 using testing::Return;
 
 class MessageHelperTest : public ::testing::Test {
   public:
-    MessageHelperTest(){}
-  protected:
-
-    const policy::StringArray language_strings = {
-      "EN-US", "ES-MX", "FR-CA", "DE-DE", "ES-ES", "EN-GB", "RU-RU", "TR-TR",
-      "PL-PL", "FR-FR", "IT-IT", "SV-SE", "PT-PT", "NL-NL", "EN-AU", "ZH-CN",
-      "ZH-TW", "JA-JP", "AR-SA", "KO-KR", "PT-BR", "CS-CZ", "DA-DK", "NO-NO",
-      "NL-BE", "EL-GR", "HU-HU", "FI-FI", "SK-SK"
-    };
-
-    const policy::StringArray hmi_result_strings = {
-      "SUCCESS", "UNSUPPORTED_REQUEST", "UNSUPPORTED_RESOURCE",
-      "DISALLOWED", "REJECTED", "ABORTED",
-      "IGNORED", "RETRY", "IN_USE",
-      "DATA_NOT_AVAILABLE", "TIMED_OUT", "INVALID_DATA",
-      "CHAR_LIMIT_EXCEEDED", "INVALID_ID", "DUPLICATE_NAME",
-      "APPLICATION_NOT_REGISTERED", "WRONG_LANGUAGE", "OUT_OF_MEMORY",
-      "TOO_MANY_PENDING_REQUESTS", "NO_APPS_REGISTERED", "NO_DEVICES_CONNECTED",
-      "WARNINGS", "GENERIC_ERROR", "USER_DISALLOWED",
-      "TRUNCATED_DATA"
-    };
-
-    const policy::StringArray mobile_result_strings = {
-      "SUCCESS", "UNSUPPORTED_REQUEST", "UNSUPPORTED_RESOURCE",
-      "DISALLOWED", "REJECTED", "ABORTED",
-      "IGNORED", "RETRY", "IN_USE",
-      "VEHICLE_DATA_NOT_AVAILABLE", "TIMED_OUT", "INVALID_DATA",
-      "CHAR_LIMIT_EXCEEDED", "INVALID_ID", "DUPLICATE_NAME",
-      "APPLICATION_NOT_REGISTERED", "WRONG_LANGUAGE", "OUT_OF_MEMORY",
-      "TOO_MANY_PENDING_REQUESTS", "TOO_MANY_APPLICATIONS",
-      "APPLICATION_REGISTERED_ALREADY", "WARNINGS", "GENERIC_ERROR",
-      "USER_DISALLOWED", "UNSUPPORTED_VERSION", "VEHICLE_DATA_NOT_ALLOWED",
-      "FILE_NOT_FOUND", "CANCEL_ROUTE", "TRUNCATED_DATA",
-      "SAVED", "INVALID_CERT", "EXPIRED_CERT", "RESUME_FAILED"
-    };
-    const policy::StringArray function_id_strings = {
+    MessageHelperTest() :
+        language_strings {
+          "EN-US", "ES-MX", "FR-CA", "DE-DE", "ES-ES", "EN-GB", "RU-RU",
+          "TR-TR", "PL-PL", "FR-FR", "IT-IT", "SV-SE", "PT-PT", "NL-NL",
+          "EN-AU", "ZH-CN", "ZH-TW", "JA-JP", "AR-SA", "KO-KR", "PT-BR",
+          "CS-CZ", "DA-DK", "NO-NO", "NL-BE", "EL-GR", "HU-HU", "FI-FI",
+          "SK-SK"
+        },
+        hmi_result_strings {
+          "SUCCESS", "UNSUPPORTED_REQUEST", "UNSUPPORTED_RESOURCE",
+          "DISALLOWED", "REJECTED", "ABORTED",
+          "IGNORED", "RETRY", "IN_USE",
+          "DATA_NOT_AVAILABLE", "TIMED_OUT", "INVALID_DATA",
+          "CHAR_LIMIT_EXCEEDED", "INVALID_ID", "DUPLICATE_NAME",
+          "APPLICATION_NOT_REGISTERED", "WRONG_LANGUAGE", "OUT_OF_MEMORY",
+          "TOO_MANY_PENDING_REQUESTS", "NO_APPS_REGISTERED",
+          "NO_DEVICES_CONNECTED", "WARNINGS", "GENERIC_ERROR",
+          "USER_DISALLOWED", "TRUNCATED_DATA"
+        },
+        mobile_result_strings {
+          "SUCCESS", "UNSUPPORTED_REQUEST", "UNSUPPORTED_RESOURCE",
+          "DISALLOWED", "REJECTED", "ABORTED",
+          "IGNORED", "RETRY", "IN_USE",
+          "VEHICLE_DATA_NOT_AVAILABLE", "TIMED_OUT", "INVALID_DATA",
+          "CHAR_LIMIT_EXCEEDED", "INVALID_ID", "DUPLICATE_NAME",
+          "APPLICATION_NOT_REGISTERED", "WRONG_LANGUAGE", "OUT_OF_MEMORY",
+          "TOO_MANY_PENDING_REQUESTS", "TOO_MANY_APPLICATIONS",
+          "APPLICATION_REGISTERED_ALREADY", "WARNINGS", "GENERIC_ERROR",
+          "USER_DISALLOWED", "UNSUPPORTED_VERSION", "VEHICLE_DATA_NOT_ALLOWED",
+          "FILE_NOT_FOUND", "CANCEL_ROUTE", "TRUNCATED_DATA",
+          "SAVED", "INVALID_CERT", "EXPIRED_CERT", "RESUME_FAILED"
+        },
+        function_id_strings {
           "RESERVED", "RegisterAppInterface", "UnregisterAppInterface",
           "SetGlobalProperties", "ResetGlobalProperties", "AddCommand",
           "DeleteCommand", "AddSubMenu", "DeleteSubMenu",
-          "CreateInteractionChoiceSet", "PerformInteraction", "DeleteInteractionChoiceSet",
-          "Alert", "Show", "Speak",
+          "CreateInteractionChoiceSet", "PerformInteraction",
+          "DeleteInteractionChoiceSet", "Alert", "Show", "Speak",
           "SetMediaClockTimer", "PerformAudioPassThru", "EndAudioPassThru",
           "SubscribeButton", "UnsubscribeButton", "SubscribeVehicleData",
           "UnsubscribeVehicleData", "GetVehicleData", "ReadDID",
@@ -106,140 +101,205 @@ class MessageHelperTest : public ::testing::Test {
           "DeleteFile", "ListFiles", "SetAppIcon",
           "SetDisplayLayout", "DiagnosticMessage", "SystemRequest",
           "SendLocation", "DialNumber"
-        };
-    const u_int32_t delta_from_functions_id = 32768;
-    const policy::StringArray events_id_strings = {
-      "OnHMIStatus", "OnAppInterfaceUnregistered", "OnButtonEvent",
-      "OnButtonPress", "OnVehicleData", "OnCommand",
-      "OnTBTClientState", "OnDriverDistraction", "OnPermissionsChange",
-      "OnAudioPassThru", "OnLanguageChange", "OnKeyboardInput",
-      "OnTouchEvent", "OnSystemRequest", "OnHashChange"
-    };
-    const policy::StringArray hmi_level_strings = {
-      "FULL", "LIMITED",
-      "BACKGROUND", "NONE"
-    };
+        },
+        events_id_strings {
+          "OnHMIStatus", "OnAppInterfaceUnregistered", "OnButtonEvent",
+          "OnButtonPress", "OnVehicleData", "OnCommand",
+          "OnTBTClientState", "OnDriverDistraction", "OnPermissionsChange",
+          "OnAudioPassThru", "OnLanguageChange", "OnKeyboardInput",
+          "OnTouchEvent", "OnSystemRequest", "OnHashChange"
+        },
+        hmi_level_strings {
+          "FULL", "LIMITED",
+          "BACKGROUND", "NONE"
+        },
+        delta_from_functions_id(32768) {}
 
-    virtual void SetUp() OVERRIDE {
-    }
-    virtual void TearDown() OVERRIDE {}
+  protected:
+    const StringArray language_strings;
+    const StringArray hmi_result_strings;
+    const StringArray mobile_result_strings;
+    const StringArray function_id_strings;
+    const StringArray events_id_strings;
+    const StringArray hmi_level_strings;
+
+    const size_t delta_from_functions_id;
 };
+
 TEST_F(MessageHelperTest,
-    CommonLanguageFromString_SendStringValueOfEnum_ExpectCorrectEType) {
-  for(u_int32_t array_index = 0;
+    CommonLanguageFromString_StringValueOfEnum_CorrectEType) {
+  HmiLanguage::eType enum_value;
+  HmiLanguage::eType enum_from_string_value;
+  // Check all languages >= 0
+  for (size_t array_index = 0;
       array_index < language_strings.size();
       ++array_index) {
-    EXPECT_EQ(static_cast<HmiLanguage::eType>(array_index),
-        MessageHelper::CommonLanguageFromString(
-            language_strings[array_index]));
+    enum_value = static_cast<HmiLanguage::eType>(array_index);
+    enum_from_string_value = MessageHelper::CommonLanguageFromString(
+      language_strings[array_index]);
+    EXPECT_EQ(enum_value, enum_from_string_value);
   }
-  EXPECT_EQ(HmiLanguage::INVALID_ENUM,
-      MessageHelper::CommonLanguageFromString(""));
+  // Check InvalidEnum == -1
+  enum_value = HmiLanguage::INVALID_ENUM;
+  enum_from_string_value = MessageHelper::CommonLanguageFromString("");
+  EXPECT_EQ(enum_value, enum_from_string_value);
 }
 
 TEST_F(MessageHelperTest,
-    CommonLanguageToString_SendETypeValueOfEnum_ExpectCorrectString) {
-  for(u_int32_t array_index = 0;
+    CommonLanguageToString_ETypeValueOfEnum_CorrectString) {
+  std::string string_from_enum;
+  HmiLanguage::eType casted_enum;
+  // Check all languages >=0
+  for (size_t array_index = 0;
       array_index < language_strings.size();
       ++array_index) {
-    EXPECT_EQ(language_strings[array_index],
-        MessageHelper::CommonLanguageToString(
-            static_cast<HmiLanguage::eType>(array_index)));
+    casted_enum = static_cast<HmiLanguage::eType>(array_index);
+    string_from_enum = MessageHelper::CommonLanguageToString(casted_enum);
+    EXPECT_EQ(language_strings[array_index], string_from_enum);
   }
-  EXPECT_EQ("", MessageHelper::CommonLanguageToString(
-      HmiLanguage::INVALID_ENUM));
+  // Check InvalidEnum == -1
+  string_from_enum = MessageHelper::CommonLanguageToString(
+        HmiLanguage::INVALID_ENUM);
+  EXPECT_EQ("", string_from_enum);
 }
 
 TEST_F(MessageHelperTest,
-    ConvertEnumAPINoCheck_AnyEnumType_ExpectAnotherEnumType) {
+    ConvertEnumAPINoCheck_AnyEnumType_AnotherEnumType) {
+  hmi_apis::Common_LayoutMode::eType tested_enum_value =
+      hmi_apis::Common_LayoutMode::ICON_ONLY;
   hmi_apis::Common_AppHMIType::eType converted =
       MessageHelper::ConvertEnumAPINoCheck <hmi_apis::Common_LayoutMode::eType,
-          hmi_apis::Common_AppHMIType::eType>(
-              hmi_apis::Common_LayoutMode::ICON_ONLY);
+          hmi_apis::Common_AppHMIType::eType>(tested_enum_value);
   EXPECT_EQ(hmi_apis::Common_AppHMIType::DEFAULT, converted);
 }
 
-TEST_F( MessageHelperTest,
+TEST_F(MessageHelperTest,
     HMIResultFromString_SendStringValueOfEnum_ExpectCorrectEType) {
-  for(u_int32_t array_index = 0;
+  HmiResults::eType enum_value;
+  HmiResults::eType enum_from_string_value;
+  // Check all results >= 0
+  for (size_t array_index = 0;
       array_index < hmi_result_strings.size();
       ++array_index) {
-    EXPECT_EQ(static_cast<HmiResults::eType>(array_index),
-        MessageHelper::HMIResultFromString( hmi_result_strings[array_index] ));
+    enum_value = static_cast<HmiResults::eType>(array_index);
+    enum_from_string_value =
+        MessageHelper::HMIResultFromString(hmi_result_strings[array_index]);
+    EXPECT_EQ(enum_value, enum_from_string_value);
   }
-  EXPECT_EQ(HmiResults::INVALID_ENUM,
-      MessageHelper::HMIResultFromString(""));
+  // Check InvalidEnum == -1
+  enum_value = HmiResults::INVALID_ENUM;
+  enum_from_string_value = MessageHelper::HMIResultFromString("");
+  EXPECT_EQ(enum_value, enum_from_string_value);
 }
 
-TEST_F( MessageHelperTest,
+TEST_F(MessageHelperTest,
     HMIResultToString_SendETypeValueOfEnum_ExpectCorrectString) {
-  for(u_int32_t array_index = 0;
+  std::string string_from_enum;
+  HmiResults::eType casted_enum;
+  // Check all results >=0
+  for (size_t array_index = 0;
       array_index < hmi_result_strings.size();
       ++array_index) {
-    EXPECT_EQ(hmi_result_strings[array_index],
-        MessageHelper::HMIResultToString(
-            static_cast<HmiResults::eType>(array_index)));
+    casted_enum = static_cast<HmiResults::eType>(array_index);
+    string_from_enum = MessageHelper::HMIResultToString(casted_enum);
+    EXPECT_EQ(hmi_result_strings[array_index], string_from_enum);
   }
-  EXPECT_EQ("", MessageHelper::HMIResultToString(
-      HmiResults::INVALID_ENUM));
+  // Check InvalidEnum == -1
+  string_from_enum = MessageHelper::HMIResultToString(
+        HmiResults::INVALID_ENUM);
+  EXPECT_EQ("", string_from_enum);
 }
 
-TEST_F( MessageHelperTest,
+TEST_F(MessageHelperTest,
     HMIToMobileResult_SendHmiResultEType_ExpectGetCorrectMobileResultEType) {
-  for(u_int32_t enum_index = 0;
+  MobileResults::eType tested_enum;
+  HmiResults::eType casted_hmi_enum;
+  MobileResults::eType converted_enum;
+  // Check enums >=0
+  for (size_t enum_index = 0;
       enum_index < hmi_result_strings.size();
       ++enum_index) {
-    EXPECT_EQ(
-        MessageHelper::MobileResultFromString(hmi_result_strings[enum_index]),
-        MessageHelper::HMIToMobileResult(
-            static_cast<HmiResults::eType>(enum_index)));
+    tested_enum =
+        MessageHelper::MobileResultFromString(hmi_result_strings[enum_index]);
+    casted_hmi_enum = static_cast<HmiResults::eType>(enum_index);
+    converted_enum = MessageHelper::HMIToMobileResult(casted_hmi_enum);
+    EXPECT_EQ(tested_enum, converted_enum);
   }
-  EXPECT_EQ(MobileResults::INVALID_ENUM, MessageHelper::HMIToMobileResult(
-      HmiResults::INVALID_ENUM));
+  // Check invalid enums == -1
+  tested_enum = MobileResults::INVALID_ENUM;
+  converted_enum = MessageHelper::HMIToMobileResult(HmiResults::INVALID_ENUM);
+  EXPECT_EQ(tested_enum, converted_enum);
+  // Check when out of range (true == result.empty())
+  casted_hmi_enum = static_cast<HmiResults::eType>(INT_MAX);
+  converted_enum = MessageHelper::HMIToMobileResult(casted_hmi_enum);
+  EXPECT_EQ(tested_enum, converted_enum);
 }
 
-TEST_F( MessageHelperTest,
+TEST_F(MessageHelperTest,
     MobileResultFromString_SendStringValueOfEnum_ExpectCorrectEType) {
-  for(u_int32_t array_index = 0;
+  MobileResults::eType tested_enum;
+  MobileResults::eType converted;
+  // Check enums >=0
+  for (size_t array_index = 0;
       array_index < mobile_result_strings.size();
       ++array_index) {
-    EXPECT_EQ(static_cast<MobileResults::eType>(array_index),
-        MessageHelper::MobileResultFromString(
-            mobile_result_strings[array_index] ));
+    tested_enum = static_cast<MobileResults::eType>(array_index);
+    converted = MessageHelper::MobileResultFromString(
+        mobile_result_strings[array_index]);
+    EXPECT_EQ(tested_enum, converted);
   }
-  EXPECT_EQ(MobileResults::INVALID_ENUM,
-      MessageHelper::MobileResultFromString(""));
+  // Check invalid enums == -1
+  tested_enum = MobileResults::INVALID_ENUM;
+  converted = MessageHelper::MobileResultFromString("");
+  EXPECT_EQ(tested_enum, converted_enum);
 }
 
-TEST_F( MessageHelperTest,
+TEST_F(MessageHelperTest,
     MobileResultToString_SendETypeValueOfEnum_ExpectCorrectString) {
-  for(u_int32_t array_index = 0;
+  std::string string_from_enum;
+  MobileResults::eType casted_enum;
+  // Check all results >=0
+  for (size_t array_index = 0;
       array_index < mobile_result_strings.size();
       ++array_index) {
-    EXPECT_EQ(mobile_result_strings[array_index],
-        MessageHelper::MobileResultToString(
-            static_cast<MobileResults::eType>(array_index)));
+    casted_enum = static_cast<MobileResults::eType>(array_index);
+    string_from_enum = MessageHelper::MobileResultToString(casted_enum);
+    EXPECT_EQ(mobile_result_strings[array_index], string_from_enum);
   }
-  EXPECT_EQ("", MessageHelper::MobileResultToString(
-      MobileResults::INVALID_ENUM));
+  // Check InvalidEnum == -1
+  string_from_enum = MessageHelper::MobileResultToString(
+        MobileResults::INVALID_ENUM);
+  EXPECT_EQ("", string_from_enum);
 }
 
-TEST_F( MessageHelperTest,
+TEST_F(MessageHelperTest,
     MobileToHMIResult_SendMobileResultEType_ExpectGetCorrectHmiResultEType) {
-  for(u_int32_t enum_index = 0;
+  HmiResults::eType tested_enum;
+  MobileResults::eType casted_mobile_enum;
+  HmiResults::eType converted_enum;
+  // Check enums >=0
+  for (size_t enum_index = 0;
       enum_index < mobile_result_strings.size();
       ++enum_index) {
-    EXPECT_EQ(
-        MessageHelper::HMIResultFromString(mobile_result_strings[enum_index]),
-        MessageHelper::MobileToHMIResult(
-            static_cast<MobileResults::eType>(enum_index)));
+    tested_enum =
+        MessageHelper::HMIResultFromString(mobile_result_strings[enum_index]);
+    casted_mobile_enum = static_cast<MobileResults::eType>(enum_index);
+    converted_enum = MessageHelper::MobileToHMIResult(casted_mobile_enum);
+    EXPECT_EQ(tested_enum, converted_enum);
   }
-  EXPECT_EQ(HmiResults::INVALID_ENUM, MessageHelper::MobileToHMIResult(
-      MobileResults::INVALID_ENUM));
+  // Check invalid enums == -1
+  tested_enum = HmiResults::INVALID_ENUM;
+  converted_enum =
+      MessageHelper::MobileToHMIResult(MobileResults::INVALID_ENUM);
+  EXPECT_EQ(tested_enum, converted_enum);
+  // Check when out of range (true == result.empty())
+  casted_mobile_enum = static_cast<MobileResults::eType>(INT_MAX);
+  converted_enum = MessageHelper::MobileToHMIResult(casted_mobile_enum);
+  EXPECT_EQ(tested_enum, converted_enum);
 }
 
-TEST_F( MessageHelperTest, VerifySoftButtonString_WrongStrings_ExpectFalse) {
-  const policy::StringArray wrong_strings = {
+TEST_F(MessageHelperTest, VerifySoftButtonString_WrongStrings_ExpectFalse) {
+  const StringArray wrong_strings {
     "soft_button1\t\ntext",
     "soft_button1\\ntext",
     "soft_button1\\ttext",
@@ -248,36 +308,36 @@ TEST_F( MessageHelperTest, VerifySoftButtonString_WrongStrings_ExpectFalse) {
     "soft_button1\\n",
     "soft_button1\\t"
   };
-  for(u_int32_t i = 0; i < wrong_strings.size(); ++i) {
-    EXPECT_FALSE( MessageHelper::VerifySoftButtonString( wrong_strings[i] ) );
+  for (size_t i = 0; i < wrong_strings.size(); ++i) {
+    EXPECT_FALSE(MessageHelper::VerifySoftButtonString(wrong_strings[i]));
   }
 }
 
-TEST_F( MessageHelperTest, VerifySoftButtonString_CorrectStrings_ExpectTrue) {
-  const policy::StringArray wrong_strings = {
+TEST_F(MessageHelperTest, VerifySoftButtonString_CorrectStrings_ExpectTrue) {
+  const StringArray wrong_strings {
     "soft_button1.text",
     "soft_button1?text",
     " asd asdasd    .././/",
     "soft_button1??....asd",
     "soft_button12313fcvzxc./.,"
   };
-  for(u_int32_t i = 0; i < wrong_strings.size(); ++i) {
-    EXPECT_TRUE( MessageHelper::VerifySoftButtonString( wrong_strings[i] ) );
+  for (size_t i = 0; i < wrong_strings.size(); ++i) {
+    EXPECT_TRUE(MessageHelper::VerifySoftButtonString(wrong_strings[i]));
   }
 }
 
-TEST_F( MessageHelperTest,
+TEST_F(MessageHelperTest,
     GetIVISubscriptionRequests_SendValidApplication_ExpectHmiRequestNotEmpty) {
   // Creating sharedPtr to ApplicationMock
   ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
   // Creating data acessor
   application_manager::VehicleInfoSubscriptions vis;
   DataAccessor<application_manager::VehicleInfoSubscriptions>
-      data_accessor( vis, true );
+      data_accessor(vis, true);
   // Calls for ApplicationManager
-  EXPECT_CALL( *appSharedMock, app_id() )
+  EXPECT_CALL(*appSharedMock, app_id() )
       .WillOnce(Return(1u));
-  EXPECT_CALL( *appSharedMock, SubscribedIVI())
+  EXPECT_CALL(*appSharedMock, SubscribedIVI())
       .WillOnce(Return(data_accessor));
   smart_objects::SmartObjectList outList =
       MessageHelper::GetIVISubscriptionRequests(appSharedMock);
@@ -285,7 +345,7 @@ TEST_F( MessageHelperTest,
   EXPECT_FALSE(outList.empty());
 }
 
-TEST_F( MessageHelperTest,
+TEST_F(MessageHelperTest,
     ProcessSoftButtons_SendSmartObjectWithoutButtonsKey_ExpectSuccess) {
   // Creating sharedPtr to ApplicationMock
   ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
@@ -293,12 +353,12 @@ TEST_F( MessageHelperTest,
   smart_objects::SmartObject object;
   // Method call
   mobile_apis::Result::eType result =
-      MessageHelper::ProcessSoftButtons( object, appSharedMock );
+      MessageHelper::ProcessSoftButtons(object, appSharedMock);
   // Expect
   EXPECT_EQ(mobile_apis::Result::SUCCESS, result);
 }
 
-TEST_F( MessageHelperTest,
+TEST_F(MessageHelperTest,
     ProcessSoftButtons_SendIncorectSoftButonValue_ExpectInvalidData) {
   // Creating sharedPtr to ApplicationMock
   ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
@@ -309,12 +369,12 @@ TEST_F( MessageHelperTest,
   buttons[0][strings::image][strings::value] = "invalid\\nvalue";
   // Method call
   mobile_apis::Result::eType result =
-      MessageHelper::ProcessSoftButtons( object, appSharedMock );
+      MessageHelper::ProcessSoftButtons(object, appSharedMock);
   // Expect
   EXPECT_EQ(mobile_apis::Result::INVALID_DATA, result);
 }
 
-TEST_F( MessageHelperTest,
+TEST_F(MessageHelperTest,
     VerifyImage_ImageTypeIsStatic_ExpectSuccess) {
   // Creating sharedPtr to ApplicationMock
   ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
@@ -323,12 +383,12 @@ TEST_F( MessageHelperTest,
   image[strings::image_type] = mobile_apis::ImageType::STATIC;
   // Method call
   mobile_apis::Result::eType result =
-      MessageHelper::VerifyImage( image, appSharedMock );
-  //EXPECT
+      MessageHelper::VerifyImage(image, appSharedMock);
+  // EXPECT
   EXPECT_EQ(mobile_apis::Result::SUCCESS, result);
 }
 
-TEST_F( MessageHelperTest,
+TEST_F(MessageHelperTest,
     VerifyImage_ImageValueNotValid_ExpectInvalidData) {
   // Creating sharedPtr to ApplicationMock
   ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
@@ -339,13 +399,13 @@ TEST_F( MessageHelperTest,
   image[strings::value] = "   ";
   // Method call
   mobile_apis::Result::eType result =
-      MessageHelper::VerifyImage( image, appSharedMock );
-  //EXPECT
+      MessageHelper::VerifyImage(image, appSharedMock);
+  // EXPECT
   EXPECT_EQ(mobile_apis::Result::INVALID_DATA, result);
 }
 
 
-TEST_F ( MessageHelperTest,
+TEST_F(MessageHelperTest,
     VerifyImageFiles_SmartObjectWithValidData_ExpectSuccess) {
   // Creating sharedPtr to ApplicationMock
   ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
@@ -355,12 +415,12 @@ TEST_F ( MessageHelperTest,
   images[1][strings::image_type] = mobile_apis::ImageType::STATIC;
   // Method call
   mobile_apis::Result::eType result =
-      MessageHelper::VerifyImageFiles( images, appSharedMock );
-  //EXPECT
+      MessageHelper::VerifyImageFiles(images, appSharedMock);
+  // EXPECT
   EXPECT_EQ(mobile_apis::Result::SUCCESS, result);
 }
 
-TEST_F ( MessageHelperTest,
+TEST_F(MessageHelperTest,
     VerifyImageFiles_SmartObjectWithInvalidData_ExpectNotSuccsess) {
   // Creating sharedPtr to ApplicationMock
   ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
@@ -373,12 +433,12 @@ TEST_F ( MessageHelperTest,
   images[1][strings::value] = "image\\n";
   // Method call
   mobile_apis::Result::eType result =
-      MessageHelper::VerifyImageFiles( images, appSharedMock );
-  //EXPECT
+      MessageHelper::VerifyImageFiles(images, appSharedMock);
+  // EXPECT
   EXPECT_EQ(mobile_apis::Result::INVALID_DATA, result);
 }
 
-TEST_F ( MessageHelperTest,
+TEST_F(MessageHelperTest,
     VerifyImageVrHelpItems_SmartObjectWithSeveralValidImages_ExpectSuccsess) {
   // Creating sharedPtr to ApplicationMock
   ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
@@ -390,13 +450,13 @@ TEST_F ( MessageHelperTest,
       mobile_apis::ImageType::STATIC;
   // Method call
   mobile_apis::Result::eType result =
-      MessageHelper::VerifyImageVrHelpItems( message, appSharedMock );
-  //EXPECT
+      MessageHelper::VerifyImageVrHelpItems(message, appSharedMock);
+  // EXPECT
   EXPECT_EQ(mobile_apis::Result::SUCCESS, result);
 }
 
-TEST_F ( MessageHelperTest,
-    VerifyImageVrHelpItems_SmartObjectWithSeveralInvalidImages_ExpectNotSuccsess) {
+TEST_F(MessageHelperTest,
+    VerifyImageVrHelpItems_SmartObjWithSeveralInvalidImages_ExpectNotSuccsess) {
   // Creating sharedPtr to ApplicationMock
   ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
   // Creating input data for method
@@ -410,61 +470,67 @@ TEST_F ( MessageHelperTest,
   message[1][strings::image][strings::value] = "image\\n";
   // Method call
   mobile_apis::Result::eType result =
-      MessageHelper::VerifyImageVrHelpItems(message, appSharedMock );
-  //EXPECT
+      MessageHelper::VerifyImageVrHelpItems(message, appSharedMock);
+  // EXPECT
   EXPECT_EQ(mobile_apis::Result::INVALID_DATA, result);
 }
 
-TEST_F( MessageHelperTest,
+TEST_F(MessageHelperTest,
     StringifiedFunctionID_FinctionId_ExpectEqualsWithStringsInArray) {
   // Start from 1 because 1 == RESERVED and haven`t ID in last 2 characters
   // if FUNCTION ID == 1 inner DCHECK is false
-  for (u_int32_t i = 1; i < function_id_strings.size(); ++i) {
-    EXPECT_EQ( function_id_strings[i],
-        MessageHelper::StringifiedFunctionID(
-            static_cast<mobile_apis::FunctionID::eType>(i) ) );
+  mobile_apis::FunctionID::eType casted_enum;
+  std::string converted;
+  for (size_t i = 1; i < function_id_strings.size(); ++i) {
+    casted_enum = static_cast<mobile_apis::FunctionID::eType>(i);
+    converted = MessageHelper::StringifiedFunctionID(casted_enum);
+    EXPECT_EQ(function_id_strings[i], converted);
   }
   // EventIDs emum strarts from delta_from_functions_id = 32768
-  for (u_int32_t i = delta_from_functions_id;
+  for (size_t i = delta_from_functions_id;
       i < events_id_strings.size()+delta_from_functions_id;
       ++i) {
-    EXPECT_EQ( events_id_strings[i-delta_from_functions_id],
-        MessageHelper::StringifiedFunctionID(
-            static_cast<mobile_apis::FunctionID::eType>(i) )
-    );
+    casted_enum = static_cast<mobile_apis::FunctionID::eType>(i);
+    converted = MessageHelper::StringifiedFunctionID(casted_enum);
+    EXPECT_EQ(events_id_strings[i-delta_from_functions_id], converted);
   }
 }
 
-TEST_F( MessageHelperTest,
+TEST_F(MessageHelperTest,
     StringifiedHmiLevel_LevelEnum_ExpectEqualsWithStringsInArray) {
-  for (u_int32_t i = 0; i < hmi_level_strings.size(); ++i) {
-    EXPECT_EQ (hmi_level_strings[i],
-        MessageHelper::StringifiedHMILevel(
-            static_cast<mobile_apis::HMILevel::eType>(i)));
+  mobile_apis::HMILevel::eType casted_enum;
+  std::string converted_value;
+  for (size_t i = 0; i < hmi_level_strings.size(); ++i) {
+    casted_enum = static_cast<mobile_apis::HMILevel::eType>(i);
+    converted_value = MessageHelper::StringifiedHMILevel(casted_enum);
+    EXPECT_EQ(hmi_level_strings[i], converted_value);
   }
 }
 
-TEST_F( MessageHelperTest,
+TEST_F(MessageHelperTest,
     StringToHmiLevel_LevelString_ExpectEqEType) {
-  for (u_int32_t i = 0; i < hmi_level_strings.size(); ++i) {
-    EXPECT_EQ ( static_cast<mobile_apis::HMILevel::eType>(i),
-        MessageHelper::StringToHMILevel( hmi_level_strings[i] ) );
+  mobile_apis::HMILevel::eType tested_enum;
+  mobile_apis::HMILevel::eType converted_enum;
+  for (size_t i = 0; i < hmi_level_strings.size(); ++i) {
+    tested_enum = static_cast<mobile_apis::HMILevel::eType>(i);
+    converted_enum = MessageHelper::StringToHMILevel(hmi_level_strings[i]);
+    EXPECT_EQ(tested_enum, converted_enum);
   }
 }
 
-TEST_F( MessageHelperTest,
+TEST_F(MessageHelperTest,
     SubscribeApplicationToSoftButton_ExpectCallFromApp) {
   // Create application mock
   ApplicationMockSharedPtr appSharedPtr = utils::MakeShared<AppMock>();
   // Prepare data for method
   smart_objects::SmartObject message_params;
-  u_int32_t function_id = 1;
+  size_t function_id = 1;
   //
-  EXPECT_CALL(*appSharedPtr , SubscribeToSoftButtons(function_id,SoftButtonID()))
-      .Times(1);
+  EXPECT_CALL(*appSharedPtr,
+      SubscribeToSoftButtons(function_id, SoftButtonID())).Times(1);
   MessageHelper::SubscribeApplicationToSoftButton(
-      message_params, appSharedPtr, function_id );
+      message_params, appSharedPtr, function_id);
 }
 
-} // namespace test
-} // namespace application_manager
+}  // namespace test
+}  // namespace application_manager
