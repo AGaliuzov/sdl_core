@@ -150,7 +150,6 @@ TEST(MessageHelperTest2, CreateSetAppIconTest) //OK
 
     int image_type = static_cast<int>(mobile_api::ImageType::DYNAMIC);
 
-
     EXPECT_EQ(path_to_icon, obj[strings::sync_file_name][strings::value].asString());
     EXPECT_EQ(image_type, obj[strings::sync_file_name][strings::image_type].asInt());
     EXPECT_EQ(app_id, obj[strings::app_id].asInt());
