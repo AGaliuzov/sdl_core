@@ -324,7 +324,7 @@ void SubscribeVehicleDataRequest::on_event(const event_engine::Event& event) {
     }
   }
 
-  UnsubscribeFailedSubscriptions(app, message[strings::msg_params]);
+  UnsubscribeFailedSubscriptions(app, message);
 
   if (!vi_already_subscribed_by_another_apps_.empty() ||
       !vi_already_subscribed_by_this_app_.empty()) {
@@ -349,38 +349,64 @@ void SubscribeVehicleDataRequest::AddAlreadySubscribedVI(
   using namespace mobile_apis;
   VehicleInfoSubscriptions::const_iterator it_same_app =
       vi_already_subscribed_by_this_app_.begin();
-  for (;vi_already_subscribed_by_this_app_.end() != it_same_app;
+  const VehicleData& vehicle_data = MessageHelper::vehicle_data();
+
+  for (; vi_already_subscribed_by_this_app_.end() != it_same_app;
        ++it_same_app) {
-    msg_params[*it_same_app][strings::result_code] =
-        VehicleDataResultCode::VDRC_DATA_ALREADY_SUBSCRIBED;
+    for (VehicleData::const_iterator vd_it = vehicle_data.begin();
+         vd_it != vehicle_data.end(); ++vd_it) {
+      if (vd_it->second == *it_same_app) {
+        msg_params[vd_it->first][strings::data_type] = vd_it->second;
+        msg_params[vd_it->first][strings::result_code] =
+            VehicleDataResultCode::VDRC_DATA_ALREADY_SUBSCRIBED;
+        break;
+      }
+    }
   }
 
   VehicleInfoSubscriptions::const_iterator it_another_app =
       vi_already_subscribed_by_another_apps_.begin();
-  for (;vi_already_subscribed_by_another_apps_.end() != it_another_app;
+  for (; vi_already_subscribed_by_another_apps_.end() != it_another_app;
        ++it_another_app) {
-    msg_params[*it_another_app][strings::result_code] =
-        VehicleDataResultCode::VDRC_SUCCESS;
+    for (VehicleData::const_iterator vd_it = vehicle_data.begin();
+         vd_it != vehicle_data.end(); ++vd_it) {
+      if (vd_it->second == *it_another_app) {
+        msg_params[vd_it->first][strings::data_type] = vd_it->second;
+        msg_params[vd_it->first][strings::result_code] =
+            VehicleDataResultCode::VDRC_SUCCESS;
+        break;
+      }
+    }
   }
 }
 
 void SubscribeVehicleDataRequest::UnsubscribeFailedSubscriptions(
     ApplicationSharedPtr app,
-    const smart_objects::SmartObject& msg_params) const {
+    const smart_objects::SmartObject& message) const {
   LOG4CXX_AUTO_TRACE(logger_);
   const VehicleData& vehicle_data = MessageHelper::vehicle_data();
   VehicleData::const_iterator it = vehicle_data.begin();
 
   for (; vehicle_data.end() != it; ++it) {
-    if (msg_params.keyExists(it->first)) {
-      if (msg_params[it->first][strings::result_code].asInt() !=
-        hmi_apis::Common_VehicleDataResultCode::VDRC_SUCCESS) {
+    if (message[strings::params][hmi_response::code] ==
+        hmi_apis::Common_Result::GENERIC_ERROR) {
+      if (app->IsSubscribedToIVI(it->second)) {
+        app->UnsubscribeFromIVI(it->second);
         LOG4CXX_DEBUG(logger_, "Subscription for VehicleDataType "
-                      << it->first
-                      << " is unsuccessfull. "
-                         "Unsubscribing app with connection key "
-                      << connection_key()
-                      << " from it.");
+                               << it->first
+                               << " is unsuccessfull due to GENERIC_ERROR."
+                               << " Unsubscribing app with connection key "
+                               << connection_key() << " from it.");
+      }
+    } else if (message[strings::msg_params].keyExists(it->first)) {
+      if (message[strings::msg_params][it->first][strings::result_code]
+              .asInt() !=
+          hmi_apis::Common_VehicleDataResultCode::VDRC_SUCCESS) {
+        LOG4CXX_DEBUG(logger_, "Subscription for VehicleDataType "
+                               << it->first
+                               << " is unsuccessfull."
+                               << " Unsubscribing app with connection key "
+                               << connection_key() << " from it.");
         app->UnsubscribeFromIVI(it->second);
       }
     }

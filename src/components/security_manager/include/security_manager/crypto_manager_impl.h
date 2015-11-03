@@ -130,7 +130,7 @@ private:
   static uint32_t instance_count_;
   std::string certificate_data_;
   bool verify_peer_;
-  size_t hours_before_update_;
+  size_t seconds_before_update_;
   DISALLOW_COPY_AND_ASSIGN(CryptoManagerImpl);
 };
 }  // namespace security_manager

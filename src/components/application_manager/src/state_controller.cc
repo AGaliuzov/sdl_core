@@ -49,8 +49,10 @@ bool IsStatusChanged(HmiStatePtr old_state, HmiStatePtr new_state) {
   return false;
 }
 
+
 StateController::StateController(ApplicationManager* app_mngr)
     : EventObserver(), app_mngr_(app_mngr) {
+  subscribe_on_event(hmi_apis::FunctionID::BasicCommunication_OnDeactivateHMI);
   subscribe_on_event(hmi_apis::FunctionID::BasicCommunication_OnAppActivated);
   subscribe_on_event(hmi_apis::FunctionID::BasicCommunication_OnAppDeactivated);
   subscribe_on_event(hmi_apis::FunctionID::BasicCommunication_OnEmergencyEvent);
@@ -213,6 +215,11 @@ bool StateController::IsStateAvailable(ApplicationSharedPtr app,
                   << "is not available. Phone call is active");
     return false;
   }
+  if (IsTempStateActive(HmiState::StateID::STATE_ID_DEACTIVATE_HMI)) {
+    LOG4CXX_DEBUG(logger_, "Requested state is not available. "
+                  << "Deactivate HMI event is active");
+    return false;
+  }
 
   LOG4CXX_DEBUG(logger_, "Requested state is available");
   return true;
@@ -316,9 +323,9 @@ void StateController::on_event(const event_engine::Event& event) {
       bool is_active =
           message[strings::msg_params][hmi_response::enabled].asBool();
       if (is_active) {
-        OnSafetyModeEnabled();
+        ApplyTempState<HmiState::STATE_ID_SAFETY_MODE>();
       } else {
-        OnSafetyModeDisabled();
+        CancelTempState<HmiState::STATE_ID_SAFETY_MODE>();
       }
       break;
     }
@@ -326,26 +333,36 @@ void StateController::on_event(const event_engine::Event& event) {
       bool is_active =
           message[strings::msg_params][hmi_notification::is_active].asBool();
       if (is_active) {
-        OnPhoneCallStarted();
+        ApplyTempState<HmiState::STATE_ID_PHONE_CALL>();
       } else {
-        OnPhoneCallEnded();
+        CancelTempState<HmiState::STATE_ID_PHONE_CALL>();
+      }
+      break;
+    }
+    case FunctionID::BasicCommunication_OnDeactivateHMI: {
+      bool is_deactivated =
+          message[strings::msg_params][hmi_notification::is_deactivated].asBool();
+      if (is_deactivated) {
+        ApplyTempState<HmiState::STATE_ID_DEACTIVATE_HMI>();
+      } else {
+        CancelTempState<HmiState::STATE_ID_DEACTIVATE_HMI>();
       }
       break;
     }
     case FunctionID::VR_Started: {
-      OnVRStarted();
+      ApplyTempState<HmiState::STATE_ID_VR_SESSION>();
       break;
     }
     case FunctionID::VR_Stopped: {
-      OnVREnded();
+      CancelTempState<HmiState::STATE_ID_VR_SESSION>();
       break;
     }
     case FunctionID::TTS_Started: {
-      OnTTSStarted();
+      ApplyTempState<HmiState::STATE_ID_TTS_SESSION>();
       break;
     }
     case FunctionID::TTS_Stopped: {
-      OnTTSStopped();
+      CancelTempState<HmiState::STATE_ID_TTS_SESSION>();
       break;
     }
     default:
@@ -574,99 +591,20 @@ void StateController::OnAppDeactivated(
   }
 }
 
-void StateController::OnPhoneCallStarted() {
-  LOG4CXX_AUTO_TRACE(logger_);
-  ForEachApplication(std::bind1st(
-      std::mem_fun(
-          &StateController::HMIStateStarted<HmiState::STATE_ID_PHONE_CALL>),
-      this));
-  TempStateStarted(HmiState::STATE_ID_PHONE_CALL);
-}
-
-void StateController::OnPhoneCallEnded() {
-  LOG4CXX_AUTO_TRACE(logger_);
-  ForEachApplication(std::bind1st(
-      std::mem_fun(
-          &StateController::HMIStateStopped<HmiState::STATE_ID_PHONE_CALL>),
-      this));
-  TempStateStopped(HmiState::STATE_ID_PHONE_CALL);
-}
-
-void StateController::OnSafetyModeEnabled() {
-  LOG4CXX_AUTO_TRACE(logger_);
-  ForEachApplication(std::bind1st(
-      std::mem_fun(
-          &StateController::HMIStateStarted<HmiState::STATE_ID_SAFETY_MODE>),
-      this));
-  TempStateStarted(HmiState::STATE_ID_SAFETY_MODE);
-}
-
-void StateController::OnSafetyModeDisabled() {
-  LOG4CXX_AUTO_TRACE(logger_);
-
-  ForEachApplication(std::bind1st(
-      std::mem_fun(
-          &StateController::HMIStateStopped<HmiState::STATE_ID_SAFETY_MODE>),
-      this));
-  TempStateStopped(HmiState::STATE_ID_SAFETY_MODE);
-}
-
-void StateController::OnVRStarted() {
-  LOG4CXX_AUTO_TRACE(logger_);
-  ForEachApplication(std::bind1st(
-      std::mem_fun(
-          &StateController::HMIStateStarted<HmiState::STATE_ID_VR_SESSION>),
-      this));
-  TempStateStarted(HmiState::STATE_ID_VR_SESSION);
-}
-
-void StateController::OnVREnded() {
-  LOG4CXX_AUTO_TRACE(logger_);
-  ForEachApplication(std::bind1st(
-      std::mem_fun(
-          &StateController::HMIStateStopped<HmiState::STATE_ID_VR_SESSION>),
-      this));
-  TempStateStopped(HmiState::STATE_ID_VR_SESSION);
-}
-
-void StateController::OnTTSStarted() {
-  LOG4CXX_AUTO_TRACE(logger_);
-  ForEachApplication(std::bind1st(
-      std::mem_fun(
-          &StateController::HMIStateStarted<HmiState::STATE_ID_TTS_SESSION>),
-      this));
-  TempStateStarted(HmiState::STATE_ID_TTS_SESSION);
-}
-
-void StateController::OnTTSStopped() {
-  LOG4CXX_AUTO_TRACE(logger_);
-  ForEachApplication(std::bind1st(
-      std::mem_fun(
-          &StateController::HMIStateStopped<HmiState::STATE_ID_TTS_SESSION>),
-      this));
-  TempStateStopped(HmiState::STATE_ID_TTS_SESSION);
-}
-
 void StateController::SetAplicationManager(ApplicationManager* app_mngr) {
   app_mngr_ = app_mngr;
 }
 
 void StateController::OnNaviStreamingStarted() {
-  LOG4CXX_AUTO_TRACE(logger_);
-  ForEachApplication(std::bind1st(
-      std::mem_fun(
-          &StateController::HMIStateStarted<HmiState::STATE_ID_NAVI_STREAMING>),
-      this));
-  TempStateStarted(HmiState::STATE_ID_NAVI_STREAMING);
+  ApplyTempState<HmiState::STATE_ID_NAVI_STREAMING>();
 }
 
 void StateController::OnNaviStreamingStopped() {
-  LOG4CXX_AUTO_TRACE(logger_);
-  ForEachApplication(std::bind1st(
-      std::mem_fun(
-          &StateController::HMIStateStopped<HmiState::STATE_ID_NAVI_STREAMING>),
-      this));
-  TempStateStopped(HmiState::STATE_ID_NAVI_STREAMING);
+  CancelTempState<HmiState::STATE_ID_NAVI_STREAMING>();
+}
+
+bool StateController::IsDeactivateHMIStateActive() const {
+  return IsTempStateActive(HmiState::StateID::STATE_ID_DEACTIVATE_HMI);
 }
 
 HmiStatePtr StateController::CreateHmiState(
@@ -701,6 +639,10 @@ HmiStatePtr StateController::CreateHmiState(
     }
     case HmiState::STATE_ID_POSTPONED: {
       new_state = MakeShared<HmiState>(app_id, app_mngr_, state_id);
+      break;
+    }
+    case HmiState::STATE_ID_DEACTIVATE_HMI: {
+      new_state = MakeShared<DeactivateHMI>(app_id, app_mngr_);
       break;
     }
     default:

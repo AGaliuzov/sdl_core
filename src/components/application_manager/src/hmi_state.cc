@@ -142,4 +142,20 @@ mobile_apis::HMILevel::eType PhoneCallHmiState::hmi_level() const {
 SafetyModeHmiState::SafetyModeHmiState(uint32_t app_id,
                                        ApplicationManager* app_mngr)
     : HmiState(app_id, app_mngr, STATE_ID_SAFETY_MODE) {}
+
+DeactivateHMI::DeactivateHMI(uint32_t app_id,
+                             ApplicationManager* app_mngr)
+: HmiState(app_id, app_mngr, STATE_ID_DEACTIVATE_HMI) {}
+
+mobile_apis::HMILevel::eType DeactivateHMI::hmi_level() const {
+  using namespace mobile_apis;
+  HMILevel::eType expected_level(HMILevel::HMI_BACKGROUND);
+  if (parent()->hmi_level() == HMILevel::HMI_NONE) {
+    expected_level = HMILevel::HMI_NONE;
+  }
+  return expected_level;
 }
+
+}
+
+

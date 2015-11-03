@@ -541,6 +541,15 @@ class ApplicationManagerImpl :
     state_ctrl_.SetRegularState(app, state);
   }
 
+    /**
+     * @brief Checks activity of Deactivate HMI state.
+     * @return Returns TRUE if deactivate HMI state is active, otherwise returns
+     * FALSE.
+     */
+    bool IsDeactivateHMIStateActive() const {
+      return state_ctrl_.IsDeactivateHMIStateActive();
+    }
+
 #ifdef CUSTOMER_PASA
   /**
    * @brief Retrieves value of is_state_suspended_
@@ -1307,7 +1316,7 @@ class ApplicationManagerImpl :
 
   std::vector<ApplicationManagerTimerPtr> timer_pool_;
   sync_primitives::Lock timer_pool_lock_;
-
+  sync_primitives::Lock stopping_flag_lock_;
   StateController state_ctrl_;
 
 #ifdef CUSTOMER_PASA
@@ -1339,7 +1348,7 @@ class ApplicationManagerImpl :
 
   bool is_low_voltage_;
 
-  bool is_stopping_;
+  volatile bool is_stopping_;
 
   DISALLOW_COPY_AND_ASSIGN(ApplicationManagerImpl);
 
