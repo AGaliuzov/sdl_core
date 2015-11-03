@@ -47,7 +47,7 @@ MultiFrameBuilder::MultiFrameBuilder():
   consecutive_frame_wait_msecs_(0u) {
 }
 
-bool MultiFrameBuilder::Init(const int64_t consecutive_frame_wait_msecs) {
+bool MultiFrameBuilder::Init(const int32_t consecutive_frame_wait_msecs) {
   if(consecutive_frame_wait_msecs < 0) {
     LOG4CXX_ERROR(logger_, "Negative waiting timout: " << consecutive_frame_wait_msecs);
     return false;
@@ -98,12 +98,13 @@ ProtocolFramePtrList MultiFrameBuilder::PopMultiframes() {
 
     for (SessionToFrameMap::iterator session_it = session_map.begin();
          session_it != session_map.end(); ++session_it) {
-      LOG4CXX_TRACE(logger_, "Step over session: " << session_it->first);
+      LOG4CXX_TRACE(logger_, "Step over session: "
+                    << static_cast<int>(session_it->first));
       MessageIDToFrameMap& messageId_map = session_it->second;
 
       MessageIDToFrameMap::iterator messageId_it = messageId_map.begin();
       while (messageId_it != messageId_map.end()) {
-        LOG4CXX_TRACE(logger_, "Step over messageId:" << messageId_it->first);
+        LOG4CXX_TRACE(logger_, "Step over messageId: " << messageId_it->first);
         ProtocolFrameData& frame_data = messageId_it->second;
         ProtocolFramePtr frame = frame_data.frame;
 
@@ -186,12 +187,14 @@ RESULT_CODE MultiFrameBuilder::HandleFirstFrame(const ProtocolFramePtr packet) {
   MessageIDToFrameMap::iterator messageId_it = messageId_map.find(message_id);
   if (messageId_it != messageId_map.end()) {
     LOG4CXX_ERROR(logger_, "Already waiting message for connection_id: " << connection_id
-                  << ", session_id: " << session_id << ", message_id: " << message_id);
+                  << ", session_id: " << static_cast<int>(session_id)
+                  << ", message_id: " << message_id);
     return RESULT_FAIL;
   }
 
   LOG4CXX_DEBUG(logger_, "Start waiting frames for connection_id: " << connection_id
-                << ", session_id: " << session_id << ", message_id: " << message_id);
+                << ", session_id: " << static_cast<int>(session_id)
+                << ", message_id: " << message_id);
   messageId_map[message_id] = {packet, date_time::DateTime::getCurrentTime()};
   return RESULT_OK;
 }
@@ -218,7 +221,8 @@ RESULT_CODE MultiFrameBuilder::HandleConsecutiveFrame(const ProtocolFramePtr pac
   MessageIDToFrameMap::iterator messageId_it = messageId_map.find(message_id);
   if (messageId_it == messageId_map.end()) {
     LOG4CXX_ERROR(logger_, "No waiting message for connection_id: " << connection_id
-                  << ", session_id: " << session_id << ", message_id: " << message_id);
+                  << ", session_id: " << static_cast<int>(session_id)
+                  << ", message_id: " << message_id);
     return RESULT_FAIL;
   }
 
@@ -243,7 +247,8 @@ RESULT_CODE MultiFrameBuilder::HandleConsecutiveFrame(const ProtocolFramePtr pac
     if (new_frame_data != (previous_frame_data + 1)) {
       LOG4CXX_ERROR(logger_,
                     "Unexpected CONSECUTIVE frame for connection_id: " << connection_id
-                    << ", session_id: " << session_id << ", message_id: " << message_id
+                    << ", session_id: " << static_cast<int>(session_id)
+                    << ", message_id: " << message_id
                     << ", frame: " << packet);
       return RESULT_FAIL;
     }
@@ -255,7 +260,8 @@ RESULT_CODE MultiFrameBuilder::HandleConsecutiveFrame(const ProtocolFramePtr pac
                 "Appending " << packet->data_size() << " bytes "
                 << "; frame_data " << static_cast<int>(new_frame_data)
                 << "; for connection_id: " << connection_id
-                << ", session_id: " << session_id << ", message_id: " << message_id);
+                << ", session_id: " << static_cast<int>(session_id)
+                << ", message_id: " << message_id);
 
   if (assembling_frame->appendData(packet->data(),
                                    packet->data_size()) != RESULT_OK) {

@@ -50,6 +50,7 @@
 #include "protocol_handler/session_observer.h"
 #include "protocol_handler/protocol_observer.h"
 #include "protocol_handler/incoming_data_handler.h"
+#include "protocol_handler/multiframe_builder.h"
 #include "transport_manager/common.h"
 #include "transport_manager/transport_manager.h"
 #include "transport_manager/transport_manager_listener_empty.h"
@@ -145,11 +146,12 @@ class ProtocolHandlerImpl
    * message exchange.
    */
   explicit ProtocolHandlerImpl(
-    transport_manager::TransportManager *transport_manager_param,
-    size_t message_frequency_time, size_t message_frequency_count,
-    bool malformed_message_filtering,
-    size_t malformed_message_frequency_time,
-    size_t malformed_message_frequency_count);
+      transport_manager::TransportManager *transport_manager_param,
+      size_t message_frequency_time, size_t message_frequency_count,
+      bool malformed_message_filtering,
+      size_t malformed_message_frequency_time,
+      size_t malformed_message_frequency_count,
+      int32_t multiframe_waiting_timout);
 
   /**
    * \brief Destructor
@@ -474,10 +476,9 @@ class ProtocolHandlerImpl
   transport_manager::TransportManager *transport_manager_;
 
   /**
-   *\brief Map of frames with last frame data for messages received in multiple frames.
+   *\brief Assembling support class.
    */
-  typedef std::map<int32_t, ProtocolFramePtr> MultiFrameMap;
-  MultiFrameMap incomplete_multi_frame_messages_;
+  MultiFrameBuilder multiframe_builder_;
 
   /**
    * \brief Map of messages (frames) received over mobile nave session

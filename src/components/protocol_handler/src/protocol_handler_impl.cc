@@ -67,11 +67,12 @@ uint8_t SupportedSDLProtocolVersion();
 
 const size_t kStackSize = 32768;
 
-ProtocolHandlerImpl::ProtocolHandlerImpl(
-    transport_manager::TransportManager *transport_manager_param,
-    size_t message_frequency_time, size_t message_frequency_count,
-    bool malformed_message_filtering,
-    size_t malformed_message_frequency_time, size_t malformed_message_frequency_count)
+ProtocolHandlerImpl::ProtocolHandlerImpl(transport_manager::TransportManager *transport_manager_param,
+                                         size_t message_frequency_time, size_t message_frequency_count,
+                                         bool malformed_message_filtering,
+                                         size_t malformed_message_frequency_time,
+                                         size_t malformed_message_frequency_count,
+                                         int32_t multiframe_waiting_timout)
     : protocol_observers_(),
       session_observer_(0),
       transport_manager_(transport_manager_param),
@@ -121,6 +122,7 @@ ProtocolHandlerImpl::ProtocolHandlerImpl(
     LOG4CXX_WARN(logger_, "Malformed message filtering is disabled."
                  << "Connection will be close on first malformed message detection");
   }
+  multiframe_builder_.Init(multiframe_waiting_timout);
 }
 
 ProtocolHandlerImpl::~ProtocolHandlerImpl() {
@@ -505,6 +507,11 @@ void ProtocolHandlerImpl::OnTMMessageReceiveFailed(
 void ProtocolHandlerImpl::NotifySubscribers(const RawMessagePtr message) {
   LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(protocol_observers_lock_);
+  if (protocol_observers_.empty()) {
+    LOG4CXX_ERROR(
+          logger_,
+          "Cannot handle multiframe message: no IProtocolObserver is set.");
+  }
   for (ProtocolObservers::iterator it = protocol_observers_.begin();
       protocol_observers_.end() != it; ++it) {
     (*it)->OnMessageReceived(message);
@@ -573,6 +580,7 @@ void ProtocolHandlerImpl::OnConnectionEstablished(
     const transport_manager::DeviceInfo &device_info,
     const transport_manager::ConnectionUID &connection_id) {
   incoming_data_handler_.AddConnection(connection_id);
+  multiframe_builder_.AddConnection(connection_id);
 }
 
 void ProtocolHandlerImpl::OnConnectionClosed(
@@ -580,6 +588,7 @@ void ProtocolHandlerImpl::OnConnectionClosed(
   incoming_data_handler_.RemoveConnection(connection_id);
   message_meter_.ClearIdentifiers();
   malformed_message_meter_.ClearIdentifiers();
+  multiframe_builder_.RemoveConnection(connection_id);
 }
 
 RESULT_CODE ProtocolHandlerImpl::SendFrame(const ProtocolFramePtr packet) {
@@ -782,77 +791,27 @@ RESULT_CODE ProtocolHandlerImpl::HandleMultiFrameMessage(const ProtocolFramePtr 
     return RESULT_FAIL;
   }
 
-  const uint32_t connection_key = session_observer_->KeyFromPair(packet->connection_id(),
-                                                      packet->session_id());
-  LOG4CXX_DEBUG(
-      logger_,
-      "Packet " << packet << "; session id " << static_cast<int32_t>(connection_key));
-
-  if (packet->frame_type() == FRAME_TYPE_FIRST) {
-    LOG4CXX_TRACE(logger_, "FRAME_TYPE_FIRST");
-    // First frame has no data
-    DCHECK_OR_RETURN(packet->frame_data() == 0u, RESULT_FAIL);
-    // We can not handle more than one multiframe with the same key
-    DCHECK_OR_RETURN(incomplete_multi_frame_messages_.count(connection_key) == 0,
-                     RESULT_FAIL);
-    incomplete_multi_frame_messages_[connection_key] = packet;
-    return RESULT_OK;
-  }
-  DCHECK_OR_RETURN(packet->frame_type() == FRAME_TYPE_CONSECUTIVE, RESULT_FAIL)
-
-  MultiFrameMap::iterator it = incomplete_multi_frame_messages_.find(connection_key);
-  if (it == incomplete_multi_frame_messages_.end()) {
-    LOG4CXX_ERROR(logger_,
-       "Frame of multiframe message for non-existing session id " << connection_key);
-    return RESULT_FAIL;
+  if (multiframe_builder_.AddFrame(packet) != RESULT_OK) {
+    LOG4CXX_WARN(logger_, "Frame assembling issue");
   }
 
-  ProtocolFramePtr& assembling_frame = it->second;
-  const uint8_t previous_frame_data = assembling_frame->frame_data();
-  const uint8_t new_frame_data = packet->frame_data();
+  const ProtocolFramePtrList& frame_list = multiframe_builder_.PopMultiframes();
+  for (ProtocolFramePtrList::const_iterator it = frame_list.begin();
+       it != frame_list.end(); ++it) {
+    const ProtocolFramePtr frame = *it;
+    DCHECK_OR_RETURN(frame, RESULT_FAIL);
 
-  const bool is_last_consecutive = (new_frame_data == FRAME_DATA_LAST_CONSECUTIVE);
-  // The next frame data is bigger at 1
-  DCHECK_OR_RETURN((new_frame_data == (previous_frame_data + 1)) ||
-  // except the last consecutive frame
-                   is_last_consecutive, RESULT_FAIL);
-
-  assembling_frame->set_frame_data(new_frame_data);
-
-  LOG4CXX_DEBUG(logger_,
-                "Appending " << packet->data_size() << " bytes "
-                << "; frame_data " << static_cast<int>(new_frame_data)
-                << "; connection key " << connection_key);
-
-  DCHECK_OR_RETURN(packet->message_id() == assembling_frame->message_id(), RESULT_FAIL);
-  if (assembling_frame->appendData(packet->data(), packet->data_size()) != RESULT_OK) {
-    LOG4CXX_ERROR(logger_, "Failed to append frame for multiframe message.");
-    return RESULT_FAIL;
-  }
-
-  if (is_last_consecutive) {
-    LOG4CXX_DEBUG(
-        logger_,
-        "Last frame of multiframe message size " << packet->data_size()
-            << "; connection key " << connection_key);
-    {
-      sync_primitives::AutoLock lock(protocol_observers_lock_);
-      if (protocol_observers_.empty()) {
-        LOG4CXX_ERROR(
-            logger_,
-            "Cannot handle multiframe message: no IProtocolObserver is set.");
-        return RESULT_FAIL;
-      }
-    }
-    LOG4CXX_DEBUG(logger_, "Result frame" << assembling_frame <<
+    const uint32_t connection_key =
+        session_observer_->KeyFromPair(packet->connection_id(), packet->session_id());
+    LOG4CXX_DEBUG(logger_, "Result frame" << frame <<
                   "for connection "<< connection_key);
     const RawMessagePtr rawMessage(
           new RawMessage(connection_key,
-                         assembling_frame->protocol_version(),
-                         assembling_frame->data(),
-                         assembling_frame->total_data_bytes(),
-                         assembling_frame->service_type(),
-                         assembling_frame->payload_size()));
+                         frame->protocol_version(),
+                         frame->data(),
+                         frame->total_data_bytes(),
+                         frame->service_type(),
+                         frame->payload_size()));
     DCHECK_OR_RETURN(rawMessage, RESULT_FAIL);
 
 #ifdef TIME_TESTER
@@ -863,10 +822,8 @@ RESULT_CODE ProtocolHandlerImpl::HandleMultiFrameMessage(const ProtocolFramePtr 
       metric_observer_->EndMessageProcess(metric);
     }
 #endif  // TIME_TESTER
-    // TODO(EZamakhov): check service in session
     NotifySubscribers(rawMessage);
 
-    incomplete_multi_frame_messages_.erase(it);
   }
   return RESULT_OK;
 }

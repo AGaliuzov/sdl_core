@@ -129,6 +129,10 @@ class MultiFrameBuilder {
 template<typename _CharT>
 std::basic_ostream<_CharT>& operator<<(std::basic_ostream<_CharT>& stream,
                                        const protocol_handler::MultiFrameMap& map) {
+  if(map.empty()) {
+    stream << "{empty}";
+    return stream;
+  }
   for (MultiFrameMap::const_iterator connection_it = map.begin();
        connection_it != map.end(); ++connection_it) {
 
@@ -145,7 +149,7 @@ std::basic_ostream<_CharT>& operator<<(std::basic_ostream<_CharT>& stream,
         stream << "ConnectionID: " << connection_it->first
                << ", SessionID: "  << static_cast<uint32_t>(session_it->first)
                << ", MessageID: "  << static_cast<uint32_t>(messageId_it->first)
-               << "msec, frame: "  << frame_data.frame << std::endl;
+               << " msec, frame: " << frame_data.frame << std::endl;
       }
     }
   }
