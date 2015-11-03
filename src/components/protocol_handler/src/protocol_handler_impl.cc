@@ -708,21 +708,20 @@ RESULT_CODE ProtocolHandlerImpl::SendMultiFrameMessage(
   return RESULT_OK;
 }
 
-RESULT_CODE ProtocolHandlerImpl::HandleMessage(ConnectionID connection_id,
-                                               const ProtocolFramePtr packet) {
+RESULT_CODE ProtocolHandlerImpl::HandleMessage(const ProtocolFramePtr packet) {
   DCHECK_OR_RETURN(packet, RESULT_UNKNOWN);
   LOG4CXX_DEBUG(logger_, "Handling message " << packet);
   switch (packet->frame_type()) {
     case FRAME_TYPE_CONTROL:
       LOG4CXX_TRACE(logger_, "FRAME_TYPE_CONTROL");
-      return HandleControlMessage(connection_id, packet);
+      return HandleControlMessage(packet);
     case FRAME_TYPE_SINGLE:
       LOG4CXX_TRACE(logger_, "FRAME_TYPE_SINGLE");
-      return HandleSingleFrameMessage(connection_id, packet);
+      return HandleSingleFrameMessage(packet);
     case FRAME_TYPE_FIRST:
     case FRAME_TYPE_CONSECUTIVE:
       LOG4CXX_TRACE(logger_, "FRAME_TYPE_FIRST or FRAME_TYPE_CONSECUTIVE");
-      return HandleMultiFrameMessage(connection_id, packet);
+      return HandleMultiFrameMessage(packet);
     default: {
       LOG4CXX_WARN(logger_, "Unknown frame type"
                    << packet->frame_type());
@@ -732,8 +731,7 @@ RESULT_CODE ProtocolHandlerImpl::HandleMessage(ConnectionID connection_id,
   return RESULT_OK;
 }
 
-RESULT_CODE ProtocolHandlerImpl::HandleSingleFrameMessage(
-    ConnectionID connection_id, const ProtocolFramePtr packet) {
+RESULT_CODE ProtocolHandlerImpl::HandleSingleFrameMessage(const ProtocolFramePtr packet) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   LOG4CXX_DEBUG(logger_,
@@ -748,7 +746,7 @@ RESULT_CODE ProtocolHandlerImpl::HandleSingleFrameMessage(
   }
 
   const uint32_t connection_key =
-      session_observer_->KeyFromPair(connection_id, packet->session_id());
+      session_observer_->KeyFromPair(packet->connection_id(), packet->session_id());
 
   const RawMessagePtr rawMessage(
         new RawMessage(connection_key,
@@ -776,8 +774,7 @@ RESULT_CODE ProtocolHandlerImpl::HandleSingleFrameMessage(
   return RESULT_OK;
 }
 
-RESULT_CODE ProtocolHandlerImpl::HandleMultiFrameMessage(
-    ConnectionID connection_id, const ProtocolFramePtr packet) {
+RESULT_CODE ProtocolHandlerImpl::HandleMultiFrameMessage(const ProtocolFramePtr packet) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (!session_observer_) {
@@ -785,28 +782,28 @@ RESULT_CODE ProtocolHandlerImpl::HandleMultiFrameMessage(
     return RESULT_FAIL;
   }
 
-  const uint32_t key = session_observer_->KeyFromPair(connection_id,
+  const uint32_t connection_key = session_observer_->KeyFromPair(packet->connection_id(),
                                                       packet->session_id());
   LOG4CXX_DEBUG(
       logger_,
-      "Packet " << packet << "; session id " << static_cast<int32_t>(key));
+      "Packet " << packet << "; session id " << static_cast<int32_t>(connection_key));
 
   if (packet->frame_type() == FRAME_TYPE_FIRST) {
     LOG4CXX_TRACE(logger_, "FRAME_TYPE_FIRST");
     // First frame has no data
     DCHECK_OR_RETURN(packet->frame_data() == 0u, RESULT_FAIL);
     // We can not handle more than one multiframe with the same key
-    DCHECK_OR_RETURN(incomplete_multi_frame_messages_.count(key) == 0,
+    DCHECK_OR_RETURN(incomplete_multi_frame_messages_.count(connection_key) == 0,
                      RESULT_FAIL);
-    incomplete_multi_frame_messages_[key] = packet;
+    incomplete_multi_frame_messages_[connection_key] = packet;
     return RESULT_OK;
   }
   DCHECK_OR_RETURN(packet->frame_type() == FRAME_TYPE_CONSECUTIVE, RESULT_FAIL)
 
-  MultiFrameMap::iterator it = incomplete_multi_frame_messages_.find(key);
+  MultiFrameMap::iterator it = incomplete_multi_frame_messages_.find(connection_key);
   if (it == incomplete_multi_frame_messages_.end()) {
     LOG4CXX_ERROR(logger_,
-       "Frame of multiframe message for non-existing session id " << key);
+       "Frame of multiframe message for non-existing session id " << connection_key);
     return RESULT_FAIL;
   }
 
@@ -825,7 +822,7 @@ RESULT_CODE ProtocolHandlerImpl::HandleMultiFrameMessage(
   LOG4CXX_DEBUG(logger_,
                 "Appending " << packet->data_size() << " bytes "
                 << "; frame_data " << static_cast<int>(new_frame_data)
-                << "; connection key " << key);
+                << "; connection key " << connection_key);
 
   DCHECK_OR_RETURN(packet->message_id() == assembling_frame->message_id(), RESULT_FAIL);
   if (assembling_frame->appendData(packet->data(), packet->data_size()) != RESULT_OK) {
@@ -837,7 +834,7 @@ RESULT_CODE ProtocolHandlerImpl::HandleMultiFrameMessage(
     LOG4CXX_DEBUG(
         logger_,
         "Last frame of multiframe message size " << packet->data_size()
-            << "; connection key " << key);
+            << "; connection key " << connection_key);
     {
       sync_primitives::AutoLock lock(protocol_observers_lock_);
       if (protocol_observers_.empty()) {
@@ -847,9 +844,6 @@ RESULT_CODE ProtocolHandlerImpl::HandleMultiFrameMessage(
         return RESULT_FAIL;
       }
     }
-    const uint32_t connection_key =
-        session_observer_->KeyFromPair(connection_id,
-                                       assembling_frame->session_id());
     LOG4CXX_DEBUG(logger_, "Result frame" << assembling_frame <<
                   "for connection "<< connection_key);
     const RawMessagePtr rawMessage(
@@ -877,8 +871,7 @@ RESULT_CODE ProtocolHandlerImpl::HandleMultiFrameMessage(
   return RESULT_OK;
 }
 
-RESULT_CODE ProtocolHandlerImpl::HandleControlMessage(
-    ConnectionID connection_id, const ProtocolFramePtr packet) {
+RESULT_CODE ProtocolHandlerImpl::HandleControlMessage(const ProtocolFramePtr packet) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (!session_observer_) {
@@ -888,17 +881,16 @@ RESULT_CODE ProtocolHandlerImpl::HandleControlMessage(
 
   switch (packet->frame_data()) {
     case FRAME_DATA_START_SERVICE:
-      return HandleControlMessageStartSession(connection_id, *(packet.get()));
+      return HandleControlMessageStartSession(*packet);
     case FRAME_DATA_END_SERVICE:
-      return HandleControlMessageEndSession(connection_id, *(packet.get()));
+      return HandleControlMessageEndSession(*packet);
     case FRAME_DATA_HEART_BEAT: {
-      LOG4CXX_DEBUG(logger_,
-                   "Received heart beat for connection " << connection_id);
-      return HandleControlMessageHeartBeat(connection_id, *(packet.get()));
+      LOG4CXX_TRACE(logger_, "FRAME_DATA_HEART_BEAT");
+      return HandleControlMessageHeartBeat(*packet);
     }
     case FRAME_DATA_HEART_BEAT_ACK: {
       LOG4CXX_DEBUG(logger_, "Received heart beat ack from mobile app"
-          " for connection " << connection_id);
+          " for connection " << packet->connection_id());
       return RESULT_OK;
     }
     default:
@@ -925,14 +917,14 @@ uint32_t get_hash_id(const ProtocolPacket &packet) {
   return hash_le == HASH_ID_NOT_SUPPORTED ? HASH_ID_WRONG : hash_le;
 }
 
-RESULT_CODE ProtocolHandlerImpl::HandleControlMessageEndSession(
-    ConnectionID connection_id, const ProtocolPacket &packet) {
+RESULT_CODE ProtocolHandlerImpl::HandleControlMessageEndSession(const ProtocolPacket &packet) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   const uint8_t current_session_id = packet.session_id();
   const uint32_t hash_id = get_hash_id(packet);
   const ServiceType service_type = ServiceTypeFromByte(packet.service_type());
 
+  const ConnectionID connection_id = packet.connection_id();
   const uint32_t session_key = session_observer_->OnSessionEndedCallback(
       connection_id, current_session_id, hash_id, service_type);
 
@@ -1040,8 +1032,7 @@ class StartSessionHandler : public security_manager::SecurityManagerListener {
 }  // namespace
 #endif  // ENABLE_SECURITY
 
-RESULT_CODE ProtocolHandlerImpl::HandleControlMessageStartSession(
-    ConnectionID connection_id, const ProtocolPacket &packet) {
+RESULT_CODE ProtocolHandlerImpl::HandleControlMessageStartSession(const ProtocolPacket &packet) {
   LOG4CXX_DEBUG(logger_,
                 "Protocol version:" <<
                 static_cast<int>(packet.protocol_version()));
@@ -1058,6 +1049,7 @@ RESULT_CODE ProtocolHandlerImpl::HandleControlMessageStartSession(
 
   DCHECK(session_observer_);
   uint32_t hash_id;
+  const ConnectionID connection_id = packet.connection_id();
   const uint32_t session_id = session_observer_->OnSessionStartedCallback(
         connection_id, packet.session_id(), service_type, protection, &hash_id);
 
@@ -1115,8 +1107,8 @@ RESULT_CODE ProtocolHandlerImpl::HandleControlMessageStartSession(
   return RESULT_OK;
 }
 
-RESULT_CODE ProtocolHandlerImpl::HandleControlMessageHeartBeat(
-    ConnectionID connection_id, const ProtocolPacket &packet) {
+RESULT_CODE ProtocolHandlerImpl::HandleControlMessageHeartBeat(const ProtocolPacket &packet) {
+  const ConnectionID connection_id = packet.connection_id();
   LOG4CXX_DEBUG(
       logger_,
       "Sending heart beat acknowledgment for connection " << connection_id);
@@ -1209,7 +1201,7 @@ void ProtocolHandlerImpl::Handle(
       FRAME_TYPE_CONTROL == message->frame_type() ||
       FRAME_TYPE_FIRST == message->frame_type()) {
       LOG4CXX_DEBUG(logger_, "Packet: dataSize " << message->data_size());
-      HandleMessage(message->connection_id(), message);
+      HandleMessage(message);
   } else {
     LOG4CXX_WARN(logger_,
                  "handleMessagesFromMobileApp() - incorrect or NULL data");

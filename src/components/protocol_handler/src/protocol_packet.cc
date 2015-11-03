@@ -244,7 +244,7 @@ RESULT_CODE ProtocolPacket::ProtocolHeaderValidator::validate(
 }
 
 ProtocolPacket::ProtocolPacket()
-  : payload_size_(0), connection_id_(0)  {
+  : payload_size_(0u), connection_id_(0u)  {
 }
 
 ProtocolPacket::ProtocolPacket(ConnectionID connection_id,
@@ -479,7 +479,7 @@ uint32_t ProtocolPacket::total_data_bytes() const {
   return packet_data_.totalDataBytes;
 }
 
-uint8_t ProtocolPacket::connection_id() const {
+ConnectionID ProtocolPacket::connection_id() const {
   return connection_id_;
 }
 

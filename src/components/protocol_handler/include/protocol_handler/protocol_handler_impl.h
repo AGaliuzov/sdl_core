@@ -402,59 +402,38 @@ class ProtocolHandlerImpl
 
   /**
    * \brief Handles received message.
-   * \param connection_handle Identifier of connection through which message
-   * is received.
    * \param packet Received message with protocol header.
    * \return \saRESULT_CODE Status of operation
    */
-  RESULT_CODE HandleMessage(
-    ConnectionID connection_id,
-    const ProtocolFramePtr packet);
+  RESULT_CODE HandleMessage(const ProtocolFramePtr packet);
 
   /**
    * \brief Handles message received in single frame.
-   * \param connection_handle Identifier of connection through which message
-   * is received.
    * \param packet Frame of message with protocol header.
    * \return \saRESULT_CODE Status of operation
    */
-  RESULT_CODE HandleSingleFrameMessage(
-    ConnectionID connection_id,
-    const ProtocolFramePtr packet);
+  RESULT_CODE HandleSingleFrameMessage(const ProtocolFramePtr packet);
   /**
    * \brief Handles message received in multiple frames. Collects all frames
    * of message.
-   * \param connection_handle Identifier of connection through which message
-   * is received.
    * \param packet Current frame of message with protocol header.
    * \return \saRESULT_CODE Status of operation
    */
-  RESULT_CODE HandleMultiFrameMessage(
-    ConnectionID connection_id,
-    const ProtocolFramePtr packet);
+  RESULT_CODE HandleMultiFrameMessage(const ProtocolFramePtr packet);
 
   /**
    * \brief Handles message received in single frame.
-   * \param connection_handle Identifier of connection through which message
-   * is received.
    * \param packet Received message with protocol header.
    * \return \saRESULT_CODE Status of operation
    */
   RESULT_CODE HandleControlMessage(
-    ConnectionID connection_id,
     const ProtocolFramePtr packet);
 
-  RESULT_CODE HandleControlMessageEndSession(
-    ConnectionID connection_id,
-    const ProtocolPacket &packet);
+  RESULT_CODE HandleControlMessageEndSession(const ProtocolPacket &packet);
 
-  RESULT_CODE HandleControlMessageStartSession(
-    ConnectionID connection_id,
-    const ProtocolPacket &packet);
+  RESULT_CODE HandleControlMessageStartSession(const ProtocolPacket &packet);
 
-  RESULT_CODE HandleControlMessageHeartBeat(
-    ConnectionID connection_id,
-    const ProtocolPacket &packet);
+  RESULT_CODE HandleControlMessageHeartBeat(const ProtocolPacket &packet);
 
   // threads::MessageLoopThread<*>::Handler implementations
   // CALLED ON raw_ford_messages_from_mobile_ thread!

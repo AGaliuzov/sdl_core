@@ -32,7 +32,6 @@
 #ifndef SRC_COMPONENTS_PROTOCOL_HANDLER_INCLUDE_PROTOCOL_HANDLER_INCOMING_DATA_HANDLER_H_
 #define SRC_COMPONENTS_PROTOCOL_HANDLER_INCLUDE_PROTOCOL_HANDLER_INCOMING_DATA_HANDLER_H_
 
-#include <list>
 #include <map>
 #include <vector>
 #include "utils/macro.h"
@@ -65,9 +64,9 @@ class IncomingDataHandler {
    *   - RESULT_FAIL - packet serialization or validation error occurs
    * \return list of complete, correct packets
    */
-  std::list<ProtocolFramePtr> ProcessData(const RawMessage &tm_message,
-                                          RESULT_CODE *result,
-                                          size_t *malformed_occurrence);
+  ProtocolFramePtrList ProcessData(const RawMessage &tm_message,
+                                   RESULT_CODE *result,
+                                   size_t *malformed_occurrence);
   /**
    * @brief Add connection for data handling and verification
    */

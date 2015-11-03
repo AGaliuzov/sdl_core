@@ -51,7 +51,7 @@ void IncomingDataHandler::set_validator(
 static const size_t MIN_HEADER_SIZE = std::min(PROTOCOL_HEADER_V1_SIZE,
                                                PROTOCOL_HEADER_V2_SIZE);
 
-std::list<ProtocolFramePtr> IncomingDataHandler::ProcessData(
+ProtocolFramePtrList IncomingDataHandler::ProcessData(
     const RawMessage &tm_message,
     RESULT_CODE *result,
     size_t *malformed_occurrence) {
@@ -79,7 +79,7 @@ std::list<ProtocolFramePtr> IncomingDataHandler::ProcessData(
   connection_data.insert(connection_data.end(), data, data + tm_message_size);
   LOG4CXX_DEBUG(logger_, "Total data size for connection "
                 << connection_id << " is " << connection_data.size());
-  std::list<ProtocolFramePtr> out_frames;
+  ProtocolFramePtrList out_frames;
   *malformed_occurrence = 0;
   *result = CreateFrame(connection_data, out_frames, *malformed_occurrence, connection_id);
   LOG4CXX_DEBUG(logger_, "New data size for connection " << connection_id

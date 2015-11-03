@@ -249,7 +249,7 @@ TEST_F(ProtocolHandlerImplTest, StartSession_Protected_SessionObserverReject) {
   // For enabled protection callback shall use protection ON
   const bool callback_protection_flag = PROTECTION_ON;
 #else
-  // For disabled protection callback shall ignore protection income flad and use protection OFF
+  // For disabled protection callback shall ignore protection income flag and use protection OFF
   const bool callback_protection_flag = PROTECTION_OFF;
 #endif  // ENABLE_SECURITY
   // expect ConnectionHandler check
