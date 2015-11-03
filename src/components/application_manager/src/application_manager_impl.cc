@@ -890,7 +890,7 @@ mobile_apis::HMILevel::eType ApplicationManagerImpl::GetDefaultHmiLevel(
 uint32_t ApplicationManagerImpl::GenerateGrammarID() { return rand(); }
 
 uint32_t ApplicationManagerImpl::GenerateNewHMIAppID() {
-  LOG4CXX_TRACE(logger_, "ENTER");
+  LOG4CXX_AUTO_TRACE(logger_);
   uint32_t hmi_app_id = get_rand_from_range(1);
   LOG4CXX_DEBUG(logger_, "GenerateNewHMIAppID value is: " << hmi_app_id);
 
@@ -900,7 +900,6 @@ uint32_t ApplicationManagerImpl::GenerateNewHMIAppID() {
     LOG4CXX_DEBUG(logger_, "Trying new value: " << hmi_app_id);
   }
 
-  LOG4CXX_TRACE(logger_, "EXIT");
   return hmi_app_id;
 }
 
@@ -1607,6 +1606,7 @@ bool ApplicationManagerImpl::Init() {
 
 bool ApplicationManagerImpl::ConvertMessageToSO(
     const Message& message, smart_objects::SmartObject& output) {
+  LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_, "\t\t\tMessage to convert: protocol "
                             << message.protocol_version() << "; json "
                             << message.json_message());
@@ -1657,7 +1657,7 @@ bool ApplicationManagerImpl::ConvertMessageToSO(
             *(message.binary_data());
       }
       break;
-    }
+  }
     case ProtocolVersion::kHMI: {
 #ifdef ENABLE_LOG
       int32_t result =
@@ -1731,7 +1731,6 @@ bool ApplicationManagerImpl::ConvertMessageToSO(
           return false;
         }
       }
-
       break;
     }
     default:
@@ -1849,11 +1848,11 @@ bool ApplicationManagerImpl::ConvertSOtoMessage(
 
 utils::SharedPtr<Message> ApplicationManagerImpl::ConvertRawMsgToMessage(
     const ::protocol_handler::RawMessagePtr message) {
+  LOG4CXX_AUTO_TRACE(logger_);
   DCHECK(message);
   utils::SharedPtr<Message> outgoing_message;
 
   LOG4CXX_DEBUG(logger_, "Service type." << message->service_type());
-
   if (message->service_type() != protocol_handler::kRpc &&
       message->service_type() != protocol_handler::kBulk) {
     // skip this message, not under handling of ApplicationManager
@@ -1874,14 +1873,16 @@ utils::SharedPtr<Message> ApplicationManagerImpl::ConvertRawMsgToMessage(
 
 void ApplicationManagerImpl::ProcessMessageFromMobile(
     const utils::SharedPtr<Message> message) {
-  LOG4CXX_INFO(logger_, "ApplicationManagerImpl::ProcessMessageFromMobile()");
+  LOG4CXX_AUTO_TRACE(logger_);
 #ifdef TIME_TESTER
   AMMetricObserver::MessageMetricSharedPtr metric(
       new AMMetricObserver::MessageMetric());
   metric->begin = date_time::DateTime::getCurrentTime();
 #endif  // TIME_TESTER
-  smart_objects::SmartObjectSPtr so_from_mobile(new smart_objects::SmartObject);
+  smart_objects::SmartObjectSPtr so_from_mobile =
+      utils::MakeShared<smart_objects::SmartObject>();
 
+  DCHECK_OR_RETURN_VOID(so_from_mobile);
   if (!so_from_mobile) {
     LOG4CXX_ERROR(logger_, "Null pointer");
     return;

@@ -64,6 +64,7 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "MobileMessageHandler")
 
 application_manager::Message* MobileMessageHandler::HandleIncomingMessageProtocol(
   const protocol_handler::RawMessagePtr message) {
+  LOG4CXX_AUTO_TRACE(logger_);
   DCHECK_OR_RETURN(message, NULL);
   application_manager::Message* out_message = NULL;
   switch (static_cast<ProtocolVersion> (message->protocol_version())) {
@@ -86,12 +87,12 @@ application_manager::Message* MobileMessageHandler::HandleIncomingMessageProtoco
 
   DCHECK_OR_RETURN(out_message, NULL);
 
-  LOG4CXX_DEBUG(logger_, "Incoming RPC_INFO: " <<
-                         (out_message->connection_key() >> 16) <<", "<<
-                         messageTypes[out_message->type()] <<", "<<
-                         out_message->function_id() << ", " <<
-                         out_message->correlation_id() << ", " <<
-                         out_message->json_message());
+  LOG4CXX_DEBUG(logger_, "Incoming RPC_INFO:" <<
+                         "connection_key " << (out_message->connection_key() >> 16) <<
+                         ", message_type " << messageTypes[out_message->type()] <<
+                         ", function_id "<< out_message->function_id() <<
+                         ", correlation_id" << out_message->correlation_id() <<
+                         ", json_message" << out_message->json_message());
   return out_message;
 }
 
@@ -152,13 +153,13 @@ application_manager::Message*
 MobileMessageHandler::HandleIncomingMessageProtocolV2(
   const ::protocol_handler::RawMessagePtr message) {
   LOG4CXX_AUTO_TRACE(logger_);
-  utils::BitStream message_bytestream(message->data(), message->data_size());
+  utils::BitStream message_bitstream(message->data(), message->data_size());
   protocol_handler::ProtocolPayloadV2 payload;
-  protocol_handler::Extract(&message_bytestream, &payload,
+  protocol_handler::Extract(&message_bitstream, &payload,
                             message->data_size());
 
   // Silently drop message if it wasn't parsed correctly
-  if (message_bytestream.IsBad()) {
+  if (message_bitstream.IsBad()) {
     LOG4CXX_WARN(logger_,
                  "Drop ill-formed message from mobile, partially parsed: "
                  << payload);
