@@ -246,7 +246,6 @@ file (GLOB MOBILE_COMMANDS_SOURCES
   ${AM_SOURCE_DIR}/src/commands/hmi/decrypt_certificate_request.cc
   ${AM_SOURCE_DIR}/src/commands/hmi/decrypt_certificate_response.cc
   ${AM_SOURCE_DIR}/src/commands/hmi/on_file_removed_notification.cc
-  ${AM_SOURCE_DIR}/src/commands/hmi/on_play_tone_notification.cc
   ${AM_SOURCE_DIR}/src/commands/hmi/on_tts_started_notification.cc
   ${AM_SOURCE_DIR}/src/commands/hmi/on_tts_stopped_notification.cc
   ${AM_SOURCE_DIR}/src/commands/hmi/on_vr_started_notification.cc
