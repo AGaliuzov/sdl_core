@@ -369,7 +369,7 @@ void AlertRequest::SendSpeakRequest(int32_t app_id) {
   }
   if ((*message_)[strings::msg_params].keyExists(strings::play_tone) &&
       (*message_)[strings::msg_params][strings::play_tone].asBool()) {
-    msg_params[strings::play_tone] = (*message_)[strings::msg_params][strings::play_tone].asBool();
+    msg_params[strings::play_tone] = true;
   }
   msg_params[strings::app_id] = app_id;
   msg_params[hmi_request::speak_type] = Common_MethodName::ALERT;
