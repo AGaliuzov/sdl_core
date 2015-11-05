@@ -82,7 +82,7 @@ void SetAppIconRequest::Run() {
   full_file_path += "/";
   full_file_path += sync_file_name;
 
-  std::string abs_file_path = file_system::GetAbsolutePath(full_file_path);
+  const std::string abs_file_path = file_system::GetAbsolutePath(full_file_path);
 
   if (!file_system::FileExists(abs_file_path)) {
     LOG4CXX_ERROR(logger_, "No such file " << abs_file_path);
@@ -99,7 +99,7 @@ void SetAppIconRequest::Run() {
 
 // Panasonic requres unchanged path value without encoded special characters
 #ifdef CUSTOMER_PASA
-  const std::string full_file_path_for_hmi = full_file_path;
+  const std::string full_file_path_for_hmi = abs_file_path;
 #else
   const std::string full_file_path_for_hmi = file_system::ConvertPathForURL(
       abs_file_path);
