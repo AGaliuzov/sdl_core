@@ -251,7 +251,7 @@ TEST_F(MessageHelperTest,
   // Check invalid enums == -1
   tested_enum = MobileResults::INVALID_ENUM;
   converted = MessageHelper::MobileResultFromString("");
-  EXPECT_EQ(tested_enum, converted_enum);
+  EXPECT_EQ(tested_enum, converted);
 }
 
 TEST_F(MessageHelperTest,
