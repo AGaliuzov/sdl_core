@@ -488,11 +488,11 @@ TEST_F(MessageHelperTest,
   }
   // EventIDs emum strarts from delta_from_functions_id = 32768
   for (size_t i = delta_from_functions_id;
-      i < events_id_strings.size()+delta_from_functions_id;
+      i < events_id_strings.size() + delta_from_functions_id;
       ++i) {
     casted_enum = static_cast<mobile_apis::FunctionID::eType>(i);
     converted = MessageHelper::StringifiedFunctionID(casted_enum);
-    EXPECT_EQ(events_id_strings[i-delta_from_functions_id], converted);
+    EXPECT_EQ(events_id_strings[i - delta_from_functions_id], converted);
   }
 }
 
