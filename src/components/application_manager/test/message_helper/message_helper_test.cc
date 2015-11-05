@@ -174,7 +174,7 @@ TEST_F(MessageHelperTest,
 }
 
 TEST_F(MessageHelperTest,
-    HMIResultFromString_SendStringValueOfEnum_ExpectCorrectEType) {
+    HMIResultFromString_StringValueOfEnum_CorrectEType) {
   HmiResults::eType enum_value;
   HmiResults::eType enum_from_string_value;
   // Check all results >= 0
@@ -193,7 +193,7 @@ TEST_F(MessageHelperTest,
 }
 
 TEST_F(MessageHelperTest,
-    HMIResultToString_SendETypeValueOfEnum_ExpectCorrectString) {
+    HMIResultToString_ETypeValueOfEnum_CorrectString) {
   std::string string_from_enum;
   HmiResults::eType casted_enum;
   // Check all results >=0
@@ -211,7 +211,7 @@ TEST_F(MessageHelperTest,
 }
 
 TEST_F(MessageHelperTest,
-    HMIToMobileResult_SendHmiResultEType_ExpectGetCorrectMobileResultEType) {
+    HMIToMobileResult_HmiResultEType_GetCorrectMobileResultEType) {
   MobileResults::eType tested_enum;
   HmiResults::eType casted_hmi_enum;
   MobileResults::eType converted_enum;
@@ -236,7 +236,7 @@ TEST_F(MessageHelperTest,
 }
 
 TEST_F(MessageHelperTest,
-    MobileResultFromString_SendStringValueOfEnum_ExpectCorrectEType) {
+    MobileResultFromString_StringValueOfEnum_CorrectEType) {
   MobileResults::eType tested_enum;
   MobileResults::eType converted;
   // Check enums >=0
@@ -255,7 +255,7 @@ TEST_F(MessageHelperTest,
 }
 
 TEST_F(MessageHelperTest,
-    MobileResultToString_SendETypeValueOfEnum_ExpectCorrectString) {
+    MobileResultToString_ETypeValueOfEnum_CorrectString) {
   std::string string_from_enum;
   MobileResults::eType casted_enum;
   // Check all results >=0
@@ -273,7 +273,7 @@ TEST_F(MessageHelperTest,
 }
 
 TEST_F(MessageHelperTest,
-    MobileToHMIResult_SendMobileResultEType_ExpectGetCorrectHmiResultEType) {
+    MobileToHMIResult_MobileResultEType_GetCorrectHmiResultEType) {
   HmiResults::eType tested_enum;
   MobileResults::eType casted_mobile_enum;
   HmiResults::eType converted_enum;
@@ -298,7 +298,7 @@ TEST_F(MessageHelperTest,
   EXPECT_EQ(tested_enum, converted_enum);
 }
 
-TEST_F(MessageHelperTest, VerifySoftButtonString_WrongStrings_ExpectFalse) {
+TEST_F(MessageHelperTest, VerifySoftButtonString_WrongStrings_False) {
   const StringArray wrong_strings {
     "soft_button1\t\ntext",
     "soft_button1\\ntext",
@@ -313,7 +313,7 @@ TEST_F(MessageHelperTest, VerifySoftButtonString_WrongStrings_ExpectFalse) {
   }
 }
 
-TEST_F(MessageHelperTest, VerifySoftButtonString_CorrectStrings_ExpectTrue) {
+TEST_F(MessageHelperTest, VerifySoftButtonString_CorrectStrings_True) {
   const StringArray wrong_strings {
     "soft_button1.text",
     "soft_button1?text",
@@ -327,7 +327,7 @@ TEST_F(MessageHelperTest, VerifySoftButtonString_CorrectStrings_ExpectTrue) {
 }
 
 TEST_F(MessageHelperTest,
-    GetIVISubscriptionRequests_SendValidApplication_ExpectHmiRequestNotEmpty) {
+    GetIVISubscriptionRequests_ValidApplication_HmiRequestNotEmpty) {
   // Creating sharedPtr to ApplicationMock
   ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
   // Creating data acessor
@@ -346,7 +346,7 @@ TEST_F(MessageHelperTest,
 }
 
 TEST_F(MessageHelperTest,
-    ProcessSoftButtons_SendSmartObjectWithoutButtonsKey_ExpectSuccess) {
+    ProcessSoftButtons_SmartObjectWithoutButtonsKey_Success) {
   // Creating sharedPtr to ApplicationMock
   ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
   // Creating input data for method
@@ -359,7 +359,7 @@ TEST_F(MessageHelperTest,
 }
 
 TEST_F(MessageHelperTest,
-    ProcessSoftButtons_SendIncorectSoftButonValue_ExpectInvalidData) {
+    ProcessSoftButtons_IncorectSoftButonValue_InvalidData) {
   // Creating sharedPtr to ApplicationMock
   ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
   // Creating input data for method
@@ -375,7 +375,7 @@ TEST_F(MessageHelperTest,
 }
 
 TEST_F(MessageHelperTest,
-    VerifyImage_ImageTypeIsStatic_ExpectSuccess) {
+    VerifyImage_ImageTypeIsStatic_Success) {
   // Creating sharedPtr to ApplicationMock
   ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
   // Creating input data for method
@@ -389,7 +389,7 @@ TEST_F(MessageHelperTest,
 }
 
 TEST_F(MessageHelperTest,
-    VerifyImage_ImageValueNotValid_ExpectInvalidData) {
+    VerifyImage_ImageValueNotValid_InvalidData) {
   // Creating sharedPtr to ApplicationMock
   ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
   // Creating input data for method
@@ -406,7 +406,7 @@ TEST_F(MessageHelperTest,
 
 
 TEST_F(MessageHelperTest,
-    VerifyImageFiles_SmartObjectWithValidData_ExpectSuccess) {
+    VerifyImageFiles_SmartObjectWithValidData_Success) {
   // Creating sharedPtr to ApplicationMock
   ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
   // Creating input data for method
@@ -421,7 +421,7 @@ TEST_F(MessageHelperTest,
 }
 
 TEST_F(MessageHelperTest,
-    VerifyImageFiles_SmartObjectWithInvalidData_ExpectNotSuccsess) {
+    VerifyImageFiles_SmartObjectWithInvalidData_NotSuccsess) {
   // Creating sharedPtr to ApplicationMock
   ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
   // Creating input data for method
@@ -439,7 +439,7 @@ TEST_F(MessageHelperTest,
 }
 
 TEST_F(MessageHelperTest,
-    VerifyImageVrHelpItems_SmartObjectWithSeveralValidImages_ExpectSuccsess) {
+    VerifyImageVrHelpItems_SmartObjectWithSeveralValidImages_Succsess) {
   // Creating sharedPtr to ApplicationMock
   ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
   // Creating input data for method
@@ -456,7 +456,7 @@ TEST_F(MessageHelperTest,
 }
 
 TEST_F(MessageHelperTest,
-    VerifyImageVrHelpItems_SmartObjWithSeveralInvalidImages_ExpectNotSuccsess) {
+    VerifyImageVrHelpItems_SmartObjWithSeveralInvalidImages_NotSuccsess) {
   // Creating sharedPtr to ApplicationMock
   ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
   // Creating input data for method
@@ -476,7 +476,7 @@ TEST_F(MessageHelperTest,
 }
 
 TEST_F(MessageHelperTest,
-    StringifiedFunctionID_FinctionId_ExpectEqualsWithStringsInArray) {
+    StringifiedFunctionID_FinctionId_EqualsWithStringsInArray) {
   // Start from 1 because 1 == RESERVED and haven`t ID in last 2 characters
   // if FUNCTION ID == 1 inner DCHECK is false
   mobile_apis::FunctionID::eType casted_enum;
@@ -497,7 +497,7 @@ TEST_F(MessageHelperTest,
 }
 
 TEST_F(MessageHelperTest,
-    StringifiedHmiLevel_LevelEnum_ExpectEqualsWithStringsInArray) {
+    StringifiedHmiLevel_LevelEnum_EqualsWithStringsInArray) {
   mobile_apis::HMILevel::eType casted_enum;
   std::string converted_value;
   for (size_t i = 0; i < hmi_level_strings.size(); ++i) {
@@ -508,7 +508,7 @@ TEST_F(MessageHelperTest,
 }
 
 TEST_F(MessageHelperTest,
-    StringToHmiLevel_LevelString_ExpectEqEType) {
+    StringToHmiLevel_LevelString_EqEType) {
   mobile_apis::HMILevel::eType tested_enum;
   mobile_apis::HMILevel::eType converted_enum;
   for (size_t i = 0; i < hmi_level_strings.size(); ++i) {
@@ -519,7 +519,7 @@ TEST_F(MessageHelperTest,
 }
 
 TEST_F(MessageHelperTest,
-    SubscribeApplicationToSoftButton_ExpectCallFromApp) {
+    SubscribeApplicationToSoftButton_CallFromApp) {
   // Create application mock
   ApplicationMockSharedPtr appSharedPtr = utils::MakeShared<AppMock>();
   // Prepare data for method
