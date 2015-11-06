@@ -50,12 +50,12 @@ namespace protocol_handler {
  * \brief Session identifier - contains connection identifier and
  * session_id from protocol  (can be used as hash)
  */
-// TODO: move SessionID to protocol_handler/protocol_packet.h
+// TODO(EZamakhov): move SessionID to protocol_handler/protocol_packet.h
 typedef uint8_t SessionID;
 /**
  * \brief Message identifier - unique to the session messages
  */
-// TODO: move MessageID to protocol_handler/session_observer.h
+// TODO(EZamakhov): move MessageID to protocol_handler/session_observer.h
 typedef uint32_t MessageID;
 
 struct ProtocolFrameData {
@@ -90,7 +90,7 @@ class MultiFrameBuilder {
   /**
   *\brief Intilization of \bMultiFrameBuilder
   */
-  bool Init(const int32_t consecutive_frame_wait_msecs);
+  void set_waiting_timeout(const uint32_t consecutive_frame_wait_msecs);
 
   /**
   * @brief Add connection for pending data
@@ -99,7 +99,7 @@ class MultiFrameBuilder {
   bool AddConnection(const ConnectionID connection_id);
 
   /**
-  * @brief Clear data relates to \bconnection_id
+  * @brief Clear all data related to connection_id
   */
   bool RemoveConnection(const ConnectionID connection_id);
 
@@ -109,41 +109,36 @@ class MultiFrameBuilder {
   ProtocolFramePtrList PopMultiframes();
 
   /**
-  *\brief Add Single or Consecutive frame to
+  *\brief Handle Single or Consecutive frame
   */
   RESULT_CODE AddFrame(const ProtocolFramePtr packet);
 
  private:
-
   RESULT_CODE HandleFirstFrame(const ProtocolFramePtr packet);
   RESULT_CODE HandleConsecutiveFrame(const ProtocolFramePtr packet);
 
-  // iterator FindAndClear(const SessionID session_key);
-  /**
-   *\brief Map of frames with last frame data for messages received in multiple frames.
-   */
+  //  Map of frames with last frame data for messages received in multiple frames.
   MultiFrameMap multiframes_map_;
-  int32_t consecutive_frame_wait_msecs_;
+  int64_t consecutive_frame_wait_msecs_;
 };
 
 template<typename _CharT>
 std::basic_ostream<_CharT>& operator<<(std::basic_ostream<_CharT>& stream,
                                        const protocol_handler::MultiFrameMap& map) {
-  if(map.empty()) {
+  if (map.empty()) {
     stream << "{empty}";
     return stream;
   }
   for (MultiFrameMap::const_iterator connection_it = map.begin();
        connection_it != map.end(); ++connection_it) {
-
     const SessionToFrameMap& session_map = connection_it->second;
+
     for (SessionToFrameMap::const_iterator session_it = session_map.begin();
          session_it != session_map.end(); ++session_it) {
-
       const MessageIDToFrameMap& messageId_map = session_it->second;
+
       for (MessageIDToFrameMap::const_iterator messageId_it = messageId_map.begin();
            messageId_it != messageId_map.end(); ++messageId_it) {
-
         const ProtocolFrameData& frame_data = messageId_it->second;
 
         stream << "ConnectionID: " << connection_it->first
@@ -157,4 +152,4 @@ std::basic_ostream<_CharT>& operator<<(std::basic_ostream<_CharT>& stream,
 }
 
 }  // namespace protocol_handler
-#endif // SRC_COMPONENTS_PROTOCOL_HANDLER_INCLUDE_PROTOCOL_HANDLER_MULTIFRAME_BUILDER_H_
+#endif  // SRC_COMPONENTS_PROTOCOL_HANDLER_INCLUDE_PROTOCOL_HANDLER_MULTIFRAME_BUILDER_H_

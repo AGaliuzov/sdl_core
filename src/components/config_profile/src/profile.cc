@@ -193,7 +193,7 @@ const char* kFrequencyTime = "FrequencyTime";
 const char* kMalformedMessageFiltering = "MalformedMessageFiltering";
 const char* kMalformedFrequencyCount = "MalformedFrequencyCount";
 const char* kMalformedFrequencyTime = "MalformedFrequencyTime";
-const char* kMultiframeWaitingTimout = "MultiframeWaitingTimout";
+const char* kExpectedConsecutiveFramesTimeout = "ExpectedConsecutiveFramesTimeout";
 const char* kHashStringSizeKey = "HashStringSize";
 const char* kUseDBForResumptionKey = "UseDBForResumption";
 const char* kAttemptsToOpenResumptionDBKey = "AttemptsToOpenResumptionDB";
@@ -284,7 +284,7 @@ const size_t kDefaultFrequencyTime = 1000;
 const bool kDefaulMalformedMessageFiltering = true;
 const size_t kDefaultMalformedFrequencyCount = 10;
 const size_t kDefaultMalformedFrequencyTime = 1000;
-const uint32_t kDefaultMultiframeWaitingTimout = 10000;
+const uint32_t kDefaultExpectedConsecutiveFramesTimeout = 10000;
 const uint16_t kDefaultAttemptsToOpenPolicyDB = 5;
 const uint16_t kDefaultOpenAttemptTimeoutMs = 500;
 const uint16_t kDefaultAttemptsToOpenResumptionDB = 5;
@@ -766,11 +766,11 @@ size_t Profile::malformed_frequency_time() const {
                 kProtocolHandlerSection, kMalformedFrequencyTime);
   return malformed_frequency_time;
 }
-int32_t Profile::multiframe_waiting_timout() const {
-  int32_t multiframe_waiting_timout = 0;
-  ReadIntValue(&multiframe_waiting_timout, kDefaultMultiframeWaitingTimout,
-                kProtocolHandlerSection, kMultiframeWaitingTimout);
-  return multiframe_waiting_timout;
+uint32_t Profile::multiframe_waiting_timeout() const {
+  uint32_t multiframe_waiting_timeout = 0;
+  ReadUIntValue(&multiframe_waiting_timeout, kDefaultExpectedConsecutiveFramesTimeout,
+                kProtocolHandlerSection, kExpectedConsecutiveFramesTimeout);
+  return multiframe_waiting_timeout;
 }
 
 uint16_t Profile::attempts_to_open_policy_db() const {

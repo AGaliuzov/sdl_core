@@ -72,7 +72,7 @@ ProtocolHandlerImpl::ProtocolHandlerImpl(transport_manager::TransportManager *tr
                                          bool malformed_message_filtering,
                                          size_t malformed_message_frequency_time,
                                          size_t malformed_message_frequency_count,
-                                         int32_t multiframe_waiting_timout)
+                                         uint32_t multiframe_waiting_timeout)
     : protocol_observers_(),
       session_observer_(0),
       transport_manager_(transport_manager_param),
@@ -122,7 +122,7 @@ ProtocolHandlerImpl::ProtocolHandlerImpl(transport_manager::TransportManager *tr
     LOG4CXX_WARN(logger_, "Malformed message filtering is disabled."
                  << "Connection will be close on first malformed message detection");
   }
-  multiframe_builder_.Init(multiframe_waiting_timout);
+  multiframe_builder_.set_waiting_timeout(multiframe_waiting_timeout);
 }
 
 ProtocolHandlerImpl::~ProtocolHandlerImpl() {
@@ -795,36 +795,6 @@ RESULT_CODE ProtocolHandlerImpl::HandleMultiFrameMessage(const ProtocolFramePtr 
     LOG4CXX_WARN(logger_, "Frame assembling issue");
   }
 
-  const ProtocolFramePtrList& frame_list = multiframe_builder_.PopMultiframes();
-  for (ProtocolFramePtrList::const_iterator it = frame_list.begin();
-       it != frame_list.end(); ++it) {
-    const ProtocolFramePtr frame = *it;
-    DCHECK_OR_RETURN(frame, RESULT_FAIL);
-
-    const uint32_t connection_key =
-        session_observer_->KeyFromPair(packet->connection_id(), packet->session_id());
-    LOG4CXX_DEBUG(logger_, "Result frame" << frame <<
-                  "for connection "<< connection_key);
-    const RawMessagePtr rawMessage(
-          new RawMessage(connection_key,
-                         frame->protocol_version(),
-                         frame->data(),
-                         frame->total_data_bytes(),
-                         frame->service_type(),
-                         frame->payload_size()));
-    DCHECK_OR_RETURN(rawMessage, RESULT_FAIL);
-
-#ifdef TIME_TESTER
-    if (metric_observer_) {
-      PHMetricObserver::MessageMetric *metric =
-          new PHMetricObserver::MessageMetric();
-      metric->raw_msg = rawMessage;
-      metric_observer_->EndMessageProcess(metric);
-    }
-#endif  // TIME_TESTER
-    NotifySubscribers(rawMessage);
-
-  }
   return RESULT_OK;
 }
 
@@ -1079,6 +1049,41 @@ RESULT_CODE ProtocolHandlerImpl::HandleControlMessageHeartBeat(const ProtocolPac
   return RESULT_HEARTBEAT_IS_NOT_SUPPORTED;
 }
 
+void ProtocolHandlerImpl::PopValideAndExpirateMultiframes() {
+  const ProtocolFramePtrList& frame_list = multiframe_builder_.PopMultiframes();
+  for (ProtocolFramePtrList::const_iterator it = frame_list.begin();
+       it != frame_list.end(); ++it) {
+    const ProtocolFramePtr frame = *it;
+    DCHECK(frame);
+    if(!frame) {
+      continue;
+    }
+
+    const uint32_t connection_key =
+        session_observer_->KeyFromPair(frame->connection_id(), frame->session_id());
+    LOG4CXX_DEBUG(logger_, "Result frame" << frame <<
+                  "for connection "<< connection_key);
+    const RawMessagePtr rawMessage(
+          new RawMessage(connection_key,
+                         frame->protocol_version(),
+                         frame->data(),
+                         frame->total_data_bytes(),
+                         frame->service_type(),
+                         frame->payload_size()));
+    DCHECK(rawMessage);
+
+#ifdef TIME_TESTER
+    if (metric_observer_) {
+      PHMetricObserver::MessageMetric *metric =
+          new PHMetricObserver::MessageMetric();
+      metric->raw_msg = rawMessage;
+      metric_observer_->EndMessageProcess(metric);
+    }
+#endif  // TIME_TESTER
+    NotifySubscribers(rawMessage);
+  }
+}
+
 bool ProtocolHandlerImpl::TrackMessage(const uint32_t& connection_key) {
   LOG4CXX_AUTO_TRACE(logger_);
   if (message_frequency_time_ > 0u &&
@@ -1159,6 +1164,7 @@ void ProtocolHandlerImpl::Handle(
       FRAME_TYPE_FIRST == message->frame_type()) {
       LOG4CXX_DEBUG(logger_, "Packet: dataSize " << message->data_size());
       HandleMessage(message);
+      PopValideAndExpirateMultiframes();
   } else {
     LOG4CXX_WARN(logger_,
                  "handleMessagesFromMobileApp() - incorrect or NULL data");

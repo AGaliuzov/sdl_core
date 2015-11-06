@@ -43,24 +43,23 @@ namespace protocol_handler {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "ProtocolHandler")
 
-MultiFrameBuilder::MultiFrameBuilder():
-  consecutive_frame_wait_msecs_(0u) {
+MultiFrameBuilder::MultiFrameBuilder()
+  : consecutive_frame_wait_msecs_(0u) {
 }
 
-bool MultiFrameBuilder::Init(const int32_t consecutive_frame_wait_msecs) {
-  if(consecutive_frame_wait_msecs < 0) {
-    LOG4CXX_ERROR(logger_, "Negative waiting timout: " << consecutive_frame_wait_msecs);
-    return false;
+void MultiFrameBuilder::set_waiting_timeout(const uint32_t consecutive_frame_wait_msecs) {
+  consecutive_frame_wait_msecs_ = static_cast<int64_t>(consecutive_frame_wait_msecs);
+  if (consecutive_frame_wait_msecs == 0) {
+    LOG4CXX_WARN(logger_, "Waiting timout disabled");
+  } else {
+    LOG4CXX_DEBUG(logger_, "Waiting time in msec: " << consecutive_frame_wait_msecs_);
   }
-  consecutive_frame_wait_msecs_ = consecutive_frame_wait_msecs;
-  LOG4CXX_DEBUG(logger_, "Waiting time in msec: " << consecutive_frame_wait_msecs_);
-  return true;
 }
 
 bool MultiFrameBuilder::AddConnection(const ConnectionID connection_id) {
   LOG4CXX_DEBUG(logger_, "Adding connection_id: " << connection_id);
   LOG4CXX_DEBUG(logger_, "Current state is: " << multiframes_map_);
-  MultiFrameMap::iterator it = multiframes_map_.find(connection_id);
+  const MultiFrameMap::const_iterator it = multiframes_map_.find(connection_id);
   if (it != multiframes_map_.end()) {
     LOG4CXX_ERROR(logger_, "Exists connection_id: " << connection_id);
     return false;
@@ -72,9 +71,9 @@ bool MultiFrameBuilder::AddConnection(const ConnectionID connection_id) {
 bool MultiFrameBuilder::RemoveConnection(const ConnectionID connection_id) {
   LOG4CXX_DEBUG(logger_, "Removing connection_id: " << connection_id);
   LOG4CXX_DEBUG(logger_, "Current state is: " << multiframes_map_);
-  MultiFrameMap::iterator it = multiframes_map_.find(connection_id);
+  const MultiFrameMap::iterator it = multiframes_map_.find(connection_id);
   if (it == multiframes_map_.end()) {
-    LOG4CXX_ERROR(logger_, "Nonexists connection_id: " << connection_id);
+    LOG4CXX_ERROR(logger_, "Non-existent connection_id: " << connection_id);
     return false;
   }
   const SessionToFrameMap& session_to_frame_map = it->second;
@@ -114,23 +113,22 @@ ProtocolFramePtrList MultiFrameBuilder::PopMultiframes() {
           LOG4CXX_DEBUG(logger_, "Ready frame: " << frame);
           outpute_frame_list.push_back(frame);
           messageId_map.erase(messageId_it++);
-        } else
-          if (consecutive_frame_wait_msecs_ != 0) {
-            LOG4CXX_TRACE(logger_, "Expiration verification");
-            const int64_t time_left =
-                date_time::DateTime::calculateTimeSpan(frame_data.append_time);
-            LOG4CXX_DEBUG(logger_, "mSecs left: " << time_left);
-            if (time_left >= consecutive_frame_wait_msecs_) {
-              LOG4CXX_DEBUG(logger_, "Expired frame: " << frame);
-              outpute_frame_list.push_back(frame);
-              messageId_map.erase(messageId_it++);
-            } else {
-              ++messageId_it;
-            }
-          } else {
-            ++messageId_it;
+          continue;
+        }
+        if (consecutive_frame_wait_msecs_ != 0) {
+          LOG4CXX_TRACE(logger_, "Expiration verification");
+          const int64_t time_left =
+            date_time::DateTime::calculateTimeSpan(frame_data.append_time);
+          LOG4CXX_DEBUG(logger_, "mSecs left: " << time_left);
+          if (time_left >= consecutive_frame_wait_msecs_) {
+            LOG4CXX_WARN(logger_, "Expired frame: " << frame);
+            outpute_frame_list.push_back(frame);
+            messageId_map.erase(messageId_it++);
+            continue;
           }
-      }
+        }
+        ++messageId_it;
+      }  // iteration over messageId_map
     }  // iteration over session_map
   }    // iteration over multiframes_map_
   LOG4CXX_DEBUG(logger_, "Result frames count: " << outpute_frame_list.size());

@@ -143,6 +143,8 @@ class ProtocolHandlerImpl
    * \param malformed_message_frequency_time used as time for malformed flood filtering
    * \param malformed_message_frequency_count used as maximum value of malformed
    *        messages per message_frequency_time period
+   * \param multiframe_waiting_timeout used as maximum time of consecutive
+   *        frames handling
    * message exchange.
    */
   explicit ProtocolHandlerImpl(
@@ -151,7 +153,7 @@ class ProtocolHandlerImpl
       bool malformed_message_filtering,
       size_t malformed_message_frequency_time,
       size_t malformed_message_frequency_count,
-      int32_t multiframe_waiting_timout);
+      uint32_t multiframe_waiting_timeout);
 
   /**
    * \brief Destructor
@@ -436,6 +438,8 @@ class ProtocolHandlerImpl
   RESULT_CODE HandleControlMessageStartSession(const ProtocolPacket &packet);
 
   RESULT_CODE HandleControlMessageHeartBeat(const ProtocolPacket &packet);
+
+  void PopValideAndExpirateMultiframes();
 
   // threads::MessageLoopThread<*>::Handler implementations
   // CALLED ON raw_ford_messages_from_mobile_ thread!

@@ -65,6 +65,7 @@ typedef std::map<ConnectionID, SessionToMutiframeDataTestMap> MultiFrameTestMap;
 
 template<typename IntegerType>
 std::vector<IntegerType> getTestVector() {
+  // Prepare array with a few minimals, middle and a few maximum values
   const IntegerType array[] = {
     std::numeric_limits<IntegerType>::min(),
     std::numeric_limits<IntegerType>::min() + 1,
@@ -89,7 +90,6 @@ struct Incrementor {
 
 class MultiFrameBuilderTest : public ::testing::Test {
  protected:
-
   void SetUp() OVERRIDE {
 
     const std::vector<ConnectionID> connections = getTestVector<ConnectionID>();
@@ -124,13 +124,13 @@ class MultiFrameBuilderTest : public ::testing::Test {
           std::generate(data_vector.begin(), data_vector.end(), Incrementor<uint8_t>(0u));
 
           PrepareMultiFrames(connection_id,
-                    protocol_version,
-                    service_type,
-                    session_id,
-                    message_id,
-                    mtu_,
-                    data_vector,
-                    some_data.multiframes);
+          protocol_version,
+          service_type,
+          session_id,
+          message_id,
+          mtu_,
+          data_vector,
+          some_data.multiframes);
           messages_map.insert(std::make_pair(message_id, some_data));
         }
         sessions_map.insert(std::make_pair(session_id, messages_map));
@@ -345,7 +345,8 @@ TEST_F(MultiFrameBuilderTest, Add_ConsecutiveFrames_per1) {
             const UCharDataVector&      binary_data  = multiframe_data.binary_data;
             EXPECT_EQ(binary_data,
                       UCharDataVector(result_multiframe->data(),
-                                      result_multiframe->data() + result_multiframe->payload_size()));
+                                      result_multiframe->data() +
+                                      result_multiframe->payload_size()));
             messageId_map.erase(messageId_it++);
           } else {
             // Multiframe is not completed
@@ -355,7 +356,7 @@ TEST_F(MultiFrameBuilderTest, Add_ConsecutiveFrames_per1) {
           }
         }
         if (messageId_map.empty()) {
-           session_map.erase(session_it++);
+          session_map.erase(session_it++);
         } else {
           ++session_it;
         }
@@ -370,7 +371,7 @@ TEST_F(MultiFrameBuilderTest, Add_ConsecutiveFrames_per1) {
 }
 
 TEST_F(MultiFrameBuilderTest, FrameExpired_OneMSec) {
-  ASSERT_TRUE(multiframe_builder_.Init(1));
+  multiframe_builder_.set_waiting_timeout(1);
 
   ASSERT_FALSE(test_data_map_.empty());
   const ConnectionID& connection_id          = test_data_map_.begin()->first;
@@ -395,12 +396,10 @@ TEST_F(MultiFrameBuilderTest, FrameExpired_OneMSec) {
   // Wait frame expire
   usleep(1000);
   const ProtocolFramePtrList& list = multiframe_builder_.PopMultiframes();
-  ASSERT_FALSE(list.empty ());
+  ASSERT_FALSE(list.empty());
   EXPECT_EQ(first_frame,
             list.front());
 }
-
-
 
 /*
  * Testing support methods
@@ -455,7 +454,7 @@ void MultiFrameBuilderTest::PrepareMultiFrames(const ConnectionID connection_id,
   ASSERT_GT(max_payload_size, FIRST_FRAME_DATA_SIZE);
   ASSERT_EQ(FIRST_FRAME_DATA_SIZE, 0x08);
 
-  // TODO(Ezamakhov):move to the separate class
+  // TODO(EZamakhov): move to the separate class
   const size_t data_size =  data.size();
   // remainder of last frame
   const size_t lastframe_remainder = data_size % max_payload_size;

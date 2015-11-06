@@ -33,6 +33,7 @@
 #include <stdint.h>
 #include <memory.h>
 #include <new>
+#include <memory>
 #include <cstring>
 #include <limits>
 
@@ -379,7 +380,7 @@ RESULT_CODE ProtocolPacket::deserializePacket(
     dataPayloadSize = messageSize - offset;
   }
 
-  uint8_t *data = NULL;
+  uint8_t* data = NULL;
   if (dataPayloadSize) {
     data = new (std::nothrow) uint8_t[dataPayloadSize];
     if (!data) {
@@ -398,6 +399,7 @@ RESULT_CODE ProtocolPacket::deserializePacket(
     total_data_bytes |= data[3];
     set_total_data_bytes(total_data_bytes);
     if (0 == packet_data_.data) {
+      delete[] data;
       return RESULT_FAIL;
     }
   } else {

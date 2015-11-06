@@ -591,7 +591,7 @@ class Profile : public utils::Singleton<Profile> {
 
     size_t malformed_frequency_time() const;
 
-    int32_t multiframe_waiting_timout() const;
+    uint32_t multiframe_waiting_timeout() const;
 
     uint16_t attempts_to_open_policy_db() const;
 

@@ -65,14 +65,14 @@ class ProtocolHandlerImplTest : public ::testing::Test {
       bool malformed_message_filtering = false,
       const size_t malformd_period_msec = 0u,
       const size_t malformd_max_messages = 0u,
-      const int32_t multiframe_waiting_timout = 0) {
+      const int32_t multiframe_waiting_timeout = 0) {
     protocol_handler_impl.reset(
         new ProtocolHandlerImpl(&transport_manager_mock,
                                 period_msec, max_messages,
                                 malformed_message_filtering,
                                 malformd_period_msec,
                                 malformd_max_messages,
-                                multiframe_waiting_timout));
+                                multiframe_waiting_timeout));
     protocol_handler_impl->set_session_observer(&session_observer_mock);
     tm_listener = protocol_handler_impl.get();
   }
