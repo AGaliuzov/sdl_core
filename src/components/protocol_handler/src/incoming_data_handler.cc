@@ -52,9 +52,9 @@ static const size_t MIN_HEADER_SIZE = std::min(PROTOCOL_HEADER_V1_SIZE,
                                                PROTOCOL_HEADER_V2_SIZE);
 
 ProtocolFramePtrList IncomingDataHandler::ProcessData(
-  const RawMessage& tm_message,
-  RESULT_CODE* result,
-  size_t* malformed_occurrence) {
+    const RawMessage& tm_message,
+    RESULT_CODE* result,
+    size_t* malformed_occurrence) {
   LOG4CXX_AUTO_TRACE(logger_);
   DCHECK(result);
   DCHECK(malformed_occurrence);
@@ -65,7 +65,7 @@ ProtocolFramePtrList IncomingDataHandler::ProcessData(
   if (tm_message_size == 0 || data == NULL) {
     LOG4CXX_WARN(logger_, "Wrong raw message " << tm_message_size << " bytes");
     *result = RESULT_FAIL;
-    return std::list<ProtocolFramePtr>();
+    return ProtocolFramePtrList();
   }
   LOG4CXX_DEBUG(logger_, "Processing incoming data of size "
                 << tm_message_size << " for connection " << connection_id);
@@ -73,7 +73,7 @@ ProtocolFramePtrList IncomingDataHandler::ProcessData(
   if (connections_data_.end() == it) {
     LOG4CXX_WARN(logger_, "ProcessData requested for unknown connection");
     *result = RESULT_FAIL;
-    return std::list<ProtocolFramePtr>();
+    return ProtocolFramePtrList();
   }
   std::vector<uint8_t>& connection_data = it->second;
   connection_data.insert(connection_data.end(), data, data + tm_message_size);
@@ -133,10 +133,10 @@ uint32_t IncomingDataHandler::GetPacketSize(
 }
 
 RESULT_CODE IncomingDataHandler::CreateFrame(
-  std::vector<uint8_t>& incoming_data,
-  std::list<ProtocolFramePtr>& out_frames,
-  size_t& malformed_occurrence,
-  const transport_manager::ConnectionUID connection_id) {
+    std::vector<uint8_t>& incoming_data,
+    ProtocolFramePtrList& out_frames,
+    size_t& malformed_occurrence,
+    const transport_manager::ConnectionUID connection_id) {
   LOG4CXX_AUTO_TRACE(logger_);
   std::vector<uint8_t>::iterator data_it = incoming_data.begin();
   size_t data_size = incoming_data.size();

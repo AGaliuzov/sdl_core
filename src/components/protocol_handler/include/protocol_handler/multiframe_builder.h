@@ -88,7 +88,7 @@ class MultiFrameBuilder {
   MultiFrameBuilder();
 
   /**
-  *\brief Intilization of \bMultiFrameBuilder
+  *\brief Set timeout of waiting CONSECUTIVE frames
   */
   void set_waiting_timeout(const uint32_t consecutive_frame_wait_msecs);
 
@@ -100,6 +100,7 @@ class MultiFrameBuilder {
 
   /**
   * @brief Clear all data related to connection_id
+  * @return true on success
   */
   bool RemoveConnection(const ConnectionID connection_id);
 
@@ -110,6 +111,7 @@ class MultiFrameBuilder {
 
   /**
   *\brief Handle Single or Consecutive frame
+  * @return RESULT_OK on success, or RESULT_FAIL in case of any error
   */
   RESULT_CODE AddFrame(const ProtocolFramePtr packet);
 

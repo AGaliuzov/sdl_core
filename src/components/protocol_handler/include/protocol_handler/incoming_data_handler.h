@@ -34,7 +34,6 @@
 
 #include <map>
 #include <vector>
-#include <list>
 #include "utils/macro.h"
 #include "protocol_handler/protocol_packet.h"
 #include "transport_manager/common.h"
@@ -96,7 +95,7 @@ class IncomingDataHandler {
    *   - RESULT_FAIL - packet serialization or validation error occurs
    */
   RESULT_CODE CreateFrame(std::vector<uint8_t>& incoming_data,
-                          std::list<ProtocolFramePtr>& out_frames,
+                          ProtocolFramePtrList& out_frames,
                           size_t& malformed_occurrence,
                           const transport_manager::ConnectionUID connection_id);
 
