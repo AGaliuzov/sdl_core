@@ -188,7 +188,7 @@ TEST_F(PolicyHandlerTest, Test_ReceiveMessageFromSDK_method) {
   Json::Reader reader;
   std::string json;
   Json::Value root(Json::objectValue);
-  if (ifile != NULL && reader.parse(ifile, root, true)) {
+  if (ifile.is_open() && reader.parse(ifile, root, true)) {
     json = root.toStyledString();
   }
   ifile.close();
