@@ -92,8 +92,6 @@ TEST(MessageHelperTestCreate,
       MessageHelper::CreateBlockedByPoliciesResponse(
               function_id, result, correlation_id, connection_key);
 
-  EXPECT_TRUE(ptr);
-
   smart_objects::SmartObject& obj = *ptr;
   
   EXPECT_EQ(function_id,
@@ -127,8 +125,6 @@ TEST(MessageHelperTestCreate,
   EXPECT_EQ(image_type,
       obj[strings::sync_file_name][strings::image_type].asInt());
   EXPECT_EQ(app_id, obj[strings::app_id].asInt());
-  
-  EXPECT_TRUE(ptr);
 }
 
 TEST(MessageHelperTestCreate,
@@ -146,8 +142,6 @@ TEST(MessageHelperTestCreate,
   EXPECT_EQ(image_type,
       obj[strings::sync_file_name][strings::image_type].asInt());
   EXPECT_EQ(app_id, obj[strings::app_id].asInt());
-
-  EXPECT_TRUE(ptr);
 }
 
 TEST(MessageHelperTestCreate,
@@ -168,27 +162,46 @@ TEST(MessageHelperTestCreate,
 TEST(MessageHelperTestCreate,
    CreateGlobalPropertiesRequestsToHMI_SmartObject_NotEmpty) {
   ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
-  smart_objects::SmartObjectSPtr objPtr =
-      utils::MakeShared<smart_objects::SmartObject>();
+  smart_objects::SmartObjectSPtr objPtr[7] = {
+      utils::MakeShared<smart_objects::SmartObject>(),
+      utils::MakeShared<smart_objects::SmartObject>(),
+      utils::MakeShared<smart_objects::SmartObject>(),
+      utils::MakeShared<smart_objects::SmartObject>(),
+      utils::MakeShared<smart_objects::SmartObject>(),
+      utils::MakeShared<smart_objects::SmartObject>(),
+      utils::MakeShared<smart_objects::SmartObject>(),
+  };
 
-  smart_objects::SmartObject& obj = *objPtr;
+  smart_objects::SmartObject& obj1 = *objPtr[0];
+  smart_objects::SmartObject& obj2 = *objPtr[1];
+  smart_objects::SmartObject& obj3 = *objPtr[2];
+  smart_objects::SmartObject& obj4 = *objPtr[3];
+  smart_objects::SmartObject& obj5 = *objPtr[4];
+  smart_objects::SmartObject& obj6 = *objPtr[5];
+  smart_objects::SmartObject& obj7 = *objPtr[6];
 
-  (*objPtr)[strings::menu_icon] = "111";
+  (*objPtr[0])[strings::vr_help_title] = "111";
+  (*objPtr[1])[strings::vr_help] = "222";
+  (*objPtr[2])[strings::keyboard_properties] = "333";
+  (*objPtr[3])[strings::menu_title] = "444";
+  (*objPtr[4])[strings::menu_icon] = "555";
+  (*objPtr[5])[strings::help_prompt] = "666";
+  (*objPtr[6])[strings::timeout_prompt] = "777";
   
   EXPECT_CALL(*appSharedMock,
-      vr_help_title()).Times(AtLeast(3)).WillRepeatedly(Return(&obj));
+      vr_help_title()).Times(AtLeast(3)).WillRepeatedly(Return(&obj1));
   EXPECT_CALL(*appSharedMock,
-      vr_help()).Times(AtLeast(2)).WillRepeatedly(Return(&obj));
+      vr_help()).Times(AtLeast(2)).WillRepeatedly(Return(&obj2));
   EXPECT_CALL(*appSharedMock,
-      help_prompt()).Times(AtLeast(3)).WillRepeatedly(Return(&obj));
+      help_prompt()).Times(AtLeast(3)).WillRepeatedly(Return(&obj6));
   EXPECT_CALL(*appSharedMock,
-      timeout_prompt()).Times(AtLeast(2)).WillRepeatedly(Return(&obj));
+      timeout_prompt()).Times(AtLeast(2)).WillRepeatedly(Return(&obj7));
   EXPECT_CALL(*appSharedMock,
-      keyboard_props()).Times(AtLeast(2)).WillRepeatedly(Return(&obj));
+      keyboard_props()).Times(AtLeast(2)).WillRepeatedly(Return(&obj3));
   EXPECT_CALL(*appSharedMock,
-      menu_title()).Times(AtLeast(2)).WillRepeatedly(Return(&obj));
+      menu_title()).Times(AtLeast(2)).WillRepeatedly(Return(&obj4));
   EXPECT_CALL(*appSharedMock,
-      menu_icon()).Times(AtLeast(2)).WillRepeatedly(Return(&obj));
+      menu_icon()).Times(AtLeast(2)).WillRepeatedly(Return(&obj5));
   EXPECT_CALL(*appSharedMock, app_id()).WillRepeatedly(Return(0));
   
   smart_objects::SmartObjectList ptr =
@@ -199,13 +212,13 @@ TEST(MessageHelperTestCreate,
   smart_objects::SmartObject& first = *ptr[0];
   smart_objects::SmartObject& second = *ptr[1];
   
-  EXPECT_EQ(*objPtr, first[strings::msg_params][strings::vr_help_title]);
-  EXPECT_EQ(*objPtr, first[strings::msg_params][strings::vr_help]);
-  EXPECT_EQ(*objPtr, first[strings::msg_params][strings::keyboard_properties]);
-  EXPECT_EQ(*objPtr, first[strings::msg_params][strings::menu_title]);
-  EXPECT_EQ(*objPtr, first[strings::msg_params][strings::menu_icon]);
-  EXPECT_EQ(*objPtr, second[strings::msg_params][strings::help_prompt]);
-  EXPECT_EQ(*objPtr, second[strings::msg_params][strings::timeout_prompt]);
+  EXPECT_EQ(*objPtr[0], first[strings::msg_params][strings::vr_help_title]);
+  EXPECT_EQ(*objPtr[1], first[strings::msg_params][strings::vr_help]);
+  EXPECT_EQ(*objPtr[2], first[strings::msg_params][strings::keyboard_properties]);
+  EXPECT_EQ(*objPtr[3], first[strings::msg_params][strings::menu_title]);
+  EXPECT_EQ(*objPtr[4], first[strings::msg_params][strings::menu_icon]);
+  EXPECT_EQ(*objPtr[5], second[strings::msg_params][strings::help_prompt]);
+  EXPECT_EQ(*objPtr[6], second[strings::msg_params][strings::timeout_prompt]);
 }
 
 TEST(MessageHelperTestCreate, CreateAppVrHelp_AppName_Equal) {
@@ -235,11 +248,13 @@ TEST(MessageHelperTestCreate,
   ApplicationMockSharedPtr appSharedMock =
           utils::MakeShared<AppMock>();
   
-  const smart_objects::SmartObject* smartObjectPtr =
-      new smart_objects::SmartObject();
+  smart_objects::SmartObjectSPtr smartObjectPtr =
+      utils::MakeShared<smart_objects::SmartObject>();
+
+  const smart_objects::SmartObject& object = *smartObjectPtr;
   
   EXPECT_CALL(*appSharedMock,
-      show_command()).Times(AtLeast(2)).WillRepeatedly(Return(smartObjectPtr));
+      show_command()).Times(AtLeast(2)).WillRepeatedly(Return(&object));
   
   smart_objects::SmartObjectList ptr =
       MessageHelper::CreateShowRequestToHMI(appSharedMock);
@@ -271,15 +286,17 @@ TEST(MessageHelperTestCreate,
   ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
   CommandsMap vis;
   DataAccessor< CommandsMap> data_accessor(vis, true);
-  smart_objects::SmartObject* smartObjectPtr =
-          new smart_objects::SmartObject();  
+  smart_objects::SmartObjectSPtr smartObjectPtr =
+      utils::MakeShared<smart_objects::SmartObject>();
 
-  (*smartObjectPtr)[strings::menu_params] = 1;
-  (*smartObjectPtr)[strings::cmd_icon] = 1;
-  (*smartObjectPtr)[strings::cmd_icon][strings::value] = "10";  
+  smart_objects::SmartObject& object = *smartObjectPtr;
+
+  object[strings::menu_params] = 1;
+  object[strings::cmd_icon] = 1;
+  object[strings::cmd_icon][strings::value] = "10";
 
   vis.insert(std::pair<uint32_t,
-      smart_objects::SmartObject*>(5, smartObjectPtr));  
+      smart_objects::SmartObject*>(5, &object));
 
   EXPECT_CALL(*appSharedMock,
       commands_map()).WillOnce(Return(data_accessor));
@@ -298,9 +315,9 @@ TEST(MessageHelperTestCreate,
   EXPECT_EQ(function_id, obj[strings::params][strings::function_id].asInt());
   EXPECT_EQ(1, obj[strings::msg_params][strings::app_id].asInt());
   EXPECT_EQ(5, obj[strings::msg_params][strings::cmd_id].asInt());
-  EXPECT_EQ((*smartObjectPtr)[strings::menu_params],
+  EXPECT_EQ(object[strings::menu_params],
       obj[strings::msg_params][strings::menu_params]);
-  EXPECT_EQ((*smartObjectPtr)[strings::cmd_icon],
+  EXPECT_EQ(object[strings::cmd_icon],
       obj[strings::msg_params][strings::cmd_icon]);
   EXPECT_EQ("10", obj[strings::msg_params]
       [strings::cmd_icon][strings::value].asString());
@@ -326,24 +343,26 @@ TEST(MessageHelperTestCreate,
   ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
   application_manager::ChoiceSetMap vis;
   DataAccessor< ::application_manager::ChoiceSetMap> data_accessor(vis, true);
-  smart_objects::SmartObject* smartObjectPtr =
-      new smart_objects::SmartObject();
+  smart_objects::SmartObjectSPtr smartObjectPtr =
+      utils::MakeShared<smart_objects::SmartObject>();
+
+  smart_objects::SmartObject& object = *smartObjectPtr;
   
-  (*smartObjectPtr)[strings::choice_set] = "10";
-  (*smartObjectPtr)[strings::grammar_id] = 111;
-  (*smartObjectPtr)[strings::choice_set][0][strings::choice_id] = 1;
-  (*smartObjectPtr)[strings::choice_set][0][strings::vr_commands] = 2;
+  object[strings::choice_set] = "10";
+  object[strings::grammar_id] = 111;
+  object[strings::choice_set][0][strings::choice_id] = 1;
+  object[strings::choice_set][0][strings::vr_commands] = 2;
 
   vis.insert(std::pair<uint32_t,
-      smart_objects::SmartObject*>(5, smartObjectPtr));
+      smart_objects::SmartObject*>(5, &object));
   vis.insert(std::pair<uint32_t,
-      smart_objects::SmartObject*>(6, smartObjectPtr));
+      smart_objects::SmartObject*>(6, &object));
   vis.insert(std::pair<uint32_t,
-      smart_objects::SmartObject*>(7, smartObjectPtr));
+      smart_objects::SmartObject*>(7, &object));
   vis.insert(std::pair<uint32_t,
-      smart_objects::SmartObject*>(8, smartObjectPtr));
+      smart_objects::SmartObject*>(8, &object));
   vis.insert(std::pair<uint32_t,
-      smart_objects::SmartObject*>(9, smartObjectPtr));
+      smart_objects::SmartObject*>(9, &object));
 
   EXPECT_CALL(*appSharedMock,
       choice_set_map()).WillOnce(Return(data_accessor));
@@ -361,9 +380,9 @@ TEST(MessageHelperTestCreate,
   EXPECT_EQ(function_id, obj[strings::params][strings::function_id].asInt());
   EXPECT_EQ(1, obj[strings::msg_params][strings::app_id].asUInt());
   EXPECT_EQ(111, obj[strings::msg_params][strings::grammar_id].asUInt());
-  EXPECT_EQ((*smartObjectPtr)[strings::choice_set][0][strings::choice_id],
+  EXPECT_EQ(object[strings::choice_set][0][strings::choice_id],
       obj[strings::msg_params][strings::cmd_id]);
-  EXPECT_EQ((*smartObjectPtr)[strings::choice_set][0][strings::vr_commands],
+  EXPECT_EQ(object[strings::choice_set][0][strings::vr_commands],
       obj[strings::msg_params][strings::vr_commands]);
   EXPECT_EQ(type, obj[strings::msg_params][strings::type].asInt());
 }
@@ -372,13 +391,16 @@ TEST(MessageHelperTestCreate, CreateAddSubMenuRequestToHMI_SendObject_Equal) {
   ApplicationMockSharedPtr appSharedMock = utils::MakeShared<AppMock>();
   application_manager::SubMenuMap vis;
   DataAccessor< ::application_manager::SubMenuMap> data_accessor(vis, true);
-  smart_objects::SmartObject* smartObject = new smart_objects::SmartObject();
+  smart_objects::SmartObjectSPtr smartObjectPtr =
+      utils::MakeShared<smart_objects::SmartObject>();
 
-  (*smartObject)[strings::position] = 1;
-  (*smartObject)[strings::menu_name] = 1;
+  smart_objects::SmartObject& object = *smartObjectPtr;
+
+  object[strings::position] = 1;
+  object[strings::menu_name] = 1;
 
   vis.insert(std::pair<uint32_t,
-      smart_objects::SmartObject*>(5, smartObject));
+      smart_objects::SmartObject*>(5, &object));
 
   EXPECT_CALL(*appSharedMock,
       sub_menu_map() ).WillOnce(Return(data_accessor));
