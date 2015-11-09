@@ -30,13 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if OS_LINUX
-#include <unistd.h>
-#elif OS_WINDOWS
-#include <direct.h>
-#endif
-
-#include <limits.h>
 #include <algorithm>
 #include <fstream>
 
@@ -50,21 +43,6 @@ namespace utils {
 typedef std::vector<std::string> StringArray;
 
 using namespace file_system;
-
-const std::string GetAbsoluteCurrentPath() {
-  char abs_path[PATH_MAX];
-#ifdef OS_LINUX  // If posix/linux
-  if (NULL == getcwd(abs_path, sizeof(abs_path))) {
-    return std::string();
-  }
-#elif OS_WINDOWS  // If windows
-  if (NULL == _getcwd(abs_path, sizeof(abs_path))) {
-    return std::string();
-  }
-#endif
-  return std::string(abs_path);
-}
-
 
 TEST(FileSystemTest, CreateDeleteDirectory) {
   ASSERT_FALSE(DirectoryExists("./Test directory"));
@@ -93,7 +71,7 @@ TEST(FileSystemTest, CreateDirectoryTwice) {
 
   // Directory removing
   EXPECT_TRUE(RemoveDirectory("./Test directory", false));
-  // Try delete directory again
+  // Try to delete directory again
   EXPECT_FALSE(RemoveDirectory("./Test directory", false));
   EXPECT_FALSE(DirectoryExists("./Test directory"));
 }
@@ -191,7 +169,7 @@ TEST(FileSystemTest, CreateDeleteFile) {
 
   // Delete file
   EXPECT_TRUE(DeleteFile("./test file"));
-  // Try delete file again
+  // Try to delete file again
   EXPECT_FALSE(DeleteFile("./test file"));
   EXPECT_FALSE(FileExists("./test file"));
 }
@@ -673,7 +651,7 @@ TEST(FileSystemTest, WriteDataInTheEndOfFile) {
 }
 
 TEST(FileSystemTest,
-     WriteInFileStream_WriteInFileInTheEndOfFile_FileIncludeBothData) {
+    WriteInFileStream_WriteInFileInTheEndOfFile_FileIncludeBothData) {
   ASSERT_FALSE(FileExists("./test file"));
 
   // Create and open file
@@ -983,7 +961,7 @@ TEST(FileSystemTest, CreateFile_WriteDataWithFlagOpenForReading) {
 }
 
 TEST(FileSystemTest,
-     FileDoesNotCreated_WriteFileWithFlagOpenForReadingIsImpossible) {
+    FileIsntCreated_WriteFileWithFlagOpenForReadingIsImpossible) {
   ASSERT_FALSE(FileExists("./test file"));
 
   // Write data in file is impossible
@@ -1198,7 +1176,7 @@ TEST(FileSystemTest, DeleteAllContentInDirectory) {
 TEST(FileSystemTest, GetAbsolutePath) {
   const std::string& abs_path = GetAbsolutePath(".");
   // Getting absolute current path from system
-  const std::string& absolute_current_path = GetAbsoluteCurrentPath();
+  const std::string& absolute_current_path = CurrentWorkingDirectory();
   EXPECT_EQ('/', abs_path[0]);
   EXPECT_EQ(absolute_current_path, abs_path);
 }
@@ -1240,7 +1218,7 @@ TEST(FileSystemTest,
     EXPECT_EQ(correct_absolute_path, path_for_check);
   }
   // Cleanup after test case
-  if ( DirectoryExists(rel_path[0]) ) {
+  if (DirectoryExists(rel_path[0])) {
     RemoveDirectory(rel_path[0], true);
   }
 }
@@ -1260,7 +1238,7 @@ TEST(FileSystemTest,
   const std::string& absolute_parrent_dir = GetAbsolutePath("../");
   // Check
   for (size_t i = 0; i < rel_path.size(); ++i) {
-    // Concating rel_path to current dir path
+    // Concatenation rel_path to current dir path
     const std::string& relative_dir_name = rel_path[i].substr(3);
     const std::string& correct_absolute_path =
       absolute_parrent_dir + "/" + relative_dir_name;
@@ -1269,7 +1247,7 @@ TEST(FileSystemTest,
     EXPECT_EQ(correct_absolute_path, path_for_check);
   }
   // Cleanup after test case
-  if ( DirectoryExists(rel_path[0]) ) {
+  if (DirectoryExists(rel_path[0])) {
     RemoveDirectory(rel_path[0], true);
   }
 }
@@ -1280,7 +1258,7 @@ TEST(FileSystemTest, GetAbsolutePath_TrickiPath_CorrectAbsolutePath) {
     "../src/../../application_manager/../utils/test",
     "../../../components/utils/test"
   };
-  const std::string& absolute_current_path = GetAbsolutePath(".");
+  const std::string& absolute_current_path = CurrentWorkingDirectory();
   for (size_t i = 0; i < rel_path.size(); ++i) {
     // Get absolute path for rel dir
     const std::string& path_for_check = GetAbsolutePath(rel_path[i]);
