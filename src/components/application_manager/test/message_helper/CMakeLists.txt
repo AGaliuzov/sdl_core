@@ -36,6 +36,7 @@ include_directories(
     ${GMOCK_INCLUDE_DIRECTORY}
     ${COMPONENTS_DIR}/application_manager/test/message_helper/include
     ${COMPONENTS_DIR}/application_manager/test/state_controller/include
+    ${COMPONENTS_DIR}/include
 )
 
 set(LIBRARIES
@@ -46,6 +47,7 @@ set(LIBRARIES
     MediaManager
     Resumption
     ProtocolHandler
+    Utils
 )
 
 set(SOURCES
