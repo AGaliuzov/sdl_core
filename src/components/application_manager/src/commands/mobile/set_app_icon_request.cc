@@ -76,16 +76,16 @@ void SetAppIconRequest::Run() {
   }
 
   std::string full_file_path =
-#ifndef CUSTOMER_PASA
-      file_system::CurrentWorkingDirectory() + "/" +
-#endif // CUSTOMER_PASA
       profile::Profile::instance()->app_storage_folder() + "/";
+
   full_file_path += app->folder_name();
   full_file_path += "/";
   full_file_path += sync_file_name;
 
-  if (!file_system::FileExists(full_file_path)) {
-    LOG4CXX_ERROR(logger_, "No such file " << full_file_path);
+  const std::string abs_file_path = file_system::GetAbsolutePath(full_file_path);
+
+  if (!file_system::FileExists(abs_file_path)) {
+    LOG4CXX_ERROR(logger_, "No such file " << abs_file_path);
     SendResponse(false, mobile_apis::Result::INVALID_DATA);
     return;
   }
@@ -99,10 +99,10 @@ void SetAppIconRequest::Run() {
 
 // Panasonic requres unchanged path value without encoded special characters
 #ifdef CUSTOMER_PASA
-  const std::string full_file_path_for_hmi = full_file_path;
+  const std::string full_file_path_for_hmi = abs_file_path;
 #else
   const std::string full_file_path_for_hmi = file_system::ConvertPathForURL(
-      full_file_path);
+      abs_file_path);
 #endif
 
   msg_params[strings::sync_file_name][strings::value] = full_file_path_for_hmi;
