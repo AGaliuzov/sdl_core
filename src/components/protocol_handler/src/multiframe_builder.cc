@@ -241,12 +241,17 @@ RESULT_CODE MultiFrameBuilder::HandleConsecutiveFrame(const ProtocolFramePtr pac
     if (previous_frame_data == std::numeric_limits<uint8_t>::max()) {
       previous_frame_data = 0u;
     }
+    LOG4CXX_DEBUG(logger_,
+                  "Previous FrameData: " << static_cast<int>(previous_frame_data)
+                  << ", new FrameData: " << static_cast<int>(new_frame_data));
     // The next frame data is bigger at 1
     if (new_frame_data != (previous_frame_data + 1)) {
       LOG4CXX_ERROR(logger_,
                     "Unexpected CONSECUTIVE frame for connection_id: " << connection_id
                     << ", session_id: " << static_cast<int>(session_id)
                     << ", message_id: " << message_id
+                    << ", previous FrameData: " << static_cast<int>(previous_frame_data)
+                    << ", new FrameData: " << static_cast<int>(new_frame_data)
                     << ", frame: " << packet);
       return RESULT_FAIL;
     }
