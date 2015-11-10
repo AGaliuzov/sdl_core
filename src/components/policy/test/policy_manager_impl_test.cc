@@ -226,7 +226,7 @@ class PolicyManagerImplTest2 : public ::testing::Test {
       Json::Reader reader;
       std::string json;
       Json::Value root(Json::objectValue);
-      if (ifile != NULL && reader.parse(ifile, root, true)) {
+      if (ifile.is_open() && reader.parse(ifile, root, true)) {
         json = root.toStyledString();
       }
       ifile.close();
@@ -396,7 +396,7 @@ TEST_F(PolicyManagerImplTest2, IsAppRevoked_SetRevokedAppID_ExpectAppRevoked) {
   Json::Reader reader;
   std::string json;
   Json::Value root(Json::objectValue);
-  if (ifile != NULL && reader.parse(ifile, root, true)) {
+  if (ifile.is_open() && reader.parse(ifile, root, true)) {
     root["policy_table"]["app_policies"][app_id1] = Json::nullValue;
     json = root.toStyledString();
   }
@@ -413,7 +413,7 @@ TEST_F(PolicyManagerImplTest2, CheckPermissions_SetRevokedAppID_ExpectRPCDisallo
   Json::Reader reader;
   std::string json;
   Json::Value root(Json::objectValue);
-  if (ifile != NULL && reader.parse(ifile, root, true)) {
+  if (ifile.is_open() && reader.parse(ifile, root, true)) {
     root["policy_table"]["app_policies"][app_id1] = Json::nullValue;
     json = root.toStyledString();
   }
@@ -455,7 +455,7 @@ TEST_F(PolicyManagerImplTest2, CheckPermissions_SetAppIDwithPolicies_ExpectRPCAl
   Json::Reader reader;
   std::string json;
   Json::Value root(Json::objectValue);
-  if (ifile != NULL && reader.parse(ifile, root, true)) {
+  if (ifile.is_open() && reader.parse(ifile, root, true)) {
     // Add AppID with policies
     root["policy_table"]["app_policies"]["1234"] = Json::Value(Json::objectValue);
     root["policy_table"]["app_policies"]["1234"]["memory_kb"] = Json::Value(50);
@@ -851,7 +851,7 @@ TEST_F(PolicyManagerImplTest2, NextRetryTimeout_ExpectTimeoutsFromPT) {
   std::ifstream ifile("sdl_preloaded_pt.json");
   Json::Reader reader;
   Json::Value root(Json::objectValue);
-  if (ifile != NULL && reader.parse(ifile, root, true)) {
+  if (ifile.is_open() && reader.parse(ifile, root, true)) {
     Json::Value seconds_between_retries  = Json::Value(Json::arrayValue);
     seconds_between_retries = root["policy_table"]["module_config"]["seconds_between_retries"];
     uint32_t size = seconds_between_retries.size();
@@ -881,7 +881,7 @@ TEST_F(PolicyManagerImplTest2, UpdatedPreloadedPT_ExpectLPT_IsUpdated) {
   Json::Reader reader;
   Json::Value root(Json::objectValue);
 
-  if (ifile != NULL && reader.parse(ifile, root, true)) {
+  if (ifile.is_open() && reader.parse(ifile, root, true)) {
     root["policy_table"]["module_config"]["preloaded_date"] = new_data.new_date_;
     Json::Value val(Json::objectValue);
     Json::Value val2(Json::arrayValue);
@@ -971,7 +971,7 @@ TEST_F(PolicyManagerImplTest2, RetrySequenceDelaysSeconds_Expect_CorrectValues) 
   std::ifstream ifile("sdl_preloaded_pt.json");
   Json::Reader reader;
   Json::Value root(Json::objectValue);
-  if (ifile != NULL && reader.parse(ifile, root, true)) {
+  if (ifile.is_open() && reader.parse(ifile, root, true)) {
     Json::Value seconds_between_retries  = Json::Value(Json::arrayValue);
     seconds_between_retries = root["policy_table"]["module_config"]["seconds_between_retries"];
     uint32_t size = seconds_between_retries.size();
