@@ -310,41 +310,47 @@ class PolicyManagerImplTest2 : public ::testing::Test {
 
     void CheckResultForValidRT() {
       // Convert Json Array to std::vector<std::string>
-      const std::vector<std::string>& result = JsonToVectorString(PTU_request_types);
+      const std::vector<std::string>& result =
+          JsonToVectorString(PTU_request_types);
       // Checks
       SortAndCheckEquality(PT_request_types, result);
     }
 
     void CheckResultForInvalidRT() {
       // Convert Json Array to std::vector<std::string>
-      const std::vector<std::string>& temp_result = JsonToVectorString(PTU_request_types);
-      std::vector<policy_table::RequestType> result1 = PushRequestTypesToContainer(temp_result);
-      std::vector<policy_table::RequestType> result2 = PushRequestTypesToContainer(PT_request_types);
+      const std::vector<std::string>& temp_result =
+          JsonToVectorString(PTU_request_types);
+      std::vector<policy_table::RequestType> result1 =
+          PushRequestTypesToContainer(temp_result);
+      std::vector<policy_table::RequestType> result2 =
+          PushRequestTypesToContainer(PT_request_types);
       // Checks
       SortAndCheckEquality(result1, result2);
     }
 
     void FillMultimapFromFunctionalGroupings(
         UserConsentPromptToRpcsConnections& input_multimap,
-        policy_table::FunctionalGroupings& fg_table){
+        policy_table::FunctionalGroupings& fg_table) {
       policy_table::FunctionalGroupings::iterator fg_itter = fg_table.begin();
-      const policy_table::FunctionalGroupings::iterator fg_itter_end = fg_table.end();
-      for(; fg_itter != fg_itter_end; ++fg_itter){
+      const policy_table::FunctionalGroupings::iterator fg_itter_end =
+          fg_table.end();
+      for (; fg_itter != fg_itter_end; ++fg_itter) {
         // RPCS getting
         policy_table::Rpcs& rpcs_ref = fg_itter->second;
         // User_consent_prompt getting
-        rpc::Optional<rpc::String<1,255> >& optional_ref =
+        rpc::Optional<rpc::String<1, 255> >& optional_ref =
             rpcs_ref.user_consent_prompt;
-        rpc::String<1,255>& ucp_string = *optional_ref;
+        rpc::String<1, 255>& ucp_string = *optional_ref;
         const std::string& ucp_std_string =
             static_cast<const std::string&>(ucp_string);
         // Multimap inserting
-        input_multimap.insert(std::pair<std::string, policy_table::Rpcs&>(ucp_std_string, rpcs_ref));
-      } 
+        input_multimap.insert(std::pair<std::string,
+            policy_table::Rpcs&>(ucp_std_string, rpcs_ref));
+      }
     }
 
     void GetFunctionalGroupingsFromManager(
-        policy_table::FunctionalGroupings& input_functional_groupings){
+        policy_table::FunctionalGroupings& input_functional_groupings) {
       // Get cache
       ::policy::CacheManagerInterfaceSPtr cache = manager->GetCache();
       // Get table_snapshot
@@ -389,7 +395,7 @@ class PolicyManagerImplTest3 : public ::testing::Test {
     }
 
     void RefreshPT(const std::string& preloaded_pt_file,
-        const std::string& update_pt_file){
+        const std::string& update_pt_file) {
       ASSERT_TRUE(manager->ResetPT(preloaded_pt_file))
           << "can`t load preloaded file";
       GetPTU(update_pt_file);
@@ -439,7 +445,7 @@ class PolicyManagerImplTest3 : public ::testing::Test {
 
     void TearDown() OVERRIDE {
       profile::Profile::instance()->config_file_name("smartDeviceLink.ini");
-      file_system::RemoveDirectory("storage2",true);
+      file_system::RemoveDirectory("storage2", true);
       delete manager;
     }
 };
@@ -2008,7 +2014,7 @@ TEST_F(PolicyManagerImplTest3,
 TEST_F(PolicyManagerImplTest3,
     LoadPT_InvalidRequestTypeBetweenCorectValuesInPTU_EarseInvalidValue) {
   // Refresh policy table with invalid RequestType in application
-  RefreshPT("sdl_preloaded_pt.json","ptu_files/12815_PTU_2.json");
+  RefreshPT("sdl_preloaded_pt.json", "ptu_files/12815_PTU_2.json");
   // Correct of Request Types
   policy_table::RequestTypes correct_types;
   correct_types.push_back(policy_table::RequestType::RT_HTTP);
@@ -2036,7 +2042,7 @@ TEST_F(PolicyManagerImplTest3,
 TEST_F(PolicyManagerImplTest3,
     LoadPT_RequestTypeArrayHaveNoOneValues_AvalibleAllRequestTypes) {
   // Refresh policy table with invalid RequestType in application
-  RefreshPT("sdl_preloaded_pt.json","ptu_files/12815_PTU_4.json");
+  RefreshPT("sdl_preloaded_pt.json", "ptu_files/12815_PTU_4.json");
 
   // Get <app_id> Request Types
   policy_table::RequestTypes received_types;
