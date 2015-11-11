@@ -59,13 +59,6 @@ using testing::Return;
 
 namespace {
 
-const int32_t connection_key_p1 = 1;
-const uint32_t protocol_version1 = 1;
-const uint8_t *const data_paramV1 =
-        reinterpret_cast<const uint8_t *const>(" ");
-const uint32_t data_sizeV1 = 1;
-const std::string dataV1 = " ";
-
 const unsigned char kJjson_size = 0x5e;
 const unsigned char kCorrelation_id = 0x5c;
 unsigned char binary_header[PROTOCOL_HEADER_V2_SIZE] = {
@@ -84,39 +77,6 @@ T joiner(T2 begin, T2 end, const T3& data) {
   T cont(begin, end);
   std::copy(data.begin(), data.end(), std::back_inserter(cont));
   return cont;
-}
-
-TEST(MobileMessageHandlerTestV1Test,
-     HandleIncomingMessageProtocolV1_SendData_ExpectEqual) {
-  RawMessagePtr message =
-      utils::MakeShared<RawMessage>
-          (connection_key_p1, protocol_version1, data_paramV1, data_sizeV1);
-
-  application_manager::Message* ptr =
-      MobileMessageHandler::HandleIncomingMessageProtocol(message);
-
-  EXPECT_EQ(connection_key_p1, (*ptr).connection_key());
-  EXPECT_EQ(protocol_version1, (*ptr).protocol_version());
-  EXPECT_EQ(dataV1, (*ptr).json_message());
-}
-
-TEST(MobileMessageHandlerTestV1Test,
-     HandleOutgoingMessageProtocol_SendMessage_ExpectEqual) {
-  const char json_message_p1[] = "qweqweqweqwe";
-
-  MobileMessage message =
-      utils::MakeShared<Message>
-          (protocol_handler::MessagePriority::kDefault);
-
-  (*message).set_protocol_version(application_manager::kV1);
-  (*message).set_json_message(json_message_p1);
-  (*message).set_connection_key(connection_key_p1);
-
-  RawMessage* ptr =
-      MobileMessageHandler::HandleOutgoingMessageProtocol(message);
-
-  EXPECT_EQ(connection_key_p1, (*ptr).connection_key());
-  EXPECT_EQ(application_manager::kV1, (*ptr).protocol_version());
 }
 
 class MobileMessageHandlerTest : public testing::Test {
