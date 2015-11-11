@@ -102,6 +102,7 @@ class MockCacheManagerInterface : public CacheManagerInterface {
       bool(const std::string& app_id));
   MOCK_METHOD1(SetIsDefault,
       bool(const std::string& app_id));
+  MOCK_METHOD1(SetIsPredata, bool(const std::string& app_id));
   MOCK_METHOD1(IsPredataPolicy,
       bool(const std::string& app_id));
   MOCK_METHOD1(SetDefaultPolicy,
