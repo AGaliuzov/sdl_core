@@ -366,12 +366,25 @@ class PolicyManagerImplTest2 : public ::testing::Test {
 
 class PolicyManagerImplTest_RequestTypes : public ::testing::Test {
   public:
-    PolicyManagerImplTest_RequestTypes() {
+    PolicyManagerImplTest_RequestTypes()
+      : json_files_ {
+      "PTU_with_one_invalid_requestType.json",
+      "PTU_with_invalid_requestType_between_correct.json",
+      "PTU_without_requestType_field.json",
+      "PTU_with_empty_requestType_array.json",
+      "preloadedPT_with_invalid_default_requestType.json",
+      "preloadedPT_with_several_invalid_default_requestTypes.json",
+      "preloadedPT_with_invalid_default_reqestType_between_valid.json"},
+      app_id_("1766825573"),
+      default_app_id_("default"){
       manager.set_listener(&listener);
     }
   protected:
     PolicyManagerImpl manager;
     NiceMock<MockPolicyListener> listener;
+    ::policy::StringArray json_files_;
+    std::string app_id_;
+    std::string default_app_id_;
 
     void SetUp() OVERRIDE {
       file_system::CreateDirectory("storage2");
@@ -2004,13 +2017,13 @@ TEST_F(PolicyManagerImplTest2,
 TEST_F(PolicyManagerImplTest_RequestTypes,
     LoadPT_PTWithOneInvalidRequestTypeValue_RequestTypeValueEQToDefault) {
   // Logic in another function
-  CompareAppRequestTypesWithDefault("1766825573", "PTU_1_for_APPLINK-12815.json");
+  CompareAppRequestTypesWithDefault(app_id_, json_files_[0]);
 }
 
 TEST_F(PolicyManagerImplTest_RequestTypes,
     LoadPT_InvalidRequestTypeBetweenCorectValuesInPTU_EarseInvalidValue) {
   // Refresh policy table with invalid RequestType in application
-  RefreshPT("sdl_preloaded_pt.json", "PTU_2_for_APPLINK-12815.json");
+  RefreshPT("sdl_preloaded_pt.json", json_files_[1]);
   // Correct of Request Types
   policy_table::RequestTypes correct_types;
   correct_types.push_back(policy_table::RequestType::RT_HTTP);
@@ -2018,7 +2031,7 @@ TEST_F(PolicyManagerImplTest_RequestTypes,
   correct_types.push_back(policy_table::RequestType::RT_PROPRIETARY);
   // Get <app_id> Request Types
   policy_table::RequestTypes received_types =
-      GetRequestTypesForApplication("1766825573");
+      GetRequestTypesForApplication(app_id_);
 
   // Expect
   const size_t& received_size = received_types.size();
@@ -2030,17 +2043,17 @@ TEST_F(PolicyManagerImplTest_RequestTypes,
 TEST_F(PolicyManagerImplTest_RequestTypes,
     LoadPT_AppInUpdateFileHaventRequestTypeField_RequestTypeValueEQToDefault) {
   // Logic in another function
-  CompareAppRequestTypesWithDefault("1766825573", "PTU_3_for_APPLINK-12815.json");
+  CompareAppRequestTypesWithDefault(app_id_, json_files_[2]);
 }
 
 TEST_F(PolicyManagerImplTest_RequestTypes,
     LoadPT_RequestTypeArrayHaveNoOneValues_AvalibleAllRequestTypes) {
   // Refresh policy table with invalid RequestType in application
-  RefreshPT("sdl_preloaded_pt.json", "PTU_4_for_APPLINK-12815.json");
+  RefreshPT("sdl_preloaded_pt.json", json_files_[3]);
 
   // Get <app_id> Request Types
   policy_table::RequestTypes received_types =
-      GetRequestTypesForApplication("1766825573");
+      GetRequestTypesForApplication(app_id_);
 
   // Expect
   const size_t correct_size = 0;
@@ -2052,14 +2065,14 @@ TEST_F(PolicyManagerImplTest_RequestTypes,
     ResetPT_DefaultRequestTypeHaveOneInvalidValue_False) {
   // Get absolutly new PT
   // PT have only invalid value in app_policies::default::RequestType
-  ASSERT_FALSE(manager.ResetPT("preloadedPT_5_for_APPLINK-12815.json"));
+  ASSERT_FALSE(manager.ResetPT(json_files_[4]));
 }
 
 TEST_F(PolicyManagerImplTest_RequestTypes,
     ResetPT_DefaultRequestTypeHaveSeveralInvalidValues_False) {
   // Get absolutly new PT
   // PT have several only invalid values in app_policies::default::RequestType
-  ASSERT_FALSE(manager.ResetPT("preloadedPT_6_for_APPLINK-12815.json"));
+  ASSERT_FALSE(manager.ResetPT(json_files_[5]));
 }
 
 TEST_F(PolicyManagerImplTest_RequestTypes,
@@ -2067,7 +2080,7 @@ TEST_F(PolicyManagerImplTest_RequestTypes,
   // Get absolutly new PT
   // PT have ["QUERY_APPS", "IVSU", "PROPRIETARY"]
   // In app_policies::default::RequestType
-  ASSERT_TRUE(manager.ResetPT("preloadedPT_7_for_APPLINK-12815.json"));
+  ASSERT_TRUE(manager.ResetPT(json_files_[6]));
 
   // Correct of Request Types
   policy_table::RequestTypes correct_types;
@@ -2076,7 +2089,7 @@ TEST_F(PolicyManagerImplTest_RequestTypes,
 
   // Get default Request Types
   policy_table::RequestTypes received_types =
-      GetRequestTypesForApplication("default");
+      GetRequestTypesForApplication(default_app_id_);
 
   // Expect
   const size_t& received_size = received_types.size();
