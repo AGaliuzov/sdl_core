@@ -366,37 +366,40 @@ class PolicyManagerImplTest2 : public ::testing::Test {
 };
 
 class PolicyManagerImplTest3 : public ::testing::Test {
+  public:
+    PolicyManagerImplTest3()
+        : manager() {
+      manager.set_listener(&listener);
+    }
   protected:
-    PolicyManagerImpl* manager;
+    PolicyManagerImpl manager;
     NiceMock<MockPolicyListener> listener;
 
     void SetUp() OVERRIDE {
       file_system::CreateDirectory("storage2");
-
-      profile::Profile::instance()->config_file_name("smartDeviceLink4.ini");
-      manager = new PolicyManagerImpl();
-      manager->set_listener(&listener);
+      profile::Profile::instance()->config_file_name(
+          "12815_files/smartDeviceLink4.ini");
     }
 
-    const Json::Value GetPTU(std::string file_name) {
+    const Json::Value GetPTU(const std::string& file_name) {
       // Get PTU
       std::ifstream ifile(file_name);
       Json::Reader reader;
       std::string json;
       Json::Value root(Json::objectValue);
-      if (ifile != NULL && reader.parse(ifile, root, true)) {
+      if (ifile.is_open() && reader.parse(ifile, root, true)) {
         json = root.toStyledString();
       }
       ifile.close();
       ::policy::BinaryMessage msg(json.begin(), json.end());
       // Load Json to cache
-      EXPECT_TRUE(manager->LoadPT("file_pt_update.json", msg));
+      EXPECT_TRUE(manager.LoadPT("file_pt_update.json", msg));
       return root;
     }
 
     void RefreshPT(const std::string& preloaded_pt_file,
         const std::string& update_pt_file) {
-      ASSERT_TRUE(manager->ResetPT(preloaded_pt_file))
+      ASSERT_TRUE(manager.ResetPT(preloaded_pt_file))
           << "can`t load preloaded file";
       GetPTU(update_pt_file);
     }
@@ -404,14 +407,13 @@ class PolicyManagerImplTest3 : public ::testing::Test {
 
     PolicyTableShared GetPolicyTableSnapshot() {
       // Get cache
-      ::policy::CacheManagerInterfaceSPtr cache = manager->GetCache();
+      ::policy::CacheManagerInterfaceSPtr cache = manager.GetCache();
       // Get and return table_snapshot
-      PolicyTableShared table = cache->GenerateSnapshot();
-      return table;
+      return cache->GenerateSnapshot();
     }
 
-    void GetRequestTypesForApplication(const std::string& app_id,
-        policy_table::RequestTypes& request_types) {
+    policy_table::RequestTypes GetRequestTypesForApplication(
+        const std::string& app_id) {
       // Get table_snapshot
       PolicyTableShared table = GetPolicyTableSnapshot();
       // Get request types
@@ -420,37 +422,38 @@ class PolicyManagerImplTest3 : public ::testing::Test {
           pt.app_policies_section.apps;
       policy_table::ApplicationPolicies::const_iterator app_iter =
           app_policies.find(app_id);
-      request_types = *(app_iter->second.RequestType);
+
+      return *(app_iter->second.RequestType);
     }
     void CompareAppRequestTypesWithDefault(const std::string& app_id,
         const std::string& ptu_file) {
       // Refresh policy table with invalid RequestType in application
       RefreshPT("sdl_preloaded_pt.json", ptu_file);
 
-      policy_table::RequestTypes app_request_types;
-      policy_table::RequestTypes default_request_types;
       // Get <app_id> RequestType array
-      GetRequestTypesForApplication(app_id, app_request_types);
+      policy_table::RequestTypes app_request_types =
+          GetRequestTypesForApplication(app_id);
       // Get "default" RequestType array
-      GetRequestTypesForApplication("default", default_request_types);
+      policy_table::RequestTypes default_request_types =
+          GetRequestTypesForApplication("default");
 
       // Expect
       const size_t& app_requests_size = app_request_types.size();
       const size_t& default_requests_size = default_request_types.size();
       ASSERT_EQ(default_requests_size, app_requests_size);
-      for (size_t i = 0; i < app_requests_size; ++i) {
-        EXPECT_EQ(default_request_types[i], app_request_types[i]);
-      }
+      EXPECT_TRUE ( std::equal(
+          app_request_types.begin(),
+          app_request_types.end(),
+          default_request_types.begin()));
     }
 
     void TearDown() OVERRIDE {
       profile::Profile::instance()->config_file_name("smartDeviceLink.ini");
       file_system::RemoveDirectory("storage2", true);
-      delete manager;
     }
 };
 
-/*
+
 TEST_F(PolicyManagerImplTest, RefreshRetrySequence_SetSecondsBetweenRetries_ExpectRetryTimeoutSequenceWithSameSeconds) {
   // Arrange
   std::vector<int> seconds;
@@ -2004,49 +2007,49 @@ TEST_F(PolicyManagerImplTest2,
 
 }
 
-*/
 TEST_F(PolicyManagerImplTest3,
     LoadPT_PTWithOneInvalidRequestTypeValue_RequestTypeValueEQToDefault) {
   // Logic in another function
-  CompareAppRequestTypesWithDefault("1766825573", "ptu_files/12815_PTU_1.json");
+  CompareAppRequestTypesWithDefault("1766825573", "12815_files/12815_PTU_1.json");
 }
 
 TEST_F(PolicyManagerImplTest3,
     LoadPT_InvalidRequestTypeBetweenCorectValuesInPTU_EarseInvalidValue) {
   // Refresh policy table with invalid RequestType in application
-  RefreshPT("sdl_preloaded_pt.json", "ptu_files/12815_PTU_2.json");
+  RefreshPT("sdl_preloaded_pt.json", "12815_files/12815_PTU_2.json");
   // Correct of Request Types
   policy_table::RequestTypes correct_types;
   correct_types.push_back(policy_table::RequestType::RT_HTTP);
   correct_types.push_back(policy_table::RequestType::RT_LAUNCH_APP);
   correct_types.push_back(policy_table::RequestType::RT_PROPRIETARY);
   // Get <app_id> Request Types
-  policy_table::RequestTypes received_types;
-  GetRequestTypesForApplication("1766825573", received_types);
+  policy_table::RequestTypes received_types =
+      GetRequestTypesForApplication("1766825573");
 
   // Expect
   const size_t& received_size = received_types.size();
   const size_t& correct_size = correct_types.size();
   ASSERT_EQ(correct_size, received_size);
-  for (size_t i = 0; i < received_size; ++i) {
-    EXPECT_EQ(correct_types[i], received_types[i]);
-  }
+  EXPECT_TRUE ( std::equal(
+      received_types.begin(),
+      received_types.end(),
+      correct_types.begin()));
 }
 
 TEST_F(PolicyManagerImplTest3,
     LoadPT_AppInUpdateFileHaventRequestTypeField_RequestTypeValueEQToDefault) {
   // Logic in another function
-  CompareAppRequestTypesWithDefault("1766825573", "ptu_files/12815_PTU_3.json");
+  CompareAppRequestTypesWithDefault("1766825573", "12815_files/12815_PTU_3.json");
 }
 
 TEST_F(PolicyManagerImplTest3,
     LoadPT_RequestTypeArrayHaveNoOneValues_AvalibleAllRequestTypes) {
   // Refresh policy table with invalid RequestType in application
-  RefreshPT("sdl_preloaded_pt.json", "ptu_files/12815_PTU_4.json");
+  RefreshPT("sdl_preloaded_pt.json", "12815_files/12815_PTU_4.json");
 
   // Get <app_id> Request Types
-  policy_table::RequestTypes received_types;
-  GetRequestTypesForApplication("1766825573", received_types);
+  policy_table::RequestTypes received_types =
+      GetRequestTypesForApplication("1766825573");
 
   // Expect
   const size_t correct_size = 0;
@@ -2058,14 +2061,14 @@ TEST_F(PolicyManagerImplTest3,
     ResetPT_DefaultRequestTypeHaveOneInvalidValue_False) {
   // Get absolutly new PT
   // PT have only invalid value in app_policies::default::RequestType
-  ASSERT_FALSE(manager->ResetPT("ptu_files/12815_preloadedPT_5.json"));
+  ASSERT_FALSE(manager.ResetPT("12815_files/12815_preloadedPT_5.json"));
 }
 
 TEST_F(PolicyManagerImplTest3,
     ResetPT_DefaultRequestTypeHaveSeveralInvalidValues_False) {
   // Get absolutly new PT
   // PT have several only invalid values in app_policies::default::RequestType
-  ASSERT_FALSE(manager->ResetPT("ptu_files/12815_preloadedPT_6.json"));
+  ASSERT_FALSE(manager.ResetPT("12815_files/12815_preloadedPT_6.json"));
 }
 
 TEST_F(PolicyManagerImplTest3,
@@ -2073,7 +2076,7 @@ TEST_F(PolicyManagerImplTest3,
   // Get absolutly new PT
   // PT have ["QUERY_APPS", "IVSU", "PROPRIETARY"]
   // In app_policies::default::RequestType
-  ASSERT_TRUE(manager->ResetPT("ptu_files/12815_preloadedPT_7.json"));
+  ASSERT_TRUE(manager.ResetPT("12815_files/12815_preloadedPT_7.json"));
 
   // Correct of Request Types
   policy_table::RequestTypes correct_types;
@@ -2081,16 +2084,17 @@ TEST_F(PolicyManagerImplTest3,
   correct_types.push_back(policy_table::RequestType::RT_PROPRIETARY);
 
   // Get default Request Types
-  policy_table::RequestTypes received_types;
-  GetRequestTypesForApplication("default", received_types);
+  policy_table::RequestTypes received_types =
+      GetRequestTypesForApplication("default");
 
   // Expect
   const size_t& received_size = received_types.size();
   const size_t& correct_size = correct_types.size();
   ASSERT_EQ(correct_size, received_size);
-  for (size_t i = 0; i < received_size; ++i) {
-    EXPECT_EQ(correct_types[i], received_types[i]);
-  }
+  EXPECT_TRUE ( std::equal(
+      received_types.begin(),
+      received_types.end(),
+      correct_types.begin()));
 }
 
 }  // namespace policy
