@@ -257,6 +257,13 @@ class CacheManagerInterface {
   virtual bool SetIsDefault(const std::string& app_id) = 0;
 
   /**
+   * @brief SetIsPredata Sets is_predata flag for application
+   * @param app_id app specific application
+   * @return  true in case opperation was done successfully.
+   */
+  virtual bool SetIsPredata(const std::string& app_id) = 0;
+
+  /**
    * Checks if the application has pre_data policy
    * @param app_id application id
    * @return true if application has pre_data policy

@@ -259,6 +259,13 @@ class CacheManager : public CacheManagerInterface {
   bool SetIsDefault(const std::string& app_id);
 
   /**
+   * @brief SetIsPredata Sets is_predata flag for application
+   * @param app_id app specific application
+   * @return  true in case opperation was done successfully.
+   */
+  bool SetIsPredata(const std::string& app_id);
+
+  /**
    * Checks if the application has pre_data policy
    * @param app_id application id
    * @return true if application has pre_data policy
@@ -589,7 +596,6 @@ private:
 
   void GetGroupNameByHashID(const int32_t group_id, std::string& group_name);
   void FillDeviceSpecificData();
-  bool AppExists(const std::string& app_id) const;
   long ConvertSecondsToMinute(int seconds);
 
   /**

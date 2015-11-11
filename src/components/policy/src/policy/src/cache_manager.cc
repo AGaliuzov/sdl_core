@@ -103,7 +103,7 @@ bool CacheManager::CanAppKeepContext(const std::string& app_id) {
   bool result = false;
   if (kDeviceId == app_id) {
     result = pt_->policy_table.app_policies_section.device.keep_context;
-  } else if (AppExists(app_id)) {
+  } else if (IsApplicationRepresented(app_id)) {
     result = pt_->policy_table.app_policies_section.apps[app_id].keep_context;
   }
   return result;
@@ -112,7 +112,7 @@ bool CacheManager::CanAppKeepContext(const std::string& app_id) {
 uint32_t CacheManager::HeartBeatTimeout(const std::string& app_id) const {
   CACHE_MANAGER_CHECK(0);
   uint32_t result = 0;
-  if (AppExists(app_id)) {
+  if (IsApplicationRepresented(app_id)) {
     if (pt_->policy_table.app_policies_section.apps[app_id].heart_beat_timeout_ms
         .is_initialized()) {
       result = *(pt_->policy_table.app_policies_section.apps[app_id].heart_beat_timeout_ms);
@@ -126,7 +126,7 @@ bool CacheManager::CanAppStealFocus(const std::string& app_id) {
   bool result = false;
   if (kDeviceId == app_id) {
     result = pt_->policy_table.app_policies_section.device.steal_focus;
-  } else if (AppExists(app_id)) {
+  } else if (IsApplicationRepresented(app_id)) {
     result = pt_->policy_table.app_policies_section.apps[app_id].steal_focus;
   }
   return result;
@@ -140,7 +140,7 @@ bool CacheManager::GetDefaultHMI(const std::string& app_id,
   if (kDeviceId == app_id) {
     default_hmi = EnumToJsonString(pt_->policy_table.
                          app_policies_section.device.default_hmi);
-  } else if (AppExists(app_id)) {
+  } else if (IsApplicationRepresented(app_id)) {
       default_hmi = EnumToJsonString(pt_->policy_table.
                          app_policies_section.apps[app_id].default_hmi);
   }
@@ -320,7 +320,7 @@ void CacheManager::GetUnconsentedGroups(const std::string& device_id,
         pt_->policy_table.app_policies_section.device.groups.begin();
     iter_groups_end =
         pt_->policy_table.app_policies_section.device.groups.end();
-  } else if (!AppExists(policy_app_id)) {
+  } else if (!IsApplicationRepresented(policy_app_id)) {
     return;
   } else {
     iter_groups = pt_->policy_table.app_policies_section.
@@ -576,6 +576,8 @@ bool CacheManager::ReactOnUserDevConsentForApp(const std::string& app_id,
     if (IsPredataPolicy(app_id)) {
       result = SetDefaultPolicy(app_id);
     }
+  } else {
+    SetIsPredata(app_id);
   }
   cache_lock_.Release();
   Backup();
@@ -639,8 +641,7 @@ void CacheManager::SaveUpdateRequired(bool status) {
 bool CacheManager::IsApplicationRevoked(const std::string& app_id) const {
   CACHE_MANAGER_CHECK(false);
   bool is_revoked = false;
-  if (pt_->policy_table.app_policies_section.apps.end() !=
-      pt_->policy_table.app_policies_section.apps.find(app_id)) {
+  if (IsApplicationRepresented(app_id)) {
     is_revoked = pt_->policy_table.app_policies_section.apps[app_id].is_null();
   }
 
@@ -654,8 +655,7 @@ void CacheManager::CheckPermissions(const PTString& app_id,
   LOG4CXX_AUTO_TRACE(logger_);
   CACHE_MANAGER_CHECK_VOID();
 
-  if (pt_->policy_table.app_policies_section.apps.end() ==
-      pt_->policy_table.app_policies_section.apps.find(app_id)) {
+  if (!IsApplicationRepresented(app_id)) {
     LOG4CXX_ERROR(logger_, "Application id " << app_id
                   << " was not found in policy DB.");
     return;
@@ -1092,21 +1092,22 @@ void CacheManager::PersistData() {
 
         const std::string app_id = (*app_policy_iter).first;
 
-        if (copy_pt.policy_table.app_policies_section.apps.end() !=
-            copy_pt.policy_table.app_policies_section.apps.find(app_id)) {
+        if (IsApplicationRepresented(app_id)) {
           is_revoked = copy_pt.policy_table.app_policies_section.apps[app_id].is_null();
         }
 
-        is_default_policy = copy_pt.policy_table.app_policies_section.apps.end() !=
-            copy_pt.policy_table.app_policies_section.apps.find(app_id) &&
+        is_default_policy =
+            IsApplicationRepresented(app_id) &&
             policy::kDefaultId ==
-            copy_pt.policy_table.app_policies_section.apps[app_id].get_string();
+                copy_pt.policy_table.app_policies_section.apps[app_id]
+                    .get_string();
 
         // TODO(AOleynik): Remove this field from DB
-        is_predata_policy = copy_pt.policy_table.app_policies_section.apps.end() !=
-            copy_pt.policy_table.app_policies_section.apps.find(app_id) &&
+        is_predata_policy =
+            IsApplicationRepresented(app_id) &&
             policy::kPreDataConsentId ==
-            copy_pt.policy_table.app_policies_section.apps[app_id].get_string();
+                copy_pt.policy_table.app_policies_section.apps[app_id]
+                    .get_string();
 
         backup_->SaveApplicationCustomData(app_id,
                                            is_revoked,
@@ -1237,7 +1238,7 @@ int CacheManager::CountUnconsentedGroups(const std::string& policy_app_id,
   CACHE_MANAGER_CHECK(false);
   LOG4CXX_DEBUG(logger_, "Application id: " << policy_app_id);
   int result = 0;
-  if (kDeviceId != policy_app_id && !AppExists(policy_app_id)) {
+  if (kDeviceId != policy_app_id && !IsApplicationRepresented(policy_app_id)) {
     return 0;
   } else if (IsDefaultPolicy(policy_app_id)) {
     return 0;
@@ -1558,21 +1559,29 @@ bool CacheManager::SetDefaultPolicy(const std::string& app_id) {
 bool CacheManager::IsDefaultPolicy(const std::string& app_id) {
   CACHE_MANAGER_CHECK(false);
   const bool result =
-      pt_->policy_table.app_policies_section.apps.end() !=
-      pt_->policy_table.app_policies_section.apps.find(app_id) &&
+      IsApplicationRepresented(app_id) &&
       policy::kDefaultId ==
-      pt_->policy_table.app_policies_section.apps[app_id].get_string();
+          pt_->policy_table.app_policies_section.apps[app_id].get_string();
 
   return result;
 }
 
 bool CacheManager::SetIsDefault(const std::string& app_id) {
   CACHE_MANAGER_CHECK(false);
-  policy_table::ApplicationPolicies::const_iterator iter =
-      pt_->policy_table.app_policies_section.apps.find(app_id);
-  if (pt_->policy_table.app_policies_section.apps.end() != iter) {
+
+  if (IsApplicationRepresented(app_id)) {
     pt_->policy_table.app_policies_section.apps[app_id].set_to_string(kDefaultId);
   }
+  return true;
+}
+
+bool policy::CacheManager::SetIsPredata(const std::string& app_id) {
+  CACHE_MANAGER_CHECK(false);
+  if (IsApplicationRepresented(app_id)) {
+    pt_->policy_table.app_policies_section.apps[app_id].set_to_string(
+        kPreDataConsentId);
+  }
+
   return true;
 }
 
@@ -1767,16 +1776,6 @@ bool CacheManager::ResetPT(const std::string& file_name) {
   result = LoadFromFile(file_name, *pt_);
   Backup();
   return result;
-}
-
-bool CacheManager::AppExists(const std::string& app_id) const {
-  CACHE_MANAGER_CHECK(false);
-  if (kDeviceId == app_id) {
-    return true;
-  }
-  policy_table::ApplicationPolicies::iterator policy_iter =
-      pt_->policy_table.app_policies_section.apps.find(app_id);
-  return pt_->policy_table.app_policies_section.apps.end() != policy_iter;
 }
 
 void CacheManager::GetAppRequestTypes(
