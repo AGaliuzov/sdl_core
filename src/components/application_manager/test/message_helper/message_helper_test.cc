@@ -74,7 +74,7 @@ TEST(MessageHelperTestCreate,
   int notification = static_cast<int>(kNotification);
 
   EXPECT_EQ(function_id, obj[strings::params][strings::function_id].asInt());
-  EXPECT_EQ(app_id, obj[strings::params][strings::connection_key].asInt());
+  EXPECT_EQ(app_id, obj[strings::params][strings::connection_key].asUInt());
   EXPECT_EQ(notification,
       obj[strings::params][strings::message_type].asInt());
 }
@@ -105,9 +105,9 @@ TEST(MessageHelperTestCreate,
   EXPECT_EQ(result,
       obj[strings::msg_params][strings::result_code].asInt());
   EXPECT_EQ(correlation_id,
-      obj[strings::params][strings::correlation_id].asInt());
+      obj[strings::params][strings::correlation_id].asUInt());
   EXPECT_EQ(connection_key,
-      obj[strings::params][strings::connection_key].asInt());
+      obj[strings::params][strings::connection_key].asUInt());
   EXPECT_EQ(kV2,
       obj[strings::params][strings::protocol_version].asInt());
 }
@@ -129,7 +129,7 @@ TEST(MessageHelperTestCreate,
       obj[strings::sync_file_name][strings::value].asString());
   EXPECT_EQ(image_type,
       obj[strings::sync_file_name][strings::image_type].asInt());
-  EXPECT_EQ(app_id, obj[strings::app_id].asInt());
+  EXPECT_EQ(app_id, obj[strings::app_id].asUInt());
 }
 
 TEST(MessageHelperTestCreate,
@@ -149,7 +149,7 @@ TEST(MessageHelperTestCreate,
       obj[strings::sync_file_name][strings::value].asString());
   EXPECT_EQ(image_type,
       obj[strings::sync_file_name][strings::image_type].asInt());
-  EXPECT_EQ(app_id, obj[strings::app_id].asInt());
+  EXPECT_EQ(app_id, obj[strings::app_id].asUInt());
 }
 
 TEST(MessageHelperTestCreate,
@@ -313,7 +313,7 @@ TEST(MessageHelperTestCreate,
   int function_id = static_cast<int>(hmi_apis::FunctionID::UI_AddCommand);  
 
   EXPECT_EQ(function_id, obj[strings::params][strings::function_id].asInt());
-  EXPECT_EQ(1, obj[strings::msg_params][strings::app_id].asInt());
+  EXPECT_EQ(1u, obj[strings::msg_params][strings::app_id].asUInt());
   EXPECT_EQ(5, obj[strings::msg_params][strings::cmd_id].asInt());
   EXPECT_EQ(object[strings::menu_params],
       obj[strings::msg_params][strings::menu_params]);
@@ -380,8 +380,8 @@ TEST(MessageHelperTestCreate,
   smart_objects::SmartObject& obj = *ptr[0];
 
   EXPECT_EQ(function_id, obj[strings::params][strings::function_id].asInt());
-  EXPECT_EQ(1, obj[strings::msg_params][strings::app_id].asUInt());
-  EXPECT_EQ(111, obj[strings::msg_params][strings::grammar_id].asUInt());
+  EXPECT_EQ(1u, obj[strings::msg_params][strings::app_id].asUInt());
+  EXPECT_EQ(111u, obj[strings::msg_params][strings::grammar_id].asUInt());
   EXPECT_EQ(object[strings::choice_set][0][strings::choice_id],
       obj[strings::msg_params][strings::cmd_id]);
   EXPECT_EQ(object[strings::choice_set][0][strings::vr_commands],
@@ -427,7 +427,7 @@ TEST(MessageHelperTestCreate, CreateAddSubMenuRequestToHMI_SendObject_Equal) {
           [strings::menu_params][strings::position].asInt());
   EXPECT_EQ(1, obj[strings::msg_params]
       [strings::menu_params][strings::menu_name].asInt());
-  EXPECT_EQ(1,
+  EXPECT_EQ(1u,
       obj[strings::msg_params][strings::app_id].asUInt());
 }
 
@@ -449,7 +449,7 @@ TEST(MessageHelperTestCreate,
 TEST(MessageHelperTestCreate, CreateNegativeResponse_SendSmartObject_Equal) {
   uint32_t connection_key = 111;
   int32_t function_id = 222;
-  uint32_t correlation_id = 333;
+  uint32_t correlation_id = 333u;
   int32_t result_code = 0;
 
   smart_objects::SmartObjectSPtr ptr =
@@ -462,12 +462,12 @@ TEST(MessageHelperTestCreate, CreateNegativeResponse_SendSmartObject_Equal) {
 
   int objFunction_id =
       obj[strings::params][strings::function_id].asInt();
-  int objCorrelation_id =
-      obj[strings::params][strings::correlation_id].asInt();
+  uint32_t objCorrelation_id =
+      obj[strings::params][strings::correlation_id].asUInt();
   int objResult_code =
       obj[strings::msg_params][strings::result_code].asInt();
-  int objConnection_key =
-     obj[strings::params][strings::connection_key].asInt();
+  uint32_t objConnection_key =
+     obj[strings::params][strings::connection_key].asUInt();
 
   int message_type =
       static_cast<int>(mobile_apis::messageType::response);
