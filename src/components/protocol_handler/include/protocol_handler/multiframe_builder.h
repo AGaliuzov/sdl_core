@@ -124,8 +124,8 @@ class MultiFrameBuilder {
   int64_t consecutive_frame_wait_msecs_;
 };
 
-template<typename _CharT>
-std::basic_ostream<_CharT>& operator<<(std::basic_ostream<_CharT>& stream,
+template<typename CharType>
+std::basic_ostream<CharType>& operator<<(std::basic_ostream<CharType>& stream,
                                        const protocol_handler::MultiFrameMap& map) {
   if (map.empty()) {
     stream << "{empty}";

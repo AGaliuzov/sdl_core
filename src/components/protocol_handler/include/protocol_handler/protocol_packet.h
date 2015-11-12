@@ -289,8 +289,8 @@ class ProtocolPacket {
 typedef utils::SharedPtr<protocol_handler::ProtocolPacket> ProtocolFramePtr;
 typedef std::list<ProtocolFramePtr>                        ProtocolFramePtrList;
 
-template<typename _CharT>
-std::basic_ostream<_CharT>& operator<<(std::basic_ostream<_CharT>& stream,
+template<typename CharType>
+std::basic_ostream<CharType>& operator<<(std::basic_ostream<CharType>& stream,
                                        const protocol_handler::ProtocolPacket::ProtocolHeader& header) {
   stream << "Version: "       << static_cast<uint32_t>(header.version) <<
             ", Protection: "  << (header.protection_flag ? "ON" : "OFF") <<
@@ -302,8 +302,8 @@ std::basic_ostream<_CharT>& operator<<(std::basic_ostream<_CharT>& stream,
             ", MessageId: "   << static_cast<uint32_t>(header.messageId);
   return stream;
 }
-template<typename _CharT>
-std::basic_ostream<_CharT>& operator<<(std::basic_ostream<_CharT>& stream,
+template<typename CharType>
+std::basic_ostream<CharType>& operator<<(std::basic_ostream<CharType>& stream,
                                        const protocol_handler::ProtocolPacket& packet) {
   stream << packet.packet_header() <<
             ", ConnectionID: "   << static_cast<uint32_t>(packet.connection_id()) <<
@@ -311,8 +311,8 @@ std::basic_ostream<_CharT>& operator<<(std::basic_ostream<_CharT>& stream,
             ", Data: "           << static_cast<void*>(packet.data());
   return stream;
 }
-template<typename _CharT>
-std::basic_ostream<_CharT>& operator<<(std::basic_ostream<_CharT>& stream,
+template<typename CharType>
+std::basic_ostream<CharType>& operator<<(std::basic_ostream<CharType>& stream,
                                        const ProtocolFramePtr packet_ptr) {
   if(packet_ptr) {
     return stream << *packet_ptr;
