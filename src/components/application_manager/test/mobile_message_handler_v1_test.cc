@@ -49,8 +49,8 @@ using protocol_handler::PROTOCOL_HEADER_V1_SIZE;
 namespace application_manager {
 namespace test {
 
-const int32_t connection_key_p1 = 1;
-const uint32_t protocol_version_1 = 1;
+const uint32_t connection_key_p1 = 1;
+const int32_t protocol_version_1 = 1;
 
 const std::string data_json("\"{\"menu\": {\"id\": \"file\",\"va"
     "lue\": \"File\",\"popup\": {\"menuitem\": [ {\"val"
@@ -85,7 +85,7 @@ TEST(MobileMessageHandlerTestV1Test,
 TEST(MobileMessageHandlerTestV1Test,
      HandleIncomingMessageProtocolV1_SendBinaryJSONData_ExpectEqual) {
 
-  std::string full_data((const char*)binary);
+  std::string full_data(reinterpret_cast<const char*>(binary));
   full_data += data_json;
   const unsigned char* data_v1 =
       reinterpret_cast<const unsigned char*> (full_data.c_str());
@@ -121,7 +121,8 @@ TEST(MobileMessageHandlerTestV1Test,
   ASSERT_TRUE(ptr);
 
   EXPECT_EQ(connection_key_p1, ptr->connection_key());
-  EXPECT_EQ(application_manager::kV1, ptr->protocol_version());
+  EXPECT_EQ(static_cast<uint32_t>(application_manager::kV1),
+      ptr->protocol_version());
 }
 
 }  // namespace test
