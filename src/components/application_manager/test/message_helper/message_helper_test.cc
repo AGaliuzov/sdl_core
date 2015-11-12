@@ -462,12 +462,12 @@ TEST(MessageHelperTestCreate, CreateNegativeResponse_SendSmartObject_Equal) {
 
   int objFunction_id =
       obj[strings::params][strings::function_id].asInt();
-  unsigned int objCorrelation_id =
+  uint32_t objCorrelation_id =
       obj[strings::params][strings::correlation_id].asUInt();
   int objResult_code =
       obj[strings::msg_params][strings::result_code].asInt();
-  unsigned int objConnection_key =
-     obj[strings::params][strings::connection_key].asInt();
+  uint32_t objConnection_key =
+     obj[strings::params][strings::connection_key].asUInt();
 
   int message_type =
       static_cast<int>(mobile_apis::messageType::response);
