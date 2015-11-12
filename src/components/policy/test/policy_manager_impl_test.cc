@@ -109,7 +109,7 @@ void SortAndCheckEquality(std::vector<T> first,
   std::sort(first.begin(), first.end());
   std::sort(second.begin(), second.end());
   // Checks
-  for (uint32_t i = 0; i < first.size(); ++i) {
+  for (size_t i = 0; i < first.size(); ++i) {
     EXPECT_EQ(first[i], second[i]);
   }
 }
@@ -193,7 +193,7 @@ class PolicyManagerImplTest2 : public ::testing::Test {
     NiceMock<MockPolicyListener> listener;
     ::policy::StringArray hmi_level;
     ::policy::StringArray PT_request_types;
-    uint32_t PTU_request_types_size;
+    size_t PTU_request_types_size;
     unsigned int index;
     const std::string app_id1;
     const std::string app_id2;
@@ -300,7 +300,7 @@ class PolicyManagerImplTest2 : public ::testing::Test {
         const ::policy::StringArray& temp_result) {
       policy_table::RequestType filtered_result;
       std::vector<policy_table::RequestType> final_result;
-      for (uint32_t i = 0; i < temp_result.size(); ++i) {
+      for (size_t i = 0; i < temp_result.size(); ++i) {
         if (policy_table::EnumFromJsonString(temp_result[i],
                                              &filtered_result)) {
           final_result.push_back(filtered_result);
@@ -367,24 +367,24 @@ class PolicyManagerImplTest2 : public ::testing::Test {
 class PolicyManagerImplTest_RequestTypes : public ::testing::Test {
   public:
     PolicyManagerImplTest_RequestTypes()
-      : json_files_ {
-      "PTU_with_one_invalid_requestType.json",
-      "PTU_with_invalid_requestType_between_correct.json",
-      "PTU_without_requestType_field.json",
-      "PTU_with_empty_requestType_array.json",
-      "preloadedPT_with_invalid_default_requestType.json",
-      "preloadedPT_with_several_invalid_default_requestTypes.json",
-      "preloadedPT_with_invalid_default_reqestType_between_valid.json"},
-      app_id_("1766825573"),
-      default_app_id_("default"){
+        : json_files_ {
+        "PTU_with_one_invalid_requestType.json",
+        "PTU_with_invalid_requestType_between_correct.json",
+        "PTU_without_requestType_field.json",
+        "PTU_with_empty_requestType_array.json",
+        "preloadedPT_with_invalid_default_requestType.json",
+        "preloadedPT_with_several_invalid_default_requestTypes.json",
+        "preloadedPT_with_invalid_default_reqestType_between_valid.json"},
+        app_id_("1766825573"),
+        default_app_id_("default") {
       manager.set_listener(&listener);
     }
   protected:
     PolicyManagerImpl manager;
     NiceMock<MockPolicyListener> listener;
-    ::policy::StringArray json_files_;
-    std::string app_id_;
-    std::string default_app_id_;
+    const ::policy::StringArray json_files_;
+    const std::string app_id_;
+    const std::string default_app_id_;
 
     void SetUp() OVERRIDE {
       file_system::CreateDirectory("storage2");
@@ -1238,7 +1238,7 @@ TEST_F(PolicyManagerImplTest2, GetUserFirendlyMessages_ExpectReceivedCorrectMess
   ::policy::StringArray message_code;
   message_code.push_back("SettingEnableUpdates");
   message_code.push_back("AppPermissions");
-  std::string language = "en-us";
+  const std::string language = "en-us";
   std::vector< ::policy::UserFriendlyMessage > result = manager->GetUserFriendlyMessages(message_code, language);
   uint32_t size = result.size();
   EXPECT_GT(size, 0u);
@@ -1902,7 +1902,7 @@ TEST_F(PolicyManagerImplTest2, AddValidRequestTypeToPT_GetNewAppWithSpecificPoli
   std::sort(result.begin(), result.end());
   // Checks
   ASSERT_EQ(PT_request_types.size(), result.size());
-  for (uint32_t i = 0 ; i < PT_request_types.size(); ++i) {
+  for (size_t i = 0 ; i < PT_request_types.size(); ++i) {
     EXPECT_EQ(PT_request_types[i], result[i]);
   }
 }
@@ -1919,7 +1919,7 @@ TEST_F(PolicyManagerImplTest2, AddInvalidRequestTypeToPT_GetNewAppWithSpecificPo
   }
   policy_table::RequestType temp_res2;
   std::vector<policy_table::RequestType> result2;
-  for (uint32_t i = 0; i < PT_request_types.size(); ++i) {
+  for (size_t i = 0; i < PT_request_types.size(); ++i) {
     if (::rpc::policy_table_interface_base::EnumFromJsonString(PT_request_types[i], &temp_res2)) {
       result2.push_back(temp_res2);
     }
@@ -1928,7 +1928,7 @@ TEST_F(PolicyManagerImplTest2, AddInvalidRequestTypeToPT_GetNewAppWithSpecificPo
   std::sort(result1.begin(), result1.end());
   std::sort(result2.begin(), result2.end());
   // Checks
-  for (uint32_t i = 0 ; i < PT_request_types.size(); ++i) {
+  for (size_t i = 0 ; i < PT_request_types.size(); ++i) {
     EXPECT_EQ(result1[i], result2[i]);
   }
 }
