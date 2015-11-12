@@ -96,7 +96,6 @@ class ApplicationMock : public am::Application {
                      const mobile_apis::AudioStreamingState::eType());
   MOCK_CONST_METHOD0(app_icon_path, const std::string&());
   MOCK_CONST_METHOD0(device, connection_handler::DeviceHandle());
-  MOCK_METHOD0(tts_speak_state, bool());
   MOCK_CONST_METHOD0(CurrentHmiState, am::HmiStatePtr());
   MOCK_CONST_METHOD0(RegularHmiState, am::HmiStatePtr());
   MOCK_CONST_METHOD0(PostponedHmiState, am::HmiStatePtr());
@@ -141,6 +140,7 @@ class ApplicationMock : public am::Application {
   MOCK_METHOD0(usage_report, am::UsageStatistics&());
   MOCK_METHOD1(SetRegularState, void(am::HmiStatePtr state));
   MOCK_METHOD1(SetPostponedState, void(am::HmiStatePtr state));
+  MOCK_METHOD0(RemovePostponedState, void());
   MOCK_METHOD1(AddHMIState, void(am::HmiStatePtr state));
   MOCK_METHOD1(RemoveHMIState, void(am::HmiState::StateID state_id));
   MOCK_METHOD2(SubscribeToSoftButtons,

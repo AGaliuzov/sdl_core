@@ -133,7 +133,6 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   inline const mobile_apis::AudioStreamingState::eType audio_streaming_state() const;
   const std::string& app_icon_path() const;
   connection_handler::DeviceHandle device() const;
-  bool tts_speak_state();
   void set_tts_properties_in_none(bool active);
   bool tts_properties_in_none();
   void set_tts_properties_in_full(bool active);
@@ -227,6 +226,8 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   * @param state state to setup
   */
   virtual void SetPostponedState(HmiStatePtr state);
+
+  virtual void RemovePostponedState();
 
   /**
    * @brief AddHMIState the function that will change application's

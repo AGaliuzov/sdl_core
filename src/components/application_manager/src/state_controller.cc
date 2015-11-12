@@ -426,6 +426,7 @@ void StateController::ApplyPostponedStateForApp(ApplicationSharedPtr app) {
   LOG4CXX_AUTO_TRACE(logger_);
   HmiStatePtr state = app->PostponedHmiState();
   if (state) {
+    app->RemovePostponedState();
     state->set_state_id(HmiState::STATE_ID_REGULAR);
     SetRegularState(app, state);
   }

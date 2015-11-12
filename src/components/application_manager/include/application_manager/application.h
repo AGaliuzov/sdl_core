@@ -43,6 +43,7 @@
 #include "connection_handler/device.h"
 #include "application_manager/message.h"
 #include "application_manager/hmi_state.h"
+#include "application_manager/application_state.h"
 #include "protocol_handler/protocol_handler.h"
 
 namespace NsSmartDeviceLink {
@@ -498,16 +499,6 @@ class Application : public virtual InitialApplicationData,
     audio_streaming_state() const = 0;
     virtual const std::string& app_icon_path() const = 0;
     virtual connection_handler::DeviceHandle device() const = 0;
-    virtual bool tts_speak_state() = 0;
-
-    /**
-     * @brief Active states of application
-     */
-    DataAccessor<HmiStateList> GetHmiStateListAccessor() {
-      DataAccessor<HmiStateList> hmi_states_da =
-          DataAccessor<HmiStateList>(hmi_states_, hmi_states_lock_);
-      return hmi_states_da;
-    }
 
     /**
      * @brief sets true if application has sent TTS GlobalProperties
@@ -612,6 +603,8 @@ class Application : public virtual InitialApplicationData,
     */
     virtual void SetPostponedState(HmiStatePtr state) = 0;
 
+    virtual void RemovePostponedState() = 0;
+
     /**
      * @brief AddHMIState the function that will change application's
      * hmi state.
@@ -689,10 +682,11 @@ class Application : public virtual InitialApplicationData,
   protected:
 
     /**
-     * @brief Active states of application
+     * @brief Application state
      */
-    HmiStateList hmi_states_;
-    mutable sync_primitives::Lock hmi_states_lock_;
+    ApplicationState state_;
+
+    std::string device_id_;
 };
 
 typedef utils::SharedPtr<Application> ApplicationSharedPtr;
