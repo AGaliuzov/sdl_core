@@ -70,6 +70,7 @@ using ::testing::DoAll;
 using ::testing::SetArgReferee;
 using ::testing::NiceMock;
 using ::testing::AtLeast;
+using ::testing::ContainerEq;
 
 using ::policy::PTRepresentation;
 using ::policy::MockPolicyListener;
@@ -92,6 +93,7 @@ namespace policy {
 
 typedef std::multimap< std::string, policy_table::Rpcs& >
           UserConsentPromptToRpcsConnections;
+typedef utils::SharedPtr<policy_table::Table> PolicyTableSPtr;
 
 template<typename T>
 std::string NumberToString(T Number) {
@@ -107,7 +109,7 @@ void SortAndCheckEquality(std::vector<T> first,
   std::sort(first.begin(), first.end());
   std::sort(second.begin(), second.end());
   // Checks
-  for (uint32_t i = 0; i < first.size(); ++i) {
+  for (size_t i = 0; i < first.size(); ++i) {
     EXPECT_EQ(first[i], second[i]);
   }
 }
@@ -189,9 +191,9 @@ class PolicyManagerImplTest2 : public ::testing::Test {
   protected:
     PolicyManagerImpl* manager;
     NiceMock<MockPolicyListener> listener;
-    std::vector<std::string> hmi_level;
-    std::vector<std::string> PT_request_types;
-    uint32_t PTU_request_types_size;
+    ::policy::StringArray hmi_level;
+    ::policy::StringArray PT_request_types;
+    size_t PTU_request_types_size;
     unsigned int index;
     const std::string app_id1;
     const std::string app_id2;
@@ -212,8 +214,8 @@ class PolicyManagerImplTest2 : public ::testing::Test {
       index = rand() % 3;
     }
 
-    std::vector<std::string> JsonToVectorString(const Json::Value& PTU_request_types) {
-      std::vector<std::string> result;
+    ::policy::StringArray JsonToVectorString(const Json::Value& PTU_request_types) {
+      ::policy::StringArray result;
       for (uint32_t i = 0; i < PTU_request_types.size(); ++i) {
         result.push_back(PTU_request_types[i].asString());
       }
@@ -230,7 +232,6 @@ class PolicyManagerImplTest2 : public ::testing::Test {
         json = root.toStyledString();
       }
       ifile.close();
-
       ::policy::BinaryMessage msg(json.begin(), json.end());
       // Load Json to cache
       EXPECT_TRUE(manager->LoadPT("file_pt_update.json", msg));
@@ -296,10 +297,10 @@ class PolicyManagerImplTest2 : public ::testing::Test {
     }
 
     std::vector<policy_table::RequestType> PushRequestTypesToContainer(
-        const std::vector<std::string>& temp_result) {
+        const ::policy::StringArray& temp_result) {
       policy_table::RequestType filtered_result;
       std::vector<policy_table::RequestType> final_result;
-      for (uint32_t i = 0; i < temp_result.size(); ++i) {
+      for (size_t i = 0; i < temp_result.size(); ++i) {
         if (policy_table::EnumFromJsonString(temp_result[i],
                                              &filtered_result)) {
           final_result.push_back(filtered_result);
@@ -309,42 +310,46 @@ class PolicyManagerImplTest2 : public ::testing::Test {
     }
 
     void CheckResultForValidRT() {
-      // Convert Json Array to std::vector<std::string>
-      const std::vector<std::string>& result = JsonToVectorString(PTU_request_types);
+      // Convert Json Array to ::policy::StringArray
+      const ::policy::StringArray& result = JsonToVectorString(PTU_request_types);
       // Checks
       SortAndCheckEquality(PT_request_types, result);
     }
 
     void CheckResultForInvalidRT() {
-      // Convert Json Array to std::vector<std::string>
-      const std::vector<std::string>& temp_result = JsonToVectorString(PTU_request_types);
-      std::vector<policy_table::RequestType> result1 = PushRequestTypesToContainer(temp_result);
-      std::vector<policy_table::RequestType> result2 = PushRequestTypesToContainer(PT_request_types);
+      // Convert Json Array to ::policy::StringArray
+      const ::policy::StringArray& temp_result = JsonToVectorString(PTU_request_types);
+      const std::vector<policy_table::RequestType>& result1 =
+          PushRequestTypesToContainer(temp_result);
+      const std::vector<policy_table::RequestType>& result2 =
+          PushRequestTypesToContainer(PT_request_types);
       // Checks
       SortAndCheckEquality(result1, result2);
     }
 
     void FillMultimapFromFunctionalGroupings(
         UserConsentPromptToRpcsConnections& input_multimap,
-        policy_table::FunctionalGroupings& fg_table){
+        policy_table::FunctionalGroupings& fg_table) {
       policy_table::FunctionalGroupings::iterator fg_itter = fg_table.begin();
-      const policy_table::FunctionalGroupings::iterator fg_itter_end = fg_table.end();
-      for(; fg_itter != fg_itter_end; ++fg_itter){
+      const policy_table::FunctionalGroupings::iterator fg_itter_end =
+          fg_table.end();
+      for (; fg_itter != fg_itter_end; ++fg_itter) {
         // RPCS getting
         policy_table::Rpcs& rpcs_ref = fg_itter->second;
         // User_consent_prompt getting
-        rpc::Optional<rpc::String<1,255> >& optional_ref =
+        rpc::Optional<rpc::String<1, 255> >& optional_ref =
             rpcs_ref.user_consent_prompt;
-        rpc::String<1,255>& ucp_string = *optional_ref;
+        rpc::String<1, 255>& ucp_string = *optional_ref;
         const std::string& ucp_std_string =
             static_cast<const std::string&>(ucp_string);
         // Multimap inserting
-        input_multimap.insert(std::pair<std::string, policy_table::Rpcs&>(ucp_std_string, rpcs_ref));
-      } 
+        input_multimap.insert(std::pair<std::string,
+            policy_table::Rpcs&>(ucp_std_string, rpcs_ref));
+      }
     }
 
     void GetFunctionalGroupingsFromManager(
-        policy_table::FunctionalGroupings& input_functional_groupings){
+        policy_table::FunctionalGroupings& input_functional_groupings) {
       // Get cache
       ::policy::CacheManagerInterfaceSPtr cache = manager->GetCache();
       // Get table_snapshot
@@ -356,6 +361,103 @@ class PolicyManagerImplTest2 : public ::testing::Test {
     void TearDown() OVERRIDE {
       profile::Profile::instance()->config_file_name("smartDeviceLink.ini");
       delete manager;
+    }
+};
+
+class PolicyManagerImplTest_RequestTypes : public ::testing::Test {
+  public:
+    PolicyManagerImplTest_RequestTypes()
+        : json_files_ {
+        "PTU_with_one_invalid_requestType.json",
+        "PTU_with_invalid_requestType_between_correct.json",
+        "PTU_without_requestType_field.json",
+        "PTU_with_empty_requestType_array.json",
+        "preloadedPT_with_invalid_default_requestType.json",
+        "preloadedPT_with_several_invalid_default_requestTypes.json",
+        "preloadedPT_with_invalid_default_reqestType_between_valid.json"},
+        app_id_("1766825573"),
+        default_app_id_("default") {
+      manager.set_listener(&listener);
+    }
+  protected:
+    PolicyManagerImpl manager;
+    NiceMock<MockPolicyListener> listener;
+    const ::policy::StringArray json_files_;
+    const std::string app_id_;
+    const std::string default_app_id_;
+
+    void SetUp() OVERRIDE {
+      file_system::CreateDirectory("storage2");
+      profile::Profile::instance()->config_file_name(
+          "smartDeviceLink4.ini");
+    }
+
+    const Json::Value GetPTU(const std::string& file_name) {
+      // Get PTU
+      std::ifstream ifile(file_name);
+      Json::Reader reader;
+      std::string json;
+      Json::Value root(Json::objectValue);
+      if (ifile.is_open() && reader.parse(ifile, root, true)) {
+        json = root.toStyledString();
+      }
+      ifile.close();
+      ::policy::BinaryMessage msg(json.begin(), json.end());
+      // Load Json to cache
+      EXPECT_TRUE(manager.LoadPT("file_pt_update.json", msg));
+      return root;
+    }
+
+    void RefreshPT(const std::string& preloaded_pt_file,
+        const std::string& update_pt_file) {
+      ASSERT_TRUE(manager.ResetPT(preloaded_pt_file))
+          << "can`t load preloaded file";
+      GetPTU(update_pt_file);
+    }
+
+
+    PolicyTableSPtr GetPolicyTableSnapshot() {
+      // Get cache
+      ::policy::CacheManagerInterfaceSPtr cache = manager.GetCache();
+      // Get and return table_snapshot
+      return cache->GenerateSnapshot();
+    }
+
+    policy_table::RequestTypes GetRequestTypesForApplication(
+        const std::string& app_id) {
+      // Get table_snapshot
+      PolicyTableSPtr table = GetPolicyTableSnapshot();
+      // Get request types
+      policy_table::PolicyTable& pt = table->policy_table;
+      policy_table::ApplicationPolicies& app_policies =
+          pt.app_policies_section.apps;
+      policy_table::ApplicationPolicies::const_iterator app_iter =
+          app_policies.find(app_id);
+
+      return *(app_iter->second.RequestType);
+    }
+    void CompareAppRequestTypesWithDefault(const std::string& app_id,
+        const std::string& ptu_file) {
+      // Refresh policy table with invalid RequestType in application
+      RefreshPT("sdl_preloaded_pt.json", ptu_file);
+
+      // Get <app_id> RequestType array
+      policy_table::RequestTypes app_request_types =
+          GetRequestTypesForApplication(app_id);
+      // Get "default" RequestType array
+      policy_table::RequestTypes default_request_types =
+          GetRequestTypesForApplication("default");
+
+      // Expect
+      const size_t& app_requests_size = app_request_types.size();
+      const size_t& default_requests_size = default_request_types.size();
+      ASSERT_EQ(default_requests_size, app_requests_size);
+      EXPECT_THAT(default_request_types, ContainerEq(app_request_types));
+    }
+
+    void TearDown() OVERRIDE {
+      profile::Profile::instance()->config_file_name("smartDeviceLink.ini");
+      file_system::RemoveDirectory("storage2", true);
     }
 };
 
@@ -1133,10 +1235,10 @@ TEST_F(PolicyManagerImplTest2, GetDefaultPriority_SetDeviceAllowed_ExpectReceive
 TEST_F(PolicyManagerImplTest2, GetUserFirendlyMessages_ExpectReceivedCorrectMessages) {
   // Arrange
   CreateLocalPT("sdl_preloaded_pt.json");
-  std::vector<std::string> message_code;
+  ::policy::StringArray message_code;
   message_code.push_back("SettingEnableUpdates");
   message_code.push_back("AppPermissions");
-  std::string language = "en-us";
+  const std::string language = "en-us";
   std::vector< ::policy::UserFriendlyMessage > result = manager->GetUserFriendlyMessages(message_code, language);
   uint32_t size = result.size();
   EXPECT_GT(size, 0u);
@@ -1228,8 +1330,8 @@ TEST_F(PolicyManagerImplTest2, GetUserConsentForApp_SetUserConsentForApp_ExpectR
                                                    2,
                                                    "Bluetooth"));
 
-  std::vector<std::string> consented_groups;
-  std::vector<std::string> disallowed_groups;
+  ::policy::StringArray consented_groups;
+  ::policy::StringArray disallowed_groups;
   consented_groups.push_back(std::string("Notifications"));
   consented_groups.push_back(std::string("Notifications"));
   (manager->GetCache())->SetUserPermissionsForDevice(dev_id2,
@@ -1558,8 +1660,8 @@ TEST_F(PolicyManagerImplTest2, GetPermissionsForApp_SetUserConsentForApp_ExpectR
                                                    2,
                                                    "Bluetooth"));
 
-  std::vector<std::string> consented_groups;
-  std::vector<std::string> disallowed_groups;
+  ::policy::StringArray consented_groups;
+  ::policy::StringArray disallowed_groups;
   consented_groups.push_back(std::string("Notifications"));
   (manager->GetCache())->SetUserPermissionsForDevice(dev_id2,
                                                      consented_groups,
@@ -1607,7 +1709,7 @@ TEST_F(PolicyManagerImplTest2, GetAppRequestTypes_AddApp_UpdateAppPolicies_Expec
   CreateLocalPT("sdl_preloaded_pt.json");
 
   manager->AddApplication(app_id3);
-  std::vector<std::string> app_requests = manager->GetAppRequestTypes(app_id3);
+  ::policy::StringArray app_requests = manager->GetAppRequestTypes(app_id3);
   EXPECT_EQ(1u, app_requests.size());
 
   Json::Value root = GetPTU("ptu_requestType.json");
@@ -1704,8 +1806,8 @@ TEST_F(PolicyManagerImplTest2, RemoveAppConsentForGroup_SetUserConsentForApp_Exp
                                                    2,
                                                    "Bluetooth"));
 
-  std::vector<std::string> consented_groups;
-  std::vector<std::string> disallowed_groups;
+  ::policy::StringArray consented_groups;
+  ::policy::StringArray disallowed_groups;
   consented_groups.push_back(std::string("Notifications"));
   (manager->GetCache())->SetUserPermissionsForDevice(dev_id2,
                                                      consented_groups,
@@ -1792,7 +1894,7 @@ TEST_F(PolicyManagerImplTest2, AddInvalidRequestTypeToPT_pre_DataConsentSection_
 TEST_F(PolicyManagerImplTest2, AddValidRequestTypeToPT_GetNewAppWithSpecificPoliciesViaPTU_ExpectRTAdded) {
   // Arrange
   AddRTtoAppSectionPT("PTU2.json", "1234", 1u, 0u);
-  std::vector<std::string> result;
+  ::policy::StringArray result;
   for (uint32_t i = 0; i < PTU_request_types_size; ++i) {
      result.push_back(PTU_request_types[i].asString());
   }
@@ -1800,7 +1902,7 @@ TEST_F(PolicyManagerImplTest2, AddValidRequestTypeToPT_GetNewAppWithSpecificPoli
   std::sort(result.begin(), result.end());
   // Checks
   ASSERT_EQ(PT_request_types.size(), result.size());
-  for (uint32_t i = 0 ; i < PT_request_types.size(); ++i) {
+  for (size_t i = 0 ; i < PT_request_types.size(); ++i) {
     EXPECT_EQ(PT_request_types[i], result[i]);
   }
 }
@@ -1817,7 +1919,7 @@ TEST_F(PolicyManagerImplTest2, AddInvalidRequestTypeToPT_GetNewAppWithSpecificPo
   }
   policy_table::RequestType temp_res2;
   std::vector<policy_table::RequestType> result2;
-  for (uint32_t i = 0; i < PT_request_types.size(); ++i) {
+  for (size_t i = 0; i < PT_request_types.size(); ++i) {
     if (::rpc::policy_table_interface_base::EnumFromJsonString(PT_request_types[i], &temp_res2)) {
       result2.push_back(temp_res2);
     }
@@ -1826,7 +1928,7 @@ TEST_F(PolicyManagerImplTest2, AddInvalidRequestTypeToPT_GetNewAppWithSpecificPo
   std::sort(result1.begin(), result1.end());
   std::sort(result2.begin(), result2.end());
   // Checks
-  for (uint32_t i = 0 ; i < PT_request_types.size(); ++i) {
+  for (size_t i = 0 ; i < PT_request_types.size(); ++i) {
     EXPECT_EQ(result1[i], result2[i]);
   }
 }
@@ -1910,6 +2012,90 @@ TEST_F(PolicyManagerImplTest2,
   EXPECT_LT(first_count_of_new_user_consent_prompt,
       second_count_of_new_user_consent_prompt);
 
+}
+
+TEST_F(PolicyManagerImplTest_RequestTypes,
+    LoadPT_PTWithOneInvalidRequestTypeValue_RequestTypeValueEQToDefault) {
+  // Logic in another function
+  CompareAppRequestTypesWithDefault(app_id_, json_files_[0]);
+}
+
+TEST_F(PolicyManagerImplTest_RequestTypes,
+    LoadPT_InvalidRequestTypeBetweenCorectValuesInPTU_EarseInvalidValue) {
+  // Refresh policy table with invalid RequestType in application
+  RefreshPT("sdl_preloaded_pt.json", json_files_[1]);
+  // Correct of Request Types
+  policy_table::RequestTypes correct_types;
+  correct_types.push_back(policy_table::RequestType::RT_HTTP);
+  correct_types.push_back(policy_table::RequestType::RT_LAUNCH_APP);
+  correct_types.push_back(policy_table::RequestType::RT_PROPRIETARY);
+  // Get <app_id> Request Types
+  policy_table::RequestTypes received_types =
+      GetRequestTypesForApplication(app_id_);
+
+  // Expect
+  const size_t& received_size = received_types.size();
+  const size_t& correct_size = correct_types.size();
+  ASSERT_EQ(correct_size, received_size);
+  EXPECT_THAT(correct_types, ContainerEq(received_types));
+}
+
+TEST_F(PolicyManagerImplTest_RequestTypes,
+    LoadPT_AppInUpdateFileHaventRequestTypeField_RequestTypeValueEQToDefault) {
+  // Logic in another function
+  CompareAppRequestTypesWithDefault(app_id_, json_files_[2]);
+}
+
+TEST_F(PolicyManagerImplTest_RequestTypes,
+    LoadPT_RequestTypeArrayHaveNoOneValues_AvalibleAllRequestTypes) {
+  // Refresh policy table with invalid RequestType in application
+  RefreshPT("sdl_preloaded_pt.json", json_files_[3]);
+
+  // Get <app_id> Request Types
+  policy_table::RequestTypes received_types =
+      GetRequestTypesForApplication(app_id_);
+
+  // Expect
+  const size_t correct_size = 0;
+  const size_t& received_size = received_types.size();
+  EXPECT_EQ(correct_size, received_size);
+}
+
+TEST_F(PolicyManagerImplTest_RequestTypes,
+    ResetPT_DefaultRequestTypeHaveOneInvalidValue_False) {
+  // Get absolutly new PT
+  // PT have only invalid value in app_policies::default::RequestType
+  ASSERT_FALSE(manager.ResetPT(json_files_[4]));
+}
+
+TEST_F(PolicyManagerImplTest_RequestTypes,
+    ResetPT_DefaultRequestTypeHaveSeveralInvalidValues_False) {
+  // Get absolutly new PT
+  // PT have several only invalid values in app_policies::default::RequestType
+  ASSERT_FALSE(manager.ResetPT(json_files_[5]));
+}
+
+TEST_F(PolicyManagerImplTest_RequestTypes,
+       ResetPT_DefaultRequestTypeHaveInvalidValueBetweenCorrect_True) {
+  // Get absolutly new PT
+  // PT have ["QUERY_APPS", "IVSU", "PROPRIETARY"]
+  // In app_policies::default::RequestType
+  ASSERT_TRUE(manager.ResetPT(json_files_[6]));
+
+  // Correct of Request Types
+  policy_table::RequestTypes correct_types;
+  correct_types.push_back(policy_table::RequestType::RT_QUERY_APPS);
+  correct_types.push_back(policy_table::RequestType::RT_PROPRIETARY);
+
+  // Get default Request Types
+  policy_table::RequestTypes received_types =
+      GetRequestTypesForApplication(default_app_id_);
+
+  // Expect
+  const size_t& received_size = received_types.size();
+  const size_t& correct_size = correct_types.size();
+  ASSERT_EQ(correct_size, received_size);
+  EXPECT_THAT(correct_types, ContainerEq(received_types));
 }
 
 }  // namespace policy
