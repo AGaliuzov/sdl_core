@@ -206,7 +206,7 @@ class PolicyManagerImplTest2 : public ::testing::Test {
       file_system::CreateDirectory("storage1");
 
       profile::Profile::instance()->config_file_name("smartDeviceLink2.ini");
-      manager = new PolicyManagerImpl();
+      manager = new PolicyManagerImpl(":memory:");
       manager->set_listener(&listener);
       const char* levels[] = {"BACKGROUND", "FULL", "LIMITED", "NONE"};
       hmi_level.assign(levels, levels + sizeof(levels) / sizeof(levels[0]));

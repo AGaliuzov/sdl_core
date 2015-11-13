@@ -50,6 +50,9 @@ namespace policy {
 class CacheManager : public CacheManagerInterface {
  public:
   CacheManager();
+#ifdef BUILD_TESTS
+    CacheManager(std::string in_memory);
+#endif // BUILD_TESTS
   ~CacheManager();
 
   /**

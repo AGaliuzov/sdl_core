@@ -43,6 +43,7 @@
 #include "utils/file_system.h"
 #include "rpc_base/rpc_base.h"
 #include "table_struct_ext/types.h"
+#include "utils/sqlite_wrapper/sql_query.h"
 
 using namespace ::policy;
 namespace policy_table = rpc::policy_table_interface_base;
@@ -69,13 +70,15 @@ class SQLPTExtRepresentationTest : public ::testing::Test {
   PermissionConsent perm_consent;
   FunctionalGroupPermission group1_perm;
   FunctionalGroupPermission group2_perm;
+  utils::dbms::SQLQuery* queryWrapper;
 
   void SetUp() {
     file_system::DeleteFile(kDatabaseName);
-    reps = new SQLPTExtRepresentation;
+    reps = new SQLPTExtRepresentation(kDatabaseName);
     dbms = new DBMS(kDatabaseName);
     ASSERT_EQ(SUCCESS, reps->Init());
     ASSERT_TRUE(dbms->Open());
+    queryWrapper = new utils::dbms::SQLQuery(reps->db());
   }
 
   void TearDown() {
@@ -178,7 +181,7 @@ class SQLPTExtRepresentationTest : public ::testing::Test {
 #ifdef __QNX__
 const string SQLPTExtRepresentationTest::kDatabaseName = "policy";
 #else   // __QNX__
-const string SQLPTExtRepresentationTest::kDatabaseName = "policy.sqlite";
+const string SQLPTExtRepresentationTest::kDatabaseName = ":memory:";
 #endif  // __QNX__
 
 ::testing::AssertionResult IsValid(const policy_table::Table& table) {
@@ -339,16 +342,18 @@ TEST_F(
     SQLPTExtRepresentationTest,
     CanAppKeepContext_InsertKeepContext_ExpectValuesThatSetInKeepContextParams) {
   // Arrange
-  const char* query_delete = "DELETE FROM `application`; ";
+  const std::string query_delete = "DELETE FROM `application`; ";
   // Assert
-  ASSERT_TRUE(dbms->Exec(query_delete));
+  ASSERT_TRUE(queryWrapper->Exec(query_delete));
+//  ASSERT_TRUE(dbms->Exec(query_delete));
   // Act
-  const char* query_insert =
+  std::string query_insert =
       "INSERT INTO `application` (`id`, `memory_kb`,"
       " `heart_beat_timeout_ms`, `keep_context`) VALUES ('12345', 5, 10, 1)";
 
   // Assert
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   EXPECT_FALSE(reps->CanAppKeepContext("0"));
   EXPECT_TRUE(reps->CanAppKeepContext("12345"));
   // Act
@@ -357,23 +362,26 @@ TEST_F(
       " `heart_beat_timeout_ms`, `keep_context`) VALUES ('123', 10, 7, 0)";
 
   // Assert
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   EXPECT_FALSE(reps->CanAppKeepContext("123"));
 }
 
 TEST_F(SQLPTExtRepresentationTest,
        CanAppStealFocus_SetStealFocus_ExpectValuesThatSetInStealFocusParam) {
   // Arrange
-  const char* query_delete = "DELETE FROM `application`; ";
+  const std::string query_delete = "DELETE FROM `application`; ";
   // Assert
-  ASSERT_TRUE(dbms->Exec(query_delete));
+  ASSERT_TRUE(queryWrapper->Exec(query_delete));
+//  ASSERT_TRUE(dbms->Exec(query_delete));
   // Act
-  const char* query_insert =
+  std::string query_insert =
       "INSERT INTO `application` (`id`, `memory_kb`,"
       " `heart_beat_timeout_ms`, `steal_focus`) VALUES ('12345', 5, 10, 1)";
 
   // Assert
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   EXPECT_TRUE(reps->CanAppStealFocus("12345"));
   EXPECT_FALSE(reps->CanAppStealFocus("0"));
   // Act
@@ -382,24 +390,27 @@ TEST_F(SQLPTExtRepresentationTest,
       " `heart_beat_timeout_ms`, `steal_focus`) VALUES ('123', 10, 7, 0)";
 
   // Assert
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   EXPECT_FALSE(reps->CanAppStealFocus("123"));
 }
 
 TEST_F(SQLPTExtRepresentationTest,
        GetDefaultHMI_SetHMI_ExpectValuesThatSetInHMIParam) {
   // Arrange
-  const char* query_delete = "DELETE FROM `application`; ";
+  const std::string query_delete = "DELETE FROM `application`; ";
   // Assert
-  ASSERT_TRUE(dbms->Exec(query_delete));
+  ASSERT_TRUE(queryWrapper->Exec(query_delete));
+//  ASSERT_TRUE(dbms->Exec(query_delete));
   // Act
-  const char* query_insert =
+  std::string query_insert =
       "INSERT INTO `application` (`id`, `memory_kb`,"
       " `heart_beat_timeout_ms`, `default_hmi`) VALUES ('12345', 5, 10, "
       "'NONE')";
   std::string result;
   // Assert
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   EXPECT_TRUE(reps->GetDefaultHMI("12345", &result));
   EXPECT_EQ("NONE", result);
   query_insert =
@@ -408,7 +419,8 @@ TEST_F(SQLPTExtRepresentationTest,
       "'LIMITED')";
 
   // Assert
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   EXPECT_TRUE(reps->GetDefaultHMI("123", &result));
   EXPECT_EQ("LIMITED", result);
 }
@@ -423,21 +435,24 @@ TEST_F(SQLPTExtRepresentationTest,
   EXPECT_EQ(0u, allowed_groups.size());
   EXPECT_EQ(0u, disallowed_groups.size());
 
-  const char* query_delete = "DELETE FROM `device_consent_group`; ";
+  const std::string query_delete = "DELETE FROM `device_consent_group`; ";
   // Assert
-  ASSERT_TRUE(dbms->Exec(query_delete));
+  ASSERT_TRUE(queryWrapper->Exec(query_delete));
+//  ASSERT_TRUE(dbms->Exec(query_delete));
   // Act
-  const char* query_insert =
+  std::string query_insert =
       "INSERT INTO `device_consent_group` (`device_id`, "
       "`functional_group_id`,'is_consented', `input`, `time_stamp`) VALUES "
       "('XXX12345ZZZ', 'DataConsent-2', 1,'GUI', '2014-01-01T00:00:52Z')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   query_insert =
       "INSERT INTO `device_consent_group` (`device_id`, "
       "`functional_group_id`,'is_consented', `input`, `time_stamp`) VALUES "
       "('XXX12345ZZZ', 'Navigation-1', 0,'GUI', '2015-01-01T00:00:52Z')";
   // Assert
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   EXPECT_TRUE(reps->GetUserPermissionsForDevice("XXX12345ZZZ", &allowed_groups,
                                                 &disallowed_groups));
   EXPECT_EQ(1u, allowed_groups.size());
@@ -512,21 +527,23 @@ TEST_F(SQLPTExtRepresentationTest,
 TEST_F(SQLPTExtRepresentationTest,
        GetPermissionsForApp_SetPermissions_ExpectValuesThatSetInParams) {
   // Arrange
-  const char* query_insert =
+  std::string query_insert =
       "INSERT INTO `consent_group` (`device_id`, 'application_id' , "
       "`functional_group_id`, 'is_consented', `input`, `time_stamp`) VALUES "
       "('XXX12345ZZZ', '12345', 414812216, 1,'GUI', "
       "'2014-01-01T00:00:52Z')";
 
   // Assert
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   query_insert =
       "INSERT INTO `consent_group` (`device_id`, 'application_id' , "
       "`functional_group_id`, 'is_consented', `input`, `time_stamp`) VALUES "
       "('XXX12345ZZZ', '12345', 686787169, 0,'GUI', "
       "'2014-01-01T00:00:52Z')";
   // Assert
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   GroupsAliasNameCollection allowed_groups;
   allowed_groups.push_back(std::make_pair("DataConsent", "DataConsent-2"));
 
@@ -625,34 +642,40 @@ TEST_F(SQLPTExtRepresentationTest,
 TEST_F(SQLPTExtRepresentationTest,
        GetDeviceGroupsFromPolicies_SetGroups_ExpectValuesThatSetInParams) {
   // Arrange
-  const char* query_insert =
+  std::string query_insert =
       "INSERT INTO `app_group` (`application_id`, 'functional_group_id') "
       "VALUES ('device', '414812216')";
   // Assert
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   query_insert =
       "INSERT INTO `functional_group` (`id`, 'user_consent_prompt', 'name') "
       "VALUES ('414812216', 'DataConsent', 'DataConsent-2')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
 
   query_insert =
       "INSERT INTO `app_group` (`application_id`, 'functional_group_id') "
       "VALUES ('device', 1809526495)";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   query_insert =
       "INSERT INTO `functional_group` (`id`, 'user_consent_prompt', 'name') "
       "VALUES (1809526495, 'Notifications', 'Notifications')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
 
   query_insert =
       "INSERT INTO `preconsented_group` (`application_id`, "
       "`functional_group_id`) "
       "VALUES ('device', 686787169)";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   query_insert =
       "INSERT INTO `functional_group` (`id`, 'user_consent_prompt', 'name') "
       "VALUES (686787169, '', 'Base-4')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
 
   policy_table::Strings groups;
   policy_table::Strings preconsented_groups;
@@ -678,75 +701,104 @@ TEST_F(SQLPTExtRepresentationTest,
 TEST_F(SQLPTExtRepresentationTest,
        SetDeviceData_SetDeviceData_ExpectValuesThatSetInParams) {
   // Arrange
+  utils::dbms::SQLQuery query(reps->db());
   reps->SetDeviceData("08-00-27-CE-76-FE", "hardware IPX", "v.8.0.1", "Android",
                       "4.4.2", "Life", 2, "Bluetooth");
-  const char* query_select_hardware =
+  const std::string query_select_hardware =
       "SELECT `hardware` FROM `device` WHERE `id` = '08-00-27-CE-76-FE'";
-  const char* query_select_firmware_rev =
+  const std::string query_select_firmware_rev =
       "SELECT `firmware_rev` FROM `device` WHERE `id` = '08-00-27-CE-76-FE'";
-  const char* query_select_os =
+  const std::string query_select_os =
       "SELECT `os` FROM `device` WHERE `id` = '08-00-27-CE-76-FE'";
-  const char* query_select_os_version =
+  const std::string query_select_os_version =
       "SELECT `os_version` FROM `device` WHERE `id` = '08-00-27-CE-76-FE'";
-  const char* query_select_carrier =
+  const std::string query_select_carrier =
       "SELECT `carrier` FROM `device` WHERE `id` = '08-00-27-CE-76-FE'";
-  const char* query_select_max_rfports_number =
+  const std::string query_select_max_rfports_number =
       "SELECT `max_number_rfcom_ports` FROM `device` WHERE `id` = "
       "'08-00-27-CE-76-FE'";
-  const char* query_select_connection_type =
+  const std::string query_select_connection_type =
       "SELECT `connection_type` FROM `device` WHERE `id` = '08-00-27-CE-76-FE'";
 
   // Checks
-  EXPECT_EQ(string("hardware IPX"),
-            dbms->FetchOneString(query_select_hardware));
-  EXPECT_EQ("v.8.0.1", dbms->FetchOneString(query_select_firmware_rev));
-  EXPECT_EQ("Android", dbms->FetchOneString(query_select_os));
-  EXPECT_EQ("4.4.2", dbms->FetchOneString(query_select_os_version));
-  EXPECT_EQ("Life", dbms->FetchOneString(query_select_carrier));
-  EXPECT_EQ(2, dbms->FetchOneInt(query_select_max_rfports_number));
-  EXPECT_EQ("Bluetooth", dbms->FetchOneString(query_select_connection_type));
+  query.Prepare(query_select_hardware);
+  query.Next();
+  EXPECT_EQ(string("hardware IPX"), query.GetString(0));
+//  EXPECT_EQ(string("hardware IPX"),
+//            dbms->FetchOneString(query_select_hardware));
+  query.Prepare(query_select_firmware_rev);
+  query.Next();
+  EXPECT_EQ("v.8.0.1", query.GetString(0));
+//  EXPECT_EQ("v.8.0.1", dbms->FetchOneString(query_select_firmware_rev));
+  query.Prepare(query_select_os);
+  query.Next();
+  EXPECT_EQ("Android", query.GetString(0));
+//  EXPECT_EQ("Android", dbms->FetchOneString(query_select_os));
+  query.Prepare(query_select_os_version);
+  query.Next();
+  EXPECT_EQ("4.4.2", query.GetString(0));
+//  EXPECT_EQ("4.4.2", dbms->FetchOneString(query_select_os_version));
+  query.Prepare(query_select_carrier);
+  query.Next();
+  EXPECT_EQ("Life", query.GetString(0));
+//  EXPECT_EQ("Life", dbms->FetchOneString(query_select_carrier));
+  query.Prepare(query_select_max_rfports_number);
+  query.Next();
+  EXPECT_EQ(2, query.GetInteger(0));
+//  EXPECT_EQ(2, dbms->FetchOneInt(query_select_max_rfports_number));
+  query.Prepare(query_select_connection_type);
+  query.Next();
+  EXPECT_EQ("Bluetooth", query.GetString(0));
+//  EXPECT_EQ("Bluetooth", dbms->FetchOneString(query_select_connection_type));
 }
 
 TEST_F(
     SQLPTExtRepresentationTest,
     ReactOnUserDevConsentForApp_SetDeviceAllowedAppHasPreDataConsent_ExpectAppHasDefaultPolicies) {
   // Arrange
-  const char* query_insert =
+  std::string query_insert =
       "INSERT INTO `app_group` (`application_id`, `functional_group_id`) "
       "VALUES ('device', '414812216')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
 
   query_insert =
       "INSERT INTO `app_group` (`application_id`, `functional_group_id`) "
       "VALUES ('default', '686787169')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
 
   query_insert =
       "INSERT INTO `app_group` (`application_id`, `functional_group_id`) "
       "VALUES ('pre_DataConsent', '129372391')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
 
   query_insert =
       "INSERT INTO `app_group` (`application_id`, `functional_group_id`) "
       "VALUES ('1234', '129372391')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
 
   query_insert =
       "INSERT INTO `preconsented_group` (`application_id`, "
       "`functional_group_id`) "
       "VALUES ('1234', '129372391')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   query_insert =
       "INSERT INTO `functional_group` (`id`, `user_consent_prompt`, `name`) "
       "VALUES (129372391, '', 'pre_DataConsent')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   query_insert =
       "INSERT INTO `application` (`id`, `memory_kb`,"
       " `heart_beat_timeout_ms`, `is_predata`, `keep_context`) VALUES ('1234', "
       "5, 10, 1, 0)";
 
   // Assert
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
 
   EXPECT_TRUE(reps->IsPredataPolicy("1234"));
   reps->ReactOnUserDevConsentForApp("1234", true);
@@ -757,62 +809,72 @@ TEST_F(
     SQLPTExtRepresentationTest,
     ReactOnUserDevConsentForApp_SetDeviceAllowedAppHasSpecificPoliciesThenSetPredata_ExpectAppGroupsRestored) {
   // Arrange
-  const char* query_insert =
+  std::string query_insert =
       "INSERT INTO `device_consent_group` (`device_id`, "
       "`functional_group_id`,'is_consented', `input`, `time_stamp`) VALUES "
       "('XXX12345ZZZ', 'Location-1', 1,'GUI', '2015-01-01T00:00:52Z')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
 
   query_insert =
       "INSERT INTO `consent_group` (`device_id`, 'application_id' , "
       "`functional_group_id`, `is_consented`, `input`, `time_stamp`) VALUES "
       "('XXX12345ZZZ', '1234', 156072572, 1,'GUI', "
       "'2014-01-01T00:00:52Z')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
 
   query_insert =
       "INSERT INTO `consent_group` (`device_id`, 'application_id' , "
       "`functional_group_id`, `is_consented`, `input`, `time_stamp`) VALUES "
       "('XXX12345ZZZ', '1234', 1809526495, 1,'GUI', "
       "'2014-01-01T00:00:52Z')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   query_insert =
       "INSERT INTO `functional_group` (`id`, `user_consent_prompt`, `name`) "
       "VALUES (129372391, '', 'pre_DataConsent')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
 
   query_insert =
       "INSERT INTO `functional_group` (`id`, `user_consent_prompt`, `name`) "
       "VALUES (1809526495, 'Notifications', 'Notifications')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   query_insert =
       "INSERT INTO `functional_group` (`id`, `user_consent_prompt`, `name`) "
       "VALUES (156072572, 'Location', 'Location-1')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
 
   // Add to app_group
   query_insert =
       "INSERT INTO `app_group` (`application_id`, `functional_group_id`) "
       "VALUES ('1234', '1809526495')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
 
   query_insert =
       "INSERT INTO `app_group` (`application_id`, `functional_group_id`) "
       "VALUES ('1234', '156072572')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   // Add to pre_consented groups
   query_insert =
       "INSERT INTO `preconsented_group` (`application_id`, "
       "`functional_group_id`) "
       "VALUES ('1234', '129372391')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
 
   query_insert =
       "INSERT INTO `application` (`id`, `memory_kb`,"
       " `heart_beat_timeout_ms`, `is_predata`, `keep_context`) VALUES ('1234', "
       "5, 10, 0, 0)";
   // Assert
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   FunctionalIdType group_types;
   ASSERT_TRUE(reps->GetPermissionsForApp("XXX12345ZZZ", "1234", &group_types));
   EXPECT_FALSE(reps->IsPredataPolicy("1234"));
@@ -845,14 +907,16 @@ TEST_F(
 TEST_F(SQLPTExtRepresentationTest,
        GetUserFriendlyMsg_SetMsg_ExpectReceivedMsgSetInParams) {
   // Arrange
-  const char* query_insert =
+  std::string query_insert =
       "INSERT INTO `message` (`tts`, `label`,`line1`, `line2`, `textBody`, "
       "`language_code`, `message_type_name`) VALUES ('test tts message', "
       "'GPS and speed', 'test', 'test1', 'test3', 'en-en', 'AppPermissions')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   query_insert =
       "INSERT INTO `message_type` (`name`) VALUES ('AppPermissions')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   std::vector<string> msg_code;
   msg_code.push_back("AppPermissions");
   // Act
@@ -871,126 +935,158 @@ TEST_F(SQLPTExtRepresentationTest,
 TEST_F(SQLPTExtRepresentationTest,
        IncrementGlobalCounter_IncrementThreeTimes_ExpectCountEqual3) {
   // Arrange
-  const char* query_update =
+  utils::dbms::SQLQuery query(reps->db());
+  const std::string query_update =
       "UPDATE `usage_and_error_count` SET"
       " `count_of_sync_reboots` = 0";
 
   // Assert
-  ASSERT_TRUE(dbms->Exec(query_update));
+  ASSERT_TRUE(queryWrapper->Exec(query_update));
+//  ASSERT_TRUE(dbms->Exec(query_update));
 
   // Act
   reps->Increment("count_of_sync_reboots");
   reps->Increment("count_of_sync_reboots");
   reps->Increment("count_of_sync_reboots");
 
-  const char* query_select =
+  const std::string query_select =
       "SELECT `count_of_sync_reboots` FROM `usage_and_error_count`";
   // Assert
-  EXPECT_EQ(3, dbms->FetchOneInt(query_select));
+  query.Prepare(query_select);
+  query.Next();
+  EXPECT_EQ(3, query.GetInteger(0));
+//  EXPECT_EQ(3, dbms->FetchOneInt(query_select));
 }
 
 TEST_F(
     SQLPTExtRepresentationTest,
     IncrementAppCounter_IncrementCountOfUserSelections3Times_ExpectCountEqual3) {
   // Arrange
-  const char* query_delete =
+  utils::dbms::SQLQuery query(reps->db());
+  const std::string query_delete =
       "DELETE FROM `app_level` WHERE `application_id` = '12345'";
 
   // Assert
-  ASSERT_TRUE(dbms->Exec(query_delete));
+  ASSERT_TRUE(queryWrapper->Exec(query_delete));
+//  ASSERT_TRUE(dbms->Exec(query_delete));
 
   // Act
   reps->Increment("12345", "count_of_user_selections");
   reps->Increment("12345", "count_of_user_selections");
   reps->Increment("12345", "count_of_user_selections");
 
-  const char* query_select =
+  const std::string query_select =
       "SELECT `count_of_user_selections` FROM `app_level`"
       "  WHERE `application_id` = '12345'";
 
   // Assert
-  EXPECT_EQ(3, dbms->FetchOneInt(query_select));
+  query.Prepare(query_select);
+  query.Next();
+  EXPECT_EQ(3, query.GetInteger(0));
+//  EXPECT_EQ(3, dbms->FetchOneInt(query_select));
 }
 
 TEST_F(SQLPTExtRepresentationTest,
        AppInfo_SetLanguageRuInGUIAndEnInVUI_ExpectRuInGUIAndEnInVUI) {
   // Arrange
-  const char* query_delete =
+  utils::dbms::SQLQuery query(reps->db());
+  const std::string query_delete =
       "DELETE FROM `app_level` WHERE `application_id` = '12345'";
 
   // Assert
-  ASSERT_TRUE(dbms->Exec(query_delete));
+  ASSERT_TRUE(queryWrapper->Exec(query_delete));
+//  ASSERT_TRUE(dbms->Exec(query_delete));
   // Act
   reps->Set("12345", "app_registration_language_gui", "ru-ru");
   reps->Set("12345", "app_registration_language_vui", "en-en");
 
-  const char* query_select_gui =
+  const std::string query_select_gui =
       "SELECT `app_registration_language_gui`"
       " FROM `app_level` WHERE `application_id` = '12345'";
 
-  const char* query_select_vui =
+  const std::string query_select_vui =
       "SELECT `app_registration_language_vui`"
       " FROM `app_level` WHERE `application_id` = '12345'";
 
   // Assert
-  EXPECT_EQ("ru-ru", dbms->FetchOneString(query_select_gui));
-  EXPECT_EQ("en-en", dbms->FetchOneString(query_select_vui));
+  query.Prepare(query_select_gui);
+  query.Next();
+  EXPECT_EQ("ru-ru", query.GetString(0));
+//  EXPECT_EQ("ru-ru", dbms->FetchOneString(query_select_gui));
+  query.Prepare(query_select_vui);
+  query.Next();
+  EXPECT_EQ("en-en", query.GetString(0));
+//  EXPECT_EQ("en-en", dbms->FetchOneString(query_select_vui));
 }
 
 TEST_F(SQLPTExtRepresentationTest,
        AddAppStopwatch_Set10And60MinutesForStopwatch_Expect70Minutes) {
   // Arrange
-  const char* query_delete =
+  utils::dbms::SQLQuery query(reps->db());
+  const std::string query_delete =
       "DELETE FROM `app_level` WHERE `application_id` = '12345'";
   // Assert
-  ASSERT_TRUE(dbms->Exec(query_delete));
+  ASSERT_TRUE(queryWrapper->Exec(query_delete));
+//  ASSERT_TRUE(dbms->Exec(query_delete));
   // Act
   reps->Add("12345", "minutes_in_hmi_full", 10);
   reps->Add("12345", "minutes_in_hmi_full", 60);
 
-  const char* query_select =
+  const std::string query_select =
       "SELECT `minutes_in_hmi_full` FROM `app_level`"
       "  WHERE `application_id` = '12345'";
 
   // Assert
-  EXPECT_EQ(70, dbms->FetchOneInt(query_select));
+  query.Prepare(query_select);
+  query.Next();
+  EXPECT_EQ(70, query.GetInteger(0));
+//  EXPECT_EQ(70, dbms->FetchOneInt(query_select));
 }
 
 TEST_F(
     SQLPTExtRepresentationTest,
     SetUnpairedDevice_SetUnpairedDeviceId12345_ExpectUnpairedDeviceIdEquals12345) {
   // Arrange
-  const char* query_delete = "DELETE FROM `device`";
+  utils::dbms::SQLQuery query(reps->db());
+  const std::string query_delete = "DELETE FROM `device`";
   // Assert
-  ASSERT_TRUE(dbms->Exec(query_delete));
+  ASSERT_TRUE(queryWrapper->Exec(query_delete));
+//  ASSERT_TRUE(dbms->Exec(query_delete));
   // Act
-  const char* query_insert = "INSERT INTO `device` (`id`) VALUES('12345')";
+  const std::string query_insert = "INSERT INTO `device` (`id`) VALUES('12345')";
   // Assert
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   ASSERT_TRUE(reps->SetUnpairedDevice("12345", true));
   // Act
-  const char* query_select = "SELECT `id` FROM `device` WHERE `unpaired` = 1";
+  const std::string query_select = "SELECT `id` FROM `device` WHERE `unpaired` = 1";
   // Assert
-  EXPECT_EQ("12345", dbms->FetchOneString(query_select));
+  query.Prepare(query_select);
+  query.Next();
+  EXPECT_EQ("12345", query.GetString(0));
+//  EXPECT_EQ("12345", dbms->FetchOneString(query_select));
 }
 
 TEST_F(
     SQLPTExtRepresentationTest,
     UnpairedDevicesList_SetUnpairedDevicesWithId12345AndId54321_Expect2UnpairedDevices) {
   // Arrange
-  const char* query_delete = "DELETE FROM `device`";
+  const std::string query_delete = "DELETE FROM `device`";
   // Assert
-  ASSERT_TRUE(dbms->Exec(query_delete));
+  ASSERT_TRUE(queryWrapper->Exec(query_delete));
+//  ASSERT_TRUE(dbms->Exec(query_delete));
   // Act
-  const char* query_insert =
+  std::string query_insert =
       "INSERT INTO `device` (`id`, `unpaired`)"
       " VALUES('12345', 1)";
   // Assert
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   // Act
   query_insert = "INSERT INTO `device` (`id`, `unpaired`) VALUES('54321', 1)";
   // Assert
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   // Act
   std::vector<std::string> output;
   // Assert
@@ -1004,53 +1100,71 @@ TEST_F(SQLPTExtRepresentationTest,
        SetMetaInfo_SetMetaInfo_ExpectValuesSetInParams) {
   // Arrange
   ASSERT_TRUE(reps->SetMetaInfo("4.1.3.B_EB355B", "WAEGB", "ru-ru"));
-  const char* query_select_ccpu = "SELECT `ccpu_version` FROM `module_meta`";
-  const char* query_select_wers_country_code =
+  utils::dbms::SQLQuery query(reps->db());
+  const std::string query_select_ccpu = "SELECT `ccpu_version` FROM `module_meta`";
+  const std::string query_select_wers_country_code =
       "SELECT `wers_country_code` FROM `module_meta`";
-  const char* query_select_language = "SELECT `language` FROM `module_meta`";
+  const std::string query_select_language = "SELECT `language` FROM `module_meta`";
 
   // Assert
-  EXPECT_EQ("4.1.3.B_EB355B", dbms->FetchOneString(query_select_ccpu));
-  EXPECT_EQ("WAEGB", dbms->FetchOneString(query_select_wers_country_code));
-  EXPECT_EQ("ru-ru", dbms->FetchOneString(query_select_language));
+  query.Prepare(query_select_ccpu);
+  query.Next();
+  EXPECT_EQ("4.1.3.B_EB355B", query.GetString(0));
+//  EXPECT_EQ("4.1.3.B_EB355B", dbms->FetchOneString(query_select_ccpu));
+  query.Prepare(query_select_wers_country_code);
+  query.Next();
+  EXPECT_EQ("WAEGB", query.GetString(0));
+//  EXPECT_EQ("WAEGB", dbms->FetchOneString(query_select_wers_country_code));
+  query.Prepare(query_select_language);
+  query.Next();
+  EXPECT_EQ("ru-ru", query.GetString(0));
+//  EXPECT_EQ("ru-ru", dbms->FetchOneString(query_select_language));
 }
 
 TEST_F(SQLPTExtRepresentationTest,
        IsMetaInfoPresent_SetMetaInfo_ExpectMetaInfoPresent) {
   // Arrange
-  const char* query_insert_meta_info =
+  const std::string query_insert_meta_info =
       "UPDATE `module_meta` SET `ccpu_version` = '4.1.3.B_EB355B', "
       "`wers_country_code` = 'WAEGB', `language` = 'ru-ru' ";
-  ASSERT_TRUE(dbms->Exec(query_insert_meta_info));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert_meta_info));
+//  ASSERT_TRUE(dbms->Exec(query_insert_meta_info));
   EXPECT_TRUE(reps->IsMetaInfoPresent());
 }
 
 TEST_F(SQLPTExtRepresentationTest,
        SetSystemLanguage_SetSystemLanguage_ExpectValueSetInParams) {
   // Arrange
+  utils::dbms::SQLQuery query(reps->db());
   ASSERT_TRUE(reps->SetSystemLanguage("ru-ru"));
-  const char* query_select_language = "SELECT `language` FROM `module_meta`";
+  const std::string query_select_language = "SELECT `language` FROM `module_meta`";
   // Assert
-  EXPECT_EQ("ru-ru", dbms->FetchOneString(query_select_language));
+  query.Prepare(query_select_language);
+  query.Next();
+  EXPECT_EQ("ru-ru", query.GetString(0));
+//  EXPECT_EQ("ru-ru", dbms->FetchOneString(query_select_language));
 }
 
 TEST_F(
     SQLPTExtRepresentationTest,
     GetFunctionalGroupNames_SetGroupsManuallyThenGetGroupNames_ExpectAllGroupsReceived) {
   // Arrange
-  const char* query_insert =
+  std::string query_insert =
       "INSERT INTO `functional_group` (`id`, `user_consent_prompt`, `name`) "
       "VALUES (129372391, '', 'pre_DataConsent')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
 
   query_insert =
       "INSERT INTO `functional_group` (`id`, `user_consent_prompt`, `name`) "
       "VALUES (1809526495, 'Notifications', 'Notifications')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   query_insert =
       "INSERT INTO `functional_group` (`id`, `user_consent_prompt`, `name`) "
       "VALUES (156072572, 'Location', 'Location-1')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   std::map<uint32_t, std::pair<std::string, std::string>> FunctionalGroupNames;
   std::map<uint32_t, std::pair<std::string, std::string>>::iterator it;
   reps->GetFunctionalGroupNames(FunctionalGroupNames);
@@ -1075,33 +1189,38 @@ TEST_F(
     SQLPTExtRepresentationTest,
     RemoveAppConsentForGroup_SetAppConsentThenRemove_ExpectAppConsentForGroupRemoved) {
   // Arrange
-  const char* query_insert =
+  std::string query_insert =
       "INSERT INTO `functional_group` (`id`, `user_consent_prompt`, `name`) "
       "VALUES (129372391, '', 'pre_DataConsent')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
 
   query_insert =
       "INSERT INTO `functional_group` (`id`, `user_consent_prompt`, `name`) "
       "VALUES (1809526495, 'Notifications', 'Notifications')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   query_insert =
       "INSERT INTO `functional_group` (`id`, `user_consent_prompt`, `name`) "
       "VALUES (156072572, 'Location', 'Location-1')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
 
   query_insert =
       "INSERT INTO `consent_group` (`device_id`, 'application_id' , "
       "`functional_group_id`, `is_consented`, `input`, `time_stamp`) VALUES "
       "('XXX12345ZZZ', '1234', 1809526495, 1,'GUI', "
       "'2014-01-01T00:00:52Z')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
 
   query_insert =
       "INSERT INTO `consent_group` (`device_id`, 'application_id' , "
       "`functional_group_id`, `is_consented`, `input`, `time_stamp`) VALUES "
       "('XXX12345ZZZ', '1234', 156072572, 1,'GUI', "
       "'2015-01-01T00:00:52Z')";
-  ASSERT_TRUE(dbms->Exec(query_insert));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert));
+//  ASSERT_TRUE(dbms->Exec(query_insert));
   GroupsAliasNameCollection allowed_groups;
   allowed_groups.push_back(std::make_pair("Location", "Location-1"));
   allowed_groups.push_back(std::make_pair("Notifications", "Notifications"));
@@ -1125,6 +1244,7 @@ TEST_F(
 TEST_F(SQLPTExtRepresentationTest,
        CleanUnpaireDevices_SetDevicesThenCleanup_ExpectDevicesDeleted) {
   // Arrange
+  utils::dbms::SQLQuery query(reps->db());
   reps->SetDeviceData("XXX12345ZZZ", "hardware IPX", "v.8.0.1", "Android",
                       "4.4.2", "Life", 2, "Bluetooth");
 
@@ -1150,17 +1270,26 @@ TEST_F(SQLPTExtRepresentationTest,
 
   EXPECT_TRUE(reps->SetUserPermissionsForApp(perm_consent));
 
-  const char* query_select_device =
+  const std::string query_select_device =
       "SELECT COUNT(*) FROM `device` WHERE `id` = 'XXX12345ZZZ'";
-  const char* query_select_device_consent =
+  const std::string query_select_device_consent =
       "SELECT COUNT(*) FROM `device_consent_group` WHERE `device_id` = "
       "'XXX12345ZZZ'";
-  const char* query_select_consent_group =
+  const std::string query_select_consent_group =
       "SELECT COUNT(*) FROM `consent_group` WHERE `device_id` = 'XXX12345ZZZ'";
 
-  EXPECT_EQ(1, dbms->FetchOneInt(query_select_device));
-  EXPECT_EQ(2, dbms->FetchOneInt(query_select_device_consent));
-  EXPECT_EQ(2, dbms->FetchOneInt(query_select_consent_group));
+  query.Prepare(query_select_device);
+  query.Next();
+  ASSERT_EQ(1, query.GetInteger(0));
+//  EXPECT_EQ(1, dbms->FetchOneInt(query_select_device));
+  query.Prepare(query_select_device_consent);
+  query.Next();
+  ASSERT_EQ(2, query.GetInteger(0));
+//  EXPECT_EQ(2, dbms->FetchOneInt(query_select_device_consent));
+  query.Prepare(query_select_consent_group);
+  query.Next();
+  ASSERT_EQ(2, query.GetInteger(0));
+//  EXPECT_EQ(2, dbms->FetchOneInt(query_select_consent_group));
   EXPECT_TRUE(reps->SetUnpairedDevice("XXX12345ZZZ", true));
 
   std::vector<std::string> DeviceIds;
@@ -1168,16 +1297,25 @@ TEST_F(SQLPTExtRepresentationTest,
   EXPECT_TRUE(reps->CleanupUnpairedDevices(DeviceIds));
 
   // Assert
-  EXPECT_EQ(0, dbms->FetchOneInt(query_select_device));
-  EXPECT_EQ(0, dbms->FetchOneInt(query_select_device_consent));
-  EXPECT_EQ(0, dbms->FetchOneInt(query_select_consent_group));
+  query.Prepare(query_select_device);
+  query.Next();
+  ASSERT_EQ(0, query.GetInteger(0));
+//  EXPECT_EQ(0, dbms->FetchOneInt(query_select_device));
+  query.Prepare(query_select_device_consent);
+  query.Next();
+  ASSERT_EQ(0, query.GetInteger(0));
+//  EXPECT_EQ(0, dbms->FetchOneInt(query_select_device_consent));
+  query.Prepare(query_select_consent_group);
+  query.Next();
+  ASSERT_EQ(0, query.GetInteger(0));
+//  EXPECT_EQ(0, dbms->FetchOneInt(query_select_consent_group));
 }
 
 TEST_F(
     SQLPTExtRepresentationTest,
     SetDefaultPolicy_SetPredataThenChangeToDefaultPolicy_ExpectDefaultPolicySet) {
   // Arrange
-  const char* query_insert_app =
+  const std::string query_insert_app =
       "INSERT OR IGNORE INTO `application`(`id`, `keep_context`, "
       "`steal_focus`, "
       " `default_hmi`, `priority_value`, `is_revoked`, `is_default`, "
@@ -1185,7 +1323,8 @@ TEST_F(
       " `heart_beat_timeout_ms`) VALUES( '12345', 0, 0, 'NONE', 'NONE', 0, 0, "
       "0, 64, 10) ";
 
-  ASSERT_TRUE(dbms->Exec(query_insert_app));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert_app));
+//  ASSERT_TRUE(dbms->Exec(query_insert_app));
   GroupsAliasNameCollection allowed_groups;
   allowed_groups.push_back(std::make_pair("Notifications", "Notifications"));
 
@@ -1207,7 +1346,7 @@ TEST_F(
 TEST_F(SQLPTExtRepresentationTest,
        SetIsPreData_SetSpecificPoliciesThenSetIsPredata_ExpectPreDataSet) {
   // Arrange
-  const char* query_insert_app =
+  const std::string query_insert_app =
       "INSERT OR IGNORE INTO `application`(`id`, `keep_context`, "
       "`steal_focus`, "
       " `default_hmi`, `priority_value`, `is_revoked`, `is_default`, "
@@ -1215,7 +1354,8 @@ TEST_F(SQLPTExtRepresentationTest,
       " `heart_beat_timeout_ms`) VALUES( '12345', 0, 0, 'NONE', 'NONE', 0, 0, "
       "0, 64, 10) ";
 
-  ASSERT_TRUE(dbms->Exec(query_insert_app));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert_app));
+//  ASSERT_TRUE(dbms->Exec(query_insert_app));
   GroupsAliasNameCollection allowed_groups;
   allowed_groups.push_back(std::make_pair("Notifications", "Notifications"));
 
@@ -1239,7 +1379,7 @@ TEST_F(
     SQLPTExtRepresentationTest,
     SetPreDataPolicy_SetSpecificPoliciesThenSetPredataPolicy_ExpectPreDataPolicySet) {
   // Arrange
-  const char* query_insert_app =
+  const std::string query_insert_app =
       "INSERT OR IGNORE INTO `application`(`id`, `keep_context`, "
       "`steal_focus`, "
       " `default_hmi`, `priority_value`, `is_revoked`, `is_default`, "
@@ -1247,7 +1387,8 @@ TEST_F(
       " `heart_beat_timeout_ms`) VALUES( '12345', 0, 0, 'NONE', 'NONE', 0, 0, "
       "0, 64, 10) ";
 
-  ASSERT_TRUE(dbms->Exec(query_insert_app));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert_app));
+//  ASSERT_TRUE(dbms->Exec(query_insert_app));
   GroupsAliasNameCollection allowed_groups;
   allowed_groups.push_back(std::make_pair("Notifications", "Notifications"));
 
@@ -1266,14 +1407,15 @@ TEST_F(
 TEST_F(SQLPTExtRepresentationTest,
        IsPreDataPolicy_SetPredataPolicy_ExpectPreDataPolicySet) {
   // Arrange
-  const char* query_insert_app =
+  const std::string query_insert_app =
       "INSERT OR IGNORE INTO `application`(`id`, `keep_context`, "
       "`steal_focus`, "
       " `default_hmi`, `priority_value`, `is_revoked`, `is_default`, "
       "`is_predata`, `memory_kb`, "
       " `heart_beat_timeout_ms`) VALUES( '12345', 0, 0, 'NONE', 'NONE', 0, 0, "
       "1, 64, 10) ";
-  ASSERT_TRUE(dbms->Exec(query_insert_app));
+  ASSERT_TRUE(queryWrapper->Exec(query_insert_app));
+//  ASSERT_TRUE(dbms->Exec(query_insert_app));
   // Check
   EXPECT_TRUE(reps->IsPredataPolicy("12345"));
 }

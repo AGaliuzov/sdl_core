@@ -42,6 +42,10 @@ namespace policy {
 class SQLPTExtRepresentation : public SQLPTRepresentation,
   public PTExtRepresentation {
   public:
+#ifdef BUILD_TESTS
+    SQLPTExtRepresentation();
+    SQLPTExtRepresentation(std::string in_memory);
+#endif // BUILD_TESTS
     bool CanAppKeepContext(const std::string& app_id);
     bool CanAppStealFocus(const std::string& app_id);
     bool GetDefaultHMI(const std::string& policy_app_id,

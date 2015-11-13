@@ -65,7 +65,11 @@ template<typename T, typename K> void InsertUnique(K value, T* array) {
 #ifdef CUSTOMER_PASA
 const std::string SQLPTRepresentation::kDatabaseName = "policy.db";
 #else  // CUSTOMER_PASA
+//#ifndef BUILD_TESTS
 const std::string SQLPTRepresentation::kDatabaseName = "policy";
+//#else
+//const std::string SQLPTRepresentation::kDatabaseName = ":memory:";
+//#endif
 #endif  // CUSTOMER_PASA
 
 SQLPTRepresentation::SQLPTRepresentation()
@@ -77,6 +81,26 @@ SQLPTRepresentation::SQLPTRepresentation()
   }
 #endif  // __QNX__
 }
+
+#ifdef BUILD_TESTS
+SQLPTRepresentation::SQLPTRepresentation(std::string in_memory)
+//  : db_(new utils::dbms::SQLDatabase(kDatabaseName)) {
+//  std::string path = profile::Profile::instance()->app_storage_folder();
+//  if (!path.empty()) {
+//    db_->set_path(path + "/");
+//  }
+{
+    if (in_memory.compare(":memory:") == 0) {
+        db_ = new utils::dbms::SQLDatabase();
+    } else {
+        db_ = new utils::dbms::SQLDatabase(in_memory);
+        std::string path = profile::Profile::instance()->app_storage_folder();
+        if (!path.empty()) {
+          db_->set_path(path + "/");
+        }
+    }
+}
+#endif // BUILD_TESTS
 
 SQLPTRepresentation::~SQLPTRepresentation() {
   db_->Close();

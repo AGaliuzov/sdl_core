@@ -51,6 +51,9 @@ struct CheckAppPolicy;
 class PolicyManagerImpl : public PolicyManager {
   public:
     PolicyManagerImpl();
+#ifdef BUILD_TESTS
+    PolicyManagerImpl(std::string in_memory);
+#endif // BUILD_TESTS
     virtual void set_listener(PolicyListener* listener);
     PolicyListener* listener() const {
       return listener_;

@@ -90,6 +90,20 @@ CacheManager::CacheManager()
   backup_thread_->start();
 }
 
+#ifdef BUILD_TESTS
+CacheManager::CacheManager(std::string in_memory)
+  : CacheManagerInterface(),
+    pt_(new policy_table::Table),
+    backup_( new SQLPTExtRepresentation(in_memory)),
+    update_required(false) {
+
+  LOG4CXX_AUTO_TRACE(logger_);
+  backuper_ = new BackgroundBackuper(this);
+  backup_thread_ = threads::CreateThread("Backup thread", backuper_);
+  backup_thread_->start();
+}
+#endif // BUILD_TESTS
+
 CacheManager::~CacheManager() {
   LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(backuper_locker_);
