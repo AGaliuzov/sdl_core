@@ -348,6 +348,7 @@ bool PolicyHandler::ClearUserConsent() {
 }
 
 uint32_t PolicyHandler::GetAppIdForSending() {
+  POLICY_LIB_CHECK(0);
   ApplicationManagerImpl::ApplicationListAccessor accessor;
   HmiLevelOrderedApplicationList app_list(accessor.begin(), accessor.end());
 
@@ -947,7 +948,7 @@ void PolicyHandler::OnIgnitionCycleOver() {
 void PolicyHandler::OnActivateApp(uint32_t connection_key,
                                   uint32_t correlation_id) {
   LOG4CXX_AUTO_TRACE(logger_);
-
+  POLICY_LIB_CHECK_VOID();
   ApplicationSharedPtr app =
     ApplicationManagerImpl::instance()->application(
       connection_key);
@@ -1132,8 +1133,6 @@ bool PolicyHandler::SaveSnapshot(const BinaryMessage& pt_string,
 void PolicyHandler::OnSnapshotCreated(const BinaryMessage& pt_string,
                                       const std::vector<int>& retry_delay_seconds,
                                       int timeout_exchange) {
-  POLICY_LIB_CHECK_VOID()
-
   std::string policy_snapshot_full_path;
   if (SaveSnapshot(pt_string, policy_snapshot_full_path)) {
     MessageHelper::SendPolicyUpdate(policy_snapshot_full_path,
