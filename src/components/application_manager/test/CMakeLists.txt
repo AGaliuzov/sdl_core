@@ -94,6 +94,7 @@ if (BUILD_TESTS)
   set(testSources
     ${AM_TEST_DIR}/command_impl_test.cc
     ${AM_TEST_DIR}/mobile_message_handler_test.cc
+    ${AM_TEST_DIR}/mobile_message_handler_v1_test.cc
     ${AM_TEST_DIR}/request_info_test.cc
     ${AM_TEST_DIR}/resumption_sql_queries_test.cc
     ${AM_TEST_DIR}/policy_handler_test.cc

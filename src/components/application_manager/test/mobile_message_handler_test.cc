@@ -38,11 +38,10 @@
 #include <iterator>
 #include <vector>
 
+#include "gmock/gmock.h"
 #include "application_manager/message.h"
 #include "protocol/raw_message.h"
 #include "utils/make_shared.h"
-
-#include "gmock/gmock.h"
 
 namespace application_manager {
 namespace test {
@@ -55,6 +54,8 @@ using protocol_handler::PROTOCOL_HEADER_V2_SIZE;
 using application_manager::MobileMessageHandler;
 using application_manager::ProtocolVersion;
 using ::testing::_;
+
+using testing::Return;
 
 namespace {
 
