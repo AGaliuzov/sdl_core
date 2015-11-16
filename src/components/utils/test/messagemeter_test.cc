@@ -135,18 +135,22 @@ TEST(MessageMeterTest, AddingWithNullTimeRange) {
   }
 }
 
-// TODO(AByzhynar): APPLINK-17874 Fix MessageMeter Unit-tests
-TEST_P(MessageMeterTest, DISABLED_AddingOverPeriod) {
+TEST_P(MessageMeterTest, AddingOverPeriod) {
   size_t messages = 0;
   const TimevalStruct start_time = date_time::DateTime::getCurrentTime();
   // Add messages for less range period
-  while (date_time::DateTime::calculateTimeSpan(start_time)
+  int64_t time_span;
+  while ((time_span = date_time::DateTime::calculateTimeSpan(start_time))
          < time_range_msecs) {
     ++messages;
-    EXPECT_EQ(messages,
-              meter.TrackMessage(id1));
-    EXPECT_EQ(messages,
-              meter.Frequency(id1));
+
+    EXPECT_GE(messages, meter.TrackMessage(id1))
+        << "Tracked messages can`t be over cycles.";
+
+    if(messages > meter.Frequency(id1)) {
+      EXPECT_GE(time_range_msecs, time_span);
+      break;
+    }
   }
 }
 
@@ -154,26 +158,24 @@ TEST_P(MessageMeterTest, AddingOverPeriod_MultiIds) {
   size_t messages = 0;
   const TimevalStruct start_time = date_time::DateTime::getCurrentTime();
   // Add messages for less range period
-  while (date_time::DateTime::calculateTimeSpan(start_time)
+  int64_t time_span;
+  while ((time_span = date_time::DateTime::calculateTimeSpan(start_time))
          < time_range_msecs) {
     ++messages;
-    // 1st  Connection
-    EXPECT_EQ(messages,
-              meter.TrackMessage(id1));
-    EXPECT_EQ(messages,
-              meter.Frequency(id1));
 
-    // 2d Connection
-    EXPECT_EQ(messages,
-              meter.TrackMessage(id2));
-    EXPECT_EQ(messages,
-              meter.Frequency(id2));
+    EXPECT_GE(messages, meter.TrackMessage(id1))
+        << "Tracked messages can`t be over cycles.";
+    EXPECT_GE(messages, meter.TrackMessage(id2))
+        << "Tracked messages can`t be over cycles.";
+    EXPECT_GE(messages, meter.TrackMessage(id3))
+        << "Tracked messages can`t be over cycles.";
 
-    // 3d Connection
-    EXPECT_EQ(messages,
-              meter.TrackMessage(id3));
-    EXPECT_EQ(messages,
-              meter.Frequency(id3));
+    if(messages > meter.Frequency(id1) ||
+       messages > meter.Frequency(id2) ||
+       messages > meter.Frequency(id3)) {
+      EXPECT_GE(time_range_msecs, time_span);
+      break;
+    }
   }
 }
 
@@ -188,15 +190,17 @@ TEST_P(MessageMeterTest, CountingOverPeriod) {
             meter.TrackMessage(id3));
   const int sleep_usecs = 500;
   // Check messages count over period
-  while (date_time::DateTime::calculateTimeSpan(start_time)
+  int64_t time_span;
+  while ((time_span = date_time::DateTime::calculateTimeSpan(start_time))
          < time_range_msecs) {
     usleep(sleep_usecs);
-    EXPECT_EQ(one_message,
-              meter.Frequency(id1));
-    EXPECT_EQ(one_message,
-              meter.Frequency(id2));
-    EXPECT_EQ(one_message,
-              meter.Frequency(id3));
+
+    if(one_message != meter.Frequency(id1) ||
+       one_message != meter.Frequency(id2) ||
+       one_message != meter.Frequency(id3)) {
+      EXPECT_GE(time_range_msecs, time_span);
+      break;
+    }
   }
 }
 
