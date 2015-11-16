@@ -1,12 +1,19 @@
-#Generate file with major and minor msg_version.
+"""
+Generate file with major and minor msg_version.
+"""
 import xml.etree.ElementTree
 from string import Template
+import re
 from generator.parsers import RPCBase
- 
+
 def generate_msg_version(file_name, path_to_storage):
+    """Parses MOBILE_API.xml in order to 
+    receive major_version and minor_version
+    """ 
     tree = xml.etree.ElementTree.parse(file_name)
     root = tree.getroot()
     if (root.tag == "interface" and "version" in root.attrib):
+        check_version_format(root.attrib["version"])        
         array = (root.attrib["version"]).split(".")
         major_version = array[0]
         minor_version = array[1]
@@ -20,12 +27,26 @@ def generate_msg_version(file_name, path_to_storage):
                                  " with tag interface or atribute version")
 
 def store_data_to_file(path_to_storage, data_for_storage):
+    """Stores data with major and minor version 
+    to file generated_msg_version.h 
+    """ 
     path_to_storage = path_to_storage + "/generated_msg_version.h"
     fh = open(path_to_storage, 'w')
     fh.write(data_for_storage)
     fh.close()
 
+def check_version_format(version):
+    """Checks correctness of format of version 
+    """ 
+    p = re.compile('\d+\\.\d+')
+    result = p.match(version)
+    if result == None or (result.end() != len(version)):
+        raise RPCBase.ParseError("Incorrect format of version please check MOBILE_API.xml. "
+                                 "Need format of version major_version.minor_version")
+
 def prepare_data_for_storage(major_version, minor_version):
+    """Prepares data to store to file.
+    """
     temp = Template(
     u'''/*Copyright (c) 2015, Ford Motor Company\n'''
     u'''All rights reserved.\n'''
@@ -58,14 +79,6 @@ def prepare_data_for_storage(major_version, minor_version):
     u'''const uint16_t major_version = $m_version;\n'''
     u'''const uint16_t minor_version = $min_version;\n'''
     u'''}  // namespace application_manager\n'''
-    u'''#endif  //GENERATED_MSG_VERSION_H''')
+    u'''#endif  // GENERATED_MSG_VERSION_H''')
     data_to_file = temp.substitute(m_version = major_version, min_version = minor_version)
     return data_to_file
-    
-
-
-
-
-
-
-
