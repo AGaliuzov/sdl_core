@@ -85,7 +85,10 @@ application_manager::Message* MobileMessageHandler::HandleIncomingMessageProtoco
     return NULL;
   }
 
-  DCHECK_OR_RETURN(out_message, NULL);
+  if (!out_message) {
+    LOG4CXX_ERROR(logger_, "Out message is empty.");
+    return NULL;
+  }
 
   LOG4CXX_DEBUG(logger_, "Incoming RPC_INFO:" <<
                          "connection_key " << (out_message->connection_key() >> 16) <<
