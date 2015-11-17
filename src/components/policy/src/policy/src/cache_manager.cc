@@ -83,26 +83,16 @@ CacheManager::CacheManager()
     pt_(new policy_table::Table),
     backup_( new SQLPTExtRepresentation()),
     update_required(false) {
-
-  LOG4CXX_AUTO_TRACE(logger_);
-  backuper_ = new BackgroundBackuper(this);
-  backup_thread_ = threads::CreateThread("Backup thread", backuper_);
-  backup_thread_->start();
+  InitBackup();
 }
 
-#ifdef BUILD_TESTS
-CacheManager::CacheManager(std::string in_memory)
+CacheManager::CacheManager(const bool &in_memory)
   : CacheManagerInterface(),
     pt_(new policy_table::Table),
     backup_( new SQLPTExtRepresentation(in_memory)),
     update_required(false) {
-
-  LOG4CXX_AUTO_TRACE(logger_);
-  backuper_ = new BackgroundBackuper(this);
-  backup_thread_ = threads::CreateThread("Backup thread", backuper_);
-  backup_thread_->start();
+  InitBackup();
 }
-#endif // BUILD_TESTS
 
 CacheManager::~CacheManager() {
   LOG4CXX_AUTO_TRACE(logger_);
@@ -1920,6 +1910,13 @@ void CacheManager::MergeCFM(const policy_table::PolicyTable& new_pt,
 
     }
   }
+}
+
+void CacheManager::InitBackup() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  backuper_ = new BackgroundBackuper(this);
+  backup_thread_ = threads::CreateThread("Backup thread", backuper_);
+  backup_thread_->start();
 }
 
 CacheManager::BackgroundBackuper::BackgroundBackuper(CacheManager* cache_manager)

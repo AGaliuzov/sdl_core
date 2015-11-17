@@ -53,9 +53,7 @@ namespace policy {
 class SQLPTRepresentation : public virtual PTRepresentation {
   public:
     SQLPTRepresentation();
-#ifdef BUILD_TESTS
-    SQLPTRepresentation(std::string in_memory);
-#endif // BUILD_TESTS
+    explicit SQLPTRepresentation(const bool& in_memory);
     ~SQLPTRepresentation();
     virtual void CheckPermissions(const PTString& app_id,
         const PTString& hmi_level,

@@ -201,12 +201,13 @@ class PolicyManagerImplTest2 : public ::testing::Test {
     const std::string dev_id1;
     const std::string dev_id2;
     Json::Value PTU_request_types;
+    static const bool in_memory_;
 
     void SetUp() OVERRIDE {
       file_system::CreateDirectory("storage1");
 
       profile::Profile::instance()->config_file_name("smartDeviceLink2.ini");
-      manager = new PolicyManagerImpl(":memory:");
+      manager = new PolicyManagerImpl(in_memory_);
       manager->set_listener(&listener);
       const char* levels[] = {"BACKGROUND", "FULL", "LIMITED", "NONE"};
       hmi_level.assign(levels, levels + sizeof(levels) / sizeof(levels[0]));
@@ -460,6 +461,8 @@ class PolicyManagerImplTest_RequestTypes : public ::testing::Test {
       file_system::RemoveDirectory("storage2", true);
     }
 };
+
+const bool PolicyManagerImplTest2::in_memory_ = true;
 
 TEST_F(PolicyManagerImplTest, RefreshRetrySequence_SetSecondsBetweenRetries_ExpectRetryTimeoutSequenceWithSameSeconds) {
   // Arrange
