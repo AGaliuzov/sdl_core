@@ -51,7 +51,7 @@ struct CheckAppPolicy;
 class PolicyManagerImpl : public PolicyManager {
   public:
     PolicyManagerImpl();
-    explicit PolicyManagerImpl(const bool& in_memory);
+    explicit PolicyManagerImpl(bool in_memory);
     virtual void set_listener(PolicyListener* listener);
     PolicyListener* listener() const {
       return listener_;

@@ -83,15 +83,15 @@ CacheManager::CacheManager()
     pt_(new policy_table::Table),
     backup_( new SQLPTExtRepresentation()),
     update_required(false) {
-  InitBackup();
+  InitBackupThread();
 }
 
-CacheManager::CacheManager(const bool &in_memory)
+CacheManager::CacheManager(bool in_memory)
   : CacheManagerInterface(),
     pt_(new policy_table::Table),
     backup_( new SQLPTExtRepresentation(in_memory)),
     update_required(false) {
-  InitBackup();
+  InitBackupThread();
 }
 
 CacheManager::~CacheManager() {
@@ -1912,7 +1912,7 @@ void CacheManager::MergeCFM(const policy_table::PolicyTable& new_pt,
   }
 }
 
-void CacheManager::InitBackup() {
+void CacheManager::InitBackupThread() {
   LOG4CXX_AUTO_TRACE(logger_);
   backuper_ = new BackgroundBackuper(this);
   backup_thread_ = threads::CreateThread("Backup thread", backuper_);

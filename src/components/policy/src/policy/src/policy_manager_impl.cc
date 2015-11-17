@@ -64,7 +64,7 @@ PolicyManagerImpl::PolicyManagerImpl()
     ignition_check(true) {
 }
 
-PolicyManagerImpl::PolicyManagerImpl(const bool &in_memory)
+PolicyManagerImpl::PolicyManagerImpl(bool in_memory)
     : PolicyManager(),
       listener_(NULL),
       cache_(new CacheManager(in_memory)),

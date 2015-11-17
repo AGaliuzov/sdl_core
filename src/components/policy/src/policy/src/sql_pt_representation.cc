@@ -78,7 +78,7 @@ SQLPTRepresentation::SQLPTRepresentation()
 #endif  // __QNX__
 }
 
-SQLPTRepresentation::SQLPTRepresentation(const bool &in_memory)
+SQLPTRepresentation::SQLPTRepresentation(bool in_memory)
 {
     if (in_memory) {
         db_ = new utils::dbms::SQLDatabase();

@@ -44,7 +44,7 @@ namespace policy {
 CREATE_LOGGERPTR_GLOBAL(logger_, "SQLPTRepresentation")
 
 SQLPTExtRepresentation::SQLPTExtRepresentation(){}
-SQLPTExtRepresentation::SQLPTExtRepresentation(const bool &in_memory)
+SQLPTExtRepresentation::SQLPTExtRepresentation(bool in_memory)
   :SQLPTRepresentation(in_memory){}
 
 bool SQLPTExtRepresentation::CanAppKeepContext(const std::string& app_id) {
