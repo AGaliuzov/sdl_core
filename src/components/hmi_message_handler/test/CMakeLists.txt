@@ -33,7 +33,7 @@ if (BUILD_TESTS)
     ${GMOCK_INCLUDE_DIRECTORY}
     ${MESSAGE_BROKER_INCLUDE_DIRECTORY}
     ${COMPONENTS_DIR}/hmi_message_handler/include
-    ${COMPONENTS_DIR}/hmi_message_handler/test/include
+    ${COMPONENTS_DIR}/include/test
   )
 
   set(LIBRARIES

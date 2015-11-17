@@ -34,16 +34,12 @@ set(appMain_DIR ${CMAKE_SOURCE_DIR}/src/appMain)
 
 include_directories(
     ${GMOCK_INCLUDE_DIRECTORY}
-# --- need two dirs
-    ${COMPONENTS_DIR}/include/connection_handler/
+    ${COMPONENTS_DIR}/include/test
     ${COMPONENTS_DIR}/connection_handler/include
-# ------
     ${COMPONENTS_DIR}/security_manager/test/include
     ${COMPONENTS_DIR}/protocol_handler/test/include
     ${COMPONENTS_DIR}/security_manager/include
-#   Mock
-    ${COMPONENTS_DIR}/include/connection_handler/test/mock
-
+    ${COMPONENTS_DIR}/connection_handler/test/include
     ${COMPONENTS_DIR}/transport_manager/test/include
 
 )
