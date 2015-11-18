@@ -69,7 +69,6 @@ class SQLPTRepresentationTest : public SQLPTRepresentation,
   static const bool in_memory_;
 
  protected:
-//  static DBMS* dbms;
   static SQLPTRepresentation* reps;
   static const std::string kDatabaseName;
   static utils::dbms::SQLQuery* query_wrapper_;
@@ -90,7 +89,6 @@ class SQLPTRepresentationTest : public SQLPTRepresentation,
     EXPECT_TRUE(reps->Close());
     reps->RemoveDB();
     delete reps;
-//    dbms->Close();
   }
 
   virtual utils::dbms::SQLDatabase* db() const { return reps->db(); }
@@ -308,7 +306,6 @@ class SQLPTRepresentationTest : public SQLPTRepresentation,
   }
 };
 
-//DBMS* SQLPTRepresentationTest::dbms = 0;
 SQLPTRepresentation* SQLPTRepresentationTest::reps = 0;
 utils::dbms::SQLQuery* SQLPTRepresentationTest::query_wrapper_ = 0;
 const std::string SQLPTRepresentationTest::kDatabaseName = ":memory:";

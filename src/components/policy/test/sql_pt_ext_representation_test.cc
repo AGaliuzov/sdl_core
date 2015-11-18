@@ -61,10 +61,9 @@ class SQLPTExtRepresentationTest : public ::testing::Test {
   // Collection of pairs of group alias and corresponding group name
   typedef vector<pair<string, string> > GroupsAliasNameCollection;
 
-  SQLPTExtRepresentationTest() : /*dbms(0),*/ reps(0) {}
+  SQLPTExtRepresentationTest() : reps(0) {}
 
  protected:
-//  DBMS* dbms;
   SQLPTExtRepresentation* reps;
   static const string kDatabaseName;
   PermissionConsent perm_consent;
