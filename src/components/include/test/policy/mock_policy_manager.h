@@ -38,7 +38,7 @@
 #include "gmock/gmock.h"
 #include "policy/policy_listener.h"
 #include "policy/policy_types.h"
-#include "usage_statistics/statistics_manager.h"
+#include "policy/usage_statistics/statistics_manager.h"
 
 #include "rpc_base/rpc_base.h"
 #include "./types.h"

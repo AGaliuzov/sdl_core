@@ -36,7 +36,7 @@
 #include "application_manager/usage_statistics.h"
 #include "application_manager_mock.h"
 #include "application_mock.h"
-#include "statistics_manager_mock.h"
+#include "policy/usage_statistics/mock_statistics_manager.h"
 #include "utils/lock.h"
 #include "utils/data_accessor.h"
 #include "utils/make_shared.h"
@@ -133,8 +133,8 @@ class StateControllerTest : public ::testing::Test {
  public:
   StateControllerTest()
       : ::testing::Test(),
-        usage_stat("0", utils::SharedPtr<us::StatisticsManager>(
-                            new StatisticsManagerMock)),
+        usage_stat("0", utils::SharedPtr<usage_statistics::StatisticsManager>(
+                            new usage_statistics::test::MockStatisticsManager)),
         applications_(application_set_, applications_lock_),
         state_ctrl_(&app_manager_mock_) {}
   NiceMock<ApplicationManagerMock> app_manager_mock_;

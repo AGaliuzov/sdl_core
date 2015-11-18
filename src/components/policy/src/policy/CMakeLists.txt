@@ -39,8 +39,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 #include(${CMAKE_SOURCE_DIR}/tools/intergen/GenerateInterfaceLibrary.cmake)
 
 include_directories (
-  ./include
-  ./usage_statistics/include
+  include
+  usage_statistics/include
   ${CMAKE_SOURCE_DIR}/src/components/rpc_base/include
   ${JSONCPP_INCLUDE_DIRECTORY}
   #${CMAKE_CURRENT_BINARY_DIR}
@@ -69,7 +69,7 @@ list(APPEND SOURCES
 add_subdirectory(usage_statistics)
 
 add_subdirectory(policy_table/table_struct_ext)
-include_directories(./policy_table/table_struct_ext)
+include_directories(policy_table)
 
 set(LIBRARIES ConfigProfile policy_struct dbms jsoncpp Utils)
 if (CMAKE_SYSTEM_NAME STREQUAL "QNX")

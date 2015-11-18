@@ -42,7 +42,7 @@
 #include "json/writer.h"
 #include "json/value.h"
 #include "gtest/gtest.h"
-#include "mock_policy_listener.h"
+#include "policy/mock_policy_listener.h"
 #include "mock_pt_ext_representation.h"
 #include "mock_cache_manager.h"
 #include "mock_update_status_manager.h"

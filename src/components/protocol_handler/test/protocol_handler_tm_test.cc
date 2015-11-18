@@ -34,8 +34,8 @@
 #include "protocol_handler/protocol_handler_impl.h"
 #include "protocol/common.h"
 #include "control_message_matcher.h"
-#include "protocol_handler_mock.h"
-#include "protocol_observer_mock.h"
+#include "protocol_handler/protocol_handler_mock.h"
+#include "protocol_handler/protocol_observer_mock.h"
 
 
 namespace test {

@@ -34,7 +34,6 @@ include_directories (
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
   ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
   ${COMPONENTS_DIR}/include/utils
-  ${COMPONENTS_DIR}/include/protocol_handler
   ${COMPONENTS_DIR}/time_tester/include
   ${COMPONENTS_DIR}/utils/include
   ${COMPONENTS_DIR}/protocol_handler/include

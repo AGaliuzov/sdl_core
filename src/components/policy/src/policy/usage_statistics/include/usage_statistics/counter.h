@@ -34,7 +34,7 @@
 #define SRC_COMPONENTS_POLICY_INCLUDE_POLICY_USAGE_STATISTICS_COUNTER_H
 
 #include <ctime>
-#include "usage_statistics/statistics_manager.h"
+#include "policy/usage_statistics/statistics_manager.h"
 #include "utils/shared_ptr.h"
 #include "utils/timer_thread.h"
 

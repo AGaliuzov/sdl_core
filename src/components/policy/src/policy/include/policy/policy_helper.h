@@ -33,7 +33,7 @@
 #ifndef SRC_COMPONENTS_POLICY_INCLUDE_POLICY_POLICY_HELPER_H_
 #define SRC_COMPONENTS_POLICY_INCLUDE_POLICY_POLICY_HELPER_H_
 
-#include "policy/src/policy/policy_table/table_struct_ext/functions.h"
+#include "table_struct_ext/functions.h"
 #include "utils/shared_ptr.h"
 #include "policy/policy_types.h"
 

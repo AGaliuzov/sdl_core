@@ -37,8 +37,8 @@
 #include "protocol/common.h"
 #include "security_manager/security_manager_impl.h"
 
-#include "protocol_handler_mock.h"
-#include "protocol_observer_mock.h"
+#include "protocol_handler/protocol_handler_mock.h"
+#include "protocol_handler/protocol_observer_mock.h"
 #include "include/security_manager_mock.h"
 #include "transport_manager_mock.h"
 
