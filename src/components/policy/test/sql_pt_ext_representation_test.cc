@@ -41,9 +41,9 @@
 #include "policy/sql_pt_ext_representation.h"
 #include "utils/gen_hash.h"
 #include "utils/file_system.h"
+#include "sqlite_wrapper/sql_query.h"
 #include "rpc_base/rpc_base.h"
 #include "table_struct_ext/types.h"
-#include "utils/sqlite_wrapper/sql_query.h"
 
 using namespace ::policy;
 namespace policy_table = rpc::policy_table_interface_base;
@@ -73,7 +73,7 @@ class SQLPTExtRepresentationTest : public ::testing::Test {
   utils::dbms::SQLQuery* query_wrapper_;
   static const bool in_memory_;
 
-  void SetUp() {
+  void SetUp() OVERRIDE {
     file_system::DeleteFile(kDatabaseName);
     reps = new SQLPTExtRepresentation(in_memory_);
     dbms = new DBMS(kDatabaseName);
@@ -82,7 +82,7 @@ class SQLPTExtRepresentationTest : public ::testing::Test {
     query_wrapper_ = new utils::dbms::SQLQuery(reps->db());
   }
 
-  void TearDown() {
+  void TearDown() OVERRIDE {
     EXPECT_TRUE(reps->Drop());
     EXPECT_TRUE(reps->Close());
     delete dbms;
