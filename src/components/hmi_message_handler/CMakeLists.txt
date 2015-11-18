@@ -30,8 +30,7 @@
 
 
 include_directories (
-    ${COMPONENTS_DIR}/include
-    ${COMPONENTS_DIR}/hmi_message_handler/include
+    include
     ${COMPONENTS_DIR}/application_manager/include/
     ${COMPONENTS_DIR}/utils/include/
     ${COMPONENTS_DIR}/smart_objects/include/
