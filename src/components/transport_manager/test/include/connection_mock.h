@@ -35,6 +35,8 @@
 
 #include "gmock/gmock.h"
 #include "transport_manager/transport_adapter/connection.h"
+#include "policy/usage_statistics/statistics_manager.h"
+#include "application_manager/usage_statistics.h"
 
 namespace test {
 namespace components {

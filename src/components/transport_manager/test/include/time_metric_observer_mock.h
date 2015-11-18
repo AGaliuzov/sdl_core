@@ -37,6 +37,7 @@
 #include "gmock/gmock.h"
 #include "transport_manager/time_metric_observer.h"
 #include "protocol/raw_message.h"
+#include "policy/usage_statistics/statistics_manager.h"
 
 namespace test {
 namespace components {
