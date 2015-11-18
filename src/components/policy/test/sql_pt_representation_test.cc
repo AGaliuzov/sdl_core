@@ -69,17 +69,17 @@ class SQLPTRepresentationTest : public SQLPTRepresentation,
   static const bool in_memory_;
 
  protected:
-  static DBMS* dbms;
+//  static DBMS* dbms;
   static SQLPTRepresentation* reps;
   static const std::string kDatabaseName;
   static utils::dbms::SQLQuery* query_wrapper_;
 
   static void SetUpTestCase() {
     reps = new SQLPTRepresentation(in_memory_);
-    dbms = new DBMS(kDatabaseName);
+    ASSERT_TRUE (reps != NULL);
     EXPECT_EQ(::policy::SUCCESS, reps->Init());
-    EXPECT_TRUE(dbms->Open());
     query_wrapper_ = new utils::dbms::SQLQuery(reps->db());
+    ASSERT_TRUE (query_wrapper_ != NULL);
   }
 
   void TearDown() { EXPECT_TRUE(reps->Clear()); }
@@ -90,7 +90,7 @@ class SQLPTRepresentationTest : public SQLPTRepresentation,
     EXPECT_TRUE(reps->Close());
     reps->RemoveDB();
     delete reps;
-    dbms->Close();
+//    dbms->Close();
   }
 
   virtual utils::dbms::SQLDatabase* db() const { return reps->db(); }
@@ -308,14 +308,10 @@ class SQLPTRepresentationTest : public SQLPTRepresentation,
   }
 };
 
-DBMS* SQLPTRepresentationTest::dbms = 0;
+//DBMS* SQLPTRepresentationTest::dbms = 0;
 SQLPTRepresentation* SQLPTRepresentationTest::reps = 0;
 utils::dbms::SQLQuery* SQLPTRepresentationTest::query_wrapper_ = 0;
-#ifdef __QNX__
-const std::string SQLPTRepresentationTest::kDatabaseName = "policy";
-#else   // __QNX__
 const std::string SQLPTRepresentationTest::kDatabaseName = ":memory:";
-#endif  // __QNX__
 const bool SQLPTRepresentationTest::in_memory_ = true;
 
 class SQLPTRepresentationTest2 : public ::testing::Test {
@@ -328,6 +324,7 @@ class SQLPTRepresentationTest2 : public ::testing::Test {
     chmod(kDirectory, 00000);
     profile::Profile::instance()->config_file_name("smartDeviceLink3.ini");
     reps = new SQLPTRepresentation;
+    ASSERT_TRUE (reps != NULL);
   }
 
   virtual void TearDown() {
@@ -1039,7 +1036,8 @@ TEST_F(SQLPTRepresentationTest,
 
 TEST(SQLPTRepresentationTest3, Init_InitNewDataBase_ExpectResultSuccess) {
   // Arrange
-  SQLPTRepresentation reps(SQLPTRepresentationTest::in_memory_);
+  const bool in_memory_ = true;
+  SQLPTRepresentation reps(in_memory_);
   // Checks
   EXPECT_EQ(::policy::SUCCESS, reps.Init());
   EXPECT_EQ(::policy::EXISTS, reps.Init());
@@ -1058,7 +1056,8 @@ TEST(SQLPTRepresentationTest3,
 TEST(SQLPTRepresentationTest3,
      Close_InitNewDataBaseThenClose_ExpectResultSuccess) {
   // Arrange
-  SQLPTRepresentation reps(SQLPTRepresentationTest::in_memory_);
+  const bool in_memory_ = true;
+  SQLPTRepresentation reps(in_memory_);
   EXPECT_EQ(::policy::SUCCESS, reps.Init());
   EXPECT_TRUE(reps.Close());
   utils::dbms::SQLError error(utils::dbms::Error::OK);
@@ -1498,7 +1497,8 @@ TEST_F(SQLPTRepresentationTest,
 
 TEST(SQLPTRepresentationTest3, RemoveDB_RemoveDB_ExpectFileDeleted) {
   // Arrange
-  SQLPTRepresentation reps(SQLPTRepresentationTest::in_memory_);
+  const bool in_memory_ = true;
+  SQLPTRepresentation reps(in_memory_);
   EXPECT_EQ(::policy::SUCCESS, reps.Init());
   EXPECT_EQ(::policy::EXISTS, reps.Init());
   std::string path = (reps.db())->get_path();

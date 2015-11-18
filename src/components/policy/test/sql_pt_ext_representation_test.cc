@@ -61,10 +61,10 @@ class SQLPTExtRepresentationTest : public ::testing::Test {
   // Collection of pairs of group alias and corresponding group name
   typedef vector<pair<string, string> > GroupsAliasNameCollection;
 
-  SQLPTExtRepresentationTest() : dbms(0), reps(0) {}
+  SQLPTExtRepresentationTest() : /*dbms(0),*/ reps(0) {}
 
  protected:
-  DBMS* dbms;
+//  DBMS* dbms;
   SQLPTExtRepresentation* reps;
   static const string kDatabaseName;
   PermissionConsent perm_consent;
@@ -76,16 +76,16 @@ class SQLPTExtRepresentationTest : public ::testing::Test {
   void SetUp() OVERRIDE {
     file_system::DeleteFile(kDatabaseName);
     reps = new SQLPTExtRepresentation(in_memory_);
-    dbms = new DBMS(kDatabaseName);
+    ASSERT_TRUE (reps != NULL);
     ASSERT_EQ(SUCCESS, reps->Init());
-    ASSERT_TRUE(dbms->Open());
     query_wrapper_ = new utils::dbms::SQLQuery(reps->db());
+    ASSERT_TRUE (query_wrapper_ != NULL);
   }
 
   void TearDown() OVERRIDE {
+    delete query_wrapper_;
     EXPECT_TRUE(reps->Drop());
     EXPECT_TRUE(reps->Close());
-    delete dbms;
     delete reps;
   }
 
@@ -182,11 +182,7 @@ class SQLPTExtRepresentationTest : public ::testing::Test {
   }
 };
 
-#ifdef __QNX__
-const string SQLPTExtRepresentationTest::kDatabaseName = "policy";
-#else   // __QNX__
 const string SQLPTExtRepresentationTest::kDatabaseName = ":memory:";
-#endif  // __QNX__
 const bool SQLPTExtRepresentationTest::in_memory_ = true;
 
 ::testing::AssertionResult IsValid(const policy_table::Table& table) {
@@ -848,7 +844,6 @@ TEST_F(
       "5, 10, 0, 0)";
   // Assert
   ASSERT_TRUE(query_wrapper_->Exec(query_insert_application));
-//  ASSERT_TRUE(dbms->Exec(query_insert));
   FunctionalIdType group_types;
   ASSERT_TRUE(reps->GetPermissionsForApp("XXX12345ZZZ", "1234", &group_types));
   EXPECT_FALSE(reps->IsPredataPolicy("1234"));
@@ -1097,7 +1092,6 @@ TEST_F(SQLPTExtRepresentationTest,
   query.Prepare(query_select_language);
   query.Next();
   EXPECT_EQ("ru-ru", query.GetString(0));
-//  EXPECT_EQ("ru-ru", dbms->FetchOneString(query_select_language));
 }
 
 TEST_F(
