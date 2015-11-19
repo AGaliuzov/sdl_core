@@ -74,8 +74,7 @@ if (BUILD_TESTS)
   set_property(DIRECTORY "" PROPERTY INCLUDE_DIRECTORIES ${the_include_dirs})
 
   include_directories(
-    ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
-    ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
+    ${GMOCK_INCLUDE_DIRECTORY}
     ${COMPONENTS_DIR}/application_manager/include/application_manager/policies
     ${COMPONENTS_DIR}/application_manager/include/application_manager
     ${COMPONENTS_DIR}/application_manager/include/application_manager/resumption

@@ -35,11 +35,11 @@
 #include "application_manager/resumption/resumption_data.h"
 
 #ifdef __QNX__
-#include "utils/include/utils/qdb_wrapper/sql_database.h"
-#include "utils/include/utils/qdb_wrapper/sql_query.h"
+#include "utils/qdb_wrapper/sql_database.h"
+#include "utils/qdb_wrapper/sql_query.h"
 #else // linux
-#include "utils/include/utils/sqlite_wrapper/sql_database.h"
-#include "utils/include/utils/sqlite_wrapper/sql_query.h"
+#include "utils/sqlite_wrapper/sql_database.h"
+#include "utils/sqlite_wrapper/sql_query.h"
 #endif
 
 namespace resumption {
