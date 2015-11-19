@@ -33,7 +33,6 @@ add_definitions(-DUNIT_TESTS)
 
 include_directories (
   ${GMOCK_INCLUDE_DIRECTORY}
-  ${COMPONENTS_DIR}/smart_objects/include
   ${COMPONENTS_DIR}/formatters/include/
   ${JSONCPP_INCLUDE_DIRECTORY}
 )

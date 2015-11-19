@@ -31,14 +31,7 @@
 if(BUILD_TESTS)
 
 include_directories (
-  ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
-  ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
-  ${COMPONENTS_DIR}/include/utils
-  ${COMPONENTS_DIR}/time_tester/include
-  ${COMPONENTS_DIR}/utils/include
-  ${COMPONENTS_DIR}/protocol_handler/include
-  ${COMPONENTS_DIR}/application_manager/include
-  ${COMPONENTS_DIR}/protocol_handler/test
+  ${GMOCK_INCLUDE_DIRECTORY}
 )
 
 set(testSources
@@ -54,22 +47,19 @@ set(testSources
 
 set(testLibraries
   gmock
-  TimeTester
-  jsoncpp
-  Utils  
-  MediaManager
-  ProtocolHandler   
   v4_protocol_v1_2_no_extra
-  SmartObjects  
+  TimeTester
+  SmartObjects
   ProtocolLibrary
   ConfigProfile
-  connectionHandler
-  ApplicationManager
-  Resumption
-  jsoncpp
   transport_manager
+  ApplicationManager
+  jsoncpp
+  ProtocolHandler
+  Utils
+  connectionHandler
+  Resumption
   MediaManager
-  ProtocolHandler  
 )
 
 if (BUILD_USB_SUPPORT)

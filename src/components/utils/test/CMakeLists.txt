@@ -31,13 +31,11 @@
 if(BUILD_TESTS)
 
 include_directories (
+  include
   ${JSONCPP_INCLUDE_DIRECTORY}
-  ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
-  ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
-  ${COMPONENTS_DIR}/utils/include/utils
-  ${COMPONENTS_DIR}/include/utils
+  ${GMOCK_INCLUDE_DIRECTORY}
+  ${UTILS_INCLUDE_DIR}
   ${COMPONENTS_DIR}/rpc_base/include
-  ${COMPONENTS_DIR}/utils/test/include
 )
 
 set(testSources

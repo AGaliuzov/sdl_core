@@ -32,8 +32,8 @@
 
 #include <stdlib.h>
 #include <ctime>
-#include "lock.h"
-#include "threads/async_runner.h"
+#include "utils/lock.h"
+#include "utils/threads/async_runner.h"
 #include "utils/conditional_variable.h"
 
 #include "gtest/gtest.h"

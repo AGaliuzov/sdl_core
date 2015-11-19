@@ -30,9 +30,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <pthread.h>
+
 #include "gtest/gtest.h"
 #include "utils/singleton.h"
-#include <pthread.h>
 
 namespace test {
 namespace components {

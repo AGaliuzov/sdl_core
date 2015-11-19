@@ -27,12 +27,6 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-
-
-include_directories (
-  ${COMPONENTS_DIR}/utils/include/
-  ${COMPONENTS_DIR}/formatters/include
-)
   
 GenerateInterface("v4_protocol_v1_2_no_extra.xml" "NsSmartDeviceLinkRPC::V1" "sdlrpcv1")
 GenerateInterface("MOBILE_API.xml" "mobile_apis" "sdlrpcv2")

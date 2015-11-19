@@ -33,8 +33,8 @@
 #include <pthread.h>
 #include <iostream>
 
-#include "lock.h"
-#include "macro.h"
+#include "utils/lock.h"
+#include "utils/macro.h"
 
 #include "gtest/gtest.h"
 #include "utils/conditional_variable.h"

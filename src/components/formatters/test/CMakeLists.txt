@@ -32,12 +32,9 @@
 if(BUILD_TESTS)
 
 include_directories(
+  include
   ${GMOCK_INCLUDE_DIRECTORY}
-  ${COMPONENTS_DIR}/smart_objects/include
-  ${COMPONENTS_DIR}/formatters/include
-  ${COMPONENTS_DIR}/formatters/test/include
   ${CMAKE_BINARY_DIR}/src/components/interfaces
-  ${CMAKE_SOURCE_DIR}/src/3rd_party-static/jsoncpp/include
 )
 
 set(LIBRARIES
