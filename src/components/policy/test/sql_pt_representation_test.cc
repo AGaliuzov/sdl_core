@@ -47,8 +47,8 @@
 #include "json/writer.h"
 #include "json/reader.h"
 #include "config_profile/profile.h"
-#include "table_struct_ext/types.h"
-#include "table_struct_ext/enums.h"
+#include "policy_table/table_struct_ext/types.h"
+#include "policy_table/table_struct_ext/enums.h"
 #include "rpc_base/rpc_base.h"
 
 namespace policy_table = rpc::policy_table_interface_base;

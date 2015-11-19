@@ -42,7 +42,7 @@
 #include "utils/file_system.h"
 #include "sqlite_wrapper/sql_query.h"
 #include "rpc_base/rpc_base.h"
-#include "table_struct_ext/types.h"
+#include "policy_table/table_struct_ext/types.h"
 
 using namespace ::policy;
 namespace policy_table = rpc::policy_table_interface_base;

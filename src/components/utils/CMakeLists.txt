@@ -37,7 +37,7 @@ include_directories (
   ${COMPONENTS_DIR}/config_profile/include
   ${COMPONENTS_DIR}/media_manager/include
   ${COMPONENTS_DIR}/protocol_handler/include
-  ${COMPONENTS_DIR}/policy/src/policy/policy_table/
+  ${COMPONENTS_DIR}/policy/src/policy/
   ${LOG4CXX_INCLUDE_DIRECTORY}
 )
 
