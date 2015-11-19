@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2015, Ford Motor Company
+ * \file raw_message_matcher.h
+ * \brief matcher RawMessagePtr
+ *
+ * Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,29 +33,43 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_DEVICE_SCANNER_MOCK_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_DEVICE_SCANNER_MOCK_H_
+#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_RAW_MESSAGE_MATCHER_H_
+#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_RAW_MESSAGE_MATCHER_H_
 
-#include "gmock/gmock.h"
-#include "transport_manager/transport_adapter/device_scanner.h"
+#include <gmock/gmock.h>
+
+#include "transport_manager/common.h"
+#include "protocol/common.h"
+
+using ::testing::Matcher;
+using ::testing::MatcherInterface;
+using ::testing::MatchResultListener;
 
 namespace test {
 namespace components {
-namespace transport_manager_test {
+namespace transport_manager {
 
-class DeviceScannerMock
-    : public ::transport_manager::transport_adapter::DeviceScanner {
+using namespace ::protocol_handler;
+
+class RawMessageMatcher : public MatcherInterface<RawMessagePtr> {
  public:
-  MOCK_METHOD0(
-      Init, ::transport_manager::transport_adapter::TransportAdapter::Error());
-  MOCK_METHOD0(
-      Scan, ::transport_manager::transport_adapter::TransportAdapter::Error());
-  MOCK_METHOD0(Terminate, void());
-  MOCK_CONST_METHOD0(IsInitialised, bool());
+  explicit RawMessageMatcher(RawMessagePtr ptr);
+
+  virtual bool MatchAndExplain(const RawMessagePtr ptr,
+                                   MatchResultListener* listener) const;
+  virtual void DescribeTo(::std::ostream* os) const;
+  virtual void DescribeNegationTo(::std::ostream* os) const;
+
+ private:
+  const RawMessagePtr ptr_;
 };
 
-}  // namespace transport_manager_test
+inline const Matcher<RawMessagePtr> RawMessageEq(RawMessagePtr msg) {
+  return MakeMatcher(new RawMessageMatcher(msg));
+}
+
+}  // namespace transport_manager
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_DEVICE_SCANNER_MOCK_H_
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_RAW_MESSAGE_MATCHER_H_

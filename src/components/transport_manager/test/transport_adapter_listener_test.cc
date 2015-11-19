@@ -31,9 +31,9 @@
  */
 
 #include "gtest/gtest.h"
-#include "include/transport_adapter_mock.h"
+#include "transport_manager/transport_adapter_mock.h"
 #include "transport_manager/transport_adapter/transport_adapter_listener_impl.h"
-#include "include/transport_manager_mock.h"
+#include "transport_manager/transport_manager_mock.h"
 
 namespace test {
 namespace components {

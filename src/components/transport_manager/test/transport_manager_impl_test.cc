@@ -35,10 +35,10 @@
 #include "transport_manager/common.h"
 #include "transport_manager/transport_manager_impl.h"
 
-#include "include/transport_adapter_mock.h"
-#include "include/transport_manager_listener_mock.h"
-#include "include/transport_adapter_listener_mock.h"
-#include "include/time_metric_observer_mock.h"
+#include "transport_manager/transport_adapter_mock.h"
+#include "transport_manager/transport_manager_listener_mock.h"
+#include "transport_manager/transport_adapter_listener_mock.h"
+#include "transport_manager/time_metric_observer_mock.h"
 
 #include "transport_manager/transport_adapter/transport_adapter_event.h"
 

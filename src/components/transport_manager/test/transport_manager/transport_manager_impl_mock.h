@@ -30,27 +30,25 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TIME_METRIC_OBSERVER_MOCK_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TIME_METRIC_OBSERVER_MOCK_H_
+#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_TRANSPORT_MANAGER_IMPL_MOCK_H_
+#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_TRANSPORT_MANAGER_IMPL_MOCK_H_
 
-#include <string>
 #include "gmock/gmock.h"
-#include "transport_manager/time_metric_observer.h"
-#include "protocol/raw_message.h"
-#include "policy/usage_statistics/statistics_manager.h"
+#include "transport_manager/transport_manager_impl.h"
 
 namespace test {
 namespace components {
-namespace transport_manager_test {
+namespace transport_manager {
 
-class TMMetricObserverMock: public ::transport_manager::TMMetricObserver {
+using namespace ::transport_manager;
+
+class TransportManagerImplMock : public TransportManagerImpl {
  public:
-  MOCK_METHOD1(StartRawMsg,
-               void(const protocol_handler::RawMessage* ptr));
-  MOCK_METHOD1(StopRawMsg,
-               void(const protocol_handler::RawMessage* ptr));
+  MOCK_METHOD1(ReceiveEventFromDevice, int(const TransportAdapterEvent& event));
 };
-}  // namespace transport_manager_test
+
+}  // namespace transport_manager
 }  // namespace components
 }  // namespace test
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TIME_METRIC_OBSERVER_MOCK_H_
+
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_TRANSPORT_MANAGER_IMPL_MOCK_H_

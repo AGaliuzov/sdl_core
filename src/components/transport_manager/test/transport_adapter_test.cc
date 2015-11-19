@@ -31,12 +31,12 @@
  */
 
 #include "gtest/gtest.h"
-#include "include/device_scanner_mock.h"
-#include "include/client_connection_listener_mock.h"
-#include "include/server_connection_factory_mock.h"
-#include "include/device_mock.h"
-#include "include/connection_mock.h"
-#include "include/transport_adapter_listener_mock.h"
+#include "transport_manager/device_scanner_mock.h"
+#include "transport_manager/client_connection_listener_mock.h"
+#include "transport_manager/server_connection_factory_mock.h"
+#include "transport_manager/device_mock.h"
+#include "transport_manager/connection_mock.h"
+#include "transport_manager/transport_adapter_listener_mock.h"
 
 #include "transport_manager/transport_adapter/transport_adapter_impl.h"
 #include "transport_manager/transport_adapter/transport_adapter_listener.h"

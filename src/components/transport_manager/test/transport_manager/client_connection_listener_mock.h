@@ -30,29 +30,33 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_CONNECTION_MOCK_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_CONNECTION_MOCK_H_
+#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_CLIENT_CONNECTION_LISTENER_MOCK_H_
+#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_CLIENT_CONNECTION_LISTENER_MOCK_H_
 
 #include "gmock/gmock.h"
-#include "transport_manager/transport_adapter/connection.h"
-#include "policy/usage_statistics/statistics_manager.h"
-#include "application_manager/usage_statistics.h"
+#include "transport_manager/transport_adapter/client_connection_listener.h"
 
 namespace test {
 namespace components {
 namespace transport_manager_test {
 
-using namespace ::transport_manager::transport_adapter;
-
-class ConnectionMock : public Connection {
+class ClientConnectionListenerMock
+    : public ::transport_manager::transport_adapter::ClientConnectionListener {
  public:
-  MOCK_METHOD1(SendData, TransportAdapter::Error(
-                             ::protocol_handler::RawMessagePtr message));
-  MOCK_METHOD0(Disconnect, TransportAdapter::Error());
+  MOCK_METHOD0(
+      Init, ::transport_manager::transport_adapter::TransportAdapter::Error());
+  MOCK_METHOD0(Terminate, void());
+  MOCK_CONST_METHOD0(IsInitialised, bool());
+  MOCK_METHOD0(
+      StartListening,
+      ::transport_manager::transport_adapter::TransportAdapter::Error());
+  MOCK_METHOD0(
+      StopListening,
+      ::transport_manager::transport_adapter::TransportAdapter::Error());
 };
 
 }  // namespace transport_manager_test
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_CONNECTION_MOCK_H_
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_CLIENT_CONNECTION_LISTENER_MOCK_H_
