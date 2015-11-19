@@ -37,7 +37,7 @@
 #include "connection_handler/connection_handler_impl.h"
 #include "protocol/service_type.h"
 #include "utils/shared_ptr.h"
-#include "security_manager_mock.h"
+#include "security_manager/security_manager_mock.h"
 
 #define EXPECT_RETURN_TRUE true
 #define EXPECT_RETURN_FALSE false

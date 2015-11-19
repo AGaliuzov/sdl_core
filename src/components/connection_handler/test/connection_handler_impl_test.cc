@@ -37,7 +37,7 @@
 #include "protocol/common.h"
 #include "config_profile/profile.h"
 // TODO(EZamakhov): move security test
-#include "security_manager_mock.h"
+#include "security_manager/security_manager_mock.h"
 #include "protocol_handler/protocol_handler_mock.h"
 #include "connection_handler/connection_handler_observer_mock.h"
 #include "transport_manager_mock.h"
