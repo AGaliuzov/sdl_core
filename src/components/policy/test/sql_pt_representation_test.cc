@@ -37,7 +37,6 @@
 #include <sys/stat.h>
 
 #include "gtest/gtest.h"
-#include "include/driver_dbms.h"
 #include "policy/sql_pt_representation.h"
 #include "utils/file_system.h"
 #include "utils/system.h"
@@ -81,7 +80,7 @@ class SQLPTRepresentationTest : public SQLPTRepresentation,
     ASSERT_TRUE (query_wrapper_ != NULL);
   }
 
-  void TearDown() { EXPECT_TRUE(reps->Clear()); }
+  void TearDown() OVERRIDE { EXPECT_TRUE(reps->Clear()); }
 
   static void TearDownTestCase() {
     delete query_wrapper_;
@@ -315,7 +314,7 @@ class SQLPTRepresentationTest2 : public ::testing::Test {
  protected:
   SQLPTRepresentation* reps;
 
-  virtual void SetUp() {
+  virtual void SetUp() OVERRIDE {
     const char kDirectory[] = "storage123";
     file_system::CreateDirectory(kDirectory);
     chmod(kDirectory, 00000);
@@ -324,7 +323,7 @@ class SQLPTRepresentationTest2 : public ::testing::Test {
     ASSERT_TRUE (reps != NULL);
   }
 
-  virtual void TearDown() {
+  virtual void TearDown() OVERRIDE {
     profile::Profile::instance()->config_file_name("smartDeviceLink.ini");
     delete reps;
   }

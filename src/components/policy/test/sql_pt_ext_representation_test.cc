@@ -37,7 +37,6 @@
 #include <iterator>
 #include <iostream>
 #include "gtest/gtest.h"
-#include "include/driver_dbms.h"
 #include "policy/sql_pt_ext_representation.h"
 #include "utils/gen_hash.h"
 #include "utils/file_system.h"
