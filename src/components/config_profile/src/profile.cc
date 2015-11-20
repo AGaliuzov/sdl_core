@@ -140,6 +140,7 @@ const char* kHelpTitleKey = "HelpTitle";
 const char* kHelpCommandKey = "HelpCommand";
 const char* kSystemFilesPathKey = "SystemFilesPath";
 const char* kHeartBeatTimeoutKey = "HeartBeatTimeout";
+const char* kMaxSupportedProtocolVersionKey = "MaxSupportedProtocolVersion";
 const char* kUseLastStateKey = "UseLastState";
 const char* kTCPAdapterPortKey = "TCPAdapterPort";
 const char* kServerPortKey = "ServerPort";
@@ -211,7 +212,7 @@ const char* kDefaultAppInfoFileName = "app_info.dat";
 const char* kDefaultSystemFilesPath = "/tmp/fs/mp/images/ivsu_cache";
 const char* kDefaultTtsDelimiter = ",";
 #ifdef CUSTOMER_PASA
-const uint32_t kDefaultHMIHeartBeatTimeout = 3;  // timeout in seconds
+const uint32_t kDefaultHMIHeartBeatTimeout = 0;  // timeout in seconds
 const char* kDefaultMQName = "/dev/mqueue/AppLinkAudioPass";
 const char* kDefaultLog4cxxConfig = "/fs/mp/etc/AppLink/log4cxx.properties";
 const char* kDefaultRemoteLoggingFlagFile = "log/capturelog.evt";
@@ -243,7 +244,8 @@ const uint32_t kDefaultBeforeUpdateHours = 24;
 #endif // ENABLE_SECURITY
 
 const uint32_t kDefaultHubProtocolIndex = 0;
-const uint32_t kDefaultHeartBeatTimeout = 0;
+const uint32_t kDefaultHeartBeatTimeout = 5000;
+const uint16_t kDefaultMaxSupportedProtocolVersion = 3;
 const uint16_t kDefautTransportManagerTCPPort = 12345;
 const uint16_t kDefaultServerPort = 8087;
 const uint16_t kDefaultVideoStreamingPort = 5050;
@@ -333,6 +335,7 @@ Profile::Profile()
       list_files_in_none_(kDefaultListFilesRequestInNone),
       app_info_storage_(kDefaultAppInfoFileName),
       heart_beat_timeout_(kDefaultHeartBeatTimeout),
+      max_supported_protocol_version_(kDefaultMaxSupportedProtocolVersion),
       policy_snapshot_file_name_(kDefaultPoliciesSnapshotFileName),
       enable_policy_(false),
       transport_manager_disconnect_timeout_(
@@ -611,6 +614,10 @@ const std::string& Profile::app_info_storage() const {
 
 uint32_t Profile::heart_beat_timeout() const {
   return heart_beat_timeout_;
+}
+
+uint16_t Profile::max_supported_protocol_version() const {
+  return max_supported_protocol_version_;
 }
 
 const std::string& Profile::preloaded_pt_file() const {
@@ -1056,7 +1063,7 @@ void Profile::UpdateValues() {
 
 #ifdef CUSTOMER_PASA
   // Heartbeat timeout
-  ReadUIntValue(&hmi_heart_beat_timeout_, kDefaultHeartBeatTimeout, kMainSection,
+  ReadUIntValue(&hmi_heart_beat_timeout_, kDefaultHMIHeartBeatTimeout, kMainSection,
       kHMIHeartBeatTimeoutKey);
 
   LOG_UPDATED_VALUE(hmi_heart_beat_timeout_, kHMIHeartBeatTimeoutKey, kMainSection);
@@ -1365,10 +1372,21 @@ void Profile::UpdateValues() {
   LOG_UPDATED_VALUE(system_files_path_, kSystemFilesPathKey, kMainSection);
 
   // Heartbeat timeout
-  ReadUIntValue(&heart_beat_timeout_, kDefaultHeartBeatTimeout, kMainSection,
+  ReadUIntValue(&heart_beat_timeout_, kDefaultHeartBeatTimeout, kProtocolHandlerSection,
                 kHeartBeatTimeoutKey);
 
-  LOG_UPDATED_VALUE(heart_beat_timeout_, kHeartBeatTimeoutKey, kMainSection);
+  LOG_UPDATED_VALUE(heart_beat_timeout_, kHeartBeatTimeoutKey, kProtocolHandlerSection);
+
+  // Max protocol version
+  ReadUIntValue(&max_supported_protocol_version_, kDefaultMaxSupportedProtocolVersion, kProtocolHandlerSection,
+                kMaxSupportedProtocolVersionKey);
+
+  //if .ini file contains protocol version less than 2 or more than 3 max_supported_protocol_version_ = 3
+  if (max_supported_protocol_version_ > 3 || max_supported_protocol_version_ < 2) {
+    max_supported_protocol_version_ = 3;
+  }
+
+  LOG_UPDATED_VALUE(max_supported_protocol_version_, kMaxSupportedProtocolVersionKey, kProtocolHandlerSection);
 
   // Use last state value
   ReadBoolValue(&use_last_state_, false, kMainSection, kUseLastStateKey);

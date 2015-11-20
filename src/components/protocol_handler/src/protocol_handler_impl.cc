@@ -1036,14 +1036,19 @@ RESULT_CODE ProtocolHandlerImpl::HandleControlMessageStartSession(const Protocol
 
 RESULT_CODE ProtocolHandlerImpl::HandleControlMessageHeartBeat(const ProtocolPacket &packet) {
   const ConnectionID connection_id = packet.connection_id();
+
   LOG4CXX_DEBUG(
       logger_,
       "Sending heart beat acknowledgment for connection " << connection_id);
-  if (session_observer_->IsHeartBeatSupported(
-      connection_id, packet.session_id())) {
-    // TODO(EZamakhov): investigate message_id for HeartBeatAck
-    return SendHeartBeatAck(connection_id, packet.session_id(),
-                            packet.message_id());
+  uint8_t protocol_version;
+  if (session_observer_->ProtocolVersionUsed(connection_id,
+                                             packet.session_id(),
+                                             protocol_version)) {
+    if (PROTOCOL_VERSION_3 == protocol_version) {
+      // TODO(EZamakhov): investigate message_id for HeartBeatAck
+      return SendHeartBeatAck(connection_id, packet.session_id(),
+                              packet.message_id());
+    }
   }
   LOG4CXX_WARN(logger_, "HeartBeat is not supported");
   return RESULT_HEARTBEAT_IS_NOT_SUPPORTED;
@@ -1363,12 +1368,12 @@ std::string ConvertPacketDataToString(const uint8_t *data,
 uint8_t SupportedSDLProtocolVersion() {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  bool heart_beat_support =
-    (0 != profile::Profile::instance()->heart_beat_timeout());
-
-  if (heart_beat_support) {
+  uint16_t protocol_version =
+      profile::Profile::instance()->max_supported_protocol_version();
+  if (protocol_version == 2) {
+    return PROTOCOL_VERSION_2;
+  } else {
     return PROTOCOL_VERSION_3;
   }
-  return PROTOCOL_VERSION_2;
 }
 }  // namespace protocol_handler

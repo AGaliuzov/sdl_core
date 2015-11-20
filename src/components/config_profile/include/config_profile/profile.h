@@ -353,6 +353,11 @@ class Profile : public utils::Singleton<Profile> {
     uint32_t heart_beat_timeout() const;
 
     /*
+     * @brief Protocol version, from .ini file.
+     */
+    uint16_t max_supported_protocol_version() const;
+
+    /*
      * @brief Path to preloaded policy file
      */
     const std::string& preloaded_pt_file() const;
@@ -767,6 +772,7 @@ private:
     uint32_t                        list_files_in_none_;
     std::string                     app_info_storage_;
     uint32_t                        heart_beat_timeout_;
+    uint16_t                        max_supported_protocol_version_;
 #ifdef ENABLE_SECURITY
   std::string                       cert_path_;
   std::string                       ca_cert_path_;

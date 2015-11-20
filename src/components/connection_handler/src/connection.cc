@@ -39,6 +39,7 @@
 #include "protocol_handler/protocol_packet.h"
 #include "utils/logger.h"
 #include "utils/macro.h"
+#include "config_profile/profile.h"
 
 #ifdef ENABLE_SECURITY
 #include "security_manager/ssl_context.h"
@@ -342,7 +343,8 @@ bool Connection::SupportHeartBeat(uint8_t session_id) {
     return false;
   }
   Session &session = session_it->second;
-  return ::protocol_handler::PROTOCOL_VERSION_3 == session.protocol_version;
+  return ((::protocol_handler::PROTOCOL_VERSION_3 == session.protocol_version)
+      && (profile::Profile::instance()->heart_beat_timeout() != 0));
 }
 
 bool Connection::ProtocolVersion(uint8_t session_id, uint8_t& protocol_version) {

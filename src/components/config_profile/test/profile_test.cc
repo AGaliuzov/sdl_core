@@ -411,7 +411,7 @@ TEST_F(ProfileTest, IntInsteadOfPair) {
 
 TEST_F(ProfileTest, WrongIntValue) {
   // Default value
-  uint32_t heart_beat_timeout = 0;
+  uint32_t heart_beat_timeout = 5000;
   EXPECT_EQ(heart_beat_timeout, Profile::instance()->heart_beat_timeout());
 
   // Change config file
@@ -420,7 +420,7 @@ TEST_F(ProfileTest, WrongIntValue) {
             Profile::instance()->config_file_name());
 
   // Value in file includes letters. Check that value is default
-  heart_beat_timeout = 0;
+  heart_beat_timeout = 5000;
   EXPECT_EQ(heart_beat_timeout, Profile::instance()->heart_beat_timeout());
 
   // Update config file

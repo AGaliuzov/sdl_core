@@ -484,7 +484,8 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
     connection_handler_->BindProtocolVersionWithSession(
         connection_key, static_cast<uint8_t>(protocol_version));
   }
-  if (protocol_version == ProtocolVersion::kV3 ) {
+  if ((protocol_version == ProtocolVersion::kV3) &&
+      (profile::Profile::instance()->heart_beat_timeout() != 0)) {
     connection_handler_->StartSessionHeartBeat(connection_key);
   }
 
@@ -3020,16 +3021,17 @@ void ApplicationManagerImpl::OnUpdateHMIAppType(
 
 ProtocolVersion ApplicationManagerImpl::SupportedSDLVersion() const {
   LOG4CXX_AUTO_TRACE(logger_);
-  bool heart_beat_support =
-      profile::Profile::instance()->heart_beat_timeout();
-  if (heart_beat_support) {
+  uint16_t protocol_version =
+      profile::Profile::instance()->max_supported_protocol_version();
+  if (protocol_version == 2) {
+    LOG4CXX_DEBUG(logger_, "SDL Supported protocol version "
+                  << ProtocolVersion::kV2);
+    return ProtocolVersion::kV2;
+  } else {
     LOG4CXX_DEBUG(logger_, "SDL Supported protocol version "
                   << ProtocolVersion::kV3);
     return ProtocolVersion::kV3;
   }
-  LOG4CXX_DEBUG(logger_, "SDL Supported protocol version "
-                << ProtocolVersion::kV2);
-  return ProtocolVersion::kV2;
 }
 
 policy::DeviceConsent ApplicationManagerImpl::GetUserConsentForDevice(
