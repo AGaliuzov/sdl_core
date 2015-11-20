@@ -78,6 +78,18 @@ SQLPTRepresentation::SQLPTRepresentation()
 #endif  // __QNX__
 }
 
+SQLPTRepresentation::SQLPTRepresentation(bool in_memory) {
+  if (in_memory) {
+    db_ = new utils::dbms::SQLDatabase();
+  } else {
+    db_ = new utils::dbms::SQLDatabase(kDatabaseName);
+    std::string path = profile::Profile::instance()->app_storage_folder();
+    if (!path.empty()) {
+      db_->set_path(path + "/");
+    }
+  }
+}
+
 SQLPTRepresentation::~SQLPTRepresentation() {
   db_->Close();
   delete db_;

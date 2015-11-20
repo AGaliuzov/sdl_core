@@ -43,6 +43,10 @@ namespace policy {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "SQLPTRepresentation")
 
+SQLPTExtRepresentation::SQLPTExtRepresentation() {}
+SQLPTExtRepresentation::SQLPTExtRepresentation(bool in_memory)
+  :SQLPTRepresentation(in_memory) {}
+
 bool SQLPTExtRepresentation::CanAppKeepContext(const std::string& app_id) {
   utils::dbms::SQLQuery query(db());
   if (query.Prepare(sql_pt_ext::kSelectKeepContext)) {

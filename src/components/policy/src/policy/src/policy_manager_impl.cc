@@ -64,6 +64,15 @@ PolicyManagerImpl::PolicyManagerImpl()
     ignition_check(true) {
 }
 
+PolicyManagerImpl::PolicyManagerImpl(bool in_memory)
+    : PolicyManager(),
+      listener_(NULL),
+      cache_(new CacheManager(in_memory)),
+      retry_sequence_timeout_(60),
+      retry_sequence_index_(0),
+      ignition_check(true) {
+  }
+
 void PolicyManagerImpl::set_listener(PolicyListener* listener) {
   listener_ = listener;
   update_status_manager_.set_listener(listener);

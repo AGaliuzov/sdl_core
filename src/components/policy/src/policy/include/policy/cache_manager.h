@@ -50,6 +50,7 @@ namespace policy {
 class CacheManager : public CacheManagerInterface {
  public:
   CacheManager();
+  explicit CacheManager(bool in_memory);
   ~CacheManager();
 
   /**
@@ -712,6 +713,8 @@ private:
    */
   void MergeCFM(const policy_table::PolicyTable& new_pt,
                 policy_table::PolicyTable& pt);
+
+  void InitBackupThread();
 
   class BackgroundBackuper: public threads::ThreadDelegate {
       friend class CacheManager;

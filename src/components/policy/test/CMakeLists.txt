@@ -39,6 +39,7 @@ include_directories(
   ${COMPONENTS_DIR}/config_profile/include
   ${COMPONENTS_DIR}/utils/include/
   ${COMPONENTS_DIR}/policy/src/policy/policy_table/
+  ${COMPONENTS_DIR}/utils/include/utils/
 )
 
 set(testLibraries
