@@ -30,7 +30,7 @@
 
 
 include_directories (
-    include/
+    include
     ${COMPONENTS_DIR}/application_manager/include/
     ${COMPONENTS_DIR}/utils/include/
     ${COMPONENTS_DIR}/smart_objects/include/
@@ -39,8 +39,7 @@ include_directories (
     ${COMPONENTS_DIR}/media_manager/include/
     ${COMPONENTS_DIR}/protocol_handler/include
     ${JSONCPP_INCLUDE_DIRECTORY}
-    ${MESSAGE_BROKER_INCLUDE_DIRECTORY}
-    ${COMPONENTS_DIR}
+    ${MESSAGE_BROKER_INCLUDE_DIRECTORY}    
     ${CMAKE_BINARY_DIR}/src/components/
     ${COMPONENTS_DIR}/dbus/include/
     ${CMAKE_SOURCE_DIR}/
