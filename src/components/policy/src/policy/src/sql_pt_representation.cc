@@ -79,6 +79,9 @@ SQLPTRepresentation::SQLPTRepresentation()
 }
 
 SQLPTRepresentation::SQLPTRepresentation(bool in_memory) {
+#ifdef __QNX__
+  db_ = new utils::dbms::SQLDatabase(kDatabaseName);
+#else  // __QNX__
   if (in_memory) {
     db_ = new utils::dbms::SQLDatabase();
   } else {
@@ -88,6 +91,7 @@ SQLPTRepresentation::SQLPTRepresentation(bool in_memory) {
       db_->set_path(path + "/");
     }
   }
+#endif  // __QNX__
 }
 
 SQLPTRepresentation::~SQLPTRepresentation() {
