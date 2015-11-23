@@ -31,6 +31,7 @@
  */
 
 #include "utils/custom_string.h"
+#include <strings.h>
 #include <cwchar>
 #include <cstdlib>
 #include <clocale>

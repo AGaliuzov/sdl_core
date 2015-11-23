@@ -57,6 +57,7 @@ set(LIBRARIES
     Resumption
     Policy
     ${SecurityManagerLibrary}
+    ConfigProfile
 )
 
 if(EXTENDED_MEDIA_MODE)

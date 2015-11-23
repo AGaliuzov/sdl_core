@@ -48,6 +48,7 @@ set(LIBRARIES
     Resumption
     ProtocolHandler
     Utils
+    ConfigProfile
 )
 
 set(SOURCES
