@@ -147,18 +147,18 @@ def concat_files(out_file_name, *args) :
 
 
 def main():
+    soft_verify_file  = os.path.join("server", "server_root.key")
     arg_parser = ArgumentParser(description='Welcome to SDL test certificate generator.')
     arg_parser.add_argument('-d', '--dir', help="directory for certificate generating")
-    arg_parser.add_argument('-s', '--soft', help="do not override existing certificates if root.key exists", action='store_true')
+    arg_parser.add_argument('-s', '--soft', help="do not override existing certificates if '%s' exists" % soft_verify_file, action='store_true' )
     args = arg_parser.parse_args()
     if args.dir:
         if not os.path.exists(args.dir):
             raise OSError("Input directory does not exist")
         os.chdir(args.dir)
     if args.soft:
-        root_key_file  = os.path.join("server", "root.key")
-        if os.path.exists(root_key_file):
-            print "Root key file '%s' exists. Generation aborted according to soft mode." % (root_key_file, )
+        if os.path.exists(soft_verify_file):
+            print "Root key file '%s' exists. Generation skipped according to soft mode." % (soft_verify_file, )
             return
 
     server_root_answer = answers("server_root", "", "US", "California", "Silicon Valley", "CAcert.org", "CAcert", "sample@cacert.org")
@@ -182,6 +182,7 @@ def main():
 
     print " --== Root certificate generating SERVER==-- "
     server_root_key_file  = os.path.join(server_dir, "server_root.key")
+    assert soft_verify_file == server_root_key_file, 'Update soft key file path'
     server_root_cert_file = os.path.join(server_dir, "server_root.crt")
     gen_rsa_key(server_root_key_file, 2048)
     gen_root_cert(server_root_cert_file, server_root_key_file, days, server_root_answer)
