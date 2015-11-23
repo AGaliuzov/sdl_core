@@ -259,6 +259,25 @@ void TransportAdapterListenerImpl::OnUnexpectedDisconnect(
   LOG4CXX_TRACE(logger_, "exit");
 }
 
+void TransportAdapterListenerImpl::OnExpectedDisconnect(
+    const transport_adapter::TransportAdapter *adapter, const DeviceUID &device,
+    const ApplicationHandle &application, const CommunicationError &error) {
+
+  LOG4CXX_TRACE(logger_, "enter. adapter: " << adapter << ", device: " << &device <<
+                ", application: " << &application << ", error: " << &error);
+  CommunicationError* err = new CommunicationError(error);
+  const TransportAdapterEvent event(
+    TransportAdapterListenerImpl::EventTypeEnum::ON_EXPECTED_DISCONNECT,
+    transport_adapter_, device, application,
+        ::protocol_handler::RawMessagePtr(), BaseErrorPtr(err));
+
+  if (transport_manager_!= NULL && transport_manager::E_SUCCESS
+      != transport_manager_->ReceiveEventFromDevice(event)) {
+    LOG4CXX_WARN(logger_, "Failed to receive event from device");
+  }
+  LOG4CXX_TRACE(logger_, "exit");
+}
+
 void TransportAdapterListenerImpl::OnCommunicationError(
   const TransportAdapter* adapter, const DeviceUID& device,
   const ApplicationHandle& app_id) {

@@ -809,6 +809,23 @@ void TransportManagerImpl::Handle(TransportAdapterEvent event) {
       LOG4CXX_DEBUG(logger_, "eevent_type = ON_UNEXPECTED_DISCONNECT");
       break;
     }
+    case TransportAdapterListenerImpl::EventTypeEnum::ON_EXPECTED_DISCONNECT: {
+      sync_primitives::AutoReadLock read_lock(connections_lock_);
+      ConnectionInternal* connection =
+          GetConnection(event.device_uid, event.application_id);
+      if (connection) {
+        const ConnectionUID id = connection->id;
+        RaiseEvent(&TransportManagerListener::OnExpectedDisconnect,
+                   id,
+                   *static_cast<CommunicationError*>(event.event_error.get()));
+      } else {
+        LOG4CXX_ERROR(logger_, "Connection ('" << event.device_uid << ", "
+                      << event.application_id
+                      << ") not found");
+      }
+    }
+    LOG4CXX_DEBUG(logger_, "eevent_type = ON_EXPECTED_DISCONNECT");
+    break;
   }  // switch
   LOG4CXX_TRACE(logger_, "exit");
 }

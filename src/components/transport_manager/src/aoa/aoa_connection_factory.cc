@@ -68,11 +68,7 @@ TransportAdapter::Error AOAConnectionFactory::CreateConnection(
     return TransportAdapter::BAD_PARAM;
   }
 
-  AOADevicePtr aoa_device = DeviceSptr::static_pointer_cast<AOADevice>(device);
-
-  AOAConnection* aoa_connection = new AOAConnection(device_uid, app_handle,
-                                                    controller_,
-                                                    aoa_device->handle());
+  AOAConnection* aoa_connection = new AOAConnection(device_uid, app_handle, controller_);
   controller_->ConnectionCreated(aoa_connection, device_uid, app_handle);
   LOG4CXX_DEBUG(logger_, "AOA: connection created");
 

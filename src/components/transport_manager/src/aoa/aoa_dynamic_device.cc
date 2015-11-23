@@ -61,28 +61,14 @@ AOADynamicDevice::~AOADynamicDevice() {
   delete life_;
 }
 
-bool AOADynamicDevice::StartHandling() {
-  return AOAWrapper::HandleDevice(life_, aoa_usb_info_);
-}
-
 void AOADynamicDevice::AddDevice(AOAWrapper::AOAHandle handle) {
   LOG4CXX_AUTO_TRACE(logger_);
   set_handle(handle);
-  controller_->ApplicationListUpdated(unique_device_id());
 }
 
 void AOADynamicDevice::LoopDevice(AOAWrapper::AOAHandle handle) {
   LOG4CXX_AUTO_TRACE(logger_);
-  sync_primitives::AutoLock locker(life_lock_);
-  while (AOAWrapper::IsHandleValid(handle)) {
-    LOG4CXX_TRACE(logger_, "AOA: wait cond " << handle);
-    if (!life_cond_.Wait(locker)) {
-      break;
-    }
-    // It does nothing because this method is called from libaoa thread so
-    // if it returns from the method then thread will stop
-    // and device will be disconnected
-  }
+
 }
 
 void AOADynamicDevice::StopDevice(AOAWrapper::AOAHandle handle) {
@@ -90,11 +76,19 @@ void AOADynamicDevice::StopDevice(AOAWrapper::AOAHandle handle) {
   life_cond_.Broadcast();
 }
 
+AOADeviceLife* AOADynamicDevice::GetLife() const {
+  return life_;
+}
+
+AOAWrapper::AOAUsbInfo AOADynamicDevice::GetUsbInfo() const {
+  return aoa_usb_info_;
+}
+
 bool AOADynamicDevice::Ack() {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (!AOAWrapper::IsHandleValid(handle())) {
+  if (true) {
     LOG4CXX_DEBUG(logger_, "Device is about to be die.");
-    life_->OnDied(handle());
+    StopDevice(handle());
     return false;
   }
   return true;

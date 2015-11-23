@@ -52,7 +52,10 @@ class AOADynamicDevice : public AOADevice {
                    TransportAdapterController* controller);
   ~AOADynamicDevice();
 
-  bool StartHandling();
+  AOADeviceLife* GetLife() const;
+  AOAWrapper::AOAUsbInfo GetUsbInfo() const;
+  void LoopDevice(AOAWrapper::AOAHandle handle);
+  void AddDevice(AOAWrapper::AOAHandle handle);
 
  private:
   AOADeviceLife* life_;
@@ -62,8 +65,6 @@ class AOADynamicDevice : public AOADevice {
   sync_primitives::ConditionalVariable life_cond_;
   DeviceUID lastDevice_;
 
-  void AddDevice(AOAWrapper::AOAHandle handle);
-  void LoopDevice(AOAWrapper::AOAHandle handle);
   void StopDevice(AOAWrapper::AOAHandle handle);
 
   virtual bool Ack();

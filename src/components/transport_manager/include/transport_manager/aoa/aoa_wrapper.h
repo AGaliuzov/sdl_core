@@ -63,7 +63,6 @@ enum AOAEndpoint {
 
 class AOADeviceLife;
 class AOAConnectionObserver;
-class LifeKeeper;
 
 class AOAWrapper {
  public:
@@ -79,25 +78,21 @@ class AOAWrapper {
     uint32_t product_id;
     std::string serial_number;
     std::string stackno;
+    std::string upstream_port;
+    std::string upstream_device_address;
+    std::string upstream_host_controller;
     uint32_t iface; /* Device interface */
+    std::string object_name;
   };
 
-  static bool Init(AOADeviceLife* life);
-  static bool Init(AOADeviceLife* life, const std::string& config_path);
-  static bool Init(AOADeviceLife* life, const AOAWrapper::AOAUsbInfo& aoa_usb_info);
-  static bool HandleDevice(AOADeviceLife* life,
-                           const AOAWrapper::AOAUsbInfo& aoa_usb_info);
+  bool IsHandleValid(AOAWrapper::AOAHandle hdl) const;
+  inline bool IsError(int ret) const;
+  inline void PrintError(int ret) const;
 
-  static void Disconnect(bool forced);
-  static bool Shutdown();
-  static bool IsHandleValid(AOAWrapper::AOAHandle hdl);
-  static void OnDied(AOAWrapper::AOAHandle hdl);
-  static inline bool IsError(int ret);
-  static inline void PrintError(int ret);
+  explicit AOAWrapper();
+  AOAWrapper(uint32_t timeout);
 
-  explicit AOAWrapper(AOAHandle hdl);
-  AOAWrapper(AOAHandle hdl, uint32_t timeout);
-
+  bool HandleDevice(const AOAWrapper::AOAUsbInfo& aoa_usb_info);
   bool IsHandleValid() const;
   AOAVersion GetProtocolVesrion() const;
   uint32_t GetBufferMaximumSize(AOAEndpoint endpoint) const;
@@ -111,29 +106,29 @@ class AOAWrapper {
   ::protocol_handler::RawMessagePtr ReceiveMessage() const;
   ::protocol_handler::RawMessagePtr ReceiveControlMessage(uint16_t request, uint16_t value,
                                       uint16_t index) const;
+  void OnDied() const;
 
   static const uint32_t kBufferSize = 32768;
-  static bool SetCallback(aoa_hdl_t* hdl, const void* udata, uint32_t timeout, AOAEndpoint endpoint);
+  bool SetCallback(uint32_t timeout, AOAEndpoint endpoint) const;
 
-  static LifeKeeper life_keeper_;
+  void OnMessageReceived(bool success, protocol_handler::RawMessagePtr message) const;
+  AOAHandle GetHandle() const;
  private:
 
   AOAHandle hdl_;
   uint32_t timeout_;
-  static AOAConnectionObserver* connection_observer_;
+  AOAConnectionObserver* connection_observer_;
 
-  static bool Init(AOADeviceLife* life, const char* config_path,
-                   usb_info_s* usb_info);
-  static void PrepareUsbInfo(const AOAUsbInfo& aoa_usb_info,
-                             usb_info_s* usb_info);
+  bool Init(AOADeviceLife* life, const char* config_path, usb_info_s* usb_info);
+  void PrepareUsbInfo(const AOAUsbInfo& aoa_usb_info,
+                      usb_info_s* usb_info);
 
   inline AOAVersion Version(uint16_t version) const;
-  inline static uint32_t BitEndpoint(AOAEndpoint endpoint);
+  inline uint32_t BitEndpoint(AOAEndpoint endpoint) const;
   inline bool IsValueInMask(uint32_t bitmask, uint32_t value) const;
   std::vector<AOAMode> CreateModesList(uint32_t modes_mask) const;
   std::vector<AOAEndpoint> CreateEndpointsList(uint32_t endpoints_mask) const;
   bool SetCallback(AOAEndpoint endpoint) const;
-  bool UnsetCallback(AOAEndpoint endpoint) const;
 };
 
 class AOADeviceLife {
@@ -148,22 +143,10 @@ class AOAConnectionObserver {
  public:
   virtual void OnMessageReceived(bool success, ::protocol_handler::RawMessagePtr message) = 0;
   virtual void OnMessageTransmitted(bool success, ::protocol_handler::RawMessagePtr message) = 0;
-  virtual void OnDisconnected(bool forced = false) = 0;
+  virtual void OnDisconnected() = 0;
+  virtual void OnStop() = 0;
   virtual ~AOAConnectionObserver() {
   }
-};
-
-class LifeKeeper {
- public:
-    void AddLife(AOADeviceLife* life);
-    AOADeviceLife* BindHandle2Life(aoa_hdl_t* hdl);
-    AOADeviceLife* GetLife(aoa_hdl_t* hdl);
-    AOADeviceLife* ReleaseLife(aoa_hdl_t* hdl);
-    bool LifeExists(aoa_hdl_t* hdl);
-
- private:
-    std::queue<AOADeviceLife*> free_life_pool;
-    std::map<aoa_hdl_t*, AOADeviceLife*> live_devices;
 };
 
 }  // namespace transport_adapter

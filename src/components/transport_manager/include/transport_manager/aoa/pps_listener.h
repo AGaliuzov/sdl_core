@@ -32,8 +32,8 @@
 #ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_PPS_LISTENER_H_
 #define SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_PPS_LISTENER_H_
 
-#include <map>
 #include <string>
+#include <map>
 
 #include "utils/lock.h"
 #include "utils/threads/thread.h"
@@ -41,7 +41,6 @@
 #include "utils/atomic_object.h"
 
 #include "transport_manager/transport_adapter/client_connection_listener.h"
-#include "transport_manager/aoa/aoa_dynamic_device.h"
 #include "transport_manager/aoa/aoa_wrapper.h"
 
 #include <mqueue.h>
@@ -49,14 +48,21 @@
 namespace transport_manager {
 namespace transport_adapter {
 
-class TransportAdapterController;
+class AOATransportAdapter;
+
+struct UsbInfoComparator {
+  bool operator()(const AOAWrapper::AOAUsbInfo& first,
+                  const AOAWrapper::AOAUsbInfo& second ) {
+    return first.object_name.compare(second.object_name) < 0;
+  }
+};
 
 class PPSListener : public ClientConnectionListener {
  public:
-  explicit PPSListener(TransportAdapterController* controller);
+  explicit PPSListener(AOATransportAdapter* controller);
   ~PPSListener();
 
- protected:
+  protected:
   virtual TransportAdapter::Error Init();
   virtual void Terminate();
   virtual TransportAdapter::Error StartListening();
@@ -69,25 +75,32 @@ class PPSListener : public ClientConnectionListener {
   static const std::string kPpsPathAll;
   static const std::string kPpsPathCtrl;
   bool initialised_;
-  TransportAdapterController* controller_;
+  AOATransportAdapter* controller_;
   int fd_;
   threads::Thread* pps_thread_;
   threads::Thread* mq_thread_;
   mutable sync_primitives::atomic_bool is_aoa_available_;
+  threads::Thread* thread_;
+
+  typedef std::map<AOAWrapper::AOAUsbInfo,
+                  DeviceUID, UsbInfoComparator> DeviceCollection;
+  DeviceCollection devices;
 
   bool OpenPps();
   void ClosePps();
   bool ArmEvent(struct sigevent* event);
   void Process(uint8_t* buf, size_t size);
   std::string ParsePpsData(char* ppsdata, const char** vals);
-  void SwitchMode(const char* objname, const char** attrs);
+  void SwitchMode(const AOAWrapper::AOAUsbInfo& usb_info);
   bool IsAOADevice(const char** attrs);
-  void FillUsbInfo(const std::string& object_name, const char** attrs,
+  void FillUsbInfo(const char** attrs,
                    AOAWrapper::AOAUsbInfo* info);
   bool IsAOAMode(const AOAWrapper::AOAUsbInfo& aoa_usb_info);
   void AddDevice(const AOAWrapper::AOAUsbInfo& aoa_usb_info);
+  void DisconnectDevice(const std::pair<const AOAWrapper::AOAUsbInfo, DeviceUID> device);
+  void ProcessAOADevice(const std::pair<const AOAWrapper::AOAUsbInfo, DeviceUID> device);
   bool init_aoa();
-  bool release_aoa() const;
+  void release_aoa() const;
 
   void release_thread(threads::Thread** thread);
 

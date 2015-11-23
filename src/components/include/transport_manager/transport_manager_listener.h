@@ -116,6 +116,9 @@ class TransportManagerListener {
   virtual void OnUnexpectedDisconnect(ConnectionUID connection_id,
                                       const CommunicationError& error) = 0;
 
+  virtual void OnExpectedDisconnect(ConnectionUID connection_id,
+                                    const CommunicationError& error) = 0;
+
   /**
    * @brief Reaction to the event, when connection close is failed.
    *

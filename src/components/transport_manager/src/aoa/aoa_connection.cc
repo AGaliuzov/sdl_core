@@ -35,6 +35,7 @@
 #include "utils/logger.h"
 #include "transport_manager/transport_adapter/transport_adapter_controller.h"
 #include "transport_manager/aoa/aoa_wrapper.h"
+#include "transport_manager/aoa/aoa_dynamic_device.h"
 
 namespace transport_manager {
 namespace transport_adapter {
@@ -43,9 +44,8 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
 
 AOAConnection::AOAConnection(const DeviceUID& device_uid,
                              const ApplicationHandle& app_handle,
-                             TransportAdapterController* controller,
-                             AOAWrapper::AOAHandle aoa_handle)
-    : wrapper_(new AOAWrapper(aoa_handle, kTimeout)),
+                             TransportAdapterController* controller)
+    : wrapper_(new AOAWrapper(kTimeout)),
       observer_(new ConnectionObserver(this)),
       device_uid_(device_uid),
       app_handle_(app_handle),
@@ -53,13 +53,22 @@ AOAConnection::AOAConnection(const DeviceUID& device_uid,
 }
 
 AOAConnection::~AOAConnection() {
+  LOG4CXX_AUTO_TRACE(logger_);
   wrapper_->Unsubscribe();
   delete observer_;
   delete wrapper_;
 }
 
 bool AOAConnection::Init() {
-  bool ret = wrapper_->Subscribe(observer_);
+  DeviceSptr device = controller_->FindDevice(device_uid_);
+  if (!device) {
+    LOG4CXX_DEBUG(logger_, "Can't find appropriate device with id: " << device_uid_);
+    return false;
+  }
+  AOADynamicDevice* ddevice = static_cast<AOADynamicDevice*>(device.get());
+  wrapper_->HandleDevice(ddevice->GetUsbInfo());
+  ddevice->AddDevice(wrapper_->GetHandle());
+  const bool ret = wrapper_->Subscribe(observer_);
   if (ret) {
     controller_->ConnectDone(device_uid_, app_handle_);
   } else {
@@ -107,12 +116,16 @@ void AOAConnection::TransmitFailed(::protocol_handler::RawMessagePtr message) {
                               DataSendError());
 }
 
-void AOAConnection::Abort(bool forced) {
+void AOAConnection::Abort() {
   LOG4CXX_TRACE(logger_, "AOA: aborted " << device_uid_ << " " << app_handle_);
   CommunicationError error;
-  if (forced) {
-    error.set_error(kResourceBusy);
-  }
+  controller_->ConnectionAborted(device_uid_, app_handle_, error);
+}
+
+void AOAConnection::Stop() {
+  LOG4CXX_TRACE(logger_, "AOA: stopped " << device_uid_ << " " << app_handle_);
+  CommunicationError error;
+  error.set_error(kResourceBusy);
   controller_->ConnectionAborted(device_uid_, app_handle_, error);
 }
 
@@ -143,12 +156,12 @@ void AOAConnection::OnMessageTransmitted(bool success, ::protocol_handler::RawMe
   }
 }
 
-void AOAConnection::OnDisconnected(bool forced) {
+void AOAConnection::OnDisconnected() {
   LOG4CXX_TRACE(
       logger_,
       "AOA: connection disconnected " << device_uid_ << " " << app_handle_);
-  Abort(forced);
-  Disconnect();
+    Abort();
+    Disconnect();
 }
 
 AOAConnection::ConnectionObserver::ConnectionObserver(
@@ -166,8 +179,12 @@ void AOAConnection::ConnectionObserver::OnMessageTransmitted(
   parent_->OnMessageTransmitted(success, message);
 }
 
-void AOAConnection::ConnectionObserver::OnDisconnected(bool forced) {
-  parent_->OnDisconnected(forced);
+void AOAConnection::ConnectionObserver::OnDisconnected() {
+  parent_->OnDisconnected();
+}
+
+void AOAConnection::ConnectionObserver::OnStop() {
+  parent_->Stop();
 }
 
 }  // namespace transport_adapter

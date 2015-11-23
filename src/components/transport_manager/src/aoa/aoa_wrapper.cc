@@ -36,171 +36,95 @@
 
 #include "utils/macro.h"
 #include "utils/logger.h"
+#include "utils/make_shared.h"
 
 namespace transport_manager {
 namespace transport_adapter {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
-
-namespace {
-  aoa_hdl_t* active_handle = NULL;
-}
-
-static void OnConnectedDevice(aoa_hdl_t *hdl, const void *udata) {
-  LOG4CXX_AUTO_TRACE(logger_);
-  LOG4CXX_DEBUG(logger_, "AOA: connected device " << hdl);
-
-  if (NULL == active_handle) {
-    LOG4CXX_DEBUG(logger_, "AOA: assign active handle " << hdl);
-    active_handle = hdl;
+#define RETURN_ON_ERROR(value) \
+  if (IsError(value)) { \
+    PrintError(value); \
+    return false; \
   }
-
-  AOADeviceLife* life = AOAWrapper::life_keeper_.BindHandle2Life(hdl);
-  if (life) {
-    life->Loop(hdl);
-  }
-  AOAWrapper::life_keeper_.ReleaseLife(hdl);
-}
 
 static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
                            uint32_t status, const void *udata) {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  LOG4CXX_DEBUG(logger_, "AOA: received data from device " << hdl);
-  bool error = AOAWrapper::IsError(status);
-  if (error) {
-    AOAWrapper::PrintError(status);
-  }
-
-  if (NULL == udata) { return; }
-
-  AOAConnectionObserver* const * p =
-      static_cast<AOAConnectionObserver* const *>(udata);
-  AOAConnectionObserver* observer = *p;
-
-  if (!AOAWrapper::IsHandleValid(hdl) || (status == AOA_EINVALIDHDL)) {
-    if (active_handle == hdl) {
-      LOG4CXX_DEBUG(logger_, "AOA: reset active_handle to NULL");
-      active_handle = NULL;
-    }
-    if (AOAWrapper::life_keeper_.LifeExists(hdl)) {
-      AOAWrapper::OnDied(hdl);
-      observer->OnDisconnected();
-    }
+  if (udata == NULL) {
+    LOG4CXX_ERROR(logger_, "No object to send data to.");
     return;
   }
 
-  if (NULL == active_handle) {
-    LOG4CXX_DEBUG(logger_, "AOA: re-assign active handle " << hdl);
-    active_handle = hdl;
+  const AOAWrapper* aoa_wrapper = reinterpret_cast<const AOAWrapper*>(udata);
+  LOG4CXX_DEBUG(logger_, "AOA: received data from device " << hdl);
+  const bool error = aoa_wrapper->IsError(status);
+  if (error) {
+    aoa_wrapper->PrintError(status);
   }
 
-  if (hdl == active_handle) {
-    bool success = !error;
-    ::protocol_handler::RawMessagePtr message;
-    if (data) {
-      message = new ::protocol_handler::RawMessage(0, 0, data, sz);
-    } else {
-      LOG4CXX_ERROR(logger_, "AOA: data is null");
-      success = false;
-    }
-    observer->OnMessageReceived(success, message);
+
+  if (!aoa_wrapper->IsHandleValid(hdl) || (status == AOA_EINVALIDHDL)) {
+    aoa_wrapper->OnDied();
+    return;
   }
+
+  bool success = !error;
+  protocol_handler::RawMessagePtr message;
+  if (data) {
+    message =utils::MakeShared<protocol_handler::RawMessage>(0, 0, data, sz);
+  } else {
+    LOG4CXX_ERROR(logger_, "AOA: data is null");
+    success = false;
+  }
+
+  aoa_wrapper->OnMessageReceived(success, message);
 
   aoa_buffer_free(hdl, data);
-  if (AOAWrapper::SetCallback(hdl, udata, AOA_TIMEOUT_INFINITY, AOA_Ept_Accessory_BulkIn)) {
+  if (aoa_wrapper->SetCallback(AOA_TIMEOUT_INFINITY, AOA_Ept_Accessory_BulkIn)) {
     LOG4CXX_DEBUG(logger_, "AOA: data receive callback reregistered");
   }
   else {
-    LOG4CXX_ERROR(logger_, "AOA: could not reregister data receive callback, error = ");
+    LOG4CXX_ERROR(logger_,
+                  "AOA: could not reregister data receive callback, error = "
+                  <<  strerror(errno));
   }
 }
 
-LifeKeeper AOAWrapper::life_keeper_;
-AOAConnectionObserver* AOAWrapper::connection_observer_ = NULL;
-
-AOAWrapper::AOAWrapper(AOAHandle hdl)
-    : hdl_(hdl),
+AOAWrapper::AOAWrapper()
+    : hdl_(NULL),
       timeout_(AOA_TIMEOUT_INFINITY) {
 }
 
-AOAWrapper::AOAWrapper(AOAHandle hdl, uint32_t timeout)
-    : hdl_(hdl),
+AOAWrapper::AOAWrapper(uint32_t timeout)
+    : hdl_(NULL),
       timeout_(timeout) {
 }
 
-bool AOAWrapper::Init(AOADeviceLife *life) {
-  LOG4CXX_TRACE(logger_, "AOA: init default");
-  return Init(life, NULL, NULL);
-}
-
-bool AOAWrapper::Init(AOADeviceLife* life, const std::string& config_path) {
-  LOG4CXX_TRACE(logger_, "AOA: init with path to config");
-  return Init(life, config_path.c_str(), NULL);
-}
-
-bool AOAWrapper::Init(AOADeviceLife* life,
-                      const AOAWrapper::AOAUsbInfo& aoa_usb_info) {
-  LOG4CXX_TRACE(logger_, "AOA: init with usb info");
-  usb_info_t usb_info;
-  PrepareUsbInfo(aoa_usb_info, &usb_info);
-  return Init(life, NULL, &usb_info);
-}
-
-bool AOAWrapper::HandleDevice(AOADeviceLife* life,
-                              const AOAWrapper::AOAUsbInfo& aoa_usb_info) {
+bool AOAWrapper::HandleDevice(const AOAWrapper::AOAUsbInfo& aoa_usb_info) {
   LOG4CXX_AUTO_TRACE(logger_);
   usb_info_t usb_info;
-  life_keeper_.AddLife(life);
   PrepareUsbInfo(aoa_usb_info, &usb_info);
-  const int ret = aoa_usbinfo_add(&usb_info, AOA_FLAG_UNIQUE_DEVICE);
-  if (IsError(ret)) {
-    PrintError(ret);
-    return false;
-  }
-  return true;
-}
-
-void AOAWrapper::Disconnect(bool forced) {
-  Shutdown();
-  if (connection_observer_) {
-    connection_observer_->OnDisconnected(forced);
-  }
-}
-
-bool AOAWrapper::Init(AOADeviceLife* life, const char* config_path,
-                      usb_info_s* usb_info) {
-
-  life_keeper_.AddLife(life);
-
-  uint32_t flags = 0;
-  if (usb_info) {
-    flags = AOA_FLAG_UNIQUE_DEVICE;
-  } else {
-    flags = AOA_FLAG_NO_USB_STACK;
-  }
-
-  int ret = aoa_init(config_path, usb_info, &OnConnectedDevice, &life_keeper_, flags);
-  if (IsError(ret)) {
-    PrintError(ret);
-    return false;
-  }
+  int ret;
+  hdl_ = aoa_connect(&usb_info, AOA_FLAG_UNIQUE_DEVICE, &ret);
+  RETURN_ON_ERROR(ret)
   return true;
 }
 
 bool AOAWrapper::SetCallback(AOAEndpoint endpoint) const {
-  return SetCallback(hdl_, &connection_observer_, timeout_, endpoint);
+  return SetCallback(timeout_, endpoint);
 }
 
-bool AOAWrapper::SetCallback(aoa_hdl_t* hdl, const void* udata, uint32_t timeout, AOAEndpoint endpoint) {
+bool AOAWrapper::SetCallback(uint32_t timeout, AOAEndpoint endpoint) const {
   LOG4CXX_TRACE(logger_,
-                "AOA: set callback " << hdl << ", endpoint " << endpoint);
+                "AOA: set callback " << hdl_ << ", endpoint " << endpoint);
   int ret;
   switch (endpoint) {
     case AOA_Ept_Accessory_BulkIn:
-      ret = aoa_bulk_arx(hdl,
+      ret = aoa_bulk_arx(hdl_,
                          &OnReceivedData,
-                         udata,
+                         this,
                          BitEndpoint(AOA_Ept_Accessory_BulkIn),
                          timeout,
                          0,
@@ -213,11 +137,22 @@ bool AOAWrapper::SetCallback(aoa_hdl_t* hdl, const void* udata, uint32_t timeout
       ;
       return false;
   }
-  if (IsError(ret)) {
-    PrintError(ret);
-    return false;
-  }
+
+  RETURN_ON_ERROR(ret);
   return true;
+}
+
+void AOAWrapper::OnMessageReceived(bool success,
+                                   protocol_handler::RawMessagePtr message) const {
+  LOG4CXX_AUTO_TRACE(logger_);
+
+  if (connection_observer_) {
+    connection_observer_->OnMessageReceived(success, message);
+  }
+}
+
+AOAWrapper::AOAHandle AOAWrapper::GetHandle() const {
+  return hdl_;
 }
 
 bool AOAWrapper::Subscribe(AOAConnectionObserver *observer) {
@@ -226,31 +161,11 @@ bool AOAWrapper::Subscribe(AOAConnectionObserver *observer) {
   return SetCallback(AOA_Ept_Accessory_BulkIn);
 }
 
-bool AOAWrapper::UnsetCallback(AOAEndpoint endpoint) const {
-  return SetCallback(hdl_, NULL, timeout_, endpoint);
-}
-
 bool AOAWrapper::Unsubscribe() {
-  LOG4CXX_TRACE(logger_, "AOA: unsubscribe on receive data" << hdl_);
-  if (!UnsetCallback(AOA_Ept_Accessory_BulkIn)) {
-    return false;
-  }
-  LOG4CXX_TRACE(logger_, "AOA: unsubscribe on transmit data" << hdl_);
-  if (!UnsetCallback(AOA_Ept_Accessory_BulkOut)) {
-    return false;
-  }
+  LOG4CXX_AUTO_TRACE(logger_);
   connection_observer_ = 0;
-  return true;
-}
-
-bool AOAWrapper::Shutdown() {
-  LOG4CXX_TRACE(logger_, "AOA: shutdown");
-  int ret = aoa_shutdown();
-  if (IsError(ret)) {
-    PrintError(ret);
-    return false;
-  }
-  active_handle = NULL;
+  const int status = aoa_disconnect(hdl_);
+  RETURN_ON_ERROR(status);
   return true;
 }
 
@@ -279,7 +194,7 @@ AOAVersion AOAWrapper::GetProtocolVesrion() const {
   return Version(version);
 }
 
-uint32_t AOAWrapper::BitEndpoint(AOAEndpoint endpoint) {
+uint32_t AOAWrapper::BitEndpoint(AOAEndpoint endpoint) const {
   const uint32_t kUndefined = 0;
   switch (endpoint) {
     case AOA_Ept_Accessory_BulkIn:
@@ -358,8 +273,7 @@ bool AOAWrapper::SendMessage(::protocol_handler::RawMessagePtr message) const {
   DCHECK(message);
 
   if (!IsHandleValid()) {
-    OnDied(hdl_);
-    connection_observer_->OnDisconnected();
+    OnDied();
     return false;
   }
 
@@ -371,17 +285,14 @@ bool AOAWrapper::SendMessage(::protocol_handler::RawMessagePtr message) const {
 
   size_t length = message->data_size();
   ::memcpy(data, message->data(), length);
-  int ret = aoa_bulk_tx(hdl_, AOA_EPT_ACCESSORY_BULKOUT, timeout_, data,
-                        &length, AOA_FLAG_MANAGED_BUF);
+  const int ret = aoa_bulk_tx(hdl_, AOA_EPT_ACCESSORY_BULKOUT, timeout_, data,
+                              &length, AOA_FLAG_MANAGED_BUF);
 
   if (AOA_EOK != aoa_buffer_free(hdl_, data)) {
     LOG4CXX_ERROR(logger_, "AOA: unable to deallocate buffer.");
   }
 
-  if (IsError(ret)) {
-    PrintError(ret);
-    return false;
-  }
+  RETURN_ON_ERROR(ret);
 
   return true;
 }
@@ -393,55 +304,53 @@ bool AOAWrapper::SendControlMessage(uint16_t request, uint16_t value,
   DCHECK(message);
 
   if (!IsHandleValid()) {
-    OnDied(hdl_);
-    connection_observer_->OnDisconnected();
+    OnDied();
     return false;
   }
 
   uint8_t *data = message->data();
   size_t length = message->data_size();
-  int ret = aoa_control_tx(hdl_, AOA_EPT_ACCESSORY_CONTROL, timeout_, request,
-                           value, index, data, &length, AOA_FLAG_MANAGED_BUF);
-  if (IsError(ret)) {
-    PrintError(ret);
-    return false;
-  }
+  const int ret = aoa_control_tx(hdl_, AOA_EPT_ACCESSORY_CONTROL, timeout_,
+                                 request, value, index, data, &length,
+                                 AOA_FLAG_MANAGED_BUF);
+  RETURN_ON_ERROR(ret);
   return true;
 }
 
 ::protocol_handler::RawMessagePtr AOAWrapper::ReceiveMessage() const {
   LOG4CXX_AUTO_TRACE(logger_);
-
+  protocol_handler::RawMessagePtr message_ptr;
   if (!IsHandleValid()) {
-    OnDied(hdl_);
-    connection_observer_->OnDisconnected();
-    return ::protocol_handler::RawMessagePtr();
+    OnDied();
+    return message_ptr;
   }
 
   uint8_t* data;
   uint32_t size;
   LOG4CXX_TRACE(logger_, "AOA: receiving bulk data");
-  int ret = aoa_bulk_rx(hdl_, AOA_EPT_ACCESSORY_BULKIN, timeout_, &data, &size, 0);
+  const int ret = aoa_bulk_rx(
+        hdl_, AOA_EPT_ACCESSORY_BULKIN, timeout_, &data, &size, 0);
   if (IsError(ret)) {
     PrintError(ret);
   } else {
       LOG4CXX_DEBUG(logger_, "AOA: bulk data received");
       if (data) {
-        return ::protocol_handler::RawMessagePtr(new ::protocol_handler::RawMessage(0, 0, data, size));
+         message_ptr =
+             utils::MakeShared<protocol_handler::RawMessage::RawMessage>(
+               0, 0, data, size);
       }
   }
-  return ::protocol_handler::RawMessagePtr();
+  return message_ptr;
 }
 
 ::protocol_handler::RawMessagePtr AOAWrapper::ReceiveControlMessage(uint16_t request,
                                                 uint16_t value,
                                                 uint16_t index) const {
   LOG4CXX_TRACE(logger_, "AOA: receive from control endpoint");
-
+  protocol_handler::RawMessagePtr message_ptr;
   if (!IsHandleValid()) {
-    OnDied(hdl_);
-    connection_observer_->OnDisconnected();
-    return ::protocol_handler::RawMessagePtr();
+    OnDied();
+    return message_ptr;
   }
 
   uint8_t *data;
@@ -451,35 +360,36 @@ bool AOAWrapper::SendControlMessage(uint16_t request, uint16_t value,
   if (IsError(ret)) {
     PrintError(ret);
   } else if (data) {
-    return ::protocol_handler::RawMessagePtr(new ::protocol_handler::RawMessage(0, 0, data, size));
+    message_ptr =
+        utils::MakeShared<protocol_handler::RawMessage>(0, 0, data, size);
   }
-  return ::protocol_handler::RawMessagePtr();
+
+  return message_ptr;
 }
 
-bool AOAWrapper::IsError(int ret) {
+bool AOAWrapper::IsError(int ret) const {
   return ret != AOA_EOK;
 }
 
-void AOAWrapper::PrintError(int ret) {
+void AOAWrapper::PrintError(int ret) const {
   LOG4CXX_ERROR(logger_, "AOA: error " << ret << " - " << aoa_err2str(ret));
 }
 
-bool AOAWrapper::IsHandleValid(AOAWrapper::AOAHandle hdl) {
+bool AOAWrapper::IsHandleValid(AOAWrapper::AOAHandle hdl) const {
   LOG4CXX_TRACE(logger_, "AOA: check handle " << hdl);
-  bool valid;
-  int ret = aoa_get_valid(hdl, &valid);
-  if (IsError(ret)) {
-    PrintError(ret);
-    return false;
+  if (hdl != hdl_) {
+    LOG4CXX_TRACE(logger_, "Inappropriate handle has been received. Expected: "
+                  << hdl_ << " Received " << hdl);
   }
+  bool valid;
+  const int ret = aoa_get_valid(hdl, &valid);
+  RETURN_ON_ERROR(ret);
   return valid;
 }
 
-void AOAWrapper::OnDied(AOAWrapper::AOAHandle hdl) {
-  AOADeviceLife* life = life_keeper_.ReleaseLife(hdl);
-
-  if (NULL != life) {
-    life->OnDied(hdl);
+void AOAWrapper::OnDied() const {
+  if (connection_observer_) {
+    connection_observer_->OnDisconnected();
   }
 }
 
@@ -489,44 +399,6 @@ void AOAWrapper::PrepareUsbInfo(const AOAUsbInfo& aoa_usb_info,
   usb_info->busno = aoa_usb_info.busno;
   usb_info->devno = aoa_usb_info.devno;
   usb_info->iface = aoa_usb_info.iface;
-}
-
-void LifeKeeper::AddLife(AOADeviceLife *life) {
-  if (NULL == life) {
-    LOG4CXX_DEBUG(logger_,"Life object is NULL shouldn't be added to the pool");
-    return;
-  }
-
-  free_life_pool.push(life);
-
-}
-
-AOADeviceLife* LifeKeeper::BindHandle2Life(aoa_hdl_t *hdl) {
-  if (free_life_pool.empty()) { return NULL; }
-
-  AOADeviceLife* life = free_life_pool.front();
-  live_devices.insert(std::make_pair(hdl, life));
-  free_life_pool.pop();
-  return life;
-}
-
-AOADeviceLife* LifeKeeper::GetLife(aoa_hdl_t *hdl){
-  if (!LifeExists(hdl)) { return NULL; }
-
-  return live_devices[hdl];
-}
-
-AOADeviceLife* LifeKeeper::ReleaseLife(aoa_hdl_t *hdl) {
-  AOADeviceLife* life = GetLife(hdl);
-  if (NULL != life) {
-    live_devices.erase(hdl);
-  }
-
-  return life;
-}
-
-bool LifeKeeper::LifeExists(aoa_hdl_t* hdl) {
-  return live_devices.find(hdl) != live_devices.end();
 }
 
 }  // namespace transport_adapter

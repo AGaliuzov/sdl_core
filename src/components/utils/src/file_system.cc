@@ -160,20 +160,6 @@ bool file_system::FileExists(const std::string& name) {
   return true;
 }
 
-bool file_system::Write(
-  const std::string& file_name, const std::vector<uint8_t>& data,
-  std::ios_base::openmode mode) {
-  std::ofstream file(file_name.c_str(), std::ios_base::binary | mode);
-  if (file.is_open()) {
-    for (uint32_t i = 0; i < data.size(); ++i) {
-      file << data[i];
-    }
-    file.close();
-    return true;
-  }
-  return false;
-}
-
 std::ofstream* file_system::Open(const std::string& file_name,
                                  std::ios_base::openmode mode) {
 
