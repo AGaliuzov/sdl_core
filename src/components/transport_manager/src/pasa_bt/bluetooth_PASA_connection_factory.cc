@@ -31,10 +31,12 @@
  */
 
 #include "transport_manager/pasa_bt/bluetooth_PASA_connection_factory.h"
-#include "transport_manager/transport_adapter/transport_adapter_controller.h"
-#include "transport_manager/pasa_bt/bluetooth_PASA_connection.h"
 
 #include "utils/logger.h"
+#include "utils/make_shared.h"
+
+#include "transport_manager/transport_adapter/transport_adapter_controller.h"
+#include "transport_manager/pasa_bt/bluetooth_PASA_connection.h"
 
 namespace transport_manager {
 namespace transport_adapter {
@@ -53,8 +55,8 @@ TransportAdapter::Error BluetoothPASAConnectionFactory::Init() {
 TransportAdapter::Error BluetoothPASAConnectionFactory::CreateConnection(
     const DeviceUID& device_uid, const ApplicationHandle& app_handle) {
   LOG4CXX_AUTO_TRACE(logger_);
-  BluetoothPASAConnection* connection =
-      new BluetoothPASAConnection(device_uid, app_handle, controller_);
+  utils::SharedPtr<BluetoothPASAConnection> connection =
+          utils::MakeShared<BluetoothPASAConnection>(device_uid, app_handle, controller_);
   controller_->ConnectionCreated(connection, device_uid, app_handle);
   const TransportAdapter::Error error = connection->Start();
   if (error != TransportAdapter::OK) {
