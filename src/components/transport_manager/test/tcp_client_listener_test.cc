@@ -49,7 +49,6 @@ class MockTransportAdapterController: public TransportAdapterController {
 public:
  MOCK_METHOD0(AckDevices, void());
  MOCK_METHOD1(AddDevice,DeviceSptr(DeviceSptr device));
- MOCK_METHOD0(AckDevices,void());
  MOCK_METHOD1(SearchDeviceDone, void(const DeviceVector& devices));
  MOCK_METHOD1(SearchDeviceFailed, void(const SearchDeviceError& error));
  MOCK_CONST_METHOD1(FindDevice, DeviceSptr(const DeviceUID& device_handle));
