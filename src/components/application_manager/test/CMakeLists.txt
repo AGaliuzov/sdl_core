@@ -80,6 +80,7 @@ if (BUILD_TESTS)
     ${COMPONENTS_DIR}/application_manager/include/application_manager
     ${COMPONENTS_DIR}/application_manager/include/application_manager/resumption
     ${COMPONENTS_DIR}/application_manager/include/
+    ${COMPONENTS_DIR}/application_manager/include/application_manager/commands/
     ${COMPONENTS_DIR}/utils/include/utils
     ${COMPONENTS_DIR}/include/utils
     ${COMPONENTS_DIR}/include/
@@ -105,6 +106,9 @@ if (BUILD_TESTS)
     # TODO(VVeremjova) APPLINK-12835
     #${AM_TEST_DIR}/zero_request_amount_test.cc
   )
+  set (request_controller_SOURCES
+    ${AM_TEST_DIR}/request_controller/request_controller_test.cc
+    )
 
   set(mockedSources ${AM_MOCK_DIR}/src/application_manager_impl.cc)
 
@@ -156,6 +160,10 @@ if (BUILD_TESTS)
     ${AM_SOURCE_DIR}/src/commands/command_request_impl.cc
   )
 
+  set(AM_SOURCES_MESSAGE_HELPER
+    ${COMPONENTS_DIR}/application_manager/src/message_helper.cc
+  )
+
   include_directories(
     ${COMPONENTS_DIR}/policy/src/policy/policy_table/table_struct_ext
   )
@@ -182,6 +190,18 @@ if (BUILD_TESTS)
     SecurityManager
   )
 
+  set(request_controller_Libraries
+    Utils
+    ApplicationManager
+    MessageHelper
+    jsoncpp
+    connectionHandler
+    gmock_main
+    MediaManager
+    Resumption
+    ProtocolHandler
+  )
+
   if (${CMAKE_SYSTEM_NAME} MATCHES "QNX")
     list(REMOVE_ITEM test_exec_libraries dl)
   endif()
@@ -201,7 +221,10 @@ if (BUILD_TESTS)
   set(CMAKE_EXE_LINKER_FLAGS
     "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath=${CMAKE_CURRENT_BINARY_DIR}")
   add_library("ApplicationManagerTest" ${AM_SOURCES})
+  add_library("MessageHelper" ${AM_SOURCES_MESSAGE_HELPER})
   create_test("application_manager_test" "${testSources}" "${testLibraries}" )
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/request_controller)
+  create_test("request_controller/request_controller_test" "${request_controller_SOURCES}" "${request_controller_Libraries}" )
 
   set(ResumptionData_SOURCES
     ${AM_TEST_DIR}/resumption/resumption_data_test.cc

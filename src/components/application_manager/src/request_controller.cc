@@ -423,12 +423,10 @@ void RequestController::Worker::threadMain() {
       request_controller_->cond_var_.Wait(auto_lock);
       LOG4CXX_INFO(logger_, "Signaled and locking");
     }
-
     // If the thread was shutdown, return from here
     if (request_controller_->pool_state_ == TPoolState::STOPPED) {
       break;
     }
-
     if (request_controller_->mobile_request_info_list_.empty()) {
       LOG4CXX_WARN(logger_, "Mobile request list is empty");
       break;
@@ -439,7 +437,6 @@ void RequestController::Worker::threadMain() {
         request_controller_->mobile_request_info_list_.pop_front();
     bool init_res = request_info_ptr->request()->Init();  // to setup specific
                                                           // default timeout
-
     const uint32_t timeout_in_mseconds =
         request_info_ptr->request()->default_timeout();
 
@@ -456,7 +453,6 @@ void RequestController::Worker::threadMain() {
     }
 
     AutoUnlock unlock(auto_lock);
-
     // execute
     if ((false == request_controller_->IsLowVoltage()) &&
         request_info_ptr->request()->CheckPermissions() && init_res) {
