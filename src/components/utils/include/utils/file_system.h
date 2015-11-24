@@ -39,6 +39,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <iterator>
 
 namespace file_system {
 
@@ -115,9 +116,8 @@ bool Write(const std::string& file_name,
            std::ios_base::openmode mode = std::ios_base::out) {
   std::ofstream file(file_name.c_str(), mode);
   if (file.is_open()) {
-    for (T i = 0; i < data.size(); ++i) {
-      file << data[i];
-    }
+      std::copy(data.begin(), data.end(),
+                std::ostream_iterator<T>(file));
     file.close();
     return true;
   }
