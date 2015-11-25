@@ -35,12 +35,12 @@
 #include "gtest/gtest.h"
 
 #include "application_manager/usage_statistics.h"
-#include "include/application_mock.h"
-#include "include/resumption_data_mock.h"
+#include "application_manager/application_mock.h"
+#include "application_manager/resumption_data_mock.h"
 #include "interfaces/MOBILE_API.h"
 #include "resumption/last_state.h"
 
-#include "include/resumption_data_test.h"
+#include "application_manager/resumption_data_test.h"
 #include "formatters/CFormatterJsonBase.hpp"
 #include "config_profile/profile.h"
 #include "utils/file_system.h"

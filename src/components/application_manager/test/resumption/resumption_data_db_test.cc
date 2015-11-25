@@ -33,7 +33,7 @@
 #include <string>
 #include <algorithm>
 #include "gtest/gtest.h"
-#include "include/application_mock.h"
+#include "application_manager/application_mock.h"
 #include "interfaces/MOBILE_API.h"
 #include "sql_database.h"
 #include "sql_query.h"
@@ -41,7 +41,7 @@
 #include "application_manager/application_manager_impl.h"
 #include "config_profile/profile.h"
 #include "utils/file_system.h"
-#include "include/resumption_data_test.h"
+#include "application_manager/resumption_data_test.h"
 
 #include "application_manager/resumption/resumption_sql_queries.h"
 #include "application_manager/resumption/resumption_data_db.h"

@@ -35,15 +35,15 @@
 #include "gtest/gtest.h"
 
 #include "application_manager/usage_statistics.h"
-#include "include/application_mock.h"
-#include "include/resumption_data_mock.h"
+#include "application_manager/application_mock.h"
+#include "application_manager/resumption_data_mock.h"
 #include "utils/custom_string.h"
 #include "application_manager/application_manager_impl.h"
 #include "application_manager/application.h"
 #include "utils/data_accessor.h"
 #include "application_manager/message_helper.h"
 
-#include "include/resumption_data_test.h"
+#include "application_manager/resumption_data_test.h"
 
 std::string application_manager::MessageHelper::GetDeviceMacAddressForHandle(
     const uint32_t device_handle) {

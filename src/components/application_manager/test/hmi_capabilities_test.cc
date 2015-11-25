@@ -34,7 +34,7 @@
 #include "gtest/gtest.h"
 #include "application_manager/application_manager_impl.h"
 #include "smart_objects/smart_object.h"
-#include "mock_message_helper.h"
+#include "application_manager/mock_message_helper.h"
 #include "smart_objects/enum_schema_item.h"
 #include "interfaces/HMI_API.h"
 

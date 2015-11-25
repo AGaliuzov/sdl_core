@@ -35,14 +35,14 @@
 #include <algorithm>
 #include "gtest/gtest.h"
 #include "application_manager/usage_statistics.h"
-#include "include/application_mock.h"
-#include "include/resumption_data_mock.h"
+#include "application_manager/application_mock.h"
+#include "application_manager/resumption_data_mock.h"
 #include "interfaces/MOBILE_API.h"
 #include "application_manager/application_manager_impl.h"
 #include "application_manager/application.h"
 #include "config_profile/profile.h"
 #include "utils/data_accessor.h"
-#include "application_manager/test/mock_message_helper.h"
+#include "application_manager/mock_message_helper.h"
 
 namespace test {
 namespace components {

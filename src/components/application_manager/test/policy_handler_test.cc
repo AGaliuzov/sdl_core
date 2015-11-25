@@ -41,7 +41,7 @@
 #include "application_manager/application_manager_impl.h"
 #include "application_impl.h"
 #include "security_manager/security_manager_mock.h"
-#include "mock_message_helper.h"
+#include "application_manager/mock_message_helper.h"
 #include "policy/policy_types.h"
 #include "json/reader.h"
 #include "json/writer.h"

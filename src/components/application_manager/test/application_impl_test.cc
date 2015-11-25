@@ -39,7 +39,7 @@
 #include "utils/file_system.h"
 #include "config_profile/profile.h"
 #include "utils/make_shared.h"
-#include "mock_message_helper.h"
+#include "application_manager/mock_message_helper.h"
 #include "utils/custom_string.h"
 
 namespace test {

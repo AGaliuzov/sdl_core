@@ -37,7 +37,7 @@
 #include "utils/macro.h"
 #include "utils/make_shared.h"
 #include "application_manager/policies/policy_handler.h"
-#include "application_manager/test/resumption/include/application_mock.h"
+#include "application_manager/application_mock.h"
 #include "utils/custom_string.h"
 
 namespace application_manager {
