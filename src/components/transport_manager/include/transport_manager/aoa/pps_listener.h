@@ -84,7 +84,8 @@ class PPSListener : public ClientConnectionListener {
 
   typedef std::map<AOAWrapper::AOAUsbInfo,
                   DeviceUID, UsbInfoComparator> DeviceCollection;
-  DeviceCollection devices;
+  DeviceCollection devices_;
+  sync_primitives::Lock devices_lock_;
 
   bool OpenPps();
   void ClosePps();
@@ -100,7 +101,7 @@ class PPSListener : public ClientConnectionListener {
   void DisconnectDevice(const std::pair<const AOAWrapper::AOAUsbInfo, DeviceUID> device);
   void ProcessAOADevice(const std::pair<const AOAWrapper::AOAUsbInfo, DeviceUID> device);
   bool init_aoa();
-  void release_aoa() const;
+  void release_aoa();
 
   void release_thread(threads::Thread** thread);
 
