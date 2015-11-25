@@ -156,10 +156,11 @@ void CryptoManagerImpl::SSLContextImpl::PrintCertData(X509* cert,
       OPENSSL_free(issuer);
     }
 
+#ifdef ENABLE_LOG
     const std::string& cn = GetTextBy(subj_name, NID_commonName);
     const std::string& sn = GetTextBy(subj_name, NID_serialNumber);
-
     LOG4CXX_DEBUG(logger_, "CN: " << cn << ". SERIALNUMBER: " << sn);
+#endif
 
     ASN1_TIME* notBefore = X509_get_notBefore(cert);
     ASN1_TIME* notAfter = X509_get_notAfter(cert);

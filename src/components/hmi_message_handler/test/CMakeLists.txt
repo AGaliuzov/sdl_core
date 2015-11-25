@@ -42,6 +42,7 @@ if (BUILD_TESTS)
     jsoncpp
     MessageBrokerClient
     MessageBrokerServer
+    ConfigProfile
   )
 
   set(SOURCES 

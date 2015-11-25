@@ -59,14 +59,13 @@ set(HMI_TYPE_OPTION 	"$ENV{HMI_TYPE}")
 set(TARGET_OPTION 	"$ENV{TARGET}")
 set(MEDIA_MODE_OPTION 	"$ENV{MEDIA_MODE}")
 set(HMI_ADAPTER_OPTION 	"$ENV{HMI_ADAPTER}")
+set(ENABLE_TESTS_OPTION "$ENV{ENABLE_TESTS}")
 set(ENABLE_LOG_OPTION 	"$ENV{ENABLE_LOG}")
 set(ARCH_TYPE_OPTION	"$ENV{ARCH_TYPE}")
 set(POLICY_OPTION 	"$ENV{POLICY_TYPE}")
 set(SECURITY_OPTION 	"$ENV{SECURITY_MODE}")
 set(COMPONENTS_DIR ${CMAKE_SOURCE_DIR}/src/components)
 set(SNAPSHOT_TAG 	"$ENV{SNAPSHOT_TAG}")
-
-
 
 if (ARCH_TYPE_OPTION)
   if (NOT (${ARCH_TYPE_OPTION} STREQUAL "x86") AND NOT (${ARCH_TYPE_OPTION} STREQUAL "armv7"))
@@ -75,19 +74,6 @@ if (ARCH_TYPE_OPTION)
   endif ()
 else ()
     set(ARCH_TYPE_OPTION	"x86")
-endif()
-
-set(objcopy "objcopy")
-if (OS_TYPE_OPTION)
-  if (${OS_TYPE_OPTION} STREQUAL "QNX")
-    message(STATUS "Jenkins integration: set build process for QNX")
-    #do not use include after project() command.
-    #Such usecase results in infinite cycle of reinitialization of compiler and other variables
-    INCLUDE("./qnx_6.5.0_linux_x86.cmake")
-    set(objcopy "nto${ARCH_TYPE_OPTION}-objcopy")
-    #tests are not supported yet for QNX build
-    set (BUILD_TESTS OFF)
-  endif()
 endif()
 
 if (HMI_TYPE_OPTION)
@@ -137,10 +123,33 @@ if (ENABLE_LOG_OPTION)
   endif()
 endif()
 
+if (ENABLE_TESTS_OPTION)
+  if (${ENABLE_TESTS_OPTION} STREQUAL "TESTS_OFF")
+    message(STATUS "Jenkins integration: Unit tests is turned off")
+    set (BUILD_TESTS OFF)
+  elseif(${ENABLE_TESTS_OPTION} STREQUAL "TESTS_ON")
+    message(STATUS "Jenkins integration: Unit tests is turned on")
+    set (BUILD_TESTS ON)
+  endif()
+endif()
+
 if (SECURITY_OPTION)
   if (${SECURITY_OPTION} STREQUAL "SEC_OFF")
     message(STATUS "Jenkins integration: Security is turned OFF")
     set (ENABLE_SECURITY OFF)
+  endif()
+endif()
+
+set(objcopy "objcopy")
+if (OS_TYPE_OPTION)
+  if (${OS_TYPE_OPTION} STREQUAL "QNX")
+    message(STATUS "Jenkins integration: set build process for QNX")
+    #do not use include after project() command.
+    #Such usecase results in infinite cycle of reinitialization of compiler and other variables
+    INCLUDE("./qnx_6.5.0_linux_x86.cmake")
+    set(objcopy "nto${ARCH_TYPE_OPTION}-objcopy")
+    #tests are not supported yet for QNX build
+    set (BUILD_TESTS OFF)
   endif()
 endif()
 

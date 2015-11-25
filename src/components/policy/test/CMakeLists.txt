@@ -47,6 +47,7 @@ set(testLibraries
   Utils
   Policy
   UsageStatistics
+  ConfigProfile
 )
 
 set(testSources

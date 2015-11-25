@@ -50,6 +50,7 @@ set(SOURCES
 set(LIBRARIES
   gmock
   ${SecurityManagerLibrary}
+  ConfigProfile
 )
 
 set(CERT_LIST 

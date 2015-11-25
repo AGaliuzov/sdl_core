@@ -32,7 +32,7 @@
 
 #ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_APPLICATION_STATE_H_
 #define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_APPLICATION_STATE_H_
-
+#include <vector>
 #include "utils/lock.h"
 #include "utils/macro.h"
 #include "application_manager/hmi_state.h"
