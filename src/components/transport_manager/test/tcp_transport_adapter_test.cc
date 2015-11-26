@@ -37,7 +37,7 @@
 #include "resumption/last_state.h"
 #include "protocol/raw_message.h"
 #include "transport_manager/transport_adapter_listener_mock.h"
-#include "transport_manager/device_mock.h"
+#include "transport_manager/transport_adapter/mock_device.h"
 #include "transport_manager/connection_mock.h"
 
 namespace test {
@@ -49,7 +49,6 @@ using ::testing::_;
 
 using namespace ::protocol_handler;
 using namespace ::transport_manager;
-using namespace transport_manager::transport_adapter;
 
 class TestTCPTransportAdapter : public TcpTransportAdapter {
  public:
@@ -89,7 +88,7 @@ TEST_F(TcpAdapterTest, StoreDataWithOneDeviceAndOneApplication) {
   // Prepare
   TestTCPTransportAdapter transport_adapter(port);
   std::string uniq_id = "unique_device_name";
-  utils::SharedPtr<TCPDeviceMock> mockdev = new TCPDeviceMock(port, uniq_id);
+  utils::SharedPtr<MockTCPDevice> mockdev = new MockTCPDevice(port, uniq_id);
   transport_adapter.AddDevice(mockdev);
 
   std::vector<std::string> devList = transport_adapter.GetDeviceList();
@@ -127,13 +126,13 @@ TEST_F(TcpAdapterTest, StoreDataWithSeveralDevicesAndOneApplication) {
   // Prepare
   TestTCPTransportAdapter transport_adapter(port);
   const uint32_t count_dev = 10;
-  utils::SharedPtr<TCPDeviceMock> mockdev[count_dev];
+  utils::SharedPtr<MockTCPDevice> mockdev[count_dev];
   std::string uniq_id[count_dev];
   for (uint32_t i = 0; i < count_dev; i++) {
     char numb[12];
     std::snprintf(numb, 12, "%d", i);
     uniq_id[i] = "unique_device_name" + std::string(numb);
-    mockdev[i] = new TCPDeviceMock(port, uniq_id[i]);
+    mockdev[i] = new MockTCPDevice(port, uniq_id[i]);
     EXPECT_CALL(*(mockdev[i]), IsSameAs(_)).WillRepeatedly(Return(false));
     transport_adapter.AddDevice(mockdev[i]);
   }
@@ -180,13 +179,13 @@ TEST_F(TcpAdapterTest, StoreDataWithSeveralDevicesAndSeveralApplications) {
   TestTCPTransportAdapter transport_adapter(port);
   const uint32_t count_dev = 10;
 
-  utils::SharedPtr<TCPDeviceMock> mockdev[count_dev];
+  utils::SharedPtr<MockTCPDevice> mockdev[count_dev];
   std::string uniq_id[count_dev];
   for (uint32_t i = 0; i < count_dev; i++) {
     char numb[12];
     std::snprintf(numb, 12, "%d", i);
     uniq_id[i] = "unique_device_name" + std::string(numb);
-    mockdev[i] = new TCPDeviceMock(port, uniq_id[i]);
+    mockdev[i] = new MockTCPDevice(port, uniq_id[i]);
     EXPECT_CALL(*(mockdev[i]), IsSameAs(_)).WillRepeatedly(Return(false));
     transport_adapter.AddDevice(mockdev[i]);
   }
@@ -237,7 +236,7 @@ TEST_F(TcpAdapterTest, StoreData_ConnectionNotExist_DataNotStored) {
   // Prepare
   TestTCPTransportAdapter transport_adapter(port);
   std::string uniq_id = "unique_device_name";
-  utils::SharedPtr<TCPDeviceMock> mockdev = new TCPDeviceMock(port, uniq_id);
+  utils::SharedPtr<MockTCPDevice> mockdev = new MockTCPDevice(port, uniq_id);
   transport_adapter.AddDevice(mockdev);
 
   std::vector<std::string> devList = transport_adapter.GetDeviceList();
@@ -272,7 +271,7 @@ TEST_F(TcpAdapterTest, RestoreData_DataNotStored) {
 TEST_F(TcpAdapterTest, StoreDataWithOneDevice_RestoreData) {
   TestTCPTransportAdapter transport_adapter(port);
   std::string uniq_id = "unique_device_name";
-  utils::SharedPtr<TCPDeviceMock> mockdev = new TCPDeviceMock(port, uniq_id);
+  utils::SharedPtr<MockTCPDevice> mockdev = new MockTCPDevice(port, uniq_id);
   transport_adapter.AddDevice(mockdev);
 
   std::vector<std::string> devList = transport_adapter.GetDeviceList();
@@ -306,13 +305,13 @@ TEST_F(TcpAdapterTest, StoreDataWithSeveralDevices_RestoreData) {
   TestTCPTransportAdapter transport_adapter(port);
   const uint32_t count_dev = 10;
 
-  utils::SharedPtr<TCPDeviceMock> mockdev[count_dev];
+  utils::SharedPtr<MockTCPDevice> mockdev[count_dev];
   std::string uniq_id[count_dev];
   for (uint32_t i = 0; i < count_dev; i++) {
     char numb[12];
     std::snprintf(numb, 12, "%d", i);
     uniq_id[i] = "unique_device_name" + std::string(numb);
-    mockdev[i] = new TCPDeviceMock(port, uniq_id[i]);
+    mockdev[i] = new MockTCPDevice(port, uniq_id[i]);
     EXPECT_CALL(*(mockdev[i]), IsSameAs(_)).WillRepeatedly(Return(false));
     transport_adapter.AddDevice(mockdev[i]);
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,42 +29,36 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-#ifndef SRC_COMPONENTS_INCLUDE_TEST_CONNECTION_HANDLER_CONNECTION_HANDLER_OBSERVER_MOCK_H_
-#define SRC_COMPONENTS_INCLUDE_TEST_CONNECTION_HANDLER_CONNECTION_HANDLER_OBSERVER_MOCK_H_
+#ifndef SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_MOCK_PROTOCOL_HANDLER_H_
+#define SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_MOCK_PROTOCOL_HANDLER_H_
 
 #include <gmock/gmock.h>
-#include <string>
-#include "connection_handler/connection_handler_observer.h"
+#include "protocol_handler/protocol_packet.h"
 
 namespace test {
 namespace components {
-namespace connection_handler_test {
+namespace protocol_handler_test {
 
-/*
- * MOCK implementation of ::connection_handler::ConnectionHandlerObserver interface
- */
-class ConnectionHandlerObserverMock : public ::connection_handler::ConnectionHandlerObserver {
+class MockProtocolHandler : public ::protocol_handler::ProtocolHandler {
  public:
-  MOCK_METHOD1(OnDeviceListUpdated,
-      void(const connection_handler::DeviceMap &device_list));
-  MOCK_METHOD0(OnFindNewApplicationsRequest,void());
-  MOCK_METHOD1(RemoveDevice,
-      void(const connection_handler::DeviceHandle &device_handle));
-  MOCK_METHOD3(OnServiceStartedCallback,
-      bool(const connection_handler::DeviceHandle &device_handle,
-           const int32_t &session_key,
-           const protocol_handler::ServiceType &type));
-  MOCK_METHOD3(OnServiceEndedCallback,
-      void(const int32_t &session_key,
-           const protocol_handler::ServiceType &type,
-           const connection_handler::CloseSessionReason& close_reason));
-  MOCK_CONST_METHOD1(GetHandshakeContext,
-                     security_manager::SSLContext::HandshakeContext(
-                       uint32_t key));
-
+  MOCK_METHOD2(SendMessageToMobileApp,
+      void(const ::protocol_handler::RawMessagePtr message,
+          bool final_message));
+  MOCK_METHOD1(AddProtocolObserver,
+      void(::protocol_handler::ProtocolObserver *observer));
+  MOCK_METHOD1(RemoveProtocolObserver,
+      void(::protocol_handler::ProtocolObserver *observer));
+  MOCK_METHOD2(SendFramesNumber,
+      void(uint32_t connection_key, int32_t number_of_frames));
+  MOCK_METHOD2(SendHeartBeat,
+      void(int32_t connection_id, uint8_t session_id));
+  MOCK_METHOD2(SendEndSession,
+      void(int32_t connection_id, uint8_t session_id));
+  MOCK_METHOD3(SendEndService,
+      void(int32_t connection_id, uint8_t session_id, uint8_t service_type));
 };
-} // namespace connection_handler_test
-} // namespace components
-} // namespace test
-#endif  //  SRC_COMPONENTS_INCLUDE_TEST_CONNECTION_HANDLER_CONNECTION_HANDLER_OBSERVER_MOCK_H_
+}    // namespace protocol_handler_test
+}    // namespace components
+}    // namespace test
+
+#endif  // SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_MOCK_PROTOCOL_HANDLER_H_

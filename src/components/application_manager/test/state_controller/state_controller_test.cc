@@ -78,6 +78,8 @@ void application_manager::MessageHelper::SendOnResumeAudioSourceToHMI(
   message_helper_mock_->SendOnResumeAudioSourceToHMI(app_id);
 }
 
+namespace test {
+namespace components {
 namespace state_controller_test {
 
 struct HmiStatesComparator {
@@ -135,7 +137,7 @@ class StateControllerTest : public ::testing::Test {
   StateControllerTest()
       : ::testing::Test(),
         usage_stat("0", utils::SharedPtr<usage_statistics::StatisticsManager>(
-                            new usage_statistics::test::MockStatisticsManager)),
+                            new usage_statistics_test::MockStatisticsManager)),
         applications_(application_set_, applications_lock_),
         state_ctrl_(&app_manager_mock_) {}
   NiceMock<ApplicationManagerMock> app_manager_mock_;
@@ -2090,4 +2092,6 @@ TEST_F(StateControllerTest, MixSafetyModeWithNaviStreamingAttenueatedSupported) 
       &StateControllerTest::PrepareVRTTSHMIStateResults);
 }
 
-}  // namespace state_controller_test
+}   // namespace state_controller_test
+}   // namespace components
+}   // namespace test

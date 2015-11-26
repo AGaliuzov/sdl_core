@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,28 +30,29 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_PROTOCOL_OBSERVER_MOCK_H_
-#define SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_PROTOCOL_OBSERVER_MOCK_H_
+#ifndef SRC_COMPONENTS_INCLUDE_TEST_SECURITY_MANAGER_MOCK_SECURITY_MANAGER_LISTENER_H_
+#define SRC_COMPONENTS_INCLUDE_TEST_SECURITY_MANAGER_MOCK_SECURITY_MANAGER_LISTENER_H_
 
-#include <gmock/gmock.h>
-#include <string>
-#include "protocol_handler/protocol_observer.h"
+#include "gmock/gmock.h"
+#include "security_manager/security_manager_listener.h"
+#include "security_manager/ssl_context.h"
 
 namespace test {
 namespace components {
-namespace protocol_handler_test {
+namespace security_manager_test {
 
-/*
- * MOCK implementation of ::protocol_handler::ProtocolObserver interface
- */
-class ProtocolObserverMock : public ::protocol_handler::ProtocolObserver {
- public:
-  MOCK_METHOD1(OnMessageReceived,
-      void(const ::protocol_handler::RawMessagePtr));
-  MOCK_METHOD1(OnMobileMessageSent,
-      void(const ::protocol_handler::RawMessagePtr));
+class  MockSecurityManagerListener
+    : public ::security_manager::SecurityManagerListener {
+  public:
+    MOCK_METHOD2(OnHandshakeDone,
+        bool(
+          uint32_t connection_key,
+          ::security_manager::SSLContext::HandshakeResult result));
+    MOCK_METHOD0(OnCertificateUpdateRequired,
+        void());
 };
-} // namespace protocol_handler_test
-} // namespace components
-} // namespace test
-#endif  // SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_PROTOCOL_OBSERVER_MOCK_H_
+}   // namespace security_manager_test
+}   // namespace components
+}   // namespace test
+
+#endif  // SRC_COMPONENTS_INCLUDE_TEST_SECURITY_MANAGER_MOCK_SECURITY_MANAGER_LISTENER_H_

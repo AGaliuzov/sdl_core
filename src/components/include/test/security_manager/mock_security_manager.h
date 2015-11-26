@@ -30,26 +30,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_INCLUDE_TEST_SECURITY_MANAGER_SECURITY_MANAGER_MOCK_H_
-#define SRC_COMPONENTS_INCLUDE_TEST_SECURITY_MANAGER_SECURITY_MANAGER_MOCK_H_
+#ifndef SRC_COMPONENTS_INCLUDE_TEST_SECURITY_MANAGER_MOCK_SECURITY_MANAGER_H_
+#define SRC_COMPONENTS_INCLUDE_TEST_SECURITY_MANAGER_MOCK_SECURITY_MANAGER_H_
 
 #include <gmock/gmock.h>
 #include <string>
 #include <list>
 #include "utils/byte_order.h"
 #include "security_manager/security_manager.h"
-#include "security_manager/crypto_manager.h"
-#include "security_manager/ssl_context.h"
 #include "security_manager/security_query.h"
 
 namespace test {
 namespace components {
 namespace security_manager_test {
 
-/*
- * MOCK implementation of ::security_manager::SecurityManager
- */
-class SecurityManagerMock : public ::security_manager::SecurityManager {
+class MockSecurityManager : public ::security_manager::SecurityManager {
  public:
   MOCK_METHOD1(set_session_observer,
                void(::protocol_handler::SessionObserver*));
@@ -69,138 +64,6 @@ class SecurityManagerMock : public ::security_manager::SecurityManager {
                void(const ::protocol_handler::RawMessagePtr));
   MOCK_METHOD1(OnMobileMessageSent,
                void(const ::protocol_handler::RawMessagePtr));
-};
-
-/*
- * MOCK implementation of protocol_handler::SessionObserver interface
- */
-class SessionObserverMock : public protocol_handler::SessionObserver {
- public:
-  MOCK_METHOD2(SetSSLContext,
-               int(const uint32_t& key, security_manager::SSLContext* context));
-  MOCK_METHOD2(GetSSLContext,
-               security_manager::SSLContext*(
-                   const uint32_t& key,
-                   const protocol_handler::ServiceType& service_type));
-  MOCK_METHOD2(SetProtectionFlag,
-               void(const uint32_t& key,
-                    const protocol_handler::ServiceType& service_type));
-  MOCK_METHOD5(
-      OnSessionStartedCallback,
-
-      uint32_t(const transport_manager::ConnectionUID& connection_handle,
-               const uint8_t session_id,
-               const ::protocol_handler::ServiceType& service_type,
-               const bool is_protected, uint32_t* hash_id));
-
-  MOCK_METHOD4(
-      OnSessionEndedCallback,
-      uint32_t(const transport_manager::ConnectionUID& connection_handle,
-               const uint8_t sessionId, const uint32_t& hashCode,
-               const protocol_handler::ServiceType& service_type));
-
-  MOCK_METHOD1(OnApplicationFloodCallBack, void(const uint32_t&));
-
-  MOCK_METHOD1(OnMalformedMessageCallback, void(const uint32_t&));
-
-  MOCK_METHOD2(KeyFromPair,
-               uint32_t(transport_manager::ConnectionUID connection_handle,
-                        uint8_t sessionId));
-  MOCK_METHOD3(PairFromKey,
-               void(uint32_t key,
-                    transport_manager::ConnectionUID* connection_handle,
-                    uint8_t* sessionId));
-  MOCK_METHOD4(GetDataOnSessionKey,
-               int32_t(uint32_t key, uint32_t* app_id,
-                       std::list<int32_t>* sessions_list, uint32_t* device_id));
-
-  MOCK_METHOD4(GetDataOnDeviceID,
-               int32_t(uint32_t device_handle, std::string* device_name,
-                       std::list<uint32_t>* applications_list,
-                       std::string* mac_address));
-
-  MOCK_METHOD5(GetDataOnDeviceID,
-               int32_t(uint32_t device_handle, std::string* device_name,
-                       std::list<uint32_t>* applications_list,
-                       std::string* mac_address, std::string* connection_type));
-
-  MOCK_METHOD2(IsHeartBeatSupported,
-               bool(transport_manager::ConnectionUID connection_handle,
-                    uint8_t session_id));
-
-  MOCK_METHOD3(ProtocolVersionUsed,
-      bool(uint32_t connection_id, uint8_t session_id,
-    		  uint8_t& protocol_version));
-  MOCK_CONST_METHOD1(GetHandshakeContext,
-               security_manager::SSLContext::HandshakeContext (uint32_t key) );
-
-};
-/*
- * MOCK implementation of protocol_handler::ProtocolObserver interface
- */
-class ProtocoloObserverMock : public protocol_handler::ProtocolHandler {
- public:
-  MOCK_METHOD2(SendMessageToMobileApp,
-               void(const protocol_handler::RawMessagePtr message,
-                    bool final_message));
-  MOCK_METHOD1(AddProtocolObserver,
-               void(protocol_handler::ProtocolObserver* observer));
-  MOCK_METHOD1(RemoveProtocolObserver,
-               void(protocol_handler::ProtocolObserver* observer));
-  MOCK_METHOD2(SendFramesNumber,
-               void(uint32_t connection_key, int32_t number_of_frames));
-  MOCK_METHOD2(SendHeartBeat, void(int32_t connection_id, uint8_t session_id));
-  MOCK_METHOD2(SendEndSession, void(int32_t connection_id, uint8_t session_id));
-};
-/*
- * MOCK implementation of security_manager::SSLContext interface
- */
-class CryptoManagerMock : public security_manager::CryptoManager {
- public:
-  MOCK_METHOD7(Init, bool(security_manager::Mode,
-                          security_manager::Protocol,
-                          const std::string&,
-                          const std::string&,
-                          const bool,
-                          const std::string&,
-                          const size_t));
-  MOCK_METHOD1(OnCertificateUpdated, bool(const std::string&));
-  MOCK_METHOD0(CreateSSLContext, security_manager::SSLContext*());
-  MOCK_METHOD1(ReleaseSSLContext, void(security_manager::SSLContext*));
-  MOCK_CONST_METHOD0(LastError, std::string());
-  MOCK_CONST_METHOD0(IsCertificateUpdateRequired, bool());
-};
-/*
- * MOCK implementation of security_manager::SSLContext interface
- */
-class SSLContextMock : public security_manager::SSLContext {
- public:
-  MOCK_CONST_METHOD0(mode, int());
-  MOCK_METHOD2(StartHandshake, security_manager::SSLContext::HandshakeResult(
-                                   const uint8_t** const, size_t*));
-  MOCK_METHOD4(DoHandshakeStep, security_manager::SSLContext::HandshakeResult(
-                                    const uint8_t* const, size_t,
-                                    const uint8_t** const, size_t*));
-  MOCK_METHOD4(Encrypt, bool(const uint8_t* const, size_t,
-                             const uint8_t** const, size_t*));
-  MOCK_METHOD4(Decrypt, bool(const uint8_t* const, size_t,
-                             const uint8_t** const, size_t*));
-  MOCK_CONST_METHOD1(get_max_block_size, size_t(size_t));
-  MOCK_CONST_METHOD0(IsInitCompleted, bool());
-  MOCK_CONST_METHOD0(IsHandshakePending, bool());
-  MOCK_CONST_METHOD0(LastError, std::string());
-  MOCK_METHOD0(ResetConnection, void());
-  MOCK_METHOD1(SetHandshakeContext, void (const HandshakeContext& hsh_ctx));
-};
-/*
- * MOCK implementation of security_manager::SecurityManagerListener
- */
-class SMListenerMock : public security_manager::SecurityManagerListener {
- public:
-  MOCK_METHOD2(OnHandshakeDone,
-      bool(uint32_t connection_key,
-          security_manager::SSLContext::HandshakeResult result));
-  MOCK_METHOD0(OnCertificateUpdateRequired, void());
 };
 
 /*
@@ -307,4 +170,5 @@ MATCHER_P(InternalErrorWithErrId, expectedErrorId,
     const ::security_manager::SecurityQuery::QueryHeader& q1,
     const ::security_manager::SecurityQuery::QueryHeader& q2);
 
-#endif  // SRC_COMPONENTS_INCLUDE_TEST_SECURITY_MANAGER_SECURITY_MANAGER_MOCK_H_
+
+#endif  // SRC_COMPONENTS_INCLUDE_TEST_SECURITY_MANAGER_MOCK_SECURITY_MANAGER_H_

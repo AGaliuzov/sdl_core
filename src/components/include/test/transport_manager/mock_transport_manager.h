@@ -30,8 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_INCLUDE_TEST_TRANSPORT_MANAGER_TRANSPORT_MANAGER_MOCK_H_
-#define SRC_COMPONENTS_INCLUDE_TEST_TRANSPORT_MANAGER_TRANSPORT_MANAGER_MOCK_H_
+#ifndef SRC_COMPONENTS_INCLUDE_TEST_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_H_
+#define SRC_COMPONENTS_INCLUDE_TEST_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_H_
 
 #include <gmock/gmock.h>
 #include <string>
@@ -47,10 +47,8 @@ using ::transport_manager::ConnectionUID;
 using ::transport_manager::transport_adapter::TransportAdapter;
 using ::transport_manager::TransportAdapterEvent;
 using ::transport_manager::TransportManagerListener;
-/*
- * MOCK implementation of ::transport_manager::TransportManager interface
- */
-class TransportManagerMock: public ::transport_manager::TransportManager {
+
+class MockTransportManager: public ::transport_manager::TransportManager {
  public:
   MOCK_METHOD0(Init,
                int());
@@ -71,9 +69,9 @@ class TransportManagerMock: public ::transport_manager::TransportManager {
   MOCK_METHOD1(ReceiveEventFromDevice,
                int(const TransportAdapterEvent&));
   MOCK_METHOD1(AddTransportAdapter,
-               int(TransportAdapter *));
+               int(TransportAdapter * adapter));
   MOCK_METHOD1(AddEventListener,
-               int(TransportManagerListener *));
+               int(TransportManagerListener * listener));
   MOCK_METHOD0(Stop,
                int());
   MOCK_METHOD1(RemoveDevice,
@@ -84,4 +82,5 @@ class TransportManagerMock: public ::transport_manager::TransportManager {
 }  // namespace transport_manager_test
 }  // namespace components
 }  // namespace test
-#endif  // SRC_COMPONENTS_INCLUDE_TEST_TRANSPORT_MANAGER_TRANSPORT_MANAGER_MOCK_H_
+
+#endif  // SRC_COMPONENTS_INCLUDE_TEST_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_H_

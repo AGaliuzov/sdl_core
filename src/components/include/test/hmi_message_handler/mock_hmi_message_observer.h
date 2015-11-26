@@ -39,20 +39,23 @@
 #include "hmi_message_handler/hmi_message_observer.h"
 #include "application_manager/message.h"
 
-namespace hmi_message_handler {
+namespace test {
+namespace components {
+namespace hmi_message_handler_test {
 
 using ::hmi_message_handler::HMIMessageObserver;
 
 class MockHMIMessageObserver : public HMIMessageObserver,
-    public utils::Singleton<MockHMIMessageObserver>{
+    public utils::Singleton<MockHMIMessageObserver> {
  public:
   MOCK_METHOD1(OnMessageReceived,
       void(utils::SharedPtr<application_manager::Message> message));
   MOCK_METHOD1(OnErrorSending,
       void(utils::SharedPtr<application_manager::Message> message));
 };
-
-}  // namespace hmi_message_handler
+}  // namespace hmi_message_handler_test
+}  // namespace components
+}  // namespace test
 
 #endif  // SRC_COMPONENTS_INCLUDE_TEST_HMI_MESSAGE_HANDLER_MOCK_HMI_MESSAGE_OBSERVER_H_
 

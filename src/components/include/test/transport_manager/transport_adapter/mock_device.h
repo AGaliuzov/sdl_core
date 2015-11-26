@@ -1,4 +1,5 @@
-/* Copyright (c) 2013, Ford Motor Company
+/*
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,33 +29,45 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef SRC_COMPONENTS_INCLUDE_TEST_POLICY_USAGE_STATISTICS_MOCK_STATISTICS_MANAGER_H_
-#define SRC_COMPONENTS_INCLUDE_TEST_POLICY_USAGE_STATISTICS_MOCK_STATISTICS_MANAGER_H_
+
+#ifndef SRC_COMPONENTS_INCLUDE_TEST_TRANSPORT_MANAGER_TRANSPORT_ADAPTER_MOCK_DEVICE_H_
+#define SRC_COMPONENTS_INCLUDE_TEST_TRANSPORT_MANAGER_TRANSPORT_ADAPTER_MOCK_DEVICE_H_
 
 #include <string>
+#include <vector>
 
 #include "gmock/gmock.h"
-#include "policy/usage_statistics/statistics_manager.h"
-
+#include "transport_manager/transport_adapter/device.h"
+#include "transport_manager/common.h"
+#include "transport_manager/tcp/tcp_device.h"
 
 namespace test {
 namespace components {
-namespace usage_statistics_test {
+namespace transport_manager_test {
 
-class MockStatisticsManager: public usage_statistics::StatisticsManager {
+class MockDevice : public ::transport_manager::transport_adapter::Device {
  public:
-  MOCK_METHOD1(Increment, void(usage_statistics::GlobalCounterId type));
-  MOCK_METHOD2(Increment,
-      void(const std::string& app_id, usage_statistics::AppCounterId type));
-  MOCK_METHOD3(Set, void(const std::string& app_id,
-                         usage_statistics::AppInfoId type,
-                         const std::string& value));
-  MOCK_METHOD3(Add, void(const std::string& app_id,
-                         usage_statistics::AppStopwatchId type,
-                         int32_t timespan_seconds));
+  MockDevice(const std::string& name, const std::string& unique_device_id)
+      : Device(name, unique_device_id) {}
+  MOCK_CONST_METHOD1(IsSameAs, bool(const Device* other_device));
+  MOCK_CONST_METHOD0(GetApplicationList, std::vector<int>());
+  MOCK_METHOD0(Stop, void());
 };
-}  // namespace usage_statistics_test
+
+class MockTCPDevice : public ::transport_manager::transport_adapter::TcpDevice {
+ public:
+  MockTCPDevice(const uint32_t& in_addr_t, const std::string& name)
+      : TcpDevice(in_addr_t, name) {}
+  MOCK_CONST_METHOD1(IsSameAs, bool(const Device* other_device));
+  MOCK_CONST_METHOD0(GetApplicationList, std::vector<int>());
+  MOCK_METHOD0(Stop, void());
+  MOCK_CONST_METHOD1(
+      GetApplicationPort,
+      int(const ::transport_manager::ApplicationHandle app_handle));
+};
+
+}  // namespace transport_manager_test
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_INCLUDE_TEST_POLICY_USAGE_STATISTICS_MOCK_STATISTICS_MANAGER_H_
+#endif  // SRC_COMPONENTS_INCLUDE_TEST_TRANSPORT_MANAGER_TRANSPORT_ADAPTER_MOCK_DEVICE_H_

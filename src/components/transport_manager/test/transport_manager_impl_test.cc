@@ -35,11 +35,10 @@
 #include "transport_manager/common.h"
 #include "transport_manager/transport_manager_impl.h"
 
-#include "transport_manager/transport_adapter_mock.h"
-#include "transport_manager/transport_manager_listener_mock.h"
+#include "transport_manager/transport_adapter/mock_transport_adapter.h"
+#include "transport_manager/mock_transport_manager_listener.h"
 #include "transport_manager/transport_adapter_listener_mock.h"
 #include "transport_manager/time_metric_observer_mock.h"
-
 #include "transport_manager/transport_adapter/transport_adapter_event.h"
 
 using ::testing::_;
@@ -64,8 +63,8 @@ class TransportManagerImplTest : public ::testing::Test {
  protected:
   void SetUp() OVERRIDE {
     tm.Init();
-    mock_adapter = new TransportAdapterMock();
-    tm_listener = new TransportManagerListenerMock();
+    mock_adapter = new MockTransportAdapter();
+    tm_listener = new MockTransportManagerListener();
 
 #ifdef TIME_TESTER
     tm.SetTimeMetricObserver(&mock_metric_observer_);
@@ -109,9 +108,9 @@ class TransportManagerImplTest : public ::testing::Test {
   TransportManagerTest tm;
   TMMetricObserverMock mock_metric_observer_;
   size_t metrics_call_count_;
-  TransportAdapterMock* mock_adapter;
+  MockTransportAdapter* mock_adapter;
 
-  TransportManagerListenerMock* tm_listener;
+  MockTransportManagerListener* tm_listener;
 
   const ApplicationHandle application_id = 1;
 
@@ -298,9 +297,9 @@ TEST(TransportManagerTest, AddTransportAdapter) {
   TransportManagerTest tm;
   tm.Init();
 
-  TransportAdapterMock* mock_adapter = new TransportAdapterMock();
-  TransportManagerListenerMock* tm_listener =
-      new TransportManagerListenerMock();
+  MockTransportAdapter* mock_adapter = new MockTransportAdapter();
+  MockTransportManagerListener* tm_listener =
+      new MockTransportManagerListener();
 
   EXPECT_EQ(E_SUCCESS, tm.AddEventListener(tm_listener));
   EXPECT_CALL(*mock_adapter, AddListener(_));

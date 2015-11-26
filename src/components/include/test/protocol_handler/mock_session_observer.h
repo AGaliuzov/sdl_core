@@ -30,8 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_SESSION_OBSERVER_MOCK_H_
-#define SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_SESSION_OBSERVER_MOCK_H_
+#ifndef SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_MOCK_SESSION_OBSERVER_H_
+#define SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_MOCK_SESSION_OBSERVER_H_
 
 #include <gmock/gmock.h>
 #include <string>
@@ -41,10 +41,8 @@
 namespace test {
 namespace components {
 namespace protocol_handler_test {
-/*
- * MOCK implementation of ::protocol_handler::SessionObserver interface
- */
-class SessionObserverMock: public ::protocol_handler::SessionObserver {
+
+class MockSessionObserver: public ::protocol_handler::SessionObserver {
  public:
   MOCK_METHOD5(OnSessionStartedCallback,
                uint32_t(
@@ -87,8 +85,8 @@ class SessionObserverMock: public ::protocol_handler::SessionObserver {
                bool(transport_manager::ConnectionUID connection_handle,
                     uint8_t session_id));
   MOCK_METHOD3(ProtocolVersionUsed,
-  		       bool ( uint32_t connection_id,
-  		              uint8_t session_id, uint8_t& protocol_version));
+             bool(uint32_t connection_id,
+                  uint8_t session_id, uint8_t& protocol_version));
 #ifdef ENABLE_SECURITY
   MOCK_METHOD2(SetSSLContext,
                int(const uint32_t &key,
@@ -102,11 +100,13 @@ class SessionObserverMock: public ::protocol_handler::SessionObserver {
                  const uint32_t &key,
                  const ::protocol_handler::ServiceType &service_type));
   MOCK_CONST_METHOD1(GetHandshakeContext,
-               security_manager::SSLContext::HandshakeContext (const uint32_t key) );
+      security_manager::SSLContext::HandshakeContext(
+          const uint32_t key) );
 
 #endif  // ENABLE_SECURITY
 };
 }  // namespace protocol_handler_test
 }  // namespace components
 }  // namespace test
-#endif  // SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_SESSION_OBSERVER_MOCK_H_
+
+#endif  // SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_MOCK_SESSION_OBSERVER_H_

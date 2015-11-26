@@ -35,14 +35,11 @@
 using ::testing::StrictMock;
 using ::testing::InSequence;
 
-namespace usage_statistics {
 namespace test {
+namespace components {
+namespace usage_statistics_test {
 
-// TEST(A, B_C_D) { ... }
-// A - What you test
-// B - What you do
-// C - Input data
-// D - Expected result
+using namespace usage_statistics;
 
 TEST(StatisticsManagerIncrementMethod1Arg, GlobalCounterOverloadedIncrement_CallONCE_StatisticsManagerIncrementCalledONCE) {
   // Arrange
@@ -169,5 +166,7 @@ TEST(StatisticsManagerAddMethod, AppStopwatchSwitchMethod_CallAnd1SecSleepAfter_
   // Act
   hmi_full_stopwatch.WriteTime();
 }
-}  // namespace test
-}  // namespace usage_statistics
+}   // namespace usage_statistics
+}   // components
+}   // namespace test
+

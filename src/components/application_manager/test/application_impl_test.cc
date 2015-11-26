@@ -66,7 +66,7 @@ class ApplicationImplTest : public ::testing::Test {
     app_id = 10;
     policy_app_id = "policy_app_id";
     app_name = "app_name";
-    mock_stat_mngr_ = new usage_statistics::test::MockStatisticsManager();
+    mock_stat_mngr_ = new usage_statistics_test::MockStatisticsManager();
     test_lvl = HMILevel::INVALID_ENUM;
     state_id = HmiState::STATE_ID_REGULAR;
     audiostate = AudioStreamingState::NOT_AUDIBLE;
@@ -103,7 +103,7 @@ class ApplicationImplTest : public ::testing::Test {
   custom_str::CustomString app_name;
   std::string directory_name;
   static ApplicationManagerImpl* app_mngr_;
-  usage_statistics::test::MockStatisticsManager* mock_stat_mngr_;
+  usage_statistics_test::MockStatisticsManager* mock_stat_mngr_;
   HmiState::StateID state_id;
   HmiStatePtr testHmiState;
   HMILevel::eType test_lvl;

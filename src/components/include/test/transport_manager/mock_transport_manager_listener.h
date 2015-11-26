@@ -30,11 +30,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_INCLUDE_TEST_TRANSPORT_MANAGER_TRANSPORT_MANAGER_LISTENER_MOCK_H_
-#define SRC_COMPONENTS_INCLUDE_TEST_TRANSPORT_MANAGER_TRANSPORT_MANAGER_LISTENER_MOCK_H_
+#ifndef SRC_COMPONENTS_INCLUDE_TEST_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_LISTENER_H_
+#define SRC_COMPONENTS_INCLUDE_TEST_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_LISTENER_H_
 
 #include <vector>
-#include <gmock/gmock.h>
+
+#include "gmock/gmock.h"
 #include "transport_manager/transport_manager_listener.h"
 #include "protocol/raw_message.h"
 
@@ -42,11 +43,11 @@ namespace test {
 namespace components {
 namespace transport_manager_test {
 
-using namespace transport_manager;
+using namespace ::transport_manager;
 using ::protocol_handler::RawMessage;
 using ::protocol_handler::RawMessagePtr;
 
-class TransportManagerListenerMock : public TransportManagerListener {
+class MockTransportManagerListener : public TransportManagerListener {
  public:
   MOCK_METHOD1(OnDeviceListUpdated, void(const std::vector<DeviceInfo>&));
   MOCK_METHOD0(OnFindNewApplicationsRequest, void());
@@ -88,4 +89,4 @@ class TransportManagerListenerMock : public TransportManagerListener {
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_INCLUDE_TEST_TRANSPORT_MANAGER_TRANSPORT_MANAGER_LISTENER_MOCK_H_
+#endif  // SRC_COMPONENTS_INCLUDE_TEST_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_LISTENER_H_

@@ -34,10 +34,16 @@
 #define SRC_COMPONENTS_INCLUDE_TEST_HMI_MESSAGE_HANDLER_MOCK_DBUS_MESSAGE_CONTROLLER_H_
 
 #include <pthread.h>
+#include <string>
+#include "gmock/gmock.h"
 #include "hmi_message_handler/dbus_message_controller.h"
 
-class MockDBusMessageController :
-    public ::hmi_message_handler::DBusMessageController {
+namespace test {
+namespace components {
+namespace hmi_message_handler_test {
+
+class MockDBusMessageController : public
+    ::hmi_message_handler::DBusMessageController {
  public:
   MOCK_METHOD1(Recv, void(std::string&));
 
@@ -58,11 +64,14 @@ class MockDBusMessageController :
   pthread_t thread_;
   static void* Run(void* data) {
     if (NULL != data) {
-        static_cast<MockDBusMessageController*>(data)->MethodForReceiverThread(nullptr);
+        static_cast<MockDBusMessageController*>(data)->
+            MethodForReceiverThread(nullptr);
     }
     return 0;
   }
 };
-
+}   // namespace hmi_message_handler_test
+}   // namespace components
+}   // namespace test
 
 #endif  // SRC_COMPONENTS_INCLUDE_TEST_HMI_MESSAGE_HANDLER_MOCK_DBUS_MESSAGE_CONTROLLER_H_

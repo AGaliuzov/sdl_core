@@ -38,6 +38,8 @@
 #include "application_manager/application_manager.h"
 #include "application_manager/usage_statistics.h"
 
+namespace test {
+namespace components {
 namespace state_controller_test {
 namespace am = application_manager;
 
@@ -77,4 +79,7 @@ class ApplicationManagerMock : public application_manager::ApplicationManager {
   MOCK_CONST_METHOD1(IsAppTypeExistsInFullOrLimited, bool(am::ApplicationConstSharedPtr));
 };
 }  // namespace state_controller_test
+}   // namespace components
+}   // namespace test
+
 #endif  // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_APPLICATION_MANAGER_MOCK_H_

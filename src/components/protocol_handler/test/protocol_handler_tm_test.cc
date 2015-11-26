@@ -34,8 +34,13 @@
 #include "protocol_handler/protocol_handler_impl.h"
 #include "protocol/common.h"
 #include "control_message_matcher.h"
-#include "protocol_handler/protocol_handler_mock.h"
-#include "protocol_handler/protocol_observer_mock.h"
+#include "protocol_handler/mock_protocol_handler.h"
+#include "protocol_handler/mock_protocol_observer.h"
+
+#include "transport_manager/mock_transport_manager.h"
+#include "protocol_handler/mock_session_observer.h"
+#include "security_manager/mock_security_manager.h"
+#include "security_manager/mock_ssl_context.h"
 
 
 namespace test {
@@ -169,11 +174,11 @@ class ProtocolHandlerImplTest : public ::testing::Test {
   uint32_t message_id;
   std::vector<uint8_t> some_data;
   // Strict mocks (same as all methods EXPECT_CALL().Times(0))
-  testing::StrictMock<protocol_handler_test::TransportManagerMock> transport_manager_mock;
-  testing::StrictMock<protocol_handler_test::SessionObserverMock> session_observer_mock;
+  testing::StrictMock<transport_manager_test::MockTransportManager> transport_manager_mock;
+  testing::StrictMock<MockSessionObserver> session_observer_mock;
 #ifdef ENABLE_SECURITY
-  testing::NiceMock<protocol_handler_test::SecurityManagerMock> security_manager_mock;
-  testing::NiceMock<protocol_handler_test::SSLContextMock> ssl_context_mock;
+  testing::NiceMock<security_manager_test::MockSecurityManager> security_manager_mock;
+  testing::NiceMock<security_manager_test::MockSSLContext> ssl_context_mock;
 #endif  // ENABLE_SECURITY
 };
 

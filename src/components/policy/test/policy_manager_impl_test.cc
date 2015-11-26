@@ -73,7 +73,7 @@ using ::testing::AtLeast;
 using ::testing::ContainerEq;
 
 using ::policy::PTRepresentation;
-using ::policy::MockPolicyListener;
+using ::test::components::policy_test::MockPolicyListener;
 using ::policy::MockPTRepresentation;
 using ::policy::MockPTExtRepresentation;
 using ::policy::MockCacheManagerInterface;
@@ -89,7 +89,7 @@ namespace custom_str = utils::custom_string;
 
 namespace test {
 namespace components {
-namespace policy {
+namespace policy_test {
 
 typedef std::multimap< std::string, policy_table::Rpcs& >
           UserConsentPromptToRpcsConnections;

@@ -1,4 +1,5 @@
-/* Copyright (c) 2013, Ford Motor Company
+/*
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,33 +29,56 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef SRC_COMPONENTS_INCLUDE_TEST_POLICY_USAGE_STATISTICS_MOCK_STATISTICS_MANAGER_H_
-#define SRC_COMPONENTS_INCLUDE_TEST_POLICY_USAGE_STATISTICS_MOCK_STATISTICS_MANAGER_H_
+
+#ifndef SRC_COMPONENTS_INCLUDE_TEST_SECURITY_MANAGER_MOCK_SSL_CONTEXT_H_
+#define SRC_COMPONENTS_INCLUDE_TEST_SECURITY_MANAGER_MOCK_SSL_CONTEXT_H_
 
 #include <string>
 
 #include "gmock/gmock.h"
-#include "policy/usage_statistics/statistics_manager.h"
-
+#include "security_manager/ssl_context.h"
 
 namespace test {
 namespace components {
-namespace usage_statistics_test {
+namespace security_manager_test {
 
-class MockStatisticsManager: public usage_statistics::StatisticsManager {
- public:
-  MOCK_METHOD1(Increment, void(usage_statistics::GlobalCounterId type));
-  MOCK_METHOD2(Increment,
-      void(const std::string& app_id, usage_statistics::AppCounterId type));
-  MOCK_METHOD3(Set, void(const std::string& app_id,
-                         usage_statistics::AppInfoId type,
-                         const std::string& value));
-  MOCK_METHOD3(Add, void(const std::string& app_id,
-                         usage_statistics::AppStopwatchId type,
-                         int32_t timespan_seconds));
+class MockSSLContext : public ::security_manager::SSLContext {
+  public:
+    MOCK_METHOD2(StartHandshake,
+        HandshakeResult(const uint8_t** const out_data, size_t *out_data_size));
+    MOCK_METHOD4(DoHandshakeStep,
+        HandshakeResult(
+            const uint8_t *const in_data,
+            size_t in_data_size,
+            const uint8_t** const out_data,
+            size_t *out_data_size));
+    MOCK_METHOD4(Encrypt,
+        bool(
+            const uint8_t *const in_data,
+            size_t in_data_size,
+            const uint8_t ** const out_data,
+            size_t *out_data_size));
+    MOCK_METHOD4(Decrypt,
+        bool(
+            const uint8_t *const in_data,
+            size_t in_data_size,
+            const uint8_t ** const out_data,
+            size_t *out_data_size));
+    MOCK_CONST_METHOD0(IsInitCompleted,
+        bool());
+    MOCK_CONST_METHOD0(IsHandshakePending,
+        bool());
+    MOCK_CONST_METHOD1(get_max_block_size,
+        size_t(size_t mtu));
+    MOCK_CONST_METHOD0(LastError,
+        std::string());
+    MOCK_METHOD0(ResetConnection,
+        void());
+    MOCK_METHOD1(SetHandshakeContext,
+        void(const HandshakeContext& hsh_ctx));
 };
-}  // namespace usage_statistics_test
-}  // namespace components
-}  // namespace test
+}   // namespace security_manager_test
+}   // namespace components
+}   // namespace test
 
-#endif  // SRC_COMPONENTS_INCLUDE_TEST_POLICY_USAGE_STATISTICS_MOCK_STATISTICS_MANAGER_H_
+#endif  // SRC_COMPONENTS_INCLUDE_TEST_SECURITY_MANAGER_MOCK_SSL_CONTEXT_H_

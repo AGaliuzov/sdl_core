@@ -30,41 +30,39 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_INCLUDE_TEST_TRANSPORT_MANAGER_DEVICE_MOCK_H_
-#define SRC_COMPONENTS_INCLUDE_TEST_TRANSPORT_MANAGER_DEVICE_MOCK_H_
+#ifndef SRC_COMPONENTS_INCLUDE_TEST_CONNECTION_HANDLER_MOCK_CONNECTION_HANDLER_OBSERVER_H_
+#define SRC_COMPONENTS_INCLUDE_TEST_CONNECTION_HANDLER_MOCK_CONNECTION_HANDLER_OBSERVER_H_
 
-#include "gmock/gmock.h"
-#include "transport_manager/transport_adapter/device.h"
-#include "transport_manager/common.h"
-#include "transport_manager/tcp/tcp_device.h"
+#include <gmock/gmock.h>
+#include <string>
+#include "connection_handler/connection_handler_observer.h"
 
 namespace test {
 namespace components {
-namespace transport_manager_test {
+namespace connection_handler_test {
 
-class DeviceMock : public ::transport_manager::transport_adapter::Device {
+class MockConnectionHandlerObserver
+    : public ::connection_handler::ConnectionHandlerObserver {
  public:
-  DeviceMock(const std::string& name, const std::string& unique_device_id)
-      : Device(name, unique_device_id) {}
-  MOCK_CONST_METHOD1(IsSameAs, bool(const Device* other_device));
-  MOCK_CONST_METHOD0(GetApplicationList, std::vector<int>());
-  MOCK_METHOD0(Stop, void());
+  MOCK_METHOD1(OnDeviceListUpdated,
+      void(const ::connection_handler::DeviceMap &device_list));
+  MOCK_METHOD0(OnFindNewApplicationsRequest, void());
+  MOCK_METHOD1(RemoveDevice,
+      void(const ::connection_handler::DeviceHandle &device_handle));
+  MOCK_METHOD3(OnServiceStartedCallback,
+      bool(const ::connection_handler::DeviceHandle &device_handle,
+           const int32_t &session_key,
+           const ::protocol_handler::ServiceType &type));
+  MOCK_METHOD3(OnServiceEndedCallback,
+      void(const int32_t &session_key,
+           const ::protocol_handler::ServiceType &type,
+           const ::connection_handler::CloseSessionReason& close_reason));
+  MOCK_CONST_METHOD1(GetHandshakeContext,
+                     security_manager::SSLContext::HandshakeContext(
+                       uint32_t key));
 };
-
-class TCPDeviceMock : public ::transport_manager::transport_adapter::TcpDevice {
- public:
-  TCPDeviceMock(const uint32_t& in_addr_t, const std::string& name)
-      : TcpDevice(in_addr_t, name) {}
-  MOCK_CONST_METHOD1(IsSameAs, bool(const Device* other_device));
-  MOCK_CONST_METHOD0(GetApplicationList, std::vector<int>());
-  MOCK_METHOD0(Stop, void());
-  MOCK_CONST_METHOD1(
-      GetApplicationPort,
-      int(const ::transport_manager::ApplicationHandle app_handle));
-};
-
-}  // namespace transport_manager_test
+}  // namespace connection_handler_test
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_INCLUDE_TEST_TRANSPORT_MANAGER_DEVICE_MOCK_H_
+#endif  // SRC_COMPONENTS_INCLUDE_TEST_CONNECTION_HANDLER_MOCK_CONNECTION_HANDLER_OBSERVER_H_

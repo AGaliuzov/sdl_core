@@ -51,7 +51,7 @@ class HMIMessageHandlerImplTest : public ::testing::Test {
  protected:
   hmi_message_handler::MessageBrokerAdapter* mb_adapter_;
   hmi_message_handler::HMIMessageHandlerImpl* hmi_handler_;
-  hmi_message_handler::MockHMIMessageObserver* mock_hmi_message_observer_;
+  MockHMIMessageObserver* mock_hmi_message_observer_;
 
   virtual void SetUp() OVERRIDE {
     hmi_handler_ = hmi_message_handler::HMIMessageHandlerImpl::instance();
@@ -60,7 +60,7 @@ class HMIMessageHandlerImplTest : public ::testing::Test {
         hmi_handler_, "localhost", 22);
     ASSERT_TRUE(NULL != mb_adapter_);
     mock_hmi_message_observer_ =
-        hmi_message_handler::MockHMIMessageObserver::instance();
+        MockHMIMessageObserver::instance();
     ASSERT_TRUE(NULL != mock_hmi_message_observer_);
     hmi_handler_->set_message_observer(mock_hmi_message_observer_);
     EXPECT_TRUE(NULL != hmi_handler_->observer());
@@ -68,7 +68,7 @@ class HMIMessageHandlerImplTest : public ::testing::Test {
 
   virtual void TearDown() OVERRIDE {
     hmi_handler_->set_message_observer(NULL);
-    hmi_message_handler::MockHMIMessageObserver::destroy();
+    MockHMIMessageObserver::destroy();
     hmi_message_handler::HMIMessageHandlerImpl::destroy();
     delete mb_adapter_;
   }
