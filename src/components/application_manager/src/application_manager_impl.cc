@@ -2118,6 +2118,8 @@ void ApplicationManagerImpl::UnregisterAllApplications() {
 
   bool is_unexpected_disconnect = Compare<eType, NEQ, ALL>(
       unregister_reason_, IGNITION_OFF, MASTER_RESET, FACTORY_DEFAULTS);
+
+  {  // A local scope to limit accessor's lifetime and release app list lock.
   ApplicationListAccessor accessor;
   ApplicationSetConstIt it = accessor.begin();
   while (it != accessor.end()) {
@@ -2139,7 +2141,9 @@ void ApplicationManagerImpl::UnregisterAllApplications() {
                                       connection_handler::kCommon);
     it = accessor.begin();
   }
-#ifndef CUSTOMER_PASA
+  }
+
+#ifndef CUSTOMER_PASA  // AKirov: Move this block before unregistering apps?
   if (is_ignition_off) {
     resume_controller().OnSuspend();
   }
