@@ -364,7 +364,7 @@ bool PPSListener::init_aoa() {
   return is_aoa_available_;
 }
 
-void PPSListener::release_aoa() {
+void PPSListener::release_aoa() const {
   LOG4CXX_AUTO_TRACE(logger_);
   is_aoa_available_ = false;
 
