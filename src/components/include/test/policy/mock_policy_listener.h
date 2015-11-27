@@ -29,8 +29,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_MOCK_POLICY_LISTENER_H_
-#define SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_MOCK_POLICY_LISTENER_H_
+#ifndef SRC_COMPONENTS_INCLUDE_TEST_POLICY_MOCK_POLICY_LISTENER_H_
+#define SRC_COMPONENTS_INCLUDE_TEST_POLICY_MOCK_POLICY_LISTENER_H_
 
 
 #include <string>
@@ -39,7 +39,7 @@
 
 #include "policy/policy_listener.h"
 #include "rpc_base/rpc_base.h"
-#include "table_struct_ext/types.h"
+#include "policy_table/table_struct_ext/types.h"
 #include "utils/custom_string.h"
 
 namespace policy_table = ::rpc::policy_table_interface_base;
@@ -88,4 +88,4 @@ class MockPolicyListener : public PolicyListener {
 
 }  // namespace policy
 
-#endif  // SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_MOCK_POLICY_LISTENER_H_
+#endif  // SRC_COMPONENTS_INCLUDE_TEST_POLICY_MOCK_POLICY_LISTENER_H_

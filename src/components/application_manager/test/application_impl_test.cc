@@ -35,7 +35,7 @@
 #include "gtest/gtest.h"
 #include "application_manager/hmi_state.h"
 #include "application_manager/application_manager_impl.h"
-#include "mock/include/application_manager/mock_statistics_manager.h"
+#include "policy/usage_statistics/mock_statistics_manager.h"
 #include "utils/file_system.h"
 #include "config_profile/profile.h"
 #include "utils/make_shared.h"
@@ -66,8 +66,7 @@ class ApplicationImplTest : public ::testing::Test {
     app_id = 10;
     policy_app_id = "policy_app_id";
     app_name = "app_name";
-    mock_stat_mngr_ = new MockStatisticsManager();
-
+    mock_stat_mngr_ = new usage_statistics::test::MockStatisticsManager();
     test_lvl = HMILevel::INVALID_ENUM;
     state_id = HmiState::STATE_ID_REGULAR;
     audiostate = AudioStreamingState::NOT_AUDIBLE;
@@ -104,7 +103,7 @@ class ApplicationImplTest : public ::testing::Test {
   custom_str::CustomString app_name;
   std::string directory_name;
   static ApplicationManagerImpl* app_mngr_;
-  MockStatisticsManager* mock_stat_mngr_;
+  usage_statistics::test::MockStatisticsManager* mock_stat_mngr_;
   HmiState::StateID state_id;
   HmiStatePtr testHmiState;
   HMILevel::eType test_lvl;

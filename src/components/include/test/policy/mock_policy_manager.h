@@ -30,15 +30,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_MOCK_POLICY_MANAGER_H_
-#define SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_MOCK_POLICY_MANAGER_H_
+#ifndef SRC_COMPONENTS_INCLUDE_TEST_POLICY_MOCK_POLICY_MANAGER_H_
+#define SRC_COMPONENTS_INCLUDE_TEST_POLICY_MOCK_POLICY_MANAGER_H_
 
 #include <string>
 #include <vector>
 #include "gmock/gmock.h"
 #include "policy/policy_listener.h"
 #include "policy/policy_types.h"
-#include "usage_statistics/statistics_manager.h"
+#include "policy/usage_statistics/statistics_manager.h"
 
 #include "rpc_base/rpc_base.h"
 #include "./types.h"
@@ -156,4 +156,4 @@ class MockPolicyManager : public PolicyManager {
 
 }  // namespace policy_manager
 
-#endif  // SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_MOCK_POLICY_MANAGER_H_
+#endif  // SRC_COMPONENTS_INCLUDE_TEST_POLICY_MOCK_POLICY_MANAGER_H_

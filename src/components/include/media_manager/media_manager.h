@@ -1,4 +1,5 @@
-/* Copyright (c) 2013, Ford Motor Company
+/*
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,31 +29,33 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_MOCK_STATISTICS_MANAGER_H_
-#define SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_MOCK_STATISTICS_MANAGER_H_
+
+#ifndef SRC_COMPONENTS_INCLUDE_MEDIA_MANAGER_MEDIA_MANAGER_H_
+#define SRC_COMPONENTS_INCLUDE_MEDIA_MANAGER_MEDIA_MANAGER_H_
 
 #include <string>
+#include "protocol_handler/protocol_handler.h"
 
-#include "gmock/gmock.h"
+namespace media_manager {
 
-#include "usage_statistics/statistics_manager.h"
+class MediaManager {
+  public:
+    virtual void PlayA2DPSource(int32_t application_key) = 0;
+    virtual void StopA2DPSource(int32_t application_key) = 0;
 
-namespace usage_statistics {
-namespace test {
+    virtual void StartMicrophoneRecording(int32_t application_key,
+                                          const std::string& outputFileName,
+                                          int32_t duration) = 0;
+    virtual void StopMicrophoneRecording(int32_t application_key) = 0;
 
-class MockStatisticsManager: public StatisticsManager {
- public:
-  MOCK_METHOD1(Increment, void(GlobalCounterId type));
-  MOCK_METHOD2(Increment, void(const std::string& app_id, AppCounterId type));
-  MOCK_METHOD3(Set, void(const std::string& app_id,
-                         AppInfoId type,
-                         const std::string& value));
-  MOCK_METHOD3(Add, void(const std::string& app_id,
-                         AppStopwatchId type,
-                         int32_t timespan_seconds));
+    virtual void StartStreaming(
+        int32_t application_key, protocol_handler::ServiceType service_type) = 0;
+    virtual void StopStreaming(
+        int32_t application_key, protocol_handler::ServiceType service_type) = 0;
+
+    virtual ~MediaManager(){}
 };
 
-}  // namespace test
-}  // namespace usage_statistics
+}  // namespace media_manager
 
-#endif  // SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_MOCK_STATISTICS_MANAGER_H_
+#endif  // SRC_COMPONENTS_INCLUDE_MEDIA_MANAGER_MEDIA_MANAGER_H_

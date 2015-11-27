@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015, Ford Motor Company
+* Copyright (c) 2014, Ford Motor Company
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -30,29 +30,33 @@
 * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef SRC_COMPONENTS_INCLUDE_TEST_HMI_MESSAGE_HANDLER_MOCK_HMI_MESSAGE_OBSERVER_H_
-#define SRC_COMPONENTS_INCLUDE_TEST_HMI_MESSAGE_HANDLER_MOCK_HMI_MESSAGE_OBSERVER_H_
+#ifndef SRC_COMPONENTS_INCLUDE_TEST_HMI_MESSAGE_HANDLER_HMI_MESSAGE_HANDLER_MOCK_SUBSCRIBER_H_
+#define SRC_COMPONENTS_INCLUDE_TEST_HMI_MESSAGE_HANDLER_HMI_MESSAGE_HANDLER_MOCK_SUBSCRIBER_H_
 
-#include "gmock/gmock.h"
-#include "utils/shared_ptr.h"
-#include "utils/singleton.h"
-#include "hmi_message_handler/hmi_message_observer.h"
-#include "application_manager/message.h"
+#include <string>
 
+struct DBusConnection;
+
+namespace test {
+namespace components {
 namespace hmi_message_handler {
 
-using ::hmi_message_handler::HMIMessageObserver;
-
-class MockHMIMessageObserver : public HMIMessageObserver,
-    public utils::Singleton<MockHMIMessageObserver>{
+class MockSubscriber {
  public:
-  MOCK_METHOD1(OnMessageReceived,
-      void(utils::SharedPtr<application_manager::Message> message));
-  MOCK_METHOD1(OnErrorSending,
-      void(utils::SharedPtr<application_manager::Message> message));
+  MockSubscriber(const std::string nameService, const std::string path);
+  virtual ~MockSubscriber();
+  virtual void Receive();
+  bool Start();
+  void Send(const std::string& message);
+
+ private:
+  std::string nameService_;
+  std::string path_;
+  DBusConnection* conn_;
 };
 
 }  // namespace hmi_message_handler
+}  // namespace components
+}  // namespace test
 
-#endif  // SRC_COMPONENTS_INCLUDE_TEST_HMI_MESSAGE_HANDLER_MOCK_HMI_MESSAGE_OBSERVER_H_
-
+#endif  // SRC_COMPONENTS_INCLUDE_TEST_HMI_MESSAGE_HANDLER_HMI_MESSAGE_HANDLER_MOCK_SUBSCRIBER_H_

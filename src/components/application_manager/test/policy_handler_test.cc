@@ -36,7 +36,7 @@
 #include "gmock/gmock.h"
 #include "config_profile/profile.h"
 #include "policy_handler.h"
-#include "mock_policy_manager.h"
+#include "policy/mock_policy_manager.h"
 #include "connection_handler/connection_handler_impl.h"
 #include "application_manager/application_manager_impl.h"
 #include "application_impl.h"
@@ -51,7 +51,7 @@
 #include "utils/make_shared.h"
 #include "custom_string.h"
 #include "usage_statistics/counter.h"
-#include "usage_statistics/statistics_manager.h"
+#include "policy/usage_statistics/statistics_manager.h"
 #include "interfaces/MOBILE_API.h"
 
 namespace test {

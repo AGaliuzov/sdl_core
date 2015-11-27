@@ -1,5 +1,4 @@
-/*
- * Copyright (c) 2015, Ford Motor Company
+/* Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,24 +28,31 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_TEST_STATE_CONTROLLER_INCLUDE_STATISTICS_MANAGER_MOCK_H_
-#define SRC_COMPONENTS_APPLICATION_MANAGER_TEST_STATE_CONTROLLER_INCLUDE_STATISTICS_MANAGER_MOCK_H_
+#ifndef SRC_COMPONENTS_INCLUDE_TEST_POLICY_USAGE_STATISTICS_MOCK_STATISTICS_MANAGER_H_
+#define SRC_COMPONENTS_INCLUDE_TEST_POLICY_USAGE_STATISTICS_MOCK_STATISTICS_MANAGER_H_
 
 #include <string>
+
 #include "gmock/gmock.h"
-#include "usage_statistics/statistics_manager.h"
 
-namespace state_controller_test {
-namespace us = usage_statistics;
+#include "policy/usage_statistics/statistics_manager.h"
 
-class StatisticsManagerMock : public us::StatisticsManager {
+namespace usage_statistics {
+namespace test {
+
+class MockStatisticsManager: public StatisticsManager {
  public:
-  MOCK_METHOD1(Increment, void (us::GlobalCounterId));
-  MOCK_METHOD2(Increment, void (const std::string&, us::AppCounterId));
-  MOCK_METHOD3(Set, void (const std::string&, us::AppInfoId, const std::string&));
-  MOCK_METHOD3(Add, void (const std::string&, us::AppStopwatchId, int32_t));
+  MOCK_METHOD1(Increment, void(GlobalCounterId type));
+  MOCK_METHOD2(Increment, void(const std::string& app_id, AppCounterId type));
+  MOCK_METHOD3(Set, void(const std::string& app_id,
+                         AppInfoId type,
+                         const std::string& value));
+  MOCK_METHOD3(Add, void(const std::string& app_id,
+                         AppStopwatchId type,
+                         int32_t timespan_seconds));
 };
 
-}  // namespace state_controller_test
-#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_STATE_CONTROLLER_INCLUDE_STATISTICS_MANAGER_MOCK_H_
+}  // namespace test
+}  // namespace usage_statistics
+
+#endif  // SRC_COMPONENTS_INCLUDE_TEST_POLICY_USAGE_STATISTICS_MOCK_STATISTICS_MANAGER_H_

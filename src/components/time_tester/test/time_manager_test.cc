@@ -34,8 +34,8 @@
 #include "gmock/gmock.h"
 #include "time_tester/time_manager.h"
 #include "protocol_handler/time_metric_observer.h"
-#include "protocol_handler.h"
-#include "include/protocol_handler_mock.h"
+#include "protocol_handler/protocol_handler.h"
+#include "protocol_handler/protocol_handler_mock.h"
 
 namespace test {
 namespace components {

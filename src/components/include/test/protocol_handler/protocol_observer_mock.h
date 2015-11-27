@@ -1,4 +1,5 @@
-/* Copyright (c) 2015, Ford Motor Company
+/*
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,36 +29,29 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_MOCK_STATISTICS_MANAGER_H_
-#define SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_MOCK_STATISTICS_MANAGER_H_
 
+#ifndef SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_PROTOCOL_OBSERVER_MOCK_H_
+#define SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_PROTOCOL_OBSERVER_MOCK_H_
+
+#include <gmock/gmock.h>
 #include <string>
-
-#include "gmock/gmock.h"
-
-#include "usage_statistics/statistics_manager.h"
-#include "application_manager/usage_statistics.h"
+#include "protocol_handler/protocol_observer.h"
 
 namespace test {
 namespace components {
-namespace application_manager_test {
+namespace protocol_handler_test {
 
-using namespace ::usage_statistics;
-class MockStatisticsManager: public StatisticsManager {
+/*
+ * MOCK implementation of ::protocol_handler::ProtocolObserver interface
+ */
+class ProtocolObserverMock : public ::protocol_handler::ProtocolObserver {
  public:
-  MOCK_METHOD1(Increment, void(GlobalCounterId type));
-  MOCK_METHOD2(Increment, void(const std::string& app_id, AppCounterId type));
-  MOCK_METHOD3(Set, void(const std::string& app_id,
-                         AppInfoId type,
-                         const std::string& value));
-  MOCK_METHOD3(Add, void(const std::string& app_id,
-                         AppStopwatchId type,
-                         int32_t timespan_seconds));
-  virtual ~MockStatisticsManager(){}
+  MOCK_METHOD1(OnMessageReceived,
+      void(const ::protocol_handler::RawMessagePtr));
+  MOCK_METHOD1(OnMobileMessageSent,
+      void(const ::protocol_handler::RawMessagePtr));
 };
-
-}  // namespace application_manager_test
-}  // namespace components
-}  // namespace test
-
-#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_MOCK_STATISTICS_MANAGER_H_
+} // namespace protocol_handler_test
+} // namespace components
+} // namespace test
+#endif  // SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_PROTOCOL_OBSERVER_MOCK_H_
