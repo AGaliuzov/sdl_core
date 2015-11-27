@@ -44,8 +44,8 @@ class AOADevice : public Device {
   AOADevice(const std::string& name, const DeviceUID& unique_id);
   AOADevice(AOAWrapper::AOAHandle handle, const std::string& name,
             const DeviceUID& unique_id);
-  virtual bool IsSameAs(const Device* other_device) const;
-  virtual ApplicationList GetApplicationList() const;
+  bool IsSameAs(const Device* other_device) const OVERRIDE;
+  ApplicationList GetApplicationList() const  OVERRIDE;
   AOAWrapper::AOAHandle handle() const;
 
  protected:

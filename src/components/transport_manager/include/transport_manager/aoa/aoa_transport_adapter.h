@@ -46,17 +46,16 @@ class AOATransportAdapter : public TransportAdapterImpl {
  public:
   AOATransportAdapter();
   ~AOATransportAdapter();
-  virtual void DisconnectDone(const DeviceUID& device_handle, const ApplicationHandle& app_handle);
-  virtual void Terminate();
+  void Terminate() OVERRIDE;
   void RemoveDevice(const DeviceUID& device_handle);
 
  protected:
-  virtual DeviceType GetDeviceType() const;
-  virtual bool IsInitialised() const;
-  virtual TransportAdapter::Error Init();
-  virtual void ApplicationListUpdated(const DeviceUID& device_handle);
+  DeviceType GetDeviceType() const OVERRIDE;
+  bool IsInitialised() const OVERRIDE;
+  TransportAdapter::Error Init() OVERRIDE;
+  void ApplicationListUpdated(const DeviceUID& device_handle) OVERRIDE;
 
-  virtual bool ToBeAutoConnected(DeviceSptr device) const;
+  bool ToBeAutoConnected(DeviceSptr device) const OVERRIDE;
 
  private:
   void TerminateInternal();

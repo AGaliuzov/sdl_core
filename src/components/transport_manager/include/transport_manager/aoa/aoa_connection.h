@@ -54,7 +54,7 @@ class AOAConnection : public Connection {
   virtual TransportAdapter::Error Disconnect();
 
  private:
-  static const uint32_t kTimeout = 2000; // ms
+  static const uint32_t kTimeoutMs = 2000;  // ms
   AOAWrapper* wrapper_;
   AOAConnectionObserver* observer_;
   DeviceUID device_uid_;

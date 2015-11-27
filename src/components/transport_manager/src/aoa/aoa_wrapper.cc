@@ -48,10 +48,13 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
     return false; \
   }
 
-static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
-                           uint32_t status, const void *udata) {
-  LOG4CXX_AUTO_TRACE(logger_);
+bool AOAWrapper::AOAUsbInfo::operator<(const AOAWrapper::AOAUsbInfo& other) const {
+  return object_name < other.object_name;
+}
 
+static void OnReceivedData(aoa_hdl_t* hdl, uint8_t* data, uint32_t sz,
+                           uint32_t status, const void* udata) {
+  LOG4CXX_AUTO_TRACE(logger_);
   if (udata == NULL) {
     LOG4CXX_ERROR(logger_, "No object to send data to.");
     return;
@@ -64,7 +67,6 @@ static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
     aoa_wrapper->PrintError(status);
   }
 
-
   if (!aoa_wrapper->IsHandleValid(hdl) || (status == AOA_EINVALIDHDL)) {
     aoa_wrapper->OnDied();
     return;
@@ -73,7 +75,7 @@ static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
   bool success = !error;
   protocol_handler::RawMessagePtr message;
   if (data) {
-    message =utils::MakeShared<protocol_handler::RawMessage>(0, 0, data, sz);
+    message = utils::MakeShared<protocol_handler::RawMessage>(0, 0, data, sz);
   } else {
     LOG4CXX_ERROR(logger_, "AOA: data is null");
     success = false;
@@ -84,8 +86,7 @@ static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
   aoa_buffer_free(hdl, data);
   if (aoa_wrapper->SetCallback(AOA_TIMEOUT_INFINITY, AOA_Ept_Accessory_BulkIn)) {
     LOG4CXX_DEBUG(logger_, "AOA: data receive callback reregistered");
-  }
-  else {
+  } else {
     LOG4CXX_ERROR(logger_,
                   "AOA: could not reregister data receive callback, error = "
                   <<  strerror(errno));
@@ -93,13 +94,13 @@ static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
 }
 
 AOAWrapper::AOAWrapper()
-    : hdl_(NULL),
-      timeout_(AOA_TIMEOUT_INFINITY) {
+  : hdl_(NULL),
+    timeout_(AOA_TIMEOUT_INFINITY) {
 }
 
 AOAWrapper::AOAWrapper(uint32_t timeout)
-    : hdl_(NULL),
-      timeout_(timeout) {
+  : hdl_(NULL),
+    timeout_(timeout) {
 }
 
 bool AOAWrapper::HandleDevice(const AOAWrapper::AOAUsbInfo& aoa_usb_info) {
@@ -107,6 +108,7 @@ bool AOAWrapper::HandleDevice(const AOAWrapper::AOAUsbInfo& aoa_usb_info) {
   usb_info_t usb_info;
   PrepareUsbInfo(aoa_usb_info, &usb_info);
   int ret;
+  LOG4CXX_DEBUG(logger_, "Connecting to AOA path:" << aoa_usb_info.path);
   hdl_ = aoa_connect(&usb_info, AOA_FLAG_UNIQUE_DEVICE, &ret);
   RETURN_ON_ERROR(ret)
   return true;
@@ -133,7 +135,7 @@ bool AOAWrapper::SetCallback(uint32_t timeout, AOAEndpoint endpoint) const {
       break;
     default:
       LOG4CXX_ERROR(
-          logger_, "AOA: " << endpoint << " endpoint doesn't support callbacks")
+        logger_, "AOA: " << endpoint << " endpoint doesn't support callbacks")
       ;
       return false;
   }
@@ -155,7 +157,7 @@ AOAWrapper::AOAHandle AOAWrapper::GetHandle() const {
   return hdl_;
 }
 
-bool AOAWrapper::Subscribe(AOAConnectionObserver *observer) {
+bool AOAWrapper::Subscribe(AOAConnectionObserver* observer) {
   LOG4CXX_TRACE(logger_, "AOA: subscribe on receive data " << hdl_);
   connection_observer_ = observer;
   return SetCallback(AOA_Ept_Accessory_BulkIn);
@@ -245,7 +247,7 @@ std::vector<AOAMode> AOAWrapper::GetModes() const {
 }
 
 std::vector<AOAEndpoint> AOAWrapper::CreateEndpointsList(
-    uint32_t endpoints_mask) const {
+  uint32_t endpoints_mask) const {
   std::vector<AOAEndpoint> list;
   if (IsValueInMask(endpoints_mask, AOA_EPT_ACCESSORY_BULKIN)) {
     list.push_back(AOA_Ept_Accessory_BulkIn);
@@ -277,7 +279,7 @@ bool AOAWrapper::SendMessage(::protocol_handler::RawMessagePtr message) const {
     return false;
   }
 
-  uint8_t *data = NULL;
+  uint8_t* data = NULL;
   if (AOA_EOK != aoa_buffer_alloc(hdl_, &data, message->data_size())) {
     LOG4CXX_ERROR(logger_, "AOA: unable to allocate buffer.");
     return false;
@@ -308,63 +310,13 @@ bool AOAWrapper::SendControlMessage(uint16_t request, uint16_t value,
     return false;
   }
 
-  uint8_t *data = message->data();
+  uint8_t* data = message->data();
   size_t length = message->data_size();
   const int ret = aoa_control_tx(hdl_, AOA_EPT_ACCESSORY_CONTROL, timeout_,
                                  request, value, index, data, &length,
                                  AOA_FLAG_MANAGED_BUF);
   RETURN_ON_ERROR(ret);
   return true;
-}
-
-::protocol_handler::RawMessagePtr AOAWrapper::ReceiveMessage() const {
-  LOG4CXX_AUTO_TRACE(logger_);
-  protocol_handler::RawMessagePtr message_ptr;
-  if (!IsHandleValid()) {
-    OnDied();
-    return message_ptr;
-  }
-
-  uint8_t* data;
-  uint32_t size;
-  LOG4CXX_TRACE(logger_, "AOA: receiving bulk data");
-  const int ret = aoa_bulk_rx(
-        hdl_, AOA_EPT_ACCESSORY_BULKIN, timeout_, &data, &size, 0);
-  if (IsError(ret)) {
-    PrintError(ret);
-  } else {
-      LOG4CXX_DEBUG(logger_, "AOA: bulk data received");
-      if (data) {
-         message_ptr =
-             utils::MakeShared<protocol_handler::RawMessage::RawMessage>(
-               0, 0, data, size);
-      }
-  }
-  return message_ptr;
-}
-
-::protocol_handler::RawMessagePtr AOAWrapper::ReceiveControlMessage(uint16_t request,
-                                                uint16_t value,
-                                                uint16_t index) const {
-  LOG4CXX_TRACE(logger_, "AOA: receive from control endpoint");
-  protocol_handler::RawMessagePtr message_ptr;
-  if (!IsHandleValid()) {
-    OnDied();
-    return message_ptr;
-  }
-
-  uint8_t *data;
-  uint32_t size;
-  int ret = aoa_control_rx(hdl_, AOA_EPT_ACCESSORY_CONTROL, timeout_, request,
-                           value, index, &data, &size, AOA_FLAG_MANAGED_BUF);
-  if (IsError(ret)) {
-    PrintError(ret);
-  } else if (data) {
-    message_ptr =
-        utils::MakeShared<protocol_handler::RawMessage>(0, 0, data, size);
-  }
-
-  return message_ptr;
 }
 
 bool AOAWrapper::IsError(int ret) const {
@@ -388,6 +340,7 @@ bool AOAWrapper::IsHandleValid(AOAWrapper::AOAHandle hdl) const {
 }
 
 void AOAWrapper::OnDied() const {
+  LOG4CXX_AUTO_TRACE(logger_);
   if (connection_observer_) {
     connection_observer_->OnDisconnected();
   }
@@ -403,4 +356,3 @@ void AOAWrapper::PrepareUsbInfo(const AOAUsbInfo& aoa_usb_info,
 
 }  // namespace transport_adapter
 }  // namespace transport_manager
-

@@ -34,7 +34,8 @@
 
 #include "utils/logger.h"
 #include "transport_manager/aoa/aoa_connection_factory.h"
-#  include "transport_manager/aoa/pps_listener.h"
+#include "transport_manager/aoa/pps_listener.h"
+#include "transport_manager/aoa/aoa_dynamic_device.h"
 
 namespace transport_manager {
 namespace transport_adapter {
@@ -42,20 +43,15 @@ namespace transport_adapter {
 CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
 
 AOATransportAdapter::AOATransportAdapter()
-    : TransportAdapterImpl(0, new AOAConnectionFactory(this),
-                           new PPSListener(this)),
-      initialised_(false) {
+  : TransportAdapterImpl(0, new AOAConnectionFactory(this),
+                         new PPSListener(this)),
+    initialised_(false) {
 }
 
 
 AOATransportAdapter::~AOATransportAdapter() {
   LOG4CXX_AUTO_TRACE(logger_);
   TerminateInternal();
-}
-
-void AOATransportAdapter::DisconnectDone(const DeviceUID& device_handle, const ApplicationHandle& app_handle) {
-  LOG4CXX_AUTO_TRACE(logger_);
-  TransportAdapterImpl::DisconnectDone(device_handle, app_handle);
 }
 
 void AOATransportAdapter::Terminate() {
@@ -82,8 +78,13 @@ TransportAdapter::Error AOATransportAdapter::Init() {
   return TransportAdapter::OK;
 }
 
-void AOATransportAdapter::RemoveDevice(const DeviceUID &device_handle) {
+void AOATransportAdapter::RemoveDevice(const DeviceUID& device_handle) {
   LOG4CXX_AUTO_TRACE(logger_);
+  DeviceSptr device = FindDevice(device_handle);
+  if (!device) {
+    LOG4CXX_WARN(logger_, "Not found device with handle: " << device_handle);
+    return;
+  }
   TransportAdapterImpl::DeviceDisconnected(device_handle, DisconnectDeviceError());
 }
 
@@ -96,11 +97,13 @@ bool AOATransportAdapter::IsInitialised() const {
 }
 
 void AOATransportAdapter::ApplicationListUpdated(
-    const DeviceUID& device_handle) {
+  const DeviceUID& device_handle) {
+  LOG4CXX_AUTO_TRACE(logger_);
   ConnectDevice(device_handle);
 }
 
 bool AOATransportAdapter::ToBeAutoConnected(DeviceSptr device) const {
+  LOG4CXX_AUTO_TRACE(logger_);
   UNUSED(device);
   return true;
 }
@@ -112,4 +115,3 @@ void AOATransportAdapter::TerminateInternal() {
 
 }  // namespace transport_adapter
 }  // namespace transport_manager
-

@@ -47,7 +47,6 @@ AOADynamicDevice::AOADynamicDevice(const std::string& name,
                                    const AOAWrapper::AOAUsbInfo& info,
                                    TransportAdapterController* controller)
     : AOADevice(name, unique_id),
-      life_(new DeviceLife(this)),
       controller_(controller),
       aoa_usb_info_(info) {
   LOG4CXX_AUTO_TRACE(logger_);
@@ -58,7 +57,6 @@ AOADynamicDevice::~AOADynamicDevice() {
   LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_, "AOA: device " << unique_device_id());
   life_cond_.NotifyOne();
-  delete life_;
 }
 
 void AOADynamicDevice::AddDevice(AOAWrapper::AOAHandle handle) {
@@ -66,45 +64,14 @@ void AOADynamicDevice::AddDevice(AOAWrapper::AOAHandle handle) {
   set_handle(handle);
 }
 
-void AOADynamicDevice::LoopDevice(AOAWrapper::AOAHandle handle) {
-  LOG4CXX_AUTO_TRACE(logger_);
-
-}
 
 void AOADynamicDevice::StopDevice(AOAWrapper::AOAHandle handle) {
   LOG4CXX_TRACE(logger_, "AOA: stop device " << handle);
   life_cond_.Broadcast();
 }
 
-AOADeviceLife* AOADynamicDevice::GetLife() const {
-  return life_;
-}
-
 AOAWrapper::AOAUsbInfo AOADynamicDevice::GetUsbInfo() const {
   return aoa_usb_info_;
-}
-
-bool AOADynamicDevice::Ack() {
-  LOG4CXX_AUTO_TRACE(logger_);
-  if (true) {
-    LOG4CXX_DEBUG(logger_, "Device is about to be die.");
-    StopDevice(handle());
-    return false;
-  }
-  return true;
-}
-
-AOADynamicDevice::DeviceLife::DeviceLife(AOADynamicDevice* parent)
-    : parent_(parent) {
-}
-
-void AOADynamicDevice::DeviceLife::Loop(AOAWrapper::AOAHandle handle) {
-  parent_->AddDevice(handle);
-  parent_->LoopDevice(handle);
-}
-
-void AOADynamicDevice::DeviceLife::OnDied(AOAWrapper::AOAHandle handle) {
-  parent_->StopDevice(handle);
 }
 
 }  // namespace transport_adapter

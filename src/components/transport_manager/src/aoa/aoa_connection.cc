@@ -45,7 +45,7 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
 AOAConnection::AOAConnection(const DeviceUID& device_uid,
                              const ApplicationHandle& app_handle,
                              TransportAdapterController* controller)
-    : wrapper_(new AOAWrapper(kTimeout)),
+    : wrapper_(new AOAWrapper(kTimeoutMs)),
       observer_(new ConnectionObserver(this)),
       device_uid_(device_uid),
       app_handle_(app_handle),

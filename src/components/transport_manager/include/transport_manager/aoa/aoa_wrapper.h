@@ -61,9 +61,11 @@ enum AOAEndpoint {
   AOA_Ept_Accessory_Control
 };
 
-class AOADeviceLife;
 class AOAConnectionObserver;
 
+/**
+ * @brief The AOA library calls wrapping class
+ */
 class AOAWrapper {
  public:
   typedef aoa_hdl_s* AOAHandle;
@@ -83,7 +85,9 @@ class AOAWrapper {
     std::string upstream_host_controller;
     uint32_t iface; /* Device interface */
     std::string object_name;
-  };
+    // Compare oprator for std::map handling
+    bool operator<(const AOAUsbInfo& other) const;
+  };  // struct AOAUsbInfo
 
   bool IsHandleValid(AOAWrapper::AOAHandle hdl) const;
   inline bool IsError(int ret) const;
@@ -103,9 +107,6 @@ class AOAWrapper {
   bool SendMessage(::protocol_handler::RawMessagePtr message) const;
   bool SendControlMessage(uint16_t request, uint16_t value, uint16_t index,
                           ::protocol_handler::RawMessagePtr message) const;
-  ::protocol_handler::RawMessagePtr ReceiveMessage() const;
-  ::protocol_handler::RawMessagePtr ReceiveControlMessage(uint16_t request, uint16_t value,
-                                      uint16_t index) const;
   void OnDied() const;
 
   static const uint32_t kBufferSize = 32768;
@@ -119,7 +120,6 @@ class AOAWrapper {
   uint32_t timeout_;
   AOAConnectionObserver* connection_observer_;
 
-  bool Init(AOADeviceLife* life, const char* config_path, usb_info_s* usb_info);
   void PrepareUsbInfo(const AOAUsbInfo& aoa_usb_info,
                       usb_info_s* usb_info);
 
@@ -129,14 +129,8 @@ class AOAWrapper {
   std::vector<AOAMode> CreateModesList(uint32_t modes_mask) const;
   std::vector<AOAEndpoint> CreateEndpointsList(uint32_t endpoints_mask) const;
   bool SetCallback(AOAEndpoint endpoint) const;
-};
 
-class AOADeviceLife {
- public:
-  virtual void Loop(AOAWrapper::AOAHandle handle) = 0;
-  virtual void OnDied(AOAWrapper::AOAHandle handle) = 0;
-  virtual ~AOADeviceLife() {
-  }
+
 };
 
 class AOAConnectionObserver {

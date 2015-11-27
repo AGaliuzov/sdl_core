@@ -40,7 +40,6 @@ namespace transport_adapter {
 
 class MockTransportAdapterController : public TransportAdapterController {
  public:
-  MOCK_METHOD0(AckDevices, void());
   MOCK_METHOD1(AddDevice, DeviceSptr(DeviceSptr device));
   MOCK_METHOD1(SearchDeviceDone, void(const DeviceVector& devices));
   MOCK_METHOD1(SearchDeviceFailed, void(const SearchDeviceError& error));
@@ -77,7 +76,6 @@ class MockTransportAdapterController : public TransportAdapterController {
                     const ::protocol_handler::RawMessagePtr message,
                     const DataSendError& error));
   MOCK_METHOD0(FindNewApplicationsRequest, void());
-  MOCK_METHOD0(AckDevices, void());
   MOCK_METHOD1(ApplicationListUpdated, void(const DeviceUID& device_handle));
   MOCK_METHOD2(DeviceDisconnected, void(const DeviceUID& device_handle,
                                         const DisconnectDeviceError& error));
