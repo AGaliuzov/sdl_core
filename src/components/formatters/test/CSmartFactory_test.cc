@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "SmartFactoryTestHelper.h"
+#include "formatters/SmartFactoryTestHelper.h"
 #include "formatters/CSmartFactory.hpp"
 #include "gtest/gtest.h"
 

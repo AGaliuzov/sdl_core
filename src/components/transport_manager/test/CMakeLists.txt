@@ -32,10 +32,10 @@ if(BUILD_TESTS)
 set(TM_TEST_DIR ${COMPONENTS_DIR}/transport_manager/test)
 
 include_directories(
+  include
   ${LOG4CXX_INCLUDE_DIRECTORY}
   ${GMOCK_INCLUDE_DIRECTORY}
   ${JSONCPP_INCLUDE_DIRECTORY}
-  ${CMAKE_BINARY_DIR}
   ${CMAKE_BINARY_DIR}/src/components/
   ${COMPONENTS_DIR}/application_manager/include
   ${COMPONENTS_DIR}/policy/src/policy/usage_statistics/include/

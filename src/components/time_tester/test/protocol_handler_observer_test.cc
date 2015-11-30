@@ -32,7 +32,7 @@
 
 #include "gtest/gtest.h"
 #include "time_tester/time_manager.h"
-#include "mock_time_manager.h"
+#include "time_tester/mock_time_manager.h"
 #include "protocol_handler/time_metric_observer.h"
 
 namespace test {

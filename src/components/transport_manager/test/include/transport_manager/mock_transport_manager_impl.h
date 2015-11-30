@@ -30,29 +30,25 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_MOCK_DEVICE_SCANNER_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_MOCK_DEVICE_SCANNER_H_
+#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_IMPL_H_
+#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_IMPL_H_
 
 #include "gmock/gmock.h"
-#include "transport_manager/transport_adapter/device_scanner.h"
+#include "transport_manager/transport_manager_impl.h"
 
 namespace test {
 namespace components {
-namespace transport_manager_test {
+namespace transport_manager {
 
-class MockDeviceScanner
-    : public ::transport_manager::transport_adapter::DeviceScanner {
+using namespace ::transport_manager;
+
+class MockTransportManagerImpl : public TransportManagerImpl {
  public:
-  MOCK_METHOD0(
-      Init, ::transport_manager::transport_adapter::TransportAdapter::Error());
-  MOCK_METHOD0(
-      Scan, ::transport_manager::transport_adapter::TransportAdapter::Error());
-  MOCK_METHOD0(Terminate, void());
-  MOCK_CONST_METHOD0(IsInitialised, bool());
+  MOCK_METHOD1(ReceiveEventFromDevice, int(const TransportAdapterEvent& event));
 };
 
-}  // namespace transport_manager_test
+}  // namespace transport_manager
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_MOCK_DEVICE_SCANNER_H_
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_IMPL_H_

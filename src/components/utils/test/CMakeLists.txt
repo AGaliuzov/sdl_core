@@ -34,7 +34,7 @@ include_directories (
   include
   ${JSONCPP_INCLUDE_DIRECTORY}
   ${GMOCK_INCLUDE_DIRECTORY}
-  ${UTILS_INCLUDE_DIR}
+  ${COMPONENTS_DIR}/utils/include
   ${COMPONENTS_DIR}/rpc_base/include
 )
 
