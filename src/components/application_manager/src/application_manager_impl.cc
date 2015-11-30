@@ -2143,7 +2143,7 @@ void ApplicationManagerImpl::UnregisterAllApplications() {
   }
   }
 
-#ifndef CUSTOMER_PASA  // AKirov: Move this block before unregistering apps?
+#ifndef CUSTOMER_PASA
   if (is_ignition_off) {
     resume_controller().OnSuspend();
   }

@@ -105,7 +105,6 @@ bool ResumeCtrl::Init() {
 }
 
 ResumeCtrl::~ResumeCtrl() {
-  // AKirov: should we call StopRestoreHmiLevelTimer(); and StopSavePersistentDataTimer(); here?
 }
 
 void ResumeCtrl::SaveAllApplications() {
