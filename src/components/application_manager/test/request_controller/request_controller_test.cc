@@ -40,10 +40,11 @@
 #include "application_manager/message_helper.h"
 #include "application_manager/application_manager_impl.h"
 #include "application_manager/application_impl.h"
+#include "utils/make_shared.h"
 
 namespace test {
 namespace components {
-namespace request_controller {
+namespace request_controller_test {
 
 using namespace application_manager;
 using application_manager::request_controller::RequestController;
@@ -56,7 +57,7 @@ using application_manager::commands::Command;
 
 typedef utils::SharedPtr<Command> RequestPtr;
 
-Command* RegisterApplication(unsigned int id = 1) {
+RequestPtr RegisterApplication(unsigned int id = 1) {
   SmartObjectSPtr resultsmart = new SmartObject(SmartType_Map);
   SmartObject& test_message = *resultsmart;
   uint32_t connection_key = 0;
@@ -71,93 +72,95 @@ Command* RegisterApplication(unsigned int id = 1) {
   test_message[strings::params][strings::connection_key] = connection_key;
   test_message[strings::msg_params][strings::language_desired] = 0;
   test_message[strings::msg_params][strings::hmi_display_language_desired] = 0;
-  commands::Command* testregCommand =
-      new RegisterAppInterfaceRequest(resultsmart);
+  RequestPtr testregCommand =
+      utils::MakeShared<RegisterAppInterfaceRequest>(resultsmart);
   return testregCommand;
 }
 
-Command* UnregisterApplication() {
+RequestPtr UnregisterApplication() {
   SmartObjectSPtr resultsmart = MessageHelper::CreateModuleInfoSO(2);
-  commands::Command *testregCommand =
-      new commands::UnregisterAppInterfaceRequest(resultsmart);
+  RequestPtr testregCommand =
+      utils::MakeShared<commands::UnregisterAppInterfaceRequest>(resultsmart);
   return testregCommand;
 }
 
-TEST(RequestControllerTest, CheckPosibilitytoAdd_HMI_FULL_Expect_SUCCESS) {
-  ::profile::Profile::instance()->config_file_name("smartDeviceLink_test3.ini");
+class RequestControllerTestClass : public ::testing::Test {
+public:
+  RequestControllerTestClass():reg(RegisterApplication()) {}
 
-  RequestController::TResult result;
+  RequestController::TResult AddHMIRequest(const bool RegisterRequest = false) {
+    if (RegisterRequest)
+        result = request_ctrl.addHMIRequest(reg);
+    else
+        result = request_ctrl.addHMIRequest(regEmpty);
+    return result;
+  }
+
+  RequestController::TResult AddMobileRequest(
+      const mobile_apis::HMILevel::eType& hmi_level,
+          const bool RegisterRequest = false) {
+    if (RegisterRequest)
+        result = request_ctrl.addMobileRequest(reg, hmi_level);
+    else
+        result = request_ctrl.addMobileRequest(regEmpty, hmi_level);
+    return result;
+  }
+
+  static void SetUpTestCase()
+  {
+    ::profile::Profile::instance()->
+        config_file_name("smartDeviceLink_test3.ini");
+  }
+
+  void UnregisterApp(const mobile_apis::HMILevel::eType& hmi_level)
+  {
+    RequestPtr unreg = UnregisterApplication();
+    request_ctrl.addMobileRequest(unreg, hmi_level);
+  }
+
   RequestController request_ctrl;
+  RequestPtr reg, regEmpty;
+  RequestController::TResult result;
+};
 
-  commands::Command * reg = RegisterApplication();
-
-  result = request_ctrl.addMobileRequest(reg, mobile_apis::HMILevel::HMI_FULL);
+TEST_F(RequestControllerTestClass, CheckPosibilitytoAdd_HMI_FULL_SUCCESS) {
+  EXPECT_EQ(RequestController::TResult::SUCCESS,
+      AddMobileRequest(mobile_apis::HMILevel::HMI_FULL, true));
   ApplicationManagerImpl::instance()->destroy();
-
-  EXPECT_EQ(RequestController::TResult::SUCCESS, result);
-
-  commands::Command* unreg = UnregisterApplication();
-  request_ctrl.addMobileRequest(unreg, mobile_apis::HMILevel::HMI_FULL);
+  UnregisterApp(mobile_apis::HMILevel::HMI_FULL);
 }
 
-TEST(RequestControllerTest, CheckPosibilitytoAdd_HMI_NONE_Expect_SUCCESS) {
-  ::profile::Profile::instance()->config_file_name("smartDeviceLink_test3.ini");
-
-  RequestController::TResult result;
-  RequestController request_ctrl;
+TEST_F(RequestControllerTestClass, CheckPosibilitytoAdd_HMI_NONE_SUCCESS) {
   ApplicationManagerImpl::instance();
-  commands::Command * reg = RegisterApplication();
-
-  result = request_ctrl.addMobileRequest(reg, mobile_apis::HMILevel::HMI_NONE);
+  EXPECT_EQ(RequestController::TResult::SUCCESS,
+      AddMobileRequest(mobile_apis::HMILevel::HMI_NONE, true));
   ApplicationManagerImpl::instance()->destroy();
-
-  EXPECT_EQ(RequestController::TResult::SUCCESS, result);
-
-  commands::Command* unreg = UnregisterApplication();
-  request_ctrl.addMobileRequest(unreg, mobile_apis::HMILevel::HMI_NONE);
+  UnregisterApp(mobile_apis::HMILevel::HMI_NONE);
 }
 
-TEST(RequestControllerTest, IsLowVoltage_Expect_TRUE) {
-  RequestController request_ctrl;
+TEST_F(RequestControllerTestClass, IsLowVoltage_SetOnLowVoltage_TRUE) {
   request_ctrl.OnLowVoltage();
   EXPECT_EQ(true, request_ctrl.IsLowVoltage());
 }
 
-TEST(RequestControllerTest, IsLowVoltage_Expect_FALSE) {
-  RequestController request_ctrl;
+TEST_F(RequestControllerTestClass, IsLowVoltage_SetOnWakeUp_FALSE) {
   request_ctrl.OnWakeUp();
-  bool result = false;
+  const bool result = false;
   EXPECT_EQ(result, request_ctrl.IsLowVoltage());
 }
 
-TEST(RequestControllerTest, AddMobileRequest_Expect_INVALID_DATA) {
-  RequestController::TResult result;
-  RequestController request_ctrl;
-  RequestPtr reg;
-
-  result = request_ctrl.addMobileRequest(reg, mobile_apis::HMILevel::HMI_NONE);
-
-  EXPECT_EQ(RequestController::INVALID_DATA, result);
+TEST_F(RequestControllerTestClass,
+  AddMobileRequest_SetInvalidData_INVALID_DATA) {
+  EXPECT_EQ(RequestController::INVALID_DATA,
+      AddMobileRequest(mobile_apis::HMILevel::HMI_NONE));
 }
 
-TEST(RequestControllerTest, addHMIRequest_Expect_SUCCESS) {
-  RequestController::TResult result;
-  RequestController request_ctrl;
-  commands::Command * reg = RegisterApplication();
-
-  result = request_ctrl.addHMIRequest(reg);
-
-  EXPECT_EQ(RequestController::SUCCESS, result);
+TEST_F(RequestControllerTestClass, addHMIRequest_AddRequest_SUCCESS) {
+  EXPECT_EQ(RequestController::SUCCESS, AddHMIRequest(true));
 }
 
-TEST(RequestControllerTest, addHMIRequest_Expect_INVALID_DATA) {
-  RequestController::TResult result;
-  RequestController request_ctrl;
-  RequestPtr reg;
-
-  result = request_ctrl.addHMIRequest(reg);
-
-  EXPECT_EQ(RequestController::INVALID_DATA, result);
+TEST_F(RequestControllerTestClass, addHMIRequest_AddInvalidData_INVALID_DATA) {
+  EXPECT_EQ(RequestController::INVALID_DATA, AddHMIRequest());
 }
 
 }  // namespace request_controller
