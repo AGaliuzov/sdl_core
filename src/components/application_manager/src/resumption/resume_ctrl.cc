@@ -105,7 +105,7 @@ bool ResumeCtrl::Init() {
 }
 
 ResumeCtrl::~ResumeCtrl() {
-  // AKirov: should we call StopRestoreHmiLevelTimer(); and StopSavePersistentDataTimer(); here?
+
 }
 
 void ResumeCtrl::SaveAllApplications() {
@@ -254,7 +254,6 @@ bool ResumeCtrl::RemoveApplicationFromSaved(ApplicationConstSharedPtr applicatio
 
 void ResumeCtrl::OnSuspend() {
   LOG4CXX_AUTO_TRACE(logger_);
-  StopRestoreHmiLevelTimer();
   StopSavePersistentDataTimer();
   SaveAllApplications();
   return resumption_storage_->OnSuspend();
@@ -280,15 +279,6 @@ void ResumeCtrl::StopSavePersistentDataTimer() {
     save_persistent_data_timer_.stop();
   }
 }
-
-
-void ResumeCtrl::StopRestoreHmiLevelTimer() {
-  LOG4CXX_AUTO_TRACE(logger_);
-  if (restore_hmi_level_timer_.isRunning()) {
-    restore_hmi_level_timer_.stop();
-  }
-}
-
 
 bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
                                  const std::string& hash) {
