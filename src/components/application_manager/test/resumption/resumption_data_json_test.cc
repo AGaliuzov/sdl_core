@@ -35,8 +35,8 @@
 #include "gtest/gtest.h"
 
 #include "application_manager/usage_statistics.h"
-#include "application_manager/application_mock.h"
-#include "application_manager/resumption_data_mock.h"
+#include "application_manager/mock_application.h"
+#include "application_manager/mock_resumption_data.h"
 #include "interfaces/MOBILE_API.h"
 #include "resumption/last_state.h"
 
@@ -65,7 +65,7 @@ namespace Formatters = NsSmartDeviceLink::NsJSONHandler::Formatters;
 class ResumptionDataJsonTest : public ResumptionDataTest {
  protected:
   virtual void SetUp() {
-    app_mock = new NiceMock<ApplicationMock>();
+    app_mock = new NiceMock<application_manager_test::MockApplication>();
 
     policy_app_id_ = "test_policy_app_id";
     app_id_ = 10;

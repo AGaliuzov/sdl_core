@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,25 +30,26 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_TRANSPORT_MANAGER_IMPL_MOCK_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_TRANSPORT_MANAGER_IMPL_MOCK_H_
+#ifndef TEST_COMPONENTS_TIME_MANAGER_INCLUDE_TIME_MANAGER_MOCK_H_
+#define TEST_COMPONENTS_TIME_MANAGER_INCLUDE_TIME_MANAGER_MOCK_H_
 
-#include "gmock/gmock.h"
-#include "transport_manager/transport_manager_impl.h"
-
+#include <gmock/gmock.h>
+#include "time_tester/time_manager.h"
+#include "time_tester/metric_wrapper.h"
 namespace test {
 namespace components {
-namespace transport_manager {
+namespace time_tester_test {
 
-using namespace ::transport_manager;
+using namespace time_tester;
 
-class TransportManagerImplMock : public TransportManagerImpl {
+class MockTimeManager : public time_tester::TimeManager {
  public:
-  MOCK_METHOD1(ReceiveEventFromDevice, int(const TransportAdapterEvent& event));
+  MOCK_METHOD1(Init, void(protocol_handler::ProtocolHandlerImpl* ph));
+  MOCK_METHOD0(Stop, void());
+  MOCK_METHOD0(Start, void());
+  MOCK_METHOD1(SendMetric, void(utils::SharedPtr<MetricWrapper> metric));
 };
-
-}  // namespace transport_manager
-}  // namespace components
-}  // namespace test
-
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_TRANSPORT_MANAGER_IMPL_MOCK_H_
+}  // time_tester_test
+}  // components
+}  // test
+#endif  // TEST_COMPONENTS_TIME_MANAGER_INCLUDE_TIME_MANAGER_MOCK_H_

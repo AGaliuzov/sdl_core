@@ -36,9 +36,11 @@
 
 #include "policy/update_status_manager.h"
 
-namespace policy {
+namespace test {
+namespace components {
+namespace policy_test {
 
-class MockUpdateStatusManager : public UpdateStatusManager {
+class MockUpdateStatusManager : public ::policy::UpdateStatusManager {
  public:
   MOCK_METHOD1(set_listener,
       void(PolicyListener* listener));
@@ -62,6 +64,8 @@ class MockUpdateStatusManager : public UpdateStatusManager {
       PolicyTableStatus());
 };
 
-}  // namespace policy
+}  // namespace policy_test
+}  // namespace components
+}  // namespace test
 
 #endif  // SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_MOCK_UPDATE_STATUS_MANAGER_H_

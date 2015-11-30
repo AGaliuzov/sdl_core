@@ -30,36 +30,33 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef TEST_COMPONENTS_MEDIA_MANAGER_INCLUDE_MEDIA_MANAGER_MEDIA_ADAPTER_LISTENER_MOCK_H_
-#define TEST_COMPONENTS_MEDIA_MANAGER_INCLUDE_MEDIA_MANAGER_MEDIA_ADAPTER_LISTENER_MOCK_H_
+#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_CLIENT_CONNECTION_LISTENER_H_
+#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_CLIENT_CONNECTION_LISTENER_H_
 
-#include <gmock/gmock.h>
-#include "media_manager/media_adapter_listener.h"
+#include "gmock/gmock.h"
+#include "transport_manager/transport_adapter/client_connection_listener.h"
 
 namespace test {
 namespace components {
-namespace media_manager_test {
+namespace transport_manager_test {
 
-/*
- * MOCK implementation of ::media_manager::MediaAdapterListener
- */
-class MediaAdapterListenerMock : public ::media_manager::MediaAdapterListener {
+class MockClientConnectionListener
+    : public ::transport_manager::transport_adapter::ClientConnectionListener {
  public:
-  MOCK_METHOD2(OnDataReceived,
-      void(int32_t application_key,
-           const int32_t& data));
-  MOCK_METHOD1(OnActivityStarted,
-      void(int32_t application_key));
-  MOCK_METHOD1(OnActivityEnded,
-      void(int32_t application_key));
-  MOCK_METHOD2(OnErrorReceived,
-      void(int32_t application_key,
-           const int32_t& data));
+  MOCK_METHOD0(
+      Init, ::transport_manager::transport_adapter::TransportAdapter::Error());
+  MOCK_METHOD0(Terminate, void());
+  MOCK_CONST_METHOD0(IsInitialised, bool());
+  MOCK_METHOD0(
+      StartListening,
+      ::transport_manager::transport_adapter::TransportAdapter::Error());
+  MOCK_METHOD0(
+      StopListening,
+      ::transport_manager::transport_adapter::TransportAdapter::Error());
 };
 
-
-}  // namespace media_manager_test
+}  // namespace transport_manager_test
 }  // namespace components
 }  // namespace test
 
-#endif  // TEST_COMPONENTS_MEDIA_MANAGER_INCLUDE_MEDIA_MANAGER_MEDIA_ADAPTER_LISTENER_MOCK_H_
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_CLIENT_CONNECTION_LISTENER_H_

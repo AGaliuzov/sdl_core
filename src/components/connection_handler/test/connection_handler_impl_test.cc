@@ -45,7 +45,7 @@
 
 namespace test {
 namespace components {
-namespace connection_handle_test {
+namespace connection_handler_test {
 
 using namespace ::connection_handler;
 using ::protocol_handler::ServiceType;
@@ -1038,6 +1038,6 @@ TEST_F(ConnectionHandlerTest, GetSSLContext_ByDealyProtectedBulk) {
 }
 #endif  // ENABLE_SECURITY
 
-}  // namespace connection_handle_test
+}  // namespace connection_handler_test
 }  // namespace components
 }  // namespace test

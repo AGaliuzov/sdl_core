@@ -40,7 +40,7 @@
 
 namespace test {
 namespace components {
-namespace policy {
+namespace policy_test {
 
 #ifdef __QNX__
 class DBMS {
@@ -154,7 +154,7 @@ class DBMS {
 };
 #endif  // __QNX__
 
-}  // namespace policy
+}  // namespace policy_test
 }  // namespace components
 }  // namespace test
 

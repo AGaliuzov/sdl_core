@@ -35,8 +35,8 @@
 #include <algorithm>
 #include "gtest/gtest.h"
 #include "application_manager/usage_statistics.h"
-#include "application_manager/application_mock.h"
-#include "application_manager/resumption_data_mock.h"
+#include "application_manager/mock_application.h"
+#include "application_manager/mock_resumption_data.h"
 #include "interfaces/MOBILE_API.h"
 #include "application_manager/application_manager_impl.h"
 #include "application_manager/application.h"
@@ -65,8 +65,8 @@ class ResumeCtrlTest : public ::testing::Test {
     app_mngr = application_manager::ApplicationManagerImpl::instance();
     // Singleton should not be destroyed
     Mock::AllowLeak(app_mngr);
-    mock_storage = new NiceMock<ResumptionDataMock>();
-    app_mock = new NiceMock<ApplicationMock>();
+    mock_storage = new NiceMock<resumption_test::MockResumptionData>();
+    app_mock = new NiceMock<application_manager_test::MockApplication>();
     res_ctrl.set_resumption_storage(mock_storage);
     test_audio_state = mobile_apis::AudioStreamingState::NOT_AUDIBLE;
     test_app_id = 10;
@@ -80,8 +80,8 @@ class ResumeCtrlTest : public ::testing::Test {
  protected:
   application_manager::ApplicationManagerImpl* app_mngr;
   ResumeCtrl res_ctrl;
-  NiceMock<ResumptionDataMock>* mock_storage;
-  NiceMock<ApplicationMock>* app_mock;
+  NiceMock<resumption_test::MockResumptionData>* mock_storage;
+  NiceMock<application_manager_test::MockApplication>* app_mock;
   mobile_apis::AudioStreamingState::eType test_audio_state;
   // app_mock.app_id() will return this value
   uint32_t test_app_id;
@@ -780,7 +780,7 @@ TEST_F(ResumeCtrlTest, SetAppHMIState_HMIFull_Media_WithPolicy_DevDisallowed) {
 
 TEST_F(ResumeCtrlTest, SaveApplication) {
   utils::SharedPtr<application_manager::Application> app_sh_mock =
-      new ApplicationMock();
+      new application_manager_test::MockApplication();
 
   EXPECT_CALL(*mock_storage, SaveApplication(app_sh_mock));
   res_ctrl.SaveApplication(app_sh_mock);
@@ -806,14 +806,14 @@ TEST_F(ResumeCtrlTest, OnAppActivated_ResumptionHasStarted) {
   bool res = res_ctrl.StartResumptionOnlyHMILevel(app_mock);
   EXPECT_TRUE(res);
 
-  utils::SharedPtr<ApplicationMock> app_sh_mock = new ApplicationMock();
+  utils::SharedPtr<application_manager_test::MockApplication> app_sh_mock = new application_manager_test::MockApplication();
 
   EXPECT_CALL(*app_sh_mock, app_id()).WillOnce(Return(test_app_id));
   res_ctrl.OnAppActivated(app_sh_mock);
 }
 
 TEST_F(ResumeCtrlTest, OnAppActivated_ResumptionNotActive) {
-  utils::SharedPtr<ApplicationMock> app_sh_mock = new ApplicationMock();
+  utils::SharedPtr<application_manager_test::MockApplication> app_sh_mock = new application_manager_test::MockApplication();
   EXPECT_CALL(*app_sh_mock, app_id()).Times(0);
   res_ctrl.OnAppActivated(app_sh_mock);
 }

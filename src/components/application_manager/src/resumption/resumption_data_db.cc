@@ -230,7 +230,7 @@ void ResumptionDataDB::OnSuspend() {
     }
   }
 
-  if (query_update_last_ign_off_time.Prepare(KUpdateLastIgnOffTime)) {
+  if (query_update_last_ign_off_time.Prepare(kUpdateLastIgnOffTime)) {
     query_update_last_ign_off_time.Bind(0, static_cast<int64_t>(time(NULL)));
     if (query_update_last_ign_off_time.Exec()) {
       LOG4CXX_INFO(logger_, "Data last_ign_off_time was updated");

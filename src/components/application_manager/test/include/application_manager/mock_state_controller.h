@@ -30,29 +30,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_CONNECTION_MOCK_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_CONNECTION_MOCK_H_
+#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_MOCK_STATE_CONTROLLER_H_
+#define SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_MOCK_STATE_CONTROLLER_H_
 
 #include "gmock/gmock.h"
-#include "transport_manager/transport_adapter/connection.h"
-#include "policy/usage_statistics/statistics_manager.h"
-#include "application_manager/usage_statistics.h"
+#include "application_manager/application.h"
+#include "application_manager/hmi_state.h"
+#include "application_manager/state_controller.h"
+#include "application_manager/application_manager.h"
+#include "interfaces/MOBILE_API.h"
 
 namespace test {
 namespace components {
-namespace transport_manager_test {
+namespace state_controller_test {
+namespace am = application_manager;
 
-using namespace ::transport_manager::transport_adapter;
-
-class ConnectionMock : public Connection {
+class MockStateController :public am::StateController {
  public:
-  MOCK_METHOD1(SendData, TransportAdapter::Error(
-                             ::protocol_handler::RawMessagePtr message));
-  MOCK_METHOD0(Disconnect, TransportAdapter::Error());
+  MOCK_METHOD2(SetRegularState, void (
+      am::ApplicationSharedPtr, const mobile_apis::AudioStreamingState::eType));
+  MOCK_METHOD2(SetRegularState, void (
+      am::ApplicationSharedPtr, const mobile_apis::SystemContext::eType));
+  MOCK_METHOD3(OnStateChanged, void (
+      am::ApplicationSharedPtr, am::HmiStatePtr, am::HmiStatePtr));
+  MOCK_METHOD1(ApplyStatesForApp, void (am::ApplicationSharedPtr));
+  MOCK_METHOD0(OnNaviStreamingStarted, void ());
+  MOCK_METHOD0(OnNaviStreamingStopped, void ());
 };
 
-}  // namespace transport_manager_test
+}  // namespace state_controller_test
 }  // namespace components
 }  // namespace test
-
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_CONNECTION_MOCK_H_
+#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_MOCK_STATE_CONTROLLER_H_

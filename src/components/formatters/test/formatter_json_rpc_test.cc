@@ -39,7 +39,7 @@
 
 namespace test {
 namespace components {
-namespace formatters {
+namespace formatters_test {
 
 using namespace NsSmartDeviceLink::NsSmartObjects;
 using namespace NsSmartDeviceLink::NsJSONHandler::Formatters;
@@ -194,6 +194,6 @@ TEST(FormatterJsonRPCTest, FromStringResponseToSmartObj_ExpectSuccess) {
   EXPECT_EQ(5u, keys.size());
 }
 
-}  // namespace formatters
+}  // namespace formatters_test
 }  // namespace components
 }  // namespace test

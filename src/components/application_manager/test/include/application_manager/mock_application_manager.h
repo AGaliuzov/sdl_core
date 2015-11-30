@@ -30,8 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_APPLICATION_MANAGER_MOCK_H_
-#define SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_APPLICATION_MANAGER_MOCK_H_
+#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_MOCK_APPLICATION_MANAGER_H_
+#define SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_MOCK_APPLICATION_MANAGER_H_
+
 #include <string>
 #include <vector>
 #include "gmock/gmock.h"
@@ -40,10 +41,10 @@
 
 namespace test {
 namespace components {
-namespace state_controller_test {
+namespace application_manager_test {
 namespace am = application_manager;
 
-class ApplicationManagerMock : public application_manager::ApplicationManager {
+class MockApplicationManager : public application_manager::ApplicationManager {
  public:
   MOCK_METHOD0(Init, bool());
   MOCK_METHOD0(Stop, bool());
@@ -76,10 +77,11 @@ class ApplicationManagerMock : public application_manager::ApplicationManager {
                                              am::ApplicationConstSharedPtr));
   MOCK_METHOD0(hmi_capabilities, am::HMICapabilities&());
   MOCK_METHOD0(is_attenuated_supported, bool());
-  MOCK_CONST_METHOD1(IsAppTypeExistsInFullOrLimited, bool(am::ApplicationConstSharedPtr));
+  MOCK_CONST_METHOD1(IsAppTypeExistsInFullOrLimited,
+                     bool(am::ApplicationConstSharedPtr));
 };
-}  // namespace state_controller_test
-}   // namespace components
-}   // namespace test
+}  // namespace application_manager_test
+}  // namespace components
+}  // namespace test
 
-#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_APPLICATION_MANAGER_MOCK_H_
+#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_MOCK_APPLICATION_MANAGER_H_

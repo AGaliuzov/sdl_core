@@ -36,7 +36,7 @@
 
 namespace test {
 namespace components {
-namespace formatters {
+namespace formatters_test {
 
 TEST(CFormatterJsonSDLRPCv2Test, EmptySmartObjectToString) {
   SmartObject srcObj;
@@ -387,6 +387,6 @@ TEST(CFormatterJsonSDLRPCv2Test, MetaFormatToString) {
   EXPECT_EQ(meta_formatter_error_code::kErrorOk, result);
 }
 
-}  // namespace formatters
+}  // namespace formatters_test
 }  // namespace components
 }  // namespace test

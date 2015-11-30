@@ -30,7 +30,6 @@
 
 include_directories(
   include
-  ${COMPONENTS_DIR}
   ${GMOCK_INCLUDE_DIRECTORY}
   ${JSONCPP_INCLUDE_DIRECTORY}
   ${COMPONENTS_DIR}/policy/src/policy/include/

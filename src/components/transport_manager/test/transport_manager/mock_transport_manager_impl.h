@@ -30,31 +30,25 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_STATE_CONTROLLER_MOCK_H_
-#define SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_STATE_CONTROLLER_MOCK_H_
+#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_IMPL_H_
+#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_IMPL_H_
 
 #include "gmock/gmock.h"
-#include "application_manager/application.h"
-#include "application_manager/hmi_state.h"
-#include "application_manager/state_controller.h"
-#include "application_manager/application_manager.h"
-#include "interfaces/MOBILE_API.h"
+#include "transport_manager/transport_manager_impl.h"
 
-namespace state_controller_test {
-namespace am = application_manager;
+namespace test {
+namespace components {
+namespace transport_manager {
 
-class StateControllerMock :public am::StateController {
+using namespace ::transport_manager;
+
+class MockTransportManagerImpl : public TransportManagerImpl {
  public:
-  MOCK_METHOD2(SetRegularState, void (
-      am::ApplicationSharedPtr, const mobile_apis::AudioStreamingState::eType));
-  MOCK_METHOD2(SetRegularState, void (
-      am::ApplicationSharedPtr, const mobile_apis::SystemContext::eType));
-  MOCK_METHOD3(OnStateChanged, void (
-      am::ApplicationSharedPtr, am::HmiStatePtr, am::HmiStatePtr));
-  MOCK_METHOD1(ApplyStatesForApp, void (am::ApplicationSharedPtr));
-  MOCK_METHOD0(OnNaviStreamingStarted, void ());
-  MOCK_METHOD0(OnNaviStreamingStopped, void ());
+  MOCK_METHOD1(ReceiveEventFromDevice, int(const TransportAdapterEvent& event));
 };
 
-}
-#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_STATE_CONTROLLER_MOCK_H_
+}  // namespace transport_manager
+}  // namespace components
+}  // namespace test
+
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_IMPL_H_

@@ -34,12 +34,13 @@
 #include "protocol/raw_message.h"
 #include "transport_manager/common.h"
 #include "transport_manager/transport_manager_impl.h"
-
-#include "transport_manager/transport_adapter/mock_transport_adapter.h"
-#include "transport_manager/mock_transport_manager_listener.h"
-#include "transport_manager/transport_adapter_listener_mock.h"
-#include "transport_manager/time_metric_observer_mock.h"
 #include "transport_manager/transport_adapter/transport_adapter_event.h"
+
+#include "transport_manager/mock_transport_manager_listener.h"
+#include "transport_manager/mock_transport_adapter_listener.h"
+#include "transport_manager/mock_time_metric_observer.h"
+#include "transport_manager/transport_adapter/mock_transport_adapter.h"
+
 
 using ::testing::_;
 using ::testing::AtLeast;

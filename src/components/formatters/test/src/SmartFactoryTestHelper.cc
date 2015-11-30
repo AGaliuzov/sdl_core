@@ -32,17 +32,17 @@
 
 #include "SmartFactoryTestHelper.h"
 
-using namespace test::components::formatters;
+using namespace test::components::formatters_test;
 
 template<>
 const EnumConversionHelper<TestType::eType>::EnumToCStringMap EnumConversionHelper<
-    test::components::formatters::TestType::eType>::enum_to_cstring_map_ =
-    EnumConversionHelper<test::components::formatters::TestType::eType>::InitEnumToCStringMap();
+    test::components::formatters_test::TestType::eType>::enum_to_cstring_map_ =
+    EnumConversionHelper<test::components::formatters_test::TestType::eType>::InitEnumToCStringMap();
 
 template<>
 const EnumConversionHelper<TestType::eType>::CStringToEnumMap EnumConversionHelper<
-    test::components::formatters::TestType::eType>::cstring_to_enum_map_ =
-    EnumConversionHelper<test::components::formatters::TestType::eType>::InitCStringToEnumMap();
+    test::components::formatters_test::TestType::eType>::cstring_to_enum_map_ =
+    EnumConversionHelper<test::components::formatters_test::TestType::eType>::InitCStringToEnumMap();
 
 template<>
 const char* const EnumConversionHelper<TestType::eType>::cstring_values_[] = {
@@ -52,26 +52,26 @@ const char* const EnumConversionHelper<TestType::eType>::cstring_values_[] = {
 
 template<>
 const TestType::eType EnumConversionHelper<TestType::eType>::enum_values_[] = {
-    test::components::formatters::TestType::APPLICATION_NOT_REGISTERED,
-    test::components::formatters::TestType::SUCCESS,
-    test::components::formatters::TestType::TOO_MANY_PENDING_REQUESTS,
-    test::components::formatters::TestType::REJECTED,
-    test::components::formatters::TestType::INVALID_DATA,
-    test::components::formatters::TestType::OUT_OF_MEMORY,
-    test::components::formatters::TestType::ABORTED,
-    test::components::formatters::TestType::USER_DISALLOWED,
-    test::components::formatters::TestType::GENERIC_ERROR,
-    test::components::formatters::TestType::DISALLOWED };
+    test::components::formatters_test::TestType::APPLICATION_NOT_REGISTERED,
+    test::components::formatters_test::TestType::SUCCESS,
+    test::components::formatters_test::TestType::TOO_MANY_PENDING_REQUESTS,
+    test::components::formatters_test::TestType::REJECTED,
+    test::components::formatters_test::TestType::INVALID_DATA,
+    test::components::formatters_test::TestType::OUT_OF_MEMORY,
+    test::components::formatters_test::TestType::ABORTED,
+    test::components::formatters_test::TestType::USER_DISALLOWED,
+    test::components::formatters_test::TestType::GENERIC_ERROR,
+    test::components::formatters_test::TestType::DISALLOWED };
 
 template<>
 const EnumConversionHelper<FunctionIdTest::eType>::EnumToCStringMap EnumConversionHelper<
-    test::components::formatters::FunctionIdTest::eType>::enum_to_cstring_map_ =
-    EnumConversionHelper<test::components::formatters::FunctionIdTest::eType>::InitEnumToCStringMap();
+    test::components::formatters_test::FunctionIdTest::eType>::enum_to_cstring_map_ =
+    EnumConversionHelper<test::components::formatters_test::FunctionIdTest::eType>::InitEnumToCStringMap();
 
 template<>
 const EnumConversionHelper<FunctionIdTest::eType>::CStringToEnumMap EnumConversionHelper<
-    test::components::formatters::FunctionIdTest::eType>::cstring_to_enum_map_ =
-    EnumConversionHelper<test::components::formatters::FunctionIdTest::eType>::InitCStringToEnumMap();
+    test::components::formatters_test::FunctionIdTest::eType>::cstring_to_enum_map_ =
+    EnumConversionHelper<test::components::formatters_test::FunctionIdTest::eType>::InitCStringToEnumMap();
 
 template<>
 const char* const EnumConversionHelper<FunctionIdTest::eType>::cstring_values_[] =
@@ -79,19 +79,19 @@ const char* const EnumConversionHelper<FunctionIdTest::eType>::cstring_values_[]
 
 template<>
 const FunctionIdTest::eType EnumConversionHelper<FunctionIdTest::eType>::enum_values_[] =
-    { test::components::formatters::FunctionIdTest::Function1,
-        test::components::formatters::FunctionIdTest::Function2,
-        test::components::formatters::FunctionIdTest::Function3 };
+    { test::components::formatters_test::FunctionIdTest::Function1,
+        test::components::formatters_test::FunctionIdTest::Function2,
+        test::components::formatters_test::FunctionIdTest::Function3 };
 
 template<>
 const EnumConversionHelper<MessageTypeTest::eType>::EnumToCStringMap EnumConversionHelper<
-    test::components::formatters::MessageTypeTest::eType>::enum_to_cstring_map_ =
-    EnumConversionHelper<test::components::formatters::MessageTypeTest::eType>::InitEnumToCStringMap();
+    test::components::formatters_test::MessageTypeTest::eType>::enum_to_cstring_map_ =
+    EnumConversionHelper<test::components::formatters_test::MessageTypeTest::eType>::InitEnumToCStringMap();
 
 template<>
 const EnumConversionHelper<MessageTypeTest::eType>::CStringToEnumMap EnumConversionHelper<
-    test::components::formatters::MessageTypeTest::eType>::cstring_to_enum_map_ =
-    EnumConversionHelper<test::components::formatters::MessageTypeTest::eType>::InitCStringToEnumMap();
+    test::components::formatters_test::MessageTypeTest::eType>::cstring_to_enum_map_ =
+    EnumConversionHelper<test::components::formatters_test::MessageTypeTest::eType>::InitCStringToEnumMap();
 
 template<>
 const char* const EnumConversionHelper<MessageTypeTest::eType>::cstring_values_[] =
@@ -99,9 +99,9 @@ const char* const EnumConversionHelper<MessageTypeTest::eType>::cstring_values_[
 
 template<>
 const MessageTypeTest::eType EnumConversionHelper<MessageTypeTest::eType>::enum_values_[] =
-    { test::components::formatters::MessageTypeTest::request,
-        test::components::formatters::MessageTypeTest::response,
-        test::components::formatters::MessageTypeTest::notification };
+    { test::components::formatters_test::MessageTypeTest::request,
+        test::components::formatters_test::MessageTypeTest::response,
+        test::components::formatters_test::MessageTypeTest::notification };
 
 CSmartFactoryTest::CSmartFactoryTest()
     : CSmartFactory<FunctionIdTest::eType, MessageTypeTest::eType,

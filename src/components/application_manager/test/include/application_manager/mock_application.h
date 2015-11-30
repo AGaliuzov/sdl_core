@@ -29,8 +29,8 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 * POSSIBILITY OF SUCH DAMAGE.
 */
-#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_APPLICATION_MOCK_H_
-#define SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_APPLICATION_MOCK_H_
+#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_MOCK_APPLICATION_H_
+#define SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_MOCK_APPLICATION_H_
 #include <string>
 #include "gmock/gmock.h"
 #include "application_manager/application.h"
@@ -38,11 +38,11 @@
 
 namespace test {
 namespace components {
-namespace resumption_test {
+namespace application_manager_test {
 
 namespace custom_str = utils::custom_string;
 
-class ApplicationMock : public ::application_manager::Application {
+class MockApplication : public ::application_manager::Application {
  public:
   MOCK_CONST_METHOD0(active_message, const smart_objects::SmartObject*());
   MOCK_CONST_METHOD0(curHash, const std::string&());
@@ -262,8 +262,8 @@ class ApplicationMock : public ::application_manager::Application {
   MOCK_CONST_METHOD0(app_id, uint32_t());
 };
 
-}  // namespace resumption_test
+}  // namespace application_manager_test
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_APPLICATION_MOCK_H_
+#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_MOCK_APPLICATION_H_

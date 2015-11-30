@@ -32,7 +32,7 @@
 
 #include "gtest/gtest.h"
 #include "time_tester/time_manager.h"
-#include "include/time_manager_mock.h"
+#include "mock_time_manager.h"
 #include "protocol_handler/time_metric_observer.h"
 
 namespace test {
@@ -43,7 +43,7 @@ using namespace time_tester;
 using ::testing::_;
 
 TEST(ProtocolHandlerObserverTest, MessageProcess) {
-  TimeManagerMock time_manager_mock;
+  MockTimeManager time_manager_mock;
 
   ProtocolHandlerObserver pr_handler(&time_manager_mock);
   uint32_t message_id = 1;
@@ -60,7 +60,7 @@ TEST(ProtocolHandlerObserverTest, MessageProcess) {
 }
 
 TEST(ProtocolHandlerObserverTest, MessageProcessWithZeroMessageId) {
-  TimeManagerMock time_manager_mock;
+  MockTimeManager time_manager_mock;
 
   ProtocolHandlerObserver pr_handler(&time_manager_mock);
   uint32_t message_id = 0;

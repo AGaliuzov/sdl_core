@@ -30,28 +30,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_SERVER_CONNECTION_FACTORY_MOCK_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_SERVER_CONNECTION_FACTORY_MOCK_H_
+#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_MOCK_TIME_METRIC_OBSERVER_H_
+#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_MOCK_TIME_METRIC_OBSERVER_H_
 
+#include <string>
 #include "gmock/gmock.h"
-#include "transport_manager/transport_adapter/server_connection_factory.h"
+#include "transport_manager/time_metric_observer.h"
+#include "protocol/raw_message.h"
+#include "policy/usage_statistics/statistics_manager.h"
 
 namespace test {
 namespace components {
 namespace transport_manager_test {
 
-class ServerConnectionFactoryMock : public ::transport_manager::transport_adapter::ServerConnectionFactory {
+class TMMetricObserverMock: public ::transport_manager::TMMetricObserver {
  public:
-  MOCK_METHOD0(Init, ::transport_manager::transport_adapter::TransportAdapter::Error());
-  MOCK_METHOD0(Terminate, void());
-  MOCK_CONST_METHOD0(IsInitialised, bool());
-  MOCK_METHOD2(CreateConnection,
-               ::transport_manager::transport_adapter::TransportAdapter::Error(const std::string&,
-                                       const int& app_handle));
+  MOCK_METHOD1(StartRawMsg,
+               void(const protocol_handler::RawMessage* ptr));
+  MOCK_METHOD1(StopRawMsg,
+               void(const protocol_handler::RawMessage* ptr));
 };
-
 }  // namespace transport_manager_test
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_SERVER_CONNECTION_FACTORY_MOCK_H_
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_MOCK_TIME_METRIC_OBSERVER_H_

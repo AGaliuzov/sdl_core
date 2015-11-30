@@ -45,7 +45,12 @@
 
 namespace policy_table = ::rpc::policy_table_interface_base;
 
-namespace policy {
+using namespace ::policy;
+
+namespace test {
+namespace components {
+namespace policy_test {
+
 class MockPTExtRepresentation : public MockPTRepresentation,
     public PTExtRepresentation {
  public:
@@ -127,6 +132,8 @@ class MockPTExtRepresentation : public MockPTRepresentation,
           const std::string& functional_group));
 };
 
-}  // namespace policy
+}  // namespace policy_test
+}  // namespace components
+}  // namespace test
 
 #endif  // SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_MOCK_PT_EXT_REPRESENTATION_H_

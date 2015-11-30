@@ -30,24 +30,39 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef SRC_COMPONENTS_MEDIA_MANAGER_TEST_INCLUDE_MEDIA_MANAGER_MOCK_MEDIA_ADAPTER_IMPL_H_
+#define SRC_COMPONENTS_MEDIA_MANAGER_TEST_INCLUDE_MEDIA_MANAGER_MOCK_MEDIA_ADAPTER_IMPL_H_
 
-#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_TEST_MOCK_POLICY_HANDLER_INTERFACE_MOCK_H_
-#define SRC_COMPONENTS_APPLICATION_MANAGER_TEST_MOCK_POLICY_HANDLER_INTERFACE_MOCK_H_
+#include <gmock/gmock.h>
+#include "media_manager/media_adapter_impl.h"
+#include "media_manager/media_adapter_listener.h"
+#include "utils/macro.h"
 
-#include "application_manager/policies/policy_handler_interface.h"
-#include "gmock/gmock.h"
-#include "policy/policy_types.h"
+namespace test {
+namespace components {
+namespace media_manager_test {
 
+using namespace media_manager;
+typedef utils::SharedPtr<MediaAdapterListener> MediaListenerPtr;
 
-namespace policy {
-
-class MockPolicyHandlerInterface : public PolicyHandlerInterface {
+class MockMediaAdapterImpl : public ::media_manager::MediaAdapterImpl {
  public:
-  MOCK_METHOD0(OnSystemReady, void());
-  MOCK_METHOD2(PTUpdatedAt, void(Counters counter, int value));
+    MOCK_METHOD1(AddListener,
+        void(const utils::SharedPtr<MediaAdapterListener>&));
+  MOCK_METHOD1(RemoveListener,
+      void(const utils::SharedPtr<MediaAdapterListener> &));
+  MOCK_METHOD2(SendData,
+      void(int32_t application_key,
+           const ::protocol_handler::RawMessagePtr message));
+  MOCK_METHOD1(StartActivity,
+      void(int32_t application_key));
+  MOCK_METHOD1(StopActivity,
+      void(int32_t application_key));
+  MOCK_CONST_METHOD1(is_app_performing_activity,
+      bool(int32_t application_key));
 };
+}  // namespace media_manager_test
+}  // namespace components
+}  // namespace test
 
-}  // namespace policy
-
-#endif // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_MOCK_POLICY_HANDLER_INTERFACE_MOCK_H_
-
+#endif  // SRC_COMPONENTS_MEDIA_MANAGER_TEST_INCLUDE_MEDIA_MANAGER_MOCK_MEDIA_ADAPTER_IMPL_H_

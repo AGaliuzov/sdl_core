@@ -40,8 +40,8 @@
 
 namespace test {
 namespace components {
-namespace SmartObjects {
-namespace SchemaItem {
+namespace SmartObjects_test {
+namespace SchemaItem_test {
 
 using namespace NsSmartDeviceLink::NsSmartObjects;
 namespace TestType {
@@ -227,10 +227,10 @@ TEST_F(EnumSchemaItemTest, test_apply_unapply_schema) {
   EXPECT_EQ(std::string("ENOUGH_REQUESTS"), obj.asString());
 }
 
-}
-}
-}
-}
+}  // namespace test
+}  // namespace components
+}  // namespace SmartObjects_test
+}  // namespace SchemaItem_test
 
 namespace NsSmartDeviceLink {
 namespace NsSmartObjects {

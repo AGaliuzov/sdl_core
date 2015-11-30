@@ -30,30 +30,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef TEST_COMPONENTS_MEDIA_MANAGER_INCLUDE_MEDIA_MANAGER_MEDIA_ADAPTER_MOCK_H_
-#define TEST_COMPONENTS_MEDIA_MANAGER_INCLUDE_MEDIA_MANAGER_MEDIA_ADAPTER_MOCK_H_
+#ifndef SRC_COMPONENTS_MEDIA_MANAGER_TEST_INCLUDE_MEDIA_MANAGER_MEDIA_ADAPTER_LISTENER_MOCK_H_
+#define SRC_COMPONENTS_MEDIA_MANAGER_TEST_INCLUDE_MEDIA_MANAGER_MEDIA_ADAPTER_LISTENER_MOCK_H_
 
 #include <gmock/gmock.h>
-#include "media_manager/media_manager.h"
+#include "media_manager/media_adapter_listener.h"
 
 namespace test {
 namespace components {
 namespace media_manager_test {
 
-/*
- * MOCK implementation of ::media_manager::MediaAdapter
- */
-class MediaAdapterMock : public ::media_manager::MediaAdapter {
+class MockMediaAdapterListener : public ::media_manager::MediaAdapterListener {
  public:
-  MOCK_METHOD2(SendData,
+  MOCK_METHOD2(OnDataReceived,
       void(int32_t application_key,
-           const ::protocol_handler::RawMessagePtr message));
-  MOCK_METHOD1(StartActivity,
+           const int32_t& data));
+  MOCK_METHOD1(OnActivityStarted,
       void(int32_t application_key));
-  MOCK_METHOD1(StopActivity,
+  MOCK_METHOD1(OnActivityEnded,
       void(int32_t application_key));
-  MOCK_CONST_METHOD1(is_app_performing_activity,
-      bool(int32_t application_key));
+  MOCK_METHOD2(OnErrorReceived,
+      void(int32_t application_key,
+           const int32_t& data));
 };
 
 
@@ -61,4 +59,4 @@ class MediaAdapterMock : public ::media_manager::MediaAdapter {
 }  // namespace components
 }  // namespace test
 
-#endif  // TEST_COMPONENTS_MEDIA_MANAGER_INCLUDE_MEDIA_MANAGER_MEDIA_ADAPTER_MOCK_H_
+#endif  // SRC_COMPONENTS_MEDIA_MANAGER_TEST_INCLUDE_MEDIA_MANAGER_MEDIA_ADAPTER_LISTENER_MOCK_H_

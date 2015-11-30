@@ -30,33 +30,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_CLIENT_CONNECTION_LISTENER_MOCK_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_CLIENT_CONNECTION_LISTENER_MOCK_H_
+#ifndef SRC_COMPONENTS_MEDIA_MANAGER_TEST_INCLUDE_MEDIA_MANAGER_MOCK_MEDIA_ADAPTER_H_
+#define SRC_COMPONENTS_MEDIA_MANAGER_TEST_INCLUDE_MEDIA_MANAGER_MOCK_MEDIA_ADAPTER_H_
 
-#include "gmock/gmock.h"
-#include "transport_manager/transport_adapter/client_connection_listener.h"
+#include <gmock/gmock.h>
+#include "media_manager/media_manager.h"
 
 namespace test {
 namespace components {
-namespace transport_manager_test {
+namespace media_manager_test {
 
-class ClientConnectionListenerMock
-    : public ::transport_manager::transport_adapter::ClientConnectionListener {
+/*
+ * MOCK implementation of ::media_manager::MediaAdapter
+ */
+class MockMediaAdapter : public ::media_manager::MediaAdapter {
  public:
-  MOCK_METHOD0(
-      Init, ::transport_manager::transport_adapter::TransportAdapter::Error());
-  MOCK_METHOD0(Terminate, void());
-  MOCK_CONST_METHOD0(IsInitialised, bool());
-  MOCK_METHOD0(
-      StartListening,
-      ::transport_manager::transport_adapter::TransportAdapter::Error());
-  MOCK_METHOD0(
-      StopListening,
-      ::transport_manager::transport_adapter::TransportAdapter::Error());
+  MOCK_METHOD2(SendData,
+      void(int32_t application_key,
+           const ::protocol_handler::RawMessagePtr message));
+  MOCK_METHOD1(StartActivity,
+      void(int32_t application_key));
+  MOCK_METHOD1(StopActivity,
+      void(int32_t application_key));
+  MOCK_CONST_METHOD1(is_app_performing_activity,
+      bool(int32_t application_key));
 };
 
-}  // namespace transport_manager_test
+
+}  // namespace media_manager_test
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_CLIENT_CONNECTION_LISTENER_MOCK_H_
+#endif  // SRC_COMPONENTS_MEDIA_MANAGER_TEST_INCLUDE_MEDIA_MANAGER_MOCK_MEDIA_ADAPTER_H_

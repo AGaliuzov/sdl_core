@@ -30,24 +30,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "event_engine/event_observer.h"
-#include "event_engine/event.h"
-#include "event_engine/event_dispatcher.h"
+#include "application_manager/event_engine/event_observer.h"
+#include "application_manager/event_engine/event.h"
+#include "application_manager/event_engine/event_dispatcher.h"
 #include <interfaces/HMI_API.h>
-#include "mock/event_observer_mock.h"
+#include "application_manager/mock_event_observer.h"
 #include "smart_objects/smart_object.h"
 #include "gmock/gmock.h"
 #include "utils/make_shared.h"
 
 namespace test {
 namespace components {
-namespace event_engine {
+namespace event_engine_test {
 
 namespace smart_objects = NsSmartDeviceLink::NsSmartObjects;
 using application_manager::event_engine::EventDispatcher;
 using application_manager::event_engine::Event;
 using application_manager::event_engine::EventObserver;
-using application_manager::event_engine::MockEventObserver;
+using event_engine_test::MockEventObserver;
 using testing::_;
 
 class EventEngineTest : public testing::Test {

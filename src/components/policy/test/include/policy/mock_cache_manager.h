@@ -42,9 +42,13 @@
 
 namespace policy_table = rpc::policy_table_interface_base;
 
-namespace policy {
+using namespace ::policy;
 
-class MockCacheManagerInterface : public CacheManagerInterface {
+namespace test {
+namespace components {
+namespace policy_test {
+
+class MockCacheManagerInterface : public ::policy::CacheManagerInterface {
  public:
   MOCK_METHOD4(CheckPermissions,
       void(const PTString& app_id, const PTString& hmi_level, const PTString& rpc, CheckPermissionResult& result));
@@ -194,6 +198,8 @@ class MockCacheManagerInterface : public CacheManagerInterface {
   MOCK_METHOD1(SetDecryptedCertificate, void(const std::string&));
 };
 
-}  // namespace policy
+}  // namespace policy_test
+}  // namespace components
+}  // namespace test
 
 #endif  // SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_MOCK_CACHE_MANAGER_H_

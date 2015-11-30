@@ -39,8 +39,8 @@
 
 namespace test {
 namespace components {
-namespace SmartObjects {
-namespace SmartObjectStressTest {
+namespace SmartObjects_test {
+namespace SmartObject_stress_test {
 
 using namespace NsSmartDeviceLink::NsSmartObjects;
 
@@ -330,7 +330,7 @@ TEST_F(StressTestHelper, ExtraManualDebugTest) {
   ASSERT_TRUE(get_object(obj, "A6 A4 M1 M0 M0 A0").asBool());
 }
 
-}
-}
-}
-}
+}   // namespace SmartObject_stress_test
+}   // namespace SmartObjects_test
+}   // namespace components
+}   // namespace test

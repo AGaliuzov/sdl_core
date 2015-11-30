@@ -31,7 +31,7 @@
  */
 
 #include "application_manager/policies/policy_event_observer.h"
-#include "mock/policy_handler_interface_mock.h"
+#include "application_manager/mock_policy_handler_interface.h"
 
 #include "gmock/gmock.h"
 #include "policy/policy_types.h"
@@ -39,7 +39,7 @@
 
 namespace test {
 namespace components {
-namespace policy_event_observer {
+namespace policy_test {
 
 namespace smart_objects = NsSmartDeviceLink::NsSmartObjects;
 using application_manager::event_engine::Event;

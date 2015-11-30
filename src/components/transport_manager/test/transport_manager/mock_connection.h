@@ -30,3 +30,29 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_CONNECTION_MOCK_H_
+#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_CONNECTION_MOCK_H_
+
+#include "gmock/gmock.h"
+#include "transport_manager/transport_adapter/connection.h"
+#include "policy/usage_statistics/statistics_manager.h"
+#include "application_manager/usage_statistics.h"
+
+namespace test {
+namespace components {
+namespace transport_manager_test {
+
+using namespace ::transport_manager::transport_adapter;
+
+class MockConnection : public Connection {
+ public:
+  MOCK_METHOD1(SendData, TransportAdapter::Error(
+                             ::protocol_handler::RawMessagePtr message));
+  MOCK_METHOD0(Disconnect, TransportAdapter::Error());
+};
+
+}  // namespace transport_manager_test
+}  // namespace components
+}  // namespace test
+
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_CONNECTION_MOCK_H_

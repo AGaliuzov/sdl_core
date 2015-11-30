@@ -45,11 +45,11 @@
 
 namespace policy_table = ::rpc::policy_table_interface_base;
 
+using namespace policy;
+
 namespace test {
 namespace components {
 namespace policy_manager_test {
-
-using namespace policy;
 
 class MockPolicyManager : public PolicyManager {
  public:

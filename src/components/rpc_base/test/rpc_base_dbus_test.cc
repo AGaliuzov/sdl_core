@@ -35,6 +35,9 @@
 #include "rpc_base/rpc_base_dbus_inl.h"
 
 namespace test {
+namespace components {
+namespace rpc_base_test {
+
 using namespace rpc;
 using namespace dbus;
 
@@ -687,4 +690,6 @@ TEST_F(DbusFailuresTest, DbusNonExistentArrayReadTest) {
   ASSERT_EQ(val, 0);
 }
 
+}  // namespace rpc_base_test
+}  // namespace components
 }  // namespace test

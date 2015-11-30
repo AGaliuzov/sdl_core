@@ -36,9 +36,9 @@
 #include "config_profile/profile.h"
 #include "resumption/last_state.h"
 #include "protocol/raw_message.h"
-#include "transport_manager/transport_adapter_listener_mock.h"
+#include "transport_manager/mock_transport_adapter_listener.h"
 #include "transport_manager/transport_adapter/mock_device.h"
-#include "transport_manager/connection_mock.h"
+#include "transport_manager/mock_connection.h"
 
 namespace test {
 namespace components {
@@ -99,7 +99,7 @@ TEST_F(TcpAdapterTest, StoreDataWithOneDeviceAndOneApplication) {
   std::vector<int> intList = {app_handle};
   EXPECT_CALL(*mockdev, GetApplicationList()).WillOnce(Return(intList));
 
-  ConnectionSPtr mock_connection = new ConnectionMock();
+  ConnectionSPtr mock_connection = new MockConnection();
   EXPECT_CALL(transport_adapter, FindDevice(uniq_id)).WillOnce(Return(mockdev));
   EXPECT_CALL(transport_adapter, FindEstablishedConnection(uniq_id, app_handle))
       .WillOnce(Return(mock_connection));
@@ -144,7 +144,7 @@ TEST_F(TcpAdapterTest, StoreDataWithSeveralDevicesAndOneApplication) {
   const int app_handle = 1;
   std::vector<int> intList = {app_handle};
 
-  ConnectionSPtr mock_connection = new ConnectionMock();
+  ConnectionSPtr mock_connection = new MockConnection();
   for (uint32_t i = 0; i < count_dev; i++) {
     EXPECT_CALL(transport_adapter, FindDevice(uniq_id[i]))
         .WillOnce(Return(mockdev[i]));
@@ -199,7 +199,7 @@ TEST_F(TcpAdapterTest, StoreDataWithSeveralDevicesAndSeveralApplications) {
   std::vector<int> intList = {app_handle[0], app_handle[1], app_handle[2]};
   const std::string ports[connection_count] = {"11111", "67890", "98765"};
   const int int_port[connection_count] = {11111, 67890, 98765};
-  ConnectionSPtr mock_connection = new ConnectionMock();
+  ConnectionSPtr mock_connection = new MockConnection();
   for (uint32_t i = 0; i < count_dev; i++) {
     EXPECT_CALL(transport_adapter, FindDevice(uniq_id[i]))
         .WillOnce(Return(mockdev[i]));
@@ -282,7 +282,7 @@ TEST_F(TcpAdapterTest, StoreDataWithOneDevice_RestoreData) {
   std::vector<int> intList = {app_handle};
   EXPECT_CALL(*mockdev, GetApplicationList()).WillOnce(Return(intList));
 
-  ConnectionSPtr mock_connection = new ConnectionMock();
+  ConnectionSPtr mock_connection = new MockConnection();
   EXPECT_CALL(transport_adapter, FindDevice(uniq_id)).WillOnce(Return(mockdev));
   EXPECT_CALL(transport_adapter, FindEstablishedConnection(uniq_id, app_handle))
       .WillOnce(Return(mock_connection));
@@ -323,7 +323,7 @@ TEST_F(TcpAdapterTest, StoreDataWithSeveralDevices_RestoreData) {
   const int app_handle = 1;
   std::vector<int> intList = {app_handle};
 
-  ConnectionSPtr mock_connection = new ConnectionMock();
+  ConnectionSPtr mock_connection = new MockConnection();
   for (uint32_t i = 0; i < count_dev; i++) {
     EXPECT_CALL(transport_adapter, FindDevice(uniq_id[i]))
         .WillOnce(Return(mockdev[i]));

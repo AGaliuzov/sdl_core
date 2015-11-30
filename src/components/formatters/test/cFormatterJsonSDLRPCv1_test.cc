@@ -37,7 +37,11 @@
 
 namespace test {
 namespace components {
-namespace formatters {
+namespace formatters_test {
+
+using namespace NsSmartDeviceLink::NsSmartObjects;
+using namespace NsSmartDeviceLink::NsJSONHandler;
+using namespace NsSmartDeviceLink::NsJSONHandler::Formatters;
 
 TEST(CFormatterJsonSDLRPCv1Test, EmptySmartObjectToString) {
   SmartObject srcObj;
@@ -497,6 +501,6 @@ TEST(CFormatterJsonSDLRPCv1Test, MetaFormatToString) {
   EXPECT_EQ(meta_formatter_error_code::kErrorOk, result);
 }
 
-} // namespace formatters
+} // namespace formatters_test
 } // namespace components
 } // namespace test

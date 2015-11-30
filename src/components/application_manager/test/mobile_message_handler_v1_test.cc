@@ -45,9 +45,13 @@
 using protocol_handler::RawMessage;
 using protocol_handler::RawMessagePtr;
 using protocol_handler::PROTOCOL_HEADER_V1_SIZE;
+using application_manager::MobileMessageHandler;
+using application_manager::MobileMessage;
+using application_manager::Message;
 
-namespace application_manager {
 namespace test {
+namespace components {
+namespace application_manager_test {
 
 const uint32_t connection_key_p1 = 1;
 const int32_t protocol_version_1 = 1;
@@ -125,5 +129,7 @@ TEST(MobileMessageHandlerTestV1Test,
       ptr->protocol_version());
 }
 
+
+}  // namespace application_manager_test
+}  // namespace components
 }  // namespace test
-}  // namespace application_manager

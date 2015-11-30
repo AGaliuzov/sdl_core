@@ -55,8 +55,8 @@
 
 namespace test {
 namespace components {
-namespace SmartObjects {
-namespace SmartObjectConvertionTimeTest {
+namespace SmartObjects_test {
+namespace SmartObjectConvertionTime_test {
 
 using namespace NsSmartDeviceLink::NsJSONHandler::strings;
 using namespace NsSmartDeviceLink::NsSmartObjects;
@@ -612,10 +612,10 @@ TEST_F(SmartObjectConvertionTimeTest, test_object_without_enum_convertion) {
   calculateConvertionTime(srcObj, dstObj);
 }
 
-}
-}
-}
-}
+}   // namespace SmartObjectConvertionTime_test
+}   // namespace SmartObjects_test
+}   // namespace components
+}   // namespace test
 
 namespace NsSmartDeviceLink {
 namespace NsSmartObjects {

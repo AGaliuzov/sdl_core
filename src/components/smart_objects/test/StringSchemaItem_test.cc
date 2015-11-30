@@ -39,8 +39,8 @@
 
 namespace test {
 namespace components {
-namespace SmartObjects {
-namespace SchemaItem {
+namespace SmartObjects_test {
+namespace SchemaItem_test {
 
 /**
  * Test StringSchemaItem no default value
@@ -296,7 +296,7 @@ TEST(test_array_validate, test_StringSchemaItemTest) {
   resultType = item->validate(obj);
   EXPECT_EQ(Errors::OK, resultType);
 }
-}  // namespace SchemaItem
-}  // namespace SmartObjects
+}  // namespace SchemaItem_test
+}  // namespace SmartObjects_test
 }  // namespace components
 }  // namespace test

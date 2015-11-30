@@ -37,7 +37,7 @@
 
 namespace test {
 namespace components {
-namespace resumption {
+namespace resumption_test {
 
 using namespace ::resumption;
 using namespace ::Json;
@@ -97,6 +97,6 @@ TEST_F(LastStateTest, SetGetData) {
       tcp_adapter_info.toStyledString());
 }
 
-}  // namespace resumption
+}  // namespace resumption_test
 }  // namespace components
 }  // namespace test

@@ -46,7 +46,7 @@
 
 namespace test {
 namespace components {
-namespace application {
+namespace application_test {
 using namespace ::profile;
 
 using namespace application_manager::request_controller;
@@ -171,6 +171,6 @@ TEST(RequestControlTest, ZeroValueAppTimeScaleMaxRequests) {
   request_ctrl_.addMobileRequest(unreg, mobile_apis::HMILevel::HMI_FULL);
 }
 
-}  // namespace application
+}  // namespace application_test
 }  // namespace components
 }  // namespace test

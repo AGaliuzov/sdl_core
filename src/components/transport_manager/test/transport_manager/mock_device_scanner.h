@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,28 +30,29 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef TEST_COMPONENTS_TIME_MANAGER_INCLUDE_TIME_MANAGER_MOCK_H_
-#define TEST_COMPONENTS_TIME_MANAGER_INCLUDE_TIME_MANAGER_MOCK_H_
+#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_MOCK_DEVICE_SCANNER_H_
+#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_MOCK_DEVICE_SCANNER_H_
 
-#include <gmock/gmock.h>
-#include "time_tester/time_manager.h"
-#include "time_tester/metric_wrapper.h"
+#include "gmock/gmock.h"
+#include "transport_manager/transport_adapter/device_scanner.h"
+
 namespace test {
 namespace components {
-namespace time_tester_test {
+namespace transport_manager_test {
 
-using namespace time_tester;
-/*
- * MOCK implementation of ::security_manager::SecurityManager
- */
-class TimeManagerMock : public time_tester::TimeManager {
+class MockDeviceScanner
+    : public ::transport_manager::transport_adapter::DeviceScanner {
  public:
-  MOCK_METHOD1(Init, void(protocol_handler::ProtocolHandlerImpl* ph));
-  MOCK_METHOD0(Stop, void());
-  MOCK_METHOD0(Start, void());
-  MOCK_METHOD1(SendMetric, void(utils::SharedPtr<MetricWrapper> metric));
+  MOCK_METHOD0(
+      Init, ::transport_manager::transport_adapter::TransportAdapter::Error());
+  MOCK_METHOD0(
+      Scan, ::transport_manager::transport_adapter::TransportAdapter::Error());
+  MOCK_METHOD0(Terminate, void());
+  MOCK_CONST_METHOD0(IsInitialised, bool());
 };
-}  // time_tester_test
-}  // components
-}  // test
-#endif  // TEST_COMPONENTS_TIME_MANAGER_INCLUDE_TIME_MANAGER_MOCK_H_
+
+}  // namespace transport_manager_test
+}  // namespace components
+}  // namespace test
+
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_MOCK_DEVICE_SCANNER_H_

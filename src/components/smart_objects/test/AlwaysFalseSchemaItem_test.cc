@@ -39,8 +39,8 @@
 
 namespace test {
 namespace components {
-namespace SmartObjects {
-namespace SchemaItem {
+namespace SmartObjects_test {
+namespace SchemaItem_test {
 using namespace NsSmartDeviceLink::NsSmartObjects;
 
 /**
@@ -88,7 +88,7 @@ TEST(test_AlwaysFalseSchemaItemTest, simple_test) {
   EXPECT_TRUE(obj[0].asBool());
   EXPECT_FALSE(obj[1].asBool());
 }
-}  // namespace SchemaItem
-}  // namespace SmartObjects
+}  // namespace SchemaItem_test
+}  // namespace SmartObjects_test
 }  // namespace components
 }  // namespace test

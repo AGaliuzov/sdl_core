@@ -53,8 +53,8 @@ using namespace NsSmartDeviceLink::NsJSONHandler::strings;
 
 namespace test {
 namespace components {
-namespace SmartObjects {
-namespace SchemaItem {
+namespace SmartObjects_test {
+namespace SchemaItem_test {
 
 namespace FunctionID {
 enum eType {
@@ -393,15 +393,15 @@ TEST_F(ObjectSchemaItemTest, test_strings_to_enum_conversion) {
   }
 }
 // ----------------------------------------------------------------------------
-}// namespace SchemaItem
-}  // namespace SmartObjects
+}  // namespace SchemaItem_test
+}  // namespace SmartObjects_test
 }  // namespace components
 }  // namespace test
 
 namespace NsSmartDeviceLink {
 namespace NsSmartObjects {
 
-namespace FunctionID = test::components::SmartObjects::SchemaItem::FunctionID;
+namespace FunctionID = test::components::SmartObjects_test::SchemaItem_test::FunctionID;
 typedef EnumConversionHelper<FunctionID::eType> FunctionConvertor;
 
 template<>
@@ -425,7 +425,7 @@ const FunctionID::eType FunctionConvertor::enum_values_[] = {
 
 // ----------------------------------------------------------------------------
 
-namespace ResultType = test::components::SmartObjects::SchemaItem::ResultType;
+namespace ResultType = test::components::SmartObjects_test::SchemaItem_test::ResultType;
 typedef EnumConversionHelper<ResultType::eType> ResultTypeConvertor;
 
 template<>

@@ -37,7 +37,7 @@
 #include <algorithm>
 #include "gtest/gtest.h"
 #include "application_manager/usage_statistics.h"
-#include "application_mock.h"
+#include "application_manager/mock_application.h"
 #include "application_manager/application_manager_impl.h"
 #include "utils/data_accessor.h"
 
@@ -60,7 +60,7 @@ class ResumptionDataTest : public ::testing::Test {
 
   // Set data for resumption
   virtual void PrepareData();
-  utils::SharedPtr<NiceMock<ApplicationMock>> app_mock;
+  utils::SharedPtr<NiceMock<application_manager_test::MockApplication>> app_mock;
 
   HMILevel::eType hmi_level_;
   size_t app_id_;

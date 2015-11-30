@@ -30,29 +30,25 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_DEVICE_SCANNER_MOCK_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_DEVICE_SCANNER_MOCK_H_
+#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_MOCK_EVENT_OBSERVER_H_
+#define SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_MOCK_EVENT_OBSERVER_H_
 
+#include "application_manager/event_engine/event_observer.h"
+#include "application_manager/event_engine/event.h"
 #include "gmock/gmock.h"
-#include "transport_manager/transport_adapter/device_scanner.h"
 
 namespace test {
 namespace components {
-namespace transport_manager_test {
+namespace event_engine_test {
 
-class DeviceScannerMock
-    : public ::transport_manager::transport_adapter::DeviceScanner {
+class MockEventObserver : public
+    ::application_manager::event_engine::EventObserver {
  public:
-  MOCK_METHOD0(
-      Init, ::transport_manager::transport_adapter::TransportAdapter::Error());
-  MOCK_METHOD0(
-      Scan, ::transport_manager::transport_adapter::TransportAdapter::Error());
-  MOCK_METHOD0(Terminate, void());
-  MOCK_CONST_METHOD0(IsInitialised, bool());
+  MOCK_METHOD1(on_event, void(const application_manager::event_engine::Event& event));
 };
 
-}  // namespace transport_manager_test
+}  // namespace event_engine_test
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_DEVICE_SCANNER_MOCK_H_
+#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_MOCK_EVENT_OBSERVER_H_

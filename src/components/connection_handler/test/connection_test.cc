@@ -47,7 +47,7 @@
 
 namespace test {
 namespace components {
-namespace connection_handle {
+namespace connection_handler_test {
 using namespace ::connection_handler;
 using namespace ::protocol_handler;
 
@@ -446,7 +446,7 @@ TEST_F(ConnectionTest, SetProtectionFlagForBulk) {
 
 #endif  // ENABLE_SECURITY
 
-}  // namespace connection_handle
+}  // namespace connection_handler_test
 }  // namespace components
 }  // namespace test
 

@@ -38,7 +38,7 @@
 
 namespace test {
 namespace components {
-namespace formatters {
+namespace formatters_test {
 
 using namespace NsSmartDeviceLink::NsJSONHandler::strings;
 using namespace NsSmartDeviceLink::NsJSONHandler::Formatters;
@@ -85,7 +85,7 @@ enum eType {
 CSmartSchema initObjectSchema();
 CSmartSchema initSchemaForMetaFormatter();
 
-}  // namespace formatters
+}  // namespace formatters_test
 }  // namespace components
 }  // namespace test
 

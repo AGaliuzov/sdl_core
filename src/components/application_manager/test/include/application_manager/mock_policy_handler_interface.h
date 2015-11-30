@@ -30,28 +30,26 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_TIME_METRIC_OBSERVER_MOCK_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_TIME_METRIC_OBSERVER_MOCK_H_
 
-#include <string>
+#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_MOCK_POLICY_HANDLER_INTERFACE_H_
+#define SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_MOCK_POLICY_HANDLER_INTERFACE_H_
+
+#include "application_manager/policies/policy_handler_interface.h"
 #include "gmock/gmock.h"
-#include "transport_manager/time_metric_observer.h"
-#include "protocol/raw_message.h"
-#include "policy/usage_statistics/statistics_manager.h"
+#include "policy/policy_types.h"
 
 namespace test {
 namespace components {
-namespace transport_manager_test {
+namespace policy_test {
 
-class TMMetricObserverMock: public ::transport_manager::TMMetricObserver {
+class MockPolicyHandlerInterface : public policy::PolicyHandlerInterface {
  public:
-  MOCK_METHOD1(StartRawMsg,
-               void(const protocol_handler::RawMessage* ptr));
-  MOCK_METHOD1(StopRawMsg,
-               void(const protocol_handler::RawMessage* ptr));
+  MOCK_METHOD0(OnSystemReady, void());
+  MOCK_METHOD2(PTUpdatedAt, void(policy::Counters counter, int value));
 };
-}  // namespace transport_manager_test
+
+}  // namespace policy_test
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_TIME_METRIC_OBSERVER_MOCK_H_
+#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_MOCK_POLICY_HANDLER_INTERFACE_H_

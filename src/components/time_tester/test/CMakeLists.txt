@@ -31,6 +31,7 @@
 if(BUILD_TESTS)
 
 include_directories (
+  include
   ${GMOCK_INCLUDE_DIRECTORY}
 )
 

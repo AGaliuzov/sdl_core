@@ -53,7 +53,7 @@ using std::vector;
 
 namespace test {
 namespace components {
-namespace policy {
+namespace policy_test {
 
 class SQLPTExtRepresentationTest : public ::testing::Test {
  public:
@@ -1358,6 +1358,6 @@ TEST_F(SQLPTExtRepresentationTest,
   EXPECT_TRUE(reps->IsPredataPolicy("12345"));
 }
 
-}  // namespace policy
+}  // namespace policy_test
 }  // namespace components
 }  // namespace test

@@ -30,8 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_TRANSPORT_ADAPTER_CONTROLLER_MOCK_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_TRANSPORT_ADAPTER_CONTROLLER_MOCK_H_
+#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_MOCK_TRANSPORT_ADAPTER_CONTROLLER_H_
+#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_MOCK_TRANSPORT_ADAPTER_CONTROLLER_H_
 
 #include "gmock/gmock.h"
 #include "transport_manager/transport_adapter/transport_adapter_controller.h"
@@ -42,7 +42,7 @@ namespace transport_manager {
 
 using namespace ::transport_manager::transport_adapter;
 
-class TransportAdapterControllerMock : public TransportAdapterController {
+class MockTransportAdapterController : public TransportAdapterController {
  public:
   MOCK_METHOD1(AddDevice, DeviceSptr(DeviceSptr device));
   MOCK_METHOD1(SearchDeviceDone, void(DeviceVector device));
@@ -89,4 +89,4 @@ class TransportAdapterControllerMock : public TransportAdapterController {
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_TRANSPORT_ADAPTER_CONTROLLER_MOCK_H_
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_MOCK_TRANSPORT_ADAPTER_CONTROLLER_H_

@@ -54,20 +54,23 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-#include "../../include/transport_manager/transport_manager.h"
-#include "../include/transport_manager/transport_adapter/transport_adapter.h"
-#include "../include/transport_manager/common.h"
-#include "../include/transport_manager/transport_manager_impl.h"
-#include "../include/transport_manager/transport_manager_default.h"
-#include "../../connection_handler/include/connection_handler/connection_handler.h"
+#include "transport_manager/transport_manager.h"
+#include "transport_manager/transport_adapter/transport_adapter.h"
+#include "transport_manager/common.h"
+#include "transport_manager/transport_manager_impl.h"
+#include "transport_manager/transport_manager_default.h"
+#include "connection_handler/connection_handler.h"
 
 
 namespace test{
-namespace test_transport_manager_instance {
+namespace components {
+namespace transport_manager_test {
 TEST(test_transport_manager_instance, test_transport_manager_instance)
 {
   transport_manager::TransportManager *Instance = transport_manager::TransportManagerDefault::instance();
   ASSERT_EQ(Instance, transport_manager::TransportManagerDefault::instance());
 }
 
-}}
+}   // namespace transport_manager_test
+}   // namespace components
+}   // namespace test

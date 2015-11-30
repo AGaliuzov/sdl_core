@@ -30,23 +30,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_TEST_MOCK_EVENT_OBSERVER_MOCK_H_
-#define SRC_COMPONENTS_APPLICATION_MANAGER_TEST_MOCK_EVENT_OBSERVER_MOCK_H_
+#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_MOCK_SERVER_CONNECTION_FACTORY_H_
+#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_MOCK_SERVER_CONNECTION_FACTORY_H_
 
-#include "application_manager/event_engine/event_observer.h"
-#include "application_manager/event_engine/event.h"
 #include "gmock/gmock.h"
+#include "transport_manager/transport_adapter/server_connection_factory.h"
 
-namespace application_manager {
-namespace event_engine {
+namespace test {
+namespace components {
+namespace transport_manager_test {
 
-class MockEventObserver : public EventObserver {
+class MockServerConnectionFactory : public ::transport_manager::transport_adapter::ServerConnectionFactory {
  public:
-  MOCK_METHOD1(on_event, void(const application_manager::event_engine::Event& event));
+  MOCK_METHOD0(Init, ::transport_manager::transport_adapter::TransportAdapter::Error());
+  MOCK_METHOD0(Terminate, void());
+  MOCK_CONST_METHOD0(IsInitialised, bool());
+  MOCK_METHOD2(CreateConnection,
+               ::transport_manager::transport_adapter::TransportAdapter::Error(const std::string&,
+                                       const int& app_handle));
 };
 
-}  // namespace event_engine
-}  // namespace application_manager
+}  // namespace transport_manager_test
+}  // namespace components
+}  // namespace test
 
-#endif // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_MOCK_EVENT_OBSERVER_MOCK_H_
-
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_MOCK_SERVER_CONNECTION_FACTORY_H_

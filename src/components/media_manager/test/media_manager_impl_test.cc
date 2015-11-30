@@ -32,9 +32,10 @@
 
 #include "gmock/gmock.h"
 #include "media_manager/media_manager_impl.h"
-#include "include/media_adapter_mock.h"
-#include "include/media_adapter_listener_mock.h"
-#include "include/media_adapter_impl_mock.h"
+#include "media_manager/mock_media_adapter.h"
+#include "media_manager/mock_media_adapter_impl.h"
+#include "media_manager/mock_media_adapter_listener.h"
+#include "protocol_handler/mock_protocol_handler.h"
 
 namespace test {
 namespace components {
@@ -48,7 +49,7 @@ TEST(MediaManagerImplTest, PlayA2DPSource) {
   EXPECT_TRUE(mediaManagerImpl->exists());
   int32_t application_key = 1;
 
-  MediaAdapterMock media_mock;
+  MockMediaAdapter media_mock;
   mediaManagerImpl->set_mock_a2dp_player(&media_mock);
   EXPECT_CALL(media_mock, StartActivity(application_key));
   mediaManagerImpl->PlayA2DPSource(application_key);
@@ -59,7 +60,7 @@ TEST(MediaManagerImplTest, StopA2DPSource) {
   EXPECT_TRUE(mediaManagerImpl->exists());
   int32_t application_key = 1;
 
-  MediaAdapterMock media_mock;
+  MockMediaAdapter media_mock;
   mediaManagerImpl->set_mock_a2dp_player(&media_mock);
   EXPECT_CALL(media_mock, StopActivity(application_key));
   mediaManagerImpl->StopA2DPSource(application_key);
@@ -68,11 +69,11 @@ TEST(MediaManagerImplTest, StopA2DPSource) {
 TEST(MediaManagerImplTest, StopMicrophoneRecording) {
   media_manager::MediaManagerImpl* mediaManagerImpl = media_manager::MediaManagerImpl::instance();
   int32_t application_key = 1;
-  MediaAdapterListenerMock media_adapter_listener_mock;
+  MockMediaAdapterListener media_adapter_listener_mock;
 
   mediaManagerImpl->set_mock_mic_listener(&media_adapter_listener_mock);
 #ifdef EXTENDED_MEDIA_MODE
-  MediaAdapterImplMock media_adapter_recorder_mock;
+  MockMediaAdapterImpl media_adapter_recorder_mock;
   mediaManagerImpl->set_mock_mic_recorder(&media_adapter_recorder_mock);
   EXPECT_CALL(media_adapter_recorder_mock,StopActivity(application_key));
 #endif // EXTENDED_MEDIA_MODE
@@ -87,27 +88,27 @@ TEST(MediaManagerImplTest, StartStopStreaming) {
   media_manager::MediaManagerImpl* mediaManagerImpl = media_manager::MediaManagerImpl::instance();
 
   int32_t application_key = 1;
-  MediaAdapterImplMock mock_audio_media_streamer;
-  mediaManagerImpl->set_mock_streamer(ServiceType::kAudio, &mock_audio_media_streamer);
-  MediaAdapterImplMock mock_nav_media_streamer;
-  mediaManagerImpl->set_mock_streamer(ServiceType::kMobileNav, &mock_nav_media_streamer);
+  MockMediaAdapterImpl mock_audio_media_streamer;
+  mediaManagerImpl->set_mock_streamer(protocol_handler::ServiceType::kAudio, &mock_audio_media_streamer);
+  MockMediaAdapterImpl mock_nav_media_streamer;
+  mediaManagerImpl->set_mock_streamer(protocol_handler::ServiceType::kMobileNav, &mock_nav_media_streamer);
 
   EXPECT_CALL(mock_audio_media_streamer, StartActivity(application_key));
-  mediaManagerImpl->StartStreaming(application_key, ServiceType::kAudio);
+  mediaManagerImpl->StartStreaming(application_key, protocol_handler::ServiceType::kAudio);
 
   EXPECT_CALL(mock_nav_media_streamer, StartActivity(application_key));
-  mediaManagerImpl->StartStreaming(application_key, ServiceType::kMobileNav);
+  mediaManagerImpl->StartStreaming(application_key, protocol_handler::ServiceType::kMobileNav);
 
   EXPECT_CALL(mock_audio_media_streamer, StopActivity(application_key));
-  mediaManagerImpl->StopStreaming(application_key, ServiceType::kAudio);
+  mediaManagerImpl->StopStreaming(application_key, protocol_handler::ServiceType::kAudio);
 
   EXPECT_CALL(mock_nav_media_streamer, StopActivity(application_key));
-  mediaManagerImpl->StopStreaming(application_key, ServiceType::kMobileNav);
+  mediaManagerImpl->StopStreaming(application_key, protocol_handler::ServiceType::kMobileNav);
 }
 
 TEST(MediaManagerImplTest, CheckFramesProcessed) {
   media_manager::MediaManagerImpl* mediaManagerImpl = media_manager::MediaManagerImpl::instance();
-  ProtocolHandlerMock mock_protocol_handler;
+  protocol_handler_test::MockProtocolHandler mock_protocol_handler;
   mediaManagerImpl->SetProtocolHandler(&mock_protocol_handler);
   int32_t application_key = 1;
   int32_t frame_number = 10;

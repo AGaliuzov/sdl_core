@@ -36,7 +36,7 @@
 
 namespace test {
 namespace components {
-namespace profile {
+namespace profile_test {
 
 using namespace ::profile;
 
@@ -330,6 +330,6 @@ TEST(IniFileTest,ParseLineWithComment) {
   EXPECT_EQ(*check_val, *val);
 }
 
-}  // namespace profile
+}  // namespace profile_test
 }  // namespace components
 }  // namespace test
