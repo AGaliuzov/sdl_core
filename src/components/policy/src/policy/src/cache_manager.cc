@@ -1679,6 +1679,8 @@ bool CacheManager::Init(const std::string& file_name) {
   ex_backup_ = utils::SharedPtr<PTRepresentation>::
       dynamic_pointer_cast<PTExtRepresentation >(backup_);
 
+  sync_primitives::AutoLock lock(cache_lock_);
+
   bool result = true;
   switch (init_result) {
     case InitResult::EXISTS: {
@@ -1738,9 +1740,10 @@ bool CacheManager::LoadFromBackup() {
 bool CacheManager::LoadFromFile(const std::string& file_name,
                                 policy_table::Table& table) {
   LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(logger_, "Loading policy table from file " << file_name);
   BinaryMessage json_string;
   if (!file_system::ReadBinaryFile(file_name, json_string)) {
-    LOG4CXX_FATAL(logger_, "Failed to read pt file.");
+    LOG4CXX_FATAL(logger_, "Failed to read policy table source file.");
     return false;
   }
 
@@ -1754,13 +1757,13 @@ bool CacheManager::LoadFromFile(const std::string& file_name,
     return false;
   }
 
-  LOG4CXX_TRACE(logger_, "Start create PT");
-  sync_primitives::AutoLock locker(cache_lock_);
+  LOG4CXX_DEBUG(logger_,
+                "Start verification of policy table loaded from file.");
 
   table = policy_table::Table(&value);
 
   Json::StyledWriter s_writer;
-  LOG4CXX_DEBUG(logger_, "PT out:");
+  LOG4CXX_DEBUG(logger_, "Policy table content loaded:");
   LOG4CXX_DEBUG(logger_, s_writer.write(table.ToJsonValue()));
 
   if (!table.is_valid()) {
@@ -1774,11 +1777,18 @@ bool CacheManager::LoadFromFile(const std::string& file_name,
 }
 
 bool CacheManager::ResetPT(const std::string& file_name) {
-  bool result = true;
+  LOG4CXX_AUTO_TRACE(logger_);
   is_unpaired_.clear();
-  backup_->RefreshDB();
-  result = LoadFromFile(file_name, *pt_);
-  Backup();
+  if (!backup_->RefreshDB()) {
+    LOG4CXX_ERROR(logger_, "Can't re-create policy database. Reset failed.");
+    return false;
+  }
+  sync_primitives::AutoLock lock(cache_lock_);
+  pt_.reset(new policy_table::Table());
+  const bool result = LoadFromFile(file_name, *pt_);
+  if (result) {
+    Backup();
+  }
   return result;
 }
 
