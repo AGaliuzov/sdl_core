@@ -151,6 +151,11 @@ class ResumeCtrl: public app_mngr::event_engine::EventObserver {
   void StopSavePersistentDataTimer();
 
   /**
+   * @brief Method stops restore_hmi_level_timer_ "RsmCtrlRstore" in OnSuspend()
+   */
+  void StopRestoreHmiLevelTimer();
+
+  /**
    * @brief Start timer for resumption applications
    *        Restore D1-D5 data
    * @param application that is need to be restored
