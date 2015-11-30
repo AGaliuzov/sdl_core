@@ -295,7 +295,7 @@ if ${INSTALL_CMAKE_2_8_11_2}; then
 fi
 
 echo "Installing gstreamer..."
-if (( $(ubuntu_version -m) >= "13" )) ; then 
+if (( $(ubuntu_version -m) > "13" )) ; then 
 	add-apt-repository $GSTREAMER_PPA
 	apt-get update
 fi
