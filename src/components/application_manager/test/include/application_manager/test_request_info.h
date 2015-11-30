@@ -30,30 +30,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_IMPL_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_IMPL_H_
+#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_TEST_REQUEST_INFO_H_
+#define SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_TEST_REQUEST_INFO_H_
 
-#include "gmock/gmock.h"
-#include "transport_manager/transport_manager_impl.h"
+#include "application_manager/request_info.h"
+
+namespace request_info = application_manager::request_controller;
 
 namespace test {
 namespace components {
-namespace transport_manager_test {
+namespace application_manager_test {
 
-using namespace ::transport_manager;
-
-class MockTransportManagerImpl : public TransportManagerImpl {
+class TestRequestInfo : public request_info::RequestInfo {
  public:
-  MOCK_METHOD1(ReceiveEventFromDevice, int(const TransportAdapterEvent& event));
-
-  int TestReceiveEventFromDevice(const TransportAdapterEvent& event) {
-    return TransportManagerImpl::ReceiveEventFromDevice(event);
-  }
-  void TestHandle(TransportAdapterEvent test_event) { Handle(test_event); }
+  TestRequestInfo(request_info::RequestPtr request,
+                  const RequestType requst_type,
+                  const TimevalStruct& start_time, const uint64_t timeout_sec)
+      : RequestInfo(request, requst_type, start_time, timeout_sec) {}
+  void SetEndTime(const TimevalStruct& end_time) { end_time_ = end_time; }
 };
 
-}  // namespace transport_manager_test
+}  // namespace application_manager_test
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_IMPL_H_
+#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_TEST_REQUEST_INFO_H_

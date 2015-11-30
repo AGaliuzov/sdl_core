@@ -30,64 +30,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gtest/gtest.h"
-#include "transport_manager/tcp/tcp_device.h"
-#include "transport_manager/test_device.h"
+#ifndef SRC_COMPONENTS_UTILS_TEST_INCLUDE_UTILS_MOCK_EXTENDED_OBJECT_H_
+#define SRC_COMPONENTS_UTILS_TEST_INCLUDE_UTILS_MOCK_EXTENDED_OBJECT_H_
+
+#include "gmock/gmock.h"
+#include "utils/mock_object.h"
 
 namespace test {
 namespace components {
-namespace transport_manager_test {
+namespace utils_test {
 
-using namespace ::transport_manager;
-using namespace ::transport_manager::transport_adapter;
+class MockExtendedObject : public CMockObject {
+  public:
+    MockExtendedObject(int id);
+};
 
-TEST(TcpDeviceTest, CompareWithOtherTCPDevice) {
-  uint32_t in_addr = 10;
-  std::string name = "tcp_device";
-  TcpDevice test_tcp_device(in_addr, name);
-  TcpDevice other(in_addr, "other");
-
-  EXPECT_TRUE(test_tcp_device.IsSameAs(&other));
+MockExtendedObject::MockExtendedObject(int id)
+    : CMockObject(id) {
 }
 
-TEST(TcpDeviceTest, CompareWithOtherNotTCPDevice) {
-  uint32_t in_addr = 10;
-  std::string name = "tcp_device";
-  TcpDevice test_tcp_device(in_addr, name);
-  TestDevice other(in_addr, "other");
-
-  EXPECT_FALSE(test_tcp_device.IsSameAs(&other));
-}
-
-TEST(TcpDeviceTest, AddApplications) {
-  uint32_t in_addr = 1;
-  std::string name = "tcp_device";
-
-  TcpDevice test_tcp_device(in_addr, name);
-
-  // App will be with socket = 0, incoming = false;
-  int port = 12345;
-
-  EXPECT_EQ(1, test_tcp_device.AddDiscoveredApplication(port));
-
-  // App.incoming = true; app.port = 0;
-  int socket = 10;
-  EXPECT_EQ(2, test_tcp_device.AddIncomingApplication(socket));
-
-  ApplicationList applist = test_tcp_device.GetApplicationList();
-  ASSERT_EQ(2u, applist.size());
-  EXPECT_EQ(1, applist[0]);
-  EXPECT_EQ(2, applist[1]);
-
-  // Because incoming = false
-  EXPECT_EQ(-1, test_tcp_device.GetApplicationSocket(applist[0]));
-  EXPECT_EQ(10, test_tcp_device.GetApplicationSocket(applist[1]));
-
-  EXPECT_EQ(port, test_tcp_device.GetApplicationPort(applist[0]));
-  // Because incoming = true
-  EXPECT_EQ(-1, test_tcp_device.GetApplicationPort(applist[1]));
-}
-
-}  // namespace transport_manager_test
+}  // namespace utils_test
 }  // namespace components
 }  // namespace test
+
+#endif  // SRC_COMPONENTS_UTILS_TEST_INCLUDE_UTILS_MOCK_EXTENDED_OBJECT_H_

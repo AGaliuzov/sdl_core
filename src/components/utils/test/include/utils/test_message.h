@@ -30,30 +30,45 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_IMPL_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_IMPL_H_
+#ifndef SRC_COMPONENTS_UTILS_TEST_INCLUDE_UTILS_TEST_MESSAGE_H_
+#define SRC_COMPONENTS_UTILS_TEST_INCLUDE_UTILS_TEST_MESSAGE_H_
 
-#include "gmock/gmock.h"
-#include "transport_manager/transport_manager_impl.h"
+#include <string>
+#include "utils/prioritized_queue.h"
+
+using ::utils::PrioritizedQueue;
 
 namespace test {
 namespace components {
-namespace transport_manager_test {
+namespace utils_test {
 
-using namespace ::transport_manager;
-
-class MockTransportManagerImpl : public TransportManagerImpl {
+class TestMessage {
  public:
-  MOCK_METHOD1(ReceiveEventFromDevice, int(const TransportAdapterEvent& event));
-
-  int TestReceiveEventFromDevice(const TransportAdapterEvent& event) {
-    return TransportManagerImpl::ReceiveEventFromDevice(event);
+  TestMessage()
+      : priority(0) {
   }
-  void TestHandle(TransportAdapterEvent test_event) { Handle(test_event); }
+  TestMessage(std::string message, size_t msg_priority)
+      : msg_(message),
+        priority(msg_priority) {
+  }
+  size_t PriorityOrder() const;
+  std::string msg() const;
+  friend bool operator==(const TestMessage &msg1, const TestMessage &msg2);
+ private:
+  std::string msg_;
+  size_t priority;
 };
 
-}  // namespace transport_manager_test
+size_t TestMessage::PriorityOrder() const {
+  return priority;
+}
+
+std::string TestMessage::msg() const {
+  return msg_;
+}
+
+}  // namespace utils_test
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_IMPL_H_
+#endif  // SRC_COMPONENTS_UTILS_TEST_INCLUDE_UTILS_TEST_MESSAGE_H_

@@ -30,30 +30,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_IMPL_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_IMPL_H_
+#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_TEST_RESUMPTION_DATA_DB_H_
+#define SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_TEST_RESUMPTION_DATA_DB_H_
 
-#include "gmock/gmock.h"
-#include "transport_manager/transport_manager_impl.h"
+#include "utils/sqlite_wrapper/sql_database.h"
+#include "application_manager/resumption/resumption_data_db.h"
+
+using ::resumption::ResumptionDataDB;
+using ::resumption::DbStorage;
 
 namespace test {
 namespace components {
-namespace transport_manager_test {
+namespace resumption_test {
 
-using namespace ::transport_manager;
-
-class MockTransportManagerImpl : public TransportManagerImpl {
+class TestResumptionDataDB : public ResumptionDataDB {
  public:
-  MOCK_METHOD1(ReceiveEventFromDevice, int(const TransportAdapterEvent& event));
+  utils::dbms::SQLDatabase* get_db_handle() { return db(); }
 
-  int TestReceiveEventFromDevice(const TransportAdapterEvent& event) {
-    return TransportManagerImpl::ReceiveEventFromDevice(event);
-  }
-  void TestHandle(TransportAdapterEvent test_event) { Handle(test_event); }
+  TestResumptionDataDB(DbStorage db_storage) : ResumptionDataDB(db_storage) {}
 };
 
-}  // namespace transport_manager_test
+}  // namespace resumption_test
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_IMPL_H_
+#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_TEST_RESUMPTION_DATA_DB_H_

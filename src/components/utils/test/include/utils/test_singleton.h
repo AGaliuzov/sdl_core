@@ -30,30 +30,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_IMPL_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_IMPL_H_
+#ifndef SRC_COMPONENTS_UTILS_TEST_INCLUDE_UTILS_TEST_SINGLETON_H_
+#define SRC_COMPONENTS_UTILS_TEST_INCLUDE_UTILS_TEST_SINGLETON_H_
 
-#include "gmock/gmock.h"
-#include "transport_manager/transport_manager_impl.h"
+#include <string>
+#include "utils/singleton.h"
+
+using ::utils::Singleton;
 
 namespace test {
 namespace components {
-namespace transport_manager_test {
+namespace utils_test {
 
-using namespace ::transport_manager;
-
-class MockTransportManagerImpl : public TransportManagerImpl {
+class SingletonTest : public ::utils::Singleton<SingletonTest> {
  public:
-  MOCK_METHOD1(ReceiveEventFromDevice, int(const TransportAdapterEvent& event));
 
-  int TestReceiveEventFromDevice(const TransportAdapterEvent& event) {
-    return TransportManagerImpl::ReceiveEventFromDevice(event);
+  void SetValue(int value) {
+    test_value = value;
   }
-  void TestHandle(TransportAdapterEvent test_event) { Handle(test_event); }
+  int GetValue() {
+    return test_value;
+  }
+
+  FRIEND_BASE_SINGLETON_CLASS (SingletonTest);
+ private:
+  int test_value;
 };
 
-}  // namespace transport_manager_test
+}  // namespace utils_test
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_IMPL_H_
+#endif  // SRC_COMPONENTS_UTILS_TEST_INCLUDE_UTILS_TEST_SINGLETON_H_

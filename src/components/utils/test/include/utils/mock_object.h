@@ -30,30 +30,32 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_IMPL_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_IMPL_H_
+#ifndef SRC_COMPONENTS_UTILS_TEST_INCLUDE_UTILS_MOCK_OBJECT_H_
+#define SRC_COMPONENTS_UTILS_TEST_INCLUDE_UTILS_MOCK_OBJECT_H_
 
 #include "gmock/gmock.h"
-#include "transport_manager/transport_manager_impl.h"
 
 namespace test {
 namespace components {
-namespace transport_manager_test {
+namespace utils_test {
 
-using namespace ::transport_manager;
-
-class MockTransportManagerImpl : public TransportManagerImpl {
+class CMockObject {
  public:
-  MOCK_METHOD1(ReceiveEventFromDevice, int(const TransportAdapterEvent& event));
+    CMockObject();
+    CMockObject(int id);
+    virtual ~CMockObject();
+    virtual int getId() const;
 
-  int TestReceiveEventFromDevice(const TransportAdapterEvent& event) {
-    return TransportManagerImpl::ReceiveEventFromDevice(event);
-  }
-  void TestHandle(TransportAdapterEvent test_event) { Handle(test_event); }
+    MOCK_METHOD0(function_to_call, void());
+    MOCK_METHOD1(function_to_call_with_param, void(void*));
+    MOCK_METHOD0(destructor, void ());
+
+  private:
+    int mId_;
 };
 
-}  // namespace transport_manager_test
+}  // namespace utils_test
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_IMPL_H_
+#endif  // SRC_COMPONENTS_UTILS_TEST_INCLUDE_UTILS_MOCK_OBJECT_H_

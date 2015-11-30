@@ -30,29 +30,32 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_DEVICE_SCANNER_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_DEVICE_SCANNER_H_
+#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_HMI_CAPABILITIES_FOR_TESTING_H_
+#define SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_HMI_CAPABILITIES_FOR_TESTING_H_
 
-#include "gmock/gmock.h"
-#include "transport_manager/transport_adapter/device_scanner.h"
+#include "application_manager/hmi_capabilities.h"
+#include "application_manager/application_manager_impl.h"
+
+using namespace ::application_manager;
 
 namespace test {
 namespace components {
-namespace transport_manager_test {
+namespace application_manager_test {
 
-class MockDeviceScanner
-    : public ::transport_manager::transport_adapter::DeviceScanner {
+class HMICapabilitiesForTesting : public HMICapabilities {
  public:
-  MOCK_METHOD0(
-      Init, ::transport_manager::transport_adapter::TransportAdapter::Error());
-  MOCK_METHOD0(
-      Scan, ::transport_manager::transport_adapter::TransportAdapter::Error());
-  MOCK_METHOD0(Terminate, void());
-  MOCK_CONST_METHOD0(IsInitialised, bool());
+  HMICapabilitiesForTesting(ApplicationManagerImpl* const app_mngr)
+      : HMICapabilities(app_mngr) {}
+  bool LoadCapabilitiesFromFile() { return load_capabilities_from_file(); }
+
+  void ConvertJsonLanguagesToObj(Json::Value& json_languages,
+      ::NsSmartDeviceLink::NsSmartObjects::SmartObject& languages) {
+    convert_json_languages_to_obj(json_languages, languages);
+  }
 };
 
-}  // namespace transport_manager_test
+}  // namespace application_manager_test
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_DEVICE_SCANNER_H_
+#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_HMI_CAPABILITIES_FOR_TESTING_H_

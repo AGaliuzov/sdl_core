@@ -37,21 +37,13 @@
 #include "protocol_handler/protocol_handler.h"
 #include "protocol_handler/mock_protocol_handler.h"
 #include "transport_manager/mock_transport_manager.h"
+#include "time_tester/mock_streamer.h"
 
 namespace test {
 namespace components {
 namespace time_tester_test {
 
 using namespace time_tester;
-
-class StreamerMock : public Streamer {
- public:
-  StreamerMock(TimeManager* const server)
-      : Streamer(server) {
-    is_client_connected_ = true;
-  }
-  MOCK_METHOD1(PushMessage,void(utils::SharedPtr<MetricWrapper> metric));
-};
 
 TEST(TimeManagerTest, DISABLED_MessageProcess) {
   //TODO(AK) APPLINK-13351 Disable due to refactor TimeTester

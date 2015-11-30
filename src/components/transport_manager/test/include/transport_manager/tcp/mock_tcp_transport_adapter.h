@@ -30,13 +30,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_CONNECTION_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_CONNECTION_H_
+#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_TCP_MOCK_TCP_TRANSPORT_ADAPTER_H_
+#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_TCP_MOCK_TCP_TRANSPORT_ADAPTER_H_
 
 #include "gmock/gmock.h"
-#include "transport_manager/transport_adapter/connection.h"
-#include "policy/usage_statistics/statistics_manager.h"
-#include "application_manager/usage_statistics.h"
+#include "transport_manager/tcp/tcp_transport_adapter.h"
 
 namespace test {
 namespace components {
@@ -44,15 +42,26 @@ namespace transport_manager_test {
 
 using namespace ::transport_manager::transport_adapter;
 
-class MockConnection : public Connection {
+class MockTCPTransportAdapter : public TcpTransportAdapter {
  public:
-  MOCK_METHOD1(SendData, TransportAdapter::Error(
-                             ::protocol_handler::RawMessagePtr message));
-  MOCK_METHOD0(Disconnect, TransportAdapter::Error());
+  MockTCPTransportAdapter(uint16_t port) : TcpTransportAdapter(port) {
+    ::profile::Profile::instance()->config_file_name(
+        "smartDeviceLink_test.ini");
+  }
+  MOCK_CONST_METHOD2(FindEstablishedConnection,
+                     ConnectionSPtr(const DeviceUID& device_handle,
+                                    const ApplicationHandle& app_handle));
+
+  MOCK_CONST_METHOD1(FindDevice, DeviceSptr(const DeviceUID& device_handle));
+  MOCK_METHOD2(Connect,
+               TransportAdapter::Error(const DeviceUID& device_handle,
+                                       const ApplicationHandle& app_handle));
+  void CallStore() { Store(); }
+  bool CallRestore() { return Restore(); }
 };
 
 }  // namespace transport_manager_test
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_CONNECTION_H_
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_TCP_MOCK_TCP_TRANSPORT_ADAPTER_H_

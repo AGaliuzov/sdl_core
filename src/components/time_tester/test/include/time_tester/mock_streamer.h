@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,30 +30,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_IMPL_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_IMPL_H_
+#ifndef SRC_COMPONENTS_TIME_TESTER_TEST_INCLUDE_TIME_TESTER_MOCK_STREAMER_H_
+#define SRC_COMPONENTS_TIME_TESTER_TEST_INCLUDE_TIME_TESTER_MOCK_STREAMER_H_
 
-#include "gmock/gmock.h"
-#include "transport_manager/transport_manager_impl.h"
+#include <gmock/gmock.h>
+#include "time_tester/time_manager.h"
 
 namespace test {
 namespace components {
-namespace transport_manager_test {
+namespace time_tester_test {
 
-using namespace ::transport_manager;
+using namespace time_tester;
 
-class MockTransportManagerImpl : public TransportManagerImpl {
+class StreamerMock : public Streamer {
  public:
-  MOCK_METHOD1(ReceiveEventFromDevice, int(const TransportAdapterEvent& event));
-
-  int TestReceiveEventFromDevice(const TransportAdapterEvent& event) {
-    return TransportManagerImpl::ReceiveEventFromDevice(event);
+  StreamerMock(TimeManager* const server)
+      : Streamer(server) {
+    is_client_connected_ = true;
   }
-  void TestHandle(TransportAdapterEvent test_event) { Handle(test_event); }
+  MOCK_METHOD1(PushMessage,void(utils::SharedPtr<MetricWrapper> metric));
 };
 
-}  // namespace transport_manager_test
-}  // namespace components
-}  // namespace test
-
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_TRANSPORT_MANAGER_IMPL_H_
+}  // time_tester_test
+}  // components
+}  // test
+#endif  // SRC_COMPONENTS_TIME_TESTER_TEST_INCLUDE_TIME_TESTER_MOCK_STREAMER_H_
