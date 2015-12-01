@@ -84,7 +84,8 @@ class PPSListener : public ClientConnectionListener {
 
   typedef std::map<AOAWrapper::AOAUsbInfo,
                   DeviceUID, UsbInfoComparator> DeviceCollection;
-  DeviceCollection devices;
+  DeviceCollection devices_;
+  mutable sync_primitives::Lock devices_lock_;
 
   bool OpenPps();
   void ClosePps();

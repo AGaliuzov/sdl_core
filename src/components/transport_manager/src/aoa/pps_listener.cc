@@ -215,22 +215,24 @@ void PPSListener::Process(uint8_t* buf, size_t size) {
   AOAWrapper::AOAUsbInfo aoa_usb_info;
   aoa_usb_info.object_name = ParsePpsData(ppsdata, vals);
 
+  sync_primitives::AutoLock lock(devices_lock_);
+
   if (IsAOADevice(vals)) {
     FillUsbInfo(vals, &aoa_usb_info);
     std::pair<const AOAWrapper::AOAUsbInfo, std::string> el =
         std::make_pair(aoa_usb_info, std::string());
-    devices.insert(el);
+    devices_.insert(el);
 
     if (!is_aoa_available_) {
       LOG4CXX_DEBUG(logger_, "AOA is not available yet. Devices queue size: "
-                    << devices.size());
+                    << devices_.size());
       return;
     }
 
     ProcessAOADevice(el);
   } else {
-    controller_->RemoveDevice(devices[aoa_usb_info]);
-    const size_t removed_count = devices.erase(aoa_usb_info);
+    controller_->RemoveDevice(devices_[aoa_usb_info]);
+    const size_t removed_count = devices_.erase(aoa_usb_info);
     LOG4CXX_DEBUG(logger_, "The " << removed_count
                   << " elements has been removed from devices list");
   }
@@ -327,7 +329,9 @@ void PPSListener::AddDevice(const AOAWrapper::AOAUsbInfo& aoa_usb_info) {
         aoa_usb_info.product, aoa_usb_info.serial_number,
         aoa_usb_info, controller_);
 
-  devices[aoa_usb_info] = aoa_device->unique_device_id();
+  sync_primitives::AutoLock lock(devices_lock_);
+
+  devices_[aoa_usb_info] = aoa_device->unique_device_id();
   controller_->AddDevice(aoa_device);
 }
 
@@ -349,7 +353,10 @@ void PPSListener::DisconnectDevice(const std::pair<const AOAWrapper::AOAUsbInfo,
 bool PPSListener::init_aoa() {
   LOG4CXX_AUTO_TRACE(logger_);
   is_aoa_available_ = true;
-  std::for_each(devices.begin(), devices.end(),
+
+  sync_primitives::AutoLock lock(devices_lock_);
+
+  std::for_each(devices_.begin(), devices_.end(),
                 std::bind1st(
                   std::mem_fun(&PPSListener::ProcessAOADevice), this)
                );
@@ -361,7 +368,9 @@ void PPSListener::release_aoa() const {
   LOG4CXX_AUTO_TRACE(logger_);
   is_aoa_available_ = false;
 
-  std::for_each(devices.begin(), devices.end(),
+  sync_primitives::AutoLock lock(devices_lock_);
+
+  std::for_each(devices_.begin(), devices_.end(),
                   std::bind1st(
                     std::mem_fun(&PPSListener::DisconnectDevice),
                   this)
