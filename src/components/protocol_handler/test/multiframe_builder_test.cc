@@ -117,7 +117,7 @@ class MultiFrameBuilderTest : public ::testing::Test {
           const MessageID message_id = messages[m];
 
           UCharDataVector& data_vector = some_data.binary_data;
-          // Sahll not be 1 consecutive frame
+          // Shall not be 1 consecutive frame
           ASSERT_GT(multi_frames_count, 1);
           data_vector.resize(++multi_frames_count * mtu_);
 
