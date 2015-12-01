@@ -1679,8 +1679,6 @@ bool CacheManager::Init(const std::string& file_name) {
   ex_backup_ = utils::SharedPtr<PTRepresentation>::
       dynamic_pointer_cast<PTExtRepresentation >(backup_);
 
-  sync_primitives::AutoLock lock(cache_lock_);
-
   bool result = true;
   switch (init_result) {
     case InitResult::EXISTS: {
