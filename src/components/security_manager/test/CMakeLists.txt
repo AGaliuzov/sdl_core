@@ -32,10 +32,8 @@ if(BUILD_TESTS)
   
 include_directories(
   ${GMOCK_INCLUDE_DIRECTORY}
-  ${COMPONENTS_DIR}/protocol_handler/test/include
   ${COMPONENTS_DIR}/transport_manager/test/include
   ${COMPONENTS_DIR}/security_manager/include
-  include
 )
 
 set(SOURCES

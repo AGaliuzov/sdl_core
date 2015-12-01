@@ -30,41 +30,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_DEVICE_MOCK_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_DEVICE_MOCK_H_
+#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_TIME_METRIC_OBSERVER_MOCK_H_
+#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_TIME_METRIC_OBSERVER_MOCK_H_
 
+#include <string>
 #include "gmock/gmock.h"
-#include "transport_manager/transport_adapter/device.h"
-#include "transport_manager/common.h"
-#include "transport_manager/tcp/tcp_device.h"
+#include "transport_manager/time_metric_observer.h"
+#include "protocol/raw_message.h"
+#include "policy/usage_statistics/statistics_manager.h"
 
 namespace test {
 namespace components {
 namespace transport_manager_test {
 
-class DeviceMock : public ::transport_manager::transport_adapter::Device {
+class TMMetricObserverMock: public ::transport_manager::TMMetricObserver {
  public:
-  DeviceMock(const std::string& name, const std::string& unique_device_id)
-      : Device(name, unique_device_id) {}
-  MOCK_CONST_METHOD1(IsSameAs, bool(const Device* other_device));
-  MOCK_CONST_METHOD0(GetApplicationList, std::vector<int>());
-  MOCK_METHOD0(Stop, void());
+  MOCK_METHOD1(StartRawMsg,
+               void(const protocol_handler::RawMessage* ptr));
+  MOCK_METHOD1(StopRawMsg,
+               void(const protocol_handler::RawMessage* ptr));
 };
-
-class TCPDeviceMock : public ::transport_manager::transport_adapter::TcpDevice {
- public:
-  TCPDeviceMock(const uint32_t& in_addr_t, const std::string& name)
-      : TcpDevice(in_addr_t, name) {}
-  MOCK_CONST_METHOD1(IsSameAs, bool(const Device* other_device));
-  MOCK_CONST_METHOD0(GetApplicationList, std::vector<int>());
-  MOCK_METHOD0(Stop, void());
-  MOCK_CONST_METHOD1(
-      GetApplicationPort,
-      int(const ::transport_manager::ApplicationHandle app_handle));
-};
-
 }  // namespace transport_manager_test
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_DEVICE_MOCK_H_
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_TIME_METRIC_OBSERVER_MOCK_H_

@@ -1,8 +1,5 @@
 /*
- * \file raw_message_matcher.h
- * \brief matcher RawMessagePtr
- *
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,43 +30,25 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef APPLINK_TEST_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_RAW_MESSAGE_MATCHER_H_
-#define APPLINK_TEST_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_RAW_MESSAGE_MATCHER_H_
+#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_TRANSPORT_MANAGER_IMPL_MOCK_H_
+#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_TRANSPORT_MANAGER_IMPL_MOCK_H_
 
-#include <gmock/gmock.h>
-
-#include "transport_manager/common.h"
-#include "protocol/common.h"
-
-using ::testing::Matcher;
-using ::testing::MatcherInterface;
-using ::testing::MatchResultListener;
+#include "gmock/gmock.h"
+#include "transport_manager/transport_manager_impl.h"
 
 namespace test {
 namespace components {
 namespace transport_manager {
 
-using namespace ::protocol_handler;
+using namespace ::transport_manager;
 
-class RawMessageMatcher : public MatcherInterface<RawMessagePtr> {
+class TransportManagerImplMock : public TransportManagerImpl {
  public:
-  explicit RawMessageMatcher(RawMessagePtr ptr);
-
-  virtual bool MatchAndExplain(const RawMessagePtr ptr,
-                                   MatchResultListener* listener) const;
-  virtual void DescribeTo(::std::ostream* os) const;
-  virtual void DescribeNegationTo(::std::ostream* os) const;
-
- private:
-  const RawMessagePtr ptr_;
+  MOCK_METHOD1(ReceiveEventFromDevice, int(const TransportAdapterEvent& event));
 };
-
-inline const Matcher<RawMessagePtr> RawMessageEq(RawMessagePtr msg) {
-  return MakeMatcher(new RawMessageMatcher(msg));
-}
 
 }  // namespace transport_manager
 }  // namespace components
 }  // namespace test
 
-#endif /* APPLINK_TEST_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_RAW_MESSAGE_MATCHER_H_ */
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_TRANSPORT_MANAGER_TRANSPORT_MANAGER_IMPL_MOCK_H_

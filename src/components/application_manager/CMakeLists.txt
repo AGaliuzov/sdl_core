@@ -36,6 +36,9 @@ set (AM_MOCK_DIR ${AM_TEST_DIR}/mock)
 include_directories (
   include/
   ${COMPONENTS_DIR}
+  ${COMPONENTS_DIR}/policy/src/policy/include/
+  ${COMPONENTS_DIR}/policy/src/policy/usage_statistics/include/
+  ${COMPONENTS_DIR}/policy/src/policy
   ${COMPONENTS_DIR}/utils/include/
   ${COMPONENTS_DIR}/formatters/include/
   ${COMPONENTS_DIR}/protocol_handler/include/
@@ -47,9 +50,6 @@ include_directories (
   ${COMPONENTS_DIR}/resumption/include/
   ${COMPONENTS_DIR}/rpc_base/include/
   ${CMAKE_BINARY_DIR}/src/components/
-  ${COMPONENTS_DIR}/policy/src/policy/include/
-  ${COMPONENTS_DIR}/policy/src/policy/usage_statistics/include/
-  ${COMPONENTS_DIR}/policy/src/policy
   ${JSONCPP_INCLUDE_DIRECTORY}
   ${ENCRYPTION_INCLUDE_DIRECTORY}
   ${MESSAGE_BROKER_INCLUDE_DIRECTORY}

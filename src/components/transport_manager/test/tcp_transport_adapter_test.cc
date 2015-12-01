@@ -36,9 +36,9 @@
 #include "config_profile/profile.h"
 #include "resumption/last_state.h"
 #include "protocol/raw_message.h"
-#include "include/transport_adapter_listener_mock.h"
-#include "include/device_mock.h"
-#include "include/connection_mock.h"
+#include "transport_manager/transport_adapter_listener_mock.h"
+#include "transport_manager/device_mock.h"
+#include "transport_manager/connection_mock.h"
 
 namespace test {
 namespace components {
