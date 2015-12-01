@@ -77,7 +77,7 @@ class RequestController {
     enum TPoolState {
       UNDEFINED = 0,
       STARTED,
-      STOPPED,
+      STOPPED
     };
 
     // Methods
