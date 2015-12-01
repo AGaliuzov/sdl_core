@@ -946,6 +946,7 @@ void ConnectionHandlerImpl::OnConnectionEnded(
       const uint32_t session_key = KeyFromPair(connection_id, session_it->first);
       const Session& session = session_it->second;
       CloseSessionServices(session_key, session, reason);
+      connection->RemoveSession(session_it->first);
     }
   }
 }
@@ -1000,7 +1001,7 @@ bool ConnectionHandlerImpl::IsHeartBeatSupported(
 }
 
 bool ConnectionHandlerImpl::ProtocolVersionUsed(uint32_t connection_id,
-		  uint8_t session_id, uint8_t& protocol_version) {
+                  uint8_t session_id, uint8_t& protocol_version) {
   LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(connection_list_lock_);
   ConnectionList::iterator it = connection_list_.find(connection_id);
