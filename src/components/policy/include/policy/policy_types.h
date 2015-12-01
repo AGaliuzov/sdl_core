@@ -350,4 +350,4 @@ struct MetaInfo {
 
 }  //  namespace policy
 
-#endif  //  SRC_COMPONENTS_POLICY_INCLUDE_POLICY_POLICY_TYPES_H_
+#endif  // SRC_COMPONENTS_POLICY_INCLUDE_POLICY_POLICY_TYPES_H_

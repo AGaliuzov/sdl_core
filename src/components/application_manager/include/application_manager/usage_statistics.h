@@ -34,7 +34,7 @@
 #define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_USAGE_STATISTICS_H_
 
 #include <string>
-#include "usage_statistics/counter.h"
+#include "policy/usage_statistics/counter.h"
 #include "interfaces/MOBILE_API.h"
 
 namespace application_manager {

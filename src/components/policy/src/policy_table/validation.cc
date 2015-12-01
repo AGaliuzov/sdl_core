@@ -1,6 +1,6 @@
 #include <iostream>
 #include <algorithm>
-#include "./types.h"
+#include "policy/policy_table/types.h"
 #include "utils/logger.h"
 
 namespace {

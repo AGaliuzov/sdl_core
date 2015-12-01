@@ -38,7 +38,7 @@ include_directories(
   ${JSONCPP_INCLUDE_DIRECTORY}
   ${CMAKE_BINARY_DIR}/src/components/
   ${COMPONENTS_DIR}/application_manager/include
-  ${COMPONENTS_DIR}/policy/src/policy/usage_statistics/include/
+  ${COMPONENTS_DIR}/policy/include
 )
 
 set(LIBRARIES

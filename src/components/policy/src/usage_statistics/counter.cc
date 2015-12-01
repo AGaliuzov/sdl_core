@@ -34,7 +34,7 @@
 #define SRC_COMPONENTS_POLICY_INCLUDE_POLICY_STATISTICS_MANAGER_H_
 
 #include <cassert>
-#include "usage_statistics/counter.h"
+#include "policy/usage_statistics/counter.h"
 #include "utils/date_time.h"
 
 namespace usage_statistics {

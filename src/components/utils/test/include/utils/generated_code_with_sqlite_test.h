@@ -33,7 +33,7 @@
 #define SRC_COMPONENTS_UTILS_TEST_INCLUDE_UTILS_GENERATED_CODE_WITH_SQLITE_TEST_H_
 
 #include <string>
-#include "policy_table/table_struct_ext/types.h"
+#include "policy/policy_table/types.h"
 #include "rpc_base/rpc_base.h"
 #include "utils/sqlite_wrapper/sql_query.h"
 #include "utils/sqlite_wrapper/sql_database.h"

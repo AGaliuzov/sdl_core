@@ -36,6 +36,7 @@ include_directories (
   ${GMOCK_INCLUDE_DIRECTORY}
   ${COMPONENTS_DIR}/utils/include
   ${COMPONENTS_DIR}/rpc_base/include
+  ${COMPONENTS_DIR}/policy/include
 )
 
 set(testSources
@@ -69,9 +70,6 @@ set(testLibraries
   Utils
   Policy
 )
-
-include_directories(${COMPONENTS_DIR}/policy/src/policy/policy_table/table_struct_ext)
-
 if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
   # --- Tests for QDB Wrapper
   list (APPEND testSources

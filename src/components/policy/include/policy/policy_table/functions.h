@@ -1,4 +1,5 @@
-/* Copyright (c) 2013, Ford Motor Company
+/*
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,44 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <fstream>
-
-#include "gtest/gtest.h"
-
-#include "json/reader.h"
-#include "json/value.h"
+#ifndef SRC_COMPONENTS_POLICY_INCLUDE_POLICY_POLICY_TABLE_FUNCTIONS_H_
+#define SRC_COMPONENTS_POLICY_INCLUDE_POLICY_POLICY_TABLE_FUNCTIONS_H_
 #include "policy/policy_table/enums.h"
 #include "policy/policy_table/types.h"
-#include "rpc_base/gtest_support.h"
 
-using rpc::policy_table_interface_base::Table;
-
-namespace test {
-namespace components {
-namespace policy_test {
-
-TEST(PolicyGeneratedCodeTest, TestValidPTPreloadJsonIsValid) {
-  std::ifstream json_file("sdl_preloaded_pt.json");
-  ASSERT_TRUE(json_file.is_open());
-  Json::Value valid_table;
-  Json::Reader reader;
-  ASSERT_TRUE(reader.parse(json_file, valid_table));
-  Table table(&valid_table);
-  table.SetPolicyTableType(rpc::policy_table_interface_base::PT_PRELOADED);
-  ASSERT_RPCTYPE_VALID(table);
-}
-
-TEST(PolicyGeneratedCodeTest, TestValidPTUpdateJsonIsValid) {
-  std::ifstream json_file("valid_sdl_pt_update.json");
-  ASSERT_TRUE(json_file.is_open());
-  Json::Value valid_table;
-  Json::Reader reader;
-  ASSERT_TRUE(reader.parse(json_file, valid_table));
-  Table table(&valid_table);
-  table.SetPolicyTableType(rpc::policy_table_interface_base::PT_UPDATE);
-  ASSERT_RPCTYPE_VALID(table);
-}
-
-}  // namespace policy_test
-}  // namespace components
-}  // namespace test
+#endif  // SRC_COMPONENTS_POLICY_INCLUDE_POLICY_POLICY_TABLE_FUNCTIONS_H_

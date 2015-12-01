@@ -47,7 +47,7 @@ namespace policy_test {
 
 TEST(SharedLibraryTest, FullTest_OpenLibrarySetSymbolCloseLibrary_ExpectActsWithoutErrors) {
   //Arrange
-  const std::string kLib = "../src/policy/libPolicy.so";
+  const std::string kLib = "../libPolicy.so";
   void* handle = dlopen(kLib.c_str(), RTLD_LAZY);
 
   //Assert

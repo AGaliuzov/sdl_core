@@ -33,7 +33,7 @@
 #ifndef SRC_COMPONENTS_POLICY_INCLUDE_POLICY_POLICY_HELPER_H_
 #define SRC_COMPONENTS_POLICY_INCLUDE_POLICY_POLICY_HELPER_H_
 
-#include "policy_table/table_struct_ext/functions.h"
+#include "policy/policy_table/functions.h"
 #include "utils/shared_ptr.h"
 #include "policy/policy_types.h"
 
@@ -240,4 +240,4 @@ bool UnwrapAppPolicies(policy_table::ApplicationPolicies& app_policies);
 
 }
 
-#endif // SRC_COMPONENTS_POLICY_INCLUDE_POLICY_POLICY_HELPER_H_
+#endif  // SRC_COMPONENTS_POLICY_INCLUDE_POLICY_POLICY_HELPER_H_

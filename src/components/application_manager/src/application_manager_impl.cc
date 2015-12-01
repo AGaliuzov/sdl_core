@@ -58,7 +58,7 @@
 #include "smart_objects/enum_schema_item.h"
 #include "interfaces/HMI_API_schema.h"
 #include "application_manager/application_impl.h"
-#include "usage_statistics/counter.h"
+#include "policy/usage_statistics/counter.h"
 #include "utils/custom_string.h"
 #ifdef CUSTOMER_PASA
 #include "resumption/last_state.h"

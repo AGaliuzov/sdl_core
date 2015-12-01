@@ -45,8 +45,8 @@
 
 #include "config_profile/profile.h"
 
-#include "policy_table/table_struct_ext/types.h"
-#include "policy_table/table_struct_ext/enums.h"
+#include "policy/policy_table/types.h"
+#include "policy/policy_table/enums.h"
 #include "policy/policy_manager_impl.h"
 
 #include "utils/macro.h"

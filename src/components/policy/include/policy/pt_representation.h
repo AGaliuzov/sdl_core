@@ -36,7 +36,7 @@
 #include <vector>
 #include <string>
 #include "policy/policy_types.h"
-#include "policy_table/table_struct_ext/types.h"
+#include "policy/policy_table/types.h"
 
 namespace policy_table = rpc::policy_table_interface_base;
 
@@ -314,4 +314,4 @@ class PTRepresentation {
 
 }  //  namespace policy
 
-#endif  //  SRC_COMPONENTS_POLICY_INCLUDE_POLICY_PT_REPRESENTATION_H_
+#endif  // SRC_COMPONENTS_POLICY_INCLUDE_POLICY_PT_REPRESENTATION_H_
