@@ -37,7 +37,7 @@
 
 namespace application_manager {
 
-CREATE_LOGGERPTR_GLOBAL(logger_, "StateController");
+CREATE_LOGGERPTR_GLOBAL(logger_, "StateController")
 
 bool IsStatusChanged(HmiStatePtr old_state, HmiStatePtr new_state) {
   if (old_state->hmi_level() != new_state->hmi_level() ||

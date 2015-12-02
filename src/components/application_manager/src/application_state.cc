@@ -50,7 +50,7 @@ struct StateIdFindPredicate {
 
 namespace application_manager {
 
-CREATE_LOGGERPTR_GLOBAL(logger_, "ApplicationManager");
+CREATE_LOGGERPTR_GLOBAL(logger_, "ApplicationManager")
 
 ApplicationState::ApplicationState() {
 }

@@ -42,7 +42,7 @@
 
 namespace media_manager {
 
-CREATE_LOGGERPTR_GLOBAL(logger_, "MediaManager");
+CREATE_LOGGERPTR_GLOBAL(logger_, "MediaManager")
 
 const static size_t BUFSIZE = 32;
 
