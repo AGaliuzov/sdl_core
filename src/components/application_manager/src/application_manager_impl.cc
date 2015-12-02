@@ -757,6 +757,10 @@ void ApplicationManagerImpl::OnMessageReceived(
   utils::SharedPtr<Message> outgoing_message = ConvertRawMsgToMessage(message);
 
   if (outgoing_message) {
+<<<<<<< HEAD
+=======
+    LOG4CXX_DEBUG(logger_, "Posting new message");
+>>>>>>> 039dc44... AM
     messages_from_mobile_.PostMessage(
         impl::MessageFromMobile(outgoing_message));
   }
@@ -990,6 +994,10 @@ bool ApplicationManagerImpl::StartNaviService(
               std::pair<uint32_t, std::pair<bool, bool> >(
                   app_id, std::make_pair(false, false)));
       if (!res.second) {
+<<<<<<< HEAD
+=======
+        LOG4CXX_WARN(logger_, "Navi service refused");
+>>>>>>> 039dc44... AM
         return false;
       }
       it = res.first;
@@ -1055,6 +1063,8 @@ bool ApplicationManagerImpl::OnServiceStartedCallback(
     if (app->is_navi()) {
       return StartNaviService(session_key, type);
     }
+  } else {
+    LOG4CXX_WARN(logger_, "Refuse unknown service");
   }
   return false;
 }

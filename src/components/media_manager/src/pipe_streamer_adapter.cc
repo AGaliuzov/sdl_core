@@ -41,7 +41,7 @@
 
 namespace media_manager {
 
-CREATE_LOGGERPTR_GLOBAL(logger, "PipeStreamerAdapter")
+CREATE_LOGGERPTR_GLOBAL(logger_, "MediaManager")
 
 PipeStreamerAdapter::PipeStreamerAdapter(
     const std::string& named_pipe_path)
@@ -63,55 +63,55 @@ PipeStreamerAdapter::PipeStreamer::~PipeStreamer() {
 }
 
 bool PipeStreamerAdapter::PipeStreamer::Connect() {
-  LOG4CXX_AUTO_TRACE(logger);
+  LOG4CXX_AUTO_TRACE(logger_);
   if (!file_system::CreateDirectoryRecursively(
       profile::Profile::instance()->app_storage_folder())) {
-    LOG4CXX_ERROR(logger, "Cannot create app folder");
+    LOG4CXX_ERROR(logger_, "Cannot create app folder");
     return false;
   }
 
   if ((mkfifo(named_pipe_path_.c_str(),
               S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) < 0)
       && (errno != EEXIST)) {
-    LOG4CXX_ERROR(logger, "Cannot create pipe "
+    LOG4CXX_ERROR(logger_, "Cannot create pipe "
                   << named_pipe_path_);
     return false;
   }
 
   pipe_fd_ = open(named_pipe_path_.c_str(), O_RDWR, 0);
   if (-1 == pipe_fd_) {
-    LOG4CXX_ERROR(logger, "Cannot open pipe for writing "
+    LOG4CXX_ERROR(logger_, "Cannot open pipe for writing "
                   << named_pipe_path_);
     return false;
   }
 
-  LOG4CXX_INFO(logger, "Pipe " << named_pipe_path_
+  LOG4CXX_INFO(logger_, "Pipe " << named_pipe_path_
                 << " was successfuly created");
   return true;
 }
 
 void PipeStreamerAdapter::PipeStreamer::Disconnect() {
-  LOG4CXX_AUTO_TRACE(logger);
+  LOG4CXX_AUTO_TRACE(logger_);
   close(pipe_fd_);
   unlink(named_pipe_path_.c_str());
 }
 
 bool PipeStreamerAdapter::PipeStreamer::Send(
     protocol_handler::RawMessagePtr msg) {
-  LOG4CXX_AUTO_TRACE(logger);
-  ssize_t ret = write(pipe_fd_, msg->data(), msg->data_size());
+  LOG4CXX_AUTO_TRACE(logger_);
+  const ssize_t ret = write(pipe_fd_, msg->data(), msg->data_size());
   if (-1 == ret) {
-    LOG4CXX_ERROR(logger, "Failed writing data to pipe "
+    LOG4CXX_ERROR(logger_, "Failed writing data to pipe "
                   << named_pipe_path_);
     return false;
   }
 
   if (static_cast<uint32_t>(ret) != msg->data_size()) {
-    LOG4CXX_WARN(logger, "Couldn't write all the data to pipe "
+    LOG4CXX_WARN(logger_, "Couldn't write all the data to pipe "
                  << named_pipe_path_);
   }
 
-  LOG4CXX_INFO(logger, "Streamer::sent " << msg->data_size());
+  LOG4CXX_INFO(logger_, "Sent " << msg->data_size() << "bytes");
   return true;
 }
 
