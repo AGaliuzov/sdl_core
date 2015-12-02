@@ -166,7 +166,6 @@ RESULT_CODE MultiFrameBuilder::HandleFirstFrame(const ProtocolFramePtr packet) {
   DCHECK_OR_RETURN(packet->frame_type() == FRAME_TYPE_FIRST,
                    RESULT_FAIL);
   LOG4CXX_DEBUG(logger_, "Handling FIRST frame: " << packet);
-  sync_primitives::AutoLock lock(multiframes_map_lock_);
   LOG4CXX_DEBUG(logger_, "Waiting : " << multiframes_map_);
   if (packet->payload_size() != 0u) {
     LOG4CXX_ERROR(logger_,
@@ -209,7 +208,6 @@ RESULT_CODE MultiFrameBuilder::HandleConsecutiveFrame(const ProtocolFramePtr pac
 
 
   const ConnectionID connection_id = packet->connection_id();
-  sync_primitives::AutoLock lock(multiframes_map_lock_);
   MultiFrameMap::iterator connection_it = multiframes_map_.find(connection_id);
   if (connection_it == multiframes_map_.end()) {
     LOG4CXX_ERROR(logger_, "Unknown connection_id: " << connection_id);
