@@ -2040,6 +2040,10 @@ void ApplicationManagerImpl::HeadUnitReset(
     }
     case mobile_api::AppInterfaceUnregisteredReason::FACTORY_DEFAULTS: {
       policy::PolicyHandler::instance()->ClearUserConsent();
+
+      resume_controller().StopSavePersistentDataTimer();
+      file_system::remove_directory_content(
+          profile::Profile::instance()->app_storage_folder());
       break;
     }
     default: {
