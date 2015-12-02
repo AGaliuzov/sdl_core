@@ -75,6 +75,10 @@ class PTRepresentation {
      */
     virtual bool IsPTPreloaded() = 0;
 
+    /**
+     * @brief Re-creates schema in DB, drops all data
+     * @return true, if succedeed, otherwise - false
+     */
     virtual bool RefreshDB() = 0;
     /**
      * Gets number of ignition cycles before next update policy table
