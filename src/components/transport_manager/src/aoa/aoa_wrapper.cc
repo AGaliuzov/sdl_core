@@ -58,7 +58,7 @@ static void OnReceivedData(aoa_hdl_t *hdl, uint8_t *data, uint32_t sz,
   }
 
   const AOAWrapper* aoa_wrapper = reinterpret_cast<const AOAWrapper*>(udata);
-  LOG4CXX_DEBUG(logger_, "AOA: received data from device " << hdl);
+  LOG4CXX_INFO(logger_, "AOA: received " << sz << " bytes from device " << hdl);
   const bool error = aoa_wrapper->IsError(status);
   if (error) {
     aoa_wrapper->PrintError(status);
