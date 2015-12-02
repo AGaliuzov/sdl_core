@@ -83,7 +83,7 @@ LastState::LastState() {
 }
 
 LastState::~LastState() {
-  SaveToFileSystem();
+
 }
 
 }
