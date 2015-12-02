@@ -32,7 +32,6 @@
 
 #include "media_manager/streamer_adapter.h"
 #include "utils/logger.h"
-#include "utils/messagemeter.h"
 
 namespace media_manager {
 
