@@ -119,9 +119,9 @@ void OnExitAllApplicationsNotification::Run() {
   LOG4CXX_DEBUG(logger_, "Opened mqueue");
   char buf = SDL_MSG_SDL_STOP;
   if (-1 != mq_send(mq, &buf, 1, 0)) {
-    LOG4CXX_DEBUG(logger_, "SDL_MSG_SDL_STOP sent to SDL controller");
+    LOG4CXX_INFO(logger_, "SDL_MSG_SDL_STOP sent to SDL controller");
   } else {
-    LOG4CXX_ERROR(logger_, "Unable to send SDL_MSG_SDL_STOP " << strerror(errno));
+    LOG4CXX_FATAL(logger_, "Unable to send SDL_MSG_SDL_STOP " << strerror(errno));
   }
   mq_close(mq);
 #else
