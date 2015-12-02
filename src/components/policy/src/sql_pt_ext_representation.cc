@@ -41,7 +41,7 @@
 
 namespace policy {
 
-CREATE_LOGGERPTR_GLOBAL(logger_, "SQLPTRepresentation")
+CREATE_LOGGERPTR_GLOBAL(logger_, "Policy")
 
 SQLPTExtRepresentation::SQLPTExtRepresentation() {}
 SQLPTExtRepresentation::SQLPTExtRepresentation(bool in_memory)
