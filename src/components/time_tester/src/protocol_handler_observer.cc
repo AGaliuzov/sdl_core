@@ -36,7 +36,7 @@
 #include "time_tester/time_manager.h"
 namespace time_tester {
 
-CREATE_LOGGERPTR_GLOBAL(logger_, "Utils")
+CREATE_LOGGERPTR_GLOBAL(logger_, "TimeManager")
 
 ProtocolHandlerObserver::ProtocolHandlerObserver(TimeManager *time_manager):
   time_manager_(time_manager) {
