@@ -30,6 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_RESUMPTION_DATA_TEST_H_
+#define SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_RESUMPTION_DATA_TEST_H_
+
 #include <string>
 #include <algorithm>
 #include "gtest/gtest.h"
@@ -131,3 +134,5 @@ class ResumptionDataTest : public ::testing::Test {
 }  // namespace resumption_test
 }  // namespace components
 }  // namespace test
+
+#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_RESUMPTION_DATA_TEST_H_

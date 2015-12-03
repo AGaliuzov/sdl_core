@@ -33,9 +33,9 @@
 
 if (BUILD_TESTS)
   include_directories(
-    ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/include
-    ${CMAKE_SOURCE_DIR}/src/3rd_party-static/gmock-1.7.0/gtest/include
-    ${COMPONENTS_DIR}/application_manager/include/application_manager/policies
+    include
+    ${GMOCK_INCLUDE_DIRECTORY}
+    ${COMPONENTS_DIR}/application_manager/include/
   )
 
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/mock)
@@ -142,7 +142,7 @@ if (BUILD_TESTS)
     ${AM_SOURCE_DIR}/src/application_state.cc
     ${AM_SOURCE_DIR}/src/state_controller.cc
     ${AM_SOURCE_DIR}/src/mobile_command_factory.cc
-    ${AM_SOURCE_DIR}/test/mock_message_helper.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/application_manager/mock_message_helper.cc
 
     ${AM_SOURCE_DIR}/src/hmi_command_factory.cc
     ${AM_SOURCE_DIR}/src/hmi_state.cc

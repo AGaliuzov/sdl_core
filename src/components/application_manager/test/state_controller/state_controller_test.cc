@@ -34,8 +34,8 @@
 #include "application_manager/hmi_state.h"
 #include "application_manager/state_controller.h"
 #include "application_manager/usage_statistics.h"
-#include "application_manager_mock.h"
-#include "application_mock.h"
+#include "application_manager/application_manager_mock.h"
+#include "application_manager/application_mock.h"
 #include "policy/usage_statistics/mock_statistics_manager.h"
 #include "utils/lock.h"
 #include "utils/data_accessor.h"
@@ -53,6 +53,7 @@ using ::testing::Mock;
 using ::testing::NiceMock;
 using ::testing::InSequence;
 using ::testing::Truly;
+using ::test::components::resumption_test::ApplicationMock;
 
 class MessageHelperMock {
  public:
