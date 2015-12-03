@@ -378,19 +378,21 @@ class PolicyManagerImplTest_RequestTypes : public ::testing::Test {
         "preloadedPT_with_invalid_default_reqestType_between_valid.json"},
         app_id_("1766825573"),
         default_app_id_("default") {
-      manager.set_listener(&listener);
     }
   protected:
-    PolicyManagerImpl manager;
+    PolicyManagerImpl* manager;
     NiceMock<MockPolicyListener> listener;
     const ::policy::StringArray json_files_;
     const std::string app_id_;
     const std::string default_app_id_;
 
     void SetUp() OVERRIDE {
-      file_system::CreateDirectory("storage2");
+      file_system::CreateDirectory("storage3");
       profile::Profile::instance()->config_file_name(
           "smartDeviceLink4.ini");
+      const bool in_memory = true;
+      manager = new PolicyManagerImpl(in_memory);
+      manager->set_listener(&listener);
     }
 
     const Json::Value GetPTU(const std::string& file_name) {
@@ -405,13 +407,13 @@ class PolicyManagerImplTest_RequestTypes : public ::testing::Test {
       ifile.close();
       ::policy::BinaryMessage msg(json.begin(), json.end());
       // Load Json to cache
-      EXPECT_TRUE(manager.LoadPT("file_pt_update.json", msg));
+      EXPECT_TRUE(manager->LoadPT("file_pt_update.json", msg));
       return root;
     }
 
     void RefreshPT(const std::string& preloaded_pt_file,
         const std::string& update_pt_file) {
-      ASSERT_TRUE(manager.ResetPT(preloaded_pt_file))
+      ASSERT_TRUE(manager->ResetPT(preloaded_pt_file))
           << "can`t load preloaded file";
       GetPTU(update_pt_file);
     }
@@ -419,7 +421,7 @@ class PolicyManagerImplTest_RequestTypes : public ::testing::Test {
 
     PolicyTableSPtr GetPolicyTableSnapshot() {
       // Get cache
-      ::policy::CacheManagerInterfaceSPtr cache = manager.GetCache();
+      ::policy::CacheManagerInterfaceSPtr cache = manager->GetCache();
       // Get and return table_snapshot
       return cache->GenerateSnapshot();
     }
@@ -459,6 +461,7 @@ class PolicyManagerImplTest_RequestTypes : public ::testing::Test {
     void TearDown() OVERRIDE {
       profile::Profile::instance()->config_file_name("smartDeviceLink.ini");
       file_system::RemoveDirectory("storage2", true);
+      delete manager;
     }
 };
 
@@ -2019,14 +2022,14 @@ TEST_F(PolicyManagerImplTest2,
 
 TEST_F(PolicyManagerImplTest_RequestTypes,
     LoadPT_PTWithOneInvalidRequestTypeValue_RequestTypeValueEQToDefault) {
+  ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
   // Logic in another function
-  ASSERT_TRUE(manager.InitPT("sdl_preloaded_pt.json"));
   CompareAppRequestTypesWithDefault(app_id_, json_files_[0]);
 }
 
 TEST_F(PolicyManagerImplTest_RequestTypes,
     LoadPT_InvalidRequestTypeBetweenCorectValuesInPTU_EraseInvalidValue) {
-  ASSERT_TRUE(manager.InitPT("sdl_preloaded_pt.json"));
+  ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
   // Refresh policy table with invalid RequestType in application
   RefreshPT("sdl_preloaded_pt.json", json_files_[1]);
   // Correct of Request Types
@@ -2047,15 +2050,14 @@ TEST_F(PolicyManagerImplTest_RequestTypes,
 
 TEST_F(PolicyManagerImplTest_RequestTypes,
     LoadPT_AppInUpdateFileHaventRequestTypeField_RequestTypeValueEQToDefault) {
-  ASSERT_TRUE(manager.InitPT("sdl_preloaded_pt.json"));
+  ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
   // Logic in another function
-  manager.InitPT("sdl_preloaded_pt.json");
   CompareAppRequestTypesWithDefault(app_id_, json_files_[2]);
 }
 
 TEST_F(PolicyManagerImplTest_RequestTypes,
     LoadPT_RequestTypeArrayHaveNoOneValues_AvalibleAllRequestTypes) {
-  ASSERT_TRUE(manager.InitPT("sdl_preloaded_pt.json"));
+  ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
   // Refresh policy table with invalid RequestType in application
   RefreshPT("sdl_preloaded_pt.json", json_files_[3]);
 
@@ -2071,27 +2073,27 @@ TEST_F(PolicyManagerImplTest_RequestTypes,
 
 TEST_F(PolicyManagerImplTest_RequestTypes,
     ResetPT_DefaultRequestTypeHaveOneInvalidValue_False) {
-  ASSERT_TRUE(manager.InitPT("sdl_preloaded_pt.json"));
+  ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
   // Get absolutly new PT
   // PT have only invalid value in app_policies::default::RequestType
-  ASSERT_FALSE(manager.ResetPT(json_files_[4]));
+  ASSERT_FALSE(manager->ResetPT(json_files_[4]));
 }
 
 TEST_F(PolicyManagerImplTest_RequestTypes,
     ResetPT_DefaultRequestTypeHaveSeveralInvalidValues_False) {
-  ASSERT_TRUE(manager.InitPT("sdl_preloaded_pt.json"));
+  ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
   // Get absolutly new PT
   // PT have several only invalid values in app_policies::default::RequestType
-  ASSERT_FALSE(manager.ResetPT(json_files_[5]));
+  ASSERT_FALSE(manager->ResetPT(json_files_[5]));
 }
 
 TEST_F(PolicyManagerImplTest_RequestTypes,
        ResetPT_DefaultRequestTypeHaveInvalidValueBetweenCorrect_True) {
-  ASSERT_TRUE(manager.InitPT("sdl_preloaded_pt.json"));
+  ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
   // Get absolutly new PT
   // PT have ["QUERY_APPS", "IVSU", "PROPRIETARY"]
   // In app_policies::default::RequestType
-  ASSERT_TRUE(manager.ResetPT(json_files_[6]));
+  ASSERT_TRUE(manager->ResetPT(json_files_[6]));
 
   // Correct of Request Types
   policy_table::RequestTypes correct_types;
