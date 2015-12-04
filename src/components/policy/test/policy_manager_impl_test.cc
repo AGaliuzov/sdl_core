@@ -2110,6 +2110,29 @@ TEST_F(PolicyManagerImplTest_RequestTypes,
   EXPECT_THAT(correct_types, ContainerEq(received_types));
 }
 
-}  // namespace policy_test
+TEST_F(PolicyManagerImplTest2, AddDevice_RegisterDevice_TRUE) {
+  const std::string connection_type = "Bluetooth";
+
+  const bool result =
+      (manager->GetCache())->AddDevice(dev_id1, connection_type);
+  // Get Policy table
+  const utils::SharedPtr<policy_table::Table> policy_table =
+      manager->GetCache()->GetPT();
+  // Get preloaded_pt flag from Policy table
+  const bool is_preloaded_pt =
+      *policy_table->policy_table.module_config.preloaded_pt;
+  // Get connection_type from policy_table
+  const policy_table::DeviceParams& params =
+          (*policy_table->policy_table.device_data)[dev_id1];
+  const std::string expected_connection_type = *params.connection_type;
+
+  // Expect
+  EXPECT_EQ(connection_type, expected_connection_type);
+  // After adding device preloaded_pt must be false
+  EXPECT_FALSE(is_preloaded_pt);
+  EXPECT_TRUE(result);
+}
+
+}  // namespace policy
 }  // namespace components
 }  // namespace test
