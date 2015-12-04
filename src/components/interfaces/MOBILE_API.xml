@@ -383,6 +383,7 @@
     <element name="FACTORY_DEFAULTS" />
     <element name="APP_UNAUTHORIZED" />
     <element name="PROTOCOL_VIOLATION" />
+    <element name="UNSUPPORTED_HMI_RESOURCE" />
   </enum>
 
   <enum name="TriggerSource">
@@ -4991,7 +4992,7 @@
     <param name="length" type="Integer" minvalue="0" maxvalue="100000000000" mandatory="false">
        <description>Optional length in bytes for resuming partial data chunks</description>
     </param>
-  </function>	
+  </function>
 
 <!-- ~~~~~~~~~~~~~~~~~~ -->
 <!-- Ford Specific APIs -->
