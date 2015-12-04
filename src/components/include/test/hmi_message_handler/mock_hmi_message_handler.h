@@ -45,8 +45,8 @@ class  MockHMIMessageHandler : public ::hmi_message_handler::HMIMessageHandler {
     MOCK_METHOD1(AddHMIMessageAdapter, void(HMIMessageAdapter* adapter));
     MOCK_METHOD1(RemoveHMIMessageAdapter, void(HMIMessageAdapter* adapter));
 };
-}   // namespace hmi_message_handler_test
-}   // namespace components
-}   // namespace test
+}  // namespace hmi_message_handler_test
+}  // namespace components
+}  // namespace test
 
 #endif  // SRC_COMPONENTS_INCLUDE_TEST_HMI_MESSAGE_HANDLER_MOCK_HMI_MESSAGE_HANDLER_H_

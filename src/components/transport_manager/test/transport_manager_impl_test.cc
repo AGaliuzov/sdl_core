@@ -41,7 +41,6 @@
 #include "transport_manager/mock_time_metric_observer.h"
 #include "transport_manager/transport_adapter/mock_transport_adapter.h"
 
-
 using ::testing::_;
 using ::testing::AtLeast;
 using ::testing::Return;

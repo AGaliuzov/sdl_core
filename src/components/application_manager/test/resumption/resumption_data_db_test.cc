@@ -37,6 +37,7 @@
 #include "interfaces/MOBILE_API.h"
 #include "sql_database.h"
 #include "sql_query.h"
+#include "utils/make_shared.h"
 
 #include "application_manager/application_manager_impl.h"
 #include "config_profile/profile.h"
@@ -51,6 +52,7 @@ namespace components {
 namespace resumption_test {
 
 using ::testing::NiceMock;
+using application_manager_test::MockApplication;
 
 namespace am = application_manager;
 using namespace file_system;
@@ -68,7 +70,8 @@ class TestResumptionDataDB : public ResumptionDataDB {
 class ResumptionDataDBTest : public ResumptionDataTest {
  protected:
   virtual void SetUp() {
-    app_mock = new NiceMock<application_manager_test::MockApplication>();
+    app_mock =
+        utils::MakeShared<NiceMock<MockApplication> >();
     policy_app_id_ = "test_policy_app_id";
     app_id_ = 10;
     is_audio_ = true;

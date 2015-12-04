@@ -33,7 +33,7 @@
 #ifndef SRC_COMPONENTS_INCLUDE_TEST_HMI_MESSAGE_HANDLER_MOCK_HMI_MESSAGE_SENDER_H_
 #define SRC_COMPONENTS_INCLUDE_TEST_HMI_MESSAGE_HANDLER_MOCK_HMI_MESSAGE_SENDER_H_
 
-#include <gmock/gmock.h>
+#include "gmock/gmock.h"
 #include "hmi_message_handler/hmi_message_sender.h"
 
 namespace test {

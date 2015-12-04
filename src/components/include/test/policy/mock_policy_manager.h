@@ -89,8 +89,7 @@ class MockPolicyManager : public PolicyManager {
   MOCK_METHOD2(PTUpdatedAt, void(policy::Counters counter, int value));
 
   MOCK_METHOD3(GetInitialAppData,
-               bool(
-                    const std::string&,
+               bool(const std::string&,
                     policy::StringArray*,
                     policy::StringArray*));
 
@@ -110,8 +109,7 @@ class MockPolicyManager : public PolicyManager {
                    const std::string& language));
   MOCK_CONST_METHOD1(IsApplicationRevoked, bool(const std::string& app_id));
   MOCK_METHOD3(GetPermissionsForApp,
-      void(
-          const std::string& device_id,
+      void(const std::string& device_id,
           const std::string& policy_app_id,
           std::vector<policy::FunctionalGroupPermission>& permissions));
   MOCK_METHOD1(GetAppPermissionsChanges,

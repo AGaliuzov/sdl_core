@@ -48,6 +48,8 @@ namespace test {
 namespace components {
 namespace resumption_test {
 
+using namespace ::resumption;
+
 using std::string;
 using std::pair;
 using utils::dbms::SQLDatabase;
@@ -116,7 +118,7 @@ class ResumptionSqlQueriesTest : public ::testing::Test {
     ASSERT_TRUE(db_->Open());
     ASSERT_TRUE(db_->IsReadWrite());
     SQLQuery query(db_);
-    ASSERT_TRUE(query.Exec(resumption::kCreateSchema));
+    ASSERT_TRUE(query.Exec(kCreateSchema));
     SQLQuery query_logging_off(db_);
     ASSERT_TRUE(query_logging_off.Exec(kJournalOff));
   }
@@ -249,12 +251,12 @@ class ResumptionSqlQueriesTest : public ::testing::Test {
 
   void CreateSchema() {
     SQLQuery query(db());
-    EXPECT_TRUE(query.Exec(resumption::kCreateSchema));
+    EXPECT_TRUE(query.Exec(kCreateSchema));
   }
 
   void DestroySchema() {
     SQLQuery query(db());
-    EXPECT_TRUE(query.Exec(resumption::kDropSchema));
+    EXPECT_TRUE(query.Exec(kDropSchema));
   }
 
   void DeleteTablesData() {
@@ -418,7 +420,7 @@ void ResumptionSqlQueriesTest::CheckSelectQuery(const string& query_to_check,
 SQLQuery& ResumptionSqlQueriesTest::FillImageTable(SQLQuery& query,
                                                    const int imageType,
                                                    const string& value) {
-  EXPECT_TRUE(query.Prepare(resumption::kInsertImage));
+  EXPECT_TRUE(query.Prepare(kInsertImage));
   query.Bind(0, imageType);
   query.Bind(1, value);
   EXPECT_TRUE(query.Exec());
@@ -427,7 +429,7 @@ SQLQuery& ResumptionSqlQueriesTest::FillImageTable(SQLQuery& query,
 
 SQLQuery& ResumptionSqlQueriesTest::FillTableLimitedCharacterListTable(
     SQLQuery& query, const string& limitedCharacterList) {
-  EXPECT_TRUE(query.Prepare(resumption::kInsertTableLimitedCharacter));
+  EXPECT_TRUE(query.Prepare(kInsertTableLimitedCharacter));
   query.Bind(0, limitedCharacterList);
   EXPECT_TRUE(query.Exec());
   return query;
@@ -436,7 +438,7 @@ SQLQuery& ResumptionSqlQueriesTest::FillTableLimitedCharacterListTable(
 SQLQuery& ResumptionSqlQueriesTest::FillCharacterArrayTable(
     SQLQuery& query, const int64_t glob_prop_key,
     const int64_t lim_char_list_key) {
-  EXPECT_TRUE(query.Prepare(resumption::kInsertCharacterArray));
+  EXPECT_TRUE(query.Prepare(kInsertCharacterArray));
   query.Bind(0, glob_prop_key);
   query.Bind(1, lim_char_list_key);
   EXPECT_TRUE(query.Exec());
@@ -446,7 +448,7 @@ SQLQuery& ResumptionSqlQueriesTest::FillCharacterArrayTable(
 SQLQuery& ResumptionSqlQueriesTest::FillTTSChunkTable(SQLQuery& query,
                                                       const int type,
                                                       const string& text) {
-  EXPECT_TRUE(query.Prepare(resumption::kInsertTTSChunk));
+  EXPECT_TRUE(query.Prepare(kInsertTTSChunk));
   query.Bind(0, type);
   query.Bind(1, text);
   EXPECT_TRUE(query.Exec());
@@ -456,7 +458,7 @@ SQLQuery& ResumptionSqlQueriesTest::FillTTSChunkTable(SQLQuery& query,
 SQLQuery& ResumptionSqlQueriesTest::FillHelpTimeoutPromptArrayTable(
     SQLQuery& query, int64_t glob_prop_key, int64_t tts_chunk_key,
     const int idhelpPrompt) {
-  EXPECT_TRUE(query.Prepare(resumption::kInsertHelpTimeoutPromptArray));
+  EXPECT_TRUE(query.Prepare(kInsertHelpTimeoutPromptArray));
   query.Bind(0, glob_prop_key);
   query.Bind(1, tts_chunk_key);
   query.Bind(2, idhelpPrompt);
@@ -469,7 +471,7 @@ SQLQuery& ResumptionSqlQueriesTest::FillApplicationTable(
     const string& hashID, const int hmiAppID, const int hmiLevel,
     const int ign_off_count, const int timeStamp, bool isMediaApplication,
     const string& appID, const string& deviceID, const int64_t glob_prop_key) {
-  EXPECT_TRUE(query.Prepare(resumption::kInsertApplication));
+  EXPECT_TRUE(query.Prepare(kInsertApplication));
   query.Bind(0, connection_key);
   query.Bind(1, grammarID);
   query.Bind(2, hashID);
@@ -489,7 +491,7 @@ SQLQuery& ResumptionSqlQueriesTest::FillGlobalPropertiesTable(
     SQLQuery& query, const string& vrHelpTitle, const string& menuTitle,
     const int language, const int keyboardLayout, const int keypressMode,
     const string& autoCompleteText, const int64_t image_key) {
-  EXPECT_TRUE(query.Prepare(resumption::kInsertGlobalProperties));
+  EXPECT_TRUE(query.Prepare(kInsertGlobalProperties));
   query.Bind(0, vrHelpTitle);
   query.Bind(1, menuTitle);
   query.Bind(2, image_key);
@@ -503,7 +505,7 @@ SQLQuery& ResumptionSqlQueriesTest::FillGlobalPropertiesTable(
 
 SQLQuery& ResumptionSqlQueriesTest::FillApplicationCommandsArrayTable(
     SQLQuery& query, const int64_t application_key, const int64_t command_key) {
-  EXPECT_TRUE(query.Prepare(resumption::kInsertApplicationCommandArray));
+  EXPECT_TRUE(query.Prepare(kInsertApplicationCommandArray));
   query.Bind(0, application_key);
   query.Bind(1, command_key);
   EXPECT_TRUE(query.Exec());
@@ -513,7 +515,7 @@ SQLQuery& ResumptionSqlQueriesTest::FillApplicationCommandsArrayTable(
 SQLQuery& ResumptionSqlQueriesTest::FillCommandTable(
     SQLQuery& query, const int cmdID, const string& menuName,
     const int parentID, const int position, const int64_t image_key) {
-  EXPECT_TRUE(query.Prepare(resumption::kInsertToCommand));
+  EXPECT_TRUE(query.Prepare(kInsertToCommand));
   query.Bind(0, cmdID);
   query.Bind(1, image_key);
   query.Bind(2, menuName);
@@ -529,7 +531,7 @@ SQLQuery& ResumptionSqlQueriesTest::FillChoiceTable(SQLQuery& query,
                                                     const string& secondaryText,
                                                     const string& tertiaryText,
                                                     const int64_t image_key) {
-  EXPECT_TRUE(query.Prepare(resumption::kInsertChoice));
+  EXPECT_TRUE(query.Prepare(kInsertChoice));
   query.Bind(0, choiceID);
   query.Bind(1, menuName);
   query.Bind(2, secondaryText);
@@ -543,7 +545,7 @@ SQLQuery& ResumptionSqlQueriesTest::FillChoiceTable(SQLQuery& query,
 SQLQuery& ResumptionSqlQueriesTest::FillChoiceArrayTable(
     SQLQuery& query, const int64_t app_choice_set_key,
     const int64_t choice_key) {
-  EXPECT_TRUE(query.Prepare(resumption::kInsertChoiceArray));
+  EXPECT_TRUE(query.Prepare(kInsertChoiceArray));
   query.Bind(0, app_choice_set_key);
   query.Bind(1, choice_key);
   EXPECT_TRUE(query.Exec());
@@ -552,7 +554,7 @@ SQLQuery& ResumptionSqlQueriesTest::FillChoiceArrayTable(
 
 SQLQuery& ResumptionSqlQueriesTest::FillApplicationChoiceSetTable(
     SQLQuery& query, const int grammarID, const int interactionChoiceSetID) {
-  EXPECT_TRUE(query.Prepare(resumption::kInsertApplicationChoiceSet));
+  EXPECT_TRUE(query.Prepare(kInsertApplicationChoiceSet));
   query.Bind(0, grammarID);
   query.Bind(1, interactionChoiceSetID);
   EXPECT_TRUE(query.Exec());
@@ -561,7 +563,7 @@ SQLQuery& ResumptionSqlQueriesTest::FillApplicationChoiceSetTable(
 
 SQLQuery& ResumptionSqlQueriesTest::FillApplicationChoiceSetArrayTable(
     SQLQuery& query, const int64_t app_choice_set_key, const int64_t app_key) {
-  EXPECT_TRUE(query.Prepare(resumption::kInsertApplicationChoiceSetArray));
+  EXPECT_TRUE(query.Prepare(kInsertApplicationChoiceSetArray));
   query.Bind(0, app_choice_set_key);
   query.Bind(1, app_key);
   EXPECT_TRUE(query.Exec());
@@ -571,7 +573,7 @@ SQLQuery& ResumptionSqlQueriesTest::FillApplicationChoiceSetArrayTable(
 SQLQuery& ResumptionSqlQueriesTest::FillVRCommandsArrayTable(
     SQLQuery& query, const string& vrCommand, AccessoryVRCommand value,
     const int64_t foreing_key) {
-  EXPECT_TRUE(query.Prepare(resumption::kInsertVrCommand));
+  EXPECT_TRUE(query.Prepare(kInsertVrCommand));
   query.Bind(0, vrCommand);
   if (AccessoryVRCommand::kVRCommandFromCommand == value) {
     query.Bind(1, foreing_key);
@@ -587,7 +589,7 @@ SQLQuery& ResumptionSqlQueriesTest::FillVRCommandsArrayTable(
 SQLQuery& ResumptionSqlQueriesTest::FillVRHelpItemTable(
     SQLQuery& query, const string& text, const int position,
     const int64_t image_key) {
-  EXPECT_TRUE(query.Prepare(resumption::kInsertVRHelpItem));
+  EXPECT_TRUE(query.Prepare(kInsertVRHelpItem));
   query.Bind(0, text);
   query.Bind(1, position);
   query.Bind(2, image_key);
@@ -598,7 +600,7 @@ SQLQuery& ResumptionSqlQueriesTest::FillVRHelpItemTable(
 SQLQuery& ResumptionSqlQueriesTest::FillVRHelpItemArrayTable(
     SQLQuery& query, const int64_t global_prop_key,
     const int64_t vr_help_item_key) {
-  EXPECT_TRUE(query.Prepare(resumption::kInsertVRHelpItemArray));
+  EXPECT_TRUE(query.Prepare(kInsertVRHelpItemArray));
   query.Bind(0, global_prop_key);
   query.Bind(1, vr_help_item_key);
   EXPECT_TRUE(query.Exec());
@@ -607,7 +609,7 @@ SQLQuery& ResumptionSqlQueriesTest::FillVRHelpItemArrayTable(
 
 SQLQuery& ResumptionSqlQueriesTest::FillApplicationSubMenuArrayTable(
     SQLQuery& query, const int app_key, const int sub_menu_key) {
-  EXPECT_TRUE(query.Prepare(resumption::kInsertToApplicationSubMenuArray));
+  EXPECT_TRUE(query.Prepare(kInsertToApplicationSubMenuArray));
   query.Bind(0, app_key);
   query.Bind(1, sub_menu_key);
   EXPECT_TRUE(query.Exec());
@@ -617,7 +619,7 @@ SQLQuery& ResumptionSqlQueriesTest::FillApplicationSubMenuArrayTable(
 SQLQuery& ResumptionSqlQueriesTest::FillAppSubscriptionsArrayTable(
     SQLQuery& query, const int vehicleValue, const int ButtonNameValue,
     const int app_key) {
-  EXPECT_TRUE(query.Prepare(resumption::kInsertSubscriptions));
+  EXPECT_TRUE(query.Prepare(kInsertSubscriptions));
   query.Bind(0, app_key);
   query.Bind(1, vehicleValue);
   query.Bind(2, ButtonNameValue);
@@ -630,7 +632,7 @@ SQLQuery& ResumptionSqlQueriesTest::FillFileTable(SQLQuery& query,
                                                   bool is_download_complete,
                                                   bool persistentFile,
                                                   const string& syncFileName) {
-  EXPECT_TRUE(query.Prepare(resumption::kInsertToFile));
+  EXPECT_TRUE(query.Prepare(kInsertToFile));
   query.Bind(0, fileType);
   query.Bind(1, is_download_complete);
   query.Bind(2, persistentFile);
@@ -643,7 +645,7 @@ SQLQuery& ResumptionSqlQueriesTest::FillSubMenuTable(SQLQuery& query,
                                                      const int menuID,
                                                      const string& menuName,
                                                      const int position) {
-  EXPECT_TRUE(query.Prepare(resumption::kInsertToSubMenu));
+  EXPECT_TRUE(query.Prepare(kInsertToSubMenu));
   query.Bind(0, menuID);
   query.Bind(1, menuName);
   query.Bind(2, position);
@@ -655,7 +657,7 @@ SQLQuery& ResumptionSqlQueriesTest::FillApplicationFilesArrayTable(
     SQLQuery& query, const int64_t app_key, const int64_t file_key) {
   SQLQuery query_insert_application_files_array(db());
   EXPECT_TRUE(query_insert_application_files_array.Prepare(
-      resumption::kInsertToApplicationFilesArray));
+      kInsertToApplicationFilesArray));
   query_insert_application_files_array.Bind(0, app_key);
   query_insert_application_files_array.Bind(1, file_key);
   EXPECT_TRUE(query_insert_application_files_array.Exec());
@@ -708,7 +710,7 @@ TEST_F(ResumptionSqlQueriesTest, kInsertInitData_ExpectInitDataInserted) {
   const std::string kCheckInitData2 = "SELECT COUNT(*) FROM `_internal_data`";
   CheckSelectQuery(kCheckInitData2, 0, 0);
   // Act
-  EXPECT_TRUE(query_insert_resumption.Exec(resumption::kInsertInitData));
+  EXPECT_TRUE(query_insert_resumption.Exec(kInsertInitData));
 
   // Checks
   CheckSelectQuery(kCheckInitData, 1, 0);
@@ -724,12 +726,12 @@ TEST_F(ResumptionSqlQueriesTest, kInsertInitData_ExpectInitDataInserted) {
 
 TEST_F(ResumptionSqlQueriesTest, kChecksResumptionData_ExpectDataCorrect) {
   // Arrange
-  CheckSelectQuery(resumption::kChecksResumptionData, 0, 0);
+  CheckSelectQuery(kChecksResumptionData, 0, 0);
   // Act
   SQLQuery query_insert_resumption(db());
-  EXPECT_TRUE(query_insert_resumption.Exec(resumption::kInsertInitData));
+  EXPECT_TRUE(query_insert_resumption.Exec(kInsertInitData));
   // Check
-  CheckSelectQuery(resumption::kChecksResumptionData, 1, 0);
+  CheckSelectQuery(kChecksResumptionData, 1, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kSelectCountHMILevel_ExpectDataCorrect) {
@@ -746,7 +748,7 @@ TEST_F(ResumptionSqlQueriesTest, kSelectCountHMILevel_ExpectDataCorrect) {
   ValToPosPair p1(0, device_id);
   ValToPosPair p2(1, app_id1);
   // Check
-  CheckSelectQuery(resumption::kSelectCountHMILevel, p1, p2, 1, 0);
+  CheckSelectQuery(kSelectCountHMILevel, p1, p2, 1, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kSelectHMILevel_ExpectDataCorrect) {
@@ -761,7 +763,7 @@ TEST_F(ResumptionSqlQueriesTest, kSelectHMILevel_ExpectDataCorrect) {
   ValToPosPair p1(0, device_id);
   ValToPosPair p2(1, app_id1);
   // Check
-  CheckSelectQuery(resumption::kSelectHMILevel, p1, p2, hmiLevel, 0);
+  CheckSelectQuery(kSelectHMILevel, p1, p2, hmiLevel, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kCheckHMIId_ExpectDataCorrect) {
@@ -776,7 +778,7 @@ TEST_F(ResumptionSqlQueriesTest, kCheckHMIId_ExpectDataCorrect) {
   ValToPosPair p1(0, IntToString(hmiAppID));
   ValToPosPair p2(1, "");
   // Check
-  CheckSelectQuery(resumption::kCheckHMIId, p1, p2, 1, 0);
+  CheckSelectQuery(kCheckHMIId, p1, p2, 1, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kSelectHMIId_ExpectDataCorrect) {
@@ -791,7 +793,7 @@ TEST_F(ResumptionSqlQueriesTest, kSelectHMIId_ExpectDataCorrect) {
   ValToPosPair p1(0, device_id);
   ValToPosPair p2(1, app_id1);
   // Check
-  CheckSelectQuery(resumption::kSelectHMIId, p1, p2, hmiAppID, 0);
+  CheckSelectQuery(kSelectHMIId, p1, p2, hmiAppID, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kSelectCountHMIId_ExpectDataCorrect) {
@@ -807,7 +809,7 @@ TEST_F(ResumptionSqlQueriesTest, kSelectCountHMIId_ExpectDataCorrect) {
   ValToPosPair p1(0, device_id);
   ValToPosPair p2(1, app_id1);
   // Check
-  CheckSelectQuery(resumption::kSelectCountHMIId, p1, p2, 1, 0);
+  CheckSelectQuery(kSelectCountHMIId, p1, p2, 1, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kCountHashId_ExpectDataCorrect) {
@@ -823,7 +825,7 @@ TEST_F(ResumptionSqlQueriesTest, kCountHashId_ExpectDataCorrect) {
   ValToPosPair p1(0, device_id);
   ValToPosPair p2(1, app_id1);
   // Check
-  CheckSelectQuery(resumption::kCountHashId, p1, p2, 1, 0);
+  CheckSelectQuery(kCountHashId, p1, p2, 1, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kSelectHashId_ExpectDataCorrect) {
@@ -838,16 +840,16 @@ TEST_F(ResumptionSqlQueriesTest, kSelectHashId_ExpectDataCorrect) {
   ValToPosPair p1(0, device_id);
   ValToPosPair p2(1, app_id1);
   // Check
-  CheckSelectQuery(resumption::kSelectHashId, p1, p2, test_hash, 0);
+  CheckSelectQuery(kSelectHashId, p1, p2, test_hash, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kSelectIgnOffTime_ExpectDataCorrect) {
   // Arrange
   SQLQuery query_insert_init_data(db());
   // Act
-  EXPECT_TRUE(query_insert_init_data.Exec(resumption::kInsertInitData));
+  EXPECT_TRUE(query_insert_init_data.Exec(kInsertInitData));
   // Check
-  CheckSelectQuery(resumption::kSelectIgnOffTime, 0, 0);
+  CheckSelectQuery(kSelectIgnOffTime, 0, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kCheckApplication_ExpectDataCorrect) {
@@ -862,7 +864,7 @@ TEST_F(ResumptionSqlQueriesTest, kCheckApplication_ExpectDataCorrect) {
   ValToPosPair p1(0, device_id);
   ValToPosPair p2(1, app_id1);
   // Check
-  CheckSelectQuery(resumption::kCheckApplication, p1, p2, 1, 0);
+  CheckSelectQuery(kCheckApplication, p1, p2, 1, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kCountApplications_ExpectDataCorrect) {
@@ -882,7 +884,7 @@ TEST_F(ResumptionSqlQueriesTest, kCountApplications_ExpectDataCorrect) {
                        hmiAppID2, hmiLevel2, ign_off_count, timeStamp2, false,
                        app_id2, device_id, key);
   // Check
-  CheckSelectQuery(resumption::kCountApplications, 2, 0);
+  CheckSelectQuery(kCountApplications, 2, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest,
@@ -897,11 +899,11 @@ TEST_F(ResumptionSqlQueriesTest,
                        hmiAppID, hmiLevel, ign_off_count, timeStamp, false,
                        app_id1, device_id, key);
   // Checks
-  CheckSelectQuery(resumption::kSelectDataForLoadResumeData, hmiLevel, 0);
-  CheckSelectQuery(resumption::kSelectDataForLoadResumeData, ign_off_count, 1);
-  CheckSelectQuery(resumption::kSelectDataForLoadResumeData, timeStamp, 2);
-  CheckSelectQuery(resumption::kSelectDataForLoadResumeData, app_id1, 3);
-  CheckSelectQuery(resumption::kSelectDataForLoadResumeData, device_id, 4);
+  CheckSelectQuery(kSelectDataForLoadResumeData, hmiLevel, 0);
+  CheckSelectQuery(kSelectDataForLoadResumeData, ign_off_count, 1);
+  CheckSelectQuery(kSelectDataForLoadResumeData, timeStamp, 2);
+  CheckSelectQuery(kSelectDataForLoadResumeData, app_id1, 3);
+  CheckSelectQuery(kSelectDataForLoadResumeData, device_id, 4);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kUpdateHMILevel_ExpectDataUpdated) {
@@ -916,7 +918,7 @@ TEST_F(ResumptionSqlQueriesTest, kUpdateHMILevel_ExpectDataUpdated) {
                        app_id1, device_id, key);
   // Act
   SQLQuery query_update_hmi_level(db());
-  EXPECT_TRUE(query_update_hmi_level.Prepare(resumption::kUpdateHMILevel));
+  EXPECT_TRUE(query_update_hmi_level.Prepare(kUpdateHMILevel));
   query_update_hmi_level.Bind(0, hmiLevel2);
   query_update_hmi_level.Bind(1, device_id);
   query_update_hmi_level.Bind(2, app_id1);
@@ -924,7 +926,7 @@ TEST_F(ResumptionSqlQueriesTest, kUpdateHMILevel_ExpectDataUpdated) {
   ValToPosPair p1(0, device_id);
   ValToPosPair p2(1, app_id1);
   // Check
-  CheckSelectQuery(resumption::kSelectHMILevel, p1, p2, hmiLevel2, 0);
+  CheckSelectQuery(kSelectHMILevel, p1, p2, hmiLevel2, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kUpdateIgnOffCount_ExpectDataUpdated) {
@@ -943,7 +945,7 @@ TEST_F(ResumptionSqlQueriesTest, kUpdateIgnOffCount_ExpectDataUpdated) {
   CheckSelectQuery(kSelectIgnOffCount, ign_off_count, 0);
   SQLQuery query(db());
   // Act
-  EXPECT_TRUE(query.Exec(resumption::kUpdateIgnOffCount));
+  EXPECT_TRUE(query.Exec(kUpdateIgnOffCount));
   // Check after action
   CheckSelectQuery(kSelectIgnOffCount, ign_off_count - 1, 0);
 }
@@ -966,7 +968,7 @@ TEST_F(ResumptionSqlQueriesTest, kCountApplicationsIgnOff_ExpectDataCorrect) {
   ValToPosPair p1(0, IntToString(4));
   ValToPosPair p2(1, "");
   // Check
-  CheckSelectQuery(resumption::kCountApplicationsIgnOff, p1, p2, 1, 0);
+  CheckSelectQuery(kCountApplicationsIgnOff, p1, p2, 1, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest,
@@ -987,8 +989,8 @@ TEST_F(ResumptionSqlQueriesTest,
   ValToPosPair p1(0, IntToString(4));
   ValToPosPair p2(1, "");
 
-  CheckSelectQuery(resumption::kSelectApplicationsIgnOffCount, p1, p2, device_id, 0);
-  CheckSelectQuery(resumption::kSelectApplicationsIgnOffCount, p1, p2, app_id2, 1);
+  CheckSelectQuery(kSelectApplicationsIgnOffCount, p1, p2, device_id, 0);
+  CheckSelectQuery(kSelectApplicationsIgnOffCount, p1, p2, app_id2, 1);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kUpdateSuspendData_ExpectDataUpdated) {
@@ -1002,7 +1004,7 @@ TEST_F(ResumptionSqlQueriesTest, kUpdateSuspendData_ExpectDataUpdated) {
 
   // Act
   SQLQuery query_update_suspend_data(db());
-  EXPECT_TRUE(query_update_suspend_data.Exec(resumption::kUpdateSuspendData));
+  EXPECT_TRUE(query_update_suspend_data.Exec(kUpdateSuspendData));
   // Check
   const std::string kSelectIgnOffCount =
       "SELECT ign_off_count FROM `application`;";
@@ -1012,16 +1014,16 @@ TEST_F(ResumptionSqlQueriesTest, kUpdateSuspendData_ExpectDataUpdated) {
 TEST_F(ResumptionSqlQueriesTest, KUpdateLastIgnOffTime_ExpectDataUpdated) {
   // Arrange
   SQLQuery query_insert_init_data(db());
-  EXPECT_TRUE(query_insert_init_data.Exec(resumption::kInsertInitData));
+  EXPECT_TRUE(query_insert_init_data.Exec(kInsertInitData));
   // Check before action
-  CheckSelectQuery(resumption::kSelectIgnOffTime, 0, 0);
+  CheckSelectQuery(kSelectIgnOffTime, 0, 0);
   // Act
   SQLQuery query_update_ign_off_time(db());
-  EXPECT_TRUE(query_update_ign_off_time.Prepare(resumption::kUpdateLastIgnOffTime));
+  EXPECT_TRUE(query_update_ign_off_time.Prepare(kUpdateLastIgnOffTime));
   query_update_ign_off_time.Bind(0, 1);
   EXPECT_TRUE(query_update_ign_off_time.Exec());
   // Check after action
-  CheckSelectQuery(resumption::kSelectIgnOffTime, 1, 0);
+  CheckSelectQuery(kSelectIgnOffTime, 1, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kDeleteFile_ExpectDataDeleted) {
@@ -1040,7 +1042,7 @@ TEST_F(ResumptionSqlQueriesTest, kDeleteFile_ExpectDataDeleted) {
   const std::string select_count_file = "SELECT COUNT(*) from `file` ";
   ValToPosPair p1(0, app_id2);
   ValToPosPair p2(1, device_id);
-  CheckDeleteQuery(select_count_file, resumption::kDeleteFile, p1, p2, 1, 0, 0);
+  CheckDeleteQuery(select_count_file, kDeleteFile, p1, p2, 1, 0, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest,
@@ -1062,7 +1064,7 @@ TEST_F(ResumptionSqlQueriesTest,
   ValToPosPair p1(0, app_id2);
   ValToPosPair p2(1, device_id);
   CheckDeleteQuery(select_count_applicationsFilesArray,
-                   resumption::kDeleteApplicationFilesArray, p1, p2, 1, 0, 0);
+                   kDeleteApplicationFilesArray, p1, p2, 1, 0, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kDeleteSubMenu_ExpectDataDeleted) {
@@ -1082,7 +1084,7 @@ TEST_F(ResumptionSqlQueriesTest, kDeleteSubMenu_ExpectDataDeleted) {
   const std::string select_count_subMenu = "SELECT COUNT(*) FROM subMenu;";
   ValToPosPair p1(0, app_id2);
   ValToPosPair p2(1, device_id);
-  CheckDeleteQuery(select_count_subMenu, resumption::kDeleteSubMenu, p1, p2, 1, 0, 0);
+  CheckDeleteQuery(select_count_subMenu, kDeleteSubMenu, p1, p2, 1, 0, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest,
@@ -1105,7 +1107,7 @@ TEST_F(ResumptionSqlQueriesTest,
       "SELECT COUNT(*) FROM applicationSubMenuArray;";
   ValToPosPair p1(0, app_id2);
   ValToPosPair p2(1, device_id);
-  CheckDeleteQuery(select_count_subMenu, resumption::kDeleteApplicationSubMenuArray, p1, p2,
+  CheckDeleteQuery(select_count_subMenu, kDeleteApplicationSubMenuArray, p1, p2,
                    1, 0, 0);
 }
 
@@ -1129,7 +1131,7 @@ TEST_F(ResumptionSqlQueriesTest,
   ValToPosPair p1(0, app_id2);
   ValToPosPair p2(1, device_id);
   CheckDeleteQuery(select_count_applicationSubscribtionsArray,
-                   resumption::kDeleteApplicationSubscribtionsArray, p1, p2, 1, 0, 0);
+                   kDeleteApplicationSubscribtionsArray, p1, p2, 1, 0, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kDeleteImageFromCommands_ExpectDataDeleted) {
@@ -1148,7 +1150,7 @@ TEST_F(ResumptionSqlQueriesTest, kDeleteImageFromCommands_ExpectDataDeleted) {
   const std::string select_count_image = "SELECT COUNT(*) FROM image;";
   ValToPosPair p1(0, app_id2);
   ValToPosPair p2(1, device_id);
-  CheckDeleteQuery(select_count_image, resumption::kDeleteImageFromCommands, p1, p2, 1, 0,
+  CheckDeleteQuery(select_count_image, kDeleteImageFromCommands, p1, p2, 1, 0,
                    0);
 }
 
@@ -1172,7 +1174,7 @@ TEST_F(ResumptionSqlQueriesTest, kDeleteVrCommands_ExpectDataDeleted) {
       "SELECT COUNT(*) FROM vrCommandsArray;";
   ValToPosPair p1(0, app_id2);
   ValToPosPair p2(1, device_id);
-  CheckDeleteQuery(select_count_vrCommandsArray, resumption::kDeleteVrCommands, p1, p2, 1,
+  CheckDeleteQuery(select_count_vrCommandsArray, kDeleteVrCommands, p1, p2, 1,
                    0, 0);
 }
 
@@ -1194,7 +1196,7 @@ TEST_F(ResumptionSqlQueriesTest, kDeleteCommands_ExpectDataDeleted) {
   const std::string select_count_command = "SELECT COUNT(*) FROM command;";
   ValToPosPair p1(0, app_id2);
   ValToPosPair p2(1, device_id);
-  CheckDeleteQuery(select_count_command, resumption::kDeleteCommands, p1, p2, 1, 0, 0);
+  CheckDeleteQuery(select_count_command, kDeleteCommands, p1, p2, 1, 0, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest,
@@ -1218,7 +1220,7 @@ TEST_F(ResumptionSqlQueriesTest,
   ValToPosPair p1(0, app_id2);
   ValToPosPair p2(1, device_id);
   CheckDeleteQuery(select_count_applicationCommandsArray,
-                   resumption::kDeleteApplicationCommandsArray, p1, p2, 1, 0, 0);
+                   kDeleteApplicationCommandsArray, p1, p2, 1, 0, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kDeleteImageFromChoiceSet_ExpectDataDeleted) {
@@ -1240,7 +1242,7 @@ TEST_F(ResumptionSqlQueriesTest, kDeleteImageFromChoiceSet_ExpectDataDeleted) {
   const std::string select_count_image = "SELECT COUNT(*) FROM image;";
   ValToPosPair p1(0, app_id2);
   ValToPosPair p2(1, device_id);
-  CheckDeleteQuery(select_count_image, resumption::kDeleteImageFromChoiceSet, p1, p2, 1, 0,
+  CheckDeleteQuery(select_count_image, kDeleteImageFromChoiceSet, p1, p2, 1, 0,
                    0);
 }
 
@@ -1268,7 +1270,7 @@ TEST_F(ResumptionSqlQueriesTest,
   // Check
   ValToPosPair p1(0, app_id2);
   ValToPosPair p2(1, device_id);
-  CheckDeleteQuery(select_count_vrCommandsArray, resumption::kDeleteVrCommandsFromChoiceSet,
+  CheckDeleteQuery(select_count_vrCommandsArray, kDeleteVrCommandsFromChoiceSet,
                    p1, p2, 1, 0, 0);
 }
 
@@ -1289,7 +1291,7 @@ TEST_F(ResumptionSqlQueriesTest, kDeleteChoice_ExpectDataDeleted) {
   const std::string select_count_choice = "SELECT COUNT(*) FROM choice;";
   ValToPosPair p1(0, app_id2);
   ValToPosPair p2(1, device_id);
-  CheckDeleteQuery(select_count_choice, resumption::kDeleteChoice, p1, p2, 1, 0, 0);
+  CheckDeleteQuery(select_count_choice, kDeleteChoice, p1, p2, 1, 0, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kDeleteChoiceArray_ExpectDataDeleted) {
@@ -1315,7 +1317,7 @@ TEST_F(ResumptionSqlQueriesTest, kDeleteChoiceArray_ExpectDataDeleted) {
 
   ValToPosPair p1(0, app_id2);
   ValToPosPair p2(1, device_id);
-  CheckDeleteQuery(select_count_choice_array, resumption::kDeleteChoiceArray, p1, p2, 1, 0,
+  CheckDeleteQuery(select_count_choice_array, kDeleteChoiceArray, p1, p2, 1, 0,
                    0);
 }
 
@@ -1338,7 +1340,7 @@ TEST_F(ResumptionSqlQueriesTest,
   ValToPosPair p1(0, app_id2);
   ValToPosPair p2(1, device_id);
   CheckDeleteQuery(select_count_applicationChoiceSet,
-                   resumption::kDeleteApplicationChoiceSet, p1, p2, 1, 0, 0);
+                   kDeleteApplicationChoiceSet, p1, p2, 1, 0, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest,
@@ -1359,7 +1361,7 @@ TEST_F(ResumptionSqlQueriesTest,
   ValToPosPair p1(0, app_id2);
   ValToPosPair p2(1, device_id);
   CheckDeleteQuery(select_count_applicationChoiceSetArray,
-                   resumption::kDeleteApplicationChoiceSetArray, p1, p2, 1, 0, 0);
+                   kDeleteApplicationChoiceSetArray, p1, p2, 1, 0, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest,
@@ -1378,7 +1380,7 @@ TEST_F(ResumptionSqlQueriesTest,
   const std::string select_count_image = "SELECT COUNT(*) FROM image;";
   ValToPosPair p1(0, app_id2);
   ValToPosPair p2(1, device_id);
-  CheckDeleteQuery(select_count_image, resumption::kDeleteImageFromGlobalProperties, p1, p2,
+  CheckDeleteQuery(select_count_image, kDeleteImageFromGlobalProperties, p1, p2,
                    1, 0, 0);
 }
 
@@ -1398,7 +1400,7 @@ TEST_F(ResumptionSqlQueriesTest, kDeletevrHelpItem_ExpectDataDeleted) {
       "SELECT COUNT(*) FROM vrHelpItem;";
   ValToPosPair p1(0, app_id2);
   ValToPosPair p2(1, device_id);
-  CheckDeleteQuery(select_count_vrhelp_item, resumption::kDeletevrHelpItem, p1, p2, 1, 0,
+  CheckDeleteQuery(select_count_vrhelp_item, kDeletevrHelpItem, p1, p2, 1, 0,
                    0);
 }
 
@@ -1418,7 +1420,7 @@ TEST_F(ResumptionSqlQueriesTest, kDeletevrHelpItemArray_ExpectDataDeleted) {
       "SELECT COUNT(*) FROM vrHelpItemArray;";
   ValToPosPair p1(0, app_id2);
   ValToPosPair p2(1, device_id);
-  CheckDeleteQuery(select_count_vrhelp_item_array, resumption::kDeletevrHelpItemArray, p1,
+  CheckDeleteQuery(select_count_vrhelp_item_array, kDeletevrHelpItemArray, p1,
                    p2, 1, 0, 0);
 }
 
@@ -1441,7 +1443,7 @@ TEST_F(ResumptionSqlQueriesTest,
   ValToPosPair p1(0, app_id1);
   ValToPosPair p2(1, device_id);
   CheckDeleteQuery(select_count_tableLimitedCharacterList,
-                   resumption::kDeleteTableLimitedCharacterList, p1, p2, 1, 0, 0);
+                   kDeleteTableLimitedCharacterList, p1, p2, 1, 0, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kDeleteCharacterArray_ExpectDataDeleted) {
@@ -1461,7 +1463,7 @@ TEST_F(ResumptionSqlQueriesTest, kDeleteCharacterArray_ExpectDataDeleted) {
       "SELECT COUNT(*) FROM characterArray;";
   ValToPosPair p1(0, app_id1);
   ValToPosPair p2(1, device_id);
-  CheckDeleteQuery(select_count_characterArray, resumption::kDeleteCharacterArray, p1, p2,
+  CheckDeleteQuery(select_count_characterArray, kDeleteCharacterArray, p1, p2,
                    1, 0, 0);
 }
 
@@ -1483,7 +1485,7 @@ TEST_F(ResumptionSqlQueriesTest, kDeleteTTSChunk_ExpectDataDeleted) {
   const std::string select_count_tts_chunk = "SELECT COUNT(*) FROM TTSChunk;";
   ValToPosPair p1(0, app_id1);
   ValToPosPair p2(1, device_id);
-  CheckDeleteQuery(select_count_tts_chunk, resumption::kDeleteTTSChunk, p1, p2, 1, 0, 0);
+  CheckDeleteQuery(select_count_tts_chunk, kDeleteTTSChunk, p1, p2, 1, 0, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest,
@@ -1498,7 +1500,7 @@ TEST_F(ResumptionSqlQueriesTest,
       "SELECT COUNT(*) FROM application;";
   ValToPosPair p1(0, app_id1);
   ValToPosPair p2(1, device_id);
-  CheckDeleteQuery(select_count_application, resumption::kDeleteFromApplicationTable, p1,
+  CheckDeleteQuery(select_count_application, kDeleteFromApplicationTable, p1,
                    p2, 1, 0, 0);
 }
 
@@ -1522,7 +1524,7 @@ TEST_F(ResumptionSqlQueriesTest,
   ValToPosPair p1(0, app_id1);
   ValToPosPair p2(1, device_id);
   CheckDeleteQuery(select_count_helpTimeoutPromptArray,
-                   resumption::kDeleteHelpTimeoutPromptArray, p1, p2, 1, 0, 0);
+                   kDeleteHelpTimeoutPromptArray, p1, p2, 1, 0, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kDeleteGlobalProperties_ExpectDataDeleted) {
@@ -1539,7 +1541,7 @@ TEST_F(ResumptionSqlQueriesTest, kDeleteGlobalProperties_ExpectDataDeleted) {
       "SELECT COUNT(*) FROM globalProperties;";
   ValToPosPair p1(0, app_id1);
   ValToPosPair p2(1, device_id);
-  CheckDeleteQuery(select_count_globalProperties, resumption::kDeleteGlobalProperties, p1,
+  CheckDeleteQuery(select_count_globalProperties, kDeleteGlobalProperties, p1,
                    p2, 1, 0, 0);
 }
 
@@ -1550,7 +1552,7 @@ TEST_F(ResumptionSqlQueriesTest, kSelectCountImage_ExpectDataCorrect) {
   ValToPosPair p1(0, "tst_image");
   ValToPosPair p2(1, "");
   // Check
-  CheckSelectQuery(resumption::kSelectCountImage, p1, p2, 1, 0);
+  CheckSelectQuery(kSelectCountImage, p1, p2, 1, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kSelectPrimaryKeyImage_ExpectDataCorrect) {
@@ -1560,7 +1562,7 @@ TEST_F(ResumptionSqlQueriesTest, kSelectPrimaryKeyImage_ExpectDataCorrect) {
   ValToPosPair p1(0, "tst_image");
   ValToPosPair p2(1, "");
   // Check
-  CheckSelectQuery(resumption::kSelectPrimaryKeyImage, p1, p2, image_key, 0);
+  CheckSelectQuery(kSelectPrimaryKeyImage, p1, p2, image_key, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kInsertImage_ExpectDataInserted) {
@@ -1974,7 +1976,7 @@ TEST_F(ResumptionSqlQueriesTest, kSelectCountFiles_ExpectDataCorrect) {
   ValToPosPair p1(0, app_id1);
   ValToPosPair p2(1, device_id);
   // Check
-  CheckSelectQuery(resumption::kSelectCountFiles, p1, p2, 1, 0);
+  CheckSelectQuery(kSelectCountFiles, p1, p2, 1, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kSelectFiles_ExpectDataCorrect) {
@@ -1990,10 +1992,10 @@ TEST_F(ResumptionSqlQueriesTest, kSelectFiles_ExpectDataCorrect) {
   ValToPosPair p1(0, app_id1);
   ValToPosPair p2(1, device_id);
   // Check
-  CheckSelectQuery(resumption::kSelectFiles, p1, p2, 1, 0);
-  CheckSelectQuery(resumption::kSelectFiles, p1, p2, true, 1);
-  CheckSelectQuery(resumption::kSelectFiles, p1, p2, true, 2);
-  CheckSelectQuery(resumption::kSelectFiles, p1, p2, "tst_name", 3);
+  CheckSelectQuery(kSelectFiles, p1, p2, 1, 0);
+  CheckSelectQuery(kSelectFiles, p1, p2, true, 1);
+  CheckSelectQuery(kSelectFiles, p1, p2, true, 2);
+  CheckSelectQuery(kSelectFiles, p1, p2, "tst_name", 3);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kSelectCountSubMenu_ExpectDataCorrect) {
@@ -2009,7 +2011,7 @@ TEST_F(ResumptionSqlQueriesTest, kSelectCountSubMenu_ExpectDataCorrect) {
   ValToPosPair p1(0, app_id1);
   ValToPosPair p2(1, device_id);
   // Check
-  CheckSelectQuery(resumption::kSelectCountSubMenu, p1, p2, 1, 0);
+  CheckSelectQuery(kSelectCountSubMenu, p1, p2, 1, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kSelectSubMenu_ExpectDataCorrect) {
@@ -2025,9 +2027,9 @@ TEST_F(ResumptionSqlQueriesTest, kSelectSubMenu_ExpectDataCorrect) {
   ValToPosPair p1(0, app_id1);
   ValToPosPair p2(1, device_id);
   // Check
-  CheckSelectQuery(resumption::kSelectSubMenu, p1, p2, 1, 0);
-  CheckSelectQuery(resumption::kSelectSubMenu, p1, p2, "menu_name", 1);
-  CheckSelectQuery(resumption::kSelectSubMenu, p1, p2, 1, 2);
+  CheckSelectQuery(kSelectSubMenu, p1, p2, 1, 0);
+  CheckSelectQuery(kSelectSubMenu, p1, p2, "menu_name", 1);
+  CheckSelectQuery(kSelectSubMenu, p1, p2, 1, 2);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kSelectCountCommands_ExpectDataCorrect) {
@@ -2043,7 +2045,7 @@ TEST_F(ResumptionSqlQueriesTest, kSelectCountCommands_ExpectDataCorrect) {
   ValToPosPair p1(0, app_id1);
   ValToPosPair p2(1, device_id);
   // Check
-  CheckSelectQuery(resumption::kSelectCountCommands, p1, p2, 1, 0);
+  CheckSelectQuery(kSelectCountCommands, p1, p2, 1, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kSelectCommandsFromCommand_ExpectDataCorrect) {
@@ -2066,14 +2068,14 @@ TEST_F(ResumptionSqlQueriesTest, kSelectCommandsFromCommand_ExpectDataCorrect) {
   ValToPosPair p1(0, app_id1);
   ValToPosPair p2(1, device_id);
   // Check
-  CheckSelectQuery(resumption::kSelectCommands, p1, p2, 1, 0);
-  CheckSelectQuery(resumption::kSelectCommands, p1, p2, 1, 1);
-  CheckSelectQuery(resumption::kSelectCommands, p1, p2, "menu_name", 2);
-  CheckSelectQuery(resumption::kSelectCommands, p1, p2, 1, 3);
-  CheckSelectQuery(resumption::kSelectCommands, p1, p2, 2, 4);
-  CheckSelectQuery(resumption::kSelectCommands, p1, p2, "tst_image", 5);
-  CheckSelectQuery(resumption::kSelectCommands, p1, p2, 2, 6);
-  CheckSelectQuery(resumption::kSelectCommands, p1, p2, "best", 7);
+  CheckSelectQuery(kSelectCommands, p1, p2, 1, 0);
+  CheckSelectQuery(kSelectCommands, p1, p2, 1, 1);
+  CheckSelectQuery(kSelectCommands, p1, p2, "menu_name", 2);
+  CheckSelectQuery(kSelectCommands, p1, p2, 1, 3);
+  CheckSelectQuery(kSelectCommands, p1, p2, 2, 4);
+  CheckSelectQuery(kSelectCommands, p1, p2, "tst_image", 5);
+  CheckSelectQuery(kSelectCommands, p1, p2, 2, 6);
+  CheckSelectQuery(kSelectCommands, p1, p2, "best", 7);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kSelectCommandsFromChoice_ExpectDataCorrect) {
@@ -2108,13 +2110,13 @@ TEST_F(ResumptionSqlQueriesTest, kSelectCommandsFromChoice_ExpectDataCorrect) {
       "FROM `application` WHERE `appID` = ? AND `deviceID` = ?)))  "
       "WHERE vrCommand IS NULL";
   // Check
-  CheckSelectQuery(resumption::kSelectCommands, p1, p2, 1, 0);
-  CheckSelectQuery(resumption::kSelectCommands, p1, p2, 1, 1);
-  CheckSelectQuery(resumption::kSelectCommands, p1, p2, "menu_name", 2);
-  CheckSelectQuery(resumption::kSelectCommands, p1, p2, 1, 3);
-  CheckSelectQuery(resumption::kSelectCommands, p1, p2, 2, 4);
-  CheckSelectQuery(resumption::kSelectCommands, p1, p2, "tst_image", 5);
-  CheckSelectQuery(resumption::kSelectCommands, p1, p2, 2, 6);
+  CheckSelectQuery(kSelectCommands, p1, p2, 1, 0);
+  CheckSelectQuery(kSelectCommands, p1, p2, 1, 1);
+  CheckSelectQuery(kSelectCommands, p1, p2, "menu_name", 2);
+  CheckSelectQuery(kSelectCommands, p1, p2, 1, 3);
+  CheckSelectQuery(kSelectCommands, p1, p2, 2, 4);
+  CheckSelectQuery(kSelectCommands, p1, p2, "tst_image", 5);
+  CheckSelectQuery(kSelectCommands, p1, p2, 2, 6);
   CheckSelectQuery(kChecksVrCommandFromSelectCommand, p1, p2, true, 0);
 }
 
@@ -2129,7 +2131,7 @@ TEST_F(ResumptionSqlQueriesTest, kSelectCountSubscriptions_ExpectDataCorrect) {
   ValToPosPair p1(0, app_id1);
   ValToPosPair p2(1, device_id);
   // Check
-  CheckSelectQuery(resumption::kSelectCountSubscriptions, p1, p2, 1, 0);
+  CheckSelectQuery(kSelectCountSubscriptions, p1, p2, 1, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kSelectSubscriptions_ExpectDataCorrect) {
@@ -2143,8 +2145,8 @@ TEST_F(ResumptionSqlQueriesTest, kSelectSubscriptions_ExpectDataCorrect) {
   ValToPosPair p1(0, app_id1);
   ValToPosPair p2(1, device_id);
   // Check
-  CheckSelectQuery(resumption::kSelectSubscriptions, p1, p2, 2, 0);
-  CheckSelectQuery(resumption::kSelectSubscriptions, p1, p2, 3, 1);
+  CheckSelectQuery(kSelectSubscriptions, p1, p2, 2, 0);
+  CheckSelectQuery(kSelectSubscriptions, p1, p2, 3, 1);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kSelectCountChoiceSet_ExpectDataCorrect) {
@@ -2158,7 +2160,7 @@ TEST_F(ResumptionSqlQueriesTest, kSelectCountChoiceSet_ExpectDataCorrect) {
   ValToPosPair p1(0, app_id1);
   ValToPosPair p2(1, device_id);
   // Check
-  CheckSelectQuery(resumption::kSelectCountChoiceSet, p1, p2, 1, 0);
+  CheckSelectQuery(kSelectCountChoiceSet, p1, p2, 1, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kSelectChoiceSets_ExpectDataCorrect) {
@@ -2182,17 +2184,17 @@ TEST_F(ResumptionSqlQueriesTest, kSelectChoiceSets_ExpectDataCorrect) {
   ValToPosPair p1(0, app_id1);
   ValToPosPair p2(1, device_id);
   // Check
-  CheckSelectQuery(resumption::kSelectChoiceSets, p1, p2, 1, 0);
-  CheckSelectQuery(resumption::kSelectChoiceSets, p1, p2, 23, 1);
-  CheckSelectQuery(resumption::kSelectChoiceSets, p1, p2, 2, 2);
-  CheckSelectQuery(resumption::kSelectChoiceSets, p1, p2, 1, 3);
-  CheckSelectQuery(resumption::kSelectChoiceSets, p1, p2, 1, 4);
-  CheckSelectQuery(resumption::kSelectChoiceSets, p1, p2, "menu_name", 5);
-  CheckSelectQuery(resumption::kSelectChoiceSets, p1, p2, "sec_text", 6);
-  CheckSelectQuery(resumption::kSelectChoiceSets, p1, p2, "tert_text", 7);
-  CheckSelectQuery(resumption::kSelectChoiceSets, p1, p2, 1, 8);
-  CheckSelectQuery(resumption::kSelectChoiceSets, p1, p2, 1, 9);
-  CheckSelectQuery(resumption::kSelectChoiceSets, p1, p2, "best", 10);
+  CheckSelectQuery(kSelectChoiceSets, p1, p2, 1, 0);
+  CheckSelectQuery(kSelectChoiceSets, p1, p2, 23, 1);
+  CheckSelectQuery(kSelectChoiceSets, p1, p2, 2, 2);
+  CheckSelectQuery(kSelectChoiceSets, p1, p2, 1, 3);
+  CheckSelectQuery(kSelectChoiceSets, p1, p2, 1, 4);
+  CheckSelectQuery(kSelectChoiceSets, p1, p2, "menu_name", 5);
+  CheckSelectQuery(kSelectChoiceSets, p1, p2, "sec_text", 6);
+  CheckSelectQuery(kSelectChoiceSets, p1, p2, "tert_text", 7);
+  CheckSelectQuery(kSelectChoiceSets, p1, p2, 1, 8);
+  CheckSelectQuery(kSelectChoiceSets, p1, p2, 1, 9);
+  CheckSelectQuery(kSelectChoiceSets, p1, p2, "best", 10);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kSelectImage_ExpectDataCorrect) {
@@ -2202,8 +2204,8 @@ TEST_F(ResumptionSqlQueriesTest, kSelectImage_ExpectDataCorrect) {
   // Check
   ValToPosPair p1(0, IntToString(image_key));
   ValToPosPair p2(1, "");
-  CheckSelectQuery(resumption::kSelectImage, p1, p2, 2, 0);
-  CheckSelectQuery(resumption::kSelectImage, p1, p2, "tst_image", 1);
+  CheckSelectQuery(kSelectImage, p1, p2, 2, 0);
+  CheckSelectQuery(kSelectImage, p1, p2, "tst_image", 1);
 }
 
 TEST_F(ResumptionSqlQueriesTest,
@@ -2220,7 +2222,7 @@ TEST_F(ResumptionSqlQueriesTest,
   // Check
   ValToPosPair p1(0, app_id1);
   ValToPosPair p2(1, device_id);
-  CheckSelectQuery(resumption::kSelectCountGlobalProperties, p1, p2, 1, 0);
+  CheckSelectQuery(kSelectCountGlobalProperties, p1, p2, 1, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kSelectGlobalProperties_ExpectDataCorrect) {
@@ -2238,16 +2240,16 @@ TEST_F(ResumptionSqlQueriesTest, kSelectGlobalProperties_ExpectDataCorrect) {
   // Check
   ValToPosPair p1(0, app_id1);
   ValToPosPair p2(1, device_id);
-  CheckSelectQuery(resumption::kSelectGlobalProperties, p1, p2, glob_prop_key, 0);
-  CheckSelectQuery(resumption::kSelectGlobalProperties, p1, p2, "tst_vr_title", 1);
-  CheckSelectQuery(resumption::kSelectGlobalProperties, p1, p2, "tst_menu", 2);
-  CheckSelectQuery(resumption::kSelectGlobalProperties, p1, p2, 1, 3);
-  CheckSelectQuery(resumption::kSelectGlobalProperties, p1, p2, 2, 4);
-  CheckSelectQuery(resumption::kSelectGlobalProperties, p1, p2, 3, 5);
-  CheckSelectQuery(resumption::kSelectGlobalProperties, p1, p2, 3, 6);
-  CheckSelectQuery(resumption::kSelectGlobalProperties, p1, p2, "auto", 7);
-  CheckSelectQuery(resumption::kSelectGlobalProperties, p1, p2, 7, 8);
-  CheckSelectQuery(resumption::kSelectGlobalProperties, p1, p2, 3, 9);
+  CheckSelectQuery(kSelectGlobalProperties, p1, p2, glob_prop_key, 0);
+  CheckSelectQuery(kSelectGlobalProperties, p1, p2, "tst_vr_title", 1);
+  CheckSelectQuery(kSelectGlobalProperties, p1, p2, "tst_menu", 2);
+  CheckSelectQuery(kSelectGlobalProperties, p1, p2, 1, 3);
+  CheckSelectQuery(kSelectGlobalProperties, p1, p2, 2, 4);
+  CheckSelectQuery(kSelectGlobalProperties, p1, p2, 3, 5);
+  CheckSelectQuery(kSelectGlobalProperties, p1, p2, 3, 6);
+  CheckSelectQuery(kSelectGlobalProperties, p1, p2, "auto", 7);
+  CheckSelectQuery(kSelectGlobalProperties, p1, p2, 7, 8);
+  CheckSelectQuery(kSelectGlobalProperties, p1, p2, 3, 9);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kChecksVrHelpItem_ExpectDataCorrect) {
@@ -2263,7 +2265,7 @@ TEST_F(ResumptionSqlQueriesTest, kChecksVrHelpItem_ExpectDataCorrect) {
   // Check
   ValToPosPair p1(0, IntToString(glob_prop_key));
   ValToPosPair p2(1, "");
-  CheckSelectQuery(resumption::kChecksVrHelpItem, p1, p2, 1, 0);
+  CheckSelectQuery(kChecksVrHelpItem, p1, p2, 1, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kSelectVrHelpItem_ExpectDataCorrect) {
@@ -2279,10 +2281,10 @@ TEST_F(ResumptionSqlQueriesTest, kSelectVrHelpItem_ExpectDataCorrect) {
   // Check
   ValToPosPair p1(0, IntToString(glob_prop_key));
   ValToPosPair p2(1, "");
-  CheckSelectQuery(resumption::kSelectVrHelpItem, p1, p2, "tst_text", 0);
-  CheckSelectQuery(resumption::kSelectVrHelpItem, p1, p2, 2, 1);
-  CheckSelectQuery(resumption::kSelectVrHelpItem, p1, p2, 2, 2);
-  CheckSelectQuery(resumption::kSelectVrHelpItem, p1, p2, "tst_image", 3);
+  CheckSelectQuery(kSelectVrHelpItem, p1, p2, "tst_text", 0);
+  CheckSelectQuery(kSelectVrHelpItem, p1, p2, 2, 1);
+  CheckSelectQuery(kSelectVrHelpItem, p1, p2, 2, 2);
+  CheckSelectQuery(kSelectVrHelpItem, p1, p2, "tst_image", 3);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kChecksCharacter_ExpectDataCorrect) {
@@ -2298,7 +2300,7 @@ TEST_F(ResumptionSqlQueriesTest, kChecksCharacter_ExpectDataCorrect) {
   // Check
   ValToPosPair p1(0, IntToString(glob_prop_key));
   ValToPosPair p2(1, "");
-  CheckSelectQuery(resumption::kChecksCharacter, p1, p2, 1, 0);
+  CheckSelectQuery(kChecksCharacter, p1, p2, 1, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kSelectCharacter_ExpectDataCorrect) {
@@ -2314,7 +2316,7 @@ TEST_F(ResumptionSqlQueriesTest, kSelectCharacter_ExpectDataCorrect) {
   // Check
   ValToPosPair p1(0, IntToString(glob_prop_key));
   ValToPosPair p2(1, "");
-  CheckSelectQuery(resumption::kSelectCharacter, p1, p2, character_list, 0);
+  CheckSelectQuery(kSelectCharacter, p1, p2, character_list, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kSelectAllApps_ExpectDataCorrect) {
@@ -2329,7 +2331,7 @@ TEST_F(ResumptionSqlQueriesTest, kSelectAllApps_ExpectDataCorrect) {
                        app_id2, device_id2, 2);
   // Checks
   SQLQuery query(db());
-  EXPECT_TRUE(query.Prepare(resumption::kSelectAllApps) && query.Exec());
+  EXPECT_TRUE(query.Prepare(kSelectAllApps) && query.Exec());
   EXPECT_EQ(app_id1, query.GetString(0));
   EXPECT_EQ(device_id, query.GetString(1));
   EXPECT_TRUE(query.Next());
@@ -2354,7 +2356,7 @@ TEST_F(ResumptionSqlQueriesTest, kUpdateApplicationData_ExpectDataCorrect) {
   CheckSelectQuery(select_hmi_level_and_time_stamp, p1, p2, timeStamp, 1);
   // Act
   SQLQuery query(db());
-  EXPECT_TRUE(query.Prepare(resumption::kUpdateApplicationData));
+  EXPECT_TRUE(query.Prepare(kUpdateApplicationData));
   query.Bind(0, 2);
   query.Bind(1, 2016);
   query.Bind(2, app_id1);
@@ -2369,16 +2371,16 @@ TEST_F(ResumptionSqlQueriesTest,
        kUpdateDBVersion_kSelectDBVersion_ExpectDataCorrect) {
   // Arrange
   SQLQuery temp_query(db());
-  EXPECT_TRUE(temp_query.Exec(resumption::kInsertInitData));
+  EXPECT_TRUE(temp_query.Exec(kInsertInitData));
   // Checks before action
-  CheckSelectQuery(resumption::kSelectDBVersion, 0, 0);
+  CheckSelectQuery(kSelectDBVersion, 0, 0);
   // Act
   SQLQuery query(db());
-  EXPECT_TRUE(query.Prepare(resumption::kUpdateDBVersion));
+  EXPECT_TRUE(query.Prepare(kUpdateDBVersion));
   query.Bind(0, 2);
   EXPECT_TRUE(query.Exec());
   // Checks after action
-  CheckSelectQuery(resumption::kSelectDBVersion, 2, 0);
+  CheckSelectQuery(kSelectDBVersion, 2, 0);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kSelectTTSChunk_ExpectDataCorrect) {
@@ -2389,8 +2391,8 @@ TEST_F(ResumptionSqlQueriesTest, kSelectTTSChunk_ExpectDataCorrect) {
   ValToPosPair p1(0, IntToString(tts_chunk_key));
   ValToPosPair p2(1, "");
   // Checks
-  CheckSelectQuery(resumption::kSelectTTSChunk, p1, p2, "tst_txt", 0);
-  CheckSelectQuery(resumption::kSelectTTSChunk, p1, p2, 2, 1);
+  CheckSelectQuery(kSelectTTSChunk, p1, p2, "tst_txt", 0);
+  CheckSelectQuery(kSelectTTSChunk, p1, p2, 2, 1);
 }
 
 TEST_F(ResumptionSqlQueriesTest, kSelectAppTable_ExpectDataCorrect) {
@@ -2403,16 +2405,16 @@ TEST_F(ResumptionSqlQueriesTest, kSelectAppTable_ExpectDataCorrect) {
   ValToPosPair p1(0, app_id1);
   ValToPosPair p2(1, device_id);
   // Checks
-  CheckSelectQuery(resumption::kSelectAppTable, p1, p2, app_id1, 0);
-  CheckSelectQuery(resumption::kSelectAppTable, p1, p2, connection_key, 1);
-  CheckSelectQuery(resumption::kSelectAppTable, p1, p2, grammarID, 2);
-  CheckSelectQuery(resumption::kSelectAppTable, p1, p2, test_hash, 3);
-  CheckSelectQuery(resumption::kSelectAppTable, p1, p2, hmiAppID, 4);
-  CheckSelectQuery(resumption::kSelectAppTable, p1, p2, hmiLevel, 5);
-  CheckSelectQuery(resumption::kSelectAppTable, p1, p2, ign_off_count, 6);
-  CheckSelectQuery(resumption::kSelectAppTable, p1, p2, timeStamp, 7);
-  CheckSelectQuery(resumption::kSelectAppTable, p1, p2, device_id, 8);
-  CheckSelectQuery(resumption::kSelectAppTable, p1, p2, true, 9);
+  CheckSelectQuery(kSelectAppTable, p1, p2, app_id1, 0);
+  CheckSelectQuery(kSelectAppTable, p1, p2, connection_key, 1);
+  CheckSelectQuery(kSelectAppTable, p1, p2, grammarID, 2);
+  CheckSelectQuery(kSelectAppTable, p1, p2, test_hash, 3);
+  CheckSelectQuery(kSelectAppTable, p1, p2, hmiAppID, 4);
+  CheckSelectQuery(kSelectAppTable, p1, p2, hmiLevel, 5);
+  CheckSelectQuery(kSelectAppTable, p1, p2, ign_off_count, 6);
+  CheckSelectQuery(kSelectAppTable, p1, p2, timeStamp, 7);
+  CheckSelectQuery(kSelectAppTable, p1, p2, device_id, 8);
+  CheckSelectQuery(kSelectAppTable, p1, p2, true, 9);
 }
 
 }  // namespace resumption_test

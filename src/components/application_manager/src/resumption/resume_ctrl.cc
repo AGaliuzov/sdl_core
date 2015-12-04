@@ -66,8 +66,8 @@ ResumeCtrl::ResumeCtrl():
 
 }
 #ifdef BUILD_TESTS
-void ResumeCtrl::set_resumption_storage(ResumptionData* mock_storage){
-    resumption_storage_.reset(mock_storage);
+void ResumeCtrl::set_resumption_storage(utils::SharedPtr<ResumptionData> mock_storage){
+    resumption_storage_ = mock_storage;
 }
 #endif // BUILD_TESTS
 

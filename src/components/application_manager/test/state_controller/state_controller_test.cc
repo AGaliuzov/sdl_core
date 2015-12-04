@@ -53,6 +53,7 @@ using ::testing::Mock;
 using ::testing::NiceMock;
 using ::testing::InSequence;
 using ::testing::Truly;
+using ::test::components::application_manager_test::MockApplicationManager;
 using ::test::components::application_manager_test::MockApplication;
 
 class MessageHelperMock {
@@ -140,7 +141,7 @@ class StateControllerTest : public ::testing::Test {
                             new usage_statistics_test::MockStatisticsManager)),
         applications_(application_set_, applications_lock_),
         state_ctrl_(&app_manager_mock_) {}
-  NiceMock<application_manager_test::MockApplicationManager> app_manager_mock_;
+  NiceMock<MockApplicationManager> app_manager_mock_;
 
   am::UsageStatistics usage_stat;
 
@@ -150,35 +151,35 @@ class StateControllerTest : public ::testing::Test {
   am::StateController state_ctrl_;
 
   am::ApplicationSharedPtr simple_app_;
-  NiceMock<application_manager_test::MockApplication>* simple_app_ptr_;
+  NiceMock<MockApplication>* simple_app_ptr_;
   uint32_t simple_app_id_ = 1721;
 
   am::ApplicationSharedPtr navi_app_;
-  NiceMock<application_manager_test::MockApplication>* navi_app_ptr_;
+  NiceMock<MockApplication>* navi_app_ptr_;
   uint32_t navi_app_id_ = 1762;
 
   am::ApplicationSharedPtr media_app_;
-  NiceMock<application_manager_test::MockApplication>* media_app_ptr_;
+  NiceMock<MockApplication>* media_app_ptr_;
   uint32_t media_app_id_ = 1801;
 
   am::ApplicationSharedPtr vc_app_;
-  NiceMock<application_manager_test::MockApplication>* vc_app_ptr_;
+  NiceMock<MockApplication>* vc_app_ptr_;
   uint32_t vc_app_id_ = 1825;
 
   am::ApplicationSharedPtr media_navi_app_;
-  NiceMock<application_manager_test::MockApplication>* media_navi_app_ptr_;
+  NiceMock<MockApplication>* media_navi_app_ptr_;
   uint32_t media_navi_app_id_ = 1855;
 
   am::ApplicationSharedPtr media_vc_app_;
-  NiceMock<application_manager_test::MockApplication>* media_vc_app_ptr_;
+  NiceMock<MockApplication>* media_vc_app_ptr_;
   uint32_t media_vc_app_id_ = 1881;
 
   am::ApplicationSharedPtr navi_vc_app_;
-  NiceMock<application_manager_test::MockApplication>* navi_vc_app_ptr_;
+  NiceMock<MockApplication>* navi_vc_app_ptr_;
   uint32_t navi_vc_app_id_ = 1894;
 
   am::ApplicationSharedPtr media_navi_vc_app_;
-  NiceMock<application_manager_test::MockApplication>* media_navi_vc_app_ptr_;
+  NiceMock<MockApplication>* media_navi_vc_app_ptr_;
   uint32_t media_navi_vc_app_id_ = 1922;
 
   std::vector<am::HmiStatePtr> valid_states_for_audio_app_;
@@ -492,10 +493,10 @@ class StateControllerTest : public ::testing::Test {
   }
 
  protected:
-  am::ApplicationSharedPtr ConfigureApp(NiceMock<application_manager_test::MockApplication>** app_mock,
+  am::ApplicationSharedPtr ConfigureApp(NiceMock<MockApplication>** app_mock,
                                         uint32_t app_id, bool media, bool navi,
                                         bool vc) {
-    *app_mock = new NiceMock<application_manager_test::MockApplication>;
+    *app_mock = new NiceMock<MockApplication>;
 
     Mock::AllowLeak(*app_mock);  // WorkAround for gogletest bug
     am::ApplicationSharedPtr app(*app_mock);
@@ -729,7 +730,7 @@ class StateControllerTest : public ::testing::Test {
   void TearDown() { delete message_helper_mock_; }
 
   void ExpectSuccesfullSetHmiState(am::ApplicationSharedPtr app,
-                                   NiceMock<application_manager_test::MockApplication>* app_mock,
+                                   NiceMock<MockApplication>* app_mock,
                                    am::HmiStatePtr old_state,
                                    am::HmiStatePtr new_state) {
     EXPECT_CALL(*app_mock, CurrentHmiState())
@@ -746,7 +747,7 @@ class StateControllerTest : public ::testing::Test {
   }
 
   void ExpectAppChangeHmiStateDueToConflictResolving(
-      am::ApplicationSharedPtr app, NiceMock<application_manager_test::MockApplication>* app_mock,
+      am::ApplicationSharedPtr app, NiceMock<MockApplication>* app_mock,
       am::HmiStatePtr old_state, am::HmiStatePtr new_state) {
     EXPECT_CALL(*app_mock, RegularHmiState())
         .WillOnce(Return(old_state))
@@ -755,7 +756,7 @@ class StateControllerTest : public ::testing::Test {
   }
 
   void ExpectAppWontChangeHmiStateDueToConflictResolving(
-      am::ApplicationSharedPtr app, NiceMock<application_manager_test::MockApplication>* app_mock,
+      am::ApplicationSharedPtr app, NiceMock<MockApplication>* app_mock,
       am::HmiStatePtr state) {
     EXPECT_CALL(*app_mock, RegularHmiState()).WillOnce(Return(state));
     EXPECT_CALL(app_manager_mock_, SendHMIStatusNotification(app)).Times(0);
@@ -800,7 +801,7 @@ class StateControllerTest : public ::testing::Test {
   }
 
   void CheckStateApplyingForApplication(
-      NiceMock<application_manager_test::MockApplication>& application,
+      NiceMock<MockApplication>& application,
       std::vector<am::HmiState::StateID>& state_ids) {
     using smart_objects::SmartObject;
     using am::event_engine::Event;
@@ -1000,7 +1001,7 @@ TEST_F(StateControllerTest, MoveAudioAppAppToValidStates) {
   namespace SystemContext = mobile_apis::SystemContext;
 
   am::ApplicationSharedPtr audio_app = media_navi_vc_app_;
-  NiceMock<application_manager_test::MockApplication>* audio_app_mock = media_navi_vc_app_ptr_;
+  NiceMock<MockApplication>* audio_app_mock = media_navi_vc_app_ptr_;
 
   HmiStatePtr initial_state =
       createHmiState(HMILevel::INVALID_ENUM, AudioStreamingState::INVALID_ENUM,
@@ -1051,7 +1052,7 @@ TEST_F(StateControllerTest, MoveAppFromValidStateToInvalid) {
     }
   }
 
-  NiceMock<application_manager_test::MockApplication>* audio_app_mock = media_navi_vc_app_ptr_;
+  NiceMock<MockApplication>* audio_app_mock = media_navi_vc_app_ptr_;
   am::ApplicationSharedPtr audio_app = media_navi_vc_app_;
   for (std::vector<HmiStatePtr>::iterator valid_state_it =
            valid_states_for_audio_app_.begin();
@@ -1097,7 +1098,7 @@ TEST_F(StateControllerTest, MoveAppFromInValidStateToValid) {
   namespace AudioStreamingState = mobile_apis::AudioStreamingState;
   namespace SystemContext = mobile_apis::SystemContext;
 
-  NiceMock<application_manager_test::MockApplication>* audio_app_mock = media_navi_vc_app_ptr_;
+  NiceMock<MockApplication>* audio_app_mock = media_navi_vc_app_ptr_;
   am::ApplicationSharedPtr audio_app = media_navi_vc_app_;
   HmiStatePtr invalid_state =
       createHmiState(HMILevel::INVALID_ENUM, AudioStreamingState::INVALID_ENUM,
@@ -1133,7 +1134,7 @@ TEST_F(StateControllerTest, MoveAppFromInValidStateToInvalid) {
   namespace HMILevel = mobile_apis::HMILevel;
   namespace AudioStreamingState = mobile_apis::AudioStreamingState;
   namespace SystemContext = mobile_apis::SystemContext;
-  NiceMock<application_manager_test::MockApplication>* audio_app_mock = media_navi_vc_app_ptr_;
+  NiceMock<MockApplication>* audio_app_mock = media_navi_vc_app_ptr_;
   am::ApplicationSharedPtr audio_app = media_navi_vc_app_;
   HmiStatePtr initial_invalid_state =
       createHmiState(HMILevel::INVALID_ENUM, AudioStreamingState::INVALID_ENUM,
@@ -1194,10 +1195,10 @@ TEST_F(StateControllerTest, SetFullToSimpleAppWhileAnotherSimpleAppIsInFull) {
   namespace AudioStreamingState = mobile_apis::AudioStreamingState;
   namespace SystemContext = mobile_apis::SystemContext;
   am::ApplicationSharedPtr app_in_full;
-  NiceMock<application_manager_test::MockApplication>* app_in_full_mock;
+  NiceMock<MockApplication>* app_in_full_mock;
 
   am::ApplicationSharedPtr app_moved_to_full;
-  NiceMock<application_manager_test::MockApplication>* app_moved_to_full_mock;
+  NiceMock<MockApplication>* app_moved_to_full_mock;
 
   app_in_full =
       ConfigureApp(&app_in_full_mock, 1761, NOT_MEDIA, NOT_NAVI, NOT_VC);
@@ -1223,10 +1224,10 @@ TEST_F(StateControllerTest, SetFullToSimpleAppWhileAudioAppAppIsInFull) {
   namespace AudioStreamingState = mobile_apis::AudioStreamingState;
   namespace SystemContext = mobile_apis::SystemContext;
   am::ApplicationSharedPtr app_in_full = media_navi_vc_app_;
-  NiceMock<application_manager_test::MockApplication>* app_in_full_mock = media_navi_vc_app_ptr_;
+  NiceMock<MockApplication>* app_in_full_mock = media_navi_vc_app_ptr_;
 
   am::ApplicationSharedPtr app_moved_to_full = simple_app_;
-  NiceMock<application_manager_test::MockApplication>* app_moved_to_full_mock = simple_app_ptr_;
+  NiceMock<MockApplication>* app_moved_to_full_mock = simple_app_ptr_;
 
   InsertApplication(app_in_full);
   InsertApplication(app_moved_to_full);
@@ -1248,10 +1249,10 @@ TEST_F(StateControllerTest,
   namespace SystemContext = mobile_apis::SystemContext;
 
   am::ApplicationSharedPtr app_in_full = media_app_;
-  NiceMock<application_manager_test::MockApplication>* app_in_full_mock = media_app_ptr_;
+  NiceMock<MockApplication>* app_in_full_mock = media_app_ptr_;
 
   am::ApplicationSharedPtr app_moved_to_full = navi_app_;
-  NiceMock<application_manager_test::MockApplication>* app_moved_to_full_mock = navi_app_ptr_;
+  NiceMock<MockApplication>* app_moved_to_full_mock = navi_app_ptr_;
 
   InsertApplication(app_in_full);
   InsertApplication(app_moved_to_full);
@@ -1271,11 +1272,11 @@ TEST_F(StateControllerTest,
   namespace HMILevel = mobile_apis::HMILevel;
   namespace AudioStreamingState = mobile_apis::AudioStreamingState;
   namespace SystemContext = mobile_apis::SystemContext;
-  NiceMock<application_manager_test::MockApplication>* app_in_full_mock;
+  NiceMock<MockApplication>* app_in_full_mock;
   am::ApplicationSharedPtr app_in_full =
       ConfigureApp(&app_in_full_mock, 1761, MEDIA, NOT_NAVI, NOT_VC);
 
-  NiceMock<application_manager_test::MockApplication>* app_moved_to_full_mock;
+  NiceMock<MockApplication>* app_moved_to_full_mock;
   am::ApplicationSharedPtr app_moved_to_full =
       ConfigureApp(&app_moved_to_full_mock, 1796, MEDIA, NOT_NAVI, NOT_VC);
 
@@ -1298,11 +1299,11 @@ TEST_F(StateControllerTest,
   namespace AudioStreamingState = mobile_apis::AudioStreamingState;
   namespace SystemContext = mobile_apis::SystemContext;
 
-  NiceMock<application_manager_test::MockApplication>* app_in_limited_mock;
+  NiceMock<MockApplication>* app_in_limited_mock;
   am::ApplicationSharedPtr app_in_limited =
       ConfigureApp(&app_in_limited_mock, 1761, NOT_MEDIA, NAVI, NOT_VC);
 
-  NiceMock<application_manager_test::MockApplication>* app_moved_to_full_mock;
+  NiceMock<MockApplication>* app_moved_to_full_mock;
   am::ApplicationSharedPtr app_moved_to_full =
       ConfigureApp(&app_moved_to_full_mock, 1796, NOT_MEDIA, NAVI, VC);
 
@@ -1324,11 +1325,11 @@ TEST_F(StateControllerTest,
   namespace HMILevel = mobile_apis::HMILevel;
   namespace AudioStreamingState = mobile_apis::AudioStreamingState;
   namespace SystemContext = mobile_apis::SystemContext;
-  NiceMock<application_manager_test::MockApplication>* app_in_limited_mock;
+  NiceMock<MockApplication>* app_in_limited_mock;
   am::ApplicationSharedPtr app_in_limited =
       ConfigureApp(&app_in_limited_mock, 1761, NOT_MEDIA, NOT_NAVI, VC);
 
-  NiceMock<application_manager_test::MockApplication>* app_moved_to_limited_mock;
+  NiceMock<MockApplication>* app_moved_to_limited_mock;
   am::ApplicationSharedPtr app_moved_to_limited =
       ConfigureApp(&app_moved_to_limited_mock, 1796, NOT_MEDIA, NOT_NAVI, VC);
 
@@ -1353,10 +1354,10 @@ TEST_F(StateControllerTest,
   namespace SystemContext = mobile_apis::SystemContext;
 
   am::ApplicationSharedPtr app_in_limited = navi_app_;
-  NiceMock<application_manager_test::MockApplication>* app_in_limited_mock = navi_app_ptr_;
+  NiceMock<MockApplication>* app_in_limited_mock = navi_app_ptr_;
 
   am::ApplicationSharedPtr app_moved_to_limited = vc_app_;
-  NiceMock<application_manager_test::MockApplication>* app_moved_to_limited_mock = vc_app_ptr_;
+  NiceMock<MockApplication>* app_moved_to_limited_mock = vc_app_ptr_;
 
   InsertApplication(app_in_limited);
   InsertApplication(app_moved_to_limited);
@@ -1375,10 +1376,10 @@ TEST_F(StateControllerTest,
   namespace AudioStreamingState = mobile_apis::AudioStreamingState;
   namespace SystemContext = mobile_apis::SystemContext;
   am::ApplicationSharedPtr app_in_full = navi_app_;
-  NiceMock<application_manager_test::MockApplication>* app_in_full_mock = navi_app_ptr_;
+  NiceMock<MockApplication>* app_in_full_mock = navi_app_ptr_;
 
   am::ApplicationSharedPtr app_moved_to_limited = vc_app_;
-  NiceMock<application_manager_test::MockApplication>* app_moved_to_limited_mock = vc_app_ptr_;
+  NiceMock<MockApplication>* app_moved_to_limited_mock = vc_app_ptr_;
 
   InsertApplication(app_in_full);
   InsertApplication(app_moved_to_limited);
@@ -1399,13 +1400,13 @@ TEST_F(StateControllerTest, SetFullToSimpleAppWhile2AudioAppsInLimited) {
   namespace SystemContext = mobile_apis::SystemContext;
 
   am::ApplicationSharedPtr app_moved_to_full = simple_app_;
-  NiceMock<application_manager_test::MockApplication>* app_moved_to_full_mock = simple_app_ptr_;
+  NiceMock<MockApplication>* app_moved_to_full_mock = simple_app_ptr_;
 
   am::ApplicationSharedPtr limited_app1 = media_app_;
-  NiceMock<application_manager_test::MockApplication>* limited_app1_mock = media_app_ptr_;
+  NiceMock<MockApplication>* limited_app1_mock = media_app_ptr_;
 
   am::ApplicationSharedPtr limited_app2 = navi_vc_app_;
-  NiceMock<application_manager_test::MockApplication>* limited_app2_mock = navi_vc_app_ptr_;
+  NiceMock<MockApplication>* limited_app2_mock = navi_vc_app_ptr_;
 
   InsertApplication(app_moved_to_full);
   InsertApplication(limited_app1);
@@ -1431,13 +1432,13 @@ TEST_F(StateControllerTest,
   namespace SystemContext = mobile_apis::SystemContext;
 
   am::ApplicationSharedPtr app_moved_to_full = simple_app_;
-  NiceMock<application_manager_test::MockApplication>* app_moved_to_full_mock = simple_app_ptr_;
+  NiceMock<MockApplication>* app_moved_to_full_mock = simple_app_ptr_;
 
   am::ApplicationSharedPtr limited_app = media_app_;
-  NiceMock<application_manager_test::MockApplication>* limited_app_mock = media_app_ptr_;
+  NiceMock<MockApplication>* limited_app_mock = media_app_ptr_;
 
   am::ApplicationSharedPtr full_app = navi_vc_app_;
-  NiceMock<application_manager_test::MockApplication>* full_app_mock = navi_vc_app_ptr_;
+  NiceMock<MockApplication>* full_app_mock = navi_vc_app_ptr_;
 
   InsertApplication(app_moved_to_full);
   InsertApplication(limited_app);
@@ -1463,14 +1464,14 @@ TEST_F(StateControllerTest,
   namespace AudioStreamingState = mobile_apis::AudioStreamingState;
   namespace SystemContext = mobile_apis::SystemContext;
 
-  NiceMock<application_manager_test::MockApplication>* app_moved_to_full_mock;
+  NiceMock<MockApplication>* app_moved_to_full_mock;
   am::ApplicationSharedPtr app_moved_to_full =
       ConfigureApp(&app_moved_to_full_mock, 1761, NOT_MEDIA, NOT_NAVI, NOT_VC);
 
   am::ApplicationSharedPtr limited_app = media_app_;
-  NiceMock<application_manager_test::MockApplication>* limited_app_mock = media_app_ptr_;
+  NiceMock<MockApplication>* limited_app_mock = media_app_ptr_;
 
-  NiceMock<application_manager_test::MockApplication>* full_app_mock;
+  NiceMock<MockApplication>* full_app_mock;
   am::ApplicationSharedPtr full_app =
       ConfigureApp(&full_app_mock, 1796, NOT_MEDIA, NOT_NAVI, NOT_VC);
 
@@ -1499,15 +1500,15 @@ TEST_F(
   namespace AudioStreamingState = mobile_apis::AudioStreamingState;
   namespace SystemContext = mobile_apis::SystemContext;
 
-  NiceMock<application_manager_test::MockApplication>* app_moved_to_full_mock;
+  NiceMock<MockApplication>* app_moved_to_full_mock;
   am::ApplicationSharedPtr app_moved_to_full =
       ConfigureApp(&app_moved_to_full_mock, 1761, MEDIA, NOT_NAVI, NOT_VC);
 
-  NiceMock<application_manager_test::MockApplication>* limited_app_mock;
+  NiceMock<MockApplication>* limited_app_mock;
   am::ApplicationSharedPtr limited_app =
       ConfigureApp(&limited_app_mock, 1762, MEDIA, NOT_NAVI, NOT_VC);
 
-  NiceMock<application_manager_test::MockApplication>* full_app_mock;
+  NiceMock<MockApplication>* full_app_mock;
   am::ApplicationSharedPtr full_app =
       ConfigureApp(&full_app_mock, 1796, NOT_MEDIA, NOT_NAVI, NOT_VC);
 
@@ -1536,15 +1537,15 @@ TEST_F(
   namespace AudioStreamingState = mobile_apis::AudioStreamingState;
   namespace SystemContext = mobile_apis::SystemContext;
 
-  NiceMock<application_manager_test::MockApplication>* app_moved_to_full_mock;
+  NiceMock<MockApplication>* app_moved_to_full_mock;
   am::ApplicationSharedPtr app_moved_to_full =
       ConfigureApp(&app_moved_to_full_mock, 1761, MEDIA, NOT_NAVI, NOT_VC);
 
-  NiceMock<application_manager_test::MockApplication>* limited_app_mock;
+  NiceMock<MockApplication>* limited_app_mock;
   am::ApplicationSharedPtr limited_app =
       ConfigureApp(&limited_app_mock, 1762, MEDIA, NOT_NAVI, NOT_VC);
 
-  NiceMock<application_manager_test::MockApplication>* full_app_mock;
+  NiceMock<MockApplication>* full_app_mock;
   am::ApplicationSharedPtr full_app =
       ConfigureApp(&full_app_mock, 1796, NOT_MEDIA, NAVI, NOT_VC);
 
