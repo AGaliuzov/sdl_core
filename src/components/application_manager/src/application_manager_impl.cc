@@ -62,7 +62,7 @@
 #include "utils/custom_string.h"
 #ifdef CUSTOMER_PASA
 #include "resumption/last_state.h"
-#endif
+#endif  // CUSTOMER_PASA
 #include <time.h>
 
 namespace {
