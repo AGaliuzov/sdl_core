@@ -1229,7 +1229,7 @@ void ApplicationManagerImpl::SendMessageToMobile(
         app->protocol_version();
   }
 
-  mobile_so_factory().attachSchema(*message);
+  mobile_so_factory().attachSchema(*message, false);
   LOG4CXX_INFO(logger_, "Attached schema to message, result if valid: "
                             << message->isValid());
 
@@ -1362,7 +1362,7 @@ bool ApplicationManagerImpl::ManageMobileCommand(
     }
 
     // Message for "CheckPermission" must be with attached schema
-    mobile_so_factory().attachSchema(*message);
+    mobile_so_factory().attachSchema(*message, false);
   }
 
   if (message_type == mobile_apis::messageType::response) {
@@ -1485,7 +1485,7 @@ void ApplicationManagerImpl::SendMessageToHMI(
     return;
   }
 
-  hmi_so_factory().attachSchema(*message);
+  hmi_so_factory().attachSchema(*message, false);
   LOG4CXX_INFO(logger_, "Attached schema to message, result if valid: "
                             << message->isValid());
 
@@ -1620,7 +1620,7 @@ bool ApplicationManagerImpl::ConvertMessageToSO(
               message.json_message(), output, message.function_id(),
               message.type(), message.correlation_id());
       if (!conversion_result
-          || !mobile_so_factory().attachSchema(output)
+          || !mobile_so_factory().attachSchema(output, true)
           || ((output.validate() != smart_objects::Errors::OK))) {
         LOG4CXX_WARN(logger_, "Failed to parse string to smart object :"
                      << message.json_message());
@@ -1670,7 +1670,7 @@ bool ApplicationManagerImpl::ConvertMessageToSO(
                    "Convertion result: "
                        << result << " function id "
                        << output[jhs::S_PARAMS][jhs::S_FUNCTION_ID].asInt());
-      if (!hmi_so_factory().attachSchema(output)) {
+      if (!hmi_so_factory().attachSchema(output, false)) {
         LOG4CXX_WARN(logger_, "Failed to attach schema to object.");
         return false;
       }
@@ -1727,7 +1727,7 @@ bool ApplicationManagerImpl::ConvertMessageToSO(
 
           smart_objects::SmartObjectSPtr msg_to_send =
               new smart_objects::SmartObject(output);
-          v1_shema.attachSchema(*msg_to_send);
+          v1_shema.attachSchema(*msg_to_send, false);
           SendMessageToMobile(msg_to_send);
           return false;
         }
@@ -2078,7 +2078,7 @@ void ApplicationManagerImpl::SendOnSDLClose() {
   utils::SharedPtr<Message> message_to_send(
       new Message(protocol_handler::MessagePriority::kDefault));
 
-  hmi_so_factory().attachSchema(*msg);
+  hmi_so_factory().attachSchema(*msg, false);
   LOG4CXX_DEBUG(
     logger_,
     "Attached schema to message, result if valid: " << msg->isValid());
