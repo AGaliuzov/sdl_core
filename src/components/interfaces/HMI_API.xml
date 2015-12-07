@@ -406,6 +406,9 @@
   <element name="UNAUTHORIZED_TRANSPORT_REGISTRATION">
     <description>By getting this value, SDL unregisters the named application</description>
   </element>
+  <element name="UNSUPPORTED_HMI_RESOURCE">
+    <description>By getting this value, SDL unregisters the named application</description>
+  </element>
 </enum>
 
 <enum name="TextFieldName">
@@ -1999,7 +2002,7 @@
           The ID of application that relates to this button-subscription status change.
         </description>
       </param>
-    </function>    
+    </function>
 </interface>
 
 <interface name="BasicCommunication" version="1.0" date="2013-04-12">

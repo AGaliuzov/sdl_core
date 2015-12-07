@@ -57,7 +57,7 @@ void OnExitApplicationNotification::Run() {
   ApplicationManagerImpl* app_mgr = ApplicationManagerImpl::instance();
   uint32_t app_id = (*message_)[strings::msg_params][strings::app_id].asUInt();
   ApplicationSharedPtr app_impl = app_mgr->application(app_id);
-      
+
   if (!(app_impl.valid())) {
     LOG4CXX_ERROR(logger_, "Application does not exist");
     return;
@@ -75,6 +75,12 @@ void OnExitApplicationNotification::Run() {
     case Common_ApplicationExitReason::UNAUTHORIZED_TRANSPORT_REGISTRATION: {
       MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
           app_id, AppInterfaceUnregisteredReason::APP_UNAUTHORIZED);
+      app_mgr->UnregisterApplication(app_id, Result::SUCCESS);
+      return;
+    }
+    case Common_ApplicationExitReason::UNSUPPORTED_HMI_RESOURCE: {
+      MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
+          app_id, AppInterfaceUnregisteredReason::UNSUPPORTED_HMI_RESOURCE);
       app_mgr->UnregisterApplication(app_id, Result::SUCCESS);
       return;
     }
