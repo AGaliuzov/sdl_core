@@ -86,7 +86,6 @@ ConnectionHandlerImpl::ConnectionHandlerImpl()
   : connection_handler_observer_(NULL),
     transport_manager_(NULL),
     protocol_handler_(NULL),
-    connection_list_lock_(true),
     connection_handler_observer_lock_(true),
     connection_list_deleter_(&connection_list_) {
 }
@@ -177,7 +176,7 @@ void ConnectionHandlerImpl::OnDeviceRemoved(
 
   std::vector<ConnectionHandle> connections_to_remove;
   {
-    sync_primitives::AutoLock lock(connection_list_lock_);
+    sync_primitives::AutoReadLock lock(connection_list_lock_);
     for (ConnectionList::iterator it = connection_list_.begin();
          it != connection_list_.end(); ++it) {
       if (device_info.device_handle() ==
@@ -219,7 +218,7 @@ void ConnectionHandlerImpl::OnConnectionEstablished(
     return;
   }
   LOG4CXX_DEBUG(logger_, "Add Connection #" << connection_id << " to the list.");
-  sync_primitives::AutoLock lock(connection_list_lock_);
+  sync_primitives::AutoWriteLock lock(connection_list_lock_);
   connection_list_.insert(
       ConnectionList::value_type(
           connection_id,
@@ -320,7 +319,7 @@ uint32_t ConnectionHandlerImpl::OnSessionStartedCallback(
     return 0;
   }
 #endif  // ENABLE_SECURITY
-  sync_primitives::AutoLock lock(connection_list_lock_);
+  sync_primitives::AutoReadLock lock(connection_list_lock_);
   ConnectionList::iterator it = connection_list_.find(connection_handle);
   if (connection_list_.end() == it) {
     LOG4CXX_ERROR(logger_, "Unknown connection!");
@@ -405,7 +404,7 @@ uint32_t ConnectionHandlerImpl::OnSessionEndedCallback(
     const protocol_handler::ServiceType &service_type) {
   LOG4CXX_AUTO_TRACE(logger_);
 
-  connection_list_lock_.Acquire();
+  connection_list_lock_.AcquireForReading();
   ConnectionList::iterator it = connection_list_.find(connection_handle);
   if (connection_list_.end() == it) {
     LOG4CXX_WARN(logger_, "Unknown connection!");
@@ -576,7 +575,7 @@ int32_t ConnectionHandlerImpl::GetDataOnDeviceID(
   }
   if (applications_list) {
     applications_list->clear();
-    sync_primitives::AutoLock connection_list_lock(connection_list_lock_);
+    sync_primitives::AutoReadLock connection_list_lock(connection_list_lock_);
     for (ConnectionList::iterator itr = connection_list_.begin();
         itr != connection_list_.end(); ++itr) {
       if (device_handle == (*itr).second->connection_device_handle()) {
@@ -620,7 +619,7 @@ int ConnectionHandlerImpl::SetSSLContext(
   uint8_t session_id = 0;
   PairFromKey(key, &connection_handle, &session_id);
 
-  sync_primitives::AutoLock lock(connection_list_lock_);
+  sync_primitives::AutoReadLock lock(connection_list_lock_);
   ConnectionList::iterator it = connection_list_.find(connection_handle);
   if (connection_list_.end() == it) {
     LOG4CXX_ERROR(logger_, "Unknown connection!");
@@ -637,7 +636,7 @@ security_manager::SSLContext *ConnectionHandlerImpl::GetSSLContext(
   uint8_t session_id = 0;
   PairFromKey(key, &connection_handle, &session_id);
 
-  sync_primitives::AutoLock lock(connection_list_lock_);
+  sync_primitives::AutoReadLock lock(connection_list_lock_);
   ConnectionList::iterator it = connection_list_.find(connection_handle);
   if (connection_list_.end() == it) {
     LOG4CXX_ERROR(logger_, "Unknown connection!");
@@ -654,7 +653,7 @@ void ConnectionHandlerImpl::SetProtectionFlag(
   uint8_t session_id = 0;
   PairFromKey(key, &connection_handle, &session_id);
 
-  sync_primitives::AutoLock lock(connection_list_lock_);
+  sync_primitives::AutoReadLock lock(connection_list_lock_);
   ConnectionList::iterator it = connection_list_.find(connection_handle);
   if (connection_list_.end() == it) {
     LOG4CXX_ERROR(logger_, "Unknown connection!");
@@ -743,7 +742,7 @@ void ConnectionHandlerImpl::CloseConnection(
       ConnectionUIDFromHandle(connection_handle);
   transport_manager_->DisconnectForce(connection_uid);
 
-  sync_primitives::AutoLock connection_list_lock(connection_list_lock_);
+  sync_primitives::AutoWriteLock connection_list_lock(connection_list_lock_);
 
   ConnectionList::iterator connection_list_itr =
       connection_list_.find(connection_uid);
@@ -754,11 +753,12 @@ void ConnectionHandlerImpl::CloseConnection(
 
 uint32_t ConnectionHandlerImpl::GetConnectionSessionsCount(
     uint32_t connection_key) {
+  LOG4CXX_AUTO_TRACE(logger_);
   uint32_t connection_handle = 0;
   uint8_t session_id = 0;
   PairFromKey(connection_key, &connection_handle, &session_id);
 
-  sync_primitives::AutoLock lock(connection_list_lock_);
+  sync_primitives::AutoReadLock lock(connection_list_lock_);
   ConnectionList::iterator itr = connection_list_.find(connection_handle);
 
   if (connection_list_.end() != itr) {
@@ -794,7 +794,7 @@ void ConnectionHandlerImpl::CloseSession(ConnectionHandle connection_handle,
 
   SessionMap session_map;
   {
-    sync_primitives::AutoLock connection_list_lock(connection_list_lock_);
+    sync_primitives::AutoReadLock connection_list_lock(connection_list_lock_);
 
     ConnectionList::iterator connection_list_itr =
         connection_list_.find(connection_id);
@@ -880,11 +880,12 @@ void ConnectionHandlerImpl::SendEndService(uint32_t key,
 }
 
 void ConnectionHandlerImpl::StartSessionHeartBeat(uint32_t connection_key) {
+  LOG4CXX_AUTO_TRACE(logger_);
   uint32_t connection_handle = 0;
   uint8_t session_id = 0;
   PairFromKey(connection_key, &connection_handle, &session_id);
 
-  sync_primitives::AutoLock lock(connection_list_lock_);
+  sync_primitives::AutoReadLock lock(connection_list_lock_);
   ConnectionList::iterator it = connection_list_.find(connection_handle);
   if (connection_list_.end() != it) {
     it->second->StartHeartBeat(session_id);
@@ -893,10 +894,11 @@ void ConnectionHandlerImpl::StartSessionHeartBeat(uint32_t connection_key) {
 
 void ConnectionHandlerImpl::SetHeartBeatTimeout(uint32_t connection_key,
                                                 uint32_t timeout) {
+  LOG4CXX_AUTO_TRACE(logger_);
   uint32_t connection_handle = 0;
   uint8_t session_id = 0;
   PairFromKey(connection_key, &connection_handle, &session_id);
-  sync_primitives::AutoLock lock(connection_list_lock_);
+  sync_primitives::AutoReadLock lock(connection_list_lock_);
   ConnectionList::iterator it = connection_list_.find(connection_handle);
   if (connection_list_.end() != it) {
     it->second->SetHeartBeatTimeout(timeout, session_id);
@@ -914,8 +916,8 @@ void ConnectionHandlerImpl::SendHeartBeat(ConnectionHandle connection_handle,
 
 void ConnectionHandlerImpl::KeepConnectionAlive(uint32_t connection_key,
                                                 uint8_t session_id) {
-  sync_primitives::AutoLock lock(connection_list_lock_);
-
+  LOG4CXX_AUTO_TRACE(logger_);
+  sync_primitives::AutoReadLock lock(connection_list_lock_);
   ConnectionList::iterator it = connection_list_.find(connection_key);
   if (connection_list_.end() != it) {
     it->second->KeepAlive(session_id);
@@ -927,8 +929,7 @@ void ConnectionHandlerImpl::OnConnectionEnded(
     CloseSessionReason reason) {
   LOG4CXX_INFO(logger_, "Delete Connection: " << static_cast<int32_t>(connection_id)
                << " from the list.");
-
-  connection_list_lock_.Acquire();
+  connection_list_lock_.AcquireForWriting();
   ConnectionList::iterator itr = connection_list_.find(connection_id);
   if (connection_list_.end() == itr) {
     LOG4CXX_ERROR(logger_, "Connection not found!");
@@ -946,7 +947,6 @@ void ConnectionHandlerImpl::OnConnectionEnded(
       const uint32_t session_key = KeyFromPair(connection_id, session_it->first);
       const Session& session = session_it->second;
       CloseSessionServices(session_key, session, reason);
-      connection->RemoveSession(session_it->first);
     }
   }
 }
@@ -957,7 +957,7 @@ ConnectionHandlerImpl::GetConnectionSessionsIds(
   LOG4CXX_AUTO_TRACE(logger_);
   typedef std::vector<uint8_t> SessionIdVector;
   SessionIdVector session_id_vector;
-  sync_primitives::AutoLock connection_list_lock(connection_list_lock_);
+  sync_primitives::AutoReadLock connection_list_lock(connection_list_lock_);
   ConnectionList::iterator connection_list_itr =
       connection_list_.find(connection_handle);
   if (connection_list_.end() != connection_list_itr) {
@@ -980,7 +980,7 @@ void ConnectionHandlerImpl::BindProtocolVersionWithSession(
   uint8_t session_id = 0;
   PairFromKey(connection_key, &connection_handle, &session_id);
 
-  sync_primitives::AutoLock lock(connection_list_lock_);
+  sync_primitives::AutoReadLock lock(connection_list_lock_);
   ConnectionList::iterator it = connection_list_.find(connection_handle);
   if (connection_list_.end() != it) {
     it->second->UpdateProtocolVersionSession(session_id, protocol_version);
@@ -990,7 +990,7 @@ void ConnectionHandlerImpl::BindProtocolVersionWithSession(
 bool ConnectionHandlerImpl::IsHeartBeatSupported(
     transport_manager::ConnectionUID connection_handle,uint8_t session_id) {
   LOG4CXX_AUTO_TRACE(logger_);
-  sync_primitives::AutoLock lock(connection_list_lock_);
+  sync_primitives::AutoReadLock lock(connection_list_lock_);
   uint32_t connection = static_cast<uint32_t>(connection_handle);
   ConnectionList::iterator it = connection_list_.find(connection);
   if (connection_list_.end() == it) {
@@ -1003,7 +1003,7 @@ bool ConnectionHandlerImpl::IsHeartBeatSupported(
 bool ConnectionHandlerImpl::ProtocolVersionUsed(uint32_t connection_id,
                   uint8_t session_id, uint8_t& protocol_version) {
   LOG4CXX_AUTO_TRACE(logger_);
-  sync_primitives::AutoLock lock(connection_list_lock_);
+  sync_primitives::AutoReadLock lock(connection_list_lock_);
   ConnectionList::iterator it = connection_list_.find(connection_id);
   if (connection_list_.end() != it) {
     return it->second->ProtocolVersion(session_id, protocol_version);

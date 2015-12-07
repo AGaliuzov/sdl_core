@@ -53,8 +53,7 @@ HeartBeatMonitor::HeartBeatMonitor(uint32_t heartbeat_timeout_mseconds,
 }
 
 void HeartBeatMonitor::Process() {
-  AutoLock auto_lock(sessions_list_lock_);
-
+  sessions_list_lock_.Acquire();
   SessionMap::iterator it = sessions_.begin();
   while (it != sessions_.end()) {
     SessionState &state = it->second;
@@ -62,7 +61,10 @@ void HeartBeatMonitor::Process() {
       const uint8_t session_id = it->first;
       if (state.IsReadyToClose()) {
         LOG4CXX_WARN(logger_, "Will close session");
+        sessions_list_lock_.Release();
+        RemoveSession(session_id);
         connection_->CloseSession(session_id);
+        sessions_list_lock_.Acquire();
         it = sessions_.begin();
         continue;
       } else {
@@ -74,6 +76,7 @@ void HeartBeatMonitor::Process() {
     }
     ++it;
   }
+  sessions_list_lock_.Release();
 }
 
 void HeartBeatMonitor::threadMain() {
@@ -101,6 +104,7 @@ void HeartBeatMonitor::AddSession(uint8_t session_id) {
 }
 
 void HeartBeatMonitor::RemoveSession(uint8_t session_id) {
+  LOG4CXX_AUTO_TRACE(logger_);
   AutoLock auto_lock(sessions_list_lock_);
 
   LOG4CXX_DEBUG(logger_,
@@ -114,6 +118,7 @@ void HeartBeatMonitor::RemoveSession(uint8_t session_id) {
 }
 
 void HeartBeatMonitor::KeepAlive(uint8_t session_id) {
+  LOG4CXX_AUTO_TRACE(logger_);
   AutoLock auto_lock(sessions_list_lock_);
 
   if (sessions_.end() != sessions_.find(session_id)) {
