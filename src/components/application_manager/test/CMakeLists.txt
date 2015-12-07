@@ -196,6 +196,7 @@ if (BUILD_TESTS)
     jsoncpp
     connectionHandler
     gmock_main
+    ConfigProfile
     MediaManager
     Resumption
     ProtocolHandler
