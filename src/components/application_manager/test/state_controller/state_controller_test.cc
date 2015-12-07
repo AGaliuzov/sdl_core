@@ -1097,98 +1097,29 @@ TEST_F(StateControllerTest, MoveAudioResumeAppToValidStates) {
   }
 }
 
-TEST_F(StateControllerTest, DISABLED_MoveResumingNotMediaAppFromValidStateToInvalid) {
+TEST_F(StateControllerTest, MoveAppFromValidStateToInvalid) {
   using am::HmiState;
   using am::HmiStatePtr;
-  using am::UsageStatistics;
-  namespace HMILevel = mobile_apis::HMILevel;
-  namespace AudioStreamingState = mobile_apis::AudioStreamingState;
-  namespace SystemContext = mobile_apis::SystemContext;
-
-  for (std::vector<HmiStatePtr>::iterator valid_state_it =
-           valid_states_for_not_audio_app_.begin();
-       valid_state_it != valid_states_for_not_audio_app_.end();
-       ++valid_state_it) {
-    for (std::vector<HmiStatePtr>::iterator invalid_state_it =
-             common_invalid_states_.begin();
-         invalid_state_it != common_invalid_states_.end(); ++invalid_state_it) {
-      HmiStatePtr initial_state = *valid_state_it;
-      HmiStatePtr invalid_state = *invalid_state_it;
-      EXPECT_CALL(*simple_app_ptr_, CurrentHmiState())
-          .WillOnce(Return(initial_state))
-          .WillOnce(Return(initial_state));
-      EXPECT_CALL(*simple_app_ptr_, is_resuming())
-          .WillOnce(Return(true))
-          .WillOnce(Return(true));
-      EXPECT_CALL(app_manager_mock_, OnHMILevelChanged(_, _, _)).Times(0);
-      EXPECT_CALL(*simple_app_ptr_, SetRegularState(_)).Times(0);
-      state_ctrl_.SetRegularState<false>(simple_app_, invalid_state);
-    }
-  }
-}
-
-TEST_F(StateControllerTest, DISABLED_MoveNotResumingNotMediaAppFromValidStateToInvalid) {
-  using am::HmiState;
-  using am::HmiStatePtr;
-  using am::UsageStatistics;
-  namespace HMILevel = mobile_apis::HMILevel;
-  namespace AudioStreamingState = mobile_apis::AudioStreamingState;
-  namespace SystemContext = mobile_apis::SystemContext;
-  for (std::vector<HmiStatePtr>::iterator valid_state_it =
-           valid_states_for_not_audio_app_.begin();
-       valid_state_it != valid_states_for_not_audio_app_.end();
-       ++valid_state_it) {
-    for (std::vector<HmiStatePtr>::iterator invalid_state_it =
-             common_invalid_states_.begin();
-         invalid_state_it != common_invalid_states_.end(); ++invalid_state_it) {
-      HmiStatePtr initial_state = *valid_state_it;
-      HmiStatePtr invalid_state = *invalid_state_it;
-      EXPECT_CALL(*simple_app_ptr_, CurrentHmiState())
-          .WillOnce(Return(initial_state))
-          .WillOnce(Return(initial_state));
-      EXPECT_CALL(*simple_app_ptr_, is_resuming())
-          .WillRepeatedly(Return(false));
-      EXPECT_CALL(app_manager_mock_, OnHMILevelChanged(_, _, _)).Times(0);
-      EXPECT_CALL(*simple_app_ptr_, SetRegularState(_)).Times(0);
-      state_ctrl_.SetRegularState<false>(simple_app_, invalid_state);
-    }
-  }
-}
-
-TEST_F(StateControllerTest, DISABLED_MoveAudioAppFromInValidStateToValid) {
-  using am::HmiState;
-  using am::HmiStatePtr;
-  using am::UsageStatistics;
-  namespace HMILevel = mobile_apis::HMILevel;
-  namespace AudioStreamingState = mobile_apis::AudioStreamingState;
-  namespace SystemContext = mobile_apis::SystemContext;
-
-  NiceMock<MockApplication>* audio_app_mock = media_navi_vc_app_ptr_;
-  am::ApplicationSharedPtr audio_app = media_navi_vc_app_;
-  HmiStatePtr invalid_state =
-      createHmiState(HMILevel::INVALID_ENUM, AudioStreamingState::INVALID_ENUM,
-                     SystemContext::INVALID_ENUM);
-
-  for (std::vector<HmiStatePtr>::iterator it =
-           valid_states_for_audio_app_.begin();
-       it != valid_states_for_audio_app_.end(); ++it) {
-    HmiStatePtr initial_state = *it;
-    EXPECT_CALL(*audio_app_mock, CurrentHmiState())
-        .WillOnce(Return(initial_state));
-    EXPECT_CALL(app_manager_mock_, OnHMILevelChanged(_, _, _)).Times(0);
-    EXPECT_CALL(*audio_app_mock, SetRegularState(_)).Times(0);
-    state_ctrl_.SetRegularState<false>(audio_app, invalid_state);
-  }
-
-  for (std::vector<HmiStatePtr>::iterator it =
-           valid_states_for_not_audio_app_.begin();
-       it != valid_states_for_not_audio_app_.end(); ++it) {
-    HmiStatePtr initial_state = *it;
-    EXPECT_CALL(*simple_app_ptr_, CurrentHmiState())
-        .WillOnce(Return(initial_state));
+  for (std::vector<HmiStatePtr>::iterator invalid_state_it =
+           common_invalid_states_.begin();
+       invalid_state_it != common_invalid_states_.end(); ++invalid_state_it) {
+    HmiStatePtr invalid_state = *invalid_state_it;
+    EXPECT_CALL(*simple_app_ptr_, CurrentHmiState()).Times(0);
+    EXPECT_CALL(*simple_app_ptr_, is_resuming()).Times(0);
     EXPECT_CALL(app_manager_mock_, OnHMILevelChanged(_, _, _)).Times(0);
     EXPECT_CALL(*simple_app_ptr_, SetRegularState(_)).Times(0);
     state_ctrl_.SetRegularState<false>(simple_app_, invalid_state);
+  }
+
+  for (std::vector<HmiStatePtr>::iterator invalid_state_it =
+           common_invalid_states_.begin();
+       invalid_state_it != common_invalid_states_.end(); ++invalid_state_it) {
+    HmiStatePtr invalid_state = *invalid_state_it;
+    EXPECT_CALL(*media_navi_vc_app_ptr_, CurrentHmiState()).Times(0);
+    EXPECT_CALL(*media_navi_vc_app_ptr_, is_resuming()).Times(0);
+    EXPECT_CALL(app_manager_mock_, OnHMILevelChanged(_, _, _)).Times(0);
+    EXPECT_CALL(*media_navi_vc_app_ptr_, SetRegularState(_)).Times(0);
+    state_ctrl_.SetRegularState<false>(media_navi_vc_app_, invalid_state);
   }
 }
 
