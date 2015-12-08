@@ -293,6 +293,7 @@ file (GLOB MOBILE_COMMANDS_SOURCES
   ${AM_SOURCE_DIR}/src/commands/hmi/dial_number_request.cc
   ${AM_SOURCE_DIR}/src/commands/hmi/dial_number_response.cc
   ${AM_SOURCE_DIR}/src/commands/hmi/basic_communication_on_deactivate_hmi.cc
+  ${AM_SOURCE_DIR}/src/commands/hmi/on_event_changed_notification.cc
 )
 
 set (HMI_COMMANDS_SOURCES_JSON

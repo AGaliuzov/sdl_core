@@ -54,8 +54,8 @@ MessageBrokerAdapter::MessageBrokerAdapter(HMIMessageHandler* handler_param,
 #ifdef PASA_HMI
 // Todd: PASA support
 MessageBrokerAdapter::MessageBrokerAdapter(HMIMessageHandler* handler,
-										   const std::string& mqsend,
-										   const std::string& mqrecv)
+                                           const std::string& mqsend,
+                                           const std::string& mqrecv)
     : HMIMessageAdapter(handler),
       MessageBrokerController(mqsend, mqrecv, "SDL"){
   LOG4CXX_INFO(logger_, "Created MessageBrokerAdapter");
@@ -148,6 +148,7 @@ void MessageBrokerAdapter::SubscribeTo() {
   MessageBrokerController::subscribeTo("SDL.OnDeviceStateChanged");
   MessageBrokerController::subscribeTo("SDL.OnPolicyUpdate");
   MessageBrokerController::subscribeTo("BasicCommunication.OnDeactivateHMI");
+  MessageBrokerController::subscribeTo("BasicCommunication.OnEventChanged");
 
   LOG4CXX_INFO(logger_, "Subscribed to notifications.");
 }
