@@ -34,16 +34,11 @@ set(TM_TEST_DIR ${COMPONENTS_DIR}/transport_manager/test)
 include_directories(
   ${LOG4CXX_INCLUDE_DIRECTORY}
   ${GMOCK_INCLUDE_DIRECTORY}
-  ${COMPONENTS_DIR}/smart_objects/include
-  ${COMPONENTS_DIR}/transport_manager/include
-  ${COMPONENTS_DIR}/utils/include
-  ${COMPONENTS_DIR}/connection_handler/include
   ${JSONCPP_INCLUDE_DIRECTORY}
   ${CMAKE_BINARY_DIR}
   ${CMAKE_BINARY_DIR}/src/components/
   ${COMPONENTS_DIR}/application_manager/include
   ${COMPONENTS_DIR}/policy/src/policy/usage_statistics/include/
-
 )
 
 set(LIBRARIES

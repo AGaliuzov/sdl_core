@@ -35,7 +35,7 @@
 
 namespace test {
 namespace components {
-namespace policy {
+namespace policy_test {
 
 ::testing::AssertionResult IsError(void* error) {
   if (error) {
@@ -70,6 +70,6 @@ TEST(SharedLibraryTest, FullTest_OpenLibrarySetSymbolCloseLibrary_ExpectActsWith
   EXPECT_FALSE(IsError(dlerror()));
 }
 
-}  // namespace policy
+}  // namespace policy_test
 }  // namespace components
 }  // namespace test

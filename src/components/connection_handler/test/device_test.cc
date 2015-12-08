@@ -36,7 +36,7 @@
 
 namespace test {
 namespace components {
-namespace connection_handle {
+namespace connection_handler_test {
 
 using namespace connection_handler;
 TEST(ConnectionDevice, CompareDevicesWithDifferentMacAddresses) {
@@ -74,7 +74,7 @@ TEST(ConnectionDevice, MacAddressHash) {
   EXPECT_EQ(hashed_mac_address, test_device.mac_address());
 }
 
-}  // namespace connection_handle
+}  // namespace connection_handler_test
 }  // namespace components
 }  // namespace test
 

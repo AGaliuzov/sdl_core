@@ -33,19 +33,12 @@ if(BUILD_TESTS)
 include_directories(
   ${LOG4CXX_INCLUDE_DIRECTORY}
   ${GMOCK_INCLUDE_DIRECTORY}
-  ${COMPONENTS_DIR}/utils/include
-  ${COMPONENTS_DIR}/resumption/include
-  ${COMPONENTS_DIR}/config_profile/include
-  ${COMPONENTS_DIR}/include
   ${JSONCPP_INCLUDE_DIRECTORY}
-  ${CMAKE_BINARY_DIR}
 )
 
 set(LIBRARIES
-    gmock 
-    ConfigProfile 
-    Utils    
-    Resumption  
+    gmock
+    Resumption
     jsoncpp
 )
 

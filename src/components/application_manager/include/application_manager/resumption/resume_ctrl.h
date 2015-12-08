@@ -262,7 +262,7 @@ class ResumeCtrl: public app_mngr::event_engine::EventObserver {
    */
   bool Init();
 #ifdef BUILD_TESTS
-  void set_resumption_storage(ResumptionData *mock_storage);
+  void set_resumption_storage(utils::SharedPtr<ResumptionData> mock_storage);
 #endif // BUILD_TESTS
  private:
 

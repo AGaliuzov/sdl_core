@@ -50,7 +50,7 @@
 
 namespace test {
 namespace components {
-namespace formatters {
+namespace formatters_test {
 
 using namespace NsSmartDeviceLink::NsSmartObjects;
 using namespace NsSmartDeviceLink::NsJSONHandler;
@@ -160,7 +160,7 @@ class CSmartFactoryTest : public CSmartFactory<FunctionIdTest::eType,
   static utils::SharedPtr<ISchemaItem> InitStructSchemaItem_Common_2();
 };
 
-}  // namespace formatters
+}  // namespace formatters_test
 }  // namespace components
 }  // namespace test
 

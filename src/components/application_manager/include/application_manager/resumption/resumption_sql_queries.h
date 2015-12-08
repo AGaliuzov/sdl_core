@@ -57,7 +57,7 @@ extern const std::string kUpdateIgnOffCount;
 extern const std::string kCountApplicationsIgnOff;
 extern const std::string kSelectApplicationsIgnOffCount;
 extern const std::string kUpdateSuspendData;
-extern const std::string KUpdateLastIgnOffTime;
+extern const std::string kUpdateLastIgnOffTime;
 extern const std::string kDeleteFile;
 extern const std::string kDeleteApplicationFilesArray;
 extern const std::string kDeleteSubMenu;

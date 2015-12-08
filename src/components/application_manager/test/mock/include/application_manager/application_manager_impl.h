@@ -69,7 +69,7 @@
 #include "interfaces/v4_protocol_v1_2_no_extra.h"
 #include "interfaces/v4_protocol_v1_2_no_extra_schema.h"
 #ifdef TIME_TESTER
-#include "time_metric_observer.h"
+#include "application_manager/time_metric_observer.h"
 #endif  // TIME_TESTER
 
 #include "utils/macro.h"

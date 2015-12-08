@@ -42,23 +42,27 @@
 #include "json/writer.h"
 #include "json/value.h"
 #include "gtest/gtest.h"
-#include "policy/mock_policy_listener.h"
-#include "mock_pt_ext_representation.h"
-#include "mock_cache_manager.h"
-#include "mock_update_status_manager.h"
-#include "policy/policy_manager_impl.h"
-#include "policy/cache_manager.h"
-#include "policy/cache_manager_interface.h"
+
 #include "config_profile/profile.h"
-#include "sqlite_wrapper/sql_error.h"
-#include "sqlite_wrapper/sql_database.h"
-#include "sqlite_wrapper/sql_query.h"
+
 #include "policy_table/table_struct_ext/types.h"
 #include "policy_table/table_struct_ext/enums.h"
+#include "policy/policy_manager_impl.h"
+
 #include "utils/macro.h"
 #include "utils/file_system.h"
 #include "utils/date_time.h"
 #include "utils/gen_hash.h"
+#include "utils/timer_thread.h"
+#include "utils/sqlite_wrapper/sql_error.h"
+#include "utils/sqlite_wrapper/sql_database.h"
+#include "utils/sqlite_wrapper/sql_query.h"
+
+#include "policy/mock_policy_listener.h"
+#include "policy/mock_pt_ext_representation.h"
+#include "policy/mock_cache_manager.h"
+#include "policy/mock_update_status_manager.h"
+
 
 using ::utils::dbms::SQLError;
 using ::utils::dbms::SQLDatabase;
@@ -73,12 +77,7 @@ using ::testing::AtLeast;
 using ::testing::ContainerEq;
 
 using ::policy::PTRepresentation;
-using ::policy::MockPolicyListener;
-using ::policy::MockPTRepresentation;
-using ::policy::MockPTExtRepresentation;
-using ::policy::MockCacheManagerInterface;
-
-using ::policy::MockUpdateStatusManager;
+using ::test::components::policy_test::MockPolicyListener;
 
 using ::policy::PolicyManagerImpl;
 using ::policy::PolicyTable;
@@ -89,7 +88,7 @@ namespace custom_str = utils::custom_string;
 
 namespace test {
 namespace components {
-namespace policy {
+namespace policy_test {
 
 typedef std::multimap< std::string, policy_table::Rpcs& >
           UserConsentPromptToRpcsConnections;
@@ -2109,6 +2108,6 @@ TEST_F(PolicyManagerImplTest_RequestTypes,
   EXPECT_THAT(correct_types, ContainerEq(received_types));
 }
 
-}  // namespace policy
+}  // namespace policy_test
 }  // namespace components
 }  // namespace test

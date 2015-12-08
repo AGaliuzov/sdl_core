@@ -30,10 +30,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <fstream>
+
 #include "gtest/gtest.h"
 #include "utils/auto_trace.h"
-#include "logger.h"
-#include <fstream>
+#include "utils/logger.h"
+
 
 namespace test {
 namespace components {

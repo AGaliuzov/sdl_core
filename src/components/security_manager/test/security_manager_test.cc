@@ -37,10 +37,14 @@
 #include "protocol/common.h"
 #include "security_manager/security_manager_impl.h"
 
-#include "protocol_handler/protocol_handler_mock.h"
-#include "protocol_handler/protocol_observer_mock.h"
-#include "security_manager/security_manager_mock.h"
-#include "transport_manager/transport_manager_mock.h"
+#include "protocol_handler/mock_protocol_handler.h"
+#include "protocol_handler/mock_protocol_observer.h"
+#include "protocol_handler/mock_session_observer.h"
+#include "transport_manager/mock_transport_manager.h"
+#include "security_manager/mock_security_manager.h"
+#include "security_manager/mock_ssl_context.h"
+#include "security_manager/mock_crypto_manager.h"
+#include "security_manager/mock_security_manager_listener.h"
 
 namespace test {
 namespace components {
@@ -140,12 +144,12 @@ class SecurityManagerTest : public ::testing::Test {
   }
   ::utils::SharedPtr<SecurityManagerImpl> security_manager_;
   // Strict mocks (same as all methods EXPECT_CALL().Times(0))
-  testing::StrictMock<protocol_handler_test::SessionObserverMock> mock_session_observer;
-  testing::StrictMock<protocol_handler_test::ProtocolHandlerMock> mock_protocol_handler;
-  testing::StrictMock<security_manager_test::CryptoManagerMock> mock_crypto_manager;
-  testing::StrictMock<security_manager_test::SSLContextMock> mock_ssl_context_new;
-  testing::StrictMock<security_manager_test::SSLContextMock> mock_ssl_context_exists;
-  testing::StrictMock<security_manager_test::SMListenerMock> mock_sm_listener;
+  testing::StrictMock<protocol_handler_test::MockSessionObserver> mock_session_observer;
+  testing::StrictMock<protocol_handler_test::MockProtocolHandler> mock_protocol_handler;
+  testing::StrictMock<security_manager_test::MockCryptoManager> mock_crypto_manager;
+  testing::StrictMock<security_manager_test::MockSSLContext> mock_ssl_context_new;
+  testing::StrictMock<security_manager_test::MockSSLContext> mock_ssl_context_exists;
+  testing::StrictMock<security_manager_test::MockSecurityManagerListener> mock_sm_listener;
 };
 // Test Bodies
 
@@ -184,7 +188,7 @@ TEST_F(SecurityManagerTest, Listeners_NoListeners) {
   security_manager_->RemoveListener(&mock_sm_listener);
 
   // Expect no calls
-  testing::StrictMock<SMListenerMock> mock_listener2;
+  testing::StrictMock<MockSecurityManagerListener> mock_listener2;
   security_manager_->AddListener(&mock_listener2);
   security_manager_->RemoveListener(&mock_listener2);
 
@@ -200,8 +204,8 @@ TEST_F(SecurityManagerTest, Listeners_Notifying) {
   // Check correct removing listener
   security_manager_->RemoveListener(&mock_sm_listener);
 
-  testing::StrictMock<SMListenerMock> mock_listener1;
-  testing::StrictMock<SMListenerMock> mock_listener2;
+  testing::StrictMock<MockSecurityManagerListener> mock_listener1;
+  testing::StrictMock<MockSecurityManagerListener> mock_listener2;
 
   const SSLContext::HandshakeResult first_call_value =
       SSLContext::Handshake_Result_Success;

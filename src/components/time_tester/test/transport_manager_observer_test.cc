@@ -31,7 +31,7 @@
  */
 
 #include "gtest/gtest.h"
-#include "include/time_manager_mock.h"
+#include "mock_time_manager.h"
 #include "protocol_handler/time_metric_observer.h"
 #include "time_tester/transport_manager_metric.h"
 #include "time_tester/transport_manager_observer.h"
@@ -44,7 +44,7 @@ using namespace time_tester;
 using ::testing::_;
 
 TEST(TransportManagerObserverTest, MessageProcess) {
-  TimeManagerMock time_manager_mock;
+  MockTimeManager time_manager_mock;
   TransportManagerObserver tr_observer(&time_manager_mock);
   protocol_handler::RawMessage* ptr = new ::protocol_handler::RawMessage(0, 0, NULL, 0);
   tr_observer.StartRawMsg(ptr);

@@ -31,9 +31,10 @@
 if(BUILD_TESTS)
 
 include_directories(
+    include
     ${GMOCK_INCLUDE_DIRECTORY}
     ${COMPONENTS_DIR}/media_manager/include
-    ${COMPONENTS_DIR}/include/
+    ${COMPONENTS_DIR}/protocol_handler/include
 )
 
 if(EXTENDED_MEDIA_MODE)
@@ -56,7 +57,6 @@ set(LIBRARIES
     encryption
     Resumption
     Policy
-    ${SecurityManagerLibrary}
     ConfigProfile
 )
 

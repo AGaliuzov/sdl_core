@@ -36,6 +36,7 @@ if (BUILD_TESTS)
     include
     ${GMOCK_INCLUDE_DIRECTORY}
     ${COMPONENTS_DIR}/application_manager/include/
+    ${CMAKE_BINARY_DIR}/src/components/
   )
 
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/mock)
@@ -75,9 +76,6 @@ if (BUILD_TESTS)
 
   include_directories(
     ${GMOCK_INCLUDE_DIRECTORY}
-    ${COMPONENTS_DIR}/application_manager/include/application_manager/policies
-    ${COMPONENTS_DIR}/application_manager/include/application_manager
-    ${COMPONENTS_DIR}/application_manager/include/application_manager/resumption
     ${COMPONENTS_DIR}/application_manager/include/
     ${COMPONENTS_DIR}/application_manager/include/application_manager/commands/
     ${COMPONENTS_DIR}/utils/include/utils
@@ -88,7 +86,6 @@ if (BUILD_TESTS)
     ${COMPONENTS_DIR}/media_manager/include/
     ${SecurityManagerIncludeDir}
     ${COMPONENTS_DIR}/security_manager/include
-    ${COMPONENTS_DIR}/security_manager/test/include
     )
 
   set(testSources

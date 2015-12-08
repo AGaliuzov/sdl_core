@@ -33,7 +33,7 @@
 #include "create_smartSchema.h"
 namespace test {
 namespace components {
-namespace formatters {
+namespace formatters_test {
 
 using namespace NsSmartDeviceLink::NsJSONHandler::strings;
 using namespace NsSmartDeviceLink::NsJSONHandler::Formatters;
@@ -41,13 +41,13 @@ using namespace NsSmartDeviceLink::NsSmartObjects;
 
 template<>
 const EnumConversionHelper<FunctionIDTest::eType>::EnumToCStringMap EnumConversionHelper<
-    test::components::formatters::FunctionIDTest::eType>::enum_to_cstring_map_ =
-    EnumConversionHelper<test::components::formatters::FunctionIDTest::eType>::InitEnumToCStringMap();
+    test::components::formatters_test::FunctionIDTest::eType>::enum_to_cstring_map_ =
+    EnumConversionHelper<test::components::formatters_test::FunctionIDTest::eType>::InitEnumToCStringMap();
 
 template<>
 const EnumConversionHelper<FunctionIDTest::eType>::CStringToEnumMap EnumConversionHelper<
-    test::components::formatters::FunctionIDTest::eType>::cstring_to_enum_map_ =
-    EnumConversionHelper<test::components::formatters::FunctionIDTest::eType>::InitCStringToEnumMap();
+    test::components::formatters_test::FunctionIDTest::eType>::cstring_to_enum_map_ =
+    EnumConversionHelper<test::components::formatters_test::FunctionIDTest::eType>::InitCStringToEnumMap();
 
 template<>
 const char* const EnumConversionHelper<FunctionIDTest::eType>::cstring_values_[] =
@@ -55,19 +55,19 @@ const char* const EnumConversionHelper<FunctionIDTest::eType>::cstring_values_[]
 
 template<>
 const FunctionIDTest::eType EnumConversionHelper<FunctionIDTest::eType>::enum_values_[] =
-    { test::components::formatters::FunctionIDTest::RegisterAppInterface,
-        test::components::formatters::FunctionIDTest::UnregisterAppInterface,
-        test::components::formatters::FunctionIDTest::SetGlobalProperties };
+    { test::components::formatters_test::FunctionIDTest::RegisterAppInterface,
+        test::components::formatters_test::FunctionIDTest::UnregisterAppInterface,
+        test::components::formatters_test::FunctionIDTest::SetGlobalProperties };
 
 template<>
 const EnumConversionHelper<Language::eType>::EnumToCStringMap EnumConversionHelper<
-    test::components::formatters::Language::eType>::enum_to_cstring_map_ =
-    EnumConversionHelper<test::components::formatters::Language::eType>::InitEnumToCStringMap();
+    test::components::formatters_test::Language::eType>::enum_to_cstring_map_ =
+    EnumConversionHelper<test::components::formatters_test::Language::eType>::InitEnumToCStringMap();
 
 template<>
 const EnumConversionHelper<Language::eType>::CStringToEnumMap EnumConversionHelper<
-    test::components::formatters::Language::eType>::cstring_to_enum_map_ =
-    EnumConversionHelper<test::components::formatters::Language::eType>::InitCStringToEnumMap();
+    test::components::formatters_test::Language::eType>::cstring_to_enum_map_ =
+    EnumConversionHelper<test::components::formatters_test::Language::eType>::InitCStringToEnumMap();
 
 template<>
 const char* const EnumConversionHelper<Language::eType>::cstring_values_[] =
@@ -75,18 +75,18 @@ const char* const EnumConversionHelper<Language::eType>::cstring_values_[] =
 
 template<>
 const Language::eType EnumConversionHelper<Language::eType>::enum_values_[] =
-    { test::components::formatters::Language::EN_EU,
-        test::components::formatters::Language::RU_RU};
+    { test::components::formatters_test::Language::EN_EU,
+        test::components::formatters_test::Language::RU_RU};
 
 template<>
 const EnumConversionHelper<SpeechCapabilities::eType>::EnumToCStringMap EnumConversionHelper<
-    test::components::formatters::SpeechCapabilities::eType>::enum_to_cstring_map_ =
-    EnumConversionHelper<test::components::formatters::SpeechCapabilities::eType>::InitEnumToCStringMap();
+    test::components::formatters_test::SpeechCapabilities::eType>::enum_to_cstring_map_ =
+    EnumConversionHelper<test::components::formatters_test::SpeechCapabilities::eType>::InitEnumToCStringMap();
 
 template<>
 const EnumConversionHelper<SpeechCapabilities::eType>::CStringToEnumMap EnumConversionHelper<
-    test::components::formatters::SpeechCapabilities::eType>::cstring_to_enum_map_ =
-    EnumConversionHelper<test::components::formatters::SpeechCapabilities::eType>::InitCStringToEnumMap();
+    test::components::formatters_test::SpeechCapabilities::eType>::cstring_to_enum_map_ =
+    EnumConversionHelper<test::components::formatters_test::SpeechCapabilities::eType>::InitCStringToEnumMap();
 
 template<>
 const char* const EnumConversionHelper<SpeechCapabilities::eType>::cstring_values_[] =
@@ -94,17 +94,17 @@ const char* const EnumConversionHelper<SpeechCapabilities::eType>::cstring_value
 
 template<>
 const SpeechCapabilities::eType EnumConversionHelper<SpeechCapabilities::eType>::enum_values_[] =
-    { test::components::formatters::SpeechCapabilities::SC_TEXT};
+    { test::components::formatters_test::SpeechCapabilities::SC_TEXT};
 
 template<>
 const EnumConversionHelper<AppTypeTest::eType>::EnumToCStringMap EnumConversionHelper<
-    test::components::formatters::AppTypeTest::eType>::enum_to_cstring_map_ =
-    EnumConversionHelper<test::components::formatters::AppTypeTest::eType>::InitEnumToCStringMap();
+    test::components::formatters_test::AppTypeTest::eType>::enum_to_cstring_map_ =
+    EnumConversionHelper<test::components::formatters_test::AppTypeTest::eType>::InitEnumToCStringMap();
 
 template<>
 const EnumConversionHelper<AppTypeTest::eType>::CStringToEnumMap EnumConversionHelper<
-    test::components::formatters::AppTypeTest::eType>::cstring_to_enum_map_ =
-    EnumConversionHelper<test::components::formatters::AppTypeTest::eType>::InitCStringToEnumMap();
+    test::components::formatters_test::AppTypeTest::eType>::cstring_to_enum_map_ =
+    EnumConversionHelper<test::components::formatters_test::AppTypeTest::eType>::InitCStringToEnumMap();
 
 template<>
 const char* const EnumConversionHelper<AppTypeTest::eType>::cstring_values_[] =
@@ -112,8 +112,8 @@ const char* const EnumConversionHelper<AppTypeTest::eType>::cstring_values_[] =
 
 template<>
 const AppTypeTest::eType EnumConversionHelper<AppTypeTest::eType>::enum_values_[] =
-    { test::components::formatters::AppTypeTest::SYSTEM,
-      test::components::formatters::AppTypeTest::MEDIA,
+    { test::components::formatters_test::AppTypeTest::SYSTEM,
+      test::components::formatters_test::AppTypeTest::MEDIA,
     };
 
 CSmartSchema initObjectSchema() {
@@ -374,6 +374,6 @@ CSmartSchema initSchemaForMetaFormatter() {
 
 
 
-}  // namespace formatters
+}  // namespace formatters_test
 }  // namespace components
 }  // namespace test

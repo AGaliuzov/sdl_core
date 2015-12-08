@@ -35,12 +35,13 @@
 #include <fstream>
 #include "gmock/gmock.h"
 #include "config_profile/profile.h"
-#include "policy_handler.h"
+#include "application_manager/policies/policy_handler.h"
 #include "policy/mock_policy_manager.h"
 #include "connection_handler/connection_handler_impl.h"
 #include "application_manager/application_manager_impl.h"
-#include "application_impl.h"
-#include "security_manager/security_manager_mock.h"
+#include "application_manager/application_impl.h"
+#include "security_manager/mock_security_manager.h"
+#include "security_manager/mock_crypto_manager.h"
 #include "application_manager/mock_message_helper.h"
 #include "policy/policy_types.h"
 #include "json/reader.h"
@@ -49,14 +50,15 @@
 #include "smart_objects/smart_object.h"
 #include "utils/file_system.h"
 #include "utils/make_shared.h"
-#include "custom_string.h"
+#include "utils/custom_string.h"
 #include "usage_statistics/counter.h"
 #include "policy/usage_statistics/statistics_manager.h"
 #include "interfaces/MOBILE_API.h"
 
 namespace test {
 namespace components {
-namespace policy_handler {
+namespace policy_handler_test {
+
 using namespace application_manager;
 using namespace policy;
 using namespace utils::custom_string;
@@ -78,7 +80,7 @@ class PolicyHandlerTest : public ::testing::Test {
 
  protected:
   PolicyHandler* instance_;
-  utils::SharedPtr<policy_manager::MockPolicyManager> pm_;
+  utils::SharedPtr<policy_manager_test::MockPolicyManager> pm_;
   ApplicationManagerImpl* app_manager_;
   const std::string app_id_;
   const std::string device_id_;
@@ -94,7 +96,7 @@ class PolicyHandlerTest : public ::testing::Test {
     ASSERT_TRUE(app_manager_);
     std::string path = file_system::CreateDirectory("storage");
     file_system::CreateFile(path + "/" + "certificate");
-    pm_ = utils::MakeShared<policy_manager::MockPolicyManager>();
+    pm_ = utils::MakeShared<policy_manager_test::MockPolicyManager>();
     ASSERT_TRUE(pm_.valid());
   }
 
@@ -725,7 +727,7 @@ TEST_F(PolicyHandlerTest, Test_OnCertificateDecrypted_method) {
   // Arrange
   EnablePolicyAndPolicyManagerMock();
 
-  ::test::components::security_manager_test::CryptoManagerMock crypto_manager;
+  security_manager_test::MockCryptoManager crypto_manager;
   // security_manager::CryptoManagerImpl crypto_manager;
   instance_->add_listener(&crypto_manager);
   // Check expectations

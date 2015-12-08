@@ -35,7 +35,7 @@
 
 namespace test {
 namespace components {
-namespace formatters {
+namespace formatters_test {
 
 TEST(GenericJsonFormatter, ToString) {
   namespace smartobj = NsSmartDeviceLink::NsSmartObjects;
@@ -157,6 +157,6 @@ TEST(GenericJsonFormatter, FromString) {
     result.getElement("subobject").getElement("strField").asString().c_str());
 }
 
-} // formatters
+} // formatters_test
 } // components
 } // test

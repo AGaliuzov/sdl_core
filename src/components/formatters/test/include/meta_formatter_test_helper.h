@@ -42,7 +42,7 @@
 
 namespace test {
 namespace components {
-namespace formatters {
+namespace formatters_test {
 
 class CMetaFormatterTestHelper : public ::testing::Test {
  protected:
@@ -76,7 +76,7 @@ class CMetaFormatterTestHelper : public ::testing::Test {
   std::set<MessageTypeTest::eType> message_type_items_;
 };
 
-}  // namespace formatters
+}  // namespace formatters_test
 }  // namespace components
 }  // namespace test
 

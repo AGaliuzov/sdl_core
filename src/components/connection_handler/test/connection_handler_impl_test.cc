@@ -37,14 +37,15 @@
 #include "protocol/common.h"
 #include "config_profile/profile.h"
 // TODO(EZamakhov): move security test
-#include "security_manager/security_manager_mock.h"
-#include "protocol_handler/protocol_handler_mock.h"
-#include "connection_handler/connection_handler_observer_mock.h"
-#include "transport_manager/transport_manager_mock.h"
+#include "security_manager/mock_security_manager.h"
+#include "protocol_handler/mock_protocol_handler.h"
+#include "connection_handler/mock_connection_handler_observer.h"
+#include "transport_manager/mock_transport_manager.h"
+#include "security_manager/mock_ssl_context.h"
 
 namespace test {
 namespace components {
-namespace connection_handle_test {
+namespace connection_handler_test {
 
 using namespace ::connection_handler;
 using ::protocol_handler::ServiceType;
@@ -361,7 +362,7 @@ TEST_F(ConnectionHandlerTest, IsHeartBeatSupported) {
 TEST_F(ConnectionHandlerTest,SendEndServiceWithoutSetProtocolHandler) {
   AddTestDeviceConnection();
   AddTestSession();
-  protocol_handler_test::ProtocolHandlerMock mock_protocol_handler;
+  protocol_handler_test::MockProtocolHandler mock_protocol_handler;
 
   EXPECT_CALL(mock_protocol_handler, SendEndService(_,_,kRpc)).Times(0);
   connection_handler_->SendEndService(connection_key_, kRpc);
@@ -370,7 +371,7 @@ TEST_F(ConnectionHandlerTest,SendEndServiceWithoutSetProtocolHandler) {
 TEST_F(ConnectionHandlerTest,SendEndService) {
   AddTestDeviceConnection();
   AddTestSession();
-  protocol_handler_test::ProtocolHandlerMock mock_protocol_handler;
+  protocol_handler_test::MockProtocolHandler mock_protocol_handler;
 
   connection_handler_->set_protocol_handler(&mock_protocol_handler);
   EXPECT_CALL(mock_protocol_handler, SendEndService(_,_,kRpc));
@@ -380,7 +381,7 @@ TEST_F(ConnectionHandlerTest,SendEndService) {
 TEST_F(ConnectionHandlerTest,OnFindNewApplicationsRequest) {
   AddTestDeviceConnection();
   AddTestSession();
-  connection_handler_test::ConnectionHandlerObserverMock mock_connection_handler_observer;
+  connection_handler_test::MockConnectionHandlerObserver mock_connection_handler_observer;
   connection_handler_->set_connection_handler_observer(&mock_connection_handler_observer);
 
   EXPECT_CALL(mock_connection_handler_observer, OnFindNewApplicationsRequest());
@@ -388,13 +389,13 @@ TEST_F(ConnectionHandlerTest,OnFindNewApplicationsRequest) {
 }
 
 TEST_F(ConnectionHandlerTest,OnFindNewApplicationsRequestWithoutObserver) {
-  connection_handler_test::ConnectionHandlerObserverMock mock_connection_handler_observer;
+  connection_handler_test::MockConnectionHandlerObserver mock_connection_handler_observer;
   EXPECT_CALL(mock_connection_handler_observer, OnFindNewApplicationsRequest()).Times(0);
   connection_handler_->OnFindNewApplicationsRequest();
 }
 
 TEST_F(ConnectionHandlerTest,OnFindNewApplicationsRequestWithoutSession) {
-  connection_handler_test::ConnectionHandlerObserverMock mock_connection_handler_observer;
+  connection_handler_test::MockConnectionHandlerObserver mock_connection_handler_observer;
   connection_handler_->set_connection_handler_observer(&mock_connection_handler_observer);
 
   EXPECT_CALL(mock_connection_handler_observer, OnFindNewApplicationsRequest());
@@ -406,7 +407,7 @@ TEST_F(ConnectionHandlerTest, OnMalformedMessageCallback) {
   AddTestSession();
   AddTestService(kAudio);
   AddTestService(kMobileNav);
-  connection_handler_test::ConnectionHandlerObserverMock mock_connection_handler_observer;
+  connection_handler_test::MockConnectionHandlerObserver mock_connection_handler_observer;
   connection_handler_->set_connection_handler_observer(&mock_connection_handler_observer);
 
   InSequence seq;
@@ -426,10 +427,10 @@ TEST_F(ConnectionHandlerTest, OnApplicationFloodCallBack) {
   AddTestSession();
   AddTestService(kAudio);
   AddTestService(kMobileNav);
-  connection_handler_test::ConnectionHandlerObserverMock mock_connection_handler_observer;
+  connection_handler_test::MockConnectionHandlerObserver mock_connection_handler_observer;
   connection_handler_->set_connection_handler_observer(&mock_connection_handler_observer);
 
-  protocol_handler_test::ProtocolHandlerMock mock_protocol_handler;
+  protocol_handler_test::MockProtocolHandler mock_protocol_handler;
   connection_handler_->set_protocol_handler(&mock_protocol_handler);
 
   EXPECT_CALL(mock_protocol_handler, SendEndSession(uid_,start_session_id_));
@@ -449,9 +450,9 @@ TEST_F(ConnectionHandlerTest, OnApplicationFloodCallBack) {
 TEST_F(ConnectionHandlerTest, StartDevicesDiscovery) {
   AddTestDeviceConnection();
   AddTestSession();
-  transport_manager_test::TransportManagerMock mock_transport_manager;
+  transport_manager_test::MockTransportManager mock_transport_manager;
   connection_handler_->set_transport_manager(&mock_transport_manager);
-  connection_handler_test::ConnectionHandlerObserverMock mock_connection_handler_observer;
+  connection_handler_test::MockConnectionHandlerObserver mock_connection_handler_observer;
   connection_handler_->set_connection_handler_observer(&mock_connection_handler_observer);
 
   EXPECT_CALL(mock_transport_manager, SearchDevices());
@@ -462,7 +463,7 @@ TEST_F(ConnectionHandlerTest, StartDevicesDiscovery) {
 TEST_F(ConnectionHandlerTest, StartTransportManager) {
   AddTestDeviceConnection();
   AddTestSession();
-  transport_manager_test::TransportManagerMock mock_transport_manager;
+  transport_manager_test::MockTransportManager mock_transport_manager;
   connection_handler_->set_transport_manager(&mock_transport_manager);
   EXPECT_CALL(mock_transport_manager, Visibility(true));
   connection_handler_->StartTransportManager();
@@ -471,7 +472,7 @@ TEST_F(ConnectionHandlerTest, StartTransportManager) {
 TEST_F(ConnectionHandlerTest, CloseConnection) {
   AddTestDeviceConnection();
   AddTestSession();
-  transport_manager_test::TransportManagerMock mock_transport_manager;
+  transport_manager_test::MockTransportManager mock_transport_manager;
   connection_handler_->set_transport_manager(&mock_transport_manager);
   EXPECT_CALL(mock_transport_manager, DisconnectForce(uid_));
   connection_handler_->CloseConnection(uid_);
@@ -480,7 +481,7 @@ TEST_F(ConnectionHandlerTest, CloseConnection) {
 TEST_F(ConnectionHandlerTest, CloseRevokedConnection) {
   AddTestDeviceConnection();
   AddTestSession();
-  transport_manager_test::TransportManagerMock mock_transport_manager;
+  transport_manager_test::MockTransportManager mock_transport_manager;
   connection_handler_->set_transport_manager(&mock_transport_manager);
   EXPECT_CALL(mock_transport_manager, DisconnectForce(uid_));
   connection_handler_->CloseRevokedConnection(connection_key_);
@@ -491,10 +492,10 @@ TEST_F(ConnectionHandlerTest, CloseSessionWithCommonReason) {
   AddTestSession();
   AddTestService(kAudio);
   AddTestService(kMobileNav);
-  connection_handler_test::ConnectionHandlerObserverMock mock_connection_handler_observer;
+  connection_handler_test::MockConnectionHandlerObserver mock_connection_handler_observer;
   connection_handler_->set_connection_handler_observer(&mock_connection_handler_observer);
 
-  protocol_handler_test::ProtocolHandlerMock mock_protocol_handler;
+  protocol_handler_test::MockProtocolHandler mock_protocol_handler;
   connection_handler_->set_protocol_handler(&mock_protocol_handler);
 
   EXPECT_CALL(mock_protocol_handler, SendEndSession(uid_,start_session_id_));
@@ -516,10 +517,10 @@ TEST_F(ConnectionHandlerTest, CloseSessionWithFloodReason) {
   AddTestSession();
   AddTestService(kAudio);
   AddTestService(kMobileNav);
-  connection_handler_test::ConnectionHandlerObserverMock mock_connection_handler_observer;
+  connection_handler_test::MockConnectionHandlerObserver mock_connection_handler_observer;
   connection_handler_->set_connection_handler_observer(&mock_connection_handler_observer);
 
-  protocol_handler_test::ProtocolHandlerMock mock_protocol_handler;
+  protocol_handler_test::MockProtocolHandler mock_protocol_handler;
   connection_handler_->set_protocol_handler(&mock_protocol_handler);
 
   EXPECT_CALL(mock_protocol_handler, SendEndSession(uid_,start_session_id_));
@@ -541,10 +542,10 @@ TEST_F(ConnectionHandlerTest, CloseSessionWithMalformedMessage) {
   AddTestSession();
   AddTestService(kAudio);
   AddTestService(kMobileNav);
-  connection_handler_test::ConnectionHandlerObserverMock mock_connection_handler_observer;
+  connection_handler_test::MockConnectionHandlerObserver mock_connection_handler_observer;
   connection_handler_->set_connection_handler_observer(&mock_connection_handler_observer);
 
-  protocol_handler_test::ProtocolHandlerMock mock_protocol_handler;
+  protocol_handler_test::MockProtocolHandler mock_protocol_handler;
   connection_handler_->set_protocol_handler(&mock_protocol_handler);
 
   EXPECT_CALL(mock_protocol_handler, SendEndSession(uid_,start_session_id_)).Times(0);
@@ -566,10 +567,10 @@ TEST_F(ConnectionHandlerTest, CloseConnectionSessionsWithMalformedMessage) {
   AddTestSession();
   AddTestService(kAudio);
   AddTestService(kMobileNav);
-  connection_handler_test::ConnectionHandlerObserverMock mock_connection_handler_observer;
+  connection_handler_test::MockConnectionHandlerObserver mock_connection_handler_observer;
   connection_handler_->set_connection_handler_observer(&mock_connection_handler_observer);
 
-  protocol_handler_test::ProtocolHandlerMock mock_protocol_handler;
+  protocol_handler_test::MockProtocolHandler mock_protocol_handler;
   connection_handler_->set_protocol_handler(&mock_protocol_handler);
 
   EXPECT_CALL(mock_protocol_handler, SendEndSession(uid_,start_session_id_)).Times(0);
@@ -591,10 +592,10 @@ TEST_F(ConnectionHandlerTest, CloseConnectionSessionsWithCommonReason) {
   AddTestSession();
   AddTestService(kAudio);
   AddTestService(kMobileNav);
-  connection_handler_test::ConnectionHandlerObserverMock mock_connection_handler_observer;
+  connection_handler_test::MockConnectionHandlerObserver mock_connection_handler_observer;
   connection_handler_->set_connection_handler_observer(&mock_connection_handler_observer);
 
-  protocol_handler_test::ProtocolHandlerMock mock_protocol_handler;
+  protocol_handler_test::MockProtocolHandler mock_protocol_handler;
   connection_handler_->set_protocol_handler(&mock_protocol_handler);
 
   EXPECT_CALL(mock_protocol_handler, SendEndSession(uid_,start_session_id_));
@@ -918,7 +919,7 @@ TEST_F(ConnectionHandlerTest, SetSSLContext) {
   EXPECT_EQ(connection_handler_->GetSSLContext(connection_key_, kControl),
       reinterpret_cast<security_manager::SSLContext *>(NULL));
 
-  testing::StrictMock<security_manager_test::SSLContextMock> mock_ssl_context;
+  testing::StrictMock<security_manager_test::MockSSLContext> mock_ssl_context;
   // Error on no connection
   EXPECT_EQ(
       connection_handler_->SetSSLContext(connection_key_, &mock_ssl_context),
@@ -958,8 +959,7 @@ TEST_F(ConnectionHandlerTest, GetSSLContext_ByProtectedService) {
   // No SSLContext on start up
   EXPECT_EQ(connection_handler_->GetSSLContext(connection_key_, kControl),
       reinterpret_cast<security_manager::SSLContext *>(NULL));
-
-  testing::StrictMock<security_manager_test::SSLContextMock> mock_ssl_context;
+  testing::StrictMock<security_manager_test::MockSSLContext> mock_ssl_context;
   AddTestDeviceConnection();
   AddTestSession();
   EXPECT_EQ(
@@ -983,7 +983,7 @@ TEST_F(ConnectionHandlerTest, GetSSLContext_ByProtectedService) {
       &mock_ssl_context);
 }
 TEST_F(ConnectionHandlerTest, GetSSLContext_ByDealyProtectedRPC) {
-  testing::StrictMock<security_manager_test::SSLContextMock> mock_ssl_context;
+  testing::StrictMock<security_manager_test::MockSSLContext> mock_ssl_context;
   AddTestDeviceConnection();
   AddTestSession();
   EXPECT_EQ(
@@ -1010,7 +1010,7 @@ TEST_F(ConnectionHandlerTest, GetSSLContext_ByDealyProtectedRPC) {
       &mock_ssl_context);
 }
 TEST_F(ConnectionHandlerTest, GetSSLContext_ByDealyProtectedBulk) {
-  testing::StrictMock<security_manager_test::SSLContextMock> mock_ssl_context;
+  testing::StrictMock<security_manager_test::MockSSLContext> mock_ssl_context;
   AddTestDeviceConnection();
   AddTestSession();
   EXPECT_EQ(
@@ -1038,6 +1038,6 @@ TEST_F(ConnectionHandlerTest, GetSSLContext_ByDealyProtectedBulk) {
 }
 #endif  // ENABLE_SECURITY
 
-}  // namespace connection_handle_test
+}  // namespace connection_handler_test
 }  // namespace components
 }  // namespace test

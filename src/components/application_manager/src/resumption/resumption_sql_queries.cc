@@ -440,7 +440,7 @@ const std::string kUpdateSuspendData =
     "UPDATE `application` "
     "SET `ign_off_count` = `ign_off_count` + 1";
 
-const std::string KUpdateLastIgnOffTime =
+const std::string kUpdateLastIgnOffTime =
     "UPDATE `resumption` "
     "SET `last_ign_off_time` = ?";
 

@@ -52,11 +52,11 @@ using namespace mobile_apis;
 namespace smart_objects = NsSmartDeviceLink::NsSmartObjects;
 namespace custom_str = utils::custom_string;
 
-
 using ::testing::_;
 using ::testing::Return;
 using ::testing::ReturnRef;
 using ::testing::AtLeast;
+using usage_statistics_test::MockStatisticsManager;
 
 typedef void (ApplicationImpl::*AddSet)(HmiStatePtr args);
 
@@ -66,7 +66,6 @@ class ApplicationImplTest : public ::testing::Test {
     app_id = 10;
     policy_app_id = "policy_app_id";
     app_name = "app_name";
-    mock_stat_mngr_ = new usage_statistics::test::MockStatisticsManager();
     test_lvl = HMILevel::INVALID_ENUM;
     state_id = HmiState::STATE_ID_REGULAR;
     audiostate = AudioStreamingState::NOT_AUDIBLE;
@@ -79,7 +78,8 @@ class ApplicationImplTest : public ::testing::Test {
     EXPECT_CALL(*app_mngr(), CreateRegularState(app_id, _, _, _))
         .WillOnce(Return(testHmiState));
     app_impl =
-        new ApplicationImpl(app_id, policy_app_id, app_name, mock_stat_mngr_);
+        new ApplicationImpl(app_id, policy_app_id, app_name,
+                            utils::MakeShared<MockStatisticsManager>());
   }
   virtual void TearDown() OVERRIDE { delete app_impl; }
   HmiStatePtr CreateTestHmiState();
@@ -103,7 +103,6 @@ class ApplicationImplTest : public ::testing::Test {
   custom_str::CustomString app_name;
   std::string directory_name;
   static ApplicationManagerImpl* app_mngr_;
-  usage_statistics::test::MockStatisticsManager* mock_stat_mngr_;
   HmiState::StateID state_id;
   HmiStatePtr testHmiState;
   HMILevel::eType test_lvl;

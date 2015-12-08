@@ -45,9 +45,11 @@
 
 namespace policy_table = ::rpc::policy_table_interface_base;
 
-namespace policy_manager {
-
 using namespace policy;
+
+namespace test {
+namespace components {
+namespace policy_manager_test {
 
 class MockPolicyManager : public PolicyManager {
  public:
@@ -77,9 +79,9 @@ class MockPolicyManager : public PolicyManager {
   MOCK_METHOD1(GetUserConsentForDevice,
                DeviceConsent(const std::string& device_id));
   MOCK_METHOD3(GetUserConsentForApp,
-               void(const std::string& device_id,
-                    const std::string& policy_app_id,
-                    std::vector<policy::FunctionalGroupPermission>& permissions));
+     void(const std::string& device_id,
+          const std::string& policy_app_id,
+          std::vector<policy::FunctionalGroupPermission>& permissions));
   MOCK_METHOD2(SetUserConsentForDevice,
                void(const std::string& device_id, bool is_allowed));
   MOCK_METHOD2(ReactOnUserDevConsentForApp,
@@ -87,7 +89,9 @@ class MockPolicyManager : public PolicyManager {
   MOCK_METHOD2(PTUpdatedAt, void(policy::Counters counter, int value));
 
   MOCK_METHOD3(GetInitialAppData,
-               bool(const std::string&, policy::StringArray*, policy::StringArray*));
+               bool(const std::string&,
+                    policy::StringArray*,
+                    policy::StringArray*));
 
   MOCK_METHOD2(AddDevice, void(const std::string& device_id,
                                const std::string& connection_type));
@@ -105,9 +109,9 @@ class MockPolicyManager : public PolicyManager {
                    const std::string& language));
   MOCK_CONST_METHOD1(IsApplicationRevoked, bool(const std::string& app_id));
   MOCK_METHOD3(GetPermissionsForApp,
-               void(const std::string& device_id,
-                    const std::string& policy_app_id,
-                    std::vector<policy::FunctionalGroupPermission>& permissions));
+      void(const std::string& device_id,
+          const std::string& policy_app_id,
+          std::vector<policy::FunctionalGroupPermission>& permissions));
   MOCK_METHOD1(GetAppPermissionsChanges,
                policy::AppPermissions(const std::string& policy_app_id));
   MOCK_METHOD1(RemovePendingPermissionChanges, void(const std::string& app_id));
@@ -139,7 +143,7 @@ class MockPolicyManager : public PolicyManager {
   MOCK_CONST_METHOD0(GetVehicleInfo, const policy::VehicleInfo());
   MOCK_CONST_METHOD0(GetMetaInfo, const policy::MetaInfo());
   MOCK_CONST_METHOD0(RetrieveCertificate, std::string());
-  MOCK_METHOD1 (SetDecryptedCertificate, void(const std::string&));
+  MOCK_METHOD1(SetDecryptedCertificate, void(const std::string&));
   MOCK_METHOD0(ExceededIgnitionCycles, bool());
   MOCK_METHOD0(ExceededDays, bool());
   MOCK_METHOD0(StartPTExchange, void());
@@ -153,7 +157,8 @@ class MockPolicyManager : public PolicyManager {
                          usage_statistics::AppStopwatchId type,
                          int32_t timespan_seconds));
 };
-
-}  // namespace policy_manager
+}  // namespace policy_manager_test
+}  // namespace components
+}  // namespace test
 
 #endif  // SRC_COMPONENTS_INCLUDE_TEST_POLICY_MOCK_POLICY_MANAGER_H_

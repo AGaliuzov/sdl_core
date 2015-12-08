@@ -42,7 +42,7 @@ using ::policy::MockPolicyListener;
 
 namespace test {
 namespace components {
-namespace policy {
+namespace policy_test {
 
 class PolicyManagerImplStressTest : public ::testing::Test {
  protected:
@@ -288,6 +288,6 @@ TEST_F(PolicyManagerImplStressTest, FewChecks_CheckSeveralFunctions_RpcAllowed) 
   }
 }
 
-}  // namespace policy
+}  // namespace policy_test
 }  // namespace components
 }  // namespace test

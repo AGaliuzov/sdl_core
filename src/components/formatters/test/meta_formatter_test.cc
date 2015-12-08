@@ -36,7 +36,7 @@
 
 namespace test {
 namespace components {
-namespace formatters {
+namespace formatters_test {
 
 TEST_F(CMetaFormatterTestHelper, inputObjectIdenticalToSchemaWithAndWithoutMandatoryParams) {
   Json::Value value;
@@ -346,6 +346,6 @@ TEST_F(CMetaFormatterTestHelper, ObjectWithEmptyArrayAndEmptyMapWithOtherParamet
             result_object[S_MSG_PARAMS]["non_mandatory_string"].asString());
 }
 
-}  // namespace formatters
+}  // namespace formatters_test
 }  // namespace components
 }  // namespace test

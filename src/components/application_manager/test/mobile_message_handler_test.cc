@@ -43,8 +43,9 @@
 #include "protocol/raw_message.h"
 #include "utils/make_shared.h"
 
-namespace application_manager {
 namespace test {
+namespace components {
+namespace application_manager_test {
 
 using protocol_handler::RawMessage;
 using protocol_handler::RawMessagePtr;
@@ -53,6 +54,10 @@ using protocol_handler::MessagePriority;
 using protocol_handler::PROTOCOL_HEADER_V2_SIZE;
 using application_manager::MobileMessageHandler;
 using application_manager::ProtocolVersion;
+using application_manager::Message;
+using application_manager::MobileMessage;
+using application_manager::MessageType;
+using application_manager::BinaryData;
 using ::testing::_;
 
 using testing::Return;
@@ -336,5 +341,6 @@ TEST_F(
   TestHandlingOutgoingMessageProtocolWithBinaryData(protocol_version);
 }
 
+}  // namespace application_manager_test
+}  // namespace components
 }  // namespace test
-}  // namespace application_manager

@@ -36,7 +36,10 @@
 
 namespace test {
 namespace components {
-namespace formatters {
+namespace formatters_test {
+
+using namespace NsSmartDeviceLink::NsJSONHandler;
+using namespace NsSmartDeviceLink::NsSmartObjects;
 
 TEST(CSmartFactoryTest, CreateSmartSchemaKey_ExpectCreated) {
   SmartSchemaKey<FunctionIdTest::eType, MessageTypeTest::eType> test_key(
@@ -391,7 +394,7 @@ TEST(CSmartFactoryTest, GetNotExistedSchemaWithSmartFactoryWithStructId_ExpectNo
       test_factory.GetSchema(StructIdentifiersTest::INVALID_ENUM, schema));
 }
 
-}  // namespace formatters
+}  // namespace formatters_test
 }  // namespace components
 }  // namespace test
 

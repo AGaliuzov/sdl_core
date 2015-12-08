@@ -42,14 +42,10 @@ using hmi_message_handler::HMIMessageAdapter;
 using hmi_message_handler::MqueueAdapter;
 using application_manager::Message;
 
-class MockHandler : public HMIMessageHandler {
- public:
-  MOCK_METHOD1(OnMessageReceived, void(MessageSharedPointer message));
-  MOCK_METHOD1(AddHMIMessageAdapter, void(HMIMessageAdapter* adapter));
-  MOCK_METHOD1(RemoveHMIMessageAdapter, void(HMIMessageAdapter* adapter));
-  MOCK_METHOD1(OnErrorSending, void(MessageSharedPointer message));
-  MOCK_METHOD1(SendMessageToHMI, void(MessageSharedPointer message));
-};
+namespace test {
+namespace components {
+namespace hmi_message_handler_test{
+
 
 //TODO{ALeshin}: APPLINK-10846
 //TEST(MqueueAdapter, Send) {
@@ -92,3 +88,7 @@ class MockHandler : public HMIMessageHandler {
 
 //  delete adapter;
 //}
+
+}   // namespace hmi_message_helper_test
+}   // namespace components
+}   // namespace test
