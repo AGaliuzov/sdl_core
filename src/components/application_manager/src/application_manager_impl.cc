@@ -2214,6 +2214,8 @@ void ApplicationManagerImpl::UnregisterApplication(
     accessor.Erase(app_to_remove);
   }
 
+  resume_ctrl_.RemoveFromResumption(app_id);
+
   if (is_resuming) {
 #ifdef CUSTOMER_PASA
     if (false == is_state_suspended_) {
