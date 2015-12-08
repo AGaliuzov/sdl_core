@@ -2021,14 +2021,14 @@ TEST_F(PolicyManagerImplTest2,
 }
 
 TEST_F(PolicyManagerImplTest_RequestTypes,
-    LoadPT_PTWithOneInvalidRequestTypeValue_RequestTypeValueEQToDefault) {
+    DISABLED_LoadPT_PTWithOneInvalidRequestTypeValue_RequestTypeValueEQToDefault) {
   ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
   // Logic in another function
   CompareAppRequestTypesWithDefault(app_id_, json_files_[0]);
 }
 
 TEST_F(PolicyManagerImplTest_RequestTypes,
-    LoadPT_InvalidRequestTypeBetweenCorectValuesInPTU_EraseInvalidValue) {
+    DISABLED_LoadPT_InvalidRequestTypeBetweenCorectValuesInPTU_EraseInvalidValue) {
   ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
   // Refresh policy table with invalid RequestType in application
   RefreshPT("sdl_preloaded_pt.json", json_files_[1]);
@@ -2049,14 +2049,14 @@ TEST_F(PolicyManagerImplTest_RequestTypes,
 }
 
 TEST_F(PolicyManagerImplTest_RequestTypes,
-    LoadPT_AppInUpdateFileHaventRequestTypeField_RequestTypeValueEQToDefault) {
+    DISABLED_LoadPT_AppInUpdateFileHaventRequestTypeField_RequestTypeValueEQToDefault) {
   ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
   // Logic in another function
   CompareAppRequestTypesWithDefault(app_id_, json_files_[2]);
 }
 
 TEST_F(PolicyManagerImplTest_RequestTypes,
-    LoadPT_RequestTypeArrayHaveNoOneValues_AvalibleAllRequestTypes) {
+    DISABLED_LoadPT_RequestTypeArrayHaveNoOneValues_AvalibleAllRequestTypes) {
   ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
   // Refresh policy table with invalid RequestType in application
   RefreshPT("sdl_preloaded_pt.json", json_files_[3]);
@@ -2072,7 +2072,7 @@ TEST_F(PolicyManagerImplTest_RequestTypes,
 }
 
 TEST_F(PolicyManagerImplTest_RequestTypes,
-    ResetPT_DefaultRequestTypeHaveOneInvalidValue_False) {
+    DISABLED_ResetPT_DefaultRequestTypeHaveOneInvalidValue_False) {
   ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
   // Get absolutly new PT
   // PT have only invalid value in app_policies::default::RequestType
@@ -2080,7 +2080,7 @@ TEST_F(PolicyManagerImplTest_RequestTypes,
 }
 
 TEST_F(PolicyManagerImplTest_RequestTypes,
-    ResetPT_DefaultRequestTypeHaveSeveralInvalidValues_False) {
+    DISABLED_ResetPT_DefaultRequestTypeHaveSeveralInvalidValues_False) {
   ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
   // Get absolutly new PT
   // PT have several only invalid values in app_policies::default::RequestType
@@ -2088,7 +2088,7 @@ TEST_F(PolicyManagerImplTest_RequestTypes,
 }
 
 TEST_F(PolicyManagerImplTest_RequestTypes,
-       ResetPT_DefaultRequestTypeHaveInvalidValueBetweenCorrect_True) {
+       DISABLED_ResetPT_DefaultRequestTypeHaveInvalidValueBetweenCorrect_True) {
   ASSERT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
   // Get absolutly new PT
   // PT have ["QUERY_APPS", "IVSU", "PROPRIETARY"]
