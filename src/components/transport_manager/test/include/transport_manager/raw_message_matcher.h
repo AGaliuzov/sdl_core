@@ -36,7 +36,7 @@
 #ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_RAW_MESSAGE_MATCHER_H_
 #define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_RAW_MESSAGE_MATCHER_H_
 
-#include <gmock/gmock.h>
+#include "gmock/gmock.h"
 
 #include "transport_manager/common.h"
 #include "protocol/common.h"

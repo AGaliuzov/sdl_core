@@ -30,8 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __CFORMATTERJSONBASE_HPP__
-#define __CFORMATTERJSONBASE_HPP__
+#ifndef SRC_COMPONENTS_FORMATTERS_INCLUDE_FORMATTERS_CFORMATTERJSONBASE_H_
+#define SRC_COMPONENTS_FORMATTERS_INCLUDE_FORMATTERS_CFORMATTERJSONBASE_H_
 
 #include "smart_objects/smart_object.h"
 #include "json/json.h"
@@ -68,7 +68,7 @@ namespace meta_formatter_error_code {
     *
     */
   static const tMetaFormatterErrorCode kErrorFailedCreateObjectBySchema = 0x04;
-}
+}  // namespace meta_formatter_error_code
 
     /**
      * @brief The base class for all JSON based formatters.
@@ -113,8 +113,8 @@ namespace meta_formatter_error_code {
                 Json::Value &value);
     };
 
-}
-}
-} // namespace NsSmartDeviceLink::NsJSONHandler::Formatters
+}  // namespace Formatters
+}  // namespace NsJSONHandler
+}  // namespace NsSmartDeviceLink
 
-#endif // __CFORMATTERJSONBASE_HPP__
+#endif  // SRC_COMPONENTS_FORMATTERS_INCLUDE_FORMATTERS_CFORMATTERJSONBASE_H_

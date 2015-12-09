@@ -30,8 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SMARTDEVICELINK_COMPONENTS_JSONHANDLER_INCLUDE_FORMATTERS_FORMATTER_JSON_RPC_H_
-#define SMARTDEVICELINK_COMPONENTS_JSONHANDLER_INCLUDE_FORMATTERS_FORMATTER_JSON_RPC_H_
+#ifndef SRC_COMPONENTS_FORMATTERS_INCLUDE_FORMATTERS_FORMATTER_JSON_RPC_H_
+#define SRC_COMPONENTS_FORMATTERS_INCLUDE_FORMATTERS_FORMATTER_JSON_RPC_H_
 
 #include <string>
 #include <sys/stat.h>
@@ -40,8 +40,8 @@
 #include "smart_objects/enum_schema_item.h"
 #include "json/json.h"
 
-#include "CFormatterJsonBase.hpp"
-#include "formatters/CSmartFactory.hpp"
+#include "formatters/CFormatterJsonBase.h"
+#include "formatters/CSmartFactory.h"
 
 namespace NsSmartDeviceLink {
 namespace NsJSONHandler {
@@ -492,4 +492,4 @@ int32_t FormatterJsonRpc::ParseFunctionId(const Json::Value& method_value,
 }  // namespace NsJSONHandler
 }  // namespace NsSmartDeviceLink
 
-#endif // SMARTDEVICELINK_COMPONENTS_JSONHANDLER_INCLUDE_FORMATTERS_FORMATTER_JSON_RPC_H_
+#endif  // SRC_COMPONENTS_FORMATTERS_INCLUDE_FORMATTERS_FORMATTER_JSON_RPC_H_

@@ -27,17 +27,18 @@
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-#ifndef __SMARTDEVICELINKCORE_JSONHANDLER_FORMATTERS__CFORMATTERJSONSDLRPCV1_HPP__
-#define __SMARTDEVICELINKCORE_JSONHANDLER_FORMATTERS__CFORMATTERJSONSDLRPCV1_HPP__
+
+#ifndef SRC_COMPONENTS_FORMATTERS_INCLUDE_FORMATTERS_CFORMATTERJSONSDLRPCV1_H_
+#define SRC_COMPONENTS_FORMATTERS_INCLUDE_FORMATTERS_CFORMATTERJSONSDLRPCV1_H_
 
 #include "json/json.h"
 
 #include "smart_objects/smart_object.h"
 #include "smart_objects/enum_schema_item.h"
 
-#include "CFormatterJsonBase.hpp"
+#include "formatters/CFormatterJsonBase.h"
 
-#include "formatters/CSmartFactory.hpp"
+#include "formatters/CSmartFactory.h"
 #include "formatters/meta_formatter.h"
 
 namespace NsSmartDeviceLink {
@@ -228,8 +229,8 @@ int32_t Formatters::CFormatterJsonSDLRPCv1::fromString(
   return result;
 }
 
-}
-}
-}  // namespace NsSmartDeviceLink::NsJSONHandler::Formatters
+}  // namespace Formatters
+}  // namespace NsJSONHandler
+}  // namespace NsSmartDeviceLink
 
-#endif // __SMARTDEVICELINKCORE_JSONHANDLER_FORMATTERS__CFORMATTERJSONSDLRPCV1_HPP__
+#endif  // SRC_COMPONENTS_FORMATTERS_INCLUDE_FORMATTERS_CFORMATTERJSONSDLRPCV1_H_

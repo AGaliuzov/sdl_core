@@ -28,15 +28,15 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef __SMARTDEVICELINKCORE_JSONHANDLER_FORMATTERS__CFORMATTERJSONSDLRPCV2_HPP__
-#define __SMARTDEVICELINKCORE_JSONHANDLER_FORMATTERS__CFORMATTERJSONSDLRPCV2_HPP__
+#ifndef SRC_COMPONENTS_FORMATTERS_INCLUDE_FORMATTERS_CFORMATTERJSONSDLRPCV2_H_
+#define SRC_COMPONENTS_FORMATTERS_INCLUDE_FORMATTERS_CFORMATTERJSONSDLRPCV2_H_
 
 #include "json/json.h"
 
 #include "smart_objects/smart_object.h"
 
-#include "CFormatterJsonBase.hpp"
-#include "formatters/CSmartFactory.hpp"
+#include "formatters/CFormatterJsonBase.h"
+#include "formatters/CSmartFactory.h"
 
 namespace NsSmartDeviceLink {
 namespace NsJSONHandler {
@@ -169,8 +169,8 @@ inline bool CFormatterJsonSDLRPCv2::fromString(
   return result;
 }
 
-}
-}
-}  // namespace NsSmartDeviceLink::NsJSONHandler::Formatters
+}  // namespace Formatters
+}  // namespace NsJSONHandler
+}  // namespace NsSmartDeviceLink
 
-#endif // __SMARTDEVICELINKCORE_JSONHANDLER_FORMATTERS__CFORMATTERJSONSDLRPCV2_HPP__
+#endif  // SRC_COMPONENTS_FORMATTERS_INCLUDE_FORMATTERS_CFORMATTERJSONSDLRPCV2_H_

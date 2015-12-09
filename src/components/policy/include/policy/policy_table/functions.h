@@ -32,6 +32,7 @@
 
 #ifndef SRC_COMPONENTS_POLICY_INCLUDE_POLICY_POLICY_TABLE_FUNCTIONS_H_
 #define SRC_COMPONENTS_POLICY_INCLUDE_POLICY_POLICY_TABLE_FUNCTIONS_H_
+
 #include "policy/policy_table/enums.h"
 #include "policy/policy_table/types.h"
 

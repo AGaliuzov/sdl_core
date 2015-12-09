@@ -32,6 +32,7 @@
 
 #ifndef SRC_COMPONENTS_POLICY_INCLUDE_POLICY_POLICY_TABLE_TYPES_H_
 #define SRC_COMPONENTS_POLICY_INCLUDE_POLICY_POLICY_TABLE_TYPES_H_
+
 #include <climits>
 
 #include "policy/policy_table/enums.h"

@@ -124,15 +124,12 @@ include_directories (
   ${COMPONENTS_DIR}/resumption/include/
   ${MESSAGE_BROKER_INCLUDE_DIRECTORY}
   ${ENCRYPTION_INCLUDE_DIRECTORY}
-  ${COMPONENTS_DIR}
-  ${CMAKE_BINARY_DIR}/src/components/
   ${COMPONENTS_DIR}/dbus/include/
-  ${CMAKE_BINARY_DIR}/src/components/policy/src
-  ${CMAKE_SOURCE_DIR}
   ${default_media_inc}
   ${LOG4CXX_INCLUDE_DIRECTORY}
   ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8
   ${CMAKE_SOURCE_DIR}/src/3rd_party/dbus-1.7.8/dbus/
+  ${CMAKE_BINARY_DIR}/src/components/
 )
 
 set (SOURCES

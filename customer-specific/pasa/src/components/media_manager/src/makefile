@@ -44,8 +44,7 @@ INCLUDES = \
 	$(CC_IFLAG)../../hmi_message_handler/include \
 	$(CC_IFLAG)../../formatters/include \
 	$(CC_IFLAG)../../utils/include \
-	$(CC_IFLAG)../../policy/src/policy/include \
-	$(CC_IFLAG)../../policy/src/policy/usage_statistics/include/ \
+  $(CC_IFLAG)../../policy/include \
 	$(CC_IFLAG)../../resumption/include \
 	$(CC_IFLAG)../../components/interfaces \
 	$(CC_IFLAG)../../ \
@@ -137,7 +136,7 @@ HEADERS = \
 	$(wildcard ../include/$(COMPONENT_NAME)/video/*.h*) \
 	$(wildcard ../../protocol_handler/include/protocol_handler/*.h*) \
 	$(wildcard ../../connection_handler/include/connection_handler/*.h*) \
-	$(wildcard ../../policy/src/policy/include*.h*) \
+  $(wildcard ../../policy/include/policy*.h*) \
 	$(wildcard ../../utils/include/utils/*.h*) \
 	$(wildcard ../../utils/include/utils/threads/*.h*)
 

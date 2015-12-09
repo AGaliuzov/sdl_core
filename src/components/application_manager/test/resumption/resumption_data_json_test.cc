@@ -41,7 +41,7 @@
 #include "resumption/last_state.h"
 
 #include "application_manager/resumption_data_test.h"
-#include "formatters/CFormatterJsonBase.hpp"
+#include "formatters/CFormatterJsonBase.h"
 #include "config_profile/profile.h"
 #include "utils/file_system.h"
 
