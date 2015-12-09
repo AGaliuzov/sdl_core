@@ -35,23 +35,30 @@
 #include "gtest/gtest.h"
 #include "utils/auto_trace.h"
 #include "utils/logger.h"
-
+#include "config_profile/profile.h"
+#include "utils/log_message_loop_thread.h"
+#include "utils/threads/message_loop_thread.h"
+#include "utils/file_system.h"
 
 namespace test {
 namespace components {
-namespace utils {
+namespace utils_test {
 
 using namespace ::logger;
 
-CREATE_LOGGERPTR_GLOBAL(logger_, "AutoTraceTestLog");
+CREATE_LOGGERPTR_GLOBAL(logger_, "AutoTraceTestLog")
 
 void Preconditions() {
-  //delete file with previous logs
+  // Delete file with previous logs
   const char* file_name = "AutoTraceTestLogFile.log";
-  std::remove(file_name);
+  if (!file_system::DeleteFile(file_name))
+    std::cout << "Can't delete AutoTraceTestLogFile.log\n";
 }
 
 void InitLogger() {
+  // Set enabled logs
+  profile::Profile::instance()->config_file_name("smartDeviceLink.ini");
+  profile::Profile::instance()->UpdateValues();
   INIT_LOGGER("log4cxx.properties");
 }
 
@@ -61,7 +68,6 @@ void CreateDeleteAutoTrace(const std::string & testlog) {
 }
 
 bool CheckTraceInFile(const std::string & testlog) {
-
   bool isLogFound = false;
   std::string line;
 
@@ -87,18 +93,19 @@ void DeinitLogger() {
   DEINIT_LOGGER();
 }
 
-//TODO(VVeremjova) APPLINK-12832 Logger does not write debug information in file
-TEST(AutoTraceTest, DISABLED_Basic) {
+TEST(AutoTraceTest, AutoTrace_WriteToFile_ReadCorrectString) {
   const std::string testlog =
-      "Test trace is working!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
+      "Test trace is working!";
   Preconditions();
   InitLogger();
   CreateDeleteAutoTrace(testlog);
+  // Waiting for empty Logger MessageQueue
+  while (LogMessageLoopThread::instance()->GetMessageQueueSize()) {}
   DeinitLogger();
 
   ASSERT_TRUE(CheckTraceInFile(testlog));
 }
 
-}  // namespace utils
+}  // namespace utils_test
 }  // namespace components
 }  // namespace test

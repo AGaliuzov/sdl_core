@@ -41,6 +41,7 @@ set(LIBRARIES
     gmock
     Resumption
     jsoncpp
+    ConfigProfile
 )
 
 set(SOURCES

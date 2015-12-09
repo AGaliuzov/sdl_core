@@ -69,6 +69,7 @@ set(testLibraries
   gmock
   Utils
   Policy
+  ConfigProfile
 )
 if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
   # --- Tests for QDB Wrapper
@@ -83,9 +84,9 @@ else ()
   # --- Tests for SQLite Wrapper
   find_package(Sqlite3 REQUIRED)
   list (APPEND testSources
-    ./sqlite_wrapper/sql_database_test.cc 
-    ./sqlite_wrapper/sql_query_test.cc   
-    generated_code_with_sqlite_test.cc   
+    ./sqlite_wrapper/sql_database_test.cc
+    ./sqlite_wrapper/sql_query_test.cc
+    generated_code_with_sqlite_test.cc
 
     # TODO{ALeshin} APPLINK-11132 AssertTrue in SetUpTestCase() return false
     #policy_manager_impl_stress_test.cc
@@ -104,6 +105,7 @@ endif()
 
 file(COPY testscript.sh DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 file(COPY log4cxx.properties DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY smartDeviceLink.ini DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 create_test("utils_test" "${testSources}" "${testLibraries}")
 
