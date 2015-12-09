@@ -161,6 +161,12 @@ AudioSource::AudioSource(uint32_t app_id, ApplicationManager* app_mngr)
 
 mobile_apis::HMILevel::eType AudioSource::hmi_level() const {
   using namespace mobile_apis;
+  // TODO(AOleynik): That NONE check is necessary to avoid issue during
+  // calculation of HMI level during setting default HMI level
+  // Should be investigated (used in multiple places here), since looks weird
+  if (parent()->hmi_level() == HMILevel::HMI_NONE) {
+    return HMILevel::HMI_NONE;
+  }
   if (is_navi_app(app_id_)) {
     return HMILevel::HMI_LIMITED;
   }
@@ -172,6 +178,9 @@ EmbeddedNavi::EmbeddedNavi(uint32_t app_id, ApplicationManager* app_mngr)
 
 mobile_apis::HMILevel::eType EmbeddedNavi::hmi_level() const {
   using namespace mobile_apis;
+  if (parent()->hmi_level() == HMILevel::HMI_NONE) {
+    return HMILevel::HMI_NONE;
+  }
   if (is_media_app(app_id_)) {
     return HMILevel::HMI_LIMITED;
   }

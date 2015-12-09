@@ -149,6 +149,35 @@ HmiStatePtr StateController::ResolveHmiState(ApplicationSharedPtr app,
                                                 : HmiStatePtr();
 }
 
+bool StateController::IsResumptionAllowed(ApplicationSharedPtr app,
+                                          HmiStatePtr state) const {
+  LOG4CXX_AUTO_TRACE(logger_);
+  using namespace helpers;
+  using namespace mobile_apis;
+  if (!app->is_resuming() ||
+      !Compare<HMILevel::eType, EQ, ONE>(state->hmi_level(),
+               HMILevel::HMI_FULL, HMILevel::HMI_LIMITED)) {
+    LOG4CXX_DEBUG(logger_, "Application is not in resuming mode.");
+    return true;
+  }
+
+  if (IsTempStateActive(HmiState::StateID::STATE_ID_AUDIO_SOURCE) &&
+      app->is_media_application()) {
+    LOG4CXX_DEBUG(logger_, "Resumption for media app is not allowed. "
+                  << "AUDIO_SOURCE event is active");
+    return false;
+  }
+
+  if (IsTempStateActive(HmiState::StateID::STATE_ID_EMBEDDED_NAVI) &&
+      app->is_navi()) {
+    LOG4CXX_DEBUG(logger_, "Resumption for navi app is not allowed. "
+                  << "EMBEDDED_NAVI event is active");
+    return false;
+  }
+
+  return true;
+}
+
 mobile_apis::HMILevel::eType
 StateController::GetAvailableHmiLevel(
     ApplicationSharedPtr app, mobile_apis::HMILevel::eType hmi_level) const {
@@ -178,6 +207,16 @@ StateController::GetAvailableHmiLevel(
     if (does_audio_app_with_same_type_exist) {
       result = app_mngr_->GetDefaultHmiLevel(app);
     } else if (is_active_app_exist) {
+      result = mobile_apis::HMILevel::HMI_LIMITED;
+    } else if (app->is_navi() &&
+               IsTempStateActive(HmiState::StateID::STATE_ID_AUDIO_SOURCE)) {
+      LOG4CXX_DEBUG(logger_, "Navigation app will be resumed to LIMITED, "
+                             "because of AUDIO_SOURCE ia active.");
+      result = mobile_apis::HMILevel::HMI_LIMITED;
+    } else if (app->is_media_application() &&
+               IsTempStateActive(HmiState::StateID::STATE_ID_EMBEDDED_NAVI)) {
+      LOG4CXX_DEBUG(logger_, "Media app will be resumed to LIMITED, "
+                             "because of EMBEDDED_NAVI is active.");
       result = mobile_apis::HMILevel::HMI_LIMITED;
     }
   } else if (is_active_app_exist) {

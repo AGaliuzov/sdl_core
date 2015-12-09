@@ -74,6 +74,10 @@ class StateController : public event_engine::EventObserver {
       return;
     }
 
+    if (app->is_resuming() && !IsResumptionAllowed(app, state)) {
+      return;
+    }
+
     HmiStatePtr resolved_state = ResolveHmiState(app, state);
     if (!resolved_state) {
       state->set_state_id(HmiState::STATE_ID_POSTPONED);
@@ -328,6 +332,15 @@ class StateController : public event_engine::EventObserver {
    */
   HmiStatePtr ResolveHmiState(
       ApplicationSharedPtr app, HmiStatePtr state) const;
+
+  /**
+   * @brief IsResumptionAllowed checks, if app is allowed to be resumed in
+   * current state
+   * @param app Application
+   * @param state State to be checked
+   * @return true, if app is allowed to be resumed, otherwise - false
+   */
+  bool IsResumptionAllowed(ApplicationSharedPtr app, HmiStatePtr state) const;
 
   /**
    * @brief GetAvailableHmiLevel Returns closest to requested
