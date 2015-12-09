@@ -156,6 +156,28 @@ mobile_apis::HMILevel::eType DeactivateHMI::hmi_level() const {
   return expected_level;
 }
 
+AudioSource::AudioSource(uint32_t app_id, ApplicationManager* app_mngr)
+  : HmiState(app_id, app_mngr, STATE_ID_AUDIO_SOURCE) {}
+
+mobile_apis::HMILevel::eType AudioSource::hmi_level() const {
+  using namespace mobile_apis;
+  if (is_navi_app(app_id_)) {
+    return HMILevel::HMI_LIMITED;
+  }
+  return HMILevel::HMI_BACKGROUND;
+}
+
+EmbeddedNavi::EmbeddedNavi(uint32_t app_id, ApplicationManager* app_mngr)
+  : HmiState(app_id, app_mngr, STATE_ID_EMBEDDED_NAVI) {}
+
+mobile_apis::HMILevel::eType EmbeddedNavi::hmi_level() const {
+  using namespace mobile_apis;
+  if (is_media_app(app_id_)) {
+    return HMILevel::HMI_LIMITED;
+  }
+  return HMILevel::HMI_BACKGROUND;
+}
+
 }
 
 

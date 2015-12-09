@@ -302,6 +302,7 @@ bool StateController::IsSameAppType(ApplicationConstSharedPtr app1,
 void StateController::on_event(const event_engine::Event& event) {
   using smart_objects::SmartObject;
   using event_engine::Event;
+  using namespace hmi_apis;
   namespace FunctionID = hmi_apis::FunctionID;
 
   LOG4CXX_AUTO_TRACE(logger_);
@@ -364,6 +365,35 @@ void StateController::on_event(const event_engine::Event& event) {
     }
     case FunctionID::TTS_Stopped: {
       CancelTempState<HmiState::STATE_ID_TTS_SESSION>();
+      break;
+    }
+    case FunctionID::BasicCommunication_OnEventChanged: {
+      bool is_active =
+          message[strings::msg_params][hmi_response::is_active].asBool();
+      const uint32_t id =
+          message[strings::msg_params][hmi_response::event_name].asUInt();
+      //TODO(AOleynik): Add verification/conversion check here
+      Common_EventTypes::eType state_id =
+          static_cast<Common_EventTypes::eType>(id);
+      if (is_active) {
+        if (Common_EventTypes::AUDIO_SOURCE == state_id) {
+          ApplyTempState<HmiState::STATE_ID_AUDIO_SOURCE>();
+          break;
+        }
+        if (Common_EventTypes::EMBEDDED_NAVI) {
+          ApplyTempState<HmiState::STATE_ID_EMBEDDED_NAVI>();
+          break;
+        }
+      } else {
+        if (Common_EventTypes::AUDIO_SOURCE == state_id) {
+          CancelTempState<HmiState::STATE_ID_AUDIO_SOURCE>();
+          break;
+        }
+        if (Common_EventTypes::EMBEDDED_NAVI == state_id) {
+          CancelTempState<HmiState::STATE_ID_EMBEDDED_NAVI>();
+          break;
+        }
+      }
       break;
     }
     default:
@@ -645,6 +675,14 @@ HmiStatePtr StateController::CreateHmiState(
     }
     case HmiState::STATE_ID_DEACTIVATE_HMI: {
       new_state = MakeShared<DeactivateHMI>(app_id, app_mngr_);
+      break;
+    }
+    case HmiState::STATE_ID_AUDIO_SOURCE: {
+      new_state = MakeShared<AudioSource>(app_id, app_mngr_);
+      break;
+    }
+    case HmiState::STATE_ID_EMBEDDED_NAVI: {
+      new_state = MakeShared<EmbeddedNavi>(app_id, app_mngr_);
       break;
     }
     default:
