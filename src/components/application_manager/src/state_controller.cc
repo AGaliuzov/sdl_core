@@ -655,53 +655,6 @@ HmiStatePtr StateController::CreateHmiState(
   return new_state;
 }
 
-bool StateController::IsHmiStateAllowed(const ApplicationSharedPtr app,
-                                        const HmiStatePtr state) const {
-  using namespace helpers;
-  using namespace mobile_apis;
-
-  if (!(app && state)) return false;
-
-  bool result = false;
-  switch (state->hmi_level()) {
-    case HMILevel::HMI_LIMITED: {
-      result = Compare<AudioStreamingState::eType, EQ, ONE>(
-                   state->audio_streaming_state(), AudioStreamingState::AUDIBLE,
-                   AudioStreamingState::ATTENUATED) &&
-               app->IsAudioApplication();
-      break;
-    }
-    case HMILevel::HMI_FULL: {
-      if (app->IsAudioApplication()) {
-        result = true;
-        break;
-      }
-    }
-    case HMILevel::HMI_BACKGROUND:
-    case HMILevel::HMI_NONE: {
-      result = Compare<AudioStreamingState::eType, NEQ, ALL>(
-          state->audio_streaming_state(), AudioStreamingState::AUDIBLE,
-          AudioStreamingState::ATTENUATED);
-      break;
-    }
-    default: {
-      result = false;
-      break;
-    }
-  }
-  result = result
-               ? state->hmi_level() != HMILevel::INVALID_ENUM &&
-                     state->audio_streaming_state() !=
-                         AudioStreamingState::INVALID_ENUM &&
-                     state->system_context() != SystemContext::INVALID_ENUM
-               : result;
-
-  if (!result) {
-    LOG4CXX_WARN(logger_, "HMI state not allowed");
-  }
-  return result;
-}
-
 mobile_apis::AudioStreamingState::eType StateController::CalcAudioState(
     ApplicationSharedPtr app, const mobile_apis::HMILevel::eType hmi_level) const {
   namespace HMILevel = mobile_apis::HMILevel;

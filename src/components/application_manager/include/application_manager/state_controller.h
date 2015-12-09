@@ -545,15 +545,6 @@ class StateController : public event_engine::EventObserver {
    */
   HmiStatePtr CreateHmiState(uint32_t app_id, HmiState::StateID state_id) const;
 
-  /**
-   * @brief Tels if it is possible to setup regular state
-   * @param app applicatoin to check possibility to setup state
-   * @param state - State to setup
-   *
-   **/
-  bool IsHmiStateAllowed(const ApplicationSharedPtr app,
-                         const HmiStatePtr state) const;
-
   mobile_apis::AudioStreamingState::eType CalcAudioState(
       ApplicationSharedPtr app, const mobile_apis::HMILevel::eType hmi_level) const;
 
