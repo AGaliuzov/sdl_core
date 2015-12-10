@@ -263,6 +263,22 @@ TEST_F(ApplicationImplTest, SetRegularState_RemoveFirstState) {
   EXPECT_EQ(state2, current_state->parent());
 }
 
+TEST_F(ApplicationImplTest, SetPostponedState_RemovePostponedState) {
+  // Set postponed hmi state
+  HmiStatePtr state1 =
+      TestAddHmiState(HMILevel::HMI_NONE, HmiState::STATE_ID_POSTPONED,
+                      &ApplicationImpl::SetPostponedState);
+
+  // Check that state was setted correctly
+  HmiStatePtr state2 = app_impl->PostponedHmiState();
+  EXPECT_EQ(state1, state2);
+
+  // Check that state was correctly removed
+  app_impl->RemovePostponedState();
+  state2 = app_impl->PostponedHmiState();
+  EXPECT_EQ(NULL, state2);
+}
+
 TEST_F(ApplicationImplTest, AddStateAddRegularState_GetHmiLvlAudioSystemState) {
   audiostate = AudioStreamingState::ATTENUATED;
   syst_context = SystemContext::SYSCTXT_ALERT;

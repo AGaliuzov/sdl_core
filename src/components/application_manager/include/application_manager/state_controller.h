@@ -44,6 +44,7 @@
 #include "utils/helpers.h"
 
 namespace application_manager {
+
 class StateController : public event_engine::EventObserver {
  public:
   explicit StateController(ApplicationManager* app_mngr);
@@ -57,11 +58,21 @@ class StateController : public event_engine::EventObserver {
   template <bool SendActivateApp>
   void SetRegularState(ApplicationSharedPtr app,
                        HmiStatePtr state) {
+    CREATE_LOGGERPTR_LOCAL(logger_, "StateController");
+    LOG4CXX_AUTO_TRACE(logger_);
     if (!app) {
       return;
     }
     DCHECK_OR_RETURN_VOID(state);
     DCHECK_OR_RETURN_VOID(state->state_id() == HmiState::STATE_ID_REGULAR);
+
+    if (state->hmi_level() == mobile_apis::HMILevel::INVALID_ENUM ||
+        state->audio_streaming_state() ==
+            mobile_apis::AudioStreamingState::INVALID_ENUM ||
+        state->system_context() == mobile_apis::SystemContext::INVALID_ENUM) {
+      LOG4CXX_ERROR(logger_, "Get invalid state");
+      return;
+    }
 
     HmiStatePtr resolved_state = ResolveHmiState(app, state);
     if (!resolved_state) {
