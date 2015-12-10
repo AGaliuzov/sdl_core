@@ -92,6 +92,16 @@ HU_files_path = {
     "libexpat.so": "/fs/mp/apps/usr/lib/libexpat.so",
     "libexpat.so.7": "/fs/mp/apps/usr/lib/libexpat.so.7",
     "libappenders.so": "/fs/mp/apps/usr/lib/libappenders.so",
+    #aoa libraries:
+
+    "libaoa_g.so.1": "/fs/mp/usr/lib/libaoa_g.so.1",
+    "libaoa-lite.so.1": "/fs/mp/usr/lib/libaoa-lite.so.1",
+    "libaoa.so.1": "/fs/mp/usr/lib/libaoa.so.1",
+    "libaoa.so": "/fs/mp/usr/lib/libaoa.so",
+    "libaoa_g.so": "/fs/mp/usr/lib/libaoa_g.so",
+    "libaoa-lite.so": "/fs/mp/usr/lib/libaoa-lite.so",
+
+
     # config
     "log4cxx.properties": "/fs/mp/etc/AppLink/log4cxx.properties",
     "hmi_capabilities.json": "/fs/mp/etc/AppLink/hmi_capabilities.json",
@@ -110,7 +120,8 @@ file_list = []
 for x in HU_files_path:
     file_list.append(HU_files_path[x])
 
-usage = "--to_target or --collect_rtc option must be used. \n use -h fo help"
+usage = "--to_target or --collect_rtc --login option must be used.\n" \
+        "--to_target and--collect_rtc can't be used simultaneously.\n use -h fo help"
 parser = ArgumentParser(description='v1.0')
 parser.add_argument("--ip", dest="ip", metavar="IP",
                   help="IP Address of target")
@@ -206,6 +217,9 @@ class Target:
     def load_file_on_hu(self, src_file):
         try:
             src_path = find_recursively(src_file, self.bin_path)
+            if not src_path:
+                print("ERROR : file not found : %s" % src_file)
+                return None, None
             local_hash, local_size = self.get_local_hash_and_size(src_path)
             f = open(src_path, "rb")
             hu_path = HU_files_path[src_file]
@@ -270,7 +284,10 @@ class Target:
 def main():
     print(parser.description)
     args = parser.parse_args()
-    if not (args.to_target ^ args.collect_rtc):
+    if not (args.to_target or args.collect_rtc or args.login) :
+        print(usage)
+        return -1
+    if (args.to_target or args.collect_rtc) and not (args.to_target ^ args.collect_rtc):
         print(usage)
         return -1
     target = Target(args.ip, args.bin_path, args.rtc_path)
