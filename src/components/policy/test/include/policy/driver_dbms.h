@@ -33,9 +33,9 @@
 #define SRC_COMPONENTS_POLICY_TEST_INCLUDE_POLICY_DRIVER_DBMS_H_
 
 #ifdef __QNX__
-#  include <qdb/qdb.h>
+#include <qdb/qdb.h>
 #else  // __QNX__
-#  include <sqlite3.h>
+#include <sqlite3.h>
 #endif  // __QNX__
 
 namespace test {

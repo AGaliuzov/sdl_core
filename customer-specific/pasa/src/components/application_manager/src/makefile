@@ -37,14 +37,14 @@ INCLUDES = \
 	$(CC_IFLAG)../../protocol_handler/include \
 	$(CC_IFLAG)../../connection_handler/include \
 	$(CC_IFLAG)../../config_profile/include \
-  $(CC_IFLAG)../../policy/include \
+	$(CC_IFLAG)../../policy/include \
 	$(CC_IFLAG)../../smart_objects/include \
 	$(CC_IFLAG)../../hmi_message_handler/include \
 	$(CC_IFLAG)../../formatters/include \
 	$(CC_IFLAG)../../utils/include \
 	$(CC_IFLAG)../../media_manager/include \
 	$(CC_IFLAG)../../resumption/include \
-  $(CC_IFLAG)../../components/interfaces \
+	$(CC_IFLAG)../../components/interfaces \
 	$(CC_IFLAG)../../rpc_base/include \
 	$(CC_IFLAG)../../ \
 	$(CC_IFLAG)../../../3rd_party-static/jsoncpp/include \
@@ -145,8 +145,8 @@ HEADERS = \
 	$(wildcard ../include/$(COMPONENT_NAME)/resumption/*.h*) \
 	$(wildcard ../../protocol_handler/include/protocol_handler/*.h*) \
 	$(wildcard ../../connection_handler/include/connection_handler/*.h*) \
-  $(wildcard ../../policy/include/policy/*.h*) \
-  $(wildcard ../../utils/include/utils/*.h*) \
+	$(wildcard ../../policy/include/policy/*.h*) \
+	$(wildcard ../../utils/include/utils/*.h*) \
 	$(wildcard ../../utils/include/utils/threads/*.h*) \
 
 	

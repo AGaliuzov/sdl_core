@@ -6,7 +6,7 @@
 COMPONENT_NAME = usage_statistics
 
 ifndef PRJ_ROOT
-export PRJ_ROOT = $(CURDIR)/../../../../
+export PRJ_ROOT = $(CURDIR)/../../
 endif
 include $(PRJ_ROOT)cfg/depends.mk
 
@@ -31,9 +31,9 @@ DEFS += \
 INCLUDES = \
 	$(CFG_INCS) \
 	$(CC_IFLAG)./ \
-	$(CC_IFLAG)../../../../../../3rd_party/log4cxx/include \
-	$(CC_IFLAG)../include \
-	$(CC_IFLAG)../../../../../include \
+	$(CC_IFLAG)../../../../3rd_party/log4cxx/include \
+	$(CC_IFLAG)../../include \
+	$(CC_IFLAG)../../../include \
 	$(DEPENDS_INCLUDES)
 
 

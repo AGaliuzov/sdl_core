@@ -33,7 +33,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/components/policy/include
   ${CMAKE_SOURCE_DIR}/src/components/rpc_base/include/
   ${CMAKE_SOURCE_DIR}/src/components/utils/include/
-	${JSONCPP_INCLUDE_DIRECTORY}
+  ${JSONCPP_INCLUDE_DIRECTORY}
 )
 
 
