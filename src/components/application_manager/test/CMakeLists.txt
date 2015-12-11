@@ -99,6 +99,7 @@ if (BUILD_TESTS)
     ${AM_TEST_DIR}/policy_event_observer_test.cc
     ${AM_TEST_DIR}/application_impl_test.cc
     ${AM_TEST_DIR}/hmi_capabilities_test.cc
+    ${AM_TEST_DIR}/application_state_test.cc
     # TODO(VVeremjova) APPLINK-12835
     #${AM_TEST_DIR}/zero_request_amount_test.cc
   )
