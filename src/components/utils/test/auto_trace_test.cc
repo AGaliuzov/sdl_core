@@ -52,8 +52,8 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "AutoTraceTestLog")
 void Preconditions() {
   // Delete file with previous logs
   const char* file_name = "AutoTraceTestLogFile.log";
-  if (!file_system::DeleteFile(file_name))
-    std::cout << "Can't delete AutoTraceTestLogFile.log\n";
+  ASSERT_TRUE(file_system::DeleteFile(file_name))
+    << "Can't delete AutoTraceTestLogFile.log\n";
 }
 
 void InitLogger() {
