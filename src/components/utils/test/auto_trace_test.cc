@@ -102,11 +102,11 @@ TEST(AutoTraceTest, AutoTrace_WriteToFile_ReadCorrectString) {
   CreateDeleteAutoTrace(testlog);
 
   const TimevalStruct startTime = date_time::DateTime::getCurrentTime();
-  TimevalStruct timeout_sec;
-  timeout_sec.tv_sec = 10;
+  const int64_t timeout_msec = 10000;
   // Waiting for empty Logger MessageQueue 10 seconds
   while (LogMessageLoopThread::instance()->GetMessageQueueSize()) {
-    ASSERT_LT(date_time::DateTime::getCurrentTime() - startTime, timeout_sec );
+    ASSERT_LT(date_time::DateTime::calculateTimeDiff(
+        date_time::DateTime::getCurrentTime(), startTime), timeout_msec);
     threads::Thread::yield();
   }
   DeinitLogger();
