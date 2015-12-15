@@ -34,7 +34,7 @@ if(BUILD_TESTS)
 include_directories(
   include
   ${GMOCK_INCLUDE_DIRECTORY}
-  ${CMAKE_BINARY_DIR}/src/components/interfaces
+  ${CMAKE_BINARY_DIR}/src/components/
 )
 
 set(LIBRARIES

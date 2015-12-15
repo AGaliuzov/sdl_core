@@ -30,8 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __SMARTDEVICELINKCORE_JSONHANDLER_FORMATTERS_METAFORMATTER_H__
-#define __SMARTDEVICELINKCORE_JSONHANDLER_FORMATTERS_METAFORMATTER_H__
+#ifndef SRC_COMPONENTS_FORMATTERS_INCLUDE_FORMATTERS_META_FORMATTER_H_
+#define SRC_COMPONENTS_FORMATTERS_INCLUDE_FORMATTERS_META_FORMATTER_H_
 
 #include "smart_objects/smart_object.h"
 #include "smart_objects/smart_schema.h"
@@ -68,8 +68,8 @@ class CMetaFormatter {
           NsSmartDeviceLink::NsSmartObjects::SmartObject& result_object);
 };
 
-}// namespace NsSmartDeviceLink
-}// namespace NsSmartDeviceLink::NsJSONHandler
-}// namespace NsSmartDeviceLink::NsJSONHandler::Formatters
+} // namespace Formatters
+} // namespace NsJSONHandler
+} // namespace NsSmartDeviceLink
 
-#endif // __SMARTDEVICELINKCORE_JSONHANDLER_FORMATTERS_METAFORMATTER_H__
+#endif  // SRC_COMPONENTS_FORMATTERS_INCLUDE_FORMATTERS_META_FORMATTER_H_

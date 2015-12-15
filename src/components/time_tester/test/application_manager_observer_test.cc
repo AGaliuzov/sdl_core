@@ -31,7 +31,7 @@
  */
 
 #include "gtest/gtest.h"
-#include "mock_time_manager.h"
+#include "time_tester/mock_time_manager.h"
 #include "application_manager/time_metric_observer.h"
 #include "time_tester/application_manager_metric.h"
 #include "time_tester/application_manager_observer.h"

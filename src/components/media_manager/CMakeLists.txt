@@ -92,8 +92,7 @@ include_directories (
     ${COMPONENTS_DIR}/config_profile/include/
     ${JSONCPP_INCLUDE_DIRECTORY}
     ${CMAKE_BINARY_DIR}/src/components/
-    ${COMPONENTS_DIR}/policy/src/policy/include/
-    ${COMPONENTS_DIR}/policy/src/policy/usage_statistics/include/
+    ${COMPONENTS_DIR}/policy/include/
     ${LOG4CXX_INCLUDE_DIRECTORY}
 )
 

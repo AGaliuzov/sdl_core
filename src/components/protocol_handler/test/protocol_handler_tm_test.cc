@@ -33,7 +33,7 @@
 #include <string>
 #include "protocol_handler/protocol_handler_impl.h"
 #include "protocol/common.h"
-#include "control_message_matcher.h"
+#include "protocol_handler/control_message_matcher.h"
 #include "protocol_handler/mock_protocol_handler.h"
 #include "protocol_handler/mock_protocol_observer.h"
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Ford Motor Company
+# Copyright (c) 2015, Ford Motor Company
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -29,10 +29,90 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 # --- Policy
-add_subdirectory(./src/policy)
+set(target Policy)
+set(install_destination bin)
+set(copy_destination ${CMAKE_BINARY_DIR}/src/appMain)
+set(library_name ${CMAKE_SHARED_LIBRARY_PREFIX}${target}${CMAKE_SHARED_LIBRARY_SUFFIX})
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+
+include_directories (
+  include
+  ${COMPONENTS_DIR}/rpc_base/include
+  ${COMPONENTS_DIR}/utils/include/
+  ${COMPONENTS_DIR}/config_profile/include
+  ${LOG4CXX_INCLUDE_DIRECTORY}
+  ${JSONCPP_INCLUDE_DIRECTORY}
+)
+
+set(SOURCES
+  ./src/policy_manager_impl.cc
+  ./src/policy_helper.cc
+  ./src/policy_table.cc
+  ./src/sql_pt_queries.cc
+  ./src/sql_pt_representation.cc
+  ./src/update_status_manager.cc
+  ./src/cache_manager.cc
+  ${COMPONENTS_DIR}/rpc_base/src/rpc_base/rpc_base.cc
+)
+
+list(APPEND SOURCES
+  ./src/sql_pt_ext_queries.cc
+  ./src/sql_pt_ext_representation.cc
+)
+
+set(LIBRARIES ConfigProfile policy_struct dbms jsoncpp Utils)
+if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
+  # --- QDB Wrapper
+  include_directories (${COMPONENTS_DIR}/utils/include/utils)
+else ()
+  # --- SQLite Wrapper
+  include_directories (${COMPONENTS_DIR}/utils/include/utils)
+  list(APPEND LIBRARIES sqlite3)
+endif ()
+
+add_library(${target} SHARED ${SOURCES})
+target_link_libraries(${target} ${LIBRARIES} )
+
+if (ENABLE_LOG)
+  target_link_libraries(${target} log4cxx -L${LOG4CXX_LIBS_DIRECTORY})
+endif()
+
+add_custom_target(copy_library_${target} ALL
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${CMAKE_CURRENT_BINARY_DIR}/${library_name}
+    ${copy_destination}
+    DEPENDS ${target}
+    COMMENT "Copying library ${library_name}")
+
+install(TARGETS ${target}
+  DESTINATION ${install_destination}
+  PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+    GROUP_READ GROUP_EXECUTE
+    WORLD_READ WORLD_EXECUTE
+)
+
+# --- Table struct
+set(struct_target policy_struct)
+
+set(TABLE_STRUCT_SOURCES
+  ./src/policy_table/enums.cc
+  ./src/policy_table/types.cc
+  ./src/policy_table/validation.cc
+)
+
+add_library(${struct_target} ${TABLE_STRUCT_SOURCES})
+target_link_libraries(${struct_target} Utils)
+
+# --- Usage statistics
+set(USAGE_STATISTICS_SOURCES
+  ./src/usage_statistics/counter.cc
+)
+
+add_library(UsageStatistics ${USAGE_STATISTICS_SOURCES})
+
 #======================= Unit-Test section =======================
-if(BUILD_TESTS)
+if (BUILD_TESTS)
   add_subdirectory(test)
 endif()
 #=================================================================
-

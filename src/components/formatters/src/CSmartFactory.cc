@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "formatters/CSmartFactory.hpp"
+#include "formatters/CSmartFactory.h"
 
 const std::string NsSmartDeviceLink::NsJSONHandler::strings::S_MSG_PARAMS("msg_params");
 const std::string NsSmartDeviceLink::NsJSONHandler::strings::S_PARAMS("params");

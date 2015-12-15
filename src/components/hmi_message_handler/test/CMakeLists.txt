@@ -30,6 +30,7 @@
 
 if (BUILD_TESTS)
   include_directories (
+    include
     ${GMOCK_INCLUDE_DIRECTORY}
     ${MESSAGE_BROKER_INCLUDE_DIRECTORY}
     ${COMPONENTS_DIR}/hmi_message_handler/include
