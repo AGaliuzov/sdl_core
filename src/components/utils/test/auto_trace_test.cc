@@ -31,7 +31,7 @@
  */
 
 #include <fstream>
-
+#include <ctime>
 #include "gtest/gtest.h"
 #include "utils/auto_trace.h"
 #include "utils/logger.h"
@@ -39,6 +39,7 @@
 #include "utils/log_message_loop_thread.h"
 #include "utils/threads/message_loop_thread.h"
 #include "utils/file_system.h"
+#include "utils/threads/thread.h"
 
 namespace test {
 namespace components {
@@ -67,7 +68,7 @@ void CreateDeleteAutoTrace(const std::string & testlog) {
   LOG4CXX_DEBUG(logger_, testlog);
 }
 
-bool CheckTraceInFile(const std::string & testlog) {
+bool CheckAutoTraceDebugInFile(const std::string & testlog) {
   bool isLogFound = false;
   std::string line;
 
@@ -99,11 +100,17 @@ TEST(AutoTraceTest, AutoTrace_WriteToFile_ReadCorrectString) {
   Preconditions();
   InitLogger();
   CreateDeleteAutoTrace(testlog);
-  // Waiting for empty Logger MessageQueue
-  while (LogMessageLoopThread::instance()->GetMessageQueueSize()) {}
+
+  const time_t startTime = time(0);
+  const uint32_t timeout = 10;
+  // Waiting for empty Logger MessageQueue 10 seconds
+  while (LogMessageLoopThread::instance()->GetMessageQueueSize()) {
+    ASSERT_LT(time(0) - startTime, timeout);
+    threads::Thread::yield();
+  }
   DeinitLogger();
 
-  ASSERT_TRUE(CheckTraceInFile(testlog));
+  ASSERT_TRUE(CheckAutoTraceDebugInFile(testlog));
 }
 
 }  // namespace utils_test
