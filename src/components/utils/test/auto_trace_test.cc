@@ -31,7 +31,6 @@
  */
 
 #include <fstream>
-#include <ctime>
 #include "gtest/gtest.h"
 #include "utils/auto_trace.h"
 #include "utils/logger.h"
@@ -40,6 +39,7 @@
 #include "utils/threads/message_loop_thread.h"
 #include "utils/file_system.h"
 #include "utils/threads/thread.h"
+#include "utils/date_time.h"
 
 namespace test {
 namespace components {
@@ -101,11 +101,12 @@ TEST(AutoTraceTest, AutoTrace_WriteToFile_ReadCorrectString) {
   InitLogger();
   CreateDeleteAutoTrace(testlog);
 
-  const time_t startTime = time(0);
-  const uint32_t timeout = 10;
+  const TimevalStruct startTime = date_time::DateTime::getCurrentTime();
+  TimevalStruct timeout_sec;
+  timeout_sec.tv_sec = 10;
   // Waiting for empty Logger MessageQueue 10 seconds
   while (LogMessageLoopThread::instance()->GetMessageQueueSize()) {
-    ASSERT_LT(time(0) - startTime, timeout);
+    ASSERT_LT(date_time::DateTime::getCurrentTime() - startTime, timeout_sec );
     threads::Thread::yield();
   }
   DeinitLogger();
