@@ -115,8 +115,6 @@ TEST(AutoTraceTest, AutoTrace_WriteToFile_ReadCorrectString) {
   DeinitLogger();
 
   ASSERT_TRUE(CheckAutoTraceDebugInFile(testlog));
-  LogMessageLoopThread::destroy();
-  logger::logger_status = LoggerThreadNotCreated;
 }
 
 }  // namespace utils_test
