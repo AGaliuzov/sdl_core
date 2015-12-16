@@ -132,6 +132,10 @@ class Thread {
   friend void DeleteThread(Thread* thread);
 
  public:
+
+  // Yield current thread
+  static void yield();
+
   // Get unique ID of currently executing thread
   static PlatformThreadHandle CurrentId();
 
