@@ -40,6 +40,7 @@
 #include "utils/file_system.h"
 #include "utils/threads/thread.h"
 #include "utils/date_time.h"
+#include "utils/logger_status.h"
 
 namespace test {
 namespace components {
@@ -50,10 +51,12 @@ using namespace ::logger;
 CREATE_LOGGERPTR_GLOBAL(logger_, "AutoTraceTestLog")
 
 void Preconditions() {
-  // Delete file with previous logs
   const char* file_name = "AutoTraceTestLogFile.log";
-  ASSERT_TRUE(file_system::DeleteFile(file_name))
-    << "Can't delete AutoTraceTestLogFile.log\n";
+  // Delete file with previous logs
+  if (file_system::FileExists(file_name)) {
+    ASSERT_TRUE(file_system::DeleteFile(file_name))
+        << "Can't delete AutoTraceTestLogFile.log";
+  }
 }
 
 void InitLogger() {
