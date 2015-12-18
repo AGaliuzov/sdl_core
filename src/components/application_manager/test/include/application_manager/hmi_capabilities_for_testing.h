@@ -34,21 +34,21 @@
 #define SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_HMI_CAPABILITIES_FOR_TESTING_H_
 
 #include "application_manager/hmi_capabilities.h"
-#include "application_manager/application_manager_impl.h"
-
-using namespace ::application_manager;
 
 namespace test {
 namespace components {
 namespace application_manager_test {
 
-class HMICapabilitiesForTesting : public HMICapabilities {
+class HMICapabilitiesForTesting
+    : public ::application_manager::HMICapabilities {
  public:
-  HMICapabilitiesForTesting(ApplicationManagerImpl* const app_mngr)
+  HMICapabilitiesForTesting(
+      ::application_manager::ApplicationManagerImpl* const app_mngr)
       : HMICapabilities(app_mngr) {}
   bool LoadCapabilitiesFromFile() { return load_capabilities_from_file(); }
 
-  void ConvertJsonLanguagesToObj(Json::Value& json_languages,
+  void ConvertJsonLanguagesToObj(
+      Json::Value& json_languages,
       ::NsSmartDeviceLink::NsSmartObjects::SmartObject& languages) {
     convert_json_languages_to_obj(json_languages, languages);
   }
