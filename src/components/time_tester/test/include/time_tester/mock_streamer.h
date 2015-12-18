@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,22 +33,21 @@
 #ifndef SRC_COMPONENTS_TIME_TESTER_TEST_INCLUDE_TIME_TESTER_MOCK_STREAMER_H_
 #define SRC_COMPONENTS_TIME_TESTER_TEST_INCLUDE_TIME_TESTER_MOCK_STREAMER_H_
 
-#include <gmock/gmock.h>
+#include "gmock/gmock.h"
 #include "time_tester/time_manager.h"
 
 namespace test {
 namespace components {
 namespace time_tester_test {
 
-using namespace time_tester;
-
-class StreamerMock : public Streamer {
+class StreamerMock : public time_tester::Streamer {
  public:
-  StreamerMock(TimeManager* const server)
+  StreamerMock(time_tester::TimeManager* const server)
       : Streamer(server) {
     is_client_connected_ = true;
   }
-  MOCK_METHOD1(PushMessage,void(utils::SharedPtr<MetricWrapper> metric));
+  MOCK_METHOD1(PushMessage,
+               void(utils::SharedPtr<time_tester::MetricWrapper> metric));
 };
 
 }  // time_tester_test
