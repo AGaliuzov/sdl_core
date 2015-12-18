@@ -65,7 +65,9 @@ class HmiState {
     STATE_ID_VR_SESSION,
     STATE_ID_TTS_SESSION,
     STATE_ID_NAVI_STREAMING,
-    STATE_ID_DEACTIVATE_HMI
+    STATE_ID_DEACTIVATE_HMI,
+    STATE_ID_AUDIO_SOURCE,
+    STATE_ID_EMBEDDED_NAVI
   };
 
   HmiState(uint32_t app_id, ApplicationManager* app_mngr);
@@ -255,6 +257,32 @@ class DeactivateHMI : public HmiState {
     return mobile_apis::AudioStreamingState::NOT_AUDIBLE;
   }
 
+};
+
+/**
+ * @brief The AudioSource class implements logic of OnEventChanged(AUDIO_SOURCE)
+ * temporary state
+ */
+class AudioSource : public HmiState {
+ public:
+  AudioSource(uint32_t app_id, ApplicationManager* app_mngr);
+  virtual mobile_apis::HMILevel::eType hmi_level() const;
+  virtual mobile_apis::AudioStreamingState::eType audio_streaming_state() const {
+    return mobile_apis::AudioStreamingState::NOT_AUDIBLE;
+  }
+};
+
+/**
+ * @brief The EmbeddedNavi class implements logic of OnEventChanged(EMBEDDED_NAVI)
+ * temporary state
+ */
+class EmbeddedNavi : public HmiState {
+ public:
+  EmbeddedNavi(uint32_t app_id, ApplicationManager* app_mngr);
+  virtual mobile_apis::HMILevel::eType hmi_level() const;
+  virtual mobile_apis::AudioStreamingState::eType audio_streaming_state() const {
+    return mobile_apis::AudioStreamingState::NOT_AUDIBLE;
+  }
 };
 
 }

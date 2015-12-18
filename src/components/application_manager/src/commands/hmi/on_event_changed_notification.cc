@@ -30,23 +30,23 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "application_manager/commands/hmi/basic_communication_on_deactivate_hmi.h"
-
+#include "application_manager/commands/hmi/on_event_changed_notification.h"
 
 namespace application_manager {
 
 namespace commands {
 
-OnDeactivateHMINotification::OnDeactivateHMINotification(
-    const MessageSharedPtr& message) : NotificationFromHMI(message) {
+OnEventChangedNotification::OnEventChangedNotification(
+    const MessageSharedPtr& message)
+    : NotificationFromHMI(message) {
 }
 
-OnDeactivateHMINotification::~OnDeactivateHMINotification() {
+OnEventChangedNotification::~OnEventChangedNotification() {
 }
 
-void OnDeactivateHMINotification::Run() {
+void OnEventChangedNotification::Run() {
   LOG4CXX_AUTO_TRACE(logger_);
-  event_engine::Event event(hmi_apis::FunctionID::BasicCommunication_OnDeactivateHMI);
+  event_engine::Event event(hmi_apis::FunctionID::BasicCommunication_OnEventChanged);
   event.set_smart_object(*message_);
   event.raise();
 }

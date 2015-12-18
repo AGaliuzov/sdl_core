@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Ford Motor Company
+ * Copyright (c) 2013, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_BASIC_COMMUNICATION_ON_DEACTIVATE_HMI_H_
-#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_BASIC_COMMUNICATION_ON_DEACTIVATE_HMI_H_
+#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_ON_EVENT_CHANGED_NOTIFICATION_H_
+#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_ON_EVENT_CHANGED_NOTIFICATION_H_
 
 #include "application_manager/commands/hmi/notification_from_hmi.h"
 
@@ -40,35 +40,33 @@ namespace application_manager {
 namespace commands {
 
 /**
- * @brief OnDeactivateHMINotification command class
+ * @brief OnEventChangedNotification command class
  **/
-class OnDeactivateHMINotification : public NotificationFromHMI {
- public:
-  /**
-   * @brief OnDeactivateHMINotification class constructor
-   *
-   * @param message Incoming SmartObject message
-   **/
-  explicit OnDeactivateHMINotification(const MessageSharedPtr& message);
+class OnEventChangedNotification : public NotificationFromHMI {
+  public:
+    /**
+     * @brief OnEventChangedNotification class constructor
+     *
+     * @param message Incoming SmartObject message
+     **/
+    explicit OnEventChangedNotification(const MessageSharedPtr& message);
 
-  /**
-   * @brief OnDeactivateHMINotification class destructor
-   **/
-  virtual ~OnDeactivateHMINotification();
+    /**
+     * @brief OnEventChangedNotification class destructor
+     **/
+    virtual ~OnEventChangedNotification();
 
-  /**
-   * @brief Execute command
-   **/
-  virtual void Run();
+    /**
+     * @brief Execute command
+     **/
+    virtual void Run();
 
- private:
-
-  DISALLOW_COPY_AND_ASSIGN(OnDeactivateHMINotification);
+  private:
+    DISALLOW_COPY_AND_ASSIGN(OnEventChangedNotification);
 };
 
 }  // namespace commands
 
 }  // namespace application_manager
 
-#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_BASIC_COMMUNICATION_ON_DEACTIVATE_HMI_H_
-
+#endif  //  SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_HMI_ON_EVENT_CHANGED_NOTIFICATION_H_
