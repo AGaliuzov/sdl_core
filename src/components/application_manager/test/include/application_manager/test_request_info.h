@@ -35,15 +35,16 @@
 
 #include "application_manager/request_info.h"
 
-namespace request_info = application_manager::request_controller;
-
 namespace test {
 namespace components {
 namespace application_manager_test {
 
-class TestRequestInfo : public request_info::RequestInfo {
+using ::application_manager::request_controller::RequestInfo;
+using ::application_manager::request_controller::RequestPtr;
+
+class TestRequestInfo : public RequestInfo {
  public:
-  TestRequestInfo(request_info::RequestPtr request,
+  TestRequestInfo(RequestPtr request,
                   const RequestType requst_type,
                   const TimevalStruct& start_time, const uint64_t timeout_sec)
       : RequestInfo(request, requst_type, start_time, timeout_sec) {}
