@@ -35,12 +35,12 @@
 
 #include "transport_manager/transport_adapter/device.h"
 
-using ::transport_manager::transport_adapter::Device;
-using ::transport_manager::ApplicationList;
-
 namespace test {
 namespace components {
 namespace transport_manager_test {
+
+using ::transport_manager::transport_adapter::Device;
+using ::transport_manager::ApplicationList;
 
 class TestDevice : public Device {
  public:
