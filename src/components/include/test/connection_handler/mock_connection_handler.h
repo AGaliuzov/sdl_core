@@ -41,16 +41,14 @@
 #include "connection_handler/connection_handler.h"
 #include "connection_handler/connection_handler_observer.h"
 
-using namespace ::connection_handler;
-
 namespace test {
 namespace components {
 namespace connection_handler_test {
 
-class MockConnectionHandler : public ConnectionHandler {
+class MockConnectionHandler : public connection_handler::ConnectionHandler {
  public:
   MOCK_METHOD1(set_connection_handler_observer,
-      void(ConnectionHandlerObserver *observer));
+      void(connection_handler::ConnectionHandlerObserver *observer));
   MOCK_METHOD1(set_transport_manager,
       void(transport_manager::TransportManager *transport_manager));
   MOCK_METHOD0(StartTransportManager,
@@ -62,24 +60,27 @@ class MockConnectionHandler : public ConnectionHandler {
   MOCK_METHOD1(CloseRevokedConnection,
       void(uint32_t connection_key));
   MOCK_METHOD1(CloseConnection,
-      void(ConnectionHandle connection_handle));
+      void(connection_handler::ConnectionHandle connection_handle));
   MOCK_METHOD1(GetConnectionSessionsCount,
       uint32_t(uint32_t connection_key));
   MOCK_METHOD2(GetDeviceID,
-      bool(const std::string &mac_address, DeviceHandle *device_handle));
+      bool(const std::string &mac_address,
+           connection_handler::DeviceHandle *device_handle));
   MOCK_CONST_METHOD1(GetConnectedDevicesMAC,
       void(std::vector<std::string> &device_macs));
   MOCK_METHOD2(CloseSession,
-      void(uint32_t key, CloseSessionReason close_reason));
+      void(uint32_t key, connection_handler::CloseSessionReason close_reason));
   MOCK_METHOD3(CloseSession,
-      void(ConnectionHandle connection_handle, uint8_t session_id,
-          CloseSessionReason close_reason));
+      void(connection_handler::ConnectionHandle connection_handle,
+           uint8_t session_id,
+           connection_handler::CloseSessionReason close_reason));
   MOCK_METHOD2(SendEndService,
       void(uint32_t key, uint8_t service_type));
   MOCK_METHOD1(StartSessionHeartBeat,
       void(uint32_t connection_key));
   MOCK_METHOD2(SendHeartBeat,
-      void(ConnectionHandle connection_handle, uint8_t session_id));
+      void(connection_handler::ConnectionHandle connection_handle,
+           uint8_t session_id));
   MOCK_METHOD2(SetHeartBeatTimeout,
       void(uint32_t connection_key, uint32_t timeout));
   MOCK_METHOD2(BindProtocolVersionWithSession,
