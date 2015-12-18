@@ -55,10 +55,9 @@ class MockRequest : public application_manager::commands::Command {
 
   uint32_t connection_key_;
   uint32_t correlation_id_;
-  virtual uint32_t connection_key() const { return connection_key_; }
-  virtual uint32_t correlation_id() const { return correlation_id_; }
+  virtual uint32_t connection_key() const OVERRIDE { return connection_key_; }
+  virtual uint32_t correlation_id() const OVERRIDE { return correlation_id_; }
 };
-
 
 }  // namespace application_manager_test
 }  // namespace components
