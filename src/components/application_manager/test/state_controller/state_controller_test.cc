@@ -61,7 +61,9 @@ using ::test::components::application_manager_test::MockApplicationManager;
 using ::test::components::application_manager_test::MockApplication;
 using ::testing::AtLeast;
 
-static application_manager::MockMessageHelper* message_helper_mock_;
+namespace {
+  utils::SharedPtr<application_manager::MockMessageHelper> message_helper_mock_;
+}
 
 uint32_t application_manager::MessageHelper::SendActivateAppToHMI(
     uint32_t const app_id, hmi_apis::Common_HMILevel::eType level,
@@ -121,12 +123,7 @@ struct HmiStatesIDComparator {
 #define NAVI true
 #define NOT_NAVI false
 
-enum ApplicationType {
-    kNonMediaApp,
-    kNaviApp,
-    kMediaApp,
-    kMediaAttenuatedApp
-};
+enum ApplicationType { kNonMediaApp, kNaviApp, kMediaApp, kMediaAttenuatedApp };
 
 class StateControllerTest : public ::testing::Test {
  public:
@@ -534,7 +531,8 @@ class StateControllerTest : public ::testing::Test {
     namespace AudioStreamingState = mobile_apis::AudioStreamingState;
     namespace SystemContext = mobile_apis::SystemContext;
     // Valid states for not audio app
-    message_helper_mock_ = new application_manager::MockMessageHelper;
+    message_helper_mock_ =
+        utils::MakeShared<application_manager::MockMessageHelper>();
     valid_states_for_not_audio_app_.push_back(
         createHmiState(HMILevel::HMI_NONE, AudioStreamingState::NOT_AUDIBLE,
                        SystemContext::SYSCTXT_MAIN));
@@ -731,15 +729,13 @@ class StateControllerTest : public ::testing::Test {
     ASSERT_TRUE(media_navi_vc_app_->is_voice_communication_supported());
   }
 
-  void SetUp() {
+  virtual void SetUp() OVERRIDE {
     ON_CALL(app_manager_mock_, applications())
         .WillByDefault(Return(applications_));
     ConfigureApps();
     CheckAppConfiguration();
     FillStatesLists();
   }
-
-  void TearDown() { delete message_helper_mock_; }
 
   void ExpectSuccesfullSetHmiState(am::ApplicationSharedPtr app,
                                    NiceMock<MockApplication>* app_mock,
@@ -1051,7 +1047,7 @@ TEST_F(StateControllerTest, MoveAudioResumeAppToValidStates) {
        it != valid_states_for_audio_app_.end(); ++it) {
     HmiStatePtr state_to_setup = *it;
     HmiStatePtr state_to_check = state_to_setup;
-    //First time current state is initial, then it changes to setup state
+    // First time current state is initial, then it changes to setup state
     EXPECT_CALL(*audio_app_mock, CurrentHmiState())
         .WillOnce(Return(initial_state))
         .WillOnce(Return(state_to_setup));
@@ -2222,6 +2218,6 @@ TEST_F(StateControllerTest,
   state_ctrl_.SetRegularState<false>(media_app_, check_state);
 }
 
-}   // namespace state_controller_test
-}   // namespace components
-}   // namespace test
+}  // namespace state_controller_test
+}  // namespace components
+}  // namespace test
