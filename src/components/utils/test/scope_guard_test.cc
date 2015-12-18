@@ -46,7 +46,8 @@ using ::utils::MakeObjGuard;
 using ::testing::Mock;
 
 namespace {
-static int call_with_param_count;
+int call_with_param_count;
+
 void dealloc(char* ptr) {
   delete ptr;
   ++call_with_param_count;
