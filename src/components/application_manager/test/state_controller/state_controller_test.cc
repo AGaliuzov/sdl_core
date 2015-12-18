@@ -282,21 +282,44 @@ class StateControllerTest : public ::testing::Test {
             SystemContext::SYSCTXT_MAIN));
         break;
       }
-      case kMediaApp:
+      case kMediaApp: {
+        PrepareCommonStateResults(result_hmi_state);
+        result_hmi_state.push_back(createHmiState(
+                                     HMILevel::HMI_BACKGROUND,
+                                     AudioStreamingState::NOT_AUDIBLE,
+                                     SystemContext::SYSCTXT_MAIN));
+        result_hmi_state.push_back(createHmiState(
+                                     HMILevel::HMI_BACKGROUND,
+                                     AudioStreamingState::NOT_AUDIBLE,
+                                     SystemContext::SYSCTXT_MAIN));
+        result_hmi_state.push_back(createHmiState(
+                                     HMILevel::HMI_BACKGROUND,
+                                     AudioStreamingState::NOT_AUDIBLE,
+                                     SystemContext::SYSCTXT_MAIN));
+        result_hmi_state.push_back(createHmiState(
+                                     HMILevel::HMI_BACKGROUND,
+                                     AudioStreamingState::NOT_AUDIBLE,
+                                     SystemContext::SYSCTXT_MAIN));
+        break;
+      }
       case kNaviApp: {
         PrepareCommonStateResults(result_hmi_state);
         result_hmi_state.push_back(createHmiState(
-            HMILevel::HMI_BACKGROUND, AudioStreamingState::NOT_AUDIBLE,
-            SystemContext::SYSCTXT_MAIN));
+                                     HMILevel::HMI_LIMITED,
+                                     AudioStreamingState::NOT_AUDIBLE,
+                                     SystemContext::SYSCTXT_MAIN));
         result_hmi_state.push_back(createHmiState(
-            HMILevel::HMI_BACKGROUND, AudioStreamingState::NOT_AUDIBLE,
-            SystemContext::SYSCTXT_MAIN));
+                                     HMILevel::HMI_LIMITED,
+                                     AudioStreamingState::NOT_AUDIBLE,
+                                     SystemContext::SYSCTXT_MAIN));
         result_hmi_state.push_back(createHmiState(
-            HMILevel::HMI_BACKGROUND, AudioStreamingState::NOT_AUDIBLE,
-            SystemContext::SYSCTXT_MAIN));
+                                     HMILevel::HMI_LIMITED,
+                                     AudioStreamingState::NOT_AUDIBLE,
+                                     SystemContext::SYSCTXT_MAIN));
         result_hmi_state.push_back(createHmiState(
-            HMILevel::HMI_BACKGROUND, AudioStreamingState::NOT_AUDIBLE,
-            SystemContext::SYSCTXT_MAIN));
+                                     HMILevel::HMI_LIMITED,
+                                     AudioStreamingState::NOT_AUDIBLE,
+                                     SystemContext::SYSCTXT_MAIN));
         break;
       }
       default: { break; }
