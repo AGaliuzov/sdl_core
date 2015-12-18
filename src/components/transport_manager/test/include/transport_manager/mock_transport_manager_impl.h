@@ -40,16 +40,19 @@ namespace test {
 namespace components {
 namespace transport_manager_test {
 
-using namespace ::transport_manager;
-
-class MockTransportManagerImpl : public TransportManagerImpl {
+class MockTransportManagerImpl
+    : public transport_manager::TransportManagerImpl {
  public:
-  MOCK_METHOD1(ReceiveEventFromDevice, int(const TransportAdapterEvent& event));
+  MOCK_METHOD1(ReceiveEventFromDevice,
+               int(const transport_manager::TransportAdapterEvent& event));
 
-  int TestReceiveEventFromDevice(const TransportAdapterEvent& event) {
+  int TestReceiveEventFromDevice(
+      const transport_manager::TransportAdapterEvent& event) {
     return TransportManagerImpl::ReceiveEventFromDevice(event);
   }
-  void TestHandle(TransportAdapterEvent test_event) { Handle(test_event); }
+  void TestHandle(transport_manager::TransportAdapterEvent test_event) {
+    Handle(test_event);
+  }
 };
 
 }  // namespace transport_manager_test
