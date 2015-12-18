@@ -44,28 +44,21 @@ namespace utils_test {
 
 class TestMessage {
  public:
-  TestMessage()
-      : priority(0) {
-  }
+  TestMessage() : priority(0) {}
   TestMessage(std::string message, size_t msg_priority)
-      : msg_(message),
-        priority(msg_priority) {
-  }
+      : msg_(message), priority(msg_priority) {}
   size_t PriorityOrder() const;
   std::string msg() const;
   friend bool operator==(const TestMessage &msg1, const TestMessage &msg2);
+
  private:
   std::string msg_;
   size_t priority;
 };
 
-size_t TestMessage::PriorityOrder() const {
-  return priority;
-}
+size_t TestMessage::PriorityOrder() const { return priority; }
 
-std::string TestMessage::msg() const {
-  return msg_;
-}
+std::string TestMessage::msg() const { return msg_; }
 
 }  // namespace utils_test
 }  // namespace components

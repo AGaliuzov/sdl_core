@@ -41,17 +41,17 @@ namespace utils_test {
 
 class CMockObject {
  public:
-    CMockObject();
-    CMockObject(int id);
-    virtual ~CMockObject();
-    virtual int getId() const;
+  CMockObject();
+  CMockObject(int id);
+  virtual ~CMockObject();
+  virtual int getId() const;
 
-    MOCK_METHOD0(function_to_call, void());
-    MOCK_METHOD1(function_to_call_with_param, void(void*));
-    MOCK_METHOD0(destructor, void ());
+  MOCK_METHOD0(function_to_call, void());
+  MOCK_METHOD1(function_to_call_with_param, void(void*));
+  MOCK_METHOD0(destructor, void());
 
-  private:
-    int mId_;
+ private:
+  int mId_;
 };
 
 }  // namespace utils_test

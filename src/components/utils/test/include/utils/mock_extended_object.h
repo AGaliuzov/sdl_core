@@ -41,13 +41,11 @@ namespace components {
 namespace utils_test {
 
 class MockExtendedObject : public CMockObject {
-  public:
-    MockExtendedObject(int id);
+ public:
+  MockExtendedObject(int id);
 };
 
-MockExtendedObject::MockExtendedObject(int id)
-    : CMockObject(id) {
-}
+MockExtendedObject::MockExtendedObject(int id) : CMockObject(id) {}
 
 }  // namespace utils_test
 }  // namespace components
