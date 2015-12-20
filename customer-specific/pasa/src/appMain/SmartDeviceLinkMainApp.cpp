@@ -49,7 +49,7 @@ namespace {
 // --------------------------------------------------------------------------
 // Logger initialization
 
-CREATE_LOGGERPTR_GLOBAL(logger_, "SmartDeviceLinkMainApp")
+CREATE_LOGGERPTR_GLOBAL(logger_, "SDLMain")
 
 // TODO: Remove this code when PASA will support SDL_MSG_START_USB_LOGGING
 // Start section

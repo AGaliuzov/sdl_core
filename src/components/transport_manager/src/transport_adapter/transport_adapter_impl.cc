@@ -31,7 +31,6 @@
  */
 
 #include "config_profile/profile.h"
-#include "utils/logger.h"
 #include "utils/helpers.h"
 
 #include "transport_manager/transport_adapter/transport_adapter_impl.h"
@@ -603,6 +602,7 @@ void TransportAdapterImpl::DataReceiveDone(const DeviceUID& device_id,
     metric_observer_->StartRawMsg(message.get());
   }
 #endif  // TIME_TESTER
+
   for (TransportAdapterListenerList::iterator it = listeners_.begin();
        it != listeners_.end(); ++it) {
     (*it)->OnDataReceiveDone(this, device_id, app_handle, message);

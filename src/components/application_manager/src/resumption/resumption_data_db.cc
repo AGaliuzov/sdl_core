@@ -49,7 +49,7 @@ const std::string kDatabaseName = "resumption";
 }
 
 namespace resumption {
-CREATE_LOGGERPTR_GLOBAL(logger_, "ResumptionDataDB")
+CREATE_LOGGERPTR_GLOBAL(logger_, "Resumption")
 
 ResumptionDataDB::ResumptionDataDB(DbStorage db_storage) {
   if (db_storage == In_File_Storage) {

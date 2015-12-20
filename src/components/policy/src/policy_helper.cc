@@ -45,7 +45,7 @@ namespace custom_str =  utils::custom_string;
 
 namespace {
 
-CREATE_LOGGERPTR_GLOBAL(logger_, "PolicyManagerImpl")
+CREATE_LOGGERPTR_GLOBAL(logger_, "Policy")
 
 bool Compare(const StringsValueType& first, const StringsValueType& second) {
   const std::string& first_str = first;

@@ -219,6 +219,7 @@ void ConnectionHandlerImpl::OnConnectionEstablished(
   }
   LOG4CXX_DEBUG(logger_, "Add Connection #" << connection_id << " to the list.");
   sync_primitives::AutoWriteLock lock(connection_list_lock_);
+  // TODO(EZamakhov): APPLINK-19728 - possible memory leak
   connection_list_.insert(
       ConnectionList::value_type(
           connection_id,
@@ -358,6 +359,7 @@ uint32_t ConnectionHandlerImpl::OnSessionStartedCallback(
     const bool success = connection_handler_observer_->OnServiceStartedCallback(
           connection->connection_device_handle(), session_key, service_type);
     if (!success) {
+      LOG4CXX_WARN(logger_, "Service starting forbidden by connection_handler_observer");
       if (protocol_handler::kRpc == service_type) {
         connection->RemoveSession(new_session_id);
       } else {
