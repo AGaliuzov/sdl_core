@@ -70,6 +70,11 @@ class UnsubscribeButtonRequest : public CommandRequestImpl {
    */
   void SendUnsubscribeButtonNotification();
 
+  /**
+   * @brief Check is button supported by system or not.
+   */
+  bool CheckHMICapabilities(mobile_apis::ButtonName::eType button);
+
   DISALLOW_COPY_AND_ASSIGN(UnsubscribeButtonRequest);
 };
 
