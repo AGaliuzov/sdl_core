@@ -131,12 +131,17 @@ PhoneCallHmiState::PhoneCallHmiState(uint32_t app_id,
     : HmiState(app_id, app_mngr, STATE_ID_PHONE_CALL) {}
 
 mobile_apis::HMILevel::eType PhoneCallHmiState::hmi_level() const {
+  using namespace helpers;
   using namespace mobile_apis;
-  HMILevel::eType expected_level(HMILevel::HMI_BACKGROUND);
-  if (parent()->hmi_level() == HMILevel::HMI_NONE) {
-    expected_level = HMILevel::HMI_NONE;
+  if (Compare<HMILevel::eType, EQ, ONE>(parent()->hmi_level(),
+                                        HMILevel::HMI_BACKGROUND,
+                                        HMILevel::HMI_NONE)) {
+    return parent()->hmi_level();
   }
-  return expected_level;
+  if (is_navi_app(app_id_)) {
+    return HMILevel::HMI_LIMITED;
+  }
+  return HMILevel::HMI_BACKGROUND;
 }
 
 SafetyModeHmiState::SafetyModeHmiState(uint32_t app_id,
@@ -148,12 +153,51 @@ DeactivateHMI::DeactivateHMI(uint32_t app_id,
 : HmiState(app_id, app_mngr, STATE_ID_DEACTIVATE_HMI) {}
 
 mobile_apis::HMILevel::eType DeactivateHMI::hmi_level() const {
+  using namespace helpers;
   using namespace mobile_apis;
-  HMILevel::eType expected_level(HMILevel::HMI_BACKGROUND);
-  if (parent()->hmi_level() == HMILevel::HMI_NONE) {
-    expected_level = HMILevel::HMI_NONE;
+  if (Compare<HMILevel::eType, EQ, ONE>(parent()->hmi_level(),
+                                        HMILevel::HMI_BACKGROUND,
+                                        HMILevel::HMI_NONE)) {
+    return parent()->hmi_level();
   }
-  return expected_level;
+  return HMILevel::HMI_BACKGROUND;
+}
+
+AudioSource::AudioSource(uint32_t app_id, ApplicationManager* app_mngr)
+  : HmiState(app_id, app_mngr, STATE_ID_AUDIO_SOURCE) {}
+
+mobile_apis::HMILevel::eType AudioSource::hmi_level() const {
+  using namespace mobile_apis;
+  using namespace helpers;
+  // TODO(AOleynik): That NONE check is necessary to avoid issue during
+  // calculation of HMI level during setting default HMI level
+  // Should be investigated (used in multiple places here), since looks weird
+  if (Compare<HMILevel::eType, EQ, ONE>(parent()->hmi_level(),
+                                        HMILevel::HMI_BACKGROUND,
+                                        HMILevel::HMI_NONE)) {
+    return parent()->hmi_level();
+  }
+  if (is_navi_app(app_id_)) {
+    return HMILevel::HMI_LIMITED;
+  }
+  return HMILevel::HMI_BACKGROUND;
+}
+
+EmbeddedNavi::EmbeddedNavi(uint32_t app_id, ApplicationManager* app_mngr)
+  : HmiState(app_id, app_mngr, STATE_ID_EMBEDDED_NAVI) {}
+
+mobile_apis::HMILevel::eType EmbeddedNavi::hmi_level() const {
+  using namespace mobile_apis;
+  using namespace helpers;
+  if (Compare<HMILevel::eType, EQ, ONE>(parent()->hmi_level(),
+                                        HMILevel::HMI_BACKGROUND,
+                                        HMILevel::HMI_NONE)) {
+    return parent()->hmi_level();
+  }
+  if (is_media_app(app_id_)) {
+    return HMILevel::HMI_LIMITED;
+  }
+  return HMILevel::HMI_BACKGROUND;
 }
 
 }

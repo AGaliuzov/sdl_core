@@ -37,6 +37,7 @@
 #include "application_manager/mock_message_helper.h"
 #include "smart_objects/enum_schema_item.h"
 #include "interfaces/HMI_API.h"
+#include "application_manager/hmi_capabilities_for_testing.h"
 
 namespace test {
 namespace components {
@@ -50,18 +51,6 @@ using ::testing::InSequence;
 
 namespace smart_objects = NsSmartDeviceLink::NsSmartObjects;
 using namespace application_manager;
-
-class HMICapabilitiesForTesting : public HMICapabilities {
- public:
-  HMICapabilitiesForTesting(ApplicationManagerImpl* const app_mngr)
-      : HMICapabilities(app_mngr) {}
-  bool LoadCapabilitiesFromFile() { return load_capabilities_from_file(); }
-
-  void ConvertJsonLanguagesToObj(Json::Value& json_languages,
-                                 smart_objects::SmartObject& languages) {
-    convert_json_languages_to_obj(json_languages, languages);
-  }
-};
 
 class HMICapabilitiesTest : public ::testing::Test {
  protected:

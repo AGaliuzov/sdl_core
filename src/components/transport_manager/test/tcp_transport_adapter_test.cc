@@ -36,9 +36,10 @@
 #include "config_profile/profile.h"
 #include "resumption/last_state.h"
 #include "protocol/raw_message.h"
-#include "transport_manager/mock_transport_adapter_listener.h"
+#include "transport_manager/transport_adapter/mock_transport_adapter_listener.h"
 #include "transport_manager/transport_adapter/mock_device.h"
-#include "transport_manager/mock_connection.h"
+#include "transport_manager/transport_adapter/mock_connection.h"
+#include "transport_manager/tcp/mock_tcp_transport_adapter.h"
 
 #include "utils/make_shared.h"
 
@@ -51,24 +52,6 @@ using ::testing::_;
 
 using namespace ::protocol_handler;
 using namespace ::transport_manager;
-
-class TestTCPTransportAdapter : public TcpTransportAdapter {
- public:
-  TestTCPTransportAdapter(uint16_t port) : TcpTransportAdapter(port) {
-    ::profile::Profile::instance()->config_file_name(
-        "smartDeviceLink_test.ini");
-  }
-  MOCK_CONST_METHOD2(FindEstablishedConnection,
-                     ConnectionSPtr(const DeviceUID& device_handle,
-                                    const ApplicationHandle& app_handle));
-
-  MOCK_CONST_METHOD1(FindDevice, DeviceSptr(const DeviceUID& device_handle));
-  MOCK_METHOD2(Connect,
-               TransportAdapter::Error(const DeviceUID& device_handle,
-                                       const ApplicationHandle& app_handle));
-  void CallStore() { Store(); }
-  bool CallRestore() { return Restore(); }
-};
 
 class TcpAdapterTest : public ::testing::Test {
  protected:
@@ -88,7 +71,7 @@ class TcpAdapterTest : public ::testing::Test {
 
 TEST_F(TcpAdapterTest, StoreDataWithOneDeviceAndOneApplication) {
   // Prepare
-  TestTCPTransportAdapter transport_adapter(port);
+  MockTCPTransportAdapter transport_adapter(port);
   std::string uniq_id = "unique_device_name";
   utils::SharedPtr<MockTCPDevice> mockdev =
       utils::MakeShared<MockTCPDevice>(port, uniq_id);
@@ -127,7 +110,7 @@ TEST_F(TcpAdapterTest, StoreDataWithOneDeviceAndOneApplication) {
 
 TEST_F(TcpAdapterTest, StoreDataWithSeveralDevicesAndOneApplication) {
   // Prepare
-  TestTCPTransportAdapter transport_adapter(port);
+  MockTCPTransportAdapter transport_adapter(port);
   const uint32_t count_dev = 10;
   utils::SharedPtr<MockTCPDevice> mockdev[count_dev];
   std::string uniq_id[count_dev];
@@ -179,7 +162,7 @@ TEST_F(TcpAdapterTest, StoreDataWithSeveralDevicesAndOneApplication) {
 
 TEST_F(TcpAdapterTest, StoreDataWithSeveralDevicesAndSeveralApplications) {
   // Prepare
-  TestTCPTransportAdapter transport_adapter(port);
+  MockTCPTransportAdapter transport_adapter(port);
   const uint32_t count_dev = 10;
 
   utils::SharedPtr<MockTCPDevice> mockdev[count_dev];
@@ -237,7 +220,7 @@ TEST_F(TcpAdapterTest, StoreDataWithSeveralDevicesAndSeveralApplications) {
 
 TEST_F(TcpAdapterTest, StoreData_ConnectionNotExist_DataNotStored) {
   // Prepare
-  TestTCPTransportAdapter transport_adapter(port);
+  MockTCPTransportAdapter transport_adapter(port);
   std::string uniq_id = "unique_device_name";
   utils::SharedPtr<MockTCPDevice> mockdev =
       utils::MakeShared<MockTCPDevice>(port, uniq_id);
@@ -267,13 +250,13 @@ TEST_F(TcpAdapterTest, RestoreData_DataNotStored) {
       resumption::LastState::instance()
           ->dictionary["TransportManager"]["TcpAdapter"];
   tcp_adapter_dictionary = Json::Value();
-  TestTCPTransportAdapter transport_adapter(port);
+  MockTCPTransportAdapter transport_adapter(port);
   EXPECT_CALL(transport_adapter, Connect(_, _)).Times(0);
   EXPECT_TRUE(transport_adapter.CallRestore());
 }
 
 TEST_F(TcpAdapterTest, StoreDataWithOneDevice_RestoreData) {
-  TestTCPTransportAdapter transport_adapter(port);
+  MockTCPTransportAdapter transport_adapter(port);
   std::string uniq_id = "unique_device_name";
   utils::SharedPtr<MockTCPDevice> mockdev =
       utils::MakeShared<MockTCPDevice>(port, uniq_id);
@@ -307,7 +290,7 @@ TEST_F(TcpAdapterTest, StoreDataWithOneDevice_RestoreData) {
 }
 
 TEST_F(TcpAdapterTest, StoreDataWithSeveralDevices_RestoreData) {
-  TestTCPTransportAdapter transport_adapter(port);
+  MockTCPTransportAdapter transport_adapter(port);
   const uint32_t count_dev = 10;
 
   utils::SharedPtr<MockTCPDevice> mockdev[count_dev];

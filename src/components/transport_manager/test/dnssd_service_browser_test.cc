@@ -34,52 +34,12 @@
 
 #include "transport_manager/transport_adapter/transport_adapter_controller.h"
 #include "transport_manager/tcp/dnssd_service_browser.h"
+#include "transport_manager/mock_transport_adapter_controller.h"
 
-namespace transport_manager {
-namespace transport_adapter {
-
-class MockTransportAdapterController : public TransportAdapterController {
- public:
-  MOCK_METHOD1(AddDevice, DeviceSptr(DeviceSptr device));
-  MOCK_METHOD1(SearchDeviceDone, void(const DeviceVector& devices));
-  MOCK_METHOD1(SearchDeviceFailed, void(const SearchDeviceError& error));
-  MOCK_CONST_METHOD1(FindDevice, DeviceSptr(const DeviceUID& device_handle));
-  MOCK_METHOD3(ConnectionCreated,
-               void(ConnectionSPtr connection, const DeviceUID& device_handle,
-                    const ApplicationHandle& app_handle));
-  MOCK_METHOD2(ConnectDone, void(const DeviceUID& device_handle,
-                                 const ApplicationHandle& app_handle));
-  MOCK_METHOD3(ConnectFailed, void(const DeviceUID& device_handle,
-                                   const ApplicationHandle& app_handle,
-                                   const ConnectError& error));
-  MOCK_METHOD2(ConnectionFinished, void(const DeviceUID& device_handle,
-                                        const ApplicationHandle& app_handle));
-  MOCK_METHOD3(ConnectionAborted, void(const DeviceUID& device_handle,
-                                       const ApplicationHandle& app_handle,
-                                       const CommunicationError& error));
-  MOCK_METHOD2(DisconnectDone, void(const DeviceUID& device_handle,
-                                    const ApplicationHandle& app_handle));
-  MOCK_METHOD3(DataReceiveDone,
-               void(const DeviceUID& device_handle,
-                    const ApplicationHandle& app_handle,
-                    const ::protocol_handler::RawMessagePtr message));
-  MOCK_METHOD3(DataReceiveFailed, void(const DeviceUID& device_handle,
-                                       const ApplicationHandle& app_handle,
-                                       const DataReceiveError& error));
-  MOCK_METHOD3(DataSendDone,
-               void(const DeviceUID& device_handle,
-                    const ApplicationHandle& app_handle,
-                    const ::protocol_handler::RawMessagePtr message));
-  MOCK_METHOD4(DataSendFailed,
-               void(const DeviceUID& device_handle,
-                    const ApplicationHandle& app_handle,
-                    const ::protocol_handler::RawMessagePtr message,
-                    const DataSendError& error));
-  MOCK_METHOD0(FindNewApplicationsRequest, void());
-  MOCK_METHOD1(ApplicationListUpdated, void(const DeviceUID& device_handle));
-  MOCK_METHOD2(DeviceDisconnected, void(const DeviceUID& device_handle,
-                                        const DisconnectDeviceError& error));
-};
+namespace test {
+namespace components {
+namespace transport_manager_test {
+namespace transport_adapter_test {
 
 TEST(DnssdServiceBrowser, DISABLED_Init) {
   // Arrange
@@ -142,5 +102,7 @@ TEST(DnssdServiceBrowser, DISABLED_Scan_ExpectNotSupported) {
   EXPECT_EQ(TransportAdapter::NOT_SUPPORTED, dnssd_service_browser.Scan());
 }
 
-}  // namespace transport_adapter
-}  // namespace transport_manager
+}  // namespace transport_adapter_test
+}  // namespace transport_manager_test
+}  // namespace components
+}  // namespace test

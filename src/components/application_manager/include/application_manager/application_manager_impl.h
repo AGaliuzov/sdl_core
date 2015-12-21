@@ -58,7 +58,7 @@
 #include "connection_handler/connection_handler.h"
 #include "connection_handler/connection_handler_observer.h"
 #include "connection_handler/device.h"
-#include "formatters/CSmartFactory.hpp"
+#include "formatters/CSmartFactory.h"
 
 #include "interfaces/HMI_API.h"
 #include "interfaces/HMI_API_schema.h"
@@ -1124,7 +1124,7 @@ class ApplicationManagerImpl :
   template <typename ApplicationList>
   void PrepareApplicationListSO(ApplicationList app_list,
                                 smart_objects::SmartObject& applications) {
-    CREATE_LOGGERPTR_LOCAL(logger_, "ApplicatinManagerImpl");
+    CREATE_LOGGERPTR_LOCAL(logger_, "ApplicationManager")
 
     uint32_t app_count = 0;
     typename ApplicationList::const_iterator it;

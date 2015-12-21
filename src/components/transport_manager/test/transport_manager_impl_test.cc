@@ -37,9 +37,10 @@
 #include "transport_manager/transport_adapter/transport_adapter_event.h"
 
 #include "transport_manager/mock_transport_manager_listener.h"
-#include "transport_manager/mock_transport_adapter_listener.h"
+#include "transport_manager/transport_adapter/mock_transport_adapter_listener.h"
 #include "transport_manager/mock_time_metric_observer.h"
 #include "transport_manager/transport_adapter/mock_transport_adapter.h"
+#include "transport_manager/mock_transport_manager_impl.h"
 
 using ::testing::_;
 using ::testing::AtLeast;
@@ -53,11 +54,6 @@ namespace components {
 namespace transport_manager_test {
 
 using namespace ::transport_manager;
-
-class TransportManagerTest : public TransportManagerImpl {
- public:
-  void TestHandle(TransportAdapterEvent test_event) { Handle(test_event); }
-};
 
 class TransportManagerImplTest : public ::testing::Test {
  protected:
@@ -105,7 +101,7 @@ class TransportManagerImplTest : public ::testing::Test {
   void HandleDisconnectionFailed();
   void HandleReceiveDone();
 
-  TransportManagerTest tm;
+  MockTransportManagerImpl tm;
   TMMetricObserverMock mock_metric_observer_;
   size_t metrics_call_count_;
   MockTransportAdapter* mock_adapter;
@@ -286,15 +282,15 @@ void TransportManagerImplTest::HandleDisconnectionFailed() {
   tm.TestHandle(test_event);
 }
 
-TEST(TransportManagerTest, SearchDevices_AdaptersNotAdded) {
-  TransportManagerTest tm;
+TEST(MockTransportManagerImpl, SearchDevices_AdaptersNotAdded) {
+  MockTransportManagerImpl tm;
   tm.Init();
 
   EXPECT_EQ(E_SUCCESS, tm.SearchDevices());
 }
 
-TEST(TransportManagerTest, AddTransportAdapter) {
-  TransportManagerTest tm;
+TEST(MockTransportManagerImpl, AddTransportAdapter) {
+  MockTransportManagerImpl tm;
   tm.Init();
 
   MockTransportAdapter* mock_adapter = new MockTransportAdapter();
@@ -645,7 +641,7 @@ TEST_F(TransportManagerImplTest, ReceiveEventFromDevice_OnSearchDeviceDone) {
 
   EXPECT_CALL(*tm_listener, OnScanDevicesFinished());
 
-  tm.ReceiveEventFromDevice(test_event);
+  tm.TestReceiveEventFromDevice(test_event);
   testing::Mock::AsyncVerifyAndClearExpectations(10000);
 }
 
@@ -658,7 +654,7 @@ TEST_F(TransportManagerImplTest, ReceiveEventFromDevice_OnSearchDeviceFail) {
 
   EXPECT_CALL(*tm_listener, OnScanDevicesFailed(_));
 
-  tm.ReceiveEventFromDevice(test_event);
+  tm.TestReceiveEventFromDevice(test_event);
   testing::Mock::AsyncVerifyAndClearExpectations(10000);
 }
 
@@ -689,7 +685,7 @@ TEST_F(TransportManagerImplTest, ReceiveEventFromDevice_DeviceListUpdated) {
   EXPECT_CALL(*tm_listener, OnDeviceAdded(dev_info));
   EXPECT_CALL(*tm_listener, OnDeviceListUpdated(vector_dev_info));
 
-  tm.ReceiveEventFromDevice(test_event);
+  tm.TestReceiveEventFromDevice(test_event);
   dev.pop_back();
   testing::Mock::AsyncVerifyAndClearExpectations(10000);
 }

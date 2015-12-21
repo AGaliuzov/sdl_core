@@ -33,28 +33,11 @@
 #include <pthread.h>
 
 #include "gtest/gtest.h"
-#include "utils/singleton.h"
+#include "utils/test_singleton.h"
 
 namespace test {
 namespace components {
-namespace utils {
-
-using ::utils::Singleton;
-
-class SingletonTest : public ::utils::Singleton<SingletonTest> {
- public:
-
-  void SetValue(int value) {
-    test_value = value;
-  }
-  int GetValue() {
-    return test_value;
-  }
-
-  FRIEND_BASE_SINGLETON_CLASS (SingletonTest);
- private:
-  int test_value;
-};
+namespace utils_test {
 
 TEST(SingletonTest, CreateAndDestroySingleton) {
   //assert

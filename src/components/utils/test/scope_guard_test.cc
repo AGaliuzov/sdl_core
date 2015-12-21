@@ -34,23 +34,20 @@
 #include "utils/scope_guard.h"
 #include "utils/macro.h"
 
+#include "utils/mock_object.h"
+
 namespace test {
 namespace components {
-namespace utils {
+namespace utils_test {
 
 using ::utils::ScopeGuard;
 using ::utils::MakeGuard;
 using ::utils::MakeObjGuard;
 using ::testing::Mock;
 
-class TestObject {
- public:
-  MOCK_METHOD0(function_to_call, void());
-  MOCK_METHOD1(function_to_call_with_param, void(void*));
-};
-
 namespace {
-static int call_with_param_count;
+int call_with_param_count;
+
 void dealloc(char* ptr) {
   delete ptr;
   ++call_with_param_count;
@@ -68,21 +65,21 @@ TEST(ScopeGuardTest, CallFreeFunctionWithParam) {
 }
 
 TEST(ScopeGuardTest, CallObjectFunction) {
-  TestObject obj;
+  CMockObject obj;
   Mock::AllowLeak(&obj);  // Google tests bug
   EXPECT_CALL(obj, function_to_call()).Times(1);
   {
-    ScopeGuard guard = MakeObjGuard(obj, &TestObject::function_to_call);
+    ScopeGuard guard = MakeObjGuard(obj, &CMockObject::function_to_call);
     UNUSED(guard);
   }
 }
 
 TEST(ScopeGuardTest, CallObjectFunctionWithParam) {
-  TestObject obj;
+  CMockObject obj;
   EXPECT_CALL(obj, function_to_call_with_param(&obj)).Times(1);
   {
     ScopeGuard guard =
-        MakeObjGuard(obj, &TestObject::function_to_call_with_param, &obj);
+        MakeObjGuard(obj, &CMockObject::function_to_call_with_param, &obj);
     UNUSED(guard);
   }
 }
@@ -98,20 +95,20 @@ TEST(ScopeGuardTest, DismissCallFreeFunctionWithParam) {
 }
 
 TEST(ScopeGuardTest, DismissCallObjectFunction) {
-  TestObject obj;
+  CMockObject obj;
   EXPECT_CALL(obj, function_to_call()).Times(0);
   {
-    ScopeGuard guard = MakeObjGuard(obj, &TestObject::function_to_call);
+    ScopeGuard guard = MakeObjGuard(obj, &CMockObject::function_to_call);
     guard.Dismiss();
   }
 }
 
 TEST(ScopeGuardTest, DismissCallObjectFunctionWithParam) {
-  TestObject obj;
+  CMockObject obj;
   EXPECT_CALL(obj, function_to_call_with_param(&obj)).Times(0);
   {
     ScopeGuard guard =
-        MakeObjGuard(obj, &TestObject::function_to_call_with_param, &obj);
+        MakeObjGuard(obj, &CMockObject::function_to_call_with_param, &obj);
     guard.Dismiss();
   }
 }

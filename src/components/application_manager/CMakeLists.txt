@@ -35,10 +35,7 @@ set (AM_MOCK_DIR ${AM_TEST_DIR}/mock)
 
 include_directories (
   include/
-  ${COMPONENTS_DIR}
-  ${COMPONENTS_DIR}/policy/src/policy/include/
-  ${COMPONENTS_DIR}/policy/src/policy/usage_statistics/include/
-  ${COMPONENTS_DIR}/policy/src/policy
+  ${COMPONENTS_DIR}/policy/include/
   ${COMPONENTS_DIR}/utils/include/
   ${COMPONENTS_DIR}/formatters/include/
   ${COMPONENTS_DIR}/protocol_handler/include/
@@ -132,7 +129,6 @@ file (GLOB MOBILE_COMMANDS_SOURCES
   ${AM_SOURCE_DIR}/src/commands/hmi/on_exit_all_applications_notification.cc
   ${AM_SOURCE_DIR}/src/commands/hmi/on_exit_application_notification.cc
   ${AM_SOURCE_DIR}/src/commands/hmi/on_start_device_discovery.cc
-  ${AM_SOURCE_DIR}/src/commands/hmi/on_emergency_event_notification.cc
   ${AM_SOURCE_DIR}/src/commands/hmi/close_popup_request.cc
   ${AM_SOURCE_DIR}/src/commands/hmi/close_popup_response.cc
   ${AM_SOURCE_DIR}/src/commands/hmi/on_app_activated_notification.cc
@@ -289,10 +285,9 @@ file (GLOB MOBILE_COMMANDS_SOURCES
   ${AM_SOURCE_DIR}/src/commands/hmi/get_urls_response.cc
   ${AM_SOURCE_DIR}/src/commands/hmi/on_device_state_changed_notification.cc
   ${AM_SOURCE_DIR}/src/commands/hmi/on_tts_reset_timeout_notification.cc
-  ${AM_SOURCE_DIR}/src/commands/hmi/on_phone_call_notification.cc
   ${AM_SOURCE_DIR}/src/commands/hmi/dial_number_request.cc
   ${AM_SOURCE_DIR}/src/commands/hmi/dial_number_response.cc
-  ${AM_SOURCE_DIR}/src/commands/hmi/basic_communication_on_deactivate_hmi.cc
+  ${AM_SOURCE_DIR}/src/commands/hmi/on_event_changed_notification.cc
 )
 
 set (HMI_COMMANDS_SOURCES_JSON

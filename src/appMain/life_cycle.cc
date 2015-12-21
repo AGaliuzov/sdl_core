@@ -52,7 +52,7 @@ using threads::Thread;
 
 namespace main_namespace {
 
-CREATE_LOGGERPTR_GLOBAL(logger_, "appMain")
+CREATE_LOGGERPTR_GLOBAL(logger_, "SDLMain")
 
 namespace {
 void NameMessageBrokerThread(const System::Thread& thread,

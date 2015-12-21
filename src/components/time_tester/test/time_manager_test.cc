@@ -37,32 +37,23 @@
 #include "protocol_handler/protocol_handler.h"
 #include "protocol_handler/mock_protocol_handler.h"
 #include "transport_manager/mock_transport_manager.h"
+#include "time_tester/mock_streamer.h"
 
 namespace test {
 namespace components {
 namespace time_tester_test {
 
-using namespace time_tester;
-
-class StreamerMock : public Streamer {
- public:
-  StreamerMock(TimeManager* const server)
-      : Streamer(server) {
-    is_client_connected_ = true;
-  }
-  MOCK_METHOD1(PushMessage,void(utils::SharedPtr<MetricWrapper> metric));
-};
-
 TEST(TimeManagerTest, DISABLED_MessageProcess) {
-  //TODO(AK) APPLINK-13351 Disable due to refactor TimeTester
+  // TODO(AK) APPLINK-13351 Disable due to refactor TimeTester
   transport_manager_test::MockTransportManager transport_manager_mock;
-  protocol_handler::ProtocolHandlerImpl protocol_handler_mock(&transport_manager_mock, 0, 0, 0, 0, 0, 0);
-  TimeManager * time_manager = new TimeManager();
+  protocol_handler::ProtocolHandlerImpl protocol_handler_mock(
+      &transport_manager_mock, 0, 0, 0, 0, 0, 0);
+  time_tester::TimeManager* time_manager = new time_tester::TimeManager();
   // Streamer will be deleted by Thread
   StreamerMock* streamer_mock = new StreamerMock(time_manager);
   time_manager->set_streamer(streamer_mock);
   time_manager->Init(&protocol_handler_mock);
-  utils::SharedPtr<MetricWrapper> test_metric;
+  utils::SharedPtr<time_tester::MetricWrapper> test_metric;
   EXPECT_CALL(*streamer_mock, PushMessage(test_metric));
   time_manager->SendMetric(test_metric);
   delete time_manager;

@@ -74,6 +74,10 @@ class StateController : public event_engine::EventObserver {
       return;
     }
 
+    if (app->is_resuming() && !IsResumptionAllowed(app, state)) {
+      return;
+    }
+
     HmiStatePtr resolved_state = ResolveHmiState(app, state);
     if (!resolved_state) {
       state->set_state_id(HmiState::STATE_ID_POSTPONED);
@@ -330,6 +334,15 @@ class StateController : public event_engine::EventObserver {
       ApplicationSharedPtr app, HmiStatePtr state) const;
 
   /**
+   * @brief IsResumptionAllowed checks, if app is allowed to be resumed in
+   * current state
+   * @param app Application
+   * @param state State to be checked
+   * @return true, if app is allowed to be resumed, otherwise - false
+   */
+  bool IsResumptionAllowed(ApplicationSharedPtr app, HmiStatePtr state) const;
+
+  /**
    * @brief GetAvailableHmiLevel Returns closest to requested
    * available hmi level for application
    *
@@ -354,6 +367,19 @@ class StateController : public event_engine::EventObserver {
    * @return true if state is available, false otherwise
    */
   bool IsStateAvailable(
+      ApplicationSharedPtr app, HmiStatePtr state) const;
+
+  /**
+   * @brief IsStateAvailableForResumption Checks if hmi state is available
+   * to apply for specified application during resumption
+   *
+   * @param app application to apply state
+   *
+   * @param state state to be checked
+   *
+   * @return true if state is available, false otherwise
+   */
+  bool IsStateAvailableForResumption(
       ApplicationSharedPtr app, HmiStatePtr state) const;
 
   /**
@@ -403,22 +429,7 @@ class StateController : public event_engine::EventObserver {
    * depends on application type
    * @param app Application to deactivate
    */
-  void DeactivateAppWithGeneralReason(ApplicationSharedPtr app);
-
-  /**
-   * @brief Sets  application to BACKGROUND for navi application
-   * for other applications calls DeactivateAppWithGeneralReason
-   * @param app application to deactivate
-   */
-  void DeactivateAppWithNaviReason(ApplicationSharedPtr app);
-
-
-  /**
-   * @brief Sets BACKGROUND or LIMITED hmi level to application
-   * depends on application type
-   * @param app Application to deactivate
-   */
-  void DeactivateAppWithAudioReason(ApplicationSharedPtr app);
+  void DeactivateApp(ApplicationSharedPtr app);
 
   /**
    * Function to remove temporary HmiState for application
@@ -544,15 +555,6 @@ class StateController : public event_engine::EventObserver {
    * @return
    */
   HmiStatePtr CreateHmiState(uint32_t app_id, HmiState::StateID state_id) const;
-
-  /**
-   * @brief Tels if it is possible to setup regular state
-   * @param app applicatoin to check possibility to setup state
-   * @param state - State to setup
-   *
-   **/
-  bool IsHmiStateAllowed(const ApplicationSharedPtr app,
-                         const HmiStatePtr state) const;
 
   mobile_apis::AudioStreamingState::eType CalcAudioState(
       ApplicationSharedPtr app, const mobile_apis::HMILevel::eType hmi_level) const;

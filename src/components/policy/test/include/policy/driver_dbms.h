@@ -29,13 +29,13 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef SRC_COMPONENTS_POLICY_TEST_INCLUDE_DRIVER_DBMS_H_
-#define SRC_COMPONENTS_POLICY_TEST_INCLUDE_DRIVER_DBMS_H_
+#ifndef SRC_COMPONENTS_POLICY_TEST_INCLUDE_POLICY_DRIVER_DBMS_H_
+#define SRC_COMPONENTS_POLICY_TEST_INCLUDE_POLICY_DRIVER_DBMS_H_
 
 #ifdef __QNX__
-#  include <qdb/qdb.h>
+#include <qdb/qdb.h>
 #else  // __QNX__
-#  include <sqlite3.h>
+#include <sqlite3.h>
 #endif  // __QNX__
 
 namespace test {
@@ -158,4 +158,4 @@ class DBMS {
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_POLICY_TEST_INCLUDE_DRIVER_DBMS_H_
+#endif  // SRC_COMPONENTS_POLICY_TEST_INCLUDE_POLICY_DRIVER_DBMS_H_

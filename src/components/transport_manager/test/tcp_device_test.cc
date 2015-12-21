@@ -32,7 +32,7 @@
 
 #include "gtest/gtest.h"
 #include "transport_manager/tcp/tcp_device.h"
-#include "transport_manager/transport_adapter/device.h"
+#include "transport_manager/test_device.h"
 
 namespace test {
 namespace components {
@@ -40,18 +40,6 @@ namespace transport_manager_test {
 
 using namespace ::transport_manager;
 using namespace ::transport_manager::transport_adapter;
-
-class TestDevice : public Device {
- public:
-  TestDevice(const uint32_t& in_addr, const std::string& name)
-      : Device(name, name), in_addr_(in_addr) {}
-  bool IsSameAs(const Device* other_device) const { return true; }
-  ApplicationList GetApplicationList() const {
-    ApplicationList app_list;
-    return app_list;
-  }
-  const uint32_t in_addr_;
-};
 
 TEST(TcpDeviceTest, CompareWithOtherTCPDevice) {
   uint32_t in_addr = 10;

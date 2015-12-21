@@ -42,8 +42,7 @@ INCLUDES = \
 	$(CC_IFLAG)../../../../formatters/include \
 	$(CC_IFLAG)../../../../utils/include \
 	$(CC_IFLAG)../../../../media_manager/include \
-	$(CC_IFLAG)../../../../policy/src/policy/include \
-	$(CC_IFLAG)../../../../policy/src/policy/usage_statistics/include/ \
+	$(CC_IFLAG)../../../../policy/include \
 	$(CC_IFLAG)../../../../ \
 	$(CC_IFLAG)../../../../../3rd_party-static/jsoncpp/include \
 	$(CC_IFLAG)../../../../../3rd_party-static/encryption/include \

@@ -34,11 +34,14 @@ include_directories (
   include
   ${JSONCPP_INCLUDE_DIRECTORY}
   ${GMOCK_INCLUDE_DIRECTORY}
-  ${UTILS_INCLUDE_DIR}
+  ${COMPONENTS_DIR}/utils/include
   ${COMPONENTS_DIR}/rpc_base/include
+  ${COMPONENTS_DIR}/policy/include
 )
 
 set(testSources
+  src/mock_object.cc
+
   messagemeter_test.cc
   file_system_test.cc
   date_time_test.cc
@@ -68,10 +71,8 @@ set(testLibraries
   gmock
   Utils
   Policy
+  ConfigProfile
 )
-
-include_directories(${COMPONENTS_DIR}/policy/src/policy/policy_table/table_struct_ext)
-
 if (CMAKE_SYSTEM_NAME STREQUAL "QNX")
   # --- Tests for QDB Wrapper
   list (APPEND testSources
@@ -85,9 +86,9 @@ else ()
   # --- Tests for SQLite Wrapper
   find_package(Sqlite3 REQUIRED)
   list (APPEND testSources
-    ./sqlite_wrapper/sql_database_test.cc 
-    ./sqlite_wrapper/sql_query_test.cc   
-    generated_code_with_sqlite_test.cc   
+    ./sqlite_wrapper/sql_database_test.cc
+    ./sqlite_wrapper/sql_query_test.cc
+    generated_code_with_sqlite_test.cc
 
     # TODO{ALeshin} APPLINK-11132 AssertTrue in SetUpTestCase() return false
     #policy_manager_impl_stress_test.cc
@@ -106,6 +107,7 @@ endif()
 
 file(COPY testscript.sh DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 file(COPY log4cxx.properties DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY smartDeviceLink.ini DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 create_test("utils_test" "${testSources}" "${testLibraries}")
 

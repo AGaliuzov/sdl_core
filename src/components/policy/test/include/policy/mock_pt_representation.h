@@ -29,8 +29,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_MOCK_PT_REPRESENTATION_H_
-#define SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_MOCK_PT_REPRESENTATION_H_
+#ifndef SRC_COMPONENTS_POLICY_TEST_INCLUDE_POLICY_MOCK_PT_REPRESENTATION_H_
+#define SRC_COMPONENTS_POLICY_TEST_INCLUDE_POLICY_MOCK_PT_REPRESENTATION_H_
 
 #include <string>
 #include <vector>
@@ -39,7 +39,7 @@
 
 #include "policy/pt_representation.h"
 #include "rpc_base/rpc_base.h"
-#include "policy_table/table_struct_ext/types.h"
+#include "policy/policy_table/types.h"
 
 namespace policy_table = ::rpc::policy_table_interface_base;
 
@@ -101,4 +101,4 @@ class MockPTRepresentation : virtual public ::policy::PTRepresentation {
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_POLICY_TEST_POLICY_INCLUDE_MOCK_PT_REPRESENTATION_H_
+#endif  // SRC_COMPONENTS_POLICY_TEST_INCLUDE_POLICY_MOCK_PT_REPRESENTATION_H_

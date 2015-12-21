@@ -36,41 +36,14 @@
 #include "gmock/gmock.h"
 #include "utils/shared_ptr.h"
 #include "utils/make_shared.h"
+#include "application_manager/test_request_info.h"
+#include "application_manager/mock_request.h"
 
 namespace request_info = application_manager::request_controller;
 
 namespace test {
 namespace components {
 namespace application_manager_test {
-
-class MockRequest : public application_manager::commands::Command {
- public:
-  MockRequest(uint32_t connection_key, uint32_t correlation_id)
-      : connection_key_(connection_key), correlation_id_(correlation_id) {}
-  MOCK_METHOD0(CheckPermissions, bool());
-  MOCK_METHOD0(Init, bool());
-  MOCK_METHOD0(Run, void());
-  MOCK_METHOD0(CleanUp, bool());
-  MOCK_CONST_METHOD0(default_timeout, uint32_t());
-  MOCK_CONST_METHOD0(function_id, int32_t());
-  MOCK_METHOD0(onTimeOut, void());
-  MOCK_METHOD0(AllowedToTerminate, bool());
-  MOCK_METHOD1(SetAllowedToTerminate, void(bool));
-
-  uint32_t connection_key_;
-  uint32_t correlation_id_;
-  virtual uint32_t connection_key() const { return connection_key_; }
-  virtual uint32_t correlation_id() const { return correlation_id_; }
-};
-
-class TestRequestInfo : public request_info::RequestInfo {
- public:
-  TestRequestInfo(request_info::RequestPtr request,
-                  const RequestType requst_type,
-                  const TimevalStruct& start_time, const uint64_t timeout_sec)
-      : RequestInfo(request, requst_type, start_time, timeout_sec) {}
-  void SetEndTime(const TimevalStruct& end_time) { end_time_ = end_time; }
-};
 
 class RequestInfoTest : public ::testing::Test {
   protected:

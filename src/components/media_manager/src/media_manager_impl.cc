@@ -58,7 +58,7 @@ namespace media_manager {
 using profile::Profile;
 using timer::TimerThread;
 
-CREATE_LOGGERPTR_GLOBAL(logger_, "MediaManagerImpl")
+CREATE_LOGGERPTR_GLOBAL(logger_, "MediaManager")
 
 MediaManagerImpl::MediaManagerImpl()
   : protocol_handler_(NULL)
@@ -270,7 +270,8 @@ void MediaManagerImpl::OnMessageReceived(
 
   if (Compare<ServiceType, NEQ, ALL>(
         service_type, ServiceType::kMobileNav, ServiceType::kAudio)) {
-    LOG4CXX_DEBUG(logger_, "Unsupported service type in MediaManager");
+    LOG4CXX_DEBUG(logger_, "Unsupported service type in MediaManager: "
+                  << static_cast<int>(service_type));
     return;
   }
 
@@ -285,8 +286,11 @@ void MediaManagerImpl::OnMessageReceived(
 
   ApplicationSharedPtr app = app_mgr->application(streaming_app_id);
   if (app) {
+    LOG4CXX_DEBUG(logger_, "Sending media data");
     app->WakeUpStreaming(service_type);
     streamer_[service_type]->SendData(streaming_app_id, message);
+  } else  {
+    LOG4CXX_ERROR(logger_, "Application not found.");
   }
 }
 

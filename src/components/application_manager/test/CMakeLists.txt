@@ -55,7 +55,7 @@ if (BUILD_TESTS)
     ${AM_SOURCE_DIR}/include/application_manager/*
   )
   list(REMOVE_ITEM AMINCLUDE_TO_BE_MOCKED "${AM_SOURCE_DIR}/include/application_manager/application_manager_impl.h")
-  file(COPY "${AM_SOURCE_DIR}/test/mock/include/application_manager/application_manager_impl.h"
+  file(COPY "${AM_SOURCE_DIR}/test/include/application_manager/application_manager_impl.h"
        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/mock/include/application_manager/)
 
   FOREACH(infileName ${AMINCLUDE_TO_BE_MOCKED})
@@ -99,6 +99,7 @@ if (BUILD_TESTS)
     ${AM_TEST_DIR}/policy_event_observer_test.cc
     ${AM_TEST_DIR}/application_impl_test.cc
     ${AM_TEST_DIR}/hmi_capabilities_test.cc
+    ${AM_TEST_DIR}/application_state_test.cc
     # TODO(VVeremjova) APPLINK-12835
     #${AM_TEST_DIR}/zero_request_amount_test.cc
   )

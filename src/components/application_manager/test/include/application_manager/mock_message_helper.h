@@ -136,6 +136,10 @@ class MockMessageHelper {
                                           ApplicationConstSharedPtr app));
   MOCK_METHOD2(CheckWithPolicy,
       bool(mobile_apis::SystemAction::eType, const std::string&));
+  MOCK_METHOD3(SendActivateAppToHMI,
+                   uint32_t(uint32_t const app_id,
+                            hmi_apis::Common_HMILevel::eType level,
+                            bool send_policy_priority));
 
   static MockMessageHelper* message_helper_mock();
 };

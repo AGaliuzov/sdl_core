@@ -36,6 +36,7 @@
 #include "transport_manager/mock_transport_manager.h"
 #include "transport_manager/transport_adapter/transport_adapter_controller.h"
 #include "transport_manager/transport_adapter/device.h"
+#include "transport_manager/transport_adapter/mock_transport_adapter_controller.h"
 
 namespace test {
 namespace components {
@@ -44,27 +45,6 @@ namespace transport_manager_test {
 using ::testing::Return;
 using namespace ::transport_manager;
 using namespace ::transport_manager::transport_adapter;
-
-class MockTransportAdapterController: public TransportAdapterController {
-public:
- MOCK_METHOD1(AddDevice,DeviceSptr(DeviceSptr device));
- MOCK_METHOD1(SearchDeviceDone, void(const DeviceVector& devices));
- MOCK_METHOD1(SearchDeviceFailed, void(const SearchDeviceError& error));
- MOCK_CONST_METHOD1(FindDevice, DeviceSptr(const DeviceUID& device_handle));
- MOCK_METHOD3(ConnectionCreated, void(ConnectionSPtr connection, const DeviceUID& device_handle, const ApplicationHandle& app_handle));
- MOCK_METHOD2(ConnectDone, void(const DeviceUID& device_handle, const ApplicationHandle& app_handle));
- MOCK_METHOD3(ConnectFailed, void(const DeviceUID& device_handle, const ApplicationHandle& app_handle, const ConnectError& error));
- MOCK_METHOD2(ConnectionFinished, void(const DeviceUID& device_handle, const ApplicationHandle& app_handle));
- MOCK_METHOD3(ConnectionAborted,void(const DeviceUID& device_handle, const ApplicationHandle& app_handle, const CommunicationError& error));
- MOCK_METHOD2(DisconnectDone, void(const DeviceUID& device_handle, const ApplicationHandle& app_handle));
- MOCK_METHOD3(DataReceiveDone, void(const DeviceUID& device_handle, const ApplicationHandle& app_handle, const ::protocol_handler::RawMessagePtr message));
- MOCK_METHOD3(DataReceiveFailed, void(const DeviceUID& device_handle, const ApplicationHandle& app_handle, const DataReceiveError& error));
- MOCK_METHOD3(DataSendDone, void(const DeviceUID& device_handle, const ApplicationHandle& app_handle, const ::protocol_handler::RawMessagePtr message));
- MOCK_METHOD4(DataSendFailed, void(const DeviceUID& device_handle, const ApplicationHandle& app_handle, const ::protocol_handler::RawMessagePtr message, const DataSendError& error));
- MOCK_METHOD0(FindNewApplicationsRequest, void());
- MOCK_METHOD1(ApplicationListUpdated, void(const DeviceUID& device_handle));
- MOCK_METHOD2(DeviceDisconnected, void (const DeviceUID& device_handle,const DisconnectDeviceError& error));
-};
 
 class TcpClientListenerTest : public ::testing::Test {
  public:

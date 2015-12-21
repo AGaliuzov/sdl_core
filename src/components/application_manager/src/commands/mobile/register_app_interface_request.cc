@@ -151,7 +151,7 @@ bool RegisterAppInterfaceRequest::Init() {
 }
 
 void RegisterAppInterfaceRequest::Run() {
-  LOG4CXX_INFO(logger_, "RegisterAppInterfaceRequest::Run " << connection_key());
+  LOG4CXX_DEBUG(logger_, "RegisterAppInterfaceRequest::Run " << connection_key());
 
 #ifndef CUSTOMER_PASA
   // Fix problem with SDL and HMI HTML. This problem is not actual for HMI PASA.
@@ -491,7 +491,7 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile() {
     }
   } else {
     using namespace hmi_response;
-    LOG4CXX_DEBUG(logger_, vehicle_type << " is missing. "
+    LOG4CXX_INFO(logger_, vehicle_type << " is missing. "
                   "Will try to replace with policy table values, if present.");
 
     policy::VehicleInfo vehicle_info =

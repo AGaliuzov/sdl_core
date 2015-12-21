@@ -37,9 +37,11 @@ include_directories(
 )
 
 set(LIBRARIES
+    ConfigProfile
     gmock
     Resumption
     jsoncpp
+    ConfigProfile
 )
 
 set(SOURCES
