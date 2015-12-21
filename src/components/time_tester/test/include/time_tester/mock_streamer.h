@@ -30,33 +30,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_CLIENT_CONNECTION_LISTENER_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_CLIENT_CONNECTION_LISTENER_H_
+#ifndef SRC_COMPONENTS_TIME_TESTER_TEST_INCLUDE_TIME_TESTER_MOCK_STREAMER_H_
+#define SRC_COMPONENTS_TIME_TESTER_TEST_INCLUDE_TIME_TESTER_MOCK_STREAMER_H_
 
 #include "gmock/gmock.h"
-#include "transport_manager/transport_adapter/client_connection_listener.h"
+#include "time_tester/time_manager.h"
 
 namespace test {
 namespace components {
-namespace transport_manager_test {
+namespace time_tester_test {
 
-class MockClientConnectionListener
-    : public ::transport_manager::transport_adapter::ClientConnectionListener {
+class StreamerMock : public time_tester::Streamer {
  public:
-  MOCK_METHOD0(
-      Init, ::transport_manager::transport_adapter::TransportAdapter::Error());
-  MOCK_METHOD0(Terminate, void());
-  MOCK_CONST_METHOD0(IsInitialised, bool());
-  MOCK_METHOD0(
-      StartListening,
-      ::transport_manager::transport_adapter::TransportAdapter::Error());
-  MOCK_METHOD0(
-      StopListening,
-      ::transport_manager::transport_adapter::TransportAdapter::Error());
+  StreamerMock(time_tester::TimeManager* const server)
+      : Streamer(server) {
+    is_client_connected_ = true;
+  }
+  MOCK_METHOD1(PushMessage,
+               void(utils::SharedPtr<time_tester::MetricWrapper> metric));
 };
 
-}  // namespace transport_manager_test
-}  // namespace components
-}  // namespace test
-
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_CLIENT_CONNECTION_LISTENER_H_
+}  // time_tester_test
+}  // components
+}  // test
+#endif  // SRC_COMPONENTS_TIME_TESTER_TEST_INCLUDE_TIME_TESTER_MOCK_STREAMER_H_

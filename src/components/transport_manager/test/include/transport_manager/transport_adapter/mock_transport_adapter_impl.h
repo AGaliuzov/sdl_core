@@ -30,29 +30,48 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_CONNECTION_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_CONNECTION_H_
+#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_TRANSPORT_ADAPTER_MOCK_TRANSPORT_ADAPTER_IMPL_H_
+#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_TRANSPORT_ADAPTER_MOCK_TRANSPORT_ADAPTER_IMPL_H_
 
 #include "gmock/gmock.h"
-#include "transport_manager/transport_adapter/connection.h"
-#include "policy/usage_statistics/statistics_manager.h"
-#include "application_manager/usage_statistics.h"
+#include "transport_manager/transport_adapter/transport_adapter_impl.h"
+
+using ::transport_manager::transport_adapter::TransportAdapterImpl;
+using ::transport_manager::transport_adapter::DeviceScanner;
+using ::transport_manager::transport_adapter::ServerConnectionFactory;
+using ::transport_manager::transport_adapter::ClientConnectionListener;
+using ::transport_manager::transport_adapter::DeviceType;
+using ::transport_manager::transport_adapter::ConnectionSPtr;
+using ::transport_manager::DeviceUID;
+using ::transport_manager::ApplicationHandle;
 
 namespace test {
 namespace components {
 namespace transport_manager_test {
 
-using namespace ::transport_manager::transport_adapter;
-
-class MockConnection : public Connection {
+class MockTransportAdapterImpl : public TransportAdapterImpl {
  public:
-  MOCK_METHOD1(SendData, TransportAdapter::Error(
-                             ::protocol_handler::RawMessagePtr message));
-  MOCK_METHOD0(Disconnect, TransportAdapter::Error());
+  MockTransportAdapterImpl(DeviceScanner* device_scanner,
+                       ServerConnectionFactory* server_connection_factory,
+                       ClientConnectionListener* client_connection_listener)
+      : TransportAdapterImpl(device_scanner, server_connection_factory,
+                             client_connection_listener) {
+  }
+
+  ConnectionSPtr FindStatedConnection(const DeviceUID& device_handle,
+                                        const ApplicationHandle& app_handle) {
+    return this->FindEstablishedConnection(device_handle, app_handle);
+  }
+  virtual ~MockTransportAdapterImpl(){};
+
+  virtual DeviceType GetDeviceType() const { return UNKNOWN; }
+
+  MOCK_CONST_METHOD0(Store, void());
+  MOCK_METHOD0(Restore, bool());
 };
 
 }  // namespace transport_manager_test
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_CONNECTION_H_
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_TRANSPORT_ADAPTER_MOCK_TRANSPORT_ADAPTER_IMPL_H_

@@ -43,6 +43,7 @@
 #include "config_profile/profile.h"
 #include "utils/file_system.h"
 #include "application_manager/resumption_data_test.h"
+#include "application_manager/test_resumption_data_db.h"
 
 #include "application_manager/resumption/resumption_sql_queries.h"
 #include "application_manager/resumption/resumption_data_db.h"
@@ -59,13 +60,6 @@ using namespace file_system;
 
 using namespace resumption;
 using namespace mobile_apis;
-
-class TestResumptionDataDB : public ResumptionDataDB {
- public:
-  utils::dbms::SQLDatabase* get_db_handle() { return db(); }
-
-  TestResumptionDataDB(DbStorage db_storage) : ResumptionDataDB(db_storage) {}
-};
 
 class ResumptionDataDBTest : public ResumptionDataTest {
  protected:

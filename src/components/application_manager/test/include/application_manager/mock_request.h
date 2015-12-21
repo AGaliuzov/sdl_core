@@ -30,28 +30,37 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_SERVER_CONNECTION_FACTORY_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_SERVER_CONNECTION_FACTORY_H_
+#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_MOCK_REQUEST_H_
+#define SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_MOCK_REQUEST_H_
 
-#include "gmock/gmock.h"
-#include "transport_manager/transport_adapter/server_connection_factory.h"
+#include "application_manager/commands/command.h"
 
 namespace test {
 namespace components {
-namespace transport_manager_test {
+namespace application_manager_test {
 
-class MockServerConnectionFactory : public ::transport_manager::transport_adapter::ServerConnectionFactory {
+class MockRequest : public application_manager::commands::Command {
  public:
-  MOCK_METHOD0(Init, ::transport_manager::transport_adapter::TransportAdapter::Error());
-  MOCK_METHOD0(Terminate, void());
-  MOCK_CONST_METHOD0(IsInitialised, bool());
-  MOCK_METHOD2(CreateConnection,
-               ::transport_manager::transport_adapter::TransportAdapter::Error(const std::string&,
-                                       const int& app_handle));
+  MockRequest(uint32_t connection_key, uint32_t correlation_id)
+      : connection_key_(connection_key), correlation_id_(correlation_id) {}
+  MOCK_METHOD0(CheckPermissions, bool());
+  MOCK_METHOD0(Init, bool());
+  MOCK_METHOD0(Run, void());
+  MOCK_METHOD0(CleanUp, bool());
+  MOCK_CONST_METHOD0(default_timeout, uint32_t());
+  MOCK_CONST_METHOD0(function_id, int32_t());
+  MOCK_METHOD0(onTimeOut, void());
+  MOCK_METHOD0(AllowedToTerminate, bool());
+  MOCK_METHOD1(SetAllowedToTerminate, void(bool is_allowed));
+
+  uint32_t connection_key_;
+  uint32_t correlation_id_;
+  virtual uint32_t connection_key() const OVERRIDE { return connection_key_; }
+  virtual uint32_t correlation_id() const OVERRIDE { return correlation_id_; }
 };
 
-}  // namespace transport_manager_test
+}  // namespace application_manager_test
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_MOCK_SERVER_CONNECTION_FACTORY_H_
+#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_MOCK_REQUEST_H_

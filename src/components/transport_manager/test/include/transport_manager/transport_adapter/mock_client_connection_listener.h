@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,36 +30,33 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "transport_manager/raw_message_matcher.h"
-//#include "../../include/protocol/raw_message.h"
+#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_TRANSPORT_ADAPTER_MOCK_CLIENT_CONNECTION_LISTENER_H_
+#define SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_TRANSPORT_ADAPTER_MOCK_CLIENT_CONNECTION_LISTENER_H_
+
+#include "gmock/gmock.h"
+#include "transport_manager/transport_adapter/client_connection_listener.h"
 
 namespace test {
 namespace components {
-namespace transport_manager {
+namespace transport_manager_test {
 
-RawMessageMatcher::RawMessageMatcher(RawMessagePtr ptr)
-      : ptr_(ptr) {}
+class MockClientConnectionListener
+    : public ::transport_manager::transport_adapter::ClientConnectionListener {
+ public:
+  MOCK_METHOD0(
+      Init, ::transport_manager::transport_adapter::TransportAdapter::Error());
+  MOCK_METHOD0(Terminate, void());
+  MOCK_CONST_METHOD0(IsInitialised, bool());
+  MOCK_METHOD0(
+      StartListening,
+      ::transport_manager::transport_adapter::TransportAdapter::Error());
+  MOCK_METHOD0(
+      StopListening,
+      ::transport_manager::transport_adapter::TransportAdapter::Error());
+};
 
-bool RawMessageMatcher::MatchAndExplain(const RawMessagePtr msg,
-                                             MatchResultListener* listener) const {
-  if (msg->data_size() != ptr_->data_size()) {
-    return ::std::equal(msg->data(), msg->data() + msg->data_size(), ptr_->data());
-  } else
-    return false;
-}
-
-void RawMessageMatcher::DescribeTo(::std::ostream* os) const {
-  *os << "data_ is " ;
-  ::std::ostream_iterator<unsigned char> out(*os);
-  ::std::copy(ptr_->data(), ptr_->data() + ptr_->data_size(), out);
-}
-
-void RawMessageMatcher::DescribeNegationTo(::std::ostream* os) const {
-  *os << "data_ is not " ;
-  ::std::ostream_iterator<unsigned char> out(*os);
-  ::std::copy(ptr_->data(), ptr_->data() + ptr_->data_size(), out);
-}
-
-}  // namespace transport_manager
+}  // namespace transport_manager_test
 }  // namespace components
 }  // namespace test
+
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_TEST_INCLUDE_TRANSPORT_MANAGER_TRANSPORT_ADAPTER_MOCK_CLIENT_CONNECTION_LISTENER_H_

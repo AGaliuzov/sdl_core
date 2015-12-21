@@ -31,12 +31,13 @@
  */
 
 #include "gtest/gtest.h"
-#include "transport_manager/mock_device_scanner.h"
-#include "transport_manager/mock_client_connection_listener.h"
-#include "transport_manager/mock_server_connection_factory.h"
+#include "transport_manager/transport_adapter/mock_device_scanner.h"
+#include "transport_manager/transport_adapter/mock_client_connection_listener.h"
+#include "transport_manager/transport_adapter/mock_server_connection_factory.h"
 #include "transport_manager/transport_adapter/mock_device.h"
-#include "transport_manager/mock_connection.h"
-#include "transport_manager/mock_transport_adapter_listener.h"
+#include "transport_manager/transport_adapter/mock_connection.h"
+#include "transport_manager/transport_adapter/mock_transport_adapter_listener.h"
+#include "transport_manager/transport_adapter/mock_transport_adapter_impl.h"
 
 #include "transport_manager/transport_adapter/transport_adapter_impl.h"
 #include "transport_manager/transport_adapter/transport_adapter_listener.h"
@@ -58,26 +59,6 @@ using namespace ::transport_manager;
 using namespace ::protocol_handler;
 
 
-class TestTransportAdapter : public TransportAdapterImpl {
- public:
-  TestTransportAdapter(DeviceScanner* device_scanner,
-                       ServerConnectionFactory* server_connection_factory,
-                       ClientConnectionListener* client_connection_listener)
-      : TransportAdapterImpl(device_scanner, server_connection_factory,
-                             client_connection_listener) {
-  }
-
-  ConnectionSPtr FindStatedConnection(const DeviceUID& device_handle,
-                                        const ApplicationHandle& app_handle) {
-    return this->FindEstablishedConnection(device_handle, app_handle);
-  }
-  virtual ~TestTransportAdapter(){};
-
-  virtual DeviceType GetDeviceType() const { return UNKNOWN; }
-
-  MOCK_CONST_METHOD0(Store, void());
-  MOCK_METHOD0(Restore, bool());
-};
 
 class TransportAdapterTest : public ::testing::Test {
  protected:
@@ -101,7 +82,7 @@ TEST_F(TransportAdapterTest, Init) {
   MockDeviceScanner* dev_mock = new MockDeviceScanner();
   MockClientConnectionListener* clientMock = new MockClientConnectionListener();
   MockServerConnectionFactory* serverMock = new MockServerConnectionFactory();
-  TestTransportAdapter transport_adapter(dev_mock, serverMock, clientMock);
+  MockTransportAdapterImpl transport_adapter(dev_mock, serverMock, clientMock);
 
   EXPECT_CALL(*dev_mock, Init()).WillOnce(Return(TransportAdapter::OK));
   EXPECT_CALL(*clientMock, Init()).WillOnce(Return(TransportAdapter::OK));
@@ -119,7 +100,7 @@ TEST_F(TransportAdapterTest, Init) {
 TEST_F(TransportAdapterTest, SearchDevices_WithoutScanner) {
   MockClientConnectionListener* clientMock = new MockClientConnectionListener();
   MockServerConnectionFactory* serverMock = new MockServerConnectionFactory();
-  TestTransportAdapter transport_adapter(NULL, serverMock, clientMock);
+  MockTransportAdapterImpl transport_adapter(NULL, serverMock, clientMock);
 
   EXPECT_CALL(*clientMock, Init()).WillOnce(Return(TransportAdapter::OK));
   EXPECT_CALL(*serverMock, Init()).WillOnce(Return(TransportAdapter::OK));
@@ -134,7 +115,7 @@ TEST_F(TransportAdapterTest, SearchDevices_WithoutScanner) {
 
 TEST_F(TransportAdapterTest, SearchDevices_DeviceNotInitialized) {
   MockDeviceScanner* dev_mock = new MockDeviceScanner();
-  TestTransportAdapter transport_adapter(dev_mock, NULL, NULL);
+  MockTransportAdapterImpl transport_adapter(dev_mock, NULL, NULL);
 
   EXPECT_CALL(*dev_mock, Init()).WillOnce(Return(TransportAdapter::OK));
   EXPECT_CALL(transport_adapter, Restore()).WillOnce(Return(true));
@@ -148,7 +129,7 @@ TEST_F(TransportAdapterTest, SearchDevices_DeviceNotInitialized) {
 
 TEST_F(TransportAdapterTest, SearchDevices_DeviceInitialized) {
   MockDeviceScanner* dev_mock = new MockDeviceScanner();
-  TestTransportAdapter transport_adapter(dev_mock, NULL, NULL);
+  MockTransportAdapterImpl transport_adapter(dev_mock, NULL, NULL);
 
   EXPECT_CALL(*dev_mock, Init()).WillOnce(Return(TransportAdapter::OK));
   EXPECT_CALL(transport_adapter, Restore()).WillOnce(Return(true));
@@ -162,7 +143,7 @@ TEST_F(TransportAdapterTest, SearchDevices_DeviceInitialized) {
 }
 
 TEST_F(TransportAdapterTest, SearchDeviceDone_DeviceExisting) {
-  TestTransportAdapter transport_adapter(NULL, NULL, NULL);
+  MockTransportAdapterImpl transport_adapter(NULL, NULL, NULL);
   EXPECT_CALL(transport_adapter, Restore()).WillOnce(Return(true));
   transport_adapter.Init();
 
@@ -178,7 +159,7 @@ TEST_F(TransportAdapterTest, SearchDeviceDone_DeviceExisting) {
 }
 
 TEST_F(TransportAdapterTest, SearchDeviceFailed) {
-  TestTransportAdapter transport_adapter(NULL, NULL, NULL);
+  MockTransportAdapterImpl transport_adapter(NULL, NULL, NULL);
   EXPECT_CALL(transport_adapter, Restore()).WillOnce(Return(true));
   transport_adapter.Init();
 
@@ -191,7 +172,7 @@ TEST_F(TransportAdapterTest, SearchDeviceFailed) {
 }
 
 TEST_F(TransportAdapterTest, AddDevice) {
-  TestTransportAdapter transport_adapter(NULL, NULL, NULL);
+  MockTransportAdapterImpl transport_adapter(NULL, NULL, NULL);
   EXPECT_CALL(transport_adapter, Restore()).WillOnce(Return(true));
   transport_adapter.Init();
 
@@ -209,7 +190,7 @@ TEST_F(TransportAdapterTest, AddDevice) {
 
 TEST_F(TransportAdapterTest, Connect_ServerNotSupported) {
   MockClientConnectionListener* clientMock = new MockClientConnectionListener();
-  TestTransportAdapter transport_adapter(NULL, NULL, clientMock);
+  MockTransportAdapterImpl transport_adapter(NULL, NULL, clientMock);
 
   EXPECT_CALL(*clientMock, Init()).WillOnce(Return(TransportAdapter::OK));
   EXPECT_CALL(transport_adapter, Restore()).WillOnce(Return(true));
@@ -225,7 +206,7 @@ TEST_F(TransportAdapterTest, Connect_ServerNotSupported) {
 
 TEST_F(TransportAdapterTest, Connect_ServerNotInitialized) {
   MockServerConnectionFactory* serverMock = new MockServerConnectionFactory();
-  TestTransportAdapter transport_adapter(NULL, serverMock, NULL);
+  MockTransportAdapterImpl transport_adapter(NULL, serverMock, NULL);
 
   EXPECT_CALL(*serverMock, Init()).WillOnce(Return(TransportAdapter::OK));
   EXPECT_CALL(transport_adapter, Restore()).WillOnce(Return(true));
@@ -243,7 +224,7 @@ TEST_F(TransportAdapterTest, Connect_ServerNotInitialized) {
 
 TEST_F(TransportAdapterTest, Connect_Success) {
   MockServerConnectionFactory* serverMock = new MockServerConnectionFactory();
-  TestTransportAdapter transport_adapter(NULL, serverMock, NULL);
+  MockTransportAdapterImpl transport_adapter(NULL, serverMock, NULL);
 
   EXPECT_CALL(*serverMock, Init()).WillOnce(Return(TransportAdapter::OK));
   EXPECT_CALL(transport_adapter, Restore()).WillOnce(Return(true));
@@ -262,7 +243,7 @@ TEST_F(TransportAdapterTest, Connect_Success) {
 
 TEST_F(TransportAdapterTest, Connect_DeviceAddedTwice) {
   MockServerConnectionFactory* serverMock = new MockServerConnectionFactory();
-  TestTransportAdapter transport_adapter(NULL, serverMock, NULL);
+  MockTransportAdapterImpl transport_adapter(NULL, serverMock, NULL);
 
   EXPECT_CALL(*serverMock, Init()).WillOnce(Return(TransportAdapter::OK));
   EXPECT_CALL(transport_adapter, Restore()).WillOnce(Return(true));
@@ -285,7 +266,7 @@ TEST_F(TransportAdapterTest, Connect_DeviceAddedTwice) {
 }
 
 TEST_F(TransportAdapterTest, ConnectDevice_ServerNotAdded_DeviceAdded) {
-  TestTransportAdapter transport_adapter(NULL, NULL, NULL);
+  MockTransportAdapterImpl transport_adapter(NULL, NULL, NULL);
   EXPECT_CALL(transport_adapter, Restore()).WillOnce(Return(true));
   transport_adapter.Init();
 
@@ -307,7 +288,7 @@ TEST_F(TransportAdapterTest, ConnectDevice_ServerNotAdded_DeviceAdded) {
 
 TEST_F(TransportAdapterTest, ConnectDevice_DeviceNotAdded) {
   MockServerConnectionFactory* serverMock = new MockServerConnectionFactory();
-  TestTransportAdapter transport_adapter(NULL, serverMock, NULL);
+  MockTransportAdapterImpl transport_adapter(NULL, serverMock, NULL);
 
   EXPECT_CALL(*serverMock, Init()).WillOnce(Return(TransportAdapter::OK));
   EXPECT_CALL(transport_adapter, Restore()).WillOnce(Return(true));
@@ -325,7 +306,7 @@ TEST_F(TransportAdapterTest, ConnectDevice_DeviceNotAdded) {
 
 TEST_F(TransportAdapterTest, ConnectDevice_DeviceAdded) {
   MockServerConnectionFactory* serverMock = new MockServerConnectionFactory();
-  TestTransportAdapter transport_adapter(NULL, serverMock, NULL);
+  MockTransportAdapterImpl transport_adapter(NULL, serverMock, NULL);
 
   EXPECT_CALL(*serverMock, Init()).WillOnce(Return(TransportAdapter::OK));
   EXPECT_CALL(transport_adapter, Restore()).WillOnce(Return(true));
@@ -355,7 +336,7 @@ TEST_F(TransportAdapterTest, ConnectDevice_DeviceAdded) {
 
 TEST_F(TransportAdapterTest, ConnectDevice_DeviceAddedTwice) {
   MockServerConnectionFactory* serverMock = new MockServerConnectionFactory();
-  TestTransportAdapter transport_adapter(NULL, serverMock, NULL);
+  MockTransportAdapterImpl transport_adapter(NULL, serverMock, NULL);
 
   EXPECT_CALL(*serverMock, Init()).WillOnce(Return(TransportAdapter::OK));
   EXPECT_CALL(transport_adapter, Restore()).WillOnce(Return(true));
@@ -394,7 +375,7 @@ TEST_F(TransportAdapterTest, ConnectDevice_DeviceAddedTwice) {
 
 TEST_F(TransportAdapterTest, Disconnect_ConnectDoneSuccess) {
   MockServerConnectionFactory* serverMock = new MockServerConnectionFactory();
-  TestTransportAdapter transport_adapter(NULL, serverMock, NULL);
+  MockTransportAdapterImpl transport_adapter(NULL, serverMock, NULL);
 
   EXPECT_CALL(*serverMock, Init()).WillOnce(Return(TransportAdapter::OK));
   EXPECT_CALL(transport_adapter, Restore()).WillOnce(Return(true));
@@ -425,7 +406,7 @@ TEST_F(TransportAdapterTest, Disconnect_ConnectDoneSuccess) {
 
 TEST_F(TransportAdapterTest, DisconnectDevice_DeviceAddedConnectionCreated) {
   MockServerConnectionFactory* serverMock = new MockServerConnectionFactory();
-  TestTransportAdapter transport_adapter(NULL, serverMock, NULL);
+  MockTransportAdapterImpl transport_adapter(NULL, serverMock, NULL);
 
   EXPECT_CALL(*serverMock, Init()).WillOnce(Return(TransportAdapter::OK));
   EXPECT_CALL(transport_adapter, Restore()).WillOnce(Return(true));
@@ -463,7 +444,7 @@ TEST_F(TransportAdapterTest, DisconnectDevice_DeviceAddedConnectionCreated) {
 
 TEST_F(TransportAdapterTest, DeviceDisconnected) {
   MockServerConnectionFactory* serverMock = new MockServerConnectionFactory();
-  TestTransportAdapter transport_adapter(NULL, serverMock, NULL);
+  MockTransportAdapterImpl transport_adapter(NULL, serverMock, NULL);
 
   EXPECT_CALL(*serverMock, Init()).WillOnce(Return(TransportAdapter::OK));
   EXPECT_CALL(transport_adapter, Restore()).WillOnce(Return(true));
@@ -507,7 +488,7 @@ TEST_F(TransportAdapterTest, DeviceDisconnected) {
 
 TEST_F(TransportAdapterTest, AbortedConnectSuccess) {
   MockServerConnectionFactory* serverMock = new MockServerConnectionFactory();
-  TestTransportAdapter transport_adapter(NULL, serverMock, NULL);
+  MockTransportAdapterImpl transport_adapter(NULL, serverMock, NULL);
 
   EXPECT_CALL(*serverMock, Init()).WillOnce(Return(TransportAdapter::OK));
   EXPECT_CALL(transport_adapter, Restore()).WillOnce(Return(true));
@@ -532,7 +513,7 @@ TEST_F(TransportAdapterTest, AbortedConnectSuccess) {
 TEST_F(TransportAdapterTest, SendData) {
   MockDeviceScanner* dev_mock = new MockDeviceScanner();
   MockServerConnectionFactory* serverMock = new MockServerConnectionFactory();
-  TestTransportAdapter transport_adapter(dev_mock, serverMock, NULL);
+  MockTransportAdapterImpl transport_adapter(dev_mock, serverMock, NULL);
 
   EXPECT_CALL(*dev_mock, Init()).WillOnce(Return(TransportAdapter::OK));
   EXPECT_CALL(*serverMock, Init()).WillOnce(Return(TransportAdapter::OK));
@@ -568,7 +549,7 @@ TEST_F(TransportAdapterTest, SendData_ConnectionNotEstablished) {
   MockDeviceScanner* dev_mock = new MockDeviceScanner();
   MockClientConnectionListener* clientMock = new MockClientConnectionListener();
   MockServerConnectionFactory* serverMock = new MockServerConnectionFactory();
-  TestTransportAdapter transport_adapter(dev_mock, serverMock, clientMock);
+  MockTransportAdapterImpl transport_adapter(dev_mock, serverMock, clientMock);
 
   EXPECT_CALL(*dev_mock, Init()).WillOnce(Return(TransportAdapter::OK));
   EXPECT_CALL(*clientMock, Init()).WillOnce(Return(TransportAdapter::OK));
@@ -601,7 +582,7 @@ TEST_F(TransportAdapterTest, SendData_ConnectionNotEstablished) {
 TEST_F(TransportAdapterTest, StartClientListening_ClientNotInitialized) {
   MockDeviceScanner* dev_mock = new MockDeviceScanner();
   MockClientConnectionListener* clientMock = new MockClientConnectionListener();
-  TestTransportAdapter transport_adapter(dev_mock, NULL, clientMock);
+  MockTransportAdapterImpl transport_adapter(dev_mock, NULL, clientMock);
 
   EXPECT_CALL(*dev_mock, Init()).WillOnce(Return(TransportAdapter::OK));
   EXPECT_CALL(*clientMock, Init()).WillOnce(Return(TransportAdapter::OK));
@@ -621,7 +602,7 @@ TEST_F(TransportAdapterTest, StartClientListening_ClientNotInitialized) {
 TEST_F(TransportAdapterTest, StartClientListening) {
   MockDeviceScanner* dev_mock = new MockDeviceScanner();
   MockClientConnectionListener* clientMock = new MockClientConnectionListener();
-  TestTransportAdapter transport_adapter(dev_mock, NULL, clientMock);
+  MockTransportAdapterImpl transport_adapter(dev_mock, NULL, clientMock);
 
   EXPECT_CALL(*dev_mock, Init()).WillOnce(Return(TransportAdapter::OK));
   EXPECT_CALL(*clientMock, Init()).WillOnce(Return(TransportAdapter::OK));
@@ -643,7 +624,7 @@ TEST_F(TransportAdapterTest, StopClientListening_Success) {
   MockDeviceScanner* dev_mock = new MockDeviceScanner();
   MockClientConnectionListener* clientMock = new MockClientConnectionListener();
   MockServerConnectionFactory* serverMock = new MockServerConnectionFactory();
-  TestTransportAdapter transport_adapter(dev_mock, serverMock, clientMock);
+  MockTransportAdapterImpl transport_adapter(dev_mock, serverMock, clientMock);
 
   EXPECT_CALL(*dev_mock, Init()).WillOnce(Return(TransportAdapter::OK));
   EXPECT_CALL(*clientMock, Init()).WillOnce(Return(TransportAdapter::OK));
@@ -673,7 +654,7 @@ TEST_F(TransportAdapterTest, FindNewApplicationsRequest) {
   MockDeviceScanner* dev_mock = new MockDeviceScanner();
   MockClientConnectionListener* clientMock = new MockClientConnectionListener();
   MockServerConnectionFactory* serverMock = new MockServerConnectionFactory();
-  TestTransportAdapter transport_adapter(dev_mock, serverMock, clientMock);
+  MockTransportAdapterImpl transport_adapter(dev_mock, serverMock, clientMock);
 
   EXPECT_CALL(*dev_mock, Init()).WillOnce(Return(TransportAdapter::OK));
   EXPECT_CALL(*clientMock, Init()).WillOnce(Return(TransportAdapter::OK));
@@ -693,7 +674,7 @@ TEST_F(TransportAdapterTest, FindNewApplicationsRequest) {
 }
 
 TEST_F(TransportAdapterTest, GetDeviceAndApplicationLists) {
-  TestTransportAdapter transport_adapter(NULL, NULL, NULL);
+  MockTransportAdapterImpl transport_adapter(NULL, NULL, NULL);
   EXPECT_CALL(transport_adapter, Restore()).WillOnce(Return(true));
   transport_adapter.Init();
 
@@ -715,7 +696,7 @@ TEST_F(TransportAdapterTest, GetDeviceAndApplicationLists) {
 
 TEST_F(TransportAdapterTest, FindEstablishedConnection) {
   MockServerConnectionFactory* serverMock = new MockServerConnectionFactory();
-  TestTransportAdapter transport_adapter(NULL, serverMock, NULL);
+  MockTransportAdapterImpl transport_adapter(NULL, serverMock, NULL);
 
   EXPECT_CALL(*serverMock, Init()).WillOnce(Return(TransportAdapter::OK));
   EXPECT_CALL(transport_adapter, Restore()).WillOnce(Return(true));

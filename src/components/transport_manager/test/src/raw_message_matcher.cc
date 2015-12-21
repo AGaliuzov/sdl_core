@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,62 +30,33 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gtest/gtest.h"
-#include "transport_manager/tcp/tcp_device.h"
-#include "transport_manager/test_device.h"
+#include "transport_manager/raw_message_matcher.h"
 
 namespace test {
 namespace components {
 namespace transport_manager_test {
 
-using namespace ::transport_manager;
-using namespace ::transport_manager::transport_adapter;
+RawMessageMatcher::RawMessageMatcher(RawMessagePtr ptr)
+      : ptr_(ptr) {}
 
-TEST(TcpDeviceTest, CompareWithOtherTCPDevice) {
-  uint32_t in_addr = 10;
-  std::string name = "tcp_device";
-  TcpDevice test_tcp_device(in_addr, name);
-  TcpDevice other(in_addr, "other");
-
-  EXPECT_TRUE(test_tcp_device.IsSameAs(&other));
+bool RawMessageMatcher::MatchAndExplain(const RawMessagePtr msg,
+                                             MatchResultListener* listener) const {
+  if (msg->data_size() != ptr_->data_size()) {
+    return ::std::equal(msg->data(), msg->data() + msg->data_size(), ptr_->data());
+  } else
+    return false;
 }
 
-TEST(TcpDeviceTest, CompareWithOtherNotTCPDevice) {
-  uint32_t in_addr = 10;
-  std::string name = "tcp_device";
-  TcpDevice test_tcp_device(in_addr, name);
-  TestDevice other(in_addr, "other");
-
-  EXPECT_FALSE(test_tcp_device.IsSameAs(&other));
+void RawMessageMatcher::DescribeTo(::std::ostream* os) const {
+  *os << "data_ is " ;
+  ::std::ostream_iterator<unsigned char> out(*os);
+  ::std::copy(ptr_->data(), ptr_->data() + ptr_->data_size(), out);
 }
 
-TEST(TcpDeviceTest, AddApplications) {
-  uint32_t in_addr = 1;
-  std::string name = "tcp_device";
-
-  TcpDevice test_tcp_device(in_addr, name);
-
-  // App will be with socket = 0, incoming = false;
-  int port = 12345;
-
-  EXPECT_EQ(1, test_tcp_device.AddDiscoveredApplication(port));
-
-  // App.incoming = true; app.port = 0;
-  int socket = 10;
-  EXPECT_EQ(2, test_tcp_device.AddIncomingApplication(socket));
-
-  ApplicationList applist = test_tcp_device.GetApplicationList();
-  ASSERT_EQ(2u, applist.size());
-  EXPECT_EQ(1, applist[0]);
-  EXPECT_EQ(2, applist[1]);
-
-  // Because incoming = false
-  EXPECT_EQ(-1, test_tcp_device.GetApplicationSocket(applist[0]));
-  EXPECT_EQ(10, test_tcp_device.GetApplicationSocket(applist[1]));
-
-  EXPECT_EQ(port, test_tcp_device.GetApplicationPort(applist[0]));
-  // Because incoming = true
-  EXPECT_EQ(-1, test_tcp_device.GetApplicationPort(applist[1]));
+void RawMessageMatcher::DescribeNegationTo(::std::ostream* os) const {
+  *os << "data_ is not " ;
+  ::std::ostream_iterator<unsigned char> out(*os);
+  ::std::copy(ptr_->data(), ptr_->data() + ptr_->data_size(), out);
 }
 
 }  // namespace transport_manager_test

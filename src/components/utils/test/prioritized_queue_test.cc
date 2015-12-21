@@ -32,44 +32,20 @@
 
 #include "gtest/gtest.h"
 #include "utils/prioritized_queue.h"
+#include "utils/test_message.h"
 
 namespace test {
 namespace components {
-namespace utils {
+namespace utils_test {
 
 using ::utils::PrioritizedQueue;
-
-class TestMessage {
- public:
-  TestMessage()
-      : priority(0) {
-  }
-  TestMessage(std::string message, size_t msg_priority)
-      : msg_(message),
-        priority(msg_priority) {
-  }
-  size_t PriorityOrder() const;
-  std::string msg() const;
-  friend bool operator==(const TestMessage &msg1, const TestMessage &msg2);
- private:
-  std::string msg_;
-  size_t priority;
-};
-
-size_t TestMessage::PriorityOrder() const {
-  return priority;
-}
-
-std::string TestMessage::msg() const {
-  return msg_;
-}
 
 bool operator==(const TestMessage &msg1, const TestMessage &msg2) {
   return (msg1.msg() == msg2.msg()
       && msg1.PriorityOrder() == msg2.PriorityOrder());
 }
 
-class PrioritizedQueueTest : public testing::Test {
+class PrioritizedQueueTest : public ::testing::Test {
  protected:
   PrioritizedQueue<TestMessage> test_queue;
 };

@@ -40,6 +40,8 @@ include_directories (
 )
 
 set(testSources
+  src/mock_object.cc
+
   messagemeter_test.cc
   file_system_test.cc
   date_time_test.cc

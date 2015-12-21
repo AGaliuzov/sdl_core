@@ -30,51 +30,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gtest/gtest.h"
-#include "transport_manager/transport_adapter/mock_transport_adapter.h"
-#include "transport_manager/tcp/tcp_client_listener.h"
-#include "transport_manager/mock_transport_manager.h"
-#include "transport_manager/transport_adapter/transport_adapter_controller.h"
-#include "transport_manager/transport_adapter/device.h"
-#include "transport_manager/transport_adapter/mock_transport_adapter_controller.h"
+#ifndef SRC_COMPONENTS_UTILS_TEST_INCLUDE_UTILS_TEST_SINGLETON_H_
+#define SRC_COMPONENTS_UTILS_TEST_INCLUDE_UTILS_TEST_SINGLETON_H_
+
+#include <string>
+#include "utils/singleton.h"
+
+using ::utils::Singleton;
 
 namespace test {
 namespace components {
-namespace transport_manager_test {
+namespace utils_test {
 
-using ::testing::Return;
-using namespace ::transport_manager;
-using namespace ::transport_manager::transport_adapter;
-
-class TcpClientListenerTest : public ::testing::Test {
+class SingletonTest : public ::utils::Singleton<SingletonTest> {
  public:
-  TcpClientListenerTest()
-      : port_(0),
-        enable_keep_alive_(false),
-        tcp_client_listener_(&adapter_controller_mock_, port_, enable_keep_alive_) {}
 
- protected:
-  uint16_t port_;
-  bool enable_keep_alive_;
-  MockTransportAdapterController adapter_controller_mock_;
-  TcpClientListener tcp_client_listener_;
+  void SetValue(int value) {
+    test_value = value;
+  }
+  int GetValue() {
+    return test_value;
+  }
+
+  FRIEND_BASE_SINGLETON_CLASS (SingletonTest);
+ private:
+  int test_value;
 };
 
-TEST_F(TcpClientListenerTest, Ctor_test) {
-  EXPECT_EQ(0, tcp_client_listener_.port());
-  EXPECT_TRUE(NULL != tcp_client_listener_.thread());
-  EXPECT_EQ(-1, tcp_client_listener_.get_socket());
-}
-
-TEST_F(TcpClientListenerTest, IsInitialised) {
- EXPECT_TRUE(tcp_client_listener_.IsInitialised());
-}
-
-TEST_F(TcpClientListenerTest, Init) {
-  EXPECT_EQ(TransportAdapter::OK, tcp_client_listener_.Init());
-}
-
-}  // namespace transport_manager_test
+}  // namespace utils_test
 }  // namespace components
 }  // namespace test
 
+#endif  // SRC_COMPONENTS_UTILS_TEST_INCLUDE_UTILS_TEST_SINGLETON_H_
