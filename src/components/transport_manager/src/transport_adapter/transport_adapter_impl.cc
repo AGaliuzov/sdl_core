@@ -150,15 +150,6 @@ TransportAdapter::Error TransportAdapterImpl::Init() {
   return error;
 }
 
-void TransportAdapterImpl::AckDevices() {
-  sync_primitives::AutoLock lock(devices_mutex_);
-  for(DeviceMap::iterator it = devices_.begin(); it != devices_.end(); ++it) {
-    if (!it->second->Ack()) {
-      DeviceDisconnected(it->second->unique_device_id(), DisconnectDeviceError());
-    }
-  }
-}
-
 TransportAdapter::Error TransportAdapterImpl::SearchDevices() {
   LOG4CXX_TRACE(logger_, "enter");
   if (device_scanner_ == NULL) {
@@ -356,7 +347,7 @@ DeviceSptr TransportAdapterImpl::AddDevice(DeviceSptr device) {
     existing_device = i->second;
     if (device->IsSameAs(existing_device.get())) {
       same_device_found = true;
-      LOG4CXX_DEBUG(logger_, "device " << device << "already exists");
+      LOG4CXX_DEBUG(logger_, "device " << device << " already exists");
       break;
     }
   }
@@ -373,6 +364,7 @@ DeviceSptr TransportAdapterImpl::AddDevice(DeviceSptr device) {
       (*it)->OnDeviceListUpdated(this);
     }
     if (ToBeAutoConnected(device)) {
+      LOG4CXX_DEBUG(logger_, "Connecting device: " << device->name());
       ConnectDevice(device);
     }
     LOG4CXX_TRACE(logger_, "exit with DeviceSptr " << device);
@@ -579,6 +571,7 @@ void TransportAdapterImpl::DisconnectDone(
       listener->OnDisconnectDeviceDone(this, device_uid);
     }
   }
+  // TODO(EZamakhov):  APPLINK-19533 Fix deadlock occurs with APPLINK-14871
   //connections_lock_.AcquireForWriting();
   connections_.erase(std::make_pair(device_uid, app_uid));
   //connections_lock_.Release();
@@ -739,10 +732,11 @@ void TransportAdapterImpl::ConnectionAborted(
   }
   for (TransportAdapterListenerList::iterator it = listeners_.begin();
        it != listeners_.end(); ++it) {
+    TransportAdapterListener* listener = *it;
     if (kResourceBusy == error.error_type()) {
-      (*it)->OnExpectedDisconnect(this, device_id, app_handle, error);
+      listener->OnExpectedDisconnect(this, device_id, app_handle, error);
     } else {
-      (*it)->OnUnexpectedDisconnect(this, device_id, app_handle, error);
+      listener->OnUnexpectedDisconnect(this, device_id, app_handle, error);
     }
   }
 }
@@ -872,18 +866,21 @@ TransportAdapter::Error TransportAdapterImpl::ConnectDevice(DeviceSptr device) {
 
 void TransportAdapterImpl::RemoveDevice(const DeviceUID& device_handle) {
   LOG4CXX_AUTO_TRACE(logger_);
-  LOG4CXX_DEBUG(logger_, "Device_handle: " << &device_handle);
+  LOG4CXX_DEBUG(logger_, "Device_handle: " << device_handle);
   sync_primitives::AutoLock locker(devices_mutex_);
   DeviceMap::iterator i = devices_.find(device_handle);
   if (i != devices_.end()) {
     DeviceSptr device = i->second;
     if (!device->keep_on_disconnect()) {
+      LOG4CXX_DEBUG(logger_, "Erase device with handle " << device_handle);
       devices_.erase(i);
       for (TransportAdapterListenerList::iterator it = listeners_.begin();
            it != listeners_.end(); ++it) {
         TransportAdapterListener* listener = *it;
         listener->OnDeviceListUpdated(this);
       }
+    } else {
+      LOG4CXX_DEBUG(logger_, "Keeping device");
     }
   }
 }

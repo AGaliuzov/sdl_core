@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2015, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,11 +45,11 @@ class AOAConnectionFactory : public ServerConnectionFactory {
   explicit AOAConnectionFactory(TransportAdapterController* controller);
 
  protected:
-  virtual TransportAdapter::Error Init();
-  virtual TransportAdapter::Error CreateConnection(
-      const DeviceUID& device_uid, const ApplicationHandle& app_handle);
-  virtual void Terminate();
-  virtual bool IsInitialised() const;
+  TransportAdapter::Error Init() OVERRIDE;
+  TransportAdapter::Error CreateConnection(
+    const DeviceUID& device_uid, const ApplicationHandle& app_handle) OVERRIDE;
+  void Terminate() OVERRIDE;
+  bool IsInitialised() const OVERRIDE;
 
  private:
   TransportAdapterController* controller_;
@@ -57,5 +57,4 @@ class AOAConnectionFactory : public ServerConnectionFactory {
 
 }  // namespace transport_adapter
 }  // namespace transport_manager
-
 #endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_AOA_AOA_CONNECTION_FACTORY_H_

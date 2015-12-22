@@ -946,7 +946,8 @@ void ConnectionHandlerImpl::OnConnectionEnded(
     const SessionMap session_map = connection->session_map();
     for (SessionMap::const_iterator session_it = session_map.begin();
          session_map.end() != session_it; ++session_it) {
-      const uint32_t session_key = KeyFromPair(connection_id, session_it->first);
+      const uint8_t session_id = session_it->first;
+      const uint32_t session_key = KeyFromPair(connection_id, session_id);
       const Session& session = session_it->second;
       CloseSessionServices(session_key, session, reason);
     }

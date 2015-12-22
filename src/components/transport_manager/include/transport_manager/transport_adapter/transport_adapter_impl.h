@@ -101,8 +101,6 @@ class TransportAdapterImpl : public TransportAdapter,
    **/
   virtual TransportAdapter::Error Init();
 
-  virtual void AckDevices();
-
   /**
    * @brief Stops device adapter
    * Called from transport manager to stop device adapter
