@@ -158,6 +158,9 @@ class ResumptionDataJson : public ResumptionData {
 
   virtual bool Init();
 
+  bool DropAppDataResumption(const std::string& device_id,
+                             const std::string& app_id) OVERRIDE;
+
  private:
 
   /**

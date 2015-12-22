@@ -230,6 +230,9 @@ class ResumptionDataDB : public ResumptionData {
    */
   bool UpdateDBVersion() const;
 
+  bool DropAppDataResumption(const std::string& device_id,
+                             const std::string& app_id) OVERRIDE;
+
 protected:
   /**
    * @brief returns pointer to data base
