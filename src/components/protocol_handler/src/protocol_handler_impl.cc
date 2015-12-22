@@ -805,18 +805,28 @@ RESULT_CODE ProtocolHandlerImpl::HandleControlMessage(const ProtocolFramePtr pac
     return RESULT_FAIL;
   }
 
+  // TODO{ALeshin}: APPLINK-20121 Rename "Session" to "Service" on PH, CH, AM levels
   switch (packet->frame_data()) {
-    case FRAME_DATA_START_SERVICE:
+    case FRAME_DATA_START_SERVICE: {
+      LOG4CXX_TRACE(logger_, "FrameData: StartService");
       return HandleControlMessageStartSession(*packet);
-    case FRAME_DATA_END_SERVICE:
+    }
+    case FRAME_DATA_END_SERVICE: {
+      LOG4CXX_TRACE(logger_, "FrameData: StopService");
       return HandleControlMessageEndSession(*packet);
+    }
+    case FRAME_DATA_END_SERVICE_ACK: {
+      LOG4CXX_TRACE(logger_, "FrameData: StopService ACK");
+      return HandleControlMessageEndServiceACK(*packet);
+    }
     case FRAME_DATA_HEART_BEAT: {
-      LOG4CXX_TRACE(logger_, "FRAME_DATA_HEART_BEAT");
+      LOG4CXX_TRACE(logger_, "FrameData: Heartbeat");
       return HandleControlMessageHeartBeat(*packet);
     }
     case FRAME_DATA_HEART_BEAT_ACK: {
-      LOG4CXX_DEBUG(logger_, "Received heart beat ack from mobile app"
-          " for connection " << packet->connection_id());
+      LOG4CXX_TRACE(logger_, "FrameData Heartbeat ACK");
+      LOG4CXX_DEBUG(logger_, "Received Heartbeat ACK from mobile,"
+                            " connection: " << packet->connection_id());
       return RESULT_OK;
     }
     default:
@@ -843,7 +853,7 @@ uint32_t get_hash_id(const ProtocolPacket &packet) {
   return hash_le == HASH_ID_NOT_SUPPORTED ? HASH_ID_WRONG : hash_le;
 }
 
-RESULT_CODE ProtocolHandlerImpl::HandleControlMessageEndSession(const ProtocolPacket &packet) {
+RESULT_CODE ProtocolHandlerImpl::HandleControlMessageEndSession(const ProtocolPacket& packet) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   const uint8_t current_session_id = packet.session_id();
@@ -868,6 +878,31 @@ RESULT_CODE ProtocolHandlerImpl::HandleControlMessageEndSession(const ProtocolPa
   }
   return RESULT_OK;
 }
+
+RESULT_CODE ProtocolHandlerImpl::HandleControlMessageEndServiceACK(const ProtocolPacket& packet) {
+  LOG4CXX_AUTO_TRACE(logger_);
+
+  if (!session_observer_) {
+    LOG4CXX_ERROR(logger_, "No ISessionObserver set.");
+    return RESULT_FAIL;
+  }
+
+  const uint8_t current_session_id = packet.session_id();
+  const uint32_t hash_id = get_hash_id(packet);
+  const ServiceType service_type = ServiceTypeFromByte(packet.service_type());
+  const ConnectionID connection_id = packet.connection_id();
+
+  const uint32_t session_key = session_observer_->OnSessionEndedCallback(
+      connection_id, current_session_id, hash_id, service_type);
+
+  if (0 == session_key) {
+    LOG4CXX_WARN(logger_, "Refused to end service");
+    return RESULT_FAIL;
+  }
+
+  return RESULT_OK;
+}
+
 #ifdef ENABLE_SECURITY
 namespace {
 /**
@@ -958,7 +993,8 @@ class StartSessionHandler : public security_manager::SecurityManagerListener {
 }  // namespace
 #endif  // ENABLE_SECURITY
 
-RESULT_CODE ProtocolHandlerImpl::HandleControlMessageStartSession(const ProtocolPacket &packet) {
+RESULT_CODE ProtocolHandlerImpl::HandleControlMessageStartSession(const ProtocolPacket& packet) {
+  LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_,
                 "Protocol version:" <<
                 static_cast<int>(packet.protocol_version()));
@@ -1033,7 +1069,7 @@ RESULT_CODE ProtocolHandlerImpl::HandleControlMessageStartSession(const Protocol
   return RESULT_OK;
 }
 
-RESULT_CODE ProtocolHandlerImpl::HandleControlMessageHeartBeat(const ProtocolPacket &packet) {
+RESULT_CODE ProtocolHandlerImpl::HandleControlMessageHeartBeat(const ProtocolPacket& packet) {
   const ConnectionID connection_id = packet.connection_id();
 
   LOG4CXX_DEBUG(
