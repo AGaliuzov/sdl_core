@@ -110,7 +110,7 @@ bool UnsubscribeButtonRequest::CheckHMICapabilities(
 
   const HMICapabilities& hmi_caps = app_mgr->hmi_capabilities();
   if (!hmi_caps.is_ui_cooperating()) {
-    LOG4CXX_ERROR(logger_, "UI is not supported by HMI.");
+    LOG4CXX_WARN(logger_, "UI is not supported by HMI.");
     return false;
   }
 
