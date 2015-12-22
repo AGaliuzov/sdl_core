@@ -489,6 +489,12 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
     connection_handler_->StartSessionHeartBeat(connection_key);
   }
 
+  // Stops timer of saving data to resumption in order to
+  // doesn't erase data from resumption storage.
+  // Timer will be started after hmi level resumption.
+  resume_ctrl_.OnAppRegistrationStart(
+      policy_app_id, MessageHelper::GetDeviceMacAddressForHandle(device_id));
+
   // Apply active states to application, add application to registered app list
   // and set appropriate mark.
   // Lock has to be released before adding app to policy DB to avoid possible
