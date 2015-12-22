@@ -65,7 +65,7 @@ void UnsubscribeButtonRequest::Run() {
       (*message_)[str::msg_params][str::button_name].asUInt();
 
   if (!CheckHMICapabilities(static_cast<mobile_apis::ButtonName::eType>(btn_id))) {
-    LOG4CXX_ERROR(logger_, "HMI doesn't support " << btn_id << " button.");
+    LOG4CXX_INFO(logger_, "HMI doesn't support " << btn_id << " button.");
     SendResponse(false, mobile_apis::Result::UNSUPPORTED_RESOURCE);
     return;
   }
@@ -100,7 +100,7 @@ void UnsubscribeButtonRequest::SendUnsubscribeButtonNotification() {
 }
 
 bool UnsubscribeButtonRequest::CheckHMICapabilities(
-    mobile_apis::ButtonName::eType button) {
+    const mobile_apis::ButtonName::eType button) {
   using namespace smart_objects;
   using namespace mobile_apis;
   LOG4CXX_AUTO_TRACE(logger_);
