@@ -131,6 +131,7 @@ TEST_F(RequestControllerTestClass, DISABLED_CheckPosibilitytoAdd_HMI_FULL_SUCCES
   UnregisterApp(mobile_apis::HMILevel::HMI_FULL);
 }
 
+// TODO {OHerasym}: APPLINK-20220
 TEST_F(RequestControllerTestClass, DISABLED_CheckPosibilitytoAdd_HMI_NONE_SUCCESS) {
   ApplicationManagerImpl::instance();
   EXPECT_EQ(RequestController::TResult::SUCCESS,
