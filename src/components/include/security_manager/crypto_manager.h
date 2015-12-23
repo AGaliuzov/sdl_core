@@ -70,7 +70,7 @@ class CryptoManager : public policy::PolicyHandlerObserver {
    *
    * @param verify_peer allows to distinguish if we need to verify the peers certificates
    *
-   * @param ca_certificate_file location of CA file.
+   * @param ca_certificate_path - folder with CA certificates.
    *
    * @param hours_before_update when the certificate expiration date less then
    * this value, the certificate update will be generated
@@ -82,7 +82,7 @@ class CryptoManager : public policy::PolicyHandlerObserver {
                     const std::string &cert_data,
                     const std::string &ciphers_list,
                     const bool verify_peer,
-                    const std::string &ca_certificate_file,
+                    const std::string &ca_certificate_path,
                     const size_t hours_before_update) = 0;
   virtual bool OnCertificateUpdated(const std::string& data) = 0;
   virtual SSLContext *CreateSSLContext() = 0;

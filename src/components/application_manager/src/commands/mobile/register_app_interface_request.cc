@@ -364,7 +364,7 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile() {
       << msg_params[strings::language_desired].asInt()
       << " - "
       << hmi_capabilities.active_vr_language()
-      << "ui "
+      << ", ui "
       << msg_params[strings::hmi_display_language_desired].asInt()
       << " - "
       << hmi_capabilities.active_ui_language());
@@ -759,18 +759,15 @@ void RegisterAppInterfaceRequest::FillDeviceInfo(
 }
 
 bool RegisterAppInterfaceRequest::IsApplicationWithSameAppIdRegistered() {
-
-  LOG4CXX_INFO(logger_, "RegisterAppInterfaceRequest::"
-               "IsApplicationWithSameAppIdRegistered");
-
+  LOG4CXX_AUTO_TRACE(logger_);
   const custom_str::CustomString& policy_app_id = (*message_)[strings::msg_params]
                                          [strings::app_id].asCustomString();
 
   ApplicationManagerImpl::ApplicationListAccessor accessor;
   const ApplicationSet applications = accessor.applications();
 
- ApplicationSetConstIt it = applications.begin();
- ApplicationSetConstIt it_end = applications.end();
+  ApplicationSetConstIt it = applications.begin();
+  ApplicationSetConstIt it_end = applications.end();
 
   for (; it != it_end; ++it) {
     if (policy_app_id.CompareIgnoreCase((*it)->policy_app_id().c_str())) {

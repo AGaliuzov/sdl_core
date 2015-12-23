@@ -109,7 +109,7 @@ class CryptoManagerImpl : public CryptoManager {
             const std::string &cert_data,
             const std::string &ciphers_list,
             const bool verify_peer,
-            const std::string &ca_certificate_file,
+            const std::string &ca_certificate_path,
             const size_t hours_before_update) OVERRIDE;
   bool OnCertificateUpdated(const std::string &data) OVERRIDE;
   SSLContext *CreateSSLContext() OVERRIDE;

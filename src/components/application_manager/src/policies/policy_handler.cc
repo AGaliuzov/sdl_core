@@ -1330,6 +1330,7 @@ void PolicyHandler::OnCertificateDecrypted(bool is_succeeded) {
   UNUSED(file_deleter);
 
   if (!is_succeeded) {
+    LOG4CXX_ERROR(logger_, "Couldn't delete file " << file_name);
     return;
   }
 
@@ -1345,7 +1346,8 @@ void PolicyHandler::OnCertificateDecrypted(bool is_succeeded) {
   sync_primitives::AutoLock lock(listeners_lock_);
   HandlersCollection::const_iterator it = listeners_.begin();
   for (; it != listeners_.end(); ++it) {
-    (*it)->OnCertificateUpdated(certificate_data);
+    PolicyHandlerObserver* observer = *it;
+    observer->OnCertificateUpdated(certificate_data);
   }
 }
 
