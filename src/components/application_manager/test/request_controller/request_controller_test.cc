@@ -123,14 +123,16 @@ public:
   RequestController::TResult result;
 };
 
-TEST_F(RequestControllerTestClass, CheckPosibilitytoAdd_HMI_FULL_SUCCESS) {
+// TODO {OHerasym}: APPLINK-20220
+TEST_F(RequestControllerTestClass, DISABLED_CheckPosibilitytoAdd_HMI_FULL_SUCCESS) {
   EXPECT_EQ(RequestController::TResult::SUCCESS,
       AddMobileRequest(mobile_apis::HMILevel::HMI_FULL, true));
   ApplicationManagerImpl::instance()->destroy();
   UnregisterApp(mobile_apis::HMILevel::HMI_FULL);
 }
 
-TEST_F(RequestControllerTestClass, CheckPosibilitytoAdd_HMI_NONE_SUCCESS) {
+// TODO {OHerasym}: APPLINK-20220
+TEST_F(RequestControllerTestClass, DISABLED_CheckPosibilitytoAdd_HMI_NONE_SUCCESS) {
   ApplicationManagerImpl::instance();
   EXPECT_EQ(RequestController::TResult::SUCCESS,
       AddMobileRequest(mobile_apis::HMILevel::HMI_NONE, true));
