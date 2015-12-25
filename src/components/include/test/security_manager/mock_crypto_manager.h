@@ -53,6 +53,8 @@ class MockCryptoManager : public ::security_manager::CryptoManager {
             const bool,
             const std::string&,
             const size_t));
+    MOCK_CONST_METHOD0(is_initialized,
+                 bool());
     MOCK_METHOD1(OnCertificateUpdated,
         bool(const std::string&));
     MOCK_METHOD0(CreateSSLContext,
