@@ -88,8 +88,9 @@ class CryptoManagerTest : public testing::Test {
 };
 
 TEST_F(CryptoManagerTest, UsingBeforeInit) {
+  ASSERT_FALSE(crypto_manager->is_initialized());
   EXPECT_TRUE(crypto_manager->CreateSSLContext() == NULL);
-  EXPECT_EQ(std::string ("Initialization is not completed"),
+  EXPECT_EQ(std::string ("no openssl error occurs, initialization is not completed"),
             crypto_manager->LastError());
 }
 
@@ -97,49 +98,56 @@ TEST_F(CryptoManagerTest, WrongInit) {
   //We have to cast (-1) to security_manager::Protocol Enum to be accepted by crypto_manager->Init(...)
   security_manager::Protocol UNKNOWN = static_cast<security_manager::Protocol>(-1);
 
-    std::ifstream file("spt_credential.p12.enc");
-    std::stringstream ss;
-    ss << file.rdbuf();
+  std::ifstream file("spt_credential.p12.enc");
+  std::stringstream ss;
+  ss << file.rdbuf();
 
   // Unknown protocol version
   EXPECT_FALSE(crypto_manager->Init(security_manager::SERVER, UNKNOWN,
                                     ss.str(), FORD_CIPHER,
                                     false, "", updates_before_hour));
+  EXPECT_FALSE(crypto_manager->is_initialized());
+  EXPECT_NE(crypto_manager->LastError(),
+            std::string());
 
-  EXPECT_FALSE(crypto_manager->LastError().empty());
   // Unexistent cipher value
   EXPECT_FALSE(crypto_manager->Init(security_manager::SERVER, security_manager::TLSv1_2,
           ss.str(),  "INVALID_UNKNOWN_CIPHER", false, "", updates_before_hour));
-  EXPECT_FALSE(crypto_manager->LastError().empty());
+  EXPECT_FALSE(crypto_manager->is_initialized());
+  EXPECT_NE(crypto_manager->LastError(),
+            std::string());
 
 }
 
 //#ifndef __QNXNTO__
 TEST_F(CryptoManagerTest, CorrectInit) {
-    std::ifstream file("server/spt_credential.p12.enc");
-    std::stringstream ss;
-    ss << file.rdbuf();
+  std::ifstream file("server/spt_credential.p12.enc");
+  std::stringstream ss;
+  ss << file.rdbuf();
 
   // Empty cert and key values for SERVER
   EXPECT_TRUE(crypto_manager->Init(security_manager::SERVER, security_manager::TLSv1_2,
           ss.str(),  FORD_CIPHER, false, "", updates_before_hour));
-  EXPECT_TRUE(crypto_manager->LastError().empty());
+  EXPECT_TRUE(crypto_manager->is_initialized());
+
   // Recall init
   EXPECT_TRUE(crypto_manager->Init(security_manager::CLIENT, security_manager::TLSv1_2,
           "",  FORD_CIPHER, false, "", updates_before_hour));
-  EXPECT_TRUE(crypto_manager->LastError().empty());
+  EXPECT_TRUE(crypto_manager->is_initialized());
+
   // Recall init with other protocols
   EXPECT_TRUE(crypto_manager->Init(security_manager::CLIENT, security_manager::TLSv1_1,
           "",  FORD_CIPHER, false, "", updates_before_hour));
-  EXPECT_TRUE(crypto_manager->LastError().empty());
+  EXPECT_TRUE(crypto_manager->is_initialized());
+
   EXPECT_TRUE(crypto_manager->Init(security_manager::CLIENT, security_manager::TLSv1,
           "", FORD_CIPHER, false, "", updates_before_hour));
-  EXPECT_TRUE(crypto_manager->LastError().empty());
+  EXPECT_TRUE(crypto_manager->is_initialized());
 
   // Cipher value
   EXPECT_TRUE(crypto_manager->Init(security_manager::SERVER, security_manager::TLSv1_2,
           ss.str(),  ALL_CIPHERS, false, "", updates_before_hour));
-  EXPECT_TRUE(crypto_manager->LastError().empty());
+  EXPECT_TRUE(crypto_manager->is_initialized());
 }
 //#endif  // __QNX__
 

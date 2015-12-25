@@ -212,9 +212,13 @@ bool CryptoManagerImpl::Init(Mode mode, Protocol protocol,
   return true;
 }
 
+bool CryptoManagerImpl::is_initialized() const {
+  return context_;
+}
+
 bool CryptoManagerImpl::OnCertificateUpdated(const std::string& data) {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (!context_) {
+  if (!is_initialized()) {
     LOG4CXX_WARN(logger_, "Not initialized");
     return false;
   }
@@ -255,7 +259,7 @@ std::string CryptoManagerImpl::LastError() const {
     string_stream << "error: 0x" << std::hex << openssl_error_id
                   << ", \"" << std::string(error_string ? error_string : "") << '"';
   }
-  if (!context_) {
+  if (!is_initialized()) {
     string_stream << ", initialization is not completed";
   }
   return string_stream.str();
