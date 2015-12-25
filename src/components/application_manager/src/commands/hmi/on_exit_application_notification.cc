@@ -75,6 +75,7 @@ void OnExitApplicationNotification::Run() {
     case Common_ApplicationExitReason::UNAUTHORIZED_TRANSPORT_REGISTRATION: {
       MessageHelper::SendOnAppInterfaceUnregisteredNotificationToMobile(
           app_id, AppInterfaceUnregisteredReason::APP_UNAUTHORIZED);
+      // HMI rejects registration for navi application
       app_mgr->UnregisterApplication(app_id, Result::SUCCESS);
       return;
     }

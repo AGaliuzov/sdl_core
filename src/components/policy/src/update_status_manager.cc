@@ -229,12 +229,12 @@ UpdateStatusManager::UpdateThreadDelegate::UpdateThreadDelegate(UpdateStatusMana
                       state_lock_(true),
                       update_status_manager_(update_status_manager) {
   LOG4CXX_AUTO_TRACE(logger_);
-  LOG4CXX_INFO(logger_, "Create UpdateThreadDelegate");
+  LOG4CXX_DEBUG(logger_, "Create UpdateThreadDelegate");
 }
 
 UpdateStatusManager::UpdateThreadDelegate::~UpdateThreadDelegate() {
   LOG4CXX_AUTO_TRACE(logger_);
-  LOG4CXX_INFO(logger_, "Delete UpdateThreadDelegate");
+  LOG4CXX_DEBUG(logger_, "Delete UpdateThreadDelegate");
 }
 
 void UpdateStatusManager::UpdateThreadDelegate::threadMain() {
@@ -263,7 +263,7 @@ void UpdateStatusManager::UpdateThreadDelegate::exitThreadMain() {
   LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock auto_lock(state_lock_);
   stop_flag_ = true;
-  LOG4CXX_INFO(logger_, "before notify");
+  LOG4CXX_DEBUG(logger_, "before notify");
   termination_condition_.NotifyOne();
 }
 

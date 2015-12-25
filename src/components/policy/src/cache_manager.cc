@@ -1760,9 +1760,11 @@ bool CacheManager::LoadFromFile(const std::string& file_name,
 
   table = policy_table::Table(&value);
 
+#ifdef ENABLE_LOG
   Json::StyledWriter s_writer;
-  LOG4CXX_DEBUG(logger_, "Policy table content loaded:");
-  LOG4CXX_DEBUG(logger_, s_writer.write(table.ToJsonValue()));
+  LOG4CXX_DEBUG(logger_, "Policy table content loaded:"
+                << s_writer.write(table.ToJsonValue()));
+#endif  // ENABLE_LOG
 
   if (!table.is_valid()) {
     rpc::ValidationReport report("policy_table");
