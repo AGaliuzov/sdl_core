@@ -5,6 +5,7 @@
  *      Author: adderleym
  */
 
+#include <errno.h>
 #include "mb_mqclient.hpp"
 #include "MBDebugHelper.h"
 
@@ -50,7 +51,7 @@ namespace NsMessageBroker
      attributes.mq_msgsize = MAX_QUEUE_MSG_SIZE;
      attributes.mq_flags = 0;
 
-     m_sndHandle = ::mq_open(m_send.c_str(), O_WRONLY|O_CREAT|O_NONBLOCK, 0666, &attributes);
+     m_sndHandle = ::mq_open(m_send.c_str(), O_WRONLY|O_CREAT, 0666, &attributes);
      m_rcvHandle = ::mq_open(m_recv.c_str(), O_RDONLY|O_CREAT, 0666, &attributes);
 
      return ((m_sndHandle != -1) && (m_rcvHandle != -1)) ? true : false;
@@ -81,6 +82,7 @@ namespace NsMessageBroker
          ptr2->size = len;
          memset(ptr2->text, 0, sizeof(ptr2->size));
          memcpy(ptr2->text, rep.c_str(), len); /* write to the shared memory */
+         DBG_MSG(("Written to shared memmory:Buffer %s\n", ptrBuffer));
        }
        else
        {
@@ -90,15 +92,23 @@ namespace NsMessageBroker
          ptr3->size = len;
          memset(ptr3->text, 0, sizeof(ptr3->size));
          memcpy(ptr3->text, rep.c_str(), len); /* write to the shared memory */
+         DBG_MSG(("Written to shared memmory:Buffer %s\n", ptrBuffer));
        }
 
-     retVal = ::mq_send(m_sndHandle, &shm_data[0], shm_data.length(), 0);
+       retVal = ::mq_send(m_sndHandle, &shm_data[0], shm_data.length(), 0);
+       if(retVal == -1) {
+         DBG_MSG(("Error mq_send %s, id of error = %d\n", strerror(errno), errno));
+       }
        return (retVal == -1) ? retVal :(shm_data.length());
      }
      else
      {
        int retVal = ::mq_send(m_sndHandle, ptrBuffer, rep.length(), 0);
-       DBG_MSG(("MqClient::Send:Buffer %s", ptrBuffer));
+       if(retVal == -1) {
+         DBG_MSG(("Error mq_send %s, id of error = %d\n", strerror(errno), errno));
+       } else {
+         DBG_MSG(("MqClient::Send:Buffer %s\n", ptrBuffer));
+       }
        return (retVal == -1) ? retVal : rep.length();
      }
    }
