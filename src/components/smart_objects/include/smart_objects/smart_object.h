@@ -205,11 +205,11 @@ FINAL {
     explicit SmartObject(int32_t InitialValue);
 
     /**
-     * @brief Returns current object converted to int32_t
+     * @brief Returns current object converted to int64_t
      *
-     * @return int32_t
+     * @return int64_t
      **/
-    int32_t asInt() const;
+    int64_t asInt() const;
 
     /**
      * @brief Assignment operator for type: int32_t
@@ -236,11 +236,11 @@ FINAL {
     explicit SmartObject(uint32_t InitialValue);
 
     /**
-     * @brief Returns current object converted to uint32_t int32_t
+     * @brief Returns current object converted to uint64_t
      *
-     * @return double
+     * @return uint64_t
      **/
-    uint32_t asUInt() const;
+    uint64_t asUInt() const;
 
     /**
      * @brief Assignment operator for type: int32_t
@@ -270,13 +270,6 @@ FINAL {
     explicit SmartObject(int64_t InitialValue);
 
     /**
-     * @brief Returns current object converted to int64_t
-     *
-     * @return int64_t
-     **/
-    int64_t asInt64() const;
-
-    /**
      * @brief Assignment operator for type: int64_t
      *
      * @param  NewValue New object value
@@ -285,12 +278,31 @@ FINAL {
     SmartObject& operator=(int64_t NewValue);
 
     /**
+     * @brief Assignment operator for type: unsigned long long int
+     *
+     * @param  NewValue New object value
+     * @return SmartObject&
+     **/
+    /**
      * @brief Comparison operator for comparing object with integer value
      *
      * @param  Value Value to compare object with
      * @return bool
      **/
     bool operator==(int64_t Value) const;
+
+   /**
+     * @name Support of type: uint64_t
+     * @{
+    **/
+
+    /**
+     * @brief Assignment operator for type: uint64_t
+     *
+     * @param  NewValue New object value
+     * @return SmartObject&
+     **/
+    SmartObject& operator=(const uint64_t NewValue);
 
     /** @} */
 
