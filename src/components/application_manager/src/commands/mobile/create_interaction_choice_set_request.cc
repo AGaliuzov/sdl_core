@@ -120,30 +120,11 @@ mobile_apis::Result::eType CreateInteractionChoiceSetRequest::CheckChoiceSet(
 
   std::set<uint32_t> choice_id_set;
 
-  const DataAccessor<ChoiceSetMap> accessor = app->choice_set_map();
-  const ChoiceSetMap& app_choice_set_map = accessor.GetData();
-  ChoiceSetMap::const_iterator app_choice_set_map_it =
-      app_choice_set_map.begin();
-
-  for (; app_choice_set_map.end() != app_choice_set_map_it;
-           ++app_choice_set_map_it) {
-    if (app_choice_set_map_it->second) {
-      const SmartArray* app_choice_set =
-          (*(app_choice_set_map_it->second))[strings::choice_set].asArray();
-
-      SmartArray::const_iterator app_choice_set_it = app_choice_set->begin();
-      for (; app_choice_set->end() != app_choice_set_it;
-               ++app_choice_set_it) {
-        choice_id_set.insert(
-            (*app_choice_set_it)[strings::choice_id].asInt());
-      }
-    }
-  }
-
   const SmartArray* choice_set =
       (*message_)[strings::msg_params][strings::choice_set].asArray();
 
   SmartArray::const_iterator choice_set_it = choice_set->begin();
+
   for (; choice_set->end() != choice_set_it; ++choice_set_it) {
     std::pair<std::set<uint32_t>::iterator, bool> ins_res =
         choice_id_set.insert((*choice_set_it)[strings::choice_id].asInt());
