@@ -217,7 +217,7 @@ FINAL {
      * @param  NewValue New object value
      * @return SmartObject&
      **/
-    SmartObject& operator=(int32_t NewValue);
+    SmartObject& operator=(const int32_t NewValue);
 
     /**
      * @brief Comparison operator for comparing object with integer value
@@ -225,7 +225,7 @@ FINAL {
      * @param  Value Value to compare object with
      * @return bool
      **/
-    bool operator==(int32_t Value) const;
+    bool operator==(const int32_t Value) const;
 
     // Support of type: uint32_t
     /**
@@ -248,7 +248,7 @@ FINAL {
      * @param  NewValue New object value
      * @return SmartObject&
      **/
-    SmartObject& operator=(uint32_t NewValue);
+    SmartObject& operator=(const uint32_t NewValue);
 
     /**
      * @brief Comparison operator for comparing object with uint32_t value
@@ -256,7 +256,7 @@ FINAL {
      * @param  Value Value to compare object with
      * @return bool
      **/
-    bool operator==(uint32_t Value) const;
+    bool operator==(const uint32_t Value) const;
 
     /**
      * @name Support of type: int64_t
@@ -275,7 +275,7 @@ FINAL {
      * @param  NewValue New object value
      * @return SmartObject&
      **/
-    SmartObject& operator=(int64_t NewValue);
+    SmartObject& operator=(const int64_t NewValue);
 
     /**
      * @brief Assignment operator for type: unsigned long long int
@@ -289,7 +289,7 @@ FINAL {
      * @param  Value Value to compare object with
      * @return bool
      **/
-    bool operator==(int64_t Value) const;
+    bool operator==(const int64_t Value) const;
 
    /**
      * @name Support of type: uint64_t
@@ -330,7 +330,7 @@ FINAL {
      * @param  new_value New object value
      * @return SmartObject&
      **/
-    SmartObject& operator=(double new_value);
+    SmartObject& operator=(const double new_value);
 
     /**
      * @brief Comparison operator for comparing object with double value
@@ -338,7 +338,7 @@ FINAL {
      * @param  new_value Value to compare object with
      * @return bool
      **/
-    bool operator==(double new_value) const;
+    bool operator==(const double new_value) const;
     /** @} */
 
     /**
@@ -365,7 +365,7 @@ FINAL {
      * @param  NewValue New object value
      * @return SmartObject&
      **/
-    SmartObject& operator=(bool NewValue);
+    SmartObject& operator=(const bool NewValue);
 
     /**
      * @brief Comparison operator for comparing object with bool value
@@ -373,7 +373,7 @@ FINAL {
      * @param  Value Value to compare object with
      * @return bool
      **/
-    bool operator==(bool Value) const;
+    bool operator==(const bool Value) const;
     /** @} */
 
     /**
@@ -400,7 +400,7 @@ FINAL {
      * @param  NewValue New object value
      * @return SmartObject&
      **/
-    SmartObject& operator=(char NewValue);
+    SmartObject& operator=(const char NewValue);
 
     /**
      * @brief Comparison operator for comparing object with char value
@@ -408,7 +408,7 @@ FINAL {
      * @param  Value Value to compare object with
      * @return bool
      **/
-    bool operator==(char Value) const;
+    bool operator==(const char Value) const;
     /** @} */
 
     /**
