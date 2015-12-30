@@ -254,6 +254,8 @@ class ApplicationManagerImpl :
   std::vector<ApplicationSharedPtr> IviInfoUpdated(VehicleDataType vehicle_info,
                                                    int value);
 
+  void OnApplicationRegistered(ApplicationSharedPtr app) OVERRIDE;
+
   /////////////////////////////////////////////////////
 
   HMICapabilities& hmi_capabilities();

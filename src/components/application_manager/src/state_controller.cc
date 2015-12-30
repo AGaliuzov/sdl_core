@@ -492,10 +492,16 @@ bool StateController::IsTempStateActive(HmiState::StateID ID) const {
   return active_states_.end() != itr;
 }
 
-void StateController::ApplyStatesForApp(ApplicationSharedPtr app) {
+void StateController::OnApplicationRegistered(
+    ApplicationSharedPtr app,
+    const mobile_apis::HMILevel::eType default_level) {
+  namespace HMILevel = mobile_apis::HMILevel;
+  namespace AudioStreamingState = mobile_apis::AudioStreamingState;
+  namespace SystemContext = mobile_apis::SystemContext;
   LOG4CXX_AUTO_TRACE(logger_);
-  sync_primitives::AutoLock autolock(active_states_lock_);
   DCHECK_OR_RETURN_VOID(app);
+
+  active_states_lock_.Acquire();
   StateIDList::iterator it = active_states_.begin();
   for (; it != active_states_.end(); ++it) {
     HmiStatePtr new_state = CreateHmiState(app->app_id(), *it);
@@ -505,6 +511,22 @@ void StateController::ApplyStatesForApp(ApplicationSharedPtr app) {
     new_state->set_parent(old_hmi_state);
     app->AddHMIState(new_state);
   }
+  active_states_lock_.Release();
+
+  HmiStatePtr default_state =
+      CreateHmiState(app->app_id(), HmiState::StateID::STATE_ID_REGULAR);
+  DCHECK_OR_RETURN_VOID(default_state);
+  default_state->set_hmi_level(default_level);
+  default_state->set_audio_streaming_state(CalcAudioState(app, default_level));
+  default_state->set_system_context(SystemContext::SYSCTXT_MAIN);
+
+  HmiStatePtr initial_state = app->RegularHmiState();
+
+  app->SetRegularState(default_state);
+
+  HmiStatePtr new_state = app->CurrentHmiState();
+
+  OnStateChanged(app, initial_state, new_state);
 }
 
 void StateController::ApplyPostponedStateForApp(ApplicationSharedPtr app) {

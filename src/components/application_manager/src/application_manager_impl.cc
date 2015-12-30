@@ -320,6 +320,13 @@ std::vector<ApplicationSharedPtr> ApplicationManagerImpl::IviInfoUpdated(
   return apps;
 }
 
+void ApplicationManagerImpl::OnApplicationRegistered(ApplicationSharedPtr app) {
+  DCHECK_OR_RETURN_VOID(app);
+  sync_primitives::AutoLock lock(applications_list_lock_);
+  const mobile_apis::HMILevel::eType default_level = GetDefaultHmiLevel(app);
+  state_ctrl_.OnApplicationRegistered(app, default_level);
+}
+
 bool ApplicationManagerImpl::IsAppTypeExistsInFullOrLimited(
     ApplicationConstSharedPtr app) const {
   bool voice_state = app->is_voice_communication_supported();
@@ -495,12 +502,10 @@ ApplicationSharedPtr ApplicationManagerImpl::RegisterApplication(
   resume_ctrl_.OnAppRegistrationStart(
       policy_app_id, MessageHelper::GetDeviceMacAddressForHandle(device_id));
 
-  // Apply active states to application, add application to registered app list
-  // and set appropriate mark.
+  // Add application to registered app list and set appropriate mark.
   // Lock has to be released before adding app to policy DB to avoid possible
   // deadlock with simultaneous PTU processing
   applications_list_lock_.Acquire();
-  state_ctrl_.ApplyStatesForApp(application);
   applications_.insert(application);
   applications_list_lock_.Release();
 
@@ -2500,7 +2505,7 @@ bool ApplicationManagerImpl::CanAppStream(
     LOG4CXX_WARN(logger_, "Unsupported service_type " << service_type);
   }
 
-  return HMILevelAllowsStreaming(app_id, service_type) && is_allowed; 
+  return HMILevelAllowsStreaming(app_id, service_type) && is_allowed;
 }
 
 void ApplicationManagerImpl::ForbidStreaming(uint32_t app_id) {
