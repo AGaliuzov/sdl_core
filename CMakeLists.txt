@@ -676,6 +676,8 @@ add_subdirectory(./src/appMain)
 # --- Plugins
 add_subdirectory(./src/plugins)
 
+# --- ATF install
+add_subdirectory(./atf)
 
 # Building tests
 if(BUILD_TESTS)
