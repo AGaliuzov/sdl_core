@@ -652,7 +652,7 @@ set(RTLIB )
 endif()
 
 # Building tests
-if(BUILD_TESTS)
+if (BUILD_TESTS)
   enable_testing()
   add_definitions(-DBUILD_TESTS)
   # Framework GoogleTest is also integrated together gmock
@@ -676,6 +676,8 @@ add_subdirectory(./src/appMain)
 # --- Plugins
 add_subdirectory(./src/plugins)
 
+# --- ATF install
+add_subdirectory(./atf)
 
 # Building tests
 if(BUILD_TESTS)
