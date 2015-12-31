@@ -16,7 +16,7 @@ $ make install
 ### 3. Run ATF short smoke tests
 ```
 $ cd $SDL_BUILD_DIR/atf
-$ bash -e ./build_server.sh $ATF_BUILD_DIR
+$ bash -e ./run_automated_somke.sh.sh $ATF_BUILD_DIR
 ```
 
 #### Used variables description:
@@ -28,4 +28,4 @@ You can setup enviromat variables to modify options:
 * EXECUTE_DIR - root directory to run ATF scripts (default is current directory)
 * SDL_BIN_DIR - path to directory with SmartDeviceLinkCore
 * REPORTS_DIR - path for ATF reports
-* REPORTS_WEB - aces to reports by web ( will be inserved in html report)
+* REPORTS_WEB - access to reports by web ( will be inserted in html report)

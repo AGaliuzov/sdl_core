@@ -1,4 +1,4 @@
-# Copyright (c) 2014, Ford Motor Company
+# Copyright (c) 2015, Ford Motor Company
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -29,15 +29,14 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 install(FILES
-
-          ${CMAKE_CURRENT_SOURCE_DIR}/build_server.sh
-          ${CMAKE_CURRENT_SOURCE_DIR}/config.lua
-          ${CMAKE_CURRENT_SOURCE_DIR}/sdl_preloaded_pt.json
-          ${CMAKE_CURRENT_SOURCE_DIR}/smartDeviceLink.ini
-          DESTINATION atf)
+    ${CMAKE_CURRENT_SOURCE_DIR}/run_automated_smoke.sh
+    ${CMAKE_CURRENT_SOURCE_DIR}/config.lua
+    ${CMAKE_CURRENT_SOURCE_DIR}/sdl_preloaded_pt.json
+    ${CMAKE_CURRENT_SOURCE_DIR}/smartDeviceLink.ini
+    DESTINATION atf)
 
 install(DIRECTORY
-          ${CMAKE_CURRENT_SOURCE_DIR}/files
-          ${CMAKE_CURRENT_SOURCE_DIR}/tests
-          DESTINATION atf)
+    ${CMAKE_CURRENT_SOURCE_DIR}/files
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests
+    DESTINATION atf)
 

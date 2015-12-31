@@ -652,7 +652,7 @@ set(RTLIB )
 endif()
 
 # Building tests
-if(BUILD_TESTS)
+if (BUILD_TESTS)
   enable_testing()
   add_definitions(-DBUILD_TESTS)
   # Framework GoogleTest is also integrated together gmock
