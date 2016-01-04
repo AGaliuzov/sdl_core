@@ -1691,7 +1691,7 @@ bool ApplicationManagerImpl::ConvertMessageToSO(
 
       const smart_objects::Errors::eType validate_result = output.validate();
       if (validate_result != smart_objects::Errors::OK) {
-        LOG4CXX_ERROR(logger_, "Incorrect parameter from HMI: " << smart_objects::Errors::ToString(validate_result));
+        LOG4CXX_ERROR(logger_, "Incorrect parameter from HMI: " << smart_objects::ToString(validate_result));
 
         if (application_manager::MessageType::kNotification ==
             output[strings::params][strings::message_type].asInt()) {

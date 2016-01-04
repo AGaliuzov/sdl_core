@@ -31,6 +31,8 @@
 #ifndef SRC_COMPONENTS_SMART_OBJECTS_INCLUDE_SMART_OBJECTS_ERRORS_H_
 #define SRC_COMPONENTS_SMART_OBJECTS_INCLUDE_SMART_OBJECTS_ERRORS_H_
 
+#include "utils/macro.h"
+
 namespace NsSmartDeviceLink {
 namespace NsSmartObjects {
 namespace Errors {
@@ -64,22 +66,25 @@ enum eType {
   ERROR
 };
 
-static inline std::string ToString(eType err) {
-  if (eType::OK == err) {
+}  // namespace Errors
+
+inline std::string ToString(Errors::eType err) {
+  if (Errors::OK == err) {
     return "OK";
-  } else if (eType::INVALID_VALUE == err) {
+  } else if (Errors::INVALID_VALUE == err) {
     return "Invalid value";
-  } else if (eType::OUT_OF_RANGE == err) {
+  } else if (Errors::OUT_OF_RANGE == err) {
     return "Value out of range";
-  } else if (eType::MISSING_MANDATORY_PARAMETER == err) {
+  } else if (Errors::MISSING_MANDATORY_PARAMETER == err) {
     return "Missing mandatory parameter";
-  } else if (eType::ERROR == err) {
+  } else if (Errors::ERROR == err) {
     return "Common error";
   } else {
-    return "Unknown error";
+    DCHECK("Unhandled enum type");
   }
+  return "";
 }
-}  // namespace Errors
+
 }  // namespace NsSmartObjects
 }  // namespace NsSmartDeviceLink
 
