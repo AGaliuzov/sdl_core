@@ -63,6 +63,22 @@ enum eType {
    **/
   ERROR
 };
+
+static inline std::string ToString(eType err) {
+  if (eType::OK == err) {
+    return "OK";
+  } else if (eType::INVALID_VALUE == err) {
+    return "Invalid value";
+  } else if (eType::OUT_OF_RANGE == err) {
+    return "Value out of range";
+  } else if (eType::MISSING_MANDATORY_PARAMETER == err) {
+    return "Missing mandatory parameter";
+  } else if (eType::ERROR == err) {
+    return "Common error";
+  } else {
+    return "Unknown error";
+  }
+}
 }  // namespace Errors
 }  // namespace NsSmartObjects
 }  // namespace NsSmartDeviceLink
