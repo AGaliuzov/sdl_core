@@ -165,6 +165,12 @@ class CreateInteractionChoiceSetRequest : public CommandRequestImpl {
      * unsuccessful
      */
     sync_primitives::atomic_bool error_from_hmi_;
+
+    /**
+     * @brief Flag shows if one of VR.AddCommand requests was
+     * WARNINGS
+     */
+    sync_primitives::atomic_bool is_warning_;
 };
 
 }  // namespace commands
