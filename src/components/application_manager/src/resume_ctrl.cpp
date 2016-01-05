@@ -1,4 +1,4 @@
-﻿s,jdnf,ns,dnf,dnbv,dfbn#include <fstream>
+﻿#include <fstream>
 
 #include "application_manager/resume_ctrl.h"
 #include "config_profile/profile.h"
