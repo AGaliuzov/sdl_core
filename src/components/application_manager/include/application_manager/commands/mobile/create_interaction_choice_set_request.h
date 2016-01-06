@@ -170,7 +170,7 @@ class CreateInteractionChoiceSetRequest : public CommandRequestImpl {
      * @brief Flag shows if one of VR.AddCommand requests was
      * WARNINGS
      */
-    sync_primitives::atomic_bool is_warning_;
+    bool warning_from_hmi_;
 };
 
 }  // namespace commands

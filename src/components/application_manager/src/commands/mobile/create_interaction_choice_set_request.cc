@@ -50,7 +50,7 @@ CreateInteractionChoiceSetRequest::CreateInteractionChoiceSetRequest(
     received_chs_count_(0),
     expected_chs_count_(0),
     error_from_hmi_(false),
-    is_warning_(false) {
+    warning_from_hmi_(false) {
 }
 
 CreateInteractionChoiceSetRequest::~CreateInteractionChoiceSetRequest() {
@@ -271,16 +271,15 @@ void CreateInteractionChoiceSetRequest::on_event(
           message[strings::params][hmi_response::code].asInt());
 
       if (vr_result == Common_Result::eType::WARNINGS) {
-        is_warning_ = true;
+        warning_from_hmi_ = true;
       }
 
       const bool is_vr_no_error =
           Compare<Common_Result::eType, EQ, ONE>(
             vr_result,
-            Common_Result::SUCCESS,
-            Common_Result::WARNINGS);
+            Common_Result::SUCCESS);
 
-      if (is_vr_no_error) {
+      if (is_vr_no_error || warning_from_hmi_) {
         VRCommandInfo& vr_command = it->second;
         vr_command.succesful_response_received_ = true;
       } else {
@@ -350,8 +349,8 @@ void CreateInteractionChoiceSetRequest::OnAllHMIResponsesReceived() {
   unsubscribe_from_event(hmi_apis::FunctionID::VR_AddCommand);
 
   if (!error_from_hmi_) {
-    if (is_warning_) {
-      is_warning_ = false;
+    if (warning_from_hmi_) {
+      warning_from_hmi_ = false;
       SendResponse(true, mobile_apis::Result::WARNINGS);
     }
     else {
