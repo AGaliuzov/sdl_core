@@ -30,31 +30,41 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_INCLUDE_HMI_MESSAGE_HANDLER_HMI_MESSAGE_ADAPTER_H_
-#define SRC_COMPONENTS_INCLUDE_HMI_MESSAGE_HANDLER_HMI_MESSAGE_ADAPTER_H_
+#ifndef SRC_COMPONENTS_HMI_MESSAGE_HANDLER_INCLUDE_HMI_MESSAGE_HANDLER_HMI_MESSAGE_ADAPTER_IMPL_H_
+#define SRC_COMPONENTS_HMI_MESSAGE_HANDLER_INCLUDE_HMI_MESSAGE_HANDLER_HMI_MESSAGE_ADAPTER_IMPL_H_
 
-#include "hmi_message_handler/hmi_message_sender.h"
+#include "hmi_message_handler/hmi_message_adapter.h"
+#include "hmi_message_handler/hmi_message_handler.h"
 
 namespace hmi_message_handler {
-/**
- * \class HMIMessageAdapter
- * \brief Interface class describing methods neccessary for exchanging message
- * between ApplicationManager and HMI. Adapter for concrete transport connection
- * SDL with HMI has to implement this interface.
- */
-class HMIMessageAdapter : public HMIMessageSender {
- protected:
+
+class HMIMessageAdapterImpl : public HMIMessageAdapter {
+ public:
   /**
-   * \brief Interface for subscriptions.
-   * Each class implementing interface should use it according to
-   * standarts of transport for which it is to be an adapter.
-   * For example, Adapter for MessageBroker will use it to subscribe to
-   * notifications
-   * from HMI.
+   * \brief Constructor
+   * \param handler Pointer to implementation of HMIMessageHandler abstract
+   * class
+   * to notify it about receiving message or error on sending message.
    */
-  virtual void SubscribeTo() = 0;
+  explicit HMIMessageAdapterImpl(HMIMessageHandler* handler);
+
+  /**
+   * \brief Destructor
+   */
+  virtual ~HMIMessageAdapterImpl();
+
+ protected:
+  virtual HMIMessageHandler* handler() const {
+    return handler_;
+  }
+
+ private:
+  /**
+   *\brief Pointer on handler to notify it about receiving message/error.
+   */
+  HMIMessageHandler* handler_;
 };
 
 }  // namespace hmi_message_handler
 
-#endif  // SRC_COMPONENTS_INCLUDE_HMI_MESSAGE_HANDLER_HMI_MESSAGE_ADAPTER_H_
+#endif  // SRC_COMPONENTS_HMI_MESSAGE_HANDLER_INCLUDE_HMI_MESSAGE_HANDLER_HMI_MESSAGE_ADAPTER_IMPL_H_
