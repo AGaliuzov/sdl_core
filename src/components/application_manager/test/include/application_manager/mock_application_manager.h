@@ -79,6 +79,7 @@ class MockApplicationManager : public application_manager::ApplicationManager {
   MOCK_METHOD0(is_attenuated_supported, bool());
   MOCK_CONST_METHOD1(IsAppTypeExistsInFullOrLimited,
                      bool(am::ApplicationConstSharedPtr));
+  MOCK_METHOD1(OnApplicationRegistered, void(am::ApplicationSharedPtr));
 };
 }  // namespace application_manager_test
 }  // namespace components

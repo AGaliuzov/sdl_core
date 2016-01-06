@@ -260,11 +260,14 @@ class StateController : public event_engine::EventObserver {
   void on_event(const event_engine::Event& event);
 
   /**
-   * @brief ApplyStatesForApp apply active HMI states for new App without s
-   * ending any OnHMIStatus
+   * @brief Sets default application state and apply currently active HMI states
+   * on application registration
    * @param app application to apply states
+   * @param default_level default HMI level
    */
-  virtual void ApplyStatesForApp(ApplicationSharedPtr app);
+  virtual void OnApplicationRegistered(
+          ApplicationSharedPtr app,
+          const mobile_apis::HMILevel::eType default_level);
 
   /**
    * @brief OnNaviStreamingStarted process Navi streaming started

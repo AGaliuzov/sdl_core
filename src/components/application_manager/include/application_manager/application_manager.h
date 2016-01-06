@@ -200,6 +200,13 @@ class ApplicationManager {
    */
   virtual bool IsAppTypeExistsInFullOrLimited(
       ApplicationConstSharedPtr app) const = 0;
+
+  /**
+   * @brief Sets default HMI level and configure application after its
+   * registration
+   * @param app Application
+   */
+  virtual void OnApplicationRegistered(ApplicationSharedPtr app) = 0;
 };
 
 }  // namespace application_manager

@@ -66,12 +66,25 @@ void RegisterAppInterfaceResponse::Run() {
 
   // Add registered application to the policy db right after response sent to
   // mobile to be able to check all other API according to app permissions
-  application_manager::ApplicationSharedPtr app =
+  application_manager::ApplicationSharedPtr application =
       application_manager::ApplicationManagerImpl::instance()->application(
           connection_key());
-  if (app) {
-    SetHeartBeatTimeout(connection_key(), app->policy_app_id());
+  if (!application) {
+    LOG4CXX_ERROR(logger_, "Application with connection key "
+                  << connection_key() << " is not registered.");
+    return;
   }
+
+  SetHeartBeatTimeout(connection_key(), application->policy_app_id());
+
+  // Default HMI level should be set before any permissions validation, since it
+  // relies on HMI level.
+  ApplicationManagerImpl::instance()->OnApplicationRegistered(application);
+
+  // Sends OnPermissionChange notification to mobile right after RAI response
+  // and HMI level set-up
+  policy::PolicyHandler::instance()->OnAppRegisteredOnMobile(
+        application->policy_app_id());
 }
 
 void RegisterAppInterfaceResponse::SetHeartBeatTimeout(
