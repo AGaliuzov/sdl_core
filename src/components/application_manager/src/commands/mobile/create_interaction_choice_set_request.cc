@@ -1,6 +1,6 @@
 /*
 
- Copyright (c) 2013, Ford Motor Company
+ Copyright (c) 2016, Ford Motor Company
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,8 @@ CreateInteractionChoiceSetRequest::CreateInteractionChoiceSetRequest(
     choice_set_id_(0),
     received_chs_count_(0),
     expected_chs_count_(0),
-    error_from_hmi_(false) {
+    error_from_hmi_(false),
+    is_warning_from_hmi_(false) {
 }
 
 CreateInteractionChoiceSetRequest::~CreateInteractionChoiceSetRequest() {
@@ -269,13 +270,16 @@ void CreateInteractionChoiceSetRequest::on_event(
       Common_Result::eType  vr_result = static_cast<Common_Result::eType>(
           message[strings::params][hmi_response::code].asInt());
 
+      if (vr_result == Common_Result::eType::WARNINGS) {
+        is_warning_from_hmi_ = true;
+      }
+
       const bool is_vr_no_error =
           Compare<Common_Result::eType, EQ, ONE>(
             vr_result,
-            Common_Result::SUCCESS,
-            Common_Result::WARNINGS);
+            Common_Result::SUCCESS);
 
-      if (is_vr_no_error) {
+      if (is_vr_no_error || is_warning_from_hmi_) {
         VRCommandInfo& vr_command = it->second;
         vr_command.succesful_response_received_ = true;
       } else {
@@ -345,7 +349,12 @@ void CreateInteractionChoiceSetRequest::OnAllHMIResponsesReceived() {
   unsubscribe_from_event(hmi_apis::FunctionID::VR_AddCommand);
 
   if (!error_from_hmi_) {
-    SendResponse(true, mobile_apis::Result::SUCCESS);
+    if (is_warning_from_hmi_) {
+      is_warning_from_hmi_ = false;
+      SendResponse(true, mobile_apis::Result::WARNINGS);
+    } else {
+      SendResponse(true, mobile_apis::Result::SUCCESS);
+    }
 
     ApplicationSharedPtr application =
         ApplicationManagerImpl::instance()->application(connection_key());
