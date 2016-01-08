@@ -829,6 +829,40 @@ TEST_F(ResumptionDataDBTest, GetIgnOffTime_AfterSuspendAndAwake) {
   EXPECT_LE(after_suspend, after_awake);
 }
 
+TEST_F(ResumptionDataDBTest, DropAppResumptionData) {
+  PrepareData();
+  EXPECT_TRUE(res_db()->Init());
+  SetZeroIgnOffTime();
+
+  res_db()->SaveApplication(app_mock);
+
+  EXPECT_TRUE(res_db()->DropAppDataResumption(device_id_, policy_app_id_));
+
+  am::smart_objects::SmartObject app;
+  EXPECT_TRUE(res_db()->GetSavedApplication(policy_app_id_, device_id_, app));
+
+  EXPECT_TRUE(app.keyExists(am::strings::application_commands) &&
+              app[am::strings::application_commands].empty());
+
+  EXPECT_TRUE(app.keyExists(am::strings::application_submenus) &&
+              app[am::strings::application_submenus].empty());
+
+  EXPECT_TRUE(app.keyExists(am::strings::application_choice_sets) &&
+              app[am::strings::application_choice_sets].empty());
+
+  EXPECT_TRUE(app.keyExists(am::strings::application_global_properties) &&
+              app[am::strings::application_global_properties].empty());
+
+  EXPECT_TRUE(app.keyExists(am::strings::application_subscribtions) &&
+              app[am::strings::application_subscribtions].empty());
+
+  EXPECT_TRUE(app.keyExists(am::strings::application_files) &&
+              app[am::strings::application_files].empty());
+
+  EXPECT_FALSE(app.keyExists(am::strings::grammar_id));
+}
+
+
 }  // namespace resumption_test
 }  // namespace components
 }  // namespace test

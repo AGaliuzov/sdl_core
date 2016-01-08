@@ -734,7 +734,10 @@ bool ResumptionDataDB::DropAppDataResumption(const std::string& device_id,
     db_->RollbackTransaction();
     return false;
   }
-  //TODO(AOleynik): add removal of grammar id
+  if(!UpdateGrammarID(app_id, device_id, 0)) {
+    db_->RollbackTransaction();
+    return false;
+  }
   db_->CommitTransaction();
   return true;
 }
@@ -754,6 +757,9 @@ bool ResumptionDataDB::SelectFilesData(
                             device_id)) {
     return false;
   }
+
+  saved_app[strings::application_files] = SmartObject(SmartType_Array);
+
   if (0 == count_item) {
     LOG4CXX_INFO(logger_, "Application does not contain files data");
     return true;
@@ -764,7 +770,6 @@ bool ResumptionDataDB::SelectFilesData(
     LOG4CXX_WARN(logger_, "Problem with verification select_files");
     return false;
   }
-  saved_app[strings::application_files] = SmartObject(SmartType_Array);
   //     Position of data in "select_files" :
   //     field "fileType" from table "file" = 0
   //     field "is_download_complete" from table "file" = 1
@@ -794,6 +799,9 @@ bool ResumptionDataDB::SelectSubmenuData(
                             device_id)) {
     return false;
   }
+
+  saved_app[strings::application_submenus] = SmartObject(SmartType_Array);
+
   if (0 == count_item) {
     LOG4CXX_INFO(logger_, "Application does not contain submenu data");
     return true;
@@ -804,7 +812,6 @@ bool ResumptionDataDB::SelectSubmenuData(
     LOG4CXX_WARN(logger_, "Problem with verification select_sub_menu");
     return false;
   }
-  saved_app[strings::application_submenus] = SmartObject(SmartType_Array);
   //     Position of data in "select_sub_menu" :
   //     field "menuID" from table "subMenu" = 0
   //     field "menuName" from table "subMenu" = 1
@@ -834,6 +841,9 @@ bool ResumptionDataDB::SelectCommandData(
                             device_id)) {
     return false;
   }
+
+  saved_app[strings::application_commands] = SmartObject(SmartType_Array);
+
   if (0 == count_item) {
     LOG4CXX_INFO(logger_, "Application does not contain commands data");
     return true;
@@ -844,7 +854,6 @@ bool ResumptionDataDB::SelectCommandData(
                           kSelectCommands)) {
     return false;
   }
-  saved_app[strings::application_commands] = SmartObject(SmartType_Array);
   int64_t command_key = 0;
   int32_t command_idx = -1;
   size_t vr_cmd_idx = 0;
@@ -919,6 +928,9 @@ bool ResumptionDataDB::SelectSubscriptionsData(
                             policy_app_id, device_id)) {
     return false;
   }
+
+  saved_app[strings::application_subscribtions] = SmartObject(SmartType_Map);
+
   if (0 == count_item) {
     LOG4CXX_INFO(logger_, "Application does not contain subscriptions data");
     return true;
@@ -929,7 +941,6 @@ bool ResumptionDataDB::SelectSubscriptionsData(
     LOG4CXX_WARN(logger_, "Problem with verification select_subscriptions");
     return false;
   }
-  saved_app[strings::application_subscribtions] = SmartObject(SmartType_Map);
   SmartObject application_buttons(SmartType_Array);
   SmartObject application_vehicle_info(SmartType_Array);
   size_t buttons_idx = 0;
@@ -969,6 +980,9 @@ bool ResumptionDataDB::SelectChoiceSetData(
                             device_id)) {
     return false;
   }
+
+  saved_app[strings::application_choice_sets] = SmartObject(SmartType_Array);
+
   if (0 == count_item) {
     LOG4CXX_INFO(logger_, "Application does not contain choice set data");
     return true;
@@ -980,7 +994,6 @@ bool ResumptionDataDB::SelectChoiceSetData(
     return false;
   }
 
-  saved_app[strings::application_choice_sets] = SmartObject(SmartType_Array);
   int64_t application_choice_set_key = 0;
   int64_t choice_key = 0;
   int32_t choice_set_idx = -1;
@@ -1068,6 +1081,10 @@ bool ResumptionDataDB::SelectGlobalPropertiesData(
                             policy_app_id, device_id)) {
     return false;
   }
+
+  saved_app[strings::application_global_properties] =
+      SmartObject(SmartType_Map);
+
   if (0 == count_item) {
     LOG4CXX_INFO(logger_,
                  "Application does not contain global properties data");
@@ -1079,8 +1096,6 @@ bool ResumptionDataDB::SelectGlobalPropertiesData(
     LOG4CXX_WARN(logger_, "Problem with verification select_globalproperties");
     return false;
   }
-  saved_app[strings::application_global_properties] =
-      SmartObject(SmartType_Map);
   SmartObject& global_properties =
       saved_app[strings::application_global_properties];
   SmartObject keyboard_properties(SmartType_Map);
@@ -1340,7 +1355,10 @@ bool ResumptionDataDB::SelectDataFromAppTable(
   //  field "isMediaApplication" from table "application" = 9
   saved_app[strings::app_id] = query.GetString(0);
   saved_app[strings::connection_key] = query.GetUInteger(1);
-  saved_app[strings::grammar_id] = query.GetUInteger(2);
+  uint32_t grammarID = query.GetUInteger(2);
+  if (grammarID) {
+    saved_app[strings::grammar_id] = grammarID;
+  }
   saved_app[strings::hash_id] = query.GetString(3);
   saved_app[strings::hmi_app_id] = query.GetUInteger(4);
   saved_app[strings::hmi_level] = query.GetInteger(5);
@@ -2656,6 +2674,35 @@ bool ResumptionDataDB::UpdateApplicationData(
 void ResumptionDataDB::WriteDb() {
   LOG4CXX_AUTO_TRACE(logger_);
   db_->Backup();
+}
+
+bool ResumptionDataDB::UpdateGrammarID(const std::string& policy_app_id,
+                                       const std::string& device_id,
+                                       const uint32_t grammar_id) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  using namespace app_mngr;
+  utils::dbms::SQLQuery query(db());
+
+  if (!query.Prepare(kUpdateGrammarID)) {
+    LOG4CXX_WARN(logger_,
+                 "Problem with verification query for updating grammar id.");
+    return false;
+  }
+
+  //  Positions of binding data for "query":
+  //  field "grammarID" from table "application" = 0
+  //  field "appID" from table "application" = 1
+  //  field "deviceID" from table "application" = 2
+  query.Bind(0, static_cast<int32_t>(grammar_id));
+  query.Bind(1, policy_app_id);
+  query.Bind(2, device_id);
+
+  if (!query.Exec()) {
+    LOG4CXX_WARN(logger_, "Problem with execution query");
+    return false;
+  }
+  LOG4CXX_INFO(logger_, "Data were updated successfully in application table");
+  return true;
 }
 
 utils::dbms::SQLDatabase* ResumptionDataDB::db() const {
