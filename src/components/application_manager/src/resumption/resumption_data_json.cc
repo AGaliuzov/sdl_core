@@ -147,11 +147,13 @@ void ResumptionDataJson::OnSuspend() {
   for (Json::Value::iterator it = GetSavedApplications().begin();
       it != GetSavedApplications().end(); ++it) {
     if ((*it).isMember(strings::ign_off_count)) {
-      const uint32_t ign_off_count = (*it)[strings::ign_off_count].asUInt();
-      (*it)[strings::ign_off_count] = ign_off_count + 1;
+      Json::Value& ign_off_count = (*it)[strings::ign_off_count];
+      const uint32_t counter_value = ign_off_count.asUInt();
+      ign_off_count = counter_value + 1;
     } else {
       LOG4CXX_WARN(logger_, "Unknown key among saved applications");
-      (*it)[strings::ign_off_count] = 1;
+      Json::Value& ign_off_count = (*it)[strings::ign_off_count];
+      ign_off_count = 1;
     }
     to_save.append(*it);
   }
@@ -449,8 +451,9 @@ bool ResumptionDataJson::DropAppDataResumption(const std::string& device_id,
                                                const std::string& app_id) {
   LOG4CXX_AUTO_TRACE(logger_);
   using namespace app_mngr;
+  sync_primitives::AutoLock autolock(resumption_lock_);
   Json::Value& application = GetFromSavedOrAppend(app_id, device_id);
-  if (Json::Value() == application) {
+  if (application.isNull()) {
     LOG4CXX_DEBUG(logger_, "Application " << app_id << " with device_id "
                   << device_id << " hasn't been found in resumption data.");
     return false;
