@@ -118,8 +118,15 @@ void DialNumberRequest::on_event(const event_engine::Event& event) {
       return;
     }
   }
-
-  SendResponse((mobile_apis::Result::SUCCESS == result_code), result_code);
+  if (message[strings::msg_params].keyExists(strings::info) &&
+      !message[strings::msg_params][strings::info].empty()) {
+    SendResponse((mobile_apis::Result::SUCCESS == result_code),
+                 result_code,
+                 message[strings::msg_params][strings::info].asCharArray(),
+                 &message);
+  } else {
+    SendResponse((mobile_apis::Result::SUCCESS == result_code), result_code);
+  }
 }
 
 void DialNumberRequest::StripNumberParam(std::string& number) {
