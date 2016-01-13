@@ -498,7 +498,10 @@ void PPSListener::PpsMQListener::threadMain() {
       LOG4CXX_DEBUG(logger_, "Receive message from Applink with size: " << size
                     << ". Message signal: " << static_cast<int32_t>(msg[0])
                     << ". TAKE_AOA signal is: " << static_cast<int32_t>(TAKE_AOA)
-                    << ". RELEASE_AOA signal is: " << static_cast<int32_t>(RELEASE_AOA));
+                    << ". RELEASE_AOA signal is: " << static_cast<int32_t>(RELEASE_AOA)
+                    << ". AOA_RELEASED signal is: " << static_cast<int32_t>(AOA_RELEASED)
+                    << ". AOA_TAKEN signal is: " << static_cast<int32_t>(AOA_TAKEN)
+                    << ". AOA_INACCESSIBLE signal is: " << static_cast<int32_t>(AOA_INACCESSIBLE));
       if (-1 != size) {
         switch (msg[0]) {
           case TAKE_AOA:
@@ -527,6 +530,7 @@ void PPSListener::PpsMQListener::take_aoa() {
   if (-1 != mq_from_applink_handle_) {
     char buf[MAX_QUEUE_MSG_SIZE];
     buf[0] = is_inited ? AOA_TAKEN : AOA_INACCESSIBLE;
+    LOG4CXX_DEBUG(logger_, "Send " << static_cast<int32_t>(buf[0]) << " signal to AppLink");
     if (- 1 == mq_send(mq_to_applink_handle_, &buf[0], MAX_QUEUE_MSG_SIZE, NULL)) {
       LOG4CXX_ERROR(logger_, "Unable to send over mq " <<
                     " : " << strerror(errno));
@@ -540,6 +544,7 @@ void PPSListener::PpsMQListener::release_aoa() {
   if (-1 != mq_from_applink_handle_) {
     char buf[MAX_QUEUE_MSG_SIZE];
     buf[0] = AOA_RELEASED;
+    LOG4CXX_DEBUG(logger_, "Send " << static_cast<int32_t>(buf[0]) << " signal to AppLink");
     if (- 1 == mq_send(mq_to_applink_handle_, &buf[0], MAX_QUEUE_MSG_SIZE, NULL)) {
       LOG4CXX_ERROR(logger_, "Unable to send over mq " <<
                     " : " << strerror(errno));
