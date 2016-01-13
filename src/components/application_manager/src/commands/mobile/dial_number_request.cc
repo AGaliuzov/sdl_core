@@ -127,8 +127,7 @@ void DialNumberRequest::on_event(const event_engine::Event& event) {
   if (is_info_valid) {
     const char* info_char_array =
         message[strings::msg_params][strings::info].asCharArray();
-    const smart_objects::SmartObject* params = &message[strings::params];
-    SendResponse(is_success, result_code, info_char_array, params);
+    SendResponse(is_success, result_code, info_char_array);
     return;
   }
 
