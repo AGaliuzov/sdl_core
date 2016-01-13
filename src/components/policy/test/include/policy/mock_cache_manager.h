@@ -61,7 +61,7 @@ class MockCacheManagerInterface : public ::policy::CacheManagerInterface {
   MOCK_METHOD2(SetCountersPassedForSuccessfulUpdate,
       bool(Counters counter, int value));
   MOCK_METHOD1(DaysBeforeExchange,
-      int(int current));
+      int(uint16_t current));
   MOCK_METHOD0(IncrementIgnitionCycles,
       void());
   MOCK_METHOD0(ResetIgnitionCycles,

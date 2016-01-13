@@ -97,8 +97,8 @@ void PolicyManagerImpl::CheckTriggers() {
 
   LOG4CXX_DEBUG(
     logger_,
-        "\nDays exceeded: " << std::boolalpha << exceed_ignition_cycles <<
-        "\nStatusUpdateRequired: " << std::boolalpha<< exceed_days);
+        "\nDays exceeded: " << std::boolalpha << exceed_days <<
+        "\nIgnition cycles exceeded: " << std::boolalpha << exceed_ignition_cycles);
 
   if (exceed_ignition_cycles || exceed_days) {
     update_status_manager_.ScheduleUpdate();
@@ -1037,12 +1037,19 @@ bool PolicyManagerImpl::IsPTValid(
 }
 
 bool PolicyManagerImpl::ExceededDays() {
+  LOG4CXX_AUTO_TRACE(logger_);
 
   TimevalStruct current_time = date_time::DateTime::getCurrentTime();
   const int kSecondsInDay = 60 * 60 * 24;
-  int days = current_time.tv_sec / kSecondsInDay;
+  const int days = current_time.tv_sec / kSecondsInDay;
 
-  return 0 == cache_->DaysBeforeExchange(days);
+  DCHECK(std::numeric_limits<uint16_t>::max() >= days);
+
+  if (std::numeric_limits<uint16_t>::max() <= days) {
+      LOG4CXX_WARN(logger_, "The days since epoch exceeds maximum value.");
+      return false;
+  }
+  return 0 == cache_->DaysBeforeExchange(static_cast<uint16_t>(days));
 }
 
 void PolicyManagerImpl::KmsChanged(int kilometers) {
