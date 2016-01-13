@@ -35,6 +35,7 @@ include_directories (
   include/
   ${JSONCPP_INCLUDE_DIRECTORY}
   ${COMPONENTS_DIR}/smart_objects/include
+  ${COMPONENTS_DIR}/utils/include
 )
 
 set (SOURCES
