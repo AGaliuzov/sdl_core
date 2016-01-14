@@ -931,7 +931,7 @@ void CacheManager::GetUpdateUrls(int service_type,
   }
 }
 
-int CacheManager::GetNotificationsNumber(const std::string& priority) {
+uint32_t CacheManager::GetNotificationsNumber(const std::string& priority) {
   CACHE_MANAGER_CHECK(0);
   typedef rpc::policy_table_interface_base::NumberOfNotificationsPerMinute NNPM;
 
@@ -940,7 +940,7 @@ int CacheManager::GetNotificationsNumber(const std::string& priority) {
 
   NNPM::const_iterator priority_iter = nnpm.find(priority);
 
-  const int result = (nnpm.end() != priority_iter ? (*priority_iter).second : 0);
+  const uint32_t result = (nnpm.end() != priority_iter ? (*priority_iter).second : 0);
   return result;
 }
 

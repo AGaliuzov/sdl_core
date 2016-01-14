@@ -467,6 +467,107 @@ class PolicyManagerImplTest_RequestTypes : public ::testing::Test {
 
 const bool PolicyManagerImplTest2::in_memory_ = true;
 
+
+
+Json::Value createPTforLoad() {
+  // Arrange
+  Json::Value table(Json::objectValue);
+  table["policy_table"] = Json::Value(Json::objectValue);
+
+  Json::Value& policy_table = table["policy_table"];
+  policy_table["module_config"] = Json::Value(Json::objectValue);
+  policy_table["functional_groupings"] = Json::Value(Json::objectValue);
+  policy_table["consumer_friendly_messages"] = Json::Value(Json::objectValue);
+  policy_table["app_policies"] = Json::Value(Json::objectValue);
+
+  Json::Value& module_config = policy_table["module_config"];
+  module_config["preloaded_pt"] = Json::Value(true);
+  module_config["exchange_after_x_ignition_cycles"] = Json::Value(10);
+  module_config["exchange_after_x_kilometers"] = Json::Value(100);
+  module_config["exchange_after_x_days"] = Json::Value(5);
+  module_config["timeout_after_x_seconds"] = Json::Value(500);
+  module_config["seconds_between_retries"] = Json::Value(Json::arrayValue);
+  module_config["seconds_between_retries"][0] = Json::Value(10);
+  module_config["seconds_between_retries"][1] = Json::Value(20);
+  module_config["seconds_between_retries"][2] = Json::Value(30);
+  module_config["endpoints"] = Json::Value(Json::objectValue);
+  module_config["endpoints"]["0x00"] = Json::Value(Json::objectValue);
+  module_config["endpoints"]["0x00"]["default"] = Json::Value(Json::arrayValue);
+  module_config["endpoints"]["0x00"]["default"][0] =
+      Json::Value("http://ford.com/cloud/default");
+  module_config["notifications_per_minute_by_priority"] =
+      Json::Value(Json::objectValue);
+  module_config["notifications_per_minute_by_priority"]["emergency"] =
+      Json::Value(1);
+  module_config["notifications_per_minute_by_priority"]["navigation"] =
+      Json::Value(2);
+  module_config["notifications_per_minute_by_priority"]["VOICECOMM"] =
+      Json::Value(3);
+  module_config["notifications_per_minute_by_priority"]["communication"] =
+      Json::Value(4);
+  module_config["notifications_per_minute_by_priority"]["normal"] =
+      Json::Value(5);
+  module_config["notifications_per_minute_by_priority"]["none"] =
+      Json::Value(6);
+  module_config["vehicle_make"] = Json::Value("MakeT");
+  module_config["vehicle_model"] = Json::Value("ModelT");
+  module_config["vehicle_year"] = Json::Value("2014");
+
+  Json::Value& functional_groupings = policy_table["functional_groupings"];
+  functional_groupings["default"] = Json::Value(Json::objectValue);
+  Json::Value& default_group = functional_groupings["default"];
+  default_group["rpcs"] = Json::Value(Json::objectValue);
+  default_group["rpcs"]["Update"] = Json::Value(Json::objectValue);
+  default_group["rpcs"]["Update"]["hmi_levels"] = Json::Value(Json::arrayValue);
+  default_group["rpcs"]["Update"]["hmi_levels"][0] = Json::Value("FULL");
+  default_group["rpcs"]["Update"]["parameters"] = Json::Value(Json::arrayValue);
+  default_group["rpcs"]["Update"]["parameters"][0] = Json::Value("speed");
+
+  Json::Value& consumer_friendly_messages =
+      policy_table["consumer_friendly_messages"];
+  consumer_friendly_messages["version"] = Json::Value("1.2");
+
+  Json::Value& app_policies = policy_table["app_policies"];
+  app_policies["default"] = Json::Value(Json::objectValue);
+  app_policies["default"]["memory_kb"] = Json::Value(50);
+  app_policies["default"]["heart_beat_timeout_ms"] = Json::Value(100);
+  app_policies["default"]["groups"] = Json::Value(Json::arrayValue);
+  app_policies["default"]["groups"][0] = Json::Value("default");
+  app_policies["default"]["priority"] = Json::Value("EMERGENCY");
+  app_policies["default"]["default_hmi"] = Json::Value("FULL");
+  app_policies["default"]["keep_context"] = Json::Value(true);
+  app_policies["default"]["steal_focus"] = Json::Value(true);
+  app_policies["default"]["certificate"] = Json::Value("sign");
+  app_policies["pre_DataConsent"] = Json::Value(Json::objectValue);
+  app_policies["pre_DataConsent"]["memory_kb"] = Json::Value(50);
+  app_policies["pre_DataConsent"]["heart_beat_timeout_ms"] = Json::Value(100);
+  app_policies["pre_DataConsent"]["groups"] = Json::Value(Json::arrayValue);
+  app_policies["pre_DataConsent"]["groups"][0] = Json::Value("default");
+  app_policies["pre_DataConsent"]["priority"] = Json::Value("EMERGENCY");
+  app_policies["pre_DataConsent"]["default_hmi"] = Json::Value("FULL");
+  app_policies["pre_DataConsent"]["keep_context"] = Json::Value(true);
+  app_policies["pre_DataConsent"]["steal_focus"] = Json::Value(true);
+  app_policies["pre_DataConsent"]["certificate"] = Json::Value("sign");
+  app_policies["1234"] = Json::Value(Json::objectValue);
+  app_policies["1234"]["memory_kb"] = Json::Value(50);
+  app_policies["1234"]["heart_beat_timeout_ms"] = Json::Value(100);
+  app_policies["1234"]["groups"] = Json::Value(Json::arrayValue);
+  app_policies["1234"]["groups"][0] = Json::Value("default");
+  app_policies["1234"]["priority"] = Json::Value("EMERGENCY");
+  app_policies["1234"]["default_hmi"] = Json::Value("FULL");
+  app_policies["1234"]["keep_context"] = Json::Value(true);
+  app_policies["1234"]["steal_focus"] = Json::Value(true);
+  app_policies["1234"]["certificate"] = Json::Value("sign");
+  app_policies["device"]["groups"] = Json::Value(Json::arrayValue);
+  app_policies["device"]["groups"][0] = Json::Value("default");
+  app_policies["device"]["priority"] = Json::Value("EMERGENCY");
+  app_policies["device"]["default_hmi"] = Json::Value("FULL");
+  app_policies["device"]["keep_context"] = Json::Value(true);
+  app_policies["device"]["steal_focus"] = Json::Value(true);
+
+  return table;
+}
+
 TEST_F(PolicyManagerImplTest, RefreshRetrySequence_SetSecondsBetweenRetries_ExpectRetryTimeoutSequenceWithSameSeconds) {
   // Arrange
   std::vector<int> seconds;
@@ -487,6 +588,52 @@ TEST_F(PolicyManagerImplTest, RefreshRetrySequence_SetSecondsBetweenRetries_Expe
   EXPECT_EQ(100, manager->NextRetryTimeout());
   EXPECT_EQ(200, manager->NextRetryTimeout());
   EXPECT_EQ(0, manager->NextRetryTimeout());
+}
+
+
+TEST_F(PolicyManagerImplTest, GetNotificationsNumber) {
+  std::string priority = "EMERGENCY";
+  uint32_t notif_number = 100;
+  EXPECT_CALL(*cache_manager, GetNotificationsNumber(priority)).WillOnce(Return(notif_number));
+
+  EXPECT_EQ(notif_number, manager->GetNotificationsNumber(priority));
+}
+
+TEST_F(PolicyManagerImplTest2, GetNotificationsNumberAfterPTUpdate) {
+  // Arrange
+
+  Json::Value table = createPTforLoad();
+  policy_table::Table update(&table);
+  update.SetPolicyTableType(rpc::policy_table_interface_base::PT_UPDATE);
+  // Act
+  std::string json = table.toStyledString();
+  ::policy::BinaryMessage msg(json.begin(), json.end());
+  EXPECT_CALL(listener, OnUpdateStatusChanged(_));
+  EXPECT_TRUE(manager->LoadPT("file_pt_update.json", msg));
+
+  std::string priority = "emergency";
+  uint32_t notif_number = manager->GetNotificationsNumber(priority);
+  EXPECT_EQ(1u,notif_number);
+
+  priority = "navigation";
+  notif_number = manager->GetNotificationsNumber(priority);
+  EXPECT_EQ(2u,notif_number);
+
+  priority = "emergency";
+  notif_number = manager->GetNotificationsNumber(priority);
+  EXPECT_EQ(1u,notif_number);
+
+  priority = "VOICECOMM";
+  notif_number = manager->GetNotificationsNumber(priority);
+  EXPECT_EQ(3u,notif_number);
+
+  priority = "normal";
+  notif_number = manager->GetNotificationsNumber(priority);
+  EXPECT_EQ(5u,notif_number);
+
+  priority = "none";
+  notif_number = manager->GetNotificationsNumber(priority);
+  EXPECT_EQ(6u,notif_number);
 }
 
 TEST_F(PolicyManagerImplTest2, GetUpdateUrl) {
@@ -651,99 +798,7 @@ TEST_F(PolicyManagerImplTest, ResetPT) {
 
 TEST_F(PolicyManagerImplTest, LoadPT_SetPT_PTIsLoaded) {
   // Arrange
-  Json::Value table(Json::objectValue);
-  table["policy_table"] = Json::Value(Json::objectValue);
-
-  Json::Value& policy_table = table["policy_table"];
-  policy_table["module_config"] = Json::Value(Json::objectValue);
-  policy_table["functional_groupings"] = Json::Value(Json::objectValue);
-  policy_table["consumer_friendly_messages"] = Json::Value(Json::objectValue);
-  policy_table["app_policies"] = Json::Value(Json::objectValue);
-
-  Json::Value& module_config = policy_table["module_config"];
-  module_config["preloaded_pt"] = Json::Value(true);
-  module_config["exchange_after_x_ignition_cycles"] = Json::Value(10);
-  module_config["exchange_after_x_kilometers"] = Json::Value(100);
-  module_config["exchange_after_x_days"] = Json::Value(5);
-  module_config["timeout_after_x_seconds"] = Json::Value(500);
-  module_config["seconds_between_retries"] = Json::Value(Json::arrayValue);
-  module_config["seconds_between_retries"][0] = Json::Value(10);
-  module_config["seconds_between_retries"][1] = Json::Value(20);
-  module_config["seconds_between_retries"][2] = Json::Value(30);
-  module_config["endpoints"] = Json::Value(Json::objectValue);
-  module_config["endpoints"]["0x00"] = Json::Value(Json::objectValue);
-  module_config["endpoints"]["0x00"]["default"] = Json::Value(Json::arrayValue);
-  module_config["endpoints"]["0x00"]["default"][0] = Json::Value(
-      "http://ford.com/cloud/default");
-  module_config["notifications_per_minute_by_priority"] = Json::Value(
-      Json::objectValue);
-  module_config["notifications_per_minute_by_priority"]["emergency"] =
-      Json::Value(1);
-  module_config["notifications_per_minute_by_priority"]["navigation"] =
-      Json::Value(2);
-  module_config["notifications_per_minute_by_priority"]["VOICECOMM"] =
-      Json::Value(3);
-  module_config["notifications_per_minute_by_priority"]["communication"] =
-      Json::Value(4);
-  module_config["notifications_per_minute_by_priority"]["normal"] = Json::Value(
-      5);
-  module_config["notifications_per_minute_by_priority"]["none"] = Json::Value(
-      6);
-  module_config["vehicle_make"] = Json::Value("MakeT");
-  module_config["vehicle_model"] = Json::Value("ModelT");
-  module_config["vehicle_year"] = Json::Value("2014");
-
-  Json::Value& functional_groupings = policy_table["functional_groupings"];
-  functional_groupings["default"] = Json::Value(Json::objectValue);
-  Json::Value& default_group = functional_groupings["default"];
-  default_group["rpcs"] = Json::Value(Json::objectValue);
-  default_group["rpcs"]["Update"] = Json::Value(Json::objectValue);
-  default_group["rpcs"]["Update"]["hmi_levels"] = Json::Value(Json::arrayValue);
-  default_group["rpcs"]["Update"]["hmi_levels"][0] = Json::Value("FULL");
-  default_group["rpcs"]["Update"]["parameters"] = Json::Value(Json::arrayValue);
-  default_group["rpcs"]["Update"]["parameters"][0] = Json::Value("speed");
-
-  Json::Value& consumer_friendly_messages =
-      policy_table["consumer_friendly_messages"];
-  consumer_friendly_messages["version"] = Json::Value("1.2");
-
-  Json::Value& app_policies = policy_table["app_policies"];
-  app_policies["default"] = Json::Value(Json::objectValue);
-  app_policies["default"]["memory_kb"] = Json::Value(50);
-  app_policies["default"]["heart_beat_timeout_ms"] = Json::Value(100);
-  app_policies["default"]["groups"] = Json::Value(Json::arrayValue);
-  app_policies["default"]["groups"][0] = Json::Value("default");
-  app_policies["default"]["priority"] = Json::Value("EMERGENCY");
-  app_policies["default"]["default_hmi"] = Json::Value("FULL");
-  app_policies["default"]["keep_context"] = Json::Value(true);
-  app_policies["default"]["steal_focus"] = Json::Value(true);
-  app_policies["default"]["certificate"] = Json::Value("sign");
-  app_policies["pre_DataConsent"] = Json::Value(Json::objectValue);
-  app_policies["pre_DataConsent"]["memory_kb"] = Json::Value(50);
-  app_policies["pre_DataConsent"]["heart_beat_timeout_ms"] = Json::Value(100);
-  app_policies["pre_DataConsent"]["groups"] = Json::Value(Json::arrayValue);
-  app_policies["pre_DataConsent"]["groups"][0] = Json::Value("default");
-  app_policies["pre_DataConsent"]["priority"] = Json::Value("EMERGENCY");
-  app_policies["pre_DataConsent"]["default_hmi"] = Json::Value("FULL");
-  app_policies["pre_DataConsent"]["keep_context"] = Json::Value(true);
-  app_policies["pre_DataConsent"]["steal_focus"] = Json::Value(true);
-  app_policies["pre_DataConsent"]["certificate"] = Json::Value("sign");
-  app_policies["1234"] = Json::Value(Json::objectValue);
-  app_policies["1234"]["memory_kb"] = Json::Value(50);
-  app_policies["1234"]["heart_beat_timeout_ms"] = Json::Value(100);
-  app_policies["1234"]["groups"] = Json::Value(Json::arrayValue);
-  app_policies["1234"]["groups"][0] = Json::Value("default");
-  app_policies["1234"]["priority"] = Json::Value("EMERGENCY");
-  app_policies["1234"]["default_hmi"] = Json::Value("FULL");
-  app_policies["1234"]["keep_context"] = Json::Value(true);
-  app_policies["1234"]["steal_focus"] = Json::Value(true);
-  app_policies["1234"]["certificate"] = Json::Value("sign");
-  app_policies["device"]["groups"] = Json::Value(Json::arrayValue);
-  app_policies["device"]["groups"][0] = Json::Value("default");
-  app_policies["device"]["priority"] = Json::Value("EMERGENCY");
-  app_policies["device"]["default_hmi"] = Json::Value("FULL");
-  app_policies["device"]["keep_context"] = Json::Value(true);
-  app_policies["device"]["steal_focus"] = Json::Value(true);
+  Json::Value table = createPTforLoad();
 
   policy_table::Table update(&table);
   update.SetPolicyTableType(rpc::policy_table_interface_base::PT_UPDATE);
@@ -1214,7 +1269,7 @@ TEST_F(PolicyManagerImplTest2, GetDefaultPriority_SetDeviceAllowed_ExpectReceive
   // Check if app has preData policy
   EXPECT_TRUE(manager->IsPredataPolicy(app_id2));
   std::string priority1;
-  manager->GetPriority(app_id2, &priority1);
+  EXPECT_TRUE(manager->GetPriority(app_id2, &priority1));
   EXPECT_EQ("NONE", priority1);
   ASSERT_TRUE((manager->GetCache())->AddDevice(dev_id2,
                                                "Bluetooth"));
@@ -1234,7 +1289,7 @@ TEST_F(PolicyManagerImplTest2, GetDefaultPriority_SetDeviceAllowed_ExpectReceive
   manager->AddApplication(app_id2);
   EXPECT_TRUE((manager->GetCache())->IsDefaultPolicy(app_id2));
   std::string priority2;
-  manager->GetPriority(app_id2, &priority2);
+  EXPECT_TRUE(manager->GetPriority(app_id2, &priority2));
   EXPECT_EQ("EMERGENCY", priority2);
 }
 
