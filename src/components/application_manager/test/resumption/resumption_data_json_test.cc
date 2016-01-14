@@ -292,8 +292,7 @@ TEST_F(ResumptionDataJsonTest, OnSuspendFourTimes) {
   res_json.OnSuspend();
   res_json.OnSuspend();
 
-  ssize_t result = res_json.IsApplicationSaved(policy_app_id_, device_id_);
-  EXPECT_EQ(-1, result);
+  EXPECT_TRUE(-1 != res_json.IsApplicationSaved(policy_app_id_, device_id_));
 
   EXPECT_TRUE(FileExists("./test_app_info.dat"));
   EXPECT_TRUE(DirectoryExists("./test_storage"));
@@ -388,6 +387,40 @@ TEST_F(ResumptionDataJsonTest, GetIgnOffTime_AfterSuspendAndAwake) {
   EXPECT_TRUE(DeleteFile("./test_app_info.dat"));
   ::profile::Profile::instance()->config_file_name("smartDeviceLink.ini");
 }
+
+TEST_F(ResumptionDataJsonTest, DropAppDataResumption) {
+  ResumptionDataJson res_json;
+  PrepareData();
+  SetZeroIgnOff();
+  res_json.SaveApplication(app_mock);
+  CheckSavedJson();
+
+  EXPECT_TRUE(res_json.DropAppDataResumption(device_id_, policy_app_id_));
+
+  smart_objects::SmartObject app;
+  EXPECT_TRUE(res_json.GetSavedApplication(policy_app_id_, device_id_, app));
+
+  EXPECT_TRUE(app.keyExists(am::strings::application_commands) &&
+              app[am::strings::application_commands].empty());
+
+  EXPECT_TRUE(app.keyExists(am::strings::application_submenus) &&
+              app[am::strings::application_submenus].empty());
+
+  EXPECT_TRUE(app.keyExists(am::strings::application_choice_sets) &&
+              app[am::strings::application_choice_sets].empty());
+
+  EXPECT_TRUE(app.keyExists(am::strings::application_global_properties) &&
+              app[am::strings::application_global_properties].empty());
+
+  EXPECT_TRUE(app.keyExists(am::strings::application_subscribtions) &&
+              app[am::strings::application_subscribtions].empty());
+
+  EXPECT_TRUE(app.keyExists(am::strings::application_files) &&
+              app[am::strings::application_files].empty());
+
+  EXPECT_FALSE(app.keyExists(am::strings::grammar_id));
+}
+
 
 }  // namespace resumption_test
 }  // namespace components

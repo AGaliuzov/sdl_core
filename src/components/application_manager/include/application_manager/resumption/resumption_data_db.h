@@ -230,6 +230,9 @@ class ResumptionDataDB : public ResumptionData {
    */
   bool UpdateDBVersion() const;
 
+  bool DropAppDataResumption(const std::string& device_id,
+                             const std::string& app_id) OVERRIDE;
+
 protected:
   /**
    * @brief returns pointer to data base
@@ -795,6 +798,17 @@ protected:
    * @brief Writes data to DB after update
    */
   void WriteDb();
+
+  /**
+   * @brief Updates grammarID for application
+   * @param policy_app_id Application ID
+   * @param device_id Device ID
+   * @param grammar_id GrammarID
+   * @return true if succedeed, otherwise - false
+   */
+  bool UpdateGrammarID(const std::string& policy_app_id,
+                       const std::string& device_id,
+                       const uint32_t grammar_id);
 
   DISALLOW_COPY_AND_ASSIGN(ResumptionDataDB);
 
