@@ -89,7 +89,7 @@ TEST_F(HeartBeatMonitorTest, TimerNotStarted) {
   EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, _)).Times(0);
 
   conn->AddNewSession();
-  usleep(kTimeout * MICROSECONDS_IN_MILLISECONDS + MICROSECONDS_IN_SECOND);
+  testing::Mock::AsyncVerifyAndClearExpectations(kTimeout * MICROSECONDS_IN_MILLISECONDS + MICROSECONDS_IN_SECOND);
 }
 
 TEST_F(HeartBeatMonitorTest, TimerNotElapsed) {
@@ -99,7 +99,7 @@ TEST_F(HeartBeatMonitorTest, TimerNotElapsed) {
 
   const uint32_t session = conn->AddNewSession();
   conn->StartHeartBeat(session);
-  usleep(kTimeout * MICROSECONDS_IN_MILLISECONDS - MICROSECONDS_IN_SECOND);
+  testing::Mock::AsyncVerifyAndClearExpectations(kTimeout * MICROSECONDS_IN_MILLISECONDS - MICROSECONDS_IN_SECOND);
 }
 
 TEST_F(HeartBeatMonitorTest, TimerElapsed) {
@@ -111,7 +111,7 @@ TEST_F(HeartBeatMonitorTest, TimerElapsed) {
   EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, session));
 
   conn->StartHeartBeat(session);
-  usleep(2 * kTimeout * MICROSECONDS_IN_MILLISECONDS + MICROSECONDS_IN_SECOND);
+  testing::Mock::AsyncVerifyAndClearExpectations(2 * kTimeout * MICROSECONDS_IN_MILLISECONDS + MICROSECONDS_IN_SECOND);
 }
 
 TEST_F(HeartBeatMonitorTest, KeptAlive) {
@@ -121,13 +121,13 @@ TEST_F(HeartBeatMonitorTest, KeptAlive) {
 
   const uint32_t session = conn->AddNewSession();
   conn->StartHeartBeat(session);
-  usleep(kTimeout * MICROSECONDS_IN_MILLISECONDS - MICROSECONDS_IN_SECOND);
+  testing::Mock::AsyncVerifyAndClearExpectations(kTimeout * MICROSECONDS_IN_MILLISECONDS - MICROSECONDS_IN_SECOND);
   conn->KeepAlive(session);
-  usleep(kTimeout * MICROSECONDS_IN_MILLISECONDS - MICROSECONDS_IN_SECOND);
+  testing::Mock::AsyncVerifyAndClearExpectations(kTimeout * MICROSECONDS_IN_MILLISECONDS - MICROSECONDS_IN_SECOND);
   conn->KeepAlive(session);
-  usleep(kTimeout * MICROSECONDS_IN_MILLISECONDS - MICROSECONDS_IN_SECOND);
+  testing::Mock::AsyncVerifyAndClearExpectations(kTimeout * MICROSECONDS_IN_MILLISECONDS - MICROSECONDS_IN_SECOND);
   conn->KeepAlive(session);
-  usleep(kTimeout * MICROSECONDS_IN_MILLISECONDS - MICROSECONDS_IN_SECOND);
+  testing::Mock::AsyncVerifyAndClearExpectations(kTimeout * MICROSECONDS_IN_MILLISECONDS - MICROSECONDS_IN_SECOND);
 }
 
 TEST_F(HeartBeatMonitorTest, NotKeptAlive) {
@@ -145,7 +145,7 @@ TEST_F(HeartBeatMonitorTest, NotKeptAlive) {
   conn->KeepAlive(session);
   usleep(kTimeout * MICROSECONDS_IN_MILLISECONDS - MICROSECONDS_IN_SECOND);
   conn->KeepAlive(session);
-  usleep(2 * kTimeout * MICROSECONDS_IN_MILLISECONDS + MICROSECONDS_IN_SECOND);
+  testing::Mock::AsyncVerifyAndClearExpectations(2 * kTimeout * MICROSECONDS_IN_MILLISECONDS + MICROSECONDS_IN_SECOND);
 }
 
 TEST_F(HeartBeatMonitorTest, TwoSessionsElapsed) {
@@ -162,7 +162,7 @@ TEST_F(HeartBeatMonitorTest, TwoSessionsElapsed) {
 
   conn->StartHeartBeat(kSession1);
   conn->StartHeartBeat(kSession2);
-  usleep(2 * kTimeout * MICROSECONDS_IN_MILLISECONDS + MICROSECONDS_IN_SECOND);
+  testing::Mock::AsyncVerifyAndClearExpectations(2 * kTimeout * MICROSECONDS_IN_MILLISECONDS + MICROSECONDS_IN_SECOND);
 }
 
 TEST_F(HeartBeatMonitorTest, IncreaseHeartBeatTimeout) {
@@ -177,7 +177,7 @@ TEST_F(HeartBeatMonitorTest, IncreaseHeartBeatTimeout) {
   conn->StartHeartBeat(kSession);
   conn->SetHeartBeatTimeout(kNewTimeout, kSession);
   // new timeout greater by old timeout so mock object shouldn't be invoked
-  usleep(kTimeout * MICROSECONDS_IN_MILLISECONDS);
+  testing::Mock::AsyncVerifyAndClearExpectations(kTimeout * MICROSECONDS_IN_MILLISECONDS);
 }
 
 TEST_F(HeartBeatMonitorTest, DecreaseHeartBeatTimeout) {
@@ -192,7 +192,7 @@ TEST_F(HeartBeatMonitorTest, DecreaseHeartBeatTimeout) {
   conn->StartHeartBeat(kSession);
   conn->SetHeartBeatTimeout(kNewTimeout, kSession);
   // new timeout less than old timeout so mock object should be invoked
-  usleep(kTimeout * 2 * MICROSECONDS_IN_MILLISECONDS);
+  testing::Mock::AsyncVerifyAndClearExpectations(kTimeout * 2 * MICROSECONDS_IN_MILLISECONDS);
 }
 
 } // namespace connection_handler_test
