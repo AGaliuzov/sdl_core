@@ -107,6 +107,8 @@ class MessageHelper {
       int32_t connection_key,
       mobile_apis::AppInterfaceUnregisteredReason::eType reason);
 
+    static void SendOnLanguageChangeToMobile(int32_t connection_key);
+
     /*
      * @brief Retrieve vehicle data map for param name in mobile request
      * to VehicleDataType
