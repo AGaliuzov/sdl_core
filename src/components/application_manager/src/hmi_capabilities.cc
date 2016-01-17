@@ -342,6 +342,7 @@ void HMICapabilities::set_is_vr_cooperating(bool value) {
   if (is_vr_cooperating_) {
     utils::SharedPtr<smart_objects::SmartObject> get_language(
       MessageHelper::CreateModuleInfoSO(hmi_apis::FunctionID::VR_GetLanguage));
+    hmi_language_handler_.set_handle_response_for(*get_language.get());
     app_mngr_->ManageHMICommand(get_language);
     utils::SharedPtr<smart_objects::SmartObject> get_all_languages(
       MessageHelper::CreateModuleInfoSO(hmi_apis::FunctionID::VR_GetSupportedLanguages));
@@ -359,6 +360,7 @@ void HMICapabilities::set_is_tts_cooperating(bool value) {
     utils::SharedPtr<smart_objects::SmartObject> get_language(
       MessageHelper::CreateModuleInfoSO(
         hmi_apis::FunctionID::TTS_GetLanguage));
+    hmi_language_handler_.set_handle_response_for(*get_language.get());
     app_mngr_->ManageHMICommand(get_language);
     utils::SharedPtr<smart_objects::SmartObject> get_all_languages(
       MessageHelper::CreateModuleInfoSO(
@@ -378,6 +380,7 @@ void HMICapabilities::set_is_ui_cooperating(bool value) {
     utils::SharedPtr<smart_objects::SmartObject> get_language(
       MessageHelper::CreateModuleInfoSO(
         hmi_apis::FunctionID::UI_GetLanguage));
+    hmi_language_handler_.set_handle_response_for(*get_language.get());
     app_mngr_->ManageHMICommand(get_language);
     utils::SharedPtr<smart_objects::SmartObject> get_all_languages(
       MessageHelper::CreateModuleInfoSO(
