@@ -1,4 +1,4 @@
-# Copyright (c) 2014, Ford Motor Company
+# Copyright (c) 2016, Ford Motor Company
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -389,4 +389,5 @@ if(BUILD_TESTS)
   add_subdirectory(test)
   add_subdirectory(test/state_controller)
   add_subdirectory(test/message_helper)
+  add_subdirectory(test/request_controller)
 endif()
