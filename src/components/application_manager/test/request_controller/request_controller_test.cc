@@ -32,137 +32,100 @@
 
 #include "gtest/gtest.h"
 #include "application_manager/request_controller.h"
-#include "config_profile/profile.h"
-#include "mobile/register_app_interface_request.h"
-#include "mobile/unregister_app_interface_request.h"
-#include "smart_objects/smart_object.h"
-#include "application_manager/commands/command_request_impl.h"
-#include "application_manager/message_helper.h"
-#include "application_manager/application_manager_impl.h"
-#include "application_manager/application_impl.h"
+#include "application_manager/mock_request.h"
+#include "utils/shared_ptr.h"
 #include "utils/make_shared.h"
 
 namespace test {
 namespace components {
 namespace request_controller_test {
 
-using namespace application_manager;
 using application_manager::request_controller::RequestController;
-using NsSmartDeviceLink::NsSmartObjects::SmartObjectSPtr;
-using NsSmartDeviceLink::NsSmartObjects::SmartObject;
-using NsSmartDeviceLink::NsSmartObjects::SmartType_Map;
-using application_manager::MessageHelper;
-using application_manager::commands::RegisterAppInterfaceRequest;
-using application_manager::commands::Command;
+using application_manager::request_controller::RequestInfo;
 
-typedef utils::SharedPtr<Command> RequestPtr;
+using ::testing::Return;
 
-RequestPtr RegisterApplication(unsigned int id = 1) {
-  SmartObjectSPtr resultsmart = new SmartObject(SmartType_Map);
-  SmartObject& test_message = *resultsmart;
-  uint32_t connection_key = 0;
-
-  test_message[strings::params][strings::message_type] =
-      static_cast<int>(kRequest);
-  test_message[strings::params][strings::function_id] =
-      static_cast<int>(id);
-  test_message[strings::params][strings::correlation_id] =
-      ApplicationManagerImpl::instance()->GetNextHMICorrelationID();
-
-  test_message[strings::params][strings::connection_key] = connection_key;
-  test_message[strings::msg_params][strings::language_desired] = 0;
-  test_message[strings::msg_params][strings::hmi_display_language_desired] = 0;
-  RequestPtr testregCommand =
-      utils::MakeShared<RegisterAppInterfaceRequest>(resultsmart);
-  return testregCommand;
-}
-
-RequestPtr UnregisterApplication() {
-  SmartObjectSPtr resultsmart = MessageHelper::CreateModuleInfoSO(2);
-  RequestPtr testregCommand =
-      utils::MakeShared<commands::UnregisterAppInterfaceRequest>(resultsmart);
-  return testregCommand;
-}
+typedef utils::SharedPtr<application_manager_test::MockRequest> RequestPtr;
+typedef utils::SharedPtr<RequestController> RequestControllerSPtr;
 
 class RequestControllerTestClass : public ::testing::Test {
-public:
-  RequestControllerTestClass():reg(RegisterApplication()) {}
-
-  RequestController::TResult AddHMIRequest(const bool RegisterRequest = false) {
-    if (RegisterRequest)
-        result = request_ctrl.addHMIRequest(reg);
-    else
-        result = request_ctrl.addHMIRequest(regEmpty);
-    return result;
+ public:
+  RequestControllerTestClass()
+      : request_ctrl_(utils::MakeShared<RequestController>()) {
+    register_request_ = GetMockRequest();
   }
 
-  RequestController::TResult AddMobileRequest(
-      const mobile_apis::HMILevel::eType& hmi_level,
-          const bool RegisterRequest = false) {
-    if (RegisterRequest)
-        result = request_ctrl.addMobileRequest(reg, hmi_level);
-    else
-        result = request_ctrl.addMobileRequest(regEmpty, hmi_level);
-    return result;
+  RequestController::TResult AddRequest(
+      const RequestInfo::RequestType request_type,
+      const bool RegisterRequest = false,
+      const mobile_apis::HMILevel::eType& hmi_level =
+          mobile_apis::HMILevel::INVALID_ENUM) {
+    RequestPtr request;
+    if (RegisterRequest) {
+      request = register_request_;
+      EXPECT_CALL(*register_request_, default_timeout()).WillOnce(Return(0));
+    } else {
+      request = empty_register_request_;
+    }
+    if (RequestInfo::RequestType::HMIRequest == request_type) {
+      return request_ctrl_->addHMIRequest(request);
+    }
+    return request_ctrl_->addMobileRequest(request, hmi_level);
   }
 
-  static void SetUpTestCase()
-  {
-    ::profile::Profile::instance()->
-        config_file_name("smartDeviceLink_test3.ini");
+  RequestPtr GetMockRequest(const uint32_t id = 1,
+                            const uint32_t connection_key = 0) {
+    return utils::MakeShared<application_manager_test::MockRequest>(
+        connection_key, id);
   }
 
-  void UnregisterApp(const mobile_apis::HMILevel::eType& hmi_level)
-  {
-    RequestPtr unreg = UnregisterApplication();
-    request_ctrl.addMobileRequest(unreg, hmi_level);
-  }
-
-  RequestController request_ctrl;
-  RequestPtr reg, regEmpty;
-  RequestController::TResult result;
+  RequestPtr register_request_;
+  RequestPtr empty_register_request_;
+  RequestControllerSPtr request_ctrl_;
 };
 
-// TODO {OHerasym}: APPLINK-20220
-TEST_F(RequestControllerTestClass, DISABLED_CheckPosibilitytoAdd_HMI_FULL_SUCCESS) {
+TEST_F(RequestControllerTestClass, CheckPosibilitytoAdd_HMI_FULL_SUCCESS) {
   EXPECT_EQ(RequestController::TResult::SUCCESS,
-      AddMobileRequest(mobile_apis::HMILevel::HMI_FULL, true));
-  ApplicationManagerImpl::instance()->destroy();
-  UnregisterApp(mobile_apis::HMILevel::HMI_FULL);
+            AddRequest(RequestInfo::RequestType::MobileRequest,
+                       true,
+                       mobile_apis::HMILevel::HMI_FULL));
 }
 
-// TODO {OHerasym}: APPLINK-20220
-TEST_F(RequestControllerTestClass, DISABLED_CheckPosibilitytoAdd_HMI_NONE_SUCCESS) {
-  ApplicationManagerImpl::instance();
+TEST_F(RequestControllerTestClass, CheckPosibilitytoAdd_HMI_NONE_SUCCESS) {
   EXPECT_EQ(RequestController::TResult::SUCCESS,
-      AddMobileRequest(mobile_apis::HMILevel::HMI_NONE, true));
-  ApplicationManagerImpl::instance()->destroy();
-  UnregisterApp(mobile_apis::HMILevel::HMI_NONE);
+            AddRequest(RequestInfo::RequestType::MobileRequest,
+                       true,
+                       mobile_apis::HMILevel::HMI_NONE));
 }
 
 TEST_F(RequestControllerTestClass, IsLowVoltage_SetOnLowVoltage_TRUE) {
-  request_ctrl.OnLowVoltage();
-  EXPECT_EQ(true, request_ctrl.IsLowVoltage());
+  request_ctrl_->OnLowVoltage();
+  const bool result = true;
+  EXPECT_EQ(result, request_ctrl_->IsLowVoltage());
 }
 
 TEST_F(RequestControllerTestClass, IsLowVoltage_SetOnWakeUp_FALSE) {
-  request_ctrl.OnWakeUp();
+  request_ctrl_->OnWakeUp();
   const bool result = false;
-  EXPECT_EQ(result, request_ctrl.IsLowVoltage());
+  EXPECT_EQ(result, request_ctrl_->IsLowVoltage());
 }
 
 TEST_F(RequestControllerTestClass,
-  AddMobileRequest_SetInvalidData_INVALID_DATA) {
+       AddMobileRequest_SetInvalidData_INVALID_DATA) {
   EXPECT_EQ(RequestController::INVALID_DATA,
-      AddMobileRequest(mobile_apis::HMILevel::HMI_NONE));
+            AddRequest(RequestInfo::RequestType::MobileRequest,
+                       false,
+                       mobile_apis::HMILevel::HMI_NONE));
 }
 
 TEST_F(RequestControllerTestClass, addHMIRequest_AddRequest_SUCCESS) {
-  EXPECT_EQ(RequestController::SUCCESS, AddHMIRequest(true));
+  EXPECT_EQ(RequestController::SUCCESS,
+            AddRequest(RequestInfo::RequestType::HMIRequest, true));
 }
 
 TEST_F(RequestControllerTestClass, addHMIRequest_AddInvalidData_INVALID_DATA) {
-  EXPECT_EQ(RequestController::INVALID_DATA, AddHMIRequest());
+  EXPECT_EQ(RequestController::INVALID_DATA,
+            AddRequest(RequestInfo::RequestType::HMIRequest));
 }
 
 }  // namespace request_controller

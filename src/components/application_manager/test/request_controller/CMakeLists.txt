@@ -32,6 +32,7 @@ if (BUILD_TESTS)
   include_directories(
     ${GMOCK_INCLUDE_DIRECTORY}
     ${COMPONENTS_DIR}/application_manager/include/
+    ${COMPONENTS_DIR}/application_manager/test/include/
   )
 
   set (SOURCES
@@ -41,14 +42,7 @@ if (BUILD_TESTS)
   set(LIBRARIES
     Utils
     ApplicationManager
-    MessageHelper
-    jsoncpp
-    connectionHandler
-    gmock_main
-    ConfigProfile
-    MediaManager
-    Resumption
-    ProtocolHandler
+    gmock
   )
 
   create_test("request_controller_test" "${SOURCES}" "${LIBRARIES}" )
