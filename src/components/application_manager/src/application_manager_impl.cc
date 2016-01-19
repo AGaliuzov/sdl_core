@@ -1702,9 +1702,7 @@ bool ApplicationManagerImpl::ConvertMessageToSO(
             output[strings::params][strings::message_type].asInt()) {
           LOG4CXX_ERROR(logger_, "Ignore wrong HMI notification");
           return false;
-        }
-
-        if (application_manager::MessageType::kRequest ==
+        } else if (application_manager::MessageType::kRequest ==
             output[strings::params][strings::message_type].asInt()) {
           LOG4CXX_ERROR(logger_, "Ignore wrong HMI request");
           return false;
@@ -1715,6 +1713,8 @@ bool ApplicationManagerImpl::ConvertMessageToSO(
             hmi_apis::Common_Result::INVALID_DATA;
         output[strings::msg_params][strings::info] =
             std::string("Received invalid data on HMI response");
+        LOG4CXX_ERROR(logger_, "Received invalid data on HMI response");
+        return false;
       }
       break;
     }
