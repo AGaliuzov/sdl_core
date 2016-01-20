@@ -262,9 +262,9 @@ void RequestController::OnHMIResponse(const uint32_t &correlation_id) {
 void RequestController::terminateWaitingForExecutionAppRequests(
     const uint32_t& app_id) {
   LOG4CXX_AUTO_TRACE(logger_);
-  LOG4CXX_DEBUG(logger_, "app_id: "  << app_id
-                << "Waiting for execution" << mobile_request_info_list_.size());
   AutoLock auto_lock(mobile_request_info_list_lock_);
+  LOG4CXX_DEBUG(logger_, "app_id: "  << app_id
+                << ", Waiting for execution " << mobile_request_info_list_.size());
   std::list<RequestInfoPtr>::iterator request_it =
       mobile_request_info_list_.begin();
   while (mobile_request_info_list_.end() != request_it) {
@@ -291,10 +291,15 @@ void RequestController::terminateWaitingForResponseAppRequests(
 void RequestController::terminateAppRequests(
     const uint32_t& app_id) {
   LOG4CXX_AUTO_TRACE(logger_);
+  size_t mob_request_size = 0;
+  {
+    AutoLock auto_lock(mobile_request_info_list_lock_);
+    mob_request_size = mobile_request_info_list_.size();
+  }
   LOG4CXX_DEBUG(logger_, "app_id : " << app_id
-                << "Requests waiting for execution count : "
-                << mobile_request_info_list_.size()
-                << "Requests waiting for response count : "
+                << ", Requests waiting for execution count : "
+                << mob_request_size
+                << ", Requests waiting for response count : "
                 << waiting_for_response_.Size());
 
   terminateWaitingForExecutionAppRequests(app_id);
