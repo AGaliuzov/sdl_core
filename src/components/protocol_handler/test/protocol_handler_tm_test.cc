@@ -1077,8 +1077,11 @@ TEST_F(ProtocolHandlerImplTest,
   const bool is_final = true;
   const uint32_t total_data_size = 1;
   uint8_t* data = new(std::nothrow) uint8_t[total_data_size];
-  RawMessagePtr message (new RawMessage(connection_key, PROTOCOL_VERSION_3,
-                                        data, total_data_size, kControl));
+  RawMessagePtr message = utils::MakeShared<RawMessage>(connection_key,
+                                                        PROTOCOL_VERSION_3,
+                                                        data,
+                                                        total_data_size,
+                                                        kControl);
   // Expect getting pair from key from session observer
   EXPECT_CALL(session_observer_mock,
               PairFromKey(message->connection_key(), _, _)).
@@ -1110,8 +1113,11 @@ TEST_F(ProtocolHandlerImplTest,
   const bool is_final = true;
   const uint32_t total_data_size = 1;
   uint8_t* data = new(std::nothrow) uint8_t[total_data_size];
-  RawMessagePtr message (new RawMessage(connection_key, PROTOCOL_VERSION_3,
-                                        data, total_data_size, kRpc));
+  RawMessagePtr message = utils::MakeShared<RawMessage>(connection_key,
+                                                        PROTOCOL_VERSION_3,
+                                                        data,
+                                                        total_data_size,
+                                                        kRpc);
   // Expect getting pair from key from session observer
   EXPECT_CALL(session_observer_mock,
               PairFromKey(message->connection_key(), _, _)).
@@ -1145,8 +1151,11 @@ TEST_F(ProtocolHandlerImplTest, SendMessageToMobileApp_SendMultiframeMessage) {
   const uint32_t total_data_size = MAXIMUM_FRAME_DATA_V2_SIZE * 2;
   uint8_t* data = new(std::nothrow) uint8_t[total_data_size];
   const uint8_t first_consecutive_frame = 0x01;
-  RawMessagePtr message (new RawMessage(connection_key, PROTOCOL_VERSION_3,
-                                        data, total_data_size, kBulk));
+  RawMessagePtr message = utils::MakeShared<RawMessage>(connection_key,
+                                                        PROTOCOL_VERSION_3,
+                                                        data,
+                                                        total_data_size,
+                                                        kBulk);
   // Expect getting pair from key from session observer
   EXPECT_CALL(session_observer_mock,
               PairFromKey(message->connection_key(), _, _)).
