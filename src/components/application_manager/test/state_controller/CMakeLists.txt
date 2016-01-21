@@ -34,7 +34,7 @@ set(appMain_DIR ${CMAKE_SOURCE_DIR}/src/appMain)
 
 include_directories(
     ${GMOCK_INCLUDE_DIRECTORY}
-    ${COMPONENTS_DIR}/application_manager/test/include
+    ${AM_TEST_DIR}/include/
 )
 
 set(LIBRARIES
@@ -44,6 +44,7 @@ set(LIBRARIES
 
 set(SOURCES
     state_controller_test.cc
+     ${AM_TEST_DIR}/include/application_manager/mock_message_helper.cc
 )
 
 create_test("state_controller_test" "${SOURCES}" "${LIBRARIES}")

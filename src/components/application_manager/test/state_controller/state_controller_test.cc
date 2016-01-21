@@ -36,6 +36,7 @@
 #include "application_manager/usage_statistics.h"
 #include "application_manager/mock_application_manager.h"
 #include "application_manager/mock_application.h"
+#include "application_manager/mock_message_helper.h"
 #include "policy/usage_statistics/mock_statistics_manager.h"
 #include "utils/lock.h"
 #include "utils/data_accessor.h"
@@ -61,21 +62,7 @@ using ::test::components::application_manager_test::MockApplicationManager;
 using ::test::components::application_manager_test::MockApplication;
 using ::testing::AtLeast;
 
-namespace {
-  utils::SharedPtr<application_manager::MockMessageHelper> message_helper_mock_;
-}
-
-uint32_t application_manager::MessageHelper::SendActivateAppToHMI(
-    uint32_t const app_id, hmi_apis::Common_HMILevel::eType level,
-    bool send_policy_priority) {
-  return message_helper_mock_->SendActivateAppToHMI(app_id, level,
-                                                    send_policy_priority);
-}
-
-void application_manager::MessageHelper::SendOnResumeAudioSourceToHMI(
-    const uint32_t app_id) {
-  message_helper_mock_->SendOnResumeAudioSourceToHMI(app_id);
-}
+static utils::SharedPtr<application_manager::MockMessageHelper> message_helper_mock_;
 
 namespace test {
 namespace components {

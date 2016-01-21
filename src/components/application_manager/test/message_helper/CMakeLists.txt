@@ -39,6 +39,7 @@ include_directories(
 
 set(LIBRARIES
     gmock
+    MessageHelper
     ApplicationManager
     jsoncpp
     connectionHandler
