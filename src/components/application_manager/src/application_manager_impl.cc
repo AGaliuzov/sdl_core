@@ -1698,23 +1698,26 @@ bool ApplicationManagerImpl::ConvertMessageToSO(
       if (validate_result != smart_objects::Errors::OK) {
         LOG4CXX_ERROR(logger_, "Incorrect parameter from HMI: " << smart_objects::ToString(validate_result));
 
-        if (application_manager::MessageType::kNotification ==
-            output[strings::params][strings::message_type].asInt()) {
-          LOG4CXX_ERROR(logger_, "Ignore wrong HMI notification");
-          return false;
-        } else if (application_manager::MessageType::kRequest ==
-            output[strings::params][strings::message_type].asInt()) {
-          LOG4CXX_ERROR(logger_, "Ignore wrong HMI request");
-          return false;
-        }
 
-        output.erase(strings::msg_params);
-        output[strings::params][hmi_response::code] =
-            hmi_apis::Common_Result::INVALID_DATA;
-        output[strings::msg_params][strings::info] =
-            std::string("Received invalid data on HMI response");
-        LOG4CXX_ERROR(logger_, "Received invalid data on HMI response");
-        return false;
+        switch(output[strings::params][strings::message_type].asInt()) {
+          case application_manager::MessageType::kNotification: {
+            LOG4CXX_ERROR(logger_, "Ignore wrong HMI notification");
+            return false;
+          }
+          case application_manager::MessageType::kRequest: {
+            LOG4CXX_ERROR(logger_, "Ignore wrong HMI request");
+            return false;
+          }
+          default: {
+            output.erase(strings::msg_params);
+            output[strings::params][hmi_response::code] =
+                hmi_apis::Common_Result::INVALID_DATA;
+            output[strings::msg_params][strings::info] =
+                std::string("Received invalid data on HMI response");
+            LOG4CXX_ERROR(logger_, "Received invalid data on HMI response");
+            return false;
+          }
+        }
       }
       break;
     }
