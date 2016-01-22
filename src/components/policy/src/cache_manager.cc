@@ -1700,7 +1700,7 @@ bool CacheManager::Init(const std::string& file_name) {
       result = LoadFromFile(file_name, *pt_);
       utils::SharedPtr<policy_table::Table> snapshot = GenerateSnapshot();
 
-      result = snapshot->is_valid();
+      result &= snapshot->is_valid();
       LOG4CXX_DEBUG(logger_, "Check if snapshot valid: "
                     << std::boolalpha << result);
 
