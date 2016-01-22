@@ -69,6 +69,10 @@ file (GLOB SOURCES
   ${AM_SOURCE_DIR}/src/*
 )
 
+set (MESSAGE_HELPER_SOURCES
+  ${AM_SOURCE_DIR}/src/message_helper/message_helper.cc
+)
+
 set (POLICIES_MANAGER
 ${AM_SOURCE_DIR}/src/policies/policy_handler.cc
 ${AM_SOURCE_DIR}/src/policies/policy_event_observer.cc
@@ -353,22 +357,29 @@ endif()
 
 add_library("AMEventEngine" ${EVENT_ENGINE})
 target_link_libraries("AMEventEngine" ${LIBRARIES})
-
+add_dependencies("AMEventEngine" HMI_API MOBILE_API)
 
 add_library("AMPolicyLibrary" ${POLICIES_MANAGER} )
 target_link_libraries("AMPolicyLibrary" ${LIBRARIES} AMEventEngine)
+add_dependencies("AMPolicyLibrary" HMI_API MOBILE_API)
 
 add_library("AMHMICommandsLibrary" ${HMI_COMMANDS_SOURCES})
 target_link_libraries("AMHMICommandsLibrary" ${LIBRARIES} AMEventEngine)
+add_dependencies("AMHMICommandsLibrary" HMI_API MOBILE_API)
+
+add_library("MessageHelper" ${MESSAGE_HELPER_SOURCES})
+add_dependencies("MessageHelper" HMI_API MOBILE_API)
 
 add_library("AMMobileCommandsLibrary" ${MOBILE_COMMANDS_SOURCES} )
 target_link_libraries("AMMobileCommandsLibrary" ${LIBRARIES} AMEventEngine)
+add_dependencies("AMMobileCommandsLibrary" HMI_API MOBILE_API)
 
 add_library("ApplicationManager" ${SOURCES} ${RESUMPTION})
 target_link_libraries("ApplicationManager" ${LIBRARIES} AMHMICommandsLibrary
                                                         AMMobileCommandsLibrary
                                                         AMEventEngine
                                                         AMPolicyLibrary)
+add_dependencies("ApplicationManager" HMI_API MOBILE_API)
 
 if(ENABLE_LOG)
   target_link_libraries("ApplicationManager" log4cxx -L${LOG4CXX_LIBS_DIRECTORY})

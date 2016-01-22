@@ -157,10 +157,6 @@ if (BUILD_TESTS)
     ${AM_SOURCE_DIR}/src/commands/command_request_impl.cc
   )
 
-  set(AM_SOURCES_MESSAGE_HELPER
-    ${COMPONENTS_DIR}/application_manager/src/message_helper.cc
-  )
-
   include_directories(
     ${COMPONENTS_DIR}/policy/src/policy/policy_table/table_struct_ext
   )
@@ -189,8 +185,8 @@ if (BUILD_TESTS)
 
   set(request_controller_Libraries
     Utils
-    ApplicationManager
     MessageHelper
+    ApplicationManager
     jsoncpp
     connectionHandler
     gmock_main
@@ -219,7 +215,6 @@ if (BUILD_TESTS)
   set(CMAKE_EXE_LINKER_FLAGS
     "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath=${CMAKE_CURRENT_BINARY_DIR}")
   add_library("ApplicationManagerTest" ${AM_SOURCES})
-  add_library("MessageHelper" ${AM_SOURCES_MESSAGE_HELPER})
   create_test("application_manager_test" "${testSources}" "${testLibraries}" )
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/request_controller)
   create_test("request_controller/request_controller_test" "${request_controller_SOURCES}" "${request_controller_Libraries}" )

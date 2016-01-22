@@ -55,6 +55,7 @@ set(testLibraries
   ConfigProfile
   transport_manager
   ApplicationManager
+  MessageHelper
   jsoncpp
   ProtocolHandler
   Utils

@@ -202,34 +202,34 @@ class ApplicationManagerImpl :
  public:
   ~ApplicationManagerImpl();
 
-  virtual bool Init();
-  virtual bool Stop();
+  bool Init() OVERRIDE;
+  bool Stop() OVERRIDE;
 
-  virtual DataAccessor<ApplicationSet> applications() const;
+  DataAccessor<ApplicationSet> applications() const OVERRIDE;
+  ApplicationSharedPtr application(uint32_t app_id) const OVERRIDE;
 
-  virtual ApplicationSharedPtr application(uint32_t app_id) const;
-  virtual ApplicationSharedPtr active_application() const;
+  ApplicationSharedPtr active_application() const OVERRIDE;
 
-  virtual ApplicationSharedPtr application_by_hmi_app(
-      uint32_t hmi_app_id) const;
-  virtual ApplicationSharedPtr application_by_policy_id(
-      const std::string& policy_app_id) const;
+  ApplicationSharedPtr application_by_hmi_app(
+      uint32_t hmi_app_id) const OVERRIDE;
+  ApplicationSharedPtr application_by_policy_id(
+      const std::string& policy_app_id) const OVERRIDE;
 
-  virtual std::vector<ApplicationSharedPtr> applications_by_button(
-      uint32_t button);
-  virtual std::vector<ApplicationSharedPtr> applications_with_navi();
+  std::vector<ApplicationSharedPtr> applications_by_button(
+      uint32_t button) OVERRIDE;
+  std::vector<ApplicationSharedPtr> applications_with_navi() OVERRIDE;
 
-  virtual ApplicationSharedPtr get_limited_media_application() const;
-  virtual ApplicationSharedPtr get_limited_navi_application() const;
-  virtual ApplicationSharedPtr get_limited_voice_application() const;
+  ApplicationSharedPtr get_limited_media_application() const OVERRIDE;
+  ApplicationSharedPtr get_limited_navi_application() const OVERRIDE;
+  ApplicationSharedPtr get_limited_voice_application() const OVERRIDE;
 
-  virtual uint32_t application_id(const int32_t correlation_id);
-  virtual void set_application_id(const int32_t correlation_id,
-                                  const uint32_t app_id);
+  uint32_t application_id(const int32_t correlation_id) OVERRIDE;
+  void set_application_id(const int32_t correlation_id,
+                                  const uint32_t app_id) OVERRIDE;
 
-  virtual void OnHMILevelChanged(uint32_t app_id,
+  void OnHMILevelChanged(uint32_t app_id,
                                  mobile_apis::HMILevel::eType from,
-                                 mobile_apis::HMILevel::eType to);
+                                 mobile_apis::HMILevel::eType to) OVERRIDE;
 
   void SendHMIStatusNotification(
       const utils::SharedPtr<Application> app) OVERRIDE;
@@ -260,7 +260,7 @@ class ApplicationManagerImpl :
 
   HMICapabilities& hmi_capabilities();
 
-  virtual bool is_attenuated_supported();
+  bool is_attenuated_supported() OVERRIDE;
 
 #ifdef TIME_TESTER
   /**
@@ -585,8 +585,8 @@ class ApplicationManagerImpl :
    * UI_ChangeRegistration with list new AppHMIType
    * for app with HMI level BACKGROUND.
    */
-  virtual void OnUpdateHMIAppType(
-      std::map<std::string, std::vector<std::string> > app_hmi_types);
+  void OnUpdateHMIAppType(
+      std::map<std::string, std::vector<std::string> > app_hmi_types) OVERRIDE;
 
   /*
    * @brief Starts audio pass thru thread
@@ -660,9 +660,9 @@ class ApplicationManagerImpl :
   bool ManageHMICommand(const commands::MessageSharedPtr message);
 
   // Overriden ProtocolObserver method
-  virtual void OnMessageReceived(
+  void OnMessageReceived(
       const ::protocol_handler::RawMessagePtr message) OVERRIDE;
-  virtual void OnMobileMessageSent(
+  void OnMobileMessageSent(
       const ::protocol_handler::RawMessagePtr message) OVERRIDE;
 
   // Overriden HMIMessageObserver method
@@ -1107,19 +1107,19 @@ class ApplicationManagerImpl :
    * of messages. Beware, each is called on different thread!
    */
   // CALLED ON messages_from_mobile_ thread!
-  virtual void Handle(const impl::MessageFromMobile message) OVERRIDE;
+  void Handle(const impl::MessageFromMobile message) OVERRIDE;
 
   // CALLED ON messages_to_mobile_ thread!
-  virtual void Handle(const impl::MessageToMobile message) OVERRIDE;
+  void Handle(const impl::MessageToMobile message) OVERRIDE;
 
   // CALLED ON messages_from_hmi_ thread!
-  virtual void Handle(const impl::MessageFromHmi message) OVERRIDE;
+  void Handle(const impl::MessageFromHmi message) OVERRIDE;
 
   // CALLED ON messages_to_hmi_ thread!
-  virtual void Handle(const impl::MessageToHmi message) OVERRIDE;
+  void Handle(const impl::MessageToHmi message) OVERRIDE;
 
   // CALLED ON audio_pass_thru_messages_ thread!
-  virtual void Handle(const impl::AudioData message) OVERRIDE;
+  void Handle(const impl::AudioData message) OVERRIDE;
 
   void SendUpdateAppList();
 
