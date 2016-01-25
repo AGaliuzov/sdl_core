@@ -31,6 +31,7 @@
 #ifndef SRC_COMPONENTS_SMART_OBJECTS_INCLUDE_SMART_OBJECTS_ERRORS_H_
 #define SRC_COMPONENTS_SMART_OBJECTS_INCLUDE_SMART_OBJECTS_ERRORS_H_
 
+#include <string>
 #include "utils/macro.h"
 
 namespace NsSmartDeviceLink {

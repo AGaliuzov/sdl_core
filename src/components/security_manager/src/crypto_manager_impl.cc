@@ -39,6 +39,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <stdio.h>
 #include "security_manager/security_manager.h"
 #include "config_profile/profile.h"
