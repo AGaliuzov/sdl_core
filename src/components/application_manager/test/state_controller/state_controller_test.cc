@@ -62,7 +62,7 @@ using ::test::components::application_manager_test::MockApplicationManager;
 using ::test::components::application_manager_test::MockApplication;
 using ::testing::AtLeast;
 
-static utils::SharedPtr<application_manager::MockMessageHelper> message_helper_mock_;
+static application_manager::MockMessageHelper* message_helper_mock_;
 
 namespace test {
 namespace components {
@@ -541,8 +541,7 @@ class StateControllerTest : public ::testing::Test {
     namespace AudioStreamingState = mobile_apis::AudioStreamingState;
     namespace SystemContext = mobile_apis::SystemContext;
     // Valid states for not audio app
-    message_helper_mock_ =
-        utils::MakeShared<application_manager::MockMessageHelper>();
+    message_helper_mock_ = application_manager::MockMessageHelper::message_helper_mock();
     valid_states_for_not_audio_app_.push_back(
         createHmiState(HMILevel::HMI_NONE, AudioStreamingState::NOT_AUDIBLE,
                        SystemContext::SYSCTXT_MAIN));
