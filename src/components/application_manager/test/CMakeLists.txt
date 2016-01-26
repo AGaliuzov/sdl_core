@@ -146,6 +146,7 @@ if (BUILD_TESTS)
     ${AM_SOURCE_DIR}/src/hmi_state.cc
 
     ${AM_SOURCE_DIR}/src/hmi_capabilities.cc
+    ${AM_SOURCE_DIR}/src/hmi_language_handler.cc
     ${AM_SOURCE_DIR}/src/application_data_impl.cc
     ${AM_SOURCE_DIR}/src/request_controller.cc
 

@@ -349,6 +349,13 @@ TEST_F(HMICapabilitiesTest,
 TEST_F(HMICapabilitiesTest, HmiCapabilitiesInitialized) {
   // Precondition
   SetCooperating();
+  smart_objects::SmartObjectSPtr language(new smart_objects::SmartObject(
+                                            smart_objects::SmartType_Map));
+
+  EXPECT_CALL(*(MockMessageHelper::message_helper_mock()),
+              CreateModuleInfoSO(_))
+      .WillRepeatedly(Return(language));
+
   hmi_capabilities_test->set_is_vr_cooperating(true);
   smart_objects::SmartObject supported_languages;
   supported_languages[0] = "EN_US";
@@ -396,7 +403,8 @@ void HMICapabilitiesTest::SetCooperating() {
 TEST_F(HMICapabilitiesTest, SetVRCooperating) {
   // Without sequence it is impossible to check correct call of ManageHMICommand
   InSequence dummy;
-  smart_objects::SmartObjectSPtr language;
+  smart_objects::SmartObjectSPtr language(new smart_objects::SmartObject(
+                                            smart_objects::SmartType_Map));
   EXPECT_CALL(*(MockMessageHelper::message_helper_mock()),
               CreateModuleInfoSO(hmi_apis::FunctionID::VR_GetLanguage))
       .WillOnce(Return(language));
@@ -419,7 +427,8 @@ TEST_F(HMICapabilitiesTest, SetVRCooperating) {
 }
 
 TEST_F(HMICapabilitiesTest, SetTTSCooperating) {
-  smart_objects::SmartObjectSPtr language;
+  smart_objects::SmartObjectSPtr language(new smart_objects::SmartObject(
+                                            smart_objects::SmartType_Map));
   InSequence dummy;
   EXPECT_CALL(*(MockMessageHelper::message_helper_mock()),
               CreateModuleInfoSO(hmi_apis::FunctionID::TTS_GetLanguage))
@@ -444,7 +453,8 @@ TEST_F(HMICapabilitiesTest, SetTTSCooperating) {
 
 TEST_F(HMICapabilitiesTest, SetUICooperating) {
   InSequence dummy;
-  smart_objects::SmartObjectSPtr language;
+  smart_objects::SmartObjectSPtr language(new smart_objects::SmartObject(
+                                            smart_objects::SmartType_Map));
   EXPECT_CALL(*(MockMessageHelper::message_helper_mock()),
               CreateModuleInfoSO(hmi_apis::FunctionID::UI_GetLanguage))
       .WillOnce(Return(language));

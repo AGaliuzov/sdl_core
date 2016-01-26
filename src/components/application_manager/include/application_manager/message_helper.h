@@ -107,6 +107,12 @@ class MessageHelper {
       int32_t connection_key,
       mobile_apis::AppInterfaceUnregisteredReason::eType reason);
 
+    /**
+     * @brief Sends OnLanguageChange notification to application
+     * @param connection_key Connection key of application
+     */
+    static void SendOnLanguageChangeToMobile(uint32_t connection_key);
+
     /*
      * @brief Retrieve vehicle data map for param name in mobile request
      * to VehicleDataType
@@ -554,6 +560,38 @@ class MessageHelper {
      */
     static hmi_apis::Common_Language::eType CommonLanguageFromString(
        const std::string& language);
+
+    /**
+     * @brief Converts mobile language to string representation
+     * @param language Mobile language
+     * @return Mobile language string representation
+     */
+    static std::string MobileLanguageToString(
+            const mobile_apis::Language::eType language);
+
+    /**
+     * @brief Converts string to mobile language enum value
+     * @param language language as string
+     * @return Mobile language enum value
+     */
+    static mobile_apis::Language::eType MobileLanguageFromString(
+            const std::string& language);
+
+    /**
+     * @brief Converts mobile language enum to HMI language enum
+     * @param language Mobile language enum
+     * @return HMI language enum
+     */
+    static hmi_apis::Common_Language::eType MobileToCommonLanguage(
+          const mobile_apis::Language::eType language);
+
+    /**
+     * @brief Converts HMI language enum to mobile language enum
+     * @param language HMI language enum
+     * @return Mobile language enum
+     */
+    static mobile_apis::Language::eType CommonToMobileLanguage(
+          const hmi_apis::Common_Language::eType language);
 
     /**
      * @brief Gets command limit number per minute for specific application
