@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Ford Motor Company
+ * Copyright (c) 2016, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,15 +43,17 @@ namespace transport_manager_test {
 class MockTransportManagerImpl
     : public transport_manager::TransportManagerImpl {
  public:
-  MOCK_METHOD1(ReceiveEventFromDevice,
-               int(const transport_manager::TransportAdapterEvent& event));
-
   int TestReceiveEventFromDevice(
       const transport_manager::TransportAdapterEvent& event) {
     return TransportManagerImpl::ReceiveEventFromDevice(event);
   }
+
   void TestHandle(transport_manager::TransportAdapterEvent test_event) {
     Handle(test_event);
+  }
+
+  void TestHandle(::protocol_handler::RawMessagePtr msg) {
+    Handle(msg);
   }
 };
 
