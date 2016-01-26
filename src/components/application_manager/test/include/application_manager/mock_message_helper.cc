@@ -171,11 +171,6 @@ void MessageHelper::SendGetListOfPermissionsResponse(
       permissions, correlation_id);
 }
 
-void MessageHelper::GetConnectedDevicesMAC(
-    std::vector<std::string>& device_macs) {
-  MockMessageHelper::message_helper_mock()->GetConnectedDevicesMAC(device_macs);
-}
-
 void MessageHelper::SendOnPermissionsChangeNotification(
     uint32_t connection_key, const policy::Permissions& permissions) {
   MockMessageHelper::message_helper_mock()->SendOnPermissionsChangeNotification(

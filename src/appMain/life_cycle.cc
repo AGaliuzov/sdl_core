@@ -30,7 +30,7 @@
 * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "./life_cycle.h"
+#include "life_cycle.h"
 #include "utils/signals.h"
 #include "config_profile/profile.h"
 #ifdef CUSTOMER_PASA
@@ -71,39 +71,38 @@ void StopThread(System::Thread* thread) {
 }  // namespace
 
 LifeCycle::LifeCycle()
-    : transport_manager_(NULL),
-      protocol_handler_(NULL)
+    : transport_manager_(NULL)
+    , protocol_handler_(NULL)
+    , connection_handler_(NULL)
+    , app_manager_(NULL)
 #ifdef ENABLE_SECURITY
-      ,
-      crypto_manager_(NULL),
-      security_manager_(NULL)
+    , crypto_manager_(NULL)
+    , security_manager_(NULL)
 #endif  // ENABLE_SECURITY
-      ,
-      hmi_message_adapter_(NULL)
+    , hmi_handler_(NULL)
+    , hmi_message_adapter_(NULL)
+    , media_manager_(NULL)
 #ifdef TIME_TESTER
-      ,
-      time_tester_(NULL)
+    , time_tester_(NULL)
 #endif  // TIME_TESTER
 #ifdef DBUS_HMIADAPTER
-      ,
-      dbus_adapter_(NULL),
-      dbus_adapter_thread_(NULL)
+    , dbus_adapter_(NULL)
+    , dbus_adapter_thread_(NULL)
 #endif  // DBUS_HMIADAPTER
 #ifdef MESSAGEBROKER_HMIADAPTER
-      ,
-      mb_adapter_(NULL),
-      message_broker_server_(NULL),
-      mb_thread_(NULL),
-      mb_server_thread_(NULL),
-      mb_adapter_thread_(NULL)
+    , mb_adapter_(NULL)
+    , message_broker_(NULL)
+    , message_broker_server_(NULL)
+    , mb_thread_(NULL)
+    , mb_server_thread_(NULL)
+    , mb_adapter_thread_(NULL)
 #endif  // MESSAGEBROKER_HMIADAPTER
 #ifdef CUSTOMER_PASA
 // Todd: PASA support
 #ifdef PASA_HMI
-      ,
-      mb_pasa_adapter_(NULL),
-      mb_pasa_adapter_thread_(NULL),
-      low_voltage_(false)
+    , mb_pasa_adapter_(NULL)
+    , mb_pasa_adapter_thread_(NULL)
+    , low_voltage_(false)
 #endif  // PASA_HMI
 #endif  // CUSTOMER_PASA
 {
@@ -111,40 +110,41 @@ LifeCycle::LifeCycle()
 
 bool LifeCycle::StartComponents() {
   LOG4CXX_AUTO_TRACE(logger_);
+  DCHECK(transport_manager_ == NULL);
   transport_manager_ = transport_manager::TransportManagerDefault::instance();
-  DCHECK(transport_manager_ != NULL);
 
-  protocol_handler_ = new protocol_handler::ProtocolHandlerImpl(
-      transport_manager_,
-      profile::Profile::instance()->message_frequency_time(),
-      profile::Profile::instance()->message_frequency_count(),
-      profile::Profile::instance()->malformed_message_filtering(),
-      profile::Profile::instance()->malformed_frequency_time(),
-      profile::Profile::instance()->malformed_frequency_count(),
-      profile::Profile::instance()->multiframe_waiting_timeout());
-  DCHECK(protocol_handler_ != NULL);
+  DCHECK(connection_handler_ == NULL);
+  connection_handler_ = connection_handler::ConnectionHandlerImpl::instance();
 
-  if (!application_manager::ApplicationManagerImpl::instance()->Init()) {
-    LOG4CXX_ERROR(logger_, "Application manager init failed.");
-    return false;
-  }
+  //TODO(AKutsan) : APPLINK-20265 Singletons should be removed
+  protocol_handler_ =
+      new protocol_handler::ProtocolHandlerImpl(*(profile::Profile::instance()),
+                                                *connection_handler_,
+                                                *transport_manager_);
+
+  DCHECK(app_manager_ == NULL);
+  app_manager_ = application_manager::ApplicationManagerImpl::instance();
+  DCHECK(hmi_handler_ == NULL);
+  hmi_handler_ = hmi_message_handler::HMIMessageHandlerImpl::instance();
 
 #ifdef ENABLE_SECURITY
   security_manager_ = new security_manager::SecurityManagerImpl();
   crypto_manager_ = new security_manager::CryptoManagerImpl();
+  media_manager_ = media_manager::MediaManagerImpl::instance();
 
+  if (!app_manager_->Init()) {
+    LOG4CXX_ERROR(logger_, "Application manager init failed.");
+    return false;
+  }
   security_manager::Protocol protocol;
-  if (profile::Profile::instance()->security_manager_protocol_name() ==
-      "TLSv1.0") {
+  const profile::Profile* profile_pointer = profile::Profile::instance();
+  if (profile_pointer->security_manager_protocol_name() == "TLSv1.0") {
     protocol = security_manager::TLSv1;
-  } else if (profile::Profile::instance()->security_manager_protocol_name() ==
-             "TLSv1.1") {
+  } else if (profile_pointer->security_manager_protocol_name() == "TLSv1.1") {
     protocol = security_manager::TLSv1_1;
-  } else if (profile::Profile::instance()->security_manager_protocol_name() ==
-             "TLSv1.2") {
+  } else if (profile_pointer->security_manager_protocol_name() == "TLSv1.2") {
     protocol = security_manager::TLSv1_2;
-  } else if (profile::Profile::instance()->security_manager_protocol_name() ==
-             "SSLv3") {
+  } else if (profile_pointer->security_manager_protocol_name() == "SSLv3") {
     protocol = security_manager::SSLv3;
   } else {
     LOG4CXX_ERROR(
@@ -158,7 +158,8 @@ bool LifeCycle::StartComponents() {
   if (!crypto_manager_->Init(
           mode == "SERVER" ? security_manager::SERVER
                            : security_manager::CLIENT,
-          protocol, policy::PolicyHandler::instance()->RetrieveCertificate(),
+          protocol,
+          policy::PolicyHandler::instance()->RetrieveCertificate(),
           profile::Profile::instance()->ciphers_list(),
           profile::Profile::instance()->verify_peer(),
           profile::Profile::instance()->ca_cert_path(),
@@ -169,36 +170,25 @@ bool LifeCycle::StartComponents() {
 #endif  // ENABLE_SECURITY
 
   transport_manager_->AddEventListener(protocol_handler_);
-  transport_manager_->AddEventListener(
-      connection_handler::ConnectionHandlerImpl::instance());
+  transport_manager_->AddEventListener(connection_handler_);
 
-  hmi_message_handler::HMIMessageHandlerImpl::instance()->set_message_observer(
-      application_manager::ApplicationManagerImpl::instance());
+  hmi_handler_->set_message_observer(app_manager_);
 
-  protocol_handler_->set_session_observer(
-      connection_handler::ConnectionHandlerImpl::instance());
-  protocol_handler_->AddProtocolObserver(
-      media_manager::MediaManagerImpl::instance());
-  protocol_handler_->AddProtocolObserver(
-      application_manager::ApplicationManagerImpl::instance());
+  protocol_handler_->AddProtocolObserver(media_manager_);
+  protocol_handler_->AddProtocolObserver(app_manager_);
 #ifdef ENABLE_SECURITY
   protocol_handler_->AddProtocolObserver(security_manager_);
   protocol_handler_->set_security_manager(security_manager_);
 #endif  // ENABLE_SECURITY
-  media_manager::MediaManagerImpl::instance()->SetProtocolHandler(
-      protocol_handler_);
+  media_manager_->SetProtocolHandler(protocol_handler_);
 
-  connection_handler::ConnectionHandlerImpl::instance()->set_transport_manager(
-      transport_manager_);
-  connection_handler::ConnectionHandlerImpl::instance()->set_protocol_handler(
-      protocol_handler_);
-  connection_handler::ConnectionHandlerImpl::instance()
-      ->set_connection_handler_observer(
-          application_manager::ApplicationManagerImpl::instance());
+  connection_handler_->set_transport_manager(transport_manager_);
+  connection_handler_->set_protocol_handler(protocol_handler_);
+  connection_handler_->set_connection_handler_observer(app_manager_);
 
 #ifdef ENABLE_SECURITY
   security_manager_->AddListener(
-        application_manager::ApplicationManagerImpl::instance());
+      application_manager::ApplicationManagerImpl::instance());
   security_manager_->set_session_observer(
       connection_handler::ConnectionHandlerImpl::instance());
   security_manager_->set_protocol_handler(protocol_handler_);
@@ -215,14 +205,9 @@ bool LifeCycle::StartComponents() {
 #endif  // TIME_TESTER
   // It's important to initialise TM after setting up listener chain
   // [TM -> CH -> AM], otherwise some events from TM could arrive at nowhere
-  application_manager::ApplicationManagerImpl::instance()->set_protocol_handler(
-      protocol_handler_);
-  application_manager::ApplicationManagerImpl::instance()
-      ->set_connection_handler(
-          connection_handler::ConnectionHandlerImpl::instance());
-  application_manager::ApplicationManagerImpl::instance()
-      ->set_hmi_message_handler(
-          hmi_message_handler::HMIMessageHandlerImpl::instance());
+  app_manager_->set_protocol_handler(protocol_handler_);
+  app_manager_->set_connection_handler(connection_handler_);
+  app_manager_->set_hmi_message_handler(hmi_handler_);
 
   transport_manager_->Init();
 #ifndef CUSTOMER_PASA
@@ -252,8 +237,9 @@ bool LifeCycle::InitMessageSystem() {
   LOG4CXX_INFO(logger_, "StartAppMgr JSONRPC 2.0 controller receiver thread!");
   mb_pasa_adapter_thread_ = new System::Thread(
       new System::ThreadArgImpl<hmi_message_handler::MessageBrokerAdapter>(
-          *mb_pasa_adapter_, &hmi_message_handler::MessageBrokerAdapter::
-                                 SubscribeAndBeginReceiverThread,
+          *mb_pasa_adapter_,
+          &hmi_message_handler::MessageBrokerAdapter::
+              SubscribeAndBeginReceiverThread,
           NULL));
   mb_pasa_adapter_thread_->Start(false);
   NameMessageBrokerThread(*mb_pasa_adapter_thread_, "MB Adapter");
@@ -297,8 +283,7 @@ bool LifeCycle::InitMessageSystem() {
       profile::Profile::instance()->server_address(),
       profile::Profile::instance()->server_port());
 
-  hmi_message_handler::HMIMessageHandlerImpl::instance()->AddHMIMessageAdapter(
-      mb_adapter_);
+  hmi_handler_->AddHMIMessageAdapter(mb_adapter_);
   if (!mb_adapter_->Connect()) {
     LOG4CXX_FATAL(logger_, "Cannot connect to remote peer!");
     // TODO free memory mb_adapter_
@@ -306,10 +291,13 @@ bool LifeCycle::InitMessageSystem() {
   }
 
   LOG4CXX_INFO(logger_, "Start CMessageBroker thread!");
+  DCHECK(message_broker_ == NULL)
+  message_broker_ = NsMessageBroker::CMessageBroker::getInstance();
   mb_thread_ = new System::Thread(
       new System::ThreadArgImpl<NsMessageBroker::CMessageBroker>(
-          *NsMessageBroker::CMessageBroker::getInstance(),
-          &NsMessageBroker::CMessageBroker::MethodForThread, NULL));
+          *message_broker_,
+          &NsMessageBroker::CMessageBroker::MethodForThread,
+          NULL));
   mb_thread_->Start(false);
   // Thread can be named only when started because before that point
   // thread doesn't have valid Id to associate name with
@@ -318,7 +306,8 @@ bool LifeCycle::InitMessageSystem() {
   LOG4CXX_INFO(logger_, "Start MessageBroker TCP server thread!");
   mb_server_thread_ =
       new System::Thread(new System::ThreadArgImpl<NsMessageBroker::TcpServer>(
-          *message_broker_server_, &NsMessageBroker::TcpServer::MethodForThread,
+          *message_broker_server_,
+          &NsMessageBroker::TcpServer::MethodForThread,
           NULL));
   mb_server_thread_->Start(false);
   NameMessageBrokerThread(*mb_server_thread_, "MB TCPServer");
@@ -326,8 +315,9 @@ bool LifeCycle::InitMessageSystem() {
   LOG4CXX_INFO(logger_, "StartAppMgr JSONRPC 2.0 controller receiver thread!");
   mb_adapter_thread_ = new System::Thread(
       new System::ThreadArgImpl<hmi_message_handler::MessageBrokerAdapter>(
-          *mb_adapter_, &hmi_message_handler::MessageBrokerAdapter::
-                            SubscribeAndBeginReceiverThread,
+          *mb_adapter_,
+          &hmi_message_handler::MessageBrokerAdapter::
+              SubscribeAndBeginReceiverThread,
           NULL));
   mb_adapter_thread_->Start(false);
   NameMessageBrokerThread(*mb_adapter_thread_, "MB Adapter");
@@ -415,7 +405,7 @@ void LifeCycle::LowVoltage() {
   LOG4CXX_TRACE(logger_, "Good night!");
   low_voltage_ = true;
   transport_manager_->Visibility(false);
-  application_manager::ApplicationManagerImpl::instance()->OnLowVoltage();
+  app_manager_->OnLowVoltage();
 }
 
 void LifeCycle::WakeUp() {
@@ -423,7 +413,7 @@ void LifeCycle::WakeUp() {
   DCHECK(low_voltage_ == true);
 
   LOG4CXX_TRACE(logger_, "Wake up and sing!");
-  application_manager::ApplicationManagerImpl::instance()->OnWakeUp();
+  app_manager_->OnWakeUp();
   transport_manager_->Reinit();
   transport_manager_->Visibility(true);
   low_voltage_ = false;
@@ -432,21 +422,26 @@ void LifeCycle::WakeUp() {
 
 void LifeCycle::StopComponents() {
   LOG4CXX_AUTO_TRACE(logger_);
+  DCHECK_OR_RETURN_VOID(hmi_handler_)
+  hmi_handler_->set_message_observer(NULL);
 
-  hmi_message_handler::HMIMessageHandlerImpl::instance()->set_message_observer(
-      NULL);
-  connection_handler::ConnectionHandlerImpl::instance()
-      ->set_connection_handler_observer(NULL);
-  protocol_handler_->RemoveProtocolObserver(
-      application_manager::ApplicationManagerImpl::instance());
-  application_manager::ApplicationManagerImpl::instance()->Stop();
+  DCHECK_OR_RETURN_VOID(connection_handler_);
+  connection_handler_->set_connection_handler_observer(NULL);
+
+  DCHECK_OR_RETURN_VOID(protocol_handler_);
+  protocol_handler_->RemoveProtocolObserver(app_manager_);
+
+  DCHECK_OR_RETURN_VOID(app_manager_);
+  app_manager_->Stop();
 
   LOG4CXX_INFO(logger_, "Stopping Protocol Handler");
-  protocol_handler_->RemoveProtocolObserver(
-      media_manager::MediaManagerImpl::instance());
+  DCHECK_OR_RETURN_VOID(protocol_handler_);
+  protocol_handler_->RemoveProtocolObserver(media_manager_);
+
 #ifdef ENABLE_SECURITY
   protocol_handler_->RemoveProtocolObserver(security_manager_);
-
+  DCHECK_OR_RETURN_VOID(security_manager_);
+  security_manager_->RemoveListener(app_manager_);
   LOG4CXX_INFO(logger_, "Destroying Crypto Manager");
   delete crypto_manager_;
 
@@ -456,10 +451,12 @@ void LifeCycle::StopComponents() {
   protocol_handler_->Stop();
 
   LOG4CXX_INFO(logger_, "Destroying Media Manager");
-  media_manager::MediaManagerImpl::instance()->SetProtocolHandler(NULL);
+  DCHECK_OR_RETURN_VOID(media_manager_);
+  media_manager_->SetProtocolHandler(NULL);
   media_manager::MediaManagerImpl::destroy();
 
   LOG4CXX_INFO(logger_, "Destroying Transport Manager.");
+  DCHECK_OR_RETURN_VOID(transport_manager_);
   transport_manager_->Visibility(false);
   transport_manager_->Stop();
   transport_manager::TransportManagerDefault::destroy();
@@ -483,8 +480,8 @@ void LifeCycle::StopComponents() {
 
 #ifdef CUSTOMER_PASA
   if (mb_pasa_adapter_) {
-    hmi_message_handler::HMIMessageHandlerImpl::instance()
-        ->RemoveHMIMessageAdapter(mb_pasa_adapter_);
+    DCHECK_OR_RETURN_VOID(hmi_handler_);
+    hmi_handler_->RemoveHMIMessageAdapter(mb_pasa_adapter_);
     mb_pasa_adapter_->exitReceivingThread();
     StopThread(mb_pasa_adapter_thread_);
     delete mb_pasa_adapter_;
@@ -493,8 +490,8 @@ void LifeCycle::StopComponents() {
 #else
 #ifdef MESSAGEBROKER_HMIADAPTER
   if (mb_adapter_) {
-    hmi_message_handler::HMIMessageHandlerImpl::instance()
-        ->RemoveHMIMessageAdapter(mb_adapter_);
+    DCHECK_OR_RETURN_VOID(hmi_handler_);
+    hmi_handler_->RemoveHMIMessageAdapter(mb_adapter_);
     mb_adapter_->unregisterController();
     mb_adapter_->exitReceivingThread();
     StopThread(mb_adapter_thread_);
@@ -509,8 +506,8 @@ void LifeCycle::StopComponents() {
     message_broker_server_->Close();
     delete message_broker_server_;
   }
-  if (NsMessageBroker::CMessageBroker::getInstance()) {
-    NsMessageBroker::CMessageBroker::getInstance()->stopMessageBroker();
+  if(message_broker_) {
+      message_broker_->stopMessageBroker();
   }
 
   networking::cleanup();
@@ -518,9 +515,9 @@ void LifeCycle::StopComponents() {
 
 #ifdef DBUS_HMIADAPTER
   if (dbus_adapter_) {
-    if (hmi_message_handler::HMIMessageHandlerImpl::instance()) {
-      hmi_message_handler::HMIMessageHandlerImpl::instance()
-          ->RemoveHMIMessageAdapter(dbus_adapter_);
+    DCHECK_OR_RETURN_VOID(hmi_handler_);
+    if (hmi_handler_) {
+      hmi_handler_->RemoveHMIMessageAdapter(dbus_adapter_);
       hmi_message_handler::HMIMessageHandlerImpl::destroy();
     }
     StopThread(dbus_adapter_thread_);

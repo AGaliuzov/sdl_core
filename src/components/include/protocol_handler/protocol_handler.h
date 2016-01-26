@@ -33,7 +33,7 @@
 #define SRC_COMPONENTS_INCLUDE_PROTOCOL_HANDLER_PROTOCOL_HANDLER_H_
 
 #include "protocol/common.h"
-
+#include "protocol_handler/protocol_handler_settings.h"
 /**
  *\namespace protocol_handlerHandler
  *\brief Namespace for SmartDeviceLink ProtocolHandler related functionality.
@@ -41,7 +41,6 @@
 namespace protocol_handler {
 
 class ProtocolObserver;
-
 /**
  * \class ProtocolHandler
  * \brief Interface for component parsing protocol header
@@ -54,14 +53,14 @@ class ProtocolHandler {
    * \param observer Pointer to object of the class implementing
    * IProtocolObserver
    */
-  virtual void AddProtocolObserver(ProtocolObserver *observer) = 0;
+  virtual void AddProtocolObserver(ProtocolObserver* observer) = 0;
 
   /**
    * \brief Removes pointer to higher layer handler for message exchange
    * \param observer Pointer to object of the class implementing
    * IProtocolObserver.
    */
-  virtual void RemoveProtocolObserver(ProtocolObserver *observer) = 0;
+  virtual void RemoveProtocolObserver(ProtocolObserver* observer) = 0;
 
   /**
    * \brief Method for sending message to Mobile Application.
@@ -101,12 +100,17 @@ class ProtocolHandler {
                               uint8_t session_id,
                               uint8_t service_type) = 0;
 
+  /**
+   * \brief Protocol handler settings getter
+   * \return pointer to protocol handler settings class
+   */
+  virtual const ProtocolHandlerSettings& get_settings() const = 0;
+
  protected:
   /**
    * \brief Destructor
    */
-  virtual ~ProtocolHandler() {
-  }
+  virtual ~ProtocolHandler() {}
 };
 }  //  namespace protocol_handler
 #endif  // SRC_COMPONENTS_INCLUDE_PROTOCOL_HANDLER_PROTOCOL_HANDLER_H_
