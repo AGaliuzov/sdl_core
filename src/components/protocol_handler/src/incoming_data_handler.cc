@@ -141,6 +141,8 @@ RESULT_CODE IncomingDataHandler::CreateFrame(
   std::vector<uint8_t>::iterator data_it = incoming_data.begin();
   size_t data_size = incoming_data.size();
 
+  last_portion_of_data_was_malformed_ = false;
+
   while (data_size >= MIN_HEADER_SIZE) {
     header_.deserialize(&*data_it, data_size);
     const RESULT_CODE validate_result =
