@@ -30,12 +30,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <gtest/gtest.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
+#include "gtest/gtest.h"
 #include <fstream>
+#include <sstream>
+#include <string>
 #include <openssl/ssl.h>
 
 #include "security_manager/crypto_manager.h"
@@ -219,12 +217,12 @@ TEST_F(SSLTest, OnTSL2Protocol_BrokenHandshake) {
   size_t client_buf_len;
   ASSERT_EQ(security_manager::SSLContext::Handshake_Result_Success,
             client_ctx->StartHandshake(&client_buf, &client_buf_len));
-  ASSERT_FALSE(client_buf == NULL);
-  ASSERT_GT(client_buf_len, 0u);
+  ASSERT_FALSE(NULL == client_buf);
+  ASSERT_LT(0u, client_buf_len);
   // Broke 3 bytes for get abnormal fail of handshake
-  const_cast<uint8_t *>(client_buf)[0] ^= 0xFF;
-  const_cast<uint8_t *>(client_buf)[client_buf_len / 2] ^= 0xFF;
-  const_cast<uint8_t *>(client_buf)[client_buf_len - 1] ^= 0xFF;
+  const_cast<uint8_t*>(client_buf)[0] ^= 0xFF;
+  const_cast<uint8_t*>(client_buf)[client_buf_len / 2] ^= 0xFF;
+  const_cast<uint8_t*>(client_buf)[client_buf_len - 1] ^= 0xFF;
   ASSERT_EQ(security_manager::SSLContext::Handshake_Result_AbnormalFail,
             server_ctx->DoHandshakeStep(client_buf, client_buf_len, &server_buf,
                                         &server_buf_len));
@@ -240,15 +238,15 @@ TEST_F(SSLTest, OnTSL2Protocol_Positive) {
 
   ASSERT_EQ(client_ctx->StartHandshake(&client_buf, &client_buf_len),
             security_manager::SSLContext::Handshake_Result_Success);
-  ASSERT_FALSE(client_buf == NULL);
-  ASSERT_GT(client_buf_len, 0u);
+  ASSERT_FALSE(NULL == client_buf);
+  ASSERT_LT(0u, client_buf_len);
 
   for (;;) {
     ASSERT_EQ(security_manager::SSLContext::Handshake_Result_Success,
               server_ctx->DoHandshakeStep(client_buf, client_buf_len,
                                           &server_buf, &server_buf_len));
-    ASSERT_FALSE(server_buf == NULL);
-    ASSERT_GT(server_buf_len, 0u);
+    ASSERT_FALSE(NULL == server_buf);
+    ASSERT_LT(0u, server_buf_len);
 
     ASSERT_EQ(security_manager::SSLContext::Handshake_Result_Success,
               client_ctx->DoHandshakeStep(server_buf, server_buf_len,
@@ -257,32 +255,32 @@ TEST_F(SSLTest, OnTSL2Protocol_Positive) {
       break;
     }
 
-    ASSERT_FALSE(client_buf == NULL);
-    ASSERT_GT(client_buf_len, 0u);
+    ASSERT_FALSE(NULL == client_buf);
+    ASSERT_LT(0u, client_buf_len);
   }
   // Expect empty buffers after init complete
-  ASSERT_TRUE(client_buf == NULL);
-  ASSERT_EQ(client_buf_len, 0u);
+  ASSERT_TRUE(NULL == client_buf);
+  ASSERT_EQ(0u, client_buf_len);
   // expect both side initialization complete
   EXPECT_TRUE(client_ctx->IsInitCompleted());
   EXPECT_TRUE(server_ctx->IsInitCompleted());
 
   // Encrypt text on client side
-  const uint8_t* text = reinterpret_cast<const uint8_t *>("abra");
+  const uint8_t* text = reinterpret_cast<const uint8_t*>("abra");
   const uint8_t* encrypted_text = 0;
   size_t text_len = 4;
   size_t encrypted_text_len;
   EXPECT_TRUE(client_ctx->Encrypt(text, text_len, &encrypted_text,
                                   &encrypted_text_len));
 
-  ASSERT_NE(encrypted_text, reinterpret_cast<void *>(NULL));
-  ASSERT_GT(encrypted_text_len, 0u);
+  ASSERT_NE(reinterpret_cast<void*>(NULL),encrypted_text);
+  ASSERT_LT(0u,encrypted_text_len);
 
   // Decrypt text on server side
   EXPECT_TRUE(server_ctx->Decrypt(encrypted_text, encrypted_text_len, &text,
                                   &text_len));
-  ASSERT_NE(text, reinterpret_cast<void *>(NULL));
-  ASSERT_GT(text_len, 0u);
+  ASSERT_NE(reinterpret_cast<void*>(NULL), text);
+  ASSERT_LT(0u,text_len);
 
   ASSERT_EQ(strncmp(reinterpret_cast<const char *>(text), "abra", 4), 0);
 }
@@ -296,34 +294,34 @@ TEST_F(SSLTest, OnTSL2Protocol_EcncryptionFail) {
             client_ctx->StartHandshake(&client_buf, &client_buf_len));
 
   while (!server_ctx->IsInitCompleted()) {
-    ASSERT_FALSE(client_buf == NULL);
-    ASSERT_GT(client_buf_len, 0u);
+    ASSERT_FALSE(NULL == client_buf);
+    ASSERT_LT(0u, client_buf_len);
     ASSERT_EQ(security_manager::SSLContext::Handshake_Result_Success,
               server_ctx->DoHandshakeStep(client_buf, client_buf_len,
                                           &server_buf, &server_buf_len));
-    ASSERT_FALSE(server_buf == NULL);
-    ASSERT_GT(server_buf_len, 0u);
+    ASSERT_FALSE(NULL == server_buf);
+    ASSERT_LT(0u, server_buf_len);
 
     ASSERT_EQ(security_manager::SSLContext::Handshake_Result_Success,
               client_ctx->DoHandshakeStep(server_buf, server_buf_len,
                                           &client_buf, &client_buf_len));
   }
-  // expect empty buffers after init complete
-  ASSERT_TRUE(client_buf == NULL);
-  ASSERT_EQ(client_buf_len, 0u);
-  // expect both side initialization complete
+  // Expect empty buffers after init complete
+  ASSERT_TRUE(NULL == client_buf);
+  ASSERT_EQ(0u, client_buf_len);
+  // Expect both side initialization complete
   EXPECT_TRUE(client_ctx->IsInitCompleted());
   EXPECT_TRUE(server_ctx->IsInitCompleted());
 
   // Encrypt text on client side
-  const uint8_t* text = reinterpret_cast<const uint8_t *>("abra");
+  const uint8_t* text = reinterpret_cast<const uint8_t*>("abra");
   const uint8_t* encrypted_text = 0;
   size_t text_len = 4;
   size_t encrypted_text_len;
   EXPECT_TRUE(client_ctx->Encrypt(text, text_len, &encrypted_text,
                                   &encrypted_text_len));
-  ASSERT_NE(encrypted_text, reinterpret_cast<void *>(NULL));
-  ASSERT_GT(encrypted_text_len, 0u);
+  ASSERT_NE(reinterpret_cast<void*>(NULL), encrypted_text);
+  ASSERT_LT(0u, encrypted_text_len);
 
   std::vector<uint8_t> broken(encrypted_text,
                               encrypted_text + encrypted_text_len);
@@ -352,13 +350,13 @@ TEST_P(SSLTestParam, ClientAndServerNotTLSv1_2_HandshakeFailed) {
 
   ASSERT_EQ(security_manager::SSLContext::Handshake_Result_AbnormalFail,
             client_ctx->StartHandshake(&client_buf, &client_buf_len));
-  EXPECT_TRUE(client_buf == NULL);
-  EXPECT_EQ(client_buf_len, 0u);
+  EXPECT_TRUE(NULL == client_buf);
+  EXPECT_EQ(0u, client_buf_len);
   ASSERT_EQ(security_manager::SSLContext::Handshake_Result_Success,
             server_ctx->DoHandshakeStep(client_buf, client_buf_len, &server_buf,
                                         &server_buf_len));
-  EXPECT_TRUE(server_buf == NULL);
-  EXPECT_EQ(server_buf_len, 0u);
+  EXPECT_TRUE(NULL == server_buf);
+  EXPECT_EQ(0u, server_buf_len);
 
   EXPECT_FALSE(server_ctx->IsInitCompleted());
 }
@@ -380,13 +378,13 @@ TEST_P(SSLTestForTLS1_2, HandshakeFailed) {
   size_t client_buf_len;
   ASSERT_EQ(security_manager::SSLContext::Handshake_Result_Success,
             client_ctx->StartHandshake(&client_buf, &client_buf_len));
-  EXPECT_FALSE(client_buf == NULL);
-  EXPECT_GE(client_buf_len, 0u);
+  EXPECT_FALSE(NULL == client_buf);
+  ASSERT_LT(0u, client_buf_len);
   ASSERT_EQ(security_manager::SSLContext::Handshake_Result_AbnormalFail,
             server_ctx->DoHandshakeStep(client_buf, client_buf_len, &server_buf,
                                         &server_buf_len));
-  EXPECT_TRUE(server_buf == NULL);
-  EXPECT_EQ(server_buf_len, 0u);
+  EXPECT_TRUE(NULL == server_buf);
+  EXPECT_EQ(0u, server_buf_len);
 
   EXPECT_FALSE(server_ctx->IsInitCompleted());
 }

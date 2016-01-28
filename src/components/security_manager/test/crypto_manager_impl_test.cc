@@ -30,10 +30,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 #include <fstream>
-#include <iostream>
-#include <sstream>
+#include <string>
+#include <iterator>
 #include <limits>
 #include "security_manager/crypto_manager_impl.h"
 
@@ -62,6 +62,18 @@ namespace crypto_manager_test {
 
 class CryptoManagerTest : public testing::Test {
  protected:
+  static void SetUpTestCase() {
+    std::ifstream certificate_file("server/spt_credential.p12.enc");
+    EXPECT_TRUE(certificate_file.good())
+        << "Could not open certificate data file";
+
+    const std::string cetrificate(
+        (std::istreambuf_iterator<char>(certificate_file)),
+        std::istreambuf_iterator<char>());
+    EXPECT_FALSE(cetrificate.empty()) << "Certificate data file is empty";
+    certificate_data_base64 = cetrificate;
+  }
+
   void SetUp() OVERRIDE {
     ASSERT_FALSE(certificate_data_base64.empty());
     crypto_manager = new security_manager::CryptoManagerImpl();
@@ -75,24 +87,10 @@ class CryptoManagerTest : public testing::Test {
         false, "/tmp/ca_cert.crt", updates_before_hour);
     ASSERT_TRUE(crypto_manager_initialization);
   }
-  static std::string GenerateCertificateString() {
-    std::ifstream certificate_file("server/spt_credential.p12.enc");
-    EXPECT_TRUE(certificate_file.good())
-        << "Could not open certificate data file";
-
-    const std::string cetrificate(
-        (std::istreambuf_iterator<char>(certificate_file)),
-        std::istreambuf_iterator<char>());
-    EXPECT_FALSE(cetrificate.empty()) << "Certificate data file is empty";
-    return cetrificate;
-  }
-
-  static const std::string certificate_data_base64;
-
+  static std::string certificate_data_base64;
   security_manager::CryptoManager* crypto_manager;
 };
-const std::string CryptoManagerTest::certificate_data_base64 =
-    GenerateCertificateString();
+std::string CryptoManagerTest::certificate_data_base64;
 
 TEST_F(CryptoManagerTest, UsingBeforeInit) {
   ASSERT_FALSE(crypto_manager->is_initialized());
@@ -207,7 +205,7 @@ TEST_F(CryptoManagerTest, OnCertificateUpdated_MalformedSign) {
 
   std::string cetrificate = certificate_data_base64;
   ASSERT_FALSE(cetrificate.empty());
-  // corrupt the middle symbol
+  // Corrupt the middle symbol
   cetrificate[cetrificate.size() / 2] = '?';
 
   EXPECT_FALSE(crypto_manager->OnCertificateUpdated(cetrificate));
