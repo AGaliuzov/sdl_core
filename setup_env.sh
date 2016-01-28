@@ -96,7 +96,6 @@ APPLINK_FTP_SERVER="ftp://ford-applink.luxoft.com"
 CMAKE_DEB_SRC=${APPLINK_FTP_SERVER}"/Distrs/CMake/deb"
 CMAKE_DEB_DST="/tmp/cmake"
 TEMP_FOLDER="/tmp/APPLINK"
-AVAHI_CLIENT_LIBRARY="libavahi-client-dev"
 DOXYGEN="doxygen"
 GRAPHVIZ="graphviz"
 MSCGEN="mscgen"
@@ -328,10 +327,6 @@ echo $OK
 
 echo "Installing pulseaudio development files"
 apt-install ${PULSEAUDIO_DEV}
-echo $OK
-
-echo "Installing Avahi-client-dev library"
-apt-install ${AVAHI_CLIENT_LIBRARY}
 echo $OK
 
 echo "Installing Libudev-dev library"

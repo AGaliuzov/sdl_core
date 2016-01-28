@@ -61,7 +61,6 @@ run_test "log4cxx library" 				"dpkg-query -W -f='${Status}\n' liblog4cxx10 libl
 run_test "Chromium browser" 				"dpkg-query -W -f='${Status}\n' chromium-browser"
 run_test "Chromium ffmpeg codec" 				"dpkg-query -W -f='${Status}\n' chromium-codecs-ffmpeg-extra"
 run_test "Pulseaudio development files" 			"dpkg-query -W -f='${Status}\n' libpulse-dev"
-run_test "Avahi client development files" 			"dpkg-query -W -f='${Status}\n' libavahi-client-dev"
 run_test "libudev development files" 			"dpkg-query -W -f='${Status}\n' libudev-dev"
 run_test "BlueZ tools" 					"dpkg-query -W -f='${Status}\n' bluez-tools"
 run_test "Gstreamer development files" 			"dpkg-query -W -f='${Status}\n'  gstreamer1.0-alsa gstreamer1.0-libav gstreamer1.0-libav-dbg gstreamer1.0-pulseaudio gstreamer1.0-tools gstreamer1.0-x libgstreamer1.0-0 libgstreamer1.0-0-dbg libgstreamer1.0-dev libglib2.0-0 libglib2.0-bin libglib2.0-data libglib2.0-dev"
