@@ -52,7 +52,11 @@
 
 namespace {
 const size_t updates_before_hour = 24;
-}
+const uint8_t* server_buf;
+const uint8_t* client_buf;
+size_t server_buf_len;
+size_t client_buf_len;
+}  // namespace
 
 namespace test {
 namespace components {
@@ -67,11 +71,11 @@ struct ProtocolAndCipher {
 
   ProtocolAndCipher(security_manager::Protocol s_protocol,
                     security_manager::Protocol c_protocol,
-                    std::string s_ciphers_list, std::string c_ciphers_list) {
-    server_protocol = s_protocol;
-    client_protocol = c_protocol;
-    server_ciphers_list = s_ciphers_list;
-    client_ciphers_list = c_ciphers_list;
+                    std::string s_ciphers_list, std::string c_ciphers_list)
+      : server_protocol(s_protocol),
+        client_protocol(c_protocol),
+        server_ciphers_list(s_ciphers_list),
+        client_ciphers_list(c_ciphers_list) {
   }
 };
 
@@ -110,6 +114,11 @@ class SSLTest : public testing::Test {
 
     ctx.expected_cn = "server";
     client_ctx->SetHandshakeContext(ctx);
+
+    server_buf = NULL;
+    client_buf = NULL;
+    server_buf_len = 0u;
+    client_buf_len = 0u;
   }
 
   virtual void TearDown() {
@@ -158,6 +167,11 @@ class SSLTestParam : public testing::TestWithParam<ProtocolAndCipher> {
 
     ctx.expected_cn = "server";
     client_ctx->SetHandshakeContext(ctx);
+
+    server_buf = NULL;
+    client_buf = NULL;
+    server_buf_len = 0u;
+    client_buf_len = 0u;
   }
 
   virtual void TearDown() {
@@ -211,10 +225,6 @@ INSTANTIATE_TEST_CASE_P(
                           FORD_CIPHER, FORD_CIPHER)));
 
 TEST_F(SSLTest, OnTSL2Protocol_BrokenHandshake) {
-  const uint8_t* server_buf;
-  const uint8_t* client_buf;
-  size_t server_buf_len;
-  size_t client_buf_len;
   ASSERT_EQ(security_manager::SSLContext::Handshake_Result_Success,
             client_ctx->StartHandshake(&client_buf, &client_buf_len));
   ASSERT_FALSE(NULL == client_buf);
@@ -231,11 +241,6 @@ TEST_F(SSLTest, OnTSL2Protocol_BrokenHandshake) {
 }
 
 TEST_F(SSLTest, OnTSL2Protocol_Positive) {
-  const uint8_t* server_buf;
-  const uint8_t* client_buf;
-  size_t server_buf_len;
-  size_t client_buf_len;
-
   ASSERT_EQ(client_ctx->StartHandshake(&client_buf, &client_buf_len),
             security_manager::SSLContext::Handshake_Result_Success);
   ASSERT_FALSE(NULL == client_buf);
@@ -273,23 +278,19 @@ TEST_F(SSLTest, OnTSL2Protocol_Positive) {
   EXPECT_TRUE(client_ctx->Encrypt(text, text_len, &encrypted_text,
                                   &encrypted_text_len));
 
-  ASSERT_NE(reinterpret_cast<void*>(NULL),encrypted_text);
-  ASSERT_LT(0u,encrypted_text_len);
+  ASSERT_NE(reinterpret_cast<void*>(NULL), encrypted_text);
+  ASSERT_LT(0u, encrypted_text_len);
 
   // Decrypt text on server side
   EXPECT_TRUE(server_ctx->Decrypt(encrypted_text, encrypted_text_len, &text,
                                   &text_len));
   ASSERT_NE(reinterpret_cast<void*>(NULL), text);
-  ASSERT_LT(0u,text_len);
+  ASSERT_LT(0u, text_len);
 
   ASSERT_EQ(strncmp(reinterpret_cast<const char *>(text), "abra", 4), 0);
 }
 
 TEST_F(SSLTest, OnTSL2Protocol_EcncryptionFail) {
-  const uint8_t* server_buf;
-  const uint8_t* client_buf;
-  size_t server_buf_len;
-  size_t client_buf_len;
   ASSERT_EQ(security_manager::SSLContext::Handshake_Result_Success,
             client_ctx->StartHandshake(&client_buf, &client_buf_len));
 
@@ -343,11 +344,6 @@ TEST_F(SSLTest, OnTSL2Protocol_EcncryptionFail) {
 }
 
 TEST_P(SSLTestParam, ClientAndServerNotTLSv1_2_HandshakeFailed) {
-  const uint8_t* server_buf;
-  const uint8_t* client_buf;
-  size_t server_buf_len;
-  size_t client_buf_len;
-
   ASSERT_EQ(security_manager::SSLContext::Handshake_Result_AbnormalFail,
             client_ctx->StartHandshake(&client_buf, &client_buf_len));
   EXPECT_TRUE(NULL == client_buf);
@@ -372,10 +368,6 @@ INSTANTIATE_TEST_CASE_P(
                           FORD_CIPHER, FORD_CIPHER)));
 
 TEST_P(SSLTestForTLS1_2, HandshakeFailed) {
-  const uint8_t* server_buf;
-  const uint8_t* client_buf;
-  size_t server_buf_len;
-  size_t client_buf_len;
   ASSERT_EQ(security_manager::SSLContext::Handshake_Result_Success,
             client_ctx->StartHandshake(&client_buf, &client_buf_len));
   EXPECT_FALSE(NULL == client_buf);
