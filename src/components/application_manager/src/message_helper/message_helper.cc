@@ -1635,6 +1635,7 @@ void MessageHelper::SendGetUserFriendlyMessageResponse(
   // If no any messages found - skip sending of "messages" param
   if (msg.empty()) {
     ApplicationManagerImpl::instance()->ManageHMICommand(message);
+    return;
   }
 
   const std::string messages = "messages";
