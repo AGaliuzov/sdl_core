@@ -172,15 +172,15 @@ class PolicyManager : public usage_statistics::StatisticsManager {
     virtual void OnUpdateStarted() = 0;
 
     /**
-     * @brief Check user consent for mobile device data connection
+     * @brief Gets user consent for mobile device data connection
      * @param device_id Unique device identifier
      * @return status of device consent
      */
     virtual DeviceConsent GetUserConsentForDevice(
-      const std::string& device_id) = 0;
+        const std::string& device_id) = 0;
 
     /**
-     * @brief Get user consent for application
+     * @brief Gets user consent for application
      * @param device_id Device id
      * @param policy_app_id Unique application id
      * @param permissions Array of functional groups permissions
@@ -190,19 +190,20 @@ class PolicyManager : public usage_statistics::StatisticsManager {
       std::vector<FunctionalGroupPermission>& permissions) = 0;
 
     /**
-     * @brief Set user consent for mobile device data connection
+     * @brief Sets user consent for mobile device data connection
      * @param device_id Unique device identifier
      * @param is_allowed User consent for usage device data connection
      */
     virtual void SetUserConsentForDevice(const std::string& device_id,
-                                         bool is_allowed) = 0;
+                                         const bool is_allowed) = 0;
 
     /**
-     * @brief Update Application Policies as reaction
+     * @brief Updates Application Policies as reaction
      * on User allowing/disallowing device this app is running on.
      */
-    virtual bool ReactOnUserDevConsentForApp(const std::string app_id,
-        bool is_device_allowed) = 0;
+    virtual bool ReactOnUserDevConsentForApp(const std::string& app_id,
+                                             const bool is_device_allowed) = 0;
+
     /**
      * Sets counter value that passed for receiving PT UPdate.
      */

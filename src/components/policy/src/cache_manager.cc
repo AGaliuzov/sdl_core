@@ -46,6 +46,7 @@
 #include "utils/threads/thread.h"
 #include "utils/threads/thread_delegate.h"
 
+#include "policy/policy_helper.h"
 #include "policy/sql_pt_ext_representation.h"
 
 namespace policy_table = rpc::policy_table_interface_base;
@@ -172,13 +173,13 @@ bool CacheManager::ResetUserConsent() {
 
 bool CacheManager::GetUserPermissionsForDevice(const std::string& device_id,
                                                StringArray& consented_groups,
-                                               StringArray& disallowed_groups) {
-
+                                               StringArray& disallowed_groups) const {
   LOG4CXX_AUTO_TRACE(logger_);
   CACHE_MANAGER_CHECK(false);
   policy_table::DeviceData& device_data = *pt_->policy_table.device_data;
   if (device_data.end() == device_data.find(device_id)) {
-    return true;
+    LOG4CXX_ERROR(logger_, "Device with " << device_id << "was not found in PT");
+    return false;
   }
   const policy_table::DeviceParams& params = device_data[device_id];
   const policy_table::UserConsentRecords& ucr = *(params.user_consent_records);
@@ -476,17 +477,161 @@ bool CacheManager::GetPermissionsForApp(const std::string& device_id,
 
 bool CacheManager::GetDeviceGroupsFromPolicies(
   policy_table::Strings& groups,
-  policy_table::Strings& preconsented_groups) {
+  policy_table::Strings& preconsented_groups) const {
   LOG4CXX_AUTO_TRACE(logger_);
   CACHE_MANAGER_CHECK(false);
   groups = pt_->policy_table.app_policies_section.device.groups;
+  DCHECK(groups.size() == 1 && "Only One group for device must exist");
   preconsented_groups =
       *(pt_->policy_table.app_policies_section.device).preconsented_groups;
   return true;
 }
 
-bool CacheManager::AddDevice(const std::string &device_id,
-                             const std::string &connection_type) {
+bool CacheManager::IsDeviceConsentCached(const std::string& device_id) const {
+  LOG4CXX_AUTO_TRACE(logger_);
+  CACHE_MANAGER_CHECK(false);
+  sync_primitives::AutoLock lock(cached_device_permissions_lock_);
+  CachedDevicePermissions::const_iterator cached_dev_consent_iter;
+  cached_dev_consent_iter = cached_device_permissions_.find(device_id);
+  return cached_dev_consent_iter != cached_device_permissions_.end();
+}
+
+DeviceConsent CacheManager::GetCachedDeviceConsent(
+    const std::string& device_id) const {
+  LOG4CXX_AUTO_TRACE(logger_);
+  sync_primitives::AutoLock lock(cached_device_permissions_lock_);
+  DeviceConsent result = kDeviceHasNoConsent;
+  CACHE_MANAGER_CHECK(result);
+  CachedDevicePermissions::const_iterator cached_dev_consent_iter;
+  cached_dev_consent_iter = cached_device_permissions_.find(device_id);
+  if (cached_dev_consent_iter != cached_device_permissions_.end()) {
+    return cached_dev_consent_iter->second;
+  }
+  return result;
+}
+
+void CacheManager::SaveDeviceConsentToCache(
+    const std::string& device_id, const bool is_allowed) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  CACHE_MANAGER_CHECK_VOID();
+  sync_primitives::AutoLock lock(cached_device_permissions_lock_);
+  DeviceConsent result = is_allowed ? kDeviceAllowed : kDeviceDisallowed;
+  cached_device_permissions_[device_id] = result;
+}
+
+bool CacheManager::GetPermissionsList(StringArray& perm_list) const {
+  // Get device permission groups from app_policies section, which hadn't been
+  // preconsented
+  policy_table::Strings groups;
+  policy_table::Strings preconsented_groups;
+  if (!GetDeviceGroupsFromPolicies(groups, preconsented_groups)) {
+    LOG4CXX_WARN(logger_, "Can't get device groups from policies.");
+    return false;
+  }
+
+  std::for_each(groups.begin(), groups.end(),
+                FunctionalGroupInserter(preconsented_groups, perm_list));
+  return true;
+}
+
+bool CacheManager::HasDeviceSpecifiedConsent(const std::string& device_id,
+                                             const bool is_allowed) const {
+  LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(logger_, "Device :" << device_id);
+  const DeviceConsent current_consent = GetDeviceConsent(device_id);
+  const bool is_current_device_allowed =
+      DeviceConsent::kDeviceAllowed == current_consent ? true : false;
+
+  if (DeviceConsent::kDeviceHasNoConsent == current_consent ||
+      is_current_device_allowed != is_allowed) {
+    return false;
+  }
+  const std::string consent = is_allowed ? "allowed" : "disallowed";
+  LOG4CXX_INFO(logger_, "DeviceGetDeviceGroupsFromPolicies is already "
+                            << consent << ".");
+  return true;
+}
+
+void CacheManager::SetDeviceConsent(const std::string& device_id,
+                                    const bool is_allowed) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  CACHE_MANAGER_CHECK_VOID();
+  if (HasDeviceSpecifiedConsent(device_id, is_allowed)) {
+    return;
+  }
+  ResetCalculatedPermissionsForDevice(device_id);
+  // Remove unpaired mark, if device re-paired and re-consented again
+  if (is_allowed) {
+    SetUnpairedDevice(device_id, false);
+  }
+
+  StringArray list_of_permissions;
+  if (!GetPermissionsList(list_of_permissions) || list_of_permissions.empty()) {
+    LOG4CXX_WARN(logger_, "List of permissions can't be received or empty");
+    return;
+  }
+
+  StringArray consented_groups;
+  StringArray disallowed_groups;
+
+  // Supposed only one group for device date consent
+  if (is_allowed) {
+    consented_groups = list_of_permissions;
+  } else {
+    disallowed_groups = list_of_permissions;
+  }
+
+  if (!SetUserPermissionsForDevice(device_id, consented_groups,
+                                   disallowed_groups)) {
+    LOG4CXX_WARN(logger_, "Can't set user consent for device");
+    return;
+  }
+  SaveDeviceConsentToCache(device_id, is_allowed);
+}
+
+DeviceConsent CacheManager::GetDeviceConsent(
+    const std::string& device_id) const {
+  LOG4CXX_AUTO_TRACE(logger_);
+  CACHE_MANAGER_CHECK(kDeviceHasNoConsent);
+  if (IsDeviceConsentCached(device_id)) {
+    return GetCachedDeviceConsent(device_id);
+  }
+  StringArray list_of_permissions;
+  if (!GetPermissionsList(list_of_permissions)) {
+    return kDeviceDisallowed;
+  }
+
+  // Check device permission groups for user consent in device_data
+  // section
+  if (list_of_permissions.empty()) {
+    return kDeviceAllowed;
+  }
+  StringArray consented_groups;
+  StringArray disallowed_groups;
+  if (!GetUserPermissionsForDevice(device_id, consented_groups,
+                                   disallowed_groups)) {
+    return kDeviceDisallowed;
+  }
+
+  if (consented_groups.empty() && disallowed_groups.empty()) {
+    return kDeviceHasNoConsent;
+  }
+
+  std::sort(list_of_permissions.begin(), list_of_permissions.end());
+  std::sort(consented_groups.begin(), consented_groups.end());
+
+  StringArray to_be_consented_by_user;
+  std::set_difference(list_of_permissions.begin(), list_of_permissions.end(),
+                      consented_groups.begin(), consented_groups.end(),
+                      std::back_inserter(to_be_consented_by_user));
+  if (to_be_consented_by_user.empty()) {
+    return kDeviceAllowed;
+  }
+  return kDeviceDisallowed;
+}
+
+bool CacheManager::AddDevice(const std::string& device_id,
+                             const std::string& connection_type) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   sync_primitives::AutoLock auto_lock(cache_lock_);
@@ -503,12 +648,12 @@ bool CacheManager::AddDevice(const std::string &device_id,
   return true;
 }
 
-bool CacheManager::SetDeviceData(const std::string &device_id,
-                                 const std::string &hardware,
-                                 const std::string &firmware,
-                                 const std::string &os,
-                                 const std::string &os_version,
-                                 const std::string &carrier,
+bool CacheManager::SetDeviceData(const std::string& device_id,
+                                 const std::string& hardware,
+                                 const std::string& firmware,
+                                 const std::string& os,
+                                 const std::string& os_version,
+                                 const std::string& carrier,
                                  const uint32_t number_of_ports,
                                  const std::string& connection_type) {
   LOG4CXX_AUTO_TRACE(logger_);
@@ -1155,6 +1300,12 @@ void CacheManager::ResetCalculatedPermissions() {
   LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(calculated_permissions_lock_);
   calculated_permissions_.clear();
+}
+
+void CacheManager::ResetCalculatedPermissionsForDevice(const std::string& device_id) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  sync_primitives::AutoLock lock(calculated_permissions_lock_);
+  calculated_permissions_.erase(device_id);
 }
 
 void CacheManager::AddCalculatedPermissions(
@@ -1842,7 +1993,7 @@ std::string CacheManager::GetCertificate() const {
   return std::string("");
 }
 
-void CacheManager::SetDecryptedCertificate(const std::string &certificate) {
+void CacheManager::SetDecryptedCertificate(const std::string& certificate) {
   LOG4CXX_AUTO_TRACE(logger_);
   CACHE_MANAGER_CHECK_VOID();
   sync_primitives::AutoLock auto_lock(cache_lock_);
