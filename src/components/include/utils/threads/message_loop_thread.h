@@ -155,6 +155,11 @@ void MessageLoopThread<Q>::Shutdown() {
   thread_->join();
 }
 
+template<class Q>
+void MessageLoopThread<Q>::WaitDumpQueue() {
+  message_queue_.WaitUntilEmpty();
+}
+
 //////////
 template<class Q>
 MessageLoopThread<Q>::LoopThreadDelegate::LoopThreadDelegate(

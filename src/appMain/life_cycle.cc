@@ -397,20 +397,15 @@ void sig_handler(int sig) {
       LOG4CXX_DEBUG(logger_, "Unexpected signal has been caught");
       break;
   }
-}
 }  //  namespace
 
 void LifeCycle::Run() {
   LOG4CXX_AUTO_TRACE(logger_);
-  // First, register signal handlers
-  if (!::utils::SubscribeToInterruptSignal(&sig_handler) ||
-      !::utils::SubscribeToTerminateSignal(&sig_handler) ||
-      !::utils::SubscribeToFaultSignal(&sig_handler)) {
-    LOG4CXX_FATAL(logger_, "Subscribe to system signals error");
-    return;
+  // Register signal handlers and wait sys signals
+  // from child threads
+  if (!utils::WaitTerminationSignals(&sig_handler)) {
+      LOG4CXX_FATAL(logger_, "Fail to catch system signal!");
   }
-  // Now wait for any signal
-  pause();
 }
 
 #ifdef CUSTOMER_PASA
