@@ -57,8 +57,9 @@ void OnKeyBoardInputNotification::Run() {
   ApplicationSetIt it = accessor.begin();
   for (; accessor.end() != it; ++it) {
     // if there is app with active perform interaction use it for notification
-    if ((*it)->is_perform_interaction_active() &&
-        (*it)->perform_interaction_layout() ==
+    ApplicationConstSharedPtr app = *it;
+    if (app->is_perform_interaction_active() &&
+        app->perform_interaction_layout() ==
             mobile_apis::LayoutMode::KEYBOARD) {
       LOG4CXX_DEBUG(logger_,
                    "There is application with active PerformInteraction and keyboard layout");

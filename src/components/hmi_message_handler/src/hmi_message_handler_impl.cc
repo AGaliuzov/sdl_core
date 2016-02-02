@@ -31,22 +31,24 @@
  */
 
 #include "hmi_message_handler/hmi_message_handler_impl.h"
-#include "config_profile/profile.h"
 #include "utils/logger.h"
 
 namespace hmi_message_handler {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "HMIMessageHandler")
 
-HMIMessageHandlerImpl::HMIMessageHandlerImpl()
-    : observer_(NULL),
-      messages_to_hmi_("HMH ToHMI", this,
-                 threads::ThreadOptions(
-                     profile::Profile::instance()->thread_min_stack_size())),
-      messages_from_hmi_("HMH FromHMI", this,
-                 threads::ThreadOptions(
-                     profile::Profile::instance()->thread_min_stack_size())) {
-}
+HMIMessageHandlerImpl::HMIMessageHandlerImpl(
+    const HMIMessageHandlerSettings& settings)
+    : settings_(settings)
+    , observer_(NULL)
+    , messages_to_hmi_(
+          "HMH ToHMI",
+          this,
+          threads::ThreadOptions(get_settings().thread_min_stack_size()))
+    , messages_from_hmi_(
+          "HMH FromHMI",
+          this,
+          threads::ThreadOptions(get_settings().thread_min_stack_size())) {}
 
 HMIMessageHandlerImpl::~HMIMessageHandlerImpl() {
   LOG4CXX_AUTO_TRACE(logger_);
@@ -86,8 +88,7 @@ void HMIMessageHandlerImpl::OnErrorSending(MessageSharedPointer message) {
   observer_->OnErrorSending(message);
 }
 
-void HMIMessageHandlerImpl::AddHMIMessageAdapter(
-    HMIMessageAdapter* adapter) {
+void HMIMessageHandlerImpl::AddHMIMessageAdapter(HMIMessageAdapter* adapter) {
   LOG4CXX_AUTO_TRACE(logger_);
   if (!adapter) {
     return;
@@ -96,7 +97,8 @@ void HMIMessageHandlerImpl::AddHMIMessageAdapter(
   message_adapters_.insert(adapter);
 }
 
-void HMIMessageHandlerImpl::RemoveHMIMessageAdapter(HMIMessageAdapter* adapter) {
+void HMIMessageHandlerImpl::RemoveHMIMessageAdapter(
+    HMIMessageAdapter* adapter) {
   LOG4CXX_AUTO_TRACE(logger_);
   if (!adapter) {
     return;
@@ -120,10 +122,9 @@ void HMIMessageHandlerImpl::Handle(const impl::MessageToHmi message) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   sync_primitives::AutoLock lock(adapters_lock_);
-  for (std::set<HMIMessageAdapter*>::iterator it =
-      message_adapters_.begin();
-      it != message_adapters_.end();
-      ++it) {
+  for (std::set<HMIMessageAdapter*>::iterator it = message_adapters_.begin();
+       it != message_adapters_.end();
+       ++it) {
     (*it)->SendMessageToHMI(message);
   }
 }

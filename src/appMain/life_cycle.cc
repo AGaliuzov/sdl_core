@@ -126,8 +126,9 @@ bool LifeCycle::StartComponents() {
 
   DCHECK(!app_manager_);
   app_manager_ = application_manager::ApplicationManagerImpl::instance();
-  DCHECK(hmi_handler_ == NULL);
-  hmi_handler_ = hmi_message_handler::HMIMessageHandlerImpl::instance();
+  DCHECK(!hmi_handler_);
+  hmi_handler_ = new hmi_message_handler::HMIMessageHandlerImpl(
+      *(profile::Profile::instance()));
 
 #ifdef ENABLE_SECURITY
   security_manager_ = new security_manager::SecurityManagerImpl();
@@ -221,12 +222,11 @@ bool LifeCycle::StartComponents() {
 #ifdef CUSTOMER_PASA
 bool LifeCycle::InitMessageSystem() {
   mb_pasa_adapter_ = new hmi_message_handler::MessageBrokerAdapter(
-      hmi_message_handler::HMIMessageHandlerImpl::instance(),
+      hmi_handler_,
       std::string(PREFIX_STR_FROMSDL_QUEUE),
       std::string(PREFIX_STR_TOSDL_QUEUE));
 
-  hmi_message_handler::HMIMessageHandlerImpl::instance()->AddHMIMessageAdapter(
-      mb_pasa_adapter_);
+  hmi_handler_->AddHMIMessageAdapter(mb_pasa_adapter_);
 
   if (!mb_pasa_adapter_->MqOpen()) {
     LOG4CXX_FATAL(logger_, "Cannot connect to remote peer!");
@@ -279,7 +279,7 @@ bool LifeCycle::InitMessageSystem() {
   }
 
   mb_adapter_ = new hmi_message_handler::MessageBrokerAdapter(
-      hmi_message_handler::HMIMessageHandlerImpl::instance(),
+      hmi_handler_,
       profile::Profile::instance()->server_address(),
       profile::Profile::instance()->server_port());
 
@@ -332,11 +332,9 @@ bool LifeCycle::InitMessageSystem() {
  * @return true if success otherwise false.
  */
 bool LifeCycle::InitMessageSystem() {
-  dbus_adapter_ = new hmi_message_handler::DBusMessageAdapter(
-      hmi_message_handler::HMIMessageHandlerImpl::instance());
+  dbus_adapter_ = new hmi_message_handler::DBusMessageAdapter(hmi_handler_);
 
-  hmi_message_handler::HMIMessageHandlerImpl::instance()->AddHMIMessageAdapter(
-      dbus_adapter_);
+  hmi_handler_->AddHMIMessageAdapter(dbus_adapter_);
   if (!dbus_adapter_->Init()) {
     LOG4CXX_FATAL(logger_, "Cannot init DBus service!");
     return false;
@@ -358,10 +356,8 @@ bool LifeCycle::InitMessageSystem() {
 
 #ifdef MQUEUE_HMIADAPTER
 bool LifeCycle::InitMessageSystem() {
-  hmi_message_adapter_ = new hmi_message_handler::MqueueAdapter(
-      hmi_message_handler::HMIMessageHandlerImpl::instance());
-  hmi_message_handler::HMIMessageHandlerImpl::instance()->AddHMIMessageAdapter(
-      hmi_message_adapter_);
+  hmi_message_adapter_ = new hmi_message_handler::MqueueAdapter(hmi_handler_);
+  hmi_handler_->AddHMIMessageAdapter(hmi_message_adapter_);
   return true;
 }
 
@@ -422,7 +418,7 @@ void LifeCycle::WakeUp() {
 
 void LifeCycle::StopComponents() {
   LOG4CXX_AUTO_TRACE(logger_);
-  DCHECK_OR_RETURN_VOID(hmi_handler_)
+  DCHECK_OR_RETURN_VOID(hmi_handler_);
   hmi_handler_->set_message_observer(NULL);
 
   DCHECK_OR_RETURN_VOID(connection_handler_);
@@ -487,7 +483,8 @@ void LifeCycle::StopComponents() {
     StopThread(mb_pasa_adapter_thread_);
     delete mb_pasa_adapter_;
   }
-  hmi_message_handler::HMIMessageHandlerImpl::destroy();
+  delete hmi_message_adapter_;
+  hmi_message_adapter_ = NULL;
 #else
 #ifdef MESSAGEBROKER_HMIADAPTER
   if (mb_adapter_) {
@@ -498,7 +495,7 @@ void LifeCycle::StopComponents() {
     StopThread(mb_adapter_thread_);
     delete mb_adapter_;
   }
-  hmi_message_handler::HMIMessageHandlerImpl::destroy();
+  delete hmi_handler_;
 
   LOG4CXX_INFO(logger_, "Destroying Message Broker");
   StopThread(mb_server_thread_);
@@ -519,7 +516,8 @@ void LifeCycle::StopComponents() {
     DCHECK_OR_RETURN_VOID(hmi_handler_);
     if (hmi_handler_) {
       hmi_handler_->RemoveHMIMessageAdapter(dbus_adapter_);
-      hmi_message_handler::HMIMessageHandlerImpl::destroy();
+      delete hmi_message_adapter_;
+      hmi_message_adapter_ = NULL;
     }
     StopThread(dbus_adapter_thread_);
     delete dbus_adapter_;

@@ -74,12 +74,12 @@ class ConnectionHandlerImpl
   /**
    * \brief Constructor
    */
-  explicit ConnectionHandlerImpl(const ConnectionHandlerSettings& settings,
+  ConnectionHandlerImpl(const ConnectionHandlerSettings& settings,
                                  transport_manager::TransportManager& tm);
   /**
    * \brief Destructor
    */
-  virtual ~ConnectionHandlerImpl();
+  ~ConnectionHandlerImpl();
 
   void Stop();
   /**

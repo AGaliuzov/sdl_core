@@ -1478,6 +1478,7 @@ void MessageHelper::SendPolicyUpdate(const std::string& file_path,
 void MessageHelper::SendGetUserFriendlyMessageResponse(
     const std::vector<policy::UserFriendlyMessage>& msg,
     uint32_t correlation_id) {
+  LOG4CXX_AUTO_TRACE(logger_);
   smart_objects::SmartObjectSPtr message =
       new smart_objects::SmartObject(smart_objects::SmartType_Map);
   if (!message) {
@@ -1493,6 +1494,7 @@ void MessageHelper::SendGetUserFriendlyMessageResponse(
   // If no any messages found - skip sending of "messages" param
   if (msg.empty()) {
     ApplicationManagerImpl::instance()->ManageHMICommand(message);
+    return;
   }
 
   const std::string messages = "messages";

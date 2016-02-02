@@ -555,14 +555,13 @@ class ApplicationManagerImpl
     state_ctrl_.SetRegularState(app, state);
   }
 
+
   /**
-   * @brief Checks activity of Deactivate HMI state.
-   * @return Returns TRUE if deactivate HMI state is active, otherwise returns
-   * FALSE.
+   * @brief Checks, if particular state is active
+   * @param state_id State
+   * @return True, if state is active, otherwise - false
    */
-  bool IsDeactivateHMIStateActive() const {
-    return state_ctrl_.IsDeactivateHMIStateActive();
-  }
+  bool IsStateActive(HmiState::StateID state_id) const;
 
 #ifdef CUSTOMER_PASA
   /**

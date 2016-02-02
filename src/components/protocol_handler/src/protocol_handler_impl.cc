@@ -500,7 +500,7 @@ void ProtocolHandlerImpl::OnTMMessageReceived(const RawMessagePtr tm_message) {
   const std::list<ProtocolFramePtr> protocol_frames =
       incoming_data_handler_.ProcessData(
           *tm_message, &result, &malformed_occurs);
-  LOG4CXX_DEBUG(logger_, "Proccessed " << protocol_frames.size() << "frames");
+  LOG4CXX_DEBUG(logger_, "Proccessed " << protocol_frames.size() << " frames");
   if (result != RESULT_OK) {
     if (result == RESULT_MALFORMED_OCCURS) {
       LOG4CXX_WARN(logger_,

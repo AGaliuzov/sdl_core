@@ -811,7 +811,7 @@ bool ResumeCtrl::IsResumeAllowed(const ApplicationSharedPtr application) const {
   smart_objects::SmartObject saved_app;
   const bool result =
       resumption_storage_->GetSavedApplication(application->policy_app_id(),
-      application->mac_address());
+      application->mac_address(), saved_app);
 
   if (!result) {
     LOG4CXX_DEBUG(logger_, "Application has not been found in persisted data.");

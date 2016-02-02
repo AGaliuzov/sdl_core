@@ -554,15 +554,18 @@ int64_t StateController::SendBCActivateApp(
           app_mngr_->connection_handler().get_session_observer(),
           level,
           send_policy_priority);
-  if (bc_activate_app_request &&
-      app_mngr_->ManageHMICommand(bc_activate_app_request)) {
-    const int64_t corr_id =
-        (*bc_activate_app_request)[strings::params][strings::correlation_id]
-            .asInt();
-    return corr_id;
-  } else {
+  if (!bc_activate_app_request) {
+    LOG4CXX_ERROR(logger_, "Unable to create BC.ActivateAppRequest");
     return -1;
   }
+  if (!app_mngr_->ManageHMICommand(bc_activate_app_request)) {
+    LOG4CXX_ERROR(logger_, "Unable to send BC.ActivateAppRequest");
+    return -1;
+  }
+  const int64_t corr_id =
+      (*bc_activate_app_request)[strings::params][strings::correlation_id]
+          .asInt();
+  return corr_id;
 }
 
 void StateController::ApplyPostponedStateForApp(ApplicationSharedPtr app) {

@@ -33,7 +33,6 @@
 #include <string>
 
 #include "hmi_message_handler/messagebroker_adapter.h"
-#include "config_profile/profile.h"
 #include "utils/logger.h"
 
 namespace hmi_message_handler {
@@ -45,8 +44,8 @@ typedef NsMessageBroker::CMessageBrokerController MessageBrokerController;
 MessageBrokerAdapter::MessageBrokerAdapter(HMIMessageHandler* handler_param,
                                            const std::string& server_address,
                                            uint16_t port)
-    : HMIMessageAdapterImpl(handler_param),
-      MessageBrokerController(server_address, port, "SDL") {
+    : HMIMessageAdapterImpl(handler_param)
+    , MessageBrokerController(server_address, port, "SDL") {
   LOG4CXX_TRACE(logger_, "Created MessageBrokerAdapter");
 }
 
@@ -56,8 +55,8 @@ MessageBrokerAdapter::MessageBrokerAdapter(HMIMessageHandler* handler_param,
 MessageBrokerAdapter::MessageBrokerAdapter(HMIMessageHandler* handler,
                                            const std::string& mqsend,
                                            const std::string& mqrecv)
-    : HMIMessageAdapterImpl(handler),
-      MessageBrokerController(mqsend, mqrecv, "SDL") {
+    : HMIMessageAdapterImpl(handler)
+    , MessageBrokerController(mqsend, mqrecv, "SDL") {
   LOG4CXX_TRACE(logger_, "Created MessageBrokerAdapter");
 }
 #endif  // PASA_HMI

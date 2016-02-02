@@ -926,7 +926,7 @@ void PolicyHandler::OnAllowSDLFunctionalityNotification(
       continue;
     }
     policy_manager_->SetUserConsentForDevice(device_mac, is_allowed);
-    uint32_t device_handle = 0;
+    uint32_t device_handle = 0u;
     if (!connection_handler.GetDeviceID(device_mac, &device_handle)) {
       LOG4CXX_WARN(logger_,
                    "Device hadle with mac " << device_mac << " wasn't found.");
@@ -946,7 +946,7 @@ void PolicyHandler::OnAllowSDLFunctionalityNotification(
 
   // Case, when specific device was changed
   if (device_specific) {
-    uint32_t device_handle = 0;
+    uint32_t device_handle = 0u;
     if (!connection_handler.GetDeviceID(device_id, &device_handle)) {
       LOG4CXX_WARN(logger_,
                    "Device hadle with mac " << device_id << " wasn't found.");
@@ -1020,8 +1020,6 @@ void PolicyHandler::OnActivateApp(uint32_t connection_key,
     UsageStatistics& usage = app->usage_report();
 
     usage.RecordAppUserSelection();
-    ApplicationConstSharedPtr app =
-        ApplicationManagerImpl::instance()->application(connection_key);
     DeviceParams device_params =
         GetDeviceParams(app->device(),
                         ApplicationManagerImpl::instance()
