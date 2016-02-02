@@ -57,7 +57,7 @@
 namespace transport_manager {
 
 typedef threads::MessageLoopThread<std::queue<protocol_handler::RawMessagePtr> >
-  RawMessageLoopThread;
+    RawMessageLoopThread;
 typedef threads::MessageLoopThread<std::queue<TransportAdapterEvent> >
   TransportAdapterEventLoopThread;
 typedef utils::SharedPtr<timer::Timer> TimerSPtr;
@@ -79,7 +79,7 @@ class TransportManagerImpl : public TransportManager,
   /**
    * @brief Structure that contains internal connection parameters
    */
-  struct ConnectionInternal: public Connection {
+  struct ConnectionInternal : public Connection {
     TransportManagerImpl* transport_manager;
     TransportAdapter* transport_adapter;
     TimerSPtr timer;
@@ -89,12 +89,13 @@ class TransportManagerImpl : public TransportManager,
 
     ConnectionInternal(TransportManagerImpl* transport_manager,
                        TransportAdapter* transport_adapter,
-                       const ConnectionUID& id, const DeviceUID& dev_id,
+                       const ConnectionUID id,
+                       const DeviceUID& dev_id,
                        const ApplicationHandle& app_id,
                        const DeviceHandle& device_handle);
-
     void DisconnectFailedRoutine();
   };
+
  public:
   /**
    * @brief Destructor.
@@ -147,14 +148,14 @@ class TransportManagerImpl : public TransportManager,
    *
    * @return Code error.
    **/
-  virtual int Disconnect(const ConnectionUID& connection_id);
+  virtual int Disconnect(const ConnectionUID connection_id);
 
   /**
    * @brief Disconnect and clear all unreceived data.
    *
    * @param connection Connection unique identifier.
    */
-  virtual int DisconnectForce(const ConnectionUID& connection_id);
+  virtual int DisconnectForce(const ConnectionUID connection_id);
   /**
    * @brief Post new message in queue for massages destined to device.
    *
@@ -162,7 +163,8 @@ class TransportManagerImpl : public TransportManager,
    *
    * @return Code error.
    **/
-  virtual int SendMessageToDevice(const protocol_handler::RawMessagePtr message);
+  virtual int SendMessageToDevice(
+      const protocol_handler::RawMessagePtr message);
 
   /**
    * @brief Post event in the event queue.
@@ -227,7 +229,6 @@ class TransportManagerImpl : public TransportManager,
   void SetTimeMetricObserver(TMMetricObserver* observer);
 #endif  // TIME_TESTER
 
-
   /**
    * @brief Constructor.
    **/
@@ -238,7 +239,8 @@ class TransportManagerImpl : public TransportManager,
   void RaiseEvent(Proc proc, Args... args) {
     for (TransportManagerListenerList::iterator it =
              transport_manager_listener_.begin();
-         it != transport_manager_listener_.end(); ++it) {
+         it != transport_manager_listener_.end();
+         ++it) {
       ((*it)->*proc)(args...);
     }
   }
@@ -290,14 +292,14 @@ class TransportManagerImpl : public TransportManager,
 
     DeviceHandle UidToHandle(const DeviceUID& dev_uid, bool& is_new) {
       {
-      sync_primitives::AutoReadLock lock(conversion_table_lock);
-      ConversionTable::iterator it = std::find(
-          conversion_table_.begin(), conversion_table_.end(), dev_uid);
-      if (it != conversion_table_.end()) {
-        is_new = false;
-        return std::distance(conversion_table_.begin(), it) +
-               1;  // handle begin since 1 (one)
-      }
+        sync_primitives::AutoReadLock lock(conversion_table_lock);
+        ConversionTable::iterator it = std::find(
+            conversion_table_.begin(), conversion_table_.end(), dev_uid);
+        if (it != conversion_table_.end()) {
+          is_new = false;
+          return std::distance(conversion_table_.begin(), it) +
+                 1;  // handle begin since 1 (one)
+        }
       }
       is_new = true;
       sync_primitives::AutoWriteLock lock(conversion_table_lock);
@@ -338,13 +340,13 @@ class TransportManagerImpl : public TransportManager,
   TransportAdapterEventLoopThread event_queue_;
 
   typedef std::vector<std::pair<const TransportAdapter*, DeviceInfo> >
-  DeviceInfoList;
+      DeviceInfoList;
   sync_primitives::RWLock device_list_lock_;
   DeviceInfoList device_list_;
 
   void AddConnection(const ConnectionInternal& c);
   void RemoveConnection(uint32_t id);
-  ConnectionInternal* GetConnection(const ConnectionUID& id);
+  ConnectionInternal* GetConnection(const ConnectionUID id);
   ConnectionInternal* GetConnection(const DeviceUID& device,
                                     const ApplicationHandle& application);
 
@@ -352,12 +354,15 @@ class TransportManagerImpl : public TransportManager,
       ConnectionUID id,
       std::map<ConnectionUID, std::pair<unsigned int, unsigned char*> >&
           container,
-      unsigned char* data, unsigned int data_size);
-  bool GetFrameSize(unsigned char* data, unsigned int data_size,
+      unsigned char* data,
+      unsigned int data_size);
+  bool GetFrameSize(unsigned char* data,
+                    unsigned int data_size,
                     unsigned int& frame_size);
   bool GetFrame(std::map<ConnectionUID,
-                std::pair<unsigned int, unsigned char*> >& container,
-                ConnectionUID id, unsigned int frame_size,
+                         std::pair<unsigned int, unsigned char*> >& container,
+                ConnectionUID id,
+                unsigned int frame_size,
                 unsigned char** frame);
 
   void OnDeviceListUpdated(TransportAdapter* ta);

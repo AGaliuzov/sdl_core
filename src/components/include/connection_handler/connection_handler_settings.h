@@ -29,40 +29,28 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_MOCK_PROTOCOL_HANDLER_H_
-#define SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_MOCK_PROTOCOL_HANDLER_H_
 
-#include "gmock/gmock.h"
-#include "protocol_handler/protocol_handler.h"
-#include "protocol_handler/protocol_handler_settings.h"
+#ifndef SRC_COMPONENTS_INCLUDE_CONNECTION_HANDLER_CONNECTION_HANDLER_SETTINGS_H_
+#define SRC_COMPONENTS_INCLUDE_CONNECTION_HANDLER_CONNECTION_HANDLER_SETTINGS_H_
+#include <stdint.h>
+#include <vector>
 
-namespace test {
-namespace components {
-namespace protocol_handler_test {
+namespace connection_handler {
 
-class MockProtocolHandler : public ::protocol_handler::ProtocolHandler {
+/**
+ * \class ConnectionHandlerSettings
+ * \brief Interface for connection handler component settings.
+ */
+class ConnectionHandlerSettings {
  public:
-  MOCK_METHOD2(SendMessageToMobileApp,
-               void(const ::protocol_handler::RawMessagePtr message,
-                    bool final_message));
-  MOCK_METHOD1(AddProtocolObserver,
-               void(::protocol_handler::ProtocolObserver* observer));
-  MOCK_METHOD1(RemoveProtocolObserver,
-               void(::protocol_handler::ProtocolObserver* observer));
-  MOCK_METHOD2(SendFramesNumber,
-               void(uint32_t connection_key, int32_t number_of_frames));
-  MOCK_METHOD2(SendHeartBeat, void(int32_t connection_id, uint8_t session_id));
-  MOCK_METHOD2(SendEndSession, void(int32_t connection_id, uint8_t session_id));
-  MOCK_METHOD3(SendEndService,
-               void(int32_t connection_id,
-                    uint8_t session_id,
-                    uint8_t service_type));
-  MOCK_CONST_METHOD0(get_settings,
-                     const ::protocol_handler::ProtocolHandlerSettings&());
+  virtual ~ConnectionHandlerSettings() {}
+
+  virtual uint32_t heart_beat_timeout() const = 0;
+#ifdef ENABLE_SECURITY
+  virtual const std::vector<int>& force_protected_service() const = 0;
+  virtual const std::vector<int>& force_unprotected_service() const = 0;
+#endif  // ENABLE_SECURITY
 };
 
-}  // namespace protocol_handler_test
-}  // namespace components
-}  // namespace test
-
-#endif  // SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_MOCK_PROTOCOL_HANDLER_H_
+}  // namespace connection_handler
+#endif  // SRC_COMPONENTS_INCLUDE_CONNECTION_HANDLER_CONNECTION_HANDLER_SETTINGS_H_

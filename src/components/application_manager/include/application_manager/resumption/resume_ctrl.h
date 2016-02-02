@@ -59,8 +59,7 @@ namespace resumption {
  * @brief Contains logic for storage/restore data of applications.
  */
 
-class ResumeCtrl: public app_mngr::event_engine::EventObserver {
-
+class ResumeCtrl : public app_mngr::event_engine::EventObserver {
  public:
 
   /**
@@ -170,8 +169,7 @@ class ResumeCtrl: public app_mngr::event_engine::EventObserver {
    * @param application that is need to be restored
    * @return true if it was saved, otherwise return false
    */
-  bool StartResumptionOnlyHMILevel(
-      app_mngr::ApplicationSharedPtr application);
+  bool StartResumptionOnlyHMILevel(app_mngr::ApplicationSharedPtr application);
 
   /**
    * @brief Check if there are all files need for resumption
@@ -268,7 +266,7 @@ class ResumeCtrl: public app_mngr::event_engine::EventObserver {
    * @param device_id - id of device where application is run
    */
   void OnAppRegistrationStart(const std::string& policy_app_id,
-                                const std::string& device_id);
+                              const std::string& device_id);
 
   /**
    * @brief Notify resume controller about delete new application
@@ -277,9 +275,8 @@ class ResumeCtrl: public app_mngr::event_engine::EventObserver {
 
 #ifdef BUILD_TESTS
   void set_resumption_storage(utils::SharedPtr<ResumptionData> mock_storage);
-#endif // BUILD_TESTS
+#endif  // BUILD_TESTS
  private:
-
   /**
    * @brief restores saved data of application
    * @param application contains application for which restores data
@@ -346,10 +343,10 @@ class ResumeCtrl: public app_mngr::event_engine::EventObserver {
   void AddSubscriptions(app_mngr::ApplicationSharedPtr application,
                         const smart_objects::SmartObject& saved_app);
 
-
   bool CheckIgnCycleRestrictions(const smart_objects::SmartObject& saved_app);
 
-  bool DisconnectedJustBeforeIgnOff(const smart_objects::SmartObject& saved_app);
+  bool DisconnectedJustBeforeIgnOff(
+      const smart_objects::SmartObject& saved_app);
 
   bool CheckAppRestrictions(app_mngr::ApplicationConstSharedPtr application,
                             const smart_objects::SmartObject& saved_app);
@@ -379,13 +376,13 @@ class ResumeCtrl: public app_mngr::event_engine::EventObserver {
    * timestamp and application from correlationID
    */
   struct ResumingApp {
-    uint32_t old_session_key; // session key is the same as app_id
+    uint32_t old_session_key;  // session key is the same as app_id
     app_mngr::ApplicationSharedPtr app;
   };
 
   struct TimeStampComparator {
-    bool operator() (const application_timestamp& lhs,
-                     const application_timestamp& rhs) const{
+    bool operator()(const application_timestamp& lhs,
+                    const application_timestamp& rhs) const {
       return lhs.second < rhs.second;
     }
   };
@@ -423,9 +420,8 @@ class ResumeCtrl: public app_mngr::event_engine::EventObserver {
    * @param use_events Process request events or not flag
    * @return TRUE on success, otherwise FALSE
    */
-  bool ProcessHMIRequest(
-      smart_objects::SmartObjectSPtr request = NULL,
-      bool use_events = false);
+  bool ProcessHMIRequest(smart_objects::SmartObjectSPtr request = NULL,
+                         bool use_events = false);
 
   /**
    * @brief Process list of HMI requests using ProcessHMIRequest method
@@ -445,7 +441,7 @@ class ResumeCtrl: public app_mngr::event_engine::EventObserver {
    * @return true, if data resumption must be skipped, otherwise - false
    */
   bool IsAppDataResumptionExpired(
-          const smart_objects::SmartObject& application) const;
+      const smart_objects::SmartObject& application) const;
 
   /**
    * @brief Checks from resume data, if application has been disconnected
@@ -480,4 +476,4 @@ class ResumeCtrl: public app_mngr::event_engine::EventObserver {
 };
 
 }  // namespace resumption
-#endif // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_RESUME_CTRL_H
+#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_RESUME_CTRL_H

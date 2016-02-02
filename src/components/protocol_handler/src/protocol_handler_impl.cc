@@ -63,10 +63,12 @@ const size_t kStackSize = 32768;
 ProtocolHandlerImpl::ProtocolHandlerImpl(
     const ProtocolHandlerSettings& settings,
     protocol_handler::SessionObserver& session_observer,
+    connection_handler::ConnectionHandler& connection_handler,
     transport_manager::TransportManager& transport_manager)
     : settings_(settings)
     , protocol_observers_()
     , session_observer_(session_observer)
+    , connection_handler_(connection_handler)
     , transport_manager_(transport_manager)
     , kPeriodForNaviAck(5)
     ,
@@ -1284,14 +1286,12 @@ void ProtocolHandlerImpl::Handle(const impl::RawFordMessageFromMobile message) {
     } break;
   }
 
-  connection_handler::ConnectionHandlerImpl* connection_handler =
-      connection_handler::ConnectionHandlerImpl::instance();
   LOG4CXX_DEBUG(logger_, "Message : " << message.get());
   const uint8_t c_id = message->connection_id();
   const uint32_t m_id = message->session_id();
 
   if (session_observer_.IsHeartBeatSupported(c_id, m_id)) {
-    connection_handler->KeepConnectionAlive(c_id, m_id);
+    connection_handler_.KeepConnectionAlive(c_id, m_id);
   }
 
   // TODO(EZamakhov): remove dublication of IncomingDataHandler logic

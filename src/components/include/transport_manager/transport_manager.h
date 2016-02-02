@@ -97,14 +97,14 @@ class TransportManager {
    *
    * @return Code error.
    **/
-  virtual int Disconnect(const ConnectionUID& connection_id) = 0;
+  virtual int Disconnect(const ConnectionUID connection_id) = 0;
 
   /**
    * @brief Disconnect and clear all unprocessed data.
    *
    * @param connection Connection unique identifier.
    */
-  virtual int DisconnectForce(const ConnectionUID& connection_id) = 0;
+  virtual int DisconnectForce(const ConnectionUID connection_id) = 0;
 
   /**
    * @brief Post new message in queue for massages destined to device.
@@ -113,7 +113,8 @@ class TransportManager {
    *
    * @return Code error.
    **/
-  virtual int SendMessageToDevice(const protocol_handler::RawMessagePtr message) = 0;
+  virtual int SendMessageToDevice(
+      const protocol_handler::RawMessagePtr message) = 0;
 
   /**
    * @brief Post event in the event queue.
@@ -132,7 +133,7 @@ class TransportManager {
    * @return Error code.
    **/
   virtual int AddTransportAdapter(
-    transport_adapter::TransportAdapter* transport_adapter) = 0;
+      transport_adapter::TransportAdapter* transport_adapter) = 0;
 
   /**
    * @brief Post listener to the container of transport manager listeners.

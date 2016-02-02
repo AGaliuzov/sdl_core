@@ -148,6 +148,7 @@ class ProtocolHandlerImpl : public ProtocolHandler,
    */
   ProtocolHandlerImpl(const ProtocolHandlerSettings& settings,
                       protocol_handler::SessionObserver& session_observer,
+                      connection_handler::ConnectionHandler& connection_handler,
                       transport_manager::TransportManager& transport_manager);
 
   /**
@@ -478,14 +479,20 @@ class ProtocolHandlerImpl : public ProtocolHandler,
   ProtocolObservers protocol_observers_;
 
   /**
-   *\brief Pointer on instance of class implementing ISessionObserver
+   *\brief Instance of class implementing ISessionObserver
    *\brief (Connection Handler)
    * According to usage it can't be null
    */
   SessionObserver& session_observer_;
 
   /**
-   *\brief Pointer on instance of Transport layer handler for message exchange.
+   *\brief Instance of class implementing Connection  Handler t keep connection
+   *alive
+   */
+  connection_handler::ConnectionHandler& connection_handler_;
+
+  /**
+   *\brief Instance of Transport layer handler for message exchange.
    */
   transport_manager::TransportManager& transport_manager_;
 

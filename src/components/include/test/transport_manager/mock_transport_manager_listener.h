@@ -60,7 +60,7 @@ class MockTransportManagerListener : public TransportManagerListener {
 
   MOCK_METHOD2(OnConnectionEstablished,
                void(const DeviceInfo& device_info,
-                    const ConnectionUID& connection_id));
+                    const ConnectionUID connection_id));
   MOCK_METHOD2(OnConnectionFailed,
                void(const DeviceInfo& device_info, const ConnectError& error));
 

@@ -110,19 +110,21 @@ LifeCycle::LifeCycle()
 
 bool LifeCycle::StartComponents() {
   LOG4CXX_AUTO_TRACE(logger_);
-  DCHECK(transport_manager_ == NULL);
+  DCHECK(!transport_manager_);
   transport_manager_ = transport_manager::TransportManagerDefault::instance();
 
-  DCHECK(connection_handler_ == NULL);
-  connection_handler_ = connection_handler::ConnectionHandlerImpl::instance();
+  DCHECK(!connection_handler_);
+  connection_handler_ = new connection_handler::ConnectionHandlerImpl(
+      *profile::Profile::instance(), *transport_manager_);
 
   // TODO(AKutsan) : APPLINK-20265 Singletons should be removed
   protocol_handler_ =
       new protocol_handler::ProtocolHandlerImpl(*(profile::Profile::instance()),
                                                 *connection_handler_,
+                                                *connection_handler_,
                                                 *transport_manager_);
 
-  DCHECK(app_manager_ == NULL);
+  DCHECK(!app_manager_);
   app_manager_ = application_manager::ApplicationManagerImpl::instance();
   DCHECK(hmi_handler_ == NULL);
   hmi_handler_ = hmi_message_handler::HMIMessageHandlerImpl::instance();
@@ -182,15 +184,13 @@ bool LifeCycle::StartComponents() {
 #endif  // ENABLE_SECURITY
   media_manager_->SetProtocolHandler(protocol_handler_);
 
-  connection_handler_->set_transport_manager(transport_manager_);
   connection_handler_->set_protocol_handler(protocol_handler_);
   connection_handler_->set_connection_handler_observer(app_manager_);
 
 #ifdef ENABLE_SECURITY
   security_manager_->AddListener(
       application_manager::ApplicationManagerImpl::instance());
-  security_manager_->set_session_observer(
-      connection_handler::ConnectionHandlerImpl::instance());
+  security_manager_->set_session_observer(connection_handler_);
   security_manager_->set_protocol_handler(protocol_handler_);
   security_manager_->set_crypto_manager(crypto_manager_);
   application_manager::ApplicationManagerImpl::instance()->AddPolicyObserver(
@@ -291,7 +291,7 @@ bool LifeCycle::InitMessageSystem() {
   }
 
   LOG4CXX_INFO(logger_, "Start CMessageBroker thread!");
-  DCHECK(message_broker_ == NULL)
+  DCHECK(!message_broker_)
   message_broker_ = NsMessageBroker::CMessageBroker::getInstance();
   mb_thread_ = new System::Thread(
       new System::ThreadArgImpl<NsMessageBroker::CMessageBroker>(
@@ -462,13 +462,14 @@ void LifeCycle::StopComponents() {
   transport_manager::TransportManagerDefault::destroy();
 
   LOG4CXX_INFO(logger_, "Stopping Connection Handler.");
-  connection_handler::ConnectionHandlerImpl::instance()->Stop();
+  DCHECK(connection_handler_)
+  connection_handler_->Stop();
 
   LOG4CXX_INFO(logger_, "Destroying Protocol Handler");
   delete protocol_handler_;
 
   LOG4CXX_INFO(logger_, "Destroying Connection Handler.");
-  connection_handler::ConnectionHandlerImpl::destroy();
+  delete connection_handler_;
 
   LOG4CXX_INFO(logger_, "Destroying Last State");
   resumption::LastState::destroy();
