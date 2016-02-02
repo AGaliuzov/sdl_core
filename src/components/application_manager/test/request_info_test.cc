@@ -351,20 +351,27 @@ TEST_F(RequestInfoTest, RequestInfoSetEqualHash) {
   EXPECT_FALSE(found.valid());
   EXPECT_EQ(0u, request_info_set.Size());
 }
-/*
+
 TEST_F(RequestInfoTest, EndTimeisExpired) {
   TimevalStruct time = date_time::DateTime::getCurrentTime();
+
+  TimevalStruct not_expired = date_time::DateTime::getCurrentTime();
+  not_expired.tv_usec = std::numeric_limits<time_t>::min();
+
+  TimevalStruct expired = date_time::DateTime::getCurrentTime();
+  expired.tv_usec = std::numeric_limits<time_t>::max();
+
   utils::SharedPtr<TestRequestInfo> request = CreateTestInfo(
       mobile_connection_key1_, mobile_correlation_id,
       request_info::RequestInfo::MobileRequest, time, default_timeout_);
-  time.tv_sec = time.tv_sec * 100;
-  request->SetEndTime(time);
+
+  request->SetEndTime(expired);
   EXPECT_FALSE(request->isExpired());
-  time.tv_sec = time.tv_sec / 100;
-  request->SetEndTime(time);
+
+  request->SetEndTime(not_expired);
   EXPECT_TRUE(request->isExpired());
 }
-*/
+
 TEST_F(RequestInfoTest, UpdateEndTime) {
   TimevalStruct time = date_time::DateTime::getCurrentTime();
   utils::SharedPtr<TestRequestInfo> request = CreateTestInfo(
