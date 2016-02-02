@@ -55,15 +55,16 @@ bool utils::UnsibscribeFromTermination() {
 namespace {
 bool CatchSIGSEGV(sighandler_t handler) {
   struct sigaction act;
-  act.sa_handler = func;
+
+  act.sa_handler = handler;
   sigemptyset(&act.sa_mask);
-  act.sa_flags = SA_RESETHAND;
+  act.sa_flags = 0;
 
   return !sigaction(SIGSEGV, &act, NULL);
 }
 }
 
-bool SubscribeToFaultSignal(sighandler_t func) {
+bool WaitTerminationSignals(sighandler_t func) {
   sigemptyset(&signal_set);
   sigaddset(&signal_set, SIGINT);
   sigaddset(&signal_set, SIGTERM);
