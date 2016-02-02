@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 201666666, Ford Motor Company
+ * Copyright (c) 2016, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,31 +52,31 @@ bool utils::UnsibscribeFromTermination() {
   return !pthread_sigmask(SIG_BLOCK, &signal_set, NULL);
 }
 
-bool SubscribeToInterruptSignal(sighandler_t func) {
+namespace {
+bool CatchSIGSEGV(sighandler_t handler) {
   struct sigaction act;
   act.sa_handler = func;
   sigemptyset(&act.sa_mask);
   act.sa_flags = SA_RESETHAND;
 
-  return sigaction(SIGINT, &act, NULL) == 0;
+  return !sigaction(SIGSEGV, &act, NULL);
 }
-
-bool SubscribeToTerminateSignal(sighandler_t func) {
-  struct sigaction act;
-  act.sa_handler = func;
-  sigemptyset(&act.sa_mask);
-  act.sa_flags = SA_RESETHAND;
-
-  return sigaction(SIGTERM, &act, NULL) == 0;
 }
 
 bool SubscribeToFaultSignal(sighandler_t func) {
-  struct sigaction act;
-  act.sa_handler = func;
-  sigemptyset(&act.sa_mask);
-  act.sa_flags = SA_RESETHAND;
+  sigemptyset(&signal_set);
+  sigaddset(&signal_set, SIGINT);
+  sigaddset(&signal_set, SIGTERM);
 
-  return sigaction(SIGSEGV, &act, NULL) == 0;
+  if (!CatchSIGSEGV(sig_handler)) {
+    return false;
+  }
+
+  if (!sigwait(&signal_set, &sig)) {
+    sig_handler(sig);
+    return true;
+  }
+  return false;
 }
 
 }  //  namespace utils
