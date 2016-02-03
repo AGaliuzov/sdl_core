@@ -36,7 +36,7 @@
 #include "utils/signals.h"
 
 namespace utils {
-bool utils::UnsibscribeFromTermination() {
+bool UnsibscribeFromTermination() {
   // Disable some system signals receiving in thread
   // by blocking those signals
   // (system signals processes only in the main thread)
@@ -64,7 +64,10 @@ bool CatchSIGSEGV(sighandler_t handler) {
 }
 }
 
-bool WaitTerminationSignals(sighandler_t func) {
+bool WaitTerminationSignals(sighandler_t sig_handler) {
+  sigset_t signal_set;
+  int sig = -1;
+
   sigemptyset(&signal_set);
   sigaddset(&signal_set, SIGINT);
   sigaddset(&signal_set, SIGTERM);

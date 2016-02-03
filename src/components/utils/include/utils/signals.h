@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2016, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,9 +41,8 @@ typedef void (*sighandler_t) (int);
 
 namespace utils {
 
-bool SubscribeToInterruptSignal(sighandler_t func);
-bool SubscribeToTerminateSignal(sighandler_t func);
-bool SubscribeToFaultSignal(sighandler_t func);
+bool UnsibscribeFromTermination();
+bool WaitTerminationSignals(sighandler_t sig_handler);
 
 }  //  namespace utils
 
