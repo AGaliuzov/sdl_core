@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2016, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,4 +53,14 @@ void deinit_logger () {
 
 log4cxx_time_t time_now() {
   return apr_time_now();
+}
+
+// Don't destroy logger here!
+// It's just for unloading logger queue
+void flush_logger() {
+  logger::LoggerStatus old_status = logger::logger_status;
+  // Stop pushing new messages to the log queue
+  logger::logger_status = logger::DeletingLoggerThread;
+  logger::LogMessageLoopThread::instance()->WaitDumpQueue();
+  logger::logger_status = old_status;
 }

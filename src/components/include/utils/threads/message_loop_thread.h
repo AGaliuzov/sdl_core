@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2016, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -85,6 +85,9 @@ class MessageLoopThread {
 
   // Process already posted messages and stop thread processing. Thread-safe.
   void Shutdown();
+
+  // Wait while dump all messages
+  void WaitDumpQueue();
 
   // Added for utils/test/auto_trace_test.cc
   size_t GetMessageQueueSize() const;
