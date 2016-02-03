@@ -134,8 +134,7 @@ class ResumptionDataDBTest : public ResumptionDataTest {
 
   // Check that db includes tables with given elements
   void CheckSavedDB();
-
-  static const bool is_in_file = true;
+  static const bool is_in_file = false;
   const std::string tables_exist =
       "SELECT COUNT(*) FROM sqlite_master WHERE `type` = 'table';";
   const std::string init_last_ign_count =

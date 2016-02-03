@@ -45,13 +45,16 @@
 #include "security_manager/ssl_context.h"
 #include "utils/macro.h"
 #include "utils/lock.h"
+#include "utils/shared_ptr.h"
 
 namespace security_manager {
+
 class CryptoManagerImpl : public CryptoManager {
  private:
   class SSLContextImpl : public SSLContext {
    public:
-    SSLContextImpl(SSL *conn, Mode mode);
+    SSLContextImpl(SSL *conn, Mode mode, size_t maximum_payload_size);
+     ~SSLContextImpl();
     HandshakeResult StartHandshake(const uint8_t** const out_data,
                                            size_t *out_data_size) OVERRIDE;
     HandshakeResult DoHandshakeStep(const uint8_t *const in_data,
@@ -68,7 +71,6 @@ class CryptoManagerImpl : public CryptoManager {
     std::string LastError() const OVERRIDE;
     void ResetConnection() OVERRIDE;
     void SetHandshakeContext(const HandshakeContext& hsh_ctx) OVERRIDE;
-    ~SSLContextImpl();
     void PrintCertData(X509* cert, const std::string& cert_owner);
     private:
     void PrintCertInfo();
@@ -102,15 +104,9 @@ class CryptoManagerImpl : public CryptoManager {
   };
 
  public:
-  CryptoManagerImpl();
+  explicit CryptoManagerImpl(const utils::SharedPtr<const CryptoManagerSettings> set);
   ~CryptoManagerImpl();
-  bool Init(Mode mode,
-            Protocol protocol,
-            const std::string &cert_data,
-            const std::string &ciphers_list,
-            const bool verify_peer,
-            const std::string &ca_certificate_path,
-            const size_t hours_before_update) OVERRIDE;
+  bool Init() OVERRIDE;
   bool is_initialized() const OVERRIDE;
   bool OnCertificateUpdated(const std::string &data) OVERRIDE;
   SSLContext *CreateSSLContext() OVERRIDE;
@@ -118,20 +114,22 @@ class CryptoManagerImpl : public CryptoManager {
   std::string LastError() const OVERRIDE;
   bool IsCertificateUpdateRequired() const OVERRIDE;
 
+  virtual const CryptoManagerSettings& get_settings() const OVERRIDE {
+    return *settings_;
+  }
+
 private:
   bool set_certificate(const std::string &cert_data);
 
   int pull_number_from_buf(char* buf, int* idx);
   void asn1_time_to_tm(ASN1_TIME* time);
 
+  // TODO (AKutsan) : APPLINK-21595 Use Uniq pointer instead of shared pointer
+  const utils::SharedPtr<const CryptoManagerSettings> settings_;
   SSL_CTX *context_;
   mutable struct tm expiration_time_;
-  Mode mode_;
   static sync_primitives::Lock instance_lock_;
   static uint32_t instance_count_;
-  std::string certificate_data_;
-  bool verify_peer_;
-  size_t seconds_before_update_;
   DISALLOW_COPY_AND_ASSIGN(CryptoManagerImpl);
 };
 }  // namespace security_manager
