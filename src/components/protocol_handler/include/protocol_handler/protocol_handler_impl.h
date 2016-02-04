@@ -101,21 +101,18 @@ struct RawFordMessageFromMobile : public ProtocolFramePtr {
   // PrioritizedQueue requires this method to decide which priority to assign
   size_t PriorityOrder() const {
     return MessagePriority::FromServiceType(
-               ServiceTypeFromByte(get()->service_type()))
-        .OrderingValue();
+               ServiceTypeFromByte(get()->service_type())).OrderingValue();
   }
 };
 
 struct RawFordMessageToMobile : public ProtocolFramePtr {
   RawFordMessageToMobile() : is_final(false) {}
-  explicit RawFordMessageToMobile(const ProtocolFramePtr message,
-                                  bool final_message)
+  RawFordMessageToMobile(const ProtocolFramePtr message, bool final_message)
       : ProtocolFramePtr(message), is_final(final_message) {}
   // PrioritizedQueue requires this method to decide which priority to assign
   size_t PriorityOrder() const {
     return MessagePriority::FromServiceType(
-               ServiceTypeFromByte(get()->service_type()))
-        .OrderingValue();
+               ServiceTypeFromByte(get()->service_type())).OrderingValue();
   }
   // Signals whether connection to mobile must be closed after processing this
   // message
@@ -124,9 +121,9 @@ struct RawFordMessageToMobile : public ProtocolFramePtr {
 
 // Short type names for prioritized message queues
 typedef threads::MessageLoopThread<
-    utils::PrioritizedQueue<RawFordMessageFromMobile> > FromMobileQueue;
+    utils::PrioritizedQueue<RawFordMessageFromMobile>> FromMobileQueue;
 typedef threads::MessageLoopThread<
-    utils::PrioritizedQueue<RawFordMessageToMobile> > ToMobileQueue;
+    utils::PrioritizedQueue<RawFordMessageToMobile>> ToMobileQueue;
 }  // namespace impl
 
 /**
@@ -143,9 +140,11 @@ class ProtocolHandlerImpl : public ProtocolHandler,
                             public impl::ToMobileQueue::Handler {
  public:
   /**
-   * \brief Constructor
-   * \param settings reference to ProtocolHandlerSettingsImpl object
-   * \param transportManager Pointer to Transport layer handler for
+   * @brief Constructor
+   * @param settings reference to ProtocolHandlerSettingsImpl object
+   * @param session_observer reference to SessionObserver to access session
+   * information and controll session life cycle
+   * @param transportManager Pointer to Transport layer handler for
    */
   ProtocolHandlerImpl(const ProtocolHandlerSettings& settings,
                       protocol_handler::SessionObserver& session_observer,
@@ -310,21 +309,21 @@ class ProtocolHandlerImpl : public ProtocolHandler,
    *
    * @param message Received message
    **/
-  virtual void OnTMMessageReceived(const RawMessagePtr message);
+  void OnTMMessageReceived(const RawMessagePtr message) OVERRIDE;
 
   /**
    * @brief Notifies about error on receiving message from TM.
    *
    * @param error Occurred error
    **/
-  virtual void OnTMMessageReceiveFailed(
-      const transport_manager::DataReceiveError& error);
+  void OnTMMessageReceiveFailed(
+      const transport_manager::DataReceiveError& error) OVERRIDE;
 
   /**
    * @brief Notifies about successfully sending message.
    *
    **/
-  virtual void OnTMMessageSend(const RawMessagePtr message);
+  void OnTMMessageSend(const RawMessagePtr message) OVERRIDE;
 
   /**
    * @brief Notifies about error occurred during
@@ -333,16 +332,15 @@ class ProtocolHandlerImpl : public ProtocolHandler,
    * @param error Describes occurred error.
    * @param message Message during sending which error occurred.
    **/
-  virtual void OnTMMessageSendFailed(
-      const transport_manager::DataSendError& error,
-      const RawMessagePtr message);
+  void OnTMMessageSendFailed(const transport_manager::DataSendError& error,
+                             const RawMessagePtr message) OVERRIDE;
 
-  virtual void OnConnectionEstablished(
+  void OnConnectionEstablished(
       const transport_manager::DeviceInfo& device_info,
-      const transport_manager::ConnectionUID& connection_id);
+      const transport_manager::ConnectionUID connection_id) OVERRIDE;
 
-  virtual void OnConnectionClosed(
-      const transport_manager::ConnectionUID& connection_id);
+  void OnConnectionClosed(
+      const transport_manager::ConnectionUID connection_id) OVERRIDE;
 
   /**
    * @brief Notifies subscribers about message

@@ -171,6 +171,11 @@ void MessageHelper::SendGetListOfPermissionsResponse(
       permissions, correlation_id);
 }
 
+void MessageHelper::GetConnectedDevicesMAC(
+    std::vector<std::string>& device_macs) {
+  MockMessageHelper::message_helper_mock()->GetConnectedDevicesMAC(device_macs);
+}
+
 void MessageHelper::SendOnPermissionsChangeNotification(
     uint32_t connection_key, const policy::Permissions& permissions) {
   MockMessageHelper::message_helper_mock()->SendOnPermissionsChangeNotification(
@@ -178,8 +183,10 @@ void MessageHelper::SendOnPermissionsChangeNotification(
 }
 
 void MessageHelper::SendPolicySnapshotNotification(
-    unsigned int connection_key, const std::vector<uint8_t>& policy_data,
-    const std::string& url, int timeout) {
+    unsigned int connection_key,
+    const std::vector<uint8_t>& policy_data,
+    const std::string& url,
+    int timeout) {
   MockMessageHelper::message_helper_mock()->SendPolicySnapshotNotification(
       connection_key, policy_data, url, timeout);
 }
@@ -197,10 +204,11 @@ void MessageHelper::SendSDLActivateAppResponse(
       permissions, correlation_id);
 }
 
-void MessageHelper::SendPolicyUpdate(const std::string& file_path, int timeout,
+void MessageHelper::SendPolicyUpdate(const std::string& file_path,
+                                     int timeout,
                                      const std::vector<int>& retries) {
-  MockMessageHelper::message_helper_mock()->SendPolicyUpdate(file_path, timeout,
-                                                             retries);
+  MockMessageHelper::message_helper_mock()->SendPolicyUpdate(
+      file_path, timeout, retries);
 }
 
 void MessageHelper::SendUpdateSDLResponse(const std::string& result,
@@ -210,7 +218,8 @@ void MessageHelper::SendUpdateSDLResponse(const std::string& result,
 }
 
 void MessageHelper::SendOnLanguageChangeToMobile(uint32_t connection_key) {
-  MockMessageHelper::message_helper_mock()->SendOnLanguageChangeToMobile(connection_key);
+  MockMessageHelper::message_helper_mock()->SendOnLanguageChangeToMobile(
+      connection_key);
 }
 
 void MessageHelper::SendDecryptCertificateToHMI(const std::string& file_name) {
@@ -218,30 +227,40 @@ void MessageHelper::SendDecryptCertificateToHMI(const std::string& file_name) {
       file_name);
 }
 
-hmi_apis::Common_Language::eType MessageHelper::CommonLanguageFromString(const std::string& language) {
-   return MockMessageHelper::message_helper_mock()->CommonLanguageFromString(
-        language);
+hmi_apis::Common_Language::eType MessageHelper::CommonLanguageFromString(
+    const std::string& language) {
+  return MockMessageHelper::message_helper_mock()->CommonLanguageFromString(
+      language);
 }
 
-std::string MessageHelper::MobileLanguageToString(const mobile_apis::Language::eType language) {
-  return  MockMessageHelper::message_helper_mock()->MobileLanguageToString(language);
+std::string MessageHelper::MobileLanguageToString(
+    const mobile_apis::Language::eType language) {
+  return MockMessageHelper::message_helper_mock()->MobileLanguageToString(
+      language);
 }
 
-mobile_apis::Language::eType MessageHelper::MobileLanguageFromString(const std::string& language) {
-  return  MockMessageHelper::message_helper_mock()->MobileLanguageFromString(language);
+mobile_apis::Language::eType MessageHelper::MobileLanguageFromString(
+    const std::string& language) {
+  return MockMessageHelper::message_helper_mock()->MobileLanguageFromString(
+      language);
 }
 
-hmi_apis::Common_Language::eType MessageHelper::MobileToCommonLanguage(const mobile_apis::Language::eType language) {
-  return MockMessageHelper::message_helper_mock()->MobileToCommonLanguage(language);
+hmi_apis::Common_Language::eType MessageHelper::MobileToCommonLanguage(
+    const mobile_apis::Language::eType language) {
+  return MockMessageHelper::message_helper_mock()->MobileToCommonLanguage(
+      language);
 }
 
-mobile_apis::Language::eType MessageHelper::CommonToMobileLanguage(const hmi_apis::Common_Language::eType language) {
-  return  MockMessageHelper::message_helper_mock()->CommonToMobileLanguage(language);
+mobile_apis::Language::eType MessageHelper::CommonToMobileLanguage(
+    const hmi_apis::Common_Language::eType language) {
+  return MockMessageHelper::message_helper_mock()->CommonToMobileLanguage(
+      language);
 }
 
-smart_objects::SmartObjectSPtr MessageHelper::CreateModuleInfoSO (uint32_t function_id) {
-    return  MockMessageHelper::message_helper_mock()->CreateModuleInfoSO(
-                function_id);
+smart_objects::SmartObjectSPtr MessageHelper::CreateModuleInfoSO(
+    uint32_t function_id) {
+  return MockMessageHelper::message_helper_mock()->CreateModuleInfoSO(
+      function_id);
 }
 
 MockMessageHelper* MockMessageHelper::message_helper_mock() {
@@ -303,13 +322,13 @@ mobile_apis::Result::eType MessageHelper::VerifyImageFiles(
                                                                     app);
 }
 std::string MessageHelper::CommonLanguageToString(
-    hmi_apis::Common_Language::eType lang){
+    hmi_apis::Common_Language::eType lang) {
   return MockMessageHelper::message_helper_mock()->CommonLanguageToString(lang);
 }
 
 bool MessageHelper::CheckWithPolicy(
     mobile_apis::SystemAction::eType system_action,
-    const std::string& app_mobile_id){
+    const std::string& app_mobile_id) {
   return MockMessageHelper::message_helper_mock()->CheckWithPolicy(
       system_action, app_mobile_id);
 }

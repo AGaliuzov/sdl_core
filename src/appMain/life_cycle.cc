@@ -46,7 +46,7 @@
 
 #ifdef ENABLE_LOG
 #include "utils/log_message_loop_thread.h"
-#endif
+#endif  // ENABLE_LOG
 
 using threads::Thread;
 
@@ -116,7 +116,7 @@ bool LifeCycle::StartComponents() {
   DCHECK(connection_handler_ == NULL);
   connection_handler_ = connection_handler::ConnectionHandlerImpl::instance();
 
-  //TODO(AKutsan) : APPLINK-20265 Singletons should be removed
+  // TODO(AKutsan) : APPLINK-20265 Singletons should be removed
   protocol_handler_ =
       new protocol_handler::ProtocolHandlerImpl(*(profile::Profile::instance()),
                                                 *connection_handler_,
@@ -506,8 +506,8 @@ void LifeCycle::StopComponents() {
     message_broker_server_->Close();
     delete message_broker_server_;
   }
-  if(message_broker_) {
-      message_broker_->stopMessageBroker();
+  if (message_broker_) {
+    message_broker_->stopMessageBroker();
   }
 
   networking::cleanup();

@@ -49,8 +49,8 @@ namespace profile {
 /**
  * The Profile class
  */
-class Profile :public protocol_handler::ProtocolHandlerSettings,
-        public utils::Singleton<Profile> {
+class Profile : public protocol_handler::ProtocolHandlerSettings,
+                public utils::Singleton<Profile> {
  public:
   // Methods section
 
@@ -439,17 +439,17 @@ class Profile :public protocol_handler::ProtocolHandlerSettings,
   uint32_t update_before_hours() const;
 
 #endif  // ENABLE_SECURITY
-  /**
-   * @brief Reads a string value from the profile
-   *
-   * @param value         Result value
-   * @param default_value Value to use key wasn't found
-   * @param pSection      The section to read the value in
-   * @param pKey          The key whose value needs to be read out
-   *
-   * @return FALSE if could not read the value out of the profile
-   * (then the value is equal \c default_value)
-   */
+        /**
+         * @brief Reads a string value from the profile
+         *
+         * @param value         Result value
+         * @param default_value Value to use key wasn't found
+         * @param pSection      The section to read the value in
+         * @param pKey          The key whose value needs to be read out
+         *
+         * @return FALSE if could not read the value out of the profile
+         * (then the value is equal \c default_value)
+         */
   bool ReadStringValue(std::string* value,
                        const char* default_value,
                        const char* const pSection,

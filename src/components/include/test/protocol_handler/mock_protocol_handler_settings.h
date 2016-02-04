@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,43 +29,37 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#ifndef SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_MOCK_PROTOCOL_HANDLER_SETTINGS_H_
+#define SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_MOCK_PROTOCOL_HANDLER_SETTINGS_H_
 
-#include "gmock/gmock.h"
-#include "time_tester/time_manager.h"
-#include "protocol_handler/time_metric_observer.h"
+#include <gmock/gmock.h>
 #include "protocol_handler/protocol_handler.h"
-#include "protocol_handler/mock_protocol_handler.h"
-#include "protocol_handler/mock_session_observer.h"
-#include "protocol_handler/mock_protocol_handler_settings.h"
-#include "transport_manager/mock_transport_manager.h"
-#include "time_tester/mock_streamer.h"
+#include "protocol_handler/protocol_handler_settings.h"
 
 namespace test {
 namespace components {
-namespace time_tester_test {
+namespace protocol_handler_test {
 
-TEST(TimeManagerTest, DISABLED_MessageProcess) {
-  // TODO(AK) APPLINK-13351 Disable due to refactor TimeTester
-  transport_manager_test::MockTransportManager transport_manager_mock;
-  test::components::protocol_handler_test::MockProtocolHandlerSettings
-      protocol_handler_settings_mock;
-  test::components::protocol_handler_test::MockSessionObserver
-      session_observer_mock;
-  protocol_handler::ProtocolHandlerImpl protocol_handler_mock(
-      protocol_handler_settings_mock,
-      session_observer_mock,
-      transport_manager_mock);
-  time_tester::TimeManager* time_manager = new time_tester::TimeManager();
-  // Streamer will be deleted by Thread
-  StreamerMock* streamer_mock = new StreamerMock(time_manager);
-  time_manager->set_streamer(streamer_mock);
-  time_manager->Init(&protocol_handler_mock);
-  utils::SharedPtr<time_tester::MetricWrapper> test_metric;
-  EXPECT_CALL(*streamer_mock, PushMessage(test_metric));
-  time_manager->SendMetric(test_metric);
-  delete time_manager;
-}
+class MockProtocolHandlerSettings
+    : public ::protocol_handler::ProtocolHandlerSettings {
+ public:
+  MOCK_CONST_METHOD0(malformed_message_filtering, bool());
+  MOCK_CONST_METHOD0(message_frequency_time, size_t());
+  MOCK_CONST_METHOD0(message_frequency_count, size_t());
+  MOCK_CONST_METHOD0(malformed_frequency_time, size_t());
+  MOCK_CONST_METHOD0(malformed_frequency_count, size_t());
+  MOCK_CONST_METHOD0(maximum_payload_size, size_t());
+  MOCK_CONST_METHOD0(heart_beat_timeout, uint32_t());
+  MOCK_CONST_METHOD0(max_supported_protocol_version, uint16_t());
+#ifdef ENABLE_SECURITY
+  MOCK_CONST_METHOD0(force_protected_service, const std::vector<int>&());
+#endif  // ENABLE_SECURITY
+  MOCK_CONST_METHOD0(force_unprotected_service, const std::vector<int>&());
+  MOCK_CONST_METHOD0(multiframe_waiting_timeout, uint32_t());
+};
 
-}  // namespace time_tester
+}  // namespace protocol_handler_test
 }  // namespace components
 }  // namespace test
+
+#endif  // SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_MOCK_PROTOCOL_HANDLER_SETTINGS_H_

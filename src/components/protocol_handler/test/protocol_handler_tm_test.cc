@@ -29,12 +29,14 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 #include <string>
+#include "protocol_handler/protocol_handler.h"
 #include "protocol_handler/protocol_handler_impl.h"
 #include "protocol/common.h"
 #include "protocol_handler/control_message_matcher.h"
 #include "protocol_handler/mock_protocol_handler.h"
+#include "protocol_handler/mock_protocol_handler_settings.h"
 #include "protocol_handler/mock_protocol_observer.h"
 
 #include "transport_manager/mock_transport_manager.h"
@@ -54,13 +56,11 @@ namespace protocol_handler_test {
 
 using namespace ::protocol_handler;
 using namespace ::transport_manager;
-// For TM states
 using ::transport_manager::TransportManagerListener;
 using ::testing::Return;
+using ::testing::ReturnRefOfCopy;
 using ::testing::ReturnNull;
 using ::testing::AnyOf;
-using ::testing::Ge;
-using ::testing::Le;
 using ::testing::_;
 using ::testing::Invoke;
 using ::testing::SetArgReferee;
@@ -73,16 +73,26 @@ class ProtocolHandlerImplTest : public ::testing::Test {
                                bool malformed_message_filtering = false,
                                const size_t malformd_period_msec = 0u,
                                const size_t malformd_max_messages = 0u,
-                               const int32_t multiframe_waiting_timeout = 0) {
-    protocol_handler_impl.reset(
-        new ProtocolHandlerImpl(&transport_manager_mock,
-                                period_msec,
-                                max_messages,
-                                malformed_message_filtering,
-                                malformd_period_msec,
-                                malformd_max_messages,
-                                multiframe_waiting_timeout));
-    protocol_handler_impl->set_session_observer(&session_observer_mock);
+                               const int32_t multiframe_waiting_timeout = 0,
+                               const size_t maximum_payload_size = 0u) {
+    ON_CALL(protocol_handler_settings_mock, maximum_payload_size())
+        .WillByDefault(Return(maximum_payload_size));
+    ON_CALL(protocol_handler_settings_mock, message_frequency_time())
+        .WillByDefault(Return(period_msec));
+    ON_CALL(protocol_handler_settings_mock, message_frequency_count())
+        .WillByDefault(Return(max_messages));
+    ON_CALL(protocol_handler_settings_mock, malformed_message_filtering())
+        .WillByDefault(Return(malformed_message_filtering));
+    ON_CALL(protocol_handler_settings_mock, malformed_frequency_time())
+        .WillByDefault(Return(malformd_period_msec));
+    ON_CALL(protocol_handler_settings_mock, malformed_frequency_count())
+        .WillByDefault(Return(malformd_max_messages));
+    ON_CALL(protocol_handler_settings_mock, multiframe_waiting_timeout())
+        .WillByDefault(Return(multiframe_waiting_timeout));
+    protocol_handler_impl = utils::MakeShared<ProtocolHandlerImpl>(
+        ProtocolHandlerImpl(protocol_handler_settings_mock,
+                            session_observer_mock,
+                            transport_manager_mock));
     tm_listener = protocol_handler_impl.get();
   }
   void SetUp() OVERRIDE {
@@ -174,9 +184,15 @@ class ProtocolHandlerImplTest : public ::testing::Test {
                                 dataSize,
                                 messageID,
                                 data);
-    // Emulate resive packet from transoprt manager
+    // Emulate receive packet from transport manager
     tm_listener->OnTMMessageReceived(packet.serializePacket());
   }
+  void SetProtocolVersion2() {
+    // Set protocol version 2
+    ON_CALL(protocol_handler_settings_mock, max_supported_protocol_version())
+        .WillByDefault(Return(PROTOCOL_VERSION_2));
+  }
+
   void SendControlMessage(bool protection,
                           uint8_t service_type,
                           uint8_t sessionId,
@@ -195,6 +211,7 @@ class ProtocolHandlerImplTest : public ::testing::Test {
                   data);
   }
 
+  testing::NiceMock<MockProtocolHandlerSettings> protocol_handler_settings_mock;
   ::utils::SharedPtr<ProtocolHandlerImpl> protocol_handler_impl;
   TransportManagerListener* tm_listener;
   // Uniq connection
@@ -356,6 +373,7 @@ TEST_F(ProtocolHandlerImplTest,
       // return sessions start success
       .WillOnce(Return(session_id));
 
+  SetProtocolVersion2();
   // expect send Ack
   EXPECT_CALL(transport_manager_mock,
               SendMessageToDevice(
@@ -372,6 +390,7 @@ TEST_F(ProtocolHandlerImplTest,
  * OFF
  */
 TEST_F(ProtocolHandlerImplTest, StartSession_Protected_SessionObserverAccept) {
+  SetProtocolVersion2();
   AddSession();
 }
 // TODO(EZamakhov): add test for get_hash_id/set_hash_id from
@@ -388,7 +407,7 @@ TEST_F(ProtocolHandlerImplTest, EndSession_SessionObserverReject) {
               OnSessionEndedCallback(connection_id, session_id, _, service))
       // reject session start
       .WillOnce(Return(SESSION_START_REJECT));
-
+  SetProtocolVersion2();
   // expect send NAck
   EXPECT_CALL(transport_manager_mock,
               SendMessageToDevice(
@@ -410,7 +429,7 @@ TEST_F(ProtocolHandlerImplTest, EndSession_Success) {
               OnSessionEndedCallback(connection_id, session_id, _, service))
       // return sessions start success
       .WillOnce(Return(connection_key));
-
+  SetProtocolVersion2();
   // expect send Ack
   EXPECT_CALL(transport_manager_mock,
               SendMessageToDevice(
@@ -439,6 +458,7 @@ TEST_F(ProtocolHandlerImplTest, SecurityEnable_StartSessionProtocoloV1) {
       // return sessions start success
       .WillOnce(Return(session_id));
 
+  SetProtocolVersion2();
   // expect send Ack with PROTECTION_OFF (on no Security Manager)
   EXPECT_CALL(transport_manager_mock,
               SendMessageToDevice(
@@ -471,7 +491,7 @@ TEST_F(ProtocolHandlerImplTest, SecurityEnable_StartSessionUnprotected) {
           connection_id, NEW_SESSION_ID, start_service, PROTECTION_OFF, _))
       // return sessions start success
       .WillOnce(Return(session_id));
-
+  SetProtocolVersion2();
   // expect send Ack with PROTECTION_OFF (on no Security Manager)
   EXPECT_CALL(transport_manager_mock,
               SendMessageToDevice(
@@ -495,7 +515,7 @@ TEST_F(ProtocolHandlerImplTest, SecurityEnable_StartSessionProtected_Fail) {
           connection_id, NEW_SESSION_ID, start_service, PROTECTION_ON, _))
       // return sessions start success
       .WillOnce(Return(session_id));
-
+  SetProtocolVersion2();
   // expect start protection for unprotected session
   EXPECT_CALL(security_manager_mock, CreateSSLContext(connection_key))
       // return fail protection
@@ -526,7 +546,7 @@ TEST_F(ProtocolHandlerImplTest,
           connection_id, NEW_SESSION_ID, start_service, PROTECTION_ON, _))
       // return sessions start success
       .WillOnce(Return(session_id));
-
+  SetProtocolVersion2();
   // call new SSLContext creation
   EXPECT_CALL(security_manager_mock, CreateSSLContext(connection_key))
       // return new SSLContext
@@ -565,6 +585,13 @@ TEST_F(ProtocolHandlerImplTest,
           connection_id, NEW_SESSION_ID, start_service, PROTECTION_ON, _))
       // return sessions start success
       .WillOnce(Return(session_id));
+
+  std::vector<int> services;
+  // TODO(AKutsan) : APPLINK-21398 use named constants instead of magic numbers
+  services.push_back(0x0A);
+  services.push_back(0x0B);
+  ON_CALL(protocol_handler_settings_mock, force_protected_service())
+      .WillByDefault(ReturnRefOfCopy(services));
 
   // call new SSLContext creation
   EXPECT_CALL(security_manager_mock, CreateSSLContext(connection_key))
@@ -612,6 +639,12 @@ TEST_F(ProtocolHandlerImplTest,
   AddConnection();
   AddSecurityManager();
   const ServiceType start_service = kRpc;
+
+  // No services are protected
+  std::vector<int> services;
+  ON_CALL(protocol_handler_settings_mock, force_protected_service())
+      .WillByDefault(ReturnRefOfCopy(services));
+
   // expect ConnectionHandler check
   EXPECT_CALL(
       session_observer_mock,
@@ -672,6 +705,11 @@ TEST_F(
   AddConnection();
   AddSecurityManager();
   const ServiceType start_service = kRpc;
+
+  std::vector<int> services;
+  ON_CALL(protocol_handler_settings_mock, force_protected_service())
+      .WillByDefault(ReturnRefOfCopy(services));
+
   // expect ConnectionHandler check
   EXPECT_CALL(
       session_observer_mock,
@@ -729,6 +767,11 @@ TEST_F(ProtocolHandlerImplTest,
        SecurityEnable_StartSessionProtected_HandshakeSuccess_SSLIsNotPending) {
   AddConnection();
   AddSecurityManager();
+
+  std::vector<int> services;
+  ON_CALL(protocol_handler_settings_mock, force_protected_service())
+      .WillByDefault(ReturnRefOfCopy(services));
+
   const ServiceType start_service = kRpc;
   // expect ConnectionHandler check
   EXPECT_CALL(
@@ -795,6 +838,13 @@ TEST_F(ProtocolHandlerImplTest, FloodVerification) {
   EXPECT_CALL(session_observer_mock,
               OnApplicationFloodCallBack(connection_key));
 
+  ON_CALL(protocol_handler_settings_mock, message_frequency_time())
+      .WillByDefault(Return(period_msec));
+  ON_CALL(protocol_handler_settings_mock, message_frequency_count())
+      .WillByDefault(Return(max_messages));
+  ON_CALL(protocol_handler_settings_mock, max_supported_protocol_version())
+      .WillByDefault(Return(PROTOCOL_VERSION_3));
+
   for (size_t i = 0; i < max_messages + 1; ++i) {
     SendTMMessage(connection_id,
                   PROTOCOL_VERSION_3,
@@ -815,7 +865,13 @@ TEST_F(ProtocolHandlerImplTest, FloodVerification_ThresholdValue) {
   AddConnection();
   AddSession();
 
+  ON_CALL(protocol_handler_settings_mock, message_frequency_time())
+      .WillByDefault(Return(period_msec));
+  ON_CALL(protocol_handler_settings_mock, message_frequency_count())
+      .WillByDefault(Return(max_messages));
   // expect NO flood notification to CH
+  EXPECT_CALL(session_observer_mock, OnApplicationFloodCallBack(connection_key))
+      .Times(0);
   for (size_t i = 0; i < max_messages - 1; ++i) {
     SendTMMessage(connection_id,
                   PROTOCOL_VERSION_3,
