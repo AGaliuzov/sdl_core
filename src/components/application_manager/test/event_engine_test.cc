@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Ford Motor Company
+ * Copyright (c) 2016, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 #include "application_manager/event_engine/event_observer.h"
 #include "application_manager/event_engine/event.h"
-#include "application_manager/event_engine/event_dispatcher.h"
+#include "application_manager/event_engine/event_dispatcher_impl.h"
 #include "interfaces/HMI_API.h"
 #include "application_manager/mock_event_observer.h"
 #include "smart_objects/smart_object.h"
@@ -44,7 +44,7 @@ namespace components {
 namespace event_engine_test {
 
 namespace smart_objects = NsSmartDeviceLink::NsSmartObjects;
-using application_manager::event_engine::EventDispatcher;
+using application_manager::event_engine::EventDispatcherImpl;
 using application_manager::event_engine::Event;
 using application_manager::event_engine::EventObserver;
 using event_engine_test::MockEventObserver;
@@ -52,13 +52,14 @@ using testing::_;
 
 class EventEngineTest : public testing::Test {
  public:
+
   EventEngineTest()
       : event_id(Event::EventID::BasicCommunication_ActivateApp),
         event_id2(Event::EventID::BasicCommunication_OnAppActivated),
         event_id3(Event::EventID::VR_IsReady) {}
 
  protected:
-  EventDispatcher* event_dispatcher_instance_;
+  EventDispatcherImpl* event_dispatcher_instance_;
   Event* event_;
   const application_manager::event_engine::Event::EventID event_id;
   const application_manager::event_engine::Event::EventID event_id2;
@@ -72,8 +73,8 @@ class EventEngineTest : public testing::Test {
   smart_objects::SmartObject smart_object_with_invalid_type;
 
   virtual void SetUp() OVERRIDE {
-    EventDispatcher::destroy();
-    event_dispatcher_instance_ = EventDispatcher::instance();
+    EventDispatcherImpl::destroy();
+    event_dispatcher_instance_ = EventDispatcherImpl::instance();
     event_ = new Event(hmi_apis::FunctionID::eType::VR_IsReady);
     smart_object_with_type_notification["params"]["message_type"] =
         hmi_apis::messageType::notification;
@@ -110,21 +111,21 @@ class EventEngineTest : public testing::Test {
   }
 
   virtual void TearDown() OVERRIDE {
-    EventDispatcher::destroy();
+    EventDispatcherImpl::destroy();
     delete event_;
   }
 
   void ExtractObserversListFromObservers(
       const Event::EventID& event_id,
-      EventDispatcher::ObserverList& observers_list) {
-    const EventDispatcher::EventObserverMap& event_observer_map =
+      EventDispatcherImpl::ObserverVector& observers_list) {
+    const EventDispatcherImpl::EventObserverMap& event_observer_map =
         event_dispatcher_instance_->get_observers();
-    EventDispatcher::EventObserverMap::const_iterator event_observer_map_iter =
+    EventDispatcherImpl::EventObserverMap::const_iterator event_observer_map_iter =
         event_observer_map.find(event_id);
     ASSERT_TRUE(event_observer_map_iter != event_observer_map.end());
-    EventDispatcher::ObserversMap observers_map =
+    EventDispatcherImpl::ObserversMap observers_map =
         event_observer_map_iter->second;
-    EventDispatcher::ObserversMap::const_iterator observers_map_iter =
+    EventDispatcherImpl::ObserversMap::const_iterator observers_map_iter =
         observers_map.find(correlation_id);
     ASSERT_TRUE(observers_map_iter != observers_map.end());
     observers_list = observers_map_iter->second;
@@ -133,11 +134,11 @@ class EventEngineTest : public testing::Test {
   void CheckObserverNumberInObserversList(const EventObserver* observer,
                                           const Event::EventID& event_id,
                                           const uint32_t observers_number) {
-    EventDispatcher::ObserverList observers_list;
+    EventDispatcherImpl::ObserverVector observers_list;
     ExtractObserversListFromObservers(event_id, observers_list);
     EXPECT_EQ(observers_number, observers_list.size());
     if (!observers_list.empty()) {
-      EventDispatcher::ObserverList::const_iterator observer_list_iter =
+      EventDispatcherImpl::ObserverVector::const_iterator observer_list_iter =
           std::find(observers_list.begin(), observers_list.end(), observer);
       EXPECT_TRUE(observer_list_iter != observers_list.end());
     }
@@ -180,6 +181,7 @@ TEST_F(EventEngineTest, EventDispatcher_AddObserverTest_ExpectObserverAdded) {
 
 TEST_F(EventEngineTest,
        EventDispatcher_RemoveObserverForAllEvents_ExpectObserverRemoved) {
+
   // Arrange
   // Add observer for event 1
   event_dispatcher_instance_->add_observer(event_id, correlation_id,
