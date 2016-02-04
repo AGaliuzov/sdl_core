@@ -526,9 +526,12 @@ int main(int argc, char** argv) {
 
   profile::Profile::instance()->config_file_name(SDL_INIFILE_PATH);
   profile::Profile::instance()->UpdateValues();
-  INIT_LOGGER(profile::Profile::instance()->log4cxx_config_file(),
-              profile::Profile::instance()->logs_enabled());
-  configureLogging();
+
+  if (profile::Profile::instance()->logs_enabled()) {
+    INIT_LOGGER(profile::Profile::instance()->log4cxx_config_file(),
+                profile::Profile::instance()->logs_enabled());
+    configureLogging();
+  }
 
   LOG4CXX_INFO(logger_, "Application main()");
   LOG4CXX_INFO(logger_, "Snapshot: {TAG}");
