@@ -48,13 +48,12 @@ namespace event_engine {
 class EventObserver;
 
 class EventDispatcherImpl : public EventDispatcher,
-  public utils::Singleton<EventDispatcherImpl> {
+                            public utils::Singleton<EventDispatcherImpl> {
  public:
-
   // Data types section
-  typedef std::vector<EventObserver*>                 ObserverVector;
-  typedef std::map<int32_t, ObserverVector>           ObserversMap;
-  typedef std::map<Event::EventID, ObserversMap>      EventObserverMap;
+  typedef std::vector<EventObserver*> ObserverVector;
+  typedef std::map<int32_t, ObserverVector> ObserversMap;
+  typedef std::map<Event::EventID, ObserversMap> EventObserverMap;
 
 #ifdef BUILD_TESTS
   EventObserverMap get_observers() const { return observers_event_; }
@@ -66,7 +65,7 @@ class EventDispatcherImpl : public EventDispatcher,
    *
    * @param event Received event
    */
-  virtual void raise_event(const Event& event);
+  void raise_event(const Event& event) OVERRIDE;
 
   /*
    * @brief Subscribe the observer to event
@@ -75,9 +74,9 @@ class EventDispatcherImpl : public EventDispatcher,
    * @param hmi_correlation_id  The event HMI correlation ID
    * @param observer    The observer to subscribe for event
    */
-  virtual void add_observer(const Event::EventID& event_id,
-                    int32_t hmi_correlation_id,
-                    EventObserver* const observer);
+  void add_observer(const Event::EventID& event_id,
+                            int32_t hmi_correlation_id,
+                            EventObserver* const observer) OVERRIDE;
 
   /*
    * @brief Unsubscribes the observer from specific event
@@ -85,23 +84,22 @@ class EventDispatcherImpl : public EventDispatcher,
    * @param event_id    The event ID to unsubscribe from
    * @param observer    The observer to be unsubscribed
    */
-  virtual void remove_observer(const Event::EventID& event_id,
-                       EventObserver* const observer);
+  void remove_observer(const Event::EventID& event_id,
+                               EventObserver* const observer) OVERRIDE;
 
   /*
    * @brief Unsubscribes the observer from all events
    *
    * @param observer  The observer to be unsubscribed
    */
-  virtual void remove_observer(EventObserver* const observer);
+  void remove_observer(EventObserver* const observer) OVERRIDE;
 
   /*
    * @brief Destructor
    */
- virtual ~EventDispatcherImpl();
+  virtual ~EventDispatcherImpl();
 
  private:
-
   /*
    * @brief Default constructor
    */
@@ -117,14 +115,13 @@ class EventDispatcherImpl : public EventDispatcher,
   DISALLOW_COPY_AND_ASSIGN(EventDispatcherImpl);
 
   FRIEND_BASE_SINGLETON_CLASS(EventDispatcherImpl);
+
  private:
-
   // Members section
-  sync_primitives::Lock                               state_lock_;
-  sync_primitives::Lock                               observer_lock_;
-  EventObserverMap                                    observers_event_;
-  ObserverVector                                      observers_;
-
+  sync_primitives::Lock state_lock_;
+  sync_primitives::Lock observer_lock_;
+  EventObserverMap observers_event_;
+  ObserverVector observers_;
 };
 
 }  // namespace event_engine

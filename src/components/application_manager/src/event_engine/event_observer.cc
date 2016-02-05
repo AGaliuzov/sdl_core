@@ -36,19 +36,17 @@
 namespace application_manager {
 namespace event_engine {
 
-EventObserver::EventObserver()
- : id_(0) {
-  //Get unique id based on this
+EventObserver::EventObserver() : id_(0) {
+  // Get unique id based on this
   id_ = reinterpret_cast<unsigned long>(this);
 }
 
-EventObserver::~EventObserver() {
-  unsubscribe_from_all_events();
-}
+EventObserver::~EventObserver() { unsubscribe_from_all_events(); }
 
 void EventObserver::subscribe_on_event(const Event::EventID& event_id,
                                        int32_t hmi_correlation_id) {
-  EventDispatcherImpl::instance()->add_observer(event_id, hmi_correlation_id, this);
+  EventDispatcherImpl::instance()->add_observer(event_id, hmi_correlation_id,
+                                                this);
 }
 
 void EventObserver::unsubscribe_from_event(const Event::EventID& event_id) {

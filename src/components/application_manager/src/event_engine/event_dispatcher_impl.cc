@@ -34,13 +34,17 @@
 #include "interfaces/HMI_API.h"
 #include "application_manager/event_engine/event_observer.h"
 #include <algorithm>
-#include <iostream>
+
 namespace application_manager {
 namespace event_engine {
+
 using namespace sync_primitives;
 
 EventDispatcherImpl::EventDispatcherImpl()
-    : state_lock_(false), observer_lock_(true), observers_event_(), observers_() {}
+    : state_lock_(false),
+      observer_lock_(true),
+      observers_event_(),
+      observers_() {}
 
 EventDispatcherImpl::~EventDispatcherImpl() {}
 
@@ -64,9 +68,9 @@ void EventDispatcherImpl::raise_event(const Event& event) {
   EventObserver* temp;
   while (!observers_.empty()) {
     AutoLock auto_lock(observer_lock_);
-      temp = *observers_.begin();
-      observers_.erase(observers_.begin());
-      temp->on_event(event);
+    temp = *observers_.begin();
+    observers_.erase(observers_.begin());
+    temp->on_event(event);
   }
 }
 
@@ -97,9 +101,9 @@ void EventDispatcherImpl::remove_observer(const Event::EventID& event_id,
   for (; observers_event_[event_id].end() != it; ++it) {
     ObserverVector& obs_vec = it->second;
     const ObserverVector::iterator obs_vec_it = obs_vec.end();
-    obs_vec.erase(
-        std::remove_if(obs_vec.begin(), obs_vec_it, IdCheckFunctor(observer->id())),
-        obs_vec_it);
+    obs_vec.erase(std::remove_if(obs_vec.begin(), obs_vec_it,
+                                 IdCheckFunctor(observer->id())),
+                  obs_vec_it);
   }
 }
 
@@ -116,10 +120,9 @@ void EventDispatcherImpl::remove_observer_from_vector(
     EventObserver* const observer) {
   AutoLock auto_lock(observer_lock_);
 
-  observers_.erase(
-      std::remove_if(observers_.begin(), observers_.end(),
-                     IdCheckFunctor(observer->id()) ),
-      observers_.end());
+  observers_.erase(std::remove_if(observers_.begin(), observers_.end(),
+                                  IdCheckFunctor(observer->id())),
+                   observers_.end());
 }
 
 }  // namespace event_engine
