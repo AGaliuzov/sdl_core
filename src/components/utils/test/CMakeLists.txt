@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Ford Motor Company
+# Copyright (c) 2016, Ford Motor Company
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,6 @@ set(testSources
   file_system_test.cc
   date_time_test.cc
   system_test.cc
-  signals_linux_test.cc
   thread_validator_test.cc
   conditional_variable_test.cc
   message_queue_test.cc
