@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Ford Motor Company
+ * Copyright (c) 2016, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,6 +62,11 @@
     // without this deinitilization log4cxx threads continue using some instances destroyed by exit()
     void deinit_logger();
     #define DEINIT_LOGGER() deinit_logger()
+
+    // special macros to dump logs from queue
+    // it's need, for example, when crash happend
+    void flush_logger();
+    #define FLUSH_LOGGER() flush_logger()
 
     #define LOG4CXX_IS_TRACE_ENABLED(loggerPtr) loggerPtr->isTraceEnabled()
 

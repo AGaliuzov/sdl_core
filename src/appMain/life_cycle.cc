@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014, Ford Motor Company
+* Copyright (c) 2016, Ford Motor Company
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -379,38 +379,34 @@ bool LifeCycle::InitMessageSystem() {
 #endif  // CUSTOMER_PASA
 
 namespace {
-void sig_handler(int sig) {
-  switch (sig) {
-    case SIGINT:
-      LOG4CXX_DEBUG(logger_, "SIGINT signal has been caught");
-      break;
-    case SIGTERM:
-      LOG4CXX_DEBUG(logger_, "SIGTERM signal has been caught");
-      break;
-    case SIGSEGV:
-      LOG4CXX_DEBUG(logger_, "SIGSEGV signal has been caught");
-#ifdef ENABLE_LOG
-      logger::LogMessageLoopThread::destroy();
-#endif
-      break;
-    default:
-      LOG4CXX_DEBUG(logger_, "Unexpected signal has been caught");
-      break;
+  void sig_handler(int sig) {
+    switch(sig) {
+      case SIGINT:
+        LOG4CXX_DEBUG(logger_, "SIGINT signal has been caught");
+        break;
+      case SIGTERM:
+        LOG4CXX_DEBUG(logger_, "SIGTERM signal has been caught");
+        break;
+      case SIGSEGV:
+        LOG4CXX_DEBUG(logger_, "SIGSEGV signal has been caught");
+        FLUSH_LOGGER();
+        // exit need to prevent endless sending SIGSEGV
+        // http://stackoverflow.com/questions/2663456/how-to-write-a-signal-handler-to-catch-sigsegv
+        abort();
+      default:
+        LOG4CXX_DEBUG(logger_, "Unexpected signal has been caught");
+        exit(EXIT_FAILURE);
+    }
   }
-}
 }  //  namespace
 
 void LifeCycle::Run() {
   LOG4CXX_AUTO_TRACE(logger_);
-  // First, register signal handlers
-  if (!::utils::SubscribeToInterruptSignal(&sig_handler) ||
-      !::utils::SubscribeToTerminateSignal(&sig_handler) ||
-      !::utils::SubscribeToFaultSignal(&sig_handler)) {
-    LOG4CXX_FATAL(logger_, "Subscribe to system signals error");
-    return;
+  // Register signal handlers and wait sys signals
+  // from OS
+  if (!utils::WaitTerminationSignals(&sig_handler)) {
+      LOG4CXX_FATAL(logger_, "Fail to catch system signal!");
   }
-  // Now wait for any signal
-  pause();
 }
 
 #ifdef CUSTOMER_PASA
