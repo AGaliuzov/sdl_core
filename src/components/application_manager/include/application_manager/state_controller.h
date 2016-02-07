@@ -295,6 +295,13 @@ class StateController : public event_engine::EventObserver {
    */
   bool IsDeactivateHMIStateActive() const;
 
+  /**
+   * @brief Checks, if particular state is active
+   * @param state_id State
+   * @return True, if state is active, otherwise - false
+   */
+  bool IsStateActive(HmiState::StateID state_id) const;
+
  private:
   /**
    * @brief The HmiLevelConflictResolver struct
