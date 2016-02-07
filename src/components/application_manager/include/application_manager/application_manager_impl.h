@@ -544,15 +544,6 @@ class ApplicationManagerImpl :
   }
 
     /**
-     * @brief Checks activity of Deactivate HMI state.
-     * @return Returns TRUE if deactivate HMI state is active, otherwise returns
-     * FALSE.
-     */
-    bool IsDeactivateHMIStateActive() const {
-      return state_ctrl_.IsDeactivateHMIStateActive();
-    }
-
-    /**
      * @brief Checks, if particular state is active
      * @param state_id State
      * @return True, if state is active, otherwise - false
