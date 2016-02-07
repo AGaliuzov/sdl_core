@@ -316,15 +316,15 @@ bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
                 << application->app_id()
                 << "with hmi_app_id " << application->hmi_app_id()
                 << ", policy_app_id " << application->policy_app_id());
-  smart_objects::SmartObject saved_app;
-  bool result = resumption_storage_->GetSavedApplication(application->policy_app_id(),
-      MessageHelper::GetDeviceMacAddressForHandle(application->device()),
-      saved_app);
-  if (result) {
+  if (IsResumeAllowed(application)) {
     AddToResumptionTimerQueue(application->app_id());
+    LOG4CXX_INFO(logger_, "Resume for application id " << application->app_id()
+                          << " has been scheduled.");
+    return true;
   }
-  LOG4CXX_DEBUG(logger_, "StartResumptionOnlyHMILevel::Result = " << result);
-  return result;
+  LOG4CXX_INFO(logger_, "Resume for application id " << application->app_id()
+                        << " has been canceled.");
+  return false;
 }
 
 void ResumeCtrl::StartAppHmiStateResumption(ApplicationSharedPtr application) {
@@ -774,6 +774,40 @@ bool ResumeCtrl::IsAppDataResumptionExpired(
     const smart_objects::SmartObject& application) const {
   const int32_t max_ign_off_count = 3;
   return max_ign_off_count <= application[strings::ign_off_count].asInt();
+}
+
+bool ResumeCtrl::IsUnexpectedlyDisconnected(
+    const smart_objects::SmartObject& app) const {
+  return 0 == app[strings::ign_off_count].asUInt();
+}
+
+bool ResumeCtrl::IsResumeAllowed(const ApplicationSharedPtr application) const {
+  LOG4CXX_AUTO_TRACE(logger_);
+  smart_objects::SmartObject saved_app;
+  const bool result =
+      resumption_storage_->GetSavedApplication(application->policy_app_id(),
+      MessageHelper::GetDeviceMacAddressForHandle(application->device()),
+      saved_app);
+
+  if (!result) {
+    LOG4CXX_DEBUG(logger_, "Application has not been found in persisted data.");
+    return false;
+  }
+
+  if (!application->is_media_application()) {
+    return true;
+  }
+
+  if (ApplicationManagerImpl::instance()->
+      IsStateActive(HmiState::STATE_ID_AUDIO_SOURCE) &&
+      !IsUnexpectedlyDisconnected(saved_app)) {
+    LOG4CXX_DEBUG(logger_, "Resumption of media application has been canceled."
+                  "AUDIO_SOURCE is active and there was no unexpected "
+                  "disconnect for application.");
+    return false;
+  }
+
+  return true;
 }
 
 }  // namespce resumption

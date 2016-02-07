@@ -370,6 +370,7 @@ class ApplicationManagerImpl
                void(ApplicationSharedPtr app, mobile_apis::HMILevel::eType,
                     mobile_apis::AudioStreamingState::eType));
   bool IsHMICooperating() const { return true; };
+  MOCK_CONST_METHOD1(IsStateActive, bool(HmiState::StateID state));
   MOCK_CONST_METHOD0(IsStopping, bool());
 
 
