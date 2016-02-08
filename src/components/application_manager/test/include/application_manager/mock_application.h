@@ -257,6 +257,8 @@ class MockApplication : public ::application_manager::Application {
   MOCK_CONST_METHOD0(is_perform_interaction_active, uint32_t());
   MOCK_METHOD1(set_perform_interaction_mode, void(int32_t mode));
   MOCK_CONST_METHOD0(perform_interaction_mode, int32_t());
+  MOCK_METHOD1(set_perform_interaction_layout, void(mobile_apis::LayoutMode::eType mode));
+  MOCK_CONST_METHOD0(perform_interaction_layout, mobile_apis::LayoutMode::eType());
   MOCK_METHOD1(set_reset_global_properties_active, void(bool active));
   MOCK_CONST_METHOD0(is_reset_global_properties_active, bool());
   MOCK_CONST_METHOD0(app_id, uint32_t());

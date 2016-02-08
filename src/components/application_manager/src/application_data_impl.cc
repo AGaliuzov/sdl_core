@@ -172,6 +172,7 @@ DynamicApplicationDataImpl::DynamicApplicationDataImpl()
       performinteraction_choice_set_lock_(true),
       is_perform_interaction_active_(false),
       is_reset_global_properties_active_(false),
+      perform_interaction_layoutmode_(mobile_api::LayoutMode::KEYBOARD),
       perform_interaction_mode_(-1) {
 }
 
@@ -534,6 +535,10 @@ void DynamicApplicationDataImpl::DeletePerformInteractionChoiceSet(
 void DynamicApplicationDataImpl::set_perform_interaction_active(
     uint32_t active) {
   is_perform_interaction_active_ = active;
+}
+
+void DynamicApplicationDataImpl::set_perform_interaction_layout(mobile_api::LayoutMode::eType layout) {
+  perform_interaction_layoutmode_ = layout;
 }
 
 void DynamicApplicationDataImpl::set_reset_global_properties_active(
