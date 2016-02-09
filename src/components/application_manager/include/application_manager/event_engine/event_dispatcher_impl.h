@@ -30,25 +30,42 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_EVENT_DISPATCHER_H_
-#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_EVENT_DISPATCHER_H_
+#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_EVENT_DISPATCHER_IMPL_H_
+#define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_EVENT_DISPATCHER_IMPL_H_
 
-#include <list>
+#include <vector>
+#include <map>
+
+#include "utils/lock.h"
+#include "utils/singleton.h"
+
 #include "application_manager/event_engine/event.h"
+#include "application_manager/event_engine/event_dispatcher.h"
 
 namespace application_manager {
 namespace event_engine {
 
 class EventObserver;
 
-class EventDispatcher {
+class EventDispatcherImpl : public EventDispatcher,
+                            public utils::Singleton<EventDispatcherImpl> {
  public:
+  // Data types section
+  typedef std::vector<EventObserver*> ObserverVector;
+  typedef std::map<int32_t, ObserverVector> ObserversMap;
+  typedef std::map<Event::EventID, ObserversMap> EventObserverMap;
+
+#ifdef BUILD_TESTS
+  EventObserverMap get_observers() const { return observers_event_; }
+  ObserverVector get_observers_list() const { return observers_; }
+#endif  // BUILD_TESTS
+
   /*
    * @brief Delivers the event to all subscribers
    *
    * @param event Received event
    */
-  virtual void raise_event(const Event& event) = 0;
+  void raise_event(const Event& event) OVERRIDE;
 
   /*
    * @brief Subscribe the observer to event
@@ -57,9 +74,9 @@ class EventDispatcher {
    * @param hmi_correlation_id  The event HMI correlation ID
    * @param observer    The observer to subscribe for event
    */
-  virtual void add_observer(const Event::EventID& event_id,
+  void add_observer(const Event::EventID& event_id,
                             int32_t hmi_correlation_id,
-                            EventObserver* const observer) = 0;
+                            EventObserver* const observer) OVERRIDE;
 
   /*
    * @brief Unsubscribes the observer from specific event
@@ -67,23 +84,47 @@ class EventDispatcher {
    * @param event_id    The event ID to unsubscribe from
    * @param observer    The observer to be unsubscribed
    */
-  virtual void remove_observer(const Event::EventID& event_id,
-                               EventObserver* const observer) = 0;
+  void remove_observer(const Event::EventID& event_id,
+                               EventObserver* const observer) OVERRIDE;
 
   /*
    * @brief Unsubscribes the observer from all events
    *
    * @param observer  The observer to be unsubscribed
    */
-  virtual void remove_observer(EventObserver* const observer) = 0;
+  void remove_observer(EventObserver* const observer) OVERRIDE;
 
   /*
    * @brief Destructor
    */
-  virtual ~EventDispatcher(){};
+  virtual ~EventDispatcherImpl();
+
+ private:
+  /*
+   * @brief Default constructor
+   */
+  EventDispatcherImpl();
+
+  /*
+   * @brief removes observer
+   * when occurs unsubscribe from event
+   * @param observer to be removed
+   */
+  void remove_observer_from_vector(EventObserver* const observer);
+
+  DISALLOW_COPY_AND_ASSIGN(EventDispatcherImpl);
+
+  FRIEND_BASE_SINGLETON_CLASS(EventDispatcherImpl);
+
+ private:
+  // Members section
+  sync_primitives::Lock state_lock_;
+  sync_primitives::Lock observer_lock_;
+  EventObserverMap observers_event_;
+  ObserverVector observers_;
 };
 
 }  // namespace event_engine
 }  // namespace application_manager
 
-#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_EVENT_DISPATCHER_H_
+#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_EVENT_DISPATCHER_IMPL_H_
