@@ -35,7 +35,6 @@
 
 #include "gmock/gmock.h"
 #include "utils/shared_ptr.h"
-#include "utils/singleton.h"
 #include "hmi_message_handler/hmi_message_observer.h"
 #include "application_manager/message.h"
 
@@ -45,8 +44,7 @@ namespace hmi_message_handler_test {
 
 using ::hmi_message_handler::HMIMessageObserver;
 
-class MockHMIMessageObserver : public HMIMessageObserver,
-    public utils::Singleton<MockHMIMessageObserver> {
+class MockHMIMessageObserver : public HMIMessageObserver {
  public:
   MOCK_METHOD1(OnMessageReceived,
       void(utils::SharedPtr<application_manager::Message> message));

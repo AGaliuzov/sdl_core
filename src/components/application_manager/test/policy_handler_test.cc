@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Ford Motor Company
+ * Copyright (c) 2016, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,8 @@
 #include "security_manager/mock_security_manager.h"
 #include "security_manager/mock_crypto_manager.h"
 #include "application_manager/mock_message_helper.h"
+#include "connection_handler/mock_connection_handler_settings.h"
+#include "transport_manager/mock_transport_manager.h"
 #include "policy/policy_types.h"
 #include "json/reader.h"
 #include "json/writer.h"
@@ -64,7 +66,7 @@ using namespace policy;
 using namespace utils::custom_string;
 using testing::_;
 using ::testing::Return;
-
+using ::testing::ReturnRef;
 
 class PolicyHandlerTest : public ::testing::Test {
  public:
@@ -72,10 +74,11 @@ class PolicyHandlerTest : public ::testing::Test {
       : instance_(NULL),
         app_manager_(NULL),
         app_id_("fake_app_id"),
+        mac_addr("mac_address"),
         device_id_("fake_device_id"),
         hmi_level_("default"),
         rpc_("fake_rpc"),
-        priority_("fake_priority"),
+        priority_("fake_priority"),        
         default_hmi_("fake_hmi") {}
 
  protected:
@@ -83,6 +86,7 @@ class PolicyHandlerTest : public ::testing::Test {
   utils::SharedPtr<policy_manager_test::MockPolicyManager> pm_;
   ApplicationManagerImpl* app_manager_;
   const std::string app_id_;
+  const std::string mac_addr;
   const std::string device_id_;
   const std::string hmi_level_;
   const std::string rpc_;
@@ -428,7 +432,7 @@ TEST_F(PolicyHandlerTest, Test_KmsChanged_method) {
   // Act
   instance_->KmsChanged(kilometers);
 }
-
+// policy_handler l:1026
 TEST_F(PolicyHandlerTest, Test_OnActivateApp_method) {
   // Arrange
   EnablePolicyAndPolicyManagerMock();
@@ -443,13 +447,16 @@ TEST_F(PolicyHandlerTest, Test_OnActivateApp_method) {
           new HmiState(app_id, app_manager_, HmiState::STATE_ID_REGULAR))));
 
   ApplicationSharedPtr application1(new ApplicationImpl(
-      app_id, policy_app_id, app_name, instance_->GetStatisticManager()));
+      app_id, policy_app_id, mac_addr, app_name, instance_->GetStatisticManager()));
 
+  connection_handler_test::MockConnectionHandlerSettings mock_connection_handler_settings;
+  transport_manager_test::MockTransportManager mock_transport_manager;
+  connection_handler::ConnectionHandlerImpl* conn_handler =
+       new connection_handler::ConnectionHandlerImpl(mock_connection_handler_settings,mock_transport_manager);
+  EXPECT_CALL(*app_manager_,connection_handler()).WillOnce(ReturnRef(*conn_handler));
   EXPECT_CALL(*app_manager_, application(connection_key))
       .Times(1)
       .WillRepeatedly(Return(application1));
-  EXPECT_CALL(*MockMessageHelper::message_helper_mock(),
-              GetDeviceInfoForApp(_, _));
 
   AppPermissions permissions(policy_app_id);
   // Check expectations
@@ -486,7 +493,7 @@ TEST_F(PolicyHandlerTest, Test_OnPendingPermissionChange_method) {
           new HmiState(app_id, app_manager_, HmiState::STATE_ID_REGULAR))));
 
   ApplicationSharedPtr application(new ApplicationImpl(
-      app_id, policy_app_id, app_name, instance_->GetStatisticManager()));
+      app_id, policy_app_id, mac_addr, app_name, instance_->GetStatisticManager()));
 
   EXPECT_CALL(*app_manager_, application_by_policy_id(policy_app_id))
       .WillOnce(Return(application));
@@ -574,17 +581,24 @@ TEST_F(PolicyHandlerTest, Test_OnCurrentDeviceIdUpdateRequired_method) {
   std::string policy_app_id("mobile_app_id");
   CustomString app_name("my_mobile_app");
 
+  connection_handler_test::MockConnectionHandlerSettings
+      mock_connection_handler_settings;
+  transport_manager_test::MockTransportManager mock_transport_manager;
+  connection_handler::ConnectionHandlerImpl* conn_handler =
+      new connection_handler::ConnectionHandlerImpl(
+          mock_connection_handler_settings, mock_transport_manager);
+
+  EXPECT_CALL(*app_manager_,connection_handler()).WillOnce(ReturnRef(*conn_handler));
   EXPECT_CALL(*app_manager_, CreateRegularState(app_id, _, _, _))
       .WillOnce(Return(HmiStatePtr(
           new HmiState(app_id, app_manager_, HmiState::STATE_ID_REGULAR))));
 
   ApplicationSharedPtr application(new ApplicationImpl(
-      app_id, policy_app_id, app_name, instance_->GetStatisticManager()));
+      app_id, policy_app_id, mac_addr, app_name, instance_->GetStatisticManager()));
 
   EXPECT_CALL(*app_manager_, application_by_policy_id(policy_app_id))
       .WillOnce(Return(application));
-  EXPECT_CALL(*MockMessageHelper::message_helper_mock(),
-              GetDeviceInfoForApp(_, _));
+
   // Act
   instance_->OnCurrentDeviceIdUpdateRequired(policy_app_id);
 }
@@ -670,10 +684,12 @@ TEST_F(PolicyHandlerTest, Test_RemoveDevice_method) {
   // Arrange
   EnablePolicyAndPolicyManagerMock();
   // Check expectations
+  connection_handler_test::MockConnectionHandlerSettings mock_connection_handler_settings;
+  transport_manager_test::MockTransportManager mock_transport_manager;
   connection_handler::ConnectionHandlerImpl* conn_handler =
-      connection_handler::ConnectionHandlerImpl::instance();
+       new connection_handler::ConnectionHandlerImpl(mock_connection_handler_settings,mock_transport_manager);;
   EXPECT_CALL(*app_manager_, connection_handler())
-      .WillOnce(Return(conn_handler));
+      .WillOnce(ReturnRef(*conn_handler));
   EXPECT_CALL(*pm_, MarkUnpairedDevice(device_id_));
   // Act
   instance_->RemoveDevice(device_id_);
@@ -692,7 +708,7 @@ TEST_F(PolicyHandlerTest, Test_GetAppName_method) {
           new HmiState(app_id, app_manager_, HmiState::STATE_ID_REGULAR))));
 
   ApplicationSharedPtr application(new ApplicationImpl(
-      app_id, policy_app_id, app_name, instance_->GetStatisticManager()));
+      app_id, policy_app_id, mac_addr, app_name, instance_->GetStatisticManager()));
 
   EXPECT_CALL(*app_manager_, application_by_policy_id(policy_app_id))
       .WillOnce(Return(application));
@@ -753,7 +769,7 @@ TEST_F(PolicyHandlerTest, Test_SendOnAppPermissionsChanged_method) {
           new HmiState(app_id, app_manager_, HmiState::STATE_ID_REGULAR))));
 
   ApplicationSharedPtr application(new ApplicationImpl(
-      app_id, policy_app_id, app_name,
+      app_id, policy_app_id, mac_addr, app_name,
       policy::PolicyHandler::instance()->GetStatisticManager()));
   // Check expectations
   EXPECT_CALL(*app_manager_, application_by_policy_id(policy_app_id))

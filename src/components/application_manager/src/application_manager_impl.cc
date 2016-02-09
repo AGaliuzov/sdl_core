@@ -892,7 +892,7 @@ void ApplicationManagerImpl::OnFindNewApplicationsRequest() {
   LOG4CXX_DEBUG(logger_, "Starting application list update timer");
   uint32_t timeout =
       profile::Profile::instance()->application_list_update_timeout();
-  application_list_update_timer_->start(timeout);
+  application_list_update_timer_.Start(timeout, false);
   policy::PolicyHandler::instance()->OnAppsSearchStarted();
 }
 

@@ -59,28 +59,28 @@ class MockSessionObserver : public ::protocol_handler::SessionObserver {
                const ::protocol_handler::ServiceType& service_type));
   MOCK_METHOD1(OnApplicationFloodCallBack, void(const uint32_t&));
   MOCK_METHOD1(OnMalformedMessageCallback, void(const uint32_t&));
-  MOCK_METHOD2(KeyFromPair,
+  MOCK_CONST_METHOD2(KeyFromPair,
                uint32_t(transport_manager::ConnectionUID connection_handle,
                         uint8_t sessionId));
-  MOCK_METHOD3(PairFromKey,
+  MOCK_CONST_METHOD3(PairFromKey,
                void(uint32_t key,
                     transport_manager::ConnectionUID* connection_handle,
                     uint8_t* sessionId));
-  MOCK_METHOD4(GetDataOnSessionKey,
+  MOCK_CONST_METHOD4(GetDataOnSessionKey,
                int32_t(uint32_t key,
                        uint32_t* app_id,
                        std::list<int32_t>* sessions_list,
                        uint32_t* device_id));
-  MOCK_METHOD5(GetDataOnDeviceID,
+  MOCK_CONST_METHOD5(GetDataOnDeviceID,
                int32_t(uint32_t device_handle,
                        std::string* device_name,
                        std::list<uint32_t>* applications_list,
                        std::string* mac_address,
                        std::string* connection_type));
-  MOCK_METHOD2(IsHeartBeatSupported,
+  MOCK_CONST_METHOD2(IsHeartBeatSupported,
                bool(transport_manager::ConnectionUID connection_handle,
                     uint8_t session_id));
-  MOCK_METHOD3(ProtocolVersionUsed,
+  MOCK_CONST_METHOD3(ProtocolVersionUsed,
                bool(uint32_t connection_id,
                     uint8_t session_id,
                     uint8_t& protocol_version));

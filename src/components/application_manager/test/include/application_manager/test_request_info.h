@@ -46,9 +46,12 @@ class TestRequestInfo : public RequestInfo {
  public:
   TestRequestInfo(RequestPtr request,
                   const RequestType requst_type,
-                  const TimevalStruct& start_time, const uint64_t timeout_sec)
+                  const TimevalStruct& start_time,
+                  const uint64_t timeout_sec)
       : RequestInfo(request, requst_type, start_time, timeout_sec) {}
-  void SetEndTime(const TimevalStruct& end_time) { end_time_ = end_time; }
+  void SetEndTime(const TimevalStruct& end_time) {
+    end_time_ = end_time;
+  }
 };
 
 }  // namespace application_manager_test

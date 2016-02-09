@@ -54,9 +54,9 @@
 #include "utils/logger.h"
 #include "utils/make_shared.h"
 
-namespace application_manager {
-
 CREATE_LOGGERPTR_GLOBAL(logger_, "ApplicationManager")
+
+namespace application_manager {
 
 namespace {
 

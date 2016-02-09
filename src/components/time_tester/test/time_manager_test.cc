@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Ford Motor Company
+ * Copyright (c) 2016, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 #include "time_tester/time_manager.h"
 #include "protocol_handler/time_metric_observer.h"
 #include "protocol_handler/protocol_handler.h"
@@ -38,6 +38,7 @@
 #include "protocol_handler/mock_session_observer.h"
 #include "protocol_handler/mock_protocol_handler_settings.h"
 #include "transport_manager/mock_transport_manager.h"
+#include "connection_handler/mock_connection_handler.h"
 #include "time_tester/mock_streamer.h"
 
 namespace test {
@@ -47,6 +48,8 @@ namespace time_tester_test {
 TEST(TimeManagerTest, DISABLED_MessageProcess) {
   // TODO(AK) APPLINK-13351 Disable due to refactor TimeTester
   transport_manager_test::MockTransportManager transport_manager_mock;
+  testing::NiceMock<connection_handler_test::MockConnectionHandler>
+      connection_handler_mock;
   test::components::protocol_handler_test::MockProtocolHandlerSettings
       protocol_handler_settings_mock;
   test::components::protocol_handler_test::MockSessionObserver
@@ -54,6 +57,7 @@ TEST(TimeManagerTest, DISABLED_MessageProcess) {
   protocol_handler::ProtocolHandlerImpl protocol_handler_mock(
       protocol_handler_settings_mock,
       session_observer_mock,
+      connection_handler_mock,
       transport_manager_mock);
   time_tester::TimeManager* time_manager = new time_tester::TimeManager();
   // Streamer will be deleted by Thread

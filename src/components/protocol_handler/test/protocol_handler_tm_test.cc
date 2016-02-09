@@ -43,6 +43,7 @@
 #include "protocol_handler/mock_session_observer.h"
 #include "security_manager/mock_security_manager.h"
 #include "security_manager/mock_ssl_context.h"
+#include "connection_handler/mock_connection_handler.h"
 
 #include "utils/make_shared.h"
 
@@ -89,10 +90,11 @@ class ProtocolHandlerImplTest : public ::testing::Test {
         .WillByDefault(Return(malformd_max_messages));
     ON_CALL(protocol_handler_settings_mock, multiframe_waiting_timeout())
         .WillByDefault(Return(multiframe_waiting_timeout));
-    protocol_handler_impl = utils::MakeShared<ProtocolHandlerImpl>(
-        ProtocolHandlerImpl(protocol_handler_settings_mock,
-                            session_observer_mock,
-                            transport_manager_mock));
+    protocol_handler_impl.reset(
+        new ProtocolHandlerImpl(protocol_handler_settings_mock,
+                                session_observer_mock,
+                                connection_handler_mock,
+                                transport_manager_mock));
     tm_listener = protocol_handler_impl.get();
   }
   void SetUp() OVERRIDE {
@@ -226,6 +228,8 @@ class ProtocolHandlerImplTest : public ::testing::Test {
   testing::StrictMock<transport_manager_test::MockTransportManager>
       transport_manager_mock;
   testing::StrictMock<MockSessionObserver> session_observer_mock;
+  testing::NiceMock<connection_handler_test::MockConnectionHandler>
+      connection_handler_mock;
 #ifdef ENABLE_SECURITY
   testing::NiceMock<security_manager_test::MockSecurityManager>
       security_manager_mock;

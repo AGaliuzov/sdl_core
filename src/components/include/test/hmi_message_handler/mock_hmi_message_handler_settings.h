@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,34 +30,23 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_HMI_CAPABILITIES_FOR_TESTING_H_
-#define SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_HMI_CAPABILITIES_FOR_TESTING_H_
+#ifndef SRC_COMPONENTS_INCLUDE_HMI_MESSAGE_HANDLER_MOCK_HMI_MESSAGE_HANDLER_SETTINGS_H_
+#define SRC_COMPONENTS_INCLUDE_HMI_MESSAGE_HANDLER_MOCK_HMI_MESSAGE_HANDLER_SETTINGS_H_
 
-#include "application_manager/hmi_capabilities.h"
+#include <stdint.h>
+#include "gmock/gmock.h"
+#include "hmi_message_handler/hmi_message_handler_settings.h"
 
 namespace test {
 namespace components {
-namespace application_manager_test {
+namespace hmi_message_handler_test {
 
-class HMICapabilitiesForTesting
-    : public ::application_manager::HMICapabilities {
+class MockHMIMessageHandlerSettings
+    : public ::hmi_message_handler::HMIMessageHandlerSettings {
  public:
-  HMICapabilitiesForTesting(
-      ::application_manager::ApplicationManagerImpl* const app_mngr)
-      : HMICapabilities(app_mngr) {}
-  bool LoadCapabilitiesFromFile() {
-    return load_capabilities_from_file();
-  }
-
-  void ConvertJsonLanguagesToObj(
-      Json::Value& json_languages,
-      ::NsSmartDeviceLink::NsSmartObjects::SmartObject& languages) {
-    convert_json_languages_to_obj(json_languages, languages);
-  }
+  MOCK_CONST_METHOD0(thread_min_stack_size, const uint64_t&());
 };
-
-}  // namespace application_manager_test
+}  // namespace hmi_message_handler_test
 }  // namespace components
 }  // namespace test
-
-#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_HMI_CAPABILITIES_FOR_TESTING_H_
+#endif  // SRC_COMPONENTS_INCLUDE_HMI_MESSAGE_HANDLER_MOCK_HMI_MESSAGE_HANDLER_SETTINGS_H_

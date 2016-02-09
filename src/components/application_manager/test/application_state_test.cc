@@ -63,9 +63,13 @@ class ApplicationStateTest : public ::testing::Test {
     app_mngr_ = ApplicationManagerImpl::instance();
   }
 
-  static void TearDownTestCase() { ApplicationManagerImpl::destroy(); }
+  static void TearDownTestCase() {
+    ApplicationManagerImpl::destroy();
+  }
 
-  ApplicationManagerImpl* app_mngr() { return app_mngr_; }
+  ApplicationManagerImpl* app_mngr() {
+    return app_mngr_;
+  }
 
   static std::vector<StateID> added_states_;
   ApplicationState app_state;

@@ -280,24 +280,24 @@ void ResumeCtrl::OnAwake() {
 
 void ResumeCtrl::StartSavePersistentDataTimer() {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (!save_persistent_data_timer_.isRunning()) {
-    save_persistent_data_timer_.start(
+  if (!save_persistent_data_timer_.IsRunning()) {
+    save_persistent_data_timer_.Start(
         profile::Profile::instance()
-            ->app_resumption_save_persistent_data_timeout());
+            ->app_resumption_save_persistent_data_timeout(), true);
   }
 }
 
 void ResumeCtrl::StopSavePersistentDataTimer() {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (save_persistent_data_timer_.isRunning()) {
-    save_persistent_data_timer_.stop();
+  if (save_persistent_data_timer_.IsRunning()) {
+    save_persistent_data_timer_.Stop();
   }
 }
 
 void ResumeCtrl::StopRestoreHmiLevelTimer() {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (restore_hmi_level_timer_.isRunning()) {
-    restore_hmi_level_timer_.stop();
+  if (restore_hmi_level_timer_.IsRunning()) {
+    restore_hmi_level_timer_.Stop();
   }
 }
 
@@ -752,8 +752,8 @@ void ResumeCtrl::AddToResumptionTimerQueue(const uint32_t app_id) {
                                                " to resumption queue.");
   if (!is_resumption_active_) {
     is_resumption_active_ = true;
-    restore_hmi_level_timer_.start(
-        profile::Profile::instance()->app_resuming_timeout());
+    restore_hmi_level_timer_.Start(
+        profile::Profile::instance()->app_resuming_timeout(), false);
   }
 }
 

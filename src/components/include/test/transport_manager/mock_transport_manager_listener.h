@@ -81,8 +81,7 @@ class MockTransportManagerListener : public TransportManagerListener {
                     const DisconnectDeviceError& error));
 
   MOCK_METHOD1(OnTMMessageReceived, void(const RawMessagePtr data_container));
-  MOCK_METHOD2(OnTMMessageReceiveFailed,
-               void(ConnectionUID connection_id,
+  MOCK_METHOD1(OnTMMessageReceiveFailed, void(
                     const DataReceiveError& error));
   MOCK_METHOD1(OnTMMessageSend, void(const RawMessagePtr message));
   MOCK_METHOD2(OnTMMessageSendFailed,

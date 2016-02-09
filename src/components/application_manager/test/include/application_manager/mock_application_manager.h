@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Ford Motor Company
+ * Copyright (c) 2016, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,11 +38,13 @@
 #include "gmock/gmock.h"
 #include "application_manager/application_manager.h"
 #include "application_manager/usage_statistics.h"
+#include "application_manager/commands/command.h"
 
 namespace test {
 namespace components {
 namespace application_manager_test {
 namespace am = application_manager;
+namespace smart_objects = NsSmartDeviceLink::NsSmartObjects;
 
 class MockApplicationManager : public application_manager::ApplicationManager {
  public:
@@ -70,16 +72,33 @@ class MockApplicationManager : public application_manager::ApplicationManager {
   MOCK_CONST_METHOD0(get_limited_voice_application, am::ApplicationSharedPtr());
   MOCK_METHOD2(set_application_id, void(const int32_t, const uint32_t));
   MOCK_METHOD1(application_id, uint32_t(const int32_t));
-  MOCK_METHOD3(OnHMILevelChanged, void(uint32_t, mobile_apis::HMILevel::eType,
-                                       mobile_apis::HMILevel::eType));
+  MOCK_METHOD3(OnHMILevelChanged,
+               void(uint32_t,
+                    mobile_apis::HMILevel::eType,
+                    mobile_apis::HMILevel::eType));
   MOCK_METHOD1(SendHMIStatusNotification, void(const am::ApplicationSharedPtr));
-  MOCK_CONST_METHOD1(GetDefaultHmiLevel, mobile_apis::HMILevel::eType(
-                                             am::ApplicationConstSharedPtr));
+  MOCK_CONST_METHOD1(
+      GetDefaultHmiLevel,
+      mobile_apis::HMILevel::eType(am::ApplicationConstSharedPtr));
   MOCK_METHOD0(hmi_capabilities, am::HMICapabilities&());
   MOCK_METHOD0(is_attenuated_supported, bool());
   MOCK_CONST_METHOD1(IsAppTypeExistsInFullOrLimited,
                      bool(am::ApplicationConstSharedPtr));
   MOCK_METHOD1(OnApplicationRegistered, void(am::ApplicationSharedPtr));
+  MOCK_METHOD2(SendMessageToMobile,
+               void(const smart_objects::SmartObjectSPtr message,
+                    bool final_message));
+  MOCK_METHOD1(SendMessageToMobile,
+               void(const smart_objects::SmartObjectSPtr message));
+  MOCK_METHOD1(SendMessageToHMI,
+               void(const smart_objects::SmartObjectSPtr message));
+  MOCK_METHOD2(ManageMobileCommand,
+               bool(const smart_objects::SmartObjectSPtr message,
+                    am::commands::Command::CommandOrigin origin));
+  MOCK_METHOD1(ManageHMICommand,
+               bool(const smart_objects::SmartObjectSPtr message));
+  MOCK_CONST_METHOD0(connection_handler,
+                     connection_handler::ConnectionHandler&());
 };
 }  // namespace application_manager_test
 }  // namespace components

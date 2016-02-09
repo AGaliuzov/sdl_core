@@ -70,9 +70,10 @@ mobile_apis::FileType::eType StringToFileType(const char* str) {
 }
 }
 
+CREATE_LOGGERPTR_GLOBAL(logger_, "ApplicationManager")
+
 namespace application_manager {
 
-CREATE_LOGGERPTR_GLOBAL(logger_, "ApplicationManager")
 
 ApplicationImpl::ApplicationImpl(
     uint32_t application_id,
@@ -111,7 +112,17 @@ ApplicationImpl::ApplicationImpl(
 #endif  // CUSTOMER_PASA
     is_resuming_(false)
     , video_stream_retry_number_(0)
-    , audio_stream_retry_number_(0) {
+    , audio_stream_retry_number_(0)
+    , video_stream_suspend_timer_(
+  "VideoStreamSuspend",
+  new ::timer::TimerTaskImpl<ApplicationImpl>(
+      this,
+      &ApplicationImpl::OnVideoStreamSuspend))
+   , audio_stream_suspend_timer_(
+  "AudioStreamSuspend",
+  new ::timer::TimerTaskImpl<ApplicationImpl>(
+      this,
+      &ApplicationImpl::OnAudioStreamSuspend)) {
 
   cmd_number_to_time_limits_[mobile_apis::FunctionID::ReadDIDID] = {
       date_time::DateTime::getCurrentTime(), 0};

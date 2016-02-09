@@ -41,10 +41,11 @@ namespace test {
 namespace components {
 namespace event_engine_test {
 
-class MockEventObserver : public
-    ::application_manager::event_engine::EventObserver {
+class MockEventObserver
+    : public ::application_manager::event_engine::EventObserver {
  public:
-  MOCK_METHOD1(on_event, void(const application_manager::event_engine::Event& event));
+  MOCK_METHOD1(on_event,
+               void(const application_manager::event_engine::Event& event));
 };
 
 }  // namespace event_engine_test

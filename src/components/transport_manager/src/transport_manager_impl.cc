@@ -74,12 +74,10 @@ TransportManagerImpl::Connection TransportManagerImpl::convert(
 
 TransportManagerImpl::TransportManagerImpl()
     : is_initialized_(false)
-    ,
 #ifdef TIME_TESTER
-    metric_observer_(NULL)
-    ,
+    , metric_observer_(NULL)
 #endif  // TIME_TESTER
-    connection_id_counter_(0)
+    , connection_id_counter_(0)
     , message_queue_("TM MessageQueue", this)
     , event_queue_("TM EventQueue", this) {
   LOG4CXX_TRACE(logger_, "TransportManager has created");
@@ -326,7 +324,7 @@ int TransportManagerImpl::SendMessageToDevice(
       return E_INVALID_HANDLE;
     }
 
-    if (connection->shutDown) {
+    if (connection->shutdown) {
       LOG4CXX_ERROR(
           logger_,
           "TransportManagerImpl::Disconnect: Connection is to shut down.");
@@ -765,8 +763,8 @@ void TransportManagerImpl::Handle(TransportAdapterEvent event) {
         break;
       }
       RaiseEvent(&TransportManagerListener::OnTMMessageSend, event.event_data);
-      if (connection->shutDown && --connection->messages_count == 0) {
-        connection->timer->stop();
+      if (connection->shutdown && --connection->messages_count == 0) {
+        connection->timer->Stop();
         connection->transport_adapter->Disconnect(connection->device,
                                                   connection->application);
       }
@@ -955,9 +953,12 @@ TransportManagerImpl::ConnectionInternal::ConnectionInternal(
     const DeviceHandle& device_handle)
     : transport_manager(transport_manager)
     , transport_adapter(transport_adapter)
-    , timer(new TimerInternal(
-          "TM DiscRoutine", this, &ConnectionInternal::DisconnectFailedRoutine))
-    , shutDown(false)
+    , timer(utils::MakeShared<timer::Timer>(
+                "TM DiscRoutine",
+                new ::timer::TimerTaskImpl<ConnectionInternal> (
+                    this,
+                    &ConnectionInternal::DisconnectFailedRoutine)))
+    , shutdown(false)
     , device_handle_(device_handle)
     , messages_count(0) {
   Connection::id = id;
@@ -970,8 +971,8 @@ void TransportManagerImpl::ConnectionInternal::DisconnectFailedRoutine() {
   transport_manager->RaiseEvent(&TransportManagerListener::OnDisconnectFailed,
                                 device_handle_,
                                 DisconnectDeviceError());
-  shutDown = false;
-  timer->stop();
+  shutdown = false;
+  timer->Stop();
   LOG4CXX_TRACE(logger_, "exit");
 }
 
