@@ -243,7 +243,7 @@ class ApplinkNotificationThreadDelegate : public threads::ThreadDelegate {
   mqd_t aoa_mq_;
   struct mq_attr attributes_;
   size_t heart_beat_timeout_;
-  timer::Timer* heart_beat_sender_;
+  timer::Timer heart_beat_sender_;
 };
 
 ApplinkNotificationThreadDelegate::ApplinkNotificationThreadDelegate(
@@ -252,12 +252,10 @@ ApplinkNotificationThreadDelegate::ApplinkNotificationThreadDelegate(
     writefd_(writefd),
     heart_beat_timeout_(profile::Profile::instance()->hmi_heart_beat_timeout()),
     heart_beat_sender_(
-      new timer::Timer(
         "AppLinkHeartBeat",
-        new timer::TaskImpl(
+        new timer::TimerTaskImpl(
             this,
-            &ApplinkNotificationThreadDelegate::sendHeartBeat),
-        true)) {
+            &ApplinkNotificationThreadDelegate::sendHeartBeat)) {
   attributes_.mq_maxmsg = MSGQ_MAX_MESSAGES;
   attributes_.mq_msgsize = MAX_QUEUE_MSG_SIZE;
   attributes_.mq_flags = 0;
@@ -267,7 +265,6 @@ ApplinkNotificationThreadDelegate::ApplinkNotificationThreadDelegate(
 }
 
 ApplinkNotificationThreadDelegate::~ApplinkNotificationThreadDelegate() {
-  delete heart_beat_sender_;
   close_mq(mq_from_sdl_);
   close_mq(aoa_mq_);
 }
@@ -306,7 +303,7 @@ void ApplinkNotificationThreadDelegate::threadMain() {
           LOG4CXX_TRACE(logger_, "SDL_MSG_SDL_START");
           startSmartDeviceLink();
           if (0 < heart_beat_timeout_) {
-            heart_beat_sender_->start(heart_beat_timeout_);
+            heart_beat_sender_.Start(heart_beat_timeout_, true);
           }
           break;
         case SDL_MSG_START_USB_LOGGING:
