@@ -271,9 +271,9 @@
 #endif // CUSTOMER_PASA
 #include "utils/make_shared.h"
 
-namespace application_manager {
-
 CREATE_LOGGERPTR_GLOBAL(logger_, "ApplicationManager")
+
+namespace application_manager {
 
 CommandSharedPtr HMICommandFactory::CreateCommand(
     const commands::MessageSharedPtr& message) {
