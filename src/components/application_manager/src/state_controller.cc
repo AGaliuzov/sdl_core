@@ -655,11 +655,11 @@ void StateController::OnNaviStreamingStopped() {
 bool StateController::IsStateActive(HmiState::StateID state_id) const {
   LOG4CXX_AUTO_TRACE(logger_);
   switch (state_id) {
-  case HmiState::STATE_ID_CURRENT:
-  case HmiState::STATE_ID_REGULAR:
-    return true;
-  default:
-    return IsTempStateActive(state_id);
+    case HmiState::STATE_ID_CURRENT:
+    case HmiState::STATE_ID_REGULAR:
+      return true;
+    default:
+      return IsTempStateActive(state_id);
   }
 
   return false;

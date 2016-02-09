@@ -702,6 +702,7 @@ HmiStatePtr ApplicationManagerImpl::CreateRegularState(
 
 bool ApplicationManagerImpl::IsStateActive(HmiState::StateID state_id) const {
   LOG4CXX_AUTO_TRACE(logger_);
+  LOG4CXX_DEBUG(logger_, "Checking for active state id " << state_id);
   return state_ctrl_.IsStateActive(state_id);
 }
 
