@@ -53,7 +53,6 @@
 #include "utils/file_system.h"
 #include "utils/date_time.h"
 #include "utils/gen_hash.h"
-#include "utils/timer_thread.h"
 #include "utils/sqlite_wrapper/sql_error.h"
 #include "utils/sqlite_wrapper/sql_database.h"
 #include "utils/sqlite_wrapper/sql_query.h"

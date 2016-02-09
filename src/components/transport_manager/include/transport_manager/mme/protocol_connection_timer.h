@@ -35,7 +35,6 @@
 
 #include <string>
 
-#include "utils/timer_thread.h"
 #include "utils/shared_ptr.h"
 #include "transport_manager/mme/mme_device.h"
 

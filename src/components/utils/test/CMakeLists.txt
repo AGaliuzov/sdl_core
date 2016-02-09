@@ -41,7 +41,6 @@ include_directories (
 
 set(testSources
   src/mock_object.cc
-
   messagemeter_test.cc
   file_system_test.cc
   date_time_test.cc
@@ -57,13 +56,13 @@ set(testSources
   singleton_test.cc
   #posix_thread_test.cc
   stl_utils_test.cc
-  timer_thread_test.cc
   rwlock_posix_test.cc
   async_runner_test.cc
   shared_ptr_test.cc
   scope_guard_test.cc
   atomic_object_test.cc
   custom_string_test.cc
+  timer_test.cc
 )
 
 set(testLibraries
