@@ -48,8 +48,10 @@ void SDLActivateAppRequest::Run() {
   LOG4CXX_AUTO_TRACE(logger_);
   using namespace hmi_apis::FunctionID;
 
-  if (ApplicationManagerImpl::instance()->IsDeactivateHMIStateActive()) {
-    LOG4CXX_DEBUG(logger_, "DeactivateHmi state is active. Sends response with result code REJECTED");
+  if (ApplicationManagerImpl::instance()->
+      IsStateActive(HmiState::STATE_ID_DEACTIVATE_HMI)) {
+    LOG4CXX_DEBUG(logger_, "DeactivateHmi state is active. "
+                           "Sends response with result code REJECTED");
     SendErrorResponse(correlation_id(),
                       static_cast<eType>(function_id()),
                       hmi_apis::Common_Result::REJECTED);

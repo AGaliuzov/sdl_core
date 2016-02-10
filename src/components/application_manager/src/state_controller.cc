@@ -652,8 +652,17 @@ void StateController::OnNaviStreamingStopped() {
   CancelTempState<HmiState::STATE_ID_NAVI_STREAMING>();
 }
 
-bool StateController::IsDeactivateHMIStateActive() const {
-  return IsTempStateActive(HmiState::StateID::STATE_ID_DEACTIVATE_HMI);
+bool StateController::IsStateActive(HmiState::StateID state_id) const {
+  LOG4CXX_AUTO_TRACE(logger_);
+  switch (state_id) {
+    case HmiState::STATE_ID_CURRENT:
+    case HmiState::STATE_ID_REGULAR:
+      return true;
+    default:
+      return IsTempStateActive(state_id);
+  }
+
+  return false;
 }
 
 HmiStatePtr StateController::CreateHmiState(

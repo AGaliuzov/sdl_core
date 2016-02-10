@@ -289,11 +289,11 @@ class StateController : public event_engine::EventObserver {
                       HmiStatePtr new_state);
 
   /**
-   * @brief Checks activity of Deactivate HMI state.
-   * @return Returns TRUE if deactivate HMI state is active, otherwise returns
-   * FALSE.
+   * @brief Checks, if particular state is active
+   * @param state_id State
+   * @return True, if state is active, otherwise - false
    */
-  bool IsDeactivateHMIStateActive() const;
+  bool IsStateActive(HmiState::StateID state_id) const;
 
  private:
   /**

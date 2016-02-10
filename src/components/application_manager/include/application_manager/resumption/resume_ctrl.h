@@ -448,6 +448,22 @@ class ResumeCtrl: public app_mngr::event_engine::EventObserver {
           const smart_objects::SmartObject& application) const;
 
   /**
+   * @brief Checks from resume data, if application has been disconnected
+   * unexpectedly
+   * @param app Application section from resume data
+   * @return true, if it has been unexpectedly disconnected, otherwise - false
+   */
+  bool IsUnexpectedlyDisconnected(const smart_objects::SmartObject& app) const;
+
+  /**
+   * @brief Checks, if application can be resumed
+   * @param application Application
+   * @return true, if no restrictions currently, otherwise - false
+   */
+  bool IsResumeAllowed(
+          const application_manager::ApplicationSharedPtr application) const;
+
+  /**
    *@brief Mapping applications to time_stamps
    *       wait for timer to resume HMI Level
    *
