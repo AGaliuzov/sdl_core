@@ -243,6 +243,8 @@ class DynamicApplicationDataImpl : public virtual Application {
      */
     inline bool is_reset_global_properties_active() const;
 
+    void set_perform_interaction_layout(mobile_api::LayoutMode::eType layout);
+    inline mobile_api::LayoutMode::eType perform_interaction_layout() const;
   protected:
     smart_objects::SmartObject* help_prompt_;
     smart_objects::SmartObject* timeout_prompt_;
@@ -266,6 +268,7 @@ class DynamicApplicationDataImpl : public virtual Application {
     mutable sync_primitives::Lock performinteraction_choice_set_lock_;
     uint32_t is_perform_interaction_active_;
     bool is_reset_global_properties_active_;
+    mobile_api::LayoutMode::eType perform_interaction_layoutmode_;
     int32_t perform_interaction_mode_;
   private:
     void SetGlobalProperties(const smart_objects::SmartObject& param,
@@ -299,6 +302,10 @@ uint32_t DynamicApplicationDataImpl::is_perform_interaction_active() const {
 
 bool DynamicApplicationDataImpl::is_reset_global_properties_active() const {
   return is_reset_global_properties_active_;
+}
+
+inline mobile_api::LayoutMode::eType DynamicApplicationDataImpl::perform_interaction_layout() const {
+  return perform_interaction_layoutmode_;
 }
 
 inline int32_t DynamicApplicationDataImpl::perform_interaction_mode() const {
