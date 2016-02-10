@@ -163,9 +163,11 @@ RequestController::TResult RequestController::addMobileRequest(
                 << "connection_key : " << request->connection_key());
   RequestController::TResult result = CheckPosibilitytoAdd(request);
   if (SUCCESS ==result) {
-    // Temporary set timeout to zero. Correct value will be set at the moment
+    // Temporary set timeout to default. Another value will be set at the moment
     // of processing start - in threadMain()
-    RequestInfoPtr request_info_ptr(utils::MakeShared<MobileRequestInfo>(request, 0u));
+    RequestInfoPtr request_info_ptr(utils::MakeShared<MobileRequestInfo>(
+                                      request,
+                                      request->default_timeout()));
     request_info_ptr->set_hmi_level(hmi_level);
     AutoLock auto_lock_list(mobile_request_info_list_lock_);
     mobile_request_info_list_.push_back(request_info_ptr);
@@ -444,6 +446,7 @@ void RequestController::Worker::threadMain() {
                                                           // default timeout
     const uint32_t timeout_in_mseconds =
         request_info_ptr->request()->default_timeout();
+    request_info_ptr->updateTimeOut(timeout_in_mseconds);
 
     request_controller_->waiting_for_response_.Add(request_info_ptr);
     if (0 != timeout_in_mseconds) {
