@@ -5,10 +5,11 @@
 	    "languages":[ 
           "EN-US","ES-MX","FR-CA","DE-DE","ES-ES","EN-GB","RU-RU","TR-TR","PL-PL","FR-FR","IT-IT","SV-SE","PT-PT","NL-NL","ZH-TW",
 "JA-JP","AR-SA","KO-KR","PT-BR","CS-CZ","DA-DK","NO-NO"
+
 	    ],
 	    "displayCapabilities":
 		{
-			"displayType":"GEN2_8_DMA",
+			"displayType":"GEN3_8_INCH",
 			"textFields": [{
                                             "name": "mainField1",
                                             "characterSet": "TYPE2SET",
@@ -310,8 +311,8 @@
 		},
 		"audioPassThruCapabilities":
 		{
-			"samplingRate"	: "44KHZ",
-			"bitsPerSample" : "RATE_8_BIT",
+			"samplingRate"	: "16KHZ",
+			"bitsPerSample" : "RATE_16_BIT",
 			"audioType"		: "PCM"
 		},
 		"hmiZoneCapabilities":"FRONT",
@@ -349,12 +350,6 @@
     {
     	"capabilities":
     	[
-	    	{
-		    	"name":"PRESET_0",
-		    	"shortPressAvailable":true,
-		    	"longPressAvailable" :true,
-		    	"upDownAvailable"    :true
-	    	},
 	    	{
 	    		"name":"PRESET_1",
 	    		"shortPressAvailable":true,
@@ -399,12 +394,6 @@
 	    	},
 	    	{
 	    		"name":"PRESET_8",
-	    		"shortPressAvailable":true,
-	    		"longPressAvailable" :true,
-	    		"upDownAvailable"    :true
-	    	},
-	    	{
-	    		"name":"PRESET_9",
 	    		"shortPressAvailable":true,
 	    		"longPressAvailable" :true,
 	    		"upDownAvailable"    :true
