@@ -33,6 +33,7 @@
 #include "transport_manager/mme/protocol_connection_timer.h"
 
 #include "config_profile/profile.h"
+#include "utils/timer_task_impl.h"
 
 namespace transport_manager {
 namespace transport_adapter {
@@ -40,37 +41,38 @@ namespace transport_adapter {
 CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
 
 ProtocolConnectionTimer::ProtocolConnectionTimer(
-        const std::string& protocol_name,
-        MmeDevice* parent) : timer_(
-                                 new Timer("proto releaser",
-                                           this,
-                                           &ProtocolConnectionTimer::Shoot)),
-                             protocol_name_(protocol_name),
-                             parent_(parent) {
-}
+    const std::string& protocol_name, MmeDevice* parent)
+    : timer_("proto releaser",
+             new timer::TimerTaskImpl<ProtocolConnectionTimer>(
+                 this, &ProtocolConnectionTimer::Shoot))
+    , protocol_name_(protocol_name)
+    , parent_(parent) {}
 
 ProtocolConnectionTimer::~ProtocolConnectionTimer() {
   Stop();
-  delete timer_;
 }
 
 void ProtocolConnectionTimer::Start() {
   int timeout = profile::Profile::instance()->iap_hub_connection_wait_timeout();
-  LOG4CXX_DEBUG(logger_, "Starting timer for protocol " << protocol_name_ <<
-                         " (" << parent_->protocol() << ")"
-                         " with timeout " << timeout);
-  timer_->start(timeout);
+  LOG4CXX_DEBUG(logger_,
+                "Starting timer for protocol " << protocol_name_ << " ("
+                                               << parent_->protocol()
+                                               << ")"
+                                                  " with timeout " << timeout);
+  timer_.Start(timeout, false);
 }
 
-void ProtocolConnectionTimer::Stop() {
-  LOG4CXX_DEBUG(logger_, "Stopping timer for protocol " << protocol_name_ <<
-                         " (" << parent_->protocol() << ")");
-  timer_->stop();
+void ProtocolConnectionTimer::Stop() {                                                                                                                                                                                                                  
+  LOG4CXX_DEBUG(logger_,
+                "Stopping timer for protocol " << protocol_name_ << " ("
+                                               << parent_->protocol() << ")");
+  timer_.Stop();
 }
 
 void ProtocolConnectionTimer::Shoot() {
-  LOG4CXX_INFO(logger_, "Connection timeout for protocol " << protocol_name_ <<
-                        " (" << parent_->protocol() << ")");
+  LOG4CXX_INFO(logger_,
+               "Connection timeout for protocol "
+                   << protocol_name_ << " (" << parent_->protocol() << ")");
   parent_->OnConnectionTimeout(protocol_name_);
 }
 

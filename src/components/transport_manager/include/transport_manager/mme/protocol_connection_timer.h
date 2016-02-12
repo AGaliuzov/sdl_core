@@ -37,6 +37,7 @@
 
 #include "utils/shared_ptr.h"
 #include "transport_manager/mme/mme_device.h"
+#include "utils/timer.h"
 
 namespace transport_manager {
 namespace transport_adapter {
@@ -66,8 +67,7 @@ class ProtocolConnectionTimer {
   void Stop();
 
  private:
-  typedef timer::TimerThread<ProtocolConnectionTimer> Timer;
-  Timer* timer_;
+  timer::Timer timer_;
   std::string protocol_name_;
   MmeDevice* parent_;
 

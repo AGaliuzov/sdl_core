@@ -253,7 +253,7 @@ ApplinkNotificationThreadDelegate::ApplinkNotificationThreadDelegate(
     heart_beat_timeout_(profile::Profile::instance()->hmi_heart_beat_timeout()),
     heart_beat_sender_(
         "AppLinkHeartBeat",
-        new timer::TimerTaskImpl(
+        new timer::TimerTaskImpl<ApplinkNotificationThreadDelegate>(
             this,
             &ApplinkNotificationThreadDelegate::sendHeartBeat)) {
   attributes_.mq_maxmsg = MSGQ_MAX_MESSAGES;
