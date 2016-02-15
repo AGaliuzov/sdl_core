@@ -79,6 +79,7 @@ def create_path(filename, base=""):
             raise exception
 
 
+
 HU_files_path = {
     # binaries
     "SmartDeviceLink": "/fs/mp/apps/SmartDeviceLink",
@@ -92,15 +93,6 @@ HU_files_path = {
     "libexpat.so": "/fs/mp/apps/usr/lib/libexpat.so",
     "libexpat.so.7": "/fs/mp/apps/usr/lib/libexpat.so.7",
     "libappenders.so": "/fs/mp/apps/usr/lib/libappenders.so",
-    #aoa libraries:
-
-    "libaoa_g.so.1": "/fs/mp/usr/lib/libaoa_g.so.1",
-    "libaoa-lite.so.1": "/fs/mp/usr/lib/libaoa-lite.so.1",
-    "libaoa.so.1": "/fs/mp/usr/lib/libaoa.so.1",
-    "libaoa.so": "/fs/mp/usr/lib/libaoa.so",
-    "libaoa_g.so": "/fs/mp/usr/lib/libaoa_g.so",
-    "libaoa-lite.so": "/fs/mp/usr/lib/libaoa-lite.so",
-
 
     # config
     "log4cxx.properties": "/fs/mp/etc/AppLink/log4cxx.properties",
@@ -113,6 +105,16 @@ HU_files_path = {
     "sdl_preloaded_pt.json": "/fs/mp/etc/AppLink/sdl_preloaded_pt.json",
     "smartDeviceLink.ini": "/fs/mp/etc/AppLink/smartDeviceLink.ini",
     "policy.sql": "/fs/mp/sql/policy.sql"
+}
+
+aoa_file_path = {
+#aoa libraries:
+    "libaoa_g.so.1": "/fs/mp/usr/lib/libaoa_g.so.1",
+    "libaoa-lite.so.1": "/fs/mp/usr/lib/libaoa-lite.so.1",
+    "libaoa.so.1": "/fs/mp/usr/lib/libaoa.so.1",
+    "libaoa.so": "/fs/mp/usr/lib/libaoa.so",
+    "libaoa_g.so": "/fs/mp/usr/lib/libaoa_g.so",
+    "libaoa-lite.so": "/fs/mp/usr/lib/libaoa-lite.so",
 }
 
 file_list = []
@@ -132,10 +134,11 @@ parser.add_argument("--bin", dest="bin_path", metavar="BIN PATH",
 parser.add_argument("--to_target", dest="to_target", action="store_true", default=False,
                   help="Load binaries to target, --ip and --bin options required")
 parser.add_argument("--collect_rtc", dest="collect_rtc", action="store_true", default=False,
-                  help="Cllect binaries from RTC workspace to copy of target file system. --rtc and --bin options required")
+                  help="Collect binaries from RTC workspace to copy of target file system. --rtc and --bin options required")
 parser.add_argument("--login", dest="login", action="store_true", default=False,
                   help="Automaticaly login on HU via telnet")
-
+parser.add_argument("--aoa", dest="copy_aoa", action="store_true", default=False,
+                  help="Copy aoa libraries")
 
 class Target:
     """
@@ -284,6 +287,9 @@ class Target:
 def main():
     print(parser.description)
     args = parser.parse_args()
+    if (args.copy_aoa) :
+        print("Copy AOA libaries mode")
+        HU_files_path.update(aoa_file_path)
     if not (args.to_target or args.collect_rtc or args.login) :
         print(usage)
         return -1
