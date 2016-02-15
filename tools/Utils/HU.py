@@ -92,15 +92,6 @@ HU_files_path = {
     "libexpat.so": "/fs/mp/apps/usr/lib/libexpat.so",
     "libexpat.so.7": "/fs/mp/apps/usr/lib/libexpat.so.7",
     "libappenders.so": "/fs/mp/apps/usr/lib/libappenders.so",
-    #aoa libraries:
-
-    "libaoa_g.so.1": "/fs/mp/usr/lib/libaoa_g.so.1",
-    "libaoa-lite.so.1": "/fs/mp/usr/lib/libaoa-lite.so.1",
-    "libaoa.so.1": "/fs/mp/usr/lib/libaoa.so.1",
-    "libaoa.so": "/fs/mp/usr/lib/libaoa.so",
-    "libaoa_g.so": "/fs/mp/usr/lib/libaoa_g.so",
-    "libaoa-lite.so": "/fs/mp/usr/lib/libaoa-lite.so",
-
 
     # config
     "log4cxx.properties": "/fs/mp/etc/AppLink/log4cxx.properties",
