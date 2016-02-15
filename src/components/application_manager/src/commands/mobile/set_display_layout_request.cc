@@ -85,6 +85,17 @@ void SetDisplayLayoutRequest::on_event(const event_engine::Event& event) {
         HMICapabilities& hmi_capabilities =
             ApplicationManagerImpl::instance()->hmi_capabilities();
 
+        const bool graphics_supported =
+            message[strings::msg_params][hmi_response::display_capabilities]
+                   [hmi_response::graphic_supported].asBool();
+
+        smart_objects::SmartObject display_capabilities =
+            smart_objects::SmartObject(
+                *(hmi_capabilities.display_capabilities()));
+        display_capabilities[hmi_response::graphic_supported] =
+            graphics_supported;
+        hmi_capabilities.set_display_capabilities(display_capabilities);
+
         // in case templates_available is empty copy from hmi capabilities
         if (msg_params.keyExists(hmi_response::display_capabilities)) {
           if (0 == msg_params[hmi_response::display_capabilities][hmi_response::templates_available].length()) {
