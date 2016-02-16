@@ -1099,6 +1099,7 @@ void ApplicationManagerImpl::StopNaviService(
     LOG4CXX_WARN(logger_, "An application is not registered.");
     return;
   }
+
   app->StopStreaming(service_type);
 }
 
