@@ -70,7 +70,7 @@
 #ifdef ENABLE_SECURITY
 #include "security_manager/security_manager_listener.h"
 #include "security_manager/ssl_context.h"
-#endif // ENABLE_SECURITY
+#endif  // ENABLE_SECURITY
 
 #ifdef TIME_TESTER
 #include "time_metric_observer.h"
@@ -85,6 +85,7 @@
 #include "utils/lock.h"
 #include "utils/singleton.h"
 #include "utils/data_accessor.h"
+#include "utils/timer.h"
 
 namespace NsSmartDeviceLink {
 namespace NsSmartObjects {
@@ -109,7 +110,8 @@ class ApplicationManagerImpl;
 enum VRTTSSessionChanging { kVRSessionChanging = 0, kTTSSessionChanging };
 
 struct CommandParametersPermissions;
-typedef std::map<std::string, hmi_apis::Common_TransportType::eType> DeviceTypes;
+typedef std::map<std::string, hmi_apis::Common_TransportType::eType>
+    DeviceTypes;
 
 namespace impl {
 using namespace threads;
@@ -124,39 +126,47 @@ using namespace threads;
  * TODO(ik): replace these with globally defined message types
  * when we have them.
  */
-struct MessageFromMobile: public utils::SharedPtr<Message> {
+struct MessageFromMobile : public utils::SharedPtr<Message> {
   MessageFromMobile() {}
   explicit MessageFromMobile(const utils::SharedPtr<Message>& message)
       : utils::SharedPtr<Message>(message) {}
   // PrioritizedQueue requres this method to decide which priority to assign
-  size_t PriorityOrder() const { return (*this)->Priority().OrderingValue(); }
+  size_t PriorityOrder() const {
+    return (*this)->Priority().OrderingValue();
+  }
 };
 
-struct MessageToMobile: public utils::SharedPtr<Message> {
+struct MessageToMobile : public utils::SharedPtr<Message> {
   MessageToMobile() : is_final(false) {}
   explicit MessageToMobile(const utils::SharedPtr<Message>& message,
                            bool final_message)
       : utils::SharedPtr<Message>(message), is_final(final_message) {}
   // PrioritizedQueue requres this method to decide which priority to assign
-  size_t PriorityOrder() const { return (*this)->Priority().OrderingValue(); }
+  size_t PriorityOrder() const {
+    return (*this)->Priority().OrderingValue();
+  }
   // Signals if connection to mobile must be closed after sending this message
   bool is_final;
 };
 
-struct MessageFromHmi: public utils::SharedPtr<Message> {
+struct MessageFromHmi : public utils::SharedPtr<Message> {
   MessageFromHmi() {}
   explicit MessageFromHmi(const utils::SharedPtr<Message>& message)
       : utils::SharedPtr<Message>(message) {}
   // PrioritizedQueue requres this method to decide which priority to assign
-  size_t PriorityOrder() const { return (*this)->Priority().OrderingValue(); }
+  size_t PriorityOrder() const {
+    return (*this)->Priority().OrderingValue();
+  }
 };
 
-struct MessageToHmi: public utils::SharedPtr<Message> {
+struct MessageToHmi : public utils::SharedPtr<Message> {
   MessageToHmi() {}
   explicit MessageToHmi(const utils::SharedPtr<Message>& message)
       : utils::SharedPtr<Message>(message) {}
   // PrioritizedQueue requres this method to decide which priority to assign
-  size_t PriorityOrder() const { return (*this)->Priority().OrderingValue(); }
+  size_t PriorityOrder() const {
+    return (*this)->Priority().OrderingValue();
+  }
 };
 
 // Short type names for prioritized message queues
@@ -177,24 +187,25 @@ typedef struct {
 typedef std::queue<AudioData> RawAudioDataQueue;
 typedef threads::MessageLoopThread<RawAudioDataQueue> AudioPassThruQueue;
 }
-
+CREATE_LOGGERPTR_GLOBAL(logger_, "ApplicationManager")
 typedef std::vector<std::string> RPCParams;
+typedef utils::SharedPtr<timer::Timer> TimerSPtr;
 
-class ApplicationManagerImpl :
-  public ApplicationManager,
-  public hmi_message_handler::HMIMessageObserver,
-  public protocol_handler::ProtocolObserver,
-  public connection_handler::ConnectionHandlerObserver,
-  public policy::PolicyHandlerObserver,
+class ApplicationManagerImpl
+    : public ApplicationManager,
+      public hmi_message_handler::HMIMessageObserver,
+      public protocol_handler::ProtocolObserver,
+      public connection_handler::ConnectionHandlerObserver,
+      public policy::PolicyHandlerObserver,
 #ifdef ENABLE_SECURITY
-  public security_manager::SecurityManagerListener,
-#endif // ENABLE_SECURITY
-  public impl::FromMobileQueue::Handler,
-  public impl::ToMobileQueue::Handler,
-  public impl::FromHmiQueue::Handler,
-  public impl::ToHmiQueue::Handler,
-  public impl::AudioPassThruQueue::Handler,
-  public utils::Singleton<ApplicationManagerImpl> {
+      public security_manager::SecurityManagerListener,
+#endif  // ENABLE_SECURITY
+      public impl::FromMobileQueue::Handler,
+      public impl::ToMobileQueue::Handler,
+      public impl::FromHmiQueue::Handler,
+      public impl::ToHmiQueue::Handler,
+      public impl::AudioPassThruQueue::Handler,
+      public utils::Singleton<ApplicationManagerImpl> {
 
   friend class ResumeCtrl;
   friend class CommandImpl;
@@ -225,11 +236,11 @@ class ApplicationManagerImpl :
 
   uint32_t application_id(const int32_t correlation_id) OVERRIDE;
   void set_application_id(const int32_t correlation_id,
-                                  const uint32_t app_id) OVERRIDE;
+                          const uint32_t app_id) OVERRIDE;
 
   void OnHMILevelChanged(uint32_t app_id,
-                                 mobile_apis::HMILevel::eType from,
-                                 mobile_apis::HMILevel::eType to) OVERRIDE;
+                         mobile_apis::HMILevel::eType from,
+                         mobile_apis::HMILevel::eType to) OVERRIDE;
 
   void SendHMIStatusNotification(
       const utils::SharedPtr<Application> app) OVERRIDE;
@@ -308,8 +319,7 @@ class ApplicationManagerImpl :
    * when User chooses to reset HU.
    * Resets Policy Table if applicable.
    */
-  void HeadUnitReset(
-      mobile_api::AppInterfaceUnregisteredReason::eType reason);
+  void HeadUnitReset(mobile_api::AppInterfaceUnregisteredReason::eType reason);
 
   /*
    * @brief Closes all registered applications
@@ -403,7 +413,8 @@ class ApplicationManagerImpl :
    * @return new regular HMI state
    */
   HmiStatePtr CreateRegularState(
-      uint32_t app_id, mobile_apis::HMILevel::eType hmi_level,
+      uint32_t app_id,
+      mobile_apis::HMILevel::eType hmi_level,
       mobile_apis::AudioStreamingState::eType audio_state,
       mobile_apis::SystemContext::eType system_context) const;
 
@@ -416,8 +427,8 @@ class ApplicationManagerImpl :
                 mobile_apis::AudioStreamingState::eType audio_state) {
     ApplicationSharedPtr app = application(app_id);
     if (!app) {
-      LOG4CXX_ERROR(logger_, "Application with appID=" << app_id
-                    << " does not exist");
+      LOG4CXX_ERROR(logger_,
+                    "Application with appID=" << app_id << " does not exist");
       return;
     }
     state_ctrl_.SetRegularState(app, audio_state);
@@ -433,8 +444,8 @@ class ApplicationManagerImpl :
   void SetState(uint32_t app_id, HmiStatePtr new_state) {
     ApplicationSharedPtr app = application(app_id);
     if (!app) {
-      LOG4CXX_ERROR(logger_, "Application with appID=" << app_id
-                                                       << " does not exist");
+      LOG4CXX_ERROR(logger_,
+                    "Application with appID=" << app_id << " does not exist");
       return;
     }
     state_ctrl_.SetRegularState<SendActivateApp>(app, new_state);
@@ -449,8 +460,8 @@ class ApplicationManagerImpl :
   void SetState(uint32_t app_id, mobile_apis::HMILevel::eType hmi_level) {
     ApplicationSharedPtr app = application(app_id);
     if (!app) {
-      LOG4CXX_ERROR(logger_, "Application with appID=" << app_id
-                                                       << " does not exist");
+      LOG4CXX_ERROR(logger_,
+                    "Application with appID=" << app_id << " does not exist");
       return;
     }
     state_ctrl_.SetRegularState<SendActivateApp>(app, hmi_level);
@@ -464,12 +475,13 @@ class ApplicationManagerImpl :
    * @param SendActivateApp: if true, ActivateAppRequest will be sent on HMI
    */
   template <bool SendActivateApp>
-  void SetState(uint32_t app_id, mobile_apis::HMILevel::eType hmi_level,
+  void SetState(uint32_t app_id,
+                mobile_apis::HMILevel::eType hmi_level,
                 mobile_apis::AudioStreamingState::eType audio_state) {
     ApplicationSharedPtr app = application(app_id);
     if (!app) {
-      LOG4CXX_ERROR(logger_, "Application with appID=" << app_id
-                                                       << " does not exist");
+      LOG4CXX_ERROR(logger_,
+                    "Application with appID=" << app_id << " does not exist");
       return;
     }
     state_ctrl_.SetRegularState<SendActivateApp>(app, hmi_level, audio_state);
@@ -483,17 +495,18 @@ class ApplicationManagerImpl :
    * @param SendActivateApp: if true, ActivateAppRequest will be sent on HMI
    */
   template <bool SendActivateApp>
-  void SetState(uint32_t app_id, mobile_apis::HMILevel::eType hmi_level,
+  void SetState(uint32_t app_id,
+                mobile_apis::HMILevel::eType hmi_level,
                 mobile_apis::AudioStreamingState::eType audio_state,
                 mobile_apis::SystemContext::eType system_context) {
     ApplicationSharedPtr app = application(app_id);
     if (!app) {
-      LOG4CXX_ERROR(logger_, "Application with appID=" << app_id
-                                                       << " does not exist");
+      LOG4CXX_ERROR(logger_,
+                    "Application with appID=" << app_id << " does not exist");
       return;
     }
-    state_ctrl_.SetRegularState<SendActivateApp>(app, hmi_level, audio_state,
-                                                 system_context);
+    state_ctrl_.SetRegularState<SendActivateApp>(
+        app, hmi_level, audio_state, system_context);
   }
 
   /**
@@ -505,8 +518,8 @@ class ApplicationManagerImpl :
                 mobile_apis::SystemContext::eType system_context) {
     ApplicationSharedPtr app = application(app_id);
     if (!app) {
-      LOG4CXX_ERROR(logger_, "Application with appID=" << app_id
-                                                       << " does not exist");
+      LOG4CXX_ERROR(logger_,
+                    "Application with appID=" << app_id << " does not exist");
       return;
     }
     state_ctrl_.SetRegularState(app, system_context);
@@ -517,12 +530,11 @@ class ApplicationManagerImpl :
    * @param app appication to setup regular State
    * @param hmi_level hmi level of new regular state
    */
-  void SetHmiState(uint32_t app_id,
-                   mobile_apis::HMILevel::eType hmi_level) {
+  void SetHmiState(uint32_t app_id, mobile_apis::HMILevel::eType hmi_level) {
     ApplicationSharedPtr app = application(app_id);
     if (!app) {
-      LOG4CXX_ERROR(logger_, "Application with appID="
-                    << app_id << " does not exist");
+      LOG4CXX_ERROR(logger_,
+                    "Application with appID=" << app_id << " does not exist");
       return;
     }
     state_ctrl_.SetRegularState(app, hmi_level);
@@ -533,11 +545,11 @@ class ApplicationManagerImpl :
    * @param app appication to setup regular State
    * @param state new regular hmi state
    */
-  void SetState(uint32_t app_id,
-                HmiStatePtr state) {
-    ApplicationSharedPtr app  = application(app_id);
+  void SetState(uint32_t app_id, HmiStatePtr state) {
+    ApplicationSharedPtr app = application(app_id);
     if (!app) {
-      LOG4CXX_ERROR(logger_, "Application with appID="<<app_id<<" does not exist");
+      LOG4CXX_ERROR(logger_,
+                    "Application with appID=" << app_id << " does not exist");
       return;
     }
     state_ctrl_.SetRegularState(app, state);
@@ -596,9 +608,12 @@ class ApplicationManagerImpl :
    * @param bits_per_sample The quality the audio is recorded.
    * @param audio_type      Type of audio data
    */
-  void StartAudioPassThruThread(int32_t session_key, int32_t correlation_id,
-                                int32_t max_duration, int32_t sampling_rate,
-                                int32_t bits_per_sample, int32_t audio_type);
+  void StartAudioPassThruThread(int32_t session_key,
+                                int32_t correlation_id,
+                                int32_t max_duration,
+                                int32_t sampling_rate,
+                                int32_t bits_per_sample,
+                                int32_t audio_type);
 
   /*
    * @brief Terminates audio pass thru thread
@@ -651,9 +666,8 @@ class ApplicationManagerImpl :
    */
   void TerminateRequest(uint32_t connection_key, uint32_t corr_id);
 
-  bool ManageMobileCommand(
-      const commands::MessageSharedPtr message,
-      commands::Command::CommandOrigin origin);
+  bool ManageMobileCommand(const commands::MessageSharedPtr message,
+                           commands::Command::CommandOrigin origin);
   void SendMessageToHMI(const commands::MessageSharedPtr message);
   bool ManageHMICommand(const commands::MessageSharedPtr message);
 
@@ -680,20 +694,21 @@ class ApplicationManagerImpl :
       const int32_t& session_key,
       const protocol_handler::ServiceType& type) OVERRIDE;
   void OnServiceEndedCallback(
-      const int32_t& session_key, const protocol_handler::ServiceType& type,
+      const int32_t& session_key,
+      const protocol_handler::ServiceType& type,
       const connection_handler::CloseSessionReason& close_reason) OVERRIDE;
 
 #ifdef ENABLE_SECURITY
-  //Overriden SecurityManagerListener method
+  // Overriden SecurityManagerListener method
   bool OnHandshakeDone(
       uint32_t connection_key,
       security_manager::SSLContext::HandshakeResult result) OVERRIDE FINAL;
 
   void OnCertificateUpdateRequired() OVERRIDE FINAL;
 
-  security_manager::SSLContext::HandshakeContext
-  GetHandshakeContext(uint32_t key) const OVERRIDE FINAL;
-#endif // ENABLE_SECURITY
+  security_manager::SSLContext::HandshakeContext GetHandshakeContext(
+      uint32_t key) const OVERRIDE FINAL;
+#endif  // ENABLE_SECURITY
 
   /**
    * @ Add notification to collection
@@ -773,7 +788,8 @@ class ApplicationManagerImpl :
    * @param state Shows if streaming started or stopped
    */
   void OnAppStreaming(uint32_t app_id,
-                      protocol_handler::ServiceType service_type, bool state);
+                      protocol_handler::ServiceType service_type,
+                      bool state);
 
   mobile_api::HMILevel::eType GetDefaultHmiLevel(
       ApplicationConstSharedPtr application) const;
@@ -893,8 +909,10 @@ class ApplicationManagerImpl :
    * @return SUCCESS, if allowed, otherwise result code of check
    */
   mobile_apis::Result::eType CheckPolicyPermissions(
-      const std::string& policy_app_id, mobile_apis::HMILevel::eType hmi_level,
-      mobile_apis::FunctionID::eType function_id, const RPCParams& rpc_params,
+      const std::string& policy_app_id,
+      mobile_apis::HMILevel::eType hmi_level,
+      mobile_apis::FunctionID::eType function_id,
+      const RPCParams& rpc_params,
       CommandParametersPermissions* params_permissions = NULL);
   /*
    * @brief Function Should be called when Low Voltage is occured
@@ -923,8 +941,8 @@ class ApplicationManagerImpl :
       const std::string& device_id) const;
 
   struct ApplicationsAppIdSorter {
-    bool operator() (const ApplicationSharedPtr lhs,
-                     const ApplicationSharedPtr rhs) {
+    bool operator()(const ApplicationSharedPtr lhs,
+                    const ApplicationSharedPtr rhs) {
       return lhs->app_id() < rhs->app_id();
     }
   };
@@ -973,7 +991,7 @@ class ApplicationManagerImpl :
       return applications().end();
     }
 
-    template<class UnaryPredicate>
+    template <class UnaryPredicate>
     ApplicationSharedPtr Find(UnaryPredicate finder) {
       ApplicationSharedPtr result;
       ApplicationSetConstIt it = std::find_if(begin(), end(), finder);
@@ -1013,11 +1031,11 @@ class ApplicationManagerImpl :
   friend class ApplicationListAccessor;
 
   struct AppIdPredicate {
-      uint32_t app_id_;
-      AppIdPredicate(uint32_t app_id) : app_id_(app_id) {}
-      bool operator()(const ApplicationSharedPtr app) const {
-        return app ? app_id_ == app->app_id() : false;
-      }
+    uint32_t app_id_;
+    AppIdPredicate(uint32_t app_id) : app_id_(app_id) {}
+    bool operator()(const ApplicationSharedPtr app) const {
+      return app ? app_id_ == app->app_id() : false;
+    }
   };
 
   struct HmiAppIdPredicate {
@@ -1063,9 +1081,9 @@ class ApplicationManagerImpl :
     }
   };
 
-    bool IsStopping() const {
-      return is_stopping_;
-    }
+  bool IsStopping() const {
+    return is_stopping_;
+  }
 
  private:
   ApplicationManagerImpl();
@@ -1168,9 +1186,6 @@ class ApplicationManagerImpl :
    * 2nd value - is audio service opened or not
    */
   typedef std::map<uint32_t, std::pair<bool, bool> > NaviServiceStatusMap;
-
-  typedef SharedPtr<TimerThread<ApplicationManagerImpl> >
-      ApplicationManagerTimerPtr;
 
   /**
    * @brief GetHashedAppID allows to obtain unique application id as a string.
@@ -1314,7 +1329,7 @@ class ApplicationManagerImpl :
   uint32_t navi_close_app_timeout_;
   uint32_t navi_end_stream_timeout_;
 
-  std::vector<ApplicationManagerTimerPtr> timer_pool_;
+  std::vector<TimerSPtr> timer_pool_;
   sync_primitives::Lock timer_pool_lock_;
   sync_primitives::Lock stopping_application_mng_lock_;
   StateController state_ctrl_;
@@ -1332,19 +1347,9 @@ class ApplicationManagerImpl :
   AMMetricObserver* metric_observer_;
 #endif  // TIME_TESTER
 
-  class ApplicationListUpdateTimer
-      : public timer::TimerThread<ApplicationManagerImpl> {
-   public:
-    ApplicationListUpdateTimer(ApplicationManagerImpl* callee)
-        : timer::TimerThread<ApplicationManagerImpl>(
-              "AM ListUpdater", callee,
-              &ApplicationManagerImpl::OnApplicationListUpdateTimer) {}
-  };
-  typedef utils::SharedPtr<ApplicationListUpdateTimer>
-      ApplicationListUpdateTimerSptr;
-  ApplicationListUpdateTimerSptr application_list_update_timer_;
+  Timer application_list_update_timer_;
 
-  timer::TimerThread<ApplicationManagerImpl> tts_global_properties_timer_;
+  Timer tts_global_properties_timer_;
 
   bool is_low_voltage_;
 

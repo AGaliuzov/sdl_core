@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Ford Motor Company
+ * Copyright (c) 2016, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,53 +30,50 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_MME_PROTOCOL_CONNECTION_TIMER_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_MME_PROTOCOL_CONNECTION_TIMER_H_
+#ifndef SRC_COMPONENTS_UTILS_INCLUDE_UTILS_TIMER_TASK_UTIL_H_
+#define SRC_COMPONENTS_UTILS_INCLUDE_UTILS_TIMER_TASK_UTIL_H_
 
-#include <string>
+#include "utils/timer_task.h"
+#include "utils/macro.h"
 
-#include "utils/shared_ptr.h"
-#include "transport_manager/mme/mme_device.h"
-#include "utils/timer.h"
-
-namespace transport_manager {
-namespace transport_adapter {
+namespace timer {
 
 /**
- * @brief Timer to make sure that connection on protocol is established
+ * @brief The TaskImpl is proxy-template class for calling callback from Timer
  */
-class ProtocolConnectionTimer {
+template <typename Trackable>
+class TimerTaskImpl : public TimerTask {
  public:
+  typedef void (Trackable::*CallbackFunction)();
+
+  TimerTaskImpl(Trackable* trackable, CallbackFunction callback);
+  ~TimerTaskImpl();
   /**
-   * @brief Constructor
-   * @param protocol_name Pool protocol to take care of
-   * @param parent Corresponding MME device
+   * @brief run method which call callback function from callee
    */
-  ProtocolConnectionTimer(const std::string& protocol_name, MmeDevice* parent);
-  /**
-   * Destructor
-   */
-  ~ProtocolConnectionTimer();
-  /**
-   * @brief Start timer
-   */
-  void Start();
-  /**
-   * @brief Stop timer
-   */
-  void Stop();
+  void run() const OVERRIDE;
 
  private:
-  timer::Timer timer_;
-  std::string protocol_name_;
-  MmeDevice* parent_;
-
-  void Shoot();
+  Trackable* callee_;
+  CallbackFunction callback_;
 };
 
-typedef utils::SharedPtr<ProtocolConnectionTimer> ProtocolConnectionTimerSPtr;
+// Implementation
+template <typename Trackable>
+TimerTaskImpl<Trackable>::TimerTaskImpl(Trackable* trackable,
+                                        CallbackFunction callback)
+    : callee_(trackable), callback_(callback) {}
 
-}  // namespace transport_adapter
-}  // namespace transport_manager
+template <typename Trackable>
+TimerTaskImpl<Trackable>::~TimerTaskImpl() {
+  callee_ = NULL;
+}
 
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_MME_PROTOCOL_CONNECTION_TIMER_H_
+template <typename Trackable>
+void TimerTaskImpl<Trackable>::run() const {
+  DCHECK_OR_RETURN_VOID(callee_ && callback_)
+  (callee_->*callback_)();
+}
+}  // namespace timer
+
+#endif  // SRC_COMPONENTS_UTILS_INCLUDE_UTILS_TIMER_TASK_UTIL_H_

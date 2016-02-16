@@ -45,7 +45,6 @@
 #include "utils/threads/thread_delegate.h"
 #include "utils/threads/thread.h"
 #include "utils/lock.h"
-#include "utils/timer_thread.h"
 
 namespace transport_manager {
 namespace transport_adapter {

@@ -392,17 +392,6 @@ class ApplicationManagerImpl
 
   friend class ApplicationListAccessor;
 
-  class ApplicationListUpdateTimer
-      : public timer::TimerThread<ApplicationManagerImpl> {
-   public:
-    ApplicationListUpdateTimer(ApplicationManagerImpl* callee)
-        : timer::TimerThread<ApplicationManagerImpl>(
-              "AM ListUpdater", callee,
-              &ApplicationManagerImpl::OnApplicationListUpdateTimer) {}
-  };
-  typedef utils::SharedPtr<ApplicationListUpdateTimer>
-      ApplicationListUpdateTimerSptr;
-
  private:
   // FIXME(AKutsan) In resume_controller is is nessesery to change realisation
   // for remove using application_list_

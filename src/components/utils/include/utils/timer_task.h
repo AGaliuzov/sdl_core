@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Ford Motor Company
+ * Copyright (c) 2016, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,53 +30,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_MME_PROTOCOL_CONNECTION_TIMER_H_
-#define SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_MME_PROTOCOL_CONNECTION_TIMER_H_
+#ifndef SRC_COMPONENTS_UTILS_INCLUDE_UTILS_TIMER_TASK_H_
+#define SRC_COMPONENTS_UTILS_INCLUDE_UTILS_TIMER_TASK_H_
 
-#include <string>
-
-#include "utils/shared_ptr.h"
-#include "transport_manager/mme/mme_device.h"
-#include "utils/timer.h"
-
-namespace transport_manager {
-namespace transport_adapter {
+namespace timer {
 
 /**
- * @brief Timer to make sure that connection on protocol is established
+ * @brief The TimerTask interface
  */
-class ProtocolConnectionTimer {
+class TimerTask {
  public:
   /**
-   * @brief Constructor
-   * @param protocol_name Pool protocol to take care of
-   * @param parent Corresponding MME device
+   * @brief run
    */
-  ProtocolConnectionTimer(const std::string& protocol_name, MmeDevice* parent);
-  /**
-   * Destructor
-   */
-  ~ProtocolConnectionTimer();
-  /**
-   * @brief Start timer
-   */
-  void Start();
-  /**
-   * @brief Stop timer
-   */
-  void Stop();
+  virtual void run() const = 0;
 
- private:
-  timer::Timer timer_;
-  std::string protocol_name_;
-  MmeDevice* parent_;
-
-  void Shoot();
+  virtual ~TimerTask() {}
 };
 
-typedef utils::SharedPtr<ProtocolConnectionTimer> ProtocolConnectionTimerSPtr;
+}  // namespace timer
 
-}  // namespace transport_adapter
-}  // namespace transport_manager
-
-#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_MME_PROTOCOL_CONNECTION_TIMER_H_
+#endif  // SRC_COMPONENTS_UTILS_INCLUDE_UTILS_TIMER_TASK_H_

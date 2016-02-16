@@ -39,7 +39,6 @@
 #include "utils/threads/thread.h"
 #include "utils/threads/pulse_thread_delegate.h"
 #include "utils/lock.h"
-#include "utils/timer_thread.h"
 #include "utils/conditional_variable.h"
 
 #include "transport_manager/mme/mme_device.h"

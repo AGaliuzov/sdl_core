@@ -34,6 +34,7 @@ INCLUDES = \
 	$(CC_IFLAG)../../../../3rd_party/log4cxx/include \
 	$(CC_IFLAG)../../include \
 	$(CC_IFLAG)../../../include \
+	$(CC_IFLAG)../../../utils/include \
 	$(DEPENDS_INCLUDES)
 
 
