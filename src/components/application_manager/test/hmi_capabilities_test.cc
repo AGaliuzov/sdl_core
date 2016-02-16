@@ -93,10 +93,13 @@ const hmi_apis::Common_Language::eType enum_values_[] = {
     hmi_apis::Common_Language::SK_SK};
 
 struct CStringComparator {
-  bool operator()(const char* a, const char* b) { return strcmp(a, b) < 0; }
+  bool operator()(const char* a, const char* b) {
+    return strcmp(a, b) < 0;
+  }
 };
 
-typedef std::map<const char*, hmi_apis::Common_Language::eType,
+typedef std::map<const char*,
+                 hmi_apis::Common_Language::eType,
                  CStringComparator> CStringToEnumMap;
 
 CStringToEnumMap InitCStringToEnumMap() {
@@ -349,12 +352,11 @@ TEST_F(HMICapabilitiesTest,
 TEST_F(HMICapabilitiesTest, HmiCapabilitiesInitialized) {
   // Precondition
   SetCooperating();
-  smart_objects::SmartObjectSPtr language(new smart_objects::SmartObject(
-                                            smart_objects::SmartType_Map));
+  smart_objects::SmartObjectSPtr language(
+      new smart_objects::SmartObject(smart_objects::SmartType_Map));
 
   EXPECT_CALL(*(MockMessageHelper::message_helper_mock()),
-              CreateModuleInfoSO(_))
-      .WillRepeatedly(Return(language));
+              CreateModuleInfoSO(_)).WillRepeatedly(Return(language));
 
   hmi_capabilities_test->set_is_vr_cooperating(true);
   smart_objects::SmartObject supported_languages;
@@ -395,16 +397,16 @@ TEST_F(HMICapabilitiesTest, VerifyImageType) {
 
 void HMICapabilitiesTest::SetCooperating() {
   smart_objects::SmartObjectSPtr test_so;
-  EXPECT_CALL(*(MockMessageHelper::message_helper_mock()), CreateModuleInfoSO(_))
-      .WillRepeatedly(Return(test_so));
+  EXPECT_CALL(*(MockMessageHelper::message_helper_mock()),
+              CreateModuleInfoSO(_)).WillRepeatedly(Return(test_so));
   EXPECT_CALL(*app_mngr_, ManageHMICommand(_)).WillRepeatedly(Return(true));
 }
 
 TEST_F(HMICapabilitiesTest, SetVRCooperating) {
   // Without sequence it is impossible to check correct call of ManageHMICommand
   InSequence dummy;
-  smart_objects::SmartObjectSPtr language(new smart_objects::SmartObject(
-                                            smart_objects::SmartType_Map));
+  smart_objects::SmartObjectSPtr language(
+      new smart_objects::SmartObject(smart_objects::SmartType_Map));
   EXPECT_CALL(*(MockMessageHelper::message_helper_mock()),
               CreateModuleInfoSO(hmi_apis::FunctionID::VR_GetLanguage))
       .WillOnce(Return(language));
@@ -427,8 +429,8 @@ TEST_F(HMICapabilitiesTest, SetVRCooperating) {
 }
 
 TEST_F(HMICapabilitiesTest, SetTTSCooperating) {
-  smart_objects::SmartObjectSPtr language(new smart_objects::SmartObject(
-                                            smart_objects::SmartType_Map));
+  smart_objects::SmartObjectSPtr language(
+      new smart_objects::SmartObject(smart_objects::SmartType_Map));
   InSequence dummy;
   EXPECT_CALL(*(MockMessageHelper::message_helper_mock()),
               CreateModuleInfoSO(hmi_apis::FunctionID::TTS_GetLanguage))
@@ -453,8 +455,8 @@ TEST_F(HMICapabilitiesTest, SetTTSCooperating) {
 
 TEST_F(HMICapabilitiesTest, SetUICooperating) {
   InSequence dummy;
-  smart_objects::SmartObjectSPtr language(new smart_objects::SmartObject(
-                                            smart_objects::SmartType_Map));
+  smart_objects::SmartObjectSPtr language(
+      new smart_objects::SmartObject(smart_objects::SmartType_Map));
   EXPECT_CALL(*(MockMessageHelper::message_helper_mock()),
               CreateModuleInfoSO(hmi_apis::FunctionID::UI_GetLanguage))
       .WillOnce(Return(language));

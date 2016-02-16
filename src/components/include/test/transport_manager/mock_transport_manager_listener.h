@@ -60,26 +60,29 @@ class MockTransportManagerListener : public TransportManagerListener {
 
   MOCK_METHOD2(OnConnectionEstablished,
                void(const DeviceInfo& device_info,
-                    const ConnectionUID& connection_id));
+                    const ConnectionUID connection_id));
   MOCK_METHOD2(OnConnectionFailed,
                void(const DeviceInfo& device_info, const ConnectError& error));
 
-  MOCK_METHOD1(OnConnectionClosed, void(ConnectionUID connection_id));
+  MOCK_METHOD1(OnConnectionClosed, void(const ConnectionUID connection_id));
   MOCK_METHOD2(OnConnectionClosedFailure,
                void(ConnectionUID connection_id, const DisconnectError& error));
-  MOCK_METHOD2(OnUnexpectedDisconnect, void(ConnectionUID connection_id,
-                                            const CommunicationError& error));
-  MOCK_METHOD2(OnExpectedDisconnect, void(ConnectionUID connection_id,
-                                            const CommunicationError& error));
+  MOCK_METHOD2(OnUnexpectedDisconnect,
+               void(ConnectionUID connection_id,
+                    const CommunicationError& error));
+  MOCK_METHOD2(OnExpectedDisconnect,
+               void(ConnectionUID connection_id,
+                    const CommunicationError& error));
   MOCK_METHOD2(OnDeviceConnectionLost,
                void(const DeviceHandle& device,
                     const DisconnectDeviceError& error));
-  MOCK_METHOD2(OnDisconnectFailed, void(const DeviceHandle& device,
-                                        const DisconnectDeviceError& error));
+  MOCK_METHOD2(OnDisconnectFailed,
+               void(const DeviceHandle& device,
+                    const DisconnectDeviceError& error));
 
   MOCK_METHOD1(OnTMMessageReceived, void(const RawMessagePtr data_container));
-  MOCK_METHOD2(OnTMMessageReceiveFailed, void(ConnectionUID connection_id,
-                                              const DataReceiveError& error));
+  MOCK_METHOD1(OnTMMessageReceiveFailed, void(
+                    const DataReceiveError& error));
   MOCK_METHOD1(OnTMMessageSend, void(const RawMessagePtr message));
   MOCK_METHOD2(OnTMMessageSendFailed,
                void(const DataSendError& error, const RawMessagePtr message));

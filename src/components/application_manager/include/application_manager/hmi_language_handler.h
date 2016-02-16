@@ -45,18 +45,14 @@ namespace application_manager {
  * responses are gotten and after responses were received their language(s)
  * mismatch to current on HMI - apps have to be unregistered.
  **/
-class HMILanguageHandler: public event_engine::EventObserver {
-public:
+class HMILanguageHandler : public event_engine::EventObserver {
+ public:
   typedef std::map<uint32_t, bool> Apps;
 
   /**
   * @brief System interfaces
   */
-  enum Interface {
-    INTERFACE_UI,
-    INTERFACE_VR,
-    INTERFACE_TTS
-  };
+  enum Interface { INTERFACE_UI, INTERFACE_VR, INTERFACE_TTS };
 
   /**
    * @brief Class constructor
@@ -85,7 +81,7 @@ public:
    * @param request Request object
    */
   void set_handle_response_for(
-          const event_engine::smart_objects::SmartObject& request);
+      const event_engine::smart_objects::SmartObject& request);
 
   /**
    * @brief Sets default languages from HMI capabilities
@@ -93,12 +89,12 @@ public:
    * @param vr VR language
    * @param tts TTS language
    */
-  void set_default_capabilities_languages(
-          hmi_apis::Common_Language::eType ui,
-          hmi_apis::Common_Language::eType vr,
-          hmi_apis::Common_Language::eType tts);
+  void set_default_capabilities_languages(hmi_apis::Common_Language::eType ui,
+                                          hmi_apis::Common_Language::eType vr,
+                                          hmi_apis::Common_Language::eType tts);
 
-private:
+ private:
+  void SendOnLanguageChangeToMobile(uint32_t connection_key);
 
   /**
    * @brief Verifies languages gotten from HMI with persisted languages
@@ -172,7 +168,6 @@ private:
   bool is_tts_language_received_;
 };
 
-} // namespace application_manager
+}  // namespace application_manager
 
-#endif // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_HMI_LANGUAGE_HANDLER_H_
-
+#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_HMI_LANGUAGE_HANDLER_H_

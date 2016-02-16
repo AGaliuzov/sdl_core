@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014, Ford Motor Company
+ * Copyright (c) 2016, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,12 +32,10 @@
 
 #include <string>
 #include <iostream>
-//#include <stdio.h>
-#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 #include "connection_handler/heartbeat_monitor.h"
 #include "connection_handler/connection.h"
 #include "connection_handler/connection_handler.h"
-#include "config_profile/profile.h"
 #include "connection_handler/mock_connection_handler.h"
 
 namespace {
@@ -52,44 +50,40 @@ namespace connection_handler_test {
 using ::testing::_;
 
 class HeartBeatMonitorTest : public testing::Test {
-public:
- HeartBeatMonitorTest():
-	  conn(NULL) {
-	  profile::Profile::instance()->config_file_name("smartDeviceLink.ini");
-	  kTimeout = profile::Profile::instance()->heart_beat_timeout();
- }
+ public:
+  HeartBeatMonitorTest() : conn(NULL) {
+    kTimeout = 5000u;
+  }
 
-protected:
+ protected:
   testing::NiceMock<MockConnectionHandler> connection_handler_mock;
   connection_handler::Connection* conn;
   uint32_t kTimeout;
-  static const connection_handler::ConnectionHandle kConnectionHandle = 0xABCDEF;
-
+  static const connection_handler::ConnectionHandle kConnectionHandle =
+      0xABCDEF;
   virtual void SetUp() {
-	  conn = new connection_handler::Connection(kConnectionHandle, 0,
-                                              &connection_handler_mock,
-                                              kTimeout);
+    conn = new connection_handler::Connection(
+        kConnectionHandle, 0, &connection_handler_mock, kTimeout);
   }
 
   virtual void TearDown() {
     delete conn;
   }
-
 };
 
-ACTION_P2(RemoveSession, conn, session_id){
+ACTION_P2(RemoveSession, conn, session_id) {
   conn->RemoveSession(session_id);
 }
 
 TEST_F(HeartBeatMonitorTest, TimerNotStarted) {
-
-   // Whithout StartHeartBeat nothing to be call
+  // Whithout StartHeartBeat nothing to be call
   EXPECT_CALL(connection_handler_mock, CloseSession(_, _)).Times(0);
   EXPECT_CALL(connection_handler_mock, CloseConnection(_)).Times(0);
   EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, _)).Times(0);
 
   conn->AddNewSession();
-  testing::Mock::AsyncVerifyAndClearExpectations(kTimeout * MICROSECONDS_IN_MILLISECONDS + MICROSECONDS_IN_SECOND);
+  testing::Mock::AsyncVerifyAndClearExpectations(
+      kTimeout * MICROSECONDS_IN_MILLISECONDS + MICROSECONDS_IN_SECOND);
 }
 
 TEST_F(HeartBeatMonitorTest, TimerNotElapsed) {
@@ -99,19 +93,21 @@ TEST_F(HeartBeatMonitorTest, TimerNotElapsed) {
 
   const uint32_t session = conn->AddNewSession();
   conn->StartHeartBeat(session);
-  testing::Mock::AsyncVerifyAndClearExpectations(kTimeout * MICROSECONDS_IN_MILLISECONDS - MICROSECONDS_IN_SECOND);
+  testing::Mock::AsyncVerifyAndClearExpectations(
+      kTimeout * MICROSECONDS_IN_MILLISECONDS - MICROSECONDS_IN_SECOND);
 }
 
 TEST_F(HeartBeatMonitorTest, TimerElapsed) {
   const uint32_t session = conn->AddNewSession();
 
-  EXPECT_CALL(connection_handler_mock, CloseSession(_, session,_))
-  .WillOnce(RemoveSession(conn, session));
+  EXPECT_CALL(connection_handler_mock, CloseSession(_, session, _))
+      .WillOnce(RemoveSession(conn, session));
   EXPECT_CALL(connection_handler_mock, CloseConnection(_));
   EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, session));
 
   conn->StartHeartBeat(session);
-  testing::Mock::AsyncVerifyAndClearExpectations(2 * kTimeout * MICROSECONDS_IN_MILLISECONDS + MICROSECONDS_IN_SECOND);
+  testing::Mock::AsyncVerifyAndClearExpectations(
+      2 * kTimeout * MICROSECONDS_IN_MILLISECONDS + MICROSECONDS_IN_SECOND);
 }
 
 TEST_F(HeartBeatMonitorTest, KeptAlive) {
@@ -121,21 +117,25 @@ TEST_F(HeartBeatMonitorTest, KeptAlive) {
 
   const uint32_t session = conn->AddNewSession();
   conn->StartHeartBeat(session);
-  testing::Mock::AsyncVerifyAndClearExpectations(kTimeout * MICROSECONDS_IN_MILLISECONDS - MICROSECONDS_IN_SECOND);
+  testing::Mock::AsyncVerifyAndClearExpectations(
+      kTimeout * MICROSECONDS_IN_MILLISECONDS - MICROSECONDS_IN_SECOND);
   conn->KeepAlive(session);
-  testing::Mock::AsyncVerifyAndClearExpectations(kTimeout * MICROSECONDS_IN_MILLISECONDS - MICROSECONDS_IN_SECOND);
+  testing::Mock::AsyncVerifyAndClearExpectations(
+      kTimeout * MICROSECONDS_IN_MILLISECONDS - MICROSECONDS_IN_SECOND);
   conn->KeepAlive(session);
-  testing::Mock::AsyncVerifyAndClearExpectations(kTimeout * MICROSECONDS_IN_MILLISECONDS - MICROSECONDS_IN_SECOND);
+  testing::Mock::AsyncVerifyAndClearExpectations(
+      kTimeout * MICROSECONDS_IN_MILLISECONDS - MICROSECONDS_IN_SECOND);
   conn->KeepAlive(session);
-  testing::Mock::AsyncVerifyAndClearExpectations(kTimeout * MICROSECONDS_IN_MILLISECONDS - MICROSECONDS_IN_SECOND);
+  testing::Mock::AsyncVerifyAndClearExpectations(
+      kTimeout * MICROSECONDS_IN_MILLISECONDS - MICROSECONDS_IN_SECOND);
 }
 
 TEST_F(HeartBeatMonitorTest, NotKeptAlive) {
   const uint32_t session = conn->AddNewSession();
 
   EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, session));
-  EXPECT_CALL(connection_handler_mock, CloseSession(_, session,_))
-  .WillOnce(RemoveSession(conn, session));
+  EXPECT_CALL(connection_handler_mock, CloseSession(_, session, _))
+      .WillOnce(RemoveSession(conn, session));
   EXPECT_CALL(connection_handler_mock, CloseConnection(_));
 
   conn->StartHeartBeat(session);
@@ -145,24 +145,26 @@ TEST_F(HeartBeatMonitorTest, NotKeptAlive) {
   conn->KeepAlive(session);
   usleep(kTimeout * MICROSECONDS_IN_MILLISECONDS - MICROSECONDS_IN_SECOND);
   conn->KeepAlive(session);
-  testing::Mock::AsyncVerifyAndClearExpectations(2 * kTimeout * MICROSECONDS_IN_MILLISECONDS + MICROSECONDS_IN_SECOND);
+  testing::Mock::AsyncVerifyAndClearExpectations(
+      2 * kTimeout * MICROSECONDS_IN_MILLISECONDS + MICROSECONDS_IN_SECOND);
 }
 
 TEST_F(HeartBeatMonitorTest, TwoSessionsElapsed) {
   const uint32_t kSession1 = conn->AddNewSession();
   const uint32_t kSession2 = conn->AddNewSession();
 
-  EXPECT_CALL(connection_handler_mock, CloseSession(_, kSession1,_))
-  .WillOnce(RemoveSession(conn, kSession1));
-  EXPECT_CALL(connection_handler_mock, CloseSession(_, kSession2,_))
-  .WillOnce(RemoveSession(conn, kSession2));
+  EXPECT_CALL(connection_handler_mock, CloseSession(_, kSession1, _))
+      .WillOnce(RemoveSession(conn, kSession1));
+  EXPECT_CALL(connection_handler_mock, CloseSession(_, kSession2, _))
+      .WillOnce(RemoveSession(conn, kSession2));
   EXPECT_CALL(connection_handler_mock, CloseConnection(_));
   EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, kSession1));
   EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, kSession2));
 
   conn->StartHeartBeat(kSession1);
   conn->StartHeartBeat(kSession2);
-  testing::Mock::AsyncVerifyAndClearExpectations(2 * kTimeout * MICROSECONDS_IN_MILLISECONDS + MICROSECONDS_IN_SECOND);
+  testing::Mock::AsyncVerifyAndClearExpectations(
+      2 * kTimeout * MICROSECONDS_IN_MILLISECONDS + MICROSECONDS_IN_SECOND);
 }
 
 TEST_F(HeartBeatMonitorTest, IncreaseHeartBeatTimeout) {
@@ -172,19 +174,19 @@ TEST_F(HeartBeatMonitorTest, IncreaseHeartBeatTimeout) {
   EXPECT_CALL(connection_handler_mock, CloseConnection(_)).Times(0);
   EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, _)).Times(0);
 
-
   const uint32_t kNewTimeout = kTimeout + MICROSECONDS_IN_MILLISECONDS;
   conn->StartHeartBeat(kSession);
   conn->SetHeartBeatTimeout(kNewTimeout, kSession);
   // new timeout greater by old timeout so mock object shouldn't be invoked
-  testing::Mock::AsyncVerifyAndClearExpectations(kTimeout * MICROSECONDS_IN_MILLISECONDS);
+  testing::Mock::AsyncVerifyAndClearExpectations(kTimeout *
+                                                 MICROSECONDS_IN_MILLISECONDS);
 }
 
 TEST_F(HeartBeatMonitorTest, DecreaseHeartBeatTimeout) {
   const uint32_t kSession = conn->AddNewSession();
 
-  EXPECT_CALL(connection_handler_mock, CloseSession(_, kSession,_))
-  .WillOnce(RemoveSession(conn, kSession));
+  EXPECT_CALL(connection_handler_mock, CloseSession(_, kSession, _))
+      .WillOnce(RemoveSession(conn, kSession));
   EXPECT_CALL(connection_handler_mock, CloseConnection(_));
   EXPECT_CALL(connection_handler_mock, SendHeartBeat(_, kSession));
 
@@ -192,9 +194,10 @@ TEST_F(HeartBeatMonitorTest, DecreaseHeartBeatTimeout) {
   conn->StartHeartBeat(kSession);
   conn->SetHeartBeatTimeout(kNewTimeout, kSession);
   // new timeout less than old timeout so mock object should be invoked
-  testing::Mock::AsyncVerifyAndClearExpectations(kTimeout * 2 * MICROSECONDS_IN_MILLISECONDS);
+  testing::Mock::AsyncVerifyAndClearExpectations(kTimeout * 2 *
+                                                 MICROSECONDS_IN_MILLISECONDS);
 }
 
-} // namespace connection_handler_test
-} // namespace components
-} // namespace test
+}  // namespace connection_handler_test
+}  // namespace components
+}  // namespace test

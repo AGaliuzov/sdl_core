@@ -555,12 +555,13 @@ class ApplicationManagerImpl
     state_ctrl_.SetRegularState(app, state);
   }
 
-    /**
-     * @brief Checks, if particular state is active
-     * @param state_id State
-     * @return True, if state is active, otherwise - false
-     */
-    bool IsStateActive(HmiState::StateID state_id) const;
+
+  /**
+   * @brief Checks, if particular state is active
+   * @param state_id State
+   * @return True, if state is active, otherwise - false
+   */
+  bool IsStateActive(HmiState::StateID state_id) const;
 
 #ifdef CUSTOMER_PASA
   /**
@@ -657,20 +658,20 @@ class ApplicationManagerImpl
   // if |final_message| parameter is set connection to mobile will be closed
   // after processing this message
   void SendMessageToMobile(const commands::MessageSharedPtr message,
-                           bool final_message = false);
+                           bool final_message = false) OVERRIDE;
 
+  void SendMessageToHMI(const commands::MessageSharedPtr message) OVERRIDE;
   /**
    * @brief TerminateRequest forces termination of request
    * @param connection_key - application id of request
    * @param corr_id correlation id of request
    */
-  void TerminateRequest(uint32_t connection_key, uint32_t corr_id);
 
   bool ManageMobileCommand(const commands::MessageSharedPtr message,
-                           commands::Command::CommandOrigin origin);
-  void SendMessageToHMI(const commands::MessageSharedPtr message);
-  bool ManageHMICommand(const commands::MessageSharedPtr message);
+                           commands::Command::CommandOrigin origin) OVERRIDE;
+  bool ManageHMICommand(const commands::MessageSharedPtr message) OVERRIDE;
 
+  void TerminateRequest(uint32_t connection_key, uint32_t corr_id);
   // Overriden ProtocolObserver method
   void OnMessageReceived(
       const ::protocol_handler::RawMessagePtr message) OVERRIDE;
@@ -896,7 +897,7 @@ class ApplicationManagerImpl
   void ResetPhoneCallAppList();
 
   // TODO(AOleynik): Temporary added, to fix build. Should be reworked.
-  connection_handler::ConnectionHandler* connection_handler();
+  connection_handler::ConnectionHandler& connection_handler() const OVERRIDE;
 
   /**
    * @brief Checks, if given RPC is allowed at current HMI level for specific
@@ -1153,7 +1154,10 @@ class ApplicationManagerImpl
       }
 
       smart_objects::SmartObject hmi_application(smart_objects::SmartType_Map);
-      if (MessageHelper::CreateHMIApplicationStruct(*it, hmi_application)) {
+      const protocol_handler::SessionObserver& session_observer =
+          connection_handler().get_session_observer();
+      if (MessageHelper::CreateHMIApplicationStruct(
+              *it, session_observer, &hmi_application)) {
         applications[app_count++] = hmi_application;
       } else {
         LOG4CXX_DEBUG(logger_, "Can't CreateHMIApplicationStruct ");

@@ -45,7 +45,9 @@ namespace resumption_test {
 
 class TestResumptionDataDB : public ResumptionDataDB {
  public:
-  utils::dbms::SQLDatabase* get_db_handle() { return db(); }
+  utils::dbms::SQLDatabase* get_db_handle() {
+    return db();
+  }
 
   TestResumptionDataDB(DbStorage db_storage) : ResumptionDataDB(db_storage) {}
 };

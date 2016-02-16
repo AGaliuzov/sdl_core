@@ -41,15 +41,13 @@ namespace test {
 namespace components {
 namespace protocol_handler_test {
 
-class  MockPHMetricObserver : public ::protocol_handler::PHMetricObserver {
-  public:
-    MOCK_METHOD2(StartMessageProcess,
-        void(uint32_t, const TimevalStruct&));
-    MOCK_METHOD2(EndMessageProcess,
-        void(utils::SharedPtr<MessageMetric>));
+class MockPHMetricObserver : public ::protocol_handler::PHMetricObserver {
+ public:
+  MOCK_METHOD2(StartMessageProcess, void(uint32_t, const TimevalStruct&));
+  MOCK_METHOD2(EndMessageProcess, void(utils::SharedPtr<MessageMetric>));
 };
-}   // namespace protocol_handler_test
-}   // namespace components
-}   // namespace test
+}  // namespace protocol_handler_test
+}  // namespace components
+}  // namespace test
 
 #endif  // SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_MOCK_TIME_METRIC_OBSERVER_H_

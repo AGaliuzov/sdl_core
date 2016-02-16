@@ -39,6 +39,7 @@
 #include <list>
 #include <cstdint>
 #include <utility>  // std::make_pair
+#include <vector>
 #include "utils/prioritized_queue.h"
 #include "utils/message_queue.h"
 #include "utils/threads/message_loop_thread.h"
@@ -54,6 +55,8 @@
 #include "transport_manager/common.h"
 #include "transport_manager/transport_manager.h"
 #include "transport_manager/transport_manager_listener_empty.h"
+#include "connection_handler/connection_handler.h"
+
 #ifdef TIME_TESTER
 #include "protocol_handler/time_metric_observer.h"
 #endif  // TIME_TESTER
@@ -61,6 +64,10 @@
 #ifdef ENABLE_SECURITY
 #include "security_manager/security_manager.h"
 #endif  // ENABLE_SECURITY
+
+namespace connection_handler {
+class ConnectionHandlerImpl;
+}  // namespace connection_handler
 
 /**
  *\namespace protocol_handlerHandler
@@ -87,36 +94,36 @@ namespace impl {
  * TODO(ik): replace these with globally defined message types
  * when we have them.
  */
-struct RawFordMessageFromMobile: public ProtocolFramePtr {
+struct RawFordMessageFromMobile : public ProtocolFramePtr {
   RawFordMessageFromMobile() {}
   explicit RawFordMessageFromMobile(const ProtocolFramePtr message)
-    : ProtocolFramePtr(message) {}
+      : ProtocolFramePtr(message) {}
   // PrioritizedQueue requires this method to decide which priority to assign
   size_t PriorityOrder() const {
     return MessagePriority::FromServiceType(
-             ServiceTypeFromByte(get()->service_type())).OrderingValue();
+               ServiceTypeFromByte(get()->service_type())).OrderingValue();
   }
 };
 
-struct RawFordMessageToMobile: public ProtocolFramePtr {
+struct RawFordMessageToMobile : public ProtocolFramePtr {
   RawFordMessageToMobile() : is_final(false) {}
-  explicit RawFordMessageToMobile(const ProtocolFramePtr message,
-                                  bool final_message)
-    : ProtocolFramePtr(message), is_final(final_message) {}
+  RawFordMessageToMobile(const ProtocolFramePtr message, bool final_message)
+      : ProtocolFramePtr(message), is_final(final_message) {}
   // PrioritizedQueue requires this method to decide which priority to assign
   size_t PriorityOrder() const {
     return MessagePriority::FromServiceType(
-             ServiceTypeFromByte(get()->service_type())).OrderingValue();
+               ServiceTypeFromByte(get()->service_type())).OrderingValue();
   }
-  // Signals whether connection to mobile must be closed after processing this message
+  // Signals whether connection to mobile must be closed after processing this
+  // message
   bool is_final;
 };
 
 // Short type names for prioritized message queues
-typedef threads::MessageLoopThread <
-  utils::PrioritizedQueue<RawFordMessageFromMobile> > FromMobileQueue;
-typedef threads::MessageLoopThread <
-  utils::PrioritizedQueue<RawFordMessageToMobile> > ToMobileQueue;
+typedef threads::MessageLoopThread<
+    utils::PrioritizedQueue<RawFordMessageFromMobile>> FromMobileQueue;
+typedef threads::MessageLoopThread<
+    utils::PrioritizedQueue<RawFordMessageToMobile>> ToMobileQueue;
 }  // namespace impl
 
 /**
@@ -127,33 +134,22 @@ typedef threads::MessageLoopThread <
  * and if needed passes message to JSON Handler or notifies Connection Handler
  * about activities around sessions.
  */
-class ProtocolHandlerImpl
-  : public ProtocolHandler,
-    public TransportManagerListenerEmpty,
-    public impl::FromMobileQueue::Handler,
-    public impl::ToMobileQueue::Handler {
+class ProtocolHandlerImpl : public ProtocolHandler,
+                            public TransportManagerListenerEmpty,
+                            public impl::FromMobileQueue::Handler,
+                            public impl::ToMobileQueue::Handler {
  public:
   /**
-   * \brief Constructor
-   * \param transportManager Pointer to Transport layer handler for
-   * \param message_frequency_time used as time for flood filtering
-   * \param message_frequency_count used as maximum value of messages
-   *        per message_frequency_time period
-   * \param malformed_message_filtering used for malformed filtering enabling
-   * \param malformed_message_frequency_time used as time for malformed flood filtering
-   * \param malformed_message_frequency_count used as maximum value of malformed
-   *        messages per message_frequency_time period
-   * \param multiframe_waiting_timeout used as maximum time of consecutive
-   *        frames handling
-   * message exchange.
+   * @brief Constructor
+   * @param settings reference to ProtocolHandlerSettingsImpl object
+   * @param session_observer reference to SessionObserver to access session
+   * information and controll session life cycle
+   * @param transportManager Pointer to Transport layer handler for
    */
-  explicit ProtocolHandlerImpl(
-      transport_manager::TransportManager *transport_manager_param,
-      size_t message_frequency_time, size_t message_frequency_count,
-      bool malformed_message_filtering,
-      size_t malformed_message_frequency_time,
-      size_t malformed_message_frequency_count,
-      uint32_t multiframe_waiting_timeout);
+  ProtocolHandlerImpl(const ProtocolHandlerSettings& settings,
+                      protocol_handler::SessionObserver& session_observer,
+                      connection_handler::ConnectionHandler& connection_handler,
+                      transport_manager::TransportManager& transport_manager);
 
   /**
    * \brief Destructor
@@ -165,28 +161,23 @@ class ProtocolHandlerImpl
    * \param observer Pointer to object of the class implementing
    * IProtocolObserver
    */
-  void AddProtocolObserver(ProtocolObserver *observer);
+  void AddProtocolObserver(ProtocolObserver* observer);
 
   /**
    * \brief Removes pointer to higher layer handler for message exchange
    * \param observer Pointer to object of the class implementing
    * IProtocolObserver.
    */
-  void RemoveProtocolObserver(ProtocolObserver *observer);
-
-  /**
-   * \brief Sets pointer for Connection Handler layer for managing sessions
-   * \param observer Pointer to object of the class implementing
-   * ISessionObserver
-   */
-  void set_session_observer(SessionObserver *observer);
+  void RemoveProtocolObserver(ProtocolObserver* observer);
 
 #ifdef ENABLE_SECURITY
   /**
-   * \brief Sets pointer for SecurityManager layer for managing protection routine
+   * \brief Sets pointer for SecurityManager layer for managing protection
+   * routine
    * \param security_manager Pointer to SecurityManager object
    */
-  void set_security_manager(security_manager::SecurityManager *security_manager);
+  void set_security_manager(
+      security_manager::SecurityManager* security_manager);
 #endif  // ENABLE_SECURITY
 
   /**
@@ -203,7 +194,8 @@ class ProtocolHandlerImpl
 
   /**
    * \brief Sends number of processed frames in case of binary nav streaming
-   * \param connection_key Unique key used by other components as session identifier
+   * \param connection_key Unique key used by other components as session
+   * identifier
    * \param number_of_frames Number of frames processed by
    * streaming server and displayed to user.
    */
@@ -215,7 +207,7 @@ class ProtocolHandlerImpl
    *
    * @param observer - pointer to observer
    */
-  void SetTimeMetricObserver(PHMetricObserver *observer);
+  void SetTimeMetricObserver(PHMetricObserver* observer);
 #endif  // TIME_TESTER
 
   /*
@@ -297,8 +289,13 @@ class ProtocolHandlerImpl
                           uint8_t protocol_version,
                           uint8_t service_type);
 
+  virtual const ProtocolHandlerSettings& get_settings() const OVERRIDE {
+    return settings_;
+  }
+
  private:
-  void SendEndServicePrivate(int32_t connection_id, uint8_t session_id,
+  void SendEndServicePrivate(int32_t connection_id,
+                             uint8_t session_id,
                              uint8_t service_type);
 
   /*
@@ -313,22 +310,21 @@ class ProtocolHandlerImpl
    *
    * @param message Received message
    **/
-  virtual void OnTMMessageReceived(
-    const RawMessagePtr message);
+  void OnTMMessageReceived(const RawMessagePtr message) OVERRIDE;
 
   /**
    * @brief Notifies about error on receiving message from TM.
    *
    * @param error Occurred error
    **/
-  virtual void OnTMMessageReceiveFailed(
-    const transport_manager::DataReceiveError &error);
+  void OnTMMessageReceiveFailed(
+      const transport_manager::DataReceiveError& error) OVERRIDE;
 
   /**
    * @brief Notifies about successfully sending message.
    *
    **/
-  virtual void OnTMMessageSend(const RawMessagePtr message);
+  void OnTMMessageSend(const RawMessagePtr message) OVERRIDE;
 
   /**
    * @brief Notifies about error occurred during
@@ -337,16 +333,15 @@ class ProtocolHandlerImpl
    * @param error Describes occurred error.
    * @param message Message during sending which error occurred.
    **/
-  virtual void OnTMMessageSendFailed(
-    const transport_manager::DataSendError &error,
-    const RawMessagePtr message);
+  void OnTMMessageSendFailed(const transport_manager::DataSendError& error,
+                             const RawMessagePtr message) OVERRIDE;
 
-  virtual void OnConnectionEstablished(
-    const transport_manager::DeviceInfo &device_info,
-    const transport_manager::ConnectionUID &connection_id);
+  void OnConnectionEstablished(
+      const transport_manager::DeviceInfo& device_info,
+      const transport_manager::ConnectionUID connection_id) OVERRIDE;
 
-  virtual void OnConnectionClosed(
-    const transport_manager::ConnectionUID &connection_id);
+  void OnConnectionClosed(
+      const transport_manager::ConnectionUID connection_id) OVERRIDE;
 
   /**
    * @brief Notifies subscribers about message
@@ -372,7 +367,7 @@ class ProtocolHandlerImpl
                                      const uint32_t protocol_version,
                                      const uint8_t service_type,
                                      const size_t data_size,
-                                     const uint8_t *data,
+                                     const uint8_t* data,
                                      const bool is_final_message);
 
   /**
@@ -393,7 +388,7 @@ class ProtocolHandlerImpl
                                     const uint8_t protocol_version,
                                     const uint8_t service_type,
                                     const size_t data_size,
-                                    const uint8_t *data,
+                                    const uint8_t* data,
                                     const size_t max_frame_size,
                                     const bool is_final_message);
 
@@ -406,6 +401,8 @@ class ProtocolHandlerImpl
 
   /**
    * \brief Handles received message.
+   * \param connection_handle Identifier of connection through which message
+   * is received.
    * \param packet Received message with protocol header.
    * \return \saRESULT_CODE Status of operation
    */
@@ -413,6 +410,8 @@ class ProtocolHandlerImpl
 
   /**
    * \brief Handles message received in single frame.
+   * \param connection_handle Identifier of connection through which message
+   * is received.
    * \param packet Frame of message with protocol header.
    * \return \saRESULT_CODE Status of operation
    */
@@ -420,6 +419,8 @@ class ProtocolHandlerImpl
   /**
    * \brief Handles message received in multiple frames. Collects all frames
    * of message.
+   * \param connection_handle Identifier of connection through which message
+   * is received.
    * \param packet Current frame of message with protocol header.
    * \return \saRESULT_CODE Status of operation
    */
@@ -427,6 +428,8 @@ class ProtocolHandlerImpl
 
   /**
    * \brief Handles message received in single frame.
+   * \param connection_handle Identifier of connection through which message
+   * is received.
    * \param packet Received message with protocol header.
    * \return \saRESULT_CODE Status of operation
    */
@@ -457,12 +460,18 @@ class ProtocolHandlerImpl
   RESULT_CODE DecryptFrame(ProtocolFramePtr packet);
 #endif  // ENABLE_SECURITY
 
-  bool TrackMessage(const uint32_t &connection_key);
+  bool TrackMessage(const uint32_t& connection_key);
 
-  bool TrackMalformedMessage(const uint32_t &connection_key,
+  bool TrackMalformedMessage(const uint32_t& connection_key,
                              const size_t count);
 
- private:
+  /**
+   * @brief Function returns supported SDL Protocol Version,
+   */
+  uint8_t SupportedSDLProtocolVersion() const;
+
+  const ProtocolHandlerSettings& settings_;
+
   /**
    *\brief Pointer on instance of class implementing IProtocolObserver
    *\brief (JSON Handler)
@@ -470,15 +479,22 @@ class ProtocolHandlerImpl
   ProtocolObservers protocol_observers_;
 
   /**
-   *\brief Pointer on instance of class implementing ISessionObserver
+   *\brief Instance of class implementing ISessionObserver
    *\brief (Connection Handler)
+   * According to usage it can't be null
    */
-  SessionObserver *session_observer_;
+  SessionObserver& session_observer_;
 
   /**
-   *\brief Pointer on instance of Transport layer handler for message exchange.
+   *\brief Instance of class implementing Connection  Handler t keep connection
+   *alive
    */
-  transport_manager::TransportManager *transport_manager_;
+  connection_handler::ConnectionHandler& connection_handler_;
+
+  /**
+   *\brief Instance of Transport layer handler for message exchange.
+   */
+  transport_manager::TransportManager& transport_manager_;
 
   /**
    *\brief Assembling support class.
@@ -522,16 +538,11 @@ class ProtocolHandlerImpl
   IncomingDataHandler incoming_data_handler_;
   // Use uint32_t as application identifier
   utils::MessageMeter<uint32_t> message_meter_;
-  size_t message_max_frequency_;
-  size_t message_frequency_time_;
-  bool malformed_message_filtering_;
   // Use uint32_t as connection identifier
   utils::MessageMeter<uint32_t> malformed_message_meter_;
-  size_t malformed_message_max_frequency_;
-  size_t malformed_message_frequency_time_;
 
 #ifdef ENABLE_SECURITY
-  security_manager::SecurityManager *security_manager_;
+  security_manager::SecurityManager* security_manager_;
 #endif  // ENABLE_SECURITY
 
   // Thread that pumps non-parsed messages coming from mobile side.
@@ -542,7 +553,7 @@ class ProtocolHandlerImpl
   sync_primitives::Lock protocol_observers_lock_;
 
 #ifdef TIME_TESTER
-  PHMetricObserver *metric_observer_;
+  PHMetricObserver* metric_observer_;
 #endif  // TIME_TESTER
 };
 }  // namespace protocol_handler

@@ -85,6 +85,15 @@ class RegisterAppInterfaceRequest : public CommandRequestImpl {
   void SendRegisterAppInterfaceResponseToMobile();
 
  private:
+  /**
+   * @brief Sends OnAppRegistered notification to HMI
+   *
+   *@param application_impl application with changed HMI status
+   *
+   **/
+  void SendOnAppRegisteredNotificationToHMI(const Application& application_impl,
+                                            bool resumption = false,
+                                            bool need_restore_vr = false);
   /*
    * @brief Check new ID along with known mobile application ID
    *
@@ -102,21 +111,21 @@ class RegisterAppInterfaceRequest : public CommandRequestImpl {
   mobile_apis::Result::eType CheckCoincidence();
 
   /*
-  * @brief Predicate for using with CheckCoincidence method to compare with VR synonym SO
+  * @brief Predicate for using with CheckCoincidence method to compare with VR
+  *synonym SO
   *
   * return TRUE if there is coincidence of VR, otherwise FALSE
   */
   struct CoincidencePredicateVR {
-      explicit CoincidencePredicateVR(const custom_str::CustomString& newItem)
-      :newItem_(newItem)
-      {};
+    explicit CoincidencePredicateVR(const custom_str::CustomString& newItem)
+        : newItem_(newItem){};
 
-      bool operator()(const smart_objects::SmartObject& obj) {
-        const custom_str::CustomString& vr_synonym = obj.asCustomString();
-        return newItem_.CompareIgnoreCase(vr_synonym);
-      };
-      const custom_str::CustomString& newItem_;
+    bool operator()(const smart_objects::SmartObject& obj) {
+      const custom_str::CustomString& vr_synonym = obj.asCustomString();
+      return newItem_.CompareIgnoreCase(vr_synonym);
     };
+    const custom_str::CustomString& newItem_;
+  };
 
   /**
    * @brief Check request parameters against policy table data
@@ -154,10 +163,9 @@ class RegisterAppInterfaceRequest : public CommandRequestImpl {
    */
   void SendSubscribeCustomButtonNotification();
 
-private:
+ private:
   std::string response_info_;
   mobile_apis::Result::eType result_checking_app_hmi_type_;
-
 
   DISALLOW_COPY_AND_ASSIGN(RegisterAppInterfaceRequest);
 };

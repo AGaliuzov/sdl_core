@@ -54,9 +54,9 @@ class EventEngineTest : public testing::Test {
  public:
 
   EventEngineTest()
-      : event_id(Event::EventID::BasicCommunication_ActivateApp),
-        event_id2(Event::EventID::BasicCommunication_OnAppActivated),
-        event_id3(Event::EventID::VR_IsReady) {}
+      : event_id(Event::EventID::BasicCommunication_ActivateApp)
+      , event_id2(Event::EventID::BasicCommunication_OnAppActivated)
+      , event_id3(Event::EventID::VR_IsReady) {}
 
  protected:
   EventDispatcherImpl* event_dispatcher_instance_;
@@ -148,8 +148,8 @@ class EventEngineTest : public testing::Test {
                        const uint32_t calls_number,
                        const smart_objects::SmartObject& so) {
     // Arrange
-    event_dispatcher_instance_->add_observer(event_id, correlation_id,
-                                             &event_observer_mock_);
+    event_dispatcher_instance_->add_observer(
+        event_id, correlation_id, &event_observer_mock_);
     event_->set_smart_object(so);
     EXPECT_CALL(event_observer_mock_, on_event(_)).Times(calls_number);
     event_dispatcher_instance_->raise_event(*event_);
@@ -173,8 +173,8 @@ TEST_F(EventEngineTest, BasicEventDispatcherInstanceTest_ExpectObserversEmpty) {
 TEST_F(EventEngineTest, EventDispatcher_AddObserverTest_ExpectObserverAdded) {
   // Arrange
   // Act - add one observer
-  event_dispatcher_instance_->add_observer(event_id, correlation_id,
-                                           &event_observer_mock_);
+  event_dispatcher_instance_->add_observer(
+      event_id, correlation_id, &event_observer_mock_);
   // Check one observer added
   CheckObserverNumberInObserversList(&event_observer_mock_, event_id, 1u);
 }
@@ -184,11 +184,11 @@ TEST_F(EventEngineTest,
 
   // Arrange
   // Add observer for event 1
-  event_dispatcher_instance_->add_observer(event_id, correlation_id,
-                                           &event_observer_mock_);
+  event_dispatcher_instance_->add_observer(
+      event_id, correlation_id, &event_observer_mock_);
   // Add observer for event 2
-  event_dispatcher_instance_->add_observer(event_id2, correlation_id,
-                                           &event_observer_mock_);
+  event_dispatcher_instance_->add_observer(
+      event_id2, correlation_id, &event_observer_mock_);
 
   // Check observers added
   CheckObserverNumberInObserversList(&event_observer_mock_, event_id, 1u);
@@ -205,11 +205,11 @@ TEST_F(EventEngineTest,
        EventDispatcher_RemoveObserverForEvent_ExpectObserverRemoved) {
   // Arrange
   // Add observer for event 1
-  event_dispatcher_instance_->add_observer(event_id, correlation_id,
-                                           &event_observer_mock_);
+  event_dispatcher_instance_->add_observer(
+      event_id, correlation_id, &event_observer_mock_);
   // Add observer for event 2
-  event_dispatcher_instance_->add_observer(event_id2, correlation_id,
-                                           &event_observer_mock_);
+  event_dispatcher_instance_->add_observer(
+      event_id2, correlation_id, &event_observer_mock_);
 
   CheckObserverNumberInObserversList(&event_observer_mock_, event_id, 1u);
   CheckObserverNumberInObserversList(&event_observer_mock_, event_id2, 1u);
@@ -251,7 +251,8 @@ TEST_F(
 TEST_F(EventEngineTest, Event_set_smart_object_ExpectObjectSet) {
   // Act
   event_->set_smart_object(smart_object_with_type_notification);
-  const int32_t obj_type = static_cast<int32_t>(hmi_apis::messageType::notification);
+  const int32_t obj_type =
+      static_cast<int32_t>(hmi_apis::messageType::notification);
   const int32_t function_id =
       static_cast<int32_t>(hmi_apis::FunctionID::eType::VR_IsReady);
   // Checks

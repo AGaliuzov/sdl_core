@@ -48,36 +48,23 @@ using ::transport_manager::transport_adapter::TransportAdapter;
 using ::transport_manager::TransportAdapterEvent;
 using ::transport_manager::TransportManagerListener;
 
-class MockTransportManager: public ::transport_manager::TransportManager {
+class MockTransportManager : public ::transport_manager::TransportManager {
  public:
-  MOCK_METHOD0(Init,
-               int());
-  MOCK_METHOD0(Reinit,
-                int());
-  MOCK_METHOD0(SearchDevices,
-               int());
-  MOCK_METHOD1(ConnectDevice,
-               int(const DeviceHandle &));
-  MOCK_METHOD1(DisconnectDevice,
-               int(const DeviceHandle &));
-  MOCK_METHOD1(Disconnect,
-               int(const ConnectionUID &));
-  MOCK_METHOD1(DisconnectForce,
-               int(const ConnectionUID &));
+  MOCK_METHOD0(Init, int());
+  MOCK_METHOD0(Reinit, int());
+  MOCK_METHOD0(SearchDevices, int());
+  MOCK_METHOD1(ConnectDevice, int(const DeviceHandle&));
+  MOCK_METHOD1(DisconnectDevice, int(const DeviceHandle&));
+  MOCK_METHOD1(Disconnect, int(const ConnectionUID));
+  MOCK_METHOD1(DisconnectForce, int(const ConnectionUID));
   MOCK_METHOD1(SendMessageToDevice,
                int(const ::protocol_handler::RawMessagePtr));
-  MOCK_METHOD1(ReceiveEventFromDevice,
-               int(const TransportAdapterEvent&));
-  MOCK_METHOD1(AddTransportAdapter,
-               int(TransportAdapter * adapter));
-  MOCK_METHOD1(AddEventListener,
-               int(TransportManagerListener * listener));
-  MOCK_METHOD0(Stop,
-               int());
-  MOCK_METHOD1(RemoveDevice,
-               int(const DeviceHandle &));
-  MOCK_CONST_METHOD1(Visibility,
-                     int(const bool &));
+  MOCK_METHOD1(ReceiveEventFromDevice, int(const TransportAdapterEvent&));
+  MOCK_METHOD1(AddTransportAdapter, int(TransportAdapter* adapter));
+  MOCK_METHOD1(AddEventListener, int(TransportManagerListener* listener));
+  MOCK_METHOD0(Stop, int());
+  MOCK_METHOD1(RemoveDevice, int(const DeviceHandle&));
+  MOCK_CONST_METHOD1(Visibility, int(const bool&));
 };
 }  // namespace transport_manager_test
 }  // namespace components

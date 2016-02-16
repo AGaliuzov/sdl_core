@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,35 +29,37 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#ifndef SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_MOCK_PROTOCOL_HANDLER_SETTINGS_H_
+#define SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_MOCK_PROTOCOL_HANDLER_SETTINGS_H_
 
-#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_HMI_CAPABILITIES_FOR_TESTING_H_
-#define SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_HMI_CAPABILITIES_FOR_TESTING_H_
-
-#include "application_manager/hmi_capabilities.h"
+#include <gmock/gmock.h>
+#include "protocol_handler/protocol_handler.h"
+#include "protocol_handler/protocol_handler_settings.h"
 
 namespace test {
 namespace components {
-namespace application_manager_test {
+namespace protocol_handler_test {
 
-class HMICapabilitiesForTesting
-    : public ::application_manager::HMICapabilities {
+class MockProtocolHandlerSettings
+    : public ::protocol_handler::ProtocolHandlerSettings {
  public:
-  HMICapabilitiesForTesting(
-      ::application_manager::ApplicationManagerImpl* const app_mngr)
-      : HMICapabilities(app_mngr) {}
-  bool LoadCapabilitiesFromFile() {
-    return load_capabilities_from_file();
-  }
-
-  void ConvertJsonLanguagesToObj(
-      Json::Value& json_languages,
-      ::NsSmartDeviceLink::NsSmartObjects::SmartObject& languages) {
-    convert_json_languages_to_obj(json_languages, languages);
-  }
+  MOCK_CONST_METHOD0(malformed_message_filtering, bool());
+  MOCK_CONST_METHOD0(message_frequency_time, size_t());
+  MOCK_CONST_METHOD0(message_frequency_count, size_t());
+  MOCK_CONST_METHOD0(malformed_frequency_time, size_t());
+  MOCK_CONST_METHOD0(malformed_frequency_count, size_t());
+  MOCK_CONST_METHOD0(maximum_payload_size, size_t());
+  MOCK_CONST_METHOD0(heart_beat_timeout, uint32_t());
+  MOCK_CONST_METHOD0(max_supported_protocol_version, uint16_t());
+#ifdef ENABLE_SECURITY
+  MOCK_CONST_METHOD0(force_protected_service, const std::vector<int>&());
+#endif  // ENABLE_SECURITY
+  MOCK_CONST_METHOD0(force_unprotected_service, const std::vector<int>&());
+  MOCK_CONST_METHOD0(multiframe_waiting_timeout, uint32_t());
 };
 
-}  // namespace application_manager_test
+}  // namespace protocol_handler_test
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_HMI_CAPABILITIES_FOR_TESTING_H_
+#endif  // SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_MOCK_PROTOCOL_HANDLER_SETTINGS_H_

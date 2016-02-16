@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,34 +30,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_HMI_CAPABILITIES_FOR_TESTING_H_
-#define SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_HMI_CAPABILITIES_FOR_TESTING_H_
+#ifndef SRC_COMPONENTS_INCLUDE_CONNECTION_HANDLER_CONNECTION_HANDLER_SETTINGS_H_
+#define SRC_COMPONENTS_INCLUDE_CONNECTION_HANDLER_CONNECTION_HANDLER_SETTINGS_H_
+#include <stdint.h>
+#include <vector>
 
-#include "application_manager/hmi_capabilities.h"
+namespace connection_handler {
 
-namespace test {
-namespace components {
-namespace application_manager_test {
-
-class HMICapabilitiesForTesting
-    : public ::application_manager::HMICapabilities {
+/**
+ * \class ConnectionHandlerSettings
+ * \brief Interface for connection handler component settings.
+ */
+class ConnectionHandlerSettings {
  public:
-  HMICapabilitiesForTesting(
-      ::application_manager::ApplicationManagerImpl* const app_mngr)
-      : HMICapabilities(app_mngr) {}
-  bool LoadCapabilitiesFromFile() {
-    return load_capabilities_from_file();
-  }
+  virtual ~ConnectionHandlerSettings() {}
 
-  void ConvertJsonLanguagesToObj(
-      Json::Value& json_languages,
-      ::NsSmartDeviceLink::NsSmartObjects::SmartObject& languages) {
-    convert_json_languages_to_obj(json_languages, languages);
-  }
+  virtual uint32_t heart_beat_timeout() const = 0;
+#ifdef ENABLE_SECURITY
+  virtual const std::vector<int>& force_protected_service() const = 0;
+  virtual const std::vector<int>& force_unprotected_service() const = 0;
+#endif  // ENABLE_SECURITY
 };
 
-}  // namespace application_manager_test
-}  // namespace components
-}  // namespace test
-
-#endif  // SRC_COMPONENTS_APPLICATION_MANAGER_TEST_INCLUDE_APPLICATION_MANAGER_HMI_CAPABILITIES_FOR_TESTING_H_
+}  // namespace connection_handler
+#endif  // SRC_COMPONENTS_INCLUDE_CONNECTION_HANDLER_CONNECTION_HANDLER_SETTINGS_H_

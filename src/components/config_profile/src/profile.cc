@@ -50,17 +50,20 @@
 #endif  // ENABLE_SECURITY
 
 namespace {
-#define LOG_UPDATED_VALUE(value, key, section) {\
-  LOG4CXX_INFO(logger_, "Setting value '" << value\
-  << "' for key '" << key\
-  << "' in section '" << section << "'.");\
-}
+#define LOG_UPDATED_VALUE(value, key, section)                              \
+  {                                                                         \
+    LOG4CXX_INFO(logger_,                                                   \
+                 "Setting value '" << value << "' for key '" << key         \
+                                   << "' in section '" << section << "'."); \
+  }
 
-#define LOG_UPDATED_BOOL_VALUE(value, key, section) {\
-  LOG4CXX_INFO(logger_, "Setting value '" << std::boolalpha << value\
-  << "' for key '" << key\
-  << "' in section '" << section << "'.");\
-}
+#define LOG_UPDATED_BOOL_VALUE(value, key, section)                            \
+  {                                                                            \
+    LOG4CXX_INFO(logger_,                                                      \
+                 "Setting value '" << std::boolalpha << value << "' for key '" \
+                                   << key << "' in section '" << section       \
+                                   << "'.");                                   \
+  }
 
 const char* kDefaultConfigFileName = "smartDeviceLink.ini";
 
@@ -96,7 +99,7 @@ const char* kAppConfigFolderKey = "AppConfigFolder";
 const char* kLaunchHMIKey = "LaunchHMI";
 #ifdef WEB_HMI
 const char* kLinkToWebHMI = "LinkToWebHMI";
-#endif // WEB_HMI
+#endif  // WEB_HMI
 const char* kStartStreamRetry = "StartStreamRetry";
 const char* kEnableRedecodingKey = "EnableRedecoding";
 const char* kVideoStreamConsumerKey = "VideoStreamConsumer";
@@ -108,6 +111,8 @@ const char* kAudioStreamFileKey = "AudioStreamFile";
 
 #ifdef ENABLE_SECURITY
 const char* kSecurityProtocolKey = "Protocol";
+const char* kForceProtectedService = "ForceProtectedService";
+const char* kForceUnprotectedService = "ForceUnprotectedService";
 const char* kSecurityCertificatePathKey = "CertificatePath";
 const char* kSecurityCACertificatePathKey = "CACertificatePath";
 const char* kSecuritySSLModeKey = "SSLMode";
@@ -194,16 +199,18 @@ const char* kFrequencyTime = "FrequencyTime";
 const char* kMalformedMessageFiltering = "MalformedMessageFiltering";
 const char* kMalformedFrequencyCount = "MalformedFrequencyCount";
 const char* kMalformedFrequencyTime = "MalformedFrequencyTime";
-const char* kExpectedConsecutiveFramesTimeout = "ExpectedConsecutiveFramesTimeout";
+const char* kExpectedConsecutiveFramesTimeout =
+    "ExpectedConsecutiveFramesTimeout";
 const char* kHashStringSizeKey = "HashStringSize";
 const char* kUseDBForResumptionKey = "UseDBForResumption";
 const char* kAttemptsToOpenResumptionDBKey = "AttemptsToOpenResumptionDB";
-const char* kOpenAttemptTimeoutMsResumptionDBKey = "OpenAttemptTimeoutMsResumptionDB";
+const char* kOpenAttemptTimeoutMsResumptionDBKey =
+    "OpenAttemptTimeoutMsResumptionDB";
 
 const char* kDefaultSDLVersion = "";
 #ifdef WEB_HMI
 const char* kDefaultLinkToWebHMI = "HMI/index.html";
-#endif // WEB_HMI
+#endif  // WEB_HMI
 const char* kDefaultPoliciesSnapshotFileName = "sdl_snapshot.json";
 const char* kDefaultHmiCapabilitiesFileName = "hmi_capabilities.json";
 const char* kDefaultPreloadedPTFileName = "sdl_preloaded_pt.json";
@@ -218,7 +225,7 @@ const char* kDefaultLog4cxxConfig = "/fs/mp/etc/AppLink/log4cxx.properties";
 const char* kDefaultRemoteLoggingFlagFile = "log/capturelog.evt";
 const char* kDefaultRemoteLoggingFlagFilePath = "/fs/usb0/";
 const char* kDefaultTargetLogFileHomeDir = "/fs/rwdata/logs/";
-const char* kDefaultTargetLogFileNamePattern ="smartdevicelink.log";
+const char* kDefaultTargetLogFileNamePattern = "smartdevicelink.log";
 const char* kDefaultTargetBootCountFile = "/fs/rwdata/.flags/boot_count";
 const char* kDefaultTargetTmpDir = "/fs/tmpfs";
 const char* kDefaultLogFileMaxSize = "1024K";
@@ -241,7 +248,7 @@ const char* kDefaultSecurityProtocol = "TLSv1.2";
 const char* kDefaultSSLMode = "CLIENT";
 const bool kDefaultVerifyPeer = false;
 const uint32_t kDefaultBeforeUpdateHours = 24;
-#endif // ENABLE_SECURITY
+#endif  // ENABLE_SECURITY
 
 const uint32_t kDefaultHubProtocolIndex = 0;
 const uint32_t kDefaultHeartBeatTimeout = 5000;
@@ -271,9 +278,9 @@ const uint32_t kDefaultAppHmiLevelNoneRequestsTimeScale = 10;
 const uint32_t kDefaultPendingRequestsAmount = 0;
 const uint32_t kDefaultTransportManagerDisconnectTimeout = 0;
 const uint32_t kDefaultApplicationListUpdateTimeout = 1;
-const std::pair<uint32_t, uint32_t> kReadDIDFrequency = { 5, 1 };
-const std::pair<uint32_t, uint32_t> kGetVehicleDataFrequency = { 5, 1 };
-const std::pair<uint32_t, uint32_t> kStartStreamRetryAmount = { 3, 1 };
+const std::pair<uint32_t, uint32_t> kReadDIDFrequency = {5, 1};
+const std::pair<uint32_t, uint32_t> kGetVehicleDataFrequency = {5, 1};
+const std::pair<uint32_t, uint32_t> kStartStreamRetryAmount = {3, 1};
 const uint32_t kDefaultMaxThreadPoolSize = 2;
 const int kDefaultIAP2HubConnectAttempts = 0;
 const int kDefaultIAPHubConnectionWaitTimeout = 10000;
@@ -298,94 +305,99 @@ namespace profile {
 CREATE_LOGGERPTR_GLOBAL(logger_, "Profile")
 
 Profile::Profile()
-    : sdl_version_(kDefaultSDLVersion),
-      launch_hmi_(true),
+    : sdl_version_(kDefaultSDLVersion)
+    , launch_hmi_(true)
+    ,
 #ifdef WEB_HMI
-      link_to_web_hmi_(kDefaultLinkToWebHMI),
-#endif // WEB_HMI
-      app_config_folder_(),
-      app_storage_folder_(),
-      app_resourse_folder_(),
-      config_file_name_(kDefaultConfigFileName),
-      server_address_(kDefaultServerAddress),
-      server_port_(kDefaultServerPort),
-      video_streaming_port_(kDefaultVideoStreamingPort),
-      audio_streaming_port_(kDefaultAudioStreamingPort),
-      time_testing_port_(kDefaultTimeTestingPort),
-      hmi_capabilities_file_name_(kDefaultHmiCapabilitiesFileName),
-      help_prompt_(),
-      time_out_promt_(),
-      min_tread_stack_size_(threads::Thread::kMinStackSize),
-      is_mixing_audio_supported_(false),
-      is_redecoding_enabled_(false),
-      max_cmd_id_(kDefaultMaxCmdId),
-      default_timeout_(kDefaultTimeout),
-      app_resuming_timeout_(kDefaultAppResumingTimeout),
-      app_resumption_save_persistent_data_timeout_(kDefaultAppSavePersistentDataTimeout),
-      app_dir_quota_(kDefaultDirQuota),
-      app_hmi_level_none_time_scale_max_requests_(
-          kDefaultAppHmiLevelNoneTimeScaleMaxRequests),
-      app_hmi_level_none_requests_time_scale_(
-          kDefaultAppHmiLevelNoneRequestsTimeScale),
-      app_time_scale_max_requests_(kDefaultAppTimeScaleMaxRequests),
-      app_requests_time_scale_(kDefaultAppRequestsTimeScale),
-      pending_requests_amount_(kDefaultPendingRequestsAmount),
-      put_file_in_none_(kDefaultPutFileRequestInNone),
-      delete_file_in_none_(kDefaultDeleteFileRequestInNone),
-      list_files_in_none_(kDefaultListFilesRequestInNone),
-      app_info_storage_(kDefaultAppInfoFileName),
-      heart_beat_timeout_(kDefaultHeartBeatTimeout),
-      max_supported_protocol_version_(kDefaultMaxSupportedProtocolVersion),
-      policy_snapshot_file_name_(kDefaultPoliciesSnapshotFileName),
-      enable_policy_(false),
-      transport_manager_disconnect_timeout_(
-          kDefaultTransportManagerDisconnectTimeout),
-      use_last_state_(false),
-      supported_diag_modes_(),
-      system_files_path_(kDefaultSystemFilesPath),
-      transport_manager_tcp_adapter_port_(kDefautTransportManagerTCPPort),
-      tts_delimiter_(kDefaultTtsDelimiter),
+    link_to_web_hmi_(kDefaultLinkToWebHMI)
+    ,
+#endif  // WEB_HMI
+    app_config_folder_()
+    , app_storage_folder_()
+    , app_resourse_folder_()
+    , config_file_name_(kDefaultConfigFileName)
+    , server_address_(kDefaultServerAddress)
+    , server_port_(kDefaultServerPort)
+    , video_streaming_port_(kDefaultVideoStreamingPort)
+    , audio_streaming_port_(kDefaultAudioStreamingPort)
+    , time_testing_port_(kDefaultTimeTestingPort)
+    , hmi_capabilities_file_name_(kDefaultHmiCapabilitiesFileName)
+    , help_prompt_()
+    , time_out_promt_()
+    , min_tread_stack_size_(threads::Thread::kMinStackSize)
+    , is_mixing_audio_supported_(false)
+    , is_redecoding_enabled_(false)
+    , max_cmd_id_(kDefaultMaxCmdId)
+    , default_timeout_(kDefaultTimeout)
+    , app_resuming_timeout_(kDefaultAppResumingTimeout)
+    , app_resumption_save_persistent_data_timeout_(
+          kDefaultAppSavePersistentDataTimeout)
+    , app_dir_quota_(kDefaultDirQuota)
+    , app_hmi_level_none_time_scale_max_requests_(
+          kDefaultAppHmiLevelNoneTimeScaleMaxRequests)
+    , app_hmi_level_none_requests_time_scale_(
+          kDefaultAppHmiLevelNoneRequestsTimeScale)
+    , app_time_scale_max_requests_(kDefaultAppTimeScaleMaxRequests)
+    , app_requests_time_scale_(kDefaultAppRequestsTimeScale)
+    , pending_requests_amount_(kDefaultPendingRequestsAmount)
+    , put_file_in_none_(kDefaultPutFileRequestInNone)
+    , delete_file_in_none_(kDefaultDeleteFileRequestInNone)
+    , list_files_in_none_(kDefaultListFilesRequestInNone)
+    , app_info_storage_(kDefaultAppInfoFileName)
+    , heart_beat_timeout_(kDefaultHeartBeatTimeout)
+    , max_supported_protocol_version_(kDefaultMaxSupportedProtocolVersion)
+    , policy_snapshot_file_name_(kDefaultPoliciesSnapshotFileName)
+    , enable_policy_(false)
+    , transport_manager_disconnect_timeout_(
+          kDefaultTransportManagerDisconnectTimeout)
+    , use_last_state_(false)
+    , supported_diag_modes_()
+    , system_files_path_(kDefaultSystemFilesPath)
+    , transport_manager_tcp_adapter_port_(kDefautTransportManagerTCPPort)
+    , tts_delimiter_(kDefaultTtsDelimiter)
+    ,
 #ifdef CUSTOMER_PASA
-      hmi_heart_beat_timeout_(kDefaultHMIHeartBeatTimeout),
-      audio_mq_path_(kDefaultMQName),
-      log4cxx_config_file_(kDefaultLog4cxxConfig),
-      remote_logging_flag_file_(kDefaultRemoteLoggingFlagFile),
-      remote_logging_flag_file_path_(kDefaultRemoteLoggingFlagFilePath),
-      target_log_file_home_dir_(kDefaultTargetLogFileHomeDir),
-      target_log_file_name_pattern_(kDefaultTargetLogFileNamePattern),
-      target_boot_count_file_(kDefaultTargetBootCountFile),
-      target_tmp_dir_(kDefaultTargetTmpDir),
+    hmi_heart_beat_timeout_(kDefaultHMIHeartBeatTimeout)
+    , audio_mq_path_(kDefaultMQName)
+    , log4cxx_config_file_(kDefaultLog4cxxConfig)
+    , remote_logging_flag_file_(kDefaultRemoteLoggingFlagFile)
+    , remote_logging_flag_file_path_(kDefaultRemoteLoggingFlagFilePath)
+    , target_log_file_home_dir_(kDefaultTargetLogFileHomeDir)
+    , target_log_file_name_pattern_(kDefaultTargetLogFileNamePattern)
+    , target_boot_count_file_(kDefaultTargetBootCountFile)
+    , target_tmp_dir_(kDefaultTargetTmpDir)
+    ,
 #endif
-    audio_data_stopped_timeout_(kDefaultAudioDataStoppedTimeout),
-    video_data_stopped_timeout_(kDefaultVideoDataStoppedTimeout),
-    event_mq_name_(kDefaultEventMQ),
-    ack_mq_name_(kDefaultAckMQ),
-    recording_file_source_(kDefaultRecordingFileSourceName),
-    recording_file_name_(kDefaultRecordingFileName),
-    application_list_update_timeout_(kDefaultApplicationListUpdateTimeout),
-    iap_legacy_protocol_mask_(kDefaultLegacyProtocolMask),
-    iap_hub_protocol_mask_(kDefaultHubProtocolMask),
-    iap_pool_protocol_mask_(kDefaultPoolProtocolMask),
-    iap_system_config_(kDefaultIAPSystemConfig),
-    iap2_system_config_(kDefaultIAP2SystemConfig),
-    iap2_hub_connect_attempts_(kDefaultIAP2HubConnectAttempts),
-    iap_hub_connection_wait_timeout_(kDefaultIAPHubConnectionWaitTimeout),
-    iap_arm_event_timeout_(kDefaultIAPArmEventTimeout),
-    tts_global_properties_timeout_(kDefaultTTSGlobalPropertiesTimeout),
-    attempts_to_open_policy_db_(kDefaultAttemptsToOpenPolicyDB),
-    open_attempt_timeout_ms_(kDefaultOpenAttemptTimeoutMs),
-    hash_string_size_(kDefaultHashStringSize),
-    logs_enabled_(false),
-    use_db_for_resumption_(false),
-    attempts_to_open_resumption_db_(kDefaultAttemptsToOpenResumptionDB),
-    open_attempt_timeout_ms_resumption_db_(kDefaultOpenAttemptTimeoutMsResumptionDB) {
+    audio_data_stopped_timeout_(kDefaultAudioDataStoppedTimeout)
+    , video_data_stopped_timeout_(kDefaultVideoDataStoppedTimeout)
+    , event_mq_name_(kDefaultEventMQ)
+    , ack_mq_name_(kDefaultAckMQ)
+    , recording_file_source_(kDefaultRecordingFileSourceName)
+    , recording_file_name_(kDefaultRecordingFileName)
+    , application_list_update_timeout_(kDefaultApplicationListUpdateTimeout)
+    , iap_legacy_protocol_mask_(kDefaultLegacyProtocolMask)
+    , iap_hub_protocol_mask_(kDefaultHubProtocolMask)
+    , iap_pool_protocol_mask_(kDefaultPoolProtocolMask)
+    , iap_system_config_(kDefaultIAPSystemConfig)
+    , iap2_system_config_(kDefaultIAP2SystemConfig)
+    , iap2_hub_connect_attempts_(kDefaultIAP2HubConnectAttempts)
+    , iap_hub_connection_wait_timeout_(kDefaultIAPHubConnectionWaitTimeout)
+    , iap_arm_event_timeout_(kDefaultIAPArmEventTimeout)
+    , tts_global_properties_timeout_(kDefaultTTSGlobalPropertiesTimeout)
+    , attempts_to_open_policy_db_(kDefaultAttemptsToOpenPolicyDB)
+    , open_attempt_timeout_ms_(kDefaultOpenAttemptTimeoutMs)
+    , hash_string_size_(kDefaultHashStringSize)
+    , logs_enabled_(false)
+    , use_db_for_resumption_(false)
+    , attempts_to_open_resumption_db_(kDefaultAttemptsToOpenResumptionDB)
+    , open_attempt_timeout_ms_resumption_db_(
+          kDefaultOpenAttemptTimeoutMsResumptionDB) {
   // SDL version
-  ReadStringValue(&sdl_version_, kDefaultSDLVersion,
-                  kMainSection, kSDLVersionKey);
+  ReadStringValue(
+      &sdl_version_, kDefaultSDLVersion, kMainSection, kSDLVersionKey);
 }
 
-Profile::~Profile() {
-}
+Profile::~Profile() {}
 
 void Profile::config_file_name(const std::string& fileName) {
   if (false == fileName.empty()) {
@@ -410,7 +422,7 @@ bool Profile::launch_hmi() const {
 std::string Profile::link_to_web_hmi() const {
   return link_to_web_hmi_;
 }
-#endif // WEB_HMI
+#endif  // WEB_HMI
 
 const std::string& Profile::app_config_folder() const {
   return app_config_folder_;
@@ -538,7 +550,7 @@ const uint32_t& Profile::hmi_heart_beat_timeout() {
   return hmi_heart_beat_timeout_;
 }
 
-const std::string &profile::Profile::audio_mq_path() const {
+const std::string& profile::Profile::audio_mq_path() const {
   LOG4CXX_INFO(logger_, "Default MQ name " << audio_mq_path_);
   return audio_mq_path_;
 }
@@ -612,14 +624,6 @@ const std::string& Profile::app_info_storage() const {
   return app_info_storage_;
 }
 
-uint32_t Profile::heart_beat_timeout() const {
-  return heart_beat_timeout_;
-}
-
-uint16_t Profile::max_supported_protocol_version() const {
-  return max_supported_protocol_version_;
-}
-
 const std::string& Profile::preloaded_pt_file() const {
   return preloaded_pt_file_;
 }
@@ -660,7 +664,7 @@ const std::string& Profile::recording_file_source() const {
   return recording_file_source_;
 }
 
-const std::string&Profile::recording_file_name() const {
+const std::string& Profile::recording_file_name() const {
   return recording_file_name_;
 }
 
@@ -680,7 +684,8 @@ const std::pair<uint32_t, int32_t>& Profile::read_did_frequency() const {
   return read_did_frequency_;
 }
 
-const std::pair<uint32_t, int32_t>& Profile::get_vehicle_data_frequency() const {
+const std::pair<uint32_t, int32_t>& Profile::get_vehicle_data_frequency()
+    const {
   return get_vehicle_data_frequency_;
 }
 
@@ -734,49 +739,72 @@ int Profile::iap_arm_event_timeout() const {
 
 size_t Profile::maximum_payload_size() const {
   size_t maximum_payload_size = 0;
-  ReadUIntValue(&maximum_payload_size, kDefaultMaximumPayloadSize,
-                kProtocolHandlerSection, kMaximumPayloadSizeKey);
+  ReadUIntValue(&maximum_payload_size,
+                kDefaultMaximumPayloadSize,
+                kProtocolHandlerSection,
+                kMaximumPayloadSizeKey);
   return maximum_payload_size;
 }
 
 size_t Profile::message_frequency_count() const {
   size_t message_frequency_count = 0;
-  ReadUIntValue(&message_frequency_count, kDefaultFrequencyCount,
-                kProtocolHandlerSection, kFrequencyCount);
+  ReadUIntValue(&message_frequency_count,
+                kDefaultFrequencyCount,
+                kProtocolHandlerSection,
+                kFrequencyCount);
   return message_frequency_count;
 }
 
 size_t Profile::message_frequency_time() const {
   size_t message_frequency_time = 0;
-  ReadUIntValue(&message_frequency_time, kDefaultFrequencyTime,
-                kProtocolHandlerSection, kFrequencyTime);
+  ReadUIntValue(&message_frequency_time,
+                kDefaultFrequencyTime,
+                kProtocolHandlerSection,
+                kFrequencyTime);
   return message_frequency_time;
 }
 
 bool Profile::malformed_message_filtering() const {
   bool malformed_message_filtering = 0;
-  ReadBoolValue(&malformed_message_filtering, kDefaulMalformedMessageFiltering,
-                kProtocolHandlerSection, kMalformedMessageFiltering);
+  ReadBoolValue(&malformed_message_filtering,
+                kDefaulMalformedMessageFiltering,
+                kProtocolHandlerSection,
+                kMalformedMessageFiltering);
   return malformed_message_filtering;
 }
 
 size_t Profile::malformed_frequency_count() const {
   size_t malformed_frequency_count = 0;
-  ReadUIntValue(&malformed_frequency_count, kDefaultMalformedFrequencyCount,
-                kProtocolHandlerSection, kMalformedFrequencyCount);
+  ReadUIntValue(&malformed_frequency_count,
+                kDefaultMalformedFrequencyCount,
+                kProtocolHandlerSection,
+                kMalformedFrequencyCount);
   return malformed_frequency_count;
 }
 
 size_t Profile::malformed_frequency_time() const {
   size_t malformed_frequency_time = 0;
-  ReadUIntValue(&malformed_frequency_time, kDefaultMalformedFrequencyTime,
-                kProtocolHandlerSection, kMalformedFrequencyTime);
+  ReadUIntValue(&malformed_frequency_time,
+                kDefaultMalformedFrequencyTime,
+                kProtocolHandlerSection,
+                kMalformedFrequencyTime);
   return malformed_frequency_time;
 }
+
+uint32_t Profile::heart_beat_timeout() const {
+  return heart_beat_timeout_;
+}
+
+uint16_t Profile::max_supported_protocol_version() const {
+  return max_supported_protocol_version_;
+}
+
 uint32_t Profile::multiframe_waiting_timeout() const {
   uint32_t multiframe_waiting_timeout = 0;
-  ReadUIntValue(&multiframe_waiting_timeout, kDefaultExpectedConsecutiveFramesTimeout,
-                kProtocolHandlerSection, kExpectedConsecutiveFramesTimeout);
+  ReadUIntValue(&multiframe_waiting_timeout,
+                kDefaultExpectedConsecutiveFramesTimeout,
+                kProtocolHandlerSection,
+                kExpectedConsecutiveFramesTimeout);
   return multiframe_waiting_timeout;
 }
 
@@ -842,7 +870,15 @@ const std::string& Profile::security_manager_protocol_name() const {
   return security_manager_protocol_name_;
 }
 
-#endif // ENABLE_SECURITY
+const std::vector<int>& Profile::force_protected_service() const {
+  return force_protected_service_;
+}
+
+const std::vector<int>& Profile::force_unprotected_service() const {
+  return force_unprotected_service_;
+}
+
+#endif  // ENABLE_SECURITY
 bool Profile::use_db_for_resumption() const {
   return use_db_for_resumption_;
 }
@@ -859,8 +895,8 @@ void Profile::UpdateValues() {
   LOG4CXX_AUTO_TRACE(logger_);
 
   // SDL version
-  ReadStringValue(&sdl_version_, kDefaultSDLVersion,
-                  kMainSection, kSDLVersionKey);
+  ReadStringValue(
+      &sdl_version_, kDefaultSDLVersion, kMainSection, kSDLVersionKey);
 
   LOG_UPDATED_VALUE(sdl_version_, kSDLVersionKey, kMainSection);
 
@@ -870,32 +906,46 @@ void Profile::UpdateValues() {
 
 #ifdef WEB_HMI
   // Link to web HMI parameter
-  ReadStringValue(&link_to_web_hmi_, kDefaultLinkToWebHMI,
-                  kHmiSection, kLinkToWebHMI);
+  ReadStringValue(
+      &link_to_web_hmi_, kDefaultLinkToWebHMI, kHmiSection, kLinkToWebHMI);
   LOG_UPDATED_BOOL_VALUE(link_to_web_hmi_, kLinkToWebHMI, kHmiSection);
-#endif // WEB_HMI
+#endif  // WEB_HMI
 
 #ifdef ENABLE_SECURITY
 
-  ReadStringValue(&security_manager_protocol_name_, kDefaultSecurityProtocol, kSecuritySection,
-      kSecurityProtocolKey);
+  ReadStringValue(&security_manager_protocol_name_,
+                  kDefaultSecurityProtocol,
+                  kSecuritySection,
+                  kSecurityProtocolKey);
 
-  ReadStringValue(&cert_path_,   "", kSecuritySection, kSecurityCertificatePathKey);
-  ReadStringValue(&ca_cert_path_, "", kSecuritySection, kSecurityCACertificatePathKey);
+  force_protected_service_ =
+      ReadIntContainer(kSecuritySection, kForceProtectedService, NULL);
 
-  ReadStringValue(&ssl_mode_, kDefaultSSLMode, kSecuritySection,
-      kSecuritySSLModeKey);
+  force_unprotected_service_ =
+      ReadIntContainer(kSecuritySection, kForceUnprotectedService, NULL);
+
+  ReadStringValue(
+      &cert_path_, "", kSecuritySection, kSecurityCertificatePathKey);
+  ReadStringValue(
+      &ca_cert_path_, "", kSecuritySection, kSecurityCACertificatePathKey);
+
+  ReadStringValue(
+      &ssl_mode_, kDefaultSSLMode, kSecuritySection, kSecuritySSLModeKey);
 
   ReadStringValue(&key_path_, "", kSecuritySection, kSecurityKeyPathKey);
 
-  ReadStringValue(&ciphers_list_, SSL_TXT_ALL, kSecuritySection,
-      kSecurityCipherListKey);
+  ReadStringValue(
+      &ciphers_list_, SSL_TXT_ALL, kSecuritySection, kSecurityCipherListKey);
 
-  ReadBoolValue(&verify_peer_, kDefaultVerifyPeer, kSecuritySection,
-      kSecurityVerifyPeerKey);
+  ReadBoolValue(&verify_peer_,
+                kDefaultVerifyPeer,
+                kSecuritySection,
+                kSecurityVerifyPeerKey);
 
-  ReadUIntValue(&update_before_hours_, kDefaultBeforeUpdateHours,
-                kSecuritySection, kBeforeUpdateHours);
+  ReadUIntValue(&update_before_hours_,
+                kDefaultBeforeUpdateHours,
+                kSecuritySection,
+                kBeforeUpdateHours);
 
 #endif  // ENABLE_SECURITY
 
@@ -906,27 +956,32 @@ void Profile::UpdateValues() {
 
   // Application config folder
   ReadStringValue(&app_config_folder_,
-                  file_system::CurrentWorkingDirectory().c_str(), kMainSection,
+                  file_system::CurrentWorkingDirectory().c_str(),
+                  kMainSection,
                   kAppConfigFolderKey);
 
   LOG_UPDATED_VALUE(app_config_folder_, kAppConfigFolderKey, kMainSection);
 
   // Application storage folder
   ReadStringValue(&app_storage_folder_,
-                  file_system::CurrentWorkingDirectory().c_str(), kMainSection,
+                  file_system::CurrentWorkingDirectory().c_str(),
+                  kMainSection,
                   kAppStorageFolderKey);
 
   LOG_UPDATED_VALUE(app_storage_folder_, kAppStorageFolderKey, kMainSection);
 
   // Application resourse folder
   ReadStringValue(&app_resourse_folder_,
-                  file_system::CurrentWorkingDirectory().c_str(), kMainSection,
+                  file_system::CurrentWorkingDirectory().c_str(),
+                  kMainSection,
                   kAppResourseFolderKey);
 
   LOG_UPDATED_VALUE(app_resourse_folder_, kAppResourseFolderKey, kMainSection);
 
   // Application info file name
-  ReadStringValue(&app_info_storage_, kDefaultAppInfoFileName, kAppInfoSection,
+  ReadStringValue(&app_info_storage_,
+                  kDefaultAppInfoFileName,
+                  kAppInfoSection,
                   kAppInfoStorageKey);
 
 #ifdef CUSTOMER_PASA
@@ -935,20 +990,22 @@ void Profile::UpdateValues() {
   LOG_UPDATED_VALUE(app_info_storage_, kAppInfoStorageKey, kAppInfoSection);
 
   // Server address
-  ReadStringValue(&server_address_, kDefaultServerAddress, kHmiSection,
-                  kServerAddressKey);
+  ReadStringValue(
+      &server_address_, kDefaultServerAddress, kHmiSection, kServerAddressKey);
 
   LOG_UPDATED_VALUE(server_address_, kServerAddressKey, kHmiSection);
 
   // HMI capabilities
-  ReadStringValue(&hmi_capabilities_file_name_, kDefaultHmiCapabilitiesFileName,
-                  kMainSection, kHmiCapabilitiesKey);
+  ReadStringValue(&hmi_capabilities_file_name_,
+                  kDefaultHmiCapabilitiesFileName,
+                  kMainSection,
+                  kHmiCapabilitiesKey);
 
-  hmi_capabilities_file_name_ = app_config_folder_ + "/"
-      + hmi_capabilities_file_name_;
+  hmi_capabilities_file_name_ =
+      app_config_folder_ + "/" + hmi_capabilities_file_name_;
 
-  LOG_UPDATED_VALUE(hmi_capabilities_file_name_, kHmiCapabilitiesKey,
-                    kMainSection);
+  LOG_UPDATED_VALUE(
+      hmi_capabilities_file_name_, kHmiCapabilitiesKey, kMainSection);
 
   // Server port
   ReadUIntValue(&server_port_, kDefaultServerPort, kHmiSection, kServerPortKey);
@@ -956,34 +1013,45 @@ void Profile::UpdateValues() {
   LOG_UPDATED_VALUE(server_port_, kServerPortKey, kHmiSection);
 
   // Video streaming port
-  ReadUIntValue(&video_streaming_port_, kDefaultVideoStreamingPort, kHmiSection,
+  ReadUIntValue(&video_streaming_port_,
+                kDefaultVideoStreamingPort,
+                kHmiSection,
                 kVideoStreamingPortKey);
 
   LOG_UPDATED_VALUE(video_streaming_port_, kVideoStreamingPortKey, kHmiSection);
   // Audio streaming port
-  ReadUIntValue(&audio_streaming_port_, kDefaultAudioStreamingPort, kHmiSection,
+  ReadUIntValue(&audio_streaming_port_,
+                kDefaultAudioStreamingPort,
+                kHmiSection,
                 kAudioStreamingPortKey);
 
   LOG_UPDATED_VALUE(audio_streaming_port_, kAudioStreamingPortKey, kHmiSection);
 
   // Streaming timeout
-  ReadUIntValue(&stop_streaming_timeout_, kDefaultStopStreamingTimeout,
-                kMediaManagerSection, kStopStreamingTimeout);
+  ReadUIntValue(&stop_streaming_timeout_,
+                kDefaultStopStreamingTimeout,
+                kMediaManagerSection,
+                kStopStreamingTimeout);
 
-  stop_streaming_timeout_ = std::max(kDefaultStopStreamingTimeout,
-                                     stop_streaming_timeout_);
+  stop_streaming_timeout_ =
+      std::max(kDefaultStopStreamingTimeout, stop_streaming_timeout_);
 
-  LOG_UPDATED_VALUE(stop_streaming_timeout_, kStopStreamingTimeout, kHmiSection);
+  LOG_UPDATED_VALUE(
+      stop_streaming_timeout_, kStopStreamingTimeout, kHmiSection);
 
   // Time testing port
-  ReadUIntValue(&time_testing_port_, kDefaultTimeTestingPort, kMainSection,
+  ReadUIntValue(&time_testing_port_,
+                kDefaultTimeTestingPort,
+                kMainSection,
                 kTimeTestingPortKey);
 
   LOG_UPDATED_VALUE(time_testing_port_, kTimeTestingPortKey, kMainSection);
 
   // Minimum thread stack size
-  ReadUIntValue(&min_tread_stack_size_, threads::Thread::kMinStackSize,
-                kMainSection, kThreadStackSizeKey);
+  ReadUIntValue(&min_tread_stack_size_,
+                threads::Thread::kMinStackSize,
+                kMainSection,
+                kThreadStackSizeKey);
 
   if (min_tread_stack_size_ < threads::Thread::kMinStackSize) {
     min_tread_stack_size_ = threads::Thread::kMinStackSize;
@@ -992,156 +1060,182 @@ void Profile::UpdateValues() {
   LOG_UPDATED_VALUE(min_tread_stack_size_, kThreadStackSizeKey, kMainSection);
 
   // Start stream retry frequency
-  ReadUintIntPairValue(&start_stream_retry_amount_, kStartStreamRetryAmount,
-                       kMediaManagerSection, kStartStreamRetry);
+  ReadUintIntPairValue(&start_stream_retry_amount_,
+                       kStartStreamRetryAmount,
+                       kMediaManagerSection,
+                       kStartStreamRetry);
 
-  int32_t temp_default_timeout = static_cast<int32_t>( video_data_stopped_timeout_ );
-   if( start_stream_retry_amount_.second < temp_default_timeout) {
-        start_stream_retry_amount_.second = temp_default_timeout;
-   }
+  int32_t temp_default_timeout =
+      static_cast<int32_t>(video_data_stopped_timeout_);
+  if (start_stream_retry_amount_.second < temp_default_timeout) {
+    start_stream_retry_amount_.second = temp_default_timeout;
+  }
 
   // Redecoding parameter
-  ReadBoolValue(&is_redecoding_enabled_, false, kMediaManagerSection,
+  ReadBoolValue(&is_redecoding_enabled_,
+                false,
+                kMediaManagerSection,
                 kEnableRedecodingKey);
 
-  LOG_UPDATED_BOOL_VALUE(is_redecoding_enabled_, kEnableRedecodingKey,
-                         kMediaManagerSection);
+  LOG_UPDATED_BOOL_VALUE(
+      is_redecoding_enabled_, kEnableRedecodingKey, kMediaManagerSection);
 
   // Video consumer type
-  ReadStringValue(&video_consumer_type_, "", kMediaManagerSection,
-                  kVideoStreamConsumerKey);
+  ReadStringValue(
+      &video_consumer_type_, "", kMediaManagerSection, kVideoStreamConsumerKey);
 
-  LOG_UPDATED_VALUE(video_consumer_type_, kVideoStreamConsumerKey,
-                    kMediaManagerSection);
+  LOG_UPDATED_VALUE(
+      video_consumer_type_, kVideoStreamConsumerKey, kMediaManagerSection);
 
   // Audio stream consumer
-  ReadStringValue(&audio_consumer_type_, "", kMediaManagerSection,
-                  kAudioStreamConsumerKey);
+  ReadStringValue(
+      &audio_consumer_type_, "", kMediaManagerSection, kAudioStreamConsumerKey);
 
-  LOG_UPDATED_VALUE(audio_consumer_type_, kAudioStreamConsumerKey,
-                    kMediaManagerSection);
+  LOG_UPDATED_VALUE(
+      audio_consumer_type_, kAudioStreamConsumerKey, kMediaManagerSection);
 
   // Named video pipe path
-  ReadStringValue(&named_video_pipe_path_, "", kMediaManagerSection,
+  ReadStringValue(&named_video_pipe_path_,
+                  "",
+                  kMediaManagerSection,
                   kNamedVideoPipePathKey);
 
-  named_video_pipe_path_ = IsContainDirectoryPath(named_video_pipe_path_)
-      ? named_video_pipe_path_
-      : app_storage_folder_ + "/" + named_video_pipe_path_;
+  named_video_pipe_path_ =
+      IsContainDirectoryPath(named_video_pipe_path_)
+          ? named_video_pipe_path_
+          : app_storage_folder_ + "/" + named_video_pipe_path_;
 
-  LOG_UPDATED_VALUE(named_video_pipe_path_, kNamedVideoPipePathKey,
-                    kMediaManagerSection);
+  LOG_UPDATED_VALUE(
+      named_video_pipe_path_, kNamedVideoPipePathKey, kMediaManagerSection);
 
   // Named audio pipe path
-  ReadStringValue(&named_audio_pipe_path_, "", kMediaManagerSection,
+  ReadStringValue(&named_audio_pipe_path_,
+                  "",
+                  kMediaManagerSection,
                   kNamedAudioPipePathKey);
 
-  named_audio_pipe_path_ = IsContainDirectoryPath(named_audio_pipe_path_)
-      ? named_audio_pipe_path_
-      : app_storage_folder_ + "/" + named_audio_pipe_path_;
+  named_audio_pipe_path_ =
+      IsContainDirectoryPath(named_audio_pipe_path_)
+          ? named_audio_pipe_path_
+          : app_storage_folder_ + "/" + named_audio_pipe_path_;
 
-  LOG_UPDATED_VALUE(named_audio_pipe_path_, kNamedAudioPipePathKey,
-                    kMediaManagerSection);
+  LOG_UPDATED_VALUE(
+      named_audio_pipe_path_, kNamedAudioPipePathKey, kMediaManagerSection);
 
   // Video stream file
-  ReadStringValue(&video_stream_file_, "", kMediaManagerSection,
-                  kVideoStreamFileKey);
+  ReadStringValue(
+      &video_stream_file_, "", kMediaManagerSection, kVideoStreamFileKey);
 
   video_stream_file_ = app_storage_folder_ + "/" + video_stream_file_;
 
-  LOG_UPDATED_VALUE(video_stream_file_, kVideoStreamFileKey,
-                    kMediaManagerSection);
+  LOG_UPDATED_VALUE(
+      video_stream_file_, kVideoStreamFileKey, kMediaManagerSection);
 
   // Audio stream file
-  ReadStringValue(&audio_stream_file_, "", kMediaManagerSection,
-                  kAudioStreamFileKey);
+  ReadStringValue(
+      &audio_stream_file_, "", kMediaManagerSection, kAudioStreamFileKey);
 
   audio_stream_file_ = app_storage_folder_ + "/" + audio_stream_file_;
 
-  LOG_UPDATED_VALUE(audio_stream_file_, kAudioStreamFileKey,
-                    kMediaManagerSection);
+  LOG_UPDATED_VALUE(
+      audio_stream_file_, kAudioStreamFileKey, kMediaManagerSection);
 
 #ifdef CUSTOMER_PASA
   // Heartbeat timeout
-  ReadUIntValue(&hmi_heart_beat_timeout_, kDefaultHMIHeartBeatTimeout, kMainSection,
-      kHMIHeartBeatTimeoutKey);
+  ReadUIntValue(&hmi_heart_beat_timeout_,
+                kDefaultHMIHeartBeatTimeout,
+                kMainSection,
+                kHMIHeartBeatTimeoutKey);
 
-  LOG_UPDATED_VALUE(hmi_heart_beat_timeout_, kHMIHeartBeatTimeoutKey, kMainSection);
+  LOG_UPDATED_VALUE(
+      hmi_heart_beat_timeout_, kHMIHeartBeatTimeoutKey, kMainSection);
 
-  ReadStringValue(&audio_mq_path_, "", kMediaManagerSection,
-      kAudioMQPath);
+  ReadStringValue(&audio_mq_path_, "", kMediaManagerSection, kAudioMQPath);
 
-  LOG_UPDATED_VALUE(log4cxx_config_file_, kAudioMQPath,
-      kMediaManagerSection);
+  LOG_UPDATED_VALUE(log4cxx_config_file_, kAudioMQPath, kMediaManagerSection);
   // log4cxx config file
-  ReadStringValue(&log4cxx_config_file_, "", kLoggerSection,
-      kLoggerConfigFileKey);
+  ReadStringValue(
+      &log4cxx_config_file_, "", kLoggerSection, kLoggerConfigFileKey);
 
-  LOG_UPDATED_VALUE(log4cxx_config_file_, kLoggerConfigFileKey,
-      kLoggerSection);
+  LOG_UPDATED_VALUE(log4cxx_config_file_, kLoggerConfigFileKey, kLoggerSection);
   // Remote logging flag file
-  ReadStringValue(&remote_logging_flag_file_, "", kLoggerSection,
-      kRemoteLoggingFlagFileKey);
+  ReadStringValue(&remote_logging_flag_file_,
+                  "",
+                  kLoggerSection,
+                  kRemoteLoggingFlagFileKey);
 
-  LOG_UPDATED_VALUE(remote_logging_flag_file_, kRemoteLoggingFlagFileKey,
-      kLoggerSection);
+  LOG_UPDATED_VALUE(
+      remote_logging_flag_file_, kRemoteLoggingFlagFileKey, kLoggerSection);
 
   // Remote logging flag file
-  ReadStringValue(&remote_logging_flag_file_path_, "", kLoggerSection,
-      kRemoteLoggingFlagFilePathKey);
+  ReadStringValue(&remote_logging_flag_file_path_,
+                  "",
+                  kLoggerSection,
+                  kRemoteLoggingFlagFilePathKey);
 
-  LOG_UPDATED_VALUE(remote_logging_flag_file_path_, kRemoteLoggingFlagFilePathKey,
-      kLoggerSection);
+  LOG_UPDATED_VALUE(remote_logging_flag_file_path_,
+                    kRemoteLoggingFlagFilePathKey,
+                    kLoggerSection);
 
-  ReadStringValue(&target_log_file_home_dir_, "", kLoggerSection,
-      kTargetLogFileHomeDirKey);
+  ReadStringValue(
+      &target_log_file_home_dir_, "", kLoggerSection, kTargetLogFileHomeDirKey);
 
-  LOG_UPDATED_VALUE(target_log_file_home_dir_, kTargetLogFileHomeDirKey,
-      kLoggerSection);
+  LOG_UPDATED_VALUE(
+      target_log_file_home_dir_, kTargetLogFileHomeDirKey, kLoggerSection);
 
-  ReadStringValue(&target_log_file_name_pattern_, "", kLoggerSection,
-      kTargetLogFileNamePatternKey);
+  ReadStringValue(&target_log_file_name_pattern_,
+                  "",
+                  kLoggerSection,
+                  kTargetLogFileNamePatternKey);
 
-  LOG_UPDATED_VALUE(target_log_file_name_pattern_, kTargetLogFileNamePatternKey,
-      kLoggerSection);
+  LOG_UPDATED_VALUE(target_log_file_name_pattern_,
+                    kTargetLogFileNamePatternKey,
+                    kLoggerSection);
 
-  ReadStringValue(&target_boot_count_file_, "", kMainSection,
-      kTargetBootCountFileKey);
+  ReadStringValue(
+      &target_boot_count_file_, "", kMainSection, kTargetBootCountFileKey);
 
-  LOG_UPDATED_VALUE(target_boot_count_file_, kTargetBootCountFileKey,
-      kMainSection);
+  LOG_UPDATED_VALUE(
+      target_boot_count_file_, kTargetBootCountFileKey, kMainSection);
 
-  ReadStringValue(&target_tmp_dir_, "", kMainSection,
-      kTargetTmpDirKey);
+  ReadStringValue(&target_tmp_dir_, "", kMainSection, kTargetTmpDirKey);
 
-  LOG_UPDATED_VALUE(target_tmp_dir_, kTargetTmpDirKey,
-      kMainSection);
+  LOG_UPDATED_VALUE(target_tmp_dir_, kTargetTmpDirKey, kMainSection);
 
-  ReadStringValue(&log_file_max_size_, kDefaultLogFileMaxSize, kLoggerSection,
-      kLogFileMaxSizeKey);
+  ReadStringValue(&log_file_max_size_,
+                  kDefaultLogFileMaxSize,
+                  kLoggerSection,
+                  kLogFileMaxSizeKey);
 
   LOG_UPDATED_VALUE(log_file_max_size_, kLogFileMaxSizeKey, kLoggerSection);
 
-
 #endif
-  ReadUIntValue(&audio_data_stopped_timeout_, kDefaultAudioDataStoppedTimeout,
-                kMediaManagerSection, kAudioDataStoppedTimeoutKey);
+  ReadUIntValue(&audio_data_stopped_timeout_,
+                kDefaultAudioDataStoppedTimeout,
+                kMediaManagerSection,
+                kAudioDataStoppedTimeoutKey);
 
-  LOG_UPDATED_VALUE(audio_data_stopped_timeout_, kAudioDataStoppedTimeoutKey,
+  LOG_UPDATED_VALUE(audio_data_stopped_timeout_,
+                    kAudioDataStoppedTimeoutKey,
                     kMediaManagerSection);
 
-  ReadUIntValue(&video_data_stopped_timeout_, kDefaultVideoDataStoppedTimeout,
-                kMediaManagerSection, kVideoDataStoppedTimeoutKey);
+  ReadUIntValue(&video_data_stopped_timeout_,
+                kDefaultVideoDataStoppedTimeout,
+                kMediaManagerSection,
+                kVideoDataStoppedTimeoutKey);
 
-  LOG_UPDATED_VALUE(video_data_stopped_timeout_, kVideoDataStoppedTimeoutKey,
+  LOG_UPDATED_VALUE(video_data_stopped_timeout_,
+                    kVideoDataStoppedTimeoutKey,
                     kMediaManagerSection);
 
   // Mixing audio parameter
-  ReadBoolValue(&is_mixing_audio_supported_, false, kMainSection,
+  ReadBoolValue(&is_mixing_audio_supported_,
+                false,
+                kMainSection,
                 kMixingAudioSupportedKey);
 
-  LOG_UPDATED_BOOL_VALUE(is_mixing_audio_supported_, kMixingAudioSupportedKey,
-                         kMainSection);
+  LOG_UPDATED_BOOL_VALUE(
+      is_mixing_audio_supported_, kMixingAudioSupportedKey, kMainSection);
 
   // Maximum command id value
   ReadUIntValue(&max_cmd_id_, kDefaultMaxCmdId, kMainSection, kMaxCmdIdKey);
@@ -1149,29 +1243,37 @@ void Profile::UpdateValues() {
   LOG_UPDATED_VALUE(max_cmd_id_, kMaxCmdIdKey, kMainSection);
 
   // PutFile restrictions
-  ReadUIntValue(&put_file_in_none_, kDefaultPutFileRequestInNone,
-                kFilesystemRestrictionsSection, kPutFileRequestKey);
+  ReadUIntValue(&put_file_in_none_,
+                kDefaultPutFileRequestInNone,
+                kFilesystemRestrictionsSection,
+                kPutFileRequestKey);
 
-  LOG_UPDATED_VALUE(put_file_in_none_, kPutFileRequestKey,
-                    kFilesystemRestrictionsSection);
+  LOG_UPDATED_VALUE(
+      put_file_in_none_, kPutFileRequestKey, kFilesystemRestrictionsSection);
 
   // DeleteFileRestrictions
-  ReadUIntValue(&delete_file_in_none_, kDefaultDeleteFileRequestInNone,
-                kFilesystemRestrictionsSection, kDeleteFileRequestKey);
+  ReadUIntValue(&delete_file_in_none_,
+                kDefaultDeleteFileRequestInNone,
+                kFilesystemRestrictionsSection,
+                kDeleteFileRequestKey);
 
-  LOG_UPDATED_VALUE(delete_file_in_none_, kDeleteFileRequestKey,
+  LOG_UPDATED_VALUE(delete_file_in_none_,
+                    kDeleteFileRequestKey,
                     kFilesystemRestrictionsSection);
 
   // ListFiles restrictions
-  ReadUIntValue(&list_files_in_none_, kDefaultListFilesRequestInNone,
-                kFilesystemRestrictionsSection, kListFilesRequestKey);
+  ReadUIntValue(&list_files_in_none_,
+                kDefaultListFilesRequestInNone,
+                kFilesystemRestrictionsSection,
+                kListFilesRequestKey);
 
-  LOG_UPDATED_VALUE(list_files_in_none_, kListFilesRequestKey,
+  LOG_UPDATED_VALUE(list_files_in_none_,
+                    kListFilesRequestKey,
                     kFilesystemRestrictionsSection);
 
   // Default timeout
-  ReadUIntValue(&default_timeout_, kDefaultTimeout, kMainSection,
-                kDefaultTimeoutKey);
+  ReadUIntValue(
+      &default_timeout_, kDefaultTimeout, kMainSection, kDefaultTimeoutKey);
 
   if (default_timeout_ == 0) {
     default_timeout_ = kDefaultTimeout;
@@ -1180,43 +1282,53 @@ void Profile::UpdateValues() {
   LOG_UPDATED_VALUE(default_timeout_, kDefaultTimeoutKey, kMainSection);
 
   // Application resuming timeout
-  ReadUIntValue(&app_resuming_timeout_, kDefaultAppResumingTimeout,
-                kResumptionSection, kAppResumingTimeoutKey);
+  ReadUIntValue(&app_resuming_timeout_,
+                kDefaultAppResumingTimeout,
+                kResumptionSection,
+                kAppResumingTimeoutKey);
 
   if (app_resuming_timeout_ == 0) {
     app_resuming_timeout_ = kDefaultAppResumingTimeout;
   }
   // Save resumption info to File System
-  LOG_UPDATED_VALUE(app_resuming_timeout_, kAppSavePersistentDataTimeoutKey,
+  LOG_UPDATED_VALUE(app_resuming_timeout_,
+                    kAppSavePersistentDataTimeoutKey,
                     kResumptionSection);
 
   ReadUIntValue(&app_resumption_save_persistent_data_timeout_,
-                kDefaultAppSavePersistentDataTimeout, kResumptionSection,
+                kDefaultAppSavePersistentDataTimeout,
+                kResumptionSection,
                 kAppSavePersistentDataTimeoutKey);
   if (app_resumption_save_persistent_data_timeout_ == 0) {
     app_resumption_save_persistent_data_timeout_ =
-            kDefaultAppSavePersistentDataTimeout;
+        kDefaultAppSavePersistentDataTimeout;
   }
 
-  LOG_UPDATED_VALUE(app_resuming_timeout_, kAppResumingTimeoutKey,
-                    kResumptionSection);
+  LOG_UPDATED_VALUE(
+      app_resuming_timeout_, kAppResumingTimeoutKey, kResumptionSection);
   // Open attempt timeout in ms
-  ReadUIntValue(&resumption_delay_before_ign_, kDefaultResumptionDelayBeforeIgn,
-                kResumptionSection, kResumptionDelayBeforeIgnKey);
+  ReadUIntValue(&resumption_delay_before_ign_,
+                kDefaultResumptionDelayBeforeIgn,
+                kResumptionSection,
+                kResumptionDelayBeforeIgnKey);
 
-  LOG_UPDATED_VALUE(resumption_delay_before_ign_, kResumptionDelayBeforeIgnKey,
+  LOG_UPDATED_VALUE(resumption_delay_before_ign_,
+                    kResumptionDelayBeforeIgnKey,
                     kResumptionSection);
 
   // Open attempt timeout in ms
-  ReadUIntValue(&resumption_delay_after_ign_, kDefaultResumptionDelayAfterIgn,
-                kResumptionSection, kResumptionDelayAfterIgnKey);
+  ReadUIntValue(&resumption_delay_after_ign_,
+                kDefaultResumptionDelayAfterIgn,
+                kResumptionSection,
+                kResumptionDelayAfterIgnKey);
 
-  LOG_UPDATED_VALUE(resumption_delay_after_ign_, kResumptionDelayAfterIgnKey,
+  LOG_UPDATED_VALUE(resumption_delay_after_ign_,
+                    kResumptionDelayAfterIgnKey,
                     kResumptionSection);
 
   // Application directory quota
-  ReadUIntValue(&app_dir_quota_, kDefaultDirQuota, kMainSection,
-                kAppDirectoryQuotaKey);
+  ReadUIntValue(
+      &app_dir_quota_, kDefaultDirQuota, kMainSection, kAppDirectoryQuotaKey);
 
   if (app_dir_quota_ == 0) {
     app_dir_quota_ = kDefaultDirQuota;
@@ -1226,8 +1338,10 @@ void Profile::UpdateValues() {
 
   // TTS delimiter
   // Should be gotten before any TTS prompts, since it should be appended back
-  ReadStringValue(&tts_delimiter_, kDefaultTtsDelimiter,
-                  kGlobalPropertiesSection, kTTSDelimiterKey);
+  ReadStringValue(&tts_delimiter_,
+                  kDefaultTtsDelimiter,
+                  kGlobalPropertiesSection,
+                  kTTSDelimiterKey);
 
   LOG_UPDATED_VALUE(tts_delimiter_, kTTSDelimiterKey, kGlobalPropertiesSection);
 
@@ -1246,29 +1360,29 @@ void Profile::UpdateValues() {
     }
   } else {
     help_prompt_value.clear();
-    LOG_UPDATED_VALUE(help_prompt_value, kHelpPromptKey,
-                      kGlobalPropertiesSection);
+    LOG_UPDATED_VALUE(
+        help_prompt_value, kHelpPromptKey, kGlobalPropertiesSection);
   }
 
   // Timeout prompt
   time_out_promt_.clear();
   std::string timeout_prompt_value;
-  if (ReadValue(&timeout_prompt_value, kGlobalPropertiesSection,
-                kTimeoutPromptKey)) {
+  if (ReadValue(
+          &timeout_prompt_value, kGlobalPropertiesSection, kTimeoutPromptKey)) {
     char* str = NULL;
     str = strtok(const_cast<char*>(timeout_prompt_value.c_str()), ",");
     while (str != NULL) {
       // Default prompt should have delimiter included for each item
       const std::string prompt_item = std::string(str) + tts_delimiter_;
       time_out_promt_.push_back(prompt_item);
-      LOG_UPDATED_VALUE(prompt_item, kTimeoutPromptKey,
-                        kGlobalPropertiesSection);
+      LOG_UPDATED_VALUE(
+          prompt_item, kTimeoutPromptKey, kGlobalPropertiesSection);
       str = strtok(NULL, ",");
     }
   } else {
     timeout_prompt_value.clear();
-    LOG_UPDATED_VALUE(timeout_prompt_value, kTimeoutPromptKey,
-                      kGlobalPropertiesSection);
+    LOG_UPDATED_VALUE(
+        timeout_prompt_value, kTimeoutPromptKey, kGlobalPropertiesSection);
   }
 
   // Voice recognition help title
@@ -1290,64 +1404,78 @@ void Profile::UpdateValues() {
     }
   } else {
     vr_help_command_value.clear();
-    LOG_UPDATED_VALUE(vr_help_command_value, kHelpCommandKey,
-                      kVrCommandsSection);
+    LOG_UPDATED_VALUE(
+        vr_help_command_value, kHelpCommandKey, kVrCommandsSection);
   }
 
-  //TTS GlobalProperties timeout
+  // TTS GlobalProperties timeout
   ReadUIntValue(&tts_global_properties_timeout_,
-                kDefaultTTSGlobalPropertiesTimeout, kGlobalPropertiesSection,
+                kDefaultTTSGlobalPropertiesTimeout,
+                kGlobalPropertiesSection,
                 kTTSGlobalPropertiesTimeoutKey);
 
   LOG_UPDATED_VALUE(tts_global_properties_timeout_,
-                    kTTSGlobalPropertiesTimeoutKey, kGlobalPropertiesSection);
+                    kTTSGlobalPropertiesTimeoutKey,
+                    kGlobalPropertiesSection);
 
   // Application time scale maximum requests
-  ReadUIntValue(&app_time_scale_max_requests_, kDefaultAppTimeScaleMaxRequests,
-                kMainSection, kAppTimeScaleMaxRequestsKey);
+  ReadUIntValue(&app_time_scale_max_requests_,
+                kDefaultAppTimeScaleMaxRequests,
+                kMainSection,
+                kAppTimeScaleMaxRequestsKey);
 
-  LOG_UPDATED_VALUE(app_time_scale_max_requests_, kAppTimeScaleMaxRequestsKey,
-                    kMainSection);
+  LOG_UPDATED_VALUE(
+      app_time_scale_max_requests_, kAppTimeScaleMaxRequestsKey, kMainSection);
 
   // Application time scale
-  ReadUIntValue(&app_requests_time_scale_, kDefaultAppRequestsTimeScale,
-                kMainSection, kAppRequestsTimeScaleKey);
+  ReadUIntValue(&app_requests_time_scale_,
+                kDefaultAppRequestsTimeScale,
+                kMainSection,
+                kAppRequestsTimeScaleKey);
 
-  LOG_UPDATED_VALUE(app_requests_time_scale_, kAppRequestsTimeScaleKey,
-                    kMainSection);
+  LOG_UPDATED_VALUE(
+      app_requests_time_scale_, kAppRequestsTimeScaleKey, kMainSection);
 
   // Application HMI level NONE time scale maximum requests
   ReadUIntValue(&app_hmi_level_none_time_scale_max_requests_,
-                kDefaultAppHmiLevelNoneTimeScaleMaxRequests, kMainSection,
+                kDefaultAppHmiLevelNoneTimeScaleMaxRequests,
+                kMainSection,
                 kAppHmiLevelNoneTimeScaleMaxRequestsKey);
 
   LOG_UPDATED_VALUE(app_hmi_level_none_time_scale_max_requests_,
-                    kAppHmiLevelNoneTimeScaleMaxRequestsKey, kMainSection);
+                    kAppHmiLevelNoneTimeScaleMaxRequestsKey,
+                    kMainSection);
 
   // Application HMI level NONE requests time scale
   ReadUIntValue(&app_hmi_level_none_requests_time_scale_,
-                kDefaultAppHmiLevelNoneRequestsTimeScale, kMainSection,
+                kDefaultAppHmiLevelNoneRequestsTimeScale,
+                kMainSection,
                 kAppHmiLevelNoneRequestsTimeScaleKey);
 
   LOG_UPDATED_VALUE(app_hmi_level_none_requests_time_scale_,
-                    kAppHmiLevelNoneRequestsTimeScaleKey, kMainSection);
+                    kAppHmiLevelNoneRequestsTimeScaleKey,
+                    kMainSection);
 
   // Amount of pending requests
-  ReadUIntValue(&pending_requests_amount_, kDefaultPendingRequestsAmount,
-                kMainSection, kPendingRequestsAmoundKey);
+  ReadUIntValue(&pending_requests_amount_,
+                kDefaultPendingRequestsAmount,
+                kMainSection,
+                kPendingRequestsAmoundKey);
 
   if (pending_requests_amount_ == 0) {
     pending_requests_amount_ = kDefaultPendingRequestsAmount;
   }
 
-  LOG_UPDATED_VALUE(pending_requests_amount_, kPendingRequestsAmoundKey,
-                    kMainSection);
+  LOG_UPDATED_VALUE(
+      pending_requests_amount_, kPendingRequestsAmoundKey, kMainSection);
 
   // Supported diagnostic modes
   supported_diag_modes_.clear();
   std::string supported_diag_modes_value;
   std::string correct_diag_modes;
-  if (ReadStringValue(&supported_diag_modes_value, "", kMainSection,
+  if (ReadStringValue(&supported_diag_modes_value,
+                      "",
+                      kMainSection,
                       kSupportedDiagModesKey)) {
     char* str = NULL;
     str = strtok(const_cast<char*>(supported_diag_modes_value.c_str()), ",");
@@ -1366,27 +1494,38 @@ void Profile::UpdateValues() {
   LOG_UPDATED_VALUE(correct_diag_modes, kSupportedDiagModesKey, kMainSection);
 
   // System files path
-  ReadStringValue(&system_files_path_, kDefaultSystemFilesPath, kMainSection,
+  ReadStringValue(&system_files_path_,
+                  kDefaultSystemFilesPath,
+                  kMainSection,
                   kSystemFilesPathKey);
 
   LOG_UPDATED_VALUE(system_files_path_, kSystemFilesPathKey, kMainSection);
 
   // Heartbeat timeout
-  ReadUIntValue(&heart_beat_timeout_, kDefaultHeartBeatTimeout, kProtocolHandlerSection,
+  ReadUIntValue(&heart_beat_timeout_,
+                kDefaultHeartBeatTimeout,
+                kProtocolHandlerSection,
                 kHeartBeatTimeoutKey);
 
-  LOG_UPDATED_VALUE(heart_beat_timeout_, kHeartBeatTimeoutKey, kProtocolHandlerSection);
+  LOG_UPDATED_VALUE(
+      heart_beat_timeout_, kHeartBeatTimeoutKey, kProtocolHandlerSection);
 
   // Max protocol version
-  ReadUIntValue(&max_supported_protocol_version_, kDefaultMaxSupportedProtocolVersion, kProtocolHandlerSection,
+  ReadUIntValue(&max_supported_protocol_version_,
+                kDefaultMaxSupportedProtocolVersion,
+                kProtocolHandlerSection,
                 kMaxSupportedProtocolVersionKey);
 
-  //if .ini file contains protocol version less than 2 or more than 3 max_supported_protocol_version_ = 3
-  if (max_supported_protocol_version_ > 3 || max_supported_protocol_version_ < 2) {
+  // if .ini file contains protocol version less than 2 or more than 3
+  // max_supported_protocol_version_ = 3
+  if (max_supported_protocol_version_ > 3 ||
+      max_supported_protocol_version_ < 2) {
     max_supported_protocol_version_ = 3;
   }
 
-  LOG_UPDATED_VALUE(max_supported_protocol_version_, kMaxSupportedProtocolVersionKey, kProtocolHandlerSection);
+  LOG_UPDATED_VALUE(max_supported_protocol_version_,
+                    kMaxSupportedProtocolVersionKey,
+                    kProtocolHandlerSection);
 
   // Use last state value
   ReadBoolValue(&use_last_state_, false, kMainSection, kUseLastStateKey);
@@ -1395,21 +1534,23 @@ void Profile::UpdateValues() {
 
   // Transport manager TCP port
   ReadUIntValue(&transport_manager_tcp_adapter_port_,
-                kDefautTransportManagerTCPPort, kTransportManagerSection,
+                kDefautTransportManagerTCPPort,
+                kTransportManagerSection,
                 kTCPAdapterPortKey);
 
-  LOG_UPDATED_VALUE(transport_manager_tcp_adapter_port_, kTCPAdapterPortKey,
+  LOG_UPDATED_VALUE(transport_manager_tcp_adapter_port_,
+                    kTCPAdapterPortKey,
                     kTransportManagerSection);
 
   // Event MQ
-  ReadStringValue(&event_mq_name_, kDefaultEventMQ, kTransportManagerSection,
-                  kEventMQKey);
+  ReadStringValue(
+      &event_mq_name_, kDefaultEventMQ, kTransportManagerSection, kEventMQKey);
 
   LOG_UPDATED_VALUE(event_mq_name_, kEventMQKey, kTransportManagerSection);
 
   // Ack MQ
-  ReadStringValue(&ack_mq_name_, kDefaultAckMQ, kTransportManagerSection,
-                  kAckMQKey);
+  ReadStringValue(
+      &ack_mq_name_, kDefaultAckMQ, kTransportManagerSection, kAckMQKey);
 
   LOG_UPDATED_VALUE(ack_mq_name_, kAckMQKey, kTransportManagerSection);
 
@@ -1424,47 +1565,59 @@ void Profile::UpdateValues() {
                     kTransportManagerSection);
 
   // Recording file
-  ReadStringValue(&recording_file_name_, kDefaultRecordingFileName,
-                  kMediaManagerSection, kRecordingFileNameKey);
+  ReadStringValue(&recording_file_name_,
+                  kDefaultRecordingFileName,
+                  kMediaManagerSection,
+                  kRecordingFileNameKey);
 
-  LOG_UPDATED_VALUE(recording_file_name_, kRecordingFileNameKey,
-                    kMediaManagerSection);
+  LOG_UPDATED_VALUE(
+      recording_file_name_, kRecordingFileNameKey, kMediaManagerSection);
 
   // Recording file source
-  ReadStringValue(&recording_file_source_, kDefaultRecordingFileSourceName,
-                  kMediaManagerSection, kRecordingFileSourceKey);
+  ReadStringValue(&recording_file_source_,
+                  kDefaultRecordingFileSourceName,
+                  kMediaManagerSection,
+                  kRecordingFileSourceKey);
 
-  LOG_UPDATED_VALUE(recording_file_source_, kRecordingFileSourceKey,
-                    kMediaManagerSection);
+  LOG_UPDATED_VALUE(
+      recording_file_source_, kRecordingFileSourceKey, kMediaManagerSection);
 
   // Policy preloaded file
-  ReadStringValue(&preloaded_pt_file_, kDefaultPreloadedPTFileName,
-                  kPolicySection, kPreloadedPTKey);
+  ReadStringValue(&preloaded_pt_file_,
+                  kDefaultPreloadedPTFileName,
+                  kPolicySection,
+                  kPreloadedPTKey);
 
   preloaded_pt_file_ = app_config_folder_ + '/' + preloaded_pt_file_;
 
   LOG_UPDATED_VALUE(preloaded_pt_file_, kPreloadedPTKey, kPolicySection);
 
   // Policy snapshot file
-  ReadStringValue(&policy_snapshot_file_name_, kDefaultPoliciesSnapshotFileName,
-                  kPolicySection, kPathToSnapshotKey);
+  ReadStringValue(&policy_snapshot_file_name_,
+                  kDefaultPoliciesSnapshotFileName,
+                  kPolicySection,
+                  kPathToSnapshotKey);
 
-  LOG_UPDATED_VALUE(policy_snapshot_file_name_, kPathToSnapshotKey,
-                    kPolicySection);
+  LOG_UPDATED_VALUE(
+      policy_snapshot_file_name_, kPathToSnapshotKey, kPolicySection);
 
   // Attempts number for opening policy DB
-  ReadUIntValue(&attempts_to_open_policy_db_, kDefaultAttemptsToOpenPolicyDB,
-                kPolicySection, kAttemptsToOpenPolicyDBKey);
+  ReadUIntValue(&attempts_to_open_policy_db_,
+                kDefaultAttemptsToOpenPolicyDB,
+                kPolicySection,
+                kAttemptsToOpenPolicyDBKey);
 
-  LOG_UPDATED_VALUE(attempts_to_open_policy_db_, kAttemptsToOpenPolicyDBKey,
-                    kPolicySection);
+  LOG_UPDATED_VALUE(
+      attempts_to_open_policy_db_, kAttemptsToOpenPolicyDBKey, kPolicySection);
 
   // Open attempt timeout in ms
-  ReadUIntValue(&open_attempt_timeout_ms_, kDefaultOpenAttemptTimeoutMs,
-                kPolicySection, kOpenAttemptTimeoutMsKey);
+  ReadUIntValue(&open_attempt_timeout_ms_,
+                kDefaultOpenAttemptTimeoutMs,
+                kPolicySection,
+                kOpenAttemptTimeoutMsKey);
 
-  LOG_UPDATED_VALUE(open_attempt_timeout_ms_, kOpenAttemptTimeoutMsKey,
-                    kPolicySection);
+  LOG_UPDATED_VALUE(
+      open_attempt_timeout_ms_, kOpenAttemptTimeoutMsKey, kPolicySection);
 
   // Turn Policy Off?
   ReadBoolValue(&enable_policy_, false, kPolicySection, kEnablePolicy);
@@ -1473,35 +1626,46 @@ void Profile::UpdateValues() {
 
   ReadUIntValue(&application_list_update_timeout_,
                 kDefaultApplicationListUpdateTimeout,
-                kApplicationManagerSection, kApplicationListUpdateTimeoutKey);
+                kApplicationManagerSection,
+                kApplicationListUpdateTimeoutKey);
 
   LOG_UPDATED_VALUE(application_list_update_timeout_,
-                    kApplicationListUpdateTimeoutKey, kMainSection);
+                    kApplicationListUpdateTimeoutKey,
+                    kMainSection);
 
-  ReadUintIntPairValue(&read_did_frequency_, kReadDIDFrequency, kMainSection,
+  ReadUintIntPairValue(&read_did_frequency_,
+                       kReadDIDFrequency,
+                       kMainSection,
                        kReadDIDFrequencykey);
 
-  ReadUintIntPairValue(&get_vehicle_data_frequency_, kGetVehicleDataFrequency,
-                       kMainSection, kGetVehicleDataFrequencyKey);
+  ReadUintIntPairValue(&get_vehicle_data_frequency_,
+                       kGetVehicleDataFrequency,
+                       kMainSection,
+                       kGetVehicleDataFrequencyKey);
 
-  ReadUIntValue(&max_thread_pool_size_, kDefaultMaxThreadPoolSize,
-                kApplicationManagerSection, kDefaultThreadPoolSize);
+  ReadUIntValue(&max_thread_pool_size_,
+                kDefaultMaxThreadPoolSize,
+                kApplicationManagerSection,
+                kDefaultThreadPoolSize);
   if (max_thread_pool_size_ > kDefaultMaxThreadPoolSize) {
     max_thread_pool_size_ = kDefaultMaxThreadPoolSize;
   }
-  LOG_UPDATED_VALUE(max_thread_pool_size_, kDefaultMaxThreadPoolSize,
+  LOG_UPDATED_VALUE(max_thread_pool_size_,
+                    kDefaultMaxThreadPoolSize,
                     kApplicationManagerSection);
 
-  ReadStringValue(&iap_legacy_protocol_mask_, kDefaultLegacyProtocolMask,
-                  kIAPSection, kLegacyProtocolMaskKey);
+  ReadStringValue(&iap_legacy_protocol_mask_,
+                  kDefaultLegacyProtocolMask,
+                  kIAPSection,
+                  kLegacyProtocolMaskKey);
 
-  LOG_UPDATED_VALUE(iap_legacy_protocol_mask_, kLegacyProtocolMaskKey,
-                    kIAPSection);
+  LOG_UPDATED_VALUE(
+      iap_legacy_protocol_mask_, kLegacyProtocolMaskKey, kIAPSection);
 
   iap_dedicated_protocols_.clear();
   std::string protocol_value;
-  if (ReadStringValue(&protocol_value, "", kIAPSection,
-                      kDedicatedProtocolsKey)) {
+  if (ReadStringValue(
+          &protocol_value, "", kIAPSection, kDedicatedProtocolsKey)) {
     char* str = NULL;
     str = strtok(const_cast<char*>(protocol_value.c_str()), " ,");
     while (str != NULL) {
@@ -1512,88 +1676,112 @@ void Profile::UpdateValues() {
 
   LOG_UPDATED_VALUE(protocol_value, kDedicatedProtocolsKey, kIAPSection);
 
-  ReadStringValue(&iap_hub_protocol_mask_, kDefaultHubProtocolMask, kIAPSection,
+  ReadStringValue(&iap_hub_protocol_mask_,
+                  kDefaultHubProtocolMask,
+                  kIAPSection,
                   kHubProtocolMaskKey);
 
   LOG_UPDATED_VALUE(iap_hub_protocol_mask_, kHubProtocolMaskKey, kIAPSection);
 
-  ReadStringValue(&iap_pool_protocol_mask_, kDefaultPoolProtocolMask,
-                  kIAPSection, kPoolProtocolMaskKey);
+  ReadStringValue(&iap_pool_protocol_mask_,
+                  kDefaultPoolProtocolMask,
+                  kIAPSection,
+                  kPoolProtocolMaskKey);
 
   LOG_UPDATED_VALUE(iap_pool_protocol_mask_, kPoolProtocolMaskKey, kIAPSection);
 
-  ReadStringValue(&iap_system_config_, kDefaultIAPSystemConfig, kIAPSection,
+  ReadStringValue(&iap_system_config_,
+                  kDefaultIAPSystemConfig,
+                  kIAPSection,
                   kIAPSystemConfigKey);
 
   LOG_UPDATED_VALUE(iap_system_config_, kIAPSystemConfigKey, kIAPSection);
 
-  ReadStringValue(&iap2_system_config_, kDefaultIAP2SystemConfig, kIAPSection,
+  ReadStringValue(&iap2_system_config_,
+                  kDefaultIAP2SystemConfig,
+                  kIAPSection,
                   kIAP2SystemConfigKey);
 
   LOG_UPDATED_VALUE(iap2_system_config_, kIAP2SystemConfigKey, kIAPSection);
 
-  ReadIntValue(&iap2_hub_connect_attempts_, kDefaultIAP2HubConnectAttempts,
-               kIAPSection, kIAP2HubConnectAttemptskey);
+  ReadIntValue(&iap2_hub_connect_attempts_,
+               kDefaultIAP2HubConnectAttempts,
+               kIAPSection,
+               kIAP2HubConnectAttemptskey);
 
-  LOG_UPDATED_VALUE(iap2_hub_connect_attempts_, kIAP2HubConnectAttemptskey,
-                    kIAPSection);
+  LOG_UPDATED_VALUE(
+      iap2_hub_connect_attempts_, kIAP2HubConnectAttemptskey, kIAPSection);
 
   ReadIntValue(&iap_hub_connection_wait_timeout_,
-               kDefaultIAPHubConnectionWaitTimeout, kIAPSection,
+               kDefaultIAPHubConnectionWaitTimeout,
+               kIAPSection,
                kIAPHubConnectionWaitTimeoutKey);
 
   LOG_UPDATED_VALUE(iap_hub_connection_wait_timeout_,
-                    kIAPHubConnectionWaitTimeoutKey, kIAPSection);
+                    kIAPHubConnectionWaitTimeoutKey,
+                    kIAPSection);
 
   ReadIntValue(&iap_arm_event_timeout_,
                kDefaultIAPArmEventTimeout,
                kIAPSection,
                kIAPArmEventTimeoutKey);
 
-  LOG_UPDATED_VALUE(iap_arm_event_timeout_, kDefaultIAPArmEventTimeout, kIAPSection);
+  LOG_UPDATED_VALUE(
+      iap_arm_event_timeout_, kDefaultIAPArmEventTimeout, kIAPSection);
 
-  ReadUIntValue(&default_hub_protocol_index_, kDefaultHubProtocolIndex, kIAPSection, kDefaultHubProtocolIndexKey);
+  ReadUIntValue(&default_hub_protocol_index_,
+                kDefaultHubProtocolIndex,
+                kIAPSection,
+                kDefaultHubProtocolIndexKey);
 
-  LOG_UPDATED_VALUE(default_hub_protocol_index_, kDefaultHubProtocolIndexKey,
-                    kIAPSection);
+  LOG_UPDATED_VALUE(
+      default_hub_protocol_index_, kDefaultHubProtocolIndexKey, kIAPSection);
 
-  ReadUIntValue(&hash_string_size_, kDefaultHashStringSize,
-                kApplicationManagerSection, kHashStringSizeKey);
+  ReadUIntValue(&hash_string_size_,
+                kDefaultHashStringSize,
+                kApplicationManagerSection,
+                kHashStringSizeKey);
 
-  LOG_UPDATED_VALUE(hash_string_size_, kHashStringSizeKey,
-                    kApplicationManagerSection);
+  LOG_UPDATED_VALUE(
+      hash_string_size_, kHashStringSizeKey, kApplicationManagerSection);
 
-  ReadBoolValue(&use_db_for_resumption_, false, kResumptionSection,
+  ReadBoolValue(&use_db_for_resumption_,
+                false,
+                kResumptionSection,
                 kUseDBForResumptionKey);
 
-  LOG_UPDATED_BOOL_VALUE(use_db_for_resumption_, kUseDBForResumptionKey,
-                         kResumptionSection);
+  LOG_UPDATED_BOOL_VALUE(
+      use_db_for_resumption_, kUseDBForResumptionKey, kResumptionSection);
 
-  ReadUIntValue(&attempts_to_open_resumption_db_, kDefaultAttemptsToOpenResumptionDB,
-                kResumptionSection, kAttemptsToOpenResumptionDBKey);
+  ReadUIntValue(&attempts_to_open_resumption_db_,
+                kDefaultAttemptsToOpenResumptionDB,
+                kResumptionSection,
+                kAttemptsToOpenResumptionDBKey);
 
-  LOG_UPDATED_VALUE(attempts_to_open_resumption_db_, kAttemptsToOpenResumptionDBKey,
+  LOG_UPDATED_VALUE(attempts_to_open_resumption_db_,
+                    kAttemptsToOpenResumptionDBKey,
                     kResumptionSection);
 
   ReadUIntValue(&open_attempt_timeout_ms_resumption_db_,
                 kDefaultOpenAttemptTimeoutMsResumptionDB,
-                kResumptionSection, kOpenAttemptTimeoutMsResumptionDBKey);
+                kResumptionSection,
+                kOpenAttemptTimeoutMsResumptionDBKey);
 
   LOG_UPDATED_VALUE(open_attempt_timeout_ms_resumption_db_,
                     kOpenAttemptTimeoutMsResumptionDBKey,
                     kResumptionSection);
 }
 
-bool Profile::ReadValue(bool* value, const char* const pSection,
+bool Profile::ReadValue(bool* value,
+                        const char* const pSection,
                         const char* const pKey) const {
   DCHECK(value);
   bool ret = false;
 
   char buf[INI_LINE_LEN + 1];
   *buf = '\0';
-  if ((0 != ini_read_value(config_file_name_.c_str(), pSection, pKey, buf))
-      && ('\0' != *buf)) {
-
+  if ((0 != ini_read_value(config_file_name_.c_str(), pSection, pKey, buf)) &&
+      ('\0' != *buf)) {
     const int32_t tmpVal = atoi(buf);
     if ((0 == strcmp("true", buf)) || (0 != tmpVal)) {
       *value = true;
@@ -1605,22 +1793,24 @@ bool Profile::ReadValue(bool* value, const char* const pSection,
   return ret;
 }
 
-bool Profile::ReadValue(std::string* value, const char* const pSection,
+bool Profile::ReadValue(std::string* value,
+                        const char* const pSection,
                         const char* const pKey) const {
   DCHECK(value);
   bool ret = false;
 
   char buf[INI_LINE_LEN + 1];
   *buf = '\0';
-  if ((0 != ini_read_value(config_file_name_.c_str(), pSection, pKey, buf))
-      && ('\0' != *buf)) {
+  if ((0 != ini_read_value(config_file_name_.c_str(), pSection, pKey, buf)) &&
+      ('\0' != *buf)) {
     *value = buf;
     ret = true;
   }
   return ret;
 }
 
-bool Profile::ReadStringValue(std::string* value, const char* default_value,
+bool Profile::ReadStringValue(std::string* value,
+                              const char* default_value,
                               const char* const pSection,
                               const char* const pKey) const {
   DCHECK(value);
@@ -1631,7 +1821,8 @@ bool Profile::ReadStringValue(std::string* value, const char* default_value,
   return true;
 }
 
-bool Profile::ReadIntValue(int32_t* value, const int32_t default_value,
+bool Profile::ReadIntValue(int32_t* value,
+                           const int32_t default_value,
                            const char* const pSection,
                            const char* const pKey) const {
   DCHECK(value);
@@ -1647,7 +1838,8 @@ bool Profile::ReadIntValue(int32_t* value, const int32_t default_value,
 bool Profile::ReadUintIntPairValue(
     std::pair<uint32_t, int32_t>* value,
     const std::pair<uint32_t, uint32_t>& default_value,
-    const char * const pSection, const char * const pKey) const {
+    const char* const pSection,
+    const char* const pKey) const {
   std::string string_value;
   if (!ReadValue(&string_value, pSection, pKey)) {
     *value = default_value;
@@ -1661,7 +1853,8 @@ bool Profile::ReadUintIntPairValue(
   return true;
 }
 
-bool Profile::ReadBoolValue(bool* value, const bool default_value,
+bool Profile::ReadBoolValue(bool* value,
+                            const bool default_value,
                             const char* const pSection,
                             const char* const pKey) const {
   DCHECK(value);
@@ -1676,28 +1869,29 @@ int hex_to_int(const std::string& value) {
 }
 }
 
-std::vector<int> Profile::ReadIntContainer(const char * const pSection,
-                                         const char * const pKey,
-                                         bool *out_result) const {
-  const std::vector<std::string> string_list = ReadStringContainer(
-        pSection, pKey, out_result);
+std::vector<int> Profile::ReadIntContainer(const char* const pSection,
+                                           const char* const pKey,
+                                           bool* out_result) const {
+  const std::vector<std::string> string_list =
+      ReadStringContainer(pSection, pKey, out_result);
 
   std::vector<int> value_list;
   value_list.resize(string_list.size());
   std::transform(
-        string_list.begin(), string_list.end(), value_list.begin(), hex_to_int);
+      string_list.begin(), string_list.end(), value_list.begin(), hex_to_int);
 
   return value_list;
 }
 
-std::vector<std::string> Profile::ReadStringContainer(const char * const pSection,
-                                                    const char * const pKey,
-                                                    bool *out_result) const {
+std::vector<std::string> Profile::ReadStringContainer(
+    const char* const pSection,
+    const char* const pKey,
+    bool* out_result) const {
   std::string string;
   const bool result = ReadValue(&string, pSection, pKey);
   if (out_result)
     *out_result = result;
-  std::vector < std::string > value_container;
+  std::vector<std::string> value_container;
   if (result) {
     std::istringstream iss(string);
     std::string temp_str;
@@ -1710,7 +1904,8 @@ std::vector<std::string> Profile::ReadStringContainer(const char * const pSectio
   return value_container;
 }
 
-bool Profile::ReadUIntValue(uint16_t* value, uint16_t default_value,
+bool Profile::ReadUIntValue(uint16_t* value,
+                            uint16_t default_value,
                             const char* const pSection,
                             const char* const pKey) const {
   std::string string_value;
@@ -1723,8 +1918,7 @@ bool Profile::ReadUIntValue(uint16_t* value, uint16_t default_value,
       *value = default_value;
       return false;
     }
-    if (user_value > (std::numeric_limits < uint16_t > ::max)())
-    {
+    if (user_value > (std::numeric_limits<uint16_t>::max)()) {
       *value = default_value;
       return false;
     }
@@ -1733,7 +1927,8 @@ bool Profile::ReadUIntValue(uint16_t* value, uint16_t default_value,
   }
 }
 
-bool Profile::ReadUIntValue(uint32_t* value, uint32_t default_value,
+bool Profile::ReadUIntValue(uint32_t* value,
+                            uint32_t default_value,
                             const char* const pSection,
                             const char* const pKey) const {
   std::string string_value;
@@ -1746,8 +1941,7 @@ bool Profile::ReadUIntValue(uint32_t* value, uint32_t default_value,
       *value = default_value;
       return false;
     }
-    if (user_value > (std::numeric_limits < uint32_t > ::max)())
-    {
+    if (user_value > (std::numeric_limits<uint32_t>::max)()) {
       *value = default_value;
       return false;
     }
@@ -1757,7 +1951,8 @@ bool Profile::ReadUIntValue(uint32_t* value, uint32_t default_value,
   }
 }
 
-bool Profile::ReadUIntValue(uint64_t* value, uint64_t default_value,
+bool Profile::ReadUIntValue(uint64_t* value,
+                            uint64_t default_value,
                             const char* const pSection,
                             const char* const pKey) const {
   std::string string_value;
@@ -1794,4 +1989,4 @@ bool Profile::StringToNumber(const std::string& input, uint64_t& output) const {
 bool Profile::IsContainDirectoryPath(const std::string& filename) const {
   return std::string::npos != filename.find('/');
 }
-}//  namespace profile
+}  //  namespace profile

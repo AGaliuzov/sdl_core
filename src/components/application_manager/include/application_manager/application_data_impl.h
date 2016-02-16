@@ -245,6 +245,7 @@ class DynamicApplicationDataImpl : public virtual Application {
 
     void set_perform_interaction_layout(mobile_api::LayoutMode::eType layout);
     inline mobile_api::LayoutMode::eType perform_interaction_layout() const;
+
   protected:
     smart_objects::SmartObject* help_prompt_;
     smart_objects::SmartObject* timeout_prompt_;

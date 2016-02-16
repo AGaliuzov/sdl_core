@@ -70,8 +70,9 @@ void RegisterAppInterfaceResponse::Run() {
       application_manager::ApplicationManagerImpl::instance()->application(
           connection_key());
   if (!application) {
-    LOG4CXX_ERROR(logger_, "Application with connection key "
-                  << connection_key() << " is not registered.");
+    LOG4CXX_ERROR(logger_,
+                  "Application with connection key " << connection_key()
+                                                     << " is not registered.");
     return;
   }
 
@@ -84,18 +85,19 @@ void RegisterAppInterfaceResponse::Run() {
   // Sends OnPermissionChange notification to mobile right after RAI response
   // and HMI level set-up
   policy::PolicyHandler::instance()->OnAppRegisteredOnMobile(
-        application->policy_app_id());
+      application->policy_app_id());
 }
 
 void RegisterAppInterfaceResponse::SetHeartBeatTimeout(
     uint32_t connection_key, const std::string& policy_app_id) {
   LOG4CXX_AUTO_TRACE(logger_);
-  policy::PolicyHandler *policy_handler = policy::PolicyHandler::instance();
+  policy::PolicyHandler* policy_handler = policy::PolicyHandler::instance();
   if (policy_handler->PolicyEnabled()) {
     const uint32_t timeout = policy_handler->HeartBeatTimeout(policy_app_id);
     if (timeout > 0) {
-      application_manager::ApplicationManagerImpl::instance()->
-          connection_handler()->SetHeartBeatTimeout(connection_key, timeout);
+      application_manager::ApplicationManagerImpl::instance()
+          ->connection_handler()
+          .SetHeartBeatTimeout(connection_key, timeout);
     }
   } else {
     LOG4CXX_INFO(logger_, "Policy is turn off");

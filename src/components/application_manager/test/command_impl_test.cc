@@ -34,8 +34,10 @@
 #include "application_manager/application_manager_impl.h"
 
 TEST(ApplicationManager, SingletonInstance_CallTwice_ReferencesAreSame) {
-  application_manager::ApplicationManagerImpl* am = application_manager::ApplicationManagerImpl::instance();
-  application_manager::ApplicationManagerImpl* am2 = application_manager::ApplicationManagerImpl::instance();
+  application_manager::ApplicationManagerImpl* am =
+      application_manager::ApplicationManagerImpl::instance();
+  application_manager::ApplicationManagerImpl* am2 =
+      application_manager::ApplicationManagerImpl::instance();
   ASSERT_EQ(am, am2);
   application_manager::ApplicationManagerImpl::destroy();
 }

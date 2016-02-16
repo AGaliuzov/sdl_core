@@ -68,23 +68,26 @@ ResumeCtrl::ResumeCtrl()
       is_data_saved_(false),
       launch_time_(time(NULL)) {}
 #ifdef BUILD_TESTS
-void ResumeCtrl::set_resumption_storage(utils::SharedPtr<ResumptionData> mock_storage){
-    resumption_storage_ = mock_storage;
+void ResumeCtrl::set_resumption_storage(
+    utils::SharedPtr<ResumptionData> mock_storage) {
+  resumption_storage_ = mock_storage;
 }
-#endif // BUILD_TESTS
+#endif  // BUILD_TESTS
 
 bool ResumeCtrl::Init() {
   using namespace profile;
   bool use_db = Profile::instance()->use_db_for_resumption();
   if (use_db) {
-    utils::SharedPtr<ResumptionDataDB> db(new ResumptionDataDB(In_File_Storage));
+    utils::SharedPtr<ResumptionDataDB> db(
+        new ResumptionDataDB(In_File_Storage));
     if (!db->Init()) {
       return false;
     }
 
     if (!db->IsDBVersionActual()) {
-      LOG4CXX_INFO(logger_, "DB version had been changed. "
-                            "Rebuilding resumption DB.");
+      LOG4CXX_INFO(logger_,
+                   "DB version had been changed. "
+                   "Rebuilding resumption DB.");
 
       smart_objects::SmartObject data;
       db->GetAllData(data);
@@ -108,8 +111,7 @@ bool ResumeCtrl::Init() {
   return true;
 }
 
-ResumeCtrl::~ResumeCtrl() {
-}
+ResumeCtrl::~ResumeCtrl() {}
 
 void ResumeCtrl::SaveAllApplications() {
   LOG4CXX_AUTO_TRACE(logger_);
@@ -122,8 +124,9 @@ void ResumeCtrl::SaveAllApplications() {
 void ResumeCtrl::SaveApplication(ApplicationSharedPtr application) {
   LOG4CXX_AUTO_TRACE(logger_);
   DCHECK_OR_RETURN_VOID(application);
-  LOG4CXX_INFO(logger_,"application with appID "<<application->app_id()
-               <<" will be saved");
+  LOG4CXX_INFO(logger_,
+               "application with appID " << application->app_id()
+                                         << " will be saved");
   resumption_storage_->SaveApplication(application);
 }
 
@@ -135,22 +138,23 @@ bool ResumeCtrl::RestoreAppHMIState(ApplicationSharedPtr application) {
   using namespace mobile_apis;
   LOG4CXX_AUTO_TRACE(logger_);
   if (!application) {
-    LOG4CXX_ERROR(logger_, " RestoreApplicationHMILevel() application pointer is invalid");
+    LOG4CXX_ERROR(
+        logger_,
+        " RestoreApplicationHMILevel() application pointer is invalid");
     return false;
   }
-  LOG4CXX_DEBUG(logger_, "app_id : " << application->app_id()
-                << "; m_app_id : " << application->policy_app_id());
-  const std::string device_id =
-      MessageHelper::GetDeviceMacAddressForHandle(application->device());
+  LOG4CXX_DEBUG(logger_,
+                "app_id : " << application->app_id()
+                            << "; m_app_id : " << application->policy_app_id());
+  const std::string& device_mac = application->mac_address();
   smart_objects::SmartObject saved_app(smart_objects::SmartType_Map);
   bool result = resumption_storage_->GetSavedApplication(
-                        application->policy_app_id(),
-                        device_id, saved_app);
+      application->policy_app_id(), device_mac, saved_app);
   if (result) {
     if (saved_app.keyExists(strings::hmi_level)) {
       const HMILevel::eType saved_hmi_level =
           static_cast<mobile_apis::HMILevel::eType>(
-            saved_app[strings::hmi_level].asInt());
+              saved_app[strings::hmi_level].asInt());
       LOG4CXX_DEBUG(logger_, "Saved HMI Level is : " << saved_hmi_level);
       return SetAppHMIState(application, saved_hmi_level, true);
     } else {
@@ -183,8 +187,9 @@ void ResumeCtrl::ApplicationResumptiOnTimer() {
       LOG4CXX_ERROR(logger_, "Invalid app_id = " << *it);
       continue;
     }
-    LOG4CXX_DEBUG(logger_, "Starting resumption of application id "
-            << app->policy_app_id());
+    LOG4CXX_DEBUG(logger_,
+                  "Starting resumption of application id "
+                      << app->policy_app_id());
     StartAppHmiStateResumption(app);
   }
   is_resumption_active_ = false;
@@ -203,8 +208,9 @@ void ResumeCtrl::RemoveFromResumption(uint32_t app_id) {
   queue_lock_.Acquire();
   waiting_for_timer_.remove(app_id);
   queue_lock_.Release();
-  LOG4CXX_DEBUG(logger_, "Application ID " << app_id << " have been removed"
-                " from resumption queue.");
+  LOG4CXX_DEBUG(logger_,
+                "Application ID " << app_id << " have been removed"
+                                               " from resumption queue.");
 }
 
 bool ResumeCtrl::SetAppHMIState(ApplicationSharedPtr application,
@@ -213,35 +219,37 @@ bool ResumeCtrl::SetAppHMIState(ApplicationSharedPtr application,
   using namespace mobile_apis;
   LOG4CXX_AUTO_TRACE(logger_);
   DCHECK_OR_RETURN(application, false);
-  LOG4CXX_TRACE(logger_, "Setting HMI level " << hmi_level
-                << " for application id " << application->app_id()
-                << ". Check policy is required: " << check_policy);
-  const std::string device_id =
-      MessageHelper::GetDeviceMacAddressForHandle(application->device());
+  LOG4CXX_TRACE(logger_,
+                "Setting HMI level "
+                    << hmi_level << " for application id "
+                    << application->app_id()
+                    << ". Check policy is required: " << check_policy);
+  const std::string& device_mac = application->mac_address();
   if (check_policy &&
-      ApplicationManagerImpl::instance()->GetUserConsentForDevice(device_id)
-      != policy::DeviceConsent::kDeviceAllowed) {
+      ApplicationManagerImpl::instance()->GetUserConsentForDevice(device_mac) !=
+          policy::DeviceConsent::kDeviceAllowed) {
     LOG4CXX_ERROR(logger_, "Resumption abort. Data consent wasn't allowed.");
     SetupDefaultHMILevel(application);
     return false;
   }
   application->set_is_resuming(true);
-  ApplicationManagerImpl::instance()->SetHmiState(
-      application->app_id(), hmi_level);
-  LOG4CXX_INFO(logger_, "Application with policy id "
-               << application->policy_app_id()
-               << " got HMI level " << hmi_level);
+  ApplicationManagerImpl::instance()->SetHmiState(application->app_id(),
+                                                  hmi_level);
+  LOG4CXX_INFO(logger_,
+               "Application with policy id " << application->policy_app_id()
+                                             << " got HMI level " << hmi_level);
   return true;
 }
 
 bool ResumeCtrl::IsHMIApplicationIdExist(uint32_t hmi_app_id) {
-  LOG4CXX_DEBUG(logger_, "hmi_app_id :"  << hmi_app_id);
+  LOG4CXX_DEBUG(logger_, "hmi_app_id :" << hmi_app_id);
   return resumption_storage_->IsHMIApplicationIdExist(hmi_app_id);
 }
 
 bool ResumeCtrl::IsApplicationSaved(const std::string& policy_app_id,
                                     const std::string& device_id) {
-  return (-1 != resumption_storage_->IsApplicationSaved(policy_app_id, device_id));
+  return (-1 !=
+          resumption_storage_->IsApplicationSaved(policy_app_id, device_id));
 }
 
 uint32_t ResumeCtrl::GetHMIApplicationID(const std::string& policy_app_id,
@@ -249,11 +257,11 @@ uint32_t ResumeCtrl::GetHMIApplicationID(const std::string& policy_app_id,
   return resumption_storage_->GetHMIApplicationID(policy_app_id, device_id);
 }
 
-bool ResumeCtrl::RemoveApplicationFromSaved(ApplicationConstSharedPtr application) {
-  const std::string device_id =
-      MessageHelper::GetDeviceMacAddressForHandle(application->device());
-  return resumption_storage_->RemoveApplicationFromSaved(application->policy_app_id(),
-                                                         device_id);
+bool ResumeCtrl::RemoveApplicationFromSaved(
+    ApplicationConstSharedPtr application) {
+  const std::string& device_mac = application->mac_address();
+  return resumption_storage_->RemoveApplicationFromSaved(
+      application->policy_app_id(), device_mac);
 }
 
 void ResumeCtrl::OnSuspend() {
@@ -275,8 +283,7 @@ void ResumeCtrl::StartSavePersistentDataTimer() {
   if (!save_persistent_data_timer_.IsRunning()) {
     save_persistent_data_timer_.Start(
         profile::Profile::instance()
-            ->app_resumption_save_persistent_data_timeout(),
-        true);
+            ->app_resumption_save_persistent_data_timeout(), true);
   }
 }
 
@@ -287,7 +294,6 @@ void ResumeCtrl::StopSavePersistentDataTimer() {
   }
 }
 
-
 void ResumeCtrl::StopRestoreHmiLevelTimer() {
   LOG4CXX_AUTO_TRACE(logger_);
   if (restore_hmi_level_timer_.IsRunning()) {
@@ -295,16 +301,13 @@ void ResumeCtrl::StopRestoreHmiLevelTimer() {
   }
 }
 
-
 bool ResumeCtrl::StartResumption(ApplicationSharedPtr application,
                                  const std::string& hash) {
   bool result = StartResumptionOnlyHMILevel(application);
   if (result) {
     smart_objects::SmartObject saved_app;
     resumption_storage_->GetSavedApplication(
-        application->policy_app_id(),
-        MessageHelper::GetDeviceMacAddressForHandle(application->device()),
-        saved_app);
+        application->policy_app_id(), application->mac_address(), saved_app);
     const std::string& saved_hash = saved_app[strings::hash_id].asString();
     result = saved_hash == hash ? RestoreApplicationData(application) : false;
     application->UpdateHash();
@@ -318,19 +321,22 @@ bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
     LOG4CXX_WARN(logger_, "Application does not exist.");
     return false;
   }
-  LOG4CXX_DEBUG(logger_, "HMI level resumption requested for application id "
-                << application->app_id()
-                << "with hmi_app_id " << application->hmi_app_id()
-                << ", policy_app_id " << application->policy_app_id());
-  if (IsResumeAllowed(application)) {
+  LOG4CXX_DEBUG(logger_,
+                "HMI level resumption requested for application id "
+                    << application->app_id() << "with hmi_app_id "
+                    << application->hmi_app_id() << ", policy_app_id "
+                    << application->policy_app_id());
+  smart_objects::SmartObject saved_app;
+  bool result = resumption_storage_->GetSavedApplication(
+      application->policy_app_id(), application->mac_address(), saved_app);
+  if (result) {
     AddToResumptionTimerQueue(application->app_id());
     LOG4CXX_INFO(logger_, "Resume for application id " << application->app_id()
                           << " has been scheduled.");
     return true;
   }
-  LOG4CXX_INFO(logger_, "Resume for application id " << application->app_id()
-                        << " has been canceled.");
-  return false;
+  LOG4CXX_DEBUG(logger_, "StartResumptionOnlyHMILevel::Result = " << result);
+  return result;
 }
 
 void ResumeCtrl::StartAppHmiStateResumption(ApplicationSharedPtr application) {
@@ -339,21 +345,23 @@ void ResumeCtrl::StartAppHmiStateResumption(ApplicationSharedPtr application) {
   LOG4CXX_AUTO_TRACE(logger_);
   DCHECK_OR_RETURN_VOID(application);
   smart_objects::SmartObject saved_app;
-  bool result = resumption_storage_->GetSavedApplication(application->policy_app_id(),
-        MessageHelper::GetDeviceMacAddressForHandle(application->device()),
-        saved_app);
+  bool result = resumption_storage_->GetSavedApplication(
+      application->policy_app_id(), application->mac_address(), saved_app);
   DCHECK_OR_RETURN_VOID(result);
   const uint32_t ign_off_count = saved_app[strings::ign_off_count].asUInt();
   bool restore_data_allowed = false;
-  restore_data_allowed = CheckAppRestrictions(application, saved_app) &&
-                 ((0 == ign_off_count) || CheckIgnCycleRestrictions(saved_app));
+  restore_data_allowed =
+      CheckAppRestrictions(application, saved_app) &&
+      ((0 == ign_off_count) || CheckIgnCycleRestrictions(saved_app));
   if (restore_data_allowed) {
-    LOG4CXX_INFO(logger_, "Resume application " << application->policy_app_id());
+    LOG4CXX_INFO(logger_,
+                 "Resume application " << application->policy_app_id());
     RestoreAppHMIState(application);
     RemoveApplicationFromSaved(application);
   } else {
-    LOG4CXX_INFO(logger_, "Do not need to resume application with policy id "
-                 << application->policy_app_id());
+    LOG4CXX_INFO(logger_,
+                 "Do not need to resume application with policy id "
+                     << application->policy_app_id());
   }
 }
 
@@ -367,16 +375,17 @@ void ResumeCtrl::ResetLaunchTime() {
   launch_time_ = time(NULL);
 }
 
-bool ResumeCtrl::CheckPersistenceFilesForResumption(ApplicationSharedPtr application) {
+bool ResumeCtrl::CheckPersistenceFilesForResumption(
+    ApplicationSharedPtr application) {
   LOG4CXX_AUTO_TRACE(logger_);
   DCHECK_OR_RETURN(application, false);
-  LOG4CXX_DEBUG(logger_, "Checking persistent data for application id "
-                << application->app_id()
-                << " with policy_app_id = " << application->policy_app_id());
+  LOG4CXX_DEBUG(logger_,
+                "Checking persistent data for application id "
+                    << application->app_id() << " with policy_app_id = "
+                    << application->policy_app_id());
   smart_objects::SmartObject saved_app;
-  bool result = resumption_storage_->GetSavedApplication(application->policy_app_id(),
-        MessageHelper::GetDeviceMacAddressForHandle(application->device()),
-        saved_app);
+  bool result = resumption_storage_->GetSavedApplication(
+      application->policy_app_id(), application->mac_address(), saved_app);
   if (result) {
     if (saved_app.keyExists(strings::application_commands)) {
       if (!CheckIcons(application, saved_app[strings::application_commands])) {
@@ -384,7 +393,8 @@ bool ResumeCtrl::CheckPersistenceFilesForResumption(ApplicationSharedPtr applica
       }
     }
     if (saved_app.keyExists(strings::application_choice_sets)) {
-      if (!CheckIcons(application, saved_app[strings::application_choice_sets])) {
+      if (!CheckIcons(application,
+                      saved_app[strings::application_choice_sets])) {
         return false;
       }
     }
@@ -399,20 +409,21 @@ bool ResumeCtrl::CheckApplicationHash(ApplicationSharedPtr application,
     LOG4CXX_ERROR(logger_, "Application pointer is invalid.");
     return false;
   }
-  LOG4CXX_DEBUG(logger_, "Checking hash " << hash
-                << " for application id " << application->app_id());
+  LOG4CXX_DEBUG(logger_,
+                "Checking hash " << hash << " for application id "
+                                 << application->app_id());
   smart_objects::SmartObject saved_app;
-  bool result = resumption_storage_->GetSavedApplication(application->policy_app_id(),
-        MessageHelper::GetDeviceMacAddressForHandle(application->device()),
-        saved_app);
+  bool result = resumption_storage_->GetSavedApplication(
+      application->policy_app_id(), application->mac_address(), saved_app);
   return result ? saved_app[strings::hash_id].asString() == hash : false;
 }
 
 void ResumeCtrl::SaveDataOnTimer() {
   LOG4CXX_AUTO_TRACE(logger_);
   if (is_resumption_active_) {
-    LOG4CXX_WARN(logger_, "Resumption timer is active - skipping resumption "
-                          "data saving.");
+    LOG4CXX_WARN(logger_,
+                 "Resumption timer is active - skipping resumption "
+                 "data saving.");
     return;
   }
 
@@ -428,27 +439,25 @@ void ResumeCtrl::SaveDataOnTimer() {
 bool ResumeCtrl::IsDeviceMacAddressEqual(ApplicationSharedPtr application,
                                          const std::string& saved_device_mac) {
   LOG4CXX_AUTO_TRACE(logger_);
-  const std::string device_mac =
-      MessageHelper::GetDeviceMacAddressForHandle(application->device());
+  const std::string device_mac = application->mac_address();
   return device_mac == saved_device_mac;
 }
 
-bool ResumeCtrl::RestoreApplicationData(
-    ApplicationSharedPtr application) {
+bool ResumeCtrl::RestoreApplicationData(ApplicationSharedPtr application) {
   LOG4CXX_AUTO_TRACE(logger_);
   if (!application.valid()) {
     LOG4CXX_ERROR(logger_, "Application pointer is invalid.");
     return false;
   }
-  LOG4CXX_DEBUG(logger_, "Restoring application data for application id "
-                << application->app_id());
+  LOG4CXX_DEBUG(logger_,
+                "Restoring application data for application id "
+                    << application->app_id());
 
   smart_objects::SmartObject saved_app(smart_objects::SmartType_Map);
-  bool result = resumption_storage_->GetSavedApplication(application->policy_app_id(),
-      MessageHelper::GetDeviceMacAddressForHandle(application->device()),
-      saved_app);
+  bool result = resumption_storage_->GetSavedApplication(
+      application->policy_app_id(), application->mac_address(), saved_app);
   if (result) {
-    if(saved_app.keyExists(strings::grammar_id)) {
+    if (saved_app.keyExists(strings::grammar_id)) {
       const uint32_t app_grammar_id = saved_app[strings::grammar_id].asUInt();
       application->set_grammar_id(app_grammar_id);
       AddFiles(application, saved_app);
@@ -459,8 +468,9 @@ bool ResumeCtrl::RestoreApplicationData(
       AddSubscriptions(application, saved_app);
       result = true;
     } else {
-      LOG4CXX_WARN(logger_, "Saved data of application does not contain "
-                            << strings::grammar_id << " parameter.");
+      LOG4CXX_WARN(logger_,
+                   "Saved data of application does not contain "
+                       << strings::grammar_id << " parameter.");
       result = false;
     }
   } else {
@@ -469,39 +479,37 @@ bool ResumeCtrl::RestoreApplicationData(
   return result;
 }
 
-
 void ResumeCtrl::AddFiles(ApplicationSharedPtr application,
-                const smart_objects::SmartObject& saved_app) {
+                          const smart_objects::SmartObject& saved_app) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (saved_app.keyExists(strings::application_files)) {
     const smart_objects::SmartObject& application_files =
         saved_app[strings::application_files];
     for (size_t i = 0; i < application_files.length(); ++i) {
-      const smart_objects::SmartObject& file_data =
-          application_files[i];
-      const bool is_persistent = file_data.keyExists(strings::persistent_file) &&
+      const smart_objects::SmartObject& file_data = application_files[i];
+      const bool is_persistent =
+          file_data.keyExists(strings::persistent_file) &&
           file_data[strings::persistent_file].asBool();
       if (is_persistent) {
         AppFile file;
         file.is_persistent = is_persistent;
         file.is_download_complete =
             file_data[strings::is_download_complete].asBool();
-        file.file_name =
-            file_data[strings::sync_file_name].asString();
-        file.file_type = static_cast<mobile_apis::FileType::eType> (
+        file.file_name = file_data[strings::sync_file_name].asString();
+        file.file_type = static_cast<mobile_apis::FileType::eType>(
             file_data[strings::file_type].asInt());
         application->AddFile(file);
       }
     }
   } else {
-    LOG4CXX_FATAL(logger_, strings::application_files
-                  << " section does not exist.");
+    LOG4CXX_FATAL(logger_,
+                  strings::application_files << " section does not exist.");
   }
 }
 
 void ResumeCtrl::AddSubmenues(ApplicationSharedPtr application,
-                                  const smart_objects::SmartObject& saved_app) {
+                              const smart_objects::SmartObject& saved_app) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (saved_app.keyExists(strings::application_submenus)) {
@@ -511,43 +519,43 @@ void ResumeCtrl::AddSubmenues(ApplicationSharedPtr application,
       const smart_objects::SmartObject& submenu = app_submenus[i];
       application->AddSubMenu(submenu[strings::menu_id].asUInt(), submenu);
     }
-    ProcessHMIRequests(MessageHelper::CreateAddSubMenuRequestToHMI(application));
+    ProcessHMIRequests(
+        MessageHelper::CreateAddSubMenuRequestToHMI(application));
   } else {
-    LOG4CXX_FATAL(logger_, strings::application_submenus
-                  << " section does not exist.");
+    LOG4CXX_FATAL(logger_,
+                  strings::application_submenus << " section does not exist.");
   }
 }
 
 void ResumeCtrl::AddCommands(ApplicationSharedPtr application,
-                                 const smart_objects::SmartObject& saved_app) {
+                             const smart_objects::SmartObject& saved_app) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (saved_app.keyExists(strings::application_commands)) {
     const smart_objects::SmartObject& app_commands =
         saved_app[strings::application_commands];
     for (size_t i = 0; i < app_commands.length(); ++i) {
-      const smart_objects::SmartObject& command =
-          app_commands[i];
+      const smart_objects::SmartObject& command = app_commands[i];
 
       application->AddCommand(command[strings::cmd_id].asUInt(), command);
     }
-    ProcessHMIRequests(MessageHelper::CreateAddCommandRequestToHMI(application));
+    ProcessHMIRequests(
+        MessageHelper::CreateAddCommandRequestToHMI(application));
   } else {
-    LOG4CXX_FATAL(logger_, strings::application_commands
-                  << " section does not exist.");
+    LOG4CXX_FATAL(logger_,
+                  strings::application_commands << " section does not exist.");
   }
 }
 
 void ResumeCtrl::AddChoicesets(ApplicationSharedPtr application,
-                                   const smart_objects::SmartObject& saved_app) {
+                               const smart_objects::SmartObject& saved_app) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (saved_app.keyExists(strings::application_choice_sets)) {
     const smart_objects::SmartObject& app_choice_sets =
         saved_app[strings::application_choice_sets];
     for (size_t i = 0; i < app_choice_sets.length(); ++i) {
-      const smart_objects::SmartObject& choice_set =
-          app_choice_sets[i];
+      const smart_objects::SmartObject& choice_set = app_choice_sets[i];
       const int32_t choice_set_id =
           choice_set[strings::interaction_choice_set_id].asInt();
       application->AddChoiceSet(choice_set_id, choice_set);
@@ -555,13 +563,15 @@ void ResumeCtrl::AddChoicesets(ApplicationSharedPtr application,
     ProcessHMIRequests(
         MessageHelper::CreateAddVRCommandRequestFromChoiceToHMI(application));
   } else {
-    LOG4CXX_FATAL(logger_, strings::application_choice_sets
-                  << " section does not exist.");
+    LOG4CXX_FATAL(logger_,
+                  strings::application_choice_sets
+                      << " section does not exist.");
   }
 }
 
-void ResumeCtrl::SetGlobalProperties(ApplicationSharedPtr application,
-                           const smart_objects::SmartObject& saved_app) {
+void ResumeCtrl::SetGlobalProperties(
+    ApplicationSharedPtr application,
+    const smart_objects::SmartObject& saved_app) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (saved_app.keyExists(strings::application_global_properties)) {
@@ -599,7 +609,8 @@ void ResumeCtrl::AddSubscriptions(ApplicationSharedPtr application,
         ivi = static_cast<VehicleDataType>((subscribtions_ivi[i]).asInt());
         application->SubscribeToIVI(ivi);
       }
-       ProcessHMIRequests(MessageHelper::GetIVISubscriptionRequests(application));
+      ProcessHMIRequests(
+          MessageHelper::GetIVISubscriptionRequests(application));
     }
   }
 }
@@ -635,17 +646,19 @@ bool ResumeCtrl::DisconnectedJustBeforeIgnOff(
   time_t ign_off_time =
       static_cast<time_t>(resumption_storage_->GetIgnOffTime());
   const double sec_spent_before_ign = difftime(ign_off_time, time_stamp);
-  LOG4CXX_DEBUG(logger_,"ign_off_time " << ign_off_time
-                << "; app_disconnect_time " << time_stamp
-                << "; sec_spent_before_ign " << sec_spent_before_ign
-                << "; resumption_delay_before_ign " <<
-                Profile::instance()->resumption_delay_before_ign());
+  LOG4CXX_DEBUG(logger_,
+                "ign_off_time "
+                    << ign_off_time << "; app_disconnect_time " << time_stamp
+                    << "; sec_spent_before_ign " << sec_spent_before_ign
+                    << "; resumption_delay_before_ign "
+                    << Profile::instance()->resumption_delay_before_ign());
   return sec_spent_before_ign <=
-      Profile::instance()->resumption_delay_before_ign();
+         Profile::instance()->resumption_delay_before_ign();
 }
 
-bool ResumeCtrl::CheckAppRestrictions(ApplicationConstSharedPtr application,
-                                      const smart_objects::SmartObject& saved_app) {
+bool ResumeCtrl::CheckAppRestrictions(
+    ApplicationConstSharedPtr application,
+    const smart_objects::SmartObject& saved_app) {
   using namespace mobile_apis;
   using namespace helpers;
   LOG4CXX_AUTO_TRACE(logger_);
@@ -653,15 +666,16 @@ bool ResumeCtrl::CheckAppRestrictions(ApplicationConstSharedPtr application,
 
   const HMILevel::eType hmi_level =
       static_cast<HMILevel::eType>(saved_app[strings::hmi_level].asInt());
-  const bool result = Compare<HMILevel::eType, EQ, ONE>(hmi_level,
-                                                        HMILevel::HMI_FULL,
-                                                        HMILevel::HMI_LIMITED)
-                                                        ? true : false;
+  const bool result = Compare<HMILevel::eType, EQ, ONE>(
+                          hmi_level, HMILevel::HMI_FULL, HMILevel::HMI_LIMITED)
+                          ? true
+                          : false;
   if (application) {
     LOG4CXX_DEBUG(logger_,
-                  "Application with policy id " << application->policy_app_id()
-                  << " 'is_media_app' " << application->is_media_application()
-                  << " has saved hmi_level " << hmi_level);
+                  "Application with policy id "
+                      << application->policy_app_id() << " 'is_media_app' "
+                      << application->is_media_application()
+                      << " has saved hmi_level " << hmi_level);
   }
   return result;
 }
@@ -682,12 +696,12 @@ bool ResumeCtrl::CheckDelayAfterIgnOn() {
   const time_t curr_time = time(NULL);
   const time_t sdl_launch_time = launch_time();
   const double seconds_from_sdl_start = difftime(curr_time, sdl_launch_time);
-  const uint32_t wait_time =
-      Profile::instance()->resumption_delay_after_ign();
-  LOG4CXX_DEBUG(logger_, "curr_time " << curr_time
-               << "; sdl_launch_time " << sdl_launch_time
-               << "; seconds_from_sdl_start " << seconds_from_sdl_start
-               << "; wait_time " << wait_time);
+  const uint32_t wait_time = Profile::instance()->resumption_delay_after_ign();
+  LOG4CXX_DEBUG(logger_,
+                "curr_time " << curr_time << "; sdl_launch_time "
+                             << sdl_launch_time << "; seconds_from_sdl_start "
+                             << seconds_from_sdl_start << "; wait_time "
+                             << wait_time);
   return seconds_from_sdl_start <= wait_time;
 }
 
@@ -712,17 +726,18 @@ bool ResumeCtrl::ProcessHMIRequest(smart_objects::SmartObjectSPtr request,
     subscribe_on_event(function_id, hmi_correlation_id);
   }
   if (!ApplicationManagerImpl::instance()->ManageHMICommand(request)) {
-    LOG4CXX_ERROR(logger_,
-                  "Unable to send HMI request during resumption.");
+    LOG4CXX_ERROR(logger_, "Unable to send HMI request during resumption.");
     return false;
   }
   return true;
 }
 
-void ResumeCtrl::ProcessHMIRequests(const smart_objects::SmartObjectList& requests) {
+void ResumeCtrl::ProcessHMIRequests(
+    const smart_objects::SmartObjectList& requests) {
   for (smart_objects::SmartObjectList::const_iterator it = requests.begin(),
-       total = requests.end();
-       it != total; ++it) {
+                                                      total = requests.end();
+       it != total;
+       ++it) {
     ProcessHMIRequest(*it, true);
   }
 }
@@ -732,8 +747,9 @@ void ResumeCtrl::AddToResumptionTimerQueue(const uint32_t app_id) {
   queue_lock_.Acquire();
   waiting_for_timer_.push_back(app_id);
   queue_lock_.Release();
-  LOG4CXX_DEBUG(logger_, "Application ID " << app_id << " have been added"
-                " to resumption queue.");
+  LOG4CXX_DEBUG(logger_,
+                "Application ID " << app_id << " have been added"
+                                               " to resumption queue.");
   if (!is_resumption_active_) {
     is_resumption_active_ = true;
     restore_hmi_level_timer_.Start(
@@ -752,9 +768,10 @@ void ResumeCtrl::LoadResumeData() {
       const std::string device_id = application[strings::device_id].asString();
       const std::string app_id = application[strings::app_id].asString();
       LOG4CXX_INFO(logger_, "Data resumption is expired.");
-      LOG4CXX_DEBUG(logger_, "Resumption data for application " << app_id
-                    << " and device id " << device_id
-                    << " will be dropped.");
+      LOG4CXX_DEBUG(logger_,
+                    "Resumption data for application "
+                        << app_id << " and device id " << device_id
+                        << " will be dropped.");
       resumption_storage_->DropAppDataResumption(device_id, app_id);
       continue;
     }
@@ -762,10 +779,12 @@ void ResumeCtrl::LoadResumeData() {
 }
 
 void ResumeCtrl::OnAppRegistrationStart(const std::string& policy_app_id,
-                                          const std::string& device_id) {
+                                        const std::string& device_id) {
   LOG4CXX_AUTO_TRACE(logger_);
   if (IsApplicationSaved(policy_app_id, device_id)) {
-    LOG4CXX_INFO(logger_, "Application is found in resumption "
+    LOG4CXX_INFO(
+        logger_,
+        "Application is found in resumption "
         "data and will try to resume. Stopping resume data persistent timer");
     StopSavePersistentDataTimer();
   }
@@ -792,8 +811,7 @@ bool ResumeCtrl::IsResumeAllowed(const ApplicationSharedPtr application) const {
   smart_objects::SmartObject saved_app;
   const bool result =
       resumption_storage_->GetSavedApplication(application->policy_app_id(),
-      MessageHelper::GetDeviceMacAddressForHandle(application->device()),
-      saved_app);
+      application->mac_address(), saved_app);
 
   if (!result) {
     LOG4CXX_DEBUG(logger_, "Application has not been found in persisted data.");

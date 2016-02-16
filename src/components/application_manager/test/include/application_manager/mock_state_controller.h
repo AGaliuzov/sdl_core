@@ -45,17 +45,21 @@ namespace components {
 namespace state_controller_test {
 namespace am = application_manager;
 
-class MockStateController :public am::StateController {
+class MockStateController : public am::StateController {
  public:
-  MOCK_METHOD2(SetRegularState, void (
-      am::ApplicationSharedPtr, const mobile_apis::AudioStreamingState::eType));
-  MOCK_METHOD2(SetRegularState, void (
-      am::ApplicationSharedPtr, const mobile_apis::SystemContext::eType));
-  MOCK_METHOD3(OnStateChanged, void (
-      am::ApplicationSharedPtr, am::HmiStatePtr, am::HmiStatePtr));
-  MOCK_METHOD1(ApplyStatesForApp, void (am::ApplicationSharedPtr));
-  MOCK_METHOD0(OnNaviStreamingStarted, void ());
-  MOCK_METHOD0(OnNaviStreamingStopped, void ());
+  MOCK_METHOD2(SetRegularState,
+               void(am::ApplicationSharedPtr,
+                    const mobile_apis::AudioStreamingState::eType));
+  MOCK_METHOD2(SetRegularState,
+               void(am::ApplicationSharedPtr,
+                    const mobile_apis::SystemContext::eType));
+  MOCK_METHOD3(OnStateChanged,
+               void(am::ApplicationSharedPtr,
+                    am::HmiStatePtr,
+                    am::HmiStatePtr));
+  MOCK_METHOD1(ApplyStatesForApp, void(am::ApplicationSharedPtr));
+  MOCK_METHOD0(OnNaviStreamingStarted, void());
+  MOCK_METHOD0(OnNaviStreamingStopped, void());
 };
 
 }  // namespace state_controller_test
