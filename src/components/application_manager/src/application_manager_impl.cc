@@ -2681,15 +2681,14 @@ void ApplicationManagerImpl::EndNaviServices(uint32_t app_id) {
     if (it->second.first) {
       LOG4CXX_DEBUG(logger_, "Going to end video service");
       connection_handler().SendEndService(app_id, ServiceType::kMobileNav);
-      app->set_video_streaming_allowed(false);
       app->StopStreamingForce(ServiceType::kMobileNav);
     }
     if (it->second.second) {
       LOG4CXX_DEBUG(logger_, "Going to end audio service");
       connection_handler().SendEndService(app_id, ServiceType::kAudio);
-      app->set_audio_streaming_allowed(false);
       app->StopStreamingForce(ServiceType::kAudio);
     }
+    DisallowStreaming(app_id);
 
     navi_app_to_stop_.push_back(app_id);
 

@@ -427,20 +427,18 @@ void ApplicationImpl::StopStreaming(
 
 void ApplicationImpl::StopNaviStreaming() {
   LOG4CXX_AUTO_TRACE(logger_);
-    LOG4CXX_TRACE(logger_, "Video streaming approved");
-    video_stream_suspend_timer_.Stop();
-    MessageHelper::SendNaviStopStream(app_id());
-    set_video_streaming_approved(false);
-    set_video_stream_retry_number(0);
+  video_stream_suspend_timer_.Stop();
+  MessageHelper::SendNaviStopStream(app_id());
+  set_video_streaming_approved(false);
+  set_video_stream_retry_number(0);
 }
 
 void ApplicationImpl::StopAudioStreaming() {
-  LOG4CXX_AUTO_TRACE(logger_);
-    LOG4CXX_TRACE(logger_, "Audio streaming approved");
-    audio_stream_suspend_timer_.Stop();
-    MessageHelper::SendAudioStopStream(app_id());
-    set_audio_streaming_approved(false);
-    set_audio_stream_retry_number(0);
+  LOG4CXX_AUTO_TRACE(logger_);    
+  audio_stream_suspend_timer_.Stop();
+  MessageHelper::SendAudioStopStream(app_id());
+  set_audio_streaming_approved(false);
+  set_audio_stream_retry_number(0);
 }
 
 void ApplicationImpl::SuspendStreaming(

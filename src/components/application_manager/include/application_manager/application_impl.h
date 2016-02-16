@@ -305,12 +305,12 @@ class ApplicationImpl : public virtual InitialApplicationDataImpl,
   /**
    * @brief Stops video streaming for application
    */
-  void StopNaviStreaming();
+  inline void StopNaviStreaming();
 
   /**
    * @brief Stops audio streaming for application
    */
-  void StopAudioStreaming();
+  inline void StopAudioStreaming();
 
   /**
    * @brief Callback for audio streaming suspend timer.
