@@ -330,9 +330,10 @@ bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
       AddToResumptionTimerQueue(application->app_id());
       LOG4CXX_INFO(logger_, "Resume for application id " << application->app_id()
                             << " has been scheduled.");
+    return true;
   }
-  LOG4CXX_DEBUG(logger_, "StartResumptionOnlyHMILevel::Result = " << result);
-  return result;
+  LOG4CXX_DEBUG(logger_, "StartResumptionOnlyHMILevel failed");
+  return false;
 }
 
 void ResumeCtrl::StartAppHmiStateResumption(ApplicationSharedPtr application) {
