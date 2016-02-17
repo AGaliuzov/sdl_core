@@ -1099,6 +1099,7 @@ void ApplicationManagerImpl::StopNaviService(
     LOG4CXX_WARN(logger_, "An application is not registered.");
     return;
   }
+
   app->StopStreaming(service_type);
 }
 
@@ -2680,10 +2681,12 @@ void ApplicationManagerImpl::EndNaviServices(uint32_t app_id) {
     if (it->second.first) {
       LOG4CXX_DEBUG(logger_, "Going to end video service");
       connection_handler().SendEndService(app_id, ServiceType::kMobileNav);
+      app->StopStreamingForce(ServiceType::kMobileNav);
     }
     if (it->second.second) {
       LOG4CXX_DEBUG(logger_, "Going to end audio service");
       connection_handler().SendEndService(app_id, ServiceType::kAudio);
+      app->StopStreamingForce(ServiceType::kAudio);
     }
     DisallowStreaming(app_id);
 
