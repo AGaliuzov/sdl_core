@@ -1022,8 +1022,10 @@ MessageHelper::CreateAddVRCommandRequestFromChoiceToHMI(
   const ChoiceSetMap& choices = accessor.GetData();
   ChoiceSetMap::const_iterator it = choices.begin();
   for (; choices.end() != it; ++it) {
-    const uint32_t choice_grammar_id =
-        (*(it->second))[strings::grammar_id].asUInt();
+    if (!((*(it->second)).keyExists(strings::grammar_id))) {
+      continue;
+    }
+    const uint32_t choice_grammar_id = (*(it->second))[strings::grammar_id].asUInt();
     const size_t size = (*(it->second))[strings::choice_set].length();
     for (size_t j = 0; j < size; ++j) {
       smart_objects::SmartObjectSPtr vr_command = CreateRequestObject();

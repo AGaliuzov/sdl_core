@@ -50,7 +50,8 @@ CreateInteractionChoiceSetRequest::CreateInteractionChoiceSetRequest(
     received_chs_count_(0),
     expected_chs_count_(0),
     error_from_hmi_(false),
-    is_warning_from_hmi_(false) {
+    is_warning_from_hmi_(false),
+    amount_vr_commands_(0) {
 }
 
 CreateInteractionChoiceSetRequest::~CreateInteractionChoiceSetRequest() {
@@ -108,10 +109,17 @@ void CreateInteractionChoiceSetRequest::Run() {
     SendResponse(false, result);
     return;
   }
-  uint32_t grammar_id = ApplicationManagerImpl::instance()->GenerateGrammarID();
-  (*message_)[strings::msg_params][strings::grammar_id] = grammar_id;
-  app->AddChoiceSet(choice_set_id_, (*message_)[strings::msg_params]);
-  SendVRAddCommandRequests(app);
+
+  if (amount_vr_commands_) {
+    uint32_t grammar_id = ApplicationManagerImpl::instance()->GenerateGrammarID();
+    (*message_)[strings::msg_params][strings::grammar_id] = grammar_id;
+    app->AddChoiceSet(choice_set_id_, (*message_)[strings::msg_params]);
+    SendVRAddCommandRequests(app);
+  } else {
+    app->AddChoiceSet(choice_set_id_, (*message_)[strings::msg_params]);
+    SendResponse(true, Result::SUCCESS);
+    app->UpdateHash();
+  }
 }
 
 mobile_apis::Result::eType CreateInteractionChoiceSetRequest::CheckChoiceSet(
@@ -121,31 +129,36 @@ mobile_apis::Result::eType CreateInteractionChoiceSetRequest::CheckChoiceSet(
 
   std::set<uint32_t> choice_id_set;
 
-  const SmartArray* choice_set =
-      (*message_)[strings::msg_params][strings::choice_set].asArray();
+  const smart_objects::SmartObject& choice_set =
+      (*message_)[strings::msg_params][strings::choice_set];
+  const size_t choice_set_length = choice_set.length();
 
-  SmartArray::const_iterator choice_set_it = choice_set->begin();
-
-  for (; choice_set->end() != choice_set_it; ++choice_set_it) {
+  for (size_t i = 0; i < choice_set_length; ++i ) {
     std::pair<std::set<uint32_t>::iterator, bool> ins_res =
-        choice_id_set.insert((*choice_set_it)[strings::choice_id].asInt());
+        choice_id_set.insert(choice_set[i][strings::choice_id].asInt());
     if (!ins_res.second) {
       LOG4CXX_ERROR(logger_, "Choise with ID "
-                    << (*choice_set_it)[strings::choice_id].asInt()
+                    << choice_set[i][strings::choice_id].asInt()
                     << " already exists");
       return mobile_apis::Result::INVALID_ID;
     }
 
-    if (IsWhiteSpaceExist(*choice_set_it)) {
+    if (IsWhiteSpaceVRCommandsExist(choice_set[i])) {
       LOG4CXX_ERROR(logger_,
                     "Incoming choice set has contains \t\n \\t \\n");
+      return mobile_apis::Result::INVALID_DATA;
+    }
+
+    if (amount_vr_commands_ && i+1 != amount_vr_commands_) {
+      LOG4CXX_ERROR(logger_,
+                    "ChoiceSet contains vrcommands partly");
       return mobile_apis::Result::INVALID_DATA;
     }
   }
   return mobile_apis::Result::SUCCESS;
 }
 
-bool CreateInteractionChoiceSetRequest::IsWhiteSpaceExist(
+bool CreateInteractionChoiceSetRequest::IsWhiteSpaceVRCommandsExist(
   const smart_objects::SmartObject& choice_set) {
   LOG4CXX_AUTO_TRACE(logger_);
   const char* str = NULL;
@@ -173,6 +186,7 @@ bool CreateInteractionChoiceSetRequest::IsWhiteSpaceExist(
   }
 
   if (choice_set.keyExists(strings::vr_commands)) {
+    ++amount_vr_commands_;
     const size_t len =
       choice_set[strings::vr_commands].length();
 
