@@ -743,7 +743,7 @@ TEST_F(TransportManagerImplTest, CheckReceiveFailedEvent) {
   // Check before act
   HandleConnection();
   // Act and Assert
-  EXPECT_CALL(*tm_listener_, OnTMMessageReceiveFailed(connection_key_, _));
+  EXPECT_CALL(*tm_listener_, OnTMMessageReceiveFailed(_));
   tm_.TestHandle(test_event);
 }
 
