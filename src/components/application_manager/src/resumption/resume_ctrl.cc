@@ -326,14 +326,10 @@ bool ResumeCtrl::StartResumptionOnlyHMILevel(ApplicationSharedPtr application) {
                     << application->app_id() << "with hmi_app_id "
                     << application->hmi_app_id() << ", policy_app_id "
                     << application->policy_app_id());
-  smart_objects::SmartObject saved_app;
-  bool result = resumption_storage_->GetSavedApplication(
-      application->policy_app_id(), application->mac_address(), saved_app);
-  if (result) {
-    AddToResumptionTimerQueue(application->app_id());
-    LOG4CXX_INFO(logger_, "Resume for application id " << application->app_id()
-                          << " has been scheduled.");
-    return true;
+  if (IsResumeAllowed(application)) {
+      AddToResumptionTimerQueue(application->app_id());
+      LOG4CXX_INFO(logger_, "Resume for application id " << application->app_id()
+                            << " has been scheduled.");
   }
   LOG4CXX_DEBUG(logger_, "StartResumptionOnlyHMILevel::Result = " << result);
   return result;
