@@ -57,26 +57,33 @@ PipeStreamerAdapter::PipeStreamer::PipeStreamer(
   : Streamer(adapter),
     named_pipe_path_(named_pipe_path),
     pipe_fd_(0) {
-}
-
-PipeStreamerAdapter::PipeStreamer::~PipeStreamer() {
-}
-
-bool PipeStreamerAdapter::PipeStreamer::Connect() {
-  LOG4CXX_AUTO_TRACE(logger_);
   if (!file_system::CreateDirectoryRecursively(
       profile::Profile::instance()->app_storage_folder())) {
-    LOG4CXX_ERROR(logger_, "Cannot create app folder");
-    return false;
+    LOG4CXX_ERROR(logger_, "Cannot create app storage folder "
+                  << profile::Profile::instance()->app_storage_folder() );
+    return;
   }
 
   if ((mkfifo(named_pipe_path_.c_str(),
               S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) < 0)
       && (errno != EEXIST)) {
-    LOG4CXX_ERROR(logger_, "Cannot create pipe "
-                  << named_pipe_path_);
-    return false;
+    LOG4CXX_ERROR(logger_, "Cannot create pipe " << named_pipe_path_);
+  } else {
+    LOG4CXX_INFO(logger_, "Pipe " << named_pipe_path_
+                 << " was successfully created");
   }
+}
+
+PipeStreamerAdapter::PipeStreamer::~PipeStreamer() {
+  if (0 == unlink(named_pipe_path_.c_str()) ) {
+    LOG4CXX_INFO(logger_, "Pipe " << named_pipe_path_ << " was removed");
+  } else {
+    LOG4CXX_ERROR(logger_, "Error removing pipe " << named_pipe_path_);
+  }
+}
+
+bool PipeStreamerAdapter::PipeStreamer::Connect() {
+  LOG4CXX_AUTO_TRACE(logger_);
 
   pipe_fd_ = open(named_pipe_path_.c_str(), O_RDWR, 0);
   if (-1 == pipe_fd_) {
@@ -86,14 +93,17 @@ bool PipeStreamerAdapter::PipeStreamer::Connect() {
   }
 
   LOG4CXX_INFO(logger_, "Pipe " << named_pipe_path_
-                << " was successfuly created");
+                << " was successfuly opened for writing");
   return true;
 }
 
 void PipeStreamerAdapter::PipeStreamer::Disconnect() {
   LOG4CXX_AUTO_TRACE(logger_);
-  close(pipe_fd_);
-  unlink(named_pipe_path_.c_str());
+  if (0 == close(pipe_fd_)) {
+    LOG4CXX_INFO(logger_, "Pipe " << named_pipe_path_ << " was closed");
+  } else {
+    LOG4CXX_ERROR(logger_, "Error closing pipe " << named_pipe_path_);
+  }
 }
 
 bool PipeStreamerAdapter::PipeStreamer::Send(
