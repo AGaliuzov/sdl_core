@@ -84,8 +84,13 @@ class StateController : public event_engine::EventObserver {
       return;
     }
 
-    if (SendActivateApp) {
-      const hmi_apis::Common_HMILevel::eType hmi_level =
+    const bool is_full_allowed =
+            mobile_apis::HMILevel::HMI_FULL == resolved_state->hmi_level()
+            ? true
+            : false;
+
+    if (SendActivateApp && is_full_allowed) {
+        const hmi_apis::Common_HMILevel::eType hmi_level =
           static_cast<hmi_apis::Common_HMILevel::eType>(
               resolved_state->hmi_level());
       int64_t corr_id = SendBCActivateApp(app, hmi_level, true);
