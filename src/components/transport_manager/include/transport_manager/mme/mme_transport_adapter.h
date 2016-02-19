@@ -43,7 +43,7 @@ namespace transport_adapter {
  */
 class MmeTransportAdapter : public TransportAdapterImpl {
  public:
-  MmeTransportAdapter();
+  MmeTransportAdapter(resumption::LastState& last_state);
 
  protected:
   virtual DeviceType GetDeviceType() const;

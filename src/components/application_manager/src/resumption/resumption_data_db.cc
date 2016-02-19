@@ -52,7 +52,8 @@ const std::string kDatabaseName = "resumption";
 namespace resumption {
 CREATE_LOGGERPTR_GLOBAL(logger_, "Resumption")
 
-ResumptionDataDB::ResumptionDataDB(DbStorage db_storage) {
+ResumptionDataDB::ResumptionDataDB(DbStorage db_storage)
+    : ResumptionData() {
   if (db_storage == In_File_Storage) {
     db_ = new utils::dbms::SQLDatabase(kDatabaseName);
 #ifndef __QNX__
@@ -240,7 +241,6 @@ void ResumptionDataDB::OnSuspend() {
       LOG4CXX_INFO(logger_, "Data last_ign_off_time was updated");
     }
   }
-  WriteDb();
 }
 
 bool ResumptionDataDB::DeleteAppWithIgnCount(const int application_lifes) {
@@ -610,6 +610,10 @@ void ResumptionDataDB::UpdateHmiLevel(const std::string& policy_app_id,
       WriteDb();
     }
   }
+}
+
+void ResumptionDataDB::Persist() {
+    WriteDb();
 }
 
 bool ResumptionDataDB::RefreshDB() const {

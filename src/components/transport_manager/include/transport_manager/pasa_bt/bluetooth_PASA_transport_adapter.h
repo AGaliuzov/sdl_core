@@ -35,6 +35,11 @@
 
 #include "transport_manager/transport_adapter/transport_adapter_impl.h"
 
+
+namespace resumption {
+class LastState;
+}
+
 namespace transport_manager {
 namespace transport_adapter {
 /**
@@ -45,7 +50,7 @@ class BluetoothPASATransportAdapter : public TransportAdapterImpl {
   /**
    * @brief Constructor.
    */
-  BluetoothPASATransportAdapter();
+  BluetoothPASATransportAdapter(resumption::LastState& last_state);
 
  protected:
   /**

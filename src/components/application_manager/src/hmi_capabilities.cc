@@ -260,9 +260,6 @@ HMICapabilities::HMICapabilities(ApplicationManagerImpl* const app_mngr)
     is_navi_cooperating_ = true;
     is_ivi_cooperating_ = true;
   }
-
-  hmi_language_handler_.set_default_capabilities_languages(
-        ui_language_, vr_language_, tts_language_);
 }
 
 HMICapabilities::~HMICapabilities() {
@@ -575,7 +572,13 @@ void HMICapabilities::set_navigation_supported(bool supported) {
   is_navigation_supported_ = supported;
 }
 void HMICapabilities::set_phone_call_supported(bool supported) {
-  is_phone_call_supported_ = supported;
+    is_phone_call_supported_ = supported;
+}
+
+void HMICapabilities::Init(resumption::LastState *last_state) {    
+    hmi_language_handler_.Init(last_state);
+    hmi_language_handler_.set_default_capabilities_languages(
+          ui_language_, vr_language_, tts_language_);
 }
 
 bool HMICapabilities::load_capabilities_from_file() {

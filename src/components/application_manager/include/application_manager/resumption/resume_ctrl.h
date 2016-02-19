@@ -55,6 +55,8 @@ class Application;
 
 namespace resumption {
 
+class LastState;
+
 /**
  * @brief Contains logic for storage/restore data of applications.
  */
@@ -258,7 +260,7 @@ class ResumeCtrl : public app_mngr::event_engine::EventObserver {
    * @return true if initialization is success otherwise
    * returns false
    */
-  bool Init();
+  bool Init(LastState &last_state);
 
   /**
    * @brief Notify resume controller about new application

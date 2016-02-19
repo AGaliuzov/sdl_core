@@ -20,13 +20,13 @@ DEFS += \
 # Set local includes and then the reference includes (priority order determines search path)
 # Default pattern are any configuration includes (which would be things like qnx), local (Team) component directories,
 # dependencies includes (other teams)
-# Local (current component references should be in the form of 
+# Local (current component references should be in the form of
 #  $(CC_IFLAG)$(TEAM_ROOT)$(COMPONENT_NAME)/directory
 #  Example your public include directory would be
 #  $(CC_IFLAG)$(TEAM_ROOT)$(COMPONENT_NAME)/inc
 # Team references should only be to other's public includes such as
 #  $(CC_IFLAG)$(TEAM_ROOT)NS_MessageCenter/inc
-# Global (non-team) references should be only to other's public includes such 
+# Global (non-team) references should be only to other's public includes such
 #  these are found in the depends include file and captured in the (DEPENDS_INCLUDES) variable
 INCLUDES = \
  $(CFG_INCS) \
@@ -39,19 +39,19 @@ INCLUDES = \
  $(CC_IFLAG)../../transport_manager/include \
  $(CC_IFLAG)../../resumption/include \
  $(CC_IFLAG)../../utils/include \
- $(CC_IFLAG)../../../3rd_party-static/jsoncpp/include/json \
+ $(CC_IFLAG)../../../3rd_party-static/jsoncpp/include \
  $(CC_IFLAG)../../../3rd_party/log4cxx/include \
  $(DEPENDS_INCLUDES)
 
 
 # Do the same if you need to include library paths as well
 #  Do an incremental in case additional library paths are defined
-#  at the top-level make.  Use similar guidelines as for includes 
-#  for example to include a team component library it would be 
+#  at the top-level make.  Use similar guidelines as for includes
+#  for example to include a team component library it would be
 #  $(TEAM_ROOT)NS_MessageCenter/lib/NS_MessageCenter/
 LIB_PATHS += \
   $(DEPENDS_LIB_PATHS)
-  
+
 
 # Define binary outputs.  These can be libraries or executables.
 #  Name a variable for each deliverable.  Suffixes should be
@@ -71,14 +71,14 @@ COMPONENT_LIB = $(LIB_PATH)$(LIB_PREFIX)$(COMPONENT_NAME)$(DEBUG_EXT).$(LIB_EXT)
 # Define Library & Executable Sources (on a per deliverable basis)
 #  This includes sources located in subdirectories.
 
-# Define generic line that pulls all c, cc, cpp files 
+# Define generic line that pulls all c, cc, cpp files
 # since your in the src folder is pull only files from there
 COMPONENT_SRCS = \
 	$(wildcard *.c*)
-	
+
 
 # Define sources that my not be local to your component
-# here, you can define indivial files or wildcard from 
+# here, you can define indivial files or wildcard from
 # a different folder.
 NON_LOCAL_SRCS = \
 	$(wildcard transport_adapter/*.c*) \
@@ -89,7 +89,7 @@ NON_LOCAL_SRCS = \
 ifdef BUILD_AOA_SUPPORT
 NON_LOCAL_SRCS += $(wildcard aoa/*.c*)
 endif
- 
+
  .NOTPARALLEL:
 
 # List of all sources to be built.  Can be assembled from the other defintitions.
@@ -121,7 +121,7 @@ ALL_OBJECTS = \
 	$(addprefix $(abspath $(BLD_PATH))/,$(addsuffix .$(OBJ_EXT),$(basename $(NON_LOCAL_SRCS) ) ) ) \
 				$(OBJECTS)
 
-	
+
 # All headers that are dependencies.  Wildcard is easy to pickup local headers.
 #  This is only to automate the rebuilding, all builds on the servers are cleans
 #  So this is not a huge deal when building on a component level.
@@ -136,7 +136,7 @@ HEADERS = \
 	$(wildcard ../../utils/include/utils/*.h*) \
 	$(wildcard ../../utils/include/utils/threads/*.h*) \
 	$(wildcard ../../../3rd_party-static/jsoncpp/include/json/*.h*) \
-	
+
 LIBRARIES = \
 	$(COMPONENT_LIB)
 
@@ -145,7 +145,7 @@ LIBRARIES = \
 #  Standard
 all: banner module_dirs subdirs local library binary
 
-debug: 
+debug:
 	$(MAKE) TARGET=arm DEBUG=TRUE all
 
 base: banner module_dirs subdirs local
@@ -171,24 +171,24 @@ $(COMPONENT_LIB): $(ALL_OBJECTS)
 
 # Standard set of derived targets
 library: base \
-	$(LIBRARIES) 
-	@echo "***** `date` Done building library: $(COMPONENT_NAME) ******" 
+	$(LIBRARIES)
+	@echo "***** `date` Done building library: $(COMPONENT_NAME) ******"
 
 binary: base \
 	$(BINARIES)
 
 # Subdirs should be to jump to subdirectories
 #  standard form is of
-#  $(MAKE) -C subdirectory_name $(MAKECMDGOALS) 
+#  $(MAKE) -C subdirectory_name $(MAKECMDGOALS)
 subdirs:
 	$(MAKE) -C transport_adapter $(MAKECMDGOALS)
 	$(MAKE) -C tcp $(MAKECMDGOALS)
-	$(MAKE) -C pasa_bt $(MAKECMDGOALS) 
+	$(MAKE) -C pasa_bt $(MAKECMDGOALS)
 	$(MAKE) -C mme $(MAKECMDGOALS)
 ifdef BUILD_AOA_SUPPORT
 	$(MAKE) -C aoa $(MAKECMDGOALS)
 endif
-	
+
 clean:
 	-rm -f $(BINARIES)
 	-rm -f $(LIBRARIES)
@@ -197,7 +197,7 @@ clean:
 	@echo "sources: --> $(SOURCES)"
 	@echo "headers: --> $(HEADERS)"
 	@echo "includes: --> $(INCLUDES)"
-	@echo "lib: --> $(LIBRARIES)" 
+	@echo "lib: --> $(LIBRARIES)"
 	@echo "bin: --> $(BINARIES)"
 
 

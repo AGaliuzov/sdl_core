@@ -44,7 +44,7 @@ namespace transport_adapter {
 
 class AOATransportAdapter : public TransportAdapterImpl {
  public:
-  AOATransportAdapter();
+  AOATransportAdapter(resumption::LastState& last_state);
   ~AOATransportAdapter();
   void Terminate() OVERRIDE;
   void RemoveDevice(const DeviceUID& device_handle);

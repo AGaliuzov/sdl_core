@@ -216,7 +216,7 @@ class ApplicationManagerImpl
  public:
   ~ApplicationManagerImpl();
 
-  bool Init() OVERRIDE;
+  bool Init(resumption::LastState& last_state) OVERRIDE;
   bool Stop() OVERRIDE;
 
   DataAccessor<ApplicationSet> applications() const OVERRIDE;

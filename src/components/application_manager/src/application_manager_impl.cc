@@ -62,7 +62,6 @@
 #include "policy/usage_statistics/counter.h"
 #include "utils/custom_string.h"
 #ifdef CUSTOMER_PASA
-#include "resumption/last_state.h"
 #endif  // CUSTOMER_PASA
 #include <time.h>
 
@@ -1630,7 +1629,7 @@ bool ApplicationManagerImpl::ManageHMICommand(
   return false;
 }
 
-bool ApplicationManagerImpl::Init() {
+bool ApplicationManagerImpl::Init(resumption::LastState& last_state) {
   LOG4CXX_TRACE(logger_, "Init application manager");
   const std::string app_storage_folder =
       profile::Profile::instance()->app_storage_folder();
@@ -1643,10 +1642,12 @@ bool ApplicationManagerImpl::Init() {
       return false;
     }
   }
-  if (!resume_ctrl_.Init()) {
+  if (!resume_ctrl_.Init(last_state)) {
     LOG4CXX_ERROR(logger_, "Problem with initialization of resume controller");
     return false;
   }
+
+  hmi_capabilities_.Init(&last_state);
 
   if (!(file_system::IsWritingAllowed(app_storage_folder) &&
         file_system::IsReadingAllowed(app_storage_folder))) {

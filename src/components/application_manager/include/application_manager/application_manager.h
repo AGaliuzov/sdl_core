@@ -45,6 +45,10 @@
 #include "utils/shared_ptr.h"
 #include "telemetry_monitor/telemetry_observable.h"
 
+namespace resumption {
+class LastState;
+}
+
 // Other compomnents class declaration
 namespace hmi_message_handler {
 class HMIMessageHandler;
@@ -81,7 +85,7 @@ class ApplicationManager {
   /**
    * Inits application manager
    */
-  virtual bool Init() = 0;
+  virtual bool Init(resumption::LastState& last_state) = 0;
 
   /**
    * @brief Stop work.

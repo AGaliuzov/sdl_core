@@ -198,6 +198,8 @@ class ResumptionDataDB : public ResumptionData {
                               const std::string& device_id,
                               mobile_apis::HMILevel::eType hmi_level);
 
+  void Persist() OVERRIDE;
+
   /**
    * @brief Re-creates and re-init DB
    * @return true if success, otherwise - false
