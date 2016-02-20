@@ -90,6 +90,7 @@ inline uint32_t read_be_uint32(const uint8_t* const data) {
 void ProtocolPacket::ProtocolHeader::deserialize(
     const uint8_t* message, const size_t messageSize) {
   LOG4CXX_AUTO_TRACE(logger_);
+  DCHECK_OR_RETURN_VOID(message);
   if (messageSize < PROTOCOL_HEADER_V1_SIZE) {
     LOG4CXX_DEBUG(logger_, "Message size less " << PROTOCOL_HEADER_V1_SIZE << " bytes");
     return;
@@ -367,6 +368,7 @@ bool ProtocolPacket::operator==(const ProtocolPacket& other) const {
 RESULT_CODE ProtocolPacket::deserializePacket(
     const uint8_t *message, const size_t messageSize) {
   LOG4CXX_AUTO_TRACE(logger_);
+  DCHECK_OR_RETURN(message, RESULT_FAIL);
   packet_header_.deserialize(message, messageSize);
   const uint8_t offset =
       packet_header_.version == PROTOCOL_VERSION_1 ? PROTOCOL_HEADER_V1_SIZE
@@ -399,7 +401,9 @@ RESULT_CODE ProtocolPacket::deserializePacket(
     total_data_bytes |= data[3];
     set_total_data_bytes(total_data_bytes);
     if (0 == packet_data_.data) {
-      delete[] data;
+      if (data) {
+        delete[] data;
+      }
       return RESULT_FAIL;
     }
   } else {
