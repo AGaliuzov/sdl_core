@@ -36,13 +36,16 @@
 
 #include <string.h>
 #include "application_manager/commands/command_request_impl.h"
+#include "application_manager/policies/policy_handler_interface.h"
 #include "utils/macro.h"
 #include "utils/custom_string.h"
 
 namespace policy {
 struct DeviceInfo;
 }
-
+namespace policy {
+class PolicyHandler;
+}
 namespace application_manager {
 
 class Application;
@@ -167,6 +170,7 @@ class RegisterAppInterfaceRequest : public CommandRequestImpl {
   std::string response_info_;
   mobile_apis::Result::eType result_checking_app_hmi_type_;
 
+  policy::PolicyHandlerInterface &GetPolicyHandler();
   DISALLOW_COPY_AND_ASSIGN(RegisterAppInterfaceRequest);
 };
 

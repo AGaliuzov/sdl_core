@@ -41,10 +41,10 @@
 #include "application_manager/application_manager_impl.h"
 #include "application_manager/application_impl.h"
 #include "application_manager/message_helper.h"
-#include "application_manager/policies/policy_handler.h"
 #include "config_profile/profile.h"
 #include "interfaces/MOBILE_API.h"
 #include "interfaces/generated_msg_version.h"
+#include "application_manager/policies/policy_handler_interface.h"
 namespace {
 
 namespace custom_str = utils::custom_string;
@@ -224,7 +224,7 @@ void RegisterAppInterfaceRequest::Run() {
     LOG4CXX_ERROR(logger_, "Coincidence check failed.");
     if (mobile_apis::Result::DUPLICATE_NAME == coincidence_result) {
       usage_statistics::AppCounter count_of_rejections_duplicate_name(
-          policy::PolicyHandler::instance()->GetStatisticManager(),
+          GetPolicyHandler().GetStatisticManager(),
           policy_app_id,
           usage_statistics::REJECTIONS_DUPLICATE_NAME);
       ++count_of_rejections_duplicate_name;
@@ -319,7 +319,7 @@ void RegisterAppInterfaceRequest::Run() {
     FillDeviceInfo(&device_info);
   }
 
-  policy::PolicyHandler::instance()->SetDeviceInfo(device_mac, device_info);
+  GetPolicyHandler().SetDeviceInfo(device_mac, device_info);
 
   SendRegisterAppInterfaceResponseToMobile();
 }
@@ -485,11 +485,9 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile() {
   if (hmi_capabilities.vehicle_type()) {
     using namespace hmi_response;
     smart_objects::SmartObject& vehicle_type_so = response_params[vehicle_type];
-
     vehicle_type_so = *hmi_capabilities.vehicle_type();
 
-    policy::VehicleInfo vehicle_info =
-        policy::PolicyHandler::instance()->GetVehicleInfo();
+    policy::VehicleInfo vehicle_info = GetPolicyHandler().GetVehicleInfo();
 
     CheckResponseVehicleTypeParam(
         vehicle_type_so, vehicle_make, vehicle_info.vehicle_make);
@@ -514,7 +512,9 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile() {
                "Will try to replace with policy table values, if present.");
 
     policy::VehicleInfo vehicle_info =
-        policy::PolicyHandler::instance()->GetVehicleInfo();
+        application_manager::ApplicationManagerImpl::instance()
+            ->GetPolicyHandler()
+            .GetVehicleInfo();
 
     if (!vehicle_info.vehicle_make.empty()) {
       response_params[vehicle_type][vehicle_make] = vehicle_info.vehicle_make;
@@ -550,8 +550,8 @@ void RegisterAppInterfaceRequest::SendRegisterAppInterfaceResponseToMobile() {
       hmi_capabilities.phone_call_supported();
   response_params[strings::sdl_version] =
       profile::Profile::instance()->sdl_version();
-  const std::string ccpu_version =
-      policy::PolicyHandler::instance()->GetMetaInfo().ccpu_version;
+  const std::string ccpu_version = GetPolicyHandler().GetMetaInfo()
+          .ccpu_version;
   if (!ccpu_version.empty()) {
     response_params[strings::system_software_version] = ccpu_version;
   }
@@ -628,7 +628,6 @@ void RegisterAppInterfaceRequest::SendOnAppRegisteredNotificationToHMI(
     bool resumption,
     bool need_restore_vr) {
   using namespace smart_objects;
-
   SmartObjectSPtr notification = utils::MakeShared<SmartObject>(SmartType_Map);
   if (!notification) {
     LOG4CXX_ERROR(logger_, "Failed to create smart object");
@@ -660,8 +659,7 @@ void RegisterAppInterfaceRequest::SendOnAppRegisteredNotificationToHMI(
   }
 
   std::string priority;
-  policy::PolicyHandler::instance()->GetPriority(
-      application_impl.policy_app_id(), &priority);
+  GetPolicyHandler().GetPriority(application_impl.policy_app_id(), &priority);
   if (!priority.empty()) {
     msg_params[strings::priority] = MessageHelper::GetPriorityCode(priority);
   }
@@ -691,7 +689,7 @@ void RegisterAppInterfaceRequest::SendOnAppRegisteredNotificationToHMI(
   }
 
   std::vector<std::string> request_types =
-      policy::PolicyHandler::instance()->GetAppRequestTypes(
+      GetPolicyHandler().GetAppRequestTypes(
           application_impl.policy_app_id());
 
   application[strings::request_type] = SmartObject(SmartType_Array);
@@ -726,7 +724,7 @@ void RegisterAppInterfaceRequest::SendOnAppRegisteredNotificationToHMI(
   device_info[strings::id] = mac_address;
 
   const policy::DeviceConsent device_consent =
-      policy::PolicyHandler::instance()->GetUserConsentForDevice(mac_address);
+      GetPolicyHandler().GetUserConsentForDevice(mac_address);
   device_info[strings::isSDLAllowed] =
       policy::DeviceConsent::kDeviceAllowed == device_consent;
 
@@ -790,7 +788,7 @@ mobile_apis::Result::eType RegisterAppInterfaceRequest::CheckWithPolicyData() {
   // TODO(AOleynik): Check is necessary to allow register application in case
   // of disabled policy
   // Remove this check, when HMI will support policy
-  if (!policy::PolicyHandler::instance()->PolicyEnabled()) {
+  if (!GetPolicyHandler().PolicyEnabled()) {
     return mobile_apis::Result::WARNINGS;
   }
 
@@ -800,7 +798,7 @@ mobile_apis::Result::eType RegisterAppInterfaceRequest::CheckWithPolicyData() {
 
   const std::string& policy_app_id =
       message[strings::msg_params][strings::app_id].asString();
-  const bool init_result = policy::PolicyHandler::instance()->GetInitialAppData(
+  const bool init_result = GetPolicyHandler().GetInitialAppData(
       policy_app_id, &app_nicknames, &app_hmi_types);
 
   if (!init_result) {
@@ -819,7 +817,7 @@ mobile_apis::Result::eType RegisterAppInterfaceRequest::CheckWithPolicyData() {
       // App should be unregistered, if its name is not present in nicknames
       // list
       usage_statistics::AppCounter count_of_rejections_nickname_mismatch(
-          policy::PolicyHandler::instance()->GetStatisticManager(),
+          GetPolicyHandler().GetStatisticManager(),
           policy_app_id,
           usage_statistics::REJECTIONS_NICKNAME_MISMATCH);
       ++count_of_rejections_nickname_mismatch;
@@ -1072,6 +1070,11 @@ void RegisterAppInterfaceRequest::SendSubscribeCustomButtonNotification() {
   msg_params[strings::name] = Common_ButtonName::CUSTOM_BUTTON;
   msg_params[strings::is_suscribed] = true;
   CreateHMINotification(FunctionID::Buttons_OnButtonSubscription, msg_params);
+}
+
+policy::PolicyHandlerInterface& RegisterAppInterfaceRequest::GetPolicyHandler() {
+  return application_manager::ApplicationManagerImpl::instance()
+      ->GetPolicyHandler();
 }
 
 }  // namespace commands

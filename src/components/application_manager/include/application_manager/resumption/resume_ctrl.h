@@ -45,7 +45,7 @@
 #include "application_manager/event_engine/event_observer.h"
 #include "smart_objects/smart_object.h"
 #include "application_manager/application.h"
-#include "resumption_data.h"
+#include "application_manager/resumption/resumption_data.h"
 #include "utils/timer.h"
 
 namespace application_manager {

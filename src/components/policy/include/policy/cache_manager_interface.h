@@ -39,6 +39,7 @@
 #include "utils/shared_ptr.h"
 #include "usage_statistics/counter.h"
 #include "policy/policy_types.h"
+#include "policy/policy_settings.h"
 
 namespace policy_table = rpc::policy_table_interface_base;
 
@@ -165,13 +166,14 @@ class CacheManagerInterface {
    * @return true, if succedeed, otherwise - false
    */
   virtual bool GetPriority(const std::string& policy_app_id,
-                           std::string& priority) = 0;
+                           std::string& priority) const = 0;
 
   /**
    * @brief Initialized Policy Table (load)
    * @return bool Success of operation
    */
-  virtual bool Init(const std::string& file_name) = 0;
+  virtual bool Init(const std::string& file_name,
+                    const PolicySettings* settings) = 0;
 
   /**
    * @brief Get snapshot of Policy Table
@@ -283,14 +285,14 @@ class CacheManagerInterface {
    * @param app_id Application id
    * @return bool Allowed/disallowed.
    */
-  virtual bool CanAppKeepContext(const std::string& app_id) = 0;
+  virtual bool CanAppKeepContext(const std::string& app_id) const = 0;
 
   /**
    * @brief Is application allowed to move foreground at will?
    * @param app_id Application id
    * @return bool Allowed/disallowed.
    */
-  virtual bool CanAppStealFocus(const std::string& app_id) = 0;
+  virtual bool CanAppStealFocus(const std::string& app_id) const = 0;
 
   /**
    * @brief Get default_hmi for given application
@@ -300,7 +302,7 @@ class CacheManagerInterface {
    * @return true, if succedeed, otherwise - false
    */
   virtual bool GetDefaultHMI(const std::string& app_id,
-                             std::string &default_hmi) = 0;
+                             std::string &default_hmi) const = 0;
 
   /**
    * @brief Resets user consent for device data and applications permissions

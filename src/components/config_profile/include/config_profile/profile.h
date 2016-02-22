@@ -43,6 +43,7 @@
 #include "connection_handler/connection_handler_settings.h"
 #include "hmi_message_handler/hmi_message_handler_settings.h"
 #include "media_manager/media_manager_settings.h"
+#include "policy/policy_settings.h"
 #ifdef CUSTOMER_PASA
 #define SDL_INIFILE_PATH "/fs/mp/etc/AppLink/smartDeviceLink.ini"
 #endif
@@ -56,6 +57,7 @@ class Profile : public protocol_handler::ProtocolHandlerSettings,
                 public connection_handler::ConnectionHandlerSettings,
                 public hmi_message_handler::HMIMessageHandlerSettings,
                 public media_manager::MediaManagerSettings,
+                public policy::PolicySettings,
                 public utils::Singleton<Profile> {
  public:
   // Methods section

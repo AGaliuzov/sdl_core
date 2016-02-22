@@ -552,6 +552,7 @@ int64_t StateController::SendBCActivateApp(
       MessageHelper::GetBCActivateAppRequestToHMI(
           app,
           app_mngr_->connection_handler().get_session_observer(),
+          app_mngr_->GetPolicyHandler(),
           level,
           send_policy_priority);
   if (!bc_activate_app_request) {

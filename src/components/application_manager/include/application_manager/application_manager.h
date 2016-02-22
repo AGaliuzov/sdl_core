@@ -106,6 +106,7 @@ class ApplicationManager {
       protocol_handler::ProtocolHandler* handler) = 0;
   virtual void set_connection_handler(
       connection_handler::ConnectionHandler* handler) = 0;
+  virtual connection_handler::ConnectionHandler& connection_handler() const = 0;
 
   virtual DataAccessor<ApplicationSet> applications() const = 0;
 
@@ -256,7 +257,7 @@ class ApplicationManager {
    */
   virtual void SendAudioPassThroughNotification(uint32_t session_key,
                                         std::vector<uint8_t>& binary_data) = 0;
-  virtual policy::PolicyHandlerInterface& policy_handler() = 0;
+  virtual policy::PolicyHandlerInterface& GetPolicyHandler() = 0;
 };
 
 }  // namespace application_manager

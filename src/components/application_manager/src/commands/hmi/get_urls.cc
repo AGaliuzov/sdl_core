@@ -33,7 +33,6 @@
 #include "application_manager/commands/hmi/get_urls.h"
 #include "application_manager/message.h"
 #include "application_manager/application_manager_impl.h"
-#include "application_manager/policies/policy_handler.h"
 
 namespace application_manager {
 namespace commands {
@@ -51,9 +50,9 @@ void GetUrls::Run() {
   using namespace policy;
   SmartObject& object = *message_;
   object[strings::params][strings::message_type] = MessageType::kResponse;
-  if (PolicyHandler::instance()->PolicyEnabled()) {
+  if (application_manager::ApplicationManagerImpl::instance()->GetPolicyHandler().PolicyEnabled()) {
     EndpointUrls endpoints;
-    PolicyHandler::instance()->GetUpdateUrls(
+    application_manager::ApplicationManagerImpl::instance()->GetPolicyHandler().GetUpdateUrls(
         object[strings::msg_params][hmi_request::service].asInt(), endpoints);
     if (!endpoints.empty()) {
       object[strings::msg_params].erase(hmi_request::service);

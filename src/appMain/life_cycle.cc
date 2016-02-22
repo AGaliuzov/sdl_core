@@ -160,7 +160,7 @@ bool LifeCycle::StartComponents() {
   crypto_manager_ = new security_manager::CryptoManagerImpl(
       utils::MakeShared<security_manager::CryptoManagerSettingsImpl>(
           *(profile::Profile::instance()),
-          policy::PolicyHandler::instance()->RetrieveCertificate()));
+                  app_manager_->GetPolicyHandler().RetrieveCertificate()));
   protocol_handler_->AddProtocolObserver(security_manager_);
   protocol_handler_->set_security_manager(security_manager_);
   security_manager_->AddListener(app_manager_);
@@ -427,6 +427,7 @@ void LifeCycle::StopComponents() {
   DCHECK_OR_RETURN_VOID(media_manager_);
   media_manager_->SetProtocolHandler(NULL);
   delete media_manager_;
+  media_manager_ = NULL;
 
   LOG4CXX_INFO(logger_, "Destroying Transport Manager.");
   DCHECK_OR_RETURN_VOID(transport_manager_);
@@ -439,10 +440,13 @@ void LifeCycle::StopComponents() {
   connection_handler_->Stop();
 
   LOG4CXX_INFO(logger_, "Destroying Protocol Handler");
+  DCHECK(protocol_handler_);
   delete protocol_handler_;
+  protocol_handler_ = NULL;
 
   LOG4CXX_INFO(logger_, "Destroying Connection Handler.");
   delete connection_handler_;
+  connection_handler_ = NULL;
 
   LOG4CXX_INFO(logger_, "Destroying Last State");
   DCHECK(last_state_);
@@ -461,6 +465,7 @@ void LifeCycle::StopComponents() {
     mb_pasa_adapter_->exitReceivingThread();
     StopThread(mb_pasa_adapter_thread_);
     delete mb_pasa_adapter_;
+    mb_pasa_adapter_ = NULL;
   }
   delete hmi_message_adapter_;
   hmi_message_adapter_ = NULL;
@@ -473,8 +478,10 @@ void LifeCycle::StopComponents() {
     mb_adapter_->exitReceivingThread();
     StopThread(mb_adapter_thread_);
     delete mb_adapter_;
+    mb_adapter_ = NULL;
   }
   delete hmi_handler_;
+  hmi_handler_ = NULL;
 
   LOG4CXX_INFO(logger_, "Destroying Message Broker");
   StopThread(mb_server_thread_);
@@ -482,6 +489,7 @@ void LifeCycle::StopComponents() {
   if (message_broker_server_) {
     message_broker_server_->Close();
     delete message_broker_server_;
+    message_broker_server_ = NULL;
   }
   if (message_broker_) {
     message_broker_->stopMessageBroker();
@@ -500,6 +508,7 @@ void LifeCycle::StopComponents() {
     }
     StopThread(dbus_adapter_thread_);
     delete dbus_adapter_;
+    dbus_adapter_ = NULL;
   }
 #endif  // DBUS_HMIADAPTER
 

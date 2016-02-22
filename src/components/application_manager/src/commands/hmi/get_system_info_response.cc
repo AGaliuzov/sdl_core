@@ -31,7 +31,6 @@
  */
 #include "application_manager/commands/hmi/get_system_info_response.h"
 #include "application_manager/application_manager_impl.h"
-#include "application_manager/policies/policy_handler.h"
 #include "application_manager/message_helper.h"
 
 
@@ -53,7 +52,7 @@ void GetSystemInfoResponse::Run() {
           (*message_)[strings::params][hmi_response::code].asInt());
 
   policy::MetaInfo meta_info =
-      policy::PolicyHandler::instance()->GetMetaInfo();
+      application_manager::ApplicationManagerImpl::instance()->GetPolicyHandler().GetMetaInfo();
   meta_info.ccpu_version = meta_info.ccpu_version;
   meta_info.wers_country_code = meta_info.wers_country_code;
   meta_info.language = meta_info.language;
@@ -72,7 +71,7 @@ void GetSystemInfoResponse::Run() {
 
   // We have to set preloaded flag as false in policy table on any response
   // of GetSystemInfo (SDLAQ-CRS-2365)
-  policy::PolicyHandler::instance()->OnGetSystemInfo(meta_info.ccpu_version,
+  application_manager::ApplicationManagerImpl::instance()->GetPolicyHandler().OnGetSystemInfo(meta_info.ccpu_version,
                                                      meta_info.wers_country_code,
                                                      meta_info.language);
 }
