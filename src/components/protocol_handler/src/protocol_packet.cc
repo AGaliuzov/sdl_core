@@ -382,16 +382,6 @@ RESULT_CODE ProtocolPacket::deserializePacket(
     dataPayloadSize = messageSize - offset;
   }
 
-  uint8_t* data = NULL;
-  if (dataPayloadSize) {
-    data = new (std::nothrow) uint8_t[dataPayloadSize];
-    if (!data) {
-      return RESULT_FAIL;
-    }
-    memcpy(data, message + offset, dataPayloadSize);
-    payload_size_ = dataPayloadSize;
-  }
-
   if (packet_header_.frameType == FRAME_TYPE_FIRST) {
     payload_size_ = 0;
     const uint8_t *data = message + offset;
@@ -401,14 +391,14 @@ RESULT_CODE ProtocolPacket::deserializePacket(
     total_data_bytes |= data[3];
     set_total_data_bytes(total_data_bytes);
     if (0 == packet_data_.data) {
-      if (data) {
-        delete[] data;
-      }
       return RESULT_FAIL;
     }
-  } else {
+  } else if (dataPayloadSize) {
+
     delete[] packet_data_.data;
-    packet_data_.data = data;
+    packet_data_.data = new (std::nothrow) uint8_t[dataPayloadSize];
+    memcpy(packet_data_.data, message + offset, dataPayloadSize);
+    payload_size_ = dataPayloadSize;
   }
 
   return RESULT_OK;
