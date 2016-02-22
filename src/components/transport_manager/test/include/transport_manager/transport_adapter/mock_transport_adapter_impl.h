@@ -53,9 +53,10 @@ class MockTransportAdapterImpl : public TransportAdapterImpl {
  public:
   MockTransportAdapterImpl(DeviceScanner* device_scanner,
                        ServerConnectionFactory* server_connection_factory,
-                       ClientConnectionListener* client_connection_listener)
+                       ClientConnectionListener* client_connection_listener,
+                       resumption::LastState& last_state)
       : TransportAdapterImpl(device_scanner, server_connection_factory,
-                             client_connection_listener) {
+                             client_connection_listener,last_state) {
   }
 
   ConnectionSPtr FindStatedConnection(const DeviceUID& device_handle,

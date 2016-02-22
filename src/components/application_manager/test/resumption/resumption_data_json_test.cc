@@ -64,6 +64,8 @@ namespace Formatters = NsSmartDeviceLink::NsJSONHandler::Formatters;
 
 class ResumptionDataJsonTest : public ResumptionDataTest {
  protected:
+  ResumptionDataJsonTest() : last_state_("app_storage_folder",
+                                         "app_info_storage"), res_json(last_state_) {}
   virtual void SetUp() {
     app_mock = new NiceMock<application_manager_test::MockApplication>();
 
@@ -78,7 +80,7 @@ class ResumptionDataJsonTest : public ResumptionDataTest {
   }
 
   void CheckSavedJson() {
-    Value& dictionary = LastState::instance()->dictionary;
+    Value& dictionary = last_state_.dictionary;
     ASSERT_TRUE(dictionary[am::strings::resumption].isObject());
     ASSERT_TRUE(
         dictionary[am::strings::resumption][am::strings::resume_app_list]
@@ -94,22 +96,24 @@ class ResumptionDataJsonTest : public ResumptionDataTest {
   }
 
   void SetZeroIgnOff() {
-    Value& dictionary = LastState::instance()->dictionary;
+    Value& dictionary = last_state_.dictionary;
     Value& res = dictionary[am::strings::resumption];
     res[am::strings::last_ign_off_time] = 0;
-    LastState::instance()->SaveToFileSystem();
+    last_state_.SaveToFileSystem();
   }
+
+  resumption::LastState last_state_;
+  ResumptionDataJson res_json;
+
 };
 
 TEST_F(ResumptionDataJsonTest, SaveApplication) {
-  ResumptionDataJson res_json;
   PrepareData();
   res_json.SaveApplication(app_mock);
   CheckSavedJson();
 }
 
 TEST_F(ResumptionDataJsonTest, SavedApplicationTwice) {
-  ResumptionDataJson res_json;
   PrepareData();
   res_json.SaveApplication(app_mock);
   CheckSavedJson();
@@ -118,7 +122,6 @@ TEST_F(ResumptionDataJsonTest, SavedApplicationTwice) {
 }
 
 TEST_F(ResumptionDataJsonTest, SavedApplicationTwice_UpdateApp) {
-  ResumptionDataJson res_json;
   PrepareData();
   res_json.SaveApplication(app_mock);
   CheckSavedJson();
@@ -129,7 +132,6 @@ TEST_F(ResumptionDataJsonTest, SavedApplicationTwice_UpdateApp) {
 }
 
 TEST_F(ResumptionDataJsonTest, RemoveApplicationFromSaved) {
-  ResumptionDataJson res_json;
   PrepareData();
   res_json.SaveApplication(app_mock);
   EXPECT_TRUE(
@@ -143,12 +145,10 @@ TEST_F(ResumptionDataJsonTest, RemoveApplicationFromSaved) {
 }
 
 TEST_F(ResumptionDataJsonTest, RemoveApplicationFromSaved_AppNotSaved) {
-  ResumptionDataJson res_json;
   EXPECT_FALSE(res_json.RemoveApplicationFromSaved(policy_app_id_, "54321"));
 }
 
 TEST_F(ResumptionDataJsonTest, IsApplicationSaved_ApplicationSaved) {
-  ResumptionDataJson res_json;
   PrepareData();
   res_json.SaveApplication(app_mock);
   CheckSavedJson();
@@ -157,7 +157,6 @@ TEST_F(ResumptionDataJsonTest, IsApplicationSaved_ApplicationSaved) {
 }
 
 TEST_F(ResumptionDataJsonTest, IsApplicationSaved_ApplicationRemoved) {
-  ResumptionDataJson res_json;
   PrepareData();
   res_json.SaveApplication(app_mock);
   CheckSavedJson();
@@ -168,7 +167,6 @@ TEST_F(ResumptionDataJsonTest, IsApplicationSaved_ApplicationRemoved) {
 }
 
 TEST_F(ResumptionDataJsonTest, GetSavedApplication) {
-  ResumptionDataJson res_json;
   PrepareData();
   res_json.SaveApplication(app_mock);
   smart_objects::SmartObject saved_app;
@@ -178,7 +176,6 @@ TEST_F(ResumptionDataJsonTest, GetSavedApplication) {
 }
 
 TEST_F(ResumptionDataJsonTest, GetSavedApplication_AppNotSaved) {
-  ResumptionDataJson res_json;
   smart_objects::SmartObject saved_app;
   EXPECT_FALSE(
       res_json.GetSavedApplication(policy_app_id_, "54321", saved_app));
@@ -186,7 +183,6 @@ TEST_F(ResumptionDataJsonTest, GetSavedApplication_AppNotSaved) {
 }
 
 TEST_F(ResumptionDataJsonTest, GetDataForLoadResumeData) {
-  ResumptionDataJson res_json;
   PrepareData();
   res_json.SaveApplication(app_mock);
   CheckSavedJson();
@@ -202,7 +198,6 @@ TEST_F(ResumptionDataJsonTest, GetDataForLoadResumeData) {
 }
 
 TEST_F(ResumptionDataJsonTest, GetDataForLoadResumeData_AppRemove) {
-  ResumptionDataJson res_json;
   smart_objects::SmartObject saved_app;
 
   PrepareData();
@@ -215,7 +210,6 @@ TEST_F(ResumptionDataJsonTest, GetDataForLoadResumeData_AppRemove) {
 }
 
 TEST_F(ResumptionDataJsonTest, UpdateHmiLevel) {
-  ResumptionDataJson res_json;
   PrepareData();
   res_json.SaveApplication(app_mock);
   CheckSavedJson();
@@ -227,7 +221,6 @@ TEST_F(ResumptionDataJsonTest, UpdateHmiLevel) {
 }
 
 TEST_F(ResumptionDataJsonTest, IsHMIApplicationIdExist_AppIsSaved) {
-  ResumptionDataJson res_json;
   PrepareData();
   res_json.SaveApplication(app_mock);
   CheckSavedJson();
@@ -235,7 +228,6 @@ TEST_F(ResumptionDataJsonTest, IsHMIApplicationIdExist_AppIsSaved) {
 }
 
 TEST_F(ResumptionDataJsonTest, IsHMIApplicationIdExist_AppNotSaved) {
-  ResumptionDataJson res_json;
   PrepareData();
   res_json.SaveApplication(app_mock);
 
@@ -245,7 +237,6 @@ TEST_F(ResumptionDataJsonTest, IsHMIApplicationIdExist_AppNotSaved) {
 }
 
 TEST_F(ResumptionDataJsonTest, GetHMIApplicationID) {
-  ResumptionDataJson res_json;
   PrepareData();
   res_json.SaveApplication(app_mock);
   CheckSavedJson();
@@ -254,15 +245,12 @@ TEST_F(ResumptionDataJsonTest, GetHMIApplicationID) {
 }
 
 TEST_F(ResumptionDataJsonTest, GetHMIApplicationID_AppNotSaved) {
-  ResumptionDataJson res_json;
   PrepareData();
   res_json.SaveApplication(app_mock);
   EXPECT_EQ(0u, res_json.GetHMIApplicationID(policy_app_id_, "other_dev_id"));
 }
 
 TEST_F(ResumptionDataJsonTest, OnSuspend) {
-  ResumptionDataJson res_json;
-  ::profile::Profile::instance()->config_file_name("smartDeviceLink_test.ini");
   SetZeroIgnOff();
   PrepareData();
 
@@ -272,18 +260,10 @@ TEST_F(ResumptionDataJsonTest, OnSuspend) {
   res_json.OnSuspend();
   ign_off_count_++;
   CheckSavedJson();
-
-  EXPECT_TRUE(FileExists("./test_app_info.dat"));
-  EXPECT_TRUE(DirectoryExists("./test_storage"));
-  EXPECT_TRUE(RemoveDirectory("./test_storage", true));
-  EXPECT_TRUE(DeleteFile("./test_app_info.dat"));
-  ::profile::Profile::instance()->config_file_name("smartDeviceLink.ini");
 }
 
 TEST_F(ResumptionDataJsonTest, OnSuspendFourTimes) {
-  ResumptionDataJson res_json;
   PrepareData();
-  ::profile::Profile::instance()->config_file_name("smartDeviceLink_test.ini");
   SetZeroIgnOff();
   res_json.SaveApplication(app_mock);
   CheckSavedJson();
@@ -297,18 +277,10 @@ TEST_F(ResumptionDataJsonTest, OnSuspendFourTimes) {
   res_json.OnSuspend();
 
   EXPECT_TRUE(-1 != res_json.IsApplicationSaved(policy_app_id_, mac_address_));
-
-  EXPECT_TRUE(FileExists("./test_app_info.dat"));
-  EXPECT_TRUE(DirectoryExists("./test_storage"));
-  EXPECT_TRUE(RemoveDirectory("./test_storage", true));
-  EXPECT_TRUE(DeleteFile("./test_app_info.dat"));
-  ::profile::Profile::instance()->config_file_name("smartDeviceLink.ini");
 }
 
 TEST_F(ResumptionDataJsonTest, OnSuspendOnAwake) {
-  ResumptionDataJson res_json;
   PrepareData();
-  ::profile::Profile::instance()->config_file_name("smartDeviceLink_test.ini");
   SetZeroIgnOff();
   res_json.SaveApplication(app_mock);
   CheckSavedJson();
@@ -320,13 +292,9 @@ TEST_F(ResumptionDataJsonTest, OnSuspendOnAwake) {
   res_json.OnAwake();
   ign_off_count_ = 0;
   CheckSavedJson();
-  EXPECT_TRUE(RemoveDirectory("./test_storage", true));
-  EXPECT_TRUE(DeleteFile("./test_app_info.dat"));
-  ::profile::Profile::instance()->config_file_name("smartDeviceLink.ini");
 }
 
 TEST_F(ResumptionDataJsonTest, Awake_AppNotSuspended) {
-  ResumptionDataJson res_json;
   SetZeroIgnOff();
   PrepareData();
   res_json.SaveApplication(app_mock);
@@ -338,7 +306,6 @@ TEST_F(ResumptionDataJsonTest, Awake_AppNotSuspended) {
 }
 
 TEST_F(ResumptionDataJsonTest, TwiceAwake_AppNotSuspended) {
-  ResumptionDataJson res_json;
   SetZeroIgnOff();
   PrepareData();
   res_json.SaveApplication(app_mock);
@@ -354,7 +321,6 @@ TEST_F(ResumptionDataJsonTest, TwiceAwake_AppNotSuspended) {
 }
 
 TEST_F(ResumptionDataJsonTest, GetHashId) {
-  ResumptionDataJson res_json;
   PrepareData();
   res_json.SaveApplication(app_mock);
   CheckSavedJson();
@@ -365,10 +331,8 @@ TEST_F(ResumptionDataJsonTest, GetHashId) {
 }
 
 TEST_F(ResumptionDataJsonTest, GetIgnOffTime_AfterSuspendAndAwake) {
-  ResumptionDataJson res_json;
   uint32_t last_ign_off_time;
   PrepareData();
-  ::profile::Profile::instance()->config_file_name("smartDeviceLink_test.ini");
   SetZeroIgnOff();
   res_json.SaveApplication(app_mock);
   CheckSavedJson();
@@ -386,14 +350,9 @@ TEST_F(ResumptionDataJsonTest, GetIgnOffTime_AfterSuspendAndAwake) {
 
   after_awake = res_json.GetIgnOffTime();
   EXPECT_LE(after_suspend, after_awake);
-
-  EXPECT_TRUE(RemoveDirectory("./test_storage", true));
-  EXPECT_TRUE(DeleteFile("./test_app_info.dat"));
-  ::profile::Profile::instance()->config_file_name("smartDeviceLink.ini");
 }
 
 TEST_F(ResumptionDataJsonTest, DropAppDataResumption) {
-  ResumptionDataJson res_json;
   PrepareData();
   SetZeroIgnOff();
   res_json.SaveApplication(app_mock);

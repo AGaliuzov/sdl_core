@@ -33,6 +33,8 @@ if(BUILD_TESTS)
 include_directories (
   include
   ${GMOCK_INCLUDE_DIRECTORY}
+  ${COMPONENTS_DIR}/resumption/include
+  ${JSONCPP_INCLUDE_DIRECTORY}
 )
 
 set(testSources

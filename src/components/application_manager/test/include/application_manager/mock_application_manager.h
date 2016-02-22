@@ -48,7 +48,7 @@ namespace smart_objects = NsSmartDeviceLink::NsSmartObjects;
 
 class MockApplicationManager : public application_manager::ApplicationManager {
  public:
-  MOCK_METHOD0(Init, bool());
+  MOCK_METHOD1(Init, bool(resumption::LastState& last_state));
   MOCK_METHOD0(Stop, bool());
 
   MOCK_METHOD1(set_hmi_message_handler,

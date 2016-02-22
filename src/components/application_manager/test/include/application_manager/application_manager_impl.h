@@ -82,6 +82,8 @@
 #include "utils/lock.h"
 #include "utils/singleton.h"
 #include "utils/data_accessor.h"
+#include "resumption/last_state.h"
+
 namespace smart_objects = NsSmartDeviceLink::NsSmartObjects;
 namespace application_manager {
 enum VRTTSSessionChanging { kVRSessionChanging = 0, kTTSSessionChanging };
@@ -167,7 +169,7 @@ class ApplicationManagerImpl
     std::cout << "ApplicationManagerImpl Mock created \n";
   }
 
-  MOCK_METHOD0(Init, bool());
+  MOCK_METHOD1(Init, bool(resumption::LastState& last_state));
   MOCK_METHOD0(Stop, bool());
   MOCK_METHOD1(GetUserConsentForDevice,
                policy::DeviceConsent(const std::string& device_id));

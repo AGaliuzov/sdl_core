@@ -45,6 +45,8 @@
 #include "utils/make_shared.h"
 #include "utils/shared_ptr.h"
 
+#include "resumption/last_state.h"
+
 using ::testing::_;
 using ::testing::AtLeast;
 using ::testing::Return;
@@ -66,7 +68,9 @@ class TransportManagerImplTest : public ::testing::Test {
       , dev_info_(device_handle_, mac_address_, "TestDeviceName", "BTMAC") {}
 
   void SetUp() OVERRIDE {
-    tm_.Init();
+    resumption::LastState  last_state_("app_storage_folder",
+                                       "app_info_storage");
+    tm_.Init(last_state_);
     mock_adapter_ = new MockTransportAdapter();
     tm_listener_ = MakeShared<MockTransportManagerListener>();
 
@@ -322,14 +326,18 @@ class TransportManagerImplTest : public ::testing::Test {
 
 TEST(MockTransportManagerImpl, SearchDevices_AdaptersNotAdded) {
   MockTransportManagerImpl tm;
-  tm.Init();
+  resumption::LastState  last_state_("app_storage_folder",
+                                     "app_info_storage");
+  tm.Init(last_state_);
 
   EXPECT_EQ(E_SUCCESS, tm.SearchDevices());
 }
 
 TEST(MockTransportManagerImpl, AddTransportAdapter) {
   MockTransportManagerImpl tm;
-  tm.Init();
+  resumption::LastState  last_state_("app_storage_folder",
+                                     "app_info_storage");
+  tm.Init(last_state_);
 
   MockTransportAdapter* mock_adapter = new MockTransportAdapter();
   utils::SharedPtr<MockTransportManagerListener> tm_listener =

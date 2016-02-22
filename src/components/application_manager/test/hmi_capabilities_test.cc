@@ -37,7 +37,9 @@
 #include "application_manager/mock_message_helper.h"
 #include "smart_objects/enum_schema_item.h"
 #include "interfaces/HMI_API.h"
+#include "utils/make_shared.h"
 #include "application_manager/hmi_capabilities_for_testing.h"
+#include "utils/file_system.h"
 
 namespace test {
 namespace components {
@@ -54,19 +56,29 @@ using namespace application_manager;
 
 class HMICapabilitiesTest : public ::testing::Test {
  protected:
+  HMICapabilitiesTest():
+     last_state_("app_storage_folder", "app_info_data")  {}
   virtual void SetUp() OVERRIDE {
     app_mngr_ = ApplicationManagerImpl::instance();
-    hmi_capabilities_test = new HMICapabilitiesForTesting(app_mngr_);
+    hmi_capabilities_test = utils::MakeShared<HMICapabilitiesForTesting>(app_mngr_);
+    hmi_capabilities_test->Init(&last_state_);
   }
 
   virtual void TearDown() OVERRIDE {
-    delete hmi_capabilities_test;
     app_mngr_->destroy();
+    hmi_capabilities_test.reset();
   }
-  void SetCooperating();
+  static void TearDownTestCase() {
+    if (file_system::FileExists("./app_info_data")) {
+      EXPECT_TRUE(::file_system::DeleteFile("./app_info_data"));
+    }
+  }
 
-  HMICapabilitiesForTesting* hmi_capabilities_test;
+  void SetCooperating();
   ApplicationManagerImpl* app_mngr_;
+  utils::SharedPtr<HMICapabilitiesForTesting> hmi_capabilities_test;
+  resumption::LastState last_state_;
+
 };
 
 const char* const cstring_values_[] = {
@@ -140,9 +152,13 @@ TEST_F(HMICapabilitiesTest, LoadCapabilitiesFromFile) {
               CommonLanguageFromString(_))
       .WillRepeatedly(Invoke(TestCommonLanguageFromString));
 
+  if (file_system::FileExists("./app_info_data")) {
+     EXPECT_TRUE(::file_system::DeleteFile("./app_info_data"));
+   }
   EXPECT_TRUE(hmi_capabilities_test->LoadCapabilitiesFromFile());
 
-  // Check UI languages
+
+  // Check active languages
   EXPECT_EQ(hmi_apis::Common_Language::EN_US,
             hmi_capabilities_test->active_ui_language());
   EXPECT_EQ(hmi_apis::Common_Language::ES_MX,
@@ -150,6 +166,7 @@ TEST_F(HMICapabilitiesTest, LoadCapabilitiesFromFile) {
   EXPECT_EQ(hmi_apis::Common_Language::DE_DE,
             hmi_capabilities_test->active_tts_language());
 
+  // Check UI languages
   const smart_objects::SmartObject ui_supported_languages =
       *(hmi_capabilities_test->ui_supported_languages());
 
