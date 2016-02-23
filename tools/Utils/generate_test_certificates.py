@@ -119,6 +119,7 @@ def gen_pkcs12(out, key_file, cert_file, verification_certificate) :
        " -passout pass:")
 
 def gen_pem_file(out, key_file, cert_file, verification_certificate) :
+    """Join $key_file, $cert_file, $verification_certificate in pem file named $out"""
     files = [key_file, cert_file, verification_certificate]
     with open(out, "wb") as cert:
         for fl in files:
