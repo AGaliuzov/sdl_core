@@ -82,7 +82,7 @@ struct ProtocolAndCipher {
 class SSLTest : public testing::Test {
  protected:
   static void SetUpTestCase() {
-    std::ifstream file("server/spt_credential_unsigned.p12.enc");
+    std::ifstream file("server/spt_credential_unsigned.pem");
     ss << file.rdbuf();
     file.close();
     crypto_manager = new security_manager::CryptoManagerImpl();
@@ -151,7 +151,7 @@ std::stringstream SSLTest::ss;
 class SSLTestParam : public testing::TestWithParam<ProtocolAndCipher> {
  protected:
   virtual void SetUp() {
-    std::ifstream file("server/spt_credential.p12.enc");
+    std::ifstream file("server/spt_credential.pem");
     ss << file.rdbuf();
     file.close();
 
