@@ -1035,7 +1035,9 @@ bool ResumptionDataDB::SelectChoiceSetData(
           SmartObject(SmartType_Map);
       SmartObject& choice_set_item =
           saved_app[strings::application_choice_sets][choice_set_idx];
-      choice_set_item[strings::grammar_id] = select_choice_set.GetInteger(1);
+      if (!(select_choice_set.IsNull(1))) {
+        choice_set_item[strings::grammar_id] = select_choice_set.GetInteger(1);
+      }
       choice_set_item[strings::interaction_choice_set_id] =
           select_choice_set.GetInteger(2);
       saved_app[strings::application_choice_sets][choice_set_idx]
@@ -1075,12 +1077,18 @@ bool ResumptionDataDB::SelectChoiceSetData(
         }
         choice_item[strings::secondary_image] = secondary_image;
       }
-      choice_item[strings::vr_commands] = SmartObject(SmartType_Array);
-      vr_cmd_idx = 0;
+      if (saved_app[strings::application_choice_sets]
+                    [choice_set_idx].keyExists(strings::grammar_id)) {
+        choice_item[strings::vr_commands] = SmartObject(SmartType_Array);
+        vr_cmd_idx = 0;
+      }
     }
-    saved_app[strings::application_choice_sets][choice_set_idx]
-             [strings::choice_set][choice_idx][strings::vr_commands]
-             [vr_cmd_idx++] = select_choice_set.GetString(10);
+    if (saved_app[strings::application_choice_sets]
+                  [choice_set_idx].keyExists(strings::grammar_id)) {
+      saved_app[strings::application_choice_sets][choice_set_idx]
+       [strings::choice_set][choice_idx][strings::vr_commands]
+       [vr_cmd_idx++] = select_choice_set.GetString(10);
+    }
   }
 
   LOG4CXX_INFO(logger_, "Choice sets were restored from DB successfully");
@@ -1770,16 +1778,17 @@ bool ResumptionDataDB::ExecInsertChoice(
     }
     choice_primary_key = insert_choice.LastInsertId();
 
-    if ((!ExecInsertVrCommands(choice_primary_key,
-                               choice_array[i][strings::vr_commands],
-                               kVRCommandFromChoice)) ||
-        !insert_choice.Reset()) {
-      LOG4CXX_WARN(logger_, "problemm with add vr commands to choice");
-      return false;
+    if (choice_array[i].keyExists(strings::vr_commands)) {
+      if ((!ExecInsertVrCommands(choice_primary_key,
+                                 choice_array[i][strings::vr_commands],
+                                 kVRCommandFromChoice)) ||
+          !insert_choice.Reset()) {
+        LOG4CXX_WARN(logger_, "problem with saving VR.Commands to resumption DB");
+        return false;
+      }
     }
-
-    if (!ExecInsertDataToArray(
-            choice_set_key, choice_primary_key, kInsertChoiceArray)) {
+    if (!ExecInsertDataToArray(choice_set_key, choice_primary_key,
+                               kInsertChoiceArray)) {
       LOG4CXX_INFO(logger_, "Problem with insertion data to choiceArray table");
       return false;
     }
@@ -2225,8 +2234,13 @@ bool ResumptionDataDB::ExecInsertApplicationChoiceSet(
   //  Positions of binding data for "insert_application_choice_set":
   //  field "grammarID" from table "applicationChoiceSet" = 0
   //  field "interactionChoiceSetID" from table "applicationChoiceSet" = 1
-  insert_application_choice_set.Bind(
-      0, static_cast<int64_t>(choiceset[strings::grammar_id].asUInt()));
+
+  if (choiceset.keyExists(strings::grammar_id)) {
+    insert_application_choice_set.Bind(
+          0, static_cast<int64_t>(choiceset[strings::grammar_id].asUInt()));
+  } else {
+    insert_application_choice_set.Bind(0);
+  }
   insert_application_choice_set.Bind(
       1, choiceset[strings::interaction_choice_set_id].asInt());
 

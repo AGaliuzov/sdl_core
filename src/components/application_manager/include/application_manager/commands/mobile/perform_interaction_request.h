@@ -208,7 +208,6 @@ class PerformInteractionRequest : public CommandRequestImpl  {
   mobile_apis::InteractionMode::eType interaction_mode_;
   bool                                ui_response_recived_;
   bool                                vr_response_recived_;
-  bool                                app_pi_was_active_before_;
   static uint32_t                     pi_requests_count_;
 
   DISALLOW_COPY_AND_ASSIGN(PerformInteractionRequest);

@@ -559,6 +559,7 @@ void ResumeCtrl::AddChoicesets(ApplicationSharedPtr application,
     }
     ProcessHMIRequests(
         MessageHelper::CreateAddVRCommandRequestFromChoiceToHMI(application));
+
   } else {
     LOG4CXX_FATAL(logger_,
                   strings::application_choice_sets

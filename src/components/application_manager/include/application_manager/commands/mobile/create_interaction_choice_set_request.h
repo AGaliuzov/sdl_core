@@ -102,12 +102,13 @@ class CreateInteractionChoiceSetRequest : public CommandRequestImpl {
     /**
      * @brief Checks choice set params(menuName, tertiaryText, ...)
      * When type is String there is a check on the contents \t\n \\t \\n
+     * and counts vrCommands array in choice set.
      *
      * @param choice_set which must check
      *
      * @return if choice_set contains \t\n \\t \\n return TRUE, FALSE otherwise
      */
-    bool IsWhiteSpaceExist(const smart_objects::SmartObject& choice_set);
+    bool IsWhiteSpaceVRCommandsExist(const smart_objects::SmartObject& choice_set);
 
     /**
      * @brief DeleteChoices allows to walk through the sent commands map
@@ -171,6 +172,11 @@ class CreateInteractionChoiceSetRequest : public CommandRequestImpl {
      * WARNINGS
      */
     bool is_warning_from_hmi_;
+
+    /**
+     * @brief Number of VR commands in request
+     */
+    uint32_t amount_vr_commands_;
 };
 
 }  // namespace commands
