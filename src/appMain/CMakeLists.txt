@@ -223,10 +223,10 @@ endif ()
 
 if(ENABLE_SECURITY)
   install(FILES
-          ${COMPONENTS_DIR}/security_manager/resources/client.key
-          ${COMPONENTS_DIR}/security_manager/resources/client.crt
-          ${COMPONENTS_DIR}/security_manager/resources/server_verification_ca_cetrificates.crt
-          ${COMPONENTS_DIR}/security_manager/resources/ford_server.crt
+          ${COMPONENTS_DIR}/security_manager/resources/client/client.key
+          ${COMPONENTS_DIR}/security_manager/resources/client/client.crt
+          ${COMPONENTS_DIR}/security_manager/resources/server/server_verification_ca_cetrificates.crt
+          ${COMPONENTS_DIR}/security_manager/resources/server/ford_server.crt
           DESTINATION bin)
       install(CODE "execute_process(COMMAND c_rehash \".\" , WORKING_DIRECTORY bin)")
 endif()
