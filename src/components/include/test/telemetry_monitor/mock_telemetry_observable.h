@@ -40,11 +40,11 @@ namespace test {
 namespace components {
 namespace telemetry_monitor_test {
 
-class MockTelemetryObservable :
-        public telemetry_monitor::TelemetryObservable<
-        application_manager::AMTelemetryObserver> {
+class MockTelemetryObservable : public telemetry_monitor::TelemetryObservable<
+                                    application_manager::AMTelemetryObserver> {
  public:
-  MOCK_METHOD1(SetTelemetryObserver, void(application_manager::AMTelemetryObserver* observer));
+  MOCK_METHOD1(SetTelemetryObserver,
+               void(application_manager::AMTelemetryObserver* observer));
 };
 }  // namespace telemetry_monitor_test
 }  // namespace components

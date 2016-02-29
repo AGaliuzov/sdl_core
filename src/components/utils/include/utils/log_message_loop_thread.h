@@ -53,16 +53,15 @@ typedef struct {
 
 typedef std::queue<LogMessage> LogMessageQueue;
 
-typedef threads::MessageLoopThread<LogMessageQueue> LogMessageLoopThreadTemplate;
+typedef threads::MessageLoopThread<LogMessageQueue>
+    LogMessageLoopThreadTemplate;
 
 class LogMessageHandler : public LogMessageLoopThreadTemplate::Handler {
  public:
   virtual void Handle(const LogMessage message) OVERRIDE;
 };
 
-class LogMessageLoopThread :
-  public LogMessageLoopThreadTemplate {
-
+class LogMessageLoopThread : public LogMessageLoopThreadTemplate {
  public:
   LogMessageLoopThread();
   ~LogMessageLoopThread();

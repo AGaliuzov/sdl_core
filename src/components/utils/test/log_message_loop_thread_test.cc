@@ -46,12 +46,12 @@ TEST(LogMessageLoopThread, DestroyLogMessage_loggerStatusDeletingLogger) {
   logger::logger_status = CreatingLoggerThread;
   LogMessageLoopThread* loop_thread = new LogMessageLoopThread();
 
-  // assert
+  //assert
   EXPECT_EQ(CreatingLoggerThread, logger::logger_status);
 
-  // act
+  //act
   delete loop_thread;
-  // assert
+  //assert
   EXPECT_EQ(DeletingLoggerThread, logger::logger_status);
 
   logger::logger_status = LoggerThreadNotCreated;
@@ -66,8 +66,8 @@ TEST(LogMessageLoopThread, HandleNeverCalled) {
   logger::logger_status = CreatingLoggerThread;
 
   MockLogMessageTest mmock;
-  EXPECT_CALL(mmock, Handle(_)).Times(0);
-  //  LogMessageLoopThread::instance();
+  EXPECT_CALL(mmock,Handle(_)).Times(0);
+//  LogMessageLoopThread::instance();
   LogMessageLoopThread* loop_thread = new LogMessageLoopThread();
 
   delete loop_thread;

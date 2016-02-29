@@ -34,8 +34,8 @@
 #define SRC_COMPONENTS_INCLUDE_SUCURITY_MANAGER_SUCURITY_MANAGER_SETTINGS_H_
 
 namespace security_manager {
-    enum Mode { CLIENT, SERVER };
-    enum Protocol { SSLv3, TLSv1, TLSv1_1, TLSv1_2};
+enum Mode { CLIENT, SERVER };
+enum Protocol { SSLv3, TLSv1, TLSv1_1, TLSv1_2 };
 /**
  * \class ConnectionHandlerSettings
  * \brief Interface for connection handler component settings.

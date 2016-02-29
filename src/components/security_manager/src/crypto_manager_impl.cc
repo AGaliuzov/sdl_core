@@ -49,8 +49,8 @@
 #include "utils/macro.h"
 #include "utils/scope_guard.h"
 
-#define TLS1_1_MINIMAL_VERSION            0x1000103fL
-#define CONST_SSL_METHOD_MINIMAL_VERSION  0x00909000L
+#define TLS1_1_MINIMAL_VERSION 0x1000103fL
+#define CONST_SSL_METHOD_MINIMAL_VERSION 0x00909000L
 
 namespace security_manager {
 
@@ -61,19 +61,19 @@ sync_primitives::Lock CryptoManagerImpl::instance_lock_;
 
 // Handshake verification callback
 // Used for debug outpute only
-int debug_callback(int preverify_ok, X509_STORE_CTX *ctx);
+int debug_callback(int preverify_ok, X509_STORE_CTX* ctx);
 
 namespace {
-  void free_ctx(SSL_CTX** ctx) {
-    if (ctx) {
-      SSL_CTX_free(*ctx);
-      *ctx = NULL;
-    }
+void free_ctx(SSL_CTX** ctx) {
+  if (ctx) {
+    SSL_CTX_free(*ctx);
+    *ctx = NULL;
   }
+}
 }  // namespace
-CryptoManagerImpl::CryptoManagerImpl(const utils::SharedPtr<const CryptoManagerSettings>  set)
-    : settings_(set),
-      context_(NULL) {
+CryptoManagerImpl::CryptoManagerImpl(
+    const utils::SharedPtr<const CryptoManagerSettings> set)
+    : settings_(set), context_(NULL) {
   LOG4CXX_AUTO_TRACE(logger_);
   sync_primitives::AutoLock lock(instance_lock_);
   instance_count_++;
@@ -112,15 +112,17 @@ bool CryptoManagerImpl::Init() {
   } else {
     LOG4CXX_DEBUG(logger_, "Client mode");
   }
-  LOG4CXX_DEBUG(logger_, "Peer verification "
-                << (get_settings().verify_peer() ? "enabled" : "disabled"));
-  LOG4CXX_DEBUG(logger_, "CA certificate file is \""
-                << get_settings().ca_cert_path() << '"');
+  LOG4CXX_DEBUG(logger_,
+                "Peer verification "
+                    << (get_settings().verify_peer() ? "enabled" : "disabled"));
+  LOG4CXX_DEBUG(logger_,
+                "CA certificate file is \"" << get_settings().ca_cert_path()
+                                            << '"');
 
 #if OPENSSL_VERSION_NUMBER < CONST_SSL_METHOD_MINIMAL_VERSION
-  SSL_METHOD *method;
+  SSL_METHOD* method;
 #else
-  const SSL_METHOD *method;
+  const SSL_METHOD* method;
 #endif
   switch (get_settings().security_manager_protocol_name()) {
     case SSLv3:
@@ -131,29 +133,28 @@ bool CryptoManagerImpl::Init() {
       break;
     case TLSv1_1:
 #if OPENSSL_VERSION_NUMBER < TLS1_1_MINIMAL_VERSION
-      LOG4CXX_WARN(logger_,
+      LOG4CXX_WARN(
+          logger_,
           "OpenSSL has no TLSv1.1 with version lower 1.0.1, set TLSv1.0");
-      method = is_server ?
-      TLSv1_server_method() :
-      TLSv1_client_method();
+      method = is_server ? TLSv1_server_method() : TLSv1_client_method();
 #else
       method = is_server ? TLSv1_1_server_method() : TLSv1_1_client_method();
 #endif
       break;
     case TLSv1_2:
 #if OPENSSL_VERSION_NUMBER < TLS1_1_MINIMAL_VERSION
-      LOG4CXX_WARN(logger_,
+      LOG4CXX_WARN(
+          logger_,
           "OpenSSL has no TLSv1.2 with version lower 1.0.1, set TLSv1.0");
-      method = is_server ?
-      TLSv1_server_method() :
-      TLSv1_client_method();
+      method = is_server ? TLSv1_server_method() : TLSv1_client_method();
 #else
       method = is_server ? TLSv1_2_server_method() : TLSv1_2_client_method();
 #endif
       break;
     default:
-      LOG4CXX_ERROR(logger_, "Unknown protocol: " <<
-                    get_settings().security_manager_protocol_name());
+      LOG4CXX_ERROR(logger_,
+                    "Unknown protocol: "
+                        << get_settings().security_manager_protocol_name());
       return false;
   }
   if (context_) {
@@ -162,8 +163,7 @@ bool CryptoManagerImpl::Init() {
 
   context_ = SSL_CTX_new(method);
   if (!context_) {
-    LOG4CXX_ERROR(logger_,
-                  "Could not create OpenSSLContext - " << LastError());
+    LOG4CXX_ERROR(logger_, "Could not create OpenSSLContext - " << LastError());
     return false;
   }
   utils::ScopeGuard guard = utils::MakeGuard(free_ctx, &context_);
@@ -177,9 +177,11 @@ bool CryptoManagerImpl::Init() {
     LOG4CXX_WARN(logger_, "Empty ciphers list");
   } else {
     LOG4CXX_DEBUG(logger_, "Cipher list: " << get_settings().ciphers_list());
-    if (!SSL_CTX_set_cipher_list(context_, get_settings().ciphers_list().c_str())) {
-      LOG4CXX_ERROR(logger_, "Could not set cipher list: "
-                    << get_settings().ciphers_list());
+    if (!SSL_CTX_set_cipher_list(context_,
+                                 get_settings().ciphers_list().c_str())) {
+      LOG4CXX_ERROR(
+          logger_,
+          "Could not set cipher list: " << get_settings().ciphers_list());
       return false;
     }
   }
@@ -193,20 +195,21 @@ bool CryptoManagerImpl::Init() {
   if (!result) {
     const unsigned long error = ERR_get_error();
     UNUSED(error);
-    LOG4CXX_WARN(
-        logger_,
-        "Wrong certificate file '" << get_settings().ca_cert_path()
-        << "', err 0x" << std::hex << error
-        << " \"" << ERR_reason_error_string(error) << '"');
+    LOG4CXX_WARN(logger_,
+                 "Wrong certificate file '"
+                     << get_settings().ca_cert_path() << "', err 0x" << std::hex
+                     << error << " \"" << ERR_reason_error_string(error)
+                     << '"');
   }
 
   guard.Dismiss();
 
   const int verify_mode =
-      get_settings().verify_peer() ? SSL_VERIFY_PEER |
-                                         SSL_VERIFY_FAIL_IF_NO_PEER_CERT
-                                       : SSL_VERIFY_NONE;
-  LOG4CXX_DEBUG(logger_, "Setting up peer verification in mode: " << verify_mode);
+      get_settings().verify_peer()
+          ? SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT
+          : SSL_VERIFY_NONE;
+  LOG4CXX_DEBUG(logger_,
+                "Setting up peer verification in mode: " << verify_mode);
   SSL_CTX_set_verify(context_, verify_mode, &debug_callback);
 
   return true;
@@ -216,7 +219,7 @@ bool CryptoManagerImpl::is_initialized() const {
   return context_;
 }
 
-bool CryptoManagerImpl::OnCertificateUpdated(const std::string &data) {
+bool CryptoManagerImpl::OnCertificateUpdated(const std::string& data) {
   LOG4CXX_AUTO_TRACE(logger_);
   if (!is_initialized()) {
     LOG4CXX_WARN(logger_, "Not initialized");
@@ -231,7 +234,7 @@ SSLContext* CryptoManagerImpl::CreateSSLContext() {
     return NULL;
   }
 
-  SSL *conn = SSL_new(context_);
+  SSL* conn = SSL_new(context_);
   if (conn == NULL) {
     LOG4CXX_ERROR(logger_, "SSL context was not created - " << LastError());
     return NULL;
@@ -242,11 +245,12 @@ SSLContext* CryptoManagerImpl::CreateSSLContext() {
   } else {
     SSL_set_connect_state(conn);
   }
-  return new SSLContextImpl(
-      conn, get_settings().security_manager_mode(), get_settings().maximum_payload_size());
+  return new SSLContextImpl(conn,
+                            get_settings().security_manager_mode(),
+                            get_settings().maximum_payload_size());
 }
 
-void CryptoManagerImpl::ReleaseSSLContext(SSLContext *context) {
+void CryptoManagerImpl::ReleaseSSLContext(SSLContext* context) {
   delete context;
 }
 
@@ -257,8 +261,8 @@ std::string CryptoManagerImpl::LastError() const {
     string_stream << "no openssl error occurs";
   } else {
     const char* error_string = ERR_reason_error_string(openssl_error_id);
-    string_stream << "error: 0x" << std::hex << openssl_error_id
-                  << ", \"" << std::string(error_string ? error_string : "") << '"';
+    string_stream << "error: 0x" << std::hex << openssl_error_id << ", \""
+                  << std::string(error_string ? error_string : "") << '"';
   }
   if (!is_initialized()) {
     string_stream << ", initialization is not completed";
@@ -282,45 +286,50 @@ bool CryptoManagerImpl::IsCertificateUpdateRequired() const {
   return seconds <= get_settings().update_before_hours();
 }
 
-int debug_callback(int preverify_ok, X509_STORE_CTX *ctx) {
+int debug_callback(int preverify_ok, X509_STORE_CTX* ctx) {
   if (!preverify_ok) {
     const int error = X509_STORE_CTX_get_error(ctx);
     UNUSED(error);
-    LOG4CXX_WARN(
-        logger_,
-        "Certificate verification failed with error " << error
-        << " \"" << X509_verify_cert_error_string(error) << '"');
+    LOG4CXX_WARN(logger_,
+                 "Certificate verification failed with error "
+                     << error << " \"" << X509_verify_cert_error_string(error)
+                     << '"');
   }
   return preverify_ok;
 }
 
-bool CryptoManagerImpl::set_certificate(const std::string &cert_data) {
+bool CryptoManagerImpl::set_certificate(const std::string& cert_data) {
   LOG4CXX_AUTO_TRACE(logger_);
 
   if (cert_data.empty()) {
     LOG4CXX_WARN(logger_, "Empty certificate data");
     return false;
   }
-  LOG4CXX_DEBUG(logger_, "Updating certificate and key from base64 data: \" "
-                << cert_data);
+  LOG4CXX_DEBUG(logger_,
+                "Updating certificate and key from base64 data: \" "
+                    << cert_data);
 
-  BIO* bio_cert = BIO_new_mem_buf(const_cast<char*>(cert_data.c_str()), cert_data.length());
+  BIO* bio_cert =
+      BIO_new_mem_buf(const_cast<char*>(cert_data.c_str()), cert_data.length());
 
   utils::ScopeGuard bio_guard = utils::MakeGuard(BIO_free, bio_cert);
   UNUSED(bio_guard)
 
   X509* cert = NULL;
-  PEM_read_bio_X509(bio_cert, &cert,0, 0);
+  PEM_read_bio_X509(bio_cert, &cert, 0, 0);
 
   EVP_PKEY* pkey = NULL;
   if (1 == BIO_reset(bio_cert)) {
-    PEM_read_bio_PrivateKey(bio_cert, &pkey, 0,0);
+    PEM_read_bio_PrivateKey(bio_cert, &pkey, 0, 0);
   } else {
-    LOG4CXX_WARN(logger_, "Unabled to reset BIO in order to read private key, " << LastError());
+    LOG4CXX_WARN(logger_,
+                 "Unabled to reset BIO in order to read private key, "
+                     << LastError());
   }
 
-  if (NULL == cert || NULL == pkey){
-    LOG4CXX_WARN(logger_, "Either certificate or key not valid, " << LastError());
+  if (NULL == cert || NULL == pkey) {
+    LOG4CXX_WARN(logger_,
+                 "Either certificate or key not valid, " << LastError());
     return false;
   }
 
@@ -343,7 +352,7 @@ bool CryptoManagerImpl::set_certificate(const std::string &cert_data) {
   return true;
 }
 
-int CryptoManagerImpl::pull_number_from_buf(char *buf, int *idx) {
+int CryptoManagerImpl::pull_number_from_buf(char* buf, int* idx) {
   if (!idx) {
     return 0;
   }
@@ -352,12 +361,13 @@ int CryptoManagerImpl::pull_number_from_buf(char *buf, int *idx) {
   return val;
 }
 
-void CryptoManagerImpl::asn1_time_to_tm(ASN1_TIME *time) {
-  char* buf = (char *)time->data;
+void CryptoManagerImpl::asn1_time_to_tm(ASN1_TIME* time) {
+  char* buf = (char*)time->data;
   int index = 0;
   const int year = pull_number_from_buf(buf, &index);
   if (V_ASN1_GENERALIZEDTIME == time->type) {
-    expiration_time_.tm_year = (year * 100 -1900) + pull_number_from_buf(buf, &index);
+    expiration_time_.tm_year =
+        (year * 100 - 1900) + pull_number_from_buf(buf, &index);
   } else {
     expiration_time_.tm_year = year < 50 ? year + 100 : year;
   }
@@ -367,7 +377,7 @@ void CryptoManagerImpl::asn1_time_to_tm(ASN1_TIME *time) {
   const int hour = pull_number_from_buf(buf, &index);
   const int mn = pull_number_from_buf(buf, &index);
 
-  expiration_time_.tm_mon = mon -1;
+  expiration_time_.tm_mon = mon - 1;
   expiration_time_.tm_mday = day;
   expiration_time_.tm_hour = hour;
   expiration_time_.tm_min = mn;
@@ -380,7 +390,7 @@ void CryptoManagerImpl::asn1_time_to_tm(ASN1_TIME *time) {
     const int mn1 = pull_number_from_buf(buf, &index);
     expiration_time_.tm_sec = (mn * 3600) + (mn1 * 60);
   } else {
-    const int sec =  pull_number_from_buf(buf, &index);
+    const int sec = pull_number_from_buf(buf, &index);
     expiration_time_.tm_sec = sec;
   }
 }

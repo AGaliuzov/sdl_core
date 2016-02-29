@@ -62,6 +62,7 @@ class TestTask : public timer::TimerTask {
     return calls_count_;
   }
   ~TestTask() {}
+
  private:
   mutable uint calls_count_;
 };
@@ -93,7 +94,6 @@ class FakeClassWithTimer {
   timer::Timer internal_timer_;
 };
 }  // namespace
-
 
 class TimerTest : public testing::Test {
  protected:
@@ -181,7 +181,6 @@ TEST_F(TimerTest, Start_NotRunned_RunnedWithNewTimeout) {
   ASSERT_EQ(timeout_, test_timer.GetTimeout());
   ASSERT_TRUE(test_timer.IsRunning());
 }
-
 
 TEST_F(TimerTest, Stop_FirstLoop_NoCall) {
   // Preconditions

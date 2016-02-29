@@ -48,19 +48,19 @@ namespace telemetry_monitor {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "TelemetryMonitor")
 
-TelemetryMonitor::TelemetryMonitor(const std::string& server_address, uint16_t port):
-  server_address_(server_address),
-  port_(port),
-  thread_(NULL),
-  streamer_(NULL),
-  app_observer(this),
-  tm_observer(this),
-  ph_observer(this) {
-}
+TelemetryMonitor::TelemetryMonitor(const std::string& server_address,
+                                   uint16_t port)
+    : server_address_(server_address)
+    , port_(port)
+    , thread_(NULL)
+    , streamer_(NULL)
+    , app_observer(this)
+    , tm_observer(this)
+    , ph_observer(this) {}
 
 void TelemetryMonitor::Start() {
   streamer_ = new Streamer(this);
-  thread_ = threads::CreateThread("TelemetryMonitor", streamer_ );
+  thread_ = threads::CreateThread("TelemetryMonitor", streamer_);
 }
 
 void TelemetryMonitor::set_streamer(Streamer* streamer) {
@@ -81,9 +81,11 @@ TelemetryMonitor::~TelemetryMonitor() {
 }
 
 void TelemetryMonitor::Init(
-        TelemetryObservable<protocol_handler::PHTelemetryObserver>* protocol_handler,
-        TelemetryObservable<application_manager::AMTelemetryObserver>* app_manager,
-        TelemetryObservable<transport_manager::TMTelemetryObserver>* transport_manager) {
+    TelemetryObservable<protocol_handler::PHTelemetryObserver>*
+        protocol_handler,
+    TelemetryObservable<application_manager::AMTelemetryObserver>* app_manager,
+    TelemetryObservable<transport_manager::TMTelemetryObserver>*
+        transport_manager) {
   LOG4CXX_AUTO_TRACE(logger_);
   DCHECK_OR_RETURN_VOID(streamer_);
 
@@ -105,7 +107,7 @@ void TelemetryMonitor::Stop() {
 }
 
 void TelemetryMonitor::SendMetric(utils::SharedPtr<MetricWrapper> metric) {
-  if ((NULL != streamer_ )&& streamer_->is_client_connected_) {
+  if ((NULL != streamer_) && streamer_->is_client_connected_) {
     streamer_->PushMessage(metric);
   }
 }
@@ -116,14 +118,12 @@ const int16_t TelemetryMonitor::port() {
   return port_;
 }
 
-Streamer::Streamer(
-  TelemetryMonitor* const server)
-  : is_client_connected_(false),
-    kserver_(server),
-    server_socket_fd_(0),
-    client_socket_fd_(0),
-    stop_flag_(false) {
-}
+Streamer::Streamer(TelemetryMonitor* const server)
+    : is_client_connected_(false)
+    , kserver_(server)
+    , server_socket_fd_(0)
+    , client_socket_fd_(0)
+    , stop_flag_(false) {}
 
 Streamer::~Streamer() {
   Stop();
@@ -181,13 +181,16 @@ void Streamer::Start() {
   }
 
   int32_t optval = 1;
-  if (-1 == setsockopt(server_socket_fd_, SOL_SOCKET, SO_REUSEADDR,
-                       &optval, sizeof optval)) {
+  if (-1 == setsockopt(server_socket_fd_,
+                       SOL_SOCKET,
+                       SO_REUSEADDR,
+                       &optval,
+                       sizeof optval)) {
     LOG4CXX_ERROR(logger_, "Unable to set sockopt");
     return;
   }
 
-  sockaddr_in serv_addr_ = { 0 };
+  sockaddr_in serv_addr_ = {0};
   serv_addr_.sin_addr.s_addr = inet_addr(kserver_->ip().c_str());
   serv_addr_.sin_family = AF_INET;
   serv_addr_.sin_port = htons(kserver_->port());
@@ -195,19 +198,20 @@ void Streamer::Start() {
   if (-1 == bind(server_socket_fd_,
                  reinterpret_cast<struct sockaddr*>(&serv_addr_),
                  sizeof(serv_addr_))) {
-    LOG4CXX_ERROR(logger_, "Unable to bind server "
-                  << kserver_->ip().c_str() << ':' << kserver_->port());
+    LOG4CXX_ERROR(logger_,
+                  "Unable to bind server " << kserver_->ip().c_str() << ':'
+                                           << kserver_->port());
     return;
   }
   if (-1 == listen(server_socket_fd_, 1)) {
-    LOG4CXX_ERROR(logger_, "Streamer listen error " << strerror(errno) );
+    LOG4CXX_ERROR(logger_, "Streamer listen error " << strerror(errno));
     return;
   }
 }
 
 void Streamer::ShutDownAndCloseSocket(int32_t socket_fd) {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (0 < socket_fd){
+  if (0 < socket_fd) {
     LOG4CXX_INFO(logger_, "Shutdown socket");
     if (-1 == ::shutdown(socket_fd, SHUT_RDWR)) {
       LOG4CXX_ERROR(logger_, "Unable to shutdown socket");
@@ -244,7 +248,7 @@ bool Streamer::IsReady() const {
   FD_ZERO(&fds);
   FD_SET(client_socket_fd_, &fds);
   TimevalStruct tv = {0, 0};
-  tv.tv_sec = 5;                       // set a 5 second timeout
+  tv.tv_sec = 5;  // set a 5 second timeout
   tv.tv_usec = 0;
 
   const int retval = select(client_socket_fd_ + 1, 0, &fds, 0, &tv);
@@ -267,8 +271,7 @@ bool Streamer::Send(const std::string& msg) {
     return false;
   }
 
-  if (-1 == ::send(client_socket_fd_, msg.c_str(),
-                   msg.size(), MSG_NOSIGNAL)) {
+  if (-1 == ::send(client_socket_fd_, msg.c_str(), msg.size(), MSG_NOSIGNAL)) {
     LOG4CXX_ERROR(logger_, " Unable to send");
     return false;
   }

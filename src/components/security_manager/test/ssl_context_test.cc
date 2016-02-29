@@ -44,8 +44,6 @@
 #include "utils/shared_ptr.h"
 #include "utils/make_shared.h"
 
-
-
 using ::testing::Return;
 using ::testing::ReturnRef;
 using ::testing::NiceMock;
@@ -98,7 +96,8 @@ class SSLTest : public testing::Test {
     certificate_file.close();
 
     certificate_data_base64_ = certificate.str();
-    ASSERT_FALSE(certificate_data_base64_.empty()) << "Certificate data file is empty";
+    ASSERT_FALSE(certificate_data_base64_.empty())
+        << "Certificate data file is empty";
   }
 
   virtual void SetUp() {
@@ -167,8 +166,8 @@ class SSLTest : public testing::Test {
     ctx.expected_cn = "server";
     client_ctx->SetHandshakeContext(ctx);
 
-    kServerBuf= NULL;
-    kClientBuf= NULL;
+    kServerBuf = NULL;
+    kClientBuf = NULL;
     server_buf_len = 0u;
     client_buf_len = 0u;
   }
@@ -195,7 +194,6 @@ class SSLTest : public testing::Test {
 };
 std::string SSLTest::certificate_data_base64_;
 
-
 // StartHandshake() fails when client and server protocols are not TLSv1_2
 class SSLTestParam : public testing::TestWithParam<ProtocolAndCipher> {
  protected:
@@ -214,26 +212,24 @@ class SSLTestParam : public testing::TestWithParam<ProtocolAndCipher> {
     mock_crypto_manager_settings_ = utils::MakeShared<
         NiceMock<security_manager_test::MockCryptoManagerSettings>>();
     utils::SharedPtr<security_manager::CryptoManagerSettings> server_crypto(
-                mock_crypto_manager_settings_);
+        mock_crypto_manager_settings_);
     crypto_manager_ = new security_manager::CryptoManagerImpl(server_crypto);
 
     SetServerInitialValues(GetParam().server_protocol,
                            GetParam().server_ciphers_list);
-    const bool crypto_manager_initialization =
-        crypto_manager_->Init();
+    const bool crypto_manager_initialization = crypto_manager_->Init();
     EXPECT_TRUE(crypto_manager_initialization);
 
     mock_client_manager_settings_ = utils::MakeShared<
         NiceMock<security_manager_test::MockCryptoManagerSettings>>();
 
     utils::SharedPtr<security_manager::CryptoManagerSettings> client_crypto(
-                mock_client_manager_settings_);
+        mock_client_manager_settings_);
     client_manager_ = new security_manager::CryptoManagerImpl(client_crypto);
 
     SetClientInitialValues(GetParam().client_protocol,
                            GetParam().client_ciphers_list);
-    const bool client_manager_initialization =
-        client_manager_->Init();
+    const bool client_manager_initialization = client_manager_->Init();
     EXPECT_TRUE(client_manager_initialization);
 
     server_ctx = crypto_manager_->CreateSSLContext();
@@ -247,8 +243,8 @@ class SSLTestParam : public testing::TestWithParam<ProtocolAndCipher> {
     ctx.expected_cn = "server";
     client_ctx->SetHandshakeContext(ctx);
 
-    kServerBuf= NULL;
-    kClientBuf= NULL;
+    kServerBuf = NULL;
+    kClientBuf = NULL;
     server_buf_len = 0u;
     client_buf_len = 0u;
   }
@@ -391,8 +387,9 @@ TEST_F(SSLTest, OnTSL2Protocol_Positive) {
     ASSERT_FALSE(NULL == kServerBuf);
     ASSERT_LT(0u, server_buf_len);
 
-    security_manager::SSLContext::HandshakeResult result =  client_ctx->DoHandshakeStep(
-                  kServerBuf, server_buf_len, &kClientBuf, &client_buf_len);
+    security_manager::SSLContext::HandshakeResult result =
+        client_ctx->DoHandshakeStep(
+            kServerBuf, server_buf_len, &kClientBuf, &client_buf_len);
     ASSERT_EQ(security_manager::SSLContext::Handshake_Result_Success, result);
     if (server_ctx->IsInitCompleted()) {
       break;

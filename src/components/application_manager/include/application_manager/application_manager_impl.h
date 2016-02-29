@@ -558,7 +558,6 @@ class ApplicationManagerImpl
     state_ctrl_.SetRegularState(app, state);
   }
 
-
   /**
    * @brief Checks, if particular state is active
    * @param state_id State

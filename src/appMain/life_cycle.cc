@@ -166,10 +166,12 @@ bool LifeCycle::StartComponents() {
   }
 #endif  // ENABLE_SECURITY
 
-// it is important to initialise TelemetryMonitor before TM to listen TM Adapters
+// it is important to initialise TelemetryMonitor before TM to listen TM
+// Adapters
 #ifdef TELEMETRY_MONITOR
-  telemetry_monitor_ = new telemetry_monitor::TelemetryMonitor(profile::Profile::instance()->server_address(),
-                                              profile::Profile::instance()->time_testing_port());
+  telemetry_monitor_ = new telemetry_monitor::TelemetryMonitor(
+      profile::Profile::instance()->server_address(),
+      profile::Profile::instance()->time_testing_port());
   telemetry_monitor_->Start();
   telemetry_monitor_->Init(protocol_handler_, app_manager_, transport_manager_);
 #endif  // TELEMETRY_MONITOR
@@ -334,25 +336,25 @@ bool LifeCycle::InitMessageSystem() {
 #endif  // CUSTOMER_PASA
 
 namespace {
-  void sig_handler(int sig) {
-    switch(sig) {
-      case SIGINT:
-        LOG4CXX_DEBUG(logger_, "SIGINT signal has been caught");
-        break;
-      case SIGTERM:
-        LOG4CXX_DEBUG(logger_, "SIGTERM signal has been caught");
-        break;
-      case SIGSEGV:
-        LOG4CXX_DEBUG(logger_, "SIGSEGV signal has been caught");
-        FLUSH_LOGGER();
-        // exit need to prevent endless sending SIGSEGV
-        // http://stackoverflow.com/questions/2663456/how-to-write-a-signal-handler-to-catch-sigsegv
-        abort();
-      default:
-        LOG4CXX_DEBUG(logger_, "Unexpected signal has been caught");
-        exit(EXIT_FAILURE);
-    }
+void sig_handler(int sig) {
+  switch (sig) {
+    case SIGINT:
+      LOG4CXX_DEBUG(logger_, "SIGINT signal has been caught");
+      break;
+    case SIGTERM:
+      LOG4CXX_DEBUG(logger_, "SIGTERM signal has been caught");
+      break;
+    case SIGSEGV:
+      LOG4CXX_DEBUG(logger_, "SIGSEGV signal has been caught");
+      FLUSH_LOGGER();
+      // exit need to prevent endless sending SIGSEGV
+      // http://stackoverflow.com/questions/2663456/how-to-write-a-signal-handler-to-catch-sigsegv
+      abort();
+    default:
+      LOG4CXX_DEBUG(logger_, "Unexpected signal has been caught");
+      exit(EXIT_FAILURE);
   }
+}
 }  //  namespace
 
 void LifeCycle::Run() {
@@ -360,7 +362,7 @@ void LifeCycle::Run() {
   // Register signal handlers and wait sys signals
   // from OS
   if (!utils::WaitTerminationSignals(&sig_handler)) {
-      LOG4CXX_FATAL(logger_, "Fail to catch system signal!");
+    LOG4CXX_FATAL(logger_, "Fail to catch system signal!");
   }
 }
 

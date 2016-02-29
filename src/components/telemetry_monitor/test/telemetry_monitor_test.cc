@@ -60,7 +60,8 @@ TEST(TelemetryMonitorTest, MessageProcess) {
   transport_manager_test::MockTransportManager transport_manager_mock;
   testing::NiceMock<connection_handler_test::MockConnectionHandler>
       connection_handler_mock;
-  testing::NiceMock<test::components::protocol_handler_test::MockProtocolHandlerSettings>
+  testing::NiceMock<
+      test::components::protocol_handler_test::MockProtocolHandlerSettings>
       protocol_handler_settings_mock;
   test::components::protocol_handler_test::MockSessionObserver
       session_observer_mock;
@@ -75,8 +76,10 @@ TEST(TelemetryMonitorTest, MessageProcess) {
   ON_CALL(protocol_handler_settings_mock, multiframe_waiting_timeout())
       .WillByDefault(Return(init_value));
   protocol_handler::ProtocolHandlerImpl protocol_handler_mock(
-      protocol_handler_settings_mock, session_observer_mock,
-      connection_handler_mock, transport_manager_mock);
+      protocol_handler_settings_mock,
+      session_observer_mock,
+      connection_handler_mock,
+      transport_manager_mock);
 
   EXPECT_CALL(am_observeble, SetTelemetryObserver(_));
   EXPECT_CALL(transport_manager_mock, SetTelemetryObserver(_));
@@ -85,8 +88,8 @@ TEST(TelemetryMonitorTest, MessageProcess) {
   telemetry_monitor.Start();
 
   telemetry_monitor.set_streamer(&streamer_mock);
-  telemetry_monitor.Init(&protocol_handler_mock, &am_observeble,
-                           &transport_manager_mock);
+  telemetry_monitor.Init(
+      &protocol_handler_mock, &am_observeble, &transport_manager_mock);
   utils::SharedPtr<telemetry_monitor::MetricWrapper> test_metric;
   EXPECT_CALL(streamer_mock, PushMessage(test_metric));
   telemetry_monitor.SendMetric(test_metric);

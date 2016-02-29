@@ -58,7 +58,8 @@ TEST(ResourceInspectorTest, DISABLED_MessageProcess) {
       session_observer_mock,
       connection_handler_mock,
       transport_manager_mock);
-  resource_inspector::ResourceInspector* resource_inspector = new resource_inspector::ResourceInspector();
+  resource_inspector::ResourceInspector* resource_inspector =
+      new resource_inspector::ResourceInspector();
   // Streamer will be deleted by Thread
   StreamerMock* streamer_mock = new StreamerMock(resource_inspector);
   resource_inspector->set_streamer(streamer_mock);

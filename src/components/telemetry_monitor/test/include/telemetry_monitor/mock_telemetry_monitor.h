@@ -44,7 +44,7 @@ using namespace telemetry_monitor;
 
 class MockTelemetryMonitor : public telemetry_monitor::TelemetryMonitor {
  public:
-    MockTelemetryMonitor():telemetry_monitor::TelemetryMonitor("",0u){}
+  MockTelemetryMonitor() : telemetry_monitor::TelemetryMonitor("", 0u) {}
   MOCK_METHOD1(Init, void(protocol_handler::ProtocolHandlerImpl* ph));
   MOCK_METHOD0(Stop, void());
   MOCK_METHOD0(Start, void());

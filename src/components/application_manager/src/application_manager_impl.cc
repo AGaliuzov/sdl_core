@@ -130,26 +130,23 @@ ApplicationManagerImpl::ApplicationManagerImpl()
     metric_observer_(NULL)
     ,
 #endif  // TELEMETRY_MONITOR
-      application_list_update_timer_(
-          "AM ListUpdater",
-          new TimerTaskImpl<ApplicationManagerImpl>(
-              this,
-              &ApplicationManagerImpl::OnApplicationListUpdateTimer)),
-      tts_global_properties_timer_(
+    application_list_update_timer_(
+        "AM ListUpdater",
+        new TimerTaskImpl<ApplicationManagerImpl>(
+            this, &ApplicationManagerImpl::OnApplicationListUpdateTimer))
+    , tts_global_properties_timer_(
           "AM TTSGLPRTimer",
           new TimerTaskImpl<ApplicationManagerImpl>(
-              this,
-              &ApplicationManagerImpl::OnTimerSendTTSGlobalProperties)),
-      is_low_voltage_(false),
-      is_stopping_(false) {
+              this, &ApplicationManagerImpl::OnTimerSendTTSGlobalProperties))
+    , is_low_voltage_(false)
+    , is_stopping_(false) {
   std::srand(std::time(0));
   AddPolicyObserver(this);
 
   TimerSPtr clearing_timer(utils::MakeShared<timer::Timer>(
-                              "ClearTimerPoolTimer",
-                              new TimerTaskImpl<ApplicationManagerImpl>(
-                                  this,
-                                  &ApplicationManagerImpl::ClearTimerPool)));
+      "ClearTimerPoolTimer",
+      new TimerTaskImpl<ApplicationManagerImpl>(
+          this, &ApplicationManagerImpl::ClearTimerPool)));
   const uint32_t timeout_ms = 10000u;
   clearing_timer->Start(timeout_ms, true);
   timer_pool_.push_back(clearing_timer);
@@ -2073,7 +2070,8 @@ bool ApplicationManagerImpl::is_attenuated_supported() {
 }
 
 #ifdef TELEMETRY_MONITOR
-void ApplicationManagerImpl::SetTelemetryObserver(AMTelemetryObserver* observer) {
+void ApplicationManagerImpl::SetTelemetryObserver(
+    AMTelemetryObserver* observer) {
   metric_observer_ = observer;
 }
 #endif  // TELEMETRY_MONITOR
@@ -2693,10 +2691,9 @@ void ApplicationManagerImpl::EndNaviServices(uint32_t app_id) {
     navi_app_to_stop_.push_back(app_id);
 
     TimerSPtr close_timer(utils::MakeShared<timer::Timer>(
-                             "CloseNaviAppTimer",
-                             new TimerTaskImpl<ApplicationManagerImpl>(
-                                 this,
-                                 &ApplicationManagerImpl::CloseNaviApp)));
+        "CloseNaviAppTimer",
+        new TimerTaskImpl<ApplicationManagerImpl>(
+            this, &ApplicationManagerImpl::CloseNaviApp)));
     close_timer->Start(navi_close_app_timeout_, false);
 
     sync_primitives::AutoLock lock(timer_pool_lock_);
@@ -2735,11 +2732,9 @@ void ApplicationManagerImpl::OnHMILevelChanged(
       LOG4CXX_TRACE(logger_, "HMILevel from FULL or LIMITED");
       navi_app_to_end_stream_.push_back(app_id);
       TimerSPtr end_stream_timer(utils::MakeShared<timer::Timer>(
-                                 "AppShouldFinishStreaming",
-                                 new TimerTaskImpl<ApplicationManagerImpl>(
-                                     this,
-                                     &ApplicationManagerImpl::EndNaviStreaming)
-                                 ));
+          "AppShouldFinishStreaming",
+          new TimerTaskImpl<ApplicationManagerImpl>(
+              this, &ApplicationManagerImpl::EndNaviStreaming)));
       end_stream_timer->Start(navi_end_stream_timeout_, false);
 
       sync_primitives::AutoLock lock(timer_pool_lock_);

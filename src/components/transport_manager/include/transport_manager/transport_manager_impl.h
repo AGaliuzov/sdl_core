@@ -60,7 +60,7 @@ namespace transport_manager {
 typedef threads::MessageLoopThread<std::queue<protocol_handler::RawMessagePtr> >
     RawMessageLoopThread;
 typedef threads::MessageLoopThread<std::queue<TransportAdapterEvent> >
-  TransportAdapterEventLoopThread;
+    TransportAdapterEventLoopThread;
 typedef utils::SharedPtr<timer::Timer> TimerSPtr;
 
 /**
