@@ -1357,11 +1357,15 @@ void PolicyHandler::OnCertificateUpdated(const std::string& certificate_data) {
   const bool is_written = file_system::Write(
       file_name,
       std::vector<uint8_t>(certificate_data.begin(), certificate_data.end()));
+  LOG4CXX_DEBUG(logger_,
+                "Saving encrypted certificate data: \"" << certificate_data << '"');
   if (!is_written) {
     LOG4CXX_ERROR(logger_,
                   "Unable to save encrypted certificate to file " << file_name);
     return;
   }
+  LOG4CXX_DEBUG(logger_,
+                "Saved encrypted certificate data" << file_name);
 
   MessageHelper::SendDecryptCertificateToHMI(file_name);
 }
@@ -1374,7 +1378,10 @@ void PolicyHandler::OnCertificateDecrypted(bool is_succeeded) {
       file_system::GetAbsolutePath(
           profile::Profile::instance()->app_storage_folder()) +
       +"/" + kCerficateFileName;
-
+  
+  LOG4CXX_DEBUG(logger_,
+                "Loading certificate data from file " << file_name);
+  
   utils::ScopeGuard file_deleter =
       utils::MakeGuard(file_system::DeleteFile, file_name);
   UNUSED(file_deleter);
@@ -1390,6 +1397,8 @@ void PolicyHandler::OnCertificateDecrypted(bool is_succeeded) {
                   "Unable to read certificate from file " << file_name);
     return;
   }
+  LOG4CXX_DEBUG(logger_,
+                "Loaded decrypted certificate data: \"" << certificate_data << '"');
 
   policy_manager_->SetDecryptedCertificate(certificate_data);
 
