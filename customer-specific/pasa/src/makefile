@@ -9,7 +9,7 @@ endif
 
 include $(PRJ_ROOT)cfg/depends.mk
 
-COMPONENT_NAME = SmartDeviceLink
+COMPONENT_NAME = SmartDeviceLinkProject
 
 DEFS += \
 	-Wc,-std=gnu++0x \
