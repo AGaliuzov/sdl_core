@@ -489,116 +489,26 @@ bool PolicyManagerImpl::CleanupUnpairedDevices() {
 DeviceConsent PolicyManagerImpl::GetUserConsentForDevice(
   const std::string& device_id) {
   LOG4CXX_AUTO_TRACE(logger_);
-  // Get device permission groups from app_policies section, which hadn't been
-  // preconsented
-  policy_table::Strings groups;
-  policy_table::Strings preconsented_groups;
-  if (!cache_->GetDeviceGroupsFromPolicies(groups, preconsented_groups)) {
-    LOG4CXX_WARN(logger_, "Can't get device groups from policies.");
-    return kDeviceDisallowed;
-  }
-
-  StringArray list_of_permissions;
-  std::for_each(
-    groups.begin(), groups.end(),
-    FunctionalGroupInserter(preconsented_groups, list_of_permissions));
-
-  // Check device permission groups for user consent in device_data section
-  if (!list_of_permissions.empty()) {
-    StringArray consented_groups;
-    StringArray disallowed_groups;
-    if (!cache_->GetUserPermissionsForDevice(device_id, consented_groups,
-        disallowed_groups)) {
-      return kDeviceDisallowed;
-    }
-
-    if (consented_groups.empty() && disallowed_groups.empty()) {
-      return kDeviceHasNoConsent;
-    }
-
-    std::sort(list_of_permissions.begin(), list_of_permissions.end());
-    std::sort(consented_groups.begin(), consented_groups.end());
-
-    StringArray to_be_consented_by_user;
-    std::set_difference(
-      list_of_permissions.begin(),
-      list_of_permissions.end(),
-      consented_groups.begin(),
-      consented_groups.end(),
-      std::back_inserter(to_be_consented_by_user));
-    if (to_be_consented_by_user.empty()) {
-      return kDeviceAllowed;
-    }
-
-    return kDeviceDisallowed;
-  }
-
-  return kDeviceAllowed;
+  return cache_->GetDeviceConsent(device_id);
 }
 
 void PolicyManagerImpl::SetUserConsentForDevice(const std::string& device_id,
-    bool is_allowed) {
+                                                const bool is_allowed) {
   LOG4CXX_AUTO_TRACE(logger_);
   LOG4CXX_DEBUG(logger_, "Device :" << device_id);
-  DeviceConsent current_consent = GetUserConsentForDevice(device_id);
-  bool is_current_device_allowed =
-      DeviceConsent::kDeviceAllowed == current_consent ? true : false;
-  if (DeviceConsent::kDeviceHasNoConsent != current_consent &&
-      is_current_device_allowed == is_allowed) {
-    const std::string consent = is_allowed ? "allowed" : "disallowed";
-    LOG4CXX_INFO(logger_, "Device is already " << consent << ".");
-    return;
-  }
-  cache_->ResetCalculatedPermissions();
-  // Remove unpaired mark, if device re-paired and re-consented again
-  if (is_allowed) {
-    cache_->SetUnpairedDevice(device_id, false);
-  }
-  // Get device permission groups from app_policies section, which hadn't been
-  // preconsented
-  policy_table::Strings groups;
-  policy_table::Strings preconsented_groups;
-  if (!cache_->GetDeviceGroupsFromPolicies(groups, preconsented_groups)) {
-    LOG4CXX_WARN(logger_, "Can't get device groups from policies.");
-    return;
-  }
-
-  StringArray list_of_permissions;
-  std::for_each(
-    groups.begin(), groups.end(),
-    FunctionalGroupInserter(preconsented_groups, list_of_permissions));
-
-  if (list_of_permissions.empty()) {
-    return;
-  }
-
-  StringArray consented_groups;
-  StringArray disallowed_groups;
-
-  // Supposed only one group for device date consent
-  if (is_allowed) {
-    consented_groups = list_of_permissions;
-  } else {
-    disallowed_groups = list_of_permissions;
-  }
-
-  if (!cache_->SetUserPermissionsForDevice(device_id, consented_groups,
-      disallowed_groups)) {
-    LOG4CXX_WARN(logger_, "Can't set user consent for device");
-    return;
-  }
-
+  cache_->SetDeviceConsent(device_id, is_allowed);
   if (listener_) {
     listener_->OnDeviceConsentChanged(device_id, is_allowed);
   } else {
-    LOG4CXX_WARN(logger_, "Event listener is not initialized. "
+    LOG4CXX_WARN(logger_,
+                 "Event listener is not initialized. "
                  "Can't call OnDeviceConsentChanged");
   }
   StartPTExchange();
 }
 
-bool PolicyManagerImpl::ReactOnUserDevConsentForApp(const std::string app_id,
-    bool is_device_allowed) {
+bool PolicyManagerImpl::ReactOnUserDevConsentForApp(
+    const std::string& app_id, const bool is_device_allowed) {
   std::vector<std::string> current_request_types = GetAppRequestTypes(app_id);
   std::string current_priority, new_priority;
   GetPriority(app_id, &current_priority);

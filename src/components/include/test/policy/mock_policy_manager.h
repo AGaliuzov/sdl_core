@@ -83,9 +83,9 @@ class MockPolicyManager : public PolicyManager {
           const std::string& policy_app_id,
           std::vector<policy::FunctionalGroupPermission>& permissions));
   MOCK_METHOD2(SetUserConsentForDevice,
-               void(const std::string& device_id, bool is_allowed));
+               void(const std::string& device_id, const bool is_allowed));
   MOCK_METHOD2(ReactOnUserDevConsentForApp,
-               bool(const std::string app_id, bool is_device_allowed));
+               bool(const std::string& app_id, bool is_device_allowed));
   MOCK_METHOD2(PTUpdatedAt, void(policy::Counters counter, int value));
 
   MOCK_METHOD3(GetInitialAppData,

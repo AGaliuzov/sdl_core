@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2016, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,7 @@
 #include "policy/cache_manager_interface.h"
 #include "utils/threads/thread.h"
 #include "utils/threads/thread_delegate.h"
+#include "policy/policy_types.h"
 
 #include "utils/lock.h"
 #include "utils/conditional_variable.h"
@@ -55,7 +56,7 @@ class CacheManager : public CacheManagerInterface {
   ~CacheManager();
 
   /**
-   * @brief Check if specified RPC for specified application
+   * @brief Checks if specified RPC for specified application
    * has permission to be executed in specified HMI Level
    * and also its permitted params.
    * @param app_id Id of application provided during registration
@@ -102,12 +103,12 @@ class CacheManager : public CacheManagerInterface {
   virtual int DaysBeforeExchange(uint16_t current);
 
   /**
-   * @brief Increment number of ignition cycles since last exchange by 1
+   * @brief Increments number of ignition cycles since last exchange by 1
    */
   virtual void IncrementIgnitionCycles();
 
   /**
-   * @brief Reset number of ignition cycles since last exchange to 0
+   * @brief Resets number of ignition cycles since last exchange to 0
    */
   virtual void ResetIgnitionCycles();
 
@@ -122,10 +123,10 @@ class CacheManager : public CacheManagerInterface {
    * @param seconds Return value: array of 5 elements
    * @return bool Success of operation
    */
-  virtual bool SecondsBetweenRetries(std::vector<int> &seconds);
+  virtual bool SecondsBetweenRetries(std::vector<int>& seconds);
 
   /**
-   * @brief Get information about vehicle
+   * @brief Gets information about vehicle
    */
   virtual const VehicleInfo GetVehicleInfo() const;
 
@@ -140,7 +141,7 @@ class CacheManager : public CacheManagerInterface {
   bool SetVINValue(const std::string& value);
 
   /**
-   * @brief Get message text for displaying/pronouncing for user
+   * @brief Gets message text for displaying/pronouncing for user
    * dependent on language and context.
    * @param msg_codes Context of message (Driver distraction, Grant permission etc)
    * @param language Language of the message
@@ -150,21 +151,22 @@ class CacheManager : public CacheManagerInterface {
     const std::vector<std::string>& msg_codes, const std::string& language);
 
   /**
-   * @brief Get list of URL to send PTS to
+   * @brief Gets list of URL to send PTS to
    * @param service_type If URLs for specific service are preset,
    * return them otherwise default URLs.
    */
   virtual void GetUpdateUrls(int service_type, EndpointUrls& end_points);
 
   /**
-   * @brief Get allowed number of notifications
+   * @brief Gets allowed number of notifications
    * depending on application priority.
    * @param priority Priority of application
    */
-  virtual rpc::policy_table_interface_base::NumberOfNotificationsType GetNotificationsNumber(const std::string& priority);
+  virtual rpc::policy_table_interface_base::NumberOfNotificationsType
+  GetNotificationsNumber(const std::string& priority);
 
   /**
-   * @brief Get priority for given application
+   * @brief Gets priority for given application
    * @param policy_app_id Unique application id
    * @param priority Priority for application or empty, if value was not set
    * @return true, if succedeed, otherwise - false
@@ -179,7 +181,7 @@ class CacheManager : public CacheManagerInterface {
   bool Init(const std::string& file_name);
 
   /**
-   * @brief Get snapshot of Policy Table
+   * @brief Gets snapshot of Policy Table
    * including app_policies, functional_groups,
    * device_info, statistics, excluding user messages
    * @return Generated structure for obtaining Json string.
@@ -233,7 +235,7 @@ class CacheManager : public CacheManagerInterface {
   bool IsApplicationRevoked(const std::string& app_id) const;
 
   /**
-   * @brief Get functional groupings from DB
+   * @brief Gets functional groupings from DB
    * @param groups Known functional groupings
    * @return true, if succeeded, otherwise - false
    */
@@ -304,24 +306,24 @@ class CacheManager : public CacheManagerInterface {
    * @return true, if succedeed, otherwise - false
    */
   bool GetDefaultHMI(const std::string& app_id,
-                     std::string &default_hmi);
+                     std::string& default_hmi);
 
   /**
-   * @brief Reset user consent for device data and applications permissions
+   * @brief Resets user consent for device data and applications permissions
    * @return
    */
   bool ResetUserConsent();
 
   /**
-   * @brief Get user permissions for device data usage
+   * @brief Gets user permissions for device data usage
    * @param device_id Generated or obtained id of device
    * @param consented_groups Groups consented by user
    * @param disallowed_groups Groups not consented by user
    * @return true, if query was successfull, otherwise - false
    */
   bool GetUserPermissionsForDevice(const std::string& device_id,
-                                   StringArray &consented_groups,
-                                   StringArray &disallowed_groups);
+                                   StringArray& consented_groups,
+                                   StringArray& disallowed_groups) const;
 
   /**
    * @brief Gets list of groups permissions from policy table
@@ -332,20 +334,20 @@ class CacheManager : public CacheManagerInterface {
    */
   bool GetPermissionsForApp(const std::string& device_id,
                             const std::string& app_id,
-                            FunctionalIdType &group_types);
+                            FunctionalIdType& group_types);
 
   /**
-   * @brief Get device groups and preconsented groups from policies section
+   * @brief Gets device groups and preconsented groups from policies section
    * @param groups List of groups to be consented for device usage
    * @param preconsented_groups List of preconsented groups for device usage
    * @return true, if query was successful, otherwise - false
    */
   bool GetDeviceGroupsFromPolicies(
-      rpc::policy_table_interface_base::Strings &groups,
-      rpc::policy_table_interface_base::Strings &preconsented_groups);
+      rpc::policy_table_interface_base::Strings& groups,
+      rpc::policy_table_interface_base::Strings& preconsented_groups) const;
 
   /**
-   * @brief Add's information about mobile device in Policy Table.
+   * @brief Adds information about mobile device in Policy Table.
    * @param device_id Generated or obtained id of device
    * @param connection_type device connection type
    * @return bool Success of operation
@@ -354,7 +356,7 @@ class CacheManager : public CacheManagerInterface {
                  const std::string& connection_type);
 
   /**
-   * @brief Record information about mobile device in Policy Table.
+   * @brief Records information about mobile device in Policy Table.
    * @param device_id Generated or obtained id of device
    * @return bool Success of operation
    */
@@ -378,9 +380,26 @@ class CacheManager : public CacheManagerInterface {
       const StringArray& disallowed_groups = StringArray());
 
   /**
+   * @brief Checks if particular mobile device has user consent in cache
+   * @return bool Suceess, if has, otherwise - false
+   */
+  bool IsDeviceConsentCached(const std::string& device_id) const;
+  /**
    * @brief Update Application Policies as reaction
    * on User allowing/disallowing device this app is running on.
    */
+
+  /**
+   * @brief Gets user consent for particular mobile device
+   * @return actual consent for device
+   */
+  DeviceConsent GetDeviceConsent(const std::string& device_id) const OVERRIDE;
+
+  /**
+   * @brief Sets user consent for particular mobile device
+   */
+  void SetDeviceConsent(const std::string& device_id, const bool is_allowed) OVERRIDE;
+
   bool ReactOnUserDevConsentForApp(const std::string& app_id,
                                    bool is_device_allowed);
 
@@ -476,7 +495,7 @@ class CacheManager : public CacheManagerInterface {
    * @param app_id specific application id.
    * @param preconsented_groups parameter to fill.
    */
-  void GetPreConsentedGroups(const std::string &app_id,
+  void GetPreConsentedGroups(const std::string& app_id,
                              FunctionalGroupIDs& preconsented_groups);
   /**
    * @brief GetConsentedGroups allows to obtain list of allowed and disallowed
@@ -486,8 +505,8 @@ class CacheManager : public CacheManagerInterface {
    * @param allowed_groups list of allowed groups
    * @param disallowed_groups list of disallowed groups
    */
-  void GetConsentedGroups(const std::string &device_id,
-                          const std::string &app_id,
+  void GetConsentedGroups(const std::string& device_id,
+                          const std::string& app_id,
                           FunctionalGroupIDs& allowed_groups,
                           FunctionalGroupIDs& disallowed_groups);
 
@@ -608,7 +627,15 @@ private:
 
   void PersistData();
 
+  /**
+   * @brief Resets all calculated permissions in cache
+   */
   void ResetCalculatedPermissions();
+
+  /**
+   * @brief Resets all calculated permissions for specified device in cache
+   */
+  void ResetCalculatedPermissionsForDevice(const std::string& device_id);
 
   void AddCalculatedPermissions(
       const std::string& device_id,
@@ -633,7 +660,10 @@ private:
 
   typedef std::map<std::string, Permissions> AppCalculatedPermissions;
   typedef std::map<std::string, AppCalculatedPermissions> CalculatedPermissions;
+  typedef std::map<std::string, DeviceConsent> CachedDevicePermissions;
   CalculatedPermissions calculated_permissions_;
+  CachedDevicePermissions cached_device_permissions_;
+  mutable sync_primitives::Lock cached_device_permissions_lock_;
   sync_primitives::Lock calculated_permissions_lock_;
 
   /**
@@ -644,6 +674,28 @@ private:
    * @param file_name the preloaded policy table JSON file.
    */
   void MergePreloadPT(const std::string& file_name);
+
+  bool GetPermissionsList(StringArray& perm_list) const;
+
+  /**
+   * @brief Gets user consent from cache for particular mobile device
+   * @return actual consent for device
+   */
+  DeviceConsent GetCachedDeviceConsent(
+      const std::string& device_id) const OVERRIDE;
+
+  /**
+   * @brief Checks if specified device has specified consent
+   * @return True if consent for device is set, otherwise - false
+   */
+  bool HasDeviceSpecifiedConsent(const std::string& device_id,
+                                 const bool is_allowed) const OVERRIDE;
+
+  /**
+   * @brief Saves user consent to cache for particular mobile device
+   */
+  void SaveDeviceConsentToCache(const std::string& device_id,
+                                const bool is_allowed);
 
   /**
    * @brief MergeMC allows to merge ModuleConfig section by definite rules.

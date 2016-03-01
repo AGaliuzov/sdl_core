@@ -89,9 +89,9 @@ class PolicyManagerImpl : public PolicyManager {
       const std::string& device_id, const std::string& policy_app_id,
       std::vector<FunctionalGroupPermission>& permissions);
     virtual void SetUserConsentForDevice(const std::string& device_id,
-                                         bool is_allowed);
-    virtual bool ReactOnUserDevConsentForApp(const std::string app_id,
-        bool is_device_allowed);
+                                         const bool is_allowed);
+    virtual bool ReactOnUserDevConsentForApp(const std::string& app_id,
+                                             const bool is_device_allowed);
     virtual bool GetInitialAppData(const std::string& application_id,
                                    StringArray* nicknames = NULL,
                                    StringArray* app_hmi_types = NULL);
