@@ -37,6 +37,7 @@ if (BUILD_TESTS)
     ${GMOCK_INCLUDE_DIRECTORY}
     ${COMPONENTS_DIR}/application_manager/include/
     ${CMAKE_BINARY_DIR}/src/components/
+    ${COMPONENTS_DIR}/resumption/include
   )
 
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/mock)

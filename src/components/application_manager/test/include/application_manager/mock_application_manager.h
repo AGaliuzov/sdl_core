@@ -39,7 +39,9 @@
 #include "application_manager/application_manager.h"
 #include "application_manager/usage_statistics.h"
 #include "application_manager/commands/command.h"
-
+#include "media_manager/media_manager.h"
+#include "resumption/last_state.h"
+#include "application_manager/policies/policy_handler.h"
 namespace test {
 namespace components {
 namespace application_manager_test {
@@ -97,6 +99,11 @@ class MockApplicationManager : public application_manager::ApplicationManager {
                     am::commands::Command::CommandOrigin origin));
   MOCK_METHOD1(ManageHMICommand,
                bool(const smart_objects::SmartObjectSPtr message));
+  MOCK_CONST_METHOD2(CanAppStream, bool (uint32_t app_id,
+                                         protocol_handler::ServiceType service_type));
+  MOCK_METHOD1(ForbidStreaming, void (uint32_t app_id));
+  MOCK_METHOD2(SendAudioPassThroughNotification, void (uint32_t session_key,
+                                                       std::vector<uint8_t>& binary_data));
   MOCK_CONST_METHOD0(connection_handler,
                      connection_handler::ConnectionHandler&());
 };

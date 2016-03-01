@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Ford Motor Company
+ * Copyright (c) 2016, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,44 +29,41 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_MOCK_PROTOCOL_HANDLER_H_
-#define SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_MOCK_PROTOCOL_HANDLER_H_
+#ifndef SRC_COMPONENTS_INCLUDE__TEST_MEDIA_MANAGER_MOCK_MEDIA_MANAGER_SETTINGS_H_
+#define SRC_COMPONENTS_INCLUDE__TEST_MEDIA_MANAGER_MOCK_MEDIA_MANAGER_SETTINGS_H_
 
-#include "gmock/gmock.h"
-#include "protocol_handler/protocol_handler.h"
-#include "protocol_handler/protocol_handler_settings.h"
-#include "protocol_handler/session_observer.h"
+#include <gmock/gmock.h>
+#include <string>
+#include "media_manager/media_manager_settings.h"
 
 namespace test {
 namespace components {
-namespace protocol_handler_test {
+namespace media_manager_test {
 
-class MockProtocolHandler : public ::protocol_handler::ProtocolHandler {
+
+
+class MockMediaManagerSettings : public ::media_manager::MediaManagerSettings {
  public:
-  MOCK_METHOD2(SendMessageToMobileApp,
-               void(const ::protocol_handler::RawMessagePtr message,
-                    bool final_message));
-  MOCK_METHOD1(AddProtocolObserver,
-               void(::protocol_handler::ProtocolObserver* observer));
-  MOCK_METHOD1(RemoveProtocolObserver,
-               void(::protocol_handler::ProtocolObserver* observer));
-  MOCK_METHOD2(SendFramesNumber,
-               void(uint32_t connection_key, int32_t number_of_frames));
-  MOCK_METHOD2(SendHeartBeat, void(int32_t connection_id, uint8_t session_id));
-  MOCK_METHOD2(SendEndSession, void(int32_t connection_id, uint8_t session_id));
-  MOCK_METHOD3(SendEndService,
-               void(int32_t connection_id,
-                    uint8_t session_id,
-                    uint8_t service_type));
-  MOCK_CONST_METHOD0(get_settings,
-                     const ::protocol_handler::ProtocolHandlerSettings&());
-  MOCK_METHOD0(get_session_observer,
-                    protocol_handler::SessionObserver&());
-
+  MOCK_CONST_METHOD0(video_server_type, const std::string&());
+  MOCK_CONST_METHOD0(audio_server_type, const std::string&());
+  MOCK_CONST_METHOD0(server_address, const std::string&());
+  MOCK_CONST_METHOD0(video_streaming_port, const std::uint16_t());
+  MOCK_CONST_METHOD0(audio_streaming_port, const std::uint16_t());
+  MOCK_CONST_METHOD0(named_video_pipe_path, const std::string&());
+  MOCK_CONST_METHOD0(named_audio_pipe_path, const std::string&());
+  MOCK_CONST_METHOD0(video_stream_file, const std::string&());
+  MOCK_CONST_METHOD0(audio_stream_file, const std::string&());
+#ifdef CUSTOMER_PASA
+  MOCK_CONST_METHOD0(audio_mq_path, const std::string&());
+#else
+  MOCK_CONST_METHOD0(app_storage_folder, const std::string&());
+  MOCK_CONST_METHOD0(app_resource_folder, const std::string&());
+  MOCK_CONST_METHOD0(recording_file_source, const std::string&());
+#endif  // CUSTOMER_PASA
 };
 
-}  // namespace protocol_handler_test
+}  // namespace media_manager_test
 }  // namespace components
 }  // namespace test
 
-#endif  // SRC_COMPONENTS_INCLUDE_TEST_PROTOCOL_HANDLER_MOCK_PROTOCOL_HANDLER_H_
+#endif  // SRC_COMPONENTS_INCLUDE__TEST_MEDIA_MANAGER_MOCK_MEDIA_MANAGER_SETTINGS_H_
