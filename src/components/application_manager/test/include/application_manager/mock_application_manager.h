@@ -41,7 +41,7 @@
 #include "application_manager/commands/command.h"
 #include "media_manager/media_manager.h"
 #include "resumption/last_state.h"
-#include "application_manager/policies/policy_handler.h"
+#include "application_manager/policies/policy_handler_interface.h"
 namespace test {
 namespace components {
 namespace application_manager_test {
@@ -50,7 +50,8 @@ namespace smart_objects = NsSmartDeviceLink::NsSmartObjects;
 
 class MockApplicationManager : public application_manager::ApplicationManager {
  public:
-  MOCK_METHOD1(Init, bool(resumption::LastState& last_state));
+  MOCK_METHOD2(Init, bool(resumption::LastState& last_state,
+                          media_manager::MediaManager* media_manager));
   MOCK_METHOD0(Stop, bool());
 
   MOCK_METHOD1(set_hmi_message_handler,
@@ -106,6 +107,8 @@ class MockApplicationManager : public application_manager::ApplicationManager {
                                                        std::vector<uint8_t>& binary_data));
   MOCK_CONST_METHOD0(connection_handler,
                      connection_handler::ConnectionHandler&());
+  MOCK_METHOD0(GetPolicyHandler,
+                     policy::PolicyHandlerInterface&());
 };
 }  // namespace application_manager_test
 }  // namespace components

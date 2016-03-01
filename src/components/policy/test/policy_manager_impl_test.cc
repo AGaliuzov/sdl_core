@@ -48,6 +48,7 @@
 #include "policy/policy_table/types.h"
 #include "policy/policy_table/enums.h"
 #include "policy/policy_manager_impl.h"
+#include "mock_policy_settings.h"
 
 #include "utils/macro.h"
 #include "utils/file_system.h"
@@ -69,6 +70,7 @@ using ::utils::dbms::SQLQuery;
 
 using ::testing::_;
 using ::testing::Return;
+using ::testing::ReturnRef;
 using ::testing::DoAll;
 using ::testing::SetArgReferee;
 using ::testing::NiceMock;
@@ -201,12 +203,15 @@ class PolicyManagerImplTest2 : public ::testing::Test {
   const std::string device_id2;
   Json::Value PTU_request_types;
   static const bool in_memory_;
+  NiceMock<policy_handler_test::MockPolicySettings> policy_settings_;
+  const std::string kAppStorageFolder = "storage1";
 
   void SetUp() OVERRIDE {
     file_system::CreateDirectory("storage1");
 
     profile::Profile::instance()->config_file_name("smartDeviceLink2.ini");
     manager = new PolicyManagerImpl(in_memory_);
+    ON_CALL(policy_settings_, app_storage_folder()).WillByDefault(ReturnRef(kAppStorageFolder));
     manager->set_listener(&listener);
     const char* levels[] = {"BACKGROUND", "FULL", "LIMITED", "NONE"};
     hmi_level.assign(levels, levels + sizeof(levels) / sizeof(levels[0]));
@@ -241,7 +246,8 @@ class PolicyManagerImplTest2 : public ::testing::Test {
 
   void CreateLocalPT(std::string file_name) {
     file_system::remove_directory_content("storage1");
-    ASSERT_TRUE(manager->InitPT(file_name));
+    ON_CALL(policy_settings_, app_storage_folder()).WillByDefault(ReturnRef(kAppStorageFolder));
+    ASSERT_TRUE(manager->InitPT(file_name, &policy_settings_));
   }
 
   void AddRTtoPT(const std::string& update_file_name,
@@ -381,11 +387,13 @@ class PolicyManagerImplTest_RequestTypes : public ::testing::Test {
         default_app_id_("default") {}
 
  protected:
+  const std::string kAppStorageFolder = "storage3";
   utils::SharedPtr<PolicyManagerImpl> policy_manager_impl_sptr;
   NiceMock<MockPolicyListener> listener;
   const ::policy::StringArray json_files_;
   const std::string app_id_;
   const std::string default_app_id_;
+  NiceMock<policy_handler_test::MockPolicySettings> policy_settings_;
 
   void SetUp() OVERRIDE {
     file_system::CreateDirectory("storage3");
@@ -413,7 +421,8 @@ class PolicyManagerImplTest_RequestTypes : public ::testing::Test {
 
   void RefreshPT(const std::string& preloaded_pt_file,
                  const std::string& update_pt_file) {
-    ASSERT_TRUE(policy_manager_impl_sptr->InitPT(preloaded_pt_file))
+    ON_CALL(policy_settings_, app_storage_folder()).WillByDefault(ReturnRef(kAppStorageFolder));
+    ASSERT_TRUE(policy_manager_impl_sptr->InitPT(preloaded_pt_file, &policy_settings_))
         << "can`t load preloaded file";
     GetPTU(update_pt_file);
   }
@@ -1105,7 +1114,7 @@ TEST_F(PolicyManagerImplTest2, UpdatedPreloadedPT_ExpectLPT_IsUpdated) {
   ofile.close();
 
   //  Make PolicyManager to update LocalPT
-  EXPECT_TRUE(manager->InitPT("sdl_preloaded_pt.json"));
+  EXPECT_TRUE(manager->InitPT("sdl_preloaded_pt.json", &policy_settings_));
 
   // Arrange
   ::policy::CacheManagerInterfaceSPtr cache = manager->GetCache();
@@ -2198,20 +2207,23 @@ TEST_F(PolicyManagerImplTest_RequestTypes,
 TEST_F(PolicyManagerImplTest_RequestTypes,
        InitPT_DefaultRequestTypeHaveOneInvalidValue_False) {
   // PT have only invalid value in app_policies::default::RequestType
-  ASSERT_FALSE(policy_manager_impl_sptr->InitPT(json_files_[4]));
+  ON_CALL(policy_settings_, app_storage_folder()).WillByDefault(ReturnRef(kAppStorageFolder));
+  ASSERT_FALSE(policy_manager_impl_sptr->InitPT(json_files_[4], &policy_settings_));
 }
 
 TEST_F(PolicyManagerImplTest_RequestTypes,
        InitPT_DefaultRequestTypeHaveSeveralInvalidValues_False) {
   // PT have several only invalid values in app_policies::default::RequestType
-  ASSERT_FALSE(policy_manager_impl_sptr->InitPT(json_files_[5]));
+  ON_CALL(policy_settings_, app_storage_folder()).WillByDefault(ReturnRef(kAppStorageFolder));
+  ASSERT_FALSE(policy_manager_impl_sptr->InitPT(json_files_[5], &policy_settings_));
 }
 
 TEST_F(PolicyManagerImplTest_RequestTypes,
        InitPT_DefaultRequestTypeHaveInvalidValueBetweenCorrect_True) {
   // PT have ["QUERY_APPS", "IVSU", "PROPRIETARY"]
   // In app_policies::default::RequestType
-  ASSERT_TRUE(policy_manager_impl_sptr->InitPT(json_files_[6]));
+  ON_CALL(policy_settings_, app_storage_folder()).WillByDefault(ReturnRef(kAppStorageFolder));
+  ASSERT_TRUE(policy_manager_impl_sptr->InitPT(json_files_[6], &policy_settings_));
 
   // Correct of Request Types
   policy_table::RequestTypes correct_types;

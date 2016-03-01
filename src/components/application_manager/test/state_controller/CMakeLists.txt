@@ -39,8 +39,20 @@ include_directories(
 
 set(LIBRARIES
   gmock
-  ApplicationManager
+  ApplicationManagerTest
   connectionHandler
+
+    Utils
+    jsoncpp
+    Policy
+    connectionHandler
+    HMI_API
+    MOBILE_API
+    v4_protocol_v1_2_no_extra
+    SmartObjects
+    formatters
+    UsageStatistics
+    ProtocolHandler
 )
 
 set(SOURCES

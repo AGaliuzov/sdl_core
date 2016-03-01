@@ -169,7 +169,8 @@ class ApplicationManagerImpl
     std::cout << "ApplicationManagerImpl Mock created \n";
   }
 
-  MOCK_METHOD1(Init, bool(resumption::LastState& last_state));
+  MOCK_METHOD2(Init, bool(resumption::LastState& last_state,
+                          media_manager::MediaManager* media_manager));
   MOCK_METHOD0(Stop, bool());
   MOCK_METHOD1(GetUserConsentForDevice,
                policy::DeviceConsent(const std::string& device_id));
@@ -214,6 +215,8 @@ class ApplicationManagerImpl
                void(connection_handler::ConnectionHandler*));
   MOCK_CONST_METHOD0(connection_handler,
                      connection_handler::ConnectionHandler&());
+  MOCK_METHOD0(GetPolicyHandler,
+                     policy::PolicyHandlerInterface&());
 // ApplicationManagerImpl methods:
 #ifdef TELEMETRY_MONITOR
   MOCK_METHOD1(SetTelemetryObserver, void(AMTelemetryObserver*));

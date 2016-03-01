@@ -485,23 +485,11 @@ TEST_F(ApplicationImplTest, IsCommandLimitsExceeded_SetLimitFromConfig) {
 }
 
 TEST_F(ApplicationImplTest, IsCommandLimitsExceeded_CommandsAdded_LimitFromPT) {
-  // Time limit for command
-  uint32_t t_limit = 100;
-  EXPECT_CALL(*MockMessageHelper::message_helper_mock(),
-              GetAppCommandLimit(policy_app_id))
-      .Times(2)
-      .WillRepeatedly(Return(t_limit));
   EXPECT_FALSE(app_impl->IsCommandLimitsExceeded(FunctionID::ReadDIDID,
                                                  TLimitSource::POLICY_TABLE));
 
   EXPECT_FALSE(app_impl->IsCommandLimitsExceeded(FunctionID::GetVehicleDataID,
                                                  TLimitSource::POLICY_TABLE));
-
-  t_limit = 1;
-  EXPECT_CALL(*MockMessageHelper::message_helper_mock(),
-              GetAppCommandLimit(policy_app_id))
-      .Times(2)
-      .WillRepeatedly(Return(t_limit));
   EXPECT_TRUE(app_impl->IsCommandLimitsExceeded(FunctionID::ReadDIDID,
                                                 TLimitSource::POLICY_TABLE));
   EXPECT_TRUE(app_impl->IsCommandLimitsExceeded(FunctionID::GetVehicleDataID,
@@ -509,25 +497,12 @@ TEST_F(ApplicationImplTest, IsCommandLimitsExceeded_CommandsAdded_LimitFromPT) {
 }
 
 TEST_F(ApplicationImplTest, IsCmdLimitsExceeded_CmdNotAdded_LimitFromPT) {
-  // Time limit for command
-  uint32_t t_limit = 100;
-  EXPECT_CALL(*MockMessageHelper::message_helper_mock(),
-              GetAppCommandLimit(policy_app_id))
-      .Times(2)
-      .WillRepeatedly(Return(t_limit));
-  // Command has not been executed yet
   EXPECT_FALSE(app_impl->IsCommandLimitsExceeded(FunctionID::AddCommandID,
                                                  TLimitSource::POLICY_TABLE));
 
   // Commands has been added in app_impl's constructor
   EXPECT_FALSE(app_impl->IsCommandLimitsExceeded(FunctionID::AddCommandID,
                                                  TLimitSource::POLICY_TABLE));
-
-  t_limit = 1;
-  EXPECT_CALL(*MockMessageHelper::message_helper_mock(),
-              GetAppCommandLimit(policy_app_id))
-      .Times(1)
-      .WillRepeatedly(Return(t_limit));
   EXPECT_TRUE(app_impl->IsCommandLimitsExceeded(FunctionID::AddCommandID,
                                                 TLimitSource::POLICY_TABLE));
 }

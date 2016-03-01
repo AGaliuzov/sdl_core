@@ -36,6 +36,7 @@
 #include "application_manager/application.h"
 #include "interfaces/HMI_API.h"
 #include "policy/policy_types.h"
+#include "application_manager/policies/policy_handler.h"
 
 namespace application_manager {
 
@@ -73,7 +74,6 @@ class MockMessageHelper {
   MOCK_METHOD1(SendAudioStopStream, void(int32_t connection_key));
   MOCK_METHOD2(SendOnDataStreaming,
                void(protocol_handler::ServiceType service, bool available));
-  MOCK_METHOD1(GetAppCommandLimit, uint32_t(const std::string& policy_app_id));
   MOCK_METHOD2(CreateGetVehicleDataRequest,
                void(uint32_t correlation_id,
                     const std::vector<std::string>& params));
@@ -130,12 +130,11 @@ class MockMessageHelper {
   MOCK_METHOD2(VerifyImageFiles,
                mobile_apis::Result::eType(smart_objects::SmartObject& message,
                                           ApplicationConstSharedPtr app));
-  MOCK_METHOD2(CheckWithPolicy,
-               bool(mobile_apis::SystemAction::eType, const std::string&));
-  MOCK_METHOD4(GetBCActivateAppRequestToHMI,
+  MOCK_METHOD5(GetBCActivateAppRequestToHMI,
                smart_objects::SmartObjectSPtr(
                    ApplicationConstSharedPtr app,
                    const protocol_handler::SessionObserver& session_observer,
+                   const policy::PolicyHandlerInterface& policy_handler,
                    hmi_apis::Common_HMILevel::eType level,
                    bool send_policy_priority));
 

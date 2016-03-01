@@ -87,9 +87,9 @@ class MockCacheManagerInterface : public ::policy::CacheManagerInterface {
   MOCK_METHOD2(GetUpdateUrls, void(int service_type, EndpointUrls& end_points));
   MOCK_METHOD1(GetNotificationsNumber, policy_table::NumberOfNotificationsType(
                                            const std::string& priority));
-  MOCK_METHOD2(GetPriority,
+  MOCK_CONST_METHOD2(GetPriority,
                bool(const std::string& policy_app_id, std::string& priority));
-  MOCK_METHOD1(Init, bool(const std::string& file_name));
+  MOCK_METHOD2(Init, bool(const std::string& file_name, const PolicySettings* settings));
   MOCK_METHOD0(GenerateSnapshot, utils::SharedPtr<policy_table::Table>());
   MOCK_METHOD1(ApplyUpdate, bool(const policy_table::Table& update_pt));
   MOCK_METHOD1(Save, bool(const policy_table::Table& table));
@@ -107,9 +107,9 @@ class MockCacheManagerInterface : public ::policy::CacheManagerInterface {
   MOCK_METHOD1(SetIsPredata, bool(const std::string& app_id));
   MOCK_METHOD1(IsPredataPolicy, bool(const std::string& app_id));
   MOCK_METHOD1(SetDefaultPolicy, bool(const std::string& app_id));
-  MOCK_METHOD1(CanAppKeepContext, bool(const std::string& app_id));
-  MOCK_METHOD1(CanAppStealFocus, bool(const std::string& app_id));
-  MOCK_METHOD2(GetDefaultHMI,
+  MOCK_CONST_METHOD1(CanAppKeepContext, bool(const std::string& app_id));
+  MOCK_CONST_METHOD1(CanAppStealFocus, bool(const std::string& app_id));
+  MOCK_CONST_METHOD2(GetDefaultHMI,
                bool(const std::string& app_id, std::string& default_hmi));
   MOCK_METHOD0(ResetUserConsent, bool());
   MOCK_CONST_METHOD3(GetUserPermissionsForDevice,
@@ -198,6 +198,7 @@ class MockCacheManagerInterface : public ::policy::CacheManagerInterface {
   MOCK_CONST_METHOD0(GetMetaInfo, const MetaInfo());
   MOCK_CONST_METHOD0(GetCertificate, std::string());
   MOCK_METHOD1(SetDecryptedCertificate, void(const std::string&));
+  MOCK_METHOD1(set_settings, void(const PolicySettings* settings));
 };
 
 }  // namespace policy_test
