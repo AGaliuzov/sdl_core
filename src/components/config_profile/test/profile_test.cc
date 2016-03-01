@@ -597,12 +597,14 @@ TEST_F(ProfileTest, CheckReadStringValue) {
   EXPECT_EQ("smartDeviceLink_test.ini",
             Profile::instance()->config_file_name());
 
-  std::string app_resourse_folder_;
-  profile::Profile::instance()->ReadStringValue(
-      &app_resourse_folder_, file_system::CurrentWorkingDirectory().c_str(),
-      "MAIN", "AppResourceFolder");
+  std::string app_storage_folder_;
+  bool result = Profile::instance()->ReadStringValue(
+      &app_storage_folder_, "",
+      "MAIN", "AppStorageFolder");
+
+  EXPECT_TRUE(result);
   // Get default value
-  EXPECT_EQ(app_resourse_folder_, file_system::CurrentWorkingDirectory());
+  EXPECT_EQ("storage", app_storage_folder_);
 
   // Get value from file
   std::string server_address;
