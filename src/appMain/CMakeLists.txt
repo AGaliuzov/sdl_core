@@ -228,5 +228,5 @@ if(ENABLE_SECURITY)
           ${COMPONENTS_DIR}/security_manager/resources/server_verification_ca_cetrificates.crt
           ${COMPONENTS_DIR}/security_manager/resources/ford_server.crt
           DESTINATION bin)
-  execute_process(COMMAND c_rehash "." , WORKING_DIRECTORY bin)
+      install(CODE "execute_process(COMMAND c_rehash \".\" , WORKING_DIRECTORY bin)")
 endif()
