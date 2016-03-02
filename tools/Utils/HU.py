@@ -84,6 +84,7 @@ HU_files_path = {
     # binaries
     "SmartDeviceLink": "/fs/mp/apps/SmartDeviceLink",
     "libPolicy.so": "/fs/mp/apps/usr/lib/libPolicy.so",
+    "libutils.so": "/fs/mp/apps/usr/lib/libutils.so",
     "liblog4cxx.so": "/fs/mp/apps/usr/lib/liblog4cxx.so",
     "liblog4cxx.so.10": "/fs/mp/apps/usr/lib/liblog4cxx.so.10",
     "libapr-1.so": "/fs/mp/apps/usr/lib/libapr-1.so",
