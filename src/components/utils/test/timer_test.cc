@@ -62,6 +62,7 @@ class TestTask : public timer::TimerTask {
     return calls_count_;
   }
   ~TestTask() {}
+
  private:
   mutable uint calls_count_;
 };
@@ -93,7 +94,6 @@ class FakeClassWithTimer {
   timer::Timer internal_timer_;
 };
 }  // namespace
-
 
 class TimerTest : public testing::Test {
  protected:
@@ -182,7 +182,6 @@ TEST_F(TimerTest, Start_NotRunned_RunnedWithNewTimeout) {
   ASSERT_TRUE(test_timer.IsRunning());
 }
 
-
 TEST_F(TimerTest, Stop_FirstLoop_NoCall) {
   // Preconditions
   timer::Timer test_timer(kTimerName, test_task_);
@@ -229,7 +228,8 @@ TEST_F(TimerTest, IsRunning_Stoped_False) {
   EXPECT_FALSE(test_timer.IsRunning());
 }
 
-TEST_F(TimerTest, IsRunning_Suspended_FalseAndOneCall) {
+//(TODO VVeremjova) APPLINK-21625
+TEST_F(TimerTest, DISABLED_IsRunning_Suspended_FalseAndOneCall) {
   // Preconditions
   test_lock.Acquire();
   FakeClassWithTimer fake_class;

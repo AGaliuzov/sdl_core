@@ -46,9 +46,9 @@
 #include "transport_manager/transport_adapter/transport_adapter_controller.h"
 #include "transport_manager/transport_adapter/connection.h"
 
-#ifdef TIME_TESTER
-#include "transport_manager/time_metric_observer.h"
-#endif  // TIME_TESTER
+#ifdef TELEMETRY_MONITOR
+#include "transport_manager/telemetry_observer.h"
+#endif  // TELEMETRY_MONITOR
 
 namespace transport_manager {
 
@@ -172,9 +172,10 @@ class TransportAdapterImpl : public TransportAdapter,
    *
    * @return Error information about possible reason of sending data failure
    **/
-  virtual TransportAdapter::Error SendData(const DeviceUID& device_handle,
-                                           const ApplicationHandle& app_handle,
-                                           const ::protocol_handler::RawMessagePtr data);
+  virtual TransportAdapter::Error SendData(
+      const DeviceUID& device_handle,
+      const ApplicationHandle& app_handle,
+      const ::protocol_handler::RawMessagePtr data);
 
   /**
    * @brief Start client listener.
@@ -226,8 +227,8 @@ class TransportAdapterImpl : public TransportAdapter,
    *
    * @return Container(vector) that holds application unique identifiers.
    */
-  virtual ApplicationList GetApplicationList(const DeviceUID& device_handle)
-      const;
+  virtual ApplicationList GetApplicationList(
+      const DeviceUID& device_handle) const;
 
   /**
    * @brief Find device in the internal container(map).
@@ -398,21 +399,21 @@ class TransportAdapterImpl : public TransportAdapter,
    */
   virtual std::string GetConnectionType() const;
 
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
   /**
    * @brief Setup observer for time metric.
    *
    * @param observer - pointer to observer
    */
-  void SetTimeMetricObserver(TMMetricObserver* observer);
+  void SetTelemetryObserver(TMTelemetryObserver* observer);
 
   /**
    * @brief Return Time metric observer
    *
    * @param return pointer to Time metric observer
    */
-  virtual TMMetricObserver* GetTimeMetricObserver();
-#endif  // TIME_TESTER
+  virtual TMTelemetryObserver* GetTelemetryObserver();
+#endif  // TELEMETRY_MONITOR
 
  protected:
   /**
@@ -432,7 +433,6 @@ class TransportAdapterImpl : public TransportAdapter,
    */
   virtual bool ToBeAutoConnected(DeviceSptr device) const;
 
-
   /**
    * @brief Returns true if \a device is to be disconnected automatically when
    * all applications will be closed
@@ -447,8 +447,9 @@ class TransportAdapterImpl : public TransportAdapter,
    *
    * @return pointer to the connection.
    */
-  virtual ConnectionSPtr FindEstablishedConnection(const DeviceUID& device_handle,
-                                           const ApplicationHandle& app_handle) const;
+  virtual ConnectionSPtr FindEstablishedConnection(
+      const DeviceUID& device_handle,
+      const ApplicationHandle& app_handle) const;
 
  private:
   /**
@@ -490,11 +491,7 @@ class TransportAdapterImpl : public TransportAdapter,
     ConnectionSPtr connection;
     DeviceUID device_id;
     ApplicationHandle app_handle;
-    enum {
-      NEW,
-      ESTABLISHED,
-      FINALISING
-    } state;
+    enum { NEW, ESTABLISHED, FINALISING } state;
   };
 
   /**
@@ -529,12 +526,12 @@ class TransportAdapterImpl : public TransportAdapter,
   mutable sync_primitives::RWLock connections_lock_;
 
  protected:
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
   /**
    * @brief Pointer to time metric observer
    */
-  TMMetricObserver* metric_observer_;
-#endif  // TIME_TESTER
+  TMTelemetryObserver* metric_observer_;
+#endif  // TELEMETRY_MONITOR
 
   /**
    * @brief Pointer to the device scanner.
@@ -555,4 +552,4 @@ class TransportAdapterImpl : public TransportAdapter,
 }  // namespace transport_adapter
 }  // namespace transport_manager
 
-#endif // SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_TRANSPORT_ADAPTER_TRANSPORT_ADAPTER_IMPL_H_
+#endif  // SRC_COMPONENTS_TRANSPORT_MANAGER_INCLUDE_TRANSPORT_MANAGER_TRANSPORT_ADAPTER_TRANSPORT_ADAPTER_IMPL_H_

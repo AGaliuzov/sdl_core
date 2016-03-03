@@ -64,7 +64,6 @@
 
 // ----------------------------------------------------------------------------
 
-
 CREATE_LOGGERPTR_GLOBAL(logger_, "SDLMain")
 
 namespace {
@@ -86,7 +85,9 @@ bool InitHmi() {
     LOG4CXX_FATAL(logger_, "HMI index file " << hmi_link << " doesn't exist!");
     return false;
   }
-  return utils::System(kBrowser, kBrowserName).Add(kBrowserParams).Add(hmi_link)
+  return utils::System(kBrowser, kBrowserName)
+      .Add(kBrowserParams)
+      .Add(hmi_link)
       .Execute();
 }
 #endif  // WEB_HMI
@@ -107,7 +108,6 @@ bool InitHmi() {
   return utils::System(kStartHmi).Execute();
 }
 #endif  // QT_HMI
-
 }
 
 /**
@@ -125,36 +125,37 @@ int32_t main(int32_t argc, char** argv) {
 
   // --------------------------------------------------------------------------
   // Components initialization
-  if ((argc > 1)&&(0 != argv)) {
-      profile::Profile::instance()->config_file_name(argv[1]);
+  if ((argc > 1) && (0 != argv)) {
+    profile::Profile::instance()->config_file_name(argv[1]);
   } else {
     profile::Profile::instance()->config_file_name("smartDeviceLink.ini");
   }
 
   // --------------------------------------------------------------------------
   // Logger initialization
-  INIT_LOGGER("log4cxx.properties");
+  INIT_LOGGER("log4cxx.properties",
+              profile::Profile::instance()->logs_enabled());
 #if defined(__QNXNTO__) and defined(GCOV_ENABLED)
   LOG4CXX_WARN(logger_,
-                "Attention! This application was built with unsupported "
-                "configuration (gcov + QNX). Use it at your own risk.");
+               "Attention! This application was built with unsupported "
+               "configuration (gcov + QNX). Use it at your own risk.");
 #endif
 
   threads::Thread::SetNameForId(threads::Thread::CurrentId(), "MainThread");
 
   if (!utils::appenders_loader.Loaded()) {
-    LOG4CXX_ERROR(logger_, "Appenders plugin not loaded, file logging disabled");
+    LOG4CXX_ERROR(logger_,
+                  "Appenders plugin not loaded, file logging disabled");
   }
 
   LOG4CXX_INFO(logger_, "Application started!");
-  LOG4CXX_INFO(logger_, "SDL version: "
-                         << profile::Profile::instance()->sdl_version());
+  LOG4CXX_INFO(logger_,
+               "SDL version: " << profile::Profile::instance()->sdl_version());
 
-  // Initialize gstreamer. Needed to activate debug from the command line.
+// Initialize gstreamer. Needed to activate debug from the command line.
 #if defined(EXTENDED_MEDIA_MODE)
   gst_init(&argc, &argv);
 #endif
-
 
 #ifdef __QNX__
   if (profile::Profile::instance()->enable_policy()) {

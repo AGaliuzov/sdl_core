@@ -33,37 +33,41 @@
 #include "utils/push_log.h"
 #include "utils/log_message_loop_thread.h"
 #include "utils/logger_status.h"
-#include "config_profile/profile.h"
 
 namespace logger {
 
 static bool logs_enabled_ = false;
+static LogMessageLoopThread* log_message_loop_thread = NULL;
 
 bool push_log(log4cxx::LoggerPtr logger,
               log4cxx::LevelPtr level,
               const std::string& entry,
               log4cxx_time_t timeStamp,
               const log4cxx::spi::LocationInfo& location,
-              const log4cxx::LogString& threadName
-              ) {
+              const log4cxx::LogString& threadName) {
   if (LoggerThreadCreated == logger_status) {
-    LogMessage message = {logger, level, entry, timeStamp, location, threadName};
-    LogMessageLoopThread::instance()->PostMessage(message);
-    return true;
+    LogMessage message = {
+        logger, level, entry, timeStamp, location, threadName};
+    if (log_message_loop_thread) {
+      log_message_loop_thread->PostMessage(message);
+      return true;
+    }
   }
 
   if (LoggerThreadNotCreated == logger_status) {
     logger_status = CreatingLoggerThread;
-// we'll have to drop messages
-// while creating logger thread
-    LogMessage message = {logger, level, entry, timeStamp, location, threadName};
-    LogMessageLoopThread::instance()->PostMessage(message);
+    // we'll have to drop messages
+    // while creating logger thread
+    create_log_message_loop_thread();
+    LogMessage message = {
+        logger, level, entry, timeStamp, location, threadName};
+    log_message_loop_thread->PostMessage(message);
     logger_status = LoggerThreadCreated;
     return true;
   }
 
-// also we drop messages
-// while deleting logger thread
+  // also we drop messages
+  // while deleting logger thread
 
   return false;
 }
@@ -72,8 +76,25 @@ bool logs_enabled() {
   return logs_enabled_;
 }
 
-void set_logs_enabled() {
-  logs_enabled_ = profile::Profile::instance()->logs_enabled();
+void set_logs_enabled(bool state) {
+  logs_enabled_ = state;
+}
+
+void create_log_message_loop_thread() {
+  if (!log_message_loop_thread) {
+    log_message_loop_thread = new LogMessageLoopThread();
+  }
+}
+
+void delete_log_message_loop_thread() {
+  delete log_message_loop_thread;
+}
+void flush_logger() {
+  logger::LoggerStatus old_status = logger::logger_status;
+  // Stop pushing new messages to the log queue
+  logger::logger_status = logger::DeletingLoggerThread;
+  log_message_loop_thread->WaitDumpQueue();
+  logger::logger_status = old_status;
 }
 
 }  // namespace logger

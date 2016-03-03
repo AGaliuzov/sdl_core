@@ -72,9 +72,9 @@
 #include "security_manager/ssl_context.h"
 #endif  // ENABLE_SECURITY
 
-#ifdef TIME_TESTER
-#include "time_metric_observer.h"
-#endif  // TIME_TESTER
+#ifdef TELEMETRY_MONITOR
+#include "telemetry_observer.h"
+#endif  // TELEMETRY_MONITOR
 
 #include "utils/macro.h"
 #include "utils/shared_ptr.h"
@@ -205,6 +205,9 @@ class ApplicationManagerImpl
       public impl::FromHmiQueue::Handler,
       public impl::ToHmiQueue::Handler,
       public impl::AudioPassThruQueue::Handler,
+#ifdef TELEMETRY_MONITOR
+      public telemetry_monitor::TelemetryObservable<AMTelemetryObserver>,
+#endif  // TELEMETRY_MONITOR
       public utils::Singleton<ApplicationManagerImpl> {
 
   friend class ResumeCtrl;
@@ -273,14 +276,14 @@ class ApplicationManagerImpl
 
   bool is_attenuated_supported() OVERRIDE;
 
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
   /**
    * @brief Setup observer for time metric.
    *
    * @param observer - pointer to observer
    */
-  void SetTimeMetricObserver(AMMetricObserver* observer);
-#endif  // TIME_TESTER
+  void SetTelemetryObserver(AMTelemetryObserver* observer) OVERRIDE;
+#endif  // TELEMETRY_MONITOR
 
   ApplicationSharedPtr RegisterApplication(const utils::SharedPtr<
       smart_objects::SmartObject>& request_for_registration);
@@ -554,7 +557,6 @@ class ApplicationManagerImpl
     }
     state_ctrl_.SetRegularState(app, state);
   }
-
 
   /**
    * @brief Checks, if particular state is active
@@ -1347,9 +1349,9 @@ class ApplicationManagerImpl
   bool is_state_suspended_;
 #endif  // CUSTOMER_PASA
 
-#ifdef TIME_TESTER
-  AMMetricObserver* metric_observer_;
-#endif  // TIME_TESTER
+#ifdef TELEMETRY_MONITOR
+  AMTelemetryObserver* metric_observer_;
+#endif  // TELEMETRY_MONITOR
 
   Timer application_list_update_timer_;
 

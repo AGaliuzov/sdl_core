@@ -40,21 +40,22 @@
 #include <algorithm>
 
 #include "utils/macro.h"
-#include "config_profile/profile.h"
 
 namespace security_manager {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "SecurityManager")
 
-CryptoManagerImpl::SSLContextImpl::SSLContextImpl(SSL* conn, Mode mode)
-  : connection_(conn),
-    bioIn_(BIO_new(BIO_s_mem())),
-    bioOut_(BIO_new(BIO_s_mem())),
-    bioFilter_(NULL),
-    buffer_size_(profile::Profile::instance()->maximum_payload_size()),
-    buffer_(new uint8_t[buffer_size_]),
-    is_handshake_pending_(false),
-    mode_(mode) {
+CryptoManagerImpl::SSLContextImpl::SSLContextImpl(SSL* conn,
+                                                  Mode mode,
+                                                  size_t maximum_payload_size)
+    : connection_(conn)
+    , bioIn_(BIO_new(BIO_s_mem()))
+    , bioOut_(BIO_new(BIO_s_mem()))
+    , bioFilter_(NULL)
+    , buffer_size_(maximum_payload_size)
+    , buffer_(new uint8_t[buffer_size_])
+    , is_handshake_pending_(false)
+    , mode_(mode) {
   SSL_set_bio(connection_, bioIn_, bioOut_);
 }
 
@@ -77,8 +78,8 @@ bool CryptoManagerImpl::SSLContextImpl::IsInitCompleted() const {
   return SSL_is_init_finished(connection_);
 }
 
-SSLContext::HandshakeResult CryptoManagerImpl::SSLContextImpl::
-StartHandshake(const uint8_t** const out_data, size_t* out_data_size) {
+SSLContext::HandshakeResult CryptoManagerImpl::SSLContextImpl::StartHandshake(
+    const uint8_t** const out_data, size_t* out_data_size) {
   is_handshake_pending_ = true;
   return DoHandshakeStep(NULL, 0, out_data, out_data_size);
 }
@@ -125,28 +126,30 @@ size_t des_cbc3_sha_max_block_size(size_t mtu) {
 std::map<std::string, CryptoManagerImpl::SSLContextImpl::BlockSizeGetter>
 CryptoManagerImpl::SSLContextImpl::create_max_block_sizes() {
   std::map<std::string, CryptoManagerImpl::SSLContextImpl::BlockSizeGetter> rc;
-  rc.insert(std::make_pair("AES128-GCM-SHA256", aes128_gcm_sha256_max_block_size));
-  rc.insert(std::make_pair("AES128-SHA256",     aes128_sha256_max_block_size));
-  rc.insert(std::make_pair("AES128-SHA",        seed_sha_max_block_size));
-  rc.insert(std::make_pair("AES256-GCM-SHA384", aes128_gcm_sha256_max_block_size));
-  rc.insert(std::make_pair("AES256-SHA256",     aes128_sha256_max_block_size));
-  rc.insert(std::make_pair("AES256-SHA",        seed_sha_max_block_size));
-  rc.insert(std::make_pair("CAMELLIA128-SHA",   seed_sha_max_block_size));
-  rc.insert(std::make_pair("CAMELLIA256-SHA",   seed_sha_max_block_size));
-  rc.insert(std::make_pair("DES-CBC3-SHA",      des_cbc3_sha_max_block_size));
-  rc.insert(std::make_pair("DES-CBC-SHA",       des_cbc3_sha_max_block_size));
-  rc.insert(std::make_pair("RC4-MD5",           rc4_md5_max_block_size));
-  rc.insert(std::make_pair("RC4-SHA",           rc4_sha_max_block_size));
-  rc.insert(std::make_pair("SEED-SHA",          seed_sha_max_block_size));
+  rc.insert(
+      std::make_pair("AES128-GCM-SHA256", aes128_gcm_sha256_max_block_size));
+  rc.insert(std::make_pair("AES128-SHA256", aes128_sha256_max_block_size));
+  rc.insert(std::make_pair("AES128-SHA", seed_sha_max_block_size));
+  rc.insert(
+      std::make_pair("AES256-GCM-SHA384", aes128_gcm_sha256_max_block_size));
+  rc.insert(std::make_pair("AES256-SHA256", aes128_sha256_max_block_size));
+  rc.insert(std::make_pair("AES256-SHA", seed_sha_max_block_size));
+  rc.insert(std::make_pair("CAMELLIA128-SHA", seed_sha_max_block_size));
+  rc.insert(std::make_pair("CAMELLIA256-SHA", seed_sha_max_block_size));
+  rc.insert(std::make_pair("DES-CBC3-SHA", des_cbc3_sha_max_block_size));
+  rc.insert(std::make_pair("DES-CBC-SHA", des_cbc3_sha_max_block_size));
+  rc.insert(std::make_pair("RC4-MD5", rc4_md5_max_block_size));
+  rc.insert(std::make_pair("RC4-SHA", rc4_sha_max_block_size));
+  rc.insert(std::make_pair("SEED-SHA", seed_sha_max_block_size));
   return rc;
 }
 
 std::map<std::string, CryptoManagerImpl::SSLContextImpl::BlockSizeGetter>
-CryptoManagerImpl::SSLContextImpl::max_block_sizes =
-  CryptoManagerImpl::SSLContextImpl::create_max_block_sizes();
+    CryptoManagerImpl::SSLContextImpl::max_block_sizes =
+        CryptoManagerImpl::SSLContextImpl::create_max_block_sizes();
 
-void CryptoManagerImpl::SSLContextImpl::PrintCertData(X509* cert,
-                                                      const std::string& cert_owner) {
+void CryptoManagerImpl::SSLContextImpl::PrintCertData(
+    X509* cert, const std::string& cert_owner) {
   if (cert) {
     X509_NAME* subj_name = X509_get_subject_name(cert);
     char* subj = X509_NAME_oneline(subj_name, NULL, 0);
@@ -162,11 +165,10 @@ void CryptoManagerImpl::SSLContextImpl::PrintCertData(X509* cert,
       OPENSSL_free(issuer);
     }
 
-#ifdef ENABLE_LOG
     const std::string& cn = GetTextBy(subj_name, NID_commonName);
     const std::string& sn = GetTextBy(subj_name, NID_serialNumber);
+
     LOG4CXX_DEBUG(logger_, "CN: " << cn << ". SERIALNUMBER: " << sn);
-#endif
 
     ASN1_TIME* notBefore = X509_get_notBefore(cert);
     ASN1_TIME* notAfter = X509_get_notAfter(cert);
@@ -183,15 +185,15 @@ void CryptoManagerImpl::SSLContextImpl::PrintCertData(X509* cert,
 void CryptoManagerImpl::SSLContextImpl::PrintCertInfo() {
   PrintCertData(SSL_get_certificate(connection_), "HU's");
 
-  STACK_OF(X509 ) *peer_certs = SSL_get_peer_cert_chain(connection_);
+  STACK_OF(X509)* peer_certs = SSL_get_peer_cert_chain(connection_);
   while (sk_X509_num(peer_certs) > 0) {
     X509* cert = sk_X509_pop(peer_certs);
     PrintCertData(cert, "SERVERS");
   }
 }
 
-SSLContext::HandshakeResult CryptoManagerImpl::SSLContextImpl::
-CheckCertContext() {
+SSLContext::HandshakeResult
+CryptoManagerImpl::SSLContextImpl::CheckCertContext() {
   X509* cert = SSL_get_peer_certificate(connection_);
   if (!cert) {
     // According to the openssl documentation the peer certificate
@@ -199,28 +201,31 @@ CheckCertContext() {
     return CLIENT == mode_ ? Handshake_Result_Fail : Handshake_Result_Success;
   }
 
-  X509_NAME* subj_name =
-    X509_get_subject_name(cert);
+  X509_NAME* subj_name = X509_get_subject_name(cert);
 
   const std::string& cn = GetTextBy(subj_name, NID_commonName);
   const std::string& sn = GetTextBy(subj_name, NID_serialNumber);
 
-  if (!(hsh_context_.expected_cn.CompareIgnoreCase(cn.c_str()))) {
-    LOG4CXX_ERROR(logger_, "Trying to run handshake with wrong app name: " << cn
-                  << ". Expected app name: " << hsh_context_.expected_cn.AsMBString());
+  if (!hsh_context_.expected_cn.CompareIgnoreCase(cn.c_str())) {
+    LOG4CXX_ERROR(logger_,
+                  "Trying to run handshake with wrong app name: "
+                      << cn << ". Expected app name: "
+                      << hsh_context_.expected_cn.AsMBString());
     return Handshake_Result_AppNameMismatch;
   }
 
-  if (!(hsh_context_.expected_sn.CompareIgnoreCase(sn.c_str()))) {
-    LOG4CXX_ERROR(logger_, "Trying to run handshake with wrong app id: " << sn
-                  << ". Expected app id: " << hsh_context_.expected_sn.AsMBString());
+  if (!hsh_context_.expected_sn.CompareIgnoreCase(sn.c_str())) {
+    LOG4CXX_ERROR(logger_,
+                  "Trying to run handshake with wrong app id: "
+                      << sn << ". Expected app id: "
+                      << hsh_context_.expected_sn.AsMBString());
     return Handshake_Result_AppIDMismatch;
   }
   return Handshake_Result_Success;
 }
 
 bool CryptoManagerImpl::SSLContextImpl::ReadHandshakeData(
-  const uint8_t** const out_data, size_t* out_data_size) {
+    const uint8_t** const out_data, size_t* out_data_size) {
   LOG4CXX_AUTO_TRACE(logger_);
   const size_t pend = BIO_ctrl_pending(bioOut_);
   LOG4CXX_DEBUG(logger_, "Available " << pend << " bytes for handshake");
@@ -230,9 +235,9 @@ bool CryptoManagerImpl::SSLContextImpl::ReadHandshakeData(
     EnsureBufferSizeEnough(pend);
 
     const int read_count = BIO_read(bioOut_, buffer_, pend);
-    if (read_count  == static_cast<int>(pend)) {
+    if (read_count == static_cast<int>(pend)) {
       *out_data_size = read_count;
-      *out_data =  buffer_;
+      *out_data = buffer_;
     } else {
       LOG4CXX_WARN(logger_, "BIO read fail");
       is_handshake_pending_ = false;
@@ -244,8 +249,8 @@ bool CryptoManagerImpl::SSLContextImpl::ReadHandshakeData(
   return true;
 }
 
-bool CryptoManagerImpl::SSLContextImpl::
-WriteHandshakeData(const uint8_t*  const in_data,  size_t in_data_size) {
+bool CryptoManagerImpl::SSLContextImpl::WriteHandshakeData(
+    const uint8_t* const in_data, size_t in_data_size) {
   LOG4CXX_AUTO_TRACE(logger_);
   if (in_data && in_data_size) {
     LOG4CXX_DEBUG(logger_, "Handling " << in_data_size << " bytes");
@@ -260,8 +265,8 @@ WriteHandshakeData(const uint8_t*  const in_data,  size_t in_data_size) {
   return true;
 }
 
-SSLContext::HandshakeResult CryptoManagerImpl::SSLContextImpl::
-PerformHandshake() {
+SSLContext::HandshakeResult
+CryptoManagerImpl::SSLContextImpl::PerformHandshake() {
   const int handshake_result = SSL_do_handshake(connection_);
   LOG4CXX_TRACE(logger_, "Do handshake result is " << handshake_result);
   if (handshake_result == 1) {
@@ -272,7 +277,7 @@ PerformHandshake() {
       return result;
     }
 
-    LOG4CXX_INFO(logger_, "SSL handshake successfully finished");
+    LOG4CXX_DEBUG(logger_, "SSL handshake successfully finished");
     // Handshake is successful
     bioFilter_ = BIO_new(BIO_f_ssl());
     BIO_set_ssl(bioFilter_, connection_, BIO_NOCLOSE);
@@ -284,8 +289,9 @@ PerformHandshake() {
   } else if (handshake_result == 0) {
     const int error = SSL_get_error(connection_, handshake_result);
     SetHandshakeError(error);
-    LOG4CXX_WARN(logger_, "Handshake failed on the other side with error " << error
-                 << " \"" << LastError() << '"');
+    LOG4CXX_WARN(logger_,
+                 "Handshake failed on the other side with error "
+                     << error << " \"" << LastError() << '"');
     ResetConnection();
     is_handshake_pending_ = false;
     return Handshake_Result_Fail;
@@ -294,8 +300,10 @@ PerformHandshake() {
     if (error != SSL_ERROR_WANT_READ) {
       const long error = SSL_get_verify_result(connection_);
       SetHandshakeError(error);
-      LOG4CXX_WARN(logger_, "Handshake failed with error - " << SSL_get_error(connection_, error)
-                   << " \"" << LastError() << '"');
+      LOG4CXX_WARN(logger_,
+                   "Handshake failed with error "
+                       << " -> " << SSL_get_error(connection_, error) << " \""
+                       << LastError() << '"');
       ResetConnection();
       is_handshake_pending_ = false;
 
@@ -310,9 +318,11 @@ PerformHandshake() {
   return Handshake_Result_Success;
 }
 
-SSLContext::HandshakeResult CryptoManagerImpl::SSLContextImpl::
-DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
-                const uint8_t** const out_data, size_t* out_data_size) {
+SSLContext::HandshakeResult CryptoManagerImpl::SSLContextImpl::DoHandshakeStep(
+    const uint8_t* const in_data,
+    size_t in_data_size,
+    const uint8_t** const out_data,
+    size_t* out_data_size) {
   LOG4CXX_AUTO_TRACE(logger_);
   DCHECK(out_data);
   DCHECK(out_data_size);
@@ -345,14 +355,12 @@ DoHandshakeStep(const uint8_t*  const in_data,  size_t in_data_size,
   return res;
 }
 
-bool CryptoManagerImpl::SSLContextImpl::Encrypt(
-  const uint8_t*   const in_data,  size_t in_data_size,
-  const uint8_t** const out_data, size_t* out_data_size) {
-
+bool CryptoManagerImpl::SSLContextImpl::Encrypt(const uint8_t* const in_data,
+                                                size_t in_data_size,
+                                                const uint8_t** const out_data,
+                                                size_t* out_data_size) {
   sync_primitives::AutoLock locker(bio_locker);
-  if (!SSL_is_init_finished(connection_) ||
-      !in_data ||
-      !in_data_size) {
+  if (!SSL_is_init_finished(connection_) || !in_data || !in_data_size) {
     return false;
   }
 
@@ -374,10 +382,10 @@ bool CryptoManagerImpl::SSLContextImpl::Encrypt(
   return true;
 }
 
-bool CryptoManagerImpl::SSLContextImpl::Decrypt(
-  const uint8_t*   const in_data,  size_t in_data_size,
-  const uint8_t** const out_data, size_t* out_data_size) {
-
+bool CryptoManagerImpl::SSLContextImpl::Decrypt(const uint8_t* const in_data,
+                                                size_t in_data_size,
+                                                const uint8_t** const out_data,
+                                                size_t* out_data_size) {
   sync_primitives::AutoLock locker(bio_locker);
   if (!SSL_is_init_finished(connection_)) {
     return false;
@@ -405,7 +413,7 @@ bool CryptoManagerImpl::SSLContextImpl::Decrypt(
     len = BIO_ctrl_pending(bioFilter_);
   }
   *out_data = buffer_;
-  LOG4CXX_INFO(logger_, "Decrypted " << in_data_size << " bytes");
+  LOG4CXX_DEBUG(logger_, "Decrypted " << in_data_size << " bytes");
   return true;
 }
 
@@ -467,14 +475,14 @@ void CryptoManagerImpl::SSLContextImpl::ResetConnection() {
 }
 
 void CryptoManagerImpl::SSLContextImpl::SetHandshakeContext(
-  const SSLContext::HandshakeContext& hsh_ctx) {
+    const SSLContext::HandshakeContext& hsh_ctx) {
   hsh_context_ = hsh_ctx;
 }
 
 void CryptoManagerImpl::SSLContextImpl::EnsureBufferSizeEnough(size_t size) {
   if (buffer_size_ < size) {
     delete[] buffer_;
-    buffer_ = new(std::nothrow) uint8_t[size];
+    buffer_ = new (std::nothrow) uint8_t[size];
     if (buffer_) {
       buffer_size_ = size;
     } else {
@@ -502,13 +510,13 @@ CryptoManagerImpl::SSLContextImpl::openssl_error_convert_to_internal(
   }
 }
 
-std::string CryptoManagerImpl::SSLContextImpl::GetTextBy(
-  X509_NAME* name, int object) const {
+std::string CryptoManagerImpl::SSLContextImpl::GetTextBy(X509_NAME* name,
+                                                         int object) const {
   const int req_len = X509_NAME_get_text_by_NID(name, object, NULL, 0);
 
   if (-1 == req_len) {
-    LOG4CXX_WARN(logger_, "Unable to obtain object: " << object
-                 << " from certificate");
+    LOG4CXX_WARN(logger_,
+                 "Unable to obtain object: " << object << " from certificate");
     return std::string();
   }
 
@@ -518,8 +526,7 @@ std::string CryptoManagerImpl::SSLContextImpl::GetTextBy(
 
   std::string str(data.begin(), data.end() - 1);
 
-  std::transform(str.begin(), str.end(),
-                 str.begin(), ::tolower);
+  std::transform(str.begin(), str.end(), str.begin(), ::tolower);
   return str;
 }
 

@@ -33,6 +33,7 @@
 #include "life_cycle.h"
 #include "utils/signals.h"
 #include "config_profile/profile.h"
+#include "utils/make_shared.h"
 #ifdef CUSTOMER_PASA
 #include "SmartDeviceLinkMainApp.h"
 #endif
@@ -41,6 +42,7 @@
 #ifdef ENABLE_SECURITY
 #include "security_manager/security_manager_impl.h"
 #include "security_manager/crypto_manager_impl.h"
+#include "security_manager/crypto_manager_settings_impl.h"
 #include "application_manager/policies/policy_handler.h"
 #endif  // ENABLE_SECURITY
 
@@ -82,9 +84,9 @@ LifeCycle::LifeCycle()
     , hmi_handler_(NULL)
     , hmi_message_adapter_(NULL)
     , media_manager_(NULL)
-#ifdef TIME_TESTER
-    , time_tester_(NULL)
-#endif  // TIME_TESTER
+#ifdef TELEMETRY_MONITOR
+    , telemetry_monitor_(NULL)
+#endif  // TELEMETRY_MONITOR
 #ifdef DBUS_HMIADAPTER
     , dbus_adapter_(NULL)
     , dbus_adapter_thread_(NULL)
@@ -130,48 +132,11 @@ bool LifeCycle::StartComponents() {
   hmi_handler_ = new hmi_message_handler::HMIMessageHandlerImpl(
       *(profile::Profile::instance()));
 
-#ifdef ENABLE_SECURITY
-  security_manager_ = new security_manager::SecurityManagerImpl();
-  crypto_manager_ = new security_manager::CryptoManagerImpl();
   media_manager_ = media_manager::MediaManagerImpl::instance();
-
   if (!app_manager_->Init()) {
     LOG4CXX_ERROR(logger_, "Application manager init failed.");
     return false;
   }
-  security_manager::Protocol protocol;
-  const profile::Profile* profile_pointer = profile::Profile::instance();
-  if (profile_pointer->security_manager_protocol_name() == "TLSv1.0") {
-    protocol = security_manager::TLSv1;
-  } else if (profile_pointer->security_manager_protocol_name() == "TLSv1.1") {
-    protocol = security_manager::TLSv1_1;
-  } else if (profile_pointer->security_manager_protocol_name() == "TLSv1.2") {
-    protocol = security_manager::TLSv1_2;
-  } else if (profile_pointer->security_manager_protocol_name() == "SSLv3") {
-    protocol = security_manager::SSLv3;
-  } else {
-    LOG4CXX_ERROR(
-        logger_,
-        "Unknown protocol: "
-            << profile::Profile::instance()->security_manager_protocol_name());
-    return false;
-  }
-
-  const std::string& mode = profile::Profile::instance()->ssl_mode();
-  if (!crypto_manager_->Init(
-          mode == "SERVER" ? security_manager::SERVER
-                           : security_manager::CLIENT,
-          protocol,
-          policy::PolicyHandler::instance()->RetrieveCertificate(),
-          profile::Profile::instance()->ciphers_list(),
-          profile::Profile::instance()->verify_peer(),
-          profile::Profile::instance()->ca_cert_path(),
-          profile::Profile::instance()->update_before_hours())) {
-    LOG4CXX_ERROR(logger_, "CryptoManager initialization fail.");
-  }
-
-#endif  // ENABLE_SECURITY
-
   transport_manager_->AddEventListener(protocol_handler_);
   transport_manager_->AddEventListener(connection_handler_);
 
@@ -179,31 +144,37 @@ bool LifeCycle::StartComponents() {
 
   protocol_handler_->AddProtocolObserver(media_manager_);
   protocol_handler_->AddProtocolObserver(app_manager_);
-#ifdef ENABLE_SECURITY
-  protocol_handler_->AddProtocolObserver(security_manager_);
-  protocol_handler_->set_security_manager(security_manager_);
-#endif  // ENABLE_SECURITY
   media_manager_->SetProtocolHandler(protocol_handler_);
-
   connection_handler_->set_protocol_handler(protocol_handler_);
   connection_handler_->set_connection_handler_observer(app_manager_);
 
 #ifdef ENABLE_SECURITY
-  security_manager_->AddListener(
-      application_manager::ApplicationManagerImpl::instance());
+  security_manager_ = new security_manager::SecurityManagerImpl();
+  crypto_manager_ = new security_manager::CryptoManagerImpl(
+      utils::MakeShared<security_manager::CryptoManagerSettingsImpl>(
+          *(profile::Profile::instance()),
+          policy::PolicyHandler::instance()->RetrieveCertificate()));
+  protocol_handler_->AddProtocolObserver(security_manager_);
+  protocol_handler_->set_security_manager(security_manager_);
+  security_manager_->AddListener(app_manager_);
   security_manager_->set_session_observer(connection_handler_);
   security_manager_->set_protocol_handler(protocol_handler_);
   security_manager_->set_crypto_manager(crypto_manager_);
-  application_manager::ApplicationManagerImpl::instance()->AddPolicyObserver(
-      crypto_manager_);
+  app_manager_->AddPolicyObserver(crypto_manager_);
+  if (!crypto_manager_->Init()) {
+    LOG4CXX_ERROR(logger_, "CryptoManager initialization fail.");
+  }
 #endif  // ENABLE_SECURITY
 
-// it is important to initialise TimeTester before TM to listen TM Adapters
-#ifdef TIME_TESTER
-  time_tester_ = new time_tester::TimeManager();
-  time_tester_->Start();
-  time_tester_->Init(protocol_handler_);
-#endif  // TIME_TESTER
+// it is important to initialise TelemetryMonitor before TM to listen TM
+// Adapters
+#ifdef TELEMETRY_MONITOR
+  telemetry_monitor_ = new telemetry_monitor::TelemetryMonitor(
+      profile::Profile::instance()->server_address(),
+      profile::Profile::instance()->time_testing_port());
+  telemetry_monitor_->Start();
+  telemetry_monitor_->Init(protocol_handler_, app_manager_, transport_manager_);
+#endif  // TELEMETRY_MONITOR
   // It's important to initialise TM after setting up listener chain
   // [TM -> CH -> AM], otherwise some events from TM could arrive at nowhere
   app_manager_->set_protocol_handler(protocol_handler_);
@@ -365,25 +336,25 @@ bool LifeCycle::InitMessageSystem() {
 #endif  // CUSTOMER_PASA
 
 namespace {
-  void sig_handler(int sig) {
-    switch(sig) {
-      case SIGINT:
-        LOG4CXX_DEBUG(logger_, "SIGINT signal has been caught");
-        break;
-      case SIGTERM:
-        LOG4CXX_DEBUG(logger_, "SIGTERM signal has been caught");
-        break;
-      case SIGSEGV:
-        LOG4CXX_DEBUG(logger_, "SIGSEGV signal has been caught");
-        FLUSH_LOGGER();
-        // exit need to prevent endless sending SIGSEGV
-        // http://stackoverflow.com/questions/2663456/how-to-write-a-signal-handler-to-catch-sigsegv
-        abort();
-      default:
-        LOG4CXX_DEBUG(logger_, "Unexpected signal has been caught");
-        exit(EXIT_FAILURE);
-    }
+void sig_handler(int sig) {
+  switch (sig) {
+    case SIGINT:
+      LOG4CXX_DEBUG(logger_, "SIGINT signal has been caught");
+      break;
+    case SIGTERM:
+      LOG4CXX_DEBUG(logger_, "SIGTERM signal has been caught");
+      break;
+    case SIGSEGV:
+      LOG4CXX_DEBUG(logger_, "SIGSEGV signal has been caught");
+      FLUSH_LOGGER();
+      // exit need to prevent endless sending SIGSEGV
+      // http://stackoverflow.com/questions/2663456/how-to-write-a-signal-handler-to-catch-sigsegv
+      abort();
+    default:
+      LOG4CXX_DEBUG(logger_, "Unexpected signal has been caught");
+      exit(EXIT_FAILURE);
   }
+}
 }  //  namespace
 
 void LifeCycle::Run() {
@@ -391,7 +362,7 @@ void LifeCycle::Run() {
   // Register signal handlers and wait sys signals
   // from OS
   if (!utils::WaitTerminationSignals(&sig_handler)) {
-      LOG4CXX_FATAL(logger_, "Fail to catch system signal!");
+    LOG4CXX_FATAL(logger_, "Fail to catch system signal!");
   }
 }
 
@@ -436,13 +407,13 @@ void LifeCycle::StopComponents() {
 
 #ifdef ENABLE_SECURITY
   protocol_handler_->RemoveProtocolObserver(security_manager_);
-  DCHECK_OR_RETURN_VOID(security_manager_);
-  security_manager_->RemoveListener(app_manager_);
-  LOG4CXX_INFO(logger_, "Destroying Crypto Manager");
-  delete crypto_manager_;
-
-  LOG4CXX_INFO(logger_, "Destroying Security Manager");
-  delete security_manager_;
+  if (security_manager_) {
+    security_manager_->RemoveListener(app_manager_);
+    LOG4CXX_INFO(logger_, "Destroying Crypto Manager");
+    delete crypto_manager_;
+    LOG4CXX_INFO(logger_, "Destroying Security Manager");
+    delete security_manager_;
+  }
 #endif  // ENABLE_SECURITY
   protocol_handler_->Stop();
 
@@ -530,14 +501,14 @@ void LifeCycle::StopComponents() {
 #endif  // MQUEUE_HMIADAPTER
 #endif  // CUSTOMER_PASA
 
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
   // It's important to delete tester Obcervers after TM adapters destruction
-  if (time_tester_) {
-    time_tester_->Stop();
-    delete time_tester_;
-    time_tester_ = NULL;
+  if (telemetry_monitor_) {
+    telemetry_monitor_->Stop();
+    delete telemetry_monitor_;
+    telemetry_monitor_ = NULL;
   }
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
 }
 
 }  //  namespace main_namespace

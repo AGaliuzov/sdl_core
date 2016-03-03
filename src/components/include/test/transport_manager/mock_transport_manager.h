@@ -37,6 +37,7 @@
 #include <string>
 #include "transport_manager/transport_manager.h"
 #include "transport_manager/transport_adapter/transport_adapter_event.h"
+#include "telemetry_monitor/telemetry_observable.h"
 
 namespace test {
 namespace components {
@@ -48,7 +49,9 @@ using ::transport_manager::transport_adapter::TransportAdapter;
 using ::transport_manager::TransportAdapterEvent;
 using ::transport_manager::TransportManagerListener;
 
-class MockTransportManager : public ::transport_manager::TransportManager {
+class MockTransportManager : public ::transport_manager::TransportManager,
+                             public ::telemetry_monitor::TelemetryObservable<
+                                 transport_manager::TMTelemetryObserver> {
  public:
   MOCK_METHOD0(Init, int());
   MOCK_METHOD0(Reinit, int());
@@ -65,6 +68,8 @@ class MockTransportManager : public ::transport_manager::TransportManager {
   MOCK_METHOD0(Stop, int());
   MOCK_METHOD1(RemoveDevice, int(const DeviceHandle&));
   MOCK_CONST_METHOD1(Visibility, int(const bool&));
+  MOCK_METHOD1(SetTelemetryObserver,
+               void(transport_manager::TMTelemetryObserver* observer));
 };
 }  // namespace transport_manager_test
 }  // namespace components

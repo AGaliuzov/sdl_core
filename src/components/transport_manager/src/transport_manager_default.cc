@@ -71,7 +71,9 @@ CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
 int TransportManagerDefault::Init() {
   LOG4CXX_TRACE(logger_, "enter");
   if (E_SUCCESS != TransportManagerImpl::Init()) {
-    LOG4CXX_TRACE(logger_, "exit with E_TM_IS_NOT_INITIALIZED. Condition: E_SUCCESS != TransportManagerImpl::Init()");
+    LOG4CXX_TRACE(logger_,
+                  "exit with E_TM_IS_NOT_INITIALIZED. Condition: E_SUCCESS != "
+                  "TransportManagerImpl::Init()");
     return E_TM_IS_NOT_INITIALIZED;
   }
   transport_adapter::TransportAdapterImpl* ta;
@@ -83,23 +85,23 @@ int TransportManagerDefault::Init() {
   ta = new transport_adapter::BluetoothTransportAdapter;
 #endif
 
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
   if (metric_observer_) {
-    ta->SetTimeMetricObserver(metric_observer_);
+    ta->SetTelemetryObserver(metric_observer_);
   }
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
   AddTransportAdapter(ta);
 #endif
 
-
 #ifndef CUSTOMER_PASA
-  uint16_t port = profile::Profile::instance()->transport_manager_tcp_adapter_port();
+  uint16_t port =
+      profile::Profile::instance()->transport_manager_tcp_adapter_port();
   ta = new transport_adapter::TcpTransportAdapter(port);
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
   if (metric_observer_) {
-    ta->SetTimeMetricObserver(metric_observer_);
+    ta->SetTelemetryObserver(metric_observer_);
   }
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
   AddTransportAdapter(ta);
 #endif  // !CUSTOMER_PASA
 
@@ -107,11 +109,11 @@ int TransportManagerDefault::Init() {
 
 #ifdef AOA_SUPPORT
   ta = new transport_adapter::AOATransportAdapter();
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
   if (metric_observer_) {
-    ta->SetTimeMetricObserver(metric_observer_);
+    ta->SetTelemetryObserver(metric_observer_);
   }
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
   AddTransportAdapter(ta);
 #endif  // AOA_SUPPORT
 
@@ -119,11 +121,11 @@ int TransportManagerDefault::Init() {
 
 #if defined(USB_SUPPORT)
   ta = new transport_adapter::UsbAoaAdapter();
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
   if (metric_observer_) {
-    ta->SetTimeMetricObserver(metric_observer_);
+    ta->SetTelemetryObserver(metric_observer_);
   }
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
   AddTransportAdapter(ta);
 #endif  // USB_SUPPORT
 
@@ -131,11 +133,11 @@ int TransportManagerDefault::Init() {
 
 #ifdef MME_SUPPORT
   ta = new transport_adapter::MmeTransportAdapter();
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
   if (metric_observer_) {
-    ta->SetTimeMetricObserver(metric_observer_);
+    ta->SetTelemetryObserver(metric_observer_);
   }
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
   AddTransportAdapter(ta);
 #endif
 
@@ -145,7 +147,6 @@ int TransportManagerDefault::Init() {
 
 TransportManagerDefault::~TransportManagerDefault() {}
 
-TransportManagerDefault::TransportManagerDefault()
-    : TransportManagerImpl() {}
+TransportManagerDefault::TransportManagerDefault() : TransportManagerImpl() {}
 
 }  //  namespace transport_manager

@@ -35,15 +35,17 @@
 #include "utils/logger_status.h"
 #include <apr_time.h>
 
-void deinit_logger () {
+void deinit_logger() {
   CREATE_LOGGERPTR_LOCAL(logger_, "Utils")
   LOG4CXX_DEBUG(logger_, "Logger deinitialization");
-  logger::set_logs_enabled();
-  logger::LogMessageLoopThread::destroy();
+  logger::set_logs_enabled(false);
+  logger::delete_log_message_loop_thread();
   log4cxx::LoggerPtr rootLogger = log4cxx::Logger::getRootLogger();
-  log4cxx::spi::LoggerRepositoryPtr repository = rootLogger->getLoggerRepository();
+  log4cxx::spi::LoggerRepositoryPtr repository =
+      rootLogger->getLoggerRepository();
   log4cxx::LoggerList loggers = repository->getCurrentLoggers();
-  for (log4cxx::LoggerList::iterator i = loggers.begin(); i != loggers.end(); ++i) {
+  for (log4cxx::LoggerList::iterator i = loggers.begin(); i != loggers.end();
+       ++i) {
     log4cxx::LoggerPtr logger = *i;
     logger->removeAllAppenders();
   }
@@ -53,14 +55,4 @@ void deinit_logger () {
 
 log4cxx_time_t time_now() {
   return apr_time_now();
-}
-
-// Don't destroy logger here!
-// It's just for unloading logger queue
-void flush_logger() {
-  logger::LoggerStatus old_status = logger::logger_status;
-  // Stop pushing new messages to the log queue
-  logger::logger_status = logger::DeletingLoggerThread;
-  logger::LogMessageLoopThread::instance()->WaitDumpQueue();
-  logger::logger_status = old_status;
 }

@@ -74,9 +74,9 @@ TransportManagerImpl::Connection TransportManagerImpl::convert(
 
 TransportManagerImpl::TransportManagerImpl()
     : is_initialized_(false)
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
     , metric_observer_(NULL)
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
     , connection_id_counter_(0)
     , message_queue_("TM MessageQueue", this)
     , event_queue_("TM EventQueue", this) {
@@ -334,11 +334,11 @@ int TransportManagerImpl::SendMessageToDevice(
       return E_CONNECTION_IS_TO_SHUTDOWN;
     }
   }
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
   if (metric_observer_) {
     metric_observer_->StartRawMsg(message.get());
   }
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
   this->PostMessage(message);
   LOG4CXX_TRACE(logger_, "exit with E_SUCCESS");
   return E_SUCCESS;
@@ -745,11 +745,11 @@ void TransportManagerImpl::Handle(TransportAdapterEvent event) {
       break;
     }
     case TransportAdapterListenerImpl::EventTypeEnum::ON_SEND_DONE: {
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
       if (metric_observer_) {
         metric_observer_->StopRawMsg(event.event_data.get());
       }
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
       sync_primitives::AutoReadLock lock(connections_lock_);
       ConnectionInternal* connection =
           GetConnection(event.device_uid, event.application_id);
@@ -772,11 +772,11 @@ void TransportManagerImpl::Handle(TransportAdapterEvent event) {
       break;
     }
     case TransportAdapterListenerImpl::EventTypeEnum::ON_SEND_FAIL: {
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
       if (metric_observer_) {
         metric_observer_->StopRawMsg(event.event_data.get());
       }
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
       {
         sync_primitives::AutoReadLock lock(connections_lock_);
         ConnectionInternal* connection =
@@ -823,11 +823,11 @@ void TransportManagerImpl::Handle(TransportAdapterEvent event) {
         }
         event.event_data->set_connection_key(connection->id);
       }
-#ifdef TIME_TESTER
+#ifdef TELEMETRY_MONITOR
       if (metric_observer_) {
         metric_observer_->StopRawMsg(event.event_data.get());
       }
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
       RaiseEvent(&TransportManagerListener::OnTMMessageReceived,
                  event.event_data);
       LOG4CXX_DEBUG(logger_, "event_type = ON_RECEIVED_DONE");
@@ -898,11 +898,11 @@ void TransportManagerImpl::Handle(TransportAdapterEvent event) {
   LOG4CXX_TRACE(logger_, "exit");
 }
 
-#ifdef TIME_TESTER
-void TransportManagerImpl::SetTimeMetricObserver(TMMetricObserver* observer) {
+#ifdef TELEMETRY_MONITOR
+void TransportManagerImpl::SetTelemetryObserver(TMTelemetryObserver* observer) {
   metric_observer_ = observer;
 }
-#endif  // TIME_TESTER
+#endif  // TELEMETRY_MONITOR
 
 void TransportManagerImpl::Handle(::protocol_handler::RawMessagePtr msg) {
   LOG4CXX_TRACE(logger_, "enter");
@@ -954,10 +954,9 @@ TransportManagerImpl::ConnectionInternal::ConnectionInternal(
     : transport_manager(transport_manager)
     , transport_adapter(transport_adapter)
     , timer(utils::MakeShared<timer::Timer>(
-                "TM DiscRoutine",
-                new ::timer::TimerTaskImpl<ConnectionInternal> (
-                    this,
-                    &ConnectionInternal::DisconnectFailedRoutine)))
+          "TM DiscRoutine",
+          new ::timer::TimerTaskImpl<ConnectionInternal>(
+              this, &ConnectionInternal::DisconnectFailedRoutine)))
     , shutdown(false)
     , device_handle_(device_handle)
     , messages_count(0) {
