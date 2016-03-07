@@ -2898,7 +2898,7 @@ mobile_apis::Result::eType ApplicationManagerImpl::SaveBinary(
   }
 
   const std::string full_file_path = file_path + "/" + file_name;
-  int64_t file_size = file_system::FileSize(full_file_path);
+  const int64_t file_size = file_system::FileSize(full_file_path);
   std::ofstream* file_stream;
   if (offset != 0) {
     if (file_size != offset) {
