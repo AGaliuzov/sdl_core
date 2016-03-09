@@ -1264,6 +1264,11 @@ class ApplicationManagerImpl
   ProtocolVersion SupportedSDLVersion() const;
 
   /**
+   * @brief Clears TTS global properties list of apps
+   */
+  void ClearTTSGlobalPropertiesList();
+
+  /**
    * @brief List of applications
    */
   ApplicationSet applications_;

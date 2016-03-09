@@ -79,7 +79,7 @@ ConnectionHandlerImpl::ConnectionHandlerImpl(
     , connection_handler_observer_(NULL)
     , transport_manager_(tm)
     , protocol_handler_(NULL)
-    , connection_handler_observer_lock_(true)
+    , connection_handler_observer_lock_()
     , connection_list_deleter_(&connection_list_) {}
 
 ConnectionHandlerImpl::~ConnectionHandlerImpl() {
@@ -97,10 +97,9 @@ void ConnectionHandlerImpl::Stop() {
 
 void ConnectionHandlerImpl::set_connection_handler_observer(
     ConnectionHandlerObserver* observer) {
-  LOG4CXX_DEBUG(logger_,
-                "ConnectionHandlerImpl::set_connection_handler_observer() "
-                    << observer);
-  sync_primitives::AutoLock lock(connection_handler_observer_lock_);
+  LOG4CXX_DEBUG(logger_, "ConnectionHandlerImpl::set_connection_handler_observer() "
+                << observer);
+  sync_primitives::AutoWriteLock write_lock(connection_handler_observer_lock_);
   if (!observer) {
     LOG4CXX_WARN(logger_, "Set Null pointer to observer.");
   }
@@ -121,14 +120,14 @@ void ConnectionHandlerImpl::set_protocol_handler(
 void ConnectionHandlerImpl::OnDeviceListUpdated(
     const std::vector<transport_manager::DeviceInfo>&) {
   LOG4CXX_AUTO_TRACE(logger_);
-  sync_primitives::AutoLock lock(connection_handler_observer_lock_);
+  sync_primitives::AutoReadLock read_lock(connection_handler_observer_lock_);
   if (connection_handler_observer_) {
     connection_handler_observer_->OnDeviceListUpdated(device_list_);
   }
 }
 
 void ConnectionHandlerImpl::OnFindNewApplicationsRequest() {
-  sync_primitives::AutoLock lock(connection_handler_observer_lock_);
+  sync_primitives::AutoReadLock read_lock(connection_handler_observer_lock_);
   if (connection_handler_observer_) {
     connection_handler_observer_->OnFindNewApplicationsRequest();
   }
@@ -177,7 +176,7 @@ void ConnectionHandlerImpl::OnDeviceRemoved(
   }
 
   device_list_.erase(device_info.device_handle());
-  sync_primitives::AutoLock lock(connection_handler_observer_lock_);
+  sync_primitives::AutoReadLock read_lock(connection_handler_observer_lock_);
   if (connection_handler_observer_) {
     connection_handler_observer_->RemoveDevice(device_info.device_handle());
   }
@@ -341,7 +340,7 @@ uint32_t ConnectionHandlerImpl::OnSessionStartedCallback(
       *hash_id = protocol_handler::HASH_ID_NOT_SUPPORTED;
     }
   }
-  sync_primitives::AutoLock lock2(connection_handler_observer_lock_);
+  sync_primitives::AutoReadLock read_lock(connection_handler_observer_lock_);
   if (connection_handler_observer_) {
     const uint32_t session_key = KeyFromPair(connection_handle, new_session_id);
     const bool success = connection_handler_observer_->OnServiceStartedCallback(
@@ -436,10 +435,9 @@ uint32_t ConnectionHandlerImpl::OnSessionEndedCallback(
       return 0;
     }
   } else {
-    LOG4CXX_INFO(logger_,
-                 "Service " << static_cast<uint32_t>(service_type)
-                            << " to be removed");
-    sync_primitives::AutoLock lock(connection_handler_observer_lock_);
+    LOG4CXX_INFO(logger_, "Service "  << static_cast<uint32_t>(service_type)
+                 << " to be removed");
+    sync_primitives::AutoReadLock read_lock(connection_handler_observer_lock_);
     if (connection_handler_observer_) {
       connection_handler_observer_->OnServiceEndedCallback(
           session_key, service_type, CloseSessionReason::kCommon);
@@ -679,7 +677,7 @@ void ConnectionHandlerImpl::StartDevicesDiscovery() {
   LOG4CXX_AUTO_TRACE(logger_);
 
   transport_manager_.SearchDevices();
-  sync_primitives::AutoLock lock(connection_handler_observer_lock_);
+  sync_primitives::AutoReadLock read_lock(connection_handler_observer_lock_);
   if (connection_handler_observer_) {
     connection_handler_observer_->OnDeviceListUpdated(device_list_);
   }
@@ -820,8 +818,8 @@ void ConnectionHandlerImpl::CloseSessionServices(
   LOG4CXX_DEBUG(logger_,
                 "Closing all services for session with key: " << session_key);
 
-  sync_primitives::AutoLock lock(connection_handler_observer_lock_);
-  if (!connection_handler_observer_) {
+  sync_primitives::AutoReadLock read_lock(connection_handler_observer_lock_);
+  if(!connection_handler_observer_) {
     return;
   }
   const ServiceList& service_list = session.service_list;
