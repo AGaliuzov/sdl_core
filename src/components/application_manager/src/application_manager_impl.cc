@@ -2230,6 +2230,8 @@ void ApplicationManagerImpl::UnregisterAllApplications() {
   bool is_unexpected_disconnect = Compare<eType, NEQ, ALL>(
       unregister_reason_, IGNITION_OFF, MASTER_RESET, FACTORY_DEFAULTS);
 
+  ClearTTSGlobalPropertiesList();
+
   {  // A local scope to limit accessor's lifetime and release app list lock.
     ApplicationListAccessor accessor;
     ApplicationSetConstIt it = accessor.begin();
@@ -3171,6 +3173,12 @@ ProtocolVersion ApplicationManagerImpl::SupportedSDLVersion() const {
                   "SDL Supported protocol version " << ProtocolVersion::kV3);
     return ProtocolVersion::kV3;
   }
+}
+
+void ApplicationManagerImpl::ClearTTSGlobalPropertiesList() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  sync_primitives::AutoLock lock(tts_global_properties_app_list_lock_);
+  tts_global_properties_app_list_.clear();
 }
 
 policy::DeviceConsent ApplicationManagerImpl::GetUserConsentForDevice(
