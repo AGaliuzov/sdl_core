@@ -921,7 +921,7 @@ int CacheManager::DaysBeforeExchange(uint16_t current) {
   LOG4CXX_AUTO_TRACE(logger_);
   CACHE_MANAGER_CHECK(0);
   const uint8_t limit = pt_->policy_table.module_config.exchange_after_x_days;
-  LOG4CXX_DEBUG(logger_, "Exchange after: " << limit << " days");
+  LOG4CXX_DEBUG(logger_, "Exchange after: " << static_cast<int>(limit) << " days");
 
   const uint16_t days_after_epoch = (*pt_->policy_table.module_meta->pt_exchanged_x_days_after_epoch);
   LOG4CXX_DEBUG(logger_, "Epoch since last update: " << days_after_epoch);
