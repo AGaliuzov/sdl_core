@@ -67,9 +67,11 @@ void EventDispatcherImpl::raise_event(const Event& event) {
   // Call observers
   EventObserver* temp;
   while (!observers_.empty()) {
-    AutoLock auto_lock(observer_lock_);
-    temp = *observers_.begin();
-    observers_.erase(observers_.begin());
+    {
+      AutoLock auto_lock(observer_lock_);
+      temp = *observers_.begin();
+      observers_.erase(observers_.begin());
+    }
     temp->on_event(event);
   }
 }
