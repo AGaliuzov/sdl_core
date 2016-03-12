@@ -936,6 +936,7 @@ void PolicyHandler::OnAllowSDLFunctionalityNotification(
       std::for_each(accessor.begin(),
                     accessor.end(),
                     DeactivateApplication(device_handle));
+      last_activated_app_id_ = 0;
     } else {
       std::for_each(
           accessor.begin(),
