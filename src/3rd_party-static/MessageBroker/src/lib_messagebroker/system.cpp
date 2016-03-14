@@ -26,6 +26,10 @@
 #include <signal.h>
 #include "system.h"
 
+#ifdef CUSTOMER_PASA
+#include "utils/threads/thread_watcher.h"
+#endif // CUSTOMER_PASA
+
 namespace System {
 
 void msleep(unsigned long ms) {
@@ -78,15 +82,24 @@ bool Thread::Start(bool detach) {
   ret = pthread_create(&m_id, &attr, &Thread::Call, this);
   pthread_setname_np(m_id, "MB Thread");
   pthread_attr_destroy(&attr);
+#ifdef CUSTOMER_PASA
+  threads::ThreadWatcher::instance()->WatchThread(m_id);
+#endif // CUSTOMER_PASA
   return ret == 0;
 }
 
 bool Thread::Stop() {
   pthread_cancel(m_id);
+#ifdef CUSTOMER_PASA
+  threads::ThreadWatcher::instance()->StopWatching(m_id);
+#endif // CUSTOMER_PASA
   return false;// Android does not support 'pthread_cancel';
 }
 
 bool Thread::Join(void** ret) {
+#ifdef CUSTOMER_PASA
+  threads::ThreadWatcher::instance()->StopWatching(m_id);
+#endif // CUSTOMER_PASA
   return pthread_join(m_id, ret) == 0;
 }
 

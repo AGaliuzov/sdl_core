@@ -39,6 +39,10 @@
 
 #include "transport_manager/mme/protocol_config.h"
 
+#ifdef CUSTOMER_PASA
+#include "utils/threads/thread_watcher.h"
+#endif // CUSTOMER_PASA
+
 namespace transport_manager {
 namespace transport_adapter {
 
@@ -363,6 +367,10 @@ void IAP2Device::IAP2HubConnectThreadDelegate::threadMain() {
           "iAP2: connected to " << mount_point << " on hub protocol " << protocol_name_);
       attemtps = 0;
       parent_->OnHubConnect(protocol_name_, handle);
+#ifdef CUSTOMER_PASA
+      LOG4CXX_DEBUG(logger_, "Device has been connected, stop thread priority tracking.");
+      threads::ThreadWatcher::instance()->StopWatchTimer();
+#endif // CUSTOMER_PASA
     } else {
       if ((0 == max_attempts) || (++attemtps < max_attempts)) {
         LOG4CXX_WARN(

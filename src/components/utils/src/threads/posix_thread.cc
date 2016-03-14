@@ -35,6 +35,7 @@
 #include <stddef.h>
 #include <signal.h>
 #include <pthread.h>
+#include <algorithm>
 
 #ifdef BUILD_TESTS
 // Temporary fix for UnitTest until APPLINK-9987 is resolved
@@ -45,6 +46,11 @@
 #include "utils/atomic.h"
 #include "utils/threads/thread_delegate.h"
 #include "utils/logger.h"
+#include "config_profile/profile.h"
+
+#ifdef CUSTOMER_PASA
+#include "utils/threads/thread_watcher.h"
+#endif // CUSTOMER_PASA
 
 #ifndef __QNXNTO__
 const int EOK = 0;
@@ -94,9 +100,13 @@ void* Thread::threadFunc(void* arg) {
                 "Thread #" << pthread_self() << " started successfully");
 
   threads::Thread* thread = reinterpret_cast<Thread*>(arg);
-  DCHECK(thread);
 
-  pthread_cleanup_push(&cleanup, thread);
+  DCHECK(thread);
+#ifdef CUSTOMER_PASA
+    threads::ThreadWatcher::instance()->WatchThread(pthread_self());
+#endif // CUSTOMER_PASA
+  
+    pthread_cleanup_push(&cleanup, thread);
 
     thread->state_lock_.Acquire();
     thread->state_cond_.Broadcast();
@@ -133,6 +143,62 @@ void* Thread::threadFunc(void* arg) {
   return NULL;
 }
 
+#ifdef CUSTOMER_PASA
+namespace {
+void decrease_thread_prio(uint32_t tid) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  if (profile::Profile::instance()->is_process_configuration_allowed()) {
+    const uint32_t val = profile::Profile::instance()->expected_thread_priority();
+    LOG4CXX_DEBUG(logger_, "Reduce priority for thread: " << tid << "Prio value: " << val);
+  }
+}
+} // namespace
+
+ThreadWatcher::ThreadWatcher()
+  : timer_("ThreadWathcher", new ::timer::TimerTaskImpl<ThreadWatcher>(
+            this,
+            &ThreadWatcher::OnTimeout))
+    , reduce_priority_(false) {
+  LOG4CXX_AUTO_TRACE(logger_);
+}
+
+void ThreadWatcher::StartWatchTimer(uint32_t timeout) {
+  LOG4CXX_DEBUG(logger_, "Timer for priority tracking has been started with value: " << timeout);
+  const bool repeatable = false;
+  timer_.Start(timeout * 1000, repeatable);
+}
+
+void ThreadWatcher::StopWatchTimer() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  timer_.Stop();
+}
+
+void ThreadWatcher::WatchThread(uint32_t tid) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  if (reduce_priority_) {
+    decrease_thread_prio(tid);
+  } else {
+    threads_lock_.Acquire();
+    threads_.insert(tid);
+    threads_lock_.Release();
+  }
+}
+
+void ThreadWatcher::StopWatching(uint32_t tid) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  threads_lock_.Acquire();
+  threads_.erase(tid);
+  threads_lock_.Release();
+}
+
+void ThreadWatcher::OnTimeout() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  threads_lock_.Acquire();
+  reduce_priority_ = true;
+  std::for_each(threads_.begin(), threads_.end(), decrease_thread_prio);
+  threads_lock_.Release();
+}
+#endif // CUSTOMER_PASA
 void Thread::SetNameForId(const PlatformThreadHandle& thread_id,
                           std::string name) {
   if (name.size() > THREAD_NAME_SIZE)
@@ -285,6 +351,10 @@ void Thread::join() {
 
 Thread::~Thread() {
   LOG4CXX_AUTO_TRACE(logger_);
+
+#ifdef CUSTOMER_PASA
+  threads::ThreadWatcher::instance()->StopWatching(handle_);
+#endif // CUSTOMER_PASA
   finalized_ = true;
   stopped_ = true;
   join();

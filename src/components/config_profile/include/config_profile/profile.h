@@ -305,6 +305,21 @@ class Profile : public protocol_handler::ProtocolHandlerSettings,
    */
   const std::string& log_file_max_size() const;
 
+  /**
+   * @brief Returns true if it is allowed to configure SDL process in runtime
+   */
+  bool is_process_configuration_allowed() const;
+
+  /**
+   * @brief Return the expected SDL process priority
+   */
+  uint32_t expected_thread_priority() const;
+
+  /**
+   * Returns the timeout value. This value uses for timer which responsible for thread priority decreasing;
+   */
+  uint32_t decrease_priority_timeout() const;
+
 #endif
 
   /**
@@ -809,6 +824,9 @@ class Profile : public protocol_handler::ProtocolHandlerSettings,
   std::string target_boot_count_file_;
   std::string target_tmp_dir_;
   std::string log_file_max_size_;
+  bool enable_process_configuration_;
+  uint32_t process_priority_;
+  uint32_t decrease_priority_timeout_;
 #endif
   std::uint32_t audio_data_stopped_timeout_;
   std::uint32_t video_data_stopped_timeout_;

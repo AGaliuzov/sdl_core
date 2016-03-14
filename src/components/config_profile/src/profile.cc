@@ -134,6 +134,9 @@ const char* kTargetLogFileNamePatternKey = "TargetLogFileNamePattern";
 const char* kTargetBootCountFileKey = "TargetBootCountFile";
 const char* kTargetTmpDirKey = "TargetTmpDir";
 const char* kLogFileMaxSizeKey = "LogFileMaxSize";
+const char* kEnableProcessConfigurationKey = "EnableProcessConfiguration";
+const char* kProcessPriorityKey = "ProcessPriority";
+const char* kProcessDecreasePriorityTimeoutKey = "ProcessDecreasePriorityTimeout";
 #endif
 const char* kAudioDataStoppedTimeoutKey = "AudioDataStoppedTimeout";
 const char* kVideoDataStoppedTimeoutKey = "VideoDataStoppedTimeout";
@@ -229,6 +232,8 @@ const char* kDefaultTargetLogFileNamePattern = "smartdevicelink.log";
 const char* kDefaultTargetBootCountFile = "/fs/rwdata/.flags/boot_count";
 const char* kDefaultTargetTmpDir = "/fs/tmpfs";
 const char* kDefaultLogFileMaxSize = "1024K";
+const uint32_t kDefaultProcessPriority = 12;
+const uint32_t kDefaultDecreasePriorityTimeout = 12;
 #endif
 const uint32_t kDefaultAudioDataStoppedTimeout = 1000;
 const uint32_t kDefaultVideoDataStoppedTimeout = 1000;
@@ -355,9 +360,8 @@ Profile::Profile()
     , system_files_path_(kDefaultSystemFilesPath)
     , transport_manager_tcp_adapter_port_(kDefautTransportManagerTCPPort)
     , tts_delimiter_(kDefaultTtsDelimiter)
-    ,
 #ifdef CUSTOMER_PASA
-    hmi_heart_beat_timeout_(kDefaultHMIHeartBeatTimeout)
+    , hmi_heart_beat_timeout_(kDefaultHMIHeartBeatTimeout)
     , audio_mq_path_(kDefaultMQName)
     , log4cxx_config_file_(kDefaultLog4cxxConfig)
     , remote_logging_flag_file_(kDefaultRemoteLoggingFlagFile)
@@ -366,9 +370,11 @@ Profile::Profile()
     , target_log_file_name_pattern_(kDefaultTargetLogFileNamePattern)
     , target_boot_count_file_(kDefaultTargetBootCountFile)
     , target_tmp_dir_(kDefaultTargetTmpDir)
-    ,
+    , enable_process_configuration_(false)
+    , process_priority_(kDefaultProcessPriority)
+    , decrease_priority_timeout_(kDefaultDecreasePriorityTimeout)
 #endif
-    audio_data_stopped_timeout_(kDefaultAudioDataStoppedTimeout)
+    , audio_data_stopped_timeout_(kDefaultAudioDataStoppedTimeout)
     , video_data_stopped_timeout_(kDefaultVideoDataStoppedTimeout)
     , event_mq_name_(kDefaultEventMQ)
     , ack_mq_name_(kDefaultAckMQ)
@@ -586,6 +592,17 @@ const std::string& Profile::log_file_max_size() const {
   return log_file_max_size_;
 }
 
+bool Profile::is_process_configuration_allowed() const {
+  return  enable_process_configuration_;
+}
+
+uint32_t Profile::expected_thread_priority() const {
+  return process_priority_;
+}
+
+uint32_t Profile::decrease_priority_timeout() const {
+  return decrease_priority_timeout_;
+}
 #endif
 
 const std::uint32_t Profile::audio_data_stopped_timeout() const {
@@ -1209,6 +1226,32 @@ void Profile::UpdateValues() {
 
   LOG_UPDATED_VALUE(log_file_max_size_, kLogFileMaxSizeKey, kLoggerSection);
 
+  ReadBoolValue(&enable_process_configuration_,
+		false,
+		kMainSection,
+		kEnableProcessConfigurationKey);
+
+  LOG_UPDATED_VALUE(enable_process_configuration_,
+		    kEnableProcessConfigurationKey,
+		    kMainSection);
+
+  ReadUIntValue(&process_priority_,
+		kDefaultProcessPriority,
+		kMainSection,
+		kProcessPriorityKey);
+
+  LOG_UPDATED_VALUE(process_priority_,
+		    kProcessPriorityKey,
+		    kMainSection);
+
+  ReadUIntValue(&decrease_priority_timeout_,
+		kDefaultDecreasePriorityTimeout,
+		kMainSection,
+		kProcessDecreasePriorityTimeoutKey);
+
+  LOG_UPDATED_VALUE(decrease_priority_timeout_,
+		    kProcessDecreasePriorityTimeoutKey,
+		    kMainSection);
 #endif
   ReadUIntValue(&audio_data_stopped_timeout_,
                 kDefaultAudioDataStoppedTimeout,
