@@ -113,7 +113,7 @@ bool TNumberSchemaItem<NumberType>::isValidNumberType(SmartType type) {
   if ((SmartType_Double == type) &&
       (typeid(double) == typeid(value))) {
 	  return true;
-  } else if ((SmartType_Integer == type) &&
+  } else if ((SmartType_Integer == type || SmartType_UInteger == type) &&
 		     (typeid(int32_t) == typeid(value)  ||
 		      typeid(uint32_t) == typeid(value) ||
               typeid(int64_t) == typeid(value)  ||

@@ -43,6 +43,32 @@ namespace SchemaItem_test {
 
 using NsSmartDeviceLink::NsSmartObjects::ISchemaItemPtr;
 
+TEST(test_valid_number_type, test_NumberSchemaItemTest) {
+/*
+ * The TNumberSchemaItem::validate() function uses
+ * isValidNumberType() in order to validate if the class type valid one.
+ * There is was an issue when this function did not cover SmartType_UInteger.
+ * So the test is suppose to cover all possible number types.
+ */
+  using namespace NsSmartDeviceLink::NsSmartObjects;
+
+  SmartObject int_obj(SmartType_Integer);
+  // Since that SmartObject is really so smart it can't create object
+  // with SmartType_UInterger if the object value less than
+  // std::numeric_limits<int32_t>::max(). That is why we need to create
+  // SmartObject with big integral value.
+  SmartObject uint_obj(std::numeric_limits<uint32_t>::max() - 1);
+  SmartObject double_obj(SmartType_Double);
+
+  ISchemaItemPtr int_item = TNumberSchemaItem<int>::create();
+  ISchemaItemPtr uint_item = TNumberSchemaItem<uint>::create();
+  ISchemaItemPtr double_item = TNumberSchemaItem<double>::create();
+
+  EXPECT_NE(Errors::INVALID_VALUE, int_item->validate(int_obj));
+  EXPECT_NE(Errors::INVALID_VALUE, uint_item->validate(uint_obj));
+  EXPECT_NE(Errors::INVALID_VALUE, double_item->validate(double_obj));
+}
+
 /**
  * Test NumberSchemaItem as INT with no default value
  *
