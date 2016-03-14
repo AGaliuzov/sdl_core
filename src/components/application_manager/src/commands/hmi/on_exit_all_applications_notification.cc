@@ -84,8 +84,14 @@ void OnExitAllApplicationsNotification::Run() {
     case hmi_apis::Common_ApplicationsCloseReason::SUSPEND: {
 #ifdef CUSTOMER_PASA
       mob_reason = mobile_api::AppInterfaceUnregisteredReason::IGNITION_OFF;
-      app_manager->set_state_suspended(true);
       ApplicationManagerImpl::instance()->resume_controller().OnSuspend();
+
+      /*
+       * 'Suspended' flag should be set after all suspend-related flows have
+       * been finished. Otherwise resume data may not be saved (for case of
+       * unexpected disconnect on Bluetooth).
+       */
+      app_manager->set_state_suspended(true);
 #endif // CUSTOMER_PASA
       SendOnSDLPersistenceComplete();
       return;
