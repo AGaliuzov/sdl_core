@@ -2355,6 +2355,7 @@ void ApplicationManagerImpl::UnregisterApplication(
   MessageHelper::SendOnAppUnregNotificationToHMI(app_to_remove,
                                                  is_unexpected_disconnect);
   request_ctrl_.terminateAppRequests(app_id);
+  SendUpdateAppList();
   return;
 }
 
