@@ -376,18 +376,26 @@ RESULT_CODE ProtocolPacket::deserializePacket(
 
   packet_data_.totalDataBytes = packet_header_.dataSize;
 
-  uint32_t dataPayloadSize = 0u;
-  if (messageSize > offset && packet_header_.frameType != FRAME_TYPE_FIRST) {
-    dataPayloadSize = messageSize - offset;
+  if (messageSize <= offset) {
+    return RESULT_OK;
   }
 
-  if (packet_header_.frameType == FRAME_TYPE_FIRST) {
+  if (packet_header_.frameType != FRAME_TYPE_FIRST) {
+
+    uint32_t dataPayloadSize = 0u;
+    dataPayloadSize = messageSize - offset;
+    set_data(message + offset, dataPayloadSize);
+    payload_size_ = dataPayloadSize;
+
+  } else if (packet_header_.frameType == FRAME_TYPE_FIRST) {
+
     const uint32_t first_payload_size = 8u;
-    const uint32_t payload_size = packet_header_.dataSize;
+    const uint32_t data_size = packet_header_.dataSize;
     payload_size_ = 0u;
 
-    if (packet_header_.protection_flag == true && payload_size != first_payload_size) {
-      set_data(message + offset, payload_size);
+    if (packet_header_.protection_flag == true &&
+        data_size != first_payload_size) {
+      set_data(message + offset, data_size);
       return RESULT_OK;
     }
 
@@ -397,10 +405,6 @@ RESULT_CODE ProtocolPacket::deserializePacket(
     if (0u == packet_data_.data) {
       return RESULT_FAIL;
     }
-
-  } else if (dataPayloadSize) {
-    set_data(message + offset, dataPayloadSize);
-    payload_size_ = dataPayloadSize;
   }
 
   return RESULT_OK;

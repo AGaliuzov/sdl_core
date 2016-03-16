@@ -232,6 +232,52 @@ TEST_F(ProtocolPacketTest, DeserializePacket_FrameTypeFirst_ResultOK) {
   EXPECT_EQ(RESULT_OK, res);
 }
 
+TEST_F(ProtocolPacketTest, DeserializePacket_FrameTypeFirstEncrypted4bytes_ResultOK) {
+  // Arrange
+  // Set protol version - 3, frame type - first, protection - ON, frame info - 0, session id - 0
+  // data size - 4 message id = aa
+  const uint8_t message[] = {0x3a,0xff,0x00,0x01,0x00,0x00,0x00,0x04,0x00,0x00,0x00,0x0aa,0xb,0xe,0xe,0xf};
+  ProtocolPacket protocol_packet;
+  // Act
+  RESULT_CODE res =
+      protocol_packet.deserializePacket(message, sizeof(message));
+  // Assert
+  EXPECT_EQ(0u, protocol_packet.payload_size());
+  EXPECT_EQ(4u, protocol_packet.data_size());
+  EXPECT_EQ(4u, protocol_packet.total_data_bytes());
+  EXPECT_EQ(0xbu, protocol_packet.data()[0] );
+  EXPECT_EQ(0xeu, protocol_packet.data()[1]);
+  EXPECT_EQ(0xeu, protocol_packet.data()[2]);
+  EXPECT_EQ(0xfu, protocol_packet.data()[3]);
+  EXPECT_EQ(FRAME_TYPE_FIRST, protocol_packet.frame_type());
+  EXPECT_EQ(RESULT_OK, res);
+}
+
+
+
+TEST_F(ProtocolPacketTest, DeserializePacket_FrameTypeFirstEncrypted8bytes_ResultOK) {
+  // Arrange
+  // Set protol version - 3, frame type - first, protection - ON, frame info - 0, session id - 0
+  // data size - 8 message id = ab
+  const uint8_t message[] = {0x3a,0xff,0x00,0x01,0x00,0x00,0x00,0x08,0x00,0x00,0x00,0x0ab,0x1,0x2,0x3,0x4,0x5,0x6,0x7,0x8};
+  ProtocolPacket protocol_packet;
+  // Act
+  RESULT_CODE res =
+      protocol_packet.deserializePacket(message,  sizeof(message));
+  // Assert
+  EXPECT_EQ(0u, protocol_packet.payload_size());
+  EXPECT_EQ(8u, protocol_packet.data_size());
+  EXPECT_EQ(0x1020304u, protocol_packet.total_data_bytes());
+
+  EXPECT_NE(0x5u, protocol_packet.data()[0] );
+  EXPECT_NE(0x6u, protocol_packet.data()[1]);
+  EXPECT_NE(0x7u, protocol_packet.data()[2]);
+  EXPECT_NE(0x8u, protocol_packet.data()[3]);
+
+  EXPECT_EQ(FRAME_TYPE_FIRST, protocol_packet.frame_type());
+  EXPECT_EQ(RESULT_OK, res);
+}
+
 }  // namespace protocol_handler_test
 }  // namespace components
 }  // namespace test
