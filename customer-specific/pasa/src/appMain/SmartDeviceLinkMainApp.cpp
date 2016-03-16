@@ -21,9 +21,13 @@
 #include "utils/appenders_loader.h"
 #include "utils/threads/thread.h"
 #include "utils/timer.h"
+#include "utils/threads/thread_watcher.h"
+#include "utils/timer_thread.h"
 #include <pthread.h>
 #include <map>
 #include <stack>
+#include <sched.h>
+
 
 #include "hmi_message_handler/hmi_message_handler_impl.h"
 #include "hmi_message_handler/messagebroker_adapter.h"
@@ -32,6 +36,7 @@
 #include "protocol_handler/protocol_handler_impl.h"
 #include "transport_manager/transport_manager.h"
 #include "transport_manager/transport_manager_default.h"
+#include "utils/threads/PriorityKeeper.h"
 // ----------------------------------------------------------------------------
 // Third-Party includes
 
@@ -526,10 +531,22 @@ int main(int argc, char** argv) {
 
   profile::Profile::instance()->config_file_name(SDL_INIFILE_PATH);
   profile::Profile::instance()->UpdateValues();
+  if (profile::Profile::instance()->is_process_configuration_allowed()) {
+    struct sched_param param;
+    sched_getparam(cpid, &param);
+
+    param.sched_priority = profile::Profile::instance()->expected_thread_priority();
+    LOG4CXX_INFO(logger_, "Set for cpid: " << cpid << " prio: " << param.sched_priority);
+    sched_setparam(cpid, &param);
+  }
+
+  threads::ThreadWatcher::instance()->WatchThread(threads::Thread::CurrentId());
+  threads::ThreadWatcher::instance()->StartWatchTimer(
+              profile::Profile::instance()->decrease_priority_timeout());
 
   if (profile::Profile::instance()->logs_enabled()) {
     INIT_LOGGER(profile::Profile::instance()->log4cxx_config_file(),
-                profile::Profile::instance()->logs_enabled());
+                 profile::Profile::instance()->logs_enabled());
     configureLogging();
   }
 
