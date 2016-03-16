@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Ford Motor Company
+# Copyright (c) 2016, Ford Motor Company
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -103,10 +103,6 @@ if (BUILD_TESTS)
     # TODO(VVeremjova) APPLINK-12835
     #${AM_TEST_DIR}/zero_request_amount_test.cc
   )
-  set (request_controller_SOURCES
-    ${AM_TEST_DIR}/request_controller/request_controller_test.cc
-    )
-
   set(mockedSources ${AM_MOCK_DIR}/src/application_manager_impl.cc)
 
   set(AM_SOURCES
@@ -184,19 +180,6 @@ if (BUILD_TESTS)
     SecurityManager
   )
 
-  set(request_controller_Libraries
-    Utils
-    MessageHelper
-    ApplicationManager
-    jsoncpp
-    connectionHandler
-    gmock_main
-    ConfigProfile
-    MediaManager
-    Resumption
-    ProtocolHandler
-  )
-
   if (${CMAKE_SYSTEM_NAME} MATCHES "QNX")
     list(REMOVE_ITEM test_exec_libraries dl)
   endif()
@@ -217,9 +200,6 @@ if (BUILD_TESTS)
     "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath=${CMAKE_CURRENT_BINARY_DIR}")
   add_library("ApplicationManagerTest" ${AM_SOURCES})
   create_test("application_manager_test" "${testSources}" "${testLibraries}" )
-  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/request_controller)
-  create_test("request_controller/request_controller_test" "${request_controller_SOURCES}" "${request_controller_Libraries}" )
-
   set(ResumptionData_SOURCES
     ${AM_TEST_DIR}/resumption/resumption_data_test.cc
     ${AM_TEST_DIR}/resumption/resumption_data_db_test.cc
