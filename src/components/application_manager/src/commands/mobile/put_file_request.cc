@@ -31,13 +31,14 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <algorithm>
 #include "application_manager/commands/mobile/put_file_request.h"
+#include <algorithm>
+#include "utils/file_system.h"
+#include "utils/make_shared.h"
 #include "application_manager/application_manager_impl.h"
 #include "application_manager/policies/policy_handler.h"
 #include "application_manager/application_impl.h"
 #include "config_profile/profile.h"
-#include "utils/file_system.h"
 
 namespace application_manager {
 
@@ -50,9 +51,6 @@ PutFileRequest::PutFileRequest(const MessageSharedPtr& message)
   , length_(0)
   , file_type_(mobile_apis::FileType::INVALID_ENUM)
   , is_persistent_file_(false) {
-}
-
-PutFileRequest::~PutFileRequest() {
 }
 
 void PutFileRequest::Run() {
@@ -116,7 +114,7 @@ void PutFileRequest::Run() {
                  &response_params);
     return;
   }
-
+  
   file_type_ =
     static_cast<mobile_apis::FileType::eType>(
       (*message_)[strings::msg_params][strings::file_type].asInt());
@@ -177,16 +175,24 @@ void PutFileRequest::Run() {
   }
 
   if (!file_system::CreateDirectoryRecursively(file_path)) {
-    LOG4CXX_ERROR(logger_, "Cann't create folder");
+    LOG4CXX_ERROR(logger_, "Can't create folder");
     SendResponse(false, mobile_apis::Result::GENERIC_ERROR,
-                 "Cann't create folder.", &response_params);
+                 "Can't create folder.", &response_params);
     return;
   }
-
+  const std::string full_path = file_path + "/" + sync_file_name_;
+  UNUSED(full_path);
+  LOG4CXX_DEBUG(logger_, "Wrtiting " << binary_data.size() << "bytes to "
+                << full_path << " (current size is"
+                << file_system::FileSize(full_path) << ")");
+  
   mobile_apis::Result::eType save_result =
       ApplicationManagerImpl::instance()->SaveBinary(binary_data, file_path,
                                                      sync_file_name_, offset_);
 
+  LOG4CXX_DEBUG(logger_, "New size of "
+                << full_path << " is "
+                << file_system::FileSize(full_path) << " bytes");
   if (!is_system_file) {
     response_params[strings::space_available] = static_cast<uint32_t>(
         ApplicationManagerImpl::instance()->GetAvailableSpaceForApp(
@@ -242,9 +248,9 @@ void PutFileRequest::Run() {
 }
 
 void PutFileRequest::SendOnPutFileNotification() {
-  LOG4CXX_INFO(logger_, "SendOnPutFileNotification" );
-  smart_objects::SmartObjectSPtr notification = new smart_objects::SmartObject(
-    smart_objects::SmartType_Map);
+  LOG4CXX_AUTO_TRACE(logger_);
+  smart_objects::SmartObjectSPtr notification = 
+    utils::MakeShared<smart_objects::SmartObject>(smart_objects::SmartType_Map);
 
   smart_objects::SmartObject& message = *notification;
   message[strings::params][strings::function_id] =

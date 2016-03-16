@@ -55,11 +55,6 @@ class PutFileRequest : public CommandRequestImpl {
   explicit PutFileRequest(const MessageSharedPtr& message);
 
   /**
-   * @brief PutFileRequest class destructor
-   **/
-  virtual ~PutFileRequest();
-
-  /**
    * @brief Execute command
    **/
   virtual void Run();
