@@ -62,6 +62,13 @@ IAP2Device::~IAP2Device() {
 }
 
 void IAP2Device::Stop() {
+  {
+    sync_primitives::AutoLock lock(timers_protocols_lock_);
+    for (TimerContainer::const_iterator i = timers_protocols_.begin();
+         i != timers_protocols_.end(); ++i) {
+      i->second->Stop();
+    }
+  }
   for (ThreadContainer::const_iterator i = hub_connection_threads_.begin();
       i != hub_connection_threads_.end(); ++i) {
     threads::Thread* thread = i->second;
