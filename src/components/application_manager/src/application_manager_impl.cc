@@ -102,7 +102,7 @@ ApplicationManagerImpl::ApplicationManagerImpl()
     , is_all_apps_allowed_(true)
     , media_manager_(NULL)
     , hmi_handler_(NULL)
-    , connection_handler_(NULL)\
+    , connection_handler_(NULL)
     , policy_handler_(*profile::Profile::instance())
     , protocol_handler_(NULL)
     , request_ctrl_()
@@ -171,7 +171,7 @@ ApplicationManagerImpl::~ApplicationManagerImpl() {
   }
   protocol_handler_ = NULL;
   LOG4CXX_DEBUG(logger_, "Destroying Policy Handler");
-  RemovePolicyObserver(this);\
+  RemovePolicyObserver(this);
 
   sync_primitives::AutoLock lock(timer_pool_lock_);
   timer_pool_.clear();

@@ -34,7 +34,6 @@
 #ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_MOBILE_REGISTER_APP_INTERFACE_REQUEST_H_
 #define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_COMMANDS_MOBILE_REGISTER_APP_INTERFACE_REQUEST_H_
 
-#include <string.h>
 #include "application_manager/commands/command_request_impl.h"
 #include "application_manager/policies/policy_handler_interface.h"
 #include "utils/macro.h"

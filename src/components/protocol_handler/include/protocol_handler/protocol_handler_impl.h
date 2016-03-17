@@ -37,7 +37,7 @@
 #include <memory>
 #include <set>
 #include <list>
-#include <cstdint>
+#include <stdint.h>
 #include <utility>  // std::make_pair
 #include <vector>
 #include "utils/prioritized_queue.h"

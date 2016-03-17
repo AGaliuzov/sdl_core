@@ -1,6 +1,7 @@
 #ifndef POLICY_HANDLER_SETTINGS_H
 #define POLICY_HANDLER_SETTINGS_H
 #include <string>
+#include <stdint.h>
 
 namespace policy {
 class PolicySettings {
