@@ -42,6 +42,7 @@
 
 #include "rpc_base/rpc_base.h"
 #include "policy/policy_table/types.h"
+#include "policy/policy_manager.h"
 
 namespace policy_table = ::rpc::policy_table_interface_base;
 
@@ -54,7 +55,8 @@ namespace policy_manager_test {
 class MockPolicyManager : public PolicyManager {
  public:
   MOCK_METHOD1(set_listener, void(PolicyListener* listener));
-  MOCK_METHOD1(InitPT, bool(const std::string& file_name));
+  MOCK_METHOD2(InitPT, bool(const std::string& file_name,
+                            const PolicySettings* settings));
   MOCK_METHOD2(LoadPT,
                bool(const std::string& file, const BinaryMessage& pt_content));
   MOCK_METHOD1(ResetPT, bool(const std::string& file_name));
@@ -76,7 +78,7 @@ class MockPolicyManager : public PolicyManager {
   MOCK_METHOD0(RetrySequenceDelaysSeconds, const std::vector<int>());
   MOCK_METHOD0(OnExceededTimeout, void());
   MOCK_METHOD0(OnUpdateStarted, void());
-  MOCK_METHOD1(GetUserConsentForDevice,
+  MOCK_CONST_METHOD1(GetUserConsentForDevice,
                DeviceConsent(const std::string& device_id));
   MOCK_METHOD3(GetUserConsentForApp,
      void(const std::string& device_id,
@@ -99,9 +101,9 @@ class MockPolicyManager : public PolicyManager {
                                    const policy::DeviceInfo& device_info));
   MOCK_METHOD1(SetUserConsentForApp,
                void(const policy::PermissionConsent& permissions));
-  MOCK_METHOD2(GetDefaultHmi, bool(const std::string& policy_app_id,
+  MOCK_CONST_METHOD2(GetDefaultHmi, bool(const std::string& policy_app_id,
                                    std::string* default_hmi));
-  MOCK_METHOD2(GetPriority,
+  MOCK_CONST_METHOD2(GetPriority,
                bool(const std::string& policy_app_id, std::string* priority));
   MOCK_METHOD2(GetUserFriendlyMessages,
                std::vector<policy::UserFriendlyMessage>(
@@ -115,7 +117,7 @@ class MockPolicyManager : public PolicyManager {
   MOCK_METHOD1(GetAppPermissionsChanges,
                policy::AppPermissions(const std::string& policy_app_id));
   MOCK_METHOD1(RemovePendingPermissionChanges, void(const std::string& app_id));
-  MOCK_METHOD1(GetCurrentDeviceId,
+  MOCK_CONST_METHOD1(GetCurrentDeviceId,
                std::string&(const std::string& policy_app_id));
   MOCK_METHOD1(SetSystemLanguage, void(const std::string& language));
   MOCK_METHOD3(SetSystemInfo, void(const std::string& ccpu_version,
@@ -126,10 +128,10 @@ class MockPolicyManager : public PolicyManager {
   MOCK_METHOD1(MarkUnpairedDevice, void(const std::string& device_id));
   MOCK_METHOD1(AddApplication, void(const std::string& application_id));
   MOCK_METHOD0(CleanupUnpairedDevices, bool());
-  MOCK_METHOD1(CanAppKeepContext, bool(const std::string& app_id));
-  MOCK_METHOD1(CanAppStealFocus, bool(const std::string& app_id));
+  MOCK_CONST_METHOD1(CanAppKeepContext, bool(const std::string& app_id));
+  MOCK_CONST_METHOD1(CanAppStealFocus, bool(const std::string& app_id));
   MOCK_METHOD0(OnSystemReady, void());
-  MOCK_METHOD1(GetNotificationsNumber, uint32_t(const std::string& priority));
+  MOCK_CONST_METHOD1(GetNotificationsNumber, uint32_t(const std::string& priority));
   MOCK_METHOD1(SetVINValue, void(const std::string& value));
   MOCK_METHOD1(IsPredataPolicy, bool(const std::string& policy_app_id));
   MOCK_CONST_METHOD1(HeartBeatTimeout, uint32_t(const std::string& app_id));
@@ -156,6 +158,8 @@ class MockPolicyManager : public PolicyManager {
   MOCK_METHOD3(Add, void(const std::string& app_id,
                          usage_statistics::AppStopwatchId type,
                          int32_t timespan_seconds));
+  MOCK_CONST_METHOD0(get_settings, const PolicySettings&());
+  MOCK_METHOD1(set_settings, void(const PolicySettings* get_settings));
 };
 }  // namespace policy_manager_test
 }  // namespace components

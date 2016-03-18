@@ -35,6 +35,7 @@
 #include "gmock/gmock.h"
 #include "protocol_handler/protocol_handler.h"
 #include "protocol_handler/protocol_handler_settings.h"
+#include "protocol_handler/session_observer.h"
 
 namespace test {
 namespace components {
@@ -59,6 +60,9 @@ class MockProtocolHandler : public ::protocol_handler::ProtocolHandler {
                     uint8_t service_type));
   MOCK_CONST_METHOD0(get_settings,
                      const ::protocol_handler::ProtocolHandlerSettings&());
+  MOCK_METHOD0(get_session_observer,
+                    protocol_handler::SessionObserver&());
+
 };
 
 }  // namespace protocol_handler_test

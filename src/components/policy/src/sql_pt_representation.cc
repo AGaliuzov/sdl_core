@@ -70,15 +70,11 @@ const std::string SQLPTRepresentation::kDatabaseName = "policy";
 
 SQLPTRepresentation::SQLPTRepresentation()
   : db_(new utils::dbms::SQLDatabase(kDatabaseName)) {
-#ifndef __QNX__
-  std::string path = profile::Profile::instance()->app_storage_folder();
-  if (!path.empty()) {
-    db_->set_path(path + "/");
-  }
-#endif  // __QNX__
+  is_in_memory = false;
 }
 
 SQLPTRepresentation::SQLPTRepresentation(bool in_memory) {
+  is_in_memory = in_memory;
 #ifdef __QNX__
   db_ = new utils::dbms::SQLDatabase(kDatabaseName);
 #else  // __QNX__
@@ -86,10 +82,6 @@ SQLPTRepresentation::SQLPTRepresentation(bool in_memory) {
     db_ = new utils::dbms::SQLDatabase();
   } else {
     db_ = new utils::dbms::SQLDatabase(kDatabaseName);
-    std::string path = profile::Profile::instance()->app_storage_folder();
-    if (!path.empty()) {
-      db_->set_path(path + "/");
-    }
   }
 #endif  // __QNX__
 }
@@ -318,20 +310,29 @@ bool SQLPTRepresentation::GetPriority(const std::string& policy_app_id,
   return true;
 }
 
-InitResult SQLPTRepresentation::Init() {
+InitResult SQLPTRepresentation::Init(const PolicySettings *settings) {
+   settings_ = settings;
   LOG4CXX_AUTO_TRACE(logger_);
 #ifdef BUILD_TESTS
   open_counter_ = 0;
 #endif // BUILD_TESTS
+#ifndef __QNX__
+  if (!is_in_memory) {
+    const std::string& path = get_settings().app_storage_folder();
+    if (!path.empty()) {
+      db_->set_path(path + "/");
+    }
+  }
+#endif  // __QNX__
   if (!db_->Open()) {
     LOG4CXX_ERROR(logger_, "Failed opening database.");
     LOG4CXX_INFO(logger_, "Starting opening retries.");
     const uint16_t attempts =
-        profile::Profile::instance()->attempts_to_open_policy_db();
+        get_settings().attempts_to_open_policy_db();
     LOG4CXX_DEBUG(logger_, "Total attempts number is: " << attempts);
     bool is_opened = false;
     const uint16_t open_attempt_timeout_ms =
-        profile::Profile::instance()->open_attempt_timeout_ms();
+        get_settings().open_attempt_timeout_ms();
     const useconds_t sleep_interval_mcsec = open_attempt_timeout_ms * 1000;
     LOG4CXX_DEBUG(logger_, "Open attempt timeout(ms) is: "
                   << open_attempt_timeout_ms);

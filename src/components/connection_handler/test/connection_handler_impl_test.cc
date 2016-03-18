@@ -32,7 +32,7 @@
 
 #include "gtest/gtest.h"
 #include <fstream>
-#include <cstdint>
+#include <stdint.h>
 #include <vector>
 #include "connection_handler/connection_handler_impl.h"
 #include "protocol/common.h"

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2016 Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,27 +30,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "application_manager/commands/hmi/sdl_get_status_update_request.h"
-#include "application_manager/application_manager_impl.h"
+#ifndef SRC_COMPONENTS_INCLUDE_MEDIA_MANAGER_MEDIA_MANAGER_SETTINGS_H_
+#define SRC_COMPONENTS_INCLUDE_MEDIA_MANAGER_MEDIA_MANAGER_SETTINGS_H_
+#include <string>
+#include <stdint.h>
 
-namespace application_manager {
+namespace media_manager {
 
-namespace commands {
+/**
+ * \class MediaManagerSettings
+ * \brief Interface for media manager component settings.
+ */
+class MediaManagerSettings {
+ public:
+  virtual ~MediaManagerSettings() {}
 
-SDLGetStatusUpdateRequest::SDLGetStatusUpdateRequest(const MessageSharedPtr& message)
-    : RequestFromHMI(message) {
-}
+  virtual const std::string& video_server_type() const = 0;
+  virtual const std::string& audio_server_type() const = 0;
+  virtual const std::string& server_address() const = 0;
+  virtual const uint16_t video_streaming_port() const = 0;
+  virtual const uint16_t audio_streaming_port() const = 0;
+  virtual const std::string& named_video_pipe_path() const = 0;
+  virtual const std::string& named_audio_pipe_path() const = 0;
+  virtual const std::string& video_stream_file() const = 0;
+  virtual const std::string& audio_stream_file() const = 0;
+  virtual const std::string& app_storage_folder() const = 0;
+  virtual const std::string& app_resource_folder() const = 0;
+#ifdef CUSTOMER_PASA
+  virtual const std::string& audio_mq_path() const = 0;
+#else
+    virtual const std::string& recording_file_source() const = 0;
+#endif  // CUSTOMER_PASA
+};
 
-SDLGetStatusUpdateRequest::~SDLGetStatusUpdateRequest() {
-}
-
-void SDLGetStatusUpdateRequest::Run() {
-  LOG4CXX_AUTO_TRACE(logger_);
-  application_manager::ApplicationManagerImpl::instance()->GetPolicyHandler().OnGetStatusUpdate(
-        (*message_)[strings::params][strings::correlation_id].asUInt());
-}
-
-}  // namespace commands
-}  // namespace application_manager
-
-
+}  // namespace media_manager
+#endif  // SRC_COMPONENTS_INCLUDE_MEDIA_MANAGER_MEDIA_MANAGER_SETTINGS_H_

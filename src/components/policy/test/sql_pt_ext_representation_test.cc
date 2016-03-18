@@ -43,6 +43,9 @@
 #include "sqlite_wrapper/sql_query.h"
 #include "rpc_base/rpc_base.h"
 #include "policy/policy_table/types.h"
+#include "mock_policy_settings.h"
+#include "utils/shared_ptr.h"
+#include "utils/make_shared.h"
 
 using namespace ::policy;
 namespace policy_table = rpc::policy_table_interface_base;
@@ -50,6 +53,7 @@ using std::string;
 using std::map;
 using std::pair;
 using std::vector;
+using testing::ReturnRef;
 
 namespace test {
 namespace components {
@@ -64,18 +68,21 @@ class SQLPTExtRepresentationTest : public ::testing::Test {
 
  protected:
   SQLPTExtRepresentation* reps;
+  policy_handler_test::MockPolicySettings policy_settings_;
   static const string kDatabaseName;
   PermissionConsent perm_consent;
   FunctionalGroupPermission group1_perm;
   FunctionalGroupPermission group2_perm;
   utils::dbms::SQLQuery* query_wrapper_;
   static const bool in_memory_;
+  const std::string kAppStorageFolder = "storage1";
 
   void SetUp() OVERRIDE {
     file_system::DeleteFile(kDatabaseName);
     reps = new SQLPTExtRepresentation(in_memory_);
     ASSERT_TRUE (reps != NULL);
-    ASSERT_EQ(SUCCESS, reps->Init());
+    ON_CALL(policy_settings_, app_storage_folder()).WillByDefault(ReturnRef(kAppStorageFolder));
+    ASSERT_EQ(SUCCESS, reps->Init(&policy_settings_));
     query_wrapper_ = new utils::dbms::SQLQuery(reps->db());
     ASSERT_TRUE (query_wrapper_ != NULL);
   }

@@ -33,7 +33,7 @@
 #include "application_manager/application_impl.h"
 #include "application_manager/application_manager_impl.h"
 #include "application_manager/commands/hmi/on_system_request_notification.h"
-#include "application_manager/policies/policy_handler.h"
+#include "application_manager/policies/policy_handler_interface.h"
 #include "interfaces/MOBILE_API.h"
 #include "utils/macro.h"
 
@@ -80,8 +80,8 @@ void OnSystemRequestNotification::Run() {
     app = app_mgr->application(app_id);
   } else {
     LOG4CXX_DEBUG(logger_, "Searching registered app to send OnSystemRequest.");
-    PolicyHandler* policy_handler = PolicyHandler::instance();
-    uint32_t selected_app_id = policy_handler->GetAppIdForSending();
+    const policy::PolicyHandlerInterface& policy_handler = application_manager::ApplicationManagerImpl::instance()->GetPolicyHandler();
+    uint32_t selected_app_id = policy_handler.GetAppIdForSending();
     if (0 == selected_app_id) {
       LOG4CXX_WARN(logger_,
                    "Can't select application to forward OnSystemRequest.");

@@ -34,6 +34,8 @@ include_directories(
   ${GMOCK_INCLUDE_DIRECTORY}
   ${COMPONENTS_DIR}/transport_manager/test/include
   ${COMPONENTS_DIR}/security_manager/include
+  ${COMPONENTS_DIR}/resumption/include
+  ${JSONCPP_INCLUDE_DIRECTORY}
 )
 
 set(SOURCES

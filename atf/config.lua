@@ -17,8 +17,8 @@ config.ExitOnCrash = true
 config.autorunSDL = true
 
 config.excludeReport = false
-config.storeFullATFLogs = false
-config.storeFullSDLLogs = false
+config.storeFullATFLogs = true
+config.storeFullSDLLogs = true
 config.reportPath = "./TestingReports"
 --for store sdl log -"x" before start script and +"x" after end script execution. In milliseconds(ms).
 config.x_sdllog = 100

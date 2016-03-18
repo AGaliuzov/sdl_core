@@ -50,6 +50,9 @@
 #include "policy/policy_table/types.h"
 #include "policy/policy_table/enums.h"
 #include "rpc_base/rpc_base.h"
+#include "mock_policy_settings.h"
+#include "utils/shared_ptr.h"
+#include "utils/make_shared.h"
 
 namespace policy_table = rpc::policy_table_interface_base;
 using policy::SQLPTRepresentation;
@@ -58,6 +61,10 @@ using policy::UserFriendlyMessage;
 using policy::EndpointUrls;
 using policy::VehicleInfo;
 
+using testing::ReturnRef;
+using testing::Return;
+using testing::NiceMock;
+using testing::Mock;
 namespace test {
 namespace components {
 namespace policy_test {
@@ -71,11 +78,16 @@ class SQLPTRepresentationTest : public SQLPTRepresentation,
   static SQLPTRepresentation* reps;
   static const std::string kDatabaseName;
   static utils::dbms::SQLQuery* query_wrapper_;
+  //Gtest can show message that this object doesn't destroyed
+  static utils::SharedPtr<policy_handler_test::MockPolicySettings> policy_settings_;
 
-  static void SetUpTestCase() {
+  static void SetUpTestCase() {      
+    const std::string kAppStorageFolder = "storage1";
     reps = new SQLPTRepresentation(in_memory_);
     ASSERT_TRUE (reps != NULL);
-    EXPECT_EQ(::policy::SUCCESS, reps->Init());
+    policy_settings_ = utils::MakeShared<policy_handler_test::MockPolicySettings>();
+    ON_CALL(*policy_settings_, app_storage_folder()).WillByDefault(ReturnRef(kAppStorageFolder));
+    EXPECT_EQ(::policy::SUCCESS, reps->Init(policy_settings_.get()));
     query_wrapper_ = new utils::dbms::SQLQuery(reps->db());
     ASSERT_TRUE (query_wrapper_ != NULL);
   }
@@ -88,6 +100,7 @@ class SQLPTRepresentationTest : public SQLPTRepresentation,
     EXPECT_TRUE(reps->Close());
     reps->RemoveDB();
     delete reps;
+    policy_settings_.reset();
   }
 
   virtual utils::dbms::SQLDatabase* db() const { return reps->db(); }
@@ -309,34 +322,41 @@ SQLPTRepresentation* SQLPTRepresentationTest::reps = 0;
 utils::dbms::SQLQuery* SQLPTRepresentationTest::query_wrapper_ = 0;
 const std::string SQLPTRepresentationTest::kDatabaseName = ":memory:";
 const bool SQLPTRepresentationTest::in_memory_ = true;
+utils::SharedPtr<policy_handler_test::MockPolicySettings> SQLPTRepresentationTest::policy_settings_;
 
 class SQLPTRepresentationTest2 : public ::testing::Test {
  protected:
   SQLPTRepresentation* reps;
-
+  NiceMock<policy_handler_test::MockPolicySettings> policy_settings_;
   virtual void SetUp() OVERRIDE {
-    const char kDirectory[] = "storage123";
-    file_system::CreateDirectory(kDirectory);
-    chmod(kDirectory, 00000);
+    file_system::CreateDirectory(kAppStorageFolder);
+    chmod(kAppStorageFolder.c_str(), 00000);
     profile::Profile::instance()->config_file_name("smartDeviceLink3.ini");
+    ON_CALL(policy_settings_, app_storage_folder()).WillByDefault(ReturnRef(kAppStorageFolder));
+    ON_CALL(policy_settings_, open_attempt_timeout_ms()).WillByDefault(Return(kOpenAttemptTimeoutMs));
+    ON_CALL(policy_settings_, attempts_to_open_policy_db()).WillByDefault(Return(kAttemptsToOpenPolicyDB));
     reps = new SQLPTRepresentation;
     ASSERT_TRUE (reps != NULL);
   }
 
   virtual void TearDown() OVERRIDE {
     profile::Profile::instance()->config_file_name("smartDeviceLink.ini");
+    file_system::RemoveDirectory(kAppStorageFolder,true);
     delete reps;
   }
+  const std::string kAppStorageFolder = "storage123";
+  const uint16_t kOpenAttemptTimeoutMs = 700u;
+  const uint16_t kAttemptsToOpenPolicyDB = 8u;
 };
 
 TEST_F(SQLPTRepresentationTest2,
        CheckActualAttemptsToOpenDB_ExpectCorrectNumber) {
-  EXPECT_EQ(::policy::FAIL, reps->Init());
+  EXPECT_EQ(::policy::FAIL, reps->Init(&policy_settings_));
   // Check  Actual attempts number made to try to open DB
-  EXPECT_EQ(profile::Profile::instance()->attempts_to_open_policy_db(),
+  EXPECT_EQ(kAttemptsToOpenPolicyDB,
             reps->open_counter());
   // Check timeot value correctly read from config file.
-  EXPECT_EQ(profile::Profile::instance()->open_attempt_timeout_ms(), 700);
+  EXPECT_EQ(kOpenAttemptTimeoutMs, profile::Profile::instance()->open_attempt_timeout_ms());
 }
 
 TEST_F(SQLPTRepresentationTest,
@@ -1030,31 +1050,42 @@ TEST_F(SQLPTRepresentationTest,
   EXPECT_EQ("EMERGENCY", priority);
 }
 
+namespace {
+const std::string kAppStorageFolder = "storage";
+}
 TEST(SQLPTRepresentationTest3, Init_InitNewDataBase_ExpectResultSuccess) {
   // Arrange
   const bool in_memory_ = true;
+  NiceMock<policy_handler_test::MockPolicySettings> policy_settings_;
   SQLPTRepresentation reps(in_memory_);
   // Checks
-  EXPECT_EQ(::policy::SUCCESS, reps.Init());
-  EXPECT_EQ(::policy::EXISTS, reps.Init());
+  ON_CALL(policy_settings_, app_storage_folder()).WillByDefault(ReturnRef(kAppStorageFolder));
+  EXPECT_EQ(::policy::SUCCESS, reps.Init(&policy_settings_));
+  EXPECT_EQ(::policy::EXISTS, reps.Init(&policy_settings_));
   reps.RemoveDB();
 }
 
 TEST(SQLPTRepresentationTest3,
      Init_TryInitNotExistingDataBase_ExpectResultFail) {
   // Arrange
+  NiceMock<policy_handler_test::MockPolicySettings> policy_settings_;
+  ON_CALL(policy_settings_, app_storage_folder())
+      .WillByDefault(ReturnRef(kAppStorageFolder));
   SQLPTRepresentation reps;
   (reps.db())->set_path("/home/");
   // Check
-  EXPECT_EQ(::policy::FAIL, reps.Init());
+  EXPECT_EQ(::policy::FAIL, reps.Init(&policy_settings_));
 }
 
 TEST(SQLPTRepresentationTest3,
      Close_InitNewDataBaseThenClose_ExpectResultSuccess) {
   // Arrange
+  NiceMock<policy_handler_test::MockPolicySettings> policy_settings_;
+  ON_CALL(policy_settings_, app_storage_folder())
+      .WillByDefault(ReturnRef(kAppStorageFolder));
   const bool in_memory_ = true;
   SQLPTRepresentation reps(in_memory_);
-  EXPECT_EQ(::policy::SUCCESS, reps.Init());
+  EXPECT_EQ(::policy::SUCCESS, reps.Init(&policy_settings_));
   EXPECT_TRUE(reps.Close());
   utils::dbms::SQLError error(utils::dbms::Error::OK);
   // Checks
@@ -1494,9 +1525,10 @@ TEST_F(SQLPTRepresentationTest,
 TEST(SQLPTRepresentationTest3, RemoveDB_RemoveDB_ExpectFileDeleted) {
   // Arrange
   const bool in_memory_ = true;
+  policy_handler_test::MockPolicySettings policy_settings_;
   SQLPTRepresentation reps(in_memory_);
-  EXPECT_EQ(::policy::SUCCESS, reps.Init());
-  EXPECT_EQ(::policy::EXISTS, reps.Init());
+  EXPECT_EQ(::policy::SUCCESS, reps.Init(&policy_settings_));
+  EXPECT_EQ(::policy::EXISTS, reps.Init(&policy_settings_));
   std::string path = (reps.db())->get_path();
   // Act
   reps.RemoveDB();

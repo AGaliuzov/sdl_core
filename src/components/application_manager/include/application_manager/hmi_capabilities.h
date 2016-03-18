@@ -44,6 +44,9 @@ namespace NsSmartObjects {
 class SmartObject;
 }
 }
+namespace resumption {
+class LastState;
+}
 
 namespace smart_objects = NsSmartDeviceLink::NsSmartObjects;
 
@@ -390,6 +393,7 @@ class HMICapabilities {
    */
   inline bool phone_call_supported() const;
 
+  void Init(resumption::LastState* last_state);
  protected:
 
   /*

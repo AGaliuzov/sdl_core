@@ -114,13 +114,13 @@ class TransportManagerImpl
    *
    * @return Code error.
    */
-  virtual int Init();
+  int Init(resumption::LastState &last_state) OVERRIDE;
 
   /**
    * Reinitializes transport manager
    * @return Error code
    */
-  virtual int Reinit();
+  virtual int Reinit() OVERRIDE;
 
   /**
    * @brief Start scanning for new devices.

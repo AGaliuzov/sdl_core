@@ -35,6 +35,7 @@
 
 #include "application_manager/resumption/resumption_data.h"
 #include "json/json.h"
+#include "resumption/last_state.h"
 
 namespace resumption {
 
@@ -48,7 +49,7 @@ class ResumptionDataJson : public ResumptionData {
   /**
    * @brief Constructor of ResumptionDataJson
    */
-  ResumptionDataJson();
+  ResumptionDataJson(LastState& last_state);
 
   /**
    * @brief allows to destroy ResumptionDataJson object
@@ -161,6 +162,16 @@ class ResumptionDataJson : public ResumptionData {
   bool DropAppDataResumption(const std::string& device_id,
                              const std::string& app_id) OVERRIDE;
 
+
+  /**
+   * @brief Write json resumption info to file system
+   */
+  void Persist() OVERRIDE;
+
+  resumption::LastState& last_state() const {
+      return last_state_;
+  }
+
  private:
 
   /**
@@ -214,8 +225,9 @@ class ResumptionDataJson : public ResumptionData {
    */
   bool IsResumptionDataValid(uint32_t index) const;
 
-  DISALLOW_COPY_AND_ASSIGN(ResumptionDataJson);
+  LastState& last_state_;
 
+  DISALLOW_COPY_AND_ASSIGN(ResumptionDataJson);
 };
 }  // namespace resumption
 

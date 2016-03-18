@@ -37,9 +37,9 @@
 namespace transport_manager {
 namespace transport_adapter {
 
-MmeTransportAdapter::MmeTransportAdapter()
+MmeTransportAdapter::MmeTransportAdapter(resumption::LastState& last_state)
     : TransportAdapterImpl(NULL, new MmeConnectionFactory(this),
-                           new MmeClientListener(this)),
+                           new MmeClientListener(this), last_state),
       initialised_(false) {
 }
 

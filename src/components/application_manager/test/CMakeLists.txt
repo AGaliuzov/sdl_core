@@ -37,6 +37,7 @@ if (BUILD_TESTS)
     ${GMOCK_INCLUDE_DIRECTORY}
     ${COMPONENTS_DIR}/application_manager/include/
     ${CMAKE_BINARY_DIR}/src/components/
+    ${COMPONENTS_DIR}/resumption/include
   )
 
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/mock)
@@ -97,7 +98,8 @@ if (BUILD_TESTS)
     ${AM_TEST_DIR}/policy_handler_test.cc
     ${AM_TEST_DIR}/event_engine_test.cc
     ${AM_TEST_DIR}/policy_event_observer_test.cc
-    ${AM_TEST_DIR}/application_impl_test.cc
+#Disabled while AM won't be refactored
+#    ${AM_TEST_DIR}/application_impl_test.cc
     ${AM_TEST_DIR}/hmi_capabilities_test.cc
     ${AM_TEST_DIR}/application_state_test.cc
     # TODO(VVeremjova) APPLINK-12835

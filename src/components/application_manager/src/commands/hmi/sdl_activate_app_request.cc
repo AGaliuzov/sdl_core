@@ -31,7 +31,7 @@
  */
 
 #include "application_manager/commands/hmi/sdl_activate_app_request.h"
-#include "application_manager/policies/policy_handler.h"
+#include "application_manager/application_manager_impl.h"
 
 namespace application_manager {
 
@@ -57,7 +57,7 @@ void SDLActivateAppRequest::Run() {
                       hmi_apis::Common_Result::REJECTED);
   } else {
     const uint32_t application_id = app_id();
-    policy::PolicyHandler::instance()->OnActivateApp(application_id,
+    application_manager::ApplicationManagerImpl::instance()->GetPolicyHandler().OnActivateApp(application_id,
                                                      correlation_id());
   }
 }

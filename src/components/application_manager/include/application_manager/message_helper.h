@@ -45,11 +45,16 @@
 #include "application_manager/vehicle_info_data.h"
 #include "policy/policy_types.h"
 #include "protocol_handler/session_observer.h"
+#include "policies/policy_handler_interface.h"
 
 namespace NsSmartDeviceLink {
 namespace NsSmartObjects {
 class SmartObject;
 }
+}
+
+namespace policy {
+class PolicyHandlerInterface;
 }
 
 namespace application_manager {
@@ -203,7 +208,8 @@ class MessageHelper {
    *
    */
   static smart_objects::SmartObjectSPtr CreateDeviceListSO(
-      const connection_handler::DeviceMap& devices);
+      const connection_handler::DeviceMap& devices,
+      const policy::PolicyHandlerInterface& policy_handler);
 
   static smart_objects::SmartObjectSPtr CreateModuleInfoSO(
       uint32_t function_id);
@@ -278,9 +284,9 @@ class MessageHelper {
    * @param output smart object to store Common.HMIApplication struct
    * @return true on succes, otherwise return false;
    */
-  static bool CreateHMIApplicationStruct(
-      ApplicationConstSharedPtr app,
+  static bool CreateHMIApplicationStruct(ApplicationConstSharedPtr app,
       const protocol_handler::SessionObserver& session_observer,
+      const policy::PolicyHandlerInterface &policy_handler,
       smart_objects::SmartObject* output);
 
   static void SendAddSubMenuRequestToHMI(ApplicationConstSharedPtr app);
@@ -297,9 +303,9 @@ class MessageHelper {
       ApplicationConstSharedPtr app, bool is_unexpected_disconnect = false);
 
   static NsSmartDeviceLink::NsSmartObjects::SmartObjectSPtr
-  GetBCActivateAppRequestToHMI(
-      ApplicationConstSharedPtr app,
+  GetBCActivateAppRequestToHMI(ApplicationConstSharedPtr app,
       const protocol_handler::SessionObserver& session_observer,
+      const policy::PolicyHandlerInterface &policy_handler,
       hmi_apis::Common_HMILevel::eType level,
       bool send_policy_priority);
 
@@ -500,17 +506,8 @@ class MessageHelper {
 
   static mobile_apis::Result::eType ProcessSoftButtons(
       smart_objects::SmartObject& message_params,
-      ApplicationConstSharedPtr app);
-
-  /**
-   * @brief checkWithPolicy allows to check soft button's parameters
-   * according to the current policy
-   * @param system_action system action
-   * @param app_mobile_id policy application id
-   * @return
-   */
-  static bool CheckWithPolicy(mobile_apis::SystemAction::eType system_action,
-                              const std::string& app_mobile_id);
+      ApplicationConstSharedPtr app,
+      const policy::PolicyHandlerInterface& policy_handler);
 
   /*
    * @brief subscribe application to softbutton
@@ -582,12 +579,6 @@ class MessageHelper {
   static mobile_apis::Language::eType CommonToMobileLanguage(
       const hmi_apis::Common_Language::eType language);
 
-  /**
-   * @brief Gets command limit number per minute for specific application
-   * @param policy_app_id Unique application id
-   * @return Limit for number of command per minute
-   */
-  static uint32_t GetAppCommandLimit(const std::string& policy_app_id);
 
   /**
    * @brief Creates TTS.SetGlobalProperties request and sends

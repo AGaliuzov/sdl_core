@@ -43,7 +43,6 @@
 #include "transport_manager/pasa_bt/bluetooth_PASA_listener.h"
 #include "transport_manager/pasa_bt/bluetooth_PASA_connection_factory.h"
 #include "transport_manager/pasa_bt/bluetooth_PASA_device.h"
-#include "resumption/last_state.h"
 #include "utils/logger.h"
 
 namespace transport_manager {
@@ -51,9 +50,9 @@ namespace transport_adapter {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
 
-BluetoothPASATransportAdapter::BluetoothPASATransportAdapter()
+BluetoothPASATransportAdapter::BluetoothPASATransportAdapter(resumption::LastState &last_state)
       : TransportAdapterImpl(0, new BluetoothPASAConnectionFactory(this),
-                             new BluetoothPASAListener(this)) {
+                             new BluetoothPASAListener(this), last_state) {
 }
 
 DeviceType BluetoothPASATransportAdapter::GetDeviceType() const {

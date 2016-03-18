@@ -68,9 +68,9 @@
 namespace transport_manager {
 CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
 
-int TransportManagerDefault::Init() {
+int TransportManagerDefault::Init(resumption::LastState& last_state) {
   LOG4CXX_TRACE(logger_, "enter");
-  if (E_SUCCESS != TransportManagerImpl::Init()) {
+  if (E_SUCCESS != TransportManagerImpl::Init(last_state)) {
     LOG4CXX_TRACE(logger_,
                   "exit with E_TM_IS_NOT_INITIALIZED. Condition: E_SUCCESS != "
                   "TransportManagerImpl::Init()");
@@ -80,9 +80,9 @@ int TransportManagerDefault::Init() {
 #ifdef BLUETOOTH_SUPPORT
 
 #ifdef CUSTOMER_PASA
-  ta = new transport_adapter::BluetoothPASATransportAdapter;
+  ta = new transport_adapter::BluetoothPASATransportAdapter(last_state);
 #else
-  ta = new transport_adapter::BluetoothTransportAdapter;
+  ta = new transport_adapter::BluetoothTransportAdapter(last_state);
 #endif
 
 #ifdef TELEMETRY_MONITOR
@@ -96,7 +96,7 @@ int TransportManagerDefault::Init() {
 #ifndef CUSTOMER_PASA
   uint16_t port =
       profile::Profile::instance()->transport_manager_tcp_adapter_port();
-  ta = new transport_adapter::TcpTransportAdapter(port);
+  ta = new transport_adapter::TcpTransportAdapter(port, last_state);
 #ifdef TELEMETRY_MONITOR
   if (metric_observer_) {
     ta->SetTelemetryObserver(metric_observer_);
@@ -108,7 +108,7 @@ int TransportManagerDefault::Init() {
 #ifdef CUSTOMER_PASA
 
 #ifdef AOA_SUPPORT
-  ta = new transport_adapter::AOATransportAdapter();
+  ta = new transport_adapter::AOATransportAdapter(last_state);
 #ifdef TELEMETRY_MONITOR
   if (metric_observer_) {
     ta->SetTelemetryObserver(metric_observer_);
@@ -120,7 +120,7 @@ int TransportManagerDefault::Init() {
 #else  // CUSTOMER_PASA
 
 #if defined(USB_SUPPORT)
-  ta = new transport_adapter::UsbAoaAdapter();
+  ta = new transport_adapter::UsbAoaAdapter(last_state);
 #ifdef TELEMETRY_MONITOR
   if (metric_observer_) {
     ta->SetTelemetryObserver(metric_observer_);
@@ -132,7 +132,7 @@ int TransportManagerDefault::Init() {
 #endif  // CUSTOMER_PASA
 
 #ifdef MME_SUPPORT
-  ta = new transport_adapter::MmeTransportAdapter();
+  ta = new transport_adapter::MmeTransportAdapter(last_state);
 #ifdef TELEMETRY_MONITOR
   if (metric_observer_) {
     ta->SetTelemetryObserver(metric_observer_);

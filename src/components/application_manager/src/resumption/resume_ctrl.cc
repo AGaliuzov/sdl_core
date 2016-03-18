@@ -42,7 +42,6 @@
 #include "application_manager/message_helper.h"
 #include "connection_handler/connection.h"
 #include "application_manager/commands/command_impl.h"
-#include "resumption/last_state.h"
 #include "policy/policy_manager_impl.h"
 #include "application_manager/policies/policy_handler.h"
 #include "utils/helpers.h"
@@ -74,7 +73,7 @@ void ResumeCtrl::set_resumption_storage(
 }
 #endif  // BUILD_TESTS
 
-bool ResumeCtrl::Init() {
+bool ResumeCtrl::Init(resumption::LastState& last_state) {
   using namespace profile;
   bool use_db = Profile::instance()->use_db_for_resumption();
   if (use_db) {
@@ -101,7 +100,11 @@ bool ResumeCtrl::Init() {
     }
     resumption_storage_ = db;
   } else {
-    resumption_storage_.reset(new ResumptionDataJson());
+    resumption_storage_.reset(new ResumptionDataJson(last_state));
+    if (!resumption_storage_->Init()) {
+        LOG4CXX_DEBUG(logger_, "Resumption storage initialisation failed");
+        return false;
+    }
   }
   LoadResumeData();
   save_persistent_data_timer_.Start(
@@ -269,7 +272,8 @@ void ResumeCtrl::OnSuspend() {
   StopRestoreHmiLevelTimer();
   StopSavePersistentDataTimer();
   SaveAllApplications();
-  return resumption_storage_->OnSuspend();
+  resumption_storage_->OnSuspend();
+  resumption_storage_->Persist();
 }
 
 void ResumeCtrl::OnAwake() {
@@ -428,7 +432,7 @@ void ResumeCtrl::SaveDataOnTimer() {
     SaveAllApplications();
     is_data_saved_ = true;
     if (!(profile::Profile::instance()->use_db_for_resumption())) {
-      resumption::LastState::instance()->SaveToFileSystem();
+      resumption_storage_->Persist();
     }
   }
 }

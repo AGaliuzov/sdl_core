@@ -53,10 +53,6 @@ HMILanguageHandler::HMILanguageHandler()
     , is_ui_language_received_(false)
     , is_vr_language_received_(false)
     , is_tts_language_received_(false) {
-  persisted_ui_language_ = get_language_for(INTERFACE_UI);
-  persisted_vr_language_ = get_language_for(INTERFACE_VR);
-  persisted_tts_language_ = get_language_for(INTERFACE_TTS);
-
   subscribe_on_event(hmi_apis::FunctionID::BasicCommunication_OnAppRegistered);
 }
 
@@ -82,7 +78,7 @@ void HMILanguageHandler::set_language_for(
   LOG4CXX_DEBUG(logger_,
                 "Setting language " << language << " for interface "
                                     << interface);
-  resumption::LastState::instance()->dictionary[LanguagesKey][key] = language;
+  last_state_->dictionary[LanguagesKey][key] = language;
   return;
 }
 
@@ -107,10 +103,10 @@ hmi_apis::Common_Language::eType HMILanguageHandler::get_language_for(
       return Common_Language::INVALID_ENUM;
   }
 
-  if (LastState::instance()->dictionary.isMember(LanguagesKey)) {
-    if (LastState::instance()->dictionary[LanguagesKey].isMember(key)) {
+  if (last_state_->dictionary.isMember(LanguagesKey)) {
+    if (last_state_->dictionary[LanguagesKey].isMember(key)) {
       Common_Language::eType language = static_cast<Common_Language::eType>(
-          LastState::instance()->dictionary[LanguagesKey][key].asInt());
+          last_state_->dictionary[LanguagesKey][key].asInt());
       return language;
     }
   }
@@ -322,6 +318,15 @@ void HMILanguageHandler::CheckApplication(const Apps::value_type app) {
   if (apps_[app.first]) {
     HandleWrongLanguageApp(app);
   }
+}
+
+
+void HMILanguageHandler::Init(resumption::LastState* value) {
+  last_state_ = value;
+  persisted_ui_language_ = get_language_for(INTERFACE_UI);
+  persisted_vr_language_ = get_language_for(INTERFACE_VR);
+  persisted_tts_language_ = get_language_for(INTERFACE_TTS);
+
 }
 
 }  // namespace application_manager

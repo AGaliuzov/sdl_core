@@ -105,7 +105,7 @@ CacheManager::~CacheManager() {
   threads::DeleteThread(backup_thread_);
 }
 
-bool CacheManager::CanAppKeepContext(const std::string& app_id) {
+bool CacheManager::CanAppKeepContext(const std::string& app_id) const {
   CACHE_MANAGER_CHECK(false);
   bool result = false;
   if (kDeviceId == app_id) {
@@ -128,7 +128,7 @@ uint32_t CacheManager::HeartBeatTimeout(const std::string& app_id) const {
   return result;
 }
 
-bool CacheManager::CanAppStealFocus(const std::string& app_id) {
+bool CacheManager::CanAppStealFocus(const std::string& app_id) const {
   CACHE_MANAGER_CHECK(false);
   bool result = false;
   if (kDeviceId == app_id) {
@@ -140,7 +140,7 @@ bool CacheManager::CanAppStealFocus(const std::string& app_id) {
 }
 
 bool CacheManager::GetDefaultHMI(const std::string& app_id,
-                                 std::string& default_hmi) {
+                                 std::string& default_hmi) const {
   CACHE_MANAGER_CHECK(false);
   bool result = false;
   default_hmi.clear();
@@ -1089,7 +1089,7 @@ rpc::policy_table_interface_base::NumberOfNotificationsType CacheManager::GetNot
 }
 
 bool CacheManager::GetPriority(const std::string& policy_app_id,
-                               std::string& priority) {
+                               std::string& priority) const {
   CACHE_MANAGER_CHECK(false);
   if (kDeviceId == policy_app_id) {
     priority = EnumToJsonString(
@@ -1825,10 +1825,11 @@ bool CacheManager::IsApplicationRepresented(const std::string& app_id) const {
   return pt_->policy_table.app_policies_section.apps.end() != iter;
 }
 
-bool CacheManager::Init(const std::string& file_name) {
+bool CacheManager::Init(const std::string& file_name,
+                        const PolicySettings* settings) {
   LOG4CXX_AUTO_TRACE(logger_);
-
-  InitResult init_result = backup_->Init();
+  settings_ = settings;
+  InitResult init_result = backup_->Init(settings);
   ex_backup_ = utils::SharedPtr<PTRepresentation>::
       dynamic_pointer_cast<PTExtRepresentation >(backup_);
 
@@ -2090,8 +2091,14 @@ void CacheManager::InitBackupThread() {
   backup_thread_->start();
 }
 
+const PolicySettings& CacheManager::get_settings() const {
+  DCHECK(settings_);
+
+  return *settings_;
+}
+
 CacheManager::BackgroundBackuper::BackgroundBackuper(CacheManager* cache_manager)
-  : cache_manager_(cache_manager),
+    : cache_manager_(cache_manager),
     stop_flag_(false),
     new_data_available_(false) {
   LOG4CXX_AUTO_TRACE(logger_);

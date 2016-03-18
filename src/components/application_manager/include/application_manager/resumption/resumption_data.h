@@ -32,6 +32,7 @@
 
 #ifndef SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_RESUMPTION_RESUMPTION_DATA_H_
 #define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_RESUMPTION_RESUMPTION_DATA_H_
+
 #include "smart_objects/smart_object.h"
 #include "application_manager/application.h"
 
@@ -164,7 +165,7 @@ class ResumptionData {
   /**
    * @brief Init storage
    */
-  virtual bool Init();
+  virtual bool Init() = 0;
 
   /**
    * @brief Drops data related to applicaton data resumption
@@ -175,6 +176,10 @@ class ResumptionData {
   virtual bool DropAppDataResumption(const std::string& device_id,
                                      const std::string& app_id) = 0;
 
+  /**
+   * @brief Persist saves resumption data on file system
+   */
+  virtual void Persist() = 0;
  protected:
 
   /**
@@ -251,7 +256,6 @@ class ResumptionData {
       ++first;
     }
   }
-
   mutable sync_primitives::Lock           resumption_lock_;
 };
 }  // namespace resumption

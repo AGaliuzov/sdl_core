@@ -82,6 +82,8 @@
 #include "utils/lock.h"
 #include "utils/singleton.h"
 #include "utils/data_accessor.h"
+#include "resumption/last_state.h"
+
 namespace smart_objects = NsSmartDeviceLink::NsSmartObjects;
 namespace application_manager {
 enum VRTTSSessionChanging { kVRSessionChanging = 0, kTTSSessionChanging };
@@ -167,7 +169,8 @@ class ApplicationManagerImpl
     std::cout << "ApplicationManagerImpl Mock created \n";
   }
 
-  MOCK_METHOD0(Init, bool());
+  MOCK_METHOD2(Init, bool(resumption::LastState& last_state,
+                          media_manager::MediaManager* media_manager));
   MOCK_METHOD0(Stop, bool());
   MOCK_METHOD1(GetUserConsentForDevice,
                policy::DeviceConsent(const std::string& device_id));
@@ -212,6 +215,8 @@ class ApplicationManagerImpl
                void(connection_handler::ConnectionHandler*));
   MOCK_CONST_METHOD0(connection_handler,
                      connection_handler::ConnectionHandler&());
+  MOCK_METHOD0(GetPolicyHandler,
+                     policy::PolicyHandlerInterface&());
 // ApplicationManagerImpl methods:
 #ifdef TELEMETRY_MONITOR
   MOCK_METHOD1(SetTelemetryObserver, void(AMTelemetryObserver*));
@@ -302,9 +307,9 @@ class ApplicationManagerImpl
 
   MOCK_METHOD2(HMILevelAllowsStreaming,
                bool(uint32_t, protocol_handler::ServiceType));
-  MOCK_METHOD2(CanAppStream, bool(uint32_t, protocol_handler::ServiceType));
+  MOCK_CONST_METHOD2(CanAppStream, bool(uint32_t, protocol_handler::ServiceType));
   MOCK_METHOD1(EndNaviServices, void(int32_t));
-  MOCK_METHOD1(ForbidStreaming, void(int32_t));
+  MOCK_METHOD1(ForbidStreaming, void(uint32_t));
   MOCK_METHOD3(OnAppStreaming,
                void(int32_t, protocol_handler::ServiceType, bool));
 

@@ -44,7 +44,7 @@
 #include "application_manager/application_manager_impl.h"
 #include "application_manager/commands/command_impl.h"
 #include "application_manager/message_helper.h"
-#include "application_manager/policies/policy_handler.h"
+#include "application_manager/policies/policy_handler_interface.h"
 #include "config_profile/profile.h"
 #include "connection_handler/connection_handler_impl.h"
 #include "interfaces/MOBILE_API.h"
@@ -212,12 +212,6 @@ hmi_apis::Common_Language::eType MessageHelper::CommonLanguageFromString(
     return value;
   }
   return hmi_apis::Common_Language::INVALID_ENUM;
-}
-
-uint32_t MessageHelper::GetAppCommandLimit(const std::string& policy_app_id) {
-  std::string priority;
-  policy::PolicyHandler::instance()->GetPriority(policy_app_id, &priority);
-  return policy::PolicyHandler::instance()->GetNotificationsNumber(priority);
 }
 
 smart_objects::SmartObjectSPtr MessageHelper::CreateRequestObject() {
@@ -542,7 +536,8 @@ smart_objects::SmartObjectSPtr MessageHelper::CreateBlockedByPoliciesResponse(
 }
 
 smart_objects::SmartObjectSPtr MessageHelper::CreateDeviceListSO(
-    const connection_handler::DeviceMap& devices) {
+    const connection_handler::DeviceMap& devices,
+    const policy::PolicyHandlerInterface& policy_handler) {
   LOG4CXX_AUTO_TRACE(logger_);
   smart_objects::SmartObjectSPtr device_list_so =
       new smart_objects::SmartObject(smart_objects::SmartType_Map);
@@ -561,8 +556,7 @@ smart_objects::SmartObjectSPtr MessageHelper::CreateDeviceListSO(
     list_so[index][strings::id] = it->second.mac_address();
 
     const policy::DeviceConsent device_consent =
-        policy::PolicyHandler::instance()->GetUserConsentForDevice(
-            it->second.mac_address());
+        policy_handler.GetUserConsentForDevice(it->second.mac_address());
     list_so[index][strings::isSDLAllowed] =
         policy::DeviceConsent::kDeviceAllowed == device_consent;
     list_so[index][strings::transport_type] =
@@ -1198,6 +1192,7 @@ smart_objects::SmartObjectSPtr MessageHelper::CreateAddVRCommandToHMI(
 bool MessageHelper::CreateHMIApplicationStruct(
     ApplicationConstSharedPtr app,
     const protocol_handler::SessionObserver& session_observer,
+    const policy::PolicyHandlerInterface& policy_handler,
     NsSmartDeviceLink::NsSmartObjects::SmartObject* output) {
   using NsSmartDeviceLink::NsSmartObjects::SmartObject;
   DCHECK_OR_RETURN(output, false);
@@ -1242,7 +1237,7 @@ bool MessageHelper::CreateHMIApplicationStruct(
   message[strings::device_info][strings::name] = device_name;
   message[strings::device_info][strings::id] = mac_address;
   const policy::DeviceConsent device_consent =
-      policy::PolicyHandler::instance()->GetUserConsentForDevice(mac_address);
+      policy_handler.GetUserConsentForDevice(mac_address);
   message[strings::device_info][strings::isSDLAllowed] =
       policy::DeviceConsent::kDeviceAllowed == device_consent;
 
@@ -1319,9 +1314,9 @@ void MessageHelper::SendOnAppUnregNotificationToHMI(
   ApplicationManagerImpl::instance()->ManageHMICommand(notification);
 }
 
-smart_objects::SmartObjectSPtr MessageHelper::GetBCActivateAppRequestToHMI(
-    ApplicationConstSharedPtr app,
+smart_objects::SmartObjectSPtr MessageHelper::GetBCActivateAppRequestToHMI(ApplicationConstSharedPtr app,
     const protocol_handler::SessionObserver& session_observer,
+    const policy::PolicyHandlerInterface &policy_handler,
     hmi_apis::Common_HMILevel::eType level,
     bool send_policy_priority) {
   DCHECK_OR_RETURN(app, smart_objects::SmartObjectSPtr());
@@ -1341,15 +1336,14 @@ smart_objects::SmartObjectSPtr MessageHelper::GetBCActivateAppRequestToHMI(
     std::string priority;
     // TODO(KKolodiy): need remove method policy_manager
 
-    policy::PolicyHandler::instance()->GetPriority(app->policy_app_id(),
+    policy_handler.GetPriority(app->policy_app_id(),
                                                    &priority);
     // According SDLAQ-CRS-2794
     // SDL have to send ActivateApp without "proirity" parameter to HMI.
     // in case of unconsented device
     const std::string& mac_adress = app->mac_address();
 
-    policy::DeviceConsent consent =
-        policy::PolicyHandler::instance()->GetUserConsentForDevice(mac_adress);
+    policy::DeviceConsent consent = policy_handler.GetUserConsentForDevice(mac_adress);
     if (!priority.empty() &&
         (policy::DeviceConsent::kDeviceAllowed == consent)) {
       (*message)[strings::msg_params][strings::priority] =
@@ -2192,21 +2186,20 @@ bool MessageHelper::VerifySoftButtonString(const std::string& str) {
   return true;
 }
 
-bool MessageHelper::CheckWithPolicy(
-    mobile_api::SystemAction::eType system_action,
-    const std::string& app_mobile_id) {
+bool CheckWithPolicy(mobile_api::SystemAction::eType system_action,
+                     const std::string& app_mobile_id,
+                     const policy::PolicyHandlerInterface& policy_handler) {
   using namespace mobile_apis;
   bool result = true;
-  policy::PolicyHandler* policy_handler = policy::PolicyHandler::instance();
-  if (NULL != policy_handler && policy_handler->PolicyEnabled()) {
-    result = policy_handler->CheckSystemAction(system_action, app_mobile_id);
+  if (policy_handler.PolicyEnabled()) {
+    result = policy_handler.CheckSystemAction(system_action, app_mobile_id);
   }
-
   return result;
 }
 
-mobile_apis::Result::eType MessageHelper::ProcessSoftButtons(
-    smart_objects::SmartObject& message_params, ApplicationConstSharedPtr app) {
+mobile_apis::Result::eType MessageHelper::ProcessSoftButtons(smart_objects::SmartObject& message_params,
+    ApplicationConstSharedPtr app,
+    const policy::PolicyHandlerInterface &policy_handler) {
   using namespace mobile_apis;
   using namespace smart_objects;
 
@@ -2230,7 +2223,7 @@ mobile_apis::Result::eType MessageHelper::ProcessSoftButtons(
         request_soft_buttons[i][strings::system_action].asInt();
 
     if (!CheckWithPolicy(static_cast<SystemAction::eType>(system_action),
-                         app->policy_app_id())) {
+                         app->policy_app_id(), policy_handler)) {
       return Result::DISALLOWED;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2016, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,28 +29,41 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#ifndef SRC_COMPONENTS_INCLUDE__TEST_MEDIA_MANAGER_MOCK_MEDIA_MANAGER_SETTINGS_H_
+#define SRC_COMPONENTS_INCLUDE__TEST_MEDIA_MANAGER_MOCK_MEDIA_MANAGER_SETTINGS_H_
 
-#include "application_manager/commands/hmi/sdl_get_status_update_request.h"
-#include "application_manager/application_manager_impl.h"
+#include <gmock/gmock.h>
+#include <string>
+#include "media_manager/media_manager_settings.h"
 
-namespace application_manager {
-
-namespace commands {
-
-SDLGetStatusUpdateRequest::SDLGetStatusUpdateRequest(const MessageSharedPtr& message)
-    : RequestFromHMI(message) {
-}
-
-SDLGetStatusUpdateRequest::~SDLGetStatusUpdateRequest() {
-}
-
-void SDLGetStatusUpdateRequest::Run() {
-  LOG4CXX_AUTO_TRACE(logger_);
-  application_manager::ApplicationManagerImpl::instance()->GetPolicyHandler().OnGetStatusUpdate(
-        (*message_)[strings::params][strings::correlation_id].asUInt());
-}
-
-}  // namespace commands
-}  // namespace application_manager
+namespace test {
+namespace components {
+namespace media_manager_test {
 
 
+
+class MockMediaManagerSettings : public ::media_manager::MediaManagerSettings {
+ public:
+  MOCK_CONST_METHOD0(video_server_type, const std::string&());
+  MOCK_CONST_METHOD0(audio_server_type, const std::string&());
+  MOCK_CONST_METHOD0(server_address, const std::string&());
+  MOCK_CONST_METHOD0(video_streaming_port, const std::uint16_t());
+  MOCK_CONST_METHOD0(audio_streaming_port, const std::uint16_t());
+  MOCK_CONST_METHOD0(named_video_pipe_path, const std::string&());
+  MOCK_CONST_METHOD0(named_audio_pipe_path, const std::string&());
+  MOCK_CONST_METHOD0(video_stream_file, const std::string&());
+  MOCK_CONST_METHOD0(audio_stream_file, const std::string&());
+#ifdef CUSTOMER_PASA
+  MOCK_CONST_METHOD0(audio_mq_path, const std::string&());
+#else
+  MOCK_CONST_METHOD0(app_storage_folder, const std::string&());
+  MOCK_CONST_METHOD0(app_resource_folder, const std::string&());
+  MOCK_CONST_METHOD0(recording_file_source, const std::string&());
+#endif  // CUSTOMER_PASA
+};
+
+}  // namespace media_manager_test
+}  // namespace components
+}  // namespace test
+
+#endif  // SRC_COMPONENTS_INCLUDE__TEST_MEDIA_MANAGER_MOCK_MEDIA_MANAGER_SETTINGS_H_

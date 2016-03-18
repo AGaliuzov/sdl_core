@@ -39,7 +39,7 @@
 #include "utils/lock.h"
 #include "utils/logger.h"
 #include "connection_handler/connection_handler_impl.h"
-#include "application_manager/application_manager_impl.h"
+#include "protocol_handler/session_observer.h"
 
 namespace media_manager {
 
@@ -70,10 +70,13 @@ class A2DPSourcePlayerAdapter::A2DPSourcePlayerThread
   DISALLOW_COPY_AND_ASSIGN(A2DPSourcePlayerThread);
 };
 
-A2DPSourcePlayerAdapter::A2DPSourcePlayerAdapter() {}
+A2DPSourcePlayerAdapter::A2DPSourcePlayerAdapter(protocol_handler::SessionObserver &session_observer)
+    : session_observer_(session_observer) {
+}
 
 A2DPSourcePlayerAdapter::~A2DPSourcePlayerAdapter() {
-  for (SourcesMap::iterator it = sources_.begin(); sources_.end() != it; ++it) {
+  for (SourcesMap::iterator it = sources_.begin();
+       sources_.end() != it; ++it) {
     Pair pair = it->second;
     pair.first->join();
     delete pair.second;
@@ -89,16 +92,15 @@ void A2DPSourcePlayerAdapter::StartActivity(int32_t application_key) {
   if (application_key != current_application_) {
     current_application_ = application_key;
 
-    const protocol_handler::SessionObserver& session_observer =
-        application_manager::ApplicationManagerImpl::instance()
-            ->connection_handler()
-            .get_session_observer();
-
     uint32_t device_id = 0;
-    session_observer.GetDataOnSessionKey(application_key, 0, NULL, &device_id);
-
+    session_observer_.GetDataOnSessionKey(
+        application_key, 0, NULL, &device_id);
     std::string mac_adddress;
-    session_observer.GetDataOnDeviceID(device_id, NULL, NULL, &mac_adddress);
+    session_observer_.GetDataOnDeviceID(
+      device_id,
+      NULL,
+      NULL,
+      &mac_adddress);
 
     // TODO(PK): Convert mac_adddress to the
     // following format : "bluez_source.XX_XX_XX_XX_XX_XX" if needed

@@ -34,6 +34,7 @@
 #include <string>
 #include "gmock/gmock.h"
 #include "application_manager/application.h"
+#include "smart_objects/smart_object.h"
 #include "utils/custom_string.h"
 
 namespace test {
@@ -41,9 +42,10 @@ namespace components {
 namespace application_manager_test {
 
 namespace custom_str = utils::custom_string;
-
+namespace smart_objects = NsSmartDeviceLink::NsSmartObjects;
 class MockApplication : public ::application_manager::Application {
  public:
+  MockApplication(){}
   MOCK_CONST_METHOD0(active_message, const smart_objects::SmartObject*());
   MOCK_CONST_METHOD0(curHash, const std::string&());
   MOCK_METHOD0(UpdateHash, void());

@@ -42,9 +42,9 @@ namespace transport_adapter {
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager")
 
-AOATransportAdapter::AOATransportAdapter()
+AOATransportAdapter::AOATransportAdapter(resumption::LastState& last_state)
   : TransportAdapterImpl(0, new AOAConnectionFactory(this),
-                         new PPSListener(this)),
+                         new PPSListener(this), last_state),
     initialised_(false) {
 }
 

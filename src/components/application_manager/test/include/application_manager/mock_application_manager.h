@@ -39,7 +39,9 @@
 #include "application_manager/application_manager.h"
 #include "application_manager/usage_statistics.h"
 #include "application_manager/commands/command.h"
-
+#include "media_manager/media_manager.h"
+#include "resumption/last_state.h"
+#include "application_manager/policies/policy_handler_interface.h"
 namespace test {
 namespace components {
 namespace application_manager_test {
@@ -48,7 +50,8 @@ namespace smart_objects = NsSmartDeviceLink::NsSmartObjects;
 
 class MockApplicationManager : public application_manager::ApplicationManager {
  public:
-  MOCK_METHOD0(Init, bool());
+  MOCK_METHOD2(Init, bool(resumption::LastState& last_state,
+                          media_manager::MediaManager* media_manager));
   MOCK_METHOD0(Stop, bool());
 
   MOCK_METHOD1(set_hmi_message_handler,
@@ -97,8 +100,15 @@ class MockApplicationManager : public application_manager::ApplicationManager {
                     am::commands::Command::CommandOrigin origin));
   MOCK_METHOD1(ManageHMICommand,
                bool(const smart_objects::SmartObjectSPtr message));
+  MOCK_CONST_METHOD2(CanAppStream, bool (uint32_t app_id,
+                                         protocol_handler::ServiceType service_type));
+  MOCK_METHOD1(ForbidStreaming, void (uint32_t app_id));
+  MOCK_METHOD2(SendAudioPassThroughNotification, void (uint32_t session_key,
+                                                       std::vector<uint8_t>& binary_data));
   MOCK_CONST_METHOD0(connection_handler,
                      connection_handler::ConnectionHandler&());
+  MOCK_METHOD0(GetPolicyHandler,
+                     policy::PolicyHandlerInterface&());
 };
 }  // namespace application_manager_test
 }  // namespace components

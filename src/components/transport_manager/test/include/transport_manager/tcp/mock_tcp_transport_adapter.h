@@ -44,7 +44,8 @@ using namespace ::transport_manager::transport_adapter;
 
 class MockTCPTransportAdapter : public TcpTransportAdapter {
  public:
-  MockTCPTransportAdapter(uint16_t port) : TcpTransportAdapter(port) {
+  MockTCPTransportAdapter(uint16_t port, resumption::LastState& last_state)
+    : TcpTransportAdapter(port,last_state) {
     ::profile::Profile::instance()->config_file_name(
         "smartDeviceLink_test.ini");
   }

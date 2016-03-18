@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Ford Motor Company
+ * Copyright (c) 2014, Ford Motor Company
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,28 +29,31 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#ifndef SRC_COMPONENTS_INCLUDE_TEST_POLICY_MOCK_POLICY_SETTINGS_H_
+#define SRC_COMPONENTS_INCLUDE_TEST_POLICY_MOCK_POLICY_SETTINGS_H_
 
-#include "application_manager/commands/hmi/sdl_get_status_update_request.h"
-#include "application_manager/application_manager_impl.h"
+#include "gmock/gmock.h"
+#include <string>
+#include "policy/policy_settings.h"
 
-namespace application_manager {
+namespace test {
+namespace components {
+namespace policy_handler_test {
 
-namespace commands {
+class MockPolicySettings
+    : public ::policy::PolicySettings {
+ public:
+  MOCK_CONST_METHOD0(enable_policy, bool());
+  MOCK_CONST_METHOD0(preloaded_pt_file, const std::string&());
+  MOCK_CONST_METHOD0(app_storage_folder, const std::string&());
+  MOCK_CONST_METHOD0(attempts_to_open_policy_db, uint16_t());
+  MOCK_CONST_METHOD0(open_attempt_timeout_ms, uint16_t());
+  MOCK_CONST_METHOD0(policies_snapshot_file_name, const std::string&());
+  MOCK_CONST_METHOD0(system_files_path, const std::string&());
+};
 
-SDLGetStatusUpdateRequest::SDLGetStatusUpdateRequest(const MessageSharedPtr& message)
-    : RequestFromHMI(message) {
-}
+}  // namespace policy_test
+}  // namespace components
+}  // namespace test
 
-SDLGetStatusUpdateRequest::~SDLGetStatusUpdateRequest() {
-}
-
-void SDLGetStatusUpdateRequest::Run() {
-  LOG4CXX_AUTO_TRACE(logger_);
-  application_manager::ApplicationManagerImpl::instance()->GetPolicyHandler().OnGetStatusUpdate(
-        (*message_)[strings::params][strings::correlation_id].asUInt());
-}
-
-}  // namespace commands
-}  // namespace application_manager
-
-
+#endif  // SRC_COMPONENTS_INCLUDE_TEST_POLICY_MOCK_POLICY_SETTINGS_H_

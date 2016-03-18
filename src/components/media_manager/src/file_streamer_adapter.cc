@@ -32,7 +32,6 @@
 
 #include "utils/logger.h"
 #include "utils/file_system.h"
-#include "config_profile/profile.h"
 #include "media_manager/file_streamer_adapter.h"
 
 namespace media_manager {
@@ -40,8 +39,8 @@ namespace media_manager {
 CREATE_LOGGERPTR_GLOBAL(logger_, "MediaManager")
 
 FileStreamerAdapter::FileStreamerAdapter(
-    const std::string& file_name)
-  : StreamerAdapter(new FileStreamer(this, file_name)) {
+    const std::string& file_name, const std::string& app_storage_folder)
+  : StreamerAdapter(new FileStreamer(this, file_name, app_storage_folder)) {
 }
 
 FileStreamerAdapter::~FileStreamerAdapter() {
@@ -49,9 +48,11 @@ FileStreamerAdapter::~FileStreamerAdapter() {
 
 FileStreamerAdapter::FileStreamer::FileStreamer(
     FileStreamerAdapter* const adapter,
-    const std::string& file_name)
+    const std::string& file_name,
+    const std::string& app_storage_folder)
   : Streamer(adapter),
     file_name_(file_name),
+    app_storage_folder_(app_storage_folder),
     file_stream_(NULL) {
 }
 
@@ -60,8 +61,7 @@ FileStreamerAdapter::FileStreamer::~FileStreamer() {
 
 bool FileStreamerAdapter::FileStreamer::Connect() {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (!file_system::CreateDirectoryRecursively(
-      profile::Profile::instance()->app_storage_folder())) {
+  if (!file_system::CreateDirectoryRecursively(app_storage_folder_)) {
     LOG4CXX_ERROR(logger_, "Cannot create app folder");
     return false;
   }

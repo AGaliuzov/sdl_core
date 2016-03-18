@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include "application_manager/commands/hmi/decrypt_certificate_response.h"
-#include "application_manager/policies/policy_handler.h"
+#include "application_manager/application_manager_impl.h"
 
 namespace application_manager {
 
@@ -51,7 +51,7 @@ void DecryptCertificateResponse::Run() {
 
   const bool is_succeeded = hmi_apis::Common_Result::SUCCESS == code;
 
-  policy::PolicyHandler::instance()->OnCertificateDecrypted(is_succeeded);
+  application_manager::ApplicationManagerImpl::instance()->GetPolicyHandler().OnCertificateDecrypted(is_succeeded);
 }
 
 }  // namespace commands

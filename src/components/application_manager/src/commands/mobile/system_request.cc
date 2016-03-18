@@ -39,7 +39,7 @@ Copyright (c) 2013, Ford Motor Company
 #include "application_manager/commands/mobile/system_request.h"
 #include "application_manager/application_manager_impl.h"
 #include "application_manager/application_impl.h"
-#include "application_manager/policies/policy_handler.h"
+#include "application_manager/policies/policy_handler_interface.h"
 #include "interfaces/MOBILE_API.h"
 #include "config_profile/profile.h"
 #include "utils/file_system.h"
@@ -88,8 +88,9 @@ void SystemRequest::Run() {
     SendResponse(false, mobile_apis::Result::UNSUPPORTED_RESOURCE);
     return;
   }
-
-  if (!policy::PolicyHandler::instance()->IsRequestTypeAllowed(
+  const policy::PolicyHandlerInterface& policy_handler =
+      application_manager::ApplicationManagerImpl::instance()->GetPolicyHandler();
+  if (!policy_handler.IsRequestTypeAllowed(
            application->policy_app_id(), request_type)) {
     SendResponse(false, mobile_apis::Result::DISALLOWED);
     return;
