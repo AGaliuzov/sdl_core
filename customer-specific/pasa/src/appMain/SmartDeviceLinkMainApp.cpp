@@ -22,7 +22,6 @@
 #include "utils/threads/thread.h"
 #include "utils/timer.h"
 #include "utils/threads/thread_watcher.h"
-#include "utils/timer_thread.h"
 #include <pthread.h>
 #include <map>
 #include <stack>
@@ -36,7 +35,6 @@
 #include "protocol_handler/protocol_handler_impl.h"
 #include "transport_manager/transport_manager.h"
 #include "transport_manager/transport_manager_default.h"
-#include "utils/threads/PriorityKeeper.h"
 // ----------------------------------------------------------------------------
 // Third-Party includes
 

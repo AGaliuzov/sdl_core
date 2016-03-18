@@ -149,6 +149,12 @@ void decrease_thread_prio(uint32_t tid) {
   LOG4CXX_AUTO_TRACE(logger_);
   if (profile::Profile::instance()->is_process_configuration_allowed()) {
     const uint32_t val = profile::Profile::instance()->expected_thread_priority();
+    int policy;
+    struct sched_param param;
+
+    pthread_getschedparam(tid, &policy, &param);
+    param.sched_priority = val;
+    pthread_setschedparam(tid, policy, &param);
     LOG4CXX_DEBUG(logger_, "Reduce priority for thread: " << tid << "Prio value: " << val);
   }
 }

@@ -172,6 +172,10 @@ void RegisterAppInterfaceRequest::Run() {
   }
 
   if (!ApplicationManagerImpl::exists()) {
+
+  }  // namespace commands
+
+  }  // namespace application_mana
     LOG4CXX_WARN(logger_, "The ApplicationManager doesn't exist!");
     return;
   } else if (ApplicationManagerImpl::instance()->IsStopping()) {

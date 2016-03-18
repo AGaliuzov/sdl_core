@@ -60,4 +60,4 @@ void UnregisterAppInterfaceRequest::Run() {
 
 }  // namespace commands
 
-}  // namespace application_manager
+}  // namespace application_mana
