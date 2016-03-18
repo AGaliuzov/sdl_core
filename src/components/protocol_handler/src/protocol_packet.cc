@@ -382,19 +382,16 @@ RESULT_CODE ProtocolPacket::deserializePacket(
 
   if (packet_header_.frameType != FRAME_TYPE_FIRST) {
 
-    uint32_t dataPayloadSize = 0u;
-    dataPayloadSize = messageSize - offset;
+    const uint32_t dataPayloadSize = messageSize - offset;
     set_data(message + offset, dataPayloadSize);
     payload_size_ = dataPayloadSize;
 
   } else if (packet_header_.frameType == FRAME_TYPE_FIRST) {
 
-    const uint32_t first_payload_size = 8u;
     const uint32_t data_size = packet_header_.dataSize;
     payload_size_ = 0u;
 
-    if (packet_header_.protection_flag == true &&
-        data_size != first_payload_size) {
+    if (packet_header_.protection_flag == true) {
       set_data(message + offset, data_size);
       return RESULT_OK;
     }

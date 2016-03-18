@@ -1442,14 +1442,7 @@ RESULT_CODE ProtocolHandlerImpl::DecryptFrame(ProtocolFramePtr packet) {
                              << out_data_size << " bytes");
   DCHECK(out_data);
   DCHECK(out_data_size);
-  if (packet->frame_type() == FRAME_TYPE_FIRST) {
-    packet->set_data(out_data, out_data_size);
-    RawMessagePtr decrypted_msg= packet->serializePacket();
-    packet->deserializePacket(decrypted_msg->data(), decrypted_msg->data_size() );
-    return RESULT_OK;
-  }
-
-  packet->set_data(out_data, out_data_size);
+  packet->set_data(out_data, out_data_size);  
   return RESULT_OK;
 }
 #endif  // ENABLE_SECURITY
