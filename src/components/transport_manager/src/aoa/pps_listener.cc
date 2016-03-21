@@ -160,13 +160,75 @@ struct ObjectNameComparator {
 
 }  // namespace
 
+
+PPSListener::MQHandler::MQHandler(const std::string& name, int flags) {
+  init_mq(name, flags);
+}
+
+void PPSListener::MQHandler::Write(const std::vector<char>& message) const {
+  LOG4CXX_AUTO_TRACE(logger_);
+  if (-1 != handle_) {
+    if (- 1 == mq_send(handle_, &message[0], MAX_QUEUE_MSG_SIZE, NULL)) {
+      LOG4CXX_ERROR(logger_, "Unable to send over mq " <<
+                             " : " << strerror(errno));
+    }
+  }
+}
+
+void
+PPSListener::MQHandler::Read(std::vector<char>& data) const {
+  LOG4CXX_AUTO_TRACE(logger_);
+  data.resize(MAX_QUEUE_MSG_SIZE);
+  if (-1 ==  handle_) {
+    LOG4CXX_ERROR(logger_, "The queue with handle " << handle_ << " not opened");
+    data.resize(0);
+    return;
+  }
+  ssize_t data_size = mq_receive(handle_, &data[0], MAX_QUEUE_MSG_SIZE, NULL);
+  if (-1 == data_size) {
+    LOG4CXX_ERROR(logger_, "Unable to receive data from mq with handle: " << handle_
+                           << " error is " << strerror(errno));
+    data_size = 0;
+  }
+  data.resize(data_size);
+}
+
+void PPSListener::MQHandler::deinit_mq() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  if (-1 == mq_close(handle_)) {
+    LOG4CXX_ERROR(logger_, "Unable to close mq: " << strerror(errno));
+  }
+}
+
+void PPSListener::MQHandler::init_mq(const std::string& name, int flags) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  struct mq_attr attributes;
+  attributes.mq_maxmsg = MAX_MESSAGES;
+  attributes.mq_msgsize = MAX_QUEUE_MSG_SIZE;
+  attributes.mq_flags = 0;
+
+  handle_ = mq_open(name.c_str(), flags, 0666, &attributes);
+
+  if (-1 == handle_) {
+    LOG4CXX_ERROR(logger_, "Unable to open mq " << name.c_str() <<
+                           " : " << strerror(errno));
+  }
+}
+
+PPSListener::MQHandler::~MQHandler() {
+  LOG4CXX_AUTO_TRACE(logger_);
+  deinit_mq();
+}
+
 PPSListener::PPSListener(AOATransportAdapter* controller)
   : initialised_(false),
     controller_(controller),
     fd_(-1),
     pps_thread_(NULL),
     mq_thread_(NULL),
-    is_aoa_available_(false) {
+    is_aoa_available_(false),
+    mq_from_applink_handle_(std::string("/dev/mqueue/aoa"), O_CREAT | O_RDONLY),
+    mq_to_applink_handle_(PREFIX_STR_FROMSDL_QUEUE, O_CREAT | O_WRONLY) {
   LOG4CXX_AUTO_TRACE(logger_);
 }
 
@@ -211,6 +273,17 @@ TransportAdapter::Error PPSListener::StopListening() {
   return TransportAdapter::OK;
 }
 
+void PPSListener::ReceiveMQMessage(std::vector<char>& message) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  mq_from_applink_handle_.Read(message);
+}
+
+void PPSListener::SendMQMessage(const std::vector<char>& message) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  mq_to_applink_handle_.Write(message);
+}
+
+
 bool PPSListener::OpenPps() {
   LOG4CXX_AUTO_TRACE(logger_);
   const std::string kPath = kPpsPathRoot + kPpsPathAll;
@@ -231,7 +304,7 @@ bool PPSListener::ArmEvent(const struct sigevent* event) {
     const int size = read(fd_, buf, sizeof(buf));
     if (size > 0) {
       buf[size] = '\0';
-      // In case AOA is not vailable don't need to process any messages from PPS.
+      // In case AOA is not available don't need to process any messages from PPS.
       ProcessPpsMessage(buf, size);
     }
   }
@@ -273,6 +346,12 @@ void PPSListener::ProcessPpsMessage(uint8_t* message, const size_t size) {
     devices_.erase(it);
     devices_lock_.Release();
     controller_->RemoveDevice(device_name_copy);
+    if (is_aoa_available_) {
+      std::vector<char> buf(1);
+      buf[0] = AOA_RELEASED;
+      LOG4CXX_DEBUG(logger_, "Send " << static_cast<int32_t>(buf[0]) << " signal to AppLink");
+      mq_to_applink_handle_.Write(buf);
+    }
     return;
   }
 
@@ -484,17 +563,16 @@ void PPSListener::release_aoa() const {
 PPSListener::PpsMQListener::PpsMQListener(PPSListener* parent)
   : parent_(parent),
     run_(false) {
-  init_mq("/dev/mqueue/aoa", O_CREAT | O_RDONLY, mq_from_applink_handle_);
-  init_mq(PREFIX_STR_FROMSDL_QUEUE, O_CREAT | O_WRONLY, mq_to_applink_handle_);
-
   run_ = true;
 }
 
 void PPSListener::PpsMQListener::threadMain() {
-  if (mq_to_applink_handle_ != -1) {
+    std::vector<char> msg(MAX_QUEUE_MSG_SIZE);
     while (run_) {
-      char msg[MAX_QUEUE_MSG_SIZE];
-      ssize_t size = mq_receive(mq_from_applink_handle_, msg, MAX_QUEUE_MSG_SIZE, NULL);
+      msg.clear();
+      parent_->ReceiveMQMessage(msg);
+
+      const size_t size = msg.size();
       LOG4CXX_DEBUG(logger_, "Receive message from Applink with size: " << size
                     << ". Message signal: " << static_cast<int32_t>(msg[0])
                     << ". TAKE_AOA signal is: " << static_cast<int32_t>(TAKE_AOA)
@@ -502,7 +580,7 @@ void PPSListener::PpsMQListener::threadMain() {
                     << ". AOA_RELEASED signal is: " << static_cast<int32_t>(AOA_RELEASED)
                     << ". AOA_TAKEN signal is: " << static_cast<int32_t>(AOA_TAKEN)
                     << ". AOA_INACCESSIBLE signal is: " << static_cast<int32_t>(AOA_INACCESSIBLE));
-      if (-1 != size) {
+      if (0 != size) {
         switch (msg[0]) {
           case TAKE_AOA:
             take_aoa();
@@ -515,63 +593,30 @@ void PPSListener::PpsMQListener::threadMain() {
         }
       }
     }
-  }
 }
 
 void PPSListener::PpsMQListener::exitThreadMain() {
   run_ = false;
-  deinit_mq(mq_from_applink_handle_);
-  deinit_mq(mq_to_applink_handle_);
 }
 
 void PPSListener::PpsMQListener::take_aoa() {
   LOG4CXX_AUTO_TRACE(logger_);
   const bool is_inited = parent_->init_aoa();
-  if (-1 != mq_from_applink_handle_) {
-    char buf[MAX_QUEUE_MSG_SIZE];
-    buf[0] = is_inited ? AOA_TAKEN : AOA_INACCESSIBLE;
-    LOG4CXX_DEBUG(logger_, "Send " << static_cast<int32_t>(buf[0]) << " signal to AppLink");
-    if (- 1 == mq_send(mq_to_applink_handle_, &buf[0], MAX_QUEUE_MSG_SIZE, NULL)) {
-      LOG4CXX_ERROR(logger_, "Unable to send over mq " <<
-                    " : " << strerror(errno));
-    }
-  }
+  std::vector<char> buf(1);
+  buf[0] = is_inited ? AOA_TAKEN : AOA_INACCESSIBLE;
+  LOG4CXX_DEBUG(logger_, "Send " << static_cast<int32_t>(buf[0]) << " signal to AppLink");
+  parent_->SendMQMessage(buf);
 }
 
 void PPSListener::PpsMQListener::release_aoa() {
   LOG4CXX_AUTO_TRACE(logger_);
   parent_->release_aoa();
-  if (-1 != mq_from_applink_handle_) {
-    char buf[MAX_QUEUE_MSG_SIZE];
-    buf[0] = AOA_RELEASED;
-    LOG4CXX_DEBUG(logger_, "Send " << static_cast<int32_t>(buf[0]) << " signal to AppLink");
-    if (- 1 == mq_send(mq_to_applink_handle_, &buf[0], MAX_QUEUE_MSG_SIZE, NULL)) {
-      LOG4CXX_ERROR(logger_, "Unable to send over mq " <<
-                    " : " << strerror(errno));
-    }
-  }
+  std::vector<char> buf(1);
+  buf[0] = AOA_RELEASED;
+  LOG4CXX_DEBUG(logger_, "Send " << static_cast<int32_t>(buf[0]) << " signal to AppLink");
+  parent_->SendMQMessage(buf);
 }
 
-void PPSListener::PpsMQListener::deinit_mq(mqd_t descriptor) {
-  if (-1 == mq_close(descriptor)) {
-    LOG4CXX_ERROR(logger_, "Unable to close mq: " << strerror(errno));
-  }
-}
-
-void PPSListener::PpsMQListener::init_mq(const std::string& name,
-                                         int flags, int& descriptor) {
-  struct mq_attr attributes;
-  attributes.mq_maxmsg = MAX_MESSAGES;
-  attributes.mq_msgsize = MAX_QUEUE_MSG_SIZE;
-  attributes.mq_flags = 0;
-
-  descriptor = mq_open(name.c_str(), flags, 0666, &attributes);
-
-  if (-1 == descriptor) {
-    LOG4CXX_ERROR(logger_, "Unable to open mq " << name.c_str() <<
-                  " : " << strerror(errno));
-  }
-}
 
 PPSListener::PpsThreadDelegate::PpsThreadDelegate(PPSListener* parent)
   : parent_(parent) {
