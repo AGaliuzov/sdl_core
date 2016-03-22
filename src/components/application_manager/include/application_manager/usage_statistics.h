@@ -34,7 +34,11 @@
 #define SRC_COMPONENTS_APPLICATION_MANAGER_INCLUDE_APPLICATION_MANAGER_USAGE_STATISTICS_H_
 
 #include <string>
+#include <memory>
 #include "policy/usage_statistics/counter.h"
+#include "policy/usage_statistics/app_stopwatch.h"
+#include "utils/macro.h"
+#include "utils/shared_ptr.h"
 #include "interfaces/MOBILE_API.h"
 
 namespace application_manager {
@@ -42,8 +46,10 @@ namespace application_manager {
 class UsageStatistics {
  public:
   UsageStatistics(const std::string& app_id,
-                  utils::SharedPtr<usage_statistics::StatisticsManager>
-                  statistics_manager);
+      utils::SharedPtr<usage_statistics::StatisticsManager> statistics_manager);
+  UsageStatistics(const std::string& app_id,
+      utils::SharedPtr<usage_statistics::StatisticsManager> statistics_manager,
+      usage_statistics::AppStopwatch* time_in_hmi_state_ptr);
   void RecordHmiStateChanged(mobile_apis::HMILevel::eType new_hmi_level);
   void RecordAppRegistrationGuiLanguage(
       mobile_apis::Language::eType gui_language);
@@ -57,7 +63,7 @@ class UsageStatistics {
   void RecordTLSError();
 
  private:
-  usage_statistics::AppStopwatch time_in_hmi_state_;
+  std::auto_ptr<usage_statistics::AppStopwatch> time_in_hmi_state_sptr_;
   usage_statistics::AppInfo app_registration_language_gui_;
   usage_statistics::AppInfo app_registration_language_vui_;
   usage_statistics::AppCounter count_of_rejected_rpc_calls_;
@@ -66,6 +72,7 @@ class UsageStatistics {
   usage_statistics::AppCounter count_of_run_attempts_while_revoked_;
   usage_statistics::AppCounter count_of_removals_for_bad_behavior_;
   usage_statistics::AppCounter count_of_tls_error_;
+  DISALLOW_COPY_AND_ASSIGN(UsageStatistics);
 };
 
 }  // namespace application_manager

@@ -913,6 +913,6 @@ TEST_F(PolicyHandlerTest, Test_Add_method) {
   policy_handler_.Add(policy_app_id, type, timespan_seconds);
 }
 
-}  // namespace policy_handler
+}  // namespace policy_handler_test
 }  // namespace components
 }  // namespace test

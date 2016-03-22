@@ -81,39 +81,39 @@ void AppInfo::Update(const std::string& new_info) const {
   }
 }
 
-AppStopwatch::AppStopwatch(
+AppStopwatchImpl::AppStopwatchImpl(
     utils::SharedPtr<usage_statistics::StatisticsManager> statistics_manager,
     const std::string& app_id)
     : app_id_(app_id),
       stopwatch_type_(SECONDS_HMI_NONE),
       statistics_manager_(statistics_manager),
       timer_("HMI levels timer",
-             new timer::TimerTaskImpl<AppStopwatch>(this, &AppStopwatch::WriteTime)),
+             new timer::TimerTaskImpl<AppStopwatchImpl>(this, &AppStopwatchImpl::WriteTime)),
       time_out_(60) {}
 
-AppStopwatch::AppStopwatch(
+AppStopwatchImpl::AppStopwatchImpl(
     utils::SharedPtr<StatisticsManager> statistics_manager,
     const std::string& app_id, uint32_t timeout)
     : app_id_(app_id),
       stopwatch_type_(SECONDS_HMI_NONE),
       statistics_manager_(statistics_manager),
       timer_("HMI levels timer",
-             new timer::TimerTaskImpl<AppStopwatch>(this, &AppStopwatch::WriteTime)),
+             new timer::TimerTaskImpl<AppStopwatchImpl>(this, &AppStopwatchImpl::WriteTime)),
       time_out_(timeout) {}
 
-AppStopwatch::~AppStopwatch() {
+AppStopwatchImpl::~AppStopwatchImpl() {
 }
 
-void AppStopwatch::Start(AppStopwatchId stopwatch_type) {
+void AppStopwatchImpl::Start(AppStopwatchId stopwatch_type) {
   stopwatch_type_ = stopwatch_type;
   timer_.Start(time_out_ * date_time::DateTime::MILLISECONDS_IN_SECOND, true);
 }
 
-void AppStopwatch::Switch(AppStopwatchId stopwatch_type) {
+void AppStopwatchImpl::Switch(AppStopwatchId stopwatch_type) {
   Start(stopwatch_type);
 }
 
-void AppStopwatch::WriteTime() {
+void AppStopwatchImpl::WriteTime() {
   if (statistics_manager_) {
     statistics_manager_->Add(app_id_, stopwatch_type_, time_out_);
   }

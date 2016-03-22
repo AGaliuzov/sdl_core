@@ -122,7 +122,7 @@ TEST(StatisticsManagerAddMethod, AppStopwatchStartMethod_CallONCE_StatisticsMana
   // Arrange
   MockStatisticsManager* msm = new StrictMock<MockStatisticsManager>();
   const std::uint32_t time_out = 1;
-  AppStopwatch hmi_full_stopwatch(msm, "HelloApp", time_out);
+  AppStopwatchImpl hmi_full_stopwatch(msm, "HelloApp", time_out);
 
   hmi_full_stopwatch.Start(SECONDS_HMI_FULL);
   // Assert
@@ -135,7 +135,7 @@ TEST(StatisticsManagerAddMethod, AppStopwatchStartMethod_CallONCE_StatisticsMana
 TEST(StatisticsManagerAddMethod, AppStopwatchSwitchMethod_Call_StatisticsManagerAddMethodCalled) {
   // Arrange
   MockStatisticsManager* msm = new StrictMock<MockStatisticsManager>();
-  AppStopwatch hmi_full_stopwatch(msm, "HelloApp");
+  AppStopwatchImpl hmi_full_stopwatch(msm, "HelloApp");
   hmi_full_stopwatch.Start(SECONDS_HMI_FULL);
 
   hmi_full_stopwatch.Switch(SECONDS_HMI_FULL);
@@ -151,7 +151,7 @@ TEST(StatisticsManagerAddMethod, AppStopwatchSwitchMethod_CallAnd1SecSleepAfter_
   // Arrange
   MockStatisticsManager* msm = new StrictMock<MockStatisticsManager>();
   const std::uint32_t time_out = 1;
-  AppStopwatch hmi_full_stopwatch(msm, "HelloApp", time_out);
+  AppStopwatchImpl hmi_full_stopwatch(msm, "HelloApp", time_out);
 
   // Act
   hmi_full_stopwatch.Start(SECONDS_HMI_NONE);
