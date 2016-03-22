@@ -1447,7 +1447,7 @@ RESULT_CODE ProtocolHandlerImpl::DecryptFrame(ProtocolFramePtr packet) {
                              << out_data_size << " bytes");
   DCHECK(out_data);
   DCHECK(out_data_size);
-  packet->set_data(out_data, out_data_size);
+  packet->set_data(out_data, out_data_size);  
   return RESULT_OK;
 }
 #endif  // ENABLE_SECURITY
