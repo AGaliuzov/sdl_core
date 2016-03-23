@@ -161,17 +161,21 @@ struct ObjectNameComparator {
 }  // namespace
 
 
-PPSListener::MQHandler::MQHandler(const std::string& name, int flags) {
+PPSListener::MQHandler::MQHandler(const std::string& name, int flags)
+  : handle_(-1) {
   init_mq(name, flags);
 }
 
 void PPSListener::MQHandler::Write(const std::vector<char>& message) const {
   LOG4CXX_AUTO_TRACE(logger_);
-  if (-1 != handle_) {
-    if (- 1 == mq_send(handle_, &message[0], MAX_QUEUE_MSG_SIZE, NULL)) {
-      LOG4CXX_ERROR(logger_, "Unable to send over mq " <<
-                             " : " << strerror(errno));
-    }
+  if (-1 == handle_) {
+    LOG4CXX_ERROR(logger_, "Mq is not opened");
+    return;
+  }
+  
+  if (- 1 == mq_send(handle_, &message[0], MAX_QUEUE_MSG_SIZE, NULL)) {
+    LOG4CXX_ERROR(logger_, "Unable to send over mq " <<
+                            " : " << strerror(errno));
   }
 }
 
@@ -227,8 +231,8 @@ PPSListener::PPSListener(AOATransportAdapter* controller)
     pps_thread_(NULL),
     mq_thread_(NULL),
     is_aoa_available_(false),
-    mq_from_applink_handle_(std::string("/dev/mqueue/aoa"), O_CREAT | O_RDONLY),
-    mq_to_applink_handle_(PREFIX_STR_FROMSDL_QUEUE, O_CREAT | O_WRONLY) {
+    mq_from_applink_handler_(std::string("/dev/mqueue/aoa"), O_CREAT | O_RDONLY),
+    mq_to_applink_handler_(PREFIX_STR_FROMSDL_QUEUE, O_CREAT | O_WRONLY) {
   LOG4CXX_AUTO_TRACE(logger_);
 }
 
@@ -275,12 +279,12 @@ TransportAdapter::Error PPSListener::StopListening() {
 
 void PPSListener::ReceiveMQMessage(std::vector<char>& message) {
   LOG4CXX_AUTO_TRACE(logger_);
-  mq_from_applink_handle_.Read(message);
+  mq_from_applink_handler_.Read(message);
 }
 
 void PPSListener::SendMQMessage(const std::vector<char>& message) {
   LOG4CXX_AUTO_TRACE(logger_);
-  mq_to_applink_handle_.Write(message);
+  mq_to_applink_handler_.Write(message);
 }
 
 
@@ -350,7 +354,7 @@ void PPSListener::ProcessPpsMessage(uint8_t* message, const size_t size) {
       std::vector<char> buf(1);
       buf[0] = AOA_RELEASED;
       LOG4CXX_DEBUG(logger_, "Send " << static_cast<int32_t>(buf[0]) << " signal to AppLink");
-      mq_to_applink_handle_.Write(buf);
+      mq_to_applink_handler_.Write(buf);
     }
     return;
   }

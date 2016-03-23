@@ -58,7 +58,7 @@ class PPSListener : public ClientConnectionListener {
   class MQHandler {
    public:
     /**
-     * @breif Creates MQHandler instance.
+     * @brief Creates MQHandler instance.
      * Will try to open specified mqueue with certain flags
      *
      * @param name - the name of mqueue to connect.
@@ -67,14 +67,14 @@ class PPSListener : public ClientConnectionListener {
     MQHandler(const std::string& name, int flags);
 
     /**
-     * @breif Allows to send message into the certain mqueue.
+     * @brief Allows to send message into the certain mqueue.
      *
      * @param message - the message for writing into the mqueue.
      */
     void Write(const std::vector<char>& message) const;
 
     /**
-     * @breif Allows to read message from the mqueue.
+     * @brief Allows to read message from the mqueue.
      *
      * @param data - the out parameter. Will be filled by the method.
      * In case the method is unable receive the data it will be resized to 0.
@@ -82,14 +82,14 @@ class PPSListener : public ClientConnectionListener {
     void Read(std::vector<char>& data) const;
 
     /**
-     * @breif Close the certain mqueue.
+     * @brief Close the certain mqueue.
      */
     ~MQHandler();
 
    private:
 
     /**
-     * @breif Used by constructor in order to initialize and open certain mqueue.
+     * @brief Used by constructor in order to initialize and open certain mqueue.
      *
      * @param name - mqueue name to opent.
      * @param flags - the open mode.
@@ -97,7 +97,7 @@ class PPSListener : public ClientConnectionListener {
     void init_mq(const std::string& name, int flags);
 
     /**
-     * @breif Allows to close certain mqueue.
+     * @brief Allows to close certain mqueue.
      */
     void deinit_mq();
 
@@ -141,8 +141,8 @@ class PPSListener : public ClientConnectionListener {
   mutable sync_primitives::atomic_bool is_aoa_available_;
   threads::Thread* thread_;
 
-  MQHandler mq_from_applink_handle_;
-  MQHandler mq_to_applink_handle_;
+  MQHandler mq_from_applink_handler_;
+  MQHandler mq_to_applink_handler_;
 
   // Own collection for handling after release
   DeviceCollection devices_;
