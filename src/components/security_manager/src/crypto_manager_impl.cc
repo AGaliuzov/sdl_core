@@ -278,11 +278,14 @@ bool CryptoManagerImpl::IsCertificateUpdateRequired() const {
 
   const double seconds = difftime(cert_date, now);
 
-  LOG4CXX_DEBUG(
-      logger_,
-      "Certificate time: " << asctime(&expiration_time_)
-                           << ". Host time: " << asctime(localtime(&now))
-                           << ". Seconds before expiration: " << seconds);
+  LOG4CXX_DEBUG(logger_, "Certificate time: " << asctime(&expiration_time_));
+  LOG4CXX_DEBUG(logger_,
+                "Host time: " << asctime(localtime(&now))
+                              << ". Seconds before expiration: " << seconds);
+  if (seconds < 0) {
+    LOG4CXX_DEBUG(logger_, "Certificate is already expired");
+  }
+
   return seconds <= get_settings().update_before_hours();
 }
 
