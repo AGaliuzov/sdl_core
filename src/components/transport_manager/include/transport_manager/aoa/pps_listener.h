@@ -55,6 +55,54 @@ typedef DeviceCollection::value_type DeviceCollectionPair;
 class AOATransportAdapter;
 
 class PPSListener : public ClientConnectionListener {
+  class MQHandler {
+   public:
+    /**
+     * @brief Creates MQHandler instance.
+     * Will try to open specified mqueue with certain flags
+     *
+     * @param name - the name of mqueue to connect.
+     * @param flags - the mode with which certain mqueue will be opened.
+     */
+    MQHandler(const std::string& name, int flags);
+
+    /**
+     * @brief Allows to send message into the certain mqueue.
+     *
+     * @param message - the message for writing into the mqueue.
+     */
+    void Write(const std::vector<char>& message) const;
+
+    /**
+     * @brief Allows to read message from the mqueue.
+     *
+     * @param data - the out parameter. Will be filled by the method.
+     * In case the method is unable receive the data it will be resized to 0.
+     */
+    void Read(std::vector<char>& data) const;
+
+    /**
+     * @brief Close the certain mqueue.
+     */
+    ~MQHandler();
+
+   private:
+
+    /**
+     * @brief Used by constructor in order to initialize and open certain mqueue.
+     *
+     * @param name - mqueue name to opent.
+     * @param flags - the open mode.
+     */
+    void init_mq(const std::string& name, int flags);
+
+    /**
+     * @brief Allows to close certain mqueue.
+     */
+    void deinit_mq();
+
+    mqd_t handle_;
+  };
  public:
   explicit PPSListener(AOATransportAdapter* controller);
   ~PPSListener();
@@ -64,6 +112,9 @@ class PPSListener : public ClientConnectionListener {
   bool IsInitialised() const OVERRIDE;
   TransportAdapter::Error StartListening() OVERRIDE;
   TransportAdapter::Error StopListening() OVERRIDE;
+
+  void ReceiveMQMessage(std::vector<char>& message);
+  void SendMQMessage(const std::vector<char>& message);
 
  private:
   bool OpenPps();
@@ -90,6 +141,9 @@ class PPSListener : public ClientConnectionListener {
   mutable sync_primitives::atomic_bool is_aoa_available_;
   threads::Thread* thread_;
 
+  MQHandler mq_from_applink_handler_;
+  MQHandler mq_to_applink_handler_;
+
   // Own collection for handling after release
   DeviceCollection devices_;
   mutable sync_primitives::Lock devices_lock_;
@@ -103,12 +157,8 @@ class PPSListener : public ClientConnectionListener {
    private:
     void take_aoa();
     void release_aoa();
-    void init_mq(const std::string& name, int flags, int& descriptor);
-    void deinit_mq(mqd_t descriptor);
 
     PPSListener* parent_;
-    mqd_t mq_from_applink_handle_;
-    mqd_t mq_to_applink_handle_;
     sync_primitives::atomic_bool run_;
   };
 
