@@ -377,8 +377,8 @@ void policy::CheckAppPolicy::SetPendingPermissions(
     PermissionsCheckResult result) const {
   const std::string app_id = app_policy.first;
   AppPermissions permissions_diff(app_id);
-  permissions_diff.priority = policy_table::EnumToJsonString(
-                                app_policy.second.priority);
+  const std::string priority =
+          policy_table::EnumToJsonString(app_policy.second.priority);
 
   switch (result) {
   case RESULT_APP_REVOKED:
@@ -388,21 +388,23 @@ void policy::CheckAppPolicy::SetPendingPermissions(
     permissions_diff.appUnauthorized = true;
     break;
   case RESULT_PERMISSIONS_REVOKED:
+    permissions_diff.priority = priority;
     permissions_diff.isAppPermissionsRevoked = true;
     permissions_diff.appRevokedPermissions = GetRevokedGroups(app_policy);
     RemoveRevokedConsents(app_policy, permissions_diff.appRevokedPermissions);
     break;
   case RESULT_CONSENT_NEEDED:
+    permissions_diff.priority = priority;
     permissions_diff.appPermissionsConsentNeeded = true;
     break;
   case RESULT_PERMISSIONS_REVOKED_AND_CONSENT_NEEDED:
+    permissions_diff.priority = priority;
     permissions_diff.isAppPermissionsRevoked = true;
     permissions_diff.appPermissionsConsentNeeded = true;
     permissions_diff.appRevokedPermissions = GetRevokedGroups(app_policy);
     RemoveRevokedConsents(app_policy, permissions_diff.appRevokedPermissions);
     break;
   case RESULT_REQUEST_TYPE_CHANGED:
-    permissions_diff.priority.clear();
     permissions_diff.requestTypeChanged = true;
    {
     // Getting RequestTypes from PTU (not from cache)
