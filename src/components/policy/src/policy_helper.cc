@@ -375,16 +375,25 @@ bool CheckAppPolicy::operator()(const AppPoliciesValueType& app_policy) {
 void policy::CheckAppPolicy::SetPendingPermissions(
     const AppPoliciesValueType& app_policy,
     PermissionsCheckResult result) const {
+
+  using namespace rpc::policy_table_interface_base;
   const std::string app_id = app_policy.first;
   AppPermissions permissions_diff(app_id);
+
   const std::string priority =
           policy_table::EnumToJsonString(app_policy.second.priority);
+  const std::string current_prio =
+	  EnumToJsonString(snapshot_->policy_table.app_policies_section.apps[app_id].priority);
+
+  bool need_send_priority = (current_prio != priority);
 
   switch (result) {
   case RESULT_APP_REVOKED:
+    need_send_priority = false;
     permissions_diff.appRevoked = true;
     break;
   case RESULT_NICKNAME_MISMATCH:
+    need_send_priority = false;
     permissions_diff.appUnauthorized = true;
     break;
   case RESULT_PERMISSIONS_REVOKED:
@@ -420,6 +429,11 @@ void policy::CheckAppPolicy::SetPendingPermissions(
   default:
     return;
   }
+
+  if (need_send_priority) {
+    permissions_diff.priority = priority;
+  }
+
   pm_->app_permissions_diff_lock_.Acquire();
   pm_->app_permissions_diff_.insert(std::make_pair(app_id, permissions_diff));
   pm_->app_permissions_diff_lock_.Release();
