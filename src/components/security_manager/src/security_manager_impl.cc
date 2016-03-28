@@ -101,9 +101,6 @@ void SecurityManagerImpl::set_crypto_manager(CryptoManager *crypto_manager) {
     return;
   }
   crypto_manager_ = crypto_manager;
-  if (crypto_manager_->IsCertificateUpdateRequired()) {
-    NotifyOnCertififcateUpdateRequired();
-  }
 }
 
 void SecurityManagerImpl::Handle(const SecurityMessage message) {
@@ -192,7 +189,7 @@ void SecurityManagerImpl::StartHandshake(uint32_t connection_key) {
     return;
   }
 
-  if(crypto_manager_->IsCertificateUpdateRequired()) {
+  if (crypto_manager_->IsCertificateUpdateRequired()) {
     NotifyOnCertififcateUpdateRequired();
   }
 

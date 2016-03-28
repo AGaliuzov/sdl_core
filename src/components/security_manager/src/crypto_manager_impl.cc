@@ -276,6 +276,11 @@ bool CryptoManagerImpl::IsCertificateUpdateRequired() const {
   const time_t now = time(NULL);
   const time_t cert_date = mktime(&expiration_time_);
 
+  if (cert_date == -1) {
+    LOG4CXX_WARN(logger_,
+                 "The certifiacte expiration time cannot be represented.");
+    return false;
+  }
   const double seconds = difftime(cert_date, now);
 
   LOG4CXX_DEBUG(logger_, "Certificate time: " << asctime(&expiration_time_));
@@ -286,7 +291,7 @@ bool CryptoManagerImpl::IsCertificateUpdateRequired() const {
     LOG4CXX_DEBUG(logger_, "Certificate is already expired");
   }
 
-  return seconds <= get_settings().update_before_hours();
+  return seconds <= (get_settings().update_before_hours() * 60 * 60);
 }
 
 int debug_callback(int preverify_ok, X509_STORE_CTX* ctx) {
