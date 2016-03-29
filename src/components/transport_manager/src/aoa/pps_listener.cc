@@ -172,7 +172,7 @@ void PPSListener::MQHandler::Write(const std::vector<char>& message) const {
     LOG4CXX_ERROR(logger_, "Mq is not opened");
     return;
   }
-  
+
   if (- 1 == mq_send(handle_, &message[0], MAX_QUEUE_MSG_SIZE, NULL)) {
     LOG4CXX_ERROR(logger_, "Unable to send over mq " <<
                             " : " << strerror(errno));
@@ -516,10 +516,8 @@ void PPSListener::AddDevice(const AOAWrapper::AOAUsbInfo& aoa_usb_info) {
       aoa_usb_info.product, aoa_usb_info.serial_number,
       aoa_usb_info, controller_);
 
-  sync_primitives::AutoLock lock();
-  devices_lock_.Acquire();
+  // Devices list is being locked in init_aoa-->ProcessAOADevice-->AddDevice
   devices_[aoa_usb_info] = aoa_device->unique_device_id();
-  devices_lock_.Release();
   controller_->AddDevice(aoa_device);
 }
 
@@ -578,7 +576,7 @@ void PPSListener::PpsMQListener::threadMain() {
 
       const size_t size = msg.size();
       LOG4CXX_DEBUG(logger_, "Receive message from Applink with size: " << size
-                    << ". Message signal: " << static_cast<int32_t>(msg[0])
+                    << ". Message signal: " << static_cast<int32_t>(size ? msg[0] : -1)
                     << ". TAKE_AOA signal is: " << static_cast<int32_t>(TAKE_AOA)
                     << ". RELEASE_AOA signal is: " << static_cast<int32_t>(RELEASE_AOA)
                     << ". AOA_RELEASED signal is: " << static_cast<int32_t>(AOA_RELEASED)
