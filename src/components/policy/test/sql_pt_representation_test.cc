@@ -35,6 +35,7 @@
 #include <fstream>
 #include <stdio.h>
 #include <sys/stat.h>
+#include <memory>
 
 #include "gtest/gtest.h"
 #include "policy/sql_pt_representation.h"
@@ -52,7 +53,6 @@
 #include "rpc_base/rpc_base.h"
 #include "mock_policy_settings.h"
 #include "utils/shared_ptr.h"
-#include "utils/make_shared.h"
 
 namespace policy_table = rpc::policy_table_interface_base;
 using policy::SQLPTRepresentation;
@@ -79,13 +79,13 @@ class SQLPTRepresentationTest : public SQLPTRepresentation,
   static const std::string kDatabaseName;
   static utils::dbms::SQLQuery* query_wrapper_;
   //Gtest can show message that this object doesn't destroyed
-  static utils::SharedPtr<policy_handler_test::MockPolicySettings> policy_settings_;
+  static std::auto_ptr<policy_handler_test::MockPolicySettings> policy_settings_;
 
   static void SetUpTestCase() {      
     const std::string kAppStorageFolder = "storage1";
     reps = new SQLPTRepresentation(in_memory_);
     ASSERT_TRUE (reps != NULL);
-    policy_settings_ = utils::MakeShared<policy_handler_test::MockPolicySettings>();
+    policy_settings_ = std::auto_ptr<policy_handler_test::MockPolicySettings>(new policy_handler_test::MockPolicySettings());
     ON_CALL(*policy_settings_, app_storage_folder()).WillByDefault(ReturnRef(kAppStorageFolder));
     EXPECT_EQ(::policy::SUCCESS, reps->Init(policy_settings_.get()));
     query_wrapper_ = new utils::dbms::SQLQuery(reps->db());
@@ -322,7 +322,7 @@ SQLPTRepresentation* SQLPTRepresentationTest::reps = 0;
 utils::dbms::SQLQuery* SQLPTRepresentationTest::query_wrapper_ = 0;
 const std::string SQLPTRepresentationTest::kDatabaseName = ":memory:";
 const bool SQLPTRepresentationTest::in_memory_ = true;
-utils::SharedPtr<policy_handler_test::MockPolicySettings> SQLPTRepresentationTest::policy_settings_;
+std::auto_ptr<policy_handler_test::MockPolicySettings> SQLPTRepresentationTest::policy_settings_;
 
 class SQLPTRepresentationTest2 : public ::testing::Test {
  protected:
