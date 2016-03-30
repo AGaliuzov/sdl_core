@@ -452,7 +452,10 @@ void RequestController::Worker::threadMain() {
         request_info_ptr->request()->default_timeout();
     request_info_ptr->updateTimeOut(timeout_in_mseconds);
 
-    request_controller_->waiting_for_response_.Add(request_info_ptr);
+    if (!request_controller_->waiting_for_response_.Add(request_info_ptr)) {
+      LOG4CXX_ERROR(logger_, "Request has not been added. Execution skipped.");
+      continue;
+    }
     if (0 != timeout_in_mseconds) {
       LOG4CXX_INFO(logger_, "Execute MobileRequest corr_id = "
                    << request_info_ptr->requestId() <<
