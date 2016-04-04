@@ -31,10 +31,13 @@
  */
 
 #include "gtest/gtest.h"
+#include <ctime>
 #include <fstream>
 #include <string>
 #include <iterator>
 #include <limits>
+
+#include "security_manager/security_manager_impl.h"
 #include "security_manager/crypto_manager_impl.h"
 #include "security_manager/mock_security_manager_settings.h"
 #include "utils/shared_ptr.h"
@@ -226,25 +229,46 @@ TEST_F(CryptoManagerTest, OnCertificateUpdated) {
 
 TEST_F(CryptoManagerTest, OnCertificateUpdated_UpdateNotRequired) {
   size_t updates_before = 0;
-  SetInitialValues(
-      security_manager::CLIENT, security_manager::TLSv1_2, kAllCiphers);
+
+  SetInitialValues(security_manager::CLIENT, security_manager::TLSv1_2,
+                   kAllCiphers);
   bool crypto_manager_initialization = crypto_manager_->Init();
   ASSERT_TRUE(crypto_manager_initialization);
+
+  crypto_manager_->OnCertificateUpdated(certificate_data_base64_);
+
+  // Create Context
+  security_manager::SSLContext* ssl_context =
+      crypto_manager_->CreateSSLContext();
+  EXPECT_TRUE(ssl_context);
+
+  struct tm cert_due_time;
+  ssl_context->GetCertificateDueDate(cert_due_time);
 
   EXPECT_CALL(*mock_security_manager_settings_, update_before_hours())
       .WillOnce(Return(updates_before));
 
-  EXPECT_FALSE(crypto_manager_->IsCertificateUpdateRequired());
+  EXPECT_FALSE(crypto_manager_->IsCertificateUpdateRequired(cert_due_time));
+
+  // Release
+  crypto_manager_->ReleaseSSLContext(ssl_context);
 
   size_t max_updates_ = std::numeric_limits<size_t>::max();
-  SetInitialValues(
-      security_manager::CLIENT, security_manager::TLSv1_2, kAllCiphers);
+  SetInitialValues(security_manager::CLIENT, security_manager::TLSv1_2,
+                   kAllCiphers);
   EXPECT_CALL(*mock_security_manager_settings_, update_before_hours())
       .WillOnce(Return(max_updates_));
   crypto_manager_initialization = crypto_manager_->Init();
   ASSERT_TRUE(crypto_manager_initialization);
 
-  EXPECT_TRUE(crypto_manager_->IsCertificateUpdateRequired());
+  // Create Context
+  ssl_context = crypto_manager_->CreateSSLContext();
+  EXPECT_TRUE(ssl_context);
+
+  ssl_context->GetCertificateDueDate(cert_due_time);
+  EXPECT_TRUE(crypto_manager_->IsCertificateUpdateRequired(cert_due_time));
+  // Release
+  crypto_manager_->ReleaseSSLContext(ssl_context);
 }
 
 TEST_F(CryptoManagerTest, OnCertificateUpdated_NotInitialized) {

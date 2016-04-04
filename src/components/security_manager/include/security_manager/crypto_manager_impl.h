@@ -33,13 +33,13 @@
 #ifndef SRC_COMPONENTS_SECURITY_MANAGER_INCLUDE_SECURITY_MANAGER_CRYPTO_MANAGER_IMPL_H_
 #define SRC_COMPONENTS_SECURITY_MANAGER_INCLUDE_SECURITY_MANAGER_CRYPTO_MANAGER_IMPL_H_
 
+#include <ctime>
 #include <stdint.h>
 #include <openssl/bio.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <string>
 #include <map>
-#include <ctime>
 
 #include "security_manager/crypto_manager.h"
 #include "security_manager/ssl_context.h"
@@ -71,6 +71,7 @@ class CryptoManagerImpl : public CryptoManager {
                  size_t* out_data_size) OVERRIDE;
     bool IsInitCompleted() const OVERRIDE;
     bool IsHandshakePending() const OVERRIDE;
+    bool GetCertificateDueDate(struct tm& due_date) const OVERRIDE;
     size_t get_max_block_size(size_t mtu) const OVERRIDE;
     std::string LastError() const OVERRIDE;
     void ResetConnection() OVERRIDE;
@@ -90,6 +91,9 @@ class CryptoManagerImpl : public CryptoManager {
     HandshakeResult openssl_error_convert_to_internal(const long error);
 
     std::string GetTextBy(X509_NAME* name, int object) const;
+
+    int pull_number_from_buf(char* buf, int* idx) const;
+    void asn1_time_to_tm(ASN1_TIME* time, struct tm& cert_time) const;
 
     SSL* connection_;
     BIO* bioIn_;
@@ -118,22 +122,18 @@ class CryptoManagerImpl : public CryptoManager {
   SSLContext* CreateSSLContext() OVERRIDE;
   void ReleaseSSLContext(SSLContext* context) OVERRIDE;
   std::string LastError() const OVERRIDE;
-  bool IsCertificateUpdateRequired() const OVERRIDE;
+  bool IsCertificateUpdateRequired(struct tm cert_time) const OVERRIDE;
 
   virtual const CryptoManagerSettings& get_settings() const OVERRIDE {
     return *settings_;
   }
 
  private:
-  bool set_certificate(const std::string& cert_data);
-
-  int pull_number_from_buf(char* buf, int* idx);
-  void asn1_time_to_tm(ASN1_TIME* time);
+  bool set_certificate(const std::string& cert_data);  
 
   // TODO (AKutsan) : APPLINK-21595 Use Uniq pointer instead of shared pointer
   const utils::SharedPtr<const CryptoManagerSettings> settings_;
   SSL_CTX* context_;
-  mutable struct tm expiration_time_;
   static sync_primitives::Lock instance_lock_;
   static uint32_t instance_count_;
   DISALLOW_COPY_AND_ASSIGN(CryptoManagerImpl);

@@ -67,7 +67,7 @@ class CryptoManager : public policy::PolicyHandlerObserver {
   virtual void ReleaseSSLContext(SSLContext* context) = 0;
   virtual std::string LastError() const = 0;
 
-  virtual bool IsCertificateUpdateRequired() const = 0;
+  virtual bool IsCertificateUpdateRequired(struct tm cert_due_date) const = 0;
 
   /**
    * \brief Crypto manager settings getter
