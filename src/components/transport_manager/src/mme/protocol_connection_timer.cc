@@ -59,7 +59,7 @@ void ProtocolConnectionTimer::Start() {
                                                << parent_->protocol()
                                                << ")"
                                                   " with timeout " << timeout);
-  timer_.Start(timeout, false);
+  timer_.Start(timeout, true);
 }
 
 void ProtocolConnectionTimer::Stop() {                                                                                                                                                                                                                  

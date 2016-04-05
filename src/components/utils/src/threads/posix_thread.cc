@@ -170,8 +170,8 @@ ThreadWatcher::ThreadWatcher()
 
 void ThreadWatcher::StartWatchTimer(uint32_t timeout) {
   LOG4CXX_DEBUG(logger_, "Timer for priority tracking has been started with value: " << timeout);
-  const bool repeatable = false;
-  timer_.Start(timeout * 1000, repeatable);
+  const bool single_shot = true;
+  timer_.Start(timeout * 1000, single_shot);
 }
 
 void ThreadWatcher::StopWatchTimer() {

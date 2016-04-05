@@ -1258,4 +1258,3 @@ void PolicyManagerImpl::set_cache_manager(
 }
 
 }  //  namespace policy
-
