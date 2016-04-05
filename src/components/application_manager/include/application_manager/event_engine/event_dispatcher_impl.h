@@ -100,17 +100,38 @@ class EventDispatcherImpl : public EventDispatcher,
   virtual ~EventDispatcherImpl();
 
  private:
-  /*
+
+  /**
+   * @brief RemoveRange allows to remove the observers between the range of iterators
+   *
+   * @param start the iterator to begin of range
+   *
+   * @param end the iterator to the end of range
+   *
+   * @param observer object to remove
+   */
+  void RemoveRange(EventObserverMap::iterator start,
+                   EventObserverMap::iterator end,
+                   EventObserver* const observer);
+
+  /**
    * @brief Default constructor
    */
   EventDispatcherImpl();
 
-  /*
+  /**
    * @brief removes observer
    * when occurs unsubscribe from event
    * @param observer to be removed
    */
   void remove_observer_from_vector(EventObserver* const observer);
+
+  /**
+   * @brief GetObserver allows to safely get observer from the observers list
+   *
+   * @return the observer if exists, NULL otherwise.
+   */
+  EventObserver* GetObserver();
 
   DISALLOW_COPY_AND_ASSIGN(EventDispatcherImpl);
 
@@ -118,8 +139,8 @@ class EventDispatcherImpl : public EventDispatcher,
 
  private:
   // Members section
-  sync_primitives::Lock state_lock_;
-  sync_primitives::Lock observer_lock_;
+  mutable sync_primitives::Lock state_lock_;
+  mutable sync_primitives::Lock observer_lock_;
   EventObserverMap observers_event_;
   ObserverVector observers_;
 };
