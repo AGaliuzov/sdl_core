@@ -37,12 +37,12 @@
 #include <openssl/err.h>
 #include <openssl/pkcs12.h>
 
+#include <ctime>
 #include <fstream>
-#include <iostream>
 #include <sstream>
 #include <stdio.h>
-#include "security_manager/security_manager.h"
 
+#include "security_manager/security_manager.h"
 #include "utils/logger.h"
 #include "utils/atomic.h"
 #include "utils/file_system.h"
@@ -270,15 +270,20 @@ std::string CryptoManagerImpl::LastError() const {
   return string_stream.str();
 }
 
-bool CryptoManagerImpl::IsCertificateUpdateRequired() const {
-  LOG4CXX_AUTO_TRACE(logger_);
+bool CryptoManagerImpl::IsCertificateUpdateRequired(struct tm cert_time) const {
+  LOG4CXX_AUTO_TRACE(logger_);  
 
+  const time_t cert_date = mktime(&cert_time);
+
+  if (cert_date == -1) {
+    LOG4CXX_WARN(logger_,
+                 "The certifiacte expiration time cannot be represented.");
+    return false;
+  }
+  const double seconds = difftime(cert_date, time(NULL));
   const time_t now = time(NULL);
-  const time_t cert_date = mktime(&expiration_time_);
 
-  const double seconds = difftime(cert_date, now);
-
-  LOG4CXX_DEBUG(logger_, "Certificate time: " << asctime(&expiration_time_));
+  LOG4CXX_DEBUG(logger_, "Certificate time: " << asctime(&cert_time));
   LOG4CXX_DEBUG(logger_,
                 "Host time: " << asctime(localtime(&now))
                               << ". Seconds before expiration: " << seconds);
@@ -286,7 +291,7 @@ bool CryptoManagerImpl::IsCertificateUpdateRequired() const {
     LOG4CXX_DEBUG(logger_, "Certificate is already expired");
   }
 
-  return seconds <= get_settings().update_before_hours();
+  return seconds <= (get_settings().update_before_hours() * 60 * 60);
 }
 
 int debug_callback(int preverify_ok, X509_STORE_CTX* ctx) {
@@ -334,9 +339,7 @@ bool CryptoManagerImpl::set_certificate(const std::string& cert_data) {
     LOG4CXX_WARN(logger_,
                  "Either certificate or key not valid, " << LastError());
     return false;
-  }
-
-  asn1_time_to_tm(X509_get_notAfter(cert));
+  }  
 
   if (!SSL_CTX_use_certificate(context_, cert)) {
     LOG4CXX_WARN(logger_, "Could not use certificate, " << LastError());
@@ -353,49 +356,6 @@ bool CryptoManagerImpl::set_certificate(const std::string& cert_data) {
   }
   LOG4CXX_INFO(logger_, "Certificate and key data successfully updated");
   return true;
-}
-
-int CryptoManagerImpl::pull_number_from_buf(char* buf, int* idx) {
-  if (!idx) {
-    return 0;
-  }
-  const int val = ((buf[*idx] - '0') * 10) + buf[(*idx) + 1] - '0';
-  *idx = *idx + 2;
-  return val;
-}
-
-void CryptoManagerImpl::asn1_time_to_tm(ASN1_TIME* time) {
-  char* buf = (char*)time->data;
-  int index = 0;
-  const int year = pull_number_from_buf(buf, &index);
-  if (V_ASN1_GENERALIZEDTIME == time->type) {
-    expiration_time_.tm_year =
-        (year * 100 - 1900) + pull_number_from_buf(buf, &index);
-  } else {
-    expiration_time_.tm_year = year < 50 ? year + 100 : year;
-  }
-
-  const int mon = pull_number_from_buf(buf, &index);
-  const int day = pull_number_from_buf(buf, &index);
-  const int hour = pull_number_from_buf(buf, &index);
-  const int mn = pull_number_from_buf(buf, &index);
-
-  expiration_time_.tm_mon = mon - 1;
-  expiration_time_.tm_mday = day;
-  expiration_time_.tm_hour = hour;
-  expiration_time_.tm_min = mn;
-
-  if (buf[index] == 'Z') {
-    expiration_time_.tm_sec = 0;
-  }
-  if ((buf[index] == '+') || (buf[index] == '-')) {
-    const int mn = pull_number_from_buf(buf, &index);
-    const int mn1 = pull_number_from_buf(buf, &index);
-    expiration_time_.tm_sec = (mn * 3600) + (mn1 * 60);
-  } else {
-    const int sec = pull_number_from_buf(buf, &index);
-    expiration_time_.tm_sec = sec;
-  }
 }
 
 }  // namespace security_manager

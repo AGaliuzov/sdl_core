@@ -68,6 +68,7 @@ class MockSSLContext : public ::security_manager::SSLContext {
         bool());
     MOCK_CONST_METHOD0(IsHandshakePending,
         bool());
+    MOCK_CONST_METHOD1(GetCertificateDueDate, bool(struct tm& due_date));
     MOCK_CONST_METHOD1(get_max_block_size,
         size_t(size_t mtu));
     MOCK_CONST_METHOD0(LastError,

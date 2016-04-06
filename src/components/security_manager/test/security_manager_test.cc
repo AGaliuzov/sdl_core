@@ -94,9 +94,7 @@ class SecurityManagerTest : public ::testing::Test {
     testing::Mock::AsyncVerifyAndClearExpectations(10000);
   }
 
-  void SetMockCryptoManager() {
-    EXPECT_CALL(mock_crypto_manager, IsCertificateUpdateRequired()).
-        WillRepeatedly(Return(false));
+  void SetMockCryptoManager() {    
     security_manager_->set_crypto_manager(&mock_crypto_manager);
   }
   /*
@@ -478,6 +476,10 @@ TEST_F(SecurityManagerTest, StartHandshake_SSLInternalError) {
   EXPECT_CALL(
     mock_protocol_handler,
     SendMessageToMobileApp( InternalErrorWithErrId( SecurityManager::ERROR_INTERNAL), is_final));
+  // Expect DueDateRead
+  EXPECT_CALL(
+    mock_ssl_context_exists,
+    GetCertificateDueDate(_));
   // Expect notifying listeners (unsuccess)
   EXPECT_CALL(mock_sm_listener,
               OnHandshakeDone(key, SSLContext::Handshake_Result_Fail)).
@@ -517,6 +519,10 @@ TEST_F(SecurityManagerTest, StartHandshake_SSLInitIsNotComplete) {
   // Return mock SSLContext
   EXPECT_CALL(mock_session_observer, GetSSLContext(key, kControl)).Times(3).
       WillRepeatedly(Return(&mock_ssl_context_exists));
+  // Read DueDate
+  EXPECT_CALL(
+    mock_ssl_context_exists,
+    GetCertificateDueDate(_)).Times(3);
   // Expect initialization check on each call StartHandshake
   EXPECT_CALL(mock_ssl_context_exists, IsInitCompleted()).Times(3).
       WillRepeatedly(Return(false));
@@ -557,9 +563,10 @@ TEST_F(SecurityManagerTest, StartHandshake_SSLInitIsComplete) {
   EXPECT_CALL(mock_session_observer, GetSSLContext(key, kControl)).
       WillOnce(Return(&mock_ssl_context_exists));
   EXPECT_CALL(mock_ssl_context_exists, IsInitCompleted()).
-      WillOnce(Return(true));
-  EXPECT_CALL(mock_crypto_manager, IsCertificateUpdateRequired()).
-      WillOnce(Return(false));
+      WillOnce(Return(true));  
+  EXPECT_CALL(
+    mock_ssl_context_exists,
+    GetCertificateDueDate(_));
 
   security_manager_->StartHandshake(key);
 }
