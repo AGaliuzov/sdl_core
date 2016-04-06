@@ -33,6 +33,7 @@
 #include "application_manager/event_engine/event_dispatcher_impl.h"
 #include "interfaces/HMI_API.h"
 #include "application_manager/event_engine/event_observer.h"
+
 #include <algorithm>
 
 namespace application_manager {
@@ -65,14 +66,11 @@ void EventDispatcherImpl::raise_event(const Event& event) {
   }
 
   // Call observers
-  EventObserver* temp;
   while (!observers_.empty()) {
-    {
-      AutoLock auto_lock(observer_lock_);
-      temp = *observers_.begin();
-      observers_.erase(observers_.begin());
+    EventObserver* temp = GetObserver();
+    if (NULL != temp) {
+      temp->on_event(event);
     }
-    temp->on_event(event);
   }
 }
 
@@ -98,24 +96,14 @@ void EventDispatcherImpl::remove_observer(const Event::EventID& event_id,
                                           EventObserver* const observer) {
   remove_observer_from_vector(observer);
   AutoLock auto_lock(state_lock_);
-  ObserversMap::iterator it = observers_event_[event_id].begin();
-
-  for (; observers_event_[event_id].end() != it; ++it) {
-    ObserverVector& obs_vec = it->second;
-    const ObserverVector::iterator obs_vec_it = obs_vec.end();
-    obs_vec.erase(std::remove_if(obs_vec.begin(), obs_vec_it,
-                                 IdCheckFunctor(observer->id())),
-                  obs_vec_it);
-  }
+  EventObserverMap::iterator start = observers_event_.find(event_id);
+  RemoveRange(start, ++start, observer);
 }
 
 void EventDispatcherImpl::remove_observer(EventObserver* const observer) {
   remove_observer_from_vector(observer);
-  EventObserverMap::iterator event_map = observers_event_.begin();
-
-  for (; observers_event_.end() != event_map; ++event_map) {
-    remove_observer(event_map->first, observer);
-  }
+  AutoLock auto_lock(state_lock_);
+  RemoveRange(observers_event_.begin(), observers_event_.end(), observer);
 }
 
 void EventDispatcherImpl::remove_observer_from_vector(
@@ -125,6 +113,36 @@ void EventDispatcherImpl::remove_observer_from_vector(
   observers_.erase(std::remove_if(observers_.begin(), observers_.end(),
                                   IdCheckFunctor(observer->id())),
                    observers_.end());
+}
+
+EventObserver* EventDispatcherImpl::GetObserver() {
+    AutoLock auto_lock(observer_lock_);
+    if (observers_.empty()) {
+      return NULL;
+    }
+
+    EventObserver* temp = observers_[0];
+    observers_.erase(observers_.begin());
+
+    return temp;
+}
+
+void EventDispatcherImpl::RemoveRange(EventObserverMap::iterator start,
+                                      EventObserverMap::iterator end,
+                                      EventObserver* const observer) {
+  while(start != end) {
+    ObserversMap::iterator it = start->second.begin();
+    ObserversMap::iterator end = start->second.end();
+    for (; it != end; ++it) {
+      ObserverVector& obs_vec = it->second;
+      const ObserverVector::iterator obs_vec_it = obs_vec.end();
+      obs_vec.erase(std::remove_if(obs_vec.begin(), obs_vec_it,
+                                   IdCheckFunctor(observer->id())),
+                    obs_vec_it);
+    }
+
+    ++start;
+  }
 }
 
 }  // namespace event_engine
