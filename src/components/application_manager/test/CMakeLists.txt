@@ -164,6 +164,7 @@ if (BUILD_TESTS)
   set(testLibraries
     Utils
     ApplicationManagerTest
+    ApplicationManager
     jsoncpp
     Policy
     connectionHandler
