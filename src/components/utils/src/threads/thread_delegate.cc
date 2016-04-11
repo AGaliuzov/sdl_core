@@ -50,7 +50,7 @@ ThreadDelegate::~ThreadDelegate() {
 void ThreadDelegate::exitThreadMain() {
   LOG4CXX_AUTO_TRACE(logger_);
   if (thread_) {
-    if (thread_->thread_handle() == pthread_self()) {
+    if (thread_->IsCurrentThread()) {
       pthread_exit(NULL);
     } else {
       pthread_cancel(thread_->thread_handle());

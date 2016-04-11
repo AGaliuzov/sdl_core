@@ -170,8 +170,8 @@ ThreadWatcher::ThreadWatcher()
 
 void ThreadWatcher::StartWatchTimer(uint32_t timeout) {
   LOG4CXX_DEBUG(logger_, "Timer for priority tracking has been started with value: " << timeout);
-  const bool repeatable = false;
-  timer_.Start(timeout * 1000, repeatable);
+  const bool single_shot = true;
+  timer_.Start(timeout * 1000, single_shot);
 }
 
 void ThreadWatcher::StopWatchTimer() {
@@ -235,6 +235,10 @@ bool Thread::start() {
 
 PlatformThreadHandle Thread::CurrentId() {
   return pthread_self();
+}
+
+bool Thread::IsCurrentThread() const {
+  return pthread_equal(CurrentId(), thread_handle());
 }
 
 bool Thread::start(const ThreadOptions& options) {
@@ -344,7 +348,8 @@ void Thread::stop() {
 
 void Thread::join() {
   LOG4CXX_AUTO_TRACE(logger_);
-  DCHECK_OR_RETURN_VOID(!pthread_equal(pthread_self(), handle_));
+  DCHECK_OR_RETURN_VOID(!IsCurrentThread());
+
   stop();
   sync_primitives::AutoLock auto_lock(state_lock_);
   run_cond_.NotifyOne();
