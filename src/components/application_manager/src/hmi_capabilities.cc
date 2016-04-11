@@ -542,6 +542,15 @@ void HMICapabilities::set_audio_pass_thru_capabilities(
       audio_pass_thru_capabilities);
 }
 
+void HMICapabilities::set_pcm_stream_capabilities(
+    const smart_objects::SmartObject& pcm_stream_capabilities) {
+  if (pcm_stream_capabilities_) {
+    delete pcm_stream_capabilities_;
+  }
+  pcm_stream_capabilities_ = new smart_objects::SmartObject(
+      pcm_stream_capabilities);
+}
+
 void HMICapabilities::set_preset_bank_capabilities(
     const smart_objects::SmartObject& preset_bank_capabilities) {
   if (preset_bank_capabilities_) {
@@ -717,6 +726,14 @@ bool HMICapabilities::load_capabilities_from_file() {
           display_capabilities_so.erase(hmi_response::media_clock_formats);
           display_capabilities_so[hmi_response::media_clock_formats] =
               media_clock_formats_enum;
+        }
+
+        if (check_existing_json_member(ui, "pcmStreamCapabilities")) {
+          Json::Value pcm_capabilities = ui.get("pcmStreamCapabilities", "");
+          smart_objects::SmartObject pcm_capabilities_so;
+          Formatters::CFormatterJsonBase::jsonValueToObj(pcm_capabilities,
+                                                         pcm_capabilities_so);
+          set_pcm_stream_capabilities(pcm_capabilities_so);
         }
 
         if (display_capabilities_so.keyExists(hmi_response::image_capabilities)) {

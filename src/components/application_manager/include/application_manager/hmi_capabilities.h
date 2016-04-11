@@ -320,6 +320,21 @@ class HMICapabilities {
   audio_pass_thru_capabilities() const;
 
   /*
+   * @brief Sets supported pcm_stream capabilities
+   *
+   * @param supported pcm_stream capabilities
+   */
+  void set_pcm_stream_capabilities(
+      const smart_objects::SmartObject& pcm_stream_capabilities);
+
+  /*
+   * @brief Retrieves information about the pcm_stream capabilities
+   *
+   * @return Currently supported pcm_streaming capabilities
+   */
+  inline const smart_objects::SmartObject* pcm_stream_capabilities() const;
+
+  /*
    * @brief Retrieves information about the preset bank capabilities
    *
    * @return Currently supported preset bank capabilities
@@ -457,6 +472,7 @@ class HMICapabilities {
   smart_objects::SmartObject*      vr_capabilities_;
   smart_objects::SmartObject*      speech_capabilities_;
   smart_objects::SmartObject*      audio_pass_thru_capabilities_;
+  smart_objects::SmartObject*      pcm_stream_capabilities_;
   smart_objects::SmartObject*      prerecorded_speech_;
   bool                             is_navigation_supported_;
   bool                             is_phone_call_supported_;
@@ -533,6 +549,11 @@ const smart_objects::SmartObject* HMICapabilities::vr_capabilities() const {
 const smart_objects::SmartObject*
 HMICapabilities::audio_pass_thru_capabilities() const {
   return audio_pass_thru_capabilities_;
+}
+
+const smart_objects::SmartObject*
+HMICapabilities::pcm_stream_capabilities() const {
+  return pcm_stream_capabilities_;
 }
 
 const smart_objects::SmartObject*
