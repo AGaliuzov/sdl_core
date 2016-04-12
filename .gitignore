@@ -27,6 +27,10 @@ install_manifest.txt
 
 src/thirdPartyLibs/*
 
+# sdl_preloaded_pt.json can be modifided only by ford claim
+src/appMain/sdl_preloaded_pt.json
+
+
 # binaries
 src/appMain/hmi_link
 src/appMain/smartDeviceLinkCore
