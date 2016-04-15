@@ -34,6 +34,10 @@
 #include <string>
 #include <fstream>
 
+#include <unistd.h>
+#include <errno.h>
+#include <cstring>
+
 #include "utils/logger.h"
 #include "config_profile/profile.h"
 
@@ -362,12 +366,16 @@ void IAP2Device::IAP2HubConnectThreadDelegate::threadMain() {
   std::string mount_point = parent_->mount_point();
   int max_attempts = profile::Profile::instance()->iap2_hub_connect_attempts();
   int attemtps = 0;
+  uint32_t timeout_in_ms =
+          profile::Profile::instance()->iap2_reconnect_on_hub_proto_timeout();
   while (true) {
     LOG4CXX_TRACE(
         logger_,
         "iAP2: connecting to " << mount_point << " on hub protocol " << protocol_name_);
+    errno = 0;
     iap2ea_hdl_t* handle = iap2_eap_open(mount_point.c_str(),
                                          protocol_name_.c_str(), 0);
+    const int err_value = errno;
     if (handle != 0) {
       LOG4CXX_DEBUG(
           logger_,
@@ -379,10 +387,15 @@ void IAP2Device::IAP2HubConnectThreadDelegate::threadMain() {
       threads::ThreadWatcher::instance()->StopWatchTimer();
 #endif // CUSTOMER_PASA
     } else {
-      if ((0 == max_attempts) || (++attemtps < max_attempts)) {
+      if ((max_attempts > 0) && (++attemtps < max_attempts)) {
         LOG4CXX_WARN(
             logger_,
             "iAP2: could not connect to " << mount_point << " on hub protocol " << protocol_name_);
+        LOG4CXX_DEBUG(logger_, "Attempt: " << attemtps
+                      << ". Errno is: " << std::strerror(err_value)
+                      << ". Sleeping for (ms):" << timeout_in_ms);
+         usleep(timeout_in_ms*1000);
+
       } else {
         LOG4CXX_ERROR(
             logger_,
@@ -422,19 +435,43 @@ void IAP2Device::IAP2ConnectThreadDelegate::threadMain() {
   LOG4CXX_TRACE(
       logger_,
       "iAP2: connecting to " << mount_point << " on protocol " << protocol_name_);
-  iap2ea_hdl_t* handle = iap2_eap_open(mount_point.c_str(),
-                                       protocol_name_.c_str(), 0);
-  parent_->StopTimer(protocol_name_);
-  if (handle != 0) {
-    LOG4CXX_DEBUG(
-        logger_,
-        "iAP2: connected to " << mount_point << " on protocol " << protocol_name_);
-    parent_->OnConnect(protocol_name_, handle);
-  } else {
-    LOG4CXX_WARN(
-        logger_,
-        "iAP2: could not connect to " << mount_point << " on protocol " << protocol_name_);
-    parent_->OnConnectFailed(protocol_name_);
+  int max_attempts = profile::Profile::instance()->iap2_legacy_connect_attempts();
+  int attemtps = 0;
+  uint32_t timeout_in_ms =
+      profile::Profile::instance()->iap2_reconnect_on_legacy_proto_timeout();
+  while(true) {
+    errno = 0;
+    iap2ea_hdl_t* handle = iap2_eap_open(mount_point.c_str(),
+                                         protocol_name_.c_str(), 0);
+    const int err_value = errno;
+    parent_->StopTimer(protocol_name_);
+    if (handle != 0) {
+      LOG4CXX_DEBUG(
+          logger_,
+          "iAP2: connected to " << mount_point << " on protocol " << protocol_name_);
+      parent_->OnConnect(protocol_name_, handle);
+      attemtps = 0;
+      LOG4CXX_DEBUG(logger_, "Device has been connected");
+      break;
+    } else {
+      if ((max_attempts > 0) && (++attemtps < max_attempts)) {
+        LOG4CXX_WARN(
+            logger_,
+            "iAP2: could not connect to " << mount_point << " on legacy protocol " << protocol_name_);
+
+        LOG4CXX_DEBUG(logger_, "Attempt: " << attemtps
+                      << ". Errno is: " << std::strerror(err_value)
+        << ". Sleeping for (ms):" << timeout_in_ms);
+        usleep(timeout_in_ms*1000);
+        parent_->StartTimer(protocol_name_);
+      } else {
+        LOG4CXX_WARN(
+            logger_,
+            "iAP2: could not connect to " << mount_point << " on protocol " << protocol_name_);
+        parent_->OnConnectFailed(protocol_name_);
+        break;
+      }
+    }
   }
 }
 
