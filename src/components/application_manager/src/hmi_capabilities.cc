@@ -237,6 +237,7 @@ HMICapabilities::HMICapabilities(ApplicationManagerImpl* const app_mngr)
     vr_capabilities_(NULL),
     speech_capabilities_(NULL),
     audio_pass_thru_capabilities_(NULL),
+    pcm_stream_capabilities_(NULL),
     prerecorded_speech_(NULL),
     is_navigation_supported_(false),
     is_phone_call_supported_(false),
@@ -275,6 +276,7 @@ HMICapabilities::~HMICapabilities() {
   delete vr_capabilities_;
   delete speech_capabilities_;
   delete audio_pass_thru_capabilities_;
+  delete pcm_stream_capabilities_;
   delete prerecorded_speech_;
   app_mngr_ = NULL;
 }
