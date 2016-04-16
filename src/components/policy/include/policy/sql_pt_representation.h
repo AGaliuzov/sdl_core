@@ -65,7 +65,7 @@ class SQLPTRepresentation : public virtual PTRepresentation {
     virtual int KilometersBeforeExchange(int current);
     virtual bool SetCountersPassedForSuccessfulUpdate(int kilometers,
         int days_after_epoch);
-    virtual int DaysBeforeExchange(int current);
+    virtual int DaysBeforeExchange(uint16_t current);
     virtual void IncrementIgnitionCycles();
     virtual void ResetIgnitionCycles();
     virtual int TimeoutResponse();

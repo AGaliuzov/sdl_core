@@ -188,7 +188,7 @@ bool SQLPTRepresentation::SetCountersPassedForSuccessfulUpdate(
   return true;
 }
 
-int SQLPTRepresentation::DaysBeforeExchange(int current) {
+int SQLPTRepresentation::DaysBeforeExchange(uint16_t current) {
   utils::dbms::SQLQuery query(db());
   if (!query.Prepare(sql_pt::kSelectDays) || !query.Exec()) {
     LOG4CXX_WARN(logger_, "Can not select days");

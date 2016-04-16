@@ -58,7 +58,7 @@ class MockPTRepresentation : virtual public ::policy::PTRepresentation {
   MOCK_METHOD1(KilometersBeforeExchange, int(int current));
   MOCK_METHOD2(SetCountersPassedForSuccessfulUpdate,
                bool(int kilometers, int days_after_epoch));
-  MOCK_METHOD1(DaysBeforeExchange, int(int current));
+  MOCK_METHOD1(DaysBeforeExchange, int(uint16_t current));
   MOCK_METHOD0(IncrementIgnitionCycles, void());
   MOCK_METHOD0(ResetIgnitionCycles, void());
   MOCK_METHOD0(TimeoutResponse, int());
