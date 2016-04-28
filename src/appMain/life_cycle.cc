@@ -197,6 +197,8 @@ bool LifeCycle::StartComponents() {
           application_manager::ApplicationManagerImpl::instance());
 
 #ifdef ENABLE_SECURITY
+  security_manager_->AddListener(
+        application_manager::ApplicationManagerImpl::instance());
   security_manager_->set_session_observer(
       connection_handler::ConnectionHandlerImpl::instance());
   security_manager_->set_protocol_handler(protocol_handler_);
