@@ -1196,6 +1196,9 @@ CacheManager::GenerateSnapshot() {
   sync_primitives::AutoLock lock(cache_lock_);
   snapshot_ = new policy_table::Table();
   snapshot_->policy_table = pt_->policy_table;
+
+  snapshot_->SetPolicyTableType(policy_table::PT_SNAPSHOT);
+
   CheckSnapshotInitialization();
   return snapshot_;
 }
@@ -1695,10 +1698,18 @@ bool CacheManager::Init(const std::string& file_name) {
     case InitResult::SUCCESS: {
       LOG4CXX_INFO(logger_, "Policy Table was inited successfully");
       result = LoadFromFile(file_name, *pt_);
-      backup_->UpdateDBVersion();
+      utils::SharedPtr<policy_table::Table> snapshot = GenerateSnapshot();
+
+      result = snapshot->is_valid();
+      LOG4CXX_DEBUG(logger_, "Check if snapshot valid: "
+                    << std::boolalpha << result);
+
       if (result) {
+        backup_->UpdateDBVersion();
         Backup();
       } else {
+        rpc::ValidationReport report("policy_table");
+        snapshot->ReportErrors(&report);
         ex_backup_->RemoveDB();
       }
     } break;
