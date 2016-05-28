@@ -63,7 +63,7 @@ namespace crypto_manager_test {
 class CryptoManagerTest : public testing::Test {
  protected:
   static void SetUpTestCase() {
-    std::ifstream certificate_file("server/spt_credential.p12.enc");
+    std::ifstream certificate_file("server/spt_credential.pem");
     EXPECT_TRUE(certificate_file.good())
         << "Could not open certificate data file";
 
