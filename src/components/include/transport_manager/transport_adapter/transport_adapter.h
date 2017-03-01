@@ -59,7 +59,7 @@ class TransportAdapterListener;
 // TODO(EZamakhov): cahnge to DeviceUID
 // typedef std::string DeviceType;
 
-enum DeviceType { AOA, PASA_AOA, BLUETOOTH, PASA_BLUETOOTH, MME, TCP, UNKNOWN };
+enum DeviceType { AOA, PASA_AOA, BLUETOOTH, PASA_BLUETOOTH, MME, TCP, IAP2, UNKNOWN };
 
 typedef std::map<DeviceType, std::string> DeviceTypes;
 
