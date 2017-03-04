@@ -7,8 +7,6 @@
 namespace transport_manager {
 namespace transport_adapter {
 
-CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager");
-
 /**
  * @brief The IAP2TransportAdapter class adds ability to connect to the certain
  * iap2 device. Creates iap2 listener and iap2 connection factory.

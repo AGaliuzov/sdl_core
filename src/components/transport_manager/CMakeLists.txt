@@ -59,6 +59,10 @@ set (SOURCES
   ${TM_SRC_DIR}/tcp/tcp_socket_connection.cc
   ${TM_SRC_DIR}/tcp/tcp_connection_factory.cc
   ${TM_SRC_DIR}/iap2/iap2_transport_adapter.cc
+  ${TM_SRC_DIR}/iap2/iap2_device.cc
+  ${TM_SRC_DIR}/iap2/iap2_connection_factory.cc
+  ${TM_SRC_DIR}/iap2/iap2_connection.cc
+  ${TM_SRC_DIR}/iap2/iap2_client_listener.cc
 )
 
 if (BUILD_BT_SUPPORT)
