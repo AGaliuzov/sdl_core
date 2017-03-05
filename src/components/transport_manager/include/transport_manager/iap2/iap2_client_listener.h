@@ -21,16 +21,31 @@ private:
   TransportAdapter::Error StartListening() final;
   TransportAdapter::Error StopListening() final;
 
-  TransportAdapter::Error InitIAP2FacilityDBusManager();
+  void InitIAP2FacilityDBusManager();
   TransportAdapter::Error RegisterListener();
 
-  DBusMsgErrorCode OnReceiveDBusSignal(DBusMessage *message,
+  DBusMsgErrorCode OnReceiveDBusSignal_(DBusMessage *message,
                                        const char *interface);
 
-  DBusMsgErrorCode OnReceiveMethodCall(DBusMessage *message,
+  DBusMsgErrorCode OnReceiveMethodCall_(DBusMessage *message,
                                        const char *interface);
+  void AppleDeviceManagerSignalDBusProcess(unsigned int id,
+                                           DBusMessage *message);
+
+  void DBusMethodiAP2Connected(DBusMessage* message);
+
+  void OnDeviceConnected();
+  void OnDeviceDisconnected();
+
+  void OnEAPStart();
+  void OnEAPStop();
+  void OnEAPData();
+
+  void iAP2Notification(DBusMessage *message);
+  void iAP2EventConnected();
 
   TransportAdapterController *controller_;
+  bool initialized_;
 };
 
 } // namespace transport_adapter

@@ -26,13 +26,12 @@ IAP2Connection::SendData(protocol_handler::RawMessagePtr message) {
     LOG4CXX_WARN(logger_, "IAP session not established.");
     return TransportAdapter::Error::FAIL;
   }
-  iAP2NativeMsg *msg = new iAP2NativeMsg();
-  msg->addIntItem(eap_data_SessionIdentifier, IAP2_PARAM_NUMU16,
-                  session_index_);
-  msg->addBlobItem(eap_data_Data, IAP2_PARAM_BLOB, message->data(),
-                   static_cast<int>(message->data_size()));
+  iAP2NativeMsg msg = iAP2NativeMsg();
+  msg.addIntItem(eap_data_SessionIdentifier, IAP2_PARAM_NUMU16, session_index_);
+  msg.addBlobItem(eap_data_Data, IAP2_PARAM_BLOB, message->data(),
+                  static_cast<int>(message->data_size()));
 
-  uint8_t *payload = msg->getRawNativeMsg();
+  uint8_t *payload = msg.getRawNativeMsg();
   if (payload != NULL) {
     int length = 0;
     memcpy(&length, payload, 4);
@@ -53,11 +52,14 @@ IAP2Connection::SendData(protocol_handler::RawMessagePtr message) {
     } else {
       LOG4CXX_ERROR(logger_, "Failed to create dbus message.");
     }
-    delete msg;
   }
+
+  return TransportAdapter::OK;
 }
 
-TransportAdapter::Error IAP2Connection::Disconnect() {}
+TransportAdapter::Error IAP2Connection::Disconnect() {
+  return TransportAdapter::OK;
+}
 
 } // namespace transport_adapter
 } // namesapce transport_manager
