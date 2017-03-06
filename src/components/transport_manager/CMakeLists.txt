@@ -63,6 +63,8 @@ set (SOURCES
   ${TM_SRC_DIR}/iap2/iap2_connection_factory.cc
   ${TM_SRC_DIR}/iap2/iap2_connection.cc
   ${TM_SRC_DIR}/iap2/iap2_client_listener.cc
+  ${TM_SRC_DIR}/iap2/protocol_manager.cc
+  ${TM_SRC_DIR}/iap2/protocol_descriptor.cc
 )
 
 if (BUILD_BT_SUPPORT)
