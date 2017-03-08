@@ -10,7 +10,7 @@ class ProtocolManager {
   typedef std::vector<ProtocolDescriptor> Descriptors;
 public:
   ProtocolManager();
-
+  ProtocolDescriptor hub_protocol() const;
   ProtocolDescriptor PickProtocol();
   void ReleaseProtocol(uint8_t index);
 

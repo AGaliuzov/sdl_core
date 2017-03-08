@@ -18,8 +18,9 @@ public:
   ProtocolStatus status() const;
   void set_tatus(ProtocolStatus status);
   uint8_t index() const;
+  std::string name() const;
 private:
-  uint32_t index_;
+  uint8_t index_;
   std::string name_;
   ProtocolStatus status_;
 };

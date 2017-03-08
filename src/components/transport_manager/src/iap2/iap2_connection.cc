@@ -26,6 +26,7 @@ IAP2Connection::SendData(protocol_handler::RawMessagePtr message) {
     LOG4CXX_WARN(logger_, "IAP session not established.");
     return TransportAdapter::Error::FAIL;
   }
+
   iAP2NativeMsg msg = iAP2NativeMsg();
   msg.addIntItem(eap_data_SessionIdentifier, IAP2_PARAM_NUMU16, session_index_);
   msg.addBlobItem(eap_data_Data, IAP2_PARAM_BLOB, message->data(),

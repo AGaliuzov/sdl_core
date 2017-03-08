@@ -8,12 +8,18 @@ namespace transport_adapter {
 namespace {
 uint8_t kInvalidProtocol = 255;
 std::string kEmptyProtocol = "";
+
+std::string hub_protocol_name = "com.smartdevicelink.prot0";
 } // namespace;
 
 CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager");
 
 ProtocolManager::ProtocolManager() {
   // TODO(AGaliuzov): Read the protocols from config file all add statically.
+}
+
+ProtocolDescriptor ProtocolManager::hub_protocol() const {
+  return ProtocolDescriptor(0, hub_protocol_name);
 }
 
 ProtocolDescriptor ProtocolManager::PickProtocol() {

@@ -1,14 +1,14 @@
 #include "transport_manager/iap2/iap2_client_listener.h"
 
-#include <functional>
 #include <string>
 
-#include <iap2/iAP2NativeMsg.h>
 #include <iap2/Iap2DbHandler.h>
 #include <iap2/TCiAP2TestUiDBusMsgDefNames.h>
 #include <iap2/Iap2Const.h>
 
 #include "transport_manager/iap2/iap2_device.h"
+#include "transport_manager/iap2/protocol_manager.h"
+
 #include "transport_manager/common.h"
 #include "utils/logger.h"
 #include "utils/make_shared.h"
@@ -21,18 +21,24 @@ const uint8_t iap2_ncm_num = 0;
 
 DBusMsgErrorCode OnReceiveMethodCall(DBusMessage *message,
                                      const char *interface) {
-  return DBusMsgErrorCode::ErrorCodeNoError;
+  return CallBackWrapper::OnReceiveMethodCallEvent(message, interface);
 }
 
 DBusMsgErrorCode OnReceiveDBusSignal(DBusMessage *message,
                                      const char *interface) {
-  return DBusMsgErrorCode::ErrorCodeNoError;
+
+  return CallBackWrapper::OnReceiveDBusSignalEvent(message, interface);
 }
+
 } // namespace
 CREATE_LOGGERPTR_GLOBAL(logger_, "TransportManager");
 
 IAP2ClientListener::IAP2ClientListener(TransportAdapterController *controller)
-    : controller_(controller), initialized_(false) {}
+    : controller_(controller), initialized_(false) {
+  protocol_manager_ = utils::MakeShared<ProtocolManager>();
+}
+
+IAP2ClientListener::~IAP2ClientListener() {}
 
 TransportAdapter::Error IAP2ClientListener::Init() {
   TransportAdapter::Error error = TransportAdapter::OK;
@@ -63,11 +69,11 @@ void IAP2ClientListener::InitIAP2FacilityDBusManager() {
 
   SetDBusPrimaryOwner(IAP2_FACILITY_DEST_NAME);
 
-  /*auto signal_func = std::bind<DBusMsgErrorCode>(
-      &IAP2ClientListener::OnReceiveDBusSignal_, this, _1, _2);
+  CallBackWrapper::OnReceiveMethodCallEvent =
+      std::bind(&IAP2ClientListener::OnReceiveMethodCallEvent, this, _1, _2);
 
-  auto method_func = std::bind<DBusMsgErrorCode>(
-      &IAP2ClientListener::OnReceiveMethodCall_, this, _1, _2);*/
+  CallBackWrapper::OnReceiveMethodCallEvent =
+      std::bind(&IAP2ClientListener::OnReceiveDBusSignalEvent, this, _1, _2);
 
   SetCallBackFunctions(OnReceiveDBusSignal, OnReceiveMethodCall);
   AddMethodInterface(IAP2_FACILITY_FEATURE_INTERFACE);
@@ -108,8 +114,8 @@ TransportAdapter::Error IAP2ClientListener::RegisterListener() {
 }
 
 DBusMsgErrorCode
-IAP2ClientListener::OnReceiveDBusSignal_(DBusMessage *message,
-                                         const char *interface) {
+IAP2ClientListener::OnReceiveDBusSignalEvent(DBusMessage *message,
+                                             const char *interface) {
   DBusMsgErrorCode error = ErrorCodeNoError;
 
   if (nullptr == message || nullptr == interface) {
@@ -154,8 +160,8 @@ IAP2ClientListener::OnReceiveDBusSignal_(DBusMessage *message,
 }
 
 DBusMsgErrorCode
-IAP2ClientListener::OnReceiveMethodCall_(DBusMessage *message,
-                                         const char *interface) {
+IAP2ClientListener::OnReceiveMethodCallEvent(DBusMessage *message,
+                                             const char *interface) {
   DBusMsgErrorCode error = ErrorCodeNoError;
 
   if (nullptr == message || nullptr == interface) {
@@ -258,11 +264,104 @@ void IAP2ClientListener::OnDeviceDisconnected() {
   controller_->DeviceDisconnected("FakeUUID", DisconnectDeviceError());
 }
 
-void IAP2ClientListener::OnEAPStart() {}
+void IAP2ClientListener::OnEAPStart(iAP2NativeMsg *native_message) {
+  LOG4CXX_AUTO_TRACE(logger_);
+  if (nullptr == native_message) {
+    LOG4CXX_ERROR(logger_, "Native message is null. Nothing to parse");
+    return;
+  }
+
+  Iap2ObjItem *item = nullptr;
+  int protocolIndex = 0;
+  int sessionIndex = 0;
+  std::string protocolName;
+  Iap2ObjGroup *rootGroup = native_message->getRootGroup();
+  for (int i = 0; i < rootGroup->getItemCount(); i++) {
+    item = rootGroup->getObjItem(i);
+    switch (item->mParamType) {
+    case IAP2_PARAM_NUMU8: {
+      protocolIndex = item->getItemInt();
+
+      switch (item->mParamId) {
+      case eap_start_ProtocolIdentifier:
+        LOG4CXX_DEBUG(logger_, "id = " << item->mParamId
+                                       << " ProtocolIdentifier "
+                                       << protocolIndex);
+        break;
+      }
+    } break;
+    case IAP2_PARAM_NUMU16: {
+      sessionIndex = item->getItemInt();
+      switch (item->mParamId) {
+      case eap_start_SessionIdentifier:
+        LOG4CXX_DEBUG(logger_, "id = " << item->mParamId << "SessionIdentifier "
+                                       << sessionIndex);
+        break;
+      }
+    } break;
+    case IAP2_PARAM_STRING: {
+      int strLen = 0;
+      protocolName = reinterpret_cast<char *>(item->getItemString(&strLen));
+      switch (item->mParamId) {
+      case eap_start_ProtocolName:
+        if (!protocolName.empty())
+          LOG4CXX_DEBUG(logger_, "id = " << item->mParamId << "protocolName "
+                                         << protocolName);
+        break;
+      }
+    } break;
+    default:
+      break;
+    }
+  }
+  if (!protocolName.empty()) {
+    const ProtocolDescriptor &hub_prot = protocol_manager_->hub_protocol();
+    if (protocolName == hub_prot.name()) {
+      OnHubConnected(sessionIndex);
+    }
+  }
+}
 
 void IAP2ClientListener::OnEAPStop() {}
 
 void IAP2ClientListener::OnEAPData() {}
+
+void IAP2ClientListener::OnHubConnected(int session_index) {
+  if (0 == session_index) {
+    LOG4CXX_WARN(logger_, "IAP session not established.");
+    return;
+  }
+
+  ProtocolDescriptor descriptor = protocol_manager_->PickProtocol();
+
+  char prot_to_reconnect[1] = {static_cast<char>(descriptor.index())};
+  iAP2NativeMsg msg = iAP2NativeMsg();
+  msg.addIntItem(eap_data_SessionIdentifier, IAP2_PARAM_NUMU16, session_index);
+  msg.addBlobItem(eap_data_Data, IAP2_PARAM_BLOB, prot_to_reconnect, 1);
+
+  uint8_t *payload = msg.getRawNativeMsg();
+  if (payload != NULL) {
+    int length = 0;
+    memcpy(&length, payload, 4);
+    length += 4; // (AG)taken from sample. not sure why do we need +4.
+    LOG4CXX_DEBUG(logger_, "Create dbus message with size: " << length);
+
+    DBusMessage *dbus_msg = CreateDBusMsgMethodCall(
+        IAP2_PROCESS_DBUS_NAME, IAP2_PROCESS_OBJECT_PATH,
+        IAP2_PROCESS_INTERFACE, METHOD_iAP2_EAP_SEND_DATA, DBUS_TYPE_ARRAY,
+        DBUS_TYPE_INT32, &payload, length, DBUS_TYPE_INVALID);
+
+    if (dbus_msg != NULL) {
+      DBusPendingCall *pending = NULL;
+      if (!SendDBusMessage(dbus_msg, &pending)) {
+        LOG4CXX_ERROR(logger_, "Failed to send DBus message.");
+      }
+      dbus_message_unref(dbus_msg);
+    } else {
+      LOG4CXX_ERROR(logger_, "Failed to create dbus message.");
+    }
+  }
+}
 
 void IAP2ClientListener::iAP2Notification(DBusMessage *message) {
   if (nullptr == message) {
@@ -279,9 +378,12 @@ void IAP2ClientListener::iAP2Notification(DBusMessage *message) {
           &notification_data, &length, DBUS_TYPE_INVALID)) {
   }
 
+  iAP2NativeMsg native_message =
+      iAP2NativeMsg(static_cast<uint8_t *>(notification_data), length);
+
   switch (notification_type) {
   case IAP2_NOTI_EAP_START:
-    OnEAPStart();
+    OnEAPStart(&native_message);
     break;
   case IAP2_NOTI_EAP_STOP:
     OnEAPStop();

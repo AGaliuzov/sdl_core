@@ -13,5 +13,7 @@ void ProtocolDescriptor::set_tatus(ProtocolStatus status) { status_ = status; }
 
 uint8_t ProtocolDescriptor::index() const { return index_; }
 
+std::string ProtocolDescriptor::name() const { return name_; }
+
 } // namespace transport_adapter
 } // namespace transport_manager
